@@ -30,19 +30,19 @@ using namespace memoria;
 using namespace v1::tools;
 using namespace std;
 
-using CtrT      = DCtrTF<Table<BigInt, Short>>::Type;
+using CtrT      = DCtrTF<Table<int64_t, int16_t>>::Type;
 using Provider  = bttl::RandomDataInputProvider<CtrT, RngInt>;
 
-template<Int StreamIdx>
+template<int32_t StreamIdx>
 using Adapter   = CtrT::Types::template InputTupleAdapter<StreamIdx>;
 
-using IV = std::initializer_list<BigInt>;
+using IV = std::initializer_list<int64_t>;
 
 struct ScanFn {
-    BigInt value_ = 0;
+    int64_t value_ = 0;
 
     template <typename Stream>
-    void operator()(const Stream* obj, Int start, Int end)
+    void operator()(const Stream* obj, int32_t start, int32_t end)
     {
         value_++;
     }
@@ -63,9 +63,9 @@ int main(int argc, const char** argv, const char** envp) {
 
         auto iter = ctr.seek(0);
 
-        Int rows        = 1000000;
-        Int cols        = 10;
-        Int data_size   = 50;
+        int32_t rows        = 1000000;
+        int32_t cols        = 10;
+        int32_t data_size   = 50;
 
         Provider provider({rows + 1, cols, data_size}, getGlobalIntGenerator());
 

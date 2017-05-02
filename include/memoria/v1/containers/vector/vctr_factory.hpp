@@ -98,7 +98,7 @@ struct BTTypes<Profile, v1::Vector<Value> >: public VectorBTTypesBase<Profile, V
 template <Granularity Gr> struct CodecClassTF;
 
 template <>
-struct CodecClassTF<Granularity::Byte> {
+struct CodecClassTF<Granularity::int8_t> {
     template <typename V>
     using Type = UByteI7Codec<V>;
 };

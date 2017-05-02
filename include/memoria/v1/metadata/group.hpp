@@ -24,26 +24,26 @@ namespace v1 {
 struct MetadataGroup: public Metadata {
 public:
 
-    MetadataGroup(StringRef name, const MetadataList &content, Int block_size = 0, Int type = Metadata::GROUP):
+    MetadataGroup(StringRef name, const MetadataList &content, int32_t block_size = 0, int32_t type = Metadata::GROUP):
         Metadata(name, type), content_(content.size()), block_size_(block_size)
     {
-        for (UInt c = 0; c < content.size(); c++) {
+        for (uint32_t c = 0; c < content.size(); c++) {
             content_[c] = content[c];
         }
     }
 
-    MetadataGroup(StringRef name, Int block_size = 0, Int type = Metadata::GROUP):
+    MetadataGroup(StringRef name, int32_t block_size = 0, int32_t type = Metadata::GROUP):
         Metadata(name, type), block_size_(block_size)
     {}
 
     virtual ~MetadataGroup() throw ()
     {}
 
-    virtual Int size() const {
+    virtual int32_t size() const {
         return content_.size();
     }
 
-    virtual const MetadataPtr& getItem(Int idx) const {
+    virtual const MetadataPtr& getItem(int32_t idx) const {
         return content_[idx];
     }
 
@@ -55,14 +55,14 @@ public:
         }
     }
 
-    virtual Int getBlockSize() const
+    virtual int32_t getBlockSize() const
     {
         return block_size_;
     }
 
 protected:
     MetadataList    content_;
-    Int             block_size_;
+    int32_t             block_size_;
 
 };
 
@@ -70,7 +70,7 @@ protected:
 
 inline bool isGroup(Metadata *meta)
 {
-    Int type = meta->getTypeCode();
+    int32_t type = meta->getTypeCode();
     return type == Metadata::GROUP || type == Metadata::CONTAINER || type == Metadata::PAGE;
 }
 

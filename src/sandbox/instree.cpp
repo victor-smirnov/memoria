@@ -27,7 +27,7 @@
 using namespace std;
 using namespace memoria;
 
-constexpr Int MAX_NODE_SIZE = 10;
+constexpr int32_t MAX_NODE_SIZE = 10;
 
 class TreeNode;
 using TreeNodePtr = shared_ptr<TreeNode>;
@@ -39,7 +39,7 @@ class LeafNode;
 using BranchNodePtr = shared_ptr<BranchNode>;
 using LeafNodePtr = shared_ptr<LeafNode>;
 
-using DataList = vector<vector<Int>>;
+using DataList = vector<vector<int32_t>>;
 
 template <typename T>
 ostream& operator<<(ostream& out, const vector<T>& data) {
@@ -62,13 +62,13 @@ class TreeNode {
 public:
     virtual ~TreeNode() {}
 
-    virtual void dump(Int level = 0) = 0;
+    virtual void dump(int32_t level = 0) = 0;
 
-    virtual Int count_leafs() const = 0;
+    virtual int32_t count_leafs() const = 0;
 
-    virtual bool checkTree(const DataList& data, Int& start) = 0;
+    virtual bool checkTree(const DataList& data, int32_t& start) = 0;
 
-    virtual LeafNodePtr find_leaf(Int idx, Int& current, ::Tree& tree) = 0;
+    virtual LeafNodePtr find_leaf(int32_t idx, int32_t& current, ::Tree& tree) = 0;
 
     virtual bool is_leaf() const = 0;
 
@@ -97,8 +97,8 @@ public:
         root_->dump();
     }
 
-    virtual LeafNodePtr find_leaf(Int idx) {
-        Int current = 0;
+    virtual LeafNodePtr find_leaf(int32_t idx) {
+        int32_t current = 0;
         return root_->find_leaf(idx, current, *this);
     }
 
@@ -130,23 +130,23 @@ public:
         parent_ = parent;
     }
 
-    Int size() const {
+    int32_t size() const {
         return values_.size();
     }
 
-    Int capacity() const {
+    int32_t capacity() const {
         return MAX_NODE_SIZE - values_.size();
     }
 
-    Value& value(Int idx) {
+    Value& value(int32_t idx) {
         return values_[idx];
     }
 
-    const Value& value(Int idx) const {
+    const Value& value(int32_t idx) const {
         return values_[idx];
     }
 
-    void insert(Value val, Int at)
+    void insert(Value val, int32_t at)
     {
         values_.insert(values_.begin() + at, val);
     }
@@ -155,7 +155,7 @@ public:
         values_.push_back(val);
     }
 
-    void remove(Int from, Int to)
+    void remove(int32_t from, int32_t to)
     {
         values_.erase(values_.begin() + from, values_.begin() + to);
     }
@@ -175,19 +175,19 @@ class BranchNode: public Node<TreeNodePtr> {
 public:
     virtual ~BranchNode() {}
 
-    virtual void dump(Int level)
+    virtual void dump(int32_t level)
     {
-        for (Int c = 0; c < level * 4; c++) cout<<" ";
+        for (int32_t c = 0; c < level * 4; c++) cout<<" ";
         cout<<"Branch "<<this<<" of "<<Base::values_.size()<<" {"<<endl;
         for (auto& e: Base::values_)
         {
             e->dump(level + 1);
         }
-        for (Int c = 0; c < level * 4; c++) cout<<" ";
+        for (int32_t c = 0; c < level * 4; c++) cout<<" ";
         cout<<"}"<<endl;
     }
 
-    void insert(TreeNodePtr val, Int at)
+    void insert(TreeNodePtr val, int32_t at)
     {
         values_.insert(values_.begin() + at, val);
         val->set_parent(this);
@@ -199,12 +199,12 @@ public:
         val->set_parent(this);
     }
 
-    virtual BranchNodePtr split(Int at, TreePtr tree)
+    virtual BranchNodePtr split(int32_t at, TreePtr tree)
     {
         BranchNodePtr sibling = make_shared<BranchNode>();
         auto& values = values_;
 
-        for (Int c = at; c < values.size(); c++)
+        for (int32_t c = at; c < values.size(); c++)
         {
             sibling->append(values[c]);
         }
@@ -229,11 +229,11 @@ public:
     }
 
 
-    Int find_child_idx(const TreeNode* child)
+    int32_t find_child_idx(const TreeNode* child)
     {
-        Int idx = -1;
+        int32_t idx = -1;
 
-        for (Int c = 0; c < this->values_.size(); c++)
+        for (int32_t c = 0; c < this->values_.size(); c++)
         {
             if (this->values_[c].get() == child)
             {
@@ -252,7 +252,7 @@ public:
 
     void insert_child(const TreeNode* child, TreeNodePtr new_child, TreePtr tree)
     {
-        Int idx = find_child_idx(child);
+        int32_t idx = find_child_idx(child);
 
         if (capacity() == 0)
         {
@@ -280,7 +280,7 @@ public:
 
             if (target != nullptr)
             {
-                Int idx = target->find_child_idx(this->parent());
+                int32_t idx = target->find_child_idx(this->parent());
                 return dynamic_pointer_cast<BranchNode>(target->value(idx));
             }
             else {
@@ -292,8 +292,8 @@ public:
         }
     }
 
-    virtual Int count_leafs() const {
-        Int cnt = 0;
+    virtual int32_t count_leafs() const {
+        int32_t cnt = 0;
 
         for (auto child: this->values_) {
             cnt += child->count_leafs();
@@ -302,7 +302,7 @@ public:
         return cnt;
     }
 
-    virtual bool checkTree(const DataList& data, Int& start) {
+    virtual bool checkTree(const DataList& data, int32_t& start) {
         for (auto child: this->values_)
         {
             if (!child->checkTree(data, start))
@@ -313,7 +313,7 @@ public:
         return true;
     }
 
-    virtual LeafNodePtr find_leaf(Int idx, Int& current, ::Tree& tree)
+    virtual LeafNodePtr find_leaf(int32_t idx, int32_t& current, ::Tree& tree)
     {
         for (auto child: this->values_)
         {
@@ -332,8 +332,8 @@ public:
 
 
 
-class LeafNode: public Node<Int> {
-    using Base = Node<Int>;
+class LeafNode: public Node<int32_t> {
+    using Base = Node<int32_t>;
 
 
 
@@ -342,9 +342,9 @@ public:
 
 
 
-    virtual void dump(Int level)
+    virtual void dump(int32_t level)
     {
-        for (Int c = 0; c < level*4; c++) cout<<" ";
+        for (int32_t c = 0; c < level*4; c++) cout<<" ";
 
         cout<<"Leaf "<<this<<" of "<<Base::values_.size()<<" [";
         for (auto e: Base::values_)
@@ -362,7 +362,7 @@ public:
 
             if (target != nullptr)
             {
-                Int idx = target->find_child_idx(this->parent());
+                int32_t idx = target->find_child_idx(this->parent());
                 return dynamic_pointer_cast<BranchNode>(target->value(idx));
             }
             else {
@@ -374,12 +374,12 @@ public:
         }
     }
 
-    virtual LeafNodePtr split(Int at, TreePtr tree)
+    virtual LeafNodePtr split(int32_t at, TreePtr tree)
     {
         LeafNodePtr sibling = make_shared<LeafNode>();
         auto& values = values_;
 
-        for (Int c = 0; c < values.size() - at; c++)
+        for (int32_t c = 0; c < values.size() - at; c++)
         {
             sibling->append(values[c]);
         }
@@ -405,7 +405,7 @@ public:
 
 
 
-    void insert_value(Int idx, Int value, TreePtr tree)
+    void insert_value(int32_t idx, int32_t value, TreePtr tree)
     {
         if (capacity() == 0)
         {
@@ -425,17 +425,17 @@ public:
         }
     }
 
-    virtual Int count_leafs() const {
+    virtual int32_t count_leafs() const {
         return 1;
     }
 
-    virtual bool checkTree(const DataList& data, Int& start)
+    virtual bool checkTree(const DataList& data, int32_t& start)
     {
         const auto& dataL = data[start];
 
         if (this->size() == dataL.size())
         {
-            for (Int c = 0; c < dataL.size(); c++)
+            for (int32_t c = 0; c < dataL.size(); c++)
             {
                 if (dataL[c] != this->values_[c])
                 {
@@ -454,13 +454,13 @@ public:
         }
     }
 
-    virtual LeafNodePtr find_leaf(Int idx, Int& current, ::Tree& tree)
+    virtual LeafNodePtr find_leaf(int32_t idx, int32_t& current, ::Tree& tree)
     {
         if (idx == current)
         {
             if (this->parent() != nullptr)
             {
-                Int idx = this->parent()->find_child_idx(this);
+                int32_t idx = this->parent()->find_child_idx(this);
                 return dynamic_pointer_cast<LeafNode>(this->parent()->value(idx));
             }
             else {
@@ -483,10 +483,10 @@ public:
 
 class Subtree {
     TreeNodePtr node_;
-    Int size_;
+    int32_t size_;
 
 public:
-    Subtree(TreeNodePtr node, Int size): node_(node), size_(size) {}
+    Subtree(TreeNodePtr node, int32_t size): node_(node), size_(size) {}
     Subtree(): size_(0) {}
 
     TreeNodePtr node() {
@@ -497,7 +497,7 @@ public:
         return node_;
     }
 
-    Int size() const {
+    int32_t size() const {
         return size_;
     }
 };
@@ -507,12 +507,12 @@ class Checkpoint {
     using Iterator = list<LeafNodePtr>::iterator;
 
     Iterator iterator_;
-    Int journal_size_;
+    int32_t journal_size_;
 public:
-    Checkpoint(Iterator iter, Int size): iterator_(iter), journal_size_(size) {}
+    Checkpoint(Iterator iter, int32_t size): iterator_(iter), journal_size_(size) {}
 
     Iterator iterator() const {return iterator_;};
-    Int journal_size() const {return journal_size_;};
+    int32_t journal_size() const {return journal_size_;};
 };
 
 
@@ -524,10 +524,10 @@ struct ILeafProvider {
     virtual void commit()           = 0;
     virtual void rollback(const Checkpoint& chekpoint) = 0;
 
-    virtual Int size() const        = 0;
+    virtual int32_t size() const        = 0;
 };
 
-Subtree BuildSubtree(ILeafProvider& leaf_provider, Int level, BranchNode* parent = nullptr)
+Subtree BuildSubtree(ILeafProvider& leaf_provider, int32_t level, BranchNode* parent = nullptr)
 {
     if (leaf_provider.size() > 0)
     {
@@ -535,11 +535,11 @@ Subtree BuildSubtree(ILeafProvider& leaf_provider, Int level, BranchNode* parent
         {
             BranchNodePtr node = make_shared<BranchNode>();
 
-            Int max = 2 + rand() % (MAX_NODE_SIZE - 2);
+            int32_t max = 2 + rand() % (MAX_NODE_SIZE - 2);
 
-            Int cnt = 0;
+            int32_t cnt = 0;
 
-            for (Int c = 0; c < max && leaf_provider.size() > 0; c++)
+            for (int32_t c = 0; c < max && leaf_provider.size() > 0; c++)
             {
                 Checkpoint checkpoint = leaf_provider.checkpoint();
 
@@ -571,11 +571,11 @@ class ListLeafProvider: public ILeafProvider {
     list<LeafNodePtr> leafs_;
     list<LeafNodePtr>::iterator iterator_;
 
-    Int journal_size_ = 0;
+    int32_t journal_size_ = 0;
 public:
     ListLeafProvider(): iterator_(leafs_.begin()) {}
 
-    virtual Int size() const
+    virtual int32_t size() const
     {
         return leafs_.size() - journal_size_;
     }
@@ -631,11 +631,11 @@ public:
 
 
 
-LeafNodePtr make_random_leaf(Int size)
+LeafNodePtr make_random_leaf(int32_t size)
 {
     LeafNodePtr leaf = make_shared<LeafNode>();
 
-    for (Int c = 0; c < size; c++)
+    for (int32_t c = 0; c < size; c++)
     {
         leaf->append(rand() % 100);
     }
@@ -645,24 +645,24 @@ LeafNodePtr make_random_leaf(Int size)
 
 
 class InsertionState {
-    Int inserted_   = 0;
-    Int total_      = 0;
+    int32_t inserted_   = 0;
+    int32_t total_      = 0;
 public:
-    InsertionState(Int total): total_(total) {}
+    InsertionState(int32_t total): total_(total) {}
 
-    Int& total() {
+    int32_t& total() {
         return total_;
     }
 
-    const Int& total() const {
+    const int32_t& total() const {
         return total_;
     }
 
-    const Int& inserted() const {
+    const int32_t& inserted() const {
         return inserted_;
     }
 
-    Int& inserted() {
+    int32_t& inserted() {
         return inserted_;
     }
 
@@ -673,7 +673,7 @@ public:
 
 
 
-void insert_subtree(TreePtr tree, BranchNodePtr left, BranchNodePtr right, ILeafProvider& provider, InsertionState& state, Int level = 1)
+void insert_subtree(TreePtr tree, BranchNodePtr left, BranchNodePtr right, ILeafProvider& provider, InsertionState& state, int32_t level = 1)
 {
     bool first = true;
     while(provider.size() > 0 && left->capacity() > 0)
@@ -709,7 +709,7 @@ void insert_subtree(TreePtr tree, BranchNodePtr left, BranchNodePtr right, ILeaf
         insert_subtree(tree, left_parent, right_parent, provider, state, level + 1);
     }
     else {
-        Int idx = 0;
+        int32_t idx = 0;
         first = true;
         while(provider.size() > 0 && right->capacity() > 0)
         {
@@ -734,13 +734,13 @@ void insert_subtree(TreePtr tree, BranchNodePtr left, BranchNodePtr right, ILeaf
 }
 
 
-void insert_subtree(TreePtr tree, BranchNodePtr node, Int pos, ILeafProvider& provider)
+void insert_subtree(TreePtr tree, BranchNodePtr node, int32_t pos, ILeafProvider& provider)
 {
     auto size = provider.size();
 
     if (node->capacity() >= size)
     {
-        for (Int c = 0; c < size; c++) {
+        for (int32_t c = 0; c < size; c++) {
             node->insert(provider.get_leaf(), pos + c);
         }
     }
@@ -785,11 +785,11 @@ void insert_subtree(TreePtr tree, BranchNodePtr node, Int pos, ILeafProvider& pr
 using ListLeafProviderPtr = shared_ptr<ListLeafProvider>;
 
 template <typename LeafFn>
-ListLeafProviderPtr createRandomList(Int size, LeafFn fn)
+ListLeafProviderPtr createRandomList(int32_t size, LeafFn fn)
 {
     ListLeafProviderPtr provider = make_shared<ListLeafProvider>();
 
-    for (Int c = 0; c < size; c++)
+    for (int32_t c = 0; c < size; c++)
     {
         auto leaf = make_random_leaf(rand() % (MAX_NODE_SIZE - 1) + 1);
         fn(leaf);
@@ -800,7 +800,7 @@ ListLeafProviderPtr createRandomList(Int size, LeafFn fn)
 }
 
 bool checkTree(TreePtr tree, const DataList& data) {
-    Int start = 0;
+    int32_t start = 0;
     if (tree->get_root()->checkTree(data, start))
     {
         if (start != data.size())
@@ -851,7 +851,7 @@ int main()
             {
                 auto target_node = target_leaf->parentPtr(tree);
 
-                Int idx = target_node->find_child_idx(target_leaf.get());
+                int32_t idx = target_node->find_child_idx(target_leaf.get());
 
                 insert_subtree(tree, dynamic_pointer_cast<BranchNode>(target_node), idx, *provider2.get());
 

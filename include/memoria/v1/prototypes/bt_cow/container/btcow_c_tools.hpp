@@ -39,13 +39,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btcow::ToolsName)
 public:
 
 
-void dumpPath(const TreePath& path, Int level, std::ostream& out = std::cout, Int depth = 100) const
+void dumpPath(const TreePath& path, int32_t level, std::ostream& out = std::cout, int32_t depth = 100) const
 {
     auto& self = this->self();
 
     out << "Path:" << std::endl;
 
-    for (Int c = level; c < path.size(); c++)
+    for (int32_t c = level; c < path.size(); c++)
     {
     	self.dump(path[c], out);
     }
@@ -54,7 +54,7 @@ void dumpPath(const TreePath& path, Int level, std::ostream& out = std::cout, In
 
 protected:
 
-NodeBaseG getNodeParent(const TreePath& path, Int level) const
+NodeBaseG getNodeParent(const TreePath& path, int32_t level) const
 {
     auto& self = this->self();
 
@@ -67,7 +67,7 @@ NodeBaseG getNodeParent(const TreePath& path, Int level) const
     }
 }
 
-NodeBaseG getNodeParentForUpdate(const TreePath& path, Int level) const
+NodeBaseG getNodeParentForUpdate(const TreePath& path, int32_t level) const
 {
     auto& self = this->self();
 
@@ -84,7 +84,7 @@ NodeBaseG getNodeParentForUpdate(const TreePath& path, Int level) const
 public:
 
 
-bool getNextNodeP(TreePath& path, TreePath& next, Int level)
+bool getNextNodeP(TreePath& path, TreePath& next, int32_t level)
 {
 	auto& self = this->self();
 
@@ -92,8 +92,8 @@ bool getNextNodeP(TreePath& path, TreePath& next, Int level)
 	{
 		NodeBaseG parent = path[level + 1];
 
-		Int parent_size = self.getBranchNodeSize(parent);
-		Int parent_idx  = self.findChildIdx(parent, path[level]->id());
+		int32_t parent_size = self.getBranchNodeSize(parent);
+		int32_t parent_idx  = self.findChildIdx(parent, path[level]->id());
 
 		MEMORIA_V1_ASSERT(parent_idx, >=, 0);
 
@@ -117,12 +117,12 @@ bool getNextNodeP(TreePath& path, TreePath& next, Int level)
 }
 
 
-bool getPrevNodeP(TreePath& path, TreePath& prev, Int level)
+bool getPrevNodeP(TreePath& path, TreePath& prev, int32_t level)
 {
 	if (level < path.size() - 1)
 	{
 		NodeBaseG parent = path[level + 1];
-		Int parent_idx  = self.findChildIdx(parent, path[level]->id());
+		int32_t parent_idx  = self.findChildIdx(parent, path[level]->id());
 
 		MEMORIA_V1_ASSERT(parent_idx, >=, 0);
 
@@ -149,8 +149,8 @@ bool getPrevNodeP(TreePath& path, TreePath& prev, Int level)
 
 protected:
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(FindChildIdx, find_child_idx, Int);
-    Int findChildIdx(const NodeBaseG& node, const ID& child_id)
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(FindChildIdx, find_child_idx, int32_t);
+    int32_t findChildIdx(const NodeBaseG& node, const ID& child_id)
     {
     	return BranchDispatcher::dispatch(node, FindChildIdx(), child_id);
     }
@@ -174,9 +174,9 @@ MEMORIA_V1_CONTAINER_PART_END
 //    {
 //        NodeBaseG parent = self.getNodeParent(node);
 //
-//        Int size = self.getNodeSize(parent, 0);
+//        int32_t size = self.getNodeSize(parent, 0);
 //
-//        Int parent_idx = node->parent_idx();
+//        int32_t parent_idx = node->parent_idx();
 //
 //        if (parent_idx < size - 1)
 //        {
@@ -209,7 +209,7 @@ MEMORIA_V1_CONTAINER_PART_END
 //    {
 //        NodeBaseG parent = self.getNodeParent(node);
 //
-//        Int parent_idx = node->parent_idx();
+//        int32_t parent_idx = node->parent_idx();
 //
 //        if (parent_idx > 0)
 //        {
@@ -220,7 +220,7 @@ MEMORIA_V1_CONTAINER_PART_END
 //
 //            if (target_parent.isSet())
 //            {
-//                Int node_size = self.getNodeSize(target_parent, 0);
+//                int32_t node_size = self.getNodeSize(target_parent, 0);
 //                return self.getChild(target_parent, node_size - 1);
 //            }
 //            else {

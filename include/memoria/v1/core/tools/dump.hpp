@@ -25,7 +25,7 @@
 namespace memoria {
 namespace v1 {
 
-void Expand(std::ostream& os, Int level);
+void Expand(std::ostream& os, int32_t level);
 
 namespace {
 
@@ -39,29 +39,29 @@ namespace {
     };
 
     template <>
-    struct OutputHelepr<Byte> {
-        static std::ostream& out(std::ostream& o, const Byte& value)
+    struct OutputHelepr<int8_t> {
+        static std::ostream& out(std::ostream& o, const int8_t& value)
         {
-            o<<(Int)(UByte)value;
+            o<<(int32_t)(uint8_t)value;
             return o;
         }
     };
 
     template <>
-    struct OutputHelepr<UByte> {
-        static std::ostream& out(std::ostream& o, const UByte& value)
+    struct OutputHelepr<uint8_t> {
+        static std::ostream& out(std::ostream& o, const uint8_t& value)
         {
-            o<<(Int)value;
+            o<<(int32_t)value;
             return o;
         }
     };
 
     template <typename V>
-    size_t max_width(Int count, bool hex, function<V(Int)> fn)
+    size_t max_width(int32_t count, bool hex, function<V(int32_t)> fn)
     {
         size_t max = 0;
 
-        for (Int c = 0; c < count; c++)
+        for (int32_t c = 0; c < count; c++)
         {
             V v = fn(c);
 
@@ -87,31 +87,31 @@ namespace {
     inline void dump_as_char(std::ostream& out, const T& val) {}
 
 
-    inline void dump_as_char(std::ostream& out, const UByte& val) {
+    inline void dump_as_char(std::ostream& out, const uint8_t& val) {
         out << mask_controls(val);
     }
 
 
-    inline void dump_as_char(std::ostream& out, const Byte& val) {
+    inline void dump_as_char(std::ostream& out, const int8_t& val) {
         out << mask_controls(val);
     }
 
 
-    inline void dump_as_char(std::ostream& out, const Char& val) {
+    inline void dump_as_char(std::ostream& out, const char& val) {
         out << mask_controls(val);
     }
 }
 
 template <typename V>
-void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
+void dumpArray(std::ostream& out, int32_t count, function<V (int32_t)> fn)
 {
-    bool is_char = std::is_same<V, UByte>::value || std::is_same<V, Byte>::value || std::is_same<V, Char>::value;
+    bool is_char = std::is_same<V, uint8_t>::value || std::is_same<V, int8_t>::value || std::is_same<V, char>::value;
 
     auto width = 5;//max_width(count, is_char, fn) + 1;
 
     if (width < 2) width = 2;
 
-    Int columns;
+    int32_t columns;
 
     switch (sizeof(V))
     {
@@ -142,7 +142,7 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
 
     out << dec << endl;
 
-    for (Int c = 0; c < count; c+= columns)
+    for (int32_t c = 0; c < count; c+= columns)
     {
         Expand(out, 12);
         out << " ";
@@ -151,7 +151,7 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
         out.width(6);
         out << c << ": ";
 
-        Int d;
+        int32_t d;
         for (d = 0; d < columns && c + d < count; d++)
         {
             stringstream ss;
@@ -177,7 +177,7 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
             out.width(16);
             out << "";
 
-            for (Int d = 0; d < columns && c + d < count; d++)
+            for (int32_t d = 0; d < columns && c + d < count; d++)
             {
                 out.width(1);
 
@@ -196,14 +196,14 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
 template <typename V>
 void dumpVector(std::ostream& out, const std::vector<V>& data)
 {
-    dumpArray<V>(out, data.size(), [&](Int idx) {return data[idx];});
+    dumpArray<V>(out, data.size(), [&](int32_t idx) {return data[idx];});
 }
 
 
 template <typename V>
-void dumpSymbols(ostream& out_, Int size_, Int bits_per_symbol, function<V(Int)> fn)
+void dumpSymbols(ostream& out_, int32_t size_, int32_t bits_per_symbol, function<V(int32_t)> fn)
 {
-    Int columns;
+    int32_t columns;
 
     switch (bits_per_symbol)
     {
@@ -213,9 +213,9 @@ void dumpSymbols(ostream& out_, Int size_, Int bits_per_symbol, function<V(Int)>
     default: columns = 50;
     }
 
-    Int width = bits_per_symbol <= 4 ? 1 : 3;
+    int32_t width = bits_per_symbol <= 4 ? 1 : 3;
 
-    Int c = 0;
+    int32_t c = 0;
 
     do
     {
@@ -228,7 +228,7 @@ void dumpSymbols(ostream& out_, Int size_, Int bits_per_symbol, function<V(Int)>
         }
         out_<<endl;
 
-        Int rows = 0;
+        int32_t rows = 0;
         for (; c < size_ && rows < 10; c += columns, rows++)
         {
             Expand(out_, 12);
@@ -238,7 +238,7 @@ void dumpSymbols(ostream& out_, Int size_, Int bits_per_symbol, function<V(Int)>
             out_.width(6);
             out_<<c<<": ";
 
-            for (Int d = 0; d < columns && c + d < size_; d++)
+            for (int32_t d = 0; d < columns && c + d < size_; d++)
             {
                 out_<<hex;
                 out_.width(width);
@@ -253,9 +253,9 @@ void dumpSymbols(ostream& out_, Int size_, Int bits_per_symbol, function<V(Int)>
 
 
 template <typename T>
-void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)
+void dumpSymbols(ostream& out_, T* symbols, int32_t size_, int32_t bits_per_symbol)
 {
-    Int columns;
+    int32_t columns;
 
     switch (bits_per_symbol)
     {
@@ -265,9 +265,9 @@ void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)
         default: columns = 50;
     }
 
-    Int width = bits_per_symbol <= 4 ? 1 : 3;
+    int32_t width = bits_per_symbol <= 4 ? 1 : 3;
 
-    Int c = 0;
+    int32_t c = 0;
 
     do
     {
@@ -280,7 +280,7 @@ void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)
         }
         out_<<endl;
 
-        Int rows = 0;
+        int32_t rows = 0;
         for (; c < size_ && rows < 10; c += columns, rows++)
         {
             Expand(out_, 12);
@@ -290,18 +290,18 @@ void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)
             out_.width(6);
             out_<<c<<": ";
 
-            for (Int d = 0; d < columns && c + d < size_; d++)
+            for (int32_t d = 0; d < columns && c + d < size_; d++)
             {
                 out_<<hex;
                 out_.width(width);
 
-                Int idx = (c + d) * bits_per_symbol;
+                int32_t idx = (c + d) * bits_per_symbol;
 
                 if (sizeof(T) > 1) {
                     out_<<GetBits(symbols, idx, bits_per_symbol);
                 }
                 else {
-                    out_<<(Int)GetBits(symbols, idx, bits_per_symbol);
+                    out_<<(int32_t)GetBits(symbols, idx, bits_per_symbol);
                 }
             }
 

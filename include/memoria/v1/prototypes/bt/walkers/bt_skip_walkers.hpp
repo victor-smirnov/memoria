@@ -41,16 +41,16 @@ public:
     {}
 
 
-    template <Int StreamIdx, typename Tree>
-    StreamOpResult find_leaf(const Tree* tree, Int start)
+    template <int32_t StreamIdx, typename Tree>
+    StreamOpResult find_leaf(const Tree* tree, int32_t start)
     {
         auto& sum = Base::sum_;
 
-        BigInt offset = Base::target_ - sum;
+        int64_t offset = Base::target_ - sum;
 
         if (tree != nullptr)
         {
-            Int size = tree->size();
+            int32_t size = tree->size();
 
             if (start + offset < size)
             {
@@ -110,8 +110,8 @@ public:
     {}
 
 
-    template <Int StreamIdx, typename Tree>
-    StreamOpResult find_leaf(const Tree* tree, Int start)
+    template <int32_t StreamIdx, typename Tree>
+    StreamOpResult find_leaf(const Tree* tree, int32_t start)
     {
         auto size = tree != nullptr ? tree->size() : 0;
 
@@ -119,7 +119,7 @@ public:
 
         if (start >= 0)
         {
-            BigInt offset = Base::target_ - Base::sum_;
+            int64_t offset = Base::target_ - Base::sum_;
 
             auto& sum = Base::sum_;
 

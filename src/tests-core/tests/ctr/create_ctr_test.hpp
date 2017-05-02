@@ -34,20 +34,20 @@ class CreateCtrTest: public SPTestTask {
 
     typedef CreateCtrTest                                                       MyType;
 
-    typedef KVPair<BigInt, BigInt>                                              Pair;
+    typedef KVPair<int64_t, int64_t>                                              Pair;
     typedef vector<Pair>                                                        PairVector;
     typedef DCtrTF<WT>::Type                                                    WTCtr;
-    typedef DCtrTF<Map<BigInt, BigInt>>::Type                                   MapCtr;
+    typedef DCtrTF<Map<int64_t, int64_t>>::Type                                   MapCtr;
 
     PairVector pairs_;
 
-    Int map_size_           = 10000;
-    Int wt_size_            = 500;
+    int32_t map_size_           = 10000;
+    int32_t wt_size_            = 500;
 
-    Int iteration_          = 0;
+    int32_t iteration_          = 0;
 
-    BigInt map_name_;
-    BigInt wt_name_;
+    int64_t map_name_;
+    int64_t wt_name_;
 
 public:
 
@@ -77,7 +77,7 @@ public:
         AssertEQ(src, allocator.size(), 0);
     }
 
-    void assertSize(const char* src, Allocator& allocator, Int size)
+    void assertSize(const char* src, Allocator& allocator, int32_t size)
     {
         AssertEQ(src, allocator.size(), size);
     }
@@ -152,7 +152,7 @@ public:
 
         assertSize(MA_SRC, allocator, 2);
 
-        BigInt name;
+        int64_t name;
 
         {   // Container object lifecycle scope.
 
@@ -161,7 +161,7 @@ public:
 
             assertSize(MA_SRC, allocator, 3);
 
-            for (Int c = 0; c < 1000; c++)
+            for (int32_t c = 0; c < 1000; c++)
             {
                 map[c] = c + 1;
             }
@@ -190,11 +190,11 @@ public:
         assertSize(MA_SRC, allocator, 3);
 
 
-        BigInt name1 = allocator.createCtrName();
+        int64_t name1 = allocator.createCtrName();
 
         allocator.rollback();
 
-        BigInt name2 = allocator.createCtrName();
+        int64_t name2 = allocator.createCtrName();
 
         AssertEQ(MA_SRC, name1, name2);
     }
@@ -211,9 +211,9 @@ public:
 
         map_name_ = map.name();
 
-        BigInt t00 = getTimeInMillis();
+        int64_t t00 = getTimeInMillis();
 
-        for (Int c = 0; c < map_size_; c++)
+        for (int32_t c = 0; c < map_size_; c++)
         {
             map[getRandom()] = getRandom();
         }
@@ -223,7 +223,7 @@ public:
 
         wt_name_ = wt_ctr.name();
 
-        for (Int c = 0; c < wt_size_; c++)
+        for (int32_t c = 0; c < wt_size_; c++)
         {
             wt_ctr.insert(c, getRandom());
         }
@@ -232,19 +232,19 @@ public:
 
         forceCheck(allocator, MA_SRC);
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
         String name = this->getResourcePath("alloc1.dump");
 
         StoreAllocator(allocator, name);
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
         Allocator new_alloc;
 
         LoadAllocator(new_alloc, name);
 
-        BigInt t2 = getTimeInMillis();
+        int64_t t2 = getTimeInMillis();
 
         out()<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
         out()<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
@@ -263,13 +263,13 @@ public:
             AssertEQ(MA_SRC, iter.value(), new_iter.value());
         }
 
-        BigInt t22 = getTimeInMillis();
+        int64_t t22 = getTimeInMillis();
 
         WTCtr new_wt(&new_alloc, CTR_FIND, wt_ctr.name());
 
         AssertEQ(MA_SRC, wt_ctr.size(), new_wt.size());
 
-        for (Int c = 0; c < wt_ctr.size(); c++)
+        for (int32_t c = 0; c < wt_ctr.size(); c++)
         {
             auto sym1 = wt_ctr.value(c);
             auto sym2 = new_wt.value(c);
@@ -277,7 +277,7 @@ public:
             AssertEQ(MA_SRC, sym1, sym2);
         }
 
-        BigInt t33 = getTimeInMillis();
+        int64_t t33 = getTimeInMillis();
 
         out()<<"Create Time: "<<FormatTime(t0 - t00)<<endl;
         out()<<"check Time:  "<<FormatTime(t22 - t2)<<endl;

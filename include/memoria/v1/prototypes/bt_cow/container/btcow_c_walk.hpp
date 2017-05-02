@@ -62,7 +62,7 @@ public:
         walker->endCtr();
     }
 
-    void beginNode(Int parent_idx, const NodeBaseG& node, ContainerWalker* walker)
+    void beginNode(int32_t parent_idx, const NodeBaseG& node, ContainerWalker* walker)
     {
         if (node->is_root())
         {
@@ -100,7 +100,7 @@ public:
 
 private:
 
-    void traverseTree(Int parent_idx, const NodeBaseG& node, ContainerWalker* walker)
+    void traverseTree(int32_t parent_idx, const NodeBaseG& node, ContainerWalker* walker)
     {
         auto& self = this->self();
 
@@ -108,7 +108,7 @@ private:
 
         if (!node->is_leaf())
         {
-            self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const ID& id, Int idx)
+            self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const ID& id, int32_t idx)
             {
                 NodeBaseG child = self.allocator().getPage(id, self.master_name());
 

@@ -89,8 +89,8 @@ public:
         return NodeDispatcher::dispatch(node, GetSizesFn());
     }
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetSizeFn, size, Int);
-    Int getNodeSize(const NodeBaseG& node, Int stream) const
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetSizeFn, size, int32_t);
+    int32_t getNodeSize(const NodeBaseG& node, int32_t stream) const
     {
         return NodeDispatcher::dispatch(node, GetSizeFn(), stream);
     }
@@ -118,7 +118,7 @@ public:
         }
     }
 
-    void dumpPath(NodeBaseG node, std::ostream& out = std::cout, Int depth = 100) const
+    void dumpPath(NodeBaseG node, std::ostream& out = std::cout, int32_t depth = 100) const
     {
         auto& self = this->self();
 
@@ -176,14 +176,14 @@ protected:
 
 
     template <typename Node>
-    NodeBaseG getChildFn(const Node* node, Int idx) const
+    NodeBaseG getChildFn(const Node* node, int32_t idx) const
     {
         auto& self = this->self();
         return self.allocator().getPage(node->value(idx), self.master_name());
     }
 
     template <typename Node>
-    NodeBaseG getLastChildFn(const Node* node, Int idx) const
+    NodeBaseG getLastChildFn(const Node* node, int32_t idx) const
     {
         auto& self = this->self();
         return self.allocator().getPage(node->value(node->size() - 1), self.master_name());
@@ -191,7 +191,7 @@ protected:
 
 
     template <typename Node>
-    NodeBaseG getChildForUpdateFn(const Node* node, Int idx) const
+    NodeBaseG getChildForUpdateFn(const Node* node, int32_t idx) const
     {
         auto& self = this->self();
         return self.allocator().getPageForUpdate(node->value(idx), self.master_name());
@@ -199,7 +199,7 @@ protected:
 
 
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
-    NodeBaseG getChild(const NodeBaseG& node, Int idx) const
+    NodeBaseG getChild(const NodeBaseG& node, int32_t idx) const
     {
         NodeBaseG result = BranchDispatcher::dispatch(node, GetChildFn(self()), idx);
 
@@ -213,7 +213,7 @@ protected:
     }
 
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetLastChildFn, getLastChildFn, NodeBaseG);
-    NodeBaseG getLastChild(const NodeBaseG& node, Int idx) const
+    NodeBaseG getLastChild(const NodeBaseG& node, int32_t idx) const
     {
         NodeBaseG result = BranchDispatcher::dispatch(node, GetLastChildFn(self()), idx);
 
@@ -229,7 +229,7 @@ protected:
 
 
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetChildForUpdateFn, getChildForUpdateFn, NodeBaseG);
-    NodeBaseG getChildForUpdate(const NodeBaseG& node, Int idx) const
+    NodeBaseG getChildForUpdate(const NodeBaseG& node, int32_t idx) const
     {
         NodeBaseG result = BranchDispatcher::dispatch(node, GetChildForUpdateFn(self()), idx);
 
@@ -276,12 +276,12 @@ protected:
         return NodeDispatcher::dispatch(node, SumsRtnFn());
     }
 
-    void sums(const NodeBaseG& node, Int start, Int end, BranchNodeEntry& sums) const
+    void sums(const NodeBaseG& node, int32_t start, int32_t end, BranchNodeEntry& sums) const
     {
         NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
     }
 
-    BranchNodeEntry sums(const NodeBaseG& node, Int start, Int end) const
+    BranchNodeEntry sums(const NodeBaseG& node, int32_t start, int32_t end) const
     {
         BranchNodeEntry sums;
         NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
@@ -334,7 +334,7 @@ protected:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(SetKeysFn, setKeys);
-    void setBranchKeys(NodeBaseG& node, Int idx, const BranchNodeEntry& keys) const
+    void setBranchKeys(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys) const
     {
         self().updatePageG(node);
         BranchDispatcher::dispatch(node, SetKeysFn(), idx, keys);
@@ -342,7 +342,7 @@ protected:
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, ID);
-    ID getChildID(const NodeBaseG& node, Int idx) const
+    ID getChildID(const NodeBaseG& node, int32_t idx) const
     {
         return BranchDispatcher::dispatch(node, GetINodeDataFn(), idx);
     }
@@ -355,7 +355,7 @@ public:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
-    void layoutBranchNode(NodeBaseG& node, UBigInt active_streams) const
+    void layoutBranchNode(NodeBaseG& node, uint64_t active_streams) const
     {
         BranchDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
     }
@@ -367,8 +367,8 @@ public:
 
 
 protected:
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetActiveStreamsFn, active_streams, UBigInt);
-    UBigInt getActiveStreams(const NodeBaseG& node) const
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetActiveStreamsFn, active_streams, uint64_t);
+    uint64_t getActiveStreams(const NodeBaseG& node) const
     {
         return NodeDispatcher::dispatch(node, GetActiveStreamsFn());
     }
@@ -383,17 +383,17 @@ protected:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
-    void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const
+    void forAllIDs(const NodeBaseG& node, int32_t start, int32_t end, std::function<void (const ID&, int32_t)> fn) const
     {
         BranchDispatcher::dispatch(node, ForAllIDsFn(), start, end, fn);
     }
 
-    void forAllIDs(const NodeBaseG& node, Int start, std::function<void (const ID&, Int)> fn) const
+    void forAllIDs(const NodeBaseG& node, int32_t start, std::function<void (const ID&, int32_t)> fn) const
     {
         BranchDispatcher::dispatch(node, ForAllIDsFn(), start, fn);
     }
 
-    void forAllIDs(const NodeBaseG& node, std::function<void (const ID&, Int)> fn) const
+    void forAllIDs(const NodeBaseG& node, std::function<void (const ID&, int32_t)> fn) const
     {
         BranchDispatcher::dispatch(node, ForAllIDsFn(), fn);
     }
@@ -401,16 +401,16 @@ protected:
 
     struct GetBranchNodeChildernCount {
         template <typename T, typename... Args>
-        Int treeNode(const BranchNode<T>* node, Args&&... args) const
+        int32_t treeNode(const BranchNode<T>* node, Args&&... args) const
         {
             return node->size();
         }
     };
 
-    template <Int Stream>
+    template <int32_t Stream>
     struct GetLeafNodeStreamSize {
         template <typename T, typename... Args>
-        Int treeNode(const LeafNode<T>* node, Args&&... args) const
+        int32_t treeNode(const LeafNode<T>* node, Args&&... args) const
         {
             return node->template streamSize<Stream>();
         }
@@ -433,22 +433,22 @@ protected:
     };
 
 
-    Int getNodeChildrenCount(const NodeBaseG& node) const
+    int32_t getNodeChildrenCount(const NodeBaseG& node) const
     {
         return BranchDispatcher::dispatch(node, GetBranchNodeChildernCount());
     }
 
 
 
-    Int getBranchNodeSize(const NodeBaseG& node) const
+    int32_t getBranchNodeSize(const NodeBaseG& node) const
     {
         return BranchDispatcher::dispatch(node, GetSizeFn());
     }
 
 public:
 
-    template <Int StreamIdx>
-    Int getLeafStreamSize(const NodeBaseG& node) const
+    template <int32_t StreamIdx>
+    int32_t getLeafStreamSize(const NodeBaseG& node) const
     {
         return LeafDispatcher::dispatch(node, GetLeafNodeStreamSize<StreamIdx>());
     }
@@ -516,9 +516,9 @@ typename M_TYPE::NodeBaseG M_TYPE::getNextNodeP(NodeBaseG& node) const
     {
         NodeBaseG parent = self.getNodeParent(node);
 
-        Int size = self.getNodeSize(parent, 0);
+        int32_t size = self.getNodeSize(parent, 0);
 
-        Int parent_idx = node->parent_idx();
+        int32_t parent_idx = node->parent_idx();
 
         if (parent_idx < size - 1)
         {
@@ -551,7 +551,7 @@ typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
     {
         NodeBaseG parent = self.getNodeParent(node);
 
-        Int parent_idx = node->parent_idx();
+        int32_t parent_idx = node->parent_idx();
 
         if (parent_idx > 0)
         {
@@ -562,7 +562,7 @@ typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
 
             if (target_parent.isSet())
             {
-                Int node_size = self.getNodeSize(target_parent, 0);
+                int32_t node_size = self.getNodeSize(target_parent, 0);
                 return self.getChild(target_parent, node_size - 1);
             }
             else {

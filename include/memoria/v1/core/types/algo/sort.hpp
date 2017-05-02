@@ -30,7 +30,7 @@ template <
         typename List,
         template <typename Item> class ValueProvider,
         bool Asc,
-        typename ValueType = BigInt,
+        typename ValueType = int64_t,
         typename Result = TypeList<> >
 class Sort;
 

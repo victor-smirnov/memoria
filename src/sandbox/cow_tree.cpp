@@ -27,9 +27,9 @@ using namespace std;
 
 int main(int argc, const char** argv, const char** envp)
 {
-    CoWTree<BigInt, BigInt> tree;
+    CoWTree<int64_t, int64_t> tree;
 
-    Int threads_num;
+    int32_t threads_num;
 
     if (argc > 1)
     {
@@ -41,8 +41,8 @@ int main(int argc, const char** argv, const char** envp)
 
     cout<<"Using threads: "<<threads_num<<endl;
 
-    vector<BigInt> operations;
-    vector<BigInt> founds;
+    vector<int64_t> operations;
+    vector<int64_t> founds;
 
     vector<std::thread> threads;
 
@@ -55,11 +55,11 @@ int main(int argc, const char** argv, const char** envp)
 
         auto tx0 = tree.transaction();
 
-        RNG<Int, RngEngine32> rng0;
+        RNG<int32_t, RngEngine32> rng0;
 
         rng0.seed(getTimeInMillis());
 
-        for (Int c = 0; c < 5000000; c++) {
+        for (int32_t c = 0; c < 5000000; c++) {
             tree.assign(tx0, rng0(), c);
         }
 
@@ -69,33 +69,33 @@ int main(int argc, const char** argv, const char** envp)
 
         tree.dump_log();
 
-        const Int epochs = 20;
+        const int32_t epochs = 20;
 
-        for (Int c = 0; c < threads_num; c++)
+        for (int32_t c = 0; c < threads_num; c++)
         {
             operations.emplace_back(0);
             founds.emplace_back(0);
             threads.emplace_back(std::thread([&, c]() {
                 try {
-                    RNG<Int, RngEngine32> rng;
+                    RNG<int32_t, RngEngine32> rng;
                     rng.seed(c);
 
-                    for (BigInt epoch = 0; epoch < epochs && run; epoch++)
+                    for (int64_t epoch = 0; epoch < epochs && run; epoch++)
                     {
-                        Int lfounds = 0;
+                        int32_t lfounds = 0;
 
-                        BigInt t0 = getTimeInMillis();
+                        int64_t t0 = getTimeInMillis();
 
                         for (int j = 0; j < 1000; j++)
                         {
                             auto sn = tree.snapshot();
-                            for (Int i = 0; i < 1000; i++)
+                            for (int32_t i = 0; i < 1000; i++)
                             {
                                 lfounds += tree.find(sn, rng());
                             }
                         }
 
-                        BigInt t1 = getTimeInMillis();
+                        int64_t t1 = getTimeInMillis();
 
                         operations[c] += t1 - t0;
                         founds[c]     += lfounds;
@@ -109,11 +109,11 @@ int main(int argc, const char** argv, const char** envp)
             }));
         }
 
-        for (Int s = 0; s < 500; s++)
+        for (int32_t s = 0; s < 500; s++)
         {
             auto tx1 = tree.transaction();
 
-            for (Int c = 0; c < 10000; c++) {
+            for (int32_t c = 0; c < 10000; c++) {
                 tree.assign(tx1, rng0(), c);
             }
 
@@ -130,10 +130,10 @@ int main(int argc, const char** argv, const char** envp)
 
         tree.dump_log();
 
-        BigInt total = 0;
-        BigInt total_founds = 0;
+        int64_t total = 0;
+        int64_t total_founds = 0;
 
-        for (auto c = 0; c < (Int)operations.size(); c++)
+        for (auto c = 0; c < (int32_t)operations.size(); c++)
         {
             total += operations[c] / epochs;
             total_founds += founds[c];

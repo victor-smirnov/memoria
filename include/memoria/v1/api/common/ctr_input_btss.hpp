@@ -43,9 +43,9 @@ public:
         iterator_(start), end_(end)
     {}
 
-    virtual Int populate(IOBuffer& buffer)
+    virtual int32_t populate(IOBuffer& buffer)
     {
-        Int total = 0;
+        int32_t total = 0;
 
         for (;iterator_ != end_; total++)
         {
@@ -74,9 +74,9 @@ public:
         iterator_(start), end_(end)
     {}
 
-    virtual Int populate(IOBuffer& buffer)
+    virtual int32_t populate(IOBuffer& buffer)
     {
-        Int total = 0;
+        int32_t total = 0;
 
         for (;iterator_ != end_; total++)
         {
@@ -107,7 +107,7 @@ public:
 template <typename Fn>
 class IteratorFn {
     Fn& fn_;
-    BigInt cnt_{};
+    int64_t cnt_{};
 public:
     IteratorFn(Fn& fn): fn_(fn) {}
     
@@ -117,7 +117,7 @@ public:
     
     void operator++(int) {cnt_++;}
     
-    bool operator!=(const EndIteratorFn<BigInt>& end) {
+    bool operator!=(const EndIteratorFn<int64_t>& end) {
         return cnt_ < end.size();
     }
 };

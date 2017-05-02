@@ -43,16 +43,16 @@ class PkdRLESeqInputBuffer: public PackedAllocator {
     using Base = PackedAllocator;
 
 public:
-    static constexpr UInt VERSION = 1;
+    static constexpr uint32_t VERSION = 1;
 
     using Types  = Types_;
     using MyType = PkdRLESeqInputBuffer<Types_>;
 
-    static constexpr Int ValuesPerBranch        = Types::ValuesPerBranch;
-    static constexpr Int ValuesPerBranchLog2    = NumberOfBits(Types::ValuesPerBranch);
+    static constexpr int32_t ValuesPerBranch        = Types::ValuesPerBranch;
+    static constexpr int32_t ValuesPerBranchLog2    = NumberOfBits(Types::ValuesPerBranch);
 
-    static constexpr Int Indexes                = Types::Blocks;
-    static constexpr Int Symbols                = Types::Blocks;
+    static constexpr int32_t Indexes                = Types::Blocks;
+    static constexpr int32_t Symbols                = Types::Blocks;
 
     static constexpr size_t MaxRunLength        = MaxRLERunLength;
 
@@ -62,52 +62,52 @@ public:
 
     using Base::clear;
 
-    using Value = UByte;
+    using Value = uint8_t;
 
-    using Codec = ValueCodec<UBigInt>;
+    using Codec = ValueCodec<uint64_t>;
 
-    using Values = core::StaticVector<BigInt, Indexes>;
+    using Values = core::StaticVector<int64_t, Indexes>;
 
-    using SizeIndex = PkdFQTreeT<BigInt, 1>;
+    using SizeIndex = PkdFQTreeT<int64_t, 1>;
 
     using Iterator = rleseq::RLESeqIterator<MyType>;
 
     using InputType = Value;
-    using OffsetsType = UByte;
+    using OffsetsType = uint8_t;
 
     struct AppendState {};
 
     class Metadata {
-        Int size_;
-        Int data_size_;
+        int32_t size_;
+        int32_t data_size_;
     public:
-        Int& size()                 {return size_;}
-        const Int& size() const     {return size_;}
+        int32_t& size()                 {return size_;}
+        const int32_t& size() const     {return size_;}
 
-        Int& data_size()                 {return data_size_;}
-        const Int& data_size() const     {return data_size_;}
+        int32_t& data_size()                 {return data_size_;}
+        const int32_t& data_size() const     {return data_size_;}
     };
 
-    using SizesT = core::StaticVector<Int, 1>;
+    using SizesT = core::StaticVector<int32_t, 1>;
 
     struct Tools {};
 
-    Int number_of_offsets() const
+    int32_t number_of_offsets() const
     {
         return number_of_offsets(this->element_size(SYMBOLS));
     }
 
-    static constexpr Int number_of_offsets(Int values)
+    static constexpr int32_t number_of_offsets(int32_t values)
     {
         return values > 0 ? divUp(values, ValuesPerBranch) : 1;
     }
 
-    static constexpr Int number_of_indexes(Int capacity)
+    static constexpr int32_t number_of_indexes(int32_t capacity)
     {
         return capacity <= ValuesPerBranch ? 0 : divUp(capacity, ValuesPerBranch);
     }
 
-    static constexpr Int offsets_segment_size(Int values)
+    static constexpr int32_t offsets_segment_size(int32_t values)
     {
         return PackedAllocator::roundUpBytesToAlignmentBlocks(number_of_offsets(values) * sizeof(OffsetsType));
     }
@@ -120,18 +120,18 @@ public:
 public:
     PkdRLESeqInputBuffer() = default;
 
-    Int& size() {return metadata()->size();}
-    const Int& size() const {return metadata()->size();}
+    int32_t& size() {return metadata()->size();}
+    const int32_t& size() const {return metadata()->size();}
 
-    Int& data_size() {return metadata()->data_size();}
-    const Int& data_size() const {return metadata()->data_size();}
+    int32_t& data_size() {return metadata()->data_size();}
+    const int32_t& data_size() const {return metadata()->data_size();}
 
-    static constexpr RLESymbolsRun decode_run(UBigInt value)
+    static constexpr RLESymbolsRun decode_run(uint64_t value)
     {
         return rleseq::DecodeRun<Symbols>(value);
     }
 
-    static constexpr UBigInt encode_run(Int symbol, UBigInt length)
+    static constexpr uint64_t encode_run(int32_t symbol, uint64_t length)
     {
         return rleseq::EncodeRun<Symbols, MaxRunLength>(symbol, length);
     }
@@ -167,37 +167,37 @@ public:
         return this->template get<OffsetsType>(OFFSETS);
     }
 
-    OffsetsType offset(Int idx) const
+    OffsetsType offset(int32_t idx) const
     {
         return offsets()[idx];
     }
 
-    void set_offset(Int idx, OffsetsType value)
+    void set_offset(int32_t idx, OffsetsType value)
     {
         set_offsets(offsets(), idx, value);
     }
 
-    void set_offset(OffsetsType* block, Int idx, Int value)
+    void set_offset(OffsetsType* block, int32_t idx, int32_t value)
     {
         block[idx] = value;
     }
 
-    Int symbols_block_capacity() const
+    int32_t symbols_block_capacity() const
     {
         return symbols_block_capacity(metadata());
     }
 
-    Int symbols_block_capacity(const Metadata* meta) const
+    int32_t symbols_block_capacity(const Metadata* meta) const
     {
         return symbols_block_size() - meta->data_size();
     }
 
-    Int symbols_block_size() const
+    int32_t symbols_block_size() const
     {
         return this->element_size(SYMBOLS);
     }
 
-    Int data_capacity() const
+    int32_t data_capacity() const
     {
         return symbols_block_size();
     }
@@ -216,7 +216,7 @@ public:
         return Base::template get<Value>(SYMBOLS);
     }
 
-    Int get_symbol(Int idx) const
+    int32_t get_symbol(int32_t idx) const
     {
         auto result = this->find_run(idx);
 
@@ -232,9 +232,9 @@ public:
 
     class ConstSymbolAccessor {
         const MyType& seq_;
-        Int idx_;
+        int32_t idx_;
     public:
-        ConstSymbolAccessor(const MyType& seq, Int idx): seq_(seq), idx_(idx) {}
+        ConstSymbolAccessor(const MyType& seq, int32_t idx): seq_(seq), idx_(idx) {}
 
         operator Value() const {
             return seq_.get_symbol(idx_);
@@ -245,13 +245,13 @@ public:
         }
     };
 
-    ConstSymbolAccessor symbol(Int idx) const
+    ConstSymbolAccessor symbol(int32_t idx) const
     {
         return ConstSymbolAccessor(*this, idx);
     }
 
 
-    void append(Int symbol, UBigInt length)
+    void append(int32_t symbol, uint64_t length)
     {
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
 
@@ -264,7 +264,7 @@ public:
         meta->size() += length;
     }
 
-    bool emplace_back(Int symbol, UBigInt length)
+    bool emplace_back(int32_t symbol, uint64_t length)
     {
         auto meta = this->metadata();
 
@@ -284,9 +284,9 @@ public:
         return false;
     }
 
-    bool has_capacity(Int required_capacity) const
+    bool has_capacity(int32_t required_capacity) const
     {
-        Int current_capacity = this->symbols_block_capacity();
+        int32_t current_capacity = this->symbols_block_capacity();
         return current_capacity >= required_capacity;
     }
 
@@ -301,11 +301,11 @@ public:
     }
 
 
-    void init(Int block_size, const SizesT& symbols_capacity)
+    void init(int32_t block_size, const SizesT& symbols_capacity)
     {
         Base::init(block_size, TOTAL_SEGMENTS__);
 
-        Int capacity = symbols_capacity[0];
+        int32_t capacity = symbols_capacity[0];
 
         Metadata* meta  = Base::template allocate<Metadata>(METADATA);
 
@@ -315,11 +315,11 @@ public:
         this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(capacity));
         this->template allocateArrayBySize<OffsetsType>(SYMBOLS, capacity);
 
-        Int index_size = number_of_indexes(capacity);
+        int32_t index_size = number_of_indexes(capacity);
 
         if (index_size > 0)
         {
-            Int size_index_block_size = SizeIndex::block_size(index_size);
+            int32_t size_index_block_size = SizeIndex::block_size(index_size);
             Base::resizeBlock(SIZE_INDEX, size_index_block_size);
 
             auto size_index = this->size_index();
@@ -330,23 +330,23 @@ public:
         }
     }
 
-    static Int block_size(const SizesT& symbols_capacity) {
+    static int32_t block_size(const SizesT& symbols_capacity) {
         return block_size(symbols_capacity[0]);
     }
 
-    static Int block_size(Int symbols_capacity)
+    static int32_t block_size(int32_t symbols_capacity)
     {
-        Int metadata_length     = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t metadata_length     = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-        Int capacity = symbols_capacity;
+        int32_t capacity = symbols_capacity;
 
-        Int index_size = number_of_indexes(capacity);
+        int32_t index_size = number_of_indexes(capacity);
 
-        Int size_index_length   = index_size > 0 ? SizeIndex::block_size(index_size) : 0;
-        Int offsets_length      = offsets_segment_size(capacity);
-        Int values_length       = Base::roundUpBytesToAlignmentBlocks(capacity);
+        int32_t size_index_length   = index_size > 0 ? SizeIndex::block_size(index_size) : 0;
+        int32_t offsets_length      = offsets_segment_size(capacity);
+        int32_t values_length       = Base::roundUpBytesToAlignmentBlocks(capacity);
 
-        Int block_size          = Base::block_size(metadata_length + size_index_length  + offsets_length + values_length, TOTAL_SEGMENTS__);
+        int32_t block_size          = Base::block_size(metadata_length + size_index_length  + offsets_length + values_length, TOTAL_SEGMENTS__);
         return block_size;
     }
 
@@ -355,14 +355,14 @@ public:
     {
         if (has_index())
         {
-            Int capacity    = element_size(SYMBOLS);
-            Int index_size  = number_of_indexes(capacity);
+            int32_t capacity    = element_size(SYMBOLS);
+            int32_t index_size  = number_of_indexes(capacity);
 
             Base::clear(SIZE_INDEX);
 
             auto size_index = this->size_index();
 
-            Int size_index_block_size = SizeIndex::block_size(index_size);
+            int32_t size_index_block_size = SizeIndex::block_size(index_size);
             size_index->init_by_block(size_index_block_size, index_size);
         }
     }
@@ -385,7 +385,7 @@ public:
 public:
 
 
-    Iterator iterator(Int symbol_pos) const
+    Iterator iterator(int32_t symbol_pos) const
     {
         auto meta = this->metadata();
 
@@ -400,7 +400,7 @@ public:
             {
                 auto find_result    = this->size_index()->find_gt(0, symbol_pos);
 
-                Int local_pos       = symbol_pos - find_result.prefix();
+                int32_t local_pos       = symbol_pos - find_result.prefix();
                 size_t block_offset = find_result.idx() * ValuesPerBranch;
                 auto offset         = offsets()[find_result.idx()];
 
@@ -479,7 +479,7 @@ public:
             handler->endGroup();
         }
 
-        handler->value("OFFSETS", PageValueProviderFactory::provider(true, number_of_offsets(), [&](Int idx) {
+        handler->value("OFFSETS", PageValueProviderFactory::provider(true, number_of_offsets(), [&](int32_t idx) {
             return offsets()[idx];
         }));
 
@@ -487,7 +487,7 @@ public:
 
         auto iter = this->iterator(0);
 
-        BigInt values[4] = {0, 0, 0};
+        int64_t values[4] = {0, 0, 0};
 
         while (iter.has_data())
         {
@@ -508,7 +508,7 @@ public:
 
 
 
-    auto find_run(Int symbol_pos) const
+    auto find_run(int32_t symbol_pos) const
     {
         if (symbol_pos >= 0)
         {
@@ -524,7 +524,7 @@ public:
                 {
                     auto find_result = this->size_index()->find_gt(0, symbol_pos);
 
-                    Int local_pos       = symbol_pos - find_result.prefix();
+                    int32_t local_pos       = symbol_pos - find_result.prefix();
                     size_t block_offset = find_result.idx() * ValuesPerBranch;
                     auto offset         = offsets()[find_result.idx()];
 
@@ -564,13 +564,13 @@ private:
         {
             size_t pos0 = pos;
 
-            Int last_symbol = -1;
-            BigInt total_length = 0;
+            int32_t last_symbol = -1;
+            int64_t total_length = 0;
 
             size_t runs;
             for (runs = 0; pos0 < data_size; runs++)
             {
-                UBigInt run_value = 0;
+                uint64_t run_value = 0;
                 auto len = codec.decode(symbols, run_value, pos0);
                 auto run = decode_run(run_value);
 
@@ -632,7 +632,7 @@ private:
 
         while (pos < limit)
         {
-            UBigInt run_value = 0;
+            uint64_t run_value = 0;
             auto len = codec.decode(symbols, run_value, pos);
             auto run = decode_run(run_value);
 

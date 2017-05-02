@@ -25,9 +25,9 @@ namespace v1 {
 
 enum CompareOps {EQ, GT, GTE, LT, LTE, NE};
 
-template <Int Name_, CompareOps Op_, typename T, T Value_>
+template <int32_t Name_, CompareOps Op_, typename T, T Value_>
 struct ValueOp {
-    static const Int Name           = Name_;
+    static const int32_t Name           = Name_;
     typedef T                       Type;
     static const CompareOps Op      = Op_;
     static const T Value            = Value_;
@@ -35,9 +35,9 @@ struct ValueOp {
 
 struct TrueOp {};
 
-template <Int Name_, typename T>
+template <int32_t Name_, typename T>
 struct TypeOp {
-    static const Int Name           = Name_;
+    static const int32_t Name           = Name_;
     typedef T                       Type;
 };
 
@@ -81,10 +81,10 @@ struct IsExpression<Xor<T1, T2> >: ConstValue<bool, true> {};
 template<typename T>
 struct IsExpression<Not<T> >: ConstValue<bool, true> {};
 
-template<Int Name, CompareOps Op, typename T, T Value>
+template<int32_t Name, CompareOps Op, typename T, T Value>
 struct IsExpression<ValueOp<Name, Op, T, Value> >: ConstValue<bool, true> {};
 
-template<Int Name, typename T>
+template<int32_t Name, typename T>
 struct IsExpression<TypeOp<Name, T> >: ConstValue<bool, true> {};
 
 template<>
@@ -126,7 +126,7 @@ public:
 };
 
 
-template <typename Metadata, Int Name, CompareOps Op, typename Type, Type ExValue, typename Record>
+template <typename Metadata, int32_t Name, CompareOps Op, typename Type, Type ExValue, typename Record>
 class Evaluator<Metadata, ValueOp<Name, Op, Type, ExValue>, Record> {
 
     typedef typename Metadata::template Provider<Name, Record>::Value           ColumnValue;
@@ -138,17 +138,17 @@ class Evaluator<Metadata, ValueOp<Name, Op, Type, ExValue>, Record> {
     static const bool LTEVal    =  ColumnValue::Value <= ExValue;
     static const bool NEVal     =  ColumnValue::Value != ExValue;
 
-    static const Int OpIdx = Op;
+    static const int32_t OpIdx = Op;
 
     using SelectResult = Select<
                 OpIdx,
                 TypeList<
-                    ConstValue<Int, EqVal>,
-                    ConstValue<Int, GTVal>,
-                    ConstValue<Int, GTEVal>,
-                    ConstValue<Int, LTVal>,
-                    ConstValue<Int, LTEVal>,
-                    ConstValue<Int, NEVal>
+                    ConstValue<int32_t, EqVal>,
+                    ConstValue<int32_t, GTVal>,
+                    ConstValue<int32_t, GTEVal>,
+                    ConstValue<int32_t, LTVal>,
+                    ConstValue<int32_t, LTEVal>,
+                    ConstValue<int32_t, NEVal>
                 >
     >;
 
@@ -157,7 +157,7 @@ public:
     static const bool Value = SelectResult::Value;
 };
 
-template <typename Metadata, Int Name, typename Type, typename Record>
+template <typename Metadata, int32_t Name, typename Type, typename Record>
 class Evaluator<Metadata, TypeOp<Name, Type>, Record> {
 
     typedef typename Metadata::template Provider<Name, Record>::Value::Value    ColumnValue;

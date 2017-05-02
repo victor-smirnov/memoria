@@ -46,12 +46,12 @@ struct NullPtrFunctor {
     }
 };
 
-template <typename Value, Int Size = 16, typename ClearingFunctor = EmptyValueFunctor>
+template <typename Value, int32_t Size = 16, typename ClearingFunctor = EmptyValueFunctor>
 class StaticArray{
 
     typedef StaticArray<Value, Size, ClearingFunctor> MyType;
 
-    Int     size_;
+    int32_t     size_;
     Value   values_[Size];
 
 public:
@@ -59,9 +59,9 @@ public:
 
     StaticArray(): size_(0) {}
 
-    StaticArray(Int size): size_(size)
+    StaticArray(int32_t size): size_(size)
     {
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             functor(values_[c]);
         }
@@ -71,7 +71,7 @@ public:
     {
         size_ = other.size_;
 
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             values_[c] = other.values_[c];
         }
@@ -81,7 +81,7 @@ public:
     {
         size_ = other.size_;
 
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             values_[c] = std::move(other.values_[c]);
         }
@@ -91,14 +91,14 @@ public:
     {
         size_ = other.size_;
 
-        for (Int c = 0; c < size_; c++)
+        for (int32_t c = 0; c < size_; c++)
         {
             values_[c] = other.values_[c];
         }
 
         ClearingFunctor functor;
 
-        for (Int c = size_; c < Size; c++)
+        for (int32_t c = size_; c < Size; c++)
         {
             functor(values_[c]);
         }
@@ -110,14 +110,14 @@ public:
     {
         size_ = other.size_;
 
-        for (Int c = 0; c < size_; c++)
+        for (int32_t c = 0; c < size_; c++)
         {
             values_[c] = std::move(other.values_[c]);
         }
 
         ClearingFunctor functor;
 
-        for (Int c = size_; c < Size; c++)
+        for (int32_t c = size_; c < Size; c++)
         {
             functor(values_[c]);
         }
@@ -125,38 +125,38 @@ public:
         return *this;
     }
 
-    const Value& operator[](Int idx) const {
+    const Value& operator[](int32_t idx) const {
         return values_[idx];
     }
 
-    Value& operator[](Int idx) {
+    Value& operator[](int32_t idx) {
         return values_[idx];
     }
 
-    Int getSize() const {
+    int32_t getSize() const {
         return size_;
     }
 
-    Int size() const {
+    int32_t size() const {
         return size_;
     }
 
-    Int capacity() const {
+    int32_t capacity() const {
         return Size - size_;
     }
 
-    void resize(Int size)
+    void resize(int32_t size)
     {
         size_ = size;
     }
 
-    static Int getMaxSize() {
+    static int32_t getMaxSize() {
         return Size;
     }
 
-    void insert(Int idx, const Value& value)
+    void insert(int32_t idx, const Value& value)
     {
-        for (Int c = size_; c > idx; c--)
+        for (int32_t c = size_; c > idx; c--)
         {
             values_[c] = values_[c - 1];
         }
@@ -170,9 +170,9 @@ public:
         values_[size_++] = value;
     }
 
-    void remove(Int idx)
+    void remove(int32_t idx)
     {
-        for (Int c = idx; c < size_; c++)
+        for (int32_t c = idx; c < size_; c++)
         {
             values_[c] = values_[c + 1];
         }
@@ -193,7 +193,7 @@ public:
     {
         ClearingFunctor functor;
 
-        for (Int c = 0; c < size_; c++)
+        for (int32_t c = 0; c < size_; c++)
         {
             functor(values_[c]);
         }
@@ -208,25 +208,25 @@ public:
 
 
 
-template <typename ElementType_, Int Indexes_>
+template <typename ElementType_, int32_t Indexes_>
 class StaticVector
 {
     typedef StaticVector<ElementType_, Indexes_> MyType;
 
     ElementType_ values_[Indexes_ > 0 ? Indexes_ : 1];
 
-    template <typename, Int>
+    template <typename, int32_t>
     friend class StaticVector;
 
 public:
     typedef ElementType_ ElementType;
 
 
-    static const Int Indexes = Indexes_;
+    static const int32_t Indexes = Indexes_;
 
     StaticVector()
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] = ElementType_();
         }
@@ -234,7 +234,7 @@ public:
 
     explicit StaticVector(const ElementType& value)
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] = value;
         }
@@ -247,13 +247,13 @@ public:
     {
         T last = T();
 
-        Int idx = 0;
+        int32_t idx = 0;
         for (const T& e: list)
         {
             last = values_[idx++] = e;
         }
 
-        for (Int c = idx; c < Indexes; c++)
+        for (int32_t c = idx; c < Indexes; c++)
         {
             values_[c] = last;
         }
@@ -267,7 +267,7 @@ public:
 
     StaticVector(const MyType& other)
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] = other.values_[c];
         }
@@ -275,13 +275,13 @@ public:
 
     StaticVector(MyType&& other)
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] = std::move(other.values_[c]);
         }
     }
 
-    static MyType create(Int idx, const ElementType& value)
+    static MyType create(int32_t idx, const ElementType& value)
     {
         check(idx);
 
@@ -303,25 +303,25 @@ public:
         return values_;
     }
 
-    const ElementType& value(Int idx) const
+    const ElementType& value(int32_t idx) const
     {
         check(idx);
         return values_[idx];
     }
 
-    ElementType& value(Int idx)
+    ElementType& value(int32_t idx)
     {
         check(idx);
         return values_[idx];
     }
 
-    const ElementType& operator[](Int idx) const
+    const ElementType& operator[](int32_t idx) const
     {
         check(idx);
         return values_[idx];
     }
 
-    ElementType& operator[](Int idx)
+    ElementType& operator[](int32_t idx)
     {
         check(idx);
         return values_[idx];
@@ -329,18 +329,18 @@ public:
 
     void clear()
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] = 0;
         }
     }
 
-    template <typename T, Int TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
+    template <typename T, int32_t TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
     MyType& assignUp(const StaticVector<T, TIndexes>& other)
     {
-        Int shift = Indexes - TIndexes;
+        int32_t shift = Indexes - TIndexes;
 
-        for (Int c = Indexes - 1; c >= shift ; c--)
+        for (int32_t c = Indexes - 1; c >= shift ; c--)
         {
             values_[c] = other.values_[c - shift];
         }
@@ -348,12 +348,12 @@ public:
         return *this;
     }
 
-    template <typename T, Int TIndexes, typename = std::enable_if<TIndexes >= Indexes>>
+    template <typename T, int32_t TIndexes, typename = std::enable_if<TIndexes >= Indexes>>
     MyType& assignDown(const StaticVector<T, TIndexes>& other)
     {
-        Int shift = TIndexes - Indexes;
+        int32_t shift = TIndexes - Indexes;
 
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] = other.values_[c + shift];
         }
@@ -361,12 +361,12 @@ public:
         return *this;
     }
 
-    template <typename T, Int TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
+    template <typename T, int32_t TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
     MyType& sumUp(const StaticVector<T, TIndexes>& other)
     {
-        Int shift = Indexes - TIndexes;
+        int32_t shift = Indexes - TIndexes;
 
-        for (Int c = Indexes - 1; c >= shift ; c--)
+        for (int32_t c = Indexes - 1; c >= shift ; c--)
         {
             values_[c] += other.values_[c - shift];
         }
@@ -374,10 +374,10 @@ public:
         return *this;
     }
 
-    template <typename T, Int TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
-    MyType& sumAt(Int idx, const StaticVector<T, TIndexes>& other)
+    template <typename T, int32_t TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
+    MyType& sumAt(int32_t idx, const StaticVector<T, TIndexes>& other)
     {
-        for (Int c = 0; c < TIndexes; c++)
+        for (int32_t c = 0; c < TIndexes; c++)
         {
             values_[c + idx] += other.values_[c];
         }
@@ -387,7 +387,7 @@ public:
 
     bool operator==(const MyType& other) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] != other.values_[c])
             {
@@ -400,7 +400,7 @@ public:
 
     bool operator!=(const MyType& other) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] != other.values_[c])
             {
@@ -413,7 +413,7 @@ public:
 
     bool operator<=(const MyType& other) const
     {
-        for (Int c = 0, mask = 1; c < Indexes; c++, mask <<= 1)
+        for (int32_t c = 0, mask = 1; c < Indexes; c++, mask <<= 1)
         {
             bool set = 1;
 
@@ -428,7 +428,7 @@ public:
 
     bool gteAll( const MyType& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] < other.values_[c])
             {
@@ -441,7 +441,7 @@ public:
 
     bool lteAll( const MyType& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] > other.values_[c])
             {
@@ -455,7 +455,7 @@ public:
 
     bool ltAll( const MyType& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] >= other.values_[c])
             {
@@ -469,7 +469,7 @@ public:
 
     bool gteAll(const ElementType& other) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] < other)
             {
@@ -482,7 +482,7 @@ public:
 
     bool lteAll(const ElementType& other) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] > other)
             {
@@ -495,7 +495,7 @@ public:
 
     bool ltAny( const MyType& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] < other.values_[c])
             {
@@ -508,7 +508,7 @@ public:
 
     bool ltAny( const ElementType& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] < other)
             {
@@ -521,7 +521,7 @@ public:
 
     bool gtAny( const MyType& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] > other.values_[c])
             {
@@ -534,7 +534,7 @@ public:
 
     bool gtAny( const ElementType& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] > other)
             {
@@ -547,7 +547,7 @@ public:
 
     bool gtAll( const MyType& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] <= other[c])
             {
@@ -560,7 +560,7 @@ public:
 
     bool gtAll( const ElementType& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] <= other)
             {
@@ -574,7 +574,7 @@ public:
 
     bool eqAll( const MyType& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] != other.values_[c])
             {
@@ -587,7 +587,7 @@ public:
 
     bool eqAll( const ElementType_& other ) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] != other)
             {
@@ -600,7 +600,7 @@ public:
 
     bool operator>(const MyType& other) const
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             if (values_[c] <= other.values_[c])
             {
@@ -614,7 +614,7 @@ public:
 
     MyType& operator=(const MyType& other)
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] = other.values_[c];
         }
@@ -624,7 +624,7 @@ public:
 
     MyType& operator=(MyType&& other)
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] = std::move(other.values_[c]);
         }
@@ -635,7 +635,7 @@ public:
     template <typename Value>
     MyType& operator=(const Value& value)
     {
-        for (Int c = 0; c < Indexes; c++) values_[c] = value;
+        for (int32_t c = 0; c < Indexes; c++) values_[c] = value;
         return *this;
     }
 
@@ -643,10 +643,10 @@ public:
     MyType& operator=(const Optional<Value>& value)
     {
         if (value.is_set()) {
-            for (Int c = 0; c < Indexes; c++) values_[c] = value.value();
+            for (int32_t c = 0; c < Indexes; c++) values_[c] = value.value();
         }
         else {
-            for (Int c = 0; c < Indexes; c++) values_[c] = Value();
+            for (int32_t c = 0; c < Indexes; c++) values_[c] = Value();
         }
 
         return *this;
@@ -655,7 +655,7 @@ public:
     template <typename Value>
     MyType& operator=(const StaticVector<Optional<Value>, Indexes>& value)
     {
-        for (Int c = 0; c < Indexes; c++) {
+        for (int32_t c = 0; c < Indexes; c++) {
             if (value[c].is_set()) {
                 values_[c] = value[c].value();
             }
@@ -673,7 +673,7 @@ public:
     template <typename Value>
     MyType& operator=(const std::initializer_list<Value>& list)
     {
-        Int idx = 0;
+        int32_t idx = 0;
         for (Value e: list)
         {
             values_[idx++] = e;
@@ -684,7 +684,7 @@ public:
             }
         }
 
-        for (Int c = idx; c < Indexes; c++) {
+        for (int32_t c = idx; c < Indexes; c++) {
             values_[c] = ElementType_();
         }
 
@@ -695,7 +695,7 @@ public:
 
 //    MyType& operator=(const ElementType* keys)
 //    {
-//        for (Int c = 0; c < Indexes; c++)
+//        for (int32_t c = 0; c < Indexes; c++)
 //        {
 //            values_[c] = keys[c];
 //        }
@@ -704,7 +704,7 @@ public:
 
     MyType& setAll(const ElementType& keys)
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] = keys;
         }
@@ -714,7 +714,7 @@ public:
     template <typename T>
     MyType& operator+=(const StaticVector<T, Indexes>& other)
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] += other.values_[c];
         }
@@ -724,7 +724,7 @@ public:
 
     MyType& operator+=(const ElementType& other)
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] += other;
         }
@@ -736,7 +736,7 @@ public:
     {
         MyType result = *this;
 
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             result.values_[c] += other.values_[c];
         }
@@ -749,7 +749,7 @@ public:
     {
         MyType result = *this;
 
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             result.values_[c] -= other.values_[c];
         }
@@ -761,7 +761,7 @@ public:
     {
         MyType result = *this;
 
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             result.values_[c] = -values_[c];
         }
@@ -773,7 +773,7 @@ public:
     template <typename T>
     MyType& operator-=(const StaticVector<T, Indexes>& other)
     {
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             values_[c] -= other.values_[c];
         }
@@ -785,7 +785,7 @@ public:
     {
         MyType result = *this;
 
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             result.values_[c] = values_[c] / divisor;
         }
@@ -793,13 +793,13 @@ public:
         return result;
     }
 
-    UBigInt gtZero() const
+    uint64_t gtZero() const
     {
-        UBigInt result = 0;
+        uint64_t result = 0;
 
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
-            result += (UBigInt(values_[c] > 0)) << c;
+            result += (uint64_t(values_[c] > 0)) << c;
         }
 
         return result;
@@ -820,7 +820,7 @@ public:
     {
         ElementType value = values_[0];
 
-        for (Int c = 1; c < Indexes; c++)
+        for (int32_t c = 1; c < Indexes; c++)
         {
             if (values_[c] > value)
             {
@@ -835,7 +835,7 @@ public:
     {
         ElementType value = values_[0];
 
-        for (Int c = 1; c < Indexes; c++)
+        for (int32_t c = 1; c < Indexes; c++)
         {
             if (values_[c] < value)
             {
@@ -847,7 +847,7 @@ public:
     }
 
 private:
-    static void check(Int idx)
+    static void check(int32_t idx)
     {
 //      if (idx < 0 || idx >= Indexes_) {
 //          throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
@@ -855,19 +855,19 @@ private:
     }
 };
 
-template <typename T1, typename T2, Int Indexes>
+template <typename T1, typename T2, int32_t Indexes>
 void OptionalAssignmentHelper(StaticVector<Optional<T1>, Indexes>& v1, const StaticVector<T2, Indexes>& v2)
 {
-    for (Int c = 0; c < Indexes; c++)
+    for (int32_t c = 0; c < Indexes; c++)
     {
         v1[c] = Optional<T1>(v2[c]);
     }
 }
 
-template <typename T1, typename T2, Int Indexes>
+template <typename T1, typename T2, int32_t Indexes>
 void OptionalAssignmentHelper(StaticVector<T1, Indexes>& v1, const StaticVector<T2, Indexes>& v2)
 {
-    for (Int c = 0; c < Indexes; c++)
+    for (int32_t c = 0; c < Indexes; c++)
     {
         v1[c] = v2[c];
     }
@@ -887,12 +887,12 @@ auto MakeStaticVector(Args&&... args) -> StaticVector<T, sizeof...(Args)>
 }
 
 
-template <typename Key, v1::Int Indexes>
+template <typename Key, v1::int32_t Indexes>
 std::ostream& operator<<(std::ostream& out, const v1::core::StaticVector<Key, Indexes>& accum)
 {
     out<<"[";
 
-    for (v1::Int c = 0; c < Indexes; c++)
+    for (v1::int32_t c = 0; c < Indexes; c++)
     {
         out<<accum.value(c);
 
@@ -916,25 +916,25 @@ std::ostream& operator<<(std::ostream& out, const v1::core::StaticVector<Key, In
 template <typename T> struct FromString;
 
 
-template <typename T, Int Size>
+template <typename T, int32_t Size>
 struct FromString<core::StaticVector<T, Size>> {
     static void convert(core::StaticVector<T, Size>& values, String str)
     {
-        Int start = 0;
+        int32_t start = 0;
 
         for (size_t c = 0; c < Size; c++)
         {
             values[c] = 0;
         }
 
-        for (Int c = str.size() - 1; c >= 0; c--)
+        for (int32_t c = str.size() - 1; c >= 0; c--)
         {
             if (str[c] == '[' || str[c] == ']') {
                 str.erase(c, 1);
             }
         }
 
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             size_t pos = str.find_first_of(",", start);
 

@@ -26,12 +26,12 @@ class NodeTreeWalker {
 public:
     Key sum_;
     Key target_;
-    Int key_num_;
+    int32_t key_num_;
 
     Container& me_;
 
 public:
-    NodeTreeWalker(Key target, Container& me, Int key_num = 0):sum_(0), target_(target), key_num_(key_num), me_(me) {}
+    NodeTreeWalker(Key target, Container& me, int32_t key_num = 0):sum_(0), target_(target), key_num_(key_num), me_(me) {}
 
     Key remainder() const
     {
@@ -44,11 +44,11 @@ public:
     }
 
     template <typename Node>
-    Int operator()(Node *node, Int idx)
+    int32_t operator()(Node *node, int32_t idx)
     {
         if (Forward)
         {
-            for (Int c = idx; c < node->children_count(); c++)
+            for (int32_t c = idx; c < node->children_count(); c++)
             {
                 Key key = node->map().key(key_num_, c);
                 if (key + sum_ <= target_)
@@ -62,7 +62,7 @@ public:
         }
         else
         {
-            for (Int c = idx; c >= 0; c--)
+            for (int32_t c = idx; c >= 0; c--)
             {
                 Key key = node->map().key(key_num_, c);
                 if (key + sum_ < target_)
@@ -82,7 +82,7 @@ public:
 
 
 
-template <typename Container, bool Forward = true, typename CountType = BigInt>
+template <typename Container, bool Forward = true, typename CountType = int64_t>
 class KeyCounterWalker {
 
     typedef typename Container::ID          ID;
@@ -109,13 +109,13 @@ public:
     }
 
     template <typename Node>
-    Int operator()(Node *node, Int idx)
+    int32_t operator()(Node *node, int32_t idx)
     {
         if (Forward)
         {
             if (node->is_leaf())
             {
-                for (Int c = idx; c < node->children_count(); c++)
+                for (int32_t c = idx; c < node->children_count(); c++)
                 {
                     CountType count = 1;
                     if (count + sum_ <= target_)
@@ -128,7 +128,7 @@ public:
                 }
             }
             else {
-                for (Int c = idx; c < node->children_count(); c++)
+                for (int32_t c = idx; c < node->children_count(); c++)
                 {
                     NodeBaseG child = me_.allocator().getPage(node->map().data(c), Container::Allocator::READ);
 
@@ -147,7 +147,7 @@ public:
         {
             if (node->is_leaf())
             {
-                for (Int c = idx; c >= 0; c--)
+                for (int32_t c = idx; c >= 0; c--)
                 {
                     CountType count = 1;
                     if (count + sum_ <= target_)
@@ -160,7 +160,7 @@ public:
                 }
             }
             else {
-                for (Int c = idx; c >= 0; c--)
+                for (int32_t c = idx; c >= 0; c--)
                 {
                     NodeBaseG child = me_.allocator().getPage(node->map().data(c), Container::Allocator::READ);
 
@@ -183,7 +183,7 @@ public:
 
 
 
-template <typename Container, bool Forward = true, typename CountType = BigInt, Int KEYS = 1>
+template <typename Container, bool Forward = true, typename CountType = int64_t, int32_t KEYS = 1>
 class KeyCounterWithSumWalker {
 
     typedef typename Container::ID          ID;
@@ -216,25 +216,25 @@ public:
         return sum_;
     }
 
-    CountType keys(Int idx) const
+    CountType keys(int32_t idx) const
     {
         return keys_[idx];
     }
 
     template <typename Node>
-    Int operator()(Node *node, Int idx)
+    int32_t operator()(Node *node, int32_t idx)
     {
         if (Forward)
         {
             if (node->is_leaf())
             {
-                for (Int c = idx; c < node->children_count(); c++)
+                for (int32_t c = idx; c < node->children_count(); c++)
                 {
                     CountType count = 1;
                     if (count + sum_ <= target_)
                     {
                         sum_ = sum_ + count;
-                        for (Int d = 0; d < KEYS; d++)
+                        for (int32_t d = 0; d < KEYS; d++)
                         {
                             keys_[d] += node->map().key(d, c);
                         }
@@ -245,7 +245,7 @@ public:
                 }
             }
             else {
-                for (Int c = idx; c < node->children_count(); c++)
+                for (int32_t c = idx; c < node->children_count(); c++)
                 {
                     NodeBaseG child = me_.allocator().getPage(node->map().data(c), Container::Allocator::READ);
 
@@ -253,7 +253,7 @@ public:
                     if (count + sum_ <= target_)
                     {
                         sum_ = sum_ + count;
-                        for (Int d = 0; d < KEYS; d++)
+                        for (int32_t d = 0; d < KEYS; d++)
                         {
                             keys_[d] += node->map().key(d, c);
                         }
@@ -268,13 +268,13 @@ public:
         {
             if (node->is_leaf())
             {
-                for (Int c = idx; c >= 0; c--)
+                for (int32_t c = idx; c >= 0; c--)
                 {
                     CountType count = 1;
                     if (count + sum_ <= target_)
                     {
                         sum_ = sum_ + count;
-                        for (Int d = 0; d < KEYS; d++)
+                        for (int32_t d = 0; d < KEYS; d++)
                         {
                             keys_[d] += node->map().key(d, c);
                         }
@@ -285,7 +285,7 @@ public:
                 }
             }
             else {
-                for (Int c = idx; c >= 0; c--)
+                for (int32_t c = idx; c >= 0; c--)
                 {
                     NodeBaseG child = me_.allocator().getPage(node->map().data(c), Container::Allocator::READ);
 
@@ -293,7 +293,7 @@ public:
                     if (count + sum_ <= target_)
                     {
                         sum_ = sum_ + count;
-                        for (Int d = 0; d < KEYS; d++)
+                        for (int32_t d = 0; d < KEYS; d++)
                         {
                             keys_[d] += node->map().key(d, c);
                         }

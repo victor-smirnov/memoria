@@ -44,10 +44,10 @@ public:
 
     using NodeBaseG     = typename Base::NodeBaseG;
 
-    template <Int StreamIdx>
+    template <int32_t StreamIdx>
     using InputTuple        = typename CtrT::Types::template StreamInputTuple<StreamIdx>;
 
-    template <Int StreamIdx>
+    template <int32_t StreamIdx>
     using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<StreamIdx>;
 
 private:
@@ -63,7 +63,7 @@ private:
     Position sizes_;
     Position pos_;
 
-    Int level_ = 0;
+    int32_t level_ = 0;
 
     Rng rng_;
 public:
@@ -80,7 +80,7 @@ public:
         {
             if (level_ == 0)
             {
-                std::get<0>(this->buffer_)[pos[0]] = InputTupleAdapter<0>::convert(v1::core::StaticVector<BigInt, 1>({1}));
+                std::get<0>(this->buffer_)[pos[0]] = InputTupleAdapter<0>::convert(v1::core::StaticVector<int64_t, 1>({1}));
 
                 col_ = 0;
 
@@ -92,7 +92,7 @@ public:
             }
             else if (level_ == 1)
             {
-                std::get<1>(this->buffer_)[pos[1]] = InputTupleAdapter<1>::convert(v1::core::StaticVector<BigInt, 1>({1}));
+                std::get<1>(this->buffer_)[pos[1]] = InputTupleAdapter<1>::convert(v1::core::StaticVector<int64_t, 1>({1}));
 
                 col_++;
 

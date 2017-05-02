@@ -197,9 +197,9 @@ struct MergeValueLists<ConstValue<T, Value>, Tail...> {
 
 
 
-template <typename List, typename Item, Int Idx> struct ReplaceH;
+template <typename List, typename Item, int32_t Idx> struct ReplaceH;
 
-template <typename List, typename Item, Int Idx>
+template <typename List, typename Item, int32_t Idx>
 using Replace = typename ReplaceH<List, Item, Idx>::Type;
 
 template <typename Head, typename... Tail, typename Item>
@@ -207,7 +207,7 @@ struct ReplaceH<TypeList<Head, Tail...>, Item, 0> {
     using Type = TypeList<Item, Tail...>;
 };
 
-template <typename Head, typename... Tail, typename Item, Int Idx>
+template <typename Head, typename... Tail, typename Item, int32_t Idx>
 struct ReplaceH<TypeList<Head, Tail...>, Item, Idx> {
     using Type = MergeLists<
             TypeList<Head>,

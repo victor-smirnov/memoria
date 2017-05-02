@@ -37,53 +37,53 @@ protected:
     typedef typename Array::Value                                               Value;
     typedef typename Array::Values                                              Values;
 
-    static const Int Blocks                                                     = Array::Blocks;
+    static const int32_t Blocks                                                     = Array::Blocks;
 
 public:
 
     PackedArrayTestBase(StringRef name): TestTask(name)
     {}
 
-    ArrayPtr createEmptyArray(Int block_size = 1024*1024*64)
+    ArrayPtr createEmptyArray(int32_t block_size = 1024*1024*64)
     {
         return MakeSharedPackedStructByBlock<Array>(block_size);
     }
 
-    ArrayPtr createArray(Int tree_capacity, Int free_space = 0)
+    ArrayPtr createArray(int32_t tree_capacity, int32_t free_space = 0)
     {
-        Int tree_block_size = Array::block_size(tree_capacity);
+        int32_t tree_block_size = Array::block_size(tree_capacity);
 
         return MakeSharedPackedStructByBlock<Array>(tree_block_size + free_space);
     }
 
-    void truncate(vector<Values>& v, Int size) {
-        Int delta = v.size() - size;
+    void truncate(vector<Values>& v, int32_t size) {
+        int32_t delta = v.size() - size;
 
-        for (Int idx = 0; idx < delta; idx++)
+        for (int32_t idx = 0; idx < delta; idx++)
         {
             v.erase(v.end() - 1);
         }
     }
 
-    vector<Values> fillRandom(ArrayPtr& tree, Int size, Int max_value = 300)
+    vector<Values> fillRandom(ArrayPtr& tree, int32_t size, int32_t max_value = 300)
     {
         vector<Values> vals(size);
 
         for (auto& v: vals) {
-            for (Int b = 0; b < Blocks; b++)
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 v[b] = getRandom(max_value);
             }
         }
 
-        tree->insert(0, size, [&](Int block, Int idx) {
+        tree->insert(0, size, [&](int32_t block, int32_t idx) {
             return vals[idx][block];
         });
 
         return vals;
     }
 
-    vector<Values> fillSolid(ArrayPtr& tree, Int size, const Values& values)
+    vector<Values> fillSolid(ArrayPtr& tree, int32_t size, const Values& values)
     {
         vector<Values> vals(size);
 
@@ -91,25 +91,25 @@ public:
             v = values;
         }
 
-        tree->insert(0, [&](Int block, Int idx) -> bool {
+        tree->insert(0, [&](int32_t block, int32_t idx) -> bool {
             return values[block];
         });
 
         return vals;
     }
 
-    vector<Values> fillSolid(ArrayPtr& tree, Int size, Int value)
+    vector<Values> fillSolid(ArrayPtr& tree, int32_t size, int32_t value)
     {
         vector<Values> vals(size);
 
         for (auto& v: vals) {
-            for (Int b = 0; b < Blocks; b++)
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 v[b] = value;
             }
         }
 
-        tree->insert(0, [&](Int block, Int idx) -> bool {
+        tree->insert(0, [&](int32_t block, int32_t idx) -> bool {
             return value;
         });
 
@@ -118,29 +118,29 @@ public:
 
     void fillVector(ArrayPtr& tree, const vector<Values>& vals)
     {
-        tree->insert(0, vals.size(), [&](Int block, Int idx) {
+        tree->insert(0, vals.size(), [&](int32_t block, int32_t idx) {
             return vals[idx][block];
         });
     }
 
-    Values createRandom(Int max = 100)
+    Values createRandom(int32_t max = 100)
     {
         Values values;
 
-        for (Int c = 0; c < Blocks; c++) {
+        for (int32_t c = 0; c < Blocks; c++) {
             values[c] = getRandom(max);
         }
 
         return values;
     }
 
-    vector<Values> createRandomValuesVector(Int size, Int max_value = 100)
+    vector<Values> createRandomValuesVector(int32_t size, int32_t max_value = 100)
     {
         vector<Values> vals(size);
 
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
-            for (Int b = 0; b < Blocks; b++)
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 vals[c][b] = getRandom(max_value);
             }
@@ -151,12 +151,12 @@ public:
 
     void assertEqual(const ArrayPtr& tree, const vector<Values>& vals)
     {
-        AssertEQ(MA_SRC, tree->size(), (Int)vals.size());
+        AssertEQ(MA_SRC, tree->size(), (int32_t)vals.size());
 
-        for (Int c = 0; c < tree->size(); c++)
+        for (int32_t c = 0; c < tree->size(); c++)
         {
             Values v;
-            for (Int b = 0; b < Blocks; b++)
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 v[b] = tree->value(b, c);
             }
@@ -169,10 +169,10 @@ public:
     {
         AssertEQ(MA_SRC, tree1->size(), tree2->size());
 
-        for (Int c = 0; c < tree1->size(); c++)
+        for (int32_t c = 0; c < tree1->size(); c++)
         {
             Values v1, v2;
-            for (Int b = 0; b < Blocks; b++)
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 v1[b] = tree1->value(b, c);
                 v2[b] = tree2->value(b, c);

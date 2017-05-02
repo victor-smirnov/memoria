@@ -63,7 +63,7 @@ public:
     SBuf& operator<<(const std::vector<T>& values)
     {
         buffer_<<"[";
-        for (Int c = 0; c < values.size(); c++) {
+        for (int32_t c = 0; c < values.size(); c++) {
             buffer_<<values[c];
 
             if (c != values.size() - 1) {

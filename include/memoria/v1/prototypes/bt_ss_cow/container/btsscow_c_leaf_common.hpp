@@ -52,7 +52,7 @@ protected:
 
     using typename Base::CtrSizeT;
 
-    static const Int Streams = Types::Streams;
+    static const int32_t Streams = Types::Streams;
 
     template <typename SubstreamsIdxList, typename... Args>
     auto read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
@@ -63,7 +63,7 @@ protected:
 
     bool isAtTheEnd2(const NodeBaseG& leaf, const Position& pos)
     {
-        Int size = self().template getLeafStreamSize<0>(leaf);
+        int32_t size = self().template getLeafStreamSize<0>(leaf);
         return pos[0] >= size;
     }
 

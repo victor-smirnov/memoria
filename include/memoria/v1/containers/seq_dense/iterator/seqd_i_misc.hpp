@@ -50,21 +50,21 @@ public:
 
     using typename Base::CtrSizeT;
 
-    template <Int Stream>
+    template <int32_t Stream>
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
-    static const Int BitsPerSymbol  = Container::Types::BitsPerSymbol;
-    static const Int Symbols        = Container::Types::Symbols;
+    static const int32_t BitsPerSymbol  = Container::Types::BitsPerSymbol;
+    static const int32_t Symbols        = Container::Types::Symbols;
 
 
-    Int symbol() const
+    int32_t symbol() const
     {
         auto& self  = this->self();
         return std::get<0>(self.ctr().template read_leaf_entry<IntList<1>>(self.leaf(), self.idx()));
     }
 
 
-    void setSymbol(Int symbol)
+    void setSymbol(int32_t symbol)
     {
         auto& self  = this->self();
 
@@ -73,25 +73,25 @@ public:
 
     struct InsertSymbolFn {
 
-        Int symbol_;
+        int32_t symbol_;
 
         CtrSizeT one_ = 1;
 
-        InsertSymbolFn(Int symbol): symbol_(symbol) {}
+        InsertSymbolFn(int32_t symbol): symbol_(symbol) {}
 
-        const auto& get(StreamTag<0>, StreamTag<0>, Int block) const {
+        const auto& get(StreamTag<0>, StreamTag<0>, int32_t block) const {
             return one_;
         }
 
-        const auto& get(StreamTag<0>, StreamTag<1>, Int block) const {
+        const auto& get(StreamTag<0>, StreamTag<1>, int32_t block) const {
             return symbol_;
         }
     };
 
 
-    void insert_symbol(Int symbol)
+    void insert_symbol(int32_t symbol)
     {
-        MEMORIA_V1_ASSERT(symbol, <, (Int)Symbols);
+        MEMORIA_V1_ASSERT(symbol, <, (int32_t)Symbols);
 
         auto& self  = this->self();
         auto& ctr   = self.ctr();
@@ -114,20 +114,20 @@ public:
 //        ReadWalker(T& data): data_(data), max_(data.size()) {}
 //
 //        template <typename NodeTypes>
-//        Int treeNode(const LeafNode<NodeTypes>* leaf, Int start)
+//        int32_t treeNode(const LeafNode<NodeTypes>* leaf, int32_t start)
 //        {
 //            return std::get<0>(leaf->template processSubstreams<IntList<0, 0>>(*this, start));
 //        }
 //
 //        template <typename StreamObj>
-//        Int stream(const StreamObj* obj, Int start)
+//        int32_t stream(const StreamObj* obj, int32_t start)
 //        {
 //            if (obj != nullptr)
 //            {
-//                Int size        = obj->size();
-//                Int remainder   = size - start;
+//                int32_t size        = obj->size();
+//                int32_t remainder   = size - start;
 //
-//                Int to_read = (processed_ + remainder < max_) ? remainder : (max_ - processed_);
+//                int32_t to_read = (processed_ + remainder < max_) ? remainder : (max_ - processed_);
 //
 //                obj->read(&data_, start, processed_, to_read);
 //
@@ -140,7 +140,7 @@ public:
 //
 //        void start_leaf() {}
 //
-//        void end_leaf(Int skip) {
+//        void end_leaf(int32_t skip) {
 //            processed_ += skip;
 //        }
 //
@@ -155,7 +155,7 @@ public:
 
 
 
-//    BigInt read(SymbolsBuffer<BitsPerSymbol>& data)
+//    int64_t read(SymbolsBuffer<BitsPerSymbol>& data)
 //    {
 //        auto& self = this->self();
 //        ReadWalker<SymbolsBuffer<BitsPerSymbol>> target(data);
@@ -188,15 +188,15 @@ public:
     template <typename Seq>
     class ReadAdaptor {
         const Seq& seq_;
-        Int pos_ = 0;
+        int32_t pos_ = 0;
 
     public:
         ReadAdaptor(const Seq& seq): seq_(seq) {}
 
         template <typename V>
-        void process(StreamTag<0>, StreamTag<1>, Int start, Int end, V&& value)
+        void process(StreamTag<0>, StreamTag<1>, int32_t start, int32_t end, V&& value)
         {
-            for (Int c = start; c < end; c++)
+            for (int32_t c = start; c < end; c++)
             {
                 auto sym1 = seq_.symbol(pos_ + c - start);
                 auto sym2 = value.symbol(c);

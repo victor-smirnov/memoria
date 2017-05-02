@@ -39,14 +39,14 @@ private:
     Type type_;
 
     union {
-        Byte        b_value;
-        UByte       ub_value;
-        Short       s_value;
-        UShort      us_value;
-        Int         i_value;
-        UInt        ui_value;
-        BigInt      bi_value;
-        UBigInt     ubi_value;
+        int8_t        b_value;
+        uint8_t       ub_value;
+        int16_t       s_value;
+        uint16_t      us_value;
+        int32_t         i_value;
+        uint32_t        ui_value;
+        int64_t      bi_value;
+        uint64_t     ubi_value;
         float       f_value;
         double      d_value;
         long double ld_value;
@@ -55,31 +55,31 @@ private:
 
 
 
-        operator Byte() const {
+        operator int8_t() const {
             return b_value;
         }
-        operator UByte() const {
+        operator uint8_t() const {
             return ub_value;
         }
 
-        operator Short() const {
+        operator int16_t() const {
             return s_value;
         }
-        operator UShort() const {
+        operator uint16_t() const {
             return us_value;
         }
 
-        operator Int() const {
+        operator int32_t() const {
             return i_value;
         }
-        operator UInt() const {
+        operator uint32_t() const {
             return ui_value;
         }
 
-        operator BigInt() const {
+        operator int64_t() const {
             return bi_value;
         }
-        operator UBigInt() const {
+        operator uint64_t() const {
             return ubi_value;
         }
 
@@ -97,31 +97,31 @@ private:
             return pc_value;
         }
 
-        void operator=(Byte value) {
+        void operator=(int8_t value) {
             b_value = value;
         }
-        void operator=(UByte value) {
+        void operator=(uint8_t value) {
             ub_value = value;
         }
 
-        void operator=(Short value) {
+        void operator=(int16_t value) {
             s_value = value;
         }
-        void operator=(UShort value) {
+        void operator=(uint16_t value) {
             us_value = value;
         }
 
-        void operator=(Int value) {
+        void operator=(int32_t value) {
             i_value = value;
         }
-        void operator=(UInt value) {
+        void operator=(uint32_t value) {
             ui_value = value;
         }
 
-        void operator=(BigInt value) {
+        void operator=(int64_t value) {
             bi_value = value;
         }
-        void operator=(UBigInt value) {
+        void operator=(uint64_t value) {
             ubi_value = value;
         }
 
@@ -149,14 +149,14 @@ public:
 
     Any(): type_(UNDEFINED) {}
 
-    Any(Byte value): type_(BYTE) {value_.b_value = value;}
-    Any(UByte value): type_(UBYTE) {value_.ub_value = value;}
-    Any(Short value): type_(SHORT) {value_.s_value = value;}
-    Any(UShort value): type_(USHORT) {value_.us_value = value;}
-    Any(Int value): type_(INT) {value_.i_value = value;}
-    Any(UInt value): type_(UINT) {value_.ui_value = value;}
-    Any(BigInt value): type_(BIGINT) {value_.bi_value = value;}
-    Any(UBigInt value): type_(UBIGINT) {value_.ubi_value = value;}
+    Any(int8_t value): type_(BYTE) {value_.b_value = value;}
+    Any(uint8_t value): type_(UBYTE) {value_.ub_value = value;}
+    Any(int16_t value): type_(SHORT) {value_.s_value = value;}
+    Any(uint16_t value): type_(USHORT) {value_.us_value = value;}
+    Any(int32_t value): type_(INT) {value_.i_value = value;}
+    Any(uint32_t value): type_(UINT) {value_.ui_value = value;}
+    Any(int64_t value): type_(BIGINT) {value_.bi_value = value;}
+    Any(uint64_t value): type_(UBIGINT) {value_.ubi_value = value;}
     Any(float value): type_(FLOAT) {value_.f_value = value;}
     Any(double value): type_(DOUBLE) {value_.d_value = value;}
     Any(long double value): type_(LDOUBLE) {value_.ld_value = value;}
@@ -190,17 +190,17 @@ public:
 
 
 
-template<> struct Any2Type<Byte>: TypeCode<Any::BYTE>       {};
-template<> struct Any2Type<UByte>: TypeCode<Any::UBYTE>     {};
+template<> struct Any2Type<int8_t>: TypeCode<Any::BYTE>       {};
+template<> struct Any2Type<uint8_t>: TypeCode<Any::UBYTE>     {};
 
-template<> struct Any2Type<Short>: TypeCode<Any::SHORT>     {};
-template<> struct Any2Type<UShort>: TypeCode<Any::USHORT>   {};
+template<> struct Any2Type<int16_t>: TypeCode<Any::SHORT>     {};
+template<> struct Any2Type<uint16_t>: TypeCode<Any::USHORT>   {};
 
-template<> struct Any2Type<Int>: TypeCode<Any::INT>         {};
-template<> struct Any2Type<UInt>: TypeCode<Any::UINT>       {};
+template<> struct Any2Type<int32_t>: TypeCode<Any::INT>         {};
+template<> struct Any2Type<uint32_t>: TypeCode<Any::UINT>       {};
 
-template<> struct Any2Type<BigInt>: TypeCode<Any::BIGINT>   {};
-template<> struct Any2Type<UBigInt>: TypeCode<Any::UBIGINT> {};
+template<> struct Any2Type<int64_t>: TypeCode<Any::BIGINT>   {};
+template<> struct Any2Type<uint64_t>: TypeCode<Any::UBIGINT> {};
 
 template<> struct Any2Type<float>: TypeCode<Any::FLOAT> {};
 template<> struct Any2Type<double>: TypeCode<Any::DOUBLE> {};

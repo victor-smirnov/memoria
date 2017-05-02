@@ -64,17 +64,17 @@ constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
 
 class CtrInitData {
     UUID master_name_;
-    Int master_ctr_type_hash_;
-    Int owner_ctr_type_hash_;
+    int32_t master_ctr_type_hash_;
+    int32_t owner_ctr_type_hash_;
 
 public:
-    CtrInitData(const UUID& master_name, Int master_hash, Int owner_hash):
+    CtrInitData(const UUID& master_name, int32_t master_hash, int32_t owner_hash):
         master_name_(master_name),
         master_ctr_type_hash_(master_hash),
         owner_ctr_type_hash_(owner_hash)
     {}
 
-    CtrInitData(Int master_hash):
+    CtrInitData(int32_t master_hash):
         master_name_(),
         master_ctr_type_hash_(master_hash),
         owner_ctr_type_hash_()
@@ -88,11 +88,11 @@ public:
         master_name_ = name;
     }
 
-    Int owner_ctr_type_hash() const {
+    int32_t owner_ctr_type_hash() const {
         return owner_ctr_type_hash_;
     }
 
-    Int master_ctr_type_hash() const {
+    int32_t master_ctr_type_hash() const {
         return master_ctr_type_hash_;
     }
 
@@ -129,7 +129,7 @@ public:
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
     using IteratorPtr       = CtrSharedPtr<SharedIterator>;
     
-    static constexpr Int CONTAINER_HASH = TypeHash<Name>::Value;
+    static constexpr int32_t CONTAINER_HASH = TypeHash<Name>::Value;
 
     template <typename> friend class BTIteratorBase;
 
@@ -194,7 +194,7 @@ public:
         init_data_  = other.init_data_;
     }
 
-    static Int hash() {
+    static int32_t hash() {
         return CONTAINER_HASH;
     }
 
@@ -306,21 +306,21 @@ public:
         	CtrNodesWalkerAdapter(BlockCallbackFn consumer): consumer_(consumer)
         	{}
 
-            virtual void beginRoot(Int idx, const void* page) {
+            virtual void beginRoot(int32_t idx, const void* page) {
             	beginNode(idx, page);
             }
 
 
-            virtual void beginNode(Int idx, const void* page) {
+            virtual void beginNode(int32_t idx, const void* page) {
             	const Page* p = T2T<const Page*>(page);
             	consumer_(p->uuid(), p->id(), page);
             }
 
-            virtual void rootLeaf(Int idx, const void* page) {
+            virtual void rootLeaf(int32_t idx, const void* page) {
             	beginNode(idx, page);
             }
 
-            virtual void leaf(Int idx, const void* page) {
+            virtual void leaf(int32_t idx, const void* page) {
             	beginNode(idx, page);
             }
         };
@@ -362,7 +362,7 @@ public:
     }
 
 
-    void initCtr(Int command) {}
+    void initCtr(int32_t command) {}
     void initCtr(const ID& root_id) {}
 
 protected:
@@ -480,8 +480,8 @@ public:
 };
 
 
-extern Int CtrRefCounters;
-extern Int CtrUnrefCounters;
+extern int32_t CtrRefCounters;
+extern int32_t CtrUnrefCounters;
 
 
 template <typename Types>
@@ -513,8 +513,8 @@ private:
 
     bool        debug_;
 
-    Int         owner_ctr_type_hash_  = 0;
-    Int         master_ctr_type_hash_ = 0;
+    int32_t         owner_ctr_type_hash_  = 0;
+    int32_t         master_ctr_type_hash_ = 0;
     
 protected:
     typename Base::template CtrSharedPtr<Allocator> alloc_holder_;
@@ -523,7 +523,7 @@ public:
 
     Ctr(
             Allocator* allocator,
-            Int command = CTR_CREATE,
+            int32_t command = CTR_CREATE,
             const UUID& name = CTR_DEFAULT_NAME,
             const char* mname = NULL
     ):
@@ -547,7 +547,7 @@ public:
         }
     }
 
-    void checkCommandArguments(Int command, const UUID& name)
+    void checkCommandArguments(int32_t command, const UUID& name)
     {
         if ((command & CTR_CREATE) == 0 && (command & CTR_FIND) == 0)
         {
@@ -616,7 +616,7 @@ public:
         logger_.configure(model_type_name_, Logger::DERIVED, &allocator_->logger());
     }
 
-    void initCtr(Allocator* allocator, const UUID& name, Int command, const char* mname = NULL)
+    void initCtr(Allocator* allocator, const UUID& name, int32_t command, const char* mname = NULL)
     {
         allocator_          = allocator;
         name_               = name;
@@ -646,11 +646,11 @@ public:
         Base::initCtr(root_id, name_);
     }
 
-    Int owner_ctr_type_hash () const {
+    int32_t owner_ctr_type_hash () const {
         return owner_ctr_type_hash_;
     }
 
-    Int master_ctr_type_hash() const {
+    int32_t master_ctr_type_hash() const {
         return master_ctr_type_hash_;
     }
 
@@ -687,7 +687,7 @@ public:
     }
 
 
-    bool is_log(Int level) const
+    bool is_log(int32_t level) const
     {
         return logger_.isLogEnabled(level);
     }

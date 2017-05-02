@@ -104,10 +104,10 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
     >;
 
 
-    static constexpr Int DataStreams = 2;
+    static constexpr int32_t DataStreams = 2;
 
 
-    template <Int Level>
+    template <int32_t Level>
     using IOData = btfl::BTFLData<
         DataStreams,
             Level,

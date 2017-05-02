@@ -34,7 +34,7 @@ private:
     using Type = PageID<T>;
 
 public:
-    static void serialize(SerializationData& data, const Type& field, Int count = 1)
+    static void serialize(SerializationData& data, const Type& field, int32_t count = 1)
     {
         memmove(data.buf, &field, sizeof(Type) * count);
 
@@ -42,7 +42,7 @@ public:
         data.total  += sizeof(Type) * count;
     }
 
-    static void serialize(SerializationData& data, const Type* field, Int count = 1)
+    static void serialize(SerializationData& data, const Type* field, int32_t count = 1)
     {
         memmove(data.buf, field, sizeof(Type) * count);
 
@@ -50,13 +50,13 @@ public:
         data.total  += sizeof(Type) * count;
     }
 
-    static void deserialize(DeserializationData& data, Type& field, Int count = 1)
+    static void deserialize(DeserializationData& data, Type& field, int32_t count = 1)
     {
         memmove(&field, data.buf, sizeof(Type) * count);
         data.buf += sizeof(Type) * count;
     }
 
-    static void deserialize(DeserializationData& data, Type* field, Int count = 1)
+    static void deserialize(DeserializationData& data, Type* field, int32_t count = 1)
     {
         memmove(field, data.buf, sizeof(Type) * count);
         data.buf += sizeof(Type) * count;
@@ -64,7 +64,7 @@ public:
 };
 
 
-template <Int Size>
+template <int32_t Size>
 struct FieldFactory<BitBuffer<Size> > {
     using Type = BitBuffer<Size>;
 

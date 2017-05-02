@@ -50,8 +50,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorUpdateName)
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams          = Container::Types::Streams;
-    static const Int DataStreams      = Container::Types::DataStreams;
+    static const int32_t Streams          = Container::Types::Streams;
+    static const int32_t DataStreams      = Container::Types::DataStreams;
 
 
 MEMORIA_V1_ITERATOR_PART_END

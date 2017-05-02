@@ -46,7 +46,7 @@ protected:
     using typename Base::CtrSizesT;
 
 
-    static const Int Streams = Types::Streams;
+    static const int32_t Streams = Types::Streams;
 
     using PageUpdateMgt = typename Types::PageUpdateMgr;
 
@@ -61,7 +61,7 @@ protected:
     			auto sizes = self.getLeafStreamSizes(node);
 
     			CtrSizeT data_streams_size = 0;
-    			for (Int c = 0; c < CtrSizesT::Indexes - 1; c++)
+    			for (int32_t c = 0; c < CtrSizesT::Indexes - 1; c++)
     			{
     				data_streams_size += sizes[c];
     			}

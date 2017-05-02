@@ -24,20 +24,20 @@ namespace v1 {
 
 template <typename Codec>
 struct PkdVLETreeShapeProvider {
-    static constexpr Int BitsPerElement = Codec::ElementSize;
-    static constexpr Int BlockSize = 128;// bytes
+    static constexpr int32_t BitsPerElement = Codec::ElementSize;
+    static constexpr int32_t BlockSize = 128;// bytes
 
-    static constexpr Int BranchingFactor = PackedTreeBranchingFactor;
-    static constexpr Int ValuesPerBranch = BlockSize * 8 / BitsPerElement;
+    static constexpr int32_t BranchingFactor = PackedTreeBranchingFactor;
+    static constexpr int32_t ValuesPerBranch = BlockSize * 8 / BitsPerElement;
 };
 
 template <
     typename IndexValueT,
-    Int kBlocks,
+    int32_t kBlocks,
     template <typename> class CodecT,
-    typename ValueT = BigInt,
-    Int kBranchingFactor = PkdVLETreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
-    Int kValuesPerBranch = PkdVLETreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch
+    typename ValueT = int64_t,
+    int32_t kBranchingFactor = PkdVLETreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
+    int32_t kValuesPerBranch = PkdVLETreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch
 >
 struct PkdVLETreeTypes {
     using IndexValue    = IndexValueT;
@@ -46,9 +46,9 @@ struct PkdVLETreeTypes {
     template <typename T>
     using Codec = CodecT<T>;
 
-    static constexpr Int Blocks = kBlocks;
-    static constexpr Int BranchingFactor = kBranchingFactor;
-    static constexpr Int ValuesPerBranch = kValuesPerBranch;
+    static constexpr int32_t Blocks = kBlocks;
+    static constexpr int32_t BranchingFactor = kBranchingFactor;
+    static constexpr int32_t ValuesPerBranch = kValuesPerBranch;
 };
 
 

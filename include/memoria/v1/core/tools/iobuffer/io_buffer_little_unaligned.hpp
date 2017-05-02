@@ -47,10 +47,10 @@ public:
     IOBuffer(size_t length): Base(length)
     {}
 
-    IOBuffer(UByte* data, size_t length): Base(data, length)
+    IOBuffer(uint8_t* data, size_t length): Base(data, length)
     {}
 
-    IOBuffer(UByte* data, size_t pos, size_t length): Base(data, pos, length)
+    IOBuffer(uint8_t* data, size_t pos, size_t length): Base(data, pos, length)
     {}
 
     IOBuffer(const IOBuffer&) = delete;
@@ -60,11 +60,11 @@ public:
 
     using Base::put;
 
-    bool put(Short v)
+    bool put(int16_t v)
     {
         if (has_capacity(2))
         {
-            *T2T<Short*>(array_ + pos_) = v;
+            *T2T<int16_t*>(array_ + pos_) = v;
 
             pos_ += 2;
 
@@ -75,10 +75,10 @@ public:
         }
     }
 
-    Short getShort()
+    int16_t getShort()
     {
         assertRange(2, "getShort()");
-        Short v = *T2T<const Short*>(array_ + pos_);
+        int16_t v = *T2T<const int16_t*>(array_ + pos_);
 
         pos_ += 2;
 
@@ -86,11 +86,11 @@ public:
     }
 
 
-    bool put(UShort v)
+    bool put(uint16_t v)
     {
         if (has_capacity(2))
         {
-            *T2T<UShort*>(array_ + pos_) = v;
+            *T2T<uint16_t*>(array_ + pos_) = v;
 
             pos_ += 2;
 
@@ -101,21 +101,21 @@ public:
         }
     }
 
-    UShort getUShort()
+    uint16_t getUShort()
     {
         assertRange(2, "getShort()");
-        Short v = *T2T<const UShort*>(array_ + pos_);
+        int16_t v = *T2T<const uint16_t*>(array_ + pos_);
 
         pos_ += 2;
 
         return v;
     }
 
-    bool put(Int v)
+    bool put(int32_t v)
     {
         if (has_capacity(4))
         {
-            *T2T<Int*>(array_ + pos_) = v;
+            *T2T<int32_t*>(array_ + pos_) = v;
 
             pos_ += 4;
 
@@ -126,10 +126,10 @@ public:
         }
     }
 
-    Int getInt()
+    int32_t getInt()
     {
         assertRange(4, "getInt()");
-        Int v = *T2T<const Int*>(array_ + pos_);
+        int32_t v = *T2T<const int32_t*>(array_ + pos_);
 
         pos_ += 4;
 
@@ -137,11 +137,11 @@ public:
     }
 
 
-    bool put(UInt v)
+    bool put(uint32_t v)
     {
         if (has_capacity(4))
         {
-            *T2T<UInt*>(array_ + pos_) = v;
+            *T2T<uint32_t*>(array_ + pos_) = v;
 
             pos_ += 4;
 
@@ -152,21 +152,21 @@ public:
         }
     }
 
-    UInt getUInt()
+    uint32_t getUInt()
     {
         assertRange(4, "getUInt()");
-        UInt v = *T2T<const UInt*>(array_ + pos_);
+        uint32_t v = *T2T<const uint32_t*>(array_ + pos_);
 
         pos_ += 4;
 
         return v;
     }
 
-    bool put(BigInt v)
+    bool put(int64_t v)
     {
         if (has_capacity(8))
         {
-            *T2T<BigInt*>(array_ + pos_) = v;
+            *T2T<int64_t*>(array_ + pos_) = v;
 
             pos_ += 8;
 
@@ -177,21 +177,21 @@ public:
         }
     }
 
-    BigInt getBigInt()
+    int64_t getBigInt()
     {
         assertRange(8, "getBigInt()");
-        BigInt v = *T2T<const BigInt*>(array_ + pos_);
+        int64_t v = *T2T<const int64_t*>(array_ + pos_);
 
         pos_ += 8;
 
         return v;
     }
 
-    bool put(UBigInt v)
+    bool put(uint64_t v)
     {
         if (has_capacity(8))
         {
-            *T2T<UBigInt*>(array_ + pos_) = v;
+            *T2T<uint64_t*>(array_ + pos_) = v;
 
             pos_ += 8;
 
@@ -202,11 +202,11 @@ public:
         }
     }
 
-    UBigInt getUBigInt()
+    uint64_t getUBigInt()
     {
         assertRange(8, "getUBigInt()");
 
-        UBigInt v = *T2T<const UBigInt*>(array_ + pos_);
+        uint64_t v = *T2T<const uint64_t*>(array_ + pos_);
 
         pos_ += 8;
 

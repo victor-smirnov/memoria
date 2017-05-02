@@ -54,8 +54,8 @@ private:
 
     NodeBaseG           leaf_;
 
-    Int                 idx_;
-    Int                 stream_;
+    int32_t                 idx_;
+    int32_t                 stream_;
 
     bool                found_;
 
@@ -137,30 +137,30 @@ public:
     }
 
 
-    Int& stream() {
+    int32_t& stream() {
         return stream_;
     }
 
-    const Int& stream() const {
+    const int32_t& stream() const {
         return stream_;
     }
 
-    Int &key_idx()
+    int32_t &key_idx()
     {
         return idx_;
     }
 
-    const Int key_idx() const
+    const int32_t key_idx() const
     {
         return idx_;
     }
 
-    Int &idx()
+    int32_t &idx()
     {
         return idx_;
     }
 
-    const Int idx() const
+    const int32_t idx() const
     {
         return idx_;
     }
@@ -204,7 +204,7 @@ public:
         return leaf().isSet() ? idx() >= self.leaf_size() : true;
     }
 
-    bool isEnd(Int idx) const
+    bool isEnd(int32_t idx) const
     {
         auto& self = this->self();
 
@@ -217,7 +217,7 @@ public:
         return !(self.isBegin() || self.isEnd());
     }
 
-    bool isContent(Int idx) const
+    bool isContent(int32_t idx) const
     {
         auto& self = this->self();
 
@@ -244,12 +244,12 @@ public:
         return !isEmpty();
     }
 
-    BigInt keyNum() const
+    int64_t keyNum() const
     {
         return cache_.key_num();
     }
 
-    BigInt& keyNum()
+    int64_t& keyNum()
     {
         return cache_.key_num();
     }
@@ -330,7 +330,7 @@ public:
 
 public:
     template <typename Walker>
-    void finish_walking(Int idx, const Walker& w, WalkCmd cmd) {}
+    void finish_walking(int32_t idx, const Walker& w, WalkCmd cmd) {}
 
 
 

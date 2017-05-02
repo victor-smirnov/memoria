@@ -32,9 +32,9 @@ namespace v1 {
 using namespace std;
 
 
-class BitmapSelectTest: public BitmapTestBase<UBigInt> {
+class BitmapSelectTest: public BitmapTestBase<uint64_t> {
 
-    typedef UBigInt T;
+    typedef uint64_t T;
 
     typedef BitmapSelectTest                                                    MyType;
     typedef BitmapTestBase<T>                                                   Base;
@@ -46,8 +46,8 @@ class BitmapSelectTest: public BitmapTestBase<UBigInt> {
     size_t  target_rank_;
     bool    target_found_;
 
-    UBigInt value_ = 0;
-    UBigInt rank_ = 0;
+    uint64_t value_ = 0;
+    uint64_t rank_ = 0;
 
     T bitmap_[5];
 
@@ -80,11 +80,11 @@ public:
 
 
 
-    size_t selectFW(UBigInt x, Int rank)
+    size_t selectFW(uint64_t x, int32_t rank)
     {
-        for (size_t c = 0; c <= TypeBitsize<UBigInt>(); c++)
+        for (size_t c = 0; c <= TypeBitsize<uint64_t>(); c++)
         {
-            if (PopCnt(x & MakeMask<UBigInt>(0, c)) == rank)
+            if (PopCnt(x & MakeMask<uint64_t>(0, c)) == rank)
             {
                 return c - 1;
             }
@@ -93,13 +93,13 @@ public:
         return 100 + PopCnt(x);
     }
 
-    size_t selectBW(UBigInt x, Int rank)
+    size_t selectBW(uint64_t x, int32_t rank)
     {
-        size_t bitsize = TypeBitsize<UBigInt>();
+        size_t bitsize = TypeBitsize<uint64_t>();
 
         for (size_t c = 1; c <= bitsize; c++)
         {
-            UBigInt mask = MakeMask<UBigInt>(bitsize - c, c);
+            uint64_t mask = MakeMask<uint64_t>(bitsize - c, c);
             if (PopCnt(x & mask) == rank)
             {
                 return bitsize - c;
@@ -110,7 +110,7 @@ public:
     }
 
 
-    void AssertSelectFW(UBigInt value, size_t rank)
+    void AssertSelectFW(uint64_t value, size_t rank)
     {
         value_ = value;
         rank_  = rank;
@@ -121,7 +121,7 @@ public:
         AssertEQ(MA_SRC, pos1, pos2, SBuf()<<value_<<" "<<rank_);
     }
 
-    void AssertSelectBW(UBigInt value, size_t rank)
+    void AssertSelectBW(uint64_t value, size_t rank)
     {
         value_ = value;
         rank_  = rank;
@@ -137,11 +137,11 @@ public:
     {
         AssertSelectFW(-1ull, 64);
 
-        size_t bitsize = TypeBitsize<UBigInt>();
+        size_t bitsize = TypeBitsize<uint64_t>();
 
-        for (Int c = 0; c < 10000; c++)
+        for (int32_t c = 0; c < 10000; c++)
         {
-            UBigInt value = getBIRandom();
+            uint64_t value = getBIRandom();
 
             for (size_t rank = 1; rank <= bitsize; rank++)
             {
@@ -157,11 +157,11 @@ public:
         AssertSelectBW(-1ull, 64);
         AssertSelectBW(-1ull, 1);
 
-        size_t bitsize = TypeBitsize<UBigInt>();
+        size_t bitsize = TypeBitsize<uint64_t>();
 
-        for (Int c = 0; c < 10000; c++)
+        for (int32_t c = 0; c < 10000; c++)
         {
-            UBigInt value = getBIRandom();
+            uint64_t value = getBIRandom();
 
             for (size_t rank = 1; rank <= bitsize; rank++)
             {
@@ -170,12 +170,12 @@ public:
         }
     }
 
-    void dumpRanks(UBigInt value)
+    void dumpRanks(uint64_t value)
     {
-        for (Int c = 0; c < 64; c++)
+        for (int32_t c = 0; c < 64; c++)
         {
             out()<<c<<" ";
-            out()<<PopCnt(value & MakeMask<UBigInt>(0, c))<<endl;
+            out()<<PopCnt(value & MakeMask<uint64_t>(0, c))<<endl;
         }
     }
 

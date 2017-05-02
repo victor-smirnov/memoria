@@ -28,30 +28,30 @@ using namespace std;
 
 class T{};
 
-template <typename T, Int Indexes_>
+template <typename T, int32_t Indexes_>
 struct PkdStruct {
-    static const Int Indexes = Indexes_;
+    static const int32_t Indexes = Indexes_;
 };
 
 using BranchStructList = TypeList<
-        PkdStruct<Int, 9>,
+        PkdStruct<int32_t, 9>,
 
-        PkdStruct<Int, 17>,
+        PkdStruct<int32_t, 17>,
 
-        PkdStruct<Int, 4>,
+        PkdStruct<int32_t, 4>,
 
-        PkdStruct<Int, 4>
+        PkdStruct<int32_t, 4>
 >;
 
 
 using LeafStructList = TypeList<
-        TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>, PkdStruct<Int, 2>>,
+        TL<PkdStruct<int32_t, 4>, PkdStruct<int32_t, 2>, PkdStruct<int32_t, 2>>,
 
-        PkdStruct<Int, 17>,
+        PkdStruct<int32_t, 17>,
 
-        PkdStruct<Int, 4>,
+        PkdStruct<int32_t, 4>,
 
-        PkdStruct<Int, 4>
+        PkdStruct<int32_t, 4>
 >;
 
 using IdxList = TypeList<
@@ -115,7 +115,7 @@ int main() {
 
         TypesPrinter<decltype(AccumItemH::template item<6>(accum))>::print(cout);
 
-        Int index = 13;
+        int32_t index = 13;
         AccumItemH::value(index, accum) = 12345;
         cout<<"AccumItem = "<<AccumItemH::value(index, accum)<<endl;
     }
@@ -134,37 +134,37 @@ int main() {
     using LeafStructList2 = TL<
 
             TypeList<
-                TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>>,
+                TL<PkdStruct<int32_t, 4>, PkdStruct<int32_t, 2>>,
 
-                PkdStruct<Int, 10>,
+                PkdStruct<int32_t, 10>,
 
-                TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>>,
+                TL<PkdStruct<int32_t, 4>, PkdStruct<int32_t, 2>>,
 
-                PkdStruct<Int, 11>,
+                PkdStruct<int32_t, 11>,
 
-                TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>, PkdStruct<Int, 2>>,
+                TL<PkdStruct<int32_t, 4>, PkdStruct<int32_t, 2>, PkdStruct<int32_t, 2>>,
 
-                PkdStruct<Int, 17>,
+                PkdStruct<int32_t, 17>,
 
-                PkdStruct<Int, 4>,
+                PkdStruct<int32_t, 4>,
 
-                PkdStruct<Int, 4>
+                PkdStruct<int32_t, 4>
             >,
 
             TypeList<
-                PkdStruct<Int, 11>, //12 //br:8
+                PkdStruct<int32_t, 11>, //12 //br:8
 
-                TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>>,
+                TL<PkdStruct<int32_t, 4>, PkdStruct<int32_t, 2>>,
 
-                PkdStruct<Int, 11>,
+                PkdStruct<int32_t, 11>,
 
-                TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>, PkdStruct<Int, 2>>,
+                TL<PkdStruct<int32_t, 4>, PkdStruct<int32_t, 2>, PkdStruct<int32_t, 2>>,
 
-                PkdStruct<Int, 17>
+                PkdStruct<int32_t, 17>
             >
     >;
 
-    const Int LeafIdx = 13;
+    const int32_t LeafIdx = 13;
 
     cout<<"BranchIndex: "<<LeafToBranchIndexByValueTranslator<LeafStructList2, LeafIdx>::BranchStructIdx<<endl;
     cout<<"Offset: "<<LeafToBranchIndexByValueTranslator<LeafStructList2, LeafIdx>::LeafOffset<<endl;

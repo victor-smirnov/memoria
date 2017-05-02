@@ -129,7 +129,7 @@ public:
         StringList(StringRef list, StringRef separators = ",");
 
         int size() const;
-        StringRef getItem(Int size) const;
+        StringRef getItem(int32_t size) const;
 };
 
 class PathList: public StringList {

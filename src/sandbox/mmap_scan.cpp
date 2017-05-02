@@ -39,8 +39,8 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using KeyType   = BigInt;
-    using ValueType = UByte;
+    using KeyType   = int64_t;
+    using ValueType = uint8_t;
 
     using CtrName   = Map<KeyType, Vector<ValueType>>;
 

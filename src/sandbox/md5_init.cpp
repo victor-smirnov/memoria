@@ -30,7 +30,7 @@ using namespace memoria;
 int main(void) {
 
     for (int i = 1; i <= 64; i++) {
-        cout<<UInt(UINT_MAX * fabs(sin(i)))<<", "<<endl;
+        cout<<uint32_t(UINT_MAX * fabs(sin(i)))<<", "<<endl;
     }
 
     return 0;

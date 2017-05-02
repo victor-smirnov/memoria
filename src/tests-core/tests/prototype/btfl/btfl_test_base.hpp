@@ -40,7 +40,7 @@ template <
 class BTFLTestBase;
 
 template <
-    Int Levels,
+    int32_t Levels,
     PackedSizeType SizeType,
     typename AllocatorType,
     typename Profile
@@ -71,12 +71,12 @@ protected:
     using Value     = typename Ctr::Types::Value;
     using Column    = typename Ctr::Types::Column;
 
-    static const Int Streams        = Ctr::Types::Streams;
-    static const Int DataStreams    = Ctr::Types::DataStreams;
+    static const int32_t Streams        = Ctr::Types::Streams;
+    static const int32_t DataStreams    = Ctr::Types::DataStreams;
 
     using DataSizesT    = core::StaticVector<CtrSizeT, DataStreams>;
 
-    template <Int Level>
+    template <int32_t Level>
     using BTFLSampleData = typename Ctr::Types::template IOData<Level>;
 
     using Base::getRandom;
@@ -94,10 +94,10 @@ protected:
 
     bool dump = false;
 
-    BigInt size             = 1000000;
-    Int iterations          = 5;
-    Int level_limit         = 1000;
-    Int last_level_limit    = 100;
+    int64_t size             = 1000000;
+    int32_t iterations          = 5;
+    int32_t level_limit         = 1000;
+    int32_t last_level_limit    = 100;
 
 
 
@@ -115,25 +115,25 @@ public:
 
     virtual ~BTFLTestBase() noexcept {}
 
-    virtual void smokeCoverage(Int scale)
+    virtual void smokeCoverage(int32_t scale)
     {
         size        = 3000 * scale;
         iterations  = 1;
     }
 
-    virtual void smallCoverage(Int scale)
+    virtual void smallCoverage(int32_t scale)
     {
         size        = 100000 * scale;
         iterations  = 1;
     }
 
-    virtual void normalCoverage(Int scale)
+    virtual void normalCoverage(int32_t scale)
     {
         size        = 10000000 * scale;
         iterations  = 1;
     }
 
-    virtual void largeCoverage(Int scale)
+    virtual void largeCoverage(int32_t scale)
     {
         size        = 100000000 * scale;
         iterations  = 10;
@@ -143,12 +143,12 @@ public:
         return sampleTreeShape(level_limit, last_level_limit, size);
     }
 
-    DataSizesT sampleTreeShape(Int level_limit, Int last_level_limit, CtrSizeT size)
+    DataSizesT sampleTreeShape(int32_t level_limit, int32_t last_level_limit, CtrSizeT size)
     {
         CtrSizeT   shape_size = 0;
         DataSizesT largest;
 
-        for (Int c = 0; c < 10; c++)
+        for (int32_t c = 0; c < 10; c++)
         {
             auto shape = sampleSingleTreeShape(level_limit, last_level_limit, size);
             auto size0 = estimateShapeSize(shape);
@@ -165,7 +165,7 @@ public:
     {
         CtrSizeT size = 1;
 
-        for (Int c = 0; c < DataSizesT::Indexes; c++)
+        for (int32_t c = 0; c < DataSizesT::Indexes; c++)
         {
             auto item = shape[c];
             size *= item > 0 ? item : 1;
@@ -175,7 +175,7 @@ public:
     }
 
 
-    DataSizesT sampleSingleTreeShape(Int level_limit, Int last_level_limit, CtrSizeT size)
+    DataSizesT sampleSingleTreeShape(int32_t level_limit, int32_t last_level_limit, CtrSizeT size)
     {
         DataSizesT shape;
 
@@ -184,11 +184,11 @@ public:
 
         while(shape[0] == 0)
         {
-            BigInt resource = size;
+            int64_t resource = size;
 
-            for (Int c = DataStreams - 1; c > 0; c--)
+            for (int32_t c = DataStreams - 1; c > 0; c--)
             {
-                Int level_size = getRandom(limits[c]) + ((c == DataStreams - 1)? 10 : 1);
+                int32_t level_size = getRandom(limits[c]) + ((c == DataStreams - 1)? 10 : 1);
 
                 shape[c] = level_size;
 

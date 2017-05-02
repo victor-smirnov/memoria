@@ -35,7 +35,7 @@ ContainerMetadataRepository::ContainerMetadataRepository(StringRef name, const M
 {
     MetadataGroup::set_type() = Metadata::CONTAINER;
 
-    for (UInt c = 0; c < content_.size(); c++)
+    for (uint32_t c = 0; c < content_.size(); c++)
     {
         if (content[c]->getTypeCode() == Metadata::CONTAINER)
         {
@@ -56,7 +56,7 @@ void ContainerMetadataRepository::process_model(const ContainerMetadataPtr& mode
 
         model_map_[model->ctr_hash()] = model;
 
-        for (Int d = 0; d < model->size(); d++)
+        for (int32_t d = 0; d < model->size(); d++)
         {
             auto item = model->getItem(d);
             if (item->getTypeCode() == Metadata::PAGE)
@@ -76,7 +76,7 @@ void ContainerMetadataRepository::process_model(const ContainerMetadataPtr& mode
 }
 
 
-const PageMetadataPtr& ContainerMetadataRepository::getPageMetadata(Int model_hash, Int page_hash) const
+const PageMetadataPtr& ContainerMetadataRepository::getPageMetadata(int32_t model_hash, int32_t page_hash) const
 {
     PageMetadataMap::const_iterator i = page_map_.find(model_hash ^ page_hash);
     if (i != page_map_.end())
@@ -89,7 +89,7 @@ const PageMetadataPtr& ContainerMetadataRepository::getPageMetadata(Int model_ha
 }
 
 
-const ContainerMetadataPtr& ContainerMetadataRepository::getContainerMetadata(Int hashCode) const
+const ContainerMetadataPtr& ContainerMetadataRepository::getContainerMetadata(int32_t hashCode) const
 {
     auto i = model_map_.find(hashCode);
     if (i != model_map_.end())
@@ -119,8 +119,8 @@ void ContainerMetadataRepository::dumpMetadata(std::ostream& out)
 
 PageMetadata::PageMetadata(
                 StringRef name,
-                Int attributes,
-                Int hash,
+                int32_t attributes,
+                int32_t hash,
                 const IPageOperations* page_operations
               ):
     MetadataGroup(name)

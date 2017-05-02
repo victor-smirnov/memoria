@@ -78,7 +78,7 @@ public:
         ctr_ = other.ctr_;
     }
 
-    void initCtr(Int command)
+    void initCtr(int32_t command)
     {
         ctr_.initCtr(&self().allocator(), self().name(), command);
 
@@ -93,9 +93,9 @@ public:
     }
 
 
-    static Int initMetadata()
+    static int32_t initMetadata()
     {
-        Int hash = WrappedCtr::initMetadata();
+        int32_t hash = WrappedCtr::initMetadata();
 
         if (Base::getMetadata() == NULL)
         {
@@ -143,14 +143,14 @@ public:
     }
 
 
-    void setBranchingFactor(Int count)
+    void setBranchingFactor(int32_t count)
     {
         typename WrappedCtr::Metadata meta = ctr_.getRootMetadata();
         meta.branching_factor() = count;
         ctr_.setRootMetadata(meta);
     }
 
-    Int getBranchingFactor() const
+    int32_t getBranchingFactor() const
     {
         return ctr_.getRootMetadata().branching_factor();
     }

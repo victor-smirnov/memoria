@@ -54,10 +54,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::RemoveBatchName)
     void removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Position& sums);
 
     void removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Position& sums);
-    void removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Position& sums);
+    void removeBranchNodesFromStart(NodeBaseG& stop, int32_t stop_idx, Position& sums);
 
     void removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, Position& sums);
-    void removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, Position& sums);
+    void removeBranchNodesAtEnd(NodeBaseG& start, int32_t start_idx, Position& sums);
 
     void removeNodes(
             NodeBaseG& start,
@@ -85,9 +85,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::RemoveBatchName)
 
     void removeBranchNodes(
             NodeBaseG& start,
-            Int start_idx,
+            int32_t start_idx,
             NodeBaseG& stop,
-            Int stop_idx,
+            int32_t stop_idx,
 
             Position& sizes
     );
@@ -252,7 +252,7 @@ void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Position& sizes)
 
 
 M_PARAMS
-void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Position& sizes)
+void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, int32_t stop_idx, Position& sizes)
 {
     auto& self = this->self();
 
@@ -264,7 +264,7 @@ void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Position&
 
     while (!node->is_root())
     {
-        Int parent_idx = node->parent_idx();
+        int32_t parent_idx = node->parent_idx();
 
         node = self.getNodeParentForUpdate(node);
 
@@ -289,7 +289,7 @@ void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Pos
     {
         NodeBaseG parent = self.getNodeParentForUpdate(node);
 
-        Int parent_idx = node->parent_idx();
+        int32_t parent_idx = node->parent_idx();
 
         self.removeBranchNodesFromStart(parent, parent_idx, sizes);
 
@@ -299,19 +299,19 @@ void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Pos
 
 
 M_PARAMS
-void M_TYPE::removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, Position& sizes)
+void M_TYPE::removeBranchNodesAtEnd(NodeBaseG& start, int32_t start_idx, Position& sizes)
 {
     auto& self = this->self();
 
     NodeBaseG node = start;
 
-    Int node_size = self.getNodeSize(node, 0);
+    int32_t node_size = self.getNodeSize(node, 0);
 
     self.removeNodeContent(node, start_idx, node_size, sizes);
 
     while (!node->is_root())
     {
-        Int parent_idx  = node->parent_idx();
+        int32_t parent_idx  = node->parent_idx();
 
         node            = self.getNodeParentForUpdate(node);
         node_size       = self.getNodeSize(node, 0);
@@ -382,8 +382,8 @@ void M_TYPE::removeNodes(
 
         sizes += self.removeLeafContent(stop, Position(0), stop_idx);
 
-        Int start_parent_idx    = start->parent_idx();
-        Int stop_parent_idx     = stop->parent_idx();
+        int32_t start_parent_idx    = start->parent_idx();
+        int32_t stop_parent_idx     = stop->parent_idx();
 
         NodeBaseG start_parent  = self.getNodeParentForUpdate(start);
         NodeBaseG stop_parent   = self.getNodeParentForUpdate(stop);
@@ -415,9 +415,9 @@ void M_TYPE::removeNodes(
 M_PARAMS
 void M_TYPE::removeBranchNodes(
             NodeBaseG& start,
-            Int start_idx,
+            int32_t start_idx,
             NodeBaseG& stop,
-            Int stop_idx,
+            int32_t stop_idx,
 
             Position& sizes
 )
@@ -442,13 +442,13 @@ void M_TYPE::removeBranchNodes(
         // We need to up the tree until we found the node
         // enclosing the region. See the code branch above.
 
-        Int start_end = self.getNodeSize(start, 0);
+        int32_t start_end = self.getNodeSize(start, 0);
 
         self.removeNodeContent(start, start_idx, start_end, sizes);
         self.removeNodeContent(stop, 0, stop_idx, sizes);
 
-        Int start_parent_idx    = start->parent_idx();
-        Int stop_parent_idx     = stop->parent_idx();
+        int32_t start_parent_idx    = start->parent_idx();
+        int32_t stop_parent_idx     = stop->parent_idx();
 
         NodeBaseG start_parent  = self.getNodeParentForUpdate(start);
         NodeBaseG stop_parent   = self.getNodeParentForUpdate(stop);

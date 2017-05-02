@@ -69,12 +69,12 @@ public:
         LabelsTuple labels_;
 
 
-        template <Int Idx, typename SeqTypes>
-        void stream(const PkdFSSeq<SeqTypes>* seq, Int idx)
+        template <int32_t Idx, typename SeqTypes>
+        void stream(const PkdFSSeq<SeqTypes>* seq, int32_t idx)
         {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSEArray<StreamTypes>* labels, Int idx)
+        template <int32_t Idx, typename StreamTypes>
+        void stream(const PackedFSEArray<StreamTypes>* labels, int32_t idx)
         {
             if (labels)
             {
@@ -86,8 +86,8 @@ public:
         }
 
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdVQTree<StreamTypes>* labels, Int idx)
+        template <int32_t Idx, typename StreamTypes>
+        void stream(const PkdVQTree<StreamTypes>* labels, int32_t idx)
         {
             if (labels)
             {
@@ -100,13 +100,13 @@ public:
 
 
         template <typename NTypes>
-        void treeNode(const LeafNode<NTypes>* node, Int label_idx)
+        void treeNode(const LeafNode<NTypes>* node, int32_t label_idx)
         {
             node->template processSubstreams<IntList<1, 1>>(*this, label_idx);
         }
     };
 
-    LabelsTuple getLabels(const NodeBaseG& leaf, Int idx) const
+    LabelsTuple getLabels(const NodeBaseG& leaf, int32_t idx) const
     {
         LabelsFn fn;
 

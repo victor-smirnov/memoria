@@ -38,8 +38,8 @@ class VectorTreeCreateTest: public VectorTreeTestBase {
     using Base   = VectorTreeTestBase;
     using MyType = VectorTreeCreateTest;
 
-    Int max_degree_ = 10;
-    Int iterations_ = 1;
+    int32_t max_degree_ = 10;
+    int32_t iterations_ = 1;
 
 public:
 

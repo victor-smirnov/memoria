@@ -29,17 +29,17 @@ using namespace memoria;
 using namespace v1::tools;
 using namespace std;
 
-using CtrT      = DCtrTF<Table<BigInt, Byte, PackedSizeType::FIXED>>::Type;
+using CtrT      = DCtrTF<Table<int64_t, int8_t, PackedSizeType::FIXED>>::Type;
 //using Provider    = v1::bttl::RandomDataInputProvider<CtrT, RngInt>;
 using Provider  = v1::bttl::DeterministicDataInputProvider<CtrT>;
 using Position  = CtrT::Types::Position;
 
 
 struct ScanFn {
-    BigInt value_ = 0;
+    int64_t value_ = 0;
 
     template <typename Stream>
-    void operator()(const Stream* obj, Int start, Int end)
+    void operator()(const Stream* obj, int32_t start, int32_t end)
     {
         value_++;
     }
@@ -65,11 +65,11 @@ int main(int argc, const char** argv, const char** envp) {
 
         auto iter = ctr.seek(0);
 
-        Int rows        = 1000000;
-        Int cols        = 10;
-        Int data_size   = 111;
+        int32_t rows        = 1000000;
+        int32_t cols        = 10;
+        int32_t data_size   = 111;
 
-        BigInt c0 = getTimeInMillis();
+        int64_t c0 = getTimeInMillis();
 
 //      Provider provider({rows, cols, data_size}, getGlobalIntGenerator());
         Provider provider({rows, cols, data_size});
@@ -77,7 +77,7 @@ int main(int argc, const char** argv, const char** envp) {
         ctr._insert(iter, provider, 1000000);
 
 
-        BigInt c1 = getTimeInMillis();
+        int64_t c1 = getTimeInMillis();
 
         cout<<"Table Constructed in "<<FormatTime(c1 - c0)<<" s"<<endl;
 
@@ -96,14 +96,14 @@ int main(int argc, const char** argv, const char** envp) {
 
         ScanFn scan_fn;
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
         for (int x = 0; x < 1; x++)
         {
-            BigInt tt0 = getTimeInMillis();
+            int64_t tt0 = getTimeInMillis();
 
             iter = ctr.seek(0);
-            for (Int r = 0; r < rows; r++)
+            for (int32_t r = 0; r < rows; r++)
             {
                 MEMORIA_V1_ASSERT(iter.pos(), ==, r);
                 MEMORIA_V1_ASSERT(iter.cache().abs_pos()[0], ==, r);
@@ -111,7 +111,7 @@ int main(int argc, const char** argv, const char** envp) {
 
                 iter.toData();
 
-                for (Int c = 0; c < cols; c++)
+                for (int32_t c = 0; c < cols; c++)
                 {
                     MEMORIA_V1_ASSERT(iter.pos(), ==, c);
                     MEMORIA_V1_ASSERT(iter.size(), ==, cols);
@@ -133,12 +133,12 @@ int main(int argc, const char** argv, const char** envp) {
                 iter.skipFw(1);
             }
 
-            BigInt tt1 = getTimeInMillis();
+            int64_t tt1 = getTimeInMillis();
 
             cout<<"One Scan finished in "<<FormatTime(tt1 - tt0)<<endl;
         }
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
         cout<<"All Scans finished in "<<FormatTime(t1 - t0)<<endl;
 

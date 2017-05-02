@@ -106,21 +106,21 @@ protected:
     PairVector pairs;
     PairVector pairs_sorted;
 
-    Int vector_idx_;
-    Int step_;
+    int32_t vector_idx_;
+    int32_t step_;
 
     UUID ctr_name_;
 
     String pairs_data_file_;
     String pairs_sorted_data_file_;
 
-    Int iterator_check_count_ = 100;
-    Int iterator_check_counter_ = 0;
+    int32_t iterator_check_count_ = 100;
+    int32_t iterator_check_counter_ = 0;
 
-    Int data_check_count_ = 100;
-    Int data_check_counter_ = 0;
+    int32_t data_check_count_ = 100;
+    int32_t data_check_counter_ = 0;
 
-    BigInt size_;
+    int64_t size_;
 
     bool throw_ex_ = false;
 
@@ -161,7 +161,7 @@ public:
         return RNGTool<Value>::next(this);
     }
 
-    virtual MemBuffer createRandomBuffer(Int size)
+    virtual MemBuffer createRandomBuffer(int32_t size)
     {
         auto buffer = MemBuffer(size);
 
@@ -179,9 +179,9 @@ public:
     {
         if (data_check_counter_ % data_check_count_ == 0)
         {
-            Int pairs_size = (Int) pairs.size();
+            int32_t pairs_size = (int32_t) pairs.size();
 
-            Int idx = 0;
+            int32_t idx = 0;
             for (auto iter = map.begin(); !iter.is_end();)
             {
                 auto key = iter.key();
@@ -226,7 +226,7 @@ public:
             pairs.clear();
             pairs_sorted.clear();
 
-            for (Int c = 0; c < size_; c++)
+            for (int32_t c = 0; c < size_; c++)
             {
                 pairs.push_back(Pair(makeRandomKey(), makeRandomValue()));
             }

@@ -38,7 +38,7 @@ public:
         return self().sizes()[0];
     }
 
-    CtrSizeT rank(CtrSizeT idx, Int symbol)
+    CtrSizeT rank(CtrSizeT idx, int32_t symbol)
     {
         auto& self = this->self();
 
@@ -49,11 +49,11 @@ public:
         return walker.rank();
     }
 
-    CtrSizeT rank(Int symbol) {
+    CtrSizeT rank(int32_t symbol) {
         return rank(self().size(), symbol);
     }
 
-    CtrSizeT rank(CtrSizeT start, CtrSizeT idx, Int symbol)
+    CtrSizeT rank(CtrSizeT start, CtrSizeT idx, int32_t symbol)
     {
         auto& self = this->self();
 
@@ -64,7 +64,7 @@ public:
 
 
 
-    auto select(Int symbol, CtrSizeT rank)
+    auto select(int32_t symbol, CtrSizeT rank)
     {
         auto& self = this->self();
 
@@ -76,7 +76,7 @@ public:
         return self.find_(walker);
     }
 
-    auto select(CtrSizeT start, Int symbol, CtrSizeT rank)
+    auto select(CtrSizeT start, int32_t symbol, CtrSizeT rank)
     {
         auto& self = this->self();
 
@@ -87,7 +87,7 @@ public:
         return iter;
     }
 
-    Int symbol(Int idx)
+    int32_t symbol(int32_t idx)
     {
         auto& self = this->self();
         return self.seek(idx)->symbol();

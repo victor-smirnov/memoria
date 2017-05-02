@@ -26,8 +26,8 @@ namespace v1 {
 
 
 
-BigInt  getTimeInMillis();
-String FormatTime(BigInt millis);
+int64_t  getTimeInMillis();
+String FormatTime(int64_t millis);
 
 static inline uint64_t getTimeInNanos() {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();

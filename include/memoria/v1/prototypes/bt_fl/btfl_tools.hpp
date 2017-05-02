@@ -26,7 +26,7 @@ namespace v1 {
 namespace btfl {
 
 
-template <Int DataStreams> struct StructureStreamTF: HasType<PkdRLESeqT<DataStreams>> {};
+template <int32_t DataStreams> struct StructureStreamTF: HasType<PkdRLESeqT<DataStreams>> {};
 
 
 
@@ -38,7 +38,7 @@ class BTFLIteratorPrefixCache: public bt::BTreeIteratorPrefixCache<Iterator, Con
     using Base      = bt::BTreeIteratorPrefixCache<Iterator, Container>;
     using Position  = typename Container::Types::Position;
 
-    static const Int Streams = Container::Types::Streams;
+    static const int32_t Streams = Container::Types::Streams;
 
 
 

@@ -30,7 +30,7 @@ namespace v1 {
 
 using namespace std;
 
-template <Int Symbols>
+template <int32_t Symbols>
 class PackedRLESearchableSequenceBufferTest: public PackedRLESequenceTestBase<Symbols> {
 
     using MyType = PackedRLESearchableSequenceBufferTest<Symbols>;
@@ -45,8 +45,8 @@ class PackedRLESearchableSequenceBufferTest: public PackedRLESequenceTestBase<Sy
     using Buffer = typename Seq::InputBuffer;
 
 
-    static const Int Blocks                 = Seq::Indexes;
-    static const Int Bits                   = NumberOfBits(Symbols);
+    static const int32_t Blocks                 = Seq::Indexes;
+    static const int32_t Bits                   = NumberOfBits(Symbols);
 
     using Base::getRandom;
     using Base::createEmptySequence;
@@ -73,11 +73,11 @@ public:
 
     virtual ~PackedRLESearchableSequenceBufferTest() noexcept {}
 
-    auto createEmptyBuffer(Int capacity = 65536)
+    auto createEmptyBuffer(int32_t capacity = 65536)
     {
         auto capacityv = typename Buffer::SizesT(capacity);
 
-        Int block_size = Buffer::block_size(capacityv);
+        int32_t block_size = Buffer::block_size(capacityv);
 
         return MakeSharedPackedStructByBlock<Buffer>(block_size, capacityv);
     }
@@ -85,7 +85,7 @@ public:
 
     void runCreateBuffer()
     {
-        for (Int s = 1; s < size_; s++)
+        for (int32_t s = 1; s < size_; s++)
         {
             auto buf = createEmptyBuffer();
 
@@ -95,7 +95,7 @@ public:
 
     void runInsertBufferRandom()
     {
-        for (Int s = 0; s < 100; s++)
+        for (int32_t s = 0; s < 100; s++)
         {
             auto buf = createEmptyBuffer();
             auto seq = createEmptySequence();
@@ -103,10 +103,10 @@ public:
             auto buf_data = populateRandom(buf, size_);
             auto seq_data = populateRandom(seq, size_);
 
-            Int at = getRandom(seq->size());
+            int32_t at = getRandom(seq->size());
 
-            Int start   = getRandom(buf->size() / 2);
-            Int size    = getRandom(buf->size() - start);
+            int32_t start   = getRandom(buf->size() / 2);
+            int32_t size    = getRandom(buf->size() - start);
 
             tryInsertBuffer(seq, buf, at, start, size, seq_data, buf_data);
         }
@@ -117,7 +117,7 @@ public:
 
 
     template <typename T1, typename T2, typename T3>
-    void tryInsertBuffer(T1& seq, T2& buf, Int at, Int start, Int size, vector<T3>& seq_data, vector<T3>& buf_data)
+    void tryInsertBuffer(T1& seq, T2& buf, int32_t at, int32_t start, int32_t size, vector<T3>& seq_data, vector<T3>& buf_data)
     {
         out() << "Insert Buffer at " << at << " start: " << start << " size: " << size << endl;
 

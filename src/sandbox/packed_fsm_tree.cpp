@@ -37,19 +37,19 @@ using namespace std;
 int main() {
 
     try {
-        constexpr Int Block = 0;
-        constexpr Int Blocks = Block + 1;
+        constexpr int32_t Block = 0;
+        constexpr int32_t Blocks = Block + 1;
 
 
         using Tree = PkdFMTreeT<UUID, Blocks>;
 
 //      using Values = Tree::Values;
 
-        Int block_size = 4096*100000;
+        int32_t block_size = 4096*100000;
 
         auto tree = MakeSharedPackedStructByBlock<Tree>(block_size);
 
-        Int size = 2048;
+        int32_t size = 2048;
 
 
 
@@ -62,7 +62,7 @@ int main() {
         std::sort(data_s.begin(), data_s.end());
 
 //      long t0 = getTimeInMillis();
-        tree->_insert(0, size, [&](Int block, Int idx){return data_s[idx];});
+        tree->_insert(0, size, [&](int32_t block, int32_t idx){return data_s[idx];});
 
 //      long t1 = getTimeInMillis();
 

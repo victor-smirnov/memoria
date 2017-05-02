@@ -40,9 +40,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams                = Container::Types::Streams;
-    static const Int DataStreams            = Container::Types::DataStreams;
-    static const Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
+    static const int32_t Streams                = Container::Types::Streams;
+    static const int32_t DataStreams            = Container::Types::DataStreams;
+    static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
     using DataSizesT = typename Container::Types::DataSizesT;
 
@@ -66,7 +66,7 @@ public:
         return self.leaf().isSet() ? self.idx() >= self.leaf_size(StructureStreamIdx) : true;
     }
 
-    bool isEnd(Int idx) const
+    bool isEnd(int32_t idx) const
     {
         auto& self = this->self();
 
@@ -79,7 +79,7 @@ public:
         return !(self.isBegin() || self.isEnd());
     }
 
-    bool isContent(Int idx) const
+    bool isContent(int32_t idx) const
     {
         auto& self = this->self();
 
@@ -128,7 +128,7 @@ public:
 
 
     struct SkipFWFn {
-    	template <Int StreamIdx, typename IterT>
+    	template <int32_t StreamIdx, typename IterT>
     	auto process(IterT&& iter, CtrSizeT n)
     	{
     		return iter.template skip_fw_<StreamIdx>(n);
@@ -139,12 +139,12 @@ public:
     CtrSizeT skipFw(CtrSizeT n)
     {
     	auto& self = this->self();
-    	Int stream = self.stream();
+    	int32_t stream = self.stream();
     	return ForEachStream<Streams - 1>::process(stream, SkipFWFn(), self, n);
     }
 
     struct SkipBWFn {
-    	template <Int StreamIdx, typename IterT>
+    	template <int32_t StreamIdx, typename IterT>
     	auto process(IterT&& iter, CtrSizeT n)
     	{
     		return iter.template skip_bw_<StreamIdx>(n);
@@ -154,7 +154,7 @@ public:
     CtrSizeT skipBw(CtrSizeT n)
     {
     	auto& self = this->self();
-    	Int stream = self.stream();
+    	int32_t stream = self.stream();
     	return ForEachStream<Streams - 1>::process(stream, SkipBWFn(), self, n);
     }
 
@@ -168,7 +168,7 @@ public:
         }
     }
 
-    Int data_stream() const
+    int32_t data_stream() const
     {
         auto& self  = this->self();
         auto s      = self.leaf_structure();
@@ -186,7 +186,7 @@ public:
         return -1;//throw Exception(MA_SRC, "End Of Data Structure");
     }
 
-    Int data_stream_s() const
+    int32_t data_stream_s() const
     {
         auto& self  = this->self();
         auto s      = self.leaf_structure();
@@ -227,12 +227,12 @@ public:
 
 private:
 
-    template <Int Stream>
+    template <int32_t Stream>
     struct SizePrefix {
         CtrSizeT pos_ = 0;
 
         template <typename NodeTypes>
-        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
         {
             using BranchSizePath = IntList<Stream>;
 
@@ -242,13 +242,13 @@ private:
         }
 
         template <typename NodeTypes>
-        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
         {
         }
     };
 
 public:
-    template <Int Stream>
+    template <int32_t Stream>
     auto stream_size_prefix() const
     {
         auto& self = this->self();
@@ -267,9 +267,9 @@ protected:
 
     	if (self.stream() != StructureStreamIdx)
     	{
-    		Int stream = self.stream();
+    		int32_t stream = self.stream();
 
-    		Int data_idx = self.idx();
+    		int32_t data_idx = self.idx();
 
     		auto s = self.leaf_structure();
 
@@ -296,13 +296,13 @@ protected:
     	}
     }
 
-    void toDataStream(Int stream)
+    void toDataStream(int32_t stream)
     {
     	auto& self = this->self();
 
     	if (self.stream() == StructureStreamIdx)
     	{
-    		Int data_idx 	= self.data_stream_idx(stream);
+    		int32_t data_idx 	= self.data_stream_idx(stream);
     		self.idx() 		= data_idx;
     		self.stream() 	= stream;
     	}
@@ -311,13 +311,13 @@ protected:
     	}
     }
 
-    Int data_stream_idx(Int stream) const
+    int32_t data_stream_idx(int32_t stream) const
     {
         auto& self = this->self();
         return self.data_stream_idx(stream, self.idx());
     }
 
-    Int data_stream_idx(Int stream, Int structure_idx) const
+    int32_t data_stream_idx(int32_t stream, int32_t structure_idx) const
     {
         auto& self = this->self();
 
@@ -335,7 +335,7 @@ protected:
     }
 
 
-    CtrSizesT leafrank(Int structure_idx) const
+    CtrSizesT leafrank(int32_t structure_idx) const
     {
         auto& self = this->self();
 
@@ -345,7 +345,7 @@ protected:
 
         	CtrSizesT ranks;
 
-        	for (Int c = 0; c < DataStreams; c++)
+        	for (int32_t c = 0; c < DataStreams; c++)
         	{
         		ranks[c] = leaf_structure->rank(structure_idx, c);
         	}
@@ -362,7 +362,7 @@ protected:
     }
 
 
-    Int structure_size() const
+    int32_t structure_size() const
     {
         return self().leaf_size(0);
     }
@@ -374,7 +374,7 @@ protected:
         return self.ctr().template getPackedStruct<IntList<StructureStreamIdx, 1>>(self.leaf());
     }
 
-    Int symbol_idx(Int stream, Int position) const
+    int32_t symbol_idx(int32_t stream, int32_t position) const
     {
         auto& self = this->self();
 

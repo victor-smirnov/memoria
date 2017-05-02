@@ -32,7 +32,7 @@ using namespace std;
 
 int main()
 {
-    using Key   = BigInt;
+    using Key   = int64_t;
     using Value = String;
 
     try {

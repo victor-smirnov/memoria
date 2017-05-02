@@ -29,7 +29,7 @@ class PackedCodecsTestBase: public TestTask {
     using Base = TestTask;
 protected:
 
-    static constexpr Int MEMBUF_SIZE = 1024*1024*64;
+    static constexpr int32_t MEMBUF_SIZE = 1024*1024*64;
 
 
     using Value     = ValueT;

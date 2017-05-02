@@ -52,7 +52,7 @@ class PackedTreeFindTest: public PackedTreeTestBase<PackedTreeT> {
 
 public:
 
-    Int iterations_ = 1000;
+    int32_t iterations_ = 1000;
 
     PackedTreeFindTest(StringRef name): Base(name)
     {
@@ -72,13 +72,13 @@ public:
 
 
     template <typename Walker>
-    auto find_fw(const TreePtr& tree, Int block, Int start, IndexValue limit)
+    auto find_fw(const TreePtr& tree, int32_t block, int32_t start, IndexValue limit)
     {
-        Int end = tree->size();
+        int32_t end = tree->size();
 
         Walker walker(limit);
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
             Value value = tree->value(block, c);
 
@@ -95,11 +95,11 @@ public:
     }
 
     template <typename Walker>
-    auto find_bw(const TreePtr& tree, Int block, Int start, IndexValue limit)
+    auto find_bw(const TreePtr& tree, int32_t block, int32_t start, IndexValue limit)
     {
         Walker walker(limit);
 
-        for (Int c = start; c >= 0; c--)
+        for (int32_t c = start; c >= 0; c--)
         {
             Value value = tree->value(block, c);
 
@@ -119,18 +119,18 @@ public:
 
     void testFindForward()
     {
-        for (Int c = 4; c < 1024; c *= 2)
+        for (int32_t c = 4; c < 1024; c *= 2)
         {
             testFindForward(c);
         }
 
-        for (Int c = 1024*3; c <= this->size_; c += 1024)
+        for (int32_t c = 1024*3; c <= this->size_; c += 1024)
         {
             testFindForward(c);
         }
     }
 
-    void testFindForward(Int tree_size)
+    void testFindForward(int32_t tree_size)
     {
         out()<<tree_size<<endl;
 
@@ -138,15 +138,15 @@ public:
 
         auto values = fillRandom(tree, tree_size);
 
-        Int size = tree->size();
+        int32_t size = tree->size();
 
-        Int block_t    = this->getRandom(Tree::Blocks);
+        int32_t block_t    = this->getRandom(Tree::Blocks);
         auto total_sum = tree->sum(block_t, 0, size);
 
         auto result_lt_t = tree->findGTForward(block_t, 0, total_sum);
         auto result_le_t = tree->findGEForward(block_t, 0, total_sum);
 
-        Int last = size;
+        int32_t last = size;
 
         AssertEQ(MA_SRC, result_lt_t.idx(), last);
         AssertEQ(MA_SRC, result_lt_t.prefix(), total_sum);
@@ -164,13 +164,13 @@ public:
         AssertEQ(MA_SRC, result_le_t.prefix(), total_sum);
 
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
-            Int start   = this->getRandom(size - 2);
-            Int rnd     = this->getRandom(size - start - 2);
-            Int end     = start + rnd + 2;
+            int32_t start   = this->getRandom(size - 2);
+            int32_t rnd     = this->getRandom(size - start - 2);
+            int32_t end     = start + rnd + 2;
 
-            Int block   = this->getRandom(Tree::Blocks);
+            int32_t block   = this->getRandom(Tree::Blocks);
 
             auto sum     = tree->sum(block, start, end);
             auto sum_v   = this->sum(values, block, start, end);
@@ -208,29 +208,29 @@ public:
 
     void testFindForwardFromStart()
     {
-        for (Int c = 1024; c <= this->size_; c += 1024)
+        for (int32_t c = 1024; c <= this->size_; c += 1024)
         {
             testFindForwardFromStart(c);
         }
     }
 
-    void testFindForwardFromStart(Int tree_size)
+    void testFindForwardFromStart(int32_t tree_size)
     {
         out()<<tree_size<<endl;
 
         auto tree = createEmptyTree();
         auto values = fillRandom(tree, tree_size);
 
-        Int size = tree->size();
+        int32_t size = tree->size();
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
-            Int rnd     = this->getRandom(size - 2);
-            Int end     = rnd + 2;
+            int32_t rnd     = this->getRandom(size - 2);
+            int32_t end     = rnd + 2;
 
-            Int block   = this->getRandom(Tree::Blocks);
+            int32_t block   = this->getRandom(Tree::Blocks);
 
-            Int sum     = tree->sum(block, 0, end);
+            int32_t sum     = tree->sum(block, 0, end);
 
             if (sum == 0) continue;
 
@@ -252,18 +252,18 @@ public:
 
     void testFindBackward()
     {
-        for (Int c = 4; c < 1024; c *= 2)
+        for (int32_t c = 4; c < 1024; c *= 2)
         {
             testFindBackward(c);
         }
 
-        for (Int c = 1024; c <= this->size_; c += 1024)
+        for (int32_t c = 1024; c <= this->size_; c += 1024)
         {
             testFindBackward(c);
         }
     }
 
-    void testFindBackward(Int tree_size)
+    void testFindBackward(int32_t tree_size)
     {
         out()<<tree_size<<endl;
 
@@ -271,8 +271,8 @@ public:
 
         auto values = fillRandom(tree, tree_size);
 
-        Int size        = tree->size();
-        Int block_t     = getRandom(Tree::Blocks);
+        int32_t size        = tree->size();
+        int32_t block_t     = getRandom(Tree::Blocks);
         auto total_sum  = tree->sum(block_t, 0, size);
 
         auto result_lt_t = tree->findGTBackward(block_t, size - 1, total_sum);
@@ -293,16 +293,16 @@ public:
         AssertEQ(MA_SRC, result_le_t.idx(), -1);
         AssertEQ(MA_SRC, result_le_t.prefix(), total_sum);
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
-            Int start   = getRandom(size - 2) + 2;
-            Int rnd     = getRandom(start - 2) + 1;
-            Int end     = start - rnd;
-            Int block   = getRandom(Tree::Blocks);
+            int32_t start   = getRandom(size - 2) + 2;
+            int32_t rnd     = getRandom(start - 2) + 1;
+            int32_t end     = start - rnd;
+            int32_t block   = getRandom(Tree::Blocks);
 
             AssertGE(MA_SRC, end, 0);
 
-            Int sum     = tree->sum(block, end + 1, start + 1);
+            int32_t sum     = tree->sum(block, end + 1, start + 1);
 
             // we do not handle zero sums correctly in this test yet
             if (sum == 0) continue;
@@ -323,31 +323,31 @@ public:
 
     void testFindBackwardFromEnd()
     {
-        for (Int c = 1024; c <= this->size_; c += 1024)
+        for (int32_t c = 1024; c <= this->size_; c += 1024)
         {
             testFindBackwardFromEnd(c);
         }
     }
 
-    void testFindBackwardFromEnd(Int tree_size)
+    void testFindBackwardFromEnd(int32_t tree_size)
     {
         out()<<tree_size<<endl;
 
         auto tree = createEmptyTree();
         auto values = fillRandom(tree, tree_size);
 
-        Int size = tree->size();
+        int32_t size = tree->size();
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
-            Int start   = size - 1;
-            Int rnd     = getRandom(start - 2) + 1;
-            Int end     = start - rnd;
-            Int block   = getRandom(Tree::Blocks);
+            int32_t start   = size - 1;
+            int32_t rnd     = getRandom(start - 2) + 1;
+            int32_t end     = start - rnd;
+            int32_t block   = getRandom(Tree::Blocks);
 
             AssertGE(MA_SRC, end, 0);
 
-            Int sum     = tree->sum(block, end + 1, start + 1);
+            int32_t sum     = tree->sum(block, end + 1, start + 1);
 
             // we do not handle zero sums correctly in this test yet
             if (sum == 0) continue;

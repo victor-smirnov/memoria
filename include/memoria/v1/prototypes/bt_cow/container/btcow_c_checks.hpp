@@ -87,11 +87,11 @@ protected:
 
 
 private:
-    void checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const;
+    void checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, const NodeBaseG& node, bool &errors) const;
 
 
     template <typename Node1, typename Node2>
-    bool checkTypedNodeContent(const Node1 *node, const Node2 *parent, Int parent_idx) const;
+    bool checkTypedNodeContent(const Node1 *node, const Node2 *parent, int32_t parent_idx) const;
 
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, checkTypedNodeContent, bool);
 
@@ -128,7 +128,7 @@ bool M_TYPE::checkTree() const
 
 
 M_PARAMS
-void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const
+void M_TYPE::checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, const NodeBaseG& node, bool &errors) const
 {
     auto& self = this->self();
 
@@ -140,7 +140,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
 
         if (!node->is_leaf())
         {
-            Int children = self.getNodeSize(node, 0);
+            int32_t children = self.getNodeSize(node, 0);
 
             if (children == 0 && !node->is_root())
             {
@@ -153,9 +153,9 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
 
     if (!node->is_leaf())
     {
-        Int children = self.getNodeSize(node, 0);
+        int32_t children = self.getNodeSize(node, 0);
 
-        for (Int c = 0; c < children; c++)
+        for (int32_t c = 0; c < children; c++)
         {
             ID child_id = self.getChildID(node, c);
 
@@ -174,7 +174,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int parent_idx) const
+bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, int32_t parent_idx) const
 {
     bool errors = false;
 

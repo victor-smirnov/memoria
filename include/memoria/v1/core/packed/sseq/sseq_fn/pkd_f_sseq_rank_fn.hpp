@@ -27,7 +27,7 @@ namespace v1 {
 template <typename Seq>
 class BitmapRankFn {
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
 
     static_assert(BitsPerSymbol == 1, "BitmapRankFn<> can only be used with 1-bit sequences");
 
@@ -36,7 +36,7 @@ class BitmapRankFn {
 public:
     BitmapRankFn(const Seq& seq): seq_(seq) {}
 
-    Int operator()(Int start, Int end, Int symbol)
+    int32_t operator()(int32_t start, int32_t end, int32_t symbol)
     {
         if (symbol)
         {
@@ -55,7 +55,7 @@ template <typename Seq>
 class SeqRankFn {
     typedef typename Seq::Value                                                 Value;
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
 
     static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
             "SeqRankFn<> can only be used with 2-7-bit sequences");
@@ -65,13 +65,13 @@ class SeqRankFn {
 public:
     SeqRankFn(const Seq& seq): seq_(seq) {}
 
-    Int operator()(Int start, Int end, Value symbol)
+    int32_t operator()(int32_t start, int32_t end, Value symbol)
     {
-        Int cnt = 0;
+        int32_t cnt = 0;
 
         auto buf = seq_.symbols();
 
-        for (Int c = start * BitsPerSymbol; c < end * BitsPerSymbol; c += BitsPerSymbol)
+        for (int32_t c = start * BitsPerSymbol; c < end * BitsPerSymbol; c += BitsPerSymbol)
         {
             if (TestBits(buf, c, symbol, BitsPerSymbol))
             {
@@ -89,7 +89,7 @@ public:
 template <typename Seq>
 class Seq8RankFn {
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
 
     static_assert(BitsPerSymbol == 8,
             "Seq8RankFn<> can only be used with 2-7-bit sequences");
@@ -98,13 +98,13 @@ class Seq8RankFn {
 public:
     Seq8RankFn(const Seq& seq): seq_(seq) {}
 
-    Int operator()(Int start, Int end, Int symbol)
+    int32_t operator()(int32_t start, int32_t end, int32_t symbol)
     {
-        Int cnt = 0;
+        int32_t cnt = 0;
 
         auto buf = seq_.symbols();
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
             if (buf[c] == symbol)
             {

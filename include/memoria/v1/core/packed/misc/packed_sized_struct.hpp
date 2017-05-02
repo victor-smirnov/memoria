@@ -27,14 +27,14 @@ namespace memoria {
 namespace v1 {
 
 
-template <typename Value_ = BigInt, Int Indexes_ = 0, PkdSearchType SearchType_ = PkdSearchType::SUM>
+template <typename Value_ = int64_t, int32_t Indexes_ = 0, PkdSearchType SearchType_ = PkdSearchType::SUM>
 class PackedSizedStruct: public PackedAllocatable {
 
     typedef PackedAllocatable                                                   Base;
 
 public:
-    static const UInt VERSION = 1;
-    static constexpr Int Indexes = Indexes_;
+    static const uint32_t VERSION = 1;
+    static constexpr int32_t Indexes = Indexes_;
     static constexpr PkdSearchType KeySearchType = SearchType_;
 
 
@@ -43,7 +43,7 @@ public:
 
     using Value = typename std::remove_reference<Value_>::type;
 
-    static constexpr Int Blocks = Indexes;
+    static constexpr int32_t Blocks = Indexes;
 
 
 
@@ -53,63 +53,63 @@ public:
 
     using InputType = Values;
     using IndexValue = Value;
-    using SizesT = core::StaticVector<Int, Blocks>;
+    using SizesT = core::StaticVector<int32_t, Blocks>;
     using ReadState = SizesT;
 
     class AppendState {
-        Int size_ = 0;
+        int32_t size_ = 0;
     public:
-        Int& size() {return size_;}
-        const Int& size() const {return size_;}
+        int32_t& size() {return size_;}
+        const int32_t& size() const {return size_;}
     };
 
 
 
 private:
 
-    Int size_;
+    int32_t size_;
 
 public:
     PackedSizedStruct() {}
 
-    Int& size() {return size_;}
-    const Int& size() const {return size_;}
+    int32_t& size() {return size_;}
+    const int32_t& size() const {return size_;}
 
 
-    Int block_size() const
+    int32_t block_size() const
     {
         return sizeof(MyType);
     }
 
-    Int block_size(const MyType* other) const
+    int32_t block_size(const MyType* other) const
     {
         return block_size(size_ + other->size_);
     }
 
-    static constexpr Int block_size(Int array_size)
+    static constexpr int32_t block_size(int32_t array_size)
     {
         return sizeof(MyType);
     }
 
-    static constexpr Int block_size(SizesT array_size)
+    static constexpr int32_t block_size(SizesT array_size)
     {
         return sizeof(MyType);
     }
 
-    static constexpr Int packed_block_size(Int array_size)
+    static constexpr int32_t packed_block_size(int32_t array_size)
     {
         return sizeof(MyType);
     }
 
-    static Int elements_for(Int block_size)
+    static int32_t elements_for(int32_t block_size)
     {
         size_t bsize = block_size;
 
-        return bsize >= sizeof(MyType) ? std::numeric_limits<Int>::max() : 0;
+        return bsize >= sizeof(MyType) ? std::numeric_limits<int32_t>::max() : 0;
     }
 
 
-    void init(Int block_size)
+    void init(int32_t block_size)
     {
         size_ = 0;
     }
@@ -119,7 +119,7 @@ public:
         size_ = 0;
     }
 
-    static constexpr Int empty_size()
+    static constexpr int32_t empty_size()
     {
         return sizeof(MyType);
     }
@@ -136,7 +136,7 @@ public:
     }
 
     template <typename Adaptor>
-    static SizesT calculate_size(Int size, Adaptor&& fn)
+    static SizesT calculate_size(int32_t size, Adaptor&& fn)
     {
         return SizesT(size);
     }
@@ -156,20 +156,20 @@ public:
     }
 
     template <typename T>
-    void setValues(Int idx, T&&) {}
+    void setValues(int32_t idx, T&&) {}
 
     template <typename T>
-    void insert(Int idx, T&&) {
+    void insert(int32_t idx, T&&) {
         insertSpace(idx, 1);
     }
 
-    template <Int Offset, typename T>
-    void _insert(Int idx, T&&) {
+    template <int32_t Offset, typename T>
+    void _insert(int32_t idx, T&&) {
         insertSpace(idx, 1);
     }
 
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
@@ -181,29 +181,29 @@ public:
     }
 
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
     void sum(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
         accum[Offset] += size_;
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void sum(Int start, Int end, BranchNodeEntryItem<T, Size>& accum) const
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
         accum[Offset] += end - start;
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void sub(Int start, BranchNodeEntryItem<T, Size>& accum) const
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void sub(int32_t start, BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void sum(Int idx, BranchNodeEntryItem<T, Size>& accum) const
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void sum(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
         accum[Offset] += idx;
@@ -247,7 +247,7 @@ public:
 
 
     template <typename T>
-    Int append(Int size, T&&)
+    int32_t append(int32_t size, T&&)
     {
         this->size_ += size;
 
@@ -255,7 +255,7 @@ public:
     }
 
 
-    void fill(Int size)
+    void fill(int32_t size)
     {
         this->size_ += size;
     }
@@ -268,24 +268,24 @@ public:
         MEMORIA_V1_ASSERT(size_, >=, 0);
     }
 
-    void remove(Int start, Int end)
+    void remove(int32_t start, int32_t end)
     {
         if (end < 0) {
-            Int a = 0; a++;
+            int32_t a = 0; a++;
         }
 
         MEMORIA_V1_ASSERT_TRUE(start >= 0);
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
 
-        Int room_length = end - start;
+        int32_t room_length = end - start;
         size_ -= room_length;
     }
 
-    void removeSpace(Int room_start, Int room_end) {
+    void removeSpace(int32_t room_start, int32_t room_end) {
         remove(room_start, room_end);
     }
 
-    void insertSpace(Int idx, Int room_length)
+    void insertSpace(int32_t idx, int32_t room_length)
     {
         if (idx > this->size()) {
             int a = 0;
@@ -310,11 +310,11 @@ public:
     }
 
 
-    void splitTo(MyType* other, Int idx)
+    void splitTo(MyType* other, int32_t idx)
     {
         MEMORIA_V1_ASSERT(other->size(), ==, 0);
 
-        Int split_size = this->size() - idx;
+        int32_t split_size = this->size() - idx;
         other->insertSpace(0, split_size);
 
         removeSpace(idx, this->size());
@@ -322,8 +322,8 @@ public:
 
     void mergeWith(MyType* other)
     {
-        Int my_size     = this->size();
-        Int other_size  = other->size();
+        int32_t my_size     = this->size();
+        int32_t other_size  = other->size();
 
         other->insertSpace(other_size, my_size);
 
@@ -332,74 +332,74 @@ public:
 
     // ===================================== IO ============================================ //
 
-    void insert(Int pos, Value val)
+    void insert(int32_t pos, Value val)
     {
         insertSpace(pos, 1);
     }
 
-    void insert(Int block, Int pos, Value val)
+    void insert(int32_t block, int32_t pos, Value val)
     {
         insertSpace(pos, 1);
     }
 
-    void insert(Int pos, Int start, Int size, const InputBuffer* buffer)
+    void insert(int32_t pos, int32_t start, int32_t size, const InputBuffer* buffer)
     {
         insertSpace(pos, size);
     }
 
     template <typename Adaptor>
-    void insert(Int pos, Int size, Adaptor&& adaptor)
+    void insert(int32_t pos, int32_t size, Adaptor&& adaptor)
     {
         insertSpace(pos, size);
     }
 
 
-    SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int size)
+    SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
     {
         insertSpace(at[0], size);
         return at + SizesT(size);
     }
 
-    Int insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
+    int32_t insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
     {
         insertSpace(at, size);
         return at + size;
     }
 
-    Value value(Int, Int) const {
+    Value value(int32_t, int32_t) const {
         return Value();
     }
 
-    ReadState positions(Int idx) const {
+    ReadState positions(int32_t idx) const {
         return ReadState(idx);
     }
 
-    Values get_values(Int) const {
+    Values get_values(int32_t) const {
         return Values();
     }
 
-    Values get_values(Int, Int) const {
+    Values get_values(int32_t, int32_t) const {
         return Values();
     }
 
 
     template <typename Adaptor>
-    void _insert(Int pos, Int size, Adaptor&& adaptor)
+    void _insert(int32_t pos, int32_t size, Adaptor&& adaptor)
     {
         insertSpace(pos, size);
     }
 
 
-    template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem>
-    void _update(Int pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
+    template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
+    void _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {}
 
-    template <Int Offset, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
-    void _update_b(Int pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
+    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
+    void _update_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
     {}
 
-    template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem>
-    void _insert(Int pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
+    template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
+    void _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {
         if (Offset < Size)
         {
@@ -410,8 +410,8 @@ public:
     }
 
 
-    template <Int Offset, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
-    void _insert_b(Int pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
+    template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
+    void _insert_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
     {
         if (Offset < Size)
         {
@@ -422,8 +422,8 @@ public:
     }
 
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
         remove(idx, idx + 1);
     }
@@ -438,7 +438,7 @@ public:
 
 
     template <typename Fn>
-    void read(Int start, Int end, Fn&& fn) const
+    void read(int32_t start, int32_t end, Fn&& fn) const
     {
         read(0, start, end, std::forward<Fn>(fn));
     }
@@ -446,14 +446,14 @@ public:
 
 
     template <typename Fn>
-    void read(Int block, Int start, Int end, Fn&& fn) const
+    void read(int32_t block, int32_t start, int32_t end, Fn&& fn) const
     {
         MEMORIA_V1_ASSERT(start, <=, size_);
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(end, >=, 0);
         MEMORIA_V1_ASSERT(end, <=, size_);
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
             fn(block, Value());
             fn.next();
@@ -484,28 +484,28 @@ public:
 
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
-        FieldFactory<Int>::serialize(buf, size_);
+        FieldFactory<int32_t>::serialize(buf, Base::allocator_offset_);
+        FieldFactory<int32_t>::serialize(buf, size_);
     }
 
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<Int>::deserialize(buf, Base::allocator_offset_);
-        FieldFactory<Int>::deserialize(buf, size_);
+        FieldFactory<int32_t>::deserialize(buf, Base::allocator_offset_);
+        FieldFactory<int32_t>::deserialize(buf, size_);
     }
 };
 
 
-using StreamSize = PackedSizedStruct<BigInt, 1, PkdSearchType::SUM>;
+using StreamSize = PackedSizedStruct<int64_t, 1, PkdSearchType::SUM>;
 
-template <typename T, Int V, PkdSearchType S>
+template <typename T, int32_t V, PkdSearchType S>
 struct PkdStructSizeType<PackedSizedStruct<T, V, S>> {
     static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
-template <typename T, Int V, PkdSearchType S>
+template <typename T, int32_t V, PkdSearchType S>
 struct StructSizeProvider<PackedSizedStruct<T, V, S>> {
-    static const Int Value = PackedSizedStruct<T, V, S>::Blocks;
+    static const int32_t Value = PackedSizedStruct<T, V, S>::Blocks;
 };
 
 

@@ -41,10 +41,10 @@ struct FnTraitsT<RtnType_ (Args_&&...)> {
 template <typename T, typename... Args>
 using Fn1Type = auto(Args&&...) -> decltype(std::declval<T>().stream(std::declval<Args>()...));
 
-template <typename T, Int Idx, typename... Args>
+template <typename T, int32_t Idx, typename... Args>
 using Fn2Type = auto(Args&&...) -> decltype(std::declval<T>().template stream<Idx>(std::declval<Args>()...));
 
-template <typename T, Int AccumIdx, Int Idx, typename... Args>
+template <typename T, int32_t AccumIdx, int32_t Idx, typename... Args>
 using Fn3Type = auto(Args&&...) -> decltype(std::declval<T>().template stream<AccumIdx, Idx>(std::declval<Args>()...));
 
 
@@ -52,10 +52,10 @@ using Fn3Type = auto(Args&&...) -> decltype(std::declval<T>().template stream<Ac
 template <typename T, typename... Args>
 using Rtn1Type = typename FnTraits<Fn1Type<typename std::remove_reference<T>::type, Args...>>::RtnType;
 
-template <typename T, Int Idx, typename... Args>
+template <typename T, int32_t Idx, typename... Args>
 using Rtn2Type = typename FnTraits<Fn2Type<typename std::remove_reference<T>::type, Idx, Args...>>::RtnType;
 
-template <typename T, Int AccumIdx, Int Idx, typename... Args>
+template <typename T, int32_t AccumIdx, int32_t Idx, typename... Args>
 using Rtn3Type = typename FnTraits<Fn3Type<typename std::remove_reference<T>::type, AccumIdx, Idx, Args...>>::RtnType;
 
 
@@ -64,10 +64,10 @@ using Rtn3Type = typename FnTraits<Fn3Type<typename std::remove_reference<T>::ty
 template <typename T, typename... Args>
 using Ex1Type = typename FnTraits<Fn1Type<typename std::remove_reference<T>::type, Args...>>::Exists;
 
-template <typename T, Int Idx, typename... Args>
+template <typename T, int32_t Idx, typename... Args>
 using Ex2Type = typename FnTraits<Fn2Type<typename std::remove_reference<T>::type, Idx, Args...>>::Exists;
 
-template <typename T, Int AccumIdx, Int Idx, typename... Args>
+template <typename T, int32_t AccumIdx, int32_t Idx, typename... Args>
 using Ex3Type = typename FnTraits<Fn3Type<typename std::remove_reference<T>::type, AccumIdx, Idx, Args...>>::Exists;
 
 
@@ -76,59 +76,59 @@ class TNotDefined;
 //template <typename> using void0_t = void;
 
 ///////////====================
-template <typename Fn, Int AccumIdx, Int Idx, typename ArgsList, typename T = void>
+template <typename Fn, int32_t AccumIdx, int32_t Idx, typename ArgsList, typename T = void>
 struct HasFn1H {
-	static const Int Value = 0;
+	static const int32_t Value = 0;
 	using RtnType = TNotDefined;
 };
 
-template <typename Fn, Int AccumIdx, Int Idx, typename... Args> //
+template <typename Fn, int32_t AccumIdx, int32_t Idx, typename... Args> //
 struct HasFn1H<Fn, AccumIdx, Idx, TypeList<Args...>, VoidT<decltype(std::declval<Rtn1Type<Fn, Args...>>())>> { //Ex1Type<Fn, Args...>
-	static const Int Value = 1;
+	static const int32_t Value = 1;
 	using RtnType = Rtn1Type<Fn, Args...>;
 };
 
-template <typename Fn, Int AccumIdx, Int Idx, typename... Args>
+template <typename Fn, int32_t AccumIdx, int32_t Idx, typename... Args>
 using HasFn1 = HasFn1H<Fn, AccumIdx, Idx, TypeList<Args...>>;
 /////////////==================
 
 
 
 
-template <typename Fn, Int AccumIdx, Int Idx, typename ArgsList, typename T = void>
+template <typename Fn, int32_t AccumIdx, int32_t Idx, typename ArgsList, typename T = void>
 struct HasFn2H {
-	static const Int Value = 0;
+	static const int32_t Value = 0;
 	using RtnType = TNotDefined;
 };
 
-template <typename Fn, Int AccumIdx, Int Idx, typename... Args> //
+template <typename Fn, int32_t AccumIdx, int32_t Idx, typename... Args> //
 struct HasFn2H<Fn, AccumIdx, Idx, TypeList<Args...>, VoidT<decltype(std::declval<Rtn2Type<Fn, Idx, Args...>>())>> { //Ex2Type<Fn, Idx, Args...>
-	static const Int Value = 2;
+	static const int32_t Value = 2;
 	using RtnType = Rtn2Type<Fn, Idx, Args...>;
 };
 
-template <typename Fn, Int AccumIdx, Int Idx, typename... Args>
+template <typename Fn, int32_t AccumIdx, int32_t Idx, typename... Args>
 using HasFn2 = HasFn2H<Fn, AccumIdx, Idx, TypeList<Args...>>;
 
 
 
-template <typename Fn, Int AccumIdx, Int Idx, typename ArgsList, typename T = void>
+template <typename Fn, int32_t AccumIdx, int32_t Idx, typename ArgsList, typename T = void>
 struct HasFn3H {
-	static const Int Value = 0;
+	static const int32_t Value = 0;
 	using RtnType = TNotDefined;
 };
 
-template <typename Fn, Int AccumIdx, Int Idx, typename... Args> //
+template <typename Fn, int32_t AccumIdx, int32_t Idx, typename... Args> //
 struct HasFn3H<Fn, AccumIdx, Idx, TypeList<Args...>, VoidT<decltype(std::declval<Rtn3Type<Fn, AccumIdx, Idx, Args...>>())>> { //Ex3Type<Fn, AccumIdx, Idx, Args...>
-	static const Int Value = 3;
+	static const int32_t Value = 3;
 	using RtnType = Rtn3Type<Fn, AccumIdx, Idx, Args...>;
 };
 
-template <typename Fn, Int AccumIdx, Int Idx, typename... Args>
+template <typename Fn, int32_t AccumIdx, int32_t Idx, typename... Args>
 using HasFn3 = HasFn3H<Fn, AccumIdx, Idx, TypeList<Args...>>;
 
 
-template <typename Fn, int AccumIdx, Int Idx, typename... Args>
+template <typename Fn, int AccumIdx, int32_t Idx, typename... Args>
 using FnList = TypeList<
 		IntValue<HasFn3<Fn, AccumIdx, Idx, Args...>::Value>,
 		IntValue<HasFn2<Fn, AccumIdx, Idx, Args...>::Value>,
@@ -136,7 +136,7 @@ using FnList = TypeList<
 >;
 
 
-template <typename Fn, int AccumIdx, Int Idx, typename... Args>
+template <typename Fn, int AccumIdx, int32_t Idx, typename... Args>
 using FnRtnType = typename IfThenElse<
 		(HasFn3<Fn, AccumIdx, Idx, Args...>::Value > 0),
 		typename HasFn3<Fn, AccumIdx, Idx, Args...>::RtnType,
@@ -149,11 +149,11 @@ using FnRtnType = typename IfThenElse<
 
 
 
-template <typename List, Int AccumIdx, Int Idx>
+template <typename List, int32_t AccumIdx, int32_t Idx>
 struct FnDispatcher;
 
 
-template <typename... Tail, Int AccumIdx, Int Idx>
+template <typename... Tail, int32_t AccumIdx, int32_t Idx>
 struct FnDispatcher<TypeList<IntValue<0>, Tail...>, AccumIdx, Idx> {
 
 	template <typename Fn, typename... Args>
@@ -163,7 +163,7 @@ struct FnDispatcher<TypeList<IntValue<0>, Tail...>, AccumIdx, Idx> {
 	};
 };
 
-template <typename... Tail, Int AccumIdx, Int Idx>
+template <typename... Tail, int32_t AccumIdx, int32_t Idx>
 struct FnDispatcher<TypeList<IntValue<1>, Tail...>, AccumIdx, Idx> {
 	template <typename Fn, typename... Args>
 	static auto dispatch(Fn&& fn, Args&&... args)
@@ -172,7 +172,7 @@ struct FnDispatcher<TypeList<IntValue<1>, Tail...>, AccumIdx, Idx> {
 	};
 };
 
-template <typename... Tail, Int AccumIdx, Int Idx>
+template <typename... Tail, int32_t AccumIdx, int32_t Idx>
 struct FnDispatcher<TypeList<IntValue<2>, Tail...>, AccumIdx, Idx> {
 	template <typename Fn, typename... Args>
 	static auto dispatch(Fn&& fn, Args&&... args)
@@ -182,7 +182,7 @@ struct FnDispatcher<TypeList<IntValue<2>, Tail...>, AccumIdx, Idx> {
 };
 
 
-template <typename... Tail, Int AccumIdx, Int Idx>
+template <typename... Tail, int32_t AccumIdx, int32_t Idx>
 struct FnDispatcher<TypeList<IntValue<3>, Tail...>, AccumIdx, Idx> {
 	template <typename Fn, typename... Args>
 	static auto dispatch(Fn&& fn, Args&&... args)
@@ -192,41 +192,41 @@ struct FnDispatcher<TypeList<IntValue<3>, Tail...>, AccumIdx, Idx> {
 };
 
 
-template <Int AccumIdx, Int Idx>
+template <int32_t AccumIdx, int32_t Idx>
 struct FnDispatcher<TypeList<>, AccumIdx, Idx>;
 
 
 struct Fn0 {};
 
 struct Fn1 {
-	void stream(Int i, Int j) {
+	void stream(int32_t i, int32_t j) {
 		cout<<"Fn1: "<<i<<" "<<j<<endl;
 	}
 };
 
 struct Fn2 {
-	template <Int Idx>
-	Int stream(Int i, Int j) {
+	template <int32_t Idx>
+	int32_t stream(int32_t i, int32_t j) {
 		cout<<"Fn2: "<<Idx<<" "<<i<<" "<<j<<endl;
 		return 10;
 	}
 };
 
 struct Fn3 {
-	template <Int Idx>
-	double stream(Int i, Int j) {
+	template <int32_t Idx>
+	double stream(int32_t i, int32_t j) {
 		cout<<"Fn3: "<<i<<" "<<i<<" "<<j<<endl;
 		return 100;
 	}
 
-	template <Int AccumIdx, Int Idx>
-	bool stream(Int i, Int j) {
+	template <int32_t AccumIdx, int32_t Idx>
+	bool stream(int32_t i, int32_t j) {
 		cout<<"Fn3: "<<AccumIdx<<" "<<Idx<<" "<<i<<" "<<j<<endl;
 		return true;
 	}
 };
 
-template <Int AccumIdx, Int Idx, typename Fn, typename... Args>
+template <int32_t AccumIdx, int32_t Idx, typename Fn, typename... Args>
 auto dispatchFn(Fn&& fn, Args&&... args) 
 //-> decltype(auto)
 //-> FnRtnType<Fn, AccumIdx, Idx, Args...>

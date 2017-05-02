@@ -38,10 +38,10 @@ namespace io {
 
 namespace {
 
-    template <Int Size, Int Idx = 0>
+    template <int32_t Size, int32_t Idx = 0>
     struct StreamSizeAdapter {
         template <typename T, typename... Args>
-        static auto process(Int stream, T&& object, Args&&... args)
+        static auto process(int32_t stream, T&& object, Args&&... args)
         {
             if (stream == Idx)
             {
@@ -54,10 +54,10 @@ namespace {
     };
 
 
-    template <Int Size>
+    template <int32_t Size>
     struct StreamSizeAdapter<Size, Size> {
         template <typename T, typename... Args>
-        static auto process(Int stream, T&& object, Args&&... args)
+        static auto process(int32_t stream, T&& object, Args&&... args)
         {
             if (stream == Size)
             {
@@ -75,11 +75,11 @@ namespace {
 
 
 
-template <typename MyType, Int Streams>
+template <typename MyType, int32_t Streams>
 class FlatTreeStructureGeneratorBase {
 
 public:
-    using CtrSizeT = BigInt;
+    using CtrSizeT = int64_t;
 
     using CtrSizesT = core::StaticVector<CtrSizeT, Streams>;
 
@@ -89,12 +89,12 @@ private:
     CtrSizesT current_limits_;
     CtrSizesT totals_;
 
-    Int level_;
+    int32_t level_;
 
-    template <Int, Int> friend struct StreamSizeAdapter;
+    template <int32_t, int32_t> friend struct StreamSizeAdapter;
 
 public:
-    FlatTreeStructureGeneratorBase(Int level = 0):
+    FlatTreeStructureGeneratorBase(int32_t level = 0):
         level_(level)
     {}
 
@@ -141,7 +141,7 @@ public:
         return counts_;
     }
 
-    void commit(Int level, CtrSizeT len)
+    void commit(int32_t level, CtrSizeT len)
     {
         counts_[level] += len;
     }
@@ -164,7 +164,7 @@ private:
         return self().prepare(StreamTag<0>());
     }
 
-    template <Int StreamIdx>
+    template <int32_t StreamIdx>
     auto stream_size(StreamTag<StreamIdx>, const CtrSizesT& pos)
     {
         return self().prepare(StreamTag<StreamIdx>(), pos);

@@ -58,7 +58,7 @@ struct BuildEmptyRangeList<TL<>> {
 };
 
 
-template <Int I>
+template <int32_t I>
 class Struct {};
 
 using StructList =

@@ -37,9 +37,9 @@ class VectorTreeRemoveTest: public VectorTreeTestBase {
     using Base      = VectorTreeTestBase;
     using MyType    = VectorTreeRemoveTest;
 
-    Int     iterations_     = 1000;
-    Int     max_degree_     = 10;
-    Int     remove_batch_   = 100;
+    int32_t     iterations_     = 1000;
+    int32_t     max_degree_     = 10;
+    int32_t     remove_batch_   = 100;
 
 public:
 
@@ -57,19 +57,19 @@ public:
     virtual ~VectorTreeRemoveTest() throw () {}
 
 
-    void removeNodes(Ctr& tree, TreeNode& tree_node, Int max_size)
+    void removeNodes(Ctr& tree, TreeNode& tree_node, int32_t max_size)
     {
-        Int size = 0;
+        int32_t size = 0;
         LoudsNode root = tree.seek(0)->node();
 
         removeNode(tree, root, tree_node, size, max_size);
     }
 
-    bool removeNode(Ctr& tree, const LoudsNode& node, TreeNode& tree_node, Int& size, Int max_size)
+    bool removeNode(Ctr& tree, const LoudsNode& node, TreeNode& tree_node, int32_t& size, int32_t max_size)
     {
         if (size < max_size)
         {
-            for (Int c = 0; c < tree_node.children();)
+            for (int32_t c = 0; c < tree_node.children();)
             {
                 LoudsNode child = tree.child(node, c)->node();
 
@@ -110,11 +110,11 @@ public:
 
         auto ctr_name = tree->name();
 
-        BigInt tree_nodes = tree->nodes();
+        int64_t tree_nodes = tree->nodes();
 
         tree.reset();
 
-        for (Int c = 0; c < iterations_ && tree_nodes; c++)
+        for (int32_t c = 0; c < iterations_ && tree_nodes; c++)
         {
             out()<<c<<std::endl;
 

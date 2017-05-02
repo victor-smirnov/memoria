@@ -48,9 +48,9 @@ public:
     {
         auto tree = createRandomTree(100000);
 
-        Int nodes = tree->rank1();
+        int32_t nodes = tree->rank1();
 
-        for (Int c = 1; c <= nodes; c++)
+        for (int32_t c = 1; c <= nodes; c++)
         {
             PackedLoudsNode node(tree->select1(c), c);
 
@@ -72,7 +72,7 @@ public:
 
         if (children.length() > 0)
         {
-            Int child = getRandom(children.length());
+            int32_t child = getRandom(children.length());
 
             return findRandomLeaf(tree, children.node(child));
         }

@@ -38,21 +38,21 @@ class IndexOf {
 
     template <typename Config, typename Item, typename Accumulator>
     struct Handler {
-        static const Int Idx = IfTypesEqual<
+        static const int32_t Idx = IfTypesEqual<
                                     Type,
                                     typename Provider<Item>::Type
                                >::Value ? Accumulator::Counter : Accumulator::Idx;
-        static const Int Counter = Accumulator::Counter + 1;
+        static const int32_t Counter = Accumulator::Counter + 1;
     };
 
     struct Init {
-        static const Int Idx        = -1;
-        static const Int Counter    = 0;
+        static const int32_t Idx        = -1;
+        static const int32_t Counter    = 0;
     };
 
 public:
 
-    static const Int Value = ForEachItem<
+    static const int32_t Value = ForEachItem<
                 NullType,
                 List,
                 Handler,

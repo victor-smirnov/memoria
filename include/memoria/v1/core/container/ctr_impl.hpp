@@ -29,7 +29,7 @@ template <typename CtrName, typename Allocator, typename Profile>
 class SharedCtr: public CtrTF<Profile, CtrName, CtrName>::Type {
     using Base = typename CtrTF<Profile, CtrName, CtrName>::Type;
 public:
-    SharedCtr(const std::shared_ptr<Allocator>& allocator, Int command, const UUID& name):
+    SharedCtr(const std::shared_ptr<Allocator>& allocator, int32_t command, const UUID& name):
         Base(allocator.get(), command, name)
     {
         Base::alloc_holder_ = allocator;

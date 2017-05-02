@@ -81,11 +81,11 @@ namespace {
     template <
         typename OffsetList,
         typename List,
-        Int Idx                 = 0,
-        Int Max                 = ListSize<List>::Value
+        int32_t Idx                 = 0,
+        int32_t Max                 = ListSize<List>::Value
     >
     class TagStreamsStartT {
-        static constexpr Int StreamOffset = list_tree::LeafCount<List, IntList<Idx>, 2>::Value;
+        static constexpr int32_t StreamOffset = list_tree::LeafCount<List, IntList<Idx>, 2>::Value;
 
         using StreamStart = Select<StreamOffset, OffsetList>;
 
@@ -99,7 +99,7 @@ namespace {
         using Type = typename TagStreamsStartT<FixedList, List, Idx + 1, Max>::Type;
     };
 
-    template <typename OffsetList, typename List, Int Idx>
+    template <typename OffsetList, typename List, int32_t Idx>
     class TagStreamsStartT<OffsetList, List, Idx, Idx> {
     public:
         using Type = OffsetList;
@@ -111,7 +111,7 @@ namespace {
     template <typename List> struct OffsetBuilderT;
     template <typename List> using OffsetBuilder = typename OffsetBuilderT<List>::Type;
 
-    template <typename List, Int Offset> struct InternalOffsetBuilder;
+    template <typename List, int32_t Offset> struct InternalOffsetBuilder;
 
     template <
         typename Head,
@@ -145,7 +145,7 @@ namespace {
     template <
         typename Head,
         typename... Tail,
-        Int Offset
+        int32_t Offset
     >
     struct InternalOffsetBuilder<TypeList<Head, Tail...>, Offset>
     {
@@ -158,19 +158,19 @@ namespace {
         >;
     };
 
-    template <Int Offset>
+    template <int32_t Offset>
     struct InternalOffsetBuilder<TypeList<>, Offset>
     {
         using Type = IntList<>;
     };
 
 
-    template <typename List, Int Offset = 0, Int Idx = 0, Int Max = ListSize<List>::Value>
+    template <typename List, int32_t Offset = 0, int32_t Idx = 0, int32_t Max = ListSize<List>::Value>
     class ForAllTopLevelElements;
 
-    template <typename List, Int Offset, Int Idx, Int Max>
+    template <typename List, int32_t Offset, int32_t Idx, int32_t Max>
     class ForAllTopLevelElements {
-        static const Int LeafOffset = v1::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
+        static const int32_t LeafOffset = v1::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
     public:
         using Type = AppendItemToList<
                 IntValue<LeafOffset + Offset>,
@@ -184,7 +184,7 @@ namespace {
     };
 
 
-    template <typename List, Int Offset, Int Max>
+    template <typename List, int32_t Offset, int32_t Max>
     class ForAllTopLevelElements<List, Offset, Max, Max> {
     public:
         using Type = IntList<>;
@@ -215,19 +215,19 @@ using StreamsStartSubset = LeafSubsetInf<List, IntList<>>;
 
 
 
-template <typename List, Int Idx, Int Pos = 0> struct FindTopLevelIdx;
+template <typename List, int32_t Idx, int32_t Pos = 0> struct FindTopLevelIdx;
 
 template <
     typename Head,
     typename... Tail,
-    Int Idx,
-    Int Pos
+    int32_t Idx,
+    int32_t Pos
 >
 struct FindTopLevelIdx<TypeList<Head, Tail...>, Idx, Pos>
 {
-    static const Int Children = v1::list_tree::SubtreeLeafCount<TypeList<Head>, IntList<>>::Value;
+    static const int32_t Children = v1::list_tree::SubtreeLeafCount<TypeList<Head>, IntList<>>::Value;
 
-    static const Int Value = Idx < Children ?
+    static const int32_t Value = Idx < Children ?
             Pos :
             FindTopLevelIdx<
                 TypeList<Tail...>,
@@ -236,31 +236,31 @@ struct FindTopLevelIdx<TypeList<Head, Tail...>, Idx, Pos>
             >::Value;
 };
 
-template <Int Idx, Int Pos>
+template <int32_t Idx, int32_t Pos>
 struct FindTopLevelIdx<TypeList<>, Idx, Pos> {
-    static const Int Value = -1;
+    static const int32_t Value = -1;
 };
 
 
 
 
 
-template <typename List, Int Idx, Int Pos = 0> struct FindLocalLeafOffsetV;
-template <typename List, Int Idx, Int Pos = 0> struct FindLocalLeafOffsetT;
+template <typename List, int32_t Idx, int32_t Pos = 0> struct FindLocalLeafOffsetV;
+template <typename List, int32_t Idx, int32_t Pos = 0> struct FindLocalLeafOffsetT;
 
 namespace {
 
-    template <typename List, Int Idx, Int Pos, bool Condition> struct FindLocalLeafOffsetHelperV;
-    template <typename List, Int Idx, Int Pos, bool Condition> struct FindLocalLeafOffsetHelperT;
+    template <typename List, int32_t Idx, int32_t Pos, bool Condition> struct FindLocalLeafOffsetHelperV;
+    template <typename List, int32_t Idx, int32_t Pos, bool Condition> struct FindLocalLeafOffsetHelperT;
 
     template <typename List>
     struct ListSizeHelper {
-        static const Int Value = ListSize<List>::Value;
+        static const int32_t Value = ListSize<List>::Value;
     };
 
     template <typename List>
     struct ListSizeHelper<StreamStartTag<List>> {
-        static const Int Value = ListSize<List>::Value;
+        static const int32_t Value = ListSize<List>::Value;
     };
 
 
@@ -268,16 +268,16 @@ namespace {
     template <
         typename Head,
         typename... Tail,
-        Int Idx, Int Pos
+        int32_t Idx, int32_t Pos
     >
     struct FindLocalLeafOffsetHelperV<TypeList<Head, Tail...>, Idx, Pos, true> {
-        static const Int Value = Idx - Pos;
+        static const int32_t Value = Idx - Pos;
     };
 
     template <
         typename Head,
         typename... Tail,
-        Int Idx, Int Pos
+        int32_t Idx, int32_t Pos
     >
     struct FindLocalLeafOffsetHelperT<TypeList<Head, Tail...>, Idx, Pos, true> {
         using Type = Head;
@@ -287,17 +287,17 @@ namespace {
     template <
         typename Head,
         typename... Tail,
-        Int Idx, Int Pos
+        int32_t Idx, int32_t Pos
     >
     struct FindLocalLeafOffsetHelperV<TypeList<Head, Tail...>, Idx, Pos, false> {
-        static const Int Value = FindLocalLeafOffsetV<TypeList<Tail...>, Idx, Pos + ListSizeHelper<Head>::Value>::Value;
+        static const int32_t Value = FindLocalLeafOffsetV<TypeList<Tail...>, Idx, Pos + ListSizeHelper<Head>::Value>::Value;
     };
 
 
     template <
         typename Head,
         typename... Tail,
-        Int Idx, Int Pos
+        int32_t Idx, int32_t Pos
     >
     struct FindLocalLeafOffsetHelperT<TypeList<Head, Tail...>, Idx, Pos, false> {
         using Type = typename FindLocalLeafOffsetT<TypeList<Tail...>, Idx, Pos + ListSizeHelper<Head>::Value>::Type;
@@ -308,19 +308,19 @@ namespace {
 template <
     typename Head,
     typename... Tail,
-    Int Idx,
-    Int Pos
+    int32_t Idx,
+    int32_t Pos
 >
 struct FindLocalLeafOffsetV<TypeList<Head, Tail...>, Idx, Pos> {
-    static const Int Value = FindLocalLeafOffsetV<TypeList<Tail...>, Idx, Pos + 1>::Value;
+    static const int32_t Value = FindLocalLeafOffsetV<TypeList<Tail...>, Idx, Pos + 1>::Value;
 };
 
 
 template <
     typename Head,
     typename... Tail,
-    Int Idx,
-    Int Pos
+    int32_t Idx,
+    int32_t Pos
 >
 struct FindLocalLeafOffsetT<TypeList<Head, Tail...>, Idx, Pos> {
     using Type = typename FindLocalLeafOffsetT<TypeList<Tail...>, Idx, Pos + 1>::Type;
@@ -332,17 +332,17 @@ struct FindLocalLeafOffsetT<TypeList<Head, Tail...>, Idx, Pos> {
 template <
     typename Head,
     typename... Tail,
-    Int Idx
+    int32_t Idx
 >
 struct FindLocalLeafOffsetV<TypeList<Head, Tail...>, Idx, Idx> {
-    static const Int Value = 0;
+    static const int32_t Value = 0;
 };
 
 
 template <
     typename Head,
     typename... Tail,
-    Int Idx
+    int32_t Idx
 >
 struct FindLocalLeafOffsetT<TypeList<Head, Tail...>, Idx, Idx> {
     using Type = Head;
@@ -354,16 +354,16 @@ struct FindLocalLeafOffsetT<TypeList<Head, Tail...>, Idx, Idx> {
 template <
     typename... List,
     typename... Tail,
-    Int Idx,
-    Int Pos
+    int32_t Idx,
+    int32_t Pos
 >
 struct FindLocalLeafOffsetV<TypeList<TypeList<List...>, Tail...>, Idx, Pos> {
 private:
     using LocalList = TypeList<List...>;
-    static const Int LocalSize = ListSize<LocalList>::Value;
+    static const int32_t LocalSize = ListSize<LocalList>::Value;
 public:
 
-    static const Int Value = FindLocalLeafOffsetHelperV<
+    static const int32_t Value = FindLocalLeafOffsetHelperV<
         TypeList<TypeList<List...>, Tail...>,
         Idx,
         Pos,
@@ -375,13 +375,13 @@ public:
 
 template <
     typename... Tail,
-    Int... List,
-    Int Idx,
-    Int Pos
+    int32_t... List,
+    int32_t Idx,
+    int32_t Pos
 >
 struct FindLocalLeafOffsetT<TypeList<IntList<List...>, Tail...>, Idx, Pos> {
 private:
-    static const Int LocalSize = ListSize<IntList<List...>>::Value;
+    static const int32_t LocalSize = ListSize<IntList<List...>>::Value;
 public:
     using Type = typename FindLocalLeafOffsetHelperT<
             TypeList<IntList<List...>, Tail...>,
@@ -395,13 +395,13 @@ public:
 
 template <
     typename... Tail,
-    Int... List,
-    Int Idx,
-    Int Pos
+    int32_t... List,
+    int32_t Idx,
+    int32_t Pos
 >
 struct FindLocalLeafOffsetT<TypeList<StreamStartTag<IntList<List...>>, Tail...>, Idx, Pos> {
 private:
-    static const Int LocalSize = ListSize<IntList<List...>>::Value;
+    static const int32_t LocalSize = ListSize<IntList<List...>>::Value;
 public:
     using Type = typename FindLocalLeafOffsetHelperT<
             TypeList<StreamStartTag<IntList<List...>>, Tail...>,
@@ -416,16 +416,16 @@ public:
 template <
     typename... Tail,
     typename... List,
-    Int Idx
+    int32_t Idx
 >
 struct FindLocalLeafOffsetV<TypeList<TypeList<List...>, Tail...>, Idx, Idx> {
-    static const Int Value = 0;
+    static const int32_t Value = 0;
 };
 
 template <
     typename... Tail,
-    Int... List,
-    Int Idx
+    int32_t... List,
+    int32_t Idx
 >
 struct FindLocalLeafOffsetT<TypeList<IntList<List...>, Tail...>, Idx, Idx> {
     using Type = IntList<List...>;
@@ -433,8 +433,8 @@ struct FindLocalLeafOffsetT<TypeList<IntList<List...>, Tail...>, Idx, Idx> {
 
 template <
     typename... Tail,
-    Int... List,
-    Int Idx
+    int32_t... List,
+    int32_t Idx
 >
 struct FindLocalLeafOffsetT<TypeList<StreamStartTag<IntList<List...>>, Tail...>, Idx, Idx> {
     using Type = StreamStartTag<IntList<List...>>;
@@ -442,14 +442,14 @@ struct FindLocalLeafOffsetT<TypeList<StreamStartTag<IntList<List...>>, Tail...>,
 
 
 template <
-    Int Idx,
-    Int Pos
+    int32_t Idx,
+    int32_t Pos
 >
 struct FindLocalLeafOffsetV<TypeList<>, Idx, Pos>;
 
 template <
-    Int Idx,
-    Int Pos
+    int32_t Idx,
+    int32_t Pos
 >
 struct FindLocalLeafOffsetT<TypeList<>, Idx, Pos>;
 
@@ -458,33 +458,33 @@ struct FindLocalLeafOffsetT<TypeList<>, Idx, Pos>;
 
 
 
-template <typename List, Int Idx> struct GetLeafPrefix;
+template <typename List, int32_t Idx> struct GetLeafPrefix;
 
 
-template <typename List, Int Idx>
+template <typename List, int32_t Idx>
 struct GetLeafPrefix {
-    static const Int Value = SelectV<Idx, List>::Value;
+    static const int32_t Value = SelectV<Idx, List>::Value;
 };
 
-template <typename List, Int Idx>
+template <typename List, int32_t Idx>
 struct GetLeafPrefix<StreamStartTag<List>, Idx> {
-    static const Int Value = SelectV<Idx, List>::Value;
+    static const int32_t Value = SelectV<Idx, List>::Value;
 };
 
 
-template <typename Path, Int Depth = 0> struct IsStreamStart;
+template <typename Path, int32_t Depth = 0> struct IsStreamStart;
 
-template <Int Head, Int... Tail>
+template <int32_t Head, int32_t... Tail>
 struct IsStreamStart<IntList<Head, Tail...>, 0> {
     static const bool Value = IsStreamStart<IntList<Tail...>, 1>::Value;
 };
 
-template <Int Head, Int... Tail, Int Idx>
+template <int32_t Head, int32_t... Tail, int32_t Idx>
 struct IsStreamStart<IntList<Head, Tail...>, Idx> {
     static const bool Value = Head == 0 && IsStreamStart<IntList<Tail...>, Idx + 1>::Value;
 };
 
-template <Int Idx>
+template <int32_t Idx>
 struct IsStreamStart<IntList<>, Idx> {
     static const bool Value = true;
 };
@@ -495,13 +495,13 @@ struct IsStreamStart<IntList<>, Idx> {
 namespace {
     template <typename List> struct IsStreamStartTag;
 
-    template <Int... List>
+    template <int32_t... List>
     struct IsStreamStartTag<IntList<List...>> {
         static const bool Value = false;
     };
 
 
-    template <Int... List>
+    template <int32_t... List>
     struct IsStreamStartTag<StreamStartTag<IntList<List...>>> {
         static const bool Value = true;
     };
@@ -509,23 +509,23 @@ namespace {
 
 
 
-template <typename LeafStructList, Int LeafIdx>
+template <typename LeafStructList, int32_t LeafIdx>
 struct LeafToBranchIndexByValueTranslator {
 protected:
     using LeafOffsets = typename LeafOffsetListBuilder<LeafStructList>::Type;
 
     using Leafs = FlattenLeafTree<LeafStructList>;
 
-    static const Int LocalLeafOffset = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+    static const int32_t LocalLeafOffset = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
 
     using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
 
     using LeafPath = typename v1::list_tree::BuildTreePath<LeafStructList, LeafIdx>::Type;
 
 public:
-    static const Int LeafOffset = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+    static const int32_t LeafOffset = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
 
-    static const Int BranchStructIdx = v1::list_tree::LeafCount<LeafStructList, LeafPath, 2>::Value - LocalLeafOffset;
+    static const int32_t BranchStructIdx = v1::list_tree::LeafCount<LeafStructList, LeafPath, 2>::Value - LocalLeafOffset;
 
     static const bool IsStreamStart = LocalLeafOffset == 0 && IsStreamStartTag<LocalLeafGroup>::Value;
 };
@@ -533,33 +533,33 @@ public:
 
 
 
-template <typename LeafStructList, typename LeafPath, Int LeafIndex = 0>
+template <typename LeafStructList, typename LeafPath, int32_t LeafIndex = 0>
 struct LeafToBranchIndexTranslator {
 protected:
     using LeafOffsets = typename LeafOffsetListBuilder<LeafStructList>::Type;
 
     using Leafs = FlattenLeafTree<LeafStructList>;
 
-    static const Int LeafIdx            = v1::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
-    static const Int LocalLeafOffset    = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+    static const int32_t LeafIdx            = v1::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+    static const int32_t LocalLeafOffset    = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
 
     using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
 
 public:
-    static const Int BranchIndex = LeafIndex
+    static const int32_t BranchIndex = LeafIndex
                                     + GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
 
 
-    static Int translate(Int leaf_index)
+    static int32_t translate(int32_t leaf_index)
     {
-        const Int LeafIdx           = v1::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
-        const Int LocalLeafOffset   = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+        const int32_t LeafIdx           = v1::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+        const int32_t LocalLeafOffset   = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
 
         using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
 
-        const Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+        const int32_t LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
 
-        const Int BranchIndex = leaf_index + LeafPrefix;
+        const int32_t BranchIndex = leaf_index + LeafPrefix;
 
         return BranchIndex;
     }

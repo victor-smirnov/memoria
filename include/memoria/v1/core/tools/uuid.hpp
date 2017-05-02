@@ -31,26 +31,26 @@ std::ostream& operator<<(std::ostream& out, const UUID& uuid);
 std::istream& operator>>(std::istream& in, UUID& uuid);
 
 class UUID {
-    UBigInt hi_;
-    UBigInt lo_;
+    uint64_t hi_;
+    uint64_t lo_;
 public:
     constexpr UUID(): hi_(), lo_() {}
 
-    constexpr UUID(UBigInt hi, UBigInt lo): hi_(hi), lo_(lo) {}
+    constexpr UUID(uint64_t hi, uint64_t lo): hi_(hi), lo_(lo) {}
 
-    const UBigInt& hi() const {
+    const uint64_t& hi() const {
         return hi_;
     }
 
-    UBigInt& hi() {
+    uint64_t& hi() {
         return hi_;
     }
 
-    const UBigInt& lo() const {
+    const uint64_t& lo() const {
         return lo_;
     }
 
-    UBigInt& lo() {
+    uint64_t& lo() {
         return lo_;
     }
 
@@ -99,7 +99,7 @@ public:
     static UUID make_time();
     static UUID parse(const char* in);
 
-    static constexpr UUID make(UBigInt hi, UBigInt lo) {
+    static constexpr UUID make(uint64_t hi, uint64_t lo) {
         return UUID(hi, lo);
     }
 };

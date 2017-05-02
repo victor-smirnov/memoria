@@ -103,7 +103,7 @@ struct BTCowTypes {
 
     using Profile  = Profile_;
 
-    using CtrSizeT = BigInt;
+    using CtrSizeT = int64_t;
 
     using ContainerPartsList = TypeList<
     		bt::ToolsName,
@@ -264,7 +264,7 @@ public:
     using ID             = typename ContainerTypes::Allocator::Page::ID;
 
     using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
-    static const Int Streams = ListSize<StreamDescriptors>::Value;
+    static const int32_t Streams = ListSize<StreamDescriptors>::Value;
 
     using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
     using Page              = typename ContainerTypes::Allocator::Page;
@@ -392,7 +392,7 @@ public:
 
         using TreePath = core::StaticArray<NodeBaseG, 8>;
 
-        static constexpr Int Streams = MyType::Streams;
+        static constexpr int32_t Streams = MyType::Streams;
 
         using BranchNodeEntry = BranchNodeEntry_;
 
@@ -432,23 +432,23 @@ public:
 
         using StreamsInputTypeList = typename MyType::StreamsInputTypeList;
 
-        template <Int Stream>
+        template <int32_t Stream>
         using StreamInputTuple  = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
 
-        template <Int Stream>
+        template <int32_t Stream>
         using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
 
         template <typename LeafPath>
         using AccumItemH = AccumItem<LeafStreamsStructList, LeafPath, IteratorBranchNodeEntry>;
 
 
-        template <Int SubstreamIdx>
+        template <int32_t SubstreamIdx>
         using LeafPathT   = typename v1::list_tree::BuildTreePath<LeafStreamsStructList, SubstreamIdx>::Type;
 
-        template <Int SubstreamIdx>
+        template <int32_t SubstreamIdx>
         using BranchPathT = typename v1::list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
 
-        template <Int StreamIdx>
+        template <int32_t StreamIdx>
         using StreamInputBufferStructList = Select<StreamIdx, InputBufferStructList>;
 
         template <typename SubstreamPath>

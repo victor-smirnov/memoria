@@ -41,9 +41,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorReadName)
     using CtrSizeT      = typename Container::Types::CtrSizeT;
     using DataSizesT    = typename Container::Types::DataSizesT;
 
-    static const Int Streams                = Container::Types::Streams;
-    static const Int DataStreams            = Container::Types::DataStreams;
-    static const Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
+    static const int32_t Streams                = Container::Types::Streams;
+    static const int32_t DataStreams            = Container::Types::DataStreams;
+    static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
     template <typename IOBuffer>
     using ReadWalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanThroughStrategy>>;
@@ -63,12 +63,12 @@ public:
     }
 
     template <typename IOBuffer>
-    CtrSizeT bulkio_scan_ge(BufferConsumer<IOBuffer>* consumer, Int expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
+    CtrSizeT bulkio_scan_ge(BufferConsumer<IOBuffer>* consumer, int32_t expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
         return bulkio_read_<ScanWalkerPool>(consumer, expected_stream, limits);
     }
 
     template <typename IOBuffer>
-    CtrSizeT bulkio_scan_run(BufferConsumer<IOBuffer>* consumer, Int expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
+    CtrSizeT bulkio_scan_run(BufferConsumer<IOBuffer>* consumer, int32_t expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
     	return bulkio_read_<ScanRunWalkerPool>(consumer, expected_stream, limits);
     }
 
@@ -89,13 +89,13 @@ public:
 
 
     template <typename Walker, typename IOBuffer>
-    Int bulkio_populate(Walker& walker, IOBuffer* buffer)
+    int32_t bulkio_populate(Walker& walker, IOBuffer* buffer)
     {
         auto& self = this->self();
 
         auto start_id = self.leaf()->id();
 
-        Int entries = 0;
+        int32_t entries = 0;
 
         bool more_data = false;
 
@@ -127,7 +127,7 @@ public:
             }
             else
             {
-                throw Exception(MA_SRC, SBuf() << "Invalid populate IO buffer status: " << (Int) result.ending());
+                throw Exception(MA_SRC, SBuf() << "Invalid populate IO buffer status: " << (int32_t) result.ending());
             }
         }
 
@@ -158,7 +158,7 @@ protected:
 
 
     template <template <typename> class WalkerPoolT, typename IOBuffer>
-    CtrSizeT bulkio_read_(BufferConsumer<IOBuffer>* consumer, Int expected_stream, const CtrSizeT& limits)
+    CtrSizeT bulkio_read_(BufferConsumer<IOBuffer>* consumer, int32_t expected_stream, const CtrSizeT& limits)
     {
         auto& self = this->self();
 
@@ -172,7 +172,7 @@ protected:
         IOBuffer& buffer = *iobuffer.get();
         buffer.rewind();
 
-        Int entries = 0;
+        int32_t entries = 0;
 
         while (true)
         {

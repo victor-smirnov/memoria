@@ -24,7 +24,7 @@ namespace memoria {
 namespace v1 {
 
 
-template <typename T, Int Size>
+template <typename T, int32_t Size>
 struct MakeList {
     using Type = MergeLists<
                 T,
@@ -44,7 +44,7 @@ struct MakeTupleH<TypeList<List...>> {
     using Type = std::tuple<List...>;
 };
 
-template <typename T, Int Size>
+template <typename T, int32_t Size>
 using MakeTuple = typename MakeTupleH<typename MakeList<T, Size>::Type>::Type;
 
 

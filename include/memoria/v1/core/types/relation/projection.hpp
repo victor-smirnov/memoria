@@ -34,7 +34,7 @@ struct ValueWrapper {
 };
 
 
-template <Int Name, typename ColumnValue>
+template <int32_t Name, typename ColumnValue>
 struct WrapperProvider<Column<Name, NullType>, ColumnValue> {
     // no wrapper if value is a type
     typedef typename ColumnValue::Value                                         Type;

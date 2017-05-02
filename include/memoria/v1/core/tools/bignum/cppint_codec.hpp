@@ -37,14 +37,14 @@ template <
 >
 class ValueCodec<mp::number<mp::cpp_int_backend<MinDigits, MaxDigits, SignType, Checked, Allocator>, ExpressionTemplates>> {
 public:
-    using BufferType    = UByte;
+    using BufferType    = uint8_t;
     using T             = BufferType;
     using V             = mp::number<mp::cpp_int_backend<MinDigits, MaxDigits, SignType, Checked, Allocator>, ExpressionTemplates>;
 
     using ValuePtr      = ValuePtrT1<BufferType>;
 
-    static const Int BitsPerOffset  = 16;
-    static const Int ElementSize    = 8; // In bits;
+    static const int32_t BitsPerOffset  = 16;
+    static const int32_t ElementSize    = 8; // In bits;
 
     ValuePtr describe(const T* buffer, size_t idx)
     {
@@ -147,7 +147,7 @@ public:
 
             size_t len = 0;
 
-            for (UInt c = 0; c < 4; c++)
+            for (uint32_t c = 0; c < 4; c++)
             {
                 len |= ((size_t)buffer[idx++]) << (c << 3);
             }
@@ -251,9 +251,9 @@ private:
 
     static size_t serialize_limb(T* buffer, unsigned long value, size_t idx)
     {
-        UInt len = bytes(value);
+        uint32_t len = bytes(value);
 
-        for (UInt c = 0; c < len; c++)
+        for (uint32_t c = 0; c < len; c++)
         {
             buffer[idx++] = value >> (c << 3);
         }
@@ -263,9 +263,9 @@ private:
 
     static size_t serialize_limb(T* buffer, unsigned long long value, size_t idx)
     {
-        UInt len = bytes(value);
+        uint32_t len = bytes(value);
 
-        for (UInt c = 0; c < len; c++)
+        for (uint32_t c = 0; c < len; c++)
         {
             buffer[idx++] = value >> (c << 3);
         }
@@ -284,30 +284,30 @@ private:
         mp::import_bits(value, buffer + idx, buffer + idx + len, 8, false);
     }
 
-    constexpr static UInt msb(unsigned digits)
+    constexpr static uint32_t msb(unsigned digits)
     {
         return 31 - __builtin_clz(digits);
     }
 
-    constexpr static    UInt msb(unsigned long digits)
+    constexpr static    uint32_t msb(unsigned long digits)
     {
         return 63 - __builtin_clzl(digits);
     }
 
-    constexpr static UInt msb(unsigned long long digits)
+    constexpr static uint32_t msb(unsigned long long digits)
     {
         return 63 - __builtin_clzll(digits);
     }
 
     template <typename T>
-    constexpr static UInt bytes(T digits)
+    constexpr static uint32_t bytes(T digits)
     {
-        UInt v = msb(digits) + 1;
+        uint32_t v = msb(digits) + 1;
         return (v >> 3) + ((v & 0x7) != 0);
     }
 
     template <typename T>
-    constexpr static UInt byte_length(const T* data, unsigned size)
+    constexpr static uint32_t byte_length(const T* data, unsigned size)
     {
         return bytes(data[size - 1]) + (size - 1) * sizeof(T);
     }

@@ -46,11 +46,11 @@ struct BTTypes<Profile, v1::Sequence<8, true> >: public BTTypes<Profile, v1::BTS
 
     typedef BTTypes<Profile, v1::BTSingleStream>                           Base;
 
-    typedef UByte                                                               Value;
+    typedef uint8_t                                                               Value;
 
-    static const Int BitsPerSymbol                                              = 8;
-    static const Int Symbols                                                    = 256;
-    static const Int BranchIndexes                                              = (1 << BitsPerSymbol) + 1;
+    static const int32_t BitsPerSymbol                                              = 8;
+    static const int32_t Symbols                                                    = 256;
+    static const int32_t BranchIndexes                                              = (1 << BitsPerSymbol) + 1;
 
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 

@@ -55,17 +55,17 @@ struct LogHandler {
 
     LogHandler() {}
 
-    virtual void begin(v1::Int level)       = 0;
+    virtual void begin(v1::int32_t level)       = 0;
 
     virtual void log(const bool value)        = 0;
-    virtual void log(const Byte value)        = 0;
-    virtual void log(const UByte value)       = 0;
-    virtual void log(const Short value)       = 0;
-    virtual void log(const UShort value)      = 0;
-    virtual void log(const Int value)         = 0;
-    virtual void log(const UInt value)        = 0;
-    virtual void log(const BigInt value)      = 0;
-    virtual void log(const UBigInt value)     = 0;
+    virtual void log(const int8_t value)        = 0;
+    virtual void log(const uint8_t value)       = 0;
+    virtual void log(const int16_t value)       = 0;
+    virtual void log(const uint16_t value)      = 0;
+    virtual void log(const int32_t value)         = 0;
+    virtual void log(const uint32_t value)        = 0;
+    virtual void log(const int64_t value)      = 0;
+    virtual void log(const uint64_t value)     = 0;
     virtual void log(const float value)       = 0;
     virtual void log(const double value)      = 0;
     virtual void log(const IDValue& value)    = 0;
@@ -211,7 +211,7 @@ public:
 
 class DefaultLogHandlerImpl: public LogHandler {
 
-    Int cnt_;
+    int32_t cnt_;
 
     std::ostream& out_;
 
@@ -220,7 +220,7 @@ public:
     DefaultLogHandlerImpl(): out_(std::cout) {}
     DefaultLogHandlerImpl(std::ostream& out): out_(out) {}
 
-    virtual void begin(Int level) {
+    virtual void begin(int32_t level) {
         cnt_ = 0;
         preprocess();
         if (level <= Logger::TRACE)         out_<<"TRACE";
@@ -234,14 +234,14 @@ public:
     }
 
     virtual void log(const bool value)      {preprocess(); out_<<value; postprocess();}
-    virtual void log(const Byte value)      {preprocess(); out_<<value; postprocess();}
-    virtual void log(const UByte value)     {preprocess(); out_<<value; postprocess();}
-    virtual void log(const Short value)     {preprocess(); out_<<value; postprocess();}
-    virtual void log(const UShort value)    {preprocess(); out_<<value; postprocess();}
-    virtual void log(const Int value)       {preprocess(); out_<<value; postprocess();}
-    virtual void log(const UInt value)      {preprocess(); out_<<value; postprocess();}
-    virtual void log(const BigInt value)    {preprocess(); out_<<value; postprocess();}
-    virtual void log(const UBigInt value)   {preprocess(); out_<<value; postprocess();}
+    virtual void log(const int8_t value)      {preprocess(); out_<<value; postprocess();}
+    virtual void log(const uint8_t value)     {preprocess(); out_<<value; postprocess();}
+    virtual void log(const int16_t value)     {preprocess(); out_<<value; postprocess();}
+    virtual void log(const uint16_t value)    {preprocess(); out_<<value; postprocess();}
+    virtual void log(const int32_t value)       {preprocess(); out_<<value; postprocess();}
+    virtual void log(const uint32_t value)      {preprocess(); out_<<value; postprocess();}
+    virtual void log(const int64_t value)    {preprocess(); out_<<value; postprocess();}
+    virtual void log(const uint64_t value)   {preprocess(); out_<<value; postprocess();}
     virtual void log(const float value)     {preprocess(); out_<<value; postprocess();}
     virtual void log(const double value)    {preprocess(); out_<<value; postprocess();}
     virtual void log(const IDValue& value)  {preprocess(); out_<<value.str(); postprocess();}
@@ -285,7 +285,7 @@ class Locker {
     LogHandler* handler_;
 
 public:
-    Locker(const Logger& logger, Int level): handler_(logger.getHandler())
+    Locker(const Logger& logger, int32_t level): handler_(logger.getHandler())
     {
         handler_->begin(level);
     }
@@ -317,7 +317,7 @@ LogHandler* logIt(LogHandler* log, const T& value) {
 
 
 template <typename T0>
-bool log(const Logger& log, Int level, const T0& v0) throw () {
+bool log(const Logger& log, int32_t level, const T0& v0) throw () {
     try {
         Locker lock(log, level);
         LogHandler* handler = log.getHandler();
@@ -332,7 +332,7 @@ bool log(const Logger& log, Int level, const T0& v0) throw () {
 }
 
 template <typename T0, typename T1>
-bool log(const Logger& log, Int level, const T0& v0, const T1& v1) throw () {
+bool log(const Logger& log, int32_t level, const T0& v0, const T1& v1) throw () {
     try {
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
@@ -348,7 +348,7 @@ bool log(const Logger& log, Int level, const T0& v0, const T1& v1) throw () {
 }
 
 template <typename T0, typename T1, typename T2>
-bool log(const Logger& log, Int level, const T0& v0, const T1& v1, const T2& v2) throw () {
+bool log(const Logger& log, int32_t level, const T0& v0, const T1& v1, const T2& v2) throw () {
     try {
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
@@ -365,7 +365,7 @@ bool log(const Logger& log, Int level, const T0& v0, const T1& v1, const T2& v2)
 }
 
 template <typename T0, typename T1, typename T2, typename T3>
-bool log(const Logger& log, Int level, const T0& v0, const T1& v1, const T2& v2, const T3& v3) throw () {
+bool log(const Logger& log, int32_t level, const T0& v0, const T1& v1, const T2& v2, const T3& v3) throw () {
     try {
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
@@ -383,7 +383,7 @@ bool log(const Logger& log, Int level, const T0& v0, const T1& v1, const T2& v2,
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4>
-bool log(const Logger& log, Int level, const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4) throw () {
+bool log(const Logger& log, int32_t level, const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4) throw () {
     try {
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
@@ -402,7 +402,7 @@ bool log(const Logger& log, Int level, const T0& v0, const T1& v1, const T2& v2,
 }
 
 template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-bool log(const Logger& log, Int level,
+bool log(const Logger& log, int32_t level,
         const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
         const T5& v5) throw () {
     try {
@@ -427,7 +427,7 @@ template <
         typename T0, typename T1, typename T2, typename T3, typename T4,
         typename T5, typename T6
 >
-bool log(const Logger& log, Int level,
+bool log(const Logger& log, int32_t level,
         const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
         const T5& v5, const T6& v6) throw () {
     try {
@@ -453,7 +453,7 @@ template <
         typename T0, typename T1, typename T2, typename T3, typename T4,
         typename T5, typename T6, typename T7
 >
-bool log(const Logger& log, Int level,
+bool log(const Logger& log, int32_t level,
          const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
          const T5& v5, const T6& v6, const T7& v7) throw () {
     try {
@@ -480,7 +480,7 @@ template <
         typename T0, typename T1, typename T2, typename T3, typename T4,
         typename T5, typename T6, typename T7, typename T8
 >
-bool log(const Logger& log, Int level,
+bool log(const Logger& log, int32_t level,
          const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
          const T5& v5, const T6& v6, const T7& v7, const T8& v8) throw () {
     try {
@@ -509,7 +509,7 @@ template <
         typename T0, typename T1, typename T2, typename T3, typename T4,
         typename T5, typename T6, typename T7, typename T8, typename T9
 >
-bool log(const Logger& log, Int level,
+bool log(const Logger& log, int32_t level,
         const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
         const T5& v5, const T6& v6, const T7& v7, const T8& v8, const T9& v9) throw () {
     try {
@@ -539,7 +539,7 @@ template <
         typename T5, typename T6, typename T7, typename T8, typename T9,
         typename T10
 >
-bool log(const Logger& log, Int level,
+bool log(const Logger& log, int32_t level,
         const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
         const T5& v5, const T6& v6, const T7& v7, const T8& v8, const T9& v9,
         const T10& v10) throw () {
@@ -571,7 +571,7 @@ template <
         typename T5, typename T6, typename T7, typename T8, typename T9,
         typename T10, typename T11
 >
-bool log(const Logger& log, Int level,
+bool log(const Logger& log, int32_t level,
         const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
         const T5& v5, const T6& v6, const T7& v7, const T8& v8, const T9& v9,
         const T10& v10, const T11& v11) throw () {
@@ -604,7 +604,7 @@ template <
         typename T5, typename T6, typename T7, typename T8, typename T9,
         typename T10, typename T11, typename T12
 >
-bool log(const Logger& log, Int level,
+bool log(const Logger& log, int32_t level,
         const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
         const T5& v5, const T6& v6, const T7& v7, const T8& v8, const T9& v9,
         const T10& v10, const T11& v11, const T12& v12) throw () {
@@ -638,7 +638,7 @@ template <
         typename T5, typename T6, typename T7, typename T8, typename T9,
         typename T10, typename T11, typename T12, typename T13
 >
-bool log(const Logger& log, Int level,
+bool log(const Logger& log, int32_t level,
         const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
         const T5& v5, const T6& v6, const T7& v7, const T8& v8, const T9& v9,
         const T10& v10, const T11& v11, const T12& v12, const T13& v13) throw () {
@@ -673,7 +673,7 @@ template <
         typename T5, typename T6, typename T7, typename T8, typename T9,
         typename T10, typename T11, typename T12, typename T13, typename T14
 >
-bool log(const Logger& log, Int level,
+bool log(const Logger& log, int32_t level,
         const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
         const T5& v5, const T6& v6, const T7& v7, const T8& v8, const T9& v9,
         const T10& v10, const T11& v11, const T12& v12, const T13& v13, const T14& v14) throw () {

@@ -31,7 +31,7 @@ int main(int argc, const char** argv, const char** envp) {
 
         alloc.mem_limit() = 2*1024*1024*1024ll;
 
-        constexpr Int BitsPerSymbol = 1;
+        constexpr int32_t BitsPerSymbol = 1;
 
         using CtrT = DCtrTF<Sequence<BitsPerSymbol>>::Type;
 
@@ -54,9 +54,9 @@ int main(int argc, const char** argv, const char** envp) {
 
         auto i1 = ctr.seek(ctr.size());
 
-        BigInt total_rank = 0;
+        int64_t total_rank = 0;
 
-        for (Int s = 0; s < 1<<BitsPerSymbol; s++) {
+        for (int32_t s = 0; s < 1<<BitsPerSymbol; s++) {
             total_rank += i1.rank(s);
         }
 

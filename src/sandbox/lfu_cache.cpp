@@ -28,22 +28,22 @@ struct EvictionPredicate {
 
 template <typename Node>
 struct LRUCacheNode: Node {
-    Int value_;
+    int32_t value_;
 };
 
 
-Int main() {
+int32_t main() {
 
     MyRNG rng;
 
     std::uniform_int_distribution<int32_t> dist(0,100);
 
-    typedef LFUCache<Int, EvictionPredicate, LRUCacheNode>  CacheType;
+    typedef LFUCache<int32_t, EvictionPredicate, LRUCacheNode>  CacheType;
     typedef CacheType::Entry                                Entry;
 
     CacheType cache(40);
 
-    for (Int c = 0; c < 1000000; c++)
+    for (int32_t c = 0; c < 1000000; c++)
     {
         int32_t key = dist(rng);
         cache.get_entry(key, [](Entry& entry) {

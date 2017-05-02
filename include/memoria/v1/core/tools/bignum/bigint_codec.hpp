@@ -27,12 +27,12 @@ namespace v1 {
 template <size_t FixedPartPrecision >
 class IntegerCodec<BigIntegerT<FixedPartPrecision>> {
 public:
-    using BufferType    = UByte;
+    using BufferType    = uint8_t;
     using T             = BufferType;
     using V             = BigIntegerT<FixedPartPrecision>;
 
-    static const Int BitsPerOffset  = 16;
-    static const Int ElementSize    = 8; // In bits;
+    static const int32_t BitsPerOffset  = 16;
+    static const int32_t ElementSize    = 8; // In bits;
 
     size_t length(const T* buffer, size_t idx, size_t limit) const
     {
@@ -61,7 +61,7 @@ public:
         {
             auto digits = value.content_.fixed_.digits_;
 
-            Int msb = value.msb();
+            int32_t msb = value.msb();
 
             if (msb < 32)
             {
@@ -92,7 +92,7 @@ public:
         else {
             auto digits = value.content_.variable_.digits_;
 
-            Int msb = value.msb();
+            int32_t msb = value.msb();
 
             if (msb < 256)
             {
@@ -150,7 +150,7 @@ public:
 
             size_t len = 0;
 
-            for (UInt c = 0; c < 4; c++)
+            for (uint32_t c = 0; c < 4; c++)
             {
                 len |= ((size_t)buffer[idx++]) << (c << 2);
             }
@@ -182,7 +182,7 @@ public:
         {
             auto digits = value.content_.fixed_.digits_;
 
-            UInt msb = value.msb();
+            uint32_t msb = value.msb();
 
             if (msb < 32)
             {
@@ -234,7 +234,7 @@ public:
                 }
             }
             else {
-                UInt len = (msb >> 3);
+                uint32_t len = (msb >> 3);
 
                 buffer[idx] = (!value.is_negative()) ? 252u : 253u;
                 buffer[idx + 1] = len;
@@ -247,7 +247,7 @@ public:
         else {
             auto digits = value.content_.variable_.digits_;
 
-            UInt msb = value.msb();
+            uint32_t msb = value.msb();
             size_t len = msb >> 3;
 
             if (msb < 256u)
@@ -262,7 +262,7 @@ public:
             else {
                 buffer[idx++] = (!value.is_negative()) ? 254u : 255u;
 
-                for (UInt c = 0; c < 4; c++)
+                for (uint32_t c = 0; c < 4; c++)
                 {
                     buffer[idx++] = len >> (c << 3);
                 }

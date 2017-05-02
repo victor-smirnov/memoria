@@ -52,74 +52,74 @@ struct IOBufferAdapterBase {
 };
 
 template <>
-struct IOBufferAdapter<Char>: IOBufferAdapterBase<Char> {
+struct IOBufferAdapter<char>: IOBufferAdapterBase<char> {
     template <typename IOBuffer>
-    static Char get(IOBuffer& buffer) {
+    static char get(IOBuffer& buffer) {
         return buffer.getChar();
     }
 };
 
 template <>
-struct IOBufferAdapter<Byte>: IOBufferAdapterBase<Byte> {
+struct IOBufferAdapter<int8_t>: IOBufferAdapterBase<int8_t> {
     template <typename IOBuffer>
-    static Byte get(IOBuffer& buffer) {
+    static int8_t get(IOBuffer& buffer) {
         return buffer.getByte();
     }
 };
 
 template <>
-struct IOBufferAdapter<UByte>: IOBufferAdapterBase<UByte> {
+struct IOBufferAdapter<uint8_t>: IOBufferAdapterBase<uint8_t> {
     template <typename IOBuffer>
-    static UByte get(IOBuffer& buffer) {
+    static uint8_t get(IOBuffer& buffer) {
         return buffer.getUByte();
     }
 };
 
 template <>
-struct IOBufferAdapter<Short>: IOBufferAdapterBase<Short> {
+struct IOBufferAdapter<int16_t>: IOBufferAdapterBase<int16_t> {
     template <typename IOBuffer>
-    static Short get(IOBuffer& buffer) {
+    static int16_t get(IOBuffer& buffer) {
         return buffer.getShort();
     }
 };
 
 template <>
-struct IOBufferAdapter<UShort>: IOBufferAdapterBase<UShort> {
+struct IOBufferAdapter<uint16_t>: IOBufferAdapterBase<uint16_t> {
     template <typename IOBuffer>
-    static UShort get(IOBuffer& buffer) {
+    static uint16_t get(IOBuffer& buffer) {
         return buffer.getUShort();
     }
 };
 
 template <>
-struct IOBufferAdapter<Int>: IOBufferAdapterBase<Int> {
+struct IOBufferAdapter<int32_t>: IOBufferAdapterBase<int32_t> {
     template <typename IOBuffer>
-    static Int get(IOBuffer& buffer) {
+    static int32_t get(IOBuffer& buffer) {
         return buffer.getInt();
     }
 };
 
 template <>
-struct IOBufferAdapter<UInt>: IOBufferAdapterBase<UInt> {
+struct IOBufferAdapter<uint32_t>: IOBufferAdapterBase<uint32_t> {
     template <typename IOBuffer>
-    static UInt get(IOBuffer& buffer) {
+    static uint32_t get(IOBuffer& buffer) {
         return buffer.getUInt();
     }
 };
 
 
 template <>
-struct IOBufferAdapter<BigInt>: IOBufferAdapterBase<BigInt> {
+struct IOBufferAdapter<int64_t>: IOBufferAdapterBase<int64_t> {
     template <typename IOBuffer>
-    static BigInt get(IOBuffer& buffer) {
+    static int64_t get(IOBuffer& buffer) {
         return buffer.getBigInt();
     }
 };
 
 template <>
-struct IOBufferAdapter<UBigInt>: IOBufferAdapterBase<UBigInt> {
+struct IOBufferAdapter<uint64_t>: IOBufferAdapterBase<uint64_t> {
     template <typename IOBuffer>
-    static UBigInt get(IOBuffer& buffer) {
+    static uint64_t get(IOBuffer& buffer) {
         return buffer.getUBigInt();
     }
 };
@@ -190,7 +190,7 @@ struct IOBufferAdapter<UUID> {
 
 namespace details00 {
     
-    template <Int Idx, Int Max> 
+    template <int32_t Idx, int32_t Max> 
     struct IOBufferTupleSetter {
         template <typename IOBuffer, typename T>
         static bool put(IOBuffer& buffer, const T& tuple)
@@ -207,7 +207,7 @@ namespace details00 {
     };
     
     
-    template <Int Max> 
+    template <int32_t Max> 
     struct IOBufferTupleSetter<Max, Max> {
         template <typename IOBuffer, typename T>
         static bool put(IOBuffer& buffer, const T& tuple)
@@ -218,7 +218,7 @@ namespace details00 {
     };
     
     
-    template <Int Idx, Int Max> 
+    template <int32_t Idx, int32_t Max> 
     struct IOBufferTupleGetter {
         template <typename IOBuffer, typename T>
         static void get(IOBuffer& buffer, T& tuple)
@@ -230,7 +230,7 @@ namespace details00 {
         }
     };
     
-    template <Int Max> 
+    template <int32_t Max> 
     struct IOBufferTupleGetter<Max, Max> {
         template <typename IOBuffer, typename T>
         static void get(IOBuffer& buffer, T& tuple)
@@ -272,14 +272,14 @@ namespace bt {
 
 template <typename IOBuffer>
 struct BufferConsumer {
-    virtual Int process(IOBuffer& buffer, Int entries) = 0;
+    virtual int32_t process(IOBuffer& buffer, int32_t entries) = 0;
 
     virtual ~BufferConsumer() noexcept {}
 };
 
 template <typename IOBuffer>
 struct BufferProducer {
-    virtual Int populate(IOBuffer& buffer) = 0;
+    virtual int32_t populate(IOBuffer& buffer) = 0;
 
     virtual ~BufferProducer() noexcept {}
 };
@@ -293,7 +293,7 @@ class BufferFnConsumer: public bt::BufferConsumer<IOBuffer> {
 public:
     BufferFnConsumer(Fn fn): fn_(fn) {}
     
-    virtual Int process(IOBuffer& buffer, Int entries) {
+    virtual int32_t process(IOBuffer& buffer, int32_t entries) {
         return fn_(buffer, entries);
     }
 };
@@ -304,7 +304,7 @@ class BufferFnProducer: public bt::BufferProducer<IOBuffer> {
 public:
     BufferFnProducer(Fn fn): fn_(fn) {}
     
-    virtual Int populate(IOBuffer& buffer) {
+    virtual int32_t populate(IOBuffer& buffer) {
         return fn_(buffer);
     }
 };

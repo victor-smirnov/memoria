@@ -41,7 +41,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorSkipName)
 
 
 
-    template <Int Stream>
+    template <int32_t Stream>
     auto skip_fw_(CtrSizeT amount)
     {
         MEMORIA_V1_ASSERT(amount, >=, 0);
@@ -51,7 +51,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorSkipName)
         return self().find_fw(walker);
     }
 
-    template <Int Stream>
+    template <int32_t Stream>
     auto skip_bw_(CtrSizeT amount)
     {
         MEMORIA_V1_ASSERT(amount, >=, 0);
@@ -61,7 +61,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorSkipName)
         return self().find_bw(walker);
     }
 
-    template <Int Stream>
+    template <int32_t Stream>
     auto skip_(CtrSizeT amount)
     {
         auto& self = this->self();

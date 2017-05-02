@@ -62,9 +62,9 @@ struct TableBTTypesBase: public BTTypes<Profile, v1::BTTreeLayout> {
     using Key   = Key_;
     using Value = Value_;
 
-    using CtrSizeT = BigInt;
+    using CtrSizeT = int64_t;
 
-    static constexpr Int Levels = 3;
+    static constexpr int32_t Levels = 3;
 
     using FirstStreamVariableTF = StreamTF<
         TL<

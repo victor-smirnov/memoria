@@ -91,36 +91,36 @@ int main() {
 
     try {
 
-//      auto ptr0 = std::allocate_shared<Int>(SimpleAllocator<Int>(), 456);
+//      auto ptr0 = std::allocate_shared<int32_t>(SimpleAllocator<int32_t>(), 456);
 //
-//      auto ptr1 = std::make_shared<Int>(123);
+//      auto ptr1 = std::make_shared<int32_t>(123);
 //
 //      cout<<"Value: "<<*ptr1<<endl;
 //      cout<<"Value: "<<*ptr0<<endl;
 
-        constexpr Int Block = 1;
-        constexpr Int Blocks = Block + 1;
+        constexpr int32_t Block = 1;
+        constexpr int32_t Blocks = Block + 1;
 
-//      using Tree = PkdVQTreeT<BigInt, Blocks, UByteI7Codec>;
-        using Tree = PkdVDTreeT<BigInt, Blocks, UByteI7Codec, BigInt, PackedTreeBranchingFactor, 128>;
-//      using Tree = PkdFQTreeT<BigInt, Blocks>;
+//      using Tree = PkdVQTreeT<int64_t, Blocks, UByteI7Codec>;
+        using Tree = PkdVDTreeT<int64_t, Blocks, UByteI7Codec, int64_t, PackedTreeBranchingFactor, 128>;
+//      using Tree = PkdFQTreeT<int64_t, Blocks>;
 
         using Values = Tree::Values;
 
-        Int block_size = 4096*100000;
+        int32_t block_size = 4096*100000;
 
         auto tree = MakeSharedPackedStructByBlock<Tree>(block_size);
 
         Seed(1234);
 
-        Int size = 1000;
+        int32_t size = 1000;
 
         vector<Values> data(size);
 
         for (auto& v: data) v = Values{1 + getRandomG(300), 1 + getRandomG(300)};
 
         long t0 = getTimeInMillis();
-        tree->_insert(0, size, [&](Int block, Int idx){return data[idx][block];});
+        tree->_insert(0, size, [&](int32_t block, int32_t idx){return data[idx][block];});
 
         long t1 = getTimeInMillis();
 
@@ -129,7 +129,7 @@ int main() {
 
         long ts1 = getTimeInMillis();
         cout<<"----------------------Sums"<<endl;
-//      for (Int c = 1; c < tree->size(); c += 1)
+//      for (int32_t c = 1; c < tree->size(); c += 1)
 //      {
 //          auto sum0 = tree->sum(0, c);
 //          auto sum1 = tree->plain_sum(0, c);
@@ -156,7 +156,7 @@ int main() {
         long t2 = getTimeInMillis();
 
         cout<<"----------------------FindStart"<<endl;
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             auto key = tree->sum(Block, c + 1);
             auto idx = tree->find_ge(Block, key).idx();
@@ -170,7 +170,7 @@ int main() {
         long t3 = getTimeInMillis();
 
         cout<<"----------------------FW"<<endl;
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             auto key = tree->sum(Block, c, size);
             auto idx = tree->find_ge_fw(Block, c, key).idx();
@@ -183,7 +183,7 @@ int main() {
         long t4 = getTimeInMillis();
 
         cout<<"----------------------BW"<<endl;
-        for (Int c = tree->size() - 1; c >= 0; c--)
+        for (int32_t c = tree->size() - 1; c >= 0; c--)
         {
             auto key = tree->sum(Block, c + 1);
 
@@ -195,7 +195,7 @@ int main() {
 
         long t5 = getTimeInMillis();
 
-        vector<BigInt> keys(10000000);
+        vector<int64_t> keys(10000000);
         for (auto& v: keys) v = getRandomG(max);
 
         long t6 = getTimeInMillis();
@@ -211,10 +211,10 @@ int main() {
         long t7 = getTimeInMillis();
 
 
-        vector<BigInt> keys_s(10000000);
-        BigInt sum = 0;
+        vector<int64_t> keys_s(10000000);
+        int64_t sum = 0;
 
-        tree->scan(Block, 0, size, [&](Int c, auto value){
+        tree->scan(Block, 0, size, [&](int32_t c, auto value){
             keys_s[c] = sum + value;
             sum += value;
         });

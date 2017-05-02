@@ -52,16 +52,16 @@ class FindBeginWalker: public FindEdgeWalkerBase<Types> {
 
 public:
 
-    FindBeginWalker(Int stream, const Container&) {}
+    FindBeginWalker(int32_t stream, const Container&) {}
 
 
     template <typename Node>
-    Int treeNode(const Node* node, Int start)
+    int32_t treeNode(const Node* node, int32_t start)
     {
         return 0;
     }
 
-    void finish(Iterator& iter, Int idx)
+    void finish(Iterator& iter, int32_t idx)
     {
         iter.idx() = 0;
     }

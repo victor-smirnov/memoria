@@ -41,17 +41,17 @@ using LoudsStreamTF = StreamTF<
 >;
 
 //struct LoudsStreamTF {
-//    typedef BigInt                                              Key;
-//    typedef BigInt                                              Value;
+//    typedef int64_t                                              Key;
+//    typedef int64_t                                              Value;
 //
-//    typedef core::StaticVector<BigInt, 3>                       BranchNodeEntryPart;
-//    typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
+//    typedef core::StaticVector<int64_t, 3>                       BranchNodeEntryPart;
+//    typedef core::StaticVector<int64_t, 1>                       IteratorPrefixPart;
 //
 //    typedef PkdFQTreeT<Key, 3>             NonLeafType;
 //    typedef TL<TL<>>                                          IdxRangeList;
 //
 //
-//    static const Int BitsPerSymbol = 1;
+//    static const int32_t BitsPerSymbol = 1;
 //
 //    typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 //
@@ -83,14 +83,14 @@ public:
 
 
 
-template <Int Indexes>
+template <int32_t Indexes>
 struct LabelFTreeNodeTFBase {
 
-    typedef core::StaticVector<BigInt, Indexes>                                 BranchNodeEntryPart;
-    typedef core::StaticVector<BigInt, 1>                                       IteratorPrefixPart;
+    typedef core::StaticVector<int64_t, Indexes>                                 BranchNodeEntryPart;
+    typedef core::StaticVector<int64_t, 1>                                       IteratorPrefixPart;
 
 
-    typedef PkdFQTreeT<BigInt, Indexes>                                                 NonLeafType;
+    typedef PkdFQTreeT<int64_t, Indexes>                                                 NonLeafType;
     typedef TL<TL<>>                                                            IdxRangeList;
 };
 
@@ -99,7 +99,7 @@ template <typename Value>
 struct LabelFTreeIndexedTF: LabelFTreeNodeTFBase<2> {
 
 
-    typedef PkdFQTreeT<BigInt, 1, Value>                                                 LeafType;
+    typedef PkdFQTreeT<int64_t, 1, Value>                                                 LeafType;
 };
 
 
@@ -116,12 +116,12 @@ struct LabelFTreeArrayTF: LabelFTreeNodeTFBase<1> {
 
 
 
-template <UInt BitsPerSymbol>
+template <uint32_t BitsPerSymbol>
 struct LabelFTreeBitmapTF: LabelFTreeNodeTFBase<1> {
 
     typedef PackedFSEBitmapTypes<
                 BitsPerSymbol,
-                UBigInt
+                uint64_t
     > ArrayTypes;
 
     typedef PackedFSEArray<ArrayTypes>                                          LeafType;
@@ -131,25 +131,25 @@ struct LabelFTreeBitmapTF: LabelFTreeNodeTFBase<1> {
 
 
 
-template <Int Indexes>
+template <int32_t Indexes>
 struct LabelVTreeNodeTFBase {
 
-    typedef core::StaticVector<BigInt, Indexes>                                 BranchNodeEntryPart;
-    typedef core::StaticVector<BigInt, 1>                                       IteratorPrefixPart;
+    typedef core::StaticVector<int64_t, Indexes>                                 BranchNodeEntryPart;
+    typedef core::StaticVector<int64_t, 1>                                       IteratorPrefixPart;
 
 //    typedef Packed2TreeTypes<
-//            BigInt, BigInt, Indexes, UByteExintCodec,
+//            int64_t, int64_t, Indexes, UByteExintCodec,
 //            PackedTreeBranchingFactor,
 //            PackedTreeExintVPB
 //    > TreeTypes;
 
-    typedef PkdVQTreeT<BigInt, Indexes, UByteI7Codec>                           NonLeafType;
+    typedef PkdVQTreeT<int64_t, Indexes, UByteI7Codec>                           NonLeafType;
     typedef TL<TL<>>                                                            IdxRangeList;
 };
 
 
 
-template <typename Value, Int Indexes>
+template <typename Value, int32_t Indexes>
 struct LabelVTreeByteTF: LabelVTreeNodeTFBase<Indexes> {
 
 //    typedef Packed2TreeTypes<
@@ -161,12 +161,12 @@ struct LabelVTreeByteTF: LabelVTreeNodeTFBase<Indexes> {
 //            PackedTreeExintVPB
 //    > TreeTypes;
 
-    typedef PkdVQTreeT<BigInt, 1, UByteI7Codec, Value>                                                 LeafType;
+    typedef PkdVQTreeT<int64_t, 1, UByteI7Codec, Value>                                                 LeafType;
 };
 
 
 
-template <typename Value, Int Indexes>
+template <typename Value, int32_t Indexes>
 struct LabelVTreeBitTF: LabelVTreeNodeTFBase<Indexes> {
 
 //    typedef Packed2TreeTypes<
@@ -178,14 +178,14 @@ struct LabelVTreeBitTF: LabelVTreeNodeTFBase<Indexes> {
 //            PackedTreeEliasVPB
 //    > TreeTypes;
 
-    typedef PkdVDTreeT<BigInt, 1, UBigIntI64Codec, Value>                                                 LeafType;
+    typedef PkdVDTreeT<int64_t, 1, UBigIntI64Codec, Value>                                                 LeafType;
 };
 
 
 
 template <typename T>
 struct LeafTypeTF<FLabel<T, Indexed::Yes>> {
-    using Type = PkdFQTreeT<BigInt, 1, T>;
+    using Type = PkdFQTreeT<int64_t, 1, T>;
 
 };
 
@@ -195,7 +195,7 @@ struct LeafTypeTF<FLabel<T, Indexed::No>> {
     using Type = PkdFSQArrayT<T>;
 };
 
-template <Int BitsPerSymbol>
+template <int32_t BitsPerSymbol>
 struct LeafTypeTF<FBLabel<BitsPerSymbol>> {
     using Type = PackedFSEBitmapT<BitsPerSymbol>;
 };
@@ -206,12 +206,12 @@ struct LeafTypeTF<FBLabel<BitsPerSymbol>> {
 
 template <typename T>
 struct LeafTypeTF<VLabel<T, Granularity::Bit, Indexed::Yes>> {
-    using Type = PkdVQTreeT<BigInt, 1, UBigIntI64Codec, T>;
+    using Type = PkdVQTreeT<int64_t, 1, UBigIntI64Codec, T>;
 };
 
 template <typename T>
-struct LeafTypeTF<VLabel<T, Granularity::Byte, Indexed::Yes>> {
-    using Type = PkdVQTreeT<BigInt, 1, UByteI7Codec, T>;
+struct LeafTypeTF<VLabel<T, Granularity::int8_t, Indexed::Yes>> {
+    using Type = PkdVQTreeT<int64_t, 1, UByteI7Codec, T>;
 };
 
 template <typename T>
@@ -220,7 +220,7 @@ struct LeafTypeTF<VLabel<T, Granularity::Bit, Indexed::No>> {
 };
 
 template <typename T>
-struct LeafTypeTF<VLabel<T, Granularity::Byte, Indexed::No>> {
+struct LeafTypeTF<VLabel<T, Granularity::int8_t, Indexed::No>> {
     using Type = PkdVDArrayT<T, 1, UByteI7Codec>;
 };
 

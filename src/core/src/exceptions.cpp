@@ -22,7 +22,7 @@ const char* ExtractMemoriaPath(const char* path) {
 
     const char* prefix = MEMORIA_TOSTRING(MEMORIA_SRC);
 
-    Int c;
+    int32_t c;
     for (c = 0; prefix[c] != '\0'; c++)
     {
         if (prefix[c] != path[c] && (path[c] != '\\' && path[c] !='/'))

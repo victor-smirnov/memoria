@@ -49,8 +49,8 @@ int main() {
 
             char chars[256];
 
-            BigInt t0 = getTimeInMillis();
-            BigInt tt = t0;
+            int64_t t0 = getTimeInMillis();
+            int64_t tt = t0;
 
             int threshold_value = 100000;
             int threshold = threshold_value;
@@ -79,7 +79,7 @@ int main() {
                 }
             }
 
-            BigInt t1 = getTimeInMillis();
+            int64_t t1 = getTimeInMillis();
 
             cout << "Time " << FormatTime(t1 - t0)<< endl;
 

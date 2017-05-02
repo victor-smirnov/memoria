@@ -26,7 +26,7 @@ namespace v1 {
 template <typename Seq>
 class BitmapSelectFn {
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
 
     static_assert(BitsPerSymbol == 1, "BitmapSelectFn<> can only be used with 1-bit sequences");
 
@@ -34,7 +34,7 @@ class BitmapSelectFn {
 public:
     BitmapSelectFn(const Seq& seq): seq_(seq) {}
 
-    SelectResult operator()(Int start, Int end, Int symbol, BigInt rank)
+    SelectResult operator()(int32_t start, int32_t end, int32_t symbol, int64_t rank)
     {
         if (symbol)
         {
@@ -51,7 +51,7 @@ template <typename Seq>
 class SeqSelectFn {
     typedef typename Seq::Value                                                 Value;
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
 
     const Seq& seq_;
 
@@ -61,13 +61,13 @@ class SeqSelectFn {
 public:
     SeqSelectFn(const Seq& seq): seq_(seq) {}
 
-    SelectResult operator()(Int start, Int end, Value symbol, Int rank)
+    SelectResult operator()(int32_t start, int32_t end, Value symbol, int32_t rank)
     {
-        Int cnt = 0;
+        int32_t cnt = 0;
 
         auto buf = seq_.symbols();
 
-        for (Int c = start * BitsPerSymbol; c < end * BitsPerSymbol; c += BitsPerSymbol)
+        for (int32_t c = start * BitsPerSymbol; c < end * BitsPerSymbol; c += BitsPerSymbol)
         {
             if (TestBits(buf, c, symbol, BitsPerSymbol))
             {
@@ -93,7 +93,7 @@ public:
 template <typename Seq>
 class Seq8SelectFn {
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
 
     static_assert(BitsPerSymbol == 8,
             "Seq8SelectFn<> can only be used with 8-bit sequences");
@@ -103,13 +103,13 @@ class Seq8SelectFn {
 public:
     Seq8SelectFn(const Seq& seq): seq_(seq) {}
 
-    SelectResult operator()(Int start, Int end, Int symbol, Int rank)
+    SelectResult operator()(int32_t start, int32_t end, int32_t symbol, int32_t rank)
     {
-        Int cnt = 0;
+        int32_t cnt = 0;
 
         auto buf = seq_.symbols();
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
             if (buf[c] == symbol)
             {

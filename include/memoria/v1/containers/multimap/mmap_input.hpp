@@ -41,14 +41,14 @@ class MultimapIOBufferProducer: public btfl::io::FlatTreeIOBufferAdapter<2, IOBu
     using typename Base::IOBuffer;
 
     using Data      = MapData<Key, Value>;
-    using Positions = core::StaticVector<Int, 2>;
+    using Positions = core::StaticVector<int32_t, 2>;
 
 
     const Data& data_;
 
     IOBuffer io_buffer_;
     Positions positions_;
-    Int level_ = 0;
+    int32_t level_ = 0;
 
     struct StructureAdapter: public btfl::io::FlatTreeStructureGeneratorBase<StructureAdapter, 2> {
         MyType* adapter_;
@@ -62,7 +62,7 @@ class MultimapIOBufferProducer: public btfl::io::FlatTreeIOBufferAdapter<2, IOBu
             return adapter_->data().size();
         }
 
-        template <Int Idx, typename Pos>
+        template <int32_t Idx, typename Pos>
         auto prepare(const StreamTag<Idx>&, const Pos& pos)
         {
             return adapter_->data()[pos[Idx - 1]].second.size();
@@ -92,7 +92,7 @@ public:
         return structure_generator_.query();
     }
 
-    virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
+    virtual int32_t populate_stream(int32_t stream, IOBuffer& buffer, int32_t length)
     {
         if (stream == 1)
         {
@@ -101,7 +101,7 @@ public:
 
             const auto& data = data_[key_idx - 1].second;
 
-            Int c;
+            int32_t c;
             for (c = 0; c < length; c++, idx++)
             {
                 auto pos = buffer.pos();
@@ -117,7 +117,7 @@ public:
         else {
             auto& idx = structure_generator_.counts()[0];
 
-            Int c;
+            int32_t c;
             for (c = 0; c < length; c++, idx++)
             {
                 auto pos = buffer.pos();

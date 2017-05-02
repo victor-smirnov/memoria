@@ -41,7 +41,7 @@ public:
 
     typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
 
     struct CheckContentFn {
@@ -60,12 +60,12 @@ public:
         {}
 
 
-        template <Int Idx, typename Stream>
+        template <int32_t Idx, typename Stream>
         void stream(const Stream* labels)
         {
             if (labels != nullptr)
             {
-                for (Int c = 0; c < labels->size(); c++)
+                for (int32_t c = 0; c < labels->size(); c++)
                 {
                     auto value = labels->value(0, c);
 

@@ -31,33 +31,33 @@ class RankFWWalker: public bt::FindForwardWalkerBase<Types, RankFWWalker<Types>>
     using Base = bt::FindForwardWalkerBase<Types, RankFWWalker<Types>>;
     typedef typename Base::Key                                                      Key;
 
-    BigInt rank_ = 0;
+    int64_t rank_ = 0;
 
-    Int symbol_;
+    int32_t symbol_;
 
 public:
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Base::ResultType                                           ResultType;
 
-    RankFWWalker(Int stream, Int index, Key target): Base(stream, 0, target)
+    RankFWWalker(int32_t stream, int32_t index, Key target): Base(stream, 0, target)
     {
         Base::search_type_  = SearchType::GT;
         symbol_             = index;
     }
 
-    BigInt rank() const {
+    int64_t rank() const {
         return rank_;
     }
 
-    template <Int Idx, typename Tree>
-    ResultType stream(const Tree* tree, Int start) {
+    template <int32_t Idx, typename Tree>
+    ResultType stream(const Tree* tree, int32_t start) {
         return Base::template stream<Idx>(tree, start);
     }
 
-    template <Int StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType* stream, Int start, const Result& result)
+    template <int32_t StreamIdx, typename StreamType, typename Result>
+    void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
     {
-        Int size = stream->size();
+        int32_t size = stream->size();
 
         if (result.idx() < size)
         {
@@ -68,17 +68,17 @@ public:
         }
     }
 
-    template <Int Idx, typename StreamTypes>
-    ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
+    template <int32_t Idx, typename StreamTypes>
+    ResultType stream(const PkdFSSeq<StreamTypes>* seq, int32_t start)
     {
         MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 
         auto& sum       = Base::sum_;
 
-        BigInt offset   = Base::target_ - sum;
+        int64_t offset   = Base::target_ - sum;
 
 
-        Int size        = seq->size();
+        int32_t size        = seq->size();
 
         if (start + offset < size)
         {
@@ -97,7 +97,7 @@ public:
         }
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    int64_t finish(Iterator& iter, int32_t idx)
     {
         iter.idx() = idx;
 
@@ -116,32 +116,32 @@ class RankBWWalker: public bt::FindBackwardWalkerBase<Types, RankBWWalker<Types>
     using Base = bt::FindBackwardWalkerBase<Types, RankBWWalker<Types>>;
     typedef typename Base::Key                                                      Key;
 
-    BigInt rank_ = 0;
+    int64_t rank_ = 0;
 
-    Int symbol_;
+    int32_t symbol_;
 
 public:
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Base::ResultType                                           ResultType;
 
-    RankBWWalker(Int stream, Int index, Key target): Base(stream, 0, target)
+    RankBWWalker(int32_t stream, int32_t index, Key target): Base(stream, 0, target)
     {
         Base::search_type_  = SearchType::GE;
         symbol_             = index;
     }
 
-    BigInt rank() const {
+    int64_t rank() const {
         return rank_;
     }
 
-    template <Int Idx, typename Tree>
-    ResultType stream(const Tree* tree, Int start)
+    template <int32_t Idx, typename Tree>
+    ResultType stream(const Tree* tree, int32_t start)
     {
         return Base::template stream<Idx>(tree, start);
     }
 
-    template <Int StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType* stream, Int start, const Result& result)
+    template <int32_t StreamIdx, typename StreamType, typename Result>
+    void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
     {
         if (result.idx() >= 0)
         {
@@ -152,13 +152,13 @@ public:
         }
     }
 
-    template <Int Idx, typename StreamTypes>
-    ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
+    template <int32_t Idx, typename StreamTypes>
+    ResultType stream(const PkdFSSeq<StreamTypes>* seq, int32_t start)
     {
         MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 
         auto& sum       = Base::sum_;
-        BigInt offset   = Base::target_ - sum;
+        int64_t offset   = Base::target_ - sum;
 
         if (start - offset >= 0)
         {
@@ -175,7 +175,7 @@ public:
         }
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    int64_t finish(Iterator& iter, int32_t idx)
     {
         iter.idx() = idx;
 

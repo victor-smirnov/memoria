@@ -38,7 +38,7 @@ namespace tree      {
 
 template <typename Handle>
 class LocalRefCnt {
-    Int refs_ = 0;
+    int32_t refs_ = 0;
     Handle* handle_;
 
 public:
@@ -51,7 +51,7 @@ public:
         refs_++;
     }
 
-    Int unref()
+    int32_t unref()
     {
         if (--refs_ == 0)
         {
@@ -105,7 +105,7 @@ public:
     }
 
 
-    BigInt txn_id() const  {
+    int64_t txn_id() const  {
         return get()->txn_id();
     }
 
@@ -221,7 +221,7 @@ public:
         txn_data_ = nullptr;
     }
 
-    BigInt txn_id() const  {
+    int64_t txn_id() const  {
         return root()->txn_id();
     }
 

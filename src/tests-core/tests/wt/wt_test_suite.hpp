@@ -33,7 +33,7 @@ public:
 
     WTTestSuite(): TestSuite("WT")
     {
-        registerTask(new WTTest("Int"));
+        registerTask(new WTTest("int32_t"));
     }
 };
 

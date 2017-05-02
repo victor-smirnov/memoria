@@ -46,9 +46,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorRemoveName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    static const Int Streams          		= Container::Types::Streams;
-    static const Int DataStreams      		= Container::Types::DataStreams;
-    static const Int StructureStreamIdx   = Container::Types::StructureStreamIdx;
+    static const int32_t Streams          		= Container::Types::Streams;
+    static const int32_t DataStreams      		= Container::Types::DataStreams;
+    static const int32_t StructureStreamIdx   = Container::Types::StructureStreamIdx;
 
 public:
     Position removeGE(CtrSizeT n)

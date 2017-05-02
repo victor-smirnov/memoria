@@ -23,16 +23,16 @@
 namespace memoria {
 namespace v1 {
 
-template <Int Name_, typename Type_ = NullType>
+template <int32_t Name_, typename Type_ = NullType>
 struct Column {
-    static const Int    Name = Name_;
+    static const int32_t    Name = Name_;
     typedef Type_       Type;
 };
 
 template <typename T>
 struct IsColumn: ConstValue<bool, true> {};
 
-template <Int Name, typename T>
+template <int32_t Name, typename T>
 struct IsColumn<Column<Name, T> >: ConstValue<bool, true> {};
 
 
@@ -49,9 +49,9 @@ struct StaticValue {
 };
 
 
-template <Int Name> class ColumnNotFound;
+template <int32_t Name> class ColumnNotFound;
 
-template <Int Name, typename ColumnsList>
+template <int32_t Name, typename ColumnsList>
 class findColumn {
 
     MEMORIA_V1_STATIC_ASSERT(IsNonemptyList<ColumnsList>::Value);
@@ -89,13 +89,13 @@ public:
 
 template <
         typename ColumnsList,
-        template <Int Name, typename ColumnType, typename Record> class ValueProvider
+        template <int32_t Name, typename ColumnType, typename Record> class ValueProvider
 >
 class RelationMetadata {
     MEMORIA_V1_STATIC_ASSERT(IsNonemptyList<ColumnsList>::Value);
 public:
     typedef ColumnsList List;
-    template <Int Name, typename Record>
+    template <int32_t Name, typename Record>
     class Provider {
         typedef typename findColumn<Name, ColumnsList>::Result ColumnType;
     public:
@@ -108,7 +108,7 @@ template <typename T> struct IsRelationMetadata: ConstValue<bool, false> {};
 
 template <
         typename ColumnsList,
-        template <Int Name, typename ColumnType, typename Record> class ValueProvider
+        template <int32_t Name, typename ColumnType, typename Record> class ValueProvider
 >
 struct IsRelationMetadata<RelationMetadata<ColumnsList, ValueProvider> >: ConstValue<bool, true> {};
 

@@ -45,9 +45,9 @@ protected:
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 
-    static const Int Streams                = Types::Streams;
-    static const Int DataStreams            = Types::DataStreams;
-    static const Int StructureStreamIdx     = Types::StructureStreamIdx;
+    static const int32_t Streams                = Types::Streams;
+    static const int32_t DataStreams            = Types::DataStreams;
+    static const int32_t StructureStreamIdx     = Types::StructureStreamIdx;
 
 public:
     auto begin() {
@@ -74,12 +74,12 @@ public:
     }
 
 
-    auto seek(const CtrSizesT& pos, Int level)
+    auto seek(const CtrSizesT& pos, int32_t level)
     {
         auto& self = this->self();
         auto iter  = self.template seek_stream<StructureStreamIdx>(pos[0]);
 
-        for (Int l = 1; l <= level; l++)
+        for (int32_t l = 1; l <= level; l++)
         {
             if (iter->is_data())
             {
@@ -99,7 +99,7 @@ public:
     }
 
 
-    auto select(CtrSizeT rank, Int stream)
+    auto select(CtrSizeT rank, int32_t stream)
     {
         return self().template select_<IntList<StructureStreamIdx, 1>>(stream, rank);
     }

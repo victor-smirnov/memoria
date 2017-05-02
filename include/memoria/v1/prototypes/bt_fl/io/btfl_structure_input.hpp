@@ -46,8 +46,8 @@ protected:
     DataBuffer  buffer_;
     BufferT*    buffer_ptr_;
 
-    Int last_symbol_    = -1;
-    UBigInt run_length_ = 0;
+    int32_t last_symbol_    = -1;
+    uint64_t run_length_ = 0;
 
 
 
@@ -61,7 +61,7 @@ public:
         buffer_ptr_ = buffer_.get();
     }
 
-    void init(Int capacity)
+    void init(int32_t capacity)
     {
         init(create_input_buffer(256));
     }
@@ -93,7 +93,7 @@ public:
         buffer_->reindex();
     }
 
-    void append_run(Int symbol, UBigInt run_length)
+    void append_run(int32_t symbol, uint64_t run_length)
     {
         if (symbol == last_symbol_ || last_symbol_ < 0)
         {
@@ -117,7 +117,7 @@ public:
 
     auto* create_input_buffer(const BufferSizes& buffer_sizes)
     {
-        Int block_size  = BufferT::block_size(buffer_sizes);
+        int32_t block_size  = BufferT::block_size(buffer_sizes);
         BufferT* buffer = T2T<BufferT*>(malloc(block_size));
         if (buffer)
         {
@@ -130,9 +130,9 @@ public:
         }
     }
 
-    auto* create_input_buffer(Int buffer_size)
+    auto* create_input_buffer(int32_t buffer_size)
     {
-        Int block_size  = BufferT::block_size(buffer_size) + 500;
+        int32_t block_size  = BufferT::block_size(buffer_size) + 500;
         BufferT* buffer = T2T<BufferT*>(malloc(block_size));
         if (buffer)
         {

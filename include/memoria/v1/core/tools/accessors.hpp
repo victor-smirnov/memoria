@@ -25,15 +25,15 @@ namespace v1 {
 
 using namespace std;
 
-template <typename T, typename V, Int BitsPerElement> class BitmapAccessor;
+template <typename T, typename V, int32_t BitsPerElement> class BitmapAccessor;
 
-template <typename T, typename V, Int BitsPerElement>
+template <typename T, typename V, int32_t BitsPerElement>
 class BitmapAccessor<T*, V, BitsPerElement> {
     T* values_;
-    Int idx_;
+    int32_t idx_;
 
 public:
-    BitmapAccessor(T* values, Int idx): values_(values), idx_(idx) {}
+    BitmapAccessor(T* values, int32_t idx): values_(values), idx_(idx) {}
 
     V value() const {
         return GetBits(values_, idx_ * BitsPerElement, BitsPerElement);
@@ -50,12 +50,12 @@ public:
     }
 };
 
-template <typename T, typename V, Int BitsPerElement>
+template <typename T, typename V, int32_t BitsPerElement>
 class BitmapAccessor<const T*, V, BitsPerElement> {
     const T* values_;
-    Int idx_;
+    int32_t idx_;
 public:
-    BitmapAccessor(const T* values, Int idx): values_(values), idx_(idx) {}
+    BitmapAccessor(const T* values, int32_t idx): values_(values), idx_(idx) {}
 
     V value() const {
         return GetBits(values_, idx_ * BitsPerElement, BitsPerElement);

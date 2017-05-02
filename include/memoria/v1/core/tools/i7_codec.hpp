@@ -50,7 +50,7 @@ size_t EncodeI7(T* buffer, V value, size_t start)
         return 1;
     }
     else {
-        UByte& byte_length = buffer[start];
+        uint8_t& byte_length = buffer[start];
 
         byte_length = 0;
 
@@ -61,7 +61,7 @@ size_t EncodeI7(T* buffer, V value, size_t start)
             buffer[idx] = value & 0xFF;
         }
 
-        UByte len = byte_length;
+        uint8_t len = byte_length;
 
         byte_length += 128;
 
@@ -95,8 +95,8 @@ template <typename T, typename V>
 struct I7Codec {
 
     typedef T BufferType;
-    static const Int BitsPerOffset  = 4;
-    static const Int ElementSize    = 8; // In bits;
+    static const int32_t BitsPerOffset  = 4;
+    static const int32_t ElementSize    = 8; // In bits;
 
     const void* addr(const T* buffer, size_t pos) const {
         return &buffer[pos / sizeof(T)];
@@ -142,6 +142,6 @@ struct I7Codec {
 };
 
 template <typename Value>
-using UByteI7Codec = I7Codec<UByte, Value>;
+using UByteI7Codec = I7Codec<uint8_t, Value>;
 
 }}

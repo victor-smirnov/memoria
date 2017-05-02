@@ -35,17 +35,17 @@ namespace memoria {
 namespace v1 {
 
 
-template <Int Size>
+template <int32_t Size>
 class BitBuffer: public StaticBuffer<Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1)> {
     typedef StaticBuffer<
                 (Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1))
     >                                                                           Base;
 public:
 
-    typedef Int                                                                 Index;
+    typedef int32_t                                                                 Index;
     typedef typename Base::ElementType                                          Bits;
 
-    static const Int kBitSize           = Size;
+    static const int32_t kBitSize           = Size;
 
     static const int RESERVED_SIZE      = 0;
     static const int RESERVED_BITSIZE   = RESERVED_SIZE * 8;
@@ -69,46 +69,46 @@ public:
     }
 };
 
-template <Int Size>
+template <int32_t Size>
 struct TypeHash<BitBuffer<Size> > {
 public:
-    static const UInt Value = 123456 * Size;
+    static const uint32_t Value = 123456 * Size;
 };
 
-template <typename PageIdType, Int FlagsCount = 32>
+template <typename PageIdType, int32_t FlagsCount = 32>
 class AbstractPage {
 //    static_assert(std::is_trivial<PageIdType>::value, "PageIdType must be a trivial type");
 
 public:
-    static const UInt VERSION                                                   = 1;
+    static const uint32_t VERSION                                                   = 1;
     typedef BitBuffer<FlagsCount> FlagsType;
 
 private:
     typedef AbstractPage<PageIdType, FlagsCount> Me;
 
-    Int         crc_;
-    Int         master_ctr_type_hash_;
-    Int         owner_ctr_type_hash_;
-    Int         ctr_type_hash_;
-    Int         page_type_hash_;
-    Int         page_size_;
+    int32_t         crc_;
+    int32_t         master_ctr_type_hash_;
+    int32_t         owner_ctr_type_hash_;
+    int32_t         ctr_type_hash_;
+    int32_t         page_type_hash_;
+    int32_t         page_size_;
 
-    UBigInt     next_block_pos_;
-    UBigInt     target_block_pos_;
+    uint64_t     next_block_pos_;
+    uint64_t     target_block_pos_;
 
     PageIdType  id_;
     PageIdType  uuid_;
 
     FlagsType   flags_;
 
-    Int         deleted_;
+    int32_t         deleted_;
 
     //Txn rollback intrusive list fields. Not used by containers.
 
 
 public:
     typedef TypeList<
-                ConstValue<UInt, VERSION>,
+                ConstValue<uint32_t, VERSION>,
                 decltype(flags_),
                 decltype(id_),
                 decltype(uuid_),
@@ -151,63 +151,63 @@ public:
         return flags_;
     };
 
-    Int &crc() {
+    int32_t &crc() {
         return crc_;
     }
 
-    const Int &crc() const {
+    const int32_t &crc() const {
         return crc_;
     }
 
-    Int &ctr_type_hash() {
+    int32_t &ctr_type_hash() {
         return ctr_type_hash_;
     }
 
-    const Int &ctr_type_hash() const {
+    const int32_t &ctr_type_hash() const {
         return ctr_type_hash_;
     }
 
-    Int &owner_ctr_type_hash() {
+    int32_t &owner_ctr_type_hash() {
         return owner_ctr_type_hash_;
     }
 
-    const Int &owner_ctr_type_hash() const {
+    const int32_t &owner_ctr_type_hash() const {
         return owner_ctr_type_hash_;
     }
 
-    Int &master_ctr_type_hash() {
+    int32_t &master_ctr_type_hash() {
         return master_ctr_type_hash_;
     }
 
-    const Int &master_ctr_type_hash() const {
+    const int32_t &master_ctr_type_hash() const {
         return master_ctr_type_hash_;
     }
-    Int &page_type_hash() {
+    int32_t &page_type_hash() {
         return page_type_hash_;
     }
 
-    const Int &page_type_hash() const {
+    const int32_t &page_type_hash() const {
         return page_type_hash_;
     }
 
 
-    Int &deleted() {
+    int32_t &deleted() {
         return deleted_;
     }
 
-    const Int deleted() const {
+    const int32_t deleted() const {
         return deleted_;
     }
 
-    Int& page_size() {
+    int32_t& page_size() {
         return page_size_;
     }
 
-    const Int& page_size() const {
+    const int32_t& page_size() const {
         return page_size_;
     }
 
-    Int data_size() const {
+    int32_t data_size() const {
         return sizeof(Me);
     }
 
@@ -219,19 +219,19 @@ public:
         return flags_.setBit(0, updated);
     }
 
-    UBigInt& next_block_pos() {
+    uint64_t& next_block_pos() {
         return next_block_pos_;
     }
 
-    const UBigInt& next_block_pos() const {
+    const uint64_t& next_block_pos() const {
         return next_block_pos_;
     }
 
-    UBigInt& target_block_pos() {
+    uint64_t& target_block_pos() {
         return target_block_pos_;
     }
 
-    const UBigInt& target_block_pos() const {
+    const uint64_t& target_block_pos() const {
         return target_block_pos_;
     }
 
@@ -283,51 +283,51 @@ public:
     template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<Int>::serialize(buf, crc());
-        FieldFactory<Int>::serialize(buf, master_ctr_type_hash());
-        FieldFactory<Int>::serialize(buf, owner_ctr_type_hash());
-        FieldFactory<Int>::serialize(buf, ctr_type_hash());
-        FieldFactory<Int>::serialize(buf, page_type_hash());
-        FieldFactory<Int>::serialize(buf, page_size_);
+        FieldFactory<int32_t>::serialize(buf, crc());
+        FieldFactory<int32_t>::serialize(buf, master_ctr_type_hash());
+        FieldFactory<int32_t>::serialize(buf, owner_ctr_type_hash());
+        FieldFactory<int32_t>::serialize(buf, ctr_type_hash());
+        FieldFactory<int32_t>::serialize(buf, page_type_hash());
+        FieldFactory<int32_t>::serialize(buf, page_size_);
 
-        FieldFactory<UBigInt>::serialize(buf, next_block_pos_);
-        FieldFactory<UBigInt>::serialize(buf, target_block_pos_);
+        FieldFactory<uint64_t>::serialize(buf, next_block_pos_);
+        FieldFactory<uint64_t>::serialize(buf, target_block_pos_);
 
         FieldFactory<PageIdType>::serialize(buf, id());
         FieldFactory<PageIdType>::serialize(buf, uuid());
 
-        FieldFactory<Int>::serialize(buf, deleted_);
+        FieldFactory<int32_t>::serialize(buf, deleted_);
     }
 
     template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<Int>::deserialize(buf, crc());
-        FieldFactory<Int>::deserialize(buf, master_ctr_type_hash());
-        FieldFactory<Int>::deserialize(buf, owner_ctr_type_hash());
-        FieldFactory<Int>::deserialize(buf, ctr_type_hash());
-        FieldFactory<Int>::deserialize(buf, page_type_hash());
-        FieldFactory<Int>::deserialize(buf, page_size_);
+        FieldFactory<int32_t>::deserialize(buf, crc());
+        FieldFactory<int32_t>::deserialize(buf, master_ctr_type_hash());
+        FieldFactory<int32_t>::deserialize(buf, owner_ctr_type_hash());
+        FieldFactory<int32_t>::deserialize(buf, ctr_type_hash());
+        FieldFactory<int32_t>::deserialize(buf, page_type_hash());
+        FieldFactory<int32_t>::deserialize(buf, page_size_);
 
-        FieldFactory<UBigInt>::deserialize(buf, next_block_pos_);
-        FieldFactory<UBigInt>::deserialize(buf, target_block_pos_);
+        FieldFactory<uint64_t>::deserialize(buf, next_block_pos_);
+        FieldFactory<uint64_t>::deserialize(buf, target_block_pos_);
 
         FieldFactory<PageIdType>::deserialize(buf, id());
         FieldFactory<PageIdType>::deserialize(buf, uuid());
 
-        FieldFactory<Int>::deserialize(buf, deleted_);
+        FieldFactory<int32_t>::deserialize(buf, deleted_);
     }
 };
 
 
 
-template <typename PageIdType, Int FlagsCount>
+template <typename PageIdType, int32_t FlagsCount>
 struct TypeHash<AbstractPage<PageIdType, FlagsCount>> {
-    static const UInt Value = HashHelper<
+    static const uint32_t Value = HashHelper<
             AbstractPage<AbstractPage<PageIdType, FlagsCount>>::VERSION,
             TypeHash<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>::Value,
             TypeHash<typename AbstractPage<PageIdType, FlagsCount>::ID>::Value,
-            TypeHash<Int>::Value,
+            TypeHash<int32_t>::Value,
             8
     >::Value;
 };
@@ -348,8 +348,8 @@ class PageShared {
 
     ID      id_;
     PageT*  page_;
-    Int     references_;
-    Int     state_;
+    int32_t     references_;
+    int32_t     state_;
 
     AllocatorT* allocator_;
 
@@ -389,19 +389,19 @@ public:
         return page<Page>();
     }
 
-    Int references() const {
+    int32_t references() const {
         return references_;
     }
 
-    Int& references() {
+    int32_t& references() {
         return references_;
     }
 
-    Int state() const {
+    int32_t state() const {
         return state_;
     }
 
-    Int& state() {
+    int32_t& state() {
         return state_;
     }
 
@@ -423,13 +423,13 @@ public:
         this->page_ = nullptr;
     }
 
-    Int ref() {
+    int32_t ref() {
         return ++references_;
     }
 
-    Int unref()
+    int32_t unref()
     {
-        Int refs = --references_;
+        int32_t refs = --references_;
 
         if (refs == 0)
         {
@@ -723,7 +723,7 @@ public:
         }
     }
 
-    void resize(Int new_size)
+    void resize(int32_t new_size)
     {
         if (shared_ != nullptr)
         {

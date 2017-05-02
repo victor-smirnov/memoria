@@ -35,19 +35,19 @@ struct WalkerTypes: Types {
 
 
 class StreamOpResult {
-    Int idx_;
-    Int start_;
+    int32_t idx_;
+    int32_t start_;
     bool out_of_range_;
     bool empty_;
 
 public:
-    StreamOpResult(Int idx, Int start, bool out_of_range, bool empty = false): idx_(idx), start_(start), out_of_range_(out_of_range), empty_(empty) {}
+    StreamOpResult(int32_t idx, int32_t start, bool out_of_range, bool empty = false): idx_(idx), start_(start), out_of_range_(out_of_range), empty_(empty) {}
 
-    Int idx() const {
+    int32_t idx() const {
         return idx_;
     }
 
-    Int start() const {
+    int32_t start() const {
         return start_;
     }
 
@@ -76,18 +76,18 @@ public:
 
 
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
     using Position = typename Types::Position;
     using LeafPath = typename Types::LeafPath;
 
-    static const Int Stream = ListHead<LeafPath>::Value;
+    static const int32_t Stream = ListHead<LeafPath>::Value;
 
 protected:
 
-    Int leaf_index_ = 0;
+    int32_t leaf_index_ = 0;
 
-    Int idx_backup_ = 0;
+    int32_t idx_backup_ = 0;
     Position branch_size_prefix_backup_;
 
     Position branch_size_prefix_;
@@ -111,8 +111,8 @@ protected:
 
         FindBranchFn(MyType& walker): walker_(walker) {}
 
-        template <Int ListIdx, typename StreamType, typename... Args>
-        StreamOpResult stream(const StreamType* stream, bool root, Int index, Int start, Args&&... args)
+        template <int32_t ListIdx, typename StreamType, typename... Args>
+        StreamOpResult stream(const StreamType* stream, bool root, int32_t index, int32_t start, Args&&... args)
         {
             StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, root, index, start, std::forward<Args>(args)...);
 
@@ -129,8 +129,8 @@ protected:
 
         FindLeafFn(MyType& walker): walker_(walker) {}
 
-        template <Int ListIdx, typename StreamType, typename... Args>
-        StreamOpResult stream(const StreamType* stream, Int start, Args&&... args)
+        template <int32_t ListIdx, typename StreamType, typename... Args>
+        StreamOpResult stream(const StreamType* stream, int32_t start, Args&&... args)
         {
             StreamOpResult result = walker_.template find_leaf<ListIdx>(stream, start, std::forward<Args>(args)...);
 
@@ -146,7 +146,7 @@ protected:
 
         ProcessBranchCmdFn(MyType& walker): walker_(walker) {}
 
-        template <Int ListIdx, typename StreamType, typename... Args>
+        template <int32_t ListIdx, typename StreamType, typename... Args>
         void stream(const StreamType* stream, WalkCmd cmd, Args&&... args)
         {
             walker_.template process_branch_cmd<ListIdx>(stream, cmd, std::forward<Args>(args)...);
@@ -158,7 +158,7 @@ protected:
 
         ProcessLeafCmdFn(MyType& walker): walker_(walker) {}
 
-        template <Int ListIdx, typename StreamType, typename... Args>
+        template <int32_t ListIdx, typename StreamType, typename... Args>
         void stream(const StreamType* stream, WalkCmd cmd, Args&&... args)
         {
             walker_.template process_leaf_cmd<ListIdx>(stream, cmd, std::forward<Args>(args)...);
@@ -168,7 +168,7 @@ protected:
 
 public:
 
-    WalkerBase(Int leaf_index):
+    WalkerBase(int32_t leaf_index):
         leaf_index_(leaf_index)
     {}
 
@@ -180,16 +180,16 @@ public:
         iter.idx() = 0;
     }
 
-    static constexpr Int current_stream() {
+    static constexpr int32_t current_stream() {
         return ListHead<LeafPath>::Value;
     }
 
-    Int leaf_index() const
+    int32_t leaf_index() const
     {
         return leaf_index_;
     }
 
-    void set_leaf_index(Int value)
+    void set_leaf_index(int32_t value)
     {
         leaf_index_ = value;
     }
@@ -210,39 +210,39 @@ public:
         return compute_leaf_;
     }
 
-    static constexpr Int branchIndex(Int leaf_index)
+    static constexpr int32_t branchIndex(int32_t leaf_index)
     {
         return v1::bt::LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>::BranchIndex + leaf_index;
     }
 
 
     template <typename LeafPath>
-    auto branch_index(Int index)
+    auto branch_index(int32_t index)
     {
         return AccumItemH<LeafPath>::value(index, branch_prefix_);
     }
 
     template <typename LeafPath>
-    auto branch_index(Int index) const
+    auto branch_index(int32_t index) const
     {
         return AccumItemH<LeafPath>::cvalue(index, branch_prefix_);
     }
 
     template <typename LeafPath>
-    auto leaf_index(Int index)
+    auto leaf_index(int32_t index)
     {
         return AccumItemH<LeafPath>::value(index, leaf_prefix_);
     }
 
     template <typename LeafPath>
-    auto leaf_index(Int index) const
+    auto leaf_index(int32_t index) const
     {
         return AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
     }
 
 
     template <typename LeafPath>
-    auto total_index(Int index) const
+    auto total_index(int32_t index) const
     {
         return AccumItemH<LeafPath>::cvalue(index, branch_prefix_) +
                 AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
@@ -258,7 +258,7 @@ public:
         idx_backup_         = iter.idx();
     }
 
-    void finish(Iterator& iter, Int idx, WalkCmd cmd) const
+    void finish(Iterator& iter, int32_t idx, WalkCmd cmd) const
     {
         iter.idx() = idx;
 
@@ -297,7 +297,7 @@ public:
         return branch_size_prefix_backup_;
     }
 
-    Int idx_backup() const {
+    int32_t idx_backup() const {
         return idx_backup_;
     }
 
@@ -305,13 +305,13 @@ public:
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, Int start)
+    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, int32_t start)
     {
         auto& self = this->self();
 
         this->direction_ = direction;
 
-        Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
+        int32_t index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
         using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
         auto result = node->template processStream<BranchPath>(FindBranchFn(self), node->is_root(), index, start);
@@ -322,7 +322,7 @@ public:
     }
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
+    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, int32_t start)
     {
         this->direction_ = direction;
 
@@ -343,7 +343,7 @@ public:
     {
         auto& self = this->self();
 
-        Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
+        int32_t index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
         using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
 
@@ -372,7 +372,7 @@ public:
 
     struct ProcessBranchIteratorBranchNodeEntryWithLeaf
     {
-        template <Int StreamIdx, typename Node, typename Walker, typename Accum, typename... Args>
+        template <int32_t StreamIdx, typename Node, typename Walker, typename Accum, typename... Args>
         static bool process(Node* node, Walker&& walker, Accum&& accum, Args&&... args)
         {
             details::LeafAccumWalker<
@@ -404,7 +404,7 @@ public:
     template <typename Node, typename... Args>
     void processBranchIteratorBranchNodeEntry(Node* node, Args&&... args)
     {
-        using ItrAccList = v1::list_tree::MakeValueList<Int, 0, Node::Streams>;
+        using ItrAccList = v1::list_tree::MakeValueList<int32_t, 0, Node::Streams>;
 
         details::IteratorStreamRangesListWalker<
             ItrAccList
@@ -414,7 +414,7 @@ public:
 
     struct BranchSizePrefix
     {
-        template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
+        template <int32_t GroupIdx, int32_t AllocatorIdx, int32_t ListIdx, typename StreamObj, typename... Args>
         void stream(const StreamObj* obj, MyType& walker, Args&&... args)
         {
             walker.template branch_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
@@ -424,7 +424,7 @@ public:
 
     struct LeafSizePrefix
     {
-        template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
+        template <int32_t GroupIdx, int32_t AllocatorIdx, int32_t ListIdx, typename StreamObj, typename... Args>
         void stream(const StreamObj* obj, MyType& walker, Args&&... args)
         {
             walker.template leaf_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
@@ -445,17 +445,17 @@ public:
         node->processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
-    template <Int StreamIdx, typename StreamType>
-    void postProcessBranchStream(const StreamType*, Int, Int) {}
+    template <int32_t StreamIdx, typename StreamType>
+    void postProcessBranchStream(const StreamType*, int32_t, int32_t) {}
 
-    template <Int StreamIdx, typename StreamType>
-    void postProcessLeafStream(const StreamType*, Int, Int) {}
-
-    template <typename Node, typename Result>
-    void postProcessBranchNode(const Node* node, WalkDirection direction, Int start, Result&&) {}
+    template <int32_t StreamIdx, typename StreamType>
+    void postProcessLeafStream(const StreamType*, int32_t, int32_t) {}
 
     template <typename Node, typename Result>
-    void postProcessLeafNode(const Node* node, WalkDirection direction, Int start, Result&&) {}
+    void postProcessBranchNode(const Node* node, WalkDirection direction, int32_t start, Result&&) {}
+
+    template <typename Node, typename Result>
+    void postProcessLeafNode(const Node* node, WalkDirection direction, int32_t start, Result&&) {}
 };
 
 

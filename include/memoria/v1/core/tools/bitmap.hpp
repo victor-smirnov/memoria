@@ -137,11 +137,11 @@ namespace intrnl {
      */
 
     template <typename uT, typename sT>
-    uT MakeMask0(Int start, Int length)
+    uT MakeMask0(int32_t start, int32_t length)
     {
         sT svalue   = numeric_limits<sT>::min();
 
-        Int bitsize = TypeBitsize<uT>();
+        int32_t bitsize = TypeBitsize<uT>();
 
         uT value    = svalue >> (length - 1);
 
@@ -150,11 +150,11 @@ namespace intrnl {
 }
 
 /**
- * Works like __make_mask(Int, Int) but takes only one type T and inferes
+ * Works like __make_mask(int32_t, int32_t) but takes only one type T and inferes
  * its signed equivalent basing on sizeof(T). T can be signed or unsigned.
  */
 template <typename T>
-T MakeMask(Int start, Int length)
+T MakeMask(int32_t start, int32_t length)
 {
     if (length > 0)
     {
@@ -168,13 +168,13 @@ T MakeMask(Int start, Int length)
     }
 }
 
-constexpr UBigInt NumberOfBits(UBigInt value)
+constexpr uint64_t NumberOfBits(uint64_t value)
 {
     return value < 2 ? value : 1 + NumberOfBits(value >> 1);
 }
 
 
-inline UBigInt ReverseBits(UBigInt value)
+inline uint64_t ReverseBits(uint64_t value)
 {
     value = (((value & 0xAAAAAAAAAAAAAAAAuLL) >> 1) | ((value & 0x5555555555555555uLL) << 1));
     value = (((value & 0xCCCCCCCCCCCCCCCCuLL) >> 2) | ((value & 0x3333333333333333uLL) << 2));
@@ -185,7 +185,7 @@ inline UBigInt ReverseBits(UBigInt value)
     return (value >> 32) | (value << 32);
 }
 
-inline UInt ReverseBits(UInt value)
+inline uint32_t ReverseBits(uint32_t value)
 {
     value = (((value & 0xaaaaaaaa) >> 1) | ((value & 0x55555555) << 1));
     value = (((value & 0xcccccccc) >> 2) | ((value & 0x33333333) << 2));
@@ -195,17 +195,17 @@ inline UInt ReverseBits(UInt value)
     return (value >> 16) | (value << 16);
 }
 
-inline Int PopCnt(UBigInt arg)
+inline int32_t PopCnt(uint64_t arg)
 {
     arg = arg - ((arg >> 1) & 0x5555555555555555uLL);
     arg = ((arg >> 2) & 0x3333333333333333uLL) + (arg & 0x3333333333333333uLL);
     arg = (arg + (arg >> 4)) & 0x0F0F0F0F0F0F0F0FuLL;
-    UInt argl = static_cast<UInt>(arg + (arg >> 32));
+    uint32_t argl = static_cast<uint32_t>(arg + (arg >> 32));
     argl += (argl >> 16);
     return (argl + (argl >> 8)) & 0x7F;
 }
 
-inline Int PopCnt(UInt v)
+inline int32_t PopCnt(uint32_t v)
 {
     v -= ((v >> 1) & 0x55555555);
     v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
@@ -214,7 +214,7 @@ inline Int PopCnt(UInt v)
     return v;
 }
 
-inline Int PopCnt(UByte v)
+inline int32_t PopCnt(uint8_t v)
 {
     v -= ((v >> 1) & 0x55);
     v = (v & 0x33) + ((v >> 2) & 0x33);
@@ -222,15 +222,15 @@ inline Int PopCnt(UByte v)
     return v;
 }
 
-inline Int PopCnt(UBigInt arg, Int start, Int length)
+inline int32_t PopCnt(uint64_t arg, int32_t start, int32_t length)
 {
-    UBigInt mask = MakeMask<UBigInt>(start, length);
+    uint64_t mask = MakeMask<uint64_t>(start, length);
     return PopCnt(arg & mask);
 }
 
-inline Int PopCnt(UInt arg, Int start, Int length)
+inline int32_t PopCnt(uint32_t arg, int32_t start, int32_t length)
 {
-    UInt mask = MakeMask<UInt>(start, length);
+    uint32_t mask = MakeMask<uint32_t>(start, length);
     return PopCnt(arg & mask);
 }
 
@@ -340,7 +340,7 @@ void FillZero(T* buffer, size_t start, size_t stop)
 
 
 template <typename Buffer>
-void SetBit(Buffer& buf, size_t idx, Int value)
+void SetBit(Buffer& buf, size_t idx, int32_t value)
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -368,7 +368,7 @@ void SetBit(Buffer& buf, size_t idx, Int value)
  */
 
 template <typename Buffer>
-Int GetBit(const Buffer& buf, size_t idx)
+int32_t GetBit(const Buffer& buf, size_t idx)
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -393,7 +393,7 @@ Int GetBit(const Buffer& buf, size_t idx)
 template <typename Buffer>
 void
 //__attribute__((always_inline))
-SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
+SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, int32_t nbits)
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -425,7 +425,7 @@ SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, 
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
 MEMORIA_V1_ALWAYS_INLINE
-inline GetBits0(const Buffer& buf, size_t idx, Int nbits)
+inline GetBits0(const Buffer& buf, size_t idx, int32_t nbits)
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -447,7 +447,7 @@ inline GetBits0(const Buffer& buf, size_t idx, Int nbits)
 }
 
 template <typename T>
-inline bool TestBits(const T* buf, size_t idx, T bits, Int nbits)
+inline bool TestBits(const T* buf, size_t idx, T bits, int32_t nbits)
 {
     const size_t mask       = TypeBitmask<T>();
     const size_t divisor    = TypeBitmaskPopCount(mask);
@@ -476,7 +476,7 @@ inline bool TestBit(const T* buf, size_t idx)
 
 
 template <typename T>
-T GetBitsNeg0(const T* buf, size_t idx, Int nbits)
+T GetBitsNeg0(const T* buf, size_t idx, int32_t nbits)
 {
     const size_t mask       = TypeBitmask<T>();
     const size_t divisor    = TypeBitmaskPopCount(mask);
@@ -498,7 +498,7 @@ T GetBitsNeg0(const T* buf, size_t idx, Int nbits)
 
 template <typename Buffer>
 //__attribute__((always_inline))
-void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
+void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, int32_t nbits)
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -535,7 +535,7 @@ void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bi
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
 MEMORIA_V1_ALWAYS_INLINE inline
-GetBits(const Buffer& buf, size_t idx, Int nbits)
+GetBits(const Buffer& buf, size_t idx, int32_t nbits)
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -726,7 +726,7 @@ size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
     {
         size_t remainder = (from - to) & 0x7; // lowerst 3 bits
 
-        for (BigInt c = from - 1; c > (BigInt)(to + remainder); c -= 8)
+        for (int64_t c = from - 1; c > (int64_t)(to + remainder); c -= 8)
         {
             size_t tmp = GetBits(buffer, c - 7, 8);
             char bits = lut[tmp];
@@ -882,29 +882,29 @@ constexpr uint64_t CtLZ(uint64_t val) {
 	return memoria::v1::details::CtLZ_(val, 0x8000000000000000ull);
 }
 
-constexpr Int Log2(UInt value) { //constexpr
+constexpr int32_t Log2(uint32_t value) { //constexpr
     return 32 - CtLZ(value);
 }
 
-constexpr Int Log2(Int value) {
-    return 32 - CtLZ((UInt)value);
+constexpr int32_t Log2(int32_t value) {
+    return 32 - CtLZ((uint32_t)value);
 }
 
 
-constexpr Int Log2(UBigInt value) {
+constexpr int32_t Log2(uint64_t value) {
     return 64 - CtLZ(value);
 }
 
-static inline Int Log2(BigInt value) {
-    return 64 - CtLZ((UBigInt)value);
+static inline int32_t Log2(int64_t value) {
+    return 64 - CtLZ((uint64_t)value);
 }
 
 
-static inline Int CountTrailingZeroes(UInt value) {
+static inline int32_t CountTrailingZeroes(uint32_t value) {
     return __builtin_ctz(value);
 }
 
-static inline Int CountTrailingZeroes(UBigInt value) {
+static inline int32_t CountTrailingZeroes(uint64_t value) {
     return __builtin_ctzll(value);
 }
 
@@ -987,7 +987,7 @@ size_t CreateUDS(Buffer* buf, size_t start, const size_t* ds, size_t ds_size, si
 {
     for (size_t ids = 0; ids < ds_size; ids++)
     {
-        for (Int i = 0; i < ds[ids]; i++, start++)
+        for (int32_t i = 0; i < ds[ids]; i++, start++)
         {
             SetBit(buf, start, 1);
         }

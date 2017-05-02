@@ -39,7 +39,7 @@ class NDT1 {
 
     using NextNDT1 = NDT1<Types, Idx - 1>;
 
-    static const Int HASH = Head::PAGE_HASH;
+    static const int32_t HASH = Head::PAGE_HASH;
 
 public:
 
@@ -92,12 +92,12 @@ public:
 template <typename Types>
 class NDT1<Types, 0> {
 
-    static const Int Idx = 0;
+    static const int32_t Idx = 0;
 
     using NodeBaseG = typename Types::NodeBaseG;
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
-    static const Int HASH = Head::PAGE_HASH;
+    static const int32_t HASH = Head::PAGE_HASH;
 
 
 public:

@@ -47,19 +47,19 @@ struct IPageLayoutEventHandler {
     virtual void startPage(const char* name)                                        = 0;
     virtual void endPage()                                                          = 0;
 
-    virtual void startGroup(const char* name, Int elements = -1)                    = 0;
+    virtual void startGroup(const char* name, int32_t elements = -1)                    = 0;
     virtual void endGroup()                                                         = 0;
 
-    virtual void Layout(const char* name, Int type, Int ptr, Int size, Int count)   = 0;
+    virtual void Layout(const char* name, int32_t type, int32_t ptr, int32_t size, int32_t count)   = 0;
 
     virtual ~IPageLayoutEventHandler(){}
 };
 
 
 struct PageDataValueProvider {
-    virtual Int size() const                            = 0;
+    virtual int32_t size() const                            = 0;
     virtual bool isArray() const                        = 0;
-    virtual String value(Int idx) const                 = 0;
+    virtual String value(int32_t idx) const                 = 0;
 };
 
 struct IPageDataEventHandler {
@@ -71,28 +71,28 @@ struct IPageDataEventHandler {
     virtual void startPage(const char* name, const void* ptr)                                   = 0;
     virtual void endPage()                                                                      = 0;
 
-    virtual void startLine(const char* name, Int size = -1)                                     = 0;
+    virtual void startLine(const char* name, int32_t size = -1)                                     = 0;
     virtual void endLine()                                                                      = 0;
 
     virtual void startGroupWithAddr(const char* name, const void* ptr)                          = 0;
-    virtual void startGroup(const char* name, Int elements = -1)                                = 0;
+    virtual void startGroup(const char* name, int32_t elements = -1)                                = 0;
     virtual void endGroup()                                                                     = 0;
 
-    virtual void value(const char* name, const Byte* value, Int count = 1, Int kind = 0)        = 0;
-    virtual void value(const char* name, const UByte* value, Int count = 1, Int kind = 0)       = 0;
-    virtual void value(const char* name, const Short* value, Int count = 1, Int kind = 0)       = 0;
-    virtual void value(const char* name, const UShort* value, Int count = 1, Int kind = 0)      = 0;
-    virtual void value(const char* name, const Int* value, Int count = 1, Int kind = 0)         = 0;
-    virtual void value(const char* name, const UInt* value, Int count = 1, Int kind = 0)        = 0;
-    virtual void value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)      = 0;
-    virtual void value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)     = 0;
-    virtual void value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)     = 0;
-    virtual void value(const char* name, const float* value, Int count = 1, Int kind = 0)       = 0;
-    virtual void value(const char* name, const double* value, Int count = 1, Int kind = 0)      = 0;
-    virtual void value(const char* name, const UUID* value, Int count = 1, Int kind = 0)        = 0;
+    virtual void value(const char* name, const int8_t* value, int32_t count = 1, int32_t kind = 0)        = 0;
+    virtual void value(const char* name, const uint8_t* value, int32_t count = 1, int32_t kind = 0)       = 0;
+    virtual void value(const char* name, const int16_t* value, int32_t count = 1, int32_t kind = 0)       = 0;
+    virtual void value(const char* name, const uint16_t* value, int32_t count = 1, int32_t kind = 0)      = 0;
+    virtual void value(const char* name, const int32_t* value, int32_t count = 1, int32_t kind = 0)         = 0;
+    virtual void value(const char* name, const uint32_t* value, int32_t count = 1, int32_t kind = 0)        = 0;
+    virtual void value(const char* name, const int64_t* value, int32_t count = 1, int32_t kind = 0)      = 0;
+    virtual void value(const char* name, const uint64_t* value, int32_t count = 1, int32_t kind = 0)     = 0;
+    virtual void value(const char* name, const IDValue* value, int32_t count = 1, int32_t kind = 0)     = 0;
+    virtual void value(const char* name, const float* value, int32_t count = 1, int32_t kind = 0)       = 0;
+    virtual void value(const char* name, const double* value, int32_t count = 1, int32_t kind = 0)      = 0;
+    virtual void value(const char* name, const UUID* value, int32_t count = 1, int32_t kind = 0)        = 0;
 
-    virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)    = 0;
-    virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)      = 0;
+    virtual void symbols(const char* name, const uint64_t* value, int32_t count, int32_t bits_per_symbol)    = 0;
+    virtual void symbols(const char* name, const uint8_t* value, int32_t count, int32_t bits_per_symbol)      = 0;
 
     virtual void value(const char* name, const PageDataValueProvider& value)                    = 0;
 
@@ -105,11 +105,11 @@ struct LayoutEventsParams {};
 
 struct IPageOperations
 {
-    virtual Int serialize(const void* page, void* buf) const                                    = 0;
-    virtual void deserialize(const void* buf, Int buf_size, void* page) const                   = 0;
-    virtual Int getPageSize(const void *page) const                                             = 0;
+    virtual int32_t serialize(const void* page, void* buf) const                                    = 0;
+    virtual void deserialize(const void* buf, int32_t buf_size, void* page) const                   = 0;
+    virtual int32_t getPageSize(const void *page) const                                             = 0;
 
-    virtual void resize(const void* page, void* buffer, Int new_size) const                     = 0;
+    virtual void resize(const void* page, void* buffer, int32_t new_size) const                     = 0;
 
     virtual void generateDataEvents(
                     const void* page,
@@ -129,15 +129,15 @@ struct PageMetadata: public MetadataGroup
 {
     PageMetadata(
             StringRef name,
-            Int attributes,
-            Int hash0,
+            int32_t attributes,
+            int32_t hash0,
             const IPageOperations* page_operations);
 
     virtual ~PageMetadata() throw () {
         delete page_operations_;
     }
 
-    virtual Int hash() const {
+    virtual int32_t hash() const {
         return hash_;
     }
 
@@ -147,7 +147,7 @@ struct PageMetadata: public MetadataGroup
     }
 
 private:
-    Int  hash_;
+    int32_t  hash_;
 
     const IPageOperations* page_operations_;
 };
@@ -160,7 +160,7 @@ struct ValueHelper {
         handler->value(name, &value);
     }
 
-    static void setup(IPageDataEventHandler* handler, const char* name, const T* value, Int size, Int type)
+    static void setup(IPageDataEventHandler* handler, const char* name, const T* value, int32_t size, int32_t type)
     {
         handler->value(name, value, size, type);
     }
@@ -176,9 +176,9 @@ struct ValueHelper<PageID<T> > {
         handler->value(name, &id);
     }
 
-    static void setup(IPageDataEventHandler* handler, const char* name, const Type* value, Int size, Int type)
+    static void setup(IPageDataEventHandler* handler, const char* name, const Type* value, int32_t size, int32_t type)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             IDValue id(value + c);
             handler->value(name, &id);
@@ -192,13 +192,13 @@ struct ValueHelper<EmptyValue> {
 
     static void setup(IPageDataEventHandler* handler, const char* name, const Type& value)
     {
-        BigInt val = 0;
+        int64_t val = 0;
         handler->value(name, &val);
     }
 };
 
 
-//template <Int N>
+//template <int32_t N>
 //struct ValueHelper<FixedArray<N> > {
 //    using Type = FixedArray<N>;
 //
@@ -208,9 +208,9 @@ struct ValueHelper<EmptyValue> {
 //        handler->value(name, &id);
 //    }
 //
-//    static void setup(IPageDataEventHandler* handler, const char* name, const Type* value, Int size, Int type)
+//    static void setup(IPageDataEventHandler* handler, const char* name, const Type* value, int32_t size, int32_t type)
 //    {
-//        for (Int c = 0; c < size; c++)
+//        for (int32_t c = 0; c < size; c++)
 //        {
 //            IDValue id(value + c);
 //            handler->value(name, &id);
@@ -221,7 +221,7 @@ struct ValueHelper<EmptyValue> {
 
 namespace internal {
 
-template <typename Tuple, Int Idx = std::tuple_size<Tuple>::value - 1>
+template <typename Tuple, int32_t Idx = std::tuple_size<Tuple>::value - 1>
 struct TupleValueHelper {
 
     using CurrentType = typename std::tuple_element<Idx, Tuple>::type;
@@ -266,14 +266,14 @@ struct ValueHelper<std::tuple<Types...>> {
 template <typename Fn>
 class PageValueFnProviderT: public PageDataValueProvider {
     Fn fn_;
-    Int size_;
+    int32_t size_;
     bool array_;
 public:
-    PageValueFnProviderT(bool array, Int size, Fn fn): fn_(fn), size_(size), array_(array) {}
+    PageValueFnProviderT(bool array, int32_t size, Fn fn): fn_(fn), size_(size), array_(array) {}
 
-    virtual Int size() const {return size_;}
+    virtual int32_t size() const {return size_;}
     virtual bool isArray() const {return array_;}
-    virtual String value(Int idx) const
+    virtual String value(int32_t idx) const
     {
         if (idx >= 0 && idx < size_)
         {
@@ -294,9 +294,9 @@ class PageValueProviderT: public PageDataValueProvider {
 public:
     PageValueProviderT(const T& value): value_(value) {}
 
-    virtual Int size() const {return 1;}
+    virtual int32_t size() const {return 1;}
     virtual bool isArray() const {return false;}
-    virtual String value(Int idx) const
+    virtual String value(int32_t idx) const
     {
         if (idx == 0)
         {
@@ -313,12 +313,12 @@ public:
 
 struct PageValueProviderFactory {
     template <typename Fn>
-    static auto provider(bool is_array, Int size, Fn fn) {
+    static auto provider(bool is_array, int32_t size, Fn fn) {
         return PageValueFnProviderT<Fn>(is_array, size, fn);
     }
 
     template <typename Fn>
-    static auto provider(Int size, Fn fn) {
+    static auto provider(int32_t size, Fn fn) {
         return PageValueFnProviderT<Fn>(false, size, fn);
     }
 
@@ -330,15 +330,15 @@ struct PageValueProviderFactory {
 
 
 
-void Expand(std::ostream& os, Int level);
+void Expand(std::ostream& os, int32_t level);
 
 void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProvider& provider);
 
 class TextPageDumper: public IPageDataEventHandler {
     std::ostream& out_;
 
-    Int level_;
-    Int cnt_;
+    int32_t level_;
+    int32_t cnt_;
 
     bool line_;
 
@@ -368,7 +368,7 @@ public:
         out_ << std::endl;
     }
 
-    virtual void startGroup(const char* name, Int elements = -1)
+    virtual void startGroup(const char* name, int32_t elements = -1)
     {
         cnt_ = 0;
         v1::Expand(out_, level_++);
@@ -389,7 +389,7 @@ public:
     }
 
 
-    virtual void startLine(const char* name, Int size = -1)
+    virtual void startLine(const char* name, int32_t size = -1)
     {
         dumpLineHeader(out_, level_, cnt_++, name);
         line_ = true;
@@ -403,56 +403,33 @@ public:
 
 
 
-    virtual void value(const char* name, const Byte* value, Int count = 1, Int kind = 0)
+    virtual void value(const char* name, const int8_t* value, int32_t count = 1, int32_t kind = 0)
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<Byte>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<int8_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
         }
     }
 
-    virtual void value(const char* name, const UByte* value, Int count = 1, Int kind = 0)
+    virtual void value(const char* name, const uint8_t* value, int32_t count = 1, int32_t kind = 0)
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<UByte>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<uint8_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
         }
     }
 
-    virtual void value(const char* name, const Short* value, Int count = 1, Int kind = 0)
+    virtual void value(const char* name, const int16_t* value, int32_t count = 1, int32_t kind = 0)
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<Short>(out_, count, [=](Int idx){return value[idx];});
-        }
-        else {
-            OutNumber(name, value, count, kind);
-        }
-    }
-
-
-    virtual void value(const char* name, const UShort* value, Int count = 1, Int kind = 0)
-    {
-        if (kind == BYTE_ARRAY)
-        {
-            v1::dumpArray<UShort>(out_, count, [=](Int idx){return value[idx];});
-        }
-        else {
-            OutNumber(name, value, count, kind);
-        }
-    }
-
-    virtual void value(const char* name, const Int* value, Int count = 1, Int kind = 0)
-    {
-        if (kind == BYTE_ARRAY)
-        {
-            v1::dumpArray<Int>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<int16_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -460,55 +437,22 @@ public:
     }
 
 
-    virtual void value(const char* name, const UInt* value, Int count = 1, Int kind = 0)
+    virtual void value(const char* name, const uint16_t* value, int32_t count = 1, int32_t kind = 0)
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<UInt>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<uint16_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
         }
     }
 
-    virtual void value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)
+    virtual void value(const char* name, const int32_t* value, int32_t count = 1, int32_t kind = 0)
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<BigInt>(out_, count, [=](Int idx){return value[idx];});
-        }
-        else {
-            OutNumber(name, value, count, kind);
-        }
-    }
-
-    virtual void value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)
-    {
-        if (kind == BYTE_ARRAY)
-        {
-            v1::dumpArray<UBigInt>(out_, count, [=](Int idx){return value[idx];});
-        }
-        else {
-            OutNumber(name, value, count, kind);
-        }
-    }
-
-    virtual void value(const char* name, const float* value, Int count = 1, Int kind = 0)
-    {
-        if (kind == BYTE_ARRAY)
-        {
-            v1::dumpArray<float>(out_, count, [=](Int idx){return value[idx];});
-        }
-        else {
-            OutNumber(name, value, count, kind);
-        }
-    }
-
-    virtual void value(const char* name, const double* value, Int count = 1, Int kind = 0)
-    {
-        if (kind == BYTE_ARRAY)
-        {
-            v1::dumpArray<double>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<int32_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -516,7 +460,63 @@ public:
     }
 
 
-    virtual void value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)
+    virtual void value(const char* name, const uint32_t* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            v1::dumpArray<uint32_t>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const int64_t* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            v1::dumpArray<int64_t>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const uint64_t* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            v1::dumpArray<uint64_t>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const float* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            v1::dumpArray<float>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const double* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            v1::dumpArray<double>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+
+    virtual void value(const char* name, const IDValue* value, int32_t count = 1, int32_t kind = 0)
     {
         if (!line_)
         {
@@ -526,7 +526,7 @@ public:
             out_ << "    " << name << " ";
         }
 
-        for (Int c = 0; c < count; c++)
+        for (int32_t c = 0; c < count; c++)
         {
             out_ << *value;
 
@@ -542,11 +542,11 @@ public:
         }
     }
 
-    virtual void value(const char* name, const UUID* value, Int count = 1, Int kind = 0)
+    virtual void value(const char* name, const UUID* value, int32_t count = 1, int32_t kind = 0)
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<UUID>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<UUID>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -554,12 +554,12 @@ public:
     }
 
 
-    virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)
+    virtual void symbols(const char* name, const uint64_t* value, int32_t count, int32_t bits_per_symbol)
     {
         dumpSymbols(out_, value, count, bits_per_symbol);
     }
 
-    virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)
+    virtual void symbols(const char* name, const uint8_t* value, int32_t count, int32_t bits_per_symbol)
     {
         dumpSymbols(out_, value, count, bits_per_symbol);
     }
@@ -587,7 +587,7 @@ public:
 
 private:
 
-    void dumpFieldHeader(ostream &out, Int level, Int idx, StringRef name)
+    void dumpFieldHeader(ostream &out, int32_t level, int32_t idx, StringRef name)
     {
         std::stringstream str;
         v1::Expand(str, level);
@@ -599,7 +599,7 @@ private:
         out << str.str();
     }
 
-    void dumpLineHeader(ostream &out, Int level, Int idx, StringRef name)
+    void dumpLineHeader(ostream &out, int32_t level, int32_t idx, StringRef name)
     {
         std::stringstream str;
         v1::Expand(str, level);
@@ -614,7 +614,7 @@ private:
 
 
     template <typename T>
-    void OutNumber(const char* name, const T* value, Int count, Int kind)
+    void OutNumber(const char* name, const T* value, int32_t count, int32_t kind)
     {
         if (!line_)
         {
@@ -624,7 +624,7 @@ private:
             out_ << "    " << name << " ";
         }
 
-        for (Int c = 0; c < count; c++)
+        for (int32_t c = 0; c < count; c++)
         {
             out_.width(12);
             out_ << *(value + c);
@@ -659,7 +659,7 @@ private:
     {
         OutLine(name);
 
-        for (Int c = 0; c < value.size(); c++)
+        for (int32_t c = 0; c < value.size(); c++)
         {
             out_.width(24);
             out_ << value.value(c);

@@ -27,18 +27,18 @@ template <typename> class ValueCodec;
 
 
 template<>
-class ValueCodec<RawData<UByte>> {
+class ValueCodec<RawData<uint8_t>> {
 public:
-    using BufferType    = UByte;
+    using BufferType    = uint8_t;
     using T             = BufferType;
-    using V             = RawData<UByte>;
+    using V             = RawData<uint8_t>;
 
     using ValuePtr      = ValuePtrT1<BufferType>;
 
     ValueCodec<int64_t> size_codec_;
 
-    static const Int BitsPerOffset  = 16;
-    static const Int ElementSize    = 8; // In bits;
+    static const int32_t BitsPerOffset  = 16;
+    static const int32_t ElementSize    = 8; // In bits;
 
     ValuePtr describe(const T* buffer, size_t idx)
     {

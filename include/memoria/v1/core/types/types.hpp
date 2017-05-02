@@ -64,16 +64,6 @@ static constexpr int PackedAllocationAlignment          = 8;
 
 static constexpr size_t MaxRLERunLength                 = 0x7FFFFFF;
 
-typedef std::int64_t            BigInt;
-typedef std::uint64_t           UBigInt;
-typedef std::int32_t            Int;
-typedef std::uint32_t           UInt;
-typedef std::int16_t            Short;
-typedef std::uint16_t           UShort;
-typedef char                    Char;
-typedef std::int8_t             Byte;
-typedef std::uint8_t            UByte;
-
 enum class PackedSizeType {FIXED, VARIABLE};
 
 namespace internal {
@@ -81,16 +71,16 @@ namespace internal {
 
     template <>
     struct PlatformLongHelper<4> {
-        typedef Int             LongType;
-        typedef UInt            ULongType;
-        typedef Int             SizeTType;
+        typedef int32_t             LongType;
+        typedef uint32_t            ULongType;
+        typedef int32_t             SizeTType;
     };
 
     template <>
     struct PlatformLongHelper<8> {
-        typedef BigInt          LongType;
-        typedef UBigInt         ULongType;
-        typedef BigInt          SizeTType;
+        typedef int64_t          LongType;
+        typedef uint64_t         ULongType;
+        typedef int64_t          SizeTType;
     };
 }
 
@@ -121,11 +111,11 @@ template <typename T, T V> struct ConstValue {
     constexpr T operator()() const noexcept {return Value;}
 };
 
-template <UInt Value>
-using UIntValue = ConstValue<UInt, Value>;
+template <uint32_t Value>
+using UIntValue = ConstValue<uint32_t, Value>;
 
-template <Int Value>
-using IntValue = ConstValue<Int, Value>;
+template <int32_t Value>
+using IntValue = ConstValue<int32_t, Value>;
 
 
 template <bool Value>
@@ -137,8 +127,8 @@ template <typename...> using VoidT = void;
 class EmptyValue {
 public:
     EmptyValue() {}
-    EmptyValue(const Int) {}
-    EmptyValue(const BigInt) {}
+    EmptyValue(const int32_t) {}
+    EmptyValue(const int64_t) {}
     EmptyValue(const EmptyValue& other) {}
     EmptyValue& operator=(const EmptyValue& other) {
         return *this;
@@ -149,7 +139,7 @@ public:
         return 0;
     }
 
-    operator BigInt () const {
+    operator int64_t () const {
         return 0;
     }
 };
@@ -172,11 +162,11 @@ struct ValueList {
 };
 
 
-template <Int... Values>
-using IntList = ValueList<Int, Values...>;
+template <int32_t... Values>
+using IntList = ValueList<int32_t, Values...>;
 
-template <Int... Values>
-using UIntList = ValueList<UInt, Values...>;
+template <int32_t... Values>
+using UIntList = ValueList<uint32_t, Values...>;
 
 
 
@@ -214,7 +204,7 @@ struct Set          {};
 template <typename T>
 struct Vector       {};
 
-template <Int BitsPerSymbol, bool Dense = true>
+template <int32_t BitsPerSymbol, bool Dense = true>
 struct Sequence {};
 
 template <bool Dense = true>
@@ -224,7 +214,7 @@ template <typename ChildType = void>
 class DefaultProfile  {};
 
 
-enum class Granularity  {Bit, Byte};
+enum class Granularity  {Bit, int8_t};
 enum class Indexed      {No, Yes};
 
 template <
@@ -234,7 +224,7 @@ template <
 struct FLabel       {};
 
 template <
-    Int BitsPerSymbol
+    int32_t BitsPerSymbol
 >
 struct FBLabel      {};
 
@@ -253,13 +243,13 @@ struct LabeledTree  {};
 struct WT           {};
 struct VTree        {};
 
-template <Granularity granularity, typename T = BigInt>
+template <Granularity granularity, typename T = int64_t>
 struct VLen {};
 
-template <Granularity gr = Granularity::Byte>
-using CMap = Map<VLen<gr>, BigInt>;
+template <Granularity gr = Granularity::int8_t>
+using CMap = Map<VLen<gr>, int64_t>;
 
-template <Granularity gr = Granularity::Byte>
+template <Granularity gr = Granularity::int8_t>
 using CCMap = Map<VLen<gr>, VLen<gr>>;
 
 
@@ -342,7 +332,7 @@ struct IterEndMark {};
 
 struct SerializationData {
     char* buf;
-    Int total;
+    int32_t total;
 
     SerializationData(): buf(nullptr), total(0) {}
 };
@@ -386,25 +376,25 @@ enum class SplitStatus {NONE, LEFT, RIGHT, UNKNOWN};
 
 class SplitResult {
     SplitStatus type_;
-    Int idx_;
+    int32_t idx_;
 public:
-    SplitResult(SplitStatus type, Int idx): type_(type), idx_(idx) {}
+    SplitResult(SplitStatus type, int32_t idx): type_(type), idx_(idx) {}
     SplitResult(SplitStatus type): type_(type), idx_() {}
 
     SplitStatus type() const {return type_;}
-    Int idx() const {return idx_;}
+    int32_t idx() const {return idx_;}
 };
 
 
 template <typename PkdStruct>
 struct IndexesSize {
-    static const Int Value = PkdStruct::Indexes;
+    static const int32_t Value = PkdStruct::Indexes;
 };
 
 
-extern BigInt DebugCounter;
-extern BigInt DebugCounter1;
-extern BigInt DebugCounter2;
+extern int64_t DebugCounter;
+extern int64_t DebugCounter1;
+extern int64_t DebugCounter2;
 
 template <typename T>
 using IL = std::initializer_list<T>;
@@ -442,10 +432,10 @@ namespace details {
 template <typename T, bool Flag = true, typename T2 = void>
 using FailIf = typename v1::details::FailIfT<T, Flag, T2>::Type;
 
-template <Int V, bool Flag = true, typename T2 = void>
+template <int32_t V, bool Flag = true, typename T2 = void>
 using FailIfV = typename v1::details::FailIfT<IntValue<V>, Flag, T2>::Type;
 
-template <typename T, typename T1 = Int, T1 V = T1{}>
+template <typename T, typename T1 = int32_t, T1 V = T1{}>
 struct FakeValue: HasValue<T1, V> {};
 
 

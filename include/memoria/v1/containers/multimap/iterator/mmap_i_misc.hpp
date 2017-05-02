@@ -43,8 +43,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mmap::ItrMiscName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    static constexpr Int DataStreams            = Container::Types::DataStreams;
-    static constexpr Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
+    static constexpr int32_t DataStreams            = Container::Types::DataStreams;
+    static constexpr int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
     using IOBuffer  = DefaultIOBuffer;
 
@@ -59,11 +59,11 @@ public:
     {
         auto& self = this->self();
 
-        Int stream = self.data_stream();
+        int32_t stream = self.data_stream();
 
         if (stream == 0)
         {
-            Int key_idx = self.data_stream_idx(stream);
+            int32_t key_idx = self.data_stream_idx(stream);
 
             return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
@@ -77,11 +77,11 @@ public:
     {
         auto& self = this->self();
 
-        Int stream = self.data_stream();
+        int32_t stream = self.data_stream();
 
         if (stream == 1)
         {
-            Int value_idx = self.data_stream_idx(stream);
+            int32_t value_idx = self.data_stream_idx(stream);
             return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(value_idx, 0));
         }
         else {
@@ -102,14 +102,14 @@ public:
     CtrSizeT count_values() const
     {
         auto& self = this->self();
-        Int stream = self.data_stream();
+        int32_t stream = self.data_stream();
 
         if (stream == 0)
         {
             auto ii = self.clone();
             if (ii->next())
             {
-                Int next_stream = ii->data_stream_s();
+                int32_t next_stream = ii->data_stream_s();
                 if (next_stream == 1)
                 {
                     return ii->countFw();
@@ -132,7 +132,7 @@ public:
         auto& self = this->self();
         if (!self.is_end())
         {
-            Int stream = self.data_stream();
+            int32_t stream = self.data_stream();
             if (stream == 1)
             {
                 auto ii = self.clone();
@@ -185,9 +185,9 @@ public:
 
         void clear() {}
 
-        virtual Int process(IOBuffer& buffer, Int entries)
+        virtual int32_t process(IOBuffer& buffer, int32_t entries)
         {
-            for (Int entry = 0; entry < entries; entry++)
+            for (int32_t entry = 0; entry < entries; entry++)
             {
                 consumer_->emplace_back(IOBufferAdapter<Value>::get(buffer));
             }
@@ -239,7 +239,7 @@ public:
     void seek_value(CtrSizeT n)
     {
     	auto& self = this->self();
-    	Int stream = self.data_stream();
+    	int32_t stream = self.data_stream();
 
     	if (stream < DataStreams - 1)
     	{

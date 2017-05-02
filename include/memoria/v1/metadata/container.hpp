@@ -56,14 +56,14 @@ struct ContainerWalker {
     virtual void beginCtr(const char* descr, const UUID& name, const UUID& root)= 0;
     virtual void endCtr()                                                       = 0;
 
-    virtual void beginRoot(Int idx, const void* page)                           = 0;
+    virtual void beginRoot(int32_t idx, const void* page)                           = 0;
     virtual void endRoot()                                                      = 0;
 
-    virtual void beginNode(Int idx, const void* page)                           = 0;
+    virtual void beginNode(int32_t idx, const void* page)                           = 0;
     virtual void endNode()                                                      = 0;
 
-    virtual void rootLeaf(Int idx, const void* page)                            = 0;
-    virtual void leaf(Int idx, const void* page)                                = 0;
+    virtual void rootLeaf(int32_t idx, const void* page)                            = 0;
+    virtual void leaf(int32_t idx, const void* page)                                = 0;
 
     virtual void singleNode(const char* descr, const void* page)                = 0;
 
@@ -91,14 +91,14 @@ struct ContainerWalkerBase: ContainerWalker {
     virtual void beginCtr(const char* descr, const UUID& name, const UUID& root) {}
     virtual void endCtr() {}
 
-    virtual void beginRoot(Int idx, const void* page) {}
+    virtual void beginRoot(int32_t idx, const void* page) {}
     virtual void endRoot() {}
 
-    virtual void beginNode(Int idx, const void* page) {}
+    virtual void beginNode(int32_t idx, const void* page) {}
     virtual void endNode() {}
 
-    virtual void rootLeaf(Int idx, const void* page) {}
-    virtual void leaf(Int idx, const void* page) {}
+    virtual void rootLeaf(int32_t idx, const void* page) {}
+    virtual void leaf(int32_t idx, const void* page) {}
 
     virtual void singleNode(const char* descr, const void* page) {}
 
@@ -157,13 +157,13 @@ template <typename Profile> class MetadataRepository;
 struct ContainerMetadata: public MetadataGroup {
 public:
 
-    ContainerMetadata(StringRef name, const MetadataList &content, Int ctr_hash, ContainerInterfacePtr container_interface):
+    ContainerMetadata(StringRef name, const MetadataList &content, int32_t ctr_hash, ContainerInterfacePtr container_interface):
         MetadataGroup(name, content),
         container_interface_(container_interface),
         ctr_hash_(ctr_hash)
     {
     	MetadataGroup::set_type() = MetadataGroup::CONTAINER;
-        for (UInt c = 0; c < content.size(); c++)
+        for (uint32_t c = 0; c < content.size(); c++)
         {
             if (content[c]->getTypeCode() == Metadata::PAGE)
             {
@@ -180,13 +180,13 @@ public:
     }
 
     template <typename Types>
-    ContainerMetadata(StringRef name, Types* nothing, Int ctr_hash, ContainerInterfacePtr container_interface):
+    ContainerMetadata(StringRef name, Types* nothing, int32_t ctr_hash, ContainerInterfacePtr container_interface):
         MetadataGroup(name, buildPageMetadata<Types>()),
         container_interface_(container_interface),
         ctr_hash_(ctr_hash)
     {
     	MetadataGroup::set_type() = MetadataGroup::CONTAINER;
-        for (UInt c = 0; c < content_.size(); c++)
+        for (uint32_t c = 0; c < content_.size(); c++)
         {
             if (content_[c]->getTypeCode() == Metadata::PAGE)
             {
@@ -206,11 +206,11 @@ public:
     virtual ~ContainerMetadata() throw ()
     {}
 
-    virtual Int ctr_hash() const {
+    virtual int32_t ctr_hash() const {
         return ctr_hash_;
     }
 
-    virtual const PageMetadataPtr& getPageMetadata(Int model_hash, Int page_hash) const
+    virtual const PageMetadataPtr& getPageMetadata(int32_t model_hash, int32_t page_hash) const
     {
         PageMetadataMap::const_iterator i = page_map_.find(model_hash ^ page_hash);
         if (i != page_map_.end())
@@ -247,7 +247,7 @@ private:
     PageMetadataMap         page_map_;
     ContainerInterfacePtr   container_interface_;
 
-    Int                     ctr_hash_;
+    int32_t                     ctr_hash_;
 };
 
 
@@ -265,12 +265,12 @@ public:
     {
     }
 
-    virtual Int hash() const {
+    virtual int32_t hash() const {
         return hash_;
     }
 
-    const PageMetadataPtr& getPageMetadata(Int model_hash, Int page_hash) const;
-    const ContainerMetadataPtr& getContainerMetadata(Int model_hash) const;
+    const PageMetadataPtr& getPageMetadata(int32_t model_hash, int32_t page_hash) const;
+    const ContainerMetadataPtr& getContainerMetadata(int32_t model_hash) const;
 
 
     virtual void registerMetadata(const ContainerMetadataPtr& metadata)
@@ -283,7 +283,7 @@ public:
     void dumpMetadata(std::ostream& out);
 
 private:
-    Int                     hash_;
+    int32_t                     hash_;
     PageMetadataMap         page_map_;
     ContainerMetadataMap    model_map_;
 
@@ -405,7 +405,7 @@ public:
         path_.pop();
     }
 
-    virtual void rootLeaf(Int idx, const void* page_data)
+    virtual void rootLeaf(int32_t idx, const void* page_data)
     {
         const Page* page = T2T<Page*>(page_data);
 
@@ -414,7 +414,7 @@ public:
         dumpPage(file_name, page);
     }
 
-    virtual void leaf(Int idx, const void* page_data)
+    virtual void leaf(int32_t idx, const void* page_data)
     {
         const Page* page = T2T<Page*>(page_data);
 
@@ -425,7 +425,7 @@ public:
         dumpPage(file_name, page);
     }
 
-    virtual void beginRoot(Int idx, const void* page_data)
+    virtual void beginRoot(int32_t idx, const void* page_data)
     {
         beginNonLeaf("Root", idx, page_data);
     }
@@ -435,7 +435,7 @@ public:
         path_.pop();
     }
 
-    virtual void beginNode(Int idx, const void* page_data)
+    virtual void beginNode(int32_t idx, const void* page_data)
     {
         beginNonLeaf("Node", idx, page_data);
     }
@@ -471,7 +471,7 @@ public:
 
 private:
 
-    void beginNonLeaf(const char* type, Int idx, const void* page_data)
+    void beginNonLeaf(const char* type, int32_t idx, const void* page_data)
     {
         const Page* page = T2T<Page*>(page_data);
 
@@ -513,7 +513,7 @@ private:
         path_.push(file);
     }
 
-    String getNodeName(const char* name, Int index, const ID& id)
+    String getNodeName(const char* name, int32_t index, const ID& id)
     {
         std::stringstream str;
 

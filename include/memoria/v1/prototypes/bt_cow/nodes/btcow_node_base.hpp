@@ -42,7 +42,7 @@ namespace btcow {
 template <typename Metadata, typename Base_>
 class TreeNodeBase: public Base_ {
 public:
-    static const UInt VERSION = 1;
+    static const uint32_t VERSION = 1;
     typedef Base_                               Base;
 
     typedef typename Base::ID                   ID;
@@ -52,13 +52,13 @@ public:
 //    static_assert(std::is_trivial<Base_>::value,    "TreeNodeBase: base must be a trivial type");
 //    static_assert(std::is_trivial<ID>::value,       "TreeNodeBase: ID must be a trivial type");
 
-    static const Int StreamsStart               = 1;
+    static const int32_t StreamsStart               = 1;
 
 private:
 
-    Int root_;
-    Int leaf_;
-    Int level_;
+    int32_t root_;
+    int32_t leaf_;
+    int32_t level_;
 
     ID  next_leaf_id_;
 
@@ -88,12 +88,12 @@ public:
         leaf_ = leaf;
     }
 
-    const Int& level() const
+    const int32_t& level() const
     {
         return level_;
     }
 
-    Int& level()
+    int32_t& level()
     {
         return level_;
     }
@@ -148,7 +148,7 @@ public:
     {
         if (!has_root_metadata())
         {
-            const Int metadata_size = PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+            const int32_t metadata_size = PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
             return allocator_.free_space() >= metadata_size;
         }
         else {
@@ -160,17 +160,17 @@ public:
 
     bool shouldBeMergedWithSiblings() const
     {
-        Int client_area = allocator_.client_area();
-        Int used        = allocator_.allocated();
+        int32_t client_area = allocator_.client_area();
+        int32_t used        = allocator_.allocated();
 
         return used < client_area / 2;
     }
 
 public:
 
-    void initAllocator(Int entries)
+    void initAllocator(int32_t entries)
     {
-        Int page_size = this->page_size();
+        int32_t page_size = this->page_size();
         MEMORIA_V1_ASSERT(page_size, >, (int)sizeof(MyType) + PackedAllocator::my_size());
 
         allocator_.setTopLevelAllocator();
@@ -179,13 +179,13 @@ public:
 
     void transferDataTo(MyType* other) const
     {
-        for (Int c = 0; c < StreamsStart; c++)
+        for (int32_t c = 0; c < StreamsStart; c++)
         {
             other->allocator_.importBlock(c, &allocator_, c);
         }
     }
 
-    void resizePage(Int new_size)
+    void resizePage(int32_t new_size)
     {
         this->page_size() = new_size;
         allocator_.resizeBlock(new_size - sizeof(MyType) + PackedAllocator::my_size());
@@ -218,9 +218,9 @@ public:
     {
         Base::template serialize<FieldFactory>(buf);
 
-        FieldFactory<Int>::serialize(buf, root_);
-        FieldFactory<Int>::serialize(buf, leaf_);
-        FieldFactory<Int>::serialize(buf, level_);
+        FieldFactory<int32_t>::serialize(buf, root_);
+        FieldFactory<int32_t>::serialize(buf, leaf_);
+        FieldFactory<int32_t>::serialize(buf, level_);
 
         FieldFactory<ID>::serialize(buf, next_leaf_id_);
 
@@ -239,9 +239,9 @@ public:
     {
         Base::template deserialize<FieldFactory>(buf);
 
-        FieldFactory<Int>::deserialize(buf, root_);
-        FieldFactory<Int>::deserialize(buf, leaf_);
-        FieldFactory<Int>::deserialize(buf, level_);
+        FieldFactory<int32_t>::deserialize(buf, root_);
+        FieldFactory<int32_t>::deserialize(buf, leaf_);
+        FieldFactory<int32_t>::deserialize(buf, level_);
 
         FieldFactory<ID>::deserialize(buf, next_leaf_id_);
 
@@ -276,14 +276,14 @@ template <typename Metadata, typename Base>
 struct TypeHash<btcow::TreeNodeBase<Metadata, Base>> {
     typedef btcow::TreeNodeBase<Metadata, Base> TargetType;
 
-    static const UInt Value = HashHelper<
+    static const uint32_t Value = HashHelper<
             TypeHash<Base>::Value,
             TargetType::VERSION,
-            TypeHash<Int>::Value,
-            TypeHash<Int>::Value,
-            TypeHash<Int>::Value,
+            TypeHash<int32_t>::Value,
+            TypeHash<int32_t>::Value,
+            TypeHash<int32_t>::Value,
             TypeHash<typename TargetType::ID>::Value,
-            TypeHash<Int>::Value,
+            TypeHash<int32_t>::Value,
             TypeHash<Metadata>::Value
     >::Value;
 };

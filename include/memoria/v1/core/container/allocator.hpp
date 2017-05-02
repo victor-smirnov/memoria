@@ -42,11 +42,11 @@ struct ICtrDirectory {
 };
 
 struct IAllocatorProperties {
-    virtual Int defaultPageSize() const                                         = 0;
+    virtual int32_t defaultPageSize() const                                         = 0;
 
-    virtual BigInt lastCommitId() const                                         = 0;
-    virtual void setLastCommitId(BigInt txn_id)                                 = 0;
-    virtual BigInt newTxnId()                                                   = 0;
+    virtual int64_t lastCommitId() const                                         = 0;
+    virtual void setLastCommitId(int64_t txn_id)                                 = 0;
+    virtual int64_t newTxnId()                                                   = 0;
 
     virtual ~IAllocatorProperties() {}
 };
@@ -72,9 +72,9 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
     virtual PageG updatePage(Shared* shared, const UUID& name)                  = 0;
     virtual void  removePage(const ID& id, const UUID&name)                     = 0;
-    virtual PageG createPage(Int initial_size, const UUID& name)                = 0;
+    virtual PageG createPage(int32_t initial_size, const UUID& name)                = 0;
 
-    virtual void  resizePage(Shared* page, Int new_size)                        = 0;
+    virtual void  resizePage(Shared* page, int32_t new_size)                        = 0;
     virtual void  releasePage(Shared* shared) noexcept                          = 0;
     virtual PageG getPageG(Page* page)                                          = 0;
 

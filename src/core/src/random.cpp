@@ -30,43 +30,43 @@ RngBigInt& getGlobalBigIntGenerator() {
     return bigint_generator;
 }
 
-Int getRandomG()
+int32_t getRandomG()
 {
     return int_generator();
 }
 
-Int getRandomG(Int max)
+int32_t getRandomG(int32_t max)
 {
     return max > 0 ? int_generator() % max : 0;
 }
 
-void Seed(Int value)
+void Seed(int32_t value)
 {
     std::seed_seq ss({value});
     int_generator.engine().seed(ss);
 }
 
 
-BigInt getBIRandomG()
+int64_t getBIRandomG()
 {
     return bigint_generator();
 }
 
-BigInt getBIRandomG(BigInt max)
+int64_t getBIRandomG(int64_t max)
 {
     return max > 0 ? bigint_generator() % max : 0;
 }
 
-void SeedBI(BigInt value)
+void SeedBI(int64_t value)
 {
     std::seed_seq ss({value});
     bigint_generator.engine().seed(ss);
 }
 
 
-Int getNonZeroRandomG(Int size)
+int32_t getNonZeroRandomG(int32_t size)
 {
-    Int value = getRandomG(size);
+    int32_t value = getRandomG(size);
     return value != 0 ? value : getNonZeroRandomG(size);
 }
 

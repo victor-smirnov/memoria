@@ -42,7 +42,7 @@ public:
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
-    template <Int Stream>
+    template <int32_t Stream>
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
 
@@ -65,9 +65,9 @@ public:
         {
             auto k = self.raw_key();
 
-            MEMORIA_V1_ASSERT_TRUE((k - StaticVector<BigInt, 1>(delta))[0] >= 0);
+            MEMORIA_V1_ASSERT_TRUE((k - StaticVector<int64_t, 1>(delta))[0] >= 0);
 
-            self.ctr().template update_entry<IntList<1>>(self, std::make_tuple(k - StaticVector<BigInt, 1>(delta)));
+            self.ctr().template update_entry<IntList<1>>(self, std::make_tuple(k - StaticVector<int64_t, 1>(delta)));
         }
     }
 
@@ -99,22 +99,22 @@ public:
 
 
 
-    auto findFwGT(Int index, Key key)
+    auto findFwGT(int32_t index, Key key)
     {
         return self().template find_fw_gt<IntList<0>>(index, key);
     }
 
-    auto findFwGE(Int index, Key key)
+    auto findFwGE(int32_t index, Key key)
     {
         return self().template find_fw_ge<IntList<0>>(index, key);
     }
 
-    auto findBwGT(Int index, Key key)
+    auto findBwGT(int32_t index, Key key)
     {
         return self().template find_bw_gt<IntList<0>>(index, key);
     }
 
-    auto findBwGE(Int index, Key key)
+    auto findBwGE(int32_t index, Key key)
     {
         return self().template find_bw_ge<IntList<0>>(index, key);
     }
@@ -140,7 +140,7 @@ public:
         return self().raw_key(0) + self().prefix();
     }
 
-    auto raw_key(Int index) const
+    auto raw_key(int32_t index) const
     {
         return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().idx(), index));
     }

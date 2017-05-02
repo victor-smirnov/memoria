@@ -27,7 +27,7 @@ namespace memoria {
 namespace v1 {
 
 
-template <Int BitsPerSymbol, bool Dense = true>
+template <int32_t BitsPerSymbol, bool Dense = true>
 class SequenceRankTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
     using MyType = SequenceRankTest<BitsPerSymbol, Dense>;
@@ -39,7 +39,7 @@ class SequenceRankTest: public SequenceTestBase<BitsPerSymbol, Dense> {
     using typename Base::CtrName;
 
 
-    Int iterations_ = 100000;
+    int32_t iterations_ = 100000;
 
     using Base::commit;
     using Base::drop;
@@ -82,15 +82,15 @@ public:
 
         check(MA_SRC);
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             out()<<c<<std::endl;
 
-            Int pos     = getRandom(size_);
-            Int symbol  = getRandom(Base::Symbols);
+            int32_t pos     = getRandom(size_);
+            int32_t symbol  = getRandom(Base::Symbols);
 
-            BigInt rank1 = ctr->rank(pos, symbol);
-            BigInt rank2 = seq->rank(pos, symbol);
+            int64_t rank1 = ctr->rank(pos, symbol);
+            int64_t rank2 = seq->rank(pos, symbol);
 
             AssertEQ(MA_SRC, rank1, rank2);
         }
@@ -107,23 +107,23 @@ public:
 
         auto seq = fillRandomSeq(*ctr.get(), size_);
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             out()<<c<<std::endl;
 
-            Int pos1    = getRandom(size_);
-            Int pos2    = pos1 + getRandom(size_ - pos1);
-            Int symbol  = getRandom(Base::Symbols);
+            int32_t pos1    = getRandom(size_);
+            int32_t pos2    = pos1 + getRandom(size_ - pos1);
+            int32_t symbol  = getRandom(Base::Symbols);
 
             auto iter   = ctr->seek(pos1);
 
-            BigInt rank1 = iter->rankFw(pos2 - pos1, symbol);
-            BigInt rank2 = seq->rank(pos1, pos2, symbol);
+            int64_t rank1 = iter->rankFw(pos2 - pos1, symbol);
+            int64_t rank2 = seq->rank(pos1, pos2, symbol);
 
             AssertEQ(MA_SRC, rank1, rank2);
             AssertEQ(MA_SRC, iter->pos(), pos2);
 
-            BigInt rank3 = iter->rank(pos1 - pos2, symbol);
+            int64_t rank3 = iter->rank(pos1 - pos2, symbol);
 
             AssertEQ(MA_SRC, iter->pos(), pos1);
             AssertEQ(MA_SRC, rank1, rank3);

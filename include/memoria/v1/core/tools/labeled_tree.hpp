@@ -39,20 +39,20 @@ class LblTreeNode {
 public:
     LblTreeNode() {}
 
-    MyType& child(Int idx) {
+    MyType& child(int32_t idx) {
         return children_[idx];
     }
 
-    const MyType& child(Int idx) const {
+    const MyType& child(int32_t idx) const {
         return children_[idx];
     }
 
-    Int children() const
+    int32_t children() const
     {
         return children_.size();
     }
 
-    MyType& addChild(Int idx)
+    MyType& addChild(int32_t idx)
     {
         children_.insert(children_.begin() + idx, MyType());
 
@@ -64,7 +64,7 @@ public:
         return addChild(children());
     }
 
-    void removeChild(Int idx)
+    void removeChild(int32_t idx)
     {
         children_.erase(children_.begin() + idx);
     }

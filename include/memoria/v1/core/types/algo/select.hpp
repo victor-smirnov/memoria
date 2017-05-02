@@ -28,37 +28,37 @@ namespace v1 {
 
 namespace details {
 
-    template <Int Num, typename List, Int Idx> struct SelectT;
+    template <int32_t Num, typename List, int32_t Idx> struct SelectT;
 
-    template <Int Num, typename Head, typename ... Tail>
+    template <int32_t Num, typename Head, typename ... Tail>
     struct SelectT<Num, TypeList<Head, Tail...>, Num>: HasType<Head> {};
 
-    template <Int Num, typename Head, typename ... Tail, Int Idx>
+    template <int32_t Num, typename Head, typename ... Tail, int32_t Idx>
     struct SelectT<Num, TypeList<Head, Tail...>, Idx>: HasType<
         typename SelectT<Num, TypeList<Tail...>, Idx + 1>::Type
     > {};
 
-    template <Int Num, Int Idx>
+    template <int32_t Num, int32_t Idx>
     struct SelectT<Num, TypeList<>, Idx>;
 }
 
-template <Int Num, typename List>
+template <int32_t Num, typename List>
 using Select = typename memoria::v1::details::SelectT<Num, List, 0>::Type;
 
 
-template <Int Value, typename List, Int idx = 0> struct SelectV;
+template <int32_t Value, typename List, int32_t idx = 0> struct SelectV;
 
-template <Int Pos, typename T, T Head, T ... Tail>
+template <int32_t Pos, typename T, T Head, T ... Tail>
 struct SelectV<Pos, ValueList<T, Head, Tail...>, Pos> {
     static const T Value = Head;
 };
 
-template <Int Pos, typename T, T Head, T ... Tail, Int Idx>
+template <int32_t Pos, typename T, T Head, T ... Tail, int32_t Idx>
 struct SelectV<Pos, ValueList<T, Head, Tail...>, Idx> {
     static const T Value = SelectV<Pos, ValueList<T, Tail...>, Idx + 1>::Value;
 };
 
-template <Int Value, typename T, Int Idx>
+template <int32_t Value, typename T, int32_t Idx>
 struct SelectV<Value, ValueList<T>, Idx>;
 
 

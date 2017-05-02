@@ -34,15 +34,15 @@ using bt::LeafNode;
 using bt::StreamTag;
 
 class BTSSBufferStatus {
-    Int size_;
+    int32_t size_;
     bool buffer_filled_;
     bool finished_;
 public:
-    BTSSBufferStatus(Int size = 0, bool buffer_filled = false, bool finished = false):
+    BTSSBufferStatus(int32_t size = 0, bool buffer_filled = false, bool finished = false):
         size_(size), buffer_filled_(buffer_filled), finished_(finished)
     {}
 
-    Int size() const {return size_;}
+    int32_t size() const {return size_;}
     bool is_buffer_filled() const {return buffer_filled_;}
     bool is_finished() const {return finished_;}
 };
@@ -67,8 +67,8 @@ public:
     using BufferSizes = typename InputBuffer::BufferSizesT;
 
 protected:
-    Int start_ = 0;
-    Int size_ = 0;
+    int32_t start_ = 0;
+    int32_t size_ = 0;
     bool finish_ = false;
 
     CtrT&   ctr_;
@@ -81,7 +81,7 @@ protected:
 
 public:
 
-    AbstractBTSSInputProviderBase(CtrT& ctr, Int capacity):
+    AbstractBTSSInputProviderBase(CtrT& ctr, int32_t capacity):
         ctr_(ctr)
     {
         input_buffer_ = create_input_buffer(capacity);
@@ -160,13 +160,13 @@ public:
         }
     }
 
-    virtual Int findCapacity(const NodeBaseG& leaf, Int size) = 0;
+    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size) = 0;
 
 
     struct InsertBufferFn {
 
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj>
-        void stream(StreamObj* stream, Int at, const InputBuffer* buffer, Int start, Int size)
+        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj>
+        void stream(StreamObj* stream, int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
         {
             stream->insert_buffer(at, buffer->template substream_by_idx<Idx>(), start, size);
         }
@@ -179,7 +179,7 @@ public:
     };
 
 
-    virtual void insertBuffer(NodeBaseG& leaf, Int at, Int size)
+    virtual void insertBuffer(NodeBaseG& leaf, int32_t at, int32_t size)
     {
         CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, input_buffer_, start_, size);
         start_ += size;
@@ -190,7 +190,7 @@ public:
         }
     }
 
-    Int buffer_size() const
+    int32_t buffer_size() const
     {
         return size_ - start_;
     }
@@ -203,10 +203,10 @@ public:
     }
 
     // must be an abstract method
-    virtual Int get(InputBuffer* buffer, Int pos) = 0;
+    virtual int32_t get(InputBuffer* buffer, int32_t pos) = 0;
 
     virtual void start_buffer(InputBuffer* buffer) {}
-    virtual void end_buffer(InputBuffer* buffer, Int size) {}
+    virtual void end_buffer(InputBuffer* buffer, int32_t size) {}
 
     virtual bool populate_buffer()
     {
@@ -221,7 +221,7 @@ public:
 
                 start_buffer(input_buffer_);
 
-                Int entries = get(input_buffer_, 0);
+                int32_t entries = get(input_buffer_, 0);
 
                 if (entries > 0)
                 {
@@ -254,9 +254,9 @@ protected:
         return input_buffer_->data_capacity();
     }
 
-    static InputBuffer* create_input_buffer(Int capacity)
+    static InputBuffer* create_input_buffer(int32_t capacity)
     {
-        Int buffer_size = InputBuffer::block_size(capacity) + 256;
+        int32_t buffer_size = InputBuffer::block_size(capacity) + 256;
 
         void* block = malloc(buffer_size);
         if (block != nullptr)
@@ -274,7 +274,7 @@ protected:
 
     static InputBuffer* create_input_buffer(const BufferSizes& capacity)
     {
-        Int buffer_size = InputBuffer::block_size(capacity) + 256;
+        int32_t buffer_size = InputBuffer::block_size(capacity) + 256;
 
         void* block = malloc(buffer_size);
         if (block != nullptr)
@@ -337,11 +337,11 @@ public:
 
 public:
 
-    AbstractBTSSInputProvider(CtrT& ctr, Int capacity): Base(ctr, capacity) {}
+    AbstractBTSSInputProvider(CtrT& ctr, int32_t capacity): Base(ctr, capacity) {}
 
-    virtual Int findCapacity(const NodeBaseG& leaf, Int size)
+    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size)
     {
-        Int capacity = this->ctr_.getLeafNodeCapacity(leaf);
+        int32_t capacity = this->ctr_.getLeafNodeCapacity(leaf);
 
         if (capacity > size)
         {
@@ -369,11 +369,11 @@ public:
 
 public:
 
-    AbstractBTSSInputProvider(CtrT& ctr, Int capacity): Base(ctr, capacity) {}
+    AbstractBTSSInputProvider(CtrT& ctr, int32_t capacity): Base(ctr, capacity) {}
 
     virtual Position fill(NodeBaseG& leaf, const Position& from)
     {
-        Int pos = from[0];
+        int32_t pos = from[0];
 
         PageUpdateMgr mgr(this->ctr());
 
@@ -402,9 +402,9 @@ public:
         return Position(pos);
     }
 
-    virtual Int insertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, Int at, Int size)
+    virtual int32_t insertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
     {
-        Int inserted = this->insertBuffer_(mgr, leaf, at, size);
+        int32_t inserted = this->insertBuffer_(mgr, leaf, at, size);
 
         if (leaf->parent_id().isSet())
         {
@@ -414,7 +414,7 @@ public:
         return inserted;
     }
 
-    Int insertBuffer_(PageUpdateMgr& mgr, NodeBaseG& leaf, Int at, Int size)
+    int32_t insertBuffer_(PageUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
     {
         if (tryInsertBuffer(mgr, leaf, at, size))
         {
@@ -426,7 +426,7 @@ public:
             decltype(imax) imin  = 0;
             decltype(imax) start = 0;
 
-            Int accepts = 0;
+            int32_t accepts = 0;
 
             while (imax > imin && (getFreeSpacePart(leaf) > 0.05))
             {
@@ -434,7 +434,7 @@ public:
                 {
                     auto mid = imin + ((imax - imin) / 2);
 
-                    Int try_block_size = mid - start;
+                    int32_t try_block_size = mid - start;
                     if (tryInsertBuffer(mgr, leaf, at, try_block_size))
                     {
                         imin = mid + 1;
@@ -465,12 +465,12 @@ public:
     }
 
 protected:
-    virtual Int findCapacity(const NodeBaseG& leaf, Int size) {
+    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size) {
         return 0;
     }
 
 
-    bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, Int at, Int size)
+    bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
     {
         try {
             CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, typename Base::InsertBufferFn(), at, this->input_buffer_, this->start_, size);
@@ -509,26 +509,26 @@ protected:
     using typename Base::InputBuffer;
 
     IOBuffer& io_buffer_;
-    Int num_entries_ = 0;
-    Int entry_ = 0;
+    int32_t num_entries_ = 0;
+    int32_t entry_ = 0;
 
-    Int finish_ = false;
+    int32_t finish_ = false;
 
 public:
-    AbstractIOBufferBTSSInputProvider1(CtrT& ctr, IOBuffer& buffer, Int input_buffer_capacity = 10000):
+    AbstractIOBufferBTSSInputProvider1(CtrT& ctr, IOBuffer& buffer, int32_t input_buffer_capacity = 10000):
         Base(ctr, input_buffer_capacity),
         io_buffer_(buffer)
     {}
 
     virtual ~AbstractIOBufferBTSSInputProvider1() {}
 
-    virtual Int populate(IOBuffer& buffer) = 0;
+    virtual int32_t populate(IOBuffer& buffer) = 0;
 
-    virtual Int get(InputBuffer* buffer, Int pos)
+    virtual int32_t get(InputBuffer* buffer, int32_t pos)
     {
         auto input_buffer_state = buffer->append_state();
 
-        Int total = 0;
+        int32_t total = 0;
 
 
         while (true)
@@ -536,7 +536,7 @@ public:
             if (entry_ == num_entries_ && !finish_)
             {
                 io_buffer_.rewind();
-                Int entries = populate(io_buffer_);
+                int32_t entries = populate(io_buffer_);
 
                 if (entries > 0) {
                     num_entries_ = entries;
@@ -591,30 +591,30 @@ protected:
 
 
     IOBuffer& io_buffer_;
-    Int finished_ = false;
+    int32_t finished_ = false;
 
     AppendState append_state_;
 
 public:
-    AbstractIOBufferBTSSInputProvider(CtrT& ctr, IOBuffer& buffer, Int input_buffer_capacity = 10000):
+    AbstractIOBufferBTSSInputProvider(CtrT& ctr, IOBuffer& buffer, int32_t input_buffer_capacity = 10000):
         Base(ctr, input_buffer_capacity),
         io_buffer_(buffer)
     {}
 
     virtual ~AbstractIOBufferBTSSInputProvider() {}
 
-    virtual Int populate(IOBuffer& buffer) = 0;
+    virtual int32_t populate(IOBuffer& buffer) = 0;
 
-    virtual Int get(InputBuffer* buffer, Int pos)
+    virtual int32_t get(InputBuffer* buffer, int32_t pos)
     {
         if (!finished_)
         {
             append_state_ = input_buffer_->append_state();
 
             io_buffer_.rewind();
-            Int entries = populate(io_buffer_);
+            int32_t entries = populate(io_buffer_);
 
-            Int total;
+            int32_t total;
             if (entries >  0)
             {
                 total = entries;
@@ -626,7 +626,7 @@ public:
 
             io_buffer_.rewind();
 
-            for (Int c = 0; c < total; c++)
+            for (int32_t c = 0; c < total; c++)
             {
                 this->append_io_entry();
             }
@@ -640,7 +640,7 @@ public:
 
 
 
-    void append_io_entry(Int enlargements = 0)
+    void append_io_entry(int32_t enlargements = 0)
     {
         size_t pos = io_buffer_.pos();
 
@@ -673,12 +673,12 @@ class IOBufferProducerBTSSInputProvider : public AbstractIOBufferBTSSInputProvid
     using Base = AbstractIOBufferBTSSInputProvider<CtrT, IOBuffer>;
     bt::BufferProducer<IOBuffer>* producer_;
 public:
-    IOBufferProducerBTSSInputProvider(CtrT& ctr, IOBuffer& buffer, bt::BufferProducer<IOBuffer>* producer, Int input_buffer_capacity = 10000):
+    IOBufferProducerBTSSInputProvider(CtrT& ctr, IOBuffer& buffer, bt::BufferProducer<IOBuffer>* producer, int32_t input_buffer_capacity = 10000):
         Base(ctr, buffer, input_buffer_capacity),
         producer_(producer)
     {}
 
-    virtual Int populate(IOBuffer& buffer)
+    virtual int32_t populate(IOBuffer& buffer)
     {
         return producer_->populate(buffer);
     }

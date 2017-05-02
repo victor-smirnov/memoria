@@ -24,16 +24,16 @@ namespace v1 {
 template <typename> class ValueCodec;
 
 template <>
-class ValueCodec<BigInt> {
+class ValueCodec<int64_t> {
 public:
-    using BufferType    = UByte;
+    using BufferType    = uint8_t;
     using T             = BufferType;
-    using V             = BigInt;
+    using V             = int64_t;
 
     using ValuePtr      = ValuePtrT1<BufferType>;
 
-    static constexpr Int BitsPerOffset  = 4;
-    static constexpr Int ElementSize    = 8; // In bits;
+    static constexpr int32_t BitsPerOffset  = 4;
+    static constexpr int32_t ElementSize    = 8; // In bits;
 
     ValuePtr describe(const T* buffer, size_t idx)
     {
@@ -176,9 +176,9 @@ private:
 
     static size_t serialize(T* buffer, int64_t value, size_t idx)
     {
-        UInt len = bytes(value);
+        uint32_t len = bytes(value);
 
-        for (UInt c = 0; c < len; c++)
+        for (uint32_t c = 0; c < len; c++)
         {
             buffer[idx++] = value >> (c << 3);
         }
@@ -195,19 +195,19 @@ private:
     }
 
 
-    constexpr static UInt msb(unsigned long long digits)
+    constexpr static uint32_t msb(unsigned long long digits)
     {
         return 63 - __builtin_clzll(digits);
     }
 
     template <typename T>
-    constexpr static UInt bytes(T digits)
+    constexpr static uint32_t bytes(T digits)
     {
-        UInt v = msb(digits) + 1;
+        uint32_t v = msb(digits) + 1;
         return (v >> 3) + ((v & 0x7) != 0);
     }
 
-    constexpr static UInt byte_length(const int64_t data)
+    constexpr static uint32_t byte_length(const int64_t data)
     {
         return bytes(data);
     }

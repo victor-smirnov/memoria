@@ -88,14 +88,14 @@ public:
     }
     
     template <typename Fn>
-    auto insert_fn(BigInt size, Fn&& fn) 
+    auto insert_fn(int64_t size, Fn&& fn) 
     {
         using Iterator = IteratorFn<std::remove_reference_t<decltype(fn)>>;
         
         Iterator fni(fn);
-        EndIteratorFn<BigInt> endi(size);
+        EndIteratorFn<int64_t> endi(size);
         
-        InputIteratorProvider<DataValue, Iterator, EndIteratorFn<BigInt>, CtrIOBuffer, IsVLen<Value>::Value> provider(fni, endi);
+        InputIteratorProvider<DataValue, Iterator, EndIteratorFn<int64_t>, CtrIOBuffer, IsVLen<Value>::Value> provider(fni, endi);
         return insert(provider);
     }
     

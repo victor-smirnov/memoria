@@ -37,7 +37,7 @@ class LeveledNodeWalkerBase {
 
         LeafStreamFn(MyType& walker): walker_(walker) {}
 
-        template <Int StreamIdx, typename Stream, typename... Args>
+        template <int32_t StreamIdx, typename Stream, typename... Args>
         auto stream(const Stream* stream, Args&&... args)
         {
             return walker_.template leafStream<StreamIdx>(stream, args...);
@@ -50,7 +50,7 @@ class LeveledNodeWalkerBase {
 
         NonLeafStreamFn(MyType& walker): walker_(walker) {}
 
-        template <Int StreamIdx, typename Stream, typename... Args>
+        template <int32_t StreamIdx, typename Stream, typename... Args>
         auto stream(const Stream* stream, Args&&... args)
         {
             return walker_.template nonLeafStream<StreamIdx>(stream, args...);
@@ -122,7 +122,7 @@ struct NodeWalkerBase {
 
 
 
-template <Int Stream, typename SubstreamsIdxList>
+template <int32_t Stream, typename SubstreamsIdxList>
 struct SubstreamsSetNodeFn {
     template <typename NodeTypes, typename... Args>
     auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
@@ -139,7 +139,7 @@ struct SubstreamsSetNodeFn {
 };
 
 
-template <Int Stream>
+template <int32_t Stream>
 struct StreamNodeFn {
     template <typename NodeTypes, typename... Args>
     auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)

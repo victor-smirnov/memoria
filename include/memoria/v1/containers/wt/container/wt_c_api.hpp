@@ -61,7 +61,7 @@ public:
         }
     }
 
-    void insert(Int idx, UBigInt value)
+    void insert(int32_t idx, uint64_t value)
     {
         auto& self = this->self();
         auto& tree = self.tree();
@@ -71,7 +71,7 @@ public:
         insert(*root.get(), idx, value, 3);
     }
 
-    void remove(Int idx)
+    void remove(int32_t idx)
     {
         auto& self = this->self();
         auto& tree = self.tree();
@@ -83,9 +83,9 @@ public:
 
 
 
-    UBigInt value(Int idx)
+    uint64_t value(int32_t idx)
     {
-        UBigInt value = 0;
+        uint64_t value = 0;
 
         auto& self = this->self();
         auto& tree = self.tree();
@@ -98,7 +98,7 @@ public:
     }
 
 
-    CtrSizeT rank(CtrSizeT idx, UBigInt symbol)
+    CtrSizeT rank(CtrSizeT idx, uint64_t symbol)
     {
         auto& self = this->self();
         auto& tree = self.tree();
@@ -109,7 +109,7 @@ public:
     }
 
 
-    CtrSizeT select(CtrSizeT rank, UBigInt symbol)
+    CtrSizeT select(CtrSizeT rank, uint64_t symbol)
     {
         auto& self = this->self();
         auto& tree = self.tree();
@@ -121,20 +121,20 @@ public:
 
 private:
 
-    void insert(TreeIterator& node, Int idx, UBigInt value, Int level)
+    void insert(TreeIterator& node, int32_t idx, uint64_t value, int32_t level)
     {
         auto& self = this->self();
         auto& tree = self.tree();
         auto& seq  = self.seq();
 
-        Int label = (value >> (level * 8)) & 0xFF;
+        int32_t label = (value >> (level * 8)) & 0xFF;
 
-        BigInt seq_base = node.template sumLabel<1>();
+        int64_t seq_base = node.template sumLabel<1>();
 
         seq->insert_symbol(seq_base + idx, label);
         node.template addLabel<1>(1);
 
-        BigInt rank = seq->rank(seq_base, idx + 1, label);
+        int64_t rank = seq->rank(seq_base, idx + 1, label);
 
         if (level > 0)
         {
@@ -150,13 +150,13 @@ private:
     }
 
 
-    void buildValue(Int idx, TreeIterator& node, UBigInt& value, Int level)
+    void buildValue(int32_t idx, TreeIterator& node, uint64_t& value, int32_t level)
     {
         auto& self = this->self();
         auto& seq  = self.seq();
 
         CtrSizeT seq_base   = node.template sumLabel<1>();
-        UBigInt label       = seq->seek(seq_base + idx)->symbol();
+        uint64_t label       = seq->seek(seq_base + idx)->symbol();
         CtrSizeT  rank      = seq->rank(seq_base, idx + 1, label);
 
         value |= label << (level * 8);
@@ -169,7 +169,7 @@ private:
     }
 
 
-    void removeValue(Int idx, TreeIterator& node, Int level)
+    void removeValue(int32_t idx, TreeIterator& node, int32_t level)
     {
         auto& self = this->self();
         auto& tree = self.tree();
@@ -178,7 +178,7 @@ private:
         CtrSizeT node_pos   = node.pos();
 
         CtrSizeT seq_base   = node.template sumLabel<1>();
-        UBigInt label       = seq->seek(seq_base + idx)->symbol();
+        uint64_t label       = seq->seek(seq_base + idx)->symbol();
         CtrSizeT  rank      = seq->rank(seq_base, idx + 1, label);
 
         if (level > 0)
@@ -205,14 +205,14 @@ private:
     }
 
 
-    CtrSizeT select(TreeIterator& node, Int rank, UBigInt symbol, Int level)
+    CtrSizeT select(TreeIterator& node, int32_t rank, uint64_t symbol, int32_t level)
     {
         auto& self = this->self();
         auto& seq  = self.seq();
 
         if (level >= 0)
         {
-            Int label = (symbol >> (level * 8)) & 0xFFull;
+            int32_t label = (symbol >> (level * 8)) & 0xFFull;
 
             auto child = self.findChild(node, label);
 
@@ -220,7 +220,7 @@ private:
 
             CtrSizeT seq_base = node.template sumLabel<1>();
 
-            BigInt pos = seq->select(seq_base, rnk, label)->pos() + 1;
+            int64_t pos = seq->select(seq_base, rnk, label)->pos() + 1;
 
             return pos - seq_base;
         }
@@ -230,9 +230,9 @@ private:
     }
 
 
-    CtrSizeT buildRank(TreeIterator& node, CtrSizeT idx, UBigInt symbol, Int level)
+    CtrSizeT buildRank(TreeIterator& node, CtrSizeT idx, uint64_t symbol, int32_t level)
     {
-        Int label  = (symbol >> (level * 8)) & 0xFFull;
+        int32_t label  = (symbol >> (level * 8)) & 0xFFull;
 
         auto& self = this->self();
         auto& seq  = self.seq();

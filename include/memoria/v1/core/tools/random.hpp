@@ -66,25 +66,25 @@ public:
     }
 };
 
-using RngInt    = RNG<Int, RngEngine32>;
-using RngBigInt = RNG<BigInt, RngEngine64>;
+using RngInt    = RNG<int32_t, RngEngine32>;
+using RngBigInt = RNG<int64_t, RngEngine64>;
 
 
 RngInt& getGlobalIntGenerator();
 RngBigInt& getGlobalBigIntGenerator();
 
-Int     getRandomG();
-Int     getRandomG(Int max);
-void    Seed(Int value);
-Int     getSeed();
+int32_t     getRandomG();
+int32_t     getRandomG(int32_t max);
+void    Seed(int32_t value);
+int32_t     getSeed();
 
-BigInt  getBIRandomG();
-BigInt  getBIRandomG(BigInt max);
-void    SeedBI(BigInt value);
-BigInt  getSeedBI();
+int64_t  getBIRandomG();
+int64_t  getBIRandomG(int64_t max);
+void    SeedBI(int64_t value);
+int64_t  getSeedBI();
 
 
-Int getNonZeroRandomG(Int size);
+int32_t getNonZeroRandomG(int32_t size);
 
 
 }}

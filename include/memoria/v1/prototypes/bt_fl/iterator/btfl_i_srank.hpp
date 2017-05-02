@@ -44,26 +44,26 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorStreamRankName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    static constexpr Int DataStreams 				= Container::Types::DataStreams;
-    static constexpr Int StructureStreamIdx = Container::Types::StructureStreamIdx;
+    static constexpr int32_t DataStreams 				= Container::Types::DataStreams;
+    static constexpr int32_t StructureStreamIdx = Container::Types::StructureStreamIdx;
 
 private:
 
 
     struct RankWalker {
         CtrSizeT rank_ = 0;
-        Int symbol_;
-        RankWalker(Int symbol): symbol_(symbol) {}
+        int32_t symbol_;
+        RankWalker(int32_t symbol): symbol_(symbol) {}
 
         template <typename NodeTypes>
-        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
         {
             using BranchNodeT = bt::BranchNode<NodeTypes>;
 
             using LeafPath = IntList<StructureStreamIdx, 1>;
             using BranchPath = typename BranchNodeT::template BuildBranchPath<LeafPath>;
 
-            Int symbols_base = BranchNodeT::template translateLeafIndexToBranchIndex<LeafPath>(0);
+            int32_t symbols_base = BranchNodeT::template translateLeafIndexToBranchIndex<LeafPath>(0);
 
             auto sizes_substream = node->template substream<BranchPath>();
 
@@ -71,7 +71,7 @@ private:
         }
 
         template <typename NodeTypes>
-        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
         {
         }
     };
@@ -81,31 +81,31 @@ private:
         DataSizesT ranks_;
 
         template <typename NodeTypes>
-        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
         {
         	  using BranchNodeT = bt::BranchNode<NodeTypes>;
 
         	  using LeafPath = IntList<StructureStreamIdx, 1>;
         	  using BranchPath = typename BranchNodeT::template BuildBranchPath<LeafPath>;
 
-        	  Int symbols_base = BranchNodeT::template translateLeafIndexToBranchIndex<LeafPath>(0);
+        	  int32_t symbols_base = BranchNodeT::template translateLeafIndexToBranchIndex<LeafPath>(0);
 
             auto sizes_substream = node->template substream<BranchPath>();
 
-            for (Int s = 0; s < DataStreams; s++) {
+            for (int32_t s = 0; s < DataStreams; s++) {
             	ranks_[s] += sizes_substream->sum(s + symbols_base, end);
             }
         }
 
         template <typename NodeTypes>
-        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
         {
         }
     };
 
 public:
 
-    CtrSizeT rank(Int stream) const
+    CtrSizeT rank(int32_t stream) const
     {
     	auto& self = this->self();
     	RankWalker fn(stream);
@@ -134,7 +134,7 @@ public:
 
     	DataSizesT leaf_ranks;
 
-    	for (Int s = 0; s < DataStreams; s++) {
+    	for (int32_t s = 0; s < DataStreams; s++) {
     		leaf_ranks[s] = leaf_structure->rank(idx, s);
     	}
 

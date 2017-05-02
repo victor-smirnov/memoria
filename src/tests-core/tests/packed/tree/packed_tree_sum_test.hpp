@@ -38,7 +38,7 @@ class PackedTreeSumTest: public PackedTreeTestBase <PackedTreeT> {
 
     using typename Base::TreePtr;
 
-    Int iterations_ = 1000;
+    int32_t iterations_ = 1000;
 
 public:
 
@@ -54,11 +54,11 @@ public:
 
     virtual ~PackedTreeSumTest() noexcept {}
 
-    IndexValue sum(const TreePtr& tree, Int block, Int start, Int end)
+    IndexValue sum(const TreePtr& tree, int32_t block, int32_t start, int32_t end)
     {
         IndexValue sum = 0;
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
             sum += tree->value(block, c);
         }
@@ -72,13 +72,13 @@ public:
 
     void testBlockSum()
     {
-        for (Int c = 1024; c <= this->size_; c += 1024)
+        for (int32_t c = 1024; c <= this->size_; c += 1024)
         {
             testBlockSum(c);
         }
     }
 
-    void testBlockSum(Int tree_size)
+    void testBlockSum(int32_t tree_size)
     {
         Base::out()<<tree_size<<endl;
 
@@ -86,18 +86,18 @@ public:
 
         auto values = Base::fillRandom(tree, tree_size);
 
-        Int size = tree->size();
+        int32_t size = tree->size();
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
-            Int end     = this->getRandom(size / 2) + size / 2;
-            Int start   = this->getRandom(size / 2);
+            int32_t end     = this->getRandom(size / 2) + size / 2;
+            int32_t start   = this->getRandom(size / 2);
 
-            Int block   = this->getRandom(Tree::Blocks);
+            int32_t block   = this->getRandom(Tree::Blocks);
 
-            Int sum1 = tree->sum(block, start, end);
-            Int sum2 = Base::sum(values, block, start, end);
-            Int sum3 = this->sum(tree, block, start, end);
+            int32_t sum1 = tree->sum(block, start, end);
+            int32_t sum2 = Base::sum(values, block, start, end);
+            int32_t sum3 = this->sum(tree, block, start, end);
 
             AssertEQ(MA_SRC, sum2, sum3);
             AssertEQ(MA_SRC, sum1, sum2);

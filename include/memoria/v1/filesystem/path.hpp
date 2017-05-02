@@ -799,7 +799,7 @@ namespace filesystem {
   operator<<(std::basic_ostream<Char, Traits>& os, const path& p)
   {
     return os
-      << boost::io::quoted(p.template string<std::basic_string<Char> >(), static_cast<Char>('&'));
+      << boost::io::quoted(p.template string<std::basic_string<char> >(), static_cast<Char>('&'));
   }
   
   template <class Char, class Traits>

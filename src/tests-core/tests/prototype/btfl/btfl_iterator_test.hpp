@@ -46,7 +46,7 @@ class BTFLIteratorTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
 
     using CtrSizesT      = typename Ctr::Types::Position;
 
-    template <Int Level>
+    template <int32_t Level>
     using BTFLSampleData = typename Ctr::Types::template IOData<Level>;
 
 

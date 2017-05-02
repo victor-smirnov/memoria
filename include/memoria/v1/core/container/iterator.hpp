@@ -138,7 +138,7 @@ public:
 private:
     Logger logger_;
 
-    Int type_;
+    int32_t type_;
 
     PairPtr pair_;
 
@@ -156,11 +156,11 @@ public:
     const PairPtr& pair() const {return pair_;}
 
 
-    const Int& type() const {
+    const int32_t& type() const {
         return type_;
     }
 
-    Int& type() {
+    int32_t& type() {
         return type_;
     }
 
@@ -195,7 +195,7 @@ public:
     }
 
 
-    bool is_log(Int level)
+    bool is_log(int32_t level)
     {
         return logger_.isLogEnabled(level);
     }

@@ -31,17 +31,17 @@ using namespace v1::bt;
 template <typename ID>
 class BalancedTreeMetadata
 {
-    static const UInt VERSION = 1;
+    static const uint32_t VERSION = 1;
 
 public:
-    static const Int ROOTS = 2;
+    static const int32_t ROOTS = 2;
 
 private:
     UUID  model_name_;
 
-    Int   branching_factor_;
+    int32_t   branching_factor_;
 
-    Int   page_size_;
+    int32_t   page_size_;
 
     ID    roots_[ROOTS];
 
@@ -50,8 +50,8 @@ private:
 public:
 
     using FieldsList = TL<
-                ConstValue<UInt, VERSION>,
-                ConstValue<UInt, ROOTS>,
+                ConstValue<uint32_t, VERSION>,
+                ConstValue<uint32_t, ROOTS>,
                 decltype(model_name_),
                 decltype(branching_factor_),
                 decltype(page_size_),
@@ -72,22 +72,22 @@ public:
     }
 
 
-    Int &branching_factor()
+    int32_t &branching_factor()
     {
         return branching_factor_;
     }
 
-    const Int &branching_factor() const
+    const int32_t &branching_factor() const
     {
         return branching_factor_;
     }
 
-    Int &page_size()
+    int32_t &page_size()
     {
         return page_size_;
     }
 
-    const Int &page_size() const
+    const int32_t &page_size() const
     {
         return page_size_;
     }
@@ -103,7 +103,7 @@ public:
 
         handler->startLine("ROOTS", ROOTS);
 
-        for (Int c = 0; c < ROOTS; c++)
+        for (int32_t c = 0; c < ROOTS; c++)
         {
             handler->value("ROOT",  &roots_[c]);
         }
@@ -118,10 +118,10 @@ public:
     void serialize(SerializationData& buf) const
     {
         FieldFactory<UUID>::serialize(buf, model_name_);
-        FieldFactory<Int>::serialize(buf,  branching_factor_);
-        FieldFactory<Int>::serialize(buf,  page_size_);
+        FieldFactory<int32_t>::serialize(buf,  branching_factor_);
+        FieldFactory<int32_t>::serialize(buf,  page_size_);
 
-        for (Int c = 0; c < ROOTS; c++)
+        for (int32_t c = 0; c < ROOTS; c++)
         {
             FieldFactory<ID>::serialize(buf, roots_[c]);
         }
@@ -132,10 +132,10 @@ public:
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<UUID>::deserialize(buf, model_name_);
-        FieldFactory<Int>::deserialize(buf,  branching_factor_);
-        FieldFactory<Int>::deserialize(buf,  page_size_);
+        FieldFactory<int32_t>::deserialize(buf,  branching_factor_);
+        FieldFactory<int32_t>::deserialize(buf,  page_size_);
 
-        for (Int c = 0; c < ROOTS; c++)
+        for (int32_t c = 0; c < ROOTS; c++)
         {
             FieldFactory<ID>::deserialize(buf, roots_[c]);
         }
@@ -176,9 +176,9 @@ struct FieldFactory<BalancedTreeMetadata<ID>> {
         field.serialize(data);
     }
 
-    static void serialize(SerializationData& data, const Type* field, Int size)
+    static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             field[c].serialize(data);
         }
@@ -190,9 +190,9 @@ struct FieldFactory<BalancedTreeMetadata<ID>> {
         field.deserialize(data);
     }
 
-    static void deserialize(DeserializationData& data, Type* field, Int size)
+    static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             field[c].deserialize(data);
         }

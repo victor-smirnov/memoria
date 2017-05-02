@@ -62,12 +62,12 @@ class FindEndWalker: public FindEdgeWalkerBase<Types> {
     BranchNodeEntry prefix_;
 
 public:
-    typedef Int ReturnType;
+    typedef int32_t ReturnType;
 
-    FindEndWalker(Int stream, const Container&) {}
+    FindEndWalker(int32_t stream, const Container&) {}
 
     template <typename Node>
-    ReturnType treeNode(const Node* node, Int start)
+    ReturnType treeNode(const Node* node, int32_t start)
     {
         if (node->level() > 0)
         {
@@ -80,7 +80,7 @@ public:
         return node->children_count() - 1;
     }
 
-    void finish(Iterator& iter, Int idx)
+    void finish(Iterator& iter, int32_t idx)
     {
         iter.key_idx() = idx + 1;
         iter.cache().setup(prefix_);
@@ -97,9 +97,9 @@ class FindREndWalker: public FindEdgeWalkerBase<Types> {
     typedef typename Types::BranchNodeEntry     BranchNodeEntry;
 
 public:
-    typedef Int ReturnType;
+    typedef int32_t ReturnType;
 
-    FindREndWalker(Int stream, const Container&) {}
+    FindREndWalker(int32_t stream, const Container&) {}
 
     template <typename Node>
     ReturnType treeNode(const Node* node)
@@ -107,7 +107,7 @@ public:
         return 0;
     }
 
-    void finish(Iterator& iter, Int idx)
+    void finish(Iterator& iter, int32_t idx)
     {
         iter.key_idx() = idx - 1;
 
@@ -126,19 +126,19 @@ class FindBeginWalker: public FindEdgeWalkerBase<Types> {
     typedef typename Types::BranchNodeEntry     BranchNodeEntry;
 
 public:
-    typedef Int ReturnType;
+    typedef int32_t ReturnType;
 
 
-    FindBeginWalker(Int stream, const Container&) {}
+    FindBeginWalker(int32_t stream, const Container&) {}
 
 
     template <typename Node>
-    ReturnType treeNode(const Node* node, Int)
+    ReturnType treeNode(const Node* node, int32_t)
     {
         return 0;
     }
 
-    void finish(Iterator& iter, Int idx)
+    void finish(Iterator& iter, int32_t idx)
     {
         iter.idx() = 0;
     }
@@ -156,9 +156,9 @@ class FindRBeginWalker: public FindEdgeWalkerBase<Types> {
     BranchNodeEntry prefix_;
 
 public:
-    FindRBeginWalker(Int stream, const Container&) {}
+    FindRBeginWalker(int32_t stream, const Container&) {}
 
-    typedef Int ReturnType;
+    typedef int32_t ReturnType;
 
 
 
@@ -170,7 +170,7 @@ public:
         return node->children_count() - 1;
     }
 
-    void finish(Iterator& iter, Int idx)
+    void finish(Iterator& iter, int32_t idx)
     {
         iter.key_idx() = idx;
 

@@ -47,7 +47,7 @@ static String getPath(String dump_name)
 	}
 }
 
-static Int DumpAllocator(String file_name)
+static int32_t DumpAllocator(String file_name)
 {
 	try {
 		logger.level() = Logger::NONE;

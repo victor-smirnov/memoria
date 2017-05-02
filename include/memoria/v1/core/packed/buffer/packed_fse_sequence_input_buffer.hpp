@@ -28,12 +28,12 @@ namespace v1 {
 
 
 template <
-    Int BitsPerSymbol_,
+    int32_t BitsPerSymbol_,
     template <typename> class ToolsFnType   = BitmapToolsFn
 >
 struct PackedFSESequenceInputBufferTypes {
 
-    static const Int        BitsPerSymbol           = BitsPerSymbol_;
+    static const int32_t        BitsPerSymbol           = BitsPerSymbol_;
 
     template <typename Seq>
     using ToolsFn = ToolsFnType<Seq>;
@@ -47,58 +47,58 @@ class PkdFSESequenceInputBuffer: public PackedAllocatable {
     using Base = PackedAllocatable;
 
 public:
-    static const UInt VERSION = 1;
+    static const uint32_t VERSION = 1;
 
     using Types  = Types_;
     using MyType = PkdFSESequenceInputBuffer<Types>;
 
-    static const Int BitsPerSymbol = Types::BitsPerSymbol;
-    static const Int Indexes                = 1<<BitsPerSymbol;
-    static const Int AlphabetSize           = 1<<BitsPerSymbol;
+    static const int32_t BitsPerSymbol = Types::BitsPerSymbol;
+    static const int32_t Indexes                = 1<<BitsPerSymbol;
+    static const int32_t AlphabetSize           = 1<<BitsPerSymbol;
 
-    using Values = core::StaticVector<BigInt, Indexes>;
+    using Values = core::StaticVector<int64_t, Indexes>;
 
     using Value = IfThenElse<
                 BitsPerSymbol == 8,
-                UByte,
-                UBigInt
+                uint8_t,
+                uint64_t
     >;
 
     using Tools = typename Types::template ToolsFn<MyType>;
 
     using SymbolsBuffer = SmallSymbolBuffer<BitsPerSymbol>;
 
-    using SizesT = core::StaticVector<Int, 1>;
+    using SizesT = core::StaticVector<int32_t, 1>;
 
     class AppendState {
-        Int size_;
+        int32_t size_;
     public:
         AppendState(): size_(0) {}
-        AppendState(Int size): size_(size) {}
+        AppendState(int32_t size): size_(size) {}
 
-        Int& size() {return size_;}
-        const Int& size() const {return size_;}
+        int32_t& size() {return size_;}
+        const int32_t& size() const {return size_;}
     };
 
 private:
 
-    Int size_;
-    Int max_size_;
-    Int alignment_gap_;
+    int32_t size_;
+    int32_t max_size_;
+    int32_t alignment_gap_;
 
     Value buffer_[];
 
 public:
     PkdFSESequenceInputBuffer() {}
 
-    Int& size() {return size_;}
-    const Int& size() const {return size_;}
+    int32_t& size() {return size_;}
+    const int32_t& size() const {return size_;}
 
-    Int& max_size() {return max_size_;}
-    const Int& max_size() const {return max_size_;}
+    int32_t& max_size() {return max_size_;}
+    const int32_t& max_size() const {return max_size_;}
 
 public:
-    void init(Int capacity)
+    void init(int32_t capacity)
     {
         size_ = 0;
         alignment_gap_ = 0;
@@ -116,12 +116,12 @@ public:
         init(empty_size());
     }
 
-    static constexpr Int block_size(Int elements)
+    static constexpr int32_t block_size(int32_t elements)
     {
         return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
     }
 
-    static constexpr Int block_size(const SizesT& elements)
+    static constexpr int32_t block_size(const SizesT& elements)
     {
         return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements[0] * BitsPerSymbol);
     }
@@ -130,7 +130,7 @@ public:
         size_ = 0;
     }
 
-    Int block_size() const {
+    int32_t block_size() const {
         const PackedAllocator* alloc = this->allocator();
         return alloc->element_size(this);
     }
@@ -151,11 +151,11 @@ public:
         return buffer_;
     }
 
-    Int capacity() const {
+    int32_t capacity() const {
         return max_size_ - size_;
     }
 
-    Int symbol(Int idx) const {
+    int32_t symbol(int32_t idx) const {
         return tools().get(symbols(), idx);
     }
 
@@ -163,12 +163,12 @@ public:
     void reindex() const {}
 
     template <typename Adaptor>
-    Int append(Int size, Adaptor&& adaptor)
+    int32_t append(int32_t size, Adaptor&& adaptor)
     {
         auto symbols = this->symbols();
 
-        Int start = size_;
-        Int limit = (start + size) <= max_size_ ? size : max_size_ - start;
+        int32_t start = size_;
+        int32_t limit = (start + size) <= max_size_ ? size : max_size_ - start;
 
         auto buf = adaptor(limit);
 
@@ -180,11 +180,11 @@ public:
     }
 
     template <typename Adaptor>
-    Int append(Adaptor&& adaptor)
+    int32_t append(Adaptor&& adaptor)
     {
         auto symbols = this->symbols();
 
-        Int limit = max_size_ - size_;
+        int32_t limit = max_size_ - size_;
 
         auto buf = adaptor(limit);
 
@@ -196,13 +196,13 @@ public:
     }
 
 
-    Int append(const Value* src_symbols, Int start, Int lenght)
+    int32_t append(const Value* src_symbols, int32_t start, int32_t lenght)
     {
         auto symbols = this->symbols();
 
-        Int limit = max_size_ - size_;
+        int32_t limit = max_size_ - size_;
 
-        Int limit0 = lenght < limit ? lenght : limit;
+        int32_t limit0 = lenght < limit ? lenght : limit;
 
         tools().move(src_symbols, symbols, start, size_, limit0);
 
@@ -224,7 +224,7 @@ public:
 
         out<<"Data:"<<endl;
 
-        dumpSymbols<Int>(out, size_, BitsPerSymbol, [this](Int pos) -> Int {
+        dumpSymbols<int32_t>(out, size_, BitsPerSymbol, [this](int32_t pos) -> int32_t {
             return this->symbol(pos);
         });
     }

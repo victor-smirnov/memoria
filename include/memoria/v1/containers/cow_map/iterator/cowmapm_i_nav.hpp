@@ -57,7 +57,7 @@ public:
     }
 
     template <typename InputIterator>
-    auto bulk_insert(InputIterator&& start, InputIterator&& end, Int ib_capacity = 10000)
+    auto bulk_insert(InputIterator&& start, InputIterator&& end, int32_t ib_capacity = 10000)
     {
 //        using InputProvider = map::MapEntryIteratorInputProvider<Container, InputIterator>;
 //
@@ -86,22 +86,22 @@ public:
     }
 
 
-    auto findFwGT(Int index, Key key)
+    auto findFwGT(int32_t index, Key key)
     {
         return self().template find_fw_gt<IntList<1>>(index, key);
     }
 
-    auto findFwGE(Int index, Key key)
+    auto findFwGE(int32_t index, Key key)
     {
         return self().template find_fw_ge<IntList<1>>(index, key);
     }
 
-    auto findBwGT(Int index, Key key)
+    auto findBwGT(int32_t index, Key key)
     {
         return self().template find_bw_gt<IntList<1>>(index, key);
     }
 
-    auto findBwGE(Int index, Key key)
+    auto findBwGE(int32_t index, Key key)
     {
         return self().template find_bw_ge<IntList<1>>(index, key);
     }
@@ -138,15 +138,15 @@ public:
         EntryAdaptor(Iterator& current): current_(current) {}
 
         template <typename V>
-        void put(StreamTag<0>, StreamTag<0>, Int block, V&& entry) {}
+        void put(StreamTag<0>, StreamTag<0>, int32_t block, V&& entry) {}
 
         template <typename V>
-        void put(StreamTag<0>, StreamTag<1>, Int block, V&& key) {
+        void put(StreamTag<0>, StreamTag<1>, int32_t block, V&& key) {
             key_ = key;
         }
 
         template <typename V>
-        void put(StreamTag<0>, StreamTag<2>, Int block, V&& value) {
+        void put(StreamTag<0>, StreamTag<2>, int32_t block, V&& value) {
             value_ = value;
         }
 

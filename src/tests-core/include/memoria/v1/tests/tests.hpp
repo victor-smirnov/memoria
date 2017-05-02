@@ -54,7 +54,7 @@ class TestTask: public Task {
 protected:
     typedef Task Base;
 
-    BigInt  size_;
+    int64_t  size_;
     String  current_test_name_;
 
     RngInt      int_generator_;
@@ -148,7 +148,7 @@ public:
         configurator_ = cfg;
 
         String coverage     = cfg->getValue<String>("coverage", "small");
-        Int coverage_size   = cfg->getValue<Int>("coverage_size", 1);
+        int32_t coverage_size   = cfg->getValue<int32_t>("coverage_size", 1);
 
         if (coverage == "smoke")
         {
@@ -176,21 +176,21 @@ public:
         Process(cfg);
     }
 
-    virtual void defaultCoverage(Int size) {}
+    virtual void defaultCoverage(int32_t size) {}
 
-    virtual void smokeCoverage(Int size) {
+    virtual void smokeCoverage(int32_t size) {
         defaultCoverage(size);
     }
 
-    virtual void smallCoverage(Int size) {
+    virtual void smallCoverage(int32_t size) {
         defaultCoverage(size);
     }
 
-    virtual void normalCoverage(Int size) {
+    virtual void normalCoverage(int32_t size) {
         defaultCoverage(size);
     }
 
-    virtual void largeCoverage(Int size) {
+    virtual void largeCoverage(int32_t size) {
         defaultCoverage(size);
     }
 
@@ -210,7 +210,7 @@ public:
 
     virtual void configureSeed()
     {
-        Int seed = this->getSeed();
+        int32_t seed = this->getSeed();
         if (seed == -1)
         {
             seed = getTimeInMillis() % 1000000;
@@ -224,22 +224,22 @@ public:
         this->out()<<"seed = "<<seed<<endl;
     }
 
-    Int getRandom()
+    int32_t getRandom()
     {
         return int_generator_();
     }
 
-    Int getRandom(Int max)
+    int32_t getRandom(int32_t max)
     {
         return int_generator_(max);
     }
 
-    BigInt getBIRandom()
+    int64_t getBIRandom()
     {
         return bigint_generator_();
     }
 
-    BigInt getBIRandom(BigInt max)
+    int64_t getBIRandom(int64_t max)
     {
         return bigint_generator_(max);
     }
@@ -325,7 +325,7 @@ public:
 
     void Replay(ostream& out, StringRef replay_file);
 
-    virtual Int Run();
+    virtual int32_t Run();
 };
 
 MemoriaTestRunner& tests_runner();

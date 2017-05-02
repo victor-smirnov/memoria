@@ -42,9 +42,9 @@ struct RtnFnBase {
 };
 
 
-template <typename List, Int GroupIdx = 0, Int ListIdx = 0> class PackedDispatcher;
+template <typename List, int32_t GroupIdx = 0, int32_t ListIdx = 0> class PackedDispatcher;
 
-template <typename Struct, Int Index>
+template <typename Struct, int32_t Index>
 struct SubstreamDescr {
     using Type = Struct;
     static const int Value = Index;
@@ -52,26 +52,26 @@ struct SubstreamDescr {
 
 
 
-template <typename Head, typename... Tail, Int Index, Int GroupIdx, Int ListIdx>
+template <typename Head, typename... Tail, int32_t Index, int32_t GroupIdx, int32_t ListIdx>
 class PackedDispatcher<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, ListIdx> {
 public:
 
     using MyType = PackedDispatcher<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, ListIdx>;
 
-    static const Int AllocatorIdx = Index;
+    static const int32_t AllocatorIdx = Index;
 
     using List              = TypeList<SubstreamDescr<Head, Index>, Tail...>;
     using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, GroupIdx, ListIdx + 1>;
 
-    static const Int Size = ListSize<List>::Value;
+    static const int32_t Size = ListSize<List>::Value;
 
-    static const Int AllocatorIdxStart  = Index;
-    static const Int AllocatorIdxEnd    = Select<Size - 1, List>::Value + 1;
+    static const int32_t AllocatorIdxStart  = Index;
+    static const int32_t AllocatorIdxEnd    = Select<Size - 1, List>::Value + 1;
 
 
-    template<typename, Int, Int> friend class PackedDispatcher;
+    template<typename, int32_t, int32_t> friend class PackedDispatcher;
 
-    template<Int StreamIdx>
+    template<int32_t StreamIdx>
     using StreamTypeT = SelectByIndex<StreamIdx, List>;
 
     template <typename Fn, typename... Args>
@@ -107,7 +107,7 @@ public:
 
 
 
-    template <Int From = 0, Int To = sizeof...(Tail) + 1, Int GroupIdx_ = GroupIdx>
+    template <int32_t From = 0, int32_t To = sizeof...(Tail) + 1, int32_t GroupIdx_ = GroupIdx>
     using SubrangeDispatcher = PackedDispatcher<
                                 typename v1::Sublist<
                                     List,
@@ -116,7 +116,7 @@ public:
                                 GroupIdx_
                              >;
 
-    template <typename Subset, Int GroupIdx_ = GroupIdx>
+    template <typename Subset, int32_t GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
                                 v1::ListSubset<
                                     List,
@@ -125,14 +125,14 @@ public:
                                 GroupIdx_
                            >;
 
-    template <Int GroupIdx_>
+    template <int32_t GroupIdx_>
     using GroupDispatcher = PackedDispatcher<List, GroupIdx>;
 
     template <template <typename> class MapFn>
     using ForAllStructs = MapTL2<List, MapFn>;
 
     template <typename Fn, typename... Args>
-    static auto dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -151,7 +151,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static auto dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static auto dispatch(int32_t idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -169,13 +169,13 @@ public:
     }
 
 
-    template <Int StreamIdx, typename Fn, typename... Args>
+    template <int32_t StreamIdx, typename Fn, typename... Args>
     static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
 
-        const Int AllocatorIdx  = StreamDescrT::Value;
+        const int32_t AllocatorIdx  = StreamDescrT::Value;
 
         const StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -187,13 +187,13 @@ public:
     }
 
 
-    template <Int StreamIdx, typename Fn, typename... Args>
+    template <int32_t StreamIdx, typename Fn, typename... Args>
     static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
 
-        const Int AllocatorIdx  = StreamDescrT::Value;
+        const int32_t AllocatorIdx  = StreamDescrT::Value;
 
         StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -263,7 +263,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static void dispatchNotEmpty(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchNotEmpty(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
@@ -276,7 +276,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static void dispatchNotEmpty(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchNotEmpty(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
@@ -362,7 +362,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         void
     >::type
-    dispatchAll2(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -381,7 +381,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         RtnTuple<Fn, Args...>
     >::type
-    dispatchAll2(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         RtnTuple<Fn, Args...> tuple;
 
@@ -396,7 +396,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         void
     >::type
-    dispatchAll2(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -415,7 +415,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         ConstRtnTuple<Fn, Args...>
     >::type
-    dispatchAll2(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -432,7 +432,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         void
     >::type
-    dispatchStatic(Int idx, Fn&& fn, Args&&... args)
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -449,7 +449,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         ConstRtnTuple<Fn, Args...>
     >::type
-    dispatchStatic(Int idx, Fn&& fn, Args&&... args)
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -465,7 +465,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         ConstRtnTuple<Fn, Args...>
     >::type
-    dispatchSelected(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -480,7 +480,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         void
     >::type
-    dispatchSelected(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -499,7 +499,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         RtnTuple<Fn, Args...>
     >::type
-    dispatchSelected(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         RtnTuple<Fn, Args...> tuple;
 
@@ -514,7 +514,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         void
     >::type
-    dispatchSelected(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -531,7 +531,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllTuple(Tuple& tuple, UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchAllTuple(Tuple& tuple, uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -546,7 +546,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllTuple(Tuple& tuple, UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchAllTuple(Tuple& tuple, uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -618,23 +618,23 @@ public:
 
 
 
-template <typename Head, Int Index, Int GroupIdx, Int ListIdx>
+template <typename Head, int32_t Index, int32_t GroupIdx, int32_t ListIdx>
 class PackedDispatcher<TypeList<SubstreamDescr<Head, Index>>, GroupIdx, ListIdx> {
 public:
 
-    static const Int AllocatorIdx   = Index;
+    static const int32_t AllocatorIdx   = Index;
 
     typedef TypeList<SubstreamDescr<Head, Index>> List;
 
-    static const Int AllocatorIdxStart  = Index;
-    static const Int AllocatorIdxEnd    = Index + 1;
+    static const int32_t AllocatorIdxStart  = Index;
+    static const int32_t AllocatorIdxEnd    = Index + 1;
 
-    static const Int Size = ListSize<List>::Value;
+    static const int32_t Size = ListSize<List>::Value;
 
-    template<typename, Int, Int> friend class PackedDispatcher;
+    template<typename, int32_t, int32_t> friend class PackedDispatcher;
 
 
-    template<Int StreamIdx>
+    template<int32_t StreamIdx>
     using StreamTypeT = SelectByIndex<StreamIdx, List>;
 
 
@@ -669,7 +669,7 @@ public:
     >;
 
 
-    template <Int From = 0, Int To = 1, Int GroupIdx_ = GroupIdx>
+    template <int32_t From = 0, int32_t To = 1, int32_t GroupIdx_ = GroupIdx>
     using SubrangeDispatcher = PackedDispatcher<
                                 typename v1::Sublist<
                                     TypeList<SubstreamDescr<Head, Index>>,
@@ -678,7 +678,7 @@ public:
                                 GroupIdx_
                           >;
 
-    template <typename Subset, Int GroupIdx_ = GroupIdx>
+    template <typename Subset, int32_t GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
                                     v1::ListSubset<
                                         TypeList<SubstreamDescr<Head, Index>>,
@@ -691,7 +691,7 @@ public:
     using ForAllStructs = MapTL2<List, MapFn>;
 
     template <typename Fn, typename... Args>
-    static auto dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -710,7 +710,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static auto dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static auto dispatch(int32_t idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -728,13 +728,13 @@ public:
     }
 
 
-    template <Int StreamIdx, typename Fn, typename... Args>
+    template <int32_t StreamIdx, typename Fn, typename... Args>
     static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
 
-        const Int AllocatorIdx  = StreamDescrT::Value;
+        const int32_t AllocatorIdx  = StreamDescrT::Value;
 
         StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -746,13 +746,13 @@ public:
     }
 
 
-    template <Int StreamIdx, typename Fn, typename... Args>
+    template <int32_t StreamIdx, typename Fn, typename... Args>
     static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
 
-        const Int AllocatorIdx  = StreamDescrT::Value;
+        const int32_t AllocatorIdx  = StreamDescrT::Value;
 
         const StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -817,7 +817,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static void dispatchNotEmpty(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchNotEmpty(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
@@ -828,7 +828,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static void dispatchNotEmpty(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchNotEmpty(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
@@ -843,7 +843,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         void
     >::type
-    dispatchStatic(Int idx, Fn&& fn, Args&&... args)
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
     {
         if (idx == ListIdx)
         {
@@ -861,7 +861,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         ConstRtnTuple<Fn, Args...>
     >::type
-    dispatchStatic(Int idx, Fn&& fn, Args&&... args)
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -947,7 +947,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         ConstRtnTuple<Fn, Args...>
     >::type
-    dispatchSelected(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -962,7 +962,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         void
     >::type
-    dispatchSelected(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -979,7 +979,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         RtnTuple<Fn, Args...>
     >::type
-    dispatchSelected(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         RtnTuple<Fn, Args...> tuple;
 
@@ -994,7 +994,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         void
     >::type
-    dispatchSelected(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1009,7 +1009,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllTuple(Tuple& tuple, UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchAllTuple(Tuple& tuple, uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1022,7 +1022,7 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllTuple(Tuple& tuple, UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchAllTuple(Tuple& tuple, uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1082,10 +1082,10 @@ public:
 
 
 
-template <Int GroupIdx, Int ListOffsetIdx>
+template <int32_t GroupIdx, int32_t ListOffsetIdx>
 class PackedDispatcher<TypeList<>, GroupIdx, ListOffsetIdx> {
 public:
-    template<typename, Int, Int> friend class PackedDispatcher;
+    template<typename, int32_t, int32_t> friend class PackedDispatcher;
 
     template <typename Fn, typename... Args>
     static void dispatchAllStatic(Fn&& fn, Args&&...)
@@ -1100,11 +1100,11 @@ public:
     {}
 
     template <typename Fn, typename... Args>
-    static void dispatchNotEmpty(UBigInt, PackedAllocator* alloc, Fn&& fn, Args&&...)
+    static void dispatchNotEmpty(uint64_t, PackedAllocator* alloc, Fn&& fn, Args&&...)
     {}
 
     template <typename Fn, typename... Args>
-    static void dispatchNotEmpty(UBigInt, const PackedAllocator* alloc, Fn&& fn, Args&&...)
+    static void dispatchNotEmpty(uint64_t, const PackedAllocator* alloc, Fn&& fn, Args&&...)
     {}
 
 
@@ -1128,9 +1128,9 @@ public:
 
 
 
-template <typename List, Int Idx = 0> struct PackedDispatchersListBuilder;
+template <typename List, int32_t Idx = 0> struct PackedDispatchersListBuilder;
 
-template <typename Head, typename... Tail, Int Idx>
+template <typename Head, typename... Tail, int32_t Idx>
 struct PackedDispatchersListBuilder<TypeList<Head, Tail...>, Idx> {
      using Type = MergeLists<
                 SubstreamDescr<Head, Idx>,
@@ -1141,7 +1141,7 @@ struct PackedDispatchersListBuilder<TypeList<Head, Tail...>, Idx> {
      >;
 };
 
-template <Int Idx>
+template <int32_t Idx>
 struct PackedDispatchersListBuilder<TypeList<>, Idx> {
     using Type = TypeList<>;
 };

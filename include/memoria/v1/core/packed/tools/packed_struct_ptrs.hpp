@@ -51,10 +51,10 @@ namespace {
     struct SharedPtrAllocator {
       typedef Tp value_type;
 
-      Int block_size_;
-      Int struct_size_;
+      int32_t block_size_;
+      int32_t struct_size_;
 
-      SharedPtrAllocator(Int block_size, Int struct_size):
+      SharedPtrAllocator(int32_t block_size, int32_t struct_size):
           block_size_(block_size), struct_size_(struct_size)
       {}
 
@@ -103,7 +103,7 @@ std::enable_if_t<
     std::is_base_of<PackedAllocator, T>::value,
     PkdStructUPtr<T>
 >
-MakeUniquePackedStructByBlock(Int block_size, Args&&... args)
+MakeUniquePackedStructByBlock(int32_t block_size, Args&&... args)
 {
     MEMORIA_V1_ASSERT(block_size, >=, sizeof(T::empty_size()));
 
@@ -133,9 +133,9 @@ std::enable_if_t<
     !std::is_base_of<PackedAllocator, T>::value,
     PkdStructUPtr<T>
 >
-MakeUniquePackedStructByBlock(Int block_size, Args&&... args)
+MakeUniquePackedStructByBlock(int32_t block_size, Args&&... args)
 {
-    Int allocator_block_size = PackedAllocator::block_size(block_size, 1);
+    int32_t allocator_block_size = PackedAllocator::block_size(block_size, 1);
 
     void* block = malloc(allocator_block_size);
     memset(block, 0, allocator_block_size);
@@ -164,7 +164,7 @@ std::enable_if_t<
     std::is_base_of<PackedAllocator, T>::value,
     PkdStructSPtr<T>
 >
-MakeSharedPackedStructByBlock(Int block_size, Args&&... args)
+MakeSharedPackedStructByBlock(int32_t block_size, Args&&... args)
 {
     PkdStructSPtr<T> ptr = std::allocate_shared<T>(SharedPtrAllocator<T>(block_size, sizeof(T)));
 
@@ -181,9 +181,9 @@ std::enable_if_t<
     !std::is_base_of<PackedAllocator, T>::value,
     PkdStructSPtr<T>
 >
-MakeSharedPackedStructByBlock(Int block_size, Args&&... args)
+MakeSharedPackedStructByBlock(int32_t block_size, Args&&... args)
 {
-    Int allocator_block_size = PackedAllocator::block_size(block_size, 1);
+    int32_t allocator_block_size = PackedAllocator::block_size(block_size, 1);
 
     void* block = malloc(allocator_block_size);
     memset(block, 0, allocator_block_size);

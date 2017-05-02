@@ -53,16 +53,16 @@ public:
 
     void testSpeed1()
     {
-        Int bufsize = 1024*1024*128;
-        Int bitsize = bufsize * 8;
+        int32_t bufsize = 1024*1024*128;
+        int32_t bitsize = bufsize * 8;
 
         T* buf = T2T<T*>(malloc(bufsize));
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
         MoveBits(buf, buf, 18, 29, bitsize - 100);
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
         this->out()<<"Move time: "<<FormatTime(t1 - t0)<<endl;
 
@@ -71,19 +71,19 @@ public:
 
     void testSpeed2()
     {
-        Int bufsize = 1024*1024*128;
-        Int bitsize = bufsize * 8;
+        int32_t bufsize = 1024*1024*128;
+        int32_t bitsize = bufsize * 8;
 
         T* buf = T2T<T*>(malloc(bufsize));
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
-        Int pos = 0;
-        Int length = 17;
+        int32_t pos = 0;
+        int32_t length = 17;
 
-        BigInt sum = 0;
+        int64_t sum = 0;
 
-        Int cnt = 0;
+        int32_t cnt = 0;
 
         while(pos < bitsize)
         {
@@ -93,7 +93,7 @@ public:
             cnt++;
         }
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
         this->out()<<"GetBits Time: "<<FormatTime(t1 - t0)<<" "<<sum<<" "<<cnt<<endl;
 
@@ -115,10 +115,10 @@ public:
     template <
         template <typename, typename> class Codec
     >
-    void testCodec(Int max)
+    void testCodec(int32_t max)
     {
-        std::vector<Int> values(1024*1024*4);
-        std::vector<Int> values2(1024*1024*4);
+        std::vector<int32_t> values(1024*1024*4);
+        std::vector<int32_t> values2(1024*1024*4);
 
         for (auto& v: values)
         {
@@ -127,29 +127,29 @@ public:
 
         T* buf = T2T<T*>(malloc(1024*1024*16));
 
-        Codec<T,BigInt> codec;
+        Codec<T,int64_t> codec;
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
-        for (Int c = 0, pos = 0; c < values.size(); c++)
+        for (int32_t c = 0, pos = 0; c < values.size(); c++)
         {
             pos += codec.encode(buf, values[c], pos);
         }
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
-        for (Int c = 0, pos = 0; c < values2.size(); c++)
+        for (int32_t c = 0, pos = 0; c < values2.size(); c++)
         {
-            BigInt value;
+            int64_t value;
 
             pos += codec.decode(buf, value, pos);
 
             values2[c] = value;
         }
 
-        BigInt t2 = getTimeInMillis();
+        int64_t t2 = getTimeInMillis();
 
-        for (Int c = 0; c < values.size(); c++)
+        for (int32_t c = 0; c < values.size(); c++)
         {
             AssertEQ(MA_SRC, values[c], values2[c]);
         }

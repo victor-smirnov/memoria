@@ -26,10 +26,10 @@
 namespace memoria {
 namespace v1 {
 
-template <Int Size>
+template <int32_t Size>
 class FixedArray {
     using MyType = FixedArray<Size>;
-    using T = UByte;
+    using T = uint8_t;
 
     T data_[Size];
 public:
@@ -39,11 +39,11 @@ public:
         return data_;
     }
 
-    static constexpr Int size() {
+    static constexpr int32_t size() {
         return Size;
     }
 
-    static constexpr Int length() {
+    static constexpr int32_t length() {
         return Size;
     }
 
@@ -58,7 +58,7 @@ public:
 
     bool operator==(const MyType& other) const
     {
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             if (data_[c] != other.data_[c])
             {
@@ -91,7 +91,7 @@ public:
 
     void swap(MyType& other)
     {
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             std::swap(data_[c], other.data_[c]);
         }
@@ -106,17 +106,17 @@ public:
     }
 };
 
-template <Int Size>
+template <int32_t Size>
 std::ostream& operator<<(std::ostream& out, const FixedArray<Size>& array)
 {
     std::ios state(nullptr);
     state.copyfmt(out);
 
     out<<std::setbase(16);
-    for (Int c = 0; c < Size; c++)
+    for (int32_t c = 0; c < Size; c++)
     {
         out<<std::setw(2)<<setfill('0');
-        out << (UInt)array[c];
+        out << (uint32_t)array[c];
     }
 
     out.copyfmt(state);
@@ -130,7 +130,7 @@ std::ostream& operator<<(std::ostream& out, const FixedArray<Size>& array)
 template <typename T> struct FieldFactory;
 
 
-template <Int Size>
+template <int32_t Size>
 struct FieldFactory<FixedArray<Size> > {
     using Type = FixedArray<Size>;
 
@@ -147,9 +147,9 @@ struct FieldFactory<FixedArray<Size> > {
         data.buf += Size;
     }
 
-    static void serialize(SerializationData& data, const Type* field, Int size)
+    static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             memmove(data.buf, field[c].data(), Size);
             data.buf    += Size;
@@ -158,9 +158,9 @@ struct FieldFactory<FixedArray<Size> > {
 
     }
 
-    static void deserialize(DeserializationData& data, Type* field, Int size)
+    static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             memmove(field[c].data(), data.buf, Size);
             data.buf += Size;
@@ -173,13 +173,13 @@ struct FieldFactory<FixedArray<Size> > {
 
 template <typename T> struct TypeHash;
 
-template <Int Size>
+template <int32_t Size>
 struct TypeHash<FixedArray<Size>> {
-    static const UInt Value = HashHelper<23423, 68751234, 1524857, Size>::Value;
+    static const uint32_t Value = HashHelper<23423, 68751234, 1524857, Size>::Value;
 };
 
 
-template <Int Size>
+template <int32_t Size>
 struct IOBufferAdapter<FixedArray<Size>> {
 
     template <typename IOBuffer>

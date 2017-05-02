@@ -29,7 +29,7 @@ template <typename> class IntegerCodec;
 
 template <size_t FixedPartPrecision = 4>
 class BigIntegerT {
-    UInt metadata_;
+    uint32_t metadata_;
 
     using DigitType = unsigned;
 
@@ -56,7 +56,7 @@ public:
         init_small();
     }
 
-    BigIntegerT(Int value)
+    BigIntegerT(int32_t value)
     {
         init_small();
 
@@ -71,7 +71,7 @@ public:
         compute_msb_small();
     }
 
-    BigIntegerT(UInt value)
+    BigIntegerT(uint32_t value)
     {
         init_small();
 
@@ -79,7 +79,7 @@ public:
         compute_msb_small();
     }
 
-    BigIntegerT(BigInt value)
+    BigIntegerT(int64_t value)
     {
         init_small();
 
@@ -95,7 +95,7 @@ public:
         compute_msb_small();
     }
 
-    BigIntegerT(UBigInt value)
+    BigIntegerT(uint64_t value)
     {
         init_small();
 
@@ -124,7 +124,7 @@ public:
         return metadata_ & 0x2;
     }
 
-    Int sign() const
+    int32_t sign() const
     {
         return !(metadata_ & 0x2) ? 1 : -1;
     }
@@ -151,7 +151,7 @@ public:
         }
     }
 
-    UInt msb() const
+    uint32_t msb() const
     {
         return metadata_ >> 2;
     }
@@ -165,7 +165,7 @@ protected:
 
     void compute_msb()
     {
-        UInt msb;
+        uint32_t msb;
         if (is_small())
         {
             msb = compute_msb(content_.fixed_.digits_, FixedPartPrecision);
@@ -179,7 +179,7 @@ protected:
 
     void compute_msb_small()
     {
-        UInt msb = compute_msb(content_.fixed_.digits_, FixedPartPrecision);
+        uint32_t msb = compute_msb(content_.fixed_.digits_, FixedPartPrecision);
         metadata_ |= msb << 2;
     }
 
@@ -230,7 +230,7 @@ private:
         }
     }
 
-    UInt compute_msb(const DigitType* digits, size_t len)
+    uint32_t compute_msb(const DigitType* digits, size_t len)
     {
         for (size_t c = 0; c < len; c++)
         {
@@ -244,17 +244,17 @@ private:
         return 0;
     }
 
-    UInt msb(unsigned digits)
+    uint32_t msb(unsigned digits)
     {
         return 31 - __builtin_clz(digits);
     }
 
-    UInt msb(unsigned long digits)
+    uint32_t msb(unsigned long digits)
     {
         return 63 - __builtin_clzl(digits);
     }
 
-    UInt msb(unsigned long long digits)
+    uint32_t msb(unsigned long long digits)
     {
         return 63 - __builtin_clzll(digits);
     }
@@ -274,7 +274,7 @@ template <typename T> struct TypeHash;
 
 template <>
 struct TypeHash<BigInteger> {
-    static const UInt Value = 50;
+    static const uint32_t Value = 50;
 };
 
 }}

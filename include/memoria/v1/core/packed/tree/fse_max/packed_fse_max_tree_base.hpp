@@ -22,42 +22,42 @@
 namespace memoria {
 namespace v1 {
 
-template <typename ValueT, Int kBranchingFactor, Int kValuesPerBranch> class PkdFMTreeBase;
+template <typename ValueT, int32_t kBranchingFactor, int32_t kValuesPerBranch> class PkdFMTreeBase;
 
 class PkdFMTreeMetadata {
-    Int size_;
-    Int index_size_;
-    Int max_size_;
+    int32_t size_;
+    int32_t index_size_;
+    int32_t max_size_;
 public:
     PkdFMTreeMetadata() = default;
 
-    Int& size() {return size_;}
-    const Int& size() const {return size_;}
+    int32_t& size() {return size_;}
+    const int32_t& size() const {return size_;}
 
-    Int& index_size() {return index_size_;}
-    const Int& index_size() const {return index_size_;}
+    int32_t& index_size() {return index_size_;}
+    const int32_t& index_size() const {return index_size_;}
 
-    Int& max_size() {return max_size_;}
-    const Int& max_size() const {return max_size_;}
+    int32_t& max_size() {return max_size_;}
+    const int32_t& max_size() const {return max_size_;}
 
-    Int capacity() const {
+    int32_t capacity() const {
         return max_size_ - size_;
     }
 
-    template <typename, Int, Int, Int, typename> friend class PkdFMTreeBaseBase;
-    template <typename, Int, Int> friend class PkdFMTreeBase;
+    template <typename, int32_t, int32_t, int32_t, typename> friend class PkdFMTreeBaseBase;
+    template <typename, int32_t, int32_t> friend class PkdFMTreeBase;
 };
 
 
 
-template <typename ValueT, Int kBranchingFactor, Int kValuesPerBranch>
+template <typename ValueT, int32_t kBranchingFactor, int32_t kValuesPerBranch>
 class PkdFMTreeBase: public PkdFMTreeBaseBase<ValueT, kBranchingFactor, kValuesPerBranch, 2, PkdFMTreeMetadata> {
 
     using Base      = PkdFMTreeBaseBase<ValueT, kBranchingFactor, kValuesPerBranch, 2, PkdFMTreeMetadata>;
     using MyType    = PkdFMTreeBase<ValueT, kBranchingFactor, kValuesPerBranch>;
 
 public:
-    static constexpr UInt VERSION = 1;
+    static constexpr uint32_t VERSION = 1;
 
 
     using Value         = ValueT;
@@ -67,32 +67,32 @@ public:
     using TreeLayout    = typename Base::template IndexedTreeLayout<IndexValue>;
 
 
-    static const Int BranchingFactor        = kBranchingFactor;
-    static const Int ValuesPerBranch        = kValuesPerBranch;
+    static const int32_t BranchingFactor        = kBranchingFactor;
+    static const int32_t ValuesPerBranch        = kValuesPerBranch;
 
     static const bool FixedSizeElement      = true;
 
-    static constexpr Int ValuesPerBranchMask    = ValuesPerBranch - 1;
-    static constexpr Int BranchingFactorMask    = BranchingFactor - 1;
+    static constexpr int32_t ValuesPerBranchMask    = ValuesPerBranch - 1;
+    static constexpr int32_t BranchingFactorMask    = BranchingFactor - 1;
 
-    static constexpr Int ValuesPerBranchLog2    = Log2(ValuesPerBranch) - 1;
-    static constexpr Int BranchingFactorLog2    = Log2(BranchingFactor) - 1;
+    static constexpr int32_t ValuesPerBranchLog2    = Log2(ValuesPerBranch) - 1;
+    static constexpr int32_t BranchingFactorLog2    = Log2(BranchingFactor) - 1;
 
-    static constexpr Int SegmentsPerBlock = 2;
+    static constexpr int32_t SegmentsPerBlock = 2;
 
-    static constexpr Int METADATA = 0;
+    static constexpr int32_t METADATA = 0;
 
 
     struct InitFn {
-        Int blocks_;
+        int32_t blocks_;
 
-        InitFn(Int blocks): blocks_(blocks) {}
+        InitFn(int32_t blocks): blocks_(blocks) {}
 
-        Int block_size(Int items_number) const {
+        int32_t block_size(int32_t items_number) const {
             return MyType::block_size(blocks_, items_number);
         }
 
-        Int max_elements(Int block_size)
+        int32_t max_elements(int32_t block_size)
         {
             return block_size;
         }
@@ -105,24 +105,24 @@ public:
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
                 decltype(Metadata::max_size_),
-                ConstValue<UInt, VERSION>,
+                ConstValue<uint32_t, VERSION>,
                 Value
     >;
 
 
-    void init_tl(Int data_block_size, Int blocks)
+    void init_tl(int32_t data_block_size, int32_t blocks)
     {
         Base::init(data_block_size, blocks * SegmentsPerBlock + 1);
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
 
-        Int max_size        = 0;
+        int32_t max_size        = 0;
 
         meta->size()        = 0;
         meta->max_size()    = max_size;
         meta->index_size()  = MyType::index_size(max_size);
 
-        for (Int block = 0; block < blocks; block++)
+        for (int32_t block = 0; block < blocks; block++)
         {
             this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
             this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, max_size);
@@ -131,33 +131,33 @@ public:
 
 
 
-    static Int block_size(Int blocks, Int capacity)
+    static int32_t block_size(int32_t blocks, int32_t capacity)
     {
-        Int metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-        Int index_size      = MyType::index_size(capacity);
-        Int index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexValue));
+        int32_t index_size      = MyType::index_size(capacity);
+        int32_t index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexValue));
 
-        Int values_length   = Base::roundUpBytesToAlignmentBlocks(capacity * sizeof(Value));
+        int32_t values_length   = Base::roundUpBytesToAlignmentBlocks(capacity * sizeof(Value));
 
         return Base::block_size(metadata_length + (index_length + values_length) * blocks, blocks * SegmentsPerBlock + 1);
     }
 
-    Int block_size() const
+    int32_t block_size() const
     {
         return Base::block_size();
     }
 
-    static Int index_size(Int capacity)
+    static int32_t index_size(int32_t capacity)
     {
         TreeLayout layout;
         Base::compute_tree_layout(capacity, layout);
         return layout.index_size;
     }
 
-    static Int tree_size(Int blocks, Int block_size)
+    static int32_t tree_size(int32_t blocks, int32_t block_size)
     {
-        return block_size >= (Int)sizeof(Value) ? FindTotalElementsNumber2(block_size, InitFn(blocks)) : 0;
+        return block_size >= (int32_t)sizeof(Value) ? FindTotalElementsNumber2(block_size, InitFn(blocks)) : 0;
     }
 
 
@@ -168,11 +168,11 @@ public:
         return this->template get<Metadata>(METADATA);
     }
 
-    IndexValue* index(Int block) {
+    IndexValue* index(int32_t block) {
         return Base::template index<IndexValue, 0>(block);
     }
 
-    const IndexValue* index(Int block) const {
+    const IndexValue* index(int32_t block) const {
         return Base::template index<IndexValue, 0>(block);
     }
 
@@ -182,25 +182,25 @@ public:
     }
 
 
-    Value* values(Int block) {
+    Value* values(int32_t block) {
         return this->template get<Value>(block * SegmentsPerBlock + 2);
     }
-    const Value* values(Int block) const {
+    const Value* values(int32_t block) const {
         return this->template get<Value>(block * SegmentsPerBlock + 2);
     }
 
-    Value& value(Int block, Int idx) {
+    Value& value(int32_t block, int32_t idx) {
         return values(block)[idx];
     }
 
-    const Value& value(Int block, Int idx) const {
+    const Value& value(int32_t block, int32_t idx) const {
         return values(block)[idx];
     }
 
 
     struct FindGEWalker {
         IndexValue target_;
-        Int idx_;
+        int32_t idx_;
     public:
         FindGEWalker(const IndexValue& target): target_(target) {}
 
@@ -212,10 +212,10 @@ public:
 
         void next() {}
 
-        Int& idx() {return idx_;}
-        const Int& idx() const {return idx_;}
+        int32_t& idx() {return idx_;}
+        const int32_t& idx() const {return idx_;}
 
-        FindGEWalker& idx(Int value) {
+        FindGEWalker& idx(int32_t value) {
             idx_ = value;
             return *this;
         }
@@ -224,7 +224,7 @@ public:
     struct FindGTWalker {
         IndexValue target_;
 
-        Int idx_;
+        int32_t idx_;
     public:
         FindGTWalker(const IndexValue& target): target_(target) {}
 
@@ -236,10 +236,10 @@ public:
 
         void next() {}
 
-        Int& idx() {return idx_;}
-        const Int& idx() const {return idx_;}
+        int32_t& idx() {return idx_;}
+        const int32_t& idx() const {return idx_;}
 
-        FindGTWalker& idx(Int value) {
+        FindGTWalker& idx(int32_t value) {
             idx_ = value;
             return *this;
         }
@@ -247,27 +247,27 @@ public:
 
 
 
-    auto find_ge(Int block, const IndexValue& value) const
+    auto find_ge(int32_t block, const IndexValue& value) const
     {
         return find(block, FindGEWalker(value));
     }
 
-    auto find_gt(Int block, const IndexValue& value) const
+    auto find_gt(int32_t block, const IndexValue& value) const
     {
         return find(block, FindGTWalker(value));
     }
 
     template <typename Walker>
-    auto find(Int block, Walker&& walker) const
+    auto find(int32_t block, Walker&& walker) const
     {
         auto metadata = this->metadata();
         auto values = this->values(block);
 
-        Int size = metadata->size();
+        int32_t size = metadata->size();
 
         if (this->element_size(block * SegmentsPerBlock + 1) == 0)
         {
-            for (Int c = 0; c < size; c++)
+            for (int32_t c = 0; c < size; c++)
             {
                 if (walker.compare(values[c]))
                 {
@@ -287,13 +287,13 @@ public:
 
             data.indexes = this->index(block);
 
-            Int idx = this->find_index(data, walker);
+            int32_t idx = this->find_index(data, walker);
 
             if (idx >= 0)
             {
                 idx <<= ValuesPerBranchLog2;
 
-                for (Int c = idx; c < size; c++)
+                for (int32_t c = idx; c < size; c++)
                 {
                     if (walker.compare(values[c]))
                     {
@@ -314,16 +314,16 @@ public:
 
 
 
-    void reindex(Int blocks)
+    void reindex(int32_t blocks)
     {
         Metadata* meta = this->metadata();
 
         TreeLayout layout;
-        Int levels = this->compute_tree_layout(meta, layout);
+        int32_t levels = this->compute_tree_layout(meta, layout);
 
         meta->index_size() = layout.index_size;
 
-        for (Int block = 0; block < blocks; block++)
+        for (int32_t block = 0; block < blocks; block++)
         {
             if (levels > 0)
             {
@@ -332,19 +332,19 @@ public:
         }
     }
 
-    void check(Int blocks) const
+    void check(int32_t blocks) const
     {
         const Metadata* meta = this->metadata();
 
         TreeLayout layout;
-        Int levels = this->compute_tree_layout(meta, layout);
+        int32_t levels = this->compute_tree_layout(meta, layout);
 
         MEMORIA_V1_ASSERT(meta->index_size(), ==, layout.index_size);
 
-        for (Int block = 0; block < blocks; block++)
+        for (int32_t block = 0; block < blocks; block++)
         {
 //          auto values = this->values(block);
-//          for (Int c = 1; c < meta->size(); c++)
+//          for (int32_t c = 1; c < meta->size(); c++)
 //          {
 //              MEMORIA_V1_ASSERT(values[c - 1], <=, values[c]);
 //          }
@@ -360,23 +360,23 @@ public:
     }
 
 
-    const Int& size() const {
+    const int32_t& size() const {
         return metadata()->size();
     }
 
-    Int& size() {
+    int32_t& size() {
         return metadata()->size();
     }
 
-    Int index_size() const {
+    int32_t index_size() const {
         return metadata()->index_size();
     }
 
-    Int max_size() const {
+    int32_t max_size() const {
         return metadata()->max_size();
     }
 
-    void dump_index(Int blocks, std::ostream& out = cout) const
+    void dump_index(int32_t blocks, std::ostream& out = cout) const
     {
         auto meta = this->metadata();
 
@@ -387,26 +387,26 @@ public:
 
         TreeLayout layout;
 
-        Int levels = this->compute_tree_layout(meta->max_size(), layout);
+        int32_t levels = this->compute_tree_layout(meta->max_size(), layout);
 
         if (levels > 0)
         {
             out<<"TreeLayout: "<<endl;
 
             out<<"Level sizes: ";
-            for (Int c = 0; c <= layout.levels_max; c++) {
+            for (int32_t c = 0; c <= layout.levels_max; c++) {
                 out<<layout.level_sizes[c]<<" ";
             }
             out<<endl;
 
             out<<"Level starts: ";
-            for (Int c = 0; c <= layout.levels_max; c++) {
+            for (int32_t c = 0; c <= layout.levels_max; c++) {
                 out<<layout.level_starts[c]<<" ";
             }
             out<<endl;
         }
 
-        for (Int block = 0; block < blocks; block++)
+        for (int32_t block = 0; block < blocks; block++)
         {
             out<<"++++++++++++++++++ Block: "<<block<<" ++++++++++++++++++"<<endl;
 
@@ -415,7 +415,7 @@ public:
                 auto indexes = this->index(block);
 
                 out<<"Index:"<<endl;
-                for (Int c = 0; c < meta->index_size(); c++)
+                for (int32_t c = 0; c < meta->index_size(); c++)
                 {
                     out<<c<<": "<<indexes[c]<<endl;
                 }
@@ -425,7 +425,7 @@ public:
     }
 
 
-    void dump(Int blocks, std::ostream& out = cout, bool dump_index = true) const
+    void dump(int32_t blocks, std::ostream& out = cout, bool dump_index = true) const
     {
         auto meta = this->metadata();
 
@@ -436,7 +436,7 @@ public:
 
         TreeLayout layout;
 
-        Int levels = this->compute_tree_layout(meta->max_size(), layout);
+        int32_t levels = this->compute_tree_layout(meta->max_size(), layout);
 
         if (dump_index)
         {
@@ -445,20 +445,20 @@ public:
                 out<<"TreeLayout: "<<endl;
 
                 out<<"Level sizes: ";
-                for (Int c = 0; c <= layout.levels_max; c++) {
+                for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_sizes[c]<<" ";
                 }
                 out<<endl;
 
                 out<<"Level starts: ";
-                for (Int c = 0; c <= layout.levels_max; c++) {
+                for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_starts[c]<<" ";
                 }
                 out<<endl;
             }
         }
 
-        for (Int block = 0; block < blocks; block++)
+        for (int32_t block = 0; block < blocks; block++)
         {
             out<<"++++++++++++++++++ Block: "<<block<<" ++++++++++++++++++"<<endl;
 
@@ -467,7 +467,7 @@ public:
                 auto indexes = this->index(block);
 
                 out<<"Index:"<<endl;
-                for (Int c = 0; c < meta->index_size(); c++)
+                for (int32_t c = 0; c < meta->index_size(); c++)
                 {
                     out<<c<<": "<<indexes[c]<<endl;
                 }
@@ -479,7 +479,7 @@ public:
 
             auto values = this->values(block);
 
-            for (Int c = 0; c < meta->size(); c++)
+            for (int32_t c = 0; c < meta->size(); c++)
             {
                 out<<c<<": "<<values[c]<<endl;
             }
@@ -489,33 +489,33 @@ public:
 
 
 
-    auto findGTForward(Int block, const IndexValue& val) const
+    auto findGTForward(int32_t block, const IndexValue& val) const
     {
         return this->find_gt(block, val);
     }
 
-    auto findGEForward(Int block, const IndexValue& val) const
+    auto findGEForward(int32_t block, const IndexValue& val) const
     {
         return this->find_ge(block, val);
     }
 
 
     class FindResult {
-        Int idx_;
+        int32_t idx_;
     public:
         template <typename Fn>
         FindResult(Fn&& fn): idx_(fn.idx()) {}
 
-        Int idx() const {return idx_;}
+        int32_t idx() const {return idx_;}
 
-        void set_idx(Int idx)
+        void set_idx(int32_t idx)
         {
             this->idx_ = idx;
         }
     };
 
 
-    auto findForward(SearchType search_type, Int block, const IndexValue& val) const
+    auto findForward(SearchType search_type, int32_t block, const IndexValue& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -526,7 +526,7 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, Int block, const Optional<IndexValue>& val) const
+    auto findForward(SearchType search_type, int32_t block, const Optional<IndexValue>& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -538,7 +538,7 @@ public:
     }
 
 
-    auto findBackward(SearchType search_type, Int block, const IndexValue& val) const
+    auto findBackward(SearchType search_type, int32_t block, const IndexValue& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -549,7 +549,7 @@ public:
         }
     }
 
-    auto findBackward(SearchType search_type, Int block, const Optional<IndexValue>& val) const
+    auto findBackward(SearchType search_type, int32_t block, const Optional<IndexValue>& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -562,11 +562,11 @@ public:
 
 
     template <typename ConsumerFn>
-    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
+    int32_t scan(int32_t block, int32_t start, int32_t end, ConsumerFn&& fn) const
     {
         auto values = this->values(block);
 
-        Int c;
+        int32_t c;
         for (c = start; c < end; c++)
         {
             fn(c, values[c]);
@@ -576,55 +576,55 @@ public:
     }
 
     template <typename T>
-    void read(Int block, Int start, Int end, T* values) const
+    void read(int32_t block, int32_t start, int32_t end, T* values) const
     {
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(start, <=, end);
         MEMORIA_V1_ASSERT(end, <=, size());
 
-        scan(block, start, end, [&](Int c, auto value){
+        scan(block, start, end, [&](int32_t c, auto value){
             values[c - start] = value;
         });
     }
 
 
 protected:
-    void reindex_block(const Metadata* meta, Int block, TreeLayout& layout)
+    void reindex_block(const Metadata* meta, int32_t block, TreeLayout& layout)
     {
         auto values = this->values(block);
         auto indexes = this->index(block);
         layout.indexes = indexes;
 
-        Int levels = layout.levels_max + 1;
+        int32_t levels = layout.levels_max + 1;
 
-        Int level_start = layout.level_starts[levels - 1];
-        Int level_size = layout.level_sizes[levels - 1];
+        int32_t level_start = layout.level_starts[levels - 1];
+        int32_t level_size = layout.level_sizes[levels - 1];
 
-        Int size = meta->size();
+        int32_t size = meta->size();
 
         for (int i = 0; i < level_size; i++)
         {
-            Int window_end = (i + 1) << ValuesPerBranchLog2;
+            int32_t window_end = (i + 1) << ValuesPerBranchLog2;
 
-            Int end = window_end <= size ? window_end : size;
+            int32_t end = window_end <= size ? window_end : size;
 
             indexes[level_start + i] = values[end - 1];
         }
 
-        for (Int level = levels - 1; level > 0; level--)
+        for (int32_t level = levels - 1; level > 0; level--)
         {
-            Int previous_level_start = layout.level_starts[level - 1];
-            Int previous_level_size  = layout.level_sizes[level - 1];
+            int32_t previous_level_start = layout.level_starts[level - 1];
+            int32_t previous_level_size  = layout.level_sizes[level - 1];
 
-            Int current_level_start  = layout.level_starts[level];
+            int32_t current_level_start  = layout.level_starts[level];
 
-            Int current_level_size = layout.level_sizes[level];
+            int32_t current_level_size = layout.level_sizes[level];
 
             for (int i = 0; i < previous_level_size; i++)
             {
-                Int window_end  = ((i + 1) << BranchingFactorLog2);
+                int32_t window_end  = ((i + 1) << BranchingFactorLog2);
 
-                Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
+                int32_t end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
 
                 indexes[previous_level_start + i] = indexes[end - 1];
             }
@@ -632,43 +632,43 @@ protected:
     }
 
 
-    void check_block(const Metadata* meta, Int block, TreeLayout& layout) const
+    void check_block(const Metadata* meta, int32_t block, TreeLayout& layout) const
     {
         auto values = this->values(block);
         auto indexes = this->index(block);
 
         layout.indexes = indexes;
 
-        Int levels = layout.levels_max + 1;
+        int32_t levels = layout.levels_max + 1;
 
-        Int level_start = layout.level_starts[levels - 1];
-        Int level_size = layout.level_sizes[levels - 1];
+        int32_t level_start = layout.level_starts[levels - 1];
+        int32_t level_size = layout.level_sizes[levels - 1];
 
-        Int size = meta->size();
+        int32_t size = meta->size();
 
         for (int i = 0; i < level_size; i++)
         {
-            Int window_end = (i + 1) << ValuesPerBranchLog2;
+            int32_t window_end = (i + 1) << ValuesPerBranchLog2;
 
-            Int end = window_end <= size ? window_end : size;
+            int32_t end = window_end <= size ? window_end : size;
 
             MEMORIA_V1_ASSERT(indexes[level_start + i], ==, values[end - 1]);
         }
 
-        for (Int level = levels - 1; level > 0; level--)
+        for (int32_t level = levels - 1; level > 0; level--)
         {
-            Int previous_level_start = layout.level_starts[level - 1];
-            Int previous_level_size  = layout.level_sizes[level - 1];
+            int32_t previous_level_start = layout.level_starts[level - 1];
+            int32_t previous_level_size  = layout.level_sizes[level - 1];
 
-            Int current_level_start  = layout.level_starts[level];
+            int32_t current_level_start  = layout.level_starts[level];
 
-            Int current_level_size = layout.level_sizes[level];
+            int32_t current_level_size = layout.level_sizes[level];
 
             for (int i = 0; i < previous_level_size; i++)
             {
-                Int window_end  = ((i + 1) << BranchingFactorLog2);
+                int32_t window_end  = ((i + 1) << BranchingFactorLog2);
 
-                Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
+                int32_t end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
 
                 MEMORIA_V1_ASSERT(indexes[previous_level_start + i], ==, indexes[end - 1]);
             }

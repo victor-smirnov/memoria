@@ -21,21 +21,21 @@
 namespace memoria {
 namespace v1 {
 
-template <typename T, Int n = sizeof(T)> struct PtrToHash;
+template <typename T, int32_t n = sizeof(T)> struct PtrToHash;
 
 template <typename T>
-struct PtrToHash<T, sizeof(Int)> {
-    static Int hash(T value) {
-        return T2T<Int>(value);
+struct PtrToHash<T, sizeof(int32_t)> {
+    static int32_t hash(T value) {
+        return T2T<int32_t>(value);
     }
 };
 
 template <typename T>
-struct PtrToHash<T, sizeof(BigInt)> {
-    static Int hash(T value) {
-        BigInt v = T2T<BigInt>(value);
-        Int v0 = v;
-        Int v1 = v >> (sizeof(Int) * 8);
+struct PtrToHash<T, sizeof(int64_t)> {
+    static int32_t hash(T value) {
+        int64_t v = T2T<int64_t>(value);
+        int32_t v0 = v;
+        int32_t v1 = v >> (sizeof(int32_t) * 8);
 
         return v0^v1;
     }

@@ -44,7 +44,7 @@ void ParametersSet::dumpProperties(std::ostream& os, bool dump_prefix, bool dump
 
 AbstractParamDescriptor* ParametersSet::put(AbstractParamDescriptor* descr)
 {
-    for (UInt c = 0; c < descriptors_.size(); c++)
+    for (uint32_t c = 0; c < descriptors_.size(); c++)
     {
         if (descriptors_[c]->getName() == descr->getName())
         {

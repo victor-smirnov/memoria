@@ -83,7 +83,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorFindName)
 
 
     template <typename LeafPath>
-    auto find_fw_gt(Int index, TargetType<LeafPath> key)
+    auto find_fw_gt(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_V1_ASSERT(index, >=, 0);
         MEMORIA_V1_ASSERT(key, >=, 0);
@@ -94,7 +94,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorFindName)
     }
 
     template <typename LeafPath>
-    auto find_fw_ge(Int index, TargetType<LeafPath> key)
+    auto find_fw_ge(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_V1_ASSERT(index, >=, 0);
         MEMORIA_V1_ASSERT(key, >=, 0);
@@ -106,7 +106,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorFindName)
 
 
     template <typename LeafPath>
-    auto find_bw_gt(Int index, TargetType<LeafPath> key)
+    auto find_bw_gt(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_V1_ASSERT(index, >=, 0);
         MEMORIA_V1_ASSERT(key, >=, 0);
@@ -117,7 +117,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorFindName)
     }
 
     template <typename LeafPath>
-    auto find_bw_ge(Int index, TargetType<LeafPath> key)
+    auto find_bw_ge(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_V1_ASSERT(index, >=, 0);
         MEMORIA_V1_ASSERT(key, >=, 0);

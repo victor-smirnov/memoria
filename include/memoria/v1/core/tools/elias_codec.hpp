@@ -136,8 +136,8 @@ template <typename T, typename V>
 struct EliasDeltaCodec {
 
     typedef T BufferType;
-    static const Int BitsPerOffset  = 8;
-    static const Int ElementSize    = 1; // In bits;
+    static const int32_t BitsPerOffset  = 8;
+    static const int32_t ElementSize    = 1; // In bits;
 
     const void* addr(const T* buffer, size_t pos) const {
         return &buffer[pos/TypeBitsize<T>()];
@@ -196,7 +196,7 @@ struct EliasDeltaCodec {
 
 
 template <typename V>
-using UBigIntEliasCodec = EliasDeltaCodec<UBigInt, V>;
+using UBigIntEliasCodec = EliasDeltaCodec<uint64_t, V>;
 
 
 

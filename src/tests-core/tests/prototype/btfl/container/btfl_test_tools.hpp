@@ -46,7 +46,7 @@ namespace {
 
 
 
-template <Int DataStreams, Int Level = DataStreams - 1, typename KeyType = BigInt, typename ValueType = UByte, typename ColumnType = BigInt>
+template <int32_t DataStreams, int32_t Level = DataStreams - 1, typename KeyType = int64_t, typename ValueType = uint8_t, typename ColumnType = int64_t>
 using BTFLData = btfl::BTFLData<DataStreams, Level, KeyType, ValueType, ColumnType>;
 
 
@@ -58,13 +58,13 @@ T fromNumber(N&& value, const TypeTag<T>&) {
 
 
 
-template <typename DataSetType, Int Stream = 0, Int DataStreamsMax = btfl::BTFLDataStreamsCounter<DataSetType>::Value - 1>
+template <typename DataSetType, int32_t Stream = 0, int32_t DataStreamsMax = btfl::BTFLDataStreamsCounter<DataSetType>::Value - 1>
 struct BTFLDataSetBuilder;
 
-template <typename K, typename V, Int Stream, Int DataStreamsMax, template <typename...> class Container, typename... Args>
+template <typename K, typename V, int32_t Stream, int32_t DataStreamsMax, template <typename...> class Container, typename... Args>
 struct BTFLDataSetBuilder<Container<std::tuple<K, V>, Args...>, Stream, DataStreamsMax> {
 
-    template <typename SizeT, Int Indexes, typename Rng>
+    template <typename SizeT, int32_t Indexes, typename Rng>
     static auto build(const core::StaticVector<SizeT, Indexes>& level_sizes, Rng&& rng, bool sort)
     {
         Container<std::tuple<K, V>, Args...> data;
@@ -89,10 +89,10 @@ struct BTFLDataSetBuilder<Container<std::tuple<K, V>, Args...>, Stream, DataStre
 
 
 
-template <typename V, Int Stream, template <typename...> class Container, typename... Args>
+template <typename V, int32_t Stream, template <typename...> class Container, typename... Args>
 struct BTFLDataSetBuilder<Container<V, Args...>, Stream, Stream> {
 
-    template <typename SizeT, Int Indexes, typename Rng>
+    template <typename SizeT, int32_t Indexes, typename Rng>
     static auto build(const core::StaticVector<SizeT, Indexes>& level_sizes, Rng&& rng, bool sort)
     {
         Container<V, Args...> data;
@@ -112,10 +112,10 @@ struct BTFLDataSetBuilder<Container<V, Args...>, Stream, Stream> {
 
 
 
-template <typename BTFLData, Int DataStreams, Int StartLevel = 0> class BTFLDataChecker;
+template <typename BTFLData, int32_t DataStreams, int32_t StartLevel = 0> class BTFLDataChecker;
 
 
-template <Int DataStreams, Int StartLevel, typename K, typename V, template <typename...> class Container, typename... Args>
+template <int32_t DataStreams, int32_t StartLevel, typename K, typename V, template <typename...> class Container, typename... Args>
 class BTFLDataChecker<Container<std::tuple<K, V>, Args...>, DataStreams, StartLevel> {
 public:
     using BTFLDataT = Container<std::tuple<K, V>, Args...>;
@@ -178,7 +178,7 @@ public:
 
 
 
-template <Int DataStreams, Int StartLevel, typename V, template <typename...> class Container, typename... Args>
+template <int32_t DataStreams, int32_t StartLevel, typename V, template <typename...> class Container, typename... Args>
 class BTFLDataChecker<Container<V, Args...>, DataStreams, StartLevel> {
 public:
     using BTFLDataT = Container<V, Args...>;

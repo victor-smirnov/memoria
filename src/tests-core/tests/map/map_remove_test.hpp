@@ -133,13 +133,13 @@ public:
 
             out()<<vector_idx_<<endl;
 
-            BigInt size = size_ - vector_idx_ - 1;
+            int64_t size = size_ - vector_idx_ - 1;
 
             AssertEQ(MA_SRC, size, map.size());
 
             PairVector pairs_sorted_tmp = pairs_sorted;
 
-            for (UInt x = 0; x < pairs_sorted_tmp.size(); x++)
+            for (uint32_t x = 0; x < pairs_sorted_tmp.size(); x++)
             {
                 if (pairs_sorted_tmp[x].key_ == pairs[vector_idx_].key_)
                 {
@@ -179,11 +179,11 @@ public:
 
         check(snp, MA_SRC);
 
-        BigInt size = size_ - vector_idx_ - 1;
+        int64_t size = size_ - vector_idx_ - 1;
 
         AssertEQ(MA_SRC, size, map.size());
 
-        for (UInt x = 0; x < pairs_sorted.size(); x++)
+        for (uint32_t x = 0; x < pairs_sorted.size(); x++)
         {
             if (pairs_sorted[x].key_ == pairs[vector_idx_].key_)
             {

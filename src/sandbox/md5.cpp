@@ -30,15 +30,15 @@ using namespace memoria;
 
 int main(void) {
 
-    UInt array[] = {1,3,7,2, 9,2,17,25, 81,43,767,12, 4351,3,7,55,
+    uint32_t array[] = {1,3,7,2, 9,2,17,25, 81,43,767,12, 4351,3,7,55,
                     66,77,0,345, 23423,234,45345,45345, 34,23245,2344,56767, 34,2,67,4098,
                     123, 445, 678};
 
     MD5Hash md5;
 
-    md5.add(sizeof(array)/sizeof(UInt));
+    md5.add(sizeof(array)/sizeof(uint32_t));
 
-    for (UInt value: array) {
+    for (uint32_t value: array) {
         md5.add(value);
     }
 

@@ -42,7 +42,7 @@ public:
     MMapBufferConsumer(): io_buffer_(65536) {}
 
     virtual IOBuffer& buffer() {return io_buffer_;}
-    virtual Int process(IOBuffer& buffer, Int entries)
+    virtual int32_t process(IOBuffer& buffer, int32_t entries)
     {
 //      cout << "Consume " << entries << " entries" << endl;
         return entries;
@@ -61,7 +61,7 @@ class ChainedIOBufferProducer: public BufferProducer<IOBufferT> {
     IOBufferT io_buffer_;
 
 public:
-    ChainedIOBufferProducer(Iterator* iter, Int buffer_size = 65536):
+    ChainedIOBufferProducer(Iterator* iter, int32_t buffer_size = 65536):
         iter_(iter),
         walker_(*iter),
         io_buffer_(buffer_size)
@@ -72,7 +72,7 @@ public:
         return io_buffer_;
     }
 
-    virtual Int populate(IOBufferT& buffer)
+    virtual int32_t populate(IOBufferT& buffer)
     {
         return iter_->bulkio_populate(walker_, &io_buffer_);
     }
@@ -85,8 +85,8 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using KeyType   = BigInt;
-    using ValueType = UBigInt;//FixedArray<32>;
+    using KeyType   = int64_t;
+    using ValueType = uint64_t;//FixedArray<32>;
 
     using CtrName = Map<KeyType, Vector<ValueType>>;
 

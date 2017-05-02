@@ -66,18 +66,18 @@ void Task::releaseResources()
 }
 
 
-Int Task::Run()
+int32_t Task::Run()
 {
     BuildResources();
 
     bool result;
 
     try {
-        BigInt t0  = getTimeInMillis();
+        int64_t t0  = getTimeInMillis();
 
         Run(*out_);
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
         (*out_)<<"PASSED in "<<FormatTime(t1 - t0)<<endl;
 
@@ -175,7 +175,7 @@ void TaskGroup::Run(ostream& out)
         cout<<Term::red_s()<<" FAILED: "<<Term::red_e();
         out<<"FAILED: ";
 
-        for (UInt c = 0; c < failures_.size(); c++)
+        for (uint32_t c = 0; c < failures_.size(); c++)
         {
             out<<failures_[c].task_name;
             cout<<failures_[c].task_name;
@@ -254,15 +254,15 @@ bool TaskGroup::IsEnabled() const
 
 
 
-Int GroupRunner::Run()
+int32_t GroupRunner::Run()
 {
     BuildResources();
 
-    Int counter = 0;
+    int32_t counter = 0;
 
-    Int run_count = getRunCount();
+    int32_t run_count = getRunCount();
 
-    for (Int c = 1; c <= run_count; c++)
+    for (int32_t c = 1; c <= run_count; c++)
     {
         String task_folder;
         if (run_count > 1)
@@ -296,11 +296,11 @@ Int GroupRunner::Run()
                 t->setOutputFolder(folder);
                 t->setIteration(c);
 
-                Int seed = this->getSeed();
+                int32_t seed = this->getSeed();
 
                 t->setSeed(seed);
 
-                if (Int failures = t->Run() > 0)
+                if (int32_t failures = t->Run() > 0)
                 {
                     failures_.push_back(FailureDescriptor(t->getIteration(), t->getName()));
 
@@ -317,7 +317,7 @@ Int GroupRunner::Run()
         cout<<Term::red_s()<<"FAILURES: "<<Term::red_e()<<endl;
         out<<"FAILURES: "<<endl;
 
-        map<String, vector<Int>> failures;
+        map<String, vector<int32_t>> failures;
 
         for (FailureDescriptor descr: failures_)
         {
@@ -328,9 +328,9 @@ Int GroupRunner::Run()
         {
             stringstream list;
 
-            vector<Int>& numbers = failure.second;
+            vector<int32_t>& numbers = failure.second;
 
-            for (UInt c = 0; c < numbers.size(); c++)
+            for (uint32_t c = 0; c < numbers.size(); c++)
             {
                 list<<numbers[c];
 

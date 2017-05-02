@@ -123,7 +123,7 @@ public:
         auto sizes = map->sizes();
         AssertEQ(MA_RAW_SRC, totals, sizes);
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             size_t idx = getRandom(map_data.size());
 
@@ -164,7 +164,7 @@ public:
         auto sizes = map->sizes();
         AssertEQ(MA_RAW_SRC, totals, sizes);
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             size_t key_idx = getRandom(map_data.size());
             size_t value_idx = getRandom(std::get<1>(map_data[key_idx]).size());

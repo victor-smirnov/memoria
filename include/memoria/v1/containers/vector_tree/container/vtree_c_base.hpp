@@ -39,14 +39,14 @@ public:
     typedef typename Base::Allocator                                            Allocator;
 
     using TreeName = LabeledTree<
-                FLabel<BigInt>,
-                VLabel<BigInt,
-                    Granularity::Byte,
+                FLabel<int64_t>,
+                VLabel<int64_t,
+                    Granularity::int8_t,
                     Indexed::Yes
                 >
     >;
 
-    using VectorName = Vector<Short>;
+    using VectorName = Vector<int16_t>;
 
     typedef typename CtrTF<Profile, TreeName, TreeName>::Type                   Tree;
     typedef typename CtrTF<Profile, VectorName, VectorName>::Type               Vec;
@@ -87,7 +87,7 @@ public:
     }
 
 
-    void initCtr(Int command)
+    void initCtr(int32_t command)
     {
         auto& self = this->self();
 
@@ -109,9 +109,9 @@ public:
     }
 
 
-    static Int initMetadata()
+    static int32_t initMetadata()
     {
-        Int hash = Tree::initMetadata() + Vec::initMetadata();
+        int32_t hash = Tree::initMetadata() + Vec::initMetadata();
 
         if (!Base::getMetadata())
         {
@@ -189,7 +189,7 @@ public:
 
 private:
 
-    static ID get_ctr_root(Allocator& allocator, const ID& root_id, const UUID& ctr_name, const BigInt& name)
+    static ID get_ctr_root(Allocator& allocator, const ID& root_id, const UUID& ctr_name, const int64_t& name)
     {
         typedef typename Tree::NodeBaseG   NodeBaseG;
         typedef typename Tree::Metadata    Metadata;

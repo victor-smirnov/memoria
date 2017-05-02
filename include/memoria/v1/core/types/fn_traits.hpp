@@ -31,11 +31,11 @@ struct FnTraits<RtnType_ (ClassType_::*)(Args_...)> {
     typedef ClassType_              ClassType;
     typedef TypeList<Args_...>      ArgsList;
 
-    static const Int Arity          = sizeof...(Args_);
+    static const int32_t Arity          = sizeof...(Args_);
     static const bool Const         = false;
 
 
-    template <Int I>
+    template <int32_t I>
     using Arg = typename std::tuple_element<I, std::tuple<Args_...>>::type;
 
     using Exists = void;
@@ -47,10 +47,10 @@ struct FnTraits<RtnType_ (ClassType_::*)(Args_...) const> {
     typedef ClassType_              ClassType;
     typedef TypeList<Args_...>      ArgsList;
 
-    static const Int Arity          = sizeof...(Args_);
+    static const int32_t Arity          = sizeof...(Args_);
     static const bool Const         = true;
 
-    template <Int I>
+    template <int32_t I>
     using Arg = typename std::tuple_element<I, std::tuple<Args_...>>::type;
 
     using Exists = void;
@@ -62,10 +62,10 @@ struct FnTraits<RtnType_ (*)(Args_...)> {
     typedef void                    ClassType;
     typedef TypeList<Args_...>      ArgsList;
 
-    static const Int Arity          = sizeof...(Args_);
+    static const int32_t Arity          = sizeof...(Args_);
     static const bool Const         = true;
 
-    template <Int I>
+    template <int32_t I>
     using Arg = typename std::tuple_element<I, std::tuple<Args_...>>::type;
 
     using Exists = void;
@@ -77,10 +77,10 @@ struct FnTraits<RtnType_ (Args_...)> {
     typedef void                    ClassType;
     typedef TypeList<Args_...>      ArgsList;
 
-    static const Int Arity          = sizeof...(Args_);
+    static const int32_t Arity          = sizeof...(Args_);
     static const bool Const         = true;
 
-    template <Int I>
+    template <int32_t I>
     using Arg = typename std::tuple_element<I, std::tuple<Args_...>>::type;
 
     using Exists = void;

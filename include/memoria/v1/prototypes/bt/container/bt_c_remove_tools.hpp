@@ -59,7 +59,7 @@ public:
         {
             auto meta = self.getRootMetadata();
 
-            for (Int c = 0; c < meta.ROOTS; c++)
+            for (int32_t c = 0; c < meta.ROOTS; c++)
             {
                 const auto& root = meta.roots(UUID(0, c));
                 if (!root.is_null())
@@ -67,7 +67,7 @@ public:
                     auto root_page      = self.allocator().getPage(root, UUID());
                     auto ctr_meta_rep   = MetadataRepository<typename Types::Profile>::getMetadata();
 
-                    Int ctr_hash        = root_page->ctr_type_hash();
+                    int32_t ctr_hash        = root_page->ctr_type_hash();
 
                     auto ctr_meta       = ctr_meta_rep->getContainerMetadata(ctr_hash);
 
@@ -94,16 +94,16 @@ protected:
     void removeNode(NodeBaseG& node);
     void removeRootNode(NodeBaseG& node);
 
-    void removeNodeContent(NodeBaseG& node, Int start, Int end, Position& sums);
+    void removeNodeContent(NodeBaseG& node, int32_t start, int32_t end, Position& sums);
     Position removeLeafContent(NodeBaseG& node, const Position& start, const Position& end);
-    Position removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end);
+    Position removeLeafContent(NodeBaseG& node, int32_t stream, int32_t start, int32_t end);
 
     MEMORIA_V1_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, removeSpaceAcc);
-    void removeNonLeafNodeEntry(NodeBaseG& node, Int idx);
+    void removeNonLeafNodeEntry(NodeBaseG& node, int32_t idx);
 
-    bool mergeLeafWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
+    bool mergeLeafWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const Position&, int32_t){});
     bool mergeLeafWithRightSibling(NodeBaseG& node);
-    MergeType mergeLeafWithSiblings(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
+    MergeType mergeLeafWithSiblings(NodeBaseG& node, MergeFn fn = [](const Position&, int32_t){});
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
@@ -145,8 +145,8 @@ void M_TYPE::removeNodeRecursively(NodeBaseG& node, Position& sizes)
 
     if (!node->is_leaf())
     {
-        Int size = self.getNodeSize(node, 0);
-        self.forAllIDs(node, 0, size, [&, this](const ID& id, Int idx)
+        int32_t size = self.getNodeSize(node, 0);
+        self.forAllIDs(node, 0, size, [&, this](const ID& id, int32_t idx)
         {
             auto& self = this->self();
             NodeBaseG child = self.allocator().getPage(id, self.master_name());
@@ -196,7 +196,7 @@ void M_TYPE::removeRootNode(NodeBaseG& node)
 
 
 M_PARAMS
-void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Position& sizes)
+void M_TYPE::removeNodeContent(NodeBaseG& node, int32_t start, int32_t end, Position& sizes)
 {
     auto& self = this->self();
 
@@ -204,7 +204,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Position& si
 
 
 
-    self.forAllIDs(node, start, end, [&, this](const ID& id, Int idx){
+    self.forAllIDs(node, start, end, [&, this](const ID& id, int32_t idx){
         auto& self = this->self();
         NodeBaseG child = self.allocator().getPage(id, self.master_name());
         self.removeNodeRecursively(child, sizes);
@@ -219,7 +219,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Position& si
 
 
 M_PARAMS
-void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
+void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, int32_t start)
 {
     auto& self = this->self();
 
@@ -250,7 +250,7 @@ typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, const Posit
 }
 
 M_PARAMS
-typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end)
+typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, int32_t stream, int32_t start, int32_t end)
 {
     auto& self = this->self();
 
@@ -280,7 +280,7 @@ void M_TYPE::removeRedundantRootP(NodeBaseG& node)
 
         if (parent->is_root())
         {
-            Int size = self.getNodeSize(parent, 0);
+            int32_t size = self.getNodeSize(parent, 0);
             if (size == 1)
             {
                 Metadata root_metadata = self.getRootMetadata();

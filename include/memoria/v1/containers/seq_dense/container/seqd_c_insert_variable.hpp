@@ -56,7 +56,7 @@ public:
     //==========================================================================================
 
 //    MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
-//    void layoutLeafNode(NodeBaseG& node, Int size) const
+//    void layoutLeafNode(NodeBaseG& node, int32_t size) const
 //    {
 //      LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
 //    }

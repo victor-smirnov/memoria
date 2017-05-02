@@ -43,9 +43,9 @@ class PackedWaveletTreeTest: public TestTask {
 
     typedef typename WaveletTree::CardinalTree::LoudsTree                   LoudsTree;
 
-    typedef pair<UInt, Int>                                                 Pair;
+    typedef pair<uint32_t, int32_t>                                                 Pair;
 
-    Int alphabet_size_ = 10;
+    int32_t alphabet_size_ = 10;
 
 public:
 
@@ -63,7 +63,7 @@ public:
 
 
 
-    void traverseTreePaths(const LoudsTree* tree, function<void (const PackedLoudsNode&, Int)> fn, Int level = 0)
+    void traverseTreePaths(const LoudsTree* tree, function<void (const PackedLoudsNode&, int32_t)> fn, int32_t level = 0)
     {
         traverseTreePaths(tree, tree->root(), PackedLoudsNode(), fn, level);
     }
@@ -72,7 +72,7 @@ public:
             const LoudsTree* tree,
             const PackedLoudsNode& node,
             const PackedLoudsNode& parent,
-            function<void (const PackedLoudsNode&, Int)> fn, Int level = 0)
+            function<void (const PackedLoudsNode&, int32_t)> fn, int32_t level = 0)
     {
         if (tree->isLeaf(node))
         {
@@ -91,14 +91,14 @@ public:
 
 
 
-    WaveletTreePtr createTree(Int block_size = 128*1024)
+    WaveletTreePtr createTree(int32_t block_size = 128*1024)
     {
         return MakeSharedPackedStructByBlock<WaveletTree>(block_size);
     }
 
-    vector<UInt> createRandomAlphabet(Int size)
+    vector<uint32_t> createRandomAlphabet(int32_t size)
     {
-        vector<UInt> text(size);
+        vector<uint32_t> text(size);
 
         for (auto& v: text)
         {
@@ -108,9 +108,9 @@ public:
         return text;
     }
 
-    vector<UInt> createRandomText(Int size, const vector<UInt>& alphabet)
+    vector<uint32_t> createRandomText(int32_t size, const vector<uint32_t>& alphabet)
     {
-        vector <UInt> text(size);
+        vector <uint32_t> text(size);
 
         for (auto& v: text)
         {
@@ -120,15 +120,15 @@ public:
         return text;
     }
 
-    vector<Pair> getRankedSymbols(const vector<UInt>& text)
+    vector<Pair> getRankedSymbols(const vector<uint32_t>& text)
     {
         vector<Pair> result;
 
-        std::map<UInt, Int> ranks;
+        std::map<uint32_t, int32_t> ranks;
 
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
-            UInt letter = text[c];
+            uint32_t letter = text[c];
 
             if (ranks.find(letter) == ranks.end())
             {
@@ -150,11 +150,11 @@ public:
         return result;
     }
 
-    Int rank(const vector<UInt>& text, Int idx, UInt symbol)
+    int32_t rank(const vector<uint32_t>& text, int32_t idx, uint32_t symbol)
     {
-        Int sum = 0;
+        int32_t sum = 0;
 
-        for (Int c = 0; c <= idx; c++)
+        for (int32_t c = 0; c <= idx; c++)
         {
             sum += text[c] == symbol;
         }
@@ -162,9 +162,9 @@ public:
         return sum;
     }
 
-    Int select(const vector<UInt>& text, Int rank, UInt symbol)
+    int32_t select(const vector<uint32_t>& text, int32_t rank, uint32_t symbol)
     {
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
             rank -= text[c] == symbol;
 
@@ -177,13 +177,13 @@ public:
         return text.size();
     }
 
-    void assertText(const WaveletTreePtr& tree, const vector<UInt>& text)
+    void assertText(const WaveletTreePtr& tree, const vector<uint32_t>& text)
     {
-        AssertEQ(MA_SRC, tree->size(), (Int)text.size());
+        AssertEQ(MA_SRC, tree->size(), (int32_t)text.size());
 
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
-            UInt value = tree->value(c);
+            uint32_t value = tree->value(c);
 
             AssertEQ(MA_SRC, value, text[c], SBuf()<<c);
         }
@@ -197,7 +197,7 @@ public:
 
         tree->prepare();
 
-        auto fn = [](const PackedLoudsNode& node, Int level) {
+        auto fn = [](const PackedLoudsNode& node, int32_t level) {
             AssertEQ(MA_SRC, level, 3);
         };
 
@@ -205,9 +205,9 @@ public:
 
         auto text = createRandomText(size_, alphabet);
 
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
-            UBigInt path = text[c];
+            uint64_t path = text[c];
 
             out()<<"Insert at "<<c<<": "<<hex<<path<<dec<<std::endl;
             tree->insert(c, path);
@@ -221,12 +221,12 @@ public:
 
         for (auto& rnk: ranks)
         {
-            UInt sym = rnk.first;
+            uint32_t sym = rnk.first;
 
-            for (UInt c = 0; c < text.size(); c++)
+            for (uint32_t c = 0; c < text.size(); c++)
             {
-                Int rank1 = tree->rank(c, sym);
-                Int rank2 = rank(text, c, sym);
+                int32_t rank1 = tree->rank(c, sym);
+                int32_t rank2 = rank(text, c, sym);
 
                 AssertEQ(MA_SRC, rank1, rank2);
             }
@@ -234,13 +234,13 @@ public:
 
         for (auto& rnk: ranks)
         {
-            UInt sym = rnk.first;
-            Int rank = rnk.second;
+            uint32_t sym = rnk.first;
+            int32_t rank = rnk.second;
 
-            for (Int r = 1; r <= rank; r++)
+            for (int32_t r = 1; r <= rank; r++)
             {
-                Int idx1 = tree->select(r, sym);
-                Int idx2 = select(text, r, sym);
+                int32_t idx1 = tree->select(r, sym);
+                int32_t idx2 = select(text, r, sym);
 
                 AssertEQ(MA_SRC, idx1, idx2);
             }
@@ -264,7 +264,7 @@ public:
 
     void testRemoveTree(WaveletTreePtr& tree)
     {
-        auto fn = [](const PackedLoudsNode& node, Int level) {
+        auto fn = [](const PackedLoudsNode& node, int32_t level) {
             AssertEQ(MA_SRC, level, 3);
         };
 
@@ -276,9 +276,9 @@ public:
             out()<<hex<<t<<endl;
         }
 
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
-            UBigInt path = text[c];
+            uint64_t path = text[c];
             tree->insert(c, path);
         }
 
@@ -288,7 +288,7 @@ public:
 
         while (tree->size() > 0)
         {
-            Int idx = getRandom(tree->size());
+            int32_t idx = getRandom(tree->size());
 
             out()<<"Remove: "<<idx<<" "<<hex<<tree->value(idx)<<dec<<std::endl;
 

@@ -55,7 +55,7 @@ CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__;\
 
 
 #define MMA1_DECLARE_CTRAPI_BASIC_METHODS()                                                 \
-    CtrApi(const std::shared_ptr<AllocatorT>& allocator, Int command, const UUID& name);    \
+    CtrApi(const std::shared_ptr<AllocatorT>& allocator, int32_t command, const UUID& name);    \
     ~CtrApi();                                                                              \
                                                                                             \
     CtrApi(const CtrApi&);                                                                  \
@@ -69,7 +69,7 @@ CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__;\
 
 
 #define MMA1_DECLARE_CTRAPI_BTSS_BASIC_METHODS()                                            \
-    CtrApi(const std::shared_ptr<AllocatorT>& allocator, Int command, const UUID& name):    \
+    CtrApi(const std::shared_ptr<AllocatorT>& allocator, int32_t command, const UUID& name):    \
         Base(allocator, command, name) {}                                                   \
     ~CtrApi() {}                                                                            \
                                                                                             \

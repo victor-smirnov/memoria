@@ -26,8 +26,8 @@
 namespace memoria {
 namespace v1 {
 
-inline BigInt PtrToLong(const void *ptr) {
-    return T2T<BigInt>(ptr);
+inline int64_t PtrToLong(const void *ptr) {
+    return T2T<int64_t>(ptr);
 }
 
 template <typename T> struct FieldFactory;
@@ -41,9 +41,9 @@ struct CompositeFieldFactory {
         field.serialize(data);
     }
 
-    static void serialize(SerializationData& data, const Type* field, Int size)
+    static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             field[c].serialize(data);
         }
@@ -55,9 +55,9 @@ struct CompositeFieldFactory {
         field.deserialize(data);
     }
 
-    static void deserialize(DeserializationData& data, Type* field, Int size)
+    static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             field[c].deserialize(data);
         }
@@ -85,11 +85,11 @@ struct FieldFactory<BitField<Type> > {
 
 template <>
 struct FieldFactory<EmptyValue> {
-    static void serialize(SerializationData& data, const EmptyValue& field, Int count = 1) {}
-    static void serialize(SerializationData& data, const EmptyValue* field, Int count = 1) {}
+    static void serialize(SerializationData& data, const EmptyValue& field, int32_t count = 1) {}
+    static void serialize(SerializationData& data, const EmptyValue* field, int32_t count = 1) {}
 
-    static void deserialize(DeserializationData& data, EmptyValue& field, Int count = 1) {}
-    static void deserialize(DeserializationData& data, EmptyValue* field, Int count = 1) {}
+    static void deserialize(DeserializationData& data, EmptyValue& field, int32_t count = 1) {}
+    static void deserialize(DeserializationData& data, EmptyValue* field, int32_t count = 1) {}
 };
 
 
@@ -107,30 +107,30 @@ template <> struct FieldFactory<Type> {                                         
         data.buf += sizeof(Type);                                               \
     }                                                                           \
                                                                                 \
-    static void serialize(SerializationData& data, const Type& field, Int count) {\
+    static void serialize(SerializationData& data, const Type& field, int32_t count) {\
         memmove(data.buf, &field, count*sizeof(Type));                          \
         data.buf += count * sizeof(Type);                                       \
         data.total += count * sizeof(Type);                                     \
     }                                                                           \
-    static void deserialize(DeserializationData& data, Type& field, Int count) {\
+    static void deserialize(DeserializationData& data, Type& field, int32_t count) {\
         memmove(&field, data.buf, count*sizeof(Type));                          \
         data.buf += count*sizeof(Type);                                         \
     }                                                                           \
-    static void serialize(SerializationData& data, const Type* field, Int count) {\
+    static void serialize(SerializationData& data, const Type* field, int32_t count) {\
         memmove(data.buf, field, count*sizeof(Type));                           \
         data.buf += count * sizeof(Type);                                       \
         data.total += count * sizeof(Type);                                     \
     }                                                                           \
-    static void deserialize(DeserializationData& data, Type* field, Int count) {\
+    static void deserialize(DeserializationData& data, Type* field, int32_t count) {\
         memmove(field, data.buf, count*sizeof(Type));                           \
         data.buf += count*sizeof(Type);                                         \
     }                                                                           \
 }
 
 
-template <> struct FieldFactory<UBigInt> {
+template <> struct FieldFactory<uint64_t> {
 
-    using Type = UBigInt;
+    using Type = uint64_t;
 
     static void serialize(SerializationData& data, const Type& field) {
         memmove(data.buf, &field, sizeof(Type));
@@ -142,35 +142,35 @@ template <> struct FieldFactory<UBigInt> {
         data.buf += sizeof(Type);
     }
 
-    static void serialize(SerializationData& data, const Type& field, Int count) {
+    static void serialize(SerializationData& data, const Type& field, int32_t count) {
         memmove(data.buf, &field, count*sizeof(Type));
         data.buf += count * sizeof(Type);
         data.total += count * sizeof(Type);
     }
-    static void deserialize(DeserializationData& data, Type& field, Int count) {
+    static void deserialize(DeserializationData& data, Type& field, int32_t count) {
         memmove(&field, data.buf, count*sizeof(Type));
         data.buf += count*sizeof(Type);
     }
-    static void serialize(SerializationData& data, const Type* field, Int count) {
+    static void serialize(SerializationData& data, const Type* field, int32_t count) {
         memmove(data.buf, field, count*sizeof(Type));
         data.buf += count * sizeof(Type);
         data.total += count * sizeof(Type);
     }
-    static void deserialize(DeserializationData& data, Type* field, Int count) {
+    static void deserialize(DeserializationData& data, Type* field, int32_t count) {
         memmove(field, data.buf, count*sizeof(Type));
         data.buf += count*sizeof(Type);
     }
 };
 
 
-MEMORIA_TYPED_FIELD(Char);
-MEMORIA_TYPED_FIELD(Byte);
-MEMORIA_TYPED_FIELD(Short);
-MEMORIA_TYPED_FIELD(Int);
-MEMORIA_TYPED_FIELD(BigInt);
-MEMORIA_TYPED_FIELD(UByte);
-MEMORIA_TYPED_FIELD(UShort);
-MEMORIA_TYPED_FIELD(UInt);
+MEMORIA_TYPED_FIELD(char);
+MEMORIA_TYPED_FIELD(int8_t);
+MEMORIA_TYPED_FIELD(int16_t);
+MEMORIA_TYPED_FIELD(int32_t);
+MEMORIA_TYPED_FIELD(int64_t);
+MEMORIA_TYPED_FIELD(uint8_t);
+MEMORIA_TYPED_FIELD(uint16_t);
+MEMORIA_TYPED_FIELD(uint32_t);
 MEMORIA_TYPED_FIELD(float);
 MEMORIA_TYPED_FIELD(double);
 MEMORIA_TYPED_FIELD(bool);
@@ -178,7 +178,7 @@ MEMORIA_TYPED_FIELD(bool);
 
 namespace internal {
 
-template <typename Tuple, Int Idx = std::tuple_size<Tuple>::value - 1>
+template <typename Tuple, int32_t Idx = std::tuple_size<Tuple>::value - 1>
 struct TupleFactoryHelper {
 
     using CurrentType = typename std::tuple_element<Idx, Tuple>::type;
@@ -217,9 +217,9 @@ struct FieldFactory<std::tuple<Types...> > {
         v1::internal::TupleFactoryHelper<Type>::serialize(data, field);
     }
 
-    static void serialize(SerializationData& data, const Type* field, Int size)
+    static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             v1::internal::TupleFactoryHelper<Type>::serialize(data, field[c]);
         }
@@ -230,9 +230,9 @@ struct FieldFactory<std::tuple<Types...> > {
         v1::internal::TupleFactoryHelper<Type>::deserialize(data, field);
     }
 
-    static void deserialize(DeserializationData& data, Type* field, Int size)
+    static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             v1::internal::TupleFactoryHelper<Type>::deserialize(data, field[c]);
         }

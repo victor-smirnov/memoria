@@ -38,7 +38,7 @@ namespace io {
 
 namespace {
 
-    template <typename Types, Int Streams, Int Idx = 0>
+    template <typename Types, int32_t Streams, int32_t Idx = 0>
     struct DataStreamInputBufferBuilder {
         using InputBuffer = StreamInputBuffer<
                 Idx,
@@ -54,7 +54,7 @@ namespace {
         >;
     };
 
-    template <typename Types, Int Streams>
+    template <typename Types, int32_t Streams>
     struct DataStreamInputBufferBuilder<Types, Streams, Streams> {
         using Type = TL<>;
     };
@@ -72,9 +72,9 @@ template <typename CtrT>
 class AbstractCtrInputProviderBase {
 
 protected:
-    static const Int Streams                = CtrT::Types::Streams;
-    static const Int DataStreams            = CtrT::Types::DataStreams;
-    static const Int StructureStreamIdx     = CtrT::Types::StructureStreamIdx;
+    static const int32_t Streams                = CtrT::Types::Streams;
+    static const int32_t DataStreams            = CtrT::Types::DataStreams;
+    static const int32_t StructureStreamIdx     = CtrT::Types::StructureStreamIdx;
 
 
 public:
@@ -83,8 +83,8 @@ public:
     using NodeBaseG             = typename CtrT::Types::NodeBaseG;
     using CtrSizeT              = typename CtrT::Types::CtrSizeT;
     using Position              = typename CtrT::Types::Position;
-    using DataPositions         = core::StaticVector<Int, DataStreams>;
-    using CtrDataPositionsT     = core::StaticVector<BigInt, DataStreams>;
+    using DataPositions         = core::StaticVector<int32_t, DataStreams>;
+    using CtrDataPositionsT     = core::StaticVector<int64_t, DataStreams>;
 
 
     using Iterator = typename CtrT::Iterator;
@@ -139,8 +139,8 @@ protected:
 
 private:
     struct CreateBufferFn {
-        template <Int Idx, typename Buffer>
-        void process(Buffer&& buffer, Int initial_capacity)
+        template <int32_t Idx, typename Buffer>
+        void process(Buffer&& buffer, int32_t initial_capacity)
         {
             buffer.init(initial_capacity);
         }
@@ -148,7 +148,7 @@ private:
 
 
     struct FinishBufferFn {
-        template <Int Idx, typename Buffer>
+        template <int32_t Idx, typename Buffer>
         void process(Buffer&& buffer)
         {
             buffer.finish();
@@ -156,7 +156,7 @@ private:
     };
 
     struct DumpBufferFn {
-        template <Int Idx, typename Buffer, typename EventConsumer>
+        template <int32_t Idx, typename Buffer, typename EventConsumer>
         void process(Buffer&& buffer, EventConsumer&& consumer, std::ostream& out)
         {
             out<<"Begin Stream Dump: "<<Idx<<std::endl;
@@ -166,7 +166,7 @@ private:
     };
 
     struct ResetBufferFn {
-        template <Int Idx, typename Buffer>
+        template <int32_t Idx, typename Buffer>
         void process(Buffer&& buffer)
         {
             buffer.reset();
@@ -175,7 +175,7 @@ private:
 
 public:
 
-    AbstractCtrInputProviderBase(CtrT& ctr, Int initial_capacity):
+    AbstractCtrInputProviderBase(CtrT& ctr, int32_t initial_capacity):
         symbols_(initial_capacity),
         ctr_(ctr)
 
@@ -259,11 +259,11 @@ public:
     {
         DataPositions rnk;
 
-        Int start_pos = start_.sum();
+        int32_t start_pos = start_.sum();
 
         const auto* symbols = this->symbols();
 
-        for (Int s = 0; s < DataStreams; s++)
+        for (int32_t s = 0; s < DataStreams; s++)
         {
             rnk[s] = symbols->rank(start_pos + idx, s);
         }
@@ -315,7 +315,7 @@ public:
     {
         DataPositions dp;
 
-        for (Int c = 0; c < DataPositions::Indexes; c++) {
+        for (int32_t c = 0; c < DataPositions::Indexes; c++) {
             dp[c] = pos[c];
         }
 
@@ -346,7 +346,7 @@ protected:
 
 template <
     typename CtrT,
-    Int Streams = CtrT::Types::Streams,
+    int32_t Streams = CtrT::Types::Streams,
     LeafDataLengthType LeafDataLength = CtrT::Types::LeafDataLength
 >
 class AbstractCtrInputProvider;
@@ -355,7 +355,7 @@ class AbstractCtrInputProvider;
 
 template <
     typename CtrT,
-    Int Streams
+    int32_t Streams
 >
 class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: public AbstractCtrInputProviderBase<CtrT> {
 
@@ -393,7 +393,7 @@ protected:
 
 public:
 
-    AbstractCtrInputProvider(CtrT& ctr, Int total_capacity):
+    AbstractCtrInputProvider(CtrT& ctr, int32_t total_capacity):
         Base(ctr, total_capacity)
     {}
 
@@ -405,7 +405,7 @@ public:
     {
         Position ctr_end;
 
-        for (Int c = 0; c < DataPositions::Indexes; c++)
+        for (int32_t c = 0; c < DataPositions::Indexes; c++)
         {
             ctr_end[c] = end[c];
         }
@@ -474,7 +474,7 @@ public:
                 {
                     auto mid = imin + ((imax - imin) / 2);
 
-                    Int try_block_size = mid - start;
+                    int32_t try_block_size = mid - start;
 
                     auto sizes = rank(try_block_size);
                     if (tryInsertBuffer(mgr, leaf, at, sizes))
@@ -510,7 +510,7 @@ protected:
 
     struct InsertBuffersFn {
 
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj, typename StreamBuffer>
+        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj, typename StreamBuffer>
         void stream(StreamObj* stream, PackedAllocator* alloc, const Position& at, const Position& starts, const Position& sizes, StreamBuffer&& buffer)
         {
             static_assert(StreamIdx < std::tuple_size<StreamBuffer>::value, "");
@@ -533,7 +533,7 @@ protected:
 
 
     struct AssignDataBuffersFn {
-        template <Int Idx, typename DataBuffers, typename JointBuffers>
+        template <int32_t Idx, typename DataBuffers, typename JointBuffers>
         void process(DataBuffers&& data_buffers, JointBuffers&& joint_buffers)
         {
             std::get<Idx>(joint_buffers) = &data_buffers;
@@ -559,7 +559,7 @@ protected:
     {
         Position pos;
 
-        for (Int c = 0; c < DataPositions::Indexes; c++)
+        for (int32_t c = 0; c < DataPositions::Indexes; c++)
         {
             pos[c] = data_pos[c];
         }

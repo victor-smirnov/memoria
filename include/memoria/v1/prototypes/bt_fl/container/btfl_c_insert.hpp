@@ -38,10 +38,10 @@ protected:
     using CtrInputProviderPool = ObjectPool<btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer>>;
 
 
-    static const Int Streams = Types::Streams;
+    static const int32_t Streams = Types::Streams;
 
     template <typename IOBuffer>
-    auto bulkio_insert(Iterator& iter, BufferProducer<IOBuffer>& provider, const Int initial_capacity = 4000)
+    auto bulkio_insert(Iterator& iter, BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 4000)
     {
         auto& self = this->self();
 

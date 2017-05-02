@@ -48,17 +48,17 @@ public:
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 
-    auto select(CtrSizeT rank_delta, Int symbol)
+    auto select(CtrSizeT rank_delta, int32_t symbol)
     {
         return self().template select_<SymbolsSubstreamPath>(symbol, rank_delta);
     }
 
-    auto selectFw(CtrSizeT rank_delta, Int symbol)
+    auto selectFw(CtrSizeT rank_delta, int32_t symbol)
     {
         return self().template select_fw_<SymbolsSubstreamPath>(symbol, rank_delta);
     }
 
-    auto selectBw(CtrSizeT rank_delta, Int symbol)
+    auto selectBw(CtrSizeT rank_delta, int32_t symbol)
     {
         return self().template select_bw_<SymbolsSubstreamPath>(symbol, rank_delta);
     }

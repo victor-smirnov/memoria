@@ -34,7 +34,7 @@ class AddIfNotcontains {
     MEMORIA_V1_STATIC_ASSERT(IsList<List>::Value);
 
 public:
-    static const Int Idx = IndexOfTool<Item, List>::Value;
+    static const int32_t Idx = IndexOfTool<Item, List>::Value;
 public:
     typedef IfThenElse<Idx == -1, TL<Item, List>, List> Result;
 };
@@ -81,14 +81,14 @@ public:
 };
 
 
-template <Int Name, CompareOps Op, typename Type, Type ExValue, typename List>
+template <int32_t Name, CompareOps Op, typename Type, Type ExValue, typename List>
 class NameListBuilder<ValueOp<Name, Op, Type, ExValue>, List> {
     MEMORIA_V1_STATIC_ASSERT(IsList<List>::Value);
 public:
     typedef typename AddIfNotcontains<Name, List>::Result                       Result;
 };
 
-template <Int Name, typename Type, typename List>
+template <int32_t Name, typename Type, typename List>
 class NameListBuilder<TypeOp<Name, Type>, List> {
     MEMORIA_V1_STATIC_ASSERT(IsList<List>::Value);
 public:

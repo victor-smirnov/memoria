@@ -35,17 +35,17 @@ namespace v1 {
 struct Page {
 
     virtual UUID getId() const                       = 0;
-    virtual Int getContainerHash() const             = 0;
-    virtual Int getPageTypeHash() const              = 0;
-    virtual BigInt getFlags() const                  = 0;
+    virtual int32_t getContainerHash() const             = 0;
+    virtual int32_t getPageTypeHash() const              = 0;
+    virtual int64_t getFlags() const                  = 0;
     virtual const void* Ptr() const                  = 0;
     virtual void* Ptr()                              = 0;
     virtual void setPtr(void* ptr)                   = 0;
     virtual bool isNull() const                      = 0;
 
-    virtual Int size() const                         = 0;
-    virtual Int getByte(Int idx) const               = 0;
-    virtual void setByte(Int idx, Int value)         = 0;
+    virtual int32_t size() const                         = 0;
+    virtual int32_t getByte(int32_t idx) const               = 0;
+    virtual void setByte(int32_t idx, int32_t value)         = 0;
 
     virtual ~Page() noexcept {}
 };
@@ -76,7 +76,7 @@ public:
         }
     }
 
-    virtual Int getContainerHash() const
+    virtual int32_t getContainerHash() const
     {
         if (page_ != NULL)
         {
@@ -87,7 +87,7 @@ public:
         }
     }
 
-    virtual Int getPageTypeHash() const
+    virtual int32_t getPageTypeHash() const
     {
         if (page_ != NULL)
         {
@@ -98,7 +98,7 @@ public:
         }
     }
     
-    virtual BigInt getFlags() const {
+    virtual int64_t getFlags() const {
         return 0;
     }
     
@@ -115,16 +115,16 @@ public:
         page_ = static_cast<PageType*>(ptr);
     }
 
-    virtual Int size() const {
+    virtual int32_t size() const {
         return page_->page_size();
     }
 
-    virtual Int getByte(Int idx) const
+    virtual int32_t getByte(int32_t idx) const
     {
         if (page_ != NULL)
         {
             if (idx >= 0 && idx < page_->page_size()) {
-                return T2T<UByte*>(page_)[idx];
+                return T2T<uint8_t*>(page_)[idx];
             }
             else {
                 throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<page_->page_size());
@@ -136,13 +136,13 @@ public:
         }
     }
 
-    virtual void setByte(Int idx, Int value)
+    virtual void setByte(int32_t idx, int32_t value)
     {
         if (page_ != NULL)
         {
             if (idx >= 0 && idx < page_->page_size())
             {
-                T2T<UByte*>(page_)[idx] = (UByte)value;
+                T2T<uint8_t*>(page_)[idx] = (uint8_t)value;
             }
             else {
                 throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<page_->page_size());
@@ -179,7 +179,7 @@ public:
         }
     }
 
-    virtual Int getContainerHash() const
+    virtual int32_t getContainerHash() const
     {
         if (page_ != NULL)
         {
@@ -190,7 +190,7 @@ public:
         }
     }
 
-    virtual Int getPageTypeHash() const
+    virtual int32_t getPageTypeHash() const
     {
         if (page_ != NULL)
         {
@@ -201,7 +201,7 @@ public:
         }
     }
 
-    virtual BigInt getFlags() const {
+    virtual int64_t getFlags() const {
         return 0;
     }
 
@@ -218,16 +218,16 @@ public:
         throw Exception(MA_SRC, "Page in not mutable");
     }
 
-    virtual Int size() const {
+    virtual int32_t size() const {
         return page_->page_size();
     }
 
-    virtual Int getByte(Int idx) const
+    virtual int32_t getByte(int32_t idx) const
     {
         if (page_ != NULL)
         {
             if (idx >= 0 && idx < page_->page_size()) {
-                return T2T<UByte*>(page_)[idx];
+                return T2T<uint8_t*>(page_)[idx];
             }
             else {
                 throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<page_->page_size());
@@ -239,7 +239,7 @@ public:
         }
     }
 
-    virtual void setByte(Int idx, Int value)
+    virtual void setByte(int32_t idx, int32_t value)
     {
         throw Exception(MA_SRC, "Page in not mutable");
     }

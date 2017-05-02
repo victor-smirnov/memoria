@@ -33,8 +33,8 @@ class PackedLoudsCardinalTree: public PackedAllocator {
     typedef PackedLoudsCardinalTree<Types>                                      MyType;
 
 public:
-    static const Int SafetyGap                                                  = 8;
-    static const Int BitsPerLabel                                               = Types::BitsPerLabel;
+    static const int32_t SafetyGap                                                  = 8;
+    static const int32_t BitsPerLabel                                               = Types::BitsPerLabel;
 
     typedef LoudsTreeTypes<>                                                    TreeTypes;
     typedef PackedLoudsTree<TreeTypes>                                          LoudsTree;
@@ -67,12 +67,12 @@ public:
         return Base::template get<LabelArray>(LABELS);
     }
 
-    Int label(const PackedLoudsNode& node) const
+    int32_t label(const PackedLoudsNode& node) const
     {
         return labels(node.rank1());
     }
 
-    PackedLoudsNode insertNode(const PackedLoudsNode& at, Int label)
+    PackedLoudsNode insertNode(const PackedLoudsNode& at, int32_t label)
     {
         PackedLoudsNode node = tree()->insertNode(at);
         MEMORIA_V1_ASSERT_TRUE(node);
@@ -83,14 +83,14 @@ public:
 
     void removeLeaf(const PackedLoudsNode& node)
     {
-        Int idx = node.rank1() - 1;
+        int32_t idx = node.rank1() - 1;
         labels()->removeSpace(idx, idx + 1);
         tree()->removeLeaf(node);
     }
 
     void init()
     {
-        Int block_size = empty_size();
+        int32_t block_size = empty_size();
 
         Base::init(block_size, 2);
 
@@ -98,16 +98,16 @@ public:
         Base::template allocateEmpty<LabelArray>(LABELS);
     }
 
-    PackedLoudsNode find_child(const PackedLoudsNode& node, Int label) const
+    PackedLoudsNode find_child(const PackedLoudsNode& node, int32_t label) const
     {
         const LoudsTree* louds = tree();
         PackedLoudsNodeSet children = louds->children(node);
 
         const LabelArray* labels = this->labels();
 
-        for (Int c = 0; c < children.length(); c++)
+        for (int32_t c = 0; c < children.length(); c++)
         {
-            Int node_label = labels->value(children.rank1() + c - 1);
+            int32_t node_label = labels->value(children.rank1() + c - 1);
 
             if (node_label >= label)
             {
@@ -119,21 +119,21 @@ public:
     }
 
 
-    void insert_path(UBigInt path, Int size, function<void (const PackedLoudsNode&, Int label, Int level)> fn)
+    void insert_path(uint64_t path, int32_t size, function<void (const PackedLoudsNode&, int32_t label, int32_t level)> fn)
     {
         LoudsTree* louds = tree();
 
         PackedLoudsNode node = louds->root();
 
-        Int level = 0;
+        int32_t level = 0;
 
         while (!louds->isLeaf(node))
         {
-            Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+            int32_t label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
             node = find_child(node, label);
 
-            Int lbl = labels()->value(node.rank1() - 1);
+            int32_t lbl = labels()->value(node.rank1() - 1);
 
             if (!louds->isLeaf(node) && lbl == label)
             {
@@ -158,7 +158,7 @@ public:
 
                 node = louds->node(node.idx()); // refresh
 
-                Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+                int32_t label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
                 labels()->insert(node.rank1() - 1, label);
 
@@ -179,17 +179,17 @@ public:
         }
     }
 
-    bool query_path(UBigInt path, Int size, function<void (const PackedLoudsNode&, Int label, Int level)> fn) const
+    bool query_path(uint64_t path, int32_t size, function<void (const PackedLoudsNode&, int32_t label, int32_t level)> fn) const
     {
         LoudsTree* louds = tree();
 
         PackedLoudsNode node = louds->root();
 
-        Int level = 0;
+        int32_t level = 0;
 
         while (!louds->isLeaf(node))
         {
-            Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+            int32_t label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
             PackedLoudsNode child = find_child(node, label);
 
@@ -205,12 +205,12 @@ public:
         LEAF, NOT_FOUND, OK, FINISH
     };
 
-    Status remove_path(const PackedLoudsNode& node, UBigInt path, Int size, Int level)
+    Status remove_path(const PackedLoudsNode& node, uint64_t path, int32_t size, int32_t level)
     {
         LoudsTree* louds = tree();
         if (!louds->isLeaf(node))
         {
-            Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+            int32_t label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
             PackedLoudsNode child = find_child(node, label);
 
@@ -248,7 +248,7 @@ public:
         }
     }
 
-    bool remove_path(UBigInt path, Int size)
+    bool remove_path(uint64_t path, int32_t size)
     {
         PackedLoudsNode node = tree()->root();
         return remove_path(node, path, size, 0) != Status::NOT_FOUND;
@@ -264,19 +264,19 @@ public:
     }
 
 
-    static Int block_size(Int client_area)
+    static int32_t block_size(int32_t client_area)
     {
         return Base::block_size(client_area, 2);
     }
 
-    static Int empty_size()
+    static int32_t empty_size()
     {
-        Int tree_block_size     = PackedAllocator::roundUpBytesToAlignmentBlocks(LoudsTree::empty_size());
-        Int labels_block_size   = PackedAllocator::roundUpBytesToAlignmentBlocks(LabelArray::empty_size());
+        int32_t tree_block_size     = PackedAllocator::roundUpBytesToAlignmentBlocks(LoudsTree::empty_size());
+        int32_t labels_block_size   = PackedAllocator::roundUpBytesToAlignmentBlocks(LabelArray::empty_size());
 
-        Int client_area = tree_block_size + labels_block_size;
+        int32_t client_area = tree_block_size + labels_block_size;
 
-        Int bs = MyType::block_size(client_area);
+        int32_t bs = MyType::block_size(client_area);
         return bs;
     }
 

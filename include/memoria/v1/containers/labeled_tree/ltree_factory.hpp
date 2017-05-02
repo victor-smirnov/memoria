@@ -46,8 +46,8 @@ struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, 
 
     typedef BTTypes<Profile, v1::BT>                                            Base;
 
-    static constexpr Int BitsPerSymbol  = 1;
-    static constexpr Int Symbols        = 2;
+    static constexpr int32_t BitsPerSymbol  = 1;
+    static constexpr int32_t Symbols        = 2;
 
     using SymbolsSubstreamPath = IntList<0, 1>;
 

@@ -57,8 +57,8 @@ public:
 
         FindBranchFn(MyType& walker): walker_(walker) {}
 
-        template <Int ListIdx, typename StreamType, typename... Args>
-        StreamOpResult stream(const StreamType* stream, bool root, Int index, Int start, Args&&... args)
+        template <int32_t ListIdx, typename StreamType, typename... Args>
+        StreamOpResult stream(const StreamType* stream, bool root, int32_t index, int32_t start, Args&&... args)
         {
             StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, root, index, start, std::forward<Args>(args)...);
 
@@ -73,13 +73,13 @@ public:
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, Int start)
+    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, int32_t start)
     {
         auto& self = this->self();
 
         direction_ = direction;
 
-        Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
+        int32_t index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
         using BranchPath     = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
         using BranchSizePath = IntList<ListHead<LeafPath>::Value>;
@@ -95,8 +95,8 @@ public:
 
 
 
-    template <Int StreamIdx, typename Tree, typename SizesSubstream>
-    StreamOpResult find_non_leaf(const Tree* tree, bool root, Int index, Int start, const SizesSubstream* sizes_substream)
+    template <int32_t StreamIdx, typename Tree, typename SizesSubstream>
+    StreamOpResult find_non_leaf(const Tree* tree, bool root, int32_t index, int32_t start, const SizesSubstream* sizes_substream)
     {
         auto size = tree->size();
 
@@ -107,7 +107,7 @@ public:
             auto tree_iter  = tree->iterator(index, start);
             auto sizes_iter = sizes_substream->iterator(0, start);
 
-            for (Int c = start; c < size; c++)
+            for (int32_t c = start; c < size; c++)
             {
                 sizes_iter.next();
                 tree_iter.next();
@@ -129,8 +129,8 @@ public:
     }
 
 
-    template <Int StreamIdx, typename Seq>
-    StreamOpResult find_leaf(const Seq* seq, Int start)
+    template <int32_t StreamIdx, typename Seq>
+    StreamOpResult find_leaf(const Seq* seq, int32_t start)
     {
         MEMORIA_V1_ASSERT_TRUE(seq);
 
@@ -142,7 +142,7 @@ public:
 
             this->set_leaf_index(count.symbol());
 
-            Int end = start + count.count();
+            int32_t end = start + count.count();
 
             return StreamOpResult(end, start, end >= seq->size());
         }
@@ -151,7 +151,7 @@ public:
             {
                 sum_ += count.count();
 
-                Int end = start + count.count();
+                int32_t end = start + count.count();
 
                 return StreamOpResult(end, start, end >= seq->size());
             }
@@ -211,8 +211,8 @@ public:
 
         FindBranchFn(MyType& walker): walker_(walker) {}
 
-        template <Int ListIdx, typename StreamType, typename... Args>
-        StreamOpResult stream(const StreamType* stream, bool root, Int index, Int start, Args&&... args)
+        template <int32_t ListIdx, typename StreamType, typename... Args>
+        StreamOpResult stream(const StreamType* stream, bool root, int32_t index, int32_t start, Args&&... args)
         {
             StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, root, index, start, std::forward<Args>(args)...);
 
@@ -226,13 +226,13 @@ public:
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, Int start)
+    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, int32_t start)
     {
         auto& self = this->self();
 
         direction_ = direction;
 
-        Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
+        int32_t index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
         using BranchPath     = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
         using BranchSizePath = IntList<ListHead<LeafPath>::Value>;
@@ -248,8 +248,8 @@ public:
 
 
 
-    template <Int StreamIdx, typename Tree, typename SizesSubstream>
-    StreamOpResult find_non_leaf(const Tree* tree, bool root, Int index, Int start, const SizesSubstream* sizes_substream)
+    template <int32_t StreamIdx, typename Tree, typename SizesSubstream>
+    StreamOpResult find_non_leaf(const Tree* tree, bool root, int32_t index, int32_t start, const SizesSubstream* sizes_substream)
     {
         if (start > tree->size()) start = tree->size() - 1;
 
@@ -257,7 +257,7 @@ public:
         {
             MEMORIA_V1_ASSERT(tree->size(), ==, sizes_substream->size());
 
-            for (Int c = start; c >= 0; c--)
+            for (int32_t c = start; c >= 0; c--)
             {
                 auto v1 = tree->get_values(c, index);
                 auto v2 = sizes_substream->get_values(c, 0);
@@ -279,8 +279,8 @@ public:
     }
 
 
-    template <Int StreamIdx, typename Seq>
-    StreamOpResult find_leaf(const Seq* seq, Int start)
+    template <int32_t StreamIdx, typename Seq>
+    StreamOpResult find_leaf(const Seq* seq, int32_t start)
     {
         MEMORIA_V1_ASSERT_TRUE(seq);
 
@@ -292,7 +292,7 @@ public:
 
             this->set_leaf_index(count.symbol());
 
-            Int end = start - count.count();
+            int32_t end = start - count.count();
 
             return StreamOpResult(end, start, end < 0);
         }
@@ -304,7 +304,7 @@ public:
             {
                 sum_ += count.count();
 
-                Int end = start - count.count();
+                int32_t end = start - count.count();
 
                 return StreamOpResult(end, start, end < 0);
             }

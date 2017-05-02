@@ -22,32 +22,32 @@
 namespace memoria {
 namespace v1 {
 
-template <Int Blocks>
+template <int32_t Blocks>
 class PkdVDArrayMetadata {
-    Int size_;
+    int32_t size_;
 
-    Int data_size_[Blocks];
+    int32_t data_size_[Blocks];
 
 public:
     PkdVDArrayMetadata() = default;
 
-    Int& size() {return size_;}
-    const Int& size() const {return size_;}
+    int32_t& size() {return size_;}
+    const int32_t& size() const {return size_;}
 
-    Int& data_size(Int block) {return data_size_[block];}
-    const Int& data_size(Int block) const {return data_size_[block];}
+    int32_t& data_size(int32_t block) {return data_size_[block];}
+    const int32_t& data_size(int32_t block) const {return data_size_[block];}
 
-    template <Int, typename, template <typename> class Codec, Int, Int, typename> friend class PkdVLEArrayBase;
+    template <int32_t, typename, template <typename> class Codec, int32_t, int32_t, typename> friend class PkdVLEArrayBase;
 };
 
 
 
 template <
-    Int Blocks,
+    int32_t Blocks,
     typename ValueT,
     template <typename> class CodecT,
-    Int kBranchingFactor,
-    Int kValuesPerBranch,
+    int32_t kBranchingFactor,
+    int32_t kValuesPerBranch,
     typename MetadataT = PkdVDArrayMetadata<Blocks>
 >
 class PkdVLEArrayBase: public PkdVLEArrayBaseBase<kBranchingFactor, kValuesPerBranch, 3, MetadataT> {
@@ -56,7 +56,7 @@ class PkdVLEArrayBase: public PkdVLEArrayBaseBase<kBranchingFactor, kValuesPerBr
     using MyType    = PkdVLEArrayBase<Blocks, ValueT, CodecT, kBranchingFactor, kValuesPerBranch, MetadataT>;
 
 public:
-    static constexpr UInt VERSION = 1;
+    static constexpr uint32_t VERSION = 1;
 
     using Value         = ValueT;
 
@@ -64,28 +64,28 @@ public:
     using typename Base::Metadata;
     using typename Base::TreeLayout;
 
-    using OffsetsType   = UBigInt;
+    using OffsetsType   = uint64_t;
 
     using Codec         = CodecT<Value>;
 
     using ValueData = typename Codec::BufferType;
 
-    static const Int BranchingFactor        = kBranchingFactor;
-    static const Int ValuesPerBranch        = kValuesPerBranch;
+    static const int32_t BranchingFactor        = kBranchingFactor;
+    static const int32_t ValuesPerBranch        = kValuesPerBranch;
 
     static const bool FixedSizeElement      = false;
 
-    static constexpr Int ValuesPerBranchMask    = ValuesPerBranch - 1;
-    static constexpr Int BranchingFactorMask    = BranchingFactor - 1;
+    static constexpr int32_t ValuesPerBranchMask    = ValuesPerBranch - 1;
+    static constexpr int32_t BranchingFactorMask    = BranchingFactor - 1;
 
-    static constexpr Int ValuesPerBranchLog2    = Log2(ValuesPerBranch) - 1;
-    static constexpr Int BranchingFactorLog2    = Log2(BranchingFactor) - 1;
+    static constexpr int32_t ValuesPerBranchLog2    = Log2(ValuesPerBranch) - 1;
+    static constexpr int32_t BranchingFactorLog2    = Log2(BranchingFactor) - 1;
 
-    static constexpr Int SegmentsPerBlock = 3;
+    static constexpr int32_t SegmentsPerBlock = 3;
 
 
-    static constexpr Int BITS_PER_OFFSET        = Codec::BitsPerOffset;
-    static constexpr Int BITS_PER_DATA_VALUE    = Codec::ElementSize;
+    static constexpr int32_t BITS_PER_OFFSET        = Codec::BitsPerOffset;
+    static constexpr int32_t BITS_PER_DATA_VALUE    = Codec::ElementSize;
 
     using Base::BlocksStart;
 
@@ -100,15 +100,15 @@ public:
 
 
     struct InitFn {
-        Int blocks_;
+        int32_t blocks_;
 
-        InitFn(Int blocks): blocks_(blocks) {}
+        InitFn(int32_t blocks): blocks_(blocks) {}
 
-        Int block_size(Int items_number) const {
+        int32_t block_size(int32_t items_number) const {
             return MyType::block_size_equi(blocks_, items_number);
         }
 
-        Int max_elements(Int block_size)
+        int32_t max_elements(int32_t block_size)
         {
             return block_size * 8 / BITS_PER_DATA_VALUE;
         }
@@ -123,51 +123,51 @@ public:
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
-                ConstValue<UInt, VERSION>,
+                ConstValue<uint32_t, VERSION>,
                 Value
     >;
 
-    static constexpr Int value_segment_size(Int values)
+    static constexpr int32_t value_segment_size(int32_t values)
     {
         return PackedAllocatable::roundUpBitsToAlignmentBlocks(values * BITS_PER_DATA_VALUE);
     }
 
-    static constexpr Int number_of_offsets(Int values)
+    static constexpr int32_t number_of_offsets(int32_t values)
     {
         return values > 0 ? Base::divUpV(values) : 1;
     }
 
-    static constexpr Int offsets_segment_size(Int values)
+    static constexpr int32_t offsets_segment_size(int32_t values)
     {
         return PackedAllocator::roundUpBitsToAlignmentBlocks(number_of_offsets(values) * BITS_PER_OFFSET);
     }
 
-    static constexpr Int index2_segment_size(Int index_size) {
+    static constexpr int32_t index2_segment_size(int32_t index_size) {
         return PackedAllocator::roundUpBytesToAlignmentBlocks(index_size * sizeof(int));
     }
 
 
 
-    void init_tl(Int data_block_size, Int blocks)
+    void init_tl(int32_t data_block_size, int32_t blocks)
     {
         Base::init(data_block_size, blocks * SegmentsPerBlock + BlocksStart);
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
-        this->template allocateArrayBySize<Int>(DATA_SIZES, blocks);
+        this->template allocateArrayBySize<int32_t>(DATA_SIZES, blocks);
 
         meta->size()        = 0;
 
-        Int max_size        = 0;
-        Int offsets_size    = offsets_segment_size(max_size);
+        int32_t max_size        = 0;
+        int32_t offsets_size    = offsets_segment_size(max_size);
 
-        Int values_segment_length = this->value_segment_size(max_size);
-        Int index_size      = this->index_size(max_size);
+        int32_t values_segment_length = this->value_segment_size(max_size);
+        int32_t index_size      = this->index_size(max_size);
 
-        for (Int block = 0; block < blocks; block++)
+        for (int32_t block = 0; block < blocks; block++)
         {
-            this->template allocateArrayBySize<Int>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size);
-            this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
-            this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length);
+            this->template allocateArrayBySize<int32_t>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size);
+            this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
+            this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length);
         }
     }
 
@@ -175,18 +175,18 @@ public:
 
 
     //FIXME: invalid block size calculation by capacity
-    static Int block_size_equi(Int blocks, Int total_capacity)
+    static int32_t block_size_equi(int32_t blocks, int32_t total_capacity)
     {
-        Int metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-        Int index_size      = MyType::index_size(total_capacity);
-        Int sizes_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(Int));
+        int32_t index_size      = MyType::index_size(total_capacity);
+        int32_t sizes_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(int32_t));
 
-        Int values_length   = Base::roundUpBitsToAlignmentBlocks(total_capacity * BITS_PER_DATA_VALUE);
+        int32_t values_length   = Base::roundUpBitsToAlignmentBlocks(total_capacity * BITS_PER_DATA_VALUE);
 
-        Int offsets_length  = offsets_segment_size(total_capacity);
+        int32_t offsets_length  = offsets_segment_size(total_capacity);
 
-        Int  blocks_length  = sizes_length + values_length + offsets_length;
+        int32_t  blocks_length  = sizes_length + values_length + offsets_length;
 
         return Base::block_size(
                 metadata_length +
@@ -198,62 +198,62 @@ public:
 
 
 
-    Int block_size() const
+    int32_t block_size() const
     {
         return Base::block_size();
     }
 
-    static Int index_size(Int capacity)
+    static int32_t index_size(int32_t capacity)
     {
         TreeLayout layout;
         Base::compute_tree_layout(capacity, layout);
         return layout.index_size;
     }
 
-    static Int tree_size(Int blocks, Int block_size)
+    static int32_t tree_size(int32_t blocks, int32_t block_size)
     {
-        return block_size >= (Int)sizeof(Value) ? FindTotalElementsNumber3(block_size, InitFn(blocks)) : 0;
+        return block_size >= (int32_t)sizeof(Value) ? FindTotalElementsNumber3(block_size, InitFn(blocks)) : 0;
     }
 
 
-    Int offset(Int block, Int idx) const
+    int32_t offset(int32_t block, int32_t idx) const
     {
         return GetBits(offsets(block), idx * BITS_PER_OFFSET, BITS_PER_OFFSET);
     }
 
-    Int offset(const OffsetsType* block, Int idx) const
+    int32_t offset(const OffsetsType* block, int32_t idx) const
     {
         return GetBits(block, idx * BITS_PER_OFFSET, BITS_PER_OFFSET);
     }
 
-    void set_offset(Int block, Int idx, Int value)
+    void set_offset(int32_t block, int32_t idx, int32_t value)
     {
         SetBits(offsets(block), idx * BITS_PER_OFFSET, value, BITS_PER_OFFSET);
     }
 
-    void set_offset(OffsetsType* block, Int idx, Int value)
+    void set_offset(OffsetsType* block, int32_t idx, int32_t value)
     {
         SetBits(block, idx * BITS_PER_OFFSET, value, BITS_PER_OFFSET);
     }
 
-    OffsetsType* offsets(Int block) {
+    OffsetsType* offsets(int32_t block) {
         return this->template get<OffsetsType>(block * SegmentsPerBlock + OFFSETS + BlocksStart);
     }
 
-    const OffsetsType* offsets(Int block) const {
+    const OffsetsType* offsets(int32_t block) const {
         return this->template get<OffsetsType>(block * SegmentsPerBlock + OFFSETS + BlocksStart);
     }
 
-    ValueData* values(Int block) {
+    ValueData* values(int32_t block) {
         return this->template get<ValueData>(block * SegmentsPerBlock + VALUES + BlocksStart);
     }
-    const ValueData* values(Int block) const {
+    const ValueData* values(int32_t block) const {
         return this->template get<ValueData>(block * SegmentsPerBlock + VALUES + BlocksStart);
     }
 
 
 
-    bool has_index(Int block) const {
+    bool has_index(int32_t block) const {
         return this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart) > 0;
     }
 
@@ -265,20 +265,20 @@ public:
 
 
     class Location {
-        Int window_start_;
-        Int size_prefix_;
-        Int pos_;
+        int32_t window_start_;
+        int32_t size_prefix_;
+        int32_t pos_;
     public:
-        Location(Int window_start, Int size_prefix, Int pos):
+        Location(int32_t window_start, int32_t size_prefix, int32_t pos):
             window_start_(window_start), size_prefix_(size_prefix), pos_(pos)
         {}
 
-        Int window_start() const {return window_start_;}
-        Int size_prefix() const {return size_prefix_;}
-        Int pos() const {return pos_;}
+        int32_t window_start() const {return window_start_;}
+        int32_t size_prefix() const {return size_prefix_;}
+        int32_t pos() const {return pos_;}
     };
 
-    Int locate(Int block, Int idx) const
+    int32_t locate(int32_t block, int32_t idx) const
     {
         auto values = this->values(block);
         auto data_size = this->data_size(block);
@@ -288,7 +288,7 @@ public:
         return locate(layout, values, block, idx, data_size).idx;
     }
 
-    LocateResult locate(TreeLayout& layout, const ValueData* values, Int block, Int idx, size_t data_size) const
+    LocateResult locate(TreeLayout& layout, const ValueData* values, int32_t block, int32_t idx, size_t data_size) const
     {
         if (data_size > 0) {
 
@@ -300,17 +300,17 @@ public:
                 locate_result = this->locate_index(layout, idx);
             }
 
-            Int window_num = locate_result.idx;
+            int32_t window_num = locate_result.idx;
 
-            Int window_start = window_num << ValuesPerBranchLog2;
+            int32_t window_start = window_num << ValuesPerBranchLog2;
             if (window_start >= 0)
             {
                 Codec codec;
 
                 size_t offset = this->offset(block, window_num);
 
-                Int c = 0;
-                Int local_idx = idx - locate_result.index_cnt;
+                int32_t c = 0;
+                int32_t local_idx = idx - locate_result.index_cnt;
                 size_t pos;
                 for (pos = window_start + offset; pos < data_size && c < local_idx; c++)
                 {
@@ -332,11 +332,11 @@ public:
     }
 
 
-    void reindex(Int blocks)
+    void reindex(int32_t blocks)
     {
-        for (Int block = 0; block < blocks; block++)
+        for (int32_t block = 0; block < blocks; block++)
         {
-            Int data_size = this->data_size(block);
+            int32_t data_size = this->data_size(block);
             TreeLayout layout = this->compute_tree_layout(data_size);
 
             this->reindex_block(block, layout, data_size);
@@ -344,11 +344,11 @@ public:
     }
 
 
-    void check(Int blocks) const
+    void check(int32_t blocks) const
     {
-        for (Int block = 0; block < blocks; block++)
+        for (int32_t block = 0; block < blocks; block++)
         {
-            Int data_size = this->data_size(block);
+            int32_t data_size = this->data_size(block);
             TreeLayout layout = this->compute_tree_layout(data_size);
 
             this->check_block(block, layout, data_size);
@@ -356,13 +356,13 @@ public:
     }
 
 
-    void dump_index(Int blocks, std::ostream& out = cout) const
+    void dump_index(int32_t blocks, std::ostream& out = cout) const
     {
         auto meta = this->metadata();
 
         out<<"size_         = "<<meta->size()<<std::endl;
 
-        for (Int block = 0; block < blocks; block++)
+        for (int32_t block = 0; block < blocks; block++)
         {
             out<<"++++++++++++++++++ Block: "<<block<<" ++++++++++++++++++"<<endl;
 
@@ -378,13 +378,13 @@ public:
                 out<<"TreeLayout: "<<endl;
 
                 out<<"Level sizes: ";
-                for (Int c = 0; c <= layout.levels_max; c++) {
+                for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_sizes[c]<<" ";
                 }
                 out<<endl;
 
                 out<<"Level starts: ";
-                for (Int c = 0; c <= layout.levels_max; c++) {
+                for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_starts[c]<<" ";
                 }
                 out<<endl;
@@ -394,7 +394,7 @@ public:
                 auto size_indexes = this->size_index(block);
 
                 out<<"Index:"<<endl;
-                for (Int c = 0; c < index_size; c++)
+                for (int32_t c = 0; c < index_size; c++)
                 {
                     out<<c<<": "<<value_indexes[c]<<" "<<size_indexes[c]<<std::endl;
                 }
@@ -402,7 +402,7 @@ public:
         }
     }
 
-    void dump_block(Int block, std::ostream& out = std::cout) const
+    void dump_block(int32_t block, std::ostream& out = std::cout) const
     {
         out<<"Dump values"<<std::endl;
         Codec codec;
@@ -411,7 +411,7 @@ public:
         auto values     = this->values(block);
         auto data_size  = this->data_size(block);
 
-        for(Int c = 0; pos < data_size; c++)
+        for(int32_t c = 0; pos < data_size; c++)
         {
             ValueT value;
             auto len = codec.decode(values, value, pos);
@@ -430,14 +430,14 @@ public:
 
 
 protected:
-    void reindex_block(Int block)
+    void reindex_block(int32_t block)
     {
         auto data_size = this->data_size(block);
         TreeLayout layout = this->compute_tree_layout(data_size);
         reindex_block(block, layout, data_size);
     }
 
-    void reindex_block(Int block, TreeLayout& layout, Int data_size)
+    void reindex_block(int32_t block, TreeLayout& layout, int32_t data_size)
     {
         if (layout.levels_max >= 0)
         {
@@ -450,19 +450,19 @@ protected:
 
             layout.valaue_block_size_prefix = size_index;
 
-            Int levels = layout.levels_max + 1;
+            int32_t levels = layout.levels_max + 1;
 
-            Int level_start = layout.level_starts[levels - 1];
+            int32_t level_start = layout.level_starts[levels - 1];
 
             Codec codec;
 
             size_t pos = 0;
-            Int size_cnt = 0;
+            int32_t size_cnt = 0;
             size_t threshold = ValuesPerBranch;
 
             set_offset(offsets, 0, 0);
 
-            Int idx = 0;
+            int32_t idx = 0;
             while(pos < data_size)
             {
                 if (pos >= threshold)
@@ -487,25 +487,25 @@ protected:
 
             size_index[level_start + idx] = size_cnt;
 
-            for (Int level = levels - 1; level > 0; level--)
+            for (int32_t level = levels - 1; level > 0; level--)
             {
-                Int previous_level_start = layout.level_starts[level - 1];
-                Int previous_level_size  = layout.level_sizes[level - 1];
+                int32_t previous_level_start = layout.level_starts[level - 1];
+                int32_t previous_level_size  = layout.level_sizes[level - 1];
 
-                Int current_level_start  = layout.level_starts[level];
+                int32_t current_level_start  = layout.level_starts[level];
 
-                Int current_level_size = layout.level_sizes[level];
+                int32_t current_level_size = layout.level_sizes[level];
 
                 for (int i = 0; i < previous_level_size; i++)
                 {
-                    Int sizes_sum  = 0;
+                    int32_t sizes_sum  = 0;
 
-                    Int start       = (i << BranchingFactorLog2) + current_level_start;
-                    Int window_end  = ((i + 1) << BranchingFactorLog2);
+                    int32_t start       = (i << BranchingFactorLog2) + current_level_start;
+                    int32_t window_end  = ((i + 1) << BranchingFactorLog2);
 
-                    Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
+                    int32_t end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
 
-                    for (Int c = start; c < end; c++) {
+                    for (int32_t c = start; c < end; c++) {
                         sizes_sum += size_index[c];
                     }
 
@@ -520,9 +520,9 @@ protected:
     }
 
 
-    void check_block(Int block, TreeLayout& layout, Int data_size) const
+    void check_block(int32_t block, TreeLayout& layout, int32_t data_size) const
     {
-        Int offsets_size = this->element_size(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
+        int32_t offsets_size = this->element_size(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
 
         if (layout.levels_max >= 0)
         {
@@ -534,19 +534,19 @@ protected:
 
             layout.valaue_block_size_prefix = size_index;
 
-            Int levels = layout.levels_max + 1;
+            int32_t levels = layout.levels_max + 1;
 
-            Int level_start = layout.level_starts[levels - 1];
+            int32_t level_start = layout.level_starts[levels - 1];
 
             Codec codec;
 
             size_t pos = 0;
-            Int size_cnt = 0;
+            int32_t size_cnt = 0;
             size_t threshold = ValuesPerBranch;
 
             MEMORIA_V1_ASSERT(offset(offsets, 0), ==, 0);
 
-            Int idx = 0;
+            int32_t idx = 0;
             while(pos < data_size)
             {
                 if (pos >= threshold)
@@ -567,28 +567,28 @@ protected:
                 pos += len;
             }
 
-            MEMORIA_V1_ASSERT((Int)pos, ==, data_size);
+            MEMORIA_V1_ASSERT((int32_t)pos, ==, data_size);
             MEMORIA_V1_ASSERT(size_index[level_start + idx], ==, size_cnt);
 
-            for (Int level = levels - 1; level > 0; level--)
+            for (int32_t level = levels - 1; level > 0; level--)
             {
-                Int previous_level_start = layout.level_starts[level - 1];
-                Int previous_level_size  = layout.level_sizes[level - 1];
+                int32_t previous_level_start = layout.level_starts[level - 1];
+                int32_t previous_level_size  = layout.level_sizes[level - 1];
 
-                Int current_level_start  = layout.level_starts[level];
+                int32_t current_level_start  = layout.level_starts[level];
 
-                Int current_level_size = layout.level_sizes[level];
+                int32_t current_level_size = layout.level_sizes[level];
 
                 for (int i = 0; i < previous_level_size; i++)
                 {
-                    Int sizes_sum  = 0;
+                    int32_t sizes_sum  = 0;
 
-                    Int start       = (i << BranchingFactorLog2) + current_level_start;
-                    Int window_end  = ((i + 1) << BranchingFactorLog2);
+                    int32_t start       = (i << BranchingFactorLog2) + current_level_start;
+                    int32_t window_end  = ((i + 1) << BranchingFactorLog2);
 
-                    Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
+                    int32_t end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
 
-                    for (Int c = start; c < end; c++) {
+                    for (int32_t c = start; c < end; c++) {
                         sizes_sum += size_index[c];
                     }
 

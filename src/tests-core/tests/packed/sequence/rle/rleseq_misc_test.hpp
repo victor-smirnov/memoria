@@ -28,7 +28,7 @@ namespace v1 {
 
 using namespace std;
 
-template <Int Symbols>
+template <int32_t Symbols>
 class PackedRLESearchableSequenceMiscTest: public PackedRLESequenceTestBase<Symbols> {
 
     using MyType = PackedRLESearchableSequenceMiscTest<Symbols>;
@@ -38,7 +38,7 @@ class PackedRLESearchableSequenceMiscTest: public PackedRLESequenceTestBase<Symb
     using typename Base::Seq;
     using typename Base::SeqPtr;
 
-    static const Int Blocks = Seq::Indexes;
+    static const int32_t Blocks = Seq::Indexes;
 
     using Value = typename Seq::Value;
 
@@ -71,7 +71,7 @@ public:
 
     void testCreate()
     {
-        for (Int size = 64; size <= this->size_; size *= 2)
+        for (int32_t size = 64; size <= this->size_; size *= 2)
         {
             out() << size << endl;
 
@@ -87,17 +87,17 @@ public:
 
     void testInsertSingle()
     {
-        for (Int size = 1; size <= this->size_; size *= 2)
+        for (int32_t size = 1; size <= this->size_; size *= 2)
         {
             out() << size << endl;
 
             auto seq = createEmptySequence();
             auto symbols = fillRandom(seq, size);
 
-            for (Int c = 0; c < this->iterations_; c++)
+            for (int32_t c = 0; c < this->iterations_; c++)
             {
-                Int idx     = getRandom(seq->size());
-                Int symbol  = getRandom(Blocks);
+                int32_t idx     = getRandom(seq->size());
+                int32_t symbol  = getRandom(Blocks);
 
                 out() << "Insert " << symbol << " at " << idx << endl;
 
@@ -113,16 +113,16 @@ public:
 
     void testSplit()
     {
-        for (Int size = 16; size <= this->size_; size *= 2)
+        for (int32_t size = 16; size <= this->size_; size *= 2)
         {
             out() << size << endl;
 
-            for (Int c = 0; c < this->iterations_; c++)
+            for (int32_t c = 0; c < this->iterations_; c++)
             {
                 auto seq = createEmptySequence();
                 auto symbols = fillRandom(seq, size);
 
-                Int idx = getRandom(seq->size());
+                int32_t idx = getRandom(seq->size());
 
                 auto seq2 = createEmptySequence();
 
@@ -133,7 +133,7 @@ public:
                 seq2->check();
                 seq->check();
 
-                vector<Int> symbols2(symbols.begin() + idx, symbols.end());
+                vector<int32_t> symbols2(symbols.begin() + idx, symbols.end());
 
                 symbols.erase(symbols.begin() + idx, symbols.end());
 
@@ -146,11 +146,11 @@ public:
 
     void testMerge()
     {
-        for (Int size = 16; size <= this->size_; size *= 2)
+        for (int32_t size = 16; size <= this->size_; size *= 2)
         {
             out() << size << endl;
 
-            for (Int c = 0; c < this->iterations_; c++)
+            for (int32_t c = 0; c < this->iterations_; c++)
             {
                 auto seq1 = createEmptySequence();
                 auto symbols1 = fillRandom(seq1, size);
@@ -174,7 +174,7 @@ public:
 
     void testRemoveMulti()
     {
-        for (Int size = 1; size <= this->size_; size *= 2)
+        for (int32_t size = 1; size <= this->size_; size *= 2)
         {
             out() << "Sequence size: " << size << std::endl;
 
@@ -182,14 +182,14 @@ public:
 
             auto symbols = fillRandom(seq, size);
 
-            for (Int c = 0; c < this->iterations_; c++)
+            for (int32_t c = 0; c < this->iterations_; c++)
             {
-                Int start   = getRandom(seq->size());
-                Int end     = start + getRandom(seq->size() - start);
+                int32_t start   = getRandom(seq->size());
+                int32_t end     = start + getRandom(seq->size() - start);
 
                 out() << "Remove from " << start << " to " << end << endl;
 
-                Int block_size = seq->block_size();
+                int32_t block_size = seq->block_size();
 
                 seq->remove(start, end);
 
@@ -205,7 +205,7 @@ public:
 
     void testRemoveAll()
     {
-        for (Int size = 1; size <= this->size_; size *= 2)
+        for (int32_t size = 1; size <= this->size_; size *= 2)
         {
             this->out()<<size<<std::endl;
 
@@ -222,7 +222,7 @@ public:
 
     void testClear()
     {
-        for (Int size = 1; size <= this->size_; size *= 2)
+        for (int32_t size = 1; size <= this->size_; size *= 2)
         {
             this->out()<<size<<std::endl;
 

@@ -50,11 +50,11 @@ public:
 
     void testPopCnt()
     {
-        for (Int c = 0; c < 100000; c++)
+        for (int32_t c = 0; c < 100000; c++)
         {
             T v = sizeof(T) == 8 ? getBIRandom() : getRandom();
 
-            Int cnt = PopCnt(v);
+            int32_t cnt = PopCnt(v);
 
             if (sizeof(T) == 8)
             {
@@ -69,15 +69,15 @@ public:
     void testPopCount()
     {
         T bitmap[10];
-        Int bitsize     = sizeof(bitmap) * 8;
+        int32_t bitsize     = sizeof(bitmap) * 8;
 
         MyType::clearBitmap(bitmap, bitsize, 0);
 
-        for (Int length = 1; length <= bitsize; length++)
+        for (int32_t length = 1; length <= bitsize; length++)
         {
-            for (Int start = 0; start < bitsize - length; start++)
+            for (int32_t start = 0; start < bitsize - length; start++)
             {
-                Int cnt = PopCount(bitmap, start, start + length);
+                int32_t cnt = PopCount(bitmap, start, start + length);
 
                 AssertEQ(MA_SRC, cnt, length, SBuf()<<start<<" "<<length);
             }

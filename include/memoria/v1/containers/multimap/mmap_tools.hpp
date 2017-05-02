@@ -30,8 +30,8 @@ namespace mmap {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, Int Selector = HasFieldFactory<KeyType>::Value> struct MMapKeyStructTF;
-template <typename KeyType, Int Selector = HasFieldFactory<KeyType>::Value> struct MMapSumKeyStructTF;
+template <typename KeyType, int32_t Selector = HasFieldFactory<KeyType>::Value> struct MMapKeyStructTF;
+template <typename KeyType, int32_t Selector = HasFieldFactory<KeyType>::Value> struct MMapSumKeyStructTF;
 
 template <typename T> struct MMapBranchStructTF;
 
@@ -49,7 +49,7 @@ template <typename KeyType>
 struct MMapSumKeyStructTF<KeyType, 0>: HasType<PkdVQTreeT<KeyType>> {};
 
 
-template <typename ValueType, Int Selector = HasFieldFactory<ValueType>::Value> struct MMapValueStructTF;
+template <typename ValueType, int32_t Selector = HasFieldFactory<ValueType>::Value> struct MMapValueStructTF;
 
 template <typename ValueType>
 struct MMapValueStructTF<ValueType, 1>: HasType<PkdFSQArrayT<ValueType>> {};
@@ -74,7 +74,7 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
     using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
 };
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 {
     static_assert(
@@ -94,7 +94,7 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
     static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(
@@ -130,10 +130,10 @@ class MultimapEntryBufferProducer: public bt::BufferProducer<IOBuffer> {
 
 	using Value = typename Iterator::value_type;
 
-	static constexpr Int DataStreams = 2;
+	static constexpr int32_t DataStreams = 2;
 
-	static constexpr Int KeyStream 		= 0;
-	static constexpr Int ValueStream 	= 1;
+	static constexpr int32_t KeyStream 		= 0;
+	static constexpr int32_t ValueStream 	= 1;
 
 	static constexpr size_t ValueBlockSize = 256;
 
@@ -142,9 +142,9 @@ public:
 		key_(key), start_(start), end_(end)
 	{}
 
-	virtual Int populate(IOBuffer& buffer)
+	virtual int32_t populate(IOBuffer& buffer)
 	{
-		Int entries = 0;
+		int32_t entries = 0;
 
 		if (!key_finished_)
 		{

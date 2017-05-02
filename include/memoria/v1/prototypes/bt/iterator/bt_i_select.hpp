@@ -41,7 +41,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorSelectName)
 
 
     template <typename LeafPath>
-    auto select_fw_(Int index, CtrSizeT rank)
+    auto select_fw_(int32_t index, CtrSizeT rank)
     {
         MEMORIA_V1_ASSERT(index, >=, 0);
         MEMORIA_V1_ASSERT(rank, >=, 0);
@@ -52,7 +52,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorSelectName)
     }
 
     template <typename LeafPath>
-    auto select_bw_(Int index, CtrSizeT rank)
+    auto select_bw_(int32_t index, CtrSizeT rank)
     {
         MEMORIA_V1_ASSERT(index, >=, 0);
         MEMORIA_V1_ASSERT(rank, >=, 0);

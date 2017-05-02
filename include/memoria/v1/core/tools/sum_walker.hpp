@@ -25,12 +25,12 @@ class SumTreeWalker {
 public:
     Key sum_;
     Key target_;
-    Int key_num_;
+    int32_t key_num_;
 
     Container& me_;
 
 public:
-    SumTreeWalker(Key target, Container& me, Int key_num = 0):sum_(0), target_(target), key_num_(key_num), me_(me) {}
+    SumTreeWalker(Key target, Container& me, int32_t key_num = 0):sum_(0), target_(target), key_num_(key_num), me_(me) {}
 
     Key remainder() const
     {
@@ -43,11 +43,11 @@ public:
     }
 
     template <typename Node>
-    Int operator()(Node *node, Int idx)
+    int32_t operator()(Node *node, int32_t idx)
     {
         if (Forward)
         {
-            Int position = node->map().findFwLT(key_num_, idx, target_ - sum_, sum_);
+            int32_t position = node->map().findFwLT(key_num_, idx, target_ - sum_, sum_);
             if (position < node->children_count())
             {
                 return position;

@@ -31,7 +31,7 @@ template <typename Value, typename Profile>
 std::vector<typename IterApi<Vector<Value>, Profile>::DataValue> IterApi<Vector<Value>, Profile>::read(size_t size)
 {
     
-    return this->pimpl_->read((BigInt)size);
+    return this->pimpl_->read((int64_t)size);
 }
 
 

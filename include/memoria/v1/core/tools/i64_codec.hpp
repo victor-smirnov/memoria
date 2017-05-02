@@ -112,8 +112,8 @@ template <typename T, typename V>
 struct I64Codec {
 
     typedef T BufferType;
-    static const Int BitsPerOffset  = 8;
-    static const Int ElementSize    = 1; // In bits;
+    static const int32_t BitsPerOffset  = 8;
+    static const int32_t ElementSize    = 1; // In bits;
 
     size_t length(const T* buffer, size_t idx, size_t limit) const {
         return GetI64ValueLength(buffer, idx);
@@ -155,6 +155,6 @@ struct I64Codec {
 };
 
 template <typename Value>
-using UBigIntI64Codec = I64Codec<UBigInt, Value>;
+using UBigIntI64Codec = I64Codec<uint64_t, Value>;
 
 }}

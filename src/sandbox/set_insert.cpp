@@ -51,8 +51,8 @@ int main()
 
         Ticker ticker(100000);
 
-        BigInt t0 = getTimeInMillis();
-        BigInt tl = t0;
+        int64_t t0 = getTimeInMillis();
+        int64_t tl = t0;
 
         for (int c = 0; c < size; c++)
         {
@@ -67,7 +67,7 @@ int main()
 
             if (ticker.is_threshold())
             {
-            	BigInt tt = getTimeInMillis();
+            	int64_t tt = getTimeInMillis();
             	cout << "Inserted: " << (ticker.ticks() + 1)<< " in " << (tt - tl) << endl;
             	tl = tt;
 
@@ -77,7 +77,7 @@ int main()
             ticker.tick();
         }
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
         cout << "Inserted " << size << " in " << (t1 - t0) << endl;
         

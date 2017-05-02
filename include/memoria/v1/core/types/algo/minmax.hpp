@@ -35,7 +35,7 @@ namespace v1 {
 template <
         typename List,
         template <typename Item> class ValueProvider,
-        typename ValueType = BigInt
+        typename ValueType = int64_t
 >
 class MinElement {
 
@@ -79,7 +79,7 @@ public:
 template <
         typename List,
         template <typename Item> class ValueProvider,
-        typename ValueType = BigInt
+        typename ValueType = int64_t
 >
 class MaxElement {
 
@@ -119,7 +119,7 @@ public:
 
 template <typename Item>
 struct TypeSizeValueProvider {
-    static const Int Value = ValueTraits<Item>::Size;
+    static const int32_t Value = ValueTraits<Item>::Size;
 };
 
 

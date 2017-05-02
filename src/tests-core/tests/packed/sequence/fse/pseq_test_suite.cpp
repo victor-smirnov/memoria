@@ -41,7 +41,7 @@ public:
     {
         registerTask(new PackedSearchableSequenceMiscTest<
                 1,
-                PkdFQTreeT<Int, 2>,
+                PkdFQTreeT<int32_t, 2>,
                 v1::BitmapReindexFn,
                 BitmapSelectFn,
                 BitmapRankFn,
@@ -50,7 +50,7 @@ public:
 
         registerTask(new PackedSearchableSequenceMiscTest<
                         4,
-                        PkdFQTreeT<Int, 16>,
+                        PkdFQTreeT<int32_t, 16>,
                         v1::ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
@@ -59,7 +59,7 @@ public:
 
         registerTask(new PackedSearchableSequenceMiscTest<
                         4,
-                        PkdVDTreeT<Int, 16, UBigIntEliasCodec>,
+                        PkdVDTreeT<int32_t, 16, UBigIntEliasCodec>,
                         VLEReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
@@ -68,7 +68,7 @@ public:
 
         registerTask(new PackedSearchableSequenceMiscTest<
                         4,
-                        PkdVQTreeT<Int, 16, UByteExintCodec>,
+                        PkdVQTreeT<int32_t, 16, UByteExintCodec>,
                         VLEReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
@@ -77,7 +77,7 @@ public:
 
         registerTask(new PackedSearchableSequenceMiscTest<
                         8,
-                        PkdVDTreeT<BigInt, 256, UBigIntEliasCodec>,
+                        PkdVDTreeT<int64_t, 256, UBigIntEliasCodec>,
                         VLEReindex8Fn,
                         Seq8SelectFn,
                         Seq8RankFn,
@@ -86,7 +86,7 @@ public:
 
         registerTask(new PackedSearchableSequenceMiscTest<
                 8,
-                PkdVDTreeT<BigInt, 256, UBigIntI64Codec>,
+                PkdVDTreeT<int64_t, 256, UBigIntI64Codec>,
                 VLEReindex8BlkFn,
                 Seq8SelectFn,
                 Seq8RankFn,
@@ -97,7 +97,7 @@ public:
 
         registerTask(new PackedSearchableSequenceRankTest<
                 1,
-                PkdFQTreeT<Int, 2>,
+                PkdFQTreeT<int32_t, 2>,
                 v1::BitmapReindexFn,
                  BitmapSelectFn,
                  BitmapRankFn,
@@ -106,7 +106,7 @@ public:
 
         registerTask(new PackedSearchableSequenceRankTest<
                 4,
-                PkdFQTreeT<Int, 16>,
+                PkdFQTreeT<int32_t, 16>,
                 v1::ReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -115,7 +115,7 @@ public:
 
         registerTask(new PackedSearchableSequenceRankTest<
                 4,
-                PkdVDTreeT<BigInt, 16, UBigIntEliasCodec>,
+                PkdVDTreeT<int64_t, 16, UBigIntEliasCodec>,
                 VLEReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -124,7 +124,7 @@ public:
 
         registerTask(new PackedSearchableSequenceRankTest<
                 8,
-                PkdVDTreeT<BigInt, 256, UBigIntI64Codec>,
+                PkdVDTreeT<int64_t, 256, UBigIntI64Codec>,
                 VLEReindex8BlkFn,
                 Seq8SelectFn,
                 Seq8RankFn,
@@ -138,7 +138,7 @@ public:
 
         registerTask(new PackedSearchableSequenceSelectTest<
                 1,
-                PkdFQTreeT<Int, 2>,
+                PkdFQTreeT<int32_t, 2>,
                 v1::BitmapReindexFn,
                  BitmapSelectFn,
                  BitmapRankFn,
@@ -147,7 +147,7 @@ public:
 
         registerTask(new PackedSearchableSequenceSelectTest<
                 4,
-                PkdFQTreeT<Int, 16>,
+                PkdFQTreeT<int32_t, 16>,
                 v1::ReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -156,7 +156,7 @@ public:
 
         registerTask(new PackedSearchableSequenceSelectTest<
                 4,
-                PkdVDTreeT<BigInt, 16, UBigIntEliasCodec>,
+                PkdVDTreeT<int64_t, 16, UBigIntEliasCodec>,
                 VLEReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -165,7 +165,7 @@ public:
 
         registerTask(new PackedSearchableSequenceSelectTest<
                 8,
-                PkdVDTreeT<BigInt, 256, UBigIntI64Codec>,
+                PkdVDTreeT<int64_t, 256, UBigIntI64Codec>,
                 VLEReindex8BlkFn,
                 Seq8SelectFn,
                 Seq8RankFn,
@@ -176,7 +176,7 @@ public:
 
         registerTask(new PackedSearchableSequenceSpeedTest<
                 4,
-                PkdVQTreeT<BigInt, 16, UBigIntI64Codec>,
+                PkdVQTreeT<int64_t, 16, UBigIntI64Codec>,
                 VLEReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -186,7 +186,7 @@ public:
 
         registerTask(new PackedSearchableSequenceSpeedTest<
                         8,
-                        PkdVDTreeT<BigInt, 256, UBigIntI64Codec>,
+                        PkdVDTreeT<int64_t, 256, UBigIntI64Codec>,
                         VLEReindex8BlkFn,
                         Seq8SelectFn,
                         Seq8RankFn,

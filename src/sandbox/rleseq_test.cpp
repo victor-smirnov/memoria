@@ -36,7 +36,7 @@ int main()
 
         for (int c = 0; c < 1000; c++)
         {
-            Int symbol = (c % 4);
+            int32_t symbol = (c % 4);
 
             sums[symbol] += c + 1;
 
@@ -49,15 +49,15 @@ int main()
 
         cout << endl << endl;
 
-//      Int size = seq->size();
-//      for (Int c = 0; c < size; c++)
+//      int32_t size = seq->size();
+//      for (int32_t c = 0; c < size; c++)
 //      {
 //          auto iter = seq->selectFw(c, 1, 1);
 //
 //          cout << c << " -- " << iter.idx() << endl;
 //      }
 
-//      for (Int c = size - 1; c >= 0; c--)
+//      for (int32_t c = size - 1; c >= 0; c--)
 //      {
 //          auto iter = seq->selectBw(c, 1, 1);
 //

@@ -152,8 +152,8 @@ public:
 
         using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
 
-        static const Int DataStreams            = BaseTypes::Streams - 1;
-        static const Int StructureStreamIdx     = DataStreams;
+        static const int32_t DataStreams            = BaseTypes::Streams - 1;
+        static const int32_t StructureStreamIdx     = DataStreams;
 
         using DataSizesT = core::StaticVector<typename BaseTypes::CtrSizeT, DataStreams>;
     };

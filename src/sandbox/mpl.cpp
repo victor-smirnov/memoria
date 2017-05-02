@@ -51,24 +51,24 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-    DCtr<Vector<Byte>>::initMetadata();
-    DCtr<Vector<VLen<Granularity::Byte>>>::initMetadata();
-    DCtr<Vector<BigInt>>::initMetadata();
+    DCtr<Vector<int8_t>>::initMetadata();
+    DCtr<Vector<VLen<Granularity::int8_t>>>::initMetadata();
+    DCtr<Vector<int64_t>>::initMetadata();
 
     try {
         auto alloc = PersistentInMemAllocator<>::create();
 
         auto txn1 = alloc->master()->branch();
 
-        auto ctr1   = create<Vector<Byte>>(txn1);
-        auto ctr1_v = create<Vector<VLen<Granularity::Byte>>>(txn1);
-        auto ctr1_vv = create<Vector<BigInt>>(txn1);
+        auto ctr1   = create<Vector<int8_t>>(txn1);
+        auto ctr1_v = create<Vector<VLen<Granularity::int8_t>>>(txn1);
+        auto ctr1_vv = create<Vector<int64_t>>(txn1);
 
 
-        auto data1 = create_random_vector<Byte>(10000, 127);
+        auto data1 = create_random_vector<int8_t>(10000, 127);
         ctr1->seek(0)->insert(data1.begin(), data1.size());
 
-        auto data1v = create_random_vector<BigInt>(10000);
+        auto data1v = create_random_vector<int64_t>(10000);
         ctr1_v->seek(0)->insert(data1v.begin(), data1v.size());
 
         ctr1_vv->seek(0)->insert(data1v.begin(), data1v.size());
@@ -82,9 +82,9 @@ int main()
         cout<<"Create new snapshot"<<endl;
         auto txn2 = txn1->branch();
 
-        auto ctr2 = find<Vector<Byte>>(txn2, ctr_name);
+        auto ctr2 = find<Vector<int8_t>>(txn2, ctr_name);
 
-        auto data2 = create_vector<Byte>(10000, 0x22);
+        auto data2 = create_vector<int8_t>(10000, 0x22);
 
         auto iter = ctr2->end();
         iter->insert(data2.begin(), data2.size());
@@ -102,19 +102,19 @@ int main()
 
         FSDumpAllocator(alloc->master(), "pdump2.dir");
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
         std::string file_name = "store.dump";
 
         unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
         alloc->store(out.get());
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
         unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
         auto alloc2 = PersistentInMemAllocator<>::load(in.get());
 
-        BigInt t2 = getTimeInMillis();
+        int64_t t2 = getTimeInMillis();
 
         cout<<"Store: "<<FormatTime(t1 - t0)<<" Load: "<<FormatTime(t2 - t1)<<endl;
 

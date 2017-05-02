@@ -53,14 +53,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::UpdateName)
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
 
     using CtrSizeT = typename Types::CtrSizeT;
 
 
-    template <Int Stream, typename SubstreamsList, typename Buffer>
-    void update_stream_entry(Iterator& iter, Int stream, Int idx, const Buffer& entry)
+    template <int32_t Stream, typename SubstreamsList, typename Buffer>
+    void update_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Buffer& entry)
     {
         auto& self = this->self();
 

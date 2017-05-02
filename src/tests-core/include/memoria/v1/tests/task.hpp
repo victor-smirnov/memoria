@@ -38,8 +38,8 @@ namespace v1 {
 class TaskParametersSet: public ParametersSet {
 public:
     bool    enabled;
-    Int     check_step;
-    BigInt  memory_limit;
+    int32_t     check_step;
+    int64_t  memory_limit;
     bool    own_folder;
 public:
 
@@ -66,7 +66,7 @@ public:
         this->enabled = enabled;
     }
 
-    Int getcheckStep() const
+    int32_t getcheckStep() const
     {
         return check_step;
     }
@@ -75,8 +75,8 @@ public:
 
 struct ExampleTaskParams: public TaskParametersSet {
 
-    Int     size_;
-    Int     btree_branching_;
+    int32_t     size_;
+    int32_t     btree_branching_;
     bool    btree_random_airity_;
 
     ExampleTaskParams(StringRef name): TaskParametersSet(name), size_(1024), btree_branching_(0), btree_random_airity_(true)
@@ -91,13 +91,13 @@ struct ExampleTaskParams: public TaskParametersSet {
 
 class Task: public TaskParametersSet {
 protected:
-    Int                 iteration_;
-    BigInt              duration_;
+    int32_t                 iteration_;
+    int64_t              duration_;
     String              output_folder_;
 
     fstream*            out_;
 
-    Int seed_ = -1;
+    int32_t seed_ = -1;
 
 public:
     Task(StringRef name):
@@ -109,11 +109,11 @@ public:
 
     virtual ~Task() throw ();
 
-    Int getSeed() const {
+    int32_t getSeed() const {
         return seed_;
     }
 
-    void setSeed(Int v) {
+    void setSeed(int32_t v) {
         seed_ = v;
     }
 
@@ -125,21 +125,21 @@ public:
         return *out_;
     }
 
-    void setIteration(Int iteration)
+    void setIteration(int32_t iteration)
     {
         iteration_ = iteration;
     }
 
-    Int getIteration() const
+    int32_t getIteration() const
     {
         return iteration_;
     }
 
-    BigInt getDuration() const {
+    int64_t getDuration() const {
         return duration_;
     }
 
-    void setDuration(BigInt duration) {
+    void setDuration(int64_t duration) {
         duration_ = duration;
     }
 
@@ -176,7 +176,7 @@ public:
         Prepare(*out_);
     }
 
-    virtual Int Run();
+    virtual int32_t Run();
 
     virtual void release() {
         release(*out_);
@@ -246,11 +246,11 @@ protected:
 
 
     struct FailureDescriptor {
-        Int run_number;
+        int32_t run_number;
         String task_name;
 
         FailureDescriptor() {}
-        FailureDescriptor(Int number, StringRef name): run_number(number), task_name(name) {}
+        FailureDescriptor(int32_t number, StringRef name): run_number(number), task_name(name) {}
     };
 
 
@@ -286,11 +286,11 @@ public:
 
     virtual void dumpProperties(std::ostream& os, bool dump_prefix = true, bool dump_all = false) const;
 
-    virtual Int Run()
+    virtual int32_t Run()
     {
         Task::Run();
 
-        Int failures = failures_.size();
+        int32_t failures = failures_.size();
 
         failures_.clear();
 
@@ -327,7 +327,7 @@ public:
 class GroupRunner: public TaskGroup {
 public:
 
-    Int run_count;
+    int32_t run_count;
 
     GroupRunner(StringRef name): TaskGroup(name), run_count(1)
     {
@@ -336,7 +336,7 @@ public:
 
     virtual ~GroupRunner() noexcept {}
 
-//    Int getSeed() const {
+//    int32_t getSeed() const {
 //      return seed_ >= 0 ? seed_ : (getTimeInMillis() % 1000000);
 //    }
 
@@ -347,7 +347,7 @@ public:
         return getOutputFolder();
     }
 
-    virtual String getTaskOutputFolder(String task_name, Int run) const
+    virtual String getTaskOutputFolder(String task_name, int32_t run) const
     {
         if (isEmpty(getOutput()))
         {
@@ -363,17 +363,17 @@ public:
         setOutputFolder(out);
     }
 
-    Int getRunCount() const
+    int32_t getRunCount() const
     {
         return run_count;
     }
 
-    void setRunCount(Int count)
+    void setRunCount(int32_t count)
     {
         run_count = count;
     }
 
-    virtual Int Run();
+    virtual int32_t Run();
 
     virtual void dumpProperties(std::ostream& os, bool dump_prefix = true, bool dump_all = false) const;
 };

@@ -53,10 +53,10 @@ class WTTest: public BTTestBase<WT, PersistentInMemAllocator<>, DefaultProfile<>
     using Base::getResourcePath;
 
 
-    typedef pair<UInt, Int>                                                 Pair;
+    typedef pair<uint32_t, int32_t>                                                 Pair;
 
-    Int alphabet_size_  = 10;
-    Int remove_check_   = 100;
+    int32_t alphabet_size_  = 10;
+    int32_t remove_check_   = 100;
 
 public:
 
@@ -90,11 +90,11 @@ public:
         auto alphabet = createRandomAlphabet(alphabet_size_);
         auto text = createRandomText(size_, alphabet);
 
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
             out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
 
-            UBigInt value1 = text[c];
+            uint64_t value1 = text[c];
 
             ctr->insert(c, value1);
 
@@ -110,12 +110,12 @@ public:
 
         for (auto& rnk: ranks)
         {
-            UInt sym = rnk.first;
+            uint32_t sym = rnk.first;
 
-            for (UInt c = 0; c < text.size(); c += 100)
+            for (uint32_t c = 0; c < text.size(); c += 100)
             {
-                Int rank1 = ctr->rank(c, sym);
-                Int rank2 = rank(text, c, sym);
+                int32_t rank1 = ctr->rank(c, sym);
+                int32_t rank2 = rank(text, c, sym);
 
                 AssertEQ(MA_SRC, rank1, rank2);
             }
@@ -125,13 +125,13 @@ public:
 
         for (auto& rnk: ranks)
         {
-            UInt sym = rnk.first;
-            Int rank = rnk.second;
+            uint32_t sym = rnk.first;
+            int32_t rank = rnk.second;
 
-            for (Int r = 1; r <= rank; r++)
+            for (int32_t r = 1; r <= rank; r++)
             {
-                Int idx1 = ctr->select(r, sym);
-                Int idx2 = select(text, r, sym);
+                int32_t idx1 = ctr->select(r, sym);
+                int32_t idx2 = select(text, r, sym);
 
                 AssertEQ(MA_SRC, idx1, idx2);
             }
@@ -152,11 +152,11 @@ public:
         auto alphabet = createRandomAlphabet(alphabet_size_);
         auto text = createRandomText(size_, alphabet);
 
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
             out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
 
-            UBigInt value1 = text[c];
+            uint64_t value1 = text[c];
 
             ctr->insert(c, value1);
         }
@@ -165,10 +165,10 @@ public:
 
 
 
-        Int cnt = 0;
+        int32_t cnt = 0;
         while (ctr->size() > 0)
         {
-            Int idx = getRandom(ctr->size());
+            int32_t idx = getRandom(ctr->size());
 
             out()<<"Remove at "<<idx<<endl;
 
@@ -194,11 +194,11 @@ public:
 //      auto alphabet = createRandomAlphabet(alphabet_size_);
 //      auto text = createRandomText(this->size_, alphabet);
 //
-//      for (UInt c = 0; c < text.size(); c++)
+//      for (uint32_t c = 0; c < text.size(); c++)
 //      {
 //          out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
 //
-//          UBigInt value1 = text[c];
+//          uint64_t value1 = text[c];
 //
 //          ctr->insert(c, value1);
 //      }
@@ -223,9 +223,9 @@ public:
 //    }
 
 
-    vector <UInt> createRandomAlphabet(Int size)
+    vector <uint32_t> createRandomAlphabet(int32_t size)
     {
-        vector <UInt> text(size);
+        vector <uint32_t> text(size);
 
         for (auto& v: text)
         {
@@ -235,9 +235,9 @@ public:
         return text;
     }
 
-    vector <UInt> createRandomText(Int size, const vector<UInt>& alphabet)
+    vector <uint32_t> createRandomText(int32_t size, const vector<uint32_t>& alphabet)
     {
-        vector <UInt> text(size);
+        vector <uint32_t> text(size);
 
         for (auto& v: text)
         {
@@ -247,15 +247,15 @@ public:
         return text;
     }
 
-    vector<Pair> getRankedSymbols(const vector<UInt>& text)
+    vector<Pair> getRankedSymbols(const vector<uint32_t>& text)
     {
         vector<Pair> result;
 
-        std::map<UInt, Int> ranks;
+        std::map<uint32_t, int32_t> ranks;
 
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
-            UInt letter = text[c];
+            uint32_t letter = text[c];
 
             if (ranks.find(letter) == ranks.end())
             {
@@ -277,11 +277,11 @@ public:
         return result;
     }
 
-    Int rank(const vector<UInt>& text, Int idx, UInt symbol)
+    int32_t rank(const vector<uint32_t>& text, int32_t idx, uint32_t symbol)
     {
-        Int sum = 0;
+        int32_t sum = 0;
 
-        for (Int c = 0; c <= idx; c++)
+        for (int32_t c = 0; c <= idx; c++)
         {
             sum += text[c] == symbol;
         }
@@ -289,9 +289,9 @@ public:
         return sum;
     }
 
-    Int select(const vector<UInt>& text, Int rank, UInt symbol)
+    int32_t select(const vector<uint32_t>& text, int32_t rank, uint32_t symbol)
     {
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
             rank -= text[c] == symbol;
 
@@ -304,13 +304,13 @@ public:
         return text.size();
     }
 
-    void assertText(Ctr& tree, const vector<UInt>& text)
+    void assertText(Ctr& tree, const vector<uint32_t>& text)
     {
-        AssertEQ(MA_SRC, tree.size(), (BigInt)text.size());
+        AssertEQ(MA_SRC, tree.size(), (int64_t)text.size());
 
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
-            UInt value = tree.value(c);
+            uint32_t value = tree.value(c);
 
             AssertEQ(MA_SRC, value, text[c], SBuf()<<c);
         }

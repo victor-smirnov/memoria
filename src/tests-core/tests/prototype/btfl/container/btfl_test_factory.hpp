@@ -36,24 +36,24 @@ namespace memoria {
 namespace v1 {
 
 
-template <Int DataStreams, PackedSizeType SizeType = PackedSizeType::VARIABLE>
+template <int32_t DataStreams, PackedSizeType SizeType = PackedSizeType::VARIABLE>
 class BTFLTestCtr {};
 
 
 template <
     typename Profile,
-    Int DataStreams,
+    int32_t DataStreams,
     PackedSizeType SizeType
 >
 struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
 
     using Base = BTTypes<Profile, BTFreeLayout>;
 
-    using Key       = BigInt;
-    using Value     = Byte;
-    using Column    = BigInt;
+    using Key       = int64_t;
+    using Value     = int8_t;
+    using Column    = int64_t;
 
-    using CtrSizeT = BigInt;
+    using CtrSizeT = int64_t;
 
     using StreamVariableTF = StreamTF<
         TL<TL<
@@ -97,7 +97,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
                 v1::btfl_test::IterApiName
     >;
 
-    template <Int Level>
+    template <int32_t Level>
     using IOData = btfl::BTFLData<
         DataStreams,
             Level,
@@ -115,7 +115,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
 
 template <
     typename Profile,
-    Int Levels,
+    int32_t Levels,
     PackedSizeType SizeType
 >
 struct BTTypes<Profile, BTFLTestCtr<Levels, SizeType>>: public BTFLTestTypesBase<Profile, Levels, SizeType>
@@ -123,7 +123,7 @@ struct BTTypes<Profile, BTFLTestCtr<Levels, SizeType>>: public BTFLTestTypesBase
 };
 
 
-template <typename Profile, Int Levels, PackedSizeType SizeType, typename T>
+template <typename Profile, int32_t Levels, PackedSizeType SizeType, typename T>
 class CtrTF<Profile, BTFLTestCtr<Levels, SizeType>, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
     using Base = CtrTF<Profile, v1::BTFreeLayout, T>;
 public:
@@ -141,9 +141,9 @@ public:
 };
 
 
-template <Int DataStreams, PackedSizeType SizeType>
+template <int32_t DataStreams, PackedSizeType SizeType>
 struct TypeHash<BTFLTestCtr<DataStreams, SizeType>>:   UIntValue<
-    HashHelper<30011, DataStreams, (Int)SizeType>::Value
+    HashHelper<30011, DataStreams, (int32_t)SizeType>::Value
 > {};
 
 

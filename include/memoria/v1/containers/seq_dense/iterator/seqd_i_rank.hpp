@@ -49,12 +49,12 @@ public:
 
     template <typename RankSubstreamPath>
     struct RankFn {
-        BigInt rank_ = 0;
-        Int symbol_;
-        RankFn(Int symbol): symbol_(symbol) {}
+        int64_t rank_ = 0;
+        int32_t symbol_;
+        RankFn(int32_t symbol): symbol_(symbol) {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdFSSeq<StreamTypes>* seq, Int idx)
+        template <int32_t Idx, typename StreamTypes>
+        void stream(const PkdFSSeq<StreamTypes>* seq, int32_t idx)
         {
             if (seq != nullptr) {
                 rank_ += seq->rank(0, idx, symbol_);
@@ -62,19 +62,19 @@ public:
         }
 
         template <typename NodeTypes>
-        void treeNode(const LeafNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
+        void treeNode(const LeafNode<NodeTypes>* node, WalkCmd, int32_t start, int32_t idx)
         {
             node->template processStream<RankSubstreamPath>(*this, idx);
         }
 
         template <typename NodeTypes>
-        void treeNode(const LeafNode<NodeTypes>* node, Int idx)
+        void treeNode(const LeafNode<NodeTypes>* node, int32_t idx)
         {
             node->template processStream<RankSubstreamPath>(*this, idx);
         }
 
         template <typename NodeTypes>
-        void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
+        void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, int32_t start, int32_t idx)
         {
             if (node != nullptr)
             {
@@ -83,22 +83,22 @@ public:
         }
     };
 
-    BigInt rank(Int symbol) const;
-    BigInt ranki(Int symbol) const;
+    int64_t rank(int32_t symbol) const;
+    int64_t ranki(int32_t symbol) const;
 
-    BigInt localrank_(Int idx, Int symbol) const;
+    int64_t localrank_(int32_t idx, int32_t symbol) const;
 
-    auto rank(BigInt delta, Int symbol)
+    auto rank(int64_t delta, int32_t symbol)
     {
         return self().template rank_<SymbolsSubstreamPath>(symbol, delta);
     }
 
-    auto rankFw(BigInt delta, Int symbol)
+    auto rankFw(int64_t delta, int32_t symbol)
     {
         return self().template rank_fw_<SymbolsSubstreamPath>(symbol, delta);
     }
 
-    auto rankBw(BigInt delta, Int symbol)
+    auto rankBw(int64_t delta, int32_t symbol)
     {
         return self().template rank_bw_<SymbolsSubstreamPath>(symbol, delta);
     }
@@ -110,7 +110,7 @@ MEMORIA_V1_ITERATOR_PART_END
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 M_PARAMS
-BigInt M_TYPE::rank(Int symbol) const
+int64_t M_TYPE::rank(int32_t symbol) const
 {
     auto& self = this->self();
 
@@ -125,7 +125,7 @@ BigInt M_TYPE::rank(Int symbol) const
 }
 
 M_PARAMS
-BigInt M_TYPE::localrank_(Int idx, Int symbol) const
+int64_t M_TYPE::localrank_(int32_t idx, int32_t symbol) const
 {
     auto& self = this->self();
 
@@ -138,7 +138,7 @@ BigInt M_TYPE::localrank_(Int idx, Int symbol) const
 
 
 M_PARAMS
-BigInt M_TYPE::ranki(Int symbol) const
+int64_t M_TYPE::ranki(int32_t symbol) const
 {
     auto& self = this->self();
 
@@ -150,7 +150,7 @@ BigInt M_TYPE::ranki(Int symbol) const
 }
 
 //M_PARAMS
-//BigInt M_TYPE::rank(BigInt delta, Int symbol)
+//int64_t M_TYPE::rank(int64_t delta, int32_t symbol)
 //{
 //    auto& self  = this->self();
 //
@@ -168,7 +168,7 @@ BigInt M_TYPE::ranki(Int symbol) const
 //}
 //
 //M_PARAMS
-//BigInt M_TYPE::rankFw(BigInt delta, Int symbol)
+//int64_t M_TYPE::rankFw(int64_t delta, int32_t symbol)
 //{
 //    auto& self  = this->self();
 //
@@ -181,7 +181,7 @@ BigInt M_TYPE::ranki(Int symbol) const
 //}
 //
 //M_PARAMS
-//BigInt M_TYPE::rankBw(BigInt delta, Int symbol)
+//int64_t M_TYPE::rankBw(int64_t delta, int32_t symbol)
 //{
 //    auto& self  = this->self();
 //

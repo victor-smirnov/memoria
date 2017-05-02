@@ -81,7 +81,7 @@ public:
         return self().skipBw(size);
     }
 
-    Int size() const
+    int32_t size() const
     {
         return self().leafSize(0);
     }
@@ -126,7 +126,7 @@ public:
         return self().pos() == 0;
     }
 
-    Int value() const
+    int32_t value() const
     {
         if (!self().isEof())
         {
@@ -137,7 +137,7 @@ public:
         }
     }
 
-    bool test(Int val) const
+    bool test(int32_t val) const
     {
         return self().symbol() == val;
     }
@@ -157,7 +157,7 @@ public:
         return self().gpos();
     }
 
-    CtrSizeT countFw(Int symbol)
+    CtrSizeT countFw(int32_t symbol)
     {
         MEMORIA_V1_ASSERT_TRUE(symbol == 0 || symbol == 1);
 
@@ -244,7 +244,7 @@ public:
     {
         auto& self = this->self();
 
-        for (BigInt c = 0; c < length; c++)
+        for (int64_t c = 0; c < length; c++)
         {
             self.insert(0);
         }
@@ -274,8 +274,8 @@ public:
 
     CtrSizeT rank0() const
     {
-        Int nodeIdx = this->nodeIdx();
-        Int rank1   = this->rank1();
+        int32_t nodeIdx = this->nodeIdx();
+        int32_t rank1   = this->rank1();
 
         return nodeIdx + 1 - rank1;
     }
@@ -310,13 +310,13 @@ public:
 //    void check() const {
 //      auto& self = this->self();
 //
-//      BigInt gpos     = self.gpos();
-//      BigInt pos      = self.pos();
+//      int64_t gpos     = self.gpos();
+//      int64_t pos      = self.pos();
 //
 //      MEMORIA_V1_ASSERT(gpos, ==, pos);
 //
-//      BigInt rank1_a  = self.rank(1);
-//      BigInt rank1_b  = self.cache().rank1();
+//      int64_t rank1_a  = self.rank(1);
+//      int64_t rank1_b  = self.cache().rank1();
 //
 //      if (rank1_a != rank1_b)
 //      {
@@ -326,13 +326,13 @@ public:
 //      MEMORIA_V1_ASSERT(rank1_a, ==, rank1_b);
 //    }
 
-    Int label_idx() const
+    int32_t label_idx() const
     {
         auto& self = this->self();
         return self.label_idx(self.idx());
     }
 
-    Int label_idx(Int node_idx) const
+    int32_t label_idx(int32_t node_idx) const
     {
         auto& self = this->self();
         return self.localrank_(node_idx, 1);
@@ -365,14 +365,14 @@ public:
     }
 
 
-    template <Int LabelIdx>
+    template <int32_t LabelIdx>
     struct SumLabelFn {
         CtrSizeT sum_ = 0;
 
         using LeafPath = IntList<1, 1, LabelIdx>;
 
-        template <Int Idx, typename Stream>
-        void stream(const Stream* obj, Int block, Int idx)
+        template <int32_t Idx, typename Stream>
+        void stream(const Stream* obj, int32_t block, int32_t idx)
         {
             if (obj != nullptr)
             {
@@ -381,24 +381,24 @@ public:
         }
 
         template <typename NodeTypes>
-        void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
+        void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, int32_t start, int32_t idx)
         {
             using BNode = BranchNode<NodeTypes>;
             using BranchPath = typename BNode::template BuildBranchPath<LeafPath>;
 
-            Int block = BNode::template translateLeafIndexToBranchIndex<LeafPath>(0);
+            int32_t block = BNode::template translateLeafIndexToBranchIndex<LeafPath>(0);
 
             node->template processStream<BranchPath>(*this, block, idx);
         }
 
         template <typename NodeTypes>
-        void treeNode(const LeafNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
+        void treeNode(const LeafNode<NodeTypes>* node, WalkCmd, int32_t start, int32_t idx)
         {
             node->template processStream<LeafPath>(*this, 0, idx);
         }
     };
 
-    template <Int LabelIdx>
+    template <int32_t LabelIdx>
     CtrSizeT sumLabel() const
     {
         auto& self = this->self();
@@ -413,14 +413,14 @@ public:
         return fn.sum_;
     }
 
-    template <Int LabelIdx, typename T>
+    template <int32_t LabelIdx, typename T>
     void setLabel(T&& value)
     {
         auto& self = this->self();
         self.ctr().template setLabel<LabelIdx>(self, std::forward<T>(value));
     }
 
-    template <Int LabelIdx, typename T>
+    template <int32_t LabelIdx, typename T>
     void addLabel(T&& value)
     {
         auto& self = this->self();
@@ -471,7 +471,7 @@ public:
         }
     }
 
-    auto raw_select(Int symbol, CtrSizeT rank)
+    auto raw_select(int32_t symbol, CtrSizeT rank)
     {
         auto& self = this->self();
         CtrSizeT cnt = 0;
@@ -502,15 +502,15 @@ public:
         GPosFn()  {}
 
         template <typename NodeTypes>
-        void treeNode(const LeafNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
+        void treeNode(const LeafNode<NodeTypes>* node, WalkCmd, int32_t start, int32_t idx)
         {}
 
         template <typename NodeTypes>
-        void treeNode(const LeafNode<NodeTypes>* node, Int idx)
+        void treeNode(const LeafNode<NodeTypes>* node, int32_t idx)
         {}
 
         template <typename NodeTypes>
-        void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
+        void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, int32_t start, int32_t idx)
         {
             if (node != nullptr)
             {

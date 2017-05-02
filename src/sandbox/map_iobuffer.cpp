@@ -41,9 +41,9 @@ public:
         return buffer_;
     }
 
-    virtual Int process(IOBuffer& buffer, Int entries)
+    virtual int32_t process(IOBuffer& buffer, int32_t entries)
     {
-        for (Int c = 0; c < entries; c++)
+        for (int32_t c = 0; c < entries; c++)
         {
             cout << "Key: '" << buffer.getString() << "' Value: '" << buffer.getString() << "'" << endl;
         }

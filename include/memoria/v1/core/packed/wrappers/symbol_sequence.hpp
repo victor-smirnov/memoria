@@ -189,7 +189,7 @@ public:
 
 
 
-template <Int BitsPerSymbol>
+template <int32_t BitsPerSymbol>
 class PackedFSESequence {
 protected:
     typedef PackedFSESequence<BitsPerSymbol>                                    MyType;
@@ -204,8 +204,8 @@ public:
     typedef typename Seq::Value                                                 Symbol;
 
 
-    static const Int Bits                                                       = Seq::BitsPerSymbol;
-    static const Int Symbols                                                    = Seq::Indexes;
+    static const int32_t Bits                                                       = Seq::BitsPerSymbol;
+    static const int32_t Symbols                                                    = Seq::Indexes;
 
     typedef ISequenceDataSource<Symbol, Bits>                                   IDataSrc;
     typedef ISequenceDataTarget<Symbol, Bits>                                   IDataTgt;
@@ -215,13 +215,13 @@ public:
     typedef typename Seq::ConstSymbolAccessor                                   ConstSymbolAccessor;
     typedef typename Seq::SymbolAccessor                                        SymbolAccessor;
 
-    typedef StaticVector<BigInt, Symbols>                                       Ranks;
+    typedef StaticVector<int64_t, Symbols>                                       Ranks;
 
-    PackedFSESequence(Int capacity = 1024, Int density_hi = 1, Int density_lo = 1)
+    PackedFSESequence(int32_t capacity = 1024, int32_t density_hi = 1, int32_t density_lo = 1)
     {
-        Int sequence_block_size = Seq::estimate_block_size(capacity, density_hi, density_lo);
+        int32_t sequence_block_size = Seq::estimate_block_size(capacity, density_hi, density_lo);
 
-        Int block_size = PackedAllocator::block_size(sequence_block_size, 1);
+        int32_t block_size = PackedAllocator::block_size(sequence_block_size, 1);
 
         PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
         alloc->init(block_size, 1);
@@ -241,7 +241,7 @@ public:
     {
         const PackedAllocator* other_allocator = other.sequence_->allocator();
 
-        Int block_size = other_allocator->block_size();
+        int32_t block_size = other_allocator->block_size();
 
         PackedAllocator* allocator = T2T<PackedAllocator*>(malloc(block_size));
 
@@ -256,7 +256,7 @@ public:
         other.sequence_ = nullptr;
     }
 
-    Int size() const
+    int32_t size() const
     {
         return sequence_->size();
     }
@@ -271,17 +271,17 @@ public:
         sequence_->dump(out);
     }
 
-    SymbolAccessor operator[](Int idx)
+    SymbolAccessor operator[](int32_t idx)
     {
         return sequence_->symbol(idx);
     }
 
-    ConstSymbolAccessor operator[](Int idx) const
+    ConstSymbolAccessor operator[](int32_t idx) const
     {
         return static_cast<const Seq*>(sequence_)->symbol(idx);
     }
 
-    SourceAdapter source(Int idx, Int length) const
+    SourceAdapter source(int32_t idx, int32_t length) const
     {
         return SourceAdapter(sequence_, idx, length);
     }
@@ -291,7 +291,7 @@ public:
         return source(0, sequence_->size());
     }
 
-    TargetAdapter target(Int idx, Int length) const
+    TargetAdapter target(int32_t idx, int32_t length) const
     {
         return TargetAdapter(sequence_, idx, length);
     }
@@ -301,76 +301,76 @@ public:
         return target(0, sequence_->size());
     }
 
-    void update(Int start, IDataSrc& src)
+    void update(int32_t start, IDataSrc& src)
     {
         Symbol* syms = sequence_->symbols();
         src.get(syms, start, src.getSize());
     }
 
-    void insert(Int at, IDataSrc& src)
+    void insert(int32_t at, IDataSrc& src)
     {
         //sequence_->insert(&src, at, src.getRemainder());
     }
 
-    void insert(Int at, Int symbol)
+    void insert(int32_t at, int32_t symbol)
     {
         sequence_->insert(at, symbol);
     }
 
-    void insert(Int at, Int length, std::function<Symbol ()> fn)
+    void insert(int32_t at, int32_t length, std::function<Symbol ()> fn)
     {
         sequence_->insert(at, length, fn);
     }
 
-    void remove(Int start, Int end)
+    void remove(int32_t start, int32_t end)
     {
         sequence_->remove(start, end);
     }
 
     void append(IDataSrc& src)
     {
-//        Int at = sequence_->size();
+//        int32_t at = sequence_->size();
         //sequence_->insert(&src, at, src.getRemainder());
     }
 
-    void append(Int length, std::function<Symbol ()> fn)
+    void append(int32_t length, std::function<Symbol ()> fn)
     {
         sequence_->insert(sequence_->size(), length, fn);
     }
 
     void append(Symbol symbol)
     {
-        Int size = sequence_->size();
+        int32_t size = sequence_->size();
         sequence_->insert(size, symbol);
     }
 
-    void read(Int from, IDataTgt& tgt) const
+    void read(int32_t from, IDataTgt& tgt) const
     {
         const Symbol* syms = sequence_->symbols();
         tgt.put(syms, from, tgt.getSize());
     }
 
-    Int rank(Int end, Int symbol) const {
+    int32_t rank(int32_t end, int32_t symbol) const {
         return sequence_->rank(end, symbol);
     }
 
-    Int rank(Int start, Int end, Int symbol) const {
+    int32_t rank(int32_t start, int32_t end, int32_t symbol) const {
         return sequence_->rank(start, end, symbol);
     }
 
-    SelectResult select(Int symbol, Int rank) const {
+    SelectResult select(int32_t symbol, int32_t rank) const {
         return sequence_->selectFw(symbol, rank);
     }
 
-    SelectResult selectFw(Int start, Int symbol, Int rank) const {
+    SelectResult selectFw(int32_t start, int32_t symbol, int32_t rank) const {
         return sequence_->selectFw(start, symbol, rank);
     }
 
-    SelectResult selectBw(Int symbol, Int rank) const {
+    SelectResult selectBw(int32_t symbol, int32_t rank) const {
         return sequence_->selectFw(symbol, rank);
     }
 
-    SelectResult selectBw(Int start, Int symbol, Int rank) const {
+    SelectResult selectBw(int32_t start, int32_t symbol, int32_t rank) const {
         return sequence_->selectBw(start, symbol, rank);
     }
 
@@ -379,7 +379,7 @@ public:
         return ranks(size());
     }
 
-    Ranks ranks(Int to) const
+    Ranks ranks(int32_t to) const
     {
         auto s_ranks = sequence_->sums(to);
         Ranks ranks;
@@ -388,7 +388,7 @@ public:
         return ranks;
     }
 
-    Ranks ranks(Int from, Int to) const
+    Ranks ranks(int32_t from, int32_t to) const
     {
         auto s_ranks = sequence_->sums(from, to);
         Ranks ranks;

@@ -41,15 +41,15 @@ namespace memoria {
 namespace v1 {
 
 
-template <typename Profile, Int BitsPerSymbol_>
+template <typename Profile, int32_t BitsPerSymbol_>
 struct BTTypes<Profile, v1::Sequence<BitsPerSymbol_, true> >: public BTTypes<Profile, v1::BTSingleStream> {
 
     typedef BTTypes<Profile, v1::BTSingleStream>                           Base;
 
-    typedef UByte                                                               Value;
+    typedef uint8_t                                                               Value;
 
-    static const Int BitsPerSymbol                                              = BitsPerSymbol_;
-    static const Int Symbols                                                    = 1<<BitsPerSymbol;
+    static const int32_t BitsPerSymbol                                              = BitsPerSymbol_;
+    static const int32_t Symbols                                                    = 1<<BitsPerSymbol;
 
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 

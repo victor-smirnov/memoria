@@ -35,9 +35,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorFindName)
     using Container = typename Base::Container;
     using CtrSizeT  = typename Container::Types::CtrSizeT;
 
-    static const Int Streams                = Container::Types::Streams;
-    static const Int DataStreams            = Container::Types::DataStreams;
-    static const Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
+    static const int32_t Streams                = Container::Types::Streams;
+    static const int32_t DataStreams            = Container::Types::DataStreams;
+    static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 
 
@@ -56,18 +56,18 @@ public:
 
 
 
-    CtrSizeT selectFw(CtrSizeT rank, Int stream)
+    CtrSizeT selectFw(CtrSizeT rank, int32_t stream)
     {
         return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
-    CtrSizeT selectGEFw(CtrSizeT rank, Int stream)
+    CtrSizeT selectGEFw(CtrSizeT rank, int32_t stream)
     {
     	typename Types::template SelectGEForwardWalker<Types, IntList<StructureStreamIdx, 1>> walker(stream, rank);
     	return self().find_fw(walker);
     }
 
-    CtrSizeT selectPosFw(CtrSizeT rank, Int stream) const
+    CtrSizeT selectPosFw(CtrSizeT rank, int32_t stream) const
     {
         const auto& self = this->self();
 
@@ -76,7 +76,7 @@ public:
         return ii->pos();
     }
 
-    CtrSizeT selectBw(CtrSizeT rank, Int stream)
+    CtrSizeT selectBw(CtrSizeT rank, int32_t stream)
     {
         return self().template select_bw_<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
@@ -86,10 +86,10 @@ public:
     using Base::finish_walking;
 
     template <typename Walker>
-    void do_finish_walking(Int idx, const Walker& walker, WalkCmd cmd) {
+    void do_finish_walking(int32_t idx, const Walker& walker, WalkCmd cmd) {
         if (cmd != WalkCmd::REFRESH)
         {
-            constexpr Int stream = ListHead<typename Walker::LeafPath>::Value;
+            constexpr int32_t stream = ListHead<typename Walker::LeafPath>::Value;
             auto& self = this->self();
             int iidx = self.symbol_idx(stream, idx);
             self.idx() = iidx;
@@ -98,32 +98,32 @@ public:
 
 
     template <typename WWTypes>
-    void finish_walking(Int idx, const FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void finish_walking(int32_t idx, const FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
     template <typename WWTypes>
-    void finish_walking(Int idx, const FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void finish_walking(int32_t idx, const FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
 
     template <typename WWTypes>
-    void finish_walking(Int idx, const FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void finish_walking(int32_t idx, const FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
     template <typename WWTypes>
-    void finish_walking(Int idx, const FindGEBackwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void finish_walking(int32_t idx, const FindGEBackwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
     template <typename WWTypes>
-    void finish_walking(Int idx, const FindMaxGEWalker<WWTypes>& walker, WalkCmd cmd)
+    void finish_walking(int32_t idx, const FindMaxGEWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }

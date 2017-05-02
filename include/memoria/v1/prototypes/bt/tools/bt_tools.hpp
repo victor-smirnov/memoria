@@ -46,12 +46,12 @@ namespace memoria {
 namespace v1 {
 namespace bt {
 
-template <Int StreamIdx> struct StreamTag {};
+template <int32_t StreamIdx> struct StreamTag {};
 
-template <Int Streams, Int Idx = 0>
+template <int32_t Streams, int32_t Idx = 0>
 struct ForEachStream {
     template <typename Fn, typename... Args>
-    static auto process(Int stream, Fn&& fn, Args&&... args)
+    static auto process(int32_t stream, Fn&& fn, Args&&... args)
     {
         if (stream == Idx)
         {
@@ -64,10 +64,10 @@ struct ForEachStream {
 };
 
 
-template <Int Idx>
+template <int32_t Idx>
 struct ForEachStream<Idx, Idx> {
     template <typename Fn, typename... Args>
-    static auto process(Int stream, Fn&& fn, Args&&... args)
+    static auto process(int32_t stream, Fn&& fn, Args&&... args)
     {
         if (stream == Idx)
         {
@@ -90,7 +90,7 @@ class PageUpdateManager {
 
     typedef Ctr<Types>                                                          CtrT;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef std::tuple<NodeBaseG, void*, Int>                                   TxnRecord;
+    typedef std::tuple<NodeBaseG, void*, int32_t>                                   TxnRecord;
 
     CtrT& ctr_;
 
@@ -123,7 +123,7 @@ public:
 
     ~PageUpdateManager() noexcept
     {
-        for (Int c = 0; c < pages_.getSize(); c++)
+        for (int32_t c = 0; c < pages_.getSize(); c++)
         {
             void* backup_buffer = std::get<1>(pages_[c]);
             ctr_.allocator().freeMemory(backup_buffer);
@@ -134,7 +134,7 @@ public:
     {
         MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
-        for (Int c = pages_.getSize() - 1; c >= 0; c--)
+        for (int32_t c = pages_.getSize() - 1; c >= 0; c--)
         {
             if (node->id() == std::get<0>(pages_[c])->id())
             {
@@ -151,7 +151,7 @@ public:
 
         if (pages_.capacity() > 0)
         {
-            Int page_size = node->page_size();
+            int32_t page_size = node->page_size();
 
             void* backup_buffer = ctr_.allocator().allocateMemory(page_size);
 
@@ -168,7 +168,7 @@ public:
     {
         MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
-        for (Int c = pages_.getSize() - 1; c >= 0; c--)
+        for (int32_t c = pages_.getSize() - 1; c >= 0; c--)
         {
             if (node->id() == std::get<0>(pages_[c])->id())
             {
@@ -182,12 +182,12 @@ public:
 
     void checkpoint(NodeBaseG& node)
     {
-        for (Int c = 0; c < pages_.getSize(); c++)
+        for (int32_t c = 0; c < pages_.getSize(); c++)
         {
             if (std::get<0>(pages_[c])->id() == node->id())
             {
                 void* backup_buffer = std::get<1>(pages_[c]);
-                Int page_size       = std::get<2>(pages_[c]);
+                int32_t page_size       = std::get<2>(pages_[c]);
 
                 CopyByteBuffer(node.page(), backup_buffer, page_size);
 
@@ -201,11 +201,11 @@ public:
     // FIXME: unify with rollback()
     void restoreNodeState()
     {
-        for (Int c = 0; c < pages_.getSize(); c++)
+        for (int32_t c = 0; c < pages_.getSize(); c++)
         {
             NodeBaseG& node     = std::get<0>(pages_[c]);
             void* backup_buffer = std::get<1>(pages_[c]);
-            Int page_size       = std::get<2>(pages_[c]);
+            int32_t page_size       = std::get<2>(pages_[c]);
 
             CopyByteBuffer(backup_buffer, node.page(), page_size);
         }
@@ -213,11 +213,11 @@ public:
 
     void rollback()
     {
-        for (Int c = 0; c < pages_.getSize(); c++)
+        for (int32_t c = 0; c < pages_.getSize(); c++)
         {
             NodeBaseG& node     = std::get<0>(pages_[c]);
             void* backup_buffer = std::get<1>(pages_[c]);
-            Int page_size       = std::get<2>(pages_[c]);
+            int32_t page_size       = std::get<2>(pages_[c]);
 
             CopyByteBuffer(backup_buffer, node.page(), page_size);
 
@@ -237,7 +237,7 @@ template <typename Iterator, typename Container>
 class BTreeIteratorPrefixCache {
 
     using IteratorPrefix = typename Container::Types::IteratorBranchNodeEntry;
-    using SizePrefix = core::StaticVector<BigInt, Container::Types::Streams>;
+    using SizePrefix = core::StaticVector<int64_t, Container::Types::Streams>;
 
     using MyType = BTreeIteratorPrefixCache<Iterator, Container>;
 
@@ -310,9 +310,9 @@ std::ostream& operator<<(std::ostream& out, const BTreeIteratorPrefixCache<I, C>
 
 
 
-template <Int...> struct Path;
+template <int32_t...> struct Path;
 
-template <Int Head, Int... Tail>
+template <int32_t Head, int32_t... Tail>
 struct Path<Head, Tail...> {
     template <typename T>
     static auto get(T&& tuple)
@@ -321,7 +321,7 @@ struct Path<Head, Tail...> {
     }
 };
 
-template <Int Head>
+template <int32_t Head>
 struct Path<Head> {
     template <typename T>
     static auto get(T&& tuple) {
@@ -331,7 +331,7 @@ struct Path<Head> {
 
 
 
-template<Int Idx>
+template<int32_t Idx>
 struct TupleEntryAccessor {
     template <typename Entry>
     static auto get(Entry&& entry) {
@@ -357,7 +357,7 @@ struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
     using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
 };
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 {
     static_assert(
@@ -377,7 +377,7 @@ struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>
     static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(
@@ -405,7 +405,7 @@ class SubstreamReadLambdaAdapter {
 public:
     SubstreamReadLambdaAdapter(Fn& fn): fn_(fn) {}
 
-    template <Int StreamIdx, Int SubstreamIdx, typename T>
+    template <int32_t StreamIdx, int32_t SubstreamIdx, typename T>
     void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value)
     {
         fn_(value);
@@ -418,7 +418,7 @@ class SubstreamReadLambdaAdapter<Fn&&> {
 public:
     SubstreamReadLambdaAdapter(Fn&& fn): fn_(fn) {}
 
-    template <Int StreamIdx, Int SubstreamIdx, typename T>
+    template <int32_t StreamIdx, int32_t SubstreamIdx, typename T>
     void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value)
     {
         fn_(value);
@@ -431,7 +431,7 @@ class SubstreamReadLambdaAdapter<const Fn&> {
 public:
     SubstreamReadLambdaAdapter(const Fn& fn): fn_(fn) {}
 
-    template <Int StreamIdx, Int SubstreamIdx, typename T>
+    template <int32_t StreamIdx, int32_t SubstreamIdx, typename T>
     void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value)
     {
         fn_(value);
@@ -452,7 +452,7 @@ struct IteratorExtensionsTF {
 
 
 
-template <Int Size, Int Idx = 0>
+template <int32_t Size, int32_t Idx = 0>
 struct ForAllTuple {
     template <typename InputBuffer, typename Fn, typename... Args>
     static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
@@ -462,7 +462,7 @@ struct ForAllTuple {
     }
 };
 
-template <Int Idx>
+template <int32_t Idx>
 struct ForAllTuple<Idx, Idx> {
     template <typename InputBuffer, typename Fn, typename... Args>
     static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
@@ -471,20 +471,20 @@ struct ForAllTuple<Idx, Idx> {
 
 
 
-template <Int Stream, typename CtrSizeT>
+template <int32_t Stream, typename CtrSizeT>
 class EntryFnBase {
     CtrSizeT one_;
 public:
     EntryFnBase(): one_(1) {}
 
-    const auto& get(const StreamTag<Stream>& , const StreamTag<0>&, Int block) const
+    const auto& get(const StreamTag<Stream>& , const StreamTag<0>&, int32_t block) const
     {
         return one_;
     }
 };
 
 
-template <Int Stream, typename T, typename CtrSizeT>
+template <int32_t Stream, typename T, typename CtrSizeT>
 struct SingleValueEntryFn: EntryFnBase<Stream, CtrSizeT> {
 
     using EntryFnBase<Stream, CtrSizeT>::get;
@@ -493,7 +493,7 @@ struct SingleValueEntryFn: EntryFnBase<Stream, CtrSizeT> {
 
     SingleValueEntryFn(const T& value): value_(value) {}
 
-    const auto& get(const StreamTag<Stream>& , const StreamTag<1>&, Int block) const
+    const auto& get(const StreamTag<Stream>& , const StreamTag<1>&, int32_t block) const
     {
         return value_;
     }

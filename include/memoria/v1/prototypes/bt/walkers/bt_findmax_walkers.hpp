@@ -48,7 +48,7 @@ protected:
 
 public:
 
-    FindMaxWalkerBaseBase(Int leaf_index, const TargetType& target, SearchType search_type):
+    FindMaxWalkerBaseBase(int32_t leaf_index, const TargetType& target, SearchType search_type):
         Base(leaf_index), target_(target), search_type_(search_type)
     {}
 
@@ -72,7 +72,7 @@ public:
     using Position      = typename Base::Position;
     using LeafPath       = typename Base::LeafPath;
 
-    FindMaxWalkerBase(Int leaf_index, const TargetType& target, SearchType search_type):
+    FindMaxWalkerBase(int32_t leaf_index, const TargetType& target, SearchType search_type):
         Base(leaf_index, target, search_type)
     {}
 
@@ -85,7 +85,7 @@ public:
 //    }
 
     template <typename NodeTypes>
-    void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+    void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -103,7 +103,7 @@ public:
 
 
     template <typename NodeTypes>
-    void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+    void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -132,8 +132,8 @@ public:
 
 
 
-    template <Int StreamIdx, typename Tree>
-    StreamOpResult find_non_leaf(const Tree* tree, bool root, Int index, Int start)
+    template <int32_t StreamIdx, typename Tree>
+    StreamOpResult find_non_leaf(const Tree* tree, bool root, int32_t index, int32_t start)
     {
         auto size = tree->size();
 
@@ -151,8 +151,8 @@ public:
     }
 
 
-    template <Int StreamIdx, typename Tree>
-    void process_branch_cmd(const Tree* tree, WalkCmd cmd, Int index, Int start, Int end)
+    template <int32_t StreamIdx, typename Tree>
+    void process_branch_cmd(const Tree* tree, WalkCmd cmd, int32_t index, int32_t start, int32_t end)
     {
         if (cmd == WalkCmd::FIX_TARGET)
         {
@@ -161,8 +161,8 @@ public:
     }
 
 
-    template <Int StreamIdx, typename Tree>
-    StreamOpResult find_leaf(const Tree* tree, Int start)
+    template <int32_t StreamIdx, typename Tree>
+    StreamOpResult find_leaf(const Tree* tree, int32_t start)
     {
         if (tree != nullptr)
         {
@@ -170,7 +170,7 @@ public:
             {
                 MEMORIA_V1_ASSERT(start, ==, 0);
 
-                Int index   = this->leaf_index();
+                int32_t index   = this->leaf_index();
 
                 auto result = tree->findForward(Base::search_type_, index, Base::target_);
 
@@ -194,8 +194,8 @@ public:
     }
 
 
-    template <Int StreamIdx, typename StreamType>
-    void branch_size_prefix(const StreamType* stream, Int start, Int end)
+    template <int32_t StreamIdx, typename StreamType>
+    void branch_size_prefix(const StreamType* stream, int32_t start, int32_t end)
     {
         auto sum = stream->sum(0, start, end);
 
@@ -203,8 +203,8 @@ public:
     }
 
 
-    template <Int StreamIdx, typename StreamType>
-    void branch_size_prefix(const StreamType* stream, Int start, Int end, FixTargetTag)
+    template <int32_t StreamIdx, typename StreamType>
+    void branch_size_prefix(const StreamType* stream, int32_t start, int32_t end, FixTargetTag)
     {
 //        auto sum = stream->sum(0, start, end);
 //
@@ -212,7 +212,7 @@ public:
     }
 
 
-    template <Int StreamIdx, typename StreamType>
+    template <int32_t StreamIdx, typename StreamType>
     void leaf_size_prefix(const StreamType* stream)
     {
         auto size = stream->size();
@@ -224,15 +224,15 @@ public:
     template <
         typename StreamObj,
         typename T,
-        Int From,
-        Int To,
-        template <typename, Int, Int> class IterAccumItem
+        int32_t From,
+        int32_t To,
+        template <typename, int32_t, int32_t> class IterAccumItem
     >
-    void branch_iterator_BranchNodeEntry(const StreamObj* obj, IterAccumItem<T, From, To>& item, Int start, Int end)
+    void branch_iterator_BranchNodeEntry(const StreamObj* obj, IterAccumItem<T, From, To>& item, int32_t start, int32_t end)
     {
         static_assert(To <= StructSizeProvider<StreamObj>::Value, "Invalid BTree structure");
 
-        for (Int c = 0; c < To - From; c++)
+        for (int32_t c = 0; c < To - From; c++)
         {
             obj->_add(c + From, start, end, item[c]);
         }
@@ -243,24 +243,24 @@ public:
         typename T,
         template <typename> class AccumItem
     >
-    void branch_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem<T>& item, Int start, Int end){}
+    void branch_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem<T>& item, int32_t start, int32_t end){}
 
-    template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-    void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item, Int start, Int end)
+    template <int32_t Offset, int32_t From, int32_t Size, typename StreamObj, typename AccumItem>
+    void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item, int32_t start, int32_t end)
     {
         if (obj != nullptr)
         {
-            const Int Idx = Offset - AccumItem::From;
+            const int32_t Idx = Offset - AccumItem::From;
 
             if (end - start == 1 && start > 0)
             {
-                for (Int c = 0; c < Size; c++)
+                for (int32_t c = 0; c < Size; c++)
                 {
                     item[Idx + c] += obj->value(c + From, start);
                 }
             }
             else {
-                for (Int c = 0; c < Size; c++)
+                for (int32_t c = 0; c < Size; c++)
                 {
                     item[Idx + c] = 0;
                     obj->_add(c + From, end, item[Idx + c]);
@@ -269,13 +269,13 @@ public:
         }
     }
 
-    template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
+    template <int32_t Offset, int32_t From, int32_t Size, typename StreamObj, typename AccumItem>
     void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
     {
-        const Int Idx = Offset - AccumItem::From;
+        const int32_t Idx = Offset - AccumItem::From;
 
         if (obj != nullptr) {
-            for (Int c = 0; c < Size; c++)
+            for (int32_t c = 0; c < Size; c++)
             {
                 obj->_add(c + From, item[Idx + c]);
             }
@@ -294,7 +294,7 @@ protected:
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindMaxWalker(Int leaf_index, const TargetType& target, SearchType search_type = SearchType::GE):
+    FindMaxWalker(int32_t leaf_index, const TargetType& target, SearchType search_type = SearchType::GE):
         Base(leaf_index, target, search_type)
     {}
 };
@@ -309,11 +309,11 @@ class FindMaxGTWalker: public FindMaxWalkerBase<Types, FindMaxGTWalker<Types>> {
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindMaxGTWalker(Int leaf_index, const TargetType& target):
+    FindMaxGTWalker(int32_t leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GT)
     {}
 
-    FindMaxGTWalker(Int stream, Int leaf_index, const TargetType& target):
+    FindMaxGTWalker(int32_t stream, int32_t leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GT)
     {}
 };
@@ -327,11 +327,11 @@ class FindMaxGEWalker: public FindMaxWalkerBase<Types, FindMaxGEWalker<Types>> {
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindMaxGEWalker(Int leaf_index, const TargetType& target):
+    FindMaxGEWalker(int32_t leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GE)
     {}
 
-    FindMaxGEWalker(Int stream, Int leaf_index, const TargetType& target):
+    FindMaxGEWalker(int32_t stream, int32_t leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GE)
     {}
 };

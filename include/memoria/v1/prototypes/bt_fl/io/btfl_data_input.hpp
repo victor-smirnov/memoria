@@ -58,7 +58,7 @@ public:
         buffer_ptr_ = buffer_.get();
     }
 
-    void init(Int capacity)
+    void init(int32_t capacity)
     {
         init(create_input_buffer(capacity));
     }
@@ -89,7 +89,7 @@ public:
 
     auto* create_input_buffer(const BufferSizes& buffer_sizes)
     {
-        Int block_size  = BufferT::block_size(buffer_sizes);
+        int32_t block_size  = BufferT::block_size(buffer_sizes);
         BufferT* buffer = T2T<BufferT*>(malloc(block_size));
         if (buffer)
         {
@@ -102,9 +102,9 @@ public:
         }
     }
 
-    auto* create_input_buffer(Int buffer_size)
+    auto* create_input_buffer(int32_t buffer_size)
     {
-        Int block_size  = BufferT::block_size(buffer_size) + 500;
+        int32_t block_size  = BufferT::block_size(buffer_size) + 500;
         BufferT* buffer = T2T<BufferT*>(malloc(block_size));
         if (buffer)
         {
@@ -118,9 +118,9 @@ public:
     }
 
     template <typename IOBuffer>
-    void append_stream_entries(Int entries, IOBuffer& buffer)
+    void append_stream_entries(int32_t entries, IOBuffer& buffer)
     {
-        for (Int c = 0; c < entries; c++)
+        for (int32_t c = 0; c < entries; c++)
         {
             this->append_io_entry(buffer);
         }
@@ -128,7 +128,7 @@ public:
 
 
     template <typename IOBuffer>
-    void append_io_entry(IOBuffer& io_buffer, Int enlargements = 0)
+    void append_io_entry(IOBuffer& io_buffer, int32_t enlargements = 0)
     {
         size_t pos = io_buffer.pos();
 

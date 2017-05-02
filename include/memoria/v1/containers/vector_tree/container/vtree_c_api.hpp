@@ -79,7 +79,7 @@ public:
     }
 
 
-    LoudsNode insert(Iterator& pos, Int node_type)
+    LoudsNode insert(Iterator& pos, int32_t node_type)
     {
         auto node_pos = pos.tree_iter().node().node();
 

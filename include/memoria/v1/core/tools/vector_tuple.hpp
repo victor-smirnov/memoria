@@ -28,7 +28,7 @@ namespace v1 {
 
 namespace internal {
 
-template <Int Idx>
+template <int32_t Idx>
 struct DoRecursive {
     template <typename Fn>
     static void process(Fn&& fn)
@@ -54,7 +54,7 @@ struct VectorAddFn {
 
     VectorAddFn(Tuple& obj, const Tuple& arg): obj_(obj), arg_(arg) {}
 
-    template <Int Idx>
+    template <int32_t Idx>
     void operator()()
     {
         std::get<Idx>(obj_) += std::get<Idx>(arg_);
@@ -72,7 +72,7 @@ struct VectorAdd2Fn {
 
     VectorAdd2Fn(const Tuple& obj, const Tuple& arg): obj_(obj), arg_(arg) {}
 
-    template <Int Idx>
+    template <int32_t Idx>
     void operator()()
     {
         std::get<Idx>(result_) = std::get<Idx>(obj_) + std::get<Idx>(arg_);
@@ -89,7 +89,7 @@ struct VectorSubFn {
 
     VectorSubFn(Tuple& obj, const Tuple& arg): obj_(obj), arg_(arg) {}
 
-    template <Int Idx>
+    template <int32_t Idx>
     void operator()()
     {
         std::get<Idx>(obj_) -= std::get<Idx>(arg_);
@@ -108,7 +108,7 @@ struct VectorSub2Fn {
 
     VectorSub2Fn(const Tuple& obj, const Tuple& arg): obj_(obj), arg_(arg) {}
 
-    template <Int Idx>
+    template <int32_t Idx>
     void operator()()
     {
         std::get<Idx>(result_) = std::get<Idx>(obj_) - std::get<Idx>(arg_);
@@ -124,7 +124,7 @@ struct VectorNegFn {
 
     VectorNegFn(const Tuple& obj): obj_(obj) {}
 
-    template <Int Idx>
+    template <int32_t Idx>
     void operator()()
     {
         std::get<Idx>(result_) = -std::get<Idx>(obj_);
@@ -139,7 +139,7 @@ struct OstreamFn {
 
     OstreamFn(std::ostream& out, const Tuple& obj): out_(out), obj_(obj) {}
 
-    template <Int Idx>
+    template <int32_t Idx>
     void operator()()
     {
         out_<<std::get<Idx>(obj_);
@@ -154,7 +154,7 @@ struct OstreamFn {
 
 
 
-template <typename ElementType_, Int Indexes_>
+template <typename ElementType_, int32_t Indexes_>
 void Clear(v1::core::StaticVector<ElementType_, Indexes_>& v)
 {
     v.clear();
@@ -174,7 +174,7 @@ struct ClearFn {
 
     ClearFn(Tuple& obj): obj_(obj) {}
 
-    template <Int Idx>
+    template <int32_t Idx>
     void operator()()
     {
         Clear(std::get<Idx>(obj_));

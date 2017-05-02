@@ -22,30 +22,30 @@
 namespace memoria {
 namespace v1 {
 
-template <typename List, Int Depth = 0>
+template <typename List, int32_t Depth = 0>
 struct ListDepth {
-    static const Int Value = Depth;
+    static const int32_t Value = Depth;
 };
 
 
-template <typename Head, typename... Tail, Int Depth>
+template <typename Head, typename... Tail, int32_t Depth>
 struct ListDepth<TypeList<Head, Tail...>, Depth> {
-    static const Int Value = ListDepth<TypeList<Tail...>, Depth>::Value;
+    static const int32_t Value = ListDepth<TypeList<Tail...>, Depth>::Value;
 };
 
-template <typename... Head, typename... Tail, Int Depth>
+template <typename... Head, typename... Tail, int32_t Depth>
 struct ListDepth<TypeList<TypeList<Head...>, Tail...>, Depth> {
-    static const Int Value = Max<
-            Int,
+    static const int32_t Value = Max<
+            int32_t,
             ListDepth<TypeList<Head...>, Depth + 1>::Value,
             ListDepth<TypeList<Tail...>, Depth>::Value
     >::Value;
 };
 
 
-template <Int Depth>
+template <int32_t Depth>
 struct ListDepth<TypeList<>, Depth> {
-    static const Int Value = Depth + 1;
+    static const int32_t Value = Depth + 1;
 };
 
 
@@ -64,7 +64,7 @@ struct IsPlainList<TypeList<List...>> {
 
 namespace {
 
-    template <typename T, Int MaxDepth = 1>
+    template <typename T, int32_t MaxDepth = 1>
     struct LinearizeT {
         using Type = TypeList<T>;
     };
@@ -74,7 +74,7 @@ namespace {
     struct LinearizeT<T, 0>;
 
 
-    template <typename T, typename... Tail, Int MaxDepth>
+    template <typename T, typename... Tail, int32_t MaxDepth>
     struct LinearizeT<TypeList<T, Tail...>, MaxDepth>: HasType<
         IfThenElse<
                 ListDepth<T>::Value < MaxDepth,
@@ -90,7 +90,7 @@ namespace {
     > {};
 
 
-    template <Int MaxDepth>
+    template <int32_t MaxDepth>
     struct LinearizeT<TypeList<>, MaxDepth> {
         using Type = TypeList<>;
     };
@@ -98,7 +98,7 @@ namespace {
 
 }
 
-template <typename T, Int MaxDepth = 1>
+template <typename T, int32_t MaxDepth = 1>
 using Linearize = typename LinearizeT<T, MaxDepth>::Type;
 
 
@@ -109,8 +109,8 @@ using ListSubset = typename ListSubsetH<List, Set>::Type;
 
 template <
     typename List,
-    Int Head,
-    Int... Tail
+    int32_t Head,
+    int32_t... Tail
 >
 struct ListSubsetH<List, IntList<Head, Tail...>> {
     using Type = AppendItemToList<

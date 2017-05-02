@@ -41,10 +41,10 @@ template <
     PackedSizeType LeafSizeType,
     PackedSizeType BranchSizeType,
     typename CtrSizeT,
-    Int Indexes = 1
+    int32_t Indexes = 1
 > struct BTSSTestStreamTF;
 
-template <typename CtrSizeT, Int Indexes>
+template <typename CtrSizeT, int32_t Indexes>
 struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::FIXED, CtrSizeT, Indexes> {
     using Type = StreamTF<
             TL<TL<
@@ -57,7 +57,7 @@ struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::FIXED, CtrSizeT, 
 };
 
 
-template <typename CtrSizeT, Int Indexes>
+template <typename CtrSizeT, int32_t Indexes>
 struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSizeT, Indexes> {
     using Type = StreamTF<
             TL<TL<
@@ -70,7 +70,7 @@ struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSize
 };
 
 
-template <typename CtrSizeT, Int Indexes>
+template <typename CtrSizeT, int32_t Indexes>
 struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
     using Type = StreamTF<
             TL<TL<
@@ -83,7 +83,7 @@ struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::VARIABLE, CtrSize
 };
 
 
-template <typename CtrSizeT, Int Indexes>
+template <typename CtrSizeT, int32_t Indexes>
 struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
     using Type = StreamTF<
             TL<TL<
@@ -106,7 +106,7 @@ struct BTSSTestTypesBase: public BTTypes<Profile, BTSingleStream> {
     using Base = BTTypes<Profile, BTSingleStream>;
 
 
-    using CtrSizeT = BigInt;
+    using CtrSizeT = int64_t;
 
     using StreamDescriptors = TL<
             typename BTSSTestStreamTF<LeafSizeType, BranchSizeType, CtrSizeT, 1>::Type
@@ -140,7 +140,7 @@ public:
 
 template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType>
 struct TypeHash<BTSSTestCtr<LeafSizeType, BranchSizeType>>:   UIntValue<
-    HashHelper<3011, (Int)LeafSizeType, (Int)BranchSizeType>::Value
+    HashHelper<3011, (int32_t)LeafSizeType, (int32_t)BranchSizeType>::Value
 > {};
 
 

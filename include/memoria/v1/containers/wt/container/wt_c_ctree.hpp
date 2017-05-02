@@ -33,25 +33,25 @@ public:
 
     typedef typename Tree::Iterator                                             TreeIterator;
 
-    static const Int BitsPerlabel = 8;
+    static const int32_t BitsPerlabel = 8;
 
     struct FindChildFn {
 
-        Int label_;
-        Int label_idx_;
+        int32_t label_;
+        int32_t label_idx_;
 
-        Int start_;
-        Int end_;
+        int32_t start_;
+        int32_t end_;
 
-        Int target_idx_ = -1;
+        int32_t target_idx_ = -1;
         bool try_next_;
 
-        Int size_;
+        int32_t size_;
 
-        FindChildFn(Int label): label_(label) {}
+        FindChildFn(int32_t label): label_(label) {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdFSSeq<StreamTypes>* seq, Int idx)
+        template <int32_t Idx, typename StreamTypes>
+        void stream(const PkdFSSeq<StreamTypes>* seq, int32_t idx)
         {
             start_      = seq->rank(idx, 1);
             auto result = seq->selectFw(idx, 0, 1);
@@ -69,12 +69,12 @@ public:
             try_next_ = !result.is_found();
         }
 
-        template <Int Idx, typename StreamTypes>
+        template <int32_t Idx, typename StreamTypes>
         void stream(const PackedFSEArray<StreamTypes>* labels)
         {
-            for (Int c = start_; c < end_; c++)
+            for (int32_t c = start_; c < end_; c++)
             {
-                Int lbl = labels->value(0, c);
+                int32_t lbl = labels->value(0, c);
 
                 if (lbl >= label_)
                 {
@@ -85,7 +85,7 @@ public:
         }
 
         template <typename Node>
-        void treeNode(const Node* node, Int start)
+        void treeNode(const Node* node, int32_t start)
         {
             node->template processStream<IntList<0, 1>>(*this, start);
 
@@ -98,7 +98,7 @@ public:
 
 
 
-    auto findChild(TreeIterator& node, Int label)
+    auto findChild(TreeIterator& node, int32_t label)
     {
         auto& self = this->self();
         auto& tree = self.tree();
@@ -108,7 +108,7 @@ public:
         while (true)
         {
             FindChildFn fn(label);
-            Int idx = iter->idx();
+            int32_t idx = iter->idx();
 
             Tree::LeafDispatcher::dispatch(iter->leaf(), fn, idx);
 
@@ -123,7 +123,7 @@ public:
             }
             else if (fn.try_next_)
             {
-                Int leaf_rest = iter->leaf_size(0) - iter->idx();
+                int32_t leaf_rest = iter->leaf_size(0) - iter->idx();
 
                 iter->skipFw(leaf_rest);
 
@@ -142,7 +142,7 @@ public:
     }
 
 
-//  TreeIterator insertNode(const LoudsNode& at, Int label)
+//  TreeIterator insertNode(const LoudsNode& at, int32_t label)
 //  {
 //      auto& self = this->self();
 //      auto& tree = self.tree();
@@ -156,7 +156,7 @@ public:
 
 
 /*
-    void insertPath(UBigInt path, Int size, function<void (const LoudsNode&, Int label, Int level)> fn)
+    void insertPath(uint64_t path, int32_t size, function<void (const LoudsNode&, int32_t label, int32_t level)> fn)
     {
         auto& self = this->self();
         auto& tree = self.tree();
@@ -166,15 +166,15 @@ public:
 
         LoudsNode node = louds->root();
 
-        Int level = 0;
+        int32_t level = 0;
 
         while (!louds->isLeaf(node))
         {
-            Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+            int32_t label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
             node = find_child(node, label);
 
-            Int lbl = labels()->value(node.rank1() - 1);
+            int32_t lbl = labels()->value(node.rank1() - 1);
 
             if (!louds->isLeaf(node) && lbl == label)
             {
@@ -198,7 +198,7 @@ public:
 
                 node = louds->node(node.idx()); // refresh
 
-                Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+                int32_t label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
                 labels()->insert(node.rank1() - 1, label);
 
@@ -219,17 +219,17 @@ public:
         }
     }
 
-    bool query_path(UBigInt path, Int size, function<void (const LoudsNode&, Int label, Int level)> fn) const
+    bool query_path(uint64_t path, int32_t size, function<void (const LoudsNode&, int32_t label, int32_t level)> fn) const
     {
         LoudsTree* louds = tree();
 
         LoudsNode node = louds->root();
 
-        Int level = 0;
+        int32_t level = 0;
 
         while (!louds->isLeaf(node))
         {
-            Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+            int32_t label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
             LoudsNode child = find_child(node, label);
 
@@ -245,12 +245,12 @@ public:
         LEAF, NOT_FOUND, OK, FINISH
     };
 
-    Status remove_path(const LoudsNode& node, UBigInt path, Int size, Int level)
+    Status remove_path(const LoudsNode& node, uint64_t path, int32_t size, int32_t level)
     {
         LoudsTree* louds = tree();
         if (!louds->isLeaf(node))
         {
-            Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+            int32_t label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
             LoudsNode child = find_child(node, label);
 
@@ -288,7 +288,7 @@ public:
         }
     }
 
-    bool remove_path(UBigInt path, Int size)
+    bool remove_path(uint64_t path, int32_t size)
     {
         LoudsNode node = tree()->root();
         return remove_path(node, path, size, 0) != Status::NOT_FOUND;

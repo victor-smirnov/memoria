@@ -35,9 +35,9 @@ protected:
     typedef typename Types::LeafRangeList                                       LeafRangeList;
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
-    StaticVector<BigInt, Streams> branch_size_prefix_;
+    StaticVector<int64_t, Streams> branch_size_prefix_;
 
     IteratorBranchNodeEntry branch_prefix_;
     IteratorBranchNodeEntry leaf_prefix_;
@@ -84,32 +84,32 @@ public:
 
 
     template <typename LeafPath>
-    auto branch_index(Int index)
+    auto branch_index(int32_t index)
     {
         return AccumItemH<LeafPath>::value(index, branch_prefix_);
     }
 
     template <typename LeafPath>
-    auto branch_index(Int index) const
+    auto branch_index(int32_t index) const
     {
         return AccumItemH<LeafPath>::cvalue(index, branch_prefix_);
     }
 
     template <typename LeafPath>
-    auto leaf_index(Int index)
+    auto leaf_index(int32_t index)
     {
         return AccumItemH<LeafPath>::value(index, leaf_prefix_);
     }
 
     template <typename LeafPath>
-    auto leaf_index(Int index) const
+    auto leaf_index(int32_t index) const
     {
         return AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
     }
 
 
     template <typename LeafPath>
-    auto total_index(Int index) const
+    auto total_index(int32_t index) const
     {
         return AccumItemH<LeafPath>::cvalue(index, branch_prefix_) +
                 AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
@@ -122,7 +122,7 @@ public:
         branch_size_prefix_ = iter.cache().size_prefix();
     }
 
-    BigInt finish(Iterator& iter, Int idx, WalkCmd cmd)
+    int64_t finish(Iterator& iter, int32_t idx, WalkCmd cmd)
     {
         iter.finish_walking(idx, self(), cmd);
 
@@ -151,11 +151,11 @@ public:
         return leaf_prefix_;
     }
 
-    const StaticVector<BigInt, Streams>& branch_size_prefix() const {
+    const StaticVector<int64_t, Streams>& branch_size_prefix() const {
         return branch_size_prefix_;
     }
 
-    StaticVector<BigInt, Streams>& branch_size_prefix() {
+    StaticVector<int64_t, Streams>& branch_size_prefix() {
         return branch_size_prefix_;
     }
 
@@ -165,7 +165,7 @@ public:
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
     template <typename NodeTypes>
-    void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+    void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
     {}
 
 
@@ -184,7 +184,7 @@ public:
 
     struct BranchSizePrefix
     {
-        template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
+        template <int32_t GroupIdx, int32_t AllocatorIdx, int32_t ListIdx, typename StreamObj, typename... Args>
         void stream(const StreamObj* obj, MyType& walker, Args&&... args)
         {
             walker.template branch_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
@@ -194,7 +194,7 @@ public:
 
     struct LeafSizePrefix
     {
-        template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
+        template <int32_t GroupIdx, int32_t AllocatorIdx, int32_t ListIdx, typename StreamObj, typename... Args>
         void stream(const StreamObj* obj, MyType& walker, Args&&... args)
         {
             walker.template leaf_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
@@ -231,7 +231,7 @@ public:
     ForwardLeafWalker(): Base()
     {}
 
-    ForwardLeafWalker(Int, Int, BigInt)
+    ForwardLeafWalker(int32_t, int32_t, int64_t)
     {}
 
     template <typename... Args>
@@ -243,9 +243,9 @@ public:
 
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, Int start)
+    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, int32_t start)
     {
-        Int size = node->size();
+        int32_t size = node->size();
 
         if (start < size)
         {
@@ -257,14 +257,14 @@ public:
     }
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
+    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, int32_t start)
     {
         return StreamOpResult(0, 0, true);
     }
 
 
     template <typename NodeTypes>
-    void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+    void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -283,18 +283,18 @@ public:
     }
 
 
-    template <Int StreamIdx, typename StreamType>
+    template <int32_t StreamIdx, typename StreamType>
     void leaf_size_prefix(const StreamType* stream)
     {
         Base::branch_size_prefix()[StreamIdx] += stream->size();
     }
 
-    template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
+    template <int32_t Offset, int32_t From, int32_t Size, typename StreamObj, typename AccumItem>
     void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
     {
-        const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
+        const int32_t Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             obj->_add(c + From, item[Idx + c]);
         }
@@ -316,7 +316,7 @@ public:
     BackwardLeafWalker(): Base()
     {}
 
-    BackwardLeafWalker(Int, Int, BigInt)
+    BackwardLeafWalker(int32_t, int32_t, int64_t)
     {}
 
     template <typename... Args>
@@ -328,7 +328,7 @@ public:
 
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, Int start)
+    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, int32_t start)
     {
         if (start >= 0)
         {
@@ -340,14 +340,14 @@ public:
     }
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
+    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, int32_t start)
     {
         return StreamOpResult(0, 0, true);
     }
 
 
     template <typename NodeTypes>
-    void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+    void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -365,18 +365,18 @@ public:
     }
 
 
-    template <Int StreamIdx, typename StreamType>
+    template <int32_t StreamIdx, typename StreamType>
     void leaf_size_prefix(const StreamType* stream)
     {
         Base::branch_size_prefix()[StreamIdx] -= stream->size();
     }
 
-    template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
+    template <int32_t Offset, int32_t From, int32_t Size, typename StreamObj, typename AccumItem>
     void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
     {
-        const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
+        const int32_t Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             obj->_sub(c + From, item[Idx + c]);
         }

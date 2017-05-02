@@ -39,32 +39,32 @@ struct FieldFactory<UUID> {
 
     static void serialize(SerializationData& data, const Type& field)
     {
-        FieldFactory<UBigInt>::serialize(data, field.lo());
-        FieldFactory<UBigInt>::serialize(data, field.hi());
+        FieldFactory<uint64_t>::serialize(data, field.lo());
+        FieldFactory<uint64_t>::serialize(data, field.hi());
     }
 
-    static void serialize(SerializationData& data, const Type* field, Int size)
+    static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
-            FieldFactory<UBigInt>::serialize(data, field[c].lo());
-            FieldFactory<UBigInt>::serialize(data, field[c].hi());
+            FieldFactory<uint64_t>::serialize(data, field[c].lo());
+            FieldFactory<uint64_t>::serialize(data, field[c].hi());
         }
     }
 
 
     static void deserialize(DeserializationData& data, Type& field)
     {
-        FieldFactory<UBigInt>::deserialize(data, field.lo());
-        FieldFactory<UBigInt>::deserialize(data, field.hi());
+        FieldFactory<uint64_t>::deserialize(data, field.lo());
+        FieldFactory<uint64_t>::deserialize(data, field.hi());
     }
 
-    static void deserialize(DeserializationData& data, Type* field, Int size)
+    static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
-            FieldFactory<UBigInt>::deserialize(data, field[c].lo());
-            FieldFactory<UBigInt>::deserialize(data, field[c].hi());
+            FieldFactory<uint64_t>::deserialize(data, field[c].lo());
+            FieldFactory<uint64_t>::deserialize(data, field[c].hi());
         }
     }
 };

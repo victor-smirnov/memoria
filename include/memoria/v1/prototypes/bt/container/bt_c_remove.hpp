@@ -44,8 +44,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::RemoveName)
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
 protected:
-    template <Int Stream>
-    void remove_stream_entry(Iterator& iter, Int stream, Int idx)
+    template <int32_t Stream>
+    void remove_stream_entry(Iterator& iter, int32_t stream, int32_t idx)
     {
         auto& self = this->self();
 

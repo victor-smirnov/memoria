@@ -44,10 +44,10 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl_test::IterApiName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    static const Int Streams          = Container::Types::Streams;
-    static const Int DataStreams      = Container::Types::DataStreams;
+    static const int32_t Streams          = Container::Types::Streams;
+    static const int32_t DataStreams      = Container::Types::DataStreams;
 
-    template <Int Level>
+    template <int32_t Level>
     using BTFLSampleData = typename Container::Types::template IOData<Level>;
 
     template <typename BTFLDataT>
@@ -71,7 +71,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl_test::IterApiName)
 public:
 
     template <typename IOBuffer>
-    auto bulkio_insert(BufferProducer<IOBuffer>& provider, const Int initial_capacity = 20000)
+    auto bulkio_insert(BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
     {
         auto& self = this->self();
 
@@ -102,12 +102,12 @@ public:
         return self.bulkio_insert(*iodata_producer.get());
     }
 
-    template <Int Level>
+    template <int32_t Level>
     BTFLSampleData<Level> readEntries(CtrSizeT number = std::numeric_limits<CtrSizeT>::max())
     {
         auto& self = this->self();
 
-        Int stream = self.data_stream_s();
+        int32_t stream = self.data_stream_s();
 
         if (stream == Level || stream == -1)
         {
@@ -129,12 +129,12 @@ public:
     }
 
 
-    template <Int Level>
+    template <int32_t Level>
     BTFLSampleData<Level> readData(CtrSizeT length)
     {
         auto& self = this->self();
 
-        Int stream = self.data_stream_s();
+        int32_t stream = self.data_stream_s();
 
         if (stream == Level || stream == -1)
         {
@@ -156,16 +156,16 @@ public:
     }
 
 
-    template <Int Stream>
+    template <int32_t Stream>
     auto key() const
     {
         auto& self = this->self();
 
-        Int stream = self.data_stream();
+        int32_t stream = self.data_stream();
 
         MEMORIA_V1_ASSERT(stream, ==, Stream);
 
-        Int key_idx = self.data_stream_idx(stream);
+        int32_t key_idx = self.data_stream_idx(stream);
 
         return std::get<0>(self.template read_leaf_entry<Stream, IntList<1>>(key_idx, 0));
     }
@@ -173,7 +173,7 @@ public:
     CtrSizeT countChildren() const
     {
         auto& self = this->self();
-        Int stream = self.data_stream();
+        int32_t stream = self.data_stream();
 
         if (stream < DataStreams - 1)
         {
@@ -193,7 +193,7 @@ public:
     void toChild(CtrSizeT n)
     {
     	auto& self = this->self();
-    	Int stream = self.data_stream();
+    	int32_t stream = self.data_stream();
 
     	if (stream < DataStreams - 1)
     	{
@@ -204,7 +204,7 @@ public:
     	}
     }
 
-    void toParent(Int level)
+    void toParent(int32_t level)
     {
     	auto& self = this->self();
     	self.selectBw(1, level);

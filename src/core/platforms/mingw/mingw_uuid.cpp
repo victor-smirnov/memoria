@@ -28,7 +28,7 @@ namespace v1 {
 
 using WinUUID = ::UUID;
 
-UBigInt cnt = 1;
+uint64_t cnt = 1;
 
 UUID make_uuid(const WinUUID& uuid)
 {
@@ -36,12 +36,12 @@ UUID make_uuid(const WinUUID& uuid)
 
     uuid2.lo() = uuid.Data1;
 
-    uuid2.lo() |= ((UBigInt)uuid.Data2) << 32;
-    uuid2.lo() |= ((UBigInt)uuid.Data3) << 48;
+    uuid2.lo() |= ((uint64_t)uuid.Data2) << 32;
+    uuid2.lo() |= ((uint64_t)uuid.Data3) << 48;
 
     for (int c = 0; c < 8; c++)
     {
-        uuid2.hi() |= ((UBigInt)uuid.Data4[c]) << (c * 8);
+        uuid2.hi() |= ((uint64_t)uuid.Data4[c]) << (c * 8);
     }
 
     return uuid2;

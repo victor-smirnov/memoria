@@ -46,8 +46,8 @@ namespace v1 {
 
 
 template <
-    Int BitsPerSymbol_,
-    Int VPB,
+    int32_t BitsPerSymbol_,
+    int32_t VPB,
 
     typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
@@ -57,9 +57,9 @@ template <
 >
 struct PkdFSSeqTypes {
 
-    static const Int Blocks                 = 1 << BitsPerSymbol_;
-    static const Int ValuesPerBranch        = VPB;
-    static const Int BitsPerSymbol          = BitsPerSymbol_;
+    static const int32_t Blocks                 = 1 << BitsPerSymbol_;
+    static const int32_t ValuesPerBranch        = VPB;
+    static const int32_t BitsPerSymbol          = BitsPerSymbol_;
 
     using Index     = IndexType;
 
@@ -83,21 +83,21 @@ class PkdFSSeq: public PackedAllocator {
     typedef PackedAllocator                                                     Base;
 
 public:
-    static const UInt VERSION                                                   = 1;
+    static const uint32_t VERSION                                                   = 1;
 
     typedef Types_                                                              Types;
     typedef PkdFSSeq<Types_>                                                    MyType;
 
     typedef PackedAllocator                                                     Allocator;
 
-    typedef Int                                                                 IndexValue;
+    typedef int32_t                                                                 IndexValue;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
 
-    static constexpr Int ValuesPerBranch        = Types::ValuesPerBranch;
-    static constexpr Int Indexes                = Types::Blocks;
-    static constexpr Int BitsPerSymbol          = Types::BitsPerSymbol;
-    static constexpr Int AlphabetSize           = 1 << BitsPerSymbol;
+    static constexpr int32_t ValuesPerBranch        = Types::ValuesPerBranch;
+    static constexpr int32_t Indexes                = Types::Blocks;
+    static constexpr int32_t BitsPerSymbol          = Types::BitsPerSymbol;
+    static constexpr int32_t AlphabetSize           = 1 << BitsPerSymbol;
 
     static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
 
@@ -107,16 +107,16 @@ public:
 
     typedef IfThenElse<
             BitsPerSymbol == 8,
-            UByte,
-            UBigInt
+            uint8_t,
+            uint64_t
     >                                                                           Value;
 
     typedef typename Types::Index                                               Index;
 
-    static const Int IndexSizeThreshold                                         = 0;
+    static const int32_t IndexSizeThreshold                                         = 0;
     static const PackedSizeType SizeType                                        = PkdStructSizeType<Index>::Value;
 
-    typedef core::StaticVector<BigInt, Indexes>                                 Values;
+    typedef core::StaticVector<int64_t, Indexes>                                 Values;
 
     typedef typename Types::template ToolsFn<MyType>                            Tools;
 
@@ -125,30 +125,30 @@ public:
     using InputBuffer = PkdFSESequenceInputBuffer<Types>;
 
     class Metadata {
-        Int size_;
+        int32_t size_;
     public:
-        Int& size()                 {return size_;}
-        const Int& size() const     {return size_;}
+        int32_t& size()                 {return size_;}
+        const int32_t& size() const     {return size_;}
     };
 
-    using SizesT = core::StaticVector<Int, 1>;
+    using SizesT = core::StaticVector<int32_t, 1>;
 
 public:
     PkdFSSeq() = default;
 
-    Int& size() {return metadata()->size();}
-    const Int& size() const {return metadata()->size();}
+    int32_t& size() {return metadata()->size();}
+    const int32_t& size() const {return metadata()->size();}
 
-    Int max_size() const
+    int32_t max_size() const
     {
-        Int values_length = Base::element_size(SYMBOLS);
+        int32_t values_length = Base::element_size(SYMBOLS);
 
-        Int symbols = values_length * 8 / BitsPerSymbol;
+        int32_t symbols = values_length * 8 / BitsPerSymbol;
 
         return symbols;
     }
 
-    Int capacity() const
+    int32_t capacity() const
     {
         return max_size() - size();
     }
@@ -191,9 +191,9 @@ public:
 
     class SymbolAccessor {
         MyType& seq_;
-        Int idx_;
+        int32_t idx_;
     public:
-        SymbolAccessor(MyType& seq, Int idx): seq_(seq), idx_(idx) {}
+        SymbolAccessor(MyType& seq, int32_t idx): seq_(seq), idx_(idx) {}
 
         Value operator=(Value val)
         {
@@ -210,21 +210,21 @@ public:
         }
     };
 
-    SymbolAccessor symbol(Int idx)
+    SymbolAccessor symbol(int32_t idx)
     {
         return SymbolAccessor(*this, idx);
     }
 
-    Int value(Int symbol, Int idx) const {
+    int32_t value(int32_t symbol, int32_t idx) const {
         return this->symbol(idx) == symbol;
     }
 
 
     class ConstSymbolAccessor {
         const MyType& seq_;
-        Int idx_;
+        int32_t idx_;
     public:
-        ConstSymbolAccessor(const MyType& seq, Int idx): seq_(seq), idx_(idx) {}
+        ConstSymbolAccessor(const MyType& seq, int32_t idx): seq_(seq), idx_(idx) {}
 
         operator Value() const {
             return seq_.get(idx_);
@@ -235,7 +235,7 @@ public:
         }
     };
 
-    ConstSymbolAccessor symbol(Int idx) const
+    ConstSymbolAccessor symbol(int32_t idx) const
     {
         return ConstSymbolAccessor(*this, idx);
     }
@@ -245,7 +245,7 @@ public:
 
     // ===================================== Allocation ================================= //
 
-    void init(Int block_size)
+    void init(int32_t block_size)
     {
         MEMORIA_V1_ASSERT(block_size, >=, empty_size());
 
@@ -266,57 +266,57 @@ public:
         // other sections are empty at this moment
     }
 
-    Int block_size() const {
+    int32_t block_size() const {
         return Base::block_size();
     }
 
-    Int block_size(const MyType* other) const
+    int32_t block_size(const MyType* other) const
     {
         return packed_block_size(size() + other->size());
     }
 
-    static Int packed_block_size(Int size)
+    static int32_t packed_block_size(int32_t size)
     {
         return estimate_block_size(size, 1, 1);
     }
 
 private:
     struct ElementsForFn {
-        Int block_size(Int items_number) const {
+        int32_t block_size(int32_t items_number) const {
             return MyType::estimate_block_size(items_number);
         }
 
-        Int max_elements(Int block_size)
+        int32_t max_elements(int32_t block_size)
         {
             return block_size * 8;
         }
     };
 
 public:
-    static Int elements_for(Int block_size)
+    static int32_t elements_for(int32_t block_size)
     {
         return FindTotalElementsNumber2(block_size, ElementsForFn());
     }
 
 
-    static Int empty_size()
+    static int32_t empty_size()
     {
-        Int metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
-        Int index_length    = 0;
-        Int values_length   = 0;
-        Int block_size      = Base::block_size(metadata_length + index_length + values_length, 3);
+        int32_t metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t index_length    = 0;
+        int32_t values_length   = 0;
+        int32_t block_size      = Base::block_size(metadata_length + index_length + values_length, 3);
         return block_size;
     }
 
-    static Int estimate_block_size(Int size, Int density_hi = 1, Int density_lo = 1)
+    static int32_t estimate_block_size(int32_t size, int32_t density_hi = 1, int32_t density_lo = 1)
     {
-        Int symbols_block_size  = Base::roundUpBitsToAlignmentBlocks(size * BitsPerSymbol);
-        Int index_size          = PackedAllocatable::divUp(size , ValuesPerBranch);
-        Int index_block_size    = Index::estimate_block_size(index_size, density_hi, density_lo);
-        Int metadata_block_size = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t symbols_block_size  = Base::roundUpBitsToAlignmentBlocks(size * BitsPerSymbol);
+        int32_t index_size          = PackedAllocatable::divUp(size , ValuesPerBranch);
+        int32_t index_block_size    = Index::estimate_block_size(index_size, density_hi, density_lo);
+        int32_t metadata_block_size = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-        Int client_area         = metadata_block_size + index_block_size + symbols_block_size;
-        Int block_size          = Base::block_size(client_area, 3);
+        int32_t client_area         = metadata_block_size + index_block_size + symbols_block_size;
+        int32_t block_size          = Base::block_size(client_area, 3);
 
         return block_size;
     }
@@ -329,7 +329,7 @@ public:
     template <typename IndexSizeT>
     void createIndex(IndexSizeT&& index_size)
     {
-        Int index_block_size = Index::block_size(index_size);
+        int32_t index_block_size = Index::block_size(index_size);
         Base::resizeBlock(INDEX, index_block_size);
 
         Index* index = this->index();
@@ -340,8 +340,8 @@ public:
 
 
 
-    std::pair<Int, Int> density() const {
-        return std::pair<Int, Int>(1,1);
+    std::pair<int32_t, int32_t> density() const {
+        return std::pair<int32_t, int32_t>(1,1);
     }
 
 
@@ -364,7 +364,7 @@ public:
         }
     }
 
-    void set(Int idx, Int symbol)
+    void set(int32_t idx, int32_t symbol)
     {
         MEMORIA_V1_ASSERT(idx , <, size());
 
@@ -381,39 +381,39 @@ public:
 
 
 
-    void enlargeData(Int length)
+    void enlargeData(int32_t length)
     {
-        Int capacity = this->capacity();
+        int32_t capacity = this->capacity();
 
         if (length >= capacity)
         {
-            Int new_size        = size() + length;
-            Int new_block_size  = roundUpBitToBytes(new_size * BitsPerSymbol);
+            int32_t new_size        = size() + length;
+            int32_t new_block_size  = roundUpBitToBytes(new_size * BitsPerSymbol);
             Base::resizeBlock(SYMBOLS, new_block_size);
         }
     }
 
 protected:
-    void insertDataRoom(Int pos, Int length)
+    void insertDataRoom(int32_t pos, int32_t length)
     {
         enlargeData(length);
 
         auto symbols = this->symbols();
 
-        Int rest = size() - pos;
+        int32_t rest = size() - pos;
 
         tools().move(symbols, pos, (pos + length), rest);
 
         size() += length;
     }
 
-    void shrinkData(Int length)
+    void shrinkData(int32_t length)
     {
-        Int new_size        = size() - length;
+        int32_t new_size        = size() - length;
 
         if (new_size >= 0)
         {
-            Int new_block_size  = roundUpBitToBytes(new_size * BitsPerSymbol);
+            int32_t new_block_size  = roundUpBitToBytes(new_size * BitsPerSymbol);
 
             Base::resizeBlock(SYMBOLS, new_block_size);
         }
@@ -421,15 +421,15 @@ protected:
 
 public:
 
-    template <Int Offset, Int Size, typename AccessorFn, typename T2, template <typename, Int> class BranchNodeEntryItem>
-    void _insert_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    template <int32_t Offset, int32_t Size, typename AccessorFn, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
+    void _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
     {
         insert(idx, values(0));
     }
 
 
 
-    void insert(Int pos, Int symbol)
+    void insert(int32_t pos, int32_t symbol)
     {
         insertDataRoom(pos, 1);
 
@@ -440,9 +440,9 @@ public:
         reindex();
     }
 
-    void remove(Int start, Int end)
+    void remove(int32_t start, int32_t end)
     {
-        Int& size = this->size();
+        int32_t& size = this->size();
 
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(end, >=, 0);
@@ -452,7 +452,7 @@ public:
 
         auto symbols = this->symbols();
 
-        Int rest = size - end;
+        int32_t rest = size - end;
 
         tools().move(symbols, end, start, rest);
 
@@ -463,12 +463,12 @@ public:
         reindex();
     }
 
-    void removeSpace(Int start, Int end) {
+    void removeSpace(int32_t start, int32_t end) {
         remove(start, end);
     }
 
 
-    void removeSymbol(Int idx) {
+    void removeSymbol(int32_t idx) {
         remove(idx, idx + 1);
     }
 
@@ -476,19 +476,19 @@ public:
 
 
 
-    void fill(Int start, Int end, std::function<Value ()> fn)
+    void fill(int32_t start, int32_t end, std::function<Value ()> fn)
     {
         auto symbols = this->symbols();
         auto tools = this->tools();
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
             Value val = fn();
             tools.set(symbols, c, val);
         }
     }
 
-    void insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
+    void insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
     {
         insertDataRoom(at, size);
         tools().move(buffer->symbols(), this->symbols(), start, at, size);
@@ -496,7 +496,7 @@ public:
     }
 
 
-    void insert(Int start, Int length, std::function<Value ()> fn)
+    void insert(int32_t start, int32_t length, std::function<Value ()> fn)
     {
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(start, <=, size());
@@ -510,9 +510,9 @@ public:
 
 
     template <typename Adaptor>
-    void fill_with_buf(Int start, Int length, Adaptor&& adaptor)
+    void fill_with_buf(int32_t start, int32_t length, Adaptor&& adaptor)
     {
-        Int size = this->size();
+        int32_t size = this->size();
 
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(start, <=, size);
@@ -522,7 +522,7 @@ public:
 
         auto symbols = this->symbols();
 
-        Int total = 0;
+        int32_t total = 0;
 
         while (total < length)
         {
@@ -537,7 +537,7 @@ public:
     }
 
 
-    void update(Int start, Int end, std::function<Value ()> fn)
+    void update(int32_t start, int32_t end, std::function<Value ()> fn)
     {
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(start, <=, end);
@@ -550,7 +550,7 @@ public:
 
     using ReadState = SizesT;
 
-    void read(Int start, Int end, std::function<void (Value)> fn) const
+    void read(int32_t start, int32_t end, std::function<void (Value)> fn) const
     {
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(start, <=, end);
@@ -559,7 +559,7 @@ public:
         auto symbols    = this->symbols();
         auto tools      = this->tools();
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
             fn(tools.get(symbols, c));
         }
@@ -567,16 +567,16 @@ public:
 
 
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void _insert(Int idx, Int symbol, BranchNodeEntryItem<T, Size>& accum)
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void _insert(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
     {
         insert(idx, symbol);
 
         sum<Offset>(idx, accum);
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void _update(Int idx, Int symbol, BranchNodeEntryItem<T, Size>& accum)
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void _update(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
     {
         sub<Offset>(idx, accum);
 
@@ -587,8 +587,8 @@ public:
         sum<Offset>(idx, accum);
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
         sub<Offset>(idx, accum);
         remove(idx, idx + 1);
@@ -602,17 +602,17 @@ public:
     {
         other->enlargeData(this->size());
 
-        Int data_size = this->element_size(SYMBOLS);
+        int32_t data_size = this->element_size(SYMBOLS);
 
         CopyByteBuffer(symbols(), other->symbols(), data_size);
 
         other->reindex();
     }
 
-    void splitTo(MyType* other, Int idx)
+    void splitTo(MyType* other, int32_t idx)
     {
-        Int to_move     = this->size() - idx;
-        Int other_size  = other->size();
+        int32_t to_move     = this->size() - idx;
+        int32_t other_size  = other->size();
 
         other->enlargeData(to_move);
 
@@ -630,8 +630,8 @@ public:
 
     void mergeWith(MyType* other) const
     {
-        Int my_size     = this->size();
-        Int other_size  = other->size();
+        int32_t my_size     = this->size();
+        int32_t other_size  = other->size();
 
         other->enlargeData(my_size);
 
@@ -658,13 +658,13 @@ public:
     }
 
 
-    Values sums(Int to) const
+    Values sums(int32_t to) const
     {
         if (has_index())
         {
             auto index = this->index();
 
-            Int index_block = to / ValuesPerBranch;
+            int32_t index_block = to / ValuesPerBranch;
 
             auto isums = index->sums(0, index_block);
 
@@ -684,11 +684,11 @@ public:
 
 
 
-    Values ranks(Int to) const
+    Values ranks(int32_t to) const
     {
         Values vals;
 
-        for (Int symbol = 0; symbol < Indexes; symbol++)
+        for (int32_t symbol = 0; symbol < Indexes; symbol++)
         {
             vals[symbol] = rank(to, symbol);
         }
@@ -704,7 +704,7 @@ public:
 
 
 
-    Values sumsAt(Int idx) const
+    Values sumsAt(int32_t idx) const
     {
         Values values;
         values[symbol(idx)] = 1;
@@ -712,13 +712,13 @@ public:
         return values;
     }
 
-    Values sums(Int from, Int to) const
+    Values sums(int32_t from, int32_t to) const
     {
         return sums(to) - sums(from);
     }
 
 
-    void sums(Int from, Int to, Values& values) const
+    void sums(int32_t from, int32_t to, Values& values) const
     {
         values += sums(from, to);
     }
@@ -728,17 +728,17 @@ public:
         values += sums();
     }
 
-    Values sum_v(Int from, Int to) const {
+    Values sum_v(int32_t from, int32_t to) const {
         return sums(from, to);
     }
 
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
-        for (Int block = 0; block < Indexes; block++)
+        for (int32_t block = 0; block < Indexes; block++)
         {
             accum[block + Offset] = rank(block);
         }
@@ -746,38 +746,38 @@ public:
 
 
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
     void sum(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
-        for (Int block = 0; block < Indexes; block++)
+        for (int32_t block = 0; block < Indexes; block++)
         {
             accum[block + Offset] += rank(block);
         }
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void sum(Int start, Int end, BranchNodeEntryItem<T, Size>& accum) const
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
-        for (Int block = 0; block < Indexes; block++)
+        for (int32_t block = 0; block < Indexes; block++)
         {
             accum[block + Offset] += rank(start, end, block);
         }
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void sum(Int idx, BranchNodeEntryItem<T, Size>& accum) const
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void sum(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
         accum[symbol(idx) + Offset] ++;
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void sub(Int idx, BranchNodeEntryItem<T, Size>& accum) const
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void sub(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
@@ -785,27 +785,27 @@ public:
     }
 
 
-    template <Int Offset, Int From, Int To, typename T, template <typename, Int, Int> class BranchNodeEntryItem>
-    void sum(Int start, Int end, BranchNodeEntryItem<T, From, To>& accum) const
+    template <int32_t Offset, int32_t From, int32_t To, typename T, template <typename, int32_t, int32_t> class BranchNodeEntryItem>
+    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, From, To>& accum) const
     {
-        for (Int block = 0; block < Indexes; block++)
+        for (int32_t block = 0; block < Indexes; block++)
         {
             accum[block + Offset] += rank(block, start, end);
         }
     }
 
 
-    Int sum(Int symbol, Int start, Int end) const
+    int32_t sum(int32_t symbol, int32_t start, int32_t end) const
     {
         return rank(start, end, symbol);
     }
 
-    Int sum(Int symbol, Int end) const
+    int32_t sum(int32_t symbol, int32_t end) const
     {
         return rank(end, symbol);
     }
 
-    Int sum(Int symbol) const
+    int32_t sum(int32_t symbol) const
     {
         return rank(symbol);
     }
@@ -815,19 +815,19 @@ public:
 
 
     template <typename T>
-    void _add(Int symbol, T& value) const
+    void _add(int32_t symbol, T& value) const
     {
         value += rank(symbol);
     }
 
     template <typename T>
-    void _add(Int symbol, Int end, T& value) const
+    void _add(int32_t symbol, int32_t end, T& value) const
     {
         value += rank(end, symbol);
     }
 
     template <typename T>
-    void _add(Int symbol, Int start, Int end, T& value) const
+    void _add(int32_t symbol, int32_t start, int32_t end, T& value) const
     {
         value += rank(start, end, symbol);
     }
@@ -835,25 +835,25 @@ public:
 
 
     template <typename T>
-    void _sub(Int symbol, T& value) const
+    void _sub(int32_t symbol, T& value) const
     {
         value -= rank(symbol);
     }
 
     template <typename T>
-    void _sub(Int symbol, Int end, T& value) const
+    void _sub(int32_t symbol, int32_t end, T& value) const
     {
         value -= rank(end, symbol);
     }
 
     template <typename T>
-    void _sub(Int symbol, Int start, Int end, T& value) const
+    void _sub(int32_t symbol, int32_t start, int32_t end, T& value) const
     {
         value -= rank(start, end, symbol);
     }
 
 
-    Int get(Int idx) const
+    int32_t get(int32_t idx) const
     {
         if (idx >= size()) {
             int a = 0; a++;
@@ -863,19 +863,19 @@ public:
         return tools().get(symbols(), idx);
     }
 
-    Int get_values(Int idx) const
+    int32_t get_values(int32_t idx) const
     {
         MEMORIA_V1_ASSERT(idx , <, size());
         return tools().get(symbols(), idx);
     }
 
-    bool test(Int idx, Value symbol) const
+    bool test(int32_t idx, Value symbol) const
     {
         MEMORIA_V1_ASSERT(idx , <, size());
         return tools().test(symbols(), idx, symbol);
     }
 
-    Int rank(Int symbol) const
+    int32_t rank(int32_t symbol) const
     {
         if (has_index())
         {
@@ -887,15 +887,15 @@ public:
         }
     }
 
-    Int rank(Int start, Int end, Int symbol) const
+    int32_t rank(int32_t start, int32_t end, int32_t symbol) const
     {
-        Int rank_start  = rank(start, symbol);
-        Int rank_end    = rank(end, symbol);
+        int32_t rank_start  = rank(start, symbol);
+        int32_t rank_end    = rank(end, symbol);
 
         return rank_end - rank_start;
     }
 
-    Int rank(Int end, Int symbol) const
+    int32_t rank(int32_t end, int32_t symbol) const
     {
         MEMORIA_V1_ASSERT(end, <=, size());
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
@@ -906,14 +906,14 @@ public:
         {
             const Index* index = this->index();
 
-            Int values_block    = (end / ValuesPerBranch);
-            Int start           = values_block * ValuesPerBranch;
+            int32_t values_block    = (end / ValuesPerBranch);
+            int32_t start           = values_block * ValuesPerBranch;
 
-            Int sum = index->sum(symbol, values_block);
+            int32_t sum = index->sum(symbol, values_block);
 
             typename Types::template RankFn<MyType> fn(*this);
 
-            Int block_sum = fn(start, end, symbol);
+            int32_t block_sum = fn(start, end, symbol);
 
             return sum + block_sum;
         }
@@ -925,9 +925,9 @@ public:
     }
 
 
-    SelectResult selectFw(Int start, Int symbol, BigInt rank) const
+    SelectResult selectFw(int32_t start, int32_t symbol, int64_t rank) const
     {
-        Int startrank_ = this->rank(start, symbol);
+        int32_t startrank_ = this->rank(start, symbol);
         auto result = selectFw(symbol, startrank_ + rank);
 
         result.rank() -= startrank_;
@@ -935,7 +935,7 @@ public:
         return result;
     }
 
-    SelectResult selectFw(Int symbol, BigInt rank) const
+    SelectResult selectFw(int32_t symbol, int64_t rank) const
     {
         MEMORIA_V1_ASSERT(rank, >=, 0);
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
@@ -944,19 +944,19 @@ public:
         {
             const Index* index = this->index();
 
-            Int index_size = index->size();
+            int32_t index_size = index->size();
 
             auto result = index->findGEForward(symbol, rank);
 
             if (result.idx() < index_size)
             {
-                Int start = result.idx() * ValuesPerBranch;
+                int32_t start = result.idx() * ValuesPerBranch;
 
                 typename Types::template SelectFn<MyType> fn(*this);
 
-                Int localrank_ = rank - result.prefix();
+                int32_t localrank_ = rank - result.prefix();
 
-                Int size = this->size();
+                int32_t size = this->size();
 
                 return fn(start, size, symbol, localrank_);
             }
@@ -970,9 +970,9 @@ public:
         }
     }
 
-    SelectResult selectBw(Int start, Int symbol, BigInt rank) const
+    SelectResult selectBw(int32_t start, int32_t symbol, int64_t rank) const
     {
-        Int localrank_ = this->rank(start, symbol);
+        int32_t localrank_ = this->rank(start, symbol);
 
         if (localrank_ >= rank)
         {
@@ -983,7 +983,7 @@ public:
         }
     }
 
-    SelectResult selectBw(Int symbol, BigInt rank) const
+    SelectResult selectBw(int32_t symbol, int64_t rank) const
     {
         return selectBw(size(), symbol, rank);
     }
@@ -1014,7 +1014,7 @@ public:
 
         out<<"Data:"<<endl;
 
-        dumpSymbols<Value>(out, size(), BitsPerSymbol, [this](Int idx) -> Value {
+        dumpSymbols<Value>(out, size(), BitsPerSymbol, [this](int32_t idx) -> Value {
             return this->get(idx);
         });
     }
@@ -1025,7 +1025,7 @@ public:
 
         handler->value("SIZE",          &size());
 
-        Int max_size = this->max_size();
+        int32_t max_size = this->max_size();
         handler->value("MAX_SIZE",      &max_size);
 
         if (has_index())
@@ -1048,7 +1048,7 @@ public:
 
         const Metadata* meta = this->metadata();
 
-        FieldFactory<Int>::serialize(buf, meta->size());
+        FieldFactory<int32_t>::serialize(buf, meta->size());
 
         if (has_index()) {
             index()->serialize(buf);
@@ -1063,7 +1063,7 @@ public:
 
         Metadata* meta = this->metadata();
 
-        FieldFactory<Int>::deserialize(buf, meta->size());
+        FieldFactory<int32_t>::deserialize(buf, meta->size());
 
         if (has_index()) {
             index()->deserialize(buf);
@@ -1079,10 +1079,10 @@ public:
 
 
 private:
-    Int symbol_buffer_size() const
+    int32_t symbol_buffer_size() const
     {
-        Int bit_size    = this->element_size(SYMBOLS) * 8;
-        Int byte_size   = Base::roundUpBitsToAlignmentBlocks(bit_size);
+        int32_t bit_size    = this->element_size(SYMBOLS) * 8;
+        int32_t byte_size   = Base::roundUpBitsToAlignmentBlocks(bit_size);
 
         return byte_size / sizeof(Value);
     }
@@ -1090,19 +1090,19 @@ private:
 
 template <typename T>
 struct StructSizeProvider<PkdFSSeq<T>> {
-    static const Int Value = PkdFSSeq<T>::Indexes;
+    static const int32_t Value = PkdFSSeq<T>::Indexes;
 };
 
 
 
-template <Int BitsPerSymbol>
+template <int32_t BitsPerSymbol>
 struct PkdFSSeqTF: HasType<
     IfThenElse<
                 BitsPerSymbol == 1,
                 PkdFSSeqTypes<
                     1,
                     1024,
-                    PkdFQTreeT<Int, 2>,
+                    PkdFQTreeT<int32_t, 2>,
                     BitmapReindexFn,
                     BitmapSelectFn,
                     BitmapRankFn,
@@ -1113,7 +1113,7 @@ struct PkdFSSeqTF: HasType<
                     PkdFSSeqTypes<
                         BitsPerSymbol,
                         1024,
-                        PkdFQTreeT<Int, 1<<BitsPerSymbol>,
+                        PkdFQTreeT<int32_t, 1<<BitsPerSymbol>,
                         ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
@@ -1122,7 +1122,7 @@ struct PkdFSSeqTF: HasType<
                     PkdFSSeqTypes<
                         BitsPerSymbol,
                         1024,
-                        PkdVDTreeT<BigInt, 1<<BitsPerSymbol, UByteI7Codec>,
+                        PkdVDTreeT<int64_t, 1<<BitsPerSymbol, UByteI7Codec>,
                         VLEReindex8BlkFn,
                         Seq8SelectFn,
                         Seq8RankFn,

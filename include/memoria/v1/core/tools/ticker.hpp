@@ -28,9 +28,9 @@ class Ticker {
 	size_t threshold_value_;
 	size_t threshold_;
 	size_t ticks_ = 0;
-	BigInt start_time_;
-	BigInt last_time_;
-	BigInt threshold_time_;
+	int64_t start_time_;
+	int64_t last_time_;
+	int64_t threshold_time_;
 
 public:
 	Ticker(size_t threshold): threshold_value_(threshold), threshold_(threshold - 1)
@@ -55,14 +55,14 @@ public:
 		threshold_ += threshold_value_;
 	}
 
-	BigInt duration() const {
+	int64_t duration() const {
 		return threshold_time_ - last_time_;
 	}
 
 	size_t ticks() const {return ticks_;}
 	size_t size()  const {return threshold_value_;}
 
-	BigInt start_time() const {return start_time_;}
+	int64_t start_time() const {return start_time_;}
 
 	void tick() {
 		ticks_++;

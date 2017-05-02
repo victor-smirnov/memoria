@@ -57,7 +57,7 @@ int main()
 //
 //      BigInteger num("12345670000000000000000000000000000000000000000000000");
 //
-//      tree->_insert(0, 100000, [&](Int, Int c) -> BigInteger {
+//      tree->_insert(0, 100000, [&](int32_t, int32_t c) -> BigInteger {
 //          return (num++);
 //      });
 //

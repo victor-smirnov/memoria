@@ -25,16 +25,16 @@ namespace memoria {
 namespace v1 {
 
 template <typename Fn>
-static Int FindTotalElementsNumber(Int block_size, Fn&& fn)
+static int32_t FindTotalElementsNumber(int32_t block_size, Fn&& fn)
 {
-    Int first       = 1;
-    Int last        = block_size;
+    int32_t first       = 1;
+    int32_t last        = block_size;
 
     while (first < last - 1)
     {
-        Int middle = (first + last) / 2;
+        int32_t middle = (first + last) / 2;
 
-        Int size = fn.getBlockSize(middle);
+        int32_t size = fn.getBlockSize(middle);
         if (size < block_size)
         {
             first = middle;
@@ -48,7 +48,7 @@ static Int FindTotalElementsNumber(Int block_size, Fn&& fn)
         }
     }
 
-    Int max_size;
+    int32_t max_size;
 
     if (fn.getBlockSize(last) <= block_size)
     {
@@ -62,7 +62,7 @@ static Int FindTotalElementsNumber(Int block_size, Fn&& fn)
         max_size = first;
     }
 
-    Int max = fn.extend(max_size);
+    int32_t max = fn.extend(max_size);
 
     if (fn.getIndexSize(max) <= fn.getIndexSize(max_size))
     {
@@ -75,18 +75,18 @@ static Int FindTotalElementsNumber(Int block_size, Fn&& fn)
 
 
 template <typename Fn>
-static Int FindTotalElementsNumber2(Int block_size, Fn&& fn)
+static int32_t FindTotalElementsNumber2(int32_t block_size, Fn&& fn)
 {
-    Int first       = 0;
-    Int last        = fn.max_elements(block_size);
+    int32_t first       = 0;
+    int32_t last        = fn.max_elements(block_size);
 
-    Int max_size    = 0;
+    int32_t max_size    = 0;
 
     while (first < last - 1)
     {
-        Int middle = (first + last) / 2;
+        int32_t middle = (first + last) / 2;
 
-        Int size = fn.block_size(middle);
+        int32_t size = fn.block_size(middle);
 
         if (size < block_size)
         {
@@ -100,7 +100,7 @@ static Int FindTotalElementsNumber2(Int block_size, Fn&& fn)
 
             max_size = middle;
 
-            for (Int c = 0; c < 256; c++)
+            for (int32_t c = 0; c < 256; c++)
             {
                 if (fn.block_size(middle + c) <= block_size)
                 {
@@ -118,9 +118,9 @@ static Int FindTotalElementsNumber2(Int block_size, Fn&& fn)
 
     max_size = first;
 
-    for (Int c = 0; c < 1024; c++)
+    for (int32_t c = 0; c < 1024; c++)
     {
-        Int bs = fn.block_size(first + c);
+        int32_t bs = fn.block_size(first + c);
         if (bs <= block_size)
         {
             max_size = first + c;
@@ -137,18 +137,18 @@ static Int FindTotalElementsNumber2(Int block_size, Fn&& fn)
 
 
 template <typename Fn>
-static Int FindTotalElementsNumber3(Int block_size, Fn&& fn)
+static int32_t FindTotalElementsNumber3(int32_t block_size, Fn&& fn)
 {
-    Int first       = 0;
-    Int last        = fn.max_elements(block_size);
+    int32_t first       = 0;
+    int32_t last        = fn.max_elements(block_size);
 
-    Int max_size    = 0;
+    int32_t max_size    = 0;
 
     while (first < last - 1)
     {
-        Int middle = (first + last) / 2;
+        int32_t middle = (first + last) / 2;
 
-        Int size = fn.block_size(middle);
+        int32_t size = fn.block_size(middle);
 
         if (size < block_size)
         {
@@ -173,13 +173,13 @@ static Int FindTotalElementsNumber3(Int block_size, Fn&& fn)
 
 
 template <typename Fn>
-static Int FindTotalElementsNumber(Int first, Int last, Int block_size, Int max_hops, Fn&& fn)
+static int32_t FindTotalElementsNumber(int32_t first, int32_t last, int32_t block_size, int32_t max_hops, Fn&& fn)
 {
     while (first < last - 1 && max_hops > 0)
     {
-        Int middle = (first + last) / 2;
+        int32_t middle = (first + last) / 2;
 
-        Int size = fn(middle);
+        int32_t size = fn(middle);
 
         if (size < block_size)
         {
@@ -202,20 +202,20 @@ static Int FindTotalElementsNumber(Int first, Int last, Int block_size, Int max_
 
 
 
-template <typename Tree, Int Size>
+template <typename Tree, int32_t Size>
 class MultiValueSetter {
 
     typedef typename Tree::Value    Value;
     typedef typename Tree::Codec    Codec;
 
     Value values_[Size];
-    Int pos_[Size];
+    int32_t pos_[Size];
 
     Tree* tree_;
 
     typename Codec::BufferType* data_;
 
-    Int total_size_;
+    int32_t total_size_;
 
     Codec codec_;
 
@@ -226,7 +226,7 @@ public:
         for (auto& v: pos_)     v = 0;
     }
 
-    Int total_size() const {
+    int32_t total_size() const {
         return total_size_;
     }
 
@@ -235,22 +235,22 @@ public:
         for (auto& v: values_)  v = 0;
     }
 
-    Value& value(Int idx) {
+    Value& value(int32_t idx) {
         return values_[idx];
     }
 
-    const Value& value(Int idx) const {
+    const Value& value(int32_t idx) const {
         return values_[idx];
     }
 
     void putValues()
     {
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
-            Int len = insert(pos_[c], values_[c]);
+            int32_t len = insert(pos_[c], values_[c]);
             total_size_ += len;
 
-            for (Int d = c; d < Size; d++)
+            for (int32_t d = c; d < Size; d++)
             {
                 pos_[d] += len;
             }
@@ -260,9 +260,9 @@ public:
     }
 
 private:
-    Int insert(Int pos, Value value)
+    int32_t insert(int32_t pos, Value value)
     {
-        Int len = codec_.length(value);
+        int32_t len = codec_.length(value);
 
         codec_.move(data_, pos, pos + len, total_size_ - pos);
 
@@ -281,7 +281,7 @@ namespace {
         MultiValueFNHelper(Fn fn, Next next): fn_(fn), next_(next) {}
 
         template <typename V>
-        auto operator()(Int block, V&& value) {
+        auto operator()(int32_t block, V&& value) {
             return fn_(block, std::forward<V>(value));
         }
 
@@ -298,7 +298,7 @@ namespace {
         MultiValueFNHelper1(Fn fn): fn_(fn){}
 
         template <typename V>
-        auto operator()(Int block, V&& value) {
+        auto operator()(int32_t block, V&& value) {
             return fn_(block, std::forward<V>(value));
         }
 

@@ -57,7 +57,7 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
 
     using Value = typename Ctr::DataValue;
 
-    BigInt size = 1024*1024;
+    int64_t size = 1024*1024;
 
     using Base::allocator;
     using Base::snapshot;
@@ -76,7 +76,7 @@ public:
         MEMORIA_ADD_TEST_WITH_REPLAY(testCreate, replayCreate);
     }
 
-    virtual MemBuffer createRandomBuffer(Int size)
+    virtual MemBuffer createRandomBuffer(int32_t size)
     {
         auto buffer = MemBuffer(size);
 

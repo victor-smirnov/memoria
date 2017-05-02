@@ -58,23 +58,23 @@ public:
     }
 
 
-    void testCountFW(Int value)
+    void testCountFW(int32_t value)
     {
         Base::out()<<"TestCountFw: "<<TypeNameFactory<T>::name()<<" "<<value<<endl;
 
         T values[10];
 
-        Int bitsize = sizeof(values) * 8;
+        int32_t bitsize = sizeof(values) * 8;
 
-        for (Int length = 0; length < bitsize; length++)
+        for (int32_t length = 0; length < bitsize; length++)
         {
-            for (Int start = 0; start < bitsize - length; start++)
+            for (int32_t start = 0; start < bitsize - length; start++)
             {
                 MyType::makeBitmap(values, bitsize, start, length, value);
 
-                Int count;
+                int32_t count;
 
-                Int limit = start + length + 1;
+                int32_t limit = start + length + 1;
 
                 if (limit > bitsize)
                 {
@@ -106,30 +106,30 @@ public:
     }
 
 
-    void testCountBW(Int value)
+    void testCountBW(int32_t value)
     {
         Base::out()<<"TestCountBw: "<<TypeNameFactory<T>::name()<<" "<<value<<endl;
 
         T values[10];
 
-        Int bitsize = sizeof(values) * 8;
+        int32_t bitsize = sizeof(values) * 8;
 
-        for (Int length = 0; length < bitsize; length++)
+        for (int32_t length = 0; length < bitsize; length++)
         {
-            for (Int start = 0; start < bitsize - length; start++)
+            for (int32_t start = 0; start < bitsize - length; start++)
             {
                 MyType::makeBitmap(values, bitsize, start, length, value);
 
-                Int count;
+                int32_t count;
 
-                Int limit = start - 1;
+                int32_t limit = start - 1;
 
                 if (limit < 0)
                 {
                     limit = 0;
                 }
 
-                Int begin = start + length;
+                int32_t begin = start + length;
 
                 if (value)
                 {

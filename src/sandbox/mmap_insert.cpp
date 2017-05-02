@@ -151,7 +151,7 @@ String make_value(V&& num, TypeTag<String>)
     return ss.str();
 }
 
-template <typename V, Int N>
+template <typename V, int32_t N>
 FixedArray<N> make_value(V&& num, TypeTag<FixedArray<N>>)
 {
     FixedArray<N> array;
@@ -185,8 +185,8 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using KeyType   = BigInt;
-    using ValueType = BigInt;
+    using KeyType   = int64_t;
+    using ValueType = int64_t;
 
     using CtrName   = Map<KeyType, Vector<ValueType>>;
 
@@ -200,7 +200,7 @@ int main()
 
 //            map->setNewPageSize(32768);
 
-            Int keys = 10000000;
+            int32_t keys = 10000000;
 
             size_t value_max = 13;
 
@@ -213,19 +213,19 @@ int main()
 
             Ticker ticker(100000);
 
-            BigInt t0 = getTimeInMillis();
-            BigInt tl = t0;
+            int64_t t0 = getTimeInMillis();
+            int64_t tl = t0;
 
-            for (Int c = 0; c < keys; c++)
+            for (int32_t c = 0; c < keys; c++)
             {
-            	BigInt key 				= getBIRandomG();
+            	int64_t key 				= getBIRandomG();
             	size_t value_size	= getRandomG(value_max - 1) + 1;
 
             	map->find_or_create(key, values.begin(), values.begin() + value_size);
 
             	if (ticker.is_threshold())
             	{
-            		BigInt tt = getTimeInMillis();
+            		int64_t tt = getTimeInMillis();
             		cout << "Inserted: " << (ticker.ticks() + 1)<< " in " << (tt - tl) << endl;
             		tl = tt;
 
@@ -235,7 +235,7 @@ int main()
             	ticker.tick();
             }
 
-            BigInt t1 = getTimeInMillis();
+            int64_t t1 = getTimeInMillis();
 
             cout << "Inserted " << keys << " in " << (t1 - t0) << endl;
 

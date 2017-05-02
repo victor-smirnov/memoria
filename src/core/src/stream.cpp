@@ -39,7 +39,7 @@ public:
 	virtual ~FileOutputStreamHandlerImpl() noexcept;
 
 
-    virtual Int bufferSize() {return 0;}
+    virtual int32_t bufferSize() {return 0;}
 
 	virtual void flush();
 
@@ -47,40 +47,40 @@ public:
 
 	virtual void write(const void* mem, size_t offset, size_t length);
 
-    virtual void write(Byte value) {
+    virtual void write(int8_t value) {
         writeT(value);
     }
 
-    virtual void write(UByte value) {
+    virtual void write(uint8_t value) {
         writeT(value);
     }
 
-    virtual void write(Short value) {
+    virtual void write(int16_t value) {
         writeT(value);
     }
 
-    virtual void write(UShort value) {
+    virtual void write(uint16_t value) {
         writeT(value);
     }
 
-    virtual void write(Int value) {
+    virtual void write(int32_t value) {
         writeT(value);
     }
 
-    virtual void write(UInt value) {
+    virtual void write(uint32_t value) {
         writeT(value);
     }
 
-    virtual void write(BigInt value) {
+    virtual void write(int64_t value) {
         writeT(value);
     }
 
-    virtual void write(UBigInt value) {
+    virtual void write(uint64_t value) {
         writeT(value);
     }
 
     virtual void write(bool value) {
-        writeT((Byte)value);
+        writeT((int8_t)value);
     }
 
     virtual void write(float value) {
@@ -105,54 +105,54 @@ class FileInputStreamHandlerImpl: public FileInputStreamHandler {
     std::filebuf file_;
     bool closed_;
 
-    BigInt size_;
+    int64_t size_;
 
 public:
 	FileInputStreamHandlerImpl(const char* file_name);
 
 	virtual ~FileInputStreamHandlerImpl() noexcept;
 
-    virtual Int available() {return 0;}
-    virtual Int bufferSize() {return 0;}
+    virtual int32_t available() {return 0;}
+    virtual int32_t bufferSize() {return 0;}
 
     virtual void close();
 
 	virtual size_t read(void* mem, size_t offset, size_t length);
 
-    virtual Byte readByte() {
-        return readT<Byte>();
+    virtual int8_t readByte() {
+        return readT<int8_t>();
     }
 
-    virtual UByte readUByte() {
-        return readT<UByte>();
+    virtual uint8_t readUByte() {
+        return readT<uint8_t>();
     }
 
-    virtual Short readShort() {
-        return readT<Short>();
+    virtual int16_t readShort() {
+        return readT<int16_t>();
     }
 
-    virtual UShort readUShort() {
-        return readT<UShort>();
+    virtual uint16_t readUShort() {
+        return readT<uint16_t>();
     }
 
-    virtual Int readInt() {
-        return readT<Int>();
+    virtual int32_t readInt() {
+        return readT<int32_t>();
     }
 
-    virtual UInt readUInt() {
-        return readT<UInt>();
+    virtual uint32_t readUInt() {
+        return readT<uint32_t>();
     }
 
-    virtual BigInt readBigInt() {
-        return readT<BigInt>();
+    virtual int64_t readBigInt() {
+        return readT<int64_t>();
     }
 
-    virtual UBigInt readUBigInt() {
-        return readT<UBigInt>();
+    virtual uint64_t readUBigInt() {
+        return readT<uint64_t>();
     }
 
     virtual bool readBool() {
-        return readT<Byte>();
+        return readT<int8_t>();
     }
 
     virtual float readFloat() {

@@ -36,8 +36,8 @@ class LabeledTreeIterTest: public LabeledTreeTestBase {
 
     using MyType = LabeledTreeIterTest;
 
-    Int iterations_ = 1000;
-    Int max_degree_ = 4;
+    int32_t iterations_ = 1000;
+    int32_t max_degree_ = 4;
 
 public:
 
@@ -61,7 +61,7 @@ public:
 
         fillRandom(*ctr.get(), size_, max_degree_);
 
-        Int nodes = ctr->nodes();
+        int32_t nodes = ctr->nodes();
 
         auto skip_iter = ctr->seek(0);
 
@@ -86,16 +86,16 @@ public:
         out()<<std::endl;
 
         out()<<"Random forward select/skip"<<std::endl;
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             out()<<"FW: "<<c<<std::endl;
 
-            Int node = getRandom(nodes / 2) + 1;
+            int32_t node = getRandom(nodes / 2) + 1;
             auto iter = ctr->select1(node);
 
             assertIterator(MA_SRC, iter);
 
-            Int skip = getRandom(nodes / 2 - 1);
+            int32_t skip = getRandom(nodes / 2 - 1);
 
             auto iter_select0   = iter->clone();
             auto iter_select1   = iter->clone();
@@ -114,16 +114,16 @@ public:
         out()<<std::endl;
 
         out()<<"Random backward select/skip"<<std::endl;
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             out()<<"BW: "<<c<<std::endl;
 
-            Int node = getRandom(nodes / 2) + nodes / 2 - 1;
+            int32_t node = getRandom(nodes / 2) + nodes / 2 - 1;
             auto iter = ctr->select1(node);
 
             assertIterator(MA_SRC, iter);
 
-            Int skip = getRandom(nodes / 2);
+            int32_t skip = getRandom(nodes / 2);
 
             auto iter_select0   = iter->clone();
             auto iter_select1   = iter->clone();
@@ -143,16 +143,16 @@ public:
         out()<<std::endl;
 
         out()<<"Random forward/backward rank"<<std::endl;
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             out()<<"Rank: "<<c<<std::endl;
 
-            Int node = getRandom(ctr->size() / 2);
+            int32_t node = getRandom(ctr->size() / 2);
             auto iter = ctr->seek(node);
 
             assertIterator(MA_SRC, iter);
 
-            Int skip = getRandom(nodes / 2 - 1);
+            int32_t skip = getRandom(nodes / 2 - 1);
 
             auto iter_rankfw0   = iter->clone();
             auto iter_rankfw1   = iter->clone();

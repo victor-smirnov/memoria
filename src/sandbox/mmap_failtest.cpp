@@ -42,17 +42,17 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using Key = BigInt;
-    using Value = UByte;
+    using Key = int64_t;
+    using Value = uint8_t;
     using CtrT = Map<Key, Vector<Value>>;
 
     DInit<CtrT>();
 
     DInit<memoria::v1::Set<Bytes>>();
-    DInit<memoria::v1::Map<BigInt, Bytes>>();
+    DInit<memoria::v1::Map<int64_t, Bytes>>();
     DInit<memoria::v1::Set<FixedArray<20>>>();
 //    DInit<memoria::v1::Map<U8String, U8String>>();
-    DInit<memoria::v1::Map<BigInt, Vector<UByte>>>();
+    DInit<memoria::v1::Map<int64_t, Vector<uint8_t>>>();
 
 
 

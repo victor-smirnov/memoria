@@ -42,10 +42,10 @@ public:
 
 
     typedef WTLabeledTree<
-                FLabel<UByte>,
+                FLabel<uint8_t>,
                 VLabel<
-                    BigInt,
-                    Granularity::Byte,
+                    int64_t,
+                    Granularity::int8_t,
                     Indexed::Yes
                 >
     >                                                                           TreeName;
@@ -91,7 +91,7 @@ public:
         return tree_;
     }
 
-    void initCtr(Int command)
+    void initCtr(int32_t command)
     {
         auto& self = this->self();
 
@@ -112,9 +112,9 @@ public:
         throw Exception(MA_SRC, "Allocator::hasRoot(UUID) method must be properly implements for this container");
     }
 
-    static Int initMetadata()
+    static int32_t initMetadata()
     {
-        Int hash = Tree::initMetadata() + Seq::initMetadata();
+        int32_t hash = Tree::initMetadata() + Seq::initMetadata();
 
         if (Base::getMetadata() == NULL)
         {
@@ -198,7 +198,7 @@ public:
 
 private:
 
-    static ID get_ctr_root(Allocator& allocator, const ID& root_id, const UUID& ctr_name, BigInt name)
+    static ID get_ctr_root(Allocator& allocator, const ID& root_id, const UUID& ctr_name, int64_t name)
     {
         NodeBaseG root  = allocator.getPage(root_id, ctr_name);
         Metadata  meta  = Tree::getCtrRootMetadata(root);

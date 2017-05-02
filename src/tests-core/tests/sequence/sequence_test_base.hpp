@@ -35,7 +35,7 @@ namespace v1 {
 using namespace std;
 
 
-template <Int BitsPerSymbol, bool Dense = true>
+template <int32_t BitsPerSymbol, bool Dense = true>
 class SequenceTestBase: public BTTestBase<Sequence<BitsPerSymbol, Dense>, PersistentInMemAllocator<>, DefaultProfile<>> {
 
     using MyType = SequenceTestBase<BitsPerSymbol, Dense>;
@@ -62,7 +62,7 @@ protected:
 
     using Seq = PkdFSSeq<PSeqTypes>;
 
-    static const Int Symbols                                                    = 1<<BitsPerSymbol;
+    static const int32_t Symbols                                                    = 1<<BitsPerSymbol;
 
     using Base::commit;
     using Base::drop;
@@ -90,9 +90,9 @@ public:
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
     }
 
-    PackedSeq1Ptr createEmptyPackedSeq(Int size)
+    PackedSeq1Ptr createEmptyPackedSeq(int32_t size)
     {
-        Int block_size;
+        int32_t block_size;
 
         if (BitsPerSymbol == 1) {
             block_size = PackedSeq1::estimate_block_size(size, 1, 1);
@@ -107,24 +107,24 @@ public:
         return MakeSharedPackedStructByBlock<PackedSeq1>(block_size);
     }
 
-    PackedSeq1Ptr fillRandomSeq(Ctr& ctr, Int size)
+    PackedSeq1Ptr fillRandomSeq(Ctr& ctr, int32_t size)
     {
         PackedSeq1Ptr seq = createEmptyPackedSeq(size);
 
         using SymbolsBuffer = SmallSymbolBuffer<BitsPerSymbol>;
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
-        seq->fill_with_buf(0, size, [this](Int len) {
+        seq->fill_with_buf(0, size, [this](int32_t len) {
 
             SymbolsBuffer buf;
-            Int limit = len > buf.capacity() ? buf.capacity() : len;
+            int32_t limit = len > buf.capacity() ? buf.capacity() : len;
 
             buf.resize(limit);
 
             auto symbols = buf.symbols();
 
-            for (Int c = 0; c < SymbolsBuffer::BufSize; c++)
+            for (int32_t c = 0; c < SymbolsBuffer::BufSize; c++)
             {
                 symbols[c] = getBIRandom();
             }
@@ -132,7 +132,7 @@ public:
             return buf;
         });
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
         auto iter = ctr.begin();
 
@@ -141,7 +141,7 @@ public:
 
         iter->bulk_insert(provider);
 
-        BigInt t2 = getTimeInMillis();
+        int64_t t2 = getTimeInMillis();
 
         this->out() << "Sequence creation time: " << FormatTime(t1 - t0) << " " << FormatTime(t2 - t1) << std::endl;
 
@@ -150,11 +150,11 @@ public:
         return seq;
     }
 
-    auto rank(const PackedSeq1* seq, Int start, Int end, Int symbol)
+    auto rank(const PackedSeq1* seq, int32_t start, int32_t end, int32_t symbol)
     {
-        BigInt rank = 0;
+        int64_t rank = 0;
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
             rank += seq->symbol(c) == symbol;
         }

@@ -39,8 +39,8 @@ namespace v1 {
 using v1::tools::LblTreeNode;
 
 using LTreeCtrName = LabeledTree<
-        FLabel<UShort>,
-        VLabel<BigInt, Granularity::Bit, Indexed::Yes>
+        FLabel<uint16_t>,
+        VLabel<int64_t, Granularity::Bit, Indexed::Yes>
     >;
 
 class LabeledTreeTestBase: public BTTestBase<LTreeCtrName, PersistentInMemAllocator<>, DefaultProfile<>> {
@@ -69,11 +69,11 @@ protected:
     using Base::getBIRandom;
 
 
-    typedef LblTreeNode<EmptyType, UShort, BigInt>                              TreeNode;
+    typedef LblTreeNode<EmptyType, uint16_t, int64_t>                              TreeNode;
 
     typedef typename Ctr::Types::LabelsTuple                                    LabelsTuple;
 
-    static const Int LabelNumber                                                = 2;
+    static const int32_t LabelNumber                                                = 2;
 
 public:
 
@@ -84,17 +84,17 @@ public:
 
     virtual ~LabeledTreeTestBase() throw () {}
 
-    TreeNode createRandomLabeledTree(Int size, Int node_degree = 10)
+    TreeNode createRandomLabeledTree(int32_t size, int32_t node_degree = 10)
     {
         TreeNode root;
 
-        Int tree_size = 1;
+        int32_t tree_size = 1;
         createRandomLabeledTree(root, tree_size, size, node_degree);
 
         return root;
     }
 
-    TreeNode fillRandom(Ctr& tree, Int size, Int max_degree = 10)
+    TreeNode fillRandom(Ctr& tree, int32_t size, int32_t max_degree = 10)
     {
         TreeNode tree_node = createRandomLabeledTree(size, max_degree);
 
@@ -112,7 +112,7 @@ public:
     {
         auto first_child = tree.newNodeAt(node, tree_node.labels());
 
-        for (Int c = 0; c < tree_node.children(); c++)
+        for (int32_t c = 0; c < tree_node.children(); c++)
         {
             insertNode(tree, first_child, tree_node.child(c));
             first_child++;
@@ -122,7 +122,7 @@ public:
 
     void checkTree(Ctr& tree, TreeNode& root_node)
     {
-        Int size = 1;
+        int32_t size = 1;
         auto root = tree.seek(0)->node();
 
         checkTree(tree, root, root_node, size, 0);
@@ -136,7 +136,7 @@ public:
 
     void checkTreeStructure(Ctr& tree, const LoudsNode& node, LoudsNode parent)
     {
-        BigInt count = 0;
+        int64_t count = 0;
         checkTreeStructure(tree, node, parent, count);
     }
 
@@ -144,7 +144,7 @@ public:
     {
         if (tree.size() > 2)
         {
-            BigInt count = 0;
+            int64_t count = 0;
             checkTreeStructure(tree, LoudsNode(0, 1, 1), LoudsNode(0, 1, 1), count);
 
             AssertEQ(MA_SRC, count, tree.nodes());
@@ -166,7 +166,7 @@ public:
     {
         fn(node);
 
-        for (Int c = 0; c < node.children(); c++)
+        for (int32_t c = 0; c < node.children(); c++)
         {
             traverseTree(node.child(c), fn);
         }
@@ -178,9 +178,9 @@ public:
         auto iter = tree.seek(0);
         auto size = tree.sizes()[0];
 
-        for (BigInt c = 0; c < size; c++)
+        for (int64_t c = 0; c < size; c++)
         {
-            BigInt r0 = 0, r1 = 0;
+            int64_t r0 = 0, r1 = 0;
 
             auto rank_iter = iter->clone();
 
@@ -224,16 +224,16 @@ private:
 
 
 
-    void createRandomLabeledTree(TreeNode& node, Int& size, Int max_size, Int max_degree, Int level = 0)
+    void createRandomLabeledTree(TreeNode& node, int32_t& size, int32_t max_size, int32_t max_degree, int32_t level = 0)
     {
-        Int degree = level > 0 ? getRandom(max_degree) : max_degree;
+        int32_t degree = level > 0 ? getRandom(max_degree) : max_degree;
 
         std::get<0>(node.labels()) = getRandom(256);
         std::get<1>(node.labels()) = getRandom(256);
 
         if (level < 32)
         {
-            for (Int c = 0; c < degree && size < max_size; c++)
+            for (int32_t c = 0; c < degree && size < max_size; c++)
             {
                 TreeNode& child = node.appendChild();
                 size++;
@@ -243,13 +243,13 @@ private:
     }
 
 
-    void checkTreeStructure(Ctr& tree, const LoudsNode& node, const LoudsNode& parent, BigInt& count)
+    void checkTreeStructure(Ctr& tree, const LoudsNode& node, const LoudsNode& parent, int64_t& count)
     {
         count++;
 
         if (node.node() > 0)
         {
-            BigInt parentIdx = tree.parent(node)->pos();
+            int64_t parentIdx = tree.parent(node)->pos();
             AssertEQ(MA_SRC, parentIdx, parent.node());
         }
 
@@ -285,13 +285,13 @@ private:
         AssertEQ(MA_SRC, labels, tree_node.labels());
     }
 
-    void checkTree(Ctr& tree, const LoudsNode& node, const TreeNode& tree_node, Int& size, Int level)
+    void checkTree(Ctr& tree, const LoudsNode& node, const TreeNode& tree_node, int32_t& size, int32_t level)
     {
         assertTreeNode(tree, node, tree_node);
 
         auto children = tree.children(node);
 
-        Int child_idx = 0;
+        int32_t child_idx = 0;
 
         while (children->next_sibling())
         {
@@ -310,20 +310,20 @@ private:
             const LoudsNode& parent,
             const TreeNode& tree_node,
             const TreeNode& tree_parent,
-            Int& size,
-            Int level
+            int32_t& size,
+            int32_t level
 
     ){
         assertTreeNode(tree, node, tree_node);
 
         size++;
 
-        BigInt parentIdx = tree.parent(node)->pos();
+        int64_t parentIdx = tree.parent(node)->pos();
         AssertEQ(MA_SRC, parentIdx, parent.node());
 
         auto children = tree.children(node);
 
-        Int child_idx = 0;
+        int32_t child_idx = 0;
         while (children->next_sibling())
         {
             AssertLT(MA_SRC, child_idx, tree_node.children());

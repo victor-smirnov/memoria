@@ -56,10 +56,10 @@ namespace v1 {
 namespace bt {
 
 
-template <PkdSearchType SearchType, typename KeyType_, Int Indexes_>
+template <PkdSearchType SearchType, typename KeyType_, int32_t Indexes_>
 struct IdxSearchType {
     static constexpr PkdSearchType  Value       = SearchType;
-    static constexpr Int            Indexes     = Indexes_;
+    static constexpr int32_t            Indexes     = Indexes_;
 
     using KeyType = KeyType_;
 };
@@ -67,7 +67,7 @@ struct IdxSearchType {
 template <typename T> struct FSEBranchStructTF;
 
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct FSEBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
     using Type = PkdFQTreeT<KeyType, Indexes>;
 };
@@ -78,7 +78,7 @@ struct FSEBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
 };
 
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct FSEBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
     using Type = PkdFMTreeT<KeyType, Indexes>;
 };
@@ -91,7 +91,7 @@ struct FSEBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
 
 template <typename T> struct VLQBranchStructTF;
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct VLQBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
     using Type = PkdVQTreeT<KeyType, Indexes, ValueCodec>;
 };
@@ -106,7 +106,7 @@ struct VLQBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
     using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
 };
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct VLQBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(
@@ -137,12 +137,12 @@ struct VLQBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 template <typename T> struct VLDBranchStructTF;
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct VLDBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
     using Type = PkdVDTreeT<KeyType, Indexes, UByteI7Codec>;
 };
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct VLDBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
     using Type = PkdFMTreeT<KeyType, Indexes>;
 };
@@ -217,14 +217,14 @@ namespace detail {
 
     template <typename List> struct SumIndexes;
 
-    template <PkdSearchType SearchType, typename KeyType, Int Indexes, typename... Tail>
+    template <PkdSearchType SearchType, typename KeyType, int32_t Indexes, typename... Tail>
     struct SumIndexes<TL<IdxSearchType<SearchType, KeyType, Indexes>, Tail...>> {
-        static constexpr Int Value = Indexes + SumIndexes<TL<Tail...>>::Value;
+        static constexpr int32_t Value = Indexes + SumIndexes<TL<Tail...>>::Value;
     };
 
     template <>
     struct SumIndexes<TL<>> {
-        static constexpr Int Value = 0;
+        static constexpr int32_t Value = 0;
     };
 
 
@@ -243,7 +243,7 @@ namespace detail {
     template <typename List> struct GetSUPSearchKeyTypeT;
     template <typename List> using GetSUPSearchKeyType = typename GetSUPSearchKeyTypeT<List>::Type;
 
-    template <PkdSearchType SearchType, typename KeyType, Int Indexes, typename... Tail>
+    template <PkdSearchType SearchType, typename KeyType, int32_t Indexes, typename... Tail>
     struct GetSUPSearchKeyTypeT<TL<IdxSearchType<SearchType, KeyType, Indexes>, Tail...>>: HasType<
         SelectMaxType<
                 KeyType,
@@ -251,20 +251,20 @@ namespace detail {
         >
     > {};
 
-    template <PkdSearchType SearchType, typename KeyType, Int Indexes>
+    template <PkdSearchType SearchType, typename KeyType, int32_t Indexes>
     struct GetSUPSearchKeyTypeT<TL<IdxSearchType<SearchType, KeyType, Indexes>>>: HasType <KeyType> {};
 
 
 
 
 
-    template <typename List, typename SumType, Int Idx> struct BuildKeyMetadataListT;
+    template <typename List, typename SumType, int32_t Idx> struct BuildKeyMetadataListT;
 
-    template <typename List, typename SumType, Int Idx = 0>
+    template <typename List, typename SumType, int32_t Idx = 0>
     using BuildKeyMetadataList = typename BuildKeyMetadataListT<List, SumType, Idx>::Type;
 
 
-    template <typename PkdStruct, typename... Tail, typename SumType, Int Idx>
+    template <typename PkdStruct, typename... Tail, typename SumType, int32_t Idx>
     struct BuildKeyMetadataListT<TL<PkdStruct, Tail...>, SumType, Idx>
     {
 
@@ -288,7 +288,7 @@ namespace detail {
         >;
     };
 
-    template <typename PkdStruct, typename... Tail1, typename... Tail2, typename SumType, Int Idx>
+    template <typename PkdStruct, typename... Tail1, typename... Tail2, typename SumType, int32_t Idx>
     struct BuildKeyMetadataListT<TL<TL<PkdStruct, Tail1...>, Tail2...>, SumType, Idx>
     {
         using List = TL<PkdStruct, Tail1...>;
@@ -309,7 +309,7 @@ namespace detail {
 
         static constexpr PkdSearchType GroupSearchType = PkdSearchTypeProvider<PkdStruct>::Value;
 
-        static constexpr Int TotalIndexes = SumIndexes<LeafStructGroupKeyMetadataList>::Value;
+        static constexpr int32_t TotalIndexes = SumIndexes<LeafStructGroupKeyMetadataList>::Value;
 
         using GroupKeyType = IfThenElse<
                 GroupSearchType == PkdSearchType::SUM,
@@ -330,7 +330,7 @@ namespace detail {
         >;
     };
 
-    template <typename SumType, Int Idx>
+    template <typename SumType, int32_t Idx>
     struct BuildKeyMetadataListT<TL<>, SumType, Idx> {
         using Type = TL<>;
     };

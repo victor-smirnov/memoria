@@ -62,12 +62,12 @@ protected:
 
 
     class InsertBatchResult {
-        Int idx_;
+        int32_t idx_;
         CtrSizeT subtree_size_;
     public:
-        InsertBatchResult(Int idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
+        InsertBatchResult(int32_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
-        Int idx() const {return idx_;}
+        int32_t idx() const {return idx_;}
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
@@ -88,22 +88,22 @@ protected:
 
     struct InsertChildrenFn {
         template <typename NodeTypes>
-        void treeNode(BranchNode<NodeTypes>* node, Int from, Int to, const BranchNodeEntryT* entries)
+        void treeNode(BranchNode<NodeTypes>* node, int32_t from, int32_t to, const BranchNodeEntryT* entries)
         {
             int old_size = node->size();
 
             node->processAll(*this, from, to, entries);
 
-            Int idx = 0;
+            int32_t idx = 0;
             node->insertValues(old_size, from, to - from, [entries, &idx](){
                 return entries[idx++].child_id();
             });
         }
 
-        template <Int ListIdx, typename StreamType>
-        void stream(StreamType* obj, Int from, Int to, const BranchNodeEntryT* entries)
+        template <int32_t ListIdx, typename StreamType>
+        void stream(StreamType* obj, int32_t from, int32_t to, const BranchNodeEntryT* entries)
         {
-            obj->insert(from, to - from, [entries](Int idx) -> const auto& {
+            obj->insert(from, to - from, [entries](int32_t idx) -> const auto& {
                 return std::get<ListIdx>(entries[idx].accum());
             });
         }
@@ -112,21 +112,21 @@ protected:
 
     MEMORIA_V1_DECLARE_NODE_FN(ReindexBranchNodeFn, reindex);
 
-    InsertBatchResult insertSubtree(NodeBaseG& node, Int idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
+    InsertBatchResult insertSubtree(NodeBaseG& node, int32_t idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
     {
         auto& self = this->self();
 
-        Int capacity            = self.getBranchNodeCapacity(node, -1ull);
+        int32_t capacity            = self.getBranchNodeCapacity(node, -1ull);
         CtrSizeT provider_size0 = provider.size();
-        const Int batch_size    = 32;
+        const int32_t batch_size    = 32;
 
-        Int max = idx;
+        int32_t max = idx;
 
-        for (Int c = 0; c < capacity; c+= batch_size)
+        for (int32_t c = 0; c < capacity; c+= batch_size)
         {
             BranchNodeEntryT subtrees[batch_size];
 
-            Int i, batch_max = (c + batch_size) < capacity ? batch_size : (capacity - c);
+            int32_t i, batch_max = (c + batch_size) < capacity ? batch_size : (capacity - c);
             for (i = 0; i < batch_max && provider.size() > 0; i++)
             {
                 NodeBaseG child = child_fn();
@@ -158,7 +158,7 @@ protected:
     }
 
 
-    NodeBaseG BuildSubtree(ILeafProvider& provider, Int level)
+    NodeBaseG BuildSubtree(ILeafProvider& provider, int32_t level)
     {
         auto& self = this->self();
 
@@ -235,16 +235,16 @@ protected:
 
 
     class InsertionState {
-        Int inserted_ = 0;
-        Int total_;
+        int32_t inserted_ = 0;
+        int32_t total_;
     public:
-        InsertionState(Int total): total_(total) {}
+        InsertionState(int32_t total): total_(total) {}
 
-        Int& total() {
+        int32_t& total() {
             return total_;
         }
 
-        Int& inserted() {
+        int32_t& inserted() {
             return inserted_;
         }
 
@@ -254,7 +254,7 @@ protected:
     };
 
 
-    InsertBatchResult insertBatchToNode(NodeBaseG& node, Int idx, ILeafProvider& provider, Int level = 1, bool update_hierarchy = true)
+    InsertBatchResult insertBatchToNode(NodeBaseG& node, int32_t idx, ILeafProvider& provider, int32_t level = 1, bool update_hierarchy = true)
     {
         auto& self = this->self();
         return self.insertSubtree(node, idx, provider, [&provider, &node, this]() -> NodeBaseG {
@@ -264,11 +264,11 @@ protected:
         update_hierarchy);
     }
 
-    void insert_subtree(NodeBaseG& left, NodeBaseG& right, ILeafProvider& provider, InsertionState& state, Int level = 1)
+    void insert_subtree(NodeBaseG& left, NodeBaseG& right, ILeafProvider& provider, InsertionState& state, int32_t level = 1)
     {
         auto& self = this->self();
 
-        Int left_size0 = self.getBranchNodeSize(left);
+        int32_t left_size0 = self.getBranchNodeSize(left);
 
         auto left_result = insertBatchToNode(left, left_size0, provider, level);
 
@@ -292,11 +292,11 @@ protected:
         }
     }
 
-    NodeBaseG insert_subtree_at_end(NodeBaseG& left, ILeafProvider& provider, InsertionState& state, Int level = 1)
+    NodeBaseG insert_subtree_at_end(NodeBaseG& left, ILeafProvider& provider, InsertionState& state, int32_t level = 1)
     {
         auto& self = this->self();
 
-        Int left_size0 = self.getBranchNodeSize(left);
+        int32_t left_size0 = self.getBranchNodeSize(left);
 
         auto left_result = insertBatchToNode(left, left_size0, provider, level);
 
@@ -313,7 +313,7 @@ protected:
 
             auto right = insert_subtree_at_end(left_parent, provider, state, level + 1);
 
-            Int right_size = self.getBranchNodeSize(right);
+            int32_t right_size = self.getBranchNodeSize(right);
 
             return self.getChild(right, right_size - 1);
         }
@@ -323,7 +323,7 @@ protected:
     }
 
 
-    Int insert_subtree(NodeBaseG& node, Int pos, ILeafProvider& provider)
+    int32_t insert_subtree(NodeBaseG& node, int32_t pos, ILeafProvider& provider)
     {
         auto& self = this->self();
 

@@ -47,7 +47,7 @@ public:
     void testRawValues()
     {
         ValueCodec<BigInteger> codec;
-        UByte buffer[1000];
+        uint8_t buffer[1000];
 
         for (int c = -1000000; c < 1000000; c++)
         {
@@ -67,7 +67,7 @@ public:
     {
         size_t block_size = 1024*1024ull;
 
-        unique_ptr<UByte[]> buf = make_unique<UByte[]>(block_size);
+        unique_ptr<uint8_t[]> buf = make_unique<uint8_t[]>(block_size);
 
         ValueCodec<BigInteger> codec;
 
@@ -106,7 +106,7 @@ public:
     {
         size_t block_size = 1024*1024ull;
 
-        unique_ptr<UByte[]> buf = make_unique<UByte[]>(block_size);
+        unique_ptr<uint8_t[]> buf = make_unique<uint8_t[]>(block_size);
 
         ValueCodec<BigInteger> codec;
 

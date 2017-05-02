@@ -44,7 +44,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::table::ItrMiscName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    template <Int Stream>
+    template <int32_t Stream>
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
 

@@ -27,8 +27,8 @@ public:
 
     VectorTestSuite(): TestSuite("Vector")
     {
-        registerTask(new VectorTest<Vector<Int>>("Int.FX"));
-        //registerTask(new VectorTest<Vector<VLen<Granularity::Byte>>>("Int.VL.Byte"));
+        registerTask(new VectorTest<Vector<int32_t>>("int32_t.FX"));
+        //registerTask(new VectorTest<Vector<VLen<Granularity::int8_t>>>("int32_t.VL.int8_t"));
     }
 };
 

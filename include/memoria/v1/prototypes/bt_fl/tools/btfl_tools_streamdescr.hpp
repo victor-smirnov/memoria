@@ -55,7 +55,7 @@ namespace {
 
 
 
-    template <typename StreamDescriptorsList, typename CtrSizeT = BigInt>
+    template <typename StreamDescriptorsList, typename CtrSizeT = int64_t>
     struct InferSizeStruct {
         using LeafStreamsStructList = typename GetLeafList<StreamDescriptorsList>::Type;
         static const PackedSizeType LeafSizeType = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;

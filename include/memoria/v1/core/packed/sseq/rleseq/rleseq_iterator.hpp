@@ -94,7 +94,7 @@ public:
 
     size_t idx() const {return run_prefix_ + local_idx();}
 
-    Int symbol() const {return run_.symbol();}
+    int32_t symbol() const {return run_.symbol();}
 
     bool is_found() const {
         return has_data();
@@ -108,7 +108,7 @@ public:
 
             local_idx_ = 0;
 
-            UBigInt value = 0;
+            uint64_t value = 0;
             auto len = codec_.decode(symbols_, value, data_pos_);
 
             run_ = Seq::decode_run(value);
@@ -120,11 +120,11 @@ public:
         }
     }
 
-    Int next_symbol_in_run()
+    int32_t next_symbol_in_run()
     {
         if (local_idx_ < run_.length() - 1)
         {
-            Int sym = run_.symbol();
+            int32_t sym = run_.symbol();
             local_idx_++;
 
             return sym;

@@ -46,13 +46,13 @@ public:
 
     typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
 
     struct CheckContentFn {
 
         const MyType&   ctr_;
-        Int             rank1_;
+        int32_t             rank1_;
         bool            errors_     = false;
         bool            has_seq_;
         ID              id_;
@@ -64,7 +64,7 @@ public:
             root_(root)
         {}
 
-        template <Int Idx, typename SeqTypes>
+        template <int32_t Idx, typename SeqTypes>
         void stream(const PkdFSSeq<SeqTypes>* seq)
         {
             if (seq != nullptr)
@@ -79,7 +79,7 @@ public:
             has_seq_ = seq != nullptr;
         }
 
-        template <Int Idx, typename StreamType>
+        template <int32_t Idx, typename StreamType>
         void checkLabelsSize(const StreamType* labels)
         {
             if (has_seq_)
@@ -102,19 +102,19 @@ public:
         }
 
 
-        template <Int Idx, typename StreamTypes>
+        template <int32_t Idx, typename StreamTypes>
         void stream(const PackedFSEArray<StreamTypes>* labels)
         {
             checkLabelsSize<Idx>(labels);
         }
 
-        template <Int Idx, typename StreamTypes>
+        template <int32_t Idx, typename StreamTypes>
         void stream(const PkdVQTree<StreamTypes>* labels)
         {
             checkLabelsSize<Idx>(labels);
         }
 
-        template <Int Idx, typename Stream>
+        template <int32_t Idx, typename Stream>
         void stream(const Stream*){}
 
         template <typename Node>

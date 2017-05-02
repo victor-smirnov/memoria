@@ -105,15 +105,15 @@ public:
 
 //  LoudsTree getLoudsSubtree(const LoudsNode& node)
 //  {
-//      BigInt tree_size = 0;
+//      int64_t tree_size = 0;
 //
-//      this->traverseSubtree(node, [&tree_size](const Iterator& left, BigInt length, Int level) {
+//      this->traverseSubtree(node, [&tree_size](const Iterator& left, int64_t length, int32_t level) {
 //          tree_size += length;
 //      });
 //
 //      LoudsTree tree(tree_size);
 //
-//      this->traverseSubtree(node, [&tree, this](const Iterator& left, BigInt length, Int level) {
+//      this->traverseSubtree(node, [&tree, this](const Iterator& left, int64_t length, int32_t level) {
 //          if (length >= 0)
 //          {
 //              if (length > 0)
@@ -135,7 +135,7 @@ public:
     {
         CtrSizeT count = 0;
 
-        this->traverseSubtree(node, [&count](const Iterator& left, CtrSizeT length, Int level) {
+        this->traverseSubtree(node, [&count](const Iterator& left, CtrSizeT length, int32_t level) {
             if (level == 0)
             {
                 count += left.rank1(length - 1);
@@ -150,7 +150,7 @@ public:
 
 
 
-    void traverseSubtree(const LoudsNode& node, function<void (const Iterator&, CtrSizeT, Int)> fn)
+    void traverseSubtree(const LoudsNode& node, function<void (const Iterator&, CtrSizeT, int32_t)> fn)
     {
         Iterator left = self().seek(node.node());
         Iterator right = left;
@@ -159,7 +159,7 @@ public:
     }
 
 private:
-    void traverseSubtree(Iterator& left, Iterator& right, function<void (const Iterator&, CtrSizeT, Int)> fn, Int level = 0)
+    void traverseSubtree(Iterator& left, Iterator& right, function<void (const Iterator&, CtrSizeT, int32_t)> fn, int32_t level = 0)
     {
         CtrSizeT length = right.nodeIdx() - left.nodeIdx() + 1;
 

@@ -85,7 +85,7 @@ template <
     typename Profile,
     typename Key,
     typename Value,
-    Int Special = 0
+    int32_t Special = 0
 >
 struct CowMapBTTypesBase: public CowMapBTTypesBaseBase<Profile, Key, Value> {
 

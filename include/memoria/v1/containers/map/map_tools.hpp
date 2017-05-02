@@ -39,7 +39,7 @@ namespace map           {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, Int Selector> struct MapKeyStructTF;
+template <typename KeyType, int32_t Selector> struct MapKeyStructTF;
 
 template <typename KeyType>
 struct MapKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
@@ -49,7 +49,7 @@ struct MapKeyStructTF<KeyType, 0>: HasType<PkdVBMTreeT<KeyType>> {};
 
 
 
-template <typename ValueType, Int Selector> struct MapValueStructTF;
+template <typename ValueType, int32_t Selector> struct MapValueStructTF;
 
 template <typename ValueType>
 struct MapValueStructTF<ValueType, 1>: HasType<PkdFSQArrayT<ValueType>> {};
@@ -72,7 +72,7 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
     using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
 };
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct MapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 {
     static_assert(
@@ -92,7 +92,7 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
     static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct MapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(
@@ -113,7 +113,7 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 
 
-template <typename Key, typename Value, typename CtrSizeT = BigInt>
+template <typename Key, typename Value, typename CtrSizeT = int64_t>
 class KeyValueEntry {
     const Key& key_;
     const Value& value_;
@@ -123,26 +123,26 @@ class KeyValueEntry {
 public:
     KeyValueEntry(const Key& key, const Value& value): key_(key), value_(value) {}
 
-    const auto& get(StreamTag<0>, StreamTag<0>, Int) const {
+    const auto& get(StreamTag<0>, StreamTag<0>, int32_t) const {
         return zero_;
     }
 
-    const auto& get(StreamTag<0>, StreamTag<1>, Int) const {
+    const auto& get(StreamTag<0>, StreamTag<1>, int32_t) const {
         return key_;
     }
 
-    const auto& get(StreamTag<0>, StreamTag<2>, Int) const {
+    const auto& get(StreamTag<0>, StreamTag<2>, int32_t) const {
         return value_;
     }
 };
 
-template <typename T, Int SubstreamIdx = 0>
+template <typename T, int32_t SubstreamIdx = 0>
 class ValueBuffer {
     const T& value_;
 public:
     ValueBuffer(const T& value): value_(value) {}
 
-    const auto& get(StreamTag<0>, StreamTag<SubstreamIdx>, Int) const {
+    const auto& get(StreamTag<0>, StreamTag<SubstreamIdx>, int32_t) const {
         return value_;
     }
 };

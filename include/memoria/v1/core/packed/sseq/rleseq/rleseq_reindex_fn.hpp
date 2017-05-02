@@ -81,8 +81,8 @@ template <typename Seq>
         using Base::block_;
         using Base::limit_;
 
-        UBigInt block_stat_   = 0;
-        UBigInt block_offset_ = 0;
+        uint64_t block_stat_   = 0;
+        uint64_t block_offset_ = 0;
 
     public:
         SymbolsSizesIterator(const Symbols* symbols, size_t data_size, size_t blocks):
@@ -105,7 +105,7 @@ template <typename Seq>
 
             while (data_pos_ < limit_)
             {
-                UBigInt run_value = 0;
+                uint64_t run_value = 0;
                 auto len     = codec_.decode(symbols_, run_value, data_pos_);
                 auto sym_run = Seq::decode_run(run_value);
 
@@ -124,7 +124,7 @@ template <typename Seq>
             block_++;
         }
 
-        auto value(Int block) const
+        auto value(int32_t block) const
         {
             return block_stat_;
         }
@@ -148,7 +148,7 @@ template <typename Seq>
         using Base::block_;
         using Base::limit_;
 
-        core::StaticVector<UBigInt, Seq::Symbols> block_stat_;
+        core::StaticVector<uint64_t, Seq::Symbols> block_stat_;
 
     public:
         SymbolsSumIterator(const Symbols* symbols, size_t data_size, size_t blocks):
@@ -161,7 +161,7 @@ template <typename Seq>
             block_stat_.clear();
             while (data_pos_ < limit_)
             {
-                UBigInt run_value = 0;
+                uint64_t run_value = 0;
                 auto len     = codec_.decode(symbols_, run_value, data_pos_);
                 auto sym_run = Seq::decode_run(run_value);
 
@@ -180,7 +180,7 @@ template <typename Seq>
             block_++;
         }
 
-        auto value(Int block) const
+        auto value(int32_t block) const
         {
             return block_stat_[block];
         }
@@ -196,9 +196,9 @@ class ReindexFn {
     using SumIndex  = typename Seq::SumIndex;
 
 
-    static const Int Symbols                                                    = Seq::Symbols;
-    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
-    static const Int Indxes                                                     = Seq::Indexes;
+    static const int32_t Symbols                                                    = Seq::Symbols;
+    static const int32_t ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const int32_t Indxes                                                     = Seq::Indexes;
 
 
 
@@ -310,7 +310,7 @@ public:
                 sum_index_iterator.next();
                 sum_iterator.next();
 
-                for (Int s = 0; s < Seq::Symbols; s++)
+                for (int32_t s = 0; s < Seq::Symbols; s++)
                 {
                     MEMORIA_V1_ASSERT(sum_index_iterator.value(s), ==, sum_iterator.value(s));
                 }
@@ -320,7 +320,7 @@ public:
         }
         else {
             MEMORIA_V1_ASSERT_FALSE(seq.has_index());
-            MEMORIA_V1_ASSERT(seq.element_size(Seq::OFFSETS), ==, (Int)PackedAllocator::AlignmentBlock);
+            MEMORIA_V1_ASSERT(seq.element_size(Seq::OFFSETS), ==, (int32_t)PackedAllocator::AlignmentBlock);
         }
     }
 };

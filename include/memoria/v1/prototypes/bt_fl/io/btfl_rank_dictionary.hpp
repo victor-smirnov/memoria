@@ -35,19 +35,19 @@ namespace io {
 
 
 
-template <Int Symbols>
+template <int32_t Symbols>
 class RankDictionary {
     FreeUniquePtr<PackedAllocator>  ref_;
 
-    Int last_symbol_    = -1;
-    UBigInt run_length_ = 0;
+    int32_t last_symbol_    = -1;
+    uint64_t run_length_ = 0;
 
 public:
     using Sequence  = PkdRLESeqT<Symbols>;
     using SeqT      = Sequence;
 
 
-    RankDictionary(Int capacity): ref_(allocate(capacity)){}
+    RankDictionary(int32_t capacity): ref_(allocate(capacity)){}
 
     SeqT* get() {return ref_->template get<SeqT>(0);}
     const SeqT* get() const {return ref_->template get<SeqT>(0);}
@@ -55,12 +55,12 @@ public:
     SeqT* operator->() {return this->get();}
     const SeqT* operator->() const {return this->get();}
 
-    void enlarge(Int required = 0)
+    void enlarge(int32_t required = 0)
     {
-        Int current_size = get()->symbols_block_size();
-        Int new_size     = current_size * 2;
+        int32_t current_size = get()->symbols_block_size();
+        int32_t new_size     = current_size * 2;
 
-        Int new_capacity = new_size - current_size;
+        int32_t new_capacity = new_size - current_size;
         if (new_capacity < required)
         {
             new_size += required - new_capacity;
@@ -92,7 +92,7 @@ public:
         get()->reindex();
     }
 
-    void append_run(Int symbol, UBigInt run_length)
+    void append_run(int32_t symbol, uint64_t run_length)
     {
         if (symbol == last_symbol_ || last_symbol_ < 0)
         {
@@ -127,9 +127,9 @@ private:
     }
 
 
-    static auto allocate(Int capacity)
+    static auto allocate(int32_t capacity)
     {
-        Int block_size = SeqT::block_size(capacity);
+        int32_t block_size = SeqT::block_size(capacity);
         auto ptr = AllocTool<PackedAllocator>::create(block_size, 1);
 
         SeqT* seq = ptr->template allocate<SeqT>(0, block_size);

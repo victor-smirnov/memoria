@@ -57,8 +57,8 @@ bool isEndsWith(StringRef str, StringRef end) {
         return false;
     }
     else {
-        UInt l0 = str.length();
-        UInt l1 = end.length();
+        uint32_t l0 = str.length();
+        uint32_t l1 = end.length();
         for (unsigned c = 0; c < end.length(); c++)
         {
             if (str[l0 - l1 + c] != end[c])
@@ -156,7 +156,7 @@ String ReplaceAll(StringRef str, StringRef txt) {
 
 
 
-Int getValueMultiplier(const char* chars, const char* ptr)
+int32_t getValueMultiplier(const char* chars, const char* ptr)
 {
     if (*ptr == 0) {
         return 1;

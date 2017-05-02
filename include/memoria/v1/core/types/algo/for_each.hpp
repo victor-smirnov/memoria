@@ -61,7 +61,7 @@ struct ForEachItem<Config, TypeList<Head, Tail...>, Handler, Accumulator> {
 
 
 
-template <Int Idx, Int Size>
+template <int32_t Idx, int32_t Size>
 struct ForEach {
     template <typename Fn, typename... Args>
     static void process(Fn&& fn, Args&&... args)
@@ -74,14 +74,14 @@ struct ForEach {
 };
 
 
-template <Int Idx>
+template <int32_t Idx>
 struct ForEach<Idx, Idx> {
     template <typename... Args>
     static void process(Args&&... args){}
 };
 
 
-template <Int V1, Int V2> struct IfLess
+template <int32_t V1, int32_t V2> struct IfLess
 {
     template <typename Fn, typename ElseFn, typename... Args>
     static auto process(Fn&& fn, ElseFn&& else_fn, Args&&... args) {
@@ -89,7 +89,7 @@ template <Int V1, Int V2> struct IfLess
     }
 };
 
-template <Int V2>
+template <int32_t V2>
 struct IfLess<V2, V2>
 {
     template <typename Fn, typename ElseFn, typename... Args>

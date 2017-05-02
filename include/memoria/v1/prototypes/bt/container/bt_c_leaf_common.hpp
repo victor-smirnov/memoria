@@ -57,7 +57,7 @@ protected:
 
     using CtrSizeT = typename Types::CtrSizeT;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
 public:
     NodeBaseG split_leaf_p(NodeBaseG& left_node, const Position& split_at)
@@ -86,25 +86,25 @@ protected:
 
 
 
-    template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
+    template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto apply_substreams_fn(NodeBaseG& leaf, Fn&& fn, Args&&... args)
     {
         return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
-    template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
+    template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto apply_substreams_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
     {
         return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
-    template <Int Stream, typename Fn, typename... Args>
+    template <int32_t Stream, typename Fn, typename... Args>
     auto apply_stream_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
     {
         return LeafDispatcher::dispatch(leaf, StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
-    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto read_substreams(const NodeBaseG& leaf, Args&&... args) const
     {
          return self().template apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
@@ -112,7 +112,7 @@ protected:
 
 
 
-    template <Int Stream, typename... Args>
+    template <int32_t Stream, typename... Args>
     auto read_stream(const NodeBaseG& leaf, Args&&... args) const
     {
          return self().template apply_stream_fn<Stream>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
@@ -126,19 +126,19 @@ protected:
 
     struct SumFn {
         template <typename Stream>
-        auto stream(const Stream* s, Int block, Int from, Int to)
+        auto stream(const Stream* s, int32_t block, int32_t from, int32_t to)
         {
             return s->sum(block, from, to);
         }
 
         template <typename Stream>
-        auto stream(const Stream* s, Int from, Int to)
+        auto stream(const Stream* s, int32_t from, int32_t to)
         {
             return s->sums(from, to);
         }
     };
 
-    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto _sum(const NodeBaseG& leaf, Args&&... args) const
     {
         return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), SumFn(), std::forward<Args>(args)...);
@@ -152,7 +152,7 @@ protected:
         }
     };
 
-    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto find_forward(const NodeBaseG& leaf, Args&&... args) const
     {
         return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
@@ -281,7 +281,7 @@ protected:
         NodeBaseG   head;
         NodeBaseG   current;
 
-        Int page_size = self.getRootMetadata().page_size();
+        int32_t page_size = self.getRootMetadata().page_size();
 
         while (provider.hasData())
         {
@@ -326,7 +326,7 @@ protected:
             leaf = provider.split_watcher().second;
         }
 
-        Int path_parent_idx = leaf->parent_idx() + 1;
+        int32_t path_parent_idx = leaf->parent_idx() + 1;
 
         if (leaf_list.size() > 0)
         {
@@ -375,7 +375,7 @@ protected:
             leaf = provider.split_watcher().second;
         }
 
-        Int path_parent_idx = leaf->parent_idx() + 1;
+        int32_t path_parent_idx = leaf->parent_idx() + 1;
 
         if (leaf_list.size() > 0)
         {

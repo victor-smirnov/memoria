@@ -47,7 +47,7 @@ public:
     {
         size_t block_size = 1024*1024ull;
 
-        unique_ptr<UByte[]> buf = make_unique<UByte[]>(block_size);
+        unique_ptr<uint8_t[]> buf = make_unique<uint8_t[]>(block_size);
 
         ValueCodec<String> codec;
 
@@ -86,7 +86,7 @@ public:
     {
         size_t block_size = 1024*1024ull;
 
-        unique_ptr<UByte[]> buf = make_unique<UByte[]>(block_size);
+        unique_ptr<uint8_t[]> buf = make_unique<uint8_t[]>(block_size);
 
         ValueCodec<String> codec;
 

@@ -38,7 +38,7 @@ namespace set {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, Int Selector> struct SetKeyStructTF;
+template <typename KeyType, int32_t Selector> struct SetKeyStructTF;
 
 template <typename KeyType>
 struct SetKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
@@ -61,7 +61,7 @@ struct SetBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
     using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
 };
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct SetBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 {
     static_assert(
@@ -81,7 +81,7 @@ struct SetBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
     static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };
 
-template <typename KeyType, Int Indexes>
+template <typename KeyType, int32_t Indexes>
 struct SetBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(
@@ -102,18 +102,18 @@ struct SetBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 
 
-template <typename Key, typename CtrSizeT = BigInt>
+template <typename Key, typename CtrSizeT = int64_t>
 class KeyEntry {
     const Key& key_;
     CtrSizeT zero_ = 0;
 public:
     KeyEntry(const Key& key): key_(key) {}
 
-    const auto& get(StreamTag<0>, StreamTag<0>, Int) const {
+    const auto& get(StreamTag<0>, StreamTag<0>, int32_t) const {
         return zero_;
     }
 
-    const auto& get(StreamTag<0>, StreamTag<1>, Int) const {
+    const auto& get(StreamTag<0>, StreamTag<1>, int32_t) const {
         return key_;
     }
 };

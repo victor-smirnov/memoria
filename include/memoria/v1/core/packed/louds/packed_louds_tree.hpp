@@ -22,22 +22,22 @@ namespace memoria {
 namespace v1 {
 
 class PackedLoudsNode {
-    Int idx_;
-    Int rank_;
+    int32_t idx_;
+    int32_t rank_;
 
 public:
     PackedLoudsNode(): idx_(-1), rank_(0) {}
-    PackedLoudsNode(Int idx, Int rank): idx_(idx), rank_(rank) {}
+    PackedLoudsNode(int32_t idx, int32_t rank): idx_(idx), rank_(rank) {}
 
-    Int idx() const     {return idx_;}
-    Int node() const    {return rank_;}
+    int32_t idx() const     {return idx_;}
+    int32_t node() const    {return rank_;}
 
-    Int rank0() const
+    int32_t rank0() const
     {
         return idx_ + 1 - rank_;
     }
 
-    Int rank1() const
+    int32_t rank1() const
     {
         return rank_;
     }
@@ -63,7 +63,7 @@ class PackedLoudsNodeSet: public PackedLoudsNode {
 
     typedef PackedLoudsNode Base;
 
-    Int length_;
+    int32_t length_;
 
 public:
 
@@ -71,19 +71,19 @@ public:
         Base()
     {}
 
-    PackedLoudsNodeSet(Int idx, Int rank, Int length):
+    PackedLoudsNodeSet(int32_t idx, int32_t rank, int32_t length):
         Base(idx, rank), length_(length)
     {}
 
-    PackedLoudsNodeSet(const PackedLoudsNode& node, Int length):
+    PackedLoudsNodeSet(const PackedLoudsNode& node, int32_t length):
         Base(node.idx(), node.rank1()), length_(length)
     {}
 
-    Int length() const {
+    int32_t length() const {
         return length_;
     }
 
-    PackedLoudsNode node(Int idx) const
+    PackedLoudsNode node(int32_t idx) const
     {
         return PackedLoudsNode(Base::idx() + idx, Base::rank1() + idx);
     }
@@ -91,19 +91,19 @@ public:
 
 
 template <
-    Int BF = PackedTreeBranchingFactor,
-    Int VPB = 512
+    int32_t BF = PackedTreeBranchingFactor,
+    int32_t VPB = 512
 >
 struct LoudsTreeTypes {
-    static const Int BranchingFactor        = BF;
-    static const Int ValuesPerBranch        = VPB;
+    static const int32_t BranchingFactor        = BF;
+    static const int32_t ValuesPerBranch        = VPB;
 };
 
 
 template <typename Types>
-class PackedLoudsTree: public PkdFSSeq<PkdFSSeqTypes <1, Types::ValuesPerBranch, PkdFQTreeT<Int, 2>>> {
+class PackedLoudsTree: public PkdFSSeq<PkdFSSeqTypes <1, Types::ValuesPerBranch, PkdFQTreeT<int32_t, 2>>> {
 
-    using Base = PkdFSSeq<PkdFSSeqTypes <1, Types::ValuesPerBranch, PkdFQTreeT<Int, 2>>>;
+    using Base = PkdFSSeq<PkdFSSeqTypes <1, Types::ValuesPerBranch, PkdFQTreeT<int32_t, 2>>>;
 
     typedef PackedLoudsTree<Types>                                              MyType;
 
@@ -114,9 +114,9 @@ class PackedLoudsTree: public PkdFSSeq<PkdFSSeqTypes <1, Types::ValuesPerBranch,
 public:
     PackedLoudsTree() {}
 
-    Int writeUDS(Int idx, Int value)
+    int32_t writeUDS(int32_t idx, int32_t value)
     {
-        Int max = idx + value;
+        int32_t max = idx + value;
 
         for (; idx < max; idx++)
         {
@@ -128,13 +128,13 @@ public:
         return idx;
     }
 
-    Int insertUDS(Int idx, Int degree)
+    int32_t insertUDS(int32_t idx, int32_t degree)
     {
         this->insertDataRoom(idx, degree + 1);
         return writeUDS(idx, degree);
     }
 
-    Int appendUDS(Int degree)
+    int32_t appendUDS(int32_t degree)
     {
         return insertUDS(this->size(), degree);
     }
@@ -146,7 +146,7 @@ public:
 
     PackedLoudsNode parent(const PackedLoudsNode& node) const
     {
-        Int idx = select1(node.rank0());
+        int32_t idx = select1(node.rank0());
         return PackedLoudsNode(idx, node.rank0());
     }
 
@@ -174,17 +174,17 @@ public:
 
     PackedLoudsNode first_child(const PackedLoudsNode& node) const
     {
-        Int idx = select0(node.rank1()) + 1;
+        int32_t idx = select0(node.rank1()) + 1;
         return PackedLoudsNode(idx, idx + 1 - node.rank1());
     }
 
     PackedLoudsNode last_child(const PackedLoudsNode& node) const
     {
-        Int idx = select0(node.rank1() + 1) - 1;
+        int32_t idx = select0(node.rank1() + 1) - 1;
         return PackedLoudsNode(idx + 1, idx + 1 - node.rank1());
     }
 
-    PackedLoudsNode node(Int idx) const
+    PackedLoudsNode node(int32_t idx) const
     {
         return PackedLoudsNode(idx, this->rank1(idx));
     }
@@ -204,7 +204,7 @@ public:
 
         PackedLoudsNode node = this->node(at.idx());
 
-        Int zero_idx = first_child(node).idx();
+        int32_t zero_idx = first_child(node).idx();
 
         this->insert(zero_idx, 0, 1);
 
@@ -213,7 +213,7 @@ public:
         return node;
     }
 
-    void insert(Int idx, BigInt bits, Int nbits)
+    void insert(int32_t idx, int64_t bits, int32_t nbits)
     {
         this->insertDataRoom(idx, nbits);
 
@@ -248,65 +248,65 @@ public:
     {
         MEMORIA_V1_ASSERT(node.idx(), <, this->size());
 
-        Int idx = node.idx();
+        int32_t idx = node.idx();
 
-        Int size = (idx < this->size() - 1) ? 3 : 2;
+        int32_t size = (idx < this->size() - 1) ? 3 : 2;
 
         if (idx > 0)
         {
-            Int value = GetBits(this->symbols(), idx - 1, size);
+            int32_t value = GetBits(this->symbols(), idx - 1, size);
             return value == 2;
         }
         else {
-            Int value = GetBits(this->symbols(), idx, size);
+            int32_t value = GetBits(this->symbols(), idx, size);
             return value == 1;
         }
     }
 
-    Int rank0(Int pos) const
+    int32_t rank0(int32_t pos) const
     {
         return Base::rank(pos + 1, 0);
     }
 
-    Int rank1(Int pos) const
+    int32_t rank1(int32_t pos) const
     {
         return Base::rank(pos + 1, 1);
     }
 
-    Int rank1() const
+    int32_t rank1() const
     {
         return Base::rank(this->size(), 1);
     }
 
-    Int tree_size() const {
+    int32_t tree_size() const {
         return rank1();
     }
 
-    Int select0(Int rank) const
+    int32_t select0(int32_t rank) const
     {
         return Base::selectFw(0, rank).idx();
     }
 
-    Int select1(Int rank) const
+    int32_t select1(int32_t rank) const
     {
         return Base::selectFw(1, rank).idx();
     }
 
-    PackedLoudsNode select1Fw(const PackedLoudsNode& node, Int distance) const
+    PackedLoudsNode select1Fw(const PackedLoudsNode& node, int32_t distance) const
     {
-        Int idx = select1(node.rank1() + distance);
+        int32_t idx = select1(node.rank1() + distance);
         return PackedLoudsNode(idx, node.rank1() + distance);
     }
 
-    PackedLoudsNode select1Bw(const PackedLoudsNode& node, Int distance) const
+    PackedLoudsNode select1Bw(const PackedLoudsNode& node, int32_t distance) const
     {
-        Int idx = select1(node.rank1() - (distance - 1));
+        int32_t idx = select1(node.rank1() - (distance - 1));
         return PackedLoudsNode(idx, node.rank1() - (distance - 1));
     }
 
     PackedLoudsNode next(const PackedLoudsNode& node) const
     {
-        Int bit = this->value(node.idx() + 1);
+        int32_t bit = this->value(node.idx() + 1);
         return PackedLoudsNode(node.idx() + 1, node.rank1() + bit);
     }
 
@@ -324,9 +324,9 @@ public:
 
 //  LoudsTree getSubtree(size_t node) const
 //  {
-//      Int tree_size = 0;
+//      int32_t tree_size = 0;
 //
-//      this->traverseSubtree(node, [&tree_size](const PackedLoudsNode& left, const PackedLoudsNode& right, Int level) {
+//      this->traverseSubtree(node, [&tree_size](const PackedLoudsNode& left, const PackedLoudsNode& right, int32_t level) {
 //          if (left.idx() <= right.idx())
 //          {
 //              tree_size += right.idx() - left.idx() + 1;
@@ -335,7 +335,7 @@ public:
 //
 //      LoudsTree tree(tree_size);
 //
-//      this->traverseSubtree(node, [&tree, this](const PackedLoudsNode& left, const PackedLoudsNode& right, Int level) {
+//      this->traverseSubtree(node, [&tree, this](const PackedLoudsNode& left, const PackedLoudsNode& right, int32_t level) {
 //          if (left.idx() <= right.idx())
 //          {
 //              if (left.idx() < right.idx())
@@ -359,7 +359,7 @@ private:
     void traverseSubtree(
             const PackedLoudsNode& left_node,
             const PackedLoudsNode& right_node,
-            Functor&& fn, Int level = 0
+            Functor&& fn, int32_t level = 0
     ) const
     {
         const MyType& tree = *this;
@@ -405,7 +405,7 @@ private:
             const PackedLoudsNode& left_node,
             const PackedLoudsNode& right_node,
             Functor&& fn,
-            Int level = 0
+            int32_t level = 0
     ) const
     {
         const MyType& tree = *this;

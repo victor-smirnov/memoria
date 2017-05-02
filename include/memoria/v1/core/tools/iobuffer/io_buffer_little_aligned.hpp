@@ -48,10 +48,10 @@ public:
     IOBuffer(size_t length): Base(length)
     {}
 
-    IOBuffer(UByte* data, size_t length): Base(data, length)
+    IOBuffer(uint8_t* data, size_t length): Base(data, length)
     {}
 
-    IOBuffer(UByte* data, size_t pos, size_t length): Base(data, pos, length)
+    IOBuffer(uint8_t* data, size_t pos, size_t length): Base(data, pos, length)
     {}
 
     IOBuffer(const IOBuffer&) = delete;
@@ -61,7 +61,7 @@ public:
 
     using Base::put;
 
-    bool put(Short v)
+    bool put(int16_t v)
     {
         if (has_capacity(2))
         {
@@ -77,13 +77,13 @@ public:
         }
     }
 
-    Short getShort()
+    int16_t getShort()
     {
         assertRange(2, "getShort()");
-        Short v = 0;
+        int16_t v = 0;
 
         v = array_[pos_];
-        v |= ((Short)array_[pos_ + 1]) << 8;
+        v |= ((int16_t)array_[pos_ + 1]) << 8;
 
         pos_ += 2;
 
@@ -91,7 +91,7 @@ public:
     }
 
 
-    bool put(UShort v)
+    bool put(uint16_t v)
     {
         if (has_capacity(2))
         {
@@ -107,20 +107,20 @@ public:
         }
     }
 
-    UShort getUShort()
+    uint16_t getUShort()
     {
         assertRange(2, "getShort()");
-        Short v = 0;
+        int16_t v = 0;
 
         v = array_[pos_];
-        v |= ((UShort)array_[pos_ + 1]) << 8;
+        v |= ((uint16_t)array_[pos_ + 1]) << 8;
 
         pos_ += 2;
 
         return v;
     }
 
-    bool put(Int v)
+    bool put(int32_t v)
     {
         if (has_capacity(4))
         {
@@ -138,15 +138,15 @@ public:
         }
     }
 
-    Int getInt()
+    int32_t getInt()
     {
         assertRange(4, "getInt()");
-        Int v = 0;
+        int32_t v = 0;
 
         v = array_[pos_];
-        v |= ((Int)array_[pos_ + 1]) << 8;
-        v |= ((Int)array_[pos_ + 2]) << 16;
-        v |= ((Int)array_[pos_ + 3]) << 24;
+        v |= ((int32_t)array_[pos_ + 1]) << 8;
+        v |= ((int32_t)array_[pos_ + 2]) << 16;
+        v |= ((int32_t)array_[pos_ + 3]) << 24;
 
         pos_ += 4;
 
@@ -154,7 +154,7 @@ public:
     }
 
 
-    bool put(UInt v)
+    bool put(uint32_t v)
     {
         if (has_capacity(4))
         {
@@ -172,22 +172,22 @@ public:
         }
     }
 
-    UInt getUInt()
+    uint32_t getUInt()
     {
         assertRange(4, "getUInt()");
-        UInt v = 0;
+        uint32_t v = 0;
 
         v = array_[pos_];
-        v |= ((UInt)array_[pos_ + 1]) << 8;
-        v |= ((UInt)array_[pos_ + 2]) << 16;
-        v |= ((UInt)array_[pos_ + 3]) << 24;
+        v |= ((uint32_t)array_[pos_ + 1]) << 8;
+        v |= ((uint32_t)array_[pos_ + 2]) << 16;
+        v |= ((uint32_t)array_[pos_ + 3]) << 24;
 
         pos_ += 4;
 
         return v;
     }
 
-    bool put(BigInt v)
+    bool put(int64_t v)
     {
         if (has_capacity(8))
         {
@@ -209,26 +209,26 @@ public:
         }
     }
 
-    BigInt getBigInt()
+    int64_t getBigInt()
     {
         assertRange(8, "getBigInt()");
-        BigInt v = 0;
+        int64_t v = 0;
 
         v = array_[pos_];
-        v |= ((BigInt)array_[pos_ + 1]) << 8;
-        v |= ((BigInt)array_[pos_ + 2]) << 16;
-        v |= ((BigInt)array_[pos_ + 3]) << 24;
-        v |= ((BigInt)array_[pos_ + 4]) << 32;
-        v |= ((BigInt)array_[pos_ + 5]) << 40;
-        v |= ((BigInt)array_[pos_ + 6]) << 48;
-        v |= ((BigInt)array_[pos_ + 7]) << 56;
+        v |= ((int64_t)array_[pos_ + 1]) << 8;
+        v |= ((int64_t)array_[pos_ + 2]) << 16;
+        v |= ((int64_t)array_[pos_ + 3]) << 24;
+        v |= ((int64_t)array_[pos_ + 4]) << 32;
+        v |= ((int64_t)array_[pos_ + 5]) << 40;
+        v |= ((int64_t)array_[pos_ + 6]) << 48;
+        v |= ((int64_t)array_[pos_ + 7]) << 56;
 
         pos_ += 8;
 
         return v;
     }
 
-    bool put(UBigInt v)
+    bool put(uint64_t v)
     {
         if (has_capacity(8))
         {
@@ -250,19 +250,19 @@ public:
         }
     }
 
-    UBigInt getUBigInt()
+    uint64_t getUBigInt()
     {
         assertRange(8, "getUBigInt()");
 
-        UBigInt v = 0;
+        uint64_t v = 0;
         v = array_[pos_];
-        v |= ((UBigInt)array_[pos_ + 1]) << 8;
-        v |= ((UBigInt)array_[pos_ + 2]) << 16;
-        v |= ((UBigInt)array_[pos_ + 3]) << 24;
-        v |= ((UBigInt)array_[pos_ + 4]) << 32;
-        v |= ((UBigInt)array_[pos_ + 5]) << 40;
-        v |= ((UBigInt)array_[pos_ + 6]) << 48;
-        v |= ((UBigInt)array_[pos_ + 7]) << 56;
+        v |= ((uint64_t)array_[pos_ + 1]) << 8;
+        v |= ((uint64_t)array_[pos_ + 2]) << 16;
+        v |= ((uint64_t)array_[pos_ + 3]) << 24;
+        v |= ((uint64_t)array_[pos_ + 4]) << 32;
+        v |= ((uint64_t)array_[pos_ + 5]) << 40;
+        v |= ((uint64_t)array_[pos_ + 6]) << 48;
+        v |= ((uint64_t)array_[pos_ + 7]) << 56;
 
         pos_ += 8;
 
@@ -273,7 +273,7 @@ public:
     {
         if (has_capacity(4))
         {
-            Int v = static_cast<Int>(f);
+            int32_t v = static_cast<int32_t>(f);
 
             array_[pos_] = v & 0xFF;
             array_[pos_ + 1] = (v >> 8) & 0xFF;
@@ -292,12 +292,12 @@ public:
     float getFloat()
     {
         assertRange(4, "getFloat()");
-        Int v = 0;
+        int32_t v = 0;
 
         v = array_[pos_];
-        v |= ((Int)array_[pos_ + 1]) << 8;
-        v |= ((Int)array_[pos_ + 2]) << 16;
-        v |= ((Int)array_[pos_ + 3]) << 24;
+        v |= ((int32_t)array_[pos_ + 1]) << 8;
+        v |= ((int32_t)array_[pos_ + 2]) << 16;
+        v |= ((int32_t)array_[pos_ + 3]) << 24;
 
         pos_ += 4;
 
@@ -309,7 +309,7 @@ public:
     {
         if (has_capacity(8))
         {
-            BigInt v = static_cast<BigInt>(f);
+            int64_t v = static_cast<int64_t>(f);
 
             array_[pos_] = v & 0xFF;
             array_[pos_ + 1] = (v >> 8) & 0xFF;
@@ -332,16 +332,16 @@ public:
     double getDouble()
     {
         assertRange(8, "getDouble()");
-        BigInt v = 0;
+        int64_t v = 0;
 
         v = array_[pos_];
-        v |= ((BigInt)array_[pos_ + 1]) << 8;
-        v |= ((BigInt)array_[pos_ + 2]) << 16;
-        v |= ((BigInt)array_[pos_ + 3]) << 24;
-        v |= ((BigInt)array_[pos_ + 4]) << 32;
-        v |= ((BigInt)array_[pos_ + 5]) << 40;
-        v |= ((BigInt)array_[pos_ + 6]) << 48;
-        v |= ((BigInt)array_[pos_ + 7]) << 56;
+        v |= ((int64_t)array_[pos_ + 1]) << 8;
+        v |= ((int64_t)array_[pos_ + 2]) << 16;
+        v |= ((int64_t)array_[pos_ + 3]) << 24;
+        v |= ((int64_t)array_[pos_ + 4]) << 32;
+        v |= ((int64_t)array_[pos_ + 5]) << 40;
+        v |= ((int64_t)array_[pos_ + 6]) << 48;
+        v |= ((int64_t)array_[pos_ + 7]) << 56;
 
         pos_ += 8;
 

@@ -45,9 +45,9 @@ public:
 
     typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
-    template <Int LabelIdx>
+    template <int32_t LabelIdx>
     struct SetLabelValueFn {
 
         BranchNodeEntry& delta_;
@@ -58,21 +58,21 @@ public:
         {}
 
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
-        void stream(PackedFSEArray<StreamTypes>* labels, BranchNodeEntryItem& , Int idx, T&& value)
+        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PackedFSEArray<StreamTypes>* labels, BranchNodeEntryItem& , int32_t idx, T&& value)
         {
             labels->value(0, idx) = value;
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
-        void stream(PkdVQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, Int idx, T&& value)
+        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PkdVQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, int32_t idx, T&& value)
         {
             auto delta = obj->setValue1(0, idx, value);
             accum[Offset] += delta;
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
-        void stream(PkdFQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, Int idx, T&& value)
+        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PkdFQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, int32_t idx, T&& value)
         {
             auto delta = obj->setValue(0, idx, value);
 
@@ -81,7 +81,7 @@ public:
 
 
         template <typename Node, typename T>
-        void treeNode(Node* node, Int label_idx, T&& value)
+        void treeNode(Node* node, int32_t label_idx, T&& value)
         {
             node->layout(-1);
             node->template processStreamAccP<IntList<1, 1, LabelIdx>>(*this, delta_, label_idx, std::forward<T>(value));
@@ -113,13 +113,13 @@ public:
         }
     }
 
-    template <Int LabelIdx, typename T>
+    template <int32_t LabelIdx, typename T>
     void setLabel(Iterator& iter, T&& value)
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
 
-        Int label_idx = iter.label_idx();
+        int32_t label_idx = iter.label_idx();
 
         BranchNodeEntry sums;
 
@@ -142,7 +142,7 @@ public:
 
 
 
-    template <Int LabelIdx>
+    template <int32_t LabelIdx>
     struct AddLabelValueFn {
 
         BranchNodeEntry& delta_;
@@ -152,28 +152,28 @@ public:
         {}
 
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
-        void stream(PackedFSEArray<StreamTypes>* labels, BranchNodeEntryItem& accum, Int idx, T&& value)
+        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PackedFSEArray<StreamTypes>* labels, BranchNodeEntryItem& accum, int32_t idx, T&& value)
         {
             labels->value(0, idx) += value;
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
-        void stream(PkdVQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, Int idx, T&& value)
+        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PkdVQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, int32_t idx, T&& value)
         {
             obj->addValue(0, idx, value);
             accum[Offset] += value;
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
-        void stream(PkdFQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, Int idx, T&& value)
+        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PkdFQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, int32_t idx, T&& value)
         {
             obj->addValue(0, idx, value);
             accum[Offset] += value;
         }
 
         template <typename Node, typename T>
-        void treeNode(Node* node, Int label_idx, T&& value)
+        void treeNode(Node* node, int32_t label_idx, T&& value)
         {
             node->layout(-1);
             node->template processStreamAccP<IntList<1, 1, LabelIdx>>(*this, delta_, label_idx, std::forward<T>(value));
@@ -181,13 +181,13 @@ public:
     };
 
 
-    template <Int LabelIdx, typename T>
+    template <int32_t LabelIdx, typename T>
     void addLabel(Iterator& iter, T&& value)
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
 
-        Int label_idx = iter.label_idx();
+        int32_t label_idx = iter.label_idx();
 
         BranchNodeEntry sums;
 

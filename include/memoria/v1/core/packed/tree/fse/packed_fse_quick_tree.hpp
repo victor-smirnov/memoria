@@ -25,20 +25,20 @@
 namespace memoria {
 namespace v1 {
 
-template <typename IndexValueT, Int kBlocks, typename ValueT = IndexValueT, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
+template <typename IndexValueT, int32_t kBlocks, typename ValueT = IndexValueT, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
 struct PkdFQTreeTypes {
     using IndexValue    = IndexValueT;
     using Value         = ValueT;
 
-    static constexpr Int Blocks = kBlocks;
-    static constexpr Int BranchingFactor = kBranchingFactor;
-    static constexpr Int ValuesPerBranch = kValuesPerBranch;
+    static constexpr int32_t Blocks = kBlocks;
+    static constexpr int32_t BranchingFactor = kBranchingFactor;
+    static constexpr int32_t ValuesPerBranch = kValuesPerBranch;
 };
 
 template <typename Types> class PkdFQTree;
 
 
-template <typename IndexValueT, Int kBlocks = 1, typename ValueT = IndexValueT, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
+template <typename IndexValueT, int32_t kBlocks = 1, typename ValueT = IndexValueT, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
 using PkdFQTreeT = PkdFQTree<PkdFQTreeTypes<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>>;
 
 
@@ -52,8 +52,8 @@ class PkdFQTree: public PkdFQTreeBase<typename Types::IndexValue, typename Types
 
 public:
 
-    static constexpr UInt VERSION = 1;
-    static constexpr Int Blocks   = Types::Blocks;
+    static constexpr uint32_t VERSION = 1;
+    static constexpr int32_t Blocks   = Types::Blocks;
 
     using Base::METADATA;
     using Base::index_size;
@@ -61,8 +61,8 @@ public:
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
-                ConstValue<UInt, VERSION>,
-                ConstValue<UInt, Blocks>
+                ConstValue<uint32_t, VERSION>,
+                ConstValue<uint32_t, Blocks>
     >;
 
     using IndexValue = typename Types::IndexValue;
@@ -75,48 +75,48 @@ public:
     using InputBuffer   = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
     using InputType     = Values;
 
-    using SizesT = core::StaticVector<Int, Blocks>;
+    using SizesT = core::StaticVector<int32_t, Blocks>;
 
     using ConstPtrsT    = core::StaticVector<const Value*, Blocks>;
 
     class ReadState {
     protected:
         ConstPtrsT values_;
-        Int idx_ = 0;
+        int32_t idx_ = 0;
     public:
         ReadState() {}
-        ReadState(const ConstPtrsT& values, Int idx): values_(values), idx_(idx) {}
+        ReadState(const ConstPtrsT& values, int32_t idx): values_(values), idx_(idx) {}
 
         ConstPtrsT& values() {return values_;}
-        Int& idx() {return idx_;}
+        int32_t& idx() {return idx_;}
         const ConstPtrsT& values() const {return values_;}
-        const Int& idx() const {return idx_;}
+        const int32_t& idx() const {return idx_;}
     };
 
 
     class Iterator: public ReadState {
-        Int size_;
+        int32_t size_;
         Values data_values_;
 
         using ReadState::idx_;
         using ReadState::values_;
 
-        Int idx_backup_;
+        int32_t idx_backup_;
 
     public:
         Iterator() {}
-        Iterator(const ConstPtrsT& values, Int idx, Int size):
+        Iterator(const ConstPtrsT& values, int32_t idx, int32_t size):
             ReadState(values, idx),
             size_(size)
         {}
 
-        Int size() const {return size_;}
+        int32_t size() const {return size_;}
 
         bool has_next() const {return idx_ < size_;}
 
         void next()
         {
-            for (Int b = 0; b < Blocks; b++)
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 data_values_[b] = values_[b][idx_];
             }
@@ -124,7 +124,7 @@ public:
             idx_++;
         }
 
-        const auto& value(Int block) {return data_values_[block];}
+        const auto& value(int32_t block) {return data_values_[block];}
 
         void mark() {
             idx_backup_ = idx_;
@@ -138,15 +138,15 @@ public:
 
     class BlockIterator {
         const Value* values_;
-        Int idx_ = 0;
+        int32_t idx_ = 0;
 
-        Int size_;
+        int32_t size_;
         Value data_value_;
 
-        Int idx_backup_;
+        int32_t idx_backup_;
     public:
         BlockIterator() {}
-        BlockIterator(const Value* values, Int idx, Int size):
+        BlockIterator(const Value* values, int32_t idx, int32_t size):
             values_(values),
             idx_(idx),
             size_(size),
@@ -154,13 +154,13 @@ public:
             idx_backup_()
         {}
 
-        Int size() const {return size_;}
+        int32_t size() const {return size_;}
 
         bool has_next() const {return idx_ < size_;}
 
         void next()
         {
-            for (Int b = 0; b < Blocks; b++)
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 data_value_ = values_[idx_];
             }
@@ -180,7 +180,7 @@ public:
     };
 
 
-    static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
+    static int32_t estimate_block_size(int32_t tree_capacity, int32_t density_hi = 1, int32_t density_lo = 1)
     {
         MEMORIA_V1_ASSERT(density_hi, ==, 1); // data density should not be set for this type of trees
         MEMORIA_V1_ASSERT(density_lo, ==, 1);
@@ -188,12 +188,12 @@ public:
         return block_size(tree_capacity);
     }
 
-    void init_tl(Int data_block_size)
+    void init_tl(int32_t data_block_size)
     {
         Base::init_tl(data_block_size, Blocks);
     }
 
-    void init(Int capacity = 0)
+    void init(int32_t capacity = 0)
     {
         Base::init(empty_size(), Blocks * SegmentsPerBlock + 1);
 
@@ -203,7 +203,7 @@ public:
         meta->max_size()    = capacity;
         meta->index_size()  = MyType::index_size(capacity);
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
             this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity);
@@ -211,7 +211,7 @@ public:
     }
 
 
-    void init_by_block(Int block_size, Int capacity = 0)
+    void init_by_block(int32_t block_size, int32_t capacity = 0)
     {
         Base::init(block_size, Blocks * SegmentsPerBlock + 1);
 
@@ -221,7 +221,7 @@ public:
         meta->max_size()    = capacity;
         meta->index_size()  = MyType::index_size(capacity);
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
             this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity);
@@ -233,23 +233,23 @@ public:
         MyType::init(sizes[0]);
     }
 
-    static Int block_size(Int capacity)
+    static int32_t block_size(int32_t capacity)
     {
         return Base::block_size(Blocks, capacity);
     }
 
-    static Int packed_block_size(Int tree_capacity)
+    static int32_t packed_block_size(int32_t tree_capacity)
     {
         return block_size(tree_capacity);
     }
 
 
-    Int block_size() const
+    int32_t block_size() const
     {
         return Base::block_size();
     }
 
-    Int block_size(const MyType* other) const
+    int32_t block_size(const MyType* other) const
     {
         return block_size(this->size() + other->size());
     }
@@ -257,19 +257,19 @@ public:
 
 
 
-    static Int elements_for(Int block_size)
+    static int32_t elements_for(int32_t block_size)
     {
         return Base::tree_size(Blocks, block_size);
     }
 
-    static Int expected_block_size(Int items_num)
+    static int32_t expected_block_size(int32_t items_num)
     {
         return block_size(items_num);
     }
 
 
 
-    static Int empty_size()
+    static int32_t empty_size()
     {
         return block_size(0);
     }
@@ -287,16 +287,16 @@ public:
         generateDataEvents(&dumper);
     }
 
-    bool check_capacity(Int size) const
+    bool check_capacity(int32_t size) const
     {
         MEMORIA_V1_ASSERT_TRUE(size >= 0);
 
         auto alloc = this->allocator();
 
-        Int total_size          = this->size() + size;
-        Int total_block_size    = MyType::block_size(total_size);
-        Int my_block_size       = alloc->element_size(this);
-        Int delta               = total_block_size - my_block_size;
+        int32_t total_size          = this->size() + size;
+        int32_t total_block_size    = MyType::block_size(total_size);
+        int32_t my_block_size       = alloc->element_size(this);
+        int32_t delta               = total_block_size - my_block_size;
 
         return alloc->free_space() >= delta;
     }
@@ -304,11 +304,11 @@ public:
 
     // ================================ Container API =========================================== //
 
-    Values sums(Int from, Int to) const
+    Values sums(int32_t from, int32_t to) const
     {
         Values vals;
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             vals[block] = this->sum(block, from, to);
         }
@@ -321,7 +321,7 @@ public:
     {
         Values vals;
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             vals[block] = this->sum(block);
         }
@@ -330,7 +330,7 @@ public:
     }
 
     template <typename T>
-    void sums(Int from, Int to, core::StaticVector<T, Blocks>& values) const
+    void sums(int32_t from, int32_t to, core::StaticVector<T, Blocks>& values) const
     {
         values += this->sums(from, to);
     }
@@ -341,7 +341,7 @@ public:
     }
 
 
-    void sums(Int idx, Values& values) const
+    void sums(int32_t idx, Values& values) const
     {
         addKeys(idx, values);
     }
@@ -350,19 +350,19 @@ public:
     template <typename T>
     void max(StaticVector<T, Blocks>& accum) const
     {
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             accum[block] = this->sum(block);
         }
     }
 
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             accum[block + Offset] = this->sum(block);
         }
@@ -376,55 +376,55 @@ public:
         return Base::sum(std::forward<Args>(args)...);
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
     void sum(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             accum[block + Offset] += this->sum(block);
         }
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void sum(Int start, Int end, BranchNodeEntryItem<T, Size>& accum) const
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             accum[block + Offset] += this->sum(block, start, end);
         }
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void sum(Int idx, BranchNodeEntryItem<T, Size>& accum) const
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void sum(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             accum[block + Offset] += this->value(block, idx);
         }
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void sub(Int idx, BranchNodeEntryItem<T, Size>& accum) const
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void sub(int32_t idx, BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             accum[block + Offset] -= this->value(block, idx);
         }
     }
 
 
-    template <Int Offset, Int From, Int To, typename T, template <typename, Int, Int> class BranchNodeEntryItem>
-    void sum(Int start, Int end, BranchNodeEntryItem<T, From, To>& accum) const
+    template <int32_t Offset, int32_t From, int32_t To, typename T, template <typename, int32_t, int32_t> class BranchNodeEntryItem>
+    void sum(int32_t start, int32_t end, BranchNodeEntryItem<T, From, To>& accum) const
     {
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             accum[block + Offset] += this->sum(block, start, end);
         }
@@ -432,19 +432,19 @@ public:
 
 
     template <typename T>
-    void _add(Int block, T& value) const
+    void _add(int32_t block, T& value) const
     {
         value += this->sum(block);
     }
 
     template <typename T>
-    void _add(Int block, Int end, T& value) const
+    void _add(int32_t block, int32_t end, T& value) const
     {
         value += this->sum(block, end);
     }
 
     template <typename T>
-    void _add(Int block, Int start, Int end, T& value) const
+    void _add(int32_t block, int32_t start, int32_t end, T& value) const
     {
         value += this->sum(block, start, end);
     }
@@ -452,28 +452,28 @@ public:
 
 
     template <typename T>
-    void _sub(Int block, T& value) const
+    void _sub(int32_t block, T& value) const
     {
         value -= this->sum(block);
     }
 
     template <typename T>
-    void _sub(Int block, Int end, T& value) const
+    void _sub(int32_t block, int32_t end, T& value) const
     {
         value -= this->sum(block, end);
     }
 
     template <typename T>
-    void _sub(Int block, Int start, Int end, T& value) const
+    void _sub(int32_t block, int32_t start, int32_t end, T& value) const
     {
         value -= this->sum(block, start, end);
     }
 
-    Values get_values(Int idx) const
+    Values get_values(int32_t idx) const
     {
         Values v;
 
-        for (Int i = 0; i < Blocks; i++)
+        for (int32_t i = 0; i < Blocks; i++)
         {
             v[i] = this->value(i, idx);
         }
@@ -481,19 +481,19 @@ public:
         return v;
     }
 
-    Value get_values(Int idx, Int index) const
+    Value get_values(int32_t idx, int32_t index) const
     {
         return this->value(index, idx);
     }
 
-    Value getValue(Int index, Int idx) const
+    Value getValue(int32_t index, int32_t idx) const
     {
         return this->value(index, idx);
     }
 
-//    Int findNZLE(Int block, Int start) const
+//    int32_t findNZLE(int32_t block, int32_t start) const
 //    {
-//    	MEMORIA_V1_ASSERT(block, <, (Int)Blocks);
+//    	MEMORIA_V1_ASSERT(block, <, (int32_t)Blocks);
 //    	return this->findNZLE_(block, Blocks, start);
 //    }
 
@@ -502,7 +502,7 @@ public:
     template <typename IOBuffer>
     bool readTo(ReadState& state, IOBuffer& buffer) const
     {
-        for (Int b = 0; b < Blocks; b++)
+        for (int32_t b = 0; b < Blocks; b++)
         {
             auto val = state.values()[b][state.idx()];
 
@@ -520,7 +520,7 @@ public:
 
 
     template <typename Fn>
-    void read(Int block, Int start, Int end, Fn&& fn) const
+    void read(int32_t block, int32_t start, int32_t end, Fn&& fn) const
     {
         MEMORIA_V1_ASSERT(end, <=, this->size());
         MEMORIA_V1_ASSERT(start, >=, 0);
@@ -528,7 +528,7 @@ public:
 
         auto values = this->values(block);
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
             fn(block, values[c]);
             fn.next();
@@ -538,7 +538,7 @@ public:
 
 
     template <typename Fn>
-    void read(Int start, Int end, Fn&& fn) const
+    void read(int32_t start, int32_t end, Fn&& fn) const
     {
         MEMORIA_V1_ASSERT(end, <=, this->size());
         MEMORIA_V1_ASSERT(start, >=, 0);
@@ -546,13 +546,13 @@ public:
 
         const Value* vals[Blocks];
 
-        for (Int b = 0; b  < Blocks; b++) {
+        for (int32_t b = 0; b  < Blocks; b++) {
             vals[b] = this->values(b);
         }
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
-            for (Int b = 0; b < Blocks; b++) {
+            for (int32_t b = 0; b < Blocks; b++) {
                 fn(b, vals[b][c]);
             }
 
@@ -567,12 +567,12 @@ public:
     // ========================================= Insert/Remove/Resize ============================================== //
 
 protected:
-    void resize(Metadata* meta, Int size)
+    void resize(Metadata* meta, int32_t size)
     {
-        Int new_data_size  = meta->max_size() + size;
-        Int new_index_size = MyType::index_size(new_data_size);
+        int32_t new_data_size  = meta->max_size() + size;
+        int32_t new_index_size = MyType::index_size(new_data_size);
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             Base::resizeBlock(SegmentsPerBlock * block + 1, new_index_size * sizeof(IndexValue));
             Base::resizeBlock(SegmentsPerBlock * block + 2, new_data_size * sizeof(Value));
@@ -582,18 +582,18 @@ protected:
         meta->index_size()  = new_index_size;
     }
 
-    void insertSpace(Int idx, Int room_length)
+    void insertSpace(int32_t idx, int32_t room_length)
     {
         auto meta = this->metadata();
 
-        Int capacity  = meta->capacity();
+        int32_t capacity  = meta->capacity();
 
         if (capacity < room_length)
         {
             resize(meta, room_length - capacity);
         }
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             auto* values = this->values(block);
 
@@ -603,7 +603,7 @@ protected:
                     meta->size() - idx
             );
 
-            for (Int c = idx; c < idx + room_length; c++) {
+            for (int32_t c = idx; c < idx + room_length; c++) {
                 values[c] = 0;
             }
         }
@@ -613,12 +613,12 @@ protected:
 
 
 
-    void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
+    void copyTo(MyType* other, int32_t copy_from, int32_t count, int32_t copy_to) const
     {
         MEMORIA_V1_ASSERT_TRUE(copy_from >= 0);
         MEMORIA_V1_ASSERT_TRUE(count >= 0);
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             auto my_values    = this->values(block);
             auto other_values = other->values(block);
@@ -632,9 +632,9 @@ protected:
     }
 
 public:
-    void splitTo(MyType* other, Int idx)
+    void splitTo(MyType* other, int32_t idx)
     {
-        Int total = this->size() - idx;
+        int32_t total = this->size() - idx;
         other->insertSpace(0, total);
 
         copyTo(other, idx, total, 0);
@@ -646,8 +646,8 @@ public:
 
     void mergeWith(MyType* other)
     {
-        Int my_size     = this->size();
-        Int other_size  = other->size();
+        int32_t my_size     = this->size();
+        int32_t other_size  = other->size();
 
         other->insertSpace(other_size, my_size);
 
@@ -664,14 +664,14 @@ public:
     {
         other->insertSpace(0, this->size());
 
-        Int size = this->size();
+        int32_t size = this->size();
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             const auto* my_values   = this->values(block);
             auto* other_values      = other->values(block);
 
-            for (Int c = 0; c < size; c++)
+            for (int32_t c = 0; c < size; c++)
             {
                 other_values[c] = my_values[c];
             }
@@ -681,19 +681,19 @@ public:
     }
 
 
-    void removeSpace(Int start, Int end)
+    void removeSpace(int32_t start, int32_t end)
     {
         remove(start, end);
     }
 
-    void remove(Int start, Int end)
+    void remove(int32_t start, int32_t end)
     {
         auto meta = this->metadata();
 
-        Int room_length = end - start;
-        Int size = meta->size();
+        int32_t room_length = end - start;
+        int32_t size = meta->size();
 
-        for (Int block = Blocks - 1; block >= 0; block--)
+        for (int32_t block = Blocks - 1; block >= 0; block--)
         {
             auto values = this->values(block);
 
@@ -703,7 +703,7 @@ public:
                     size - end
             );
 
-            for (Int c = start + size - end; c < size; c++)
+            for (int32_t c = start + size - end; c < size; c++)
             {
                 values[c] = 0;
             }
@@ -717,21 +717,21 @@ public:
     }
 
 
-    void insert(Int idx, Int size, std::function<Values (Int)> provider, bool reindex = true)
+    void insert(int32_t idx, int32_t size, std::function<Values (int32_t)> provider, bool reindex = true)
     {
         insertSpace(idx, size);
 
         typename Base::Value* values[Blocks];
-        for (Int block  = 0; block < Blocks; block++)
+        for (int32_t block  = 0; block < Blocks; block++)
         {
             values[block] = this->values(block);
         }
 
-        for (Int c = idx; c < idx + size; c++)
+        for (int32_t c = idx; c < idx + size; c++)
         {
             Values vals = provider(c - idx);
 
-            for (Int block = 0; block < Blocks; block++)
+            for (int32_t block = 0; block < Blocks; block++)
             {
                 values[block][c] = vals[block];
             }
@@ -743,7 +743,7 @@ public:
     }
 
     template <typename T>
-    void insert(Int idx, const core::StaticVector<T, Blocks>& values)
+    void insert(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
         insertSpace(idx, 1);
         setValues(idx, values);
@@ -755,20 +755,20 @@ public:
 
 
     template <typename Adaptor>
-    void _insert(Int pos, Int size, Adaptor&& adaptor)
+    void _insert(int32_t pos, int32_t size, Adaptor&& adaptor)
     {
         populate(pos, size, std::forward<Adaptor>(adaptor));
         reindex();
     }
 
     template <typename Adaptor>
-    void populate(Int pos, Int size, Adaptor&& adaptor)
+    void populate(int32_t pos, int32_t size, Adaptor&& adaptor)
     {
         insertSpace(pos, size);
 
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
-            for (Int block = 0; block < Blocks; block++)
+            for (int32_t block = 0; block < Blocks; block++)
             {
                 const auto& item = adaptor(block, c);
                 this->value(block, c + pos) = item;
@@ -778,7 +778,7 @@ public:
 
 
     template <typename Iter>
-    void populate_from_iterator(Int start, Int length, Iter&& iter)
+    void populate_from_iterator(int32_t start, int32_t length, Iter&& iter)
     {
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(start, <=, this->size());
@@ -787,10 +787,10 @@ public:
 
         insertSpace(start, length);
 
-        for (Int c = 0; c < length; c++)
+        for (int32_t c = 0; c < length; c++)
         {
             iter.next();
-            for (Int block = 0; block < Blocks; block++)
+            for (int32_t block = 0; block < Blocks; block++)
             {
                 this->value(block, c + start) = iter.value(block);
             }
@@ -798,52 +798,52 @@ public:
     }
 
 
-    ReadState positions(Int idx) const
+    ReadState positions(int32_t idx) const
     {
         ReadState state;
 
         state.idx() = idx;
 
-        for (Int b = 0; b < Blocks; b++) {
+        for (int32_t b = 0; b < Blocks; b++) {
             state.values()[b] = this->values(b);
         }
 
         return state;
     }
 
-    Iterator iterator(Int idx) const
+    Iterator iterator(int32_t idx) const
     {
         ConstPtrsT ptrs;
 
-        for (Int b = 0; b < Blocks; b++) {
+        for (int32_t b = 0; b < Blocks; b++) {
             ptrs[b] = this->values(b);
         }
 
         return Iterator(ptrs, idx, this->size());
     }
 
-    BlockIterator iterator(Int block, Int idx) const
+    BlockIterator iterator(int32_t block, int32_t idx) const
     {
         return BlockIterator(this->values(block), idx, this->size());
     }
 
 
-    SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int inserted)
+    SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t inserted)
     {
         auto buffer_values = buffer->values() + starts[0] * Blocks;
 
-        _insert(at[0], inserted, [&](Int block, Int idx) -> const auto& {
+        _insert(at[0], inserted, [&](int32_t block, int32_t idx) -> const auto& {
             return buffer_values[idx * Blocks + block];
         });
 
         return at + SizesT(inserted);
     }
 
-    void insert_buffer(Int at, const InputBuffer* buffer, Int start, Int inserted)
+    void insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t inserted)
     {
         auto buffer_values = buffer->values() + start * Blocks;
 
-        _insert(at, inserted, [&](Int block, Int idx) -> const auto& {
+        _insert(at, inserted, [&](int32_t block, int32_t idx) -> const auto& {
             return buffer_values[idx * Blocks + block];
         });
     }
@@ -853,7 +853,7 @@ public:
     {
         auto meta = this->metadata();
 
-        for (Int b = 0; b < Blocks; b++)
+        for (int32_t b = 0; b < Blocks; b++)
         {
             this->values(b)[meta->size()] = values[b];
         }
@@ -862,26 +862,26 @@ public:
     }
 
     template <typename T>
-    void update(Int idx, const core::StaticVector<T, Blocks>& values)
+    void update(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
         setValues(idx, values);
     }
 
 
-    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
-    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
+    template <int32_t Offset, int32_t Size, typename T1, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
+    void _insert(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
         insert(idx, values);
 
         sum<Offset>(idx, accum);
     }
 
-    template <Int Offset, Int Size, typename AccessorFn, typename T2, template <typename, Int> class BranchNodeEntryItem>
-    void _insert_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    template <int32_t Offset, int32_t Size, typename AccessorFn, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
+    void _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
     {
         insertSpace(idx, 1);
 
-        for (Int b = 0; b < Blocks; b++) {
+        for (int32_t b = 0; b < Blocks; b++) {
             this->values(b)[idx] = values(b);
         }
 
@@ -891,8 +891,8 @@ public:
     }
 
 
-    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
-    void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
+    template <int32_t Offset, int32_t Size, typename T1, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
+    void _update(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
         sub<Offset>(idx, accum);
 
@@ -902,8 +902,8 @@ public:
     }
 
 
-    template <Int Offset, Int Size, typename T1, typename T2, typename I, template <typename, Int> class BranchNodeEntryItem>
-    void _update(Int idx, const std::pair<T1, I>& values, BranchNodeEntryItem<T2, Size>& accum)
+    template <int32_t Offset, int32_t Size, typename T1, typename T2, typename I, template <typename, int32_t> class BranchNodeEntryItem>
+    void _update(int32_t idx, const std::pair<T1, I>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
         sub<Offset>(idx, accum);
 
@@ -912,15 +912,15 @@ public:
         sum<Offset>(idx, accum);
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
-    void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
         sub<Offset>(idx, accum);
         remove(idx, idx + 1);
     }
 
 
-    BigInt setValue(Int block, Int idx, const Value& value)
+    int64_t setValue(int32_t block, int32_t idx, const Value& value)
     {
         // FIXME: Why do we skip setting if value is zero
         if (value != 0)
@@ -938,9 +938,9 @@ public:
 
 
     template <typename T>
-    void setValues(Int idx, const core::StaticVector<T, Blocks>& values)
+    void setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
-        for (Int b = 0; b < Blocks; b++) {
+        for (int32_t b = 0; b < Blocks; b++) {
             this->values(b)[idx] = values[b];
         }
 
@@ -948,9 +948,9 @@ public:
     }
 
     template <typename T>
-    void addValues(Int idx, const core::StaticVector<T, Blocks>& values)
+    void addValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
-        for (Int b = 0; b < Blocks; b++) {
+        for (int32_t b = 0; b < Blocks; b++) {
             this->values(b)[idx] += values[b];
         }
 
@@ -958,7 +958,7 @@ public:
     }
 
 
-    void addValue(Int block, Int idx, const Value& value)
+    void addValue(int32_t block, int32_t idx, const Value& value)
     {
         if (value != 0)
         {
@@ -968,10 +968,10 @@ public:
         reindex();
     }
 
-    template <typename T, Int Indexes>
-    void addValues(Int idx, Int from, Int size, const core::StaticVector<T, Indexes>& values)
+    template <typename T, int32_t Indexes>
+    void addValues(int32_t idx, int32_t from, int32_t size, const core::StaticVector<T, Indexes>& values)
     {
-        for (Int block = 0; block < size; block++)
+        for (int32_t block = 0; block < size; block++)
         {
             this->value(block, idx) += values[block + from];
         }
@@ -991,18 +991,18 @@ public:
         if (Base::has_allocator())
         {
             auto alloc = this->allocator();
-            Int empty_size = MyType::empty_size();
+            int32_t empty_size = MyType::empty_size();
             alloc->resizeBlock(this, empty_size);
         }
     }
 
-    void clear(Int start, Int end)
+    void clear(int32_t start, int32_t end)
     {
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             auto values = this->values(block);
 
-            for (Int c = start; c < end; c++)
+            for (int32_t c = start; c < end; c++)
             {
                 values[c] = 0;
             }
@@ -1028,13 +1028,13 @@ public:
 
         const IndexValue* index[Blocks];
 
-        for (Int b = 0; b < Blocks; b++) {
+        for (int32_t b = 0; b < Blocks; b++) {
             index[b] = this->index(b);
         }
 
-        for (Int c = 0; c < index_size; c++)
+        for (int32_t c = 0; c < index_size; c++)
         {
-            handler->value("INDEX", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
+            handler->value("INDEX", PageValueProviderFactory::provider(Blocks, [&](int32_t idx) {
                 return index[idx][c];
             }));
         }
@@ -1047,13 +1047,13 @@ public:
 
         const Value* values[Blocks];
 
-        for (Int b = 0; b < Blocks; b++) {
+        for (int32_t b = 0; b < Blocks; b++) {
             values[b] = this->values(b);
         }
 
-        for (Int c = 0; c < meta->size() ; c++)
+        for (int32_t c = 0; c < meta->size() ; c++)
         {
-            handler->value("TREE_ITEM", PageValueProviderFactory::provider(false, Blocks, [&](Int idx) {
+            handler->value("TREE_ITEM", PageValueProviderFactory::provider(false, Blocks, [&](int32_t idx) {
                 return values[idx][c];
             }));
         }
@@ -1071,11 +1071,11 @@ public:
 
         const Metadata* meta = this->metadata();
 
-        FieldFactory<Int>::serialize(buf, meta->size());
-        FieldFactory<Int>::serialize(buf, meta->max_size());
-        FieldFactory<Int>::serialize(buf, meta->index_size());
+        FieldFactory<int32_t>::serialize(buf, meta->size());
+        FieldFactory<int32_t>::serialize(buf, meta->max_size());
+        FieldFactory<int32_t>::serialize(buf, meta->index_size());
 
-        for (Int b = 0; b < Blocks; b++)
+        for (int32_t b = 0; b < Blocks; b++)
         {
             FieldFactory<IndexValue>::serialize(buf, this->index(b), meta->index_size());
             FieldFactory<Value>::serialize(buf, this->values(b), meta->size());
@@ -1088,11 +1088,11 @@ public:
 
         Metadata* meta = this->metadata();
 
-        FieldFactory<Int>::deserialize(buf, meta->size());
-        FieldFactory<Int>::deserialize(buf, meta->max_size());
-        FieldFactory<Int>::deserialize(buf, meta->index_size());
+        FieldFactory<int32_t>::deserialize(buf, meta->size());
+        FieldFactory<int32_t>::deserialize(buf, meta->max_size());
+        FieldFactory<int32_t>::deserialize(buf, meta->index_size());
 
-        for (Int b = 0; b < Blocks; b++)
+        for (int32_t b = 0; b < Blocks; b++)
         {
             FieldFactory<IndexValue>::deserialize(buf, this->index(b), meta->index_size());
             FieldFactory<Value>::deserialize(buf, this->values(b), meta->size());
@@ -1108,12 +1108,12 @@ struct PkdStructSizeType<PkdFQTree<Types>> {
 
 template <typename Types>
 struct StructSizeProvider<PkdFQTree<Types>> {
-    static const Int Value = Types::Blocks;
+    static const int32_t Value = Types::Blocks;
 };
 
 template <typename Types>
 struct IndexesSize<PkdFQTree<Types>> {
-    static const Int Value = Types::Blocks;
+    static const int32_t Value = Types::Blocks;
 };
 
 

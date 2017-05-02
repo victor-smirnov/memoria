@@ -22,7 +22,7 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-using CtrName = Vector<Int>;
+using CtrName = Vector<int32_t>;
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     

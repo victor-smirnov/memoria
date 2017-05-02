@@ -44,7 +44,7 @@ protected:
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 

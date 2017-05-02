@@ -40,7 +40,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorRankName)
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
     template <typename LeafPath>
-    auto rank_fw_(Int index, CtrSizeT pos)
+    auto rank_fw_(int32_t index, CtrSizeT pos)
     {
         MEMORIA_V1_ASSERT(pos, >=, 0);
         MEMORIA_V1_ASSERT(index, >=, 0);
@@ -51,7 +51,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorRankName)
     }
 
     template <typename LeafPath>
-    auto rank_bw_(Int index, CtrSizeT pos)
+    auto rank_bw_(int32_t index, CtrSizeT pos)
     {
         MEMORIA_V1_ASSERT(pos, >=, 0);
         MEMORIA_V1_ASSERT(index, >=, 0);
@@ -62,7 +62,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorRankName)
     }
 
     template <typename LeafPath>
-    auto rank_(Int index, CtrSizeT pos)
+    auto rank_(int32_t index, CtrSizeT pos)
     {
         if (pos >= 0)
         {

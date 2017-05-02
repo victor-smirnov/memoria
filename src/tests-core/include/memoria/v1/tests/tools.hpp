@@ -98,13 +98,13 @@ std::ostream& operator<<(std::ostream& out, const vector<T, A>& vec)
 }
 
 template <typename A>
-std::ostream& operator<<(std::ostream& out, const std::vector<UByte, A>& vec)
+std::ostream& operator<<(std::ostream& out, const std::vector<uint8_t, A>& vec)
 {
     out<<hex;
 
     for (auto& value : vec)
     {
-        out<<(Int)value<<endl;
+        out<<(int32_t)value<<endl;
     }
 
     return out;
@@ -150,9 +150,9 @@ istream& operator>>(std::istream& in, std::vector<T, A>& vec)
 }
 
 template <typename A>
-istream& operator>>(std::istream& in, std::vector<UByte, A>& vec)
+istream& operator>>(std::istream& in, std::vector<uint8_t, A>& vec)
 {
-    Int value;
+    int32_t value;
 
     do {
         in>>value;
@@ -220,7 +220,7 @@ size_t appendToSortedVector(std::vector<T, A>& vec, const T& value)
 void Fill(char* buf, int size, char value);
 
 template <typename T>
-vector<T> createBuffer(Int size, T value)
+vector<T> createBuffer(int32_t size, T value)
 {
     vector<T> vec(size);
 
@@ -236,7 +236,7 @@ vector<T> createBuffer(Int size, T value)
 }
 
 template <typename T>
-vector<T> createSimpleBuffer(Int size, T value)
+vector<T> createSimpleBuffer(int32_t size, T value)
 {
     vector<T> vec(size);
 
@@ -249,7 +249,7 @@ vector<T> createSimpleBuffer(Int size, T value)
 }
 
 template <typename T>
-vector<T> createRandomBuffer(T fill_value, Int max_size)
+vector<T> createRandomBuffer(T fill_value, int32_t max_size)
 {
     return createBuffer<T>(getNonZeroRandomG(max_size), fill_value);
 }
@@ -262,7 +262,7 @@ vector<T> createRandomBuffer(T fill_value, Int max_size)
 template <typename Allocator>
 void check(Allocator& allocator, const char* message,  const char* source)
 {
-    Int level = allocator.logger().level();
+    int32_t level = allocator.logger().level();
 
     allocator.logger().level() = Logger::_ERROR;
 
@@ -279,7 +279,7 @@ void check(Allocator& allocator, const char* message,  const char* source)
 template <typename Ctr>
 void checkCtr(Ctr& ctr, const char* message,  const char* source)
 {
-    Int level = ctr.logger().level();
+    int32_t level = ctr.logger().level();
 
     ctr.logger().level() = Logger::_ERROR;
 
@@ -295,7 +295,7 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 
 
 template <typename Types, typename T>
-bool CompareBuffer(Iter<Vector2IterTypes<Types>>& iter, const vector<T>& data, Int& c)
+bool CompareBuffer(Iter<Vector2IterTypes<Types>>& iter, const vector<T>& data, int32_t& c)
 {
     auto tmp = iter;
 
@@ -303,7 +303,7 @@ bool CompareBuffer(Iter<Vector2IterTypes<Types>>& iter, const vector<T>& data, I
 
     iter.skip(data.size());
 
-    for (c = 0; c < (Int)data.size(); c++)
+    for (c = 0; c < (int32_t)data.size(); c++)
     {
         if (buf[c] != data[c])
         {
@@ -318,7 +318,7 @@ bool CompareBuffer(Iter<Vector2IterTypes<Types>>& iter, const vector<T>& data, I
 template <typename BAIterator, typename MemBuffer>
 void checkBufferWritten(BAIterator& iter, const MemBuffer& data, const char* err_msg, const char* source)
 {
-    Int pos = 0;
+    int32_t pos = 0;
     if (!CompareBuffer(iter, data, pos))
     {
         throw TestException(source, SBuf()<<err_msg<<": pos="<<pos);
@@ -328,14 +328,14 @@ void checkBufferWritten(BAIterator& iter, const MemBuffer& data, const char* err
 
 
 template <typename Types, typename MemBuffer>
-bool CompareBuffer(Iter<Types>& iter, const MemBuffer& data, Int& c)
+bool CompareBuffer(Iter<Types>& iter, const MemBuffer& data, int32_t& c)
 {
     typedef Iter<Types> Iterator;
 
     c = 0;
     for (size_t i = 0; i != data.size(); i++, iter.next(), c++)
     {
-        for (Int d = 0; d < Iterator::Indexes; d++)
+        for (int32_t d = 0; d < Iterator::Indexes; d++)
         {
             auto value = iter.getRawKey(d);
 
@@ -353,9 +353,9 @@ bool CompareBuffer(Iter<Types>& iter, const MemBuffer& data, Int& c)
 
 
 template <typename T, typename A>
-Int getUniqueRandom(const vector<T, A> &vec)
+int32_t getUniqueRandom(const vector<T, A> &vec)
 {
-    Int value = getRandomG();
+    int32_t value = getRandomG();
 
     for (const T& item: vec)
     {
@@ -370,9 +370,9 @@ Int getUniqueRandom(const vector<T, A> &vec)
 
 
 template <typename T, typename A>
-BigInt getUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
+int64_t getUniqueBIRandom(const vector<T, A> &vec, int64_t limit)
 {
-    Int value = getBIRandomG(limit) + 1;
+    int32_t value = getBIRandomG(limit) + 1;
 
     for (const T& item: vec)
     {

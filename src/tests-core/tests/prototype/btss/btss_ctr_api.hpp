@@ -39,7 +39,7 @@ class CtrApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>: public CtrApiB
     using typename Base::Iterator;
     
 public:
-    using DataValue = BigInt;
+    using DataValue = int64_t;
 
     MMA1_DECLARE_CTRAPI_BTSS_BASIC_METHODS()
 };
@@ -54,8 +54,8 @@ class IterApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>: public IterAp
     using typename Base::IterPtr;
      
 public:
-    using DataValue = BigInt;
-    using Value = BigInt;
+    using DataValue = int64_t;
+    using Value = int64_t;
     
     using Base::read;
     using Base::insert;

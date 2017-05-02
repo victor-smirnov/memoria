@@ -63,11 +63,11 @@ public:
 
     virtual ~BTSSTestBase() noexcept {}
 
-    MemBuffer createBuffer(Int size) {
+    MemBuffer createBuffer(int32_t size) {
         return MemBuffer(size);
     }
 
-    virtual MemBuffer createRandomBuffer(Int size) = 0;
+    virtual MemBuffer createRandomBuffer(int32_t size) = 0;
 
 
 
@@ -84,7 +84,7 @@ public:
         }
     }
 
-    virtual void fillRandom(Ctr& ctr, BigInt size)
+    virtual void fillRandom(Ctr& ctr, int64_t size)
     {
         MemBuffer data = createRandomBuffer(size);
 
@@ -92,17 +92,17 @@ public:
     }
 
 
-    virtual void fillRandom(Allocator& alloc, Ctr& ctr, BigInt size)
+    virtual void fillRandom(Allocator& alloc, Ctr& ctr, int64_t size)
     {
-        BigInt block_size = size > 65536*4 ? 65536*4 : size;
+        int64_t block_size = size > 65536*4 ? 65536*4 : size;
 
-        BigInt total = 0;
+        int64_t total = 0;
 
         auto iter = ctr.seek(0);
 
         while (total < size)
         {
-            BigInt tmp_size = size - total > block_size ? block_size : size - total;
+            int64_t tmp_size = size - total > block_size ? block_size : size - total;
 
             MemBuffer data = createRandomBuffer(tmp_size);
             

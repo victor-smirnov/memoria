@@ -23,11 +23,11 @@ namespace memoria {
 namespace v1 {
 namespace tools     {
 
-template <typename Tuple, Int Idx = std::tuple_size<Tuple>::value>
+template <typename Tuple, int32_t Idx = std::tuple_size<Tuple>::value>
 class TupleDispatcher {
 
-    static const Int TupleSize  = std::tuple_size<Tuple>::value;
-    static const Int ElementIdx = TupleSize - Idx;
+    static const int32_t TupleSize  = std::tuple_size<Tuple>::value;
+    static const int32_t ElementIdx = TupleSize - Idx;
 
 public:
 

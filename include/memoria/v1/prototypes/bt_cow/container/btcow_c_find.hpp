@@ -71,14 +71,14 @@ protected:
     IteratorPtr find_(Walker&& walker);
 
     template <typename LeafPath>
-    IteratorPtr find_gt(Int index, const TargetType<LeafPath>& key)
+    IteratorPtr find_gt(int32_t index, const TargetType<LeafPath>& key)
     {
         typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
         return self().find_(walker);
     }
 
     template <typename LeafPath>
-    IteratorPtr find_max_gt(Int index, const TargetType<LeafPath>& key)
+    IteratorPtr find_max_gt(int32_t index, const TargetType<LeafPath>& key)
     {
         typename Types::template FindMaxGTWalker<Types, LeafPath> walker(index, key);
         return self().find_(walker);
@@ -86,28 +86,28 @@ protected:
 
 
     template <typename LeafPath>
-    IteratorPtr find_ge(Int index, const TargetType<LeafPath>& key)
+    IteratorPtr find_ge(int32_t index, const TargetType<LeafPath>& key)
     {
         typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
         return self().find_(walker);
     }
 
     template <typename LeafPath>
-    IteratorPtr find_max_ge(Int index, const TargetType<LeafPath>& key)
+    IteratorPtr find_max_ge(int32_t index, const TargetType<LeafPath>& key)
     {
         typename Types::template FindMaxGEWalker<Types, LeafPath> walker(index, key);
         return self().find_(walker);
     }
 
     template <typename LeafPath>
-    IteratorPtr rank_(Int index, CtrSizeT pos)
+    IteratorPtr rank_(int32_t index, CtrSizeT pos)
     {
         typename Types::template RankForwardWalker<Types, LeafPath> walker(index, pos);
         return self().find_(walker);
     }
 
     template <typename LeafPath>
-    IteratorPtr select_(Int index, CtrSizeT rank)
+    IteratorPtr select_(int32_t index, CtrSizeT rank)
     {
         typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
         return self().find_(walker);
@@ -116,11 +116,11 @@ protected:
 
     struct NodeChain {
         NodeBaseG node;
-        Int start;
-        Int end;
+        int32_t start;
+        int32_t end;
         NodeChain* ref;
 
-        NodeChain(NodeBaseG _node, Int _start, NodeChain* _ref = nullptr): node(_node), start(_start), end(0), ref(_ref) {}
+        NodeChain(NodeBaseG _node, int32_t _start, NodeChain* _ref = nullptr): node(_node), start(_start), end(0), ref(_ref) {}
 
         void swapRanges()
         {
@@ -130,7 +130,7 @@ protected:
         }
 
         template <typename Walker>
-        WalkCmd processChain(Walker&& walker, Int leaf_cnt = 0)
+        WalkCmd processChain(Walker&& walker, int32_t leaf_cnt = 0)
         {
             if (node->is_leaf())
             {
@@ -173,24 +173,24 @@ protected:
 
     struct FindResult {
         NodeBaseG   node;
-        Int         idx;
+        int32_t         idx;
         bool        pass;
         WalkCmd     cmd;
 
-        explicit FindResult(NodeBaseG _node, Int _idx, WalkCmd _cmd, bool _pass = true): node(_node), idx(_idx), pass(_pass), cmd(_cmd) {}
+        explicit FindResult(NodeBaseG _node, int32_t _idx, WalkCmd _cmd, bool _pass = true): node(_node), idx(_idx), pass(_pass), cmd(_cmd) {}
     };
 
 //    template <typename Walker>
-//    StreamOpResult find_fw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
+//    StreamOpResult find_fw(NodeBaseG& node, int32_t stream, int32_t idx, Walker&& walker);
 
     template <typename Walker>
-    FindResult find_fw(TreePath& path, Int level, NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
+    FindResult find_fw(TreePath& path, int32_t level, NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
 
 
     template <typename Walker>
-    FindResult find_bw(TreePath& path, Int level, NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
+    FindResult find_bw(TreePath& path, int32_t level, NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
 
-    template <Int Stream>
+    template <int32_t Stream>
     IteratorPtr seek_stream(CtrSizeT position)
     {
         typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(position);
@@ -201,7 +201,7 @@ protected:
 
 
     template <typename Walker>
-    void walkUp(NodeBaseG node, Int idx, Walker&& walker) const
+    void walkUp(NodeBaseG node, int32_t idx, Walker&& walker) const
     {
         if (node->is_leaf())
         {
@@ -232,7 +232,7 @@ MEMORIA_V1_CONTAINER_PART_END
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::FindResult M_TYPE::find_fw(TreePath& path, Int level, NodeChain node_chain, Walker&& walker, WalkDirection direction)
+typename M_TYPE::FindResult M_TYPE::find_fw(TreePath& path, int32_t level, NodeChain node_chain, Walker&& walker, WalkDirection direction)
 {
     auto& self = this->self();
 
@@ -316,14 +316,14 @@ typename M_TYPE::FindResult M_TYPE::find_fw(TreePath& path, Int level, NodeChain
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::FindResult M_TYPE::find_bw(TreePath& path, Int level, NodeChain node_chain, Walker&& walker, WalkDirection direction)
+typename M_TYPE::FindResult M_TYPE::find_bw(TreePath& path, int32_t level, NodeChain node_chain, Walker&& walker, WalkDirection direction)
 {
     auto& self = this->self();
 
     auto result = NodeDispatcher::dispatch(node_chain.node, std::forward<Walker>(walker), direction, node_chain.start);
     node_chain.end = result.idx();
 
-    const Int max = std::numeric_limits<Int>::max() - 2;
+    const int32_t max = std::numeric_limits<int32_t>::max() - 2;
 
     if (direction == WalkDirection::UP)
     {
@@ -416,7 +416,7 @@ typename M_TYPE::IteratorPtr M_TYPE::find_(Walker&& walker)
     {
     	auto& path = i->path();
 
-    	Int path_idx = node->level();
+    	int32_t path_idx = node->level();
     	path.resize(path_idx + 1);
 
     	while (!node->is_leaf())
@@ -424,7 +424,7 @@ typename M_TYPE::IteratorPtr M_TYPE::find_(Walker&& walker)
     		path[path_idx--] = node;
 
     		auto result = BranchDispatcher::dispatch(node, walker, WalkDirection::DOWN, 0);
-            Int idx = result.idx();
+            int32_t idx = result.idx();
 
             if (result.out_of_range())
             {

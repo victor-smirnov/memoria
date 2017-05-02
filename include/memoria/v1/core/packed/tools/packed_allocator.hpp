@@ -45,16 +45,16 @@ class PackedAllocator: public PackedAllocatable {
 
 public:
 
-    typedef UBigInt                                                             Bitmap;
+    typedef uint64_t                                                             Bitmap;
 
-    static const UInt VERSION                                                   = 1;
+    static const uint32_t VERSION                                                   = 1;
 
 private:
-    Int block_size_;
-    Int layout_size_;
-    Int bitmap_size_;
+    int32_t block_size_;
+    int32_t layout_size_;
+    int32_t bitmap_size_;
 
-    UByte buffer_[1];
+    uint8_t buffer_[1];
 
 public:
 
@@ -70,7 +70,7 @@ public:
 
     PackedAllocator() = default;
 
-    bool is_allocatable(Int idx) const
+    bool is_allocatable(int32_t idx) const
     {
         const Bitmap* bmp = bitmap();
         return GetBit(bmp, idx);
@@ -84,55 +84,55 @@ public:
         return T2T<const Bitmap*>(buffer_ + layout_size_);
     }
 
-    Int allocated() const {
+    int32_t allocated() const {
         return element_offset(elements());
     }
 
-    Int client_area() const {
+    int32_t client_area() const {
         return block_size_ - my_size() - layout_size_ - bitmap_size_;
     }
 
-    Int free_space() const {
-        Int client_area = this->client_area();
-        Int allocated = this->allocated();
+    int32_t free_space() const {
+        int32_t client_area = this->client_area();
+        int32_t allocated = this->allocated();
         return client_area - allocated;
     }
 
-    Int elements() const {
+    int32_t elements() const {
         return layout_size_/4 - 1;
     }
 
-    UByte* base() {
+    uint8_t* base() {
         return buffer_ + layout_size_ + bitmap_size_;
     }
 
-    const UByte* base() const {
+    const uint8_t* base() const {
         return buffer_ + layout_size_ + bitmap_size_;
     }
 
-    Int layout_size() const {
+    int32_t layout_size() const {
         return layout_size_;
     }
 
-    Int bitmap_size() const {
+    int32_t bitmap_size() const {
         return bitmap_size_;
     }
 
-    Int block_size() const {
+    int32_t block_size() const {
         return block_size_;
     }
 
-    void set_block_size(Int block_size) {
+    void set_block_size(int32_t block_size) {
         this->block_size_ = block_size;
     }
 
-    void init(Int block_size, Int blocks)
+    void init(int32_t block_size, int32_t blocks)
     {
         block_size_ = roundDownBytesToAlignmentBlocks(block_size);
 
-        Int layout_blocks = blocks + (blocks % 2 ? 1 : 2);
+        int32_t layout_blocks = blocks + (blocks % 2 ? 1 : 2);
 
-        layout_size_ = layout_blocks * sizeof(Int);
+        layout_size_ = layout_blocks * sizeof(int32_t);
 
         memset(buffer_, 0, layout_size_);
 
@@ -142,72 +142,72 @@ public:
         memset(bitmap, 0, bitmap_size_);
     }
 
-    static constexpr Int empty_size(Int blocks)
+    static constexpr int32_t empty_size(int32_t blocks)
     {
         return block_size(0, blocks);
     }
 
-    static constexpr Int block_size(Int client_area, Int blocks)
+    static constexpr int32_t block_size(int32_t client_area, int32_t blocks)
     {
-//        Int layout_blocks = blocks + (blocks % 2 ? 1 : 2);
+//        int32_t layout_blocks = blocks + (blocks % 2 ? 1 : 2);
 //
-//        Int layout_size = layout_blocks * sizeof(Int);
-//        Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
+//        int32_t layout_size = layout_blocks * sizeof(int32_t);
+//        int32_t bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
 
 //        return my_size() + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
 
         return roundUpBytesToAlignmentBlocks(
                 my_size() +
-                (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) +
+                (blocks + (blocks % 2 ? 1 : 2))*sizeof(int32_t) +
                 roundUpBitsToAlignmentBlocks(blocks) +
                 roundUpBytesToAlignmentBlocks(client_area)
         );
     }
 
-    static constexpr Int client_area(Int block_size, Int blocks)
+    static constexpr int32_t client_area(int32_t block_size, int32_t blocks)
     {
-//        Int layout_blocks = blocks + (blocks % 2 ? 1 : 2);
+//        int32_t layout_blocks = blocks + (blocks % 2 ? 1 : 2);
 //
-//        Int layout_size = layout_blocks * sizeof(Int);
-//        Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
+//        int32_t layout_size = layout_blocks * sizeof(int32_t);
+//        int32_t bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
 
 //        return roundDownBytesToAlignmentBlocks(block_size - (my_size() + layout_size + bitmap_size));
 
         return roundDownBytesToAlignmentBlocks(
                 block_size -
-                (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks))
+                (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(int32_t) + roundUpBitsToAlignmentBlocks(blocks))
         );
     }
 
-    Int computeElementOffset(const void* element) const
+    int32_t computeElementOffset(const void* element) const
     {
-        const UByte* base_ptr = base();
-        const UByte* elt_ptr = T2T<const UByte*>(element);
+        const uint8_t* base_ptr = base();
+        const uint8_t* elt_ptr = T2T<const uint8_t*>(element);
 
         size_t diff = T2T<size_t>(elt_ptr - base_ptr);
 
         return diff;
     }
 
-    Int resizeBlock(const void* element, Int new_size)
+    int32_t resizeBlock(const void* element, int32_t new_size)
     {
-        Int idx = findElement(element);
+        int32_t idx = findElement(element);
 
         return resizeBlock(idx, new_size);
     }
 
-    Int resizeBlock(Int idx, Int new_size)
+    int32_t resizeBlock(int32_t idx, int32_t new_size)
     {
         MEMORIA_V1_ASSERT(new_size, >=, 0);
 
-        Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
+        int32_t allocation_size = roundUpBytesToAlignmentBlocks(new_size);
 
-        Int size        = element_size(idx);
-        Int delta       = allocation_size - size;
+        int32_t size        = element_size(idx);
+        int32_t delta       = allocation_size - size;
 
         if (delta > 0)
         {
-        	Int free_space = this->free_space();
+        	int32_t free_space = this->free_space();
             if (delta > free_space)
             {
                 enlarge(delta);
@@ -230,37 +230,37 @@ public:
     }
 
 
-    Int* layout() {
-        return T2T<Int*>(buffer_);
+    int32_t* layout() {
+        return T2T<int32_t*>(buffer_);
     }
 
-    const Int* layout() const {
-        return T2T<const Int*>(buffer_);
+    const int32_t* layout() const {
+        return T2T<const int32_t*>(buffer_);
     }
 
-    const Int& element_offset(Int idx) const
+    const int32_t& element_offset(int32_t idx) const
     {
-        return *(T2T<const Int*>(buffer_) + idx);
+        return *(T2T<const int32_t*>(buffer_) + idx);
     }
 
     //TODO: rename to segment_size ?
-    Int element_size(Int idx) const
+    int32_t element_size(int32_t idx) const
     {
-        Int size2 = element_offset(idx + 1);
-        Int size1 = element_offset(idx);
+        int32_t size2 = element_offset(idx + 1);
+        int32_t size1 = element_offset(idx);
         return size2 - size1;
     }
 
-    Int element_size(const void* element_ptr) const
+    int32_t element_size(const void* element_ptr) const
     {
-        Int idx = findElement(element_ptr);
+        int32_t idx = findElement(element_ptr);
         return element_size(idx);
     }
 
 
-    Int findElement(const void* element_ptr) const
+    int32_t findElement(const void* element_ptr) const
     {
-        Int offset  = computeElementOffset(element_ptr);
+        int32_t offset  = computeElementOffset(element_ptr);
 
         if (offset < 0) {
             int a = 0; a++;
@@ -268,7 +268,7 @@ public:
 
         MEMORIA_V1_ASSERT(offset, >=, 0);
 
-        for (Int c = 0; c < layout_size_ / 4; c++)
+        for (int32_t c = 0; c < layout_size_ / 4; c++)
         {
             if (offset < element_offset(c))
             {
@@ -281,7 +281,7 @@ public:
 
 
     template <typename T>
-    const T* get(Int idx) const
+    const T* get(int32_t idx) const
     {
         const T* addr = T2T<const T*>(base() + element_offset(idx));
 
@@ -292,7 +292,7 @@ public:
     }
 
     template <typename T>
-    T* get(Int idx)
+    T* get(int32_t idx)
     {
         T* addr = T2T<T*>(base() + element_offset(idx));
 
@@ -307,24 +307,24 @@ public:
         return element_size(idx) == 0;
     }
 
-    AllocationBlock describe(Int idx)
+    AllocationBlock describe(int32_t idx)
     {
-        Int offset  = element_offset(idx);
-        Int size    = element_size(idx);
+        int32_t offset  = element_offset(idx);
+        int32_t size    = element_size(idx);
 
         return AllocationBlock(size, offset, base() + offset);
     }
 
-    AllocationBlockConst describe(Int idx) const
+    AllocationBlockConst describe(int32_t idx) const
     {
-        Int offset  = element_offset(idx);
-        Int size    = element_size(idx);
+        int32_t offset  = element_offset(idx);
+        int32_t size    = element_size(idx);
 
         return AllocationBlockConst(size, offset, base() + offset);
     }
 
     template <typename T>
-    T* allocate(Int idx, Int block_size)
+    T* allocate(int32_t idx, int32_t block_size)
     {
         static_assert(std::is_base_of<PackedAllocatable, T>::value,
                 "Only derived classes of PackedAllocatable "
@@ -340,7 +340,7 @@ public:
     }
 
     template <typename T>
-    T* allocateSpace(Int idx, Int block_size)
+    T* allocateSpace(int32_t idx, int32_t block_size)
     {
         static_assert(std::is_base_of<PackedAllocatable, T>::value,
                 "Only derived classes of PackedAllocatable "
@@ -352,13 +352,13 @@ public:
     }
 
     template <typename T>
-    T* allocateEmpty(Int idx)
+    T* allocateEmpty(int32_t idx)
     {
         static_assert(std::is_base_of<PackedAllocatable, T>::value,
                 "Only derived classes of PackedAllocatable "
                 "should be instantiated this way");
 
-        Int block_size = T::empty_size();
+        int32_t block_size = T::empty_size();
 
         AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
@@ -370,9 +370,9 @@ public:
     }
 
 
-    PackedAllocator* allocateAllocator(Int idx, Int streams)
+    PackedAllocator* allocateAllocator(int32_t idx, int32_t streams)
     {
-        Int block_size = PackedAllocator::empty_size(streams);
+        int32_t block_size = PackedAllocator::empty_size(streams);
 
         AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
@@ -385,7 +385,7 @@ public:
 
 
     template <typename T>
-    T* allocate(Int idx)
+    T* allocate(int32_t idx)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -396,7 +396,7 @@ public:
     }
 
     template <typename T>
-    T* allocateArrayByLength(Int idx, Int length)
+    T* allocateArrayByLength(int32_t idx, int32_t length)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -407,7 +407,7 @@ public:
     }
 
     template <typename T>
-    T* allocateArrayBySize(Int idx, Int size)
+    T* allocateArrayBySize(int32_t idx, int32_t size)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -418,9 +418,9 @@ public:
     }
 
 
-    AllocationBlock allocate(Int idx, Int size, PackedBlockType type)
+    AllocationBlock allocate(int32_t idx, int32_t size, PackedBlockType type)
     {
-        Int allocation_size = roundUpBytesToAlignmentBlocks(size);
+        int32_t allocation_size = roundUpBytesToAlignmentBlocks(size);
 
         if (allocation_size > free_space())
         {
@@ -431,7 +431,7 @@ public:
 
         setBlockType(idx, type);
 
-        Int offset = element_offset(idx);
+        int32_t offset = element_offset(idx);
 
         memset(base() + offset, 0, allocation_size);
 
@@ -448,7 +448,7 @@ public:
         return AllocationBlock(allocation_size, offset, base() + offset);
     }
 
-    void importBlock(Int idx, const PackedAllocator* src, Int src_idx)
+    void importBlock(int32_t idx, const PackedAllocator* src, int32_t src_idx)
     {
         auto src_block  = src->describe(src_idx);
         auto type       = src->block_type(src_idx);
@@ -458,8 +458,8 @@ public:
 
         auto tgt_block  = this->describe(idx);
 
-        const UByte* src_ptr    = src_block.ptr();
-        UByte* tgt_ptr          = tgt_block.ptr();
+        const uint8_t* src_ptr    = src_block.ptr();
+        uint8_t* tgt_ptr          = tgt_block.ptr();
 
         CopyByteBuffer(src_ptr, tgt_ptr, src_block.size());
 
@@ -470,9 +470,9 @@ public:
         }
     }
 
-    void free(Int idx)
+    void free(int32_t idx)
     {
-        Int size        = element_size(idx);
+        int32_t size        = element_size(idx);
         moveElements(idx + 1, -size);
 
         if (allocator_offset() > 0)
@@ -481,19 +481,19 @@ public:
         }
     }
 
-    void clear(Int idx)
+    void clear(int32_t idx)
     {
         auto block = describe(idx);
         memset(block.ptr(), 0, block.size());
     }
 
-    void setBlockType(Int idx, PackedBlockType type)
+    void setBlockType(int32_t idx, PackedBlockType type)
     {
         Bitmap* bitmap = this->bitmap();
         SetBit(bitmap, idx, type == PackedBlockType::ALLOCATABLE);
     }
 
-    PackedBlockType block_type(Int idx) const
+    PackedBlockType block_type(int32_t idx) const
     {
         const Bitmap* bitmap = this->bitmap();
         return GetBit(bitmap, idx) ? PackedBlockType::ALLOCATABLE : PackedBlockType::RAW_MEMORY;
@@ -515,7 +515,7 @@ public:
         out<<"PackedAllocator Block Types Bitmap:"<<endl;
         const Bitmap* bitmap = this->bitmap();
 
-        dumpSymbols<Bitmap>(out, layout_size_/4, 1, [bitmap](Int idx){
+        dumpSymbols<Bitmap>(out, layout_size_/4, 1, [bitmap](int32_t idx){
             return GetBit(bitmap, idx);
         });
     }
@@ -526,28 +526,28 @@ public:
 
     void dumpLayout(std::ostream& out = std::cout) const
     {
-        dumpArray<Int>(out, layout_size_/4, [this](Int idx){
+        dumpArray<int32_t>(out, layout_size_/4, [this](int32_t idx){
             return this->element_offset(idx);
         });
     }
 
 
-    Int enlarge(Int delta)
+    int32_t enlarge(int32_t delta)
     {
         return resize(roundUpBytesToAlignmentBlocks(block_size_ + delta));
     }
 
-    Int shrink(Int delta)
+    int32_t shrink(int32_t delta)
     {
         return resize(roundUpBytesToAlignmentBlocks(block_size_ - delta));
     }
 
-    void resizeBlock(Int new_size)
+    void resizeBlock(int32_t new_size)
     {
         block_size_ = new_size;
     }
 
-    Int resize(Int new_size)
+    int32_t resize(int32_t new_size)
     {
         if (allocator_offset() > 0)
         {
@@ -573,14 +573,14 @@ public:
         return block_size_;
     }
 
-    void forceResize(Int amount)
+    void forceResize(int32_t amount)
     {
         block_size_ += roundDownBytesToAlignmentBlocks(amount);
     }
 
-    Int pack()
+    int32_t pack()
     {
-        Int free_space = this->free_space();
+        int32_t free_space = this->free_space();
         return resize(block_size_ - free_space);
     }
 
@@ -593,8 +593,8 @@ public:
 
         handler->value("BLOCK_SIZE",    &block_size_);
 
-        Int client_area = this->client_area();
-        Int free_space  = this->free_space();
+        int32_t client_area = this->client_area();
+        int32_t free_space  = this->free_space();
 
         handler->value("CLIENT_AREA",   &client_area);
         handler->value("FREE_SPACE",   &free_space);
@@ -607,63 +607,63 @@ public:
 
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<Int>::serialize(buf, allocator_offset_);
-        FieldFactory<Int>::serialize(buf, block_size_);
-        FieldFactory<Int>::serialize(buf, layout_size_);
-        FieldFactory<Int>::serialize(buf, bitmap_size_);
+        FieldFactory<int32_t>::serialize(buf, allocator_offset_);
+        FieldFactory<int32_t>::serialize(buf, block_size_);
+        FieldFactory<int32_t>::serialize(buf, layout_size_);
+        FieldFactory<int32_t>::serialize(buf, bitmap_size_);
 
-        Int layout_size = layout_size_ / 4;
+        int32_t layout_size = layout_size_ / 4;
 
-        FieldFactory<Int>::serialize(buf, layout(), layout_size);
+        FieldFactory<int32_t>::serialize(buf, layout(), layout_size);
 
         FieldFactory<Bitmap>::serialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
     }
 
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<Int>::deserialize(buf, allocator_offset_);
-        FieldFactory<Int>::deserialize(buf, block_size_);
-        FieldFactory<Int>::deserialize(buf, layout_size_);
-        FieldFactory<Int>::deserialize(buf, bitmap_size_);
+        FieldFactory<int32_t>::deserialize(buf, allocator_offset_);
+        FieldFactory<int32_t>::deserialize(buf, block_size_);
+        FieldFactory<int32_t>::deserialize(buf, layout_size_);
+        FieldFactory<int32_t>::deserialize(buf, bitmap_size_);
 
-        Int layout_size = layout_size_ / 4;
+        int32_t layout_size = layout_size_ / 4;
 
-        FieldFactory<Int>::deserialize(buf, layout(), layout_size);
+        FieldFactory<int32_t>::deserialize(buf, layout(), layout_size);
 
         FieldFactory<Bitmap>::deserialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
     }
 
     template <typename T>
-    void serializeSegment(SerializationData& buf, Int segment) const
+    void serializeSegment(SerializationData& buf, int32_t segment) const
     {
         auto data = this->describe(segment);
-        FieldFactory<T>::serialize(buf, T2T<const T*>(data.ptr()), data.size() / (Int)sizeof(T));
+        FieldFactory<T>::serialize(buf, T2T<const T*>(data.ptr()), data.size() / (int32_t)sizeof(T));
     }
 
     template <typename T>
-    void deserializeSegment(DeserializationData& buf, Int segment)
+    void deserializeSegment(DeserializationData& buf, int32_t segment)
     {
         auto data = this->describe(segment);
-        FieldFactory<T>::deserialize(buf, T2T<T*>(data.ptr()), data.size() / (Int)sizeof(T));
+        FieldFactory<T>::deserialize(buf, T2T<T*>(data.ptr()), data.size() / (int32_t)sizeof(T));
     }
 
 
-    constexpr static Int my_size()
+    constexpr static int32_t my_size()
     {
         return sizeof(MyType) - alignof(MyType);
     }
 
 
 private:
-    Int& set_element_offset(Int idx)
+    int32_t& set_element_offset(int32_t idx)
     {
-        return *(T2T<Int*>(buffer_) + idx);
+        return *(T2T<int32_t*>(buffer_) + idx);
     }
 
 
-    void moveElementsUp(Int idx, int delta)
+    void moveElementsUp(int32_t idx, int delta)
     {
-        Int layout_size = layout_size_/4;
+        int32_t layout_size = layout_size_/4;
 
         if (idx < layout_size - 1)
         {
@@ -677,9 +677,9 @@ private:
         set_element_offset(idx) += delta;
     }
 
-    void moveElementsDown(Int idx, int delta)
+    void moveElementsDown(int32_t idx, int delta)
     {
-        Int layout_size = layout_size_/4;
+        int32_t layout_size = layout_size_/4;
 
         if (idx < layout_size - 1)
         {
@@ -696,11 +696,11 @@ private:
         }
     }
 
-    void moveElementData(Int idx, const AllocationBlock& block, Int delta)
+    void moveElementData(int32_t idx, const AllocationBlock& block, int32_t delta)
     {
         if (block.size() > 0)
         {
-            UByte* ptr = block.ptr();
+            uint8_t* ptr = block.ptr();
 
             CopyByteBuffer(ptr, ptr + delta, block.size());
 
@@ -713,7 +713,7 @@ private:
     }
 
 
-    void moveElements(Int start_idx, Int delta)
+    void moveElements(int32_t start_idx, int32_t delta)
     {
         if (delta > 0) {
             moveElementsUp(start_idx, delta);
@@ -730,7 +730,7 @@ template <typename... Types> struct SerializeTool;
 
 template <typename Head, typename... Tail>
 struct SerializeTool<Head, Tail...> {
-    static void serialize(const PackedAllocator* allocator, SerializationData& buf, Int idx = 0)
+    static void serialize(const PackedAllocator* allocator, SerializationData& buf, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
         {
@@ -744,7 +744,7 @@ struct SerializeTool<Head, Tail...> {
 
 template <typename Head, typename... Tail>
 struct SerializeTool<TypeList<Head, Tail...>> {
-    static void serialize(const PackedAllocator* allocator, SerializationData& buf, Int idx = 0)
+    static void serialize(const PackedAllocator* allocator, SerializationData& buf, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
         {
@@ -758,12 +758,12 @@ struct SerializeTool<TypeList<Head, Tail...>> {
 
 template <>
 struct SerializeTool<> {
-    static void serialize(const PackedAllocator* allocator, SerializationData& buf, Int idx = 0) {}
+    static void serialize(const PackedAllocator* allocator, SerializationData& buf, int32_t idx = 0) {}
 };
 
 template <>
 struct SerializeTool<TypeList<>> {
-    static void serialize(const PackedAllocator* allocator, SerializationData& buf, Int idx = 0) {}
+    static void serialize(const PackedAllocator* allocator, SerializationData& buf, int32_t idx = 0) {}
 };
 
 
@@ -772,7 +772,7 @@ template <typename... Types> struct DeserializeTool;
 
 template <typename Head, typename... Tail>
 struct DeserializeTool<Head, Tail...> {
-    static void deserialize(PackedAllocator* allocator, DeserializationData& buf, Int idx = 0)
+    static void deserialize(PackedAllocator* allocator, DeserializationData& buf, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
         {
@@ -786,7 +786,7 @@ struct DeserializeTool<Head, Tail...> {
 
 template <typename Head, typename... Tail>
 struct DeserializeTool<TypeList<Head, Tail...>> {
-    static void deserialize(PackedAllocator* allocator, DeserializationData& buf, Int idx = 0)
+    static void deserialize(PackedAllocator* allocator, DeserializationData& buf, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
         {
@@ -800,12 +800,12 @@ struct DeserializeTool<TypeList<Head, Tail...>> {
 
 template <>
 struct DeserializeTool<> {
-    static void deserialize(PackedAllocator* allocator, DeserializationData& buf, Int idx = 0) {}
+    static void deserialize(PackedAllocator* allocator, DeserializationData& buf, int32_t idx = 0) {}
 };
 
 template <>
 struct DeserializeTool<TypeList<>> {
-    static void deserialize(PackedAllocator* allocator, DeserializationData& buf, Int idx = 0) {}
+    static void deserialize(PackedAllocator* allocator, DeserializationData& buf, int32_t idx = 0) {}
 };
 
 
@@ -814,7 +814,7 @@ template <typename... Types> struct GenerateDataEventsTool;
 
 template <typename Head, typename... Tail>
 struct GenerateDataEventsTool<Head, Tail...> {
-    static void generateDataEvents(const PackedAllocator* allocator, IPageDataEventHandler* handler, Int idx = 0)
+    static void generateDataEvents(const PackedAllocator* allocator, IPageDataEventHandler* handler, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
         {
@@ -828,7 +828,7 @@ struct GenerateDataEventsTool<Head, Tail...> {
 
 template <typename Head, typename... Tail>
 struct GenerateDataEventsTool<TypeList<Head, Tail...>> {
-    static void generateDataEvents(const PackedAllocator* allocator, IPageDataEventHandler* handler, Int idx = 0)
+    static void generateDataEvents(const PackedAllocator* allocator, IPageDataEventHandler* handler, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
         {
@@ -842,12 +842,12 @@ struct GenerateDataEventsTool<TypeList<Head, Tail...>> {
 
 template <>
 struct GenerateDataEventsTool<> {
-    static void generateDataEvents(PackedAllocator* allocator, IPageDataEventHandler* handler, Int idx = 0) {}
+    static void generateDataEvents(PackedAllocator* allocator, IPageDataEventHandler* handler, int32_t idx = 0) {}
 };
 
 template <>
 struct GenerateDataEventsTool<TypeList<>> {
-    static void generateDataEvents(PackedAllocator* allocator, IPageDataEventHandler* handler, Int idx = 0) {}
+    static void generateDataEvents(PackedAllocator* allocator, IPageDataEventHandler* handler, int32_t idx = 0) {}
 };
 
 

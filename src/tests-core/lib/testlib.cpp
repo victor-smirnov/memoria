@@ -50,13 +50,13 @@ void TestTask::Run(std::ostream& out)
         this->configureSeed();
         this->setUp();
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
         try {
             out<<"Test: "<<current_test_name_<<std::endl;
             descr->run(this, out);
 
-            BigInt t1 = getTimeInMillis();
+            int64_t t1 = getTimeInMillis();
 
             out<<"TEST PASSED in "<<FormatTime(t1 - t0)<<std::endl<<std::endl;
 
@@ -64,7 +64,7 @@ void TestTask::Run(std::ostream& out)
         }
         catch (...)
         {
-            BigInt t1 = getTimeInMillis();
+            int64_t t1 = getTimeInMillis();
 
             out<<"TEST FAILED in "<<FormatTime(t1 - t0)<<std::endl;
             this->onException();
@@ -194,9 +194,9 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
 }
 
 
-Int MemoriaTestRunner::Run()
+int32_t MemoriaTestRunner::Run()
 {
-    Int result = MemoriaTaskRunner::Run();
+    int32_t result = MemoriaTaskRunner::Run();
     return result;
 }
 

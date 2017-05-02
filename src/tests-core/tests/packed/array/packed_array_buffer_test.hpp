@@ -41,10 +41,10 @@ class PackedArrayInputBufferTest: public PackedArrayTestBase<PackedTreeT> {
     using InputBufferPtr = PkdStructSPtr<InputBuffer>;
     using SizesT         = typename Array::InputBuffer::SizesT;
 
-    static constexpr Int Blocks = Array::Blocks;
-    static constexpr Int SafetyMargin = InputBuffer::SafetyMargin;
+    static constexpr int32_t Blocks = Array::Blocks;
+    static constexpr int32_t SafetyMargin = InputBuffer::SafetyMargin;
 
-    Int iterations_ = 10;
+    int32_t iterations_ = 10;
 
 public:
 
@@ -75,13 +75,13 @@ public:
 
     virtual ~PackedArrayInputBufferTest() noexcept {}
 
-    InputBufferPtr createInputBuffer(Int capacity, Int free_space = 0)
+    InputBufferPtr createInputBuffer(int32_t capacity, int32_t free_space = 0)
     {
-        Int object_block_size = InputBuffer::block_size(capacity);
+        int32_t object_block_size = InputBuffer::block_size(capacity);
 
         return MakeSharedPackedStructByBlock<InputBuffer>(object_block_size, SizesT(capacity));
 
-//      Int allocator_size  = PackedAllocator::block_size(object_block_size + free_space, 1);
+//      int32_t allocator_size  = PackedAllocator::block_size(object_block_size + free_space, 1);
 //
 //      void* block = malloc(allocator_size);
 //      PackedAllocator* allocator = T2T<PackedAllocator*>(block);
@@ -95,23 +95,23 @@ public:
 //      return buffer;
     }
 
-    std::vector<Values> fillBuffer(const InputBufferPtr& buffer, Int max_value = 500)
+    std::vector<Values> fillBuffer(const InputBufferPtr& buffer, int32_t max_value = 500)
     {
         std::vector<Values> data;
 
         while(true)
         {
-            constexpr Int BUF_SIZE = 10;
+            constexpr int32_t BUF_SIZE = 10;
             Values values[BUF_SIZE];
 
-            for (Int c = 0; c < 10; c++)
+            for (int32_t c = 0; c < 10; c++)
             {
-                for (Int b = 0; b < Blocks; b++) {
+                for (int32_t b = 0; b < Blocks; b++) {
                     values[c][b] = this->getRandom(max_value);
                 }
             }
 
-            Int size = buffer->append(BUF_SIZE, [&](Int block, Int idx) {
+            int32_t size = buffer->append(BUF_SIZE, [&](int32_t block, int32_t idx) {
                 return values[idx][block];
             });
 
@@ -124,11 +124,11 @@ public:
 
         buffer->reindex();
 
-        AssertEQ(MA_SRC, buffer->size(), (Int)data.size());
+        AssertEQ(MA_SRC, buffer->size(), (int32_t)data.size());
 
         buffer->check();
 
-        Int cnt = 0;
+        int32_t cnt = 0;
         buffer->scan(0, buffer->size(), [&](const auto& values){
             AssertEQ(MA_SRC, values, data[cnt], SBuf()<<cnt);
             cnt++;
@@ -141,13 +141,13 @@ public:
     {
         testCreate(0);
 
-        for (Int c = 1; c <= this->size_; c *= 2)
+        for (int32_t c = 1; c <= this->size_; c *= 2)
         {
             testCreate(c);
         }
     }
 
-    void testCreate(Int size)
+    void testCreate(int32_t size)
     {
         out()<<"Buffer capacity: "<<size<<std::endl;
 
@@ -162,13 +162,13 @@ public:
     {
         testValue(0);
 
-        for (Int c = 1; c <= this->size_; c *= 2)
+        for (int32_t c = 1; c <= this->size_; c *= 2)
         {
             testValue(c);
         }
     }
 
-    void testValue(Int size)
+    void testValue(int32_t size)
     {
         out()<<"Buffer capacity: "<<size<<std::endl;
 
@@ -176,7 +176,7 @@ public:
 
         auto values = fillBuffer(buffer);
 
-        for (Int b = 0; b < Blocks; b++)
+        for (int32_t b = 0; b < Blocks; b++)
         {
             for (size_t c = 0; c < values.size(); c++)
             {
@@ -189,13 +189,13 @@ public:
     {
         testPosition(0);
 
-        for (Int c = 1; c <= this->size_; c *= 2)
+        for (int32_t c = 1; c <= this->size_; c *= 2)
         {
             testPosition(c);
         }
     }
 
-    void testPosition(Int size)
+    void testPosition(int32_t size)
     {
         out()<<"Buffer capacity: "<<size<<std::endl;
 
@@ -216,13 +216,13 @@ public:
 
     void testInsertion()
     {
-        for (Int c = 32; c <= this->size_; c *= 2)
+        for (int32_t c = 32; c <= this->size_; c *= 2)
         {
             testInsertion(c);
         }
     }
 
-    void testInsertion(Int size)
+    void testInsertion(int32_t size)
     {
         out()<<"Buffer capacity: "<<size<<std::endl;
 
@@ -233,11 +233,11 @@ public:
 
         auto values = fillBuffer(buffer);
 
-        for (Int c = 0; c < 5; c++)
+        for (int32_t c = 0; c < 5; c++)
         {
-            Int pos = getRandom(array->size());
+            int32_t pos = getRandom(array->size());
 
-            Int buffer_size = buffer->size();
+            int32_t buffer_size = buffer->size();
 
             auto array_size = array->size();
 

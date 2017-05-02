@@ -82,8 +82,8 @@ template <typename Seq>
         using Base::block_;
         using Base::limit_;
 
-        UBigInt block_stat_   = 0;
-        UBigInt block_offset_ = 0;
+        uint64_t block_stat_   = 0;
+        uint64_t block_offset_ = 0;
 
     public:
         SymbolsSizesIterator(const Symbols* symbols, size_t data_size, size_t blocks):
@@ -106,7 +106,7 @@ template <typename Seq>
 
             while (data_pos_ < limit_)
             {
-                UBigInt run_value = 0;
+                uint64_t run_value = 0;
                 auto len     = codec_.decode(symbols_, run_value, data_pos_);
                 auto sym_run = Seq::decode_run(run_value);
 
@@ -125,7 +125,7 @@ template <typename Seq>
             block_++;
         }
 
-        auto value(Int block) const
+        auto value(int32_t block) const
         {
             return block_stat_;
         }
@@ -141,8 +141,8 @@ class ReindexFn {
     using SizeIndex = typename Seq::SizeIndex;
 
 
-    static const Int Symbols                                                    = Seq::Symbols;
-    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const int32_t Symbols                                                    = Seq::Symbols;
+    static const int32_t ValuesPerBranch                                            = Seq::ValuesPerBranch;
 
 
 
@@ -231,7 +231,7 @@ public:
             MEMORIA_V1_ASSERT(size_iterator.data_pos(), ==, size_iterator.limit());
         }
         else {
-            MEMORIA_V1_ASSERT(seq.element_size(Seq::OFFSETS), ==, (Int)PackedAllocator::AlignmentBlock);
+            MEMORIA_V1_ASSERT(seq.element_size(Seq::OFFSETS), ==, (int32_t)PackedAllocator::AlignmentBlock);
         }
     }
 };

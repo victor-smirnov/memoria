@@ -21,18 +21,18 @@ namespace memoria {
 namespace v1 {
 
 class MD5Hash {
-    static const Int BUFFER_SIZE = 16;
+    static const int32_t BUFFER_SIZE = 16;
 
-    typedef UInt (FunPtr)(UInt, UInt, UInt);
+    typedef uint32_t (FunPtr)(uint32_t, uint32_t, uint32_t);
 
     class Quad {
-        UInt A_;
-        UInt B_;
-        UInt C_;
-        UInt D_;
+        uint32_t A_;
+        uint32_t B_;
+        uint32_t C_;
+        uint32_t D_;
 
         Quad(): A_(0), B_(0), C_(0), D_(0) {}
-        Quad(UInt A, UInt B, UInt C, UInt D): A_(A), B_(B), C_(C), D_(D) {}
+        Quad(uint32_t A, uint32_t B, uint32_t C, uint32_t D): A_(A), B_(B), C_(C), D_(D) {}
     public:
         Quad(const Quad& other): A_(other.A_), B_(other.B_), C_(other.C_), D_(other.D_) {}
     private:
@@ -47,11 +47,11 @@ class MD5Hash {
         }
 
     public:
-        UBigInt hash64() const {
-            return (((UBigInt)A_ << 32) | B_) ^ (((UBigInt)C_ << 32) | D_);
+        uint64_t hash64() const {
+            return (((uint64_t)A_ << 32) | B_) ^ (((uint64_t)C_ << 32) | D_);
         }
 
-        UInt hash32() const {
+        uint32_t hash32() const {
             return A_ ^ B_ ^ C_ ^ D_;
         }
     };
@@ -59,14 +59,14 @@ class MD5Hash {
 public:
     MD5Hash(): Q0_(0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476), ptr_(0), dirty_(true), accumulator_(0)
     {
-        for (UInt& value: K_) value = 0;
+        for (uint32_t& value: K_) value = 0;
     }
 
-    void add(UInt value);
-    void add_ubi(UBigInt value)
+    void add(uint32_t value);
+    void add_ubi(uint64_t value)
     {
-        this->add(static_cast<UInt>(value & 0xFFFFFFFF));
-        this->add(static_cast<UInt>((value >> 32) & 0xFFFFFFFF));
+        this->add(static_cast<uint32_t>(value & 0xFFFFFFFF));
+        this->add(static_cast<uint32_t>((value >> 32) & 0xFFFFFFFF));
     }
 
     void compute();
@@ -75,11 +75,11 @@ public:
         return Q0_;
     }
 
-    void incAccumulator(BigInt amount) {
+    void incAccumulator(int64_t amount) {
         accumulator_ += amount;
     }
 
-    UInt getAccumulator() {
+    uint32_t getAccumulator() {
         return accumulator_;
     }
 
@@ -97,45 +97,45 @@ private:
 
     void round4();
 
-    void Block(FunPtr Fun, Int k, Int s, Int i);
+    void Block(FunPtr Fun, int32_t k, int32_t s, int32_t i);
 
     void dumpState();
 
-    UInt getBufferValue(Int k) {
+    uint32_t getBufferValue(int32_t k) {
         return K_[k];
     }
 
-    UInt getMd5Constant(Int i) {
+    uint32_t getMd5Constant(int32_t i) {
         return X[i - 1];
     }
 
-    static UInt FunF (UInt X, UInt Y, UInt Z) {
+    static uint32_t FunF (uint32_t X, uint32_t Y, uint32_t Z) {
         return (X & Y) | ((~X) & Z);
     };
 
-    static UInt FunG (UInt X, UInt Y, UInt Z) {
+    static uint32_t FunG (uint32_t X, uint32_t Y, uint32_t Z) {
         return (X & Z) | ((~Z) & Y);
     };
 
-    static UInt FunH (UInt X, UInt Y, UInt Z) {
+    static uint32_t FunH (uint32_t X, uint32_t Y, uint32_t Z) {
         return (X ^ Y ^ Z);
     };
 
-    static UInt FunI (UInt X, UInt Y, UInt Z) {
+    static uint32_t FunI (uint32_t X, uint32_t Y, uint32_t Z) {
         return Y ^ ((~Z) | X);
     };
 
-    static UInt CShl(UInt Value, Int N) {
-        return (Value << N) | (Value >> (sizeof(UInt) * 8 - N));
+    static uint32_t CShl(uint32_t Value, int32_t N) {
+        return (Value << N) | (Value >> (sizeof(uint32_t) * 8 - N));
     };
 
 
-    static const UInt X[64];
-    UInt    K_[BUFFER_SIZE];
+    static const uint32_t X[64];
+    uint32_t    K_[BUFFER_SIZE];
     Quad    Q0_;
-    Int     ptr_;
+    int32_t     ptr_;
     bool    dirty_;
-    UInt    accumulator_;
+    uint32_t    accumulator_;
 };
 
 

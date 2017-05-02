@@ -23,9 +23,9 @@ namespace memoria {
 namespace v1 {
 
 
-BigInt DebugCounter = 0;
-BigInt DebugCounter1 = 0;
-BigInt DebugCounter2 = -1;
+int64_t DebugCounter = 0;
+int64_t DebugCounter1 = 0;
+int64_t DebugCounter2 = -1;
 
 LogHandler* Logger::default_handler_ = new DefaultLogHandlerImpl();
 Logger logger("Memoria", Logger::INFO, NULL);

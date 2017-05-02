@@ -205,7 +205,7 @@ struct TypeHash;
 
 template <typename T>
 struct TypeHash<RawData<T>> {
-    static const UInt Value = HashHelper<99992, 22211, TypeHash<T>::Value>::Value;
+    static const uint32_t Value = HashHelper<99992, 22211, TypeHash<T>::Value>::Value;
 };
 
 template <typename T>
@@ -220,7 +220,7 @@ std::ostream& operator<<(std::ostream& out, const RawData<T>& val)
         for (size_t c = 0; c < val.size(); c++)
         {
             out<<std::setw(sizeof(T) * 2)<<setfill('0');
-            out << (UBigInt)val[c];
+            out << (uint64_t)val[c];
         }
 
         out.copyfmt(state);
@@ -229,7 +229,7 @@ std::ostream& operator<<(std::ostream& out, const RawData<T>& val)
     return out;
 }
 
-using Bytes = RawData<UByte>;
+using Bytes = RawData<uint8_t>;
 
 
 

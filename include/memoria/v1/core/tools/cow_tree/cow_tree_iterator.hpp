@@ -48,7 +48,7 @@ public:
 protected:
     Path path_;
 
-    Int idx_;
+    int32_t idx_;
 
     template <typename, typename> friend class CoWTree;
 
@@ -57,7 +57,7 @@ public:
 
 
 
-    Int idx() const {
+    int32_t idx() const {
         return idx_;
     }
 
@@ -91,7 +91,7 @@ public:
 
     bool operator++()
     {
-        Int size = leaf()->size();
+        int32_t size = leaf()->size();
         if (++idx_ < size)
         {
             return true;
@@ -103,7 +103,7 @@ public:
 
     bool operator++(int)
     {
-        Int size = leaf()->size();
+        int32_t size = leaf()->size();
         if (++idx_ < size)
         {
             return true;
@@ -151,15 +151,15 @@ public:
 
 
 
-    static bool get_next_node(Path& path, Path& next, Int level)
+    static bool get_next_node(Path& path, Path& next, int32_t level)
     {
         if (level < path.size() - 1)
         {
             BranchNode* parent = get_branch_node(path, level + 1);
 
-            Int size = parent->size();
+            int32_t size = parent->size();
 
-            Int parent_idx = parent->find_child_node(path[level]);
+            int32_t parent_idx = parent->find_child_node(path[level]);
 
             if (parent_idx < size - 1)
             {
@@ -181,13 +181,13 @@ public:
         }
     }
 
-    static bool get_prev_node(Path& path, Path& prev, Int level)
+    static bool get_prev_node(Path& path, Path& prev, int32_t level)
     {
         if (level < path.size() - 1)
         {
             BranchNode* parent = get_branch_node(path, level + 1);
 
-            Int parent_idx = parent->find_child_node(path[level]);
+            int32_t parent_idx = parent->find_child_node(path[level]);
 
             if (parent_idx > 0)
             {
@@ -209,7 +209,7 @@ public:
         }
     }
 
-    static BranchNode* get_branch_node(Path& path, Int level)
+    static BranchNode* get_branch_node(Path& path, int32_t level)
     {
         return static_cast<BranchNode*>(path[level]);
     }
@@ -233,7 +233,7 @@ public:
         {
             out<<"CoWTree Iterator: idx = "<<idx_<<endl;
 
-            for (Int c = path_.size() - 1; c >= 0; c--)
+            for (int32_t c = path_.size() - 1; c >= 0; c--)
             {
                 out<<"Node: "<<c<<endl;
 
@@ -280,11 +280,11 @@ protected:
     }
 
 
-    void set_idx(Int idx) {
+    void set_idx(int32_t idx) {
         idx_ = idx;
     }
 
-    void add_idx(Int idx) {
+    void add_idx(int32_t idx) {
         idx_ += idx;
     }
 

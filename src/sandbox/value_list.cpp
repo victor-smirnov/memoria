@@ -30,7 +30,7 @@ typedef IntList<1,2,3,4,5> SrcList;
 
 typedef MergeValueLists<SrcList, IntList<6, 7, 8>>::Type List1;
 
-typedef MergeValueLists<ValueList<Int, 6, 7, 8>>::Type List2;
+typedef MergeValueLists<ValueList<int32_t, 6, 7, 8>>::Type List2;
 
 //typedef MergeValueLists<>::Result List0;
 

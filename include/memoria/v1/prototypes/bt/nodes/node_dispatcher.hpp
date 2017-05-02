@@ -58,7 +58,7 @@ public:
     using Head = SelectByIndex<Idx, typename Types::List>;
 
 private:
-    static const Int HASH       = Head::PAGE_HASH;
+    static const int32_t HASH       = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
 
     using NextNDT0 = NDT0<Types, Idx - 1>;
@@ -232,12 +232,12 @@ public:
 template <typename Types>
 class NDT0<Types, 0> {
 
-    static const Int Idx = 0;
+    static const int32_t Idx = 0;
 public:
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
 private:
-    static const Int HASH       = Head::PAGE_HASH;
+    static const int32_t HASH       = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
 
 public:

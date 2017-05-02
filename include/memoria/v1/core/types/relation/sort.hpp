@@ -31,7 +31,7 @@ using namespace memoria;
 
 template <
         typename Metadata,
-        Int ColumnName,
+        int32_t ColumnName,
         bool Asc,
         typename Relation
 >

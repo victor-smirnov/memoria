@@ -30,7 +30,7 @@ namespace v1 {
 using namespace std;
 
 template <
-    Int Symbols
+    int32_t Symbols
 >
 class PackedRLESequenceTestBase: public TestTask {
 
@@ -44,10 +44,10 @@ protected:
     using Value  = typename Seq::Value;
 
 
-    static const Int Blocks                 = Seq::Indexes;
-    static const Int VPB                    = Seq::ValuesPerBranch;
+    static const int32_t Blocks                 = Seq::Indexes;
+    static const int32_t VPB                    = Seq::ValuesPerBranch;
 
-    Int iterations_ = 100;
+    int32_t iterations_ = 100;
 
 public:
 
@@ -60,14 +60,14 @@ public:
 
     virtual ~PackedRLESequenceTestBase() noexcept {}
 
-    SeqPtr createEmptySequence(Int block_size = 1024*1024)
+    SeqPtr createEmptySequence(int32_t block_size = 1024*1024)
     {
         return MakeSharedPackedStructByBlock<Seq>(block_size);
     }
 
-    vector<Int> populate(SeqPtr& seq, Int size, Value value = 0)
+    vector<int32_t> populate(SeqPtr& seq, int32_t size, Value value = 0)
     {
-        vector<Int> symbols(size);
+        vector<int32_t> symbols(size);
 
         for (auto& s: symbols) s = value;
 
@@ -81,19 +81,19 @@ public:
     }
 
     template <typename T>
-    vector<Int> populateRandom(T& seq, Int size, bool compactify = true)
+    vector<int32_t> populateRandom(T& seq, int32_t size, bool compactify = true)
     {
         seq->clear();
         return fillRandom(seq, size, compactify);
     }
 
     template <typename T>
-    vector<Int> fillRandom(T& seq, Int size, bool compactify = true)
+    vector<int32_t> fillRandom(T& seq, int32_t size, bool compactify = true)
     {
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
-            Int sym = getRandom(Blocks);
-            Int len = getRandom(100) + 1;
+            int32_t sym = getRandom(Blocks);
+            int32_t len = getRandom(100) + 1;
             seq->append(sym, len);
         }
 
@@ -105,7 +105,7 @@ public:
             seq->check();
         }
 
-        vector<Int> symbols;
+        vector<int32_t> symbols;
 
         auto iter = seq->begin();
 
@@ -121,13 +121,13 @@ public:
     }
 
     template <typename T>
-    Int rank(const T& seq, Int start, Int end, Int symbol)
+    int32_t rank(const T& seq, int32_t start, int32_t end, int32_t symbol)
     {
-        Int rank = 0;
+        int32_t rank = 0;
 
         auto iter = seq->iterator(start);
 
-        for (Int c = 0; c < end - start; c++)
+        for (int32_t c = 0; c < end - start; c++)
         {
             rank += iter.symbol() == symbol;
             iter.next();
@@ -159,23 +159,23 @@ public:
     template <typename T>
     void dumpAsSymbols(const vector<T>& symbols)
     {
-        dumpSymbols<Byte>(this->out(), symbols.size(), NumberOfBits(Symbols - 1), [&](Int idx){
+        dumpSymbols<int8_t>(this->out(), symbols.size(), NumberOfBits(Symbols - 1), [&](int32_t idx){
             return symbols[idx];
         });
     }
 
     template <typename T>
-    void assertEqual(const T& seq, const vector<Int>& symbols)
+    void assertEqual(const T& seq, const vector<int32_t>& symbols)
     {
-        AssertEQ(MA_SRC, seq->size(), (Int)symbols.size());
+        AssertEQ(MA_SRC, seq->size(), (int32_t)symbols.size());
 
         try {
             auto iter = seq->begin();
 
-            for (Int c = 0; c < seq->size(); c++)
+            for (int32_t c = 0; c < seq->size(); c++)
             {
-                Int sym1 = iter.symbol();
-                Int sym2 = symbols[c];
+                int32_t sym1 = iter.symbol();
+                int32_t sym2 = symbols[c];
 
                 AssertEQ(MA_SRC, sym1, sym2, SBuf()<<"Index: "<<c);
 

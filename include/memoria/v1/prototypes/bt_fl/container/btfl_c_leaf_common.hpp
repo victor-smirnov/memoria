@@ -47,7 +47,7 @@ protected:
     using BranchNodeEntry   = typename Types::BranchNodeEntry;
     using Position          = typename Types::Position;
 
-    static const Int Streams = Types::Streams;
+    static const int32_t Streams = Types::Streams;
 
     using PageUpdateMgt     = typename Types::PageUpdateMgr;
 

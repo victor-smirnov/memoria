@@ -27,12 +27,12 @@ namespace v1 {
 namespace seq_dense     {
 
 
-template <Int Bits>
-class SymbolsInputBufferProvider: public bt::InputBufferProvider<Int, SymbolsBuffer<Bits>> {
+template <int32_t Bits>
+class SymbolsInputBufferProvider: public bt::InputBufferProvider<int32_t, SymbolsBuffer<Bits>> {
 
     using Buffer = SymbolsBuffer<Bits>;
 
-    using Position = Int;
+    using Position = int32_t;
 
     SymbolsBuffer<Bits>& data_;
     Position start_ = 0;
@@ -99,20 +99,20 @@ public:
     using SequenceInputBuffer = typename InputBuffer::template StreamTypeT<1>;
 
 public:
-    SequenceInputProviderBase(CtrT& ctr, Int capacity = 10000):
+    SequenceInputProviderBase(CtrT& ctr, int32_t capacity = 10000):
         Base(ctr, capacity)
     {}
 
-    virtual Int get(InputBuffer* buffer, Int pos)
+    virtual int32_t get(InputBuffer* buffer, int32_t pos)
     {
-        Int inserted = get(buffer->template substream_by_idx<1>(), pos);
+        int32_t inserted = get(buffer->template substream_by_idx<1>(), pos);
 
         buffer->template substream_by_idx<0>()->append(inserted, 0);
 
         return inserted;
     }
 
-    virtual Int get(SequenceInputBuffer* buffer, Int pos) = 0;
+    virtual int32_t get(SequenceInputBuffer* buffer, int32_t pos) = 0;
 };
 
 template <typename CtrT>
@@ -124,11 +124,11 @@ public:
     using typename Base::SequenceInputBuffer;
 
 public:
-    FnSequenceInputProvider(CtrT& ctr, Int capacity = 10000):
+    FnSequenceInputProvider(CtrT& ctr, int32_t capacity = 10000):
         Base(ctr, capacity)
     {}
 
-    virtual Int get(SequenceInputBuffer* buffer, Int pos)
+    virtual int32_t get(SequenceInputBuffer* buffer, int32_t pos)
     {
         return 0;
     }
@@ -145,26 +145,26 @@ public:
 
     using typename Base::SequenceInputBuffer;
 
-    BigInt total_ = 0;
-    BigInt length_;
+    int64_t total_ = 0;
+    int64_t length_;
 
 public:
-    RandomSequenceInputProvider(CtrT& ctr, RngT& rng, BigInt length, Int capacity = 10000):
+    RandomSequenceInputProvider(CtrT& ctr, RngT& rng, int64_t length, int32_t capacity = 10000):
         Base(ctr, capacity),
         rng_(rng),
         length_(length)
     {}
 
-    virtual Int get(SequenceInputBuffer* buffer, Int pos)
+    virtual int32_t get(SequenceInputBuffer* buffer, int32_t pos)
     {
         using SymbolsBuffer = typename SequenceInputBuffer::SymbolsBuffer;
 
         if (total_ < length_)
         {
-            return buffer->append([&, this](Int size) {
+            return buffer->append([&, this](int32_t size) {
 
                 SymbolsBuffer buf;
-                Int limit = size > buf.capacity() ? buf.capacity() : size;
+                int32_t limit = size > buf.capacity() ? buf.capacity() : size;
 
                 if (total_ + limit > length_) {
                     limit = length_ - total_;
@@ -174,7 +174,7 @@ public:
 
                 auto symbols = buf.symbols();
 
-                for (Int c = 0; c < SymbolsBuffer::BufSize; c++)
+                for (int32_t c = 0; c < SymbolsBuffer::BufSize; c++)
                 {
                     symbols[c] = this->rng_();
                 }
@@ -200,27 +200,27 @@ public:
     using SequenceInputBuffer = typename Base::SequenceInputBuffer;
     using Symbols = typename SequenceInputBuffer::Value;
 
-    static constexpr Int BitsPerSymbol = CtrT::Types::BitsPerSymbol;
+    static constexpr int32_t BitsPerSymbol = CtrT::Types::BitsPerSymbol;
 private:
 
     const Symbols* symbols_;
 
-    Int start_;
-    Int length_;
+    int32_t start_;
+    int32_t length_;
 
 public:
-    SymbolSequenceInputProvider(CtrT& ctr, const Symbols* symbols, Int start, Int length, Int capacity = 100000):
+    SymbolSequenceInputProvider(CtrT& ctr, const Symbols* symbols, int32_t start, int32_t length, int32_t capacity = 100000):
         Base(ctr, capacity),
         symbols_(symbols),
         start_(start),
         length_(length)
     {}
 
-    virtual Int get(SequenceInputBuffer* buffer, Int pos)
+    virtual int32_t get(SequenceInputBuffer* buffer, int32_t pos)
     {
         if (start_ < length_)
         {
-            Int inserted = buffer->append(symbols_, start_, length_);
+            int32_t inserted = buffer->append(symbols_, start_, length_);
             start_ += inserted;
             return inserted;
         }

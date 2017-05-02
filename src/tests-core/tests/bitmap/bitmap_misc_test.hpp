@@ -60,7 +60,7 @@ public:
         TT value = 0;
         TT one = 1;
 
-        for (Int c = 0; c < length; c++)
+        for (int32_t c = 0; c < length; c++)
         {
             value = value | (one << (start + c));
         }
@@ -70,11 +70,11 @@ public:
 
     void testMakeMaskInternal()
     {
-        UInt value = 0xF;
+        uint32_t value = 0xF;
 
-        for (Int c = 0; c < 32 - 5; c++, value <<= 1)
+        for (int32_t c = 0; c < 32 - 5; c++, value <<= 1)
         {
-            AssertEQ(MA_SRC, makeMask<UInt>(c, 4), value);
+            AssertEQ(MA_SRC, makeMask<uint32_t>(c, 4), value);
         }
     }
 
@@ -82,11 +82,11 @@ public:
     {
         Base::out()<<"MakeMask "<<TypeNameFactory<T>::name()<<endl;
 
-        Int bitsize = TypeBitsize<T>();
+        int32_t bitsize = TypeBitsize<T>();
 
-        for (Int size = 0; size < bitsize; size++)
+        for (int32_t size = 0; size < bitsize; size++)
         {
-            for (Int pos = 0; pos < bitsize - size; pos++)
+            for (int32_t pos = 0; pos < bitsize - size; pos++)
             {
                 T mask1 = MakeMask<T>(pos, size);
                 T mask2 = makeMask<T>(pos, size);
@@ -101,9 +101,9 @@ public:
         Base::out()<<"TestSetBit: "<<TypeNameFactory<T>::name()<<endl;
 
         T values[4];
-        Int bitsize = sizeof(values) * 8;
+        int32_t bitsize = sizeof(values) * 8;
 
-        for (Int c = 0; c < bitsize; c++)
+        for (int32_t c = 0; c < bitsize; c++)
         {
             for (size_t d = 0; d < sizeof(values)/sizeof(T); d++)
             {
@@ -111,7 +111,7 @@ public:
             }
 
             SetBit(values, c, 1);
-            Int value = GetBit(values, c);
+            int32_t value = GetBit(values, c);
 
             AssertEQ(MA_SRC, value, 1);
 
@@ -134,12 +134,12 @@ public:
 
         T values[4];
 
-        Int bitsize     = sizeof(values) * 8;
-        Int atomsize    = sizeof(T) * 8;
+        int32_t bitsize     = sizeof(values) * 8;
+        int32_t atomsize    = sizeof(T) * 8;
 
-        for (Int length = 1; length <= atomsize; length++)
+        for (int32_t length = 1; length <= atomsize; length++)
         {
-            for (Int start = 0; start < bitsize - length; start++)
+            for (int32_t start = 0; start < bitsize - length; start++)
             {
                 for (size_t d = 0; d < sizeof(values)/sizeof(T); d++)
                 {
@@ -150,27 +150,27 @@ public:
 
                 SetBits(values, start, bits1, length);
 
-                for (Int c = 0; c < length; c++)
+                for (int32_t c = 0; c < length; c++)
                 {
-                    Int v1 = GetBit(values, start + c);
-                    Int v2 = (bits1 >> c) & 0x1;
+                    int32_t v1 = GetBit(values, start + c);
+                    int32_t v2 = (bits1 >> c) & 0x1;
 
                     AssertEQ(MA_SRC, v1, v2, SBuf()<<(start + c));
                 }
 
                 T bits2 = GetBits(values, start, length);
 
-                for (Int c = 0; c < length; c++)
+                for (int32_t c = 0; c < length; c++)
                 {
-                    Int v1 = GetBit(values, start + c);
-                    Int v2 = (bits2 >> c) & 0x1;
+                    int32_t v1 = GetBit(values, start + c);
+                    int32_t v2 = (bits2 >> c) & 0x1;
 
                     AssertEQ(MA_SRC, v1, v2, SBuf()<<(start + c));
                 }
             }
         }
 
-        for (Int c = 0; c < bitsize; c++)
+        for (int32_t c = 0; c < bitsize; c++)
         {
             for (size_t d = 0; d < sizeof(values)/sizeof(T); d++)
             {
@@ -178,7 +178,7 @@ public:
             }
 
             SetBit(values, c, 1);
-            Int value = GetBit(values, c);
+            int32_t value = GetBit(values, c);
 
             AssertEQ(MA_SRC, value, 1);
 
@@ -199,17 +199,17 @@ public:
         T bitmap1[5];
         T bitmap2[5];
 
-        Int bitsize     = sizeof(bitmap1) * 8;
+        int32_t bitsize     = sizeof(bitmap1) * 8;
 
-        for (Int length = 0; length < bitsize; length++)
+        for (int32_t length = 0; length < bitsize; length++)
         {
             makeRandomBitmap(bitmap1, bitsize);
 
             Base::out()<<"length: "<<length<<endl;
 
-            for (Int src_bit = 0; src_bit < bitsize - length; src_bit++)
+            for (int32_t src_bit = 0; src_bit < bitsize - length; src_bit++)
             {
-                for (Int dst_bit = 0; dst_bit < bitsize - length; dst_bit++)
+                for (int32_t dst_bit = 0; dst_bit < bitsize - length; dst_bit++)
                 {
                     MoveBitsFW(bitmap1, bitmap2, src_bit, dst_bit, length);
 
@@ -231,7 +231,7 @@ public:
 
         size_t bitsize = sizeof(bitmap) * 8;
 
-        for (Int c = 0; c < 1000; c++)
+        for (int32_t c = 0; c < 1000; c++)
         {
             size_t start = getRandom(bitsize - 1);
             size_t stop  = getRandom(bitsize - start);
@@ -260,7 +260,7 @@ public:
 
         size_t bitsize = sizeof(bitmap) * 8;
 
-        for (Int c = 0; c < 1000; c++)
+        for (int32_t c = 0; c < 1000; c++)
         {
             size_t start = getRandom(bitsize - 1);
             size_t stop  = getRandom(bitsize - start);
@@ -284,18 +284,18 @@ public:
 
     void testCTZ()
     {
-        UBigInt bitmap[5];
+        uint64_t bitmap[5];
 
-        for (Int c = 0; c < 1000000; c++)
+        for (int32_t c = 0; c < 1000000; c++)
         {
             memset(bitmap, 0, sizeof(bitmap));
 
-            Int bit = getRandom(sizeof(bitmap)*8);
-            Int start = getRandom(bit + 1);
+            int32_t bit = getRandom(sizeof(bitmap)*8);
+            int32_t start = getRandom(bit + 1);
 
             SetBit(bitmap, bit, 1);
 
-            Int length = CountTrailingZeroes(bitmap, start, sizeof(bitmap) * 8);
+            int32_t length = CountTrailingZeroes(bitmap, start, sizeof(bitmap) * 8);
 
             AssertEQ(MA_SRC, length, bit - start, SBuf()<<c);
         }

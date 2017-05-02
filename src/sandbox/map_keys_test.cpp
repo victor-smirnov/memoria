@@ -37,9 +37,9 @@ struct KeyConsumer: BufferConsumer<MMapIOBuffer> {
 
 	int total_ = 0;
 
-	virtual Int process(MMapIOBuffer& buffer, Int entries)
+	virtual int32_t process(MMapIOBuffer& buffer, int32_t entries)
 	{
-		for (Int e = 0; e < entries; e++) {
+		for (int32_t e = 0; e < entries; e++) {
 			buffer.getBigInt();
 			total_++;
 		}
@@ -54,8 +54,8 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using KeyType   = BigInt;
-    using ValueType = UByte;
+    using KeyType   = int64_t;
+    using ValueType = uint8_t;
 
     using CtrName = Map<KeyType, Vector<ValueType>>;
 
@@ -71,11 +71,11 @@ int main()
 
         KeyConsumer consumer;
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
         iter->read_keys(&consumer);
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
         cout << "total keys: " << consumer.total_ << ", time = " << (t1 - t0) << endl;
     }

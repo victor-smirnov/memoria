@@ -43,7 +43,7 @@ protected:
 	static constexpr size_t MARK_MAX = std::numeric_limits<size_t>::max();
 
 
-    UByte* array_ 	= nullptr;
+    uint8_t* array_ 	= nullptr;
     size_t length_	= 0;
     size_t limit_ 	= 0;
     size_t pos_ 	= 0;
@@ -51,8 +51,8 @@ protected:
 
     bool owner_;
 
-    ValueCodec<UBigInt> uvlen_codec_;
-    ValueCodec<BigInt>  vlen_codec_;
+    ValueCodec<uint64_t> uvlen_codec_;
+    ValueCodec<int64_t>  vlen_codec_;
     ValueCodec<String>  string_codec_;
     ValueCodec<Bytes>   bytes_codec_;
 
@@ -74,11 +74,11 @@ public:
         array_(allocate(length)), length_(length), limit_(length), owner_(true)
     {}
 
-    IOBufferBase(UByte* data, size_t length):
+    IOBufferBase(uint8_t* data, size_t length):
         array_(data), length_(length), limit_(length), owner_(false)
     {}
 
-    IOBufferBase(UByte* data, size_t pos, size_t length):
+    IOBufferBase(uint8_t* data, size_t pos, size_t length):
     	array_(data), length_(length), limit_(length), pos_(pos), owner_(false)
     {}
 
@@ -96,19 +96,19 @@ public:
     }
     
 
-    UByte* array() {
+    uint8_t* array() {
         return array_;
     }
 
-    const UByte* array() const {
+    const uint8_t* array() const {
         return array_;
     }
 
-    UByte* ptr() {
+    uint8_t* ptr() {
         return array_ + pos_;
     }
 
-    const UByte* ptr() const {
+    const uint8_t* ptr() const {
         return array_ + pos_;
     }
 
@@ -235,7 +235,7 @@ public:
     	mark_ 	= MARK_MAX;
     }
 
-    bool put(Byte v)
+    bool put(int8_t v)
     {
         if (has_capacity(1))
         {
@@ -247,13 +247,13 @@ public:
         }
     }
 
-    Byte getByte()
+    int8_t getByte()
     {
         assertRange(1, "getByte()");
-        return (Byte)array_[pos_++];
+        return (int8_t)array_[pos_++];
     }
 
-    bool put(UByte v)
+    bool put(uint8_t v)
     {
         if (has_capacity(1))
         {
@@ -265,13 +265,13 @@ public:
         }
     }
 
-    UByte getUByte()
+    uint8_t getUByte()
     {
         assertRange(1, "getByte()");
-        return (UByte)array_[pos_++];
+        return (uint8_t)array_[pos_++];
     }
 
-    bool put(Char v)
+    bool put(char v)
     {
         if (has_capacity(1))
         {
@@ -283,10 +283,10 @@ public:
         }
     }
 
-    UByte getChar()
+    uint8_t getChar()
     {
         assertRange(1, "getChar()");
-        return (Char)array_[pos_++];
+        return (char)array_[pos_++];
     }
 
     bool put(bool v)
@@ -350,17 +350,17 @@ public:
         return str;
     }
 
-    size_t length(BigInt val) const
+    size_t length(int64_t val) const
     {
         return vlen_codec_.length(val);
     }
 
-    size_t ulength(UBigInt val) const
+    size_t ulength(uint64_t val) const
     {
         return uvlen_codec_.length(val);
     }
 
-    bool putVLen(BigInt val)
+    bool putVLen(int64_t val)
     {
         size_t len = vlen_codec_.length(val);
         if (has_capacity(len))
@@ -373,7 +373,7 @@ public:
         }
     }
 
-    bool putUVLen(UBigInt val)
+    bool putUVLen(uint64_t val)
     {
         size_t len = uvlen_codec_.length(val);
         if (has_capacity(len))
@@ -387,21 +387,21 @@ public:
     }
 
 
-    BigInt getVLen()
+    int64_t getVLen()
     {
-        BigInt len = 0;
+        int64_t len = 0;
         pos_ += vlen_codec_.decode(array_, len, pos_);
         return len;
     }
 
-    BigInt getUVLen()
+    int64_t getUVLen()
     {
-        UBigInt len = 0;
+        uint64_t len = 0;
         pos_ += uvlen_codec_.decode(array_, len, pos_);
         return len;
     }
 
-    bool put(const UByte* data, size_t length)
+    bool put(const uint8_t* data, size_t length)
     {
         if (MMA1_LIKELY(has_capacity(length)))
         {
@@ -415,29 +415,29 @@ public:
         }
     }
     
-    bool put_(const UByte* data, size_t length)
+    bool put_(const uint8_t* data, size_t length)
     {
         std::memcpy(array_ + pos_, data, length);
         pos_ += length;
         return true;
     }
 
-    void get(UByte* data, size_t length)
+    void get(uint8_t* data, size_t length)
     {
-        assertRange(length, "get(UByte*, size_t)");
+        assertRange(length, "get(uint8_t*, size_t)");
         //CopyBuffer(array_ + pos_, data, length);
         std::memcpy(data, array_ + pos_, length);
         pos_ += length;
     }
     
-    void get_(UByte* data, size_t length)
+    void get_(uint8_t* data, size_t length)
     {
         std::memcpy(data, array_ + pos_, length);
         pos_ += length;
     }
 
 
-    bool put(const ValuePtrT1<UByte>& value)
+    bool put(const ValuePtrT1<uint8_t>& value)
     {
         if (has_capacity(value.length()))
         {
@@ -451,18 +451,18 @@ public:
     }
 
 
-    template <Int Symbols>
-    static constexpr BigInt getMaxSymbolsRunLength()
+    template <int32_t Symbols>
+    static constexpr int64_t getMaxSymbolsRunLength()
     {
         return MaxRLERunLength;
     }
 
-    template <Int Symbols>
-    bool putSymbolsRun(Int symbol, UBigInt length)
+    template <int32_t Symbols>
+    bool putSymbolsRun(int32_t symbol, uint64_t length)
     {
         if (length <= getMaxSymbolsRunLength<Symbols>())
         {
-            UBigInt value = memoria::v1::rleseq::EncodeRun<Symbols, MaxRLERunLength>(symbol, length);
+            uint64_t value = memoria::v1::rleseq::EncodeRun<Symbols, MaxRLERunLength>(symbol, length);
             return putUVLen(value);
         }
         else {
@@ -471,8 +471,8 @@ public:
     }
 
 
-    template <Int Symbols>
-    void updateSymbolsRun(size_t pos, Int symbol, UBigInt length)
+    template <int32_t Symbols>
+    void updateSymbolsRun(size_t pos, int32_t symbol, uint64_t length)
     {
         if (length <= getMaxSymbolsRunLength<Symbols>())
         {
@@ -498,10 +498,10 @@ public:
     }
 
 
-    template <Int Symbols>
+    template <int32_t Symbols>
     memoria::v1::rleseq::RLESymbolsRun getSymbolsRun()
     {
-        UBigInt value = getUVLen();
+        uint64_t value = getUVLen();
         return memoria::v1::rleseq::DecodeRun<Symbols>(value);
     }
 
@@ -607,9 +607,9 @@ protected:
         }
     }
 
-    static UByte* allocate(size_t length)
+    static uint8_t* allocate(size_t length)
     {
-        UByte* data = T2T<UByte*>(::malloc(length));
+        uint8_t* data = T2T<uint8_t*>(::malloc(length));
 
         if (data)
         {

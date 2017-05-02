@@ -49,9 +49,9 @@ public:
 
 
 
-    virtual Int populate(DefaultIOBuffer& buffer)
+    virtual int32_t populate(DefaultIOBuffer& buffer)
     {
-        Int entries = 0;
+        int32_t entries = 0;
 
         while (iter_ != end_)
         {
@@ -95,7 +95,7 @@ int main()
 
         KeyVector pairs;
 
-        BigInt ts0 = getTimeInMillis();
+        int64_t ts0 = getTimeInMillis();
 
         for (int c = 0; c < size; c++)
         {
@@ -110,17 +110,17 @@ int main()
             pairs.emplace_back(array);
         }
 
-        BigInt ts1 = getTimeInMillis();
+        int64_t ts1 = getTimeInMillis();
 
         std::sort(pairs.begin(), pairs.end());
 
-        BigInt ts2 = getTimeInMillis();
+        int64_t ts2 = getTimeInMillis();
 
         cout << "Vector creation: " << FormatTime(ts1 - ts0) << ", sorting: " << FormatTime(ts2 - ts1) << endl;
 
         SetBufferProducer<KeyVector::const_iterator> producer(pairs.begin(), pairs.end(), 65536);
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
         map->begin()->insert_iobuffer(&producer);
 
         cout << "Insertion time: " << FormatTime(getTimeInMillis() - t0) <<" size: " << map->size() << endl;

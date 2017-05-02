@@ -33,28 +33,28 @@ class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, SelectForward
     using Base = bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>>;
     typedef typename Base::Key                                                              Key;
 
-    BigInt pos_ = 0;
+    int64_t pos_ = 0;
 
 public:
     typedef typename Base::ResultType                                           ResultType;
     typedef typename Base::Iterator                                             Iterator;
 
 
-    SelectForwardWalker(Int stream, Int index, Key target): Base(stream, index + 1, target)
+    SelectForwardWalker(int32_t stream, int32_t index, Key target): Base(stream, index + 1, target)
     {
         Base::search_type_ = SearchType::GE;
     }
 
-    template <Int Idx, typename Tree>
-    ResultType stream(const Tree* tree, Int start)
+    template <int32_t Idx, typename Tree>
+    ResultType stream(const Tree* tree, int32_t start)
     {
         return Base::template stream<Idx>(tree, start);
     }
 
-    template <Int StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType* stream, Int start, const Result& result)
+    template <int32_t StreamIdx, typename StreamType, typename Result>
+    void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
     {
-        Int size    = stream->size();
+        int32_t size    = stream->size();
 
         if (result.idx() < size)
         {
@@ -65,15 +65,15 @@ public:
         }
     }
 
-    template <Int Idx, typename StreamTypes>
-    ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
+    template <int32_t Idx, typename StreamTypes>
+    ResultType stream(const PkdFSSeq<StreamTypes>* seq, int32_t start)
     {
         MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 
         auto& sum       = Base::sum_;
         auto symbol     = Base::index_ - 1;
 
-        BigInt target   = Base::target_ - sum;
+        int64_t target   = Base::target_ - sum;
         auto result     = seq->selectFw(start, symbol, target);
 
         if (result.is_found())
@@ -85,7 +85,7 @@ public:
             return result.idx();
         }
         else {
-            Int size = seq->size();
+            int32_t size = seq->size();
 
             sum  += result.rank();
             pos_ += (size - start);
@@ -94,7 +94,7 @@ public:
         }
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    int64_t finish(Iterator& iter, int32_t idx)
     {
         iter.idx() = idx;
 
@@ -116,23 +116,23 @@ public:
     typedef typename Base::Iterator                                             Iterator;
 
 
-    SelectForwardWalker2(Int stream, Int index, Key target): Base(stream, index + 1, index, target, 0)
+    SelectForwardWalker2(int32_t stream, int32_t index, Key target): Base(stream, index + 1, index, target, 0)
     {}
 
-    template <Int Idx, typename Tree>
-    ResultType stream(const Tree* tree, Int start)
+    template <int32_t Idx, typename Tree>
+    ResultType stream(const Tree* tree, int32_t start)
     {
         return Base::template stream<Idx>(tree, start);
     }
 
 
-    template <Int Idx, typename StreamTypes>
-    ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
+    template <int32_t Idx, typename StreamTypes>
+    ResultType stream(const PkdFSSeq<StreamTypes>* seq, int32_t start)
     {
         return Base::template select<Idx>(seq, start);
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    int64_t finish(Iterator& iter, int32_t idx)
     {
         iter.idx() = idx;
 
@@ -152,25 +152,25 @@ class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, SelectBackw
     typedef typename Base::Key                                                                  Key;
 
 
-    BigInt pos_ = 0;
+    int64_t pos_ = 0;
 
 public:
     typedef typename Base::ResultType                                           ResultType;
     typedef typename Base::Iterator                                             Iterator;
 
-    SelectBackwardWalker(Int stream, Int index, Key target): Base(stream, index + 1, target)
+    SelectBackwardWalker(int32_t stream, int32_t index, Key target): Base(stream, index + 1, target)
     {
         Base::search_type_ = SearchType::GT;
     }
 
-    template <Int Idx, typename Tree>
-    ResultType stream(const Tree* tree, Int start)
+    template <int32_t Idx, typename Tree>
+    ResultType stream(const Tree* tree, int32_t start)
     {
         return Base::template stream<Idx>(tree, start);
     }
 
-    template <Int StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType* stream, Int start, const Result& result)
+    template <int32_t StreamIdx, typename StreamType, typename Result>
+    void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
     {
         if (result.idx() >= 0)
         {
@@ -182,12 +182,12 @@ public:
     }
 
 
-    template <Int Idx, typename TreeTypes>
-    ResultType stream(const PkdFSSeq<TreeTypes>* seq, Int start)
+    template <int32_t Idx, typename TreeTypes>
+    ResultType stream(const PkdFSSeq<TreeTypes>* seq, int32_t start)
     {
         MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 
-        BigInt target   = Base::target_ - Base::sum_;
+        int64_t target   = Base::target_ - Base::sum_;
 
         auto& sum       = Base::sum_;
         auto symbol     = Base::index_ - 1;
@@ -206,7 +206,7 @@ public:
         }
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    int64_t finish(Iterator& iter, int32_t idx)
     {
         iter.idx() = idx;
 

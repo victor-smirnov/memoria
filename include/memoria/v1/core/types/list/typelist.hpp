@@ -38,12 +38,12 @@ template <typename List> struct ListSize {
 
 template <typename ... List>
 struct ListSize<v1::TypeList<List...> > {
-    static const Int Value = sizeof...(List);
+    static const int32_t Value = sizeof...(List);
 };
 
 template <typename T, T ... List>
 struct ListSize<ValueList<T, List...> > {
-    static const Int Value = sizeof...(List);
+    static const int32_t Value = sizeof...(List);
 };
 
 

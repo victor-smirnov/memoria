@@ -27,18 +27,18 @@ using namespace std;
 
 int main(int argc, const char** argv, const char** envp)
 {
-    CoWTree<BigInt, BigInt> tree;
+    CoWTree<int64_t, int64_t> tree;
 
     try {
         long tc0 = getTimeInMillis();
 
         auto tx0 = tree.transaction();
 
-        RNG<Int, RngEngine32> rng0;
+        RNG<int32_t, RngEngine32> rng0;
 
         rng0.seed(getTimeInMillis());
 
-        for (Int c = 0; c < 100000; c++) {
+        for (int32_t c = 0; c < 100000; c++) {
             tree.assign(tx0, rng0(), c);
         }
 
@@ -48,11 +48,11 @@ int main(int argc, const char** argv, const char** envp)
 
         tree.dump_log();
 
-        for (Int s = 0; s < 10; s++)
+        for (int32_t s = 0; s < 10; s++)
         {
             auto tx1 = tree.transaction();
 
-            for (Int c = 0; c < 1000; c++) {
+            for (int32_t c = 0; c < 1000; c++) {
                 tree.assign(tx1, rng0() , c);
             }
 

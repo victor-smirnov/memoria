@@ -115,14 +115,14 @@ class Snapshot:
     using AllocatorLockGuardT	= typename std::lock_guard<AllocatorMutexT>;
 
     class CtrDescr {
-    	BigInt references_;
+    	int64_t references_;
     public:
     	CtrDescr(): references_() {}
-    	CtrDescr(BigInt val): references_(val) {}
+    	CtrDescr(int64_t val): references_(val) {}
 
-    	BigInt references() const {return references_;}
+    	int64_t references() const {return references_;}
     	void ref() 	 {++references_;}
-    	BigInt unref() {return --references_;}
+    	int64_t unref() {return --references_;}
     };
 
     using CtrInstanceMap 	= std::unordered_map<std::type_index, CtrDescr>;
@@ -147,18 +147,18 @@ private:
 
     class Properties: public IAllocatorProperties {
     public:
-        virtual Int defaultPageSize() const
+        virtual int32_t defaultPageSize() const
         {
             return 8192;
         }
 
-        virtual BigInt lastCommitId() const {
+        virtual int64_t lastCommitId() const {
             return 0;
         }
 
-        virtual void setLastCommitId(BigInt txn_id) {}
+        virtual void setLastCommitId(int64_t txn_id) {}
 
-        virtual BigInt newTxnId() {return 0;}
+        virtual int64_t newTxnId() {return 0;}
     };
 
     HistoryNode*    history_node_;
@@ -201,7 +201,7 @@ public:
         
     	history_node_->ref();
 
-        Int ctr_op;
+        int32_t ctr_op;
 
         if (history_node->is_active())
         {
@@ -226,7 +226,7 @@ public:
         
     	history_node_->ref();
 
-        Int ctr_op;
+        int32_t ctr_op;
 
         if (history_node->is_active())
         {
@@ -368,7 +368,7 @@ public:
             history_tree_raw_->unref_active();
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Invalid state: " << (Int)history_node_->status() << " for snapshot " << uuid());
+            throw Exception(MA_SRC, SBuf() << "Invalid state: " << (int32_t)history_node_->status() << " for snapshot " << uuid());
         }
     }
 
@@ -459,7 +459,7 @@ public:
     	else if (history_node_->is_data_locked()) {
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid state: " << (Int)history_node_->status() << " for snapshot " << uuid());
+    		throw Exception(MA_SRC, SBuf() << "Invalid state: " << (int32_t)history_node_->status() << " for snapshot " << uuid());
     	}
     }
 
@@ -523,8 +523,8 @@ public:
 
     	if (page)
     	{
-    		Int master_hash = page->master_ctr_type_hash();
-    		Int ctr_hash    = page->ctr_type_hash();
+    		int32_t master_hash = page->master_ctr_type_hash();
+    		int32_t ctr_hash    = page->ctr_type_hash();
 
     		auto ctr_meta   = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
@@ -903,7 +903,7 @@ public:
 
 
 
-    virtual PageG createPage(Int initial_size, const UUID& name)
+    virtual PageG createPage(int32_t initial_size, const UUID& name)
     {
         checkUpdateAllowed(name);
 
@@ -936,7 +936,7 @@ public:
     }
 
 
-    virtual void resizePage(Shared* shared, Int new_size)
+    virtual void resizePage(Shared* shared, int32_t new_size)
     {
         checkUpdateAllowed();
 
@@ -1111,8 +1111,8 @@ public:
 
             auto page       = this->getPage(root_id, ctr_name);
 
-            Int master_hash = page->master_ctr_type_hash();
-            Int ctr_hash    = page->ctr_type_hash();
+            int32_t master_hash = page->master_ctr_type_hash();
+            int32_t ctr_hash    = page->ctr_type_hash();
 
             auto ctr_meta   = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
@@ -1238,7 +1238,7 @@ protected:
         return shared;
     }
 
-    Shared* get_shared(const ID& id, Int state)
+    Shared* get_shared(const ID& id, int32_t state)
     {
         Shared* shared = pool_.get(id);
 
@@ -1352,7 +1352,7 @@ protected:
     void do_drop() throw ()
     {
     	persistent_tree_.delete_tree([&](LeafNodeT* leaf){
-            for (Int c = 0; c < leaf->size(); c++)
+            for (int32_t c = 0; c < leaf->size(); c++)
             {
                 auto& page_descr = leaf->data(c);
                 if (page_descr.page_ptr()->unref() == 0)
@@ -1376,7 +1376,7 @@ protected:
         PersistentTreeT persistent_tree(node);
 
         persistent_tree.delete_tree([&](LeafNodeT* leaf){
-            for (Int c = 0; c < leaf->size(); c++)
+            for (int32_t c = 0; c < leaf->size(); c++)
             {
                 auto& page_descr = leaf->data(c);
                 if (page_descr.page_ptr()->unref() == 0)
@@ -1416,7 +1416,7 @@ protected:
 //      else {
 //          auto branch_node = PersitentTree::to_branch_node(node);
 //
-//          for (Int c = 0; c < branch_node->size(); c++)
+//          for (int32_t c = 0; c < branch_node->size(); c++)
 //          {
 //              check_tree_structure(branch_node->data(c));
 //          }
@@ -1454,7 +1454,7 @@ auto find(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, Persi
 template <typename Allocator>
 void check_snapshot(Allocator& allocator, const char* message, const char* source)
 {
-    Int level = allocator->logger().level();
+    int32_t level = allocator->logger().level();
 
     allocator->logger().level() = Logger::_ERROR;
 

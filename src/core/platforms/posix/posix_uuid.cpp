@@ -25,7 +25,7 @@
 namespace memoria {
 namespace v1 {
 
-UBigInt cnt = 1;
+uint64_t cnt = 1;
 
 UUID make_uuid(uuid_t uuid)
 {
@@ -33,12 +33,12 @@ UUID make_uuid(uuid_t uuid)
 
     for (int c = 0; c < 8; c++)
     {
-        uuid2.hi() |= ((UBigInt)uuid[c]) << (c * 8);
+        uuid2.hi() |= ((uint64_t)uuid[c]) << (c * 8);
     }
 
     for (int c = 0; c < 8; c++)
     {
-        uuid2.lo() |= ((UBigInt)uuid[c + 8]) << (c * 8);
+        uuid2.lo() |= ((uint64_t)uuid[c + 8]) << (c * 8);
     }
 
     return uuid2;

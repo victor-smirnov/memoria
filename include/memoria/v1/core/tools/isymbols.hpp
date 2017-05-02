@@ -40,7 +40,7 @@ constexpr static T2 DivUp0(T1 v, T2 d) {
     return v / d + (v % d > 0);
 }
 
-template <typename T, Int BitsPerSymbol>
+template <typename T, int32_t BitsPerSymbol>
 SizeT RoundSymbolsToStorageType(SizeT length)
 {
     SizeT bitsize               = length * BitsPerSymbol;
@@ -54,36 +54,36 @@ SizeT RoundSymbolsToStorageType(SizeT length)
 
 namespace {
 
-    template <Int BitsPerSymbol>
+    template <int32_t BitsPerSymbol>
     struct SymbolsTypeSelector {
-        using Type = UBigInt;
+        using Type = uint64_t;
     };
 
     template <>
     struct SymbolsTypeSelector<8> {
-        using Type = UByte;
+        using Type = uint8_t;
     };
 
 }
 
 
 //
-enum class IDataAPI: Int {
+enum class IDataAPI: int32_t {
     None = 0, Batch = 1, Single = 2, Both = 3
 };
 
 inline constexpr IDataAPI operator&(IDataAPI m1, IDataAPI m2)
 {
-    return static_cast<IDataAPI>(static_cast<Int>(m1) & static_cast<Int>(m2));
+    return static_cast<IDataAPI>(static_cast<int32_t>(m1) & static_cast<int32_t>(m2));
 }
 
 inline constexpr IDataAPI operator|(IDataAPI m1, IDataAPI m2)
 {
-    return static_cast<IDataAPI>(static_cast<Int>(m1) | static_cast<Int>(m2));
+    return static_cast<IDataAPI>(static_cast<int32_t>(m1) | static_cast<int32_t>(m2));
 }
 
 inline constexpr bool to_bool(IDataAPI mode) {
-    return static_cast<Int>(mode) > 0;
+    return static_cast<int32_t>(mode) > 0;
 }
 
 
@@ -158,7 +158,7 @@ public:
     virtual T get()                                                             = 0;
     virtual void put(const T& value)                                            = 0;
 
-    virtual void reset(BigInt pos = 0)
+    virtual void reset(int64_t pos = 0)
     {
         start_ = pos;
     }
@@ -232,7 +232,7 @@ public:
     virtual T get()                                                             = 0;
 
 
-    virtual void reset(BigInt pos = 0)
+    virtual void reset(int64_t pos = 0)
     {
         start_ = pos;
     }
@@ -241,7 +241,7 @@ public:
 
 
 
-template <Int BitsPerSymbol, typename T = typename SymbolsTypeSelector<BitsPerSymbol>::Type>
+template <int32_t BitsPerSymbol, typename T = typename SymbolsTypeSelector<BitsPerSymbol>::Type>
 class SymbolsBuffer: public AbstractData<T> {
     typedef SymbolsBuffer<BitsPerSymbol, T>                                     MyType;
 protected:
@@ -406,7 +406,7 @@ public:
 
 
 
-template <Int BitsPerSymbol, typename T>
+template <int32_t BitsPerSymbol, typename T>
 class SymbolsBuffer<BitsPerSymbol, const T>: public AbstractDataSource<T> {
     typedef SymbolsBuffer<BitsPerSymbol, T>                                     MyType;
 

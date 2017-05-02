@@ -24,29 +24,29 @@ namespace v1 {
 
 using namespace std;
 
-inline UBigInt BroadwordGTZ8 (UBigInt x)
+inline uint64_t BroadwordGTZ8 (uint64_t x)
 {
-    UBigInt H8 = 0x8080808080808080;
-    UBigInt L8 = 0x0101010101010101;
+    uint64_t H8 = 0x8080808080808080;
+    uint64_t L8 = 0x0101010101010101;
 
     return  ((x | (( x | H8) - L8)) & H8) >> 7;
 }
 
-inline UBigInt BroadwordLE8 (UBigInt x, UBigInt y)
+inline uint64_t BroadwordLE8 (uint64_t x, uint64_t y)
 {
-    UBigInt H8 = 0x8080808080808080;
+    uint64_t H8 = 0x8080808080808080;
     return ((((y | H8) - (x & ~H8)) ^ x ^ y) & H8 ) >> 7;
 }
 
-inline size_t SelectFW(UBigInt arg, size_t rank)
+inline size_t SelectFW(uint64_t arg, size_t rank)
 {
-    UBigInt v = arg;
+    uint64_t v = arg;
 
     v -= ((v >> 1) & 0x5555555555555555);
     v = (v & 0x3333333333333333) + ((v >> 2) & 0x3333333333333333);
     v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0F;
 
-    UInt argl = static_cast<UInt>(v + (v >> 32));
+    uint32_t argl = static_cast<uint32_t>(v + (v >> 32));
     argl += (argl >> 16);
     size_t fullrank_ = (argl + (argl >> 8)) & 0x7F;
 
@@ -54,13 +54,13 @@ inline size_t SelectFW(UBigInt arg, size_t rank)
     {
         size_t r = 0;
 
-        for (UBigInt shift  = 0; shift < 64; shift += 8)
+        for (uint64_t shift  = 0; shift < 64; shift += 8)
         {
-            UBigInt popc =  (v >> shift) & 0xFF;
+            uint64_t popc =  (v >> shift) & 0xFF;
 
             if (r + popc >= rank)
             {
-                UBigInt mask = 1ull << shift;
+                uint64_t mask = 1ull << shift;
 
                 for (size_t d = 0; d < 8; d++, mask <<= 1)
                 {
@@ -84,15 +84,15 @@ inline size_t SelectFW(UBigInt arg, size_t rank)
 }
 
 
-inline size_t SelectBW(UBigInt arg, size_t rank)
+inline size_t SelectBW(uint64_t arg, size_t rank)
 {
-    UBigInt v = arg;
+    uint64_t v = arg;
 
     v -= ((v >> 1) & 0x5555555555555555);
     v = (v & 0x3333333333333333) + ((v >> 2) & 0x3333333333333333);
     v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0F;
 
-    UInt argl = static_cast<UInt>(v + (v >> 32));
+    uint32_t argl = static_cast<uint32_t>(v + (v >> 32));
     argl += (argl >> 16);
     size_t fullrank_ = (argl + (argl >> 8)) & 0x7F;
 
@@ -100,13 +100,13 @@ inline size_t SelectBW(UBigInt arg, size_t rank)
     {
         size_t r = 0;
 
-        for (Int shift = 56; shift >= 0; shift -= 8)
+        for (int32_t shift = 56; shift >= 0; shift -= 8)
         {
-            UBigInt popc =  (v >> shift) & 0xFF;
+            uint64_t popc =  (v >> shift) & 0xFF;
 
             if (r + popc >= rank)
             {
-                UBigInt mask = 1ull << (shift + 7);
+                uint64_t mask = 1ull << (shift + 7);
 
                 for (size_t d = 0; d < 8; d++, mask >>= 1)
                 {
@@ -368,7 +368,7 @@ SelectResult Select0FW(const T* buffer, size_t start, size_t stop, size_t rank)
 
 
 template <typename T>
-T GetBits00(const T* buf, size_t idx, Int nbits)
+T GetBits00(const T* buf, size_t idx, int32_t nbits)
 {
     const size_t mask = TypeBitmask<T>();
     const size_t divisor = TypeBitmaskPopCount(mask);
@@ -385,7 +385,7 @@ T GetBits00(const T* buf, size_t idx, Int nbits)
 
 
 template <typename T>
-T GetBitsNeg00(const T* buf, size_t idx, Int nbits)
+T GetBitsNeg00(const T* buf, size_t idx, int32_t nbits)
 {
     const size_t mask = TypeBitmask<T>();
     const size_t divisor = TypeBitmaskPopCount(mask);

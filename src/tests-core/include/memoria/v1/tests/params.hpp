@@ -478,7 +478,7 @@ protected:
 
 
 
-template <typename T, Int Size>
+template <typename T, int32_t Size>
 class ParamDescriptor<core::StaticVector<T, Size>>: public AbstractParamDescriptor {
 
     using ValueType = core::StaticVector<T, Size>;

@@ -36,29 +36,29 @@ public:
     PackedTreeTestSuite(): TestSuite("Packed.Tree")
     {
 
-        registerTask(new PackedTreeMiscTest<PkdFQTreeT<BigInt, 4>>("Misc.4.FSQ"));
-        registerTask(new PackedTreeFindTest<PkdFQTreeT<BigInt, 4>>("Find.4.FSQ"));
-        registerTask(new PackedTreeSumTest<PkdFQTreeT<BigInt, 4>>("Sum.4.FSQ"));
+        registerTask(new PackedTreeMiscTest<PkdFQTreeT<int64_t, 4>>("Misc.4.FSQ"));
+        registerTask(new PackedTreeFindTest<PkdFQTreeT<int64_t, 4>>("Find.4.FSQ"));
+        registerTask(new PackedTreeSumTest<PkdFQTreeT<int64_t, 4>>("Sum.4.FSQ"));
 
-        registerTask(new PackedTreeMiscTest<PkdVQTreeT<BigInt, 4, UByteI7Codec>>("Misc.4.VLQ.I7"));
-        registerTask(new PackedTreeMiscTest<PkdVQTreeT<BigInt, 4, UBigIntEliasCodec>>("Misc.4.VLQ.Elias"));
-        registerTask(new PackedTreeMiscTest<PkdVDTreeT<BigInt, 4, UBigIntEliasCodec>>("Misc.4.VLD.Elias"));
+        registerTask(new PackedTreeMiscTest<PkdVQTreeT<int64_t, 4, UByteI7Codec>>("Misc.4.VLQ.I7"));
+        registerTask(new PackedTreeMiscTest<PkdVQTreeT<int64_t, 4, UBigIntEliasCodec>>("Misc.4.VLQ.Elias"));
+        registerTask(new PackedTreeMiscTest<PkdVDTreeT<int64_t, 4, UBigIntEliasCodec>>("Misc.4.VLD.Elias"));
 
-        registerTask(new PackedTreeSumTest<PkdVQTreeT<BigInt, 4,  UByteI7Codec>>("Sum.4.VLQ.I7"));
-        registerTask(new PackedTreeSumTest<PkdVQTreeT<BigInt, 4,  UBigIntEliasCodec>>("Sum.4.VLQ.Elias"));
-        registerTask(new PackedTreeSumTest<PkdVDTreeT<BigInt, 4,  UBigIntEliasCodec>>("Sum.4.VLD.Elias"));
+        registerTask(new PackedTreeSumTest<PkdVQTreeT<int64_t, 4,  UByteI7Codec>>("Sum.4.VLQ.I7"));
+        registerTask(new PackedTreeSumTest<PkdVQTreeT<int64_t, 4,  UBigIntEliasCodec>>("Sum.4.VLQ.Elias"));
+        registerTask(new PackedTreeSumTest<PkdVDTreeT<int64_t, 4,  UBigIntEliasCodec>>("Sum.4.VLD.Elias"));
 
-        registerTask(new PackedTreeFindTest<PkdVQTreeT<BigInt, 4, UBigIntEliasCodec>>("Find.4.VLQ.Elias"));
-        registerTask(new PackedTreeFindTest<PkdVQTreeT<BigInt, 4, UByteI7Codec>>("Find.4.VLQ.I7"));
-        registerTask(new PackedTreeFindTest<PkdVDTreeT<BigInt, 4, UByteI7Codec>>("Find.4.VLD.I7"));
+        registerTask(new PackedTreeFindTest<PkdVQTreeT<int64_t, 4, UBigIntEliasCodec>>("Find.4.VLQ.Elias"));
+        registerTask(new PackedTreeFindTest<PkdVQTreeT<int64_t, 4, UByteI7Codec>>("Find.4.VLQ.I7"));
+        registerTask(new PackedTreeFindTest<PkdVDTreeT<int64_t, 4, UByteI7Codec>>("Find.4.VLD.I7"));
 
-        registerTask(new PackedTreeInputBufferTest<PkdVQTreeT<BigInt, 4, UByteI7Codec>>("Buffer.4.VLQ.I7"));
-        registerTask(new PackedTreeInputBufferTest<PkdVQTreeT<BigInt, 4, UBigIntEliasCodec>>("Buffer.4.VLQ.Elias"));
+        registerTask(new PackedTreeInputBufferTest<PkdVQTreeT<int64_t, 4, UByteI7Codec>>("Buffer.4.VLQ.I7"));
+        registerTask(new PackedTreeInputBufferTest<PkdVQTreeT<int64_t, 4, UBigIntEliasCodec>>("Buffer.4.VLQ.Elias"));
 
-        registerTask(new PackedTreeInputBufferTest<PkdVDTreeT<BigInt, 4, UByteI7Codec>>("Buffer.4.VLD.I7"));
-        registerTask(new PackedTreeInputBufferTest<PkdVDTreeT<BigInt, 4, UBigIntEliasCodec>>("Buffer.4.VLD.Elias"));
+        registerTask(new PackedTreeInputBufferTest<PkdVDTreeT<int64_t, 4, UByteI7Codec>>("Buffer.4.VLD.I7"));
+        registerTask(new PackedTreeInputBufferTest<PkdVDTreeT<int64_t, 4, UBigIntEliasCodec>>("Buffer.4.VLD.Elias"));
 
-        registerTask(new PackedTreeInputBufferTest<PkdFQTreeT<BigInt, 4>>("Buffer.4.FSQ"));
+        registerTask(new PackedTreeInputBufferTest<PkdFQTreeT<int64_t, 4>>("Buffer.4.FSQ"));
     }
 
 };

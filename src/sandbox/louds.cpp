@@ -259,13 +259,13 @@ int main()
 //
 //  cout<<"LOUDS Size = "<<tree.size()<<" bits"<<endl;
 //
-//  BigInt t0 = getTimeInMillis();
+//  int64_t t0 = getTimeInMillis();
 //
 //  tree.reindex();
 //
 ////    tree.dump(cout);
 //
-//  BigInt t1 = getTimeInMillis();
+//  int64_t t1 = getTimeInMillis();
 //
 //  cout<<"ReindexTime: "<<FormatTime(t1 - t0)<<endl;
 //
@@ -277,21 +277,21 @@ int main()
 //      cout<<msg<<endl;
 //  }
 //
-//  BigInt t2 = getTimeInMillis();
+//  int64_t t2 = getTimeInMillis();
 //
 //  cout<<"DOM + LOUDS TraverseTime: "<<FormatTime(t2 - t1)<<endl;
 //
 //  size_t louds_count = 0;
 //  traverseTree(tree, 0, louds_count);
 //
-//  BigInt t3 = getTimeInMillis();
+//  int64_t t3 = getTimeInMillis();
 //
 //  cout<<"LOUDS TraverseTime: "<<FormatTime(t3 - t2)<<" nodes="<<louds_count<<endl;
 //
 //  size_t node_count = 0;
 //  traverseDOM(doc, node_count);
 //
-//  BigInt t4 = getTimeInMillis();
+//  int64_t t4 = getTimeInMillis();
 //
 //  cout<<"DOM TraverseTime: "<<FormatTime(t4 - t3)<<" nodes="<<node_count<<endl;
 

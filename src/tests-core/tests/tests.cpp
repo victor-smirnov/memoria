@@ -61,7 +61,7 @@ int main(int argc, const char** argv, const char** envp)
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
-        Int seed = cmd_line.getConfigurator().getValue<Int>("seed", -1);
+        int32_t seed = cmd_line.getConfigurator().getValue<int32_t>("seed", -1);
 
         MemoriaTestRunner& runner = tests_runner();
 
@@ -130,7 +130,7 @@ int main(int argc, const char** argv, const char** envp)
 
             runner.setOutput(output_folder);
 
-            Int failed = runner.Run();
+            int32_t failed = runner.Run();
             cout<<"Done..."<<endl;
 
             return failed;

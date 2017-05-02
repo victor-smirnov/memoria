@@ -24,33 +24,33 @@ namespace v1 {
 
 namespace packed_seq {
 
-    template <typename Values, Int WindowSize, Int RawBufferSize = 1024>
+    template <typename Values, int32_t WindowSize, int32_t RawBufferSize = 1024>
     struct IndexBuffer {
-        static constexpr Int NSymbols = Values::Indexes;
+        static constexpr int32_t NSymbols = Values::Indexes;
         using IndexType = typename Values::ElementType;
 
-        static constexpr Int BatchSize = RawBufferSize / sizeof(IndexType) / NSymbols;
+        static constexpr int32_t BatchSize = RawBufferSize / sizeof(IndexType) / NSymbols;
     private:
 
         Values buffer_[BatchSize];
-        Int window_start_   = 0;
-        Int window_end_     = WindowSize;
+        int32_t window_start_   = 0;
+        int32_t window_end_     = WindowSize;
 
-        Int size_;
+        int32_t size_;
 
     public:
-        IndexBuffer(Int size): size_(size)
+        IndexBuffer(int32_t size): size_(size)
     {}
 
         Values* buffer() {return buffer_;}
         const Values* buffer() const {return buffer_;}
 
         template <typename Fn>
-        Int process(Fn&& fn)
+        int32_t process(Fn&& fn)
         {
             if (window_start_ < size_)
             {
-                Int buffer_pos;
+                int32_t buffer_pos;
 
                 for (buffer_pos = 0; buffer_pos < BatchSize; buffer_pos++)
                 {
@@ -88,13 +88,13 @@ class BitmapReindexFn {
     typedef typename Seq::Index                                                 Index;
     typedef typename Index::Values                                              Values;
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
-    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
-    static const Int Blocks                                                     = Index::Blocks;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const int32_t Blocks                                                     = Index::Blocks;
     static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
     using BufferType = packed_seq::IndexBuffer<Values, ValuesPerBranch>;
-    static constexpr Int BatchSize = BufferType::BatchSize;
+    static constexpr int32_t BatchSize = BufferType::BatchSize;
 
 
     static_assert(BitsPerSymbol == 1,
@@ -106,11 +106,11 @@ class BitmapReindexFn {
 public:
     void reindex(Seq& seq)
     {
-        Int size = seq.size();
+        int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
-            Int index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
+            int32_t index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
             seq.createIndex(index_size);
 
             Index* index = seq.index();
@@ -119,7 +119,7 @@ public:
 
             BufferType buffer(size);
 
-            auto fn = [&](Int start, Int end) {
+            auto fn = [&](int32_t start, int32_t end) {
                 Values histogramm;
 
                 histogramm[1] = PopCount(symbols, start, end);
@@ -128,12 +128,12 @@ public:
                 return histogramm;
             };
 
-            Int at = 0;
+            int32_t at = 0;
 
-            Int buffer_size;
+            int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                index->populate(at, buffer_size, [&](Int block, Int idx) {
+                index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
                 });
 
@@ -149,11 +149,11 @@ public:
 
     void check(const Seq& seq)
     {
-        Int size = seq.size();
+        int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
-            Int index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
+            int32_t index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
 
             auto index = seq.index();
 
@@ -164,7 +164,7 @@ public:
 
             BufferType buffer(size);
 
-            auto fn = [&](Int start, Int end) {
+            auto fn = [&](int32_t start, int32_t end) {
                 Values histogramm;
 
                 histogramm[1] = PopCount(symbols, start, end);
@@ -173,14 +173,14 @@ public:
                 return histogramm;
             };
 
-            Int at = 0;
+            int32_t at = 0;
 
-            Int buffer_size;
+            int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                for (Int b = 0; b < Blocks; b++)
+                for (int32_t b = 0; b < Blocks; b++)
                 {
-                    for (Int c = 0; c < buffer_size; c++)
+                    for (int32_t c = 0; c < buffer_size; c++)
                     {
                         MEMORIA_V1_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
@@ -201,13 +201,13 @@ class ReindexFn {
     typedef typename Seq::Index                                                 Index;
     typedef typename Index::Values                                              Values;
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
-    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
-    static const Int Blocks                                                     = Index::Blocks;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const int32_t Blocks                                                     = Index::Blocks;
     static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
     using BufferType = packed_seq::IndexBuffer<Values, ValuesPerBranch>;
-    static constexpr Int BatchSize = BufferType::BatchSize;
+    static constexpr int32_t BatchSize = BufferType::BatchSize;
 
 
     static_assert(BitsPerSymbol >= 2,
@@ -219,37 +219,37 @@ class ReindexFn {
 public:
     void reindex(Seq& seq)
     {
-        Int size = seq.size();
+        int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
-            Int index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
+            int32_t index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
             seq.createIndex(index_size);
 
             Index* index = seq.index();
 
             auto symbols = seq.symbols();
 
-            auto fn = [&](Int start, Int end) {
+            auto fn = [&](int32_t start, int32_t end) {
                 Values histogramm;
 
-                for (Int idx = start; idx < end; idx++)
+                for (int32_t idx = start; idx < end; idx++)
                 {
-                    Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+                    int32_t symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
                     histogramm[symbol]++;
                 }
 
                 return histogramm;
             };
 
-            Int at = 0;
+            int32_t at = 0;
 
             BufferType buffer(size);
 
-            Int buffer_size;
+            int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                index->populate(at, buffer_size, [&](Int block, Int idx) {
+                index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
                 });
 
@@ -266,11 +266,11 @@ public:
 
     void check(const Seq& seq)
     {
-        Int size = seq.size();
+        int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
-            Int index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
+            int32_t index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
 
             auto index = seq.index();
 
@@ -280,26 +280,26 @@ public:
 
             BufferType buffer(size);
 
-            auto fn = [&](Int start, Int end) {
+            auto fn = [&](int32_t start, int32_t end) {
                 Values histogramm;
 
-                for (Int idx = start; idx < end; idx++)
+                for (int32_t idx = start; idx < end; idx++)
                 {
-                    Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+                    int32_t symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
                     histogramm[symbol]++;
                 }
 
                 return histogramm;
             };
 
-            Int at = 0;
+            int32_t at = 0;
 
-            Int buffer_size;
+            int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                for (Int b = 0; b < Blocks; b++)
+                for (int32_t b = 0; b < Blocks; b++)
                 {
-                    for (Int c = 0; c < buffer_size; c++)
+                    for (int32_t c = 0; c < buffer_size; c++)
                     {
                         MEMORIA_V1_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
@@ -324,13 +324,13 @@ class VLEReindexFn {
 
 
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
-    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
-    static const Int Blocks                                                     = Index::Blocks;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const int32_t Blocks                                                     = Index::Blocks;
     static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
     using BufferType = packed_seq::IndexBuffer<Values, ValuesPerBranch>;
-    static constexpr Int BatchSize = BufferType::BatchSize;
+    static constexpr int32_t BatchSize = BufferType::BatchSize;
 
     static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
                 "VLEReindexFn<> can only be used with 2-7-bit sequences");
@@ -341,7 +341,7 @@ class VLEReindexFn {
 public:
     void reindex(Seq& seq)
     {
-        Int size = seq.size();
+        int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
@@ -351,20 +351,20 @@ public:
 
             auto symbols = seq.symbols();
 
-            for (Int b = 0; b < size; b += ValuesPerBranch)
+            for (int32_t b = 0; b < size; b += ValuesPerBranch)
             {
-                Int next = b + ValuesPerBranch;
-                Int max = next <= size ? next : size;
+                int32_t next = b + ValuesPerBranch;
+                int32_t max = next <= size ? next : size;
 
                 Values values;
 
-                for (Int pos = b; pos < max; pos++)
+                for (int32_t pos = b; pos < max; pos++)
                 {
-                    Int symbol = GetBits(symbols, pos * BitsPerSymbol, BitsPerSymbol);
+                    int32_t symbol = GetBits(symbols, pos * BitsPerSymbol, BitsPerSymbol);
                     values[symbol]++;
                 }
 
-                for (Int c = 0; c < Blocks; c++)
+                for (int32_t c = 0; c < Blocks; c++)
                 {
                     length[c] += codec.length(values[c]);
                 }
@@ -378,23 +378,23 @@ public:
 
             BufferType buffer(size);
 
-            auto fn = [&](Int start, Int end) {
+            auto fn = [&](int32_t start, int32_t end) {
                 Values histogramm;
 
-                for (Int idx = start; idx < end; idx++)
+                for (int32_t idx = start; idx < end; idx++)
                 {
-                    Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+                    int32_t symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
                     histogramm[symbol]++;
                 }
 
                 return histogramm;
             };
 
-            Int buffer_size;
+            int32_t buffer_size;
             SizesT at;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                at = index->populate(at, buffer_size, [&](Int block, Int idx) {
+                at = index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
                 });
             }
@@ -409,7 +409,7 @@ public:
 
     void check(const Seq& seq)
     {
-        Int size = seq.size();
+        int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
@@ -417,12 +417,12 @@ public:
 
             auto symbols = seq.symbols();
 
-            auto fn = [&](Int start, Int end) {
+            auto fn = [&](int32_t start, int32_t end) {
                 Values histogramm;
 
-                for (Int idx = start; idx < end; idx++)
+                for (int32_t idx = start; idx < end; idx++)
                 {
-                    Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+                    int32_t symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
                     histogramm[symbol]++;
                 }
 
@@ -430,14 +430,14 @@ public:
             };
 
             BufferType buffer(size);
-            Int at = 0;
+            int32_t at = 0;
 
-            Int buffer_size;
+            int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                for (Int b = 0; b < Blocks; b++)
+                for (int32_t b = 0; b < Blocks; b++)
                 {
-                    for (Int c = 0; c < buffer_size; c++)
+                    for (int32_t c = 0; c < buffer_size; c++)
                     {
                         auto idx_value = index->value(b, c + at);
                         auto buf_value = buffer.buffer()[c][b];
@@ -464,13 +464,13 @@ class VLEReindex8Fn {
     typedef typename Index::Codec                                               Codec;
     using SizesT = typename Index::SizesT;
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
-    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
-    static const Int Blocks                                                     = Index::Blocks;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const int32_t Blocks                                                     = Index::Blocks;
     static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
     using BufferType = packed_seq::IndexBuffer<Values, ValuesPerBranch, 4096>;
-    static constexpr Int BatchSize = BufferType::BatchSize;
+    static constexpr int32_t BatchSize = BufferType::BatchSize;
 
     static_assert(BitsPerSymbol == 8,
                 "VLEReindex8Fn<> can only be used with 8-bit sequences");
@@ -481,7 +481,7 @@ class VLEReindex8Fn {
 public:
     void reindex(Seq& seq)
     {
-        Int size = seq.size();
+        int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
@@ -491,20 +491,20 @@ public:
 
             auto symbols = seq.symbols();
 
-            for (Int b = 0; b < size; b += ValuesPerBranch)
+            for (int32_t b = 0; b < size; b += ValuesPerBranch)
             {
-                Int next = b + ValuesPerBranch;
-                Int max = next <= size ? next : size;
+                int32_t next = b + ValuesPerBranch;
+                int32_t max = next <= size ? next : size;
 
                 Values values;
 
-                for (Int pos = b; pos < max; pos++)
+                for (int32_t pos = b; pos < max; pos++)
                 {
-                    Int symbol = symbols[pos];
+                    int32_t symbol = symbols[pos];
                     values[symbol]++;
                 }
 
-                for (Int c = 0; c < Blocks; c++)
+                for (int32_t c = 0; c < Blocks; c++)
                 {
                     length[c] += codec.length(values[c]);
                 }
@@ -520,22 +520,22 @@ public:
 
             SizesT at;
 
-            auto fn = [&](Int start, Int end) {
+            auto fn = [&](int32_t start, int32_t end) {
                 Values histogramm;
 
-                for (Int idx = start; idx < end; idx++)
+                for (int32_t idx = start; idx < end; idx++)
                 {
-                    Int symbol = symbols[idx];
+                    int32_t symbol = symbols[idx];
                     histogramm[symbol]++;
                 }
 
                 return histogramm;
             };
 
-            Int buffer_size;
+            int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                at = index->populate(at, buffer_size, [&](Int block, Int idx) {
+                at = index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
                 });
             }
@@ -549,7 +549,7 @@ public:
 
     void check(const Seq& seq)
     {
-        Int size = seq.size();
+        int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
@@ -557,12 +557,12 @@ public:
 
             auto symbols = seq.symbols();
 
-            auto fn = [&](Int start, Int end) {
+            auto fn = [&](int32_t start, int32_t end) {
                 Values histogramm;
 
-                for (Int idx = start; idx < end; idx++)
+                for (int32_t idx = start; idx < end; idx++)
                 {
-                    Int symbol = symbols[idx];
+                    int32_t symbol = symbols[idx];
                     histogramm[symbol]++;
                 }
 
@@ -570,14 +570,14 @@ public:
             };
 
             BufferType buffer(size);
-            Int at = 0;
+            int32_t at = 0;
 
-            Int buffer_size;
+            int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                for (Int b = 0; b < Blocks; b++)
+                for (int32_t b = 0; b < Blocks; b++)
                 {
-                    for (Int c = 0; c < buffer_size; c++)
+                    for (int32_t c = 0; c < buffer_size; c++)
                     {
                         MEMORIA_V1_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
                     }
@@ -603,9 +603,9 @@ class VLEReindex8BlkFn: public VLEReindex8Fn<Seq> {
     typedef typename Index::Values                                              Values;
     typedef typename Index::Codec                                               Codec;
 
-    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
-    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
-    static const Int Blocks                                                     = Index::Blocks;
+    static const int32_t BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const int32_t ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const int32_t Blocks                                                     = Index::Blocks;
     static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
     static_assert(BitsPerSymbol == 8,
@@ -617,7 +617,7 @@ class VLEReindex8BlkFn: public VLEReindex8Fn<Seq> {
 public:
     void reindex(Seq& seq)
     {
-        Int size = seq.size();
+        int32_t size = seq.size();
 
         if (size <= ValuesPerBranch)
         {
@@ -627,33 +627,33 @@ public:
 //        {
 //            Codec codec;
 //
-//            const Int LineWidth = 4096/ValuesPerBranch;
+//            const int32_t LineWidth = 4096/ValuesPerBranch;
 //
-//            UShort frequences[LineWidth * 256];
+//            uint16_t frequences[LineWidth * 256];
 //            memset(frequences, 0, sizeof(frequences));
 //
-//            Int length = 0;
+//            int32_t length = 0;
 //
 //            auto symbols = seq.symbols();
 //
-//            Int sum = 0;
+//            int32_t sum = 0;
 //
-//            Int block = 0;
-//            for (Int b = 0; b < size; b += ValuesPerBranch, block++)
+//            int32_t block = 0;
+//            for (int32_t b = 0; b < size; b += ValuesPerBranch, block++)
 //            {
-//                Int next = b + ValuesPerBranch;
-//                Int max = next <= size ? next : size;
+//                int32_t next = b + ValuesPerBranch;
+//                int32_t max = next <= size ? next : size;
 //
 //
-//                for (Int pos = b; pos < max; pos++)
+//                for (int32_t pos = b; pos < max; pos++)
 //                {
-//                    Int symbol = symbols[pos];
+//                    int32_t symbol = symbols[pos];
 //                    frequences[symbol * LineWidth + block]++;
 //                }
 //
-//                for (Int c = 0; c < Blocks; c++)
+//                for (int32_t c = 0; c < Blocks; c++)
 //                {
-//                    UShort freq = frequences[c * LineWidth + block];
+//                    uint16_t freq = frequences[c * LineWidth + block];
 //                    length += codec.length(freq);
 //
 //                    sum += freq;

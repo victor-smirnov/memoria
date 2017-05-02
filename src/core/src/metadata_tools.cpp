@@ -28,9 +28,9 @@ namespace v1 {
 
 using namespace std;
 
-void Expand(ostream& os, Int level)
+void Expand(ostream& os, int32_t level)
 {
-    for (Int c = 0; c < level; c++) {
+    for (int32_t c = 0; c < level; c++) {
         os<<" ";
     }
 }
@@ -40,7 +40,7 @@ size_t max_width(const PageDataValueProvider& provider)
 {
     size_t max = 0;
 
-    for (Int c = 0; c < provider.size(); c++)
+    for (int32_t c = 0; c < provider.size(); c++)
     {
         auto str = provider.value(c);
 
@@ -65,7 +65,7 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProv
 
     if (width < 3) width = 3;
 
-    Int columns;
+    int32_t columns;
 
     if (width <= 3) {
         columns = 16;
@@ -87,7 +87,7 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProv
 
     out << dec << endl;
 
-    for (Int c = 0; c < provider.size(); c+= columns)
+    for (int32_t c = 0; c < provider.size(); c+= columns)
     {
         Expand(out, 12);
         out << " ";
@@ -96,7 +96,7 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProv
         out.width(6);
         out << c << ": ";
 
-        Int d;
+        int32_t d;
         for (d = 0; d < columns && c + d < provider.size(); d++)
         {
             stringstream ss;

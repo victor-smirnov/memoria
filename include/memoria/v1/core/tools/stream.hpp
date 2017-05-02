@@ -28,20 +28,20 @@ namespace v1 {
 
 struct InputStreamHandler {
 
-    virtual Int available()                             = 0;
+    virtual int32_t available()                             = 0;
     virtual void close()                                = 0;
-    virtual Int bufferSize()                            = 0;
+    virtual int32_t bufferSize()                            = 0;
     virtual size_t read(void* mem, size_t offset, size_t length) = 0;
 
 
-    virtual Byte readByte()             = 0;
-    virtual UByte readUByte()           = 0;
-    virtual Short readShort()           = 0;
-    virtual UShort readUShort()         = 0;
-    virtual Int readInt()               = 0;
-    virtual UInt readUInt()             = 0;
-    virtual BigInt readBigInt()         = 0;
-    virtual UBigInt readUBigInt()       = 0;
+    virtual int8_t readByte()             = 0;
+    virtual uint8_t readUByte()           = 0;
+    virtual int16_t readShort()           = 0;
+    virtual uint16_t readUShort()         = 0;
+    virtual int32_t readInt()               = 0;
+    virtual uint32_t readUInt()             = 0;
+    virtual int64_t readBigInt()         = 0;
+    virtual uint64_t readUBigInt()       = 0;
     virtual bool readBool()             = 0;
     virtual float readFloat()           = 0;
     virtual double readDouble()         = 0;
@@ -54,13 +54,13 @@ struct InputStreamHandler {
     }
 
 
-    virtual bool read(void* mem, Int size)
+    virtual bool read(void* mem, int32_t size)
     {
-        Int size0 = size;
-        Int ptr = 0;
+        int32_t size0 = size;
+        int32_t ptr = 0;
         while (size > 0)
         {
-            Int r = read(mem, ptr, size);
+            int32_t r = read(mem, ptr, size);
             if (r < 0) {
                 if (size != size0) {
                     throw Exception(MEMORIA_SOURCE, "End Of File");
@@ -82,19 +82,19 @@ struct InputStreamHandler {
 
 struct OutputStreamHandler {
 
-    virtual Int bufferSize() = 0;
+    virtual int32_t bufferSize() = 0;
     virtual void flush() = 0;
     virtual void close() = 0;
     virtual void write(const void* mem, size_t offset, size_t lenght) = 0;
 
-    virtual void write(Byte value)      = 0;
-    virtual void write(UByte value)     = 0;
-    virtual void write(Short value)     = 0;
-    virtual void write(UShort value)    = 0;
-    virtual void write(Int value)       = 0;
-    virtual void write(UInt value)      = 0;
-    virtual void write(BigInt value)    = 0;
-    virtual void write(UBigInt value)   = 0;
+    virtual void write(int8_t value)      = 0;
+    virtual void write(uint8_t value)     = 0;
+    virtual void write(int16_t value)     = 0;
+    virtual void write(uint16_t value)    = 0;
+    virtual void write(int32_t value)       = 0;
+    virtual void write(uint32_t value)      = 0;
+    virtual void write(int64_t value)    = 0;
+    virtual void write(uint64_t value)   = 0;
     virtual void write(bool value)      = 0;
     virtual void write(float value)     = 0;
     virtual void write(double value)    = 0;
@@ -118,42 +118,42 @@ public:
 
 
 
-inline InputStreamHandler& operator>>(InputStreamHandler& in, Byte& value) {
+inline InputStreamHandler& operator>>(InputStreamHandler& in, int8_t& value) {
     value = in.readByte();
     return in;
 }
 
-inline InputStreamHandler& operator>>(InputStreamHandler& in, UByte& value) {
+inline InputStreamHandler& operator>>(InputStreamHandler& in, uint8_t& value) {
     value = in.readUByte();
     return in;
 }
 
-inline InputStreamHandler& operator>>(InputStreamHandler& in, Short& value) {
+inline InputStreamHandler& operator>>(InputStreamHandler& in, int16_t& value) {
     value = in.readShort();
     return in;
 }
 
-inline InputStreamHandler& operator>>(InputStreamHandler& in, UShort& value) {
+inline InputStreamHandler& operator>>(InputStreamHandler& in, uint16_t& value) {
     value = in.readUShort();
     return in;
 }
 
-inline InputStreamHandler& operator>>(InputStreamHandler& in, Int& value) {
+inline InputStreamHandler& operator>>(InputStreamHandler& in, int32_t& value) {
     value = in.readInt();
     return in;
 }
 
-inline InputStreamHandler& operator>>(InputStreamHandler& in, UInt& value) {
+inline InputStreamHandler& operator>>(InputStreamHandler& in, uint32_t& value) {
     value = in.readUInt();
     return in;
 }
 
-inline InputStreamHandler& operator>>(InputStreamHandler& in, BigInt& value) {
+inline InputStreamHandler& operator>>(InputStreamHandler& in, int64_t& value) {
     value = in.readBigInt();
     return in;
 }
 
-inline InputStreamHandler& operator>>(InputStreamHandler& in, UBigInt& value) {
+inline InputStreamHandler& operator>>(InputStreamHandler& in, uint64_t& value) {
     value = in.readUBigInt();
     return in;
 }
@@ -175,7 +175,7 @@ inline InputStreamHandler& operator>>(InputStreamHandler& in, double& value) {
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, String& value)
 {
-    BigInt size = in.readBigInt();
+    int64_t size = in.readBigInt();
 
     value.clear();
     value.insert(0, size, 0);
@@ -195,7 +195,7 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const T& value) {
 
 inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const String& value)
 {
-    out << (BigInt)value.length();
+    out << (int64_t)value.length();
 
     out.write(value.c_str(), 0, value.length());
     return out;

@@ -30,7 +30,7 @@ namespace v1 {
 
 
 
-BigInt getTimeInMillis()
+int64_t getTimeInMillis()
 {
     struct timeb tm;
     ftime(&tm);
@@ -38,15 +38,15 @@ BigInt getTimeInMillis()
 }
 
 
-String getMillisPart(BigInt millis) {
+String getMillisPart(int64_t millis) {
     return millis < 100 ? "0"+toString(millis) : toString(millis);
 }
 
-String getTwoDigitsPart(BigInt value) {
+String getTwoDigitsPart(int64_t value) {
     return value < 10 ? "0"+toString(value) : toString(value);
 }
 
-String FormatTime(BigInt millis)
+String FormatTime(int64_t millis)
 {
     if (millis < 1000)
     {
@@ -54,32 +54,32 @@ String FormatTime(BigInt millis)
     }
     else if (millis < 60000)
     {
-        BigInt seconds  = millis / 1000;
+        int64_t seconds  = millis / 1000;
         millis = millis % 1000;
 
         return toString(seconds) +"." + getMillisPart(millis);
     }
     else if (millis < 60000 * 60)
     {
-        BigInt minutes  = millis / 60000;
+        int64_t minutes  = millis / 60000;
 
         millis -= minutes * 60000;
 
-        BigInt seconds  = millis / 1000;
+        int64_t seconds  = millis / 1000;
         millis = millis % 1000;
 
         return toString(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
     }
     else if (millis < 60000 * 60 * 24)
     {
-        BigInt hours    = millis / (60000 * 60);
+        int64_t hours    = millis / (60000 * 60);
         millis -= hours * 60000 * 60;
 
-        BigInt minutes  = millis / 60000;
+        int64_t minutes  = millis / 60000;
 
         millis -= minutes * 60000;
 
-        BigInt seconds  = millis / 1000;
+        int64_t seconds  = millis / 1000;
         millis = millis % 1000;
 
         return toString(hours) + ":" + getTwoDigitsPart(minutes)
@@ -88,16 +88,16 @@ String FormatTime(BigInt millis)
     }
     else
     {
-        BigInt days     = millis / (60000 * 60 * 24);
+        int64_t days     = millis / (60000 * 60 * 24);
         millis -= days * 60000 * 60 * 24;
 
-        BigInt hours    = millis / (60000 * 60);
+        int64_t hours    = millis / (60000 * 60);
         millis -= hours * 60000 * 60;
 
-        BigInt minutes  = millis / 60000;
+        int64_t minutes  = millis / 60000;
         millis -= minutes * 60000;
 
-        BigInt seconds  = millis / 1000;
+        int64_t seconds  = millis / 1000;
         millis = millis % 1000;
 
         return toString(days) + (days == 1? "day " : "days ")

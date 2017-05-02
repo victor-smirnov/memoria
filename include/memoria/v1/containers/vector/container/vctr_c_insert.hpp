@@ -55,7 +55,7 @@ protected:
     typedef typename Types::CtrSizeT                                            CtrSizeT;
     typedef typename Types::Value                                               Value;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
 
 MEMORIA_V1_CONTAINER_PART_END

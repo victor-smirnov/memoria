@@ -27,12 +27,12 @@ namespace louds {
 
 class LoudsNode {
 protected:
-    BigInt  node_;
-    BigInt  rank1_;
-    Int     value_;
+    int64_t  node_;
+    int64_t  rank1_;
+    int32_t     value_;
 
 public:
-    LoudsNode(BigInt node, BigInt rank1, Int value = -1):
+    LoudsNode(int64_t node, int64_t rank1, int32_t value = -1):
         node_(node),
         rank1_(rank1),
         value_(value)
@@ -44,11 +44,11 @@ public:
         value_(0)
     {}
 
-    BigInt node() const {return node_;}
-    BigInt rank1() const {return rank1_;}
-    BigInt rank0() const {return node_ + 1 - rank1_;}
+    int64_t node() const {return node_;}
+    int64_t rank1() const {return rank1_;}
+    int64_t rank0() const {return node_ + 1 - rank1_;}
 
-    Int value() const {return value_;}
+    int32_t value() const {return value_;}
 
     bool isLeaf() const {
         return value_ == 0;
@@ -72,19 +72,19 @@ static std::ostream& operator<<(std::ostream& out, const LoudsNode& node)
 
 
 class LoudsNodeRange: public LoudsNode {
-    BigInt count_;
+    int64_t count_;
 public:
-    LoudsNodeRange(BigInt node, BigInt noderank_, Int value, BigInt count):
+    LoudsNodeRange(int64_t node, int64_t noderank_, int32_t value, int64_t count):
         LoudsNode(node, noderank_, value),
         count_(count)
     {}
 
-    LoudsNodeRange(const LoudsNode& start, BigInt count):
+    LoudsNodeRange(const LoudsNode& start, int64_t count):
         LoudsNode(start),
         count_(count)
     {}
 
-    BigInt count() const {return count_;}
+    int64_t count() const {return count_;}
 
     LoudsNode first() const {
         return LoudsNode(node(), rank1(), value());

@@ -38,7 +38,7 @@ int main(void) {
 
 	auto t0 = getTimeInMillis();
 
-    for (Int c = 0; c < 10; c++) {
+    for (int32_t c = 0; c < 10; c++) {
         cout<<memoria::v1::UUID::make_random()<<endl;
     }
 

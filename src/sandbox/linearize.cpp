@@ -27,11 +27,11 @@ using namespace v1::bt;
 using namespace v1::list_tree;
 using namespace std;
 
-template <Int I>
+template <int32_t I>
 class T{};
 
 
-template <Int I, Int J>
+template <int32_t I, int32_t J>
 class BB{};
 
 

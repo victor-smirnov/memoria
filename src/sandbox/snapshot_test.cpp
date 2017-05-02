@@ -119,7 +119,7 @@ struct Checker {
 	void operator()(const AllocatorT& alloc, const Keys& keys, int th_num, const UUID& snp_id, const UUID& ctr_name)
 	{
 		try {
-			BigInt t0 = getTimeInMillis();
+			int64_t t0 = getTimeInMillis();
 
 			auto snp = alloc->find(snp_id);
 
@@ -181,12 +181,12 @@ int main()
 
         auto master = alloc->master();
 
-        for (Int c = 0; c < thread_num; c++)
+        for (int32_t c = 0; c < thread_num; c++)
         {
         	creators.emplace_back(make_unique<Creator>());
         }
 
-        for (Int c = 0; c < thread_num; c++)
+        for (int32_t c = 0; c < thread_num; c++)
         {
         	producers.emplace_back(thread([&](auto&& s, auto&& k, auto n){
         		creators[n]->run(s, k, n);
@@ -223,7 +223,7 @@ int main()
 
         vector<thread> checkers;
 
-        for (Int c = 0; c < thread_num; c++)
+        for (int32_t c = 0; c < thread_num; c++)
         {
         	checkers.emplace_back(thread(Checker(), alloc, keys, c, alloc->master()->uuid(), creators[c]->ctr_name()));
         }
@@ -237,7 +237,7 @@ int main()
 
         // Store binary contents of allocator to the file.
 
-        BigInt ts0 = getTimeInMillis();
+        int64_t ts0 = getTimeInMillis();
         alloc->store("snapshots_mt.dump");
 
         {
@@ -245,7 +245,7 @@ int main()
         	cout << "Store time: " << (getTimeInMillis() - ts0) << endl;
         }
 
-        BigInt tl0 = getTimeInMillis();
+        int64_t tl0 = getTimeInMillis();
         auto alloc1 = PersistentInMemAllocator<>::load("snapshots_mt.dump");
         cout << "Load time: " << (getTimeInMillis() - tl0) << endl;
 
@@ -253,7 +253,7 @@ int main()
 
         vector<thread> checkers1;
 
-        for (Int c = 0; c < thread_num; c++)
+        for (int32_t c = 0; c < thread_num; c++)
         {
         	checkers1.emplace_back(thread(Checker(), alloc1, keys, c, alloc1->master()->uuid(), creators[c]->ctr_name()));
         }

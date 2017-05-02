@@ -43,7 +43,7 @@ int main() {
     cout<<"Field Factory: "<<HasFieldFactory<double>::Value<<endl;
     cout<<"ValueCodec: "<<HasValueCodec<double>::Value<<endl;
 
-    using ValueType = UByte;
+    using ValueType = uint8_t;
 
     using CtrName = Vector<ValueType>;
 
@@ -69,10 +69,10 @@ int main() {
 
 
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
         cout << "Inserted: " << map->end()->bulk_insert(data->begin(), data->end()) << endl;
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
         cout << "Insertion time: " << FormatTime(t1 - t0) << " s" << endl;
 
         FSDumpAllocator(snp, "vector_batch_data.dir");
@@ -99,18 +99,18 @@ int main() {
 
 
 
-        BigInt t2 = getTimeInMillis();
+        int64_t t2 = getTimeInMillis();
         check_snapshot(snp);
-        BigInt t3 = getTimeInMillis();
+        int64_t t3 = getTimeInMillis();
         cout << "Check time: " << FormatTime(t3 - t2) << " s" << endl;
 
 
 
 
-        BigInt t4 = getTimeInMillis();
+        int64_t t4 = getTimeInMillis();
         unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create("vector_batch_data.dump"));
         alloc->store(out.get());
-        BigInt t5 = getTimeInMillis();
+        int64_t t5 = getTimeInMillis();
         cout << "Dump time: " << FormatTime(t5 - t4) << " s" << endl;
     }
     catch (v1::Exception& ex) {

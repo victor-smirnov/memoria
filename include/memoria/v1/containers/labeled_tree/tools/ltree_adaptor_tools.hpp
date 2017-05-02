@@ -33,7 +33,7 @@ protected:
 
 public:
 
-    LoudsSourceAdaptorBase(BigInt length):
+    LoudsSourceAdaptorBase(int64_t length):
         start_(0),
         length_(length)
     {}
@@ -91,7 +91,7 @@ class NodeDegreeSourceAdaptor: public LoudsSourceAdaptorBase<T> {
 
 public:
 
-    NodeDegreeSourceAdaptor(BigInt degree):
+    NodeDegreeSourceAdaptor(int64_t degree):
         Base(degree + 1)
     {}
 
@@ -120,7 +120,7 @@ class ZeroSourceAdaptor: public LoudsSourceAdaptorBase<T> {
 
 public:
 
-    ZeroSourceAdaptor(BigInt length):
+    ZeroSourceAdaptor(int64_t length):
         Base(length)
     {}
 

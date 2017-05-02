@@ -29,26 +29,26 @@ class SkipForwardWalker: public bt::FindForwardWalkerBase<Types, SkipForwardWalk
     typedef bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>>          Base;
     typedef typename Base::Key                                                  Key;
 
-    BigInt rank1_ = 0;
+    int64_t rank1_ = 0;
 
 public:
     typedef typename Base::ResultType                                           ResultType;
     typedef typename Base::Iterator                                             Iterator;
 
 
-    SkipForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
+    SkipForwardWalker(int32_t stream, int32_t index, Key target): Base(stream, index, target)
     {}
 
-    template <Int Idx, typename Tree>
-    ResultType stream(Tree* tree, Int start)
+    template <int32_t Idx, typename Tree>
+    ResultType stream(Tree* tree, int32_t start)
     {
         return Base::template stream<Idx>(tree, start);
     }
 
-    template <Int StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType* stream, Int start, const Result& result)
+    template <int32_t StreamIdx, typename StreamType, typename Result>
+    void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
     {
-        Int size = stream->size();
+        int32_t size = stream->size();
 
         if (result.idx() < size)
         {
@@ -59,14 +59,14 @@ public:
         }
     }
 
-    template <Int Idx, typename StreamTypes>
-    ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
+    template <int32_t Idx, typename StreamTypes>
+    ResultType stream(const PkdFSSeq<StreamTypes>* seq, int32_t start)
     {
         auto& sum = Base::sum_;
 
-        BigInt offset = Base::target_ - sum;
+        int64_t offset = Base::target_ - sum;
 
-        Int size = seq != nullptr? seq->size() : 0;
+        int32_t size = seq != nullptr? seq->size() : 0;
 
         if (start + offset < size)
         {
@@ -85,7 +85,7 @@ public:
         }
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    int64_t finish(Iterator& iter, int32_t idx)
     {
         iter.idx() = idx;
 
@@ -100,24 +100,24 @@ class SkipBackwardWalker: public bt::FindBackwardWalkerBase<Types, SkipBackwardW
     typedef bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>        Base;
     typedef typename Base::Key                                                  Key;
 
-    BigInt rank1_ = 0;
+    int64_t rank1_ = 0;
 
 public:
     typedef typename Base::ResultType                                           ResultType;
     typedef typename Base::Iterator                                             Iterator;
 
-    SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
+    SkipBackwardWalker(int32_t stream, int32_t index, Key target): Base(stream, index, target)
     {
         Base::search_type_ = SearchType::GT;
     }
 
-    template <Int Idx, typename Tree>
-    ResultType stream(const Tree* tree, Int start) {
+    template <int32_t Idx, typename Tree>
+    ResultType stream(const Tree* tree, int32_t start) {
         return Base::template stream<Idx>(tree, start);
     }
 
-    template <Int StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType* stream, Int start, const Result& result)
+    template <int32_t StreamIdx, typename StreamType, typename Result>
+    void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
     {
         if (result.idx() >= 0)
         {
@@ -129,10 +129,10 @@ public:
     }
 
 
-    template <Int Idx, typename TreeTypes>
-    ResultType stream(const PkdFSSeq<TreeTypes>* seq, Int start)
+    template <int32_t Idx, typename TreeTypes>
+    ResultType stream(const PkdFSSeq<TreeTypes>* seq, int32_t start)
     {
-        BigInt offset = Base::target_ - Base::sum_;
+        int64_t offset = Base::target_ - Base::sum_;
 
         auto& sum = Base::sum_;
 
@@ -153,7 +153,7 @@ public:
         }
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    int64_t finish(Iterator& iter, int32_t idx)
     {
         iter.idx() = idx;
 

@@ -56,19 +56,19 @@ public:
     typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>             SplitFn;
 
 protected:
-    static const Int Streams = Types::Streams;
+    static const int32_t Streams = Types::Streams;
 
     void newRootP(NodeBaseG& root);
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, Int);
-    Int getBranchNodeCapacity(const NodeBaseG& node, UBigInt active_streams) const
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, int32_t);
+    int32_t getBranchNodeCapacity(const NodeBaseG& node, uint64_t active_streams) const
     {
         return BranchDispatcher::dispatch(node, GetNonLeafCapacityFn(), active_streams);
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
-    BranchNodeEntry splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at);
+    BranchNodeEntry splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at);
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -77,7 +77,7 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-typename M_TYPE::BranchNodeEntry M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at)
+typename M_TYPE::BranchNodeEntry M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at)
 {
     auto& self = this->self();
 
@@ -98,7 +98,7 @@ void M_TYPE::newRootP(NodeBaseG& root)
 
     NodeBaseG new_root = self.createNode(root->level() + 1, true, false, root->page_size());
 
-    UBigInt root_active_streams = self.getActiveStreams(root);
+    uint64_t root_active_streams = self.getActiveStreams(root);
     self.layoutBranchNode(new_root, root_active_streams);
 
     self.copyRootMetadata(root, new_root);

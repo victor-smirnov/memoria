@@ -52,8 +52,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    template <Int Stream, typename Entry>
-    SplitStatus insert_stream_entry(Iterator& iter, Int stream, Int idx, const Entry& entry)
+    template <int32_t Stream, typename Entry>
+    SplitStatus insert_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Entry& entry)
     {
         auto& self = this->self();
 

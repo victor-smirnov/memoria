@@ -52,21 +52,21 @@ public:
 
     virtual ~PackedLoudsCardinalTest() noexcept {}
 
-    CardinalTreePtr createCardinalTree(Int block_size = 64*1024)
+    CardinalTreePtr createCardinalTree(int32_t block_size = 64*1024)
     {
         return MakeSharedPackedStructByBlock<CardinalTree>(block_size);
     }
 
-    UBigInt buildPath(PackedLoudsNode node, Int level, const CardinalTreePtr& ctree)
+    uint64_t buildPath(PackedLoudsNode node, int32_t level, const CardinalTreePtr& ctree)
     {
         const LoudsTree* tree       = ctree->tree();
         const LabelArray* labels    = ctree->labels();
 
-        UBigInt path = 0;
+        uint64_t path = 0;
 
-        for (Int l = level - 1; l >= 0; l--)
+        for (int32_t l = level - 1; l >= 0; l--)
         {
-            UBigInt label = labels->value(node.rank1() - 1);
+            uint64_t label = labels->value(node.rank1() - 1);
 
             path |= label << (8 * l);
 
@@ -76,11 +76,11 @@ public:
         return path;
     }
 
-    void checkTreeContent(const CardinalTreePtr& tree, set<UBigInt>& paths)
+    void checkTreeContent(const CardinalTreePtr& tree, set<uint64_t>& paths)
     {
-        traverseTreePaths(tree, [this, tree, &paths](const PackedLoudsNode& node, Int level) {
+        traverseTreePaths(tree, [this, tree, &paths](const PackedLoudsNode& node, int32_t level) {
             AssertEQ(MA_SRC, level, 4);
-            UBigInt path = buildPath(node, level, tree);
+            uint64_t path = buildPath(node, level, tree);
             AssertTrue(MA_SRC, paths.find(path) != paths.end());
         });
     }
@@ -92,13 +92,13 @@ public:
 
         tree->prepare();
 
-        auto fn = [](const PackedLoudsNode& node, Int label, Int level){};
+        auto fn = [](const PackedLoudsNode& node, int32_t label, int32_t level){};
 
-        set<UBigInt> paths;
+        set<uint64_t> paths;
 
-        for (Int c = 0; c < 1000; c++)
+        for (int32_t c = 0; c < 1000; c++)
         {
-            UInt path = getRandom();
+            uint32_t path = getRandom();
 
             out()<<c<<" "<<hex<<path<<dec<<endl;
 
@@ -119,13 +119,13 @@ public:
 
         tree->prepare();
 
-        auto fn = [](const PackedLoudsNode& node, Int label, Int level){};
+        auto fn = [](const PackedLoudsNode& node, int32_t label, int32_t level){};
 
-        set<UBigInt> paths;
+        set<uint64_t> paths;
 
-        for (Int c = 0; c < 100; c++)
+        for (int32_t c = 0; c < 100; c++)
         {
-            UInt path = getRandom();
+            uint32_t path = getRandom();
 
             out()<<c<<" "<<hex<<path<<dec<<endl;
 
@@ -140,8 +140,8 @@ public:
 
         while (paths.size() > 0)
         {
-            Int idx = getRandom(paths.size());
-            UBigInt path;
+            int32_t idx = getRandom(paths.size());
+            uint64_t path;
 
             for (auto p: paths)
             {

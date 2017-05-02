@@ -39,7 +39,7 @@ int main(int argc, const char** argv, const char** envp) {
 
         alloc.mem_limit() = 2*1024*1024*1024ll;
 
-        using CtrT  = DCtrTF<Table<BigInt, Byte>>::Type;
+        using CtrT  = DCtrTF<Table<int64_t, int8_t>>::Type;
 
         CtrT::initMetadata();
 

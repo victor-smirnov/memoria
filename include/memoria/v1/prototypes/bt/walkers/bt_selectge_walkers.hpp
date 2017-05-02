@@ -37,12 +37,12 @@ protected:
 
 public:
 
-    SelectGEForwardWalkerBase(Int symbol, CtrSizeT rank):
+    SelectGEForwardWalkerBase(int32_t symbol, CtrSizeT rank):
         Base(symbol, rank, SearchType::GE)
     {}
 
-    template <Int StreamIdx, typename Tree>
-    StreamOpResult find_non_leaf(const Tree* tree, bool root, Int index, Int start)
+    template <int32_t StreamIdx, typename Tree>
+    StreamOpResult find_non_leaf(const Tree* tree, bool root, int32_t index, int32_t start)
     {
         auto size = tree->size();
 
@@ -52,7 +52,7 @@ public:
 
             auto result = tree->findForward(Base::search_type_, index, start, k);
 
-            Int nearest_nz_idx = tree->findNZLT(index, start);
+            int32_t nearest_nz_idx = tree->findNZLT(index, start);
 
             if (nearest_nz_idx >= result.idx())
             {
@@ -70,8 +70,8 @@ public:
     }
 
 
-    template <Int StreamIdx, typename Seq>
-    StreamOpResult find_leaf(const Seq* seq, Int start)
+    template <int32_t StreamIdx, typename Seq>
+    StreamOpResult find_leaf(const Seq* seq, int32_t start)
     {
         MEMORIA_V1_ASSERT_TRUE(seq);
 
@@ -87,7 +87,7 @@ public:
             return StreamOpResult(result.idx(), start, false);
         }
         else {
-            Int size = seq->size();
+            int32_t size = seq->size();
 
             sum  += result.rank();
             return StreamOpResult(size, start, true);
@@ -113,12 +113,12 @@ protected:
     using Base::direction_;
 
 public:
-    SelectGEForwardWalker(Int symbol, CtrSizeT rank):
+    SelectGEForwardWalker(int32_t symbol, CtrSizeT rank):
         Base(symbol, rank)
     {}
 
-    template <Int StreamIdx, typename Seq>
-    SelectResult select(const Seq* seq, Int start, Int symbol, CtrSizeT rank)
+    template <int32_t StreamIdx, typename Seq>
+    SelectResult select(const Seq* seq, int32_t start, int32_t symbol, CtrSizeT rank)
     {
         if (direction_ == WalkDirection::DOWN)
       {
@@ -146,13 +146,13 @@ protected:
 
 public:
 
-    SelectBackwardWalkerBase(Int symbol, CtrSizeT rank):
+    SelectBackwardWalkerBase(int32_t symbol, CtrSizeT rank):
         Base(symbol, rank, SearchType::GE)
     {}
 
 
-    template <Int StreamIdx, typename Seq>
-    StreamOpResult find_leaf(const Seq* seq, Int start)
+    template <int32_t StreamIdx, typename Seq>
+    StreamOpResult find_leaf(const Seq* seq, int32_t start)
     {
         MEMORIA_V1_ASSERT_TRUE(seq);
 
@@ -194,12 +194,12 @@ class SelectBackwardWalker: public SelectBackwardWalkerBase<Types, SelectBackwar
 
 public:
 
-    SelectBackwardWalker(Int symbol, CtrSizeT target):
+    SelectBackwardWalker(int32_t symbol, CtrSizeT target):
         Base(symbol, target)
     {}
 
-    template <Int StreamIdx, typename Seq>
-    SelectResult select(const Seq* seq, Int start, Int symbol, CtrSizeT rank)
+    template <int32_t StreamIdx, typename Seq>
+    SelectResult select(const Seq* seq, int32_t start, int32_t symbol, CtrSizeT rank)
     {
         return seq->selectBW(start, rank, symbol);
     }

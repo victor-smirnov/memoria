@@ -69,16 +69,16 @@ namespace {
 
 	template <typename PageT>
 	struct PagePtr {
-		using RefCntT = BigInt;
+		using RefCntT = int64_t;
 	private:
 		PageT* page_;
 		std::atomic<RefCntT> refs_;
-		Int cpu_id_;
+		int32_t cpu_id_;
 
 		// Currently for debug purposes
-		static std::atomic<BigInt> page_cnt_;
+		static std::atomic<int64_t> page_cnt_;
 	public:
-		PagePtr(PageT* page, BigInt refs, Int cpu_id): page_(page), refs_(refs), cpu_id_(cpu_id) {}
+		PagePtr(PageT* page, int64_t refs, int32_t cpu_id): page_(page), refs_(refs), cpu_id_(cpu_id) {}
 
 		~PagePtr() {
 			::free(page_);
@@ -104,11 +104,11 @@ namespace {
 			return --refs_;
 		}
 
-		Int cpu_id() const {return cpu_id_;}
+		int32_t cpu_id() const {return cpu_id_;}
 	};
 
 	template <typename PageT>
-	std::atomic<BigInt> PagePtr<PageT>::page_cnt_(0);
+	std::atomic<int64_t> PagePtr<PageT>::page_cnt_(0);
 
 
 	template <typename ValueT, typename TxnIdT>
@@ -196,8 +196,8 @@ template <typename Profile, typename PageType>
 class PersistentInMemAllocatorT: public std::enable_shared_from_this<PersistentInMemAllocatorT<Profile, PageType>> {
 public:
 
-    static constexpr Int NodeIndexSize  = 32;
-    static constexpr Int NodeSize       = NodeIndexSize * 32;
+    static constexpr int32_t NodeIndexSize  = 32;
+    static constexpr int32_t NodeSize       = NodeIndexSize * 32;
 
     using MyType        = PersistentInMemAllocatorT<Profile, PageType>;
 
@@ -242,7 +242,7 @@ public:
 
         TxnId txn_id_;
 
-        BigInt references_ = 0;
+        int64_t references_ = 0;
 
     public:
 
@@ -519,10 +519,10 @@ private:
     };
 
     class Checksum {
-        BigInt records_;
+        int64_t records_;
     public:
-        BigInt& records() {return records_;}
-        const BigInt& records() const {return records_;}
+        int64_t& records() {return records_;}
+        const int64_t& records() const {return records_;}
     };
 
     enum {TYPE_UNKNOWN, TYPE_METADATA, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE, TYPE_CHECKSUM};
@@ -538,15 +538,15 @@ private:
 
     ContainerMetadataRepository* metadata_;
 
-    BigInt records_ = 0;
+    int64_t records_ = 0;
 
     PairPtr pair_;
 
-    SeastarCountDownLatch<BigInt> active_snapshots_;
+    SeastarCountDownLatch<int64_t> active_snapshots_;
 
 //    ReverseBranchMap snapshot_labels_metadata_;
 
-    Int master_cpu_id_;
+    int32_t master_cpu_id_;
 
     rwlock store_mutex_;
 
@@ -570,7 +570,7 @@ public:
     }
 
 private:
-    PersistentInMemAllocatorT(Int):
+    PersistentInMemAllocatorT(int32_t):
     	logger_("PersistentInMemAllocator"),
         metadata_(MetadataRepository<Profile>::getMetadata()),
 		master_cpu_id_(engine().cpu_id())
@@ -593,7 +593,7 @@ public:
         free_memory(history_tree_);
     }
 
-    Int cpu_id() const {
+    int32_t cpu_id() const {
     	return master_cpu_id_;
     }
 
@@ -618,7 +618,7 @@ public:
         return logger_;
     }
 
-    BigInt active_snapshots() const {
+    int64_t active_snapshots() const {
         return active_snapshots_;
     }
 
@@ -679,7 +679,7 @@ public:
 
     SnapshotPtr find(const TxnId& snapshot_id)
     {
-    	Int cpu_id = engine().cpu_id();
+    	int32_t cpu_id = engine().cpu_id();
 
     	auto ptr = submit_to_master([=] {
             auto iter = snapshot_map_.find(snapshot_id);
@@ -712,7 +712,7 @@ public:
 
     SnapshotPtr find_branch(StringRef name)
     {
-    	Int cpu_id = engine().cpu_id();
+    	int32_t cpu_id = engine().cpu_id();
 
     	auto ptr = submit_to_master([=] {
     		auto iter = named_branches_.find(name);
@@ -750,7 +750,7 @@ public:
 
     SnapshotPtr master()
     {
-    	Int owner_cpu_id = engine().cpu_id();
+    	int32_t owner_cpu_id = engine().cpu_id();
     	auto ptr = submit_to_master([=]{
     		return dumbo::make_shared_holder_now<SnapshotT>(master_, this->shared_from_this(), owner_cpu_id);
     	}).get0();
@@ -1000,7 +1000,7 @@ public:
 
         while (proceed)
         {
-            UByte type;
+            uint8_t type;
             (input >> type).get();
 
             switch (type)
@@ -1012,7 +1012,7 @@ public:
                 case TYPE_HISTORY_NODE: allocator->read_history_node(input, history_node_map); break;
                 case TYPE_CHECKSUM:     allocator->read_checksum(input, checksum); proceed = false; break;
                 default:
-                    throw Exception(MA_SRC, SBuf() << "Unknown record type: " << (Int)type);
+                    throw Exception(MA_SRC, SBuf() << "Unknown record type: " << (int32_t)type);
             }
 
             allocator->records_++;
@@ -1033,7 +1033,7 @@ public:
                 LeafNodeBufferT* leaf_buffer = static_cast<LeafNodeBufferT*>(buffer);
                 LeafNodeT* leaf_node         = static_cast<LeafNodeT*>(node);
 
-                for (Int c = 0; c < leaf_node->size(); c++)
+                for (int32_t c = 0; c < leaf_node->size(); c++)
                 {
                     const auto& descr = leaf_buffer->data(c);
 
@@ -1052,7 +1052,7 @@ public:
                 BranchNodeBufferT* branch_buffer = static_cast<BranchNodeBufferT*>(buffer);
                 BranchNodeT* branch_node         = static_cast<BranchNodeT*>(node);
 
-                for (Int c = 0; c < branch_node->size(); c++)
+                for (int32_t c = 0; c < branch_node->size(); c++)
                 {
                     const auto& node_id = branch_buffer->data(c);
 
@@ -1094,7 +1094,7 @@ public:
 
         // Delete temporary buffers
 
-        Int cpu_id = allocator->cpu_id();
+        int32_t cpu_id = allocator->cpu_id();
 
         for (auto& entry: ptree_node_map)
         {
@@ -1296,7 +1296,7 @@ private:
         {
             auto leaf = PersistentTreeT::to_leaf_node(node);
 
-            for (Int c = 0; c < leaf->size(); c++)
+            for (int32_t c = 0; c < leaf->size(); c++)
             {
                 auto& data = leaf->data(c);
                 if (data.txn_id() == txn_id)
@@ -1310,7 +1310,7 @@ private:
         else {
             auto branch = PersistentTreeT::to_branch_node(node);
 
-            for (Int c = 0; c < branch->size(); c++)
+            for (int32_t c = 0; c < branch->size(); c++)
             {
                 auto child = branch->data(c);
                 if (child->txn_id() == txn_id)
@@ -1327,8 +1327,8 @@ private:
     {
     	ready(in >> metadata.master()
            >> metadata.root()).then([=, &metadata] {
-        	return read<BigInt>(in).then([=, &metadata](auto size) {
-        		return do_with(boost::irange((BigInt)0, (BigInt)size, (BigInt)1), [&](auto& range) {
+        	return read<int64_t>(in).then([=, &metadata](auto size) {
+        		return do_with(boost::irange((int64_t)0, (int64_t)size, (int64_t)1), [&](auto& range) {
         			return do_for_each(range, [=, &metadata](auto idx) {
         				return read<String>(in).then([=, &metadata](auto name) {
         					return read<TxnId>(in).then([=, &metadata, name = std::move(name)](auto value) {
@@ -1350,13 +1350,13 @@ private:
     void read_data_page(TypedAsyncInputStreamPtr in, PageMap& map)
     {
         read<typename RCPagePtr::RefCntT>(in).then([=, &map](auto references){
-        	return read<Int>(in).then([=, &map](auto page_data_size) {
-        		return read<Int>(in).then([=, &map](auto page_size) {
-        			return read<Int>(in).then([=, &map](auto ctr_hash) {
-        				return read<Int>(in).then([=, &map](auto page_hash) {
+        	return read<int32_t>(in).then([=, &map](auto page_data_size) {
+        		return read<int32_t>(in).then([=, &map](auto page_size) {
+        			return read<int32_t>(in).then([=, &map](auto ctr_hash) {
+        				return read<int32_t>(in).then([=, &map](auto page_hash) {
 
-        					Byte* page_data_ptr = (Byte*)::malloc(page_data_size);
-        					unique_ptr<Byte, void (*)(void*)> page_data(page_data_ptr, ::free);
+        					int8_t* page_data_ptr = (int8_t*)::malloc(page_data_size);
+        					unique_ptr<int8_t, void (*)(void*)> page_data(page_data_ptr, ::free);
 
         					return in->read(page_data_ptr, page_data_size).then([=, &map, page_data = std::move(page_data)] {
 
@@ -1427,8 +1427,8 @@ private:
     {
         HistoryNodeBuffer* node = new HistoryNodeBuffer();
 
-        Int status;
-        BigInt children;
+        int32_t status;
+        int64_t children;
 
         ready(in >> status
         	>> node->txn_id()
@@ -1441,9 +1441,9 @@ private:
 
         	node->status() = static_cast<typename HistoryNode::Status>(status);
 
-			BigInt lchildren = children;
+			int64_t lchildren = children;
 
-			return do_with(boost::irange((BigInt)0, (BigInt)lchildren, (BigInt)1), [=](auto& range) {
+			return do_with(boost::irange((int64_t)0, (int64_t)lchildren, (int64_t)1), [=](auto& range) {
 				return do_for_each(range, [=](auto idx) {
 					return read<TxnId>(in).then([=](const auto& child_txn_id) {
 						node->children().push_back(child_txn_id);
@@ -1469,7 +1469,7 @@ private:
 
         buf->populate_as_buffer(node);
 
-        for (Int c = 0; c < node->size(); c++)
+        for (int32_t c = 0; c < node->size(); c++)
         {
         	buf->data(c) = typename LeafNodeBufferT::Value(
                 node->data(c).page_ptr()->raw_data()->uuid(),
@@ -1486,7 +1486,7 @@ private:
 
         buf->populate_as_buffer(node);
 
-        for (Int c = 0; c < node->size(); c++)
+        for (int32_t c = 0; c < node->size(); c++)
         {
             buf->data(c) = node->data(c)->node_id();
         }
@@ -1539,13 +1539,13 @@ private:
 
     void write_metadata(const TypedAsyncOutputStreamPtr& out)
     {
-    	UByte type = TYPE_METADATA;
+    	uint8_t type = TYPE_METADATA;
 
         ready(
         	out << type
         		<< master_->txn_id()
 				<< history_tree_->txn_id()
-				<< (BigInt) named_branches_.size()
+				<< (int64_t) named_branches_.size()
 		).then([=]{
         	return do_for_each(named_branches_, [=](const auto& entry){
         		return ready(
@@ -1559,7 +1559,7 @@ private:
 
     void write(TypedAsyncOutputStreamPtr out, const Checksum& checksum)
     {
-    	UByte type = TYPE_CHECKSUM;
+    	uint8_t type = TYPE_CHECKSUM;
 
         ready(
         	out << type
@@ -1569,11 +1569,11 @@ private:
 
     void write_history_node(const TypedAsyncOutputStreamPtr& out, const HistoryNode* history_node, RCPageSet& stored_pages)
     {
-    	UByte type = TYPE_HISTORY_NODE;
+    	uint8_t type = TYPE_HISTORY_NODE;
 
     	((ready(
     		out << type
-				<< (Int)history_node->status()
+				<< (int32_t)history_node->status()
 				<< history_node->txn_id()
         ).then([=]{
     		if (history_node->root())
@@ -1595,7 +1595,7 @@ private:
     		}
     	})
 			<< history_node->metadata()
-			<< (BigInt)history_node->children().size()
+			<< (int64_t)history_node->children().size()
     	).then([=](auto out) {
     		return do_for_each(history_node->children(), [=](const auto& child) {
     			return ready(out << child->txn_id());
@@ -1621,7 +1621,7 @@ private:
 
             write(out, buf.get());
 
-            for (Int c = 0; c < leaf->size(); c++)
+            for (int32_t c = 0; c < leaf->size(); c++)
             {
                 const auto& data = leaf->data(c);
 
@@ -1638,7 +1638,7 @@ private:
 
             write(out, buf.get());
 
-            for (Int c = 0; c < branch->size(); c++)
+            for (int32_t c = 0; c < branch->size(); c++)
             {
                 auto child = branch->data(c);
 
@@ -1653,7 +1653,7 @@ private:
 
     void write(TypedAsyncOutputStreamPtr out, const BranchNodeBufferT* node)
     {
-        UByte type = TYPE_BRANCH_NODE;
+        uint8_t type = TYPE_BRANCH_NODE;
 
         (out << type).then([=](auto out){
         	return node->write(out);
@@ -1664,7 +1664,7 @@ private:
 
     void write(TypedAsyncOutputStreamPtr out, const LeafNodeBufferT* node)
     {
-    	UByte type = TYPE_LEAF_NODE;
+    	uint8_t type = TYPE_LEAF_NODE;
 
         (out << type).then([=](auto out){
         	return node->write(out);
@@ -1675,18 +1675,18 @@ private:
 
     void write(TypedAsyncOutputStreamPtr out, const RCPagePtr* page_ptr)
     {
-    	UByte type = TYPE_DATA_PAGE;
+    	uint8_t type = TYPE_DATA_PAGE;
 
     	auto page = page_ptr->raw_data();
 
         auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         auto page_size = page->page_size();
-        unique_ptr<Byte, void (*)(void*)> buffer((Byte*)::malloc(page_size), ::free);
+        unique_ptr<int8_t, void (*)(void*)> buffer((int8_t*)::malloc(page_size), ::free);
 
         const auto operations = pageMetadata->getPageOperations();
 
-        Int total_data_size = operations->serialize(page, buffer.get());
+        int32_t total_data_size = operations->serialize(page, buffer.get());
 
         (out << type
         	<< page_ptr->references()
@@ -1800,7 +1800,7 @@ private:
         return false;
     }
 
-    void do_pack(HistoryNode* node, Int depth, const std::unordered_set<HistoryNode*>& branches)
+    void do_pack(HistoryNode* node, int32_t depth, const std::unordered_set<HistoryNode*>& branches)
     {
     	// FIXME: use dedicated stack data structure
 
@@ -1842,7 +1842,7 @@ private:
 
     void checkThreadAccess(const char* source, unsigned int line, const char* function) const
     {
-    	Int cpu_id = engine().cpu_id();
+    	int32_t cpu_id = engine().cpu_id();
 
     	if (master_cpu_id_ != cpu_id)
     	{

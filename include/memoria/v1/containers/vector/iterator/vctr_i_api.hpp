@@ -67,10 +67,10 @@ public:
         EntryAdaptor(Iterator current): current_(current) {}
 
         template <typename V>
-        void put(StreamTag<0>, StreamTag<0>, Int block, V&& entry) {}
+        void put(StreamTag<0>, StreamTag<0>, int32_t block, V&& entry) {}
 
         template <typename V>
-        void put(StreamTag<0>, StreamTag<1>, Int block, V&& value) {
+        void put(StreamTag<0>, StreamTag<1>, int32_t block, V&& value) {
             value_ = value;
         }
 
@@ -137,7 +137,7 @@ public:
 
     struct ForEachFn {
         template <typename StreamObj, typename Fn>
-        void stream(const StreamObj* obj, Int from, Int to, Fn&& fn)
+        void stream(const StreamObj* obj, int32_t from, int32_t to, Fn&& fn)
         {
             obj->for_each(from, to, fn);
         }

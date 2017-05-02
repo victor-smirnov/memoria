@@ -85,7 +85,7 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, v1::BTSingleStream> {
 template <
     typename Profile,
     typename Key,
-    Int Special = 0
+    int32_t Special = 0
 >
 struct SetBTTypesBase: public SetBTTypesBaseBase<Profile, Key> {
 

@@ -72,7 +72,7 @@ public:
         return self().skipBw(size);
     }
 
-    Int size() const
+    int32_t size() const
     {
         return self().leafSize(0);
     }
@@ -169,8 +169,8 @@ public:
         template <typename V>
         void put(StreamTag<0>, StreamTag<0>, V&& entry) {}
 
-        template <Int SubstreamIdx, typename V>
-        void put(StreamTag<0>, StreamTag<SubstreamIdx>, Int block, V&& entry) {
+        template <int32_t SubstreamIdx, typename V>
+        void put(StreamTag<0>, StreamTag<SubstreamIdx>, int32_t block, V&& entry) {
             *current_ = entry;
         }
 
@@ -224,7 +224,7 @@ public:
 
 
     template <typename IOBuffer>
-    auto insert_iobuffer(bt::BufferProducer<IOBuffer>* producer, Int ib_initial_capacity = 10000)
+    auto insert_iobuffer(bt::BufferProducer<IOBuffer>* producer, int32_t ib_initial_capacity = 10000)
     {
         using InputProvider = btss::IOBufferProducerBTSSInputProvider<Container, IOBuffer>;
 
@@ -239,15 +239,15 @@ public:
 
 protected:
 
-    SplitResult split(Int stream, Int target_idx)
+    SplitResult split(int32_t stream, int32_t target_idx)
     {
         auto& self = this->self();
 
         NodeBaseG& leaf = self.leaf();
-        Int& idx        = self.idx();
+        int32_t& idx        = self.idx();
 
-        Int size        = self.leaf_size(0);
-        Int split_idx   = size/2;
+        int32_t size        = self.leaf_size(0);
+        int32_t split_idx   = size/2;
 
         auto right = self.ctr().split_leaf_p(leaf, Position::create(0, split_idx));
 

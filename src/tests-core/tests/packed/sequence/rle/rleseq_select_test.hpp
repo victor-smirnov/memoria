@@ -29,7 +29,7 @@ namespace v1 {
 
 using namespace std;
 
-template <Int Symbols>
+template <int32_t Symbols>
 class PackedRLESearchableSequenceSelectTest: public PackedRLESequenceTestBase<Symbols> {
 
     using MyType = PackedRLESearchableSequenceSelectTest<Symbols>;
@@ -42,8 +42,8 @@ class PackedRLESearchableSequenceSelectTest: public PackedRLESequenceTestBase<Sy
     using Value = typename Seq::Value;
 
 
-    static const Int Blocks                 = Seq::Indexes;
-    static const Int Bits                   = NumberOfBits(Symbols);
+    static const int32_t Blocks                 = Seq::Indexes;
+    static const int32_t Bits                   = NumberOfBits(Symbols);
 
     using Base::getRandom;
     using Base::createEmptySequence;
@@ -73,13 +73,13 @@ public:
 
 
 
-    SelectResult selectFW(const SeqPtr& seq, Int start, Int rank, Value symbol)
+    SelectResult selectFW(const SeqPtr& seq, int32_t start, int32_t rank, Value symbol)
     {
         MEMORIA_V1_ASSERT(rank, >, 0);
 
-        Int total = 0;
+        int32_t total = 0;
 
-        for (Int c = start + 1; c < seq->size(); c++)
+        for (int32_t c = start + 1; c < seq->size(); c++)
         {
             total += seq->test(c, symbol);
 
@@ -93,13 +93,13 @@ public:
     }
 
 
-    SelectResult selectBW(const SeqPtr& seq, Int start, Int rank, Value symbol)
+    SelectResult selectBW(const SeqPtr& seq, int32_t start, int32_t rank, Value symbol)
     {
         MEMORIA_V1_ASSERT(rank, >, 0);
 
-        Int total = 0;
+        int32_t total = 0;
 
-        for (Int c = start - 1; c >= 0; c--)
+        for (int32_t c = start - 1; c >= 0; c--)
         {
             total += seq->test(c, symbol);
 
@@ -112,7 +112,7 @@ public:
         return SelectResult(seq->size(), total, total == rank);
     }
 
-    void assertSelectFW(const SeqPtr& seq, Int start, Int rank, Value symbol)
+    void assertSelectFW(const SeqPtr& seq, int32_t start, int32_t rank, Value symbol)
     {
         auto result1 = seq->selectFW(start, rank, symbol);
         auto result2 = selectFW(seq, start, rank, symbol);
@@ -128,7 +128,7 @@ public:
 
 
 
-    void assertSelectBW(const SeqPtr& seq, Int start, Int rank, Value symbol)
+    void assertSelectBW(const SeqPtr& seq, int32_t start, int32_t rank, Value symbol)
     {
         auto result1 = seq->selectBW(start, rank, symbol);
         auto result2 = selectBW(seq, start, rank, symbol);
@@ -142,7 +142,7 @@ public:
         }
     }
 
-    void appendRank(vector<Int>& v, Int rank)
+    void appendRank(vector<int32_t>& v, int32_t rank)
     {
         if (rank > 0)
         {
@@ -151,13 +151,13 @@ public:
     }
 
     struct Pair {
-        Int rank;
-        Int idx;
+        int32_t rank;
+        int32_t idx;
 
-        Pair(Int r, Int i): rank(r), idx(i) {}
+        Pair(int32_t r, int32_t i): rank(r), idx(i) {}
     };
 
-    vector<Pair> createRanksFW(const SeqPtr& seq, Int symbol)
+    vector<Pair> createRanksFW(const SeqPtr& seq, int32_t symbol)
     {
         vector<Pair> ranks;
 
@@ -165,8 +165,8 @@ public:
 
         while (iter.has_data())
         {
-            Int block_start = iter.idx();
-            Int block_end   = iter.idx() + iter.run().length();
+            int32_t block_start = iter.idx();
+            int32_t block_end   = iter.idx() + iter.run().length();
 
             ranks.push_back(createRankFw(seq, block_start, symbol));
             ranks.push_back(createRankFw(seq, block_start + 1, symbol));
@@ -181,14 +181,14 @@ public:
 
 
 
-    Pair createRankFw(const SeqPtr& seq, Int start, Int symbol)
+    Pair createRankFw(const SeqPtr& seq, int32_t start, int32_t symbol)
     {
-        Int size = seq->size();
-        Int end = start + getRandom(size - start - 1) + 1;
+        int32_t size = seq->size();
+        int32_t end = start + getRandom(size - start - 1) + 1;
 
-        Int rank = 0;
+        int32_t rank = 0;
 
-        for (Int c = start + 1; c < end; c++)
+        for (int32_t c = start + 1; c < end; c++)
         {
             if (seq->test(c, symbol))
             {
@@ -203,13 +203,13 @@ public:
 
 
 
-    Pair createRankBw(const SeqPtr& seq, Int start, Int symbol)
+    Pair createRankBw(const SeqPtr& seq, int32_t start, int32_t symbol)
     {
-        Int end = getRandom(start);
+        int32_t end = getRandom(start);
 
-        Int rank = 0;
+        int32_t rank = 0;
 
-        for (Int c = start - 1; c >= end; c--)
+        for (int32_t c = start - 1; c >= end; c--)
         {
             if (seq->test(c, symbol))
             {
@@ -221,7 +221,7 @@ public:
     }
 
 
-    vector<Pair> createRanksBW(const SeqPtr& seq, Int symbol)
+    vector<Pair> createRanksBW(const SeqPtr& seq, int32_t symbol)
     {
         vector<Pair> ranks;
 
@@ -229,8 +229,8 @@ public:
 
         while (iter.has_data())
         {
-            Int block_start = iter.idx();
-            Int block_end   = iter.idx() + iter.run().length();
+            int32_t block_start = iter.idx();
+            int32_t block_end   = iter.idx() + iter.run().length();
 
             ranks.push_back(createRankBw(seq, block_start, symbol));
             ranks.push_back(createRankBw(seq, block_start + 1, symbol));
@@ -253,7 +253,7 @@ public:
 
     void runSelectFromFWTest(Value symbol)
     {
-        out()<<"Parameters: Symbols="<<Symbols<<" symbol="<<(Int)symbol<<endl;
+        out()<<"Parameters: Symbols="<<Symbols<<" symbol="<<(int32_t)symbol<<endl;
 
         out()<<"Random bitmap, random positions"<<endl;
 
@@ -276,9 +276,9 @@ public:
 
         populateRandom(seq, this->size_);
 
-        Int maxrank_ = seq->rank(1) + 1;
+        int32_t maxrank_ = seq->rank(1) + 1;
 
-        for (Int rank = 1; rank < maxrank_; rank += 100)
+        for (int32_t rank = 1; rank < maxrank_; rank += 100)
         {
             auto result1 = seq->selectFW(rank, 1);
             auto result3 = selectFW(seq, -1, rank, 1);
@@ -306,9 +306,9 @@ public:
 
         populateRandom(seq, this->size_);
 
-        Int maxrank_ = seq->rank(1) + 1;
+        int32_t maxrank_ = seq->rank(1) + 1;
 
-        for (Int rank = 1; rank < maxrank_; rank += 100)
+        for (int32_t rank = 1; rank < maxrank_; rank += 100)
         {
             auto result1 = seq->selectBW(rank, 1);
             auto result3 = selectBW(seq, seq->size(), rank, 1);
@@ -338,7 +338,7 @@ public:
 
     void runSelectFromBWTest(Value symbol)
     {
-        out()<<"Parameters: Symbols="<<Symbols<<" symbol="<<(Int)symbol<<endl;
+        out()<<"Parameters: Symbols="<<Symbols<<" symbol="<<(int32_t)symbol<<endl;
 
 
         out()<<"Random bitmap, random positions"<<endl;

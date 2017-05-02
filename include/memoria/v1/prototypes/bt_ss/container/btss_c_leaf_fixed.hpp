@@ -57,14 +57,14 @@ protected:
 
     using CtrSizeT = typename Types::CtrSizeT;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
 
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, single_stream_capacity, Int);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, single_stream_capacity, int32_t);
 
 public:
-    Int getLeafNodeCapacity(const NodeBaseG& node, int max_hops = 100) const
+    int32_t getLeafNodeCapacity(const NodeBaseG& node, int max_hops = 100) const
     {
         return LeafDispatcher::dispatch(node, GetStreamCapacityFn(), max_hops);
     }

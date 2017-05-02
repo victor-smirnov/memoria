@@ -36,9 +36,9 @@ struct AllocTool<PackedAllocator> {
     using Type = PackedAllocator;
 
 
-    static FreeUniquePtr<Type> create(Int block_size, Int slots)
+    static FreeUniquePtr<Type> create(int32_t block_size, int32_t slots)
     {
-        Int full_block_size = Type::block_size(block_size, slots);
+        int32_t full_block_size = Type::block_size(block_size, slots);
 
         auto ptr = AllocateUnique<Type>(full_block_size, MA_RAW_SRC);
 
@@ -51,7 +51,7 @@ struct AllocTool<PackedAllocator> {
 
 
 //template <typename T>
-//std::unique_ptr<T, decltype(free)*> PkdMakeUniqueByMemorySize(Int block_size)
+//std::unique_ptr<T, decltype(free)*> PkdMakeUniqueByMemorySize(int32_t block_size)
 //{
 //  static_assert(std::is_base_of<PackedAllocatable, T>::value, "Only PackedAllocatable objects may be created by this function");
 //
@@ -74,7 +74,7 @@ struct AllocTool<PackedAllocator> {
 //template <typename T, typename... Args>
 //std::unique_ptr<T, decltype(free)*> PkdMakeUniqueByDataSize(Args&&... args)
 //{
-//  Int block_size = T::packed_block_size(std::forward<Args>(args)...) + 1000;
+//  int32_t block_size = T::packed_block_size(std::forward<Args>(args)...) + 1000;
 //  return PkdMakeUniqueByMemorySize<T>(block_size);
 //}
 

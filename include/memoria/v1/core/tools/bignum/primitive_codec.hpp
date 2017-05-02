@@ -44,8 +44,8 @@ public:
 
     using ValuePtr      = typename Codec::ValuePtr;
 
-    static constexpr Int BitsPerOffset  = Codec::BitsPerOffset;
-    static constexpr Int ElementSize    = Codec::ElementSize;
+    static constexpr int32_t BitsPerOffset  = Codec::BitsPerOffset;
+    static constexpr int32_t ElementSize    = Codec::ElementSize;
 
     auto describe(const T* buffer, size_t idx)
     {
@@ -102,25 +102,25 @@ public:
 };
 
 template <>
-class ValueCodec<Byte>: public PrimitiveTypeCodec<Byte> {};
+class ValueCodec<int8_t>: public PrimitiveTypeCodec<int8_t> {};
 
 template <>
-class ValueCodec<Char>: public PrimitiveTypeCodec<Char> {};
+class ValueCodec<char>: public PrimitiveTypeCodec<char> {};
 
 template <>
-class ValueCodec<UByte>: public PrimitiveTypeCodec<UByte> {};
+class ValueCodec<uint8_t>: public PrimitiveTypeCodec<uint8_t> {};
 
 template <>
-class ValueCodec<Short>: public PrimitiveTypeCodec<Short> {};
+class ValueCodec<int16_t>: public PrimitiveTypeCodec<int16_t> {};
 
 template <>
-class ValueCodec<UShort>: public PrimitiveTypeCodec<UShort> {};
+class ValueCodec<uint16_t>: public PrimitiveTypeCodec<uint16_t> {};
 
 template <>
-class ValueCodec<Int>: public PrimitiveTypeCodec<Int> {};
+class ValueCodec<int32_t>: public PrimitiveTypeCodec<int32_t> {};
 
 template <>
-class ValueCodec<UInt>: public PrimitiveTypeCodec<UInt> {};
+class ValueCodec<uint32_t>: public PrimitiveTypeCodec<uint32_t> {};
 
 template <>
 class ValueCodec<bool>: public PrimitiveTypeCodec<bool> {};

@@ -99,15 +99,15 @@ struct PackedSizeTypeList<> {
 
 class PackedOOMException: public MemoriaThrowable {
 
-    Int total_;
-    Int requested_;
-    Int free_;
+    int32_t total_;
+    int32_t requested_;
+    int32_t free_;
 
     const char* msg_;
 
 public:
 
-    PackedOOMException(const char* source, Int total, Int requested, Int free):
+    PackedOOMException(const char* source, int32_t total, int32_t requested, int32_t free):
                 MemoriaThrowable(source ),
                 total_(total),
                 requested_(requested),
@@ -138,9 +138,9 @@ class PackedAllocator;
 
 class PackedAllocatable {
 protected:
-    Int allocator_offset_;
+    int32_t allocator_offset_;
 
-    Int& allocator_offset() {return allocator_offset_;}
+    int32_t& allocator_offset() {return allocator_offset_;}
 
 public:
 
@@ -150,18 +150,18 @@ public:
     friend class PackedAllocator;
 
 
-    static const UInt VERSION                   = 1;
-    static const Int AlignmentBlock             = PackedAllocationAlignment;
+    static const uint32_t VERSION                   = 1;
+    static const int32_t AlignmentBlock             = PackedAllocationAlignment;
 
 
     typedef TypeList<
-            ConstValue<UInt, VERSION>,
+            ConstValue<uint32_t, VERSION>,
             decltype(allocator_offset_)
     >                                           FieldsList;
 
     PackedAllocatable() = default;
 
-    const Int& allocator_offset() const {return allocator_offset_;}
+    const int32_t& allocator_offset() const {return allocator_offset_;}
 
     void setTopLevelAllocator()
     {
@@ -186,7 +186,7 @@ public:
     {
         if (allocator_offset() > 0)
         {
-            UByte* my_ptr = T2T<UByte*>(this);
+            uint8_t* my_ptr = T2T<uint8_t*>(this);
             return T2T<PackedAllocator*>(my_ptr - allocator_offset());
         }
         else {
@@ -198,7 +198,7 @@ public:
     {
         if (allocator_offset() > 0)
         {
-            const UByte* my_ptr = T2T<const UByte*>(this);
+            const uint8_t* my_ptr = T2T<const uint8_t*>(this);
             return T2T<const PackedAllocator*>(my_ptr - allocator_offset());
         }
         else {
@@ -206,67 +206,67 @@ public:
         }
     }
 
-    static constexpr Int roundUpBytesToAlignmentBlocks(Int value)
+    static constexpr int32_t roundUpBytesToAlignmentBlocks(int32_t value)
     {
         return (value / AlignmentBlock + (value % AlignmentBlock ? 1 : 0)) * AlignmentBlock;
     }
 
-    static constexpr Int roundDownBytesToAlignmentBlocks(Int value)
+    static constexpr int32_t roundDownBytesToAlignmentBlocks(int32_t value)
     {
         return (value / AlignmentBlock) * AlignmentBlock;
     }
 
-    static constexpr Int roundUpBitsToAlignmentBlocks(Int bits)
+    static constexpr int32_t roundUpBitsToAlignmentBlocks(int32_t bits)
     {
         return roundUpBytesToAlignmentBlocks(roundUpBitToBytes(bits));
     }
 
-    static constexpr Int roundDownBitsToAlignmentBlocks(Int bits)
+    static constexpr int32_t roundDownBitsToAlignmentBlocks(int32_t bits)
     {
         return roundDownBytesToAlignmentBlocks(roundDownBitsToBytes(bits));
     }
 
-    static constexpr Int roundUpBitToBytes(Int bits)
+    static constexpr int32_t roundUpBitToBytes(int32_t bits)
     {
         return bits / 8 + (bits % 8 > 0);
     }
 
-    static constexpr Int roundDownBitsToBytes(Int bits)
+    static constexpr int32_t roundDownBitsToBytes(int32_t bits)
     {
         return bits / 8 + (bits % 8 > 0);
     }
 
-    static constexpr Int divUp(Int value, Int divider) {
+    static constexpr int32_t divUp(int32_t value, int32_t divider) {
         return (value / divider) + (value % divider ? 1 : 0);
     }
 
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<Int>::serialize(buf, allocator_offset_);
+        FieldFactory<int32_t>::serialize(buf, allocator_offset_);
     }
 
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<Int>::deserialize(buf, allocator_offset_);
+        FieldFactory<int32_t>::deserialize(buf, allocator_offset_);
     }
 };
 
-template <Int Alignment = PackedAllocationAlignment>
+template <int32_t Alignment = PackedAllocationAlignment>
 struct PackedAllocatorTypes {
-    static const Int AllocationAlignment = Alignment;
+    static const int32_t AllocationAlignment = Alignment;
 };
 
 
 struct AllocationBlock {
-    Int size_;
-    Int offset_;
-    UByte* ptr_;
+    int32_t size_;
+    int32_t offset_;
+    uint8_t* ptr_;
 
-    AllocationBlock(Int size, Int offset, UByte* ptr): size_(size), offset_(offset), ptr_(ptr) {}
+    AllocationBlock(int32_t size, int32_t offset, uint8_t* ptr): size_(size), offset_(offset), ptr_(ptr) {}
 
-    Int size() const    {return size_;}
-    Int offset() const  {return offset_;}
-    UByte* ptr() const  {return ptr_;}
+    int32_t size() const    {return size_;}
+    int32_t offset() const  {return offset_;}
+    uint8_t* ptr() const  {return ptr_;}
     bool is_empty() const {return size_ == 0;}
 
     template <typename T>
@@ -282,15 +282,15 @@ struct AllocationBlock {
 
 
 struct AllocationBlockConst {
-    Int size_;
-    Int offset_;
-    const UByte* ptr_;
+    int32_t size_;
+    int32_t offset_;
+    const uint8_t* ptr_;
 
-    AllocationBlockConst(Int size, Int offset, const UByte* ptr): size_(size), offset_(offset), ptr_(ptr) {}
+    AllocationBlockConst(int32_t size, int32_t offset, const uint8_t* ptr): size_(size), offset_(offset), ptr_(ptr) {}
 
-    Int size() const    {return size_;}
-    Int offset() const  {return offset_;}
-    const UByte* ptr() const    {return ptr_;}
+    int32_t size() const    {return size_;}
+    int32_t offset() const  {return offset_;}
+    const uint8_t* ptr() const    {return ptr_;}
 
     operator bool() const {return true;}
 
@@ -301,9 +301,9 @@ struct AllocationBlockConst {
 };
 
 struct EmptyAllocator {
-    Int enlargeBlock(void*, Int size) {return 0;}
+    int32_t enlargeBlock(void*, int32_t size) {return 0;}
 
-    static Int roundUpBytesToAlignmentBlocks(int size) {return size;}
+    static int32_t roundUpBytesToAlignmentBlocks(int size) {return size;}
 };
 
 }}

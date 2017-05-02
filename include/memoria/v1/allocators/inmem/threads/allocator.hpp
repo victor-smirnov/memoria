@@ -48,15 +48,15 @@ namespace details {
 
 	template <typename PageT>
 	struct PagePtr {
-		using RefCntT = BigInt;
+		using RefCntT = int64_t;
 	private:
 		PageT* page_;
 		std::atomic<RefCntT> refs_;
 
 		// Currently for debug purposes
-		static std::atomic<BigInt> page_cnt_;
+		static std::atomic<int64_t> page_cnt_;
 	public:
-		PagePtr(PageT* page, BigInt refs): page_(page), refs_(refs) {
+		PagePtr(PageT* page, int64_t refs): page_(page), refs_(refs) {
 			//page_cnt_++;
 			//cout << "Create page: " << page_cnt_ << endl;
 		}
@@ -92,7 +92,7 @@ namespace details {
 	};
 
 	template <typename PageT>
-	std::atomic<BigInt> PagePtr<PageT>::page_cnt_(0);
+	std::atomic<int64_t> PagePtr<PageT>::page_cnt_(0);
 
 
 	template <typename ValueT, typename TxnIdT>
@@ -153,8 +153,8 @@ class ThreadInMemAllocatorImpl: public std::enable_shared_from_this<ThreadInMemA
 public:
     using PageType = ProfilePageType<Profile>;
 
-    static constexpr Int NodeIndexSize  = 32;
-    static constexpr Int NodeSize       = NodeIndexSize * 32;
+    static constexpr int32_t NodeIndexSize  = 32;
+    static constexpr int32_t NodeSize       = NodeIndexSize * 32;
 
     using MyType        = ThreadInMemAllocatorImpl<Profile>;
 
@@ -212,7 +212,7 @@ public:
 
         TxnId txn_id_;
 
-        BigInt references_ = 0;
+        int64_t references_ = 0;
 
         mutable HMutexT mutex_;
 
@@ -496,10 +496,10 @@ private:
     };
 
     class Checksum {
-        BigInt records_;
+        int64_t records_;
     public:
-        BigInt& records() {return records_;}
-        const BigInt& records() const {return records_;}
+        int64_t& records() {return records_;}
+        const int64_t& records() const {return records_;}
     };
 
     enum {TYPE_UNKNOWN, TYPE_METADATA, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE, TYPE_CHECKSUM};
@@ -517,14 +517,14 @@ private:
 
     ContainerMetadataRepository* metadata_;
 
-    BigInt records_ = 0;
+    int64_t records_ = 0;
 
     PairPtr pair_;
 
     mutable MutexT mutex_;
     mutable StoreMutexT store_mutex_;
 
-    CountDownLatch<BigInt> active_snapshots_;
+    CountDownLatch<int64_t> active_snapshots_;
 
     ReverseBranchMap snapshot_labels_metadata_;
 
@@ -545,7 +545,7 @@ public:
     }
 
 private:
-    ThreadInMemAllocatorImpl(Int):
+    ThreadInMemAllocatorImpl(int32_t):
         metadata_(MetadataRepository<Profile>::getMetadata())
     {}
 
@@ -605,7 +605,7 @@ public:
         return logger_;
     }
 
-    BigInt active_snapshots() {
+    int64_t active_snapshots() {
         return active_snapshots_.get();
     }
 
@@ -933,7 +933,7 @@ public:
 
         while (proceed)
         {
-            UByte type;
+            uint8_t type;
             *input >> type;
 
             switch (type)
@@ -945,7 +945,7 @@ public:
                 case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
                 case TYPE_CHECKSUM:     allocator->read_checksum(*input, checksum); proceed = false; break;
                 default:
-                    throw Exception(MA_SRC, SBuf()<<"Unknown record type: "<<(Int)type);
+                    throw Exception(MA_SRC, SBuf()<<"Unknown record type: "<<(int32_t)type);
             }
 
             allocator->records_++;
@@ -966,7 +966,7 @@ public:
                 LeafNodeBufferT* leaf_buffer = static_cast<LeafNodeBufferT*>(buffer);
                 LeafNodeT* leaf_node         = static_cast<LeafNodeT*>(node);
 
-                for (Int c = 0; c < leaf_node->size(); c++)
+                for (int32_t c = 0; c < leaf_node->size(); c++)
                 {
                     const auto& descr = leaf_buffer->data(c);
 
@@ -985,7 +985,7 @@ public:
                 BranchNodeBufferT* branch_buffer = static_cast<BranchNodeBufferT*>(buffer);
                 BranchNodeT* branch_node         = static_cast<BranchNodeT*>(node);
 
-                for (Int c = 0; c < branch_node->size(); c++)
+                for (int32_t c = 0; c < branch_node->size(); c++)
                 {
                     const auto& node_id = branch_buffer->data(c);
 
@@ -1204,7 +1204,7 @@ private:
         {
             auto leaf = PersistentTreeT::to_leaf_node(node);
 
-            for (Int c = 0; c < leaf->size(); c++)
+            for (int32_t c = 0; c < leaf->size(); c++)
             {
                 auto& data = leaf->data(c);
                 if (data.txn_id() == txn_id)
@@ -1218,7 +1218,7 @@ private:
         else {
             auto branch = PersistentTreeT::to_branch_node(node);
 
-            for (Int c = 0; c < branch->size(); c++)
+            for (int32_t c = 0; c < branch->size(); c++)
             {
                 auto child = branch->data(c);
                 if (child->txn_id() == txn_id)
@@ -1236,11 +1236,11 @@ private:
         in >> metadata.master();
         in >> metadata.root();
 
-        BigInt size;
+        int64_t size;
 
         in >>size;
 
-        for (BigInt c = 0; c < size; c++)
+        for (int64_t c = 0; c < size; c++)
         {
             String name;
             in >> name;
@@ -1263,19 +1263,19 @@ private:
 
     	in >> references;
 
-    	Int page_data_size;
+    	int32_t page_data_size;
         in >> page_data_size;
 
-        Int page_size;
+        int32_t page_size;
         in >> page_size;
 
-        Int ctr_hash;
+        int32_t ctr_hash;
         in >> ctr_hash;
 
-        Int page_hash;
+        int32_t page_hash;
         in >> page_hash;
 
-        unique_ptr<Byte, void (*)(void*)> page_data((Byte*)::malloc(page_data_size), ::free);
+        unique_ptr<int8_t, void (*)(void*)> page_data((int8_t*)::malloc(page_data_size), ::free);
 
         Page* page = T2T<Page*>(::malloc(page_size));
 
@@ -1338,7 +1338,7 @@ private:
     {
         HistoryNodeBuffer* node = new HistoryNodeBuffer();
 
-        Int status;
+        int32_t status;
 
         in >> status;
 
@@ -1352,10 +1352,10 @@ private:
 
         in >> node->metadata();
 
-        BigInt children;
+        int64_t children;
         in >>children;
 
-        for (BigInt c = 0; c < children; c++)
+        for (int64_t c = 0; c < children; c++)
         {
             TxnId child_txn_id;
             in >> child_txn_id;
@@ -1377,7 +1377,7 @@ private:
 
 //    void update_leaf_references(LeafNodeT* node)
 //    {
-//        for (Int c = 0; c < node->size(); c++)
+//        for (int32_t c = 0; c < node->size(); c++)
 //        {
 //        	node->data(c)->page_ptr()->raw_data()->references() = node->data(c)->page_ptr()->references();
 //        }
@@ -1391,7 +1391,7 @@ private:
 
         buf->populate_as_buffer(node);
 
-        for (Int c = 0; c < node->size(); c++)
+        for (int32_t c = 0; c < node->size(); c++)
         {
         	buf->data(c) = typename LeafNodeBufferT::Value(
                 node->data(c).page_ptr()->raw_data()->uuid(),
@@ -1408,7 +1408,7 @@ private:
 
         buf->populate_as_buffer(node);
 
-        for (Int c = 0; c < node->size(); c++)
+        for (int32_t c = 0; c < node->size(); c++)
         {
             buf->data(c) = node->data(c)->node_id();
         }
@@ -1422,7 +1422,7 @@ private:
 //
 //      buf->populate_as_buffer(node);
 //
-//      for (Int c = 0; c < node->size(); c++)
+//      for (int32_t c = 0; c < node->size(); c++)
 //      {
 //          buf->data(c) = typename LeafNodeBufferT::Value(
 //                  node->data(c).page()->uuid(),
@@ -1439,7 +1439,7 @@ private:
 //
 //      buf->populate_as_buffer(node);
 //
-//      for (Int c = 0; c < node->size(); c++)
+//      for (int32_t c = 0; c < node->size(); c++)
 //      {
 //          buf->data(c) = node->data(c)->node_id();
 //      }
@@ -1494,13 +1494,13 @@ private:
 
     void write_metadata(OutputStreamHandler& out)
     {
-        UByte type = TYPE_METADATA;
+        uint8_t type = TYPE_METADATA;
         out << type;
 
         out << master_->txn_id();
         out << history_tree_->txn_id();
 
-        out << (BigInt) named_branches_.size();
+        out << (int64_t) named_branches_.size();
 
         for (auto& entry: named_branches_)
         {
@@ -1513,16 +1513,16 @@ private:
 
     void write(OutputStreamHandler& out, const Checksum& checksum)
     {
-    	UByte type = TYPE_CHECKSUM;
+    	uint8_t type = TYPE_CHECKSUM;
         out << type;
         out << checksum.records() + 1;
     }
 
     void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCPageSet& stored_pages)
     {
-    	UByte type = TYPE_HISTORY_NODE;
+    	uint8_t type = TYPE_HISTORY_NODE;
         out << type;
-        out << (Int)history_node->status();
+        out << (int32_t)history_node->status();
         out << history_node->txn_id();
 
         if (history_node->root())
@@ -1545,7 +1545,7 @@ private:
 
         out << history_node->metadata();
 
-        out << (BigInt)history_node->children().size();
+        out << (int64_t)history_node->children().size();
 
         for (auto child: history_node->children())
         {
@@ -1571,7 +1571,7 @@ private:
 
             write(out, buf.get());
 
-            for (Int c = 0; c < leaf->size(); c++)
+            for (int32_t c = 0; c < leaf->size(); c++)
             {
                 const auto& data = leaf->data(c);
 
@@ -1588,7 +1588,7 @@ private:
 
             write(out, buf.get());
 
-            for (Int c = 0; c < branch->size(); c++)
+            for (int32_t c = 0; c < branch->size(); c++)
             {
                 auto child = branch->data(c);
 
@@ -1603,7 +1603,7 @@ private:
 
     void write(OutputStreamHandler& out, const BranchNodeBufferT* node)
     {
-        UByte type = TYPE_BRANCH_NODE;
+        uint8_t type = TYPE_BRANCH_NODE;
         out << type;
         node->write(out);
 
@@ -1612,7 +1612,7 @@ private:
 
     void write(OutputStreamHandler& out, const LeafNodeBufferT* node)
     {
-        UByte type = TYPE_LEAF_NODE;
+        uint8_t type = TYPE_LEAF_NODE;
         out << type;
 
         node->write(out);
@@ -1624,7 +1624,7 @@ private:
     {
     	auto page = page_ptr->raw_data();
 
-        UByte type = TYPE_DATA_PAGE;
+        uint8_t type = TYPE_DATA_PAGE;
         out << type;
 
         out << page_ptr->references();
@@ -1632,11 +1632,11 @@ private:
         auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         auto page_size = page->page_size();
-        unique_ptr<Byte, void (*)(void*)> buffer((Byte*)::malloc(page_size), ::free);
+        unique_ptr<int8_t, void (*)(void*)> buffer((int8_t*)::malloc(page_size), ::free);
 
         const auto operations = pageMetadata->getPageOperations();
 
-        Int total_data_size = operations->serialize(page, buffer.get());
+        int32_t total_data_size = operations->serialize(page, buffer.get());
 
         out << total_data_size;
         out << page->page_size();
@@ -1749,7 +1749,7 @@ private:
         return false;
     }
 
-    void do_pack(HistoryNode* node, Int depth, const std::unordered_set<HistoryNode*>& branches)
+    void do_pack(HistoryNode* node, int32_t depth, const std::unordered_set<HistoryNode*>& branches)
     {
     	// FIXME: use dedicated stack data structure
 

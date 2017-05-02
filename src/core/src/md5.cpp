@@ -28,12 +28,12 @@ using namespace std;
 
 
 
-void MD5Hash::add(UInt value)
+void MD5Hash::add(uint32_t value)
 {
     if (ptr_ == BUFFER_SIZE) {
         compute();
         ptr_ = 0;
-        for (UInt& value: K_) value = 0;
+        for (uint32_t& value: K_) value = 0;
     }
 
     K_[ptr_++] = value;
@@ -152,9 +152,9 @@ void MD5Hash::round4()
     Block(FunI,  9, 21, 64);
 }
 
-void MD5Hash::Block(FunPtr Fun, Int k, Int s, Int i)
+void MD5Hash::Block(FunPtr Fun, int32_t k, int32_t s, int32_t i)
 {
-    UInt ValueB = Q0_.B_ + CShl(Q0_.A_ + Fun(Q0_.B_, Q0_.C_, Q0_.D_) + getBufferValue(k) + getMd5Constant(i), s);
+    uint32_t ValueB = Q0_.B_ + CShl(Q0_.A_ + Fun(Q0_.B_, Q0_.C_, Q0_.D_) + getBufferValue(k) + getMd5Constant(i), s);
 
     Q0_ = Quad(Q0_.D_, ValueB, Q0_.B_, Q0_.C_);
 }
@@ -167,7 +167,7 @@ void MD5Hash::dumpState() {
 
 
 
-const UInt MD5Hash::X[64] = {
+const uint32_t MD5Hash::X[64] = {
         0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
         0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
         0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,

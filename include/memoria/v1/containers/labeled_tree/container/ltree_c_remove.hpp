@@ -46,24 +46,24 @@ public:
 
     typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
 
     struct RemoveFromLeafFn {
-        Int label_idx_ = -1;
+        int32_t label_idx_ = -1;
 
 
-        void stream(StreamSize* obj, Int idx)
+        void stream(StreamSize* obj, int32_t idx)
         {
             obj->remove(idx, idx + 1);
         }
 
         template <typename SeqTypes>
-        void stream(PkdFSSeq<SeqTypes>* seq, Int idx)
+        void stream(PkdFSSeq<SeqTypes>* seq, int32_t idx)
         {
             MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 
-            Int sym = seq->symbol(idx);
+            int32_t sym = seq->symbol(idx);
 
             if (sym) {
                 label_idx_ = seq->rank(idx, 1);
@@ -76,19 +76,19 @@ public:
         }
 
         template <typename StreamTypes>
-        void stream(PackedFSEArray<StreamTypes>* labels, Int idx)
+        void stream(PackedFSEArray<StreamTypes>* labels, int32_t idx)
         {
             labels->remove(idx, idx + 1);
         }
 
         template <typename StreamTypes>
-        void stream(PkdVQTree<StreamTypes>* sizes, Int idx)
+        void stream(PkdVQTree<StreamTypes>* sizes, int32_t idx)
         {
             sizes->remove(idx, idx + 1);
         }
 
         template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, Int idx)
+        void treeNode(LeafNode<NTypes>* node, int32_t idx)
         {
             node->template processSubstreams<IntList<0>>(*this, idx);
 
@@ -99,7 +99,7 @@ public:
         }
     };
 
-    auto removeFromLeaf(NodeBaseG& leaf, Int idx)
+    auto removeFromLeaf(NodeBaseG& leaf, int32_t idx)
     {
         RemoveFromLeafFn fn;
         LeafDispatcher::dispatch(leaf, fn, idx);
@@ -117,7 +117,7 @@ public:
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
-        Int& idx    = iter.idx();
+        int32_t& idx    = iter.idx();
 
         removeFromLeaf(leaf, idx);
 

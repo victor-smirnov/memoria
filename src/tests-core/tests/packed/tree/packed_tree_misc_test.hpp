@@ -37,9 +37,9 @@ class PackedTreeMiscTest: public PackedTreeTestBase<PackedTreeT> {
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Values                                               Values;
 
-    static constexpr Int Blocks = Base::Blocks;
+    static constexpr int32_t Blocks = Base::Blocks;
 
-    Int iterations_ = 10;
+    int32_t iterations_ = 10;
 
 public:
 
@@ -86,7 +86,7 @@ public:
         }
     }
 
-    void testInsertVector(Int size)
+    void testInsertVector(int32_t size)
     {
         out()<<size<<std::endl;
 
@@ -109,7 +109,7 @@ public:
         }
     }
 
-    void testFillTree(Int tree_size)
+    void testFillTree(int32_t tree_size)
     {
         Base::out()<<tree_size<<std::endl;
 
@@ -130,16 +130,16 @@ public:
         }
     }
 
-    void addValues(vector<Values>& values, Int idx, const Values v)
+    void addValues(vector<Values>& values, int32_t idx, const Values v)
     {
-        for (Int c = 0; c< Blocks; c++)
+        for (int32_t c = 0; c< Blocks; c++)
         {
             values[idx][c] += v[c];
         }
     }
 
 
-    void testAddValue(Int size)
+    void testAddValue(int32_t size)
     {
         Base::out()<<size<<std::endl;
 
@@ -148,10 +148,10 @@ public:
 
         fillVector(tree, tree_values);
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             Values value = Base::createRandom();
-            Int idx = getRandom(tree->size());
+            int32_t idx = getRandom(tree->size());
 
             tree->addValues(idx, value);
             Base::assertIndexCorrect(MA_SRC, tree);
@@ -171,7 +171,7 @@ public:
         }
     }
 
-    void testSplitToEmpty(Int size)
+    void testSplitToEmpty(int32_t size)
     {
         Base::out()<<size<<std::endl;
 
@@ -182,7 +182,7 @@ public:
 
         fillVector(tree1, tree_values1);
 
-        Int idx = this->getRandom(size);
+        int32_t idx = this->getRandom(size);
 
         tree1->splitTo(tree2.get(), idx);
 
@@ -202,7 +202,7 @@ public:
         }
     }
 
-    void testSplitPreFilled(Int size)
+    void testSplitPreFilled(int32_t size)
     {
         Base::out()<<size<<std::endl;
 
@@ -215,7 +215,7 @@ public:
         fillVector(tree1, tree_values1);
         fillVector(tree2, tree_values2);
 
-        Int idx = getRandom(size);
+        int32_t idx = getRandom(size);
 
         tree1->splitTo(tree2.get(), idx);
 
@@ -230,7 +230,7 @@ public:
 
     void testRemoveMulti()
     {
-        for (Int size = 8; size <= this->size_; size*=2)
+        for (int32_t size = 8; size <= this->size_; size*=2)
         {
             out()<<size<<std::endl;
 
@@ -241,12 +241,12 @@ public:
 
             assertEqual(tree, tree_values);
 
-            for (Int c = 0; c < this->iterations_; c++)
+            for (int32_t c = 0; c < this->iterations_; c++)
             {
-                Int start   = getRandom(tree->size());
-                Int end     = start + getRandom(tree->size() - start);
+                int32_t start   = getRandom(tree->size());
+                int32_t end     = start + getRandom(tree->size() - start);
 
-                Int block_size = tree->block_size();
+                int32_t block_size = tree->block_size();
 
                 tree->remove(start, end);
 
@@ -264,7 +264,7 @@ public:
 
     void testRemoveAll()
     {
-        for (Int size = 1; size <= this->size_; size*=2)
+        for (int32_t size = 1; size <= this->size_; size*=2)
         {
             out()<<size<<std::endl;
 
@@ -290,7 +290,7 @@ public:
         }
     }
 
-    void testMerge(Int size)
+    void testMerge(int32_t size)
     {
         Base::out()<<size<<std::endl;
 
@@ -322,7 +322,7 @@ public:
         }
     }
 
-    void testClear(Int size)
+    void testClear(int32_t size)
     {
         out()<<size<<std::endl;
 

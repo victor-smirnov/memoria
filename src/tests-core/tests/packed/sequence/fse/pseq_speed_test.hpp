@@ -29,7 +29,7 @@ namespace v1 {
 using namespace std;
 
 template <
-    Int Bits,
+    int32_t Bits,
     typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
     template <typename> class SelectFnType  = BitmapSelectFn,
@@ -69,9 +69,9 @@ class PackedSearchableSequenceSpeedTest: public PackedSearchableSequenceTestBase
     using Value = typename Seq::Value;
 
 
-    static const Int Blocks                 = Seq::Indexes;
-    static const Int Symbols                = 1<<Bits;
-    static const Int VPB                    = Seq::ValuesPerBranch;
+    static const int32_t Blocks                 = Seq::Indexes;
+    static const int32_t Symbols                = 1<<Bits;
+    static const int32_t VPB                    = Seq::ValuesPerBranch;
 
 
     using Base::getRandom;
@@ -99,25 +99,25 @@ public:
     {
         auto seq = createEmptySequence();
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
 
         fillRandom(seq, this->size_);
 
 
-        BigInt t1 = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
-        for (Int c = 0; c < this->iterations_; c++)
+        for (int32_t c = 0; c < this->iterations_; c++)
         {
-            Int idx1 = getRandom(this->size_);
-            Int idx2 = getRandom(this->size_);
+            int32_t idx1 = getRandom(this->size_);
+            int32_t idx2 = getRandom(this->size_);
 
-            Int symbol = getRandom(Symbols);
+            int32_t symbol = getRandom(Symbols);
 
             seq->remove(idx2, idx2 + 1);
             seq->insert(idx1, symbol);
         }
 
-        BigInt t2 = getTimeInMillis();
+        int64_t t2 = getTimeInMillis();
 
         out()<<FormatTime(t1 - t0)<<" "<<FormatTime(t2 - t1)<<endl;
     }

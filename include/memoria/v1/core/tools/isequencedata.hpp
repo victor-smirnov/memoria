@@ -20,13 +20,13 @@
 namespace memoria {
 namespace v1 {
 
-template <typename T, Int BitsPerSymbol>
+template <typename T, int32_t BitsPerSymbol>
 struct ISequenceDataSource {
     virtual ~ISequenceDataSource() noexcept {}
 };
 
 
-template <typename T, Int BitsPerSymbol>
+template <typename T, int32_t BitsPerSymbol>
 struct ISequenceDataTarget {
     virtual ~ISequenceDataTarget() noexcept {}
 };

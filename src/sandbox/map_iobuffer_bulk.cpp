@@ -40,9 +40,9 @@ public:
         return buffer_;
     }
 
-    virtual Int process(IOBuffer& buffer, Int entries)
+    virtual int32_t process(IOBuffer& buffer, int32_t entries)
     {
-        for (Int c = 0; c < entries; c++)
+        for (int32_t c = 0; c < entries; c++)
         {
             cout << "Key: '" << buffer.getString() << "' Value: '" << buffer.getString() << "'" << endl;
         }
@@ -70,9 +70,9 @@ public:
 
     virtual IOBuffer& buffer() {return buffer_;}
 
-    virtual Int populate(IOBuffer& buffer)
+    virtual int32_t populate(IOBuffer& buffer)
     {
-        Int entries = 0;
+        int32_t entries = 0;
 
         ValueCodec<Key>     key_codec;
         ValueCodec<Value>   value_codec;
@@ -160,24 +160,24 @@ int main()
 
         PairVector pairs;
 
-        BigInt ts0 = getTimeInMillis();
+        int64_t ts0 = getTimeInMillis();
 
         for (int c = 0; c < size; c++)
         {
             pairs.emplace_back("key_" + toString(c), "value_" + toString(c));
         }
 
-        BigInt ts1 = getTimeInMillis();
+        int64_t ts1 = getTimeInMillis();
 
         std::sort(pairs.begin(), pairs.end());
 
-        BigInt ts2 = getTimeInMillis();
+        int64_t ts2 = getTimeInMillis();
 
         cout << "Vector creation: " << FormatTime(ts1 - ts0) << ", sorting: " << FormatTime(ts2 - ts1) << endl;
 
         MapBufferProducer<PairVector::const_iterator> producer(pairs.begin(), pairs.end(), 65536);
 
-        BigInt t0 = getTimeInMillis();
+        int64_t t0 = getTimeInMillis();
         map->begin()->insert_iobuffer(&producer);
 
         cout << "Insertion time: " << FormatTime(getTimeInMillis() - t0) << endl;

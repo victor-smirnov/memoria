@@ -32,8 +32,8 @@ int main() {
     MEMORIA_INIT(DefaultProfile<>);
 
     using CtrName = LabeledTree<
-            FLabel<UShort>,
-            VLabel<BigInt, Granularity::Bit, Indexed::Yes>
+            FLabel<uint16_t>,
+            VLabel<int64_t, Granularity::Bit, Indexed::Yes>
     >;
 
     using CtrT = DCtrTF<CtrName>::Type;

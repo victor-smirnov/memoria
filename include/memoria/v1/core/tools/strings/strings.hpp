@@ -51,23 +51,23 @@ String toString(const T& value, bool hex = false)
 }
 
 
-static inline String toString(const UByte value, bool hex = false)
+static inline String toString(const uint8_t value, bool hex = false)
 {
     std::stringstream str;
     if (hex) {
         str<<hex;
     }
-    str<<(Int)value;
+    str<<(int32_t)value;
     return str.str();
 }
 
-static inline String toString(const Byte value, bool hex = false)
+static inline String toString(const int8_t value, bool hex = false)
 {
     std::stringstream str;
     if (hex) {
         str<<hex;
     }
-    str<<(Int)value;
+    str<<(int32_t)value;
     return str.str();
 }
 
@@ -124,24 +124,24 @@ bool ConvertToBool(StringRef str);
 template <typename T> struct FromString;
 
 template <>
-struct FromString<Int> {
-    static Int convert(StringRef str)
+struct FromString<int32_t> {
+    static int32_t convert(StringRef str)
     {
         return ConvertToLongInt(str);
     }
 };
 
 template <>
-struct FromString<BigInt> {
-    static BigInt convert(StringRef str)
+struct FromString<int64_t> {
+    static int64_t convert(StringRef str)
     {
         return ConvertToLongLong(str);
     }
 };
 
 template <>
-struct FromString<UBigInt> {
-    static UBigInt convert(StringRef str)
+struct FromString<uint64_t> {
+    static uint64_t convert(StringRef str)
     {
         return ConvertToULongLong(str);
     }

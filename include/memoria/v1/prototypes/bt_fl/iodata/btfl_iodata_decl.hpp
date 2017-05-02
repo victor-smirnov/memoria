@@ -31,13 +31,13 @@ namespace btfl {
 namespace {
 
     template <
-                Int KeyStream,
-                Int StreamsMax,
-                Int Stream,
+                int32_t KeyStream,
+                int32_t StreamsMax,
+                int32_t Stream,
                 typename KeyType,
                 typename ValueType,
                 typename ColumnType,
-                template <Int, Int> class ContainerFactory
+                template <int32_t, int32_t> class ContainerFactory
             >
     struct DataTypeBuilder {
         using Type = typename ContainerFactory<KeyStream, Stream>::template Type<
@@ -55,14 +55,14 @@ namespace {
     };
 
 
-    template <Int KeyStream, Int StreamsMax, typename KeyType, typename ValueType, typename ColumnType, template <Int, Int> class ContainerFactory>
+    template <int32_t KeyStream, int32_t StreamsMax, typename KeyType, typename ValueType, typename ColumnType, template <int32_t, int32_t> class ContainerFactory>
     struct DataTypeBuilder<KeyStream, StreamsMax, 0, KeyType, ValueType, ColumnType, ContainerFactory> {
         using Type = typename ContainerFactory<KeyStream, 0>::template Type<ValueType>;
     };
 
 
 
-    template <Int KeyStream, Int CurrentStream> struct ContainerFactory {
+    template <int32_t KeyStream, int32_t CurrentStream> struct ContainerFactory {
         template <typename V>
         using Type = std::vector<V>;
     };
@@ -73,12 +73,12 @@ template <typename DataSetType> struct BTFLDataStreamsCounter;
 
 template <typename K, typename V, typename... Args, template <typename...> class Container>
 struct BTFLDataStreamsCounter<Container<std::tuple<K, V>, Args...>> {
-    static constexpr Int Value = 1 + BTFLDataStreamsCounter<V>::Value;
+    static constexpr int32_t Value = 1 + BTFLDataStreamsCounter<V>::Value;
 };
 
 template <typename... V, template <typename...> class Container>
 struct BTFLDataStreamsCounter<Container<V...>> {
-    static constexpr Int Value = 1;
+    static constexpr int32_t Value = 1;
 };
 
 
@@ -87,12 +87,12 @@ struct BTFLDataStreamsCounter<Container<V...>> {
 
 
 template <
-    Int DataStreams,
-    Int Level = DataStreams - 1,
-    typename KeyType    = BigInt,
-    typename ValueType  = UByte,
-    typename ColumnType = BigInt,
-    template <Int, Int> class ContainerTypeFactory = ContainerFactory
+    int32_t DataStreams,
+    int32_t Level = DataStreams - 1,
+    typename KeyType    = int64_t,
+    typename ValueType  = uint8_t,
+    typename ColumnType = int64_t,
+    template <int32_t, int32_t> class ContainerTypeFactory = ContainerFactory
 >
 using BTFLData = typename DataTypeBuilder<Level, DataStreams - 1, DataStreams - 1, KeyType, ValueType, ColumnType, ContainerTypeFactory>::Type;
 

@@ -30,20 +30,20 @@ namespace tree      {
 
 enum class NodeType {LEAF, BRANCH};
 
-template <typename Key, Int NodeSize, Int NodeIndexSize>
+template <typename Key, int32_t NodeSize, int32_t NodeIndexSize>
 class NodeBase {
 public:
     class RootMetadata {
-        BigInt size_ = 0;
+        int64_t size_ = 0;
     public:
-        BigInt& size() {
+        int64_t& size() {
             return size_;
         }
-        const BigInt& size() const {
+        const int64_t& size() const {
             return size_;
         }
 
-        void add_size(BigInt delta) {
+        void add_size(int64_t delta) {
             size_ += delta;
         }
     };
@@ -55,21 +55,21 @@ private:
 
     NodeType node_type_;
 
-    BigInt node_id_;
-    BigInt txn_id_;
-    Int size_ = 0;
+    int64_t node_id_;
+    int64_t txn_id_;
+    int32_t size_ = 0;
 
 protected:
-    BigInt refs_ = 0;
+    int64_t refs_ = 0;
 private:
 
-    static constexpr Int Indexes =  NodeSize / NodeIndexSize + ((NodeSize % NodeIndexSize == 0)?  0 : 1);
+    static constexpr int32_t Indexes =  NodeSize / NodeIndexSize + ((NodeSize % NodeIndexSize == 0)?  0 : 1);
 
     Key index_[Indexes];
     Key keys_ [NodeSize];
 
 public:
-    NodeBase(BigInt txn_id, BigInt node_id, NodeType node_type):
+    NodeBase(int64_t txn_id, int64_t node_id, NodeType node_type):
         node_type_(node_type),
         node_id_(node_id),
         txn_id_(txn_id)
@@ -83,7 +83,7 @@ public:
         return metadata_;
     }
 
-    BigInt node_id() const {
+    int64_t node_id() const {
         return node_id_;
     }
 
@@ -99,19 +99,19 @@ public:
         return node_type_ == NodeType::BRANCH;
     }
 
-    BigInt txn_id() const {
+    int64_t txn_id() const {
         return txn_id_;
     }
 
-    Int size() const {
+    int32_t size() const {
         return size_;
     };
 
-    Int max_size() const {
+    int32_t max_size() const {
         return NodeSize;
     }
 
-    Int capacity() const {
+    int32_t capacity() const {
         return max_size() - size();
     }
 
@@ -135,27 +135,27 @@ public:
         return size_ < max_size();
     }
 
-    BigInt refs() const {
+    int64_t refs() const {
         return refs_;
     }
 
-    BigInt ref() {
+    int64_t ref() {
         return ++refs_;
     }
 
-    BigInt unref() {
+    int64_t unref() {
         return --refs_;
     }
 
-    const Key& key(Int idx) const {
+    const Key& key(int32_t idx) const {
         return keys_[idx];
     }
 
-    Key& key(Int idx) {
+    Key& key(int32_t idx) {
         return keys_[idx];
     }
 
-//  Int find_key(const Key& key) const
+//  int32_t find_key(const Key& key) const
 //  {
 //      int i1 = find_key1(key);
 //      int i2 = find_key2(key);
@@ -170,12 +170,12 @@ public:
 //      return i1;
 //  }
 
-    Int find_key(const Key& key) const
+    int32_t find_key(const Key& key) const
     {
-        Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
+        int32_t last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
 
-        Int idx = -1;
-        for (Int c = 0; c < last_idx; c++)
+        int32_t idx = -1;
+        for (int32_t c = 0; c < last_idx; c++)
         {
             if (key <= index_[c])
             {
@@ -188,7 +188,7 @@ public:
         {
             idx *= NodeIndexSize;
 
-            for (Int c = idx; c < idx + NodeIndexSize; c++)
+            for (int32_t c = idx; c < idx + NodeIndexSize; c++)
             {
                 if (key <= keys_[c])
                 {
@@ -200,12 +200,12 @@ public:
         return size_;
     }
 
-    Int find_key2(const Key& key) const
+    int32_t find_key2(const Key& key) const
     {
-        Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
+        int32_t last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
 
-        Int idx = 0;
-        for (Int c = 0; c < last_idx; c++)
+        int32_t idx = 0;
+        for (int32_t c = 0; c < last_idx; c++)
         {
             idx += (key > index_[c]);
         }
@@ -214,9 +214,9 @@ public:
         {
             idx *= NodeIndexSize;
 
-            Int max = (idx + NodeIndexSize) < size_ ? idx + NodeIndexSize : size_;
+            int32_t max = (idx + NodeIndexSize) < size_ ? idx + NodeIndexSize : size_;
 
-            for (Int c = idx; c < max; c++)
+            for (int32_t c = idx; c < max; c++)
             {
                 idx += (key > keys_[c]);
             }
@@ -228,7 +228,7 @@ public:
     }
 
 
-    Int find_key3(const Key& key) const
+    int32_t find_key3(const Key& key) const
     {
         return std::distance(keys_, std::lower_bound(keys_, keys_ + size_, key));
     }
@@ -241,19 +241,19 @@ public:
 
         for (auto& k: index_) k = Key();
 
-        Int max = (size_ % NodeIndexSize == 0) ? size_ : (size_ - size_ % NodeIndexSize);
+        int32_t max = (size_ % NodeIndexSize == 0) ? size_ : (size_ - size_ % NodeIndexSize);
 
-        for (Int idx = 0; idx < max; idx += NodeIndexSize)
+        for (int32_t idx = 0; idx < max; idx += NodeIndexSize)
         {
             index_[idx / NodeIndexSize] = keys_[idx + NodeIndexSize - 1];
         }
 
-        Int last_element = size_ - 1;
+        int32_t last_element = size_ - 1;
 
         index_[last_element / NodeIndexSize] = keys_[last_element];
     }
 
-    void insert_key(Int idx, const Key& key)
+    void insert_key(int32_t idx, const Key& key)
     {
         shift_right(keys_, idx, idx + 1, size_ - idx);
         size_ ++;
@@ -263,11 +263,11 @@ public:
         reindex();
     }
 
-    void remove_keys(Int start, Int end)
+    void remove_keys(int32_t start, int32_t end)
     {
         shift_left(keys_, end, start, size_ - end);
 
-        for (Int c = size() - (end - start); c < size(); c++) {
+        for (int32_t c = size() - (end - start); c < size(); c++) {
             keys_[c] = Key();
         }
 
@@ -275,11 +275,11 @@ public:
         reindex();
     }
 
-    void split_keys_to(Int start, NodeBase* other)
+    void split_keys_to(int32_t start, NodeBase* other)
     {
         copy_to(keys_, start, other->keys_, 0, size_ - start);
 
-        for (Int c = start; c < size(); c++)
+        for (int32_t c = start; c < size(); c++)
         {
             keys_[c] = Key();
         }
@@ -315,7 +315,7 @@ public:
 
         out<<"Index: "<<endl;
 
-        for (Int c = 0; c < Indexes; c++)
+        for (int32_t c = 0; c < Indexes; c++)
         {
             out<<c<<": "<<index_[c]<<endl;
         }
@@ -323,28 +323,28 @@ public:
 
 protected:
     template <typename T>
-    void shift_right(T* data, Int from, Int to, Int size) const
+    void shift_right(T* data, int32_t from, int32_t to, int32_t size) const
     {
         CopyBuffer(data + from, data + to, size);
     }
 
     template <typename T>
-    void shift_left(T* data, Int from, Int to, Int size) const
+    void shift_left(T* data, int32_t from, int32_t to, int32_t size) const
     {
         CopyBuffer(data + from, data + to, size);
     }
 
     template <typename T>
-    void copy_to(const T* src, Int from, T* dst, Int to, Int size) const
+    void copy_to(const T* src, int32_t from, T* dst, int32_t to, int32_t size) const
     {
         CopyBuffer(src + from, dst + to, size);
     }
 
-    void set_txn_id(BigInt txn_id) {
+    void set_txn_id(int64_t txn_id) {
         this->txn_id_ = txn_id;
     }
 
-    void set_node_id(BigInt id) {
+    void set_node_id(int64_t id) {
         this->node_id_ = id;
     }
 
@@ -352,26 +352,26 @@ protected:
         refs_ = 0;
     }
 
-    void set_refs(Int refs) {
+    void set_refs(int32_t refs) {
         this->refs_ = refs;
     }
 
     void hash(MD5Hash& md5) const
     {
-        md5.add((UInt)node_type_);
+        md5.add((uint32_t)node_type_);
         md5.add_ubi(metadata_.size());
         md5.add_ubi(node_id_);
         md5.add_ubi(txn_id_);
         md5.add_ubi(size_);
 
-        for (Int c = 0; c < size_; c++) {
+        for (int32_t c = 0; c < size_; c++) {
             md5.add_ubi(keys_[c]);
         }
     }
 };
 
 
-template <typename Key, typename Data, Int NodeSize, Int NodeIndexSize>
+template <typename Key, typename Data, int32_t NodeSize, int32_t NodeIndexSize>
 class Node: public NodeBase<Key, NodeSize, NodeIndexSize> {
     using Base = NodeBase<Key, NodeSize, NodeIndexSize>;
 
@@ -383,19 +383,19 @@ public:
     using NodeBaseT = NodeBase<Key, NodeSize, NodeIndexSize>;
 
 
-    Node(BigInt txn_id, BigInt node_id, NodeType node_type):
+    Node(int64_t txn_id, int64_t node_id, NodeType node_type):
         NodeBase<Key, NodeSize, NodeIndexSize>(txn_id, node_id, node_type)
     {}
 
-    const Data& data(Int idx) const {
+    const Data& data(int32_t idx) const {
         return data_[idx];
     }
 
-    Data& data(Int idx) {
+    Data& data(int32_t idx) {
         return data_[idx];
     }
 
-    void insert(Int idx, const Key& key, const Data& child)
+    void insert(int32_t idx, const Key& key, const Data& child)
     {
         this->shift_right(data_, idx, idx + 1, this->size() - idx);
 
@@ -404,26 +404,26 @@ public:
         this->insert_key(idx, key);
     }
 
-    void remove(Int idx) {
+    void remove(int32_t idx) {
         remove(idx, idx + 1);
     }
 
-    void remove(Int start, Int end)
+    void remove(int32_t start, int32_t end)
     {
         this->shift_left(data_, end, start, this->size() - end);
 
-        for (Int c = this->size() - (end - start); c < this->size(); c++) {
+        for (int32_t c = this->size() - (end - start); c < this->size(); c++) {
             data_[c] = Data();
         }
 
         this->remove_keys(start, end);
     }
 
-    void split_to(Int start, MyType* other)
+    void split_to(int32_t start, MyType* other)
     {
         this->copy_to(data_, start, other->data_, 0, this->size() - start);
 
-        for (Int c = start; c < this->size(); c++)
+        for (int32_t c = start; c < this->size(); c++)
         {
             data_[c] = Data();
         }
@@ -437,16 +437,16 @@ public:
         this->merge_keys_from(other);
     }
 
-    UBigInt hash() const
+    uint64_t hash() const
     {
         MD5Hash md5;
 
-        md5.add_ubi((UBigInt)this);
+        md5.add_ubi((uint64_t)this);
 
         Base::hash(md5);
 
-        for (Int c = 0; c < this->size(); c++) {
-            md5.add_ubi((UBigInt)this->data(c));
+        for (int32_t c = 0; c < this->size(); c++) {
+            md5.add_ubi((uint64_t)this->data(c));
         }
 
         return md5.result().hash64();
@@ -454,20 +454,20 @@ public:
 };
 
 
-template <typename Key, Int NodeSize, Int NodeIndexSize>
+template <typename Key, int32_t NodeSize, int32_t NodeIndexSize>
 class BranchNode: public Node<Key, NodeBase<Key, NodeSize, NodeIndexSize>*, NodeSize, NodeIndexSize> {
     using Base = Node<Key, NodeBase<Key, NodeSize, NodeIndexSize>*, NodeSize, NodeIndexSize>;
 
 public:
     using NodeBaseT = NodeBase<Key, NodeSize, NodeIndexSize>;
 
-    BranchNode(BigInt txn_id, BigInt node_id):
+    BranchNode(int64_t txn_id, int64_t node_id):
         Base(txn_id, node_id, NodeType::BRANCH)
     {}
 
     NodeBaseT* find_child(const Key& key) const
     {
-        Int idx = Base::find_key(key);
+        int32_t idx = Base::find_key(key);
 
         if (idx == this->size())
         {
@@ -477,9 +477,9 @@ public:
         return this->data_[idx];
     }
 
-    Int find_child_node(const NodeBaseT* child) const
+    int32_t find_child_node(const NodeBaseT* child) const
     {
-        for (Int c = 0; c < this->size(); c++)
+        for (int32_t c = 0; c < this->size(); c++)
         {
             if (this->data_[c] == child)
             {
@@ -512,7 +512,7 @@ public:
 
         out<<"Data: "<<endl;
 
-        for (Int c = 0; c < this->size(); c++)
+        for (int32_t c = 0; c < this->size(); c++)
         {
             auto node = this->data(c);
             out<<c<<": "<<this->key(c)<<" = "<<node<<" ("<<node->node_id()<<", "<<node->txn_id()<<")"<<endl;
@@ -524,13 +524,13 @@ public:
 
 };
 
-template <typename Key, typename Value, Int NodeSize, Int NodeIndexSize>
+template <typename Key, typename Value, int32_t NodeSize, int32_t NodeIndexSize>
 class LeafNode: public Node<Key, Value, NodeSize, NodeIndexSize> {
     using Base = Node<Key, Value, NodeSize, NodeIndexSize>;
 public:
-    LeafNode(BigInt txn_id, BigInt node_id):Base(txn_id, node_id, NodeType::LEAF) {}
+    LeafNode(int64_t txn_id, int64_t node_id):Base(txn_id, node_id, NodeType::LEAF) {}
 
-    Int find(const Key& key) const
+    int32_t find(const Key& key) const
     {
         return this->find_key(key);
     }
@@ -541,7 +541,7 @@ public:
 
         out<<"Data: "<<endl;
 
-        for (Int c = 0; c < this->size(); c++)
+        for (int32_t c = 0; c < this->size(); c++)
         {
             out<<c<<": "<<this->key(c)<<" = "<<this->data(c)<<endl;
         }

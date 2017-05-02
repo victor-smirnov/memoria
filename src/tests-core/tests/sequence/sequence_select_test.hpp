@@ -27,7 +27,7 @@ namespace memoria {
 namespace v1 {
 
 
-template <Int BitsPerSymbol, bool Dense = true>
+template <int32_t BitsPerSymbol, bool Dense = true>
 class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
     using MyType = SequenceSelectTest<BitsPerSymbol, Dense>;
@@ -38,7 +38,7 @@ class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
     using typename Base::CtrName;
 
 
-    static const Int Symbols  = Base::Symbols;
+    static const int32_t Symbols  = Base::Symbols;
 
     using Base::commit;
     using Base::drop;
@@ -57,7 +57,7 @@ class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
 
 
-    Int iterations_ = 100000;
+    int32_t iterations_ = 100000;
 
 public:
     SequenceSelectTest(StringRef name):
@@ -85,12 +85,12 @@ public:
 
         auto ranks = seq->ranks();
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             out() << c <<std::endl;
 
-            Int symbol  = getRandom(Base::Symbols);
-            Int rank    = getRandom(ranks[symbol]);
+            int32_t symbol  = getRandom(Base::Symbols);
+            int32_t rank    = getRandom(ranks[symbol]);
 
             if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
 
@@ -117,18 +117,18 @@ public:
 
         check(MA_SRC);
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             out() << c << std::endl;
 
-            Int pos     = getRandom(size_);
-            Int symbol  = getRandom(Base::Symbols);
+            int32_t pos     = getRandom(size_);
+            int32_t symbol  = getRandom(Base::Symbols);
 
-            Int maxrank_ = seq->rank(pos, size_, symbol);
+            int32_t maxrank_ = seq->rank(pos, size_, symbol);
 
             if (maxrank_ > 0)
             {
-                Int rank    = getRandom(maxrank_);
+                int32_t rank    = getRandom(maxrank_);
 
                 if (rank == 0) rank = 1;
 
@@ -138,7 +138,7 @@ public:
 
                 AssertEQ(MA_SRC, pos0, pos);
 
-                BigInt pos_delta1 = iter->selectFw(rank, symbol);
+                int64_t pos_delta1 = iter->selectFw(rank, symbol);
 
                 auto tgt_pos2 = seq->selectFw(pos, symbol, rank);
 
@@ -166,18 +166,18 @@ public:
 
         check(MA_SRC);
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
             out()<<c<<std::endl;
 
-            Int pos     = getRandom(size_);
-            Int symbol  = getRandom(Base::Symbols);
+            int32_t pos     = getRandom(size_);
+            int32_t symbol  = getRandom(Base::Symbols);
 
-            Int maxrank_ = seq->rank(0, pos, symbol);
+            int32_t maxrank_ = seq->rank(0, pos, symbol);
 
             if (maxrank_ > 0)
             {
-                Int rank    = getRandom(maxrank_);
+                int32_t rank    = getRandom(maxrank_);
 
                 if (rank == 0) rank = 1;
 

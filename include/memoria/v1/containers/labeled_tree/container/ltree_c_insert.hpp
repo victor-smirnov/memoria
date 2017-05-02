@@ -54,7 +54,7 @@ public:
 
     typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
 
     template <typename SubstreamsIdxList, typename... Args>
@@ -66,26 +66,26 @@ public:
     struct InsertLabelsFn
     {
         template <
-            Int Offset,
+            int32_t Offset,
             bool StreamStart,
-            Int Idx,
+            int32_t Idx,
             typename BranchNodeEntryItem
         >
-        void stream(StreamSize* obj, BranchNodeEntryItem& accum, const LabelsTuple& labels, Int idx)
+        void stream(StreamSize* obj, BranchNodeEntryItem& accum, const LabelsTuple& labels, int32_t idx)
         {
             obj->insert(idx, 1);
             accum[Offset]++;
         }
 
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
-        void stream(PackedFSEArray<StreamTypes>* array, BranchNodeEntryItem& accum, const LabelsTuple& labels, Int idx)
+        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamTypes, typename BranchNodeEntryItem>
+        void stream(PackedFSEArray<StreamTypes>* array, BranchNodeEntryItem& accum, const LabelsTuple& labels, int32_t idx)
         {
             array->insert(idx, std::get<Idx - 1>(labels));
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
-        void stream(PkdVQTree<StreamTypes>* sizes, BranchNodeEntryItem& accum, const LabelsTuple& labels, Int idx)
+        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamTypes, typename BranchNodeEntryItem>
+        void stream(PkdVQTree<StreamTypes>* sizes, BranchNodeEntryItem& accum, const LabelsTuple& labels, int32_t idx)
         {
             typedef typename PkdVQTree<StreamTypes>::Values Values;
 
@@ -104,25 +104,25 @@ public:
 
     struct InsertNodeFn {
         template <
-            Int Offset,
+            int32_t Offset,
             bool StreamStart,
-            Int Idx,
+            int32_t Idx,
             typename SeqTypes,
             typename BranchNodeEntryItem
         >
-        void stream(PkdFSSeq<SeqTypes>* obj, BranchNodeEntryItem& accum, Int idx, Int symbol)
+        void stream(PkdFSSeq<SeqTypes>* obj, BranchNodeEntryItem& accum, int32_t idx, int32_t symbol)
         {
             obj->insert(idx, symbol);
             accum[Offset + symbol]++;
         }
 
         template <
-            Int Offset,
+            int32_t Offset,
             bool StreamStart,
-            Int Idx,
+            int32_t Idx,
             typename BranchNodeEntryItem
         >
-        void stream(StreamSize* obj, BranchNodeEntryItem& accum, Int idx, Int symbol)
+        void stream(StreamSize* obj, BranchNodeEntryItem& accum, int32_t idx, int32_t symbol)
         {
             obj->insert(idx, symbol);
             accum[Offset]++;
@@ -133,9 +133,9 @@ public:
                 LeafNode<NTypes>* node,
                 BranchNodeEntry& delta,
                 const LabelsTuple& labels,
-                Int node_idx,
-                Int label_idx,
-                Int symbol
+                int32_t node_idx,
+                int32_t label_idx,
+                int32_t symbol
         )
         {
             node->layout(-1ull);
@@ -146,7 +146,7 @@ public:
         }
 
         template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, BranchNodeEntry& delta, Int node_idx)
+        void treeNode(LeafNode<NTypes>* node, BranchNodeEntry& delta, int32_t node_idx)
         {
             node->layout(-1ull);
             node->template processStreamAcc<0>(*this, delta, node_idx, 0);
@@ -158,7 +158,7 @@ public:
 
 
 
-    bool insertLoudsNode(NodeBaseG& leaf, Int node_idx, Int label_idx, BranchNodeEntry& sums, const LabelsTuple& labels)
+    bool insertLoudsNode(NodeBaseG& leaf, int32_t node_idx, int32_t label_idx, BranchNodeEntry& sums, const LabelsTuple& labels)
     {
         auto& self = this->self();
 
@@ -192,7 +192,7 @@ public:
 
 
 
-    bool insertLoudsZero(NodeBaseG& leaf, Int node_idx, BranchNodeEntry& sums)
+    bool insertLoudsZero(NodeBaseG& leaf, int32_t node_idx, BranchNodeEntry& sums)
     {
         auto& self = this->self();
 
@@ -217,12 +217,12 @@ public:
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
-        Int& idx    = iter.idx();
-        Int stream  = iter.stream();
-        Int size    = iter.leaf_size(stream);
+        int32_t& idx    = iter.idx();
+        int32_t stream  = iter.stream();
+        int32_t size    = iter.leaf_size(stream);
 
-        Int split_idx = size / 2;
-        Int label_idx = iter.label_idx(split_idx);
+        int32_t split_idx = size / 2;
+        int32_t label_idx = iter.label_idx(split_idx);
 
         auto right = self.split_leaf_p(leaf, {split_idx, label_idx});
 
@@ -238,9 +238,9 @@ public:
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
-        Int& idx    = iter.idx();
+        int32_t& idx    = iter.idx();
 
-        Int label_idx = iter.label_idx();
+        int32_t label_idx = iter.label_idx();
 
         BranchNodeEntry sums;
 
@@ -264,7 +264,7 @@ public:
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
-        Int& idx    = iter.idx();
+        int32_t& idx    = iter.idx();
 
         BranchNodeEntry sums;
 

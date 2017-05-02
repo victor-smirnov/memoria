@@ -29,7 +29,7 @@ namespace v1 {
 
 using namespace std;
 
-template <Int Symbols>
+template <int32_t Symbols>
 class PackedRLESearchableSequenceCountTest: public PackedRLESequenceTestBase<Symbols> {
 
     using MyType = PackedRLESearchableSequenceCountTest<Symbols>;
@@ -42,8 +42,8 @@ class PackedRLESearchableSequenceCountTest: public PackedRLESequenceTestBase<Sym
     using Value = typename Seq::Value;
 
 
-    static const Int Blocks                 = Seq::Indexes;
-    static const Int Bits                   = NumberOfBits(Symbols);
+    static const int32_t Blocks                 = Seq::Indexes;
+    static const int32_t Bits                   = NumberOfBits(Symbols);
 
     using Base::getRandom;
     using Base::createEmptySequence;
@@ -67,15 +67,15 @@ public:
 
     virtual ~PackedRLESearchableSequenceCountTest() noexcept {}
 
-    rleseq::CountResult countFW(const SeqPtr& seq, Int start)
+    rleseq::CountResult countFW(const SeqPtr& seq, int32_t start)
     {
-        Int total = 0;
+        int32_t total = 0;
 
-        Int last_symbol = -1;
+        int32_t last_symbol = -1;
 
-        for (Int c = start; c < seq->size(); c++)
+        for (int32_t c = start; c < seq->size(); c++)
         {
-            Int symbol = seq->symbol(c);
+            int32_t symbol = seq->symbol(c);
 
             if (last_symbol != symbol && last_symbol >= 0)
             {
@@ -89,15 +89,15 @@ public:
         return rleseq::CountResult(total, last_symbol);
     }
 
-    rleseq::CountResult countBW(const SeqPtr& seq, Int start)
+    rleseq::CountResult countBW(const SeqPtr& seq, int32_t start)
     {
-        Int total = 0;
+        int32_t total = 0;
 
-        Int last_symbol = -1;
+        int32_t last_symbol = -1;
 
-        for (Int c = start; c >= 0; c--)
+        for (int32_t c = start; c >= 0; c--)
         {
-            Int symbol = seq->symbol(c);
+            int32_t symbol = seq->symbol(c);
 
             if (last_symbol != symbol && last_symbol >= 0)
             {
@@ -113,14 +113,14 @@ public:
 
 
 
-    void assertCountFW(const SeqPtr& seq, Int start, Int rank)
+    void assertCountFW(const SeqPtr& seq, int32_t start, int32_t rank)
     {
         auto result1 = seq->countFW(start);
 
         AssertEQ(MA_SRC, result1.count(),  rank, SBuf() << start << " " << rank);
     }
 
-    void assertCountBW(const SeqPtr& seq, Int start, Int rank)
+    void assertCountBW(const SeqPtr& seq, int32_t start, int32_t rank)
     {
         auto result1 = seq->countBW(start);
         AssertEQ(MA_SRC, result1.count(),  rank, SBuf() << start << " " << rank);
@@ -128,10 +128,10 @@ public:
 
 
     struct Pair {
-        Int rank;
-        Int idx;
+        int32_t rank;
+        int32_t idx;
 
-        Pair(Int r, Int i): rank(r), idx(i) {}
+        Pair(int32_t r, int32_t i): rank(r), idx(i) {}
     };
 
     vector<Pair> createRanksFW(const SeqPtr& seq)
@@ -142,8 +142,8 @@ public:
 
         while (iter.has_data())
         {
-            Int block_start = iter.idx();
-            Int block_end   = iter.idx() + iter.run().length();
+            int32_t block_start = iter.idx();
+            int32_t block_end   = iter.idx() + iter.run().length();
 
             ranks.push_back(Pair(countFW(seq, block_start).count(), block_start));
             ranks.push_back(Pair(countFW(seq, block_start + 1).count(), block_start + 1));
@@ -164,8 +164,8 @@ public:
 
         while (iter.has_data())
         {
-            Int block_start = iter.idx();
-            Int block_end   = iter.idx() + iter.run().length();
+            int32_t block_start = iter.idx();
+            int32_t block_end   = iter.idx() + iter.run().length();
 
             ranks.push_back(Pair(countBW(seq, block_start).count(), block_start));
             ranks.push_back(Pair(countBW(seq, block_start + 1).count(), block_start + 1));

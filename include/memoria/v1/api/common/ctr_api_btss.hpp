@@ -58,9 +58,9 @@ public:
     
     Iterator begin();
     Iterator end();
-    Iterator seek(BigInt pos);
+    Iterator seek(int64_t pos);
     
-    BigInt size();
+    int64_t size();
     
     UUID name();
     const ContainerMetadataPtr& metadata();
@@ -106,26 +106,26 @@ public:
     bool prev();
     
     void remove();
-    BigInt remove(BigInt length);
+    int64_t remove(int64_t length);
     
     void dump();
     void dump_path();
     void check(std::ostream& out, const char* source);
     
-    BigInt pos();
-    BigInt skip(BigInt offset);
+    int64_t pos();
+    int64_t skip(int64_t offset);
     
     Iterator clone();
     
     
-    BigInt read(CtrIOBuffer& buffer, BigInt size = 10000000);
-    BigInt read(bt::BufferConsumer<CtrIOBuffer>& consumer, BigInt size = 10000000);
+    int64_t read(CtrIOBuffer& buffer, int64_t size = 10000000);
+    int64_t read(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t size = 10000000);
     
-    BigInt read(std::function<Int (CtrIOBuffer&, Int)> consumer, BigInt size = 10000000);
+    int64_t read(std::function<int32_t (CtrIOBuffer&, int32_t)> consumer, int64_t size = 10000000);
     
     
-    BigInt insert(bt::BufferProducer<CtrIOBuffer>& producer);
-    BigInt insert(std::function<Int (CtrIOBuffer&)> producer);
+    int64_t insert(bt::BufferProducer<CtrIOBuffer>& producer);
+    int64_t insert(std::function<int32_t (CtrIOBuffer&)> producer);
 };
 
 

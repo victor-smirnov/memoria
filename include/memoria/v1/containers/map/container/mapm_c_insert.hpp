@@ -45,7 +45,7 @@ protected:
     using Key = typename Types::Key;
     using Value = typename Types::Value;
 
-    static const Int Streams = Types::Streams;
+    static const int32_t Streams = Types::Streams;
 
     using Element   = ValuePair<BranchNodeEntry, Value>;
     using MapEntry  = typename Types::Entry;

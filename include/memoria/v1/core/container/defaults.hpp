@@ -51,7 +51,7 @@ struct StdMakeUniquePtr {
 
 
 template <
-    typename Profile, typename IDValueType = BigInt, int FlagsCount = 32, typename TransactionType = AbstractTransaction
+    typename Profile, typename IDValueType = int64_t, int FlagsCount = 32, typename TransactionType = AbstractTransaction
 >
 struct BasicContainerCollectionCfg {
 

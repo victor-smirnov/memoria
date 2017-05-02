@@ -59,7 +59,7 @@ void CmdLine::processTests()
 {
     bool cfg_cpecified = false;
 
-    for (Int c = 1; c < argc_; c++)
+    for (int32_t c = 1; c < argc_; c++)
     {
         String arg(argv_[c]);
         if (isStartsWith(arg, "-D"))
@@ -144,7 +144,7 @@ void CmdLine::processTests()
         {
             if (c < argc_ - 1)
             {
-                count_ = FromString<Int>::convert(argv_[c + 1]);
+                count_ = FromString<int32_t>::convert(argv_[c + 1]);
                 c += 1;
             }
             else {

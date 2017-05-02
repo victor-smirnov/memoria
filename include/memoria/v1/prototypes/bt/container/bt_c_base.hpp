@@ -67,7 +67,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     using Base::CONTAINER_HASH;
 
-    static const Int Streams = Types::Streams;
+    static const int32_t Streams = Types::Streams;
 
     ObjectPools pools_;
 
@@ -136,7 +136,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         NodeDispatcher::dispatch(root, SetModelNameFn(self()), name);
     }
 
-    void initCtr(Int command)
+    void initCtr(int32_t command)
     {
         Base::initCtr(command);
 
@@ -254,7 +254,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         setCtrRootMetadata(node, metadata);
     }
 
-    BigInt getContainerName() const
+    int64_t getContainerName() const
     {
         return getRootMetadata().model_name();
     }
@@ -275,12 +275,12 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return metadata;
     }
 
-    Int getNewPageSize() const
+    int32_t getNewPageSize() const
     {
         return self().getRootMetadata().page_size();
     }
 
-    void setNewPageSize(Int page_size) const
+    void setNewPageSize(int32_t page_size) const
     {
         Metadata metadata       = self().getRootMetadata();
         metadata.page_size()    = page_size;
@@ -289,7 +289,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
     template <typename Node>
-    NodeBaseG createNodeFn(Int size) const
+    NodeBaseG createNodeFn(int32_t size) const
     {
         auto& self = this->self();
 
@@ -303,7 +303,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, createNodeFn, NodeBaseG);
 
-    NodeBaseG createNode(Short level, bool root, bool leaf, Int size = -1) const
+    NodeBaseG createNode(int16_t level, bool root, bool leaf, int32_t size = -1) const
     {
         MEMORIA_V1_ASSERT(level, >=, 0);
 
@@ -361,7 +361,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return node;
     }
 
-    NodeBaseG createRootNode(Short level, bool leaf, const Metadata& metadata) const
+    NodeBaseG createRootNode(int16_t level, bool leaf, const Metadata& metadata) const
     {
         MEMORIA_V1_ASSERT(level, >=, 0);
 
@@ -418,7 +418,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        BigInt txn_id = self.allocator().currentTxnId();
+        int64_t txn_id = self.allocator().currentTxnId();
         const Metadata& metadata = self.getRootMetadata();
 
         if (txn_id == metadata.txn_id())

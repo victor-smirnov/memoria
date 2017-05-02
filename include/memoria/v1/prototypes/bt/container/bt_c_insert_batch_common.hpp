@@ -57,12 +57,12 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchCommonName)
 
     class Checkpoint {
         NodeBaseG head_;
-        Int size_;
+        int32_t size_;
     public:
-        Checkpoint(NodeBaseG head, Int size): head_(head), size_(size) {}
+        Checkpoint(NodeBaseG head, int32_t size): head_(head), size_(size) {}
 
         NodeBaseG head() const {return head_;};
-        Int size() const {return size_;};
+        int32_t size() const {return size_;};
     };
 
 
@@ -78,14 +78,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchCommonName)
 
 
 
-    void updateChildIndexes(NodeBaseG& node, Int start)
+    void updateChildIndexes(NodeBaseG& node, int32_t start)
     {
         auto& self = this->self();
-        Int size = self.getBranchNodeSize(node);
+        int32_t size = self.getBranchNodeSize(node);
 
         if (start < size)
         {
-            self.forAllIDs(node, start, size, [&, this](const ID& id, Int parent_idx)
+            self.forAllIDs(node, start, size, [&, this](const ID& id, int32_t parent_idx)
             {
                 auto& self = this->self();
                 NodeBaseG child = self.allocator().getPageForUpdate(id, self.master_name());
@@ -103,7 +103,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchCommonName)
 
         if (node->level() > 0)
         {
-            self.forAllIDs(node, [&, this](const ID& id, Int idx)
+            self.forAllIDs(node, [&, this](const ID& id, int32_t idx)
             {
                 auto& self = this->self();
                 self.remove_branch_nodes(id);
@@ -114,17 +114,17 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchCommonName)
     }
 
     class InsertBatchResult {
-        Int idx_;
+        int32_t idx_;
         CtrSizeT subtree_size_;
     public:
-        InsertBatchResult(Int idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
+        InsertBatchResult(int32_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
-        Int idx() const {return idx_;}
+        int32_t idx() const {return idx_;}
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
 
-    NodeBaseG BuildSubtree(ILeafProvider& provider, Int level)
+    NodeBaseG BuildSubtree(ILeafProvider& provider, int32_t level)
     {
         auto& self = this->self();
 
@@ -198,8 +198,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchCommonName)
 
 
     void updateChildren(const NodeBaseG& node);
-    void updateChildren(const NodeBaseG& node, Int start);
-    void updateChildren(const NodeBaseG& node, Int start, Int end);
+    void updateChildren(const NodeBaseG& node, int32_t start);
+    void updateChildren(const NodeBaseG& node, int32_t start, int32_t end);
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(IsEmptyFn, isEmpty, bool);
     bool isEmpty(const NodeBaseG& node) {
@@ -207,7 +207,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchCommonName)
     }
 
 private:
-    void updateChildrenInternal(const NodeBaseG& node, Int start, Int end);
+    void updateChildrenInternal(const NodeBaseG& node, int32_t start, int32_t end);
 public:
 
 
@@ -262,7 +262,7 @@ void M_TYPE::updateChildren(const NodeBaseG& node)
 }
 
 M_PARAMS
-void M_TYPE::updateChildren(const NodeBaseG& node, Int start)
+void M_TYPE::updateChildren(const NodeBaseG& node, int32_t start)
 {
     if (!node->is_leaf())
     {
@@ -272,7 +272,7 @@ void M_TYPE::updateChildren(const NodeBaseG& node, Int start)
 }
 
 M_PARAMS
-void M_TYPE::updateChildren(const NodeBaseG& node, Int start, Int end)
+void M_TYPE::updateChildren(const NodeBaseG& node, int32_t start, int32_t end)
 {
     if (!node->is_leaf())
     {
@@ -283,13 +283,13 @@ void M_TYPE::updateChildren(const NodeBaseG& node, Int start, Int end)
 
 
 M_PARAMS
-void M_TYPE::updateChildrenInternal(const NodeBaseG& node, Int start, Int end)
+void M_TYPE::updateChildrenInternal(const NodeBaseG& node, int32_t start, int32_t end)
 {
     auto& self = this->self();
 
     ID node_id = node->id();
 
-    self.forAllIDs(node, start, end, [&self, &node_id](const ID& id, Int idx)
+    self.forAllIDs(node, start, end, [&self, &node_id](const ID& id, int32_t idx)
     {
         NodeBaseG child = self.allocator().getPageForUpdate(id, self.master_name());
 

@@ -38,9 +38,9 @@ struct LabelTypeTF<VLabel<T, gr, idx>> {
     typedef T Type;
 };
 
-template<Int BitsPerLabel>
+template<int32_t BitsPerLabel>
 struct LabelTypeTF<FBLabel<BitsPerLabel>> {
-    typedef UBigInt Type;
+    typedef uint64_t Type;
 };
 
 

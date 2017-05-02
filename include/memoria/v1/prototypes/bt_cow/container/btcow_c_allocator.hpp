@@ -67,12 +67,12 @@ public:
 
     virtual void  removePage(const ID& id, const UUID& name);
 
-    virtual PageG createPage(Int initial_size, const UUID& name);
+    virtual PageG createPage(int32_t initial_size, const UUID& name);
 
 
     virtual PageG getPageG(Page* page);
 
-    virtual void  resizePage(Shared* page, Int new_size);
+    virtual void  resizePage(Shared* page, int32_t new_size);
 
     virtual void  releasePage(Shared* shared) noexcept;
 
@@ -126,12 +126,12 @@ void M_TYPE::removePage(const ID& id, const UUID& name) {
 }
 
 M_PARAMS
-typename M_TYPE::PageG M_TYPE::createPage(Int initial_size, const UUID& name) {
+typename M_TYPE::PageG M_TYPE::createPage(int32_t initial_size, const UUID& name) {
     return self().allocator().createPage(initial_size, name);
 }
 
 M_PARAMS
-void M_TYPE::resizePage(Shared* page, Int new_size) {
+void M_TYPE::resizePage(Shared* page, int32_t new_size) {
     self().allocator().resizePage(page, new_size);
 }
 

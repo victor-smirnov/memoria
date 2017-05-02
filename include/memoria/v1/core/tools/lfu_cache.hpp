@@ -58,7 +58,7 @@ class LFUCache {
         NodePtr next_;
         NodePtr prev_;
 
-        UBigInt counter_ = 0;
+        uint64_t counter_ = 0;
 
         Key     key_;
 
@@ -75,9 +75,9 @@ class LFUCache {
         NodePtr& prev() {return prev_;}
         const NodePtr& prev() const {return prev_;}
 
-        UBigInt& counter() {return counter_;}
+        uint64_t& counter() {return counter_;}
 
-        const UBigInt& counter() const {return counter_;}
+        const uint64_t& counter() const {return counter_;}
 
         Key& key() {return key_;}
         const Key& key() const {return key_;}
@@ -304,7 +304,7 @@ public:
 
     void checkOrder() const {
 
-        UBigInt last = 0;
+        uint64_t last = 0;
 
         size_t pos = 0;
         for (auto& entry: list_)

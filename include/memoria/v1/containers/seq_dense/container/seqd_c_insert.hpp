@@ -55,8 +55,8 @@ public:
 
 //    struct InsertIntoLeafFn {
 //
-//        template <Int Idx, typename SeqTypes>
-//        void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int symbol, BranchNodeEntry* delta)
+//        template <int32_t Idx, typename SeqTypes>
+//        void stream(PkdFSSeq<SeqTypes>* seq, int32_t idx, int32_t symbol, BranchNodeEntry* delta)
 //        {
 //            MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 //
@@ -73,7 +73,7 @@ public:
 //
 //
 //        template <typename NTypes>
-//        void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Int symbol, BranchNodeEntry* delta)
+//        void treeNode(LeafNode<NTypes>* node, int32_t stream, int32_t idx, int32_t symbol, BranchNodeEntry* delta)
 //        {
 //            node->layout(1);
 //            node->process(stream, *this, idx, symbol, delta);
@@ -82,7 +82,7 @@ public:
 //
 //
 //
-//    bool insertIntoLeaf(NodeBaseG& leaf, Int idx, Int symbol, BranchNodeEntry& indexes)
+//    bool insertIntoLeaf(NodeBaseG& leaf, int32_t idx, int32_t symbol, BranchNodeEntry& indexes)
 //    {
 //        auto& self = this->self();
 //
@@ -103,7 +103,7 @@ public:
 //    }
 //
 
-    void insert_symbol(CtrSizeT idx, Int symbol)
+    void insert_symbol(CtrSizeT idx, int32_t symbol)
     {
         auto& self  = this->self();
         auto iter   = self.seek(idx);
@@ -111,11 +111,11 @@ public:
         iter->insert_symbol(symbol);
     }
 //
-//    void insert(Iterator& iter, Int symbol)
+//    void insert(Iterator& iter, int32_t symbol)
 //    {
 //        auto& self  = this->self();
 //        auto& leaf  = iter.leaf();
-//        Int& idx    = iter.idx();
+//        int32_t& idx    = iter.idx();
 //
 //        self.updatePageG(leaf);
 //
@@ -127,8 +127,8 @@ public:
 //        }
 //        else
 //        {
-//            Int size        = iter.leaf_size(0);
-//            Int split_idx   = size/2;
+//            int32_t size        = iter.leaf_size(0);
+//            int32_t split_idx   = size/2;
 //
 //            auto right = self.split_leaf_p(leaf, Position::create(0, split_idx));
 //

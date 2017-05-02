@@ -46,7 +46,7 @@ class BTFLCreateTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
 
     using CtrSizesT      = typename Ctr::Types::Position;
 
-    template <Int Level>
+    template <int32_t Level>
     using BTFLSampleData = typename Ctr::Types::template IOData<Level>;
 
 
@@ -144,7 +144,7 @@ public:
 
         for (size_t c = 0; c < data.size(); )
         {
-            Int len = getRandom(5) + 1;
+            int32_t len = getRandom(5) + 1;
 
             auto entry = ii->template readEntries<0>(len);
             AssertLE(MA_SRC, entry.size(), len);

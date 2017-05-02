@@ -24,9 +24,9 @@ using namespace memoria::v1;
 using namespace std;
 
 
-vector<UInt> createRandomAlphabet(Int size)
+vector<uint32_t> createRandomAlphabet(int32_t size)
 {
-    vector<UInt> text(size);
+    vector<uint32_t> text(size);
 
     for (auto& v: text)
     {
@@ -37,9 +37,9 @@ vector<UInt> createRandomAlphabet(Int size)
 }
 
 
-vector<UInt> createRandomText(Int size, const vector<UInt>& alphabet)
+vector<uint32_t> createRandomText(int32_t size, const vector<uint32_t>& alphabet)
 {
-    vector<UInt> text(size);
+    vector<uint32_t> text(size);
 
     for (auto& v: text)
     {
@@ -78,18 +78,18 @@ int main()
 
         ctr->prepare();
 
-        Int alphabet_size = 100;
-        Int text_size = 5000;
+        int32_t alphabet_size = 100;
+        int32_t text_size = 5000;
 
 
         auto alphabet = createRandomAlphabet(alphabet_size);
         auto text = createRandomText(text_size, alphabet);
 
-        for (UInt c = 0; c < text.size(); c++)
+        for (uint32_t c = 0; c < text.size(); c++)
         {
             cout << c << " " << hex << text[c] << dec << endl;
 
-            UBigInt value1 = text[c];
+            uint64_t value1 = text[c];
 
             ctr->insert(c, value1);
         }

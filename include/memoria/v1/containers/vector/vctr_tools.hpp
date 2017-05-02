@@ -31,7 +31,7 @@ namespace memoria {
 namespace v1 {
 namespace mvector       {
 
-template <typename KeyType, Int Selector> struct VectorValueStructTF;
+template <typename KeyType, int32_t Selector> struct VectorValueStructTF;
 
 template <typename KeyType>
 struct VectorValueStructTF<KeyType, 1>: HasType<PkdFSQArrayT<KeyType>> {};
@@ -40,7 +40,7 @@ template <typename KeyType>
 struct VectorValueStructTF<KeyType, 0>: HasType<PkdVDArrayT<KeyType>> {};
 
 //
-//template <typename CtrT, typename InputIterator, Int EntryBufferSize = 1000>
+//template <typename CtrT, typename InputIterator, int32_t EntryBufferSize = 1000>
 //class VectorIteratorInputProvider: public v1::btss::AbstractIteratorBTSSInputProvider<
 //    CtrT,
 //    VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
@@ -59,15 +59,15 @@ struct VectorValueStructTF<KeyType, 0>: HasType<PkdVDArrayT<KeyType>> {};
 //private:
 //    CtrSizeT one_ = 1;
 //public:
-//    VectorIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
+//    VectorIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, int32_t capacity = 10000):
 //        Base(ctr, start, end, capacity)
 //    {}
 //
-//    const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
+//    const auto& buffer(StreamTag<0>, StreamTag<0>, int32_t idx, int32_t block) {
 //        return one_;
 //    }
 //
-//    const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
+//    const auto& buffer(StreamTag<0>, StreamTag<1>, int32_t idx, int32_t block) {
 //        return Base::input_value_buffer_[idx];
 //    }
 //};

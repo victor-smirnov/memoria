@@ -35,18 +35,18 @@ public:
 
     BitmapTestSuite(): TestSuite("BitmapSuite")
     {
-        registerTask(new BitmapMiscTest<UInt>("Misc.UInt"));
-        registerTask(new BitmapMiscTest<UBigInt>("Misc.UBigInt"));
+        registerTask(new BitmapMiscTest<uint32_t>("Misc.uint32_t"));
+        registerTask(new BitmapMiscTest<uint64_t>("Misc.uint64_t"));
 
-        registerTask(new BitmapRankTest<UBigInt>("Rank.UBigInt"));
-        registerTask(new BitmapRankTest<UInt>("Rank.UInt"));
+        registerTask(new BitmapRankTest<uint64_t>("Rank.uint64_t"));
+        registerTask(new BitmapRankTest<uint32_t>("Rank.uint32_t"));
 
-        registerTask(new BitmapCountTest<UBigInt>("Count.UBigInt"));
-        registerTask(new BitmapCountTest<UInt>("Count.UInt"));
+        registerTask(new BitmapCountTest<uint64_t>("Count.uint64_t"));
+        registerTask(new BitmapCountTest<uint32_t>("Count.uint32_t"));
 
         registerTask(new BitmapSelectTest("Select"));
 
-        registerTask(new BitmapSpeedTest<UBigInt>("Speed"));
+        registerTask(new BitmapSpeedTest<uint64_t>("Speed"));
     }
 
 };

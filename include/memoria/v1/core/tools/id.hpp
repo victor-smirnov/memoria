@@ -29,7 +29,7 @@ template <typename T> class PageID;
 
 
 class IDValue {
-    Byte data_[8];
+    int8_t data_[8];
 public:
     IDValue() {
         clear();
@@ -45,9 +45,9 @@ public:
         clear();
     }
 
-    IDValue(BigInt id)
+    IDValue(int64_t id)
     {
-        BigInt* data_ptr = T2T<BigInt*>(data_);
+        int64_t* data_ptr = T2T<int64_t*>(data_);
         *data_ptr = id;
     }
 
@@ -133,10 +133,10 @@ public:
 
     bool operator<(const IDValue& other) const
     {
-        for (Int c = 7; c >=0; c--)
+        for (int32_t c = 7; c >=0; c--)
         {
-            Int v0 = data_[c];
-            Int v1 = other.data_[c];
+            int32_t v0 = data_[c];
+            int32_t v1 = other.data_[c];
             if (v0 != v1)
             {
                 return v0 < v1;
@@ -147,7 +147,7 @@ public:
 
 private:
 
-    static char get_char(Byte value) {
+    static char get_char(int8_t value) {
         char chars[] = {
             '0', '1', '2', '3',
             '4', '5', '6', '7',

@@ -50,7 +50,7 @@ template <typename NodeBase, typename Tree>
 class TxnData {
     NodeBase* root_ = nullptr;
 
-    Int refs_ = 0;
+    int32_t refs_ = 0;
 
     Tree* tree_;
 
@@ -73,7 +73,7 @@ public:
         root_ = root;
     }
 
-    BigInt txn_id() const {
+    int64_t txn_id() const {
         return root_->txn_id();
     }
 
@@ -94,7 +94,7 @@ public:
         refs_++;
     }
 
-    Int unref() {
+    int32_t unref() {
         return --refs_;
     }
 };
@@ -103,25 +103,25 @@ public:
 template <typename NodeBase, typename MutexT>
 class CoWTreeTxnLogEntry {
     NodeBase* root_;
-    BigInt txn_id_;
+    int64_t txn_id_;
 
     MutexT* mutex_;
 
-    Int refs_ = 0;
+    int32_t refs_ = 0;
 
     bool locked_ = false;
 
 
-    UBigInt md5_sum_;
+    uint64_t md5_sum_;
 
 public:
     using NodeBaseT = NodeBase;
 
-    CoWTreeTxnLogEntry(NodeBase* root, BigInt txn_id, MutexT* lock, UBigInt hash):
+    CoWTreeTxnLogEntry(NodeBase* root, int64_t txn_id, MutexT* lock, uint64_t hash):
         root_(root), txn_id_(txn_id), mutex_(lock), md5_sum_(hash)
     {}
 
-    const UBigInt& md5_sum() const {
+    const uint64_t& md5_sum() const {
         return md5_sum_;
     }
 
@@ -141,11 +141,11 @@ public:
         return root_;
     }
 
-    BigInt txn_id() const {
+    int64_t txn_id() const {
         return txn_id_;
     }
 
-    Int refs() const {
+    int32_t refs() const {
         return refs_;
     }
 
@@ -155,7 +155,7 @@ public:
         refs_++;
     }
 
-    Int unref()
+    int32_t unref()
     {
         std::lock_guard<MutexT> lock(*mutex_);
         refs_--;
@@ -205,7 +205,7 @@ public:
         return SnapshotT(events_.front());
     }
 
-    SnapshotT snapshot(BigInt txn_id)
+    SnapshotT snapshot(int64_t txn_id)
     {
         LockT lock(mutex_);
 
@@ -233,7 +233,7 @@ public:
 
         out<<"TxnLog of "<<events_.size()<<" entries."<<endl;
 
-        Int c = 0;
+        int32_t c = 0;
         for (const auto* entry: events_)
         {
             out<<(c++)
@@ -246,7 +246,7 @@ public:
     }
 protected:
 
-    void new_entry(NodeBase* root, UBigInt hash)
+    void new_entry(NodeBase* root, uint64_t hash)
     {
         LockT lock(mutex_);
         LogEntryT* entry = new LogEntryT(root, root->txn_id(), &mutex_, hash);

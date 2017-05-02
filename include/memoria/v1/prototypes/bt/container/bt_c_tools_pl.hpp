@@ -55,12 +55,12 @@ protected:
     typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
 public:
 
 
-    void dumpPath(NodeBaseG node, std::ostream& out = std::cout, Int depth = 100) const
+    void dumpPath(NodeBaseG node, std::ostream& out = std::cout, int32_t depth = 100) const
     {
         auto& self = this->self();
 
@@ -118,9 +118,9 @@ typename M_TYPE::NodeBaseG M_TYPE::getNextNodeP(NodeBaseG& node) const
     {
         NodeBaseG parent = self.getNodeParent(node);
 
-        Int size = self.getNodeSize(parent, 0);
+        int32_t size = self.getNodeSize(parent, 0);
 
-        Int parent_idx = node->parent_idx();
+        int32_t parent_idx = node->parent_idx();
 
         if (parent_idx < size - 1)
         {
@@ -153,7 +153,7 @@ typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
     {
         NodeBaseG parent = self.getNodeParent(node);
 
-        Int parent_idx = node->parent_idx();
+        int32_t parent_idx = node->parent_idx();
 
         if (parent_idx > 0)
         {
@@ -164,7 +164,7 @@ typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
 
             if (target_parent.isSet())
             {
-                Int node_size = self.getNodeSize(target_parent, 0);
+                int32_t node_size = self.getNodeSize(target_parent, 0);
                 return self.getChild(target_parent, node_size - 1);
             }
             else {

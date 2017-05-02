@@ -47,7 +47,7 @@ FreeUniquePtr<T> AllocateUnique(size_t block_size, const char* source = MA_RAW_S
 }
 
 
-inline auto AllocateAllocator(size_t block_size, Int blocks = 1)
+inline auto AllocateAllocator(size_t block_size, int32_t blocks = 1)
 {
     auto ptr = AllocateUnique<PackedAllocator>(block_size);
 

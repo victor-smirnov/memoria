@@ -76,17 +76,17 @@ public:
 
 
 class RunDescr {
-    Int symbol_;
-    Int length_;
+    int32_t symbol_;
+    int32_t length_;
 public:
     RunDescr(): symbol_(), length_() {}
 
-    RunDescr(Int symbol, Int length = 1): symbol_(symbol), length_(length) {}
+    RunDescr(int32_t symbol, int32_t length = 1): symbol_(symbol), length_(length) {}
 
-    Int symbol() const {return symbol_;}
-    Int length() const {return length_;}
+    int32_t symbol() const {return symbol_;}
+    int32_t length() const {return length_;}
 
-    void set_length(Int len) {
+    void set_length(int32_t len) {
         length_ = len;
     }
 };

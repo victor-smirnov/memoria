@@ -63,21 +63,21 @@ protected:
     using ILeafProvider = typename Base::ILeafProvider;
 
     class InsertBatchResult {
-        Int idx_;
+        int32_t idx_;
         CtrSizeT subtree_size_;
     public:
-        InsertBatchResult(Int idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
+        InsertBatchResult(int32_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
-        Int idx() const {return idx_;}
+        int32_t idx() const {return idx_;}
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
     MEMORIA_V1_DECLARE_NODE_FN(InsertChildFn, insert);
-    InsertBatchResult insertSubtree(NodeBaseG& node, Int idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
+    InsertBatchResult insertSubtree(NodeBaseG& node, int32_t idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
     {
         auto& self = this->self();
 
-        Int batch_size = 32;
+        int32_t batch_size = 32;
 
         CtrSizeT provider_size0 = provider.size();
 
@@ -88,7 +88,7 @@ protected:
             PageUpdateMgr mgr(self);
             mgr.add(node);
 
-            Int c;
+            int32_t c;
 
             try {
                 for (c = 0; c < batch_size && provider.size() > 0; c++)
@@ -113,7 +113,7 @@ protected:
             {
                 if (node->level() > 1)
                 {
-                    self.forAllIDs(node, idx, c, [&, this](const ID& id, Int parent_idx)
+                    self.forAllIDs(node, idx, c, [&, this](const ID& id, int32_t parent_idx)
                     {
                         auto& self = this->self();
                         self.remove_branch_nodes(id);
@@ -136,7 +136,7 @@ protected:
     }
 
 
-    NodeBaseG BuildSubtree(ILeafProvider& provider, Int level)
+    NodeBaseG BuildSubtree(ILeafProvider& provider, int32_t level)
     {
         auto& self = this->self();
 
@@ -213,16 +213,16 @@ protected:
 
 
     class InsertionState {
-        Int inserted_ = 0;
-        Int total_;
+        int32_t inserted_ = 0;
+        int32_t total_;
     public:
-        InsertionState(Int total): total_(total) {}
+        InsertionState(int32_t total): total_(total) {}
 
-        Int& total() {
+        int32_t& total() {
             return total_;
         }
 
-        Int& inserted() {
+        int32_t& inserted() {
             return inserted_;
         }
 
@@ -232,7 +232,7 @@ protected:
     };
 
 
-    InsertBatchResult insertBatchToNode(NodeBaseG& node, Int idx, ILeafProvider& provider, Int level = 1, bool update_hierarchy = true)
+    InsertBatchResult insertBatchToNode(NodeBaseG& node, int32_t idx, ILeafProvider& provider, int32_t level = 1, bool update_hierarchy = true)
     {
         auto& self = this->self();
         return self.insertSubtree(node, idx, provider, [&provider, &node, this]() -> NodeBaseG {
@@ -242,11 +242,11 @@ protected:
         update_hierarchy);
     }
 
-    void insert_subtree(NodeBaseG& left, NodeBaseG& right, ILeafProvider& provider, InsertionState& state, Int level = 1)
+    void insert_subtree(NodeBaseG& left, NodeBaseG& right, ILeafProvider& provider, InsertionState& state, int32_t level = 1)
     {
         auto& self = this->self();
 
-        Int left_size0 = self.getBranchNodeSize(left);
+        int32_t left_size0 = self.getBranchNodeSize(left);
 
         auto left_result = insertBatchToNode(left, left_size0, provider, level);
 
@@ -270,11 +270,11 @@ protected:
         }
     }
 
-    NodeBaseG insert_subtree_at_end(NodeBaseG& left, ILeafProvider& provider, InsertionState& state, Int level = 1)
+    NodeBaseG insert_subtree_at_end(NodeBaseG& left, ILeafProvider& provider, InsertionState& state, int32_t level = 1)
     {
         auto& self = this->self();
 
-        Int left_size0 = self.getBranchNodeSize(left);
+        int32_t left_size0 = self.getBranchNodeSize(left);
 
         auto left_result = insertBatchToNode(left, left_size0, provider, level);
 
@@ -291,7 +291,7 @@ protected:
 
             auto right = insert_subtree_at_end(left_parent, provider, state, level + 1);
 
-            Int right_size = self.getBranchNodeSize(right);
+            int32_t right_size = self.getBranchNodeSize(right);
 
             return self.getChild(right, right_size - 1);
         }
@@ -301,7 +301,7 @@ protected:
     }
 
 
-    Int insert_subtree(NodeBaseG& node, Int pos, ILeafProvider& provider)
+    int32_t insert_subtree(NodeBaseG& node, int32_t pos, ILeafProvider& provider)
     {
         auto& self = this->self();
 

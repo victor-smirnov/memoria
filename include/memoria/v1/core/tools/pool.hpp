@@ -30,21 +30,21 @@ namespace memoria {
 namespace v1 {
 
 
-template <typename ID, typename Object, Int Size = 64>
+template <typename ID, typename Object, int32_t Size = 64>
 class StaticPool {
     typedef StaticPool<ID, Object, Size> MyType;
     typedef ID T;
 
     T       ids_[Size];
     Object  objects_[Size];
-    UByte   idxs_[Size];
-    Int     size_;
-    Int     Max;
+    uint8_t   idxs_[Size];
+    int32_t     size_;
+    int32_t     Max;
 
 public:
     StaticPool(): size_(0), Max(0)
     {
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             ids_[c] = ID();
         }
@@ -58,7 +58,7 @@ public:
 
     Object* get(const ID& id)
     {
-        for (Int c = 0; c < Max; c++)
+        for (int32_t c = 0; c < Max; c++)
         {
             if (ids_[c] == id)
             {
@@ -71,7 +71,7 @@ public:
 
     Object* allocate(const ID& id)
     {
-        Int idx = selectFirst0Idx();
+        int32_t idx = selectFirst0Idx();
         if (idx < Size)
         {
             size_++;
@@ -89,7 +89,7 @@ public:
 
     void release(const ID& id)
     {
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             if (ids_[c] == id)
             {
@@ -102,18 +102,18 @@ public:
         throw new Exception(MEMORIA_SOURCE, "ID is not known in this StaticPool");
     }
 
-    Int getMax() {
+    int32_t getMax() {
         return Max;
     }
 
-    Int getUsage() {
+    int32_t getUsage() {
         return Size - getCapacity();
     }
 
-    Int getCapacity()
+    int32_t getCapacity()
     {
-        Int cnt = 0;
-        for (Int c = 0; c < Size; c++)
+        int32_t cnt = 0;
+        for (int32_t c = 0; c < Size; c++)
         {
             if (ids_[c] == ID())
             {
@@ -125,17 +125,17 @@ public:
     }
 
     void clear() {
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             ids_[c] = ID();
         }
     }
 
 private:
-    Int selectFirst0Idx()
+    int32_t selectFirst0Idx()
     {
         const ID EMPTY;
-        for (Int c = 0; c < Size; c++)
+        for (int32_t c = 0; c < Size; c++)
         {
             if (ids_[c] == EMPTY)
             {

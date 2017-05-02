@@ -40,7 +40,7 @@ protected:
 
     typedef Iter<typename Types::IterTypes>                                     Iterator;
 
-    BigInt prefix_ = 0;
+    int64_t prefix_ = 0;
 
     Key key_;
 
@@ -61,11 +61,11 @@ public:
     }
 
 
-    void finish(Iterator& iter, Int idx)
+    void finish(Iterator& iter, int32_t idx)
     {
         iter.key_idx()  = idx;
 
-        Int size = iter.size();
+        int32_t size = iter.size();
 
         if (idx < size)
         {
@@ -83,7 +83,7 @@ public:
         iter.cache().setup(0);
     }
 
-    BigInt prefix() const {
+    int64_t prefix() const {
         return prefix_;
     }
 };
@@ -99,7 +99,7 @@ class FindGEWalker: public FindWalkerBase<Types> {
     typedef typename Base::Key          Key;
 
 public:
-    FindGEWalker(Key key, Int key_num): Base(key, key_num)
+    FindGEWalker(Key key, int32_t key_num): Base(key, key_num)
     {}
 
     template <typename Node>
@@ -155,10 +155,10 @@ class FindBeginWalker: public FindRangeWalkerBase<Types> {
     typedef typename Types::BranchNodeEntry     BranchNodeEntry;
 
 public:
-    typedef Int ReturnType;
+    typedef int32_t ReturnType;
 
 
-    FindBeginWalker(Int stream, const Container&) {}
+    FindBeginWalker(int32_t stream, const Container&) {}
 
 
     template <typename Node>
@@ -167,7 +167,7 @@ public:
         return 0;
     }
 
-    void finish(Iterator& iter, Int idx)
+    void finish(Iterator& iter, int32_t idx)
     {
         iter.idx() = 0;
 

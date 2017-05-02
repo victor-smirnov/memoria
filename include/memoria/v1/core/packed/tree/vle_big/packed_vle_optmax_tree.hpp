@@ -29,7 +29,7 @@ namespace v1 {
 template <typename Types> class PkdVMOTree;
 
 
-template <typename ValueT, template <typename> class CodecT = ValueCodec, Int kBranchingFactor = PackedTreeBranchingFactor>
+template <typename ValueT, template <typename> class CodecT = ValueCodec, int32_t kBranchingFactor = PackedTreeBranchingFactor>
 using PkdVMOTreeT = PkdVMOTree<PkdVBMTreeTypes<typename ValueT::ValueType, CodecT, kBranchingFactor>>;
 
 
@@ -42,8 +42,8 @@ class PkdVMOTree: public PackedAllocator {
 
 public:
 
-    static constexpr UInt VERSION = 1;
-    static constexpr Int Blocks = Types::Blocks;
+    static constexpr uint32_t VERSION = 1;
+    static constexpr int32_t Blocks = Types::Blocks;
 
     using Tree      = PkdVBMTree<Types>;
     using Bitmap    = PkdFSSeq<typename PkdFSSeqTF<1>::Type>;
@@ -52,7 +52,7 @@ public:
                 typename Base::FieldsList,
                 typename Tree::FieldsList,
                 typename Bitmap::FieldsList,
-                ConstValue<UInt, VERSION>
+                ConstValue<uint32_t, VERSION>
     >;
 
 
@@ -87,27 +87,27 @@ public:
         return this->template get<Tree>(TREE);
     }
 
-    static Int empty_size()
+    static int32_t empty_size()
     {
         return Bitmap::empty_size() + Tree::empty_size();
     }
 
 
-    static Int block_size(Int capacity)
+    static int32_t block_size(int32_t capacity)
     {
         return Bitmap::packed_block_size(capacity) + Tree::empty_size();
     }
 
-    Int block_size(const MyType* other) const
+    int32_t block_size(const MyType* other) const
     {
         return MyType::block_size(size() + other->size());
     }
 
-    void init(Int capacity = 0)
+    void init(int32_t capacity = 0)
     {
         Base::init(block_size(capacity), STRUCTS_NUM__);
 
-        Int bitmap_block_size = Bitmap::packed_block_size(capacity);
+        int32_t bitmap_block_size = Bitmap::packed_block_size(capacity);
 
         Bitmap* bitmap = allocateSpace<Bitmap>(BITMAP, bitmap_block_size);
         bitmap->init(bitmap_block_size);
@@ -123,7 +123,7 @@ public:
 
 
 
-    Int size() const
+    int32_t size() const
     {
         return bitmap()->size();
     }
@@ -134,17 +134,17 @@ public:
     {
         const Tree* tree = this->tree();
 
-        Int size = tree->size();
+        int32_t size = tree->size();
 
         if (size > 0)
         {
-            for (Int block = 0; block < Blocks; block++)
+            for (int32_t block = 0; block < Blocks; block++)
             {
                 accum[block] = tree->value(block, size - 1);
             }
         }
         else {
-            for (Int block = 0; block < Blocks; block++)
+            for (int32_t block = 0; block < Blocks; block++)
             {
                 accum[block] = Value();
             }
@@ -153,13 +153,13 @@ public:
 
 
 
-    const Value value(Int block, Int idx) const
+    const Value value(int32_t block, int32_t idx) const
     {
         const Bitmap* bitmap = this->bitmap();
 
         if (bitmap->symbol(idx) == 1)
         {
-            Int tree_idx = this->tree_idx(bitmap, idx);
+            int32_t tree_idx = this->tree_idx(bitmap, idx);
             return tree()->value(block, tree_idx);
         }
         else {
@@ -167,7 +167,7 @@ public:
         }
     }
 
-    Values get_values(Int idx) const
+    Values get_values(int32_t idx) const
     {
         Values v;
 
@@ -176,7 +176,7 @@ public:
         if (bitmap->symbol(idx) == 1)
         {
             auto tree = this->tree();
-            Int tree_idx = this->tree_idx(idx);
+            int32_t tree_idx = this->tree_idx(idx);
 
             OptionalAssignmentHelper(v, tree->get_values(tree_idx));
         }
@@ -186,7 +186,7 @@ public:
 
 
     template <typename T>
-    void setValues(Int idx, const core::StaticVector<T, Blocks>& values)
+    void setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
         Bitmap* bitmap  = this->bitmap();
         Tree* tree      = this->tree();
@@ -194,7 +194,7 @@ public:
         if (values[0].is_set())
         {
             TreeValues tree_values  = this->tree_values(values);
-            Int tree_idx            = this->tree_idx(idx);
+            int32_t tree_idx            = this->tree_idx(idx);
 
             if (bitmap->symbol(idx))
             {
@@ -207,7 +207,7 @@ public:
             }
         }
         else {
-            Int tree_idx = this->tree_idx(idx);
+            int32_t tree_idx = this->tree_idx(idx);
 
             if (bitmap->symbol(idx))
             {
@@ -224,7 +224,7 @@ public:
 
 
     template <typename T>
-    auto findGTForward(Int block, const T& val) const
+    auto findGTForward(int32_t block, const T& val) const
     {
         auto result = tree()->find_gt(block, val);
 
@@ -234,7 +234,7 @@ public:
     }
 
     template <typename T>
-    auto findGTForward(Int block, const Optional<T>& val) const
+    auto findGTForward(int32_t block, const Optional<T>& val) const
     {
         auto result = tree()->find_gt(block, val.value());
 
@@ -244,7 +244,7 @@ public:
     }
 
     template <typename T>
-    auto findGEForward(Int block, const T& val) const
+    auto findGEForward(int32_t block, const T& val) const
     {
         auto result = tree()->find_ge(block, val.value());
 
@@ -254,7 +254,7 @@ public:
     }
 
     template <typename T>
-    auto findForward(SearchType search_type, Int block, const T& val) const
+    auto findForward(SearchType search_type, int32_t block, const T& val) const
     {
         auto result = tree()->findForward(search_type, block, val);
 
@@ -264,7 +264,7 @@ public:
     }
 
     template <typename T>
-    auto findForward(SearchType search_type, Int block, const Optional<T>& val) const
+    auto findForward(SearchType search_type, int32_t block, const Optional<T>& val) const
     {
         auto result = tree()->findForward(search_type, block, val.value());
 
@@ -275,7 +275,7 @@ public:
 
 
     template <typename T>
-    auto findBackward(SearchType search_type, Int block, const T& val) const
+    auto findBackward(SearchType search_type, int32_t block, const T& val) const
     {
         auto result = tree()->findBackward(search_type, block, val);
 
@@ -285,7 +285,7 @@ public:
     }
 
     template <typename T>
-    auto findBackward(SearchType search_type, Int block, const Optional<T>& val) const
+    auto findBackward(SearchType search_type, int32_t block, const Optional<T>& val) const
     {
         auto result = tree()->findBackward(search_type, block, val.value());
 
@@ -309,11 +309,11 @@ public:
     }
 
 
-    void splitTo(MyType* other, Int idx)
+    void splitTo(MyType* other, int32_t idx)
     {
         Bitmap* bitmap = this->bitmap();
 
-        Int tree_idx = this->tree_idx(bitmap, idx);
+        int32_t tree_idx = this->tree_idx(bitmap, idx);
 
         bitmap->splitTo(other->bitmap(), idx);
         tree()->splitTo(other->tree(), tree_idx);
@@ -327,24 +327,24 @@ public:
         tree()->mergeWith(other->tree());
     }
 
-    void removeSpace(Int start, Int end)
+    void removeSpace(int32_t start, int32_t end)
     {
         remove(start, end);
     }
 
-    void remove(Int start, Int end)
+    void remove(int32_t start, int32_t end)
     {
         Bitmap* bitmap = this->bitmap();
 
-        Int tree_start = tree_idx(bitmap, start);
-        Int tree_end = tree_idx(bitmap, end);
+        int32_t tree_start = tree_idx(bitmap, start);
+        int32_t tree_end = tree_idx(bitmap, end);
 
         bitmap->remove(start, end);
         tree()->remove(tree_start, tree_end);
     }
 
     template <typename T>
-    void insert(Int idx, const core::StaticVector<T, Blocks>& values)
+    void insert(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
         Bitmap* bitmap  = this->bitmap();
 
@@ -353,7 +353,7 @@ public:
             bitmap->insert(idx, 1);
 
             TreeValues tree_values  = this->tree_values(values);
-            Int tree_idx            = this->tree_idx(bitmap, idx);
+            int32_t tree_idx            = this->tree_idx(bitmap, idx);
 
             Tree* tree = this->tree();
             tree->insert(tree_idx, tree_values);
@@ -364,11 +364,11 @@ public:
     }
 
 
-    void insert(Int idx, Int size, std::function<const Values& (Int)> provider, bool reindex = true)
+    void insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true)
     {
         auto bitmap = this->bitmap();
-        Int bitidx = 0;
-        Int setted = 0;
+        int32_t bitidx = 0;
+        int32_t setted = 0;
 
         bitmap->insert(idx, size, [&]() {
             auto v = provider(bitidx++);
@@ -377,13 +377,13 @@ public:
         });
 
         auto tree    = this->tree();
-        Int tree_idx = this->tree_idx(bitmap, idx);
+        int32_t tree_idx = this->tree_idx(bitmap, idx);
 
         int tidx = 0;
 
         TreeValues tv;
 
-        tree->insert(tree_idx, setted, [&, this](Int) -> const auto& {
+        tree->insert(tree_idx, setted, [&, this](int32_t) -> const auto& {
             while(true)
             {
                 if (tidx < size)
@@ -448,7 +448,7 @@ protected:
     {
         core::StaticVector<TreeValue, Blocks> tv;
 
-        for (Int b = 0;  b < Blocks; b++)
+        for (int32_t b = 0;  b < Blocks; b++)
         {
             tv[b] = values[b].value();
         }
@@ -456,24 +456,24 @@ protected:
         return tv;
     }
 
-    Int tree_idx(Int global_idx) const
+    int32_t tree_idx(int32_t global_idx) const
     {
         return tree_idx(bitmap(), global_idx);
     }
 
-    Int tree_idx(const Bitmap* bitmap, Int global_idx) const
+    int32_t tree_idx(const Bitmap* bitmap, int32_t global_idx) const
     {
-        Int rank = bitmap->rank(global_idx, 1);
+        int32_t rank = bitmap->rank(global_idx, 1);
         return rank;
     }
 
 
-    Int global_idx(Int tree_idx) const
+    int32_t global_idx(int32_t tree_idx) const
     {
         return global_idx(bitmap(), tree_idx);
     }
 
-    Int global_idx(const Bitmap* bitmap, Int tree_idx) const
+    int32_t global_idx(const Bitmap* bitmap, int32_t tree_idx) const
     {
         auto result = bitmap->selectFw(1, tree_idx + 1);
         return result.idx();
@@ -492,12 +492,12 @@ struct PkdStructSizeType<PkdVMOTree<Types>> {
 
 template <typename Types>
 struct StructSizeProvider<PkdVMOTree<Types>> {
-    static const Int Value = PkdVMOTree<Types>::Blocks;
+    static const int32_t Value = PkdVMOTree<Types>::Blocks;
 };
 
 template <typename Types>
 struct IndexesSize<PkdVMOTree<Types>> {
-    static const Int Value = PkdVMOTree<Types>::Blocks;
+    static const int32_t Value = PkdVMOTree<Types>::Blocks;
 };
 
 template <typename T>

@@ -37,21 +37,21 @@ enum class PopulateStatus {OK, IOBUFFER};
 
 class PopulateState {
     PopulateStatus status_;
-    Int entries_;
+    int32_t entries_;
 public:
-    PopulateState(PopulateStatus status, Int entries): status_(status), entries_(entries) {}
+    PopulateState(PopulateStatus status, int32_t entries): status_(status), entries_(entries) {}
 
     PopulateStatus status() const {return status_;}
-    Int entries() const {return entries_;}
+    int32_t entries() const {return entries_;}
 };
 
 
 
 
-template <typename BTFLData, Int DataStreams, Int StartLevel = 0, typename IOBufferT = DefaultIOBuffer> class BTFLDataIOBufferProducerHelper;
+template <typename BTFLData, int32_t DataStreams, int32_t StartLevel = 0, typename IOBufferT = DefaultIOBuffer> class BTFLDataIOBufferProducerHelper;
 
 
-template <Int DataStreams, Int StartLevel, typename IOBufferT, typename K, typename V, template <typename...> class Container, typename... Args>
+template <int32_t DataStreams, int32_t StartLevel, typename IOBufferT, typename K, typename V, template <typename...> class Container, typename... Args>
 class BTFLDataIOBufferProducerHelper<Container<std::tuple<K, V>, Args...>, DataStreams, StartLevel, IOBufferT> {
 public:
     using BTFLDataT = Container<std::tuple<K, V>, Args...>;
@@ -82,7 +82,7 @@ public:
 
     PopulateState populate(IOBufferT& buffer)
     {
-      Int entries = 0;
+      int32_t entries = 0;
 
       if (!value_finished_)
       {
@@ -139,7 +139,7 @@ public:
 
 
 
-template <Int DataStreams, Int StartLevel, typename IOBufferT, typename V, template <typename...> class Container, typename... Args>
+template <int32_t DataStreams, int32_t StartLevel, typename IOBufferT, typename V, template <typename...> class Container, typename... Args>
 class BTFLDataIOBufferProducerHelper<Container<V, Args...>, DataStreams, StartLevel, IOBufferT> {
 public:
     using BTFLDataT = Container<V, Args...>;
@@ -167,18 +167,18 @@ public:
 
     PopulateState populate(IOBufferT& buffer)
     {
-      Int entries = 0;
+      int32_t entries = 0;
 
       while (start_ != end_)
       {
-          Int block_size = 256;
+          int32_t block_size = 256;
           size_t run_pos = buffer.pos();
 
           if (buffer.template putSymbolsRun<DataStreams>(StartLevel, block_size))
           {
               entries++;
 
-              Int c;
+              int32_t c;
               for (c = 0; c < block_size && start_ != end_; c++, start_++, entries++)
               {
                   if (!IOBufferAdapter<V>::put(buffer, *start_))
@@ -210,7 +210,7 @@ public:
 
 
 
-template <typename BTFLData, Int DataStreams, Int StartLevel = 0, typename IOBufferT = DefaultIOBuffer>
+template <typename BTFLData, int32_t DataStreams, int32_t StartLevel = 0, typename IOBufferT = DefaultIOBuffer>
 class BTFLDataIOBufferProducer: public BufferProducer<IOBufferT> {
 
     using Helper = BTFLDataIOBufferProducerHelper<BTFLData, DataStreams, StartLevel, IOBufferT>;
@@ -249,7 +249,7 @@ public:
 
     virtual IOBufferT& buffer() {return io_buffer_;}
 
-    virtual Int populate(IOBufferT& buffer)
+    virtual int32_t populate(IOBufferT& buffer)
     {
         auto state = producer_helper_.populate(buffer);
 

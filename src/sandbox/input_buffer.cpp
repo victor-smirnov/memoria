@@ -40,22 +40,22 @@ public:
     using InputTuple        = typename CtrT::Types::template StreamInputTuple<0>;
     using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
 
-    BigInt size_;
-    BigInt current_ = 0;
+    int64_t size_;
+    int64_t current_ = 0;
 
-    Int value_;
+    int32_t value_;
 
 public:
-    InputProvider2(CtrT& ctr, BigInt size, Int capacity = 10000):
+    InputProvider2(CtrT& ctr, int64_t size, int32_t capacity = 10000):
         Base(ctr, capacity),
         size_(size)
     {}
 
-    virtual Int get(InputBuffer* buffer, Int pos)
+    virtual int32_t get(InputBuffer* buffer, int32_t pos)
     {
         if (current_ < size_)
         {
-            auto inserted = buffer->append(std::make_tuple(core::StaticVector<Int, 1>{value_}));
+            auto inserted = buffer->append(std::make_tuple(core::StaticVector<int32_t, 1>{value_}));
 
             current_+= inserted;
 
@@ -92,14 +92,14 @@ public:
 
 
 
-    Int input_start_ = 0;
-    Int input_size_ = 0;
-    static constexpr Int INPUT_END = 1000;
+    int32_t input_start_ = 0;
+    int32_t input_size_ = 0;
+    static constexpr int32_t INPUT_END = 1000;
 
     InputValue input_value_buffer_[INPUT_END];
 
 public:
-    IteratorInputProvider(CtrT& ctr, InputIterator start, InputIterator end, Int capacity = 10000):
+    IteratorInputProvider(CtrT& ctr, InputIterator start, InputIterator end, int32_t capacity = 10000):
         Base(ctr, capacity),
         current_(start),
         end_(end)
@@ -107,7 +107,7 @@ public:
 //      for (auto& v: input_value_buffer_) v = 0;
     }
 
-    virtual Int get(InputBuffer* buffer, Int pos)
+    virtual int32_t get(InputBuffer* buffer, int32_t pos)
     {
         if (input_start_ == input_size_)
         {
@@ -135,9 +135,9 @@ public:
 
 
 
-using Buffer    = std::vector<Int>;
+using Buffer    = std::vector<int32_t>;
 
-using CtrT              = DCtrTF<Vector<Int>>::Type;
+using CtrT              = DCtrTF<Vector<int32_t>>::Type;
 using Provider          = InputProvider2<CtrT>;
 using IteratorProvider  = IteratorInputProvider<CtrT, Buffer::const_iterator>;
 using Position          = CtrT::Types::Position;

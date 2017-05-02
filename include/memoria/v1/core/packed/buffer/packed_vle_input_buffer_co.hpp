@@ -27,11 +27,11 @@ namespace memoria {
 namespace v1 {
 
 
-template <Int Blocks>
+template <int32_t Blocks>
 class PkdVLEInputBufferMetadata {
-    using SizesT = core::StaticVector<Int, Blocks>;
+    using SizesT = core::StaticVector<int32_t, Blocks>;
 
-    Int size_;
+    int32_t size_;
 
     SizesT data_size_;
     SizesT max_data_size_;
@@ -39,8 +39,8 @@ class PkdVLEInputBufferMetadata {
 public:
     PkdVLEInputBufferMetadata() = default;
 
-    Int& size() {return size_;}
-    const Int& size() const {return size_;}
+    int32_t& size() {return size_;}
+    const int32_t& size() const {return size_;}
 
     SizesT& data_size() {return data_size_;}
     const SizesT& data_size() const {return data_size_;}
@@ -48,21 +48,21 @@ public:
     SizesT& max_data_size() {return max_data_size_;}
     const SizesT& max_data_size() const {return max_data_size_;}
 
-    Int& data_size(Int block) {return data_size_[block];}
-    const Int& data_size(Int block) const {return data_size_[block];}
+    int32_t& data_size(int32_t block) {return data_size_[block];}
+    const int32_t& data_size(int32_t block) const {return data_size_[block];}
 
-    Int& max_data_size(Int block) {return max_data_size_[block];}
-    const Int& max_data_size(Int block) const {return max_data_size_[block];}
+    int32_t& max_data_size(int32_t block) {return max_data_size_[block];}
+    const int32_t& max_data_size(int32_t block) const {return max_data_size_[block];}
 
     SizesT capacity() const {
         return max_data_size_ - data_size_;
     }
 
-    Int capacity(Int block) const {
+    int32_t capacity(int32_t block) const {
         return max_data_size_[block] - data_size_[block];
     }
 
-    template <Int, typename, template <typename> class Codec, Int, Int, typename> friend class PkdVLEArrayBase;
+    template <int32_t, typename, template <typename> class Codec, int32_t, int32_t, typename> friend class PkdVLEArrayBase;
 };
 
 
@@ -114,15 +114,15 @@ public:
 
     using typename Base::Codec;
 
-    static constexpr UInt VERSION = 1;
-    static constexpr Int Blocks = Types::Blocks;
+    static constexpr uint32_t VERSION = 1;
+    static constexpr int32_t Blocks = Types::Blocks;
 
-    static constexpr Int SafetyMargin = (1024 * 8) / Codec::ElementSize;
+    static constexpr int32_t SafetyMargin = (1024 * 8) / Codec::ElementSize;
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
-                ConstValue<UInt, VERSION>,
-                ConstValue<UInt, Blocks>
+                ConstValue<uint32_t, VERSION>,
+                ConstValue<uint32_t, Blocks>
     >;
 
     using IndexValue = typename Types::IndexValue;
@@ -133,11 +133,11 @@ public:
     using InputBuffer   = MyType;
     using InputType     = Values;
 
-    using SizesT = core::StaticVector<Int, Blocks>;
+    using SizesT = core::StaticVector<int32_t, Blocks>;
 
     class AppendState {
         SizesT pos_;
-        Int size_ = 0;
+        int32_t size_ = 0;
 
         Metadata* meta_;
         using VValueData = core::StaticVector<ValueData*, Blocks>;
@@ -152,8 +152,8 @@ public:
         SizesT& pos() {return pos_;}
         const SizesT& pos() const {return pos_;}
 
-        Int& size() {return size_;}
-        const Int& size() const {return size_;}
+        int32_t& size() {return size_;}
+        const int32_t& size() const {return size_;}
 
         VValueData& values() {return values_;}
         const VValueData& values() const {return values_;}
@@ -169,46 +169,46 @@ public:
 
         meta->size() = 0;
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
-            Int capacity        = sizes[block] + SafetyMargin;
-            Int offsets_size    = offsets_segment_size(capacity);
-            Int index_size      = this->index_size(capacity);
-            Int values_segment_length = this->value_segment_size(capacity);
+            int32_t capacity        = sizes[block] + SafetyMargin;
+            int32_t offsets_size    = offsets_segment_size(capacity);
+            int32_t index_size      = this->index_size(capacity);
+            int32_t values_segment_length = this->value_segment_size(capacity);
 
             meta->max_data_size(block) = capacity;
 
-            this->resizeBlock(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size * sizeof(Int));
+            this->resizeBlock(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size * sizeof(int32_t));
             this->resizeBlock(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
             this->resizeBlock(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length);
         }
     }
 
 
-    static Int block_size(Int capacity)
+    static int32_t block_size(int32_t capacity)
     {
         return Base::block_size_equi(Blocks, capacity + SafetyMargin);
     }
 
 
-    static Int block_size(const SizesT& capacity)
+    static int32_t block_size(const SizesT& capacity)
     {
-        Int metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
-        Int data_sizes_length = Base::roundUpBytesToAlignmentBlocks(Blocks * sizeof(Int));
+        int32_t metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t data_sizes_length = Base::roundUpBytesToAlignmentBlocks(Blocks * sizeof(int32_t));
 
 
-        Int segments_length = 0;
+        int32_t segments_length = 0;
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
-            Int block_capacity  = capacity[block] + SafetyMargin;
+            int32_t block_capacity  = capacity[block] + SafetyMargin;
 
-            Int index_size      = MyType::index_size(block_capacity);
-            Int sizes_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(Int));
+            int32_t index_size      = MyType::index_size(block_capacity);
+            int32_t sizes_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(int32_t));
 
-            Int values_length   = Base::roundUpBitsToAlignmentBlocks(block_capacity * BITS_PER_DATA_VALUE);
+            int32_t values_length   = Base::roundUpBitsToAlignmentBlocks(block_capacity * BITS_PER_DATA_VALUE);
 
-            Int offsets_length  = offsets_segment_size(block_capacity);
+            int32_t offsets_length  = offsets_segment_size(block_capacity);
 
             segments_length += values_length + offsets_length + sizes_length;
         }
@@ -226,7 +226,7 @@ public:
     {
         auto meta = this->metadata();
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             if(sizes[block] > meta->max_data_size(block) - SafetyMargin)
             {
@@ -238,7 +238,7 @@ public:
     }
 
     template <typename Buffer>
-    bool has_capacity_for(const Buffer& buffer, Int start, Int length) const
+    bool has_capacity_for(const Buffer& buffer, int32_t start, int32_t length) const
     {
         auto meta = this->metadata();
 
@@ -246,17 +246,17 @@ public:
 
         SizesT sizes;
 
-        for (Int c = start; c < start + length; c++)
+        for (int32_t c = start; c < start + length; c++)
         {
             Values entry(buffer[c]);
 
-            for (Int block = 0; block < Blocks; block++)
+            for (int32_t block = 0; block < Blocks; block++)
             {
                 sizes[block] += codec.length(entry[block]);
             }
         }
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             if(sizes[block] > meta->max_data_size(block) - SafetyMargin)
             {
@@ -268,7 +268,7 @@ public:
     }
 
 
-    Int block_size() const
+    int32_t block_size() const
     {
         return Base::block_size();
     }
@@ -296,18 +296,18 @@ public:
 
 
 
-    Value value(Int block, Int idx) const
+    Value value(int32_t block, int32_t idx) const
     {
         auto meta = this->metadata();
 
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(idx, <, this->size());
 
-        Int data_size     = meta->data_size(block);
+        int32_t data_size     = meta->data_size(block);
         auto values       = this->values(block);
         TreeLayout layout = this->compute_tree_layout(meta->max_data_size(block));
 
-        Int start_pos     = this->locate(layout, values, block, idx, data_size).idx;
+        int32_t start_pos     = this->locate(layout, values, block, idx, data_size).idx;
 
         MEMORIA_V1_ASSERT(start_pos, <, data_size);
 
@@ -320,7 +320,7 @@ public:
     }
 
 
-    static Int empty_size()
+    static int32_t empty_size()
     {
         return block_size(0);
     }
@@ -328,7 +328,7 @@ public:
     void reindex()
     {
         auto metadata = this->metadata();
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             auto data_size = metadata->data_size(block);
             TreeLayout layout = this->compute_tree_layout(metadata->max_data_size(block));
@@ -338,16 +338,16 @@ public:
 
 
 
-    bool check_capacity(Int size) const
+    bool check_capacity(int32_t size) const
     {
         MEMORIA_V1_ASSERT_TRUE(size >= 0);
 
         auto alloc = this->allocator();
 
-        Int total_size          = this->size() + size;
-        Int total_block_size    = MyType::block_size(total_size);
-        Int my_block_size       = alloc->element_size(this);
-        Int delta               = total_block_size - my_block_size;
+        int32_t total_size          = this->size() + size;
+        int32_t total_block_size    = MyType::block_size(total_size);
+        int32_t my_block_size       = alloc->element_size(this);
+        int32_t delta               = total_block_size - my_block_size;
 
         return alloc->free_space() >= delta;
     }
@@ -358,11 +358,11 @@ public:
         meta->size() = 0;
     }
 
-    Values get_values(Int idx) const
+    Values get_values(int32_t idx) const
     {
         Values v;
 
-        for (Int i = 0; i < Blocks; i++)
+        for (int32_t i = 0; i < Blocks; i++)
         {
             v[i] = this->value(i, idx);
         }
@@ -370,17 +370,17 @@ public:
         return v;
     }
 
-    Value get_values(Int idx, Int index) const
+    Value get_values(int32_t idx, int32_t index) const
     {
         return this->value(index, idx);
     }
 
-    Value getValue(Int index, Int idx) const
+    Value getValue(int32_t index, int32_t idx) const
     {
         return this->value(index, idx);
     }
 
-    SizesT positions(Int idx) const
+    SizesT positions(int32_t idx) const
     {
         auto metadata = this->metadata();
 
@@ -388,9 +388,9 @@ public:
         MEMORIA_V1_ASSERT(idx, <=, this->size());
 
         SizesT pos;
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
-            Int data_size       = metadata->data_size(block);
+            int32_t data_size       = metadata->data_size(block);
             auto values         = this->values(block);
             TreeLayout layout   = compute_tree_layout(metadata->max_data_size(block));
 
@@ -402,13 +402,13 @@ public:
 
 
     template <typename Adaptor>
-    static SizesT calculate_size(Int size, Adaptor&& fn)
+    static SizesT calculate_size(int32_t size, Adaptor&& fn)
     {
         Codec codec;
         SizesT sizes;
 
-        for (Int c = 0; c < size; c++) {
-            for (Int b = 0; b < Blocks; b++)
+        for (int32_t c = 0; c < size; c++) {
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 sizes[b] += codec.length(fn(b, c));
             }
@@ -417,7 +417,7 @@ public:
         return sizes;
     }
 
-    void fill(const ValueData* data, Int size, const SizesT& data_size)
+    void fill(const ValueData* data, int32_t size, const SizesT& data_size)
     {
         auto meta = this->metadata();
 
@@ -425,7 +425,7 @@ public:
 
         size_t acc = 0;
 
-        for (Int blk = 0; blk < Blocks; blk++)
+        for (int32_t blk = 0; blk < Blocks; blk++)
         {
             meta->data_size(blk) = data_size[blk];
             auto size            = data_size[blk];
@@ -444,7 +444,7 @@ public:
         state.pos()  = meta->data_size();
         state.size() = meta->size();
 
-        for (Int b = 0; b < Blocks; b++) {
+        for (int32_t b = 0; b < Blocks; b++) {
             state.values()[b] = this->values(b);
         }
 
@@ -459,7 +459,7 @@ public:
 
         auto meta = state.meta();
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             size_t capacity = meta->capacity(block);
 
@@ -470,7 +470,7 @@ public:
 
             if (len <= capacity)
             {
-                Int& data_pos = meta->data_size(block);
+                int32_t& data_pos = meta->data_size(block);
                 codec.copy(ptr, pos, state.values()[block], data_pos, len);
                 data_pos += len;
                 buffer.skip(len);
@@ -502,7 +502,7 @@ public:
 
 
     template <typename Adaptor>
-    Int append(Int size, Adaptor&& adaptor)
+    int32_t append(int32_t size, Adaptor&& adaptor)
     {
         Codec codec;
 
@@ -513,24 +513,24 @@ public:
         DataSizesT positions, limits;
         ValueData* values[Blocks];
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             values[block]    = this->values(block);
             positions[block] = metadata->data_size(block);
             limits[block]    = metadata->max_data_size(block) - SafetyMargin;
         }
 
-        Int c;
+        int32_t c;
         for (c = 0; c < size && positions.ltAll(limits); c++)
         {
-            for (Int block = 0; block < Blocks; block++)
+            for (int32_t block = 0; block < Blocks; block++)
             {
                 const auto& value = adaptor(block, c);
                 positions[block] += codec.encode(values[block], value, positions[block]);
             }
         }
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             metadata->data_size(block) = positions[block];
         }
@@ -543,9 +543,9 @@ public:
 
 
 
-    void check_indexless(Int block, Int data_size) const
+    void check_indexless(int32_t block, int32_t data_size) const
     {
-        Int offsets_size = this->element_size(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
+        int32_t offsets_size = this->element_size(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
         MEMORIA_V1_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), ==, 0);
 
         if (data_size > 0)
@@ -557,7 +557,7 @@ public:
             MEMORIA_V1_ASSERT(offsets_size, ==, 0);
         }
 
-        MEMORIA_V1_ASSERT(data_size, <=, (Int)ValuesPerBranch);
+        MEMORIA_V1_ASSERT(data_size, <=, (int32_t)ValuesPerBranch);
     }
 
 
@@ -565,10 +565,10 @@ public:
     {
         auto metadata = this->metadata();
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
-            Int data_size     = metadata->data_size(block);
-            Int max_data_size = metadata->max_data_size(block);
+            int32_t data_size     = metadata->data_size(block);
+            int32_t max_data_size = metadata->max_data_size(block);
             TreeLayout layout = this->compute_tree_layout(max_data_size);
 
             if (layout.levels_max >= 0)
@@ -583,7 +583,7 @@ public:
 
 
     template <typename ConsumerFn>
-    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
+    int32_t scan(int32_t block, int32_t start, int32_t end, ConsumerFn&& fn) const
     {
         auto meta = this->metadata();
 
@@ -596,7 +596,7 @@ public:
 
         Codec codec;
 
-        Int c;
+        int32_t c;
         for (c = start; c < end && pos < data_size; c++)
         {
             Value value;
@@ -610,7 +610,7 @@ public:
 
 
     template <typename ConsumerFn>
-    SizesT scan(Int start, Int end, ConsumerFn&& fn) const
+    SizesT scan(int32_t start, int32_t end, ConsumerFn&& fn) const
     {
         auto metadata = this->metadata();
 
@@ -623,7 +623,7 @@ public:
         SizesT position;
         const ValueData* values[Blocks];
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             values[block] = this->values(block);
             auto data_size = metadata->data_size(block);
@@ -632,11 +632,11 @@ public:
             position[block] = this->locate(layout, values[block], block, start, data_size).idx;
         }
 
-        for (Int c = start; c < end; c++)
+        for (int32_t c = start; c < end; c++)
         {
             Values values_data;
 
-            for (Int block = 0; block < Blocks; block++)
+            for (int32_t block = 0; block < Blocks; block++)
             {
                 position[block] += codec.decode(values[block], values_data[block], position[block]);
             }
@@ -655,11 +655,11 @@ public:
         out<<"size_         = "<<size<<std::endl;
         out<<"block_size_   = "<<this->block_size()<<std::endl;
 
-        for (Int block = 0; block < Blocks; block++) {
+        for (int32_t block = 0; block < Blocks; block++) {
             out<<"data_size_["<<block<<"] = "<<this->data_size(block)<<std::endl;
         }
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             out<<"++++++++++++++++++ Block: "<<block<<" ++++++++++++++++++"<<endl;
 
@@ -675,13 +675,13 @@ public:
                 out<<"TreeLayout: "<<endl;
 
                 out<<"Level sizes: ";
-                for (Int c = 0; c <= layout.levels_max; c++) {
+                for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_sizes[c]<<" ";
                 }
                 out<<endl;
 
                 out<<"Level starts: ";
-                for (Int c = 0; c <= layout.levels_max; c++) {
+                for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_starts[c]<<" ";
                 }
                 out<<endl;
@@ -689,7 +689,7 @@ public:
                 auto size_indexes = this->size_index(block);
 
                 out<<"Index:"<<endl;
-                for (Int c = 0; c < index_size; c++)
+                for (int32_t c = 0; c < index_size; c++)
                 {
                     out<<c<<": "<<size_indexes[c]<<std::endl;
                 }
@@ -698,7 +698,7 @@ public:
             out<<endl;
 
             out<<"Offsets: ";
-            for (Int c = 0; c <= this->divUpV(data_size); c++) {
+            for (int32_t c = 0; c <= this->divUpV(data_size); c++) {
                 out<<this->offset(block, c)<<" ";
             }
             out<<endl;
@@ -709,16 +709,16 @@ public:
         const ValueData* values[Blocks];
         size_t block_pos[Blocks];
 
-        for (Int block = 0; block < Blocks; block++) {
+        for (int32_t block = 0; block < Blocks; block++) {
             values[block] = this->values(block);
             block_pos[block] = 0;
         }
 
         Codec codec;
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
             out<<c<<": "<<c<<" ";
-            for (Int block = 0; block < Blocks; block++)
+            for (int32_t block = 0; block < Blocks; block++)
             {
                 Value value;
                 auto len = codec.decode(values[block], value, block_pos[block]);
@@ -744,17 +744,17 @@ public:
 
         handler->startGroup("INDEXES", Blocks);
 
-        for (Int block = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
-            Int index_size = this->index_size(this->data_size(block));
+            int32_t index_size = this->index_size(this->data_size(block));
 
             handler->startGroup("BLOCK_INDEX", block);
 
             auto size_indexes  = this->size_index(block);
 
-            for (Int c = 0; c < index_size; c++)
+            for (int32_t c = 0; c < index_size; c++)
             {
-                BigInt indexes[] = {
+                int64_t indexes[] = {
                         size_indexes[c]
                 };
 
@@ -770,27 +770,27 @@ public:
         handler->startGroup("DATA", meta->size());
 
         const ValueData* values[Blocks];
-        for (Int b = 0; b < Blocks; b++) {
+        for (int32_t b = 0; b < Blocks; b++) {
             values[b] = this->values(b);
         }
 
         size_t positions[Blocks];
         for (auto& p: positions) p = 0;
 
-        Int size = this->size();
+        int32_t size = this->size();
 
         Codec codec;
 
-        for (Int idx = 0; idx < size; idx++)
+        for (int32_t idx = 0; idx < size; idx++)
         {
             Value values_data[Blocks];
-            for (Int block = 0; block < Blocks; block++)
+            for (int32_t block = 0; block < Blocks; block++)
             {
                 auto len = codec.decode(values[block], values_data[block], positions[block]);
                 positions[block] += len;
             }
 
-            handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
+            handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](int32_t idx) {
                 return values_data[idx];
             }));
         }

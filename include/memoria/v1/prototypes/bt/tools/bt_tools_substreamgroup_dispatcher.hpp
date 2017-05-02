@@ -32,22 +32,22 @@ namespace detail {
 
 }
 
-template <typename List, Int Offset = 0, Int Idx = 0, Int Max = ListSize<List>::Value>
+template <typename List, int32_t Offset = 0, int32_t Idx = 0, int32_t Max = ListSize<List>::Value>
 class BuildTopLevelLeafSubsetsH;
 
-template <typename List, Int Offset = 0>
+template <typename List, int32_t Offset = 0>
 using BuildTopLevelLeafSubsets = typename BuildTopLevelLeafSubsetsH<List, Offset>::Type;
 
 
 
-template <typename List, Int Offset, Int Idx, Int Max>
+template <typename List, int32_t Offset, int32_t Idx, int32_t Max>
 class BuildTopLevelLeafSubsetsH {
-    static const Int LeafOffsetInf = v1::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
-    static const Int LeafOffsetSup = v1::list_tree::LeafCountSup<List, IntList<Idx>>::Value;
+    static const int32_t LeafOffsetInf = v1::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
+    static const int32_t LeafOffsetSup = v1::list_tree::LeafCountSup<List, IntList<Idx>>::Value;
 public:
     using Type = MergeLists<
             v1::list_tree::MakeValueList<
-                Int,
+                int32_t,
                 LeafOffsetInf + Offset,
                 LeafOffsetSup + Offset
             >,
@@ -61,7 +61,7 @@ public:
 };
 
 
-template <typename List, Int Offset, Int Max>
+template <typename List, int32_t Offset, int32_t Max>
 class BuildTopLevelLeafSubsetsH<List, Offset, Max, Max> {
 public:
     using Type = TypeList<>;
@@ -71,13 +71,13 @@ public:
 
 
 
-template <typename Dispatcher, typename GroupList, Int GroupIdx = 0> struct GroupDispatcher;
+template <typename Dispatcher, typename GroupList, int32_t GroupIdx = 0> struct GroupDispatcher;
 
 template <
     typename Dispatcher,
     typename Group,
     typename... Tail,
-    Int GroupIdx
+    int32_t GroupIdx
 >
 struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
 {
@@ -110,7 +110,7 @@ struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
     }
 
 
-    template <Int GroupIdx_, typename Allocator, typename Fn, typename... Args>
+    template <int32_t GroupIdx_, typename Allocator, typename Fn, typename... Args>
     static void dispatchGroup(Allocator* allocator, Fn&& fn, Args&&... args)
     {
         using TargetGroup = Select<GroupIdx_, TypeList<Group, Tail...>>;
@@ -120,7 +120,7 @@ struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
         SubgroupDispatcher::dispatchAll(allocator, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
-    template <Int GroupIdx_, typename Fn, typename... Args>
+    template <int32_t GroupIdx_, typename Fn, typename... Args>
     static void dispatchGroupStatic(Fn&& fn, Args&&... args)
     {
         using TargetGroup = Select<GroupIdx_, TypeList<Group, Tail...>>;
@@ -134,7 +134,7 @@ struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
 
 template <
     typename Dispatcher,
-    Int GroupIdx
+    int32_t GroupIdx
 >
 struct GroupDispatcher<Dispatcher, TypeList<>, GroupIdx>
 {

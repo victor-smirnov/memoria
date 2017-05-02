@@ -32,8 +32,8 @@ public:
 
     MapTestSuite(): TestSuite("MapSuite")
     {
-        registerTask(new MapRemoveTest<Map<UUID, BigInt>>("MapM.Remove"));
-        registerTask(new MapCreateTest<Map<UUID, BigInt>>("MapM.Create"));
+        registerTask(new MapRemoveTest<Map<UUID, int64_t>>("MapM.Remove"));
+        registerTask(new MapCreateTest<Map<UUID, int64_t>>("MapM.Create"));
     }
 };
 

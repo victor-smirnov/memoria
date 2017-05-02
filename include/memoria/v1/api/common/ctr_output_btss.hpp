@@ -32,8 +32,8 @@ class OutputIteratorBTSSAdaptor: public bt::BufferConsumer<IOBuffer> {
 public:
     OutputIteratorBTSSAdaptor(const OutputIterator& iter): iter_(iter) {}
     
-    virtual Int process(IOBuffer& buffer, Int entries) {
-        for (Int c = 0; c < entries; c++, iter_++) 
+    virtual int32_t process(IOBuffer& buffer, int32_t entries) {
+        for (int32_t c = 0; c < entries; c++, iter_++) 
         {
             *iter_ = IOBufferAdapter<Value>::get(buffer);
         }
@@ -51,8 +51,8 @@ class BTSSAdaptorFn: public bt::BufferConsumer<IOBuffer> {
 public:
     BTSSAdaptorFn(Fn& fn): fn_(fn) {}
     
-    virtual Int process(IOBuffer& buffer, Int entries) {
-        for (Int c = 0; c < entries; c++) 
+    virtual int32_t process(IOBuffer& buffer, int32_t entries) {
+        for (int32_t c = 0; c < entries; c++) 
         {
             fn_(IOBufferAdapter<Value>::get(buffer));
         }

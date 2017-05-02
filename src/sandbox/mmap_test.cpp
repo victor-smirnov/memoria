@@ -150,7 +150,7 @@ String make_value(V&& num, TypeTag<String>)
     return ss.str();
 }
 
-template <typename V, Int N>
+template <typename V, int32_t N>
 FixedArray<N> make_value(V&& num, TypeTag<FixedArray<N>>)
 {
     FixedArray<N> array;
@@ -184,14 +184,14 @@ class MapIOBufferAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, MMapIOB
     using typename Base::IOBuffer;
 
     using Data = MapData<Key, Value>;
-    using Positions = core::StaticVector<Int, 2>;
+    using Positions = core::StaticVector<int32_t, 2>;
 
 
     const Data& data_;
 
     IOBuffer io_buffer_;
     Positions positions_;
-    Int level_ = 0;
+    int32_t level_ = 0;
 
     struct StructureAdapter: public bttl::iobuf::FlatTreeStructureGeneratorBase<StructureAdapter, 2> {
         MyType* adapter_;
@@ -205,7 +205,7 @@ class MapIOBufferAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, MMapIOB
             return adapter_->data().size();
         }
 
-        template <Int Idx, typename Pos>
+        template <int32_t Idx, typename Pos>
         auto prepare(const StreamTag<Idx>&, const Pos& pos)
         {
             return adapter_->data()[pos[Idx - 1]].second.size();
@@ -235,7 +235,7 @@ public:
         return structure_generator_.query();
     }
 
-    virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
+    virtual int32_t populate_stream(int32_t stream, IOBuffer& buffer, int32_t length)
     {
         if (stream == 1)
         {
@@ -244,7 +244,7 @@ public:
 
             const auto& data = data_[key_idx - 1].second;
 
-            Int c;
+            int32_t c;
             for (c = 0; c < length; c++)
             {
                 auto pos = buffer.pos();
@@ -263,7 +263,7 @@ public:
         else {
             auto& idx = structure_generator_.counts()[0];
 
-            Int c;
+            int32_t c;
             for (c = 0; c < length; c++)
             {
                 auto pos = buffer.pos();
@@ -294,14 +294,14 @@ class MapIOBufferValuesAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, M
     using typename Base::IOBuffer;
 
     using Data   = std::vector<Value>;
-    using Positions = core::StaticVector<Int, 2>;
+    using Positions = core::StaticVector<int32_t, 2>;
 
 
     const Data* data_;
 
     IOBuffer io_buffer_;
     Positions positions_;
-    Int level_ = 0;
+    int32_t level_ = 0;
 
     size_t idx_ = 0;
 
@@ -320,7 +320,7 @@ class MapIOBufferValuesAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, M
             return 0ul;
         }
 
-        template <Int Idx, typename Pos>
+        template <int32_t Idx, typename Pos>
         auto prepare(const StreamTag<Idx>&, const Pos& pos)
         {
             return adapter_->data().size();
@@ -357,13 +357,13 @@ public:
         return structure_generator_.query();
     }
 
-    virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
+    virtual int32_t populate_stream(int32_t stream, IOBuffer& buffer, int32_t length)
     {
         if (stream == 1)
         {
             auto& counts = structure_generator_.counts()[1];
 
-            Int c;
+            int32_t c;
             for (c = 0; c < length; c++, counts++)
             {
                 auto pos = buffer.pos();
@@ -395,7 +395,7 @@ public:
     MMapBufferConsumer(): io_buffer_(65536) {}
 
     virtual IOBuffer& buffer() {return io_buffer_;}
-    virtual Int process(IOBuffer& buffer, Int entries)
+    virtual int32_t process(IOBuffer& buffer, int32_t entries)
     {
         return entries;
     }
@@ -410,8 +410,8 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using KeyType   = BigInt;
-    using ValueType = UBigInt;//FixedArray<32>;
+    using KeyType   = int64_t;
+    using ValueType = uint64_t;//FixedArray<32>;
 
     using CtrName = Map<KeyType, Vector<ValueType>>;
 
@@ -423,19 +423,19 @@ int main()
         try {
             auto map = create<CtrName>(snp);
 
-            BigInt tt, t0;
+            int64_t tt, t0;
             tt = t0 = getTimeInMillis();
 
-            BigInt thresholdInc = 100000;
-            BigInt threshold = thresholdInc;
+            int64_t thresholdInc = 100000;
+            int64_t threshold = thresholdInc;
 
             MapIOBufferValuesAdapter<KeyType, ValueType> adapter;
 
             std::vector<ValueType> data(200);
 
-            for (BigInt c = 0; c < 1; c++)
+            for (int64_t c = 0; c < 1; c++)
             {
-                BigInt key = getBIRandomG();
+                int64_t key = getBIRandomG();
 
                 auto iter = map->find_or_create(key);
 
@@ -452,7 +452,7 @@ int main()
 
                 if (threshold == c)
                 {
-                    BigInt ts = getTimeInMillis();
+                    int64_t ts = getTimeInMillis();
                     cout << c << " records, time =  " << (ts - tt) << endl;
                     tt = ts;
 
@@ -460,7 +460,7 @@ int main()
                 }
             }
 
-            BigInt t1 = getTimeInMillis();
+            int64_t t1 = getTimeInMillis();
 
             cout << "Total keys: " << map->size() << " in " << (t1 - t0) << endl;
 

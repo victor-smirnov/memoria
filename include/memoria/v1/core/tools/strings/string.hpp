@@ -35,7 +35,7 @@ template <typename T> struct TypeHash;
 
 template <>
 struct TypeHash<String> {
-    static const UInt Value = 60;
+    static const uint32_t Value = 60;
 };
 
 inline bool compare_gt(const String& first, const String& second) {

@@ -30,7 +30,7 @@ template <typename List> struct TypeToValueList;
 template <typename Head, typename... Tail>
 struct TypeToValueList<TypeList<Head, Tail...>> {
     using Type = typename AppendValueTool<
-                UInt,
+                uint32_t,
                 TypeHash<Head>::Value,
                 typename TypeToValueList<TypeList<Tail...> >::Type
     >::Type;
@@ -38,7 +38,7 @@ struct TypeToValueList<TypeList<Head, Tail...>> {
 
 template <>
 struct TypeToValueList<TypeList<>> {
-    using Type = ValueList<UInt>;
+    using Type = ValueList<uint32_t>;
 };
 
 
@@ -47,27 +47,27 @@ namespace md5 {
 
 using namespace std;
 
-template <UInt X, UInt Y, UInt Z>
+template <uint32_t X, uint32_t Y, uint32_t Z>
 struct FunF {
-    static const UInt Value = (X & Y) | ((~X) & Z);
+    static const uint32_t Value = (X & Y) | ((~X) & Z);
 };
 
-template <UInt X, UInt Y, UInt Z>
+template <uint32_t X, uint32_t Y, uint32_t Z>
 struct FunG {
-    static const UInt Value = (X & Z) | ((~Z) & Y);
+    static const uint32_t Value = (X & Z) | ((~Z) & Y);
 };
 
-template <UInt X, UInt Y, UInt Z>
+template <uint32_t X, uint32_t Y, uint32_t Z>
 struct FunH {
-    static const UInt Value = (X ^ Y ^ Z);
+    static const uint32_t Value = (X ^ Y ^ Z);
 };
 
-template <UInt X, UInt Y, UInt Z>
+template <uint32_t X, uint32_t Y, uint32_t Z>
 struct FunI {
-    static const UInt Value = Y ^ ((~Z) | X);
+    static const uint32_t Value = Y ^ ((~Z) | X);
 };
 
-typedef ValueList<UInt,
+typedef ValueList<uint32_t,
         0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
         0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
         0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -87,42 +87,42 @@ typedef ValueList<UInt,
 
         > Md5Inits;
 
-template <UInt Value_, Int N> struct CShl {
-    static const UInt Value = (Value_ << N) |
-            (Value_ >> (sizeof(UInt) * 8 - N));
+template <uint32_t Value_, int32_t N> struct CShl {
+    static const uint32_t Value = (Value_ << N) |
+            (Value_ >> (sizeof(uint32_t) * 8 - N));
 };
 
 
-template <UInt A_, UInt B_, UInt C_, UInt D_>
+template <uint32_t A_, uint32_t B_, uint32_t C_, uint32_t D_>
 struct Quad {
-    static const UInt A = A_;
-    static const UInt B = B_;
-    static const UInt C = C_;
-    static const UInt D = D_;
+    static const uint32_t A = A_;
+    static const uint32_t B = B_;
+    static const uint32_t C = C_;
+    static const uint32_t D = D_;
 
-    static const UBigInt Value = (((UBigInt)A << 32) | B) ^ (((UBigInt)C << 32) | D);
-    static const UInt    Value32 = A ^ B ^ C ^ D;
+    static const uint64_t Value = (((uint64_t)A << 32) | B) ^ (((uint64_t)C << 32) | D);
+    static const uint32_t    Value32 = A ^ B ^ C ^ D;
 };
 
 
 template <
     typename Q,
-    template <UInt, UInt, UInt> class Fun,
+    template <uint32_t, uint32_t, uint32_t> class Fun,
     typename X,
-    Int K, Int S, Int I
+    int32_t K, int32_t S, int32_t I
 >
 class Block;
 
 
 template <
-    UInt A, UInt B, UInt C, UInt D,
-    template <UInt, UInt, UInt> class Fun,
+    uint32_t A, uint32_t B, uint32_t C, uint32_t D,
+    template <uint32_t, uint32_t, uint32_t> class Fun,
     typename X,
-    Int K, Int S, Int I
+    int32_t K, int32_t S, int32_t I
 >
 class Block<Quad<A, B, C, D>, Fun, X, K, S, I> {
 
-    static const UInt ValueB = B
+    static const uint32_t ValueB = B
             + CShl<A + Fun<B, C, D>::Value
                      + SelectByIndexTool<K, X, true>::Value
                      + SelectByIndexTool<I - 1, Md5Inits>::Value, S
@@ -285,19 +285,19 @@ public:
 
 namespace internal  {
 
-template <typename List, Int From> struct MD5Sublist;
+template <typename List, int32_t From> struct MD5Sublist;
 
 template <typename T, T... List>
 struct MD5Sublist<ValueList<T, List...>, 0> {
     using Type = ValueList<T, List...>;
 };
 
-template <Int From, typename T, T Head, T ... Tail>
+template <int32_t From, typename T, T Head, T ... Tail>
 struct MD5Sublist<ValueList<T, Head, Tail...>, From> {
     using Type = typename MD5Sublist<ValueList<T, Tail...>, From - 1>::Type;
 };
 
-template <Int From, typename T>
+template <int32_t From, typename T>
 struct MD5Sublist<ValueList<T>, From> {
     using Type = ValueList<T>;
 };
@@ -313,10 +313,10 @@ struct MD5Sublist<ValueList<T>, 0> {
 
 template <typename List, typename Initial> class Md5SumHelper;
 
-template <UInt ... Data, typename Initial>
-class Md5SumHelper<ValueList<UInt, Data...>, Initial> {
+template <uint32_t ... Data, typename Initial>
+class Md5SumHelper<ValueList<uint32_t, Data...>, Initial> {
 
-    using List  = ValueList<UInt, Data...>;
+    using List  = ValueList<uint32_t, Data...>;
     using Round = Md5Round<Initial, List>;
 
     using RoundResult = typename Round::Result;
@@ -336,7 +336,7 @@ public:
 };
 
 template <typename Initial>
-class Md5SumHelper<ValueList<UInt>, Initial> {
+class Md5SumHelper<ValueList<uint32_t>, Initial> {
 public:
     using Type = Initial;
 
@@ -349,12 +349,12 @@ public:
 
 
 template <typename List> struct Md5Sum;
-template <UInt ... Data>
-struct Md5Sum<ValueList<UInt, Data...>> {
+template <uint32_t ... Data>
+struct Md5Sum<ValueList<uint32_t, Data...>> {
     using List = typename AppendValueTool<
-            UInt,
+            uint32_t,
             sizeof...(Data),
-            ValueList<UInt, Data...>
+            ValueList<uint32_t, Data...>
     >::Type;
 
     using Type = typename internal::Md5SumHelper<

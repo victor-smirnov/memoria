@@ -36,23 +36,23 @@ namespace v1 {
 namespace btfl {
 namespace io {
 
-template <Int DataStreams, typename IOBufferT>
+template <int32_t DataStreams, typename IOBufferT>
 class FlatTreeIOBufferAdapter: public BufferProducer<IOBufferT> {
 
 public:
 
-    static constexpr BigInt MaxRunLength = IOBufferT::template getMaxSymbolsRunLength<DataStreams>();
+    static constexpr int64_t MaxRunLength = IOBufferT::template getMaxSymbolsRunLength<DataStreams>();
 
-    using CtrSizesT = core::StaticVector<BigInt, DataStreams>;
+    using CtrSizesT = core::StaticVector<int64_t, DataStreams>;
 
     using IOBuffer = IOBufferT;
 
 private:
 
     RunDescr state_;
-    Int processed_ = 0;
-    BigInt run_length_ = 0;
-    BigInt run_processed_ = 0;
+    int32_t processed_ = 0;
+    int64_t run_length_ = 0;
+    int64_t run_processed_ = 0;
     bool symbol_encoded_ = false;
 
     CtrSizesT consumed_;
@@ -65,11 +65,11 @@ public:
     }
 
     virtual RunDescr query() = 0;
-    virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length) = 0;
+    virtual int32_t populate_stream(int32_t stream, IOBuffer& buffer, int32_t length) = 0;
 
-    virtual Int populate(IOBuffer& io_buffer)
+    virtual int32_t populate(IOBuffer& io_buffer)
     {
-        Int entries = 0;
+        int32_t entries = 0;
 
         while (true)
         {
@@ -86,7 +86,7 @@ public:
 
                 while (processed_ < length || length == 0)
                 {
-                    Int remainder = length - processed_;
+                    int32_t remainder = length - processed_;
 
                     if (run_processed_ == run_length_)
                     {
@@ -95,7 +95,7 @@ public:
                         symbol_encoded_ = false;
                     }
 
-                    Int to_encode = run_length_ - run_processed_;
+                    int32_t to_encode = run_length_ - run_processed_;
 
                     if (!symbol_encoded_)
                     {
@@ -114,7 +114,7 @@ public:
 
                     if (to_encode > 0)
                     {
-                        Int actual = populate_stream(state_.symbol(), io_buffer, to_encode);
+                        int32_t actual = populate_stream(state_.symbol(), io_buffer, to_encode);
 
                         processed_      += actual;
                         run_processed_  += actual;

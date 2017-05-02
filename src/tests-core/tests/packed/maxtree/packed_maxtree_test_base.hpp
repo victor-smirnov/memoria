@@ -42,7 +42,7 @@ class PackedMaxTreeTestBase: public TestTask {
     using Base = TestTask;
 protected:
 
-    static constexpr Int MEMBUF_SIZE = 1024*1024*64;
+    static constexpr int32_t MEMBUF_SIZE = 1024*1024*64;
 
 
     using Tree      = PackedTreeT;
@@ -52,7 +52,7 @@ protected:
     typedef typename Tree::IndexValue                                           IndexValue;
     typedef typename Tree::Values                                               Values;
 
-    static constexpr Int Blocks = Tree::Blocks;
+    static constexpr int32_t Blocks = Tree::Blocks;
 
 public:
 
@@ -61,40 +61,40 @@ public:
     PackedMaxTreeTestBase(StringRef name): TestTask(name)
     {}
 
-    TreePtr createEmptyTree(Int block_size = MEMBUF_SIZE)
+    TreePtr createEmptyTree(int32_t block_size = MEMBUF_SIZE)
     {
         return MakeSharedPackedStructByBlock<Tree>(block_size);
     }
 
-    TreePtr createTree(Int tree_capacity, Int free_space = 0)
+    TreePtr createTree(int32_t tree_capacity, int32_t free_space = 0)
     {
-        Int tree_block_size = Tree::block_size(tree_capacity);
+        int32_t tree_block_size = Tree::block_size(tree_capacity);
         return MakeSharedPackedStructByBlock<Tree>(tree_block_size + free_space);
     }
 
-    void truncate(vector<Values>& v, Int size) {
-        Int delta = v.size() - size;
+    void truncate(vector<Values>& v, int32_t size) {
+        int32_t delta = v.size() - size;
 
-        for (Int idx = 0; idx < delta; idx++)
+        for (int32_t idx = 0; idx < delta; idx++)
         {
             v.erase(v.end() - 1);
         }
     }
 
-    vector<Values> fillRandom(TreePtr& tree, Int size, Int max_value = 300, Int min = 1)
+    vector<Values> fillRandom(TreePtr& tree, int32_t size, int32_t max_value = 300, int32_t min = 1)
     {
         Values accum;
 
         vector<Values> vals(size);
         for (auto& v: vals)
         {
-            for (Int b = 0; b < Blocks; b++) {
+            for (int32_t b = 0; b < Blocks; b++) {
                 v[b] = accum[b] + getRandom(max_value) + min;
                 accum[b] = v[b];
             }
         }
 
-        tree->_insert(0, size, [&](Int block, Int idx) {
+        tree->_insert(0, size, [&](int32_t block, int32_t idx) {
             return vals[idx][block];
         });
 
@@ -105,10 +105,10 @@ public:
         dumpVector(this->out(), vals);
 
 
-        for (Int b = 0; b < Blocks; b++)
+        for (int32_t b = 0; b < Blocks; b++)
         {
-            Int idx = 0;
-            tree->read(b, 0, tree->size(), make_fn_with_next([&](Int block, auto v){
+            int32_t idx = 0;
+            tree->read(b, 0, tree->size(), make_fn_with_next([&](int32_t block, auto v){
                 AssertEQ(MA_SRC, v, vals[idx][block]);
             }, [&]{idx++;}));
         }
@@ -120,29 +120,29 @@ public:
 
     void fillVector(TreePtr& tree, const vector<Values>& vals)
     {
-        tree->_insert(0, vals.size(), [&](Int block, Int idx) {
+        tree->_insert(0, vals.size(), [&](int32_t block, int32_t idx) {
             return vals[idx][block];
         });
     }
 
-    Values createRandom(Int max = 100)
+    Values createRandom(int32_t max = 100)
     {
         Values values;
 
-        for (Int c = 0; c < Blocks; c++) {
+        for (int32_t c = 0; c < Blocks; c++) {
             values[c] = getRandom(max);
         }
 
         return values;
     }
 
-    vector<Values> createRandomValuesVector(Int size, Int max_value = 300)
+    vector<Values> createRandomValuesVector(int32_t size, int32_t max_value = 300)
     {
         vector<Values> vals(size);
 
-        for (Int c = 0; c < size; c++)
+        for (int32_t c = 0; c < size; c++)
         {
-            for (Int b = 0; b < Blocks; b++)
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 vals[c][b] = getRandom(max_value);
             }
@@ -153,12 +153,12 @@ public:
 
     void assertEqual(const TreePtr& tree, const vector<Values>& vals)
     {
-        AssertEQ(MA_SRC, tree->size(), (Int)vals.size());
+        AssertEQ(MA_SRC, tree->size(), (int32_t)vals.size());
 
-        for (Int c = 0; c < tree->size(); c++)
+        for (int32_t c = 0; c < tree->size(); c++)
         {
             Values v;
-            for (Int b = 0; b < Blocks; b++)
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 v[b] = tree->value(b, c);
             }
@@ -171,10 +171,10 @@ public:
     {
         AssertEQ(MA_SRC, tree1->size(), tree2->size());
 
-        for (Int c = 0; c < tree1->size(); c++)
+        for (int32_t c = 0; c < tree1->size(); c++)
         {
             Values v1, v2;
-            for (Int b = 0; b < Blocks; b++)
+            for (int32_t b = 0; b < Blocks; b++)
             {
                 v1[b] = tree1->value(b, c);
                 v2[b] = tree2->value(b, c);
@@ -204,7 +204,7 @@ public:
     template <typename T>
     void dump(const std::vector<T>& v, std::ostream& out = std::cout)
     {
-        for (Int c = 0; c < v.size(); c++) {
+        for (int32_t c = 0; c < v.size(); c++) {
             out<<c<<": "<<v[c]<<endl;
         }
     }

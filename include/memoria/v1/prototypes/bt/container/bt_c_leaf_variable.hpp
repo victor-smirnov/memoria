@@ -56,29 +56,29 @@ protected:
 
     typedef std::function<void (const Position&)>                               MergeFn;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                    = Types::Streams;
 
-    template <Int Stream>
+    template <int32_t Stream>
     struct InsertStreamEntryFn
     {
         template <
-            Int Offset,
+            int32_t Offset,
             bool StreamStart,
-            Int Idx,
+            int32_t Idx,
             typename SubstreamType,
             typename BranchNodeEntryItem,
             typename Entry
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
+        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
-            obj->template _insert_b<Offset>(idx, accum, [&](Int block) -> const auto& {
+            obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
                 return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
             });
         }
 
 
         template <typename NTypes, typename... Args>
-        void treeNode(LeafNode<NTypes>* node, Int idx, BranchNodeEntry& accum, Args&&... args)
+        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
             node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
@@ -88,8 +88,8 @@ protected:
 
 
 
-    template <Int Stream, typename Entry>
-    std::tuple<bool> try_insert_stream_entry(Iterator& iter, Int idx, const Entry& entry)
+    template <int32_t Stream, typename Entry>
+    std::tuple<bool> try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -116,23 +116,23 @@ protected:
 
 
 
-    template <Int Stream>
+    template <int32_t Stream>
     struct RemoveFromLeafFn
     {
         template <
-            Int Offset,
+            int32_t Offset,
             bool StreamStart,
-            Int Idx,
+            int32_t Idx,
             typename SubstreamType,
             typename BranchNodeEntryItem
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx)
+        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx)
         {
             obj->template _remove<Offset>(idx, accum);
         }
 
         template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, Int idx, BranchNodeEntry& accum)
+        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum)
         {
             node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx);
@@ -140,8 +140,8 @@ protected:
     };
 
 
-    template <Int Stream>
-    std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, Int idx)
+    template <int32_t Stream>
+    std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, int32_t idx)
     {
         auto& self = this->self();
 
@@ -168,26 +168,26 @@ protected:
 
     //=========================================================================================
 
-    template <Int Stream, typename SubstreamsList>
+    template <int32_t Stream, typename SubstreamsList>
     struct UpdateStreamEntryBufferFn
     {
         template <
-            Int Offset,
+            int32_t Offset,
             bool Start,
-            Int Idx,
+            int32_t Idx,
             typename SubstreamType,
             typename BranchNodeEntryItem,
             typename Entry
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
+        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
-            obj->template _update_b<Offset>(idx, accum, [&](Int block){
+            obj->template _update_b<Offset>(idx, accum, [&](int32_t block){
                 return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
             });
         }
 
         template <typename NTypes, typename... Args>
-        void treeNode(LeafNode<NTypes>* node, Int idx, BranchNodeEntry& accum, Args&&... args)
+        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
             node->template processSubstreamsByIdxAcc<
                 Stream,
@@ -202,8 +202,8 @@ protected:
     };
 
 
-    template <Int Stream, typename SubstreamsList, typename Entry>
-    std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, Int idx, const Entry& entry)
+    template <int32_t Stream, typename SubstreamsList, typename Entry>
+    std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -272,7 +272,7 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 
     BranchNodeEntry sums;
 
-    Int parent_idx = left_node->parent_idx();
+    int32_t parent_idx = left_node->parent_idx();
 
     PageUpdateMgr mgr(self);
     mgr.add(left_parent);
@@ -295,7 +295,7 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
         {
             mgr.rollback();
 
-            Int right_parent_size = self.getNodeSize(right_parent, 0);
+            int32_t right_parent_size = self.getNodeSize(right_parent, 0);
 
             splitPathP(right_parent, right_parent_size / 2);
 
@@ -323,9 +323,9 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
     Position tgt_sizes  = self.getNodeSizes(tgt);
 
     try {
-        Int tgt_size            = self.getNodeSize(tgt, 0);
+        int32_t tgt_size            = self.getNodeSize(tgt, 0);
         NodeBaseG src_parent    = self.getNodeParent(src);
-        Int parent_idx          = src->parent_idx();
+        int32_t parent_idx          = src->parent_idx();
 
         MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
@@ -337,7 +337,7 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         self.removeNonLeafNodeEntry(src_parent, parent_idx);
 
-        Int idx = parent_idx - 1;
+        int32_t idx = parent_idx - 1;
 
         self.updateBranchNodes(src_parent, idx, max);
 

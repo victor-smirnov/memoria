@@ -46,10 +46,10 @@ using ContainerMetadataPtr  = std::shared_ptr<ContainerMetadata>;
 struct ContainerCollection;
 struct Container;
 
-// FIXME change map key to UInt
+// FIXME change map key to uint32_t
 using MetadataList          = std::vector<MetadataPtr>;
-using PageMetadataMap       = std::unordered_map<Int, PageMetadataPtr>;
-using ContainerMetadataMap  = std::unordered_map<Int, ContainerMetadataPtr>;
+using PageMetadataMap       = std::unordered_map<int32_t, PageMetadataPtr>;
+using ContainerMetadataMap  = std::unordered_map<int32_t, ContainerMetadataPtr>;
 
 struct Metadata {
 
@@ -60,14 +60,14 @@ public:
 
 public:
 
-    Metadata(StringRef name, Byte type): name_(name), typeCode_(type) {}
+    Metadata(StringRef name, int8_t type): name_(name), typeCode_(type) {}
     virtual ~Metadata() throw () {}
 
     StringRef name() const {
         return name_;
     }
 
-    virtual Int getTypeCode() const {
+    virtual int32_t getTypeCode() const {
         return typeCode_;
     }
 
@@ -86,13 +86,13 @@ public:
 
 protected:
 
-    Int &set_type() {
+    int32_t &set_type() {
         return typeCode_;
     }
 
 private:
     const String    name_;
-    Int             typeCode_;
+    int32_t             typeCode_;
 };
 
 

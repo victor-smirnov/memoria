@@ -73,15 +73,15 @@ protected:
 
 
 
-    Int stream_run_remainder_ = 0;
+    int32_t stream_run_remainder_ = 0;
 
     BufferProducer<IOBuffer>* iobuffer_producer_ = nullptr;
     IOBuffer* io_buffer_ = nullptr;
 
-    Int last_stream_ = -1;
+    int32_t last_stream_ = -1;
 
 public:
-    IOBufferCtrInputProvider(CtrT& ctr, Int initial_capacity = 4000):
+    IOBufferCtrInputProvider(CtrT& ctr, int32_t initial_capacity = 4000):
         Base(ctr, initial_capacity)
     {}
 
@@ -103,8 +103,8 @@ public:
 
 
     struct AppendStreamEntriesFn {
-        template <Int Idx, typename InputBuffer>
-        void process(InputBuffer& input_buffer, Int stream, Int length, IOBuffer& io_buffer)
+        template <int32_t Idx, typename InputBuffer>
+        void process(InputBuffer& input_buffer, int32_t stream, int32_t length, IOBuffer& io_buffer)
         {
             if (Idx == stream)
             {
@@ -114,7 +114,7 @@ public:
     };
 
 
-    void append_data_streams_entries(Int stream, Int length, IOBuffer& io_buffer)
+    void append_data_streams_entries(int32_t stream, int32_t length, IOBuffer& io_buffer)
     {
         ForAllDataStreams::process(data_buffers_, AppendStreamEntriesFn(), stream, length, io_buffer);
     }
@@ -130,7 +130,7 @@ public:
         size_.clear();
 
         io_buffer_->rewind();
-        Int entries = iobuffer_producer_->populate(*io_buffer_);
+        int32_t entries = iobuffer_producer_->populate(*io_buffer_);
         io_buffer_->rewind();
 
         symbols_.prepare();
@@ -143,10 +143,10 @@ public:
                 entries = -entries;
             }
 
-            for (Int entry_num = 0; entry_num < entries;)
+            for (int32_t entry_num = 0; entry_num < entries;)
             {
-                Int stream;
-                Int run_length;
+                int32_t stream;
+                int32_t run_length;
                 bool premature_eob = false;
 
                 if (stream_run_remainder_ != 0)
@@ -172,7 +172,7 @@ public:
 
                     entry_num++;
 
-                    Int iobuffer_remainder = entries - entry_num;
+                    int32_t iobuffer_remainder = entries - entry_num;
 
                     if (run_length >= iobuffer_remainder)
                     {

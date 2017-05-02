@@ -58,9 +58,9 @@ int StringList::size() const
     return list_.size();
 }
 
-StringRef StringList::getItem(Int idx) const
+StringRef StringList::getItem(int32_t idx) const
 {
-    if (idx >=0 && idx < (Int)list_.size())
+    if (idx >=0 && idx < (int32_t)list_.size())
     {
         return list_[idx];
     }
@@ -96,7 +96,7 @@ String Configurator::resolve_references(StringRef value, NameTree* names) const
 {
     stringstream buf;
 
-    UInt pos = 0;
+    uint32_t pos = 0;
     while (pos < value.length())
     {
         size_t idx1 = value.find("${", pos);
@@ -388,7 +388,7 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
     {
         PathList list(platform->getProperty("config.search.path"));
 
-        for (Int c = 0; c < list.size(); c++)
+        for (int32_t c = 0; c < list.size(); c++)
         {
             try {
                 String dirPath = list.getItem(c);

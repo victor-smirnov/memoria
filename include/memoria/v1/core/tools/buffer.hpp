@@ -31,8 +31,8 @@ namespace v1 {
 template <size_t Size>
 class StaticBuffer {
 public:
-    typedef UInt            Element;
-    typedef UInt            ElementType;
+    typedef uint32_t            Element;
+    typedef uint32_t            ElementType;
 
 private:
     ElementType buffer_[Size];
@@ -61,12 +61,12 @@ public:
         }
     }
 
-    const ElementType &operator[](Int idx) const
+    const ElementType &operator[](int32_t idx) const
     {
         return buffer_[idx];
     }
 
-    ElementType &operator[](Int idx)
+    ElementType &operator[](int32_t idx)
     {
         return buffer_[idx];
     }

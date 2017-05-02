@@ -28,7 +28,7 @@ namespace v1 {
 
 using namespace std;
 
-template <Int Symbols>
+template <int32_t Symbols>
 class PackedRLESearchableSequenceRankTest: public PackedRLESequenceTestBase<Symbols> {
 
     using MyType = PackedRLESearchableSequenceRankTest<Symbols>;
@@ -41,8 +41,8 @@ class PackedRLESearchableSequenceRankTest: public PackedRLESequenceTestBase<Symb
 
     using Value = typename Seq::Value;
 
-    static const Int Blocks                 = Seq::Indexes;
-    static const Int VPB                    = Seq::ValuesPerBranch;
+    static const int32_t Blocks                 = Seq::Indexes;
+    static const int32_t VPB                    = Seq::ValuesPerBranch;
 
     using Base::getRandom;
     using Base::createEmptySequence;
@@ -133,16 +133,16 @@ public:
 
     void assertRank(const SeqPtr& seq, size_t start, size_t end, Value symbol)
     {
-        Int localrank_  = seq->rank(start, end, symbol);
-        Int popc        = this->rank(seq, start, end, symbol);
+        int32_t localrank_  = seq->rank(start, end, symbol);
+        int32_t popc        = this->rank(seq, start, end, symbol);
 
         AssertEQ(MA_SRC, localrank_, popc);
     }
 
     void assertRank(const SeqPtr& seq, size_t end, Value symbol)
     {
-        Int rank = seq->rank(end, symbol);
-        Int popc = seq->rank(0, end, symbol);
+        int32_t rank = seq->rank(end, symbol);
+        int32_t popc = seq->rank(0, end, symbol);
 
         AssertEQ(MA_SRC, rank, popc, SBuf()<<end);
     }
@@ -181,9 +181,9 @@ public:
 
         fillRandom(seq, this->size_);
 
-        Int stop = seq->size() - 1;
+        int32_t stop = seq->size() - 1;
 
-        for (Int start = 0; start < seq->size(); start++)
+        for (int32_t start = 0; start < seq->size(); start++)
         {
             assertRank(seq, start, stop, 0);
             assertRank(seq, start, stop, Symbols - 1);
@@ -198,7 +198,7 @@ public:
 
         fillRandom(seq, this->size_);
 
-        for (Int c = 0; c <= seq->size(); c++)
+        for (int32_t c = 0; c <= seq->size(); c++)
         {
             assertRank(seq, c, 0);
         }

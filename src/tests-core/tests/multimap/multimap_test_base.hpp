@@ -51,18 +51,18 @@ public:
 
 protected:
 
-    static constexpr Int DataStreams = Ctr::Types::DataStreams;
+    static constexpr int32_t DataStreams = Ctr::Types::DataStreams;
 
     using DataSizesT = core::StaticVector<CtrSizeT, DataStreams>;
 
-    BigInt size             = 10000000;
-    Int level_limit         = 1000;
-    Int last_level_limit    = 100;
+    int64_t size             = 10000000;
+    int32_t level_limit         = 1000;
+    int32_t last_level_limit    = 100;
 
 
 
-    Int iterations = 0;
-    Int coverage_   = 0;
+    int32_t iterations = 0;
+    int32_t coverage_   = 0;
 
 public:
 
@@ -83,22 +83,22 @@ public:
     virtual ~MultiMapTestBase() throw () {}
 
 
-    virtual void smokeCoverage(Int size) {
+    virtual void smokeCoverage(int32_t size) {
         coverage_   = size;
         iterations  = 1;
     }
 
-    virtual void smallCoverage(Int size) {
+    virtual void smallCoverage(int32_t size) {
         coverage_   = size * 10;
         iterations  = 10;
     }
 
-    virtual void normalCoverage(Int size) {
+    virtual void normalCoverage(int32_t size) {
         coverage_   = size * 100;
         iterations  = 100;
     }
 
-    virtual void largeCoverage(Int size) {
+    virtual void largeCoverage(int32_t size) {
         coverage_   = size * 1000;
         iterations  = 1000;
     }
@@ -107,7 +107,7 @@ public:
         return sampleTreeShape(level_limit, last_level_limit, size);
     }
 
-    DataSizesT sampleTreeShape(Int level_limit, Int last_level_limit, CtrSizeT size)
+    DataSizesT sampleTreeShape(int32_t level_limit, int32_t last_level_limit, CtrSizeT size)
     {
         DataSizesT shape;
 
@@ -116,11 +116,11 @@ public:
 
         while(shape[0] == 0)
         {
-            BigInt resource = size;
+            int64_t resource = size;
 
-            for (Int c = DataStreams - 1; c > 0; c--)
+            for (int32_t c = DataStreams - 1; c > 0; c--)
             {
-                Int level_size = getRandom(limits[c]) + ((c == DataStreams - 1)? 10 : 1);
+                int32_t level_size = getRandom(limits[c]) + ((c == DataStreams - 1)? 10 : 1);
 
                 shape[c] = level_size;
 

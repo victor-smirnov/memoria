@@ -23,9 +23,9 @@ namespace memoria {
 namespace v1 {
 
 
-template <typename List, Int Len> struct SublistFromStart;
+template <typename List, int32_t Len> struct SublistFromStart;
 
-template <typename T, T Head, T... Tail, Int Len>
+template <typename T, T Head, T... Tail, int32_t Len>
 struct SublistFromStart<ValueList<T, Head, Tail...>, Len> {
     static_assert(Len >= 0, "Len parameter must be >= 0");
     static_assert(Len <= sizeof...(Tail) + 1, "Len parameter must be <= the Length of value list");
@@ -51,7 +51,7 @@ struct SublistFromStart<ValueList<T>, 0> {
 
 
 
-template <typename Head, typename... Tail, Int Len>
+template <typename Head, typename... Tail, int32_t Len>
 struct SublistFromStart<TypeList<Head, Tail...>, Len> {
     static_assert(Len >= 0, "Len parameter must be >= 0");
     static_assert(Len <= sizeof...(Tail) + 1, "Len parameter must be <= the Length of value list");
@@ -74,7 +74,7 @@ struct SublistFromStart<TypeList<>, 0> {
 
 
 
-template <typename List, Int From> struct SublistToEnd;
+template <typename List, int32_t From> struct SublistToEnd;
 
 template <typename T, T Head, T... Tail>
 struct SublistToEnd<ValueList<T, Head, Tail...>, 0> {
@@ -87,7 +87,7 @@ struct SublistToEnd<ValueList<T>, 0> {
 };
 
 
-template <typename T, T Head, T ... Tail, Int From>
+template <typename T, T Head, T ... Tail, int32_t From>
 struct SublistToEnd<ValueList<T, Head, Tail...>, From> {
     static_assert(From >= 0, "Form must be >= 0");
     static_assert(From < sizeof...(Tail) + 1, "Form must be <= length of the list");
@@ -107,7 +107,7 @@ struct SublistToEnd<TypeList<>, 0> {
     using Type = TypeList<>;
 };
 
-template <typename Head, typename... Tail, Int From>
+template <typename Head, typename... Tail, int32_t From>
 struct SublistToEnd<TypeList<Head, Tail...>, From> {
     static_assert(From >= 0, "Form must be >= 0");
     static_assert(From <= sizeof...(Tail) + 1, "Form must be <= length of the list");
@@ -117,7 +117,7 @@ struct SublistToEnd<TypeList<Head, Tail...>, From> {
 
 
 
-template <typename List, Int From, Int To>
+template <typename List, int32_t From, int32_t To>
 struct Sublist {
     static_assert(From <= To, "Form must be <= To");
 

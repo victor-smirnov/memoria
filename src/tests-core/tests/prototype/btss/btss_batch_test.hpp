@@ -67,21 +67,21 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
 
 public:
 
-    Int max_block_size_ = 1024;
-    Int check_size_     = 1000;
+    int32_t max_block_size_ = 1024;
+    int32_t check_size_     = 1000;
 
     UUID ctr_name_;
-    Int prefix_size_;
-    Int suffix_size_;
-    Int block_size_;
-    Int random_position_;
+    int32_t prefix_size_;
+    int32_t suffix_size_;
+    int32_t block_size_;
+    int32_t random_position_;
 
-    BigInt iteration_ = 0;
+    int64_t iteration_ = 0;
 
-    Int check_count_ = 0;
+    int32_t check_count_ = 0;
 
-    Int cnt_i_ = 0;
-    Int cnt_r_ = 0;
+    int32_t cnt_i_ = 0;
+    int32_t cnt_r_ = 0;
 
     typedef std::function<void (MyType*, Ctr&)> TestFn;
 
@@ -112,13 +112,13 @@ public:
         MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
     }
 
-    BigInt iteration() const {
+    int64_t iteration() const {
         return iteration_;
     }
 
     virtual ~BTSSBatchTest() noexcept {}
 
-    virtual MemBuffer createRandomBuffer(Int size)
+    virtual MemBuffer createRandomBuffer(int32_t size)
     {
         auto buffer = MemBuffer(size);
 
@@ -131,35 +131,35 @@ public:
     }
 
 
-    virtual BigInt getRandomPosition(Ctr& array)
+    virtual int64_t getRandomPosition(Ctr& array)
     {
         if (this->isReplayMode())
         {
             return random_position_;
         }
         else {
-            BigInt size = array.size();
+            int64_t size = array.size();
             return random_position_ = this->getBIRandom(size);
         }
     }
 
 
-    Int getRandomBufferSize(Int max)
+    int32_t getRandomBufferSize(int32_t max)
     {
         return this->getRandom(max - 1) + 1;
     }
 
     MemBuffer createSuffixCheckBuffer(Iterator& iter)
     {
-        BigInt length;
+        int64_t length;
 
         if (this->isReplayMode()) {
             length              = suffix_size_;
         }
         else {
-            BigInt current_pos  = iter.pos();
-            BigInt size         = iter.ctr().size();
-            BigInt remainder    = size - current_pos;
+            int64_t current_pos  = iter.pos();
+            int64_t size         = iter.ctr().size();
+            int64_t remainder    = size - current_pos;
 
             suffix_size_ = length = check_size_ >= remainder ? remainder : check_size_;
         }
@@ -179,13 +179,13 @@ public:
 
     MemBuffer createPrefixCheckBuffer(Iterator& iter)
     {
-        BigInt length;
+        int64_t length;
 
         if (this->isReplayMode()) {
             length              = prefix_size_;
         }
         else {
-            BigInt current_pos  = iter.pos();
+            int64_t current_pos  = iter.pos();
             prefix_size_ = length = check_size_ >= current_pos ? current_pos : check_size_;
         }
 
@@ -239,11 +239,11 @@ public:
         MemBuffer suffix = createSuffixCheckBuffer(iter);
         MemBuffer data   = createDataBuffer();
 
-        BigInt size = ctr.size();
+        int64_t size = ctr.size();
 
         iter.insert(data);
 
-        BigInt size2 = ctr.size();
+        int64_t size2 = ctr.size();
 
         AssertEQ(MA_SRC, size2, size + data.size());
 
@@ -279,7 +279,7 @@ public:
         MemBuffer prefix = createPrefixCheckBuffer(iter);
         MemBuffer data   = createDataBuffer();
 
-        BigInt position = iter.pos();
+        int64_t position = iter.pos();
 
 //         BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
 //         iter->insert_iobuffer(&provider);
@@ -366,13 +366,13 @@ public:
 
     void removeFromStart(Ctr& ctr)
     {
-        Int size;
+        int32_t size;
 
         if (this->isReplayMode()) {
             size = block_size_;
         }
         else {
-            BigInt ctr_size = ctr.size();
+            int64_t ctr_size = ctr.size();
             block_size_ = size = getRandomBufferSize(ctr_size < max_block_size_ ? ctr_size : max_block_size_);
         }
 
@@ -403,9 +403,9 @@ public:
 
     void removeAtEnd(Ctr& ctr)
     {
-        Int size;
+        int32_t size;
 
-        BigInt ctr_size = ctr.size();
+        int64_t ctr_size = ctr.size();
 
         if (this->isReplayMode()) {
             size = block_size_;
@@ -420,7 +420,7 @@ public:
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
 
-        BigInt last_size = ctr.size();
+        int64_t last_size = ctr.size();
 
         iter.remove(size);
 
@@ -453,7 +453,7 @@ public:
     {
         auto iter = ctr.seek(getRandomPosition(ctr));
 
-        BigInt size;
+        int64_t size;
 
         if (this->isReplayMode()) {
             size = block_size_;
@@ -476,7 +476,7 @@ public:
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
 
-        BigInt position = iter.pos();
+        int64_t position = iter.pos();
 
         iter.skip(size);
 
@@ -520,7 +520,7 @@ public:
 
         iteration_ = 0;
 
-        BigInt size = 0;
+        int64_t size = 0;
 
         while (size < this->size_)
         {
@@ -561,7 +561,7 @@ public:
 
         iteration_ = 0;
 
-        BigInt size = ctr.size();
+        int64_t size = ctr.size();
 
         while (size > 0)
         {

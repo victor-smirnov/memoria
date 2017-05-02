@@ -65,7 +65,7 @@ void CtrApiBTSSBase<CtrName, Profile>::operator=(CtrApiBTSSBase&& other)
 
 
 template <typename CtrName, typename Profile>
-BigInt CtrApiBTSSBase<CtrName, Profile>::size()
+int64_t CtrApiBTSSBase<CtrName, Profile>::size()
 {
     return pimpl_->size();
 }
@@ -124,7 +124,7 @@ typename CtrApiBTSSBase<CtrName, Profile>::Iterator CtrApiBTSSBase<CtrName, Prof
 }
 
 template <typename CtrName, typename Profile>
-typename CtrApiBTSSBase<CtrName, Profile>::Iterator CtrApiBTSSBase<CtrName, Profile>::seek(BigInt pos)
+typename CtrApiBTSSBase<CtrName, Profile>::Iterator CtrApiBTSSBase<CtrName, Profile>::seek(int64_t pos)
 {
     return this->pimpl_->seek(pos);
 }
@@ -228,7 +228,7 @@ void IterApiBTSSBase<CtrName, Profile>::remove()
 }
 
 template <typename CtrName, typename Profile>
-BigInt IterApiBTSSBase<CtrName, Profile>::remove(BigInt length)
+int64_t IterApiBTSSBase<CtrName, Profile>::remove(int64_t length)
 {
     return this->pimpl_->remove(length);
 }
@@ -260,47 +260,47 @@ void IterApiBTSSBase<CtrName, Profile>::check(std::ostream& out, const char* sou
 }
 
 template <typename CtrName, typename Profile>
-BigInt IterApiBTSSBase<CtrName, Profile>::read(CtrIOBuffer& buffer, BigInt size) 
+int64_t IterApiBTSSBase<CtrName, Profile>::read(CtrIOBuffer& buffer, int64_t size) 
 {
     return this->pimpl_->populate_buffer(&buffer, size);
 }
 
 template <typename CtrName, typename Profile>
-BigInt IterApiBTSSBase<CtrName, Profile>::read(bt::BufferConsumer<CtrIOBuffer>& consumer, BigInt size) 
+int64_t IterApiBTSSBase<CtrName, Profile>::read(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t size) 
 {
     return this->pimpl_->read_buffer(&consumer, size);
 }
 
 template <typename CtrName, typename Profile>
-BigInt IterApiBTSSBase<CtrName, Profile>::read(std::function<Int (CtrIOBuffer&, Int)> consumer, BigInt size) 
+int64_t IterApiBTSSBase<CtrName, Profile>::read(std::function<int32_t (CtrIOBuffer&, int32_t)> consumer, int64_t size) 
 {
-    BufferFnConsumer<CtrIOBuffer, std::function<Int (CtrIOBuffer&, Int)>> fn_consumer(consumer);
+    BufferFnConsumer<CtrIOBuffer, std::function<int32_t (CtrIOBuffer&, int32_t)>> fn_consumer(consumer);
     return this->pimpl_->read_buffer(&fn_consumer, size);
 }
 
 
 template <typename CtrName, typename Profile>
-BigInt IterApiBTSSBase<CtrName, Profile>::insert(bt::BufferProducer<CtrIOBuffer>& producer) 
+int64_t IterApiBTSSBase<CtrName, Profile>::insert(bt::BufferProducer<CtrIOBuffer>& producer) 
 {
     return this->pimpl_->insert_iobuffer(&producer);
 }
 
 template <typename CtrName, typename Profile>
-BigInt IterApiBTSSBase<CtrName, Profile>::insert(std::function<Int (CtrIOBuffer&)> producer)
+int64_t IterApiBTSSBase<CtrName, Profile>::insert(std::function<int32_t (CtrIOBuffer&)> producer)
 {
-    BufferFnProducer<CtrIOBuffer, std::function<Int (CtrIOBuffer&)>> fn_producer(producer);
+    BufferFnProducer<CtrIOBuffer, std::function<int32_t (CtrIOBuffer&)>> fn_producer(producer);
     return this->pimpl_->insert_iobuffer(&fn_producer);
 }
 
 
 template <typename CtrName, typename Profile>
-BigInt IterApiBTSSBase<CtrName, Profile>::pos()
+int64_t IterApiBTSSBase<CtrName, Profile>::pos()
 {
     return this->pimpl_->pos();
 }
 
 template <typename CtrName, typename Profile>
-BigInt IterApiBTSSBase<CtrName, Profile>::skip(BigInt offset)
+int64_t IterApiBTSSBase<CtrName, Profile>::skip(int64_t offset)
 {
     return this->pimpl_->skip(offset);
 }

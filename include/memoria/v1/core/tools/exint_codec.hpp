@@ -47,7 +47,7 @@ size_t EncodeExint(T* buffer, V value, size_t start)
 {
     //MEMORIA_V1_ASSERT(value, >=, 0);
 
-    UByte& byte_length = buffer[start];
+    uint8_t& byte_length = buffer[start];
 
     byte_length = 0;
 
@@ -80,8 +80,8 @@ template <typename T, typename V>
 struct ExintCodec {
 
     typedef T BufferType;
-    static const Int BitsPerOffset  = 4;
-    static const Int ElementSize    = 8; // In bits;
+    static const int32_t BitsPerOffset  = 4;
+    static const int32_t ElementSize    = 8; // In bits;
 
     const void* addr(const T* buffer, size_t pos) const {
         return &buffer[pos / sizeof(T)];
@@ -127,6 +127,6 @@ struct ExintCodec {
 };
 
 template <typename Value>
-using UByteExintCodec = ExintCodec<UByte, Value>;
+using UByteExintCodec = ExintCodec<uint8_t, Value>;
 
 }}

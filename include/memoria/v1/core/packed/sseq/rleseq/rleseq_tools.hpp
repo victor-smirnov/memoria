@@ -25,42 +25,42 @@ namespace v1 {
 namespace rleseq {
 
 class CountResult {
-    UBigInt count_;
-    Int symbol_;
+    uint64_t count_;
+    int32_t symbol_;
 public:
-    CountResult(UBigInt count, Int symbol): count_(count), symbol_(symbol) {}
+    CountResult(uint64_t count, int32_t symbol): count_(count), symbol_(symbol) {}
 
-    UBigInt count() const {return count_;}
-    Int symbol() const {return symbol_;}
+    uint64_t count() const {return count_;}
+    int32_t symbol() const {return symbol_;}
 };
 
 
 class RLESymbolsRun {
-    Int symbol_;
-    UBigInt length_;
+    int32_t symbol_;
+    uint64_t length_;
 public:
     constexpr RLESymbolsRun(): symbol_(0), length_(0) {}
-    constexpr RLESymbolsRun(Int symbol, UBigInt length): symbol_(symbol), length_(length) {}
+    constexpr RLESymbolsRun(int32_t symbol, uint64_t length): symbol_(symbol), length_(length) {}
 
-    Int symbol() const {return symbol_;}
-    UBigInt length() const {return length_;}
+    int32_t symbol() const {return symbol_;}
+    uint64_t length() const {return length_;}
 };
 
 
-template <Int Symbols>
-static constexpr RLESymbolsRun DecodeRun(UBigInt value)
+template <int32_t Symbols>
+static constexpr RLESymbolsRun DecodeRun(uint64_t value)
 {
-    constexpr UBigInt BitsPerSymbol = NumberOfBits(Symbols - 1);
-    constexpr Int SymbolMask = (1 << BitsPerSymbol) - 1;
+    constexpr uint64_t BitsPerSymbol = NumberOfBits(Symbols - 1);
+    constexpr int32_t SymbolMask = (1 << BitsPerSymbol) - 1;
 
     return RLESymbolsRun(value & SymbolMask, value >> BitsPerSymbol);
 }
 
-template <Int Symbols, Int MaxRunLength>
-static constexpr UBigInt EncodeRun(Int symbol, UBigInt length)
+template <int32_t Symbols, int32_t MaxRunLength>
+static constexpr uint64_t EncodeRun(int32_t symbol, uint64_t length)
 {
-    constexpr UBigInt BitsPerSymbol = NumberOfBits(Symbols - 1);
-    constexpr Int SymbolMask = (1 << BitsPerSymbol) - 1;
+    constexpr uint64_t BitsPerSymbol = NumberOfBits(Symbols - 1);
+    constexpr int32_t SymbolMask = (1 << BitsPerSymbol) - 1;
 
     if (length <= MaxRunLength)
     {

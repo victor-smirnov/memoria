@@ -35,8 +35,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
     using Container = typename Base::Container;
 
 
-    static const Int Streams          = Container::Types::Streams;
-    static const Int DataStreams      = Container::Types::DataStreams;
+    static const int32_t Streams          = Container::Types::Streams;
+    static const int32_t DataStreams      = Container::Types::DataStreams;
 
 
     using CtrSizeT  = typename Container::Types::CtrSizeT;
@@ -49,7 +49,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
 
 public:
     template <typename IOBuffer>
-    auto bulkio_insert(BufferProducer<IOBuffer>& provider, const Int initial_capacity = 20000)
+    auto bulkio_insert(BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
     {
         auto& self = this->self();
         return self.ctr().bulkio_insert(self, provider, initial_capacity);
@@ -60,46 +60,46 @@ protected:
     struct InsertSymbolFn {
 
         CtrSizeT one_;
-        const Int symbol_;
+        const int32_t symbol_;
 
-        InsertSymbolFn(Int symbol): one_(1), symbol_(symbol) {}
+        InsertSymbolFn(int32_t symbol): one_(1), symbol_(symbol) {}
 
-        const auto& get(const StreamTag<0>& , const StreamTag<0>&, Int block) const
+        const auto& get(const StreamTag<0>& , const StreamTag<0>&, int32_t block) const
         {
             return one_;
         }
 
-        const auto& get(const StreamTag<0>& , const StreamTag<1>&, Int block) const
+        const auto& get(const StreamTag<0>& , const StreamTag<1>&, int32_t block) const
         {
             return symbol_;
         }
     };
 
 
-    template <Int Stream, typename EntryFn>
+    template <int32_t Stream, typename EntryFn>
     void insert_entry(EntryFn&& entry)
     {
         auto& self = this->self();
 
         self.ctr().template insert_stream_entry<0>(self, 0, self.idx(), InsertSymbolFn(0));
 
-        Int key_idx = self.data_stream_idx(Stream - 1);
+        int32_t key_idx = self.data_stream_idx(Stream - 1);
         self.ctr().template insert_stream_entry<Stream>(self, Stream, key_idx, std::forward<EntryFn>(entry));
     }
 
 
 
 
-    SplitResult split(Int stream, Int target_idx)
+    SplitResult split(int32_t stream, int32_t target_idx)
     {
         auto& self  = this->self();
         auto& leaf  = self.leaf();
 
-        Int structure_size = self.structure_size();
+        int32_t structure_size = self.structure_size();
 
         if (structure_size > 1)
         {
-            Int split_idx = structure_size / 2;
+            int32_t split_idx = structure_size / 2;
 
             auto half_ranks = self.leafrank(split_idx);
             auto right      = self.ctr().split_leaf_p(leaf, half_ranks);
@@ -146,7 +146,7 @@ protected:
 
 
 
-//    template <Int StreamIdx, typename EntryBuffer>
+//    template <int32_t StreamIdx, typename EntryBuffer>
 //    SplitStatus _insert(const EntryBuffer& data)
 //    {
 //        auto& self  = this->self();

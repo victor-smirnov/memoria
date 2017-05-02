@@ -53,7 +53,7 @@ class CmdLine {
 
     const char*     out_folder_;
 
-    Int             count_;
+    int32_t             count_;
 
     String          coverage_;
     String          coverage_size_;
@@ -121,7 +121,7 @@ public:
         return replay_;
     }
 
-    Int getCount() const {
+    int32_t getCount() const {
         return count_;
     }
 

@@ -58,11 +58,11 @@ public:
 
 private:
     RootProvider* root_provider_;
-    Int owner_cpu_id_;
+    int32_t owner_cpu_id_;
 
 public:
 
-    PersistentTree(RootProvider* root_provider, Int owner_cpu_id):
+    PersistentTree(RootProvider* root_provider, int32_t owner_cpu_id):
         root_provider_(root_provider),
 		owner_cpu_id_(owner_cpu_id)
     {
@@ -103,7 +103,7 @@ public:
         }
     }
 
-    Int owner_cpu_id() const {return owner_cpu_id_;}
+    int32_t owner_cpu_id() const {return owner_cpu_id_;}
 
 
     NodeBasePtr root() {
@@ -119,7 +119,7 @@ public:
     }
 
 
-    BigInt size() const
+    int64_t size() const
     {
         return this->root()->metadata().size();
     }
@@ -285,7 +285,7 @@ protected:
             if (!node->is_leaf())
             {
                 auto branch_node = to_branch_node(node);
-                for (Int c = 0; c < branch_node->size(); c++)
+                for (int32_t c = 0; c < branch_node->size(); c++)
                 {
                     auto child = branch_node->data(c);
                     walk_tree(child, fn);
@@ -309,7 +309,7 @@ protected:
             else {
                 auto branch_node = to_branch_node(node);
 
-                for (Int c = 0; c < branch_node->size(); c++)
+                for (int32_t c = 0; c < branch_node->size(); c++)
                 {
                     auto child = branch_node->data(c);
 
@@ -339,7 +339,7 @@ protected:
 
         const LeafNodeT* leaf_node = to_leaf_node(node);
 
-        Int idx = leaf_node->find(key);
+        int32_t idx = leaf_node->find(key);
 
         if (idx < leaf_node->size() && leaf_node->key(idx) == key)
         {
@@ -370,7 +370,7 @@ protected:
 
         const LeafNodeT* leaf_node = to_leaf_node(node);
 
-        Int idx = leaf_node->find(key);
+        int32_t idx = leaf_node->find(key);
 
         iter.set_idx(idx);
 
@@ -426,7 +426,7 @@ protected:
 
         void lock_path(Path& path)
         {
-        	Int c = path.size() - 2;
+        	int32_t c = path.size() - 2;
 
         	try {
         		for (; c >= 0; c--)
@@ -436,7 +436,7 @@ protected:
         	}
         	catch (std::system_error& ex)
         	{
-        		for (Int d = c + 1; d < path.size() - 1; d++)
+        		for (int32_t d = c + 1; d < path.size() - 1; d++)
         		{
         			path[d]->unlock();
         		}
@@ -445,7 +445,7 @@ protected:
 
         void unlock_path(Path& path)
         {
-        	for (Int c = 0; c < path.size() - 1; c++)
+        	for (int32_t c = 0; c < path.size() - 1; c++)
         	{
         		path[c]->unlock();
         	}
@@ -472,7 +472,7 @@ protected:
     	}
     }
 
-    void clone_path(Path& path, Int level = 0)
+    void clone_path(Path& path, int32_t level = 0)
     {
         if (level < path.size() - 1)
         {
@@ -484,7 +484,7 @@ protected:
 
             parent = to_branch_node(path[level + 1]);
 
-            Int parent_idx = parent->find_child_node(node);
+            int32_t parent_idx = parent->find_child_node(node);
 
             NodeBaseT* clone = clone_node(node);
 
@@ -565,7 +565,7 @@ protected:
                 {
                     if (can_merge_paths(prev, iter.path()))
                     {
-                        Int prev_leaf_size = prev[0]->size();
+                        int32_t prev_leaf_size = prev[0]->size();
                         update_path(prev);
                         merge_paths(prev, iter.path());
 
@@ -580,17 +580,17 @@ protected:
 
 
 
-    void insert_child_node(BranchNodeT* node, Int idx, NodeBaseT* child)
+    void insert_child_node(BranchNodeT* node, int32_t idx, NodeBaseT* child)
     {
         node->insert(idx, child->max_key(), child);
         child->ref();
     }
 
-    void split_path(Path& path, Path& next, Int level = 0)
+    void split_path(Path& path, Path& next, int32_t level = 0)
     {
         NodeBaseT* node = path[level];
 
-        Int split_at = node->size() / 2;
+        int32_t split_at = node->size() / 2;
 
         NodeBaseT* right = create_node(level, this->txn_id());
         split_node(node, split_at, right);
@@ -598,7 +598,7 @@ protected:
         if (level < path.size() - 1)
         {
             BranchNodeT* parent = to_branch_node(path[level + 1]);
-            Int parent_idx      = parent->find_child_node(node);
+            int32_t parent_idx      = parent->find_child_node(node);
 
             parent->key(parent_idx) = node->max_key();
             parent->reindex();
@@ -619,7 +619,7 @@ protected:
                 {
                     path[level + 1] = next[level + 1];
 
-                    Int next_parent_idx      = parent_idx - parent->size();
+                    int32_t next_parent_idx      = parent_idx - parent->size();
                     BranchNodeT* next_parent = to_branch_node(next[level + 1]);
 
                     insert_child_node(next_parent, next_parent_idx + 1, right);
@@ -656,7 +656,7 @@ protected:
 
 
 
-    bool can_merge_paths(Path& path, Path& next, Int level = 0)
+    bool can_merge_paths(Path& path, Path& next, int32_t level = 0)
     {
         if (path[level]->capacity() >= next[level]->size())
         {
@@ -665,8 +665,8 @@ protected:
 
             if (next_parent == path_parent)
             {
-                Int path_parent_idx = next_parent->find_child_node(path[level]);
-                Int next_parent_idx = next_parent->find_child_node(next[level]);
+                int32_t path_parent_idx = next_parent->find_child_node(path[level]);
+                int32_t next_parent_idx = next_parent->find_child_node(next[level]);
 
                 return path_parent_idx == next_parent_idx - 1;
             }
@@ -679,7 +679,7 @@ protected:
         }
     }
 
-    void update_keys_up(Path& path, Int insertion_point, Int level)
+    void update_keys_up(Path& path, int32_t insertion_point, int32_t level)
     {
         if (level < path.size() - 1)
         {
@@ -688,7 +688,7 @@ protected:
             if (insertion_point >= node->size() - 1)
             {
                 NodeBaseT* parent = path[level + 1];
-                Int parent_idx = to_branch_node(parent)->find_child_node(node);
+                int32_t parent_idx = to_branch_node(parent)->find_child_node(node);
 
                 parent->key(parent_idx) = node->max_key();
                 parent->reindex();
@@ -699,7 +699,7 @@ protected:
     }
 
 
-    void merge_paths(Path& path, Path& next, Int level = 0)
+    void merge_paths(Path& path, Path& next, int32_t level = 0)
     {
         if (path[level + 1] != next[level + 1])
         {
@@ -710,7 +710,7 @@ protected:
         NodeBaseT* right = next[level];
 
         BranchNodeT* parent = to_branch_node(path[level + 1]);
-        Int parent_idx = parent->find_child_node(node);
+        int32_t parent_idx = parent->find_child_node(node);
 
         merge_from(node, right);
         parent->key(parent_idx) = node->max_key();
@@ -744,7 +744,7 @@ protected:
 
     void ref_children(BranchNodeT* node, const TxnId& txn_id)
     {
-        for (Int c = 0; c < node->size(); c++)
+        for (int32_t c = 0; c < node->size(); c++)
         {
             NodeBaseT* child = node->data(c);
 
@@ -752,7 +752,7 @@ protected:
         }
     }
 
-    NodeBaseT* create_node(Int level, const TxnId& txn_id)
+    NodeBaseT* create_node(int32_t level, const TxnId& txn_id)
     {
         if (level == 0) {
             return create_leaf_node(txn_id);
@@ -762,7 +762,7 @@ protected:
         }
     }
 
-    NodeBaseT* create_node(Int level)
+    NodeBaseT* create_node(int32_t level)
     {
         if (level == 0) {
             return create_leaf_node(this->txn_id());
@@ -772,7 +772,7 @@ protected:
         }
     }
 
-    NodeBaseT* clone_node(NodeBaseT* node, BigInt txn_id)
+    NodeBaseT* clone_node(NodeBaseT* node, int64_t txn_id)
     {
         if (node->is_leaf()) {
             return clone_leaf_node(to_leaf_node(node), txn_id);
@@ -819,7 +819,7 @@ protected:
     {
         auto clone = clone_node_t(node, txn_id);
 
-        for (Int c = 0; c < clone->size(); c++)
+        for (int32_t c = 0; c < clone->size(); c++)
         {
             clone->data(c).page_ptr()->ref();
         }
@@ -856,11 +856,11 @@ protected:
         }
     }
 
-    void ensure_node_budget(BigInt adjustment)
+    void ensure_node_budget(int64_t adjustment)
     {
     }
 
-    void split_node(NodeBaseT* node, Int split_idx, NodeBaseT* to) const
+    void split_node(NodeBaseT* node, int32_t split_idx, NodeBaseT* to) const
     {
         if (node->is_leaf())
         {

@@ -50,12 +50,12 @@ struct BTTypes<Profile, v1::Sequence<1, true> >: public BTTypes<Profile, v1::BTS
 
     typedef BTTypes<Profile, v1::BTSingleStream>                           Base;
 
-    typedef UBigInt                                                             Value;
-    typedef TypeList<BigInt>                                                    KeysList;
+    typedef uint64_t                                                             Value;
+    typedef TypeList<int64_t>                                                    KeysList;
 
-    static constexpr Int BitsPerSymbol                                          = 1;
-    static constexpr Int Symbols                                                = 2;
-    static constexpr Int BranchIndexes                                          = (1 << BitsPerSymbol) + 1;
+    static constexpr int32_t BitsPerSymbol                                          = 1;
+    static constexpr int32_t Symbols                                                = 2;
+    static constexpr int32_t BranchIndexes                                          = (1 << BitsPerSymbol) + 1;
 
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 

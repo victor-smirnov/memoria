@@ -30,40 +30,40 @@ class LOUDSIteratorCache: public bt::BTreeIteratorPrefixCache<Iterator, Containe
 
     typedef bt::BTreeIteratorPrefixCache<Iterator, Container>     Base;
 
-    BigInt pos_     = 0;
-    BigInt rank1_   = 0;
+    int64_t pos_     = 0;
+    int64_t rank1_   = 0;
 
 public:
 
     LOUDSIteratorCache(): Base() {}
 
-    BigInt pos() const {
+    int64_t pos() const {
         return pos_;
     }
 
-    BigInt rank1() const {
+    int64_t rank1() const {
         return rank1_;
     }
 
-    void setup(BigInt pos, BigInt rank1)
+    void setup(int64_t pos, int64_t rank1)
     {
         pos_    = pos;
         rank1_  = rank1;
     }
 
-    void add(BigInt pos, BigInt rank1)
+    void add(int64_t pos, int64_t rank1)
     {
         pos_    += pos;
         rank1_  += rank1;
     }
 
-    void sub(BigInt pos, BigInt rank1)
+    void sub(int64_t pos, int64_t rank1)
     {
         pos_    -= pos;
         rank1_  -= rank1;
     }
 
-    void setRank1(BigInt rank1)
+    void setRank1(int64_t rank1)
     {
         rank1_ = rank1;
     }

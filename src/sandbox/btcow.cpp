@@ -31,8 +31,8 @@ using namespace std;
 int main() {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using Key   = BigInt;
-    using Value = BigInt;
+    using Key   = int64_t;
+    using Value = int64_t;
 
     DInit<CowMap<Key, Value>>();
 

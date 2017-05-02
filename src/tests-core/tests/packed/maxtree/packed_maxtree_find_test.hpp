@@ -52,7 +52,7 @@ class PackedMaxTreeFindTest: public PackedMaxTreeTestBase<PackedTreeT> {
 
 public:
 
-    Int iterations_ = 1000;
+    int32_t iterations_ = 1000;
 
     PackedMaxTreeFindTest(StringRef name): Base(name)
     {
@@ -66,13 +66,13 @@ public:
     virtual ~PackedMaxTreeFindTest() noexcept {}
 
     template <typename Walker>
-    auto find_fw(const TreePtr& tree, Int block, IndexValue limit)
+    auto find_fw(const TreePtr& tree, int32_t block, IndexValue limit)
     {
-        Int end = tree->size();
+        int32_t end = tree->size();
 
         Walker walker(limit);
 
-        for (Int c = 0; c < end; c++)
+        for (int32_t c = 0; c < end; c++)
         {
             Value value = tree->value(block, c);
 
@@ -90,32 +90,32 @@ public:
 
     void testFindForward()
     {
-        for (Int c = 4; c < 1024; c *= 2)
+        for (int32_t c = 4; c < 1024; c *= 2)
         {
             testFindForward(c);
         }
 
-        for (Int c = 1024*3; c <= this->size_; c += 1024)
+        for (int32_t c = 1024*3; c <= this->size_; c += 1024)
         {
             testFindForward(c);
         }
     }
 
 
-    void testFindForward(Int tree_size)
+    void testFindForward(int32_t tree_size)
     {
         out()<<tree_size<<endl;
 
         auto tree = createEmptyTree();
         auto values = fillRandom(tree, tree_size);
 
-        Int size = tree->size();
+        int32_t size = tree->size();
 
-        for (Int c = 0; c < iterations_; c++)
+        for (int32_t c = 0; c < iterations_; c++)
         {
-            Int end     = this->getRandom(size);
+            int32_t end     = this->getRandom(size);
 
-            Int block   = this->getRandom(Tree::Blocks);
+            int32_t block   = this->getRandom(Tree::Blocks);
 
             auto max     = tree->value(block, end);
 

@@ -51,19 +51,19 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
 
     class PopulateIOBufferStatus {
-        Int processed_;
+        int32_t processed_;
         bool full_;
     public:
-        PopulateIOBufferStatus(Int processed, bool full):
+        PopulateIOBufferStatus(int32_t processed, bool full):
             processed_(processed), full_(full)
         {}
 
-        Int processed() const {return processed_;}
+        int32_t processed() const {return processed_;}
         bool is_full() const {return full_;}
     };
 
 
-    template <Int StreamIdx>
+    template <int32_t StreamIdx>
     struct PopulateIOBufferFn {
 
         bool proceed_ = true;
@@ -71,27 +71,27 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
         template <typename StructDescr>
         using ReadStateFn = HasType<typename StructDescr::Type::ReadState>;
 
-        template <Int SubstreamIdx, typename StreamObj, typename ReadState, typename IOBuffer>
+        template <int32_t SubstreamIdx, typename StreamObj, typename ReadState, typename IOBuffer>
         void stream(const StreamObj* obj, ReadState& state, IOBuffer& buffer)
         {
             proceed_ = proceed_ && obj->readTo(std::get<SubstreamIdx>(state), buffer);
         }
 
-        template <Int SubstreamIdx, typename StreamObj, typename ReadState>
-        void stream(const StreamObj* obj, ReadState& state, Int idx)
+        template <int32_t SubstreamIdx, typename StreamObj, typename ReadState>
+        void stream(const StreamObj* obj, ReadState& state, int32_t idx)
         {
             std::get<SubstreamIdx>(state) = obj->positions(idx);
         }
 
 
         template <typename NodeType, typename IOBuffer>
-        PopulateIOBufferStatus treeNode(const LeafNode<NodeType>* node, IOBuffer&& buffer, Int from, CtrSizeT to)
+        PopulateIOBufferStatus treeNode(const LeafNode<NodeType>* node, IOBuffer&& buffer, int32_t from, CtrSizeT to)
         {
             using Node = LeafNode<NodeType>;
 
             using ReadStatesTuple = AsTuple<typename Node::template MapStreamStructs<StreamIdx, ReadStateFn>>;
 
-            Int limit = node->size(StreamIdx);
+            int32_t limit = node->size(StreamIdx);
 
             if (to < limit) {
                 limit = to;
@@ -101,7 +101,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
             node->template processSubstreams<IntList<StreamIdx>>(*this, read_state, from);
 
-            for (Int c = from; c < limit; c++)
+            for (int32_t c = from; c < limit; c++)
             {
                 size_t current_pos = buffer.pos();
                 node->template processSubstreams<IntList<StreamIdx>>(*this, read_state, buffer);
@@ -119,14 +119,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
 
 
-    template <Int StreamIdx, typename IOBuffer>
+    template <int32_t StreamIdx, typename IOBuffer>
     CtrSizeT buffered_read(Iterator& iter, CtrSizeT length, IOBuffer& io_buffer, bt::BufferConsumer<IOBuffer>& consumer)
     {
     	CtrSizeT total = 0;
         io_buffer.rewind();
 
-        Int entries = 0;
-        Int committed_buffer_position_ = 0;
+        int32_t entries = 0;
+        int32_t committed_buffer_position_ = 0;
 
         while (total < length)
         {
@@ -141,7 +141,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
                 if (result.is_full())
                 {
                     io_buffer.flip();
-                    Int consumed = consumer.process(io_buffer, entries);
+                    int32_t consumed = consumer.process(io_buffer, entries);
                     io_buffer.moveRemainingToStart();
                     entries = 0;
 
@@ -171,7 +171,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
             else if (result.is_full())
             {
                 io_buffer.flip();
-                Int consumed = consumer.process(io_buffer, entries);
+                int32_t consumed = consumer.process(io_buffer, entries);
                 io_buffer.moveRemainingToStart();
                 entries = 0;
 
@@ -197,7 +197,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
         if (entries > 0)
         {
             io_buffer.flip();
-            Int consumed = consumer.process(io_buffer, entries);
+            int32_t consumed = consumer.process(io_buffer, entries);
             io_buffer.moveRemainingToStart();
 
             if (consumed < 0)
@@ -218,7 +218,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
 
 
-    template <Int StreamIdx, typename IOBuffer>
+    template <int32_t StreamIdx, typename IOBuffer>
     CtrSizeT populate_buffer(Iterator& iter, CtrSizeT length, IOBuffer& io_buffer)
     {
         CtrSizeT total = 0;
