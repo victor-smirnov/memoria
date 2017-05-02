@@ -32,73 +32,57 @@ namespace memoria {
 namespace v1 {
 
 template <typename CtrName, typename Profile> 
-class CtrApiBTSSBase {
+class CtrApiBTSSBase: public CtrApiBase<CtrName, Profile> {
+    using Base = CtrApiBase<CtrName, Profile>;
 protected:    
-    using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
-    using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
-    using CtrPtr     = std::shared_ptr<CtrT>;
+    using typename Base::AllocatorT;
+    using typename Base::CtrPtr;
 
-    using Iterator   = IterApi<CtrName, Profile>;
-    
-    CtrPtr pimpl_;
+    using Iterator = IterApi<CtrName, Profile>;
     
 public:
-    CtrApiBTSSBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name);
-    CtrApiBTSSBase(CtrPtr ptr);
-    ~CtrApiBTSSBase();
+    CtrApiBTSSBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name):
+        Base(allocator, command, name) 
+    {}
+        
+    CtrApiBTSSBase(CtrPtr ptr): Base(ptr) {}
     
-    CtrApiBTSSBase(const CtrApiBTSSBase&);
-    CtrApiBTSSBase(CtrApiBTSSBase&&);
+    CtrApiBTSSBase(const CtrApiBTSSBase& other): Base(other) {}
+    CtrApiBTSSBase(CtrApiBTSSBase&& other): Base(std::move(other)) {}
     
-    void operator=(const CtrApiBTSSBase& other);
-    void operator=(CtrApiBTSSBase&& other);
-    
-    bool operator==(const CtrApiBTSSBase& other) const;
-    operator bool() const;
+    void operator=(const CtrApiBTSSBase& other) {Base::operator=(other);}
+    void operator=(CtrApiBTSSBase&& other) {Base::operator=(std::move(other));}
     
     Iterator begin();
     Iterator end();
     Iterator seek(int64_t pos);
     
     int64_t size();
-    
-    UUID name();
-    const ContainerMetadataPtr& metadata();
-    static void init();
-    void new_page_size(int size);
 };
 
 
 template <typename CtrName, typename Profile> 
-class IterApiBTSSBase {
+class IterApiBTSSBase: public IterApiBase<CtrName, Profile> {
+    using Base = IterApiBase<CtrName, Profile>;
 protected:    
     
-    using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
-    using IterT     = SharedIter<CtrName, Profile>;
-    using IterPtr   = std::shared_ptr<IterT>;
-    using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
-    using CtrPtr     = std::shared_ptr<CtrT>;
-     
-    IterPtr pimpl_;
+    using typename Base::AllocatorT;
+    using typename Base::IterT;
+    using typename Base::IterPtr;
+    using typename Base::CtrT;
+    using typename Base::CtrPtr;
     
 public:
     using Iterator  = IterApi<CtrName, Profile>;
     
-    IterApiBTSSBase(IterPtr ptr);
-    ~IterApiBTSSBase();
+    IterApiBTSSBase(IterPtr ptr): Base(ptr) {}
+    ~IterApiBTSSBase() {}
     
-    IterApiBTSSBase(const IterApiBTSSBase&);
-    IterApiBTSSBase(IterApiBTSSBase&&);
+    IterApiBTSSBase(const IterApiBTSSBase& other): Base(other) {}
+    IterApiBTSSBase(IterApiBTSSBase&& other): Base(std::move(other)) {}
     
-    bool operator==(const IterApiBTSSBase& other) const;
-    bool operator!=(const IterApiBTSSBase& other) const;
-    
-    operator bool() const;
-    
-    void operator=(const IterApiBTSSBase& other);
-    void operator=(IterApiBTSSBase&& other);
-    
-    CtrApi<CtrName, Profile> ctr();
+    void operator=(const IterApiBTSSBase& other) {Base::operator=(other);}
+    void operator=(IterApiBTSSBase&& other)      {Base::operator=(std::move(other));}
     
     bool is_end() const;
     
@@ -108,21 +92,13 @@ public:
     void remove();
     int64_t remove(int64_t length);
     
-    void dump();
-    void dump_path();
-    void check(std::ostream& out, const char* source);
-    
     int64_t pos();
     int64_t skip(int64_t offset);
-    
-    Iterator clone();
-    
     
     int64_t read(CtrIOBuffer& buffer, int64_t size = 10000000);
     int64_t read(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t size = 10000000);
     
     int64_t read(std::function<int32_t (CtrIOBuffer&, int32_t)> consumer, int64_t size = 10000000);
-    
     
     int64_t insert(bt::BufferProducer<CtrIOBuffer>& producer);
     int64_t insert(std::function<int32_t (CtrIOBuffer&)> producer);

@@ -18,7 +18,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
-
+#include <memoria/v1/core/container/allocator.hpp>
 
 
 namespace memoria {
@@ -33,6 +33,74 @@ template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Profile> class SharedIter;
 
+
+template <typename CtrName, typename Profile> 
+class CtrApiBase {
+protected:    
+    using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
+    using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
+    using CtrPtr     = std::shared_ptr<CtrT>;
+
+    CtrPtr pimpl_;
+    
+public:
+    CtrApiBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name);
+    CtrApiBase(CtrPtr ptr);
+    ~CtrApiBase();
+    
+    CtrApiBase(const CtrApiBase&);
+    CtrApiBase(CtrApiBase&&);
+    
+    void operator=(const CtrApiBase& other);
+    void operator=(CtrApiBase&& other);
+    
+    bool operator==(const CtrApiBase& other) const;
+    operator bool() const;
+    
+    UUID name();
+    const ContainerMetadataPtr& metadata();
+    static void init();
+    void new_page_size(int size);
+};
+
+
+template <typename CtrName, typename Profile> 
+class IterApiBase {
+protected:    
+    
+    using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
+    using IterT      = SharedIter<CtrName, Profile>;
+    using IterPtr    = std::shared_ptr<IterT>;
+    using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
+    using CtrPtr     = std::shared_ptr<CtrT>;
+     
+    IterPtr pimpl_;
+    
+public:
+    using Iterator  = IterApi<CtrName, Profile>;
+    
+    IterApiBase(IterPtr ptr);
+    ~IterApiBase();
+    
+    IterApiBase(const IterApiBase&);
+    IterApiBase(IterApiBase&&);
+    
+    bool operator==(const IterApiBase& other) const;
+    bool operator!=(const IterApiBase& other) const;
+    
+    operator bool() const;
+    
+    void operator=(const IterApiBase& other);
+    void operator=(IterApiBase&& other);
+    
+    CtrApi<CtrName, Profile> ctr();
+    
+    Iterator clone();
+    
+    void dump();
+    void dump_path();
+    void check(std::ostream& out, const char* source);
+};
 
 
 template <typename CtrName, typename Profile>

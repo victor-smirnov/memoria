@@ -27,100 +27,24 @@
 namespace memoria {
 namespace v1 {
 
-template <typename CtrName, typename Profile>    
-CtrApiBTSSBase<CtrName, Profile>::CtrApiBTSSBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name):
-    pimpl_(std::make_shared<SharedCtr<CtrName, IWalkableAllocator<ProfilePageType<Profile>>, Profile>>(allocator, command, name))
-{}
-
-template <typename CtrName, typename Profile>    
-CtrApiBTSSBase<CtrName, Profile>::CtrApiBTSSBase(CtrPtr ptr):pimpl_(std::move(ptr))
-{}
-
-template <typename CtrName, typename Profile>
-CtrApiBTSSBase<CtrName, Profile>::~CtrApiBTSSBase() {}
-
-template <typename CtrName, typename Profile>
-CtrApiBTSSBase<CtrName, Profile>::CtrApiBTSSBase(const CtrApiBTSSBase& other): pimpl_(other.pimpl_)
-{}
-
-template <typename CtrName, typename Profile>
-CtrApiBTSSBase<CtrName, Profile>::CtrApiBTSSBase(CtrApiBTSSBase&& other): pimpl_(std::move(other.pimpl_))
-{}
-
-
-
-template <typename CtrName, typename Profile>
-void CtrApiBTSSBase<CtrName, Profile>::operator=(const CtrApiBTSSBase& other) 
-{
-    pimpl_ = other.pimpl_;
-}
-
-
-template <typename CtrName, typename Profile>
-void CtrApiBTSSBase<CtrName, Profile>::operator=(CtrApiBTSSBase&& other) 
-{
-    pimpl_ = std::move(other.pimpl_);
-}
-
-
 
 template <typename CtrName, typename Profile>
 int64_t CtrApiBTSSBase<CtrName, Profile>::size()
 {
-    return pimpl_->size();
+    return this->pimpl_->size();
 }
-
-
-template <typename CtrName, typename Profile>
-UUID CtrApiBTSSBase<CtrName, Profile>::name() 
-{
-    return this->pimpl_->name();
-}
-
-template <typename CtrName, typename Profile>
-const ContainerMetadataPtr& CtrApiBTSSBase<CtrName, Profile>::metadata() {
-    return CtrT::getMetadata();
-}
-
-
-template <typename CtrName, typename Profile>
-void CtrApiBTSSBase<CtrName, Profile>::init() {
-    CtrT::getMetadata();
-}
-
-template <typename CtrName, typename Profile>
-void CtrApiBTSSBase<CtrName, Profile>::new_page_size(int size) 
-{
-    this->pimpl_->setNewPageSize(size);
-}
-
-
-template <typename CtrName, typename Profile>
-bool CtrApiBTSSBase<CtrName, Profile>::operator==(const CtrApiBTSSBase& other) const 
-{
-    return this->pimpl_ == other.pimpl_;
-}
-
-template <typename CtrName, typename Profile>
-CtrApiBTSSBase<CtrName, Profile>::operator bool() const 
-{
-    return this->pimpl_ != nullptr;
-}
-
-
-
 
 template <typename CtrName, typename Profile>
 typename CtrApiBTSSBase<CtrName, Profile>::Iterator CtrApiBTSSBase<CtrName, Profile>::begin() 
 {
-    return pimpl_->begin();
+    return this->pimpl_->begin();
 }
 
 
 template <typename CtrName, typename Profile>
 typename CtrApiBTSSBase<CtrName, Profile>::Iterator CtrApiBTSSBase<CtrName, Profile>::end() 
 {
-    return pimpl_->end();
+    return this->pimpl_->end();
 }
 
 template <typename CtrName, typename Profile>
@@ -130,75 +54,6 @@ typename CtrApiBTSSBase<CtrName, Profile>::Iterator CtrApiBTSSBase<CtrName, Prof
 }
 
 
-
-
-
-
-
-
-
-
-
-
-template <typename CtrName, typename Profile>
-IterApiBTSSBase<CtrName, Profile>::IterApiBTSSBase(IterPtr ptr): pimpl_(ptr) {}
-
-
-template <typename CtrName, typename Profile>
-IterApiBTSSBase<CtrName, Profile>::IterApiBTSSBase(const IterApiBTSSBase& other): pimpl_(other.pimpl_) {}
-
-template <typename CtrName, typename Profile>
-IterApiBTSSBase<CtrName, Profile>::IterApiBTSSBase(IterApiBTSSBase&& other): pimpl_(std::move(other.pimpl_)) {}
-
-template <typename CtrName, typename Profile>
-IterApiBTSSBase<CtrName, Profile>::~IterApiBTSSBase() {}
-
-
-template <typename CtrName, typename Profile>
-void IterApiBTSSBase<CtrName, Profile>::operator=(const IterApiBTSSBase& other) 
-{
-    pimpl_ = other.pimpl_;
-}
-
-template <typename CtrName, typename Profile>
-void IterApiBTSSBase<CtrName, Profile>::operator=(IterApiBTSSBase&& other)
-{
-    pimpl_ = std::move(other.pimpl_);
-}
-
-
-template <typename CtrName, typename Profile>
-bool IterApiBTSSBase<CtrName, Profile>::operator==(const IterApiBTSSBase& other) const 
-{
-    if (pimpl_ && other.pimpl_ && (&pimpl_->ctr() == &other.pimpl_->ctr())) 
-    {
-        return pimpl_->isEqual(*other.pimpl_.get());
-    }
-    else if ((!pimpl_) && (!other.pimpl_)) 
-    {
-        return true;
-    }
-    
-    return false;
-}
-
-template <typename CtrName, typename Profile>
-bool IterApiBTSSBase<CtrName, Profile>::operator!=(const IterApiBTSSBase& other) const 
-{
-    return !operator==(other);
-}
-
-template <typename CtrName, typename Profile>
-IterApiBTSSBase<CtrName, Profile>::operator bool() const 
-{
-    return pimpl_ != nullptr;
-}
-
-template <typename CtrName, typename Profile>
-CtrApi<CtrName, Profile> IterApiBTSSBase<CtrName, Profile>::ctr() 
-{
-    return std::static_pointer_cast<CtrT>(pimpl_->ctr_ptr());
-}
 
 
 template <typename CtrName, typename Profile>
@@ -233,31 +88,8 @@ int64_t IterApiBTSSBase<CtrName, Profile>::remove(int64_t length)
     return this->pimpl_->remove(length);
 }
 
-template <typename CtrName, typename Profile>
-void IterApiBTSSBase<CtrName, Profile>::dump()
-{
-    return this->pimpl_->dump();
-}
-
-template <typename CtrName, typename Profile>
-void IterApiBTSSBase<CtrName, Profile>::dump_path()
-{
-    return this->pimpl_->dumpPath();
-}
 
 
-
-template <typename CtrName, typename Profile>
-typename IterApiBTSSBase<CtrName, Profile>::Iterator IterApiBTSSBase<CtrName, Profile>::clone()
-{
-    return this->pimpl_->clone();
-}
-
-template <typename CtrName, typename Profile>
-void IterApiBTSSBase<CtrName, Profile>::check(std::ostream& out, const char* source)
-{
-    return this->pimpl_->check(out, source);
-}
 
 template <typename CtrName, typename Profile>
 int64_t IterApiBTSSBase<CtrName, Profile>::read(CtrIOBuffer& buffer, int64_t size) 

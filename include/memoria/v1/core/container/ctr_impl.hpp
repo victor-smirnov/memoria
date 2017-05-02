@@ -24,6 +24,9 @@
 
 namespace memoria {
 namespace v1 {
+    
+    
+    
 
 template <typename CtrName, typename Allocator, typename Profile>
 class SharedCtr: public CtrTF<Profile, CtrName, CtrName>::Type {
@@ -64,6 +67,188 @@ public:
     SharedIter(const IterT& other): Base(other) {}
 };
 
+
+
+
+
+
+
+template <typename CtrName, typename Profile>    
+CtrApiBase<CtrName, Profile>::CtrApiBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name):
+    pimpl_(std::make_shared<SharedCtr<CtrName, IWalkableAllocator<ProfilePageType<Profile>>, Profile>>(allocator, command, name))
+{}
+
+template <typename CtrName, typename Profile>    
+CtrApiBase<CtrName, Profile>::CtrApiBase(CtrPtr ptr):pimpl_(std::move(ptr))
+{}
+
+template <typename CtrName, typename Profile>
+CtrApiBase<CtrName, Profile>::~CtrApiBase() {}
+
+template <typename CtrName, typename Profile>
+CtrApiBase<CtrName, Profile>::CtrApiBase(const CtrApiBase& other): pimpl_(other.pimpl_)
+{}
+
+template <typename CtrName, typename Profile>
+CtrApiBase<CtrName, Profile>::CtrApiBase(CtrApiBase&& other): pimpl_(std::move(other.pimpl_))
+{}
+
+
+
+template <typename CtrName, typename Profile>
+void CtrApiBase<CtrName, Profile>::operator=(const CtrApiBase& other) 
+{
+    pimpl_ = other.pimpl_;
+}
+
+
+template <typename CtrName, typename Profile>
+void CtrApiBase<CtrName, Profile>::operator=(CtrApiBase&& other) 
+{
+    pimpl_ = std::move(other.pimpl_);
+}
+
+
+
+
+
+template <typename CtrName, typename Profile>
+UUID CtrApiBase<CtrName, Profile>::name() 
+{
+    return this->pimpl_->name();
+}
+
+template <typename CtrName, typename Profile>
+const ContainerMetadataPtr& CtrApiBase<CtrName, Profile>::metadata() {
+    return CtrT::getMetadata();
+}
+
+
+template <typename CtrName, typename Profile>
+void CtrApiBase<CtrName, Profile>::init() {
+    CtrT::getMetadata();
+}
+
+template <typename CtrName, typename Profile>
+void CtrApiBase<CtrName, Profile>::new_page_size(int size) 
+{
+    this->pimpl_->setNewPageSize(size);
+}
+
+
+template <typename CtrName, typename Profile>
+bool CtrApiBase<CtrName, Profile>::operator==(const CtrApiBase& other) const 
+{
+    return this->pimpl_ == other.pimpl_;
+}
+
+template <typename CtrName, typename Profile>
+CtrApiBase<CtrName, Profile>::operator bool() const 
+{
+    return this->pimpl_ != nullptr;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+template <typename CtrName, typename Profile>
+IterApiBase<CtrName, Profile>::IterApiBase(IterPtr ptr): pimpl_(ptr) {}
+
+
+template <typename CtrName, typename Profile>
+IterApiBase<CtrName, Profile>::IterApiBase(const IterApiBase& other): pimpl_(other.pimpl_) {}
+
+template <typename CtrName, typename Profile>
+IterApiBase<CtrName, Profile>::IterApiBase(IterApiBase&& other): pimpl_(std::move(other.pimpl_)) {}
+
+template <typename CtrName, typename Profile>
+IterApiBase<CtrName, Profile>::~IterApiBase() {}
+
+
+template <typename CtrName, typename Profile>
+void IterApiBase<CtrName, Profile>::operator=(const IterApiBase& other) 
+{
+    pimpl_ = other.pimpl_;
+}
+
+template <typename CtrName, typename Profile>
+void IterApiBase<CtrName, Profile>::operator=(IterApiBase&& other)
+{
+    pimpl_ = std::move(other.pimpl_);
+}
+
+
+template <typename CtrName, typename Profile>
+bool IterApiBase<CtrName, Profile>::operator==(const IterApiBase& other) const 
+{
+    if (pimpl_ && other.pimpl_ && (&pimpl_->ctr() == &other.pimpl_->ctr())) 
+    {
+        return pimpl_->isEqual(*other.pimpl_.get());
+    }
+    else if ((!pimpl_) && (!other.pimpl_)) 
+    {
+        return true;
+    }
     
+    return false;
+}
+
+template <typename CtrName, typename Profile>
+bool IterApiBase<CtrName, Profile>::operator!=(const IterApiBase& other) const 
+{
+    return !operator==(other);
+}
+
+template <typename CtrName, typename Profile>
+IterApiBase<CtrName, Profile>::operator bool() const 
+{
+    return pimpl_ != nullptr;
+}
+
+template <typename CtrName, typename Profile>
+CtrApi<CtrName, Profile> IterApiBase<CtrName, Profile>::ctr() 
+{
+    return std::static_pointer_cast<CtrT>(pimpl_->ctr_ptr());
+}
+
+
+
+
+template <typename CtrName, typename Profile>
+void IterApiBase<CtrName, Profile>::dump()
+{
+    return this->pimpl_->dump();
+}
+
+template <typename CtrName, typename Profile>
+void IterApiBase<CtrName, Profile>::dump_path()
+{
+    return this->pimpl_->dumpPath();
+}
+
+
+template <typename CtrName, typename Profile>
+typename IterApiBase<CtrName, Profile>::Iterator IterApiBase<CtrName, Profile>::clone()
+{
+    return this->pimpl_->clone();
+}
+
+template <typename CtrName, typename Profile>
+void IterApiBase<CtrName, Profile>::check(std::ostream& out, const char* source)
+{
+    return this->pimpl_->check(out, source);
+}
+
+
+
+
 }
 }
