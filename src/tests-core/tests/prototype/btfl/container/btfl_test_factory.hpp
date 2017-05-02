@@ -142,7 +142,7 @@ public:
 
 
 template <int32_t DataStreams, PackedSizeType SizeType>
-struct TypeHash<BTFLTestCtr<DataStreams, SizeType>>:   UIntValue<
+struct TypeHash<BTFLTestCtr<DataStreams, SizeType>>:   UInt32Value<
     HashHelper<30011, DataStreams, (int32_t)SizeType>::Value
 > {};
 

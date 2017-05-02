@@ -61,7 +61,7 @@ public:
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
 
-                UIntValue<VERSION>,
+                UInt32Value<VERSION>,
                 decltype(block_size_),
                 decltype(layout_size_),
                 decltype(bitmap_size_)

@@ -107,7 +107,7 @@ struct CodecClassTF<Granularity::int8_t> {
 template <>
 struct CodecClassTF<Granularity::Bit> {
     template <typename V>
-    using Type = UBigIntEliasCodec<V>;
+    using Type = UInt64EliasCodec<V>;
 };
 
 

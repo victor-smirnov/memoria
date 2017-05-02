@@ -19,14 +19,14 @@ namespace memoria {
 namespace v1 {
 
 RngInt      int_generator;
-RngBigInt   bigint_generator;
+RngInt64   bigint_generator;
 
 
 RngInt& getGlobalIntGenerator() {
     return int_generator;
 }
 
-RngBigInt& getGlobalBigIntGenerator() {
+RngInt64& getGlobalInt64Generator() {
     return bigint_generator;
 }
 

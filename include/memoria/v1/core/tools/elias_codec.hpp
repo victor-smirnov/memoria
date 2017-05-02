@@ -196,7 +196,7 @@ struct EliasDeltaCodec {
 
 
 template <typename V>
-using UBigIntEliasCodec = EliasDeltaCodec<uint64_t, V>;
+using UInt64EliasCodec = EliasDeltaCodec<uint64_t, V>;
 
 
 

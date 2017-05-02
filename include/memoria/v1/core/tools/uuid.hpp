@@ -110,7 +110,7 @@ template <typename T>
 struct TypeHash;
 
 template <>
-struct TypeHash<UUID>: UIntValue<741231> {};
+struct TypeHash<UUID>: UInt32Value<741231> {};
 
 struct UUIDKeyHash
 {
@@ -124,8 +124,8 @@ struct UUIDKeyEq
 
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, UUID& value) {
-    value.hi() = in.readUBigInt();
-    value.lo() = in.readUBigInt();
+    value.hi() = in.readUInt64();
+    value.lo() = in.readUInt64();
     return in;
 }
 

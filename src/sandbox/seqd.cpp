@@ -44,7 +44,7 @@ int main(int argc, const char** argv, const char** envp) {
         auto iter = ctr.seek(0);
 
         using Provider = seq_dense::RandomSequenceInputProvider<CtrT>;
-        Provider provider(ctr, getGlobalBigIntGenerator(), 4000000, 1000000);
+        Provider provider(ctr, getGlobalInt64Generator(), 4000000, 1000000);
 
         ctr.insert(iter, provider);
 

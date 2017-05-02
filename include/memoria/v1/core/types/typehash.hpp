@@ -32,23 +32,23 @@ struct TypeHashes {
 
 
 template <>
-struct TypeHash<void>: UIntValue<1> {
+struct TypeHash<void>: UInt32Value<1> {
 public:
     typedef ValueList<uint32_t, 1>                                                  VList;
 };
 
-template <> struct TypeHash<int8_t>:      UIntValue<2> {};
-template <> struct TypeHash<uint8_t>:     UIntValue<3> {};
-template <> struct TypeHash<int16_t>:     UIntValue<4> {};
-template <> struct TypeHash<uint16_t>:    UIntValue<5> {};
-template <> struct TypeHash<int32_t>:       UIntValue<6> {};
-template <> struct TypeHash<uint32_t>:      UIntValue<7> {};
-template <> struct TypeHash<int64_t>:    UIntValue<8> {};
-template <> struct TypeHash<uint64_t>:   UIntValue<9> {};
-template <> struct TypeHash<float>:     UIntValue<10> {};
-template <> struct TypeHash<double>:    UIntValue<11> {};
+template <> struct TypeHash<int8_t>:      UInt32Value<2> {};
+template <> struct TypeHash<uint8_t>:     UInt32Value<3> {};
+template <> struct TypeHash<int16_t>:     UInt32Value<4> {};
+template <> struct TypeHash<uint16_t>:    UInt32Value<5> {};
+template <> struct TypeHash<int32_t>:       UInt32Value<6> {};
+template <> struct TypeHash<uint32_t>:      UInt32Value<7> {};
+template <> struct TypeHash<int64_t>:    UInt32Value<8> {};
+template <> struct TypeHash<uint64_t>:   UInt32Value<9> {};
+template <> struct TypeHash<float>:     UInt32Value<10> {};
+template <> struct TypeHash<double>:    UInt32Value<11> {};
 
-template <> struct TypeHash<EmptyValue>:    UIntValue<10> {};
+template <> struct TypeHash<EmptyValue>:    UInt32Value<10> {};
 
 
 
@@ -91,18 +91,18 @@ struct TypeHash<T[Size]> {
 
 
 template <typename Key, typename Value>
-struct TypeHash<Map<Key, Value>>:   UIntValue<
+struct TypeHash<Map<Key, Value>>:   UInt32Value<
     HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
 template <typename Key, typename Value>
-struct TypeHash<CowMap<Key, Value>>:   UIntValue<
+struct TypeHash<CowMap<Key, Value>>:   UInt32Value<
     HashHelper<1104, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
 
 template <typename Key>
-struct TypeHash<Set<Key>>:   UIntValue<
+struct TypeHash<Set<Key>>:   UInt32Value<
     HashHelper<1101, TypeHash<Key>::Value>::Value
 > {};
 
@@ -113,30 +113,30 @@ struct TypeHash<Set<Key>>:   UIntValue<
 
 
 template <typename T, Granularity gr>
-struct TypeHash<VLen<gr, T>>: UIntValue<
+struct TypeHash<VLen<gr, T>>: UInt32Value<
 
 HashHelper<1113, TypeHash<T>::Value, static_cast<uint32_t>(gr)>::Value
 > {};
 
 
 template <typename T>
-struct TypeHash<Vector<T>>: UIntValue<HashHelper<1300, TypeHash<T>::Value>::Value> {};
+struct TypeHash<Vector<T>>: UInt32Value<HashHelper<1300, TypeHash<T>::Value>::Value> {};
 
 
 
-template <> struct TypeHash<Root>: UIntValue<1400> {};
+template <> struct TypeHash<Root>: UInt32Value<1400> {};
 
 template <int32_t BitsPerSymbol, bool Dense>
-struct TypeHash<Sequence<BitsPerSymbol, Dense>>: UIntValue<HashHelper<1500, BitsPerSymbol, Dense>::Value> {};
+struct TypeHash<Sequence<BitsPerSymbol, Dense>>: UInt32Value<HashHelper<1500, BitsPerSymbol, Dense>::Value> {};
 
 template <typename T, Indexed sr>
-struct TypeHash<FLabel<T, sr> >: UIntValue<HashHelper<1610, (uint32_t)sr>::Value> {};
+struct TypeHash<FLabel<T, sr> >: UInt32Value<HashHelper<1610, (uint32_t)sr>::Value> {};
 
 template <int32_t BitsPerSymbol>
-struct TypeHash<FBLabel<BitsPerSymbol>>: UIntValue<HashHelper<1620, BitsPerSymbol>::Value> {};
+struct TypeHash<FBLabel<BitsPerSymbol>>: UInt32Value<HashHelper<1620, BitsPerSymbol>::Value> {};
 
 template <typename T, Indexed sr, Granularity gr>
-struct TypeHash<VLabel<T, gr, sr> >: UIntValue<HashHelper<1630, (uint32_t)sr, (uint32_t)gr>::Value> {};
+struct TypeHash<VLabel<T, gr, sr> >: UInt32Value<HashHelper<1630, (uint32_t)sr, (uint32_t)gr>::Value> {};
 
 
 template <typename... LabelDescriptors>
@@ -155,13 +155,13 @@ struct TypeHash<LabeledTree<TypeList<LabelDescriptors...>>>: TypeHash<LabeledTre
 
 
 template <typename CtrName>
-struct TypeHash<CtrWrapper<CtrName>>: UIntValue<HashHelper<1700, TypeHash<CtrName>::Value>::Value> {};
+struct TypeHash<CtrWrapper<CtrName>>: UInt32Value<HashHelper<1700, TypeHash<CtrName>::Value>::Value> {};
 
 template <>
-struct TypeHash<WT>: UIntValue<1800> {};
+struct TypeHash<WT>: UInt32Value<1800> {};
 
 template <>
-struct TypeHash<VTree>: UIntValue<1900> {};
+struct TypeHash<VTree>: UInt32Value<1900> {};
 
 
 
@@ -188,12 +188,12 @@ public:
 };
 
 template <typename Key, typename Value>
-struct TypeHash<Table<Key, Value, PackedSizeType::FIXED>>:   UIntValue<
+struct TypeHash<Table<Key, Value, PackedSizeType::FIXED>>:   UInt32Value<
     HashHelper<3098, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
 template <typename Key, typename Value>
-struct TypeHash<Table<Key, Value, PackedSizeType::VARIABLE>>:   UIntValue<
+struct TypeHash<Table<Key, Value, PackedSizeType::VARIABLE>>:   UInt32Value<
     HashHelper<3099, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 

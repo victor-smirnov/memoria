@@ -67,11 +67,11 @@ public:
 };
 
 using RngInt    = RNG<int32_t, RngEngine32>;
-using RngBigInt = RNG<int64_t, RngEngine64>;
+using RngInt64 = RNG<int64_t, RngEngine64>;
 
 
 RngInt& getGlobalIntGenerator();
-RngBigInt& getGlobalBigIntGenerator();
+RngInt64& getGlobalInt64Generator();
 
 int32_t     getRandomG();
 int32_t     getRandomG(int32_t max);

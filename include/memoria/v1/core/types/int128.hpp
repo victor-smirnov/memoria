@@ -23,7 +23,7 @@
 namespace memoria {
 namespace v1 {
 
-typedef __uint64_t         UInt128;
+typedef __uint64_t         UInt32128;
 typedef __int64_t          Int128;
 
 }
@@ -35,7 +35,7 @@ namespace std {
 //    return out;
 //}
 //
-//ostream& operator<<(ostream& out, const v1::UInt128& value) {
+//ostream& operator<<(ostream& out, const v1::UInt32128& value) {
 //    out<<value;
 //    return out;
 //}

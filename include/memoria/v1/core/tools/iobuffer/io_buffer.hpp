@@ -103,7 +103,7 @@ template <>
 struct IOBufferAdapter<uint32_t>: IOBufferAdapterBase<uint32_t> {
     template <typename IOBuffer>
     static uint32_t get(IOBuffer& buffer) {
-        return buffer.getUInt();
+        return buffer.getUInt32();
     }
 };
 
@@ -112,7 +112,7 @@ template <>
 struct IOBufferAdapter<int64_t>: IOBufferAdapterBase<int64_t> {
     template <typename IOBuffer>
     static int64_t get(IOBuffer& buffer) {
-        return buffer.getBigInt();
+        return buffer.getInt64();
     }
 };
 
@@ -120,7 +120,7 @@ template <>
 struct IOBufferAdapter<uint64_t>: IOBufferAdapterBase<uint64_t> {
     template <typename IOBuffer>
     static uint64_t get(IOBuffer& buffer) {
-        return buffer.getUBigInt();
+        return buffer.getUInt64();
     }
 };
 
@@ -184,7 +184,7 @@ struct IOBufferAdapter<UUID> {
     template <typename IOBuffer>
     static UUID get(IOBuffer& buffer)
     {
-        return UUID(buffer.getUBigInt(), buffer.getUBigInt());
+        return UUID(buffer.getUInt64(), buffer.getUInt64());
     }
 };
 

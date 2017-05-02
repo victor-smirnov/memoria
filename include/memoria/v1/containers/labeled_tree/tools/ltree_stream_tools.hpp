@@ -173,12 +173,12 @@ struct LabelVTreeBitTF: LabelVTreeNodeTFBase<Indexes> {
 //            Value,
 //            typename bt::ExtendIntType<Value>::Type,
 //            1,
-//            UBigIntI64Codec,
+//            UInt64I64Codec,
 //            PackedTreeBranchingFactor,
 //            PackedTreeEliasVPB
 //    > TreeTypes;
 
-    typedef PkdVDTreeT<int64_t, 1, UBigIntI64Codec, Value>                                                 LeafType;
+    typedef PkdVDTreeT<int64_t, 1, UInt64I64Codec, Value>                                                 LeafType;
 };
 
 
@@ -206,7 +206,7 @@ struct LeafTypeTF<FBLabel<BitsPerSymbol>> {
 
 template <typename T>
 struct LeafTypeTF<VLabel<T, Granularity::Bit, Indexed::Yes>> {
-    using Type = PkdVQTreeT<int64_t, 1, UBigIntI64Codec, T>;
+    using Type = PkdVQTreeT<int64_t, 1, UInt64I64Codec, T>;
 };
 
 template <typename T>
@@ -216,7 +216,7 @@ struct LeafTypeTF<VLabel<T, Granularity::int8_t, Indexed::Yes>> {
 
 template <typename T>
 struct LeafTypeTF<VLabel<T, Granularity::Bit, Indexed::No>> {
-    using Type = PkdVDArrayT<T, 1, UBigIntI64Codec>;
+    using Type = PkdVDArrayT<T, 1, UInt64I64Codec>;
 };
 
 template <typename T>

@@ -114,15 +114,15 @@ public:
         return readT<int32_t>();
     }
 
-    virtual uint32_t readUInt() {
+    virtual uint32_t readUInt32() {
         return readT<uint32_t>();
     }
 
-    virtual int64_t readBigInt() {
+    virtual int64_t readInt64() {
         return readT<int64_t>();
     }
 
-    virtual uint64_t readUBigInt() {
+    virtual uint64_t readUInt64() {
         return readT<uint64_t>();
     }
 

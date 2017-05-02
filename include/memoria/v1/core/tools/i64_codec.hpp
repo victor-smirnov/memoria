@@ -155,6 +155,6 @@ struct I64Codec {
 };
 
 template <typename Value>
-using UBigIntI64Codec = I64Codec<uint64_t, Value>;
+using UInt64I64Codec = I64Codec<uint64_t, Value>;
 
 }}

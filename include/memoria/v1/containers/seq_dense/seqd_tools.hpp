@@ -135,7 +135,7 @@ public:
 };
 
 
-template <typename CtrT, typename RngT = RngBigInt>
+template <typename CtrT, typename RngT = RngInt64>
 class RandomSequenceInputProvider: public SequenceInputProviderBase<CtrT> {
     using Base = SequenceInputProviderBase<CtrT>;
 

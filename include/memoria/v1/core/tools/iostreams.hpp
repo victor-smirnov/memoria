@@ -137,11 +137,11 @@ public:
     
     void read(int8_t& value) 
     {
-        value = readUInt8();
+        value = readUInt328();
     }
     
     
-    uint8_t readUInt8()
+    uint8_t readUInt328()
     {
         if (MMA1_UNLIKELY(!buffer_->has_capacity(type_size<uint8_t>())))
         {
@@ -153,7 +153,7 @@ public:
     
     void read(uint8_t& value) 
     {
-        value = readUInt8();
+        value = readUInt328();
     }
     
     
@@ -173,7 +173,7 @@ public:
     }
 
     
-    uint16_t readUInt16()
+    uint16_t readUInt3216()
     {
         if (MMA1_UNLIKELY(!buffer_->has_capacity(type_size<uint16_t>())))
         {
@@ -185,7 +185,7 @@ public:
     
     void read(uint16_t& value) 
     {
-        value = readUInt16();
+        value = readUInt3216();
     }
     
     
@@ -196,7 +196,7 @@ public:
             pull_and_ensure(type_size<int32_t>());
         }
         
-        return buffer_->getUInt();
+        return buffer_->getUInt32();
     }
     
     void read(int32_t& value) 
@@ -205,19 +205,19 @@ public:
     }
 
     
-    uint32_t readUInt32()
+    uint32_t readUInt3232()
     {
         if (MMA1_UNLIKELY(!buffer_->has_capacity(type_size<uint32_t>())))
         {
             pull_and_ensure(type_size<uint32_t>());
         }
         
-        return buffer_->getUInt();
+        return buffer_->getUInt32();
     }
     
     void read(uint32_t& value) 
     {
-        value = readUInt32();
+        value = readUInt3232();
     }
     
     
@@ -228,7 +228,7 @@ public:
             pull_and_ensure(type_size<int64_t>());
         }
         
-        return buffer_->getBigInt();
+        return buffer_->getInt64();
     }
     
     void read(int64_t& value) 
@@ -237,19 +237,19 @@ public:
     }
     
     
-    uint64_t readUInt64()
+    uint64_t readUInt3264()
     {
         if (MMA1_UNLIKELY(!buffer_->has_capacity(type_size<uint64_t>()))) 
         {
             pull_and_ensure(type_size<uint64_t>());
         }
         
-        return buffer_->getUBigInt();
+        return buffer_->getUInt64();
     }
     
     void read(uint64_t& value) 
     {
-        value = readUInt64();
+        value = readUInt3264();
     }
     
     

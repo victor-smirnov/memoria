@@ -39,9 +39,9 @@ struct InputStreamHandler {
     virtual int16_t readShort()           = 0;
     virtual uint16_t readUShort()         = 0;
     virtual int32_t readInt()               = 0;
-    virtual uint32_t readUInt()             = 0;
-    virtual int64_t readBigInt()         = 0;
-    virtual uint64_t readUBigInt()       = 0;
+    virtual uint32_t readUInt32()             = 0;
+    virtual int64_t readInt64()         = 0;
+    virtual uint64_t readUInt64()       = 0;
     virtual bool readBool()             = 0;
     virtual float readFloat()           = 0;
     virtual double readDouble()         = 0;
@@ -144,17 +144,17 @@ inline InputStreamHandler& operator>>(InputStreamHandler& in, int32_t& value) {
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, uint32_t& value) {
-    value = in.readUInt();
+    value = in.readUInt32();
     return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, int64_t& value) {
-    value = in.readBigInt();
+    value = in.readInt64();
     return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, uint64_t& value) {
-    value = in.readUBigInt();
+    value = in.readUInt64();
     return in;
 }
 
@@ -175,7 +175,7 @@ inline InputStreamHandler& operator>>(InputStreamHandler& in, double& value) {
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, String& value)
 {
-    int64_t size = in.readBigInt();
+    int64_t size = in.readInt64();
 
     value.clear();
     value.insert(0, size, 0);

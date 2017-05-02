@@ -58,7 +58,7 @@ protected:
     String  current_test_name_;
 
     RngInt      int_generator_;
-    RngBigInt   bigint_generator_;
+    RngInt64   bigint_generator_;
 
     size_t      soft_memlimit_;
     size_t      hard_memlimit_;
@@ -197,14 +197,14 @@ public:
     RngInt& getIntTestGenerator() {
         return int_generator_;
     }
-    RngBigInt& getBigIntTestGenerator() {
+    RngInt64& getInt64TestGenerator() {
         return bigint_generator_;
     }
 
     const RngInt& getIntGenerator() const {
         return int_generator_;
     }
-    const RngBigInt& getBigIntGenerator() const {
+    const RngInt64& getInt64Generator() const {
         return bigint_generator_;
     }
 

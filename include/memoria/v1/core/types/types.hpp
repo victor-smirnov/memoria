@@ -112,7 +112,7 @@ template <typename T, T V> struct ConstValue {
 };
 
 template <uint32_t Value>
-using UIntValue = ConstValue<uint32_t, Value>;
+using UInt32Value = ConstValue<uint32_t, Value>;
 
 template <int32_t Value>
 using IntValue = ConstValue<int32_t, Value>;
@@ -166,7 +166,7 @@ template <int32_t... Values>
 using IntList = ValueList<int32_t, Values...>;
 
 template <int32_t... Values>
-using UIntList = ValueList<uint32_t, Values...>;
+using UInt32List = ValueList<uint32_t, Values...>;
 
 
 

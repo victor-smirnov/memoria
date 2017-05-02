@@ -152,9 +152,9 @@ public:
         }
     }
 
-    uint32_t getUInt()
+    uint32_t getUInt32()
     {
-        assertRange(4, "getUInt()");
+        assertRange(4, "getUInt32()");
         uint32_t v = *T2T<const uint32_t*>(array_ + pos_);
 
         pos_ += 4;
@@ -177,9 +177,9 @@ public:
         }
     }
 
-    int64_t getBigInt()
+    int64_t getInt64()
     {
-        assertRange(8, "getBigInt()");
+        assertRange(8, "getInt64()");
         int64_t v = *T2T<const int64_t*>(array_ + pos_);
 
         pos_ += 8;
@@ -202,9 +202,9 @@ public:
         }
     }
 
-    uint64_t getUBigInt()
+    uint64_t getUInt64()
     {
-        assertRange(8, "getUBigInt()");
+        assertRange(8, "getUInt64()");
 
         uint64_t v = *T2T<const uint64_t*>(array_ + pos_);
 

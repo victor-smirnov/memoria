@@ -40,7 +40,7 @@ struct KeyConsumer: BufferConsumer<MMapIOBuffer> {
 	virtual int32_t process(MMapIOBuffer& buffer, int32_t entries)
 	{
 		for (int32_t e = 0; e < entries; e++) {
-			buffer.getBigInt();
+			buffer.getInt64();
 			total_++;
 		}
 

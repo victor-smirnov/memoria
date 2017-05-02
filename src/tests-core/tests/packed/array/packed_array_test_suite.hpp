@@ -38,10 +38,10 @@ public:
     PackedArrayTestSuite(): TestSuite("Packed.Array")
     {
         registerTask(new PackedArrayMiscTest<PkdVDArrayT<int64_t, 1, UByteExintCodec>>("Misc.VLD.Exint"));
-        registerTask(new PackedArrayMiscTest<PkdVDArrayT<int64_t, 1, UBigIntEliasCodec>>("Misc.VLD.Elias"));
+        registerTask(new PackedArrayMiscTest<PkdVDArrayT<int64_t, 1, UInt64EliasCodec>>("Misc.VLD.Elias"));
 
         registerTask(new PackedArrayInputBufferTest<PkdVDArrayT<int64_t, 4, UByteI7Codec>>("Buffer.4.VLD.I7"));
-        registerTask(new PackedArrayInputBufferTest<PkdVDArrayT<int64_t, 4, UBigIntEliasCodec>>("Buffer.4.VLD.Elias"));
+        registerTask(new PackedArrayInputBufferTest<PkdVDArrayT<int64_t, 4, UInt64EliasCodec>>("Buffer.4.VLD.Elias"));
 
         registerTask(new PackedArrayInputBufferTest<PkdFSQArrayT<int64_t, 4>>("Buffer.4.FSQ"));
     }

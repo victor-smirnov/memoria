@@ -172,9 +172,9 @@ public:
         }
     }
 
-    uint32_t getUInt()
+    uint32_t getUInt32()
     {
-        assertRange(4, "getUInt()");
+        assertRange(4, "getUInt32()");
         uint32_t v = 0;
 
         v = array_[pos_];
@@ -209,9 +209,9 @@ public:
         }
     }
 
-    int64_t getBigInt()
+    int64_t getInt64()
     {
-        assertRange(8, "getBigInt()");
+        assertRange(8, "getInt64()");
         int64_t v = 0;
 
         v = array_[pos_];
@@ -250,9 +250,9 @@ public:
         }
     }
 
-    uint64_t getUBigInt()
+    uint64_t getUInt64()
     {
-        assertRange(8, "getUBigInt()");
+        assertRange(8, "getUInt64()");
 
         uint64_t v = 0;
         v = array_[pos_];
