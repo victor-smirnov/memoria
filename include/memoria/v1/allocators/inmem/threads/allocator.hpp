@@ -21,6 +21,7 @@
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/latch.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
 
 #include "persistent_tree_node.hpp"
 #include "persistent_tree.hpp"
@@ -158,13 +159,6 @@ public:
 
     using MyType        = ThreadInMemAllocatorImpl<Profile>;
 
-
-    template <typename T>
-    using CtrSharedPtr = memoria::v1::CtrSharedPtr<Profile, T>;
-    
-    template <typename T>
-    using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<Profile, T>;
-    
     using Page          = PageType;
     using RCPagePtr		= persistent_inmem_thread::details::PagePtr<Page>;
 
@@ -459,8 +453,8 @@ public:
 
     using PersistentTreeT       = typename v1::persistent_inmem_thread::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
     using SnapshotT             = v1::persistent_inmem_thread::Snapshot<Profile, MyType>;
-    using SnapshotPtr           = CtrSharedPtr<SnapshotT>;
-    using AllocatorPtr          = std::shared_ptr<MyType>;
+    using SnapshotPtr           = SnpSharedPtr<SnapshotT>;
+    using AllocatorPtr          = AllocSharedPtr<MyType>;
 
     using TxnMap                = std::unordered_map<TxnId, HistoryNode*, UUIDKeyHash, UUIDKeyEq>;
 
@@ -618,7 +612,7 @@ public:
 
     static auto create()
     {
-        return std::make_shared<MyType>();
+        return alloc_make_shared<MyType>();
     }
 
     auto newId()
@@ -671,7 +665,7 @@ public:
 
             if (history_node->is_committed())
             {
-                return CtrMakeSharedPtr<SnapshotT>::make_shared(history_node, this->shared_from_this());
+                return snp_make_shared<SnapshotT>(history_node, this->shared_from_this());
             }
             if (history_node->is_data_locked())
             {
@@ -702,13 +696,13 @@ public:
 
             if (history_node->is_committed())
             {
-                return CtrMakeSharedPtr<SnapshotT>::make_shared(history_node, this->shared_from_this());
+                return snp_make_shared<SnapshotT>(history_node, this->shared_from_this());
             }
             else if (history_node->is_data_locked())
             {
             	if (history_node->references() == 0)
             	{
-            		return CtrMakeSharedPtr<SnapshotT>::make_shared(history_node, this->shared_from_this());
+            		return snp_make_shared<SnapshotT>(history_node, this->shared_from_this());
             	}
             	else {
             		throw Exception(MA_SRC, SBuf() << "Snapshot id " << history_node->txn_id() << " is locked and open");
@@ -730,7 +724,7 @@ public:
     	LockGuardT lock_guard(mutex_, std::adopt_lock);
     	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
 
-        return CtrMakeSharedPtr<SnapshotT>::make_shared(master_, this->shared_from_this());
+        return snp_make_shared<SnapshotT>(master_, this->shared_from_this());
     }
 
     persistent_inmem_thread::SnapshotMetadata<TxnId> describe_master() const
@@ -881,13 +875,13 @@ public:
         this->walkContainers(&walker);
     }
 
-    static std::shared_ptr<MyType> load(const char* file)
+    static AllocSharedPtr<MyType> load(const char* file)
     {
         auto fileh = FileInputStreamHandler::create(file);
         return load(fileh.get());
     }
 
-    static std::shared_ptr<MyType> load(InputStreamHandler *input)
+    static AllocSharedPtr<MyType> load(InputStreamHandler *input)
     {
         MyType* allocator = new MyType(0);
 
@@ -1049,7 +1043,7 @@ public:
         allocator->do_delete_dropped();
         allocator->pack();
 
-        return std::shared_ptr<MyType>(allocator);
+        return AllocSharedPtr<MyType>(allocator);
     }
 
 private:
@@ -1804,7 +1798,7 @@ template <typename Profile>
 ThreadInMemAllocator<Profile>::ThreadInMemAllocator() {}
 
 template <typename Profile>
-ThreadInMemAllocator<Profile>::ThreadInMemAllocator(std::shared_ptr<PImpl> impl): pimpl_(impl) {}
+ThreadInMemAllocator<Profile>::ThreadInMemAllocator(AllocSharedPtr<PImpl> impl): pimpl_(impl) {}
 
 template <typename Profile>
 ThreadInMemAllocator<Profile>::ThreadInMemAllocator(ThreadInMemAllocator&& other): pimpl_(std::move(other.pimpl_)) {}

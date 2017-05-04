@@ -32,7 +32,7 @@ public:
     AbstractTransaction() {}
 };
 
-
+/*
 template <typename T>
 struct StdMakeSharedPtr {
 	template <typename... Args>
@@ -48,7 +48,7 @@ struct StdMakeUniquePtr {
 		return std::make_unique<T>(std::forward<Args>(args)...);
 	}
 };
-
+*/
 
 template <
     typename Profile, typename IDValueType = int64_t, int FlagsCount = 32, typename TransactionType = AbstractTransaction
@@ -63,7 +63,7 @@ struct BasicContainerCollectionCfg {
 
     typedef AbstractAllocator                                                   AllocatorType;
 
-    template <typename T>
+    /*template <typename T>
     using CtrSharedPtr = std::shared_ptr<T>;
     
     template <typename T>
@@ -76,12 +76,13 @@ struct BasicContainerCollectionCfg {
     using CtrMakeSharedPtr = StdMakeSharedPtr<T>;
     
     template <typename T>
-    using CtrMakeUniquePtr = StdMakeUniquePtr<T>;
+    using CtrMakeUniquePtr = StdMakeUniquePtr<T>;*/
 };
 
 
 template <typename Profile> class ContainerCollectionCfg;
 
+/*
 template <typename Profile, typename T>
 using CtrSharedPtr = typename ContainerCollectionCfg<Profile>::Types::template CtrSharedPtr<T>;
 
@@ -98,7 +99,7 @@ using CtrMakeSharedPtr = typename ContainerCollectionCfg<Profile>::Types::templa
 
 template <typename Profile, typename T>
 using CtrMakeUniquePtr = typename ContainerCollectionCfg<Profile>::Types::template CtrMakeUniquePtr<T>;
-
+*/
 
 template <typename Profile>
 using ProfilePageType = typename ContainerCollectionCfg<Profile>::Types::Page;

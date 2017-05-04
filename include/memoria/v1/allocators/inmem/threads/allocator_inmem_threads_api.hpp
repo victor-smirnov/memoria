@@ -19,6 +19,7 @@
 #include <memoria/v1/core/tools/strings/strings.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
 
 #include <memoria/v1/api/common/ctr_api.hpp>
 #include <memoria/v1/core/container/container.hpp>
@@ -29,7 +30,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include <memory>
+
 
 namespace memoria {
 namespace v1 {
@@ -48,14 +49,14 @@ class ThreadInMemAllocator {
     using PImpl = persistent_inmem_thread::ThreadInMemAllocatorImpl<Profile>;
     using TxnId = UUID;
     
-    std::shared_ptr<PImpl> pimpl_;
+    AllocSharedPtr<PImpl> pimpl_;
 public:
     using SnapshotPtr   = ThreadInMemSnapshot<Profile>;
     using Page          = ProfilePageType<Profile>;
     
     ThreadInMemAllocator();
     
-    ThreadInMemAllocator(std::shared_ptr<PImpl> impl);
+    ThreadInMemAllocator(AllocSharedPtr<PImpl> impl);
     ThreadInMemAllocator(ThreadInMemAllocator&& impl);
     
     ThreadInMemAllocator(const ThreadInMemAllocator&);
@@ -110,7 +111,7 @@ class ThreadInMemSnapshot {
 
     using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
     
-    std::shared_ptr<PImpl> pimpl_;
+    AllocSharedPtr<PImpl> pimpl_;
     
 public:
     template <typename CtrName>
@@ -122,7 +123,7 @@ public:
 public:
     ThreadInMemSnapshot();
     
-    ThreadInMemSnapshot(std::shared_ptr<PImpl> impl);
+    ThreadInMemSnapshot(AllocSharedPtr<PImpl> impl);
     ThreadInMemSnapshot(ThreadInMemSnapshot&& impl);
     
     ThreadInMemSnapshot(const ThreadInMemSnapshot&);
@@ -191,8 +192,8 @@ public:
     Logger& logger();
     
 private:
-    std::shared_ptr<AllocatorT> snapshot_ref_creation_allowed();
-    std::shared_ptr<AllocatorT> snapshot_ref_opening_allowed();
+    AllocSharedPtr<AllocatorT> snapshot_ref_creation_allowed();
+    AllocSharedPtr<AllocatorT> snapshot_ref_opening_allowed();
 };
 
 

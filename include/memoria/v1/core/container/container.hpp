@@ -32,7 +32,9 @@
 #include <memoria/v1/core/container/dispatcher.hpp>
 #include <memoria/v1/core/container/defaults.hpp>
 #include <memoria/v1/core/container/macros.hpp>
-#include "../tools/pair.hpp"
+
+#include <memoria/v1/core/tools/pair.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
 
 #include <string>
 #include <memory>
@@ -105,7 +107,7 @@ public:
 
 
 template <typename TypesType>
-class CtrBase: public TypesType::Allocator, public CtrEnableSharedFromThis<typename TypesType::Profile, Ctr<TypesType>> {
+class CtrBase: public TypesType::Allocator, public CtrSharedFromThis<Ctr<TypesType>> {
 public:
 
     using ThisType  = CtrBase<TypesType>;
@@ -115,12 +117,6 @@ public:
     using Name              = ContainerTypeName;
     using Types             = TypesType;
     
-    template <typename T>
-    using CtrSharedPtr = memoria::v1::CtrSharedPtr<typename Types::Profile, T>;
-    
-    template <typename T>
-    using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<typename Types::Profile, T>;
-
     using Allocator = typename Types::Allocator;
     using ID        = typename Allocator::ID;
     using Page      = typename Allocator::Page;
@@ -238,7 +234,7 @@ public:
             {
             	auto ctr_name = MyType::getModelNameS(page);
 
-            	auto ctr_ptr = CtrMakeSharedPtr<MyType>::make_shared(
+            	auto ctr_ptr = ctr_make_shared<MyType>(
                     allocator,
                     root_id, 
                     CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash())
@@ -345,7 +341,7 @@ public:
         	});
         }
         
-        virtual std::shared_ptr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const std::shared_ptr<AllocatorBase>& allocator) 
+        virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const CtrSharedPtr<AllocatorBase>& allocator) 
         {
             Allocator* alloc = T2T<Allocator*>(allocator.get());
             
@@ -353,8 +349,8 @@ public:
 
             if (page)
             {
-            	return std::make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
-                    std::static_pointer_cast<Allocator>(allocator),
+            	return ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
+                    static_pointer_cast<Allocator>(allocator),
                     root_id, 
                     CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash())
                 );
@@ -397,22 +393,22 @@ protected:
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) const {
-        return CtrMakeSharedPtr<SharedIterator>::make_shared(this->shared_from_this(), std::forward<Args>(args)...);
+        return ctr_make_shared<SharedIterator>(this->shared_from_this(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) {
-        return CtrMakeSharedPtr<SharedIterator>::make_shared(this->shared_from_this(), std::forward<Args>(args)...);
+        return ctr_make_shared<SharedIterator>(this->shared_from_this(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) const {
-        return CtrMakeSharedPtr<SharedIterator>::make_shared(std::forward<Args>(args)...);
+        return ctr_make_shared<SharedIterator>(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) {
-        return CtrMakeSharedPtr<SharedIterator>::make_shared(std::forward<Args>(args)...);
+        return ctr_make_shared<SharedIterator>(std::forward<Args>(args)...);
     }
 
 
@@ -542,7 +538,7 @@ private:
     int32_t         master_ctr_type_hash_ = 0;
     
 protected:
-    typename Base::template CtrSharedPtr<Allocator> alloc_holder_;
+    CtrSharedPtr<Allocator> alloc_holder_;
 
 public:
 

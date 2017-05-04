@@ -43,9 +43,9 @@ class Iter<BTIterTypes<Types1>>: public IterStart<BTIterTypes<Types1>>
     typedef IterStart<BTIterTypes<Types1>>                                       Base;
     typedef Ctr<typename Types1::CtrTypes>                                       ContainerType;
 
-    typedef typename ContainerType::Types::NodeBaseG                            NodeBaseG;
+    typedef typename ContainerType::Types::NodeBaseG                             NodeBaseG;
 
-    using CtrPtr = CtrSharedPtr<typename Types1::Profile, ContainerType>;
+    using CtrPtr = CtrSharedPtr<ContainerType>;
 
 public:
 

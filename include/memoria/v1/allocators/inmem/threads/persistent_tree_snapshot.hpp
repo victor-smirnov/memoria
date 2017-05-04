@@ -26,6 +26,7 @@
 
 #include <memoria/v1/core/tools/pool.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
 #include <memoria/v1/containers/map/map_factory.hpp>
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
@@ -72,8 +73,7 @@ public:
 template <typename Profile, typename PersistentAllocator>
 class Snapshot:
         public IWalkableAllocator<ProfilePageType<Profile>>,
-        public CtrEnableSharedFromThis<
-            Profile, 
+        public SnpSharedFromThis<
             Snapshot<Profile, PersistentAllocator>
         >
 {    
@@ -84,24 +84,15 @@ class Snapshot:
     using PersistentTreeT   = typename PersistentAllocator::PersistentTreeT;
     
     using MyType            = Snapshot<Profile, PersistentAllocator>;
-    
-    
-    
-    template <typename T>
-    using CtrSharedPtr      = memoria::v1::CtrSharedPtr<Profile, T>;
-    
-    template <typename T>
-    using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<Profile, T>;
 
-    using PersistentAllocatorPtr    = CtrSharedPtr<PersistentAllocator>;
-    using SnapshotPtr       = CtrSharedPtr<MyType>;
+    using PersistentAllocatorPtr = AllocSharedPtr<PersistentAllocator>;
+    using SnapshotPtr            = SnpSharedPtr<MyType>;
+    using AllocatorPtr           = AllocSharedPtr<Base>;
     
-    using AllocatorPtr      = CtrSharedPtr<Base>;
-    
-
     using NodeBaseT         = typename PersistentTreeT::NodeBaseT;
     using LeafNodeT         = typename PersistentTreeT::LeafNodeT;
     using PTreeValue        = typename LeafNodeT::Value;
+    
     using RCPagePtr			= typename std::remove_pointer<typename PersistentTreeT::Value::Value>::type;
 
     using Status            = typename HistoryNode::Status;
@@ -133,7 +124,7 @@ public:
     using CtrT = v1::SharedCtr<CtrName, IWalkableAllocator<ProfilePageType<Profile>>, Profile>;
 
     template <typename CtrName>
-    using CtrPtr = std::shared_ptr<CtrT<CtrName>>;
+    using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
     using typename Base::Page;
     using typename Base::ID;
@@ -212,7 +203,7 @@ public:
             ctr_op = CTR_FIND;
         }
 
-        root_map_ = CtrMakeSharedPtr<RootMapType>::make_shared(this, ctr_op, UUID());
+        root_map_ = ctr_make_shared<RootMapType>(this, ctr_op, UUID());
     }
 
     Snapshot(HistoryNode* history_node, PersistentAllocator* history_tree):
@@ -237,7 +228,7 @@ public:
             ctr_op = CTR_FIND;
         }
 
-        root_map_ = CtrMakeSharedPtr<RootMapType>::make_shared(this, ctr_op, UUID());
+        root_map_ = ctr_make_shared<RootMapType>(this, ctr_op, UUID());
     }
     
 //    virtual ~Snapshot()
@@ -487,7 +478,7 @@ public:
 
             history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
-            return CtrMakeSharedPtr<Snapshot>::make_shared(history_node, history_tree_->shared_from_this());
+            return snp_make_shared<Snapshot>(history_node, history_tree_->shared_from_this());
         }
         else if (history_node_->is_data_locked())
         {
@@ -516,7 +507,7 @@ public:
         if (history_node_->parent())
         {
             HistoryNode* history_node = history_node_->parent();
-            return CtrMakeSharedPtr<Snapshot>::make_shared(history_node, history_tree_->shared_from_this());
+            return snp_make_shared<Snapshot>(history_node, history_tree_->shared_from_this());
         }
         else
         {
@@ -1160,28 +1151,28 @@ public:
     auto find_or_create(const UUID& name)
     {
     	checkIfConainersCreationAllowed();
-        return CtrMakeSharedPtr<CtrT<CtrName>>::make_shared(this->shared_from_this(), CTR_FIND | CTR_CREATE, name);
+        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND | CTR_CREATE, name);
     }
 
     template <typename CtrName>
     auto create(const UUID& name)
     {
     	checkIfConainersCreationAllowed();
-        return CtrMakeSharedPtr<CtrT<CtrName>>::make_shared(this->shared_from_this(), CTR_CREATE, name);
+        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_CREATE, name);
     }
 
     template <typename CtrName>
     auto create()
     {
     	checkIfConainersCreationAllowed();
-        return CtrMakeSharedPtr<CtrT<CtrName>>::make_shared(this->shared_from_this(), CTR_CREATE, CTR_DEFAULT_NAME);
+        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_CREATE, CTR_DEFAULT_NAME);
     }
 
     template <typename CtrName>
     auto find(const UUID& name)
     {
     	checkIfConainersOpeneingAllowed();
-        return CtrMakeSharedPtr<CtrT<CtrName>>::make_shared(this->shared_from_this(), CTR_FIND, name);
+        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND, name);
     }
 
     void pack_allocator()
@@ -1189,7 +1180,7 @@ public:
     	this->history_tree_raw_->pack();
     }
     
-    std::shared_ptr<CtrReferenceable> get(const UUID& name) {
+    CtrSharedPtr<CtrReferenceable> get(const UUID& name) {
         UUID root_id = getRootID(name);
 
         if (root_id.is_set())
@@ -1451,25 +1442,25 @@ protected:
 }
 
 template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
+auto create(const SnpSharedPtr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
 {
     return alloc->template create<CtrName>(name);
 }
 
 template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc)
+auto create(const SnpSharedPtr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc)
 {
     return alloc->template create<CtrName>();
 }
 
 template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto find_or_create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
+auto find_or_create(const SnpSharedPtr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
 {
     return alloc->template find_or_create<CtrName>(name);
 }
 
 template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto find(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
+auto find(const SnpSharedPtr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
 {
     return alloc->template find<CtrName>(name);
 }
@@ -1508,7 +1499,7 @@ ThreadInMemSnapshot<Profile>::ThreadInMemSnapshot() {}
 
 
 template <typename Profile>
-ThreadInMemSnapshot<Profile>::ThreadInMemSnapshot(std::shared_ptr<PImpl> impl): pimpl_(impl) {}
+ThreadInMemSnapshot<Profile>::ThreadInMemSnapshot(SnpSharedPtr<PImpl> impl): pimpl_(impl) {}
 
 template <typename Profile>
 ThreadInMemSnapshot<Profile>::ThreadInMemSnapshot(ThreadInMemSnapshot<Profile>&& other): pimpl_(std::move(other.pimpl_)) {}
@@ -1700,18 +1691,18 @@ ContainerMetadataRepository* ThreadInMemSnapshot<Profile>::metadata() const
 
 
 template <typename Profile>
-std::shared_ptr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_creation_allowed() 
+SnpSharedPtr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_creation_allowed() 
 {
     pimpl_->checkIfConainersCreationAllowed();
-    return std::static_pointer_cast<IWalkableAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
+    return static_pointer_cast<IWalkableAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
 }
 
 
 template <typename Profile>
-std::shared_ptr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_opening_allowed() 
+SnpSharedPtr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_opening_allowed() 
 {
     pimpl_->checkIfConainersOpeneingAllowed();
-    return std::static_pointer_cast<IWalkableAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
+    return static_pointer_cast<IWalkableAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
 }
 
 

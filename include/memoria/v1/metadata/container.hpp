@@ -24,6 +24,7 @@
 #include <memoria/v1/core/tools/assert.hpp>
 #include <memoria/v1/core/tools/platform.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -146,12 +147,12 @@ struct ContainerInterface {
 
     virtual void for_each_ctr_node(const UUID& name, void* allocator, BlockCallbackFn consumer) = 0;
     
-    virtual std::shared_ptr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const std::shared_ptr<AllocatorBase>& allocator) = 0;
+    virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const CtrSharedPtr<AllocatorBase>& allocator) = 0;
 
     virtual ~ContainerInterface() {}
 };
 
-using ContainerInterfacePtr = std::shared_ptr<ContainerInterface>;
+using ContainerInterfacePtr = CtrSharedPtr<ContainerInterface>;
 
 
 template <typename Profile> class MetadataRepository;

@@ -22,6 +22,7 @@
 #include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/types/typemap.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
 
 #include <memoria/v1/core/tools/id.hpp>
 #include <memoria/v1/core/tools/config.hpp>
@@ -35,13 +36,13 @@ namespace memoria {
 namespace v1 {
 
 struct Metadata;
-using MetadataPtr           = std::shared_ptr<Metadata>;
+using MetadataPtr           = CtrSharedPtr<Metadata>;
 
 struct PageMetadata;
-using PageMetadataPtr       = std::shared_ptr<PageMetadata>;
+using PageMetadataPtr       = CtrSharedPtr<PageMetadata>;
 
 struct ContainerMetadata;
-using ContainerMetadataPtr  = std::shared_ptr<ContainerMetadata>;
+using ContainerMetadataPtr  = CtrSharedPtr<ContainerMetadata>;
 
 struct ContainerCollection;
 struct Container;

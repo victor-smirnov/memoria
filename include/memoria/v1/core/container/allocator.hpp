@@ -47,7 +47,7 @@ struct ICtrDirectory: public AllocatorBase {
 };
 
 struct IAllocatorProperties {
-    virtual int32_t defaultPageSize() const                                         = 0;
+    virtual int32_t defaultPageSize() const                                      = 0;
 
     virtual int64_t lastCommitId() const                                         = 0;
     virtual void setLastCommitId(int64_t txn_id)                                 = 0;
@@ -77,9 +77,9 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
     virtual PageG updatePage(Shared* shared, const UUID& name)                  = 0;
     virtual void  removePage(const ID& id, const UUID&name)                     = 0;
-    virtual PageG createPage(int32_t initial_size, const UUID& name)                = 0;
+    virtual PageG createPage(int32_t initial_size, const UUID& name)            = 0;
 
-    virtual void  resizePage(Shared* page, int32_t new_size)                        = 0;
+    virtual void  resizePage(Shared* page, int32_t new_size)                    = 0;
     virtual void  releasePage(Shared* shared) noexcept                          = 0;
     virtual PageG getPageG(Page* page)                                          = 0;
 
@@ -105,8 +105,7 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
 template <typename PageType>
 struct IWalkableAllocator: IAllocator<PageType> {
-    virtual bool check()                                                        = 0;
-
+    virtual bool check() = 0;
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr) = 0;
 };
 

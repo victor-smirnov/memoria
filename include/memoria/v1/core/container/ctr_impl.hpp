@@ -32,13 +32,13 @@ template <typename CtrName, typename Allocator, typename Profile>
 class SharedCtr: public CtrTF<Profile, CtrName, CtrName>::Type {
     using Base = typename CtrTF<Profile, CtrName, CtrName>::Type;
 public:
-    SharedCtr(const std::shared_ptr<Allocator>& allocator, int32_t command, const UUID& name):
+    SharedCtr(const CtrSharedPtr<Allocator>& allocator, int32_t command, const UUID& name):
         Base(allocator.get(), command, name)
     {
         Base::alloc_holder_ = allocator;
     }
     
-    SharedCtr(const std::shared_ptr<Allocator>& allocator, const UUID& root_id, const CtrInitData& ctr_init_data):
+    SharedCtr(const CtrSharedPtr<Allocator>& allocator, const UUID& root_id, const CtrInitData& ctr_init_data):
         Base(allocator.get(), root_id, ctr_init_data)
     {
         Base::alloc_holder_ = allocator;
@@ -54,7 +54,7 @@ class SharedIter: public Iter<typename CtrTF<Profile, CtrName, CtrName>::Types::
     using CtrT = typename CtrTF<Profile, CtrName, CtrName>::Type;
     using IterT = Iter<typename CtrTF<Profile, CtrName, CtrName>::Types::IterTypes>;
 
-    using CtrPtr = CtrSharedPtr<Profile, CtrT>;
+    using CtrPtr = CtrSharedPtr<CtrT>;
     
     using Base = Iter<typename CtrTF<Profile, CtrName, CtrName>::Types::IterTypes>;
 public:
@@ -76,7 +76,7 @@ public:
 
 
 template <typename CtrName, typename Profile>    
-CtrApiBase<CtrName, Profile>::CtrApiBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name):
+CtrApiBase<CtrName, Profile>::CtrApiBase(const CtrSharedPtr<AllocatorT>& allocator, int command, const UUID& name):
     pimpl_(std::make_shared<SharedCtr<CtrName, IWalkableAllocator<ProfilePageType<Profile>>, Profile>>(allocator, command, name))
 {}
 

@@ -18,6 +18,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
 #include <memoria/v1/core/container/allocator.hpp>
 
 
@@ -37,7 +38,7 @@ template <typename CtrName, typename Profile> class SharedIter;
 
 template <typename Profile = DefaultProfile<>>
 class CtrRef {
-    using CtrPtrT = std::shared_ptr<CtrReferenceable>;
+    using CtrPtrT = CtrSharedPtr<CtrReferenceable>;
     CtrPtrT ptr_;
 public:
     CtrRef() {}
@@ -75,13 +76,13 @@ class CtrApiBase {
 public:    
     using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
-    using CtrPtr     = std::shared_ptr<CtrT>;
+    using CtrPtr     = CtrSharedPtr<CtrT>;
 
 protected:    
     CtrPtr pimpl_;
     
 public:
-    CtrApiBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name);
+    CtrApiBase(const CtrSharedPtr<AllocatorT>& allocator, int command, const UUID& name);
     CtrApiBase(CtrPtr ptr);
     CtrApiBase();
     ~CtrApiBase();
@@ -115,9 +116,9 @@ protected:
     
     using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
     using IterT      = SharedIter<CtrName, Profile>;
-    using IterPtr    = std::shared_ptr<IterT>;
+    using IterPtr    = CtrSharedPtr<IterT>;
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
-    using CtrPtr     = std::shared_ptr<CtrT>;
+    using CtrPtr     = CtrSharedPtr<CtrT>;
      
     IterPtr pimpl_;
     
@@ -175,7 +176,7 @@ CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__;\
 
 
 #define MMA1_DECLARE_CTRAPI_BASIC_METHODS()                                            \
-    CtrApi(const std::shared_ptr<AllocatorT>& allocator, int32_t command, const UUID& name):\
+    CtrApi(const CtrSharedPtr<AllocatorT>& allocator, int32_t command, const UUID& name):   \
         Base(allocator, command, name) {}                                                   \
     ~CtrApi() {}                                                                            \
                                                                                             \

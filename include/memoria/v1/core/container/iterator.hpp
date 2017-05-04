@@ -23,6 +23,8 @@
 
 #include <memoria/v1/core/container/logs.hpp>
 
+#include <memoria/v1/core/tools/memory.hpp>
+
 #include <memory>
 #include "../tools/pair.hpp"
 
@@ -79,7 +81,7 @@ class IterStart: public IterHelper<ListSize<typename Types1::List>::Value - 1, T
     using Base      = IterHelper<ListSize<typename Types1::List>::Value - 1, Types1>;
     using ContainerType = Ctr<typename Types1::CtrTypes>;
 
-    using CtrPtr = CtrSharedPtr<typename Types1::Profile, ContainerType>;
+    using CtrPtr    = CtrSharedPtr<ContainerType>;
 
     CtrPtr ctr_ptr_;
     ContainerType* model_;
