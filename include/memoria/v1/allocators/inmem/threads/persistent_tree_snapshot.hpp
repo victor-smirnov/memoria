@@ -133,8 +133,7 @@ public:
 
 
 private:
-    using RootMapType = Ctr<typename CtrTF<Profile, Map<UUID, ID>>::CtrTypes>;
-
+    using RootMapType = CtrT<Map<UUID, ID>>;
 
     class Properties: public IAllocatorProperties {
     public:
@@ -178,6 +177,8 @@ private:
     
     CtrSharedPtr<RootMapType> root_map_;
 
+    int32_t ctr_op_;
+    
 public:
 
     Snapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
@@ -192,18 +193,14 @@ public:
         
     	history_node_->ref();
 
-        int32_t ctr_op;
-
         if (history_node->is_active())
         {
             history_tree_raw_->ref_active();
-            ctr_op = CTR_CREATE | CTR_FIND;
+            ctr_op_ = CTR_CREATE | CTR_FIND;
         }
         else {
-            ctr_op = CTR_FIND;
+            ctr_op_ = CTR_FIND;
         }
-
-        root_map_ = ctr_make_shared<RootMapType>(this, ctr_op, UUID());
     }
 
     Snapshot(HistoryNode* history_node, PersistentAllocator* history_tree):
@@ -217,18 +214,21 @@ public:
         
     	history_node_->ref();
 
-        int32_t ctr_op;
-
         if (history_node->is_active())
         {
             history_tree_raw_->ref_active();
-            ctr_op = CTR_CREATE | CTR_FIND;
+            ctr_op_ = CTR_CREATE | CTR_FIND;
         }
         else {
-            ctr_op = CTR_FIND;
+            ctr_op_ = CTR_FIND;
         }
-
-        root_map_ = ctr_make_shared<RootMapType>(this, ctr_op, UUID());
+    }
+    
+    void post_init() 
+    {
+        auto ptr = this->shared_from_this();
+        root_map_ = ctr_make_shared<RootMapType>(ptr, ctr_op_, UUID());
+        root_map_->reset_allocator_holder();
     }
     
 //    virtual ~Snapshot()
@@ -291,6 +291,10 @@ public:
 
     		// FIXME: check if absence of snapshot lock here leads to data races...
     	}
+    }
+    
+    virtual SnpSharedPtr<IAllocator<ProfilePageType<Profile>>> self_ptr() {
+        return this->shared_from_this();
     }
     
     virtual bool is_castable_to(int type_code) const {
@@ -399,7 +403,7 @@ public:
 
             auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
-            ctr_meta->getCtrInterface()->drop(root_id, name, this);
+            ctr_meta->getCtrInterface()->drop(root_id, name, this->shared_from_this());
 
             return true;
         }
@@ -478,7 +482,7 @@ public:
 
             history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
-            return snp_make_shared<Snapshot>(history_node, history_tree_->shared_from_this());
+            return snp_make_shared_init<Snapshot>(history_node, history_tree_->shared_from_this());
         }
         else if (history_node_->is_data_locked())
         {
@@ -507,7 +511,7 @@ public:
         if (history_node_->parent())
         {
             HistoryNode* history_node = history_node_->parent();
-            return snp_make_shared<Snapshot>(history_node, history_tree_->shared_from_this());
+            return snp_make_shared_init<Snapshot>(history_node, history_tree_->shared_from_this());
         }
         else
         {
@@ -527,7 +531,7 @@ public:
 
     		auto ctr_meta   = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
-    		ctr_meta->getCtrInterface()->for_each_ctr_node(name, this, fn);
+    		ctr_meta->getCtrInterface()->for_each_ctr_node(name, this->shared_from_this(), fn);
     	}
     	else {
     		throw Exception(MA_SRC, SBuf() << "Container with name " << name << " does not exist in snapshot " << history_node_->txn_id());
@@ -1078,7 +1082,7 @@ public:
 
             auto ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
-            result = ctr_meta->getCtrInterface()->check(page->id(), ctr_name, this) || result;
+            result = ctr_meta->getCtrInterface()->check(page->id(), ctr_name, this->shared_from_this()) || result;
 
             iter->next();
         }
@@ -1115,7 +1119,7 @@ public:
 
             auto ctr_meta   = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
-            ctr_meta->getCtrInterface()->walk(page->id(), ctr_name, this, walker);
+            ctr_meta->getCtrInterface()->walk(page->id(), ctr_name, this->shared_from_this(), walker);
 
             iter->next();
         }

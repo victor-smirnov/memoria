@@ -22,6 +22,7 @@
 #include <memoria/v1/core/tools/reflection.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
 
 #include <memoria/v1/metadata/container.hpp>
 
@@ -138,23 +139,26 @@ public:
     template <typename, typename, typename> friend class CtrPart;
     template <typename> friend class Ctr;
 
-	using MutexT			= std::mutex;
-    using LockGuardT		= std::lock_guard<MutexT>;
-
-
-
 protected:
     ID root_;
 
     CtrInitData init_data_;
 
     PairPtr pair_;
+    
+    CtrSharedPtr<Allocator> allocator_holder_;
 
 public:
-    CtrBase(const CtrInitData& data): init_data_(data)
+    CtrBase(const CtrInitData& data, const CtrSharedPtr<Allocator>& allocator): 
+        init_data_(data),
+        allocator_holder_(allocator)
     {}
 
     virtual ~CtrBase() throw () {}
+    
+    void reset_allocator_holder() {
+        allocator_holder_.reset();
+    }
     
     virtual bool is_castable_to(int type_code) const {
         return TypeHash<ContainerTypeName>::Value == type_code;
@@ -226,7 +230,7 @@ public:
             return TypeNameFactory<Name>::name();
         }
 
-        void with_ctr(const UUID& root_id, const UUID& name, Allocator* allocator, std::function<void(MyType&)> fn) const
+        void with_ctr(const UUID& root_id, const UUID& name, const SnpSharedPtr<Allocator>& allocator, std::function<void(MyType&)> fn) const
         {
             PageG page = allocator->getPage(root_id, name);
 
@@ -247,11 +251,11 @@ public:
             }
         }
 
-        virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const
+        virtual bool check(const UUID& root_id, const UUID& name, const SnpSharedPtr<AllocatorBase>& allocator) const
         {
             bool result = false;
 
-            Allocator* alloc = T2T<Allocator*>(allocator);
+            SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
 
             with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 result = ctr.check(nullptr);
@@ -263,11 +267,11 @@ public:
         virtual void walk(
                 const UUID& root_id,
                 const UUID& name,
-                void* allocator,
+                const SnpSharedPtr<AllocatorBase>& allocator,
                 ContainerWalker* walker
         ) const
         {
-        	Allocator* alloc = T2T<Allocator*>(allocator);
+        	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
 
             with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 ctr.walkTree(walker);
@@ -276,11 +280,11 @@ public:
 
         virtual void walk(
                 const UUID& name,
-                void* allocator,
+                const SnpSharedPtr<AllocatorBase>& allocator,
                 ContainerWalker* walker
         ) const
         {
-        	Allocator* alloc = T2T<Allocator*>(allocator);
+        	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
         	auto root_id 	 = alloc->getRootID(name);
 
         	with_ctr(root_id, name, alloc, [&](MyType& ctr){
@@ -288,9 +292,9 @@ public:
             });
         }
 
-        virtual void drop(const UUID& root_id, const UUID& name, void* allocator)
+        virtual void drop(const UUID& root_id, const UUID& name, const SnpSharedPtr<AllocatorBase>& allocator)
         {
-        	Allocator* alloc = T2T<Allocator*>(allocator);
+        	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
             with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 ctr.drop();
             });
@@ -329,9 +333,13 @@ public:
 
 
 
-        virtual void for_each_ctr_node(const UUID& name, void* allocator, BlockCallbackFn consumer)
+        virtual void for_each_ctr_node(
+            const UUID& name, 
+            const SnpSharedPtr<AllocatorBase>& allocator,
+            BlockCallbackFn consumer
+        )
         {
-        	Allocator* alloc = T2T<Allocator*>(allocator);
+        	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
         	auto root_id 	 = alloc->getRootID(name);
 
         	CtrNodesWalkerAdapter walker(consumer);
@@ -343,14 +351,14 @@ public:
         
         virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const CtrSharedPtr<AllocatorBase>& allocator) 
         {
-            Allocator* alloc = T2T<Allocator*>(allocator.get());
+            SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
             
             PageG page = alloc->getPage(root_id, name);
 
             if (page)
             {
             	return ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
-                    static_pointer_cast<Allocator>(allocator),
+                    alloc,
                     root_id, 
                     CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash())
                 );
@@ -364,7 +372,7 @@ public:
 
     static ContainerInterfacePtr getContainerInterface()
     {
-        return std::make_shared<CtrInterfaceImpl>();
+        return ctr_make_shared<CtrInterfaceImpl>();
     }
 
 
@@ -454,10 +462,10 @@ class CtrHelper: public CtrPart<
     typedef Ctr<Types>                                          MyType;
     typedef CtrPart<SelectByIndex<Idx, typename Types::List>, CtrHelper<Idx - 1, Types>, Types> Base;
 
-    typedef typename Types::Allocator Allocator0;
+    using Allocator0 = typename Types::Allocator;
 
 public:
-    CtrHelper(const CtrInitData& data): Base(data) {}
+    CtrHelper(const CtrInitData& data, const CtrSharedPtr<Allocator0>& allocator): Base(data, allocator) {}
 
     virtual ~CtrHelper() throw () {}
 };
@@ -472,7 +480,7 @@ public:
 
     typedef typename Types::Allocator                           Allocator0;
 
-    CtrHelper(const CtrInitData& data): Base(data) {}
+    CtrHelper(const CtrInitData& data, const CtrSharedPtr<Allocator0>& allocator): Base(data, allocator) {}
 
     virtual ~CtrHelper() throw () {}
 
@@ -494,10 +502,10 @@ class CtrStart: public CtrHelper<ListSize<typename Types::List>::Value - 1, Type
 
     typedef CtrHelper<ListSize<typename Types::List>::Value - 1, Types> Base;
 
-    typedef typename Types::Allocator                                   Allocator0;
+    using Allocator0 = typename Types::Allocator ;
 
 public:
-    CtrStart(const CtrInitData& data): Base(data) {}
+    CtrStart(const CtrInitData& data, const CtrSharedPtr<Allocator0>& allocator): Base(data, allocator) {}
 };
 
 
@@ -532,7 +540,7 @@ private:
     Logger          logger_;
     static Logger   class_logger_;
 
-    bool        debug_;
+    bool debug_;
 
     int32_t         owner_ctr_type_hash_  = 0;
     int32_t         master_ctr_type_hash_ = 0;
@@ -543,13 +551,13 @@ protected:
 public:
 
     Ctr(
-            Allocator* allocator,
-            int32_t command = CTR_CREATE,
-            const UUID& name = CTR_DEFAULT_NAME,
-            const char* mname = NULL
+        const CtrSharedPtr<Allocator>& allocator,
+        int32_t command = CTR_CREATE,
+        const UUID& name = CTR_DEFAULT_NAME,
+        const char* mname = NULL
     ):
-        Base(CtrInitData(Base::CONTAINER_HASH)),
-        allocator_(allocator),
+        Base(CtrInitData(Base::CONTAINER_HASH), allocator),
+        allocator_(allocator.get()),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         debug_(false)
     {
@@ -582,9 +590,9 @@ public:
     }
 
 
-    Ctr(Allocator* allocator, const ID& root_id, const CtrInitData& ctr_init_data, const char* mname = NULL):
-        Base(ctr_init_data),
-        allocator_(allocator),
+    Ctr(const CtrSharedPtr<Allocator>& allocator, const ID& root_id, const CtrInitData& ctr_init_data, const char* mname = NULL):
+        Base(ctr_init_data, allocator),
+        allocator_(allocator.get()),
         name_(),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         debug_(false)
@@ -597,8 +605,8 @@ public:
     }
 
     Ctr(const CtrInitData& data):
-        Base(data),
-        allocator_(),
+        Base(data, CtrSharedPtr<Allocator>{}),
+        allocator_{},
         model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
         logger_(model_type_name_, Logger::DERIVED, NULL),
         debug_(false)
@@ -637,9 +645,12 @@ public:
         logger_.configure(model_type_name_, Logger::DERIVED, &allocator_->logger());
     }
 
-    void initCtr(Allocator* allocator, const UUID& name, int32_t command, const char* mname = NULL)
+    void initCtr(const CtrSharedPtr<Allocator>& allocator, const UUID& name, int32_t command, const char* mname = NULL)
     {
-        allocator_          = allocator;
+        Base::allocator_holder_ = allocator;
+        
+        allocator_          = allocator.get();
+        
         name_               = name;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
 
@@ -652,11 +663,13 @@ public:
         Base::initCtr(command);
     }
 
-    void initCtr(Allocator* allocator, const ID& root_id, const char* mname = NULL)
+    void initCtr(const CtrSharedPtr<Allocator>& allocator, const ID& root_id, const char* mname = NULL)
     {
         MEMORIA_V1_ASSERT_EXPR(!root_id.is_null(), "Container root ID must not be empty");
 
-        allocator_          = allocator;
+        Base::allocator_holder_ = allocator;
+        
+        allocator_          = allocator.get();
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
         name_               = this->getModelName(root_id);
 

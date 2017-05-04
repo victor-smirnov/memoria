@@ -37,6 +37,10 @@ public:
     typedef typename Allocator::PageG                                           PageG;
     typedef typename Allocator::Shared                                          Shared;
 
+    virtual SnpSharedPtr<IAllocator<Page>> self_ptr() 
+    {
+        return self().allocator().self_ptr();
+    }
 
     bool isNew() const {
         return self().root().is_null();

@@ -33,16 +33,12 @@ class SharedCtr: public CtrTF<Profile, CtrName, CtrName>::Type {
     using Base = typename CtrTF<Profile, CtrName, CtrName>::Type;
 public:
     SharedCtr(const CtrSharedPtr<Allocator>& allocator, int32_t command, const UUID& name):
-        Base(allocator.get(), command, name)
-    {
-        Base::alloc_holder_ = allocator;
-    }
+        Base(allocator, command, name)
+    {}
     
     SharedCtr(const CtrSharedPtr<Allocator>& allocator, const UUID& root_id, const CtrInitData& ctr_init_data):
-        Base(allocator.get(), root_id, ctr_init_data)
-    {
-        Base::alloc_holder_ = allocator;
-    }
+        Base(allocator, root_id, ctr_init_data)
+    {}
 };
 
 
@@ -77,7 +73,7 @@ public:
 
 template <typename CtrName, typename Profile>    
 CtrApiBase<CtrName, Profile>::CtrApiBase(const CtrSharedPtr<AllocatorT>& allocator, int command, const UUID& name):
-    pimpl_(std::make_shared<SharedCtr<CtrName, IWalkableAllocator<ProfilePageType<Profile>>, Profile>>(allocator, command, name))
+    pimpl_(ctr_make_shared<SharedCtr<CtrName, IWalkableAllocator<ProfilePageType<Profile>>, Profile>>(allocator, command, name))
 {}
 
 template <typename CtrName, typename Profile>    

@@ -44,6 +44,12 @@ auto snp_make_shared(Args&&... args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
+template <typename T, typename... Args>
+auto snp_make_shared_init(Args&&... args) {
+    auto snp = std::make_shared<T>(std::forward<Args>(args)...);
+    snp->post_init();
+    return snp;
+}
 
 
 template <typename T>

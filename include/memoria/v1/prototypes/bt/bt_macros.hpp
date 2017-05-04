@@ -34,7 +34,11 @@ public:
 #define MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)                     \
     MEMORIA_V1_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)                 \
                                                                                         \
-    BTreeCtrBaseClassName(const CtrInitData& data): Base(data) {}                       \
+    BTreeCtrBaseClassName(                                                              \
+        const CtrInitData& data,                                                        \
+        const CtrSharedPtr<typename TypesType::Allocator>& allocator                    \
+    ): Base(data, allocator)                                                            \
+    {}
 
 
 

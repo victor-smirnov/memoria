@@ -122,17 +122,22 @@ struct ContainerInterface {
 
     virtual String ctr_name() = 0;
 
-    virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const = 0;
+    virtual bool check(
+        const UUID& root_id, 
+        const UUID& name, 
+        const SnpSharedPtr<AllocatorBase>& allocator
+    ) const                                                                     = 0;
+    
     virtual void walk(
             const UUID& root_id,
             const UUID& name,
-            void* allocator,
+            const SnpSharedPtr<AllocatorBase>& allocator,
             ContainerWalker* walker
     ) const                                                                     = 0;
 
     virtual void walk(
             const UUID& name,
-            void* allocator,
+            const SnpSharedPtr<AllocatorBase>& allocator,
             ContainerWalker* walker
     ) const                                                                     = 0;
 
@@ -142,14 +147,22 @@ struct ContainerInterface {
     virtual void drop(
             const UUID& root_id,
             const UUID& name,
-            void* allocator
+            const SnpSharedPtr<AllocatorBase>& allocator
     )                                                                           = 0;
 
-    virtual void for_each_ctr_node(const UUID& name, void* allocator, BlockCallbackFn consumer) = 0;
+    virtual void for_each_ctr_node(
+        const UUID& name, 
+        const SnpSharedPtr<AllocatorBase>& allocator,
+        BlockCallbackFn consumer
+    )                                                                           = 0;
     
-    virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const CtrSharedPtr<AllocatorBase>& allocator) = 0;
+    virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(
+        const UUID& root_id, 
+        const UUID& name, 
+        const SnpSharedPtr<AllocatorBase>& allocator
+    ) = 0;
 
-    virtual ~ContainerInterface() {}
+    virtual ~ContainerInterface() noexcept {}
 };
 
 using ContainerInterfacePtr = CtrSharedPtr<ContainerInterface>;

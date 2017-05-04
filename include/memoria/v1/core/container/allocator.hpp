@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/container/names.hpp>
 #include <memoria/v1/core/container/page.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
 
 #include <memoria/v1/metadata/container.hpp>
 
@@ -99,6 +100,8 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual void registerCtr(const type_info&)                                  = 0;
     virtual void unregisterCtr(const type_info&)                                = 0;
 
+    virtual SnpSharedPtr<IAllocator<PageType>> self_ptr()                       = 0;
+    
     virtual ~IAllocator() {}
 };
 

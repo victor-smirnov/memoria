@@ -534,8 +534,8 @@ public:
         auto leaf = new LeafNodeT(history_tree_->txn_id(), UUID::make_random());
         history_tree_->set_root(leaf);
 
-        SnapshotT snapshot(history_tree_, this);
-        snapshot.commit();
+        auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this);
+        snapshot->commit();
     }
 
 private:
@@ -665,7 +665,7 @@ public:
 
             if (history_node->is_committed())
             {
-                return snp_make_shared<SnapshotT>(history_node, this->shared_from_this());
+                return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
             }
             if (history_node->is_data_locked())
             {
@@ -696,13 +696,13 @@ public:
 
             if (history_node->is_committed())
             {
-                return snp_make_shared<SnapshotT>(history_node, this->shared_from_this());
+                return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
             }
             else if (history_node->is_data_locked())
             {
             	if (history_node->references() == 0)
             	{
-            		return snp_make_shared<SnapshotT>(history_node, this->shared_from_this());
+            		return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
             	}
             	else {
             		throw Exception(MA_SRC, SBuf() << "Snapshot id " << history_node->txn_id() << " is locked and open");
@@ -724,7 +724,7 @@ public:
     	LockGuardT lock_guard(mutex_, std::adopt_lock);
     	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
 
-        return snp_make_shared<SnapshotT>(master_, this->shared_from_this());
+        return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this());
     }
 
     persistent_inmem_thread::SnapshotMetadata<TxnId> describe_master() const
@@ -1471,8 +1471,8 @@ private:
 
         if (node->is_committed())
         {
-            SnapshotT txn(node, this);
-            txn.walkContainers(walker, get_labels_for(node));
+            auto txn = snp_make_shared_init<SnapshotT>(node, this);
+            txn->walkContainers(walker, get_labels_for(node));
         }
 
         if (node->children().size())

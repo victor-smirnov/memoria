@@ -73,7 +73,7 @@ public:
 
                     auto ctr_interface  = ctr_meta->getCtrInterface();
 
-                    ctr_interface->drop(root, UUID(), this);
+                    ctr_interface->drop(root, UUID(), self.allocator().self_ptr());
                 }
             }
 

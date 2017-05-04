@@ -75,7 +75,11 @@ protected:
 #define MEMORIA_V1_CONTAINER_PART_BEGIN(PartName)                               \
     MEMORIA_V1_CONTAINER_PART_NO_CTR_BEGIN(PartName)                            \
 public:                                                                         \
-    CtrPart(const CtrInitData& data): Base(data)  {}                            \
+    CtrPart(                                                                    \
+        const CtrInitData& data,                                                \
+        const CtrSharedPtr<typename TypesType::Allocator>& allocator):          \
+        Base(data, allocator)                                                   \
+    {}                                                                          \
     virtual ~CtrPart() noexcept {}                                              \
 protected:
 
