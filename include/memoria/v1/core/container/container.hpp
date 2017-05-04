@@ -108,7 +108,7 @@ public:
 
 
 template <typename TypesType>
-class CtrBase: public TypesType::Allocator, public CtrSharedFromThis<Ctr<TypesType>> {
+class CtrBase: public CtrReferenceable, public CtrSharedFromThis<Ctr<TypesType>> {
 public:
 
     using ThisType  = CtrBase<TypesType>;
@@ -155,6 +155,10 @@ public:
     {}
 
     virtual ~CtrBase() throw () {}
+    
+    bool isNew() const {
+        return root_.is_null();
+    }
     
     void reset_allocator_holder() {
         allocator_holder_.reset();

@@ -64,7 +64,6 @@
 #include <memoria/v1/prototypes/bt/container/bt_c_leaf_fixed.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_find.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_walk.hpp>
-#include <memoria/v1/prototypes/bt/container/bt_c_allocator.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_remove.hpp>
 
 #include <memoria/v1/prototypes/bt/bt_iterator.hpp>
@@ -91,7 +90,6 @@ struct BTTypes {
     using CtrSizeT = int64_t;
 
     typedef TypeList<
-            bt::AllocatorName,
             bt::ToolsName,
 			bt::ToolsPLName,
             bt::ChecksName,

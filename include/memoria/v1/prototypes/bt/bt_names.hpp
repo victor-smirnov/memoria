@@ -60,7 +60,7 @@ class LeafVariableName      {};
 class ApiName               {};
 class ChecksName            {};
 class WalkName              {};
-class AllocatorName         {};
+
 
 
 

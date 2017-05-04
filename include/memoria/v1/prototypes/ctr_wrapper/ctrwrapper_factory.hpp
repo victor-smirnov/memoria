@@ -34,9 +34,7 @@ struct WrapperTypes {
 
     typedef Profile_                                                            Profile;
 
-    typedef TypeList<
-        v1::bt::AllocatorName
-    >                                                                           ContainerPartsList;
+    typedef TypeList<>                                                          ContainerPartsList;
 
     typedef TypeList<>                                                          IteratorPartsList;
 
@@ -58,11 +56,11 @@ struct WrapperTypes {
 template <typename Profile_, typename T, typename CtrName>
 class CtrTF<Profile_, CtrWrapper<CtrName>, T> {
 
-    typedef CtrTF<Profile_, CtrWrapper<CtrName>, T>                             MyType;
+    using MyType  = CtrTF<Profile_, CtrWrapper<CtrName>, T>;
 
-    typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
+    using Allocator = typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator;
 
-    typedef WrapperTypes<Profile_, CtrWrapper<CtrName>>                         TypesBase;
+    using TypesBase = WrapperTypes<Profile_, CtrWrapper<CtrName>>;
 
 public:
 
