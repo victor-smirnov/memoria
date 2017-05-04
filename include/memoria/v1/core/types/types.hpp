@@ -64,6 +64,13 @@ static constexpr int PackedAllocationAlignment          = 8;
 
 static constexpr size_t MaxRLERunLength                 = 0x7FFFFFF;
 
+struct CtrReferenceable {
+    virtual bool is_castable_to(int type_hash) const    = 0;
+    virtual std::string describe_type() const           = 0;
+    
+    virtual ~CtrReferenceable() {}
+};
+
 enum class PackedSizeType {FIXED, VARIABLE};
 
 namespace internal {

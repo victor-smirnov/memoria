@@ -185,8 +185,9 @@ public:
         return CtrT<CtrName>(snapshot_ref_opening_allowed(), CTR_FIND, name);
     }
     
-    void reset();
+    CtrRef<Profile> get(const UUID& name);
     
+    void reset();
     Logger& logger();
     
 private:

@@ -89,8 +89,6 @@ int64_t IterApiBTSSBase<CtrName, Profile>::remove(int64_t length)
 }
 
 
-
-
 template <typename CtrName, typename Profile>
 int64_t IterApiBTSSBase<CtrName, Profile>::read(CtrIOBuffer& buffer, int64_t size) 
 {

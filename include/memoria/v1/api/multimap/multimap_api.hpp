@@ -15,48 +15,54 @@
 
 #pragma once
 
-#include <memoria/v1/api/common/ctr_api_btss.hpp>
-
+#include <memoria/v1/api/common/ctr_api_btfl.hpp>
 
 #include <memory>
-
+#include <tuple>
 
 namespace memoria {
 namespace v1 {
 
-
+template <typename Key, typename Value> class Multimap {};   
     
-template <typename Key, typename Profile> 
-class CtrApi<Set<Key>, Profile>: public CtrApiBTSSBase<Set<Key>, Profile> {
-    using Base = CtrApiBTSSBase<Set<Key>, Profile>;
-public:    
+template <typename Key_, typename Value_, typename Profile> 
+class CtrApi<Multimap<Key_, Value_>, Profile>: public CtrApiBTFLBase<Multimap<Key_, Value_>, Profile> {
+public:
+    using Key = Key_;
+    using Value = Value_;
+    using DataValue = std::tuple<Key, Value>;
+private:
+    using MapT = Multimap<Key, Value>;
     
+    using Base = CtrApiBTFLBase<Multimap<Key, Value>, Profile>;
     using typename Base::AllocatorT;
     using typename Base::CtrT;
     using typename Base::CtrPtr;
 
     using typename Base::Iterator;
     
-
+public:
 
     MMA1_DECLARE_CTRAPI_BASIC_METHODS()
     
     Iterator find(const Key& key);
     bool contains(const Key& key);
     bool remove(const Key& key);
-    bool insert(const Key& key);
+    
+    //Iterator assign(const Key& key, const Value& value);
 };
 
 
-template <typename Key, typename Profile> 
-class IterApi<Set<Key>, Profile>: public IterApiBTSSBase<Set<Key>, Profile> {
+template <typename Key, typename Value, typename Profile> 
+class IterApi<Multimap<Key, Value>, Profile>: public IterApiBTFLBase<Multimap<Key, Value>, Profile> {
     
-    using Base = IterApiBTSSBase<Set<Key>, Profile>;
+    using Base = IterApiBTSSBase<Multimap<Key, Value>, Profile>;
     
     using typename Base::IterT;
     using typename Base::IterPtr;
-     
+    
 public:
+    using DataValue = std::tuple<Key, Value>;
     
     using Base::read;
     using Base::insert;
@@ -64,7 +70,10 @@ public:
     MMA1_DECLARE_ITERAPI_BASIC_METHODS()
     
     Key key() const;
-    void insert(const Key& key);
+    Value value() const;
+    
+    void insert(const Key& key, const Value& value);
+    std::vector<DataValue> read(size_t size);
 };
     
 }}

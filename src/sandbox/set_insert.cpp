@@ -15,6 +15,7 @@
 
 #include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/set/set_api.hpp>
+#include <memoria/v1/api/vector/vector_api.hpp>
 
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
@@ -33,9 +34,11 @@
 using namespace memoria::v1;
 
 
+
+
 int main()
 {
-	using Key = FixedArray<16>;
+    using Key = FixedArray<16>;
     //using Key   = Bytes;
 
     try {
@@ -44,6 +47,9 @@ int main()
         auto snp = alloc.master().branch();
 
         auto map = create<Set<Key>>(snp);
+        
+        std::cout << "Castable to set: " << is_castable_to<Set<Key>>(map.to_ref()) << std::endl;
+        std::cout << "Castable to vector: " << is_castable_to<Vector<Key>>(map.to_ref()) << std::endl;
         
         auto map_name = map.name();
 
@@ -97,16 +103,20 @@ int main()
         
         auto alloc2 = ThreadInMemAllocator<>::load("setl_data.dump");
         
-        auto set1 = find<Set<Key>>(alloc2.master(), map_name);
+        auto set_ref = alloc2.master().get(map_name);
+        
+        auto set1 = cast<Set<Key>>(set_ref);
+        
+        std::cout << "Set size: " << cast<Set<Key>>(set1.to_ref()).size() << std::endl;
 
 		std::cout << "Ctr size: " << set1.size() << std::endl;
         
-        set1.begin().read([](CtrIOBuffer& buffer, int entries){
-            
+        auto iii = set1.begin();
+        
+        iii.read([](CtrIOBuffer& buffer, int entries){
             for (int c = 0; c < entries; c++) {
                 std::cout << IOBufferAdapter<Key>::get(buffer) << std::endl;
             }
-            
             return entries;
         });
         

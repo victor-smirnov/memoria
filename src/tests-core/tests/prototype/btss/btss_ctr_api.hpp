@@ -41,7 +41,7 @@ class CtrApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>: public CtrApiB
 public:
     using DataValue = int64_t;
 
-    MMA1_DECLARE_CTRAPI_BTSS_BASIC_METHODS()
+    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
 };
 
 
@@ -60,7 +60,7 @@ public:
     using Base::read;
     using Base::insert;
     
-    MMA1_DECLARE_ITERAPI_BTSS_BASIC_METHODS()
+    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
     
     template <typename T>
     auto insert(const std::vector<T>& data) 

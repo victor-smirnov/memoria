@@ -175,7 +175,7 @@ private:
 
     CtrInstanceMap instance_map_;
 
-    ContainerMetadataRepository*  metadata_; //FIXME:: make it static thread local or remove at all
+    ContainerMetadataRepository* metadata_; //FIXME:: make it static thread local or remove at all
 
     template <typename>
     friend class ThreadInMemAllocatorImpl;
@@ -300,6 +300,14 @@ public:
 
     		// FIXME: check if absence of snapshot lock here leads to data races...
     	}
+    }
+    
+    virtual bool is_castable_to(int type_code) const {
+        return false;
+    }
+    
+    virtual std::string describe_type() const {
+        return "Snapshot<" + TypeNameFactory<Profile>::name() + ">";
     }
 
 
@@ -1180,6 +1188,22 @@ public:
     {
     	this->history_tree_raw_->pack();
     }
+    
+    std::shared_ptr<CtrReferenceable> get(const UUID& name) {
+        UUID root_id = getRootID(name);
+
+        if (root_id.is_set())
+        {
+            PageG page = this->getPage(root_id, name);
+
+            auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
+
+            return ctr_meta->getCtrInterface()->new_ctr_instance(root_id, name, this->shared_from_this());
+        }
+        else {
+            return nullptr;
+        }
+    }
 
 protected:
 
@@ -1695,6 +1719,13 @@ template <typename Profile>
 Logger& ThreadInMemSnapshot<Profile>::logger()
 {
     return pimpl_->logger();
+}
+
+
+template <typename Profile>
+CtrRef<Profile> ThreadInMemSnapshot<Profile>::get(const UUID& name) 
+{
+    return CtrRef<Profile>(pimpl_->get(name));
 }
 
 }}

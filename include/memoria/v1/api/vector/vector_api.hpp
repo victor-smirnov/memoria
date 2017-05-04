@@ -37,19 +37,17 @@ namespace detail00 {
 template <typename Value, typename Profile> 
 class CtrApi<Vector<Value>, Profile>: public CtrApiBTSSBase<Vector<Value>, Profile>  {
     using Base = CtrApiBTSSBase<Vector<Value>, Profile>;
-    
+public:    
     using typename Base::AllocatorT;
     using typename Base::CtrT;
     using typename Base::CtrPtr;
 
     using typename Base::Iterator;
     
-public:
+
     using DataValue = typename detail00::VectorValueHelper<Value>::Type;
     
-    MMA1_DECLARE_CTRAPI_BTSS_BASIC_METHODS()
-    
-    
+    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
 };
 
 
@@ -68,7 +66,7 @@ public:
     using Base::read;
     using Base::insert;
     
-    MMA1_DECLARE_ITERAPI_BTSS_BASIC_METHODS()
+    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
     
     DataValue value();
     

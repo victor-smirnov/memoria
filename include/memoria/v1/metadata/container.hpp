@@ -110,6 +110,7 @@ struct ContainerWalkerBase: ContainerWalker {
     virtual ~ContainerWalkerBase() {}
 };
 
+struct AllocatorBase;
 
 struct ContainerInterface {
 
@@ -144,6 +145,8 @@ struct ContainerInterface {
     )                                                                           = 0;
 
     virtual void for_each_ctr_node(const UUID& name, void* allocator, BlockCallbackFn consumer) = 0;
+    
+    virtual std::shared_ptr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const std::shared_ptr<AllocatorBase>& allocator) = 0;
 
     virtual ~ContainerInterface() {}
 };
@@ -184,6 +187,7 @@ public:
         MetadataGroup(name, buildPageMetadata<Types>()),
         container_interface_(container_interface),
         ctr_hash_(ctr_hash)
+        
     {
     	MetadataGroup::set_type() = MetadataGroup::CONTAINER;
         for (uint32_t c = 0; c < content_.size(); c++)
@@ -247,7 +251,7 @@ private:
     PageMetadataMap         page_map_;
     ContainerInterfacePtr   container_interface_;
 
-    int32_t                     ctr_hash_;
+    int32_t                 ctr_hash_;
 };
 
 
@@ -286,7 +290,7 @@ private:
     int32_t                     hash_;
     PageMetadataMap         page_map_;
     ContainerMetadataMap    model_map_;
-
+    
     std::mutex mutex_;
 
     void process_model(const ContainerMetadataPtr& model);

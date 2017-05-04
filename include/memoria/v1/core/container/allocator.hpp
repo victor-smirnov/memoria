@@ -21,16 +21,21 @@
 
 #include <memoria/v1/metadata/container.hpp>
 
+#include <memoria/v1/core/types/types.hpp>
+
 #include <memory>
 #include <typeinfo>
 
 namespace memoria {
 namespace v1 {
 
+struct AllocatorBase: CtrReferenceable {
+    virtual ~AllocatorBase() {}
+};
 
 // Ctr directory interface
 template <typename ID>
-struct ICtrDirectory {
+struct ICtrDirectory: public AllocatorBase {
     virtual ID   getRootID(const UUID& name)                                    = 0;
     virtual void setRoot(const UUID& name, const ID& root)                      = 0;
     virtual void markUpdated(const UUID& name)                                  = 0;

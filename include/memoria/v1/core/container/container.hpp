@@ -53,6 +53,7 @@ template <typename Name, typename Base, typename Types> class CtrPart;
 template <typename Types> class Ctr;
 template <typename Types> class Iter;
 template <typename CtrName, typename Profile> class SharedIter;
+template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 
 
 template <typename Profile> class MetadataRepository;
@@ -147,9 +148,6 @@ public:
 
 
 protected:
-    //static MutexT mutex_;
-    //static ContainerMetadataPtr reflection_;
-
     ID root_;
 
     CtrInitData init_data_;
@@ -161,6 +159,14 @@ public:
     {}
 
     virtual ~CtrBase() throw () {}
+    
+    virtual bool is_castable_to(int type_code) const {
+        return TypeHash<ContainerTypeName>::Value == type_code;
+    }
+    
+    virtual std::string describe_type() const {
+        return TypeNameFactory<ContainerTypeName>::name();
+    }
 
     PairPtr& pair() {return pair_;}
     const PairPtr& pair() const {return pair_;}
@@ -337,6 +343,25 @@ public:
         	with_ctr(root_id, name, alloc, [&](MyType& ctr){
         		ctr.walkTree(&walker);
         	});
+        }
+        
+        virtual std::shared_ptr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const std::shared_ptr<AllocatorBase>& allocator) 
+        {
+            Allocator* alloc = T2T<Allocator*>(allocator.get());
+            
+            PageG page = alloc->getPage(root_id, name);
+
+            if (page)
+            {
+            	return std::make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
+                    std::static_pointer_cast<Allocator>(allocator),
+                    root_id, 
+                    CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash())
+                );
+            }
+            else {
+            	throw Exception(MA_SRC, SBuf() << "No container root page is found for id " << root_id << " and name " << name);
+            }
         }
     };
 

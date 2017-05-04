@@ -35,15 +35,17 @@ private:
     using MapT = Map<Key, Value>;
     
     using Base = CtrApiBTSSBase<Map<Key, Value>, Profile>;
+public:    
+    
     using typename Base::AllocatorT;
     using typename Base::CtrT;
     using typename Base::CtrPtr;
 
     using typename Base::Iterator;
     
-public:
 
-    MMA1_DECLARE_CTRAPI_BTSS_BASIC_METHODS()
+
+    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
     
     Iterator find(const Key& key);
     bool contains(const Key& key);
@@ -67,7 +69,7 @@ public:
     using Base::read;
     using Base::insert;
     
-    MMA1_DECLARE_ITERAPI_BTSS_BASIC_METHODS()
+    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
     
     Key key() const;
     Value value() const;

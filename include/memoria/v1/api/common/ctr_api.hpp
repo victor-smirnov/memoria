@@ -34,18 +34,56 @@ template <typename CtrName, typename Allocator, typename Profile> class SharedCt
 template <typename CtrName, typename Profile> class SharedIter;
 
 
+
+template <typename Profile = DefaultProfile<>>
+class CtrRef {
+    using CtrPtrT = std::shared_ptr<CtrReferenceable>;
+    CtrPtrT ptr_;
+public:
+    CtrRef() {}
+    
+    CtrRef(const CtrPtrT& ptr): ptr_(ptr) {}
+    CtrRef(CtrReferenceable* raw_ptr): ptr_(raw_ptr) {}
+    
+    void swap(CtrRef& other) {
+        ptr_.swap(other.ptr_);
+    }
+    
+    template <typename CtrName, typename ProfileT>
+    friend bool is_castable_to(const CtrRef<ProfileT>& ref);
+    
+    template <typename CtrName, typename ProfileT>
+    friend CtrApi<CtrName, ProfileT> cast(const CtrRef<ProfileT>& ref);
+    
+    template <typename CtrName, typename ProfileT>
+    friend class CtrApiBase;
+};
+
+template <typename CtrName, typename Profile>
+bool is_castable_to(const CtrRef<Profile>& ref) {
+    return ref.ptr_->is_castable_to(TypeHash<CtrName>::Value);
+}
+
+template <typename CtrName, typename Profile>
+CtrApi<CtrName, Profile> cast(const CtrRef<Profile>& ref) {
+    return CtrApi<CtrName, Profile>::cast_from(ref);
+}
+
+
 template <typename CtrName, typename Profile> 
 class CtrApiBase {
-protected:    
+public:    
     using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
     using CtrPtr     = std::shared_ptr<CtrT>;
 
+protected:    
     CtrPtr pimpl_;
     
 public:
     CtrApiBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name);
     CtrApiBase(CtrPtr ptr);
+    CtrApiBase();
     ~CtrApiBase();
     
     CtrApiBase(const CtrApiBase&);
@@ -61,6 +99,13 @@ public:
     const ContainerMetadataPtr& metadata();
     static void init();
     void new_page_size(int size);
+    
+    void reset();
+    
+    CtrRef<Profile> to_ref();
+    operator CtrRef<Profile>() {return to_ref();}
+    
+    static CtrApi<CtrName, Profile> cast_from(const CtrRef<Profile>& ref);
 };
 
 
@@ -80,6 +125,7 @@ public:
     using Iterator  = IterApi<CtrName, Profile>;
     
     IterApiBase(IterPtr ptr);
+    IterApiBase();
     ~IterApiBase();
     
     IterApiBase(const IterApiBase&);
@@ -96,6 +142,7 @@ public:
     CtrApi<CtrName, Profile> ctr();
     
     Iterator clone();
+    void reset();
     
     void dump();
     void dump_path();
@@ -111,7 +158,9 @@ struct CtrMetadataInitializer {
 };
 
 #define MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, ...)\
+template class IterApiBase<CtrName, Profile>;           \
 template class IterApiBTSSBase<CtrName, Profile>;       \
+template class CtrApiBase<CtrName, Profile>;            \
 template class CtrApiBTSSBase<CtrName, Profile>;        \
 template class CtrApi<CtrName, Profile>;                \
 template class IterApi<CtrName, Profile>;               \
@@ -122,22 +171,11 @@ CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__;\
 
 
 
-#define MMA1_DECLARE_CTRAPI_BASIC_METHODS()                                                 \
-    CtrApi(const std::shared_ptr<AllocatorT>& allocator, int32_t command, const UUID& name);    \
-    ~CtrApi();                                                                              \
-                                                                                            \
-    CtrApi(const CtrApi&);                                                                  \
-    CtrApi(CtrApi&&);                                                                       \
-                                                                                            \
-    CtrApi& operator=(const CtrApi&);                                                       \
-    CtrApi& operator=(CtrApi&&);                                                            \
-                                                                                            \
-    bool operator==(const CtrApi& other) const;                                             \
-    operator bool() const;
 
 
-#define MMA1_DECLARE_CTRAPI_BTSS_BASIC_METHODS()                                            \
-    CtrApi(const std::shared_ptr<AllocatorT>& allocator, int32_t command, const UUID& name):    \
+
+#define MMA1_DECLARE_CTRAPI_BASIC_METHODS()                                            \
+    CtrApi(const std::shared_ptr<AllocatorT>& allocator, int32_t command, const UUID& name):\
         Base(allocator, command, name) {}                                                   \
     ~CtrApi() {}                                                                            \
                                                                                             \
@@ -151,21 +189,9 @@ CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__;\
     
     
     
+
+
 #define MMA1_DECLARE_ITERAPI_BASIC_METHODS()        \
-    IterApi(IterPtr);                               \
-    ~IterApi();                                     \
-                                                    \
-    IterApi(const IterApi&);                        \
-    IterApi(IterApi&&);                             \
-                                                    \
-    IterApi& operator=(const IterApi&);             \
-    IterApi& operator=(IterApi&&);                  \
-                                                    \
-    bool operator==(const IterApi& other) const;    \
-    operator bool() const;
-
-
-#define MMA1_DECLARE_ITERAPI_BTSS_BASIC_METHODS()   \
     IterApi(IterPtr ptr):Base(ptr) {}               \
     ~IterApi() {}                                   \
                                                     \

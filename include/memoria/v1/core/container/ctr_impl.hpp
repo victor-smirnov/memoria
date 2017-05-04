@@ -37,9 +37,11 @@ public:
     {
         Base::alloc_holder_ = allocator;
     }
-
-    auto snapshot() const {
-        return Base::alloc_holder_;
+    
+    SharedCtr(const std::shared_ptr<Allocator>& allocator, const UUID& root_id, const CtrInitData& ctr_init_data):
+        Base(allocator.get(), root_id, ctr_init_data)
+    {
+        Base::alloc_holder_ = allocator;
     }
 };
 
@@ -81,6 +83,10 @@ CtrApiBase<CtrName, Profile>::CtrApiBase(const std::shared_ptr<AllocatorT>& allo
 template <typename CtrName, typename Profile>    
 CtrApiBase<CtrName, Profile>::CtrApiBase(CtrPtr ptr):pimpl_(std::move(ptr))
 {}
+
+template <typename CtrName, typename Profile>    
+CtrApiBase<CtrName, Profile>::CtrApiBase(){}
+
 
 template <typename CtrName, typename Profile>
 CtrApiBase<CtrName, Profile>::~CtrApiBase() {}
@@ -148,9 +154,23 @@ CtrApiBase<CtrName, Profile>::operator bool() const
     return this->pimpl_ != nullptr;
 }
 
+template <typename CtrName, typename Profile>
+void CtrApiBase<CtrName, Profile>::reset() 
+{
+    this->pimpl_.reset();
+}
 
+template <typename CtrName, typename Profile>
+CtrRef<Profile> CtrApiBase<CtrName, Profile>::to_ref() 
+{
+    return std::static_pointer_cast<CtrReferenceable>(pimpl_);
+}
 
-
+template <typename CtrName, typename Profile>
+CtrApi<CtrName, Profile> CtrApiBase<CtrName, Profile>::cast_from(const CtrRef<Profile>& ref)
+{
+    return std::static_pointer_cast<CtrT>(ref.ptr_);
+}
 
 
 
@@ -161,6 +181,9 @@ CtrApiBase<CtrName, Profile>::operator bool() const
 
 template <typename CtrName, typename Profile>
 IterApiBase<CtrName, Profile>::IterApiBase(IterPtr ptr): pimpl_(ptr) {}
+
+template <typename CtrName, typename Profile>
+IterApiBase<CtrName, Profile>::IterApiBase() {}
 
 
 template <typename CtrName, typename Profile>
@@ -233,6 +256,13 @@ void IterApiBase<CtrName, Profile>::dump_path()
 {
     return this->pimpl_->dumpPath();
 }
+
+template <typename CtrName, typename Profile>
+void IterApiBase<CtrName, Profile>::reset()
+{
+    return this->pimpl_.reset();
+}
+
 
 
 template <typename CtrName, typename Profile>
