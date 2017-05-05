@@ -73,7 +73,7 @@ public:
 
 template <typename CtrName, typename Profile>    
 CtrApiBase<CtrName, Profile>::CtrApiBase(const CtrSharedPtr<AllocatorT>& allocator, int command, const UUID& name):
-    pimpl_(ctr_make_shared<SharedCtr<CtrName, IWalkableAllocator<ProfilePageType<Profile>>, Profile>>(allocator, command, name))
+    pimpl_(ctr_make_shared<SharedCtr<CtrName, IAllocator<ProfilePageType<Profile>>, Profile>>(allocator, command, name))
 {}
 
 template <typename CtrName, typename Profile>    

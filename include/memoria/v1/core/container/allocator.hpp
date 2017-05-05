@@ -32,23 +32,6 @@
 namespace memoria {
 namespace v1 {
 
-struct AllocatorBase {
-    virtual ~AllocatorBase() {}
-};
-
-// Ctr directory interface
-template <typename ID>
-struct ICtrDirectory: public AllocatorBase {
-    virtual ID   getRootID(const UUID& name)                                    = 0;
-    virtual void setRoot(const UUID& name, const ID& root)                      = 0;
-    virtual void markUpdated(const UUID& name)                                  = 0;
-
-    virtual bool hasRoot(const UUID& name)                                      = 0;
-    virtual UUID createCtrName()                                                = 0;
-
-    virtual ~ICtrDirectory() {}
-};
-
 struct IAllocatorProperties {
     virtual int32_t defaultPageSize() const                                      = 0;
 
@@ -60,8 +43,13 @@ struct IAllocatorProperties {
 };
 
 
+struct AllocatorBase {
+    virtual ~AllocatorBase() {}
+};
+
+
 template <typename PageType>
-struct IAllocator: ICtrDirectory<typename PageType::ID> {
+struct IAllocator: AllocatorBase {
 
     enum {UNDEFINED, READ, UPDATE};
 
@@ -72,6 +60,13 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
     typedef PageGuard<Page, MyType>                                             PageG;
     typedef typename PageG::Shared                                              Shared;
+    
+    virtual ID   getRootID(const UUID& name)                                    = 0;
+    virtual void setRoot(const UUID& name, const ID& root)                      = 0;
+    virtual void markUpdated(const UUID& name)                                  = 0;
+
+    virtual bool hasRoot(const UUID& name)                                      = 0;
+    virtual UUID createCtrName()                                                = 0;
 
 
     virtual PageG getPage(const ID& id, const UUID& name)                       = 0;
@@ -104,14 +99,10 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual SnpSharedPtr<IAllocator<PageType>> self_ptr()                       = 0;
     virtual CtrSharedPtr<CtrReferenceable> get(const UUID& name)                = 0;
     
-    virtual ~IAllocator() {}
-};
-
-
-template <typename PageType>
-struct IWalkableAllocator: IAllocator<PageType> {
-    virtual bool check() = 0;
+    virtual bool check()                                                        = 0;
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr) = 0;
+    
+    virtual ~IAllocator() {}
 };
 
 

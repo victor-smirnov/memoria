@@ -72,13 +72,13 @@ public:
 
 template <typename Profile, typename PersistentAllocator>
 class Snapshot:
-        public IWalkableAllocator<ProfilePageType<Profile>>,
+        public IAllocator<ProfilePageType<Profile>>,
         public SnpSharedFromThis<
             Snapshot<Profile, PersistentAllocator>
         >
 {    
     using PageType          = ProfilePageType<Profile>;
-    using Base              = IWalkableAllocator<PageType>;
+    using Base              = IAllocator<PageType>;
         
 	using HistoryNode		= typename PersistentAllocator::HistoryNode;
     using PersistentTreeT   = typename PersistentAllocator::PersistentTreeT;
@@ -121,7 +121,7 @@ class Snapshot:
 public:
 
     template <typename CtrName>
-    using CtrT = v1::SharedCtr<CtrName, IWalkableAllocator<ProfilePageType<Profile>>, Profile>;
+    using CtrT = v1::SharedCtr<CtrName, IAllocator<ProfilePageType<Profile>>, Profile>;
 
     template <typename CtrName>
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
@@ -1686,18 +1686,18 @@ ContainerMetadataRepository* ThreadInMemSnapshot<Profile>::metadata() const
 
 
 template <typename Profile>
-SnpSharedPtr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_creation_allowed() 
+SnpSharedPtr<IAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_creation_allowed() 
 {
     pimpl_->checkIfConainersCreationAllowed();
-    return static_pointer_cast<IWalkableAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
+    return static_pointer_cast<IAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
 }
 
 
 template <typename Profile>
-SnpSharedPtr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_opening_allowed() 
+SnpSharedPtr<IAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_opening_allowed() 
 {
     pimpl_->checkIfConainersOpeneingAllowed();
-    return static_pointer_cast<IWalkableAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
+    return static_pointer_cast<IAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
 }
 
 

@@ -109,7 +109,7 @@ class ThreadInMemSnapshot {
     using SnapshotPtr = ThreadInMemSnapshot;
     using TxnId = UUID;
 
-    using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
+    using AllocatorT = IAllocator<ProfilePageType<Profile>>;
     
     AllocSharedPtr<PImpl> pimpl_;
     

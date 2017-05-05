@@ -76,7 +76,7 @@ CtrApi<CtrName, Profile> cast(const CtrRef<Profile>& ref) {
 template <typename CtrName, typename Profile> 
 class CtrApiBase {
 public:    
-    using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
+    using AllocatorT = IAllocator<ProfilePageType<Profile>>;
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
     using CtrPtr     = CtrSharedPtr<CtrT>;
 
@@ -116,7 +116,7 @@ template <typename CtrName, typename Profile>
 class IterApiBase {
 protected:    
     
-    using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
+    using AllocatorT = IAllocator<ProfilePageType<Profile>>;
     using IterT      = SharedIter<CtrName, Profile>;
     using IterPtr    = CtrSharedPtr<IterT>;
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
