@@ -33,6 +33,7 @@
 #include <memoria/v1/core/container/dispatcher.hpp>
 #include <memoria/v1/core/container/defaults.hpp>
 #include <memoria/v1/core/container/macros.hpp>
+#include <memoria/v1/core/container/ctr_referenceable.hpp>
 
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
@@ -105,6 +106,9 @@ public:
         return CtrInitData(master_name_, master_ctr_type_hash_, owner_hash);
     }
 };
+
+
+
 
 
 template <typename TypesType>
@@ -742,7 +746,7 @@ public:
         return class_logger_;
     }
 
-    const auto& name() const {
+    virtual const UUID& name() const {
         return name_;
     }
 

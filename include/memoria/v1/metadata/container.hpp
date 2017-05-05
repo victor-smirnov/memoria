@@ -25,6 +25,7 @@
 #include <memoria/v1/core/tools/platform.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
+#include <memoria/v1/core/container/ctr_referenceable.hpp>
 
 #include <boost/filesystem.hpp>
 

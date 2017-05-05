@@ -20,7 +20,7 @@
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
 #include <memoria/v1/core/container/allocator.hpp>
-
+#include <memoria/v1/core/container/ctr_referenceable.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -49,6 +49,8 @@ public:
     void swap(CtrRef& other) {
         ptr_.swap(other.ptr_);
     }
+    
+    const UUID& name() const {return ptr_->name();}
     
     template <typename CtrName, typename ProfileT>
     friend bool is_castable_to(const CtrRef<ProfileT>& ref);

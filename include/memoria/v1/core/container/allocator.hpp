@@ -18,6 +18,8 @@
 
 #include <memoria/v1/core/container/names.hpp>
 #include <memoria/v1/core/container/page.hpp>
+#include <memoria/v1/core/container/ctr_referenceable.hpp>
+
 #include <memoria/v1/core/tools/memory.hpp>
 
 #include <memoria/v1/metadata/container.hpp>
@@ -30,7 +32,7 @@
 namespace memoria {
 namespace v1 {
 
-struct AllocatorBase: CtrReferenceable {
+struct AllocatorBase {
     virtual ~AllocatorBase() {}
 };
 
@@ -67,7 +69,6 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
     typedef PageType                                                            Page;
     typedef typename Page::ID                                                   ID;
-    typedef EmptyType                                                           Transaction;
 
     typedef PageGuard<Page, MyType>                                             PageG;
     typedef typename PageG::Shared                                              Shared;
@@ -101,6 +102,7 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual void unregisterCtr(const type_info&)                                = 0;
 
     virtual SnpSharedPtr<IAllocator<PageType>> self_ptr()                       = 0;
+    virtual CtrSharedPtr<CtrReferenceable> get(const UUID& name)                = 0;
     
     virtual ~IAllocator() {}
 };

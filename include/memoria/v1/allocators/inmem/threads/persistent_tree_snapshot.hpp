@@ -297,15 +297,6 @@ public:
         return this->shared_from_this();
     }
     
-    virtual bool is_castable_to(int type_code) const {
-        return false;
-    }
-    
-    virtual std::string describe_type() const {
-        return "Snapshot<" + TypeNameFactory<Profile>::name() + ">";
-    }
-
-
     PairPtr& pair() {
         return pair_;
     }
@@ -1184,7 +1175,7 @@ public:
     	this->history_tree_raw_->pack();
     }
     
-    CtrSharedPtr<CtrReferenceable> get(const UUID& name) {
+    virtual CtrSharedPtr<CtrReferenceable> get(const UUID& name) {
         UUID root_id = getRootID(name);
 
         if (root_id.is_set())
