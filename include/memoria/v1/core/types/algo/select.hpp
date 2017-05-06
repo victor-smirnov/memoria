@@ -26,7 +26,7 @@
 namespace memoria {
 namespace v1 {
 
-namespace details {
+namespace detail {
 
     template <int32_t Num, typename List, int32_t Idx> struct SelectT;
 
@@ -43,7 +43,7 @@ namespace details {
 }
 
 template <int32_t Num, typename List>
-using Select = typename memoria::v1::details::SelectT<Num, List, 0>::Type;
+using Select = typename memoria::v1::detail::SelectT<Num, List, 0>::Type;
 
 
 namespace detail {
@@ -65,7 +65,7 @@ namespace detail {
 }
 
 template <int32_t Pos, typename List> 
-constexpr auto SelectV = detail::SelectVH<Pos, List>::Value;
+constexpr auto SelectV = memoria::v1::detail::SelectVH<Pos, List>::Value;
 
 
 

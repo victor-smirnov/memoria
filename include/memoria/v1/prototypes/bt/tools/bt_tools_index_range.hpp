@@ -33,7 +33,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt        {
+namespace bt {
 
 
 template <int32_t From_, int32_t To_ = From_ +1>
@@ -55,7 +55,7 @@ using Indexes = typename IndexesH<T>::Type;
 
 template <int32_t Head, int32_t... Tail>
 struct IndexesH<IntList<Head, Tail...>>:
-    detail::MergeListsH<SumRange<Head>, typename IndexesH<IntList<Tail...>>::Type>
+	memoria::v1::detail::MergeListsH<SumRange<Head>, typename IndexesH<IntList<Tail...>>::Type>
 {};
 
 

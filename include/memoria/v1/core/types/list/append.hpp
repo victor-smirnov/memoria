@@ -151,7 +151,7 @@ namespace detail {
     };
     
     template <typename ... Lists> struct MergeListsH {
-        using Type = typename detail::MergeTypeListsHelper<TypeList<>, Lists...>::Type;
+        using Type = typename MergeTypeListsHelper<TypeList<>, Lists...>::Type;
     };
     
     template <typename List, typename Item, int32_t Idx> struct ReplaceH;
@@ -172,14 +172,14 @@ namespace detail {
 
 
 template <typename ... Lists>
-using MergeLists = typename detail::MergeListsH<Lists...>::Type;
+using MergeLists = typename memoria::v1::detail::MergeListsH<Lists...>::Type;
 
 template <typename ... Lists>
-using MergeValueLists = typename detail::MergeValueListsH<Lists...>::Type;
+using MergeValueLists = typename memoria::v1::detail::MergeValueListsH<Lists...>::Type;
 
 
 template <typename List, typename Item, int32_t Idx>
-using Replace = typename detail::ReplaceH<List, Item, Idx>::Type;
+using Replace = typename memoria::v1::detail::ReplaceH<List, Item, Idx>::Type;
 
 
 

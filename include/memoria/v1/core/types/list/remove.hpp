@@ -22,7 +22,7 @@
 namespace memoria {
 namespace v1 {
 
-namespace detail {    
+namespace detail02 {    
     
     template <typename Item, typename List, bool All = false> struct RemoveToolH;
 
@@ -75,9 +75,9 @@ namespace detail {
 }
 
 template <typename Item, typename List, bool All = false> 
-using RemoveTool = typename detail::RemoveToolH<Item, List, All>::Type;
+using RemoveTool = typename detail02::RemoveToolH<Item, List, All>::Type;
 
 template <typename List> 
-using RemoveDuplicatesTool = typename detail::RemoveDuplicatesToolH<List>::Type;
+using RemoveDuplicatesTool = typename detail02::RemoveDuplicatesToolH<List>::Type;
 
 }}

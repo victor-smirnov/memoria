@@ -33,18 +33,15 @@ namespace detail {
         static_assert(False<List>::Value, "Type supplied to ListSize<> template is not allowed");
     };
 
-    //template <typename List> struct ListSize;
-
     template <typename ... List>
     struct ListSizeH<v1::TypeList<List...>>: HasValue<int32_t, sizeof...(List)> {};
 
     template <typename T, T ... List>
     struct ListSizeH<ValueList<T, List...>>: HasValue<int32_t, sizeof...(List)> {};
-
 }
 
 template <typename List>
-constexpr int32_t ListSize = detail::ListSizeH<List>::Value;
+constexpr int32_t ListSize = memoria::v1::detail::ListSizeH<List>::Value;
 
 template <typename ... List> struct ListHead;
 
