@@ -148,6 +148,8 @@ public:
 
 template <typename T> struct TypeHash; // must define Value constant
 
+template <typename T>
+constexpr uint64_t TypeHashV = TypeHash<T>::Value;
 
 template <typename ... Types>
 struct TypeList {

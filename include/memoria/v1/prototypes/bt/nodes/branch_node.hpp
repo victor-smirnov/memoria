@@ -1754,32 +1754,32 @@ template <typename Metadata, typename Base>
 struct TypeHash<bt::TreeNodeBase<Metadata, Base>> {
     using TargetType = bt::TreeNodeBase<Metadata, Base>;
 
-    static const uint64_t Value = HashHelper<
-            TypeHash<Base>::Value,
+    static constexpr uint64_t Value = HashHelper<
+            TypeHashV<Base>,
             TargetType::VERSION,
-            TypeHash<int32_t>::Value,
-            TypeHash<int32_t>::Value,
-            TypeHash<int32_t>::Value,
-            TypeHash<int32_t>::Value,
-            TypeHash<int32_t>::Value,
-            TypeHash<typename TargetType::ID>::Value,
-            TypeHash<int32_t>::Value,
-            TypeHash<Metadata>::Value
-    >::Value;
+            TypeHashV<int32_t>,
+            TypeHashV<int32_t>,
+            TypeHashV<int32_t>,
+            TypeHashV<int32_t>,
+            TypeHashV<int32_t>,
+            TypeHashV<typename TargetType::ID>,
+            TypeHashV<int32_t>,
+            TypeHashV<Metadata>
+    >;
 };
 
 
 template <typename Types>
 struct TypeHash<bt::BranchNode<Types> > {
 
-    typedef bt::BranchNode<Types> Node;
+    using Node = bt::BranchNode<Types>;
 
-    static const uint64_t Value = HashHelper<
-            TypeHash<typename Node::Base>::Value,
+    static constexpr uint64_t Value = HashHelper<
+            TypeHashV<typename Node::Base>,
             Node::VERSION,
             false,
-            TypeHash<typename Types::Name>::Value
-    >::Value;
+            TypeHashV<typename Types::Name>
+    >;
 };
 
 

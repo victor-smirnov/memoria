@@ -39,7 +39,7 @@ class NDTTree {
     using NodeBaseG = typename Types::NodeBaseG;
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
-    static const int32_t HASH       = Head::PAGE_HASH;
+    static const uint64_t HASH  = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
 
     using NextNDT3 = NDTTree<Types, Idx - 1>;
@@ -80,7 +80,7 @@ class NDTTree<Types, 0> {
     using NodeBaseG = typename Types::NodeBaseG;
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
-    static const int32_t HASH       = Head::PAGE_HASH;
+    static const uint64_t HASH  = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
 
     using NextNDT3 = NDTTree<Types, Idx - 1>;
@@ -124,7 +124,7 @@ class NDT2 {
 
     using NextNDT2 = NDT2<Types, Idx - 1>;
 
-    static const int32_t HASH = Head::PAGE_HASH;
+    static const uint64_t HASH = Head::PAGE_HASH;
 
 
 
@@ -161,7 +161,7 @@ class NDT2<Types, 0> {
     using NodeBaseG     = typename Types::NodeBaseG;
     using Head          = SelectByIndex<Idx, typename Types::ChildList>;
 
-    static const int32_t HASH = Head::PAGE_HASH;
+    static const uint64_t HASH = Head::PAGE_HASH;
 
 
 

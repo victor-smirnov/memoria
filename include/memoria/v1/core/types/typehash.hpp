@@ -72,9 +72,7 @@ struct TypeHash<Profile<T>> {
 
 
 template <uint64_t Base, uint64_t ... Values>
-struct HashHelper {
-    static constexpr uint64_t Value = md5::Md5Sum<UInt64List<Base, Values...>>::Type::Value64;
-};
+static constexpr uint64_t HashHelper = md5::Md5Sum<UInt64List<Base, Values...>>::Type::Value64;
 
 
 
@@ -83,31 +81,31 @@ struct HashHelper {
 
 template <typename T, T V>
 struct TypeHash<ConstValue<T, V>> {
-    static const uint64_t Value = HashHelper<TypeHash<T>::Value, TypeHashes::CONST_VALUE, V>::Value;
+    static const uint64_t Value = HashHelper<TypeHashV<T>, TypeHashes::CONST_VALUE, V>;
 };
 
 
 
 template <typename T, size_t Size>
 struct TypeHash<T[Size]> {
-    static const uint64_t Value = HashHelper<TypeHash<T>::Value, TypeHashes::ARRAY, Size>::Value;
+    static const uint64_t Value = HashHelper<TypeHashV<T>, TypeHashes::ARRAY, Size>;
 };
 
 
 template <typename Key, typename Value>
 struct TypeHash<Map<Key, Value>>: UInt64Value<
-    HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+    HashHelper<1100, TypeHashV<Key>, TypeHashV<Value>>
 > {};
 
 template <typename Key, typename Value>
 struct TypeHash<CowMap<Key, Value>>: UInt64Value<
-    HashHelper<1104, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+    HashHelper<1104, TypeHashV<Key>, TypeHashV<Value>>
 > {};
 
 
 template <typename Key>
 struct TypeHash<Set<Key>>: UInt64Value<
-    HashHelper<1101, TypeHash<Key>::Value>::Value
+    HashHelper<1101, TypeHashV<Key>>
 > {};
 
 
@@ -118,28 +116,28 @@ struct TypeHash<Set<Key>>: UInt64Value<
 
 template <typename T, Granularity gr>
 struct TypeHash<VLen<gr, T>>: UInt64Value<
-    HashHelper<1113, TypeHash<T>::Value, static_cast<uint64_t>(gr)>::Value
+    HashHelper<1113, TypeHashV<T>, static_cast<uint64_t>(gr)>
 > {};
 
 
 template <typename T>
-struct TypeHash<Vector<T>>: UInt64Value<HashHelper<1300, TypeHash<T>::Value>::Value> {};
+struct TypeHash<Vector<T>>: UInt64Value<HashHelper<1300, TypeHashV<T>>> {};
 
 
 
 template <> struct TypeHash<Root>: UInt64Value<1400> {};
 
 template <int32_t BitsPerSymbol, bool Dense>
-struct TypeHash<Sequence<BitsPerSymbol, Dense>>: UInt64Value<HashHelper<1500, BitsPerSymbol, Dense>::Value> {};
+struct TypeHash<Sequence<BitsPerSymbol, Dense>>: UInt64Value<HashHelper<1500, BitsPerSymbol, Dense>> {};
 
 template <typename T, Indexed sr>
-struct TypeHash<FLabel<T, sr> >: UInt64Value<HashHelper<1610, (uint64_t)sr>::Value> {};
+struct TypeHash<FLabel<T, sr> >: UInt64Value<HashHelper<1610, (uint64_t)sr>> {};
 
 template <int32_t BitsPerSymbol>
-struct TypeHash<FBLabel<BitsPerSymbol>>: UInt64Value<HashHelper<1620, BitsPerSymbol>::Value> {};
+struct TypeHash<FBLabel<BitsPerSymbol>>: UInt64Value<HashHelper<1620, BitsPerSymbol>> {};
 
 template <typename T, Indexed sr, Granularity gr>
-struct TypeHash<VLabel<T, gr, sr> >: UInt64Value<HashHelper<1630, (uint64_t)sr, (uint64_t)gr>::Value> {};
+struct TypeHash<VLabel<T, gr, sr> >: UInt64Value<HashHelper<1630, (uint64_t)sr, (uint64_t)gr>> {};
 
 
 template <typename... LabelDescriptors>
@@ -158,7 +156,7 @@ struct TypeHash<LabeledTree<TypeList<LabelDescriptors...>>>: TypeHash<LabeledTre
 
 
 template <typename CtrName>
-struct TypeHash<CtrWrapper<CtrName>>: UInt32Value<HashHelper<1700, TypeHash<CtrName>::Value>::Value> {};
+struct TypeHash<CtrWrapper<CtrName>>: UInt32Value<HashHelper<1700, TypeHashV<CtrName>>> {};
 
 template <>
 struct TypeHash<WT>: UInt64Value<1800> {};
@@ -192,12 +190,12 @@ public:
 
 template <typename Key, typename Value>
 struct TypeHash<Table<Key, Value, PackedSizeType::FIXED>>: UInt64Value <
-    HashHelper<3098, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+    HashHelper<3098, TypeHashV<Key>, TypeHashV<Value>>
 > {};
 
 template <typename Key, typename Value>
 struct TypeHash<Table<Key, Value, PackedSizeType::VARIABLE>>: UInt64Value <
-    HashHelper<3099, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+    HashHelper<3099, TypeHashV<Key>, TypeHashV<Value>>
 > {};
 
 }}

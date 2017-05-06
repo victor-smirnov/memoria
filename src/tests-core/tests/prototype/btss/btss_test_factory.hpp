@@ -140,7 +140,7 @@ public:
 
 template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType>
 struct TypeHash<BTSSTestCtr<LeafSizeType, BranchSizeType>>:   UInt64Value<
-    HashHelper<3011, (int32_t)LeafSizeType, (int32_t)BranchSizeType>::Value
+    HashHelper<3011, (int32_t)LeafSizeType, (int32_t)BranchSizeType>
 > {};
 
 

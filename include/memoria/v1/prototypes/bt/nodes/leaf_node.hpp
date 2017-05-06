@@ -1523,11 +1523,11 @@ struct TypeHash<bt::LeafNode<Types> > {
     using Node = bt::LeafNode<Types>;
 
     static const uint64_t Value = HashHelper<
-            TypeHash<typename Node::Base>::Value,
+            TypeHashV<typename Node::Base>,
             Node::VERSION,
             true,
-            TypeHash<typename Types::Name>::Value
-    >::Value;
+            TypeHashV<typename Types::Name>
+    >;
 };
 
 

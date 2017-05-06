@@ -166,7 +166,7 @@ struct TypeHash<BalancedTreeMetadata<ID>>: UInt64Value<
         2500, 
         TypeHash<ID>::Value & 0xFFFFFFFF, 
         (TypeHash<ID>::Value >> 32) & 0xFFFFFFFF 
-    >::Value
+    >
 > {};
 
 

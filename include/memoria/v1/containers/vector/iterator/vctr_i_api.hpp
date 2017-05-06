@@ -104,7 +104,7 @@ public:
     {
         auto me = this->self();
 
-        auto v = me.subVector(1);
+        auto v = me.read((CtrSizeT)1);
 
         if (v.size() == 1)
         {

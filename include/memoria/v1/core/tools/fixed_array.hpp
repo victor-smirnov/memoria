@@ -175,7 +175,7 @@ template <typename T> struct TypeHash;
 
 template <int32_t Size>
 struct TypeHash<FixedArray<Size>> {
-    static const uint64_t Value = HashHelper<23423, 68751234, 1524857, Size>::Value;
+    static const uint64_t Value = HashHelper<23423, 68751234, 1524857, Size>;
 };
 
 

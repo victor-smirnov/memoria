@@ -296,15 +296,16 @@ public:
 
 
 template <typename PageIdType, int32_t FlagsCount>
-struct TypeHash<AbstractPage<PageIdType, FlagsCount>> {
-    static const uint64_t Value = HashHelper<
+struct TypeHash<AbstractPage<PageIdType, FlagsCount>>: HasValue<
+		uint64_t,
+		HashHelper<
             AbstractPage<AbstractPage<PageIdType, FlagsCount>>::VERSION,
             TypeHash<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>::Value,
             TypeHash<typename AbstractPage<PageIdType, FlagsCount>::ID>::Value,
-            TypeHash<int32_t>::Value,
+            TypeHashV<int32_t>,
             8
-    >::Value;
-};
+		>
+>{};
 
 
 
