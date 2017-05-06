@@ -281,7 +281,7 @@ class PageHelper<-1, Types>: public Types::NodePageBase {
 
 
 template <typename Types>
-class PageStart: public PageHelper<ListSize<typename Types::List>::Value - 1, Types> {
+class PageStart: public PageHelper<ListSize<typename Types::List> - 1, Types> {
 
 };
 

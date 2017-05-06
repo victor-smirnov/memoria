@@ -33,7 +33,7 @@ template <typename Types> class NDT2<Types, -1>;
 template <typename Types, int Idx> class NDTTree;
 template <typename Types> class NDTTree<Types, -1>;
 
-template <typename Types, int Idx = ListSize<typename Types::List>::Value - 1>
+template <typename Types, int Idx = ListSize<typename Types::List> - 1>
 class NDTTree {
 
     using NodeBaseG = typename Types::NodeBaseG;
@@ -58,7 +58,7 @@ public:
     {
         if (HASH == parent->page_type_hash())
         {
-            return NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>::dispatchTreeConst(
+            return NDT2<Types, ListSize<typename Types::ChildList> - 1>::dispatchTreeConst(
                     static_cast<const Head*>(parent.page()),
                     child,
                     std::forward<Functor>(functor),
@@ -86,7 +86,7 @@ class NDTTree<Types, 0> {
     using NextNDT3 = NDTTree<Types, Idx - 1>;
 
 public:
-    using NDT2Start = NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>;
+    using NDT2Start = NDT2<Types, ListSize<typename Types::ChildList> - 1>;
 
 
 

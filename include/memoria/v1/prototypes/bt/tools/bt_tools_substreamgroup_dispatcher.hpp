@@ -32,7 +32,7 @@ namespace detail {
 
 }
 
-template <typename List, int32_t Offset = 0, int32_t Idx = 0, int32_t Max = ListSize<List>::Value>
+template <typename List, int32_t Offset = 0, int32_t Idx = 0, int32_t Max = ListSize<List>>
 class BuildTopLevelLeafSubsetsH;
 
 template <typename List, int32_t Offset = 0>
@@ -42,8 +42,8 @@ using BuildTopLevelLeafSubsets = typename BuildTopLevelLeafSubsetsH<List, Offset
 
 template <typename List, int32_t Offset, int32_t Idx, int32_t Max>
 class BuildTopLevelLeafSubsetsH {
-    static const int32_t LeafOffsetInf = v1::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
-    static const int32_t LeafOffsetSup = v1::list_tree::LeafCountSup<List, IntList<Idx>>::Value;
+    static const int32_t LeafOffsetInf = v1::list_tree::LeafCountInf<List, IntList<Idx>>;
+    static const int32_t LeafOffsetSup = v1::list_tree::LeafCountSup<List, IntList<Idx>>;
 public:
     using Type = MergeLists<
             v1::list_tree::MakeValueList<

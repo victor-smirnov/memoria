@@ -28,7 +28,7 @@ template <typename Types, int idx> class NDT0;
 template <typename Types> class NDT0<Types, -1>;
 
 template <typename Types>
-class NDT: public NDT0<Types, ListSize<typename Types::List>::Value - 1> {};
+class NDT: public NDT0<Types, ListSize<typename Types::List> - 1> {};
 
 
 template <
@@ -142,7 +142,7 @@ public:
     {
         if (HASH == node1->page_type_hash())
         {
-            return NDT1<Types, ListSize<typename Types::List>::Value - 1>::dispatch(
+            return NDT1<Types, ListSize<typename Types::List> - 1>::dispatch(
                     static_cast<Head*>(node1.page()),
                     node2,
                     functor,
@@ -167,7 +167,7 @@ public:
     {
         if (HASH == node1->page_type_hash())
         {
-            return NDT1<Types, ListSize<typename Types::List>::Value - 1>::dispatchConstRtn(
+            return NDT1<Types, ListSize<typename Types::List> - 1>::dispatchConstRtn(
                     static_cast<const Head*>(node1.page()),
                     node2,
                     std::forward<Functor>(functor),
@@ -243,7 +243,7 @@ private:
 public:
     using NodeBaseG = typename Types::NodeBaseG;
 
-    using StartNDT1 = NDT1<Types, ListSize<typename Types::List>::Value - 1>;
+    using StartNDT1 = NDT1<Types, ListSize<typename Types::List> - 1>;
 
 
 
@@ -327,7 +327,7 @@ public:
     {
         if (HASH == node1->page_type_hash())
         {
-            return NDT1<Types, ListSize<typename Types::List>::Value - 1>::dispatch(
+            return NDT1<Types, ListSize<typename Types::List> - 1>::dispatch(
                     static_cast<Head*>(node1.page()),
                     node2,
                     functor,
@@ -345,7 +345,7 @@ public:
     {
         if (HASH == node1->page_type_hash())
         {
-            return NDT1<Types, ListSize<typename Types::List>::Value - 1>::dispatch(
+            return NDT1<Types, ListSize<typename Types::List> - 1>::dispatch(
                     static_cast<const Head*>(node1.page()),
                     node2,
                     functor,

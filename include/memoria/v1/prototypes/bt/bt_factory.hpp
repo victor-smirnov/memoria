@@ -250,8 +250,8 @@ public:
     using ContainerTypes = BTTypes<Profile, ContainerTypeName_>;
     using ID             = typename ContainerTypes::Allocator::Page::ID;
 
-    using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
-    static const int32_t Streams = ListSize<StreamDescriptors>::Value;
+    using StreamDescriptors         = typename ContainerTypes::StreamDescriptors;
+    static const int32_t Streams    = ListSize<StreamDescriptors>;
 
     using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
     using Page              = typename ContainerTypes::Allocator::Page;

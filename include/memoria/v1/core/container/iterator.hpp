@@ -74,11 +74,11 @@ public:
 };
 
 template <typename Types1>
-class IterStart: public IterHelper<ListSize<typename Types1::List>::Value - 1, Types1> {
+class IterStart: public IterHelper<ListSize<typename Types1::List> - 1, Types1> {
 
     using MyType    = Iter<Types1>;
     using ThisType  = IterStart<Types1>;
-    using Base      = IterHelper<ListSize<typename Types1::List>::Value - 1, Types1>;
+    using Base      = IterHelper<ListSize<typename Types1::List> - 1, Types1>;
     using ContainerType = Ctr<typename Types1::CtrTypes>;
 
     using CtrPtr    = CtrSharedPtr<ContainerType>;

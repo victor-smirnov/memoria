@@ -367,21 +367,21 @@ public:
 
     template <int32_t StreamIdx>
     using StreamStartIdx = IntValue<
-        v1::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>::Value
+        v1::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>
     >;
 
     template <int32_t StreamIdx>
     using StreamSize = IntValue<
-            v1::list_tree::LeafCountSup<BranchSubstreamsStructList, IntList<StreamIdx>>::Value -
-            v1::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>::Value
+            v1::list_tree::LeafCountSup<BranchSubstreamsStructList, IntList<StreamIdx>> -
+            v1::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>
     >;
 
 
 
     template <typename SubstreamsPath>
     using SubstreamsDispatcher = SubrangeDispatcher<
-            v1::list_tree::LeafCountInf<BranchSubstreamsStructList, SubstreamsPath>::Value,
-            v1::list_tree::LeafCountSup<BranchSubstreamsStructList, SubstreamsPath>::Value
+            v1::list_tree::LeafCountInf<BranchSubstreamsStructList, SubstreamsPath>,
+            v1::list_tree::LeafCountSup<BranchSubstreamsStructList, SubstreamsPath>
     >;
 
     template <int32_t SubstreamIdx>
@@ -391,23 +391,23 @@ public:
     using BranchPathT = typename v1::list_tree::BuildTreePath<BranchSubstreamsStructList, SubstreamIdx>::Type;
 
 
-    static const int32_t Streams                                                    = ListSize<BranchSubstreamsStructList>::Value;
+    static const int32_t Streams            = ListSize<BranchSubstreamsStructList>;
 
-    static const int32_t Substreams                                                 = Dispatcher::Size;
+    static const int32_t Substreams         = Dispatcher::Size;
 
-    static const int32_t SubstreamsStart                                            = Dispatcher::AllocatorIdxStart;
-    static const int32_t SubstreamsEnd                                              = Dispatcher::AllocatorIdxEnd;
+    static const int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
+    static const int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
 
-    static const int32_t ValuesBlockIdx                                             = SubstreamsEnd;
+    static const int32_t ValuesBlockIdx     = SubstreamsEnd;
 
 
     template <typename LeafPath>
     using BuildBranchPath = typename v1::list_tree::BuildTreePath<
             BranchSubstreamsStructList,
-            v1::list_tree::LeafCountInf<LeafSubstreamsStructList, LeafPath, 2>::Value -
+            v1::list_tree::LeafCountInf<LeafSubstreamsStructList, LeafPath, 2> -
                 FindLocalLeafOffsetV<
                     FlattenLeafTree<LeafSubstreamsStructList>,
-                    v1::list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>::Value
+                    v1::list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>
                 >::Value
     >::Type;
 
@@ -1317,7 +1317,7 @@ public:
     template <typename SubstreamPath>
     auto substream()
     {
-        const int32_t SubstreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
+        const int32_t SubstreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>;
         using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
         return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
     }
@@ -1325,7 +1325,7 @@ public:
     template <typename SubstreamPath>
     auto substream() const
     {
-        const int32_t SubstreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
+        const int32_t SubstreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>;
         using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
         return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
     }
@@ -1393,14 +1393,14 @@ public:
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args) const
     {
-        const int32_t StreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
+        const int32_t StreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args)
     {
-        const int32_t StreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
+        const int32_t StreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 

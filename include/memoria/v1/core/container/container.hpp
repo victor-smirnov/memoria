@@ -481,11 +481,11 @@ public:
 
 
 template <typename Types>
-class CtrStart: public CtrHelper<ListSize<typename Types::List>::Value - 1, Types> {
+class CtrStart: public CtrHelper<ListSize<typename Types::List> - 1, Types> {
 
     using ThisType  = CtrStart<Types>;
     using MyType    = Ctr<Types>;
-    using Base      = CtrHelper<ListSize<typename Types::List>::Value - 1, Types>;
+    using Base      = CtrHelper<ListSize<typename Types::List> - 1, Types>;
 
     using Allocator0 = typename Types::Allocator ;
 

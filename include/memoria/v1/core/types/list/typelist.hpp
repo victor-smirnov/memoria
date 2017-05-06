@@ -25,27 +25,26 @@
 namespace memoria {
 namespace v1 {
 
-template<typename...> struct False {
-    static const bool Value = false;
-};
+template<typename...> struct False: HasValue<bool, false> {};
 
+namespace detail {
 
-template <typename List> struct ListSize {
-    static_assert(False<List>::Value, "Type supplied to ListSize<> template is not allowed");
-};
+    template <typename List> struct ListSizeH {
+        static_assert(False<List>::Value, "Type supplied to ListSize<> template is not allowed");
+    };
 
-//template <typename List> struct ListSize;
+    //template <typename List> struct ListSize;
 
-template <typename ... List>
-struct ListSize<v1::TypeList<List...> > {
-    static const int32_t Value = sizeof...(List);
-};
+    template <typename ... List>
+    struct ListSizeH<v1::TypeList<List...>>: HasValue<int32_t, sizeof...(List)> {};
 
-template <typename T, T ... List>
-struct ListSize<ValueList<T, List...> > {
-    static const int32_t Value = sizeof...(List);
-};
+    template <typename T, T ... List>
+    struct ListSizeH<ValueList<T, List...>>: HasValue<int32_t, sizeof...(List)> {};
 
+}
+
+template <typename List>
+constexpr int32_t ListSize = detail::ListSizeH<List>::Value;
 
 template <typename ... List> struct ListHead;
 

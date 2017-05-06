@@ -590,7 +590,7 @@ struct AccumItem: public LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0
 public:
     using Base = LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>;
 
-    static constexpr int32_t BranchIdx  = v1::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value - Base::LocalLeafOffset;
+    static constexpr int32_t BranchIdx  = v1::list_tree::LeafCountInf<LeafStructList, LeafPath, 2> - Base::LocalLeafOffset;
 
     static constexpr int32_t LeafPrefix = Base::BranchIndex;
 
@@ -639,7 +639,7 @@ public:
 
 template <typename LeafStructList, typename LeafPath>
 struct PackedStructValueTypeH {
-    static const int32_t LeafIdx = v1::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+    static const int32_t LeafIdx = v1::list_tree::LeafCount<LeafStructList, LeafPath>;
     using PkdStruct = Select<LeafIdx, Linearize<LeafStructList>>;
 
     using Type = typename AccumType<PkdStruct>::Type;

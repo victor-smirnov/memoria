@@ -63,7 +63,7 @@ public:
     using List              = TypeList<SubstreamDescr<Head, Index>, Tail...>;
     using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, GroupIdx, ListIdx + 1>;
 
-    static const int32_t Size = ListSize<List>::Value;
+    static const int32_t Size = ListSize<List>;
 
     static const int32_t AllocatorIdxStart  = Index;
     static const int32_t AllocatorIdxEnd    = Select<Size - 1, List>::Value + 1;
@@ -629,7 +629,7 @@ public:
     static const int32_t AllocatorIdxStart  = Index;
     static const int32_t AllocatorIdxEnd    = Index + 1;
 
-    static const int32_t Size = ListSize<List>::Value;
+    static const int32_t Size = ListSize<List>;
 
     template<typename, int32_t, int32_t> friend class PackedDispatcher;
 
