@@ -46,20 +46,28 @@ template <int32_t Num, typename List>
 using Select = typename memoria::v1::details::SelectT<Num, List, 0>::Type;
 
 
-template <int32_t Value, typename List, int32_t idx = 0> struct SelectV;
+namespace detail {
 
-template <int32_t Pos, typename T, T Head, T ... Tail>
-struct SelectV<Pos, ValueList<T, Head, Tail...>, Pos> {
-    static const T Value = Head;
-};
+    template <int32_t Pos, typename List, int32_t idx = 0> struct SelectVH;
 
-template <int32_t Pos, typename T, T Head, T ... Tail, int32_t Idx>
-struct SelectV<Pos, ValueList<T, Head, Tail...>, Idx> {
-    static const T Value = SelectV<Pos, ValueList<T, Tail...>, Idx + 1>::Value;
-};
+    template <int32_t Pos, typename T, T Head, T ... Tail>
+    struct SelectVH<Pos, ValueList<T, Head, Tail...>, Pos> {
+        static const T Value = Head;
+    };
 
-template <int32_t Value, typename T, int32_t Idx>
-struct SelectV<Value, ValueList<T>, Idx>;
+    template <int32_t Pos, typename T, T Head, T ... Tail, int32_t Idx>
+    struct SelectVH<Pos, ValueList<T, Head, Tail...>, Idx> {
+        static const T Value = SelectVH<Pos, ValueList<T, Tail...>, Idx + 1>::Value;
+    };
+
+    template <int32_t Value, typename T, int32_t Idx>
+    struct SelectVH<Value, ValueList<T>, Idx>;
+}
+
+template <int32_t Pos, typename List> 
+constexpr auto SelectV = detail::SelectVH<Pos, List>::Value;
+
+
 
 
 

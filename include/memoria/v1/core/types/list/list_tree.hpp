@@ -92,65 +92,67 @@ template <typename List, typename Path, int32_t Depth = 1, int32_t Ptr = 0>
 constexpr int32_t LeafCount = detail::LeafCountH<List, Path, Depth, Ptr>::Value;
 
 
-template <typename List, typename Path, int32_t Ptr = 0> struct Subtree;
+namespace detail {
 
-template <
-    typename Head,
-    typename... Tail,
-    int32_t Idx,
-    int32_t... PathTail,
-    int32_t Ptr
->
-struct Subtree<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Ptr> {
-    using Type = typename Subtree<
-        TypeList<Tail...>,
-        IntList<Idx, PathTail...>,
-        Ptr + 1
-    >::Type;
-};
+    template <typename List, typename Path, int32_t Ptr = 0> struct SubtreeH;
 
-
-template <
-    typename Head,
-    typename... Tail,
-    int32_t Idx,
-    int32_t... PathTail
->
-struct Subtree<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Idx> {
-    using Type = IfThenElse<
-            (sizeof...(PathTail) > 0),
-            typename Subtree<Head, IntList<PathTail...>>::Type,
-            Head
-    >;
-};
-
-template <
-    typename Head,
-    typename... Tail,
-    int32_t Idx
->
-struct Subtree<TypeList<Head, Tail...>, IntList<>, Idx> {
-    using Type = TypeList<Head, Tail...>;
-};
+    template <
+        typename Head,
+        typename... Tail,
+        int32_t Idx,
+        int32_t... PathTail,
+        int32_t Ptr
+    >
+    struct SubtreeH<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Ptr>: HasType<
+        typename SubtreeH<
+            TypeList<Tail...>,
+            IntList<Idx, PathTail...>,
+            Ptr + 1
+        >::Type
+    > {};
 
 
-template <
-    typename T,
-    int32_t Idx
->
-struct Subtree<T, IntList<>, Idx> {
-    using Type = T;
-};
+    template <
+        typename Head,
+        typename... Tail,
+        int32_t Idx,
+        int32_t... PathTail
+    >
+    struct SubtreeH<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Idx>: HasType<
+        IfThenElse<
+                (sizeof...(PathTail) > 0),
+                typename SubtreeH<Head, IntList<PathTail...>>::Type,
+                Head
+        >
+    > {};
+
+    template <
+        typename Head,
+        typename... Tail,
+        int32_t Idx
+    >
+    struct SubtreeH<TypeList<Head, Tail...>, IntList<>, Idx>: HasType<TypeList<Head, Tail...>> {};
+
+
+    template <
+        typename T,
+        int32_t Idx
+    >
+    struct SubtreeH<T, IntList<>, Idx>: HasType<T> {};
+
+}
+
+template <typename List, typename Path> 
+using Subtree = typename detail::SubtreeH<List, Path>::Type;
 
 
 template <typename List, typename Path = IntList<>, int32_t Depth = 1>
 constexpr int32_t SubtreeLeafCount = ListSize<
     Linearize<
-        typename Subtree<List, Path>::Type,
+        Subtree<List, Path>,
         Depth
     >
 >;
-
 
 
 template <typename List, typename Path, int32_t Depth = 1>
@@ -166,18 +168,15 @@ namespace detail {
     template <typename T, T From, T To> struct MakeValueListH;
 
     template <typename T, T From, T To>
-    struct MakeValueListH {
-        using Type = MergeValueLists<
-                ConstValue<T, From>,
-                typename MakeValueListH<T, From + 1, To>::Type
-        >;
-    };
+    struct MakeValueListH: HasType<
+        MergeValueLists<
+            ConstValue<T, From>,
+            typename MakeValueListH<T, From + 1, To>::Type
+        >
+    >{};
 
     template <typename T, T To>
-    struct MakeValueListH<T, To, To> {
-        using Type = ValueList<T>;
-    };
-
+    struct MakeValueListH<T, To, To>: HasType<ValueList<T>> {};
 }
 
 template <typename T, T From, T To>
@@ -193,17 +192,15 @@ template <
     T Head,
     T... Tail
 >
-struct AddToValueListH<V, ValueList<T, Head, Tail...>> {
-    using Type = MergeValueLists<
+struct AddToValueListH<V, ValueList<T, Head, Tail...>>: HasType<
+    MergeValueLists<
             ValueList<T, V + Head>,
             typename AddToValueListH<V, ValueList<T, Tail...>>::Type
-    >;
-};
+    >
+>{};
 
 template <int32_t V, typename T>
-struct AddToValueListH<V, ValueList<T>> {
-    using Type = ValueList<T>;
-};
+struct AddToValueListH<V, ValueList<T>>: HasType<ValueList<T>> {};
 
 
 template <int32_t V, typename VList>
@@ -221,30 +218,30 @@ template <bool Condition, typename List, int32_t LeafIdx, typename Path, int32_t
 template <bool Condition, typename List, int32_t LeafIdx, typename Path, int32_t Idx> struct BuildTreePathHelper2;
 
 template <typename List, int32_t LeafIdx, int32_t... Path, int32_t Idx>
-struct BuildTreePathHelper1<true, List, LeafIdx, IntList<Path...>, Idx> {
-    using Type = MergeValueLists<IntList<Path...>, IntList<Idx>>;
-};
+struct BuildTreePathHelper1<true, List, LeafIdx, IntList<Path...>, Idx>: HasType<
+    MergeValueLists<IntList<Path...>, IntList<Idx>>
+>{};
 
 template <typename List, int32_t LeafIdx, int32_t... Path, int32_t Idx>
-struct BuildTreePathHelper1<false, List, LeafIdx, IntList<Path...>, Idx> {
-    using Type = typename BuildTreePath<
+struct BuildTreePathHelper1<false, List, LeafIdx, IntList<Path...>, Idx>: HasType<
+    typename BuildTreePath<
             List,
             LeafIdx - 1,
             IntList<Path...>,
             Idx + 1
-    >::Type;
-};
+    >::Type
+>{};
 
 
 template <typename... Head, typename... Tail, int32_t LeafIdx, int32_t... Path, int32_t Idx>
-struct BuildTreePathHelper2<true, TypeList<TypeList<Head...>, Tail...>, LeafIdx, IntList<Path...>, Idx> {
-    using Type = typename BuildTreePath<
+struct BuildTreePathHelper2<true, TypeList<TypeList<Head...>, Tail...>, LeafIdx, IntList<Path...>, Idx>: HasType< 
+    typename BuildTreePath<
             TypeList<Head...>,
             LeafIdx,
             MergeValueLists<IntList<Path...>, IntList<Idx>>,
             0
-    >::Type;
-};
+    >::Type
+>{};
 
 template <typename... Head, typename... Tail, int32_t LeafIdx, int32_t... Path, int32_t Idx>
 struct BuildTreePathHelper2<false, TypeList<TypeList<Head...>, Tail...>, LeafIdx, IntList<Path...>, Idx> {
@@ -289,15 +286,15 @@ template <
     int32_t LeafIdx,
     int32_t Idx
 >
-struct BuildTreePath<TypeList<Head, Tail...>, LeafIdx, IntList<PathList...>, Idx> {
-    using Type = typename details::BuildTreePathHelper1<
+struct BuildTreePath<TypeList<Head, Tail...>, LeafIdx, IntList<PathList...>, Idx>: HasType<
+    typename details::BuildTreePathHelper1<
             (LeafIdx < 1),
             TypeList<Tail...>,
             LeafIdx,
             IntList<PathList...>,
             Idx
-    >::Type;
-};
+    >::Type
+>{};
 
 
 

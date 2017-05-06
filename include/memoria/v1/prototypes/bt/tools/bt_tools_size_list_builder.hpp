@@ -205,7 +205,7 @@ public:
 
 template <typename List, typename Path>
 using LeafSubsetInf = typename detail00::ForAllTopLevelElements<
-        typename v1::list_tree::Subtree<List, Path>::Type,
+        v1::list_tree::Subtree<List, Path>,
         v1::list_tree::LeafCount<List, Path>
 >::Type;
 
@@ -463,12 +463,12 @@ template <typename List, int32_t Idx> struct GetLeafPrefix;
 
 template <typename List, int32_t Idx>
 struct GetLeafPrefix {
-    static const int32_t Value = SelectV<Idx, List>::Value;
+    static const int32_t Value = SelectV<Idx, List>;
 };
 
 template <typename List, int32_t Idx>
 struct GetLeafPrefix<StreamStartTag<List>, Idx> {
-    static const int32_t Value = SelectV<Idx, List>::Value;
+    static const int32_t Value = SelectV<Idx, List>;
 };
 
 
