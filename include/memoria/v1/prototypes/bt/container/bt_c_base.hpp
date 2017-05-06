@@ -333,9 +333,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
         node->ctr_type_hash()           = self.hash();
-        node->master_ctr_type_hash()    = self.init_data().master_ctr_type_hash();
-        node->owner_ctr_type_hash()     = self.init_data().owner_ctr_type_hash();
-
+        
         node->parent_id()               = ID();
         node->parent_idx()              = 0;
 
@@ -374,9 +372,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
         node->ctr_type_hash()           = self.hash();
-        node->master_ctr_type_hash()    = self.init_data().master_ctr_type_hash();
-        node->owner_ctr_type_hash()     = self.init_data().owner_ctr_type_hash();
-
+        
         node->parent_id()               = ID();
         node->parent_idx()              = 0;
 

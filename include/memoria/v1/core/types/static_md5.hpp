@@ -29,23 +29,21 @@ template <typename List> struct TypeToValueList;
 
 template <typename Head, typename... Tail>
 struct TypeToValueList<TypeList<Head, Tail...>> {
-    using Type = typename AppendValueTool<
-                uint32_t,
-                TypeHash<Head>::Value,
-                typename TypeToValueList<TypeList<Tail...> >::Type
-    >::Type;
+    using Type = MergeValueListsT<
+        UInt64List<
+            TypeHash<Head>::Value
+        >,
+        typename TypeToValueList<TypeList<Tail...> >::Type
+    >;
 };
 
 template <>
 struct TypeToValueList<TypeList<>> {
-    using Type = ValueList<uint32_t>;
+    using Type = UInt64List<>;
 };
 
 
 namespace md5 {
-
-
-using namespace std;
 
 template <uint32_t X, uint32_t Y, uint32_t Z>
 struct FunF {
@@ -100,8 +98,8 @@ struct Quad {
     static const uint32_t C = C_;
     static const uint32_t D = D_;
 
-    static const uint64_t Value = (((uint64_t)A << 32) | B) ^ (((uint64_t)C << 32) | D);
-    static const uint32_t    Value32 = A ^ B ^ C ^ D;
+    static const uint64_t Value64 = (((uint64_t)A << 32) | B) ^ (((uint64_t)C << 32) | D);
+    static const uint32_t Value32 = A ^ B ^ C ^ D;
 };
 
 
@@ -163,7 +161,7 @@ public:
     using Result = R16;
 
     static void dump() {
-        cout<<TypeNameFactory<Result>::name()<<endl;
+        std::cout << TypeNameFactory<Result>::name() << std::endl;
     }
 };
 
@@ -195,7 +193,7 @@ public:
     using Result = R16;
 
     static void dump() {
-        cout<<TypeNameFactory<Result>::name()<<endl;
+        std::cout << TypeNameFactory<Result>::name() << std::endl;
     }
 };
 
@@ -226,7 +224,7 @@ public:
     using Result = R16;
 
     static void dump() {
-        cout<<TypeNameFactory<Result>::name()<<endl;
+        std::cout << TypeNameFactory<Result>::name() << std::endl;
     }
 };
 
@@ -256,7 +254,7 @@ public:
     using Result = R16;
 
     static void dump() {
-        cout<<TypeNameFactory<Result>::name()<<endl;
+        std::cout << TypeNameFactory<Result>::name() << std::endl;
     }
 };
 
@@ -277,7 +275,7 @@ public:
         Round1<R2, X>::dump();
         Round1<R3, X>::dump();
 
-        cout<<"RoundTotal: "<<TypeNameFactory<Result>::name()<<endl;
+        std::cout << "RoundTotal: " << TypeNameFactory<Result>::name() << std::endl;
     }
 };
 
@@ -285,76 +283,84 @@ public:
 
 namespace internal  {
 
-template <typename List, int32_t From> struct MD5Sublist;
+    template <typename List, int32_t From> struct MD5Sublist;
 
-template <typename T, T... List>
-struct MD5Sublist<ValueList<T, List...>, 0> {
-    using Type = ValueList<T, List...>;
-};
+    template <int32_t From, typename T, T Head, T ... Tail>
+    struct MD5Sublist<ValueList<T, Head, Tail...>, From> {
+        using Type = typename MD5Sublist<ValueList<T, Tail...>, From - 1>::Type;
+    };
+    
+    template <typename T, T Head, T ... Tail>
+    struct MD5Sublist<ValueList<T, Head, Tail...>, 0> {
+        using Type = ValueList<T, Head, Tail...>;
+    };
+    
+    template <int32_t From, typename T>
+    struct MD5Sublist<ValueList<T>, From> {
+        using Type = ValueList<T>;
+    };
 
-template <int32_t From, typename T, T Head, T ... Tail>
-struct MD5Sublist<ValueList<T, Head, Tail...>, From> {
-    using Type = typename MD5Sublist<ValueList<T, Tail...>, From - 1>::Type;
-};
+    
+    
 
-template <int32_t From, typename T>
-struct MD5Sublist<ValueList<T>, From> {
-    using Type = ValueList<T>;
-};
+    template <typename List, typename Initial> class Md5SumHelper;
 
-template <typename T>
-struct MD5Sublist<ValueList<T>, 0> {
-    using Type = ValueList<T>;
-};
+    template <uint32_t ... Data, typename Initial>
+    class Md5SumHelper<ValueList<uint32_t, Data...>, Initial> {
 
+        using List  = ValueList<uint32_t, Data...>;
+        using Round = Md5Round<Initial, List>;
 
+        using RoundResult = typename Round::Result;
 
+        using Helper = Md5SumHelper<
+                        typename MD5Sublist<List, 16>::Type,
+                        RoundResult
+        >;
 
+    public:
+        using Type = typename Helper::Type;
 
-template <typename List, typename Initial> class Md5SumHelper;
+        static void dump() {
+            Round::dump();
+            Helper::dump();
+        }
+    };
 
-template <uint32_t ... Data, typename Initial>
-class Md5SumHelper<ValueList<uint32_t, Data...>, Initial> {
+    template <typename Initial>
+    class Md5SumHelper<ValueList<uint32_t>, Initial> {
+    public:
+        using Type = Initial;
 
-    using List  = ValueList<uint32_t, Data...>;
-    using Round = Md5Round<Initial, List>;
-
-    using RoundResult = typename Round::Result;
-
-    using Helper = Md5SumHelper<
-                    typename MD5Sublist<List, 16>::Type,
-                    RoundResult
-    >;
-
-public:
-    using Type = typename Helper::Type;
-
-    static void dump() {
-        Round::dump();
-        Helper::dump();
-    }
-};
-
-template <typename Initial>
-class Md5SumHelper<ValueList<uint32_t>, Initial> {
-public:
-    using Type = Initial;
-
-    static void dump() {
-        cout<<"Final Result: "<<TypeNameFactory<Initial>::name()<<endl;
-    }
-};
-
+        static void dump() {
+            std::cout << "Final Result: "<<TypeNameFactory<Initial>::name() << std::endl;
+        }
+    };
+    
+    
+    template <typename VList> struct TransformVList;
+    
+    template <uint64_t Head, uint64_t... Tail> 
+    struct TransformVList<UInt64List<Head, Tail...>>: HasType<
+        MergeValueListsT<
+            UInt32List<Head & 0xFFFFFFFF, (Head >> 32) & 0xFFFFFFFF>,
+            typename TransformVList<UInt64List<Tail...>>::Type
+        >
+    > {};
+    
+    template <> 
+    struct TransformVList<UInt64List<>>: HasType<UInt32List<>> {};
 }
 
 
 template <typename List> struct Md5Sum;
+
 template <uint32_t ... Data>
-struct Md5Sum<ValueList<uint32_t, Data...>> {
+struct Md5Sum<UInt32List<Data...>> {
     using List = typename AppendValueTool<
             uint32_t,
             sizeof...(Data),
-            ValueList<uint32_t, Data...>
+            UInt32List<Data...>
     >::Type;
 
     using Type = typename internal::Md5SumHelper<
@@ -366,6 +372,18 @@ struct Md5Sum<ValueList<uint32_t, Data...>> {
         internal::Md5SumHelper<List, Q0>::dump();
     }
 };
+
+template <uint64_t ... Data>
+struct Md5Sum<UInt64List<Data...>> {
+    using List32 = typename internal::TransformVList<UInt64List<Data...>>::Type;
+    
+    using Type = typename Md5Sum<List32>::Type;
+
+    static void dump() {
+        internal::Md5SumHelper<typename Type::List, Q0>::dump();
+    }
+};
+
 
 
 

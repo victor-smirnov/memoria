@@ -23,7 +23,7 @@ namespace memoria {
 namespace v1 {
 
 ostream& operator<<(ostream& os, const v1::IDValue& id) {
-    os<<id.str();
+    os << id.str();
     return os;
 }
 
@@ -35,7 +35,7 @@ ContainerMetadataRepository::ContainerMetadataRepository(StringRef name, const M
 {
     MetadataGroup::set_type() = Metadata::CONTAINER;
 
-    for (uint32_t c = 0; c < content_.size(); c++)
+    for (size_t c = 0; c < content_.size(); c++)
     {
         if (content[c]->getTypeCode() == Metadata::CONTAINER)
         {
@@ -55,7 +55,7 @@ void ContainerMetadataRepository::process_model(const ContainerMetadataPtr& mode
         hash_ = hash_ + model->ctr_hash();
 
         model_map_[model->ctr_hash()] = model;
-
+        
         for (int32_t d = 0; d < model->size(); d++)
         {
             auto item = model->getItem(d);
@@ -69,14 +69,14 @@ void ContainerMetadataRepository::process_model(const ContainerMetadataPtr& mode
                 process_model(std::static_pointer_cast<ContainerMetadata> (item));
             }
             else {
-                //exception
+                //exception ?
             }
         }
     }
 }
 
 
-const PageMetadataPtr& ContainerMetadataRepository::getPageMetadata(int32_t model_hash, int32_t page_hash) const
+const PageMetadataPtr& ContainerMetadataRepository::getPageMetadata(uint64_t model_hash, uint64_t page_hash) const
 {
     PageMetadataMap::const_iterator i = page_map_.find(model_hash ^ page_hash);
     if (i != page_map_.end())
@@ -84,12 +84,12 @@ const PageMetadataPtr& ContainerMetadataRepository::getPageMetadata(int32_t mode
         return i->second;
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown page type hash codes "<<model_hash<<" "<<page_hash);
+        throw Exception(MEMORIA_SOURCE, SBuf() << "Unknown page type hash codes " << model_hash << " " << page_hash);
     }
 }
 
 
-const ContainerMetadataPtr& ContainerMetadataRepository::getContainerMetadata(int32_t hashCode) const
+const ContainerMetadataPtr& ContainerMetadataRepository::getContainerMetadata(uint64_t hashCode) const
 {
     auto i = model_map_.find(hashCode);
     if (i != model_map_.end())
@@ -97,7 +97,7 @@ const ContainerMetadataPtr& ContainerMetadataRepository::getContainerMetadata(in
         return i->second;
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown model hash code "<<hashCode);
+        throw Exception(MEMORIA_SOURCE, SBuf() << "Unknown container hash code " << hashCode);
     }
 }
 
@@ -108,10 +108,10 @@ void ContainerMetadataRepository::dumpMetadata(std::ostream& out)
     {
         if (pair.second->getCtrInterface() != nullptr)
         {
-            out<<pair.first<<": "<<pair.second->getCtrInterface()->ctr_type_name()<<std::endl;
+            out << pair.first << ": " << pair.second->getCtrInterface()->ctr_type_name() << std::endl;
         }
         else {
-            out<<pair.first<<": "<<"Composite"<<std::endl;
+            out << pair.first << ": " << "Composite" << std::endl;
         }
     }
 }
@@ -120,7 +120,7 @@ void ContainerMetadataRepository::dumpMetadata(std::ostream& out)
 PageMetadata::PageMetadata(
                 StringRef name,
                 int32_t attributes,
-                int32_t hash,
+                uint64_t hash,
                 const IPageOperations* page_operations
               ):
     MetadataGroup(name)

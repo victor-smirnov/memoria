@@ -206,7 +206,7 @@ template <typename T> struct TypeHash;
 
 template <>
 struct TypeHash<StringWrapper> {
-    static constexpr uint32_t Value = 2231112;
+    static constexpr uint64_t Value = 2231112;
 };
 
 

@@ -1263,10 +1263,10 @@ private:
         int32_t page_size;
         in >> page_size;
 
-        int32_t ctr_hash;
+        uint64_t ctr_hash;
         in >> ctr_hash;
 
-        int32_t page_hash;
+        uint64_t page_hash;
         in >> page_hash;
 
         unique_ptr<int8_t, void (*)(void*)> page_data((int8_t*)::malloc(page_data_size), ::free);

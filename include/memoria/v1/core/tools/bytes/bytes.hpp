@@ -205,7 +205,7 @@ struct TypeHash;
 
 template <typename T>
 struct TypeHash<RawData<T>> {
-    static const uint32_t Value = HashHelper<99992, 22211, TypeHash<T>::Value>::Value;
+    static const uint64_t Value = HashHelper<99992, 22211, TypeHash<T>::Value>::Value;
 };
 
 template <typename T>

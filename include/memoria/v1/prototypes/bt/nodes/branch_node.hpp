@@ -1624,7 +1624,7 @@ public:
     typedef TreeNode<Types>                                                     Base;
 
 
-    static const uint32_t PAGE_HASH = TypeHash<Base>::Value;
+    static const uint64_t PAGE_HASH = TypeHash<Base>::Value;
 
 //    static_assert(std::is_trivial<TreeNode<Types>>::value, "TreeNode must be a trivial type");
 
@@ -1641,7 +1641,7 @@ private:
 public:
     NodePageAdaptor() = default;
 
-    static int32_t hash() {
+    static uint64_t hash() {
         return PAGE_HASH;
     }
 
@@ -1723,7 +1723,7 @@ public:
         }
     };
 
-    static int32_t initMetadata()
+    static uint64_t initMetadata()
     {
         Base::InitType();
 
@@ -1752,9 +1752,9 @@ PageMetadataPtr NodePageAdaptor<TreeNode, Types>::page_metadata_;
 
 template <typename Metadata, typename Base>
 struct TypeHash<bt::TreeNodeBase<Metadata, Base>> {
-    typedef bt::TreeNodeBase<Metadata, Base> TargetType;
+    using TargetType = bt::TreeNodeBase<Metadata, Base>;
 
-    static const uint32_t Value = HashHelper<
+    static const uint64_t Value = HashHelper<
             TypeHash<Base>::Value,
             TargetType::VERSION,
             TypeHash<int32_t>::Value,
@@ -1774,7 +1774,7 @@ struct TypeHash<bt::BranchNode<Types> > {
 
     typedef bt::BranchNode<Types> Node;
 
-    static const uint32_t Value = HashHelper<
+    static const uint64_t Value = HashHelper<
             TypeHash<typename Node::Base>::Value,
             Node::VERSION,
             false,

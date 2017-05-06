@@ -110,7 +110,7 @@ template <typename T>
 struct TypeHash;
 
 template <>
-struct TypeHash<UUID>: UInt32Value<741231> {};
+struct TypeHash<UUID>: UInt64Value<741231> {};
 
 struct UUIDKeyHash
 {

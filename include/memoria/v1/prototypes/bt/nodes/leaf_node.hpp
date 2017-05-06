@@ -36,7 +36,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt        {
+namespace bt {
 
 
 template <
@@ -44,13 +44,13 @@ template <
 >
 class LeafNode: public Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>
 {
-    static const int32_t BranchingFactor                                            = PackedTreeBranchingFactor;
+    static const int32_t BranchingFactor                                        = PackedTreeBranchingFactor;
 
     typedef LeafNode<Types>                                                     Me;
     typedef LeafNode<Types>                                                     MyType;
 
 public:
-    static const uint32_t VERSION                                                   = 2;
+    static const uint32_t VERSION                                               = 2;
 
     static const bool Leaf                                                      = true;
 
@@ -1520,9 +1520,9 @@ public:
 template <typename Types>
 struct TypeHash<bt::LeafNode<Types> > {
 
-    typedef bt::LeafNode<Types> Node;
+    using Node = bt::LeafNode<Types>;
 
-    static const uint32_t Value = HashHelper<
+    static const uint64_t Value = HashHelper<
             TypeHash<typename Node::Base>::Value,
             Node::VERSION,
             true,

@@ -161,8 +161,12 @@ public:
 };
 
 template <typename ID>
-struct TypeHash<BalancedTreeMetadata<ID>>: UInt32Value<
-    HashHelper<2500, TypeHash<ID>::Value>::Value
+struct TypeHash<BalancedTreeMetadata<ID>>: UInt64Value<
+    HashHelper<
+        2500, 
+        TypeHash<ID>::Value & 0xFFFFFFFF, 
+        (TypeHash<ID>::Value >> 32) & 0xFFFFFFFF 
+    >::Value
 > {};
 
 

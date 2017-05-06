@@ -58,14 +58,14 @@ struct ContainerWalker {
     virtual void beginCtr(const char* descr, const UUID& name, const UUID& root)= 0;
     virtual void endCtr()                                                       = 0;
 
-    virtual void beginRoot(int32_t idx, const void* page)                           = 0;
+    virtual void beginRoot(int32_t idx, const void* page)                       = 0;
     virtual void endRoot()                                                      = 0;
 
-    virtual void beginNode(int32_t idx, const void* page)                           = 0;
+    virtual void beginNode(int32_t idx, const void* page)                       = 0;
     virtual void endNode()                                                      = 0;
 
-    virtual void rootLeaf(int32_t idx, const void* page)                            = 0;
-    virtual void leaf(int32_t idx, const void* page)                                = 0;
+    virtual void rootLeaf(int32_t idx, const void* page)                        = 0;
+    virtual void leaf(int32_t idx, const void* page)                            = 0;
 
     virtual void singleNode(const char* descr, const void* page)                = 0;
 
@@ -175,30 +175,8 @@ template <typename Profile> class MetadataRepository;
 struct ContainerMetadata: public MetadataGroup {
 public:
 
-    ContainerMetadata(StringRef name, const MetadataList &content, int32_t ctr_hash, ContainerInterfacePtr container_interface):
-        MetadataGroup(name, content),
-        container_interface_(container_interface),
-        ctr_hash_(ctr_hash)
-    {
-    	MetadataGroup::set_type() = MetadataGroup::CONTAINER;
-        for (uint32_t c = 0; c < content.size(); c++)
-        {
-            if (content[c]->getTypeCode() == Metadata::PAGE)
-            {
-                PageMetadataPtr page = static_pointer_cast<PageMetadata> (content[c]);
-                page_map_[page->hash() ^ ctr_hash] = page;
-            }
-            else if (content[c]->getTypeCode() == Metadata::CONTAINER) {
-                // nothing to do
-            }
-            else {
-                //exception;
-            }
-        }
-    }
-
     template <typename Types>
-    ContainerMetadata(StringRef name, Types* nothing, int32_t ctr_hash, ContainerInterfacePtr container_interface):
+    ContainerMetadata(StringRef name, Types* nothing, uint64_t ctr_hash, ContainerInterfacePtr container_interface):
         MetadataGroup(name, buildPageMetadata<Types>()),
         container_interface_(container_interface),
         ctr_hash_(ctr_hash)
@@ -225,11 +203,11 @@ public:
     virtual ~ContainerMetadata() throw ()
     {}
 
-    virtual int32_t ctr_hash() const {
+    virtual uint64_t ctr_hash() const {
         return ctr_hash_;
     }
 
-    virtual const PageMetadataPtr& getPageMetadata(int32_t model_hash, int32_t page_hash) const
+    virtual const PageMetadataPtr& getPageMetadata(uint64_t model_hash, uint64_t page_hash) const
     {
         PageMetadataMap::const_iterator i = page_map_.find(model_hash ^ page_hash);
         if (i != page_map_.end())
@@ -266,7 +244,7 @@ private:
     PageMetadataMap         page_map_;
     ContainerInterfacePtr   container_interface_;
 
-    int32_t                 ctr_hash_;
+    uint64_t                ctr_hash_;
 };
 
 
@@ -284,13 +262,12 @@ public:
     {
     }
 
-    virtual int32_t hash() const {
+    virtual uint64_t hash() const {
         return hash_;
     }
 
-    const PageMetadataPtr& getPageMetadata(int32_t model_hash, int32_t page_hash) const;
-    const ContainerMetadataPtr& getContainerMetadata(int32_t model_hash) const;
-
+    const PageMetadataPtr& getPageMetadata(uint64_t ctr_hash, uint64_t page_hash) const;
+    const ContainerMetadataPtr& getContainerMetadata(uint64_t ctr_hash) const;
 
     virtual void registerMetadata(const ContainerMetadataPtr& metadata)
     {
@@ -302,7 +279,7 @@ public:
     void dumpMetadata(std::ostream& out);
 
 private:
-    int32_t                     hash_;
+    uint64_t                hash_;
     PageMetadataMap         page_map_;
     ContainerMetadataMap    model_map_;
     
@@ -536,18 +513,18 @@ private:
     {
         std::stringstream str;
 
-        str<<name<<"-";
+        str << name << "-";
 
         char prev = str.fill();
 
         str.fill('0');
         str.width(4);
 
-        str<<index;
+        str << index;
 
         str.fill(prev);
 
-        str<<"___"<<id;
+        str << "___" << id;
 
         return str.str();
     }

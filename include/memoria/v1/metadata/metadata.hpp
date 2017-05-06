@@ -36,28 +36,28 @@ namespace memoria {
 namespace v1 {
 
 struct Metadata;
-using MetadataPtr           = CtrSharedPtr<Metadata>;
+using MetadataPtr = CtrSharedPtr<Metadata>;
 
 struct PageMetadata;
-using PageMetadataPtr       = CtrSharedPtr<PageMetadata>;
+using PageMetadataPtr = CtrSharedPtr<PageMetadata>;
 
 struct ContainerMetadata;
-using ContainerMetadataPtr  = CtrSharedPtr<ContainerMetadata>;
+using ContainerMetadataPtr = CtrSharedPtr<ContainerMetadata>;
 
 struct ContainerCollection;
 struct Container;
 
 // FIXME change map key to uint32_t
 using MetadataList          = std::vector<MetadataPtr>;
-using PageMetadataMap       = std::unordered_map<int32_t, PageMetadataPtr>;
-using ContainerMetadataMap  = std::unordered_map<int32_t, ContainerMetadataPtr>;
+using PageMetadataMap       = std::unordered_map<uint64_t, PageMetadataPtr>;
+using ContainerMetadataMap  = std::unordered_map<uint64_t, ContainerMetadataPtr>;
 
 struct Metadata {
 
 public:
     enum   {GROUP,  PAGE, CONTAINER};
 
-    typedef Metadata            Me;
+    using Me = Metadata;
 
 public:
 
@@ -93,7 +93,7 @@ protected:
 
 private:
     const String    name_;
-    int32_t             typeCode_;
+    int32_t         typeCode_;
 };
 
 

@@ -274,7 +274,7 @@ template <typename T> struct TypeHash;
 
 template <>
 struct TypeHash<BigInteger> {
-    static const uint32_t Value = 50;
+    static const uint64_t Value = 50;
 };
 
 }}

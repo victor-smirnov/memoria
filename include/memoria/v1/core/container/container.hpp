@@ -69,20 +69,17 @@ constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
 
 class CtrInitData {
     UUID master_name_;
-    int32_t master_ctr_type_hash_;
-    int32_t owner_ctr_type_hash_;
+    uint64_t ctr_type_hash_;
 
 public:
-    CtrInitData(const UUID& master_name, int32_t master_hash, int32_t owner_hash):
+    CtrInitData(const UUID& master_name, uint64_t ctr_hash):
         master_name_(master_name),
-        master_ctr_type_hash_(master_hash),
-        owner_ctr_type_hash_(owner_hash)
+        ctr_type_hash_(ctr_hash)
     {}
 
-    CtrInitData(int32_t master_hash):
-        master_name_(),
-        master_ctr_type_hash_(master_hash),
-        owner_ctr_type_hash_()
+    CtrInitData(uint64_t ctr_hash):
+        master_name_{},
+        ctr_type_hash_(ctr_hash)
     {}
 
     const auto& master_name() const {
@@ -93,17 +90,13 @@ public:
         master_name_ = name;
     }
 
-    int32_t owner_ctr_type_hash() const {
-        return owner_ctr_type_hash_;
+    uint64_t ctr_type_hash() const {
+        return ctr_type_hash_;
     }
 
-    int32_t master_ctr_type_hash() const {
-        return master_ctr_type_hash_;
-    }
-
-    CtrInitData owner(int owner_hash) const
+    CtrInitData owner(uint64_t ctr_hash) const
     {
-        return CtrInitData(master_name_, master_ctr_type_hash_, owner_hash);
+        return CtrInitData(master_name_, ctr_hash);
     }
 };
 
@@ -131,7 +124,7 @@ public:
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
     using IteratorPtr       = CtrSharedPtr<SharedIterator>;
     
-    static constexpr int32_t CONTAINER_HASH = TypeHash<Name>::Value;
+    static constexpr uint64_t CONTAINER_HASH = TypeHash<Name>::Value;
 
     template <typename> friend class BTIteratorBase;
 
@@ -168,8 +161,12 @@ public:
         allocator_holder_.reset();
     }
     
-    virtual bool is_castable_to(int type_code) const {
-        return TypeHash<ContainerTypeName>::Value == type_code;
+    virtual bool is_castable_to(uint64_t type_code) const {
+        return CONTAINER_HASH == type_code;
+    }
+    
+    virtual uint64_t type_hash() {
+        return CONTAINER_HASH;
     }
     
     virtual std::string describe_type() const {
@@ -182,7 +179,6 @@ public:
     void set_root(const ID &root)
     {
         root_ = root;
-
         self().allocator().setRoot(self().master_name(), root);
     }
 
@@ -208,7 +204,7 @@ public:
         init_data_  = other.init_data_;
     }
 
-    static int32_t hash() {
+    static uint64_t hash() {
         return CONTAINER_HASH;
     }
 
@@ -217,7 +213,7 @@ public:
         static thread_local ContainerMetadata* reflection_ptr = new ContainerMetadata(
             TypeNameFactory<Name>::name(),
             (Types*)nullptr,
-            static_cast<int>(CONTAINER_HASH),
+            static_cast<uint64_t>(CONTAINER_HASH),
             MyType::getContainerInterface()
         );
         
@@ -249,7 +245,7 @@ public:
             	auto ctr_ptr = ctr_make_shared<MyType>(
                     allocator,
                     root_id, 
-                    CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash())
+                    CtrInitData(ctr_name, page->ctr_type_hash())
                 );
 
             	fn(*ctr_ptr.get());
@@ -293,7 +289,7 @@ public:
         ) const
         {
         	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
-        	auto root_id 	 = alloc->getRootID(name);
+        	auto root_id = alloc->getRootID(name);
 
         	with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 ctr.walkTree(walker);
@@ -348,7 +344,7 @@ public:
         )
         {
         	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
-        	auto root_id 	 = alloc->getRootID(name);
+        	auto root_id = alloc->getRootID(name);
 
         	CtrNodesWalkerAdapter walker(consumer);
 
@@ -368,7 +364,7 @@ public:
             	return ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
                     alloc,
                     root_id, 
-                    CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash())
+                    CtrInitData(name, page->ctr_type_hash())
                 );
             }
             else {
@@ -427,20 +423,7 @@ protected:
         return ctr_make_shared<SharedIterator>(std::forward<Args>(args)...);
     }
 
-
-//     /**
-//      * \brief Set container reflection metadata.
-//      */
-// 
-//     static void setMetadata(ContainerMetadataPtr metadata)
-//     {
-//         reflection_ = metadata;
-//     }
-
-
 private:
-
-
     MyType& self()
     {
         return *static_cast<MyType*>(this);
@@ -452,11 +435,6 @@ private:
     }
 };
 
-// template <typename TypesType>
-// ContainerMetadataPtr CtrBase<TypesType>::reflection_;
-// 
-// template <typename TypesType>
-// typename CtrBase<TypesType>::MutexT CtrBase<TypesType>::mutex_;
 
 
 
@@ -466,9 +444,9 @@ class CtrHelper: public CtrPart<
                             CtrHelper<Idx - 1, Types>,
                             Types>
 {
-    typedef CtrHelper<Idx, Types>                               ThisType;
-    typedef Ctr<Types>                                          MyType;
-    typedef CtrPart<SelectByIndex<Idx, typename Types::List>, CtrHelper<Idx - 1, Types>, Types> Base;
+    using ThisType = CtrHelper<Idx, Types>;
+    using MyType   = Ctr<Types>;
+    using Base     = CtrPart<SelectByIndex<Idx, typename Types::List>, CtrHelper<Idx - 1, Types>, Types>;
 
     using Allocator0 = typename Types::Allocator;
 
@@ -480,13 +458,13 @@ public:
 
 template <typename Types>
 class CtrHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
-    typedef CtrHelper<-1, Types>                                ThisType;
-    typedef Ctr<Types>                                          MyType;
-    typedef typename Types::template BaseFactory<Types>::Type   Base;
+    using ThisType = CtrHelper<-1, Types>;
+    using MyType   = Ctr<Types>;
+    using Base     = typename Types::template BaseFactory<Types>::Type;
 
 public:
 
-    typedef typename Types::Allocator                           Allocator0;
+    using Allocator0 = typename Types::Allocator;
 
     CtrHelper(const CtrInitData& data, const CtrSharedPtr<Allocator0>& allocator): Base(data, allocator) {}
 
@@ -505,10 +483,9 @@ public:
 template <typename Types>
 class CtrStart: public CtrHelper<ListSize<typename Types::List>::Value - 1, Types> {
 
-    typedef CtrStart<Types>         ThisType;
-    typedef Ctr<Types>              MyType;
-
-    typedef CtrHelper<ListSize<typename Types::List>::Value - 1, Types> Base;
+    using ThisType  = CtrStart<Types>;
+    using MyType    = Ctr<Types>;
+    using Base      = CtrHelper<ListSize<typename Types::List>::Value - 1, Types>;
 
     using Allocator0 = typename Types::Allocator ;
 
@@ -550,9 +527,6 @@ private:
 
     bool debug_;
 
-    int32_t         owner_ctr_type_hash_  = 0;
-    int32_t         master_ctr_type_hash_ = 0;
-    
 protected:
     CtrSharedPtr<Allocator> alloc_holder_;
 
@@ -686,14 +660,6 @@ public:
         //FIXME: init logger correctly
 
         Base::initCtr(root_id, name_);
-    }
-
-    int32_t owner_ctr_type_hash () const {
-        return owner_ctr_type_hash_;
-    }
-
-    int32_t master_ctr_type_hash() const {
-        return master_ctr_type_hash_;
     }
 
 

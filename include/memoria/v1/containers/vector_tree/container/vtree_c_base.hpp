@@ -123,7 +123,7 @@ public:
             Base::setMetadata(std::make_shared<ContainerMetadata>(
                     TypeNameFactory<typename Types::ContainerTypeName>::name(),
                     list,
-                    static_cast<int>(TypeHash<typename Types::ContainerTypeName>::Value),
+                    static_cast<uint64_t>(TypeHash<typename Types::ContainerTypeName>::Value),
                     Base::getContainerInterface()
             )
             );

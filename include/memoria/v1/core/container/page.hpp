@@ -72,7 +72,7 @@ public:
 template <int32_t Size>
 struct TypeHash<BitBuffer<Size> > {
 public:
-    static const uint32_t Value = 123456 * Size;
+    static const uint64_t Value = 123456 * Size;
 };
 
 template <typename PageIdType, int32_t FlagsCount = 32>
@@ -80,28 +80,26 @@ class AbstractPage {
 //    static_assert(std::is_trivial<PageIdType>::value, "PageIdType must be a trivial type");
 
 public:
-    static const uint32_t VERSION                                                   = 1;
+    static constexpr uint32_t VERSION = 1;
     typedef BitBuffer<FlagsCount> FlagsType;
 
 private:
     typedef AbstractPage<PageIdType, FlagsCount> Me;
 
-    int32_t         crc_;
-    int32_t         master_ctr_type_hash_;
-    int32_t         owner_ctr_type_hash_;
-    int32_t         ctr_type_hash_;
-    int32_t         page_type_hash_;
-    int32_t         page_size_;
+    uint32_t    crc_;
+    uint64_t    ctr_type_hash_;
+    uint64_t    page_type_hash_;
+    int32_t     page_size_;
 
-    uint64_t     next_block_pos_;
-    uint64_t     target_block_pos_;
+    uint64_t    next_block_pos_;
+    uint64_t    target_block_pos_;
 
     PageIdType  id_;
     PageIdType  uuid_;
 
     FlagsType   flags_;
 
-    int32_t         deleted_;
+    int32_t     deleted_;
 
     //Txn rollback intrusive list fields. Not used by containers.
 
@@ -113,8 +111,6 @@ public:
                 decltype(id_),
                 decltype(uuid_),
                 decltype(crc_),
-                decltype(master_ctr_type_hash_),
-                decltype(owner_ctr_type_hash_),
                 decltype(ctr_type_hash_),
                 decltype(page_type_hash_),
                 decltype(deleted_),
@@ -151,42 +147,28 @@ public:
         return flags_;
     };
 
-    int32_t &crc() {
+    uint32_t &crc() {
         return crc_;
     }
 
-    const int32_t &crc() const {
+    const uint32_t &crc() const {
         return crc_;
     }
 
-    int32_t &ctr_type_hash() {
+    uint64_t &ctr_type_hash() {
         return ctr_type_hash_;
     }
 
-    const int32_t &ctr_type_hash() const {
+    const uint64_t &ctr_type_hash() const {
         return ctr_type_hash_;
     }
 
-    int32_t &owner_ctr_type_hash() {
-        return owner_ctr_type_hash_;
-    }
-
-    const int32_t &owner_ctr_type_hash() const {
-        return owner_ctr_type_hash_;
-    }
-
-    int32_t &master_ctr_type_hash() {
-        return master_ctr_type_hash_;
-    }
-
-    const int32_t &master_ctr_type_hash() const {
-        return master_ctr_type_hash_;
-    }
-    int32_t &page_type_hash() {
+    
+    uint64_t &page_type_hash() {
         return page_type_hash_;
     }
 
-    const int32_t &page_type_hash() const {
+    const uint64_t &page_type_hash() const {
         return page_type_hash_;
     }
 
@@ -253,9 +235,7 @@ public:
         handler->value("GID",               &uuid_);
         handler->value("ID",                &id_);
         handler->value("CRC",               &crc_);
-        handler->value("MASTER_MODEL_HASH", &master_ctr_type_hash_);
-        handler->value("OWNER_MODEL_HASH",  &owner_ctr_type_hash_);
-        handler->value("MODEL_HASH",        &ctr_type_hash_);
+        handler->value("CTR_HASH",          &ctr_type_hash_);
         handler->value("PAGE_TYPE_HASH",    &page_type_hash_);
         handler->value("DELETED",           &deleted_);
         handler->value("PAGE_SIZE",         &page_size_);
@@ -272,9 +252,7 @@ public:
         this->crc()             = page->crc();
 
         this->ctr_type_hash()           = page->ctr_type_hash();
-        this->master_ctr_type_hash()    = page->master_ctr_type_hash();
-        this->owner_ctr_type_hash()     = page->owner_ctr_type_hash();
-
+        
         this->page_type_hash()  = page->page_type_hash();
         this->deleted()         = page->deleted();
         this->page_size()       = page->page_size();
@@ -283,11 +261,9 @@ public:
     template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<int32_t>::serialize(buf, crc());
-        FieldFactory<int32_t>::serialize(buf, master_ctr_type_hash());
-        FieldFactory<int32_t>::serialize(buf, owner_ctr_type_hash());
-        FieldFactory<int32_t>::serialize(buf, ctr_type_hash());
-        FieldFactory<int32_t>::serialize(buf, page_type_hash());
+        FieldFactory<uint32_t>::serialize(buf, crc());
+        FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
+        FieldFactory<uint64_t>::serialize(buf, page_type_hash());
         FieldFactory<int32_t>::serialize(buf, page_size_);
 
         FieldFactory<uint64_t>::serialize(buf, next_block_pos_);
@@ -302,11 +278,9 @@ public:
     template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<int32_t>::deserialize(buf, crc());
-        FieldFactory<int32_t>::deserialize(buf, master_ctr_type_hash());
-        FieldFactory<int32_t>::deserialize(buf, owner_ctr_type_hash());
-        FieldFactory<int32_t>::deserialize(buf, ctr_type_hash());
-        FieldFactory<int32_t>::deserialize(buf, page_type_hash());
+        FieldFactory<uint32_t>::deserialize(buf, crc());
+        FieldFactory<uint64_t>::deserialize(buf, ctr_type_hash());
+        FieldFactory<uint64_t>::deserialize(buf, page_type_hash());
         FieldFactory<int32_t>::deserialize(buf, page_size_);
 
         FieldFactory<uint64_t>::deserialize(buf, next_block_pos_);
@@ -323,7 +297,7 @@ public:
 
 template <typename PageIdType, int32_t FlagsCount>
 struct TypeHash<AbstractPage<PageIdType, FlagsCount>> {
-    static const uint32_t Value = HashHelper<
+    static const uint64_t Value = HashHelper<
             AbstractPage<AbstractPage<PageIdType, FlagsCount>>::VERSION,
             TypeHash<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>::Value,
             TypeHash<typename AbstractPage<PageIdType, FlagsCount>::ID>::Value,

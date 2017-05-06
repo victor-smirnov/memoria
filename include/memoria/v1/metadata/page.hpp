@@ -36,18 +36,14 @@ namespace v1 {
 
 template <typename T> class PageID;
 
-
-
-
 enum {BTREE = 1, ROOT = 2, LEAF = 4, BITMAP = 8};
-
 
 struct IPageLayoutEventHandler {
 
     virtual void startPage(const char* name)                                        = 0;
     virtual void endPage()                                                          = 0;
 
-    virtual void startGroup(const char* name, int32_t elements = -1)                    = 0;
+    virtual void startGroup(const char* name, int32_t elements = -1)                = 0;
     virtual void endGroup()                                                         = 0;
 
     virtual void Layout(const char* name, int32_t type, int32_t ptr, int32_t size, int32_t count)   = 0;
@@ -57,9 +53,9 @@ struct IPageLayoutEventHandler {
 
 
 struct PageDataValueProvider {
-    virtual int32_t size() const                            = 0;
-    virtual bool isArray() const                        = 0;
-    virtual String value(int32_t idx) const                 = 0;
+    virtual int32_t size() const = 0;
+    virtual bool isArray() const = 0;
+    virtual String value(int32_t idx) const = 0;
 };
 
 struct IPageDataEventHandler {
@@ -71,28 +67,28 @@ struct IPageDataEventHandler {
     virtual void startPage(const char* name, const void* ptr)                                   = 0;
     virtual void endPage()                                                                      = 0;
 
-    virtual void startLine(const char* name, int32_t size = -1)                                     = 0;
+    virtual void startLine(const char* name, int32_t size = -1)                                 = 0;
     virtual void endLine()                                                                      = 0;
 
     virtual void startGroupWithAddr(const char* name, const void* ptr)                          = 0;
-    virtual void startGroup(const char* name, int32_t elements = -1)                                = 0;
+    virtual void startGroup(const char* name, int32_t elements = -1)                            = 0;
     virtual void endGroup()                                                                     = 0;
 
-    virtual void value(const char* name, const int8_t* value, int32_t count = 1, int32_t kind = 0)        = 0;
-    virtual void value(const char* name, const uint8_t* value, int32_t count = 1, int32_t kind = 0)       = 0;
-    virtual void value(const char* name, const int16_t* value, int32_t count = 1, int32_t kind = 0)       = 0;
-    virtual void value(const char* name, const uint16_t* value, int32_t count = 1, int32_t kind = 0)      = 0;
-    virtual void value(const char* name, const int32_t* value, int32_t count = 1, int32_t kind = 0)         = 0;
-    virtual void value(const char* name, const uint32_t* value, int32_t count = 1, int32_t kind = 0)        = 0;
-    virtual void value(const char* name, const int64_t* value, int32_t count = 1, int32_t kind = 0)      = 0;
-    virtual void value(const char* name, const uint64_t* value, int32_t count = 1, int32_t kind = 0)     = 0;
+    virtual void value(const char* name, const int8_t* value, int32_t count = 1, int32_t kind = 0)      = 0;
+    virtual void value(const char* name, const uint8_t* value, int32_t count = 1, int32_t kind = 0)     = 0;
+    virtual void value(const char* name, const int16_t* value, int32_t count = 1, int32_t kind = 0)     = 0;
+    virtual void value(const char* name, const uint16_t* value, int32_t count = 1, int32_t kind = 0)    = 0;
+    virtual void value(const char* name, const int32_t* value, int32_t count = 1, int32_t kind = 0)     = 0;
+    virtual void value(const char* name, const uint32_t* value, int32_t count = 1, int32_t kind = 0)    = 0;
+    virtual void value(const char* name, const int64_t* value, int32_t count = 1, int32_t kind = 0)     = 0;
+    virtual void value(const char* name, const uint64_t* value, int32_t count = 1, int32_t kind = 0)    = 0;
     virtual void value(const char* name, const IDValue* value, int32_t count = 1, int32_t kind = 0)     = 0;
     virtual void value(const char* name, const float* value, int32_t count = 1, int32_t kind = 0)       = 0;
     virtual void value(const char* name, const double* value, int32_t count = 1, int32_t kind = 0)      = 0;
     virtual void value(const char* name, const UUID* value, int32_t count = 1, int32_t kind = 0)        = 0;
 
     virtual void symbols(const char* name, const uint64_t* value, int32_t count, int32_t bits_per_symbol)    = 0;
-    virtual void symbols(const char* name, const uint8_t* value, int32_t count, int32_t bits_per_symbol)      = 0;
+    virtual void symbols(const char* name, const uint8_t* value, int32_t count, int32_t bits_per_symbol)     = 0;
 
     virtual void value(const char* name, const PageDataValueProvider& value)                    = 0;
 
@@ -130,14 +126,14 @@ struct PageMetadata: public MetadataGroup
     PageMetadata(
             StringRef name,
             int32_t attributes,
-            int32_t hash0,
+            uint64_t hash0,
             const IPageOperations* page_operations);
 
     virtual ~PageMetadata() throw () {
         delete page_operations_;
     }
 
-    virtual int32_t hash() const {
+    virtual uint64_t hash() const {
         return hash_;
     }
 
@@ -147,7 +143,7 @@ struct PageMetadata: public MetadataGroup
     }
 
 private:
-    int32_t  hash_;
+    uint64_t  hash_;
 
     const IPageOperations* page_operations_;
 };
@@ -168,7 +164,7 @@ struct ValueHelper {
 
 template <typename T>
 struct ValueHelper<PageID<T> > {
-    typedef PageID<T>                                                   Type;
+    using Type = PageID<T>;
 
     static void setup(IPageDataEventHandler* handler, const char* name, const Type& value)
     {
@@ -188,7 +184,7 @@ struct ValueHelper<PageID<T> > {
 
 template <>
 struct ValueHelper<EmptyValue> {
-    typedef EmptyValue Type;
+    using Type = EmptyValue;
 
     static void setup(IPageDataEventHandler* handler, const char* name, const Type& value)
     {
@@ -196,27 +192,6 @@ struct ValueHelper<EmptyValue> {
         handler->value(name, &val);
     }
 };
-
-
-//template <int32_t N>
-//struct ValueHelper<FixedArray<N> > {
-//    using Type = FixedArray<N>;
-//
-//    static void setup(IPageDataEventHandler* handler, const char* name, const Type& value)
-//    {
-//        IDValue id(&value);
-//        handler->value(name, &id);
-//    }
-//
-//    static void setup(IPageDataEventHandler* handler, const char* name, const Type* value, int32_t size, int32_t type)
-//    {
-//        for (int32_t c = 0; c < size; c++)
-//        {
-//            IDValue id(value + c);
-//            handler->value(name, &id);
-//        }
-//    }
-//};
 
 
 namespace internal {

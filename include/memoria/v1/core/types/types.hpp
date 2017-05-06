@@ -113,6 +113,9 @@ template <typename T, T V> struct ConstValue {
 template <uint32_t Value>
 using UInt32Value = ConstValue<uint32_t, Value>;
 
+template <uint64_t Value>
+using UInt64Value = ConstValue<uint64_t, Value>;
+
 template <int32_t Value>
 using IntValue = ConstValue<int32_t, Value>;
 
@@ -164,9 +167,11 @@ struct ValueList {
 template <int32_t... Values>
 using IntList = ValueList<int32_t, Values...>;
 
-template <int32_t... Values>
+template <uint32_t... Values>
 using UInt32List = ValueList<uint32_t, Values...>;
 
+template <uint64_t... Values>
+using UInt64List = ValueList<uint64_t, Values...>;
 
 
 /*

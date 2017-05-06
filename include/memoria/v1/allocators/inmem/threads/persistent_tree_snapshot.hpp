@@ -517,10 +517,8 @@ public:
 
     	if (page)
     	{
-    		int32_t master_hash = page->master_ctr_type_hash();
-    		int32_t ctr_hash    = page->ctr_type_hash();
-
-    		auto ctr_meta   = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
+    		auto ctr_hash   = page->ctr_type_hash();
+    		auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
 
     		ctr_meta->getCtrInterface()->for_each_ctr_node(name, this->shared_from_this(), fn);
     	}
@@ -1105,10 +1103,8 @@ public:
 
             auto page       = this->getPage(root_id, ctr_name);
 
-            int32_t master_hash = page->master_ctr_type_hash();
-            int32_t ctr_hash    = page->ctr_type_hash();
-
-            auto ctr_meta   = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
+            auto ctr_hash   = page->ctr_type_hash();
+            auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
 
             ctr_meta->getCtrInterface()->walk(page->id(), ctr_name, this->shared_from_this(), walker);
 
