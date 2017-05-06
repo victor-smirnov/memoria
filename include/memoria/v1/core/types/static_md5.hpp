@@ -357,11 +357,7 @@ template <typename List> struct Md5Sum;
 
 template <uint32_t ... Data>
 struct Md5Sum<UInt32List<Data...>> {
-    using List = AppendValueTool<
-            uint32_t,
-            sizeof...(Data),
-            UInt32List<Data...>
-    >;
+    using List = UInt32List<sizeof...(Data), Data...>;
 
     using Type = typename internal::Md5SumHelper<
                 List,

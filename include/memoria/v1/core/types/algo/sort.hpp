@@ -26,55 +26,64 @@
 namespace memoria {
 namespace v1 {
 
+namespace detail02 {    
+    
+    template <
+            typename List,
+            template <typename Item> class ValueProvider,
+            bool Asc,
+            typename ValueType = int64_t,
+            typename Result = TypeList<> >
+    class SortH;
+
+
+
+    template <
+            typename SrcList,
+            template <typename Item> class ValueProvider,
+            bool Asc,
+            typename ValueType,
+            typename Result>
+    class SortH {
+
+        MEMORIA_V1_STATIC_ASSERT(IsList<SrcList>::Value);
+
+        using Element = IfThenElse<
+                    Asc,
+                    typename MinElement<SrcList, ValueProvider, ValueType>::Result,
+                    typename MaxElement<SrcList, ValueProvider, ValueType>::Result
+        >;
+
+        using List_ = MergeLists<TL<Element>, Result>;
+
+    public:
+        using Type = typename SortH<
+                    typename RemoveTool<Element, SrcList>::Result,
+                    ValueProvider,
+                    Asc,
+                    ValueType,
+                    List_
+        >::Type;
+    };
+
+
+    template <
+            template <typename Item> class ValueProvider,
+            bool Asc,
+            typename ValueType,
+            typename Result
+    >
+    class SortH<TypeList<>, ValueProvider, Asc, ValueType, Result>: public HasType<Result> {};
+}
+
+
 template <
-        typename List,
-        template <typename Item> class ValueProvider,
-        bool Asc,
-        typename ValueType = int64_t,
-        typename Result = TypeList<> >
-class Sort;
-
-
-
-template <
-        typename SrcList,
-        template <typename Item> class ValueProvider,
-        bool Asc,
-        typename ValueType,
-        typename Result>
-class Sort {
-
-    MEMORIA_V1_STATIC_ASSERT(IsList<SrcList>::Value);
-
-    typedef IfThenElse<
-                Asc,
-                typename MinElement<SrcList, ValueProvider, ValueType>::Result,
-                typename MaxElement<SrcList, ValueProvider, ValueType>::Result
-    >                                                                           Element;
-
-    typedef typename AppendTool<Element, Result>::Result                        List_;
-
-public:
-    typedef typename Sort<
-                typename RemoveTool<Element, SrcList>::Result,
-                ValueProvider,
-                Asc,
-                ValueType,
-                List_
-    >::List                                                                     List;
-};
-
-
-template <
-        template <typename Item> class ValueProvider,
-        bool Asc,
-        typename ValueType,
-        typename Result
+            typename List,
+            template <typename Item> class ValueProvider,
+            bool Asc,
+            typename ValueType = int64_t,
+            typename Result = TypeList<> 
 >
-class Sort<TypeList<>, ValueProvider, Asc, ValueType, Result> {
-public:
-    typedef Result                                                              List;
-};
-
+using Sort = typename detail02::SortH<List, ValueProvider, Asc, ValueType, Result>::Type;
 
 }}

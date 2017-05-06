@@ -168,26 +168,11 @@ namespace detail {
                 typename ReplaceH<TypeList<Tail...>, Item, Idx - 1>::Type
         >::Type;
     };
-    
-
-    template <typename T, T Item1, typename List> struct AppendValueToolH;
-    // ValueList
-    template <typename T, T Item, T ... List>
-    struct AppendValueToolH<T, Item, ValueList<T, List...> > {
-        using Type = ValueList<T, Item, List...>;
-    };
-
 }
-
-
-template <typename Item1, typename Item2> 
-using AppendTool = typename detail::AppendToolH<Item1, Item2>::Type;
 
 
 template <typename ... Lists>
 using MergeLists = typename detail::MergeListsH<Lists...>::Type;
-
-
 
 template <typename ... Lists>
 using MergeValueLists = typename detail::MergeValueListsH<Lists...>::Type;
@@ -196,8 +181,6 @@ using MergeValueLists = typename detail::MergeValueListsH<Lists...>::Type;
 template <typename List, typename Item, int32_t Idx>
 using Replace = typename detail::ReplaceH<List, Item, Idx>::Type;
 
-template <typename T, T Item1, typename List> 
-using AppendValueTool = typename detail::AppendValueToolH<T, Item1, List>::Type;
 
 
 

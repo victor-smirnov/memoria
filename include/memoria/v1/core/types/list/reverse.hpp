@@ -22,22 +22,24 @@
 namespace memoria {
 namespace v1 {
 
-template <typename List> struct RevertList;
+namespace detail {
+    template <typename List> struct RevertListH;
 
-template <typename Head, typename ... Tail>
-struct RevertList<TypeList<Head, Tail...>> {
-    typedef typename AppendTool<
-                typename RevertList<
-                            TypeList<Tail...>
-                         >::Type,
-                Head
-            >::Result                                                           Type;
-};
+    template <typename Head, typename ... Tail>
+    struct RevertListH<TypeList<Head, Tail...>>: HasType<
+        MergeLists<
+                    typename RevertListH<
+                                TypeList<Tail...>
+                    >::Type,
+                    TL<Head>
+        >
+    > {};
 
-template <>
-struct RevertList<TypeList<>> {
-    typedef TypeList<>                                                          Type;
-};
+    template <>
+    struct RevertListH<TypeList<>>: HasType<TL<>> {};
+}
 
+template <typename List> 
+using RevertList = detail::RevertListH<List>;
 
 }}

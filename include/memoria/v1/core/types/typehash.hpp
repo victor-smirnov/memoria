@@ -58,11 +58,7 @@ template <
 >
 struct TypeHash<Profile<T>> {
     // FIXME need template assigning unique code to the each profile level
-    using VList = typename AppendValueTool<
-        uint64_t, 
-        100, 
-        UInt64List<TypeHash<T>::Value>
-    >::Result;
+    using VList = UInt64List<100, TypeHash<T>::Value>;
 
     static constexpr uint64_t Value = md5::Md5Sum<VList>::Result::Value64;
 };
@@ -144,7 +140,7 @@ template <typename... LabelDescriptors>
 struct TypeHash<LabeledTree<LabelDescriptors...>> {
 private:
     using ValueList = typename TypeToValueList<TypeList<LabelDescriptors...>>::Type;
-    using TaggedValueList = typename AppendValueTool<uint64_t, 1600, ValueList>::Type;
+    using TaggedValueList = MergeValueLists<UInt64Value<1600>, ValueList>;
 
 public:
     static const uint64_t Value = md5::Md5Sum<TaggedValueList>::Type::Value64;
@@ -172,7 +168,7 @@ template <typename... List>
 struct TypeHash<TypeList<List...>> {
 private:
     using ValueList       = typename TypeToValueList<TypeList<List...>>::Type;
-    using TaggedValueList = typename AppendValueTool<uint64_t, 2000, ValueList>::Result;
+    using TaggedValueList = MergeValueLists<UInt64Value<2000>, ValueList>;
 public:
 
     static const uint64_t Value = md5::Md5Sum<TaggedValueList>::Result::Value64;
@@ -182,7 +178,7 @@ template <typename... List>
 struct TypeHash<std::tuple<List...>> {
 private:
     using ValueList       = typename TypeToValueList<TypeList<List...>>::Type;
-    using TaggedValueList = typename AppendValueTool<uint64_t, 2001, ValueList>::Result;
+    using TaggedValueList = MergeValueLists<UInt64Value<2001>, ValueList>;
 public:
 
     static const uint64_t Value = md5::Md5Sum<TaggedValueList>::Result::Value64;

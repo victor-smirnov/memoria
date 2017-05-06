@@ -22,60 +22,62 @@
 namespace memoria {
 namespace v1 {
 
-template <typename Item, typename List, bool All = false> struct RemoveTool;
+namespace detail {    
+    
+    template <typename Item, typename List, bool All = false> struct RemoveToolH;
 
-template <typename Item, typename Head, typename ... Tail, bool All>
-struct RemoveTool<Item, TypeList<Head, Tail...>, All> {
-    typedef typename AppendTool<
-                        Head,
-                        typename RemoveTool<
-                                    Item,
-                                    TypeList<Tail...>,
-                                    All
-                        >::Result
-                    >::Result                                                   Result;
-};
-
-template <typename Item, typename ... Tail>
-struct RemoveTool<Item, TypeList<Item, Tail...>, false> {
-    typedef TypeList<Tail...>                                                   Result;
-};
-
-template <typename Item, typename ... Tail>
-struct RemoveTool<Item, TypeList<Item, Tail... >, true> {
-    typedef typename RemoveTool<
+    template <typename Item, typename Head, typename ... Tail, bool All>
+    struct RemoveToolH<Item, TypeList<Head, Tail...>, All>: HasType<
+        MergeLists<
+            TL<Head>,
+            typename RemoveToolH<
                         Item,
                         TypeList<Tail...>,
-                        true
-                    >::Result                                                   Result;
-};
+                        All
+            >::Type
+        >
+    >{};
+
+    template <typename Item, typename ... Tail>
+    struct RemoveToolH<Item, TypeList<Item, Tail...>, false>: HasType<TL<Tail...>> {};
+
+    template <typename Item, typename ... Tail>
+    struct RemoveToolH<Item, TypeList<Item, Tail... >, true>: HasType< 
+        typename RemoveToolH<
+            Item,
+            TypeList<Tail...>,
+            true
+        >::Type
+    > {};
 
 
-template <typename Item, bool All>
-struct RemoveTool<Item, TypeList<>, All> {
-    typedef TypeList<>                                                          Result;
-};
+    template <typename Item, bool All>
+    struct RemoveToolH<Item, TypeList<>, All>: HasType<TL<>> {};
 
 
 
 
-template <typename List> struct RemoveDuplicatesTool;
+    template <typename List> struct RemoveDuplicatesToolH;
 
-
-template<>
-struct RemoveDuplicatesTool<TypeList<>> {
-    typedef TypeList<>                                                          Result;
-};
+    template<>
+    struct RemoveDuplicatesToolH<TypeList<>>: HasType<TL<>> {};
 
 
 
-template <typename Head, typename ... Tail>
-struct RemoveDuplicatesTool<TypeList<Head, Tail...> > {
-private:
-    typedef typename RemoveDuplicatesTool<TypeList<Tail...>>::Result    TailResult;
-    typedef typename RemoveTool<Head, TailResult>::Result       HeadResult;
-public:
-    typedef typename AppendTool<Head, HeadResult>::Result                       Result;
-};
+    template <typename Head, typename ... Tail>
+    struct RemoveDuplicatesToolH<TypeList<Head, Tail...> > {
+    private:
+        using TailResult = typename RemoveDuplicatesToolH<TypeList<Tail...>>::Type;
+        using HeadResult = typename RemoveToolH<Head, TailResult>::Type;
+    public:
+        using Type = MergeLists<TL<Head>, HeadResult>;
+    };
+}
+
+template <typename Item, typename List, bool All = false> 
+using RemoveTool = typename detail::RemoveToolH<Item, List, All>::Type;
+
+template <typename List> 
+using RemoveDuplicatesTool = typename detail::RemoveDuplicatesToolH<List>::Type;
 
 }}

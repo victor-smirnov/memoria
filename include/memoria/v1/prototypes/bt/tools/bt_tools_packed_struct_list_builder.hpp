@@ -29,9 +29,9 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt        {
+namespace bt {
 
-namespace   {
+namespace detail {
 
     template <typename BranchSubstream, typename LeafSubstream>
     struct ValidateSubstreams {
@@ -120,7 +120,7 @@ class PackedLeafStructListBuilder<SumType, TypeList<StreamTF<LeafType, BranchStr
             "Invalid substream structure"
     );
 
-    using InputBufferType = typename InputBufferListBuilder<LeafType>::Type;
+    using InputBufferType = typename detail::InputBufferListBuilder<LeafType>::Type;
 
 public:
     using StructList = MergeLists<
