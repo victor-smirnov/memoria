@@ -326,7 +326,7 @@ public:
     template <typename T>
     T* allocate(int32_t idx, int32_t block_size)
     {
-        static_assert(std::is_base_of<PackedAllocatable, T>::value,
+        static_assert(std::is_base_of_v<PackedAllocatable, T>,
                 "Only derived classes of PackedAllocatable "
                 "should be instantiated this way");
 
@@ -342,7 +342,7 @@ public:
     template <typename T>
     T* allocateSpace(int32_t idx, int32_t block_size)
     {
-        static_assert(std::is_base_of<PackedAllocatable, T>::value,
+        static_assert(std::is_base_of_v<PackedAllocatable, T>,
                 "Only derived classes of PackedAllocatable "
                 "should be instantiated this way");
 
@@ -354,7 +354,7 @@ public:
     template <typename T>
     T* allocateEmpty(int32_t idx)
     {
-        static_assert(std::is_base_of<PackedAllocatable, T>::value,
+        static_assert(std::is_base_of_v<PackedAllocatable, T>,
                 "Only derived classes of PackedAllocatable "
                 "should be instantiated this way");
 
@@ -387,7 +387,7 @@ public:
     template <typename T>
     T* allocate(int32_t idx)
     {
-        static_assert(!std::is_base_of<PackedAllocatable, T>::value,
+        static_assert(!std::is_base_of_v<PackedAllocatable, T>,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
 
@@ -398,7 +398,7 @@ public:
     template <typename T>
     T* allocateArrayByLength(int32_t idx, int32_t length)
     {
-        static_assert(!std::is_base_of<PackedAllocatable, T>::value,
+        static_assert(!std::is_base_of_v<PackedAllocatable, T>,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
 
@@ -409,7 +409,7 @@ public:
     template <typename T>
     T* allocateArrayBySize(int32_t idx, int32_t size)
     {
-        static_assert(!std::is_base_of<PackedAllocatable, T>::value,
+        static_assert(!std::is_base_of_v<PackedAllocatable, T>,
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
 
