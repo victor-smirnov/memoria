@@ -35,17 +35,17 @@ namespace v1 {
 struct Page {
 
     virtual UUID getId() const                       = 0;
-    virtual int32_t getContainerHash() const             = 0;
-    virtual int32_t getPageTypeHash() const              = 0;
-    virtual int64_t getFlags() const                  = 0;
+    virtual uint64_t getContainerHash() const        = 0;
+    virtual uint64_t getPageTypeHash() const         = 0;
+    virtual int64_t getFlags() const                 = 0;
     virtual const void* Ptr() const                  = 0;
     virtual void* Ptr()                              = 0;
     virtual void setPtr(void* ptr)                   = 0;
     virtual bool isNull() const                      = 0;
 
-    virtual int32_t size() const                         = 0;
-    virtual int32_t getByte(int32_t idx) const               = 0;
-    virtual void setByte(int32_t idx, int32_t value)         = 0;
+    virtual int32_t size() const                     = 0;
+    virtual int32_t getByte(int32_t idx) const       = 0;
+    virtual void setByte(int32_t idx, int32_t value) = 0;
 
     virtual ~Page() noexcept {}
 };
@@ -76,7 +76,7 @@ public:
         }
     }
 
-    virtual int32_t getContainerHash() const
+    virtual uint64_t getContainerHash() const
     {
         if (page_ != NULL)
         {
@@ -87,7 +87,7 @@ public:
         }
     }
 
-    virtual int32_t getPageTypeHash() const
+    virtual uint64_t getPageTypeHash() const
     {
         if (page_ != NULL)
         {
@@ -179,7 +179,7 @@ public:
         }
     }
 
-    virtual int32_t getContainerHash() const
+    virtual uint64_t getContainerHash() const
     {
         if (page_ != NULL)
         {
@@ -190,7 +190,7 @@ public:
         }
     }
 
-    virtual int32_t getPageTypeHash() const
+    virtual uint64_t getPageTypeHash() const
     {
         if (page_ != NULL)
         {

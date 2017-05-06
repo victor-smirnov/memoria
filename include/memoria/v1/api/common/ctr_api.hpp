@@ -63,12 +63,14 @@ public:
 };
 
 template <typename CtrName, typename Profile>
-bool is_castable_to(const CtrRef<Profile>& ref) {
-    return ref.ptr_->is_castable_to(TypeHash<CtrName>::Value);
+bool is_castable_to(const CtrRef<Profile>& ref) 
+{
+    return ref.ptr_->is_castable_to(TypeHashV<CtrName>);
 }
 
 template <typename CtrName, typename Profile>
-CtrApi<CtrName, Profile> cast(const CtrRef<Profile>& ref) {
+CtrApi<CtrName, Profile> cast(const CtrRef<Profile>& ref) 
+{
     return CtrApi<CtrName, Profile>::cast_from(ref);
 }
 

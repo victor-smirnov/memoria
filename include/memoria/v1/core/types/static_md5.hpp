@@ -31,7 +31,7 @@ template <typename Head, typename... Tail>
 struct TypeToValueList<TypeList<Head, Tail...>> {
     using Type = MergeValueListsT<
         UInt64List<
-            TypeHash<Head>::Value
+            TypeHashV<Head>
         >,
         typename TypeToValueList<TypeList<Tail...> >::Type
     >;

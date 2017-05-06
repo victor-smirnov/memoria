@@ -124,7 +124,7 @@ public:
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
     using IteratorPtr       = CtrSharedPtr<SharedIterator>;
     
-    static constexpr uint64_t CONTAINER_HASH = TypeHash<Name>::Value;
+    static constexpr uint64_t CONTAINER_HASH = TypeHashV<Name>;
 
     template <typename> friend class BTIteratorBase;
 

@@ -300,8 +300,8 @@ struct TypeHash<AbstractPage<PageIdType, FlagsCount>>: HasValue<
 		uint64_t,
 		HashHelper<
             AbstractPage<AbstractPage<PageIdType, FlagsCount>>::VERSION,
-            TypeHash<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>::Value,
-            TypeHash<typename AbstractPage<PageIdType, FlagsCount>::ID>::Value,
+            TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>,
+            TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::ID>,
             TypeHashV<int32_t>,
             8
 		>

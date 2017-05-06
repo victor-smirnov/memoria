@@ -1620,11 +1620,10 @@ class NodePageAdaptor: public TreeNode<Types>
 {
 public:
 
-    typedef NodePageAdaptor<TreeNode, Types>                                    MyType;
-    typedef TreeNode<Types>                                                     Base;
+    using MyType = NodePageAdaptor<TreeNode, Types>;
+    using Base   = TreeNode<Types>;
 
-
-    static const uint64_t PAGE_HASH = TypeHash<Base>::Value;
+    static const uint64_t PAGE_HASH = TypeHashV<Base>;
 
 //    static_assert(std::is_trivial<TreeNode<Types>>::value, "TreeNode must be a trivial type");
 
