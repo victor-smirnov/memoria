@@ -123,7 +123,7 @@ class PackedLeafStructListBuilder<SumType, TypeList<StreamTF<LeafType, BranchStr
     using InputBufferType = typename InputBufferListBuilder<LeafType>::Type;
 
 public:
-    using StructList = AppendItemToList<
+    using StructList = AppendToList<
                 LeafType,
                 typename PackedLeafStructListBuilder<
                     SumType,
@@ -131,7 +131,7 @@ public:
                 >::StructList
     >;
 
-    using StreamInputList = AppendItemToList<
+    using StreamInputList = AppendToList<
             typename MakeStreamEntryTL<Linearize<LeafType>>::Type,
             typename PackedLeafStructListBuilder<
                 SumType,
@@ -139,7 +139,7 @@ public:
             >::StreamInputList
     >;
 
-    using InputBufferList = AppendItemToList<
+    using InputBufferList = AppendToList<
             InputBufferType,
             typename PackedLeafStructListBuilder<
                         SumType,
@@ -163,7 +163,7 @@ class PackedBranchStructListBuilder<SumType, TypeList<StreamTF<LeafType, BranchS
     using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
 
 public:
-    using StructList = AppendItemToList<
+    using StructList = AppendToList<
                 BranchType,
                 typename PackedBranchStructListBuilder<
                     SumType,
@@ -209,17 +209,17 @@ class IteratorBranchNodeEntryListBuilder<SumType, TypeList<StreamTF<LeafType, Br
     >::Type;
 
 public:
-    using AccumTuple = AppendItemToList<
+    using AccumTuple = AppendToList<
             AccType,
             typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::AccumTuple
     >;
 
-    using RangeOffsetList = AppendItemToList<
+    using RangeOffsetList = AppendToList<
             RangeOffsetListType,
             typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::RangeOffsetList
     >;
 
-    using IndexRangeList = AppendItemToList<
+    using IndexRangeList = AppendToList<
             IdxRangeList,
             typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::IndexRangeList
     >;

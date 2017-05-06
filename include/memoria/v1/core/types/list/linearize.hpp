@@ -113,7 +113,7 @@ template <
     int32_t... Tail
 >
 struct ListSubsetH<List, IntList<Head, Tail...>> {
-    using Type = AppendItemToList<
+    using Type = AppendToList<
             Select<Head, List>,
             typename ListSubsetH<List,IntList<Tail...>>::Type
     >;

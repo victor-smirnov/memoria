@@ -55,7 +55,7 @@ using Indexes = typename IndexesH<T>::Type;
 
 template <int32_t Head, int32_t... Tail>
 struct IndexesH<IntList<Head, Tail...>>:
-    MergeListsMF<SumRange<Head>, typename IndexesH<IntList<Tail...>>::Type>
+    detail::MergeListsH<SumRange<Head>, typename IndexesH<IntList<Tail...>>::Type>
 {};
 
 
@@ -106,7 +106,7 @@ std::ostream& operator<<(std::ostream& out, const EmptyVector<T>& v) {
 }
 
 
-namespace {
+namespace detail {
 
     template <typename T, typename List, int32_t Max> struct AccumBuilderH;
 
@@ -131,10 +131,10 @@ namespace {
 
     template <typename T, int32_t From, int32_t To, typename... Tail, int32_t Max>
     struct AccumBuilderH<T, TypeList<MaxRange<From, To>, Tail...>, Max>:
-        MergeListsMF<
-        MaxVector<T, From, To>,
-        typename AccumBuilderH<T, TypeList<Tail...>, Max>::Type
-    >
+        memoria::v1::detail::MergeListsH<
+            MaxVector<T, From, To>,
+            typename AccumBuilderH<T, TypeList<Tail...>, Max>::Type
+        >
     {
         static_assert(To <= Max, "Max range must not exceed the limit");
     };
@@ -163,10 +163,10 @@ namespace {
                 typename ShiftRangeList<TypeList<Tail...>, Offset>::Type
         >;
 
-        using OffsetList = typename MergeValueLists<
+        using OffsetList = MergeValueLists<
                 IntList<From + Offset>,
                 typename ShiftRangeList<TypeList<Tail...>, Offset>::OffsetList
-        >::Type;
+        >;
     };
 
 
@@ -317,12 +317,12 @@ template <
 >
 struct RangeListBuilder<BranchStruct, TypeList<LeafStruct, LTail...>, RangeList, Offset> {
 private:
-    using ShiftedRangeList = typename ShiftRangeList<
+    using ShiftedRangeList = typename detail::ShiftRangeList<
             typename ListHead<RangeList>::Type,
             Offset
     >::Type;
 
-    using RangeOffsetList = typename ShiftRangeList<
+    using RangeOffsetList = typename detail::ShiftRangeList<
             typename ListHead<RangeList>::Type,
             Offset
     >::OffsetList;
@@ -352,8 +352,8 @@ public:
 
 template <typename BranchStruct, typename LeafStruct, typename RangeList, int32_t Offset>
 struct RangeListBuilder {
-    using Type       = typename ShiftRangeList<RangeList, Offset>::Type;
-    using OffsetList = typename ShiftRangeList<RangeList, Offset>::OffsetList;
+    using Type       = typename detail::ShiftRangeList<RangeList, Offset>::Type;
+    using OffsetList = typename detail::ShiftRangeList<RangeList, Offset>::OffsetList;
 };
 
 template <
@@ -396,11 +396,11 @@ struct BranchNodeRangeListBuilder<TypeList<BranchStruct, BTail...>, TypeList<Lea
             Offset
     >::OffsetList;
 
-    static_assert(v1::bt::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "RangeList exceeds PackedStruct size");
+    static_assert(v1::bt::detail::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "RangeList exceeds PackedStruct size");
 
     using Type = MergeLists<
             TL<
-                typename v1::bt::GlueRanges<List>::Type
+                typename v1::bt::detail::GlueRanges<List>::Type
             >,
             typename BranchNodeRangeListBuilder<
                 TypeList<BTail...>,
@@ -439,8 +439,8 @@ template <typename BranchStructList, typename RangeLists> struct IteratorBranchN
 template <typename BranchStruct, typename... BTail, typename RangeList, typename... RTail>
 struct IteratorBranchNodeEntryBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTail...>> {
     using Type = MergeLists<
-            typename MakeTuple<
-                typename AccumBuilderH<
+            typename detail::MakeTuple<
+                typename detail::AccumBuilderH<
                     typename v1::AccumType<BranchStruct>::Type,
                     RangeList,
                     IndexesSize<BranchStruct>::Value

@@ -81,7 +81,7 @@ template <typename PkdStructList> struct MakeStreamEntryTL;
 
 template <typename Head, typename... Tail>
 struct MakeStreamEntryTL<TL<Head, Tail...>> {
-    using Type = AppendItemToList<
+    using Type = AppendToList<
             typename PkdStructInputType<Head>::Type,
             typename MakeStreamEntryTL<TL<Tail...>>::Type
     >;

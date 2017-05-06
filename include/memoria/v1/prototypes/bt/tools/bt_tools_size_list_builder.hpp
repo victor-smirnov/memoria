@@ -149,7 +149,7 @@ namespace {
     >
     struct InternalOffsetBuilder<TypeList<Head, Tail...>, Offset>
     {
-        using Type = MergeValueListsT<
+        using Type = MergeValueLists<
                 IntList<Offset>,
                 typename InternalOffsetBuilder<
                 TypeList<Tail...>,
@@ -172,7 +172,7 @@ namespace {
     class ForAllTopLevelElements {
         static const int32_t LeafOffset = v1::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
     public:
-        using Type = AppendItemToList<
+        using Type = AppendToList<
                 IntValue<LeafOffset + Offset>,
                 typename ForAllTopLevelElements<
                     List,

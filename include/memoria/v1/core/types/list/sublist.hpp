@@ -30,7 +30,7 @@ struct SublistFromStart<ValueList<T, Head, Tail...>, Len> {
     static_assert(Len >= 0, "Len parameter must be >= 0");
     static_assert(Len <= sizeof...(Tail) + 1, "Len parameter must be <= the Length of value list");
 
-    using Type = MergeValueListsT<
+    using Type = MergeValueLists<
                 ConstValue<T, Head>,
                 typename SublistFromStart<ValueList<T, Tail...>, Len - 1>::Type
     >;

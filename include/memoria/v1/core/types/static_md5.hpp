@@ -29,7 +29,7 @@ template <typename List> struct TypeToValueList;
 
 template <typename Head, typename... Tail>
 struct TypeToValueList<TypeList<Head, Tail...>> {
-    using Type = MergeValueListsT<
+    using Type = MergeValueLists<
         UInt64List<
             TypeHashV<Head>
         >,
@@ -342,7 +342,7 @@ namespace internal  {
     
     template <uint64_t Head, uint64_t... Tail> 
     struct TransformVList<UInt64List<Head, Tail...>>: HasType<
-        MergeValueListsT<
+        MergeValueLists<
             UInt32List<Head & 0xFFFFFFFF, (Head >> 32) & 0xFFFFFFFF>,
             typename TransformVList<UInt64List<Tail...>>::Type
         >
@@ -357,11 +357,11 @@ template <typename List> struct Md5Sum;
 
 template <uint32_t ... Data>
 struct Md5Sum<UInt32List<Data...>> {
-    using List = typename AppendValueTool<
+    using List = AppendValueTool<
             uint32_t,
             sizeof...(Data),
             UInt32List<Data...>
-    >::Type;
+    >;
 
     using Type = typename internal::Md5SumHelper<
                 List,

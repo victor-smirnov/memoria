@@ -162,7 +162,7 @@ template <typename T, T From, T To> struct MakeValueListH;
 
 template <typename T, T From, T To>
 struct MakeValueListH {
-    using Type = AppendItemToList<
+    using Type = AppendToList<
             ConstValue<T, From>,
             typename MakeValueListH<T, From + 1, To>::Type
     >;
@@ -188,7 +188,7 @@ template <
     T... Tail
 >
 struct AddToValueListH<V, ValueList<T, Head, Tail...>> {
-    using Type = MergeValueListsT<
+    using Type = MergeValueLists<
             ValueList<T, V + Head>,
             typename AddToValueListH<V, ValueList<T, Tail...>>::Type
     >;
@@ -216,7 +216,7 @@ template <bool Condition, typename List, int32_t LeafIdx, typename Path, int32_t
 
 template <typename List, int32_t LeafIdx, int32_t... Path, int32_t Idx>
 struct BuildTreePathHelper1<true, List, LeafIdx, IntList<Path...>, Idx> {
-    using Type = typename MergeValueLists<IntList<Path...>, IntList<Idx>>::Type;
+    using Type = MergeValueLists<IntList<Path...>, IntList<Idx>>;
 };
 
 template <typename List, int32_t LeafIdx, int32_t... Path, int32_t Idx>
@@ -235,7 +235,7 @@ struct BuildTreePathHelper2<true, TypeList<TypeList<Head...>, Tail...>, LeafIdx,
     using Type = typename BuildTreePath<
             TypeList<Head...>,
             LeafIdx,
-            typename MergeValueLists<IntList<Path...>, IntList<Idx>>::Type,
+            MergeValueLists<IntList<Path...>, IntList<Idx>>,
             0
     >::Type;
 };

@@ -27,7 +27,7 @@ namespace v1 {
 namespace {
     template <typename State, typename Item, template <typename> class Fn>
     struct MapFoldFn {
-        using Type = AppendItemToList<
+        using Type = AppendToList<
                 typename Fn<Item>::Type,
                 State
         >;
