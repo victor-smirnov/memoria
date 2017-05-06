@@ -102,28 +102,30 @@ template <typename T, int32_t MaxDepth = 1>
 using Linearize = typename LinearizeT<T, MaxDepth>::Type;
 
 
-template <typename List, typename Set> struct ListSubsetH;
+namespace detail {
+    template <typename List, typename Set> struct ListSubsetH;
+
+    template <
+        typename List,
+        int32_t Head,
+        int32_t... Tail
+    >
+    struct ListSubsetH<List, IntList<Head, Tail...>> {
+        using Type = MergeLists<
+                Select<Head, List>,
+                typename ListSubsetH<List, IntList<Tail...>>::Type
+        >;
+    };
+
+    template <
+        typename List
+    >
+    struct ListSubsetH<List, IntList<>> {
+        using Type = TypeList<>;
+    };
+}
 
 template <typename List, typename Set>
-using ListSubset = typename ListSubsetH<List, Set>::Type;
-
-template <
-    typename List,
-    int32_t Head,
-    int32_t... Tail
->
-struct ListSubsetH<List, IntList<Head, Tail...>> {
-    using Type = AppendToList<
-            Select<Head, List>,
-            typename ListSubsetH<List,IntList<Tail...>>::Type
-    >;
-};
-
-template <
-    typename List
->
-struct ListSubsetH<List, IntList<>> {
-    using Type = TypeList<>;
-};
+using ListSubset = typename detail::ListSubsetH<List, Set>::Type;
 
 }}

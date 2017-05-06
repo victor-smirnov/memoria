@@ -144,7 +144,7 @@ using SubtreeLeafCount = ListSize<
                             typename Subtree<List, Path>::Type,
                             Depth
                             >
-                          >;
+                         >;
 
 
 
@@ -156,26 +156,27 @@ using LeafCountSup = IntValue<LeafCount<List, Path, Depth>::Value + SubtreeLeafC
 
 
 
+namespace detail {
 
+    template <typename T, T From, T To> struct MakeValueListH;
 
-template <typename T, T From, T To> struct MakeValueListH;
+    template <typename T, T From, T To>
+    struct MakeValueListH {
+        using Type = MergeValueLists<
+                ConstValue<T, From>,
+                typename MakeValueListH<T, From + 1, To>::Type
+        >;
+    };
+
+    template <typename T, T To>
+    struct MakeValueListH<T, To, To> {
+        using Type = ValueList<T>;
+    };
+
+}
 
 template <typename T, T From, T To>
-struct MakeValueListH {
-    using Type = AppendToList<
-            ConstValue<T, From>,
-            typename MakeValueListH<T, From + 1, To>::Type
-    >;
-};
-
-template <typename T, T To>
-struct MakeValueListH<T, To, To> {
-    using Type = ValueList<T>;
-};
-
-
-template <typename T, T From, T To>
-using MakeValueList = typename MakeValueListH<T, From, To>::Type;
+using MakeValueList = typename detail::MakeValueListH<T, From, To>::Type;
 
 
 

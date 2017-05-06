@@ -123,24 +123,24 @@ class PackedLeafStructListBuilder<SumType, TypeList<StreamTF<LeafType, BranchStr
     using InputBufferType = typename InputBufferListBuilder<LeafType>::Type;
 
 public:
-    using StructList = AppendToList<
-                LeafType,
+    using StructList = MergeLists<
+                TL<LeafType>,
                 typename PackedLeafStructListBuilder<
                     SumType,
                     TypeList<Tail...>
                 >::StructList
     >;
 
-    using StreamInputList = AppendToList<
-            typename MakeStreamEntryTL<Linearize<LeafType>>::Type,
+    using StreamInputList = MergeLists<
+            TL<typename MakeStreamEntryTL<Linearize<LeafType>>::Type>,
             typename PackedLeafStructListBuilder<
                 SumType,
                 TypeList<Tail...>
             >::StreamInputList
     >;
 
-    using InputBufferList = AppendToList<
-            InputBufferType,
+    using InputBufferList = MergeLists<
+            TL<InputBufferType>,
             typename PackedLeafStructListBuilder<
                         SumType,
                         TypeList<Tail...>
@@ -163,8 +163,8 @@ class PackedBranchStructListBuilder<SumType, TypeList<StreamTF<LeafType, BranchS
     using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
 
 public:
-    using StructList = AppendToList<
-                BranchType,
+    using StructList = MergeLists<
+                TL<BranchType>,
                 typename PackedBranchStructListBuilder<
                     SumType,
                     TypeList<Tail...>
@@ -209,18 +209,18 @@ class IteratorBranchNodeEntryListBuilder<SumType, TypeList<StreamTF<LeafType, Br
     >::Type;
 
 public:
-    using AccumTuple = AppendToList<
-            AccType,
+    using AccumTuple = MergeLists<
+            TL<AccType>,
             typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::AccumTuple
     >;
 
-    using RangeOffsetList = AppendToList<
-            RangeOffsetListType,
+    using RangeOffsetList = MergeLists<
+            TL<RangeOffsetListType>,
             typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::RangeOffsetList
     >;
 
-    using IndexRangeList = AppendToList<
-            IdxRangeList,
+    using IndexRangeList = MergeLists<
+            TL<IdxRangeList>,
             typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::IndexRangeList
     >;
 };

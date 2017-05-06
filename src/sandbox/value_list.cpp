@@ -23,44 +23,65 @@
 #include <vector>
 
 using namespace std;
-using namespace memoria;
+using namespace memoria::v1;
 
 
-typedef IntList<1,2,3,4,5> SrcList;
+using SrcList = IntList<1,2,3,4,5>;
 
-typedef MergeValueLists<SrcList, IntList<6, 7, 8>>::Type List1;
+using List1 = MergeValueLists<SrcList, IntList<6, 7, 8>>;
 
-typedef MergeValueLists<ValueList<int32_t, 6, 7, 8>>::Type List2;
+using List2 = MergeValueLists<ValueList<int32_t, 6, 7, 8>>;
 
 //typedef MergeValueLists<>::Result List0;
 
-typedef MergeValueLists<IntValue<5>>::Type List3;
-typedef MergeValueLists<IntValue<5>, IntValue<6>>::Type List4;
+using List3 = MergeValueLists<IntValue<5>>;
+using List4 = MergeValueLists<IntValue<5>, IntValue<6>>;
 
-typedef MergeValueLists<IntValue<5>, IntValue<6>, IntValue<7>>::Type List5;
+using List5 = MergeValueLists<IntValue<5>, IntValue<6>, IntValue<7>>;
 
-typedef MergeValueLists<IntList<4>, IntValue<5>>::Type List6;
-typedef MergeValueLists<IntList<4>, IntValue<5>, IntValue<6>>::Type List7;
+using List6 = MergeValueLists<IntList<4>, IntValue<5>>;
+using List7 = MergeValueLists<IntList<4>, IntValue<5>, IntValue<6>>;
 
-typedef MergeValueLists<IntList<4>, IntValue<5>, IntList<6>>::Type List8;
+using List8 = MergeValueLists<IntList<4>, IntValue<5>, IntList<6>>;
 
-typedef MergeValueLists<IntValue<5>, IntList<7, 8, 9>, IntValue<10>>::Type List9;
+using List9 = MergeValueLists<IntValue<5>, IntList<7, 8, 9>, IntValue<10>>;
+
+template <int> struct S{};
 
 int main(void) {
 
-    cout<<TypeNameFactory<SrcList>::name()<<endl;
-
-    cout<<TypeNameFactory<List1>::name()<<endl;
-    cout<<TypeNameFactory<List2>::name()<<endl;
-
-    cout<<TypeNameFactory<List3>::name()<<endl;
-    cout<<TypeNameFactory<List4>::name()<<endl;
-    cout<<TypeNameFactory<List5>::name()<<endl;
-
-    cout<<TypeNameFactory<List6>::name()<<endl;
-    cout<<TypeNameFactory<List7>::name()<<endl;
-    cout<<TypeNameFactory<List8>::name()<<endl;
-    cout<<TypeNameFactory<List9>::name()<<endl;
+//     cout<<TypeNameFactory<SrcList>::name()<<endl;
+// 
+//     cout<<TypeNameFactory<List1>::name()<<endl;
+//     cout<<TypeNameFactory<List2>::name()<<endl;
+// 
+//     cout<<TypeNameFactory<List3>::name()<<endl;
+//     cout<<TypeNameFactory<List4>::name()<<endl;
+//     cout<<TypeNameFactory<List5>::name()<<endl;
+// 
+//     cout<<TypeNameFactory<List6>::name()<<endl;
+//     cout<<TypeNameFactory<List7>::name()<<endl;
+//     cout<<TypeNameFactory<List8>::name()<<endl;
+//     cout<<TypeNameFactory<List9>::name()<<endl;
+//     
+    
+    cout << 
+        TypeNameFactory<
+            MergeLists<TL<S<0>>, TL<S<1>>>
+        >::name() 
+        << endl;
+//         
+//     cout << 
+//         TypeNameFactory<
+//             AppendToList<TL<S<0>>, TL<S<1>>>
+//         >::name() 
+//         << endl;
+//         
+//     cout << 
+//         TypeNameFactory<
+//             PrependToList<TL<S<0>>, S<1>>
+//         >::name() 
+//         << endl;
 
     return 0;
 }

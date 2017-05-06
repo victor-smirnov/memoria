@@ -59,42 +59,21 @@ namespace detail {
 
     
     
-
-
-}
-
-
-template <typename Item1, typename Item2> 
-using AppendTool = typename detail::AppendToolH<Item1, Item2>::Type;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-namespace detail {
-
+    
+    
+    
     template <typename Accumulator, typename ... Lists> class MergeTypeListsHelper;
 
     template <typename Accumulator, typename ... List, typename ... Tail>
     class MergeTypeListsHelper<Accumulator, TypeList<List...>, Tail...> {
-        using R0 = AppendTool<Accumulator, TypeList<List...> >;
+        using R0 = typename AppendToolH<Accumulator, TypeList<List...>>::Type;
     public:
         using Type = typename MergeTypeListsHelper<R0, Tail...>::Type;
     };
 
     template <typename Accumulator, typename Item, typename ... Tail>
     class MergeTypeListsHelper<Accumulator, Item, Tail...> {
-        using R0 = AppendTool<Accumulator, TypeList<Item> >;
+        using R0 = typename AppendToolH<Accumulator, TypeList<Item>>::Type;
     public:
         using Type = typename MergeTypeListsHelper<R0, Tail...>::Type;
     };
@@ -112,7 +91,7 @@ namespace detail {
 
     template <typename Accumulator, typename T, T... List, typename ... Tail>
     class MergeValueListsHelper<Accumulator, ValueList<T, List...>, Tail...> {
-        using R0 = AppendTool<Accumulator, ValueList<T, List...> >;
+        using R0 = typename AppendToolH<Accumulator, ValueList<T, List...>>::Type;
     public:
         using Type = typename MergeValueListsHelper<R0, Tail...>::Type;
     };
@@ -120,7 +99,7 @@ namespace detail {
 
     template <typename Accumulator, typename T, T Value, typename ... Tail>
     class MergeValueListsHelper<Accumulator, ConstValue<T, Value>, Tail...> {
-        using R0 = AppendTool<Accumulator, ValueList<T, Value> >;
+        using R0 = typename AppendToolH<Accumulator, ValueList<T, Value>>::Type;
     public:
         using Type = typename MergeValueListsHelper<R0, Tail...>::Type;
     };
@@ -190,28 +169,6 @@ namespace detail {
         >::Type;
     };
     
-    
-    template <typename T1, typename T2> struct AppendToListH;
-
-    template <typename T1, typename... List>
-    struct AppendToListH<T1, TypeList<List...>>
-    {
-        using Type = TypeList<T1, List...>;
-    };
-
-    template <typename T, T V1, T... List>
-    struct AppendToListH<ConstValue<T, V1>, ValueList<T, List...>>
-    {
-        using Type = ValueList<T, V1, List...>;
-    };
-    
-    template <typename List, typename ... Items> struct PrependToListH;
-    
-    template <typename ... List, typename ... Items>
-    struct PrependToListH<TypeList<List...>, Items...> {
-        using Type = TypeList<Items..., List...>;
-    };
-    
 
     template <typename T, T Item1, typename List> struct AppendValueToolH;
     // ValueList
@@ -223,6 +180,8 @@ namespace detail {
 }
 
 
+template <typename Item1, typename Item2> 
+using AppendTool = typename detail::AppendToolH<Item1, Item2>::Type;
 
 
 template <typename ... Lists>
@@ -236,14 +195,6 @@ using MergeValueLists = typename detail::MergeValueListsH<Lists...>::Type;
 
 template <typename List, typename Item, int32_t Idx>
 using Replace = typename detail::ReplaceH<List, Item, Idx>::Type;
-
-
-template <typename List1, typename List2> 
-using AppendToList = typename detail::AppendToListH<List1, List2>::Type;
-
-template <typename List1, typename... Items> 
-using PrependToList = typename detail::PrependToListH<List1, Items...>::Type;
-
 
 template <typename T, T Item1, typename List> 
 using AppendValueTool = typename detail::AppendValueToolH<T, Item1, List>::Type;

@@ -26,7 +26,7 @@
 namespace memoria {
 namespace v1 {
 
-namespace detail00 {
+namespace detail01 {
     template <typename V>
     struct VectorValueHelper: HasType<V> {};
     
@@ -45,7 +45,7 @@ public:
     using typename Base::Iterator;
     
 
-    using DataValue = typename detail00::VectorValueHelper<Value>::Type;
+    using DataValue = typename detail01::VectorValueHelper<Value>::Type;
     
     MMA1_DECLARE_CTRAPI_BASIC_METHODS()
 };
@@ -61,7 +61,7 @@ class IterApi<Vector<Value>, Profile>: public IterApiBTSSBase<Vector<Value>, Pro
     
 public:
     
-    using DataValue = typename detail00::VectorValueHelper<Value>::Type;
+    using DataValue = typename detail01::VectorValueHelper<Value>::Type;
     
     using Base::read;
     using Base::insert;

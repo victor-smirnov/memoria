@@ -74,7 +74,7 @@ Key IterApi<Map<Key, Value>, Profile>::key() const
 }
 
 
-namespace detail00 {
+namespace detail01 {
     template <typename T>
     struct ValueHelper {
         template <typename TT>
@@ -96,7 +96,7 @@ namespace detail00 {
 template <typename Key, typename Value, typename Profile>
 Value IterApi<Map<Key, Value>, Profile>::value() const
 {
-    return detail00::ValueHelper<decltype(this->pimpl_->value())>::convert(this->pimpl_->value());
+    return detail01::ValueHelper<decltype(this->pimpl_->value())>::convert(this->pimpl_->value());
 }
 
 
