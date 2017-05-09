@@ -23,6 +23,8 @@
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
+#include <memoria/v1/api/multimap/multimap_input.hpp>
+
 #include <iostream>
 
 namespace memoria {
@@ -166,8 +168,11 @@ public:
     void insert_value(const Value& value)
     {
         auto& self = this->self();
+        
+        // FIXME: Allows inserting into start of the sequence that is incorrect, 
+        // but doesn't break the structure
 
-        self.template insert_entry<1>(SingleValueEntryFn<1, Key, CtrSizeT>(value));
+        self.template insert_entry<1>(SingleValueEntryFn<1, Value, CtrSizeT>(value));
     }
 
 
@@ -187,8 +192,7 @@ public:
 
         virtual int32_t process(IOBuffer& buffer, int32_t entries)
         {
-            for (int32_t entry = 0; entry < entries; entry++)
-            {
+            for (int32_t entry = 0; entry < entries; entry++) {
                 consumer_->emplace_back(IOBufferAdapter<Value>::get(buffer));
             }
 
@@ -211,6 +215,19 @@ public:
     }
 
 
+    CtrSizeT read_values(BufferConsumer<IOBuffer>& consumer, CtrSizeT start, CtrSizeT length)
+    {
+        auto& self = this->self();
+        
+        if (self.to_values()) 
+        {
+            self.skipFw(start);
+            return self.bulkio_scan_run(&consumer, 1, length);
+        }
+        else {
+            return CtrSizeT{};
+        }
+    }
 
 
 
@@ -236,18 +253,24 @@ public:
         }
     }
 
-    void seek_value(CtrSizeT n)
+    bool to_values()
     {
     	auto& self = this->self();
     	int32_t stream = self.data_stream();
 
-    	if (stream < DataStreams - 1)
-    	{
-    		self.selectFw(1, stream + 1);
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
-    	}
+        if (stream == 1) 
+        {
+            return true;
+        }
+        else {
+            self.next();
+            if (self.is_end()) {
+                return false;
+            }
+            else {
+                return self.data_stream() == 1;
+            }
+        }
     }
 
     void to_prev_key()
@@ -272,6 +295,26 @@ public:
 
         return total;
     }
+    
+    template <typename IOBuffer>
+    CtrSizeT insert_values(bt::BufferProducer<IOBuffer>& producer)
+    {
+        auto& self = this->self();
+        
+        SingleStreamProducerAdapter<IOBuffer, 2> adapter(producer, 1);
+        
+        return self.bulkio_insert(adapter).sum();
+    }
+    
+    template <typename IOBuffer>
+    CtrSizeT insert_mmap_entry(const Key& key, bt::BufferProducer<IOBuffer>& producer)
+    {
+        auto& self = this->self();
+        SingleEntryProducerAdapter<Key, IOBuffer, 2> adapter(key, producer, 0);
+        
+        return self.bulkio_insert(adapter)[1];
+    }
+    
 
 MEMORIA_V1_ITERATOR_PART_END
 

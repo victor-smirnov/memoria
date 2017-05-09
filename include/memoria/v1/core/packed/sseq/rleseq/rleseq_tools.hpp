@@ -105,7 +105,7 @@ struct Location {
     auto block_base()   const {return block_base_;}
     auto run_base()     const {return run_base_;}
 
-    bool out_of_range() const {return out_of_range_;}
+    bool out_of_range1() const {return out_of_range_;}
 
     const RLESymbolsRun& run() const {return run_;}
 };

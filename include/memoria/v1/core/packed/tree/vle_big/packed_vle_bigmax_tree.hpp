@@ -21,6 +21,7 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_tools.hpp>
 
 #include <memoria/v1/core/tools/strings/string_codec.hpp>
+#include <memoria/v1/core/tools/optional.hpp>
 
 #ifdef HAVE_BOOST
 #include <memoria/v1/core/tools/bignum/cppint_codec.hpp>

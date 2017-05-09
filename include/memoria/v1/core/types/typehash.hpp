@@ -105,7 +105,10 @@ struct TypeHash<Set<Key>>: UInt64Value<
 > {};
 
 
-
+template <typename Key, typename Value>
+struct TypeHash<Multimap<Key, Value>>: UInt64Value<
+    HashHelper<1102, TypeHashV<Key>, TypeHashV<Value>>
+> {};
 
 
 

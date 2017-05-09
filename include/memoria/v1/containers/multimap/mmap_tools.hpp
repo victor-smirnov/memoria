@@ -20,6 +20,15 @@
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/tools/ticker.hpp>
 
+#include <memoria/v1/core/tools/strings/string_codec.hpp>
+
+#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle_big/packed_vle_optmax_tree.hpp>
+
+#include <memoria/v1/core/packed/array/packed_fse_array.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
+
 #include <tuple>
 #include <vector>
 
@@ -98,22 +107,18 @@ template <typename KeyType, int32_t Indexes>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(
-            IsExternalizable<KeyType>::Value,
+            IsExternalizable<FailIf<KeyType, false>>::Value,
             "Type must either has ValueCodec or FieldFactory defined"
     );
 
     using Type = IfThenElse<
             HasFieldFactory<KeyType>::Value,
             PkdFMOTreeT<KeyType, Indexes>,
-            PkdVBMTreeT<KeyType>
+            PkdVMOTreeT<KeyType>
     >;
 
     static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };
-
-
-
-
 
 
 

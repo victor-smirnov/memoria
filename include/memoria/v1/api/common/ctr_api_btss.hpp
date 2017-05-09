@@ -27,6 +27,7 @@
 
 #include "ctr_api.hpp"
 
+#include <limits>
 
 namespace memoria {
 namespace v1 {
@@ -39,8 +40,12 @@ protected:
     using typename Base::CtrPtr;
 
     using Iterator = IterApi<CtrName, Profile>;
-    
+
 public:
+
+    static constexpr int32_t DataStreams = 1;
+    using CtrSizesT = CtrSizes<Profile, DataStreams>;
+    
     CtrApiBTSSBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name):
         Base(allocator, command, name) 
     {}
@@ -72,7 +77,12 @@ protected:
     using typename Base::CtrT;
     using typename Base::CtrPtr;
     
+    using typename Base::CtrSizeT;
+    
 public:
+    static constexpr int32_t DataStreams = CtrApiBTSSBase<CtrName, Profile>::DataStreams;
+    using CtrSizesT = typename CtrApiBTSSBase<CtrName, Profile>::CtrSizesT;
+    
     using Iterator  = IterApi<CtrName, Profile>;
     
     IterApiBTSSBase(IterPtr ptr): Base(ptr) {}
@@ -95,10 +105,10 @@ public:
     int64_t pos();
     int64_t skip(int64_t offset);
     
-    int64_t read(CtrIOBuffer& buffer, int64_t size = 10000000);
-    int64_t read(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t size = 10000000);
+    int64_t read(CtrIOBuffer& buffer, int64_t size = std::numeric_limits<int64_t>::max());
+    int64_t read(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t size = std::numeric_limits<int64_t>::max());
     
-    int64_t read(std::function<int32_t (CtrIOBuffer&, int32_t)> consumer, int64_t size = 10000000);
+    int64_t read(std::function<int32_t (CtrIOBuffer&, int32_t)> consumer, int64_t size = std::numeric_limits<int64_t>::max());
     
     int64_t insert(bt::BufferProducer<CtrIOBuffer>& producer);
     int64_t insert(std::function<int32_t (CtrIOBuffer&)> producer);

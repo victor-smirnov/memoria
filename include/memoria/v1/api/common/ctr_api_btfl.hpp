@@ -53,18 +53,19 @@ public:
     void operator=(const CtrApiBTFLBase& other) {Base::operator=(other);}
     void operator=(CtrApiBTFLBase&& other) {Base::operator=(std::move(other));}
     
-    Iterator begin();
-    Iterator end();
-    Iterator seek(int64_t pos);
+    Iterator seq_begin();
+    Iterator seq_end();
+    int64_t  seq_size() const;
+    Iterator seq_seek(int64_t pos);
     
-    int64_t size();
+    Iterator seq_select(int64_t rank, int32_t sym);
 };
 
 
 template <typename CtrName, typename Profile> 
 class IterApiBTFLBase: public IterApiBase<CtrName, Profile> {
     using Base = IterApiBase<CtrName, Profile>;
-protected:    
+protected:
     
     using typename Base::AllocatorT;
     using typename Base::IterT;
@@ -73,7 +74,7 @@ protected:
     using typename Base::CtrPtr;
     
 public:
-    using Iterator  = IterApi<CtrName, Profile>;
+    using Iterator = IterApi<CtrName, Profile>;
     
     IterApiBTFLBase(IterPtr ptr): Base(ptr) {}
     ~IterApiBTFLBase() {}
@@ -84,24 +85,22 @@ public:
     void operator=(const IterApiBTFLBase& other) {Base::operator=(other);}
     void operator=(IterApiBTFLBase&& other)      {Base::operator=(std::move(other));}
     
-    bool is_end() const;
+    int32_t symbol() const;
     
-    bool next();
-    bool prev();
+    bool seq_is_end() const;
     
-    void remove();
-    int64_t remove(int64_t length);
+    bool next_sym();
+    bool prev_sym();
     
-    int64_t pos();
-    int64_t skip(int64_t offset);
+    int64_t remove_entries(int64_t length);
     
-    int64_t read(CtrIOBuffer& buffer, int64_t size = 10000000);
-    int64_t read(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t size = 10000000);
+    int64_t seq_pos();
+    int64_t skip_seq(int64_t offset);
     
-    int64_t read(std::function<int32_t (CtrIOBuffer&, int32_t)> consumer, int64_t size = 10000000);
+    int64_t read_seq(CtrIOBuffer& buffer, int64_t size = std::numeric_limits<int64_t>::max());
+    int64_t read_seq(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t size = std::numeric_limits<int64_t>::max());
+    int64_t insert_subseq(bt::BufferProducer<CtrIOBuffer>& producer);
     
-    int64_t insert(bt::BufferProducer<CtrIOBuffer>& producer);
-    int64_t insert(std::function<int32_t (CtrIOBuffer&)> producer);
 };
 
 

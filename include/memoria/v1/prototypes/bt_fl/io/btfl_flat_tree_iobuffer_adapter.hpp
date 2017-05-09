@@ -19,6 +19,8 @@
 #include <memoria/v1/core/types/types.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
+#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
+
 #include <memoria/v1/core/packed/sseq/packed_rle_searchable_seq.hpp>
 
 #include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
@@ -37,7 +39,7 @@ namespace btfl {
 namespace io {
 
 template <int32_t DataStreams, typename IOBufferT>
-class FlatTreeIOBufferAdapter: public BufferProducer<IOBufferT> {
+class FlatTreeIOBufferAdapter: public bt::BufferProducer<IOBufferT> {
 
 public:
 

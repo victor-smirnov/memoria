@@ -19,6 +19,7 @@
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
+#include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
 
@@ -33,6 +34,16 @@ template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
 
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Profile> class SharedIter;
+
+template <typename Profile> struct ProfileCtrSizeT: HasType<int64_t> {};
+template <typename Profile> using CtrSize = typename ProfileCtrSizeT<Profile>::Type;
+
+template <typename Profile, int32_t Streams> struct ProfileCtrSizesT: HasType<
+    memoria::v1::core::StaticVector<CtrSize<Profile>, Streams>
+> {};
+
+template <typename Profile, int32_t Streams> 
+using CtrSizes = typename ProfileCtrSizesT<Profile, Streams>::Type;
 
 
 
@@ -81,7 +92,9 @@ public:
     using AllocatorT = IAllocator<ProfilePageType<Profile>>;
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
     using CtrPtr     = CtrSharedPtr<CtrT>;
-
+    
+    using CtrSizeT   = typename ProfileCtrSizeT<Profile>::Type;
+    
 protected:    
     CtrPtr pimpl_;
     
@@ -123,6 +136,8 @@ protected:
     using IterPtr    = CtrSharedPtr<IterT>;
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
     using CtrPtr     = CtrSharedPtr<CtrT>;
+    
+    using CtrSizeT   = typename ProfileCtrSizeT<Profile>::Type;
      
     IterPtr pimpl_;
     
@@ -162,6 +177,10 @@ struct CtrMetadataInitializer {
     }
 };
 
+
+
+
+
 #define MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, ...)\
 template class IterApiBase<CtrName, Profile>;           \
 template class IterApiBTSSBase<CtrName, Profile>;       \
@@ -171,11 +190,22 @@ template class CtrApi<CtrName, Profile>;                \
 template class IterApi<CtrName, Profile>;               \
                                                         \
 namespace {                                             \
-CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__;\
+CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
 }
 
 
 
+#define MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile, ...)\
+template class IterApiBase<CtrName, Profile>;           \
+template class IterApiBTFLBase<CtrName, Profile>;       \
+template class CtrApiBase<CtrName, Profile>;            \
+template class CtrApiBTFLBase<CtrName, Profile>;        \
+template class CtrApi<CtrName, Profile>;                \
+template class IterApi<CtrName, Profile>;               \
+                                                        \
+namespace {                                             \
+CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
+}
 
 
 

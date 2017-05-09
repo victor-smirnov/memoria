@@ -48,7 +48,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorRemoveName)
 
     static const int32_t Streams          		= Container::Types::Streams;
     static const int32_t DataStreams      		= Container::Types::DataStreams;
-    static const int32_t StructureStreamIdx   = Container::Types::StructureStreamIdx;
+    static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 public:
     Position removeGE(CtrSizeT n)
@@ -76,6 +76,34 @@ public:
 
         return sizes;
     }
+    
+    CtrSizeT remove_next(CtrSizeT n)
+    {
+        auto& self = this->self();
+        CtrSizesT sizes;
+        CtrSizeT size{};
+
+        if (!self.isEnd())
+        {
+        	auto ii = self.clone();
+
+        	size = ii->skipFw(n);
+
+        	auto start = self.leafrank();
+        	auto end   = ii->leafrank();
+
+        	self.ctr().removeEntries(self.leaf(), start, ii->leaf(), end, sizes, true);
+
+        	self.idx() = end[StructureStreamIdx];
+
+        	self.leaf() = ii->leaf();
+
+        	self.refresh();
+        }
+
+        return size;
+    }
+
 
 protected:
 

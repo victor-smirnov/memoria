@@ -296,7 +296,7 @@ public:
     {
         auto result = this->find_run(idx);
 
-        if (!result.out_of_range())
+        if (!result.out_of_range1())
         {
             return result.symbol();
         }
@@ -704,12 +704,41 @@ public:
         }
     }
 
+//     void insert(int32_t idx, int32_t symbol, uint64_t length)
+//     {
+//         auto location = find_run(idx);
+// 
+//         if (!location.out_of_range1())
+//         {
+//             if (location.symbol() != symbol || location.length() + length > MaxRunLength)
+//             {
+//                 if (location.run_prefix() > 0)
+//                 {
+//                     location = split_run(location);
+//                 }
+// 
+//                 insert_run(location.data_pos(), symbol, length);
+//             }
+//             else {
+//                 add_run_length(location, length);
+//             }
+//         }
+//         else {
+//             insert_run(location.data_pos(), symbol, length);
+//         }
+// 
+//         reindex();
+//     }
+
+
     void insert(int32_t idx, int32_t symbol, uint64_t length)
     {
-        auto location = find_run(idx);
-
-        if (!location.out_of_range())
+        auto meta = this->metadata();
+        
+        if (idx < meta->size()) 
         {
+            auto location = find_run(meta, idx);
+            
             if (location.symbol() != symbol || location.length() + length > MaxRunLength)
             {
                 if (location.run_prefix() > 0)
@@ -724,11 +753,20 @@ public:
             }
         }
         else {
-            insert_run(location.data_pos(), symbol, length);
+            auto location = find_last_run(meta);
+            
+            if (location.symbol() != symbol || location.length() + length > MaxRunLength)
+            {
+                insert_run(location.data_pos() + location.run().length(), symbol, length);
+            }
+            else {
+                add_run_length(location, length);
+            }
         }
-
+        
         reindex();
     }
+
 
     void insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
     {
@@ -1427,10 +1465,15 @@ public:
 
     auto find_run(int32_t symbol_pos) const
     {
+        return find_run(this->metadata(), symbol_pos);
+    }
+    
+private:
+    
+    auto find_run(const Metadata* meta, int32_t symbol_pos) const
+    {
         if (symbol_pos >= 0)
         {
-            auto meta = this->metadata();
-
             if (symbol_pos < meta->size())
             {
                 if (!has_index())
@@ -1441,7 +1484,7 @@ public:
                 {
                     auto find_result = this->size_index()->find_gt(0, symbol_pos);
 
-                    int32_t local_pos       = symbol_pos - find_result.prefix();
+                    int32_t local_pos   = symbol_pos - find_result.prefix();
                     size_t block_offset = find_result.idx() * ValuesPerBranch;
                     auto offset         = offsets()[find_result.idx()];
 
@@ -1458,6 +1501,32 @@ public:
             throw Exception(MA_SRC, SBuf() << "Symbol index must be >= 0: " << symbol_pos);
         }
     }
+    
+
+    auto find_last_run(const Metadata* meta) const
+    {
+        if (!has_index())
+        {
+            return locate_last_run(meta, 0, 0);
+        }
+        else
+        {
+            auto size_index     = this->size_index();
+            int32_t block_idx   = size_index->size() - 1;
+            auto prefix         = size_index->sum(0, block_idx);
+
+            
+            size_t block_offset = block_idx * ValuesPerBranch;
+            auto offset         = offsets()[block_idx];
+
+            block_offset += offset;
+
+            return locate_last_run(meta, block_offset, prefix);
+        }
+    }
+    
+public:    
+    
 
     void compactify()
     {
@@ -1806,6 +1875,37 @@ private:
         }
 
         throw Exception(MA_SRC, SBuf() << "Symbol index is out of bounds: " << idx << " " <<meta->size());
+    }
+    
+    
+    Location locate_last_run(const Metadata* meta, size_t pos, size_t size_base) const
+    {
+        Codec codec;
+        auto symbols = this->symbols();
+
+        uint64_t base = 0;
+
+        size_t limit = meta->data_size();
+
+        RLESymbolsRun run;
+        size_t len{};
+        size_t last_pos{};
+        uint64_t last_base;
+        
+        while (pos < limit)
+        {
+            last_pos  = pos;
+            last_base = base;
+            
+            uint64_t run_value = 0;
+            len = codec.decode(symbols, run_value, pos);
+            run = decode_run(run_value);
+
+            base += run.length();
+            pos  += len;
+        }
+        
+        return Location(last_pos, len, meta->size() - last_base, size_base, last_base, run, true);
     }
 
 

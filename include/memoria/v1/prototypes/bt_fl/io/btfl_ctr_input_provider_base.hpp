@@ -21,6 +21,9 @@
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/v1/core/packed/sseq/packed_rle_searchable_seq.hpp>
 
+#include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
+#include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
+
 #include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 
@@ -40,7 +43,7 @@ namespace {
 
     template <typename Types, int32_t Streams, int32_t Idx = 0>
     struct DataStreamInputBufferBuilder {
-        using InputBuffer = StreamInputBuffer<
+        using InputBuffer = bt::StreamInputBuffer<
                 Idx,
                 typename Types::template StreamInputBufferStructList<Idx>
         >;
@@ -98,14 +101,14 @@ public:
 
 
 
-    using ForAllDataStreams = ForAllTuple<std::tuple_size<DataStreamBuffers>::value>;
+    using ForAllDataStreams = bt::ForAllTuple<std::tuple_size<DataStreamBuffers>::value>;
 
     using NodePair = std::pair<NodeBaseG, NodeBaseG>;
     using RankDictionaryT = RankDictionary<DataStreams>;
 
     using StructureStreamBuffer = StructureStreamInputBuffer<
             InputBufferHandler<
-                StreamInputBuffer<
+                bt::StreamInputBuffer<
                     StructureStreamIdx,
                     typename CtrT::Types::template StreamInputBufferStructList<StructureStreamIdx>
                 >
@@ -524,7 +527,7 @@ protected:
         }
 
         template <typename NodeTypes, typename... Args>
-        auto treeNode(LeafNode<NodeTypes>* leaf, Args&&... args)
+        auto treeNode(bt::LeafNode<NodeTypes>* leaf, Args&&... args)
         {
             leaf->layout(255);
             return leaf->processSubstreamGroups(*this, leaf->allocator(), std::forward<Args>(args)...);
@@ -548,7 +551,7 @@ protected:
 
         JointBufferTupleT joint_buffer;
 
-        ForAllTuple<std::tuple_size<DataStreamBuffers>::value>::process(data_buffers_, AssignDataBuffersFn(), joint_buffer);
+        bt::ForAllTuple<std::tuple_size<DataStreamBuffers>::value>::process(data_buffers_, AssignDataBuffersFn(), joint_buffer);
 
         std::get<StructureStreamIdx>(joint_buffer) = &structure_buffer_;
 

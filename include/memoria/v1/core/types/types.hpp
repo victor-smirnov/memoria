@@ -194,6 +194,9 @@ template <typename Key, typename Value>
 struct Map          {};
 
 template <typename Key, typename Value>
+struct Multimap     {};
+
+template <typename Key, typename Value>
 struct CowMap       {};
 
 template <typename Key, typename Value, PackedSizeType SizeType>

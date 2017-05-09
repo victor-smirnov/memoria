@@ -27,14 +27,10 @@ namespace v1 {
 
 
 template <typename PkdStruct>
-struct AccumType {
-    using Type = typename PkdStruct::Value;
-};
+struct AccumType: HasType<typename PkdStruct::Value> {};
 
 template <typename PkdStruct>
-struct PkdStructInputType {
-    using Type = typename PkdStruct::InputType;
-};
+struct PkdStructInputType: HasType<typename PkdStruct::InputType> {};
 
 
 

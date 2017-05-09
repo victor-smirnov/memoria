@@ -177,7 +177,7 @@ public:
                 int32_t sym1 = iter.symbol();
                 int32_t sym2 = symbols[c];
 
-                AssertEQ(MA_SRC, sym1, sym2, SBuf()<<"Index: "<<c);
+                AssertEQ(MA_SRC, sym1, sym2, SBuf() << "Index: " << c);
 
                 iter.next();
             }

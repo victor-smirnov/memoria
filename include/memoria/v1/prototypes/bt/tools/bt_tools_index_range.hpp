@@ -287,15 +287,16 @@ namespace detail {
     };
 
 
-    template <typename List> struct MakeTuple;
+    template <typename List> struct MakeTupleT;
+    template <typename List> using MakeTuple = typename MakeTupleT<List>::Type;
 
     template <typename... Types>
-    struct MakeTuple<TypeList<Types...>> {
+    struct MakeTupleT<TypeList<Types...>> {
         using Type = std::tuple<Types...>;
     };
 
     template <typename... Types>
-    struct MakeTuple<std::tuple<Types...>> {
+    struct MakeTupleT<std::tuple<Types...>> {
         using type = std::tuple<Types...>;
     };
 }
@@ -437,23 +438,21 @@ struct BranchNodeRangeListBuilder<TypeList<>, TypeList<>, TypeList<>, Offset>
 template <typename BranchStructList, typename RangeLists> struct IteratorBranchNodeEntryBuilder;
 
 template <typename BranchStruct, typename... BTail, typename RangeList, typename... RTail>
-struct IteratorBranchNodeEntryBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTail...>> {
-    using Type = MergeLists<
-            typename detail::MakeTuple<
-                typename detail::AccumBuilderH<
-                    typename v1::AccumType<BranchStruct>::Type,
-                    RangeList,
-                    IndexesSize<BranchStruct>::Value
-                >::Type
-            >::Type,
-            typename IteratorBranchNodeEntryBuilder<TL<BTail...>, TL<RTail...>>::Type
-    >;
-};
+struct IteratorBranchNodeEntryBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTail...>>: HasType<
+    MergeLists<
+        detail::MakeTuple<
+            typename detail::AccumBuilderH<
+                typename v1::AccumType<BranchStruct>::Type,
+                RangeList,
+                IndexesSize<BranchStruct>::Value
+            >::Type
+        >,
+        typename IteratorBranchNodeEntryBuilder<TL<BTail...>, TL<RTail...>>::Type
+    >
+>{};
 
 template <>
-struct IteratorBranchNodeEntryBuilder<TL<>, TL<>> {
-    using Type = TL<>;
-};
+struct IteratorBranchNodeEntryBuilder<TL<>, TL<>>: HasType<TL<>> {};
 
 
 
@@ -461,7 +460,7 @@ struct IteratorBranchNodeEntryBuilder<TL<>, TL<>> {
 
 
 
-namespace {
+namespace detail {
 
     template <typename RangeList, int32_t Idx = 0> struct IndexRangeProc;
 
@@ -598,7 +597,7 @@ public:
 
     template <int32_t Offset>
     using Vector = typename std::tuple_element<
-        SearchForAccumItem<AccumRangeList, Offset>::Idx,
+        memoria::v1::bt::detail::SearchForAccumItem<AccumRangeList, Offset>::Idx,
         AccumRangeList
     >::type;
 
@@ -608,20 +607,20 @@ public:
     static
     Vector<Offset>& item(AccumType& accum)
     {
-        return std::get<SearchForAccumItem<AccumRangeList, Offset>::Idx>(std::get<BranchIdx>(accum));
+        return std::get<memoria::v1::bt::detail::SearchForAccumItem<AccumRangeList, Offset>::Idx>(std::get<BranchIdx>(accum));
     }
 
     template <int32_t Offset>
     static
     const Vector<Offset>& item(const AccumType& accum)
     {
-        return std::get<SearchForAccumItem<AccumRangeList, Offset>::Idx>(std::get<BranchIdx>(accum));
+        return std::get<memoria::v1::bt::detail::SearchForAccumItem<AccumRangeList, Offset>::Idx>(std::get<BranchIdx>(accum));
     }
 
     template <typename AccumTypeT>
     static auto value(int32_t index, AccumTypeT&& accum)
     {
-        return IndexRangeProc<AccumRangeList>::value(
+        return memoria::v1::bt::detail::IndexRangeProc<AccumRangeList>::value(
                 index + LeafPrefix,
                 std::get<BranchIdx>(std::forward<AccumTypeT>(accum))
         );
@@ -630,7 +629,7 @@ public:
     template <int32_t Index, typename AccumTypeT>
     static auto value(AccumTypeT&& accum)
     {
-        return IndexRangeProc<AccumRangeList>::template value<Index + LeafPrefix>(std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
+        return memoria::v1::bt::detail::IndexRangeProc<AccumRangeList>::template value<Index + LeafPrefix>(std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
     }
 };
 

@@ -45,7 +45,7 @@ namespace {
         {
             if (stream == Idx)
             {
-                return object.stream_size(StreamTag<Idx>(), std::forward<Args>(args)...);
+                return object.stream_size(bt::StreamTag<Idx>(), std::forward<Args>(args)...);
             }
             else {
                 return StreamSizeAdapter<Size, Idx+1>::process(stream, std::forward<T>(object), std::forward<Args>(args)...);
@@ -61,7 +61,7 @@ namespace {
         {
             if (stream == Size)
             {
-                return object.stream_size(StreamTag<Size>(), std::forward<Args>(args)...);
+                return object.stream_size(bt::StreamTag<Size>(), std::forward<Args>(args)...);
             }
             else {
                 throw Exception(MA_RAW_SRC, SBuf() << "Invalid stream number: " << stream);
@@ -159,15 +159,15 @@ public:
 
 private:
 
-    auto stream_size(StreamTag<0>, const CtrSizesT& pos)
+    auto stream_size(bt::StreamTag<0>, const CtrSizesT& pos)
     {
-        return self().prepare(StreamTag<0>());
+        return self().prepare(bt::StreamTag<0>());
     }
 
     template <int32_t StreamIdx>
-    auto stream_size(StreamTag<StreamIdx>, const CtrSizesT& pos)
+    auto stream_size(bt::StreamTag<StreamIdx>, const CtrSizesT& pos)
     {
-        return self().prepare(StreamTag<StreamIdx>(), pos);
+        return self().prepare(bt::StreamTag<StreamIdx>(), pos);
     }
 };
 

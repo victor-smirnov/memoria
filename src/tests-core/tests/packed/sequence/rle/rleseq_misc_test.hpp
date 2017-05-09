@@ -57,13 +57,13 @@ public:
     {
         this->size_ = 2048;
 
-        MEMORIA_ADD_TEST(testCreate);
-        MEMORIA_ADD_TEST(testInsertSingle);
-        MEMORIA_ADD_TEST(testRemoveMulti);
-        MEMORIA_ADD_TEST(testRemoveAll);
-        MEMORIA_ADD_TEST(testClear);
-
-        MEMORIA_ADD_TEST(testSplit);
+//         MEMORIA_ADD_TEST(testCreate);
+//         MEMORIA_ADD_TEST(testInsertSingle);
+//         MEMORIA_ADD_TEST(testRemoveMulti);
+//         MEMORIA_ADD_TEST(testRemoveAll);
+//         MEMORIA_ADD_TEST(testClear);
+// 
+//         MEMORIA_ADD_TEST(testSplit);
         MEMORIA_ADD_TEST(testMerge);
     }
 
@@ -157,13 +157,26 @@ public:
 
                 auto seq2 = createEmptySequence();
                 auto symbols2 = fillRandom(seq2, size);
-
+                
+                //out() << "Seq1" << std::endl;
+                seq1->dump(out());
+                this->dumpAsSymbols(symbols1);
+                
+                //out() << "Seq2" << std::endl;
+                seq2->dump(out());
+                this->dumpAsSymbols(symbols2);
 
                 seq1->mergeWith(seq2.get());
 
+                //out() << "Seq1" << std::endl;
+                seq1->dump(out());
+                
+                //out() << "Seq2" << std::endl;
+                seq2->dump(out());
+                
                 seq2->check();
 
-                symbols2.insert(symbols2.begin(), symbols1.begin(), symbols1.end());
+                symbols2.insert(symbols2.end(), symbols1.begin(), symbols1.end());
 
                 assertEqual(seq2, symbols2);
             }

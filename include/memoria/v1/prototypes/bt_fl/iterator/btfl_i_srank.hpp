@@ -51,7 +51,7 @@ private:
 
 
     struct RankWalker {
-        CtrSizeT rank_ = 0;
+        CtrSizeT rank_{};
         int32_t symbol_;
         RankWalker(int32_t symbol): symbol_(symbol) {}
 

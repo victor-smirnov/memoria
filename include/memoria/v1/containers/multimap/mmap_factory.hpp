@@ -128,13 +128,13 @@ template <
     typename Key_,
     typename Value_
 >
-struct BTTypes<Profile, v1::Map<Key_, Vector<Value_>>>: public MultimapBTTypesBase<Profile, Key_, Value_>
+struct BTTypes<Profile, v1::Multimap<Key_, Value_>>: public MultimapBTTypesBase<Profile, Key_, Value_>
 {
 };
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, v1::Map<Key, Vector<Value>>, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
+class CtrTF<Profile, v1::Multimap<Key, Value>, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
     using Base1 = CtrTF<Profile, v1::BTFreeLayout, T>;
 public:
 

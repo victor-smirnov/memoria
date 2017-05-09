@@ -21,6 +21,8 @@
 
 #include <memoria/v1/containers/multimap/mmap_tools.hpp>
 
+#include <memoria/v1/prototypes/bt_fl/io/btfl_input.hpp>
+
 #include <tuple>
 #include <vector>
 
@@ -55,7 +57,6 @@ class MultimapIOBufferProducer: public btfl::io::FlatTreeIOBufferAdapter<2, IOBu
         StructureAdapter(MyType* adapter):
             adapter_(adapter)
         {}
-
 
         auto prepare(const StreamTag<0>&)
         {

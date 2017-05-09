@@ -364,7 +364,7 @@ protected:
 
     int32_t structure_size() const
     {
-        return self().leaf_size(0);
+        return self().leaf_size(StructureStreamIdx);
     }
 
 

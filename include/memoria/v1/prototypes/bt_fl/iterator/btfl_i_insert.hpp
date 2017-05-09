@@ -35,17 +35,12 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
     using Container = typename Base::Container;
 
 
-    static const int32_t Streams          = Container::Types::Streams;
-    static const int32_t DataStreams      = Container::Types::DataStreams;
+    static const int32_t Streams            = Container::Types::Streams;
+    static const int32_t DataStreams        = Container::Types::DataStreams;
+    static const int32_t StructureStreamIdx = Container::Types::StructureStreamIdx;
 
 
     using CtrSizeT  = typename Container::Types::CtrSizeT;
-
-
-
-
-
-
 
 public:
     template <typename IOBuffer>
@@ -57,6 +52,7 @@ public:
 
 protected:
 
+    template <int32_t Stream>
     struct InsertSymbolFn {
 
         CtrSizeT one_;
@@ -64,12 +60,12 @@ protected:
 
         InsertSymbolFn(int32_t symbol): one_(1), symbol_(symbol) {}
 
-        const auto& get(const StreamTag<0>& , const StreamTag<0>&, int32_t block) const
+        const auto& get(const StreamTag<Stream>& , const StreamTag<0>&, int32_t block) const
         {
             return one_;
         }
 
-        const auto& get(const StreamTag<0>& , const StreamTag<1>&, int32_t block) const
+        const auto& get(const StreamTag<Stream>& , const StreamTag<1>&, int32_t block) const
         {
             return symbol_;
         }
@@ -79,11 +75,10 @@ protected:
     template <int32_t Stream, typename EntryFn>
     void insert_entry(EntryFn&& entry)
     {
-        auto& self = this->self();
+        auto& self = this->self();        
+        self.ctr().template insert_stream_entry<StructureStreamIdx>(self, StructureStreamIdx, self.idx(), InsertSymbolFn<StructureStreamIdx>(Stream));
 
-        self.ctr().template insert_stream_entry<0>(self, 0, self.idx(), InsertSymbolFn(0));
-
-        int32_t key_idx = self.data_stream_idx(Stream - 1);
+        int32_t key_idx = self.data_stream_idx(Stream);
         self.ctr().template insert_stream_entry<Stream>(self, Stream, key_idx, std::forward<EntryFn>(entry));
     }
 
@@ -94,7 +89,7 @@ protected:
     {
         auto& self  = this->self();
         auto& leaf  = self.leaf();
-
+        
         int32_t structure_size = self.structure_size();
 
         if (structure_size > 1)
@@ -112,33 +107,40 @@ protected:
                 idx -= split_idx;
 
                 self.refresh();
-            }
-
-            if (target_idx > half_ranks[stream - 1])
-            {
-                leaf = right;
-                target_idx -= half_ranks[stream - 1];
-
-                return SplitResult(SplitStatus::RIGHT, target_idx);
+                
+                return SplitResult(SplitStatus::RIGHT, idx);
             }
             else {
-                return SplitResult(SplitStatus::LEFT, target_idx);
+                return SplitResult(SplitStatus::LEFT, idx);
             }
+
+//             if (target_idx > half_ranks[stream - 1])
+//             {
+//                 leaf = right;
+//                 target_idx -= half_ranks[stream - 1];
+// 
+//                 return SplitResult(SplitStatus::RIGHT, target_idx);
+//             }
+//             else {
+//                 return SplitResult(SplitStatus::LEFT, target_idx);
+//             }
         }
         else {
-            auto ranks = self.leaf_sizes();
+            //auto ranks = self.leaf_sizes();
 
             self.ctr().split_leaf_p(leaf, self.leaf_sizes());
+            
+            return SplitResult(SplitStatus::LEFT, self.idx());
 
-            if (target_idx > ranks[stream])
-            {
-                target_idx -= ranks[stream];
-
-                return SplitResult(SplitStatus::RIGHT, target_idx);
-            }
-            else {
-                return SplitResult(SplitStatus::LEFT, target_idx);
-            }
+//             if (target_idx > ranks[stream])
+//             {
+//                 target_idx -= ranks[stream];
+// 
+//                 return SplitResult(SplitStatus::RIGHT, target_idx);
+//             }
+//             else {
+//                 return SplitResult(SplitStatus::LEFT, target_idx);
+//             }
         }
     }
 

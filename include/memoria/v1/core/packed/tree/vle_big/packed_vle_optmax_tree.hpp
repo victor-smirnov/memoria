@@ -411,8 +411,8 @@ public:
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         handler->startStruct();
-        handler->startGroup("FSMO_TREE");
-
+        handler->startGroup("VMO_TREE");
+        
         bitmap()->generateDataEvents(handler);
         tree()->generateDataEvents(handler);
 

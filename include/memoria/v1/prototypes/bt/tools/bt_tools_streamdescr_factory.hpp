@@ -33,6 +33,7 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle_big/packed_vle_optmax_tree.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 #include <memoria/v1/core/packed/misc/packed_empty_struct.hpp>
 

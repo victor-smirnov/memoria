@@ -75,7 +75,7 @@ protected:
 
     int32_t stream_run_remainder_ = 0;
 
-    BufferProducer<IOBuffer>* iobuffer_producer_ = nullptr;
+    bt::BufferProducer<IOBuffer>* iobuffer_producer_ = nullptr;
     IOBuffer* io_buffer_ = nullptr;
 
     int32_t last_stream_ = -1;
@@ -85,7 +85,7 @@ public:
         Base(ctr, initial_capacity)
     {}
 
-    void init(BufferProducer<IOBuffer>* iobuffer_producer, IOBuffer* io_buffer)
+    void init(bt::BufferProducer<IOBuffer>* iobuffer_producer, IOBuffer* io_buffer)
     {
         Base::init();
 

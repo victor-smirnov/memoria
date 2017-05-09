@@ -50,31 +50,31 @@ protected:
     static const int32_t StructureStreamIdx     = Types::StructureStreamIdx;
 
 public:
-    auto begin() {
+    auto seq_begin() {
         return self().template seek_stream<StructureStreamIdx>(0);
     }
 
-    auto end() {
+    auto seq_end() {
         auto& self = this->self();
         return self.template seek_stream<StructureStreamIdx>(self.size());
     }
 
-    CtrSizeT size() const {
+    CtrSizeT seq_size() const {
         return self().sizes()[StructureStreamIdx];
     }
 
-    auto seek(CtrSizeT pos)
+    auto seq_seek(CtrSizeT pos)
     {
         return self().template seek_stream<StructureStreamIdx>(pos);
     }
 
-    auto seekL0(CtrSizeT pos)
+    auto seq_seekL0(CtrSizeT pos)
     {
     	return self().select(pos + 1, 0);
     }
 
 
-    auto seek(const CtrSizesT& pos, int32_t level)
+    auto seq_seek(const CtrSizesT& pos, int32_t level)
     {
         auto& self = this->self();
         auto iter  = self.template seek_stream<StructureStreamIdx>(pos[0]);

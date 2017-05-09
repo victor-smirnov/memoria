@@ -59,7 +59,7 @@ public:
         return self.template seek_stream<0>(self.sizes()[0]);
     }
 
-    using Base::seek;
+    //using Base::seek;
 
     IteratorPtr seek(CtrSizeT idx) {
         auto& self = this->self();

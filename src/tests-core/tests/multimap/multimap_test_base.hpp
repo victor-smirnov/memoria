@@ -15,43 +15,47 @@
 
 #pragma once
 
-#include <memoria/v1/memoria.hpp>
+#include <memoria/v1/tests/tests.hpp>
+#include <memoria/v1/tests/tools.hpp>
 
-#include <memoria/v1/containers/multimap/mmap_factory.hpp>
-#include <memoria/v1/tools/tests.hpp>
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/api/multimap/multimap_api.hpp>
+
+#include <memoria/v1/containers/multimap/mmap_input.hpp>
 
 #include "../prototype/bt/bt_test_base.hpp"
+
+
 
 #include <vector>
 #include <algorithm>
 #include <sstream>
 #include <tuple>
+#include <map>
 
 namespace memoria {
 namespace v1 {
 
 
 template<typename MapName>
-class MultiMapTestBase: public BTTestBase<MapName, PersistentInMemAllocator<>, DefaultProfile<>> {
+class MultiMapTestBase: public BTTestBase<MapName, ThreadInMemAllocator<>, DefaultProfile<>> {
     using MyType    = MultiMapTestBase<MapName>;
-    using Base      = BTTestBase<MapName, PersistentInMemAllocator<>, DefaultProfile<>>;
+    using Base      = BTTestBase<MapName, ThreadInMemAllocator<>, DefaultProfile<>>;
 
 public:
     using typename Base::Ctr;
-    using typename Base::IteratorPtr;
+    using typename Base::Iterator;
 
-    using CtrSizesT = typename Ctr::Types::CtrSizesT;
-    using CtrSizeT  = typename Ctr::Types::CtrSizeT;
+    using CtrSizesT = typename Ctr::CtrSizesT;
+    using CtrSizeT  = typename Ctr::CtrSizeT;
 
     using Base::out;
 
-    using Key       = typename Ctr::Types::Key;
-    using Value     = typename Ctr::Types::Value;
+    using Key       = typename Ctr::Key;
+    using Value     = typename Ctr::Value;
 
 protected:
-
-    static constexpr int32_t DataStreams = Ctr::Types::DataStreams;
+    static constexpr int32_t DataStreams = Ctr::DataStreams;
+    
 
     using DataSizesT = core::StaticVector<CtrSizeT, DataStreams>;
 
@@ -69,6 +73,7 @@ public:
     using Base::getRandom;
 
     using MapData = std::vector<std::pair<Key, vector<Value>>>;
+    using VectorMap = std::map<Key, vector<Value>>;
 
 
 
@@ -134,25 +139,53 @@ public:
     }
 
 
+    
     void checkData(Ctr& ctr, const MapData& data)
     {
         AssertEQ(MA_RAW_SRC, ctr.size(), data.size());
 
         size_t c = 0;
-        for (auto iter = ctr.begin(); !iter->is_end(); c++)
+        for (auto iter = ctr.begin(); !iter.is_end(); c++)
         {
-            auto key = iter->key();
+            auto key = iter.key();
 
-            auto values_size = iter->count_values();
+            auto values_size = iter.count_values();
+            
+            AssertEQ(MA_RAW_SRC, values_size, std::get<1>(data[c]).size());
+            AssertEQ(MA_RAW_SRC, key, std::get<0>(data[c]));
 
-            if (iter->next())
+            if (iter.next_sym())
             {
-                auto value = iter->read_values();
+                auto value = iter.read_values();
 
-                AssertEQ(MA_RAW_SRC, values_size, std::get<1>(data[c]).size());
-
-                AssertEQ(MA_RAW_SRC, key, std::get<0>(data[c]));
                 AssertEQ(MA_RAW_SRC, value, std::get<1>(data[c]));
+            }
+            else {
+                break;
+            }
+        }
+    }
+    
+    
+    void checkData(Ctr& ctr, const VectorMap& data)
+    {
+        AssertEQ(MA_RAW_SRC, ctr.size(), data.size());
+        
+        auto ii = ctr.begin();
+    
+        for (auto iter = data.begin(); iter != data.end(); iter++)
+        {
+            auto key = ii.key();
+
+            auto values_size = ii.count_values();
+            
+            AssertEQ(MA_RAW_SRC, values_size, iter->second.size());
+            AssertEQ(MA_RAW_SRC, key, iter->first);
+
+            if (ii.to_values())
+            {
+                auto value = ii.read_values();
+                AssertEQ(MA_RAW_SRC, value, iter->second);
             }
             else {
                 break;
@@ -163,28 +196,28 @@ public:
     void checkRunPositions(Ctr& ctr)
     {
         size_t c = 0;
-        for (auto iter = ctr.begin(); !iter->is_end(); c++)
+        for (auto iter = ctr.begin(); !iter.is_end(); c++)
         {
-            auto values_size = iter->count_values();
+            auto values_size = iter.count_values();
 
-            if (iter->next())
+            if (iter.next_sym())
             {
-                auto run_pos = iter->run_pos();
+                auto run_pos = iter.run_pos();
                 AssertEQ(MA_RAW_SRC, run_pos, 0);
 
                 if (values_size > 1)
                 {
                     auto target_pos = values_size / 2;
 
-                    iter->skipFw(target_pos);
+                    iter.skipFw(target_pos);
 
-                    auto run_pos = iter->run_pos();
+                    auto run_pos = iter.run_pos();
                     AssertEQ(MA_RAW_SRC, run_pos, target_pos);
 
-                    iter->skipFw(values_size - target_pos);
+                    iter.skipFw(values_size - target_pos);
                 }
                 else {
-                    iter->skipFw(values_size);
+                    iter.skipFw(values_size);
                 }
             }
             else {
@@ -215,6 +248,29 @@ public:
 
         return data;
     }
+    
+    template <typename Fn1, typename Fn2>
+    VectorMap createVectorMap(size_t keys, size_t values, Fn1&& key_fn, Fn2&& value_fn)
+    {
+        VectorMap data;
+
+        for (size_t c = 0;c < keys; c++)
+        {
+            vector<Value> val;
+
+            for (size_t v = 0; v < values; v++)
+            {
+                val.push_back(value_fn(c, v));
+            }
+
+            data.push_back(
+                make_pair(key_fn(c), std::move(val))
+            );
+        }
+
+        return data;
+    }
+    
 
     template <typename Fn2>
     vector<Value> createValueData(size_t values, Fn2&& value_fn)
@@ -252,7 +308,7 @@ public:
         {
             vector<Value> val;
 
-            size_t values_size = this->getRandom(values);
+            size_t values_size = getRandom(values);
 
             for (size_t v = 0; v < values_size; v++)
             {
@@ -262,6 +318,27 @@ public:
             data.push_back(
                 make_pair(key_fn(c), std::move(val))
             );
+        }
+
+        return data;
+    }
+    
+    VectorMap createRandomShapedVectorMap(size_t keys, size_t values, std::function<Key(size_t)> key_fn, std::function<Value (size_t, size_t)> value_fn)
+    {
+        VectorMap data;
+
+        for (size_t c = 0;c < keys; c++)
+        {
+            vector<Value> val;
+
+            size_t values_size = getRandom(values);
+
+            for (size_t v = 0; v < values_size; v++)
+            {
+                val.push_back(value_fn(c, v));
+            }
+
+            data[key_fn(c)] = std::move(val);
         }
 
         return data;
@@ -276,10 +353,10 @@ public:
     String make_key(V&& num, TypeTag<String>)
     {
         stringstream ss;
-        ss<<"'";
+        ss << "'";
         ss.width(16);
         ss << num;
-        ss<<"'";
+        ss << "'";
         return ss.str();
     }
 
