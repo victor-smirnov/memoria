@@ -32,7 +32,7 @@ namespace v1 {
 
 template <
     typename CtrName,
-    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename AllocatorT     = ThreadInMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class BTSSCoreTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {

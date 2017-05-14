@@ -20,7 +20,7 @@
 #include <memoria/v1/core/tools/strings/string.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
-#include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
+#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
 
 namespace memoria {
 namespace v1 {

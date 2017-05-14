@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/allocators/inmem/threads/factory.hpp>
+#include <memoria/v1/allocators/inmem/threads/thread_inmem_allocator_impl.hpp>
 #include <memoria/v1/metadata/container.hpp>
 
 #include <boost/filesystem.hpp>

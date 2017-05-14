@@ -15,7 +15,8 @@
 
 
 
-#include <memoria/v1/allocators/inmem/threads/factory.hpp>
+#include <memoria/v1/allocators/inmem/threads/thread_inmem_allocator_impl.hpp>
+#include <memoria/v1/allocators/inmem/fibers/inmem_allocator_impl.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -25,10 +26,17 @@ using Profile = DefaultProfile<>;
 namespace persistent_inmem {
     template class ThreadInMemAllocatorImpl<Profile>;
     template class ThreadSnapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
+    
+    template class InMemAllocatorImpl<Profile>;
+    template class Snapshot<Profile, InMemAllocatorImpl<Profile>>;
 }
 
 template class ThreadInMemAllocator<Profile>;
 template class ThreadInMemSnapshot<Profile>;
+
+template class InMemAllocator<Profile>;
+template class InMemSnapshot<Profile>;
+
 
 }
 }

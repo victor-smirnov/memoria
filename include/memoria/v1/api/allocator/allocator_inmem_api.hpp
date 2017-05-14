@@ -37,43 +37,43 @@ namespace v1 {
     
 
 namespace persistent_inmem {
-    template <typename Profile> class ThreadInMemAllocatorImpl;
-    template <typename Profile, typename PersistentAllocator> class ThreadSnapshot;
+    template <typename Profile> class InMemAllocatorImpl;
+    template <typename Profile, typename PersistentAllocator> class Snapshot;
 }
 
 template <typename Profile = DefaultProfile<>>
-class ThreadInMemSnapshot;
+class InMemSnapshot;
 	
 template <typename Profile = DefaultProfile<>>
-class ThreadInMemAllocator {
-    using PImpl = persistent_inmem::ThreadInMemAllocatorImpl<Profile>;
+class InMemAllocator {
+    using PImpl = persistent_inmem::InMemAllocatorImpl<Profile>;
     using TxnId = UUID;
     
     AllocSharedPtr<PImpl> pimpl_;
 public:
-    using SnapshotPtr   = ThreadInMemSnapshot<Profile>;
+    using SnapshotPtr   = InMemSnapshot<Profile>;
     using Page          = ProfilePageType<Profile>;
     
-    ThreadInMemAllocator();
+    InMemAllocator();
     
-    ThreadInMemAllocator(AllocSharedPtr<PImpl> impl);
-    ThreadInMemAllocator(ThreadInMemAllocator&& impl);
+    InMemAllocator(AllocSharedPtr<PImpl> impl);
+    InMemAllocator(InMemAllocator&& impl);
     
-    ThreadInMemAllocator(const ThreadInMemAllocator&);
-    ThreadInMemAllocator& operator=(const ThreadInMemAllocator&);
+    InMemAllocator(const InMemAllocator&);
+    InMemAllocator& operator=(const InMemAllocator&);
     
-    ~ThreadInMemAllocator();
+    ~InMemAllocator();
     
-    ThreadInMemAllocator& operator=(ThreadInMemAllocator&&);
+    InMemAllocator& operator=(InMemAllocator&&);
     
-    bool operator==(const ThreadInMemAllocator&) const;
+    bool operator==(const InMemAllocator&) const;
     operator bool() const;
     
     
-    static ThreadInMemAllocator load(InputStreamHandler* input_stream);
-    static ThreadInMemAllocator load(boost::filesystem::path file_name);
+    static InMemAllocator load(InputStreamHandler* input_stream);
+    static InMemAllocator load(boost::filesystem::path file_name);
     
-    static ThreadInMemAllocator create();
+    static InMemAllocator create();
     
     void store(boost::filesystem::path file_name);
     void store(OutputStreamHandler* output_stream);
@@ -102,11 +102,11 @@ public:
 
 
 template <typename Profile>
-class ThreadInMemSnapshot {
-    using AllocatorImpl = persistent_inmem::ThreadInMemAllocatorImpl<Profile>;
-    using PImpl         = persistent_inmem::ThreadSnapshot<Profile, AllocatorImpl>;
+class InMemSnapshot {
+    using AllocatorImpl = persistent_inmem::InMemAllocatorImpl<Profile>;
+    using PImpl         = persistent_inmem::Snapshot<Profile, AllocatorImpl>;
     
-    using SnapshotPtr = ThreadInMemSnapshot;
+    using SnapshotPtr = InMemSnapshot;
     using TxnId = UUID;
 
     using AllocatorT = IAllocator<ProfilePageType<Profile>>;
@@ -121,19 +121,19 @@ public:
     
     
 public:
-    ThreadInMemSnapshot();
+    InMemSnapshot();
     
-    ThreadInMemSnapshot(AllocSharedPtr<PImpl> impl);
-    ThreadInMemSnapshot(ThreadInMemSnapshot&& impl);
+    InMemSnapshot(AllocSharedPtr<PImpl> impl);
+    InMemSnapshot(InMemSnapshot&& impl);
     
-    ThreadInMemSnapshot(const ThreadInMemSnapshot&);
-    ThreadInMemSnapshot& operator=(const ThreadInMemSnapshot&);
+    InMemSnapshot(const InMemSnapshot&);
+    InMemSnapshot& operator=(const InMemSnapshot&);
     
-    ~ThreadInMemSnapshot();
+    ~InMemSnapshot();
     
-    ThreadInMemSnapshot& operator=(ThreadInMemSnapshot&&);
+    InMemSnapshot& operator=(InMemSnapshot&&);
     
-    bool operator==(const ThreadInMemSnapshot&) const;
+    bool operator==(const InMemSnapshot&) const;
     operator bool() const;
     
     ContainerMetadataRepository* metadata() const;
@@ -152,10 +152,10 @@ public:
     SnapshotPtr branch();
     bool has_parent() const;
     SnapshotPtr parent();
-    void import_new_ctr_from(ThreadInMemSnapshot<Profile>& txn, const UUID& name);
-    void copy_new_ctr_from(ThreadInMemSnapshot<Profile>& txn, const UUID& name);
-    void import_ctr_from(ThreadInMemSnapshot<Profile>& txn, const UUID& name);
-    void copy_ctr_from(ThreadInMemSnapshot<Profile>& txn, const UUID& name);
+    void import_new_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
+    void copy_new_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
+    void import_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
+    void copy_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
     bool check();
     void dump(boost::filesystem::path destination);
     void dump_persistent_tree();
@@ -200,13 +200,13 @@ private:
 
 
 template <typename CtrName, typename Profile>
-auto create(ThreadInMemSnapshot<Profile>& alloc, const UUID& name)
+auto create(InMemSnapshot<Profile>& alloc, const UUID& name)
 {
     return alloc.template create<CtrName>(name);
 }
 
 template <typename CtrName, typename Profile>
-auto create(ThreadInMemSnapshot<Profile>&& alloc, const UUID& name)
+auto create(InMemSnapshot<Profile>&& alloc, const UUID& name)
 {
     return alloc.template create<CtrName>(name);
 }
@@ -214,13 +214,13 @@ auto create(ThreadInMemSnapshot<Profile>&& alloc, const UUID& name)
 
 
 template <typename CtrName, typename Profile>
-auto create(ThreadInMemSnapshot<Profile>& alloc)
+auto create(InMemSnapshot<Profile>& alloc)
 {
     return alloc.template create<CtrName>();
 }
 
 template <typename CtrName, typename Profile>
-auto create(ThreadInMemSnapshot<Profile>&& alloc)
+auto create(InMemSnapshot<Profile>&& alloc)
 {
     return alloc.template create<CtrName>();
 }
@@ -228,13 +228,13 @@ auto create(ThreadInMemSnapshot<Profile>&& alloc)
 
 
 template <typename CtrName, typename Profile>
-auto find_or_create(ThreadInMemSnapshot<Profile>& alloc, const UUID& name)
+auto find_or_create(InMemSnapshot<Profile>& alloc, const UUID& name)
 {
     return alloc.template find_or_create<CtrName>(name);
 }
 
 template <typename CtrName, typename Profile>
-auto find_or_create(ThreadInMemSnapshot<Profile>&& alloc, const UUID& name)
+auto find_or_create(InMemSnapshot<Profile>&& alloc, const UUID& name)
 {
     return alloc.template find_or_create<CtrName>(name);
 }
@@ -242,13 +242,13 @@ auto find_or_create(ThreadInMemSnapshot<Profile>&& alloc, const UUID& name)
 
 
 template <typename CtrName, typename Profile>
-auto find(ThreadInMemSnapshot<Profile>& alloc, const UUID& name)
+auto find(InMemSnapshot<Profile>& alloc, const UUID& name)
 {
     return alloc.template find<CtrName>(name);
 }
 
 template <typename CtrName, typename Profile>
-auto find(ThreadInMemSnapshot<Profile>&& alloc, const UUID& name)
+auto find(InMemSnapshot<Profile>&& alloc, const UUID& name)
 {
     return alloc.template find<CtrName>(name);
 }

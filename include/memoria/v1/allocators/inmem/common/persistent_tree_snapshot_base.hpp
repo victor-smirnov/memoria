@@ -16,8 +16,9 @@
 
 #pragma once
 
-
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
+#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+
 
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/ctr_impl.hpp>
@@ -163,11 +164,20 @@ protected:
 
     template <typename>
     friend class ThreadInMemAllocatorImpl;
+    
+    template <typename>
+    friend class InMemAllocatorImpl;
+    
+    
     template <typename, typename>
     friend class InMemAllocatorBase;
     
+    
     template <typename>
     friend class memoria::v1::ThreadInMemSnapshot;
+    
+    template <typename>
+    friend class memoria::v1::InMemSnapshot;
 
     PairPtr pair_;
     

@@ -17,6 +17,7 @@
 #pragma once
 
 #include <memoria/v1/memoria.hpp>
+#include <memoria/v1/containers/map/map_factory.hpp>
 
 #include <memoria/v1/tests/tools.hpp>
 

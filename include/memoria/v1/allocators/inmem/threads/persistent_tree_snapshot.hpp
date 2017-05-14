@@ -16,6 +16,7 @@
 
 #pragma once
 
+
 #include "../common/persistent_tree_snapshot_base.hpp"
 
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
@@ -295,6 +296,8 @@ public:
 
     	history_node_->allocator()->snapshot_labels_metadata().clear();
     }
+
+
 };
 
 }

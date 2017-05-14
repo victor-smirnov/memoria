@@ -19,7 +19,7 @@
 
 #include <memoria/v1/core/tools/fixed_array.hpp>
 
-#include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
+#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
 
 namespace memoria {
 namespace v1 {
