@@ -23,7 +23,7 @@
 // variable-length (String, BigInteger) ones.
 
 
-#include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
+#include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/multimap/multimap_api.hpp>
 
 

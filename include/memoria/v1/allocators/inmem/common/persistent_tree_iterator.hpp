@@ -31,7 +31,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem_thread {
+namespace persistent_inmem {
 
 
 template <typename BranchNode, typename LeafNode>
@@ -224,12 +224,12 @@ public:
     {
         if (path_.size() > 0)
         {
-            out<<"CoWTree Iterator: idx = "<<idx_<<endl;
-            out<<"Leaf: "<<endl;
+            out << "CoWTree Iterator: idx = " << idx_ << std::endl;
+            out << "Leaf: " << std::endl;
             leaf()->dump(out);
         }
         else {
-            out<<"Empty Iterator"<<endl;
+            out << "Empty Iterator" << std::endl;
         }
     }
 
@@ -237,11 +237,11 @@ public:
     {
         if (path_.size() > 0)
         {
-            out<<"CoWTree Iterator: idx = "<<idx_<<endl;
+            out << "CoWTree Iterator: idx = " << idx_ << std::endl;
 
             for (int32_t c = path_.size() - 1; c >= 0; c--)
             {
-                out<<"Node: "<<c<<endl;
+                out << "Node: " << c << std::endl;
 
                 NodeBaseT* node = path_[c];
 
@@ -252,11 +252,11 @@ public:
                     to_branch_node(node)->dump(out);
                 }
 
-                out<<endl;
+                out << std::endl;
             }
         }
         else {
-            out<<"Empty Iterator"<<endl;
+            out << "Empty Iterator" << std::endl;
         }
     }
 protected:

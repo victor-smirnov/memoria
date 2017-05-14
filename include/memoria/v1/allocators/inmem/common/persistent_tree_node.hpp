@@ -26,7 +26,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem_thread   {
+namespace persistent_inmem {
 
 enum class NodeType {LEAF, BRANCH};
 
@@ -358,19 +358,19 @@ public:
 
     void dump(std::ostream& out) const
     {
-        out<<"NodeType: "<<node_type()<<endl;
-        out<<"Size: "<<size_<<endl;
-        out<<"NodeId: "<<node_id_<<endl;
-        out<<"TxnId: "<<txn_id_<<endl;
-        out<<"Refs: "<<refs_<<endl;
+        out << "NodeType: " << node_type() << std::endl;
+        out << "Size: " << size_ << std::endl;
+        out << "NodeId: " << node_id_ << std::endl;
+        out << "TxnId: " << txn_id_ << std::endl;
+        out << "Refs: " << refs_ << std::endl;
 
-        out<<"Index: "<<endl;
+        out << "Index: " << std::endl;
 
         int32_t last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
 
         for (int32_t c = 0; c < last_idx; c++)
         {
-            out<<c<<": "<<index_[c]<<endl;
+            out << c << ": " << index_[c] << std::endl;
         }
     }
 
@@ -656,15 +656,15 @@ public:
     {
         Base::dump(out);
 
-        out<<"Data: "<<endl;
+        out<<"Data: " << std::endl;
 
         for (int32_t c = 0; c < this->size(); c++)
         {
             auto node = this->data(c);
-            out<<c<<": "<<this->key(c)<<" = "<<node<<" ("<<node->node_id()<<", "<<node->txn_id()<<")"<<endl;
+            out << c << ": " << this->key(c) << " = " << node << " (" << node->node_id() << ", " << node->txn_id() << ")" << std::endl;
         }
 
-        out<<endl;
+        out << std::endl;
     }
 
 
@@ -701,28 +701,28 @@ public:
     {
         Base::dump(out);
 
-        out<<"Data: "<<endl;
+        out << "Data: " << std::endl;
 
         for (int32_t c = 0; c < this->size(); c++)
         {
-            out<<c<<": "<<this->key(c)<<" = "<<this->data(c)<<endl;
+            out << c << ": " << this->key(c) << " = " << this->data(c) << std::endl;
         }
 
-        out<<endl;
+        out << std::endl;
     }
 };
 
 
 static std::ostream& operator<<(std::ostream& out, NodeType node_type) {
     if (node_type == NodeType::LEAF) {
-        out<<"LEAF";
+        out << "LEAF";
     }
     else if (node_type == NodeType::BRANCH)
     {
-        out<<"BRANCH";
+        out << "BRANCH";
     }
     else {
-        out<<"UNKNOWN["<<(int)node_type<<"]";
+        out << "UNKNOWN[" << (int)node_type << "]";
     }
 
     return out;

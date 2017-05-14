@@ -36,9 +36,9 @@ namespace memoria {
 namespace v1 {
     
 
-namespace persistent_inmem_thread {
+namespace persistent_inmem {
     template <typename Profile> class ThreadInMemAllocatorImpl;
-    template <typename Profile, typename PersistentAllocator> class Snapshot;
+    template <typename Profile, typename PersistentAllocator> class ThreadSnapshot;
 }
 
 template <typename Profile = DefaultProfile<>>
@@ -46,7 +46,7 @@ class ThreadInMemSnapshot;
 	
 template <typename Profile = DefaultProfile<>>
 class ThreadInMemAllocator {
-    using PImpl = persistent_inmem_thread::ThreadInMemAllocatorImpl<Profile>;
+    using PImpl = persistent_inmem::ThreadInMemAllocatorImpl<Profile>;
     using TxnId = UUID;
     
     AllocSharedPtr<PImpl> pimpl_;
@@ -103,8 +103,8 @@ public:
 
 template <typename Profile>
 class ThreadInMemSnapshot {
-    using AllocatorImpl = persistent_inmem_thread::ThreadInMemAllocatorImpl<Profile>;
-    using PImpl         = persistent_inmem_thread::Snapshot<Profile, AllocatorImpl>;
+    using AllocatorImpl = persistent_inmem::ThreadInMemAllocatorImpl<Profile>;
+    using PImpl         = persistent_inmem::ThreadSnapshot<Profile, AllocatorImpl>;
     
     using SnapshotPtr = ThreadInMemSnapshot;
     using TxnId = UUID;

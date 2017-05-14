@@ -22,9 +22,9 @@ namespace v1 {
 
 using Profile = DefaultProfile<>;    
     
-namespace persistent_inmem_thread {
+namespace persistent_inmem {
     template class ThreadInMemAllocatorImpl<Profile>;
-    template class Snapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
+    template class ThreadSnapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
 }
 
 template class ThreadInMemAllocator<Profile>;

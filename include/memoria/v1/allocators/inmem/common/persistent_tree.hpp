@@ -32,7 +32,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem_thread {
+namespace persistent_inmem {
 
 
 template <typename BranchNodeT, typename LeafNodeT_, typename RootProvider, typename PageType>

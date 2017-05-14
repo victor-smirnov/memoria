@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include "persistent_tree.hpp"
-#include "allocator_inmem_threads_api.hpp"
+#include "../common/persistent_tree_snapshot_base.hpp"
+
+#include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/ctr_impl.hpp>
@@ -41,62 +42,22 @@
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem_thread {
-
-enum class SnapshotStatus {ACTIVE, COMMITTED, DROPPED, DATA_LOCKED};
-
-template <typename TxnId>
-class SnapshotMetadata {
-	TxnId parent_id_;
-	TxnId snapshot_id_;
-	std::vector<TxnId> children_;
-	String description_;
-	SnapshotStatus status_;
-public:
-	SnapshotMetadata(const TxnId& parent_id, const TxnId& snapshot_id, const std::vector<TxnId>& children, StringRef description, SnapshotStatus status):
-		parent_id_(parent_id),
-		snapshot_id_(snapshot_id),
-		children_(children),
-		description_(description),
-		status_(status)
-	{}
-
-	const TxnId& parent_id() const 			{return parent_id_;}
-	const TxnId& snapshot_id() const 		{return snapshot_id_;}
-	std::vector<TxnId> children() const 	{return children_;}
-	String description() const 				{return description_;}
-	SnapshotStatus status() const 			{return status_;}
-};
+namespace persistent_inmem {
 
 
 
 template <typename Profile, typename PersistentAllocator>
-class Snapshot:
-        public IAllocator<ProfilePageType<Profile>>,
-        public SnpSharedFromThis<
-            Snapshot<Profile, PersistentAllocator>
-        >
+class ThreadSnapshot: public SnapshotBase<Profile, PersistentAllocator, ThreadSnapshot<Profile, PersistentAllocator>>
 {    
-    using PageType          = ProfilePageType<Profile>;
-    using Base              = IAllocator<PageType>;
-        
-	using HistoryNode		= typename PersistentAllocator::HistoryNode;
-    using PersistentTreeT   = typename PersistentAllocator::PersistentTreeT;
+protected:
+    using Base = SnapshotBase<Profile, PersistentAllocator, ThreadSnapshot<Profile, PersistentAllocator>>;
+    using MyType = ThreadSnapshot<Profile, PersistentAllocator>;
     
-    using MyType            = Snapshot<Profile, PersistentAllocator>;
-
-    using PersistentAllocatorPtr = AllocSharedPtr<PersistentAllocator>;
-    using SnapshotPtr            = SnpSharedPtr<MyType>;
-    using AllocatorPtr           = AllocSharedPtr<Base>;
+    using typename Base::PersistentAllocatorPtr;
+    using typename Base::HistoryNode;
+    using typename Base::SnapshotPtr;
+    using typename Base::Page;
     
-    using NodeBaseT         = typename PersistentTreeT::NodeBaseT;
-    using LeafNodeT         = typename PersistentTreeT::LeafNodeT;
-    using PTreeValue        = typename LeafNodeT::Value;
-    
-    using RCPagePtr			= typename std::remove_pointer<typename PersistentTreeT::Value::Value>::type;
-
-    using Status            = typename HistoryNode::Status;
-
     using AllocatorMutexT	= typename std::remove_reference<decltype(std::declval<HistoryNode>().allocator_mutex())>::type;
     using MutexT			= typename std::remove_reference<decltype(std::declval<HistoryNode>().snapshot_mutex())>::type;
     using StoreMutexT		= typename std::remove_reference<decltype(std::declval<HistoryNode>().store_mutex())>::type;
@@ -104,156 +65,31 @@ class Snapshot:
     using LockGuardT			= typename std::lock_guard<MutexT>;
     using StoreLockGuardT		= typename std::lock_guard<StoreMutexT>;
     using AllocatorLockGuardT	= typename std::lock_guard<AllocatorMutexT>;
+    
+    
+    
+    using Base::history_node_;
+    using Base::history_tree_;
+    using Base::history_tree_raw_;
+    using Base::has_open_containers;
+    using Base::do_drop;
+    using Base::check_tree_structure;
 
-    class CtrDescr {
-    	int64_t references_;
-    public:
-    	CtrDescr(): references_() {}
-    	CtrDescr(int64_t val): references_(val) {}
-
-    	int64_t references() const {return references_;}
-    	void ref() 	 {++references_;}
-    	int64_t unref() {return --references_;}
-    };
-
-    using CtrInstanceMap 	= std::unordered_map<std::type_index, CtrDescr>;
 
 public:
-
-    template <typename CtrName>
-    using CtrT = v1::SharedCtr<CtrName, IAllocator<ProfilePageType<Profile>>, Profile>;
-
-    template <typename CtrName>
-    using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
-
-    using typename Base::Page;
-    using typename Base::ID;
-    using typename Base::PageG;
-    using typename Base::Shared;
-
-
-private:
-    using RootMapType = CtrT<Map<UUID, ID>>;
-
-    class Properties: public IAllocatorProperties {
-    public:
-        virtual int32_t defaultPageSize() const
-        {
-            return 8192;
-        }
-
-        virtual int64_t lastCommitId() const {
-            return 0;
-        }
-
-        virtual void setLastCommitId(int64_t txn_id) {}
-
-        virtual int64_t newTxnId() {return 0;}
-    };
-
-    HistoryNode*    history_node_;
-    PersistentAllocatorPtr  history_tree_;
-    PersistentAllocator*    history_tree_raw_ = nullptr;
-
-    PersistentTreeT persistent_tree_;
-
-    StaticPool<ID, Shared, 256>  pool_;
-
-    Logger logger_;
-
-    Properties properties_;
-
-    CtrInstanceMap instance_map_;
-
-    ContainerMetadataRepository* metadata_; //FIXME:: make it static thread local or remove at all
-
-    template <typename>
-    friend class ThreadInMemAllocatorImpl;
+    using Base::uuid;
     
-    template <typename>
-    friend class memoria::v1::ThreadInMemSnapshot;
-
-    PairPtr pair_;
     
-    CtrSharedPtr<RootMapType> root_map_;
+    ThreadSnapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
+        Base(history_node, history_tree)
+    {}
 
-    int32_t ctr_op_;
-    
-public:
-
-    Snapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
-        history_node_(history_node),
-        history_tree_(history_tree),
-        history_tree_raw_(history_tree.get()),
-        persistent_tree_(history_node_),
-        logger_("PersistentInMemAllocatorSnp", Logger::DERIVED, &history_tree->logger_),
-        metadata_(MetadataRepository<Profile>::getMetadata())
+    ThreadSnapshot(HistoryNode* history_node, PersistentAllocator* history_tree):
+        Base(history_node, history_tree)
     {
-        root_map_->getMetadata();
-        
-    	history_node_->ref();
-
-        if (history_node->is_active())
-        {
-            history_tree_raw_->ref_active();
-            ctr_op_ = CTR_CREATE | CTR_FIND;
-        }
-        else {
-            ctr_op_ = CTR_FIND;
-        }
     }
-
-    Snapshot(HistoryNode* history_node, PersistentAllocator* history_tree):
-        history_node_(history_node),
-        history_tree_raw_(history_tree),
-        persistent_tree_(history_node_),
-        logger_("PersistentInMemAllocatorTxn"),
-        metadata_(MetadataRepository<Profile>::getMetadata())
-    {
-        root_map_->getMetadata();
-        
-    	history_node_->ref();
-
-        if (history_node->is_active())
-        {
-            history_tree_raw_->ref_active();
-            ctr_op_ = CTR_CREATE | CTR_FIND;
-        }
-        else {
-            ctr_op_ = CTR_FIND;
-        }
-    }
-    
-    void post_init() 
-    {
-        auto ptr = this->shared_from_this();
-        root_map_ = ctr_make_shared<RootMapType>(ptr, ctr_op_, UUID());
-        root_map_->reset_allocator_holder();
-    }
-    
-//    virtual ~Snapshot()
-//    {
-//    	LockGuardT snapshot_lock_guard(history_node_->snapshot_mutex());
-//
-//        if (history_node_->unref() == 0)
-//        {
-//            if (history_node_->is_active())
-//            {
-//                do_drop();
-//
-//                history_tree_raw_->forget_snapshot(history_node_);
-//            }
-//            else if(history_node_->is_dropped())
-//            {
-//                check_tree_structure(history_node_->root());
-//
-//                StoreLockGuardT store_lock_guard(history_node_->store_mutex());
-//                do_drop();
-//            }
-//        }
-//    }
-
-    virtual ~Snapshot()
+ 
+    virtual ~ThreadSnapshot()
     {
     	//FIXME This code doesn't decrement properly number of active snapshots
     	// for allocator to store data correctly.
@@ -293,45 +129,7 @@ public:
     	}
     }
     
-    virtual SnpSharedPtr<IAllocator<ProfilePageType<Profile>>> self_ptr() {
-        return this->shared_from_this();
-    }
     
-    PairPtr& pair() {
-        return pair_;
-    }
-
-    const PairPtr& pair() const {
-        return pair_;
-    }
-
-    ContainerMetadataRepository* getMetadata() const {
-        return metadata_;
-    }
-
-    const auto& uuid() const {
-        return history_node_->txn_id();
-    }
-
-    bool is_active() const {
-        return history_node_->is_active();
-    }
-
-    bool is_data_locked() const {
-    	return history_node_->is_data_locked();
-    }
-
-    virtual bool isActive() {
-        return is_active();
-    }
-
-    bool is_marked_to_clear() const {
-        return history_node_->is_dropped();
-    }
-
-    bool is_committed() const {
-        return history_node_->is_committed();
-    }
 
     SnapshotMetadata<UUID> describe() const
     {
@@ -380,37 +178,6 @@ public:
         else {
             throw Exception(MA_SRC, SBuf() << "Can't drop root snapshot " << uuid());
         }
-    }
-
-    bool drop_ctr(const UUID& name)
-    {
-    	checkUpdateAllowed(name);
-
-        UUID root_id = getRootID(name);
-
-        if (root_id.is_set())
-        {
-            PageG page = this->getPage(root_id, name);
-
-            auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
-
-            ctr_meta->getCtrInterface()->drop(root_id, name, this->shared_from_this());
-
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    void set_as_master()
-    {
-    	history_tree_raw_->set_master(uuid());
-    }
-
-    void set_as_branch(StringRef name)
-    {
-    	history_tree_raw_->set_branch(name, uuid());
     }
 
     StringRef metadata() const
@@ -473,7 +240,7 @@ public:
 
             history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
-            return snp_make_shared_init<Snapshot>(history_node, history_tree_->shared_from_this());
+            return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this());
         }
         else if (history_node_->is_data_locked())
         {
@@ -502,7 +269,7 @@ public:
         if (history_node_->parent())
         {
             HistoryNode* history_node = history_node_->parent();
-            return snp_make_shared_init<Snapshot>(history_node, history_tree_->shared_from_this());
+            return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this());
         }
         else
         {
@@ -510,610 +277,7 @@ public:
         }
     }
 
-    void for_each_ctr_node(const UUID& name, typename ContainerInterface::BlockCallbackFn fn)
-    {
-    	auto root_id = this->getRootID(name);
-    	auto page 	 = this->getPage(root_id, name);
-
-    	if (page)
-    	{
-    		auto ctr_hash   = page->ctr_type_hash();
-    		auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
-
-    		ctr_meta->getCtrInterface()->for_each_ctr_node(name, this->shared_from_this(), fn);
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Container with name " << name << " does not exist in snapshot " << history_node_->txn_id());
-    	}
-    }
-
-
-
-    void import_new_ctr_from(const SnapshotPtr& txn, const UUID& name)
-    {
-    	checkIfDataLocked();
-    	txn->checkIfExportAllowed();
-
-    	ID root_id = this->getRootID(name);
-
-    	auto txn_id = currentTxnId();
-
-    	if (root_id.is_null())
-    	{
-    		txn->for_each_ctr_node(name, [&](const UUID& uuid, const UUID& id, const void* page_data){
-    			auto rc_handle = txn->export_page_rchandle(id);
-    			using Value = typename PersistentTreeT::Value;
-
-    			rc_handle->ref();
-
-    			auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
-
-    			if (old_value.page_ptr())
-    			{
-    				throw Exception(MA_SRC, SBuf() << "Page with ID " << id << " is not new in snapshot " << txn_id);
-    			}
-    		});
-
-    		auto root_id = txn->getRootID(name);
-    		if (root_id.is_set())
-    		{
-    			root_map_->assign(name, root_id);
-    		}
-    		else {
-    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn->currentTxnId());
-    		}
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Container with name " << name << " already exists in snapshot " << txn_id);
-    	}
-    }
-
-
-    void copy_new_ctr_from(const SnapshotPtr& txn, const UUID& name)
-    {
-    	txn->checkReadAllowed();
-    	checkUpdateAllowed();
-
-    	ID root_id = this->getRootID(name);
-
-    	auto txn_id = currentTxnId();
-
-    	if (root_id.is_null())
-    	{
-    		txn->for_each_ctr_node(name, [&](const UUID& uuid, const UUID& id, const void* page_data){
-    			clone_foreign_page(T2T<const Page*>(page_data));
-    		});
-
-    		auto root_id = txn->getRootID(name);
-    		if (root_id.is_set())
-    		{
-    			root_map_->assign(name, root_id);
-    		}
-    		else {
-    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn->currentTxnId());
-    		}
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Container with name " << name << " already exists in snapshot " << txn_id);
-    	}
-    }
-
-
-
-
-
-
-
-    void import_ctr_from(const SnapshotPtr& txn, const UUID& name)
-    {
-    	checkIfDataLocked();
-    	txn->checkIfExportAllowed();
-
-    	ID root_id = this->getRootID(name);
-
-    	auto txn_id = uuid();
-
-    	if (!root_id.is_null())
-    	{
-    		txn->for_each_ctr_node(name, [&, this](const UUID& uuid, const UUID& id, const void* page_data) {
-    			auto page = this->getPage(id, name);
-    			if (page && page->uuid() == uuid)
-    			{
-    				return;
-    			}
-
-    			auto rc_handle = txn->export_page_rchandle(id);
-    			using Value = typename PersistentTreeT::Value;
-
-    			rc_handle->ref();
-
-    			auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
-
-    			if (old_value.page_ptr())
-    			{
-    				if (old_value.page_ptr()->unref() == 0)
-    				{
-    					// FIXME: just delete the page?
-    					throw Exception(MA_SRC, SBuf() << "Unexpected refcount == 0 for page " << old_value.page_ptr()->raw_data()->uuid());
-    				}
-    			}
-    		});
-
-    		auto root_id = txn->getRootID(name);
-    		if (root_id.is_set())
-    		{
-    			root_map_->assign(name, root_id);
-    		}
-    		else {
-    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn->currentTxnId());
-    		}
-    	}
-    	else {
-    		import_new_ctr_from(txn, name);
-    	}
-    }
-
-
-    void copy_ctr_from(const SnapshotPtr& txn, const UUID& name)
-    {
-    	txn->checkReadAllowed();
-    	checkUpdateAllowed();
-
-    	ID root_id = this->getRootID(name);
-
-    	auto txn_id = currentTxnId();
-
-    	if (!root_id.is_null())
-    	{
-    		txn->for_each_ctr_node(name, [&, this](const UUID& uuid, const UUID& id, const void* page_data) {
-    			auto page = this->getPage(id, name);
-    			if (page && page->uuid() == uuid)
-    			{
-    				return;
-    			}
-
-    			clone_foreign_page(T2T<const Page*>(page_data));
-    		});
-
-    		auto root_id = txn->getRootID(name);
-    		if (root_id.is_set())
-    		{
-    			root_map_->assign(name, root_id);
-    		}
-    		else {
-    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn_id);
-    		}
-    	}
-    	else {
-    		copy_new_ctr_from(txn, name);
-    	}
-    }
-
-
-    virtual PageG getPage(const ID& id, const UUID& name)
-    {
-        if (id.isSet())
-        {
-            Shared* shared = get_shared(id, Shared::READ);
-
-            if (!shared->get())
-            {
-                checkReadAllowed();
-
-                auto page_opt = persistent_tree_.find(id);
-
-                if (page_opt)
-                {
-                    const auto& txn_id = history_node_->txn_id();
-
-                    if (page_opt.value().txn_id() != txn_id)
-                    {
-                        shared->state() = Shared::READ;
-                    }
-                    else {
-                        shared->state() = Shared::UPDATE;
-                    }
-
-                    shared->set_page(page_opt.value().page_ptr()->raw_data());
-                }
-                else {
-                    throw Exception(MA_SRC, SBuf() << "Page is not found for the specified id: " << id);
-                }
-            }
-
-            return PageG(shared);
-        }
-        else {
-            return PageG();
-        }
-    }
-
-    void dumpAccess(const char* msg, ID id, const Shared* shared)
-    {
-        cout<<msg<<": "<<id<<" "<<shared->get()<<" "<<shared->get()->uuid()<<" "<<shared->state()<<endl;
-    }
-
-
-    virtual void registerCtr(const type_info& ti)
-    {
-    	auto ii = instance_map_.find(ti);
-    	if (ii == instance_map_.end())
-    	{
-    		instance_map_.insert({ti, CtrDescr(1)});
-    	}
-    	else {
-    		ii->second.ref();
-    	}
-    }
-
-    virtual void unregisterCtr(const type_info& ti)
-    {
-    	auto ii = instance_map_.find(ti);
-    	if (ii == instance_map_.end())
-    	{
-    		throw Exception(MA_SRC, SBuf() << "Container " << ti.name() << " is not registered in snapshot " << uuid());
-    	}
-    	else if (ii->second.unref() == 0) {
-    		instance_map_.erase(ii);
-    	}
-    }
-
-    bool has_open_containers() {
-    	return instance_map_.size() > 1;
-    }
-
-    void dump_open_containers()
-    {
-    	for (const auto& pair: instance_map_)
-    	{
-    		cout << demangle(pair.first.name()) << " -- " << pair.second.references() << endl;
-    	}
-    }
-
-    virtual PageG getPageForUpdate(const ID& id, const UUID& name)
-    {
-        // FIXME: Though this check prohibits new page acquiring for update,
-        // already acquired updatable pages can be updated further.
-        // To guarantee non-updatability, MMU-protection should be used
-        checkUpdateAllowed(name);
-
-        if (id.isSet())
-        {
-            Shared* shared = get_shared(id, Shared::UPDATE);
-
-            if (!shared->get())
-            {
-                auto page_opt = persistent_tree_.find(id);
-
-                if (page_opt)
-                {
-                    const auto& txn_id = history_node_->txn_id();
-
-                    if (page_opt.value().txn_id() != txn_id)
-                    {
-                        Page* new_page = clone_page(page_opt.value().page_ptr()->raw_data());
-
-                        ptree_set_new_page(new_page);
-
-                        shared->set_page(new_page);
-
-                        shared->refresh();
-                    }
-                    else {
-                        MEMORIA_V1_ASSERT(shared->state(), ==, Shared::UPDATE);
-
-                        shared->set_page(page_opt.value().page_ptr()->raw_data());
-
-                        shared->refresh();
-                    }
-                }
-                else {
-                    throw Exception(MA_SRC, SBuf() << "Page is not found for the specified id: " << id);
-                }
-            }
-            else if (shared->state() == Shared::READ)
-            {
-                auto page_opt = persistent_tree_.find(id);
-
-                if (page_opt)
-                {
-                    Page* new_page = clone_page(page_opt.value().page_ptr()->raw_data());
-
-                    ptree_set_new_page(new_page);
-                    shared->set_page(new_page);
-
-                    shared->refresh();
-                }
-                else {
-                    throw Exception(MA_SRC, SBuf() << "Page is not found for the specified id: " << id);
-                }
-            }
-            else if (shared->state() == Shared::UPDATE)
-            {
-                //MEMORIA_ASEERT();
-            }
-            else {
-                throw Exception(MA_SRC, SBuf() << "Invalid PageShared state: " << shared->state());
-            }
-
-            shared->state() = Shared::UPDATE;
-
-            return PageG(shared);
-        }
-        else {
-            return PageG();
-        }
-    }
-
-
-
-    virtual PageG updatePage(Shared* shared, const UUID& name)
-    {
-        // FIXME: Though this check prohibits new page acquiring for update,
-        // already acquired updatable pages can be updated further.
-        // To guarantee non-updatability, MMU-protection should be used
-        checkUpdateAllowed(name);
-
-        if (shared->state() == Shared::READ)
-        {
-            Page* new_page = clone_page(shared->get());
-
-            ptree_set_new_page(new_page);
-
-            shared->set_page(new_page);
-
-            shared->state() = Shared::UPDATE;
-
-            shared->refresh();
-        }
-
-        return PageG(shared);
-    }
-
-    virtual void removePage(const ID& id, const UUID& name)
-    {
-        checkUpdateAllowed(name);
-
-        auto iter = persistent_tree_.locate(id);
-
-        if (!iter.is_end())
-        {
-            auto shared = pool_.get(id);
-
-            if (!shared)
-            {
-                persistent_tree_.remove(iter);
-            }
-            else {
-                shared->state() = Shared::_DELETE;
-            }
-        }
-    }
-
-
-
-
-
-
-    virtual PageG createPage(int32_t initial_size, const UUID& name)
-    {
-        checkUpdateAllowed(name);
-
-        if (initial_size == -1)
-        {
-            initial_size = properties_.defaultPageSize();
-        }
-
-        void* buf = this->malloc(initial_size);
-
-        memset(buf, 0, initial_size);
-
-        ID id = newId();
-
-        Page* p = new (buf) Page(id);
-
-        p->page_size() = initial_size;
-
-        Shared* shared  = pool_.allocate(id);
-
-        shared->id()    = id;
-        shared->state() = Shared::UPDATE;
-
-        shared->set_page(p);
-        shared->set_allocator(this);
-
-        ptree_set_new_page(p);
-
-        return PageG(shared);
-    }
-
-
-    virtual void resizePage(Shared* shared, int32_t new_size)
-    {
-        checkUpdateAllowed();
-
-        if (shared->state() == Shared::READ)
-        {
-            Page* page = shared->get();
-            auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
-
-            Page* new_page = T2T<Page*>(this->malloc(new_size));
-
-            pageMetadata->getPageOperations()->resize(page, new_page, new_size);
-
-            shared->set_page(new_page);
-
-            ptree_set_new_page(new_page);
-        }
-        else if (shared->state() == Shared::UPDATE)
-        {
-            Page* page = shared->get();
-            auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
-
-            Page* new_page  = T2T<Page*>(realloc(page, new_size));
-
-            pageMetadata->getPageOperations()->resize(page, new_page, new_size);
-
-            shared->set_page(new_page);
-
-            ptree_set_new_page(new_page);
-        }
-    }
-
-    virtual void releasePage(Shared* shared) noexcept
-    {
-        if (shared->state() == Shared::_DELETE)
-        {
-            persistent_tree_.remove(shared->get()->id());
-        }
-
-        pool_.release(shared->id());
-    }
-
-    virtual PageG getPageG(Page* page)
-    {
-        throw Exception(MA_SRC, "Method getPageG is not implemented for this allocator");
-    }
-
-
-    virtual ID newId() {
-        return history_tree_raw_->newId();
-    }
-
-    virtual UUID currentTxnId() const {
-        return history_node_->txn_id();
-    }
-
-    // memory pool allocator
-    virtual void* allocateMemory(size_t size) {
-        return ::malloc(size);
-    }
-    virtual void  freeMemory(void* ptr) {
-        ::free(ptr);
-    }
-
-    virtual Logger& logger() {return logger_;}
-    virtual IAllocatorProperties& properties() {
-        return properties_;
-    }
-
-    virtual ID getRootID(const UUID& name)
-    {
-        if (!name.is_null())
-        {
-            auto iter = root_map_->find(name);
-
-            if (iter->is_found(name))
-            {
-                return iter->value();
-            }
-            else {
-                return ID();
-            }
-        }
-        else {
-            return history_node_->root_id();
-        }
-    }
-
-    virtual void setRoot(const UUID& name, const ID& root)
-    {
-        if (root.is_null())
-        {
-            if (!name.is_null())
-            {
-                root_map_->remove(name);
-            }
-            else {
-                throw Exception(MA_SRC, SBuf() << "Allocator directory removal attempted");
-            }
-        }
-        else {
-            if (!name.is_null())
-            {
-                root_map_->assign(name, root);
-            }
-            else {
-                history_node_->root_id() = root;
-            }
-        }
-    }
-
-    virtual void markUpdated(const UUID& name) {}
-
-    virtual bool hasRoot(const UUID& name)
-    {
-        if (!name.is_null())
-        {
-            auto iter = root_map_->find(name);
-            return iter->is_found(name);
-        }
-        else {
-            return !history_node_->root_id().is_null();
-        }
-    }
-
-    virtual UUID createCtrName()
-    {
-        return UUID::make_random();
-    }
-
-
-    virtual bool check()
-    {
-        bool result = false;
-
-        for (auto iter = root_map_->begin(); !iter->is_end(); )
-        {
-            auto ctr_name = iter->key();
-
-            PageG page = this->getPage(iter->value(), ctr_name);
-
-            auto ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
-
-            result = ctr_meta->getCtrInterface()->check(page->id(), ctr_name, this->shared_from_this()) || result;
-
-            iter->next();
-        }
-
-        return result;
-    }
-
-    String get_branch_suffix() const
-    {
-    	return std::string("");
-    }
-
-    virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
-    {
-		if (allocator_descr != nullptr)
-		{
-			walker->beginSnapshot((SBuf() << "Snapshot-" << history_node_->txn_id() << " -- " << allocator_descr).str().c_str());
-		}
-		else {
-			walker->beginSnapshot((SBuf() << "Snapshot-" << history_node_->txn_id()).str().c_str());
-		}
-
-        auto iter = root_map_->Begin();
-
-        while (!iter->isEnd())
-        {
-            auto ctr_name   = iter->key();
-            auto root_id    = iter->value();
-
-            auto page       = this->getPage(root_id, ctr_name);
-
-            auto ctr_hash   = page->ctr_type_hash();
-            auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
-
-            ctr_meta->getCtrInterface()->walk(page->id(), ctr_name, this->shared_from_this(), walker);
-
-            iter->next();
-        }
-
-        walker->endSnapshot();
-    }
-
+    
     void dump(const char* destination)
     {
     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
@@ -1131,327 +295,30 @@ public:
 
     	history_node_->allocator()->snapshot_labels_metadata().clear();
     }
-
-    void dump_persistent_tree() {
-        persistent_tree_.dump_tree();
-    }
-
-
-
-    template <typename CtrName>
-    auto find_or_create(const UUID& name)
-    {
-    	checkIfConainersCreationAllowed();
-        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND | CTR_CREATE, name);
-    }
-
-    template <typename CtrName>
-    auto create(const UUID& name)
-    {
-    	checkIfConainersCreationAllowed();
-        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_CREATE, name);
-    }
-
-    template <typename CtrName>
-    auto create()
-    {
-    	checkIfConainersCreationAllowed();
-        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_CREATE, CTR_DEFAULT_NAME);
-    }
-
-    template <typename CtrName>
-    auto find(const UUID& name)
-    {
-    	checkIfConainersOpeneingAllowed();
-        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND, name);
-    }
-
-    void pack_allocator()
-    {
-    	this->history_tree_raw_->pack();
-    }
-    
-    virtual CtrSharedPtr<CtrReferenceable> get(const UUID& name) {
-        UUID root_id = getRootID(name);
-
-        if (root_id.is_set())
-        {
-            PageG page = this->getPage(root_id, name);
-
-            auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
-
-            return ctr_meta->getCtrInterface()->new_ctr_instance(root_id, name, this->shared_from_this());
-        }
-        else {
-            return nullptr;
-        }
-    }
-
-protected:
-
-
-    auto export_page_rchandle(const UUID& id)
-    {
-    	auto opt = persistent_tree_.find(id);
-
-    	if (opt)
-    	{
-    		return opt.value().page_ptr();
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Page with id " << id << " does not exist in snapshot " << currentTxnId());
-    	}
-    }
-
-
-
-
-    void clone_foreign_page(const Page* foreign_page)
-    {
-    	Page* new_page = clone_page(foreign_page);
-    	ptree_set_new_page(new_page);
-    }
-
-
-    Page* clone_page(const Page* page)
-    {
-        char* buffer = (char*) this->malloc(page->page_size());
-
-        CopyByteBuffer(page, buffer, page->page_size());
-        Page* new_page = T2T<Page*>(buffer);
-
-        new_page->uuid() = newId();
-
-        return new_page;
-    }
-
-    Shared* get_shared(Page* page)
-    {
-        MEMORIA_V1_ASSERT_TRUE(page != nullptr);
-
-        Shared* shared = pool_.get(page->id());
-
-        if (shared == NULL)
-        {
-            shared = pool_.allocate(page->id());
-
-            shared->id()        = page->id();
-            shared->state()     = Shared::UNDEFINED;
-            shared->set_page(page);
-            shared->set_allocator(this);
-        }
-
-        return shared;
-    }
-
-    Shared* get_shared(const ID& id, int32_t state)
-    {
-        Shared* shared = pool_.get(id);
-
-        if (shared == NULL)
-        {
-            shared = pool_.allocate(id);
-
-            shared->id()        = id;
-            shared->state()     = state;
-            shared->set_page((Page*)nullptr);
-            shared->set_allocator(this);
-        }
-
-        return shared;
-    }
-
-    void* malloc(size_t size)
-    {
-        return ::malloc(size);
-    }
-
-    void ptree_set_new_page(Page* page)
-    {
-        const auto& txn_id = history_node_->txn_id();
-        using Value = typename PersistentTreeT::Value;
-        auto ptr = new RCPagePtr(page, 1);
-        auto old_value = persistent_tree_.assign(page->id(), Value(ptr, txn_id));
-
-        if (old_value.page_ptr())
-        {
-        	if (old_value.page_ptr()->unref() == 0) {
-        		delete old_value.page_ptr();
-        	}
-        }
-    }
-
-
-    void checkIfConainersOpeneingAllowed()
-    {
-    	checkReadAllowed();
-
-    	if (is_data_locked())
-    	{
-    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " data is locked");
-    	}
-    }
-
-    void checkIfConainersCreationAllowed()
-    {
-    	if (!is_active())
-    	{
-    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " data is not active");
-    	}
-    }
-
-
-    void checkIfExportAllowed()
-    {
-    	if (history_node_->is_dropped())
-    	{
-    		// Double checking. This shouldn't happen
-    		if (!history_node_->root())
-    		{
-    			throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has been cleared");
-    		}
-    	}
-    	else if (history_node_->is_active()) {
-    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " is still active");
-    	}
-    }
-
-
-
-
-    void checkReadAllowed()
-    {
-    	// read is always allowed
-    }
-
-    void checkUpdateAllowed()
-    {
-        checkReadAllowed();
-
-        if (!history_node_->is_active())
-        {
-            throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has been already committed or data is locked");
-        }
-    }
-
-    void checkUpdateAllowed(const UUID& ctrName)
-    {
-    	checkReadAllowed();
-
-    	if ((!history_node_->is_active()) && ctrName.is_set())
-    	{
-    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has been already committed or data is locked");
-    	}
-    }
-
-    void checkIfDataLocked()
-    {
-    	checkReadAllowed();
-
-    	if (!history_node_->is_data_locked())
-    	{
-    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " hasn't been locked");
-    	}
-    }
-
-
-    void do_drop() throw ()
-    {
-    	persistent_tree_.delete_tree([&](LeafNodeT* leaf){
-            for (int32_t c = 0; c < leaf->size(); c++)
-            {
-                auto& page_descr = leaf->data(c);
-                if (page_descr.page_ptr()->unref() == 0)
-                {
-                    auto shared = pool_.get(page_descr.page_ptr()->raw_data()->id());
-
-                    if (shared)
-                    {
-                    	page_descr.page_ptr()->clear();
-                        shared->state() = Shared::_DELETE;
-                    }
-
-                    delete page_descr.page_ptr();
-                }
-            }
-        });
-    }
-
-    static void delete_snapshot(HistoryNode* node) throw ()
-    {
-        PersistentTreeT persistent_tree(node);
-
-        persistent_tree.delete_tree([&](LeafNodeT* leaf){
-            for (int32_t c = 0; c < leaf->size(); c++)
-            {
-                auto& page_descr = leaf->data(c);
-                if (page_descr.page_ptr()->unref() == 0)
-                {
-                    delete page_descr.page_ptr();
-                }
-            }
-        });
-
-        node->assign_root_no_ref(nullptr);
-        node->root_id() = ID();
-    }
-
-
-    void check_tree_structure(const NodeBaseT* node)
-    {
-//      if (node->txn_id() == history_node_->txn_id())
-//      {
-//          if (node->refs() != 1)
-//          {
-//              cerr << "NodeRefProblem1 for: " << endl;
-//              node->dump(cerr);
-//          }
-//      }
-//      else {
-//          if (node->refs() < 1)
-//          {
-//              cerr << "NodeRefProblem2 for: " << endl;
-//              node->dump(cerr);
-//          }
-//      }
-//
-//      if (node->is_leaf())
-//      {
-//          //auto leaf_node = PersitentTree::to_leaf_node(node);
-//      }
-//      else {
-//          auto branch_node = PersitentTree::to_branch_node(node);
-//
-//          for (int32_t c = 0; c < branch_node->size(); c++)
-//          {
-//              check_tree_structure(branch_node->data(c));
-//          }
-//      }
-    }
 };
 
 }
 
 template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto create(const SnpSharedPtr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
+auto create(const SnpSharedPtr<persistent_inmem::ThreadSnapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
 {
     return alloc->template create<CtrName>(name);
 }
 
 template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto create(const SnpSharedPtr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc)
+auto create(const SnpSharedPtr<persistent_inmem::ThreadSnapshot<Profile, PersistentAllocator>>& alloc)
 {
     return alloc->template create<CtrName>();
 }
 
 template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto find_or_create(const SnpSharedPtr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
+auto find_or_create(const SnpSharedPtr<persistent_inmem::ThreadSnapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
 {
     return alloc->template find_or_create<CtrName>(name);
 }
 
 template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto find(const SnpSharedPtr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
+auto find(const SnpSharedPtr<persistent_inmem::ThreadSnapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
 {
     return alloc->template find<CtrName>(name);
 }
