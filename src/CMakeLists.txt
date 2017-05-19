@@ -31,6 +31,12 @@ add_library(Memoria STATIC ${GLOBAL_SRCS})
 
 SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+
+if (BUILD_MSVC)
+    target_link_libraries(Memoria ${MEMORIA_LIBS})
+else()
+    target_link_libraries(Memoria boost_system boost_filesystem boost_context ${MEMORIA_LIBS})
+endif()
     
 export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
 

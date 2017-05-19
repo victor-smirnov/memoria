@@ -23,80 +23,94 @@
 // variable-length (String, BigInteger) ones.
 
 
-#include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
+#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 #include <memoria/v1/api/map/map_api.hpp>
 
+#include <memoria/v1/reactor/application.hpp>
 
 using namespace memoria::v1;
+using namespace memoria::v1::reactor;
 using namespace std;
 
-int main()
+int main(int argc, char** argv)
 {
     using Key   = int64_t;
     using Value = String;
 
-    try {
-        // Create persistent in-memory allocator for containers to store their data in.
-        auto alloc = ThreadInMemAllocator<>::create();
+    Application map_app(argc, argv);
+    
+    map_app.run([](){
+    
+        try {
+            // Create persistent in-memory allocator for containers to store their data in.
+            auto alloc = InMemAllocator<>::create();
 
-        // This callocator is persistent not because it can dump its content to stream or file, but in a
-        // narrow sense: to make a group of changes to allocator one must first start new snapshot by
-        // branching form any exiting one's.
+            // This callocator is persistent not because it can dump its content to stream or file, but in a
+            // narrow sense: to make a group of changes to allocator one must first start new snapshot by
+            // branching form any exiting one's.
 
-        // Snapshots are completely isolated from each other, operations don't interfere with operations
-        // on other snapshots.
+            // Snapshots are completely isolated from each other, operations don't interfere with operations
+            // on other snapshots.
 
-        auto snp = alloc.master().branch();
+            auto snp = alloc.master().branch();
 
 
-        // Create Map
-        auto map = create<Map<Key, Value>>(snp);
+            // Create Map
+            auto map = create<Map<Key, Value>>(snp);
 
-        int from = -300;
-        int to   =  300;
+            int from = -300;
+            int to   =  300;
 
-        // Fill map element by element.
-        for (int c = from; c < to; c++)
-        {
-            map.assign(c, "str_" + toString(c));
+            // Fill map element by element.
+            for (int c = from; c < to; c++)
+            {
+                map.assign(c, "str_" + toString(c));
+            }
+
+//             // Iterator on the whole container
+//             for (auto iter = map.begin(); !iter.is_end(); iter.next())
+//             {
+//                 cout << iter.key() << " -- " << iter.value() << endl;
+//             }
+
+//             int cnt = 0;
+//             auto entries = map.begin().read(map.size());
+//             
+//             for (auto& entry: entries)
+//             {
+//                 std::cout << (cnt++) << " -- " << std::get<0>(entry) << ": " << std::get<1>(entry) << std::endl;
+//             }
+            
+
+//             // Dump readable contents of allocator to disk to see what is under the hood.
+//             // Mostly usable for hacking and debugging.
+//             snp.dump("map_full.dir");
+// 
+//             // Remove all entries by keys
+//             for (int c = from; c < to; c++)
+//             {
+//                 map.remove(c);
+//             }
+// 
+//             snp.dump("map_empty.dir");
+
+            // Finish snapshot so no other updates are possible.
+            snp.commit();
+
+            // Store binary contents of allocator to the file.
+            auto out = FileOutputStreamHandler::create_buffered("map_data.dump");
+            alloc.store(out.get());
         }
-
-        // Iterator on the whole container
-        for (auto iter = map.begin(); !iter.is_end(); iter.next())
+        catch (Exception& ex)
         {
-            cout << iter.key() << " -- " << iter.value() << endl;
+            cout << ex.message() << " at " << ex.source() << endl;
         }
-
-        int cnt = 0;
-        auto entries = map.begin().read(map.size());
-        
-        for (auto& entry: entries)
+        catch (std::exception& ex)
         {
-            std::cout << (cnt++) << " -- " << std::get<0>(entry) << ": " << std::get<1>(entry) << std::endl;
+            cout << ex.what() << endl;
         }
-        
+    
+        app().shutdown();
+    });
 
-        // Dump readable contents of allocator to disk to see what is under the hood.
-        // Mostly usable for hacking and debugging.
-        snp.dump("map_full.dir");
-
-        // Remove all entries by keys
-        for (int c = from; c < to; c++)
-        {
-            map.remove(c);
-        }
-
-        snp.dump("map_empty.dir");
-
-        // Finish snapshot so no other updates are possible.
-        snp.commit();
-
-        // Store binary contents of allocator to the file.
-        auto out = FileOutputStreamHandler::create("map_data.dump");
-        alloc.store(out.get());
-    }
-    catch (Exception& ex)
-    {
-        cout << ex.message() << " at " << ex.source() << endl;
-    }
 }

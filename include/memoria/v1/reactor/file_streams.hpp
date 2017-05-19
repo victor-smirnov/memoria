@@ -27,18 +27,18 @@ namespace reactor {
 template <typename BufferT = DefaultIOBuffer>    
 class BufferedIS: public BinaryInputStream {
     BufferT buffer_;
-    std::shared_ptr<File> file_;
+    File file_;
     
     uint64_t position_;
     
 public:
-    BufferedIS(size_t buffer_size, const std::shared_ptr<File>& file, uint64_t start):
+    BufferedIS(size_t buffer_size, const File& file, uint64_t start):
         buffer_(buffer_size), file_(file), position_(start)
     {}
     
     virtual size_t read(uint8_t* data, size_t size) 
     {
-        size_t len = file_->read(data, position_, size);
+        size_t len = file_.read(data, position_, size);
         position_ += len;
         return len;
     }
@@ -51,18 +51,18 @@ public:
 template <typename BufferT = DefaultIOBuffer>    
 class BufferedOS: public BinaryOutputStream {
     BufferT buffer_;
-    std::shared_ptr<File> file_;
+    File file_;
     
     uint64_t position_;
     
 public:
-    BufferedOS(size_t buffer_size, const std::shared_ptr<File>& file, uint64_t start):
+    BufferedOS(size_t buffer_size, const File& file, uint64_t start):
         buffer_(buffer_size), file_(file), position_(start)
     {}
     
     virtual size_t write(const uint8_t* data, size_t size) 
     {
-        size_t len = file_->write(data, position_, size);
+        size_t len = file_.write(data, position_, size);
         
         position_ += len;
         
@@ -70,7 +70,7 @@ public:
     }
     
     virtual void flush() {
-        file_->fsync();
+        file_.fsync();
     }
 
     BufferT& buffer() {return buffer_;}

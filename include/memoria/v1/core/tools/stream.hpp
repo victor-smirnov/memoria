@@ -19,6 +19,9 @@
 #include <memoria/v1/metadata/metadata.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
+
+#include <memoria/v1/filesystem/path.hpp>
+
 #include <fstream>
 #include <limits>
 #include <memory>
@@ -105,6 +108,8 @@ struct OutputStreamHandler {
 class FileOutputStreamHandler: public OutputStreamHandler {
 public:
     static std::unique_ptr<FileOutputStreamHandler> create(const char* file);
+    
+    static std::unique_ptr<FileOutputStreamHandler> create_buffered(const filesystem::path& file);
 
     virtual ~FileOutputStreamHandler() noexcept {}
 };
@@ -112,6 +117,9 @@ public:
 class FileInputStreamHandler: public InputStreamHandler {
 public:
     static std::unique_ptr<FileInputStreamHandler> create(const char* file);
+    
+    static std::unique_ptr<FileInputStreamHandler> create_buffered(const filesystem::path& file);
+    
     virtual ~FileInputStreamHandler() noexcept {}
 };
 
@@ -200,5 +208,7 @@ inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const String& v
     out.write(value.c_str(), 0, value.length());
     return out;
 }
+
+
 
 }}

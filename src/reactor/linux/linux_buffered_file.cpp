@@ -27,6 +27,8 @@
 
 #include <memoria/v1/core/tools/time.hpp>
 
+#include "../file_impl.hpp"
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -52,17 +54,18 @@ namespace reactor {
 
 
     
-class BufferedFile: public File, public std::enable_shared_from_this<BufferedFile> {
+class BufferedFile: public FileImpl, public std::enable_shared_from_this<BufferedFile> {
     int fd_{};
     bool closed_{true};
 public:
     BufferedFile(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT): 
-        File(file_path)
+        FileImpl(file_path)
     {
         int errno0 = 0;
         std::tie(fd_, errno0) = engine().run_in_thread_pool([&]{
+            auto fd = ::open(file_path.c_str(), (int)flags, (mode_t)mode);
             return std::make_tuple(
-                ::open(file_path.c_str(), (int)flags, (mode_t)mode),
+                fd,
                 errno
             );
         });
@@ -83,7 +86,7 @@ public:
     
     virtual void close() 
     {   
-        if (::close(fd_) < 0) 
+        if ((!closed_) && (::close(fd_) < 0)) 
         {
             tools::rise_perror(SBuf() << "Can't close file " << path_);
         }
@@ -218,20 +221,20 @@ public:
     
     virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
     {
-        auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
+        auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
         return DataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);
     }
     
     virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
     {
-        auto buffered_os = std::make_shared<BufferedOS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
+        auto buffered_os = std::make_shared<BufferedOS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
         return DataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
     }
 };  
 
-std::shared_ptr<File> open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode) 
+File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode) 
 {
-    return std::make_shared<BufferedFile>(file_path, flags, mode);
+    return std::static_pointer_cast<FileImpl>(std::make_shared<BufferedFile>(file_path, flags, mode));
 }
     
 }}}

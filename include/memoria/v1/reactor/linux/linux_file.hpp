@@ -77,40 +77,50 @@ enum class FileMode: mode_t {
 };
 
 
-
+class FileImpl;
 
 class File {
+    using Ptr = std::shared_ptr<FileImpl>;
+    
 protected:
-    filesystem::path path_;
+    Ptr pimpl_;
 public:
-    File (filesystem::path file_path): path_(file_path) {}
-    virtual ~File() noexcept {}
+    File(Ptr pimpl_);
+    ~File() noexcept;
     
-    virtual void close() = 0;
+    File(const File& file);
+    File(File&& file);
     
-    virtual uint64_t alignment() = 0;
+    File& operator=(const File&);
+    File& operator=(File&&);
     
-    virtual uint64_t size() {
-        return filesystem::file_size(path_);
-    }
+    bool operator==(const File&) const;
     
-    virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size) = 0;
-    virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size) = 0;
+    void close();
     
-    virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true) = 0;
+    uint64_t alignment();
     
-    virtual void fsync() = 0;
-    virtual void fdsync() = 0;
+    uint64_t size();
     
-    virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) = 0;
-    virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) = 0;
+    size_t read(uint8_t* buffer, uint64_t offset, size_t size);
+    size_t write(const uint8_t* buffer, uint64_t offset, size_t size);
     
-    const filesystem::path& path() const {return path_;}
+    size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
+    
+    void fsync();
+    void fdsync();
+    
+    DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096);
+    DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096);
+    
+    const filesystem::path& path();
 };
 
 
-std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
-std::shared_ptr<File> open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
+
+
+File open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
+File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
 
 
 

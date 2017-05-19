@@ -24,6 +24,8 @@
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
 
+#include "../file_impl.hpp"
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -49,7 +51,7 @@ namespace reactor {
 
 
     
-class DMAFile: public File, public std::enable_shared_from_this<DMAFile> {
+class DMAFile: public FileImpl, public std::enable_shared_from_this<DMAFile> {
     int fd_{};
     bool closed_{true};
 public:
@@ -152,7 +154,7 @@ public:
     
 
 DMAFile::DMAFile(filesystem::path file_path, FileFlags flags, FileMode mode): 
-    File(file_path)
+    FileImpl(file_path)
 {
     fd_ = engine().run_in_thread_pool([&]{
         return ::open(file_path.c_str(), (int)flags | O_DIRECT, (mode_t)mode);
@@ -172,7 +174,7 @@ DMAFile::~DMAFile() noexcept
     
 void DMAFile::close()
 {
-    if (::close(fd_) < 0) {
+    if ((!closed_) && (::close(fd_) < 0)) {
         tools::rise_perror(SBuf() << "Can't close file " << path_);
     }
     closed_ = true;
@@ -346,9 +348,9 @@ DMABuffer allocate_dma_buffer(size_t size)
 	}
 }
 
-std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode) 
+File open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode) 
 {
-    return std::make_shared<DMAFile>(file_path, flags, mode);
+    return std::static_pointer_cast<FileImpl>(std::make_shared<DMAFile>(file_path, flags, mode));
 }
     
 }}}

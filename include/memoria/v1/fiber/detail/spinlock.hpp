@@ -26,12 +26,14 @@ struct spinlock {
     constexpr spinlock() noexcept {}
     void lock() noexcept {}
     void unlock() noexcept {}
+    bool try_lock() noexcept {return true;}
 };
 
 struct spinlock_lock {
     constexpr spinlock_lock( spinlock &) noexcept {}
     void lock() noexcept {}
     void unlock() noexcept {}
+    bool try_lock() noexcept {return true;}
 };
 
 }}}}

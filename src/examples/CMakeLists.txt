@@ -38,7 +38,7 @@ MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
 ENDMACRO()
 
 
-#Example(map map.cpp lib/map_int64_string_dflt.cpp "")
+Example(map map.cpp lib/map_int64_string_dflt.cpp "")
 
 #Example(vector vector.cpp lib/vector_int_dflt.cpp lib/vector_string_dflt.cpp)
 

@@ -28,7 +28,7 @@
 
 #include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
 
-#include <boost/filesystem.hpp>
+#include <memoria/v1/filesystem/path.hpp>
 
 
 
@@ -71,9 +71,13 @@ public:
     
     
     static InMemAllocator load(InputStreamHandler* input_stream);
-    static InMemAllocator load(boost::filesystem::path file_name);
+    static InMemAllocator load(InputStreamHandler* input_stream, int32_t cpu);
+    
+    static InMemAllocator load(memoria::v1::filesystem::path file_name);
+    static InMemAllocator load(memoria::v1::filesystem::path file_name, int32_t cpu);
     
     static InMemAllocator create();
+    static InMemAllocator create(int32_t cpu);
     
     void store(boost::filesystem::path file_name);
     void store(OutputStreamHandler* output_stream);

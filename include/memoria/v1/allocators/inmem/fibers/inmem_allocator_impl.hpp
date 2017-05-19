@@ -29,6 +29,10 @@
 
 #include "persistent_tree_snapshot.hpp"
 
+#include <memoria/v1/reactor/reactor.hpp>
+
+#include <memoria/v1/fiber/detail/spinlock.hpp>
+
 
 #include <malloc.h>
 #include <memory>
@@ -57,14 +61,12 @@ public:
     using SnapshotPtr           = SnpSharedPtr<SnapshotT>;
     using AllocatorPtr          = AllocSharedPtr<MyType>;
     
-    using MutexT			= std::recursive_mutex;
-    using SnapshotMutexT	= std::recursive_mutex;
-    using StoreMutexT		= std::mutex;
-
-    using LockGuardT			= std::lock_guard<MutexT>;
-    using StoreLockGuardT		= std::lock_guard<StoreMutexT>;
-    using SnapshotLockGuardT	= std::lock_guard<SnapshotMutexT>;
+    using MutexT                = memoria::v1::fibers::detail::spinlock;
+    using LockGuardT            = memoria::v1::fibers::detail::spinlock_lock;
     
+    using SnapshotMutexT        = memoria::v1::fibers::detail::spinlock;
+    using SnapshotLockGuardT    = memoria::v1::fibers::detail::spinlock_lock;
+        
     using typename Base::HistoryNode;
     using typename Base::HistoryNodeBuffer;
     using typename Base::TxnId;
@@ -101,9 +103,11 @@ public:
     
 
 private:
+        
+    int32_t cpu_;
     
-    mutable MutexT mutex_;
-    mutable StoreMutexT store_mutex_;
+    MutexT mutex_;
+    MutexT store_mutex_;
  
 public:
     InMemAllocatorImpl() {
@@ -115,13 +119,13 @@ private:
     InMemAllocatorImpl(int32_t v): Base(v) {}
 
 protected:
-    auto& store_mutex() {
-    	return store_mutex_;
-    }
-
-    const auto& store_mutex() const {
-    	return store_mutex_;
-    }
+//     auto& store_mutex() {
+//     	return store_mutex_;
+//     }
+// 
+//     const auto& store_mutex() const {
+//     	return store_mutex_;
+//     }
 
 public:
 
@@ -130,29 +134,13 @@ public:
         free_memory(history_tree_);
     }
     
-    MutexT& mutex() {
-    	return mutex_;
-    }
+    int32_t cpu() const {return cpu_;}
+    
 
-    const MutexT& mutex() const {
-    	return mutex_;
-    }
-
-    void lock() {
-    	mutex_.lock();
-    }
-
-    void unlock() {
-    	mutex_.unlock();
-    }
-
-    bool try_lock() {
-    	return mutex_.try_lock();
-    }
     
     void pack()
     {
-        std::lock_guard<MutexT> lock(mutex_);
+        //std::lock_guard<MutexT> lock(mutex_);
     	do_pack(history_tree_);
     }
 
@@ -160,14 +148,14 @@ public:
     
     persistent_inmem::SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
     {
-    	LockGuardT lock_guard2(mutex_);
+    	//LockGuardT lock_guard2(mutex_);
 
         auto iter = snapshot_map_.find(snapshot_id);
         if (iter != snapshot_map_.end())
         {
             const auto history_node = iter->second;
 
-            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+            //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
         	std::vector<TxnId> children;
 
@@ -191,14 +179,14 @@ public:
 
     SnapshotPtr find(const TxnId& snapshot_id)
     {
-    	LockGuardT lock_guard(mutex_);
+    	//LockGuardT lock_guard(mutex_);
 
         auto iter = snapshot_map_.find(snapshot_id);
         if (iter != snapshot_map_.end())
         {
             auto history_node = iter->second;
 
-            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+            //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
             if (history_node->is_committed())
             {
@@ -222,14 +210,14 @@ public:
 
     SnapshotPtr find_branch(StringRef name)
     {
-    	LockGuardT lock_guard(mutex_);
+    	//LockGuardT lock_guard(mutex_);
 
     	auto iter = named_branches_.find(name);
         if (iter != named_branches_.end())
         {
             auto history_node = iter->second;
 
-            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+            //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
             if (history_node->is_committed())
             {
@@ -256,19 +244,19 @@ public:
 
     SnapshotPtr master()
     {
-    	std::lock(mutex_, master_->snapshot_mutex());
+    	//std::lock(mutex_, master_->snapshot_mutex());
 
-    	LockGuardT lock_guard(mutex_, std::adopt_lock);
-    	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
+    	//LockGuardT lock_guard(mutex_, std::adopt_lock);
+    	//SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
 
         return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this());
     }
 
     persistent_inmem::SnapshotMetadata<TxnId> describe_master() const
     {
-    	std::lock(mutex_, master_->snapshot_mutex());
-    	LockGuardT lock_guard2(mutex_, std::adopt_lock);
-    	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
+    	//std::lock(mutex_, master_->snapshot_mutex());
+    	//LockGuardT lock_guard2(mutex_, std::adopt_lock);
+    	//SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
 
     	std::vector<TxnId> children;
 
@@ -286,14 +274,14 @@ public:
 
     void set_master(const TxnId& txn_id)
     {
-    	LockGuardT lock_guard(mutex_);
+    	//LockGuardT lock_guard(mutex_);
 
         auto iter = snapshot_map_.find(txn_id);
         if (iter != snapshot_map_.end())
         {
             auto history_node = iter->second;
 
-            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+            //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
             if (history_node->is_committed())
             {
@@ -318,14 +306,14 @@ public:
 
     void set_branch(StringRef name, const TxnId& txn_id)
     {
-    	LockGuardT lock_guard(mutex_);
+    	//LockGuardT lock_guard(mutex_);
 
         auto iter = snapshot_map_.find(txn_id);
         if (iter != snapshot_map_.end())
         {
             auto history_node = iter->second;
 
-            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+            //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
         	if (history_node->is_committed())
             {
@@ -353,7 +341,7 @@ public:
     {
     	this->build_snapshot_labels_metadata();
 
-    	LockGuardT lock_guard(mutex_);
+    	//LockGuardT lock_guard(mutex_);
 
         walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
 
@@ -368,10 +356,10 @@ public:
 
     virtual void store(OutputStreamHandler *output)
     {
-    	std::lock(mutex_, store_mutex_);
+    	//std::lock(mutex_, store_mutex_);
 
-    	LockGuardT lock_guard2(mutex_, std::adopt_lock);
-    	StoreLockGuardT lock_guard1(store_mutex_, std::adopt_lock);
+    	//LockGuardT lock_guard2(mutex_, std::adopt_lock);
+    	//StoreLockGuardT lock_guard1(store_mutex_, std::adopt_lock);
 
     	active_snapshots_.wait(0);
 
@@ -415,10 +403,29 @@ public:
         this->walkContainers(&walker);
     }
  
-    static AllocSharedPtr<MyType> load(const char* file)
+    static AllocSharedPtr<MyType> load(const char* file, int32_t cpu)
     {
         auto fileh = FileInputStreamHandler::create(file);
         return Base::load(fileh.get());
+    }
+    
+    static AllocSharedPtr<MyType> load(const char* file)
+    {
+        return load(file, reactor::engine().cpu());
+    }
+    
+    static auto create(int32_t cpu)
+    {
+        return reactor::engine().run_at(cpu, [cpu]{
+            auto alloc = Base::create();
+            alloc->cpu_ = cpu;
+            return alloc;
+        });
+    }
+    
+    static auto create()
+    {
+        return create(reactor::engine().cpu());
     }
 
 protected:
@@ -449,7 +456,7 @@ protected:
 
     void walk_containers(HistoryNode* node, ContainerWalker* walker)
     {
-    	SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
+    	//SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
 
         if (node->is_committed())
         {
@@ -504,7 +511,7 @@ protected:
     
     virtual void forget_snapshot(HistoryNode* history_node)
     {
-    	LockGuardT lock_guard(mutex_);
+    	//LockGuardT lock_guard(mutex_);
 
         snapshot_map_.erase(history_node->txn_id());
 
@@ -525,7 +532,7 @@ protected:
 
         bool remove_node = false;
         {
-        	SnapshotLockGuardT lock_guard(node->snapshot_mutex());
+        	//SnapshotLockGuardT lock_guard(node->snapshot_mutex());
 
         	if (node->root() == nullptr && node->references() == 0 && branches.find(node) == branches.end())
         	{
@@ -537,8 +544,6 @@ protected:
         	do_remove_history_node(node);
         }
     }
-
-
 };
 
 }
@@ -596,7 +601,19 @@ InMemAllocator<Profile> InMemAllocator<Profile>::load(InputStreamHandler* input_
 }
 
 template <typename Profile>
-InMemAllocator<Profile> InMemAllocator<Profile>::load(boost::filesystem::path file_name) 
+InMemAllocator<Profile> InMemAllocator<Profile>::load(InputStreamHandler* input_stream, int32_t cpu) 
+{
+    return InMemAllocator<Profile>(PImpl::load(input_stream));
+}
+
+template <typename Profile>
+InMemAllocator<Profile> InMemAllocator<Profile>::load(memoria::v1::filesystem::path file_name) 
+{
+    return InMemAllocator<Profile>(PImpl::load(file_name.string().c_str()));
+}
+
+template <typename Profile>
+InMemAllocator<Profile> InMemAllocator<Profile>::load(memoria::v1::filesystem::path file_name, int32_t cpu) 
 {
     return InMemAllocator<Profile>(PImpl::load(file_name.string().c_str()));
 }
@@ -605,6 +622,12 @@ template <typename Profile>
 InMemAllocator<Profile> InMemAllocator<Profile>::create() 
 {
     return InMemAllocator<Profile>(PImpl::create());
+}
+
+template <typename Profile>
+InMemAllocator<Profile> InMemAllocator<Profile>::create(int32_t cpu) 
+{
+    return InMemAllocator<Profile>(PImpl::create(cpu));
 }
 
 template <typename Profile>
