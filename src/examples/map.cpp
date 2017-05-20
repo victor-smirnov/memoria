@@ -38,10 +38,8 @@ int main(int argc, char** argv)
     using Key   = int64_t;
     using Value = String;
 
-    Application map_app(argc, argv);
-    
-    map_app.run([](){
-    
+    return Application::run(argc, argv, []
+    {
         try {            
             // Create persistent in-memory allocator for containers to store their data in.
             auto alloc = InMemAllocator<>::create();
@@ -112,6 +110,7 @@ int main(int argc, char** argv)
         }
     
         app().shutdown();
+        
+        return 0;
     });
-
 }

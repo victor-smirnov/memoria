@@ -31,7 +31,7 @@ MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
     if (BUILD_MSVC)
         target_link_libraries(${EX_TARGET} Memoria ${MEMORIA_LIBS})
     else()
-        target_link_libraries(${EX_TARGET} Memoria boost_context boost_system boost_filesystem m ${MEMORIA_LIBS})
+        target_link_libraries(${EX_TARGET} Memoria boost_context boost_system boost_filesystem boost_program_options m ${MEMORIA_LIBS})
     endif()
     
 ENDMACRO()

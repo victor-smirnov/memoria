@@ -23,11 +23,20 @@ namespace reactor {
 
 Application* Application::application_;
     
-Application::Application(int argc, char** argv, char** envp): 
-    smp_(std::make_shared<Smp>(2)),
+Application::Application(options_description descr, int argc, char** argv, char** envp): 
+    descr_(descr),
+    smp_{},
     reactors_(),
     shutdown_hook_([](){engine().stop();})
 {
+    boost::program_options::store(
+        boost::program_options::parse_command_line(argc, argv, descr), 
+        options_
+    );
+    boost::program_options::notify(options_);
+    
+    smp_ = std::make_shared<Smp>(options_["threads"].as<int32_t>());
+    
     application_ = this;
     
     for (int c = 0; c < smp_->cpu_num(); c++)

@@ -92,6 +92,8 @@ namespace detail {
             });
         }
         
+        ~Worker() {}
+        
         void stop() 
         {
             if (thread_.joinable()) 

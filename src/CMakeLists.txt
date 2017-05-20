@@ -65,7 +65,7 @@ set_target_properties(intellectio PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 if (BUILD_MSVC)
 target_link_libraries(intellectio Memoria ${MEMORIA_LIBS})
 else()
-target_link_libraries(intellectio Memoria boost_context boost_system m)
+target_link_libraries(intellectio Memoria boost_context boost_system boost_program_options m)
 endif()
 
 add_executable(disruptor_bm disruptor_bm.cpp)
