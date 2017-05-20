@@ -173,6 +173,7 @@ class BufferedFileOStream: public std::basic_ostream<Char> {
     FileStrembuf<Char> buffer_;
 public:
     BufferedFileOStream(File file, FilePos pos = FilePos::BEGIN, size_t buffer_size = 4096): 
+		Base(nullptr),
         buffer_(file, pos, buffer_size)
     {
         this->init(&buffer_);
