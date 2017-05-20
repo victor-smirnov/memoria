@@ -17,6 +17,8 @@
 
 #include "../fiber/context.hpp"
 
+#include <memoria/v1/core/tools/perror.hpp>
+
 #include "mpsc_queue.hpp"
 #include "message.hpp"
 
@@ -48,9 +50,15 @@ public:
     SmpBase(int cpu_num): 
         cpu_num_(cpu_num) 
     {
-        for (int c = 0; c < cpu_num; c++)
+        if (cpu_num > 0) 
         {
-            inboxes_.push_back(std::make_unique<WorkerMessageQueue>());
+            for (int c = 0; c < cpu_num; c++)
+            {
+                inboxes_.push_back(std::make_unique<WorkerMessageQueue>());
+            }
+        }
+        else {
+            tools::rise_error(SBuf() << "Number of threads (--threads) must be greather than zero: " << cpu_num);
         }
     }
     

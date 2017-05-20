@@ -55,6 +55,8 @@ class Application { //: public std::enable_shared_from_this<Application>
     std::function<void()> shutdown_hook_;
     
     static Application* application_;
+    
+    bool debug_{};
 
 public:
 
@@ -82,6 +84,9 @@ public:
         return options_.count("help") > 0;
     }
     
+    bool is_debug() const {
+        return debug_;
+    }
     
     template<typename Fn, typename... Args> 
     auto run(Fn&& fn, Args&&... args) 
@@ -128,14 +133,15 @@ public:
     {
         descr.add_options() 
             ("help, h", "Prints command line switches")
-            ("threads, t", boost::program_options::value<int32_t>()->default_value(1), "Specifies number of threads to use")
+            ("threads, t", boost::program_options::value<uint32_t>()->default_value(1), "Specifies number of threads to use")
+            ("debug, d", boost::program_options::value<bool>()->default_value(false), "Enable debug output")
         ;
         
         return descr;
     }
     
     template <typename Fn, typename... Args>
-    static int run(int argc, char** argv, Fn&& fn, Args&&... args) 
+    static int run(int argc, char** argv, Fn&& fn, Args&&... args) noexcept
     {
         return run(
             boost::program_options::options_description(),
@@ -148,17 +154,27 @@ public:
     static int run(
         boost::program_options::options_description options,
         int argc, char** argv, Fn&& fn, Args&&... args
-    ) 
+    ) noexcept 
     {
-        Application app(argc, argv);
-    
-        if (app.is_help()) {
-            app.print_options_and_shutdown();
-            return 0;
+        try {
+            Application app(argc, argv);
+        
+            if (app.is_help()) {
+                app.print_options_and_shutdown();
+                return 0;
+            }
+            else {
+                return app.run(std::forward<Fn>(fn), std::forward<Args>(args)...);
+            }
         }
-        else {
-            return app.run(std::forward<Fn>(fn), std::forward<Args>(args)...);
+        catch (std::exception& ex) {
+            std::cerr << "Exception cought main thread: " << ex.what() << std::endl;
         }
+        catch (...) {
+            std::cerr << "Unrecognized exception cought main thread" << std::endl;
+        }
+        
+        return 1;
     }
 };
 

@@ -14,6 +14,7 @@
 // limitations under the License.
 
 #include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/v1/reactor/application.hpp>
 #include <memoria/v1/core/tools/time.hpp>
 
 #include <memory>
@@ -50,7 +51,6 @@ void Reactor::event_loop ()
         ->get_scheduler()
         ->set_algo(std::unique_ptr< Scheduler<Reactor> >(scheduler_));
 
-    
     
     CallDuration fiber_stat;
     CallDuration yield_stat;
@@ -109,10 +109,13 @@ void Reactor::event_loop ()
         });
     }
     
-    SBuf buf;
-    buf << "Event Loop finished for " << cpu_ << " yields: " << yield_stat << ", new fibers: " << (fiber_stat) << ", finishes: " << finish_stat << "\n";
+    if (app().is_debug()) 
+    {
+        SBuf buf;
+        buf << "Event Loop finished for " << cpu_ << " yields: " << yield_stat << ", new fibers: " << (fiber_stat) << ", finishes: " << finish_stat <<  "\n";
     
-    std::cout << buf.str();
+        std::cout << buf.str();
+    }
     
     thread_pool_.stop_workers();
 }
