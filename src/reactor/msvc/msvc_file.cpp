@@ -27,6 +27,8 @@
 
 #include <memoria/v1/reactor/file_streams.hpp>
 
+#include "../file_impl.hpp"
+
 #include <stdio.h>
 
 #include <fcntl.h>
@@ -98,7 +100,7 @@ DWORD get_flags_and_attributes(FileFlags flags, FileMode mode, bool no_buffering
 }
 
 
-class GenericFile: public File, public std::enable_shared_from_this<GenericFile> {
+class GenericFile: public FileImpl, public std::enable_shared_from_this<GenericFile> {
 	HANDLE fd_{ INVALID_HANDLE_VALUE };
 	bool no_buffering_;
 	bool closed_{false};
@@ -120,7 +122,7 @@ public:
 
 	virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
     {
-       	auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
+       	auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
        	return DataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);
     }
     
@@ -128,13 +130,13 @@ public:
     {
 		auto ptr = this->shared_from_this();
 
-       	auto buffered_os = std::make_shared<BufferedOS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
+       	auto buffered_os = std::make_shared<BufferedOS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
        	return DataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
     }
 };
 
 GenericFile::GenericFile(filesystem::path file_path, FileFlags flags, FileMode mode, bool no_buffering):
-    File(file_path), std::enable_shared_from_this<GenericFile>(), no_buffering_(no_buffering)
+    FileImpl(file_path), std::enable_shared_from_this<GenericFile>(), no_buffering_(no_buffering)
 {
 	DWORD creation_disposition = get_disposition(flags, mode);
 
@@ -385,15 +387,15 @@ void GenericFile::fdsync()
 
 
 
-std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
+File open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
 {
-	return std::static_pointer_cast<File>(std::make_shared<GenericFile>(file_path, flags, mode, true));
+	return std::static_pointer_cast<FileImpl>(std::make_shared<GenericFile>(file_path, flags, mode, true));
 }
 
-std::shared_ptr<File> open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode)
+File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode)
 {
 	auto ptr = std::make_shared<GenericFile>(file_path, flags, mode, false);
-	return std::static_pointer_cast<File>(ptr);
+	return std::static_pointer_cast<FileImpl>(ptr);
 }
 
 

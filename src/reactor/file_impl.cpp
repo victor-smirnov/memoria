@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/reactor/linux/linux_file.hpp>
-
 #include "file_impl.hpp"
 
 namespace memoria {

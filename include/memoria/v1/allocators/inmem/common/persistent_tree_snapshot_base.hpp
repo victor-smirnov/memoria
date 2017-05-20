@@ -72,12 +72,13 @@ public:
 
 
 
-template <typename Profile, typename PersistentAllocator, typename MyType>
+template <typename Profile, typename PersistentAllocator, typename SnapshotType>
 class SnapshotBase:
         public IAllocator<ProfilePageType<Profile>>,
-        public SnpSharedFromThis<MyType>
+        public SnpSharedFromThis<SnapshotType>
 {    
 protected:
+	using MyType			= SnapshotType;
     using PageType          = ProfilePageType<Profile>;
     using Base              = IAllocator<PageType>;
         
