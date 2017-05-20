@@ -141,6 +141,8 @@ public:
     
     friend class Application;
     friend Reactor& engine();
+    friend bool has_engine();
+    
     template <typename> friend class FiberMessage;
     friend class FiberIOMessage;
     
@@ -182,6 +184,20 @@ private:
 
 };
 
+bool has_engine();
+
 Reactor& engine();
     
+template <typename Fn, typename... Args> 
+auto engine_or_local(Fn&& fn, Args&&... args)
+{
+    if (has_engine()) {
+        return engine().run_in_thread_pool(std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+    else {
+        return fn(std::forward<Args>(args)...);
+    }
+}
+
+
 }}}

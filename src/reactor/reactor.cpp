@@ -24,8 +24,12 @@ namespace v1 {
 namespace reactor {
 
 thread_local Reactor* Reactor::local_engine_ = nullptr;    
-    
-    
+
+bool has_engine() {
+    return Reactor::local_engine_ != nullptr;
+}
+
+
 Reactor& engine() 
 {
 	if (Reactor::local_engine_ == nullptr) {

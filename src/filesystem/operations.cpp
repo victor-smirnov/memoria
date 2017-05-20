@@ -934,7 +934,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void copy_directory(const path& from, const path& to, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   ifdef BOOST_POSIX_API
         struct stat from_stat;
 #   endif
@@ -946,7 +946,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void copy_file(const path& from, const path& to, copy_option option, boost::system::error_code* ec)
   {
-      return mr::engine().run_in_thread_pool([&](){
+      return mr::engine_or_local([&](){
         error(!BOOST_COPY_FILE(from.c_str(), to.c_str(),
         option == fail_if_exists) ? BOOST_ERRNO : 0,
         from, to, ec, "memoria::v1::filesystem::copy_file");
@@ -956,7 +956,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void copy_symlink(const path& existing_symlink, const path& new_symlink, boost::system::error_code* ec)
   {
-      return mr::engine().run_in_thread_pool([&](){
+      return mr::engine_or_local([&](){
 # if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
         error(BOOST_ERROR_NOT_SUPPORTED, new_symlink, existing_symlink, ec,
         "memoria::v1::filesystem::copy_symlink");
@@ -972,11 +972,11 @@ namespace detail
  MEMORIA_V1_FILESYSTEM_DECL
   bool create_directories_(const path& p, boost::system::error_code* ec);
   bool create_directory_(const path& p, boost::system::error_code* ec);
-  file_status status_(const path& p, boost::system::error_code* ec);
+  //file_status status_(const path& p, boost::system::error_code* ec);
  
   bool create_directories(const path& p, boost::system::error_code* ec) 
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
       return create_directories_(p, ec);
     });
   }
@@ -1002,7 +1002,7 @@ namespace detail
     }
     
     boost::system::error_code local_ec;
-    file_status p_status = status_(p, &local_ec);
+    file_status p_status = status(p, &local_ec);
 
     if (p_status.type() == directory_file)
     {
@@ -1017,7 +1017,7 @@ namespace detail
     if (!parent.empty())
     {
         // determine if the parent exists
-        file_status parent_status = status_(parent, &local_ec);
+        file_status parent_status = status(parent, &local_ec);
 
         // if the parent does not exist, create the parent
         if (parent_status.type() == file_not_found)
@@ -1044,7 +1044,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   bool create_directory(const path& p, boost::system::error_code* ec) 
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
       return create_directory_(p, ec);
     });
   }
@@ -1083,7 +1083,7 @@ namespace detail
   void create_directory_symlink(const path& to, const path& from,
                                  boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0600  // SDK earlier than Vista and Server 2008
 
         error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
@@ -1107,7 +1107,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void create_hard_link(const path& to, const path& from, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0500  // SDK earlier than Win 2K
 
         error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
@@ -1130,7 +1130,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void create_symlink(const path& to, const path& from, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0600  // SDK earlier than Vista and Server 2008
         error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
         "memoria::v1::filesystem::create_directory_symlink");
@@ -1152,7 +1152,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   path current_path(boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){      
+    return mr::engine_or_local([&](){      
 #   ifdef BOOST_POSIX_API
         path cur;
         for (long path_max = 128;; path_max *=2)// loop 'til buffer large enough
@@ -1205,7 +1205,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void current_path(const path& p, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
         error(!BOOST_SET_CURRENT_DIRECTORY(p.c_str()) ? BOOST_ERRNO : 0,
             p, ec, "memoria::v1::filesystem::current_path");
     });
@@ -1214,7 +1214,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   bool equivalent(const path& p1, const path& p2, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){      
+    return mr::engine_or_local([&](){      
 #   ifdef BOOST_POSIX_API
         struct stat s2;
         int e2(::stat(p2.c_str(), &s2));
@@ -1322,7 +1322,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   boost::uintmax_t file_size(const path& p, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&]{
+    return mr::engine_or_local([&]{
 #   ifdef BOOST_POSIX_API
 
         struct stat path_stat;
@@ -1368,7 +1368,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   boost::uintmax_t hard_link_count(const path& p, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   ifdef BOOST_POSIX_API
         
         struct stat path_stat;
@@ -1413,7 +1413,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   bool is_empty(const path& p, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   ifdef BOOST_POSIX_API
 
         struct stat path_stat;
@@ -1449,7 +1449,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   std::time_t last_write_time(const path& p, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   ifdef BOOST_POSIX_API
 
         struct stat path_stat;
@@ -1494,7 +1494,7 @@ namespace detail
   void last_write_time(const path& p, const std::time_t new_time,
                         boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   ifdef BOOST_POSIX_API
 
         struct stat path_stat;
@@ -1544,7 +1544,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void permissions(const path& p, perms prms, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
         BOOST_ASSERT_MSG(!((prms & add_perms) && (prms & remove_perms)),
         "add_perms and remove_perms are mutually exclusive");
 
@@ -1650,7 +1650,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   path read_symlink(const path& p, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
         path symlink_path;
 
 #   ifdef BOOST_POSIX_API
@@ -1761,7 +1761,7 @@ namespace detail
     // perfect world it could just be called. But some important real-world operating
     // systems (Windows, Mac OS X, for example) don't implement the POSIX spec. So
     // remove_file_or_directory() is always called to keep it simple.
-    return mr::engine().run_in_thread_pool([&](){        
+    return mr::engine_or_local([&](){        
         return remove_file_or_directory(p, type, ec);
     });
   }
@@ -1778,7 +1778,7 @@ namespace detail
         return 0;
     }
     
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
         return (type != status_error && type != file_not_found) // exists
             ? remove_all_aux(p, type, ec)
             : 0;
@@ -1788,7 +1788,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void rename(const path& old_p, const path& new_p, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&]()
+    return mr::engine_or_local([&]()
     {
         error(!BOOST_MOVE_FILE(old_p.c_str(), new_p.c_str()) ? BOOST_ERRNO : 0, old_p, new_p,
         ec, "memoria::v1::filesystem::rename");
@@ -1798,7 +1798,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void resize_file(const path& p, uintmax_t size, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
         error(!BOOST_RESIZE_FILE(p.c_str(), size) ? BOOST_ERRNO : 0, p, ec,
         "memoria::v1::filesystem::resize_file");
     }); 
@@ -1807,7 +1807,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   space_info space(const path& p, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   ifdef BOOST_POSIX_API
         struct BOOST_STATVFS vfs;
         space_info info;
@@ -1841,9 +1841,11 @@ namespace detail
   }
   
 
-  file_status status_(const path& p, boost::system::error_code* ec)
+
+  MEMORIA_V1_FILESYSTEM_DECL
+  file_status status(const path& p, boost::system::error_code* ec)
   {
-    
+    return mr::engine_or_local([&](){
 #   ifdef BOOST_POSIX_API
 
         struct stat path_stat;
@@ -1940,22 +1942,13 @@ namespace detail
             ? file_status(directory_file, make_permissions(p, attr))
             : file_status(regular_file, make_permissions(p, attr));
 #   endif
-  }
-  
-  
-
-  MEMORIA_V1_FILESYSTEM_DECL
-  file_status status(const path& p, boost::system::error_code* ec)
-  {
-    return mr::engine().run_in_thread_pool([&](){
-        return status_(p, ec);
     });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   file_status symlink_status(const path& p, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   ifdef BOOST_POSIX_API
 
         struct stat path_stat;
@@ -2045,7 +2038,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   path temp_directory_path(boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
 #   ifdef BOOST_POSIX_API
         const char* val = 0;
         
@@ -2298,7 +2291,7 @@ namespace
 
   error_code dir_itr_first(void *& handle, void *& buffer, const char* dir, string& target, fs::file_status &, fs::file_status &)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
         if ((handle = ::opendir(dir))== 0) 
         {
             return error_code(errno, system_category());
@@ -2325,7 +2318,7 @@ namespace
   // warning: the only dirent member updated is d_name
   inline int readdir_r_simulator(DIR * dirp, struct dirent * entry, struct dirent ** result)// *result set to 0 on end of directory
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
         errno = 0;
 
 #   if !defined(__CYGWIN__)\
@@ -2371,7 +2364,7 @@ namespace
             return fs::detail::dir_itr_close(handle, buffer);
         }
         
-        return mr::engine().run_in_thread_pool([&]()
+        return mr::engine_or_local([&]()
         {
             target = entry->d_name;
 #   ifdef MEMORIA_V1_FILESYSTEM_STATUS_CACHE
@@ -2410,7 +2403,7 @@ namespace
   // causes a ERROR_FILE_NOT_FOUND error which we do not considered an
   // error. It is treated as eof instead.
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
         // use a form of search Sebastian Martel reports will work with Win98
         wstring dirpath(dir.wstring());
         
@@ -2463,7 +2456,7 @@ namespace
   error_code  dir_itr_increment(void *& handle, wstring& target,
     fs::file_status & sf, fs::file_status & symlink_sf)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    return mr::engine_or_local([&](){
         WIN32_FIND_DATAW data;
         if (::FindNextFileW(handle, &data)== 0)// fails
         {
@@ -2551,7 +2544,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   boost::system::error_code dir_itr_close(void *& handle, void *& buffer)
   {
-	  return mr::engine().run_in_thread_pool([&]() {
+	  return mr::engine_or_local([&]() {
 		  return dir_itr_close_(handle, buffer);
 	  });
   }
@@ -2559,7 +2552,7 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   boost::system::error_code dir_itr_close(void *& handle)
   {
-	  return mr::engine().run_in_thread_pool([&]() {
+	  return mr::engine_or_local([&]() {
 		  return dir_itr_close_(handle);
 	  });
   }
