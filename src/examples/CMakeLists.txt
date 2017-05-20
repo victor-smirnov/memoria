@@ -27,7 +27,6 @@ MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
     
     set_target_properties(${EX_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     set_target_properties(${EX_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    set_target_properties(${EX_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/examples")
     
     if (BUILD_MSVC)
         target_link_libraries(${EX_TARGET} Memoria ${MEMORIA_LIBS})
@@ -40,6 +39,6 @@ ENDMACRO()
 
 Example(map map.cpp lib/map_int64_string_dflt.cpp "")
 
-#Example(vector vector.cpp lib/vector_int_dflt.cpp lib/vector_string_dflt.cpp)
+Example(vector vector.cpp lib/vector_int_dflt.cpp lib/vector_string_dflt.cpp)
 
 Example(multimap multimap.cpp lib/multimap_uuid_byte_dflt.cpp "")

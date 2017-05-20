@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
+#include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/vector/vector_api.hpp>
 
 

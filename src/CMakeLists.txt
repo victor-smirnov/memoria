@@ -50,7 +50,7 @@ if (BUILD_TESTS)
     add_subdirectory(tests-core)     
 #    add_subdirectory(tests-other/disruptor)
 #    add_subdirectory(tests-other/fiber)
-#    add_subdirectory(tests-other/reactor)
+    add_subdirectory(tests-other/reactor)
 endif()
 
 if (BUILD_SANDBOX) 
