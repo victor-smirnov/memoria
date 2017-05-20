@@ -27,7 +27,7 @@
 
 #include "../common/allocator_base.hpp"
 
-#include "persistent_tree_snapshot.hpp"
+#include "threads_snapshot.hpp"
 
 
 #include <malloc.h>

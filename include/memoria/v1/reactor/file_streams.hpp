@@ -20,6 +20,8 @@
 
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 
+#include <exception>
+
 namespace memoria {
 namespace v1 {
 namespace reactor {
@@ -77,217 +79,115 @@ public:
     const BufferT& buffer() const {return buffer_;}
 };
 
+enum class FilePos {BEGIN, END};
 
-/*
-template <typename BufferT = DefaultIOBuffer>    
-class DmaOS: public BinaryOutputStream {
-    BufferT buffer_;
-    std::shared_ptr<File> file_;
+template <typename Char = char> 
+class FileStrembuf: public std::basic_streambuf<Char> {
+    using Base = std::basic_streambuf<Char>;
     
-    uint64_t position_;
+    File file_; 
+    std::unique_ptr<Char[]> buffer_;
+    size_t buffer_size_;
     
-    DMABuffer dma_buffer_;
-    
-    size_t dma_buffer_size_{512*1024};
-    size_t dma_buffer_pos_{};
+    uint64_t processed_;
+    bool flushed_{false};
     
 public:
-    DmaOS(size_t buffer_size, const std::shared_ptr<File>& file, uint64_t start):
-        buffer_(buffer_size), file_(file), position_(start), dma_buffer_{allocate_dma_buffer(512*1024)}
-    {}
+    using typename Base::int_type;
+    using typename Base::traits_type;
     
-    virtual size_t write(const uint8_t* data, size_t size) 
+    FileStrembuf(File file, FilePos pos = FilePos::BEGIN, size_t buffer_size = 4096): 
+        file_(file),
+        buffer_(std::make_unique<Char[]>(buffer_size)),
+        buffer_size_(buffer_size)
     {
-        size_t room_size = dma_buffer_size_ - dma_buffer_pos_;
+        reset();
         
-        if (MMA1_LIKELY(size <= room_size))
-        {
-            std::memcpy(dma_buffer_.get() + dma_buffer_pos_, data, size);
-            dma_buffer_pos_ += size;
-        }
-        else if (room_size == 0) 
-        {
-            flush_dma(dma_buffer_size_);
-            return write(data, size);
+        if (pos == FilePos::BEGIN) {
+            processed_ = 0;
         }
         else {
-            std::memcpy(dma_buffer_.get() + dma_buffer_pos_, data, room_size);
-            flush_dma(dma_buffer_size_);
-            
-            for (size_t pos = room_size; pos < size; ) 
-            {
-                if (pos + dma_buffer_size_ <= size)
-                {
-                    std::memcpy(dma_buffer_.get(), data, dma_buffer_size_);
-                    flush_dma(dma_buffer_size_);
-                    
-                    pos += dma_buffer_size_;
-                }
-                else {
-                    std::memcpy(dma_buffer_.get(), data, dma_buffer_size_ - dma_buffer_pos_);
-                    pos = size;
-                }
-            }
+            processed_ = file_.size();
         }
-        
-        return size;
     }
     
-    void flush_dma(size_t size = 0) 
+    ~FileStrembuf() noexcept {
+        try {
+            bflush();
+        }
+        catch(std::exception& ex) {
+            std::cerr << "Exception flushing file stream buffer :" << ex.what() << std::endl; 
+        }
+        catch(...) {
+            std::cerr << "Unknown exception flushing file stream buffer" << std::endl; 
+        }
+    }
+    
+    virtual int_type
+    overflow(int_type c = traits_type::eof())
+    { 
+        *this->pptr() = c;
+        
+        bflush(1);
+        
+        return traits_type::not_eof(c); 
+    }
+    
+    void fsync() {
+        sync();
+        flush();
+        return file_.fdsync();
+    }
+    
+    virtual int sync() {
+        flushed_ = false;
+        return 0;
+    }
+    
+    void flush() {
+        bflush();
+    }
+        
+private:
+    void bflush(size_t add = 0) 
     {
-        size_t len = file_->write(dma_buffer_.get(), position_, size);
+        ptrdiff_t size = (this->pptr() - this->pbase()) + add;
         
-        std::memset(dma_buffer_.get(), 0, dma_buffer_size_);
-        
-        if (len < size) 
+        if (size > 0) 
         {
-            tools::rise_error(SBuf() << "Write error: " << size << " " << len);
+            processed_ += file_.write(tools::ptr_cast<uint8_t>(this->pbase()), processed_, size * sizeof(Char));
+            reset();
         }
-        
-        position_ += size;
-        dma_buffer_pos_ = 0;
     }
     
-    virtual void flush() {
-        flush_dma(align_up(dma_buffer_pos_));
+    void reset() {
+        Base::setp(buffer_.get(), buffer_.get() + buffer_size_);
     }
-    
-    size_t align_up(size_t size) 
-    {
-        size_t alignment = file_->alignment();
-        
-        if (size % alignment == 0) 
-        {
-            return size;
-        }
-        else {
-            return (size / alignment + 1) * alignment;
-        }
-    }
-
-    BufferT& buffer() {return buffer_;}
-    const BufferT& buffer() const {return buffer_;}
 };
 
 
+template <typename Char = char> 
+class BufferedFileOStream: public std::basic_ostream<Char> {
+    using Base = std::basic_ostream<Char>;
 
-
-
-template <typename BufferT = DefaultIOBuffer>    
-class DmaIS: public BinaryInputStream {
-    BufferT buffer_;
-    std::shared_ptr<File> file_;
-    
-    uint64_t position_;
-    
-    DMABuffer dma_buffer_;
-    
-    size_t dma_buffer_size_;
-    size_t dma_buffer_limit_{};
-    size_t dma_buffer_pos_{};
-    
+    FileStrembuf<Char> buffer_;
 public:
-    DmaIS(size_t buffer_size, const std::shared_ptr<File>& file, uint64_t start, size_t dma_buf_size = 512*1024):
-        buffer_(buffer_size), 
-        file_(file), 
-        position_(start), 
-        dma_buffer_(allocate_dma_buffer(dma_buf_size)),
-        dma_buffer_size_(dma_buf_size)
+    BufferedFileOStream(File file, FilePos pos = FilePos::BEGIN, size_t buffer_size = 4096): 
+        buffer_(file, pos, buffer_size)
     {
-        pull();
-    }
-
-
-    virtual size_t read(uint8_t* data, size_t size)
-    {
-        size_t availavle = dma_buffer_limit_ - dma_buffer_pos_;
-        
-        if (MMA1_LIKELY(size <= availavle)) 
-        {
-            std::memcpy(data, dma_buffer_.get() + dma_buffer_pos_, size);
-            dma_buffer_pos_ += size;
-            
-            return size;
-        }
-        else {
-            pull();
-            
-            availavle = dma_buffer_limit_ - dma_buffer_pos_;
-            if (MMA1_LIKELY(size <= availavle))
-            {
-                std::memcpy(data, dma_buffer_.get() + dma_buffer_pos_, size);
-                dma_buffer_pos_ += size;
-            
-                return size;
-            }
-            else if (MMA1_LIKELY(dma_buffer_limit_ == dma_buffer_size_))
-            {
-                for (size_t pos = 0; pos < size;)
-                {
-                    if (pos + dma_buffer_size_ <= size) 
-                    {
-                        std::memcpy(data, dma_buffer_.get() + dma_buffer_pos_, dma_buffer_size_ - dma_buffer_limit_);
-                    }
-                    
-                    size_t limit = MMA1_UNLIKELY(pos + dma_buffer_size_ <= size) ? dma_buffer_size_ : (size - pos);
-                    
-                    std::memcpy(data, dma_buffer_.get() + dma_buffer_pos_, size);
-                    
-                    pull();
-                    
-                    pos += limit;
-                    
-                    if (MMA1_UNLIKELY(buffer_->limit() < limit)) {
-                        tools::rise_error(SBuf() << "Premature end of stream");
-                    }
-                }
-            }
-            else {
-                tools::rise_error(SBuf() << "Premature end of stream");
-            }
-        }
-        
-        
-        size_t len = file_->read(data, position_, size);
-        position_ += len;
-        return len;
+        this->init(&buffer_);
     }
     
-    size_t pull() 
-    {
-        size_t pos = dma_buffer_pos_ / file_->alignment();
-        size_t to_move = dma_buffer_limit_ - pos;
-        
-        std::memmove(dma_buffer_.get(), dma_buffer_.get() + pos, dma_buffer_size_ - pos);
-        
-        dma_buffer_pos_ -= pos;
-        dma_buffer_limit_ -= pos;
-        
-        size_t len = file_->read(dma_buffer_.get() + dma_buffer_limit_, position_, dma_buffer_size_ - dma_buffer_limit_);
-        
-        //FIXME may be a problem if returned read length is not a multiple of alignment blocks
-        dma_buffer_limit_ += len;
-        position_ += len;
-        
-        return len;
+    void flush() {
+        buffer_.flush();
     }
     
-    void pull_and_ensure(size_t size)
-    {
-        auto len = pull();
-        if (MMA1_UNLIKELY(len < size)) 
-        {
-            tools::rise_error(SBuf() << "Premature end of stream. Requested " << size << ", read " << len);
-        }
+    void fsync() {
+        buffer_.fsync();
     }
-    
-    
-    BufferT& buffer() {return buffer_;}
-    const BufferT& buffer() const {return buffer_;}
 };
-*/
 
-
+using bfstream = BufferedFileOStream<char>;
 
 
 

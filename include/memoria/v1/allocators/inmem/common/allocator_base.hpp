@@ -27,7 +27,7 @@
 
 #include "persistent_tree_node.hpp"
 #include "persistent_tree.hpp"
-#include "persistent_tree_snapshot_base.hpp"
+#include "snapshot_base.hpp"
 
 
 

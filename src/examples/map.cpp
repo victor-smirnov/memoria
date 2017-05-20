@@ -27,6 +27,7 @@
 #include <memoria/v1/api/map/map_api.hpp>
 
 #include <memoria/v1/reactor/application.hpp>
+#include <memoria/v1/reactor/file_streams.hpp>
 
 using namespace memoria::v1;
 using namespace memoria::v1::reactor;
@@ -41,7 +42,7 @@ int main(int argc, char** argv)
     
     map_app.run([](){
     
-        try {
+        try {            
             // Create persistent in-memory allocator for containers to store their data in.
             auto alloc = InMemAllocator<>::create();
 
@@ -92,7 +93,7 @@ int main(int argc, char** argv)
 //                 map.remove(c);
 //             }
 // 
-//             snp.dump("map_empty.dir");
+            snp.dump("map_empty.dir");
 
             // Finish snapshot so no other updates are possible.
             snp.commit();

@@ -27,6 +27,10 @@
 #include <memoria/v1/core/tools/memory.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
 
+#include <memoria/v1/filesystem/operations.hpp>
+#include <memoria/v1/filesystem/path.hpp>
+#include <memoria/v1/reactor/file_streams.hpp>
+
 #include <boost/filesystem.hpp>
 
 #include <stack>
@@ -319,8 +323,8 @@ public:
 template <typename PageType>
 class FSDumpContainerWalker: public ContainerWalker {
 
-    typedef PageType                                                            Page;
-    typedef typename Page::ID                                                   ID;
+    using Page = PageType;
+    using ID   = typename Page::ID;
 
     ContainerMetadataRepository* metadata_;
     std::stack<bf::path> path_;
@@ -550,6 +554,259 @@ template <typename Allocator>
 void FSDumpAllocator(Allocator& allocator, StringRef path)
 {
     using Walker = FSDumpContainerWalker<typename Allocator::Page>;
+
+    Walker walker(allocator.metadata(), path);
+    allocator.walk_containers(&walker);
+}
+
+
+
+template <typename PageType>
+class FiberFSDumpContainerWalker: public ContainerWalker {
+
+    using Page = PageType;
+    using ID   = typename Page::ID;
+
+    ContainerMetadataRepository* metadata_;
+    std::stack<filesystem::path> path_;
+
+public:
+    FiberFSDumpContainerWalker(ContainerMetadataRepository* metadata, filesystem::path root):
+        metadata_(metadata)
+    {
+        filesystem::path root_path = std::move(root);
+        
+        if (!filesystem::exists(root_path))
+        {
+            filesystem::create_directories(root_path);
+        }
+        else {
+            filesystem::remove_all(root_path);
+            filesystem::create_directories(root_path);
+        }
+
+        path_.push(root_path);
+    }
+
+    virtual void beginSnapshotSet(const char* descr, size_t number)
+    {
+        pushFolder(descr);
+    }
+
+    virtual void endSnapshotSet()
+    {
+        path_.pop();
+    }
+
+    virtual void beginAllocator(const char* type, const char* desc)
+    {
+        pushFolder(type);
+    }
+
+    virtual void endAllocator()
+    {
+        path_.pop();
+    }
+
+    virtual void beginSnapshot(const char* descr)
+    {
+        pushFolder(descr);
+    }
+
+    virtual void endSnapshot()
+    {
+        path_.pop();
+    }
+
+    virtual void beginCompositeCtr(const char* descr, const UUID& name)
+    {
+        stringstream str;
+
+        str << shorten(descr) <<": " << name;
+
+        pushFolder(str.str().c_str());
+
+        dumpDescription("ctr_name", String(descr));
+    }
+
+    virtual void endCompositeCtr() {
+        path_.pop();
+    }
+
+    virtual void beginCtr(const char* descr, const UUID& name, const UUID& root)
+    {
+        stringstream str;
+
+        str << shorten(descr) << ": " << name;
+
+        pushFolder(str.str().c_str());
+
+        dumpDescription("ctr_name", String(descr));
+    }
+
+    virtual void endCtr() {
+        path_.pop();
+    }
+
+    virtual void rootLeaf(int32_t idx, const void* page_data)
+    {
+        const Page* page = T2T<Page*>(page_data);
+
+        String file_name = path_.top().string() + Platform::getFilePathSeparator() + "root_leaf.txt";
+
+        dumpPage(file_name, page);
+    }
+
+    virtual void leaf(int32_t idx, const void* page_data)
+    {
+        const Page* page = T2T<Page*>(page_data);
+
+        String description = getNodeName("Leaf", idx, page->id());
+
+        String file_name = path_.top().string() + Platform::getFilePathSeparator() + description + ".txt";
+
+        dumpPage(file_name, page);
+    }
+
+    virtual void beginRoot(int32_t idx, const void* page_data)
+    {
+        beginNonLeaf("Root", idx, page_data);
+    }
+
+    virtual void endRoot()
+    {
+        path_.pop();
+    }
+
+    virtual void beginNode(int32_t idx, const void* page_data)
+    {
+        beginNonLeaf("Node", idx, page_data);
+    }
+
+    virtual void endNode()
+    {
+        path_.pop();
+    }
+
+    virtual void singleNode(const char* description, const void* page_data)
+    {
+        const Page* page = T2T<Page*>(page_data);
+
+        String file_name = path_.top().string() + Platform::getFilePathSeparator() + description + ".txt";
+
+        dumpPage(file_name, page);
+    }
+
+
+    virtual void beginSection(const char* name)
+    {
+        pushFolder(name);
+    }
+
+    virtual void endSection() {
+        path_.pop();
+    }
+
+    virtual void content(const char* name, const char* content)
+    {
+        dumpDescription(name, content);
+    }
+
+private:
+
+    void beginNonLeaf(const char* type, int32_t idx, const void* page_data)
+    {
+        const Page* page = T2T<Page*>(page_data);
+
+        String folder_name = getNodeName(type, idx, page->id());
+        pushFolder(folder_name.c_str());
+
+        String file_name = path_.top().string() + Platform::getFilePathSeparator() + "0_page.txt";
+
+        dumpPage(file_name, page);
+    }
+
+
+    void dumpPage(filesystem::path file, const Page* page)
+    {
+        reactor::bfstream pagetxt(
+            reactor::open_buffered_file(
+                file, 
+                reactor::FileFlags::WRONLY | reactor::FileFlags::CREATE | reactor::FileFlags::TRUNCATE
+            )
+        );
+
+        auto meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+
+        dumpPageData(meta.get(), page, pagetxt);
+    }
+
+    void dumpDescription(StringRef type, StringRef content)
+    {
+        String file_name = path_.top().parent_path().string() + Platform::getFilePathSeparator() + type + ".txt";
+
+        reactor::bfstream file(
+            reactor::open_buffered_file(
+                file_name, 
+                reactor::FileFlags::WRONLY | reactor::FileFlags::CREATE | reactor::FileFlags::TRUNCATE
+            )
+        );
+
+        file << content;
+    }
+
+    void pushFolder(const char* descr)
+    {
+        String name = path_.top().string() + Platform::getFilePathSeparator() + String(descr);
+        filesystem::path file(name);
+        
+        auto res = bf::create_directory(name);
+        
+        MEMORIA_V1_ASSERT_TRUE(res);
+        path_.push(file);
+    }
+
+    String getNodeName(const char* name, int32_t index, const ID& id)
+    {
+        std::stringstream str;
+
+        str << name << "-";
+
+        char prev = str.fill();
+
+        str.fill('0');
+        str.width(4);
+
+        str << index;
+
+        str.fill(prev);
+
+        str << "___" << id;
+
+        return str.str();
+    }
+
+private:
+    String shorten(const char* txt)
+    {
+        String text = txt;
+
+        auto start = text.find_first_of("<");
+
+        if (start != String::npos)
+        {
+            text.erase(start);
+        }
+
+        return text;
+    }
+};
+
+
+template <typename Allocator>
+void FiberFSDumpAllocator(Allocator& allocator, StringRef path)
+{
+    using Walker = FiberFSDumpContainerWalker<typename Allocator::Page>;
 
     Walker walker(allocator.metadata(), path);
     allocator.walk_containers(&walker);

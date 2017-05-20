@@ -79,7 +79,7 @@ public:
     static InMemAllocator create();
     static InMemAllocator create(int32_t cpu);
     
-    void store(boost::filesystem::path file_name);
+    void store(filesystem::path file_name);
     void store(OutputStreamHandler* output_stream);
     
     SnapshotPtr master();
@@ -92,7 +92,7 @@ public:
     ContainerMetadataRepository* metadata() const;
     void walk_containers(ContainerWalker* walker, const char* allocator_descr = nullptr);
     
-    void dump(boost::filesystem::path dump_at);
+    void dump(filesystem::path dump_at);
     
     Logger& logger();
     
@@ -161,7 +161,7 @@ public:
     void import_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
     void copy_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
     bool check();
-    void dump(boost::filesystem::path destination);
+    void dump(filesystem::path destination);
     void dump_persistent_tree();
     void walk_containers(ContainerWalker* walker, const char* allocator_descr = nullptr);
     

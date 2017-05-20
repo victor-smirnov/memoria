@@ -972,6 +972,7 @@ namespace detail
  MEMORIA_V1_FILESYSTEM_DECL
   bool create_directories_(const path& p, boost::system::error_code* ec);
   bool create_directory_(const path& p, boost::system::error_code* ec);
+  file_status status_(const path& p, boost::system::error_code* ec);
  
   bool create_directories(const path& p, boost::system::error_code* ec) 
   {
@@ -1001,7 +1002,7 @@ namespace detail
     }
     
     boost::system::error_code local_ec;
-    file_status p_status = status(p, local_ec);
+    file_status p_status = status_(p, &local_ec);
 
     if (p_status.type() == directory_file)
     {
@@ -1016,7 +1017,7 @@ namespace detail
     if (!parent.empty())
     {
         // determine if the parent exists
-        file_status parent_status = status(parent, local_ec);
+        file_status parent_status = status_(parent, &local_ec);
 
         // if the parent does not exist, create the parent
         if (parent_status.type() == file_not_found)
@@ -1838,11 +1839,11 @@ namespace detail
         return info;
     });
   }
+  
 
-  MEMORIA_V1_FILESYSTEM_DECL
-  file_status status(const path& p, boost::system::error_code* ec)
+  file_status status_(const path& p, boost::system::error_code* ec)
   {
-    return mr::engine().run_in_thread_pool([&](){
+    
 #   ifdef BOOST_POSIX_API
 
         struct stat path_stat;
@@ -1939,6 +1940,15 @@ namespace detail
             ? file_status(directory_file, make_permissions(p, attr))
             : file_status(regular_file, make_permissions(p, attr));
 #   endif
+  }
+  
+  
+
+  MEMORIA_V1_FILESYSTEM_DECL
+  file_status status(const path& p, boost::system::error_code* ec)
+  {
+    return mr::engine().run_in_thread_pool([&](){
+        return status_(p, ec);
     });
   }
 

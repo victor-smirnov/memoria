@@ -27,7 +27,7 @@
 
 #include "../common/allocator_base.hpp"
 
-#include "persistent_tree_snapshot.hpp"
+#include "fibers_snapshot.hpp"
 
 #include <memoria/v1/reactor/reactor.hpp>
 
@@ -389,15 +389,15 @@ public:
     }
 
 
-    virtual void store(const char* file)
+    virtual void store(filesystem::path file)
     {
-    	auto fileh = FileOutputStreamHandler::create(file);
+    	auto fileh = FileOutputStreamHandler::create_buffered(file);
         store(fileh.get());
     }
 
-    void dump(const char* path)
+    void dump(filesystem::path path)
     {
-        using Walker = FSDumpContainerWalker<Page>;
+        using Walker = FiberFSDumpContainerWalker<Page>;
 
         Walker walker(this->getMetadata(), path);
         this->walkContainers(&walker);
@@ -631,9 +631,9 @@ InMemAllocator<Profile> InMemAllocator<Profile>::create(int32_t cpu)
 }
 
 template <typename Profile>
-void InMemAllocator<Profile>::store(boost::filesystem::path file_name) 
+void InMemAllocator<Profile>::store(filesystem::path file_name) 
 {
-    pimpl_->store(file_name.string().c_str());
+    pimpl_->store(file_name);
 }
 
 template <typename Profile>
@@ -686,9 +686,9 @@ void InMemAllocator<Profile>::walk_containers(ContainerWalker* walker, const cha
 }
 
 template <typename Profile>
-void InMemAllocator<Profile>::dump(boost::filesystem::path dump_at) 
+void InMemAllocator<Profile>::dump(filesystem::path dump_at) 
 {
-    pimpl_->dump(dump_at.string().c_str());
+    pimpl_->dump(dump_at);
 }
 
 template <typename Profile>
