@@ -32,7 +32,9 @@
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
+#include <memoria/v1/reactor/reactor.hpp>
 
+#include <memoria/v1/fiber/shared_mutex.hpp>
 
 #include <vector>
 #include <memory>
@@ -75,17 +77,20 @@ protected:
     using Base::do_drop;
     using Base::check_tree_structure;
 
+    int32_t cpu_;
 
 public:
     using Base::uuid;
     
     
     Snapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
-        Base(history_node, history_tree)
+        Base(history_node, history_tree),
+        cpu_(history_tree->cpu_)
     {}
 
     Snapshot(HistoryNode* history_node, PersistentAllocator* history_tree):
-        Base(history_node, history_tree)
+        Base(history_node, history_tree),
+        cpu_(history_tree->cpu_)
     {
     }
  
@@ -131,169 +136,193 @@ public:
     
     
 
-    SnapshotMetadata<UUID> describe() const
+    SnpSharedPtr<SnapshotMetadata<UUID>> describe() const
     {
-    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+        return reactor::engine().run_at(cpu_, [&]
+        {
+            //std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
 
-    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+            //AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+            //LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
-    	std::vector<UUID> children;
+            std::vector<UUID> children;
 
-    	for (const auto& node: history_node_->children())
-    	{
-    		children.emplace_back(node->txn_id());
-    	}
+            for (const auto& node: history_node_->children())
+            {
+                children.emplace_back(node->txn_id());
+            }
 
-    	auto parent_id = history_node_->parent() ? history_node_->parent()->txn_id() : UUID();
+            auto parent_id = history_node_->parent() ? history_node_->parent()->txn_id() : UUID();
 
-    	return SnapshotMetadata<UUID>(parent_id, history_node_->txn_id(), children, history_node_->metadata(), history_node_->status());
+            return snp_make_shared<SnapshotMetadata<UUID>>(
+                parent_id, history_node_->txn_id(), children, history_node_->metadata(), history_node_->status()
+            );
+        });
     }
 
     void commit()
     {
-    	LockGuardT lock_guard(history_node_->snapshot_mutex());
+    	//LockGuardT lock_guard(history_node_->snapshot_mutex());
 
-        if (history_node_->is_active() || history_node_->is_data_locked())
-        {
-            history_node_->commit();
-            history_tree_raw_->unref_active();
-        }
-        else {
-            throw Exception(MA_SRC, SBuf() << "Invalid state: " << (int32_t)history_node_->status() << " for snapshot " << uuid());
-        }
+        return reactor::engine().run_at(cpu_, [&]{
+            if (history_node_->is_active() || history_node_->is_data_locked())
+            {
+                history_node_->commit();
+                history_tree_raw_->unref_active();
+            }
+            else {
+                throw Exception(MA_SRC, SBuf() << "Invalid state: " << (int32_t)history_node_->status() << " for snapshot " << uuid());
+            }
+        });
     }
 
     void drop()
     {
-    	std::lock(history_node_->allocator_mutex(), history_node_->snapshot_mutex());
-
-    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
-        if (history_node_->parent() != nullptr)
+        return reactor::engine().run_at(cpu_, [&]
         {
-            history_node_->mark_to_clear();
-        }
-        else {
-            throw Exception(MA_SRC, SBuf() << "Can't drop root snapshot " << uuid());
-        }
+//             std::lock(history_node_->allocator_mutex(), history_node_->snapshot_mutex());
+// 
+//             AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+//             LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+
+            if (history_node_->parent() != nullptr)
+            {
+                history_node_->mark_to_clear();
+            }
+            else {
+                throw Exception(MA_SRC, SBuf() << "Can't drop root snapshot " << uuid());
+            }
+        });
     }
 
-    StringRef metadata() const
+    String metadata() const
     {
-    	LockGuardT lock_guard(history_node_->snapshot_mutex());
-        return history_node_->metadata();
+    	//LockGuardT lock_guard(history_node_->snapshot_mutex());
+        return reactor::engine().run_at(cpu_, [&]{
+            return history_node_->metadata();
+        });
     }
 
     void set_metadata(StringRef metadata)
     {
-    	LockGuardT lock_guard(history_node_->snapshot_mutex());
-
-        if (history_node_->is_active())
+    	//LockGuardT lock_guard(history_node_->snapshot_mutex());
+        return reactor::engine().run_at(cpu_, [&]
         {
-            history_node_->set_metadata(metadata);
-        }
-        else
-        {
-            throw Exception(MA_SRC, "Snapshot is already committed.");
-        }
+            if (history_node_->is_active())
+            {
+                history_node_->set_metadata(metadata);
+            }
+            else
+            {
+                throw Exception(MA_SRC, "Snapshot is already committed.");
+            }
+        });
     }
 
     void lock_data_for_import()
     {
-    	std::lock(history_node_->allocator_mutex(), history_node_->snapshot_mutex());
+//     	std::lock(history_node_->allocator_mutex(), history_node_->snapshot_mutex());
+// 
+//     	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+//     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
-    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
-    	if (history_node_->is_active())
-    	{
-    		if (!has_open_containers())
-    		{
-    			history_node_->lock_data();
-    		}
-    		else {
-    			throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has open containers");
-    		}
-    	}
-    	else if (history_node_->is_data_locked()) {
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid state: " << (int32_t)history_node_->status() << " for snapshot " << uuid());
-    	}
+        return reactor::engine().run_at(cpu_, [&] {
+            if (history_node_->is_active())
+            {
+                if (!has_open_containers())
+                {
+                    history_node_->lock_data();
+                }
+                else {
+                    throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has open containers");
+                }
+            }
+            else if (history_node_->is_data_locked()) {
+            }
+            else {
+                throw Exception(MA_SRC, SBuf() << "Invalid state: " << (int32_t)history_node_->status() << " for snapshot " << uuid());
+            }
+        });
     }
 
 
     SnapshotPtr branch()
     {
-    	std::lock(history_node_->allocator_mutex(), history_node_->snapshot_mutex());
+//     	std::lock(history_node_->allocator_mutex(), history_node_->snapshot_mutex());
+// 
+//     	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+//     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
-    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+        return reactor::engine().run_at(cpu_, [&] {
+            if (history_node_->is_committed())
+            {
+                HistoryNode* history_node = new HistoryNode(history_node_);
 
-        if (history_node_->is_committed())
-        {
-            HistoryNode* history_node = new HistoryNode(history_node_);
+                //LockGuardT lock_guard3(history_node->snapshot_mutex());
 
-            LockGuardT lock_guard3(history_node->snapshot_mutex());
+                history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
-            history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
-
-            return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this());
-        }
-        else if (history_node_->is_data_locked())
-        {
-        	throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " is locked, branching is not possible.");
-        }
-        else
-        {
-            throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " is still being active. Commit it first.");
-        }
+                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this());
+            }
+            else if (history_node_->is_data_locked())
+            {
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " is locked, branching is not possible.");
+            }
+            else
+            {
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " is still being active. Commit it first.");
+            }
+        });
     }
 
     bool has_parent() const
     {
-    	AllocatorLockGuardT lock_guard(history_node_->allocator_mutex());
+    	//AllocatorLockGuardT lock_guard(history_node_->allocator_mutex());
 
-        return history_node_->parent() != nullptr;
+        return reactor::engine().run_at(cpu_, [&] {
+            return history_node_->parent() != nullptr;
+        });
     }
 
     SnapshotPtr parent()
     {
-    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+//     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+// 
+//     	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+//     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
-    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
-        if (history_node_->parent())
-        {
-            HistoryNode* history_node = history_node_->parent();
-            return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this());
-        }
-        else
-        {
-            throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has no parent.");
-        }
+        return reactor::engine().run_at(cpu_, [&] {
+            if (history_node_->parent())
+            {
+                HistoryNode* history_node = history_node_->parent();
+                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this());
+            }
+            else
+            {
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has no parent.");
+            }
+        });
     }
 
     
     void dump(filesystem::path destination)
     {
-    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+//     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+// 
+//     	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+//     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
-    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+        return reactor::engine().run_at(cpu_, [&] {
+            using Walker = FiberFSDumpContainerWalker<Page>;
 
-    	using Walker = FiberFSDumpContainerWalker<Page>;
+            Walker walker(this->getMetadata(), destination);
 
-    	Walker walker(this->getMetadata(), destination);
+            history_node_->allocator()->build_snapshot_labels_metadata();
 
-    	history_node_->allocator()->build_snapshot_labels_metadata();
+            this->walkContainers(&walker, history_node_->allocator()->get_labels_for(history_node_));
 
-    	this->walkContainers(&walker, history_node_->allocator()->get_labels_for(history_node_));
-
-    	history_node_->allocator()->snapshot_labels_metadata().clear();
+            history_node_->allocator()->snapshot_labels_metadata().clear();
+        });
     }
 };
 
@@ -432,7 +461,7 @@ void InMemSnapshot<Profile>::set_as_branch(StringRef name)
 }
 
 template <typename Profile>
-StringRef InMemSnapshot<Profile>::snapshot_metadata() const 
+String InMemSnapshot<Profile>::snapshot_metadata() const 
 {
     return pimpl_->metadata();
 }

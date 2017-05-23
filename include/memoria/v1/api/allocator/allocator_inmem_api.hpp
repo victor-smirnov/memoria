@@ -30,7 +30,7 @@
 
 #include <memoria/v1/filesystem/path.hpp>
 
-
+#include "allocator_inmem_api_common.hpp"
 
 namespace memoria {
 namespace v1 {
@@ -99,6 +99,9 @@ public:
     void reset();
     void pack();
     bool check();
+    
+    SnpSharedPtr<SnapshotMetadata<TxnId>> describe(const TxnId& snapshot_id) const;
+    SnpSharedPtr<SnapshotMetadata<TxnId>> describe_master() const;
 };
 
 
@@ -150,7 +153,7 @@ public:
     bool drop_ctr(const UUID& name);
     void set_as_master();
     void set_as_branch(StringRef name);
-    StringRef snapshot_metadata() const;
+    String snapshot_metadata() const;
     void set_snapshot_metadata(StringRef metadata);
     void lock_data_for_import();
     SnapshotPtr branch();
@@ -194,6 +197,9 @@ public:
     
     void reset();
     Logger& logger();
+    
+    
+    SnpSharedPtr<SnapshotMetadata<UUID>> describe() const;
     
 private:
     AllocSharedPtr<AllocatorT> snapshot_ref_creation_allowed();

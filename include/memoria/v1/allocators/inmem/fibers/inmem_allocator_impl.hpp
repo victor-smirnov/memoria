@@ -27,7 +27,7 @@
 
 #include "../common/allocator_base.hpp"
 
-#include "fibers_snapshot.hpp"
+#include "fibers_snapshot_impl.hpp"
 
 #include <memoria/v1/reactor/reactor.hpp>
 
@@ -117,16 +117,7 @@ public:
 
 private:
     InMemAllocatorImpl(int32_t v): Base(v) {}
-
-protected:
-//     auto& store_mutex() {
-//     	return store_mutex_;
-//     }
-// 
-//     const auto& store_mutex() const {
-//     	return store_mutex_;
-//     }
-
+    
 public:
 
     virtual ~InMemAllocatorImpl()
@@ -136,43 +127,43 @@ public:
     
     int32_t cpu() const {return cpu_;}
     
-
-    
     void pack()
     {
         //std::lock_guard<MutexT> lock(mutex_);
-    	do_pack(history_tree_);
+        return reactor::engine().run_at(cpu_, [&]{
+            do_pack(history_tree_);
+        });
     }
-
-
     
-    persistent_inmem::SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
+    SnpSharedPtr<SnapshotMetadata<TxnId>> describe(const TxnId& snapshot_id) const
     {
     	//LockGuardT lock_guard2(mutex_);
+        
+        return reactor::engine().run_at(cpu_, [&]{
+            auto iter = snapshot_map_.find(snapshot_id);
+            if (iter != snapshot_map_.end())
+            {
+                const auto history_node = iter->second;
 
-        auto iter = snapshot_map_.find(snapshot_id);
-        if (iter != snapshot_map_.end())
-        {
-            const auto history_node = iter->second;
+                //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
-            //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+                std::vector<TxnId> children;
 
-        	std::vector<TxnId> children;
+                for (const auto& node: history_node->children())
+                {
+                    children.emplace_back(node->txn_id());
+                }
 
-        	for (const auto& node: history_node->children())
-        	{
-        		children.emplace_back(node->txn_id());
-        	}
+                auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
 
-        	auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
-
-        	return persistent_inmem::SnapshotMetadata<TxnId>(
-        		parent_id, history_node->txn_id(), children, history_node->metadata(), history_node->status()
-			);
-        }
-        else {
-            throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
-        }
+                return snp_make_shared<SnapshotMetadata<TxnId>>(
+                    parent_id, history_node->txn_id(), children, history_node->metadata(), history_node->status()
+                );
+            }
+            else {
+                throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
+            }
+        });
     }
 
 
@@ -180,29 +171,31 @@ public:
     SnapshotPtr find(const TxnId& snapshot_id)
     {
     	//LockGuardT lock_guard(mutex_);
-
-        auto iter = snapshot_map_.find(snapshot_id);
-        if (iter != snapshot_map_.end())
+        return reactor::engine().run_at(cpu_, [&]
         {
-            auto history_node = iter->second;
-
-            //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
-
-            if (history_node->is_committed())
+            auto iter = snapshot_map_.find(snapshot_id);
+            if (iter != snapshot_map_.end())
             {
-                return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
-            }
-            if (history_node->is_data_locked())
-            {
-            	throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " data is locked");
+                auto history_node = iter->second;
+
+                //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
+                if (history_node->is_committed())
+                {
+                    return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
+                }
+                if (history_node->is_data_locked())
+                {
+                    throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " data is locked");
+                }
+                else {
+                    throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
+                }
             }
             else {
-                throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
+                throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
             }
-        }
-        else {
-            throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
-        }
+        });
     }
 
 
@@ -210,126 +203,123 @@ public:
 
     SnapshotPtr find_branch(StringRef name)
     {
-    	//LockGuardT lock_guard(mutex_);
-
-    	auto iter = named_branches_.find(name);
-        if (iter != named_branches_.end())
-        {
-            auto history_node = iter->second;
-
-            //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
-
-            if (history_node->is_committed())
+        return reactor::engine().run_at(cpu_, [&]{
+            auto iter = named_branches_.find(name);
+            if (iter != named_branches_.end())
             {
-                return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
-            }
-            else if (history_node->is_data_locked())
-            {
-            	if (history_node->references() == 0)
-            	{
-            		return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
-            	}
-            	else {
-            		throw Exception(MA_SRC, SBuf() << "Snapshot id " << history_node->txn_id() << " is locked and open");
-            	}
+                auto history_node = iter->second;
+
+                if (history_node->is_committed())
+                {
+                    return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
+                }
+                else if (history_node->is_data_locked())
+                {
+                    if (history_node->references() == 0)
+                    {
+                        return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
+                    }
+                    else {
+                        throw Exception(MA_SRC, SBuf() << "Snapshot id " << history_node->txn_id() << " is locked and open");
+                    }
+                }
+                else {
+                    throw Exception(
+                        MA_SRC, 
+                        SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped")
+                    );
+                }
             }
             else {
-                throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
+                throw Exception(MA_SRC, SBuf() << "Named branch \"" << name << "\" is not known");
             }
-        }
-        else {
-            throw Exception(MA_SRC, SBuf() << "Named branch \"" << name << "\" is not known");
-        }
+        });
     }
 
     SnapshotPtr master()
     {
-    	//std::lock(mutex_, master_->snapshot_mutex());
-
-    	//LockGuardT lock_guard(mutex_, std::adopt_lock);
-    	//SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
-
-        return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this());
+        return reactor::engine().run_at(cpu_, [&]{
+            return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this());
+        });
     }
 
-    persistent_inmem::SnapshotMetadata<TxnId> describe_master() const
+    SnpSharedPtr<SnapshotMetadata<TxnId>> describe_master() const
     {
-    	//std::lock(mutex_, master_->snapshot_mutex());
-    	//LockGuardT lock_guard2(mutex_, std::adopt_lock);
-    	//SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
+        return reactor::engine().run_at(cpu_, [&]{
+            std::vector<TxnId> children;
 
-    	std::vector<TxnId> children;
+            for (const auto& node: master_->children())
+            {
+                children.emplace_back(node->txn_id());
+            }
 
-    	for (const auto& node: master_->children())
-    	{
-    		children.emplace_back(node->txn_id());
-    	}
+            auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID();
 
-    	auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID();
-
-    	return persistent_inmem::SnapshotMetadata<TxnId>(
-            parent_id, master_->txn_id(), children, master_->metadata(), master_->status()
-    	);
+            return snp_make_shared<SnapshotMetadata<TxnId>>(
+                parent_id, master_->txn_id(), children, master_->metadata(), master_->status()
+            );
+        });
     }
 
     void set_master(const TxnId& txn_id)
     {
-    	//LockGuardT lock_guard(mutex_);
-
-        auto iter = snapshot_map_.find(txn_id);
-        if (iter != snapshot_map_.end())
+        return reactor::engine().run_at(cpu_, [&]
         {
-            auto history_node = iter->second;
+            auto iter = snapshot_map_.find(txn_id);
+            if (iter != snapshot_map_.end())
+            {
+                auto history_node = iter->second;
 
-            //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
-
-            if (history_node->is_committed())
-            {
-                master_ = iter->second;
-            }
-            else if (history_node->is_data_locked())
-            {
-            	master_ = iter->second;
-            }
-            else if (history_node->is_dropped())
-            {
-                throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " has been dropped");
+                if (history_node->is_committed())
+                {
+                    master_ = iter->second;
+                }
+                else if (history_node->is_data_locked())
+                {
+                    master_ = iter->second;
+                }
+                else if (history_node->is_dropped())
+                {
+                    throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " has been dropped");
+                }
+                else {
+                    throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " hasn't been committed yet");
+                }
             }
             else {
-                throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " hasn't been committed yet");
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " is not known in this allocator");
             }
-        }
-        else {
-            throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " is not known in this allocator");
-        }
+        });
     }
 
     void set_branch(StringRef name, const TxnId& txn_id)
     {
     	//LockGuardT lock_guard(mutex_);
-
-        auto iter = snapshot_map_.find(txn_id);
-        if (iter != snapshot_map_.end())
+        return reactor::engine().run_at(cpu_, [&]
         {
-            auto history_node = iter->second;
-
-            //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
-
-        	if (history_node->is_committed())
+            auto iter = snapshot_map_.find(txn_id);
+            if (iter != snapshot_map_.end())
             {
-                named_branches_[name] = history_node;
+                auto history_node = iter->second;
+
+                //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
+                if (history_node->is_committed())
+                {
+                    named_branches_[name] = history_node;
+                }
+                else if (history_node->is_data_locked())
+                {
+                    named_branches_[name] = history_node;
+                }
+                else {
+                    throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " hasn't been committed yet");
+                }
             }
-        	else if (history_node->is_data_locked())
-        	{
-        		named_branches_[name] = history_node;
-        	}
             else {
-                throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " hasn't been committed yet");
+                throw Exception(MA_SRC, SBuf()<<"Snapshot " << txn_id << " is not known in this allocator");
             }
-        }
-        else {
-            throw Exception(MA_SRC, SBuf()<<"Snapshot " << txn_id << " is not known in this allocator");
-        }
+        });
     }
 
     ContainerMetadataRepository* getMetadata() const
@@ -360,32 +350,33 @@ public:
 
     	//LockGuardT lock_guard2(mutex_, std::adopt_lock);
     	//StoreLockGuardT lock_guard1(store_mutex_, std::adopt_lock);
+        return reactor::engine().run_at(cpu_, [&]{
+            active_snapshots_.wait(0);
 
-    	active_snapshots_.wait(0);
+            do_pack(history_tree_);
 
-    	do_pack(history_tree_);
+            records_ = 0;
 
-        records_ = 0;
+            char signature[12] = "MEMORIA";
+            for (size_t c = 7; c < sizeof(signature); c++) signature[c] = 0;
 
-        char signature[12] = "MEMORIA";
-        for (size_t c = 7; c < sizeof(signature); c++) signature[c] = 0;
+            output->write(&signature, 0, sizeof(signature));
 
-        output->write(&signature, 0, sizeof(signature));
+            write_metadata(*output);
 
-        write_metadata(*output);
+            RCPageSet stored_pages;
 
-        RCPageSet stored_pages;
+            walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) {
+                write_history_node(*output, history_tree_node, stored_pages);
+            });
 
-        walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) {
-            write_history_node(*output, history_tree_node, stored_pages);
+            Checksum checksum;
+            checksum.records() = records_;
+
+            write(*output, checksum);
+
+            output->close();
         });
-
-        Checksum checksum;
-        checksum.records() = records_;
-
-        write(*output, checksum);
-
-        output->close();
     }
 
 
@@ -715,6 +706,17 @@ template <typename Profile>
 bool InMemAllocator<Profile>::check() 
 {
     return pimpl_->check();
+}
+
+template <typename Profile>
+SnpSharedPtr<SnapshotMetadata<typename InMemAllocator<Profile>::TxnId>> InMemAllocator<Profile>::describe(const TxnId& snapshot_id) const 
+{
+    return pimpl_->describe(snapshot_id);
+}
+
+template <typename Profile>
+SnpSharedPtr<SnapshotMetadata<typename InMemAllocator<Profile>::TxnId>> InMemAllocator<Profile>::describe_master() const {
+    return pimpl_->describe_master();
 }
 
 }}

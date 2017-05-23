@@ -178,7 +178,7 @@ public:
 
     struct HistoryNode {
 
-    	using Status 		= persistent_inmem::SnapshotStatus;
+    	using Status 		= SnapshotStatus;
         using HMutexT 		= typename MyType::SnapshotMutexT;
         using HLockGuardT 	= typename MyType::SnapshotLockGuardT;
 

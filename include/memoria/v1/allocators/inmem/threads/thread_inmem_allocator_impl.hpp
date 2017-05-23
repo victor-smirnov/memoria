@@ -27,7 +27,7 @@
 
 #include "../common/allocator_base.hpp"
 
-#include "threads_snapshot.hpp"
+#include "threads_snapshot_impl.hpp"
 
 
 #include <malloc.h>
@@ -157,7 +157,7 @@ public:
 
 
     
-    persistent_inmem::SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
+    SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
     {
     	LockGuardT lock_guard2(mutex_);
 
@@ -177,7 +177,7 @@ public:
 
         	auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
 
-        	return persistent_inmem::SnapshotMetadata<TxnId>(
+        	return SnapshotMetadata<TxnId>(
         		parent_id, history_node->txn_id(), children, history_node->metadata(), history_node->status()
 			);
         }
@@ -263,7 +263,7 @@ public:
         return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this());
     }
 
-    persistent_inmem::SnapshotMetadata<TxnId> describe_master() const
+    SnapshotMetadata<TxnId> describe_master() const
     {
     	std::lock(mutex_, master_->snapshot_mutex());
     	LockGuardT lock_guard2(mutex_, std::adopt_lock);
@@ -278,7 +278,7 @@ public:
 
     	auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID();
 
-    	return persistent_inmem::SnapshotMetadata<TxnId>(
+    	return SnapshotMetadata<TxnId>(
             parent_id, master_->txn_id(), children, master_->metadata(), master_->status()
     	);
     }

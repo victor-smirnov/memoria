@@ -1,5 +1,6 @@
 
 //          Copyright Oliver Kowalke 2013.
+//          Copyright Victor Smirnov 2017.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -174,7 +175,8 @@ public:
         cnd_.notify_all();
     }
 
-    void wait( std::unique_lock< mutex > & lt) {
+    template <typename Mutex>
+    void wait( std::unique_lock< Mutex > & lt) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
         BOOST_ASSERT( context::active() == lt.mutex()->owner_);
@@ -184,8 +186,8 @@ public:
         BOOST_ASSERT( context::active() == lt.mutex()->owner_);
     }
 
-    template< typename Pred >
-    void wait( std::unique_lock< mutex > & lt, Pred pred) {
+    template< typename Mutex, typename Pred >
+    void wait( std::unique_lock< Mutex > & lt, Pred pred) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
         BOOST_ASSERT( context::active() == lt.mutex()->owner_);
@@ -195,8 +197,8 @@ public:
         BOOST_ASSERT( context::active() == lt.mutex()->owner_);
     }
 
-    template< typename Clock, typename Duration >
-    cv_status wait_until( std::unique_lock< mutex > & lt,
+    template< typename Mutex, typename Clock, typename Duration >
+    cv_status wait_until( std::unique_lock< Mutex > & lt,
                           std::chrono::time_point< Clock, Duration > const& timeout_time) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
@@ -208,8 +210,8 @@ public:
         return result;
     }
 
-    template< typename Clock, typename Duration, typename Pred >
-    bool wait_until( std::unique_lock< mutex > & lt,
+    template< typename Mutex, typename Clock, typename Duration, typename Pred >
+    bool wait_until( std::unique_lock< Mutex > & lt,
                      std::chrono::time_point< Clock, Duration > const& timeout_time, Pred pred) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
@@ -221,8 +223,8 @@ public:
         return result;
     }
 
-    template< typename Rep, typename Period >
-    cv_status wait_for( std::unique_lock< mutex > & lt,
+    template< typename Mutex, typename Rep, typename Period >
+    cv_status wait_for(std::unique_lock< Mutex > & lt,
                         std::chrono::duration< Rep, Period > const& timeout_duration) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
@@ -234,8 +236,8 @@ public:
         return result;
     }
 
-    template< typename Rep, typename Period, typename Pred >
-    bool wait_for( std::unique_lock< mutex > & lt,
+    template< typename Mutex, typename Rep, typename Period, typename Pred >
+    bool wait_for( std::unique_lock< Mutex > & lt,
                    std::chrono::duration< Rep, Period > const& timeout_duration, Pred pred) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );

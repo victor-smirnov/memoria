@@ -91,7 +91,7 @@ int main(int argc, char** argv)
 //                 map.remove(c);
 //             }
 // 
-            //snp.dump("map_empty.dir");
+            snp.dump("map_empty.dir");
 
             // Finish snapshot so no other updates are possible.
             snp.commit();

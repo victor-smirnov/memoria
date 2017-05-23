@@ -30,11 +30,11 @@
 
 #include <boost/filesystem.hpp>
 
-
+#include "allocator_inmem_api_common.hpp"
 
 namespace memoria {
 namespace v1 {
-    
+
 
 namespace persistent_inmem {
     template <typename Profile> class ThreadInMemAllocatorImpl;
@@ -146,7 +146,7 @@ public:
     bool drop_ctr(const UUID& name);
     void set_as_master();
     void set_as_branch(StringRef name);
-    StringRef snapshot_metadata() const;
+    String snapshot_metadata() const;
     void set_snapshot_metadata(StringRef metadata);
     void lock_data_for_import();
     SnapshotPtr branch();

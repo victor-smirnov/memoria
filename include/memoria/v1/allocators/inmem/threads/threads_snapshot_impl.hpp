@@ -181,7 +181,7 @@ public:
         }
     }
 
-    StringRef metadata() const
+    String metadata() const
     {
     	LockGuardT lock_guard(history_node_->snapshot_mutex());
         return history_node_->metadata();
@@ -457,7 +457,7 @@ void ThreadInMemSnapshot<Profile>::set_as_branch(StringRef name)
 }
 
 template <typename Profile>
-StringRef ThreadInMemSnapshot<Profile>::snapshot_metadata() const 
+String ThreadInMemSnapshot<Profile>::snapshot_metadata() const 
 {
     return pimpl_->metadata();
 }

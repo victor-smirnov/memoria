@@ -33,8 +33,6 @@
 #include "ring_buffer.hpp"
 
 
-
-
 #include <thread>
 #include <memory>
 #include <atomic>
@@ -57,7 +55,7 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
     
     ThreadPool thread_pool_;
     
-    RingBuffer<Message*> ring_buffer_{16384};
+    RingBuffer<Message*> ring_buffer_{1024};
     
     IOPoller io_poller_;
     
@@ -99,24 +97,36 @@ public:
     template <typename Fn, typename... Args>
     auto run_at(int target_cpu, Fn&& task, Args&&... args) 
     {
-        auto ctx = fibers::context::active();
-        BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
+        if (target_cpu != cpu_) 
+        {
+            auto ctx = fibers::context::active();
+            BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
         
-        auto msg = make_fiber_lambda_message(cpu_, this, ctx, std::forward<Fn>(task), std::forward<Args>(args)...);
-        smp_->submit_to(target_cpu, msg.get());
-        scheduler_->suspend(ctx);
+            auto msg = make_fiber_lambda_message(cpu_, this, ctx, std::forward<Fn>(task), std::forward<Args>(args)...);
+            smp_->submit_to(target_cpu, msg.get());
+            scheduler_->suspend(ctx);
         
-        return msg->result();
+            return msg->result();
+        }
+        else {
+            return task(std::forward<Args>(args)...);
+        }
     }
     
     template <typename Fn, typename... Args>
     void run_at_async(int target_cpu, Fn&& task, Args&&... args) 
     {
-        auto ctx = fibers::context::active();
-        BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
+        if (target_cpu != cpu_) 
+        {
+            auto ctx = fibers::context::active();
+            BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
         
-        auto msg = make_one_way_lambda_message(cpu_, std::forward<Fn>(task), std::forward<Args>(args)...);
-        smp_->submit_to(target_cpu, msg);
+            auto msg = make_one_way_lambda_message(cpu_, std::forward<Fn>(task), std::forward<Args>(args)...);
+            smp_->submit_to(target_cpu, msg);
+        }
+        else {
+            task(std::forward<Args>(args)...);
+        }
     }
     
     template <typename Fn, typename... Args>
