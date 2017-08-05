@@ -75,7 +75,7 @@ set_target_properties(disruptor_bm PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}"
 if (BUILD_MSVC)
 target_link_libraries(disruptor_bm Memoria)
 else()
-target_link_libraries(disruptor_bm Memoria boost_context boost_system m)
+target_link_libraries(disruptor_bm Memoria boost_context boost_system boost_program_options m)
 endif()
 
 add_executable(spsc_queue_bm spsc_queue_bm.cpp)
@@ -85,5 +85,5 @@ set_target_properties(spsc_queue_bm PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}
 if (BUILD_MSVC)
 target_link_libraries(spsc_queue_bm Memoria)
 else()
-target_link_libraries(spsc_queue_bm Memoria boost_context boost_system m)
+target_link_libraries(spsc_queue_bm Memoria boost_context boost_system boost_program_options m)
 endif()

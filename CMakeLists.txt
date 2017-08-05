@@ -124,9 +124,9 @@ else()
 endif()
 
 
-set(Boost_USE_STATIC_LIBS        OFF) 
+set(Boost_USE_STATIC_LIBS        ON) 
 set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME     OFF)
+set(Boost_USE_STATIC_RUNTIME     ON)
 
 find_package(Boost
   1.63.0

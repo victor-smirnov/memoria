@@ -30,7 +30,7 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
     target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS}) 
 
     if (NOT MSVC)
-        target_link_libraries(${MEMORIA_TARGET} boost_system boost_filesystem) 
+        target_link_libraries(${MEMORIA_TARGET} boost_system boost_filesystem boost_program_options m) 
     endif()
     
 ENDFOREACH(MEMORIA_TARGET)
