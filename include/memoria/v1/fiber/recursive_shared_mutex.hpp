@@ -36,13 +36,13 @@
 namespace memoria {
 namespace v1 {    
 namespace fibers {
-    
-    
+
 // Note that this shared mutex is not up/down-gradable. That means an owner holding
 // exclusive lock must not obtain shared lock and vise versa.
-
-class shared_mutex {
-    using Mutex = mutex;
+    
+class recursive_shared_mutex {
+    using Mutex     = mutex;
+    using FiberId   = typename fiber::id;
     
     Mutex lock_;
     condition_variable shared_cv_;
@@ -50,6 +50,8 @@ class shared_mutex {
     
     uint64_t shared_locks_, exclusive_locks_; 
     uint64_t shared_waiters_, exclusive_waiters_;
+    
+    FiberId exclusive_owner_id_;
 public:
     void lock_shared() 
     {
@@ -74,7 +76,7 @@ public:
         std::unique_lock<Mutex> guard(lock_);
         
         shared_locks_--;
-        
+    
         if (exclusive_waiters_) 
         {
             exclusive_cv_.notify_one();
@@ -99,18 +101,19 @@ public:
     {
         std::unique_lock<Mutex> guard(lock_);
         
-        if (shared_locks_ || exclusive_locks_)
+        if (shared_locks_ || is_locked_exclusively_not_by_me())
         {
             exclusive_waiters_++;
             
             exclusive_cv_.wait(guard, [this]{
-                return !(shared_locks_ || exclusive_locks_);
+                return !(shared_locks_ || is_locked_exclusively_not_by_me());
             });
             
             exclusive_waiters_--;
         }
         
-        exclusive_locks_ = 1;
+        exclusive_locks_++;
+        exclusive_owner_id_ = this_fiber::get_id();
     }
     
     
@@ -118,23 +121,26 @@ public:
     {
         std::unique_lock<Mutex> guard(lock_);
 
-        exclusive_locks_ = 0;
+        if (--exclusive_locks_ == 0) 
+        {
+            exclusive_owner_id_ = FiberId();
             
-        if (exclusive_waiters_) 
-        {
-            exclusive_cv_.notify_one();
-        }
-        else if (shared_waiters_)
-        {
-            shared_cv_.notify_all();
+            if (exclusive_waiters_) 
+            {
+                exclusive_cv_.notify_one();
+            }
+            else if (shared_waiters_)
+            {
+                shared_cv_.notify_all();
+            }   
         }
     }
     
-    bool try_lock()
+    bool try_lock() 
     {
         std::unique_lock<Mutex> guard(lock_);
         
-        if (shared_locks_ || exclusive_locks_)
+        if (shared_locks_ || is_locked_exclusively_not_by_me()) 
         {
             return false;
         }
@@ -143,6 +149,14 @@ public:
         
         return true;
     }
+    
+private:
+    bool is_locked_exclusively_not_by_me() const {
+        return exclusive_locks_ && exclusive_owner_id_ != this_fiber::get_id();
+    }
 };
+
+
+
     
 }}}

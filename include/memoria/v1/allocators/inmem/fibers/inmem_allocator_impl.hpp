@@ -32,7 +32,10 @@
 #include <memoria/v1/reactor/reactor.hpp>
 
 #include <memoria/v1/fiber/detail/spinlock.hpp>
-
+#include <memoria/v1/fiber/count_down_latch.hpp>
+#include <memoria/v1/fiber/shared_mutex.hpp>
+#include <memoria/v1/fiber/recursive_shared_mutex.hpp>
+#include <memoria/v1/fiber/shared_lock.hpp>
 
 #include <malloc.h>
 #include <memory>
@@ -82,7 +85,7 @@ protected:
     using Base::master_;
     using Base::metadata_;
     using Base::snapshot_labels_metadata;
-    using Base::active_snapshots_;
+    //using Base::active_snapshots_;
     using Base::records_;
     using Base::write_metadata;
     using Base::write_history_node;
@@ -108,28 +111,45 @@ private:
     
     MutexT mutex_;
     MutexT store_mutex_;
+    
+    memoria::v1::fibers::recursive_shared_mutex store_rw_mutex_;
+    
+    memoria::v1::fibers::count_down_latch<int64_t> active_snapshots_;
  
 public:
     InMemAllocatorImpl() {
         auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this);
         snapshot->commit();
     }
-
-private:
-    InMemAllocatorImpl(int32_t v): Base(v) {}
     
-public:
-
     virtual ~InMemAllocatorImpl()
     {
         free_memory(history_tree_);
     }
+
+private:
+    InMemAllocatorImpl(int32_t v): Base(v) {}
+    
+    auto ref_active() {
+        return active_snapshots_.inc();
+    }
+
+    auto unref_active() {
+        return active_snapshots_.dec();
+    }
+    
+public:
+    
+    int64_t active_snapshots() {
+        return active_snapshots_.get();
+    }
+
+    
     
     int32_t cpu() const {return cpu_;}
     
     void pack()
     {
-        //std::lock_guard<MutexT> lock(mutex_);
         return reactor::engine().run_at(cpu_, [&]{
             do_pack(history_tree_);
         });
@@ -137,15 +157,11 @@ public:
     
     SnpSharedPtr<SnapshotMetadata<TxnId>> describe(const TxnId& snapshot_id) const
     {
-    	//LockGuardT lock_guard2(mutex_);
-        
-        return reactor::engine().run_at(cpu_, [&]{
+    	return reactor::engine().run_at(cpu_, [&]{
             auto iter = snapshot_map_.find(snapshot_id);
             if (iter != snapshot_map_.end())
             {
                 const auto history_node = iter->second;
-
-                //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
                 std::vector<TxnId> children;
 
@@ -170,15 +186,12 @@ public:
 
     SnapshotPtr find(const TxnId& snapshot_id)
     {
-    	//LockGuardT lock_guard(mutex_);
         return reactor::engine().run_at(cpu_, [&]
         {
             auto iter = snapshot_map_.find(snapshot_id);
             if (iter != snapshot_map_.end())
             {
                 auto history_node = iter->second;
-
-                //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
                 if (history_node->is_committed())
                 {
@@ -294,15 +307,12 @@ public:
 
     void set_branch(StringRef name, const TxnId& txn_id)
     {
-    	//LockGuardT lock_guard(mutex_);
         return reactor::engine().run_at(cpu_, [&]
         {
             auto iter = snapshot_map_.find(txn_id);
             if (iter != snapshot_map_.end())
             {
                 auto history_node = iter->second;
-
-                //SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
                 if (history_node->is_committed())
                 {
@@ -329,30 +339,29 @@ public:
 
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
     {
-    	this->build_snapshot_labels_metadata();
+        return reactor::engine().run_at(cpu_, [&]
+        {
+            this->build_snapshot_labels_metadata();
 
-    	//LockGuardT lock_guard(mutex_);
+            walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
 
-        walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
+            walk_containers(history_tree_, walker);
 
-        walk_containers(history_tree_, walker);
+            walker->endAllocator();
 
-        walker->endAllocator();
-
-        snapshot_labels_metadata().clear();
+            snapshot_labels_metadata().clear();
+        
+        });
     }
 
     
 
     virtual void store(OutputStreamHandler *output)
     {
-    	//std::lock(mutex_, store_mutex_);
-
-    	//LockGuardT lock_guard2(mutex_, std::adopt_lock);
-    	//StoreLockGuardT lock_guard1(store_mutex_, std::adopt_lock);
         return reactor::engine().run_at(cpu_, [&]{
+            
             active_snapshots_.wait(0);
-
+            
             do_pack(history_tree_);
 
             records_ = 0;
@@ -447,9 +456,7 @@ protected:
 
     void walk_containers(HistoryNode* node, ContainerWalker* walker)
     {
-    	//SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
-
-        if (node->is_committed())
+    	if (node->is_committed())
         {
             auto txn = snp_make_shared_init<SnapshotT>(node, this);
             txn->walkContainers(walker, get_labels_for(node));
@@ -502,9 +509,7 @@ protected:
     
     virtual void forget_snapshot(HistoryNode* history_node)
     {
-    	//LockGuardT lock_guard(mutex_);
-
-        snapshot_map_.erase(history_node->txn_id());
+    	snapshot_map_.erase(history_node->txn_id());
 
         history_node->remove_from_parent();
 
@@ -523,8 +528,6 @@ protected:
 
         bool remove_node = false;
         {
-        	//SnapshotLockGuardT lock_guard(node->snapshot_mutex());
-
         	if (node->root() == nullptr && node->references() == 0 && branches.find(node) == branches.end())
         	{
         		remove_node = true;

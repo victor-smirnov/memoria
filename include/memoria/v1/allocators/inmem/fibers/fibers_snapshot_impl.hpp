@@ -35,6 +35,7 @@
 #include <memoria/v1/reactor/reactor.hpp>
 
 #include <memoria/v1/fiber/shared_mutex.hpp>
+#include <memoria/v1/fiber/recursive_shared_mutex.hpp>
 
 #include <vector>
 #include <memory>
@@ -99,11 +100,10 @@ public:
     	//FIXME This code doesn't decrement properly number of active snapshots
     	// for allocator to store data correctly.
 
-    	bool drop1 = false;
-    	bool drop2 = false;
-
-    	{
-    		LockGuardT snapshot_lock_guard(history_node_->snapshot_mutex());
+        reactor::engine().run_at(cpu_, [&]
+        {
+            bool drop1 = false;
+            bool drop2 = false;
 
     		if (history_node_->unref() == 0)
     		{
@@ -117,21 +117,22 @@ public:
     				check_tree_structure(history_node_->root());
     			}
     		}
-    	}
 
-    	if (drop1)
-    	{
-    		do_drop();
-    		history_tree_raw_->forget_snapshot(history_node_);
-    	}
 
-    	if (drop2)
-    	{
-    		StoreLockGuardT store_lock_guard(history_node_->store_mutex());
-    		do_drop();
+            if (drop1)
+            {
+                do_drop();
+                history_tree_raw_->forget_snapshot(history_node_);
+            
+                //FIXME: do we need to decrese number of active snapshots?
+            }
 
-    		// FIXME: check if absence of snapshot lock here leads to data races...
-    	}
+            if (drop2)
+            {
+                do_drop();
+                // FIXME: check if absence of snapshot lock here leads to data races...
+            }
+        });
     }
     
     
@@ -140,11 +141,8 @@ public:
     {
         return reactor::engine().run_at(cpu_, [&]
         {
-            //std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
-
-            //AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-            //LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
+            AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
+            
             std::vector<UUID> children;
 
             for (const auto& node: history_node_->children())
@@ -162,9 +160,10 @@ public:
 
     void commit()
     {
-    	//LockGuardT lock_guard(history_node_->snapshot_mutex());
-
-        return reactor::engine().run_at(cpu_, [&]{
+    	return reactor::engine().run_at(cpu_, [&]
+    	{
+            AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
+            
             if (history_node_->is_active() || history_node_->is_data_locked())
             {
                 history_node_->commit();
@@ -180,10 +179,7 @@ public:
     {
         return reactor::engine().run_at(cpu_, [&]
         {
-//             std::lock(history_node_->allocator_mutex(), history_node_->snapshot_mutex());
-// 
-//             AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-//             LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+            AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
 
             if (history_node_->parent() != nullptr)
             {
@@ -197,17 +193,17 @@ public:
 
     String metadata() const
     {
-    	//LockGuardT lock_guard(history_node_->snapshot_mutex());
-        return reactor::engine().run_at(cpu_, [&]{
+    	return reactor::engine().run_at(cpu_, [&]{
             return history_node_->metadata();
         });
     }
 
     void set_metadata(StringRef metadata)
     {
-    	//LockGuardT lock_guard(history_node_->snapshot_mutex());
-        return reactor::engine().run_at(cpu_, [&]
+    	return reactor::engine().run_at(cpu_, [&]
         {
+            AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
+            
             if (history_node_->is_active())
             {
                 history_node_->set_metadata(metadata);
@@ -221,12 +217,10 @@ public:
 
     void lock_data_for_import()
     {
-//     	std::lock(history_node_->allocator_mutex(), history_node_->snapshot_mutex());
-// 
-//     	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-//     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
-        return reactor::engine().run_at(cpu_, [&] {
+        return reactor::engine().run_at(cpu_, [&] 
+        {
+            AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
+            
             if (history_node_->is_active())
             {
                 if (!has_open_containers())
@@ -248,17 +242,13 @@ public:
 
     SnapshotPtr branch()
     {
-//     	std::lock(history_node_->allocator_mutex(), history_node_->snapshot_mutex());
-// 
-//     	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-//     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
-        return reactor::engine().run_at(cpu_, [&] {
+        return reactor::engine().run_at(cpu_, [&] 
+        {
+            AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
+            
             if (history_node_->is_committed())
             {
                 HistoryNode* history_node = new HistoryNode(history_node_);
-
-                //LockGuardT lock_guard3(history_node->snapshot_mutex());
 
                 history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
@@ -277,21 +267,15 @@ public:
 
     bool has_parent() const
     {
-    	//AllocatorLockGuardT lock_guard(history_node_->allocator_mutex());
-
-        return reactor::engine().run_at(cpu_, [&] {
+    	return reactor::engine().run_at(cpu_, [&] {
             return history_node_->parent() != nullptr;
         });
     }
 
     SnapshotPtr parent()
     {
-//     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
-// 
-//     	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-//     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
         return reactor::engine().run_at(cpu_, [&] {
+            AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
             if (history_node_->parent())
             {
                 HistoryNode* history_node = history_node_->parent();
@@ -307,12 +291,8 @@ public:
     
     void dump(filesystem::path destination)
     {
-//     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
-// 
-//     	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-//     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
-        return reactor::engine().run_at(cpu_, [&] {
+        return reactor::engine().run_at(cpu_, [&]
+        {
             using Walker = FiberFSDumpContainerWalker<Page>;
 
             Walker walker(this->getMetadata(), destination);

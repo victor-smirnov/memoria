@@ -80,7 +80,7 @@ protected:
     using Base::master_;
     using Base::metadata_;
     using Base::snapshot_labels_metadata;
-    using Base::active_snapshots_;
+    //using Base::active_snapshots_;
     using Base::records_;
     using Base::write_metadata;
     using Base::write_history_node;
@@ -103,15 +103,31 @@ private:
     
     mutable MutexT mutex_;
     mutable StoreMutexT store_mutex_;
+    
+    CountDownLatch<int64_t> active_snapshots_;
  
 public:
     ThreadInMemAllocatorImpl() {
         auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this);
         snapshot->commit();
     }
+    
+    
+    virtual ~ThreadInMemAllocatorImpl()
+    {
+        free_memory(history_tree_);
+    }
 
 private:
     ThreadInMemAllocatorImpl(int32_t v): Base(v) {}
+    
+    auto ref_active() {
+        return active_snapshots_.inc();
+    }
+
+    auto unref_active() {
+        return active_snapshots_.dec();
+    }
 
 protected:
     auto& store_mutex() {
@@ -123,11 +139,11 @@ protected:
     }
 
 public:
-
-    virtual ~ThreadInMemAllocatorImpl()
-    {
-        free_memory(history_tree_);
+    
+    int64_t active_snapshots() {
+        return active_snapshots_.get();
     }
+
     
     MutexT& mutex() {
     	return mutex_;

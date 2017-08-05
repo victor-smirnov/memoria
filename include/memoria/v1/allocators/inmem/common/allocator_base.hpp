@@ -520,9 +520,6 @@ protected:
     PairPtr pair_;
 
 
-
-    CountDownLatch<int64_t> active_snapshots_;
-
     ReverseBranchMap snapshot_labels_metadata_;
 
 public:
@@ -575,9 +572,6 @@ public:
         return logger_;
     }
 
-    int64_t active_snapshots() {
-        return active_snapshots_.get();
-    }
 
 
     static auto create()
@@ -1308,14 +1302,6 @@ protected:
         auto meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         meta->getPageOperations()->generateDataEvents(page, DataEventsParams(), &dumper);
-    }
-
-    auto ref_active() {
-        return active_snapshots_.inc();
-    }
-
-    auto unref_active() {
-        return active_snapshots_.dec();
     }
 
     virtual void forget_snapshot(HistoryNode* history_node) = 0;
