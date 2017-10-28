@@ -23,10 +23,16 @@
 #include "linux/linux_smp.hpp"
 #include "linux/linux_socket_impl.hpp"
 #include "linux/linux_file.hpp"
-#else
+#elif __APPLE__
+#include "macosx/macosx_smp.hpp"
+#include "macosx/macosx_socket_impl.hpp"
+#include "macosx/macosx_file.hpp"
+#elif __linux__
 #include "msvc/msvc_smp.hpp"
 #include "msvc/msvc_socket_impl.hpp"
 #include "msvc/msvc_file.hpp"
+#else
+#error "Unsupported platform"
 #endif
 
 #include <boost/program_options.hpp>

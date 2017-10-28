@@ -16,8 +16,11 @@
 #pragma once
 
 #ifdef _WIN32
-#else
+#elif __APPLE__
+#elif __linux__
 #include "linux/file_impl.hpp"
+#else
+#error "Unsupported compiler"
 #endif
 
 #include <string>

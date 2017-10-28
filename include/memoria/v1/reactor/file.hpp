@@ -17,8 +17,12 @@
 
 #ifdef _WIN32
 #include "msvc/msvc_file.hpp"
-#else
+#elif __APPLE__
+#include "macosx/macosx_file.hpp"
+#elif __linux__
 #include "linux/linux_file.hpp"
+#else
+#error "Unsupported platform"
 #endif
 
 

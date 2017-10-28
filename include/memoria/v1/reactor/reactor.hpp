@@ -24,9 +24,14 @@
 #ifdef _WIN32
 #include "msvc/msvc_io_poller.hpp"
 #include "msvc/msvc_smp.hpp"
-#else
+#elif __APPLE__
+#include "macosx/macosx_smp.hpp"
+#include "macosx/macosx_io_poller.hpp"
+#elif __linux__
 #include "linux/linux_smp.hpp"
 #include "linux/linux_io_poller.hpp"
+#else
+#error "Unsupported platform"
 #endif
 
 #include "thread_pool.hpp"

@@ -54,6 +54,10 @@
 # define MEMORIA_V1_FIBERS_SPIN_MAX_TESTS 100
 #endif
 
+namespace memoria {
+namespace v1 {
+namespace fiber {
+
 // modern architectures have cachelines with 64byte length
 // ARM Cortex-A15 32/64byte, Cortex-A9 16/32/64bytes
 // MIPS 74K: 32byte, 4KEc: 16byte
@@ -62,3 +66,4 @@ static constexpr std::size_t cache_alignment{ 64 };
 static constexpr std::size_t cacheline_length{ 64 };
 
 
+}}}
