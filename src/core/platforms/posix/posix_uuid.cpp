@@ -62,7 +62,7 @@ UUID UUID::make_time()
 {
     uuid_t uuid;
 
-    uuid_generate_time_safe(uuid);
+    uuid_generate_time(uuid);
 
     return make_uuid(uuid);
 }
