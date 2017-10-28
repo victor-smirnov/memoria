@@ -28,12 +28,7 @@ MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
     set_target_properties(${EX_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     set_target_properties(${EX_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     
-    if (BUILD_MSVC)
-        target_link_libraries(${EX_TARGET} Memoria ${MEMORIA_LIBS})
-    else()
-        target_link_libraries(${EX_TARGET} Memoria boost_context boost_system boost_filesystem boost_program_options m ${MEMORIA_LIBS})
-    endif()
-    
+    target_link_libraries(${EX_TARGET} Memoria ${MEMORIA_LIBS})
 ENDMACRO()
 
 

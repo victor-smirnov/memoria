@@ -128,17 +128,22 @@ set(Boost_USE_STATIC_LIBS        OFF)
 set(Boost_USE_MULTITHREADED      OFF)
 set(Boost_USE_STATIC_RUNTIME     ON)
 
-find_package(Boost
-  1.63.0
-  COMPONENTS program_options context filesystem
-  REQUIRED
-)   
+if (MSVC)
+  find_package(Boost 1.63.0 REQUIRED)
+else()
+  find_package(Boost
+    1.63.0
+    COMPONENTS program_options context filesystem
+    REQUIRED
+  )
+endif()
 
 if (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     link_directories(${Boost_LIBRARY_DIRS})
 endif()
 
+set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
 
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)

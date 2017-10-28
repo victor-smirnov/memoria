@@ -29,8 +29,5 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
     set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS}) 
 
-    if (NOT MSVC)
-        target_link_libraries(${MEMORIA_TARGET} boost_system boost_filesystem boost_program_options m) 
-    endif()
-    
+    target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS}) 
 ENDFOREACH(MEMORIA_TARGET)

@@ -61,32 +61,15 @@ endif()
 add_executable(intellectio intellectio.cpp)
 SET_TARGET_PROPERTIES(intellectio PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 set_target_properties(intellectio PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-
-if (BUILD_MSVC)
 target_link_libraries(intellectio Memoria ${MEMORIA_LIBS})
-else()
-target_link_libraries(intellectio Memoria m) #boost_context boost_system boost_program_options m 
-TARGET_LINK_LIBRARIES(intellectio ${Boost_LIBRARIES})
-message("Boost_libraries: " ${Boost_LIBRARIES})
-
-endif()
 
 add_executable(disruptor_bm disruptor_bm.cpp)
 SET_TARGET_PROPERTIES(disruptor_bm PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 set_target_properties(disruptor_bm PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-
-if (BUILD_MSVC)
-target_link_libraries(disruptor_bm Memoria)
-else()
-target_link_libraries(disruptor_bm Memoria boost_context boost_system boost_program_options m)
-endif()
+target_link_libraries(disruptor_bm Memoria ${MEMORIA_LIBS})
 
 add_executable(spsc_queue_bm spsc_queue_bm.cpp)
 SET_TARGET_PROPERTIES(spsc_queue_bm PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 set_target_properties(spsc_queue_bm PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
-if (BUILD_MSVC)
-target_link_libraries(spsc_queue_bm Memoria)
-else()
-target_link_libraries(spsc_queue_bm Memoria boost_context boost_system boost_program_options m)
-endif()
+target_link_libraries(spsc_queue_bm Memoria ${MEMORIA_LIBS})

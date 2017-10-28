@@ -19,7 +19,7 @@
 
 #include "reactor.hpp"
 
-#ifndef _WIN32
+#ifdef __linux__
 #include "linux/linux_smp.hpp"
 #include "linux/linux_socket_impl.hpp"
 #include "linux/linux_file.hpp"
@@ -27,11 +27,11 @@
 #include "macosx/macosx_smp.hpp"
 #include "macosx/macosx_socket_impl.hpp"
 #include "macosx/macosx_file.hpp"
-#elif __linux__
+#elif _WIN32
 #include "msvc/msvc_smp.hpp"
 #include "msvc/msvc_socket_impl.hpp"
 #include "msvc/msvc_file.hpp"
-#else
+#else 
 #error "Unsupported platform"
 #endif
 

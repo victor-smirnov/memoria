@@ -22,10 +22,5 @@ FOREACH(TEST_SOURCE ${SRCS})
     SET_TARGET_PROPERTIES(${TEST_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     SET_TARGET_PROPERTIES(${TEST_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
-    if (BUILD_MSVC)
-        target_link_libraries(${TEST_TARGET} Memoria)
-    else()
-        target_link_libraries(${TEST_TARGET} Memoria boost_system boost_unit_test_framework)
-    endif()
-    
+    target_link_libraries(${TEST_TARGET} Memoria ${MEMORIA_LIBS})
 ENDFOREACH()
