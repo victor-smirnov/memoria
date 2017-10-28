@@ -56,7 +56,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace fiber {
+namespace fibers {
 
 // modern architectures have cachelines with 64byte length
 // ARM Cortex-A15 32/64byte, Cortex-A9 16/32/64bytes

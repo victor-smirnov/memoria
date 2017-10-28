@@ -102,7 +102,7 @@ if (BUILD_UNIX OR MINGW)
         set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -fsanitize=thread")
     endif()
     
-    set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -luuid -lstdc++") 
+    set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -luuid -lstdc++ -lm") 
         
     if (MINGW)
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wa,-mbig-obj ")
@@ -124,12 +124,13 @@ else()
 endif()
 
 
-set(Boost_USE_STATIC_LIBS        ON) 
-set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_LIBS        OFF) 
+set(Boost_USE_MULTITHREADED      OFF)
 set(Boost_USE_STATIC_RUNTIME     ON)
 
 find_package(Boost
   1.63.0
+  COMPONENTS program_options context filesystem
   REQUIRED
 )   
 
