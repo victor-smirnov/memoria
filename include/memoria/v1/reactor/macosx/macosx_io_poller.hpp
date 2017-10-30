@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "linux_smp.hpp"
+#include "macosx_smp.hpp"
 #include "../message/message.hpp"
 #include "../ring_buffer.hpp"
 

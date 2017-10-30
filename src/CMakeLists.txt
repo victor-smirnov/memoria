@@ -31,12 +31,8 @@ add_library(Memoria STATIC ${GLOBAL_SRCS})
 
 SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+target_link_libraries(Memoria ${MEMORIA_LIBS})
 
-if (BUILD_MSVC)
-    target_link_libraries(Memoria ${MEMORIA_LIBS})
-else()
-    target_link_libraries(Memoria ${Boost_LIBRARIES} ${MEMORIA_LIBS})
-endif()
     
 export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
 
@@ -49,8 +45,8 @@ endif()
 if (BUILD_TESTS) 
     add_subdirectory(tests-core)     
 #    add_subdirectory(tests-other/disruptor)
-    add_subdirectory(tests-other/fiber)
-    add_subdirectory(tests-other/reactor)
+#    add_subdirectory(tests-other/fiber)
+#    add_subdirectory(tests-other/reactor)
 endif()
 
 if (BUILD_SANDBOX) 
@@ -71,5 +67,4 @@ target_link_libraries(disruptor_bm Memoria ${MEMORIA_LIBS})
 add_executable(spsc_queue_bm spsc_queue_bm.cpp)
 SET_TARGET_PROPERTIES(spsc_queue_bm PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 set_target_properties(spsc_queue_bm PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-
 target_link_libraries(spsc_queue_bm Memoria ${MEMORIA_LIBS})

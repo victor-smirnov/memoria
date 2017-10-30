@@ -47,11 +47,19 @@ StreamSocketConnection::StreamSocketConnection(int connection_fd, const std::sha
         connection_fd_(connection_fd),
         message_(engine().cpu())
 {
+    int flags = ::fcntl(connection_fd, F_GETFL, 0);
+    
+    if (::fcntl(connection_fd, F_SETFL, flags | O_NONBLOCK) < 0) 
+    {
+        tools::rise_perror(SBuf() << "Can't configure StreamSocketConnection for AIO " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_);
+    }
+    
+    
     epoll_event event = tools::make_zeroed<epoll_event>();
     
     event.data.ptr = &message_;
     
-    event.events = EPOLLIN;
+    event.events = EPOLLIN | EPOLLOUT | EPOLLET;
 
     int res = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, connection_fd_, &event);
     if (res < 0)
@@ -86,12 +94,12 @@ ssize_t StreamSocketConnection::read(char* data, size_t size)
     {
         ssize_t result = ::read(connection_fd_, data, size);
         
-        if (result == EAGAIN || result == EWOULDBLOCK) 
+        if (result >= 0) {
+            return result;
+        }
+        else if (errno == EAGAIN || errno == EWOULDBLOCK) 
         {
             message_.wait_for();
-        }
-        else if (result >= 0) {
-            return result;
         }
         else {
             tools::rise_perror(SBuf() << "Error reading from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_);
@@ -107,12 +115,12 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
     {
         ssize_t result = ::write(connection_fd_, data, size);
         
-        if (result == EAGAIN || result == EWOULDBLOCK) 
+        if (result >= 0) {
+            return result;
+        }
+        else if (errno == EAGAIN || errno == EWOULDBLOCK) 
         {
             message_.wait_for();
-        }
-        else if (result >= 0) {
-            return result;
         }
         else {
             tools::rise_perror(SBuf() << "Error reading from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_);

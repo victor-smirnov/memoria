@@ -25,7 +25,7 @@ namespace reactor {
     
 void FiberIOMessage::finish()
 {
-    if (--count_ == 0) 
+    //if (--count_ == 0) 
     {
         engine().scheduler()->resume(fiber_context_);
     }
