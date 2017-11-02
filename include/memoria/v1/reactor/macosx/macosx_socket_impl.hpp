@@ -96,8 +96,6 @@ class StreamSocketConnection {
     std::shared_ptr<StreamSocket> socket_;
     int connection_fd_;
     
-    FiberIOMessage message_;
-    
 public:
     StreamSocketConnection(int connection_fd, const std::shared_ptr<StreamSocket>& socket);
     

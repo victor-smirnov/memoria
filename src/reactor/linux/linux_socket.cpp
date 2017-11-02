@@ -45,7 +45,7 @@ namespace reactor {
 StreamSocketConnection::StreamSocketConnection(int connection_fd, const std::shared_ptr<StreamSocket>& socket): 
         socket_(socket),
         connection_fd_(connection_fd),
-        message_(engine().cpu())
+        fiber_io_message_(engine().cpu())
 {
     int flags = ::fcntl(connection_fd, F_GETFL, 0);
     
@@ -57,7 +57,7 @@ StreamSocketConnection::StreamSocketConnection(int connection_fd, const std::sha
     
     epoll_event event = tools::make_zeroed<epoll_event>();
     
-    event.data.ptr = &message_;
+    event.data.ptr = &fiber_io_message_;
     
     event.events = EPOLLIN | EPOLLOUT | EPOLLET;
 
@@ -88,8 +88,6 @@ StreamSocketConnection::~StreamSocketConnection() noexcept
 
 ssize_t StreamSocketConnection::read(char* data, size_t size) 
 {
-    BOOST_ASSERT_MSG(fibers::context::active() == message_.fiber_context(), "Calling StreamSocketConnection::read() from incorrect fiber");
-    
     while (true) 
     {
         ssize_t result = ::read(connection_fd_, data, size);
@@ -99,7 +97,7 @@ ssize_t StreamSocketConnection::read(char* data, size_t size)
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK) 
         {
-            message_.wait_for();
+            fiber_io_message_.wait_for();
         }
         else {
             tools::rise_perror(SBuf() << "Error reading from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_);
@@ -109,8 +107,6 @@ ssize_t StreamSocketConnection::read(char* data, size_t size)
 
 ssize_t StreamSocketConnection::write(const char* data, size_t size) 
 {
-    BOOST_ASSERT_MSG(fibers::context::active() == message_.fiber_context(), "Calling StreamSocketConnection::read() from incorrect fiber");
-    
     while (true) 
     {
         ssize_t result = ::write(connection_fd_, data, size);
@@ -120,7 +116,7 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK) 
         {
-            message_.wait_for();
+            fiber_io_message_.wait_for();
         }
         else {
             tools::rise_perror(SBuf() << "Error reading from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_);
@@ -136,7 +132,8 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
     
 StreamServerSocket::StreamServerSocket(const IPAddress& ip_address, uint16_t ip_port): 
     StreamSocket(ip_address, ip_port),
-    sock_address_{tools::make_zeroed<sockaddr_in>()}
+    sock_address_{tools::make_zeroed<sockaddr_in>()},
+    fiber_io_message_(engine().cpu())
 {
     BOOST_ASSERT_MSG(ip_address_.is_v4(), "Only IPv4 sockets are supported at the moment");
     
@@ -157,6 +154,17 @@ StreamServerSocket::StreamServerSocket(const IPAddress& ip_address, uint16_t ip_
     {
         ::close(socket_fd_);
         tools::rise_perror(SBuf() << "Can't bind socket to " << ip_address_ << ":" << ip_port_);
+    }
+    
+    epoll_event event = tools::make_zeroed<epoll_event>();
+            
+    event.data.ptr = &fiber_io_message_;
+            
+    event.events = EPOLLIN;
+            
+    int sres = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, socket_fd_, &event);
+    if (sres < 0) {
+        tools::rise_perror(SBuf() << "Can't configure poller for " << ip_address_ << ":" << ip_port_);
     }
 }
 
@@ -194,8 +202,6 @@ void StreamServerSocket::listen()
 
 std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
 {
-    Reactor& r = engine();
-    
     sockaddr_in client_addr;
     socklen_t cli_len = sizeof(client_addr);
 
@@ -208,22 +214,8 @@ std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
             return std::make_unique<StreamSocketConnection>(fd, this->shared_from_this());
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK)
-        {
-            FiberIOMessage message(r.cpu());
-            
-            epoll_event event = tools::make_zeroed<epoll_event>();
-            
-            event.data.ptr = &message;
-            
-            event.events = EPOLLIN;
-            
-            int res = ::epoll_ctl(r.io_poller().epoll_fd(), EPOLL_CTL_ADD, socket_fd_, &event);
-            if (res < 0)
-            {
-                tools::rise_perror(SBuf() << "Can't configure poller for " << ip_address_ << ":" << ip_port_);
-            }
-            
-            message.wait_for();
+        {             
+            fiber_io_message_.wait_for();
         }
         else {
             tools::rise_perror(SBuf() << "Can't start accepting connections for " << ip_address_ << ":" << ip_port_);

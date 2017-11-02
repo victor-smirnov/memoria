@@ -443,6 +443,12 @@ context::wait_unlink() noexcept {
 }
 
 void
+context::iowait_unlink() noexcept {
+    iowait_hook_.unlink();
+}
+
+
+void
 context::detach() noexcept {
     BOOST_ASSERT( context::active() != this);
     get_scheduler()->detach_worker_context( this);

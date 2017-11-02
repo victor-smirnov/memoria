@@ -78,6 +78,7 @@ protected:
     IPAddress ip_address_;
     uint16_t ip_port_;
     int socket_fd_{};
+        
 public:
     StreamSocket(const IPAddress& ip_address, uint16_t ip_port ):
         ip_address_(ip_address),
@@ -96,7 +97,7 @@ class StreamSocketConnection {
     std::shared_ptr<StreamSocket> socket_;
     int connection_fd_;
     
-    FiberIOMessage message_;
+    FiberIOMessage fiber_io_message_;
     
 public:
     StreamSocketConnection(int connection_fd, const std::shared_ptr<StreamSocket>& socket);
@@ -119,12 +120,13 @@ class StreamServerSocket: public StreamSocket {
     sockaddr_in sock_address_;
     bool closed_{false};
     
+    FiberIOMessage fiber_io_message_;
+    
 public:
     StreamServerSocket ( const IPAddress& ip_address, uint16_t ip_port );
     
     virtual ~StreamServerSocket() noexcept;
     
-    //void bind();
     void listen();
     
     std::unique_ptr<StreamSocketConnection> accept();

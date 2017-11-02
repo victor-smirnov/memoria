@@ -38,7 +38,7 @@ int main(int argc, char **argv)
             
             std::cout << "New connection: " << conn->fd() << std::endl;
             
-            size_t data_size = 4194304 * 20;
+            size_t data_size = 4096;
             char* data = new char[data_size]; 
                 
             
@@ -52,22 +52,15 @@ int main(int argc, char **argv)
                     break;
                 }
                 
-                
-                for (uint32_t c = 0; c < data_size; c++) {
-                    data[c] = 77;
-                }
-                
-                ssize_t len = data_size;
+                ssize_t len = readed;
                 ssize_t ptr = 0;
     
-
                 while (len > 0) {
                     auto l0 = conn->write(data + ptr, len);
                     std::cout << "Sent " << l0 << " bytes " << std::endl;
                     len -= l0;
                     ptr += l0;
                 }
-
             }
             
            // conn->close();

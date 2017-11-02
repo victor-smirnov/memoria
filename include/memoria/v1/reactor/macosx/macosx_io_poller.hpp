@@ -22,36 +22,42 @@
 #include <memory>
 #include <thread>
 
-#include <linux/aio_abi.h>
+#include <sys/types.h>
+#include <sys/event.h>
+#include <sys/time.h>
 
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
 
-int io_setup(unsigned nr, aio_context_t *ctxp);
-int io_destroy(aio_context_t ctx);
-int io_submit(aio_context_t ctx, long nr,  struct iocb **iocbpp); 
 
 using IOBuffer = RingBuffer<Message*>;
 
-class FileIOMessage: public Message {
+class KEventMessage: public Message {
+    bool eof_{};
+    size_t size_{};
+    size_t write_buffer_capacity_{};
+    
 public:
-    FileIOMessage(int cpu): Message(cpu, false) {}
-    virtual void report(io_event* status) = 0;
+    KEventMessage(int cpu): Message(cpu, false) {}
+    
+    bool is_eof() const {return eof_;}
+    size_t size() const {return size_;}
+    
+    void setup(bool eof, size_t size) {
+        eof_ = eof;
+        size_ = size;
+    }
 };
+
 
 class IOPoller {
     
-    static constexpr int BATCH_SIZE = 128;
+    static constexpr int BATCH_SIZE = 1024;
     
-    int epoll_fd_{};
-    int event_fd_{};
-    
-    aio_context_t aio_context_{};
-    
-    
-    
+    int queue_fd_{};
+        
     IOBuffer& buffer_;
     
 public:
@@ -61,15 +67,7 @@ public:
     
     void poll();
     
-    int epoll_fd() const {return epoll_fd_;}
-    int event_fd() const {return event_fd_;}
-    
-    aio_context_t aio_context() const {return aio_context_;}
-
-private:
-    void poll_file_events(int buffer_capacity, int other_events);
-    
-    ssize_t read_eventfd();
+    int queue_fd() const {return queue_fd_;}
 };
     
 }}}

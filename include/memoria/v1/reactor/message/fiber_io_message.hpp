@@ -26,27 +26,21 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
  
+
+
 class FiberIOMessage: public Message {
 protected:
-    
-    size_t count_;
-    FiberContext* fiber_context_;
-    
+    fibers::context::iowait_queue_t iowait_queue_;
     
 public:
-    FiberIOMessage(int cpu, size_t count = 1, FiberContext* fiber_context = fibers::context::active()): 
-        Message(cpu, false), 
-        count_(count),
-        fiber_context_(fiber_context)
+    FiberIOMessage(int cpu): 
+        Message(cpu, false)
     {
         return_ = true;
     }
     
     virtual ~FiberIOMessage() {}
-    
-    FiberContext* fiber_context() {return fiber_context_;}
-    const FiberContext* fiber_context() const {return fiber_context_;}
-    
+        
     virtual void process() noexcept {}
     
     virtual void finish();
@@ -54,13 +48,7 @@ public:
     virtual std::string describe();
    
     void wait_for();
-    
-    size_t count() const {return count_;}
-
-	void set_count(size_t count) { count_ = count; }
 };
-
-
 
 
     

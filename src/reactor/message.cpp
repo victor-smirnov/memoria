@@ -22,12 +22,19 @@
 namespace memoria {
 namespace v1 {
 namespace reactor {
-    
+
+
 void FiberIOMessage::finish()
 {
-    //if (--count_ == 0) 
+    if (!iowait_queue_.empty())
     {
-        engine().scheduler()->resume(fiber_context_);
+        auto* fiber_context = &iowait_queue_.front();
+        iowait_queue_.pop_front();
+        engine().scheduler()->resume(fiber_context);
+    }
+    else {
+        std::cout << "Empty iowait_queue for " << describe() << ". Aborting." << std::endl;
+        std::terminate();
     }
 }    
 
@@ -39,9 +46,12 @@ std::string FiberIOMessage::describe()
 
 
 void FiberIOMessage::wait_for()
-{
-    engine().scheduler()->suspend(fiber_context_);
+{    
+    FiberContext* fiber_context = fibers::context::active();
+    
+    fiber_context->iowait_link(iowait_queue_);
+    
+    engine().scheduler()->suspend(fiber_context);
 }
-
     
 }}}
