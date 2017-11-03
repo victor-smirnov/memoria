@@ -34,22 +34,22 @@ namespace reactor {
 
 using IOBuffer = RingBuffer<Message*>;
 
-class KEventMessage: public Message {
-    bool eof_{};
-    size_t size_{};
-    size_t write_buffer_capacity_{};
-    
-public:
-    KEventMessage(int cpu): Message(cpu, false) {}
-    
-    bool is_eof() const {return eof_;}
-    size_t size() const {return size_;}
-    
-    void setup(bool eof, size_t size) {
-        eof_ = eof;
-        size_ = size;
-    }
-};
+// class KEventMessage: public Message {
+//     bool eof_{};
+//     size_t size_{};
+//     size_t write_buffer_capacity_{};
+//     
+// public:
+//     KEventMessage(int cpu): Message(cpu, false) {}
+//     
+//     bool is_eof() const {return eof_;}
+//     size_t size() const {return size_;}
+//     
+//     void setup(bool eof, size_t size) {
+//         eof_ = eof;
+//         size_ = size;
+//     }
+// };
 
 
 class IOPoller {

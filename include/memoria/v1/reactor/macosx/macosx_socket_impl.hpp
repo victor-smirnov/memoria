@@ -95,7 +95,7 @@ public:
 class StreamSocketConnection {
     std::shared_ptr<StreamSocket> socket_;
     int connection_fd_;
-    
+    FiberIOMessage fiber_io_message_;
 public:
     StreamSocketConnection(int connection_fd, const std::shared_ptr<StreamSocket>& socket);
     
@@ -117,6 +117,7 @@ class StreamServerSocket: public StreamSocket {
     sockaddr_in sock_address_;
     bool closed_{false};
     
+    FiberIOMessage fiber_io_message_;
 public:
     StreamServerSocket ( const IPAddress& ip_address, uint16_t ip_port );
     

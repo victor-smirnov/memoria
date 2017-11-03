@@ -31,6 +31,10 @@ namespace reactor {
 class FiberIOMessage: public Message {
 protected:
     fibers::context::iowait_queue_t iowait_queue_;
+#if __APPLE__
+    off_t available_{};
+    bool eof_{};
+#endif
     
 public:
     FiberIOMessage(int cpu): 
@@ -47,6 +51,23 @@ public:
     
     virtual std::string describe();
    
+
+
+#if __APPLE__
+    void configure(off_t value, bool eof) {
+        available_ = value;
+        eof_ = eof;
+    }
+    
+    off_t available() const {
+        return available_;
+    }
+    
+    bool is_eof() const {
+        return eof_;
+    }
+#endif
+    
     void wait_for();
 };
 
