@@ -50,6 +50,13 @@ StreamSocketConnection::StreamSocketConnection(int connection_fd, const std::sha
         connection_fd_(connection_fd),
         fiber_io_message_(engine().cpu())
 {
+    int flags = ::fcntl(connection_fd, F_GETFL, 0);
+    if (::fcntl(connection_fd, F_SETFL, flags | O_NONBLOCK) < 0) 
+    {
+        tools::rise_perror(SBuf() << "Can't configure StreamSocketConnection for AIO " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_);
+    }
+
+
     int queue_fd = engine().io_poller().queue_fd();
     
     timespec timeout = tools::make_zeroed<timespec>();
@@ -106,7 +113,7 @@ ssize_t StreamSocketConnection::read(char* data, size_t size)
         {
             // FIXME: handle eof flag properly
             fiber_io_message_.wait_for();
-            available_size = fiber_message_.available();
+            available_size = fiber_io_message_.available();
         }
         else {
             tools::rise_perror(SBuf() << "Error reading from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_);
@@ -128,7 +135,7 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
         {
             // FIXME: handle eof flag properly
             fiber_io_message_.wait_for();
-            available_size = fiber_message_.available();
+            available_size = fiber_io_message_.available();
         }
         else {
             tools::rise_perror(SBuf() << "Error reading from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_);
@@ -145,15 +152,22 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
 StreamServerSocket::StreamServerSocket(const IPAddress& ip_address, uint16_t ip_port): 
     StreamSocket(ip_address, ip_port),
     sock_address_{tools::make_zeroed<sockaddr_in>()},
-    fiber_io_message_(reactor().cpu())
+    fiber_io_message_(engine().cpu())
 {
     BOOST_ASSERT_MSG(ip_address_.is_v4(), "Only IPv4 sockets are supported at the moment");
     
-    socket_fd_ = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK , 0);
+    socket_fd_ = socket(AF_INET, SOCK_STREAM, 0);
     
     if (socket_fd_ < 0) 
     {
         tools::rise_perror(SBuf() << "Can't create socket for " << ip_address_);
+    }
+    
+    int flags = ::fcntl(socket_fd_, F_GETFL, 0);
+    
+    if (::fcntl(socket_fd_, F_SETFL, flags | O_NONBLOCK) < 0) 
+    {
+        tools::rise_perror(SBuf() << "Can't configure StreamSocketConnection for AIO " << this->address() << ":" << this->port() << ":" << socket_fd_);
     }
     
     sock_address_.sin_family        = AF_INET;
@@ -226,8 +240,6 @@ void StreamServerSocket::listen()
 
 std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
 {
-    Reactor& r = engine();
-    
     sockaddr_in client_addr;
     socklen_t cli_len = sizeof(client_addr);
 
@@ -241,21 +253,7 @@ std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
-            FiberIOMessage message(r.cpu());
-            
-            epoll_event event = tools::make_zeroed<epoll_event>();
-            
-            event.data.ptr = &message;
-            
-            event.events = EPOLLIN;
-            
-            int res = ::epoll_ctl(r.io_poller().epoll_fd(), EPOLL_CTL_ADD, socket_fd_, &event);
-            if (res < 0)
-            {
-                tools::rise_perror(SBuf() << "Can't configure poller for " << ip_address_ << ":" << ip_port_);
-            }
-            
-            message.wait_for();
+            fiber_io_message_.wait_for();
         }
         else {
             tools::rise_perror(SBuf() << "Can't start accepting connections for " << ip_address_ << ":" << ip_port_);

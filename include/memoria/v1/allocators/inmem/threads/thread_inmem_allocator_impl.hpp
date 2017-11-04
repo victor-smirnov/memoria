@@ -30,7 +30,7 @@
 #include "threads_snapshot_impl.hpp"
 
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory>
 #include <limits>
 #include <string>

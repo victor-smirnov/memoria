@@ -17,8 +17,12 @@
 
 #ifdef _WIN32
 #include "msvc/msvc_smp.hpp"
-#else
+#elif __APPLE__
+#include "macosx/macosx_smp.hpp"
+#elif
 #include "linux/linux_smp.hpp"
+#else
+#error "This platform is not supported"
 #endif
 
 #include "message/message.hpp"

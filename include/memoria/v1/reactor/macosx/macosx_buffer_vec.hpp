@@ -81,7 +81,7 @@ public:
 
 
 class FileIOBatch: public IOBatchBase {
-    std::vector<ExtendedIOCB> blocks_;
+    std::vector<IOCB> blocks_;
     
     size_t submited_{};
     
@@ -100,7 +100,7 @@ public:
     {
         IOCB iocb = tools::make_zeroed<IOCB>();
         
-        iocb.configure(iocb, const_cast<void*>(data), offset, size, IOCB::WRITE);
+        iocb.configure(const_cast<void*>(data), offset, size, IOCB::WRITE);
         
         blocks_.push_back(iocb);
     }

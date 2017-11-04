@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include <sys/epoll.h>
 #include <string.h>
 #include <stdint.h>
 
@@ -78,7 +77,7 @@ IPAddress::IPAddress(const uint8_t* octets, bool v4)
         auto addr = tools::make_zeroed<in6_addr>();
         
         for (int c = 0; c < 16; c++) {
-            addr.__in6_u.__u6_addr8[c] = octets[c];
+            addr.__u6_addr.__u6_addr8[c] = octets[c];
         }
         
         boost::get<in6_addr>(address_) = addr;

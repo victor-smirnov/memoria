@@ -30,17 +30,17 @@
 #define _GNU_SOURCE
 #endif
 
+#include <boost/align/aligned_alloc.hpp>
+
 
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include <sys/epoll.h>
-#include <sys/eventfd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdint.h>
 #include <exception>
-
+#include <stdlib.h>
 
 
 namespace memoria {
@@ -95,7 +95,7 @@ public:
         int errno0;
         
         std::tie(res, errno0) = engine().run_in_thread_pool([&]{
-            off_t r = ::lseek64(fd_, offset, SEEK_SET);
+            off_t r = ::lseek(fd_, offset, SEEK_SET);
             
             if (r >= 0) {
                 r = ::read(fd_, buffer, size);
@@ -118,7 +118,7 @@ public:
         int errno0 = 0;
         
         std::tie(res, errno0) = engine().run_in_thread_pool([&]{
-            off_t r = ::lseek64(fd_, offset, SEEK_SET);
+            off_t r = ::lseek(fd_, offset, SEEK_SET);
             
             if (r >= 0) {
                 r = ::write(fd_, buffer, size);
@@ -145,7 +145,7 @@ public:
                 
                 if (iocb.command == IOCB::READ)
                 {
-                    if (::lseek64(fd_, iocb.offset, SEEK_SET) >= 0)
+                    if (::lseek(fd_, iocb.offset, SEEK_SET) >= 0)
                     {
                         iocb.processed = ::read(fd_, iocb.data, iocb.size);
                         if (iocb.processed < 0) 
@@ -161,7 +161,7 @@ public:
                 }
                 else if (iocb.command == IOCB::WRITE) 
                 {
-                    if (::lseek64(fd_, iocb.offset, SEEK_SET)) 
+                    if (::lseek(fd_, iocb.offset, SEEK_SET)) 
                     {
                         iocb.processed = ::write(fd_, iocb.data, iocb.size);
                         if (iocb.processed < 0) 
@@ -205,7 +205,7 @@ public:
         int errno0 = 0;
         
         std::tie(res, errno) = engine().run_in_thread_pool([&]{
-            int r = ::fdatasync(fd_);
+            int r = ::fcntl(fd_, F_FULLFSYNC);
             return std::make_tuple(r, errno);
         });
         
@@ -230,7 +230,7 @@ DMABuffer allocate_dma_buffer(size_t size)
 {
 	if (size != 0) 
 	{
-		void* ptr = aligned_alloc(512, size);
+		void* ptr = boost::alignment::aligned_alloc(512, size);
 
 		if (ptr) {
 			DMABuffer buf(tools::ptr_cast<uint8_t>(ptr));

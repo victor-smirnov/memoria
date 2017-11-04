@@ -882,22 +882,22 @@ constexpr uint64_t CtLZ(uint64_t val) {
 	return memoria::v1::details::CtLZ_(val, 0x8000000000000000ull);
 }
 
-constexpr int32_t Log2(uint32_t value) { //constexpr
-    return 32 - CtLZ(value);
-}
+//constexpr int32_t Log2(uint32_t value) { //constexpr
+//    return 32 - CtLZ(value);
+//}
 
-constexpr int32_t Log2(int32_t value) {
-    return 32 - CtLZ((uint32_t)value);
-}
+//constexpr int32_t Log2(int32_t value) {
+//    return 32 - CtLZ((uint32_t)value);
+//}
 
 
 constexpr int32_t Log2(uint64_t value) {
     return 64 - CtLZ(value);
 }
 
-static inline int32_t Log2(int64_t value) {
-    return 64 - CtLZ((uint64_t)value);
-}
+//static inline int32_t Log2(int64_t value) {
+//    return 64 - CtLZ((uint64_t)value);
+//}
 
 
 static inline int32_t CountTrailingZeroes(uint32_t value) {

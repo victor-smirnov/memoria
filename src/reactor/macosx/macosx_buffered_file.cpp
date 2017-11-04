@@ -98,7 +98,7 @@ public:
         int errno0;
         
         std::tie(res, errno0) = engine().run_in_thread_pool([&]{
-            off_t r = lseek64(fd_, offset, SEEK_SET);
+            off_t r = lseek(fd_, offset, SEEK_SET);
             
             if (r >= 0) {
                 r = ::read(fd_, buffer, size);
@@ -121,7 +121,7 @@ public:
         int errno0 = 0;
         
         std::tie(res, errno0) = engine().run_in_thread_pool([&]{
-            off_t r = lseek64(fd_, offset, SEEK_SET);
+            off_t r = lseek(fd_, offset, SEEK_SET);
             
             if (r >= 0) {
                 r = ::write(fd_, buffer, size);
@@ -148,7 +148,7 @@ public:
                 
                 if (iocb.command == IOCB::READ)
                 {
-                    if (lseek64(fd_, iocb.offset, SEEK_SET) >= 0)
+                    if (lseek(fd_, iocb.offset, SEEK_SET) >= 0)
                     {
                         iocb.processed = ::read(fd_, (void*)iocb.data, iocb.size);
                         if (iocb.processed < 0) 
@@ -164,7 +164,7 @@ public:
                 }
                 else if (iocb.command == IOCB::WRITE) 
                 {
-                    if (lseek64(fd_, iocb.offset, SEEK_SET)) 
+                    if (lseek(fd_, iocb.offset, SEEK_SET)) 
                     {
                         iocb.processed = ::write(fd_, (void*)iocb.data, iocb.size);
                         if (iocb.processed < 0) 
@@ -208,7 +208,7 @@ public:
         int errno0 = 0;
         
         std::tie(res, errno) = engine().run_in_thread_pool([&]{
-            int r = ::fdatasync(fd_);
+            int r = ::fcntl(fd_, F_FULLFSYNC);
             return std::make_tuple(r, errno);
         });
         

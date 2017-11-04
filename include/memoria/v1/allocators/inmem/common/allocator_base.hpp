@@ -31,7 +31,7 @@
 
 
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory>
 #include <limits>
 #include <string>

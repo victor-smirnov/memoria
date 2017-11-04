@@ -37,7 +37,7 @@
 #include <memoria/v1/fiber/recursive_shared_mutex.hpp>
 #include <memoria/v1/fiber/shared_lock.hpp>
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory>
 #include <limits>
 #include <string>

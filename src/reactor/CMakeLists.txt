@@ -14,7 +14,7 @@
 
 
 if (APPLE)
-    file(GLOB SRCS *.cpp macosx/*.cpp)
+	file(GLOB SRCS *.cpp macosx/*.cpp)
 elseif (BUILD_MSVC)
 	file(GLOB SRCS *.cpp msvc/*.cpp)
 else()

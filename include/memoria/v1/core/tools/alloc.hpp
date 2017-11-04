@@ -20,7 +20,7 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory>
 #include <type_traits>
 

@@ -29,7 +29,7 @@ int main(int argc, char **argv)
         std::cout << "Hello from Intellectio!" << std::endl;
         
         try {
-            auto ss = std::make_shared<StreamServerSocket>(IPAddress(0,0,0,0), 5555); 
+            auto ss = std::make_shared<StreamServerSocket>(IPAddress(127,0,0,1), 5555); 
             ss->listen();
             
             std::cout << "Socked created " << ss->fd() << std::endl;

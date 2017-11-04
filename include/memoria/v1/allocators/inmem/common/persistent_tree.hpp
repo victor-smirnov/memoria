@@ -27,7 +27,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
-#include <malloc.h>
+#include <stdlib.h>
 #include <mutex>
 
 namespace memoria {

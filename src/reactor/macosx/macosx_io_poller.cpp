@@ -19,6 +19,8 @@
 #include <memoria/v1/core/tools/perror.hpp>
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 
+#include <memoria/v1/reactor/message/fiber_io_message.hpp>
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -28,8 +30,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include <sys/epoll.h>
-#include <sys/eventfd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdint.h>
@@ -69,9 +69,7 @@ void IOPoller::poll()
     int buffer_capacity = buffer_.capacity_i();
     if (buffer_capacity > 0)
     {
-        kevent eevents[BATCH_SIZE];
-        
-        sigset_t sigmask;
+        struct kevent eevents[BATCH_SIZE];
         
         int max_events = std::min(buffer_capacity, (int)BATCH_SIZE);
         
