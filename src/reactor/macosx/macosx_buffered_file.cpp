@@ -37,8 +37,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include <sys/epoll.h>
-#include <sys/eventfd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdint.h>
@@ -146,13 +144,13 @@ public:
             size_t c;
             for (c = 0; c < batch.nblocks(); c++) 
             {
-                ExtendedIOCB& iocb = batch.block(c);
+                IOCB& iocb = batch.block(c);
                 
-                if (iocb.aio_lio_opcode == IOCB_CMD_PREAD)
+                if (iocb.command == IOCB::READ)
                 {
-                    if (lseek64(fd_, iocb.aio_offset, SEEK_SET) >= 0)
+                    if (lseek64(fd_, iocb.offset, SEEK_SET) >= 0)
                     {
-                        iocb.processed = ::read(fd_, (void*)iocb.aio_buf, iocb.aio_nbytes);
+                        iocb.processed = ::read(fd_, (void*)iocb.data, iocb.size);
                         if (iocb.processed < 0) 
                         {
                             iocb.errno_ = errno;
@@ -164,11 +162,11 @@ public:
                         break;
                     }
                 }
-                else if (iocb.aio_lio_opcode == IOCB_CMD_PWRITE) 
+                else if (iocb.command == IOCB::WRITE) 
                 {
-                    if (lseek64(fd_, iocb.aio_offset, SEEK_SET)) 
+                    if (lseek64(fd_, iocb.offset, SEEK_SET)) 
                     {
-                        iocb.processed = ::write(fd_, (void*)iocb.aio_buf, iocb.aio_nbytes);
+                        iocb.processed = ::write(fd_, (void*)iocb.data, iocb.size);
                         if (iocb.processed < 0) 
                         {
                             iocb.errno_ = errno;
