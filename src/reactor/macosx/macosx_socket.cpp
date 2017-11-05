@@ -63,7 +63,7 @@ StreamSocketConnection::StreamSocketConnection(int connection_fd, const std::sha
     
     struct kevent event;
     
-    EV_SET(&event, connection_fd_, EVFILT_READ, EV_ADD, 0, 0, nullptr);
+    EV_SET(&event, connection_fd_, EVFILT_READ, EV_ADD, 0, 0, &fiber_io_message_);
     
     int res = ::kevent(queue_fd, &event, 1, nullptr, 0, &timeout);
     if (res < 0)
@@ -189,7 +189,7 @@ StreamServerSocket::StreamServerSocket(const IPAddress& ip_address, uint16_t ip_
     
     struct kevent event;
     
-    EV_SET(&event, socket_fd_, EVFILT_READ, EV_ADD, 0, 0, nullptr);
+    EV_SET(&event, socket_fd_, EVFILT_READ, EV_ADD, 0, 0, &fiber_io_message_);
     
     int sres = ::kevent(queue_fd, &event, 1, nullptr, 0, &timeout);
     if (sres < 0) {

@@ -32,7 +32,7 @@
 #include <vector>
 #include <fstream>
 
-#include <malloc.h>
+#include <stdlib.h>
 
 
 namespace memoria {

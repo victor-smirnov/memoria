@@ -79,7 +79,7 @@ void IOPoller::poll()
         {
             for (int c = 0; c < kevent_result; c++) 
             {    
-                if (eevents[c].udata && (eevents[c].filter == EVFILT_READ || eevents[c].filter == EVFILT_WRITE))
+                if (eevents[c].udata)
                 {
                     FiberIOMessage* msg = tools::ptr_cast<FiberIOMessage>(eevents[c].udata);
                     msg->configure(eevents[c].flags & EV_EOF, eevents[c].data);
