@@ -508,7 +508,7 @@ private:
         template <int32_t StreamIndex, int32_t AllocatorIdx, int32_t Idx, typename Node>
         void stream(Node* obj, int32_t tree_size, uint64_t active_streams)
         {
-            if (active_streams && (1 << StreamIndex))
+            if (active_streams & (1 << StreamIndex))
             {
                 size_ += Node::block_size(tree_size);
             }

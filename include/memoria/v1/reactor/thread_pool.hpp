@@ -19,7 +19,7 @@
 #include "msvc/msvc_smp.hpp"
 #elif __APPLE__
 #include "macosx/macosx_smp.hpp"
-#elif
+#elif __linux__
 #include "linux/linux_smp.hpp"
 #else
 #error "This platform is not supported"
