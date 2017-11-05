@@ -23,7 +23,7 @@
 
 #include <memory>
 #include <type_traits>
-#include <malloc.h>
+#include <stdlib.h>
 
 namespace memoria {
 namespace v1 {

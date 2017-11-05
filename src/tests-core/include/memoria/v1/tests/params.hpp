@@ -21,6 +21,8 @@
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/strings/strings.hpp>
+
 #include <memoria/v1/core/tools/static_array.hpp>
 
 #include <memoria/v1/tests/configuration.hpp>

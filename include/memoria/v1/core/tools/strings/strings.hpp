@@ -147,6 +147,18 @@ struct FromString<uint64_t> {
     }
 };
 
+#ifdef __APPLE__
+
+template <>
+struct FromString<unsigned long> {
+    static unsigned long convert(StringRef str)
+    {
+        return ConvertToULongInt(str);
+    }
+};
+
+#endif
+
 template <>
 struct FromString<double> {
     static double convert(StringRef str)
