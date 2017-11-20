@@ -123,8 +123,8 @@ public:
     {
         if (target_cpu != cpu_) 
         {
-            auto ctx = fibers::context::active();
-            BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
+            //auto ctx = fibers::context::active();
+            BOOST_ASSERT_MSG(fibers::context::active() != nullptr, "Fiber context is null");
         
             auto msg = make_one_way_lambda_message(cpu_, std::forward<Fn>(task), std::forward<Args>(args)...);
             smp_->submit_to(target_cpu, msg);

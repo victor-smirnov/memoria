@@ -21,6 +21,7 @@ using namespace dr;
 
 volatile size_t counter{};
 
+
 int main(int argc, char **argv) 
 {    
     Application app(argc, argv);
@@ -29,25 +30,26 @@ int main(int argc, char **argv)
         std::cout << "Hello from Intellectio!" << std::endl;
         
         try {
-            auto ss = std::make_shared<StreamServerSocket>(IPAddress(127,0,0,1), 5555); 
-            ss->listen();
+            ServerSocket ss(IPAddress(127,0,0,1), 5556);
+            ss.listen();
             
-            std::cout << "Socked created " << ss->fd() << std::endl;
+            std::cout << "Socked created " << ss.fd() << std::endl;
         
-            auto conn = ss->accept();
+            ServerSocketConnection conn = ss.accept();
             
-            std::cout << "New connection: " << conn->fd() << std::endl;
+            std::cout << "New connection: " << conn.fd() << std::endl;
             
             size_t data_size = 4096;
-            char* data = new char[data_size]; 
-                
+            uint8_t* data = new uint8_t[data_size]; 
+
+            auto is = conn.input();
+            auto os = conn.output();
             
             while (true) 
             {
-                auto readed = conn->read(data, data_size);
+                auto readed = is.read(data, data_size);
                 std::cout << "Read " << readed << " bytes" << std::endl;
-                
-                
+
                 if (data[0] == 'Z' && data[1] == 'Z') {
                     break;
                 }
@@ -56,13 +58,13 @@ int main(int argc, char **argv)
                 ssize_t ptr = 0;
     
                 while (len > 0) {
-                    auto l0 = conn->write(data + ptr, len);
+                    auto l0 = os.write(data + ptr, len);
                     std::cout << "Sent " << l0 << " bytes " << std::endl;
                     len -= l0;
                     ptr += l0;
                 }
             }
-            
+
            // conn->close();
            // ss->close();
             
@@ -111,7 +113,7 @@ int main(int argc, char **argv)
             
         }
         catch (std::exception& ex) {
-            std::cout << "0Exception: " << ex.what() << std::endl;
+            std::cout << "Exception: " << ex.what() << std::endl;
         }
 
         dr::app().shutdown();

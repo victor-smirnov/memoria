@@ -110,8 +110,8 @@ public:
     void fsync();
     void fdsync();
     
-    DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096);
-    DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096);
+    IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096);
+    IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096);
     
     const filesystem::path& path();
 };

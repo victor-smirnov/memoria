@@ -219,16 +219,16 @@ public:
         }
     }
     
-    virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
+    virtual IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
     {
         auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
-        return DataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);
+        return IDataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);
     }
     
-    virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
+    virtual IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
     {
         auto buffered_os = std::make_shared<BufferedOS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
-        return DataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
+        return IDataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
     }
 };  
 

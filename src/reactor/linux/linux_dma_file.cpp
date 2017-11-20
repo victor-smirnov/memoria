@@ -73,11 +73,11 @@ public:
     
     
     
-    virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) {
+    virtual IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) {
         tools::rise_error(SBuf() << "Streams are not supported for DMA files");
     }
     
-    virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
+    virtual IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
     {
         //auto buffered_os = std::make_shared<DmaOS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
         //return DataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);

@@ -32,40 +32,112 @@
 namespace memoria {
 namespace v1 {
 
-class BinaryInputStream: public Referenceable {
+class IBinaryInputStream: public Referenceable {
     
 public:
-    virtual ~BinaryInputStream() noexcept {}
-    virtual size_t read(uint8_t* data, size_t size) = 0;
+    virtual ~IBinaryInputStream() noexcept {}
+    virtual ssize_t read(uint8_t* data, size_t size) = 0;
+    //virtual void close() = 0;
 };
 
 
-class BinaryOutputStream: public Referenceable {
+class IBinaryOutputStream: public Referenceable {
 public:
     
-    virtual ~BinaryOutputStream() noexcept {}
-    virtual size_t write(const uint8_t* data, size_t size) = 0;
+    virtual ~IBinaryOutputStream() noexcept {}
+    virtual ssize_t write(const uint8_t* data, size_t size) = 0;
     virtual void flush() = 0;
+    //virtual void close() = 0;
 };
 
 
 
 
+struct BinaryInputStream final {
+    using TargetType = IBinaryInputStream;
+private:
+    std::shared_ptr<TargetType> holder_; 
+public:
+    BinaryInputStream(const std::shared_ptr<TargetType>& holder): holder_(holder) 
+    {}
+    
+    BinaryInputStream(const BinaryInputStream&) = default;
+    BinaryInputStream(BinaryInputStream&&) = default;
+    
+    BinaryInputStream& operator=(const BinaryInputStream&) = default;
+    BinaryInputStream& operator=(BinaryInputStream&&) = default;
+    
+    bool operator==(const BinaryInputStream& other) const {
+        return holder_ == other.holder_;
+    }
+    
+    size_t read(uint8_t* data, size_t size) {
+        return holder_->read(data, size);
+    }
+    
+    template <typename T>
+    operator T() {
+        return T(std::static_pointer_cast<typename T::TargetType>(holder_));
+    }
+    
+    template <typename T>
+    operator T() const {
+        return T(std::static_pointer_cast<typename T::TargetType>(holder_));
+    }
+};
 
 
-class DataOutputStream;
-class DataInputStream;
+struct BinaryOutputStream final {
+    using TargetType = IBinaryOutputStream;
+private:
+    std::shared_ptr<TargetType> holder_; 
+public:
+    BinaryOutputStream(const std::shared_ptr<TargetType>& holder): holder_(holder) 
+    {}
+    
+    BinaryOutputStream(const BinaryOutputStream&) = default;
+    BinaryOutputStream(BinaryOutputStream&&) = default;
+    
+    BinaryOutputStream& operator=(const BinaryOutputStream&) = default;
+    BinaryOutputStream& operator=(BinaryOutputStream&&) = default;
+    
+    bool operator==(const BinaryOutputStream& other) const {
+        return holder_ == other.holder_;
+    }
+    
+    size_t write(const uint8_t* data, size_t size) {
+        return holder_->write(data, size);
+    }
+    
+    void flush() {
+        return holder_->flush();
+    }
+    
+    template <typename T>
+    operator T() {
+        return T(std::static_pointer_cast<typename T::TargetType>(holder_));
+    }
+    
+    template <typename T>
+    operator T() const {
+        return T(std::static_pointer_cast<typename T::TargetType>(holder_));
+    }
+};
 
-class TextOutputStream;
+
+class IDataOutputStream;
+class IDataInputStream;
 
 
-class DataInputStream {
+
+
+class IDataInputStream {
     using BufferT = DefaultIOBuffer;
-    BinaryInputStream* stream_;
+    IBinaryInputStream* stream_;
     BufferT* buffer_;
     std::shared_ptr<Referenceable> holder_;
 public:
-    DataInputStream(BinaryInputStream* stream, BufferT* buffer_, std::shared_ptr<Referenceable> holder):
+    IDataInputStream(IBinaryInputStream* stream, BufferT* buffer_, std::shared_ptr<Referenceable> holder):
         stream_(stream), buffer_(buffer_), holder_(holder)
     {
         buffer_->limit(0);
@@ -79,10 +151,10 @@ public:
         return BufferT::ValueSize<T>::value;
     }
     
-    DataInputStream(const DataInputStream&) = delete;
-    DataInputStream& operator=(const DataInputStream&) = delete;
+    IDataInputStream(const IDataInputStream&) = delete;
+    IDataInputStream& operator=(const IDataInputStream&) = delete;
     
-    DataInputStream(DataInputStream&& other): 
+    IDataInputStream(IDataInputStream&& other): 
         stream_(other.stream_), 
         buffer_(other.buffer_),
         holder_(std::move(other.holder_))
@@ -91,7 +163,7 @@ public:
         other.buffer_ = nullptr;
     }
     
-    DataInputStream& operator=(DataInputStream&& other) 
+    IDataInputStream& operator=(IDataInputStream&& other) 
     {
         if (this != &other) 
         {
@@ -103,7 +175,7 @@ public:
         return *this;
     }
     
-    void swap(DataInputStream& other) 
+    void swap(IDataInputStream& other) 
     {
         std::swap(stream_, other.stream_);
         std::swap(buffer_, other.buffer_);
@@ -205,7 +277,7 @@ public:
     }
 
     
-    uint32_t readUInt3232()
+    uint32_t readUInt32()
     {
         if (MMA1_UNLIKELY(!buffer_->has_capacity(type_size<uint32_t>())))
         {
@@ -217,7 +289,7 @@ public:
     
     void read(uint32_t& value) 
     {
-        value = readUInt3232();
+        value = readUInt32();
     }
     
     
@@ -237,7 +309,7 @@ public:
     }
     
     
-    uint64_t readUInt3264()
+    uint64_t readUInt64()
     {
         if (MMA1_UNLIKELY(!buffer_->has_capacity(type_size<uint64_t>()))) 
         {
@@ -249,7 +321,7 @@ public:
     
     void read(uint64_t& value) 
     {
-        value = readUInt3264();
+        value = readUInt64();
     }
     
     
@@ -355,13 +427,13 @@ public:
 
 
 
-class DataOutputStream {
+class IDataOutputStream {
     using BufferT = DefaultIOBuffer;
-    BinaryOutputStream* stream_;
+    IBinaryOutputStream* stream_;
     BufferT* buffer_;
     std::shared_ptr<Referenceable> holder_;
 public:
-    DataOutputStream(BinaryOutputStream* stream, BufferT* buffer_, std::shared_ptr<Referenceable> holder):
+    IDataOutputStream(IBinaryOutputStream* stream, BufferT* buffer_, std::shared_ptr<Referenceable> holder):
         stream_(stream), buffer_(buffer_), holder_(holder)
     {}
     
@@ -372,10 +444,10 @@ public:
         return BufferT::ValueSize<T>::value;
     }
     
-    DataOutputStream(const DataOutputStream&) = delete;
-    DataOutputStream& operator=(const DataOutputStream&) = delete;
+    IDataOutputStream(const IDataOutputStream&) = delete;
+    IDataOutputStream& operator=(const IDataOutputStream&) = delete;
     
-    DataOutputStream(DataOutputStream&& other): 
+    IDataOutputStream(IDataOutputStream&& other): 
         stream_(other.stream_), 
         buffer_(other.buffer_),
         holder_(std::move(other.holder_))
@@ -384,7 +456,7 @@ public:
         other.buffer_ = nullptr;
     }
     
-    DataOutputStream& operator=(DataOutputStream&& other)
+    IDataOutputStream& operator=(IDataOutputStream&& other)
     {
         if (this != &other) 
         {
@@ -396,7 +468,7 @@ public:
         return *this;
     }
     
-    void swap(DataOutputStream& other) 
+    void swap(IDataOutputStream& other) 
     {
         std::swap(stream_, other.stream_);
         std::swap(buffer_, other.buffer_);
@@ -463,48 +535,6 @@ public:
     {
         flush_buffer();
         stream_->flush();
-    }
-};
-
-
-class TextOutputStream {
-    BinaryOutputStream* stream_;
-    DefaultIOBuffer* buffer_;
-    std::shared_ptr<Referenceable> holder_;
-public:
-    TextOutputStream(BinaryOutputStream* stream, DefaultIOBuffer* buffer_, std::shared_ptr<Referenceable> holder):
-        stream_(stream), buffer_(buffer_), holder_(holder)
-    {}
-    
-    TextOutputStream(const TextOutputStream&) = delete;
-    TextOutputStream& operator=(const TextOutputStream&) = delete;
-    
-    TextOutputStream(TextOutputStream&& other): 
-        stream_(other.stream_), 
-        buffer_(other.buffer_),
-        holder_(std::move(other.holder_))
-    {
-        other.stream_ = nullptr;
-        other.buffer_ = nullptr;
-    }
-    
-    TextOutputStream& operator=(TextOutputStream&& other)
-    {
-        if (this != &other) 
-        {
-            stream_ = other.stream_; 
-            buffer_ = other.buffer_;
-            holder_ = std::move(other.holder_);
-        }
-        
-        return *this;
-    }
-    
-    void swap(TextOutputStream& other) 
-    {
-        std::swap(stream_, other.stream_);
-        std::swap(buffer_, other.buffer_);
-        std::swap(holder_, other.holder_);
     }
 };
 

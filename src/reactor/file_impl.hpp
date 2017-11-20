@@ -44,8 +44,8 @@ public:
     virtual void fsync() = 0;
     virtual void fdsync() = 0;
     
-    virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) = 0;
-    virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) = 0;
+    virtual IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) = 0;
+    virtual IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) = 0;
     
     const filesystem::path& path() const {return path_;}
 };

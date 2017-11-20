@@ -72,17 +72,18 @@ size_t File::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 void File::fsync() {
     return pimpl_->fsync();
 }
+
 void File::fdsync()
 {
     return pimpl_->fdsync();
 }
 
-DataInputStream File::istream(uint64_t position, size_t buffer_size)
+IDataInputStream File::istream(uint64_t position, size_t buffer_size)
 {
     return pimpl_->istream(position, buffer_size);
 }
 
-DataOutputStream File::ostream(uint64_t position, size_t buffer_size)
+IDataOutputStream File::ostream(uint64_t position, size_t buffer_size)
 {
     return pimpl_->ostream(position, buffer_size);
 }

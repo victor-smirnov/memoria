@@ -59,6 +59,13 @@ SET_TARGET_PROPERTIES(intellectio PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FL
 set_target_properties(intellectio PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 target_link_libraries(intellectio Memoria ${MEMORIA_LIBS})
 
+
+add_executable(tcp_client tcp_client.cpp)
+SET_TARGET_PROPERTIES(tcp_client PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+set_target_properties(tcp_client PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+target_link_libraries(tcp_client Memoria ${MEMORIA_LIBS})
+
+
 add_executable(disruptor_bm disruptor_bm.cpp)
 SET_TARGET_PROPERTIES(disruptor_bm PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 set_target_properties(disruptor_bm PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")

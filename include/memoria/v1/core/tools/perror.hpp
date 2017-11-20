@@ -85,6 +85,8 @@ static inline void report_perror(int errno0, const SBuf& message)
 }
 
 
+
+
 [[noreturn]] static inline void rise_error(const SBuf& message) 
 {
     throw std::runtime_error(message.str());

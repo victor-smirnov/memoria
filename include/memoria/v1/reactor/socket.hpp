@@ -15,19 +15,112 @@
 
 #pragma once
 
-#ifdef _WIN32
+#ifdef __linux__
+#include "linux/linux_socket_impl.hpp"
 #elif __APPLE__
-#elif __linux__
-#include "linux/file_impl.hpp"
-#else
-#error "Unsupported compiler"
-#endif
+#include "macosx/macosx_socket_impl.hpp"
+#elif _WIN32
+#include "msvc/msvc_socket_impl.hpp"
+#else 
+#error "Unsupported platform"
+#endif 
+
+#include <memoria/v1/core/tools/pimpl_base.hpp>
+#include <memoria/v1/core/tools/iostreams.hpp>
 
 #include <string>
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
+
+class SocketImpl;
+class ServerSocketImpl;
+class ClientSocketImpl;
+class ConnectionImpl;
+class SocketConnectionImpl;
+class DummySocketImpl;
+
+
+class ServerSocketConnectionImpl;
+class ClientSocketConnectionImpl;
+
+class ServerSocketConnection;
+class Socket;
+class ServerSocket;
+class ClientSocket;
+
+
+class ServerSocket final : public PimplBase<ServerSocketImpl>  {
+    using Base = PimplBase<ServerSocketImpl>;
+public:
+    ServerSocket(const IPAddress& ip_address, uint16_t ip_port);
+    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ServerSocket)
+    
+    void listen();
+    int fd() const;
+    void close();
+    bool is_closed();
+    
+    SocketConnectionData accept();
+};
+
+
+
+class SocketConnection final: public PimplBase<SocketConnectionImpl> {
+    using Base = PimplBase<SocketConnectionImpl>;
+public:
+    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(SocketConnection)
+    
+    Socket socket();
+    
+    BinaryInputStream input();
+    BinaryOutputStream output();
+
+    void close();
+    bool is_closed();
+    
+    template <typename T> T cast_to() const;
+};
+
+
+
+class ServerSocketConnection final : public PimplBase<ServerSocketConnectionImpl> {
+    using Base = PimplBase<ServerSocketConnectionImpl>;
+
+public:
+    using typename Base::PtrType;
+    
+    ServerSocketConnection(SocketConnectionData&& data);
+
+    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ServerSocketConnection)
+    
+    int fd() const;
+
+    BinaryInputStream  input();
+    BinaryOutputStream output();
+    
+    void close();
+    bool is_closed();
+    
+    operator SocketConnection() const;
+    
+    template <typename T> T cast_to() const;
+};
+
+
+class ClientSocket final : public PimplBase<ClientSocketImpl> {
+    using Base = PimplBase<ClientSocketImpl>;
+public:
+    ClientSocket(const IPAddress& ip_address, uint16_t ip_port);
+    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ClientSocket)
+
+    BinaryInputStream  input();
+    BinaryOutputStream output();
+
+    void close();
+    bool is_closed();
+};
 
 
 

@@ -27,7 +27,7 @@ namespace v1 {
 namespace reactor {
        
 template <typename BufferT = DefaultIOBuffer>    
-class BufferedIS: public BinaryInputStream {
+class BufferedIS: public IBinaryInputStream {
     BufferT buffer_;
     File file_;
     
@@ -38,9 +38,9 @@ public:
         buffer_(buffer_size), file_(file), position_(start)
     {}
     
-    virtual size_t read(uint8_t* data, size_t size) 
+    virtual ssize_t read(uint8_t* data, size_t size) 
     {
-        size_t len = file_.read(data, position_, size);
+        ssize_t len = file_.read(data, position_, size);
         position_ += len;
         return len;
     }
@@ -51,7 +51,7 @@ public:
 
 
 template <typename BufferT = DefaultIOBuffer>    
-class BufferedOS: public BinaryOutputStream {
+class BufferedOS: public IBinaryOutputStream {
     BufferT buffer_;
     File file_;
     
@@ -62,9 +62,9 @@ public:
         buffer_(buffer_size), file_(file), position_(start)
     {}
     
-    virtual size_t write(const uint8_t* data, size_t size) 
+    virtual ssize_t write(const uint8_t* data, size_t size) 
     {
-        size_t len = file_.write(data, position_, size);
+        ssize_t len = file_.write(data, position_, size);
         
         position_ += len;
         

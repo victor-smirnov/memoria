@@ -18,6 +18,8 @@
 #include "../../core/tools/bzero_struct.hpp"
 #include "../message/fiber_io_message.hpp"
 
+#include <memoria/v1/core/tools/iostreams.hpp>
+
 #include <boost/mpl/size_t.hpp>
 #include <boost/variant.hpp>
 
@@ -69,70 +71,46 @@ public:
 std::ostream& operator<<(std::ostream& out, const IPAddress& addr);
 
 
-
-
-
-
-class StreamSocket: public std::enable_shared_from_this<StreamSocket> {
-protected:
+class SocketConnectionData {
+    int fd_;
     IPAddress ip_address_;
     uint16_t ip_port_;
-    int socket_fd_{};
-        
-public:
-    StreamSocket(const IPAddress& ip_address, uint16_t ip_port ):
-        ip_address_(ip_address),
-        ip_port_(ip_port)
+
+    friend class SocketConnectionImpl;
+    friend class ServerSocketConnectionImpl;
+    friend class ServerSocketImpl;
+
+    SocketConnectionData(int fd, IPAddress ip_address, uint16_t ip_port):
+        fd_(fd), ip_address_(ip_address), ip_port_(ip_port)
     {}
-    
-    virtual ~StreamSocket() noexcept {}
-    
-    const IPAddress& address() const {return ip_address_;}
-    uint16_t port() const {return ip_port_;}
-    
-    int fd() const {return socket_fd_;}
-};
 
-class StreamSocketConnection {
-    std::shared_ptr<StreamSocket> socket_;
-    int connection_fd_;
-    
-    FiberIOMessage fiber_io_message_;
-    
 public:
-    StreamSocketConnection(int connection_fd, const std::shared_ptr<StreamSocket>& socket);
-    
-    virtual ~StreamSocketConnection() noexcept;
-    
-    std::shared_ptr<StreamSocket>& socket() {return socket_;}
-    const std::shared_ptr<StreamSocket>& socket() const {return socket_;}
-    
-    ssize_t read(char* data, size_t size);
-    ssize_t write(const char* data, size_t size);
-    
-    int fd() const {return connection_fd_;}
+    SocketConnectionData(SocketConnectionData&& other):
+        fd_(other.take_fd())
+    {}
+
+    ~SocketConnectionData() noexcept {
+        if (fd_ >= 0)
+        {
+            std::cout << "Untaken SocketConnectionData. Aborting." << std::endl;
+            std::terminate();
+        }
+    }
+
+    const IPAddress& ip_address() const {
+        return ip_address_;
+    }
+
+    uint16_t ip_port() const {return ip_port_;}
+
+private:
+    int take_fd()
+    {
+        int fd = fd_;
+        fd_ = -1;
+        return fd;
+    }
 };
 
 
-    
-class StreamServerSocket: public StreamSocket {
-    
-    sockaddr_in sock_address_;
-    bool closed_{false};
-    
-    FiberIOMessage fiber_io_message_;
-    
-public:
-    StreamServerSocket ( const IPAddress& ip_address, uint16_t ip_port );
-    
-    virtual ~StreamServerSocket() noexcept;
-    
-    void listen();
-    
-    std::unique_ptr<StreamSocketConnection> accept();
-};
-    
-    
 }}}
-
-
