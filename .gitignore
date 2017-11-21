@@ -3,3 +3,4 @@ mkbuild.sh
 build.sh
 .kdev*
 
+/*.user
