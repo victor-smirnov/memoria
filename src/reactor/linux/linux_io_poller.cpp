@@ -136,7 +136,8 @@ void IOPoller::poll()
                 }
                 else if (eevents[c].data.ptr)
                 {
-                    Message* msg = tools::ptr_cast<Message>(eevents[c].data.ptr);
+                    EPollIOMessage* msg = tools::ptr_cast<EPollIOMessage>(eevents[c].data.ptr);
+                    msg->configure(eevents[c].events);
                     buffer_.push_front(msg);
                 }
             }

@@ -18,6 +18,7 @@
 #include "linux_smp.hpp"
 #include "../message/message.hpp"
 #include "../ring_buffer.hpp"
+#include "linux_io_messages.hpp"
 
 #include <memory>
 #include <thread>
@@ -35,11 +36,6 @@ int io_submit(aio_context_t ctx, long nr,  struct iocb **iocbpp);
 
 using IOBuffer = RingBuffer<Message*>;
 
-class FileIOMessage: public Message {
-public:
-    FileIOMessage(int cpu): Message(cpu, false) {}
-    virtual void report(io_event* status) = 0;
-};
 
 class IOPoller {
     

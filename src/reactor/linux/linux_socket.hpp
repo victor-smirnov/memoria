@@ -17,6 +17,7 @@
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 #include <memoria/v1/reactor/linux/linux_socket_impl.hpp>
+#include <memoria/v1/reactor/linux/linux_io_messages.hpp>
 
 #include <memoria/v1/reactor/socket.hpp>
 
@@ -50,8 +51,7 @@ protected:
 
     sockaddr_in sock_address_;
 
-
-    FiberIOMessage fiber_io_message_;
+    EPollIOMessage fiber_io_message_;
 public:
     ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port);
     virtual ~ServerSocketImpl() noexcept;
@@ -65,17 +65,19 @@ public:
     virtual void close();
 };
 
+
 class ConnectionImpl {
 protected:
     int fd_;
-    bool closed_{false};
+    bool op_closed_{false};
+
 public:
     ConnectionImpl(int fd): fd_(fd) {}
     virtual ~ConnectionImpl() noexcept {}
 
     int fd() const {return fd_;}
     virtual void close() = 0;
-    virtual bool is_closed() const noexcept {return closed_;}
+    virtual bool is_closed() const = 0;
 
     virtual BinaryInputStream input()   = 0;
     virtual BinaryOutputStream output() = 0;
@@ -98,7 +100,7 @@ class ServerSocketConnectionImpl:
     IPAddress ip_address_;
     uint16_t ip_port_;
 
-    FiberIOMessage fiber_io_message_;
+    EPollIOMessage fiber_io_message_;
 public:
     ServerSocketConnectionImpl(SocketConnectionData&& data);
     virtual ~ServerSocketConnectionImpl() noexcept;
@@ -117,6 +119,7 @@ public:
     virtual void flush() {}
 
     virtual void close();
+    virtual bool is_closed() const noexcept {return op_closed_ || fiber_io_message_.connection_closed();}
 };
 
 
@@ -145,7 +148,7 @@ class ClientSocketImpl: public ClientSocketConnectionImpl {
 
     sockaddr_in sock_address_;
 
-    FiberIOMessage fiber_io_message_;
+    EPollIOMessage fiber_io_message_;
 
 public:
      ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port);
@@ -159,6 +162,7 @@ public:
      virtual void flush() {}
 
      virtual void close();
+     virtual bool is_closed() const noexcept {return op_closed_ || fiber_io_message_.connection_closed();}
 
 private:
      void connect();

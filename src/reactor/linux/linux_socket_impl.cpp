@@ -139,9 +139,9 @@ ssize_t ServerSocketConnectionImpl::write(const uint8_t* data, size_t size)
 
 void ServerSocketConnectionImpl::close()
 {
-    if (!closed_)
+    if (!op_closed_)
     {
-        closed_ = true;
+        op_closed_ = true;
         int res = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_DEL, fd_, nullptr);
         if (res < 0)
         {
@@ -339,9 +339,9 @@ ClientSocketImpl::~ClientSocketImpl() noexcept
 
 void ClientSocketImpl::close()
 {
-    if (!closed_)
+    if (!op_closed_)
     {
-        closed_ = true;
+        op_closed_ = true;
         int res = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_DEL, fd_, nullptr);
         if (res < 0)
         {

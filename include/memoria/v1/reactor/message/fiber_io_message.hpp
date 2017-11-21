@@ -43,7 +43,7 @@ public:
         return_ = true;
     }
     
-    virtual ~FiberIOMessage() {}
+    virtual ~FiberIOMessage() noexcept {}
         
     virtual void process() noexcept {}
     
@@ -68,7 +68,7 @@ public:
     }
 #endif
     
-    void wait_for();
+    virtual void wait_for();
 };
 
 

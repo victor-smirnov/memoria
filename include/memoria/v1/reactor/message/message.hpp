@@ -44,7 +44,7 @@ public:
         one_way_(one_way)
     {}
     
-    virtual ~Message() {}
+    virtual ~Message() noexcept {}
     
     int cpu() const {return cpu_;}
     

@@ -45,7 +45,7 @@ int main(int argc, char **argv)
             auto is = conn.input();
             auto os = conn.output();
             
-            while (true) 
+            while (!conn.is_closed())
             {
                 auto readed = is.read(data, data_size);
                 std::cout << "Read " << readed << " bytes" << std::endl;
@@ -65,8 +65,6 @@ int main(int argc, char **argv)
                 }
             }
 
-           // conn->close();
-           // ss->close();
             
 //             int64_t t0 = m::getTimeInMillis();
 //             
