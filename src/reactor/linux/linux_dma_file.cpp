@@ -61,6 +61,7 @@ public:
     virtual uint64_t alignment() {return 512;}
         
     virtual void close();
+    virtual bool is_closed() const {return closed_;}
     
     virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size);
     virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size);
@@ -179,6 +180,8 @@ void DMAFile::close()
     }
     closed_ = true;
 }
+
+
 
 
 size_t DMAFile::process_single_io(uint8_t* buffer, uint64_t offset, size_t size, int command, const char* opname) 

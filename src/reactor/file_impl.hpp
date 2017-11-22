@@ -29,7 +29,8 @@ public:
     virtual ~FileImpl() noexcept {}
     
     virtual void close() = 0;
-    
+    virtual bool is_closed() const = 0;
+
     virtual uint64_t alignment() = 0;
     
     virtual uint64_t size() {

@@ -21,6 +21,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 #include <memoria/v1/core/tools/referenceable.hpp>
+#include <memoria/v1/core/tools/pimpl_base.hpp>
 
 #include <limits>
 #include <memory>
@@ -33,94 +34,72 @@ namespace memoria {
 namespace v1 {
 
 class IBinaryInputStream: public Referenceable {
-    
 public:
     virtual ~IBinaryInputStream() noexcept {}
-    virtual ssize_t read(uint8_t* data, size_t size) = 0;
-    //virtual void close() = 0;
+    virtual size_t read(uint8_t* data, size_t size) = 0;
+    virtual void close() = 0;
+    virtual bool is_closed() const = 0;
 };
 
 
 class IBinaryOutputStream: public Referenceable {
 public:
-    
     virtual ~IBinaryOutputStream() noexcept {}
-    virtual ssize_t write(const uint8_t* data, size_t size) = 0;
+    virtual size_t write(const uint8_t* data, size_t size) = 0;
     virtual void flush() = 0;
-    //virtual void close() = 0;
+    virtual void close() = 0;
+    virtual bool is_closed() const = 0;
+};
+
+class IBinaryIOStream: public IBinaryInputStream, public IBinaryOutputStream {
+public:
+    virtual ~IBinaryIOStream() noexcept {}
 };
 
 
+struct BinaryInputStream final: PimplBase<IBinaryInputStream> {
+
+    using Base = PimplBase<IBinaryInputStream>;
+
+    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(BinaryInputStream)
 
 
-struct BinaryInputStream final {
-    using TargetType = IBinaryInputStream;
-private:
-    std::shared_ptr<TargetType> holder_; 
-public:
-    BinaryInputStream(const std::shared_ptr<TargetType>& holder): holder_(holder) 
-    {}
-    
-    BinaryInputStream(const BinaryInputStream&) = default;
-    BinaryInputStream(BinaryInputStream&&) = default;
-    
-    BinaryInputStream& operator=(const BinaryInputStream&) = default;
-    BinaryInputStream& operator=(BinaryInputStream&&) = default;
-    
-    bool operator==(const BinaryInputStream& other) const {
-        return holder_ == other.holder_;
-    }
-    
     size_t read(uint8_t* data, size_t size) {
-        return holder_->read(data, size);
+        return ptr_->read(data, size);
     }
-    
-    template <typename T>
-    operator T() {
-        return T(std::static_pointer_cast<typename T::TargetType>(holder_));
+
+    bool is_closed() const {
+        return this->ptr_->is_closed();
     }
-    
-    template <typename T>
-    operator T() const {
-        return T(std::static_pointer_cast<typename T::TargetType>(holder_));
+
+    void close() {
+        return this->ptr_->close();
     }
+
 };
 
 
-struct BinaryOutputStream final {
-    using TargetType = IBinaryOutputStream;
-private:
-    std::shared_ptr<TargetType> holder_; 
-public:
-    BinaryOutputStream(const std::shared_ptr<TargetType>& holder): holder_(holder) 
-    {}
-    
-    BinaryOutputStream(const BinaryOutputStream&) = default;
-    BinaryOutputStream(BinaryOutputStream&&) = default;
-    
-    BinaryOutputStream& operator=(const BinaryOutputStream&) = default;
-    BinaryOutputStream& operator=(BinaryOutputStream&&) = default;
-    
-    bool operator==(const BinaryOutputStream& other) const {
-        return holder_ == other.holder_;
-    }
+struct BinaryOutputStream final: PimplBase<IBinaryOutputStream>{
+
+    using Base = PimplBase<IBinaryOutputStream>;
+
+    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(BinaryOutputStream)
     
     size_t write(const uint8_t* data, size_t size) {
-        return holder_->write(data, size);
+        return ptr_->write(data, size);
     }
     
     void flush() {
-        return holder_->flush();
+        return ptr_->flush();
     }
-    
-    template <typename T>
-    operator T() {
-        return T(std::static_pointer_cast<typename T::TargetType>(holder_));
+
+    void close() {
+        ptr_->close();
     }
-    
-    template <typename T>
-    operator T() const {
-        return T(std::static_pointer_cast<typename T::TargetType>(holder_));
+
+
+    bool is_closed() const {
+        return this->ptr_->is_closed();
     }
 };
 

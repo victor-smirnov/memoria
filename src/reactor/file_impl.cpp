@@ -46,6 +46,10 @@ void File::close() {
     return pimpl_->close();
 }
 
+bool File::is_closed() const {
+    return pimpl_->is_closed();
+}
+
 uint64_t File::alignment() {
     return pimpl_->alignment();
 }

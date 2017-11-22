@@ -114,12 +114,12 @@ public:
         return std::static_pointer_cast<IBinaryOutputStream>(shared_from_this());
     }
 
-    virtual ssize_t read(uint8_t* data, size_t size);
-    virtual ssize_t write(const uint8_t* data, size_t size);
+    virtual size_t read(uint8_t* data, size_t size);
+    virtual size_t write(const uint8_t* data, size_t size);
     virtual void flush() {}
 
     virtual void close();
-    virtual bool is_closed() const noexcept {return op_closed_ || fiber_io_message_.connection_closed();}
+    virtual bool is_closed() const {return op_closed_ || fiber_io_message_.connection_closed();}
 };
 
 
@@ -157,12 +157,12 @@ public:
      virtual const IPAddress& address() const {return ip_address_;}
      virtual uint16_t port() const {return ip_port_;}
 
-     virtual ssize_t read(uint8_t* data, size_t size);
-     virtual ssize_t write(const uint8_t* data, size_t size);
+     virtual size_t read(uint8_t* data, size_t size);
+     virtual size_t write(const uint8_t* data, size_t size);
      virtual void flush() {}
 
      virtual void close();
-     virtual bool is_closed() const noexcept {return op_closed_ || fiber_io_message_.connection_closed();}
+     virtual bool is_closed() const {return op_closed_ || fiber_io_message_.connection_closed();}
 
 private:
      void connect();

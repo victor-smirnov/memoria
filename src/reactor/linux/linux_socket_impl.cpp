@@ -91,7 +91,7 @@ ServerSocketConnectionImpl::~ServerSocketConnectionImpl() noexcept
 }
 
 
-ssize_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
+size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 {
     while (true) 
     {
@@ -113,7 +113,7 @@ ssize_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
     }
 }
 
-ssize_t ServerSocketConnectionImpl::write(const uint8_t* data, size_t size)
+size_t ServerSocketConnectionImpl::write(const uint8_t* data, size_t size)
 {
     while (true) 
     {
@@ -356,7 +356,7 @@ void ClientSocketImpl::close()
     }
 }
 
-ssize_t ClientSocketImpl::read(uint8_t* data, size_t size)
+size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 {
     while (true)
     {
@@ -378,7 +378,7 @@ ssize_t ClientSocketImpl::read(uint8_t* data, size_t size)
     }
 }
 
-ssize_t ClientSocketImpl::write(const uint8_t* data, size_t size)
+size_t ClientSocketImpl::write(const uint8_t* data, size_t size)
 {
     while (true)
     {

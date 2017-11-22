@@ -93,6 +93,8 @@ public:
         
         closed_ = true;
     }
+
+    virtual bool is_closed() const {return closed_;}
     
     virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size) 
     {

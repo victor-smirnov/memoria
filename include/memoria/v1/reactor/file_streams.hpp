@@ -38,12 +38,15 @@ public:
         buffer_(buffer_size), file_(file), position_(start)
     {}
     
-    virtual ssize_t read(uint8_t* data, size_t size) 
+    virtual size_t read(uint8_t* data, size_t size)
     {
-        ssize_t len = file_.read(data, position_, size);
+        size_t len = file_.read(data, position_, size);
         position_ += len;
         return len;
     }
+
+    virtual void close() {}
+    virtual bool is_closed() const {return false;}
     
     BufferT& buffer() {return buffer_;}
     const BufferT& buffer() const {return buffer_;}
@@ -62,9 +65,9 @@ public:
         buffer_(buffer_size), file_(file), position_(start)
     {}
     
-    virtual ssize_t write(const uint8_t* data, size_t size) 
+    virtual size_t write(const uint8_t* data, size_t size)
     {
-        ssize_t len = file_.write(data, position_, size);
+        size_t len = file_.write(data, position_, size);
         
         position_ += len;
         
@@ -74,6 +77,9 @@ public:
     virtual void flush() {
         file_.fsync();
     }
+
+    virtual void close() {}
+    virtual bool is_closed() const {return false;}
 
     BufferT& buffer() {return buffer_;}
     const BufferT& buffer() const {return buffer_;}
