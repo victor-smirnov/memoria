@@ -18,6 +18,8 @@
 #include <memoria/v1/reactor/reactor.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
 
+#include "msvc_socket.hpp"
+
 #include <boost/assert.hpp>
 
 #include <stdio.h>
@@ -35,18 +37,29 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
-StreamSocketConnection::StreamSocketConnection(SOCKET connection_fd, const std::shared_ptr<StreamSocket>& socket): 
-	    socket_(socket),
-        connection_fd_(connection_fd)
-{}
-
-StreamSocketConnection::~StreamSocketConnection() noexcept 
+ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& data):
+	SocketConnectionImpl(data.take_fd()),
+	ip_address_(data.ip_address()),
+	ip_port_(data.ip_port())
 {
-	::closesocket(connection_fd_);
+	if (fd_ >= 0) {
+
+	}
+	else {
+		rise_win_error(
+			SBuf() << "Error starting read operation from socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_,
+			0
+		);
+	}
+}
+
+ServerSocketConnectionImpl::~ServerSocketConnectionImpl() noexcept 
+{
+	::closesocket(fd_);
 }
 
 
-ssize_t StreamSocketConnection::read(char* data, size_t size) 
+size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size) 
 {
 	Reactor& r = engine();
 
@@ -56,7 +69,7 @@ ssize_t StreamSocketConnection::read(char* data, size_t size)
 	
 	while (true) 
 	{
-		bool read_result = ::ReadFile((HANDLE)connection_fd_, data, (DWORD)size, nullptr, &overlapped);
+		bool read_result = ::ReadFile((HANDLE)fd_, data, (DWORD)size, nullptr, &overlapped);
 
 		DWORD error_code = GetLastError();
 
@@ -69,7 +82,7 @@ ssize_t StreamSocketConnection::read(char* data, size_t size)
 			}
 			else {
 				rise_win_error(
-					SBuf() << "Error reading from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
+					SBuf() << "Error reading from socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_, 
 					overlapped.error_code_
 				);
 			}
@@ -79,7 +92,7 @@ ssize_t StreamSocketConnection::read(char* data, size_t size)
 		}
 		else {
 			rise_win_error(
-				SBuf() << "Error starting read operation from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
+				SBuf() << "Error starting read operation from socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_, 
 				error_code
 			);
 		}
@@ -87,7 +100,7 @@ ssize_t StreamSocketConnection::read(char* data, size_t size)
 
 }
 
-ssize_t StreamSocketConnection::write(const char* data, size_t size) 
+size_t ServerSocketConnectionImpl::write(const uint8_t* data, size_t size) 
 {
 	DWORD number_of_bytes_read{};
 
@@ -99,7 +112,7 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
 
 	while (true) 
 	{
-		bool read_result = ::WriteFile((HANDLE)connection_fd_, data, (DWORD)size, &number_of_bytes_read, &overlapped);
+		bool read_result = ::WriteFile((HANDLE)fd_, data, (DWORD)size, &number_of_bytes_read, &overlapped);
 
 		DWORD error_code = GetLastError();
 
@@ -112,7 +125,7 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
 			}
 			else {
 				rise_win_error(
-					SBuf() << "Error writing to socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
+					SBuf() << "Error writing to socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_, 
 					overlapped.error_code_
 				);
 			}
@@ -122,7 +135,7 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
 		}
 		else {
 			rise_win_error(
-				SBuf() << "Error starting write operation to socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
+				SBuf() << "Error starting write operation to socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_, 
 				error_code
 			);
 		}
@@ -135,24 +148,24 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
 
 
     
-StreamServerSocket::StreamServerSocket(const IPAddress& ip_address, uint16_t ip_port): 
-    StreamSocket(ip_address, ip_port),
+ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port): 
+	SocketImpl(socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)),
+    ip_address_(ip_address), 
+	ip_port_(ip_port),
     sock_address_{tools::make_zeroed<sockaddr_in>()}
 {
+	if (fd_ == INVALID_SOCKET)
+	{
+		rise_win_error(SBuf() << "Create of ListenSocket socket failed with error", WSAGetLastError());
+	}
+	
 	Reactor& r = engine();
 
     BOOST_ASSERT_MSG(ip_address_.is_v4(), "Only IPv4 sockets are supported at the moment");
     
-    socket_fd_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    
-    if (socket_fd_ == INVALID_SOCKET)
-    {
-		rise_win_error(SBuf() << "Create of ListenSocket socket failed with error", WSAGetLastError());
-    }
-
 	auto cport = r.io_poller().completion_port();
 
-	if (!CreateIoCompletionPort((HANDLE)socket_fd_, cport, (u_long)0, 0)) 
+	if (!CreateIoCompletionPort((HANDLE)fd_, cport, (u_long)0, 0)) 
 	{
 		rise_win_error(SBuf() << "CreateIoCompletionPort associate failed with error", WSAGetLastError());
 	}
@@ -161,11 +174,11 @@ StreamServerSocket::StreamServerSocket(const IPAddress& ip_address, uint16_t ip_
     sock_address_.sin_addr.s_addr   = ip_address_.to_in_addr().s_addr;
     sock_address_.sin_port          = ::htons(ip_port_);
     
-    int bres = ::bind(socket_fd_, tools::ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
+    int bres = ::bind(fd_, tools::ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
     
     if (bres == SOCKET_ERROR)
 	{
-		::closesocket(socket_fd_);
+		::closesocket(fd_);
 		rise_win_error(SBuf() << "Bind failed with error", WSAGetLastError() );
     }
 }
@@ -173,16 +186,16 @@ StreamServerSocket::StreamServerSocket(const IPAddress& ip_address, uint16_t ip_
 
 
     
-StreamServerSocket::~StreamServerSocket() noexcept 
+ServerSocketImpl::~ServerSocketImpl() noexcept 
 {    
-	closesocket(socket_fd_);
-}    
+	closesocket(fd_);
+}
 
 
 
-void StreamServerSocket::listen() 
+void ServerSocketImpl::listen() 
 {
-    int res = ::listen(socket_fd_, 100);
+    int res = ::listen(fd_, 100);
     if (res != 0) 
     {
 		rise_win_error(SBuf() << "Can't start listening on socket for " << ip_address_ << ":" << ip_port_, WSAGetLastError());
@@ -192,7 +205,7 @@ void StreamServerSocket::listen()
 
 
 
-std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
+SocketConnectionData ServerSocketImpl::accept()
 {
     Reactor& r = engine();
     
@@ -209,7 +222,7 @@ std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
 	DWORD bytes{};
 
 	int result = WSAIoctl(
-		socket_fd_, 
+		fd_, 
 		SIO_GET_EXTENSION_FUNCTION_POINTER,
 		&guid_accept_ex, sizeof(guid_accept_ex),
 		&lpfn_accept_ex, sizeof(guid_accept_ex),
@@ -217,7 +230,7 @@ std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
 	);
 
 	if (result == SOCKET_ERROR) {
-		closesocket(socket_fd_);
+		closesocket(fd_);
 		rise_win_error(SBuf() << "WSAIoctl failed with error", WSAGetLastError());
 	}
 
@@ -236,11 +249,12 @@ std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
 	overlap.msg_ = &message;
 
 	bool accept_status = lpfn_accept_ex(
-		socket_fd_, accept_socket, o_buf.data(),
+		fd_, accept_socket, o_buf.data(),
 		0,
 		ADDRLEN1, ADDRLEN2,
 		&bytes,
-		&overlap);
+		&overlap
+	);
 
 	DWORD error_code = GetLastError();
 
@@ -254,7 +268,8 @@ std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
 			rise_win_error(SBuf() << "CreateIoCompletionPort associate failed with error", WSAGetLastError());
 		}
 
-		return std::make_unique<StreamSocketConnection>(accept_socket, this->shared_from_this());
+		//return std::make_shared<ServerSocketConnectionImpl>(accept_socket);
+		return SocketConnectionData(accept_socket, ip_address_, ip_port_);
 	}
 	else {
 		closesocket(accept_socket);

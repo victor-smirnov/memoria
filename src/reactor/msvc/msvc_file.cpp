@@ -23,6 +23,7 @@
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/v1/core/tools/iostreams.hpp>
 #include <memoria/v1/core/tools/strings/string_buffer.hpp>
 
 #include <memoria/v1/reactor/file_streams.hpp>
@@ -120,19 +121,19 @@ public:
 	virtual void fsync();
 	virtual void fdsync();
 
-	virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
+	virtual ODataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
     {
        	auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
-       	return DataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);
+       	return IDataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);
     }
     
-	virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
+	virtual IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
     {
-		auto ptr = this->shared_from_this();
+	auto ptr = this->shared_from_this();
 
        	auto buffered_os = std::make_shared<BufferedOS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
-       	return DataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
-    }
+       	return IDataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
+    } 
 };
 
 GenericFile::GenericFile(filesystem::path file_path, FileFlags flags, FileMode mode, bool no_buffering):

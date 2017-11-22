@@ -18,6 +18,7 @@
 #include "msvc_smp.hpp"
 #include "../message/fiber_io_message.hpp"
 #include "../ring_buffer.hpp"
+#include "msvc_io_messages.hpp"
 
 #include "../../core/tools/strings/string_buffer.hpp"
 
@@ -50,18 +51,6 @@ using IOBuffer = RingBuffer<Message*>;
 
 struct OVERLAPPEDMsg;
 
-class AIOMessage;
-
-
-class AIOMessage: public FiberIOMessage {
-
-public:
-	AIOMessage(int cpu, FiberContext* fiber_context = fibers::context::active()): 
-		FiberIOMessage(cpu, 1, fiber_context) 
-	{}
-
-	virtual std::string describe() { return "AIOMessage"; }
-};
 
 
 
