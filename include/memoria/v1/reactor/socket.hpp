@@ -123,5 +123,7 @@ public:
 };
 
 
+void InitSockets();
+void DestroySockets();
 
 }}}

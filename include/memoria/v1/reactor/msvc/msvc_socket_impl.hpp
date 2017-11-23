@@ -85,7 +85,7 @@ class SocketConnectionData {
     friend class ServerSocketConnectionImpl;
     friend class ServerSocketImpl;
 
-    SocketConnectionData(int fd, IPAddress ip_address, uint16_t ip_port):
+    SocketConnectionData(SOCKET fd, IPAddress ip_address, uint16_t ip_port):
         fd_(fd), ip_address_(ip_address), ip_port_(ip_port)
     {}
 
@@ -95,9 +95,9 @@ public:
 	{}
 
     ~SocketConnectionData() noexcept {
-        if (fd_ >= 0)
+        if (fd_ != INVALID_SOCKET)
         {
-            std::cout << "Untaken SocketConnectionData. Aborting." << std::endl;
+            std::cout << "Untaken SocketConnectionData detected. Aborting." << std::endl;
             std::terminate();
         }
     }
@@ -113,7 +113,7 @@ public:
 private:
     SOCKET take_fd()
     {
-        int fd = fd_;
+        SOCKET fd = fd_;
         fd_ = -1;
         return fd;
     }

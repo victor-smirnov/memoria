@@ -48,7 +48,13 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
-class Application { //: public std::enable_shared_from_this<Application>
+class ApplicationInit {
+public:
+	ApplicationInit();
+	~ApplicationInit();
+};
+
+class Application final: protected ApplicationInit { //: public std::enable_shared_from_this<Application>
     
     using options_description   = boost::program_options::options_description;
     using variables_map         = boost::program_options::variables_map;
@@ -138,11 +144,11 @@ public:
     
     static options_description default_options(options_description descr) 
     {
-        descr.add_options() 
+        /*descr.add_options() 
             ("help, h", "Prints command line switches")
             ("threads, t", boost::program_options::value<uint32_t>()->default_value(1), "Specifies number of threads to use")
             ("debug, d", boost::program_options::value<bool>()->default_value(false), "Enable debug output")
-        ;
+        ;*/
         
         return descr;
     }

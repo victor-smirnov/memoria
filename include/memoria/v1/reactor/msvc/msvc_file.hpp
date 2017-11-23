@@ -111,6 +111,7 @@ public:
 	bool operator==(const File&) const;
 
 	void close();
+	bool is_closed() const;
 
 	uint64_t alignment();
 

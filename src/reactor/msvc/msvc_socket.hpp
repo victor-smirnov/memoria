@@ -23,6 +23,9 @@
 
 #include <memory>
 
+#include <WinBase.h>
+#include <mswsock.h>
+
 namespace memoria {
 namespace v1 {
 namespace reactor {    
@@ -128,7 +131,7 @@ class ClientSocketConnectionImpl:
         public std::enable_shared_from_this<ClientSocketImpl>
 {
 public:
-    ClientSocketConnectionImpl(int fd): SocketConnectionImpl(fd) {}
+    ClientSocketConnectionImpl(SOCKET fd): SocketConnectionImpl(fd) {}
 
     virtual BinaryInputStream input() {
         return std::static_pointer_cast<IBinaryInputStream>(shared_from_this());
@@ -138,14 +141,13 @@ public:
     }
 };
 
-class ClientSocketImpl: public ClientSocketConnectionImpl {
-    using Base = ClientSocketConnectionImpl;
+class ClientSocketImpl : public ClientSocketConnectionImpl {
+	using Base = ClientSocketConnectionImpl;
 
-    IPAddress ip_address_;
-    uint16_t ip_port_;
+	IPAddress ip_address_;
+	uint16_t ip_port_;
 
-    sockaddr_in sock_address_;
-
+	sockaddr_in sock_address_;
 public:
      ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port);
      virtual ~ClientSocketImpl() noexcept;
@@ -164,5 +166,21 @@ private:
      void connect();
 };
 
+
+
+struct AsyncSockets {
+	LPFN_ACCEPTEX lpfn_accept_ex{};
+	LPFN_CONNECTEX lpfn_connect_ex{};
+
+	GUID guid_accept_ex;
+	GUID guid_connect_ex;
+
+	AsyncSockets();
+};
+
+extern AsyncSockets* sockets;
+
+void InitSockets();
+void DestroySockets();
 
 }}}

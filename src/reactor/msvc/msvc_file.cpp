@@ -112,6 +112,7 @@ public:
 	virtual uint64_t alignment() { return no_buffering_ ? 512 : 1; }
 
 	virtual void close();
+	virtual bool is_closed() const { return closed_; }
 
 	virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size);
 	virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size);
@@ -121,7 +122,7 @@ public:
 	virtual void fsync();
 	virtual void fdsync();
 
-	virtual ODataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
+	virtual IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
     {
        	auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
        	return IDataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);

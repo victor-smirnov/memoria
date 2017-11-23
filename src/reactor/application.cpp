@@ -16,10 +16,29 @@
 #include <memoria/v1/reactor/application.hpp>
 
 
+#ifdef __linux__
+#include "linux/linux_socket.hpp"
+#elif __APPLE__
+#include "macosx/macosx_socket.hpp"
+#elif _WIN32
+#include "msvc/msvc_socket.hpp"
+#else 
+#error "Unsupported platform"
+#endif 
+
+
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
+
+ApplicationInit::ApplicationInit() {
+    InitSockets();
+}
+
+ApplicationInit::~ApplicationInit() {
+    DestroySockets();
+}
 
 Application* Application::application_;
     
@@ -35,12 +54,14 @@ Application::Application(options_description descr, int argc, char** argv, char*
     );
     boost::program_options::notify(options_);
     
-    smp_ = std::make_shared<Smp>(options_["threads"].as<uint32_t>());
+    //smp_ = std::make_shared<Smp>(options_["threads"].as<uint32_t>());
+	smp_ = std::make_shared<Smp>(1);
     
-    debug_ = options_["debug"].as<bool>();
+    //debug_ = options_["debug"].as<bool>();
+	debug_ = false;
     
     application_ = this;
-    
+   
     for (int c = 0; c < smp_->cpu_num(); c++)
     {
         reactors_.push_back(std::make_shared<Reactor>(smp_, c, c > 0));
@@ -51,16 +72,7 @@ Application::Application(options_description descr, int argc, char** argv, char*
         reactors_[c]->start();
     }
 
-#ifdef _MSC_VER
-	WSADATA wsaData = { 0 };
-
-	// Initialize Winsock
-	int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0) {
-		wprintf(L"WSAStartup failed: %d\n", iResult);
-		std::terminate();
-	}
-#endif
+    InitSockets();
 }
 
 Application& app() {

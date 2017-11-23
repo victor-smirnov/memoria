@@ -168,5 +168,7 @@ private:
      void connect();
 };
 
+void InitSockets();
+void DestroySockets();
 
 }}}

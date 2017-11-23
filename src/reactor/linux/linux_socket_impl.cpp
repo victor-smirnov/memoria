@@ -401,4 +401,9 @@ size_t ClientSocketImpl::write(const uint8_t* data, size_t size)
     }
 }
 
+
+void InitSockets() {}
+void DestroySockets() {}
+
+
 }}}

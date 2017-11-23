@@ -43,7 +43,11 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
 	ip_port_(data.ip_port())
 {
 	if (fd_ >= 0) {
-
+		if (!CreateIoCompletionPort((HANDLE)fd_, engine().io_poller().completion_port(), (u_long)0, 0))
+		{
+			closesocket(fd_);
+			rise_win_error(SBuf() << "CreateIoCompletionPort associate failed with error", WSAGetLastError());
+		}
 	}
 	else {
 		rise_win_error(
@@ -78,6 +82,7 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 			message.wait_for();
 
 			if (overlapped.status_) {
+				conn_closed_ = overlapped.size_ == 0;
 				return overlapped.size_;
 			}
 			else {
@@ -121,6 +126,7 @@ size_t ServerSocketConnectionImpl::write(const uint8_t* data, size_t size)
 			message.wait_for();
 			
 			if (overlapped.status_) {
+				conn_closed_ = overlapped.size_ == 0;
 				return overlapped.size_;
 			}
 			else {
@@ -143,7 +149,13 @@ size_t ServerSocketConnectionImpl::write(const uint8_t* data, size_t size)
 }
 
 
-
+void ServerSocketConnectionImpl::close()
+{
+	if (!op_closed_) {
+		op_closed_ = true;
+		::closesocket(fd_);
+	}
+}
 
 
 
@@ -191,6 +203,13 @@ ServerSocketImpl::~ServerSocketImpl() noexcept
 	closesocket(fd_);
 }
 
+void ServerSocketImpl::close()
+{
+	if (!closed_) {
+		closed_ = true;
+		::closesocket(fd_);
+	}
+}
 
 
 void ServerSocketImpl::listen() 
@@ -211,29 +230,6 @@ SocketConnectionData ServerSocketImpl::accept()
     
     sockaddr_in client_addr;
     socklen_t cli_len = sizeof(client_addr);
-
-	LPFN_ACCEPTEX lpfn_accept_ex{};
-	GUID guid_accept_ex = WSAID_ACCEPTEX;
-
-	constexpr size_t ADDRLEN1 = sizeof(sockaddr_in) + 16;
-	constexpr size_t ADDRLEN2 = sizeof(sockaddr_in) + 16;
-	std::array<char, ADDRLEN1 + ADDRLEN2> o_buf;
-
-	DWORD bytes{};
-
-	int result = WSAIoctl(
-		fd_, 
-		SIO_GET_EXTENSION_FUNCTION_POINTER,
-		&guid_accept_ex, sizeof(guid_accept_ex),
-		&lpfn_accept_ex, sizeof(guid_accept_ex),
-		&bytes, NULL, NULL
-	);
-
-	if (result == SOCKET_ERROR) {
-		closesocket(fd_);
-		rise_win_error(SBuf() << "WSAIoctl failed with error", WSAGetLastError());
-	}
-
     
 	// Create an accepting socket
 	SOCKET accept_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -248,7 +244,12 @@ SocketConnectionData ServerSocketImpl::accept()
 
 	overlap.msg_ = &message;
 
-	bool accept_status = lpfn_accept_ex(
+	constexpr size_t ADDRLEN1 = sizeof(sockaddr_in) + 16;
+	constexpr size_t ADDRLEN2 = sizeof(sockaddr_in) + 16;
+	std::array<char, ADDRLEN1 + ADDRLEN2> o_buf;
+	
+	DWORD bytes{};
+	bool accept_status = sockets->lpfn_accept_ex(
 		fd_, accept_socket, o_buf.data(),
 		0,
 		ADDRLEN1, ADDRLEN2,
@@ -261,15 +262,12 @@ SocketConnectionData ServerSocketImpl::accept()
 	if (accept_status || error_code == ERROR_IO_PENDING) 
 	{
 		message.wait_for();
-
-		if (!CreateIoCompletionPort((HANDLE)accept_socket, r.io_poller().completion_port(), (u_long)0, 0))
-		{
-			closesocket(accept_socket);
-			rise_win_error(SBuf() << "CreateIoCompletionPort associate failed with error", WSAGetLastError());
+		if (overlap.status_) {
+			return SocketConnectionData(accept_socket, ip_address_, ip_port_);
 		}
-
-		//return std::make_shared<ServerSocketConnectionImpl>(accept_socket);
-		return SocketConnectionData(accept_socket, ip_address_, ip_port_);
+		else {
+			rise_win_error(SBuf() << "AcceptEx failed with error", overlap.error_code_);
+		}
 	}
 	else {
 		closesocket(accept_socket);
@@ -278,5 +276,250 @@ SocketConnectionData ServerSocketImpl::accept()
 }
 
 
+
+
+
+
+ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port) :
+	ClientSocketConnectionImpl(socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)),
+	ip_address_(ip_address),
+	ip_port_(ip_port)
+{
+	if (fd_ >= 0) 
+	{
+		Reactor& r = engine();
+
+		BOOST_ASSERT_MSG(ip_address_.is_v4(), "Only IPv4 sockets are supported at the moment");
+
+		auto cport = r.io_poller().completion_port();
+
+		if (!CreateIoCompletionPort((HANDLE)fd_, cport, (u_long)0, 0))
+		{
+			rise_win_error(SBuf() << "CreateIoCompletionPort associate failed with error", WSAGetLastError());
+		}
+
+		struct sockaddr_in bind_addr {};
+		
+		bind_addr.sin_family = AF_INET;
+		bind_addr.sin_addr.s_addr = INADDR_ANY;
+		bind_addr.sin_port = 0;
+		
+		int bres = ::bind(fd_, tools::ptr_cast<sockaddr>(&bind_addr), sizeof(bind_addr));
+
+		if (bres == SOCKET_ERROR)
+		{
+			::closesocket(fd_);
+			rise_win_error(SBuf() << "Bind failed with error", WSAGetLastError());
+		}
+
+		connect();
+	}
+	else {
+		rise_win_error(
+			SBuf() << "Error starting read operation from socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_,
+			0
+		);
+	}
+}
+
+void ClientSocketImpl::connect() 
+{
+	sock_address_.sin_family = AF_INET;
+	sock_address_.sin_addr.s_addr = ip_address_.to_in_addr().s_addr;
+	sock_address_.sin_port = ::htons(ip_port_);
+
+	AIOMessage message(engine().cpu());
+	auto overlap = tools::make_zeroed<OVERLAPPEDMsg>();
+	overlap.msg_ = &message;
+
+	DWORD bytes{};
+	bool connect_status = sockets->lpfn_connect_ex(
+		fd_, (SOCKADDR*)&sock_address_, sizeof(sock_address_),
+		0,
+		NULL, 0,
+		&overlap
+	);
+
+	DWORD error_code = GetLastError();
+
+	if (connect_status || error_code == ERROR_IO_PENDING)
+	{
+		message.wait_for();
+
+		if (!overlap.status_) {
+			rise_win_error(SBuf() << "ConnectEx failed with error", overlap.error_code_);
+		}
+	}
+	else {
+		closesocket(fd_);
+		rise_win_error(SBuf() << "ConnectEx failed with error", WSAGetLastError());
+	}
+}
+
+ClientSocketImpl::~ClientSocketImpl() noexcept
+{
+	::closesocket(fd_);
+}
+
+
+size_t ClientSocketImpl::read(uint8_t* data, size_t size)
+{
+	Reactor& r = engine();
+
+	AIOMessage message(r.cpu());
+	auto overlapped = tools::make_zeroed<OVERLAPPEDMsg>();
+	overlapped.msg_ = &message;
+
+	while (true)
+	{
+		bool read_result = ::ReadFile((HANDLE)fd_, data, (DWORD)size, nullptr, &overlapped);
+
+		DWORD error_code = GetLastError();
+
+		if (read_result || error_code == ERROR_IO_PENDING)
+		{
+			message.wait_for();
+
+			if (overlapped.status_) {
+				return overlapped.size_;
+			}
+			else {
+				rise_win_error(
+					SBuf() << "Error reading from socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_,
+					overlapped.error_code_
+				);
+			}
+		}
+		else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY) {
+			message.wait_for(); // jsut sleep and wait for required resources to appear
+		}
+		else {
+			rise_win_error(
+				SBuf() << "Error starting read operation from socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_,
+				error_code
+			);
+		}
+	}
+
+}
+
+size_t ClientSocketImpl::write(const uint8_t* data, size_t size)
+{
+	DWORD number_of_bytes_read{};
+
+	Reactor& r = engine();
+
+	AIOMessage message(r.cpu());
+	auto overlapped = tools::make_zeroed<OVERLAPPEDMsg>();
+	overlapped.msg_ = &message;
+
+	while (true)
+	{
+		bool read_result = ::WriteFile((HANDLE)fd_, data, (DWORD)size, &number_of_bytes_read, &overlapped);
+
+		DWORD error_code = GetLastError();
+
+		if (read_result || error_code == ERROR_IO_PENDING)
+		{
+			message.wait_for();
+
+			if (overlapped.status_) {
+				return overlapped.size_;
+			}
+			else {
+				rise_win_error(
+					SBuf() << "Error writing to socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_,
+					overlapped.error_code_
+				);
+			}
+		}
+		else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY) {
+			message.wait_for(); // jsut sleep and wait for required resources to appear
+		}
+		else {
+			rise_win_error(
+				SBuf() << "Error starting write operation to socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_,
+				error_code
+			);
+		}
+	}
+}
+
+
+void ClientSocketImpl::close()
+{
+	if (!op_closed_) {
+		op_closed_ = true;
+		::closesocket(fd_);
+	}
+}
+
+AsyncSockets* sockets = nullptr;
+
+
+AsyncSockets::AsyncSockets()
+{
+	
+	constexpr size_t ADDRLEN1 = sizeof(sockaddr_in) + 16;
+	constexpr size_t ADDRLEN2 = sizeof(sockaddr_in) + 16;
+	std::array<char, ADDRLEN1 + ADDRLEN2> o_buf;
+
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd == INVALID_SOCKET) {
+		rise_win_error(SBuf() << "socket creation failed with error", WSAGetLastError());
+	}
+		
+	DWORD bytes1{};
+
+	GUID guid_accept_ex = WSAID_ACCEPTEX;
+
+	if (WSAIoctl(
+		fd,
+		SIO_GET_EXTENSION_FUNCTION_POINTER,
+		&guid_accept_ex, sizeof(guid_accept_ex),
+		&lpfn_accept_ex, sizeof(guid_accept_ex),
+		&bytes1, NULL, NULL
+	) == SOCKET_ERROR) 
+	{
+		closesocket(fd);
+		rise_win_error(SBuf() << "WSAIoctl failed with error", WSAGetLastError());
+	}
+
+	GUID guid_connect_ex = WSAID_CONNECTEX;
+	DWORD bytes2{};
+	if (WSAIoctl(
+		fd,
+		SIO_GET_EXTENSION_FUNCTION_POINTER,
+		&guid_connect_ex, sizeof(guid_connect_ex),
+		&lpfn_connect_ex, sizeof(guid_connect_ex),
+		&bytes2, NULL, NULL
+	) == SOCKET_ERROR)
+	{
+		closesocket(fd);
+		rise_win_error(SBuf() << "WSAIoctl failed with error", WSAGetLastError());
+	}
+
+	closesocket(fd);
+}
+
+void InitSockets() 
+{
+    WSADATA wsaData = { 0 };
+
+    // Initialize Winsock
+    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != 0) {
+        wprintf(L"WSAStartup failed: %d\n", iResult);
+        std::terminate();
+    }
+
+    sockets = new AsyncSockets();
+}
+
+void DestroySockets() {
+    delete sockets;
+
+    WSACleanup();
+}
     
 }}}

@@ -26,14 +26,46 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
  
+class FiberIOCBMessage : public Message {
+protected:
+
+	size_t count_;
+	FiberContext* fiber_context_;
 
 
+	public:
+	FiberIOCBMessage(int cpu, size_t count = 1, FiberContext* fiber_context = fibers::context::active()) :
+		Message(cpu, false),
+		count_(count),
+		fiber_context_(fiber_context)
+	{
+		return_ = true;
+	}
 
-class AIOMessage: public FiberIOMessage {
+	virtual ~FiberIOCBMessage() {}
+
+	FiberContext* fiber_context() { return fiber_context_; }
+	const FiberContext* fiber_context() const { return fiber_context_; }
+
+	virtual void process() noexcept {}
+
+	virtual void finish();
+
+	virtual std::string describe();
+
+	void wait_for();
+
+	size_t count() const { return count_; }
+
+	void set_count(size_t count) { count_ = count; }
+};
+
+
+class AIOMessage: public FiberIOCBMessage {
 
 public:
-	AIOMessage(int cpu, FiberContext* fiber_context = fibers::context::active()): 
-		FiberIOMessage(cpu, 1, fiber_context) 
+	AIOMessage(int cpu, size_t count = 1, FiberContext* fiber_context = fibers::context::active()):
+		FiberIOCBMessage(cpu, count, fiber_context) 
 	{}
 
 	virtual std::string describe() { return "AIOMessage"; }
