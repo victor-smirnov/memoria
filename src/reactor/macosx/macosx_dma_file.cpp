@@ -88,6 +88,8 @@ public:
         
         closed_ = true;
     }
+
+    virtual bool is_closed() const {return closed_;}
     
     virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size) 
     {
@@ -214,11 +216,11 @@ public:
         }
     }
     
-    virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) {
+    virtual IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) {
         tools::rise_error(SBuf() << "Streams are not supported for DMA files");
     }
     
-    virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
+    virtual IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096)
     {
         tools::rise_error(SBuf() << "Streams are not supported for DMA files");
     }

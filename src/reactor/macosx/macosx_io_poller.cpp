@@ -19,7 +19,7 @@
 #include <memoria/v1/core/tools/perror.hpp>
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 
-#include <memoria/v1/reactor/message/fiber_io_message.hpp>
+#include <memoria/v1/reactor/macosx/macosx_io_messages.hpp>
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -81,7 +81,7 @@ void IOPoller::poll()
             {    
                 if (eevents[c].udata)
                 {
-                    FiberIOMessage* msg = tools::ptr_cast<FiberIOMessage>(eevents[c].udata);
+                    KEventIOMessage* msg = tools::ptr_cast<KEventIOMessage>(eevents[c].udata);
                     msg->configure(eevents[c].flags & EV_EOF, eevents[c].data);
                     
                     buffer_.push_front(msg);

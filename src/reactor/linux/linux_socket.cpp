@@ -107,4 +107,9 @@ bool ClientSocket::is_closed() {
     return ptr_->is_closed();
 }
 
+
+void InitSockets() {}
+void DestroySockets() {}
+
+
 }}}

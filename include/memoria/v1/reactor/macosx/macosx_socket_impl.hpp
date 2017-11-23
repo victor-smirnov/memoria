@@ -70,9 +70,48 @@ std::ostream& operator<<(std::ostream& out, const IPAddress& addr);
 
 
 
+class SocketConnectionData {
+    int fd_;
+    IPAddress ip_address_;
+    uint16_t ip_port_;
 
+    friend class SocketConnectionImpl;
+    friend class ServerSocketConnectionImpl;
+    friend class ServerSocketImpl;
 
+    SocketConnectionData(int fd, IPAddress ip_address, uint16_t ip_port):
+        fd_(fd), ip_address_(ip_address), ip_port_(ip_port)
+    {}
 
+public:
+    SocketConnectionData(SocketConnectionData&& other):
+        fd_(other.take_fd())
+    {}
+
+    ~SocketConnectionData() noexcept {
+        if (fd_ >= 0)
+        {
+            std::cout << "Untaken SocketConnectionData. Aborting." << std::endl;
+            std::terminate();
+        }
+    }
+
+    const IPAddress& ip_address() const {
+        return ip_address_;
+    }
+
+    uint16_t ip_port() const {return ip_port_;}
+
+private:
+    int take_fd()
+    {
+        int fd = fd_;
+        fd_ = -1;
+        return fd;
+    }
+};
+
+/*
 class StreamSocket: public std::enable_shared_from_this<StreamSocket> {
 protected:
     IPAddress ip_address_;
@@ -128,7 +167,7 @@ public:
     
     std::unique_ptr<StreamSocketConnection> accept();
 };
-    
+  */
     
 }}}
 

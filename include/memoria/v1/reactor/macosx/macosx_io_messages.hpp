@@ -16,11 +16,13 @@
 #pragma once
 
 #include "../../fiber/context.hpp"
-#include "message.hpp"
+#include "../message/fiber_io_message.hpp"
 
 #include <tuple>
 #include <exception>
 #include <string>
+
+#include <sys/event.h>
 
 namespace memoria {
 namespace v1 {
@@ -28,28 +30,42 @@ namespace reactor {
  
 
 
-class FiberIOMessage: public Message {
+class KEventIOMessage: public FiberIOMessage {
 protected:
-    fibers::context::iowait_queue_t iowait_queue_;
-    
+
+    bool connection_closed_{false};
+    off_t available_{};
+
 public:
-    FiberIOMessage(int cpu): 
-        Message(cpu, false)
+    KEventIOMessage(int cpu): FiberIOMessage(cpu)
+    {}
+    
+    virtual ~KEventIOMessage() {}
+
+    void reset()
     {
-        return_ = true;
+        available_ = 0;
+        connection_closed_ = false;
     }
-    
-    virtual ~FiberIOMessage() noexcept {}
-        
-    virtual void process() noexcept {}
-    
-    virtual void finish();
-    
-    virtual std::string describe();
 
-    virtual void wait_for();
+    virtual void wait_for() {
+        reset();
+        FiberIOMessage::wait_for();
+    }
+
+    bool connection_closed() const {
+        return connection_closed_;
+    }
+
+    void configure(bool eof, off_t value) {
+        available_ = value;
+        connection_closed_ = eof;
+    }
+
+    off_t available() const {
+        return available_;
+    }
 };
-
 
     
 }}}
