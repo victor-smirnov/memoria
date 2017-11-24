@@ -24,11 +24,8 @@
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
 
-#include "../file_impl.hpp"
+#include "macosx_file_impl.hpp"
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
 
 #include <boost/align/aligned_alloc.hpp>
 
@@ -48,184 +45,145 @@ namespace v1 {
 namespace reactor {
 
 
-class DMAFile: public FileImpl, public std::enable_shared_from_this<DMAFile> {
-    int fd_{};
-    bool closed_{true};
-public:
-    DMAFile(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT): 
-        FileImpl(file_path)
-    {
-        int errno0 = 0;
-        std::tie(fd_, errno0) = engine().run_in_thread_pool([&]{
-            auto fd = ::open(file_path.c_str(), (int)flags, (mode_t)mode);
-            if (fd >= 0) {
-                ::fcntl(fd, F_NOCACHE, 1);
-            }
-            
-            return std::make_tuple(fd, errno);
-        });
-        
-        if (fd_ < 0) {
-            tools::rise_perror(errno0, SBuf() << "Can't open file " << file_path);
+
+DMAFileImpl::DMAFileImpl(filesystem::path file_path, FileFlags flags, FileMode mode):
+    FileImplBase(file_path)
+{
+    int errno0 = 0;
+    std::tie(fd_, errno0) = engine().run_in_thread_pool([&]{
+        auto fd = ::open(file_path.c_str(), (int)flags, (mode_t)mode);
+        if (fd >= 0) {
+            ::fcntl(fd, F_NOCACHE, 1);
         }
+
+        return std::make_tuple(fd, errno);
+    });
+
+    if (fd_ < 0) {
+        tools::rise_perror(errno0, SBuf() << "Can't open file " << file_path);
     }
+}
     
-    virtual ~DMAFile() noexcept 
-    {
-        if (!closed_) {
-            ::close(fd_);
-        }
+DMAFileImpl::~DMAFileImpl() noexcept
+{
+    if (!closed_) {
+        ::close(fd_);
     }
-    
-    virtual uint64_t alignment() {return 512;}
-    
-    virtual void close() 
-    {   
-        if ((!closed_) && (::close(fd_) < 0)) 
-        {
-            tools::rise_perror(SBuf() << "Can't close file " << path_);
-        }
-        
-        closed_ = true;
+}
+
+
+
+void DMAFileImpl::close()
+{
+    if ((!closed_) && (::close(fd_) < 0))
+    {
+        tools::rise_perror(SBuf() << "Can't close file " << path_);
     }
 
-    virtual bool is_closed() const {return closed_;}
+    closed_ = true;
+}
+
+uint64_t DMAFileImpl::size() {
+    return filesystem::file_size(path_);
+}
+
+
     
-    virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size) 
-    {
-        off_t res;
-        int errno0;
-        
-        std::tie(res, errno0) = engine().run_in_thread_pool([&]{
-            off_t r = ::lseek(fd_, offset, SEEK_SET);
-            
-            if (r >= 0) {
-                r = ::read(fd_, buffer, size);
-            }
-            
-            return std::make_tuple(r, errno);
-        });
-        
-        if (res >= 0) {
-            return res;
+size_t DMAFileImpl::read(uint8_t* buffer, uint64_t offset, size_t size)
+{
+    off_t res;
+    int errno0;
+
+    std::tie(res, errno0) = engine().run_in_thread_pool([&]{
+        off_t r = ::lseek(fd_, offset, SEEK_SET);
+
+        if (r >= 0) {
+            r = ::read(fd_, buffer, size);
         }
-        else {
-            tools::rise_perror(errno0, SBuf() << "Can't read from file " << path_);
-        }
+
+        return std::make_tuple(r, errno);
+    });
+
+    if (res >= 0) {
+        return res;
     }
-    
-    virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size) 
-    {
-        off_t res;
-        int errno0 = 0;
-        
-        std::tie(res, errno0) = engine().run_in_thread_pool([&]{
-            off_t r = ::lseek(fd_, offset, SEEK_SET);
-            
-            if (r >= 0) {
-                r = ::write(fd_, buffer, size);
-            }
-            
-            return std::make_tuple(r, errno);
-        });
-        
-        if (res >= 0) {
-            return res;
-        }
-        else {
-            tools::rise_perror(errno0, SBuf() << "Can't write to file " << path_);
-        }
+    else {
+        tools::rise_perror(errno0, SBuf() << "Can't read from file " << path_);
     }
-    
-    virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true) 
-    {
-        return engine().run_in_thread_pool([&]{
-            size_t c;
-            for (c = 0; c < batch.nblocks(); c++) 
+}
+
+size_t DMAFileImpl::write(const uint8_t* buffer, uint64_t offset, size_t size)
+{
+    off_t res;
+    int errno0 = 0;
+
+    std::tie(res, errno0) = engine().run_in_thread_pool([&]{
+        off_t r = ::lseek(fd_, offset, SEEK_SET);
+
+        if (r >= 0) {
+            r = ::write(fd_, buffer, size);
+        }
+
+        return std::make_tuple(r, errno);
+    });
+
+    if (res >= 0) {
+        return res;
+    }
+    else {
+        tools::rise_perror(errno0, SBuf() << "Can't write to file " << path_);
+    }
+}
+
+size_t DMAFileImpl::process_batch(IOBatchBase& batch, bool rise_ex_on_error = true)
+{
+    return engine().run_in_thread_pool([&]{
+        size_t c;
+        for (c = 0; c < batch.nblocks(); c++)
+        {
+            IOCB& iocb = batch.block(c);
+
+            if (iocb.command == IOCB::READ)
             {
-                IOCB& iocb = batch.block(c);
-                
-                if (iocb.command == IOCB::READ)
+                if (::lseek(fd_, iocb.offset, SEEK_SET) >= 0)
                 {
-                    if (::lseek(fd_, iocb.offset, SEEK_SET) >= 0)
+                    iocb.processed = ::read(fd_, iocb.data, iocb.size);
+                    if (iocb.processed < 0)
                     {
-                        iocb.processed = ::read(fd_, iocb.data, iocb.size);
-                        if (iocb.processed < 0) 
-                        {
-                            iocb.errno_ = errno;
-                            break;
-                        }
-                    }
-                    else {
-                        iocb.errno_ = errno;
-                        break;
-                    }
-                }
-                else if (iocb.command == IOCB::WRITE) 
-                {
-                    if (::lseek(fd_, iocb.offset, SEEK_SET)) 
-                    {
-                        iocb.processed = ::write(fd_, iocb.data, iocb.size);
-                        if (iocb.processed < 0) 
-                        {
-                            iocb.errno_ = errno;
-                            break;
-                        }
-                    }
-                    else {
                         iocb.errno_ = errno;
                         break;
                     }
                 }
                 else {
-                    iocb.errno_ = EINVAL;
+                    iocb.errno_ = errno;
                     break;
                 }
             }
-            
-            return c;
-        });
-    }
-    
-    virtual void fsync() 
-    {
-        int res;
-        int errno0 = 0;
-        
-        std::tie(res, errno) = engine().run_in_thread_pool([&]{
-            int r = ::fsync(fd_);
-            return std::make_tuple(r, errno);
-        });
-        
-        if (res < 0) {
-            tools::rise_perror(errno0, SBuf() << "Can't fsync file " << path_);
+            else if (iocb.command == IOCB::WRITE)
+            {
+                if (::lseek(fd_, iocb.offset, SEEK_SET))
+                {
+                    iocb.processed = ::write(fd_, iocb.data, iocb.size);
+                    if (iocb.processed < 0)
+                    {
+                        iocb.errno_ = errno;
+                        break;
+                    }
+                }
+                else {
+                    iocb.errno_ = errno;
+                    break;
+                }
+            }
+            else {
+                iocb.errno_ = EINVAL;
+                break;
+            }
         }
-    }
-    
-    virtual void fdsync() {
-        int res;
-        int errno0 = 0;
-        
-        std::tie(res, errno) = engine().run_in_thread_pool([&]{
-            int r = ::fcntl(fd_, F_FULLFSYNC);
-            return std::make_tuple(r, errno);
-        });
-        
-        if (res < 0) {
-            tools::rise_perror(errno0, SBuf() << "Can't fsync file " << path_);
-        }
-    }
-    
-    virtual IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) {
-        tools::rise_error(SBuf() << "Streams are not supported for DMA files");
-    }
-    
-    virtual IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096)
-    {
-        tools::rise_error(SBuf() << "Streams are not supported for DMA files");
-    }
-};      
-    
+
+        return c;
+    });
+}
 
 
 DMABuffer allocate_dma_buffer(size_t size) 
@@ -247,9 +205,9 @@ DMABuffer allocate_dma_buffer(size_t size)
 	}
 }
 
-File open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode) 
+DMAFile open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
 {
-    return std::static_pointer_cast<FileImpl>(std::make_shared<DMAFile>(file_path, flags, mode));
+    return std::make_shared<DMAFileImpl>(file_path, flags, mode);
 }
     
 }}}

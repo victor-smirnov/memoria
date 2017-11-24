@@ -13,89 +13,130 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "file_impl.hpp"
+
+#ifdef __linux__
+#include "linux/linux_file_impl.hpp"
+#elif __APPLE__
+#include "macosx/macosx_file_impl.hpp"
+#elif _WIN32
+#include "msvc/msvc_file_impl.hpp"
+#else
+#error "Unsupported platform"
+#endif
+
+
+
+
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
 
     
-File::File(Ptr pimpl): pimpl_(pimpl) {}
-File::~File() noexcept {}
-
-File::File(const File& file): pimpl_(file.pimpl_) {}
-File::File(File&& file): pimpl_(std::move(file.pimpl_)) {}
-
-File& File::operator=(const File& other) 
-{
-    pimpl_ = other.pimpl_;
-    return *this;
-}
-
-File& File::operator=(File&& other)
-{
-    pimpl_ = std::move(other.pimpl_);
-    return *this;
-}
-
-bool File::operator==(const File& other) const {
-    return pimpl_ == other.pimpl_;
-}
 
 void File::close() {
-    return pimpl_->close();
+    return this->ptr_->close();
 }
 
 bool File::is_closed() const {
-    return pimpl_->is_closed();
+    return this->ptr_->is_closed();
 }
 
-uint64_t File::alignment() {
-    return pimpl_->alignment();
-}
 
 uint64_t File::size() {
-    return pimpl_->size();
+    return this->ptr_->size();
+}
+
+size_t File::read(uint8_t* buffer, size_t size)
+{
+    return this->ptr_->read(buffer, size);
+}
+
+size_t File::write(const uint8_t* buffer, size_t size)
+{
+    return this->ptr_->write(buffer, size);
 }
 
 size_t File::read(uint8_t* buffer, uint64_t offset, size_t size)
 {
-    return pimpl_->read(buffer, offset, size);
+    return this->ptr_->read(buffer, offset, size);
 }
 
 size_t File::write(const uint8_t* buffer, uint64_t offset, size_t size)
 {
-    return pimpl_->write(buffer, offset, size);
+    return this->ptr_->write(buffer, offset, size);
 }
 
-size_t File::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
-{
-    return pimpl_->process_batch(batch, rise_ex_on_error);
-}
+
 
 void File::fsync() {
-    return pimpl_->fsync();
+    return this->ptr_->fsync();
 }
 
 void File::fdsync()
 {
-    return pimpl_->fdsync();
+    return this->ptr_->fdsync();
 }
 
-IDataInputStream File::istream(uint64_t position, size_t buffer_size)
+BinaryInputStream File::istream()
 {
-    return pimpl_->istream(position, buffer_size);
+    return this->ptr_->istream();
 }
 
-IDataOutputStream File::ostream(uint64_t position, size_t buffer_size)
+BinaryOutputStream File::ostream()
 {
-    return pimpl_->ostream(position, buffer_size);
+    return this->ptr_->ostream();
 }
     
 const filesystem::path& File::path()
 {
-    return pimpl_->path();
+    return this->ptr_->path();
 }
 
-    
+
+
+
+
+
+
+void DMAFile::close() {
+    return this->ptr_->close();
+}
+
+bool DMAFile::is_closed() const {
+    return this->ptr_->is_closed();
+}
+
+
+
+uint64_t DMAFile::alignment() {
+    return this->ptr_->alignment();
+}
+
+uint64_t DMAFile::size() {
+    return this->ptr_->size();
+}
+
+size_t DMAFile::read(uint8_t* buffer, uint64_t offset, size_t size)
+{
+    return this->ptr_->read(buffer, offset, size);
+}
+
+size_t DMAFile::write(const uint8_t* buffer, uint64_t offset, size_t size)
+{
+    return this->ptr_->write(buffer, offset, size);
+}
+
+size_t DMAFile::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
+{
+    return this->ptr_->process_batch(batch, rise_ex_on_error);
+}
+
+
+const filesystem::path& DMAFile::path()
+{
+    return this->ptr_->path();
+}
+
+
 }}}

@@ -54,24 +54,12 @@ if (BUILD_SANDBOX)
 endif()
 
 
-add_executable(intellectio intellectio.cpp)
-SET_TARGET_PROPERTIES(intellectio PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-set_target_properties(intellectio PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(intellectio Memoria ${MEMORIA_LIBS})
+SET(MEMORIA_APPS intellectio tcp_client disruptor_bm spsc_queue_bm files)
 
+FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
+    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+    SET_TARGET_PROPERTIES(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+    target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS})
+ENDFOREACH()
 
-add_executable(tcp_client tcp_client.cpp)
-SET_TARGET_PROPERTIES(tcp_client PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-set_target_properties(tcp_client PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(tcp_client Memoria ${MEMORIA_LIBS})
-
-
-add_executable(disruptor_bm disruptor_bm.cpp)
-SET_TARGET_PROPERTIES(disruptor_bm PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-set_target_properties(disruptor_bm PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(disruptor_bm Memoria ${MEMORIA_LIBS})
-
-add_executable(spsc_queue_bm spsc_queue_bm.cpp)
-SET_TARGET_PROPERTIES(spsc_queue_bm PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-set_target_properties(spsc_queue_bm PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(spsc_queue_bm Memoria ${MEMORIA_LIBS})

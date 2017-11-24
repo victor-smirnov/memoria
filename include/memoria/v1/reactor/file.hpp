@@ -25,5 +25,72 @@
 #error "Unsupported platform"
 #endif
 
+#include <memoria/v1/core/tools/pimpl_base.hpp>
+#include <memoria/v1/core/tools/iostreams.hpp>
 
+
+namespace memoria {
+namespace v1 {
+namespace reactor {
+
+class BufferedFileImpl;
+class DMAFileImpl;
+
+class File: public PimplBase<BufferedFileImpl> {
+    using Base = PimplBase<BufferedFileImpl>;
+public:
+    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(File)
+
+    void close();
+    bool is_closed() const;
+
+    uint64_t size();
+
+    uint64_t seek(uint64_t pos);
+
+    size_t read(uint8_t* buffer, size_t size);
+    size_t write(const uint8_t* buffer, size_t size);
+
+    size_t read(uint8_t* buffer, uint64_t offset, size_t size);
+    size_t write(const uint8_t* buffer, uint64_t offset, size_t size);
+
+    void fsync();
+    void fdsync();
+
+    BinaryInputStream istream();
+    BinaryOutputStream ostream();
+
+    const filesystem::path& path();
+};
+
+
+File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
+
+
+class DMAFile: public PimplBase<DMAFileImpl> {
+    using Base = PimplBase<DMAFileImpl>;
+public:
+    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(DMAFile)
+
+    void close();
+    bool is_closed() const;
+
+    uint64_t alignment();
+    uint64_t size();
+
+    size_t read(uint8_t* buffer, uint64_t offset, size_t size);
+    size_t write(const uint8_t* buffer, uint64_t offset, size_t size);
+
+    size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
+
+    const filesystem::path& path();
+};
+
+
+DMAFile open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
+
+
+
+
+}}}
 

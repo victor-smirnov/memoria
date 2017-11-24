@@ -77,51 +77,6 @@ enum class FileMode: mode_t {
 };
 
 
-class FileImpl;
-
-class File {
-    using Ptr = std::shared_ptr<FileImpl>;
-    
-protected:
-    Ptr pimpl_;
-public:
-    File(Ptr pimpl_);
-    ~File() noexcept;
-    
-    File(const File& file);
-    File(File&& file);
-    
-    File& operator=(const File&);
-    File& operator=(File&&);
-    
-    bool operator==(const File&) const;
-    
-    void close();
-    bool is_closed() const;
-    
-    uint64_t alignment();
-    
-    uint64_t size();
-    
-    size_t read(uint8_t* buffer, uint64_t offset, size_t size);
-    size_t write(const uint8_t* buffer, uint64_t offset, size_t size);
-    
-    size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
-    
-    void fsync();
-    void fdsync();
-    
-    IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096);
-    IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096);
-    
-    const filesystem::path& path();
-};
-
-
-
-
-File open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
-File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
 
 
 
