@@ -27,11 +27,7 @@
 
 #include <memoria/v1/core/tools/time.hpp>
 
-#include "../file_impl.hpp"
-
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
+#include "linux_file_impl.hpp"
 
 
 #include <stdio.h>
@@ -52,191 +48,181 @@ namespace v1 {
 namespace reactor {
  
 
+BufferedFileImpl::BufferedFileImpl(filesystem::path file_path, FileFlags flags, FileMode mode):
+    FileImplBase(file_path)
+{
+    int errno0 = 0;
+    std::tie(fd_, errno0) = engine().run_in_thread_pool([&]{
+        auto fd = ::open(file_path.c_str(), (int)flags, (mode_t)mode);
+        return std::make_tuple(
+                    fd,
+                    errno
+                    );
+    });
+
+    if (fd_ < 0) {
+        tools::rise_perror(errno0, SBuf() << "Can't open file " << file_path);
+    }
+}
+
+BufferedFileImpl::~BufferedFileImpl() noexcept
+{
+    if (!closed_) {
+        ::close(fd_);
+    }
+}
+
 
     
-class BufferedFile: public FileImpl, public std::enable_shared_from_this<BufferedFile> {
-    int fd_{};
-    bool closed_{true};
-public:
-    BufferedFile(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT): 
-        FileImpl(file_path)
+void BufferedFileImpl::close()
+{
+    if ((!closed_) && (::close(fd_) < 0))
     {
-        int errno0 = 0;
-        std::tie(fd_, errno0) = engine().run_in_thread_pool([&]{
-            auto fd = ::open(file_path.c_str(), (int)flags, (mode_t)mode);
-            return std::make_tuple(
-                fd,
-                errno
-            );
-        });
-        
-        if (fd_ < 0) {
-            tools::rise_perror(errno0, SBuf() << "Can't open file " << file_path);
-        }
-    }
-    
-    virtual ~BufferedFile() noexcept 
-    {
-        if (!closed_) {
-            ::close(fd_);
-        }
-    }
-    
-    virtual uint64_t alignment() {return 1;}
-    
-    virtual void close() 
-    {   
-        if ((!closed_) && (::close(fd_) < 0)) 
-        {
-            tools::rise_perror(SBuf() << "Can't close file " << path_);
-        }
-        
-        closed_ = true;
+        tools::rise_perror(SBuf() << "Can't close file " << path_);
     }
 
-    virtual bool is_closed() const {return closed_;}
-    
-    virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size) 
-    {
-        off_t res;
-        int errno0;
-        
-        std::tie(res, errno0) = engine().run_in_thread_pool([&]{
-            off_t r = lseek64(fd_, offset, SEEK_SET);
-            
-            if (r >= 0) {
-                r = ::read(fd_, buffer, size);
-            }
-            
-            return std::make_tuple(r, errno);
-        });
-        
-        if (res >= 0) {
-            return res;
+    closed_ = true;
+}
+
+uint64_t BufferedFileImpl::seek(uint64_t position)
+{
+    off64_t res;
+    int errno0;
+
+    std::tie(res, errno0) = engine().run_in_thread_pool([&]{
+        off64_t r = lseek64(fd_, position, SEEK_SET);
+        return std::make_tuple(r, errno);
+    });
+
+    if (res >= 0) {
+        return res;
+    }
+    else {
+        tools::rise_perror(errno0, SBuf() << "Can't seek into the file " << path_);
+    }
+}
+
+
+size_t BufferedFileImpl::read(uint8_t* buffer, uint64_t offset, size_t size)
+{
+    off64_t res;
+    int errno0;
+
+    std::tie(res, errno0) = engine().run_in_thread_pool([&]{
+        off64_t r = lseek64(fd_, offset, SEEK_SET);
+
+        if (r >= 0) {
+            r = ::read(fd_, buffer, size);
         }
-        else {
-            tools::rise_perror(errno0, SBuf() << "Can't read from file " << path_);
+
+        return std::make_tuple(r, errno);
+    });
+
+    if (res >= 0) {
+        return res;
+    }
+    else {
+        tools::rise_perror(errno0, SBuf() << "Can't read from file " << path_);
+    }
+}
+
+
+size_t BufferedFileImpl::read(uint8_t* buffer, size_t size)
+{
+    off64_t res;
+    int errno0;
+
+    std::tie(res, errno0) = engine().run_in_thread_pool([&]{
+        off64_t r = ::read(fd_, buffer, size);
+        return std::make_tuple(r, errno);
+    });
+
+    if (res >= 0) {
+        return res;
+    }
+    else {
+        tools::rise_perror(errno0, SBuf() << "Can't read from file " << path_);
+    }
+}
+
+
+size_t BufferedFileImpl::write(const uint8_t* buffer, uint64_t offset, size_t size)
+{
+    off64_t res;
+    int errno0 = 0;
+
+    std::tie(res, errno0) = engine().run_in_thread_pool([&]{
+        off64_t r = lseek64(fd_, offset, SEEK_SET);
+
+        if (r >= 0) {
+            r = ::write(fd_, buffer, size);
         }
+
+        return std::make_tuple(r, errno);
+    });
+
+    if (res >= 0) {
+        return res;
     }
+    else {
+        tools::rise_perror(errno0, SBuf() << "Can't write to file " << path_);
+    }
+}
+
+size_t BufferedFileImpl::write(const uint8_t* buffer, size_t size)
+{
+    off64_t res;
+    int errno0 = 0;
+
+    std::tie(res, errno0) = engine().run_in_thread_pool([&]{
+        off64_t r = ::write(fd_, buffer, size);
+        return std::make_tuple(r, errno);
+    });
+
+    if (res >= 0) {
+        return res;
+    }
+    else {
+        tools::rise_perror(errno0, SBuf() << "Can't write to file " << path_);
+    }
+}
+
+
+void BufferedFileImpl::fsync()
+{
+    int res;
+    int errno0 = 0;
+
+    std::tie(res, errno) = engine().run_in_thread_pool([&]{
+        int r = ::fsync(fd_);
+        return std::make_tuple(r, errno);
+    });
+
+    if (res < 0) {
+        tools::rise_perror(errno0, SBuf() << "Can't fsync file " << path_);
+    }
+}
+
+void BufferedFileImpl::fdsync() {
+    int res;
+    int errno0 = 0;
+
+    std::tie(res, errno) = engine().run_in_thread_pool([&]{
+        int r = ::fdatasync(fd_);
+        return std::make_tuple(r, errno);
+    });
+
+    if (res < 0) {
+        tools::rise_perror(errno0, SBuf() << "Can't fsync file " << path_);
+    }
+}
     
-    virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size) 
-    {
-        off_t res;
-        int errno0 = 0;
-        
-        std::tie(res, errno0) = engine().run_in_thread_pool([&]{
-            off_t r = lseek64(fd_, offset, SEEK_SET);
-            
-            if (r >= 0) {
-                r = ::write(fd_, buffer, size);
-            }
-            
-            return std::make_tuple(r, errno);
-        });
-        
-        if (res >= 0) {
-            return res;
-        }
-        else {
-            tools::rise_perror(errno0, SBuf() << "Can't write to file " << path_);
-        }
-    }
-    
-    virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true) 
-    {
-        return engine().run_in_thread_pool([&]{
-            size_t c;
-            for (c = 0; c < batch.nblocks(); c++) 
-            {
-                ExtendedIOCB& iocb = batch.block(c);
-                
-                if (iocb.aio_lio_opcode == IOCB_CMD_PREAD)
-                {
-                    if (lseek64(fd_, iocb.aio_offset, SEEK_SET) >= 0)
-                    {
-                        iocb.processed = ::read(fd_, (void*)iocb.aio_buf, iocb.aio_nbytes);
-                        if (iocb.processed < 0) 
-                        {
-                            iocb.errno_ = errno;
-                            break;
-                        }
-                    }
-                    else {
-                        iocb.errno_ = errno;
-                        break;
-                    }
-                }
-                else if (iocb.aio_lio_opcode == IOCB_CMD_PWRITE) 
-                {
-                    if (lseek64(fd_, iocb.aio_offset, SEEK_SET)) 
-                    {
-                        iocb.processed = ::write(fd_, (void*)iocb.aio_buf, iocb.aio_nbytes);
-                        if (iocb.processed < 0) 
-                        {
-                            iocb.errno_ = errno;
-                            break;
-                        }
-                    }
-                    else {
-                        iocb.errno_ = errno;
-                        break;
-                    }
-                }
-                else {
-                    iocb.errno_ = EINVAL;
-                    break;
-                }
-            }
-            
-            return c;
-        });
-    }
-    
-    virtual void fsync() 
-    {
-        int res;
-        int errno0 = 0;
-        
-        std::tie(res, errno) = engine().run_in_thread_pool([&]{
-            int r = ::fsync(fd_);
-            return std::make_tuple(r, errno);
-        });
-        
-        if (res < 0) {
-            tools::rise_perror(errno0, SBuf() << "Can't fsync file " << path_);
-        }
-    }
-    
-    virtual void fdsync() {
-        int res;
-        int errno0 = 0;
-        
-        std::tie(res, errno) = engine().run_in_thread_pool([&]{
-            int r = ::fdatasync(fd_);
-            return std::make_tuple(r, errno);
-        });
-        
-        if (res < 0) {
-            tools::rise_perror(errno0, SBuf() << "Can't fsync file " << path_);
-        }
-    }
-    
-    virtual IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
-    {
-        auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
-        return IDataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);
-    }
-    
-    virtual IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
-    {
-        auto buffered_os = std::make_shared<BufferedOS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
-        return IDataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
-    }
-};  
+
+
 
 File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode) 
 {
-    return std::static_pointer_cast<FileImpl>(std::make_shared<BufferedFile>(file_path, flags, mode));
+    return std::make_shared<BufferedFileImpl>(file_path, flags, mode);
 }
     
 }}}

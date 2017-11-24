@@ -81,8 +81,6 @@ ServerSocketConnection::operator SocketConnection() const {
 }
 
 
-//template <typename T>
-//T ServerSocketConnection::cast_to() const;
 
 
 ClientSocket::ClientSocket(const IPAddress& ip_address, uint16_t ip_port):

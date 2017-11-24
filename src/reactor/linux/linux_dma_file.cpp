@@ -24,11 +24,7 @@
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
 
-#include "../file_impl.hpp"
-
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
+#include "linux_file_impl.hpp"
 
 
 #include <stdio.h>
@@ -49,7 +45,7 @@ namespace reactor {
 
 
 
-
+/*
     
 class DMAFile: public FileImpl, public std::enable_shared_from_this<DMAFile> {
     int fd_{};
@@ -88,7 +84,8 @@ public:
 private:
     uint64_t process_single_io(uint8_t* buffer, uint64_t offset, uint64_t size, int command, const char* opname);
 };    
-    
+    */
+
 class FileSingleIOMessage: public FileIOMessage {
     
     iocb block_;
@@ -154,8 +151,8 @@ public:
 }; 
     
 
-DMAFile::DMAFile(filesystem::path file_path, FileFlags flags, FileMode mode): 
-    FileImpl(file_path)
+DMAFileImpl::DMAFileImpl(filesystem::path file_path, FileFlags flags, FileMode mode):
+    FileImplBase(file_path)
 {
     fd_ = engine().run_in_thread_pool([&]{
         return ::open(file_path.c_str(), (int)flags | O_DIRECT, (mode_t)mode);
@@ -166,14 +163,14 @@ DMAFile::DMAFile(filesystem::path file_path, FileFlags flags, FileMode mode):
     }
 }
 
-DMAFile::~DMAFile() noexcept
+DMAFileImpl::~DMAFileImpl() noexcept
 {
     if (!closed_) {
         ::close(fd_);
     }
 }
     
-void DMAFile::close()
+void DMAFileImpl::close()
 {
     if ((!closed_) && (::close(fd_) < 0)) {
         tools::rise_perror(SBuf() << "Can't close file " << path_);
@@ -184,7 +181,7 @@ void DMAFile::close()
 
 
 
-size_t DMAFile::process_single_io(uint8_t* buffer, uint64_t offset, size_t size, int command, const char* opname) 
+size_t DMAFileImpl::process_single_io(uint8_t* buffer, uint64_t offset, size_t size, int command, const char* opname)
 {
     Reactor& r = engine();
     
@@ -214,7 +211,7 @@ size_t DMAFile::process_single_io(uint8_t* buffer, uint64_t offset, size_t size,
 }
 
 
-size_t DMAFile::read(uint8_t* buffer, uint64_t offset, size_t size) 
+size_t DMAFileImpl::read(uint8_t* buffer, uint64_t offset, size_t size)
 {    
     return process_single_io(buffer, offset, size, IOCB_CMD_PREAD, "read");
 }
@@ -222,7 +219,7 @@ size_t DMAFile::read(uint8_t* buffer, uint64_t offset, size_t size)
 
 
 
-size_t DMAFile::write(const uint8_t* buffer, uint64_t offset, size_t size)
+size_t DMAFileImpl::write(const uint8_t* buffer, uint64_t offset, size_t size)
 {    
     return process_single_io(const_cast<uint8_t*>(buffer), offset, size, IOCB_CMD_PWRITE, "write");
 }
@@ -294,7 +291,7 @@ public:
 
 
 
-size_t DMAFile::process_batch(IOBatchBase& batch, bool rise_ex_on_error) 
+size_t DMAFileImpl::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 {
     Reactor& r = engine();
     
@@ -351,9 +348,9 @@ DMABuffer allocate_dma_buffer(size_t size)
 	}
 }
 
-File open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode) 
+DMAFile open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
 {
-    return std::static_pointer_cast<FileImpl>(std::make_shared<DMAFile>(file_path, flags, mode));
+    return std::make_shared<DMAFileImpl>(file_path, flags, mode);
 }
     
 }}}
