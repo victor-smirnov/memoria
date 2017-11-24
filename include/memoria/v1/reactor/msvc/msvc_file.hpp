@@ -90,7 +90,7 @@ enum class FileMode: mode_t {
     IDEFLT = IRWUSR | IRGRP | IROTH
 };
 
-
+/*
 class FileImpl;
 
 class File {
@@ -134,6 +134,6 @@ public:
 
 File open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
 File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
-
+*/
     
 }}}

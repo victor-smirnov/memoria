@@ -28,7 +28,7 @@
 
 #include <memoria/v1/reactor/file_streams.hpp>
 
-#include "../file_impl.hpp"
+#include "msvc_file_impl.hpp"
 
 #include <stdio.h>
 
@@ -101,44 +101,9 @@ DWORD get_flags_and_attributes(FileFlags flags, FileMode mode, bool no_buffering
 }
 
 
-class GenericFile: public FileImpl, public std::enable_shared_from_this<GenericFile> {
-	HANDLE fd_{ INVALID_HANDLE_VALUE };
-	bool no_buffering_;
-	bool closed_{false};
-public:
-	GenericFile(filesystem::path file_path, FileFlags flags, FileMode mode, bool no_buffering_);
-	virtual ~GenericFile() noexcept;
-
-	virtual uint64_t alignment() { return no_buffering_ ? 512 : 1; }
-
-	virtual void close();
-	virtual bool is_closed() const { return closed_; }
-
-	virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size);
-	virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size);
-
-	virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
-
-	virtual void fsync();
-	virtual void fdsync();
-
-	virtual IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
-    {
-       	auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
-       	return IDataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);
-    }
-    
-	virtual IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
-    {
-	auto ptr = this->shared_from_this();
-
-       	auto buffered_os = std::make_shared<BufferedOS<>>(4096, std::static_pointer_cast<FileImpl>(shared_from_this()), position);
-       	return IDataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
-    } 
-};
 
 GenericFile::GenericFile(filesystem::path file_path, FileFlags flags, FileMode mode, bool no_buffering):
-    FileImpl(file_path), std::enable_shared_from_this<GenericFile>(), no_buffering_(no_buffering)
+    FileImplBase(file_path), no_buffering_(no_buffering)
 {
 	DWORD creation_disposition = get_disposition(flags, mode);
 
@@ -279,7 +244,7 @@ size_t GenericFile::write(const uint8_t* buffer, uint64_t offset, size_t size)
 }
 
 
-size_t GenericFile::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
+size_t DMAFileImpl::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 {
 	Reactor& r = engine();
 
@@ -358,10 +323,8 @@ size_t GenericFile::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 
 
 
-void GenericFile::fsync()
+void BufferedFileImpl::fsync()
 {
-	if (!no_buffering_) 
-	{
 		bool status;
 		DWORD last_error{};
 
@@ -379,25 +342,23 @@ void GenericFile::fsync()
 				last_error
 			);
 		}
-	}
 }
 
-void GenericFile::fdsync()
+void BufferedFileImpl::fdsync()
 {
 	fsync();
 }
 
 
 
-File open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
-{
-	return std::static_pointer_cast<FileImpl>(std::make_shared<GenericFile>(file_path, flags, mode, true));
-}
-
 File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode)
 {
-	auto ptr = std::make_shared<GenericFile>(file_path, flags, mode, false);
-	return std::static_pointer_cast<FileImpl>(ptr);
+	return std::make_shared<BufferedFileImpl>(file_path, flags, mode);
+}
+
+DMAFile open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
+{
+	return std::make_shared<DMAFileImpl>(file_path, flags, mode);
 }
 
 

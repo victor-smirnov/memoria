@@ -30,11 +30,20 @@ int main(int argc, char **argv)
         std::cout << "Hello from Files!" << std::endl;
         
         try {
-            auto ff = open_dma_file("sone_file.bin", FileFlags::CREATE | FileFlags::RDWR);
-            auto dma_buf = allocate_dma_buffer(16384);
-            ff.write(dma_buf.get(), 0, 16384);
+			auto dma_buf = allocate_dma_buffer(16384);
 
-            ff.close();
+			for (int c = 0; c < 8192; c++)
+			{
+				dma_buf.get()[c] = c;
+			}
+			
+			auto ff1 = open_dma_file("some_dma_file.bin", FileFlags::CREATE | FileFlags::RDWR);
+            ff1.write(dma_buf.get(), 0, 16384);
+            ff1.close();
+
+			auto ff2 = open_buffered_file("some_buf_file.bin", FileFlags::CREATE | FileFlags::RDWR);
+			ff2.write(dma_buf.get(), 0, 16384);
+			ff2.close();
         }
         catch (std::exception& ex) {
             std::cout << "Exception: " << ex.what() << std::endl;
