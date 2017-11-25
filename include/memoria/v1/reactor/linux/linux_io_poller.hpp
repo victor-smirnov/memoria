@@ -18,10 +18,10 @@
 #include "linux_smp.hpp"
 #include "../message/message.hpp"
 #include "../ring_buffer.hpp"
-#include "linux_io_messages.hpp"
 
 #include <memory>
 #include <thread>
+#include <chrono>
 
 #include <linux/aio_abi.h>
 
@@ -45,13 +45,12 @@ class IOPoller {
     int event_fd_{};
     
     aio_context_t aio_context_{};
-    
-    
-    
+
+    const int cpu_;
     IOBuffer& buffer_;
     
 public:
-    IOPoller(IOBuffer& buffer);
+    IOPoller(int cpu, IOBuffer& buffer);
     
     ~IOPoller();
     
@@ -59,6 +58,8 @@ public:
     
     int epoll_fd() const {return epoll_fd_;}
     int event_fd() const {return event_fd_;}
+
+    void sleep_for(const std::chrono::milliseconds& time);
     
     aio_context_t aio_context() const {return aio_context_;}
 

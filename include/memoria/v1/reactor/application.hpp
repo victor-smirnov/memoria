@@ -20,6 +20,7 @@
 #include "../fiber/all.hpp"
 
 #include "reactor.hpp"
+#include "timer.hpp"
 
 #ifdef __linux__
 #include "linux/linux_smp.hpp"

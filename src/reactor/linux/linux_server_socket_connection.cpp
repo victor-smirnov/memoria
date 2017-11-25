@@ -149,6 +149,8 @@ void ServerSocketConnectionImpl::close()
             tools::rise_perror(SBuf() << "Can't remove epoller for connection " << ip_address_ << ":" << ip_port_ << ":" << fd_);
         }
 
+        engine().drain_pending_io_events(&fiber_io_message_);
+
         if (::close(fd_) < 0)
         {
             tools::rise_perror(SBuf() << "Can't close connection " << ip_address_ << ":" << ip_port_ << ":" << fd_);

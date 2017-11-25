@@ -65,6 +65,14 @@ public:
         BOOST_ASSERT(available() < ring_size());
         buffer_[idx(head_++)] = value;
     }
+
+    template <typename Fn>
+    void for_each(Fn&& fn)
+    {
+        for (auto c = tail_; c < head_; c++) {
+            fn(buffer_[idx(c)]);
+        }
+    }
     
 private:
     size_t idx(size_t i) const 

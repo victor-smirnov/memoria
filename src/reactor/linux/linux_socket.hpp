@@ -17,9 +17,10 @@
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 #include <memoria/v1/reactor/linux/linux_socket_impl.hpp>
-#include <memoria/v1/reactor/linux/linux_io_messages.hpp>
-
 #include <memoria/v1/reactor/socket.hpp>
+
+#include "linux_io_messages.hpp"
+
 
 #include <memory>
 
@@ -51,7 +52,7 @@ protected:
 
     sockaddr_in sock_address_;
 
-    EPollIOMessage fiber_io_message_;
+    SocketIOMessage fiber_io_message_;
 public:
     ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port);
     virtual ~ServerSocketImpl() noexcept;
@@ -83,6 +84,7 @@ public:
     virtual BinaryOutputStream output() = 0;
 };
 
+
 class SocketConnectionImpl: public ConnectionImpl {
 public:
     SocketConnectionImpl(int fd): ConnectionImpl(fd) {}
@@ -90,6 +92,8 @@ public:
     virtual BinaryInputStream input()   = 0;
     virtual BinaryOutputStream output() = 0;
 };
+
+
 
 class ServerSocketConnectionImpl:
         public SocketConnectionImpl,
@@ -100,7 +104,7 @@ class ServerSocketConnectionImpl:
     IPAddress ip_address_;
     uint16_t ip_port_;
 
-    EPollIOMessage fiber_io_message_;
+    SocketIOMessage fiber_io_message_;
 public:
     ServerSocketConnectionImpl(SocketConnectionData&& data);
     virtual ~ServerSocketConnectionImpl() noexcept;
@@ -148,7 +152,7 @@ class ClientSocketImpl: public ClientSocketConnectionImpl {
 
     sockaddr_in sock_address_;
 
-    EPollIOMessage fiber_io_message_;
+    SocketIOMessage fiber_io_message_;
 
 public:
      ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port);

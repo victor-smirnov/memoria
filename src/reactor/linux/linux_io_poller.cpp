@@ -18,11 +18,7 @@
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
-
+#include "linux_io_messages.hpp"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -68,7 +64,8 @@ void assert_ok(int result, const char* msg)
     }
 }
 
-IOPoller::IOPoller(IOBuffer& buffer):buffer_(buffer) 
+IOPoller::IOPoller(int cpu, IOBuffer& buffer):
+    cpu_(cpu), buffer_(buffer)
 {
     int result = io_setup(BATCH_SIZE, &aio_context_);
     if (result < 0)
@@ -137,7 +134,7 @@ void IOPoller::poll()
                 else if (eevents[c].data.ptr)
                 {
                     EPollIOMessage* msg = tools::ptr_cast<EPollIOMessage>(eevents[c].data.ptr);
-                    msg->configure(eevents[c].events);
+                    msg->on_receive(eevents[c]);
                     buffer_.push_front(msg);
                 }
             }

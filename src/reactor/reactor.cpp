@@ -82,7 +82,7 @@ void Reactor::event_loop ()
                         }
                     }
                 });
-                
+
                 ff.detach();
             });
         }
@@ -98,7 +98,10 @@ void Reactor::event_loop ()
             
             while (ring_buffer_.available())
             {
-                process_fn(ring_buffer_.pop_back());
+                auto msg = ring_buffer_.pop_back();
+                if (msg) {
+                    process_fn(msg);
+                }
             }
         }
         

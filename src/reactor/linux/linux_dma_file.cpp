@@ -25,6 +25,7 @@
 #include <memoria/v1/core/tools/perror.hpp>
 
 #include "linux_file_impl.hpp"
+#include "linux_io_messages.hpp"
 
 
 #include <stdio.h>
@@ -37,54 +38,9 @@
 #include <stdint.h>
 #include <exception>
 
-
-
 namespace memoria {
 namespace v1 {
 namespace reactor {
-
-
-
-/*
-    
-class DMAFile: public FileImpl, public std::enable_shared_from_this<DMAFile> {
-    int fd_{};
-    bool closed_{true};
-public:
-    DMAFile (filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
-    virtual ~DMAFile() noexcept;
-    
-    virtual uint64_t alignment() {return 512;}
-        
-    virtual void close();
-    virtual bool is_closed() const {return closed_;}
-    
-    virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size);
-    virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size);
-    
-    virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
-    
-    virtual void fsync() {}
-    virtual void fdsync() {}
-    
-    
-    
-    
-    virtual IDataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) {
-        tools::rise_error(SBuf() << "Streams are not supported for DMA files");
-    }
-    
-    virtual IDataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
-    {
-        //auto buffered_os = std::make_shared<DmaOS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
-        //return DataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
-        tools::rise_error(SBuf() << "Streams are not supported for DMA files");
-    }
-    
-private:
-    uint64_t process_single_io(uint8_t* buffer, uint64_t offset, uint64_t size, int command, const char* opname);
-};    
-    */
 
 class FileSingleIOMessage: public FileIOMessage {
     

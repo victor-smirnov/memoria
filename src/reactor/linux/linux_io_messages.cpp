@@ -17,6 +17,8 @@
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
 
+#include "linux_io_messages.hpp"
+
 #include <boost/assert.hpp>
 
 namespace memoria {
@@ -24,7 +26,7 @@ namespace v1 {
 namespace reactor {
 
 
-void FiberIOMessage::finish()
+void SocketIOMessage::finish()
 {
     if (!iowait_queue_.empty())
     {
@@ -39,22 +41,42 @@ void FiberIOMessage::finish()
 }    
 
 
-std::string FiberIOMessage::describe()
+
+
+void SocketIOMessage::wait_for()
 {
-    return "FiberIOMessage";
-}
+    reset();
 
-
-void FiberIOMessage::wait_for()
-{    
     FiberContext* fiber_context = fibers::context::active();
     
     fiber_context->iowait_link(iowait_queue_);
     
     engine().scheduler()->suspend(fiber_context);
+
+    connection_closed_ = connection_closed_ || (flags_ & (EPOLLRDHUP | EPOLLHUP | EPOLLERR));
 }
 
 
+void TimerMessage::finish()
+{
+    auto fired_times = fired_times_;
 
+    for (auto c = 0; c < fired_times; c++)
+    {
+        fibers::fiber([&]{
+            timer_fn_();
+        }).detach();
+    }
+
+    fired_times_ -= fired_times;
+}
+
+void TimerMessage::on_receive(const epoll_event& event)
+{
+    uint64_t counts;
+    ::read(fd_, &counts, sizeof (counts));
+
+    fired_times_ += counts;
+}
     
 }}}

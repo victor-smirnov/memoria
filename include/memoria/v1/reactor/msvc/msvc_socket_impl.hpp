@@ -121,62 +121,6 @@ private:
 
 
 
-/*
-
-class StreamSocket: public std::enable_shared_from_this<StreamSocket> {
-protected:
-    IPAddress ip_address_;
-    uint16_t ip_port_;
-    SOCKET socket_fd_{};
-public:
-    StreamSocket(const IPAddress& ip_address, uint16_t ip_port ):
-        ip_address_(ip_address),
-        ip_port_(ip_port)
-    {}
-    
-    virtual ~StreamSocket() noexcept {}
-    
-    const IPAddress& address() const {return ip_address_;}
-    uint16_t port() const {return ip_port_;}
-    
-    SOCKET fd() const {return socket_fd_;}
-};
-
-class StreamSocketConnection {
-    std::shared_ptr<StreamSocket> socket_;
-    SOCKET connection_fd_;
-    
-public:
-    StreamSocketConnection(SOCKET connection_fd, const std::shared_ptr<StreamSocket>& socket);
-    
-    virtual ~StreamSocketConnection() noexcept;
-    
-    std::shared_ptr<StreamSocket>& socket() {return socket_;}
-    const std::shared_ptr<StreamSocket>& socket() const {return socket_;}
-    
-    ssize_t read(char* data, size_t size);
-    ssize_t write(const char* data, size_t size);
-    
-    SOCKET fd() const {return connection_fd_;}
-};
-
-
-    
-class StreamServerSocket: public StreamSocket {
-    
-    sockaddr_in sock_address_;
-    bool closed_{false};
-    
-public:
-    StreamServerSocket ( const IPAddress& ip_address, uint16_t ip_port );
-    
-    virtual ~StreamServerSocket() noexcept;
-
-    void listen();
-    
-    std::unique_ptr<StreamSocketConnection> accept();
-};
-    */
     
 }}}
 

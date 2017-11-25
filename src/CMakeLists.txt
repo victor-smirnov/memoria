@@ -54,7 +54,7 @@ if (BUILD_SANDBOX)
 endif()
 
 
-SET(MEMORIA_APPS intellectio tcp_client disruptor_bm spsc_queue_bm files)
+SET(MEMORIA_APPS intellectio tcp_client disruptor_bm spsc_queue_bm files timers)
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)

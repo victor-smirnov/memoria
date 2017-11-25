@@ -41,6 +41,7 @@
 #include <thread>
 #include <memory>
 #include <atomic>
+#include <chrono>
 
 namespace memoria {
 namespace v1 {
@@ -74,7 +75,7 @@ public:
     
     Reactor(std::shared_ptr<Smp> smp, int cpu, bool own_thread):
         smp_(smp), cpu_(cpu), own_thread_(own_thread), thread_pool_(1, 10, smp_),
-        io_poller_(ring_buffer_)
+        io_poller_(cpu, ring_buffer_)
     {
         std::atomic_thread_fence(std::memory_order_seq_cst);
     }
@@ -90,6 +91,10 @@ public:
     
     IOPoller& io_poller() {return io_poller_;}
     const IOPoller& io_poller() const {return io_poller_;}
+
+    void sleep_for(const std::chrono::milliseconds& time) {
+        io_poller_.sleep_for(time);
+    }
     
     void join() 
     {
@@ -168,9 +173,19 @@ public:
     Scheduler<Reactor>* scheduler() {return scheduler_;}
     const Scheduler<Reactor>* scheduler() const {return scheduler_;}
     
-    
-    
+    void drain_pending_io_events(const Message* message)
+    {
+        using PMessage = Message*;
+        ring_buffer_.for_each([=](PMessage& pending_event){
+            if (pending_event == message){
+                pending_event = nullptr;
+            }
+        });
+    }
+
 private:
+
+
     
     static thread_local Reactor* local_engine_;
     
