@@ -104,6 +104,15 @@ void Reactor::event_loop ()
                 }
             }
         }
+
+		if (event_loop_tasks_.size() > 0) 
+		{
+			for (auto& task : event_loop_tasks_) {
+				task();
+			}
+
+			event_loop_tasks_.clear();
+		}
         
         smp_->receive_all(cpu_, process_fn);
         

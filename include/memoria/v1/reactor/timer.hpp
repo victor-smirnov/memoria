@@ -27,6 +27,7 @@
 
 #include <memoria/v1/core/tools/pimpl_base.hpp>
 
+#include <limits>
 
 namespace memoria {
 namespace v1 {
@@ -46,7 +47,7 @@ public:
     static Timer schedule(TimeUnit start_after, TimeUnit repeat_after, uint64_t count, TimerFn fn);
 
     static Timer schedule(TimeUnit start_after, TimeUnit repeat_after, TimerFn fn) {
-        return Timer::schedule(start_after, repeat_after, 0, fn);
+        return Timer::schedule(start_after, repeat_after, std::numeric_limits<uint64_t>::max(), fn);
     }
 
     static Timer schedule(TimeUnit repeat_after, uint64_t count, TimerFn fn) {
@@ -54,7 +55,7 @@ public:
     }
 
     static Timer schedule(TimeUnit repeat_after, TimerFn fn) {
-        return Timer::schedule(repeat_after, repeat_after, 0, fn);
+        return Timer::schedule(repeat_after, repeat_after, std::numeric_limits<uint64_t>::max(), fn);
     }
 
     static Timer schedule_one(TimeUnit start_after, TimerFn fn) {

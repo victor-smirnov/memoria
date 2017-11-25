@@ -19,7 +19,7 @@
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
 
-
+#include <memoria/v1/reactor/msvc/msvc_io_messages.hpp>
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -43,7 +43,7 @@ void assert_ok(int result, const char* msg)
     }
 }
 
-IOPoller::IOPoller(IOBuffer& buffer):buffer_(buffer)
+IOPoller::IOPoller(int cpu, IOBuffer& buffer):buffer_(buffer), cpu_(cpu)
 {
 	// Create a handle for the completion port
 	completion_port_ = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (u_long)0, 0);
@@ -52,12 +52,26 @@ IOPoller::IOPoller(IOBuffer& buffer):buffer_(buffer)
 		DumpErrorMessage("CreateIoCompletionPort failed with error: ", GetLastError());
 		std::terminate();
 	}
+
+	timer_queue_ = CreateTimerQueue();
+	if (timer_queue_ == NULL)
+	{
+		DumpErrorMessage("CreateIoCompletionPort failed with error: ", GetLastError());
+		std::terminate();
+	}
+
+
 }
 
 IOPoller::~IOPoller() 
 {
+	DeleteTimerQueueEx(timer_queue_, INVALID_HANDLE_VALUE);
 	CloseHandle(completion_port_);
 }
+
+
+
+
 
 #ifdef min
 #undef min

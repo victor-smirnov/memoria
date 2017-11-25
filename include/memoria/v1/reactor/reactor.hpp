@@ -17,6 +17,7 @@
 
 #include "scheduler.hpp"
 #include "file.hpp"
+#include "timer.hpp"
 
 #include "../fiber/protected_stack_pool.hpp"
 #include "../fiber/pooled_fixedsize_stack.hpp"
@@ -70,7 +71,12 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
     
     int32_t io_poll_cnt_{};
     int32_t yield_cnt_{};
-    
+
+public:
+	using EventLoopTask = std::function<void(void)>;
+private:
+	std::vector<EventLoopTask> event_loop_tasks_;
+
 public:
     
     Reactor(std::shared_ptr<Smp> smp, int cpu, bool own_thread):
@@ -158,6 +164,10 @@ public:
         
         return msg->result();
     }
+
+	void send_message(Message* message) {
+		smp_->submit_to(message->cpu(), message);
+	}
     
     friend class Application;
     friend Reactor& engine();
@@ -182,6 +192,10 @@ public:
             }
         });
     }
+
+	void run_in_event_loop(EventLoopTask task) {
+		event_loop_tasks_.push_back(task);
+	}
 
 private:
 
@@ -210,8 +224,6 @@ private:
     {
         running_ = false;
     }
-    
-
 };
 
 bool has_engine();

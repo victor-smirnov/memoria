@@ -18,6 +18,7 @@
 #include "msvc_smp.hpp"
 #include "../message/fiber_io_message.hpp"
 #include "../ring_buffer.hpp"
+
 #include "msvc_io_messages.hpp"
 
 #include "../../core/tools/strings/string_buffer.hpp"
@@ -25,6 +26,7 @@
 #include <memory>
 #include <thread>
 #include <string>
+#include <chrono>
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -93,18 +95,23 @@ class IOPoller {
     static constexpr int BATCH_SIZE = 512;
 	
 	HANDLE completion_port_{};
+	HANDLE timer_queue_{};
     
 	IOBuffer& buffer_;
 
+	int cpu_;
+
 public:
-    IOPoller(IOBuffer& buffer);
+    IOPoller(int cpu, IOBuffer& buffer);
     
     ~IOPoller();
     
     void poll();
     
+	void sleep_for(const std::chrono::milliseconds& time);
     
 	HANDLE completion_port() { return completion_port_; }
+	HANDLE timer_queue() { return timer_queue_; }
 };
 
 
