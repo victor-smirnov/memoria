@@ -21,9 +21,6 @@
 
 #include <memoria/v1/reactor/macosx/macosx_io_messages.hpp>
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
 
 
 
@@ -50,7 +47,9 @@ void assert_ok(int result, const char* msg)
     }
 }
 
-IOPoller::IOPoller(IOBuffer& buffer):buffer_(buffer) 
+IOPoller::IOPoller(int cpu, IOBuffer& buffer):
+    buffer_(buffer),
+    cpu_(cpu)
 {    
     queue_fd_ = ::kqueue();
     
@@ -69,11 +68,11 @@ void IOPoller::poll()
     int buffer_capacity = buffer_.capacity_i();
     if (buffer_capacity > 0)
     {
-        struct kevent eevents[BATCH_SIZE];
+        struct kevent64_s eevents[BATCH_SIZE];
         
         int max_events = std::min(buffer_capacity, (int)BATCH_SIZE);
         
-        int kevent_result = kevent(queue_fd_, nullptr, 0, eevents, max_events, &zero_timeout);
+        int kevent_result = kevent64(queue_fd_, nullptr, 0, eevents, max_events, 0, &zero_timeout);
         
         if (kevent_result >= 0)
         {
@@ -81,8 +80,8 @@ void IOPoller::poll()
             {    
                 if (eevents[c].udata)
                 {
-                    KEventIOMessage* msg = tools::ptr_cast<KEventIOMessage>(eevents[c].udata);
-                    msg->configure(eevents[c].flags & EV_EOF, eevents[c].data);
+                    KEventIOMessage* msg = tools::ptr_cast<KEventIOMessage>((char*)eevents[c].udata);
+                    msg->on_receive(eevents[c]);
                     
                     buffer_.push_front(msg);
                 }

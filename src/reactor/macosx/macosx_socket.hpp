@@ -52,7 +52,7 @@ protected:
 
     sockaddr_in sock_address_;
 
-    KEventIOMessage fiber_io_message_;
+    SocketIOMessage fiber_io_message_;
 public:
     ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port);
     virtual ~ServerSocketImpl() noexcept;
@@ -101,7 +101,7 @@ class ServerSocketConnectionImpl:
     IPAddress ip_address_;
     uint16_t ip_port_;
 
-    KEventIOMessage fiber_io_message_;
+    SocketIOMessage fiber_io_message_;
 public:
     ServerSocketConnectionImpl(SocketConnectionData&& data);
     virtual ~ServerSocketConnectionImpl() noexcept;
@@ -149,7 +149,7 @@ class ClientSocketImpl: public ClientSocketConnectionImpl {
 
     sockaddr_in sock_address_;
 
-    KEventIOMessage fiber_io_message_;
+    SocketIOMessage fiber_io_message_;
 
 public:
      ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port);

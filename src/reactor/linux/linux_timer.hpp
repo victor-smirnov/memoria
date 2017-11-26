@@ -29,7 +29,8 @@
 
 namespace memoria {
 namespace v1 {
-namespace reactor {    
+namespace reactor {
+
 
 class TimerImpl {
     int timer_fd_{-1};

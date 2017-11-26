@@ -16,7 +16,9 @@
 #pragma once
 
 #include "../../fiber/context.hpp"
-#include "../message/fiber_io_message.hpp"
+#include "../message/message.hpp"
+
+#include <memoria/v1/reactor/timer.hpp>
 
 #include <tuple>
 #include <exception>
@@ -30,17 +32,37 @@ namespace reactor {
  
 
 
-class KEventIOMessage: public FiberIOMessage {
+class KEventIOMessage: public Message {
+public:
+    KEventIOMessage(int cpu): Message(cpu, false)
+    {
+        return_ = true;
+    }
+    
+    virtual ~KEventIOMessage() noexcept = default;
+
+    virtual void on_receive(const kevent64_s& event) = 0;
+};
+
+
+
+class SocketIOMessage: public KEventIOMessage {
 protected:
+    fibers::context::iowait_queue_t iowait_queue_;
 
     bool connection_closed_{false};
     off_t available_{};
 
 public:
-    KEventIOMessage(int cpu): FiberIOMessage(cpu)
-    {}
-    
-    virtual ~KEventIOMessage() {}
+    SocketIOMessage(int cpu): KEventIOMessage(cpu) {}
+    virtual ~SocketIOMessage() noexcept = default;
+
+    virtual void process() noexcept {}
+    virtual void finish();
+
+    virtual std::string describe() {return "SocketIOMessage";}
+
+    void wait_for();
 
     void reset()
     {
@@ -48,18 +70,13 @@ public:
         connection_closed_ = false;
     }
 
-    virtual void wait_for() {
-        reset();
-        FiberIOMessage::wait_for();
-    }
-
     bool connection_closed() const {
         return connection_closed_;
     }
 
-    void configure(bool eof, off_t value) {
-        available_ = value;
-        connection_closed_ = eof;
+    virtual void on_receive(const kevent64_s& event) {
+        available_ = event.data;
+        connection_closed_ = event.flags & EV_EOF;
     }
 
     off_t available() const {
@@ -67,5 +84,26 @@ public:
     }
 };
 
-    
+class TimerMessage: public KEventIOMessage {
+    uint64_t fd_;
+    TimerFn timer_fn_;
+
+    uint64_t fired_times_{};
+
+public:
+    TimerMessage(int cpu, uint64_t fd, TimerFn timer_fn):
+        KEventIOMessage(cpu),
+        fd_(fd),
+        timer_fn_(timer_fn)
+    {}
+
+    virtual void process() noexcept {}
+
+    virtual void finish();
+    virtual void on_receive(const kevent64_s& event);
+
+    virtual std::string describe() {return "TimerMessage";}
+
+};
+
 }}}

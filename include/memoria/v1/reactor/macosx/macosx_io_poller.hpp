@@ -59,15 +59,25 @@ class IOPoller {
     int queue_fd_{};
         
     IOBuffer& buffer_;
+
+    uint64_t timer_fds_{1};
     
+    int cpu_;
+
 public:
-    IOPoller(IOBuffer& buffer);
+    IOPoller(int cpu, IOBuffer& buffer);
     
     ~IOPoller();
     
     void poll();
     
     int queue_fd() const {return queue_fd_;}
+
+    void sleep_for(const std::chrono::milliseconds& time);
+
+    uint64_t new_timer_fd() {
+        return timer_fds_++;
+    }
 };
     
 }}}
