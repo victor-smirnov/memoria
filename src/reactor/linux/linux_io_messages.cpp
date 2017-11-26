@@ -18,6 +18,7 @@
 #include <memoria/v1/reactor/reactor.hpp>
 
 #include "linux_io_messages.hpp"
+#include "linux_timer.hpp"
 
 #include <boost/assert.hpp>
 
@@ -59,16 +60,7 @@ void SocketIOMessage::wait_for()
 
 void TimerMessage::finish()
 {
-    auto fired_times = fired_times_;
-
-    for (auto c = 0; c < fired_times; c++)
-    {
-        fibers::fiber([&]{
-            timer_fn_();
-        }).detach();
-    }
-
-    fired_times_ -= fired_times;
+    timer_->on_firing(fired_times_);
 }
 
 void TimerMessage::on_receive(const epoll_event& event)
@@ -76,7 +68,7 @@ void TimerMessage::on_receive(const epoll_event& event)
     uint64_t counts;
     ::read(fd_, &counts, sizeof (counts));
 
-    fired_times_ += counts;
+    fired_times_ = counts;
 }
     
 }}}

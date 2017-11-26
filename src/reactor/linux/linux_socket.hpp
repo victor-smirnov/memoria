@@ -71,6 +71,7 @@ class ConnectionImpl {
 protected:
     int fd_;
     bool op_closed_{false};
+    bool data_closed_{false};
 
 public:
     ConnectionImpl(int fd): fd_(fd) {}
@@ -123,7 +124,7 @@ public:
     virtual void flush() {}
 
     virtual void close();
-    virtual bool is_closed() const {return op_closed_ || fiber_io_message_.connection_closed();}
+    virtual bool is_closed() const {return op_closed_ || fiber_io_message_.connection_closed() || data_closed_;}
 };
 
 
@@ -166,7 +167,7 @@ public:
      virtual void flush() {}
 
      virtual void close();
-     virtual bool is_closed() const {return op_closed_ || fiber_io_message_.connection_closed();}
+     virtual bool is_closed() const {return op_closed_ || fiber_io_message_.connection_closed() || data_closed_; }
 
 private:
      void connect();

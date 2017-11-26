@@ -34,6 +34,7 @@ namespace reactor {
 
 class TimerImpl {
     int timer_fd_{-1};
+    TimerFn timer_fn_;
 
     TimerMessage epoll_message_;
 
@@ -50,6 +51,8 @@ public:
     bool is_running() const {
         return !stopped_;
     }
+
+    void on_firing(uint64_t firing_times);
 };
 
 }}}

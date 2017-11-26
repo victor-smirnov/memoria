@@ -108,17 +108,19 @@ public:
 };
 
 
+class TimerImpl;
+
 class TimerMessage: public EPollIOMessage {
     int fd_;
-    TimerFn timer_fn_;
+    TimerImpl* timer_;
 
     uint64_t fired_times_{};
 
 public:
-    TimerMessage(int cpu, int fd, TimerFn timer_fn):
+    TimerMessage(int cpu, int fd, TimerImpl* timer):
         EPollIOMessage(cpu),
         fd_(fd),
-        timer_fn_(timer_fn)
+        timer_(timer)
     {}
 
     virtual void process() noexcept {}

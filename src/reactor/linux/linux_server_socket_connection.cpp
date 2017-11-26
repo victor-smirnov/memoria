@@ -20,13 +20,6 @@
 
 #include "linux_socket.hpp"
 
-#include <boost/assert.hpp>
-
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
-
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/syscall.h>
@@ -37,6 +30,7 @@
 
 #include <memory>
 
+#include <boost/assert.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -98,6 +92,7 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
         ssize_t result = ::read(fd_, data, size);
         
         if (result >= 0) {
+            data_closed_ = result == 0;
             return result;
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK) 
@@ -120,6 +115,7 @@ size_t ServerSocketConnectionImpl::write(const uint8_t* data, size_t size)
         ssize_t result = ::write(fd_, data, size);
         
         if (result >= 0) {
+            data_closed_ = result == 0;
             return result;
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK) 

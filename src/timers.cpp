@@ -46,7 +46,7 @@ int main(int argc, char **argv)
                 std::cout << "In the periodic timer: " << (++cnt_) << std::endl;
             });
 
-            engine().sleep_for(std::chrono::seconds(8));
+            engine().sleep_for(std::chrono::seconds(7));
             std::cout << "Done!" << std::endl;
         }
         catch (std::exception& ex) {

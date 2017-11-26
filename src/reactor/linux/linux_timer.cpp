@@ -29,7 +29,8 @@ namespace reactor {
 
 TimerImpl::TimerImpl(Timer::TimeUnit start_after, Timer::TimeUnit repeat_after, uint64_t count, TimerFn timer_fn):
     timer_fd_(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK)),
-    epoll_message_(engine().cpu(), timer_fd_, timer_fn),
+    timer_fn_(timer_fn),
+    epoll_message_(engine().cpu(), timer_fd_, this),
     count_(count)
 {
     if (timer_fd_ >= 0)
@@ -86,6 +87,27 @@ void TimerImpl::cancel()
     }
 }
 
+
+void TimerImpl::on_firing(uint64_t fired_times)
+{
+    if (!stopped_ && (count_ > 0))
+    {
+        fibers::fiber([&]{
+            timer_fn_();
+        }).detach();
+
+        if (fired_times <= count_) {
+            count_ -= fired_times;
+        }
+        else {
+            count_ = 0;
+        }
+
+        if (count_ == 0) {
+            cancel();
+        }
+    }
+}
 
 void IOPoller::sleep_for(const std::chrono::milliseconds& time)
 {
