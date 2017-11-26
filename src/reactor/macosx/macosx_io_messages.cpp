@@ -16,8 +16,8 @@
 
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/macosx/macosx_io_messages.hpp>
 
+#include "macosx_io_messages.hpp"
 #include "macosx_timer.hpp"
 
 #include <boost/assert.hpp>

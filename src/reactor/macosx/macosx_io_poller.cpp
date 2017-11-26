@@ -19,7 +19,7 @@
 #include <memoria/v1/core/tools/perror.hpp>
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 
-#include <memoria/v1/reactor/macosx/macosx_io_messages.hpp>
+#include "macosx_io_messages.hpp"
 
 
 

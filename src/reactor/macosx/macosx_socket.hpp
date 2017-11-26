@@ -17,10 +17,11 @@
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 #include <memoria/v1/reactor/macosx/macosx_socket_impl.hpp>
-#include <memoria/v1/reactor/macosx/macosx_io_messages.hpp>
 #include <memoria/v1/reactor/macosx/macosx_socket_impl.hpp>
 
 #include <memoria/v1/reactor/socket.hpp>
+
+#include "macosx_io_messages.hpp"
 
 #include <memory>
 

@@ -60,11 +60,11 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
 
         timespec timeout = tools::make_zeroed<timespec>();
 
-        struct kevent event;
+        struct kevent64_s event;
 
-        EV_SET(&event, fd_, EVFILT_READ, EV_ADD, 0, 0, &fiber_io_message_);
+        EV_SET64(&event, fd_, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)&fiber_io_message_, 0, 0);
 
-        int res = ::kevent(queue_fd, &event, 1, nullptr, 0, &timeout);
+        int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
         if (res < 0)
         {
             ::close(fd_);
@@ -82,11 +82,11 @@ ServerSocketConnectionImpl::~ServerSocketConnectionImpl() noexcept
     
     timespec timeout = tools::make_zeroed<timespec>();
     
-    struct kevent event;
+    struct kevent64_s event;
     
-    EV_SET(&event, fd_, EVFILT_READ, EV_DELETE, 0, 0, nullptr);
+    EV_SET64(&event, fd_, EVFILT_READ, EV_DELETE, 0, 0, 0, 0, 0);
     
-    int res = ::kevent(queue_fd, &event, 1, nullptr, 0, &timeout);
+    int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
     if (res < 0)
     {
         tools::report_perror(SBuf() << "Can't remove kqueu event for connection " << ip_address_ << ":" << ip_port_ << ":" << fd_);
@@ -107,11 +107,11 @@ void ServerSocketConnectionImpl::close()
 
         timespec timeout = tools::make_zeroed<timespec>();
 
-        struct kevent event;
+        struct kevent64_s event;
 
-        EV_SET(&event, fd_, EVFILT_READ, EV_DELETE, 0, 0, nullptr);
+        EV_SET64(&event, fd_, EVFILT_READ, EV_DELETE, 0, 0, 0, 0, 0);
 
-        int res = ::kevent(queue_fd, &event, 1, nullptr, 0, &timeout);
+        int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
         if (res < 0)
         {
             tools::report_perror(SBuf() << "Can't remove kqueue event for socket " << ip_address_ << ":" << ip_port_);

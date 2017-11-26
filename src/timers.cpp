@@ -42,11 +42,11 @@ int main(int argc, char **argv)
 			
             int cnt_ = 0;
 
-            dr::Timer tt = dr::Timer::schedule(std::chrono::seconds(4), std::chrono::seconds(1), 50, [&]{
+            dr::Timer tt = dr::Timer::schedule(std::chrono::seconds(4), std::chrono::seconds(1), 5, [&]{
                 std::cout << "In the periodic timer: " << (++cnt_) << std::endl;
             });
 
-            engine().sleep_for(std::chrono::seconds(80));
+            engine().sleep_for(std::chrono::seconds(8));
             std::cout << "Done!" << std::endl;
         }
         catch (std::exception& ex) {
