@@ -28,33 +28,28 @@ namespace reactor {
 
 TimerImpl::TimerImpl(Timer::TimeUnit start_after, Timer::TimeUnit repeat_after, uint64_t count, TimerFn timer_fn):
     timer_fd_(engine().io_poller().new_timer_fd()),
-    timer_message_(engine().cpu(), timer_fd_, timer_fn),
-    count_(count)
+    timer_message_(engine().cpu(), this),
+    count_(count),
+    timer_fn_(timer_fn)
 {
-    if (timer_fd_ > 0)
+    kevent64_s event = tools::make_zeroed<kevent64_s>();
+
+    EV_SET64(
+                &event,
+                timer_fd_,
+                EVFILT_TIMER,
+                EV_ADD,
+                NOTE_USECONDS,
+                start_after.count() * 1000,
+                (uint64_t)&timer_message_,
+                0,0
+    );
+
+    timespec zero_timeout = tools::make_zeroed<timespec>();
+
+    if (kevent64(engine().io_poller().queue_fd(), &event, 1, nullptr, 0, 0, &zero_timeout) < 0)
     {
-        kevent64_s event = tools::make_zeroed<kevent64_s>();
-
-        EV_SET64(
-            &event,
-            timer_fd_,
-            EVFILT_TIMER,
-            EV_ADD,
-            NOTE_USECONDS,
-            start_after.count() * 1000,
-            (uint64_t)&timer_message_,
-            0,0
-        );
-
-        timespec zero_timeout = tools::make_zeroed<timespec>();
-
-        if (kevent64(engine().io_poller().queue_fd(), &event, 1, nullptr, 0, 0, &zero_timeout) < 0)
-        {
-            tools::rise_perror(SBuf() << "Can't configure epoller for Timer " << timer_fd_);
-        }
-    }
-    else {
-        tools::rise_perror(SBuf() << "Can't create timerfd timer");
+        tools::rise_perror(SBuf() << "Can't add kevent for Timer " << timer_fd_);
     }
 }
 
@@ -68,6 +63,46 @@ void TimerImpl::cancel()
     if (!stopped_)
     {
         stopped_ = true;
+
+        kevent64_s event = tools::make_zeroed<kevent64_s>();
+
+        EV_SET64(
+                    &event,
+                    timer_fd_,
+                    EVFILT_TIMER,
+                    EV_DELETE,
+                    0,0,
+                    0,0,
+                    0
+        );
+
+        timespec zero_timeout = tools::make_zeroed<timespec>();
+
+        if (kevent64(engine().io_poller().queue_fd(), &event, 1, nullptr, 0, 0, &zero_timeout) < 0)
+        {
+            tools::rise_perror(SBuf() << "Can't remove kevent for Timer " << timer_fd_);
+        }
+    }
+}
+
+void TimerImpl::on_firing(uint64_t fired_times)
+{
+    if (!stopped_ && (count_ > 0))
+    {
+        fibers::fiber([&]{
+            timer_fn_();
+        }).detach();
+
+        if (fired_times <= count_) {
+            count_ -= fired_times;
+        }
+        else {
+            count_ = 0;
+        }
+
+        if (count_ == 0) {
+            cancel();
+        }
     }
 }
 
@@ -85,7 +120,7 @@ public:
 
     virtual ~WakeupMessage() = default;
 
-    virtual void process() noexcept {};
+    virtual void process() noexcept {}
     virtual void finish()
     {
         engine().scheduler()->resume(context_);

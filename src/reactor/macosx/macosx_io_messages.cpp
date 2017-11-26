@@ -16,10 +16,14 @@
 
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
-
 #include <memoria/v1/reactor/macosx/macosx_io_messages.hpp>
 
+#include "macosx_timer.hpp"
+
 #include <boost/assert.hpp>
+
+
+
 
 namespace memoria {
 namespace v1 {
@@ -57,21 +61,12 @@ void SocketIOMessage::wait_for()
 
 void TimerMessage::finish()
 {
-    auto fired_times = fired_times_;
-
-    for (auto c = 0; c < fired_times; c++)
-    {
-        fibers::fiber([&]{
-            timer_fn_();
-        }).detach();
-    }
-
-    fired_times_ -= fired_times;
+    timer_->on_firing(fired_times_);
 }
 
 void TimerMessage::on_receive(const kevent64_s& event)
 {
-    fired_times_ += event.data;
+    fired_times_ = event.data;
 }
     
 }}}

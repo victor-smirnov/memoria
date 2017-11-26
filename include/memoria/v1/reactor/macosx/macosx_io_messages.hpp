@@ -84,17 +84,18 @@ public:
     }
 };
 
-class TimerMessage: public KEventIOMessage {
-    uint64_t fd_;
-    TimerFn timer_fn_;
+class TimerImpl;
 
-    uint64_t fired_times_{};
+class TimerMessage: public KEventIOMessage {
+
+    TimerImpl* timer_;
+
+    uint64_t fired_times_;
 
 public:
-    TimerMessage(int cpu, uint64_t fd, TimerFn timer_fn):
+    TimerMessage(int cpu, TimerImpl* timer):
         KEventIOMessage(cpu),
-        fd_(fd),
-        timer_fn_(timer_fn)
+        timer_(timer)
     {}
 
     virtual void process() noexcept {}
