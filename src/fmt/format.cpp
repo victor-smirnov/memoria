@@ -298,7 +298,7 @@ MMA1_FMT_FUNC internal::UTF8ToUTF16::UTF8ToUTF16(StringRef s) {
     throw WindowsError(ERROR_INVALID_PARAMETER, ERROR_MSG);
   int s_size = static_cast<int>(s.size());
   int length = MultiByteToWideChar(
-      CP_UTF8, MB_ERR_INVALID_CHARS, s.data(), s_size, MMA1_FMT_NULL, 0);
+      CP_UTF8, MB_ERR_INVALID_CHARS, s.data(), s_size, nullptr, 0);
   if (length == 0)
     throw WindowsError(GetLastError(), ERROR_MSG);
   buffer_.resize(length + 1);
@@ -321,12 +321,12 @@ MMA1_FMT_FUNC int internal::UTF16ToUTF8::convert(WStringRef s) {
     return ERROR_INVALID_PARAMETER;
   int s_size = static_cast<int>(s.size());
   int length = WideCharToMultiByte(
-    CP_UTF8, 0, s.data(), s_size, MMA1_FMT_NULL, 0, MMA1_FMT_NULL, MMA1_FMT_NULL);
+    CP_UTF8, 0, s.data(), s_size, nullptr, 0, nullptr, nullptr);
   if (length == 0)
     return GetLastError();
   buffer_.resize(length + 1);
   length = WideCharToMultiByte(
-    CP_UTF8, 0, s.data(), s_size, &buffer_[0], length, MMA1_FMT_NULL, MMA1_FMT_NULL);
+    CP_UTF8, 0, s.data(), s_size, &buffer_[0], length, nullptr, nullptr);
   if (length == 0)
     return GetLastError();
   buffer_[length] = 0;
@@ -343,7 +343,7 @@ MMA1_FMT_FUNC void WindowsError::init(
 }
 
 MMA1_FMT_FUNC void internal::format_windows_error(
-    Writer &out, int error_code, StringRef message) MMA1_FMT_NOEXCEPT {
+    Writer &out, int error_code, StringRef message) noexcept {
   try {
     MemoryBuffer<wchar_t, INLINE_BUFFER_SIZE> buffer;
     buffer.resize(INLINE_BUFFER_SIZE);
@@ -351,8 +351,8 @@ MMA1_FMT_FUNC void internal::format_windows_error(
       wchar_t *system_message = &buffer[0];
       int result = FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        MMA1_FMT_NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        system_message, static_cast<uint32_t>(buffer.size()), MMA1_FMT_NULL);
+        nullptr, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        system_message, static_cast<uint32_t>(buffer.size()), nullptr);
       if (result != 0) {
         UTF16ToUTF8 utf8_message;
         if (utf8_message.convert(system_message) == ERROR_SUCCESS) {
@@ -465,7 +465,7 @@ MMA1_FMT_FUNC void report_system_error(
 
 #if MMA1_FMT_USE_WINDOWS_H
 MMA1_FMT_FUNC void report_windows_error(
-    int error_code, fmt::StringRef message) noxecept {
+    int error_code, fmt::StringRef message) noexcept {
   // 'fmt::' is for bcc32.
   report_error(internal::format_windows_error, error_code, message);
 }

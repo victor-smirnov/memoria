@@ -995,7 +995,7 @@ class UTF16ToUTF8 {
 };
 
 MMA1_FMT_API void format_windows_error(fmt::Writer &out, int error_code,
-                                  fmt::StringRef message) MMA1_FMT_NOEXCEPT;
+                                  fmt::StringRef message) noexcept;
 #endif
 
 // A formatting argument value.
@@ -3187,7 +3187,7 @@ class WindowsError : public SystemError {
 // Reports a Windows error without throwing an exception.
 // Can be used to report errors from destructors.
 MMA1_FMT_API void report_windows_error(int error_code,
-                                  StringRef message) MMA1_FMT_NOEXCEPT;
+                                  StringRef message) noexcept;
 
 #endif
 
