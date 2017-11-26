@@ -53,13 +53,6 @@
 # endif
 #endif
 
-#if MMA1_FMT_EXCEPTIONS
-# define MMA1_FMT_TRY try
-# define MMA1_FMT_CATCH(x) catch (x)
-#else
-# define MMA1_FMT_TRY if (true)
-# define MMA1_FMT_CATCH(x) if (false)
-#endif
 
 #ifdef _MSC_VER
 # pragma warning(push)
@@ -289,12 +282,12 @@ const uint64_t internal::BasicData<T>::POWERS_OF_10_64[] = {
 MMA1_FMT_FUNC void internal::report_unknown_type(char code, const char *type) {
   (void)type;
   if (std::isprint(static_cast<unsigned char>(code))) {
-    MMA1_FMT_THROW(FormatError(
-        format("unknown format code '{}' for {}", code, type)));
+    throw FormatError(
+        format("unknown format code '{}' for {}", code, type));
   }
-  MMA1_FMT_THROW(FormatError(
+  throw FormatError(
       format("unknown format code '\\x{:02x}' for {}",
-        static_cast<unsigned>(code), type)));
+        static_cast<unsigned>(code), type));
 }
 
 #if MMA1_FMT_USE_WINDOWS_H
@@ -302,24 +295,24 @@ MMA1_FMT_FUNC void internal::report_unknown_type(char code, const char *type) {
 MMA1_FMT_FUNC internal::UTF8ToUTF16::UTF8ToUTF16(StringRef s) {
   static const char ERROR_MSG[] = "cannot convert string from UTF-8 to UTF-16";
   if (s.size() > INT_MAX)
-    MMA1_FMT_THROW(WindowsError(ERROR_INVALID_PARAMETER, ERROR_MSG));
+    throw WindowsError(ERROR_INVALID_PARAMETER, ERROR_MSG);
   int s_size = static_cast<int>(s.size());
   int length = MultiByteToWideChar(
       CP_UTF8, MB_ERR_INVALID_CHARS, s.data(), s_size, MMA1_FMT_NULL, 0);
   if (length == 0)
-    MMA1_FMT_THROW(WindowsError(GetLastError(), ERROR_MSG));
+    throw WindowsError(GetLastError(), ERROR_MSG);
   buffer_.resize(length + 1);
   length = MultiByteToWideChar(
     CP_UTF8, MB_ERR_INVALID_CHARS, s.data(), s_size, &buffer_[0], length);
   if (length == 0)
-    MMA1_FMT_THROW(WindowsError(GetLastError(), ERROR_MSG));
+    WindowsError(GetLastError(), ERROR_MSG);
   buffer_[length] = 0;
 }
 
 MMA1_FMT_FUNC internal::UTF16ToUTF8::UTF16ToUTF8(WStringRef s) {
   if (int error_code = convert(s)) {
-    MMA1_FMT_THROW(WindowsError(error_code,
-        "cannot convert string from UTF-16 to UTF-8"));
+    throw WindowsError(error_code,
+        "cannot convert string from UTF-16 to UTF-8");
   }
 }
 
@@ -351,7 +344,7 @@ MMA1_FMT_FUNC void WindowsError::init(
 
 MMA1_FMT_FUNC void internal::format_windows_error(
     Writer &out, int error_code, StringRef message) MMA1_FMT_NOEXCEPT {
-  MMA1_FMT_TRY {
+  try {
     MemoryBuffer<wchar_t, INLINE_BUFFER_SIZE> buffer;
     buffer.resize(INLINE_BUFFER_SIZE);
     for (;;) {
@@ -372,15 +365,15 @@ MMA1_FMT_FUNC void internal::format_windows_error(
         break;  // Can't get error message, report error code instead.
       buffer.resize(buffer.size() * 2);
     }
-  } MMA1_FMT_CATCH(...) {}
+  } catch(...) {}
   fmt::format_error_code(out, error_code, message);  // 'fmt::' is for bcc32.
 }
 
 #endif  // MMA1_FMT_USE_WINDOWS_H
 
 MMA1_FMT_FUNC void format_system_error(
-    Writer &out, int error_code, StringRef message) noexcept {
-  MMA1_FMT_TRY {
+  Writer &out, int error_code, StringRef message) noexcept {
+  try {
     internal::MemoryBuffer<char, internal::INLINE_BUFFER_SIZE> buffer;
     buffer.resize(internal::INLINE_BUFFER_SIZE);
     for (;;) {
@@ -394,7 +387,7 @@ MMA1_FMT_FUNC void format_system_error(
         break;  // Can't get error message, report error code instead.
       buffer.resize(buffer.size() * 2);
     }
-  } MMA1_FMT_CATCH(...) {}
+  } catch(...) {}
   fmt::format_error_code(out, error_code, message);  // 'fmt::' is for bcc32.
 }
 
@@ -445,7 +438,7 @@ void internal::ArgMap<Char>::init(const ArgList &args) {
 
 template <typename Char>
 void internal::FixedBuffer<Char>::grow(std::size_t) {
-  MMA1_FMT_THROW(std::runtime_error("buffer overflow"));
+  throw std::runtime_error("buffer overflow");
 }
 
 MMA1_FMT_FUNC internal::Arg internal::FormatterBase::do_get_arg(
@@ -472,7 +465,7 @@ MMA1_FMT_FUNC void report_system_error(
 
 #if MMA1_FMT_USE_WINDOWS_H
 MMA1_FMT_FUNC void report_windows_error(
-    int error_code, fmt::StringRef message) MMA1_FMT_NOEXCEPT {
+    int error_code, fmt::StringRef message) noxecept {
   // 'fmt::' is for bcc32.
   report_error(internal::format_windows_error, error_code, message);
 }
