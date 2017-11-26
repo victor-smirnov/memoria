@@ -30,7 +30,9 @@ TimerImpl::TimerImpl(Timer::TimeUnit start_after, Timer::TimeUnit repeat_after, 
     timer_fd_(engine().io_poller().new_timer_fd()),
     timer_message_(engine().cpu(), this),
     count_(count),
-    timer_fn_(timer_fn)
+    timer_fn_(timer_fn),
+    start_after_(start_after),
+    repeat_after_(repeat_after)
 {
     kevent64_s event = tools::make_zeroed<kevent64_s>();
 
@@ -89,6 +91,31 @@ void TimerImpl::on_firing(uint64_t fired_times)
 {
     if (!stopped_ && (count_ > 0))
     {
+        if (fired_times_ == 0 && start_after_ != repeat_after_)
+        {
+            kevent64_s event = tools::make_zeroed<kevent64_s>();
+
+            EV_SET64(
+                &event,
+                timer_fd_,
+                EVFILT_TIMER,
+                EV_ADD,
+                NOTE_USECONDS,
+                repeat_after_.count() * 1000,
+                (uint64_t)&timer_message_,
+                0,0
+            );
+
+            timespec zero_timeout = tools::make_zeroed<timespec>();
+
+            if (kevent64(engine().io_poller().queue_fd(), &event, 1, nullptr, 0, 0, &zero_timeout) < 0)
+            {
+                tools::report_perror(SBuf() << "Can't remove kevent for Timer " << timer_fd_);
+            }
+        }
+
+        fired_times_++;
+
         fibers::fiber([&]{
             timer_fn_();
         }).detach();
