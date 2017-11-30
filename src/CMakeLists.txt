@@ -15,6 +15,8 @@
 
 include_directories(../include)
 include_directories(core/include)
+#include_directories(jemalloc/include/linux)
+
 
 add_subdirectory(core)
 add_subdirectory(allocators)
@@ -23,6 +25,7 @@ add_subdirectory(fiber)
 add_subdirectory(reactor)
 add_subdirectory(filesystem)
 add_subdirectory(fmt)
+add_subdirectory(jemalloc/src/linux)
 
 
 get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
@@ -33,6 +36,9 @@ add_library(Memoria STATIC ${GLOBAL_SRCS})
 SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 target_link_libraries(Memoria ${MEMORIA_LIBS})
+
+target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/linux)
+
 
     
 export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
@@ -55,7 +61,7 @@ if (BUILD_SANDBOX)
 endif()
 
 
-SET(MEMORIA_APPS intellectio tcp_client disruptor_bm spsc_queue_bm files timers)
+SET(MEMORIA_APPS intellectio tcp_client disruptor_bm spsc_queue_bm files timers alloc)
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)

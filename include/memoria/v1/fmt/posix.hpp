@@ -94,50 +94,7 @@ class BufferedFile {
   // Destroys the object closing the file it represents if any.
   MMA1_FMT_API ~BufferedFile() noexcept;
 
-#if !MMA1_FMT_USE_RVALUE_REFERENCES
-  // Emulate a move constructor and a move assignment operator if rvalue
-  // references are not supported.
 
- private:
-  // A proxy object to emulate a move constructor.
-  // It is private to make it impossible call operator Proxy directly.
-  struct Proxy {
-    FILE *file;
-  };
-
-public:
-  // A "move constructor" for moving from a temporary.
-  BufferedFile(Proxy p) noexcept : file_(p.file) {}
-
-  // A "move constructor" for moving from an lvalue.
-  BufferedFile(BufferedFile &f) noexcept : file_(f.file_) {
-    f.file_ = MMA1_FMT_NULL;
-  }
-
-  // A "move assignment operator" for moving from a temporary.
-  BufferedFile &operator=(Proxy p) {
-    close();
-    file_ = p.file;
-    return *this;
-  }
-
-  // A "move assignment operator" for moving from an lvalue.
-  BufferedFile &operator=(BufferedFile &other) {
-    close();
-    file_ = other.file_;
-    other.file_ = nullptr;
-    return *this;
-  }
-
-  // Returns a proxy object for moving from a temporary:
-  //   BufferedFile file = BufferedFile(...);
-  operator Proxy() noexcept {
-    Proxy p = {file_};
-    file_ = nullptr;
-    return p;
-  }
-
-#else
  private:
   MMA1_FMT_DISALLOW_COPY_AND_ASSIGN(BufferedFile);
 
@@ -152,7 +109,6 @@ public:
     other.file_ = nullptr;
     return *this;
   }
-#endif
 
   // Opens a file.
   MMA1_FMT_API BufferedFile(CStringRef filename, CStringRef mode);
@@ -200,50 +156,7 @@ class File {
   // Opens a file and constructs a File object representing this file.
   MMA1_FMT_API File(CStringRef path, int oflag);
 
-#if !MMA1_FMT_USE_RVALUE_REFERENCES
-  // Emulate a move constructor and a move assignment operator if rvalue
-  // references are not supported.
 
- private:
-  // A proxy object to emulate a move constructor.
-  // It is private to make it impossible call operator Proxy directly.
-  struct Proxy {
-    int fd;
-  };
-
- public:
-  // A "move constructor" for moving from a temporary.
-  File(Proxy p) noexcept : fd_(p.fd) {}
-
-  // A "move constructor" for moving from an lvalue.
-  File(File &other) noexcept : fd_(other.fd_) {
-    other.fd_ = -1;
-  }
-
-  // A "move assignment operator" for moving from a temporary.
-  File &operator=(Proxy p) {
-    close();
-    fd_ = p.fd;
-    return *this;
-  }
-
-  // A "move assignment operator" for moving from an lvalue.
-  File &operator=(File &other) {
-    close();
-    fd_ = other.fd_;
-    other.fd_ = -1;
-    return *this;
-  }
-
-  // Returns a proxy object for moving from a temporary:
-  //   File file = File(...);
-  operator Proxy() noexcept {
-    Proxy p = {fd_};
-    fd_ = -1;
-    return p;
-  }
-
-#else
  private:
   MMA1_FMT_DISALLOW_COPY_AND_ASSIGN(File);
 
@@ -258,7 +171,7 @@ class File {
     other.fd_ = -1;
     return *this;
   }
-#endif
+
 
   // Destroys the object closing the file it represents if any.
   MMA1_FMT_API ~File() noexcept;

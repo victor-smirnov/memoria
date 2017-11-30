@@ -13,7 +13,7 @@ namespace v1 {
 namespace fmt {
 
 namespace internal {
-MMA1_FMT_FUNC void write(std::ostream &os, Writer &w) {
+void write(std::ostream &os, Writer &w) {
   const char *data = w.data();
   typedef internal::MakeUnsigned<std::streamsize>::Type UnsignedStreamSize;
   UnsignedStreamSize size = w.size();
@@ -28,7 +28,7 @@ MMA1_FMT_FUNC void write(std::ostream &os, Writer &w) {
 }
 }
 
-MMA1_FMT_FUNC void print(std::ostream &os, CStringRef format_str, ArgList args) {
+void print(std::ostream &os, CStringRef format_str, ArgList args) {
   MemoryWriter w;
   w.write(format_str, args);
   internal::write(os, w);

@@ -76,9 +76,9 @@ namespace memoria {
 namespace v1 {
 namespace fmt {
 
-MMA1_FMT_FUNC internal::RuntimeError::~RuntimeError() noexcept {}
-MMA1_FMT_FUNC FormatError::~FormatError() noexcept {}
-MMA1_FMT_FUNC SystemError::~SystemError() noexcept {}
+internal::RuntimeError::~RuntimeError() noexcept {}
+FormatError::~FormatError() noexcept {}
+SystemError::~SystemError() noexcept {}
 
 namespace {
 
@@ -208,7 +208,7 @@ void report_error(FormatFunc func, int error_code,
 }
 }  // namespace
 
-MMA1_FMT_FUNC void SystemError::init(
+void SystemError::init(
     int err_code, CStringRef format_str, ArgList args) {
   error_code_ = err_code;
   MemoryWriter w;
@@ -279,7 +279,7 @@ const uint64_t internal::BasicData<T>::POWERS_OF_10_64[] = {
   ULongLong(1000000000) * ULongLong(1000000000) * 10
 };
 
-MMA1_FMT_FUNC void internal::report_unknown_type(char code, const char *type) {
+void internal::report_unknown_type(char code, const char *type) {
   (void)type;
   if (std::isprint(static_cast<unsigned char>(code))) {
     throw FormatError(
@@ -292,7 +292,7 @@ MMA1_FMT_FUNC void internal::report_unknown_type(char code, const char *type) {
 
 #if MMA1_FMT_USE_WINDOWS_H
 
-MMA1_FMT_FUNC internal::UTF8ToUTF16::UTF8ToUTF16(StringRef s) {
+internal::UTF8ToUTF16::UTF8ToUTF16(StringRef s) {
   static const char ERROR_MSG[] = "cannot convert string from UTF-8 to UTF-16";
   if (s.size() > INT_MAX)
     throw WindowsError(ERROR_INVALID_PARAMETER, ERROR_MSG);
@@ -309,14 +309,14 @@ MMA1_FMT_FUNC internal::UTF8ToUTF16::UTF8ToUTF16(StringRef s) {
   buffer_[length] = 0;
 }
 
-MMA1_FMT_FUNC internal::UTF16ToUTF8::UTF16ToUTF8(WStringRef s) {
+internal::UTF16ToUTF8::UTF16ToUTF8(WStringRef s) {
   if (int error_code = convert(s)) {
     throw WindowsError(error_code,
         "cannot convert string from UTF-16 to UTF-8");
   }
 }
 
-MMA1_FMT_FUNC int internal::UTF16ToUTF8::convert(WStringRef s) {
+int internal::UTF16ToUTF8::convert(WStringRef s) {
   if (s.size() > INT_MAX)
     return ERROR_INVALID_PARAMETER;
   int s_size = static_cast<int>(s.size());
@@ -333,7 +333,7 @@ MMA1_FMT_FUNC int internal::UTF16ToUTF8::convert(WStringRef s) {
   return 0;
 }
 
-MMA1_FMT_FUNC void WindowsError::init(
+void WindowsError::init(
     int err_code, CStringRef format_str, ArgList args) {
   error_code_ = err_code;
   MemoryWriter w;
@@ -342,7 +342,7 @@ MMA1_FMT_FUNC void WindowsError::init(
   base = std::runtime_error(w.str());
 }
 
-MMA1_FMT_FUNC void internal::format_windows_error(
+void internal::format_windows_error(
     Writer &out, int error_code, StringRef message) noexcept {
   try {
     MemoryBuffer<wchar_t, INLINE_BUFFER_SIZE> buffer;
@@ -371,7 +371,7 @@ MMA1_FMT_FUNC void internal::format_windows_error(
 
 #endif  // MMA1_FMT_USE_WINDOWS_H
 
-MMA1_FMT_FUNC void format_system_error(
+void format_system_error(
   Writer &out, int error_code, StringRef message) noexcept {
   try {
     internal::MemoryBuffer<char, internal::INLINE_BUFFER_SIZE> buffer;
@@ -441,7 +441,7 @@ void internal::FixedBuffer<Char>::grow(std::size_t) {
   throw std::runtime_error("buffer overflow");
 }
 
-MMA1_FMT_FUNC internal::Arg internal::FormatterBase::do_get_arg(
+internal::Arg internal::FormatterBase::do_get_arg(
     unsigned arg_index, const char *&error) {
   internal::Arg arg = args_[arg_index];
   switch (arg.type) {
@@ -457,31 +457,31 @@ MMA1_FMT_FUNC internal::Arg internal::FormatterBase::do_get_arg(
   return arg;
 }
 
-MMA1_FMT_FUNC void report_system_error(
+void report_system_error(
     int error_code, fmt::StringRef message) noexcept {
   // 'fmt::' is for bcc32.
   report_error(format_system_error, error_code, message);
 }
 
 #if MMA1_FMT_USE_WINDOWS_H
-MMA1_FMT_FUNC void report_windows_error(
+void report_windows_error(
     int error_code, fmt::StringRef message) noexcept {
   // 'fmt::' is for bcc32.
   report_error(internal::format_windows_error, error_code, message);
 }
 #endif
 
-MMA1_FMT_FUNC void print(std::FILE *f, CStringRef format_str, ArgList args) {
+void print(std::FILE *f, CStringRef format_str, ArgList args) {
   MemoryWriter w;
   w.write(format_str, args);
   std::fwrite(w.data(), 1, w.size(), f);
 }
 
-MMA1_FMT_FUNC void print(CStringRef format_str, ArgList args) {
+void print(CStringRef format_str, ArgList args) {
   print(stdout, format_str, args);
 }
 
-MMA1_FMT_FUNC void print_colored(Color c, CStringRef format, ArgList args) {
+void print_colored(Color c, CStringRef format, ArgList args) {
   char escape[] = "\x1b[30m";
   escape[3] = static_cast<char>('0' + c);
   std::fputs(escape, stdout);

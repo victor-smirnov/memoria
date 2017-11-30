@@ -39,12 +39,9 @@
 #include <vector>
 #include <utility>  // for std::pair
 
-#define MMA1_FMT_USE_RVALUE_REFERENCES 1
-
 // The fmt library version in the form major * 10000 + minor * 100 + patch.
 #define MMA1_FMT_VERSION 40000
 
-#define MMA1_FMT_FUNC
 
 #ifdef _SECURE_SCL
 # define MMA1_FMT_SECURE_SCL _SECURE_SCL
@@ -138,35 +135,11 @@ typedef __int64          intmax_t;
 # define MMA1_FMT_HAS_CPP_ATTRIBUTE(x) 0
 #endif
 
-#ifndef MMA1_FMT_USE_VARIADIC_TEMPLATES
-// Variadic templates are available in GCC since version 4.4
-// (http://gcc.gnu.org/projects/cxx0x.html) and in Visual C++
-// since version 2013.
-# define MMA1_FMT_USE_VARIADIC_TEMPLATES \
-   (MMA1_FMT_HAS_FEATURE(cxx_variadic_templates) || \
-       (MMA1_FMT_GCC_VERSION >= 404 && MMA1_FMT_HAS_GXX_CXX11) || MMA1_FMT_MSC_VER >= 1800)
-#endif
 
 
-// Check if exceptions are disabled.
-#if defined(__GNUC__) && !defined(__EXCEPTIONS)
-# define MMA1_FMT_EXCEPTIONS 0
-#endif
-#if MMA1_FMT_MSC_VER && !_HAS_EXCEPTIONS
-# define MMA1_FMT_EXCEPTIONS 0
-#endif
-#ifndef MMA1_FMT_EXCEPTIONS
-# define MMA1_FMT_EXCEPTIONS 1
-#endif
+#define MMA1_FMT_USE_VARIADIC_TEMPLATES 1
 
 
-
-
-
-
-
-
-# define MMA1_FMT_DELETED_OR_UNDEFINED  = delete
 # define MMA1_FMT_DISALLOW_COPY_AND_ASSIGN(TypeName) \
     TypeName(const TypeName&) = delete; \
     TypeName& operator=(const TypeName&) = delete
@@ -174,17 +147,9 @@ typedef __int64          intmax_t;
 #define MMA1_FMT_DEFAULTED_COPY_CTOR(TypeName) \
     TypeName(const TypeName&) = default;
 
-#ifndef MMA1_FMT_USE_USER_DEFINED_LITERALS
-// All compilers which support UDLs also support variadic templates. This
-// makes the fmt::literals implementation easier. However, an explicit check
-// for variadic templates is added here just in case.
-// For Intel's compiler both it and the system gcc/msc must support UDLs.
-# define MMA1_FMT_USE_USER_DEFINED_LITERALS \
-   MMA1_FMT_USE_VARIADIC_TEMPLATES && MMA1_FMT_USE_RVALUE_REFERENCES && \
-   (MMA1_FMT_HAS_FEATURE(cxx_user_literals) || \
-     (MMA1_FMT_GCC_VERSION >= 407 && MMA1_FMT_HAS_GXX_CXX11) || MMA1_FMT_MSC_VER >= 1900) && \
-   (!defined(MMA1_FMT_ICC_VERSION) || MMA1_FMT_ICC_VERSION >= 1500)
-#endif
+# define MMA1_FMT_USE_USER_DEFINED_LITERALS 1
+
+
 
 #ifndef MMA1_FMT_USE_EXTERN_TEMPLATES
 # define MMA1_FMT_USE_EXTERN_TEMPLATES \
@@ -268,8 +233,8 @@ namespace v1 {
 namespace fmt {
 namespace internal {
 struct DummyInt {
-  int data[2];
-  operator int() const { return 0; }
+    int data[2];
+    operator int() const { return 0; }
 };
 typedef std::numeric_limits<fmt::internal::DummyInt> FPUtil;
 
@@ -297,46 +262,46 @@ namespace std {
 // and the same for isnan and signbit.
 template <>
 class numeric_limits<memoria::v1::fmt::internal::DummyInt> :
-    public std::numeric_limits<int> {
- public:
-  // Portable version of isinf.
-  template <typename T>
-  static bool isinfinity(T x) {
-    using namespace memoria::v1::fmt::internal;
-    // The resolution "priority" is:
-    // isinf macro > std::isinf > ::isinf > fmt::internal::isinf
-    if (const_check(sizeof(isinf(x)) == sizeof(bool) ||
-                    sizeof(isinf(x)) == sizeof(int))) {
-      return isinf(x) != 0;
+        public std::numeric_limits<int> {
+public:
+    // Portable version of isinf.
+    template <typename T>
+    static bool isinfinity(T x) {
+        using namespace memoria::v1::fmt::internal;
+        // The resolution "priority" is:
+        // isinf macro > std::isinf > ::isinf > fmt::internal::isinf
+        if (const_check(sizeof(isinf(x)) == sizeof(bool) ||
+                        sizeof(isinf(x)) == sizeof(int))) {
+            return isinf(x) != 0;
+        }
+        return !_finite(static_cast<double>(x));
     }
-    return !_finite(static_cast<double>(x));
-  }
 
-  // Portable version of isnan.
-  template <typename T>
-  static bool isnotanumber(T x) {
-    using namespace memoria::v1::fmt::internal;
-    if (const_check(sizeof(isnan(x)) == sizeof(bool) ||
-                    sizeof(isnan(x)) == sizeof(int))) {
-      return isnan(x) != 0;
+    // Portable version of isnan.
+    template <typename T>
+    static bool isnotanumber(T x) {
+        using namespace memoria::v1::fmt::internal;
+        if (const_check(sizeof(isnan(x)) == sizeof(bool) ||
+                        sizeof(isnan(x)) == sizeof(int))) {
+            return isnan(x) != 0;
+        }
+        return _isnan(static_cast<double>(x)) != 0;
     }
-    return _isnan(static_cast<double>(x)) != 0;
-  }
 
-  // Portable version of signbit.
-  static bool isnegative(double x) {
-    using namespace memoria::v1::fmt::internal;
-    if (const_check(sizeof(signbit(x)) == sizeof(bool) ||
-                    sizeof(signbit(x)) == sizeof(int))) {
-      return signbit(x) != 0;
+    // Portable version of signbit.
+    static bool isnegative(double x) {
+        using namespace memoria::v1::fmt::internal;
+        if (const_check(sizeof(signbit(x)) == sizeof(bool) ||
+                        sizeof(signbit(x)) == sizeof(int))) {
+            return signbit(x) != 0;
+        }
+        if (x < 0) return true;
+        if (!isnotanumber(x)) return false;
+        int dec = 0, sign = 0;
+        char buffer[2];  // The buffer size must be >= 2 or _ecvt_s will fail.
+        _ecvt_s(buffer, sizeof(buffer), x, 0, &dec, &sign);
+        return sign != 0;
     }
-    if (x < 0) return true;
-    if (!isnotanumber(x)) return false;
-    int dec = 0, sign = 0;
-    char buffer[2];  // The buffer size must be >= 2 or _ecvt_s will fail.
-    _ecvt_s(buffer, sizeof(buffer), x, 0, &dec, &sign);
-    return sign != 0;
-  }
 };
 }  // namespace std
 
@@ -794,14 +759,14 @@ class CharTraits<wchar_t> : public BasicCharTraits<wchar_t> {
       const wchar_t *format, unsigned width, int precision, T value);
 };
 
-#if MMA1_FMT_USE_EXTERN_TEMPLATES
-extern template int CharTraits<wchar_t>::format_float<double>
-        (wchar_t *buffer, std::size_t size,
-         const wchar_t* format, unsigned width, int precision, double value);
-extern template int CharTraits<wchar_t>::format_float<long double>
-        (wchar_t *buffer, std::size_t size,
-         const wchar_t* format, unsigned width, int precision, long double value);
-#endif
+//#if MMA1_FMT_USE_EXTERN_TEMPLATES
+//extern template int CharTraits<wchar_t>::format_float<double>
+//        (wchar_t *buffer, std::size_t size,
+//         const wchar_t* format, unsigned width, int precision, double value);
+//extern template int CharTraits<wchar_t>::format_float<long double>
+//        (wchar_t *buffer, std::size_t size,
+//         const wchar_t* format, unsigned width, int precision, long double value);
+//#endif
 
 // Checks if a number is negative - used to avoid warnings.
 template <bool IsSigned>
@@ -1157,9 +1122,9 @@ inline fmt::StringRef thousands_sep(...) { return ""; }
 # define MMA1_FMT_UNUSED
 #endif
 
-#ifndef MMA1_FMT_USE_STATIC_ASSERT
-# define MMA1_FMT_USE_STATIC_ASSERT 0
-#endif
+
+
+#define MMA1_FMT_USE_STATIC_ASSERT 1
 
 #if MMA1_FMT_USE_STATIC_ASSERT || MMA1_FMT_HAS_FEATURE(cxx_static_assert) || \
   (MMA1_FMT_GCC_VERSION >= 403 && MMA1_FMT_HAS_GXX_CXX11) || _MSC_VER >= 1600
@@ -2166,32 +2131,12 @@ struct ArgArray<N, false/*IsPacked*/> {
   static Arg make(const T &value) { return MakeArg<Formatter>(value); }
 };
 
-#if MMA1_FMT_USE_VARIADIC_TEMPLATES
+
 template <typename Arg, typename... Args>
 inline uint64_t make_type(const Arg &first, const Args & ... tail) {
   return make_type(first) | (make_type(tail...) << 4);
 }
 
-#else
-
-struct ArgType {
-  uint64_t type;
-
-  ArgType() : type(0) {}
-
-  template <typename T>
-  ArgType(const T &arg) : type(make_type(arg)) {}
-};
-
-# define MMA1_FMT_ARG_TYPE_DEFAULT(n) ArgType t##n = ArgType()
-
-inline uint64_t make_type(MMA1_FMT_GEN15(MMA1_FMT_ARG_TYPE_DEFAULT)) {
-  return t0.type | (t1.type << 4) | (t2.type << 8) | (t3.type << 12) |
-      (t4.type << 16) | (t5.type << 20) | (t6.type << 24) | (t7.type << 28) |
-      (t8.type << 32) | (t9.type << 36) | (t10.type << 40) | (t11.type << 44) |
-      (t12.type << 48) | (t13.type << 52) | (t14.type << 56);
-}
-#endif
 }  // namespace internal
 
 # define MMA1_FMT_MAKE_TEMPLATE_ARG(n) typename T##n
@@ -2202,7 +2147,7 @@ inline uint64_t make_type(MMA1_FMT_GEN15(MMA1_FMT_ARG_TYPE_DEFAULT)) {
 # define MMA1_FMT_ASSIGN_wchar_t(n) \
   arr[n] = fmt::internal::MakeValue< fmt::BasicFormatter<wchar_t> >(v##n)
 
-#if MMA1_FMT_USE_VARIADIC_TEMPLATES
+
 // Defines a variadic function returning void.
 # define MMA1_FMT_VARIADIC_VOID(func, arg_type) \
   template <typename... Args> \
@@ -2223,52 +2168,8 @@ inline uint64_t make_type(MMA1_FMT_GEN15(MMA1_FMT_ARG_TYPE_DEFAULT)) {
     func(arg0, arg1, fmt::ArgList(fmt::internal::make_type(args...), array)); \
   }
 
-#else
 
-# define MMA1_FMT_MAKE_REF(n) \
-  fmt::internal::MakeValue< fmt::BasicFormatter<Char> >(v##n)
-# define MMA1_FMT_MAKE_REF2(n) v##n
 
-// Defines a wrapper for a function taking one argument of type arg_type
-// and n additional arguments of arbitrary types.
-# define MMA1_FMT_WRAP1(func, arg_type, n) \
-  template <MMA1_FMT_GEN(n, MMA1_FMT_MAKE_TEMPLATE_ARG)> \
-  inline void func(arg_type arg1, MMA1_FMT_GEN(n, MMA1_FMT_MAKE_ARG)) { \
-    const fmt::internal::ArgArray<n>::Type array = {MMA1_FMT_GEN(n, MMA1_FMT_MAKE_REF)}; \
-    func(arg1, fmt::ArgList( \
-      fmt::internal::make_type(MMA1_FMT_GEN(n, MMA1_FMT_MAKE_REF2)), array)); \
-  }
-
-// Emulates a variadic function returning void on a pre-C++11 compiler.
-# define MMA1_FMT_VARIADIC_VOID(func, arg_type) \
-  inline void func(arg_type arg) { func(arg, fmt::ArgList()); } \
-  MMA1_FMT_WRAP1(func, arg_type, 1) MMA1_FMT_WRAP1(func, arg_type, 2) \
-  MMA1_FMT_WRAP1(func, arg_type, 3) MMA1_FMT_WRAP1(func, arg_type, 4) \
-  MMA1_FMT_WRAP1(func, arg_type, 5) MMA1_FMT_WRAP1(func, arg_type, 6) \
-  MMA1_FMT_WRAP1(func, arg_type, 7) MMA1_FMT_WRAP1(func, arg_type, 8) \
-  MMA1_FMT_WRAP1(func, arg_type, 9) MMA1_FMT_WRAP1(func, arg_type, 10)
-
-# define MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, n) \
-  template <MMA1_FMT_GEN(n, MMA1_FMT_MAKE_TEMPLATE_ARG)> \
-  ctor(arg0_type arg0, arg1_type arg1, MMA1_FMT_GEN(n, MMA1_FMT_MAKE_ARG)) { \
-    const fmt::internal::ArgArray<n>::Type array = {MMA1_FMT_GEN(n, MMA1_FMT_MAKE_REF)}; \
-    func(arg0, arg1, fmt::ArgList( \
-      fmt::internal::make_type(MMA1_FMT_GEN(n, MMA1_FMT_MAKE_REF2)), array)); \
-  }
-
-// Emulates a variadic constructor on a pre-C++11 compiler.
-# define MMA1_FMT_VARIADIC_CTOR(ctor, func, arg0_type, arg1_type) \
-  MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, 1) \
-  MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, 2) \
-  MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, 3) \
-  MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, 4) \
-  MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, 5) \
-  MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, 6) \
-  MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, 7) \
-  MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, 8) \
-  MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, 9) \
-  MMA1_FMT_CTOR(ctor, func, arg0_type, arg1_type, 10)
-#endif
 
 // Generates a comma-separated list with results of applying f to pairs
 // (argument, index).
@@ -3372,9 +3273,9 @@ inline internal::NamedArgWithType<wchar_t, T> arg(WStringRef name, const T &arg)
 // The following two functions are deleted intentionally to disable
 // nested named arguments as in ``format("{}", arg("a", arg("b", 42)))``.
 template <typename Char>
-void arg(StringRef, const internal::NamedArg<Char>&) MMA1_FMT_DELETED_OR_UNDEFINED;
+void arg(StringRef, const internal::NamedArg<Char>&) = delete;
 template <typename Char>
-void arg(WStringRef, const internal::NamedArg<Char>&) MMA1_FMT_DELETED_OR_UNDEFINED;
+void arg(WStringRef, const internal::NamedArg<Char>&) = delete;
 }
 
 #if MMA1_FMT_GCC_VERSION
