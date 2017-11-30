@@ -23,7 +23,7 @@ extern "C" {
 //		visibility ("hidden")));
 //
 // ... but it needs to work with jemalloc namespaces.
-
+/*
 void	*operator new(std::size_t size);
 void	*operator new[](std::size_t size);
 void	*operator new(std::size_t size, const std::nothrow_t &) noexcept;
@@ -34,7 +34,7 @@ void	operator delete(void *ptr, const std::nothrow_t &) noexcept;
 void	operator delete[](void *ptr, const std::nothrow_t &) noexcept;
 
 #if __cpp_sized_deallocation >= 201309
-/* C++14's sized-delete operators. */
+/ * C++14's sized-delete operators. * /
 void	operator delete(void *ptr, std::size_t size) noexcept;
 void	operator delete[](void *ptr, std::size_t size) noexcept;
 #endif
@@ -119,14 +119,15 @@ operator delete(void *ptr, std::size_t size) noexcept {
 	if (unlikely(ptr == nullptr)) {
 		return;
 	}
-	je_sdallocx(ptr, size, /*flags=*/0);
+	je_sdallocx(ptr, size, / *flags=* /0);
 }
 
 void operator delete[](void *ptr, std::size_t size) noexcept {
 	if (unlikely(ptr == nullptr)) {
 		return;
 	}
-	je_sdallocx(ptr, size, /*flags=*/0);
+	je_sdallocx(ptr, size, / *flags=* /0);
 }
 
 #endif  // __cpp_sized_deallocation
+*/
