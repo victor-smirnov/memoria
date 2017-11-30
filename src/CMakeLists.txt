@@ -25,7 +25,15 @@ add_subdirectory(fiber)
 add_subdirectory(reactor)
 add_subdirectory(filesystem)
 add_subdirectory(fmt)
-add_subdirectory(jemalloc/src/linux)
+
+
+if (APPLE)
+        add_subdirectory(jemalloc/src/macosx)
+elseif (BUILD_MSVC)
+        add_subdirectory(jemalloc/src/msvc)
+else()
+        add_subdirectory(jemalloc/src/linux)
+endif()
 
 
 get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
@@ -37,7 +45,15 @@ SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}
 SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 target_link_libraries(Memoria ${MEMORIA_LIBS})
 
-target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/linux)
+if (APPLE)
+        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/macosx)
+elseif (BUILD_MSVC)
+        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc)
+else()
+        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/linux)
+endif()
+
+
 
 
     
