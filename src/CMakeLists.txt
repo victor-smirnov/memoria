@@ -28,6 +28,7 @@ add_subdirectory(fmt)
 
 
 if (APPLE)
+        add_subdirectory(jemalloc/src/linux)
         add_subdirectory(jemalloc/src/macosx)
 elseif (BUILD_MSVC)
         add_subdirectory(jemalloc/src/msvc)
