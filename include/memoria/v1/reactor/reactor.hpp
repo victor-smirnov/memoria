@@ -15,9 +15,15 @@
 
 #pragma once
 
+#include <memoria/v1/core/tools/ptr_cast.hpp>
+
 #include "scheduler.hpp"
 #include "file.hpp"
 #include "timer.hpp"
+
+#include "smart_ptr/shared_ptr.hpp"
+#include "smart_ptr/make_shared.hpp"
+
 
 #include "../fiber/protected_stack_pool.hpp"
 #include "../fiber/pooled_fixedsize_stack.hpp"
@@ -93,6 +99,7 @@ public:
     Reactor* operator=(Reactor&&) = delete;
     
     int cpu() const {return cpu_;}
+    int cpu_num() const {return smp_->cpu_num();}
     bool own_thread() const {return own_thread_;}
     
     IOPoller& io_poller() {return io_poller_;}
@@ -199,8 +206,6 @@ public:
 
 private:
 
-
-    
     static thread_local Reactor* local_engine_;
     
     void start()
@@ -240,6 +245,36 @@ auto engine_or_local(Fn&& fn, Args&&... args)
         return fn(std::forward<Args>(args)...);
     }
 }
+
+
+
+namespace _ {
+
+template <typename Fn>
+auto shared_count::run_at(int cpu, Fn&& fn) {
+    return engine().run_at(cpu, std::forward<Fn>(fn));
+}
+
+inline int shared_count::cpu_num() {
+    return engine().cpu_num();
+}
+
+template< class T >
+void sp_reactor_ms_deleter<T>::destroy()
+{
+    if( initialized_ )
+    {
+        engine().run_at(cpu_, [&]{
+            T* p = tools::ptr_cast<T>(storage_.data_);
+            p->~T();
+        });
+
+        initialized_ = false;
+    }
+}
+
+}
+
 
 
 }}}

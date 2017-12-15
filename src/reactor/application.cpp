@@ -55,10 +55,10 @@ Application::Application(options_description descr, int argc, char** argv, char*
     boost::program_options::notify(options_);
     
     //smp_ = std::make_shared<Smp>(options_["threads"].as<uint32_t>());
-	smp_ = std::make_shared<Smp>(1);
+    smp_ = std::make_shared<Smp>(2);
     
     //debug_ = options_["debug"].as<bool>();
-	debug_ = false;
+    debug_ = false;
     
     application_ = this;
    

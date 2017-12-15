@@ -115,7 +115,7 @@ void IOPoller::poll()
     {
         epoll_event eevents[BATCH_SIZE];
         
-        sigset_t sigmask;
+        sigset_t sigmask = tools::make_zeroed<sigset_t>();
         
         int max_events = std::min(buffer_capacity, (int)BATCH_SIZE);
         

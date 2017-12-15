@@ -5,6 +5,9 @@ Memoria itself is under Apache 2.0 license.
 Fibers and Filesystem are originally Boost Fibers/Filesystem 1.63.0 and come under 
 Boost lincense with copyright hedears of their autors.
 
+SmartPtr is originally Boost smart_ptr 1.64.0. Boost lincense with copyright hedears 
+of their autors.
+
 Disruptor queue is under BSD-style license embedded in corresponding sources.
 
 Fmt library is under BSD-style license embedded in corresponding sources. See also LICENCE.fmt

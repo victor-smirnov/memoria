@@ -24,7 +24,6 @@ project (Memoria)
 set(VERSION "0.1.0")
 
 set(CMAKE_CXX_STANDARD 14)
-#set(CMAKE_C_STANDARD 11)
 
 if (NOT CMAKE_BUILD_TYPE)
      set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
@@ -72,7 +71,8 @@ if (BUILD_UNIX OR MINGW)
     SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
     SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -std=gnu11 -Wall -Wno-sign-compare -DJEMALLOC_NO_PRIVATE_NAMESPACE -D_GNU_SOURCE -D_REENTRANT -fPIC -DPIC" )
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DBOOST_NO_AUTO_PTR -Wall -Wno-sign-compare -DJEMALLOC_NO_PRIVATE_NAMESPACE -D_GNU_SOURCE -D_REENTRANT -fPIC -DPIC" )
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} " )
 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0") 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-comment -Wno-unknown-warning-option -Wunused-variable")
