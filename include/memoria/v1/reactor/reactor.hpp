@@ -22,7 +22,11 @@
 #include "timer.hpp"
 
 #include "smart_ptr/shared_ptr.hpp"
+#include "smart_ptr/local_shared_ptr.hpp"
+#include "smart_ptr/enable_local_shared_from_this.hpp"
+#include "smart_ptr/enable_shared_from_this.hpp"
 #include "smart_ptr/make_shared.hpp"
+
 
 
 #include "../fiber/protected_stack_pool.hpp"

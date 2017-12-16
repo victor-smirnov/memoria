@@ -8,8 +8,7 @@
 #include <memoria/v1/fmt/format.hpp>
 
 
-#include <memoria/v1/reactor/smart_ptr/enable_shared_from_this.hpp>
-#include <memoria/v1/reactor/smart_ptr/make_shared.hpp>
+
 
 
 #include <iostream>
@@ -25,7 +24,7 @@ namespace fs  = memoria::v1::filesystem;
 
 using namespace rr;
 
-struct SomeClass: rr::enable_shared_from_this<SomeClass> {
+struct SomeClass: enable_local_shared_from_this<SomeClass> {
     int value_{};
 
 
@@ -41,8 +40,9 @@ struct SomeClass: rr::enable_shared_from_this<SomeClass> {
         std::cout << "Destructing SomeClass@" << this << " at " << engine().cpu() << std::endl;
     }
 
-    auto get_ref() const {
+    auto get_ref()  {
         return shared_from_this();
+        //return shared_ptr<SomeClass>(this);
     }
 };
 
@@ -57,13 +57,13 @@ int main(int argc, char **argv)
         std::cout << "Hello from SharedPtrs!" << std::endl;
         
         try {
-            auto ptr = rr::reactor_make_shared<SomeClass>(1, 555);
+            auto ptr = rr::make_local_shared<SomeClass>(555);
 
             std::cout << ptr->value_ << std::endl;
 
             auto ptr2 = ptr->get_ref();
 
-            weak_ptr<SomeClass> weakp = ptr;
+            local_weak_ptr<SomeClass> weakp = ptr;
 
             ptr.reset();
 

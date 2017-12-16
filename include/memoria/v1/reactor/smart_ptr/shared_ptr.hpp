@@ -201,7 +201,8 @@ template< class X, class Y, class T > inline void sp_enable_shared_from_this( sh
     }
 }
 
-template< class X, class Y > inline void sp_enable_shared_from_this( shared_ptr<X> * ppx, Y const * py, enable_shared_from_raw const * pe );
+
+//template< class X, class Y > inline void sp_enable_shared_from_this( shared_ptr<X> * ppx, Y const * py, enable_shared_from_raw const * pe );
 
 
 

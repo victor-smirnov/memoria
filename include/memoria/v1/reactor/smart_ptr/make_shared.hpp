@@ -22,6 +22,7 @@
 #include <new>
 #include <memory>
 
+#include <memoria/v1/core/tools/ptr_cast.hpp>
 #include <memoria/v1/reactor/smart_ptr/shared_ptr.hpp>
 
 namespace memoria {
@@ -58,18 +59,8 @@ private:
     {
         if( initialized_ )
         {
-#if defined( __GNUC__ )
-
-            // fixes incorrect aliasing warning
-            T * p = reinterpret_cast< T* >( storage_.data_ );
+            T* p = tools::ptr_cast<T>(storage_.data_);
             p->~T();
-
-#else
-
-            reinterpret_cast< T* >( storage_.data_ )->~T();
-
-#endif
-
             initialized_ = false;
         }
     }
@@ -130,28 +121,6 @@ private:
 
     void destroy();
 
-//    void destroy()
-//    {
-
-
-//        if( initialized_ )
-//        {
-//#if defined( __GNUC__ )
-
-//            // fixes incorrect aliasing warning
-//            T * p = reinterpret_cast< T* >( storage_.data_ );
-//            p->~T();
-
-//#else
-
-//            reinterpret_cast< T* >( storage_.data_ )->~T();
-
-//#endif
-
-//            initialized_ = false;
-//        }
-//    }
-
 public:
 
     sp_reactor_ms_deleter() noexcept {}
@@ -190,67 +159,6 @@ public:
 
 
 
-
-template< class T, class A > class sp_as_deleter
-{
-private:
-
-    typedef typename sp_aligned_storage< sizeof( T ), ::boost::alignment_of< T >::value >::type storage_type;
-
-    storage_type storage_;
-    A a_;
-    bool initialized_;
-
-private:
-
-    void destroy()
-    {
-        if( initialized_ )
-        {
-            T * p = reinterpret_cast< T* >( storage_.data_ );
-
-            std::allocator_traits<A>::destroy( a_, p );
-
-            initialized_ = false;
-        }
-    }
-
-public:
-
-    sp_as_deleter( A const & a ) noexcept : a_( a ), initialized_( false )
-    {
-    }
-
-    // optimization: do not copy storage_
-    sp_as_deleter( sp_as_deleter const & r ) noexcept : a_( r.a_), initialized_( false )
-    {
-    }
-
-    ~sp_as_deleter()
-    {
-        destroy();
-    }
-
-    void operator()( T * )
-    {
-        destroy();
-    }
-
-    static void operator_fn( T* ) // operator() can't be static
-    {
-    }
-
-    void * address() noexcept
-    {
-        return storage_.data_;
-    }
-
-    void set_initialized() noexcept
-    {
-        initialized_ = true;
-    }
-};
-
 template< class T > struct sp_if_not_array
 {
     typedef shared_ptr< T > type;
@@ -266,54 +174,34 @@ template< class T, std::size_t N > struct sp_if_not_array< T[N] >
 {
 };
 
-} // namespace detail
-
-# define BOOST_SP_MSD( T ) _::sp_inplace_tag< _::sp_ms_deleter< T > >()
-# define BOOST_REACTOR_SP_MSD( T ) _::sp_inplace_tag< _::sp_reactor_ms_deleter< T > >()
-
-// _noinit versions
-
-template< class T > typename _::sp_if_not_array< T >::type make_shared_noinit()
+template< class T > struct local_sp_if_not_array
 {
-    shared_ptr< T > pt( static_cast< T* >( 0 ), BOOST_SP_MSD( T ) );
+    typedef local_shared_ptr< T > type;
+};
 
-    _::sp_ms_deleter< T > * pd = static_cast<_::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
 
-    void * pv = pd->address();
-
-    ::new( pv ) T;
-    pd->set_initialized();
-
-    T * pt2 = static_cast< T* >( pv );
-
-    _::sp_enable_shared_from_this( &pt, pt2, pt2 );
-    return shared_ptr< T >( pt, pt2 );
-}
-
-template< class T, class A > typename _::sp_if_not_array< T >::type allocate_shared_noinit( A const & a )
+template< class T > struct local_sp_if_not_array< T[] >
 {
-    shared_ptr< T > pt( static_cast< T* >( 0 ), BOOST_SP_MSD( T ), a );
-
-    _::sp_ms_deleter< T > * pd = static_cast<_::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
-
-    void * pv = pd->address();
-
-    ::new( pv ) T;
-    pd->set_initialized();
-
-    T * pt2 = static_cast< T* >( pv );
-
-    _::sp_enable_shared_from_this( &pt, pt2, pt2 );
-    return shared_ptr< T >( pt, pt2 );
-}
+};
 
 
+template< class T, std::size_t N > struct local_sp_if_not_array< T[N] >
+{
+};
+
+} // namespace _
+
+# define BOOST_LOCAL_SP_MSD( T ) _::sp_inplace_tag< _::sp_ms_deleter< T > >()
+# define BOOST_SP_MSD( T ) _::sp_inplace_tag< _::sp_reactor_ms_deleter< T > >()
 
 // Variadic templates, rvalue reference
 
-template< class T, class... Args > typename _::sp_if_not_array< T >::type make_shared( Args && ... args )
+template< class T, class... Args > typename _::local_sp_if_not_array< T >::type make_local_shared( Args && ... args )
 {
-    shared_ptr< T > pt( static_cast<T*>(nullptr), BOOST_SP_MSD( T ) );
+    static_assert(std::is_base_of<enable_local_shared_from_this<T>, T>::value, "");
+
+
+    local_shared_ptr< T > pt( static_cast<T*>(nullptr), BOOST_LOCAL_SP_MSD( T ) );
 
     _::sp_ms_deleter< T > * pd = static_cast<_::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
 
@@ -324,14 +212,16 @@ template< class T, class... Args > typename _::sp_if_not_array< T >::type make_s
 
     T * pt2 = static_cast< T* >( pv );
 
-    _::sp_enable_shared_from_this( &pt, pt2, pt2 );
-    return shared_ptr< T >( pt, pt2 );
+    _::sp_enable_local_shared_from_this( &pt, pt2, pt2 );
+    return local_shared_ptr< T >( pt, pt2 );
 }
 
 
-template< class T, class... Args > typename _::sp_if_not_array< T >::type reactor_make_shared(int cpu, Args && ... args )
+template< class T, class... Args > typename _::sp_if_not_array< T >::type make_shared(int cpu, Args && ... args )
 {
-    shared_ptr<T> pt(cpu, static_cast<T*>(nullptr), BOOST_REACTOR_SP_MSD( T ), std::forward<Args>(args)...);
+    static_assert(std::is_base_of<enable_shared_from_this<T>, T>::value, "");
+
+    shared_ptr<T> pt(cpu, static_cast<T*>(nullptr), BOOST_SP_MSD( T ), std::forward<Args>(args)...);
 
     _::sp_ms_deleter< T > * pd = static_cast<_::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
 
@@ -344,32 +234,9 @@ template< class T, class... Args > typename _::sp_if_not_array< T >::type reacto
 }
 
 
-template< class T, class A, class... Args > typename _::sp_if_not_array< T >::type allocate_shared( A const & a, Args && ... args )
-{
-
-    typedef typename std::allocator_traits<A>::template rebind_alloc<T> A2;
-    A2 a2( a );
-
-    typedef _::sp_as_deleter< T, A2 > D;
-
-    shared_ptr< T > pt( static_cast< T* >( 0 ), _::sp_inplace_tag<D>(), a2 );
 
 
-    D * pd = static_cast< D* >( pt._internal_get_untyped_deleter() );
-    void * pv = pd->address();
-
-
-    std::allocator_traits<A2>::construct( a2, static_cast< T* >( pv ),std::forward<Args>( args )... );
-
-    pd->set_initialized();
-
-    T * pt2 = static_cast< T* >( pv );
-
-    _::sp_enable_shared_from_this( &pt, pt2, pt2 );
-    return shared_ptr< T >( pt, pt2 );
-}
-
-
+#undef BOOST_LOCAL_SP_MSD
 #undef BOOST_SP_MSD
 
 }}}
