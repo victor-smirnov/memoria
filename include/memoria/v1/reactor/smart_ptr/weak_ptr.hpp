@@ -80,7 +80,7 @@ public:
     weak_ptr( weak_ptr<Y> const & r, typename _::sp_enable_if_convertible<Y,T>::type = boost::detail::sp_empty() ) noexcept :
         px(r.lock().get()), pn(r.pn)
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
     }
 
 
@@ -89,7 +89,7 @@ public:
     weak_ptr( weak_ptr<Y> && r, typename _::sp_enable_if_convertible<Y,T>::type = _::sp_empty() ) noexcept:
         px( r.lock().get() ), pn( static_cast< _::weak_count && >( r.pn ) )
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
         r.px = 0;
     }
 
@@ -116,13 +116,13 @@ public:
     weak_ptr( shared_ptr<Y> const & r, typename boost::detail::sp_enable_if_convertible<Y,T>::type = boost::detail::sp_empty() ) noexcept :
         px( r.px ), pn( r.pn )
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
     }
 
     template<class Y>
     weak_ptr & operator=( weak_ptr<Y> const & r ) noexcept
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
 
         px = r.lock().get();
         pn = r.pn;
@@ -141,7 +141,7 @@ public:
     template<class Y>
     weak_ptr & operator=( shared_ptr<Y> const & r ) noexcept
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
 
         px = r.px;
         pn = r.pn;
@@ -204,10 +204,11 @@ private:
 
     template<class Y> friend class weak_ptr;
     template<class Y> friend class shared_ptr;
+    template<class Y> friend class local_weak_ptr;
 
 
     element_type * px;            // contained pointer
-    _::weak_count pn; // reference counter
+    _::weak_count pn;             // reference counter
 
 };  // weak_ptr
 

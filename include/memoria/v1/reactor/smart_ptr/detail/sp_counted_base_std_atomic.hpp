@@ -73,7 +73,7 @@ inline std::int_least32_t nonatomic_conditional_increment( std::int_least32_t * 
 
 
 
-class sp_counted_base;
+class sp_local_counted_base;
 
 
 class sp_reactor_counted_base {
@@ -88,15 +88,16 @@ public:
     sp_reactor_counted_base( sp_reactor_counted_base const & ) = delete;
     sp_reactor_counted_base & operator= ( sp_reactor_counted_base const & ) = delete;
 
-    sp_reactor_counted_base(int cpu): use_count_( 1 ), weak_count_( 1 ), cpu_(cpu)
+    sp_reactor_counted_base(int cpu) noexcept:
+        use_count_( 1 ), weak_count_( 1 ), cpu_(cpu)
     {
     }
 
-    virtual ~sp_reactor_counted_base() // nothrow
+    virtual ~sp_reactor_counted_base() noexcept
     {
     }
 
-    int cpu() const {return cpu_;}
+    int cpu() const noexcept {return cpu_;}
 
     // dispose() is called when use_count_ drops to zero, to release
     // the resources managed by *this.
@@ -110,69 +111,74 @@ public:
         free(this);
     }
 
-    virtual void * get_deleter( boost::detail::sp_typeinfo const & ti ) = 0;
-    virtual void * get_untyped_deleter() = 0;
+    virtual void* get_deleter( boost::detail::sp_typeinfo const & ti ) = 0;
+    virtual void* get_untyped_deleter() = 0;
 
-    void add_ref_copy()
+    void add_ref_copy() noexcept
     {
         atomic_increment( &use_count_ );
     }
 
-    bool add_ref_lock() // true on success
+    bool add_ref_lock() noexcept
     {
         return atomic_conditional_increment( &use_count_ ) != 0;
     }
 
-    void release() // nothrow
+    bool release() noexcept
     {
         if( atomic_decrement( &use_count_ ) == 1 )
         {
             dispose();
-            weak_release();
+            return weak_release();
         }
+
+        return false;
     }
 
-    void weak_add_ref() // nothrow
+    void weak_add_ref() noexcept
     {
         atomic_increment( &weak_count_ );
     }
 
-    void weak_release() // nothrow
+    bool weak_release() noexcept
     {
         if( atomic_decrement( &weak_count_ ) == 1 )
         {
             destroy();
+            return true;
         }
+
+        return false;
     }
 
-    long use_count() const // nothrow
+    long use_count() const noexcept
     {
         return use_count_.load( std::memory_order_acquire );
     }
 
-    virtual void set_local_counter(int cpu, sp_counted_base* counter) = 0;
-    virtual sp_counted_base* get_local_counter(int cpu) = 0;
+    virtual void set_local_counter(int cpu, sp_local_counted_base* counter) = 0;
+    virtual sp_local_counted_base* get_local_counter(int cpu) = 0;
 };
 
 
 
 
 
-class sp_counted_base
+class sp_local_counted_base
 {
     std::int_least32_t use_count_;      // #shared
     std::int_least32_t weak_count_;     // #weak + (#shared != 0)
 
 public:
-    sp_counted_base( sp_counted_base const & ) = delete;
-    sp_counted_base & operator= ( sp_counted_base const & ) = delete;
+    sp_local_counted_base( sp_local_counted_base const & ) = delete;
+    sp_local_counted_base & operator= ( sp_local_counted_base const & ) = delete;
 
 
-    sp_counted_base(): use_count_( 1 ), weak_count_( 1 )
+    sp_local_counted_base(): use_count_( 1 ), weak_count_( 1 )
     {
     }
 
-    virtual ~sp_counted_base() // nothrow
+    virtual ~sp_local_counted_base() noexcept
     {
     }
 

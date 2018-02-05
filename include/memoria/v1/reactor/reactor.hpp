@@ -263,6 +263,17 @@ inline int shared_count::cpu_num() {
     return engine().cpu_num();
 }
 
+
+inline int local_shared_count::cpu_num() {
+    return engine().cpu_num();
+}
+
+inline int local_shared_count::cpu() {
+    return engine().cpu();
+}
+
+
+
 template< class T >
 void sp_reactor_ms_deleter<T>::destroy()
 {

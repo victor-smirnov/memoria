@@ -22,8 +22,15 @@
 #include <memoria/v1/core/tools/strings/strings.hpp>
 #include <memoria/v1/core/tools/strings/string_buffer.hpp>
 
+#include <memoria/v1/core/tools/strings/u8_string.hpp>
+#include <memoria/v1/core/tools/strings/u16_string.hpp>
+#include <memoria/v1/core/tools/strings/u32_string.hpp>
+#include <memoria/v1/core/tools/strings/uw_string.hpp>
+
 #include <string>
 #include <sstream>
+
+#include <unicode/ustring.h>
 
 namespace memoria {
 namespace v1 {

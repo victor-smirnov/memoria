@@ -31,7 +31,7 @@ namespace reactor {
 namespace _ {
 
 template<class X>
-class sp_counted_impl_p: public sp_counted_base
+class sp_counted_impl_p: public sp_local_counted_base
 {
     X * px_;
 
@@ -74,7 +74,7 @@ public:
 
 
 template<class P, class D>
-class sp_counted_impl_pd: public sp_counted_base
+class sp_counted_impl_pd: public sp_local_counted_base
 {
     P ptr; // copy constructor must not throw
     D del; // copy constructor must not throw
@@ -123,59 +123,8 @@ public:
     }
 };
 
-template<class P, class D, class A>
-class sp_counted_impl_pda: public sp_counted_base
-{
-    P p_; // copy constructor must not throw
-    D d_; // copy constructor must not throw
-    A a_; // copy constructor must not throw
-
-    using this_type = sp_counted_impl_pda<P, D, A> ;
-
-public:
-    sp_counted_impl_pda( sp_counted_impl_pda const & ) = delete;
-    sp_counted_impl_pda & operator= ( sp_counted_impl_pda const & ) = delete;
-
-    // pre: d( p ) must not throw
-
-    sp_counted_impl_pda( P p, D & d, A a ): p_( p ), d_( d ), a_( a )
-    {
-    }
-
-    sp_counted_impl_pda( P p, A a ): p_( p ), d_( a ), a_( a )
-    {
-    }
-
-    virtual void dispose() noexcept
-    {
-        d_( p_ );
-    }
-
-    virtual void destroy() noexcept
-    {
-        typedef typename std::allocator_traits<A>::template rebind_alloc< this_type > A2;
-
-        A2 a2( a_ );
-
-        this->~this_type();
-
-        a2.deallocate( this, 1 );
-    }
-
-    virtual void * get_deleter( boost::detail::sp_typeinfo const & ti )
-    {
-        return ti == BOOST_SP_TYPEID( D )? &reinterpret_cast<char&>( d_ ): 0;
-    }
-
-    virtual void * get_untyped_deleter()
-    {
-        return &reinterpret_cast<char&>( d_ );
-    }
-};
 
 
-
-
-} // namespace detail
+} // namespace _
 
 }}}

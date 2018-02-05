@@ -24,7 +24,7 @@ namespace fs  = memoria::v1::filesystem;
 
 using namespace rr;
 
-struct SomeClass: enable_local_shared_from_this<SomeClass> {
+struct SomeClass: enable_shared_from_this<SomeClass> {
     int value_{};
 
 
@@ -42,10 +42,14 @@ struct SomeClass: enable_local_shared_from_this<SomeClass> {
 
     auto get_ref()  {
         return shared_from_this();
-        //return shared_ptr<SomeClass>(this);
     }
 };
 
+template <typename T, typename... Args>
+rr::weak_ptr<T> make_weak(int cpu, Args&&... args)
+{
+    return rr::weak_ptr<T>(rr::make_shared<T>(cpu, std::forward<Args>(args)...));
+}
 
 int main(int argc, char **argv) 
 {    
@@ -53,26 +57,20 @@ int main(int argc, char **argv)
 
     Application app(argc, argv);
 
-    app.run([](){
+    app.run([]{
         std::cout << "Hello from SharedPtrs!" << std::endl;
         
         try {
-            auto ptr = rr::make_local_shared<SomeClass>(555);
+            rr::local_weak_ptr<SomeClass> ptr = make_weak<SomeClass>(1, 555);
 
-            std::cout << ptr->value_ << std::endl;
+            //rr::weak_ptr<SomeClass> pp = ptr;
 
-            auto ptr2 = ptr->get_ref();
-
-            local_weak_ptr<SomeClass> weakp = ptr;
+            rr::local_weak_ptr<SomeClass> lpp = ptr;
 
             ptr.reset();
 
-            std::cout << "After shared ptr reset" << std::endl;
+            std::cout << "After reset" << std::endl;
 
-            auto pppp = weakp.lock();
-            weakp.reset();
-
-            std::cout << "VV: " << pppp->value_ << std::endl;
         }
         catch (std::exception& ex) {
             std::cout << "Exception: " << ex.what() << std::endl;

@@ -53,36 +53,10 @@ template<class T> class weak_ptr;
 template<class T> class enable_shared_from_this;
 class enable_shared_from_raw;
 
-namespace movelib
-{
 
-    template< class T, class D > class unique_ptr;
-
-} // namespace movelib
 
 namespace _
 {
-
-// sp_element, element_type
-
-template< class T > struct sp_element
-{
-    typedef T type;
-};
-
-
-
-template< class T > struct sp_element< T[] >
-{
-    typedef T type;
-};
-
-
-
-template< class T, std::size_t N > struct sp_element< T[N] >
-{
-    typedef T type;
-};
 
 
 
@@ -211,16 +185,6 @@ inline void sp_enable_shared_from_this( ... )
 }
 
 
-
-// sp_assert_convertible
-
-template< class Y, class T > inline void sp_assert_convertible()
-{
-    // static_assert( sp_convertible< Y, T >::value );
-    typedef char tmp[ sp_convertible< Y, T >::value? 1: -1 ];
-    (void)sizeof( tmp );
-}
-
 // pointer constructor helper
 
 template< class T, class Y > inline void sp_pointer_construct( shared_ptr< T > * ppx, Y * p, _::shared_count & pn )
@@ -237,13 +201,13 @@ template< class T, class Y > inline void sp_pointer_construct(int cpu, shared_pt
 
 template< class T, class Y > inline void sp_pointer_construct( shared_ptr< T[] > * /*ppx*/, Y * p, _::shared_count & pn )
 {
-    sp_assert_convertible< Y[], T[] >();
+    static_assert(std::is_convertible<Y[], T[]>::value, "");
     _::shared_count( p, boost::checked_array_deleter< T >() ).swap( pn );
 }
 
 template< class T, class Y > inline void sp_pointer_construct(int cpu, shared_ptr< T[] > * /*ppx*/, Y * p, _::shared_count & pn )
 {
-    sp_assert_convertible< Y[], T[] >();
+    static_assert(std::is_convertible<Y[], T[]>::value, "");
     _::shared_count(cpu, p, boost::checked_array_deleter< T >() ).swap( pn );
 }
 
@@ -251,14 +215,14 @@ template< class T, class Y > inline void sp_pointer_construct(int cpu, shared_pt
 template< class T, std::size_t N, class Y >
 inline void sp_pointer_construct( shared_ptr< T[N] > * /*ppx*/, Y * p, _::shared_count & pn )
 {
-    sp_assert_convertible< Y[N], T[N] >();
+    static_assert(std::is_convertible<Y[N], T[N]>::value, "");
     _::shared_count( p, boost::checked_array_deleter< T >() ).swap( pn );
 }
 
 template< class T, std::size_t N, class Y >
 inline void sp_pointer_construct(int cpu, shared_ptr< T[N] > * /*ppx*/, Y * p, _::shared_count & pn )
 {
-    sp_assert_convertible< Y[N], T[N] >();
+    static_assert(std::is_convertible<Y[N], T[N]>::value, "");
     _::shared_count(cpu, p, boost::checked_array_deleter< T >() ).swap( pn );
 }
 
@@ -274,13 +238,13 @@ template< class T, class Y > inline void sp_deleter_construct( shared_ptr< T > *
 
 template< class T, class Y > inline void sp_deleter_construct( shared_ptr< T[] > * /*ppx*/, Y * /*p*/ )
 {
-    sp_assert_convertible< Y[], T[] >();
+    static_assert(std::is_convertible<Y[], T[]>::value, "");
 }
 
 template< class T, std::size_t N, class Y >
 inline void sp_deleter_construct( shared_ptr< T[N] > * /*ppx*/, Y * /*p*/ )
 {
-    sp_assert_convertible< Y[N], T[N] >();
+    static_assert(std::is_convertible<Y[N], T[N]>::value, "");
 }
 
 
@@ -288,7 +252,7 @@ inline void sp_deleter_construct( shared_ptr< T[N] > * /*ppx*/, Y * /*p*/ )
 
 
 
-} // namespace detail
+} // namespace _
 
 
 //
@@ -303,12 +267,11 @@ template<class T> class shared_ptr
 {
 private:
 
-    // Borland 5.5.1 specific workaround
-    typedef shared_ptr<T> this_type;
+    using this_type = shared_ptr<T>;
 
 public:
 
-    typedef typename _::sp_element< T >::type element_type;
+    using element_type = std::remove_extent_t<T>;
 
     shared_ptr() noexcept : px( 0 ), pn() // never throws in 1.30+
     {
@@ -355,19 +318,6 @@ public:
     {
     }
 
-    // As above, but with allocator. A's copy constructor shall not throw.
-
-    template<class Y, class D, class A> shared_ptr( Y * p, D d, A a ): px( p ), pn( p, d, a )
-    {
-        _::sp_deleter_construct( this, p );
-    }
-
-
-    template<class D, class A> shared_ptr( std::nullptr_t p, D d, A a ): px( p ), pn( p, d, a )
-    {
-    }
-
-
 
     shared_ptr( shared_ptr const & r ) noexcept : px( r.px ), pn( r.pn )
     {
@@ -377,7 +327,7 @@ public:
     template<class Y>
     explicit shared_ptr( weak_ptr<Y> const & r ): pn( r.pn ) // may throw
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
 
         // it is now safe to copy r.px, as pn(r.pn) did not throw
         px = r.px;
@@ -397,7 +347,7 @@ public:
     shared_ptr( shared_ptr<Y> const & r, typename _::sp_enable_if_convertible<Y,T>::type = _::sp_empty() )
     noexcept : px( r.px ), pn( r.pn )
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
     }
 
     // aliasing
@@ -411,7 +361,7 @@ public:
     template< class Y, class D >
     shared_ptr( std::unique_ptr< Y, D > && r ): px( r.get() ), pn()
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
 
         typename std::unique_ptr< Y, D >::pointer tmp = r.get();
         pn = _::shared_count( r );
@@ -419,17 +369,6 @@ public:
         _::sp_deleter_construct( this, tmp );
     }
 
-
-    template< class Y, class D >
-    shared_ptr( movelib::unique_ptr< Y, D > r ): px( r.get() ), pn()
-    {
-        _::sp_assert_convertible< Y, T >();
-
-        typename movelib::unique_ptr< Y, D >::pointer tmp = r.get();
-        pn = _::shared_count( r );
-
-        _::sp_deleter_construct( this, tmp );
-    }
 
     // assignment
 
@@ -457,26 +396,7 @@ public:
     }
 
 
-    template<class Y, class D>
-    shared_ptr & operator=( movelib::unique_ptr<Y, D> r )
-    {
-        // this_type( static_cast< unique_ptr<Y, D> && >( r ) ).swap( *this );
 
-        _::sp_assert_convertible< Y, T >();
-
-        typename movelib::unique_ptr< Y, D >::pointer p = r.get();
-
-        shared_ptr tmp;
-
-        tmp.px = p;
-        tmp.pn = _::shared_count( r );
-
-        _::sp_deleter_construct( &tmp, p );
-
-        tmp.swap( *this );
-
-        return *this;
-    }
 
 // Move support
 
@@ -491,7 +411,7 @@ public:
     shared_ptr( shared_ptr<Y> && r, typename _::sp_enable_if_convertible<Y,T>::type = _::sp_empty() )
     noexcept : px( r.px ), pn()
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
 
         pn.swap( r.pn );
         r.px = 0;
@@ -642,6 +562,8 @@ private:
 
     template<class Y> friend class shared_ptr;
     template<class Y> friend class weak_ptr;
+    template<class Y> friend class local_shared_ptr;
+    template<class Y> friend class local_weak_ptr;
 
     element_type * px;                 // contained pointer
     _::shared_count pn;           // reference counter
@@ -841,9 +763,9 @@ template<class D, class T> D * get_deleter( shared_ptr<T> const & p ) noexcept
     if(del == 0)
     {
         _::esft2_deleter_wrapper *del_wrapper = _::basic_get_deleter<_::esft2_deleter_wrapper>(p);
-// The following get_deleter method call is fully qualified because
-// older versions of gcc (2.95, 3.2.3) fail to compile it when written del_wrapper->get_deleter<D>()
-        if(del_wrapper) del = del_wrapper->_::esft2_deleter_wrapper::get_deleter<D>();
+        if(del_wrapper) {
+            del = del_wrapper->_::esft2_deleter_wrapper::get_deleter<D>();
+        }
     }
 
     return del;

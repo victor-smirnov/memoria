@@ -89,8 +89,7 @@ if (BUILD_UNIX OR MINGW)
         
         if (ASAN_SANITIZE_STACKS)
             set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMMA1_SANITIZE_STACKS")
-        endif()
-        
+        endif() 
     endif()
     
     if (USE_USAN) 
@@ -110,7 +109,7 @@ if (BUILD_UNIX OR MINGW)
 
         set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 winpthread)
     else()
-        set (MEMORIA_LIBS "${MEMORIA_LIBS}" dl)
+        set (MEMORIA_LIBS "${MEMORIA_LIBS}" dl icuuc)
     endif()
         
         
@@ -147,8 +146,14 @@ endif()
 set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
 
 
+find_package(ICU)
+
+if (ICU_FOUND)
+    include_directories(${ICU_INCLUDE_DIRS})
+    link_directories(${ICU_LIBRARY_DIRS})
+endif()
+
+
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 
 add_subdirectory(src)
-
-include(CPack)

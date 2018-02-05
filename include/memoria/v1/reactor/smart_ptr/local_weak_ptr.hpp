@@ -40,9 +40,6 @@ public:
     }
 
 //  generated copy constructor, assignment, destructor are fine...
-
-
-
 // ... except in C++0x, move disables the implicit copy
 
     local_weak_ptr( local_weak_ptr const & r ) noexcept : px( r.px ), pn( r.pn )
@@ -56,12 +53,26 @@ public:
         return *this;
     }
 
+    template <typename Y>
+    local_weak_ptr( weak_ptr<Y> const & r ) noexcept : px( r.px ), pn( r.pn )
+    {
+        static_assert(std::is_convertible<Y, T>::value, "");
+    }
+
+
+    template <typename Y>
+    local_weak_ptr( weak_ptr<Y>&& r ) noexcept :
+        px( r.px ), pn( std::move(r.pn) )
+    {
+        static_assert(std::is_convertible<Y, T>::value, "");
+    }
+
 
 //
 //  The "obvious" converting constructor implementation:
 //
 //  template<class Y>
-//  weak_ptr(weak_ptr<Y> const & r): px(r.px), pn(r.pn) // never throws
+//  local_weak_ptr(weak_ptr<Y> const & r): px(r.px), pn(r.pn) // never throws
 //  {
 //  }
 //
@@ -80,7 +91,7 @@ public:
     local_weak_ptr( local_weak_ptr<Y> const & r, typename _::sp_enable_if_convertible<Y,T>::type = boost::detail::sp_empty() ) noexcept :
         px(r.lock().get()), pn(r.pn)
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
     }
 
 
@@ -89,7 +100,7 @@ public:
     local_weak_ptr( local_weak_ptr<Y> && r, typename _::sp_enable_if_convertible<Y,T>::type = _::sp_empty() ) noexcept:
         px( r.lock().get() ), pn( static_cast< _::local_weak_count && >( r.pn ) )
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
         r.px = 0;
     }
 
@@ -114,13 +125,27 @@ public:
     local_weak_ptr( local_shared_ptr<Y> const & r, typename boost::detail::sp_enable_if_convertible<Y,T>::type = boost::detail::sp_empty() ) noexcept :
         px( r.px ), pn( r.pn )
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
+    }
+
+    template<class Y>
+    local_weak_ptr( shared_ptr<Y> const & r, typename boost::detail::sp_enable_if_convertible<Y,T>::type = boost::detail::sp_empty() ) noexcept :
+        px( r.px ), pn( r.pn )
+    {
+        static_assert(std::is_convertible<Y, T>::value, "");
+    }
+
+    template<class Y>
+    local_weak_ptr( shared_ptr<Y> && r, typename boost::detail::sp_enable_if_convertible<Y,T>::type = boost::detail::sp_empty() ) noexcept :
+        px( r.px ), pn( std::move(r.pn) )
+    {
+        static_assert(std::is_convertible<Y, T>::value, "");
     }
 
     template<class Y>
     local_weak_ptr & operator=( local_weak_ptr<Y> const & r ) noexcept
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
 
         px = r.lock().get();
         pn = r.pn;
@@ -139,7 +164,7 @@ public:
     template<class Y>
     local_weak_ptr & operator=( local_shared_ptr<Y> const & r ) noexcept
     {
-        _::sp_assert_convertible< Y, T >();
+        static_assert(std::is_convertible<Y, T>::value, "");
 
         px = r.px;
         pn = r.pn;

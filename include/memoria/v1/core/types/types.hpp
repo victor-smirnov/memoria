@@ -23,6 +23,8 @@
 #include <cassert>
 #include <cstdint>
 
+#include <unicode/utypes.h>
+
 #ifdef _MSC_VER
 #include <windows.h>
 //#include <intrin.h>
@@ -53,6 +55,10 @@
 
 namespace memoria {
 namespace v1 {
+
+//using UChar   = ::UChar;
+//using UChar32 = ::UChar32;
+//using UChar8  = char;
 
 static constexpr int DEFAULT_BLOCK_SIZE                 = 8192;
 static constexpr int PackedTreeBranchingFactor          = 32;

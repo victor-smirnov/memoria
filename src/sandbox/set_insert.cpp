@@ -87,7 +87,7 @@ int main()
 
         cout << "Inserted " << size << " in " << (t1 - t0) << endl;
         
-        size_t cnt = 0;
+        //size_t cnt = 0;
         for (auto ii = map.begin(); !ii.is_end(); ii.next())
         {
             //std::cout << "Row: " << (cnt++) << ": " << ii.key() << std::endl;

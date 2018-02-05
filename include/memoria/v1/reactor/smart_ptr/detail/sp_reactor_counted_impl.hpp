@@ -30,11 +30,13 @@ namespace reactor {
 
 namespace _ {
 
-class sp_local_counter: public sp_counted_base {
-    sp_reactor_counted_base* const owner_;
+class sp_local_counter: public sp_local_counted_base {
+    sp_reactor_counted_base* owner_;
+    int cpu_;
 public:
-    sp_local_counter(sp_reactor_counted_base* owner):
-        owner_(owner)
+    sp_local_counter(int cpu, sp_reactor_counted_base* owner):
+        owner_(owner),
+        cpu_(cpu)
     {}
 
     sp_reactor_counted_base* owner() {return owner_;}
@@ -43,29 +45,36 @@ public:
     // the resources managed by *this.
 
     virtual void dispose() {
-        owner_->release();
+        if (owner_->release()) {
+            owner_ = nullptr;
+        }
     }
 
     // destroy() is called when weak_count_ drops to zero.
 
     virtual void destroy() noexcept
     {
-        owner_->weak_release();
+        if (owner_)
+        {
+            owner_->set_local_counter(cpu_, nullptr);
+            owner_->weak_release();
+        }
+
         delete this;
     }
 
     virtual void * get_deleter( boost::detail::sp_typeinfo const & ti ) {
-        return owner_->get_deleter(ti);
+        return owner_ ? owner_->get_deleter(ti) : nullptr;
     }
 
     virtual void * get_untyped_deleter() {
-        return owner_->get_untyped_deleter();
+        return owner_ ? owner_->get_untyped_deleter(): nullptr;
     }
 };
 
 
 
-inline void initialize(int size, sp_counted_base** proxies)
+inline void initialize(int size, sp_local_counted_base** proxies)
 {
     for (int c = 0; c < size; c++) {
         proxies[c] = nullptr;
@@ -79,7 +88,7 @@ template<class X>
 class sp_reactor_counted_impl_p: public sp_reactor_counted_base
 {
     X * px_;
-    sp_counted_base* proxies[1];
+    sp_local_counted_base* proxies[1];
 
     using this_type = sp_reactor_counted_impl_p<X>;
 
@@ -111,15 +120,15 @@ public:
 
     static this_type* create(int cpu_num, X * px )
     {
-        void* mem = malloc(sizeof(this_type) + (sizeof(sp_counted_base*) * (cpu_num - 1)));
+        void* mem = malloc(sizeof(this_type) + (sizeof(sp_local_counted_base*) * (cpu_num - 1)));
         return new (mem) this_type(cpu_num, px);
     }
 
-    virtual void set_local_counter(int cpu, sp_counted_base* counter) {
+    virtual void set_local_counter(int cpu, sp_local_counted_base* counter) {
         proxies[cpu] = counter;
     }
 
-    virtual sp_counted_base* get_local_counter(int cpu) {
+    virtual sp_local_counted_base* get_local_counter(int cpu) {
         return proxies[cpu];
     }
 };
@@ -132,7 +141,7 @@ class sp_reactor_counted_impl_pd: public sp_reactor_counted_base
     P ptr; // copy constructor must not throw
     D del; // copy constructor must not throw
 
-    sp_counted_base* proxies[1];
+    sp_local_counted_base* proxies[1];
 
     using this_type = sp_reactor_counted_impl_pd<P, D> ;
 
@@ -173,105 +182,26 @@ public:
 
     static this_type* create(int cpu, int cpu_num, P p, D & d )
     {
-        void* mem = malloc(sizeof(this_type) + (sizeof(sp_counted_base*) * (cpu_num - 1)));
+        void* mem = malloc(sizeof(this_type) + (sizeof(sp_local_counted_base*) * (cpu_num - 1)));
         return new (mem) this_type(cpu, cpu_num, p, d);
     }
 
 
     static this_type* create(int cpu, int cpu_num, P p )
     {
-        void* mem = malloc(sizeof(this_type) + (sizeof(sp_counted_base*) * (cpu_num - 1)));
+        void* mem = malloc(sizeof(this_type) + (sizeof(sp_local_counted_base*) * (cpu_num - 1)));
         return new (mem) this_type(cpu, cpu_num, p);
     }
 
-    virtual void set_local_counter(int cpu, sp_counted_base* counter) {
+    virtual void set_local_counter(int cpu, sp_local_counted_base* counter) {
         proxies[cpu] = counter;
     }
 
-    virtual sp_counted_base* get_local_counter(int cpu) {
+    virtual sp_local_counted_base* get_local_counter(int cpu) {
         return proxies[cpu];
     }
 };
 
-template<class P, class D, class A>
-class sp_reactor_counted_impl_pda: public sp_reactor_counted_base
-{
-    P p_; // copy constructor must not throw
-    D d_; // copy constructor must not throw
-    A a_; // copy constructor must not throw
-
-    sp_counted_base* proxies[1];
-
-    using this_type = sp_reactor_counted_impl_pda<P, D, A> ;
-
-public:
-    sp_reactor_counted_impl_pda( sp_reactor_counted_impl_pda const & ) = delete;
-    sp_reactor_counted_impl_pda & operator= ( sp_reactor_counted_impl_pda const & ) = delete;
-
-    // pre: d( p ) must not throw
-
-    sp_reactor_counted_impl_pda(int cpu, int cpu_num, P p, D & d, A a ):
-        sp_reactor_counted_base(cpu),
-        p_( p ), d_( d ), a_( a )
-    {
-        initialize(cpu_num, proxies);
-    }
-
-    sp_reactor_counted_impl_pda(int cpu, int cpu_num, P p, A a ):
-        sp_reactor_counted_base(cpu),
-        p_( p ), d_( a ), a_( a )
-    {
-        initialize(cpu_num, proxies);
-    }
-
-    virtual void dispose() noexcept
-    {
-        d_( p_ );
-    }
-
-    virtual void destroy() noexcept
-    {
-        typedef typename std::allocator_traits<A>::template rebind_alloc< this_type > A2;
-
-        A2 a2( a_ );
-
-        this->~this_type();
-
-        a2.deallocate( this, 1 );
-    }
-
-    virtual void * get_deleter( boost::detail::sp_typeinfo const & ti )
-    {
-        return ti == BOOST_SP_TYPEID( D )? &reinterpret_cast<char&>( d_ ): 0;
-    }
-
-    virtual void * get_untyped_deleter()
-    {
-        return &reinterpret_cast<char&>( d_ );
-    }
-
-
-    static this_type* create(int cpu_num, P p, D & d, A a )
-    {
-        void* mem = malloc(sizeof(this_type) + (sizeof(sp_counted_base*) * (cpu_num - 1)));
-        return new (mem) this_type(cpu_num, p, d, a);
-    }
-
-    static this_type* create(int cpu_num, P p, A a )
-    {
-        void* mem = malloc(sizeof(this_type) + (sizeof(sp_counted_base*) * (cpu_num - 1)));
-        return new (mem) this_type(cpu_num, p, a);
-    }
-
-    virtual void set_local_counter(int cpu, sp_counted_base* counter) {
-        proxies[cpu] = counter;
-    }
-
-    virtual sp_counted_base* get_local_counter(int cpu) {
-        return proxies[cpu];
-    }
-};
-
-} // namespace detail
+} // namespace _
 
 }}}

@@ -581,7 +581,7 @@ public:
         template <int32_t AllocatorIdx, int32_t Idx, typename StreamType>
         void stream(StreamType*, PackedAllocator* allocator, uint64_t active_streams)
         {
-            if (active_streams && (1 << Idx))
+            if (active_streams & (1 << Idx))
             {
                 if (allocator->is_empty(AllocatorIdx))
                 {
