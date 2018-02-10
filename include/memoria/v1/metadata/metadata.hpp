@@ -61,10 +61,10 @@ public:
 
 public:
 
-    Metadata(U8StringRef name, int8_t type): name_(name), typeCode_(type) {}
+    Metadata(U16StringRef name, int8_t type): name_(name), typeCode_(type) {}
     virtual ~Metadata() throw () {}
 
-    U8StringRef name() const {
+    U16StringRef name() const {
         return name_;
     }
 
@@ -92,8 +92,8 @@ protected:
     }
 
 private:
-    const U8String  name_;
-    int32_t         typeCode_;
+    const U16String  name_;
+    int32_t          typeCode_;
 };
 
 

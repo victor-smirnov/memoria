@@ -36,11 +36,11 @@ namespace v1 {
 template<typename T, int BufferSize = 40960>
 struct TypeNameFactory
 {
-    static U8String name() {
+    static U16String name() {
         char buf[BufferSize];
         size_t len = sizeof(buf);
         abi::__cxa_demangle(typeid(T).name(), buf, &len, NULL);
-        return std::string(buf);
+        return U8String(std::string(buf)).to_u16();
     }
 
     static const char* cname() {
@@ -48,20 +48,20 @@ struct TypeNameFactory
     }
 };
 
-static inline U8String demangle(const char* name)
+static inline U16String demangle(const char* name)
 {
 	char buf[40960];
 	size_t len = sizeof(buf);
 	abi::__cxa_demangle(name, buf, &len, NULL);
-    return U8String(buf);
+    return U8String(buf).to_u16();
 }
 
 #else
 template<typename T, int BufferSize = 40960>
 struct TypeNameFactory
 {
-    static U8String name() {
-        return U8String(typeid(T).name());
+    static U16String name() {
+        return U8String(typeid(T).name()).to_u16();
     }
 
     static const char* cname() {
@@ -69,9 +69,9 @@ struct TypeNameFactory
     }
 };
 
-static inline U8String demangle(const char* name)
+static inline U16String demangle(const char* name)
 {
-    return U8String(name);
+    return U8String(name).to_u16();
 }
 
 #endif

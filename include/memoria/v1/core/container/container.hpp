@@ -170,7 +170,7 @@ public:
         return CONTAINER_HASH;
     }
     
-    virtual U8String describe_type() const {
+    virtual U16String describe_type() const {
         return TypeNameFactory<ContainerTypeName>::name();
     }
 
@@ -230,7 +230,7 @@ public:
 
     	virtual ~CtrInterfaceImpl() {}
 
-        virtual U8String ctr_name()
+        virtual U16String ctr_name()
         {
             return TypeNameFactory<Name>::name();
         }
@@ -305,7 +305,7 @@ public:
             });
         }
 
-        virtual U8String ctr_type_name() const
+        virtual U16String ctr_type_name() const
         {
             return TypeNameFactory<ContainerTypeName>::name();
         }

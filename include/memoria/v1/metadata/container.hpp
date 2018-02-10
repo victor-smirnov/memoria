@@ -125,7 +125,7 @@ struct ContainerInterface {
 
     // FIXME: remove name from parameters, it's already in Ctr's page root metadata
 
-    virtual U8String ctr_name() = 0;
+    virtual U16String ctr_name() = 0;
 
     virtual bool check(
         const UUID& root_id, 
@@ -147,7 +147,7 @@ struct ContainerInterface {
     ) const                                                                     = 0;
 
 
-    virtual U8String ctr_type_name() const                                        = 0;
+    virtual U16String ctr_type_name() const                                        = 0;
 
     virtual void drop(
             const UUID& root_id,
@@ -180,7 +180,7 @@ struct ContainerMetadata: public MetadataGroup {
 public:
 
     template <typename Types>
-    ContainerMetadata(U8StringRef name, Types* nothing, uint64_t ctr_hash, ContainerInterfacePtr container_interface):
+    ContainerMetadata(U16StringRef name, Types* nothing, uint64_t ctr_hash, ContainerInterfacePtr container_interface):
         MetadataGroup(name, buildPageMetadata<Types>()),
         container_interface_(container_interface),
         ctr_hash_(ctr_hash)
@@ -260,7 +260,7 @@ struct ContainerMetadataRepository: public MetadataGroup {
 
 public:
 
-    ContainerMetadataRepository(U8StringRef name, const MetadataList &content);
+    ContainerMetadataRepository(U16StringRef name, const MetadataList &content);
 
     virtual ~ContainerMetadataRepository() throw ()
     {

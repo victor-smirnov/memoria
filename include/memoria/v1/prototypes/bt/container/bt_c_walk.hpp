@@ -52,7 +52,7 @@ public:
         NodeBaseG root = self.getRoot();
 
         walker->beginCtr(
-                        TypeNameFactory<typename Types::ContainerTypeName>::name().data(),
+                        TypeNameFactory<typename Types::ContainerTypeName>::name().to_u8().data(),
                         self.name(),
                         root->id()
                 );

@@ -124,7 +124,7 @@ struct IPageOperations
 struct PageMetadata: public MetadataGroup
 {
     PageMetadata(
-            U8StringRef name,
+            U16StringRef name,
             int32_t attributes,
             uint64_t hash0,
             const IPageOperations* page_operations);

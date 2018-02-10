@@ -30,7 +30,7 @@ ostream& operator<<(ostream& os, const v1::IDValue& id) {
 
 
 
-ContainerMetadataRepository::ContainerMetadataRepository(U8StringRef name, const MetadataList &content):
+ContainerMetadataRepository::ContainerMetadataRepository(U16StringRef name, const MetadataList &content):
         MetadataGroup(name, content), hash_(0)
 {
     MetadataGroup::set_type() = Metadata::CONTAINER;
@@ -118,7 +118,7 @@ void ContainerMetadataRepository::dumpMetadata(std::ostream& out)
 
 
 PageMetadata::PageMetadata(
-                U8StringRef name,
+                U16StringRef name,
                 int32_t attributes,
                 uint64_t hash,
                 const IPageOperations* page_operations
