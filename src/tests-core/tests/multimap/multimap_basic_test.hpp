@@ -64,7 +64,7 @@ class MultiMapBasicTest: public MultiMapTestBase<MapName> {
 
 public:
 
-    MultiMapBasicTest(StringRef name): Base(name)
+    MultiMapBasicTest(U16StringRef name): Base(name)
     {
         MEMORIA_ADD_TEST(runCreateTest);
         MEMORIA_ADD_TEST(runAssignTest);

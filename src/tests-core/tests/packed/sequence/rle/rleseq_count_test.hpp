@@ -57,7 +57,7 @@ class PackedRLESearchableSequenceCountTest: public PackedRLESequenceTestBase<Sym
 
 public:
 
-    PackedRLESearchableSequenceCountTest(StringRef name): Base(name)
+    PackedRLESearchableSequenceCountTest(U16StringRef name): Base(name)
     {
         this->size_ = 3000;
 

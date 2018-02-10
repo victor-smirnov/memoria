@@ -36,7 +36,7 @@ class PackedInt64TCodecTest: public PackedCodecsTestBase<int64_t> {
 
 public:
 
-    PackedInt64TCodecTest(StringRef name): Base(name)
+    PackedInt64TCodecTest(U16StringRef name): Base(name)
     {
         MEMORIA_ADD_TEST(testRawValues);
     }

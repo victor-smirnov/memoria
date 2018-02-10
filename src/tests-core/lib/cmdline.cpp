@@ -29,7 +29,7 @@ namespace bf = boost::filesystem;
 
 void CmdLine::Process()
 {
-    String image_name = getImageName();
+    U16String image_name = getImageName();
 
     if (image_name == "dump")
     {
@@ -61,27 +61,27 @@ void CmdLine::processTests()
 
     for (int32_t c = 1; c < argc_; c++)
     {
-        String arg(argv_[c]);
-        if (isStartsWith(arg, "-D"))
+        U16String arg(argv_[c]);
+        if (arg.starts_with(u"-D"))
         {
-            auto pos = arg.find_first_of("=");
+            auto pos = arg.find_first_of(u"=");
             if (pos != String::npos)
             {
-                cfg_cmdline_.AddProperty(arg.substr(2, pos - 2), arg.substr(pos + 1));
+                cfg_cmdline_.AddProperty(arg.substring(2, pos - 2), arg.substring(pos + 1));
             }
             else {
-                throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid property format: "<<arg);
+                throw Exception(MEMORIA_SOURCE, SBuf() << "Invalid property format: " << arg);
             }
         }
-        else if (arg == "--help")
+        else if (arg == u"--help")
         {
             help_ = true;
         }
-        else if (arg == "--list")
+        else if (arg == u"--list")
         {
             list_ = true;
         }
-        else if (arg == "--dump")
+        else if (arg == u"--dump")
         {
             if (!list_)
             {
@@ -102,7 +102,7 @@ void CmdLine::processTests()
                 }
             }
         }
-        else if (arg == "--config")
+        else if (arg == u"--config")
         {
             if (!list_)
             {
@@ -123,13 +123,13 @@ void CmdLine::processTests()
                 }
             }
         }
-        else if (arg == "--out")
+        else if (arg == u"--out")
         {
             if (c < argc_ - 1)
             {
-                if (!out_folder_)
+                if (out_folder_.is_empty())
                 {
-                    out_folder_ = argv_[c + 1];
+                    out_folder_ = U16String(argv_[c + 1]);
                     c += 1;
                 }
                 else {
@@ -140,18 +140,18 @@ void CmdLine::processTests()
                 throw Exception(MEMORIA_SOURCE, "Incorrect --out parameters number");
             }
         }
-        else if (arg == "--count")
+        else if (arg == u"--count")
         {
             if (c < argc_ - 1)
             {
-                count_ = FromString<int32_t>::convert(argv_[c + 1]);
+                count_ = FromString<int32_t>::convert(U16String(argv_[c + 1]));
                 c += 1;
             }
             else {
                 throw Exception(MEMORIA_SOURCE, "Incorrect --count parameters number");
             }
         }
-        else if (arg == "--coverage")
+        else if (arg == u"--coverage")
         {
             if (c < argc_ - 1)
             {
@@ -162,40 +162,40 @@ void CmdLine::processTests()
                 throw Exception(MEMORIA_SOURCE, "Incorrect --coverage parameters number");
             }
         }
-        else if (arg == "--coverage-size")
+        else if (arg == u"--coverage-size")
         {
             if (c < argc_ - 1)
             {
-                coverage_size_ = FromString<String>::convert(argv_[c + 1]);
+                coverage_size_ = U16String(argv_[c + 1]);
                 c += 1;
             }
             else {
                 throw Exception(MEMORIA_SOURCE, "Incorrect --coverage-size parameters number");
             }
         }
-        else if (arg == "--soft-memlimit")
+        else if (arg == u"--soft-memlimit")
         {
             if (c < argc_ - 1)
             {
-                soft_memlimit_ = FromString<String>::convert(argv_[c + 1]);
+                soft_memlimit_ = U16String(argv_[c + 1]);
                 c += 1;
             }
             else {
                 throw Exception(MEMORIA_SOURCE, "Incorrect --soft-memlimit parameters number");
             }
         }
-        else if (arg == "--hard-memlimit")
+        else if (arg == u"--hard-memlimit")
         {
             if (c < argc_ - 1)
             {
-                hard_memlimit_ = FromString<String>::convert(argv_[c + 1]);
+                hard_memlimit_ = U16String(argv_[c + 1]);
                 c += 1;
             }
             else {
                 throw Exception(MEMORIA_SOURCE, "Incorrect --hard-memlimit parameters number");
             }
         }
-        else if (arg == "--replay" && (operations_ & REPLAY))
+        else if (arg == u"--replay" && (operations_ & REPLAY))
         {
             if (!list_)
             {
@@ -223,49 +223,49 @@ void CmdLine::processTests()
 
     if ((!cfg_cpecified) && !list_)
     {
-        if (bf::exists(cfg_file_name_))
+        if (bf::exists(cfg_file_name_.to_u8().to_std_string()))
         {
             Configurator::Parse(cfg_file_name_, &cfg_file_);
         }
         else {
-            String image_path = getImagePathPart(argv_[0]);
-            String cfg_file_name = image_path + Platform::getFilePathSeparator()+cfg_file_name_;
+            U16String image_path = getImagePathPart(argv_[0]);
+            U16String cfg_file_name = image_path + Platform::getFilePathSeparator() + cfg_file_name_;
 
-            if (bf::exists(cfg_file_name))
+            if (bf::exists(cfg_file_name.to_u8().to_std_string()))
             {
                 Configurator::Parse(cfg_file_name, &cfg_file_);
             }
         }
     }
 
-    if (coverage_ != "") {
-        cfg_cmdline_.AddProperty("coverage", coverage_);
+    if (coverage_ != u"") {
+        cfg_cmdline_.AddProperty(u"coverage", coverage_);
     }
 
-    if (coverage_size_ != "") {
-        cfg_cmdline_.AddProperty("coverage_size", coverage_size_);
+    if (coverage_size_ != u"") {
+        cfg_cmdline_.AddProperty(u"coverage_size", coverage_size_);
     }
 
-    if (soft_memlimit_ != "") {
-        cfg_cmdline_.AddProperty("soft_memlimit", soft_memlimit_);
+    if (soft_memlimit_ != u"") {
+        cfg_cmdline_.AddProperty(u"soft_memlimit", soft_memlimit_);
     }
 
-    if (hard_memlimit_ != "") {
-        cfg_cmdline_.AddProperty("hard_memlimit", hard_memlimit_);
+    if (hard_memlimit_ != u"") {
+        cfg_cmdline_.AddProperty(u"hard_memlimit", hard_memlimit_);
     }
 }
 
 
 
 
-String CmdLine::getImagePathPart(const char* str)
+U16String CmdLine::getImagePathPart(const char* str)
 {
-    return bf::absolute(str).parent_path().string();
+    return U8String(bf::absolute(str).parent_path().string()).to_u16();
 }
 
-String CmdLine::getImageName(const char* str)
+U16String CmdLine::getImageName(const char* str)
 {
-    return bf::absolute(str).filename().string();
+    return U8String(bf::absolute(str).filename().string()).to_u16();
 }
 
 

@@ -19,14 +19,22 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/config.hpp>
 
-#include <memoria/v1/core/tools/strings/strings.hpp>
-#include <memoria/v1/core/tools/strings/string_buffer.hpp>
 
 #include <string>
 #include <sstream>
 
 #include <unicode/ustring.h>
 #include "u_string_capi.hpp"
+
+namespace memoria {
+namespace v1 {
+class U32String;
+}}
+
+namespace std {
+    void swap(memoria::v1::U32String&, memoria::v1::U32String&);
+}
+
 
 namespace memoria {
 namespace v1 {
@@ -49,6 +57,7 @@ private:
     template <typename T1, typename T2>
     friend std::basic_ostream<T1, T2>& operator<<(std::basic_ostream<T1, T2>&, const U32String&);
 
+    friend void std::swap(U32String&, U32String&);
 
 public:
     U32String() = default;
@@ -177,3 +186,12 @@ inline bool compare_le(const U32String& first, const U32String& second) {
 
 
 }}
+
+
+namespace std {
+
+inline void swap(memoria::v1::U32String& one, memoria::v1::U32String& two) {
+    std::swap(one.content_, two.content_);
+}
+
+}

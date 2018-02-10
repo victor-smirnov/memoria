@@ -38,7 +38,7 @@ public:
 
     using Base::getRandom;
 
-    PackedCodecsTestBase(StringRef name): TestTask(name)
+    PackedCodecsTestBase(U16StringRef name): TestTask(name)
     {}
 
 };

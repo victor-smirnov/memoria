@@ -169,16 +169,16 @@ istream& operator>>(std::istream& in, std::vector<uint8_t, A>& vec)
 }
 
 template <typename T, typename A>
-void LoadVector(std::vector<T, A>& vec, StringRef file_name)
+void LoadVector(std::vector<T, A>& vec, U16StringRef file_name)
 {
     std::fstream file;
 
 //    file.exceptions(std::ifstream::failbit);
 
-    file.open(file_name.c_str(), std::fstream::in);
+    file.open(file_name.to_u8().data(), std::fstream::in);
 
     if (file.fail() || file.bad()) {
-        throw Exception(MEMORIA_SOURCE, "Can't open file: "+file_name);
+        throw Exception(MEMORIA_SOURCE, "Can't open file: " + file_name.to_u8().to_std_string());
     }
 
     file>>vec;
@@ -187,11 +187,11 @@ void LoadVector(std::vector<T, A>& vec, StringRef file_name)
 }
 
 template <typename T, typename A>
-void StoreVector(const std::vector<T, A>& vec, StringRef file_name)
+void StoreVector(const std::vector<T, A>& vec, U16StringRef file_name)
 {
     std::fstream file;
 
-    file.open(file_name.c_str(), std::fstream::out);
+    file.open(file_name.to_u8().data(), std::fstream::out);
 
     file<<vec;
 

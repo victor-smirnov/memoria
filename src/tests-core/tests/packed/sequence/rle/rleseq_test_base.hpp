@@ -51,7 +51,7 @@ protected:
 
 public:
 
-    PackedRLESequenceTestBase(StringRef name): TestTask(name)
+    PackedRLESequenceTestBase(U16StringRef name): TestTask(name)
     {
         size_ = 32768;
 

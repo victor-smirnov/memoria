@@ -85,7 +85,7 @@ class PackedSearchableSequenceSpeedTest: public PackedSearchableSequenceTestBase
 
 public:
 
-    PackedSearchableSequenceSpeedTest(StringRef name): Base(name)
+    PackedSearchableSequenceSpeedTest(U16StringRef name): Base(name)
     {
         this->iterations_   = 4096;
         this->size_         = 4096;
@@ -119,7 +119,7 @@ public:
 
         int64_t t2 = getTimeInMillis();
 
-        out()<<FormatTime(t1 - t0)<<" "<<FormatTime(t2 - t1)<<endl;
+        out() << FormatTime(t1 - t0) << " " << FormatTime(t2 - t1) << endl;
     }
 
 

@@ -87,7 +87,7 @@ public:
 
 public:
 
-    BTSSBatchTest(StringRef name):
+    BTSSBatchTest(U16StringRef name):
         Base(name)
     {
         size_ = 1024 * 1024;
@@ -543,7 +543,7 @@ public:
 
         if (!isReplayMode())
         {
-            storeAllocator(getResourcePath((SBuf()<<"Insert_"<<(++cnt_i_)<<".dump").str()));
+            storeAllocator(getResourcePath(U16String((SBuf() << "Insert_" << (++cnt_i_) << ".dump").str())));
         }
     }
 
@@ -582,7 +582,7 @@ public:
 
         if (!isReplayMode())
         {
-            storeAllocator(getResourcePath((SBuf()<<"Remove_"<<(++cnt_i_)<<".dump").str()));
+            storeAllocator(getResourcePath(U16String((SBuf()<<"Remove_"<<(++cnt_i_)<<".dump").str())));
         }
     }
 

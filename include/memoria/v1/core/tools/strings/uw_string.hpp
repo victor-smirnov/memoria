@@ -20,9 +20,6 @@
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/tools/config.hpp>
 
-#include <memoria/v1/core/tools/strings/strings.hpp>
-#include <memoria/v1/core/tools/strings/string_buffer.hpp>
-
 #include <string>
 #include <ostream>
 

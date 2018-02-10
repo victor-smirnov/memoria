@@ -54,7 +54,7 @@ public:
 
     int32_t iterations_ = 1000;
 
-    PackedMaxTreeFindTest(StringRef name): Base(name)
+    PackedMaxTreeFindTest(U16StringRef name): Base(name)
     {
         this->size_ = 16384;
 

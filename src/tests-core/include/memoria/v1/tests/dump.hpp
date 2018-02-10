@@ -34,25 +34,25 @@ static void LoadFile(AllocatorT& allocator, const char* file)
 	allocator.load(in.get());
 }
 
-static String getPath(String dump_name)
+static U16String getPath(U16String dump_name)
 {
-	if (isEndsWith(dump_name, ".dump"))
+    if (dump_name.ends_with(u".dump"))
 	{
-		auto idx = dump_name.find_last_of(".");
-		String name = dump_name.substr(0, idx);
+        auto idx = dump_name.find_last_of(u".");
+        U16String name = dump_name.substring(0, idx);
 		return name;
 	}
 	else {
-		return dump_name+".data";
+        return dump_name + u".data";
 	}
 }
 
-static int32_t DumpAllocator(String file_name)
+static int32_t DumpAllocator(U16String file_name)
 {
 	try {
 		logger.level() = Logger::NONE;
 
-		bf::path file(file_name);
+        bf::path file(file_name.to_u8().to_std_string());
 		if (bf::is_directory(file))
 		{
 			std::cerr << "ERROR: " << file << " is a directory" << std::endl;
@@ -64,7 +64,7 @@ static int32_t DumpAllocator(String file_name)
 			return 1;
 		}
 
-		bf::path path(getPath(file_name));
+        bf::path path(getPath(file_name).to_u8().to_std_string());
 		if (bf::exists(path) && !bf::is_directory(path))
 		{
 			std::cerr << "ERROR: " << path << " is not a directory" << std::endl;
@@ -83,9 +83,9 @@ static int32_t DumpAllocator(String file_name)
 
 		auto end = getTimeInMillis();
 
-		std::cout<<"Loading time: "<<FormatTime(end-start)<<std::endl;
+        std::cout << "Loading time: " << FormatTime(end-start) << std::endl;
 
-		FSDumpAllocator(allocator, bf::absolute(path).string().c_str());
+        FSDumpAllocator(allocator, bf::absolute(path).string());
 	}
 	catch (Exception& ex) {
 		std::cout<<"Exception "<<ex.source()<<" "<<ex<<std::endl;

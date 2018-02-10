@@ -75,7 +75,7 @@ protected:
 
 public:
 
-    PackedSearchableSequenceTestBase(StringRef name): TestTask(name)
+    PackedSearchableSequenceTestBase(U16StringRef name): TestTask(name)
     {
         size_ = 32768;
 

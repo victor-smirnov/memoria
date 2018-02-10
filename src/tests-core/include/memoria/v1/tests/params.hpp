@@ -41,8 +41,8 @@ using namespace std;
 class AbstractParamDescriptor {
 public:
     virtual void Process(Configurator* cfg)                             = 0;
-    virtual StringRef getName() const                                   = 0;
-    virtual String getPropertyName() const                              = 0;
+    virtual U16StringRef getName() const                                = 0;
+    virtual U16String getPropertyName() const                           = 0;
     virtual void dump(std::ostream& os, bool dump_prefix = true) const  = 0;
     virtual bool isStateParameter() const                               = 0;
     
@@ -54,13 +54,13 @@ template <typename T> class ParamDescriptor;
 
 class ParametersSet {
 
-    String          name_;
+    U16String          name_;
     ParametersSet*  context_;
 
     vector<AbstractParamDescriptor*> descriptors_;
 
 public:
-    ParametersSet(StringRef name): name_(name), context_(nullptr)  {}
+    ParametersSet(U16StringRef name): name_(name), context_(nullptr)  {}
     ParametersSet(const ParametersSet&) = delete;
 
     virtual ~ParametersSet()
@@ -71,7 +71,7 @@ public:
         }
     }
 
-    virtual String getFullName() const
+    virtual U16String getFullName() const
     {
         if (context_)
         {
@@ -82,7 +82,7 @@ public:
         }
     }
 
-    virtual StringRef getName() const {
+    virtual U16StringRef getName() const {
         return name_;
     }
 
@@ -99,19 +99,19 @@ public:
     virtual AbstractParamDescriptor* put(AbstractParamDescriptor* descr);
 
     template <typename T>
-    ParamDescriptor<T>* Add(StringRef name, T& property)
+    ParamDescriptor<T>* Add(U16StringRef name, T& property)
     {
         return T2T_S<ParamDescriptor<T>*>(put(new ParamDescriptor<T>(this, name, property)));
     }
 
     template <typename T>
-    ParamDescriptor<T>* Add(StringRef name, T& property, const T& max_value)
+    ParamDescriptor<T>* Add(U16StringRef name, T& property, const T& max_value)
     {
         return T2T_S<ParamDescriptor<T>*>(put(new ParamDescriptor<T>(this, name, property, max_value)));
     }
 
     template <typename T>
-    ParamDescriptor<T>* Add(StringRef name, T& property, const T& min_value, const T& max_value)
+    ParamDescriptor<T>* Add(U16StringRef name, T& property, const T& min_value, const T& max_value)
     {
         return T2T_S<ParamDescriptor<T>*>(put(new ParamDescriptor<T>(this, name, property, min_value, max_value)));
     }
@@ -129,8 +129,8 @@ class ParamDescriptor: public AbstractParamDescriptor {
 
     ParametersSet*      cfg_;
 
-    String              name_;
-    String              description_;
+    U16String           name_;
+    U16String           description_;
 
     T&                  value_;
 
@@ -145,7 +145,7 @@ class ParamDescriptor: public AbstractParamDescriptor {
 
 public:
 
-    ParamDescriptor(ParametersSet* cfg, String name, T& value):
+    ParamDescriptor(ParametersSet* cfg, U16String name, T& value):
         cfg_(cfg),
         name_(name),
         value_(value),
@@ -154,7 +154,7 @@ public:
         state_parameter_(false)
     {}
 
-    ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& max_value):
+    ParamDescriptor(ParametersSet* cfg, U16String name, T& value, const T& max_value):
         cfg_(cfg),
         name_(name),
         value_(value),
@@ -165,7 +165,7 @@ public:
         state_parameter_(false)
     {}
 
-    ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& min_value, const T& max_value):
+    ParamDescriptor(ParametersSet* cfg, U16String name, T& value, const T& min_value, const T& max_value):
         cfg_(cfg),
         name_(name),
         value_(value),
@@ -187,7 +187,7 @@ public:
         {
             if (!(value_ >= min_value_ && value_ <= max_value_))
             {
-                throw Exception(MEMORIA_SOURCE, SBuf()<<"Range checking failure for the property: "<<prefix()<<"."<<name_);
+                throw Exception(MEMORIA_SOURCE, SBuf() << "Range checking failure for the property: " << prefix() << "." << name_);
             }
         }
     }
@@ -232,19 +232,19 @@ public:
         return this;
     }
 
-    virtual StringRef getName() const
+    virtual U16StringRef getName() const
     {
         return name_;
     }
 
-    virtual String getPropertyName() const
+    virtual U16String getPropertyName() const
     {
-        if (isEmpty(prefix()))
+        if (prefix().is_empty())
         {
             return name_;
         }
         else {
-            return prefix()+"."+name_;
+            return prefix() + u"." + name_;
         }
     }
 
@@ -252,28 +252,28 @@ public:
     {
         if (dump_prefix)
         {
-            if (!isEmpty(description_))
+            if (!description_.is_empty())
             {
-                os<<"#"<<description_<<endl;
+                os << "#" << description_.to_u8() << endl;
             }
 
             if (ranges_specified_)
             {
-                os<<"#";
-                os<<"Range from: "<<min_value_<<" to "<<max_value_;
-                os<<endl;
+                os << "#";
+                os << "Range from: " << min_value_ << " to " << max_value_;
+                os << endl;
             }
 
-            os<<getPropertyName()<<" = "<<value_<<endl;
+            os << getPropertyName() << " = " << value_ << endl;
 
-            os<<endl;
+            os << endl;
         }
         else {
-            os<<getName()<<" = "<<value_<<endl;
+            os << getName() << " = " << value_ << endl;
         }
     }
 
-    String prefix() const
+    U16String prefix() const
     {
         return cfg_->getFullName();
     }
@@ -281,13 +281,13 @@ public:
 protected:
     void setValue(Configurator* cfg, T& value)
     {
-        StringRef prefix1 = prefix();
+        U16StringRef prefix1 = prefix();
 
         auto pos = prefix1.length();
 
         while (true)
         {
-            String name = prefix().substr(0, pos) + "." + name_;
+            U16String name = prefix().substring(0, pos) + u"." + name_;
 
             if (cfg->IsPropertyDefined(name))
             {
@@ -295,9 +295,9 @@ protected:
                 return;
             }
             else {
-                pos = prefix().find_last_of(".", pos - 1);
+                pos = prefix().find_last_of(u".", pos - 1);
 
-                if (pos == String::npos)
+                if (pos == U16String::NPOS)
                 {
                     break;
                 }
@@ -328,8 +328,8 @@ class ParamDescriptor<T[Size]>: public AbstractParamDescriptor {
 
     ParametersSet*      cfg_;
 
-    String              name_;
-    String              description_;
+    U16String           name_;
+    U16String           description_;
 
     T*                  value_;
 
@@ -338,7 +338,7 @@ class ParamDescriptor<T[Size]>: public AbstractParamDescriptor {
 
 public:
 
-    ParamDescriptor(ParametersSet* cfg, String name, T* value):
+    ParamDescriptor(ParametersSet* cfg, U16String name, T* value):
         cfg_(cfg),
         name_(name),
         value_(value),
@@ -356,7 +356,7 @@ public:
         setValue(cfg, value_);
     }
 
-    MyType* setDescription(StringRef descr)
+    MyType* setDescription(U16StringRef descr)
     {
         description_ = descr;
         return this;
@@ -384,19 +384,19 @@ public:
         return this;
     }
 
-    virtual StringRef getName() const
+    virtual U16StringRef getName() const
     {
         return name_;
     }
 
-    virtual String getPropertyName() const
+    virtual U16String getPropertyName() const
     {
-        if (isEmpty(prefix()))
+        if (prefix().is_empty())
         {
             return name_;
         }
         else {
-            return prefix()+"."+name_;
+            return prefix() + u"." + name_;
         }
     }
 
@@ -404,21 +404,21 @@ public:
     {
         if (dump_prefix)
         {
-            if (!isEmpty(description_))
+            if (!description_.is_empty())
             {
-                os<<"#"<<description_<<endl;
+                os << "#" << description_ << endl;
             }
 
-            os<<getPropertyName()<<" = "<<valueToString()<<endl;
+            os << getPropertyName() << " = " << valueToString() << endl;
 
-            os<<endl;
+            os << endl;
         }
         else {
-            os<<getName()<<" = "<<valueToString()<<endl;
+            os << getName() << " = " << valueToString() << endl;
         }
     }
 
-    String prefix() const
+    U16String prefix() const
     {
         return cfg_->getFullName();
     }
@@ -426,13 +426,13 @@ public:
 protected:
     void setValue(Configurator* cfg, T* value)
     {
-        StringRef prefix1 = prefix();
+        U16StringRef prefix1 = prefix();
 
         auto pos = prefix1.length();
 
         while (true)
         {
-            String name = prefix().substr(0, pos) + "." + name_;
+            U16String name = prefix().substr(0, pos) + u"." + name_;
 
             if (cfg->IsPropertyDefined(name))
             {
@@ -440,9 +440,9 @@ protected:
                 return;
             }
             else {
-                pos = prefix().find_last_of(".", pos - 1);
+                pos = prefix().find_last_of(u".", pos - 1);
 
-                if (pos == String::npos)
+                if (pos == U16String::NPOS)
                 {
                     break;
                 }
@@ -456,25 +456,25 @@ protected:
         }
         else if (mandatory_)
         {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name_<<" is not defined in the program configuration");
+            throw Exception(MEMORIA_SOURCE, SBuf() << "Property " << name_ << " is not defined in the program configuration");
         }
     }
 
-    virtual String valueToString() const
+    virtual U16String valueToString() const
     {
         stringstream str;
 
         for (size_t c = 0; c < Size; c++)
         {
-            str<<value_[c];
+            str << value_[c];
 
             if (c < Size - 1)
             {
-                str<<", ";
+                str << ", ";
             }
         }
 
-        return str.str();
+        return U8String(str.str()).to_u16();
     }
 };
 
@@ -491,8 +491,8 @@ class ParamDescriptor<core::StaticVector<T, Size>>: public AbstractParamDescript
 
     ParametersSet*      cfg_;
 
-    String              name_;
-    String              description_;
+    U16String           name_;
+    U16String           description_;
 
     ValueType&          value_;
 
@@ -501,7 +501,7 @@ class ParamDescriptor<core::StaticVector<T, Size>>: public AbstractParamDescript
 
 public:
 
-    ParamDescriptor(ParametersSet* cfg, String name, ValueType& value):
+    ParamDescriptor(ParametersSet* cfg, U16String name, ValueType& value):
         cfg_(cfg),
         name_(name),
         value_(value),
@@ -519,7 +519,7 @@ public:
         setValue(cfg, value_);
     }
 
-    MyType* setDescription(StringRef descr)
+    MyType* setDescription(U16StringRef descr)
     {
         description_ = descr;
         return this;
@@ -547,19 +547,19 @@ public:
         return this;
     }
 
-    virtual StringRef getName() const
+    virtual U16StringRef getName() const
     {
         return name_;
     }
 
-    virtual String getPropertyName() const
+    virtual U16String getPropertyName() const
     {
-        if (isEmpty(prefix()))
+        if (prefix().is_empty())
         {
             return name_;
         }
         else {
-            return prefix()+"."+name_;
+            return prefix() + u"." + name_;
         }
     }
 
@@ -581,7 +581,7 @@ public:
         }
     }
 
-    String prefix() const
+    U16String prefix() const
     {
         return cfg_->getFullName();
     }
@@ -589,13 +589,13 @@ public:
 protected:
     void setValue(Configurator* cfg, ValueType& value)
     {
-        StringRef prefix1 = prefix();
+        U16StringRef prefix1 = prefix();
 
         auto pos = prefix1.length();
 
         while (true)
         {
-            String name = prefix().substr(0, pos) + "." + name_;
+            U16String name = prefix().substr(0, pos) + u"." + name_;
 
             if (cfg->IsPropertyDefined(name))
             {
@@ -603,9 +603,9 @@ protected:
                 return;
             }
             else {
-                pos = prefix().find_last_of(".", pos - 1);
+                pos = prefix().find_last_of(u".", pos - 1);
 
-                if (pos == String::npos)
+                if (pos == U16String::NPOS)
                 {
                     break;
                 }
@@ -619,17 +619,17 @@ protected:
         }
         else if (mandatory_)
         {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name_<<" is not defined in the program configuration");
+            throw Exception(MEMORIA_SOURCE, SBuf() << "Property " << name_ << " is not defined in the program configuration");
         }
     }
 
-    virtual String valueToString() const
+    virtual U16String valueToString() const
     {
         stringstream str;
 
         str<<value_;
 
-        return str.str();
+        return U8String(str.str()).to_u16();
     }
 };
 

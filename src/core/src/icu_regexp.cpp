@@ -187,20 +187,55 @@ uint32_t ICURegexPattern::flags() const {
     return pattern_->flags();
 }
 
-ICURegexMatcher ICURegexPattern::matcher(const U16String& input) {
+ICURegexMatcher ICURegexPattern::matcher(U16String input) {
     return pattern_->matcher(input);
 }
 
-ICURegexMatcher ICURegexPattern::matcher(const CU16ProviderPtr& input) {
+ICURegexMatcher ICURegexPattern::matcher(const CU16ProviderPtr& input, int32_t buffer_size) {
+    return pattern_->matcher(input, buffer_size);
+}
+
+
+ICURegexMatcher ICURegexPattern::matcher(const char16_t* input) {
     return pattern_->matcher(input);
 }
 
-ICURegexPattern ICURegexPattern::compile(const U16String& pattern, uint32_t flags) {
+ICURegexMatcher ICURegexPattern::matcher(const char16_t* input, int32_t length) {
+    return pattern_->matcher(input, length);
+}
+
+ICURegexMatcher ICURegexPattern::matcher(const char* input) {
+    return pattern_->matcher(input);
+}
+
+ICURegexMatcher ICURegexPattern::matcher(const char* input, int32_t length) {
+    return pattern_->matcher(input, length);
+}
+
+
+
+ICURegexPattern ICURegexPattern::compile(U16String pattern, uint32_t flags) {
     return _::ICURegexPatternImpl::compile(pattern, flags);
 }
 
+ICURegexPattern ICURegexPattern::compile(const CU16ProviderPtr& pattern, uint32_t flags, int32_t buffer_size) {
+    return _::ICURegexPatternImpl::compile(pattern, flags, buffer_size);
+}
 
 
+std::vector<U16String> ICURegexPattern::split(const U16String& str) {
+    return pattern_->split(str);
+}
+
+void ICURegexPattern::split(const CU16ProviderPtr& text, const ICURangeConsumerFn& consumer)
+{
+    return pattern_->split(text, consumer);
+}
+
+void ICURegexPattern::split(const U16String& text, const ICURangeConsumerFn& consumer)
+{
+    return pattern_->split(text, consumer);
+}
 
 
 

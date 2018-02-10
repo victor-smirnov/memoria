@@ -27,9 +27,9 @@ namespace v1 {
 
 class Platform {
 public:
-    static String getLineSeparator();
-    static String getPathSeparator();
-    static String getFilePathSeparator();
+    static U16String getLineSeparator();
+    static U16String getPathSeparator();
+    static U16String getFilePathSeparator();
 };
 
 }}

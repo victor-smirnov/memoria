@@ -19,6 +19,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
+#include <memoria/v1/core/tools/strings/strings.hpp>
 
 #include <memoria/v1/core/exceptions/bounds.hpp>
 

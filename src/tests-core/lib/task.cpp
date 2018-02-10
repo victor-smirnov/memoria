@@ -44,14 +44,16 @@ void Task::BuildResources()
 {
     bool own_folder = this->own_folder;
 
-    if (!bf::exists(output_folder_))
+    String output_folder = output_folder_.to_u8().to_std_string();
+
+    if (!bf::exists(output_folder))
     {
-        bf::create_directories(output_folder_);
+        bf::create_directories(output_folder);
     }
 
-    String out_file_name = output_folder_
-                           + Platform::getFilePathSeparator()
-                           + (own_folder ? "" : getName() + ".")
+    String out_file_name = output_folder
+                           + Platform::getFilePathSeparator().to_u8().to_std_string()
+                           + (own_folder ? "" : getName().to_u8().to_std_string() + ".")
                            + "output.txt";
 
     out_ = new fstream();
@@ -79,33 +81,33 @@ int32_t Task::Run()
 
         int64_t t1 = getTimeInMillis();
 
-        (*out_)<<"PASSED in "<<FormatTime(t1 - t0)<<endl;
+        (*out_) << "PASSED in " << FormatTime(t1 - t0) << endl;
 
         result = false;
     }
     catch (const std::exception& e)
     {
-        (*out_)<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
+        (*out_) << "FAILED: STL exception: " << e.what() << " " << endl;
 
-        String path = getTaskParametersFilePath();
+        U16String path = getTaskParametersFilePath();
 
         StoreProperties(path);
 
         result = true;
     }
     catch (const Exception& e) {
-        (*out_)<<"FAILED: "<<e.source()<<": "<<e<<endl;
+        (*out_) << "FAILED: " << e.source() << ": " << e << endl;
 
-        String path = getTaskParametersFilePath();
+        U16String path = getTaskParametersFilePath();
 
         StoreProperties(path);
 
         result = true;
     }
     catch (const MemoriaThrowable& e) {
-        (*out_)<<"FAILED: "<<e.source()<<": "<<e<<endl;
+        (*out_) << "FAILED: " << e.source() << ": " << e << endl;
 
-        String path = getTaskParametersFilePath();
+        U16String path = getTaskParametersFilePath();
 
         StoreProperties(path);
 
@@ -113,9 +115,9 @@ int32_t Task::Run()
     }
     catch (...)
     {
-        (*out_)<<"FAILED: Unknown Exception"<<endl;
+        (*out_) << "FAILED: Unknown Exception" << endl;
 
-        String path = getTaskParametersFilePath();
+        U16String path = getTaskParametersFilePath();
 
         StoreProperties(path);
 
@@ -146,7 +148,7 @@ void TaskGroup::Run(ostream& out)
     {
         if (t->IsEnabled())
         {
-            String folder;
+            U16String folder;
 
             if (t->own_folder)
             {
@@ -168,30 +170,30 @@ void TaskGroup::Run(ostream& out)
         }
     }
 
-    cout<<getIteration()<<") "<<getName();
+    cout << getIteration() << ") " << getName();
 
     if (failures_.size() > 0)
     {
-        cout<<Term::red_s()<<" FAILED: "<<Term::red_e();
-        out<<"FAILED: ";
+        cout << Term::red_s() << " FAILED: " << Term::red_e();
+        out << "FAILED: ";
 
         for (uint32_t c = 0; c < failures_.size(); c++)
         {
-            out<<failures_[c].task_name;
-            cout<<failures_[c].task_name;
+            out << failures_[c].task_name;
+            cout << failures_[c].task_name;
 
             if (c < failures_.size() - 1) {
-                out<<", ";
-                cout<<", ";
+                out << ", ";
+                cout << ", ";
             }
         }
     }
     else {
-        cout<<Term::green_s()<<" PASSED"<<Term::green_e();
+        cout << Term::green_s() << " PASSED" << Term::green_e();
     }
 
-    out<<endl;
-    cout<<endl;
+    out << endl;
+    cout << endl;
 }
 
 void TaskGroup::registerTask(Task* task)
@@ -200,7 +202,7 @@ void TaskGroup::registerTask(Task* task)
     {
         if (t->getName() == task->getName())
         {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Task "<<task->getName()<<" is already registered");
+            throw Exception(MEMORIA_SOURCE, SBuf() << "Task " << task->getName() << " is already registered");
         }
     }
 
@@ -230,12 +232,12 @@ void TaskGroup::releaseResources()
 
 void TaskGroup::dumpProperties(std::ostream& os, bool dump_prefix, bool dump_all) const
 {
-    os<<"# ============== "<<this->getFullName()<<" ===================="<<endl<<endl;
+    os << "# ============== " << this->getFullName() << " ====================" << endl << endl;
     for (auto t: tasks_)
     {
         t->dumpProperties(os, dump_prefix, dump_all);
     }
-    os<<endl<<endl;
+    os << endl << endl;
 }
 
 bool TaskGroup::IsEnabled() const
@@ -264,26 +266,26 @@ int32_t GroupRunner::Run()
 
     for (int32_t c = 1; c <= run_count; c++)
     {
-        String task_folder;
+        U16String task_folder;
         if (run_count > 1)
         {
-            String folder_name = "run-" + toString(c);
+            U16String folder_name = U16String("run-" + toString(c));
             task_folder = output_folder_ + Platform::getFilePathSeparator() + folder_name;
         }
         else {
             task_folder = output_folder_;
         }
 
-        if (!bf::exists(task_folder))
+        if (!bf::exists(task_folder.to_u8().to_std_string()))
         {
-            bf::create_directories(task_folder);
+            bf::create_directories(task_folder.to_u8().to_std_string());
         }
 
         for (auto t: tasks_)
         {
             if (t->IsEnabled())
             {
-                String folder;
+                U16String folder;
 
                 if (t->own_folder)
                 {
@@ -314,10 +316,10 @@ int32_t GroupRunner::Run()
 
     if (failures_.size() > 0)
     {
-        cout<<Term::red_s()<<"FAILURES: "<<Term::red_e()<<endl;
-        out<<"FAILURES: "<<endl;
+        cout << Term::red_s() << "FAILURES: " << Term::red_e() << endl;
+        out << "FAILURES: " << endl;
 
-        map<String, vector<int32_t>> failures;
+        map<U16String, vector<int32_t>> failures;
 
         for (FailureDescriptor descr: failures_)
         {
@@ -332,21 +334,21 @@ int32_t GroupRunner::Run()
 
             for (uint32_t c = 0; c < numbers.size(); c++)
             {
-                list<<numbers[c];
+                list << numbers[c];
 
                 if (c < numbers.size() - 1)
                 {
-                    list<<", ";
+                    list << ", ";
                 }
             }
 
-            cout<<failure.first<<": "<<list.str()<<endl;
-            out<<failure.first<<": "<<list.str()<<endl;
+            cout << failure.first << ": " << list.str() << endl;
+            out << failure.first << ": " << list.str() << endl;
         }
     }
     else {
-        cout<<Term::green_s()<<"PASSED: ALL"<<Term::green_e()<<endl;
-        out<<"PASSED: ALL"<<endl;
+        cout << Term::green_s() << "PASSED: ALL" << Term::green_e() << endl;
+        out << "PASSED: ALL" << endl;
     }
 
     releaseResources();

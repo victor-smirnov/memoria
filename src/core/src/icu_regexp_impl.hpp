@@ -15,6 +15,7 @@
 
 #include <memoria/v1/core/tools/regexp/icu_regexp.hpp>
 
+
 namespace memoria {
 namespace v1 {
 namespace _ {
@@ -85,7 +86,7 @@ public:
                 delete ut;
             });
 
-            return to_u16string(closeable_ptr, start, start + group_len);
+            return to_u16string(closeable_ptr.get(), start, start + group_len);
         }
         else {
             return U16String();
@@ -111,7 +112,7 @@ public:
                 delete ut;
             });
 
-            return to_u16string(closeable_ptr, start, start + group_len);
+            return to_u16string(closeable_ptr.get(), start, start + group_len);
         }
         else {
             return U16String();
@@ -175,7 +176,7 @@ public:
             delete ut;
         });
 
-        return to_u16string(closeable_ptr);
+        return to_u16string(closeable_ptr.get());
     }
 
     CU16ProviderPtr input_text() const
@@ -193,7 +194,7 @@ public:
             delete ut;
         });
 
-        return wrap_utext(std::move(closeable_ptr));
+        return as_cu16_provider(std::move(closeable_ptr));
     }
 
     void region(int64_t start, int64_t end)
@@ -300,7 +301,7 @@ public:
         return U16String(pattern_->pattern());
     }
 
-    static std::shared_ptr<ICURegexPatternImpl> compile(const U16String &pattern, uint32_t flags)
+    static std::shared_ptr<ICURegexPatternImpl> compile(U16String pattern, uint32_t flags)
     {
         UErrorCode status = U_ZERO_ERROR;
         UParseError pe{};
@@ -314,19 +315,156 @@ public:
         return std::make_shared<_::ICURegexPatternImpl>(std::move(pattern_ptr));
     }
 
-    std::shared_ptr<ICURegexMatcherImpl> matcher(const U16String& text)
+    static std::shared_ptr<ICURegexPatternImpl> compile(const CU16ProviderPtr& pattern, uint32_t flags, int32_t buffer_size)
     {
-        auto utext_ptr = make_utext(text);
-        auto matcher_ptr = with_icu_error([&](UErrorCode* status){
-            return std::unique_ptr<RegexpMatcher>(pattern_->matcher(text.data(), *status));
+        UText ut = UTEXT_INITIALIZER;
+        with_icu_error([&](UErrorCode* status0){
+            utext_open_codepoint_accessor(&ut, pattern, buffer_size, status0);
         });
 
-        return std::shared_ptr<ICURegexMatcherImpl>(matcher_ptr);
+        UErrorCode status = U_ZERO_ERROR;
+        UParseError pe{};
+        auto pattern_ptr = std::unique_ptr<icu::RegexPattern>(
+             icu::RegexPattern::compile(&ut, flags, pe, status)
+        );
+
+        if (U_FAILURE(status)) {
+            ICUParseException::assertOk(to_u16string(&ut), status, pe);
+        }
+
+        return std::make_shared<_::ICURegexPatternImpl>(std::move(pattern_ptr));
     }
 
-    std::shared_ptr<ICURegexMatcherImpl> matcher(const CU16ProviderPtr& text) {
-        return std::shared_ptr<ICURegexMatcherImpl>();
+
+    std::shared_ptr<ICURegexMatcherImpl> matcher(U16String text)
+    {
+        auto utext_ptr = make_utext(std::move(text));
+        auto matcher_ptr = with_icu_error([&](UErrorCode* status){
+            return std::unique_ptr<RegexMatcher>(pattern_->matcher(*status));
+        });
+
+        matcher_ptr->reset(utext_ptr.get());
+
+        return std::make_shared<ICURegexMatcherImpl>(shared_from_this(), std::move(matcher_ptr));
     }
+
+    std::shared_ptr<ICURegexMatcherImpl> matcher(const char16_t* input)
+    {
+        return make_matcher([&](UText* ut, UErrorCode* status){
+             utext_openUChars(ut, castChars(input), -1, status);
+        });
+    }
+
+    std::shared_ptr<ICURegexMatcherImpl> matcher(const char16_t* input, size_t length)
+    {
+        return make_matcher([&](UText* ut, UErrorCode* status){
+             utext_openUChars(ut, castChars(input), length, status);
+        });
+    }
+
+    std::shared_ptr<ICURegexMatcherImpl> matcher(const char* input)
+    {
+        return make_matcher([&](UText* ut, UErrorCode* status){
+            utext_openUTF8(ut, castChars(input), -1, status);
+        });
+    }
+
+    std::shared_ptr<ICURegexMatcherImpl> matcher(const char* input, int32_t length)
+    {
+        return make_matcher([&](UText* ut, UErrorCode* status){
+            utext_openUTF8(ut, castChars(input), length, status);
+        });
+    }
+
+
+    std::shared_ptr<ICURegexMatcherImpl> matcher(const CU16ProviderPtr& text, size_t buffer_size)
+    {
+        return make_matcher([&](UText* ut, UErrorCode* status){
+            utext_open_codepoint_accessor(ut, text, buffer_size, status);
+        });
+    }
+
+
+    std::vector<U16String> split(const U16String& text)
+    {
+        std::vector<U16String> results;
+
+        split(text, [&](const ICUPatternMatch& match) {
+            results.emplace_back(text.substring(match.start(), match.end() - match.start()));
+        });
+
+        return results;
+    }
+
+    void split(const CU16ProviderPtr& text, const ICURangeConsumerFn& consumer)
+    {
+        UText ut = UTEXT_INITIALIZER;
+        with_icu_error([&](UErrorCode* status){
+            utext_open_codepoint_accessor(&ut, text, 512, status);
+        });
+
+        UTextScope s0(&ut);
+        split(&ut, consumer);
+    }
+
+    void split(const U16String& str, const ICURangeConsumerFn& consumer)
+    {
+        UText ut = UTEXT_INITIALIZER;
+        with_icu_error([&](UErrorCode* status){
+            utext_openUChars(&ut, str.data(), str.size(), status);
+        });
+
+        UTextScope s0(&ut);
+        split(&ut, consumer);
+    }
+
+    void split(UText* ut, const ICURangeConsumerFn& consumer)
+    {
+        ICURegexMatcher matcher = create_matcher_ptr(ut);
+
+        int64_t length = utext_nativeLength(ut);
+        int64_t prev_ = 0;
+
+        while (matcher.find())
+        {
+            consumer(ICUPatternMatch(prev_, matcher.start()));
+            prev_ = matcher.end();
+        }
+
+        consumer(ICUPatternMatch(prev_, length));
+    }
+
+private:
+    template <typename UTextOpenFn>
+    std::shared_ptr<ICURegexMatcherImpl> make_matcher(UTextOpenFn&& fn)
+    {
+        UText ut = UTEXT_INITIALIZER;
+        with_icu_error([&](UErrorCode* status){
+            return fn(&ut, status);
+        });
+
+        auto matcher_ptr = with_icu_error([&](UErrorCode* status){
+            return std::unique_ptr<RegexMatcher>(pattern_->matcher(*status));
+        });
+
+        matcher_ptr->reset(&ut);
+
+        return std::make_shared<ICURegexMatcherImpl>(shared_from_this(), std::move(matcher_ptr));
+    }
+
+
+
+    std::shared_ptr<ICURegexMatcherImpl> create_matcher_ptr(UText* ut)
+    {
+        auto matcher_ptr = with_icu_error([&](UErrorCode* status){
+            return std::unique_ptr<RegexMatcher>(pattern_->matcher(*status));
+        });
+
+        matcher_ptr->reset(ut);
+
+        return std::make_shared<ICURegexMatcherImpl>(shared_from_this(), std::move(matcher_ptr));
+    }
+
 };
 }
 

@@ -21,6 +21,7 @@
 #include <unicode/regex.h>
 
 #include <memory>
+#include <functional>
 
 
 namespace memoria {
@@ -131,9 +132,27 @@ public:
 };
 
 
+class ICUPatternMatch {
+    int64_t start_;
+    int64_t end_;
+public:
+    ICUPatternMatch(): start_(), end_() {}
+    ICUPatternMatch(int64_t start, int64_t end):
+        start_(start), end_(end)
+    {}
+
+    int64_t start() const {return start_;}
+    int64_t end() const {return end_;}
+};
+
+using ICURangeConsumerFn = std::function<void (const ICUPatternMatch&)>;
+
+
 class ICURegexPattern {
     std::shared_ptr<_::ICURegexPatternImpl> pattern_;
 public:
+
+
     ICURegexPattern() {}
     ICURegexPattern(std::shared_ptr<_::ICURegexPatternImpl> pattern): pattern_(std::move(pattern)) {}
 
@@ -142,10 +161,20 @@ public:
     U16String pattern() const;
     uint32_t flags() const;
 
-    ICURegexMatcher matcher(const U16String& input);
-    ICURegexMatcher matcher(const CU16ProviderPtr& input);
+    ICURegexMatcher matcher(U16String input);
+    ICURegexMatcher matcher(const char16_t* input);
+    ICURegexMatcher matcher(const char16_t* input, int32_t length);
+    ICURegexMatcher matcher(const char* input);
+    ICURegexMatcher matcher(const char* input, int32_t length);
+    ICURegexMatcher matcher(const CU16ProviderPtr& input, int32_t buffer_size = 512);
 
-    static ICURegexPattern compile(const U16String& pattern, uint32_t flags);
+    std::vector<U16String> split(const U16String& str);
+    void split(const CU16ProviderPtr& text, const ICURangeConsumerFn& consumer);
+    void split(const U16String& text, const ICURangeConsumerFn& consumer);
+
+
+    static ICURegexPattern compile(U16String pattern, uint32_t flags = 0);
+    static ICURegexPattern compile(const CU16ProviderPtr& pattern, uint32_t flags = 0, int32_t buffer_size = 512);
 };
 
 

@@ -35,7 +35,7 @@ class PackedStringCodecTest: public PackedCodecsTestBase<String> {
 
 public:
 
-    PackedStringCodecTest(StringRef name): Base(name)
+    PackedStringCodecTest(U16StringRef name): Base(name)
     {
         MEMORIA_ADD_TEST(testShortStrings);
         MEMORIA_ADD_TEST(testLongStrings);

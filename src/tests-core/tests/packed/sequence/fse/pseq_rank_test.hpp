@@ -87,7 +87,7 @@ class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
 
 public:
 
-    PackedSearchableSequenceRankTest(StringRef name): Base(name)
+    PackedSearchableSequenceRankTest(U16StringRef name): Base(name)
     {
         this->size_ = 8192;
 

@@ -90,7 +90,7 @@ int main(int argc, const char** argv, const char** envp)
         if (cmd_line.IsHelp())
         {
             cout << endl;
-            cout << "Description: "<<DESCRIPTION << endl;
+            cout << "Description: " << DESCRIPTION << endl;
             cout << "Usage: " << cmd_line.getImageName() << " [options]" << endl;
             cout << "    --help                           Display this help and exit" << endl;
             cout << "    --count N                        Run all tests N times" << endl;
@@ -119,26 +119,26 @@ int main(int argc, const char** argv, const char** envp)
         }
         else {
             if (seed >= 0) {
-                cout<<"Seed: "<<seed<<endl;
+                cout << "Seed: " << seed << endl;
             }
 
-            cout<<"Coverage: "<<cmd_line.getConfigurator().getValue<String>("coverage", "small")<<", Size: "<<cmd_line.getConfigurator().getValue<String>("coverage_size", "1")<<endl;
+            cout << "Coverage: " << cmd_line.getConfigurator().getValue<U16String>(u"coverage", u"small") << ", Size: " << cmd_line.getConfigurator().getValue<String>("coverage_size", "1")<<endl;
 
-            String default_output_folder = cmd_line.getImageName()+".out";
+            U16String default_output_folder = cmd_line.getImageName() + u".out";
 
-            String output_folder = (cmd_line.getOutFolder() != NULL) ? cmd_line.getOutFolder() : default_output_folder;
+            U16String output_folder = (!cmd_line.getOutFolder().is_empty()) ? cmd_line.getOutFolder() : default_output_folder;
 
             runner.setOutput(output_folder);
 
             int32_t failed = runner.Run();
-            cout<<"Done..."<<endl;
+            cout << "Done..." << endl;
 
             return failed;
         }
     }
     catch (MemoriaThrowable& e)
     {
-        cerr<<e.source()<<" ERROR: "<<e<<endl;
+        cerr << e.source() << " ERROR: " << e << endl;
     }
 
     return 1;

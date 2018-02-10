@@ -54,7 +54,7 @@ class PackedRLESearchableSequenceRankTest: public PackedRLESequenceTestBase<Symb
 
 public:
 
-    PackedRLESearchableSequenceRankTest(StringRef name): Base(name)
+    PackedRLESearchableSequenceRankTest(U16StringRef name): Base(name)
     {
         this->size_ = 128;
 

@@ -86,7 +86,7 @@ class PackedSearchableSequenceSelectTest: public PackedSearchableSequenceTestBas
 
 public:
 
-    PackedSearchableSequenceSelectTest(StringRef name): Base(name)
+    PackedSearchableSequenceSelectTest(U16StringRef name): Base(name)
     {
         this->size_ = 8192;
 

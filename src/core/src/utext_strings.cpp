@@ -19,7 +19,7 @@
 
 
 #include <unicode/utext.h>
-
+#include <cstring>
 
 
 #define I32_FLAG(bitIndex) ((int32_t)1<<(bitIndex))
@@ -254,9 +254,9 @@ static void extract_data_from_ut(UText* ut, int64_t start, int64_t limit, char16
     });
 }
 
-U16String to_u16string(const UTextUniquePtr& utext)
+U16String to_u16string(UText* utext)
 {
-    int64_t native_length = utext_nativeLength(utext.get());
+    int64_t native_length = utext_nativeLength(utext);
     int64_t length{};
 
     if (!utext->pFuncs->mapNativeIndexToUTF16)
@@ -264,22 +264,22 @@ U16String to_u16string(const UTextUniquePtr& utext)
         length = native_length;
     }
     else {
-        utext->pFuncs->access(utext.get(), native_length, true);
+        utext->pFuncs->access(utext, native_length, true);
 
-        length = utext->pFuncs->mapOffsetToNative(utext.get());
+        length = utext->pFuncs->mapOffsetToNative(utext);
     }
 
     U16String str(length, u'\u0000');
 
-    extract_data_from_ut(utext.get(), 0, native_length, str.data(), length);
+    extract_data_from_ut(utext, 0, native_length, str.data(), length);
 
     return str;
 }
 
 
-U16String to_u16string(const UTextUniquePtr& utext, int64_t start, int64_t length)
+U16String to_u16string(UText* utext, int64_t start, int64_t length)
 {
-    int64_t native_length = utext_nativeLength(utext.get());
+    int64_t native_length = utext_nativeLength(utext);
 
     int64_t cu16_start{};
     int64_t cu16_limit{};
@@ -292,11 +292,11 @@ U16String to_u16string(const UTextUniquePtr& utext, int64_t start, int64_t lengt
         // The string is within chunkContents
         if (start >= utext->chunkNativeStart && limit <= utext->chunkNativeLimit)
         {
-            int32_t start_chunk_offset = get_chunk_index_for(utext.get(), start);
+            int32_t start_chunk_offset = get_chunk_index_for(utext, start);
             U16_SET_CP_START(utext->chunkContents, 0, start_chunk_offset);
 
 
-            int32_t limit_chunk_offset = get_chunk_index_for(utext.get(), limit);
+            int32_t limit_chunk_offset = get_chunk_index_for(utext, limit);
             if (limit_chunk_offset < utext->chunkLength - 1)
             {
                 U16_SET_CP_START(utext->chunkContents, 0, start_chunk_offset);
@@ -308,21 +308,21 @@ U16String to_u16string(const UTextUniquePtr& utext, int64_t start, int64_t lengt
         else {
             if (!utext->pFuncs->mapNativeIndexToUTF16)
             {
-                utext->pFuncs->access(utext.get(), start, false);
+                utext->pFuncs->access(utext, start, false);
                 cu16_start = utext->chunkNativeStart + utext->chunkOffset;
 
-                utext->pFuncs->access(utext.get(), limit, false);
+                utext->pFuncs->access(utext, limit, false);
                 cu16_limit = limit;
             }
             else {
-                utext->pFuncs->access(utext.get(), start, false);
-                cu16_limit = utext->pFuncs->mapOffsetToNative(utext.get());
+                utext->pFuncs->access(utext, start, false);
+                cu16_limit = utext->pFuncs->mapOffsetToNative(utext);
             }
 
             int64_t cu16_length = cu16_limit - cu16_start;
             U16String str(cu16_length, u'\u0000');
 
-            extract_data_from_ut(utext.get(), cu16_start, cu16_limit, str.data(), cu16_length);
+            extract_data_from_ut(utext, cu16_start, cu16_limit, str.data(), cu16_length);
 
             return str;
         }
@@ -396,16 +396,76 @@ public:
             delete ut;
         });
 
-        return wrap_utext(std::move(clone_ptr));
+        return as_cu16_provider(std::move(clone_ptr));
     }
 };
 
 
-CU16ProviderPtr wrap_utext(UTextUniquePtr&& utext_ptr)
+CU16ProviderPtr as_cu16_provider(UTextUniquePtr&& utext_ptr)
 {
     return std::static_pointer_cast<ICodeUnit16Provider>(std::make_shared<UTextCU16Provider>(std::move(utext_ptr)));
 }
 
+
+class U16StringCU16Provider: public ICodeUnit16Provider {
+    std::shared_ptr<U16String> str_;
+public:
+    U16StringCU16Provider(U16String&& str): str_(std::make_shared<U16String>(std::move(str)))
+    {}
+
+    virtual int64_t read_to(int64_t position, char16_t* data, size_t size)
+    {
+        int64_t limit = position + (int64_t)size;
+        if (position < 0) {
+            position = 0;
+        }
+
+        if (limit > length()) {
+            limit = length();
+        }
+
+        int64_t length = limit - position;
+
+        if (length > 0) {
+            std::memmove(data, str_->data() + position, length * sizeof(char16_t));
+        }
+
+        return length;
+    }
+
+    virtual int64_t length() const {
+        return str_->size();
+    }
+
+    virtual int64_t align_to_code_unit_start(int64_t position)
+    {
+        if (position < 0) {
+            return 0;
+        }
+        else {
+            int64_t str_length = length();
+
+            if (position < str_length)
+            {
+                U16_SET_CP_START(str_->data(), 0, position);
+                return position;
+            }
+            else {
+                return str_length;
+            }
+        }
+    }
+
+    virtual std::shared_ptr<ICodeUnit16Provider> clone() const
+    {
+        return std::static_pointer_cast<ICodeUnit16Provider>(std::make_shared<U16StringCU16Provider>(*this));
+    }
+};
+
+CU16ProviderPtr as_cu16_provider(U16String&& str)
+{
+    return std::static_pointer_cast<ICodeUnit16Provider>(std::make_shared<U16StringCU16Provider>(std::move(str)));
+}
 
 int64_t get_native_index_for(UText* ut)
 {
@@ -433,7 +493,7 @@ int64_t get_chunk_index_for(UText* ut, int64_t native_index)
 
 int64_t get_u16_index_for(UText* ut, int64_t native_index)
 {
-    return get_u16_index_for(ut, native_index) + ut->chunkNativeStart;
+    return get_chunk_index_for(ut, native_index) + ut->chunkNativeStart;
 }
 
 

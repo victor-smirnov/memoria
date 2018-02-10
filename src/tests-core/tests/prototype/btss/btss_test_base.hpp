@@ -57,7 +57,7 @@ protected:
 
 public:
 
-    BTSSTestBase(StringRef name):
+    BTSSTestBase(U16StringRef name):
         Base(name)
     {}
 

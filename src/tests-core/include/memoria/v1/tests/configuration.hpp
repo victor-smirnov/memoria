@@ -19,7 +19,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/platform.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/strings/strings.hpp>
 
 #include <map>
 #include <set>
@@ -35,8 +35,8 @@ class Configurator;
 class Configurator {
 public:
 
-        typedef std::map<String, String>                StringMapType;
-        typedef std::set<String>                        PropertyListType;
+        typedef std::map<U16String, U16String>             StringMapType;
+        typedef std::set<U16String>                        PropertyListType;
 
         Configurator(Configurator *parent = NULL);
 
@@ -45,34 +45,34 @@ public:
         virtual Configurator* getParent() const;
         virtual void setParent(Configurator* parent);
 
-        virtual void AddProperty(StringRef name, StringRef value);
-        virtual void removeProperty(StringRef name);
+        virtual void AddProperty(U16StringRef name, U16StringRef value);
+        virtual void removeProperty(U16StringRef name);
 
-        virtual bool IsPropertyDefined(StringRef name) const;
-        virtual String getProperty(StringRef name, bool resolve = true) const;
+        virtual bool IsPropertyDefined(U16StringRef name) const;
+        virtual U16String getProperty(U16StringRef name, bool resolve = true) const;
 
         virtual const StringMapType& getThisConfigurationProperties() const;
 
         virtual PropertyListType* getPropertyList() const;
 
-        static Configurator* Parse(StringRef fileName, Configurator* cfg = NULL);
+        static Configurator* Parse(U16StringRef fileName, Configurator* cfg = NULL);
 
         static Configurator* BuildChain(const char** envp, bool read_config_files = true);
 
         template <typename T>
-        T getValue(StringRef name) const
+        T getValue(U16StringRef name) const
         {
             if (this->IsPropertyDefined(name))
             {
                 return FromString<T>::convert(this->getProperty(name));
             }
             else {
-                throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name<<" is not specified");
+                throw Exception(MEMORIA_SOURCE, SBuf() << "Property " << name << " is not specified");
             }
         }
 
         template <typename T>
-        T getValue(StringRef name, const T& default_value) const
+        T getValue(U16StringRef name, const T& default_value) const
         {
             if (this->IsPropertyDefined(name))
             {
@@ -90,15 +90,15 @@ protected:
         static Configurator* BuildPlatformDefaultsConfigurator();
 
         class NameTree {
-                const String* name_;
+                const U16String* name_;
                 NameTree* parent_;
         public:
-                NameTree(const String* name, NameTree* parent = NULL):
+                NameTree(const U16String* name, NameTree* parent = NULL):
                         name_(name),
                         parent_(parent)
                 {}
 
-                bool find(StringRef name) const
+                bool find(U16StringRef name) const
                 {
                     if (name == *name_)
                     {
@@ -115,8 +115,8 @@ protected:
                 }
         };
 
-        virtual String resolve_references(StringRef value, NameTree* names) const;
-        virtual String get_property(StringRef name, NameTree *names, bool resolve) const;
+        virtual U16String resolve_references(U16StringRef value, NameTree* names) const;
+        virtual U16String get_property(U16StringRef name, NameTree *names, bool resolve) const;
 
 private:
         Configurator* parent_;
@@ -124,17 +124,17 @@ private:
 };
 
 class StringList {
-        std::vector<String> list_;
+        std::vector<U16String> list_;
 public:
-        StringList(StringRef list, StringRef separators = ",");
+        StringList(U16StringRef list, U16StringRef separators = u",");
 
         int size() const;
-        StringRef getItem(int32_t size) const;
+        U16StringRef getItem(int32_t size) const;
 };
 
 class PathList: public StringList {
 public:
-        PathList(StringRef list, StringRef separator = Platform::getPathSeparator()): StringList(list, separator) {};
+        PathList(U16StringRef list, U16StringRef separator = Platform::getPathSeparator()): StringList(list, separator) {};
 };
 
 

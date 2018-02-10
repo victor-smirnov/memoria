@@ -65,7 +65,7 @@ class MapRemoveTest: public MapTestBase<MapName> {
 
 public:
 
-    MapRemoveTest(StringRef name): Base(name)
+    MapRemoveTest(U16StringRef name): Base(name)
     {
         Base::size_      = 10000;
         Base::check_step = 1;

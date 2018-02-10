@@ -17,9 +17,10 @@
 #pragma once
 
 
-#include <memoria/v1/core/tools/strings/strings.hpp>
+
 
 #include <sstream>
+#include <string>
 #include <vector>
 
 namespace memoria {
@@ -31,7 +32,10 @@ class SBuf {
 
     std::stringstream buffer_;
 
+    using String = std::string;
+
 public:
+
 
     SBuf() {}
     SBuf(const SBuf& other): buffer_(other.buffer_.str()) {}

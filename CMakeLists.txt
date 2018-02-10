@@ -145,13 +145,14 @@ endif()
 
 set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
 
-
-find_package(ICU)
+find_package(ICU 60.2 COMPONENTS i18n data REQUIRED)
 
 if (ICU_FOUND)
     include_directories(${ICU_INCLUDE_DIRS})
     link_directories(${ICU_LIBRARY_DIRS})
+    set (MEMORIA_LIBS "${MEMORIA_LIBS}" icudata icui18n )
 endif()
+
 
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)

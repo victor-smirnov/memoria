@@ -53,7 +53,7 @@ public:
     using Base::out;
 
 
-    PackedMaxTreeMiscTest(StringRef name): Base(name)
+    PackedMaxTreeMiscTest(U16StringRef name): Base(name)
     {
         this->size_ = 8192;
 

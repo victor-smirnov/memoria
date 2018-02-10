@@ -63,7 +63,7 @@ class PackedRLESearchableSequenceBufferTest: public PackedRLESequenceTestBase<Sy
 
 public:
 
-    PackedRLESearchableSequenceBufferTest(StringRef name): Base(name)
+    PackedRLESearchableSequenceBufferTest(U16StringRef name): Base(name)
     {
         size_ = 300;
 

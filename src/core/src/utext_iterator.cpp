@@ -25,21 +25,9 @@
 
 #include <iostream>
 
-//#if U_DEBUG
-//#   include <assert.h>
-//#   define U_ASSERT(exp) assert(exp)
-//#else
-//#   define U_ASSERT(exp)
-//#endif
-
-#define I32_FLAG(bitIndex) ((int32_t)1<<(bitIndex))
 
 namespace memoria {
 namespace v1 {
-
-
-
-
 
 static int64_t pin_index(int64_t &index, int64_t limit)
 {
@@ -111,8 +99,7 @@ static int64_t codeuint_iterator_access_inbound(UText* ut, int64_t index, int64_
 {
     CU16ProviderPtr& iter = *T2T<CU16ProviderPtr*>(ut->context);
 
-    int64_t buffer_size = ut->c;
-    int64_t chunk_native_start{};
+    int64_t buffer_size = ut->c - 1;
 
     int64_t cp_index = iter->align_to_code_unit_start(index);
 
@@ -135,18 +122,19 @@ static int64_t codeuint_iterator_access_inbound(UText* ut, int64_t index, int64_
         {
             ut->chunkOffset = 0;
             ut->chunkLength = processed;
-            ut->chunkNativeStart = chunk_native_start;
+            ut->chunkNativeStart = cp_index;
             ut->chunkNativeLimit = processed;
+            ut->nativeIndexingLimit = processed;
 
-            if (processed < buffer_size) {
+            if (processed <= buffer_size) {
                 buf[processed] = 0;
             }
 
-            return true;
+            return cp_index;
         }
     }
 
-    return chunk_native_start;
+    return cp_index;
 }
 
 
@@ -171,6 +159,7 @@ codeunit_iterator_text_access_forward(UText *ut, int64_t index)
     ut->chunkLength = 0;
     ut->chunkNativeStart = chunk_native_start;
     ut->chunkNativeLimit = 0;
+    ut->nativeIndexingLimit = 0;
 
     return false;
 }
@@ -196,6 +185,7 @@ codeunit_iterator_text_access_backward(UText *ut, int64_t index)
     ut->chunkLength = 0;
     ut->chunkNativeStart = chunk_native_start;
     ut->chunkNativeLimit = 0;
+    ut->nativeIndexingLimit = 0;
 
     return false;
 }

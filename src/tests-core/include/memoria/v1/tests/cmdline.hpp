@@ -38,34 +38,34 @@ class CmdLine {
     bool            list_;
     bool            dump_;
 
-    String          image_name_;
-    String          cfg_file_name_;
+    U16String       image_name_;
+    U16String       cfg_file_name_;
 
-    String          dump_file_;
+    U16String       dump_file_;
 
     Configurator    cfg_file_;
     Configurator    cfg_cmdline_;
 
     int             operations_;
 
-    String          replay_file_;
+    U16String       replay_file_;
     bool            replay_;
 
-    const char*     out_folder_;
+    U16String       out_folder_;
 
-    int32_t             count_;
+    int32_t         count_;
 
-    String          coverage_;
-    String          coverage_size_;
+    U16String       coverage_;
+    U16String       coverage_size_;
 
-    String          soft_memlimit_;
-    String          hard_memlimit_;
+    U16String       soft_memlimit_;
+    U16String       hard_memlimit_;
 
 public:
 
     enum {NONE = 0, REPLAY = 1};
 
-    CmdLine(int argc, const char** argv, const char** envp, StringRef cfg_file_name, int operations = 0):
+    CmdLine(int argc, const char** argv, const char** envp, U16StringRef cfg_file_name, int operations = 0):
         argc_(argc),
         argv_(argv),
         envp_(envp),
@@ -78,28 +78,27 @@ public:
         cfg_cmdline_(&cfg_file_),
         operations_(operations),
         replay_(false),
-        out_folder_(NULL),
         count_(1)
     {
         Process();
     };
 
-    StringRef getConfigFileName() const
+    U16StringRef getConfigFileName() const
     {
         return cfg_file_name_;
     }
 
-    StringRef getImageName() const
+    U16StringRef getImageName() const
     {
         return image_name_;
     }
 
-    StringRef getDumpFileName() const
+    U16StringRef getDumpFileName() const
     {
         return dump_file_;
     }
 
-    const char* getOutFolder() const
+    U16StringRef& getOutFolder() const
     {
         return out_folder_;
     }
@@ -130,33 +129,33 @@ public:
         return cfg_cmdline_;
     }
 
-    StringRef getReplayFile()
+    U16StringRef getReplayFile()
     {
         return replay_file_;
     }
 
-    StringRef getCoverage() const
+    U16StringRef getCoverage() const
     {
         return coverage_;
     }
 
-    StringRef getCoverageSize() const {
+    U16StringRef getCoverageSize() const {
         return coverage_size_;
     }
 
-    StringRef getSoftMemLimit() const
+    U16StringRef getSoftMemLimit() const
     {
         return soft_memlimit_;
     }
 
-    StringRef getHardMemLimit() const {
+    U16StringRef getHardMemLimit() const {
         return hard_memlimit_;
     }
 
     void Process();
 protected:
-    static String getImagePathPart(const char* str);
-    static String getImageName(const char* str);
+    static U16String getImagePathPart(const char* str);
+    static U16String getImageName(const char* str);
 
     void processTests();
     void processDump();

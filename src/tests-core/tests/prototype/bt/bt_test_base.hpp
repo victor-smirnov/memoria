@@ -57,11 +57,11 @@ protected:
     AllocatorPtr allocator_;
     SnapshotPtr  snapshot_;
 
-    String dump_name_;
+    U16String dump_name_;
 
 public:
 
-    BTTestBase(StringRef name):
+    BTTestBase(U16StringRef name):
         TestTask(name)
     {
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
@@ -187,17 +187,17 @@ public:
             {
                 commit();
 
-                auto file_name_invalid = getAllocatorFileName(".invalid");
+                auto file_name_invalid = getAllocatorFileName(u".invalid");
                 storeAllocator(file_name_invalid);
 
                 drop();
 
-                dump_name_ = getAllocatorFileName(".valid");
+                dump_name_ = getAllocatorFileName(u".valid");
                 storeAllocator(dump_name_);
             }
             else if (snapshot_.is_committed())
             {
-                dump_name_ = getAllocatorFileName(".valid");
+                dump_name_ = getAllocatorFileName(u".valid");
                 storeAllocator(dump_name_);
             }
         }
@@ -206,20 +206,20 @@ public:
         }
     }
 
-    virtual void storeAllocator(String file_name) 
+    virtual void storeAllocator(U16String file_name)
     {   
-        allocator_.store(file_name.c_str());
+        allocator_.store(file_name.to_u8().data());
     }
 
 
-    virtual void loadAllocator(StringRef file_name)
+    virtual void loadAllocator(U16StringRef file_name)
     {
-        allocator_ = Allocator::load(file_name.c_str());
+        allocator_ = Allocator::load(file_name.to_u8().data());
     }
 
     virtual void dumpAllocator()
     {
-        String file_name = getAllocatorFileName("-allocator.dump");
+        U16String file_name = getAllocatorFileName(u"-allocator.dump");
         FSDumpAllocator(allocator_, file_name);
     }
 
@@ -227,7 +227,7 @@ public:
     {
         if (snapshot_)
         {
-            String file_name = getAllocatorFileName("-snapshot.dump");
+            U16String file_name = getAllocatorFileName(u"-snapshot.dump");
             FSDumpAllocator(snapshot_, file_name);
         }
     }
@@ -239,9 +239,9 @@ public:
         v1::check<Allocator>(this->allocator(), msg, source);
     }
 
-    virtual String getAllocatorFileName(StringRef infix = "") const
+    virtual U16String getAllocatorFileName(U16StringRef infix = u"") const
     {
-        return getResourcePath("Allocator" + infix + ".dump");
+        return getResourcePath(U16String(u"Allocator") + infix + u".dump");
     }
 
     bool checkSoftMemLimit()

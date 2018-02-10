@@ -68,7 +68,7 @@ class MapCreateTest: public MapTestBase<MapName> {
 
 public:
 
-    MapCreateTest(StringRef name): Base(name)
+    MapCreateTest(U16StringRef name): Base(name)
     {
         Base::size_         = 10000;
         Base::check_step    = 0;

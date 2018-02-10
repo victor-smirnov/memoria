@@ -35,19 +35,19 @@ namespace bf = boost::filesystem;
     
 using namespace std;
 
-StringList::StringList(StringRef list, StringRef separators)
+StringList::StringList(U16StringRef list, U16StringRef separators)
 {
-    String::size_type pos = 0;
-    while (pos != String::npos && pos < list.length())
+    size_t pos = 0;
+    while (pos != U16String::NPOS && pos < list.length())
     {
-        String::size_type idx = list.find_first_of(separators, pos);
-        if (idx != String::npos)
+        size_t idx = list.find_first_of(separators.data(), pos);
+        if (idx != U16String::NPOS)
         {
-            list_.push_back(trimString(list.substr(pos, idx - pos)));
+            list_.push_back(list.substring(pos, idx - pos).trim());
             pos = idx + 1;
         }
         else {
-            list_.push_back(trimString(list.substr(pos, list.length() - pos)));
+            list_.push_back(list.substring(pos, list.length() - pos).trim());
             pos = String::npos;
         }
     }
@@ -58,7 +58,7 @@ int StringList::size() const
     return list_.size();
 }
 
-StringRef StringList::getItem(int32_t idx) const
+U16StringRef StringList::getItem(int32_t idx) const
 {
     if (idx >=0 && idx < (int32_t)list_.size())
     {
@@ -83,42 +83,42 @@ void Configurator::setParent(Configurator* parent) {
     parent_ = parent;
 }
 
-void Configurator::AddProperty(StringRef name, StringRef value)
+void Configurator::AddProperty(U16StringRef name, U16StringRef value)
 {
     properties_[name] = value;
 }
 
-void Configurator::removeProperty(StringRef name) {
+void Configurator::removeProperty(U16StringRef name) {
     properties_.erase(name);
 }
 
-String Configurator::resolve_references(StringRef value, NameTree* names) const
+U16String Configurator::resolve_references(U16StringRef value, NameTree* names) const
 {
     stringstream buf;
 
     uint32_t pos = 0;
     while (pos < value.length())
     {
-        size_t idx1 = value.find("${", pos);
-        if (idx1 != String::npos)
+        size_t idx1 = value.find(u"${", pos);
+        if (idx1 != U16String::NPOS)
         {
-            buf<<value.substr(pos, idx1 - pos);
-            size_t idx2 = value.find("}", idx1 + 2);
+            buf << value.substring(pos, idx1 - pos);
+            size_t idx2 = value.find(u"}", idx1 + 2);
 
-            if (idx2 != String::npos)
+            if (idx2 != U16String::NPOS)
             {
-                String name = value.substr(idx1 + 2, idx2 - idx1 - 2);
+                U16String name = value.substring(idx1 + 2, idx2 - idx1 - 2);
                 if(!names->find(name))
                 {
                     NameTree names0(&name, names);
                     buf<<this->get_property(name, &names0, true);
                 }
                 else {
-                    throw Exception(MEMORIA_SOURCE, SBuf()<<"Circular property reference: "<<name);
+                    throw Exception(MEMORIA_SOURCE, SBuf() << "Circular property reference: " << name);
                 }
             }
             else {
-                throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid property reference format: "<<value);
+                throw Exception(MEMORIA_SOURCE, SBuf() << "Invalid property reference format: " << value);
             }
             pos = idx2 + 1;
         }
@@ -129,19 +129,19 @@ String Configurator::resolve_references(StringRef value, NameTree* names) const
 
     if (pos < value.length())
     {
-        buf<<value.substr(pos, value.length() - pos);
+        buf<<value.substring(pos, value.length() - pos);
     }
 
-    return buf.str();
+    return U8String(buf.str()).to_u16();
 }
 
-String Configurator::get_property(StringRef name, NameTree* names, bool resolve) const
+U16String Configurator::get_property(U16StringRef name, NameTree* names, bool resolve) const
 {
     auto i = properties_.find(name);
     if (i != properties_.end())
     {
-        StringRef value = i->second;
-        if (value.find("${", 0) != String::npos && resolve)
+        U16StringRef value = i->second;
+        if (value.find(u"${", 0) != U16String::NPOS && resolve)
         {
             return resolve_references(value, names);
         }
@@ -157,7 +157,7 @@ String Configurator::get_property(StringRef name, NameTree* names, bool resolve)
     }
 }
 
-String Configurator::getProperty(StringRef name, bool resolve) const
+U16String Configurator::getProperty(U16StringRef name, bool resolve) const
 {
     NameTree names(&name);
     return get_property(name, &names, resolve);
@@ -165,7 +165,7 @@ String Configurator::getProperty(StringRef name, bool resolve) const
 
 
 
-bool Configurator::IsPropertyDefined(StringRef name) const
+bool Configurator::IsPropertyDefined(U16StringRef name) const
 {
     StringMapType::const_iterator i = properties_.find(name);
     if (i != properties_.end()) {
@@ -203,16 +203,16 @@ Configurator::PropertyListType* Configurator::getPropertyList() const
     return list;
 }
 
-void add_line(Configurator *cfg, StringRef str, String::size_type start, String::size_type end, StringRef sep)
+void add_line(Configurator *cfg, StringRef str, size_t start, size_t end, StringRef sep)
 {
-    typedef String::size_type SizeT;
+    typedef size_t SizeT;
 
-    if (start != String::npos && start < str.length() && str[start] != '#' && !isEmpty(str, start, end, sep))
+    if (start != U16String::NPOS && start < str.length() && str[start] != '#' && !isEmpty(str, start, end, sep))
     {
-        if (end == String::npos) end = str.length();
+        if (end == U16String::NPOS) end = str.length();
 
         SizeT divider = str.find("=", start);
-        if (divider != String::npos)
+        if (divider != U16String::NPOS)
         {
             String name = trimString(str.substr(start, divider - start));
 
@@ -220,16 +220,16 @@ void add_line(Configurator *cfg, StringRef str, String::size_type start, String:
 
             if (divider + 1 < str.length())
             {
-                cfg->AddProperty(name, trimString(str.substr(divider + 1, end - divider - 1) ));
+                cfg->AddProperty(U16String(U8String(name)), U16String(U8String(trimString(str.substr(divider + 1, end - divider - 1)))));
             }
             else {
-                cfg->AddProperty(name, "");
+                cfg->AddProperty(U16String(U8String(name)), u"");
             }
         }
         else {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"There is no '=' in the string '"
-                                                  <<trimString(str.substr(start, end - start))
-                                                  <<"'");
+            throw Exception(MEMORIA_SOURCE, SBuf() << "There is no '=' in the string '"
+                                                   << trimString(str.substr(start, end - start))
+                                                   << "'");
         }
     }
     else {
@@ -239,7 +239,7 @@ void add_line(Configurator *cfg, StringRef str, String::size_type start, String:
 
 
 
-bool get_line(StringRef text, String::size_type pos, String::size_type& nl_start, StringRef sep)
+bool get_line(StringRef text, size_t pos, size_t& nl_start, StringRef sep)
 {
     if (pos < text.length() && pos != String::npos) {
         nl_start = text.find(sep, pos);
@@ -250,24 +250,24 @@ bool get_line(StringRef text, String::size_type pos, String::size_type& nl_start
     }
 }
 
-Configurator* Configurator::Parse(StringRef file_name, Configurator* cfg)
+Configurator* Configurator::Parse(U16StringRef file_name, Configurator* cfg)
 {
     ifstream file;
-    file.open(file_name.c_str());
+    file.open(file_name.to_u8().data());
     if (file.is_open())
     {
         stringbuf buf;
 
         if(cfg == NULL) cfg = new Configurator();
 
-        file>>&buf;
+        file >> &buf;
 
         String text = buf.str();
-        typedef String::size_type SizeT;
+        typedef size_t SizeT;
 
-        String sep = Platform::getLineSeparator();
+        String sep = Platform::getLineSeparator().to_u8().to_std_string();
 
-        SizeT pos = text.find_first_not_of(sep+"\t ");
+        SizeT pos = text.find_first_not_of(sep + "\t ");
 
         if (pos != String::npos)
         {
@@ -353,27 +353,29 @@ Configurator* Configurator::BuildRootConfigurator(const char** envp) {
         //env.NAME => VALUE
         for (; NULL != *envp; envp++)
         {
-            String pair(*envp);
-            size_t idx = pair.find("=", 0);
-            if (idx != String::npos) {
-                String name = "env." + trimString(pair.substr(0, idx));
-                if (idx < pair.length() - 1) {
-                    String value = trimString(pair.substr(idx + 1, pair.length()));
+            U16String pair(*envp);
+            size_t idx = pair.find(u"=", 0);
+            if (idx != U16String::NPOS)
+            {
+                U16String name = U16String(u"env.") + pair.substring(0, idx).trim();
+                if (idx < pair.length() - 1)
+                {
+                    U16String value = pair.substring(idx + 1, pair.length()).trim();
                     cfg->AddProperty(name, value);
                 }
                 else {
-                    cfg->AddProperty(name, "");
+                    cfg->AddProperty(name, u"");
                 }
             }
         }
     }
 
-    cfg->AddProperty("sys.arch.x86_64",             "x86_64");
-    cfg->AddProperty("sys.arch.i386",               "i386");
-    cfg->AddProperty("sys.arch.arm32",              "arm32");
+    cfg->AddProperty(u"sys.arch.x86_64",             u"x86_64");
+    cfg->AddProperty(u"sys.arch.i386",               u"i386");
+    cfg->AddProperty(u"sys.arch.arm32",              u"arm32");
 
-    cfg->AddProperty("memoria.dir",                 "memoria");
-    cfg->AddProperty("memoria.local.dir",           ".${memoria.dir}");
+    cfg->AddProperty(u"memoria.dir",                 u"memoria");
+    cfg->AddProperty(u"memoria.local.dir",           u".${memoria.dir}");
 
     return cfg;
 }
@@ -386,18 +388,18 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
 
     if (read_config_files)
     {
-        PathList list(platform->getProperty("config.search.path"));
+        PathList list(platform->getProperty(u"config.search.path"));
 
         for (int32_t c = 0; c < list.size(); c++)
         {
             try {
-                String dirPath = list.getItem(c);
+                String dirPath = list.getItem(c).to_u8().to_std_string();
                 
                 if (bf::exists(dirPath))
                 {
                     if (!bf::is_directory(dirPath))
                     {
-                        Configurator* cfg = Configurator::Parse(dirPath);
+                        Configurator* cfg = Configurator::Parse(U16String(dirPath));
                         cfg->setParent(platform);
                         platform = cfg;
                     }
@@ -410,7 +412,7 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
                             {
                                 if (isEndsWith(entry.path().string(), ".props"))
                                 {
-                                    cfg = Configurator::Parse(entry.path().string(), cfg);
+                                    cfg = Configurator::Parse(U16String(entry.path().string()), cfg);
                                 }
                             }
                         }

@@ -19,14 +19,15 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/config.hpp>
 
+#include <memoria/v1/core/tools/strings/string.hpp>
+
 #include <string>
 #include <sstream>
 
 namespace memoria {
 namespace v1 {
 
-using String    = std::string;
-using StringRef = const String&;
+
 
 String trimString(StringRef str);
 //String ReplaceFirst(StringRef str, StringRef txt);
@@ -125,6 +126,10 @@ template <typename T> struct FromString;
 
 template <>
 struct FromString<int32_t> {
+    static auto convert(U16StringRef str) {
+        return convert(str.to_u8().to_std_string());
+    }
+
     static int32_t convert(StringRef str)
     {
         return ConvertToLongInt(str);
@@ -133,6 +138,10 @@ struct FromString<int32_t> {
 
 template <>
 struct FromString<int64_t> {
+    static auto convert(U16StringRef str) {
+        return convert(str.to_u8().to_std_string());
+    }
+
     static int64_t convert(StringRef str)
     {
         return ConvertToLongLong(str);
@@ -141,6 +150,10 @@ struct FromString<int64_t> {
 
 template <>
 struct FromString<uint64_t> {
+    static auto convert(U16StringRef str) {
+        return convert(str.to_u8().to_std_string());
+    }
+
     static uint64_t convert(StringRef str)
     {
         return ConvertToULongLong(str);
@@ -151,6 +164,10 @@ struct FromString<uint64_t> {
 
 template <>
 struct FromString<unsigned long> {
+    static auto convert(U16StringRef str) {
+        return convert(str.to_u8().to_std_string());
+    }
+
     static unsigned long convert(StringRef str)
     {
         return ConvertToULongInt(str);
@@ -161,6 +178,10 @@ struct FromString<unsigned long> {
 
 template <>
 struct FromString<double> {
+    static auto convert(U16StringRef str) {
+        return convert(str.to_u8().to_std_string());
+    }
+
     static double convert(StringRef str)
     {
         return ConvertToDouble(str);
@@ -169,6 +190,10 @@ struct FromString<double> {
 
 template <>
 struct FromString<bool> {
+    static bool convert(U16StringRef str) {
+        return convert(str.to_u8().to_std_string());
+    }
+
     static bool convert(StringRef str)
     {
         return ConvertToBool(str);
@@ -181,11 +206,34 @@ struct FromString<String> {
     {
         return str;
     }
+
+    static String convert(U16StringRef str)
+    {
+        return str.to_u8().to_std_string();
+    }
 };
 
+template <>
+struct FromString<U16String> {
+    static U16String convert(U16StringRef str)
+    {
+        return str;
+    }
+
+    static U16String convert(StringRef str)
+    {
+        return U8String(str).to_u16();
+    }
+
+};
 
 template <typename T, size_t Size>
 struct FromString<T[Size]> {
+
+    static void convert(T* values, U16StringRef str) {
+        return convert(values, str.to_u8().to_std_string());
+    }
+
     static void convert(T* values, StringRef str)
     {
         size_t start = 0;

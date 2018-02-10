@@ -43,17 +43,17 @@ public:
     bool    own_folder;
 public:
 
-    TaskParametersSet(StringRef name):
+    TaskParametersSet(U16StringRef name):
         ParametersSet(name),
         enabled(true),
         check_step(100),
         memory_limit(LLONG_MAX),
         own_folder(false)
     {
-        Add("enabled", enabled);
-        Add("check_step", check_step);
-        Add("memory_limit", memory_limit);
-        Add("own_folder", own_folder)->state();
+        Add(u"enabled", enabled);
+        Add(u"check_step", check_step);
+        Add(u"memory_limit", memory_limit);
+        Add(u"own_folder", own_folder)->state();
     }
 
     virtual bool IsEnabled() const
@@ -79,11 +79,11 @@ struct ExampleTaskParams: public TaskParametersSet {
     int32_t     btree_branching_;
     bool    btree_random_airity_;
 
-    ExampleTaskParams(StringRef name): TaskParametersSet(name), size_(1024), btree_branching_(0), btree_random_airity_(true)
+    ExampleTaskParams(U16StringRef name): TaskParametersSet(name), size_(1024), btree_branching_(0), btree_random_airity_(true)
     {
-        Add("size", size_);
-        Add("btree_branching", btree_branching_);
-        Add("btree_random_airity", btree_random_airity_);
+        Add(u"size", size_);
+        Add(u"btree_branching", btree_branching_);
+        Add(u"btree_random_airity", btree_random_airity_);
     }
 };
 
@@ -91,16 +91,16 @@ struct ExampleTaskParams: public TaskParametersSet {
 
 class Task: public TaskParametersSet {
 protected:
-    int32_t                 iteration_;
-    int64_t              duration_;
-    String              output_folder_;
+    int32_t             iteration_;
+    int64_t             duration_;
+    U16String           output_folder_;
 
     fstream*            out_;
 
     int32_t seed_ = -1;
 
 public:
-    Task(StringRef name):
+    Task(U16StringRef name):
         TaskParametersSet(name),
         iteration_(0),
         duration_(0),
@@ -143,30 +143,30 @@ public:
         duration_ = duration;
     }
 
-    String getIterationAsString() const
+    U16String getIterationAsString() const
     {
-        return toString(iteration_);
+        return U16String(toString(iteration_));
     }
 
-    StringRef getOutputFolder() const
+    U16StringRef getOutputFolder() const
     {
         return output_folder_;
     }
 
-    void setOutputFolder(StringRef folder)
+    void setOutputFolder(U16StringRef folder)
     {
         output_folder_ = folder;
     }
 
-    String getResourcePath(StringRef name) const
+    U16String getResourcePath(U16StringRef name) const
     {
         return output_folder_ + Platform::getFilePathSeparator() + name;
     }
 
-    bool IsResourceExists(StringRef name) const
+    bool IsResourceExists(U16StringRef name) const
     {
-        String path = getResourcePath(name);
-        return boost::filesystem::exists(path);
+        U16String path = getResourcePath(name);
+        return boost::filesystem::exists(path.to_u8().to_std_string());
     }
 
     virtual void BuildResources();
@@ -189,11 +189,11 @@ public:
 
     virtual void Configure(Configurator* cfg);
 
-    virtual String getTaskPropertiesFileName() const {
-        return getName()+".properties";
+    virtual U16String getTaskPropertiesFileName() const {
+        return getName() + u".properties";
     }
 
-    virtual String getTaskParametersFilePath() {
+    virtual U16String getTaskParametersFilePath() {
         return getOutputFolder() + Platform::getFilePathSeparator() + getTaskPropertiesFileName();
     }
 
@@ -203,12 +203,12 @@ public:
     virtual void debug2() {}
     virtual void debug3() {}
 
-    virtual void StoreProperties(StringRef file_name)
+    virtual void StoreProperties(U16StringRef file_name)
     {
         fstream file;
-        file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
+        file.open(file_name.to_u8().data(), fstream::out | fstream::trunc | fstream::trunc);
 
-        file<<"task = "<<this->getFullName()<<endl;
+        file << "task = " << this->getFullName() << endl;
 
         storeAdditionalProperties(file);
 
@@ -217,13 +217,13 @@ public:
         file.close();
     }
 
-    virtual void LoadProperties(StringRef file_name)
+    virtual void LoadProperties(U16StringRef file_name)
     {
         fstream file;
-        file.open(file_name.c_str(), fstream::in | fstream::trunc | fstream::trunc);
+        file.open(file_name.to_u8().data(), fstream::in | fstream::trunc | fstream::trunc);
 
         Configurator cfg;
-        Configurator::Parse(file_name.c_str(), &cfg);
+        Configurator::Parse(file_name.to_u8().data(), &cfg);
 
         this->Process(&cfg);
 
@@ -247,10 +247,10 @@ protected:
 
     struct FailureDescriptor {
         int32_t run_number;
-        String task_name;
+        U16String task_name;
 
         FailureDescriptor() {}
-        FailureDescriptor(int32_t number, StringRef name): run_number(number), task_name(name) {}
+        FailureDescriptor(int32_t number, U16StringRef name): run_number(number), task_name(name) {}
     };
 
 
@@ -260,7 +260,7 @@ protected:
 
 public:
 
-    TaskGroup(StringRef name): Task(name) {
+    TaskGroup(U16StringRef name): Task(name) {
         own_folder = true;
     }
 
@@ -298,7 +298,7 @@ public:
     }
 
     template <typename T>
-    T* getTask(StringRef name)
+    T* getTask(U16StringRef name)
     {
         for (auto t: tasks_)
         {
@@ -329,9 +329,9 @@ public:
 
     int32_t run_count;
 
-    GroupRunner(StringRef name): TaskGroup(name), run_count(1)
+    GroupRunner(U16StringRef name): TaskGroup(name), run_count(1)
     {
-        Add("run_count", run_count);
+        Add(u"run_count", run_count);
     }
 
     virtual ~GroupRunner() noexcept {}
@@ -342,23 +342,23 @@ public:
 
 
 
-    StringRef getOutput() const
+    U16StringRef getOutput() const
     {
         return getOutputFolder();
     }
 
-    virtual String getTaskOutputFolder(String task_name, int32_t run) const
+    virtual U16String getTaskOutputFolder(U16String task_name, int32_t run) const
     {
-        if (isEmpty(getOutput()))
+        if (getOutput().is_empty())
         {
-            return task_name +"-" + toString(run);
+            return task_name + u"-" + U16String(toString(run));
         }
         else {
-            return getOutput() + Platform::getFilePathSeparator() + task_name +"-" + toString(run);
+            return getOutput() + Platform::getFilePathSeparator() + task_name + u"-" + U16String(toString(run));
         }
     }
 
-    void setOutput(StringRef out)
+    void setOutput(U16StringRef out)
     {
         setOutputFolder(out);
     }
@@ -381,7 +381,7 @@ public:
 
 class MemoriaTaskRunner: public GroupRunner {
 public:
-    MemoriaTaskRunner(StringRef name = ""): GroupRunner(name) {}
+    MemoriaTaskRunner(U16StringRef name = u""): GroupRunner(name) {}
     virtual ~MemoriaTaskRunner() throw ()           {}
 };
 

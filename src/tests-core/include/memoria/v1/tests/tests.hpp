@@ -55,7 +55,7 @@ protected:
     typedef Task Base;
 
     int64_t  size_;
-    String  current_test_name_;
+    U16String  current_test_name_;
 
     RngInt      int_generator_;
     RngInt64   bigint_generator_;
@@ -65,12 +65,12 @@ protected:
 
 
     struct TestDescriptor {
-        String name_;
+        U16String name_;
 
-        StringRef name() const {
+        U16StringRef name() const {
             return name_;
         }
-        TestDescriptor(StringRef name): name_(name) {}
+        TestDescriptor(U16StringRef name): name_(name) {}
         virtual ~TestDescriptor() throw () {}
 
         virtual void run(TestTask* test, ostream&) const        = 0;
@@ -85,7 +85,7 @@ protected:
         TestMethod run_test_;
         TestMethod replay_test_;
     public:
-        TypedTestDescriptor(StringRef name, TestMethod run_test, TestMethod replay_test):
+        TypedTestDescriptor(U16StringRef name, TestMethod run_test, TestMethod replay_test):
             TestDescriptor(name),
             run_test_(run_test), replay_test_(replay_test) {}
 
@@ -114,7 +114,7 @@ private:
 
 public:
 
-    TestTask(StringRef name):
+    TestTask(U16StringRef name):
         Task(name),
         replay_(false),
         size_(200),
@@ -255,12 +255,12 @@ public:
     using TaskMethodPtr = void (T::*) ();
 
     template <typename T>
-    void addTest(StringRef name, TaskMethodPtr<T> run_test, TaskMethodPtr<T> replay_test = nullptr)
+    void addTest(U16StringRef name, TaskMethodPtr<T> run_test, TaskMethodPtr<T> replay_test = nullptr)
     {
-        String tmp;
+        U16String tmp;
 
-        if (isStartsWith(name, "run")) {
-            tmp = name.substr(3);
+        if (name.starts_with(u"run")) {
+            tmp = name.substring(3);
         }
         else {
             tmp = name;
@@ -283,24 +283,24 @@ public:
         return replay_;
     }
 
-    virtual String getPropertiesFileName(StringRef infix = "") const
+    virtual U16String getPropertiesFileName(U16StringRef infix = "") const
     {
-        return getResourcePath("Replay"+infix+".properties");
+        return getResourcePath(U16String(u"Replay") + infix + u".properties");
     }
 
-    virtual String getParametersFilePath() {
-        return getResourcePath("Task");
+    virtual U16String getParametersFilePath() {
+        return getResourcePath(u"Task");
     }
 
-    virtual String getTaskPropertiesFileName() const {
-        return "ReplayTask.properties";
+    virtual U16String getTaskPropertiesFileName() const {
+        return u"ReplayTask.properties";
     }
 
-    String getFileName(StringRef name) const;
+    U16String getFileName(U16StringRef name) const;
 
 protected:
 
-    const TestDescriptor* findTestDescriptor(StringRef name) const;
+    const TestDescriptor* findTestDescriptor(U16StringRef name) const;
     virtual void storeAdditionalProperties(fstream& file) const;
 
 };
@@ -309,7 +309,7 @@ protected:
 
 class TestSuite: public TaskGroup {
 public:
-    TestSuite(StringRef name): TaskGroup(name)
+    TestSuite(U16StringRef name): TaskGroup(name)
     {
     }
 
@@ -320,10 +320,10 @@ public:
 
 class MemoriaTestRunner: public MemoriaTaskRunner {
 public:
-    MemoriaTestRunner(): MemoriaTaskRunner("Tests")         {}
+    MemoriaTestRunner(): MemoriaTaskRunner(u"Tests")         {}
     virtual ~MemoriaTestRunner() throw ()                   {}
 
-    void Replay(ostream& out, StringRef replay_file);
+    void Replay(ostream& out, U16StringRef replay_file);
 
     virtual int32_t Run();
 };

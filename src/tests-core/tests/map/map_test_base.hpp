@@ -111,8 +111,8 @@ protected:
 
     UUID ctr_name_;
 
-    String pairs_data_file_;
-    String pairs_sorted_data_file_;
+    U16String pairs_data_file_;
+    U16String pairs_sorted_data_file_;
 
     int32_t iterator_check_count_ = 100;
     int32_t iterator_check_counter_ = 0;
@@ -126,7 +126,7 @@ protected:
 
 public:
 
-    MapTestBase(StringRef name): Base(name)
+    MapTestBase(U16StringRef name): Base(name)
     {
         size_ = 10000;
 
@@ -241,14 +241,14 @@ public:
     {
         Base::onException();
 
-        String basic_name = "Data." + this->getName();
+        U16String basic_name = U16String(u"Data.") + this->getName();
 
-        String pairs_name = basic_name + ".pairs.txt";
+        U16String pairs_name = basic_name + u".pairs.txt";
         pairs_data_file_ = this->getResourcePath(pairs_name);
 
         StoreVector(pairs, pairs_data_file_);
 
-        String pairs_sorted_name = basic_name + ".pairs_sorted.txt";
+        U16String pairs_sorted_name = basic_name + u".pairs_sorted.txt";
         pairs_sorted_data_file_ = this->getResourcePath(pairs_sorted_name);
 
         StoreVector(pairs_sorted, pairs_sorted_data_file_);

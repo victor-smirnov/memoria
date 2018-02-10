@@ -53,7 +53,7 @@ class PackedRLESearchableSequenceMiscTest: public PackedRLESequenceTestBase<Symb
 
 public:
 
-    PackedRLESearchableSequenceMiscTest(StringRef name): Base(name)
+    PackedRLESearchableSequenceMiscTest(U16StringRef name): Base(name)
     {
         this->size_ = 2048;
 

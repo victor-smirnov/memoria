@@ -58,7 +58,7 @@ public:
 
     using Base::getRandom;
 
-    PackedMaxTreeTestBase(StringRef name): TestTask(name)
+    PackedMaxTreeTestBase(U16StringRef name): TestTask(name)
     {}
 
     TreePtr createEmptyTree(int32_t block_size = MEMBUF_SIZE)

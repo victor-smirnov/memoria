@@ -77,7 +77,7 @@ public:
 
 
 
-    MultiMapTestBase(StringRef name): Base(name)
+    MultiMapTestBase(U16StringRef name): Base(name)
     {
         MEMORIA_ADD_TEST_PARAM(size);
         MEMORIA_ADD_TEST_PARAM(level_limit);

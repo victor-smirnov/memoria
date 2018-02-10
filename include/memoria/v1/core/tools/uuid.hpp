@@ -139,6 +139,10 @@ template <typename T> struct FromString;
 
 template <>
 struct FromString<UUID> {
+    static UUID convert(U16StringRef str) {
+        return convert(str.to_u8().to_std_string());
+    }
+
     static UUID convert(StringRef str)
     {
         return UUID::parse(str.c_str());

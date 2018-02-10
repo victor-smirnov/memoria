@@ -84,7 +84,7 @@ class PackedSearchableSequenceMiscTest: public PackedSearchableSequenceTestBase<
 
 public:
 
-    PackedSearchableSequenceMiscTest(StringRef name): Base(name)
+    PackedSearchableSequenceMiscTest(U16StringRef name): Base(name)
     {
         this->size_ = 8192;
 

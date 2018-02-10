@@ -24,7 +24,7 @@
 #include <memoria/v1/core/tools/bignum/bigint.hpp>
 #endif
 
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/strings/strings.hpp>
 #include <memoria/v1/core/tools/bytes/bytes.hpp>
 
 #include <tuple>

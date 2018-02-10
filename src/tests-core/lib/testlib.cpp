@@ -81,7 +81,7 @@ void TestTask::Replay(ostream& out, Configurator* cfg)
 
     configurator_ = cfg;
 
-    String test_name = cfg->getValue<String>("test");
+    U16String test_name = cfg->getValue<U16String>(u"test");
     const TestDescriptor* descr = findTestDescriptor(test_name);
 
     current_test_name_ = descr->name();
@@ -104,7 +104,7 @@ void TestTask::storeAdditionalProperties(fstream& file) const
     file<<"test = "<<current_test_name_<<endl;
 }
 
-const TestTask::TestDescriptor* TestTask::findTestDescriptor(StringRef name) const
+const TestTask::TestDescriptor* TestTask::findTestDescriptor(U16StringRef name) const
 {
     for (const TestDescriptor* descr: tests_)
     {
@@ -114,49 +114,49 @@ const TestTask::TestDescriptor* TestTask::findTestDescriptor(StringRef name) con
         }
     }
 
-    throw Exception(MEMORIA_SOURCE, SBuf()<<"Test "<<name<<" is not found");
+    throw Exception(MEMORIA_SOURCE, SBuf() << "Test " << name << " is not found");
 }
 
 
 
-String TestTask::getFileName(StringRef name) const
+U16String TestTask::getFileName(U16StringRef name) const
 {
-    return name + ".properties";
+    return name + u".properties";
 }
 
 
-void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
+void MemoriaTestRunner::Replay(ostream& out, U16StringRef task_folder)
 {
     Configurator cfg;
     Configurator task_cfg;
 
-    String replay_file_name;
-    String task_file_name;
+    U16String replay_file_name;
+    U16String task_file_name;
 
-    if (bf::exists(task_folder))
+    if (bf::exists(task_folder.to_u8().to_std_string()))
     {
-        replay_file_name = task_folder + Platform::getFilePathSeparator() + "ReplayTask.properties";
+        replay_file_name = task_folder + Platform::getFilePathSeparator() + u"ReplayTask.properties";
         
-        if (!bf::exists(replay_file_name))
+        if (!bf::exists(replay_file_name.to_u8().to_std_string()))
         {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"File "<<replay_file_name<<" does not exists");
+            throw Exception(MEMORIA_SOURCE, SBuf() << "File " << replay_file_name << u" does not exists");
         }
 
         task_file_name = replay_file_name;
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf()<<"File "<<task_folder<<" does not exists");
+        throw Exception(MEMORIA_SOURCE, SBuf() << "File " << task_folder << u" does not exists");
     }
 
 
-    Configurator::Parse(replay_file_name.c_str(), &cfg);
+    Configurator::Parse(replay_file_name, &cfg);
 
-    String name = cfg.getProperty("task");
+    U16String name = cfg.getProperty(u"task");
     TestTask* task = getTask<TestTask>(name);
     if (task != NULL)
     {
         try {
-            out<<"Task: "<<task->getFullName()<<endl;
+            out << "Task: " << task->getFullName() << endl;
             task->setOut(&out);
             task->setReplayMode();
             task->LoadProperties(task_file_name);
@@ -164,7 +164,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
             task->setUp();
             try {
                 task->Replay(out, &cfg);
-                out<<"PASSED"<<endl;
+                out << "PASSED" << endl;
             }
             catch (...) {
                 task->tearDown();

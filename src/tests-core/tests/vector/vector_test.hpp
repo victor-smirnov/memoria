@@ -68,7 +68,7 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
     using Base::getRandom;
 
 public:
-    VectorTest(StringRef name):
+    VectorTest(U16StringRef name):
         Base(name)
     {
         MEMORIA_ADD_TEST_PARAM(size);

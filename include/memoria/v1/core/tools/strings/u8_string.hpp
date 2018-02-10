@@ -19,14 +19,20 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/config.hpp>
 
-#include <memoria/v1/core/tools/strings/strings.hpp>
-#include <memoria/v1/core/tools/strings/string_buffer.hpp>
-
 #include <string>
 #include <sstream>
 
 #include <unicode/ustring.h>
 #include "u_string_capi.hpp"
+
+namespace memoria {
+namespace v1 {
+class U8String;
+}}
+
+namespace std {
+    void swap(memoria::v1::U8String&, memoria::v1::U8String&);
+}
 
 namespace memoria {
 namespace v1 {
@@ -50,7 +56,11 @@ private:
     template <typename T2>
     friend std::basic_ostream<char, T2>& operator<<(std::basic_ostream<char, T2>&, const U8String&);
 
+    friend inline void std::swap(U8String&, U8String&);
+
 public:
+
+
     U8String() = default;
     U8String(const U8String&) = default;
     U8String(U8String&&) = default;
@@ -116,6 +126,14 @@ public:
     U32String to_u32() const;
     UWString to_uwstring() const;
 
+    const ContentT& to_std_string() const {
+        return content_;
+    }
+
+    ContentT& to_std_string() {
+        return content_;
+    }
+
     CharT* data() {
         return &content_[0];
     }
@@ -170,3 +188,10 @@ inline bool compare_le(const U8String& first, const U8String& second) {
 
 }}
 
+namespace std {
+
+inline void swap(memoria::v1::U8String& one, memoria::v1::U8String& two) {
+    std::swap(one.content_, two.content_);
+}
+
+}

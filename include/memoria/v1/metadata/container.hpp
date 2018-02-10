@@ -409,7 +409,7 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator() + "root_leaf.txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + "root_leaf.txt";
 
         dumpPage(file_name, page);
     }
@@ -420,7 +420,7 @@ public:
 
         String description = getNodeName("Leaf", idx, page->id());
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator() + description + ".txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + description + ".txt";
 
         dumpPage(file_name, page);
     }
@@ -449,7 +449,7 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator() + description + ".txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + description + ".txt";
 
         dumpPage(file_name, page);
     }
@@ -478,7 +478,7 @@ private:
         String folder_name = getNodeName(type, idx, page->id());
         pushFolder(folder_name.c_str());
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator() + "0_page.txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + "0_page.txt";
 
         dumpPage(file_name, page);
     }
@@ -495,7 +495,7 @@ private:
 
     void dumpDescription(StringRef type, StringRef content)
     {
-        String file_name = path_.top().parent_path().string() + Platform::getFilePathSeparator() + type + ".txt";
+        String file_name = path_.top().parent_path().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + type + ".txt";
 
         std::ofstream file(file_name.c_str());
 
@@ -504,7 +504,7 @@ private:
 
     void pushFolder(const char* descr)
     {
-        String name = path_.top().string() + Platform::getFilePathSeparator() + String(descr);
+        String name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + String(descr);
         bf::path file(name);
         
         auto res = bf::create_directory(name);
@@ -556,6 +556,15 @@ void FSDumpAllocator(Allocator& allocator, StringRef path)
     using Walker = FSDumpContainerWalker<typename Allocator::Page>;
 
     Walker walker(allocator.metadata(), path);
+    allocator.walk_containers(&walker);
+}
+
+template <typename Allocator>
+void FSDumpAllocator(Allocator& allocator, U16StringRef path)
+{
+    using Walker = FSDumpContainerWalker<typename Allocator::Page>;
+
+    Walker walker(allocator.metadata(), path.to_u8().to_std_string());
     allocator.walk_containers(&walker);
 }
 
@@ -652,7 +661,7 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator() + "root_leaf.txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + "root_leaf.txt";
 
         dumpPage(file_name, page);
     }
@@ -663,7 +672,7 @@ public:
 
         String description = getNodeName("Leaf", idx, page->id());
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator() + description + ".txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + description + ".txt";
 
         dumpPage(file_name, page);
     }
@@ -692,7 +701,7 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator() + description + ".txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + description + ".txt";
 
         dumpPage(file_name, page);
     }
@@ -721,7 +730,7 @@ private:
         String folder_name = getNodeName(type, idx, page->id());
         pushFolder(folder_name.c_str());
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator() + "0_page.txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + "0_page.txt";
 
         dumpPage(file_name, page);
     }
@@ -743,7 +752,7 @@ private:
 
     void dumpDescription(StringRef type, StringRef content)
     {
-        String file_name = path_.top().parent_path().string() + Platform::getFilePathSeparator() + type + ".txt";
+        String file_name = path_.top().parent_path().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + type + ".txt";
 
         reactor::bfstream file(
             reactor::open_buffered_file(
@@ -757,7 +766,7 @@ private:
 
     void pushFolder(const char* descr)
     {
-        String name = path_.top().string() + Platform::getFilePathSeparator() + String(descr);
+        String name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + String(descr);
         filesystem::path file(name);
         
         auto res = bf::create_directory(name);

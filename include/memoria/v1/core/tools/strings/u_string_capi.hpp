@@ -24,6 +24,8 @@
 
 #include <string.h>
 
+#include <utility>
+
 namespace memoria {
 namespace v1 {
 
@@ -76,8 +78,12 @@ static inline const char* castChars(const char* ptr) {return ptr;}
 static inline wchar_t* castChars(wchar_t* ptr) {return ptr;}
 static inline const wchar_t* castChars(const wchar_t* ptr) {return ptr;}
 
-static inline UChar* castChars(char16_t* ptr) {return T2T<UChar*>(ptr);}
-static inline const UChar* castChars(const char16_t* ptr) {return T2T<const UChar*>(ptr);}
+//static inline UChar* castChars(char16_t* ptr) {return T2T<UChar*>(ptr);}
+//static inline const UChar* castChars(const char16_t* ptr) {return T2T<const UChar*>(ptr);}
+
+static inline char16_t* castChars(UChar* ptr) {return T2T<char16_t*>(ptr);}
+static inline const char16_t* castChars(const UChar* ptr) {return T2T<const char16_t*>(ptr);}
+
 
 static inline UChar32* castChars(char32_t* ptr) {return T2T<UChar32*>(ptr);}
 static inline const UChar32* castChars(const char32_t* ptr) {return T2T<const UChar32*>(ptr);}
@@ -88,7 +94,9 @@ static inline int32_t UStrUTF8Length(const char* str, int32_t size = -1)
     int32_t len{};
     u_strFromUTF8(nullptr, 0, &len, str, size, &code);
 
-    StringException::assertOk(code);
+    if (code != U_BUFFER_OVERFLOW_ERROR) {
+        StringException::assertOk(code);
+    }
 
     return len;
 }
@@ -99,7 +107,9 @@ static inline int32_t UStrUTF8Length(const char16_t* str, int32_t size = -1)
     int32_t len{};
     u_strToUTF8(nullptr, 0, &len, castChars(str), size, &code);
 
-    StringException::assertOk(code);
+    if (code != U_BUFFER_OVERFLOW_ERROR) {
+        StringException::assertOk(code);
+    }
 
     return len;
 }
