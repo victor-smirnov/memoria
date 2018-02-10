@@ -28,10 +28,10 @@
 namespace memoria {
 namespace v1 {
 
-class PackedStringCodecTest: public PackedCodecsTestBase<String> {
+class PackedStringCodecTest: public PackedCodecsTestBase<U8String> {
 
     using MyType = PackedStringCodecTest;
-    using Base   = PackedCodecsTestBase<String>;
+    using Base   = PackedCodecsTestBase<U8String>;
 
 public:
 
@@ -49,12 +49,12 @@ public:
 
         unique_ptr<uint8_t[]> buf = make_unique<uint8_t[]>(block_size);
 
-        ValueCodec<String> codec;
+        ValueCodec<U8String> codec;
 
         size_t cnt = 0;
         for (size_t pos = 0; pos < block_size - 100; cnt++)
         {
-            String value = toString(pos);
+            U8String value = toString(pos);
 
             auto len = codec.encode(buf.get(), value, pos);
 
@@ -72,7 +72,7 @@ public:
 
         for (size_t pos = 0, c = 0; c < cnt; c++)
         {
-            String val;
+            U8String val;
             auto len = codec.decode(buf.get(), val, pos);
 
             AssertEQ(MA_SRC, val, toString(pos));
@@ -88,12 +88,12 @@ public:
 
         unique_ptr<uint8_t[]> buf = make_unique<uint8_t[]>(block_size);
 
-        ValueCodec<String> codec;
+        ValueCodec<U8String> codec;
 
         size_t cnt = 0;
         for (size_t pos = 0; pos < block_size - 1000; cnt++)
         {
-            String value = replicate(toString(pos), 20);
+            U8String value = replicate(toString(pos), 20);
 
             auto len = codec.encode(buf.get(), value, pos);
 
@@ -111,7 +111,7 @@ public:
 
         for (size_t pos = 0, c = 0; c < cnt; c++)
         {
-            String val;
+            U8String val;
             auto len = codec.decode(buf.get(), val, pos);
 
             AssertEQ(MA_SRC, val, replicate(toString(pos), 20));
@@ -121,9 +121,9 @@ public:
     }
 
 private:
-    String replicate(const String& st, size_t times)
+    U8String replicate(const U8String& st, size_t times)
     {
-        String val;
+        U8String val;
 
         for (size_t c = 0; c < times; c++) {
             val += st;

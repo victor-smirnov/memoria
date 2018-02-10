@@ -191,14 +191,14 @@ public:
         });
     }
 
-    String metadata() const
+    U8String metadata() const
     {
     	return reactor::engine().run_at(cpu_, [&]{
             return history_node_->metadata();
         });
     }
 
-    void set_metadata(StringRef metadata)
+    void set_metadata(U8StringRef metadata)
     {
     	return reactor::engine().run_at(cpu_, [&]
         {
@@ -435,19 +435,19 @@ void InMemSnapshot<Profile>::set_as_master()
 }
 
 template <typename Profile>
-void InMemSnapshot<Profile>::set_as_branch(StringRef name) 
+void InMemSnapshot<Profile>::set_as_branch(U8StringRef name)
 {
     return pimpl_->set_as_branch(name);
 }
 
 template <typename Profile>
-String InMemSnapshot<Profile>::snapshot_metadata() const 
+U8String InMemSnapshot<Profile>::snapshot_metadata() const
 {
     return pimpl_->metadata();
 }
 
 template <typename Profile>
-void InMemSnapshot<Profile>::set_snapshot_metadata(StringRef metadata) 
+void InMemSnapshot<Profile>::set_snapshot_metadata(U8StringRef metadata)
 {
     return pimpl_->set_metadata(metadata);
 }

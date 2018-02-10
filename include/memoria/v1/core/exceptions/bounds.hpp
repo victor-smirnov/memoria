@@ -29,7 +29,7 @@ namespace v1 {
 class BoundsException: public Exception {
 
 public:
-    BoundsException(const char* source, StringRef message):
+    BoundsException(const char* source, U8StringRef message):
                 Exception(source, message) {}
 
     BoundsException(const char* source, const SBuf& message):

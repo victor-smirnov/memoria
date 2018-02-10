@@ -181,12 +181,12 @@ inline InputStreamHandler& operator>>(InputStreamHandler& in, double& value) {
     return in;
 }
 
-inline InputStreamHandler& operator>>(InputStreamHandler& in, String& value)
+inline InputStreamHandler& operator>>(InputStreamHandler& in, U8String& value)
 {
     int64_t size = in.readInt64();
 
-    value.clear();
-    value.insert(0, size, 0);
+    value.to_std_string().clear();
+    value.to_std_string().insert(0, size, 0);
 
     in.read(&value[0], size);
 
@@ -201,11 +201,11 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const T& value) {
 }
 
 
-inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const String& value)
+inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const U8String& value)
 {
     out << (int64_t)value.length();
 
-    out.write(value.c_str(), 0, value.length());
+    out.write(value.data(), 0, value.length());
     return out;
 }
 

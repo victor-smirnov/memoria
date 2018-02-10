@@ -36,7 +36,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
     using Key   = int64_t;
-    using Value = String;
+    using Value = U8String;
 
     return Application::run(argc, argv, []
     {
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
             // Fill map element by element.
             for (int c = from; c < to; c++)
             {
-                map.assign(c, "str_" + toString(c));
+                map.assign(c, U8String("str_") + toString(c));
             }
 
 //             // Iterator on the whole container

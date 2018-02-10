@@ -133,6 +133,14 @@ public:
     U8String to_u8() const;
     UWString to_uwstring() const;
 
+    ContentT& to_std_string() {
+        return content_;
+    }
+
+    const ContentT& to_std_string() const {
+        return content_;
+    }
+
     CharT* data() {
         return &content_[0];
     }
@@ -193,5 +201,12 @@ namespace std {
 inline void swap(memoria::v1::U32String& one, memoria::v1::U32String& two) {
     std::swap(one.content_, two.content_);
 }
+
+template<>
+struct hash<memoria::v1::U32String> {
+    size_t operator()(const memoria::v1::U32String& str) const noexcept {
+        return hash<std::u32string>()(str.to_std_string());
+    }
+};
 
 }

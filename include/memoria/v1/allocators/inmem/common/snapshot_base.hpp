@@ -324,17 +324,17 @@ public:
     	history_tree_raw_->set_master(uuid());
     }
 
-    void set_as_branch(StringRef name)
+    void set_as_branch(U8StringRef name)
     {
     	history_tree_raw_->set_branch(name, uuid());
     }
 
-    StringRef metadata() const
+    U8StringRef metadata() const
     {
         return history_node_->metadata();
     }
 
-    void set_metadata(StringRef metadata)
+    void set_metadata(U8StringRef metadata)
     {
         if (history_node_->is_active())
         {
@@ -915,9 +915,9 @@ public:
         return result;
     }
 
-    String get_branch_suffix() const
+    U8String get_branch_suffix() const
     {
-    	return std::string("");
+        return U8String("");
     }
 
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)

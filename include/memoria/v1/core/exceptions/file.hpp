@@ -28,7 +28,7 @@ using namespace std;
 class FileException: public Exception {
 
 public:
-    FileException(const char* source, StringRef message):
+    FileException(const char* source, U8StringRef message):
                 Exception(source, message) {}
 
     FileException(const char* source, const SBuf& message):

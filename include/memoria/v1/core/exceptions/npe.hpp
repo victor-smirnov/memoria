@@ -26,7 +26,7 @@ using namespace std;
 class NullPointerException: public Exception {
 
 public:
-    NullPointerException(const char* source, StringRef message):
+    NullPointerException(const char* source, U8StringRef message):
                 Exception(source, message) {}
 
     NullPointerException(const char* source, const SBuf& message):

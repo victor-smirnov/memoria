@@ -26,32 +26,32 @@ namespace v1 {
 
 using namespace std;
 
-String trimString(StringRef str)
+U8String trimString(U8StringRef str)
 {
     if (str.length() == 0)
     {
         return "";
     }
     else {
-        size_t begin = str.find_first_not_of("\n\r\t ");
-        if (begin == String::npos)
+        size_t begin = str.to_std_string().find_first_not_of("\n\r\t ");
+        if (begin == StdString::npos)
         {
             return "";
         }
         else {
-            size_t end = str.find_last_not_of("\n\r\t ");
-            if (end != String::npos)
+            size_t end = str.to_std_string().find_last_not_of("\n\r\t ");
+            if (end != StdString::npos)
             {
-                return str.substr(begin, end - begin + 1);
+                return str.to_std_string().substr(begin, end - begin + 1);
             }
             else {
-                return str.substr(begin, str.length() - begin);
+                return str.to_std_string().substr(begin, str.length() - begin);
             }
         }
     }
 }
 
-bool isEndsWith(StringRef str, StringRef end) {
+bool isEndsWith(U8StringRef str, U8StringRef end) {
     if (end.length() > str.length())
     {
         return false;
@@ -70,7 +70,7 @@ bool isEndsWith(StringRef str, StringRef end) {
     }
 }
 
-bool isStartsWith(StringRef str, StringRef start) {
+bool isStartsWith(U8StringRef str, U8StringRef start) {
     if (start.length() > str.length())
     {
         return false;
@@ -87,19 +87,19 @@ bool isStartsWith(StringRef str, StringRef start) {
     }
 }
 
-bool isEmpty(StringRef str) {
-    return str.find_first_not_of("\r\n\t ") == String::npos;
+bool isEmpty(U8StringRef str) {
+    return str.to_std_string().find_first_not_of("\r\n\t ") == StdString::npos;
 }
 
-bool isEmpty(StringRef str, String::size_type start, String::size_type end, StringRef sep)
+bool isEmpty(U8StringRef str, size_t start, size_t end, U8StringRef sep)
 {
-    if (end == String::npos) end = str.length();
+    if (end == StdString::npos) end = str.length();
 
-    if (start != String::npos && start < str.length() && start < end - 1)
+    if (start != StdString::npos && start < str.length() && start < end - 1)
     {
-        String::size_type idx = str.find_first_not_of((sep+"\t ").data(), start);
+        size_t idx = str.to_std_string().find_first_not_of((sep+"\t ").data(), start);
 
-        if (idx != String::npos)
+        if (idx != StdString::npos)
         {
             return idx >= end;
         }
@@ -112,10 +112,32 @@ bool isEmpty(StringRef str, String::size_type start, String::size_type end, Stri
     }
 }
 
-Long strToL(StringRef value) {
+bool isEmpty(StdStringRef str, size_t start, size_t end, StdStringRef sep)
+{
+    if (end == StdString::npos) end = str.length();
+
+    if (start != StdString::npos && start < str.length() && start < end - 1)
+    {
+        size_t idx = str.find_first_not_of((sep+"\t ").data(), start);
+
+        if (idx != StdString::npos)
+        {
+            return idx >= end;
+        }
+        else {
+            return true;
+        }
+    }
+    else {
+        return true;
+    }
+}
+
+Long strToL(U8StringRef value) {
     if (!isEmpty(value))
     {
-        const char* ptr = trimString(value).c_str();
+        auto trimmed = trimString(value);
+        const char* ptr = trimmed.data();
         char* end_ptr;
 
         errno = 0;
@@ -128,27 +150,27 @@ Long strToL(StringRef value) {
                 return v;
             }
             else {
-                throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
+                throw Exception(MEMORIA_SOURCE, SBuf() << "Invalid integer value: " << value);
             }
         }
         else {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
+            throw Exception(MEMORIA_SOURCE, SBuf() << "Invalid integer value: " << value);
         }
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
+        throw Exception(MEMORIA_SOURCE, SBuf() << "Invalid integer value: " << value);
     }
 }
 
-String ReplaceFirst(StringRef str, StringRef txt) {
+U8String ReplaceFirst(U8StringRef str, U8StringRef txt) {
     return str;
 }
 
-String ReplaceLast(StringRef str, StringRef txt) {
+U8String ReplaceLast(U8StringRef str, U8StringRef txt) {
     return str;
 }
 
-String ReplaceAll(StringRef str, StringRef txt) {
+U8String ReplaceAll(U8StringRef str, U8StringRef txt) {
     return str;
 }
 
@@ -192,9 +214,9 @@ void checkError(const char* chars, const char* ptr)
 }
 
 
-long int ConvertToLongInt(StringRef str)
+long int ConvertToLongInt(U8StringRef str)
 {
-    const char* chars = str.c_str();
+    const char* chars = str.data();
     char* endptr;
 
     long int value = strtol(chars, &endptr, 0);
@@ -202,9 +224,9 @@ long int ConvertToLongInt(StringRef str)
     return value * getValueMultiplier(chars, endptr);
 }
 
-unsigned long int ConvertToULongInt(StringRef str)
+unsigned long int ConvertToULongInt(U8StringRef str)
 {
-    const char* chars = str.c_str();
+    const char* chars = str.data();
     char* endptr;
 
     unsigned long int value = strtoul(chars, &endptr, 0);
@@ -213,9 +235,9 @@ unsigned long int ConvertToULongInt(StringRef str)
 }
 
 
-long long ConvertToLongLong(StringRef str)
+long long ConvertToLongLong(U8StringRef str)
 {
-    const char* chars = str.c_str();
+    const char* chars = str.data();
     char* endptr;
 
     long long int value = strtoll(chars, &endptr, 0);
@@ -223,9 +245,9 @@ long long ConvertToLongLong(StringRef str)
     return value * getValueMultiplier(chars, endptr);
 }
 
-unsigned long long ConvertToULongLong(StringRef str)
+unsigned long long ConvertToULongLong(U8StringRef str)
 {
-    const char* chars = str.c_str();
+    const char* chars = str.data();
     char* endptr;
 
     unsigned long long int value = strtoull(chars, &endptr, 0);
@@ -233,9 +255,9 @@ unsigned long long ConvertToULongLong(StringRef str)
     return value * getValueMultiplier(chars, endptr);
 }
 
-double ConvertToDouble(StringRef str)
+double ConvertToDouble(U8StringRef str)
 {
-    const char* chars = str.c_str();
+    const char* chars = str.data();
     char* endptr;
 
     double value = strtod(chars, &endptr);
@@ -245,9 +267,9 @@ double ConvertToDouble(StringRef str)
     return value;
 }
 
-long double ConvertToLongDouble(StringRef str)
+long double ConvertToLongDouble(U8StringRef str)
 {
-    const char* chars = str.c_str();
+    const char* chars = str.data();
     char* endptr;
 
     long double value = strtod(chars, &endptr);
@@ -257,7 +279,7 @@ long double ConvertToLongDouble(StringRef str)
     return value;
 }
 
-bool ConvertToBool(StringRef str)
+bool ConvertToBool(U8StringRef str)
 {
     if (str == "true" || str == "True" || str == "Yes" || str == "yes" || str == "1")
     {

@@ -214,7 +214,7 @@ public:
 
 
 
-    SnapshotPtr find_branch(StringRef name)
+    SnapshotPtr find_branch(U8StringRef name)
     {
         return reactor::engine().run_at(cpu_, [&]{
             auto iter = named_branches_.find(name);
@@ -305,7 +305,7 @@ public:
         });
     }
 
-    void set_branch(StringRef name, const TxnId& txn_id)
+    void set_branch(U8StringRef name, const TxnId& txn_id)
     {
         return reactor::engine().run_at(cpu_, [&]
         {
@@ -650,7 +650,7 @@ typename InMemAllocator<Profile>::SnapshotPtr InMemAllocator<Profile>::find(cons
 }
 
 template <typename Profile>
-typename InMemAllocator<Profile>::SnapshotPtr InMemAllocator<Profile>::find_branch(StringRef name) 
+typename InMemAllocator<Profile>::SnapshotPtr InMemAllocator<Profile>::find_branch(U8StringRef name)
 {
     return pimpl_->find_branch(name);
 }
@@ -662,7 +662,7 @@ void InMemAllocator<Profile>::set_master(const TxnId& txn_id)
 }
 
 template <typename Profile>
-void InMemAllocator<Profile>::set_branch(StringRef name, const TxnId& txn_id) 
+void InMemAllocator<Profile>::set_branch(U8StringRef name, const TxnId& txn_id)
 {
     pimpl_->set_branch(name, txn_id);
 }

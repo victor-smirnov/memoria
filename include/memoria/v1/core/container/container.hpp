@@ -34,6 +34,7 @@
 #include <memoria/v1/core/container/defaults.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
+#include <memoria/v1/core/tools/strings/string.hpp>
 
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
@@ -169,7 +170,7 @@ public:
         return CONTAINER_HASH;
     }
     
-    virtual std::string describe_type() const {
+    virtual U8String describe_type() const {
         return TypeNameFactory<ContainerTypeName>::name();
     }
 
@@ -229,7 +230,7 @@ public:
 
     	virtual ~CtrInterfaceImpl() {}
 
-        virtual String ctr_name()
+        virtual U8String ctr_name()
         {
             return TypeNameFactory<Name>::name();
         }
@@ -304,7 +305,7 @@ public:
             });
         }
 
-        virtual String ctr_type_name() const
+        virtual U8String ctr_type_name() const
         {
             return TypeNameFactory<ContainerTypeName>::name();
         }
@@ -684,7 +685,7 @@ public:
         return model_type_name_;
     }
 
-    static String type_name_str()
+    static U8String type_name_str()
     {
         return TypeNameFactory<ContainerTypeName>::name();
     }

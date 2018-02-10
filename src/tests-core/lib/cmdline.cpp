@@ -65,7 +65,7 @@ void CmdLine::processTests()
         if (arg.starts_with(u"-D"))
         {
             auto pos = arg.find_first_of(u"=");
-            if (pos != String::npos)
+            if (pos != U16String::NPOS)
             {
                 cfg_cmdline_.AddProperty(arg.substring(2, pos - 2), arg.substring(pos + 1));
             }

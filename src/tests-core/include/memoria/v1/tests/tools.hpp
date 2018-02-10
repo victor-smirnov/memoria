@@ -58,7 +58,7 @@ public:
 
 class TestException: public Exception {
 public:
-    TestException(const char* source, StringRef message): Exception(source, message)         {}
+    TestException(const char* source, StdStringRef message): Exception(source, message)      {}
     TestException(const char* source, const SBuf& message): Exception(source, message.str()) {}
 };
 

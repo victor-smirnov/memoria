@@ -143,9 +143,9 @@ struct FromString<UUID> {
         return convert(str.to_u8().to_std_string());
     }
 
-    static UUID convert(StringRef str)
+    static UUID convert(U8StringRef str)
     {
-        return UUID::parse(str.c_str());
+        return UUID::parse(str.data());
     }
 };
 

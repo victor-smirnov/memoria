@@ -235,7 +235,7 @@ public:
 
 
 
-    SnapshotPtr find_branch(StringRef name)
+    SnapshotPtr find_branch(U8StringRef name)
     {
     	LockGuardT lock_guard(mutex_);
 
@@ -331,7 +331,7 @@ public:
         }
     }
 
-    void set_branch(StringRef name, const TxnId& txn_id)
+    void set_branch(U8StringRef name, const TxnId& txn_id)
     {
     	LockGuardT lock_guard(mutex_);
 
@@ -355,7 +355,7 @@ public:
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Snapshot " << txn_id << " is not known in this allocator");
+            throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " is not known in this allocator");
         }
     }
 
@@ -648,7 +648,7 @@ typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile
 }
 
 template <typename Profile>
-typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::find_branch(StringRef name) 
+typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::find_branch(U8StringRef name)
 {
     return pimpl_->find_branch(name);
 }
@@ -660,7 +660,7 @@ void ThreadInMemAllocator<Profile>::set_master(const TxnId& txn_id)
 }
 
 template <typename Profile>
-void ThreadInMemAllocator<Profile>::set_branch(StringRef name, const TxnId& txn_id) 
+void ThreadInMemAllocator<Profile>::set_branch(U8StringRef name, const TxnId& txn_id)
 {
     pimpl_->set_branch(name, txn_id);
 }

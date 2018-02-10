@@ -181,13 +181,13 @@ public:
         }
     }
 
-    String metadata() const
+    U8String metadata() const
     {
     	LockGuardT lock_guard(history_node_->snapshot_mutex());
         return history_node_->metadata();
     }
 
-    void set_metadata(StringRef metadata)
+    void set_metadata(U8StringRef metadata)
     {
     	LockGuardT lock_guard(history_node_->snapshot_mutex());
 
@@ -451,19 +451,19 @@ void ThreadInMemSnapshot<Profile>::set_as_master()
 }
 
 template <typename Profile>
-void ThreadInMemSnapshot<Profile>::set_as_branch(StringRef name) 
+void ThreadInMemSnapshot<Profile>::set_as_branch(U8StringRef name)
 {
     return pimpl_->set_as_branch(name);
 }
 
 template <typename Profile>
-String ThreadInMemSnapshot<Profile>::snapshot_metadata() const 
+U8String ThreadInMemSnapshot<Profile>::snapshot_metadata() const
 {
     return pimpl_->metadata();
 }
 
 template <typename Profile>
-void ThreadInMemSnapshot<Profile>::set_snapshot_metadata(StringRef metadata) 
+void ThreadInMemSnapshot<Profile>::set_snapshot_metadata(U8StringRef metadata)
 {
     return pimpl_->set_metadata(metadata);
 }

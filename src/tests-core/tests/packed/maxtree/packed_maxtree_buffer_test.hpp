@@ -57,7 +57,7 @@ public:
     using Base::MEMBUF_SIZE;
 
 
-    PackedMaxTreeInputBufferTest(StringRef name): Base(name)
+    PackedMaxTreeInputBufferTest(U8StringRef name): Base(name)
     {
         this->size_ = 8192*8;
 

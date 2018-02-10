@@ -24,7 +24,7 @@ namespace v1 {
 struct MetadataGroup: public Metadata {
 public:
 
-    MetadataGroup(StringRef name, const MetadataList &content, int32_t block_size = 0, int32_t type = Metadata::GROUP):
+    MetadataGroup(U8StringRef name, const MetadataList &content, int32_t block_size = 0, int32_t type = Metadata::GROUP):
         Metadata(name, type), content_(content.size()), block_size_(block_size)
     {
         for (uint32_t c = 0; c < content.size(); c++) {
@@ -32,7 +32,7 @@ public:
         }
     }
 
-    MetadataGroup(StringRef name, int32_t block_size = 0, int32_t type = Metadata::GROUP):
+    MetadataGroup(U8StringRef name, int32_t block_size = 0, int32_t type = Metadata::GROUP):
         Metadata(name, type), block_size_(block_size)
     {}
 
@@ -62,7 +62,7 @@ public:
 
 protected:
     MetadataList    content_;
-    int32_t             block_size_;
+    int32_t         block_size_;
 
 };
 

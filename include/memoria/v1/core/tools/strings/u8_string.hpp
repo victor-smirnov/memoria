@@ -71,10 +71,56 @@ public:
     U8String(const ContentT& other): content_(other) {}
     U8String(ContentT&& other): content_(std::move(other)) {}
 
+    U8String(size_t size, char code_unit): content_(size, code_unit) {}
+
     explicit U8String(const U16String& other);
 
     bool operator==(const U8String& other) const {
         return content_ == other.content_;
+    }
+
+    bool operator!=(const U8String& other) const {
+        return content_ != other.content_;
+    }
+
+    bool operator>(const U8String& other) const {
+        return content_ > other.content_;
+    }
+
+    bool operator<(const U8String& other) const {
+        return content_ < other.content_;
+    }
+
+    bool operator>=(const U8String& other) const {
+        return content_ >= other.content_;
+    }
+
+    bool operator<=(const U8String& other) const {
+        return content_ <= other.content_;
+    }
+
+    bool operator!=(const CharT* other) const {
+        return content_ != other;
+    }
+
+    bool operator==(const CharT* other) const {
+        return content_ == other;
+    }
+
+    bool operator>(const CharT* other) const {
+        return content_ > other;
+    }
+
+    bool operator<(const CharT* other) const {
+        return content_ < other;
+    }
+
+    bool operator>=(const CharT* other) const {
+        return content_ >= other;
+    }
+
+    bool operator<=(const CharT* other) const {
+        return content_ <= other;
     }
 
     U8String& operator=(const U8String& other) {
@@ -116,6 +162,10 @@ public:
 
     size_t size() const {
         return content_.size();
+    }
+
+    size_t length() const {
+        return content_.length();
     }
 
     int32_t compare(const U8String& other) const {
@@ -193,5 +243,12 @@ namespace std {
 inline void swap(memoria::v1::U8String& one, memoria::v1::U8String& two) {
     std::swap(one.content_, two.content_);
 }
+
+template<>
+struct hash<memoria::v1::U8String> {
+    size_t operator()(const memoria::v1::U8String& str) const noexcept {
+        return hash<std::string>()(str.to_std_string());
+    }
+};
 
 }

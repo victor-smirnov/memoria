@@ -125,7 +125,7 @@ struct ContainerInterface {
 
     // FIXME: remove name from parameters, it's already in Ctr's page root metadata
 
-    virtual String ctr_name() = 0;
+    virtual U8String ctr_name() = 0;
 
     virtual bool check(
         const UUID& root_id, 
@@ -147,7 +147,7 @@ struct ContainerInterface {
     ) const                                                                     = 0;
 
 
-    virtual String ctr_type_name() const                                        = 0;
+    virtual U8String ctr_type_name() const                                        = 0;
 
     virtual void drop(
             const UUID& root_id,
@@ -180,7 +180,7 @@ struct ContainerMetadata: public MetadataGroup {
 public:
 
     template <typename Types>
-    ContainerMetadata(StringRef name, Types* nothing, uint64_t ctr_hash, ContainerInterfacePtr container_interface):
+    ContainerMetadata(U8StringRef name, Types* nothing, uint64_t ctr_hash, ContainerInterfacePtr container_interface):
         MetadataGroup(name, buildPageMetadata<Types>()),
         container_interface_(container_interface),
         ctr_hash_(ctr_hash)
@@ -260,7 +260,7 @@ struct ContainerMetadataRepository: public MetadataGroup {
 
 public:
 
-    ContainerMetadataRepository(StringRef name, const MetadataList &content);
+    ContainerMetadataRepository(U8StringRef name, const MetadataList &content);
 
     virtual ~ContainerMetadataRepository() throw ()
     {
@@ -330,19 +330,19 @@ class FSDumpContainerWalker: public ContainerWalker {
     std::stack<bf::path> path_;
 
 public:
-    FSDumpContainerWalker(ContainerMetadataRepository* metadata, StringRef root):
+    FSDumpContainerWalker(ContainerMetadataRepository* metadata, U8StringRef root):
         metadata_(metadata)
     {
-        if (!bf::exists(root))
+        if (!bf::exists(root.to_std_string()))
         {
-            bf::create_directories(root);
+            bf::create_directories(root.to_std_string());
         }
         else {
-            bf::remove_all(root);
-            bf::create_directories(root);
+            bf::remove_all(root.to_std_string());
+            bf::create_directories(root.to_std_string());
         }
 
-        path_.push(bf::path(root));
+        path_.push(bf::path(root.to_std_string()));
     }
 
     virtual void beginSnapshotSet(const char* descr, size_t number)
@@ -383,7 +383,7 @@ public:
 
         pushFolder(str.str().c_str());
 
-        dumpDescription("ctr_name", String(descr));
+        dumpDescription("ctr_name", U8String(descr));
     }
 
     virtual void endCompositeCtr() {
@@ -398,7 +398,7 @@ public:
 
         pushFolder(str.str().c_str());
 
-        dumpDescription("ctr_name", String(descr));
+        dumpDescription("ctr_name", U8String(descr));
     }
 
     virtual void endCtr() {
@@ -409,7 +409,7 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + "root_leaf.txt";
+        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + "root_leaf.txt";
 
         dumpPage(file_name, page);
     }
@@ -418,9 +418,9 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String description = getNodeName("Leaf", idx, page->id());
+        U8String description = getNodeName("Leaf", idx, page->id());
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + description + ".txt";
+        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8().to_std_string() + description + ".txt";
 
         dumpPage(file_name, page);
     }
@@ -449,7 +449,7 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + description + ".txt";
+        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + description + ".txt";
 
         dumpPage(file_name, page);
     }
@@ -475,45 +475,45 @@ private:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String folder_name = getNodeName(type, idx, page->id());
-        pushFolder(folder_name.c_str());
+        U8String folder_name = getNodeName(type, idx, page->id());
+        pushFolder(folder_name.data());
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + "0_page.txt";
+        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + "0_page.txt";
 
         dumpPage(file_name, page);
     }
 
 
-    void dumpPage(StringRef file, const Page* page)
+    void dumpPage(U8StringRef file, const Page* page)
     {
-        std::ofstream pagetxt(file.c_str());
+        std::ofstream pagetxt(file.data());
 
         auto meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         dumpPageData(meta.get(), page, pagetxt);
     }
 
-    void dumpDescription(StringRef type, StringRef content)
+    void dumpDescription(U8StringRef type, U8StringRef content)
     {
-        String file_name = path_.top().parent_path().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + type + ".txt";
+        U8String file_name = U8String(path_.top().parent_path().string()) + Platform::getFilePathSeparator().to_u8() + type + ".txt";
 
-        std::ofstream file(file_name.c_str());
+        std::ofstream file(file_name.data());
 
         file<<content;
     }
 
     void pushFolder(const char* descr)
     {
-        String name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + String(descr);
-        bf::path file(name);
+        U8String name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + descr;
+        bf::path file(name.to_std_string());
         
-        auto res = bf::create_directory(name);
+        auto res = bf::create_directory(name.to_std_string());
         
         MEMORIA_V1_ASSERT_TRUE(res);
         path_.push(file);
     }
 
-    String getNodeName(const char* name, int32_t index, const ID& id)
+    U8String getNodeName(const char* name, int32_t index, const ID& id)
     {
         std::stringstream str;
 
@@ -534,15 +534,15 @@ private:
     }
 
 private:
-    String shorten(const char* txt)
+    U8String shorten(const char* txt)
     {
-        String text = txt;
+        U8String text = txt;
 
-        auto start = text.find_first_of("<");
+        auto start = text.to_std_string().find_first_of("<");
 
-        if (start != String::npos)
+        if (start != StdString::npos)
         {
-            text.erase(start);
+            text.to_std_string().erase(start);
         }
 
         return text;
@@ -551,7 +551,7 @@ private:
 
 
 template <typename Allocator>
-void FSDumpAllocator(Allocator& allocator, StringRef path)
+void FSDumpAllocator(Allocator& allocator, U8StringRef path)
 {
     using Walker = FSDumpContainerWalker<typename Allocator::Page>;
 
@@ -635,7 +635,7 @@ public:
 
         pushFolder(str.str().c_str());
 
-        dumpDescription("ctr_name", String(descr));
+        dumpDescription("ctr_name", U8String(descr));
     }
 
     virtual void endCompositeCtr() {
@@ -650,7 +650,7 @@ public:
 
         pushFolder(str.str().c_str());
 
-        dumpDescription("ctr_name", String(descr));
+        dumpDescription("ctr_name", U8String(descr));
     }
 
     virtual void endCtr() {
@@ -661,20 +661,20 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + "root_leaf.txt";
+        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + "root_leaf.txt";
 
-        dumpPage(file_name, page);
+        dumpPage(file_name.to_std_string(), page);
     }
 
     virtual void leaf(int32_t idx, const void* page_data)
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String description = getNodeName("Leaf", idx, page->id());
+        U8String description = getNodeName("Leaf", idx, page->id());
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + description + ".txt";
+        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + description + ".txt";
 
-        dumpPage(file_name, page);
+        dumpPage(file_name.to_std_string(), page);
     }
 
     virtual void beginRoot(int32_t idx, const void* page_data)
@@ -701,9 +701,9 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + description + ".txt";
+        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + description + ".txt";
 
-        dumpPage(file_name, page);
+        dumpPage(file_name.to_std_string(), page);
     }
 
 
@@ -727,12 +727,12 @@ private:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String folder_name = getNodeName(type, idx, page->id());
-        pushFolder(folder_name.c_str());
+        U8String folder_name = getNodeName(type, idx, page->id());
+        pushFolder(folder_name.data());
 
-        String file_name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + "0_page.txt";
+        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + "0_page.txt";
 
-        dumpPage(file_name, page);
+        dumpPage(file_name.to_std_string(), page);
     }
 
 
@@ -750,13 +750,13 @@ private:
         dumpPageData(meta.get(), page, pagetxt);
     }
 
-    void dumpDescription(StringRef type, StringRef content)
+    void dumpDescription(U8StringRef type, U8StringRef content)
     {
-        String file_name = path_.top().parent_path().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + type + ".txt";
+        U8String file_name = U8String(path_.top().parent_path().string()) + Platform::getFilePathSeparator().to_u8() + type + ".txt";
 
         reactor::bfstream file(
             reactor::open_buffered_file(
-                file_name, 
+                file_name.to_std_string(),
                 reactor::FileFlags::WRONLY | reactor::FileFlags::CREATE | reactor::FileFlags::TRUNCATE
             )
         );
@@ -766,16 +766,16 @@ private:
 
     void pushFolder(const char* descr)
     {
-        String name = path_.top().string() + Platform::getFilePathSeparator().to_u8().to_std_string() + String(descr);
-        filesystem::path file(name);
+        U8String name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + descr;
+        filesystem::path file(name.to_std_string());
         
-        auto res = bf::create_directory(name);
+        auto res = bf::create_directory(name.to_std_string());
         
         MEMORIA_V1_ASSERT_TRUE(res);
         path_.push(file);
     }
 
-    String getNodeName(const char* name, int32_t index, const ID& id)
+    U8String getNodeName(const char* name, int32_t index, const ID& id)
     {
         std::stringstream str;
 
@@ -796,15 +796,15 @@ private:
     }
 
 private:
-    String shorten(const char* txt)
+    U8String shorten(const char* txt)
     {
-        String text = txt;
+        U8String text = txt;
 
-        auto start = text.find_first_of("<");
+        auto start = text.to_std_string().find_first_of("<");
 
-        if (start != String::npos)
+        if (start != StdString::npos)
         {
-            text.erase(start);
+            text.to_std_string().erase(start);
         }
 
         return text;
@@ -813,7 +813,7 @@ private:
 
 
 template <typename Allocator>
-void FiberFSDumpAllocator(Allocator& allocator, StringRef path)
+void FiberFSDumpAllocator(Allocator& allocator, U8StringRef path)
 {
     using Walker = FiberFSDumpContainerWalker<typename Allocator::Page>;
 

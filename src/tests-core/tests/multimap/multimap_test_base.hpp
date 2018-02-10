@@ -350,7 +350,7 @@ public:
     }
 
     template <typename V>
-    String make_key(V&& num, TypeTag<String>)
+    U8String make_key(V&& num, TypeTag<U8String>)
     {
         stringstream ss;
         ss << "'";
@@ -374,7 +374,7 @@ public:
     }
 
     template <typename V>
-    String make_value(V&& num, TypeTag<String>)
+    U8String make_value(V&& num, TypeTag<U8String>)
     {
         stringstream ss;
         ss << num;

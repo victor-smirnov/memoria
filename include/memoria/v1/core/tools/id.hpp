@@ -41,7 +41,7 @@ public:
         id->copyTo(ptr());
     }
 
-    IDValue(StringRef id) {
+    IDValue(U8StringRef id) {
         clear();
     }
 
@@ -92,7 +92,7 @@ public:
         return data_;
     }
 
-    virtual const String str() const
+    virtual const U8String str() const
     {
         char text[sizeof(data_)*2 + 5];
         text[0] = '[';
@@ -106,7 +106,7 @@ public:
             text[c*2 + 3] = get_char((data_[sizeof(data_) - c - 1] >> 4) & 0xf);
         }
 
-        return String(text);
+        return U8String(text);
     }
 
     virtual bool isNull() const {

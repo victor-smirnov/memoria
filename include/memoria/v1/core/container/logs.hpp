@@ -69,7 +69,7 @@ struct LogHandler {
     virtual void log(const float value)       = 0;
     virtual void log(const double value)      = 0;
     virtual void log(const IDValue& value)    = 0;
-    virtual void log(StringRef value)   = 0;
+    virtual void log(U8StringRef value)   = 0;
     virtual void log(const char* value) = 0;
     virtual void log(const void* value) = 0;
     virtual void log(const UUID& value) = 0;
@@ -227,7 +227,7 @@ public:
         else if (level <= Logger::LDEBUG)   out_<<"DEBUG";
         else if (level <= Logger::INFO)     out_<<"INFO";
         else if (level <= Logger::WARNING)  out_<<"WARNING";
-        else if (level <= Logger::_ERROR)    out_<<"ERROR";
+        else if (level <= Logger::_ERROR)   out_<<"ERROR";
         else out_<<"FATAL";
         out_<<" ";
         postprocess();
@@ -245,7 +245,7 @@ public:
     virtual void log(const float value)     {preprocess(); out_<<value; postprocess();}
     virtual void log(const double value)    {preprocess(); out_<<value; postprocess();}
     virtual void log(const IDValue& value)  {preprocess(); out_<<value.str(); postprocess();}
-    virtual void log(StringRef value)       {preprocess(); out_<<value; postprocess();}
+    virtual void log(U8StringRef value)     {preprocess(); out_<<value; postprocess();}
     virtual void log(const char* value)     {preprocess(); out_<<value; postprocess();}
     virtual void log(const void* value)     {preprocess(); out_<<value; postprocess();}
     virtual void log(const UUID& value)     {preprocess(); out_<<value; postprocess();}

@@ -26,11 +26,11 @@ template <typename> class ValueCodec;
 
 
 template<>
-class ValueCodec<String> {
+class ValueCodec<U8String> {
 public:
     using BufferType    = uint8_t;
     using T             = BufferType;
-    using V             = String;
+    using V             = U8String;
 
     using ValuePtr      = ValuePtrT1<BufferType>;
 
@@ -82,7 +82,7 @@ public:
 
         pos += len;
 
-        value.swap(tmp);
+        std::swap(value, tmp);
 
         return pos - idx;
     }

@@ -48,7 +48,7 @@ StringList::StringList(U16StringRef list, U16StringRef separators)
         }
         else {
             list_.push_back(list.substring(pos, list.length() - pos).trim());
-            pos = String::npos;
+            pos = U16String::NPOS;
         }
     }
 }
@@ -203,24 +203,24 @@ Configurator::PropertyListType* Configurator::getPropertyList() const
     return list;
 }
 
-void add_line(Configurator *cfg, StringRef str, size_t start, size_t end, StringRef sep)
+void add_line(Configurator *cfg, StdStringRef str, size_t start, size_t end, StdStringRef sep)
 {
     typedef size_t SizeT;
 
-    if (start != U16String::NPOS && start < str.length() && str[start] != '#' && !isEmpty(str, start, end, sep))
+    if (start != StdString::npos && start < str.length() && str[start] != '#' && !isEmpty(str, start, end, sep))
     {
-        if (end == U16String::NPOS) end = str.length();
+        if (end == StdString::npos) end = str.length();
 
         SizeT divider = str.find("=", start);
-        if (divider != U16String::NPOS)
+        if (divider != StdString::npos)
         {
-            String name = trimString(str.substr(start, divider - start));
+            StdString name = trimString(U8String(str.substr(start, divider - start))).to_std_string();
 
             //SizeT pos = divider + 1;
 
             if (divider + 1 < str.length())
             {
-                cfg->AddProperty(U16String(U8String(name)), U16String(U8String(trimString(str.substr(divider + 1, end - divider - 1)))));
+                cfg->AddProperty(U16String(U8String(name)), U16String(trimString(str.substr(divider + 1, end - divider - 1))));
             }
             else {
                 cfg->AddProperty(U16String(U8String(name)), u"");
@@ -239,9 +239,9 @@ void add_line(Configurator *cfg, StringRef str, size_t start, size_t end, String
 
 
 
-bool get_line(StringRef text, size_t pos, size_t& nl_start, StringRef sep)
+bool get_line(StdStringRef text, size_t pos, size_t& nl_start, StdStringRef sep)
 {
-    if (pos < text.length() && pos != String::npos) {
+    if (pos < text.length() && pos != StdString::npos) {
         nl_start = text.find(sep, pos);
         return true;
     }
@@ -262,14 +262,14 @@ Configurator* Configurator::Parse(U16StringRef file_name, Configurator* cfg)
 
         file >> &buf;
 
-        String text = buf.str();
+        StdString text = buf.str();
         typedef size_t SizeT;
 
-        String sep = Platform::getLineSeparator().to_u8().to_std_string();
+        StdString sep = Platform::getLineSeparator().to_u8().to_std_string();
 
         SizeT pos = text.find_first_not_of(sep + "\t ");
 
-        if (pos != String::npos)
+        if (pos != StdString::npos)
         {
             SizeT nl_start;
 
@@ -279,7 +279,7 @@ Configurator* Configurator::Parse(U16StringRef file_name, Configurator* cfg)
             {
                 if (buf == NULL)
                 {
-                    if (nl_start != String::npos)
+                    if (nl_start != StdString::npos)
                     {
                         if (nl_start > pos && text[nl_start - 1] == '\\')
                         {
@@ -302,8 +302,8 @@ Configurator* Configurator::Parse(U16StringRef file_name, Configurator* cfg)
                 else {
                     if (isEmpty(text, pos, nl_start, sep))
                     {
-                        String line = buf->str();
-                        add_line(cfg, line, 0, String::npos, sep);
+                        StdString line = buf->str();
+                        add_line(cfg, line, 0, StdString::npos, sep);
                         delete buf;
                         buf = NULL;
                     }
@@ -311,8 +311,8 @@ Configurator* Configurator::Parse(U16StringRef file_name, Configurator* cfg)
                         SizeT idx = text.find_first_not_of("\t ", pos);
                         if (idx == pos)
                         {
-                            String line = buf->str();
-                            add_line(cfg, line, 0, String::npos, sep);
+                            StdString line = buf->str();
+                            add_line(cfg, line, 0, StdString::npos, sep);
                             delete buf;
 
                             if (text[nl_start - 1] == '\\') {
@@ -332,7 +332,7 @@ Configurator* Configurator::Parse(U16StringRef file_name, Configurator* cfg)
                     }
                 }
 
-                pos = (nl_start != String::npos ? nl_start : text.length()) + sep.length();
+                pos = (nl_start != StdString::npos ? nl_start : text.length()) + sep.length();
             }
         }
 
@@ -340,7 +340,7 @@ Configurator* Configurator::Parse(U16StringRef file_name, Configurator* cfg)
         return cfg;
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't open file for reading: "<<file_name);
+        throw Exception(MEMORIA_SOURCE, SBuf() << "Can't open file for reading: " << file_name);
     }
 }
 
@@ -393,7 +393,7 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
         for (int32_t c = 0; c < list.size(); c++)
         {
             try {
-                String dirPath = list.getItem(c).to_u8().to_std_string();
+                StdString dirPath = list.getItem(c).to_u8().to_std_string();
                 
                 if (bf::exists(dirPath))
                 {

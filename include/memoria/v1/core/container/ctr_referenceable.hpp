@@ -19,6 +19,8 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#include <memoria/v1/core/tools/strings/string.hpp>
+
 #include <string>
 
 namespace memoria {
@@ -26,7 +28,7 @@ namespace v1 {
 
 struct CtrReferenceable {
     virtual bool is_castable_to(uint64_t type_hash) const   = 0;
-    virtual std::string describe_type() const               = 0;
+    virtual U8String describe_type() const                  = 0;
     virtual uint64_t type_hash()                            = 0;
     
     virtual const UUID& name() const = 0;

@@ -147,27 +147,27 @@ public:
     {
         configurator_ = cfg;
 
-        String coverage     = cfg->getValue<String>("coverage", "small");
+        U16String coverage      = cfg->getValue<U16String>("coverage", "small");
         int32_t coverage_size   = cfg->getValue<int32_t>("coverage_size", 1);
 
-        if (coverage == "smoke")
+        if (coverage == u"smoke")
         {
             this->smokeCoverage(coverage_size);
         }
-        else if (coverage == "small")
+        else if (coverage == u"small")
         {
             this->smallCoverage(coverage_size);
         }
-        else if (coverage == "normal")
+        else if (coverage == u"normal")
         {
             this->normalCoverage(coverage_size);
         }
-        else if (coverage == "large")
+        else if (coverage == u"large")
         {
             this->largeCoverage(coverage_size);
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Coverage type "+coverage+" is not recognized");
+            throw Exception(MA_SRC, SBuf() << "Coverage type " << coverage << " is not recognized");
         }
 
         soft_memlimit_ = cfg->getValue<size_t>("soft_memlimit", static_cast<size_t>(1) * 1024 * 1024 * 1024);

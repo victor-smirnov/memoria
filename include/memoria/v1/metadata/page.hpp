@@ -55,7 +55,7 @@ struct IPageLayoutEventHandler {
 struct PageDataValueProvider {
     virtual int32_t size() const = 0;
     virtual bool isArray() const = 0;
-    virtual String value(int32_t idx) const = 0;
+    virtual U8String value(int32_t idx) const = 0;
 };
 
 struct IPageDataEventHandler {
@@ -124,7 +124,7 @@ struct IPageOperations
 struct PageMetadata: public MetadataGroup
 {
     PageMetadata(
-            StringRef name,
+            U8StringRef name,
             int32_t attributes,
             uint64_t hash0,
             const IPageOperations* page_operations);
@@ -248,7 +248,7 @@ public:
 
     virtual int32_t size() const {return size_;}
     virtual bool isArray() const {return array_;}
-    virtual String value(int32_t idx) const
+    virtual U8String value(int32_t idx) const
     {
         if (idx >= 0 && idx < size_)
         {
@@ -271,7 +271,7 @@ public:
 
     virtual int32_t size() const {return 1;}
     virtual bool isArray() const {return false;}
-    virtual String value(int32_t idx) const
+    virtual U8String value(int32_t idx) const
     {
         if (idx == 0)
         {
@@ -562,7 +562,7 @@ public:
 
 private:
 
-    void dumpFieldHeader(ostream &out, int32_t level, int32_t idx, StringRef name)
+    void dumpFieldHeader(ostream &out, int32_t level, int32_t idx, U8StringRef name)
     {
         std::stringstream str;
         v1::Expand(str, level);
@@ -574,7 +574,7 @@ private:
         out << str.str();
     }
 
-    void dumpLineHeader(ostream &out, int32_t level, int32_t idx, StringRef name)
+    void dumpLineHeader(ostream &out, int32_t level, int32_t idx, U8StringRef name)
     {
         std::stringstream str;
         v1::Expand(str, level);

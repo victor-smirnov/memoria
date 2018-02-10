@@ -46,7 +46,7 @@ class BTSSCoreTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
 
 public:
 
-    BTSSCoreTest(String name): Base(name)
+    BTSSCoreTest(U8String name): Base(name)
     {
 
     }

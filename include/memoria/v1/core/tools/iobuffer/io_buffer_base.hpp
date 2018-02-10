@@ -51,10 +51,10 @@ protected:
 
     bool owner_;
 
-    ValueCodec<uint64_t> uvlen_codec_;
-    ValueCodec<int64_t>  vlen_codec_;
-    ValueCodec<String>  string_codec_;
-    ValueCodec<Bytes>   bytes_codec_;
+    ValueCodec<uint64_t>    uvlen_codec_;
+    ValueCodec<int64_t>     vlen_codec_;
+    ValueCodec<U8String>    string_codec_;
+    ValueCodec<Bytes>       bytes_codec_;
 
 public:
     
@@ -331,7 +331,7 @@ public:
         return bytes;
     }
 
-    bool put(const String& str)
+    bool put(const U8String& str)
     {
         if (has_capacity(string_codec_.length(str)))
         {
@@ -343,9 +343,9 @@ public:
         }
     }
 
-    String getString()
+    U8String getString()
     {
-        String str;
+        U8String str;
         pos_ += string_codec_.decode(array_, str, pos_);
         return str;
     }

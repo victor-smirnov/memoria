@@ -21,7 +21,7 @@ using namespace std;
 
 int main()
 {
-    using Value = String;
+    using Value = U8String;
 
     try {
         auto alloc = ThreadInMemAllocator<>::create();

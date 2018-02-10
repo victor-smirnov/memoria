@@ -44,12 +44,12 @@ public:
 
 class Exception: public MemoriaThrowable {
 
-    String message_;
+    U8String message_;
 public:
-    Exception(const char* source, StringRef message): MemoriaThrowable(source), message_(message)           {}
+    Exception(const char* source, U8StringRef message): MemoriaThrowable(source), message_(message)           {}
     Exception(const char* source, const SBuf& message): MemoriaThrowable(source), message_(message.str())   {}
 
-    StringRef message() const {
+    U8StringRef message() const {
         return message_;
     }
 
@@ -61,28 +61,28 @@ public:
 class CtrTypeException: public Exception {
 
 public:
-    CtrTypeException(const char* source, StringRef message): Exception(source, message)     {}
+    CtrTypeException(const char* source, U8StringRef message): Exception(source, message)     {}
     CtrTypeException(const char* source, const SBuf& message): Exception(source, message)   {}
 };
 
 class NoCtrException: public Exception {
 
 public:
-    NoCtrException(const char* source, StringRef message): Exception(source, message)     {}
+    NoCtrException(const char* source, U8StringRef message): Exception(source, message)     {}
     NoCtrException(const char* source, const SBuf& message): Exception(source, message)   {}
 };
 
 class CtrAlreadyExistsException: public Exception {
 
 public:
-    CtrAlreadyExistsException(const char* source, StringRef message): Exception(source, message)     {}
+    CtrAlreadyExistsException(const char* source, U8StringRef message): Exception(source, message)     {}
     CtrAlreadyExistsException(const char* source, const SBuf& message): Exception(source, message)   {}
 };
 
 
 class RollbackException: public Exception {
 public:
-    RollbackException(const char* source, StringRef message): Exception(source, message) {}
+    RollbackException(const char* source, U8StringRef message): Exception(source, message) {}
 };
 
 

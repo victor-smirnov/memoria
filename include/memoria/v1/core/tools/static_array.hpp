@@ -919,7 +919,12 @@ template <typename T> struct FromString;
 
 template <typename T, int32_t Size>
 struct FromString<core::StaticVector<T, Size>> {
-    static void convert(core::StaticVector<T, Size>& values, String str)
+
+    static void convert(core::StaticVector<T, Size>& values, U16String str) {
+        convert(values, str.to_u8());
+    }
+
+    static void convert(core::StaticVector<T, Size>& values, U8String str)
     {
         int32_t start = 0;
 
@@ -931,15 +936,15 @@ struct FromString<core::StaticVector<T, Size>> {
         for (int32_t c = str.size() - 1; c >= 0; c--)
         {
             if (str[c] == '[' || str[c] == ']') {
-                str.erase(c, 1);
+                str.to_std_string().erase(c, 1);
             }
         }
 
         for (int32_t c = 0; c < Size; c++)
         {
-            size_t pos = str.find_first_of(",", start);
+            size_t pos = str.to_std_string().find_first_of(",", start);
 
-            String value = trimString(str.substr(start, pos != String::npos ? pos - start : pos));
+            U8String value = trimString(str.to_std_string().substr(start, pos != StdString::npos ? pos - start : pos));
 
             if (!isEmpty(value))
             {
@@ -949,7 +954,7 @@ struct FromString<core::StaticVector<T, Size>> {
                 values[c] = 0;
             }
 
-            if (pos != String::npos && pos < str.length())
+            if (pos != StdString::npos && pos < str.length())
             {
                 start = pos + 1;
             }

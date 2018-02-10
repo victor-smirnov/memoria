@@ -44,14 +44,14 @@ void Task::BuildResources()
 {
     bool own_folder = this->own_folder;
 
-    String output_folder = output_folder_.to_u8().to_std_string();
+    StdString output_folder = output_folder_.to_u8().to_std_string();
 
     if (!bf::exists(output_folder))
     {
         bf::create_directories(output_folder);
     }
 
-    String out_file_name = output_folder
+    StdString out_file_name = output_folder
                            + Platform::getFilePathSeparator().to_u8().to_std_string()
                            + (own_folder ? "" : getName().to_u8().to_std_string() + ".")
                            + "output.txt";
@@ -269,7 +269,7 @@ int32_t GroupRunner::Run()
         U16String task_folder;
         if (run_count > 1)
         {
-            U16String folder_name = U16String("run-" + toString(c));
+            U16String folder_name = U16String("run-") + toString(c).to_u16();
             task_folder = output_folder_ + Platform::getFilePathSeparator() + folder_name;
         }
         else {

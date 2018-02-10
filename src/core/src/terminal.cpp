@@ -83,19 +83,19 @@ int64_t getTimeInMillisT()
 }
 
 
-String getMillisPartT(int64_t millis) {
-    return millis < 100 ? "0"+toString(millis) : toString(millis);
+U8String getMillisPartT(int64_t millis) {
+    return millis < 100 ? U8String("0") + toString(millis) : toString(millis);
 }
 
-String getTwoDigitsPartT(int64_t value) {
-    return value < 10 ? "0"+toString(value) : toString(value);
+U8String getTwoDigitsPartT(int64_t value) {
+    return value < 10 ? U8String("0") + toString(value) : toString(value);
 }
 
-String FormatTimeT(int64_t millis)
+U8String FormatTimeT(int64_t millis)
 {
     if (millis < 1000)
     {
-        return "0." + getMillisPartT(millis);
+        return U8String("0.") + getMillisPartT(millis);
     }
     else if (millis < 60000)
     {
@@ -113,7 +113,7 @@ String FormatTimeT(int64_t millis)
         int64_t seconds  = millis / 1000;
         millis = millis % 1000;
 
-        return toString(minutes) +":" + getTwoDigitsPartT(seconds) +"." + getMillisPartT(millis);
+        return toString(minutes) + ":" + getTwoDigitsPartT(seconds) + "." + getMillisPartT(millis);
     }
     else if (millis < 60000 * 60 * 24)
     {

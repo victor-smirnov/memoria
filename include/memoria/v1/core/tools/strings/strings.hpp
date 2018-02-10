@@ -29,19 +29,19 @@ namespace v1 {
 
 
 
-String trimString(StringRef str);
+U8String trimString(U8StringRef str);
 //String ReplaceFirst(StringRef str, StringRef txt);
 //String ReplaceLast(StringRef str, StringRef txt);
 //String ReplaceAll(StringRef str, StringRef txt);
-bool isEmpty(StringRef str);
-bool isEmpty(StringRef str, String::size_type start, String::size_type end, StringRef sep);
-bool isEndsWith(StringRef str, StringRef end);
-bool isStartsWith(StringRef str, StringRef start);
-Long strToL(StringRef str);
+bool isEmpty(U8StringRef str);
+bool isEmpty(U8StringRef str, size_t start, size_t end, U8StringRef sep);
+bool isEndsWith(U8StringRef str, U8StringRef end);
+bool isStartsWith(U8StringRef str, U8StringRef start);
+Long strToL(U8StringRef str);
 
 // FIXME: move it into the string library
 template <typename T>
-String toString(const T& value, bool hex = false)
+U8String toString(const T& value, bool hex = false)
 {
     std::stringstream str;
     if (hex) {
@@ -52,7 +52,7 @@ String toString(const T& value, bool hex = false)
 }
 
 
-static inline String toString(const uint8_t value, bool hex = false)
+static inline U8String toString(const uint8_t value, bool hex = false)
 {
     std::stringstream str;
     if (hex) {
@@ -62,7 +62,7 @@ static inline String toString(const uint8_t value, bool hex = false)
     return str.str();
 }
 
-static inline String toString(const int8_t value, bool hex = false)
+static inline U8String toString(const int8_t value, bool hex = false)
 {
     std::stringstream str;
     if (hex) {
@@ -75,7 +75,7 @@ static inline String toString(const int8_t value, bool hex = false)
 
 template <typename T>
 struct AsString {
-    static String convert(const T& value, bool hex = false)
+    static U8String convert(const T& value, bool hex = false)
     {
         std::stringstream str;
         if (hex) {
@@ -88,7 +88,7 @@ struct AsString {
 
 template <>
 struct AsString<bool> {
-    static String convert(const bool& value)
+    static U8String convert(const bool& value)
     {
         std::stringstream str;
 
@@ -106,31 +106,31 @@ struct AsString<bool> {
 };
 
 template <>
-struct AsString<String> {
-    static String convert(StringRef value)
+struct AsString<U8String> {
+    static U8String convert(U8StringRef value)
     {
         return value;
     }
 };
 
 
-long int ConvertToLongInt(StringRef str);
-unsigned long int ConvertToULongInt(StringRef str);
-long long ConvertToLongLong(StringRef str);
-unsigned long long ConvertToULongLong(StringRef str);
-double ConvertToDouble(StringRef str);
-long double ConvertToLongDouble(StringRef str);
-bool ConvertToBool(StringRef str);
+long int ConvertToLongInt(U8StringRef str);
+unsigned long int ConvertToULongInt(U8StringRef str);
+long long ConvertToLongLong(U8StringRef str);
+unsigned long long ConvertToULongLong(U8StringRef str);
+double ConvertToDouble(U8StringRef str);
+long double ConvertToLongDouble(U8StringRef str);
+bool ConvertToBool(U8StringRef str);
 
 template <typename T> struct FromString;
 
 template <>
 struct FromString<int32_t> {
     static auto convert(U16StringRef str) {
-        return convert(str.to_u8().to_std_string());
+        return convert(str.to_u8());
     }
 
-    static int32_t convert(StringRef str)
+    static int32_t convert(U8StringRef str)
     {
         return ConvertToLongInt(str);
     }
@@ -139,10 +139,10 @@ struct FromString<int32_t> {
 template <>
 struct FromString<int64_t> {
     static auto convert(U16StringRef str) {
-        return convert(str.to_u8().to_std_string());
+        return convert(str.to_u8());
     }
 
-    static int64_t convert(StringRef str)
+    static int64_t convert(U8StringRef str)
     {
         return ConvertToLongLong(str);
     }
@@ -151,10 +151,10 @@ struct FromString<int64_t> {
 template <>
 struct FromString<uint64_t> {
     static auto convert(U16StringRef str) {
-        return convert(str.to_u8().to_std_string());
+        return convert(str.to_u8());
     }
 
-    static uint64_t convert(StringRef str)
+    static uint64_t convert(U8StringRef str)
     {
         return ConvertToULongLong(str);
     }
@@ -165,10 +165,10 @@ struct FromString<uint64_t> {
 template <>
 struct FromString<unsigned long> {
     static auto convert(U16StringRef str) {
-        return convert(str.to_u8().to_std_string());
+        return convert(str.to_u8());
     }
 
-    static unsigned long convert(StringRef str)
+    static unsigned long convert(U8StringRef str)
     {
         return ConvertToULongInt(str);
     }
@@ -179,10 +179,10 @@ struct FromString<unsigned long> {
 template <>
 struct FromString<double> {
     static auto convert(U16StringRef str) {
-        return convert(str.to_u8().to_std_string());
+        return convert(str.to_u8());
     }
 
-    static double convert(StringRef str)
+    static double convert(U8StringRef str)
     {
         return ConvertToDouble(str);
     }
@@ -191,25 +191,25 @@ struct FromString<double> {
 template <>
 struct FromString<bool> {
     static bool convert(U16StringRef str) {
-        return convert(str.to_u8().to_std_string());
+        return convert(str.to_u8());
     }
 
-    static bool convert(StringRef str)
+    static bool convert(U8StringRef str)
     {
         return ConvertToBool(str);
     }
 };
 
 template <>
-struct FromString<String> {
-    static String convert(StringRef str)
+struct FromString<U8String> {
+    static U8String convert(U8StringRef str)
     {
         return str;
     }
 
-    static String convert(U16StringRef str)
+    static U8String convert(U16StringRef str)
     {
-        return str.to_u8().to_std_string();
+        return str.to_u8();
     }
 };
 
@@ -220,7 +220,7 @@ struct FromString<U16String> {
         return str;
     }
 
-    static U16String convert(StringRef str)
+    static U16String convert(U8StringRef str)
     {
         return U8String(str).to_u16();
     }
@@ -231,10 +231,10 @@ template <typename T, size_t Size>
 struct FromString<T[Size]> {
 
     static void convert(T* values, U16StringRef str) {
-        return convert(values, str.to_u8().to_std_string());
+        return convert(values, str.to_u8());
     }
 
-    static void convert(T* values, StringRef str)
+    static void convert(T* values, U8StringRef str)
     {
         size_t start = 0;
 
@@ -245,11 +245,11 @@ struct FromString<T[Size]> {
 
         for (size_t c = 0; c < Size; c++)
         {
-            size_t pos = str.find_first_of(",", start);
+            size_t pos = str.to_std_string().find_first_of(",", start);
 
-            String value = trimString(str.substr(start, pos != String::npos ? pos - start : pos));
+            U8String value = trimString(str.to_std_string().substr(start, pos != StdString::npos ? pos - start : pos));
 
-            if (!isEmpty(value))
+            if (!isEmpty(value.to_std_string()))
             {
                 values[c] = FromString<T>::convert(value);
             }
@@ -257,7 +257,7 @@ struct FromString<T[Size]> {
                 values[c] = 0;
             }
 
-            if (pos != String::npos && pos < str.length())
+            if (pos != StdString::npos && pos < str.length())
             {
                 start = pos + 1;
             }

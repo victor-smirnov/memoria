@@ -115,8 +115,8 @@ struct VLQBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 #ifdef HAVE_BOOST
             std::is_same<KeyType, BigInteger>::value ||
 #endif
-            std::is_same<KeyType, String>::value,
-            "Only arithmetic types, BigNumber and String are supported for VLQBranchStructTF<>"
+            std::is_same<KeyType, U8String>::value,
+            "Only arithmetic types, BigNumber and U8String are supported for VLQBranchStructTF<>"
     );
 
 

@@ -274,9 +274,9 @@ public:
         self.dumpPages(out);
     }
 
-    String getDumpHeader() const
+    U8String getDumpHeader() const
     {
-        return String(self().ctr().typeName()) + " Iterator State";
+        return U8String(self().ctr().typeName()) + " Iterator State";
     }
 
     void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const

@@ -34,37 +34,37 @@
 namespace memoria {
 namespace v1 {
 
-using String    = std::string;
-using StringRef = const String&;
+using StdString    = std::string;
+using StdStringRef = const StdString&;
 
 template <typename T> struct TypeHash;
 
 template <>
-struct TypeHash<String> {
-    static const uint64_t Value = 60;
+struct TypeHash<StdString> {
+    static const uint64_t Value = 65;
 };
 
-inline bool compare_gt(const String& first, const String& second) {
+inline bool compare_gt(const StdString& first, const StdString& second) {
     return first.compare(second) > 0;
 }
 
 
-inline bool compare_eq(const String& first, const String& second) {
+inline bool compare_eq(const StdString& first, const StdString& second) {
     return first.compare(second) == 0;
 }
 
 
-inline bool compare_lt(const String& first, const String& second) {
+inline bool compare_lt(const StdString& first, const StdString& second) {
     return first.compare(second) > 0;
 }
 
 
-inline bool compare_ge(const String& first, const String& second) {
+inline bool compare_ge(const StdString& first, const StdString& second) {
     return first.compare(second) >= 0;
 }
 
 
-inline bool compare_le(const String& first, const String& second) {
+inline bool compare_le(const StdString& first, const StdString& second) {
     return first.compare(second) <= 0;
 }
 

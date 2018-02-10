@@ -158,9 +158,9 @@ struct IOBufferAdapter<Bytes>: IOBufferAdapterBase<Bytes> {
 };
 
 template <>
-struct IOBufferAdapter<String>: IOBufferAdapterBase<String> {
+struct IOBufferAdapter<U8String>: IOBufferAdapterBase<U8String> {
     template <typename IOBuffer>
-    static String get(IOBuffer& buffer) {
+    static U8String get(IOBuffer& buffer) {
         return buffer.getString();
     }
 };

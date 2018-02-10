@@ -84,10 +84,10 @@ public:
     
     SnapshotPtr master();
     SnapshotPtr find(const TxnId& snapshot_id);
-    SnapshotPtr find_branch(StringRef name);
+    SnapshotPtr find_branch(U8StringRef name);
     
     void set_master(const TxnId& txn_id);
-    void set_branch(StringRef name, const TxnId& txn_id);
+    void set_branch(U8StringRef name, const TxnId& txn_id);
     
     ContainerMetadataRepository* metadata() const;
     void walk_containers(ContainerWalker* walker, const char* allocator_descr = nullptr);
@@ -152,9 +152,9 @@ public:
     void drop();
     bool drop_ctr(const UUID& name);
     void set_as_master();
-    void set_as_branch(StringRef name);
-    String snapshot_metadata() const;
-    void set_snapshot_metadata(StringRef metadata);
+    void set_as_branch(U8StringRef name);
+    U8String snapshot_metadata() const;
+    void set_snapshot_metadata(U8StringRef metadata);
     void lock_data_for_import();
     SnapshotPtr branch();
     bool has_parent() const;

@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memoria/v1/core/tools/strings/string.hpp>
+
 #include <string>
 #include <sstream>
 
@@ -34,7 +36,7 @@ namespace v1 {
 template<typename T, int BufferSize = 40960>
 struct TypeNameFactory
 {
-    static std::string name() {
+    static U8String name() {
         char buf[BufferSize];
         size_t len = sizeof(buf);
         abi::__cxa_demangle(typeid(T).name(), buf, &len, NULL);
@@ -46,20 +48,20 @@ struct TypeNameFactory
     }
 };
 
-static inline std::string demangle(const char* name)
+static inline U8String demangle(const char* name)
 {
 	char buf[40960];
 	size_t len = sizeof(buf);
 	abi::__cxa_demangle(name, buf, &len, NULL);
-	return std::string(buf);
+    return U8String(buf);
 }
 
 #else
 template<typename T, int BufferSize = 40960>
 struct TypeNameFactory
 {
-    static std::string name() {
-        return std::string(typeid(T).name());
+    static U8String name() {
+        return U8String(typeid(T).name());
     }
 
     static const char* cname() {
@@ -67,9 +69,9 @@ struct TypeNameFactory
     }
 };
 
-static inline std::string demangle(const char* name)
+static inline U8String demangle(const char* name)
 {
-	return std::string(name);
+    return U8String(name);
 }
 
 #endif

@@ -24,7 +24,7 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-using CtrName = Vector<String>;
+using CtrName = Vector<U8String>;
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     

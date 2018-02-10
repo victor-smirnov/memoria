@@ -136,6 +136,23 @@ public:
         return content_ == other;
     }
 
+    bool operator>=(const char16_t* other) const {
+        return content_ >= other;
+    }
+
+    bool operator<=(const char16_t* other) const {
+        return content_ <= other;
+    }
+
+    bool operator<(const char16_t* other) const {
+        return content_ < other;
+    }
+
+    bool operator>(const char16_t* other) const {
+        return content_ > other;
+    }
+
+
     bool operator<(const U16String& other) const {
         return content_ < other.content_;
     }
@@ -578,5 +595,12 @@ namespace std {
 inline void swap(memoria::v1::U16String& one, memoria::v1::U16String& two) {
     std::swap(one.content_, two.content_);
 }
+
+template<>
+struct hash<memoria::v1::U16String> {
+    size_t operator()(const memoria::v1::U16String& str) const noexcept {
+        return hash<std::u16string>()(str.to_std_string());
+    }
+};
 
 }

@@ -192,7 +192,7 @@ public:
         }
     }
 
-    MyType* setDescription(StringRef descr)
+    MyType* setDescription(U8StringRef descr)
     {
         description_ = descr;
         return this;
