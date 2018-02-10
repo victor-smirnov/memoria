@@ -85,7 +85,7 @@ static int32_t DumpAllocator(U16String file_name)
 
         std::cout << "Loading time: " << FormatTime(end-start) << std::endl;
 
-        FSDumpAllocator(allocator, bf::absolute(path).string());
+        FSDumpAllocator(allocator, U8String(bf::absolute(path).string()).to_u16());
 	}
 	catch (Exception& ex) {
 		std::cout<<"Exception "<<ex.source()<<" "<<ex<<std::endl;

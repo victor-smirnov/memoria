@@ -191,14 +191,14 @@ public:
         });
     }
 
-    U8String metadata() const
+    U16String metadata() const
     {
     	return reactor::engine().run_at(cpu_, [&]{
             return history_node_->metadata();
         });
     }
 
-    void set_metadata(U8StringRef metadata)
+    void set_metadata(U16StringRef metadata)
     {
     	return reactor::engine().run_at(cpu_, [&]
         {
@@ -435,19 +435,19 @@ void InMemSnapshot<Profile>::set_as_master()
 }
 
 template <typename Profile>
-void InMemSnapshot<Profile>::set_as_branch(U8StringRef name)
+void InMemSnapshot<Profile>::set_as_branch(U16StringRef name)
 {
     return pimpl_->set_as_branch(name);
 }
 
 template <typename Profile>
-U8String InMemSnapshot<Profile>::snapshot_metadata() const
+U16String InMemSnapshot<Profile>::snapshot_metadata() const
 {
     return pimpl_->metadata();
 }
 
 template <typename Profile>
-void InMemSnapshot<Profile>::set_snapshot_metadata(U8StringRef metadata)
+void InMemSnapshot<Profile>::set_snapshot_metadata(U16StringRef metadata)
 {
     return pimpl_->set_metadata(metadata);
 }
@@ -517,7 +517,7 @@ void InMemSnapshot<Profile>::dump_persistent_tree()
 }
 
 template <typename Profile>
-void InMemSnapshot<Profile>::walk_containers(ContainerWalker* walker, const char* allocator_descr) 
+void InMemSnapshot<Profile>::walk_containers(ContainerWalker* walker, const char16_t* allocator_descr)
 {
      return pimpl_->walkContainers(walker, allocator_descr);
 }

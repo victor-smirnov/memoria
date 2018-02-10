@@ -194,6 +194,24 @@ inline InputStreamHandler& operator>>(InputStreamHandler& in, U8String& value)
 }
 
 
+inline InputStreamHandler& operator>>(InputStreamHandler& in, U16String& value)
+{
+    int64_t size = in.readInt64();
+
+    U8String u8_value(size, ' ');
+
+    //value.to_std_string().clear();
+    //value.to_std_string().insert(0, size, 0);
+
+    in.read(u8_value.data(), size);
+
+    value = u8_value.to_u16();
+
+    return in;
+}
+
+
+
 template <typename T>
 OutputStreamHandler& operator<<(OutputStreamHandler& out, const T& value) {
     out.write(value);
@@ -209,6 +227,14 @@ inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const U8String&
     return out;
 }
 
+inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const U16String& value)
+{
+    U8String u8_value = value.to_u8();
 
+    out << (int64_t)u8_value.length();
+
+    out.write(u8_value.data(), 0, u8_value.length());
+    return out;
+}
 
 }}

@@ -47,19 +47,19 @@ template <typename Profile> class MetadataRepository;
 namespace bf = boost::filesystem;    
 
 struct ContainerWalker {
-    virtual void beginAllocator(const char* type, const char* desc)             = 0;
-    virtual void endAllocator()                                                 = 0;
+    virtual void beginAllocator(const char16_t* type, const char16_t* desc)         = 0;
+    virtual void endAllocator()                                                     = 0;
 
-    virtual void beginSnapshot(const char* descr)                               = 0;
-    virtual void endSnapshot()                                                  = 0;
+    virtual void beginSnapshot(const char16_t* descr)                               = 0;
+    virtual void endSnapshot()                                                      = 0;
 
-    virtual void beginSnapshotSet(const char* descr, size_t number)             = 0;
-    virtual void endSnapshotSet()                                               = 0;
+    virtual void beginSnapshotSet(const char16_t* descr, size_t number)             = 0;
+    virtual void endSnapshotSet()                                                   = 0;
 
-    virtual void beginCompositeCtr(const char* descr, const UUID& name)         = 0;
-    virtual void endCompositeCtr()                                              = 0;
+    virtual void beginCompositeCtr(const char16_t* descr, const UUID& name)         = 0;
+    virtual void endCompositeCtr()                                                  = 0;
 
-    virtual void beginCtr(const char* descr, const UUID& name, const UUID& root)= 0;
+    virtual void beginCtr(const char16_t* descr, const UUID& name, const UUID& root)= 0;
     virtual void endCtr()                                                       = 0;
 
     virtual void beginRoot(int32_t idx, const void* page)                       = 0;
@@ -71,30 +71,30 @@ struct ContainerWalker {
     virtual void rootLeaf(int32_t idx, const void* page)                        = 0;
     virtual void leaf(int32_t idx, const void* page)                            = 0;
 
-    virtual void singleNode(const char* descr, const void* page)                = 0;
+    virtual void singleNode(const char16_t* descr, const void* page)            = 0;
 
-    virtual void beginSection(const char* name)                                 = 0;
+    virtual void beginSection(const char16_t* name)                             = 0;
     virtual void endSection()                                                   = 0;
 
-    virtual void content(const char* name, const char* content)                 = 0;
+    virtual void content(const char16_t* name, const char16_t* content)         = 0;
 
     virtual ~ContainerWalker() {}
 };
 
 struct ContainerWalkerBase: ContainerWalker {
-    virtual void beginAllocator(const char* type, const char* desc) {}
+    virtual void beginAllocator(const char16_t* type, const char16_t* desc) {}
     virtual void endAllocator() {}
 
-    virtual void beginSnapshot(const char* descr) {}
+    virtual void beginSnapshot(const char16_t* descr) {}
     virtual void endSnapshot() {}
 
-    virtual void beginSnapshotSet(const char* descr, size_t number) {}
+    virtual void beginSnapshotSet(const char16_t* descr, size_t number) {}
     virtual void endSnapshotSet() {}
 
-    virtual void beginCompositeCtr(const char* descr, const UUID& name) {}
+    virtual void beginCompositeCtr(const char16_t* descr, const UUID& name) {}
     virtual void endCompositeCtr() {}
 
-    virtual void beginCtr(const char* descr, const UUID& name, const UUID& root) {}
+    virtual void beginCtr(const char16_t* descr, const UUID& name, const UUID& root) {}
     virtual void endCtr() {}
 
     virtual void beginRoot(int32_t idx, const void* page) {}
@@ -106,12 +106,12 @@ struct ContainerWalkerBase: ContainerWalker {
     virtual void rootLeaf(int32_t idx, const void* page) {}
     virtual void leaf(int32_t idx, const void* page) {}
 
-    virtual void singleNode(const char* descr, const void* page) {}
+    virtual void singleNode(const char16_t* descr, const void* page) {}
 
-    virtual void beginSection(const char* name) {}
+    virtual void beginSection(const char16_t* name) {}
     virtual void endSection() {}
 
-    virtual void content(const char* name, const char* content) {}
+    virtual void content(const char16_t* name, const char16_t* content) {}
 
     virtual ~ContainerWalkerBase() {}
 };
@@ -330,9 +330,11 @@ class FSDumpContainerWalker: public ContainerWalker {
     std::stack<bf::path> path_;
 
 public:
-    FSDumpContainerWalker(ContainerMetadataRepository* metadata, U8StringRef root):
+    FSDumpContainerWalker(ContainerMetadataRepository* metadata, U16StringRef root_u16):
         metadata_(metadata)
     {
+        U8String root = root_u16.to_u8();
+
         if (!bf::exists(root.to_std_string()))
         {
             bf::create_directories(root.to_std_string());
@@ -345,7 +347,7 @@ public:
         path_.push(bf::path(root.to_std_string()));
     }
 
-    virtual void beginSnapshotSet(const char* descr, size_t number)
+    virtual void beginSnapshotSet(const char16_t* descr, size_t number)
     {
         pushFolder(descr);
     }
@@ -355,7 +357,7 @@ public:
         path_.pop();
     }
 
-    virtual void beginAllocator(const char* type, const char* desc)
+    virtual void beginAllocator(const char16_t* type, const char16_t* desc)
     {
         pushFolder(type);
     }
@@ -365,7 +367,7 @@ public:
         path_.pop();
     }
 
-    virtual void beginSnapshot(const char* descr)
+    virtual void beginSnapshot(const char16_t* descr)
     {
         pushFolder(descr);
     }
@@ -375,30 +377,30 @@ public:
         path_.pop();
     }
 
-    virtual void beginCompositeCtr(const char* descr, const UUID& name)
+    virtual void beginCompositeCtr(const char16_t* descr, const UUID& name)
     {
         stringstream str;
 
         str << shorten(descr) <<": " << name;
 
-        pushFolder(str.str().c_str());
+        pushFolder(U8String(str.str()).to_u16().data());
 
-        dumpDescription("ctr_name", U8String(descr));
+        dumpDescription(u"ctr_name", descr);
     }
 
     virtual void endCompositeCtr() {
         path_.pop();
     }
 
-    virtual void beginCtr(const char* descr, const UUID& name, const UUID& root)
+    virtual void beginCtr(const char16_t* descr, const UUID& name, const UUID& root)
     {
         stringstream str;
 
         str<<shorten(descr)<<": "<<name;
 
-        pushFolder(str.str().c_str());
+        pushFolder(U8String(str.str()).to_u16().data());
 
-        dumpDescription("ctr_name", U8String(descr));
+        dumpDescription(u"ctr_name", descr);
     }
 
     virtual void endCtr() {
@@ -411,23 +413,23 @@ public:
 
         U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + "root_leaf.txt";
 
-        dumpPage(file_name, page);
+        dumpPage(file_name.to_u16(), page);
     }
 
     virtual void leaf(int32_t idx, const void* page_data)
     {
         const Page* page = T2T<Page*>(page_data);
 
-        U8String description = getNodeName("Leaf", idx, page->id());
+        U16String description = getNodeName(u"Leaf", idx, page->id());
 
-        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8().to_std_string() + description + ".txt";
+        U16String file_name = U8String(path_.top().string()).to_u16() + Platform::getFilePathSeparator() + description + u".txt";
 
         dumpPage(file_name, page);
     }
 
     virtual void beginRoot(int32_t idx, const void* page_data)
     {
-        beginNonLeaf("Root", idx, page_data);
+        beginNonLeaf(u"Root", idx, page_data);
     }
 
     virtual void endRoot()
@@ -437,7 +439,7 @@ public:
 
     virtual void beginNode(int32_t idx, const void* page_data)
     {
-        beginNonLeaf("Node", idx, page_data);
+        beginNonLeaf(u"Node", idx, page_data);
     }
 
     virtual void endNode()
@@ -445,17 +447,17 @@ public:
         path_.pop();
     }
 
-    virtual void singleNode(const char* description, const void* page_data)
+    virtual void singleNode(const char16_t* description, const void* page_data)
     {
         const Page* page = T2T<Page*>(page_data);
 
-        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + description + ".txt";
+        U16String file_name = U8String(path_.top().string()).to_u16() + Platform::getFilePathSeparator() + description + u".txt";
 
         dumpPage(file_name, page);
     }
 
 
-    virtual void beginSection(const char* name)
+    virtual void beginSection(const char16_t* name)
     {
         pushFolder(name);
     }
@@ -464,47 +466,47 @@ public:
         path_.pop();
     }
 
-    virtual void content(const char* name, const char* content)
+    virtual void content(const char16_t* name, const char16_t* content)
     {
         dumpDescription(name, content);
     }
 
 private:
 
-    void beginNonLeaf(const char* type, int32_t idx, const void* page_data)
+    void beginNonLeaf(const char16_t* type, int32_t idx, const void* page_data)
     {
         const Page* page = T2T<Page*>(page_data);
 
-        U8String folder_name = getNodeName(type, idx, page->id());
+        U16String folder_name = getNodeName(type, idx, page->id());
         pushFolder(folder_name.data());
 
-        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + "0_page.txt";
+        U16String file_name = U8String(path_.top().string()).to_u16() + Platform::getFilePathSeparator() + u"0_page.txt";
 
         dumpPage(file_name, page);
     }
 
 
-    void dumpPage(U8StringRef file, const Page* page)
+    void dumpPage(U16StringRef file, const Page* page)
     {
-        std::ofstream pagetxt(file.data());
+        std::ofstream pagetxt(file.to_u8().data());
 
         auto meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         dumpPageData(meta.get(), page, pagetxt);
     }
 
-    void dumpDescription(U8StringRef type, U8StringRef content)
+    void dumpDescription(U16StringRef type, U16StringRef content)
     {
-        U8String file_name = U8String(path_.top().parent_path().string()) + Platform::getFilePathSeparator().to_u8() + type + ".txt";
+        U8String file_name = U8String(path_.top().parent_path().string()) + Platform::getFilePathSeparator().to_u8() + type.to_u8() + ".txt";
 
         std::ofstream file(file_name.data());
 
-        file<<content;
+        file << content;
     }
 
-    void pushFolder(const char* descr)
+    void pushFolder(const char16_t* descr)
     {
-        U8String name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + descr;
+        U8String name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + U16String(descr).to_u8();
         bf::path file(name.to_std_string());
         
         auto res = bf::create_directory(name.to_std_string());
@@ -513,11 +515,11 @@ private:
         path_.push(file);
     }
 
-    U8String getNodeName(const char* name, int32_t index, const ID& id)
+    U16String getNodeName(const char16_t* name, int32_t index, const ID& id)
     {
         std::stringstream str;
 
-        str << name << "-";
+        str << U16String(name) << "-";
 
         char prev = str.fill();
 
@@ -530,17 +532,17 @@ private:
 
         str << "___" << id;
 
-        return str.str();
+        return U8String(str.str()).to_u16();
     }
 
 private:
-    U8String shorten(const char* txt)
+    U16String shorten(const char16_t* txt)
     {
-        U8String text = txt;
+        U16String text = U16String(txt);
 
-        auto start = text.to_std_string().find_first_of("<");
+        auto start = text.find_first_of("<");
 
-        if (start != StdString::npos)
+        if (start != U16String::NPOS)
         {
             text.to_std_string().erase(start);
         }
@@ -550,21 +552,14 @@ private:
 };
 
 
-template <typename Allocator>
-void FSDumpAllocator(Allocator& allocator, U8StringRef path)
-{
-    using Walker = FSDumpContainerWalker<typename Allocator::Page>;
 
-    Walker walker(allocator.metadata(), path);
-    allocator.walk_containers(&walker);
-}
 
 template <typename Allocator>
 void FSDumpAllocator(Allocator& allocator, U16StringRef path)
 {
     using Walker = FSDumpContainerWalker<typename Allocator::Page>;
 
-    Walker walker(allocator.metadata(), path.to_u8().to_std_string());
+    Walker walker(allocator.metadata(), path);
     allocator.walk_containers(&walker);
 }
 
@@ -597,7 +592,7 @@ public:
         path_.push(root_path);
     }
 
-    virtual void beginSnapshotSet(const char* descr, size_t number)
+    virtual void beginSnapshotSet(const char16_t* descr, size_t number)
     {
         pushFolder(descr);
     }
@@ -607,7 +602,7 @@ public:
         path_.pop();
     }
 
-    virtual void beginAllocator(const char* type, const char* desc)
+    virtual void beginAllocator(const char16_t* type, const char16_t* desc)
     {
         pushFolder(type);
     }
@@ -617,7 +612,7 @@ public:
         path_.pop();
     }
 
-    virtual void beginSnapshot(const char* descr)
+    virtual void beginSnapshot(const char16_t* descr)
     {
         pushFolder(descr);
     }
@@ -627,30 +622,30 @@ public:
         path_.pop();
     }
 
-    virtual void beginCompositeCtr(const char* descr, const UUID& name)
+    virtual void beginCompositeCtr(const char16_t* descr, const UUID& name)
     {
         stringstream str;
 
-        str << shorten(descr) <<": " << name;
+        str << shorten(descr) << ": " << name;
 
-        pushFolder(str.str().c_str());
+        pushFolder(U8String(str.str()).to_u16().data());
 
-        dumpDescription("ctr_name", U8String(descr));
+        dumpDescription(u"ctr_name", U16String(descr).to_u8());
     }
 
     virtual void endCompositeCtr() {
         path_.pop();
     }
 
-    virtual void beginCtr(const char* descr, const UUID& name, const UUID& root)
+    virtual void beginCtr(const char16_t* descr, const UUID& name, const UUID& root)
     {
         stringstream str;
 
         str << shorten(descr) << ": " << name;
 
-        pushFolder(str.str().c_str());
+        pushFolder(U8String(str.str()).to_u16().data());
 
-        dumpDescription("ctr_name", U8String(descr));
+        dumpDescription(u"ctr_name", U16String(descr).to_u8());
     }
 
     virtual void endCtr() {
@@ -661,25 +656,25 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        U8String file_name = path_.top().to_u8() + Platform::getFilePathSeparator().to_u8() + "root_leaf.txt";
+        U16String file_name = path_.top().to_u16() + Platform::getFilePathSeparator() + u"root_leaf.txt";
 
-        dumpPage(file_name.to_std_string(), page);
+        dumpPage(file_name, page);
     }
 
     virtual void leaf(int32_t idx, const void* page_data)
     {
         const Page* page = T2T<Page*>(page_data);
 
-        U8String description = getNodeName("Leaf", idx, page->id());
+        U16String description = getNodeName(u"Leaf", idx, page->id());
 
-        U8String file_name = path_.top().to_u8() + Platform::getFilePathSeparator().to_u8() + description + ".txt";
+        U16String file_name = path_.top().to_u16() + Platform::getFilePathSeparator() + description + u".txt";
 
-        dumpPage(file_name.to_std_string(), page);
+        dumpPage(file_name, page);
     }
 
     virtual void beginRoot(int32_t idx, const void* page_data)
     {
-        beginNonLeaf("Root", idx, page_data);
+        beginNonLeaf(u"Root", idx, page_data);
     }
 
     virtual void endRoot()
@@ -689,7 +684,7 @@ public:
 
     virtual void beginNode(int32_t idx, const void* page_data)
     {
-        beginNonLeaf("Node", idx, page_data);
+        beginNonLeaf(u"Node", idx, page_data);
     }
 
     virtual void endNode()
@@ -697,17 +692,17 @@ public:
         path_.pop();
     }
 
-    virtual void singleNode(const char* description, const void* page_data)
+    virtual void singleNode(const char16_t* description, const void* page_data)
     {
         const Page* page = T2T<Page*>(page_data);
 
-        U8String file_name = path_.top().to_u8() + Platform::getFilePathSeparator().to_u8() + description + ".txt";
+        U16String file_name = path_.top().to_u16() + Platform::getFilePathSeparator() + description + u".txt";
 
-        dumpPage(file_name.to_std_string(), page);
+        dumpPage(file_name, page);
     }
 
 
-    virtual void beginSection(const char* name)
+    virtual void beginSection(const char16_t* name)
     {
         pushFolder(name);
     }
@@ -716,23 +711,23 @@ public:
         path_.pop();
     }
 
-    virtual void content(const char* name, const char* content)
+    virtual void content(const char16_t* name, const char16_t* content)
     {
-        dumpDescription(name, content);
+        dumpDescription(name, U16String(content).to_u8());
     }
 
 private:
 
-    void beginNonLeaf(const char* type, int32_t idx, const void* page_data)
+    void beginNonLeaf(const char16_t* type, int32_t idx, const void* page_data)
     {
         const Page* page = T2T<Page*>(page_data);
 
-        U8String folder_name = getNodeName(type, idx, page->id());
+        U16String folder_name = getNodeName(type, idx, page->id());
         pushFolder(folder_name.data());
 
-        U8String file_name = path_.top().to_u8() + Platform::getFilePathSeparator().to_u8() + "0_page.txt";
+        U16String file_name = path_.top().to_u16() + Platform::getFilePathSeparator() + u"0_page.txt";
 
-        dumpPage(file_name.to_std_string(), page);
+        dumpPage(file_name, page);
     }
 
 
@@ -750,9 +745,9 @@ private:
         dumpPageData(meta.get(), page, pagetxt);
     }
 
-    void dumpDescription(U8StringRef type, U8StringRef content)
+    void dumpDescription(U16StringRef type, U8StringRef content)
     {
-        U16String file_name = path_.top().parent_path().to_u16() + Platform::getFilePathSeparator() + type.to_u16() + u".txt";
+        U16String file_name = path_.top().parent_path().to_u16() + Platform::getFilePathSeparator() + type + u".txt";
 
         reactor::bfstream file(
             reactor::open_buffered_file(
@@ -764,9 +759,9 @@ private:
         file << content;
     }
 
-    void pushFolder(const char* descr)
+    void pushFolder(const char16_t* descr)
     {
-        U16String name = path_.top().to_u16() + Platform::getFilePathSeparator() + U16String(descr);
+        U16String name = path_.top().to_u16() + Platform::getFilePathSeparator() + descr;
         filesystem::path file(name);
         
         auto res = filesystem::create_directory(name);
@@ -775,11 +770,11 @@ private:
         path_.push(file);
     }
 
-    U8String getNodeName(const char* name, int32_t index, const ID& id)
+    U16String getNodeName(const char16_t* name, int32_t index, const ID& id)
     {
         std::stringstream str;
 
-        str << name << "-";
+        str << U16String(name) << "-";
 
         char prev = str.fill();
 
@@ -792,17 +787,17 @@ private:
 
         str << "___" << id;
 
-        return str.str();
+        return U8String(str.str()).to_u16();
     }
 
 private:
-    U8String shorten(const char* txt)
+    U16String shorten(const char16_t* txt)
     {
-        U8String text = txt;
+        U16String text = txt;
 
-        auto start = text.to_std_string().find_first_of("<");
+        auto start = text.find_first_of("<");
 
-        if (start != StdString::npos)
+        if (start != U16String::NPOS)
         {
             text.to_std_string().erase(start);
         }
@@ -813,7 +808,7 @@ private:
 
 
 template <typename Allocator>
-void FiberFSDumpAllocator(Allocator& allocator, U8StringRef path)
+void FiberFSDumpAllocator(Allocator& allocator, U16StringRef path)
 {
     using Walker = FiberFSDumpContainerWalker<typename Allocator::Page>;
 

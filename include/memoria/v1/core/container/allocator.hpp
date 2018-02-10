@@ -100,7 +100,7 @@ struct IAllocator: AllocatorBase {
     virtual CtrSharedPtr<CtrReferenceable> get(const UUID& name)                = 0;
     
     virtual bool check()                                                        = 0;
-    virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr) = 0;
+    virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr) = 0;
     
     virtual ~IAllocator() {}
 };

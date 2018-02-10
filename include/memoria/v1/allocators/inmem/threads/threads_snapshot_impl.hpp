@@ -181,13 +181,13 @@ public:
         }
     }
 
-    U8String metadata() const
+    U16String metadata() const
     {
     	LockGuardT lock_guard(history_node_->snapshot_mutex());
         return history_node_->metadata();
     }
 
-    void set_metadata(U8StringRef metadata)
+    void set_metadata(U16StringRef metadata)
     {
     	LockGuardT lock_guard(history_node_->snapshot_mutex());
 
@@ -279,7 +279,7 @@ public:
     }
 
     
-    void dump(const char* destination)
+    void dump(const char16_t* destination)
     {
     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
 
@@ -451,19 +451,19 @@ void ThreadInMemSnapshot<Profile>::set_as_master()
 }
 
 template <typename Profile>
-void ThreadInMemSnapshot<Profile>::set_as_branch(U8StringRef name)
+void ThreadInMemSnapshot<Profile>::set_as_branch(U16StringRef name)
 {
     return pimpl_->set_as_branch(name);
 }
 
 template <typename Profile>
-U8String ThreadInMemSnapshot<Profile>::snapshot_metadata() const
+U16String ThreadInMemSnapshot<Profile>::snapshot_metadata() const
 {
     return pimpl_->metadata();
 }
 
 template <typename Profile>
-void ThreadInMemSnapshot<Profile>::set_snapshot_metadata(U8StringRef metadata)
+void ThreadInMemSnapshot<Profile>::set_snapshot_metadata(U16StringRef metadata)
 {
     return pimpl_->set_metadata(metadata);
 }
@@ -523,7 +523,7 @@ bool ThreadInMemSnapshot<Profile>::check() {
 
 template <typename Profile>
 void ThreadInMemSnapshot<Profile>::dump(boost::filesystem::path destination) {
-    return pimpl_->dump(destination.string().c_str());
+    return pimpl_->dump(U8String(destination.string()).to_u16().data());
 }
 
 template <typename Profile>
@@ -533,7 +533,7 @@ void ThreadInMemSnapshot<Profile>::dump_persistent_tree()
 }
 
 template <typename Profile>
-void ThreadInMemSnapshot<Profile>::walk_containers(ContainerWalker* walker, const char* allocator_descr) 
+void ThreadInMemSnapshot<Profile>::walk_containers(ContainerWalker* walker, const char16_t* allocator_descr)
 {
      return pimpl_->walkContainers(walker, allocator_descr);
 }

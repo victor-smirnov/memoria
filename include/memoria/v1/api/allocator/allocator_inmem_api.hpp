@@ -84,13 +84,13 @@ public:
     
     SnapshotPtr master();
     SnapshotPtr find(const TxnId& snapshot_id);
-    SnapshotPtr find_branch(U8StringRef name);
+    SnapshotPtr find_branch(U16StringRef name);
     
     void set_master(const TxnId& txn_id);
-    void set_branch(U8StringRef name, const TxnId& txn_id);
+    void set_branch(U16StringRef name, const TxnId& txn_id);
     
     ContainerMetadataRepository* metadata() const;
-    void walk_containers(ContainerWalker* walker, const char* allocator_descr = nullptr);
+    void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
     
     void dump(filesystem::path dump_at);
     
@@ -152,9 +152,9 @@ public:
     void drop();
     bool drop_ctr(const UUID& name);
     void set_as_master();
-    void set_as_branch(U8StringRef name);
-    U8String snapshot_metadata() const;
-    void set_snapshot_metadata(U8StringRef metadata);
+    void set_as_branch(U16StringRef name);
+    U16String snapshot_metadata() const;
+    void set_snapshot_metadata(U16StringRef metadata);
     void lock_data_for_import();
     SnapshotPtr branch();
     bool has_parent() const;
@@ -166,7 +166,7 @@ public:
     bool check();
     void dump(filesystem::path destination);
     void dump_persistent_tree();
-    void walk_containers(ContainerWalker* walker, const char* allocator_descr = nullptr);
+    void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
     
     
     template <typename CtrName>

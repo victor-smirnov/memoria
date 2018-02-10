@@ -214,7 +214,7 @@ public:
 
 
 
-    SnapshotPtr find_branch(U8StringRef name)
+    SnapshotPtr find_branch(U16StringRef name)
     {
         return reactor::engine().run_at(cpu_, [&]{
             auto iter = named_branches_.find(name);
@@ -305,7 +305,7 @@ public:
         });
     }
 
-    void set_branch(U8StringRef name, const TxnId& txn_id)
+    void set_branch(U16StringRef name, const TxnId& txn_id)
     {
         return reactor::engine().run_at(cpu_, [&]
         {
@@ -337,13 +337,13 @@ public:
         return metadata_;
     }
 
-    virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
+    virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr)
     {
         return reactor::engine().run_at(cpu_, [&]
         {
             this->build_snapshot_labels_metadata();
 
-            walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
+            walker->beginAllocator(u"PersistentInMemAllocator", allocator_descr);
 
             walk_containers(history_tree_, walker);
 
@@ -464,7 +464,7 @@ protected:
 
         if (node->children().size())
         {
-            walker->beginSnapshotSet("Branches", node->children().size());
+            walker->beginSnapshotSet(u"Branches", node->children().size());
             for (auto child: node->children())
             {
                 walk_containers(child, walker);
@@ -650,7 +650,7 @@ typename InMemAllocator<Profile>::SnapshotPtr InMemAllocator<Profile>::find(cons
 }
 
 template <typename Profile>
-typename InMemAllocator<Profile>::SnapshotPtr InMemAllocator<Profile>::find_branch(U8StringRef name)
+typename InMemAllocator<Profile>::SnapshotPtr InMemAllocator<Profile>::find_branch(U16StringRef name)
 {
     return pimpl_->find_branch(name);
 }
@@ -662,7 +662,7 @@ void InMemAllocator<Profile>::set_master(const TxnId& txn_id)
 }
 
 template <typename Profile>
-void InMemAllocator<Profile>::set_branch(U8StringRef name, const TxnId& txn_id)
+void InMemAllocator<Profile>::set_branch(U16StringRef name, const TxnId& txn_id)
 {
     pimpl_->set_branch(name, txn_id);
 }
@@ -674,7 +674,7 @@ ContainerMetadataRepository* InMemAllocator<Profile>::metadata() const
 }
 
 template <typename Profile>
-void InMemAllocator<Profile>::walk_containers(ContainerWalker* walker, const char* allocator_descr) 
+void InMemAllocator<Profile>::walk_containers(ContainerWalker* walker, const char16_t* allocator_descr)
 {
      return pimpl_->walkContainers(walker, allocator_descr);
 }

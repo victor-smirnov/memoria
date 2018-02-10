@@ -324,17 +324,17 @@ public:
     	history_tree_raw_->set_master(uuid());
     }
 
-    void set_as_branch(U8StringRef name)
+    void set_as_branch(U16StringRef name)
     {
     	history_tree_raw_->set_branch(name, uuid());
     }
 
-    U8StringRef metadata() const
+    U16StringRef metadata() const
     {
         return history_node_->metadata();
     }
 
-    void set_metadata(U8StringRef metadata)
+    void set_metadata(U16StringRef metadata)
     {
         if (history_node_->is_active())
         {
@@ -915,19 +915,19 @@ public:
         return result;
     }
 
-    U8String get_branch_suffix() const
+    U16String get_branch_suffix() const
     {
-        return U8String("");
+        return u"";
     }
 
-    virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
+    virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr)
     {
 		if (allocator_descr != nullptr)
 		{
-			walker->beginSnapshot((SBuf() << "Snapshot-" << history_node_->txn_id() << " -- " << allocator_descr).str().c_str());
+            walker->beginSnapshot(U8String((SBuf() << "Snapshot-" << history_node_->txn_id() << " -- " << allocator_descr).str()).to_u16().data());
 		}
 		else {
-			walker->beginSnapshot((SBuf() << "Snapshot-" << history_node_->txn_id()).str().c_str());
+            walker->beginSnapshot(U8String((SBuf() << "Snapshot-" << history_node_->txn_id()).str()).to_u16().data());
 		}
 
         auto iter = root_map_->Begin();

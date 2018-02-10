@@ -186,7 +186,7 @@ public:
         MyType* allocator_;
 
         HistoryNode* parent_;
-        U8String metadata_;
+        U16String metadata_;
 
         std::vector<HistoryNode*> children_;
 
@@ -350,7 +350,7 @@ public:
         }
 
 
-        void set_metadata(U8StringRef metadata) {
+        void set_metadata(U16StringRef metadata) {
         	metadata_ = metadata;
         }
 
@@ -400,7 +400,7 @@ public:
     private:
         TxnId parent_;
 
-        U8String metadata_;
+        U16String metadata_;
 
         std::vector<TxnId> children_;
 
@@ -460,8 +460,8 @@ public:
     using PersistentTreeNodeMap = std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>, UUIDKeyHash, UUIDKeyEq>;
     using PageMap               = std::unordered_map<typename PageType::ID, RCPagePtr*, UUIDKeyHash, UUIDKeyEq>;
     using RCPageSet             = std::unordered_set<RCPagePtr*>;
-    using BranchMap             = std::unordered_map<U8String, HistoryNode*>;
-    using ReverseBranchMap      = std::unordered_map<const HistoryNode*, U8String>;
+    using BranchMap             = std::unordered_map<U16String, HistoryNode*>;
+    using ReverseBranchMap      = std::unordered_map<const HistoryNode*, U16String>;
 
     template <typename, typename>
     friend class ThreadSnapshot;
@@ -478,7 +478,7 @@ protected:
         TxnId master_;
         TxnId root_;
 
-        std::unordered_map<U8String, TxnId> named_branches_;
+        std::unordered_map<U16String, TxnId> named_branches_;
 
     public:
         AllocatorMetadata() {}
@@ -764,7 +764,7 @@ protected:
     	return snapshot_labels_metadata_;
     }
 
-    const char* get_labels_for(const HistoryNode* node) const
+    const char16_t* get_labels_for(const HistoryNode* node) const
     {
     	auto labels = snapshot_labels_metadata_.find(node);
     	if (labels != snapshot_labels_metadata_.end())
@@ -781,15 +781,15 @@ protected:
     	snapshot_labels_metadata_.clear();
 
     	walk_version_tree(history_tree_, [&, this](const HistoryNode* node) {
-            std::vector<U8String> labels;
+            std::vector<U16String> labels;
 
     		if (node == history_tree_) {
-    			labels.emplace_back("Root");
+                labels.emplace_back(u"Root");
     		}
 
     		if (node == master_)
     		{
-    			labels.emplace_back("Master Head");
+                labels.emplace_back(u"Master Head");
     		}
 
 
@@ -819,7 +819,7 @@ protected:
     				labels_str << s;
     			}
 
-    			snapshot_labels_metadata_[node] = labels_str.str();
+                snapshot_labels_metadata_[node] = U8String(labels_str.str()).to_u16();
     		}
     	});
     }
@@ -931,7 +931,7 @@ protected:
 
         for (int64_t c = 0; c < size; c++)
         {
-            U8String name;
+            U16String name;
             in >> name;
 
             TxnId value;
@@ -1150,8 +1150,8 @@ protected:
 
         for (auto& entry: named_branches_)
         {
-            out<<entry.first;
-            out<<entry.second->txn_id();
+            out << entry.first;
+            out << entry.second->txn_id();
         }
 
         records_++;

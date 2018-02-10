@@ -235,7 +235,7 @@ public:
 
 
 
-    SnapshotPtr find_branch(U8StringRef name)
+    SnapshotPtr find_branch(U16StringRef name)
     {
     	LockGuardT lock_guard(mutex_);
 
@@ -331,7 +331,7 @@ public:
         }
     }
 
-    void set_branch(U8StringRef name, const TxnId& txn_id)
+    void set_branch(U16StringRef name, const TxnId& txn_id)
     {
     	LockGuardT lock_guard(mutex_);
 
@@ -364,13 +364,13 @@ public:
         return metadata_;
     }
 
-    virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
+    virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr)
     {
     	this->build_snapshot_labels_metadata();
 
     	LockGuardT lock_guard(mutex_);
 
-        walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
+        walker->beginAllocator(u"PersistentInMemAllocator", allocator_descr);
 
         walk_containers(history_tree_, walker);
 
@@ -422,7 +422,7 @@ public:
         store(fileh.get());
     }
 
-    void dump(const char* path)
+    void dump(const char16_t* path)
     {
         using Walker = FSDumpContainerWalker<Page>;
 
@@ -430,9 +430,15 @@ public:
         this->walkContainers(&walker);
     }
  
-    static AllocSharedPtr<MyType> load(const char* file)
+    static AllocSharedPtr<MyType> load(const char16_t* file)
     {
-        auto fileh = FileInputStreamHandler::create(file);
+        auto fileh = FileInputStreamHandler::create(U16String(file).to_u8().data());
+        return Base::load(fileh.get());
+    }
+
+    static AllocSharedPtr<MyType> load(const U16String& file)
+    {
+        auto fileh = FileInputStreamHandler::create(file.to_u8().data());
         return Base::load(fileh.get());
     }
 
@@ -474,7 +480,7 @@ protected:
 
         if (node->children().size())
         {
-            walker->beginSnapshotSet("Branches", node->children().size());
+            walker->beginSnapshotSet(u"Branches", node->children().size());
             for (auto child: node->children())
             {
                 walk_containers(child, walker);
@@ -613,7 +619,7 @@ ThreadInMemAllocator<Profile> ThreadInMemAllocator<Profile>::load(InputStreamHan
 template <typename Profile>
 ThreadInMemAllocator<Profile> ThreadInMemAllocator<Profile>::load(boost::filesystem::path file_name) 
 {
-    return ThreadInMemAllocator<Profile>(PImpl::load(file_name.string().c_str()));
+    return ThreadInMemAllocator<Profile>(PImpl::load(U8String(file_name.string()).to_u16()));
 }
 
 template <typename Profile>
@@ -648,7 +654,7 @@ typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile
 }
 
 template <typename Profile>
-typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::find_branch(U8StringRef name)
+typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::find_branch(U16StringRef name)
 {
     return pimpl_->find_branch(name);
 }
@@ -660,7 +666,7 @@ void ThreadInMemAllocator<Profile>::set_master(const TxnId& txn_id)
 }
 
 template <typename Profile>
-void ThreadInMemAllocator<Profile>::set_branch(U8StringRef name, const TxnId& txn_id)
+void ThreadInMemAllocator<Profile>::set_branch(U16StringRef name, const TxnId& txn_id)
 {
     pimpl_->set_branch(name, txn_id);
 }
@@ -672,7 +678,7 @@ ContainerMetadataRepository* ThreadInMemAllocator<Profile>::metadata() const
 }
 
 template <typename Profile>
-void ThreadInMemAllocator<Profile>::walk_containers(ContainerWalker* walker, const char* allocator_descr) 
+void ThreadInMemAllocator<Profile>::walk_containers(ContainerWalker* walker, const char16_t* allocator_descr)
 {
      return pimpl_->walkContainers(walker, allocator_descr);
 }
@@ -680,7 +686,7 @@ void ThreadInMemAllocator<Profile>::walk_containers(ContainerWalker* walker, con
 template <typename Profile>
 void ThreadInMemAllocator<Profile>::dump(boost::filesystem::path dump_at) 
 {
-    pimpl_->dump(dump_at.string().c_str());
+    pimpl_->dump(U8String(dump_at.string()).to_u16().data());
 }
 
 template <typename Profile>

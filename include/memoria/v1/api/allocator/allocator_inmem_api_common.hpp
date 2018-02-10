@@ -43,10 +43,10 @@ class SnapshotMetadata {
 	TxnId parent_id_;
 	TxnId snapshot_id_;
 	std::vector<TxnId> children_;
-    U8String description_;
+    U16String description_;
 	SnapshotStatus status_;
 public:
-    SnapshotMetadata(const TxnId& parent_id, const TxnId& snapshot_id, const std::vector<TxnId>& children, U8StringRef description, SnapshotStatus status):
+    SnapshotMetadata(const TxnId& parent_id, const TxnId& snapshot_id, const std::vector<TxnId>& children, U16StringRef description, SnapshotStatus status):
 		parent_id_(parent_id),
 		snapshot_id_(snapshot_id),
 		children_(children),
@@ -54,11 +54,11 @@ public:
 		status_(status)
 	{}
 
-	const TxnId& parent_id() const 			{return parent_id_;}
-	const TxnId& snapshot_id() const 		{return snapshot_id_;}
-	std::vector<TxnId> children() const 	{return children_;}
-    U8String description() const 			{return description_;}
-	SnapshotStatus status() const 			{return status_;}
+    const TxnId& parent_id() const              {return parent_id_;}
+    const TxnId& snapshot_id() const            {return snapshot_id_;}
+    const std::vector<TxnId>& children() const 	{return children_;}
+    const U16String& description() const        {return description_;}
+    SnapshotStatus status() const               {return status_;}
 };
 
 
