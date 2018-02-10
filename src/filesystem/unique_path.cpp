@@ -137,7 +137,7 @@ namespace memoria { namespace v1 { namespace filesystem { namespace detail {
 MEMORIA_V1_FILESYSTEM_DECL
 path unique_path(const path& model, boost::system::error_code* ec)
 {
-  std::wstring s (model.wstring());  // std::string ng for MBCS encoded POSIX
+  std::wstring s (model.std_wstring());  // std::string ng for MBCS encoded POSIX
   const wchar_t hex[] = L"0123456789abcdef";
   char ran[] = "123456789abcdef";  // init to avoid clang static analyzer message
                                    // see ticket #8954

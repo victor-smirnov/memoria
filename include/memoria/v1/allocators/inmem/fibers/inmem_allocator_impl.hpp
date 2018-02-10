@@ -403,13 +403,13 @@ public:
         this->walkContainers(&walker);
     }
  
-    static AllocSharedPtr<MyType> load(const char* file, int32_t cpu)
+    static AllocSharedPtr<MyType> load(const char16_t* file, int32_t cpu)
     {
-        auto fileh = FileInputStreamHandler::create(file);
+        auto fileh = FileInputStreamHandler::create(U16String(file).to_u8().data());
         return Base::load(fileh.get());
     }
     
-    static AllocSharedPtr<MyType> load(const char* file)
+    static AllocSharedPtr<MyType> load(const char16_t* file)
     {
         return load(file, reactor::engine().cpu());
     }
@@ -603,13 +603,13 @@ InMemAllocator<Profile> InMemAllocator<Profile>::load(InputStreamHandler* input_
 template <typename Profile>
 InMemAllocator<Profile> InMemAllocator<Profile>::load(memoria::v1::filesystem::path file_name) 
 {
-    return InMemAllocator<Profile>(PImpl::load(file_name.string().c_str()));
+    return InMemAllocator<Profile>(PImpl::load(file_name.to_u16().data()));
 }
 
 template <typename Profile>
 InMemAllocator<Profile> InMemAllocator<Profile>::load(memoria::v1::filesystem::path file_name, int32_t cpu) 
 {
-    return InMemAllocator<Profile>(PImpl::load(file_name.string().c_str()));
+    return InMemAllocator<Profile>(PImpl::load(file_name.to_u16().data()));
 }
 
 template <typename Profile>

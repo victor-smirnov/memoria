@@ -661,7 +661,7 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + "root_leaf.txt";
+        U8String file_name = path_.top().to_u8() + Platform::getFilePathSeparator().to_u8() + "root_leaf.txt";
 
         dumpPage(file_name.to_std_string(), page);
     }
@@ -672,7 +672,7 @@ public:
 
         U8String description = getNodeName("Leaf", idx, page->id());
 
-        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + description + ".txt";
+        U8String file_name = path_.top().to_u8() + Platform::getFilePathSeparator().to_u8() + description + ".txt";
 
         dumpPage(file_name.to_std_string(), page);
     }
@@ -701,7 +701,7 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + description + ".txt";
+        U8String file_name = path_.top().to_u8() + Platform::getFilePathSeparator().to_u8() + description + ".txt";
 
         dumpPage(file_name.to_std_string(), page);
     }
@@ -730,7 +730,7 @@ private:
         U8String folder_name = getNodeName(type, idx, page->id());
         pushFolder(folder_name.data());
 
-        U8String file_name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + "0_page.txt";
+        U8String file_name = path_.top().to_u8() + Platform::getFilePathSeparator().to_u8() + "0_page.txt";
 
         dumpPage(file_name.to_std_string(), page);
     }
@@ -752,11 +752,11 @@ private:
 
     void dumpDescription(U8StringRef type, U8StringRef content)
     {
-        U8String file_name = U8String(path_.top().parent_path().string()) + Platform::getFilePathSeparator().to_u8() + type + ".txt";
+        U16String file_name = path_.top().parent_path().to_u16() + Platform::getFilePathSeparator() + type.to_u16() + u".txt";
 
         reactor::bfstream file(
             reactor::open_buffered_file(
-                file_name.to_std_string(),
+                file_name,
                 reactor::FileFlags::WRONLY | reactor::FileFlags::CREATE | reactor::FileFlags::TRUNCATE
             )
         );
@@ -766,10 +766,10 @@ private:
 
     void pushFolder(const char* descr)
     {
-        U8String name = U8String(path_.top().string()) + Platform::getFilePathSeparator().to_u8() + descr;
-        filesystem::path file(name.to_std_string());
+        U16String name = path_.top().to_u16() + Platform::getFilePathSeparator() + U16String(descr);
+        filesystem::path file(name);
         
-        auto res = bf::create_directory(name.to_std_string());
+        auto res = filesystem::create_directory(name);
         
         MEMORIA_V1_ASSERT_TRUE(res);
         path_.push(file);

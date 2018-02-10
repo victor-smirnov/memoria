@@ -134,13 +134,13 @@ namespace v1 {
             if (!m_imp_ptr->m_path1.empty())
             {
               m_imp_ptr->m_what += ": \"";
-              m_imp_ptr->m_what += m_imp_ptr->m_path1.string();
+              m_imp_ptr->m_what += m_imp_ptr->m_path1.std_string();
               m_imp_ptr->m_what += "\"";
             }
             if (!m_imp_ptr->m_path2.empty())
             {
               m_imp_ptr->m_what += ", \"";
-              m_imp_ptr->m_what += m_imp_ptr->m_path2.string();
+              m_imp_ptr->m_what += m_imp_ptr->m_path2.std_string();
               m_imp_ptr->m_what += "\"";
             }
           }
