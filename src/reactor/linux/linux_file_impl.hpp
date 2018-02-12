@@ -25,7 +25,7 @@ class FileImplBase {
 protected:
     filesystem::path path_;
 public:
-    FileImplBase (filesystem::path file_path): path_(file_path) {}
+    FileImplBase (const filesystem::path& file_path): path_(file_path) {}
     virtual ~FileImplBase() noexcept {}
 
     const filesystem::path& path() const {return path_;}

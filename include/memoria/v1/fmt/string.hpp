@@ -10,41 +10,41 @@
 #ifndef FMT_STRING_H_
 #define FMT_STRING_H_
 
-#include "format.h"
+#include <memoria/v1/fmt/format.hpp>
 
 namespace fmt {
 
-namespace internal {
+namespace _ {
 
 // A buffer that stores data in ``std::basic_string``.
 template <typename Char, typename Allocator = std::allocator<Char> >
 class StringBuffer : public Buffer<Char> {
- public:
-  typedef std::basic_string<Char, std::char_traits<Char>, Allocator> StringType;
+public:
+    typedef std::basic_string<Char, std::char_traits<Char>, Allocator> StringType;
 
- private:
-  StringType data_;
+private:
+    StringType data_;
 
- protected:
-  virtual void grow(std::size_t size) FMT_OVERRIDE {
-    data_.resize(size);
-    this->ptr_ = &data_[0];
-    this->capacity_ = size;
-  }
+protected:
+    virtual void grow(std::size_t size) override {
+        data_.resize(size);
+        this->ptr_ = &data_[0];
+        this->capacity_ = size;
+    }
 
- public:
-  explicit StringBuffer(const Allocator &allocator = Allocator())
-  : data_(allocator) {}
+public:
+    explicit StringBuffer(const Allocator &allocator = Allocator())
+        : data_(allocator) {}
 
-  // Moves the data to ``str`` clearing the buffer.
-  void move_to(StringType &str) {
-    data_.resize(this->size_);
-    str.swap(data_);
-    this->capacity_ = this->size_ = 0;
-    this->ptr_ = FMT_NULL;
-  }
+    // Moves the data to ``str`` clearing the buffer.
+    void move_to(StringType &str) {
+        data_.resize(this->size_);
+        str.swap(data_);
+        this->capacity_ = this->size_ = 0;
+        this->ptr_ = FMT_NULL;
+    }
 };
-}  // namespace internal
+}  // namespace _
 
 /**
   \rst
@@ -79,26 +79,26 @@ class StringBuffer : public Buffer<Char> {
  */
 template <typename Char, typename Allocator = std::allocator<Char> >
 class BasicStringWriter : public BasicWriter<Char> {
- private:
-  internal::StringBuffer<Char, Allocator> buffer_;
+private:
+    _::StringBuffer<Char, Allocator> buffer_;
 
- public:
-  /**
+public:
+    /**
     \rst
     Constructs a :class:`fmt::BasicStringWriter` object.
     \endrst
    */
-  explicit BasicStringWriter(const Allocator &allocator = Allocator())
-  : BasicWriter<Char>(buffer_), buffer_(allocator) {}
+    explicit BasicStringWriter(const Allocator &allocator = Allocator())
+        : BasicWriter<Char>(buffer_), buffer_(allocator) {}
 
-  /**
+    /**
     \rst
     Moves the buffer content to *str* clearing the buffer.
     \endrst
    */
-  void move_to(std::basic_string<Char, std::char_traits<Char>, Allocator> &str) {
-    buffer_.move_to(str);
-  }
+    void move_to(std::basic_string<Char, std::char_traits<Char>, Allocator> &str) {
+        buffer_.move_to(str);
+    }
 };
 
 typedef BasicStringWriter<char> StringWriter;
@@ -117,9 +117,9 @@ typedef BasicStringWriter<wchar_t> WStringWriter;
  */
 template <typename T>
 std::string to_string(const T &value) {
-  fmt::MemoryWriter w;
-  w << value;
-  return w.str();
+    fmt::MemoryWriter w;
+    w << value;
+    return w.str();
 }
 }
 

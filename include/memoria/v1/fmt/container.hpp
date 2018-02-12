@@ -10,11 +10,11 @@
 #ifndef FMT_CONTAINER_H_
 #define FMT_CONTAINER_H_
 
-#include "format.h"
+#include <memoria/v1/fmt/format.hpp>
 
 namespace fmt {
 
-namespace internal {
+namespace _ {
 
 /**
   \rst
@@ -24,26 +24,29 @@ namespace internal {
  */
 template <typename Container>
 class ContainerBuffer : public Buffer<typename Container::value_type> {
- private:
-  Container& container_;
+private:
+    Container& container_;
 
- protected:
-  virtual void grow(std::size_t size) FMT_OVERRIDE {
-    container_.resize(size);
-    this->ptr_ = &container_[0];
-    this->capacity_ = size;
-  }
-
- public:
-  explicit ContainerBuffer(Container& container) : container_(container) {
-    this->size_ = container_.size();
-    if (this->size_ > 0) {
-      this->ptr_ = &container_[0];
-      this->capacity_ = this->size_;
+protected:
+    virtual void grow(std::size_t size) override
+    {
+        container_.resize(size);
+        this->ptr_ = &container_[0];
+        this->capacity_ = size;
     }
-  }
+
+public:
+    explicit ContainerBuffer(Container& container) : container_(container)
+    {
+        this->size_ = container_.size();
+        if (this->size_ > 0)
+        {
+            this->ptr_ = &container_[0];
+            this->capacity_ = this->size_;
+        }
+    }
 };
-}  // namespace internal
+}  // namespace _
 
 /**
   \rst
@@ -63,18 +66,18 @@ class ContainerBuffer : public Buffer<typename Container::value_type> {
  */
 template <class Container>
 class BasicContainerWriter
-  : public BasicWriter<typename Container::value_type> {
- private:
-  internal::ContainerBuffer<Container> buffer_;
+        : public BasicWriter<typename Container::value_type> {
+private:
+    _::ContainerBuffer<Container> buffer_;
 
- public:
-  /**
+public:
+    /**
     \rst
     Constructs a :class:`fmt::BasicContainerWriter` object.
     \endrst
    */
-  explicit BasicContainerWriter(Container& dest)
-  : BasicWriter<typename Container::value_type>(buffer_), buffer_(dest) {}
+    explicit BasicContainerWriter(Container& dest)
+        : BasicWriter<typename Container::value_type>(buffer_), buffer_(dest) {}
 };
 
 } // namespace fmt

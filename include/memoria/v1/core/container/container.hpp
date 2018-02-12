@@ -685,7 +685,7 @@ public:
         return model_type_name_;
     }
 
-    static U8String type_name_str()
+    static U16String type_name_str()
     {
         return TypeNameFactory<ContainerTypeName>::name();
     }
