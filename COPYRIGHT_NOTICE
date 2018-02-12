@@ -10,8 +10,6 @@ of their autors.
 
 Disruptor queue is under BSD-style license embedded in corresponding sources.
 
-Fmt library is under BSD-style license embedded in corresponding sources. See also LICENCE.fmt
-
 Jemalloc is distributed under BSD-style licence. See COPYING.jemalloc for details.
 
 Check file headers to get the exact conditions those sources may be used under.

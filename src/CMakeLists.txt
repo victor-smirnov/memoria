@@ -24,7 +24,6 @@ add_subdirectory(containers)
 add_subdirectory(fiber)
 add_subdirectory(reactor)
 add_subdirectory(filesystem)
-add_subdirectory(fmt)
 
 
 if (APPLE)
