@@ -40,7 +40,7 @@ struct AllocTool<PackedAllocator> {
     {
         int32_t full_block_size = Type::block_size(block_size, slots);
 
-        auto ptr = AllocateUnique<Type>(full_block_size, MA_RAW_SRC);
+        auto ptr = AllocateUnique<Type>(full_block_size);
 
         ptr->setTopLevelAllocator();
         ptr->init(full_block_size, slots);

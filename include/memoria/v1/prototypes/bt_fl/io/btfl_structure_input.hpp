@@ -126,7 +126,7 @@ public:
             return buffer;
         }
         else {
-            throw OOMException(MA_RAW_SRC);
+            MMA1_THROW(OOMException());
         }
     }
 
@@ -141,7 +141,7 @@ public:
             return buffer;
         }
         else {
-            throw OOMException(MA_RAW_SRC);
+            MMA1_THROW(OOMException());
         }
     }
 
@@ -158,7 +158,7 @@ private:
 
             if (!buffer_->emplace_back_symbols_run(last_symbol_, run_length_))
             {
-                throw Exception(MA_SRC, "Symbols run entry is too large for RLE Sequence");
+                MMA1_THROW(Exception()) << WhatCInfo("Symbols run entry is too large for RLE Sequence");
             }
         }
     }

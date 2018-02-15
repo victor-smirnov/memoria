@@ -500,12 +500,9 @@ public:
     }
 };
 
-template <typename CharTraits>
-inline std::basic_ostream<char, CharTraits>& operator<<(std::basic_ostream<char, CharTraits>& out, const U16String& str)
-{
-    out << U8String(str);
-    return out;
-}
+
+
+
 
 using U16StringRef = const U16String&;
 
@@ -603,4 +600,21 @@ struct hash<memoria::v1::U16String> {
     }
 };
 
+template <typename CharTraits>
+inline basic_ostream<char, CharTraits>& operator<<(basic_ostream<char, CharTraits>& out, const char16_t* str)
+{
+    out << memoria::v1::U16String(str).to_u8();
+    return out;
 }
+
+template <typename CharTraits>
+inline basic_ostream<char, CharTraits>& operator<<(basic_ostream<char, CharTraits>& out, const memoria::v1::U16String& str)
+{
+    out << str.to_u8();
+    return out;
+}
+
+
+
+}
+

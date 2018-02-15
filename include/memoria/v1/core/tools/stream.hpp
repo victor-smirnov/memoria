@@ -66,7 +66,7 @@ struct InputStreamHandler {
             int32_t r = read(mem, ptr, size);
             if (r < 0) {
                 if (size != size0) {
-                    throw Exception(MEMORIA_SOURCE, "End Of File");
+                    MMA1_THROW(Exception()) << WhatCInfo("End Of File");
                 }
                 else {
                     return false;

@@ -111,7 +111,7 @@ static int32_t FindTotalElementsNumber2(int32_t block_size, Fn&& fn)
                 }
             }
 
-            throw Exception(MA_SRC, "Can't find max_size in 64 steps. Stop.");
+            MMA1_THROW(Exception()) << WhatCInfo("Can't find max_size in 64 steps. Stop.");
         }
     }
 
@@ -130,7 +130,7 @@ static int32_t FindTotalElementsNumber2(int32_t block_size, Fn&& fn)
         }
     }
 
-    throw Exception(MA_SRC, "Can't find max_size in 64 steps. Stop.");
+    MMA1_THROW(Exception()) << WhatCInfo("Can't find max_size in 64 steps. Stop.");
 
     return max_size;
 }

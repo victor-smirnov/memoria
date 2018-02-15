@@ -16,6 +16,7 @@
 #include <memoria/v1/core/exceptions/memoria.hpp>
 
 #include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/strings/format.hpp>
 
 
 #include <unicode/utext.h>
@@ -373,7 +374,7 @@ public:
                     }
                 }
                 else {
-                    throw Exception(MMA1_SRC, SBuf() << "Can't access UText at " << position);
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Can't access UText at {}", position));
                 }
             }
             else {

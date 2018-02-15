@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/strings/format.hpp>
 
 #include <errno.h>
 
@@ -150,15 +151,15 @@ Long strToL(U8StringRef value) {
                 return v;
             }
             else {
-                throw Exception(MEMORIA_SOURCE, SBuf() << "Invalid integer value: " << value);
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid integer value: {}", value));
             }
         }
         else {
-            throw Exception(MEMORIA_SOURCE, SBuf() << "Invalid integer value: " << value);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid integer value: {}", value));
         }
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf() << "Invalid integer value: " << value);
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid integer value: {}", value));
     }
 }
 
@@ -202,14 +203,14 @@ int32_t getValueMultiplier(const char* chars, const char* ptr)
         return 1000*1000*1000;
     }
     else {
-        throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid number format: {}", chars));
     }
 }
 
 void checkError(const char* chars, const char* ptr)
 {
     if (*ptr != 0) {
-        throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid number format: {}", chars));
     }
 }
 
@@ -290,7 +291,7 @@ bool ConvertToBool(U8StringRef str)
         return false;
     }
     else {
-        throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid boolean format: "<<str);
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid boolean format: {}", str));
     }
 }
 

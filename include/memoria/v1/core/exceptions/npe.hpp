@@ -23,19 +23,19 @@ namespace v1 {
 
 using namespace std;
 
-class NullPointerException: public Exception {
+//class NullPointerException: public Exception {
 
-public:
-    NullPointerException(const char* source, U8StringRef message):
-                Exception(source, message) {}
+//public:
+//    NullPointerException(const char* source, U8StringRef message):
+//                Exception(source, message) {}
 
-    NullPointerException(const char* source, const SBuf& message):
-                    Exception(source, message) {}
+//    NullPointerException(const char* source, const SBuf& message):
+//                    Exception(source, message) {}
 
-    NullPointerException(const char* source):
-                Exception(source, "NullPointerException"){}
+//    NullPointerException(const char* source):
+//                Exception(source, "NullPointerException"){}
 
-};
+//};
 
 
 }}

@@ -39,8 +39,8 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #define MEMORIA_V1_ASSERT(Left, Operation, Right)                                                       \
         if (!(Left Operation Right)) {                                                                  \
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "                   \
-                    <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right);              \
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"ASSERT FAILURE: {} {} {} Values: {} {}", \
+                    #Left, #Operation, #Right, Left, Right));                                              \
         }
 
 
@@ -55,41 +55,38 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #define MEMORIA_V1_ASSERT_TRUE(Arg0)                                                                    \
         if (!(Arg0)) {                                                                                  \
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT TRUE FAILURE: "              \
-                    <<#Arg0);                                                                           \
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"ASSERT TRUE FAILURE: {}", #Arg0));        \
         }
 
 #define MEMORIA_V1_ASSERT_FALSE(Arg0)                                                                   \
         if ((Arg0)) {                                                                                   \
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FALSE FAILURE: "             \
-                    <<#Arg0);                                                                           \
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"ASSERT FALSE FAILURE: {}", #Arg0));       \
         }
 
 
 #define MEMORIA_V1_ASSERT_EXPR(Expr, Msg)                                                               \
         if (!(Expr)) {                                                                                  \
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Expr<<" "<<#Msg);\
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"ASSERT FAILURE: {} {}", #Expr, #Msg));   \
         }
 
 
 #define MEMORIA_V1_ASSERT_NOT_NULL(Operand)                                                             \
-        if (Operand == NULL) {                                                                          \
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be NULL");\
+        if (!Operand) {                                                                                 \
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"ASSERT FAILURE: {} must not be NULL", #Operand));\
         }
 
 #define MEMORIA_V1_ASSERT_NOT_EMPTY(Operand)                                                            \
         if (Operand.is_null()) {                                                                        \
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be 0");\
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"ASSERT FAILURE: {} must not be 0", #Operand));\
         }
 
 
 #define MEMORIA_V1_INVALID_STREAM(Idx) \
-    throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid Stream: "<<Idx)
+    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid Stream: {}", Idx))
 
 #define MEMORIA_V1_ASSERT_ALIGN(MemExpr, Align)                                                         \
         if (T2T<std::ptrdiff_t>(MemExpr) % Align != 0) {                                                \
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE,                                              \
-                SBuf()<<"ASSERT FAILURE: \""<<#MemExpr<<"\" is not properly aligned ("<<Align<<")");    \
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"ASSERT FAILURE: \"{}\" is not properly aligned ({})", #MemExpr, Align)); \
         }
 
 

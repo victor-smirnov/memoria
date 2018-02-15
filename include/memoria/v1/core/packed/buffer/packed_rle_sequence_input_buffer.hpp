@@ -538,7 +538,7 @@ public:
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Symbol index must be >= 0: " << symbol_pos);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Symbol index must be >= 0: {}", symbol_pos));
         }
     }
 
@@ -648,7 +648,7 @@ private:
             }
         }
 
-        throw Exception(MA_SRC, SBuf() << "Symbol index is out of bounds: " << idx << " " <<meta->size());
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Symbol index is out of bounds: {} {}", idx, meta->size()));
     }
 
 };

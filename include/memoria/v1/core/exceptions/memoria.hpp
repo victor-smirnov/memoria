@@ -19,86 +19,64 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/config.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
-#include <string>
+
+#include <boost/exception/all.hpp>
+#include <boost/stacktrace.hpp>
 
 #include <stdlib.h>
 
 namespace memoria {
 namespace v1 {
 
-using namespace std;
 
-class MemoriaThrowable {
+
+template <class E>
+void throw_with_trace(const E& e)
+{
+    throw boost::enable_error_info(e)
+        << Traced(boost::stacktrace::stacktrace());
+}
+
+
+
+
+class MemoriaThrowableLW {
 protected:
     const char* source_;
 public:
-    MemoriaThrowable(const char* source): source_(source) {}
+    MemoriaThrowableLW(const char* source): source_(source) {}
 
-    const char* source() const {
+    const char* source() const noexcept {
         return source_;
     }
 
-    virtual void dump(ostream& out) const {}
+    virtual void dump(std::ostream& out) const noexcept {}
+
 };
-
-
-class Exception: public MemoriaThrowable {
-
-    U8String message_;
-public:
-    Exception(const char* source, U8StringRef message): MemoriaThrowable(source), message_(message)           {}
-    Exception(const char* source, const SBuf& message): MemoriaThrowable(source), message_(message.str())   {}
-
-    U8StringRef message() const {
-        return message_;
-    }
-
-    virtual void dump(ostream& out) const {
-        out<<message_;
-    }
-};
-
-class CtrTypeException: public Exception {
-
-public:
-    CtrTypeException(const char* source, U8StringRef message): Exception(source, message)     {}
-    CtrTypeException(const char* source, const SBuf& message): Exception(source, message)   {}
-};
-
-class NoCtrException: public Exception {
-
-public:
-    NoCtrException(const char* source, U8StringRef message): Exception(source, message)     {}
-    NoCtrException(const char* source, const SBuf& message): Exception(source, message)   {}
-};
-
-class CtrAlreadyExistsException: public Exception {
-
-public:
-    CtrAlreadyExistsException(const char* source, U8StringRef message): Exception(source, message)     {}
-    CtrAlreadyExistsException(const char* source, const SBuf& message): Exception(source, message)   {}
-};
-
-
-class RollbackException: public Exception {
-public:
-    RollbackException(const char* source, U8StringRef message): Exception(source, message) {}
-};
-
-
-class OOMException: public MemoriaThrowable {
-
-public:
-    OOMException(const char* source): MemoriaThrowable(source) {}
-};
-
-
-
-
 
 
 const char* ExtractMemoriaPath(const char* path);
 
-ostream& operator<<(ostream& out, const MemoriaThrowable& t);
+using WhatInfo = boost::error_info<struct TagMsgInfo, U8String>;
+using WhatCInfo = boost::error_info<struct TagMsgCInfo, const char*>;
+using WhatSInfo = boost::error_info<struct TagMsgCInfo, std::string>;
+
+
+
+struct Exception: virtual MemoriaThrowable {};
+struct CtrTypeException: virtual Exception {};
+struct NoCtrException: virtual Exception {};
+struct CtrAlreadyExistsException: virtual Exception {};
+
+struct IOException: virtual Exception {};
+struct SystemException: virtual Exception {};
+struct OOMException: virtual SystemException {};
+
+struct DispatchException: virtual Exception {};
+struct NullPointerException: virtual Exception {};
+struct BoundsException: virtual Exception {};
+
+std::ostream& operator<<(std::ostream& out, const MemoriaThrowable& t);
+
 
 }}

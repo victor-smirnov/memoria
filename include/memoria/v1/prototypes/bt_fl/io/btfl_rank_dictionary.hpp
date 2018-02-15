@@ -121,7 +121,7 @@ private:
 
             if (!get()->emplace_back(last_symbol_, run_length_))
             {
-                throw Exception(MA_SRC, "Symbols run entry is too large for RLE Sequence");
+                MMA1_THROW(Exception()) << WhatCInfo("Symbols run entry is too large for RLE Sequence");
             }
         }
     }

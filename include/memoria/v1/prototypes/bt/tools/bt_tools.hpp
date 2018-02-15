@@ -74,7 +74,7 @@ struct ForEachStream<Idx, Idx> {
             return fn.template process<Idx>(std::forward<Args>(args)...);
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Requested stream "<<stream<<" not found");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Requested stream {} not found", stream));
         }
     }
 };
@@ -160,7 +160,7 @@ public:
             pages_.append(TxnRecord(node, backup_buffer, page_size));
         }
         else {
-            throw Exception(MA_SRC, "No space left for new pages in the PageUpdateMgr");
+            MMA1_THROW(Exception()) << WhatCInfo("No space left for new pages in the PageUpdateMgr");
         }
     }
 

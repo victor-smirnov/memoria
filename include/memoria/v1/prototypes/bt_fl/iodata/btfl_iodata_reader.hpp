@@ -108,7 +108,7 @@ public:
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream << " max: " << DataStreams);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {} max: {}", stream, DataStreams));
         }
     }
 };

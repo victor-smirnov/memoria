@@ -288,11 +288,11 @@ protected:
     			}
     		}
     		else {
-    			throw Exception(MA_SRC, SBuf() << "Structure stream is empty");
+                MMA1_THROW(Exception()) << WhatCInfo("Structure stream is empty");
     		}
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << self.stream());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", self.stream()));
     	}
     }
 
@@ -307,7 +307,7 @@ protected:
     		self.stream() 	= stream;
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << self.stream());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", self.stream()));
     	}
     }
 

@@ -161,7 +161,7 @@ public:
             history_tree_raw_->unref_active();
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Invalid state: " << (int32_t)history_node_->status() << " for snapshot " << uuid());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
         }
     }
 
@@ -177,7 +177,7 @@ public:
             history_node_->mark_to_clear();
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Can't drop root snapshot " << uuid());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Can't drop root snapshot {}", uuid()));
         }
     }
 
@@ -197,7 +197,7 @@ public:
         }
         else
         {
-            throw Exception(MA_SRC, "Snapshot is already committed.");
+            MMA1_THROW(Exception()) << WhatCInfo("Snapshot is already committed.");
         }
     }
 
@@ -215,13 +215,13 @@ public:
     			history_node_->lock_data();
     		}
     		else {
-    			throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has open containers");
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has open containers", uuid()));
     		}
     	}
     	else if (history_node_->is_data_locked()) {
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid state: " << (int32_t)history_node_->status() << " for snapshot " << uuid());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
     	}
     }
 
@@ -245,11 +245,11 @@ public:
         }
         else if (history_node_->is_data_locked())
         {
-        	throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " is locked, branching is not possible.");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is locked, branching is not possible.", uuid()));
         }
         else
         {
-            throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " is still being active. Commit it first.");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is still being active. Commit it first.", uuid()));
         }
     }
 
@@ -274,7 +274,7 @@ public:
         }
         else
         {
-            throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has no parent.");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has no parent.", uuid()));
         }
     }
 
@@ -337,8 +337,7 @@ void check_snapshot(Allocator& allocator, const char* message, const char* sourc
     if (allocator->check())
     {
         allocator->logger().level() = level;
-
-        throw Exception(source, message);
+        MMA1_THROW(Exception()) << WhatCInfo(message);
     }
 
     allocator->logger().level() = level;

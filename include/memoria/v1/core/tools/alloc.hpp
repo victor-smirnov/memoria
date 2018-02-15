@@ -33,7 +33,7 @@ using FreeUniquePtr = std::unique_ptr<T, decltype(free)*>;
 
 
 template <typename T>
-FreeUniquePtr<T> AllocateUnique(size_t block_size, const char* source = MA_RAW_SRC)
+FreeUniquePtr<T> AllocateUnique(size_t block_size)
 {
     T* ptr = T2T<T*>(malloc(block_size));
 
@@ -42,7 +42,7 @@ FreeUniquePtr<T> AllocateUnique(size_t block_size, const char* source = MA_RAW_S
         return FreeUniquePtr<T>(ptr, free);
     }
     else {
-        throw new OOMException(source);
+        MMA1_THROW(OOMException());
     }
 }
 

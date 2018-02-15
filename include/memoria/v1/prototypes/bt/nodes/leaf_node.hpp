@@ -1480,7 +1480,7 @@ public:
 
     void set_children_count(int32_t)
     {
-        throw Exception(MA_SRC, "Deprecated method set_children_count()");
+        MMA1_THROW(Exception()) << WhatCInfo("Deprecated method set_children_count()");
     }
 
     struct DumpFn {

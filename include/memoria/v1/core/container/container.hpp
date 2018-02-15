@@ -252,7 +252,7 @@ public:
             	fn(*ctr_ptr.get());
             }
             else {
-            	throw Exception(MA_SRC, SBuf() << "No container root page is found for id " << root_id << " and name " << name);
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"No container root page is found for id {} and name {} ", root_id, name));
             }
         }
 
@@ -369,7 +369,7 @@ public:
                 );
             }
             else {
-            	throw Exception(MA_SRC, SBuf() << "No container root page is found for id " << root_id << " and name " << name);
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"No container root page is found for id {} and name {}", root_id, name));
             }
         }
     };
@@ -563,12 +563,12 @@ public:
     {
         if ((command & CTR_CREATE) == 0 && (command & CTR_FIND) == 0)
         {
-            throw v1::Exception(MEMORIA_SOURCE, "Either CTR_CREATE, CTR_FIND or both must be specified");
+            MMA1_THROW(Exception()) << WhatCInfo("Either CTR_CREATE, CTR_FIND or both must be specified");
         }
 
         if ((command & CTR_FIND) && name == CTR_DEFAULT_NAME)
         {
-            throw v1::Exception(MEMORIA_SOURCE, "Container name must be specified for the CTR_FIND operation");
+            MMA1_THROW(Exception()) << WhatCInfo("Container name must be specified for the CTR_FIND operation");
         }
     }
 
@@ -605,7 +605,7 @@ public:
     		allocator_->unregisterCtr(typeid(*this));
     	}
     	catch (Exception& ex) {
-    		cout << ex.source() << " " << ex.message() << endl;
+            ex.dump(cout);
     		std::abort();
     	}
     	catch(...) {

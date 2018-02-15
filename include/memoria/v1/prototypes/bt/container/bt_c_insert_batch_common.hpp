@@ -180,7 +180,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchCommonName)
                 return node;
             }
             else {
-                throw v1::BoundsException(MA_SRC, "Leaf List is empty");
+                MMA1_THROW(BoundsException()) << WhatInfo("Leaf List is empty");
             }
         }
 

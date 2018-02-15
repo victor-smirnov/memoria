@@ -51,8 +51,8 @@ int main()
         
         snp.dump("data.dir");
     }
-    catch (Exception& ex)
+    catch (MemoriaThrowable& ex)
     {
-        cout << ex.message() << " at " << ex.source() << endl;
+        ex.dump(std::cout);
     }
 }

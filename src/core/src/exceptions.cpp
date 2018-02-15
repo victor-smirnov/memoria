@@ -14,6 +14,7 @@
 // limitations under the License.
 
 #include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/tools/strings/string.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -34,10 +35,45 @@ const char* ExtractMemoriaPath(const char* path) {
     return path + c;
 }
 
-ostream& operator<<(ostream& out, const MemoriaThrowable& t) {
+std::ostream& operator<<(std::ostream& out, const MemoriaThrowable& t) {
     t.dump(out);
     return out;
 }
+
+
+void MemoriaThrowable::dump(std::ostream& out) const noexcept {
+    out << boost::diagnostic_information(this);
+}
+
+std::string MemoriaThrowable::message() const noexcept
+{
+    std::stringstream ss;
+    dump(ss);
+    return ss.str();
+}
+
+const char* MemoriaThrowable::what() const noexcept
+{
+    if(const U8String* msg = boost::get_error_info<WhatInfo>(*this))
+    {
+        return msg->data();
+    }
+    else if(auto msg = boost::get_error_info<WhatCInfo>(*this)) {
+        return *msg;
+    }
+    else if(auto msg = boost::get_error_info<ICUErrorInfo>(*this))
+    {
+        return *msg;
+    }
+    else if(auto msg = boost::get_error_info<WhatSInfo>(*this))
+    {
+        return msg->data();
+    }
+
+    return std::exception::what();
+}
+
+
 
 
 }}

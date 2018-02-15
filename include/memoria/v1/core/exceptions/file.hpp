@@ -25,15 +25,15 @@ namespace v1 {
 
 using namespace std;
 
-class FileException: public Exception {
+//class FileException: public Exception {
 
-public:
-    FileException(const char* source, U8StringRef message):
-                Exception(source, message) {}
+//public:
+//    FileException(const char* source, U8StringRef message):
+//                Exception(source, message) {}
 
-    FileException(const char* source, const SBuf& message):
-                    Exception(source, message.str()) {}
-};
+//    FileException(const char* source, const SBuf& message):
+//                    Exception(source, message.str()) {}
+//};
 
 
 }}

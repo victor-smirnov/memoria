@@ -400,7 +400,7 @@ public:
                     }
                 }
                 else {
-                    throw Exception(MA_SRC, SBuf() << "Position " << tidx << " exceeds " << size);
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Position {} exceeds {}", tidx, size));
                 }
             }
         });

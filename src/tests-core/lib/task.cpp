@@ -95,17 +95,8 @@ int32_t Task::Run()
 
         result = true;
     }
-    catch (const Exception& e) {
-        (*out_) << "FAILED: " << e.source() << ": " << e << endl;
-
-        U16String path = getTaskParametersFilePath();
-
-        StoreProperties(path);
-
-        result = true;
-    }
     catch (const MemoriaThrowable& e) {
-        (*out_) << "FAILED: " << e.source() << ": " << e << endl;
+        e.dump(*out_);
 
         U16String path = getTaskParametersFilePath();
 
@@ -202,7 +193,7 @@ void TaskGroup::registerTask(Task* task)
     {
         if (t->getName() == task->getName())
         {
-            throw Exception(MEMORIA_SOURCE, SBuf() << "Task " << task->getName() << " is already registered");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Task {} is already registered", task->getName()));
         }
     }
 

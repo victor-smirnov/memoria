@@ -65,9 +65,7 @@ U16StringRef StringList::getItem(int32_t idx) const
         return list_[idx];
     }
     else {
-        throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Index is out of bounds in a StringList: "
-                <<idx<<" max="
-                <<list_.size());
+        MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Index is out of bounds in a StringList: {}, max={}", idx, list_.size()));
     }
 }
 
@@ -114,11 +112,11 @@ U16String Configurator::resolve_references(U16StringRef value, NameTree* names) 
                     buf<<this->get_property(name, &names0, true);
                 }
                 else {
-                    throw Exception(MEMORIA_SOURCE, SBuf() << "Circular property reference: " << name);
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Circular property reference: {}", name));
                 }
             }
             else {
-                throw Exception(MEMORIA_SOURCE, SBuf() << "Invalid property reference format: " << value);
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid property reference format: {}", value));
             }
             pos = idx2 + 1;
         }
@@ -220,16 +218,15 @@ void add_line(Configurator *cfg, StdStringRef str, size_t start, size_t end, Std
 
             if (divider + 1 < str.length())
             {
-                cfg->AddProperty(U16String(U8String(name)), U16String(trimString(str.substr(divider + 1, end - divider - 1))));
+                cfg->AddProperty(U8String(name).to_u16(), trimString(str.substr(divider + 1, end - divider - 1)).to_u16());
             }
             else {
-                cfg->AddProperty(U16String(U8String(name)), u"");
+                cfg->AddProperty(U8String(name).to_u16(), u"");
             }
         }
         else {
-            throw Exception(MEMORIA_SOURCE, SBuf() << "There is no '=' in the string '"
-                                                   << trimString(str.substr(start, end - start))
-                                                   << "'");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"There is no '=' in the string '{}'",
+                                                   trimString(str.substr(start, end - start))));
         }
     }
     else {
@@ -340,7 +337,7 @@ Configurator* Configurator::Parse(U16StringRef file_name, Configurator* cfg)
         return cfg;
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf() << "Can't open file for reading: " << file_name);
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Can't open file for reading: {}", file_name));
     }
 }
 
@@ -425,9 +422,9 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
                     }
                 }
             }
-            catch (MemoriaThrowable e)
+            catch (MemoriaThrowable& e)
             {
-                cout << e.source() << ": " << e <<endl;
+                e.dump(std::cout);
             }
         }
     }

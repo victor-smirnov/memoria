@@ -704,7 +704,7 @@ public:
             return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+            MMA1_THROW(DispatchException()) << WhatInfo(fmt::format8(u"Can't dispatch packed allocator structure: {}", idx));
         }
     }
 
@@ -723,7 +723,7 @@ public:
             return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+            MMA1_THROW(DispatchException()) << WhatInfo(fmt::format8(u"Can't dispatch packed allocator structure: {}", idx));
         }
     }
 
@@ -851,7 +851,7 @@ public:
             return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+            MMA1_THROW(DispatchException()) << WhatInfo(fmt::format8(u"Can't dispatch packed allocator structure: {}", idx));
         }
     }
 

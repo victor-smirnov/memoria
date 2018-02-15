@@ -17,6 +17,7 @@
 #include <memoria/v1/reactor/linux/linux_socket_impl.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/v1/core/tools/strings/format.hpp>
 
 #include "linux_socket.hpp"
 
@@ -60,7 +61,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     if (fd_ < 0)
     {
-        tools::rise_perror(SBuf() << "Can't create socket for " << ip_address_);
+        tools::rise_perror(fmt::format8(u"Can't create socket for {}", ip_address_).to_std_string());
     }
 
     sock_address_.sin_family        = AF_INET;
@@ -72,7 +73,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     if (bres < 0)
     {
         ::close(fd_);
-        tools::rise_perror(SBuf() << "Can't bind socket to " << ip_address_ << ":" << ip_port_);
+        tools::rise_perror(fmt::format8(u"Can't bind socket to {}:{}", ip_address_, ip_port_).to_std_string());
     }
 
     epoll_event event = tools::make_zeroed<epoll_event>();

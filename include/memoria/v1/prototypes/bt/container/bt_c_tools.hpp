@@ -208,7 +208,7 @@ protected:
             return result;
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Child must not be NULL");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Child must not be NULL");
         }
     }
 
@@ -222,7 +222,7 @@ protected:
             return result;
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Child must not be NULL");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Child must not be NULL");
         }
     }
 
@@ -238,7 +238,7 @@ protected:
             return result;
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Child must not be NULL");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Child must not be NULL");
         }
     }
 

@@ -315,4 +315,9 @@ U16String format(const char16_t* format, Args&&... args)
     return std::move(consumer.buffer());
 }
 
+template <typename... Args>
+U8String format8(const char16_t* fmt, Args&&... args) {
+    return format(fmt, std::forward<Args>(args)...).to_u8();
+}
+
 }}}

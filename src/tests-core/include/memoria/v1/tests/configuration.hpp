@@ -20,6 +20,7 @@
 #include <memoria/v1/core/tools/platform.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/strings/strings.hpp>
+#include <memoria/v1/core/tools/strings/format.hpp>
 
 #include <map>
 #include <set>
@@ -67,7 +68,7 @@ public:
                 return FromString<T>::convert(this->getProperty(name));
             }
             else {
-                throw Exception(MEMORIA_SOURCE, SBuf() << "Property " << name << " is not specified");
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Property {} is not specified", name));
             }
         }
 

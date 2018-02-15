@@ -71,7 +71,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertName)
 
             if (!std::get<0>(result))
             {
-                throw Exception(MA_SRC, "Second insertion attempt failed");
+                MMA1_THROW(Exception()) << WhatCInfo("Second insertion attempt failed");
             }
         }
         else {

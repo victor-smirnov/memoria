@@ -82,7 +82,7 @@ public:
             self.set_root(ID());
         }
         else {
-            throw Exception(MA_RAW_SRC, "Transaction must be in active state to drop containers");
+            MMA1_THROW(Exception()) << WhatCInfo("Transaction must be in active state to drop containers");
         }
     }
 
@@ -177,7 +177,7 @@ void M_TYPE::removeNode(NodeBaseG& node)
         self.removeNode(node, sums, sizes);
     }
     else {
-        throw Exception(MA_SRC, "Empty root node should not be deleted with this method.");
+        MMA1_THROW(Exception()) << WhatCInfo("Empty root node should not be deleted with this method.");
     }
 }
 

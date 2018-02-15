@@ -276,7 +276,7 @@ public:
             }
         }
 
-        throw Exception(MA_SRC, "Requested element is not found in this allocator");
+        MMA1_THROW(Exception()) << WhatCInfo("Requested element is not found in this allocator");
     }
 
 

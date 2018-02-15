@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/fn_traits.hpp>
+#include <memoria/v1/core/exceptions/memoria.hpp>
 
 #include <type_traits>
 
@@ -115,7 +116,7 @@ public:
             );
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -133,7 +134,7 @@ public:
             );
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 };

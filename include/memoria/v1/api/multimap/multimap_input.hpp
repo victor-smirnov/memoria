@@ -71,7 +71,7 @@ public:
             }
         }
         else {
-            throw Exception(MMA1_SRC, SBuf() << "Not enough capacity in IOBuffer: " << buffer.capacity());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Not enough capacity in IOBuffer: {}", buffer.capacity()));
         }
     }
 };
@@ -105,11 +105,11 @@ public:
                     entries += 2;
                 }
                 else {
-                    throw Exception(MMA1_SRC, SBuf() << "Not enough capacity in IOBuffer: " << buffer.capacity());
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Not enough capacity in IOBuffer: {}", buffer.capacity()));
                 }
             }
             else {
-                throw Exception(MMA1_SRC, SBuf() << "Not enough capacity in IOBuffer: " << buffer.capacity());
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Not enough capacity in IOBuffer: {}", buffer.capacity()));
             }
         }
         

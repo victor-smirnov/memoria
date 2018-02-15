@@ -219,7 +219,7 @@ public:
             return i->second;
         }
         else {
-            throw Exception(MEMORIA_SOURCE, "Unknown page type hash code");
+            MMA1_THROW(Exception()) << WhatCInfo("Unknown page type hash code");
         }
     }
 

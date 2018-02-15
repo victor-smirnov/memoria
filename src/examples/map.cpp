@@ -100,9 +100,9 @@ int main(int argc, char** argv)
             auto out = FileOutputStreamHandler::create_buffered("map_data.dump");
             alloc.store(out.get());
         }
-        catch (Exception& ex)
+        catch (MemoriaThrowable& ex)
         {
-            cout << ex.message() << " at " << ex.source() << endl;
+            ex.dump(std::cout);
         }
         catch (std::exception& ex)
         {

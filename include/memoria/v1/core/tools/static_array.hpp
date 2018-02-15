@@ -888,12 +888,12 @@ auto MakeStaticVector(Args&&... args) -> StaticVector<T, sizeof...(Args)>
 }
 
 
-template <typename Key, v1::int32_t Indexes>
+template <typename Key, int32_t Indexes>
 std::ostream& operator<<(std::ostream& out, const v1::core::StaticVector<Key, Indexes>& accum)
 {
     out<<"[";
 
-    for (v1::int32_t c = 0; c < Indexes; c++)
+    for (int32_t c = 0; c < Indexes; c++)
     {
         out<<accum.value(c);
 

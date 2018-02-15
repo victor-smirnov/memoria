@@ -194,7 +194,7 @@ private:
         T* data = T2T<T*>(::malloc(size));
         if (!data)
         {
-            throw Exception(MA_RAW_SRC, "Can't allocate raw data buffer");
+            MMA1_THROW(Exception()) << WhatCInfo("Can't allocate raw data buffer");
         }
         return data;
     }

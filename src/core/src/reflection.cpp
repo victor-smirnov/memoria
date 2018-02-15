@@ -84,7 +84,7 @@ const PageMetadataPtr& ContainerMetadataRepository::getPageMetadata(uint64_t mod
         return i->second;
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf() << "Unknown page type hash codes " << model_hash << " " << page_hash);
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unknown page type hash codes {} {}", model_hash, page_hash));
     }
 }
 
@@ -97,7 +97,7 @@ const ContainerMetadataPtr& ContainerMetadataRepository::getContainerMetadata(ui
         return i->second;
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf() << "Unknown container hash code " << hashCode);
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unknown container hash code {}", hashCode));
     }
 }
 
@@ -129,9 +129,9 @@ PageMetadata::PageMetadata(
     hash_ = hash;
     page_operations_ = page_operations;
 
-    if (page_operations == NULL)
+    if (!page_operations)
     {
-        throw NullPointerException(MEMORIA_SOURCE, "Page operations is not specified");
+        MMA1_THROW(NullPointerException()) << WhatInfo("Page operations is not specified");
     }
 }
 

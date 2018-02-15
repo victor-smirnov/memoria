@@ -198,7 +198,7 @@ public:
 			);
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is unknown", snapshot_id));
         }
     }
 
@@ -221,14 +221,14 @@ public:
             }
             if (history_node->is_data_locked())
             {
-            	throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " data is locked");
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} data is locked", history_node->txn_id()));
             }
             else {
-                throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is {}", history_node->txn_id(), (history_node->is_active() ? u"active" : u"dropped")));
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is unknown", snapshot_id));
         }
     }
 
@@ -257,15 +257,15 @@ public:
             		return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
             	}
             	else {
-            		throw Exception(MA_SRC, SBuf() << "Snapshot id " << history_node->txn_id() << " is locked and open");
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is locked and open", history_node->txn_id()));
             	}
             }
             else {
-                throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is {} ", history_node->txn_id(), (history_node->is_active() ? u"active" : u"dropped")));
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Named branch \"" << name << "\" is not known");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Named branch \"{}\" is not known", name));
         }
     }
 
@@ -320,14 +320,14 @@ public:
             }
             else if (history_node->is_dropped())
             {
-                throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " has been dropped");
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has been dropped", txn_id));
             }
             else {
-                throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " hasn't been committed yet");
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} hasn't been committed yet", txn_id));
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " is not known in this allocator");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is not known in this allocator", txn_id));
         }
     }
 
@@ -351,11 +351,11 @@ public:
         		named_branches_[name] = history_node;
         	}
             else {
-                throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " hasn't been committed yet");
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} hasn't been committed yet", txn_id));
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " is not known in this allocator");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is not known in this allocator", txn_id));
         }
     }
 

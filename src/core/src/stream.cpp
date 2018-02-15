@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/strings/format.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -175,7 +176,7 @@ private:
             return value;
         }
         else {
-            throw Exception(MA_SRC, "Can't read value from InputStreamHandler");
+            MMA1_THROW(Exception()) << WhatCInfo("Can't read value from InputStreamHandler");
         }
     }
 };
@@ -186,7 +187,7 @@ FileOutputStreamHandlerImpl::FileOutputStreamHandlerImpl(const char* file_name)
     file_.open(file_name, std::ios_base::binary | std::ios_base::out | std::ios_base::trunc);
     
     if (!file_.is_open()) {
-        throw Exception(MEMORIA_SOURCE, SBuf() << "Can't open file " << file_name);
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Can't open file {}", file_name));
     }
     
     closed_ = false;
@@ -222,7 +223,7 @@ void FileOutputStreamHandlerImpl::write(const void* mem, size_t offset, size_t l
 
     if (total_size != length)
     {
-        throw Exception(MEMORIA_SOURCE, SBuf() << "Can't write " << length << " bytes to file");
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Can't write {} bytes to file", length));
     }
 }
 
@@ -235,7 +236,7 @@ FileInputStreamHandlerImpl::FileInputStreamHandlerImpl(const char* file_name)
     file_.open(file_name, std::ios_base::binary | std::ios_base::in);
     
     if (!file_.is_open()) {
-        throw Exception(MEMORIA_SOURCE, SBuf() << "Can't open file " << file_name);
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Can't open file {}", file_name));
     }
     
     size_ = boost::filesystem::file_size(file_name);

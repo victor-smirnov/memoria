@@ -72,7 +72,7 @@ namespace {
               return mem;
           }
           else {
-              throw OOMException(MA_SRC);
+              MMA1_THROW(OOMException());
           }
       }
 
@@ -121,7 +121,7 @@ MakeUniquePackedStructByBlock(int32_t block_size, Args&&... args)
         return PkdStructUPtr<T>(ptr, ::free);
     }
     else {
-        throw OOMException(MA_SRC);
+        MMA1_THROW(OOMException());
     }
 }
 
@@ -154,7 +154,7 @@ MakeUniquePackedStructByBlock(int32_t block_size, Args&&... args)
         return PkdStructUPtr<T>(ptr, free_packed_allocatable);
     }
     else {
-        throw OOMException(MA_SRC);
+        MMA1_THROW(OOMException());
     }
 }
 
@@ -202,7 +202,7 @@ MakeSharedPackedStructByBlock(int32_t block_size, Args&&... args)
         return PkdStructSPtr<T>(ptr, free_packed_allocatable);
     }
     else {
-        throw OOMException(MA_SRC);
+        MMA1_THROW(OOMException());
     }
 }
 

@@ -95,7 +95,7 @@ void TestTask::Replay(ostream& out, Configurator* cfg)
         descr->replay(this, out);
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf()<<"Replay method for test "<<test_name<<" is not specified");
+        MMA1_THROW(TestException()) << WhatInfo(fmt::format8(u"Replay method for test {} is not specified", test_name));
     }
 }
 
@@ -114,7 +114,7 @@ const TestTask::TestDescriptor* TestTask::findTestDescriptor(U16StringRef name) 
         }
     }
 
-    throw Exception(MEMORIA_SOURCE, SBuf() << "Test " << name << " is not found");
+    MMA1_THROW(TestException()) << WhatInfo(fmt::format8(u"Test {} is not found", name));
 }
 
 
@@ -139,13 +139,13 @@ void MemoriaTestRunner::Replay(ostream& out, U16StringRef task_folder)
         
         if (!bf::exists(replay_file_name.to_u8().to_std_string()))
         {
-            throw Exception(MEMORIA_SOURCE, SBuf() << "File " << replay_file_name << u" does not exists");
+            MMA1_THROW(TestException()) << WhatInfo(fmt::format8(u"File {} does not exists", replay_file_name));
         }
 
         task_file_name = replay_file_name;
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf() << "File " << task_folder << u" does not exists");
+        MMA1_THROW(TestException()) << WhatInfo(fmt::format8(u"File {} does not exists", task_folder));
     }
 
 
@@ -175,13 +175,9 @@ void MemoriaTestRunner::Replay(ostream& out, U16StringRef task_folder)
         {
             out << "FAILED: STL exception: " << e.what() << " " << endl;
         }
-        catch (const Exception& e)
-        {
-            out << "FAILED: " << e.source() << " " << e << endl;
-        }
         catch (const MemoriaThrowable& e)
         {
-            out << "FAILED: " << e.source() << " " << e << endl;
+            e.dump(out);
         }
         catch (...)
         {

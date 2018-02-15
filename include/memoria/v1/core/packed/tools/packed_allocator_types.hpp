@@ -93,7 +93,7 @@ struct PackedSizeTypeList<> {
     static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
-class PackedOOMException: public MemoriaThrowable {
+class PackedOOMException: public MemoriaThrowableLW {
 
     int32_t total_;
     int32_t requested_;
@@ -104,7 +104,7 @@ class PackedOOMException: public MemoriaThrowable {
 public:
 
     PackedOOMException(const char* source, int32_t total, int32_t requested, int32_t free):
-                MemoriaThrowable(source ),
+                MemoriaThrowableLW(source ),
                 total_(total),
                 requested_(requested),
                 free_(free),
@@ -112,11 +112,11 @@ public:
     {}
 
     PackedOOMException(const char* source, const char* msg):
-        MemoriaThrowable(source ),
+        MemoriaThrowableLW(source ),
         msg_(msg)
     {}
 
-    virtual void dump(ostream& out) const
+    virtual void dump(ostream& out) const noexcept
     {
         if (msg_ != nullptr) {
             out<<"PackedOOMException at "<<source_<<": "<<msg_;

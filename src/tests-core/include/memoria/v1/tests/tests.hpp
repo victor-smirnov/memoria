@@ -167,7 +167,7 @@ public:
             this->largeCoverage(coverage_size);
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Coverage type " << coverage << " is not recognized");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Coverage type {} is not recognized", coverage));
         }
 
         soft_memlimit_ = cfg->getValue<size_t>("soft_memlimit", static_cast<size_t>(1) * 1024 * 1024 * 1024);

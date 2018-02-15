@@ -604,17 +604,17 @@ public:
                 signature[5] == 'I' &&
                 signature[6] == 'A'))
         {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"The stream does not start from MEMORIA signature: "<<signature);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"The stream does not start from MEMORIA signature: {}", signature));
         }
 
         if (!(signature[7] == 0 || signature[7] == 1))
         {
-            throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Endiannes filed value is out of bounds "<<signature[7]);
+            MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Endiannes filed value is out of bounds {}", signature[7]));
         }
 
         if (signature[8] != 0)
         {
-            throw Exception(MEMORIA_SOURCE, "This is not an in-memory container");
+            MMA1_THROW(Exception()) << WhatCInfo("This is not an in-memory container");
         }
 
         allocator->master_ = allocator->history_tree_ = nullptr;
@@ -645,7 +645,7 @@ public:
                 case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
                 case TYPE_CHECKSUM:     allocator->read_checksum(*input, checksum); proceed = false; break;
                 default:
-                    throw Exception(MA_SRC, SBuf()<<"Unknown record type: "<<(int32_t)type);
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unknown record type: {}", (int32_t)type));
             }
 
             allocator->records_++;
@@ -653,7 +653,7 @@ public:
 
         if (allocator->records_ != checksum.records())
         {
-            throw Exception(MA_SRC, SBuf()<<"Invalid records checksum: actual="<<allocator->records_<<", expected="<<checksum.records());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid records checksum: actual={}, expected={}", allocator->records_, checksum.records()));
         }
 
         for (auto& entry: ptree_node_map)
@@ -677,7 +677,7 @@ public:
                         leaf_node->data(c) = typename LeafNodeT::Value(page_iter->second, descr.txn_id());
                     }
                     else {
-                        throw Exception(MA_SRC, SBuf() << "Specified uuid " << descr.page_ptr() << " is not found in the page map");
+                        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified uuid {} is not found in the page map", descr.page_ptr()));
                     }
                 }
             }
@@ -696,7 +696,7 @@ public:
                         branch_node->data(c) = iter->second.second;
                     }
                     else {
-                        throw Exception(MA_SRC, SBuf() << "Specified uuid " << node_id << " is not found in the persistent tree node map");
+                        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified uuid {} is not found in the persistent tree node map", node_id));
                     }
                 }
             }
@@ -709,7 +709,7 @@ public:
             allocator->master_ = allocator->snapshot_map_[metadata.master()];
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Specified master uuid " << metadata.master() << " is not found in the data");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified master uuid {} is not found in the data", metadata.master()));
         }
 
         for (auto& entry: metadata.named_branches())
@@ -721,7 +721,7 @@ public:
                 allocator->named_branches_[entry.first] = iter->second;
             }
             else {
-                throw Exception(MA_SRC, SBuf() << "Specified snapshot uuid " << entry.first << " is not found");
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified snapshot uuid {} is not found", entry.first));
             }
         }
 
@@ -861,7 +861,7 @@ protected:
                     return node;
                 }
                 else {
-                    throw Exception(MA_SRC, SBuf() << "Specified node_id " << buffer->root() << " is not found in persistent tree data");
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified node_id {} is not found in persistent tree data", buffer->root()));
                 }
             }
             else {
@@ -874,7 +874,7 @@ protected:
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Specified txn_id " << txn_id << " is not found in history data");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified txn_id {} is not found in history data", txn_id));
         }
     }
 
@@ -978,7 +978,7 @@ protected:
             map[page->uuid()] = new RCPagePtr(page, references);
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Page " << page->uuid() << " was already registered");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page {} was already registered", page->uuid()));
         }
     }
 
@@ -997,7 +997,7 @@ protected:
             map[buffer->node_id()] = std::make_pair(buffer, node);
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "PersistentTree LeafNode " << buffer->node_id() << " was already registered");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"PersistentTree LeafNode {} has been already registered", buffer->node_id()));
         }
     }
 
@@ -1016,7 +1016,7 @@ protected:
             map[buffer->node_id()] = std::make_pair(buffer, node);
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "PersistentTree BranchNode " << buffer->node_id() << " was already registered");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"PersistentTree BranchNode {} has been already registered", buffer->node_id()));
         }
     }
 
@@ -1057,7 +1057,7 @@ protected:
             map[node->txn_id()] = node;
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "HistoryTree Node " << node->txn_id() << " was already registered");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"HistoryTree Node {} has been already registered", node->txn_id()));
         }
     }
 
@@ -1329,7 +1329,7 @@ protected:
     		}
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Null snapshot's parent in do_pack() for snapshot: " << node->txn_id());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Null snapshot's parent in do_pack() for snapshot: {}", node->txn_id()));
     	}
     }
 

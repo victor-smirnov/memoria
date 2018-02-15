@@ -81,7 +81,7 @@ public:
         if (cache1 != cache2)
         {
             self().dump(out);
-            throw Exception(source, SBuf()<<"Invalid iterator cache. Iterator: " << cache1 << " Actual: " << cache2);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid iterator cache. Iterator: {} Actual: {}", cache1, cache2));
         }
 #endif        
     }

@@ -97,7 +97,7 @@ protected:
 
                     if (!child.isSet())
                     {
-                        throw NullPointerException(MA_SRC, "Subtree is null");
+                        MMA1_THROW(NullPointerException()) << WhatInfo("Subtree is null");
                     }
 
                     child->parent_id()  = node->id();
@@ -192,7 +192,7 @@ protected:
                 return node;
             }
             else {
-                throw v1::BoundsException(MA_SRC, "Leaf List is empty");
+                MMA1_THROW(BoundsException()) << WhatCInfo("Leaf List is empty");
             }
         }
 

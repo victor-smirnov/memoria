@@ -64,7 +64,7 @@ namespace {
                 return object.stream_size(bt::StreamTag<Size>(), std::forward<Args>(args)...);
             }
             else {
-                throw Exception(MA_RAW_SRC, SBuf() << "Invalid stream number: " << stream);
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream number: {}", stream));
             }
         }
     };

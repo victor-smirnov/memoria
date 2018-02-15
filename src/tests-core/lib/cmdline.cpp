@@ -43,10 +43,10 @@ void CmdLine::Process()
 void CmdLine::processDump()
 {
     if (argc_ == 1) {
-        throw Exception(MA_SRC, SBuf()<<"Dump file name must be specified");
+        MMA1_THROW(Exception()) << WhatCInfo("Dump file name must be specified");
     }
     else if (argc_ > 2) {
-        throw Exception(MA_SRC, SBuf()<<"Incorrect number of dump parameters specified");
+        MMA1_THROW(Exception()) << WhatCInfo("Incorrect number of dump parameters specified");
     }
     else {
         dump_file_ = argv_[1];
@@ -70,7 +70,7 @@ void CmdLine::processTests()
                 cfg_cmdline_.AddProperty(arg.substring(2, pos - 2), arg.substring(pos + 1));
             }
             else {
-                throw Exception(MEMORIA_SOURCE, SBuf() << "Invalid property format: " << arg);
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid property format: {}", arg));
             }
         }
         else if (arg == u"--help")
@@ -94,11 +94,11 @@ void CmdLine::processTests()
                         c += 1;
                     }
                     else {
-                        throw Exception(MEMORIA_SOURCE, "Dump operation has been already specified");
+                        MMA1_THROW(Exception()) << WhatCInfo("Dump operation has been already specified");
                     }
                 }
                 else {
-                    throw Exception(MEMORIA_SOURCE, "Incorrect --dump parameters number");
+                    MMA1_THROW(Exception()) << WhatCInfo("Incorrect --dump parameters number");
                 }
             }
         }
@@ -115,11 +115,11 @@ void CmdLine::processTests()
                         cfg_cpecified = true;
                     }
                     else {
-                        throw Exception(MEMORIA_SOURCE, "Config file has been already specified");
+                        MMA1_THROW(Exception()) << WhatCInfo("Config file has been already specified");
                     }
                 }
                 else {
-                    throw Exception(MEMORIA_SOURCE, "Properties file is not specified for the --config option");
+                    MMA1_THROW(Exception()) << WhatCInfo("Properties file is not specified for the --config option");
                 }
             }
         }
@@ -133,11 +133,11 @@ void CmdLine::processTests()
                     c += 1;
                 }
                 else {
-                    throw Exception(MEMORIA_SOURCE, "Output folder has been already specified");
+                    MMA1_THROW(Exception()) << WhatCInfo("Output folder has been already specified");
                 }
             }
             else {
-                throw Exception(MEMORIA_SOURCE, "Incorrect --out parameters number");
+                MMA1_THROW(Exception()) << WhatCInfo("Incorrect --out parameters number");
             }
         }
         else if (arg == u"--count")
@@ -148,7 +148,7 @@ void CmdLine::processTests()
                 c += 1;
             }
             else {
-                throw Exception(MEMORIA_SOURCE, "Incorrect --count parameters number");
+                MMA1_THROW(Exception()) << WhatCInfo("Incorrect --count parameters number");
             }
         }
         else if (arg == u"--coverage")
@@ -159,7 +159,7 @@ void CmdLine::processTests()
                 c += 1;
             }
             else {
-                throw Exception(MEMORIA_SOURCE, "Incorrect --coverage parameters number");
+                MMA1_THROW(Exception()) << WhatCInfo("Incorrect --coverage parameters number");
             }
         }
         else if (arg == u"--coverage-size")
@@ -170,7 +170,7 @@ void CmdLine::processTests()
                 c += 1;
             }
             else {
-                throw Exception(MEMORIA_SOURCE, "Incorrect --coverage-size parameters number");
+                MMA1_THROW(Exception()) << WhatCInfo("Incorrect --coverage-size parameters number");
             }
         }
         else if (arg == u"--soft-memlimit")
@@ -181,7 +181,7 @@ void CmdLine::processTests()
                 c += 1;
             }
             else {
-                throw Exception(MEMORIA_SOURCE, "Incorrect --soft-memlimit parameters number");
+                MMA1_THROW(Exception()) << WhatCInfo("Incorrect --soft-memlimit parameters number");
             }
         }
         else if (arg == u"--hard-memlimit")
@@ -192,7 +192,7 @@ void CmdLine::processTests()
                 c += 1;
             }
             else {
-                throw Exception(MEMORIA_SOURCE, "Incorrect --hard-memlimit parameters number");
+                MMA1_THROW(Exception()) << WhatCInfo("Incorrect --hard-memlimit parameters number");
             }
         }
         else if (arg == u"--replay" && (operations_ & REPLAY))
@@ -208,16 +208,16 @@ void CmdLine::processTests()
                         c += 1;
                     }
                     else {
-                        throw Exception(MEMORIA_SOURCE, "Replay operation has been already specified");
+                        MMA1_THROW(Exception()) << WhatCInfo("Replay operation has been already specified");
                     }
                 }
                 else {
-                    throw Exception(MEMORIA_SOURCE, "Incorrect --replay parameters number");
+                    MMA1_THROW(Exception()) << WhatCInfo("Incorrect --replay parameters number");
                 }
             }
         }
         else {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown command line option is specified: "<<arg);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unknown command line option is specified: {}", arg));
         }
     }
 

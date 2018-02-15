@@ -71,7 +71,7 @@ public:
         }
         else {
         	  self.dump();
-            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
         }
     }
 
@@ -87,7 +87,7 @@ public:
             return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(value_idx, 0));
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: ", stream));
         }
     }
 
@@ -125,7 +125,7 @@ public:
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
         }
     }
 
@@ -158,7 +158,7 @@ public:
         {
             if (self.data_stream() != 0)
             {
-                throw Exception(MA_SRC, "Key insertion into the middle of data block is not allowed");
+                MMA1_THROW(Exception()) << WhatCInfo("Key insertion into the middle of data block is not allowed");
             }
         }
 

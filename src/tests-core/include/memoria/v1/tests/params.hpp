@@ -187,7 +187,7 @@ public:
         {
             if (!(value_ >= min_value_ && value_ <= max_value_))
             {
-                throw Exception(MEMORIA_SOURCE, SBuf() << "Range checking failure for the property: " << prefix() << "." << name_);
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Range checking failure for the property: {}.{}", prefix(), name_));
             }
         }
     }
@@ -312,7 +312,7 @@ protected:
         }
         else if (mandatory_)
         {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name_<<" is not defined in the program configuration");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Property {} is not defined in the program configuration", name_));
         }
     }
 };
@@ -456,7 +456,7 @@ protected:
         }
         else if (mandatory_)
         {
-            throw Exception(MEMORIA_SOURCE, SBuf() << "Property " << name_ << " is not defined in the program configuration");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Property {} is not defined in the program configuration", name_));
         }
     }
 
@@ -619,7 +619,7 @@ protected:
         }
         else if (mandatory_)
         {
-            throw Exception(MEMORIA_SOURCE, SBuf() << "Property " << name_ << " is not defined in the program configuration");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Property {} is not defined in the program configuration", name_));
         }
     }
 

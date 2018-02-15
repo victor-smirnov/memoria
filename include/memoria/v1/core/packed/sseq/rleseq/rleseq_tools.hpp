@@ -19,6 +19,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
+#include <memoria/v1/core/tools/strings/format.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -69,11 +70,11 @@ static constexpr uint64_t EncodeRun(int32_t symbol, uint64_t length)
             return (symbol & SymbolMask) | (length << BitsPerSymbol);
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Symbols run length must be >= 0 : " << length);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Symbols run length must be >= 0 : {}", length));
         }
     }
     else {
-        throw Exception(MA_SRC, SBuf() << "Symbols run length of " << length << " exceeds limit (" << (size_t)MaxRunLength << ")");
+        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Symbols run length of {} exceeds limit ({})", length, (size_t)MaxRunLength));
     }
 }
 

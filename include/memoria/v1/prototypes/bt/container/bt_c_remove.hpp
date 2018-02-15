@@ -59,7 +59,7 @@ protected:
 
             if (!std::get<0>(result))
             {
-                throw Exception(MA_SRC, "Second removal attempt failed");
+                MMA1_THROW(Exception()) << WhatCInfo("Second removal attempt failed");
             }
 
             self.update_path(iter.leaf());

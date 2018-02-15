@@ -87,14 +87,11 @@ static int32_t DumpAllocator(U16String file_name)
 
         FSDumpAllocator(allocator, U8String(bf::absolute(path).string()).to_u16());
 	}
-	catch (Exception& ex) {
-		std::cout<<"Exception "<<ex.source()<<" "<<ex<<std::endl;
+    catch (MemoriaThrowable* ex) {
+        ex->dump(std::cout);
 	}
-	catch (MemoriaThrowable* ex) {
-		std::cout<<"Exception* "<<ex->source()<<" "<<*ex<<std::endl;
-	}
-	catch (MemoriaThrowable& ex) {
-		std::cout<<"Exception "<<ex.source()<<" "<<ex<<std::endl;
+    catch (MemoriaThrowable& ex) {
+        ex.dump(std::cout);
 	}
 	catch (exception& e) {
 		std::cout<<"StdEx: "<<e.what()<<std::endl;

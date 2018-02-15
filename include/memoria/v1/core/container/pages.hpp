@@ -67,34 +67,34 @@ public:
 
     virtual UUID getId() const
     {
-        if (page_ != NULL)
+        if (page_)
         {
             return page_->id();
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
         }
     }
 
     virtual uint64_t getContainerHash() const
     {
-        if (page_ != NULL)
+        if (page_)
         {
             return page_->ctr_type_hash();
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
         }
     }
 
     virtual uint64_t getPageTypeHash() const
     {
-        if (page_ != NULL)
+        if (page_)
         {
             return page_->page_type_hash();
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
         }
     }
     
@@ -127,12 +127,11 @@ public:
                 return T2T<uint8_t*>(page_)[idx];
             }
             else {
-                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<page_->page_size());
+                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, page_->page_size()));
             }
-
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
         }
     }
 
@@ -145,11 +144,11 @@ public:
                 T2T<uint8_t*>(page_)[idx] = (uint8_t)value;
             }
             else {
-                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<page_->page_size());
+                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, page_->page_size()));
             }
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
         }
     }
 };
@@ -175,7 +174,7 @@ public:
             return page_->id();
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
         }
     }
 
@@ -186,7 +185,7 @@ public:
             return page_->ctr_type_hash();
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
         }
     }
 
@@ -197,7 +196,7 @@ public:
             return page_->page_type_hash();
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
         }
     }
 
@@ -206,7 +205,7 @@ public:
     }
 
     virtual void* Ptr() {
-        throw Exception(MA_SRC, "Page in not mutable");
+        MMA1_THROW(Exception()) << WhatCInfo("Page in not mutable");
     }
 
     virtual const void* Ptr() const {
@@ -215,7 +214,7 @@ public:
 
     virtual void setPtr(void* ptr)
     {
-        throw Exception(MA_SRC, "Page in not mutable");
+        MMA1_THROW(Exception()) << WhatCInfo("Page in not mutable");
     }
 
     virtual int32_t size() const {
@@ -230,18 +229,18 @@ public:
                 return T2T<uint8_t*>(page_)[idx];
             }
             else {
-                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<page_->page_size());
+                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, page_->page_size()));
             }
 
         }
         else {
-            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
         }
     }
 
     virtual void setByte(int32_t idx, int32_t value)
     {
-        throw Exception(MA_SRC, "Page in not mutable");
+        MMA1_THROW(Exception()) << WhatCInfo("Page in not mutable");
     }
 };
 

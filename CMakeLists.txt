@@ -62,17 +62,13 @@ else()
     message(FATAL_ERROR "This platform is not supported")
 endif()
 
-
-
-
-
 if (BUILD_UNIX OR MINGW)
 
     SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
     SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DBOOST_NO_AUTO_PTR -Wall -Wno-sign-compare -DJEMALLOC_NO_PRIVATE_NAMESPACE -D_GNU_SOURCE -D_REENTRANT -fPIC -DPIC" )
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} " )
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DBOOST_STACKTRACE_USE_BACKTRACE  " )
 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0") 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-comment -Wno-unknown-warning-option -Wunused-variable")
@@ -81,7 +77,7 @@ if (BUILD_UNIX OR MINGW)
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-missing-braces")
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-variables")
     
-    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -pthread")
+    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -pthread ")
     
     if (USE_ASAN)
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address -DASAN_ENABLED")
@@ -109,7 +105,7 @@ if (BUILD_UNIX OR MINGW)
 
         set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 winpthread)
     else()
-        set (MEMORIA_LIBS "${MEMORIA_LIBS}" dl icuuc)
+        set (MEMORIA_LIBS "${MEMORIA_LIBS}" dl icuuc backtrace )
     endif()
         
         
@@ -143,7 +139,15 @@ if (Boost_FOUND)
     link_directories(${Boost_LIBRARY_DIRS})
 endif()
 
-set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
+find_package(Backtrace COMPONENTS backtrace REQUIRED)
+if (Backtrace_FOUND)
+    include_directories(${Backtrace_INCLUDE_DIRS})
+    link_directories(${Backtrace_LIBRARY_DIRS})
+endif()
+
+set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES} ${Backtrace_LIBRARIES} )
+
+message ( "=========@ ${Backtrace_INCLUDE_DIR} @=============")
 
 find_package(ICU 60.2 COMPONENTS i18n data REQUIRED)
 

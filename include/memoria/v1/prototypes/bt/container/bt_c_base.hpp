@@ -159,10 +159,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 createCtrByName();
             }
             else {
-                throw CtrAlreadyExistsException (
-                        MEMORIA_SOURCE,
-                        SBuf()<<"Container with name "<<self.master_name()<<" already exists"
-                );
+                MMA1_THROW(CtrAlreadyExistsException()) << WhatInfo(fmt::format8(u"Container with name {} already exists", self.master_name()));
             }
         }
         else {
@@ -431,7 +428,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             self.allocator().markUpdated(self.master_name());
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Invalid txn_id "<<txn_id<<" < "<<metadata.txn_id());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid txn_id {} < {}", txn_id, metadata.txn_id()));
         }
     }
 
@@ -469,11 +466,11 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 self.set_root_id(root_id);
             }
             else {
-                throw CtrTypeException(MEMORIA_SOURCE, SBuf()<<"Invalid container type: "<<node->ctr_type_hash());
+                MMA1_THROW(CtrTypeException()) << WhatInfo(fmt::format8(u"Invalid container type: {}", node->ctr_type_hash()));
             }
         }
         else {
-            throw NoCtrException(MEMORIA_SOURCE, SBuf()<<"Container with name "<<name<<" does not exists");
+            MMA1_THROW(NoCtrException()) << WhatInfo(fmt::format8(u"Container with name {} does not exists", name));
         }
     }
 

@@ -126,9 +126,9 @@ int main()
     {
         cout << ex.what() << endl;
     }
-    catch (Exception& ex)
+    catch (MemoriaThrowable& ex)
     {
-        cout << ex.message() << " at " << ex.source() << endl;
+        ex.dump(std::cout);
     }
 }
 

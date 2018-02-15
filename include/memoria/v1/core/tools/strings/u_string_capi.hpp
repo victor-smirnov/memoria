@@ -19,6 +19,9 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/tools/config.hpp>
+
+
+
 #include <unicode/ustring.h>
 #include <unicode/utypes.h>
 
@@ -31,17 +34,14 @@ namespace v1 {
 
 struct UStringSizeTag {};
 
-class StringException: public std::exception {
+using ICUErrorInfo = boost::error_info<struct TagICUErrorInfo, const char*>;
+
+class StringException: public ::memoria::v1::MemoriaThrowable {
     UErrorCode code_;
-    const char* message_;
 public:
     StringException(UErrorCode code):
-        code_(code), message_(u_errorName(code))
+        code_(code)
     {}
-
-    virtual const char* what() const noexcept {
-        return message_;
-    }
 
     UErrorCode code() const {
         return code_;
@@ -51,10 +51,11 @@ public:
     {
         if (U_FAILURE(code))
         {
-            throw StringException(code);
+            MMA1_THROW(StringException(code)) << ICUErrorInfo(u_errorName(code));
         }
     }
 };
+
 
 namespace _ {
 struct UErrorCodeStatus {
@@ -78,12 +79,8 @@ static inline const char* castChars(const char* ptr) {return ptr;}
 static inline wchar_t* castChars(wchar_t* ptr) {return ptr;}
 static inline const wchar_t* castChars(const wchar_t* ptr) {return ptr;}
 
-//static inline UChar* castChars(char16_t* ptr) {return T2T<UChar*>(ptr);}
-//static inline const UChar* castChars(const char16_t* ptr) {return T2T<const UChar*>(ptr);}
-
 static inline char16_t* castChars(UChar* ptr) {return T2T<char16_t*>(ptr);}
 static inline const char16_t* castChars(const UChar* ptr) {return T2T<const char16_t*>(ptr);}
-
 
 static inline UChar32* castChars(char32_t* ptr) {return T2T<UChar32*>(ptr);}
 static inline const UChar32* castChars(const char32_t* ptr) {return T2T<const UChar32*>(ptr);}

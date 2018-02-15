@@ -112,10 +112,10 @@ public:
         }
         else if (v.size() == 0)
         {
-            throw Exception(MA_SRC, "Attempt to read vector after its end");
+            MMA1_THROW(Exception()) << WhatCInfo("Attempt to read vector after its end");
         }
         else {
-            throw Exception(MA_SRC, "Invalid vector read");
+            MMA1_THROW(Exception()) << WhatCInfo("Invalid vector read");
         }
     }
 

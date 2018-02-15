@@ -83,7 +83,7 @@ public:
             return &objects_[idx];
         }
         else {
-            throw new Exception(MEMORIA_SOURCE, "StaticPool is full");
+            MMA1_THROW(Exception()) << WhatCInfo("StaticPool is full");
         }
     }
 
@@ -99,7 +99,7 @@ public:
             }
         }
 
-        throw new Exception(MEMORIA_SOURCE, "ID is not known in this StaticPool");
+        MMA1_THROW(Exception()) << WhatCInfo("ID is not known in this StaticPool");
     }
 
     int32_t getMax() {

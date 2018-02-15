@@ -75,11 +75,11 @@ protected:
             NodeDispatcher::dispatch(node, CheckContentFn());
             return false;
         }
-        catch (Exception ex)
+        catch (Exception& ex)
         {
             self().dump(node);
 
-            MEMORIA_ERROR(self(), "Node content check failed", ex.message(), ex.source());
+            MEMORIA_ERROR(self(), "Node content check failed", ex.message());
             return true;
         }
     }

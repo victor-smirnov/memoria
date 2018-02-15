@@ -138,7 +138,7 @@ int main(int argc, const char** argv, const char** envp)
     }
     catch (MemoriaThrowable& e)
     {
-        cerr << e.source() << " ERROR: " << e << endl;
+        e.dump(std::cout);
     }
 
     return 1;

@@ -155,12 +155,12 @@ public:
 		{
 			if (!buffer.template putSymbolsRun<DataStreams>(KeyStream, 1))
 			{
-				throw Exception(MA_SRC, "Supplied IOBuffer is probably too small");
+                MMA1_THROW(Exception()) << WhatCInfo("Supplied IOBuffer is probably too small");
 			}
 
 			if (!IOBufferAdapter<Key>::put(buffer, key_))
 			{
-				throw Exception(MA_SRC, "Supplied IOBuffer is probably too small");
+                MMA1_THROW(Exception()) << WhatCInfo("Supplied IOBuffer is probably too small");
 			}
 
 			key_finished_ = true;

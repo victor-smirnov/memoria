@@ -24,28 +24,28 @@ namespace v1 {
 
 using namespace std;
 
-class DispatchException: public Exception {
-    int32_t code1_;
-    int32_t code2_;
-public:
+//class DispatchException: public Exception {
+//    int32_t code1_;
+//    int32_t code2_;
+//public:
 
-    DispatchException(const char* source, const string &message, int32_t code1 = 0, int32_t code2 = 0):
-                Exception(source, message), code1_(code1), code2_(code2) {}
+//    DispatchException(const char* source, const string &message, int32_t code1 = 0, int32_t code2 = 0):
+//                Exception(source, message), code1_(code1), code2_(code2) {}
 
-    DispatchException(const char* source, const SBuf &message, int32_t code1 = 0, int32_t code2 = 0):
-                    Exception(source, message.str()), code1_(code1), code2_(code2) {}
+//    DispatchException(const char* source, const SBuf &message, int32_t code1 = 0, int32_t code2 = 0):
+//                    Exception(source, message.str()), code1_(code1), code2_(code2) {}
 
-    DispatchException(const char* source, int32_t code1, int32_t code2 = -1):
-                Exception(source, "Invalid dispatch"), code1_(code1), code2_(code2) {}
+//    DispatchException(const char* source, int32_t code1, int32_t code2 = -1):
+//                Exception(source, "Invalid dispatch"), code1_(code1), code2_(code2) {}
 
-    int32_t code1() const {
-        return code1_;
-    }
+//    int32_t code1() const {
+//        return code1_;
+//    }
 
-    int32_t code2() const {
-        return code2_;
-    }
-};
+//    int32_t code2() const {
+//        return code2_;
+//    }
+//};
 
 
 }}

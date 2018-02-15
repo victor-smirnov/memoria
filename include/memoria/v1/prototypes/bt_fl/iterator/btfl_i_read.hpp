@@ -127,7 +127,7 @@ public:
             }
             else
             {
-                throw Exception(MA_SRC, SBuf() << "Invalid populate IO buffer status: " << (int32_t) result.ending());
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid populate IO buffer status: {}", (int32_t) result.ending()));
             }
         }
 

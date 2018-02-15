@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/fn_traits.hpp>
+#include <memoria/v1/core/exceptions/memoria.hpp>
 
 #include <type_traits>
 #include <utility>
@@ -25,7 +26,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt        {
+namespace bt {
 
 template <typename Types, int idx> class NDT2;
 template <typename Types> class NDT2<Types, -1>;
@@ -109,7 +110,7 @@ public:
             );
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(Exception()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 };
@@ -183,7 +184,7 @@ public:
             );
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatInfo("Can't dispatch btree node type");
         }
     }
 };

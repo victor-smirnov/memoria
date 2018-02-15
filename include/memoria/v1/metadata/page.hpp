@@ -25,6 +25,7 @@
 #endif
 
 #include <memoria/v1/core/tools/strings/strings.hpp>
+#include <memoria/v1/core/tools/strings/format.hpp>
 #include <memoria/v1/core/tools/bytes/bytes.hpp>
 
 #include <tuple>
@@ -255,7 +256,7 @@ public:
             return toString(fn_(idx));
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Invalid index access in PageValueProviderT: idx = " << idx << ", size = " << size_);
+            MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid index access in PageValueProviderT: idx = {}, size = {}", idx, size_));
         }
     }
 };
@@ -278,7 +279,7 @@ public:
             return toString(value_);
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Invalid index access in PageValueProviderT: idx = " << idx << ", size = 1");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid index access in PageValueProviderT: idx = {}, size = 1", idx));
         }
     }
 };

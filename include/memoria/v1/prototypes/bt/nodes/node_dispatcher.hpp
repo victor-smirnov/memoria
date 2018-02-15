@@ -19,6 +19,7 @@
 #include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt1.hpp>
 #include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt2.hpp>
 
+
 namespace memoria {
 namespace v1 {
 namespace bt            {
@@ -261,7 +262,7 @@ public:
             return wrapper.treeNode(static_cast<Head*>(node1.page()), static_cast<Head*>(node2.page()), std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -274,7 +275,7 @@ public:
             return functor.treeNode(static_cast<Head*>(node.page()), std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, SBuf() << "Can't dispatch btree node type: " << node->page_type_hash());
+            MMA1_THROW(DispatchException()) << WhatInfo(fmt::format8(u"Can't dispatch btree node type: {}", node->page_type_hash()));
         }
     }
 
@@ -286,7 +287,7 @@ public:
             return functor.treeNode(static_cast<Head*>(node1.page()), static_cast<Head*>(node2.page()), std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -299,7 +300,7 @@ public:
             return functor.treeNode(static_cast<const Head*>(node.page()), std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -317,7 +318,7 @@ public:
             return functor.treeNode(static_cast<const Head*>(node1.page()), static_cast<const Head*>(node2.page()), std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -335,7 +336,7 @@ public:
             );
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -353,7 +354,7 @@ public:
             );
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -372,7 +373,7 @@ public:
             return fn.treeNode(head, std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -388,7 +389,7 @@ public:
             return fn.treeNode(head, std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 

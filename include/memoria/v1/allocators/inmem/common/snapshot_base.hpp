@@ -342,7 +342,7 @@ public:
         }
         else
         {
-            throw Exception(MA_SRC, "Snapshot is already committed.");
+            MMA1_THROW(Exception()) << WhatCInfo("Snapshot is already committed.");
         }
     }
 
@@ -359,7 +359,7 @@ public:
     		ctr_meta->getCtrInterface()->for_each_ctr_node(name, this->shared_from_this(), fn);
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Container with name " << name << " does not exist in snapshot " << history_node_->txn_id());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container with name {} does not exist in snapshot {}", name, history_node_->txn_id()));
     	}
     }
 
@@ -386,7 +386,7 @@ public:
 
     			if (old_value.page_ptr())
     			{
-    				throw Exception(MA_SRC, SBuf() << "Page with ID " << id << " is not new in snapshot " << txn_id);
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page with ID {} is not new in snapshot {}", id, txn_id));
     			}
     		});
 
@@ -396,11 +396,11 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn->currentTxnId());
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
     		}
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Container with name " << name << " already exists in snapshot " << txn_id);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container with name {}already exists in snapshot {}", name, txn_id));
     	}
     }
 
@@ -426,11 +426,11 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn->currentTxnId());
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
     		}
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Container with name " << name << " already exists in snapshot " << txn_id);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container with name {} already exists in snapshot {}", name, txn_id));
     	}
     }
 
@@ -470,7 +470,7 @@ public:
     				if (old_value.page_ptr()->unref() == 0)
     				{
     					// FIXME: just delete the page?
-    					throw Exception(MA_SRC, SBuf() << "Unexpected refcount == 0 for page " << old_value.page_ptr()->raw_data()->uuid());
+                        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected refcount == 0 for page {}", old_value.page_ptr()->raw_data()->uuid()));
     				}
     			}
     		});
@@ -481,7 +481,7 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn->currentTxnId());
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
     		}
     	}
     	else {
@@ -517,7 +517,7 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn_id);
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected empty root ID for container {} in snapshot {}", name, txn_id));
     		}
     	}
     	else {
@@ -553,7 +553,7 @@ public:
                     shared->set_page(page_opt.value().page_ptr()->raw_data());
                 }
                 else {
-                    throw Exception(MA_SRC, SBuf() << "Page is not found for the specified id: " << id);
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page is not found for the specified id: {}", id));
                 }
             }
 
@@ -566,7 +566,7 @@ public:
 
     void dumpAccess(const char* msg, ID id, const Shared* shared)
     {
-        cout<<msg<<": "<<id<<" "<<shared->get()<<" "<<shared->get()->uuid()<<" "<<shared->state()<<endl;
+        std::cout << msg << ": " << id << " " << shared->get() << " " << shared->get()->uuid() << " " << shared->state() << std::endl;
     }
 
 
@@ -587,7 +587,7 @@ public:
     	auto ii = instance_map_.find(ti);
     	if (ii == instance_map_.end())
     	{
-    		throw Exception(MA_SRC, SBuf() << "Container " << ti.name() << " is not registered in snapshot " << uuid());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container {} is not registered in snapshot {}", ti.name(), uuid()));
     	}
     	else if (ii->second.unref() == 0) {
     		instance_map_.erase(ii);
@@ -602,7 +602,7 @@ public:
     {
     	for (const auto& pair: instance_map_)
     	{
-    		cout << demangle(pair.first.name()) << " -- " << pair.second.references() << endl;
+            std::cout << demangle(pair.first.name()) << " -- " << pair.second.references() << std::endl;
     	}
     }
 
@@ -644,7 +644,7 @@ public:
                     }
                 }
                 else {
-                    throw Exception(MA_SRC, SBuf() << "Page is not found for the specified id: " << id);
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page is not found for the specified id: {}", id));
                 }
             }
             else if (shared->state() == Shared::READ)
@@ -661,7 +661,7 @@ public:
                     shared->refresh();
                 }
                 else {
-                    throw Exception(MA_SRC, SBuf() << "Page is not found for the specified id: " << id);
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page is not found for the specified id: {}", id));
                 }
             }
             else if (shared->state() == Shared::UPDATE)
@@ -669,7 +669,7 @@ public:
                 //MEMORIA_ASEERT();
             }
             else {
-                throw Exception(MA_SRC, SBuf() << "Invalid PageShared state: " << shared->state());
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid PageShared state: {}", shared->state()));
             }
 
             shared->state() = Shared::UPDATE;
@@ -808,7 +808,7 @@ public:
 
     virtual PageG getPageG(Page* page)
     {
-        throw Exception(MA_SRC, "Method getPageG is not implemented for this allocator");
+        MMA1_THROW(Exception()) << WhatCInfo("Method getPageG is not implemented for this allocator");
     }
 
 
@@ -861,7 +861,7 @@ public:
                 root_map_->remove(name);
             }
             else {
-                throw Exception(MA_SRC, SBuf() << "Allocator directory removal attempted");
+                MMA1_THROW(Exception()) << WhatCInfo("Allocator directory removal attempted");
             }
         }
         else {
@@ -924,10 +924,10 @@ public:
     {
 		if (allocator_descr != nullptr)
 		{
-            walker->beginSnapshot(U8String((SBuf() << "Snapshot-" << history_node_->txn_id() << " -- " << allocator_descr).str()).to_u16().data());
+            walker->beginSnapshot(fmt::format(u"Snapshot-{} -- {}", history_node_->txn_id(), allocator_descr).data());
 		}
 		else {
-            walker->beginSnapshot(U8String((SBuf() << "Snapshot-" << history_node_->txn_id()).str()).to_u16().data());
+            walker->beginSnapshot(fmt::format(u"Snapshot-{}", history_node_->txn_id()).data());
 		}
 
         auto iter = root_map_->Begin();
@@ -1019,7 +1019,7 @@ protected:
     		return opt.value().page_ptr();
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Page with id " << id << " does not exist in snapshot " << currentTxnId());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page with id {} does not exist in snapshot {}", id, currentTxnId()));
     	}
     }
 
@@ -1108,7 +1108,7 @@ protected:
 
     	if (is_data_locked())
     	{
-    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " data is locked");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot's {} data is locked", uuid()));
     	}
     }
 
@@ -1116,7 +1116,7 @@ protected:
     {
     	if (!is_active())
     	{
-    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " data is not active");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot's {} data is not active", uuid()));
     	}
     }
 
@@ -1128,11 +1128,11 @@ protected:
     		// Double checking. This shouldn't happen
     		if (!history_node_->root())
     		{
-    			throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has been cleared");
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has been cleared", uuid()));
     		}
     	}
     	else if (history_node_->is_active()) {
-    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " is still active");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is still active", uuid()));
     	}
     }
 
@@ -1150,7 +1150,7 @@ protected:
 
         if (!history_node_->is_active())
         {
-            throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has been already committed or data is locked");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has been already committed or data is locked", uuid()));
         }
     }
 
@@ -1160,7 +1160,7 @@ protected:
 
     	if ((!history_node_->is_active()) && ctrName.is_set())
     	{
-    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " has been already committed or data is locked");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has been already committed or data is locked", uuid()));
     	}
     }
 
@@ -1170,7 +1170,7 @@ protected:
 
     	if (!history_node_->is_data_locked())
     	{
-    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " hasn't been locked");
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} hasn't been locked", uuid()));
     	}
     }
 

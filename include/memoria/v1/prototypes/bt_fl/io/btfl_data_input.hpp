@@ -98,7 +98,7 @@ public:
             return buffer;
         }
         else {
-            throw OOMException(MA_RAW_SRC);
+            MMA1_THROW(OOMException());
         }
     }
 
@@ -113,7 +113,7 @@ public:
             return buffer;
         }
         else {
-            throw OOMException(MA_RAW_SRC);
+            MMA1_THROW(OOMException());
         }
     }
 
@@ -148,7 +148,7 @@ public:
                 append_io_entry(io_buffer, enlargements + 1);
             }
             else {
-                throw Exception(MA_RAW_SRC, "Supplied entry is too large for InputBuffer");
+                MMA1_THROW(Exception()) << WhatCInfo("Supplied entry is too large for InputBuffer");
             }
         }
     }

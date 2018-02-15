@@ -206,7 +206,7 @@ struct IOBufferAdapter<FixedArray<Size>> {
             return array;
         }
         else {
-            throw Exception(MA_RAW_SRC, SBuf() << "Array length " << len << " exceeds fixed limit of " << Size);
+            MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Array length {} exceeds fixed limit of {}", len, Size));
         }
     }
 };

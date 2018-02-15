@@ -135,7 +135,7 @@ public:
         	pos_ = v;
         }
         else {
-        	throw Exception(MA_SRC, SBuf() << "Supplied value of position exceeds limit: " << v << " " << limit_);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Supplied value of position exceeds limit: {} {}", v, limit_));
         }
     }
 
@@ -146,7 +146,7 @@ public:
     		pos_ += len;
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Supplied value of len exceeds limit: " << len << " " << pos_ << " " << limit_);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Supplied value of len exceeds limit: {} {} {}", len, pos_, limit_));
     	}
     }
 
@@ -169,7 +169,7 @@ public:
     		limit_ = value;
     	}
         else {
-            throw Exception(MA_SRC, SBuf() << "Supplied value of limit exceeds capacity: " << value << " " << length_);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Supplied value of limit exceeds capacity: {} {}", value, length_));
         }
     }
 
@@ -200,7 +200,7 @@ public:
     		pos_ = mark_;
     	}
     	else {
-    		throw Exception(MA_SRC, "IObuffer is not marked");
+            MMA1_THROW(Exception()) << WhatInfo("IObuffer is not marked");
     	}
     }
 
@@ -466,7 +466,7 @@ public:
             return putUVLen(value);
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Max symbols run length of " << length << " exceeds " << getMaxSymbolsRunLength<Symbols>());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Max symbols run length of {} exceeds {}", length, getMaxSymbolsRunLength<Symbols>()));
         }
     }
 
@@ -493,7 +493,7 @@ public:
             uvlen_codec_.encode(array_, new_value, pos);
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Max symbols run length of " << length << " exceeds " << getMaxSymbolsRunLength<Symbols>());
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Max symbols run length of {} exceeds {}", length, getMaxSymbolsRunLength<Symbols>()));
         }
     }
 
@@ -527,7 +527,7 @@ public:
             length_ = new_length;
         }
         else {
-            throw Exception(MA_SRC, "IOBuffer can't enlarge alien data buffer");
+            MMA1_THROW(Exception()) << WhatCInfo("IOBuffer can't enlarge alien data buffer");
         }
     }
 
@@ -538,7 +538,7 @@ public:
             return;
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "IOBuffer::" << op_type << " is out of bounds: " << pos_ << " " << window << " " << limit_);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"IOBuffer:: {} is out of bounds: {} {} {}", op_type, pos_, window, limit_));
         }
     }
 
@@ -568,7 +568,7 @@ protected:
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "IOBuffer has no enough free space: " << length << " " << available);
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"IOBuffer has no enough free space: {} {}", length, available));
         }
     }
 
@@ -616,7 +616,7 @@ protected:
             return data;
         }
         else {
-            throw Exception(MA_SRC, "Can't allocate IOBuffer");
+            MMA1_THROW(Exception()) << WhatCInfo("Can't allocate IOBuffer");
         }
     }
 };
