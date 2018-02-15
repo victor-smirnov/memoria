@@ -23,11 +23,14 @@
 namespace memoria {
 namespace v1 {
 
-using SystemErrorCode = boost::error_info<struct TagErrorCodeInfo, DWORD>;
+using SystemErrorCodeInfo = boost::error_info<struct TagErrorCodeInfo, DWORD>;
+using SystemErrorStrInfo = boost::error_info<struct TagErrorCodeInfo, std::string>;
 
 struct SystemException: virtual Exception {
     SystemException();
     SystemException(DWORD error_code);
 };
+
+std::string GetErrorMessage(DWORD error_code);
 
 }}

@@ -42,7 +42,7 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
-std::string GetErrorMessage(DWORD error_code);
+
 void DumpErrorMessage(DWORD error_code);
 void DumpErrorMessage(const std::string& prefix, DWORD error_code);
 void DumpErrorAndTerminate(const std::string& prefix, DWORD error_code);

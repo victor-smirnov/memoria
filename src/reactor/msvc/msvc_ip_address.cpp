@@ -92,7 +92,7 @@ std::string IPAddress::to_string() const
             return std::string(str);
         }
         else {
-            tools::rise_perror("Can't convert IPv4 address to std::string");
+			MMA1_THROW(RuntimeException()) << WhatCInfo("Can't convert IPv4 address to std::string");
         }
     }
     else {
@@ -101,7 +101,7 @@ std::string IPAddress::to_string() const
             return std::string(str);
         }
         else {
-            tools::rise_perror("Can't convert IPv6 address to std::string");
+			MMA1_THROW(RuntimeException()) << WhatCInfo("Can't convert IPv6 address to std::string");
         }
     }
 }    

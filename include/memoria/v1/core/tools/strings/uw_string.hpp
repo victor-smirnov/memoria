@@ -109,6 +109,9 @@ public:
     U16String to_u16() const;
     U8String  to_u8() const;
     U32String to_u32() const;
+
+	ContentT& to_std_string() { return content_; }
+	const ContentT& to_std_string() const { return content_; }
 };
 
 template <typename CharTraits>

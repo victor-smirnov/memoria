@@ -149,11 +149,17 @@ public:
     path(const string_type& s) : m_pathname(s) {}
     path(string_type& s) : m_pathname(s) {}
 
+#ifdef _WIN32
+	path(const U8String& s) : m_pathname(s.to_uwstring().to_std_string()) {}
+	path(const U16String& s) : m_pathname(s.to_uwstring().to_std_string()) {}
+	path(const U32String& s) : m_pathname(s.to_uwstring().to_std_string()) {}
+	path(const UWString& s) : m_pathname(s.to_std_string()) {}
+#else
     path(const U8String& s) : m_pathname(s.to_std_string()) {}
     path(const U16String& s) : m_pathname(s.to_u8().to_std_string()) {}
     path(const U32String& s) : m_pathname(s.to_u8().to_std_string()) {}
     path(const UWString& s) : m_pathname(s.to_u8().to_std_string()) {}
-
+#endif
     //  As of October 2015 the interaction between noexcept and =default is so troublesome
     //  for VC++, GCC, and probably other compilers, that =default is not used with noexcept
     //  functions. GCC is not even consistent for the same release on different platforms.

@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream& out, const MemoriaThrowable& t) {
 
 
 void MemoriaThrowable::dump(std::ostream& out) const noexcept {
-    out << boost::diagnostic_information(this);
+    out << boost::diagnostic_information(*this);
 }
 
 std::string MemoriaThrowable::message() const noexcept

@@ -112,7 +112,7 @@ GenericFile::GenericFile(filesystem::path file_path, FileFlags flags, FileMode m
 	std::tie(fd_, last_error) = engine().run_in_thread_pool([&] {
 		return std::make_tuple(
 			CreateFile(
-				file_path.string().c_str(),
+				file_path.std_string().c_str(),
 				get_access(flags, mode),
 				get_share_mode(flags, mode),
 				NULL,
@@ -375,11 +375,11 @@ DMABuffer allocate_dma_buffer(size_t size)
 			return buf;
 		}
 		else {
-			tools::rise_perror(SBuf() << "Cant allocate dma buffer of " << size << " bytes");
+			MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't allocate dma buffer of {} bytes", size);
 		}
 	}
 	else {
-		tools::rise_error(SBuf() << "Cant allocate dma buffer of 0 bytes");
+		MMA1_THROW(RuntimeException()) << WhatCInfo("Can't allocate dma buffer of 0 bytes");
 	}
 }
 

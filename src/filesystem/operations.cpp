@@ -543,10 +543,10 @@ namespace
     perms prms = fs::owner_read | fs::group_read | fs::others_read;
     if  ((attr & FILE_ATTRIBUTE_READONLY) == 0)
       prms |= fs::owner_write | fs::group_write | fs::others_write;
-    if (MEMORIA_V1_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".exe") == 0
-      || MEMORIA_V1_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".com") == 0
-      || MEMORIA_V1_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".bat") == 0
-      || MEMORIA_V1_FILESYSTEM_STRICMP(p.extension().string().c_str(), ".cmd") == 0)
+    if (MEMORIA_V1_FILESYSTEM_STRICMP(p.extension().std_string().c_str(), ".exe") == 0
+      || MEMORIA_V1_FILESYSTEM_STRICMP(p.extension().std_string().c_str(), ".com") == 0
+      || MEMORIA_V1_FILESYSTEM_STRICMP(p.extension().std_string().c_str(), ".bat") == 0
+      || MEMORIA_V1_FILESYSTEM_STRICMP(p.extension().std_string().c_str(), ".cmd") == 0)
       prms |= fs::owner_exe | fs::group_exe | fs::others_exe;
     return prms;
   }
@@ -2392,7 +2392,7 @@ namespace
   {
     return mr::engine_or_local([&](){
         // use a form of search Sebastian Martel reports will work with Win98
-        wstring dirpath(dir.wstring());
+        wstring dirpath(dir.std_wstring());
         
         dirpath += (dirpath.empty()
             || (dirpath[dirpath.size()-1] != L'\\'

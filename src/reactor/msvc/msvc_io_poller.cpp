@@ -18,6 +18,7 @@
 #include <memoria/v1/reactor/reactor.hpp>
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/reactor/msvc/msvc_io_messages.hpp>
 
@@ -121,24 +122,7 @@ void IOPoller::poll()
 
 
 
-std::string GetErrorMessage(DWORD error_code) 
-{	
-	void* cstr;
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		NULL,
-		error_code,
-		MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
-		(LPTSTR)&cstr,
-		0,
-		NULL
-	);
 
-	std::string str((char*)cstr);
-	LocalFree(cstr);
-	
-	return str;
-}
 
 
 void DumpErrorMessage(DWORD error_code) {

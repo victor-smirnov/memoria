@@ -113,6 +113,9 @@ if (BUILD_UNIX OR MINGW)
     	set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -static")
     	set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -static-libgcc -static-libstdc++ -static")
     endif()
+
+
+
         
 else()
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} /W3 /std:c++14 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS -DJEMALLOC_NO_PRIVATE_NAMESPACE -D_REENTRANT -DDLLEXPORT  /bigobj")
@@ -125,37 +128,47 @@ set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME     OFF)
 
 if (MSVC)
-  find_package(Boost 1.63.0 REQUIRED)
+  find_package(Boost 1.66.0 REQUIRED)
+  find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
+  
+  set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${ICU_LIBRARIES})
+  set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
+                                   
 else()
   find_package(Boost
     1.63.0
     COMPONENTS program_options context filesystem
     REQUIRED
   )
+
+  find_package(Backtrace COMPONENTS backtrace REQUIRED)
+  find_package(ICU 60.2 COMPONENTS i18n data REQUIRED)
+
+  set (MEMORIA_LIBS "${MEMORIA_LIBS}" icudata icui18n)
+
 endif()
 
 if (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     link_directories(${Boost_LIBRARY_DIRS})
+    set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
 endif()
 
-find_package(Backtrace COMPONENTS backtrace REQUIRED)
+
+if (ICU_FOUND)
+    include_directories(${ICU_INCLUDE_DIRS})
+    link_directories(${ICU_LIBRARY_DIRS})
+endif()
+
+message (" ============= @ ${Boost_LIBRARY_DIRS} @ =================")
+
 if (Backtrace_FOUND)
     include_directories(${Backtrace_INCLUDE_DIRS})
     link_directories(${Backtrace_LIBRARY_DIRS})
 endif()
 
-set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES} ${Backtrace_LIBRARIES} )
 
-message ( "=========@ ${Backtrace_INCLUDE_DIR} @=============")
 
-find_package(ICU 60.2 COMPONENTS i18n data REQUIRED)
-
-if (ICU_FOUND)
-    include_directories(${ICU_INCLUDE_DIRS})
-    link_directories(${ICU_LIBRARY_DIRS})
-    set (MEMORIA_LIBS "${MEMORIA_LIBS}" icudata icui18n )
-endif()
 
 
 

@@ -2,5 +2,7 @@ build*
 mkbuild.sh
 build.sh
 .kdev*
+.vs*
+CMakeSettings.json
 
 /*.user*

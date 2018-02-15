@@ -179,21 +179,21 @@ namespace filesystem {
   {
     path tmp(*this);
     std::replace(tmp.m_pathname.begin(), tmp.m_pathname.end(), L'\\', L'/');
-    return tmp.string();
+    return tmp.std_string();
   }
 
   const std::string path::generic_string(const codecvt_type& cvt) const
   {
     path tmp(*this);
     std::replace(tmp.m_pathname.begin(), tmp.m_pathname.end(), L'\\', L'/');
-    return tmp.string(cvt);
+    return tmp.std_string(cvt);
   }
 
   const std::wstring path::generic_wstring() const
   { 
     path tmp(*this);
     std::replace(tmp.m_pathname.begin(), tmp.m_pathname.end(), L'\\', L'/');
-    return tmp.wstring();
+    return tmp.std_wstring();
   }
 
 # endif  // BOOST_WINDOWS_API
