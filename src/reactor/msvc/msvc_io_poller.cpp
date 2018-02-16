@@ -138,13 +138,6 @@ void DumpErrorAndTerminate(const std::string& prefix, DWORD error_code) {
 	std::terminate();
 }
 
-[[noreturn]] void rise_win_error(SBuf msg, DWORD error_code) 
-{
-	SBuf msg2;
-	msg2 << msg.str();
 
-	msg2 << " -- " << GetErrorMessage(error_code);
-	throw std::runtime_error(msg2);
-}
 
 }}}

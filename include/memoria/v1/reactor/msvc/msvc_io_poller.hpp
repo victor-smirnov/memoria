@@ -46,7 +46,7 @@ namespace reactor {
 void DumpErrorMessage(DWORD error_code);
 void DumpErrorMessage(const std::string& prefix, DWORD error_code);
 void DumpErrorAndTerminate(const std::string& prefix, DWORD error_code);
-[[noreturn]] void rise_win_error(SBuf msg, DWORD error_code);
+//[[noreturn]] void rise_win_error(SBuf msg, DWORD error_code);
 
 
 using IOBuffer = RingBuffer<Message*>;
