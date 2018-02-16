@@ -63,8 +63,8 @@ int main(int argc, char **argv)
 
             std::cout << "Read back: " << read << " bytes: " << std::string(mt::ptr_cast<char>(data), read) << std::endl;
         }
-        catch (std::exception& ex) {
-            std::cout << "Exception: " << ex.what() << std::endl;
+        catch (m::MemoriaThrowable& ex) {
+			ex.dump(std::cout);
         }
 
         dr::app().shutdown();
