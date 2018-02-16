@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/fn_traits.hpp>
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <type_traits>
 

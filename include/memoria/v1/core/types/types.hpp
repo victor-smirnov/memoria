@@ -635,21 +635,7 @@ uint32_t __inline __builtin_clzll(uint64_t value)
 #endif
 
 
-struct MemoriaThrowable: virtual std::exception, virtual boost::exception{
-    virtual void dump(std::ostream& out) const noexcept;
 
-    virtual const char* what() const noexcept;
-    virtual std::string message() const noexcept;
-};
-
-
-using Traced = boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace>;
-
-
-#define MMA1_THROW(Ex) throw boost::enable_error_info(Ex) << ::memoria::v1::Traced(boost::stacktrace::stacktrace()) \
-    << ::boost::throw_function(BOOST_THROW_EXCEPTION_CURRENT_FUNCTION) \
-    << ::boost::throw_file(__FILE__) \
-    << ::boost::throw_line((int)__LINE__)
 
 
 }}

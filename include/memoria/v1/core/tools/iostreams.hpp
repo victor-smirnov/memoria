@@ -325,7 +325,7 @@ public:
         
         if (MMA1_UNLIKELY(len < size)) 
         {
-            tools::rise_error(SBuf() << "Unexpected end of stream");
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Unexpected end of stream");
         }
     }
     
@@ -399,7 +399,7 @@ public:
         auto len = pull();
         if (MMA1_UNLIKELY(len < size)) 
         {
-            tools::rise_error(SBuf() << "Unexpected end of stream. Requested " << size << ", read " << len);
+            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Unexpected end of stream. Requested {}, read {}", size, len);
         }
     }
 };
@@ -504,7 +504,7 @@ public:
         size_t len = stream_->write(buffer_->array(), size);
         
         if (len < size) {
-            tools::rise_error(SBuf() << "Can't write all data to the stream. Data size " << size << ", written " << len);
+            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't write all data to the stream. Data size {}, written {}", size, len);
         }
         
         buffer_->pos(0);

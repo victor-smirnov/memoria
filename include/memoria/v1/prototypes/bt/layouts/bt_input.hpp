@@ -29,7 +29,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/types/algo/for_each.hpp>
 #include <memoria/v1/core/packed/tools/packed_malloc.hpp>
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 
 

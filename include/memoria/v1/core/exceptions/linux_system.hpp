@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2018 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,26 +16,19 @@
 
 #pragma once
 
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/core.hpp>
 
 namespace memoria {
 namespace v1 {
 
-using namespace std;
 
-//class NullPointerException: public Exception {
+using SystemErrorCodeInfo   = boost::error_info<struct TagErrorCodeInfo, int32_t>;
+using SystemErrorStrInfo    = boost::error_info<struct TagErrorCodeInfo, std::string>;
 
-//public:
-//    NullPointerException(const char* source, U8StringRef message):
-//                Exception(source, message) {}
-
-//    NullPointerException(const char* source, const SBuf& message):
-//                    Exception(source, message) {}
-
-//    NullPointerException(const char* source):
-//                Exception(source, "NullPointerException"){}
-
-//};
+struct SystemException: virtual Exception {
+    SystemException();
+    SystemException(int32_t errno_v);
+};
 
 
 }}

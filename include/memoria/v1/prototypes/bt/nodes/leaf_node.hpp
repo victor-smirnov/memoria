@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/v1/core/tools/assert.hpp>

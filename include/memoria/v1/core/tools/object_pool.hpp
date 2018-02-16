@@ -22,7 +22,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <iostream>
 #include <type_traits>

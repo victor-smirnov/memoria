@@ -61,7 +61,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     if (fd_ < 0)
     {
-        tools::rise_perror(fmt::format8(u"Can't create socket for {}", ip_address_).to_std_string());
+        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't create socket {}", ip_address_);
     }
 
     sock_address_.sin_family        = AF_INET;
@@ -72,8 +72,9 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     if (bres < 0)
     {
+        int32_t err_code = errno;
         ::close(fd_);
-        tools::rise_perror(fmt::format8(u"Can't bind socket to {}:{}", ip_address_, ip_port_).to_std_string());
+        MMA1_THROW(SystemException(err_code)) << fmt::format_ex(u"Can't bind socket to {}:{}", ip_address_, ip_port_);
     }
 
     epoll_event event = tools::make_zeroed<epoll_event>();
@@ -84,7 +85,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     int sres = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, fd_, &event);
     if (sres < 0) {
-        tools::rise_perror(SBuf() << "Can't configure poller for " << ip_address_ << ":" << ip_port_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't configure poller for {}:{}", ip_address_, ip_port_);
     }
 }
 
@@ -102,15 +103,16 @@ void ServerSocketImpl::close()
         int res = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_DEL, fd_, nullptr);
         if (res < 0)
         {
+            int32_t err_code = errno;
             ::close(fd_);
-            tools::rise_perror(SBuf() << "Can't remove epoller for socket " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException(err_code)) << fmt::format_ex(u"Can't remove epoller for socket {}:{}", ip_address_, ip_port_);
         }
 
         engine().drain_pending_io_events(&fiber_io_message_);
 
         if (::close(fd_) < 0)
         {
-            tools::rise_perror(SBuf() << "Can't close socket " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't close socket {}:{}", ip_address_, ip_port_);
         }
     }
 }
@@ -120,7 +122,7 @@ void ServerSocketImpl::listen()
     int res = ::listen(fd_, 5);
     if (res < 0)
     {
-        tools::rise_perror(SBuf() << "Can't start listening on socket for " << ip_address_ << ":" << ip_port_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't start listening on socket for {}:{}", ip_address_, ip_port_);
     }
 }
 
@@ -145,7 +147,7 @@ SocketConnectionData ServerSocketImpl::accept()
             fiber_io_message_.wait_for();
         }
         else {
-            tools::rise_perror(SBuf() << "Can't start accepting connections for " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't start accepting connections for {}:{}", ip_address_, ip_port_);
         }
     }
 }

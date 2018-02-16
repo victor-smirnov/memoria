@@ -16,8 +16,11 @@
 
 #pragma once
 
-#include <memoria/v1/core/exceptions/memoria.hpp>
-#include <memoria/v1/core/exceptions/dispatch.hpp>
-#include <memoria/v1/core/exceptions/bounds.hpp>
-#include <memoria/v1/core/exceptions/npe.hpp>
-#include <memoria/v1/core/exceptions/file.hpp>
+#include <memoria/v1/core/exceptions/base.hpp>
+#include <memoria/v1/core/exceptions/core.hpp>
+
+#ifdef _WIN32
+#include <memoria/v1/core/exceptions/win32_system.hpp>
+#else
+#include <memoria/v1/core/exceptions/linux_system.hpp>
+#endif

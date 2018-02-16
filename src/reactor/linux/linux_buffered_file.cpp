@@ -54,14 +54,11 @@ BufferedFileImpl::BufferedFileImpl(filesystem::path file_path, FileFlags flags, 
     int errno0 = 0;
     std::tie(fd_, errno0) = engine().run_in_thread_pool([&]{
         auto fd = ::open(file_path.c_str(), (int)flags, (mode_t)mode);
-        return std::make_tuple(
-                    fd,
-                    errno
-                    );
+        return std::make_tuple(fd, errno);
     });
 
     if (fd_ < 0) {
-        tools::rise_perror(errno0, SBuf() << "Can't open file " << file_path);
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't open file {}", file_path);
     }
 }
 
@@ -78,7 +75,7 @@ void BufferedFileImpl::close()
 {
     if ((!closed_) && (::close(fd_) < 0))
     {
-        tools::rise_perror(SBuf() << "Can't close file " << path_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't close file {}", path_);
     }
 
     closed_ = true;
@@ -98,7 +95,7 @@ uint64_t BufferedFileImpl::seek(uint64_t position)
         return res;
     }
     else {
-        tools::rise_perror(errno0, SBuf() << "Can't seek into the file " << path_);
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't seek into the file  {}", path_);
     }
 }
 
@@ -122,7 +119,7 @@ size_t BufferedFileImpl::read(uint8_t* buffer, uint64_t offset, size_t size)
         return res;
     }
     else {
-        tools::rise_perror(errno0, SBuf() << "Can't read from file " << path_);
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't read from file {}", path_);
     }
 }
 
@@ -141,7 +138,7 @@ size_t BufferedFileImpl::read(uint8_t* buffer, size_t size)
         return res;
     }
     else {
-        tools::rise_perror(errno0, SBuf() << "Can't read from file " << path_);
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't read from file {}", path_);
     }
 }
 
@@ -165,7 +162,7 @@ size_t BufferedFileImpl::write(const uint8_t* buffer, uint64_t offset, size_t si
         return res;
     }
     else {
-        tools::rise_perror(errno0, SBuf() << "Can't write to file " << path_);
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't write to file {}", path_);
     }
 }
 
@@ -183,7 +180,7 @@ size_t BufferedFileImpl::write(const uint8_t* buffer, size_t size)
         return res;
     }
     else {
-        tools::rise_perror(errno0, SBuf() << "Can't write to file " << path_);
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't write to file {}", path_);
     }
 }
 
@@ -198,8 +195,9 @@ void BufferedFileImpl::fsync()
         return std::make_tuple(r, errno);
     });
 
-    if (res < 0) {
-        tools::rise_perror(errno0, SBuf() << "Can't fsync file " << path_);
+    if (res < 0)
+    {
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't fsync file {}", path_);
     }
 }
 
@@ -213,7 +211,7 @@ void BufferedFileImpl::fdsync() {
     });
 
     if (res < 0) {
-        tools::rise_perror(errno0, SBuf() << "Can't fsync file " << path_);
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't fsync file {}", path_);
     }
 }
     

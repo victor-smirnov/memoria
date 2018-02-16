@@ -51,17 +51,20 @@ TimerImpl::TimerImpl(Timer::TimeUnit start_after, Timer::TimeUnit repeat_after, 
 
             if (epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, timer_fd_, &event) < 0)
             {
+                int32_t code = errno;
                 ::close(timer_fd_);
-                tools::rise_perror(SBuf() << "Can't configure epoller for Timer " << timer_fd_);
+                MMA1_THROW(SystemException(code)) << fmt::format_ex(u"Can't configure epoller for Timer {}", timer_fd_);
             }
         }
         else {
+            int32_t code = errno;
             ::close(timer_fd_);
-            tools::rise_perror(SBuf() << "Can't setup timer " << timer_fd_);
+            MMA1_THROW(SystemException(code)) << fmt::format_ex(u"Can't setup timer {}", timer_fd_);
+
         }
     }
     else {
-        tools::rise_perror(SBuf() << "Can't create timerfd timer");
+        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't create timerfd timer {}", timer_fd_);
     }
 }
 
@@ -138,17 +141,21 @@ void IOPoller::sleep_for(const std::chrono::milliseconds& time)
                     close(tfd);
                 }
                 else {
+                    int32_t err_code = errno;
                     close(tfd);
-                    tools::rise_perror(SBuf() << "Can't configure epoller for engine.sleep_for()");
+                    MMA1_THROW(SystemException(err_code)) << WhatCInfo("Can't configure epoller for engine.sleep_for()");
                 }
             }
             else {
-                ::close(tfd);
-                tools::rise_perror(SBuf() << "Can't configure timer for engine.sleep_for()");
+                int32_t err_code = errno;
+                close(tfd);
+                MMA1_THROW(SystemException(err_code)) << WhatCInfo("Can't configure timer for engine.sleep_for()");
             }
         }
         else {
-            tools::rise_perror(SBuf() << "Can't create timer for engine.sleep_for()");
+            int32_t err_code = errno;
+            close(tfd);
+            MMA1_THROW(SystemException(err_code)) << WhatCInfo("Can't create timer for engine.sleep_for()");
         }
     }
 }

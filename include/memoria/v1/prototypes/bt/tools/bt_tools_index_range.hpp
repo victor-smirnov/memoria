@@ -22,7 +22,7 @@
 #include <memoria/v1/core/types/list/append.hpp>
 #include <memoria/v1/core/types/list/linearize.hpp>
 #include <memoria/v1/core/types/list/list_tree.hpp>
-#include <memoria/v1/core/exceptions/bounds.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_size_list_builder.hpp>

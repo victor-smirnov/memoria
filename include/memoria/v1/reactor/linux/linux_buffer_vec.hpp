@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include <memoria/v1/core/exceptions/exceptions.hpp>
+
 #include "../message/message.hpp"
 #include "../../core/tools/bzero_struct.hpp"
 #include "../../core/tools/perror.hpp"
@@ -128,13 +130,10 @@ public:
         
         if (block.processed < 0) 
         {
-            tools::rise_perror(
-                -block.processed, 
-                SBuf() 
-                    << "AIO " 
-                    <<  (block.aio_lio_opcode == IOCB_CMD_PREAD ? "read" : "write")
-                    << " operation failed"
-            );
+            MMA1_THROW(SystemException(-block.processed))
+                    << fmt::format_ex(
+                           u"AIO {} operation failed", (block.aio_lio_opcode == IOCB_CMD_PREAD ? u"read" : u"write")
+                       );
         }
     }
     

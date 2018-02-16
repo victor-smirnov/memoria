@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2018 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,28 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 
-#pragma once
-
-#include <memoria/v1/core/exceptions/memoria.hpp>
-
-
-
-#include <string>
+#include <errno.h>
+#include <string.h>
 
 namespace memoria {
 namespace v1 {
 
-//class BoundsException: public Exception {
+SystemException::SystemException() {
+    (*this) << SystemErrorCodeInfo(errno) << SystemErrorStrInfo(strerror(errno));
+}
 
-//public:
-//    BoundsException(const char* source, U8StringRef message):
-//                Exception(source, message) {}
+SystemException::SystemException(int32_t errno_v)
+{
+    (*this) << SystemErrorCodeInfo(errno_v) << SystemErrorStrInfo(strerror(errno_v));
+}
 
-//    BoundsException(const char* source, const SBuf& message):
-//                Exception(source, message) {}
-//};
-
-
-}}
+}
+}

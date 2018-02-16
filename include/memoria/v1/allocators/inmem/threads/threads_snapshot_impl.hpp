@@ -24,7 +24,7 @@
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/ctr_impl.hpp>
 
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/core/tools/pool.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>

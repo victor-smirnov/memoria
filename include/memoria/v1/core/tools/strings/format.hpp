@@ -20,6 +20,7 @@
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/tools/config.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/exceptions/core.hpp>
 
 #include <string>
 #include <sstream>
@@ -319,5 +320,11 @@ template <typename... Args>
 U8String format8(const char16_t* fmt, Args&&... args) {
     return format(fmt, std::forward<Args>(args)...).to_u8();
 }
+
+template <typename... Args>
+WhatInfo format_ex(const char16_t* fmt, Args&&... args) {
+    return WhatInfo(format8(fmt, std::forward<Args>(args)...));
+}
+
 
 }}}

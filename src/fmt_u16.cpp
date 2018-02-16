@@ -1,6 +1,6 @@
 
 #include <memoria/v1/core/tools/strings/format.hpp>
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <tuple>
 #include <iostream>

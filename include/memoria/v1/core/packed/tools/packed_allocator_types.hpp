@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/reflection.hpp>
 #include <memoria/v1/metadata/page.hpp>
 

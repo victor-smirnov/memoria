@@ -20,7 +20,7 @@
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/tools/config.hpp>
 
-
+#include <memoria/v1/core/exceptions/base.hpp>
 
 #include <unicode/ustring.h>
 #include <unicode/utypes.h>

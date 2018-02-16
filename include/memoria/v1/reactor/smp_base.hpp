@@ -58,7 +58,7 @@ public:
             }
         }
         else {
-            tools::rise_error(SBuf() << "Number of threads (--threads) must be greather than zero: " << cpu_num);
+            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Number of threads (--threads) must be greather than zero: {}", cpu_num);
         }
     }
     

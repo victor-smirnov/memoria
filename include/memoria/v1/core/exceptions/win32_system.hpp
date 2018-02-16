@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2018 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,24 +16,18 @@
 
 #pragma once
 
-#include <memoria/v1/core/exceptions/memoria.hpp>
-#include <string>
+#include <memoria/v1/core/exceptions/core.hpp>
+
+#include <intSafe.h>
 
 namespace memoria {
 namespace v1 {
 
+using SystemErrorCode = boost::error_info<struct TagErrorCodeInfo, DWORD>;
 
-using namespace std;
-
-//class FileException: public Exception {
-
-//public:
-//    FileException(const char* source, U8StringRef message):
-//                Exception(source, message) {}
-
-//    FileException(const char* source, const SBuf& message):
-//                    Exception(source, message.str()) {}
-//};
-
+struct SystemException: virtual Exception {
+    SystemException();
+    SystemException(DWORD error_code);
+};
 
 }}

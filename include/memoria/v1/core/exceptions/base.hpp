@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2018 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,27 +18,11 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/config.hpp>
-#include <memoria/v1/core/tools/strings/string.hpp>
 
 #include <boost/exception/all.hpp>
-#include <boost/stacktrace.hpp>
-
-#include <stdlib.h>
 
 namespace memoria {
 namespace v1 {
-
-
-
-template <class E>
-void throw_with_trace(const E& e)
-{
-    throw boost::enable_error_info(e)
-        << Traced(boost::stacktrace::stacktrace());
-}
-
-
-
 
 class MemoriaThrowableLW {
 protected:
@@ -51,30 +35,30 @@ public:
     }
 
     virtual void dump(std::ostream& out) const noexcept {}
-
 };
 
 
-const char* ExtractMemoriaPath(const char* path);
+struct MemoriaThrowable: virtual std::exception, virtual boost::exception {
 
-using WhatInfo = boost::error_info<struct TagMsgInfo, U8String>;
-using WhatCInfo = boost::error_info<struct TagMsgCInfo, const char*>;
-using WhatSInfo = boost::error_info<struct TagMsgCInfo, std::string>;
+    MemoriaThrowable() {
+        boost::enable_error_info(*this);
+    }
+
+    virtual void dump(std::ostream& out) const noexcept;
+
+    virtual const char* what() const noexcept;
+    virtual std::string message() const noexcept;
+};
 
 
+using Traced = boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace>;
 
-struct Exception: virtual MemoriaThrowable {};
-struct CtrTypeException: virtual Exception {};
-struct NoCtrException: virtual Exception {};
-struct CtrAlreadyExistsException: virtual Exception {};
 
-struct IOException: virtual Exception {};
-struct SystemException: virtual Exception {};
-struct OOMException: virtual SystemException {};
+#define MMA1_THROW(Ex) throw Ex << ::memoria::v1::Traced(boost::stacktrace::stacktrace()) \
+    << ::boost::throw_function(BOOST_THROW_EXCEPTION_CURRENT_FUNCTION) \
+    << ::boost::throw_file(__FILE__) \
+    << ::boost::throw_line((int)__LINE__)
 
-struct DispatchException: virtual Exception {};
-struct NullPointerException: virtual Exception {};
-struct BoundsException: virtual Exception {};
 
 std::ostream& operator<<(std::ostream& out, const MemoriaThrowable& t);
 

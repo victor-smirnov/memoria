@@ -15,7 +15,7 @@
 
 #include <memoria/v1/core/tools/regexp/icu_regexp.hpp>
 
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <unicode/utext.h>
 #include <unicode/utypes.h>

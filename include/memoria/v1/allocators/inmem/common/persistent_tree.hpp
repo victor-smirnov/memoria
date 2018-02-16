@@ -20,7 +20,7 @@
 #include "persistent_tree_iterator.hpp"
 
 
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/core/tools/optional.hpp>
 

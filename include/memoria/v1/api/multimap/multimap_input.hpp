@@ -19,7 +19,7 @@
 
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memory>
 #include <tuple>

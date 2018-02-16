@@ -16,9 +16,8 @@
 
 #pragma once
 
-
 #include "strings/string_buffer.hpp"
-
+#include "strings/format.hpp"
 
 #include <cstring>
 #include <cstdio>
@@ -30,43 +29,7 @@ namespace memoria {
 namespace v1 {
 namespace tools {
 
-[[noreturn]] static inline void rise_perror(const char* message) 
-{
-    SBuf buf;
-    
-    buf << message << ": " << std::strerror(errno);
-    
-    throw std::runtime_error(buf.str());
-}
-
-[[noreturn]] static inline void rise_perror(const std::string& message) 
-{
-    SBuf buf;
-    
-    buf << message << ": " << std::strerror(errno);
-    
-    throw std::runtime_error(buf.str());
-}
-
-[[noreturn]] static inline void rise_perror(const SBuf& message) 
-{
-    SBuf buf;
-    
-    buf << message.str() << ": " << std::strerror(errno);
-
-    throw std::runtime_error(buf.str());
-}
-
-[[noreturn]] static inline void rise_perror(int errno0, const SBuf& message) 
-{
-    SBuf buf;
-    
-    buf << message.str() << ": " << std::strerror(errno0);
-
-    throw std::runtime_error(buf.str());
-}
-
-static inline void report_perror(const SBuf& message) 
+static inline void report_perror(const SBuf& message)
 {
     SBuf buf;
     
@@ -82,14 +45,6 @@ static inline void report_perror(int errno0, const SBuf& message)
     buf << message.str() << ": " << std::strerror(errno0);
 
     std::cout << "Exception: " << buf.str() << " -- errno: " << errno0 << std::endl;
-}
-
-
-
-
-[[noreturn]] static inline void rise_error(const SBuf& message) 
-{
-    throw std::runtime_error(message.str());
 }
 
 

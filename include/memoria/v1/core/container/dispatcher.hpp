@@ -23,7 +23,7 @@
 #include <memoria/v1/core/tools/type_name.hpp>
 #include <memoria/v1/core/types/typelist.hpp>
 
-#include <memoria/v1/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/metadata/metadata.hpp>
 
 namespace memoria {

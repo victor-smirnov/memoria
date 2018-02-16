@@ -21,7 +21,7 @@
 #include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/tools/strings/strings.hpp>
 
-#include <memoria/v1/core/exceptions/bounds.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <algorithm>
 #include <type_traits>
