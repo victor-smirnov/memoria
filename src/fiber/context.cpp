@@ -222,7 +222,7 @@ context::context( dispatcher_context_t, boost::context::preallocated const& pall
     stack_size_{palloc.size},
 #endif
     ctx_{ std::allocator_arg, palloc, salloc, 
-        [this,sched](boost::context::execution_context< detail::data_t * > ctx, detail::data_t * dp) noexcept {
+        [sched](boost::context::execution_context< detail::data_t * > ctx, detail::data_t * dp) noexcept {
             
             MMA1_FINISH_SWITCH_FIBER(dp->from->fake_stack_, dp->from->stack_pointer_, dp->from->stack_size_);
             

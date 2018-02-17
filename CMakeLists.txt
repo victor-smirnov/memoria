@@ -78,7 +78,7 @@ if (BUILD_UNIX OR MINGW)
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-missing-braces")
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-variables")
     
-    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -pthread ")
+    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -pthread -ljemalloc")
     
     if (USE_ASAN)
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address -DASAN_ENABLED")
