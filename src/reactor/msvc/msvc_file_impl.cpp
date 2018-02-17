@@ -24,7 +24,7 @@
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
 #include <memoria/v1/core/tools/iostreams.hpp>
-#include <memoria/v1/core/tools/strings/string_buffer.hpp>
+#include <memoria/v1/core/strings/string_buffer.hpp>
 
 #include <memoria/v1/reactor/file_streams.hpp>
 
