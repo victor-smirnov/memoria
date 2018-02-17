@@ -5,7 +5,7 @@
 #include <thread>
 #include <vector>
 
-#include <memoria/v1/jemalloc/jemalloc.hpp>
+#include <memoria/v1/core/memory/jemalloc.hpp>
 
 extern "C" {
     void* mma1_malloc(size_t size) noexcept;
