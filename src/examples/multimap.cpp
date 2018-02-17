@@ -52,19 +52,19 @@ std::vector<V> make_vector(const V& value, size_t size)
 }
 
 
-std::vector<UUID> read_uuids(const std::string& name)
+std::vector<memoria::v1::UUID> read_uuids(const std::string& name)
 {
     std::fstream file;
     file.open(name, std::ios_base::in);
     
-    std::vector<UUID> vv;
+    std::vector<memoria::v1::UUID> vv;
     
     while (file) 
     {
         std::string line;
         std::getline(file, line);
         if (file) { 
-            vv.push_back(UUID::parse(line.c_str()));
+            vv.push_back(memoria::v1::UUID::parse(line.c_str()));
         }
     }
     

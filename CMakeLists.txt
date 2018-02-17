@@ -127,11 +127,24 @@ endif()
 
 set (Boost_USE_DEBUG_LIBS	 ON)
 set (Boost_USE_RELEASE_LIBS	 ON)
-set (Boost_USE_STATIC_LIBS       OFF)
+set (Boost_USE_DEBUG_RUNTIME	 ON)
 set (Boost_USE_MULTITHREADED     ON)
-set (Boost_USE_STATIC_RUNTIME    OFF)
-set (Boost_DETAILED_FAILURE_MSG  OFF)
-set (Boost_DEBUG 		 ON)
+
+#set (Boost_DETAILED_FAILURE_MSG  ON)
+#set (Boost_DEBUG 		 ON)
+#set (Boost_COMPILER -vc141)
+
+
+if (MSVC)
+    set (Boost_USE_STATIC_RUNTIME    OFF)
+    set (Boost_USE_STATIC_LIBS       ON)
+    find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
+else()
+    set (Boost_USE_STATIC_RUNTIME    OFF)
+    set (Boost_USE_STATIC_LIBS       OFF)
+    find_package(Backtrace COMPONENTS backtrace)
+    find_package(ICU 60.2 COMPONENTS i18n data uc REQUIRED)
+endif()
 
 
 find_package(Boost 1.66.0 COMPONENTS filesystem context program_options REQUIRED) 
@@ -140,12 +153,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
 
-if (MSVC)
-    find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
-else()
-    find_package(Backtrace COMPONENTS backtrace)
-    find_package(ICU 60.2 COMPONENTS i18n data uc REQUIRED)
-endif()
 
 include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})
