@@ -19,7 +19,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/config.hpp>
 
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/strings/string.hpp>
 
 #include <string>
 #include <sstream>

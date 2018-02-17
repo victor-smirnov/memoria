@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/tools/strings/strings.hpp>
+#include <memoria/v1/core/strings/strings.hpp>
 #include <memoria/v1/core/tools/terminal.hpp>
 
 #ifndef _MSC_VER

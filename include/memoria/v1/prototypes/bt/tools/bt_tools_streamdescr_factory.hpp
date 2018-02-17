@@ -41,7 +41,7 @@
 #include <memoria/v1/core/tools/bignum/bigint.hpp>
 #endif
 
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/strings/string.hpp>
 
 #include <memoria/v1/core/tools/i7_codec.hpp>
 #include <memoria/v1/core/tools/elias_codec.hpp>

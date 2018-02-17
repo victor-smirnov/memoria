@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "strings/string_buffer.hpp"
-#include "strings/format.hpp"
+#include <memoria/v1/core/strings/string_buffer.hpp>
+#include <memoria/v1/core/strings/format.hpp>
 
 #include <cstring>
 #include <cstdio>

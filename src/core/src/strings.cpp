@@ -17,8 +17,8 @@
 
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/tools/strings/string.hpp>
-#include <memoria/v1/core/tools/strings/format.hpp>
+#include <memoria/v1/core/strings/string.hpp>
+#include <memoria/v1/core/strings/format.hpp>
 
 #include <errno.h>
 

@@ -19,7 +19,7 @@
 
 #include <memoria/v1/tests/configuration.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/strings/string.hpp>
 
 #include <boost/filesystem.hpp>
 

@@ -47,7 +47,7 @@ option(BUILD_SANDBOX  "Build selected programs in the project's sandbox" OFF)
 #option(BUILD_STATIC   "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES "Build project examples" OFF)
 
-option(ICU_DEBUG "Debug FindICU" ON)
+option(ICU_DEBUG "Debug FindICU" OFF)
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 

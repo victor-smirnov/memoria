@@ -17,7 +17,7 @@
 #include <memoria/v1/reactor/linux/linux_socket_impl.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
-#include <memoria/v1/core/tools/strings/format.hpp>
+#include <memoria/v1/core/strings/format.hpp>
 
 #include "linux_socket.hpp"
 

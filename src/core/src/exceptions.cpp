@@ -14,7 +14,7 @@
 // limitations under the License.
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/strings/string.hpp>
 
 namespace memoria {
 namespace v1 {

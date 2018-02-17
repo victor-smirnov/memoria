@@ -20,7 +20,7 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree_base.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_tools.hpp>
 
-#include <memoria/v1/core/tools/strings/string_codec.hpp>
+#include <memoria/v1/core/strings/string_codec.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
 
 #ifdef HAVE_BOOST

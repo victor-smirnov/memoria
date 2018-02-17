@@ -18,7 +18,7 @@
 #include <memoria/v1/containers/vector/vector_impl.hpp>
 #include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
 
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/strings/string.hpp>
 
 namespace memoria {
 namespace v1 {

@@ -34,7 +34,7 @@
 #include <memoria/v1/core/container/defaults.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/strings/string.hpp>
 
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/memory.hpp>

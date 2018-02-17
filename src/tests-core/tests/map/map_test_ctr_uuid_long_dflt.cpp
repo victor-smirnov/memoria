@@ -17,7 +17,7 @@
 
 #include <memoria/v1/containers/map/map_impl.hpp>
 
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/strings/string.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
 #include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>

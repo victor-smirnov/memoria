@@ -20,7 +20,7 @@
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/tools/ticker.hpp>
 
-#include <memoria/v1/core/tools/strings/string_codec.hpp>
+#include <memoria/v1/core/strings/string_codec.hpp>
 
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>

@@ -19,8 +19,8 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/platform.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/tools/strings/strings.hpp>
-#include <memoria/v1/core/tools/strings/format.hpp>
+#include <memoria/v1/core/strings/strings.hpp>
+#include <memoria/v1/core/strings/format.hpp>
 
 #include <map>
 #include <set>

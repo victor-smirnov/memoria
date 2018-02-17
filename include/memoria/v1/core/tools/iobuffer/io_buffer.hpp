@@ -21,9 +21,11 @@
 
 #include <memoria/v1/core/tools/bytes/bytes_codec.hpp>
 #include <memoria/v1/core/tools/bignum/int64_codec.hpp>
-#include <memoria/v1/core/tools/strings/string_codec.hpp>
+
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
+
+#include <memoria/v1/core/strings/string_codec.hpp>
 
 #include "io_buffer_little_aligned.hpp"
 #include "io_buffer_little_unaligned.hpp"

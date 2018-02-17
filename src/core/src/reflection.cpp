@@ -15,7 +15,7 @@
 
 
 
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/strings/string.hpp>
 #include <memoria/v1/metadata/container.hpp>
 
 

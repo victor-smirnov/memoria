@@ -18,7 +18,7 @@
 
 #include <memoria/v1/metadata/tools.hpp>
 #include <memoria/v1/core/container/macros.hpp>
-#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/strings/string.hpp>
 
 #include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>

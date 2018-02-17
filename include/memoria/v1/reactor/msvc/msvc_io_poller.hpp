@@ -21,7 +21,7 @@
 
 #include "msvc_io_messages.hpp"
 
-#include "../../core/tools/strings/string_buffer.hpp"
+#include "../../core/strings/string_buffer.hpp"
 
 #include <memory>
 #include <thread>

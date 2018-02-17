@@ -19,7 +19,7 @@
 
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
-#include <memoria/v1/core/tools/strings/string_codec.hpp>
+#include <memoria/v1/core/strings/string_codec.hpp>
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/fixed_array.hpp>
 #include <memoria/v1/core/tools/random.hpp>

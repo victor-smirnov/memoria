@@ -19,7 +19,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
-#include <memoria/v1/core/tools/strings/format.hpp>
+#include <memoria/v1/core/strings/format.hpp>
 
 namespace memoria {
 namespace v1 {
