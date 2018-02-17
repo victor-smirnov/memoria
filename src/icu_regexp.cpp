@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/tools/regexp/icu_regexp.hpp>
+#include <memoria/v1/core/regexp/icu_regexp.hpp>
 
 #include <iostream>
 

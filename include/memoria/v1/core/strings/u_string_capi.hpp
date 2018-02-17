@@ -118,7 +118,9 @@ static inline int32_t UStrUTF32Length(const char32_t* str, int32_t size = -1)
     int32_t len{};
     u_strFromUTF32(nullptr, 0, &len, castChars(str), size, &code);
 
-    StringException::assertOk(code);
+    if (code != U_BUFFER_OVERFLOW_ERROR) {
+        StringException::assertOk(code);
+    }
 
     return len;
 }
@@ -130,7 +132,9 @@ static inline int32_t UStrUTF32Length(const char16_t* str, int32_t size = -1)
     int32_t len{};
     u_strToUTF32(nullptr, 0, &len, castChars(str), size, &code);
 
-    StringException::assertOk(code);
+    if (code != U_BUFFER_OVERFLOW_ERROR) {
+        StringException::assertOk(code);
+    }
 
     return len;
 }
@@ -141,7 +145,9 @@ static inline int32_t UStrUWLength(const wchar_t* str, int32_t size = -1)
     int32_t len{};
     u_strFromWCS(nullptr, 0, &len, castChars(str), size, &code);
 
-    StringException::assertOk(code);
+    if (code != U_BUFFER_OVERFLOW_ERROR) {
+        StringException::assertOk(code);
+    }
 
     return len;
 }
@@ -152,7 +158,9 @@ static inline int32_t UStrUWLength(const char16_t* str, int32_t size = -1)
     int32_t len{};
     u_strToWCS(nullptr, 0, &len, castChars(str), size, &code);
 
-    StringException::assertOk(code);
+    if (code != U_BUFFER_OVERFLOW_ERROR) {
+        StringException::assertOk(code);
+    }
 
     return len;
 }
