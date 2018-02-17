@@ -60,7 +60,7 @@ DMAFileImpl::DMAFileImpl(filesystem::path file_path, FileFlags flags, FileMode m
     });
 
     if (fd_ < 0) {
-        tools::rise_perror(errno0, SBuf() << "Can't open file " << file_path);
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't open file {}", file_path);
     }
 }
     
@@ -77,7 +77,7 @@ void DMAFileImpl::close()
 {
     if ((!closed_) && (::close(fd_) < 0))
     {
-        tools::rise_perror(SBuf() << "Can't close file " << path_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't close file {}", path_);
     }
 
     closed_ = true;
@@ -108,7 +108,7 @@ size_t DMAFileImpl::read(uint8_t* buffer, uint64_t offset, size_t size)
         return res;
     }
     else {
-        tools::rise_perror(errno0, SBuf() << "Can't read from file " << path_);
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't read from file {}", path_);
     }
 }
 
@@ -131,7 +131,7 @@ size_t DMAFileImpl::write(const uint8_t* buffer, uint64_t offset, size_t size)
         return res;
     }
     else {
-        tools::rise_perror(errno0, SBuf() << "Can't write to file " << path_);
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't write to file {}", path_);
     }
 }
 
@@ -197,11 +197,11 @@ DMABuffer allocate_dma_buffer(size_t size)
 			return buf;
 		}
 		else {
-			tools::rise_perror(SBuf() << "Cant allocate dma buffer of " << size << " bytes");
+            MMA1_THROW(OOMException()) << fmt::format_ex(u"Can't allocate dma buffer of {} bytes", size);
 		}
 	}
 	else {
-		tools::rise_error(SBuf() << "Cant allocate dma buffer of 0 bytes");
+        MMA1_THROW(OOMException()) << fmt::format_ex(u"Can't allocate dma buffer of 0 bytes");
 	}
 }
 

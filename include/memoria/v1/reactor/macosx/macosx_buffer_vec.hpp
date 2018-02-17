@@ -15,9 +15,12 @@
 
 #pragma once
 
+#include <memoria/v1/core/exceptions/exceptions.hpp>
+
 #include "../message/message.hpp"
 #include "../../core/tools/bzero_struct.hpp"
 #include "../../core/tools/perror.hpp"
+
 
 #include <stdint.h>
 #include <string>
@@ -125,12 +128,9 @@ public:
         
         if (block.processed < 0) 
         {
-            tools::rise_perror(
-                -block.processed, 
-                SBuf() 
-                    << "AIO " 
-                    <<  (block.command == IOCB::READ ? "read" : "write")
-                    << " operation failed"
+            MMA1_THROW(SystemException(-block.processed)) << fmt::format_ex(
+                u"AIO {} operation failed",
+                (block.command == IOCB::READ ? u"read" : u"write")
             );
         }
     }
@@ -163,12 +163,6 @@ public:
     
     virtual void dump() const 
     {
-//         int cnt = 0;
-//         for (auto& block: blocks_)
-//         {
-//             //block.dump(cnt);
-//             cnt++;
-//         }
     }
 };
 

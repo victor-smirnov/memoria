@@ -47,6 +47,7 @@ option(BUILD_SANDBOX  "Build selected programs in the project's sandbox" OFF)
 #option(BUILD_STATIC   "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES "Build project examples" OFF)
 
+option(ICU_DEBUG "Debug FindICU" ON)
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
@@ -68,7 +69,7 @@ if (BUILD_UNIX OR MINGW)
     SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DBOOST_NO_AUTO_PTR -Wall -Wno-sign-compare -DJEMALLOC_NO_PRIVATE_NAMESPACE -D_GNU_SOURCE -D_REENTRANT -fPIC -DPIC" )
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DBOOST_STACKTRACE_USE_BACKTRACE -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE  " )
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DBOOST_STACKTRACE_USE_ADDR2LINE -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE  " )
 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0") 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-comment -Wno-unknown-warning-option -Wunused-variable")
@@ -105,7 +106,7 @@ if (BUILD_UNIX OR MINGW)
 
         set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 winpthread)
     else()
-        set (MEMORIA_LIBS "${MEMORIA_LIBS}" dl icuuc backtrace )
+        set (MEMORIA_LIBS "${MEMORIA_LIBS}" dl )
     endif()
         
         
@@ -128,37 +129,29 @@ set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME     OFF)
 
 if (MSVC)
-  find_package(Boost 1.66.0 REQUIRED)
-  find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
-  
-  set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${ICU_LIBRARIES})
-  set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
-                                   
+
+    find_package(Boost 1.66.0 REQUIRED)
+    find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
+
 else()
-  find_package(Boost
-    1.63.0
-    COMPONENTS program_options context filesystem
-    REQUIRED
-  )
+    find_package(Boost
+        1.63.0
+        COMPONENTS program_options context filesystem
+        REQUIRED
+    )
 
-  find_package(Backtrace COMPONENTS backtrace REQUIRED)
-  find_package(ICU 60.2 COMPONENTS i18n data REQUIRED)
-
-  set (MEMORIA_LIBS "${MEMORIA_LIBS}" icudata icui18n)
-
-endif()
-
-if (Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIRS})
-    set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
+    find_package(Backtrace COMPONENTS backtrace)
+    find_package(ICU 60.2 COMPONENTS i18n data uc REQUIRED)
 endif()
 
 
-if (ICU_FOUND)
-    include_directories(${ICU_INCLUDE_DIRS})
-    link_directories(${ICU_LIBRARY_DIRS})
-endif()
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
+
+include_directories(${ICU_INCLUDE_DIRS})
+link_directories(${ICU_LIBRARY_DIRS})
+set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${ICU_LIBRARIES})
 
 
 if (Backtrace_FOUND)

@@ -52,6 +52,8 @@ protected:
 
     bool connection_closed_{false};
     off_t available_{};
+    bool error_{};
+    int32_t error_code_{};
 
 public:
     SocketIOMessage(int cpu): KEventIOMessage(cpu) {}
@@ -68,15 +70,20 @@ public:
     {
         available_ = 0;
         connection_closed_ = false;
+        error_ = false;
+        error_code_ = 0;
     }
 
     bool connection_closed() const {
         return connection_closed_;
     }
 
-    virtual void on_receive(const kevent64_s& event) {
+    virtual void on_receive(const kevent64_s& event)
+    {
         available_ = event.data;
         connection_closed_ = event.flags & EV_EOF;
+        error_ = event.flags & EV_ERROR;
+        error_code_ = event.data;
     }
 
     off_t available() const {

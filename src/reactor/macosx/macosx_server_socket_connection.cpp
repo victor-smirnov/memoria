@@ -53,7 +53,10 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
         int flags = ::fcntl(fd_, F_GETFL, 0);
         if (::fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
         {
-            tools::rise_perror(SBuf() << "Can't configure StreamSocketConnection for AIO " << ip_address_ << ":" << ip_port_ << ":" << fd_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Can't configure StreamSocketConnection for AIO {}:{}:{}",
+                ip_address_, ip_port_, fd_
+            );
         }
 
         int queue_fd = engine().io_poller().queue_fd();
@@ -68,11 +71,16 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
         if (res < 0)
         {
             ::close(fd_);
-            tools::rise_perror(SBuf() << "Can't configure poller for connection " << ip_address_ << ":" << ip_port_ << ":" << fd_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Can't configure poller for connection {}:{}:{}",
+                ip_address_, ip_port_, fd_
+            );
         }
     }
     else {
-        tools::rise_error(SBuf() << "Connection has been already created for this SocketConnectionData");
+        MMA1_THROW(RuntimeException()) << WhatCInfo(
+            "Connection has been already created for this SocketConnectionData"
+        );
     }
 }
 
@@ -89,12 +97,18 @@ ServerSocketConnectionImpl::~ServerSocketConnectionImpl() noexcept
     int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
     if (res < 0)
     {
-        tools::report_perror(SBuf() << "Can't remove kqueu event for connection " << ip_address_ << ":" << ip_port_ << ":" << fd_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't remove kqueu event for connection {}:{}:{}",
+            ip_address_, ip_port_, fd_
+        );
     }
 
     if (::close(fd_) < 0)
     {
-        tools::report_perror(SBuf() << "Can't close connection " << ip_address_ << ":" << ip_port_ << ":" << fd_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't close connection {}:{}:{}",
+            ip_address_, ip_port_, fd_
+        );
     } 
 }
 
@@ -114,12 +128,18 @@ void ServerSocketConnectionImpl::close()
         int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
         if (res < 0)
         {
-            tools::report_perror(SBuf() << "Can't remove kqueue event for socket " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Can't remove kqueue event for socket {}:{}",
+                ip_address_, ip_port_
+            );
         }
 
         if (::close(fd_) < 0)
         {
-            tools::report_perror(SBuf() << "Can't close socket " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Can't close socket {}:{}",
+                ip_address_, ip_port_
+            );
         }
 
         op_closed_ = true;
@@ -144,7 +164,10 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
             available_size = fiber_io_message_.available();
         }
         else {
-            tools::rise_perror(SBuf() << "Error reading from socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Error reading from socket connection for {}:{}:{}",
+                ip_address_, ip_port_, fd_
+            );
         }
     }
 }
@@ -166,7 +189,10 @@ size_t ServerSocketConnectionImpl::write(const uint8_t* data, size_t size)
             available_size = fiber_io_message_.available();
         }
         else {
-            tools::rise_perror(SBuf() << "Error reading from socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Error writing to socket connection for {}:{}:{}",
+                ip_address_, ip_port_, fd_
+            );
         }
     }
 }

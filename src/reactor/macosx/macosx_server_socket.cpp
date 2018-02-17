@@ -59,14 +59,17 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     if (fd_ < 0)
     {
-        tools::rise_perror(SBuf() << "Can't create socket for " << ip_address_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't create socket for {}", ip_address_);
     }
     
     int flags = ::fcntl(fd_, F_GETFL, 0);
     
     if (::fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
     {
-        tools::rise_perror(SBuf() << "Can't configure StreamSocketConnection for AIO " << this->address() << ":" << this->port() << ":" << fd_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't configure StreamSocketConnection for AIO: {}:{}:{}",
+            ip_address_, ip_port_, fd_
+        );
     }
     
     sock_address_.sin_family        = AF_INET;
@@ -78,7 +81,10 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     if (bres < 0)
     {
         ::close(fd_);
-        tools::rise_perror(SBuf() << "Can't bind socket to " << ip_address_ << ":" << ip_port_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't bind socket to {}:{}",
+            ip_address_, ip_port_
+        );
     }
     
     
@@ -92,7 +98,10 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     
     int sres = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
     if (sres < 0) {
-        tools::rise_perror(SBuf() << "Can't configure kqueue for " << ip_address_ << ":" << ip_port_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't configure kqueue for {}:{}",
+            ip_address_, ip_port_
+        );
     }
 }
 
@@ -112,12 +121,18 @@ ServerSocketImpl::~ServerSocketImpl() noexcept
     int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
     if (res < 0)
     {
-        tools::report_perror(SBuf() << "Can't remove kqueue event for socket " << ip_address_ << ":" << ip_port_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't remove kqueue event for socket {}:{}",
+            ip_address_, ip_port_
+        );
     }
         
     if (::close(fd_) < 0)
     {
-        tools::report_perror(SBuf() << "Can't close socket " << ip_address_ << ":" << ip_port_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't close socket {}:{}",
+            ip_address_, ip_port_
+        );
     }   
 }    
 
@@ -137,12 +152,18 @@ void ServerSocketImpl::close()
         int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
         if (res < 0)
         {
-            tools::report_perror(SBuf() << "Can't remove kqueue event for socket " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Can't remove kqueue event for socket {}:{}",
+                ip_address_, ip_port_
+            );
         }
 
         if (::close(fd_) < 0)
         {
-            tools::report_perror(SBuf() << "Can't close socket " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Can't close socket {}:{}",
+                ip_address_, ip_port_
+            );
         }
 
         closed_ = true;
@@ -155,7 +176,10 @@ void ServerSocketImpl::listen()
     int res = ::listen(fd_, 5);
     if (res < 0) 
     {
-        tools::rise_perror(SBuf() << "Can't start listening on socket for " << ip_address_ << ":" << ip_port_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't start listening on socket for {}:{}",
+            ip_address_, ip_port_
+        );
     }
 }
 
@@ -180,7 +204,10 @@ SocketConnectionData ServerSocketImpl::accept()
             fiber_io_message_.wait_for();
         }
         else {
-            tools::rise_perror(SBuf() << "Can't start accepting connections for " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Can't start accepting connections for {}:{}",
+                ip_address_, ip_port_
+            );
         }
     }
 }

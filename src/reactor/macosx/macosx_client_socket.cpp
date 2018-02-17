@@ -58,16 +58,19 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     BOOST_ASSERT_MSG(ip_address_.is_v4(), "Only IPv4 sockets are supported at the moment");
 
     if (fd_ < 0){
-        tools::rise_perror(SBuf() << "Can't create socket for " << ip_address_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't create socket for {}:{}",
+            ip_address_, ip_port_
+        );
     }
 
     int flags = ::fcntl(fd_, F_GETFL, 0);
 
     if (::fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
     {
-        tools::rise_perror(
-                    SBuf() << "Can't configure ClientSocket for AIO "
-                    << ip_address_ << ":" << ip_port_ << ":" << fd_
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't configure ClientSocket for AIO {}:{}:{}",
+            ip_address_, ip_port_, fd_
         );
     }
 
@@ -77,13 +80,16 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     struct kevent64_s event;
 
-    EV_SET64(&event, fd_, EVFILT_WRITE, EV_ADD, 0, 0, (uint64_t)&fiber_io_message_, 0, 0);
+    EV_SET64(&event, fd_, EVFILT_WRITE, EV_ADD | EV_ERROR, 0, 0, (uint64_t)&fiber_io_message_, 0, 0);
 
     int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
     if (res < 0)
     {
         ::close(fd_);
-        tools::rise_perror(SBuf() << "Can't configure poller for connection " << ip_address_ << ":" << ip_port_ << ":" << fd_);
+        MMA1_THROW(SystemException()) << fmt::format_ex(
+            u"Can't configure poller for connection {}:{}:{}",
+            ip_address_, ip_port_, fd_
+        );
     }
 
     connect();
@@ -108,10 +114,22 @@ void ClientSocketImpl::connect()
         else if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINPROGRESS)
         {
             fiber_io_message_.wait_for();
+
+            if (fiber_io_message_.connection_closed())
+            {
+                MMA1_THROW(SystemException()) << fmt::format_ex(
+                    u"Can't start connection to {}:{}",
+                    ip_address_, ip_port_
+                );
+            }
+
             break;
         }
         else {
-            tools::rise_perror(SBuf() << "Can't start connection to " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Can't start connection to {}:{}",
+                ip_address_, ip_port_
+            );
         }
     }
 
@@ -137,12 +155,18 @@ void ClientSocketImpl::close()
         int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
         if (res < 0)
         {
-            tools::report_perror(SBuf() << "Can't remove kqueue event for socket " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Can't remove kqueue event for socket {}:{}",
+                ip_address_, ip_port_
+            );
         }
 
         if (::close(fd_) < 0)
         {
-            tools::report_perror(SBuf() << "Can't close socket " << ip_address_ << ":" << ip_port_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Can't close socket {}:{}",
+                ip_address_, ip_port_
+            );
         }
 
         op_closed_ = true;
@@ -170,7 +194,10 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
             available_size = fiber_io_message_.available();
         }
         else {
-            tools::rise_perror(SBuf() << "Error reading from socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Error reading from socket connection for {}:{}:{}",
+                ip_address_, ip_port_, fd_
+            );
         }
     }
 }
@@ -192,13 +219,13 @@ size_t ClientSocketImpl::write(const uint8_t* data, size_t size)
             available_size = fiber_io_message_.available();
         }
         else {
-            tools::rise_perror(SBuf() << "Error reading from socket connection for " << ip_address_ << ":" << ip_port_ << ":" << fd_);
+            MMA1_THROW(SystemException()) << fmt::format_ex(
+                u"Error writing to socket connection for {}:{}:{}",
+                ip_address_, ip_port_, fd_
+            );
         }
     }
 }
-
-
-
 
     
 }}}

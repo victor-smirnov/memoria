@@ -21,9 +21,6 @@
 
 #include "macosx_io_messages.hpp"
 
-
-
-
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/syscall.h>
