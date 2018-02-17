@@ -20,7 +20,7 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/core/tools/bytes/bytes_codec.hpp>
-#include <memoria/v1/core/tools/bignum/int64_codec.hpp>
+#include <memoria/v1/core/bignum/int64_codec.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 

@@ -22,7 +22,7 @@
 #include "packed_codecs_test_base.hpp"
 
 #include <memoria/v1/core/strings/string_codec.hpp>
-#include <memoria/v1/core/tools/bignum/int64_codec.hpp>
+#include <memoria/v1/core/bignum/int64_codec.hpp>
 
 #include <memory>
 

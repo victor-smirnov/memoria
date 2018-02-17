@@ -23,7 +23,7 @@
 
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
-#include <memoria/v1/core/tools/bignum/primitive_codec.hpp>
+#include <memoria/v1/core/bignum/primitive_codec.hpp>
 
 #include <memoria/v1/metadata/page.hpp>
 

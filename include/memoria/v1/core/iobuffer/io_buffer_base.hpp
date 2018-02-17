@@ -21,7 +21,7 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/core/tools/bytes/bytes_codec.hpp>
-#include <memoria/v1/core/tools/bignum/primitive_codec.hpp>
+#include <memoria/v1/core/bignum/primitive_codec.hpp>
 #include <memoria/v1/core/strings/string_codec.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>

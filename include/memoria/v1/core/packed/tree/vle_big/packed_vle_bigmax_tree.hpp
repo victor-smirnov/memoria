@@ -24,10 +24,10 @@
 #include <memoria/v1/core/tools/optional.hpp>
 
 #ifdef HAVE_BOOST
-#include <memoria/v1/core/tools/bignum/cppint_codec.hpp>
+#include <memoria/v1/core/bignum/cppint_codec.hpp>
 #endif
 
-#include <memoria/v1/core/tools/bignum/int64_codec.hpp>
+#include <memoria/v1/core/bignum/int64_codec.hpp>
 #include <memory>
 
 namespace memoria {

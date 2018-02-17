@@ -18,7 +18,7 @@
 
 #include <memoria/v1/api/common/ctr_api.hpp>
 
-#include <memoria/v1/core/tools/bignum/int64_codec.hpp>
+#include <memoria/v1/core/bignum/int64_codec.hpp>
 #include <memoria/v1/core/types/types.hpp>
 
 namespace memoria {

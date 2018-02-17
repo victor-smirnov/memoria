@@ -36,7 +36,7 @@
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
 #ifdef HAVE_BOOST
-#include <memoria/v1/core/tools/bignum/bigint.hpp>
+#include <memoria/v1/core/bignum/bigint.hpp>
 #endif
 
 

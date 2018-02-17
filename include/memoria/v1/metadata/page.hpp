@@ -21,7 +21,7 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 
 #ifdef HAVE_BOOST
-#include <memoria/v1/core/tools/bignum/bigint.hpp>
+#include <memoria/v1/core/bignum/bigint.hpp>
 #endif
 
 #include <memoria/v1/core/strings/strings.hpp>
