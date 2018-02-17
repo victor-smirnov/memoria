@@ -42,7 +42,7 @@
 
 #include <memoria/v1/core/strings/string.hpp>
 #include <memoria/v1/core/strings/string_codec.hpp>
-#include <memoria/v1/core/tools/bytes/bytes_codec.hpp>
+#include <memoria/v1/core/bytes/bytes_codec.hpp>
 
 #include <memoria/v1/core/tools/uuid.hpp>
 

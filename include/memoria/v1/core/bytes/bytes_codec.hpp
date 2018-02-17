@@ -16,7 +16,7 @@
 #pragma once
 
 
-#include <memoria/v1/core/tools/bytes/bytes.hpp>
+#include <memoria/v1/core/bytes/bytes.hpp>
 #include <memoria/v1/core/bignum/int64_codec.hpp>
 
 namespace memoria {

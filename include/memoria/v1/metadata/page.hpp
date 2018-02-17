@@ -26,7 +26,7 @@
 
 #include <memoria/v1/core/strings/strings.hpp>
 #include <memoria/v1/core/strings/format.hpp>
-#include <memoria/v1/core/tools/bytes/bytes.hpp>
+#include <memoria/v1/core/bytes/bytes.hpp>
 
 #include <tuple>
 #include <functional>
