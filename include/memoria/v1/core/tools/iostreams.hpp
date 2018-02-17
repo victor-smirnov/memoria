@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
+#include <memoria/v1/core/iobuffer/io_buffer.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/ptr_cast.hpp>

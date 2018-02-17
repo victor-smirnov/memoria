@@ -23,7 +23,7 @@
 
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
-#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
+#include <memoria/v1/core/iobuffer/io_buffer.hpp>
 
 namespace memoria {
 namespace v1 {

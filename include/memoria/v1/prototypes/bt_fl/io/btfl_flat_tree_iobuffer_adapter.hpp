@@ -19,7 +19,7 @@
 #include <memoria/v1/core/types/types.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
-#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
+#include <memoria/v1/core/iobuffer/io_buffer.hpp>
 
 #include <memoria/v1/core/packed/sseq/packed_rle_searchable_seq.hpp>
 

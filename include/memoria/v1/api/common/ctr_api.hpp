@@ -17,7 +17,7 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/container/container.hpp>
-#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
+#include <memoria/v1/core/iobuffer/io_buffer.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/container/allocator.hpp>

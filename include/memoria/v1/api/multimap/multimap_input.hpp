@@ -17,7 +17,7 @@
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
 
-#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
+#include <memoria/v1/core/iobuffer/io_buffer.hpp>
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
