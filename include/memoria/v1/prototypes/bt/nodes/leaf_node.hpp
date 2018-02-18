@@ -20,7 +20,6 @@
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
-#include <memoria/v1/core/tools/config.hpp>
 #include <memoria/v1/core/types/fn_traits.hpp>
 #include <memoria/v1/core/types/list/misc.hpp>
 #include <memoria/v1/core/types/typehash.hpp>

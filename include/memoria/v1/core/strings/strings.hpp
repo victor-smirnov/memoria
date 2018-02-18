@@ -17,8 +17,6 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/tools/config.hpp>
-
 #include <memoria/v1/core/strings/string.hpp>
 
 #include <string>
@@ -30,9 +28,6 @@ namespace v1 {
 
 
 U8String trimString(U8StringRef str);
-//String ReplaceFirst(StringRef str, StringRef txt);
-//String ReplaceLast(StringRef str, StringRef txt);
-//String ReplaceAll(StringRef str, StringRef txt);
 bool isEmpty(U8StringRef str);
 bool isEmpty(U8StringRef str, size_t start, size_t end, U8StringRef sep);
 bool isEndsWith(U8StringRef str, U8StringRef end);

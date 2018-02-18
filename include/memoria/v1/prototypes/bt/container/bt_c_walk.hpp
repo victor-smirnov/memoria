@@ -20,7 +20,6 @@
 
 #include <memoria/v1/core/container/logs.hpp>
 #include <memoria/v1/core/container/macros.hpp>
-#include <memoria/v1/core/tools/config.hpp>
 
 
 namespace memoria {

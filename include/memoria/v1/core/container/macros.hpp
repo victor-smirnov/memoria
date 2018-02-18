@@ -16,9 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/config.hpp>
-
-
+#include <memoria/v1/core/config.hpp>
 
 #define MEMORIA_V1_PAGE_PART_BEGIN(PartName)                                            \
 template <typename BaseType>                                                            \

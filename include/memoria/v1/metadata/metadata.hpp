@@ -25,7 +25,6 @@
 #include <memoria/v1/core/tools/memory.hpp>
 
 #include <memoria/v1/core/tools/id.hpp>
-#include <memoria/v1/core/tools/config.hpp>
 
 #include <vector>
 #include <unordered_map>

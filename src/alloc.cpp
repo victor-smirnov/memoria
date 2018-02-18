@@ -7,8 +7,6 @@
 
 #include <memoria/v1/core/memory/jemalloc.hpp>
 
-#include <malloc.h>
-
 int main(int argc, char **argv)
 {
     void* ptr = mma1_malloc(100);
