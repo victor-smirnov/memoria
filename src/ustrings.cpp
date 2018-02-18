@@ -8,6 +8,8 @@
 
 using namespace memoria::v1;
 
+using MUUID = memoria::v1::UUID;
+
 int main(int argc, char** argv)
 {
     try {
@@ -25,9 +27,8 @@ int main(int argc, char** argv)
 
         std::wcout << strw << std::endl;
 
-
-        std::cout << UUID::make_random() << std::endl;
-        std::cout << UUID::make_random() << std::endl;
+        std::cout << MUUID::make_random() << std::endl;
+        std::cout << MUUID::make_random() << std::endl;
     }
     catch (MemoriaThrowable& e) {
         e.dump(std::cout);

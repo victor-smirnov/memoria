@@ -116,7 +116,7 @@ else()
     add_definitions(-DJEMALLOC_NO_PRIVATE_NAMESPACE -D_REENTRANT)
     add_definitions(-DDLLEXPORT -DNOMINMAX  /bigobj)
 
-    add_global_libs(rpcrt4)
+    #add_global_libs(rpcrt4)
 endif()
 
 
