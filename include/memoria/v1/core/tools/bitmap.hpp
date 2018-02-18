@@ -28,10 +28,15 @@
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
+#include <memoria/v1/core/tools/msvc_intrinsics.hpp>
+
 #include <iostream>
 #include <limits>
 #include <type_traits>
 #include <string.h>
+
+
+
 
 namespace memoria {
 namespace v1 {

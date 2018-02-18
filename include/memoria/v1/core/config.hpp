@@ -49,6 +49,18 @@
 #pragma warning( disable : 4018)
 #pragma warning( disable : 4805)
 
+#define MEMORIA_V1_ALWAYS_INLINE 
+
+#define MMA1_LIKELY(expr) (expr)
+#define MMA1_UNLIKELY(expr) (expr)
+
+
+#else
+
+#define MEMORIA_V1_ALWAYS_INLINE __attribute__((always_inline))
+
+#define MMA1_LIKELY(expr) __builtin_expect((expr),1)
+#define MMA1_UNLIKELY(expr) __builtin_expect((expr),0)
 
 #endif
 

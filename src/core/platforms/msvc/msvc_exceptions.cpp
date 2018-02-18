@@ -16,6 +16,8 @@
 
 #include <memoria\v1\core\exceptions\exceptions.hpp>
 
+#include <Windows.h>
+#include <WinBase.h>
 
 namespace memoria {
 namespace v1 {

@@ -32,7 +32,6 @@
 #include <iostream>
 #include <sstream>
 
-
 namespace memoria {
 namespace v1 {
 

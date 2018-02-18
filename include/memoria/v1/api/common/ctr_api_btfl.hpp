@@ -27,6 +27,14 @@
 
 #include "ctr_api.hpp"
 
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
+
 
 namespace memoria {
 namespace v1 {
