@@ -34,6 +34,12 @@
 #include <windows.h>
 //#include <intrin.h>
 
+//#pragma intrinsic(_BitScanForward64)
+//#pragma intrinsic(_BitScanReverse64)
+
+//#pragma intrinsic(_BitScanForward)
+//#pragma intrinsic(_BitScanReverse)
+
 #pragma warning( disable : 4267)
 #pragma warning( disable : 4146)
 #pragma warning( disable : 4307)
@@ -557,7 +563,7 @@ enum class MemoryAccess {
 
 template <typename T> struct TypeTag {};
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) 
 
 #define MEMORIA_V1_ALWAYS_INLINE 
 

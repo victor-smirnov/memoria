@@ -47,6 +47,7 @@ option(BUILD_SANDBOX  "Build selected programs in the project's sandbox" OFF)
 #option(BUILD_STATIC   "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES "Build project examples" OFF)
 
+
 option(ICU_DEBUG "Debug FindICU" OFF)
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
@@ -78,7 +79,7 @@ if (BUILD_UNIX OR MINGW)
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-missing-braces")
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-variables")
     
-    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -pthread -ljemalloc")
+    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -pthread")
     
     if (USE_ASAN)
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address -DASAN_ENABLED")
@@ -120,34 +121,32 @@ if (BUILD_UNIX OR MINGW)
         
 else()
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} /W3 /std:c++14 -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS -DJEMALLOC_NO_PRIVATE_NAMESPACE -D_REENTRANT -DDLLEXPORT  /bigobj")
-    set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 )
+    set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 ) 
 endif()
 
 
-set(Boost_USE_STATIC_LIBS        OFF) 
-set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME     OFF)
+set (Boost_USE_DEBUG_LIBS	 ON)
+set (Boost_USE_RELEASE_LIBS	 ON)
+set (Boost_USE_STATIC_LIBS       ON) 
+set (Boost_USE_MULTITHREADED     ON)
+set (Boost_USE_STATIC_RUNTIME    OFF)
+set (Boost_DETAILED_FAILURE_MSG  OFF)
+set (Boost_DEBUG 		 ON)
 
-if (MSVC)
+set (Boost_COMPILER -vc141)
 
-    find_package(Boost 1.66.0 REQUIRED)
-    find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
-
-else()
-    find_package(Boost
-        1.63.0
-        COMPONENTS program_options context filesystem
-        REQUIRED
-    )
-
-    find_package(Backtrace COMPONENTS backtrace)
-    find_package(ICU 60.2 COMPONENTS i18n data uc REQUIRED)
-endif()
-
+find_package(Boost 1.66.0 COMPONENTS filesystem context program_options REQUIRED) 
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
+
+if (MSVC)
+    find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
+else()
+    find_package(Backtrace COMPONENTS backtrace)
+    find_package(ICU 60.2 COMPONENTS i18n data uc REQUIRED)
+endif()
 
 include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})

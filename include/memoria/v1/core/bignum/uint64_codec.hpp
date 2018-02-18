@@ -151,19 +151,19 @@ private:
     }
 
 
-    constexpr static uint32_t msb(uint64_t digits)
+    static uint32_t msb(uint64_t digits)
     {
         return 63 - __builtin_clzll(digits);
     }
 
     template <typename T>
-    constexpr static uint32_t bytes(T digits)
+    static uint32_t bytes(T digits)
     {
         uint32_t v = msb(digits) + 1;
         return (v >> 3) + ((v & 0x7) != 0);
     }
 
-    constexpr static uint32_t byte_length(const uint64_t data)
+    static uint32_t byte_length(const uint64_t data)
     {
         return bytes(data);
     }
