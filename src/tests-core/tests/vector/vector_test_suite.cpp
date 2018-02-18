@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 
 #include "vector_test.hpp"
 

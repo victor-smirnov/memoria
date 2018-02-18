@@ -24,7 +24,7 @@
 #include <memoria/v1/reactor/smart_ptr/detail/sp_reactor_counted_impl.hpp>
 #include <memoria/v1/reactor/smart_ptr/detail/sp_disable_deprecated.hpp>
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 
 #include <boost/detail/workaround.hpp>
 

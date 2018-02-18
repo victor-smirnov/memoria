@@ -21,7 +21,7 @@
 #include <memoria/v1/core/tools/reflection.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/v1/core/packed/tools/packed_tools.hpp>

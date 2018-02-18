@@ -20,7 +20,7 @@
  * http://julianoresearch.com/publications/standards/exint/
  */
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 
 namespace memoria {

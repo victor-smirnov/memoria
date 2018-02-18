@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 
 namespace memoria {
 namespace v1 {

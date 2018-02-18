@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/tools/isequencedata.hpp>
 #include <memoria/v1/core/packed/array/packed_fse_bitmap.hpp>
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 
 #include <tuple>
 

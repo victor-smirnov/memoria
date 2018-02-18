@@ -24,7 +24,7 @@
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/v1/prototypes/bt/walkers/bt_misc_walkers.hpp>
 

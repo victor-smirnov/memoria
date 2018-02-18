@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/algo/for_each.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>

@@ -21,7 +21,7 @@
 #include <memoria/v1/core/packed/array/packed_fse_array.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 
 
 namespace memoria {

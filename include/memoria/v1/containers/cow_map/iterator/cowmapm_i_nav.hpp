@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/v1/containers/map/map_names.hpp>
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>

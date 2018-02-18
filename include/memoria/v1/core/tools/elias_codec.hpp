@@ -21,7 +21,7 @@
  */
 
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/bitmap_select.hpp>
 

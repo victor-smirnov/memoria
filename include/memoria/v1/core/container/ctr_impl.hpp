@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
 #include <memoria/v1/api/common/ctr_api.hpp>

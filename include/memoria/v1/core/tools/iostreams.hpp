@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/iobuffer/io_buffer.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 #include <memoria/v1/core/tools/referenceable.hpp>
 #include <memoria/v1/core/tools/pimpl_base.hpp>

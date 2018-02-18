@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 
 #include <memoria/v1/core/types/relation/expression.hpp>
 #include <memoria/v1/core/types/relation/metadata.hpp>

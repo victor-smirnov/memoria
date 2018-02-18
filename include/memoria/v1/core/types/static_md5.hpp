@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/types/algo/select.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/list/misc.hpp>
 
 namespace memoria {

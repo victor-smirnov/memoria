@@ -17,7 +17,7 @@
 #pragma once
 
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/tools/id.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <iostream>

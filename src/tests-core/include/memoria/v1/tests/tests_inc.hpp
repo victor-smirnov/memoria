@@ -22,5 +22,5 @@
 
 #include <memoria/v1/core/strings/string.hpp>
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 

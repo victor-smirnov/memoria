@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memoria/v1/core/config.hpp>
+
 #include <boost/exception/all.hpp>
 #include <boost/stacktrace.hpp>
 

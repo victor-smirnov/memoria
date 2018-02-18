@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/types/algo/fold.hpp>
 #include <memoria/v1/core/types/list/append.hpp>
