@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 #include <memoria/v1/core/types/fn_traits.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 

@@ -19,7 +19,7 @@
 #include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/types/traits.hpp>
 #include <memoria/v1/core/types/algo/for_each.hpp>
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 
 #include <memoria/v1/core/types/algo/select.hpp>
 #include <memoria/v1/core/types/traits.hpp>

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 
 #include <memoria/v1/containers/labeled_tree/ltree_names.hpp>
 

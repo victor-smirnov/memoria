@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/v1/core/iobuffer/io_buffer.hpp>

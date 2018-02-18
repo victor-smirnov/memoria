@@ -68,7 +68,7 @@ protected:
 
     			if (data_streams_size != sizes[Streams - 1])
     			{
-    				MEMORIA_ERROR(self, "Leaf streams sizes check failed", data_streams_size, sizes[Streams - 1]);
+    				MMA1_ERROR(self, "Leaf streams sizes check failed", data_streams_size, sizes[Streams - 1]);
     				return true;
     			}
     		}

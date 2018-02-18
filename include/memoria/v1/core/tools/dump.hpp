@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/types.hpp>
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/config.hpp>
 
 #include <iostream>
 #include <functional>

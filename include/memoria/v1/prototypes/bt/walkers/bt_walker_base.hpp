@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 #include <memoria/v1/core/types/list/list_tree.hpp>
 #include <memoria/v1/prototypes/bt/walkers/bt_walker_base_detail.hpp>
 

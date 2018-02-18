@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 
 #include <boost/multiprecision/cpp_int.hpp>

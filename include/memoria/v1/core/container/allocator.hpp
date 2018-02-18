@@ -24,7 +24,7 @@
 
 #include <memoria/v1/metadata/container.hpp>
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 
 #include <memory>
 #include <typeinfo>

@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 #include <memoria/v1/core/types/static_md5.hpp>
 
 #include <tuple>

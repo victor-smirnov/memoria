@@ -24,7 +24,7 @@
 #include <memoria/v1/core/types/fn_traits.hpp>
 #include <memoria/v1/core/types/list/misc.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 #include <memoria/v1/core/types/algo/fold.hpp>
 
 #include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>

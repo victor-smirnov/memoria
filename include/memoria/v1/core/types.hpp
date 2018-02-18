@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/config.hpp>
-
 #include <boost/exception/all.hpp>
 #include <boost/stacktrace.hpp>
 
@@ -34,21 +32,6 @@
 #include <windows.h>
 //#include <intrin.h>
 
-//#pragma intrinsic(_BitScanForward64)
-//#pragma intrinsic(_BitScanReverse64)
-
-//#pragma intrinsic(_BitScanForward)
-//#pragma intrinsic(_BitScanReverse)
-
-#pragma warning( disable : 4267)
-#pragma warning( disable : 4146)
-#pragma warning( disable : 4307)
-#pragma warning( disable : 4200)
-#pragma warning( disable : 4291)
-#pragma warning( disable : 4101)
-#pragma warning( disable : 4305)
-#pragma warning( disable : 4018)
-#pragma warning( disable : 4805)
 
 
 #ifdef max
@@ -66,10 +49,6 @@
 
 namespace memoria {
 namespace v1 {
-
-//using UChar   = ::UChar;
-//using UChar32 = ::UChar32;
-//using UChar8  = char;
 
 static constexpr int DEFAULT_BLOCK_SIZE                 = 8192;
 static constexpr int PackedTreeBranchingFactor          = 32;

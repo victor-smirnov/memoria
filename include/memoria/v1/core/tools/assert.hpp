@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 #include <memoria/v1/core/tools/config.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/string.hpp>
@@ -32,7 +32,7 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 
 #define MEMORIA_V1_STATIC_ASSERT(B) \
-    enum { MEMORIA_JOIN(MEMORIA_V1_STATIC_ASSERT_, __LINE__) = sizeof(v1::STATIC_ASSERT_FAILURE<(bool)(B)>)}
+    enum { MMA1_JOIN(MEMORIA_V1_STATIC_ASSERT_, __LINE__) = sizeof(v1::STATIC_ASSERT_FAILURE<(bool)(B)>)}
 
 
 #ifndef MEMORIA_V1_NO_ASSERTS

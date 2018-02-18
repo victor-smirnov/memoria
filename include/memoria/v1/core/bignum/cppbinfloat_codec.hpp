@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 
 #include <memoria/v1/core/tools/bignum/cppint_codec.hpp>
 #include <memoria/v1/core/tools/bignum/int64_codec.hpp>

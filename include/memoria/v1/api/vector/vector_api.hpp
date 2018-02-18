@@ -18,7 +18,7 @@
 
 
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 
 #include <memory>
 #include <vector>

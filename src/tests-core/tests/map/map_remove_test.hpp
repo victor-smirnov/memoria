@@ -105,7 +105,7 @@ public:
             map.assign(key, value);
         }
 
-        check(snapshot(), MEMORIA_SOURCE);
+        check(snapshot(), MMA1_SOURCE);
 
         commit();
         

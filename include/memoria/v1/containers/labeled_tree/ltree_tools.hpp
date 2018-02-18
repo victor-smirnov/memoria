@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/v1/core/tools/isequencedata.hpp>
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 
 #include <memoria/v1/containers/labeled_tree/tools/ltree_adaptor_tools.hpp>
 #include <memoria/v1/containers/labeled_tree/tools/ltree_stream_tools.hpp>

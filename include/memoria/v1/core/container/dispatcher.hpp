@@ -55,7 +55,7 @@ class PageDispatcher<Profile, PageType, TypeList<> > {
 
 public:
     void dispatch(PageType *page) {
-        throw DispatchException(MEMORIA_SOURCE, SBuf()<<"Invalid model hash code"<<page->model_hash());
+        throw DispatchException(MMA1_SRC, SBuf()<<"Invalid model hash code"<<page->model_hash());
     }
 };
 

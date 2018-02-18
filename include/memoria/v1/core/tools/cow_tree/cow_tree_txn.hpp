@@ -18,7 +18,7 @@
 #pragma once
 
 #include <memoria/v1/core/tools/cow_tree/cow_tree_tools.hpp>
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 
 #include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>

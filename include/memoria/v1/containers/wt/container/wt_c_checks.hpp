@@ -71,7 +71,7 @@ public:
 
                     if (value == 0 && (c > 0 || !root_))
                     {
-                        MEMORIA_ERROR(ctr_,
+                        MMA1_ERROR(ctr_,
                                 "Node",
                                 id_,
                                 "has stream ",

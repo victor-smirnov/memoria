@@ -79,7 +79,7 @@ protected:
         {
             self().dump(node);
 
-            MEMORIA_ERROR(self(), "Node content check failed", ex.message(), ex.source());
+            MMA1_ERROR(self(), "Node content check failed", ex.message(), ex.source());
             return true;
         }
     }
@@ -114,7 +114,7 @@ bool M_TYPE::checkTree() const
         return errors;
     }
     else {
-        MEMORIA_ERROR(self, "No root node for container");
+        MMA1_ERROR(self, "No root node for container");
         return true;
     }
 }
@@ -145,7 +145,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, con
             if (children == 0 && !node->is_root())
             {
                 errors = true;
-                MEMORIA_ERROR(self, "children == 0 for non-root node", node->id());
+                MMA1_ERROR(self, "children == 0 for non-root node", node->id());
                 self.dump(node);
             }
         }
@@ -164,7 +164,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, con
             if (child->id() != child_id)
             {
                 errors = true;
-                MEMORIA_ERROR(self, "child.id != child_id", child->id(), child->id(), child_id);
+                MMA1_ERROR(self, "child.id != child_id", child->id(), child->id(), child_id);
             }
 
             self.checkTreeStructure(node, c, child, errors);
@@ -185,7 +185,7 @@ bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, int32
 
     if (sums != keys)
     {
-        MEMORIA_ERROR(
+        MMA1_ERROR(
                 self(),
                 "Invalid parent-child nodes chain",
                 (SBuf()<<sums).str(),

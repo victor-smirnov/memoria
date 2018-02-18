@@ -16,7 +16,7 @@
 #pragma once
 
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/strings/strings.hpp>
@@ -851,7 +851,7 @@ private:
     static void check(int32_t idx)
     {
 //      if (idx < 0 || idx >= Indexes_) {
-//          throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
+//          throw BoundsException(MMA1_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
 //      }
     }
 };

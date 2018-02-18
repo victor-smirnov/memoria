@@ -17,31 +17,31 @@
 #pragma once
 
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 #include <memoria/v1/core/tools/id.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <iostream>
 #include <iomanip>
 
-#define MEMORIA_LOG(logger_, level, ...)                                                 \
-    if (logger_.is_log(level))                                                           \
-        v1::log(logger_.logger(), level, MEMORIA_SOURCE, logger_.typeName(),  \
+#define MMA1_LOG(logger_, level, ...)                                        \
+    if (logger_.is_log(level))                                               \
+        v1::log(logger_.logger(), level, MMA1_SOURCE, logger_.typeName(),    \
                 ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
 
-#define MEMORIA_DEBUG(logger_, ...)                                              \
-    MEMORIA_LOG(logger_, v1::Logger::LDEBUG, ##__VA_ARGS__)
+#define MMA1_DEBUG(logger_, ...)                                             \
+    MMA1_LOG(logger_, v1::Logger::LDEBUG, ##__VA_ARGS__)
 
-#define MEMORIA_WARN(logger_, ...)                                               \
-    MEMORIA_LOG(logger_, v1::Logger::WARN, ##__VA_ARGS__)
+#define MMA1_WARN(logger_, ...)                                              \
+    MMA1_LOG(logger_, v1::Logger::WARN, ##__VA_ARGS__)
 
-#define MEMORIA_ERROR(logger_, ...)                                              \
-    MEMORIA_LOG(logger_, v1::Logger::_ERROR, ##__VA_ARGS__)
+#define MMA1_ERROR(logger_, ...)                                             \
+    MMA1_LOG(logger_, v1::Logger::_ERROR, ##__VA_ARGS__)
 
-#define MEMORIA_INFO(logger_, ...)                                               \
-    MEMORIA_LOG(logger_, v1::Logger::INFO, ##__VA_ARGS__)
+#define MMA1_INFO(logger_, ...)                                              \
+    MMA1_LOG(logger_, v1::Logger::INFO, ##__VA_ARGS__)
 
-#define MEMORIA_TRACE(logger_, ...)                                              \
-    MEMORIA_LOG(logger_, v1::Logger::TRACE, ##__VA_ARGS__)
+#define MMA1_TRACE(logger_, ...)                                             \
+    MMA1_LOG(logger_, v1::Logger::TRACE, ##__VA_ARGS__)
 
 
 namespace memoria {
@@ -277,7 +277,6 @@ public:
     {
         cnt_++;
     }
-
 };
 
 

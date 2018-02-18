@@ -21,7 +21,7 @@ namespace v1 {
 
 const char* ExtractMemoriaPath(const char* path) {
 
-    const char* prefix = MEMORIA_TOSTRING(MEMORIA_SRC);
+    const char* prefix = MMA1_TOSTRING(MMA1_SRC);
 
     int32_t c;
     for (c = 0; prefix[c] != '\0'; c++)

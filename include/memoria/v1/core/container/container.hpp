@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/config.hpp>
 
 #include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/tools/reflection.hpp>
@@ -46,7 +46,7 @@
 
 
 #define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() \
-        throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "<<me()->typeName())
+        throw Exception(MMA1_SOURCE, SBuf()<<"Method is not implemented for "<<me()->typeName())
 
 namespace memoria {
 namespace v1 {
