@@ -21,7 +21,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace reactor {
+namespace reactor_1_64 {
 
 
 template<class T> class enable_local_shared_from_this

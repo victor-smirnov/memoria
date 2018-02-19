@@ -21,7 +21,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace reactor {
+namespace reactor_1_64 {
 
 
 template<class T> class local_weak_ptr

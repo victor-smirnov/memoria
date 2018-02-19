@@ -168,7 +168,7 @@ namespace filesystem {
     return *this;
   }
 
-  int path::compare(const path& p) const BOOST_NOEXCEPT
+  int path::compare(const path& p) const noexcept
   {
     return detail::lex_compare(begin(), end(), p.begin(), p.end());
   }

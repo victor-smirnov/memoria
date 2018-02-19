@@ -64,14 +64,14 @@ namespace v1 {
 
       // all functions are inline to avoid issues with crossing dll boundaries
 
-      // functions previously throw() are now BOOST_NOEXCEPT_OR_NOTHROW
-      // functions previously without throw() are now BOOST_NOEXCEPT
+      // functions previously throw() are now noexcept
+      // functions previously without throw() are now noexcept
 
     public:
       // compiler generates copy constructor and copy assignment
 
       filesystem_error(
-        const std::string & what_arg, boost::system::error_code ec) BOOST_NOEXCEPT
+        const std::string & what_arg, boost::system::error_code ec) noexcept
         : boost::system::system_error(ec, what_arg)
       {
         try
@@ -83,7 +83,7 @@ namespace v1 {
 
       filesystem_error(
         const std::string & what_arg, const path& path1_arg,
-        boost::system::error_code ec) BOOST_NOEXCEPT
+        boost::system::error_code ec) noexcept
         : boost::system::system_error(ec, what_arg)
       {
         try
@@ -96,7 +96,7 @@ namespace v1 {
 
       filesystem_error(
         const std::string & what_arg, const path& path1_arg,
-        const path& path2_arg, boost::system::error_code ec) BOOST_NOEXCEPT
+        const path& path2_arg, boost::system::error_code ec) noexcept
         : boost::system::system_error(ec, what_arg)
       {
         try
@@ -108,20 +108,20 @@ namespace v1 {
         catch (...) { m_imp_ptr.reset(); }
       }
 
-      ~filesystem_error() BOOST_NOEXCEPT_OR_NOTHROW{}
+      ~filesystem_error() noexcept{}
 
-        const path& path1() const BOOST_NOEXCEPT
+        const path& path1() const noexcept
       {
         static const path empty_path;
         return m_imp_ptr.get() ? m_imp_ptr->m_path1 : empty_path;
       }
-        const path& path2() const  BOOST_NOEXCEPT
+        const path& path2() const  noexcept
       {
         static const path empty_path;
         return m_imp_ptr.get() ? m_imp_ptr->m_path2 : empty_path;
       }
 
-        const char* what() const BOOST_NOEXCEPT_OR_NOTHROW
+        const char* what() const noexcept
       {
         if (!m_imp_ptr.get())
         return boost::system::system_error::what();
@@ -253,20 +253,20 @@ namespace v1 {
   class MEMORIA_V1_FILESYSTEM_DECL file_status
   {
   public:
-             file_status() BOOST_NOEXCEPT
+             file_status() noexcept
                : m_value(status_error), m_perms(perms_not_known) {}
-    explicit file_status(file_type v) BOOST_NOEXCEPT
+    explicit file_status(file_type v) noexcept
                : m_value(v), m_perms(perms_not_known)  {}
-             file_status(file_type v, perms prms) BOOST_NOEXCEPT
+             file_status(file_type v, perms prms) noexcept
                : m_value(v), m_perms(prms) {}
 
   //  As of October 2015 the interaction between noexcept and =default is so troublesome
   //  for VC++, GCC, and probably other compilers, that =default is not used with noexcept
   //  functions. GCC is not even consistent for the same release on different platforms.
 
-    file_status(const file_status& rhs) BOOST_NOEXCEPT
+    file_status(const file_status& rhs) noexcept
       : m_value(rhs.m_value), m_perms(rhs.m_perms) {}
-    file_status& operator=(const file_status& rhs) BOOST_NOEXCEPT
+    file_status& operator=(const file_status& rhs) noexcept
     {
       m_value = rhs.m_value;
       m_perms = rhs.m_perms;
@@ -274,12 +274,12 @@ namespace v1 {
     }
 
 # if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-    file_status(file_status&& rhs) BOOST_NOEXCEPT
+    file_status(file_status&& rhs) noexcept
     {
       m_value = std::move(rhs.m_value);
       m_perms = std::move(rhs.m_perms);
     }
-    file_status& operator=(file_status&& rhs) BOOST_NOEXCEPT
+    file_status& operator=(file_status&& rhs) noexcept
     { 
       m_value = std::move(rhs.m_value);
       m_perms = std::move(rhs.m_perms);
@@ -289,17 +289,17 @@ namespace v1 {
 
 
     // observers
-    file_type  type() const BOOST_NOEXCEPT            { return m_value; }
-    perms      permissions() const BOOST_NOEXCEPT     { return m_perms; } 
+    file_type  type() const noexcept            { return m_value; }
+    perms      permissions() const noexcept     { return m_perms; } 
 
     // modifiers
-    void       type(file_type v) BOOST_NOEXCEPT       { m_value = v; }
-    void       permissions(perms prms) BOOST_NOEXCEPT { m_perms = prms; }
+    void       type(file_type v) noexcept       { m_value = v; }
+    void       permissions(perms prms) noexcept { m_perms = prms; }
 
-    bool operator==(const file_status& rhs) const BOOST_NOEXCEPT
+    bool operator==(const file_status& rhs) const noexcept
       { return type() == rhs.type() && 
         permissions() == rhs.permissions(); }
-    bool operator!=(const file_status& rhs) const BOOST_NOEXCEPT
+    bool operator!=(const file_status& rhs) const noexcept
       { return !(*this == rhs); }
 
   private:
@@ -307,27 +307,27 @@ namespace v1 {
     enum perms  m_perms;
   };
 
-  inline bool type_present(file_status f) BOOST_NOEXCEPT
+  inline bool type_present(file_status f) noexcept
                                           { return f.type() != status_error; }
-  inline bool permissions_present(file_status f) BOOST_NOEXCEPT
+  inline bool permissions_present(file_status f) noexcept
                                           {return f.permissions() != perms_not_known;}
-  inline bool status_known(file_status f) BOOST_NOEXCEPT
+  inline bool status_known(file_status f) noexcept
                                           { return type_present(f) && permissions_present(f); }
-  inline bool exists(file_status f) BOOST_NOEXCEPT
+  inline bool exists(file_status f) noexcept
                                           { return f.type() != status_error
                                                 && f.type() != file_not_found; }
-  inline bool is_regular_file(file_status f) BOOST_NOEXCEPT
+  inline bool is_regular_file(file_status f) noexcept
                                           { return f.type() == regular_file; }
-  inline bool is_directory(file_status f) BOOST_NOEXCEPT
+  inline bool is_directory(file_status f) noexcept
                                           { return f.type() == directory_file; }
-  inline bool is_symlink(file_status f) BOOST_NOEXCEPT
+  inline bool is_symlink(file_status f) noexcept
                                           { return f.type() == symlink_file; }
-  inline bool is_other(file_status f) BOOST_NOEXCEPT
+  inline bool is_other(file_status f) noexcept
                                           { return exists(f) && !is_regular_file(f)
                                                 && !is_directory(f) && !is_symlink(f); }
 
 # ifndef MEMORIA_V1_FILESYSTEM_NO_DEPRECATED
-  inline bool is_regular(file_status f) BOOST_NOEXCEPT { return f.type() == regular_file; }
+  inline bool is_regular(file_status f) noexcept { return f.type() == regular_file; }
 # endif
 
   struct space_info
@@ -522,13 +522,13 @@ namespace v1 {
   void copy(const path& from, const path& to) {detail::copy(from, to);}
 
   inline
-  void copy(const path& from, const path& to, boost::system::error_code& ec) BOOST_NOEXCEPT 
+  void copy(const path& from, const path& to, boost::system::error_code& ec) noexcept 
                                        {detail::copy(from, to, &ec);}
   inline
   void copy_directory(const path& from, const path& to)
                                        {detail::copy_directory(from, to);}
   inline
-  void copy_directory(const path& from, const path& to, boost::system::error_code& ec) BOOST_NOEXCEPT
+  void copy_directory(const path& from, const path& to, boost::system::error_code& ec) noexcept
                                        {detail::copy_directory(from, to, &ec);}
   inline
   void copy_file(const path& from, const path& to,   // See ticket #2925
@@ -543,12 +543,12 @@ namespace v1 {
   }
   inline
   void copy_file(const path& from, const path& to,   // See ticket #2925
-                 BOOST_SCOPED_ENUM(copy_option) option, boost::system::error_code& ec) BOOST_NOEXCEPT
+                 BOOST_SCOPED_ENUM(copy_option) option, boost::system::error_code& ec) noexcept
   {
     detail::copy_file(from, to, static_cast<detail::copy_option>(option), &ec);
   }
   inline
-  void copy_file(const path& from, const path& to, boost::system::error_code& ec) BOOST_NOEXCEPT
+  void copy_file(const path& from, const path& to, boost::system::error_code& ec) noexcept
   {
     detail::copy_file(from, to, detail::fail_if_exists, &ec);
   }
@@ -558,67 +558,67 @@ namespace v1 {
 
   inline
   void copy_symlink(const path& existing_symlink, const path& new_symlink,
-                    boost::system::error_code& ec) BOOST_NOEXCEPT
+                    boost::system::error_code& ec) noexcept
                                        {detail::copy_symlink(existing_symlink, new_symlink, &ec);}
   inline
   bool create_directories(const path& p) {return detail::create_directories(p);}
 
   inline
-  bool create_directories(const path& p, boost::system::error_code& ec) BOOST_NOEXCEPT
+  bool create_directories(const path& p, boost::system::error_code& ec) noexcept
                                        {return detail::create_directories(p, &ec);}
   inline
   bool create_directory(const path& p) {return detail::create_directory(p);}
 
   inline
-  bool create_directory(const path& p, boost::system::error_code& ec) BOOST_NOEXCEPT
+  bool create_directory(const path& p, boost::system::error_code& ec) noexcept
                                        {return detail::create_directory(p, &ec);}
   inline
   void create_directory_symlink(const path& to, const path& from)
                                        {detail::create_directory_symlink(to, from);}
   inline
-  void create_directory_symlink(const path& to, const path& from, boost::system::error_code& ec) BOOST_NOEXCEPT
+  void create_directory_symlink(const path& to, const path& from, boost::system::error_code& ec) noexcept
                                        {detail::create_directory_symlink(to, from, &ec);}
   inline
   void create_hard_link(const path& to, const path& new_hard_link) {detail::create_hard_link(to, new_hard_link);}
 
   inline
-  void create_hard_link(const path& to, const path& new_hard_link, boost::system::error_code& ec) BOOST_NOEXCEPT
+  void create_hard_link(const path& to, const path& new_hard_link, boost::system::error_code& ec) noexcept
                                        {detail::create_hard_link(to, new_hard_link, &ec);}
   inline
   void create_symlink(const path& to, const path& new_symlink) {detail::create_symlink(to, new_symlink);}
 
   inline
-  void create_symlink(const path& to, const path& new_symlink, boost::system::error_code& ec) BOOST_NOEXCEPT
+  void create_symlink(const path& to, const path& new_symlink, boost::system::error_code& ec) noexcept
                                        {detail::create_symlink(to, new_symlink, &ec);}
   inline
   path current_path()                  {return detail::current_path();}
 
   inline
-  path current_path(boost::system::error_code& ec) BOOST_NOEXCEPT {return detail::current_path(&ec);}
+  path current_path(boost::system::error_code& ec) noexcept {return detail::current_path(&ec);}
 
   inline
   void current_path(const path& p)     {detail::current_path(p);}
 
   inline
-  void current_path(const path& p, boost::system::error_code& ec) BOOST_NOEXCEPT {detail::current_path(p, &ec);}
+  void current_path(const path& p, boost::system::error_code& ec) noexcept {detail::current_path(p, &ec);}
 
   inline
   bool equivalent(const path& p1, const path& p2) {return detail::equivalent(p1, p2);}
 
   inline
-  bool equivalent(const path& p1, const path& p2, boost::system::error_code& ec) BOOST_NOEXCEPT
+  bool equivalent(const path& p1, const path& p2, boost::system::error_code& ec) noexcept
                                        {return detail::equivalent(p1, p2, &ec);}
   inline
   boost::uintmax_t file_size(const path& p) {return detail::file_size(p);}
 
   inline
-  boost::uintmax_t file_size(const path& p, boost::system::error_code& ec) BOOST_NOEXCEPT
+  boost::uintmax_t file_size(const path& p, boost::system::error_code& ec) noexcept
                                        {return detail::file_size(p, &ec);}
   inline
   boost::uintmax_t hard_link_count(const path& p) {return detail::hard_link_count(p);}
 
   inline
-  boost::uintmax_t hard_link_count(const path& p, boost::system::error_code& ec) BOOST_NOEXCEPT
+  boost::uintmax_t hard_link_count(const path& p, boost::system::error_code& ec) noexcept
                                        {return detail::hard_link_count(p, &ec);}
   inline
   path initial_path()                  {return detail::initial_path();}
@@ -635,20 +635,20 @@ namespace v1 {
   std::time_t last_write_time(const path& p) {return detail::last_write_time(p);}
 
   inline
-  std::time_t last_write_time(const path& p, boost::system::error_code& ec) BOOST_NOEXCEPT
+  std::time_t last_write_time(const path& p, boost::system::error_code& ec) noexcept
                                        {return detail::last_write_time(p, &ec);}
   inline
   void last_write_time(const path& p, const std::time_t new_time)
                                        {detail::last_write_time(p, new_time);}
   inline
   void last_write_time(const path& p, const std::time_t new_time,
-                       boost::system::error_code& ec) BOOST_NOEXCEPT
+                       boost::system::error_code& ec) noexcept
                                        {detail::last_write_time(p, new_time, &ec);}
   inline
   void permissions(const path& p, perms prms)
                                        {detail::permissions(p, prms);}
   inline
-  void permissions(const path& p, perms prms, boost::system::error_code& ec) BOOST_NOEXCEPT
+  void permissions(const path& p, perms prms, boost::system::error_code& ec) noexcept
                                        {detail::permissions(p, prms, &ec);}
 
   inline
@@ -662,26 +662,26 @@ namespace v1 {
   bool remove(const path& p)           {return detail::remove(p);}
 
   inline
-  bool remove(const path& p, boost::system::error_code& ec) BOOST_NOEXCEPT
+  bool remove(const path& p, boost::system::error_code& ec) noexcept
                                        {return detail::remove(p, &ec);}
 
   inline
   boost::uintmax_t remove_all(const path& p) {return detail::remove_all(p);}
     
   inline
-  boost::uintmax_t remove_all(const path& p, boost::system::error_code& ec) BOOST_NOEXCEPT
+  boost::uintmax_t remove_all(const path& p, boost::system::error_code& ec) noexcept
                                        {return detail::remove_all(p, &ec);}
   inline
   void rename(const path& old_p, const path& new_p) {detail::rename(old_p, new_p);}
 
   inline
-  void rename(const path& old_p, const path& new_p, boost::system::error_code& ec) BOOST_NOEXCEPT
+  void rename(const path& old_p, const path& new_p, boost::system::error_code& ec) noexcept
                                        {detail::rename(old_p, new_p, &ec);}
   inline  // name suggested by Scott McMurray
   void resize_file(const path& p, uintmax_t size) {detail::resize_file(p, size);}
 
   inline
-  void resize_file(const path& p, uintmax_t size, boost::system::error_code& ec) BOOST_NOEXCEPT
+  void resize_file(const path& p, uintmax_t size, boost::system::error_code& ec) noexcept
                                        {detail::resize_file(p, size, &ec);}
   inline
   path relative(const path& p, const path& base=current_path())
@@ -696,7 +696,7 @@ namespace v1 {
   space_info space(const path& p)      {return detail::space(p);} 
 
   inline
-  space_info space(const path& p, boost::system::error_code& ec) BOOST_NOEXCEPT
+  space_info space(const path& p, boost::system::error_code& ec) noexcept
                                        {return detail::space(p, &ec);} 
 
 # ifndef MEMORIA_V1_FILESYSTEM_NO_DEPRECATED
@@ -744,7 +744,7 @@ class MEMORIA_V1_FILESYSTEM_DECL directory_entry
 public:
   typedef memoria::v1::filesystem::path::value_type value_type;   // enables class path ctor taking directory_entry
 
-  directory_entry() BOOST_NOEXCEPT {}
+  directory_entry() noexcept {}
   explicit directory_entry(const memoria::v1::filesystem::path& p)
     : m_path(p), m_status(file_status()), m_symlink_status(file_status())
     {}
@@ -768,13 +768,13 @@ public:
   //  functions. GCC is not even consistent for the same release on different platforms.
 
 #if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-  directory_entry(directory_entry&& rhs) BOOST_NOEXCEPT
+  directory_entry(directory_entry&& rhs) noexcept
   {
     m_path = std::move(rhs.m_path);
     m_status = std::move(rhs.m_status);
     m_symlink_status = std::move(rhs.m_symlink_status);
   }
-  directory_entry& operator=(directory_entry&& rhs) BOOST_NOEXCEPT
+  directory_entry& operator=(directory_entry&& rhs) noexcept
   { 
     m_path = std::move(rhs.m_path);
     m_status = std::move(rhs.m_status);
@@ -802,22 +802,22 @@ public:
       { replace_filename(p, st, symlink_st); }
 # endif
 
-  const memoria::v1::filesystem::path&  path() const BOOST_NOEXCEPT {return m_path;}
-  operator const memoria::v1::filesystem::path&() const BOOST_NOEXCEPT
+  const memoria::v1::filesystem::path&  path() const noexcept {return m_path;}
+  operator const memoria::v1::filesystem::path&() const noexcept
                                                               {return m_path;}
   file_status   status() const                                {return m_get_status();}
-  file_status   status(boost::system::error_code& ec) const BOOST_NOEXCEPT
+  file_status   status(boost::system::error_code& ec) const noexcept
                                                               {return m_get_status(&ec); }
   file_status   symlink_status() const                        {return m_get_symlink_status();}
-  file_status   symlink_status(boost::system::error_code& ec) const BOOST_NOEXCEPT
+  file_status   symlink_status(boost::system::error_code& ec) const noexcept
                                                               {return m_get_symlink_status(&ec); }
 
-  bool operator==(const directory_entry& rhs) const BOOST_NOEXCEPT {return m_path == rhs.m_path; }
-  bool operator!=(const directory_entry& rhs) const BOOST_NOEXCEPT {return m_path != rhs.m_path;} 
-  bool operator< (const directory_entry& rhs) const BOOST_NOEXCEPT {return m_path < rhs.m_path;} 
-  bool operator<=(const directory_entry& rhs) const BOOST_NOEXCEPT {return m_path <= rhs.m_path;} 
-  bool operator> (const directory_entry& rhs) const BOOST_NOEXCEPT {return m_path > rhs.m_path;} 
-  bool operator>=(const directory_entry& rhs) const BOOST_NOEXCEPT {return m_path >= rhs.m_path;} 
+  bool operator==(const directory_entry& rhs) const noexcept {return m_path == rhs.m_path; }
+  bool operator!=(const directory_entry& rhs) const noexcept {return m_path != rhs.m_path;} 
+  bool operator< (const directory_entry& rhs) const noexcept {return m_path < rhs.m_path;} 
+  bool operator<=(const directory_entry& rhs) const noexcept {return m_path <= rhs.m_path;} 
+  bool operator> (const directory_entry& rhs) const noexcept {return m_path > rhs.m_path;} 
+  bool operator>=(const directory_entry& rhs) const noexcept {return m_path >= rhs.m_path;} 
 
 private:
   memoria::v1::filesystem::path   m_path;
@@ -902,7 +902,7 @@ namespace detail
   {
   public:
 
-    directory_iterator() BOOST_NOEXCEPT {}  // creates the "end" iterator
+    directory_iterator() noexcept {}  // creates the "end" iterator
 
     // iterator_facade derived classes don't seem to like implementations in
     // separate translation unit dll's, so forward to detail functions
@@ -910,13 +910,13 @@ namespace detail
         : m_imp(new detail::dir_itr_imp)
           { detail::directory_iterator_construct(*this, p, 0); }
 
-    directory_iterator(const path& p, boost::system::error_code& ec) BOOST_NOEXCEPT
+    directory_iterator(const path& p, boost::system::error_code& ec) noexcept
         : m_imp(new detail::dir_itr_imp)
           { detail::directory_iterator_construct(*this, p, &ec); }
 
    ~directory_iterator() {}
 
-    directory_iterator& increment(boost::system::error_code& ec) BOOST_NOEXCEPT
+    directory_iterator& increment(boost::system::error_code& ec) noexcept
     { 
       detail::directory_iterator_increment(*this, &ec);
       return *this;
@@ -961,22 +961,22 @@ namespace detail
   //  auto - thus the top-level const is stripped - so returning const is harmless and
   //  emphasizes begin() is just a pass through.
   inline
-  const directory_iterator& begin(const directory_iterator& iter) BOOST_NOEXCEPT
+  const directory_iterator& begin(const directory_iterator& iter) noexcept
     {return iter;}
   inline
-  directory_iterator end(const directory_iterator&) BOOST_NOEXCEPT
+  directory_iterator end(const directory_iterator&) noexcept
     {return directory_iterator();}
 
   //  enable directory_iterator BOOST_FOREACH  -----------------------------------------//
 
   inline
-  directory_iterator& range_begin(directory_iterator& iter) BOOST_NOEXCEPT
+  directory_iterator& range_begin(directory_iterator& iter) noexcept
     {return iter;}
   inline
-  directory_iterator range_begin(const directory_iterator& iter) BOOST_NOEXCEPT
+  directory_iterator range_begin(const directory_iterator& iter) noexcept
     {return iter;}
   inline
-  directory_iterator range_end(const directory_iterator&) BOOST_NOEXCEPT
+  directory_iterator range_end(const directory_iterator&) noexcept
     {return directory_iterator();}
   }  // namespace filesystem
 
@@ -1026,7 +1026,7 @@ namespace filesystem {
 
       void increment(boost::system::error_code* ec);  // ec == 0 means throw on error
 
-      bool push_directory(boost::system::error_code& ec) BOOST_NOEXCEPT;
+      bool push_directory(boost::system::error_code& ec) noexcept;
 
       void pop();
 
@@ -1037,7 +1037,7 @@ namespace filesystem {
     //  clients of struct 'memoria::v1::filesystem::detail::recur_dir_itr_imp'
 
     inline
-    bool recur_dir_itr_imp::push_directory(boost::system::error_code& ec) BOOST_NOEXCEPT
+    bool recur_dir_itr_imp::push_directory(boost::system::error_code& ec) noexcept
     // Returns: true if push occurs, otherwise false. Always returns false on error.
     {
       ec.clear();
@@ -1162,7 +1162,7 @@ namespace filesystem {
   {
   public:
 
-    recursive_directory_iterator() BOOST_NOEXCEPT {}  // creates the "end" iterator
+    recursive_directory_iterator() noexcept {}  // creates the "end" iterator
 
     explicit recursive_directory_iterator(const path& dir_path)  // throws if !exists()
       : m_imp(new detail::recur_dir_itr_imp)
@@ -1185,7 +1185,7 @@ namespace filesystem {
 
     recursive_directory_iterator(const path& dir_path,
       BOOST_SCOPED_ENUM(symlink_option) opt,
-      boost::system::error_code & ec) BOOST_NOEXCEPT
+      boost::system::error_code & ec) noexcept
     : m_imp(new detail::recur_dir_itr_imp)
     {
       m_imp->m_options = opt;
@@ -1195,7 +1195,7 @@ namespace filesystem {
     }
 
     recursive_directory_iterator(const path& dir_path,
-      boost::system::error_code & ec) BOOST_NOEXCEPT
+      boost::system::error_code & ec) noexcept
     : m_imp(new detail::recur_dir_itr_imp)
     {
       m_imp->m_options = symlink_option::none;
@@ -1204,7 +1204,7 @@ namespace filesystem {
         { m_imp.reset (); }
     }
 
-    recursive_directory_iterator& increment(boost::system::error_code& ec) BOOST_NOEXCEPT
+    recursive_directory_iterator& increment(boost::system::error_code& ec) noexcept
     {
       BOOST_ASSERT_MSG(m_imp.get(),
         "increment() on end recursive_directory_iterator");
@@ -1214,16 +1214,16 @@ namespace filesystem {
       return *this;
     }
 
-    int depth() const BOOST_NOEXCEPT
+    int depth() const noexcept
     { 
       BOOST_ASSERT_MSG(m_imp.get(),
         "depth() on end recursive_directory_iterator");
       return m_imp->m_level;
     }
   
-    int level() const BOOST_NOEXCEPT { return depth(); }
+    int level() const noexcept { return depth(); }
 
-    bool recursion_pending() const BOOST_NOEXCEPT
+    bool recursion_pending() const noexcept
     {
       BOOST_ASSERT_MSG(m_imp.get(),
         "is_no_push_requested() on end recursive_directory_iterator");
@@ -1231,10 +1231,10 @@ namespace filesystem {
         == symlink_option::_detail_no_push;
     }
   
-    bool no_push_pending() const BOOST_NOEXCEPT { return recursion_pending(); }
+    bool no_push_pending() const noexcept { return recursion_pending(); }
 
 #   ifndef MEMORIA_V1_FILESYSTEM_NO_DEPRECATED
-    bool no_push_request() const BOOST_NOEXCEPT { return no_push_pending(); }
+    bool no_push_request() const noexcept { return no_push_pending(); }
 #   endif
 
     void pop()
@@ -1245,7 +1245,7 @@ namespace filesystem {
       if (m_imp->m_stack.empty()) m_imp.reset(); // done, so make end iterator
     }
 
-    void disable_recursion_pending(bool value=true) BOOST_NOEXCEPT
+    void disable_recursion_pending(bool value=true) noexcept
     {
       BOOST_ASSERT_MSG(m_imp.get(),
         "no_push() on end recursive_directory_iterator");
@@ -1255,7 +1255,7 @@ namespace filesystem {
         m_imp->m_options &= ~symlink_option::_detail_no_push;
     }
   
-    void no_push(bool value=true) BOOST_NOEXCEPT { disable_recursion_pending(value); }
+    void no_push(bool value=true) noexcept { disable_recursion_pending(value); }
 
     file_status status() const
     {
@@ -1316,24 +1316,24 @@ namespace filesystem {
   //  emphasizes begin() is just a pass through.
   inline
   const recursive_directory_iterator&
-    begin(const recursive_directory_iterator& iter) BOOST_NOEXCEPT
+    begin(const recursive_directory_iterator& iter) noexcept
                                                   {return iter;}
   inline
-  recursive_directory_iterator end(const recursive_directory_iterator&) BOOST_NOEXCEPT
+  recursive_directory_iterator end(const recursive_directory_iterator&) noexcept
                                                   {return recursive_directory_iterator();}
 
   //  enable recursive directory iterator BOOST_FOREACH  -------------------------------//
 
   inline
   recursive_directory_iterator& 
-    range_begin(recursive_directory_iterator& iter) BOOST_NOEXCEPT
+    range_begin(recursive_directory_iterator& iter) noexcept
                                                    {return iter;}
   inline
   recursive_directory_iterator
-    range_begin(const recursive_directory_iterator& iter) BOOST_NOEXCEPT
+    range_begin(const recursive_directory_iterator& iter) noexcept
                                                    {return iter;}
   inline
-  recursive_directory_iterator range_end(const recursive_directory_iterator&) BOOST_NOEXCEPT
+  recursive_directory_iterator range_end(const recursive_directory_iterator&) noexcept
                                                   {return recursive_directory_iterator();}
   }  // namespace filesystem
 

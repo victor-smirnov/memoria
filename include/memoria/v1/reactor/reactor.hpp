@@ -21,11 +21,11 @@
 #include "file.hpp"
 #include "timer.hpp"
 
-#include "smart_ptr/shared_ptr.hpp"
-#include "smart_ptr/local_shared_ptr.hpp"
-#include "smart_ptr/enable_local_shared_from_this.hpp"
-#include "smart_ptr/enable_shared_from_this.hpp"
-#include "smart_ptr/make_shared.hpp"
+//#include "smart_ptr/shared_ptr.hpp"
+//#include "smart_ptr/local_shared_ptr.hpp"
+//#include "smart_ptr/enable_local_shared_from_this.hpp"
+//#include "smart_ptr/enable_shared_from_this.hpp"
+//#include "smart_ptr/make_shared.hpp"
 
 
 
@@ -251,7 +251,7 @@ auto engine_or_local(Fn&& fn, Args&&... args)
 }
 
 
-
+/*
 namespace _ {
 
 template <typename Fn>
@@ -289,7 +289,7 @@ void sp_reactor_ms_deleter<T>::destroy()
 }
 
 }
-
+*/
 
 
 }}}

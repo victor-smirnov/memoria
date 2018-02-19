@@ -1,19 +1,18 @@
+#ifndef MMA1_SMART_PTR_OWNER_LESS_HPP_INCLUDED
+#define MMA1_SMART_PTR_OWNER_LESS_HPP_INCLUDED
 
 //
 //  owner_less.hpp
 //
 //  Copyright (c) 2008 Frank Mori Hess
 //  Copyright (c) 2016 Peter Dimov
-//  Copyright 2017 Victor Smirnov
 //
 //  Distributed under the Boost Software License, Version 1.0. (See
 //  accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 //
-//  See http://www.boost.org/libs/smart_ptr/smart_ptr.htm for documentation.
+//  See http://www.boost.org/libs/smart_ptr/ for documentation.
 //
-
-#pragma once
 
 namespace memoria {
 namespace v1 {
@@ -33,3 +32,4 @@ template<class T = void> struct owner_less
 
 }}}
 
+#endif  // #ifndef MMA1_SMART_PTR_OWNER_LESS_HPP_INCLUDED

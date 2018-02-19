@@ -1,9 +1,15 @@
-﻿#pragma once
+#ifndef MMA1_SMART_PTR_DETAIL_SP_COUNTED_BASE_STD_ATOMIC_HPP_INCLUDED
+#define MMA1_SMART_PTR_DETAIL_SP_COUNTED_BASE_STD_ATOMIC_HPP_INCLUDED
+
+// MS compatible compilers support #pragma once
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+# pragma once
+#endif
 
 //  detail/sp_counted_base_std_atomic.hpp - C++11 std::atomic
 //
 //  Copyright (c) 2007, 2013 Peter Dimov
-//  Copyright 2017 Victor Smirnov
 //
 //  Distributed under the Boost Software License, Version 1.0.
 //  See accompanying file LICENSE_1_0.txt or copy at
@@ -17,8 +23,7 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
-
-namespace _
+namespace detail
 {
 
 inline void atomic_increment( std::atomic_int_least32_t * pw )
@@ -26,27 +31,16 @@ inline void atomic_increment( std::atomic_int_least32_t * pw )
     pw->fetch_add( 1, std::memory_order_relaxed );
 }
 
-inline void nonatomic_increment(std::int_least32_t * pw )
-{
-    (void)(*pw)++;
-}
-
-inline std::int_least32_t nonatomic_decrement( std::int_least32_t * pw )
-{
-    return (*pw)--;
-}
-
 inline std::int_least32_t atomic_decrement( std::atomic_int_least32_t * pw )
 {
     return pw->fetch_sub( 1, std::memory_order_acq_rel );
 }
 
-
 inline std::int_least32_t atomic_conditional_increment( std::atomic_int_least32_t * pw )
 {
-//     long r = *pw;
-//     if( r != 0 ) ++*pw;
-//     return r;
+    // long r = *pw;
+    // if( r != 0 ) ++*pw;
+    // return r;
 
     std::int_least32_t r = pw->load( std::memory_order_relaxed );
 
@@ -61,124 +55,26 @@ inline std::int_least32_t atomic_conditional_increment( std::atomic_int_least32_
         {
             return r;
         }
-    }
+    }    
 }
 
-inline std::int_least32_t nonatomic_conditional_increment( std::int_least32_t * pw )
+class sp_counted_base
 {
-    std::int_least32_t r = *pw;
-    if( r != 0 ) ++(*pw);
-    return r;
-}
+private:
 
-
-
-class sp_local_counted_base;
-
-
-class sp_reactor_counted_base {
+    sp_counted_base( sp_counted_base const & );
+    sp_counted_base & operator= ( sp_counted_base const & );
 
     std::atomic_int_least32_t use_count_;	// #shared
     std::atomic_int_least32_t weak_count_;	// #weak + (#shared != 0)
 
-    int cpu_;
-
 public:
 
-    sp_reactor_counted_base( sp_reactor_counted_base const & ) = delete;
-    sp_reactor_counted_base & operator= ( sp_reactor_counted_base const & ) = delete;
-
-    sp_reactor_counted_base(int cpu) noexcept:
-        use_count_( 1 ), weak_count_( 1 ), cpu_(cpu)
+    sp_counted_base(): use_count_( 1 ), weak_count_( 1 )
     {
     }
 
-    virtual ~sp_reactor_counted_base() noexcept
-    {
-    }
-
-    int cpu() const noexcept {return cpu_;}
-
-    // dispose() is called when use_count_ drops to zero, to release
-    // the resources managed by *this.
-
-    virtual void dispose() = 0; // nothrow
-
-    // destroy() is called when weak_count_ drops to zero.
-
-    virtual void destroy() noexcept
-    {
-        free(this);
-    }
-
-    virtual void* get_deleter( boost::detail::sp_typeinfo const & ti ) = 0;
-    virtual void* get_untyped_deleter() = 0;
-
-    void add_ref_copy() noexcept
-    {
-        atomic_increment( &use_count_ );
-    }
-
-    bool add_ref_lock() noexcept
-    {
-        return atomic_conditional_increment( &use_count_ ) != 0;
-    }
-
-    bool release() noexcept
-    {
-        if( atomic_decrement( &use_count_ ) == 1 )
-        {
-            dispose();
-            return weak_release();
-        }
-
-        return false;
-    }
-
-    void weak_add_ref() noexcept
-    {
-        atomic_increment( &weak_count_ );
-    }
-
-    bool weak_release() noexcept
-    {
-        if( atomic_decrement( &weak_count_ ) == 1 )
-        {
-            destroy();
-            return true;
-        }
-
-        return false;
-    }
-
-    long use_count() const noexcept
-    {
-        return use_count_.load( std::memory_order_acquire );
-    }
-
-    virtual void set_local_counter(int cpu, sp_local_counted_base* counter) = 0;
-    virtual sp_local_counted_base* get_local_counter(int cpu) = 0;
-};
-
-
-
-
-
-class sp_local_counted_base
-{
-    std::int_least32_t use_count_;      // #shared
-    std::int_least32_t weak_count_;     // #weak + (#shared != 0)
-
-public:
-    sp_local_counted_base( sp_local_counted_base const & ) = delete;
-    sp_local_counted_base & operator= ( sp_local_counted_base const & ) = delete;
-
-
-    sp_local_counted_base(): use_count_( 1 ), weak_count_( 1 )
-    {
-    }
-
-    virtual ~sp_local_counted_base() noexcept
+    virtual ~sp_counted_base() // nothrow
     {
     }
 
@@ -189,58 +85,55 @@ public:
 
     // destroy() is called when weak_count_ drops to zero.
 
-    virtual void destroy() noexcept
+    virtual void destroy() // nothrow
     {
         delete this;
     }
 
-    virtual void * get_deleter( boost::detail::sp_typeinfo const & ti ) = 0;
+    virtual void * get_deleter( sp_typeinfo const & ti ) = 0;
+    virtual void * get_local_deleter( sp_typeinfo const & ti ) = 0;
     virtual void * get_untyped_deleter() = 0;
 
     void add_ref_copy()
     {
-        nonatomic_increment( &use_count_ );
+        atomic_increment( &use_count_ );
     }
 
-    bool add_ref_lock() noexcept // true on success
+    bool add_ref_lock() // true on success
     {
-        return nonatomic_conditional_increment( &use_count_ ) != 0;
+        return atomic_conditional_increment( &use_count_ ) != 0;
     }
 
-    void release() noexcept
+    void release() // nothrow
     {
-        if( nonatomic_decrement( &use_count_ ) == 1 )
+        if( atomic_decrement( &use_count_ ) == 1 )
         {
             dispose();
             weak_release();
         }
     }
 
-    void weak_add_ref() noexcept
+    void weak_add_ref() // nothrow
     {
-        nonatomic_increment( &weak_count_ );
+        atomic_increment( &weak_count_ );
     }
 
-    void weak_release() noexcept
+    void weak_release() // nothrow
     {
-        if( nonatomic_decrement( &weak_count_ ) == 1 )
+        if( atomic_decrement( &weak_count_ ) == 1 )
         {
             destroy();
         }
     }
 
-    long use_count() const noexcept
+    long use_count() const // nothrow
     {
-        return use_count_;
+        return use_count_.load( std::memory_order_acquire );
     }
 };
-
-
-
-
-
-
 
 } // namespace detail
 
 }}}
+
+#endif  // #ifndef MMA1_SMART_PTR_DETAIL_SP_COUNTED_BASE_STD_ATOMIC_HPP_INCLUDED

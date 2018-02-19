@@ -1,431 +1,433 @@
+#ifndef MMA1_SMART_PTR_LOCAL_SHARED_PTR_HPP_INCLUDED
+#define MMA1_SMART_PTR_LOCAL_SHARED_PTR_HPP_INCLUDED
 
+//  local_shared_ptr.hpp
 //
-//  shared_ptr.hpp
-//
-//  (C) Copyright Greg Colvin and Beman Dawes 1998, 1999.
-//  Copyright (c) 2001-2008 Peter Dimov
-//  Copyright 2017 Victor Smirnov
+//  Copyright 2017 Peter Dimov
 //
 //  Distributed under the Boost Software License, Version 1.0. (See
 //  accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 //
-//  See http://www.boost.org/libs/smart_ptr/shared_ptr.htm for documentation.
-//
-
-#pragma once
-
-#include <boost/config.hpp>   // for broken compiler workarounds
-
-#include <boost/assert.hpp>
-#include <boost/checked_delete.hpp>
-#include <boost/throw_exception.hpp>
+//  See http://www.boost.org/libs/smart_ptr/ for documentation.
 
 #include <memoria/v1/reactor/smart_ptr/shared_ptr.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/local_shared_count.hpp>
-
-#include <boost/detail/workaround.hpp>
-
-#include <memoria/v1/reactor/smart_ptr/detail/sp_convertible.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_disable_deprecated.hpp>
-
-
-#include <algorithm>            // for std::swap
-#include <functional>           // for std::less
-#include <typeinfo>             // for std::bad_cast
-#include <cstddef>              // for std::size_t
-
-#include <iosfwd>               // for std::basic_ostream
-
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
 
-
 template<class T> class local_shared_ptr;
-template<class T> class local_weak_ptr;
-template<class T> class enable_local_shared_from_this;
-class enable_local_shared_from_raw;
 
-
-
-namespace _
+namespace detail
 {
 
-
-
-// enable_shared_from_this support
-
-template< class X, class Y, class T > inline void sp_enable_local_shared_from_this( local_shared_ptr<X> const * ppx, Y const * py, enable_local_shared_from_this< T > const * pe )
+template< class E, class Y > inline void lsp_pointer_construct( reactor::local_shared_ptr< E > * /*ppx*/, Y * p, reactor::detail::local_counted_base * & pn )
 {
-    if( pe != 0 )
-    {
-        pe->_internal_accept_owner( ppx, const_cast< Y* >( py ) );
-    }
+    reactor::detail::sp_assert_convertible< Y, E >();
+
+    typedef reactor::detail::local_sp_deleter< reactor::checked_deleter<Y> > D;
+
+    reactor::shared_ptr<E> p2( p, D() );
+
+    D * pd = static_cast< D * >( p2._internal_get_untyped_deleter() );
+
+    pd->pn_ = p2._internal_count();
+
+    pn = pd;
 }
 
-template< class X, class Y > inline void sp_enable_local_shared_from_this( local_shared_ptr<X> * ppx, Y const * py, enable_shared_from_raw const * pe );
-
-
-
-inline void sp_enable_local_shared_from_this( ... )
+template< class E, class Y > inline void lsp_pointer_construct( reactor::local_shared_ptr< E[] > * /*ppx*/, Y * p, reactor::detail::local_counted_base * & pn )
 {
+    reactor::detail::sp_assert_convertible< Y[], E[] >();
+
+    typedef reactor::detail::local_sp_deleter< boost::checked_array_deleter<E> > D;
+
+    reactor::shared_ptr<E[]> p2( p, D() );
+
+    D * pd = static_cast< D * >( p2._internal_get_untyped_deleter() );
+
+    pd->pn_ = p2._internal_count();
+
+    pn = pd;
 }
 
-
-
-
-
-// pointer constructor helper
-
-template< class T, class Y > inline void sp_pointer_construct( local_shared_ptr< T > * ppx, Y * p, _::local_shared_count & pn )
+template< class E, std::size_t N, class Y > inline void lsp_pointer_construct( reactor::local_shared_ptr< E[N] > * /*ppx*/, Y * p, reactor::detail::local_counted_base * & pn )
 {
-    _::local_shared_count( p ).swap( pn );
-    _::sp_enable_local_shared_from_this( ppx, p, p );
+    reactor::detail::sp_assert_convertible< Y[N], E[N] >();
+
+    typedef reactor::detail::local_sp_deleter< boost::checked_array_deleter<E> > D;
+
+    reactor::shared_ptr<E[N]> p2( p, D() );
+
+    D * pd = static_cast< D * >( p2._internal_get_untyped_deleter() );
+
+    pd->pn_ = p2._internal_count();
+
+    pn = pd;
 }
 
-template< class T, class Y > inline void sp_pointer_construct(int cpu, local_shared_ptr< T > * ppx, Y * p, _::local_shared_count & pn )
+template< class E, class P, class D > inline void lsp_deleter_construct( reactor::local_shared_ptr< E > * /*ppx*/, P p, D const& d, reactor::detail::local_counted_base * & pn )
 {
-    _::local_shared_count(cpu, p ).swap( pn );
-    _::sp_enable_local_shared_from_this( ppx, p, p );
+    typedef reactor::detail::local_sp_deleter<D> D2;
+
+    reactor::shared_ptr<E> p2( p, D2( d ) );
+
+    D2 * pd = static_cast< D2 * >( p2._internal_get_untyped_deleter() );
+
+    pd->pn_ = p2._internal_count();
+
+    pn = pd;
 }
 
-template< class T, class Y > inline void sp_pointer_construct( local_shared_ptr< T[] > * /*ppx*/, Y * p, _::local_shared_count & pn )
+template< class E, class P, class D, class A > inline void lsp_allocator_construct( reactor::local_shared_ptr< E > * /*ppx*/, P p, D const& d, A const& a, boost::detail::local_counted_base * & pn )
 {
-    static_assert(std::is_convertible<Y[], T[]>::value, "");
-    _::local_shared_count( p, boost::checked_array_deleter< T >() ).swap( pn );
+    typedef reactor::detail::local_sp_deleter<D> D2;
+
+    reactor::shared_ptr<E> p2( p, D2( d ), a );
+
+    D2 * pd = static_cast< D2 * >( p2._internal_get_untyped_deleter() );
+
+    pd->pn_ = p2._internal_count();
+
+    pn = pd;
 }
 
-template< class T, class Y > inline void sp_pointer_construct(int cpu, local_shared_ptr< T[] > * /*ppx*/, Y * p, _::local_shared_count & pn )
+struct lsp_internal_constructor_tag
 {
-    static_assert(std::is_convertible<Y[], T[]>::value, "");
-    _::local_shared_count(cpu, p, boost::checked_array_deleter< T >() ).swap( pn );
-}
+};
 
-
-template< class T, std::size_t N, class Y >
-inline void sp_pointer_construct( local_shared_ptr< T[N] > * /*ppx*/, Y * p, _::local_shared_count & pn )
-{
-    static_assert(std::is_convertible<Y[N], T[N]>::value, "");
-    _::local_shared_count( p, boost::checked_array_deleter< T >() ).swap( pn );
-}
-
-template< class T, std::size_t N, class Y >
-inline void sp_pointer_construct(int cpu, local_shared_ptr< T[N] > * /*ppx*/, Y * p, _::local_shared_count & pn )
-{
-    static_assert(std::is_convertible<Y[N], T[N]>::value, "");
-    _::local_shared_count(cpu, p, boost::checked_array_deleter< T >() ).swap( pn );
-}
-
-
-
-// deleter constructor helper
-
-template< class T, class Y > inline void sp_deleter_construct( local_shared_ptr< T > * ppx, Y * p )
-{
-    _::sp_enable_local_shared_from_this( ppx, p, p );
-}
-
-
-template< class T, class Y > inline void sp_deleter_construct( local_shared_ptr< T[] > * /*ppx*/, Y * /*p*/ )
-{
-    static_assert(std::is_convertible<Y[], T[]>::value, "");
-}
-
-template< class T, std::size_t N, class Y >
-inline void sp_deleter_construct( local_shared_ptr< T[N] > * /*ppx*/, Y * /*p*/ )
-{
-    static_assert(std::is_convertible<Y[N], T[N]>::value, "");
-}
-
-
-
-
-
-
-} // namespace _
-
+} // namespace detail
 
 //
-//  local_shared_ptr
+// local_shared_ptr
 //
-//  An enhanced relative of scoped_ptr with reference counted copy semantics.
-//  The object pointed to is deleted when the last shared_ptr pointing to it
-//  is destroyed or reset.
+// as shared_ptr, but local to a thread.
+// reference count manipulations are non-atomic.
 //
 
 template<class T> class local_shared_ptr
 {
 private:
 
-    using this_type = local_shared_ptr<T> ;
+    typedef local_shared_ptr this_type;
 
 public:
 
-    using element_type = std::remove_extent_t<T> ;
+    typedef typename reactor::detail::sp_element<T>::type element_type;
 
-    local_shared_ptr() noexcept : px( nullptr ), pn() // never throws in 1.30+
+private:
+
+    element_type * px;
+    reactor::detail::local_counted_base * pn;
+
+    template<class Y> friend class local_shared_ptr;
+
+public:
+
+    // destructor
+
+    ~local_shared_ptr() noexcept
     {
-    }
-
-
-    local_shared_ptr( std::nullptr_t ) noexcept : px( nullptr ), pn() // never throws
-    {
-    }
-
-
-    template<class Y>
-    explicit local_shared_ptr( Y * p ): px( p ), pn() // Y must be complete
-    {
-        _::sp_pointer_construct( this, p, pn );
-    }
-
-    //
-    // Requirements: D's copy constructor must not throw
-    //
-    // shared_ptr will release p by calling d(p)
-    //
-
-    template<class Y, class D> local_shared_ptr( Y * p, D d ): px( p ), pn( p, d )
-    {
-        _::sp_deleter_construct( this, p );
-    }
-
-    template<class Y, class D, class... Args>
-    local_shared_ptr(int cpu, Y * p, D d, Args&&... args):
-        px( p ), pn(cpu, p, d, std::forward<Args>(args)...)
-    {
-        _::sp_deleter_construct( this, p );
-    }
-
-
-    template<class D> local_shared_ptr( std::nullptr_t p, D d ): px( p ), pn( p, d )
-    {
-    }
-
-
-    local_shared_ptr( local_shared_ptr const & r ) noexcept : px( r.px ), pn( r.pn )
-    {
-    }
-
-    local_shared_ptr( shared_ptr<T> const & r ) noexcept : px( r.px ), pn( r.pn )
-    {
-    }
-
-
-    template<class Y>
-    explicit local_shared_ptr( local_weak_ptr<Y> const & r ): pn( r.pn ) // may throw
-    {
-        static_assert(std::is_convertible<Y, T>::value, "");
-
-        // it is now safe to copy r.px, as pn(r.pn) did not throw
-        px = r.px;
-    }
-
-    template<class Y>
-    explicit local_shared_ptr( weak_ptr<Y> const & r ): pn( r.pn ) // may throw
-    {
-        static_assert(std::is_convertible<Y, T>::value, "");
-
-        // it is now safe to copy r.px, as pn(r.pn) did not throw
-        px = r.px;
-    }
-
-
-    template<class Y>
-    local_shared_ptr( local_weak_ptr<Y> const & r, _::sp_nothrow_tag ) noexcept :
-        px( 0 ), pn( r.pn, _::sp_nothrow_tag() )
-    {
-        if( !pn.empty() )
+        if( pn )
         {
-            px = r.px;
+            pn->release();
         }
     }
 
+    // constructors
+
+    constexpr local_shared_ptr() noexcept : px( 0 ), pn( 0 )
+    {
+    }
+
+#if !defined( BOOST_NO_CXX11_NULLPTR )
+
+    constexpr local_shared_ptr( reactor::detail::sp_nullptr_t ) noexcept : px( 0 ), pn( 0 )
+    {
+    }
+
+#endif
+
+    // internal constructor, used by make_shared
+    constexpr local_shared_ptr( reactor::detail::lsp_internal_constructor_tag, element_type * px_, reactor::detail::local_counted_base * pn_ ) noexcept : px( px_ ), pn( pn_ )
+    {
+    }
+
     template<class Y>
-    local_shared_ptr( local_shared_ptr<Y> const & r, typename _::sp_enable_if_convertible<Y,T>::type = _::sp_empty() )
-    noexcept : px( r.px ), pn( r.pn )
+    explicit local_shared_ptr( Y * p ): px( p ), pn( 0 )
     {
-        static_assert(std::is_convertible<Y, T>::value, "");
+        reactor::detail::lsp_pointer_construct( this, p, pn );
     }
 
-    template<class Y>
-    local_shared_ptr( shared_ptr<Y> const & r, typename _::sp_enable_if_convertible<Y,T>::type = _::sp_empty() )
-    noexcept : px( r.px ), pn( r.pn )
+    template<class Y, class D> local_shared_ptr( Y * p, D d ): px( p ), pn( 0 )
     {
-        static_assert(std::is_convertible<Y, T>::value, "");
+        reactor::detail::lsp_deleter_construct( this, p, d, pn );
     }
 
+#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-    // aliasing
-    template< class Y >
-    local_shared_ptr( local_shared_ptr<Y> const & r, element_type * p ) noexcept : px( p ), pn( r.pn )
+    template<class D> local_shared_ptr( reactor::detail::sp_nullptr_t p, D d ): px( p ), pn( 0 )
     {
+        reactor::detail::lsp_deleter_construct( this, p, d, pn );
     }
 
-    // aliasing
-    template< class Y >
-    local_shared_ptr( shared_ptr<Y> const & r, element_type * p ) noexcept : px( p ), pn( r.pn )
+#endif
+
+    template<class Y, class D, class A> local_shared_ptr( Y * p, D d, A a ): px( p ), pn( 0 )
     {
+        reactor::detail::lsp_allocator_construct( this, p, d, a, pn );
     }
 
+#if !defined( BOOST_NO_CXX11_NULLPTR )
 
+    template<class D, class A> local_shared_ptr( reactor::detail::sp_nullptr_t p, D d, A a ): px( p ), pn( 0 )
+    {
+        reactor::detail::lsp_allocator_construct( this, p, d, a, pn );
+    }
+
+#endif
+
+    // construction from shared_ptr
+
+    template<class Y> local_shared_ptr( shared_ptr<Y> const & r,
+        typename reactor::detail::sp_enable_if_convertible<Y, T>::type = reactor::detail::sp_empty() )
+        : px( r.get() ), pn( 0 )
+    {
+        reactor::detail::sp_assert_convertible< Y, T >();
+
+        if( r.use_count() != 0 )
+        {
+            pn = new reactor::detail::local_counted_impl( r._internal_count() );
+        }
+    }
+
+#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
+    template<class Y> local_shared_ptr( shared_ptr<Y> && r,
+        typename reactor::detail::sp_enable_if_convertible<Y, T>::type = reactor::detail::sp_empty() )
+        : px( r.get() ), pn( 0 )
+    {
+        reactor::detail::sp_assert_convertible< Y, T >();
+
+        if( r.use_count() != 0 )
+        {
+            pn = new reactor::detail::local_counted_impl( r._internal_count() );
+            r.reset();
+        }
+    }
+
+#endif
+
+    // construction from unique_ptr
+
+#if !defined( BOOST_NO_CXX11_SMART_PTR ) && !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
     template< class Y, class D >
-    local_shared_ptr( std::unique_ptr< Y, D > && r ): px( r.get() ), pn()
+    local_shared_ptr( std::unique_ptr< Y, D > && r,
+        typename reactor::detail::sp_enable_if_convertible<Y, T>::type = reactor::detail::sp_empty() )
+        : px( r.get() ), pn( 0 )
     {
-        static_assert(std::is_convertible<Y, T>::value, "");
+        reactor::detail::sp_assert_convertible< Y, T >();
 
-        typename std::unique_ptr< Y, D >::pointer tmp = r.get();
-        pn = _::shared_count( r );
-
-        _::sp_deleter_construct( this, tmp );
+        if( px )
+        {
+            pn = new reactor::detail::local_counted_impl( shared_ptr<T>( std::move(r) )._internal_count() );
+        }
     }
 
+#endif
 
+    template< class Y, class D >
+    local_shared_ptr( reactor::movelib::unique_ptr< Y, D > r ); // !
+    //	: px( r.get() ), pn( new reactor::detail::local_counted_impl( shared_ptr<T>( std::move(r) ) ) )
+    //{
+    //	reactor::detail::sp_assert_convertible< Y, T >();
+    //}
 
+    // copy constructor
+
+    local_shared_ptr( local_shared_ptr const & r ) noexcept : px( r.px ), pn( r.pn )
+    {
+        if( pn )
+        {
+            pn->add_ref();
+        }
+    }
+
+    // move constructor
+
+#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
+    local_shared_ptr( local_shared_ptr && r ) noexcept : px( r.px ), pn( r.pn )
+    {
+        r.px = 0;
+        r.pn = 0;
+    }
+
+#endif
+
+    // converting copy constructor
+
+    template<class Y> local_shared_ptr( local_shared_ptr<Y> const & r,
+        typename reactor::detail::sp_enable_if_convertible<Y, T>::type = reactor::detail::sp_empty() ) noexcept
+        : px( r.px ), pn( r.pn )
+    {
+        reactor::detail::sp_assert_convertible< Y, T >();
+
+        if( pn )
+        {
+            pn->add_ref();
+        }
+    }
+
+    // converting move constructor
+
+#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
+    template<class Y> local_shared_ptr( local_shared_ptr<Y> && r,
+        typename reactor::detail::sp_enable_if_convertible<Y, T>::type = reactor::detail::sp_empty() ) noexcept
+        : px( r.px ), pn( r.pn )
+    {
+        reactor::detail::sp_assert_convertible< Y, T >();
+
+        r.px = 0;
+        r.pn = 0;
+    }
+
+#endif
+
+    // aliasing
+
+    template<class Y>
+    local_shared_ptr( local_shared_ptr<Y> const & r, element_type * p ) noexcept : px( p ), pn( r.pn )
+    {
+        if( pn )
+        {
+            pn->add_ref();
+        }
+    }
+
+#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
+    template<class Y>
+    local_shared_ptr( local_shared_ptr<Y> && r, element_type * p ) noexcept : px( p ), pn( r.pn )
+    {
+        r.px = 0;
+        r.pn = 0;
+    }
+
+#endif
 
     // assignment
 
     local_shared_ptr & operator=( local_shared_ptr const & r ) noexcept
     {
-        this_type(r).swap(*this);
+        local_shared_ptr( r ).swap( *this );
         return *this;
     }
 
-
-    template<class Y>
-    local_shared_ptr & operator=(local_shared_ptr<Y> const & r) noexcept
+    template<class Y> local_shared_ptr & operator=( local_shared_ptr<Y> const & r ) noexcept
     {
-        this_type(r).swap(*this);
+        local_shared_ptr( r ).swap( *this );
         return *this;
     }
 
-
-    template<class Y>
-    local_shared_ptr & operator=(shared_ptr<Y> const & r) noexcept
-    {
-        px = r.px;
-
-        pn = r.pn;
-
-        return *this;
-    }
-
-
-
-    template<class Y, class D>
-    local_shared_ptr & operator=( std::unique_ptr<Y, D> && r )
-    {
-        this_type( static_cast< std::unique_ptr<Y, D> && >( r ) ).swap(*this);
-        return *this;
-    }
-
-
-    local_shared_ptr( local_shared_ptr && r ) noexcept : px( r.px ), pn()
-    {
-        pn.swap( r.pn );
-        r.px = 0;
-    }
-
-    local_shared_ptr( shared_ptr<T> && r ) noexcept : px( r.px ), pn(std::move(r.pn))
-    {
-        r.px = 0;
-    }
-
-
-    template<class Y>
-    local_shared_ptr( local_shared_ptr<Y> && r, typename _::sp_enable_if_convertible<Y,T>::type = _::sp_empty() )
-    noexcept : px( r.px ), pn()
-    {
-        static_assert(std::is_convertible<Y, T>::value, "");
-
-        pn.swap( r.pn );
-        r.px = 0;
-    }
+#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
     local_shared_ptr & operator=( local_shared_ptr && r ) noexcept
     {
-        this_type( static_cast< local_shared_ptr && >( r ) ).swap( *this );
+        local_shared_ptr( std::move( r ) ).swap( *this );
         return *this;
     }
 
     template<class Y>
     local_shared_ptr & operator=( local_shared_ptr<Y> && r ) noexcept
     {
-        this_type( static_cast< local_shared_ptr<Y> && >( r ) ).swap( *this );
+        local_shared_ptr( std::move( r ) ).swap( *this );
         return *this;
     }
 
-    // aliasing move
-    template<class Y>
-    local_shared_ptr( local_shared_ptr<Y> && r, element_type * p ) noexcept : px( p ), pn()
-    {
-        pn.swap( r.pn );
-        r.px = 0;
-    }
+#endif
 
+#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-    local_shared_ptr & operator=( std::nullptr_t ) noexcept // never throws
+    local_shared_ptr & operator=( reactor::detail::sp_nullptr_t ) noexcept
     {
-        this_type().swap(*this);
+        local_shared_ptr().swap(*this);
         return *this;
     }
 
-    void reset() noexcept // never throws in 1.30+
+#endif
+
+#if !defined( BOOST_NO_CXX11_SMART_PTR ) && !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
+    template<class Y, class D>
+    local_shared_ptr & operator=( std::unique_ptr<Y, D> && r )
     {
-        this_type().swap(*this);
+        local_shared_ptr( std::move(r) ).swap( *this );
+        return *this;
+    }
+
+#endif
+
+    template<class Y, class D>
+    local_shared_ptr & operator=( reactor::movelib::unique_ptr<Y, D> r ); // !
+
+    // reset
+
+    void reset() noexcept
+    {
+        local_shared_ptr().swap( *this );
     }
 
     template<class Y> void reset( Y * p ) // Y must be complete
     {
-        BOOST_ASSERT( p == 0 || p != px ); // catch self-reset errors
-        this_type( p ).swap( *this );
+        local_shared_ptr( p ).swap( *this );
     }
 
     template<class Y, class D> void reset( Y * p, D d )
     {
-        this_type( p, d ).swap( *this );
+        local_shared_ptr( p, d ).swap( *this );
     }
 
     template<class Y, class D, class A> void reset( Y * p, D d, A a )
     {
-        this_type( p, d, a ).swap( *this );
+        local_shared_ptr( p, d, a ).swap( *this );
     }
 
-    template<class Y> void reset( local_shared_ptr<Y> const & r, element_type * p )
+    template<class Y> void reset( local_shared_ptr<Y> const & r, element_type * p ) noexcept
     {
-        this_type( r, p ).swap( *this );
+        local_shared_ptr( r, p ).swap( *this );
     }
 
-    template<class Y> void reset( local_shared_ptr<Y> && r, element_type * p )
+#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
+    template<class Y> void reset( local_shared_ptr<Y> && r, element_type * p ) noexcept
     {
-        this_type( static_cast< local_shared_ptr<Y> && >( r ), p ).swap( *this );
+        local_shared_ptr( std::move( r ), p ).swap( *this );
     }
 
+#endif
 
-    // never throws (but has a BOOST_ASSERT in it, so not marked with noexcept)
-    typename _::sp_dereference< T >::type operator* () const
+    // accessors
+
+    typename reactor::detail::sp_dereference< T >::type operator* () const noexcept
     {
-        BOOST_ASSERT( px != 0 );
         return *px;
     }
-    
-    // never throws (but has a BOOST_ASSERT in it, so not marked with noexcept)
-    typename _::sp_member_access< T >::type operator-> () const
+
+    typename reactor::detail::sp_member_access< T >::type operator-> () const noexcept
     {
-        BOOST_ASSERT( px != 0 );
         return px;
     }
-    
-    // never throws (but has a BOOST_ASSERT in it, so not marked with noexcept)
-    typename _::sp_array_access< T >::type operator[] ( std::ptrdiff_t i ) const
+
+    typename reactor::detail::sp_array_access< T >::type operator[] ( std::ptrdiff_t i ) const noexcept_WITH_ASSERT
     {
         BOOST_ASSERT( px != 0 );
-        BOOST_ASSERT( i >= 0 && ( i < _::sp_extent< T >::value || _::sp_extent< T >::value == 0 ) );
+        BOOST_ASSERT( i >= 0 && ( i < reactor::detail::sp_extent< T >::value || reactor::detail::sp_extent< T >::value == 0 ) );
 
-        return static_cast< typename _::sp_array_access< T >::type >( px[ i ] );
+        return static_cast< typename reactor::detail::sp_array_access< T >::type >( px[ i ] );
     }
 
     element_type * get() const noexcept
@@ -433,113 +435,133 @@ public:
         return px;
     }
 
-    bool operator! () const noexcept
+    // implicit conversion to "bool"
+#include <memoria/v1/reactor/smart_ptr/detail/operator_bool.hpp>
+
+    long local_use_count() const noexcept
     {
-        return px == 0;
+        return pn? pn->local_use_count(): 0;
     }
 
-    operator bool () const noexcept
+    // conversions to shared_ptr, weak_ptr
+
+#if !defined( BOOST_SP_NO_SP_CONVERTIBLE ) && !defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS)
+    template<class Y, class E = typename reactor::detail::sp_enable_if_convertible<T,Y>::type> operator shared_ptr<Y>() const noexcept
+#else
+    template<class Y> operator shared_ptr<Y>() const noexcept
+#endif
     {
-        return px != 0;
+        reactor::detail::sp_assert_convertible<T, Y>();
+
+        if( pn )
+        {
+            return shared_ptr<Y>( reactor::detail::sp_internal_constructor_tag(), px, pn->local_cb_get_shared_count() );
+        }
+        else
+        {
+            return shared_ptr<Y>();
+        }
     }
 
-
-    bool unique() const noexcept
+#if !defined( BOOST_SP_NO_SP_CONVERTIBLE ) && !defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS)
+    template<class Y, class E = typename reactor::detail::sp_enable_if_convertible<T,Y>::type> operator weak_ptr<Y>() const noexcept
+#else
+    template<class Y> operator weak_ptr<Y>() const noexcept
+#endif
     {
-        return pn.unique();
+        reactor::detail::sp_assert_convertible<T, Y>();
+
+        if( pn )
+        {
+            return shared_ptr<Y>( reactor::detail::sp_internal_constructor_tag(), px, pn->local_cb_get_shared_count() );
+        }
+        else
+        {
+            return weak_ptr<Y>();
+        }
     }
 
-    long use_count() const noexcept
+    // swap
+
+    void swap( local_shared_ptr & r ) noexcept
     {
-        return pn.use_count();
+        std::swap( px, r.px );
+        std::swap( pn, r.pn );
     }
 
-    void swap( local_shared_ptr & other ) noexcept
+    // owner_before
+
+    template<class Y> bool owner_before( local_shared_ptr<Y> const & r ) const noexcept
     {
-        std::swap(px, other.px);
-        pn.swap(other.pn);
+        return std::less< reactor::detail::local_counted_base* >()( pn, r.pn );
     }
+};
 
-    template<class Y> bool owner_before( local_shared_ptr<Y> const & rhs ) const noexcept
-    {
-        return pn < rhs.pn;
-    }
-
-    template<class Y> bool owner_before( local_weak_ptr<Y> const & rhs ) const noexcept
-    {
-        return pn < rhs.pn;
-    }
-
-    void * _internal_get_deleter( boost::detail::sp_typeinfo const & ti ) const noexcept
-    {
-        return pn.get_deleter( ti );
-    }
-
-    void * _internal_get_untyped_deleter() const noexcept
-    {
-        return pn.get_untyped_deleter();
-    }
-
-    bool _internal_equiv( local_shared_ptr const & r ) const noexcept
-    {
-        return px == r.px && pn == r.pn;
-    }
-
-
-private:
-
-    template<class Y> friend class local_shared_ptr;
-    template<class Y> friend class local_weak_ptr;
-
-    element_type * px;                 // contained pointer
-    _::local_shared_count pn;           // reference counter
-
-};  // shared_ptr
-
-template<class T, class U> inline bool operator==(local_shared_ptr<T> const & a, local_shared_ptr<U> const & b) noexcept
+template<class T, class U> inline bool operator==( local_shared_ptr<T> const & a, local_shared_ptr<U> const & b ) noexcept
 {
     return a.get() == b.get();
 }
 
-template<class T, class U> inline bool operator!=(local_shared_ptr<T> const & a, local_shared_ptr<U> const & b) noexcept
+template<class T, class U> inline bool operator!=( local_shared_ptr<T> const & a, local_shared_ptr<U> const & b ) noexcept
 {
     return a.get() != b.get();
 }
 
+#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-
-template<class T> inline bool operator==( local_shared_ptr<T> const & p, std::nullptr_t ) noexcept
+template<class T> inline bool operator==( local_shared_ptr<T> const & p, reactor::detail::sp_nullptr_t ) noexcept
 {
     return p.get() == 0;
 }
 
-template<class T> inline bool operator==( std::nullptr_t, local_shared_ptr<T> const & p ) noexcept
+template<class T> inline bool operator==( reactor::detail::sp_nullptr_t, local_shared_ptr<T> const & p ) noexcept
 {
     return p.get() == 0;
 }
 
-template<class T> inline bool operator!=( local_shared_ptr<T> const & p, std::nullptr_t ) noexcept
+template<class T> inline bool operator!=( local_shared_ptr<T> const & p, reactor::detail::sp_nullptr_t ) noexcept
 {
     return p.get() != 0;
 }
 
-template<class T> inline bool operator!=( std::nullptr_t, local_shared_ptr<T> const & p ) noexcept
+template<class T> inline bool operator!=( reactor::detail::sp_nullptr_t, local_shared_ptr<T> const & p ) noexcept
 {
     return p.get() != 0;
 }
 
+#endif
+
+template<class T, class U> inline bool operator==( local_shared_ptr<T> const & a, shared_ptr<U> const & b ) noexcept
+{
+    return a.get() == b.get();
+}
+
+template<class T, class U> inline bool operator!=( local_shared_ptr<T> const & a, shared_ptr<U> const & b ) noexcept
+{
+    return a.get() != b.get();
+}
+
+template<class T, class U> inline bool operator==( shared_ptr<T> const & a, local_shared_ptr<U> const & b ) noexcept
+{
+    return a.get() == b.get();
+}
+
+template<class T, class U> inline bool operator!=( shared_ptr<T> const & a, local_shared_ptr<U> const & b ) noexcept
+{
+    return a.get() != b.get();
+}
 
 template<class T, class U> inline bool operator<(local_shared_ptr<T> const & a, local_shared_ptr<U> const & b) noexcept
 {
     return a.owner_before( b );
 }
 
-template<class T> inline void swap(local_shared_ptr<T> & a, local_shared_ptr<T> & b) noexcept
+template<class T> inline void swap( local_shared_ptr<T> & a, local_shared_ptr<T> & b ) noexcept
 {
-    a.swap(b);
+    a.swap( b );
 }
 
-template<class T, class U> shared_ptr<T> static_pointer_cast( local_shared_ptr<U> const & r ) noexcept
+template<class T, class U> local_shared_ptr<T> static_pointer_cast( local_shared_ptr<U> const & r ) noexcept
 {
     (void) static_cast< T* >( static_cast< U* >( 0 ) );
 
@@ -549,7 +571,7 @@ template<class T, class U> shared_ptr<T> static_pointer_cast( local_shared_ptr<U
     return local_shared_ptr<T>( r, p );
 }
 
-template<class T, class U> shared_ptr<T> const_pointer_cast( local_shared_ptr<U> const & r ) noexcept
+template<class T, class U> local_shared_ptr<T> const_pointer_cast( local_shared_ptr<U> const & r ) noexcept
 {
     (void) const_cast< T* >( static_cast< U* >( 0 ) );
 
@@ -559,7 +581,7 @@ template<class T, class U> shared_ptr<T> const_pointer_cast( local_shared_ptr<U>
     return local_shared_ptr<T>( r, p );
 }
 
-template<class T, class U> shared_ptr<T> dynamic_pointer_cast( local_shared_ptr<U> const & r ) noexcept
+template<class T, class U> local_shared_ptr<T> dynamic_pointer_cast( local_shared_ptr<U> const & r ) noexcept
 {
     (void) dynamic_cast< T* >( static_cast< U* >( 0 ) );
 
@@ -579,6 +601,7 @@ template<class T, class U> local_shared_ptr<T> reinterpret_pointer_cast( local_s
     return local_shared_ptr<T>( r, p );
 }
 
+#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
 template<class T, class U> local_shared_ptr<T> static_pointer_cast( local_shared_ptr<U> && r ) noexcept
 {
@@ -620,85 +643,33 @@ template<class T, class U> local_shared_ptr<T> reinterpret_pointer_cast( local_s
     return local_shared_ptr<T>( std::move(r), p );
 }
 
+#endif // !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
-// get_pointer() enables mem_fn to recognize shared_ptr
+// get_pointer() enables reactor::mem_fn to recognize local_shared_ptr
 
-template<class T> inline typename local_shared_ptr<T>::element_type * get_pointer(local_shared_ptr<T> const & p) noexcept
+template<class T> inline typename local_shared_ptr<T>::element_type * get_pointer( local_shared_ptr<T> const & p ) noexcept
 {
     return p.get();
 }
 
 // operator<<
 
+#if !defined(BOOST_NO_IOSTREAM)
 
-template<class Y> std::ostream & operator<< (std::ostream & os, local_shared_ptr<Y> const & p)
+template<class E, class T, class Y> std::basic_ostream<E, T> & operator<< ( std::basic_ostream<E, T> & os, local_shared_ptr<Y> const & p )
 {
     os << p.get();
     return os;
 }
 
-
+#endif // !defined(BOOST_NO_IOSTREAM)
 
 // get_deleter
 
-namespace _
-{
-
-
-template<class D, class T> D * basic_get_deleter( local_shared_ptr<T> const & p ) noexcept
-{
-    return static_cast<D *>( p._internal_get_deleter(BOOST_SP_TYPEID(D)) );
-}
-
-
-class esft2_local_deleter_wrapper
-{
-private:
-
-    local_shared_ptr<void const volatile> deleter_;
-
-public:
-
-    esft2_local_deleter_wrapper()
-    {
-    }
-
-    template< class T > void set_deleter( local_shared_ptr<T> const & deleter )
-    {
-        deleter_ = deleter;
-    }
-
-    template<typename D> D* get_deleter() const noexcept
-    {
-        return _::basic_get_deleter<D>( deleter_ );
-    }
-
-    template< class T> void operator()( T* )
-    {
-        BOOST_ASSERT( deleter_.use_count() <= 1 );
-        deleter_.reset();
-    }
-};
-
-} // namespace _
-
 template<class D, class T> D * get_deleter( local_shared_ptr<T> const & p ) noexcept
 {
-    D *del = _::basic_get_deleter<D>(p);
-
-    if(del == 0)
-    {
-        _::esft2_local_deleter_wrapper *del_wrapper = _::basic_get_deleter<_::esft2_local_deleter_wrapper>(p);
-// The following get_deleter method call is fully qualified because
-// older versions of gcc (2.95, 3.2.3) fail to compile it when written del_wrapper->get_deleter<D>()
-        if(del_wrapper) {
-            del = del_wrapper->_::esft2_local_deleter_wrapper::get_deleter<D>();
-        }
-    }
-
-    return del;
+    return get_deleter<D>( shared_ptr<T>( p ) );
 }
-
 
 // hash_value
 
@@ -706,8 +677,9 @@ template< class T > struct hash;
 
 template< class T > std::size_t hash_value( local_shared_ptr<T> const & p ) noexcept
 {
-    return hash< typename local_shared_ptr<T>::element_type* >()( p.get() );
+    return boost::hash< typename local_shared_ptr<T>::element_type* >()( p.get() );
 }
 
 }}}
 
+#endif  // #ifndef MMA1_SMART_PTR_LOCAL_SHARED_PTR_HPP_INCLUDED

@@ -288,11 +288,13 @@ U16String format(const char16_t* format, Args&&... args)
 
     constexpr size_t args_size = sizeof...(Args);
 
-    std::function<void (const FormatSpecifier&)> handlers[] = {
-        [&](const FormatSpecifier& fmt){
+    using ArgFn = std::function<void (const FormatSpecifier&)>;
+
+    ArgFn handlers[] = {
+        ArgFn([&](const FormatSpecifier& fmt){
             auto str = U8String((SBuf() << args).str()).to_u16();
             consumer.consume(str.data(), str.length());
-        }...
+        }) ...
     };
 
     parseFormat(

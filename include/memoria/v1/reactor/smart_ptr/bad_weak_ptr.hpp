@@ -1,18 +1,23 @@
+#ifndef MMA1_SMART_PTR_BAD_WEAK_PTR_HPP_INCLUDED
+#define MMA1_SMART_PTR_BAD_WEAK_PTR_HPP_INCLUDED
 
-#pragma once
+// MS compatible compilers support #pragma once
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+# pragma once
+#endif
 
 //
-//  boost/smart_ptr/bad_weak_ptr.hpp
+//  memoria/v1/reactor/smart_ptr/bad_weak_ptr.hpp
 //
 //  Copyright (c) 2001, 2002, 2003 Peter Dimov and Multi Media Ltd.
-//  Copyright 2017 Victor Smirnov
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include <boost/config.hpp>
 #include <exception>
 
 #ifdef __BORLANDC__
@@ -33,7 +38,8 @@ namespace reactor {
 # pragma option push -pc
 #endif
 
-#if defined(__clang__)
+#if defined(BOOST_CLANG)
+// Intel C++ on Mac defines __clang__ but doesn't support the pragma
 # pragma clang diagnostic push
 # pragma clang diagnostic ignored "-Wweak-vtables"
 #endif
@@ -48,7 +54,7 @@ public:
     }
 };
 
-#if defined(__clang__)
+#if defined(BOOST_CLANG)
 # pragma clang diagnostic pop
 #endif
 
@@ -62,3 +68,4 @@ public:
 # pragma warn .8026     // Functions with excep. spec. are not expanded inline
 #endif
 
+#endif  // #ifndef MMA1_SMART_PTR_BAD_WEAK_PTR_HPP_INCLUDED

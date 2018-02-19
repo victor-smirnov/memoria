@@ -46,7 +46,7 @@ option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
 option(BUILD_TESTS      "Build Unit/Functional tests" OFF)
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
-#option(BUILD_STATIC     "Build statically linked binaries" OFF)
+option(BUILD_STATIC     "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES   "Build project examples" OFF)
 option(ICU_DEBUG        "Debug FindICU" OFF)
 option(Boost_DEBUG      "Debug FindBoost" OFF)
@@ -107,6 +107,8 @@ if (BUILD_POSIX)
     
     add_global_libs(dl pthread)
 
+    add_global_linker(-static-libstdc++)
+
     if (BUILD_STATIC)
         add_definitions(-static)
         add_global_linker(-static) #-static-libgcc -static-libstdc++
@@ -132,7 +134,7 @@ if (MSVC)
     find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
 else()
     set (Boost_USE_STATIC_RUNTIME    OFF)
-    set (Boost_USE_STATIC_LIBS       OFF)
+    set (Boost_USE_STATIC_LIBS       ON)
     find_package(ICU 60.2 COMPONENTS i18n data uc REQUIRED)
 endif()
 

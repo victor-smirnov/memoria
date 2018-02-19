@@ -39,7 +39,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace reactor {
+namespace reactor_1_64 {
 
 
 namespace _

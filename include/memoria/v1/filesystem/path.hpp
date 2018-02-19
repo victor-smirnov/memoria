@@ -63,14 +63,14 @@ public:
 
 # ifdef BOOST_WINDOWS_API
     typedef wchar_t                        value_type;
-    BOOST_STATIC_CONSTEXPR value_type      separator = L'/';
-    BOOST_STATIC_CONSTEXPR value_type      preferred_separator = L'\\';
-    BOOST_STATIC_CONSTEXPR value_type      dot = L'.';
+    static constexpr value_type      separator = L'/';
+    static constexpr value_type      preferred_separator = L'\\';
+    static constexpr value_type      dot = L'.';
 # else 
     typedef char                           value_type;
-    BOOST_STATIC_CONSTEXPR value_type      separator = '/';
-    BOOST_STATIC_CONSTEXPR value_type      preferred_separator = '/';
-    BOOST_STATIC_CONSTEXPR value_type      dot = '.';
+    static constexpr value_type      separator = '/';
+    static constexpr value_type      preferred_separator = '/';
+    static constexpr value_type      dot = '.';
 # endif
     typedef std::basic_string<value_type>  string_type;
     typedef std::codecvt<wchar_t, char, std::mbstate_t>   codecvt_type;
@@ -133,7 +133,7 @@ public:
 
     //  -----  constructors  -----
 
-    path() BOOST_NOEXCEPT {}
+    path() noexcept {}
     path(const path& p) : m_pathname(p.m_pathname) {}
 
     template <class Source>
@@ -165,8 +165,8 @@ public:
     //  functions. GCC is not even consistent for the same release on different platforms.
 
 # if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-    path(path&& p) BOOST_NOEXCEPT { m_pathname = std::move(p.m_pathname); }
-    path& operator=(path&& p) BOOST_NOEXCEPT
+    path(path&& p) noexcept { m_pathname = std::move(p.m_pathname); }
+    path& operator=(path&& p) noexcept
     { m_pathname = std::move(p.m_pathname); return *this; }
 # endif
 
@@ -376,7 +376,7 @@ public:
 
     //  -----  modifiers  -----
 
-    void   clear() BOOST_NOEXCEPT             { m_pathname.clear(); }
+    void   clear() noexcept             { m_pathname.clear(); }
     path&  make_preferred()
 #   ifdef BOOST_POSIX_API
     { return *this; }  // POSIX no effect
@@ -386,7 +386,7 @@ public:
     path&  remove_filename();
     path&  remove_trailing_separator();
     path&  replace_extension(const path& new_extension = path());
-    void   swap(path& rhs) BOOST_NOEXCEPT     { m_pathname.swap(rhs.m_pathname); }
+    void   swap(path& rhs) noexcept     { m_pathname.swap(rhs.m_pathname); }
 
     //  -----  observers  -----
 
@@ -409,9 +409,9 @@ public:
 
     //  -----  native format observers  -----
 
-    const string_type&  native() const BOOST_NOEXCEPT  { return m_pathname; }
-    const value_type*   c_str() const BOOST_NOEXCEPT   { return m_pathname.c_str(); }
-    string_type::size_type size() const BOOST_NOEXCEPT { return m_pathname.size(); }
+    const string_type&  native() const noexcept  { return m_pathname; }
+    const value_type*   c_str() const noexcept   { return m_pathname.c_str(); }
+    string_type::size_type size() const noexcept { return m_pathname.size(); }
 
     U16String to_u16() const {
         return U8String(std_string()).to_u16();
@@ -522,7 +522,7 @@ public:
 
     //  -----  compare  -----
 
-    int compare(const path& p) const BOOST_NOEXCEPT;  // generic, lexicographical
+    int compare(const path& p) const noexcept;  // generic, lexicographical
     int compare(const std::string& s) const { return compare(path(s)); }
     int compare(const value_type* s) const  { return compare(path(s)); }
 
@@ -540,7 +540,7 @@ public:
 
     //  -----  query  -----
 
-    bool empty() const BOOST_NOEXCEPT{ return m_pathname.empty(); }
+    bool empty() const noexcept{ return m_pathname.empty(); }
     bool filename_is_dot() const;
     bool filename_is_dot_dot() const;
     bool has_root_path() const       { return has_root_directory() || has_root_name(); }
@@ -860,7 +860,7 @@ namespace detail
 //  element separator. For Windows, forward slash and back slash are the possible
 //  directory separators, but colon (example: "c:foo") is also an element separator.
 
-inline bool is_directory_separator(path::value_type c) BOOST_NOEXCEPT
+inline bool is_directory_separator(path::value_type c) noexcept
 {
     return c == path::separator
         #     ifdef BOOST_WINDOWS_API
@@ -868,7 +868,7 @@ inline bool is_directory_separator(path::value_type c) BOOST_NOEXCEPT
         #     endif
             ;
 }
-inline bool is_element_separator(path::value_type c) BOOST_NOEXCEPT
+inline bool is_element_separator(path::value_type c) noexcept
 {
     return c == path::separator
         #     ifdef BOOST_WINDOWS_API

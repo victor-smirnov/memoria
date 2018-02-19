@@ -1,4 +1,12 @@
-#pragma once
+#ifndef MMA1_SMART_PTR_DETAIL_SP_DISABLE_DEPRECATED_HPP_INCLUDED
+#define MMA1_SMART_PTR_DETAIL_SP_DISABLE_DEPRECATED_HPP_INCLUDED
+
+// MS compatible compilers support #pragma once
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+# pragma once
+#endif
+
 //
 //  memoria/v1/reactor/smart_ptr/detail/sp_disable_deprecated.hpp
 //
@@ -29,3 +37,4 @@
 
 #endif
 
+#endif // #ifndef MMA1_SMART_PTR_DETAIL_SP_DISABLE_DEPRECATED_HPP_INCLUDED

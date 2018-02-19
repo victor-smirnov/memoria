@@ -1,11 +1,12 @@
-#pragma once
+#ifndef MMA1_SMART_PTR_DETAIL_ATOMIC_COUNT_STD_ATOMIC_HPP_INCLUDED
+#define MMA1_SMART_PTR_DETAIL_ATOMIC_COUNT_STD_ATOMIC_HPP_INCLUDED
+
 //
 //  boost/detail/atomic_count_std_atomic.hpp
 //
 //  atomic_count for std::atomic
 //
 //  Copyright 2013 Peter Dimov
-//  Copyright 2017 Victor Smirnov
 //
 //  Distributed under the Boost Software License, Version 1.0.
 //  See accompanying file LICENSE_1_0.txt or copy at
@@ -19,8 +20,7 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
-
-namespace _
+namespace detail
 {
 
 class atomic_count
@@ -57,3 +57,5 @@ private:
 } // namespace detail
 
 }}}
+
+#endif // #ifndef MMA1_SMART_PTR_DETAIL_ATOMIC_COUNT_STD_ATOMIC_HPP_INCLUDED
