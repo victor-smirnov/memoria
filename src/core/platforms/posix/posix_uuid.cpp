@@ -16,16 +16,56 @@
 
 
 #include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/v1/core/types/type2type.hpp>
 
-#include <uuid/uuid.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+
 #include <string.h>
+#include <chrono>
+#include <memory>
 
-#include <mutex>
 
 namespace memoria {
 namespace v1 {
 
-uint64_t cnt = 1;
+namespace {
+
+uint64_t current_time()
+{
+    auto time = std::chrono::high_resolution_clock::now();
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(time.time_since_epoch()).count();
+}
+
+using BasicRNG = boost::uuids::basic_random_generator<boost::mt19937_64>;
+
+class RNG {
+    boost::mt19937_64 mt64_;
+    BasicRNG rng_;
+public:
+    RNG(): rng_(&mt64_)
+    {
+        // Adding a little bit more randomness
+        auto value = std::make_unique<uint64_t>();
+        uint64_t ivalue = T2T<uint64_t>(value.get());
+
+        mt64_.seed(current_time() ^ ivalue);
+    }
+
+    auto gen() {
+        return rng_();
+    }
+};
+
+RNG& get_RNG() {
+    static thread_local RNG rng;
+    return rng;
+}
+
+}
+
+using uuid_t = decltype(boost::uuids::uuid::data);
 
 UUID make_uuid(uuid_t uuid)
 {
@@ -44,37 +84,27 @@ UUID make_uuid(uuid_t uuid)
     return uuid2;
 }
 
-std::mutex mutex_;
 
 UUID UUID::make_random()
 {
-    uuid_t uuid;
-
-    uuid_generate_random(uuid);
-
-//    std::lock_guard<std::mutex> lk(mutex_);
-
-    return make_uuid(uuid);
-//    return UUID(0, cnt++);
+    auto uuid = get_RNG().gen();
+    return make_uuid(uuid.data);
 }
 
 UUID UUID::make_time()
 {
-    uuid_t uuid;
-
-    uuid_generate_time(uuid);
-
-    return make_uuid(uuid);
+    return make_random();
 }
 
 
 UUID UUID::parse(const char* in)
 {
-    uuid_t uu;
 
-    uuid_parse(in, uu);
+    boost::uuids::string_generator gen;
 
-    return make_uuid(uu);
+    boost::uuids::uuid v = gen(in);
+
+    return make_uuid(v.data);
 }
 
 
@@ -83,23 +113,19 @@ UUID UUID::parse(const char* in)
 
 std::ostream& operator<<(std::ostream& out, const UUID& uuid)
 {
-    uuid_t uu;
+    boost::uuids::uuid uu;
 
     for (int c = 0; c < 8; c++)
     {
-        uu[c] = uuid.hi() >> (c * 8);
+        uu.data[c] = uuid.hi() >> (c * 8);
     }
 
     for (int c = 0; c < 8; c++)
     {
-        uu[c + 8] = uuid.lo() >> (c * 8);
+        uu.data[c + 8] = uuid.lo() >> (c * 8);
     }
 
-    char out_buffer[37];
-
-    uuid_unparse(uu, out_buffer);
-
-    out<<out_buffer;
+    out << uu;
 
     return out;
 }
@@ -121,10 +147,3 @@ std::istream& operator>>(std::istream& in, UUID& uuid)
 }
 
 }}
-
-
-namespace std {
-
-
-
-}

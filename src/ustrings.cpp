@@ -2,6 +2,8 @@
 #include <memoria/v1/core/strings/string.hpp>
 #include <memoria/v1/core/regexp/icu_regexp.hpp>
 
+#include <memoria/v1/core/tools/uuid.hpp>
+
 #include <iostream>
 
 using namespace memoria::v1;
@@ -22,6 +24,10 @@ int main(int argc, char** argv)
         std::cout << strw << std::endl;
 
         std::wcout << strw << std::endl;
+
+
+        std::cout << UUID::make_random() << std::endl;
+        std::cout << UUID::make_random() << std::endl;
     }
     catch (MemoriaThrowable& e) {
         e.dump(std::cout);

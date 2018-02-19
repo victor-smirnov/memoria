@@ -23,9 +23,6 @@ project (Memoria)
 
 set(VERSION "0.1.0")
 
-set_property (GLOBAL PROPERTY MEMORIA_LINK_FLAGS)
-set_property (GLOBAL PROPERTY MEMORIA_LIBS)
-
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Memoria.cmake)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -107,7 +104,7 @@ if (BUILD_POSIX)
         add_global_linker(-fsanitize=thread)
     endif()
     
-    add_global_libs(dl uuid pthread)
+    add_global_libs(dl pthread)
 
     if (BUILD_STATIC)
         add_definitions(-static)
@@ -142,12 +139,12 @@ find_package(Boost 1.66.0 COMPONENTS filesystem context program_options REQUIRED
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
-set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${Boost_LIBRARIES})
+add_global_libs(${Boost_LIBRARIES})
 
 
 include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})
-set (MEMORIA_LIBS "${MEMORIA_LIBS}" ${ICU_LIBRARIES})
+add_global_libs(${ICU_LIBRARIES})
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 

@@ -19,6 +19,8 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
 
+#include <boost/uuid/uuid.hpp>
+
 #include <iostream>
 
 
