@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (BUILD_UNIX)
+if (BUILD_POSIX)
     add_subdirectory(posix)
-endif()
-
-if (MINGW)
-    add_subdirectory(mingw)
 endif()
 
 if (BUILD_MSVC)

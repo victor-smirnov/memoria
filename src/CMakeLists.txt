@@ -26,18 +26,17 @@ add_subdirectory(reactor)
 add_subdirectory(filesystem)
 
 
-if (APPLE)
-        add_subdirectory(jemalloc/src/linux)
-        add_subdirectory(jemalloc/src/macosx)
+if (BUILD_MACOSX)
+    add_subdirectory(jemalloc/src/linux)
+    add_subdirectory(jemalloc/src/macosx)
 elseif (BUILD_MSVC)
-        add_subdirectory(jemalloc/src/linux)
+    add_subdirectory(jemalloc/src/linux)
 else()
-        add_subdirectory(jemalloc/src/linux)
+    add_subdirectory(jemalloc/src/linux)
 endif()
 
 
 get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
-
 
 add_library(Memoria STATIC ${GLOBAL_SRCS})
 
@@ -45,13 +44,13 @@ SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}
 SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 target_link_libraries(Memoria ${MEMORIA_LIBS})
 
-if (APPLE)
-        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/macosx)
+if (BUILD_MACOSX)
+    target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/macosx)
 elseif (BUILD_MSVC)
-	target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc/msvc_compat)
-        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc)
+    target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc/msvc_compat)
+    target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc)
 else()
-        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/linux)
+    target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/linux)
 endif()
 
 
