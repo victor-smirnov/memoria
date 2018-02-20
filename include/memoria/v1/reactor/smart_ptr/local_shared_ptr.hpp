@@ -26,7 +26,7 @@ template< class E, class Y > inline void lsp_pointer_construct( reactor::local_s
 {
     reactor::detail::sp_assert_convertible< Y, E >();
 
-    typedef reactor::detail::local_sp_deleter< reactor::checked_deleter<Y> > D;
+    typedef reactor::detail::local_sp_deleter< boost::checked_deleter<Y> > D;
 
     reactor::shared_ptr<E> p2( p, D() );
 
@@ -67,7 +67,8 @@ template< class E, std::size_t N, class Y > inline void lsp_pointer_construct( r
     pn = pd;
 }
 
-template< class E, class P, class D > inline void lsp_deleter_construct( reactor::local_shared_ptr< E > * /*ppx*/, P p, D const& d, reactor::detail::local_counted_base * & pn )
+template< class E, class P, class D >
+inline void lsp_deleter_construct( reactor::local_shared_ptr< E > * /*ppx*/, P p, D const& d, reactor::detail::local_counted_base * & pn )
 {
     typedef reactor::detail::local_sp_deleter<D> D2;
 
@@ -80,7 +81,8 @@ template< class E, class P, class D > inline void lsp_deleter_construct( reactor
     pn = pd;
 }
 
-template< class E, class P, class D, class A > inline void lsp_allocator_construct( reactor::local_shared_ptr< E > * /*ppx*/, P p, D const& d, A const& a, boost::detail::local_counted_base * & pn )
+template< class E, class P, class D, class A >
+inline void lsp_allocator_construct( reactor::local_shared_ptr< E > * /*ppx*/, P p, D const& d, A const& a, reactor::detail::local_counted_base * & pn )
 {
     typedef reactor::detail::local_sp_deleter<D> D2;
 
@@ -601,7 +603,7 @@ template<class T, class U> local_shared_ptr<T> reinterpret_pointer_cast( local_s
     return local_shared_ptr<T>( r, p );
 }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
 template<class T, class U> local_shared_ptr<T> static_pointer_cast( local_shared_ptr<U> && r ) noexcept
 {
@@ -643,7 +645,7 @@ template<class T, class U> local_shared_ptr<T> reinterpret_pointer_cast( local_s
     return local_shared_ptr<T>( std::move(r), p );
 }
 
-#endif // !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
 // get_pointer() enables reactor::mem_fn to recognize local_shared_ptr
 
@@ -671,15 +673,19 @@ template<class D, class T> D * get_deleter( local_shared_ptr<T> const & p ) noex
     return get_deleter<D>( shared_ptr<T>( p ) );
 }
 
+}}}
+
+namespace boost {
+
 // hash_value
 
 template< class T > struct hash;
 
-template< class T > std::size_t hash_value( local_shared_ptr<T> const & p ) noexcept
+template< class T > std::size_t hash_value( memoria::v1::reactor::local_shared_ptr<T> const & p ) noexcept
 {
-    return boost::hash< typename local_shared_ptr<T>::element_type* >()( p.get() );
+    return boost::hash< typename memoria::v1::reactor::local_shared_ptr<T>::element_type* >()( p.get() );
 }
 
-}}}
+}
 
 #endif  // #ifndef MMA1_SMART_PTR_LOCAL_SHARED_PTR_HPP_INCLUDED

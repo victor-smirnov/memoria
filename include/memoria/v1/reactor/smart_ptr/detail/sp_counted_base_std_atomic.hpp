@@ -15,6 +15,8 @@
 //  See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt
 
+#include <memoria/v1/reactor/smart_ptr/detail/sp_common.hpp>
+
 #include <boost/detail/sp_typeinfo.hpp>
 #include <atomic>
 #include <cstdint>
@@ -68,14 +70,19 @@ private:
     std::atomic_int_least32_t use_count_;	// #shared
     std::atomic_int_least32_t weak_count_;	// #weak + (#shared != 0)
 
+    int32_t cpu_;
+
 public:
 
-    sp_counted_base(): use_count_( 1 ), weak_count_( 1 )
+    sp_counted_base(): use_count_( 1 ), weak_count_( 1 ), cpu_(engine_current_cpu())
     {
     }
 
     virtual ~sp_counted_base() // nothrow
-    {
+    {}
+
+    int32_t cpu() const noexcept {
+        return cpu_;
     }
 
     // dispose() is called when use_count_ drops to zero, to release
@@ -87,11 +94,13 @@ public:
 
     virtual void destroy() // nothrow
     {
-        delete this;
+        run_at_engine(cpu_, [&](){
+            delete this;
+        });
     }
 
-    virtual void * get_deleter( sp_typeinfo const & ti ) = 0;
-    virtual void * get_local_deleter( sp_typeinfo const & ti ) = 0;
+    virtual void * get_deleter( boost::detail::sp_typeinfo const & ti ) = 0;
+    virtual void * get_local_deleter( boost::detail::sp_typeinfo const & ti ) = 0;
     virtual void * get_untyped_deleter() = 0;
 
     void add_ref_copy()

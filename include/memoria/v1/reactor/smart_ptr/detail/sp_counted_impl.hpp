@@ -1,11 +1,6 @@
-#ifndef MMA1_SMART_PTR_DETAIL_SP_COUNTED_IMPL_HPP_INCLUDED
-#define MMA1_SMART_PTR_DETAIL_SP_COUNTED_IMPL_HPP_INCLUDED
+#pragma once
 
-// MS compatible compilers support #pragma once
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
 
 //
 //  detail/sp_counted_impl.hpp
@@ -42,7 +37,7 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
 
 void sp_scalar_constructor_hook( void * px, std::size_t size, void * pn );
 void sp_scalar_destructor_hook( void * px, std::size_t size, void * pn );
@@ -80,17 +75,19 @@ public:
 
     explicit sp_counted_impl_p( X * px ): px_( px )
     {
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
         reactor::sp_scalar_constructor_hook( px, sizeof(X), this );
 #endif
     }
 
     virtual void dispose() // nothrow
     {
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
         reactor::sp_scalar_destructor_hook( px_, sizeof(X), this );
 #endif
-        boost::checked_delete( px_ );
+        run_at_engine(cpu(), [&](){
+            boost::checked_delete( px_ );
+        });
     }
 
     virtual void * get_deleter( boost::detail::sp_typeinfo const & )
@@ -137,12 +134,7 @@ public:
 #endif
 };
 
-//
-// Borland's Codeguard trips up over the -Vx- option here:
-//
-#ifdef __CODEGUARD__
-# pragma option push -Vx-
-#endif
+
 
 template<class P, class D> class sp_counted_impl_pd: public sp_counted_base
 {
@@ -152,7 +144,7 @@ private:
     D del; // copy constructor must not throw
 
     sp_counted_impl_pd( sp_counted_impl_pd const & );
-    sp_counted_impl_pd & operator= ( sp_counted_impl_pd const & );
+    sp_counted_impl_pd &operator= ( sp_counted_impl_pd const & );
 
     typedef sp_counted_impl_pd<P, D> this_type;
 
@@ -170,7 +162,9 @@ public:
 
     virtual void dispose() // nothrow
     {
-        del( ptr );
+        run_at_engine(cpu(), [&](){
+            del( ptr );
+        });
     }
 
     virtual void * get_deleter( boost::detail::sp_typeinfo const & ti )
@@ -192,7 +186,7 @@ public:
 
     void * operator new( std::size_t )
     {
-        return std::allocator<this_type>().allocate( 1, static_cast<this_type *>(0) );
+        return std::allocator<this_type>().allocate( 1, static_cast<this_type *>(0));
     }
 
     void operator delete( void * p )
@@ -234,36 +228,32 @@ public:
 
     // pre: d( p ) must not throw
 
-    sp_counted_impl_pda( P p, D & d, A a ): p_( p ), d_( d ), a_( a )
+    sp_counted_impl_pda(P p, D & d, A a ): p_( p ), d_( d ), a_( a )
     {
     }
 
-    sp_counted_impl_pda( P p, A a ): p_( p ), d_( a ), a_( a )
+    sp_counted_impl_pda(P p, A a ): p_( p ), d_( a ), a_( a )
     {
     }
 
     virtual void dispose() // nothrow
     {
-        d_( p_ );
+        run_at_engine(cpu(), [&](){
+            d_( p_ );
+        });
     }
 
     virtual void destroy() // nothrow
     {
-#if !defined( BOOST_NO_CXX11_ALLOCATOR )
+        run_at_engine(cpu(), [&](){
+            using A2 = typename std::allocator_traits<A>::template rebind_alloc< this_type >;
 
-        typedef typename std::allocator_traits<A>::template rebind_alloc< this_type > A2;
+            A2 a2( a_ );
 
-#else
+            this->~this_type();
 
-        typedef typename A::template rebind< this_type >::other A2;
-
-#endif
-
-        A2 a2( a_ );
-
-        this->~this_type();
-
-        a2.deallocate( this, 1 );
+            a2.deallocate( this, 1 );
+        });
     }
 
     virtual void * get_deleter( boost::detail::sp_typeinfo const & ti )
@@ -282,12 +272,8 @@ public:
     }
 };
 
-#ifdef __CODEGUARD__
-# pragma option pop
-#endif
 
 } // namespace detail
 
 }}}
 
-#endif  // #ifndef MMA1_SMART_PTR_DETAIL_SP_COUNTED_IMPL_HPP_INCLUDED

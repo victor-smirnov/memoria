@@ -1,11 +1,5 @@
-#ifndef MMA1_SMART_PTR_DETAIL_SHARED_COUNT_HPP_INCLUDED1
-#define MMA1_SMART_PTR_DETAIL_SHARED_COUNT_HPP_INCLUDED1
 
-// MS compatible compilers support #pragma once
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
+#pragma once
 
 //
 //  detail/shared_count.hpp
@@ -21,6 +15,8 @@
 #ifdef __BORLANDC__
 # pragma warn -8027     // Functions containing try are not expanded inline
 #endif
+
+#include <memoria/v1/reactor/smart_ptr/detail/sp_common.hpp>
 
 #include <boost/config.hpp>
 #include <boost/checked_delete.hpp>
@@ -62,10 +58,10 @@ template< class T, class D > class unique_ptr;
 namespace detail
 {
 
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
 
-int const shared_count_id = 0x2C35F101;
-int const   weak_count_id = 0x298C38A4;
+int const shared_count_id   = 0x2C35F101;
+int const weak_count_id     = 0x298C38A4;
 
 #endif
 
@@ -105,13 +101,30 @@ template< class D > struct sp_convert_reference< D& >
 
 class weak_count;
 
+
+
+class CpuValue{
+    int32_t cpu_;
+public:
+    CpuValue(int32_t cpu): cpu_(cpu) {}
+    int32_t cpu() {return cpu_;}
+};
+
+struct AllocTag {};
+
+#ifdef MMA1_SP_ENABLE_DEBUG_HOOKS
+#define MMA1_SP_SPC_INIT_DEBUG_HOOK , id_(shared_count_id)
+#else
+#define MMA1_SP_SPC_INIT_DEBUG_HOOK
+#endif
+
 class shared_count
 {
 private:
 
     sp_counted_base * pi_;
 
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
     int id_;
 #endif
 
@@ -120,335 +133,220 @@ private:
 public:
 
     constexpr shared_count(): pi_(0) // nothrow
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
     }
 
     constexpr explicit shared_count( sp_counted_base * pi ): pi_( pi ) // nothrow
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
     }
-
-    template<class Y> explicit shared_count( Y * p ): pi_( 0 )
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
-    {
-#ifndef BOOST_NO_EXCEPTIONS
-
-        try
-        {
-            pi_ = new sp_counted_impl_p<Y>( p );
-        }
-        catch(...)
-        {
-            boost::checked_delete( p );
-            throw;
-        }
-
-#else
-
-        pi_ = new sp_counted_impl_p<Y>( p );
-
-        if( pi_ == 0 )
-        {
-            boost::checked_delete( p );
-            boost::throw_exception( std::bad_alloc() );
-        }
-
-#endif
-    }
-
-#if defined( BOOST_MSVC ) && BOOST_WORKAROUND( BOOST_MSVC, <= 1200 )
-    template<class Y, class D> shared_count( Y * p, D d ): pi_(0)
-#else
-    template<class P, class D> shared_count( P p, D d ): pi_(0)
-#endif
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
-    {
-#if defined( BOOST_MSVC ) && BOOST_WORKAROUND( BOOST_MSVC, <= 1200 )
-        typedef Y* P;
-#endif
-#ifndef BOOST_NO_EXCEPTIONS
-
-        try
-        {
-            pi_ = new sp_counted_impl_pd<P, D>(p, d);
-        }
-        catch(...)
-        {
-            d(p); // delete p
-            throw;
-        }
-
-#else
-
-        pi_ = new sp_counted_impl_pd<P, D>(p, d);
-
-        if(pi_ == 0)
-        {
-            d(p); // delete p
-            boost::throw_exception(std::bad_alloc());
-        }
-
-#endif
-    }
-
-#if !defined( BOOST_NO_FUNCTION_TEMPLATE_ORDERING )
-
-    template< class P, class D > shared_count( P p, sp_inplace_tag<D> ): pi_( 0 )
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
-    {
-#ifndef BOOST_NO_EXCEPTIONS
-
-        try
-        {
-            pi_ = new sp_counted_impl_pd< P, D >( p );
-        }
-        catch( ... )
-        {
-            D::operator_fn( p ); // delete p
-            throw;
-        }
-
-#else
-
-        pi_ = new sp_counted_impl_pd< P, D >( p );
-
-        if( pi_ == 0 )
-        {
-            D::operator_fn( p ); // delete p
-            boost::throw_exception( std::bad_alloc() );
-        }
-
-#endif // #ifndef BOOST_NO_EXCEPTIONS
-    }
-
-#endif // !defined( BOOST_NO_FUNCTION_TEMPLATE_ORDERING )
-
-    template<class P, class D, class A> shared_count( P p, D d, A a ): pi_( 0 )
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
-    {
-        typedef sp_counted_impl_pda<P, D, A> impl_type;
-
-#if !defined( BOOST_NO_CXX11_ALLOCATOR )
-
-        typedef typename std::allocator_traits<A>::template rebind_alloc< impl_type > A2;
-
-#else
-
-        typedef typename A::template rebind< impl_type >::other A2;
-
-#endif
-
-        A2 a2( a );
-
-#ifndef BOOST_NO_EXCEPTIONS
-
-        try
-        {
-            pi_ = a2.allocate( 1 );
-            ::new( static_cast< void* >( pi_ ) ) impl_type( p, d, a );
-        }
-        catch(...)
-        {
-            d( p );
-
-            if( pi_ != 0 )
-            {
-                a2.deallocate( static_cast< impl_type* >( pi_ ), 1 );
-            }
-
-            throw;
-        }
-
-#else
-
-        pi_ = a2.allocate( 1 );
-
-        if( pi_ != 0 )
-        {
-            ::new( static_cast< void* >( pi_ ) ) impl_type( p, d, a );
-        }
-        else
-        {
-            d( p );
-            boost::throw_exception( std::bad_alloc() );
-        }
-
-#endif
-    }
-
-#if !defined( BOOST_NO_FUNCTION_TEMPLATE_ORDERING )
-
-    template< class P, class D, class A > shared_count( P p, sp_inplace_tag< D >, A a ): pi_( 0 )
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
-    {
-        typedef sp_counted_impl_pda< P, D, A > impl_type;
-
-#if !defined( BOOST_NO_CXX11_ALLOCATOR )
-
-        typedef typename std::allocator_traits<A>::template rebind_alloc< impl_type > A2;
-
-#else
-
-        typedef typename A::template rebind< impl_type >::other A2;
-
-#endif
-
-        A2 a2( a );
-
-#ifndef BOOST_NO_EXCEPTIONS
-
-        try
-        {
-            pi_ = a2.allocate( 1 );
-            ::new( static_cast< void* >( pi_ ) ) impl_type( p, a );
-        }
-        catch(...)
-        {
-            D::operator_fn( p );
-
-            if( pi_ != 0 )
-            {
-                a2.deallocate( static_cast< impl_type* >( pi_ ), 1 );
-            }
-
-            throw;
-        }
-
-#else
-
-        pi_ = a2.allocate( 1 );
-
-        if( pi_ != 0 )
-        {
-            ::new( static_cast< void* >( pi_ ) ) impl_type( p, a );
-        }
-        else
-        {
-            D::operator_fn( p );
-            boost::throw_exception( std::bad_alloc() );
-        }
-
-#endif // #ifndef BOOST_NO_EXCEPTIONS
-    }
-
-#endif // !defined( BOOST_NO_FUNCTION_TEMPLATE_ORDERING )
-
-#ifndef BOOST_NO_AUTO_PTR
-
-    // auto_ptr<Y> is special cased to provide the strong guarantee
 
     template<class Y>
-    explicit shared_count( std::auto_ptr<Y> & r ): pi_( new sp_counted_impl_p<Y>( r.get() ) )
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
+    explicit shared_count(CpuValue cpu, Y * p): pi_( nullptr )
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
-#ifdef BOOST_NO_EXCEPTIONS
-
-        if( pi_ == 0 )
-        {
-            boost::throw_exception(std::bad_alloc());
-        }
-
-#endif
-
-        r.release();
+        pi_ = run_at(cpu.cpu(), [&]() {
+            try
+            {
+                return new sp_counted_impl_p<Y>( p );
+            }
+            catch(...)
+            {
+                boost::checked_delete( p );
+                throw;
+            }
+        });
     }
 
-#endif 
 
-#if !defined( BOOST_NO_CXX11_SMART_PTR )
-
-    template<class Y, class D>
-    explicit shared_count( std::unique_ptr<Y, D> & r ): pi_( 0 )
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
+    template<class P, class D>
+    shared_count(CpuValue cpu, P p, D d):
+        pi_(nullptr)
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
-        typedef typename sp_convert_reference<D>::type D2;
-
-        D2 d2( r.get_deleter() );
-        pi_ = new sp_counted_impl_pd< typename std::unique_ptr<Y, D>::pointer, D2 >( r.get(), d2 );
-
-#ifdef BOOST_NO_EXCEPTIONS
-
-        if( pi_ == 0 )
-        {
-            boost::throw_exception( std::bad_alloc() );
-        }
-
-#endif
-
-        r.release();
+        pi_ = run_at(cpu.cpu(), [&]() {
+            try
+            {
+                return new sp_counted_impl_pd<P, D>(p, d);
+            }
+            catch(...)
+            {
+                d(p); // delete p
+                throw;
+            }
+        });
     }
 
-#endif
+
+
+    template< class P, class D, class... Args >
+    shared_count(CpuValue cpu, P p, sp_inplace_tag<D>, Args&&... args):
+        pi_( nullptr )
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
+    {
+        using T = std::remove_pointer_t<std::remove_cv_t<P>>;
+
+        pi_ = run_at(cpu.cpu(), [&]() {
+            try
+            {
+                sp_counted_base* pi = new sp_counted_impl_pd< P, D >( p );
+
+                D* pd = static_cast<D*>(pi->get_untyped_deleter());
+                void * pv = pd->address();
+
+                ::new( pv ) T( std::forward<Args>( args )... );
+
+                pd->set_initialized();
+
+                return pi;
+            }
+            catch( ... )
+            {
+                D::operator_fn( p ); // delete p
+                throw;
+            }
+        });
+    }
+
+    template<class P, class D, class A, class... Args>
+    shared_count(AllocTag, CpuValue cpu, P p, D d, A a, Args&&... args ):
+        pi_( nullptr )
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
+    {
+        pi_ = run_at(cpu.cpu(), [&]() {
+            using impl_type = sp_counted_impl_pda<P, D, A>;
+
+            using A2 = typename std::allocator_traits<A>::template rebind_alloc< impl_type >;
+            A2 a2( a );
+
+            sp_counted_base* pi{nullptr};
+
+            try
+            {
+                pi = a2.allocate( 1 );
+                ::new( static_cast< void* >( pi ) ) impl_type( p, d, a );
+                return pi;
+            }
+            catch(...)
+            {
+                d( p );
+
+                if( pi )
+                {
+                    a2.deallocate( static_cast< impl_type* >( pi ), 1 );
+                }
+
+                throw;
+            }
+        });
+    }
+
+
+
+    template< class P, class D, class A, class... Args >
+    shared_count(AllocTag, CpuValue cpu, P p, sp_inplace_tag< D >, A a, Args&&... args ):
+        pi_( nullptr )
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
+    {
+        pi_ = run_at(cpu.cpu(), [&]() {
+            using impl_type = sp_counted_impl_pda< P, D, A >;
+
+            using A2 = typename std::allocator_traits<A>::template rebind_alloc< impl_type >;
+            A2 a2( a );
+
+            using T = std::remove_pointer_t<std::remove_cv_t<P>>;
+            using A3 = typename std::allocator_traits<A>::template rebind_alloc<T>;
+            A3 a3( a );
+
+            sp_counted_base* pi{nullptr};
+            try
+            {
+                auto pi = a2.allocate( 1 );
+                ::new( static_cast< void* >( pi ) ) impl_type( p, a );
+
+                D* pd = static_cast<D*>(pi->get_untyped_deleter());
+                void * pv = pd->address();
+
+                std::allocator_traits<A3>::construct(
+                    a3,
+                    static_cast< T* >( pv ),
+                    std::forward<Args>( args )...
+                );
+
+                pd->set_initialized();
+
+                return pi;
+            }
+            catch(...)
+            {
+                D::operator_fn( p );
+
+                if(pi)
+                {
+                    a2.deallocate( static_cast< impl_type* >( pi ), 1 );
+                }
+
+                throw;
+            }
+        });
+    }
+
+
+
 
     template<class Y, class D>
-    explicit shared_count( reactor::movelib::unique_ptr<Y, D> & r ): pi_( 0 )
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
+    explicit shared_count(CpuValue cpu, std::unique_ptr<Y, D> & r ): pi_( 0 )
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
-        typedef typename sp_convert_reference<D>::type D2;
+        pi_ = run_at(cpu.cpu(), [&]() {
+            typedef typename sp_convert_reference<D>::type D2;
 
-        D2 d2( r.get_deleter() );
-        pi_ = new sp_counted_impl_pd< typename reactor::movelib::unique_ptr<Y, D>::pointer, D2 >( r.get(), d2 );
+            D2 d2( r.get_deleter() );
+            sp_counted_base* pi = new sp_counted_impl_pd< typename std::unique_ptr<Y, D>::pointer, D2 >( r.get(), d2 );
 
-#ifdef BOOST_NO_EXCEPTIONS
+            r.release();
 
-        if( pi_ == 0 )
-        {
-            boost::throw_exception( std::bad_alloc() );
-        }
+            return pi;
+        });
+    }
 
-#endif
 
-        r.release();
+    template<class Y, class D>
+    explicit shared_count(CpuValue cpu, reactor::movelib::unique_ptr<Y, D> & r ): pi_( 0 )
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
+    {
+        pi_ = run_at(cpu.cpu(), [&]() {
+            typedef typename sp_convert_reference<D>::type D2;
+
+            D2 d2( r.get_deleter() );
+            sp_counted_base* pi = new sp_counted_impl_pd< typename reactor::movelib::unique_ptr<Y, D>::pointer, D2 >( r.get(), d2 );
+            r.release();
+
+            return pi;
+        });
     }
 
     ~shared_count() // nothrow
     {
         if( pi_ != 0 ) pi_->release();
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#ifdef BOOST_SP_ENABLE_DEBUG_HOOK
         id_ = 0;
 #endif
     }
 
     shared_count(shared_count const & r): pi_(r.pi_) // nothrow
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
         if( pi_ != 0 ) pi_->add_ref_copy();
     }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
-
     shared_count(shared_count && r): pi_(r.pi_) // nothrow
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
         r.pi_ = 0;
     }
 
-#endif
 
     explicit shared_count(weak_count const & r); // throws bad_weak_ptr when r.use_count() == 0
     shared_count( weak_count const & r, sp_nothrow_tag ); // constructs an empty *this when r.use_count() == 0
@@ -513,6 +411,14 @@ public:
     {
         return pi_? pi_->get_untyped_deleter(): 0;
     }
+
+
+    template <typename Fn>
+    static auto run_at(int cpu, Fn&& fn);
+
+    // {
+    // return run_at_engine(cpu, std::forward<Fn>(fn));
+    // }
 };
 
 
@@ -522,7 +428,7 @@ private:
 
     sp_counted_base * pi_;
 
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
     int id_;
 #endif
 
@@ -531,46 +437,35 @@ private:
 public:
 
     constexpr weak_count(): pi_(0) // nothrow
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(weak_count_id)
-#endif
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
     }
 
     weak_count(shared_count const & r): pi_(r.pi_) // nothrow
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(weak_count_id)
-#endif
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
         if(pi_ != 0) pi_->weak_add_ref();
     }
 
     weak_count(weak_count const & r): pi_(r.pi_) // nothrow
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(weak_count_id)
-#endif
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
         if(pi_ != 0) pi_->weak_add_ref();
     }
 
 // Move support
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
     weak_count(weak_count && r): pi_(r.pi_) // nothrow
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(weak_count_id)
-#endif
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
         r.pi_ = 0;
     }
 
-#endif
-
     ~weak_count() // nothrow
     {
         if(pi_ != 0) pi_->weak_release();
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
         id_ = 0;
 #endif
     }
@@ -632,9 +527,7 @@ public:
 };
 
 inline shared_count::shared_count( weak_count const & r ): pi_( r.pi_ )
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
 {
     if( pi_ == 0 || !pi_->add_ref_lock() )
     {
@@ -643,9 +536,7 @@ inline shared_count::shared_count( weak_count const & r ): pi_( r.pi_ )
 }
 
 inline shared_count::shared_count( weak_count const & r, sp_nothrow_tag ): pi_( r.pi_ )
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
-        , id_(shared_count_id)
-#endif
+        MMA1_SP_SPC_INIT_DEBUG_HOOK
 {
     if( pi_ != 0 && !pi_->add_ref_lock() )
     {
@@ -661,8 +552,5 @@ inline shared_count::shared_count( weak_count const & r, sp_nothrow_tag ): pi_( 
 #pragma GCC diagnostic pop
 #endif
 
-#ifdef __BORLANDC__
-# pragma warn .8027     // Functions containing try are not expanded inline
-#endif
 
-#endif  // #ifndef MMA1_SMART_PTR_DETAIL_SHARED_COUNT_HPP_INCLUDED
+

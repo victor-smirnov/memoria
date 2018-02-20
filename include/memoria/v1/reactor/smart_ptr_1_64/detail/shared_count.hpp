@@ -133,9 +133,6 @@ public:
             pi_ = run_at(cpu, [&]{
                 return sp_reactor_counted_impl_pd<P, D>::create(cpu, p, d);
             });
-
-//            pi_ = new sp_local_counter(rr);
-//            rr->set_local_counter(cpu, pi_);
         }
         catch(...)
         {

@@ -26,7 +26,7 @@ namespace reactor {
 
 // Debug hooks
 
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
 
 void sp_array_constructor_hook(void * p);
 void sp_array_destructor_hook(void * p);
@@ -57,14 +57,14 @@ public:
 
     explicit scoped_array( T * p = 0 ) noexcept : px( p )
     {
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
         reactor::sp_array_constructor_hook( px );
 #endif
     }
 
     ~scoped_array() noexcept
     {
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
         reactor::sp_array_destructor_hook( px );
 #endif
         boost::checked_array_delete( px );

@@ -33,7 +33,7 @@ namespace reactor {
 
 // Debug hooks
 
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
 
 void sp_scalar_constructor_hook(void * p);
 void sp_scalar_destructor_hook(void * p);
@@ -65,7 +65,7 @@ public:
 
     explicit scoped_ptr( T * p = 0 ) noexcept : px( p )
     {
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
         reactor::sp_scalar_constructor_hook( px );
 #endif
     }
@@ -74,7 +74,7 @@ public:
 
     explicit scoped_ptr( std::auto_ptr<T> p ) noexcept : px( p.release() )
     {
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
         reactor::sp_scalar_constructor_hook( px );
 #endif
     }
@@ -83,7 +83,7 @@ public:
 
     ~scoped_ptr() noexcept
     {
-#if defined(BOOST_SP_ENABLE_DEBUG_HOOKS)
+#if defined(MMA1_SP_ENABLE_DEBUG_HOOKS)
         reactor::sp_scalar_destructor_hook( px );
 #endif
         boost::checked_delete( px );

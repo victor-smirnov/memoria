@@ -27,7 +27,7 @@
 //#include "smart_ptr/enable_shared_from_this.hpp"
 //#include "smart_ptr/make_shared.hpp"
 
-
+#include <memoria/v1/reactor/smart_ptr/detail/shared_count.hpp>
 
 #include "../fiber/protected_stack_pool.hpp"
 #include "../fiber/pooled_fixedsize_stack.hpp"
@@ -251,45 +251,50 @@ auto engine_or_local(Fn&& fn, Args&&... args)
 }
 
 
-/*
-namespace _ {
+
+namespace detail {
 
 template <typename Fn>
-auto shared_count::run_at(int cpu, Fn&& fn) {
-    return engine().run_at(cpu, std::forward<Fn>(fn));
-}
-
-inline int shared_count::cpu_num() {
-    return engine().cpu_num();
+void run_at_engine(int32_t cpu, Fn&& fn) {
+    engine().run_at(cpu, std::forward<Fn>(fn));
 }
 
 
-inline int local_shared_count::cpu_num() {
-    return engine().cpu_num();
-}
-
-inline int local_shared_count::cpu() {
+static inline int32_t engine_current_cpu() {
     return engine().cpu();
 }
 
-
-
-template< class T >
-void sp_reactor_ms_deleter<T>::destroy()
-{
-    if( initialized_ )
-    {
-        engine().run_at(cpu_, [&]{
-            T* p = tools::ptr_cast<T>(storage_.data_);
-            p->~T();
-        });
-
-        initialized_ = false;
-    }
+static inline int32_t engine_cpu_num() {
+    return engine().cpu_num();
 }
 
+
+template <typename Fn>
+auto shared_count::run_at(int32_t cpu, Fn&& fn) {
+    return engine().run_at(cpu, std::forward<Fn>(fn));
 }
-*/
+
+
+
+
+
+
+//template< class T >
+//void sp_reactor_ms_deleter<T>::destroy()
+//{
+//    if( initialized_ )
+//    {
+//        engine().run_at(cpu_, [&]{
+//            T* p = tools::ptr_cast<T>(storage_.data_);
+//            p->~T();
+//        });
+
+//        initialized_ = false;
+//    }
+//}
+
+}
+
 
 
 }}}

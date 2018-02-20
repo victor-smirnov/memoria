@@ -1,5 +1,5 @@
-#ifndef MMA1_SMART_PTR_SHARED_PTR_HPP_INCLUDED
-#define MMA1_SMART_PTR_SHARED_PTR_HPP_INCLUDED
+#ifndef MMA1_SMART_PTR_SHARED_PTR_HPP_INCLUDED1
+#define MMA1_SMART_PTR_SHARED_PTR_HPP_INCLUDED1
 
 //
 //  shared_ptr.hpp
@@ -310,8 +310,6 @@ template< class T, class Y > inline void sp_deleter_construct( reactor::shared_p
     reactor::detail::sp_enable_shared_from_this( ppx, p, p );
 }
 
-#if !defined( BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION )
-
 template< class T, class Y > inline void sp_deleter_construct( reactor::shared_ptr< T[] > * /*ppx*/, Y * /*p*/ )
 {
     sp_assert_convertible< Y[], T[] >();
@@ -322,7 +320,6 @@ template< class T, std::size_t N, class Y > inline void sp_deleter_construct( re
     sp_assert_convertible< Y[N], T[N] >();
 }
 
-#endif // !defined( BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION )
 
 struct sp_internal_constructor_tag
 {
@@ -366,13 +363,10 @@ public:
     {
     }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
-
     constexpr shared_ptr( reactor::detail::sp_internal_constructor_tag, element_type * px_, reactor::detail::shared_count && pn_ ) noexcept : px( px_ ), pn( std::move( pn_ ) )
     {
     }
 
-#endif
 
     template<class Y>
     explicit shared_ptr( Y * p ): px( p ), pn() // Y must be complete
@@ -386,45 +380,45 @@ public:
     // shared_ptr will release p by calling d(p)
     //
 
-    template<class Y, class D> shared_ptr( Y * p, D d ): px( p ), pn( p, d )
+    template<class Y, class D, class... Args> shared_ptr(int cpu, Y * p, D d, Args&&... args ):
+        px( p ), pn(detail::CpuValue(cpu), p, d, std::forward<Args>(args)... )
     {
         reactor::detail::sp_deleter_construct( this, p );
     }
 
-#if !defined( BOOST_NO_CXX11_NULLPTR )
 
     template<class D> shared_ptr( reactor::detail::sp_nullptr_t p, D d ): px( p ), pn( p, d )
     {
     }
 
-#endif
 
     // As above, but with allocator. A's copy constructor shall not throw.
 
-    template<class Y, class D, class A> shared_ptr( Y * p, D d, A a ): px( p ), pn( p, d, a )
+    template<class Y, class D, class A, class... Args> shared_ptr(detail::AllocTag, int32_t cpu, Y * p, D d, A a, Args&&... args):
+        px( p ), pn(detail::AllocTag(), detail::CpuValue(cpu), p, d, a, std::forward<Args>(args)... )
     {
         reactor::detail::sp_deleter_construct( this, p );
     }
 
-#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-    template<class D, class A> shared_ptr( reactor::detail::sp_nullptr_t p, D d, A a ): px( p ), pn( p, d, a )
+
+    template<class D, class A> shared_ptr(int32_t cpu, reactor::detail::sp_nullptr_t p, D d, A a ):
+        px( p ), pn(detail::CpuValue(cpu), p, d, a )
     {
     }
 
-#endif
 
 //  generated copy constructor, destructor are fine...
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
 // ... except in C++0x, move disables the implicit copy
 
-    shared_ptr( shared_ptr const & r ) noexcept : px( r.px ), pn( r.pn )
+    shared_ptr( shared_ptr const & r ) noexcept :
+        px( r.px ), pn( r.pn )
     {
     }
 
-#endif
 
     template<class Y>
     explicit shared_ptr( weak_ptr<Y> const & r ): pn( r.pn ) // may throw
@@ -466,52 +460,6 @@ public:
     {
     }
 
-#ifndef BOOST_NO_AUTO_PTR
-
-    template<class Y>
-    explicit shared_ptr( std::auto_ptr<Y> & r ): px(r.get()), pn()
-    {
-        reactor::detail::sp_assert_convertible< Y, T >();
-
-        Y * tmp = r.get();
-        pn = reactor::detail::shared_count( r );
-
-        reactor::detail::sp_deleter_construct( this, tmp );
-    }
-
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
-
-    template<class Y>
-    shared_ptr( std::auto_ptr<Y> && r ): px(r.get()), pn()
-    {
-        reactor::detail::sp_assert_convertible< Y, T >();
-
-        Y * tmp = r.get();
-        pn = reactor::detail::shared_count( r );
-
-        reactor::detail::sp_deleter_construct( this, tmp );
-    }
-
-#elif !defined( BOOST_NO_SFINAE ) && !defined( BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION )
-
-    template<class Ap>
-    explicit shared_ptr( Ap r, typename reactor::detail::sp_enable_if_auto_ptr<Ap, int>::type = 0 ): px( r.get() ), pn()
-    {
-        typedef typename Ap::element_type Y;
-
-        reactor::detail::sp_assert_convertible< Y, T >();
-
-        Y * tmp = r.get();
-        pn = reactor::detail::shared_count( r );
-
-        reactor::detail::sp_deleter_construct( this, tmp );
-    }
-
-#endif // BOOST_NO_SFINAE, BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
-
-#endif // BOOST_NO_AUTO_PTR
-
-#if !defined( BOOST_NO_CXX11_SMART_PTR ) && !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
     template< class Y, class D >
     shared_ptr( std::unique_ptr< Y, D > && r ): px( r.get() ), pn()
@@ -527,7 +475,6 @@ public:
         }
     }
 
-#endif
 
     template< class Y, class D >
     shared_ptr( reactor::movelib::unique_ptr< Y, D > r ): px( r.get() ), pn()
@@ -562,38 +509,7 @@ public:
 
 #endif
 
-#ifndef BOOST_NO_AUTO_PTR
 
-    template<class Y>
-    shared_ptr & operator=( std::auto_ptr<Y> & r )
-    {
-        this_type( r ).swap( *this );
-        return *this;
-    }
-
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
-
-    template<class Y>
-    shared_ptr & operator=( std::auto_ptr<Y> && r )
-    {
-        this_type( static_cast< std::auto_ptr<Y> && >( r ) ).swap( *this );
-        return *this;
-    }
-
-#elif !defined( BOOST_NO_SFINAE ) && !defined( BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION )
-
-    template<class Ap>
-    typename reactor::detail::sp_enable_if_auto_ptr< Ap, shared_ptr & >::type operator=( Ap r )
-    {
-        this_type( r ).swap( *this );
-        return *this;
-    }
-
-#endif // BOOST_NO_SFINAE, BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
-
-#endif // BOOST_NO_AUTO_PTR
-
-#if !defined( BOOST_NO_CXX11_SMART_PTR ) && !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
     template<class Y, class D>
     shared_ptr & operator=( std::unique_ptr<Y, D> && r )
@@ -602,7 +518,6 @@ public:
         return *this;
     }
 
-#endif
 
     template<class Y, class D>
     shared_ptr & operator=( reactor::movelib::unique_ptr<Y, D> r )
@@ -1147,14 +1062,20 @@ template<class T> inline bool atomic_compare_exchange_explicit( shared_ptr<T> * 
 
 // hash_value
 
-template< class T > struct hash;
-
-template< class T > std::size_t hash_value( reactor::shared_ptr<T> const & p ) noexcept
-{
-    return boost::hash< typename reactor::shared_ptr<T>::element_type* >()( p.get() );
-}
 
 }}} // namespace boost
+
+namespace boost {
+
+template< class T > struct hash;
+
+template< class T > std::size_t hash_value( memoria::v1::reactor::shared_ptr<T> const & p ) noexcept
+{
+    return boost::hash< typename memoria::v1::reactor::shared_ptr<T>::element_type* >()( p.get() );
+}
+
+}
+
 
 #include <memoria/v1/reactor/smart_ptr/detail/local_sp_deleter.hpp>
 

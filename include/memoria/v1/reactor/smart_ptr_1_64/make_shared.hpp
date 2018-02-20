@@ -200,7 +200,6 @@ template< class T, class... Args > typename _::local_sp_if_not_array< T >::type 
 {
     static_assert(std::is_base_of<enable_local_shared_from_this<T>, T>::value, "");
 
-
     local_shared_ptr< T > pt( static_cast<T*>(nullptr), BOOST_LOCAL_SP_MSD( T ) );
 
     _::sp_ms_deleter< T > * pd = static_cast<_::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );

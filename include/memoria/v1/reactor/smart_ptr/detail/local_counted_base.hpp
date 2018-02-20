@@ -106,13 +106,9 @@ public:
     {
     }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
-
     explicit local_counted_impl( shared_count && pn ): pn_( std::move(pn) )
     {
     }
-
-#endif
 
     virtual void local_cb_destroy() noexcept
     {

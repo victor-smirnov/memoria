@@ -1,5 +1,5 @@
-#ifndef BOOST_SMART_PTR_HPP_INCLUDED
-#define BOOST_SMART_PTR_HPP_INCLUDED
+#ifndef MMA1_SMART_PTR_HPP_INCLUDED
+#define MMA1_SMART_PTR_HPP_INCLUDED
 
 //
 //  smart_ptr.hpp
@@ -22,5 +22,6 @@
 #include <memoria/v1/reactor/smart_ptr/intrusive_ptr.hpp>
 #include <memoria/v1/reactor/smart_ptr/enable_shared_from_this.hpp>
 #include <memoria/v1/reactor/smart_ptr/make_shared.hpp>
+#include <memoria/v1/reactor/smart_ptr/make_local_shared.hpp>
 
 #endif // #ifndef BOOST_SMART_PTR_HPP_INCLUDED
