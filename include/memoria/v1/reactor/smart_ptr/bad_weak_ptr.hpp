@@ -1,11 +1,3 @@
-#ifndef MMA1_SMART_PTR_BAD_WEAK_PTR_HPP_INCLUDED
-#define MMA1_SMART_PTR_BAD_WEAK_PTR_HPP_INCLUDED
-
-// MS compatible compilers support #pragma once
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
 
 //
 //  memoria/v1/reactor/smart_ptr/bad_weak_ptr.hpp
@@ -17,12 +9,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#pragma once
+
 #include <boost/config.hpp>
 #include <exception>
 
-#ifdef __BORLANDC__
-# pragma warn -8026     // Functions with excep. spec. are not expanded inline
-#endif
 
 namespace memoria {
 namespace v1 {
@@ -34,9 +25,6 @@ namespace reactor {
 // is compiled with -ps, the compiler issues an error.
 // Hence, the temporary #pragma option -pc below.
 
-#if defined(__BORLANDC__) && __BORLANDC__ <= 0x564
-# pragma option push -pc
-#endif
 
 #if defined(BOOST_CLANG)
 // Intel C++ on Mac defines __clang__ but doesn't support the pragma
@@ -58,14 +46,7 @@ public:
 # pragma clang diagnostic pop
 #endif
 
-#if defined(__BORLANDC__) && __BORLANDC__ <= 0x564
-# pragma option pop
-#endif
-
 }}}
 
-#ifdef __BORLANDC__
-# pragma warn .8026     // Functions with excep. spec. are not expanded inline
-#endif
 
-#endif  // #ifndef MMA1_SMART_PTR_BAD_WEAK_PTR_HPP_INCLUDED
+

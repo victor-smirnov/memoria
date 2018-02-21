@@ -1,5 +1,3 @@
-#ifndef MMA1_SMART_PTR_MAKE_LOCAL_SHARED_OBJECT_HPP_INCLUDED
-#define MMA1_SMART_PTR_MAKE_LOCAL_SHARED_OBJECT_HPP_INCLUDED
 
 //  make_local_shared_object.hpp
 //
@@ -10,6 +8,8 @@
 //  http://www.boost.org/LICENSE_1_0.txt
 //
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
+
+#pragma once
 
 #include <memoria/v1/reactor/smart_ptr/local_shared_ptr.hpp>
 #include <memoria/v1/reactor/smart_ptr/make_shared.hpp>
@@ -59,15 +59,7 @@ private:
         {
             T * p = reinterpret_cast< T* >( storage_.data_ );
 
-#if !defined( BOOST_NO_CXX11_ALLOCATOR )
-
             std::allocator_traits<A>::destroy( a_, p );
-
-#else
-
-            p->~T();
-
-#endif
 
             initialized_ = false;
         }
@@ -178,4 +170,3 @@ template<class T> typename reactor::detail::lsp_if_not_array<T>::type make_local
 
 }}}
 
-#endif // #ifndef MMA1_SMART_PTR_MAKE_SHARED_OBJECT_HPP_INCLUDED

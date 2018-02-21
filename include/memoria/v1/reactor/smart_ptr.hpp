@@ -14,6 +14,8 @@
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
 //
 
+
+#include <memoria/v1/reactor/smart_ptr/atomic_shared_ptr.hpp>
 #include <memoria/v1/reactor/smart_ptr/scoped_ptr.hpp>
 #include <memoria/v1/reactor/smart_ptr/scoped_array.hpp>
 #include <memoria/v1/reactor/smart_ptr/shared_ptr.hpp>
@@ -24,4 +26,4 @@
 #include <memoria/v1/reactor/smart_ptr/make_shared.hpp>
 #include <memoria/v1/reactor/smart_ptr/make_local_shared.hpp>
 
-#endif // #ifndef BOOST_SMART_PTR_HPP_INCLUDED
+#endif // #ifndef MMA1_SMART_PTR_HPP_INCLUDED

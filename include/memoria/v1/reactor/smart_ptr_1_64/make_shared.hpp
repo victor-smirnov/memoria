@@ -192,7 +192,7 @@ template< class T, std::size_t N > struct local_sp_if_not_array< T[N] >
 } // namespace _
 
 # define BOOST_LOCAL_SP_MSD( T ) _::sp_inplace_tag< _::sp_ms_deleter< T > >()
-# define BOOST_SP_MSD( T ) _::sp_inplace_tag< _::sp_reactor_ms_deleter< T > >()
+# define MMA1_SP_MSD( T ) _::sp_inplace_tag< _::sp_reactor_ms_deleter< T > >()
 
 // Variadic templates, rvalue reference
 
@@ -220,7 +220,7 @@ template< class T, class... Args > typename _::sp_if_not_array< T >::type make_s
 {
     static_assert(std::is_base_of<enable_shared_from_this<T>, T>::value, "");
 
-    shared_ptr<T> pt(cpu, static_cast<T*>(nullptr), BOOST_SP_MSD( T ), std::forward<Args>(args)...);
+    shared_ptr<T> pt(cpu, static_cast<T*>(nullptr), MMA1_SP_MSD( T ), std::forward<Args>(args)...);
 
     _::sp_ms_deleter< T > * pd = static_cast<_::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
 
@@ -236,7 +236,7 @@ template< class T, class... Args > typename _::sp_if_not_array< T >::type make_s
 
 
 #undef BOOST_LOCAL_SP_MSD
-#undef BOOST_SP_MSD
+#undef MMA1_SP_MSD
 
 }}}
 

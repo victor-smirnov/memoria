@@ -1,5 +1,3 @@
-#ifndef MMA1_SMART_PTR_SCOPED_ARRAY_HPP_INCLUDED
-#define MMA1_SMART_PTR_SCOPED_ARRAY_HPP_INCLUDED
 
 //  (C) Copyright Greg Colvin and Beman Dawes 1998, 1999.
 //  Copyright (c) 2001, 2002 Peter Dimov
@@ -10,11 +8,12 @@
 //
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
 
+#pragma once
+
 #include <boost/config.hpp>
 #include <boost/assert.hpp>
 #include <boost/checked_delete.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_nullptr_t.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_noexcept.hpp>
+
 
 #include <boost/detail/workaround.hpp>
 
@@ -70,13 +69,13 @@ public:
         boost::checked_array_delete( px );
     }
 
-    void reset(T * p = 0) noexcept_WITH_ASSERT
+    void reset(T * p = 0) noexcept
     {
         BOOST_ASSERT( p == 0 || p != px ); // catch self-reset errors
         this_type(p).swap(*this);
     }
 
-    T & operator[](std::ptrdiff_t i) const noexcept_WITH_ASSERT
+    T & operator[](std::ptrdiff_t i) const noexcept
     {
         BOOST_ASSERT( px != 0 );
         BOOST_ASSERT( i >= 0 );
@@ -99,29 +98,29 @@ public:
     }
 };
 
-#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-template<class T> inline bool operator==( scoped_array<T> const & p, reactor::detail::sp_nullptr_t ) noexcept
+
+template<class T> inline bool operator==( scoped_array<T> const & p, std::nullptr_t ) noexcept
 {
     return p.get() == 0;
 }
 
-template<class T> inline bool operator==( reactor::detail::sp_nullptr_t, scoped_array<T> const & p ) noexcept
+template<class T> inline bool operator==( std::nullptr_t, scoped_array<T> const & p ) noexcept
 {
     return p.get() == 0;
 }
 
-template<class T> inline bool operator!=( scoped_array<T> const & p, reactor::detail::sp_nullptr_t ) noexcept
+template<class T> inline bool operator!=( scoped_array<T> const & p, std::nullptr_t ) noexcept
 {
     return p.get() != 0;
 }
 
-template<class T> inline bool operator!=( reactor::detail::sp_nullptr_t, scoped_array<T> const & p ) noexcept
+template<class T> inline bool operator!=( std::nullptr_t, scoped_array<T> const & p ) noexcept
 {
     return p.get() != 0;
 }
 
-#endif
+
 
 template<class T> inline void swap(scoped_array<T> & a, scoped_array<T> & b) noexcept
 {
@@ -130,4 +129,3 @@ template<class T> inline void swap(scoped_array<T> & a, scoped_array<T> & b) noe
 
 }}}
 
-#endif  // #ifndef MMA1_SMART_PTR_SCOPED_ARRAY_HPP_INCLUDED

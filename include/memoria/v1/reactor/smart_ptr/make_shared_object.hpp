@@ -1,5 +1,3 @@
-#ifndef MMA1_SMART_PTR_MAKE_SHARED_OBJECT_HPP_INCLUDED1
-#define MMA1_SMART_PTR_MAKE_SHARED_OBJECT_HPP_INCLUDED1
 
 //  make_shared_object.hpp
 //
@@ -11,12 +9,13 @@
 //
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
 
+#pragma once
+
 #include <boost/config.hpp>
 #include <boost/move/core.hpp>
 #include <boost/move/utility_core.hpp>
 #include <memoria/v1/reactor/smart_ptr/shared_ptr.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_forward.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_noexcept.hpp>
+
 #include <boost/type_traits/type_with_alignment.hpp>
 #include <boost/type_traits/alignment_of.hpp>
 #include <cstddef>
@@ -177,7 +176,7 @@ struct sp_if_not_array< T[N] >
 
 } // namespace detail
 
-#define BOOST_SP_MSD( T ) reactor::detail::sp_inplace_tag< reactor::detail::sp_ms_deleter< T > >()
+#define MMA1_SP_MSD( T ) reactor::detail::sp_inplace_tag< reactor::detail::sp_ms_deleter< T > >()
 
 
 // _noinit versions
@@ -185,7 +184,7 @@ struct sp_if_not_array< T[N] >
 template< class T >
 typename reactor::detail::sp_if_not_array< T >::type make_shared_noinit()
 {
-    reactor::shared_ptr< T > pt( static_cast< T* >( 0 ), BOOST_SP_MSD( T ) );
+    reactor::shared_ptr< T > pt( static_cast< T* >( 0 ), MMA1_SP_MSD( T ) );
 
     reactor::detail::sp_ms_deleter< T > * pd = static_cast<reactor::detail::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
 
@@ -203,7 +202,7 @@ typename reactor::detail::sp_if_not_array< T >::type make_shared_noinit()
 template< class T, class A >
 typename reactor::detail::sp_if_not_array< T >::type allocate_shared_noinit( A const & a )
 {
-    reactor::shared_ptr< T > pt( static_cast< T* >( 0 ), BOOST_SP_MSD( T ), a );
+    reactor::shared_ptr< T > pt( static_cast< T* >( 0 ), MMA1_SP_MSD( T ), a );
 
     reactor::detail::sp_ms_deleter< T > * pd = static_cast<reactor::detail::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
 
@@ -224,14 +223,11 @@ typename reactor::detail::sp_if_not_array< T >::type allocate_shared_noinit( A c
 template< class T, class... Args >
 typename reactor::detail::sp_if_not_array< T >::type make_shared(int cpu, Args && ... args )
 {
-    reactor::shared_ptr< T > pt(cpu, static_cast< T* >( nullptr ), BOOST_SP_MSD( T ), std::forward<Args>(args)... );
+    reactor::shared_ptr< T > pt(cpu, static_cast< T* >( nullptr ), MMA1_SP_MSD( T ), std::forward<Args>(args)... );
 
     reactor::detail::sp_ms_deleter< T > * pd = static_cast<reactor::detail::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
 
     void * pv = pd->address();
-
-    //::new( pv ) T( reactor::detail::sp_forward<Args>( args )... );
-    //pd->set_initialized();
 
     T * pt2 = static_cast< T* >( pv );
 
@@ -264,8 +260,7 @@ typename reactor::detail::sp_if_not_array< T >::type allocate_shared(int cpu, A 
 }
 
 
-#undef BOOST_SP_MSD
+#undef MMA1_SP_MSD
 
 }}}
 
-#endif // #ifndef MMA1_SMART_PTR_MAKE_SHARED_OBJECT_HPP_INCLUDED

@@ -1,5 +1,3 @@
-#ifndef MMA1_SMART_PTR_OWNER_LESS_HPP_INCLUDED
-#define MMA1_SMART_PTR_OWNER_LESS_HPP_INCLUDED
 
 //
 //  owner_less.hpp
@@ -13,6 +11,8 @@
 //
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
 //
+
+#pragma once
 
 namespace memoria {
 namespace v1 {
@@ -32,4 +32,3 @@ template<class T = void> struct owner_less
 
 }}}
 
-#endif  // #ifndef MMA1_SMART_PTR_OWNER_LESS_HPP_INCLUDED

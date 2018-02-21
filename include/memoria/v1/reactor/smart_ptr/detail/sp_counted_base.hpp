@@ -1,5 +1,5 @@
-#ifndef MMA1_SMART_PTR_DETAIL_SP_COUNTED_BASE_HPP_INCLUDED
-#define MMA1_SMART_PTR_DETAIL_SP_COUNTED_BASE_HPP_INCLUDED
+#ifndef MMA1_SMART_PTR_DETAIL_SP_COUNTED_BASE_STD_ATOMIC_HPP_INCLUDED
+#define MMA1_SMART_PTR_DETAIL_SP_COUNTED_BASE_STD_ATOMIC_HPP_INCLUDED
 
 // MS compatible compilers support #pragma once
 
@@ -7,92 +7,142 @@
 # pragma once
 #endif
 
+//  detail/sp_counted_base.hpp - C++11 std::atomic
 //
-//  detail/sp_counted_base.hpp
+//  Copyright (c) 2007, 2013 Peter Dimov
 //
-//  Copyright 2005-2013 Peter Dimov
-//
-// Distributed under the Boost Software License, Version 1.0. (See
-// accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt)
-//
+//  Distributed under the Boost Software License, Version 1.0.
+//  See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt
 
-#include <boost/config.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_has_sync.hpp>
+#include <memoria/v1/reactor/smart_ptr/detail/sp_common.hpp>
 
-#if !defined( __c2__ ) && defined( __clang__ ) && defined( __has_extension )
-# if __has_extension( __c_atomic__ )
-#   define BOOST_SP_HAS_CLANG_C11_ATOMICS
-# endif
-#endif
+#include <boost/detail/sp_typeinfo.hpp>
+#include <atomic>
+#include <cstdint>
 
-# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_std_atomic.hpp>
+namespace memoria {
+namespace v1 {
+namespace reactor {
 
-////#if defined( BOOST_SP_DISABLE_THREADS )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_nt.hpp>
+namespace detail
+{
 
-////#elif defined( BOOST_SP_USE_STD_ATOMIC )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_std_atomic.hpp>
+inline void atomic_increment( std::atomic_int_least32_t * pw )
+{
+    pw->fetch_add( 1, std::memory_order_relaxed );
+}
 
-////#elif defined( BOOST_SP_USE_SPINLOCK )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_spin.hpp>
+inline std::int_least32_t atomic_decrement( std::atomic_int_least32_t * pw )
+{
+    return pw->fetch_sub( 1, std::memory_order_acq_rel );
+}
 
-////#elif defined( BOOST_SP_USE_PTHREADS )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_pt.hpp>
+inline std::int_least32_t atomic_conditional_increment( std::atomic_int_least32_t * pw )
+{
+    // long r = *pw;
+    // if( r != 0 ) ++*pw;
+    // return r;
 
-////#elif defined( BOOST_DISABLE_THREADS ) && !defined( BOOST_SP_ENABLE_THREADS ) && !defined( BOOST_DISABLE_WIN32 )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_nt.hpp>
+    std::int_least32_t r = pw->load( std::memory_order_relaxed );
 
-////#elif defined( BOOST_SP_HAS_CLANG_C11_ATOMICS )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_clang.hpp>
+    for( ;; )
+    {
+        if( r == 0 )
+        {
+            return r;
+        }
 
-////#elif !defined( BOOST_NO_CXX11_HDR_ATOMIC )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_std_atomic.hpp>
+        if( pw->compare_exchange_weak( r, r + 1, std::memory_order_relaxed, std::memory_order_relaxed ) )
+        {
+            return r;
+        }
+    }    
+}
 
-////#elif defined( __SNC__ )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_snc_ps3.hpp>
+class sp_counted_base
+{
+private:
 
-////#elif defined( __GNUC__ ) && ( defined( __i386__ ) || defined( __x86_64__ ) ) && !defined(__PATHSCALE__)
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_gcc_x86.hpp>
+    sp_counted_base( sp_counted_base const & );
+    sp_counted_base & operator= ( sp_counted_base const & );
 
-////#elif defined(__HP_aCC) && defined(__ia64)
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_acc_ia64.hpp>
+    std::atomic_int_least32_t use_count_;	// #shared
+    std::atomic_int_least32_t weak_count_;	// #weak + (#shared != 0)
 
-////#elif defined( __GNUC__ ) && defined( __ia64__ ) && !defined( __INTEL_COMPILER ) && !defined(__PATHSCALE__)
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_gcc_ia64.hpp>
+    int32_t cpu_;
 
-////#elif defined( __IBMCPP__ ) && defined( __powerpc )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_vacpp_ppc.hpp>
+public:
 
-////#elif defined( __MWERKS__ ) && defined( __POWERPC__ )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_cw_ppc.hpp>
+    sp_counted_base(): use_count_( 1 ), weak_count_( 1 ), cpu_(engine_current_cpu())
+    {
+    }
 
-////#elif defined( __GNUC__ ) && ( defined( __powerpc__ ) || defined( __ppc__ ) || defined( __ppc ) ) && !defined(__PATHSCALE__) && !defined( _AIX )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_gcc_ppc.hpp>
+    virtual ~sp_counted_base() // nothrow
+    {}
 
-////#elif defined( __GNUC__ ) && ( defined( __mips__ ) || defined( _mips ) ) && !defined(__PATHSCALE__) && !defined( __mips16 )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_gcc_mips.hpp>
+    int32_t cpu() const noexcept {
+        return cpu_;
+    }
 
-////#elif defined( BOOST_SP_HAS_SYNC )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_sync.hpp>
+    // dispose() is called when use_count_ drops to zero, to release
+    // the resources managed by *this.
 
-////#elif defined(__GNUC__) && ( defined( __sparcv9 ) || ( defined( __sparcv8 ) && ( __GNUC__ * 100 + __GNUC_MINOR__ >= 402 ) ) )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_gcc_sparc.hpp>
+    virtual void dispose() = 0; // nothrow
 
-////#elif defined( WIN32 ) || defined( _WIN32 ) || defined( __WIN32__ ) || defined(__CYGWIN__)
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_w32.hpp>
+    // destroy() is called when weak_count_ drops to zero.
 
-////#elif defined( _AIX )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_aix.hpp>
+    virtual void destroy() // nothrow
+    {
+        run_at_engine(cpu_, [&](){
+            delete this;
+        });
+    }
 
-////#elif !defined( BOOST_HAS_THREADS )
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_nt.hpp>
+    virtual void * get_deleter( boost::detail::sp_typeinfo const & ti ) = 0;
+    virtual void * get_local_deleter( boost::detail::sp_typeinfo const & ti ) = 0;
+    virtual void * get_untyped_deleter() = 0;
 
-////#else
-////# include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base_spin.hpp>
+    void add_ref_copy()
+    {
+        atomic_increment( &use_count_ );
+    }
 
-//#endif
+    bool add_ref_lock() // true on success
+    {
+        return atomic_conditional_increment( &use_count_ ) != 0;
+    }
 
-#undef BOOST_SP_HAS_CLANG_C11_ATOMICS
+    void release() // nothrow
+    {
+        if( atomic_decrement( &use_count_ ) == 1 )
+        {
+            dispose();
+            weak_release();
+        }
+    }
 
-#endif  // #ifndef MMA1_SMART_PTR_DETAIL_SP_COUNTED_BASE_HPP_INCLUDED
+    void weak_add_ref() // nothrow
+    {
+        atomic_increment( &weak_count_ );
+    }
+
+    void weak_release() // nothrow
+    {
+        if( atomic_decrement( &weak_count_ ) == 1 )
+        {
+            destroy();
+        }
+    }
+
+    long use_count() const // nothrow
+    {
+        return use_count_.load( std::memory_order_acquire );
+    }
+};
+
+} // namespace detail
+
+}}}
+
+#endif  // #ifndef MMA1_SMART_PTR_DETAIL_SP_COUNTED_BASE_STD_ATOMIC_HPP_INCLUDED

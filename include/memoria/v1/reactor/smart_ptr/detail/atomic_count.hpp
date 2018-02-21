@@ -1,99 +1,61 @@
-#ifndef MMA1_SMART_PTR_DETAIL_ATOMIC_COUNT_HPP_INCLUDED
-#define MMA1_SMART_PTR_DETAIL_ATOMIC_COUNT_HPP_INCLUDED
-
-// MS compatible compilers support #pragma once
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
 
 //
-//  boost/detail/atomic_count.hpp - thread/SMP safe reference counter
+//  boost/detail/atomic_count.hpp
 //
-//  Copyright (c) 2001, 2002 Peter Dimov and Multi Media Ltd.
-//  Copyright (c) 2013 Peter Dimov
+//  atomic_count for std::atomic
+//
+//  Copyright 2013 Peter Dimov
 //
 //  Distributed under the Boost Software License, Version 1.0.
 //  See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt
 //
-//  typedef <implementation-defined> reactor::detail::atomic_count;
-//
-//  atomic_count a(n);
-//
-//    (n is convertible to long)
-//
-//    Effects: Constructs an atomic_count with an initial value of n
-//
-//  a;
-//
-//    Returns: (long) the current value of a
-//    Memory Ordering: acquire
-//
-//  ++a;
-//
-//    Effects: Atomically increments the value of a
-//    Returns: (long) the new value of a
-//    Memory Ordering: acquire/release
-//
-//  --a;
-//
-//    Effects: Atomically decrements the value of a
-//    Returns: (long) the new value of a
-//    Memory Ordering: acquire/release
-//
 
-#include <boost/config.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_has_sync.hpp>
+#pragma once
 
-#if defined( BOOST_AC_DISABLE_THREADS )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_nt.hpp>
+#include <atomic>
+#include <cstdint>
 
-#elif defined( BOOST_AC_USE_STD_ATOMIC )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_std_atomic.hpp>
+namespace memoria {
+namespace v1 {
+namespace reactor {
 
-#elif defined( BOOST_AC_USE_SPINLOCK )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_spin.hpp>
+namespace detail
+{
 
-#elif defined( BOOST_AC_USE_PTHREADS )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_pt.hpp>
+class atomic_count
+{
+public:
 
-#elif defined( BOOST_SP_DISABLE_THREADS )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_nt.hpp>
+    explicit atomic_count( long v ): value_( v )
+    {
+    }
 
-#elif defined( BOOST_SP_USE_STD_ATOMIC )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_std_atomic.hpp>
+    long operator++()
+    {
+        return value_.fetch_add( 1, std::memory_order_acq_rel ) + 1;
+    }
 
-#elif defined( BOOST_SP_USE_SPINLOCK )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_spin.hpp>
+    long operator--()
+    {
+        return value_.fetch_sub( 1, std::memory_order_acq_rel ) - 1;
+    }
 
-#elif defined( BOOST_SP_USE_PTHREADS )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_pt.hpp>
+    operator long() const
+    {
+        return value_.load( std::memory_order_acquire );
+    }
 
-#elif defined( BOOST_DISABLE_THREADS ) && !defined( BOOST_SP_ENABLE_THREADS ) && !defined( BOOST_DISABLE_WIN32 )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_nt.hpp>
+private:
 
-#elif !defined( BOOST_NO_CXX11_HDR_ATOMIC )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_std_atomic.hpp>
+    atomic_count(atomic_count const &);
+    atomic_count & operator=(atomic_count const &);
 
-#elif defined( __GNUC__ ) && ( defined( __i386__ ) || defined( __x86_64__ ) ) && !defined( __PATHSCALE__ )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_gcc_x86.hpp>
+    std::atomic_int_least32_t value_;
+};
 
-#elif defined( BOOST_SP_HAS_SYNC )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_sync.hpp>
+} // namespace detail
 
-#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_win32.hpp>
+}}}
 
-#elif defined(__GLIBCPP__) || defined(__GLIBCXX__)
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_gcc.hpp>
 
-#elif !defined( BOOST_HAS_THREADS )
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_nt.hpp>
-
-#else
-# include <memoria/v1/reactor/smart_ptr/detail/atomic_count_spin.hpp>
-
-#endif
-
-#endif // #ifndef MMA1_SMART_PTR_DETAIL_ATOMIC_COUNT_HPP_INCLUDED

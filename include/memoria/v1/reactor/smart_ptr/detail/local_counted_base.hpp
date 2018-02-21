@@ -1,11 +1,3 @@
-#ifndef MMA1_SMART_PTR_DETAIL_LOCAL_COUNTED_BASE_HPP_INCLUDED
-#define MMA1_SMART_PTR_DETAIL_LOCAL_COUNTED_BASE_HPP_INCLUDED
-
-// MS compatible compilers support #pragma once
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
 
 //  detail/local_counted_base.hpp
 //
@@ -16,6 +8,8 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 //
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
+
+#pragma once
 
 #include <memoria/v1/reactor/smart_ptr/detail/shared_count.hpp>
 #include <boost/config.hpp>
@@ -141,5 +135,3 @@ public:
 } // namespace detail
 
 }}}
-
-#endif  // #ifndef MMA1_SMART_PTR_DETAIL_LOCAL_COUNTED_BASE_HPP_INCLUDED

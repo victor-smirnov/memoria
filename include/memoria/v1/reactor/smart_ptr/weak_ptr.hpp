@@ -1,5 +1,3 @@
-#ifndef MMA1_SMART_PTR_WEAK_PTR_HPP_INCLUDED
-#define MMA1_SMART_PTR_WEAK_PTR_HPP_INCLUDED
 
 //
 //  weak_ptr.hpp
@@ -13,10 +11,11 @@
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
 //
 
+#pragma once
+
 #include <memory> // boost.TR1 include order fix
 #include <memoria/v1/reactor/smart_ptr/detail/shared_count.hpp>
 #include <memoria/v1/reactor/smart_ptr/shared_ptr.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_noexcept.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -40,7 +39,6 @@ public:
 
 //  generated copy constructor, assignment, destructor are fine...
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
 // ... except in C++0x, move disables the implicit copy
 
@@ -55,7 +53,6 @@ public:
         return *this;
     }
 
-#endif
 
 //
 //  The "obvious" converting constructor implementation:
@@ -75,7 +72,7 @@ public:
 //
 
     template<class Y>
-#if !defined( BOOST_SP_NO_SP_CONVERTIBLE )
+#if !defined( MMA1_SP_NO_SP_CONVERTIBLE )
 
     weak_ptr( weak_ptr<Y> const & r, typename reactor::detail::sp_enable_if_convertible<Y,T>::type = reactor::detail::sp_empty() )
 
@@ -89,10 +86,10 @@ public:
         reactor::detail::sp_assert_convertible< Y, T >();
     }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     template<class Y>
-#if !defined( BOOST_SP_NO_SP_CONVERTIBLE )
+#if !defined( MMA1_SP_NO_SP_CONVERTIBLE )
 
     weak_ptr( weak_ptr<Y> && r, typename reactor::detail::sp_enable_if_convertible<Y,T>::type = reactor::detail::sp_empty() )
 
@@ -122,10 +119,9 @@ public:
     }
 
 
-#endif
 
     template<class Y>
-#if !defined( BOOST_SP_NO_SP_CONVERTIBLE )
+#if !defined( MMA1_SP_NO_SP_CONVERTIBLE )
 
     weak_ptr( shared_ptr<Y> const & r, typename reactor::detail::sp_enable_if_convertible<Y,T>::type = reactor::detail::sp_empty() )
 
@@ -139,7 +135,7 @@ public:
         reactor::detail::sp_assert_convertible< Y, T >();
     }
 
-#if !defined(BOOST_MSVC) || (BOOST_MSVC >= 1300)
+
 
     template<class Y>
     weak_ptr & operator=( weak_ptr<Y> const & r ) noexcept
@@ -152,7 +148,7 @@ public:
         return *this;
     }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     template<class Y>
     weak_ptr & operator=( weak_ptr<Y> && r ) noexcept
@@ -161,7 +157,7 @@ public:
         return *this;
     }
 
-#endif
+
 
     template<class Y>
     weak_ptr & operator=( shared_ptr<Y> const & r ) noexcept
@@ -174,7 +170,7 @@ public:
         return *this;
     }
 
-#endif
+
 
     shared_ptr<T> lock() const noexcept
     {
@@ -226,15 +222,12 @@ public:
 
 // Tasteless as this may seem, making all members public allows member templates
 // to work in the absence of member template friends. (Matthew Langston)
-
-#ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
-
 private:
 
     template<class Y> friend class weak_ptr;
     template<class Y> friend class shared_ptr;
 
-#endif
+
 
     element_type * px;            // contained pointer
     reactor::detail::weak_count pn; // reference counter
@@ -253,4 +246,3 @@ template<class T> void swap(weak_ptr<T> & a, weak_ptr<T> & b) noexcept
 
 }}}
 
-#endif  // #ifndef MMA1_SMART_PTR_WEAK_PTR_HPP_INCLUDED

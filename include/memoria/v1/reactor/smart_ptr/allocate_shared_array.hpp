@@ -5,8 +5,8 @@ Copyright 2012-2017 Glen Joseph Fernandes
 Distributed under the Boost Software License, Version 1.0.
 (http://www.boost.org/LICENSE_1_0.txt)
 */
-#ifndef MMA1_SMART_PTR_ALLOCATE_SHARED_ARRAY_HPP
-#define MMA1_SMART_PTR_ALLOCATE_SHARED_ARRAY_HPP
+
+#pragma once
 
 #include <memoria/v1/reactor/smart_ptr/shared_ptr.hpp>
 #include <boost/type_traits/alignment_of.hpp>
@@ -702,4 +702,3 @@ allocate_shared_noinit(const A& allocator)
 
 }}}
 
-#endif

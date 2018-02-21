@@ -12,12 +12,11 @@
  * This header contains a reference counter class for \c intrusive_ptr.
  */
 
-#ifndef MMA1_SMART_PTR_INTRUSIVE_REF_COUNTER_HPP_INCLUDED_
-#define MMA1_SMART_PTR_INTRUSIVE_REF_COUNTER_HPP_INCLUDED_
+#pragma once
 
 #include <boost/config.hpp>
 #include <memoria/v1/reactor/smart_ptr/detail/atomic_count.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_noexcept.hpp>
+
 
 #ifdef BOOST_HAS_PRAGMA_ONCE
 #pragma once
@@ -187,4 +186,3 @@ using sp_adl_block::thread_safe_counter;
 #pragma warning(pop)
 #endif
 
-#endif // MMA1_SMART_PTR_INTRUSIVE_REF_COUNTER_HPP_INCLUDED_

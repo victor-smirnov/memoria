@@ -1,5 +1,3 @@
-#ifndef MMA1_SMART_PTR_SHARED_ARRAY_HPP_INCLUDED
-#define MMA1_SMART_PTR_SHARED_ARRAY_HPP_INCLUDED
 
 //
 //  shared_array.hpp
@@ -14,6 +12,8 @@
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
 //
 
+#pragma once
+
 #include <boost/config.hpp>   // for broken compiler workarounds
 
 #include <memory>             // TR1 cyclic inclusion fix
@@ -23,8 +23,7 @@
 
 #include <memoria/v1/reactor/smart_ptr/shared_ptr.hpp>
 #include <memoria/v1/reactor/smart_ptr/detail/shared_count.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_nullptr_t.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_noexcept.hpp>
+
 #include <boost/detail/workaround.hpp>
 
 #include <cstddef>            // for std::ptrdiff_t
@@ -59,13 +58,12 @@ public:
     {
     }
 
-#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-    shared_array( reactor::detail::sp_nullptr_t ) noexcept : px( 0 ), pn()
+    shared_array( std::nullptr_t ) noexcept : px( 0 ), pn()
     {
     }
 
-#endif
+
 
     template<class Y>
     explicit shared_array( Y * p ): px( p ), pn( p, boost::checked_array_deleter<Y>() )
@@ -93,7 +91,7 @@ public:
 
 //  generated copy constructor, destructor are fine...
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
 // ... except in C++0x, move disables the implicit copy
 
@@ -107,12 +105,11 @@ public:
         r.px = 0;
     }
 
-#endif
 
     // conversion
 
     template<class Y>
-#if !defined( BOOST_SP_NO_SP_CONVERTIBLE )
+#if !defined( MMA1_SP_NO_SP_CONVERTIBLE )
 
     shared_array( shared_array<Y> const & r, typename reactor::detail::sp_enable_if_convertible< Y[], T[] >::type = reactor::detail::sp_empty() )
 
@@ -141,7 +138,7 @@ public:
         return *this;
     }
 
-#if !defined(BOOST_MSVC) || (BOOST_MSVC >= 1400)
+
 
     template<class Y>
     shared_array & operator=( shared_array<Y> const & r ) noexcept
@@ -150,9 +147,7 @@ public:
         return *this;
     }
 
-#endif
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
     shared_array & operator=( shared_array && r ) noexcept
     {
@@ -167,7 +162,7 @@ public:
         return *this;
     }
 
-#endif
+
 
     void reset() noexcept
     {
@@ -195,7 +190,7 @@ public:
         this_type( r, p ).swap( *this );
     }
 
-    T & operator[] (std::ptrdiff_t i) const noexcept_WITH_ASSERT
+    T & operator[] (std::ptrdiff_t i) const noexcept
     {
         BOOST_ASSERT(px != 0);
         BOOST_ASSERT(i >= 0);
@@ -250,29 +245,27 @@ template<class T> inline bool operator!=(shared_array<T> const & a, shared_array
     return a.get() != b.get();
 }
 
-#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-template<class T> inline bool operator==( shared_array<T> const & p, reactor::detail::sp_nullptr_t ) noexcept
+template<class T> inline bool operator==( shared_array<T> const & p, std::nullptr_t ) noexcept
 {
     return p.get() == 0;
 }
 
-template<class T> inline bool operator==( reactor::detail::sp_nullptr_t, shared_array<T> const & p ) noexcept
+template<class T> inline bool operator==( std::nullptr_t, shared_array<T> const & p ) noexcept
 {
     return p.get() == 0;
 }
 
-template<class T> inline bool operator!=( shared_array<T> const & p, reactor::detail::sp_nullptr_t ) noexcept
+template<class T> inline bool operator!=( shared_array<T> const & p, std::nullptr_t ) noexcept
 {
     return p.get() != 0;
 }
 
-template<class T> inline bool operator!=( reactor::detail::sp_nullptr_t, shared_array<T> const & p ) noexcept
+template<class T> inline bool operator!=( std::nullptr_t, shared_array<T> const & p ) noexcept
 {
     return p.get() != 0;
 }
 
-#endif
 
 template<class T> inline bool operator<(shared_array<T> const & a, shared_array<T> const & b) noexcept
 {
@@ -290,5 +283,3 @@ template< class D, class T > D * get_deleter( shared_array<T> const & p ) noexce
 }
 
 }}}
-
-#endif  // #ifndef MMA1_SMART_PTR_SHARED_ARRAY_HPP_INCLUDED

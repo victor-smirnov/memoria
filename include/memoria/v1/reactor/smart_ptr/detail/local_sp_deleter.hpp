@@ -1,11 +1,3 @@
-#ifndef MMA1_SMART_PTR_DETAIL_LOCAL_SP_DELETER_HPP_INCLUDED
-#define MMA1_SMART_PTR_DETAIL_LOCAL_SP_DELETER_HPP_INCLUDED
-
-// MS compatible compilers support #pragma once
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
 
 //  detail/local_sp_deleter.hpp
 //
@@ -16,6 +8,8 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 //
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
+
+#pragma once
 
 #include <memoria/v1/reactor/smart_ptr/detail/local_counted_base.hpp>
 #include <boost/config.hpp>
@@ -63,7 +57,7 @@ public:
 
 #if !defined( BOOST_NO_CXX11_NULLPTR )
 
-    void operator()( reactor::detail::sp_nullptr_t p ) noexcept
+    void operator()( std::nullptr_t p ) noexcept
     {
         d_( p );
     }
@@ -89,4 +83,3 @@ inline void * get_local_deleter( local_sp_deleter<void> * /*p*/ )
 
 }}}
 
-#endif  // #ifndef MMA1_SMART_PTR_DETAIL_LOCAL_SP_DELETER_HPP_INCLUDED

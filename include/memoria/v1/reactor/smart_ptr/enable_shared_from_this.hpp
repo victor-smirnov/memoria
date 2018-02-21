@@ -1,5 +1,3 @@
-#ifndef MMA1_SMART_PTR_ENABLE_SHARED_FROM_THIS_HPP_INCLUDED
-#define MMA1_SMART_PTR_ENABLE_SHARED_FROM_THIS_HPP_INCLUDED
 
 //
 //  enable_shared_from_this.hpp
@@ -13,9 +11,10 @@
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
 //
 
+#pragma once
+
 #include <memoria/v1/reactor/smart_ptr/weak_ptr.hpp>
 #include <memoria/v1/reactor/smart_ptr/shared_ptr.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_noexcept.hpp>
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 
@@ -87,5 +86,3 @@ private:
 };
 
 }}}
-
-#endif  // #ifndef MMA1_SMART_PTR_ENABLE_SHARED_FROM_THIS_HPP_INCLUDED

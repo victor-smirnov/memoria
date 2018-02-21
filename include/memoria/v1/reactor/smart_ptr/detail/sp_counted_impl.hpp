@@ -15,22 +15,11 @@
 
 #include <boost/config.hpp>
 
-#if defined(BOOST_SP_USE_STD_ALLOCATOR) && defined(BOOST_SP_USE_QUICK_ALLOCATOR)
-# error BOOST_SP_USE_STD_ALLOCATOR and BOOST_SP_USE_QUICK_ALLOCATOR are incompatible.
-#endif
-
 #include <boost/checked_delete.hpp>
 #include <memoria/v1/reactor/smart_ptr/detail/sp_counted_base.hpp>
 #include <boost/core/addressof.hpp>
 
-#if defined(BOOST_SP_USE_QUICK_ALLOCATOR)
-#include <memoria/v1/reactor/smart_ptr/detail/quick_allocator.hpp>
-#endif
-
-#if defined(BOOST_SP_USE_STD_ALLOCATOR)
 #include <memory>           // std::allocator
-#endif
-
 #include <cstddef>          // std::size_t
 
 namespace memoria {
@@ -105,8 +94,6 @@ public:
         return 0;
     }
 
-#if defined(BOOST_SP_USE_STD_ALLOCATOR)
-
     void * operator new( std::size_t )
     {
         return std::allocator<this_type>().allocate( 1, static_cast<this_type *>(0) );
@@ -116,22 +103,6 @@ public:
     {
         std::allocator<this_type>().deallocate( static_cast<this_type *>(p), 1 );
     }
-
-#endif
-
-#if defined(BOOST_SP_USE_QUICK_ALLOCATOR)
-
-    void * operator new( std::size_t )
-    {
-        return quick_allocator<this_type>::alloc();
-    }
-
-    void operator delete( void * p )
-    {
-        quick_allocator<this_type>::dealloc( p );
-    }
-
-#endif
 };
 
 
@@ -182,7 +153,7 @@ public:
         return &reinterpret_cast<char&>( del );
     }
 
-#if defined(BOOST_SP_USE_STD_ALLOCATOR)
+
 
     void * operator new( std::size_t )
     {
@@ -193,22 +164,6 @@ public:
     {
         std::allocator<this_type>().deallocate( static_cast<this_type *>(p), 1 );
     }
-
-#endif
-
-#if defined(BOOST_SP_USE_QUICK_ALLOCATOR)
-
-    void * operator new( std::size_t )
-    {
-        return quick_allocator<this_type>::alloc();
-    }
-
-    void operator delete( void * p )
-    {
-        quick_allocator<this_type>::dealloc( p );
-    }
-
-#endif
 };
 
 template<class P, class D, class A> class sp_counted_impl_pda: public sp_counted_base

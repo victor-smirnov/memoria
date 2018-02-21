@@ -1,11 +1,3 @@
-#ifndef MMA1_SMART_PTR_DETAIL_YIELD_K_HPP_INCLUDED
-#define MMA1_SMART_PTR_DETAIL_YIELD_K_HPP_INCLUDED
-
-// MS compatible compilers support #pragma once
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
 
 //
 //  yield_k.hpp
@@ -23,6 +15,8 @@
 //  See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt
 //
+
+#pragma once
 
 #include <boost/config.hpp>
 #include <boost/predef.h>
@@ -102,9 +96,7 @@ inline void yield( unsigned k )
 #endif
 }
 
-} // namespace detail
-
-}}} // namespace boost
+}}}
 
 #elif defined( BOOST_HAS_PTHREADS )
 
@@ -154,9 +146,8 @@ inline void yield( unsigned k )
     }
 }
 
-} // namespace detail
-
-}}} // namespace boost
+}
+}}}
 
 #else
 
@@ -173,8 +164,6 @@ inline void yield( unsigned )
 
 } // namespace detail
 
-}}} // namespace boost
+}}}
 
 #endif
-
-#endif // #ifndef MMA1_SMART_PTR_DETAIL_YIELD_K_HPP_INCLUDED

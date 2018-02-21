@@ -1,5 +1,3 @@
-#ifndef MMA1_SMART_PTR_ATOMIC_SHARED_PTR_HPP_INCLUDED
-#define MMA1_SMART_PTR_ATOMIC_SHARED_PTR_HPP_INCLUDED
 
 //
 //  atomic_shared_ptr.hpp
@@ -12,6 +10,8 @@
 //
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
 //
+
+#pragma once
 
 #include <memoria/v1/reactor/smart_ptr/shared_ptr.hpp>
 #include <memoria/v1/reactor/smart_ptr/detail/spinlock.hpp>
@@ -58,30 +58,14 @@ private:
 
 public:
 
-#if !defined( BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX ) && !defined( BOOST_NO_CXX11_constexpr )
-
-    constexpr atomic_shared_ptr() noexcept: l_ BOOST_DETAIL_SPINLOCK_INIT
+    constexpr atomic_shared_ptr() noexcept: l_ MMA1_SP_DETAIL_SPINLOCK_INIT
     {
     }
-
-#else
-
-    atomic_shared_ptr() noexcept
-    {
-        reactor::detail::spinlock init = BOOST_DETAIL_SPINLOCK_INIT;
-        std::memcpy( &l_, &init, sizeof( init ) );
-    }
-
-#endif
 
     atomic_shared_ptr( shared_ptr<T> p ) noexcept
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
         : p_( std::move( p ) )
-#else
-        : p_( p )
-#endif
     {
-        reactor::detail::spinlock init = BOOST_DETAIL_SPINLOCK_INIT;
+        reactor::detail::spinlock init = MMA1_SP_DETAIL_SPINLOCK_INIT;
         std::memcpy( &l_, &init, sizeof( init ) );
     }
 
@@ -123,15 +107,7 @@ public:
             p_.swap( r );
         }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
-
         return std::move( r );
-
-#else
-
-        return r;
-
-#endif
     }
 
     bool compare_exchange_weak( shared_ptr<T>& v, const shared_ptr<T>& w, int, int ) noexcept
@@ -154,7 +130,7 @@ public:
         return compare_exchange( v, w );
     }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     bool compare_exchange_weak( shared_ptr<T>& v, shared_ptr<T>&& w, int, int ) noexcept
     {
@@ -176,9 +152,6 @@ public:
         return compare_exchange( v, std::move( w ) );
     }
 
-#endif
 };
 
 }}}
-
-#endif  // #ifndef MMA1_SMART_PTR_ATOMIC_SHARED_PTR_HPP_INCLUDED

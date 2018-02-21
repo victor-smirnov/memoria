@@ -1,5 +1,3 @@
-#ifndef MMA1_SMART_PTR_INTRUSIVE_PTR_HPP_INCLUDED
-#define MMA1_SMART_PTR_INTRUSIVE_PTR_HPP_INCLUDED
 
 //
 //  intrusive_ptr.hpp
@@ -13,13 +11,14 @@
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
 //
 
+#pragma once
+
 #include <boost/config.hpp>
 
 #include <boost/assert.hpp>
 #include <boost/detail/workaround.hpp>
 #include <memoria/v1/reactor/smart_ptr/detail/sp_convertible.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_nullptr_t.hpp>
-#include <memoria/v1/reactor/smart_ptr/detail/sp_noexcept.hpp>
+
 
 #include <boost/config/no_tr1/functional.hpp>           // for std::less
 
@@ -70,10 +69,10 @@ public:
         if( px != 0 && add_ref ) intrusive_ptr_add_ref( px );
     }
 
-#if !defined(BOOST_NO_MEMBER_TEMPLATES) || defined(BOOST_MSVC6_MEMBER_TEMPLATES)
+
 
     template<class U>
-#if !defined( BOOST_SP_NO_SP_CONVERTIBLE )
+#if !defined( MMA1_SP_NO_SP_CONVERTIBLE )
 
     intrusive_ptr( intrusive_ptr<U> const & rhs, typename reactor::detail::sp_enable_if_convertible<U,T>::type = reactor::detail::sp_empty() )
 
@@ -87,7 +86,7 @@ public:
         if( px != 0 ) intrusive_ptr_add_ref( px );
     }
 
-#endif
+
 
     intrusive_ptr(intrusive_ptr const & rhs): px( rhs.px )
     {
@@ -99,7 +98,6 @@ public:
         if( px != 0 ) intrusive_ptr_release( px );
     }
 
-#if !defined(BOOST_NO_MEMBER_TEMPLATES) || defined(BOOST_MSVC6_MEMBER_TEMPLATES)
 
     template<class U> intrusive_ptr & operator=(intrusive_ptr<U> const & rhs)
     {
@@ -107,11 +105,11 @@ public:
         return *this;
     }
 
-#endif
+
 
 // Move support
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     intrusive_ptr(intrusive_ptr && rhs) noexcept : px( rhs.px )
     {
@@ -127,7 +125,7 @@ public:
     template<class U> friend class intrusive_ptr;
 
     template<class U>
-#if !defined( BOOST_SP_NO_SP_CONVERTIBLE )
+#if !defined( MMA1_SP_NO_SP_CONVERTIBLE )
 
     intrusive_ptr(intrusive_ptr<U> && rhs, typename reactor::detail::sp_enable_if_convertible<U,T>::type = reactor::detail::sp_empty())
 
@@ -148,7 +146,7 @@ public:
         return *this;
     }
 
-#endif
+
 
     intrusive_ptr & operator=(intrusive_ptr const & rhs)
     {
@@ -189,13 +187,13 @@ public:
         return ret;
     }
 
-    T & operator*() const noexcept_WITH_ASSERT
+    T & operator*() const noexcept
     {
         BOOST_ASSERT( px != 0 );
         return *px;
     }
 
-    T * operator->() const noexcept_WITH_ASSERT
+    T * operator->() const noexcept
     {
         BOOST_ASSERT( px != 0 );
         return px;
@@ -246,40 +244,30 @@ template<class T, class U> inline bool operator!=(T * a, intrusive_ptr<U> const 
     return a != b.get();
 }
 
-#if __GNUC__ == 2 && __GNUC_MINOR__ <= 96
 
-// Resolve the ambiguity between our op!= and the one in rel_ops
 
-template<class T> inline bool operator!=(intrusive_ptr<T> const & a, intrusive_ptr<T> const & b) noexcept
-{
-    return a.get() != b.get();
-}
 
-#endif
-
-#if !defined( BOOST_NO_CXX11_NULLPTR )
-
-template<class T> inline bool operator==( intrusive_ptr<T> const & p, reactor::detail::sp_nullptr_t ) noexcept
+template<class T> inline bool operator==( intrusive_ptr<T> const & p, std::nullptr_t ) noexcept
 {
     return p.get() == 0;
 }
 
-template<class T> inline bool operator==( reactor::detail::sp_nullptr_t, intrusive_ptr<T> const & p ) noexcept
+template<class T> inline bool operator==( std::nullptr_t, intrusive_ptr<T> const & p ) noexcept
 {
     return p.get() == 0;
 }
 
-template<class T> inline bool operator!=( intrusive_ptr<T> const & p, reactor::detail::sp_nullptr_t ) noexcept
+template<class T> inline bool operator!=( intrusive_ptr<T> const & p, std::nullptr_t ) noexcept
 {
     return p.get() != 0;
 }
 
-template<class T> inline bool operator!=( reactor::detail::sp_nullptr_t, intrusive_ptr<T> const & p ) noexcept
+template<class T> inline bool operator!=( std::nullptr_t, intrusive_ptr<T> const & p ) noexcept
 {
     return p.get() != 0;
 }
 
-#endif
+
 
 template<class T> inline bool operator<(intrusive_ptr<T> const & a, intrusive_ptr<T> const & b) noexcept
 {
@@ -359,4 +347,3 @@ template< class T > std::size_t hash_value( reactor::intrusive_ptr<T> const & p 
 
 }}}
 
-#endif  // #ifndef MMA1_SMART_PTR_INTRUSIVE_PTR_HPP_INCLUDED

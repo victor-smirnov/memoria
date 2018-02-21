@@ -5,8 +5,8 @@ Copyright 2012-2015 Glen Joseph Fernandes
 Distributed under the Boost Software License, Version 1.0.
 (http://www.boost.org/LICENSE_1_0.txt)
 */
-#ifndef MMA1_SMART_PTR_MAKE_UNIQUE_HPP
-#define MMA1_SMART_PTR_MAKE_UNIQUE_HPP
+
+#pragma once
 
 #include <boost/config.hpp>
 #include <memory>
@@ -68,14 +68,13 @@ make_unique()
     return std::unique_ptr<T>(new T());
 }
 
-#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
 template<class T, class... Args>
 inline typename detail::up_if_object<T>::type
 make_unique(Args&&... args)
 {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
-#endif
+
 
 template<class T>
 inline typename detail::up_if_object<T>::type
@@ -109,4 +108,3 @@ make_unique_noinit(std::size_t size)
 
 }}}
 
-#endif

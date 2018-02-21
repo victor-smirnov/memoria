@@ -1,11 +1,3 @@
-#ifndef MMA1_SMART_PTR_DETAIL_SPINLOCK_STD_ATOMIC_HPP_INCLUDED
-#define MMA1_SMART_PTR_DETAIL_SPINLOCK_STD_ATOMIC_HPP_INCLUDED
-
-// MS compatible compilers support #pragma once
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
 
 //
 //  Copyright (c) 2014 Peter Dimov
@@ -15,12 +7,15 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <memoria/v1/reactor/smart_ptr/detail/yield_k.hpp>
+#pragma once
+
+#include <boost/smart_ptr/detail/yield_k.hpp>
 #include <atomic>
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
+
 
 namespace detail
 {
@@ -42,7 +37,7 @@ public:
     {
         for( unsigned k = 0; !try_lock(); ++k )
         {
-            reactor::detail::yield( k );
+            boost::detail::yield( k );
         }
     }
 
@@ -76,9 +71,8 @@ public:
     };
 };
 
-} // namespace detail
-}}} // namespace boost
+}
 
-#define BOOST_DETAIL_SPINLOCK_INIT { ATOMIC_FLAG_INIT }
+}}}
 
-#endif // #ifndef MMA1_SMART_PTR_DETAIL_SPINLOCK_STD_ATOMIC_HPP_INCLUDED
+#define MMA1_SP_DETAIL_SPINLOCK_INIT { ATOMIC_FLAG_INIT }

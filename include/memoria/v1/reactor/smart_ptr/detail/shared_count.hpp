@@ -39,7 +39,7 @@
 
 #include <boost/core/addressof.hpp>
 
-#if defined( BOOST_SP_DISABLE_DEPRECATED )
+#if defined( MMA1_SP_DISABLE_DEPRECATED )
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
@@ -330,7 +330,7 @@ public:
     ~shared_count() // nothrow
     {
         if( pi_ != 0 ) pi_->release();
-#ifdef BOOST_SP_ENABLE_DEBUG_HOOK
+#ifdef MMA1_SP_ENABLE_DEBUG_HOOK
         id_ = 0;
 #endif
     }
@@ -548,7 +548,7 @@ inline shared_count::shared_count( weak_count const & r, sp_nothrow_tag ): pi_( 
 
 }}}
 
-#if defined( BOOST_SP_DISABLE_DEPRECATED )
+#if defined( MMA1_SP_DISABLE_DEPRECATED )
 #pragma GCC diagnostic pop
 #endif
 

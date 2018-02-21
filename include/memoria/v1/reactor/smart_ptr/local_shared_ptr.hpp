@@ -1,5 +1,3 @@
-#ifndef MMA1_SMART_PTR_LOCAL_SHARED_PTR_HPP_INCLUDED
-#define MMA1_SMART_PTR_LOCAL_SHARED_PTR_HPP_INCLUDED
 
 //  local_shared_ptr.hpp
 //
@@ -10,6 +8,8 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 //
 //  See http://www.boost.org/libs/smart_ptr/ for documentation.
+
+#pragma once
 
 #include <memoria/v1/reactor/smart_ptr/shared_ptr.hpp>
 
@@ -143,13 +143,10 @@ public:
     {
     }
 
-#if !defined( BOOST_NO_CXX11_NULLPTR )
-
-    constexpr local_shared_ptr( reactor::detail::sp_nullptr_t ) noexcept : px( 0 ), pn( 0 )
+    constexpr local_shared_ptr( std::nullptr_t ) noexcept : px( 0 ), pn( 0 )
     {
     }
 
-#endif
 
     // internal constructor, used by make_shared
     constexpr local_shared_ptr( reactor::detail::lsp_internal_constructor_tag, element_type * px_, reactor::detail::local_counted_base * pn_ ) noexcept : px( px_ ), pn( pn_ )
@@ -167,28 +164,28 @@ public:
         reactor::detail::lsp_deleter_construct( this, p, d, pn );
     }
 
-#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-    template<class D> local_shared_ptr( reactor::detail::sp_nullptr_t p, D d ): px( p ), pn( 0 )
+
+    template<class D> local_shared_ptr( std::nullptr_t p, D d ): px( p ), pn( 0 )
     {
         reactor::detail::lsp_deleter_construct( this, p, d, pn );
     }
 
-#endif
+
 
     template<class Y, class D, class A> local_shared_ptr( Y * p, D d, A a ): px( p ), pn( 0 )
     {
         reactor::detail::lsp_allocator_construct( this, p, d, a, pn );
     }
 
-#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-    template<class D, class A> local_shared_ptr( reactor::detail::sp_nullptr_t p, D d, A a ): px( p ), pn( 0 )
+
+    template<class D, class A> local_shared_ptr( std::nullptr_t p, D d, A a ): px( p ), pn( 0 )
     {
         reactor::detail::lsp_allocator_construct( this, p, d, a, pn );
     }
 
-#endif
+
 
     // construction from shared_ptr
 
@@ -204,7 +201,7 @@ public:
         }
     }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     template<class Y> local_shared_ptr( shared_ptr<Y> && r,
         typename reactor::detail::sp_enable_if_convertible<Y, T>::type = reactor::detail::sp_empty() )
@@ -219,11 +216,11 @@ public:
         }
     }
 
-#endif
+
 
     // construction from unique_ptr
 
-#if !defined( BOOST_NO_CXX11_SMART_PTR ) && !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     template< class Y, class D >
     local_shared_ptr( std::unique_ptr< Y, D > && r,
@@ -238,7 +235,7 @@ public:
         }
     }
 
-#endif
+
 
     template< class Y, class D >
     local_shared_ptr( reactor::movelib::unique_ptr< Y, D > r ); // !
@@ -259,7 +256,7 @@ public:
 
     // move constructor
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     local_shared_ptr( local_shared_ptr && r ) noexcept : px( r.px ), pn( r.pn )
     {
@@ -267,7 +264,7 @@ public:
         r.pn = 0;
     }
 
-#endif
+
 
     // converting copy constructor
 
@@ -285,7 +282,7 @@ public:
 
     // converting move constructor
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     template<class Y> local_shared_ptr( local_shared_ptr<Y> && r,
         typename reactor::detail::sp_enable_if_convertible<Y, T>::type = reactor::detail::sp_empty() ) noexcept
@@ -297,7 +294,6 @@ public:
         r.pn = 0;
     }
 
-#endif
 
     // aliasing
 
@@ -310,7 +306,7 @@ public:
         }
     }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     template<class Y>
     local_shared_ptr( local_shared_ptr<Y> && r, element_type * p ) noexcept : px( p ), pn( r.pn )
@@ -319,7 +315,6 @@ public:
         r.pn = 0;
     }
 
-#endif
 
     // assignment
 
@@ -335,7 +330,7 @@ public:
         return *this;
     }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     local_shared_ptr & operator=( local_shared_ptr && r ) noexcept
     {
@@ -350,19 +345,18 @@ public:
         return *this;
     }
 
-#endif
 
-#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-    local_shared_ptr & operator=( reactor::detail::sp_nullptr_t ) noexcept
+
+
+    local_shared_ptr & operator=( std::nullptr_t ) noexcept
     {
         local_shared_ptr().swap(*this);
         return *this;
     }
 
-#endif
 
-#if !defined( BOOST_NO_CXX11_SMART_PTR ) && !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     template<class Y, class D>
     local_shared_ptr & operator=( std::unique_ptr<Y, D> && r )
@@ -371,7 +365,6 @@ public:
         return *this;
     }
 
-#endif
 
     template<class Y, class D>
     local_shared_ptr & operator=( reactor::movelib::unique_ptr<Y, D> r ); // !
@@ -403,14 +396,14 @@ public:
         local_shared_ptr( r, p ).swap( *this );
     }
 
-#if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
+
 
     template<class Y> void reset( local_shared_ptr<Y> && r, element_type * p ) noexcept
     {
         local_shared_ptr( std::move( r ), p ).swap( *this );
     }
 
-#endif
+
 
     // accessors
 
@@ -424,7 +417,7 @@ public:
         return px;
     }
 
-    typename reactor::detail::sp_array_access< T >::type operator[] ( std::ptrdiff_t i ) const noexcept_WITH_ASSERT
+    typename reactor::detail::sp_array_access< T >::type operator[] ( std::ptrdiff_t i ) const noexcept
     {
         BOOST_ASSERT( px != 0 );
         BOOST_ASSERT( i >= 0 && ( i < reactor::detail::sp_extent< T >::value || reactor::detail::sp_extent< T >::value == 0 ) );
@@ -447,7 +440,7 @@ public:
 
     // conversions to shared_ptr, weak_ptr
 
-#if !defined( BOOST_SP_NO_SP_CONVERTIBLE ) && !defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS)
+#if !defined( MMA1_SP_NO_SP_CONVERTIBLE ) && !defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS)
     template<class Y, class E = typename reactor::detail::sp_enable_if_convertible<T,Y>::type> operator shared_ptr<Y>() const noexcept
 #else
     template<class Y> operator shared_ptr<Y>() const noexcept
@@ -465,7 +458,7 @@ public:
         }
     }
 
-#if !defined( BOOST_SP_NO_SP_CONVERTIBLE ) && !defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS)
+#if !defined( MMA1_SP_NO_SP_CONVERTIBLE ) && !defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS)
     template<class Y, class E = typename reactor::detail::sp_enable_if_convertible<T,Y>::type> operator weak_ptr<Y>() const noexcept
 #else
     template<class Y> operator weak_ptr<Y>() const noexcept
@@ -509,29 +502,29 @@ template<class T, class U> inline bool operator!=( local_shared_ptr<T> const & a
     return a.get() != b.get();
 }
 
-#if !defined( BOOST_NO_CXX11_NULLPTR )
 
-template<class T> inline bool operator==( local_shared_ptr<T> const & p, reactor::detail::sp_nullptr_t ) noexcept
+
+template<class T> inline bool operator==( local_shared_ptr<T> const & p, std::nullptr_t ) noexcept
 {
     return p.get() == 0;
 }
 
-template<class T> inline bool operator==( reactor::detail::sp_nullptr_t, local_shared_ptr<T> const & p ) noexcept
+template<class T> inline bool operator==( std::nullptr_t, local_shared_ptr<T> const & p ) noexcept
 {
     return p.get() == 0;
 }
 
-template<class T> inline bool operator!=( local_shared_ptr<T> const & p, reactor::detail::sp_nullptr_t ) noexcept
+template<class T> inline bool operator!=( local_shared_ptr<T> const & p, std::nullptr_t ) noexcept
 {
     return p.get() != 0;
 }
 
-template<class T> inline bool operator!=( reactor::detail::sp_nullptr_t, local_shared_ptr<T> const & p ) noexcept
+template<class T> inline bool operator!=( std::nullptr_t, local_shared_ptr<T> const & p ) noexcept
 {
     return p.get() != 0;
 }
 
-#endif
+
 
 template<class T, class U> inline bool operator==( local_shared_ptr<T> const & a, shared_ptr<U> const & b ) noexcept
 {
@@ -687,5 +680,3 @@ template< class T > std::size_t hash_value( memoria::v1::reactor::local_shared_p
 }
 
 }
-
-#endif  // #ifndef MMA1_SMART_PTR_LOCAL_SHARED_PTR_HPP_INCLUDED

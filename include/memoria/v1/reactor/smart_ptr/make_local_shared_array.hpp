@@ -6,8 +6,8 @@ Copyright 2017 Glen Joseph Fernandes
 Distributed under the Boost Software License, Version 1.0.
 (http://www.boost.org/LICENSE_1_0.txt)
 */
-#ifndef MMA1_SMART_PTR_MAKE_LOCAL_SHARED_ARRAY_HPP
-#define MMA1_SMART_PTR_MAKE_LOCAL_SHARED_ARRAY_HPP
+
+#pragma once
 
 #include <memoria/v1/reactor/smart_ptr/allocate_local_shared_array.hpp>
 
@@ -66,4 +66,4 @@ make_local_shared_noinit(std::size_t size)
 
 }}}
 
-#endif
+

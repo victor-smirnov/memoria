@@ -1,11 +1,3 @@
-#ifndef MMA1_SMART_PTR_DETAIL_SP_INTERLOCKED_HPP_INCLUDED
-#define MMA1_SMART_PTR_DETAIL_SP_INTERLOCKED_HPP_INCLUDED
-
-// MS compatible compilers support #pragma once
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-# pragma once
-#endif
 
 //
 //  boost/detail/sp_interlocked.hpp
@@ -17,25 +9,27 @@
 //  http://www.boost.org/LICENSE_1_0.txt
 //
 
+#pragma once
+
 #include <boost/config.hpp>
 
-// BOOST_SP_HAS_INTRIN_H
+// MMA1_SP_HAS_INTRIN_H
 
 // VC9 has intrin.h, but it collides with <utility>
 #if defined( BOOST_MSVC ) && BOOST_MSVC >= 1600
 
-# define BOOST_SP_HAS_INTRIN_H
+# define MMA1_SP_HAS_INTRIN_H
 
 // Unlike __MINGW64__, __MINGW64_VERSION_MAJOR is defined by MinGW-w64 for both 32 and 64-bit targets.
 #elif defined( __MINGW64_VERSION_MAJOR )
 
 // MinGW-w64 provides intrin.h for both 32 and 64-bit targets.
-# define BOOST_SP_HAS_INTRIN_H
+# define MMA1_SP_HAS_INTRIN_H
 
 // Intel C++ on Windows on VC10+ stdlib
 #elif defined( BOOST_INTEL_WIN ) && defined( _CPPLIB_VER ) && _CPPLIB_VER >= 520
 
-# define BOOST_SP_HAS_INTRIN_H
+# define MMA1_SP_HAS_INTRIN_H
 
 #endif
 
@@ -43,21 +37,21 @@
 
 # include <windows.h>
 
-# define BOOST_SP_INTERLOCKED_INCREMENT InterlockedIncrement
-# define BOOST_SP_INTERLOCKED_DECREMENT InterlockedDecrement
-# define BOOST_SP_INTERLOCKED_COMPARE_EXCHANGE InterlockedCompareExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE InterlockedExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE_ADD InterlockedExchangeAdd
+# define MMA1_SP_INTERLOCKED_INCREMENT InterlockedIncrement
+# define MMA1_SP_INTERLOCKED_DECREMENT InterlockedDecrement
+# define MMA1_SP_INTERLOCKED_COMPARE_EXCHANGE InterlockedCompareExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE InterlockedExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE_ADD InterlockedExchangeAdd
 
-#elif defined( BOOST_USE_INTRIN_H ) || defined( BOOST_SP_HAS_INTRIN_H )
+#elif defined( BOOST_USE_INTRIN_H ) || defined( MMA1_SP_HAS_INTRIN_H )
 
 #include <intrin.h>
 
-# define BOOST_SP_INTERLOCKED_INCREMENT _InterlockedIncrement
-# define BOOST_SP_INTERLOCKED_DECREMENT _InterlockedDecrement
-# define BOOST_SP_INTERLOCKED_COMPARE_EXCHANGE _InterlockedCompareExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE _InterlockedExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE_ADD _InterlockedExchangeAdd
+# define MMA1_SP_INTERLOCKED_INCREMENT _InterlockedIncrement
+# define MMA1_SP_INTERLOCKED_DECREMENT _InterlockedDecrement
+# define MMA1_SP_INTERLOCKED_COMPARE_EXCHANGE _InterlockedCompareExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE _InterlockedExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE_ADD _InterlockedExchangeAdd
 
 #elif defined( _WIN32_WCE )
 
@@ -69,11 +63,11 @@ extern "C" long __cdecl _InterlockedCompareExchange( long volatile *, long, long
 extern "C" long __cdecl _InterlockedExchange( long volatile *, long );
 extern "C" long __cdecl _InterlockedExchangeAdd( long volatile *, long );
 
-# define BOOST_SP_INTERLOCKED_INCREMENT _InterlockedIncrement
-# define BOOST_SP_INTERLOCKED_DECREMENT _InterlockedDecrement
-# define BOOST_SP_INTERLOCKED_COMPARE_EXCHANGE _InterlockedCompareExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE _InterlockedExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE_ADD _InterlockedExchangeAdd
+# define MMA1_SP_INTERLOCKED_INCREMENT _InterlockedIncrement
+# define MMA1_SP_INTERLOCKED_DECREMENT _InterlockedDecrement
+# define MMA1_SP_INTERLOCKED_COMPARE_EXCHANGE _InterlockedCompareExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE _InterlockedExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE_ADD _InterlockedExchangeAdd
 
 #else
 
@@ -85,11 +79,11 @@ extern "C" long __cdecl InterlockedCompareExchange( long*, long, long );
 extern "C" long __cdecl InterlockedExchange( long*, long );
 extern "C" long __cdecl InterlockedExchangeAdd( long*, long );
 
-# define BOOST_SP_INTERLOCKED_INCREMENT InterlockedIncrement
-# define BOOST_SP_INTERLOCKED_DECREMENT InterlockedDecrement
-# define BOOST_SP_INTERLOCKED_COMPARE_EXCHANGE InterlockedCompareExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE InterlockedExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE_ADD InterlockedExchangeAdd
+# define MMA1_SP_INTERLOCKED_INCREMENT InterlockedIncrement
+# define MMA1_SP_INTERLOCKED_DECREMENT InterlockedDecrement
+# define MMA1_SP_INTERLOCKED_COMPARE_EXCHANGE InterlockedCompareExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE InterlockedExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE_ADD InterlockedExchangeAdd
 
 #endif
 
@@ -124,11 +118,11 @@ extern "C" long __cdecl _InterlockedExchangeAdd( long volatile *, long );
 
 #endif
 
-# define BOOST_SP_INTERLOCKED_INCREMENT _InterlockedIncrement
-# define BOOST_SP_INTERLOCKED_DECREMENT _InterlockedDecrement
-# define BOOST_SP_INTERLOCKED_COMPARE_EXCHANGE _InterlockedCompareExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE _InterlockedExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE_ADD _InterlockedExchangeAdd
+# define MMA1_SP_INTERLOCKED_INCREMENT _InterlockedIncrement
+# define MMA1_SP_INTERLOCKED_DECREMENT _InterlockedDecrement
+# define MMA1_SP_INTERLOCKED_COMPARE_EXCHANGE _InterlockedCompareExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE _InterlockedExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE_ADD _InterlockedExchangeAdd
 
 #elif defined( WIN32 ) || defined( _WIN32 ) || defined( __WIN32__ ) || defined( __CYGWIN__ )
 
@@ -148,11 +142,11 @@ extern "C" __declspec(dllimport) long __stdcall InterlockedExchangeAdd( long vol
 
 } // namespace boost
 
-# define BOOST_SP_INTERLOCKED_INCREMENT ::boost::detail::InterlockedIncrement
-# define BOOST_SP_INTERLOCKED_DECREMENT ::boost::detail::InterlockedDecrement
-# define BOOST_SP_INTERLOCKED_COMPARE_EXCHANGE ::boost::detail::InterlockedCompareExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE ::boost::detail::InterlockedExchange
-# define BOOST_SP_INTERLOCKED_EXCHANGE_ADD ::boost::detail::InterlockedExchangeAdd
+# define MMA1_SP_INTERLOCKED_INCREMENT ::boost::detail::InterlockedIncrement
+# define MMA1_SP_INTERLOCKED_DECREMENT ::boost::detail::InterlockedDecrement
+# define MMA1_SP_INTERLOCKED_COMPARE_EXCHANGE ::boost::detail::InterlockedCompareExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE ::boost::detail::InterlockedExchange
+# define MMA1_SP_INTERLOCKED_EXCHANGE_ADD ::boost::detail::InterlockedExchangeAdd
 
 #else
 

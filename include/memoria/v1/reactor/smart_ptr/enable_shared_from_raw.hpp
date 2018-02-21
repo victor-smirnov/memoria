@@ -1,5 +1,3 @@
-#ifndef BOOST_ENABLE_SHARED_FROM_RAW_HPP_INCLUDED
-#define BOOST_ENABLE_SHARED_FROM_RAW_HPP_INCLUDED
 
 //
 //  enable_shared_from_raw.hpp
@@ -11,6 +9,8 @@
 //  See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt
 //
+
+#pragma once
 
 #include <boost/config.hpp>
 #include <boost/shared_ptr.hpp>
@@ -74,15 +74,13 @@ private:
         }
     }
 
-#ifdef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
-public:
-#else
+
 private:
     template<class Y> friend class shared_ptr;
     template<typename T> friend reactor::shared_ptr<T> shared_from_raw(T *);
     template<typename T> friend reactor::weak_ptr<T> weak_from_raw(T *);
     template< class X, class Y > friend inline void detail::sp_enable_shared_from_this( reactor::shared_ptr<X> * ppx, Y const * py, reactor::enable_shared_from_raw const * pe );
-#endif
+
 
     shared_ptr<void const volatile> shared_from_this() const
     {
@@ -165,4 +163,3 @@ namespace detail
 
 }}}
 
-#endif  // #ifndef BOOST_ENABLE_SHARED_FROM_RAW_HPP_INCLUDED
