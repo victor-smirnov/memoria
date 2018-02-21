@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memoria/v1/reactor/file.hpp>
+#include <memoria/v1/core/memory/smart_ptrs.hpp>
 
 #include <memoria/v1/core/tools/iostreams.hpp>
 
@@ -57,7 +58,7 @@ public:
 };
 
 
-class BufferedFileImpl: public GenericFile, public IBinaryIOStream, public std::enable_shared_from_this<BufferedFileImpl> {
+class BufferedFileImpl: public GenericFile, public IBinaryIOStream, public EnableSharedFromThis<BufferedFileImpl> {
 	uint64_t pos_{};
 public:
 	using GenericFile::read;

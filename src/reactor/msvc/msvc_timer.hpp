@@ -20,6 +20,8 @@
 
 #include <memoria/v1/fiber/fiber.hpp>
 
+#include <memoria/v1/reactor/reactor.hpp>
+
 #include <memory>
 #include <atomic>
 
@@ -34,10 +36,10 @@ class Reactor;
 
 class TimerMessage: public Message {
 
-	std::shared_ptr<TimerImpl> timer_;
+	LocalSharedPtr<TimerImpl> timer_;
 
 public:
-	TimerMessage(int cpu, std::shared_ptr<TimerImpl> timer): 
+	TimerMessage(int cpu, LocalSharedPtr<TimerImpl> timer):
 		Message(cpu, false),
 		timer_(timer)
 	{
@@ -52,7 +54,7 @@ public:
 	virtual std::string describe() { return "TimerMessage"; }
 };
 
-class TimerImpl: public std::enable_shared_from_this<TimerImpl> {
+class TimerImpl: public EnableSharedFromThis<TimerImpl> {
     HANDLE timer_fd_;
 
     bool stopped_{false};

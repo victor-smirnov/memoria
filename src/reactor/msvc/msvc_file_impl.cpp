@@ -28,6 +28,9 @@
 
 #include <memoria/v1/reactor/file_streams.hpp>
 
+
+#include <memoria/v1/reactor/reactor.hpp>
+
 #include "msvc_file_impl.hpp"
 
 #include <stdio.h>
@@ -339,12 +342,12 @@ void BufferedFileImpl::fdsync()
 
 File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode)
 {
-	return std::make_shared<BufferedFileImpl>(file_path, flags, mode);
+	return MakeLocalShared<BufferedFileImpl>(file_path, flags, mode);
 }
 
 DMAFile open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
 {
-	return std::make_shared<DMAFileImpl>(file_path, flags, mode);
+	return MakeLocalShared<DMAFileImpl>(file_path, flags, mode);
 }
 
 

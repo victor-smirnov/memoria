@@ -18,8 +18,11 @@
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 #include <memoria/v1/reactor/msvc/msvc_socket_impl.hpp>
 #include <memoria/v1/reactor/msvc/msvc_io_messages.hpp>
+#include <memoria/v1/core/memory/smart_ptrs.hpp>
 
 #include <memoria/v1/reactor/socket.hpp>
+
+#include <memoria/v1/reactor/reactor.hpp>
 
 #include <memory>
 
@@ -97,7 +100,7 @@ class ServerSocketConnectionImpl:
         public SocketConnectionImpl,
         public IBinaryInputStream,
         public IBinaryOutputStream,
-        public std::enable_shared_from_this<ServerSocketConnectionImpl>
+        public EnableSharedFromThis<ServerSocketConnectionImpl>
 {
     IPAddress ip_address_;
     uint16_t ip_port_;
@@ -108,11 +111,11 @@ public:
 
 
     virtual BinaryInputStream input() {
-        return std::static_pointer_cast<IBinaryInputStream>(shared_from_this());
+        return BinaryInputStream(StaticPointerCast<IBinaryInputStream>(shared_from_this()));
     }
 
     virtual BinaryOutputStream output() {
-        return std::static_pointer_cast<IBinaryOutputStream>(shared_from_this());
+        return BinaryOutputStream(StaticPointerCast<IBinaryOutputStream>(shared_from_this()));
     }
 
     virtual size_t read(uint8_t* data, size_t size);
@@ -128,16 +131,16 @@ class ClientSocketConnectionImpl:
         public SocketConnectionImpl,
         public IBinaryInputStream,
         public IBinaryOutputStream,
-        public std::enable_shared_from_this<ClientSocketImpl>
+        public EnableSharedFromThis<ClientSocketImpl>
 {
 public:
     ClientSocketConnectionImpl(SOCKET fd): SocketConnectionImpl(fd) {}
 
     virtual BinaryInputStream input() {
-        return std::static_pointer_cast<IBinaryInputStream>(shared_from_this());
+        return BinaryInputStream(StaticPointerCast<IBinaryInputStream>(shared_from_this()));
     }
     virtual BinaryOutputStream output() {
-        return std::static_pointer_cast<IBinaryOutputStream>(shared_from_this());
+        return BinaryOutputStream(StaticPointerCast<IBinaryOutputStream>(shared_from_this()));
     }
 };
 
