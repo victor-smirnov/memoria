@@ -249,7 +249,7 @@ template< class Y, class T > inline void sp_assert_convertible() noexcept
 
 #else
 
-    T* p = static_cast< Y* >( 0 );
+    T* p = static_cast< Y* >( nullptr );
     (void)p;
 
 #endif
@@ -257,24 +257,24 @@ template< class Y, class T > inline void sp_assert_convertible() noexcept
 
 // pointer constructor helper
 
-template< class T, class Y > inline void sp_pointer_construct( reactor::shared_ptr< T > * ppx, Y * p, reactor::detail::shared_count & pn )
+template< class T, class Y > inline void sp_pointer_construct(int32_t cpu, reactor::shared_ptr< T > * ppx, Y * p, reactor::detail::shared_count & pn )
 {
-    reactor::detail::shared_count( p ).swap( pn );
+    reactor::detail::shared_count(cpu, p ).swap( pn );
     reactor::detail::sp_enable_shared_from_this( ppx, p, p );
 }
 
 
 
-template< class T, class Y > inline void sp_pointer_construct( reactor::shared_ptr< T[] > * /*ppx*/, Y * p, reactor::detail::shared_count & pn )
+template< class T, class Y > inline void sp_pointer_construct(int32_t cpu, reactor::shared_ptr< T[] > * /*ppx*/, Y * p, reactor::detail::shared_count & pn )
 {
     sp_assert_convertible< Y[], T[] >();
-    reactor::detail::shared_count( p, boost::checked_array_deleter< T >() ).swap( pn );
+    reactor::detail::shared_count(cpu, p, boost::checked_array_deleter< T >() ).swap( pn );
 }
 
-template< class T, std::size_t N, class Y > inline void sp_pointer_construct( reactor::shared_ptr< T[N] > * /*ppx*/, Y * p, reactor::detail::shared_count & pn )
+template< class T, std::size_t N, class Y > inline void sp_pointer_construct(int32_t cpu, reactor::shared_ptr< T[N] > * /*ppx*/, Y * p, reactor::detail::shared_count & pn )
 {
     sp_assert_convertible< Y[N], T[N] >();
-    reactor::detail::shared_count( p, boost::checked_array_deleter< T >() ).swap( pn );
+    reactor::detail::shared_count(cpu, p, boost::checked_array_deleter< T >() ).swap( pn );
 }
 
 // deleter constructor helper
@@ -295,9 +295,7 @@ template< class T, std::size_t N, class Y > inline void sp_deleter_construct( re
 }
 
 
-struct sp_internal_constructor_tag
-{
-};
+
 
 } // namespace detail
 
@@ -342,9 +340,9 @@ public:
 
 
     template<class Y>
-    explicit shared_ptr( Y * p ): px( p ), pn() // Y must be complete
+    explicit shared_ptr(int32_t cpu, Y * p ): px( p ), pn() // Y must be complete
     {
-        reactor::detail::sp_pointer_construct( this, p, pn );
+        reactor::detail::sp_pointer_construct(cpu, this, p, pn );
     }
 
     //
@@ -353,29 +351,49 @@ public:
     // shared_ptr will release p by calling d(p)
     //
 
-    template<class Y, class D, class... Args> shared_ptr(int cpu, Y * p, D d, Args&&... args ):
-        px( p ), pn(detail::CpuValue(cpu), p, d, std::forward<Args>(args)... )
+    template<class Y, class D, class... Args>
+    shared_ptr(detail::sp_internal_constructor_tag ict, int cpu, Y * p, D d, Args&&... args ):
+        px( p ), pn(ict, detail::CpuValue(cpu), p, d, std::forward<Args>(args)... )
+    {
+        reactor::detail::sp_deleter_construct( this, p );
+    }
+
+    template<class Y, class D>
+    shared_ptr(int cpu, Y * p, D d):
+        px( p ), pn(detail::CpuValue(cpu), p, d)
     {
         reactor::detail::sp_deleter_construct( this, p );
     }
 
 
-    template<class D> shared_ptr( std::nullptr_t p, D d ): px( p ), pn( p, d )
+    template<class D>
+    shared_ptr(int32_t cpu, std::nullptr_t p, D d ): px( p ), pn(detail::CpuValue(cpu), p, d )
     {
     }
 
 
     // As above, but with allocator. A's copy constructor shall not throw.
 
-    template<class Y, class D, class A, class... Args> shared_ptr(detail::AllocTag, int32_t cpu, Y * p, D d, A a, Args&&... args):
-        px( p ), pn(detail::AllocTag(), detail::CpuValue(cpu), p, d, a, std::forward<Args>(args)... )
+    template<class Y, class D, class A, class... Args>
+    shared_ptr(detail::sp_internal_constructor_tag ict, detail::AllocTag, int32_t cpu, Y * p, D d, A a, Args&&... args):
+        px( p ), pn(ict, detail::AllocTag(), detail::CpuValue(cpu), p, d, a, std::forward<Args>(args)... )
     {
         reactor::detail::sp_deleter_construct( this, p );
     }
 
 
 
-    template<class D, class A> shared_ptr(int32_t cpu, std::nullptr_t p, D d, A a ):
+    template<class Y, class D, class A>
+    shared_ptr(int32_t cpu, Y * p, D d, A a):
+        px( p ), pn(detail::CpuValue(cpu), p, d, a)
+    {
+        reactor::detail::sp_deleter_construct( this, p );
+    }
+
+
+
+    template<class D, class A>
+    shared_ptr(int32_t cpu, std::nullptr_t p, D d, A a ):
         px( p ), pn(detail::CpuValue(cpu), p, d, a )
     {
     }
@@ -403,8 +421,8 @@ public:
     }
 
     template<class Y>
-    shared_ptr( weak_ptr<Y> const & r, reactor::detail::sp_nothrow_tag )
-    noexcept : px( 0 ), pn( r.pn, reactor::detail::sp_nothrow_tag() )
+    shared_ptr( weak_ptr<Y> const & r, reactor::detail::sp_nothrow_tag ) noexcept :
+        px( 0 ), pn( r.pn, reactor::detail::sp_nothrow_tag() )
     {
         if( !pn.empty() )
         {
@@ -429,13 +447,15 @@ public:
 
     // aliasing
     template< class Y >
-    shared_ptr( shared_ptr<Y> const & r, element_type * p ) noexcept : px( p ), pn( r.pn )
+    shared_ptr( shared_ptr<Y> const & r, element_type * p ) noexcept :
+        px( p ), pn( r.pn )
     {
     }
 
 
     template< class Y, class D >
-    shared_ptr( std::unique_ptr< Y, D > && r ): px( r.get() ), pn()
+    shared_ptr( std::unique_ptr< Y, D > && r ):
+        px( r.get() ), pn()
     {
         reactor::detail::sp_assert_convertible< Y, T >();
 
@@ -450,7 +470,8 @@ public:
 
 
     template< class Y, class D >
-    shared_ptr( reactor::movelib::unique_ptr< Y, D > r ): px( r.get() ), pn()
+    shared_ptr( reactor::movelib::unique_ptr< Y, D > r ):
+        px( r.get() ), pn()
     {
         reactor::detail::sp_assert_convertible< Y, T >();
 
@@ -558,7 +579,8 @@ public:
 
     // aliasing move
     template<class Y>
-    shared_ptr( shared_ptr<Y> && r, element_type * p ) noexcept : px( p ), pn()
+    shared_ptr( shared_ptr<Y> && r, element_type * p ) noexcept :
+        px( p ), pn()
     {
         pn.swap( r.pn );
         r.px = 0;

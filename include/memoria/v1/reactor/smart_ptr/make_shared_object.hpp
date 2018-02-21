@@ -182,36 +182,35 @@ struct sp_if_not_array< T[N] >
 // _noinit versions
 
 template< class T >
-typename reactor::detail::sp_if_not_array< T >::type make_shared_noinit()
+typename reactor::detail::sp_if_not_array< T >::type make_shared_noinit_at(int32_t cpu)
 {
-    reactor::shared_ptr< T > pt( static_cast< T* >( 0 ), MMA1_SP_MSD( T ) );
+    reactor::shared_ptr< T > pt(
+        detail::sp_internal_constructor_tag(),
+        static_cast< T* >( nullptr ),
+        MMA1_SP_MSD( T )
+    );
 
     reactor::detail::sp_ms_deleter< T > * pd = static_cast<reactor::detail::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
 
-    void * pv = pd->address();
-
-    ::new( pv ) T;
-    pd->set_initialized();
-
-    T * pt2 = static_cast< T* >( pv );
+    T * pt2 = static_cast< T* >( pd->address() );
 
     reactor::detail::sp_enable_shared_from_this( &pt, pt2, pt2 );
     return reactor::shared_ptr< T >( pt, pt2 );
 }
 
 template< class T, class A >
-typename reactor::detail::sp_if_not_array< T >::type allocate_shared_noinit( A const & a )
+typename reactor::detail::sp_if_not_array< T >::type allocate_shared_noinit_at(int32_t cpu, A const & a )
 {
-    reactor::shared_ptr< T > pt( static_cast< T* >( 0 ), MMA1_SP_MSD( T ), a );
+    reactor::shared_ptr< T > pt(
+        detail::sp_internal_constructor_tag(),
+        static_cast< T* >( nullptr ),
+        MMA1_SP_MSD( T ),
+        a
+    );
 
     reactor::detail::sp_ms_deleter< T > * pd = static_cast<reactor::detail::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
 
-    void * pv = pd->address();
-
-    ::new( pv ) T;
-    pd->set_initialized();
-
-    T * pt2 = static_cast< T* >( pv );
+    T * pt2 = static_cast< T* >( pd->address() );
 
     reactor::detail::sp_enable_shared_from_this( &pt, pt2, pt2 );
     return reactor::shared_ptr< T >( pt, pt2 );
@@ -221,22 +220,26 @@ typename reactor::detail::sp_if_not_array< T >::type allocate_shared_noinit( A c
 // Variadic templates, rvalue reference
 
 template< class T, class... Args >
-typename reactor::detail::sp_if_not_array< T >::type make_shared(int cpu, Args && ... args )
+typename reactor::detail::sp_if_not_array< T >::type make_shared_at(int cpu, Args && ... args )
 {
-    reactor::shared_ptr< T > pt(cpu, static_cast< T* >( nullptr ), MMA1_SP_MSD( T ), std::forward<Args>(args)... );
+    reactor::shared_ptr< T > pt(
+        detail::sp_internal_constructor_tag(),
+        cpu,
+        static_cast< T* >( nullptr ),
+        MMA1_SP_MSD( T ),
+        std::forward<Args>(args)...
+    );
 
     reactor::detail::sp_ms_deleter< T > * pd = static_cast<reactor::detail::sp_ms_deleter< T > *>( pt._internal_get_untyped_deleter() );
 
-    void * pv = pd->address();
-
-    T * pt2 = static_cast< T* >( pv );
+    T * pt2 = static_cast< T* >( pd->address() );
 
     reactor::detail::sp_enable_shared_from_this( &pt, pt2, pt2 );
     return reactor::shared_ptr< T >( pt, pt2 );
 }
 
 template< class T, class A, class... Args >
-typename reactor::detail::sp_if_not_array< T >::type allocate_shared(int cpu, A const & a, Args && ... args )
+typename reactor::detail::sp_if_not_array< T >::type allocate_shared_at(int cpu, A const & a, Args && ... args )
 {
     using A2 = typename std::allocator_traits<A>::template rebind_alloc<T>;
     A2 a2( a );
@@ -244,6 +247,7 @@ typename reactor::detail::sp_if_not_array< T >::type allocate_shared(int cpu, A 
     using D = reactor::detail::sp_as_deleter< T, A2 >;
 
     reactor::shared_ptr< T > pt(
+        detail::sp_internal_constructor_tag(),
         detail::AllocTag(),
         cpu,
         static_cast< T* >( nullptr ),

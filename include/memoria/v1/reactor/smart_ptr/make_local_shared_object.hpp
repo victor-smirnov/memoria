@@ -118,14 +118,8 @@ template<class T, class A, class... Args> typename reactor::detail::lsp_if_not_a
     );
 
     D * pd = static_cast< D* >( pt._internal_get_untyped_deleter() );
-    void * pv = pd->address();
 
-
-    std::allocator_traits<A2>::construct( a2, static_cast< T* >( pv ), std::forward<Args>( args )... );
-
-    pd->set_initialized();
-
-    T * pt2 = static_cast< T* >( pv );
+    T * pt2 = static_cast< T* >( pd->address() );
     reactor::detail::sp_enable_shared_from_this( &pt, pt2, pt2 );
 
     pd->pn_ = pt._internal_count();
@@ -141,16 +135,15 @@ template<class T, class A> typename reactor::detail::lsp_if_not_array<T>::type a
 
     typedef reactor::detail::lsp_ms_deleter< T, std::allocator<T> > D;
 
-    reactor::shared_ptr<T> pt( static_cast< T* >( 0 ), reactor::detail::sp_inplace_tag<D>(), a2 );
+    reactor::shared_ptr<T> pt(
+        detail::engine_current_cpu(),
+        static_cast< T* >( nullptr ),
+        reactor::detail::sp_inplace_tag<D>(), a2
+    );
 
     D * pd = static_cast< D* >( pt._internal_get_untyped_deleter() );
-    void * pv = pd->address();
 
-    ::new( pv ) T;
-
-    pd->set_initialized();
-
-    T * pt2 = static_cast< T* >( pv );
+    T * pt2 = static_cast< T* >( pd->address() );
     reactor::detail::sp_enable_shared_from_this( &pt, pt2, pt2 );
 
     pd->pn_ = pt._internal_count();
@@ -165,7 +158,7 @@ template<class T, class... Args> typename reactor::detail::lsp_if_not_array<T>::
 
 template<class T> typename reactor::detail::lsp_if_not_array<T>::type make_local_shared_noinit()
 {
-    return reactor::allocate_shared_noinit<T>( std::allocator<T>() );
+    return reactor::allocate_shared_noinit_at<T>(detail::engine_current_cpu(), std::allocator<T>() );
 }
 
 }}}

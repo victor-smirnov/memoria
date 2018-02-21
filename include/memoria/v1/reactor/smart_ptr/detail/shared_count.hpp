@@ -65,6 +65,8 @@ int const weak_count_id     = 0x298C38A4;
 
 #endif
 
+struct sp_internal_constructor_tag {};
+
 struct sp_nothrow_tag {};
 
 template< class D > struct sp_inplace_tag
@@ -181,7 +183,7 @@ public:
 
 
     template< class P, class D, class... Args >
-    shared_count(CpuValue cpu, P p, sp_inplace_tag<D>, Args&&... args):
+    shared_count(sp_internal_constructor_tag, CpuValue cpu, P p, sp_inplace_tag<D>, Args&&... args):
         pi_( nullptr )
         MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
@@ -209,8 +211,8 @@ public:
         });
     }
 
-    template<class P, class D, class A, class... Args>
-    shared_count(AllocTag, CpuValue cpu, P p, D d, A a, Args&&... args ):
+    template<class P, class D, class A>
+    shared_count(CpuValue cpu, P p, D d, A a):
         pi_( nullptr )
         MMA1_SP_SPC_INIT_DEBUG_HOOK
     {
@@ -245,7 +247,7 @@ public:
 
 
     template< class P, class D, class A, class... Args >
-    shared_count(AllocTag, CpuValue cpu, P p, sp_inplace_tag< D >, A a, Args&&... args ):
+    shared_count(sp_internal_constructor_tag, AllocTag, CpuValue cpu, P p, sp_inplace_tag< D >, A a, Args&&... args ):
         pi_( nullptr )
         MMA1_SP_SPC_INIT_DEBUG_HOOK
     {

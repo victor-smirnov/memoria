@@ -44,6 +44,15 @@ struct SomeClass: rr::enable_shared_from_this<SomeClass> {
     }
 };
 
+struct ArrayValClass {
+    ArrayValClass() {
+        std::cout << "ArrValCtr: " << rr::engine().cpu() << std::endl;
+    }
+
+    ~ArrayValClass() {
+        std::cout << "ArrValDtr: " << rr::engine().cpu() << std::endl;
+    }
+};
 
 
 int main(int argc, char **argv) 
@@ -54,7 +63,24 @@ int main(int argc, char **argv)
         std::cout << "Hello from SharedPtrs!" << std::endl;
         
         try {
-            auto ptr = rr::allocate_shared<SomeClass>(1, std::allocator<SomeClass>(), 555);
+            ArrayValClass* av0 = new ArrayValClass();
+            rr::shared_ptr<ArrayValClass> pp0(1, av0, [](ArrayValClass* vv){
+                delete vv;
+            });
+
+            ArrayValClass* av1 = new ArrayValClass();
+            rr::shared_ptr<ArrayValClass> pp1(1, av1, [](ArrayValClass* vv){
+                delete vv;
+            }, std::allocator<ArrayValClass>());
+
+            rr::shared_ptr<ArrayValClass> pp3(1, std::nullptr_t(), [](ArrayValClass* vv){
+                delete vv;
+            });
+
+
+            rr::allocate_shared_at<ArrayValClass[]>(1, std::allocator<ArrayValClass>(), 3);
+
+            auto ptr = rr::allocate_shared_at<SomeClass>(1, std::allocator<SomeClass>(), 555);
 
             std::cout << ptr->value_ << std::endl;
         }

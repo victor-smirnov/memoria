@@ -16,50 +16,50 @@ namespace reactor {
 
 template<class T>
 inline typename detail::sp_if_size_array<T>::type
-make_shared()
+make_shared_at(int32_t cpu)
 {
-    return reactor::allocate_shared<T>(std::allocator<typename
+    return reactor::allocate_shared_at<T>(cpu, std::allocator<typename
         detail::sp_array_scalar<T>::type>());
 }
 
 template<class T>
 inline typename detail::sp_if_size_array<T>::type
-make_shared(const typename detail::sp_array_element<T>::type& value)
+make_shared_at(int32_t cpu, const typename detail::sp_array_element<T>::type& value)
 {
-    return reactor::allocate_shared<T>(std::allocator<typename
+    return reactor::allocate_shared_at<T>(cpu, std::allocator<typename
         detail::sp_array_scalar<T>::type>(), value);
 }
 
 template<class T>
 inline typename detail::sp_if_array<T>::type
-make_shared(std::size_t size)
+make_shared_at(int32_t cpu, std::size_t size)
 {
-    return reactor::allocate_shared<T>(std::allocator<typename
+    return reactor::allocate_shared_at<T>(cpu, std::allocator<typename
         detail::sp_array_scalar<T>::type>(), size);
 }
 
 template<class T>
 inline typename detail::sp_if_array<T>::type
-make_shared(std::size_t size,
+make_shared_at(int32_t cpu, std::size_t size,
     const typename detail::sp_array_element<T>::type& value)
 {
-    return reactor::allocate_shared<T>(std::allocator<typename
+    return reactor::allocate_shared_at<T>(cpu, std::allocator<typename
         detail::sp_array_scalar<T>::type>(), size, value);
 }
 
 template<class T>
 inline typename detail::sp_if_size_array<T>::type
-make_shared_noinit()
+make_shared_noinit_at(int32_t cpu)
 {
-    return allocate_shared_noinit<T>(std::allocator<typename
+    return allocate_shared_noinit_at<T>(cpu, std::allocator<typename
         detail::sp_array_scalar<T>::type>());
 }
 
 template<class T>
 inline typename detail::sp_if_array<T>::type
-make_shared_noinit(std::size_t size)
+make_shared_noinit_at(int32_t cpu, std::size_t size)
 {
-    return allocate_shared_noinit<T>(std::allocator<typename
+    return allocate_shared_noinit_at<T>(cpu, std::allocator<typename
         detail::sp_array_scalar<T>::type>(), size);
 }
 
