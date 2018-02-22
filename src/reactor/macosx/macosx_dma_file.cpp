@@ -207,7 +207,7 @@ DMABuffer allocate_dma_buffer(size_t size)
 
 DMAFile open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
 {
-    return std::make_shared<DMAFileImpl>(file_path, flags, mode);
+    return MakeLocalShared<DMAFileImpl>(file_path, flags, mode);
 }
     
 }}}

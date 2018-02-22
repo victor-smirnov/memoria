@@ -17,6 +17,8 @@
 
 #include <memoria/v1/reactor/file.hpp>
 
+#include <memoria/v1/reactor/reactor.hpp>
+
 namespace memoria {
 namespace v1 {
 namespace reactor {
@@ -34,7 +36,7 @@ public:
 
 
 
-class BufferedFileImpl: public FileImplBase, public IBinaryIOStream, public std::enable_shared_from_this<BufferedFileImpl> {
+class BufferedFileImpl: public FileImplBase, public IBinaryIOStream, public EnableSharedFromThis<BufferedFileImpl> {
     int fd_{};
     bool closed_{true};
 public:
@@ -64,12 +66,12 @@ public:
 
     virtual BinaryInputStream istream()
     {
-        return std::static_pointer_cast<IBinaryInputStream>(shared_from_this());
+        return BinaryInputStream(StaticPointerCast<IBinaryInputStream>(shared_from_this()));
     }
 
     virtual BinaryOutputStream ostream()
     {
-        return std::static_pointer_cast<IBinaryOutputStream>(shared_from_this());
+        return BinaryOutputStream(StaticPointerCast<IBinaryOutputStream>(shared_from_this()));
     }
 };
 
