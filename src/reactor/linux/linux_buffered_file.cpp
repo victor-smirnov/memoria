@@ -220,7 +220,7 @@ void BufferedFileImpl::fdsync() {
 
 File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode) 
 {
-    return std::make_shared<BufferedFileImpl>(file_path, flags, mode);
+    return MakeLocalShared<BufferedFileImpl>(file_path, flags, mode);
 }
     
 }}}

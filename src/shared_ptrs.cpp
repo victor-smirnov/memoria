@@ -8,35 +8,30 @@
 #include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/time.hpp>
 
-
-//#include <boost/smart_ptr.hpp>
 #include <memoria/v1/reactor/smart_ptr.hpp>
-
-
-
 
 #include <iostream>
 #include <thread>
 #include <vector>
 
-namespace rr = memoria::v1::reactor;
+using namespace memoria::v1::reactor;
 
 
 
-struct SomeClass: rr::enable_shared_from_this<SomeClass> {
+struct SomeClass: enable_shared_from_this<SomeClass> {
     int value_{};
 
 
     SomeClass(int v): value_(v) {
-        std::cout << "Constructing SomeClass@" << this << " at " << rr::engine().cpu() << ", value = " << value_ << std::endl;
+        std::cout << "Constructing SomeClass@" << this << " at " << engine().cpu() << ", value = " << value_ << std::endl;
     }
 
-//    SomeClass() {
-//        std::cout << "Constructing SomeClass@" << this << " at " << rr::engine().cpu() << std::endl;
-//    }
+    SomeClass() {
+        std::cout << "Constructing SomeClass@" << this << " at " << engine().cpu() << std::endl;
+    }
 
     ~SomeClass() {
-        std::cout << "Destructing SomeClass@" << this << " at " << rr::engine().cpu() << std::endl;
+        std::cout << "Destructing SomeClass@" << this << " at " << engine().cpu() << std::endl;
     }
 
     auto get_ref()  {
@@ -46,50 +41,42 @@ struct SomeClass: rr::enable_shared_from_this<SomeClass> {
 
 struct ArrayValClass {
     ArrayValClass() {
-        std::cout << "ArrValCtr: " << rr::engine().cpu() << std::endl;
+        std::cout << "ArrValCtr: " << engine().cpu() << std::endl;
     }
 
     ~ArrayValClass() {
-        std::cout << "ArrValDtr: " << rr::engine().cpu() << std::endl;
+        std::cout << "ArrValDtr: " << engine().cpu() << std::endl;
     }
 };
 
 
 int main(int argc, char **argv) 
 {
-    rr::Application app(argc, argv);
+    return Application::run(argc, argv, []{
+        ShutdownOnScopeExit hh;
 
-    app.run([]{
         std::cout << "Hello from SharedPtrs!" << std::endl;
         
-        try {
-            ArrayValClass* av0 = new ArrayValClass();
-            rr::shared_ptr<ArrayValClass> pp0(1, av0, [](ArrayValClass* vv){
-                delete vv;
-            });
+        ArrayValClass* av0 = new ArrayValClass();
+        shared_ptr<ArrayValClass> pp0(1, av0, [](ArrayValClass* vv){
+            delete vv;
+        });
 
-            ArrayValClass* av1 = new ArrayValClass();
-            rr::shared_ptr<ArrayValClass> pp1(1, av1, [](ArrayValClass* vv){
-                delete vv;
-            }, std::allocator<ArrayValClass>());
+        ArrayValClass* av1 = new ArrayValClass();
+        shared_ptr<ArrayValClass> pp1(1, av1, [](ArrayValClass* vv){
+            delete vv;
+        }, std::allocator<ArrayValClass>());
 
-            rr::shared_ptr<ArrayValClass> pp3(1, std::nullptr_t(), [](ArrayValClass* vv){
-                delete vv;
-            });
+        shared_ptr<ArrayValClass> pp3(1, std::nullptr_t(), [](ArrayValClass* vv){
+            delete vv;
+        });
 
+        allocate_shared_at<ArrayValClass[]>(1, std::allocator<ArrayValClass>(), 3);
 
-            rr::allocate_shared_at<ArrayValClass[]>(1, std::allocator<ArrayValClass>(), 3);
+        auto ptr = allocate_shared_at<SomeClass>(1, std::allocator<SomeClass>(), 555);
 
-            auto ptr = rr::allocate_shared_at<SomeClass>(1, std::allocator<SomeClass>(), 555);
+        std::cout << ptr->value_ << std::endl;
 
-            std::cout << ptr->value_ << std::endl;
-        }
-        catch (std::exception& ex) {
-            std::cout << "Exception: " << ex.what() << std::endl;
-        }
-
-        rr::app().shutdown();
+        return 0;
     });
-
-    return 0;
 }

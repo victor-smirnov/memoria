@@ -18,9 +18,11 @@ namespace detail {
 template <typename Fn>
 void run_at_engine(int32_t cpu, Fn&& fn);
 
+template<typename T = void>
+int32_t engine_current_cpu();
 
-static inline int32_t engine_current_cpu();
-static inline int32_t engine_cpu_num();
+template<typename T = void>
+int32_t engine_cpu_num();
 
 }
 

@@ -16,32 +16,41 @@
 
 #include <memoria/v1/core/regexp/icu_regexp.hpp>
 
+#include <memoria/v1/reactor/application.hpp>
+
 #include <iostream>
 
 using namespace memoria::v1;
+using namespace memoria::v1::reactor;
 
-int main() {
 
-    auto pattern = ICURegexPattern::compile(as_cu16_provider(u"a+"));
-    std::cout << U8String(pattern.pattern()) << std::endl;
+int main(int argc, char** argv)
+{
+    return Application::run(argc, argv, []{
 
-    auto matcher = pattern.matcher(as_cu16_provider("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), 20);
+        ShutdownOnScopeExit hh;
 
-    std::cout << matcher.matches() << std::endl;
-    std::cout << matcher.start() << std::endl;
-    std::cout << matcher.end() << std::endl;
+        auto pattern = ICURegexPattern::compile(as_cu16_provider(u"a+"));
+        std::cout << U8String(pattern.pattern()) << std::endl;
 
-    std::cout << "'" << U16String(u" z   A   x ").trim() << "'" << std::endl;
+        auto matcher = pattern.matcher(as_cu16_provider("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), 20);
 
-    U16String str0(u"    The quick brown fox jumps over the lazy dog    ");
+        std::cout << matcher.matches() << std::endl;
+        std::cout << matcher.start() << std::endl;
+        std::cout << matcher.end() << std::endl;
 
-    std::cout << str0.find("dog") << std::endl;
+        std::cout << "'" << U16String(u" z   A   x ").trim() << "'" << std::endl;
 
-    auto tokens = ICURegexPattern::compile(u" +").split(str0);
+        U16String str0(u"    The quick brown fox jumps over the lazy dog    ");
 
-    for (auto& tt: tokens) {
-        std::cout << tt << std::endl;
-    }
+        std::cout << str0.find("dog") << std::endl;
 
-    return 0;
+        auto tokens = ICURegexPattern::compile(u" +").split(str0);
+
+        for (auto& tt: tokens) {
+            std::cout << tt << std::endl;
+        }
+
+        return 0;
+    });
 }

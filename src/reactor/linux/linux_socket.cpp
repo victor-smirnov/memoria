@@ -24,7 +24,7 @@ namespace reactor {
 
 
 ServerSocket::ServerSocket(const IPAddress& ip_address, uint16_t ip_port):
-    Base(std::make_shared<ServerSocketImpl>(ip_address, ip_port))
+    Base(MakeLocalShared<ServerSocketImpl>(ip_address, ip_port))
 {}
 
 
@@ -49,7 +49,7 @@ bool ServerSocket::is_closed() {
 }
 
 ServerSocketConnection::ServerSocketConnection(SocketConnectionData&& data):
-    Base(std::make_shared<ServerSocketConnectionImpl>(std::move(data)))
+    Base(MakeLocalShared<ServerSocketConnectionImpl>(std::move(data)))
 {}
 
 
@@ -77,14 +77,14 @@ BinaryOutputStream ServerSocketConnection::output() {
 
 
 ServerSocketConnection::operator SocketConnection() const {
-    return std::static_pointer_cast<SocketConnectionImpl>(ptr_);
+    return SocketConnection(StaticPointerCast<SocketConnectionImpl>(ptr_));
 }
 
 
 
 
 ClientSocket::ClientSocket(const IPAddress& ip_address, uint16_t ip_port):
-    Base(std::make_shared<ClientSocketImpl>(ip_address, ip_port))
+    Base(MakeLocalShared<ClientSocketImpl>(ip_address, ip_port))
 {}
 
 

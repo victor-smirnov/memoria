@@ -18,6 +18,7 @@
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 #include <memoria/v1/reactor/timer.hpp>
 #include <memoria/v1/reactor/linux/linux_io_poller.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
 
 #include <memoria/v1/fiber/fiber.hpp>
 

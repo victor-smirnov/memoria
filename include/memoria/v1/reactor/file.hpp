@@ -15,14 +15,14 @@
 
 #pragma once
 
-#ifdef _WIN32
+#include <memoria/v1/core/config.hpp>
+
+#ifdef MMA1_WINDOWS
 #include "msvc/msvc_file.hpp"
-#elif __APPLE__
+#elif defined(MMA1_MACOSX)
 #include "macosx/macosx_file.hpp"
-#elif __linux__
+#elif defined(MMA1_LINUX)
 #include "linux/linux_file.hpp"
-#else
-#error "Unsupported platform"
 #endif
 
 #include <memoria/v1/core/tools/pimpl_base.hpp>

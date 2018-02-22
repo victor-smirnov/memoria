@@ -27,6 +27,8 @@ int main(int argc, char **argv)
     Application app(argc, argv);
     
     app.run([](){
+        ShutdownOnScopeExit hh;
+
         std::cout << "Hello from Files!" << std::endl;
         
         try {
@@ -48,8 +50,6 @@ int main(int argc, char **argv)
         catch (std::exception& ex) {
             std::cout << "Exception: " << ex.what() << std::endl;
         }
-
-        dr::app().shutdown();
     });
 
     return 0;

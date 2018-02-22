@@ -34,44 +34,32 @@ namespace fs  = memoria::v1::filesystem;
 
 using namespace dr;
 
-volatile size_t counter{};
-
-
 int main(int argc, char **argv) 
 {    
-    Application app(argc, argv);
-    
-    auto vv = app.run([](){
+    return Application::run(argc, argv, [](){
+        ShutdownOnScopeExit hh;
+
         std::cout << "Hello from TCP Client!" << std::endl;
-        try {
-            ClientSocket cs(IPAddress(127,0,0,1), 5556);
-            std::cout << "Connection established! " << std::endl;
 
-            size_t data_size = 4096;
-            uint8_t* data = new uint8_t[data_size];
+        ClientSocket cs(IPAddress(127,0,0,1), 5556);
+        std::cout << "Connection established! " << std::endl;
 
-            auto is = cs.input();
-            auto os = cs.output();
+        size_t data_size = 4096;
+        uint8_t* data = new uint8_t[data_size];
 
-            std::string str("Hello, world!");
+        auto is = cs.input();
+        auto os = cs.output();
 
-            ssize_t written = os.write(mt::ptr_cast<uint8_t>(str.c_str()), str.length());
+        std::string str("Hello, world!");
 
-            std::cout << "written " << written << " bytes" << std::endl;
+        ssize_t written = os.write(mt::ptr_cast<uint8_t>(str.c_str()), str.length());
 
-            ssize_t read = is.read(data, data_size);
+        std::cout << "written " << written << " bytes" << std::endl;
 
-            std::cout << "Read back: " << read << " bytes: " << std::string(mt::ptr_cast<char>(data), read) << std::endl;
-        }
-        catch (m::MemoriaThrowable& ex) {
-			ex.dump(std::cout);
-        }
+        ssize_t read = is.read(data, data_size);
 
-        dr::app().shutdown();
-        return 5678;
+        std::cout << "Read back: " << read << " bytes: " << std::string(mt::ptr_cast<char>(data), read) << std::endl;
+
+        return 0;
     });
-
-    std::cout << "vv = " << vv << std::endl;
-    
-    return 0;
 }

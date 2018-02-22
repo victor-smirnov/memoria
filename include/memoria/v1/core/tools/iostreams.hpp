@@ -114,9 +114,9 @@ class IDataInputStream {
     using BufferT = DefaultIOBuffer;
     IBinaryInputStream* stream_;
     BufferT* buffer_;
-    std::shared_ptr<Referenceable> holder_;
+    LocalSharedPtr<Referenceable> holder_;
 public:
-    IDataInputStream(IBinaryInputStream* stream, BufferT* buffer_, std::shared_ptr<Referenceable> holder):
+    IDataInputStream(IBinaryInputStream* stream, BufferT* buffer_, LocalSharedPtr<Referenceable> holder):
         stream_(stream), buffer_(buffer_), holder_(holder)
     {
         buffer_->limit(0);
@@ -410,9 +410,9 @@ class IDataOutputStream {
     using BufferT = DefaultIOBuffer;
     IBinaryOutputStream* stream_;
     BufferT* buffer_;
-    std::shared_ptr<Referenceable> holder_;
+    LocalSharedPtr<Referenceable> holder_;
 public:
-    IDataOutputStream(IBinaryOutputStream* stream, BufferT* buffer_, std::shared_ptr<Referenceable> holder):
+    IDataOutputStream(IBinaryOutputStream* stream, BufferT* buffer_, LocalSharedPtr<Referenceable> holder):
         stream_(stream), buffer_(buffer_), holder_(holder)
     {}
     

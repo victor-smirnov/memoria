@@ -15,34 +15,30 @@
 
 #pragma once
 
+#include <memoria/v1/core/config.hpp>
+
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 
 #include "scheduler.hpp"
 #include "file.hpp"
 #include "timer.hpp"
 
-//#include "smart_ptr/shared_ptr.hpp"
-//#include "smart_ptr/local_shared_ptr.hpp"
-//#include "smart_ptr/enable_local_shared_from_this.hpp"
-//#include "smart_ptr/enable_shared_from_this.hpp"
-//#include "smart_ptr/make_shared.hpp"
+#include <memoria/v1/reactor/smart_ptr.hpp>
 
 #include <memoria/v1/reactor/smart_ptr/detail/shared_count.hpp>
 
 #include "../fiber/protected_stack_pool.hpp"
 #include "../fiber/pooled_fixedsize_stack.hpp"
 
-#ifdef _WIN32
+#ifdef MMA1_WINDOWS
 #include "msvc/msvc_io_poller.hpp"
 #include "msvc/msvc_smp.hpp"
-#elif __APPLE__
+#elif defined(MMA1_MACOSX)
 #include "macosx/macosx_smp.hpp"
 #include "macosx/macosx_io_poller.hpp"
-#elif __linux__
+#elif defined(MMA1_LINUX)
 #include "linux/linux_smp.hpp"
 #include "linux/linux_io_poller.hpp"
-#else
-#error "Unsupported platform"
 #endif
 
 #include "thread_pool.hpp"
@@ -251,7 +247,6 @@ auto engine_or_local(Fn&& fn, Args&&... args)
 }
 
 
-
 namespace detail {
 
 template <typename Fn>
@@ -260,11 +255,13 @@ void run_at_engine(int32_t cpu, Fn&& fn) {
 }
 
 
-static inline int32_t engine_current_cpu() {
+template <typename T>
+int32_t engine_current_cpu() {
     return engine().cpu();
 }
 
-static inline int32_t engine_cpu_num() {
+template <typename T>
+int32_t engine_cpu_num() {
     return engine().cpu_num();
 }
 
@@ -273,25 +270,6 @@ template <typename Fn>
 auto shared_count::run_at(int32_t cpu, Fn&& fn) {
     return engine().run_at(cpu, std::forward<Fn>(fn));
 }
-
-
-
-
-
-
-//template< class T >
-//void sp_reactor_ms_deleter<T>::destroy()
-//{
-//    if( initialized_ )
-//    {
-//        engine().run_at(cpu_, [&]{
-//            T* p = tools::ptr_cast<T>(storage_.data_);
-//            p->~T();
-//        });
-
-//        initialized_ = false;
-//    }
-//}
 
 }
 

@@ -132,5 +132,15 @@ void Reactor::event_loop ()
     thread_pool_.stop_workers();
 }
 
-    
+int32_t current_cpu() {
+    return engine().cpu();
+}
+
+int32_t number_of_cpus() {
+    return engine().cpu_num();
+}
+
+
+
+
 }}}

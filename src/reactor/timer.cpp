@@ -33,7 +33,7 @@ namespace v1 {
 namespace reactor {
 
 Timer Timer::schedule(TimeUnit start_after, TimeUnit repeat_after, uint64_t count, TimerFn fn) {
-    return std::make_shared<TimerImpl>(start_after, repeat_after, count, fn);
+    return MakeLocalShared<TimerImpl>(start_after, repeat_after, count, fn);
 }
 
 

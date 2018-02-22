@@ -19,6 +19,7 @@
 #include "../message/fiber_io_message.hpp"
 
 #include <memoria/v1/core/tools/iostreams.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
 
 #include <boost/mpl/size_t.hpp>
 #include <boost/variant.hpp>

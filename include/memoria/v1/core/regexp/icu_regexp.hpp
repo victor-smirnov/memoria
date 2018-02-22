@@ -17,6 +17,7 @@
 #pragma once
 
 #include <memoria/v1/core/strings/string.hpp>
+#include <memoria/v1/core/memory/smart_ptrs.hpp>
 
 #include <unicode/regex.h>
 
@@ -67,7 +68,7 @@ class ICURegexPattern;
 
 class ICURegexMatcher {
 public:
-    using Ptr = std::shared_ptr<_::ICURegexMatcherImpl>;
+    using Ptr = LocalSharedPtr<_::ICURegexMatcherImpl>;
 private:
     Ptr ptr_;
 public:
@@ -149,12 +150,12 @@ using ICURangeConsumerFn = std::function<void (const ICUPatternMatch&)>;
 
 
 class ICURegexPattern {
-    std::shared_ptr<_::ICURegexPatternImpl> pattern_;
+    LocalSharedPtr<_::ICURegexPatternImpl> pattern_;
 public:
 
 
     ICURegexPattern() {}
-    ICURegexPattern(std::shared_ptr<_::ICURegexPatternImpl> pattern): pattern_(std::move(pattern)) {}
+    ICURegexPattern(LocalSharedPtr<_::ICURegexPatternImpl> pattern): pattern_(std::move(pattern)) {}
 
     ~ICURegexPattern() noexcept;
 

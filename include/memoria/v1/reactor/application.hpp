@@ -181,6 +181,9 @@ public:
                 return app.run(std::forward<Fn>(fn), std::forward<Args>(args)...);
             }
         }
+        catch (MemoriaThrowable& ex) {
+            ex.dump(std::cout);
+        }
         catch (std::exception& ex) {
             std::cerr << "Exception cought main thread: " << ex.what() << std::endl;
         }
@@ -193,5 +196,13 @@ public:
 };
 
 Application& app();
-    
+
+class ShutdownOnScopeExit {
+public:
+    ~ShutdownOnScopeExit() {
+        app().shutdown();
+    }
+};
+
+
 }}}

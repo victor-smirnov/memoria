@@ -111,10 +111,13 @@ template<class T, class A, class... Args> typename reactor::detail::lsp_if_not_a
     typedef reactor::detail::lsp_ms_deleter<T, A2> D;
 
     reactor::shared_ptr<T> pt(
+        detail::sp_internal_constructor_tag(),
+        detail::AllocTag(),
         detail::engine_current_cpu(),
         static_cast< T* >( nullptr ),
         reactor::detail::sp_inplace_tag<D>(),
-        a2
+        a2,
+        std::forward<Args>(args)...
     );
 
     D * pd = static_cast< D* >( pt._internal_get_untyped_deleter() );
@@ -136,9 +139,12 @@ template<class T, class A> typename reactor::detail::lsp_if_not_array<T>::type a
     typedef reactor::detail::lsp_ms_deleter< T, std::allocator<T> > D;
 
     reactor::shared_ptr<T> pt(
+        detail::sp_internal_constructor_tag(),
+        detail::AllocTag(),
         detail::engine_current_cpu(),
         static_cast< T* >( nullptr ),
-        reactor::detail::sp_inplace_tag<D>(), a2
+        reactor::detail::sp_inplace_tag<D>(),
+        a2
     );
 
     D * pd = static_cast< D* >( pt._internal_get_untyped_deleter() );

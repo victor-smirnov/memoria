@@ -16,7 +16,12 @@
 
 #pragma once
 
+#include <memoria/v1/core/memory/smart_ptrs.hpp>
+
+
 #include <memory>
+
+
 
 namespace memoria {
 namespace v1 {
@@ -25,7 +30,7 @@ namespace v1 {
 template <typename T>
 struct PimplBase {
     using TargetType = T;
-    using PtrType = std::shared_ptr<TargetType>;
+    using PtrType = LocalSharedPtr<TargetType>;
 protected:
     PtrType ptr_;
 public:
