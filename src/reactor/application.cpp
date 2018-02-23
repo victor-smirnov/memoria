@@ -16,11 +16,11 @@
 #include <memoria/v1/reactor/application.hpp>
 
 
-#ifdef __linux__
+#ifdef MMA1_LINUX
 #include "linux/linux_socket.hpp"
-#elif __APPLE__
+#elif defined(MMA1_MACOSX)
 #include "macosx/macosx_socket.hpp"
-#elif _WIN32
+#elif defined(MMA1_WINDOWS)
 #include "msvc/msvc_socket.hpp"
 #else 
 #error "Unsupported platform"

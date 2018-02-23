@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memoria/v1/core/memory/malloc.hpp>
+
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 
@@ -740,7 +742,7 @@ public:
             initial_size = properties_.defaultPageSize();
         }
 
-        void* buf = this->malloc(initial_size);
+        void* buf = allocate_system<void>(initial_size).release();
 
         memset(buf, 0, initial_size);
 
@@ -773,7 +775,7 @@ public:
             Page* page = shared->get();
             auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
-            Page* new_page = T2T<Page*>(this->malloc(new_size));
+            Page* new_page = allocate_system<Page>(new_size).release();
 
             pageMetadata->getPageOperations()->resize(page, new_page, new_size);
 
@@ -786,7 +788,7 @@ public:
             Page* page = shared->get();
             auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
-            Page* new_page  = T2T<Page*>(realloc(page, new_size));
+            Page* new_page = reallocate_system<Page>(page, new_size).release();
 
             pageMetadata->getPageOperations()->resize(page, new_page, new_size);
 
@@ -822,10 +824,10 @@ public:
 
     // memory pool allocator
     virtual void* allocateMemory(size_t size) {
-        return ::malloc(size);
+        return allocate_system<void>(size).release();
     }
     virtual void  freeMemory(void* ptr) {
-        ::free(ptr);
+        free_system(ptr);
     }
 
     virtual Logger& logger() {return logger_;}

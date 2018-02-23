@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/types/type2type.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
 
 #include <ostream>
 
@@ -54,7 +54,7 @@ public:
             data_ = data;
         }
         else {
-            CharT* tmp = T2T<CharT*>(malloc(length_));
+            CharT* tmp = allocate_system<CharT>(length_).release();
 
             if (!tmp)
             {
@@ -81,7 +81,7 @@ public:
     {
         if (owner_)
         {
-            ::free(const_cast<CharT*>(data_));
+            free_system(const_cast<CharT*>(data_));
         }
     }
 
@@ -111,10 +111,10 @@ public:
     {
         if (owner_)
         {
-            ::free(const_cast<CharT*>(data_));
+            free_system(const_cast<CharT*>(data_));
         }
 
-        CharT* tmp = T2T<CharT*>(malloc(other.length_));
+        CharT* tmp = allocate_system<CharT>(other.length_);
 
         CopyBuffer(other.data_, tmp, other.length_);
 
@@ -130,7 +130,7 @@ public:
     {
         if (owner_)
         {
-            ::free(const_cast<CharT*>(data_));
+            free_system(const_cast<CharT*>(data_));
         }
 
         data_ = other.data_;

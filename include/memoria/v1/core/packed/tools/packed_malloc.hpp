@@ -50,33 +50,6 @@ struct AllocTool<PackedAllocator> {
 };
 
 
-//template <typename T>
-//std::unique_ptr<T, decltype(free)*> PkdMakeUniqueByMemorySize(int32_t block_size)
-//{
-//  static_assert(std::is_base_of<PackedAllocatable, T>::value, "Only PackedAllocatable objects may be created by this function");
-//
-//  T* ptr = T2T<T*>(malloc(block_size));
-//
-//  if (ptr != nullptr)
-//  {
-//      std::unique_ptr<T, decltype(free)*> uptr(ptr, free);
-//
-//      uptr->setTopLevelAllocator();
-//      uptr->init(block_size);
-//
-//      return uptr;
-//  }
-//  else {
-//      throw new OOMException(MA_SRC);
-//  }
-//}
-//
-//template <typename T, typename... Args>
-//std::unique_ptr<T, decltype(free)*> PkdMakeUniqueByDataSize(Args&&... args)
-//{
-//  int32_t block_size = T::packed_block_size(std::forward<Args>(args)...) + 1000;
-//  return PkdMakeUniqueByMemorySize<T>(block_size);
-//}
 
 
 

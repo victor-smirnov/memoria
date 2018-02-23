@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <memoria/v1/core/types.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
 
-#include <memoria/v1/core/tools/bignum/cppint_codec.hpp>
+#include <memoria/v1/core/bignum/cppint_codec.hpp>
 
 #include <ostream>
 
@@ -110,7 +110,7 @@ public:
     {
         if (!is_small())
         {
-            ::free(content_.variable_.digits_);
+            free_system(content_.variable_.digits_);
         }
     }
 
@@ -190,15 +190,15 @@ protected:
         if (is_small())
         {
             //FIXME: throw ex
-            content_.variable_.digits_      = T2T<unsigned*>(::malloc(len));
+            content_.variable_.digits_      = allocate_system<unsigned>(len);
             content_.variable_.block_size_  = len;
             metadata_ &= ~0x1u;
         }
         else if (len != content_.variable_.block_size_)
         {
-            ::free(content_.variable_.digits_);
+            free_system(content_.variable_.digits_);
 
-            content_.variable_.digits_      = T2T<unsigned*>(::malloc(len));
+            content_.variable_.digits_      = allocate_system<unsigned>(len);
             content_.variable_.block_size_  = len;
         }
 
@@ -209,7 +209,7 @@ protected:
     {
         if (!is_small())
         {
-            ::free(content_.variable_.digits_);
+            free_system(content_.variable_.digits_);
             metadata_ |= 0x1u;
         }
 

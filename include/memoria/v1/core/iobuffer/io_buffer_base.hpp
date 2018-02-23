@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <memoria/v1/core/types.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
+
 #include <memoria/v1/core/types/algo/select.hpp>
-#include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/core/bytes/bytes_codec.hpp>
@@ -30,8 +30,6 @@
 
 #include <limits>
 #include <cstring>
-
-//#include <malloc.h>
 
 namespace memoria {
 namespace v1 {
@@ -521,7 +519,7 @@ public:
 
             CopyBuffer(array_, new_array, pos_);
 
-            ::free(array_);
+            free_system(array_);
 
             array_  = new_array;
             length_ = new_length;
@@ -603,13 +601,13 @@ protected:
     void release()
     {
         if (owner_ && array_) {
-            ::free(array_);
+            free_system(array_);
         }
     }
 
     static uint8_t* allocate(size_t length)
     {
-        uint8_t* data = T2T<uint8_t*>(::malloc(length));
+        uint8_t* data = allocate_system<uint8_t>(length).release();
 
         if (data)
         {

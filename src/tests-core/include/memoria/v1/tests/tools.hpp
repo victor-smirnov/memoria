@@ -48,10 +48,10 @@ public:
     {
         if (obj_->has_allocator())
         {
-            free(obj_->allocator());
+            free_system(obj_->allocator());
         }
         else {
-            free(obj_);
+            free_system(obj_);
         }
     }
 };

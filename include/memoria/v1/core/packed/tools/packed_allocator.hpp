@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 

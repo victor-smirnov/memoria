@@ -45,7 +45,7 @@ namespace details {
 	template<typename T>
 	struct aligned_delete {
 		void operator()(T* ptr) const {
-			free(ptr);
+            free(ptr);
 		}
 	};
 }

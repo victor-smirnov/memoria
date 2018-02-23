@@ -44,7 +44,7 @@
 #include <memoria/v1/filesystem/operations.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
 
-
+#include <memoria/v1/core/memory/malloc.hpp>
 
 #include <boost/scoped_array.hpp>
 #include <boost/detail/workaround.hpp>
@@ -2309,7 +2309,7 @@ namespace
         }
         
         dirent de;
-        buffer = std::malloc((sizeof(dirent) - sizeof(de.d_name)) +  path_size + 1); // + 1 for "/0"
+        buffer = ::memoria::v1::allocate_system<void>((sizeof(dirent) - sizeof(de.d_name)) +  path_size + 1).release(); // + 1 for "/0"
         
         return ok;
     });
@@ -2505,7 +2505,7 @@ namespace detail
   )
   {
 #   ifdef BOOST_POSIX_API
-		  std::free(buffer);
+          ::memoria::v1::free_system(buffer);
 		  buffer = 0;
 		  if (handle == 0) {
 			  return ok;

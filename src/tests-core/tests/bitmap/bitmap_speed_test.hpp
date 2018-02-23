@@ -20,6 +20,7 @@
 #include <memoria/v1/tools/tests.hpp>
 #include <memoria/v1/core/tools/bitmap_select.hpp>
 #include <memoria/v1/core/tools/i64_codec.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
 
 #include "bitmap_test_base.hpp"
 
@@ -56,7 +57,7 @@ public:
         int32_t bufsize = 1024*1024*128;
         int32_t bitsize = bufsize * 8;
 
-        T* buf = T2T<T*>(malloc(bufsize));
+        T* buf = allocate_system<T>(bufsize).release();
 
         int64_t t0 = getTimeInMillis();
 
@@ -66,7 +67,7 @@ public:
 
         this->out()<<"Move time: "<<FormatTime(t1 - t0)<<endl;
 
-        free(buf);
+        free_system(buf);
     }
 
     void testSpeed2()
@@ -74,7 +75,7 @@ public:
         int32_t bufsize = 1024*1024*128;
         int32_t bitsize = bufsize * 8;
 
-        T* buf = T2T<T*>(malloc(bufsize));
+        T* buf = allocate_system<T>(bufsize).release();
 
         int64_t t0 = getTimeInMillis();
 
@@ -97,7 +98,7 @@ public:
 
         this->out()<<"GetBits Time: "<<FormatTime(t1 - t0)<<" "<<sum<<" "<<cnt<<endl;
 
-        free(buf);
+        free_system(buf);
     }
 
     void testI64Codec()
@@ -125,7 +126,7 @@ public:
             v = getRandom(max);
         }
 
-        T* buf = T2T<T*>(malloc(1024*1024*16));
+        T* buf = allocate_system<T>(1024*1024*16).release();
 
         Codec<T,int64_t> codec;
 
@@ -156,7 +157,7 @@ public:
 
         this->out()<<"write: "<<FormatTime(t1 - t0)<<" read: "<<FormatTime(t2 - t1)<<endl;
 
-        free(buf);
+        free_system(buf);
     }
 };
 

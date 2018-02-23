@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/types.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
@@ -78,7 +78,7 @@ public:
     {
         if (owner_ && data_)
         {
-            ::free(data_);
+            free_system(data_);
         }
     }
 
@@ -104,7 +104,7 @@ public:
 
     MyType& operator=(const MyType& other)
     {
-        if (data_ && owner_) ::free(data_);
+        if (data_ && owner_) free_system(data_);
 
         data_ = alloc(other.size_);
         size_ = other.size_;
@@ -117,7 +117,7 @@ public:
 
     MyType& operator=(MyType&& other)
     {
-        if (owner_ && data_) ::free(data_);
+        if (owner_ && data_) free_system(data_);
 
         data_ = other.data_;
         size_ = other.size_;
@@ -191,7 +191,7 @@ public:
 private:
     static T* alloc(size_t size)
     {
-        T* data = T2T<T*>(::malloc(size));
+        T* data = allocate_system<T>(size).release();
         if (!data)
         {
             MMA1_THROW(Exception()) << WhatCInfo("Can't allocate raw data buffer");

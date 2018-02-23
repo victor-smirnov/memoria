@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memoria/v1/core/memory/malloc.hpp>
+
 #include <memoria/v1/tools/tests_inc.hpp>
 
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>

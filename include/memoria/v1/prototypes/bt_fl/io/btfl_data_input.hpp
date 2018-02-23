@@ -17,6 +17,7 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/v1/core/packed/sseq/packed_rle_searchable_seq.hpp>
@@ -89,8 +90,8 @@ public:
 
     auto* create_input_buffer(const BufferSizes& buffer_sizes)
     {
-        int32_t block_size  = BufferT::block_size(buffer_sizes);
-        BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+        int32_t block_size = BufferT::block_size(buffer_sizes);
+        BufferT* buffer    = allocate_system<BufferT>(block_size).release();
         if (buffer)
         {
             buffer->setTopLevelAllocator();
@@ -104,8 +105,8 @@ public:
 
     auto* create_input_buffer(int32_t buffer_size)
     {
-        int32_t block_size  = BufferT::block_size(buffer_size) + 500;
-        BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+        int32_t block_size = BufferT::block_size(buffer_size) + 500;
+        BufferT* buffer = allocate_system<BufferT>(block_size).release();
         if (buffer)
         {
             buffer->setTopLevelAllocator();

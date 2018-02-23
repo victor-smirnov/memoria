@@ -6,6 +6,8 @@
 
 #include "memoria/v1/fiber/context.hpp"
 
+#include <memoria/v1/core/memory/malloc.hpp>
+
 #include <cstdlib>
 #include <mutex>
 #include <new>
@@ -60,7 +62,7 @@ struct context_initializer {
             constexpr std::size_t ctx_size = sizeof( context);
             constexpr std::size_t sched_size = sizeof( scheduler);
             constexpr std::size_t size = 2 * alignment + ctx_size + sched_size;
-            void * vp = std::malloc( size);
+            void * vp = allocate_system<void>( size).release();
             if ( nullptr == vp) {
                 throw std::bad_alloc();
             }
@@ -100,7 +102,7 @@ struct context_initializer {
             main_ctx->~context();
             int * shift = reinterpret_cast< int * >( reinterpret_cast< char * >( main_ctx) - sizeof( int) );
             void * vp = reinterpret_cast< char * >( main_ctx) - ( * shift);
-            std::free( vp);
+            free_system(vp);
         }
     }
 };

@@ -47,7 +47,7 @@ public:
     }
 
     ~InputBufferHandler() {
-        if (ref_) ::free(ref_);
+        if (ref_) free_system(ref_);
     }
 
     T* get() {
@@ -61,7 +61,7 @@ public:
     MyType& operator=(const MyType& other) = delete;
 
     void operator=(MyType&& other) {
-        if (ref_) ::free(ref_);
+        if (ref_) free_system(ref_);
         ref_ = other.ref_;
         other.ref_ = nullptr;
     }

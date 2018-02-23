@@ -22,6 +22,7 @@
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/latch.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
 
 #include "../common/container_collection_cfg.hpp"
 
@@ -68,7 +69,7 @@ namespace details {
 			//}
 			//cout << "Remove page: " << page_cnt_ << endl;
 
-			::free(page_);
+            free_system(page_);
 		}
 
 		PageT* raw_data() {return page_;}
@@ -898,7 +899,7 @@ protected:
                 auto& data = leaf->data(c);
                 if (data.txn_id() == txn_id)
                 {
-                    ::free(data.page_ptr());
+                    free_system(data.page_ptr());
                 }
             }
 
@@ -964,9 +965,8 @@ protected:
         uint64_t page_hash;
         in >> page_hash;
 
-        unique_ptr<int8_t, void (*)(void*)> page_data((int8_t*)::malloc(page_data_size), ::free);
-
-        Page* page = T2T<Page*>(::malloc(page_size));
+        auto page_data = allocate_system<int8_t>(page_data_size);
+        Page* page = allocate_system<Page>(page_size).release();
 
         in.read(page_data.get(), 0, page_data_size);
 
@@ -1278,7 +1278,8 @@ protected:
         auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         auto page_size = page->page_size();
-        unique_ptr<int8_t, void (*)(void*)> buffer((int8_t*)::malloc(page_size), ::free);
+
+        auto buffer = allocate_system<uint8_t>(page_size);
 
         const auto operations = pageMetadata->getPageOperations();
 

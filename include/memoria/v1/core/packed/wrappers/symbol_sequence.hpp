@@ -16,11 +16,12 @@
 
 #pragma once
 
+#include <memoria/v1/core/memory/malloc.hpp>
+
 
 #include <memoria/v1/core/tools/isequencedata.hpp>
 #include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
-#include <malloc.h>
 #include <iostream>
 #include <functional>
 
@@ -223,7 +224,7 @@ public:
 
         int32_t block_size = PackedAllocator::block_size(sequence_block_size, 1);
 
-        PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
+        PackedAllocator* alloc = allocate_system<PackedAllocator>(block_size).release();
         alloc->init(block_size, 1);
 
         sequence_ = alloc->template allocateEmpty<Seq>(0);
@@ -233,7 +234,7 @@ public:
     {
         if (sequence_)
         {
-            free(sequence_->allocator());
+            free_system(sequence_->allocator());
         }
     }
 
@@ -243,7 +244,7 @@ public:
 
         int32_t block_size = other_allocator->block_size();
 
-        PackedAllocator* allocator = T2T<PackedAllocator*>(malloc(block_size));
+        PackedAllocator* allocator = allocate_system<PackedAllocator>(block_size);
 
         CopyByteBuffer(other_allocator, allocator, block_size);
 

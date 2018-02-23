@@ -143,7 +143,7 @@ public:
     }
     
     
-    static options_description& default_options(options_description& descr) 
+    static options_description default_options(options_description descr)
     {
         descr.add_options()
             ("help,h", "Prints command line switches")

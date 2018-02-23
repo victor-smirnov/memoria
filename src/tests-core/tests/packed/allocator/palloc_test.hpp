@@ -18,6 +18,7 @@
 
 #include <memoria/v1/tests/tests.hpp>
 #include <memoria/v1/tests/tools.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 
@@ -34,7 +35,7 @@ class PackedAllocatorTest: public TestTask {
 
     typedef PackedAllocator                                                     Allocator;
 
-    typedef shared_ptr<Allocator>                                               AllocatorPtr;
+    typedef std::shared_ptr<Allocator>                                               AllocatorPtr;
 
     class SimpleStruct: public PackedAllocatable {
         int32_t size_;
@@ -143,11 +144,9 @@ public:
 
     AllocatorPtr createAllocator(int32_t client_area_size, int32_t elements)
     {
-        int32_t block_size      = Allocator::block_size(client_area_size, elements);
-        void* mem_block     = malloc(block_size);
-        memset(mem_block, 0, block_size);
+        int32_t block_size = Allocator::block_size(client_area_size, elements);
 
-        Allocator* alloc    = T2T<Allocator*>(mem_block);
+        Allocator* alloc = allocate_system_zeroed<Allocator>(block_size).release();
 
         alloc->init(block_size, elements);
         alloc->setTopLevelAllocator();
@@ -161,7 +160,7 @@ public:
 
         AssertGE(MA_SRC, alloc->client_area(), client_area_size);
 
-        return AllocatorPtr(alloc, free);
+        return AllocatorPtr(alloc, free_system);
     }
 
     AllocatorPtr createSampleAllocator(int32_t client_area_size, int32_t elements)

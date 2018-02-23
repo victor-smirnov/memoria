@@ -80,19 +80,6 @@ public:
         int32_t object_block_size = InputBuffer::block_size(capacity);
 
         return MakeSharedPackedStructByBlock<InputBuffer>(object_block_size, SizesT(capacity));
-
-//      int32_t allocator_size  = PackedAllocator::block_size(object_block_size + free_space, 1);
-//
-//      void* block = malloc(allocator_size);
-//      PackedAllocator* allocator = T2T<PackedAllocator*>(block);
-//      allocator->init(allocator_size, 1);
-//      allocator->setTopLevelAllocator();
-//
-//      InputBuffer* buffer = allocator->allocateSpace<InputBuffer>(0, object_block_size);
-//
-//      buffer->init(SizesT(capacity));
-//
-//      return buffer;
     }
 
     std::vector<Values> fillBuffer(const InputBufferPtr& buffer, int32_t max_value = 500)

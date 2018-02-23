@@ -44,7 +44,7 @@ namespace {
         PackedAllocatable* object = T2T<PackedAllocatable*>(ptr);
         PackedAllocator*   alloc  = object->allocator();
 
-        ::free(alloc);
+        free_system(alloc);
     }
 
     template <class Tp>
@@ -66,7 +66,7 @@ namespace {
 
       Tp* allocate(std::size_t n)
       {
-          Tp* mem = T2T<Tp*>(malloc((sizeof(Tp) - struct_size_) + block_size_));
+          Tp* mem = allocate_system<Tp>((sizeof(Tp) - struct_size_) + block_size_).release();
 
           if (mem) {
               return mem;
@@ -77,7 +77,7 @@ namespace {
       }
 
       void deallocate(Tp* p, std::size_t n) {
-          ::free(p);
+          free_system(p);
       }
 
       template <typename Args>
@@ -107,18 +107,15 @@ MakeUniquePackedStructByBlock(int32_t block_size, Args&&... args)
 {
     MEMORIA_V1_ASSERT(block_size, >=, sizeof(T::empty_size()));
 
-    void* block = malloc(block_size);
-    memset(block, 0, block_size);
+    T* ptr = allocate_system_zeroed<T>(block_size).release();
 
-    if (block)
+    if (ptr)
     {
-        T* ptr = T2T<T*>(block);
-
         ptr->setTopLevelAllocator();
         ptr->init(std::forward<Args>(args)...);
         ptr->set_block_size(block_size);
 
-        return PkdStructUPtr<T>(ptr, ::free);
+        return PkdStructUPtr<T>(ptr, free_system);
     }
     else {
         MMA1_THROW(OOMException());
@@ -137,13 +134,10 @@ MakeUniquePackedStructByBlock(int32_t block_size, Args&&... args)
 {
     int32_t allocator_block_size = PackedAllocator::block_size(block_size, 1);
 
-    void* block = malloc(allocator_block_size);
-    memset(block, 0, allocator_block_size);
+    PackedAllocator* alloc = allocate_system_zeroed<PackedAllocator>(allocator_block_size).release();
 
-    if (block)
+    if (alloc)
     {
-        PackedAllocator* alloc = T2T<PackedAllocator*>(block);
-
         alloc->setTopLevelAllocator();
         alloc->init(allocator_block_size, 1);
 
@@ -185,13 +179,10 @@ MakeSharedPackedStructByBlock(int32_t block_size, Args&&... args)
 {
     int32_t allocator_block_size = PackedAllocator::block_size(block_size, 1);
 
-    void* block = malloc(allocator_block_size);
-    memset(block, 0, allocator_block_size);
+    PackedAllocator* alloc = allocate_system_zeroed<PackedAllocator>(allocator_block_size).release();
 
-    if (block)
+    if (alloc)
     {
-        PackedAllocator* alloc = T2T<PackedAllocator*>(block);
-
         alloc->setTopLevelAllocator();
         alloc->init(allocator_block_size, 1);
 

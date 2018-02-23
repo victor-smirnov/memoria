@@ -17,7 +17,8 @@
 #pragma once
 
 
-#include <memoria/v1/core/tools/config.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
+
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
@@ -30,7 +31,6 @@
 #include <vector>
 #include <tuple>
 
-#include <malloc.h>
 
 namespace memoria {
 namespace v1 {
@@ -266,7 +266,7 @@ public:
 
     SymbolsBuffer(SizeT length):
         Base(0, length),
-        data_(T2T<T*>(length > 0 ?::malloc(storage_size(length)) : nullptr)),
+        data_(length > 0 ? allocate_system<T>(storage_size(length)).release() : nullptr),
         owner_(true)
     {}
 
@@ -284,7 +284,7 @@ public:
     {
         SizeT ssize = storage_size(this->length_);
 
-        data_ = T2T<T*>(this->length_ > 0 ?::malloc(ssize) : nullptr);
+        data_ = this->length_ > 0 ? allocate_system<T>(ssize).release() : nullptr;
 
         CopyBuffer(other.data(), data_, ssize);
     }
@@ -292,7 +292,7 @@ public:
     virtual ~SymbolsBuffer() throw ()
     {
         if (owner_) {
-            ::free(data_);
+            free_system(data_);
         }
     }
 

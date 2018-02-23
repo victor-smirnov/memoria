@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <memoria/v1/core/memory/malloc.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
@@ -29,17 +30,17 @@ namespace memoria {
 namespace v1 {
 
 template <typename T>
-using FreeUniquePtr = std::unique_ptr<T, decltype(free)*>;
+using FreeUniquePtr = UniquePtr<T>;
 
 
 template <typename T>
 FreeUniquePtr<T> AllocateUnique(size_t block_size)
 {
-    T* ptr = T2T<T*>(malloc(block_size));
+    auto ptr = allocate_system<T>(block_size);
 
-    if (ptr != nullptr)
+    if (!ptr.get())
     {
-        return FreeUniquePtr<T>(ptr, free);
+        return ptr;
     }
     else {
         MMA1_THROW(OOMException());

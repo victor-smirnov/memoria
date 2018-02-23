@@ -258,7 +258,7 @@ protected:
     {
         int32_t buffer_size = InputBuffer::block_size(capacity) + 256;
 
-        void* block = malloc(buffer_size);
+        void* block = allocate_system<void>(buffer_size).release();
         if (block != nullptr)
         {
             InputBuffer* buffer = T2T<InputBuffer*>(block);
@@ -276,7 +276,7 @@ protected:
     {
         int32_t buffer_size = InputBuffer::block_size(capacity) + 256;
 
-        void* block = malloc(buffer_size);
+        void* block = allocate_system<void>(buffer_size).release();
         if (block != nullptr)
         {
             InputBuffer* buffer = T2T<InputBuffer*>(block);
@@ -308,7 +308,7 @@ protected:
 
     static void delete_buffer(InputBuffer* buffer)
     {
-        ::free(buffer);
+        free_system(buffer);
     }
 };
 
