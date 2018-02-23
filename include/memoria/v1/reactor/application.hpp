@@ -145,11 +145,10 @@ public:
     
     static options_description default_options(options_description descr) 
     {
-        /*descr.add_options() 
+        descr.add_options()
             ("help, h", "Prints command line switches")
             ("threads, t", boost::program_options::value<uint32_t>()->default_value(1), "Specifies number of threads to use")
-            ("debug, d", boost::program_options::value<bool>()->default_value(false), "Enable debug output")
-        ;*/
+            ("debug, d", boost::program_options::value<bool>()->default_value(false), "Enable debug output");
         
         return descr;
     }

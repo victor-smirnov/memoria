@@ -55,25 +55,27 @@ int main(int argc, char **argv)
     return Application::run(argc, argv, []{
         ShutdownOnScopeExit hh;
 
+        int32_t target_cpu = engine().cpu_num() - 1;
+
         std::cout << "Hello from SharedPtrs!" << std::endl;
         
         ArrayValClass* av0 = new ArrayValClass();
-        shared_ptr<ArrayValClass> pp0(1, av0, [](ArrayValClass* vv){
+        shared_ptr<ArrayValClass> pp0(target_cpu, av0, [](ArrayValClass* vv){
             delete vv;
         });
 
         ArrayValClass* av1 = new ArrayValClass();
-        shared_ptr<ArrayValClass> pp1(1, av1, [](ArrayValClass* vv){
+        shared_ptr<ArrayValClass> pp1(target_cpu, av1, [](ArrayValClass* vv){
             delete vv;
         }, std::allocator<ArrayValClass>());
 
-        shared_ptr<ArrayValClass> pp3(1, std::nullptr_t(), [](ArrayValClass* vv){
+        shared_ptr<ArrayValClass> pp3(target_cpu, std::nullptr_t(), [](ArrayValClass* vv){
             delete vv;
         });
 
-        allocate_shared_at<ArrayValClass[]>(1, std::allocator<ArrayValClass>(), 3);
+        allocate_shared_at<ArrayValClass[]>(target_cpu, std::allocator<ArrayValClass>(), 3);
 
-        auto ptr = allocate_shared_at<SomeClass>(1, std::allocator<SomeClass>(), 555);
+        auto ptr = allocate_shared_at<SomeClass>(target_cpu, std::allocator<SomeClass>(), 555);
 
         std::cout << ptr->value_ << std::endl;
 
