@@ -18,7 +18,7 @@
 namespace memoria {
 namespace v1 {
 
-RngInt      int_generator;
+RngInt     int_generator;
 RngInt64   bigint_generator;
 
 

@@ -74,4 +74,24 @@ public:
     }
 
 
+#define MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS_NO_DTR(ClassName)  \
+    ClassName(const typename Base::PtrType& ptr): Base(ptr) {}  \
+    ClassName(const ClassName& other): Base(other) {}       \
+    ClassName(ClassName&& other): Base(std::move(other)) {} \
+                                                            \
+    ClassName& operator=(const ClassName& other) {          \
+        Base::operator=(other);                             \
+        return *this;                                       \
+    }                                                       \
+                                                            \
+    ClassName& operator=(ClassName&& other) {               \
+        Base::operator=(std::move(other));                  \
+        return *this;                                       \
+    }                                                       \
+                                                            \
+    bool operator==(const ClassName& other) const {         \
+        return this->ptr_ == other.ptr_;                    \
+    }
+
+
 }}

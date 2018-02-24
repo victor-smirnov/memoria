@@ -33,10 +33,11 @@ void SocketIOMessage::finish()
     {
         auto* fiber_context = &iowait_queue_.front();
         iowait_queue_.pop_front();
+        //std::cout << "Resuming IOMessage " << this << " " << describe() << std::endl;
         engine().scheduler()->resume(fiber_context);
     }
     else {
-        std::cout << "Empty iowait_queue for " << describe() << ". Aborting." << std::endl;
+        std::cout << "Empty iowait_queue for " << describe() << ". Aborting. " << this << std::endl;
         std::terminate();
     }
 }    

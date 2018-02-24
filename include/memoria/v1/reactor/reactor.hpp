@@ -17,7 +17,6 @@
 
 #include <memoria/v1/core/config.hpp>
 #include <memoria/v1/core/strings/format.hpp>
-
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 
 #include "scheduler.hpp"
@@ -26,7 +25,7 @@
 
 #include <memoria/v1/reactor/smart_ptr.hpp>
 
-#include <memoria/v1/reactor/smart_ptr/detail/shared_count.hpp>
+//#include <memoria/v1/reactor/smart_ptr/detail/shared_count.hpp>
 
 #include "../fiber/protected_stack_pool.hpp"
 #include "../fiber/pooled_fixedsize_stack.hpp"
@@ -46,6 +45,7 @@
 #include "ring_buffer.hpp"
 
 #include <memoria/v1/reactor/console_streams.hpp>
+//#include <memoria/v1/reactor/pipe_streams.hpp>
 
 #include <thread>
 #include <memory>

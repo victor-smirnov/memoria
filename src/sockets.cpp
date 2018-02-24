@@ -29,9 +29,17 @@ int main(int argc, char** argv) {
         size_t producer_block_size = 1024 * 128;
         size_t consumer_block_size = 1024 * 32;
 
-        auto pipe = open_pipe();
+        ServerSocket ss(IPAddress(127,0,0,1), 5556);
+        ss.listen();
+
+
+        //auto pipe = open_pipe();
 
         fibers::fiber producer([&]{
+
+            ServerSocketConnection conn = ss.accept();
+            auto out = conn.output();
+
             auto buf = allocate_system_zeroed<uint8_t>(producer_block_size);
 
             size_t total{};
@@ -40,7 +48,7 @@ int main(int argc, char** argv) {
             {
                 size_t size = getRandomG(producer_block_size - 100) + 100;
                 std::cout << "To write: " << size << std::endl;
-                total += pipe.output.write(buf.get(), size);
+                total += out.write(buf.get(), size);
             }
 
             engine().coutln(u"Total written: {}", total);
@@ -48,6 +56,11 @@ int main(int argc, char** argv) {
 
 
         fibers::fiber consumer([&]{
+
+            ClientSocket cs(IPAddress(127,0,0,1), 5556);
+
+            auto input = cs.input();
+
             auto buf = allocate_system_zeroed<uint8_t>(consumer_block_size);
 
             size_t total{};
@@ -56,7 +69,7 @@ int main(int argc, char** argv) {
             {
                 size_t size = getRandomG(consumer_block_size - 100) + 100;
                 std::cout << "To read: " << size << std::endl;
-                total += pipe.input.read(buf.get(), size);
+                total += input.read(buf.get(), size);
             }
 
             engine().coutln(u"Total read: {}", total);

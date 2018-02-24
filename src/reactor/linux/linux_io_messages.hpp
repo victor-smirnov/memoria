@@ -72,9 +72,12 @@ protected:
     uint32_t flags_;
 
     bool connection_closed_{false};
+
+    const char* id_;
     
 public:
-    SocketIOMessage(int cpu): EPollIOMessage(cpu)
+    SocketIOMessage(int cpu, const char* id = "::default"):
+        EPollIOMessage(cpu), id_(id)
     {}
     
     virtual ~SocketIOMessage() noexcept {}
@@ -95,7 +98,7 @@ public:
 
     virtual void finish();
 
-    virtual std::string describe() {return "SocketIOMessage";}
+    virtual std::string describe() {return std::string("SocketIOMessage") + id_;}
 };
 
 

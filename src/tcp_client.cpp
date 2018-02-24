@@ -25,40 +25,56 @@
 #include <thread>
 #include <vector>
 
-namespace m  = memoria::v1;
+using namespace memoria::v1;
+using namespace memoria::v1::reactor;
 
-namespace df  = memoria::v1::fibers;
-namespace dr  = memoria::v1::reactor;
-namespace mt  = memoria::v1::tools;
-namespace fs  = memoria::v1::filesystem;
-
-using namespace dr;
-
-int main(int argc, char **argv) 
-{    
-    return Application::run(argc, argv, [](){
+int main(int argc, char** argv) {
+    return Application::run(argc, argv, [&]{
         ShutdownOnScopeExit hh;
 
-        std::cout << "Hello from TCP Client!" << std::endl;
+        size_t total_bytes = 1024 * 1024 * 256;
+        size_t consumer_block_size = 1024 * 32;
 
-        ClientSocket cs(IPAddress(127,0,0,1), 5556);
-        std::cout << "Connection established! " << std::endl;
+        uint8_t reader_state{};
 
-        size_t data_size = 4096;
-        uint8_t* data = new uint8_t[data_size];
+        fibers::fiber consumer([&]{
 
-        auto is = cs.input();
-        auto os = cs.output();
+            ClientSocket cs(IPAddress(127,0,0,1), 5556);
 
-        std::string str("Hello, world!");
+            auto input = cs.input();
 
-        ssize_t written = os.write(mt::ptr_cast<uint8_t>(str.c_str()), str.length());
+            auto buf = allocate_system_zeroed<uint8_t>(consumer_block_size);
 
-        std::cout << "written " << written << " bytes" << std::endl;
+            size_t total{};
+            size_t errors{};
 
-        ssize_t read = is.read(data, data_size);
+            while (total < total_bytes)
+            {
+                size_t base = total;
+                size_t size = getRandomG(consumer_block_size - 100) + 100;
+                total += input.read(buf.get(), size);
+                std::cout << "Read: " << size << " " << total << std::endl;
 
-        std::cout << "Read back: " << read << " bytes: " << std::string(mt::ptr_cast<char>(data), read) << std::endl;
+                for (size_t c = 0; c < size; c++)
+                {
+                    uint8_t value = *(buf.get() + c);
+                    if (value != reader_state)
+                    {
+                        errors++;
+                        engine().coutln(u"Data checksum error at {}: {}:{}", base + c, (int)value, (int)reader_state);
+
+                        if (errors >= 10) {
+                            std::terminate();
+                        }
+                    }
+                    ++reader_state;
+                }
+            }
+
+            engine().coutln(u"Total read: {}", total);
+        });
+
+        consumer.join();
 
         return 0;
     });
