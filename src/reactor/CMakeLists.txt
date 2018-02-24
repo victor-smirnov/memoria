@@ -13,12 +13,12 @@
 # limitations under the License.
 
 
-if (APPLE)
-	file(GLOB SRCS *.cpp macosx/*.cpp)
+if (BUILD_MACOSX)
+    file(GLOB SRCS *.cpp macosx/*.cpp posix/*.cpp)
 elseif (BUILD_MSVC)
-	file(GLOB SRCS *.cpp msvc/*.cpp)
+    file(GLOB SRCS *.cpp msvc/*.cpp)
 else()
-	file(GLOB SRCS *.cpp linux/*.cpp)
+    file(GLOB SRCS *.cpp linux/*.cpp posix/*.cpp)
 endif()
 
 set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})

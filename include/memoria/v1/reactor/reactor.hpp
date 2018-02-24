@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memoria/v1/core/config.hpp>
+#include <memoria/v1/core/strings/format.hpp>
 
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 
@@ -44,6 +45,7 @@
 #include "thread_pool.hpp"
 #include "ring_buffer.hpp"
 
+#include <memoria/v1/reactor/console_streams.hpp>
 
 #include <thread>
 #include <memory>
@@ -77,6 +79,16 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
     
     int32_t io_poll_cnt_{};
     int32_t yield_cnt_{};
+
+    ConsoleOutputStream stdout_{1};
+    ConsoleOutputStream stderr_{2};
+    ConsoleInputStream stdin_{3};
+
+    BinaryOStreamBuf<char> stdout_streambuf_{&stdout_};
+    BinaryOStreamBuf<char> stderr_streambuf_{&stderr_};
+
+    std::basic_ostream<char> cout_{&stdout_streambuf_};
+    std::basic_ostream<char> cerr_{&stderr_streambuf_};
 
 public:
 	using EventLoopTask = std::function<void(void)>;
@@ -203,6 +215,49 @@ public:
 	void run_in_event_loop(EventLoopTask task) {
 		event_loop_tasks_.push_back(task);
 	}
+
+    std::shared_ptr<Reactor> self() {return shared_from_this();}
+
+    ConsoleOutputStream& stdout_stream() {return stdout_;}
+    ConsoleOutputStream& stderr_stream() {return stderr_;}
+    ConsoleInputStream& stdin_stream() {return stdin_;}
+
+    std::basic_ostream<char>& cout() {return cout_;}
+    std::basic_ostream<char>& cerr() {return cerr_;}
+
+    template <typename... Args>
+    std::basic_ostream<char>& cout(const char16_t* fmt, Args&&... args)
+    {
+        cout_ << fmt::format(fmt, std::forward<Args>(args)...);
+        return cout_;
+    }
+
+    template <typename... Args>
+    std::basic_ostream<char>& coutln(const char16_t* fmt, Args&&... args)
+    {
+        cout_ << fmt::format(fmt, std::forward<Args>(args)...) << std::endl;
+        return cout_;
+    }
+
+    template <typename... Args>
+    std::basic_ostream<char>& cerr(const char16_t* fmt, Args&&... args)
+    {
+        cerr_ << fmt::format(fmt, std::forward<Args>(args)...);
+        return cerr_;
+    }
+
+    template <typename... Args>
+    std::basic_ostream<char>& cerrln(const char16_t* fmt, Args&&... args)
+    {
+        cerr_ << fmt::format(fmt, std::forward<Args>(args)...) << std::endl;
+        return cerr_;
+    }
+
+    void println() {
+        cout_ << std::endl;
+    }
+
+
 
 private:
 
