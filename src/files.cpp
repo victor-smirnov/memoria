@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     return Application::run(argc, argv, [&]{
         ShutdownOnScopeExit hh;
 
-        engine().cerrln(u"Hello, {} World!!!", u"cruel");
+        engine().coutln(u"Hello, {} World!!!", u8"cruel");
 
         return 0;
     });
