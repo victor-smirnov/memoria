@@ -44,7 +44,7 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     ip_address_(ip_address),
     ip_port_(ip_port),
     sock_address_{tools::make_zeroed<sockaddr_in>()},
-    fiber_io_message_(engine().cpu())
+    fiber_io_message_(engine().cpu(), "::client_socket_connection")
 {
     BOOST_ASSERT_MSG(ip_address_.is_v4(), "Only IPv4 sockets are supported at the moment");
 
@@ -67,7 +67,7 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     event.data.ptr = &fiber_io_message_;
 
-    event.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP;
+    event.events = EPOLLIN | EPOLLOUT | EPOLLET; //EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP | EPOLLET;
 
     int sres = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, fd_, &event);
     if (sres < 0) {

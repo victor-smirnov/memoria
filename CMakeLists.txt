@@ -105,7 +105,7 @@ if (BUILD_POSIX)
         add_global_linker(-fsanitize=thread)
     endif()
     
-    add_global_libs(dl pthread)
+    add_global_libs(dl pthread jemalloc)
 
     add_global_linker(-static-libstdc++)
 

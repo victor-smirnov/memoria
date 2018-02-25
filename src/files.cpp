@@ -25,11 +25,13 @@ int main(int argc, char** argv) {
     return Application::run(argc, argv, [&]{
         ShutdownOnScopeExit hh;
 
-        size_t total_bytes = 1024 * 256;
+        size_t total_bytes = 1024 * 256 * 1024;
         size_t producer_block_size = 1024 * 128;
         size_t consumer_block_size = 1024 * 32;
 
         auto pipe = open_pipe();
+        uint8_t generator_state{};
+        uint8_t reader_state{};
 
         fibers::fiber producer([&]{
             auto buf = allocate_system_zeroed<uint8_t>(producer_block_size);
@@ -38,8 +40,14 @@ int main(int argc, char** argv) {
 
             while (total < total_bytes)
             {
-                size_t size = getRandomG(producer_block_size - 100) + 100;
-                std::cout << "To write: " << size << std::endl;
+                size_t max = (producer_block_size + total <= total_bytes) ? producer_block_size : (total_bytes - total);
+                size_t size = max > 10 ? getNonZeroRandomG(max) : max;
+
+                for (size_t c = 0; c < size; c++)
+                {
+                    *(buf.get() + c) = generator_state++;
+                }
+
                 total += pipe.output.write(buf.get(), size);
             }
 
@@ -54,9 +62,23 @@ int main(int argc, char** argv) {
 
             while (total < total_bytes)
             {
-                size_t size = getRandomG(consumer_block_size - 100) + 100;
-                std::cout << "To read: " << size << std::endl;
-                total += pipe.input.read(buf.get(), size);
+                size_t max = (consumer_block_size + total <= total_bytes) ? consumer_block_size : (total_bytes - total);
+                size_t size = max > 10 ? getNonZeroRandomG(max) : max;
+
+                size_t read = pipe.input.read(buf.get(), size);
+
+                for (size_t c = 0; c < read; c++)
+                {
+                    uint8_t value = *(buf.get() + c);
+                    if (value != reader_state) {
+                        engine().coutln(u"Data checksum error at {}:{}:{}:{} {}:{}", total, c, read, size, (int)value, (int)reader_state);
+                        std::terminate();
+                    }
+
+                    reader_state++;
+                }
+
+                total += read;
             }
 
             engine().coutln(u"Total read: {}", total);

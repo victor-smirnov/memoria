@@ -55,7 +55,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     ip_address_(ip_address),
     ip_port_(ip_port),
     sock_address_{tools::make_zeroed<sockaddr_in>()},
-    fiber_io_message_(engine().cpu())
+    fiber_io_message_(engine().cpu(), "::server_socket")
 {
     BOOST_ASSERT_MSG(ip_address_.is_v4(), "Only IPv4 sockets are supported at the moment");
 

@@ -42,7 +42,7 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
         SocketConnectionImpl(data.take_fd()),
         ip_address_(data.ip_address()),
         ip_port_(data.ip_port()),
-        fiber_io_message_(engine().cpu())
+        fiber_io_message_(engine().cpu(), "::server_socket_connection")
 {
     if (fd_ >= 0)
     {
@@ -58,7 +58,7 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
 
         event.data.ptr = &fiber_io_message_;
 
-        event.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP;
+        event.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP | EPOLLET;
 
         int res = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, fd_, &event);
         if (res < 0)

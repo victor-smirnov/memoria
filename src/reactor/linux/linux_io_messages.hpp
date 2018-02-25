@@ -35,9 +35,7 @@ namespace reactor {
 
 class EPollIOMessage: public Message {
 protected:
-
     uint32_t flags_;
-
 
 public:
     EPollIOMessage(int cpu):
@@ -48,7 +46,8 @@ public:
 
     virtual ~EPollIOMessage() noexcept {}
 
-    virtual void on_receive(const epoll_event& event) {
+    virtual void on_receive(const epoll_event& event)
+    {
         this->flags_ = event.events;
     }
 
@@ -57,8 +56,6 @@ public:
     void reset(){
         flags_ = 0;
     }
-
-
 };
 
 

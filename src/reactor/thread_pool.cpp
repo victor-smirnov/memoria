@@ -66,8 +66,6 @@ bool ThreadPool::wait_for_termination()
 
 void ThreadPool::release(Message* task) 
 {
-    //std::cout << "Releasing worker for task: " << task << std::endl;
-    
     BOOST_ASSERT_MSG(task->data(), "ThreadPooolST: Provided message has no worker associated with");
     
     WorkerT* worker = tools::ptr_cast<WorkerT>(task->data());
@@ -75,9 +73,7 @@ void ThreadPool::release(Message* task)
     auto ii = busy_workers_.iterator_to(*worker);
     
     busy_workers_.erase(ii);
-    
-    //worker->unlink();
-    
+
     if (free_workers_.size() < min_size_) 
     {
         free_workers_.push_back(*worker);

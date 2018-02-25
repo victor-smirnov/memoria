@@ -34,7 +34,6 @@ size_t ConsoleOutputStream::write(const uint8_t* data, size_t size)
     bool error_v{};
 
     std::tie(result, errno_v, error_v) = engine().run_in_thread_pool([&]{
-
         size_t total{};
 
         while (total < size)

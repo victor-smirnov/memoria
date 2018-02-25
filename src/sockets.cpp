@@ -25,22 +25,27 @@ int main(int argc, char** argv) {
     return Application::run(argc, argv, [&]{
         ShutdownOnScopeExit hh;
 
-        size_t total_bytes = 1024 * 1024 * 256;
-        size_t producer_block_size = 1024 * 128;
+        size_t total_bytes = 1024 * 256 * 1024;
+        size_t producer_block_size = 1024 * 32;
         size_t consumer_block_size = 1024 * 32;
 
 		Seed(getTimeInMillis());
 
-        ServerSocket ss(IPAddress(127,0,0,1), 5554);
+        size_t port = 5000 + getRandomG(1000);
+
+        ServerSocket ss(IPAddress(127,0,0,1), port);
+
 		ss.listen();
 
 		uint8_t generator_state{};
 		uint8_t reader_state{};
 
+        BinaryOutputStream out(nullptr);
+
         fibers::fiber producer([&]{
 
             ServerSocketConnection conn = ss.accept();
-            auto out = conn.output();
+            out = conn.output();
 
             auto buf = allocate_system_zeroed<uint8_t>(producer_block_size);
 
@@ -66,8 +71,7 @@ int main(int argc, char** argv) {
 
         fibers::fiber consumer([&]{
 
-            ClientSocket cs(IPAddress(127,0,0,1), 5554);
-
+            ClientSocket cs(IPAddress(127,0,0,1), port);
             auto input = cs.input();
 
             auto buf = allocate_system_zeroed<uint8_t>(consumer_block_size);

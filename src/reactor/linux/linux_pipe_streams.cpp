@@ -57,22 +57,15 @@ public:
         }
     }
 
-    virtual IOHandle hande() const {return handle_;}
-
-    virtual size_t read(uint8_t* data, size_t size)
-    {
-        size_t total{};
-
-        while (total < size) {
-            total += read_(data + total, size - total);
-        }
-
-        return total;
+    virtual ~PipeInputStreamImpl() noexcept {
+        close();
     }
+
+    virtual IOHandle hande() const {return handle_;}
 
     size_t total_r{};
 
-    size_t read_(uint8_t* data, size_t size)
+    size_t read(uint8_t* data, size_t size)
     {
         while (true)
         {
@@ -83,12 +76,12 @@ public:
 
                 total_r += result;
 
-                std::cout << "read: " << result << " " << total_r << std::endl;
+                //std::cout << "read: " << result << " " << total_r << std::endl;
                 return result;
             }
             else if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
-                std::cout << "Wait for read: " << size << " " << total_r << " " << &fiber_io_message_ << std::endl;
+                //std::cout << "Wait for read: " << size << " " << total_r << " " << &fiber_io_message_ << std::endl;
                 fiber_io_message_.wait_for();
             }
             else {
@@ -155,6 +148,10 @@ public:
         }
     }
 
+    virtual ~PipeOutputStreamImpl() noexcept {
+        close();
+    }
+
     virtual IOHandle hande() const {return handle_;}
 
     virtual size_t write(const uint8_t* data, size_t size)
@@ -178,12 +175,10 @@ public:
             {
                 data_closed_ = result == 0;
                 total_w += result;
-                std::cout << "written: " << result << " " << total_w << std::endl;
                 return result;
             }
             else if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
-                std::cout << "Wait for write: " << size << " " << total_w << " " << &fiber_io_message_ << std::endl;
                 fiber_io_message_.wait_for();
             }
             else {

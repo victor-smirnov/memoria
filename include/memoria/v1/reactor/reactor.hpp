@@ -98,7 +98,7 @@ private:
 public:
     
     Reactor(std::shared_ptr<Smp> smp, int cpu, bool own_thread):
-        smp_(smp), cpu_(cpu), own_thread_(own_thread), thread_pool_(1, 10, smp_),
+        smp_(smp), cpu_(cpu), own_thread_(own_thread), thread_pool_(1, 1000, smp_),
         io_poller_(cpu, ring_buffer_)
     {
         std::atomic_thread_fence(std::memory_order_seq_cst);

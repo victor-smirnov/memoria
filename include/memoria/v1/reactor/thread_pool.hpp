@@ -56,36 +56,43 @@ namespace detail {
         std::mutex mutex_;
         std::condition_variable cv_;
         
-        Message* task_{};
-        
-        
-        bool stop_{false};
-        bool finished_{false};
-        bool ready_{false};
-        
-        
         std::shared_ptr<Smp> smp_;
 
+        Message* task_;
+        bool ready_;
+        bool stop_;
+        bool finished_;
+        
     public:
-        Worker(std::shared_ptr<Smp>& smp): smp_(smp)
+        Worker(std::shared_ptr<Smp>& smp)
         {
+            std::unique_lock<std::mutex> lk(mutex_);
+
+            smp_   = smp;
+            task_  = nullptr;
+            ready_ = false;
+            stop_  = false;
+            finished_ = false;
+
             thread_ = std::thread([this]
             {   
                 std::unique_lock<std::mutex> lk(mutex_);
                 
                 while(true) 
                 {
-                    ready_ = false;
                     cv_.wait(lk, [this]{
                         return ready_;
                     });
-                    
+
+                    ready_ = false;
+
                     if (!stop_)
                     {
                         BOOST_ASSERT(task_);
                         
                         task_->process();
                         smp_->submit_to(task_->cpu(), task_);
+                        task_ = nullptr;
                     }
                     else {
                         break;
@@ -104,9 +111,10 @@ namespace detail {
             {
                 {
                     std::unique_lock<std::mutex> lk(mutex_);
-                    stop_ = true;
+
                     ready_ = true;
-                    task_ = nullptr;
+                    stop_  = true;
+                    task_  = nullptr;
                 }
         
                 cv_.notify_all();
@@ -115,7 +123,7 @@ namespace detail {
             }
         }
         
-        bool is_finished() 
+        bool is_finished()
         {
             std::unique_lock<std::mutex> lk(mutex_);
             return finished_;
