@@ -30,7 +30,7 @@ SystemException::SystemException()
 
 SystemException::SystemException(DWORD error_code) 
 {
-	(*this) << SystemErrorCodeInfo(error_code) << SystemErrorStrInfo(strerror(error_code));
+	(*this) << SystemErrorCodeInfo(error_code) << SystemErrorStrInfo(GetErrorMessage(error_code));
 }
 
 

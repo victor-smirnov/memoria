@@ -84,7 +84,7 @@ public:
     }
 };
 
-#ifdef MMA1_POSIX
+
 
 struct PipeStreams {
     PipeInputStream  input;
@@ -92,11 +92,6 @@ struct PipeStreams {
 };
 
 PipeStreams open_pipe();
-
-//PipeInputStream create_input_pipe(IOHandle handle);
-//PipeOutputStream create_output_pipe(IOHandle handle);
-
-#endif
 
 PipeInputStream open_input_pipe(const char16_t* name);
 PipeOutputStream open_output_pipe(const char16_t* name);
