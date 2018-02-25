@@ -120,7 +120,16 @@ public:
     }
 
     virtual size_t read(uint8_t* data, size_t size);
-    virtual size_t write(const uint8_t* data, size_t size);
+    virtual size_t write(const uint8_t* data, size_t size) {
+        size_t tt{};
+        while (tt < size) {
+            tt += write_(data + tt, size - tt);
+        }
+        return tt;
+    }
+
+    size_t write_(const uint8_t* data, size_t size);
+
     virtual void flush() {}
 
     virtual void close();
@@ -163,7 +172,19 @@ public:
      virtual uint16_t port() const {return ip_port_;}
 
      virtual size_t read(uint8_t* data, size_t size);
-     virtual size_t write(const uint8_t* data, size_t size);
+     virtual size_t write(const uint8_t* data, size_t size) {
+         size_t tt{};
+         while (tt < size) {
+             tt += write_(data + tt, size - tt);
+         }
+         return tt;
+     }
+
+
+     size_t write_(const uint8_t* data, size_t size);
+
+
+
      virtual void flush() {}
 
      virtual void close();

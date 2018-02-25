@@ -99,7 +99,7 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
     }
 }
 
-size_t ServerSocketConnectionImpl::write(const uint8_t* data, size_t size)
+size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 {
     while (true) 
     {

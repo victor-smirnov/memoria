@@ -150,7 +150,7 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
     }
 }
 
-size_t ClientSocketImpl::write(const uint8_t* data, size_t size)
+size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
 {
     while (true)
     {
