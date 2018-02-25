@@ -187,9 +187,9 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
         else if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
             // FIXME: handle eof flag properly
-            fiber_io_read_message_.wait_for();
+            fiber_io_write_message_.wait_for();
 
-            size_t av = fiber_io_read_message_.available();
+            size_t av = fiber_io_write_message_.available();
             available_size = av >= size ? size : av;
         }
         else {
