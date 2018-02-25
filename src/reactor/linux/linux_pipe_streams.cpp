@@ -73,15 +73,11 @@ public:
 
             if (result >= 0) {
                 data_closed_ = result == 0;
-
                 total_r += result;
-
-                //std::cout << "read: " << result << " " << total_r << std::endl;
                 return result;
             }
             else if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
-                //std::cout << "Wait for read: " << size << " " << total_r << " " << &fiber_io_message_ << std::endl;
                 fiber_io_message_.wait_for();
             }
             else {
@@ -220,7 +216,7 @@ public:
 PipeStreams open_pipe()
 {
     int32_t fds[2];
-    if (::pipe2(fds, 0) < 0) {
+    if (::pipe(fds) < 0) {
         MMA1_THROW(SystemException()) << WhatCInfo("Can't create a pair of pipes");
     }
 
