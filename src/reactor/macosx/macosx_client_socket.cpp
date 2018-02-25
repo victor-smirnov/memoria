@@ -41,19 +41,13 @@ namespace v1 {
 namespace reactor {
 
 
-
-
-
-
-
-
-
 ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port):
     Base(socket(AF_INET, SOCK_STREAM , 0)),
     ip_address_(ip_address),
     ip_port_(ip_port),
     sock_address_{tools::make_zeroed<sockaddr_in>()},
-    fiber_io_message_(engine().cpu())
+    fiber_io_read_message_(engine().cpu()),
+    fiber_io_write_message_(engine().cpu())
 {
     BOOST_ASSERT_MSG(ip_address_.is_v4(), "Only IPv4 sockets are supported at the moment");
 
@@ -76,21 +70,8 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     int queue_fd = engine().io_poller().queue_fd();
 
-    timespec timeout = tools::make_zeroed<timespec>();
-
-    struct kevent64_s event;
-
-    EV_SET64(&event, fd_, EVFILT_WRITE, EV_ADD | EV_ERROR, 0, 0, (uint64_t)&fiber_io_message_, 0, 0);
-
-    int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
-    if (res < 0)
-    {
-        ::close(fd_);
-        MMA1_THROW(SystemException()) << fmt::format_ex(
-            u"Can't configure poller for connection {}:{}:{}",
-            ip_address_, ip_port_, fd_
-        );
-    }
+    KEvent64(queue_fd, fd_, EVFILT_READ, EV_ADD | EV_ERROR, &fiber_io_read_message_);
+    KEvent64(queue_fd, fd_, EVFILT_WRITE, EV_ADD | EV_ERROR, &fiber_io_write_message_);
 
     connect();
 }
@@ -113,9 +94,9 @@ void ClientSocketImpl::connect()
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINPROGRESS)
         {
-            fiber_io_message_.wait_for();
+            fiber_io_read_message_.wait_for();
 
-            if (fiber_io_message_.connection_closed())
+            if (fiber_io_read_message_.connection_closed())
             {
                 MMA1_THROW(SystemException()) << fmt::format_ex(
                     u"Can't start connection to {}:{}",
@@ -146,20 +127,8 @@ void ClientSocketImpl::close()
     {
         int queue_fd = engine().io_poller().queue_fd();
 
-        timespec timeout = tools::make_zeroed<timespec>();
-
-        struct kevent64_s event;
-
-        EV_SET64(&event, fd_, EVFILT_WRITE, EV_DELETE, 0, 0, 0, 0, 0);
-
-        int res = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
-        if (res < 0)
-        {
-            MMA1_THROW(SystemException()) << fmt::format_ex(
-                u"Can't remove kqueue event for socket {}:{}",
-                ip_address_, ip_port_
-            );
-        }
+        KEvent64(queue_fd, fd_, EVFILT_READ, EV_DELETE, nullptr);
+        KEvent64(queue_fd, fd_, EVFILT_WRITE, EV_DELETE, nullptr);
 
         if (::close(fd_) < 0)
         {
@@ -190,8 +159,11 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
         else if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
             // FIXME: handle eof flag properly
-            fiber_io_message_.wait_for();
-            available_size = fiber_io_message_.available();
+
+            fiber_io_read_message_.wait_for();
+
+            size_t av = fiber_io_read_message_.available();
+            available_size = av >= size ? size : av;
         }
         else {
             MMA1_THROW(SystemException()) << fmt::format_ex(
@@ -215,8 +187,10 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
         else if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
             // FIXME: handle eof flag properly
-            fiber_io_message_.wait_for();
-            available_size = fiber_io_message_.available();
+            fiber_io_read_message_.wait_for();
+
+            size_t av = fiber_io_read_message_.available();
+            available_size = av >= size ? size : av;
         }
         else {
             MMA1_THROW(SystemException()) << fmt::format_ex(

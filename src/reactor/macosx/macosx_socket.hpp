@@ -104,7 +104,8 @@ class ServerSocketConnectionImpl:
     IPAddress ip_address_;
     uint16_t ip_port_;
 
-    SocketIOMessage fiber_io_message_;
+    SocketIOMessage fiber_io_read_message_;
+    SocketIOMessage fiber_io_write_message_;
 public:
     ServerSocketConnectionImpl(SocketConnectionData&& data);
     virtual ~ServerSocketConnectionImpl() noexcept;
@@ -122,7 +123,7 @@ public:
     virtual size_t write(const uint8_t* data, size_t size) {
         size_t tt{};
         while (tt < size) {
-            tt += write(data + tt, size - tt);
+            tt += write_(data + tt, size - tt);
         }
         return tt;
     }
@@ -134,7 +135,11 @@ public:
     virtual void flush() {}
 
     virtual void close();
-    virtual bool is_closed() const {return op_closed_ || fiber_io_message_.connection_closed();}
+    virtual bool is_closed() const {
+        return op_closed_
+                || fiber_io_read_message_.connection_closed()
+                || fiber_io_write_message_.connection_closed();
+    }
 };
 
 
@@ -163,7 +168,8 @@ class ClientSocketImpl: public ClientSocketConnectionImpl {
 
     sockaddr_in sock_address_;
 
-    SocketIOMessage fiber_io_message_;
+    SocketIOMessage fiber_io_read_message_;
+    SocketIOMessage fiber_io_write_message_;
 
 public:
      ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port);
@@ -176,7 +182,7 @@ public:
      virtual size_t write(const uint8_t* data, size_t size) {
          size_t tt{};
          while (tt < size) {
-             tt += write(data + tt, size - tt);
+             tt += write_(data + tt, size - tt);
          }
          return tt;
      }
@@ -186,7 +192,11 @@ public:
      virtual void flush() {}
 
      virtual void close();
-     virtual bool is_closed() const {return op_closed_ || fiber_io_message_.connection_closed();}
+     virtual bool is_closed() const {
+         return op_closed_
+                 || fiber_io_read_message_.connection_closed()
+                 || fiber_io_write_message_.connection_closed();
+     }
 
 private:
      void connect();
@@ -194,5 +204,7 @@ private:
 
 void InitSockets();
 void DestroySockets();
+
+
 
 }}}

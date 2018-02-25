@@ -32,15 +32,11 @@ namespace reactor {
 
 void SocketIOMessage::finish()
 {
-    if (!iowait_queue_.empty())
+    while (!iowait_queue_.empty())
     {
         auto* fiber_context = &iowait_queue_.front();
         iowait_queue_.pop_front();
         engine().scheduler()->resume(fiber_context);
-    }
-    else {
-        std::cout << "Empty iowait_queue for " << describe() << ". Aborting." << std::endl;
-        std::terminate();
     }
 }    
 

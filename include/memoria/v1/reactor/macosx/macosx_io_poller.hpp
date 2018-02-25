@@ -32,25 +32,9 @@ namespace v1 {
 namespace reactor {
 
 
+void KEvent64(int poller_fd, int fd, int filter, int flags, void * fiber_message_ptr = nullptr, bool throw_ex = true);
+
 using IOBuffer = RingBuffer<Message*>;
-
-// class KEventMessage: public Message {
-//     bool eof_{};
-//     size_t size_{};
-//     size_t write_buffer_capacity_{};
-//     
-// public:
-//     KEventMessage(int cpu): Message(cpu, false) {}
-//     
-//     bool is_eof() const {return eof_;}
-//     size_t size() const {return size_;}
-//     
-//     void setup(bool eof, size_t size) {
-//         eof_ = eof;
-//         size_ = size;
-//     }
-// };
-
 
 class IOPoller {
     

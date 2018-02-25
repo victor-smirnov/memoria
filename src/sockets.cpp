@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     return Application::run(argc, argv, [&]{
         ShutdownOnScopeExit hh;
 
-        size_t total_bytes = 1024 * 256 * 1024;
+        size_t total_bytes = 1024 * 1024 * 256;
         size_t producer_block_size = 1024 * 32;
         size_t consumer_block_size = 1024 * 32;
 
@@ -84,7 +84,6 @@ int main(int argc, char** argv) {
 				size_t size = max > 10 ? getNonZeroRandomG(max) : max;
 
 				size_t read = input.read(buf.get(), size);
-
 				for (size_t c = 0; c < read; c++)
 				{
 					uint8_t value = *(buf.get() + c);

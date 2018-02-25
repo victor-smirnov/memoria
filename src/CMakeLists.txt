@@ -79,7 +79,7 @@ endif()
 
 SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm timers alloc shared_ptrs ustrings icu_regexp fmt_u16 sockets)
 
-if(BUILD_POSIX)
+if(BUILD_POSIX AND NOT BUILD_MACOSX)
     SET(MEMORIA_APPS ${MEMORIA_APPS} files)
 endif()
 
