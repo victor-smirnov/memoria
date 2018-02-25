@@ -22,34 +22,39 @@ int main(int argc, char** argv) {
         size_t total_bytes = 1024 * 1024 * 256;
         size_t producer_block_size = 1024 * 128;
 
+		Seed(getTimeInMillis());
+
         ServerSocket ss(IPAddress(127,0,0,1), 5556);
         ss.listen();
 
         uint8_t generator_state{};
 
-        fibers::fiber producer([&]{
+        ServerSocketConnection conn = ss.accept();
 
-            ServerSocketConnection conn = ss.accept();
-            auto out = conn.output();
+		engine().coutln(u"Client connected", 1);
 
-            auto buf = allocate_system_zeroed<uint8_t>(producer_block_size);
+        auto out = conn.output();
 
-            size_t total{};
+        auto buf = allocate_system_zeroed<uint8_t>(producer_block_size);
 
-            while (total < total_bytes)
-            {
-                size_t size = getRandomG(producer_block_size - 100) + 100;
+        size_t total{};
 
-                for (size_t c = 0; c < size; c++) *(buf.get() + c) = generator_state++;
+        while (total < total_bytes)
+        {
+			size_t max = (producer_block_size + total <= total_bytes) ? producer_block_size : (total_bytes - total);
+            size_t size = max > 10 ? getNonZeroRandomG(max) : max;
 
-                //std::cout << "To write: " << size << std::endl;
-                total += out.write(buf.get(), size);
-                std::cout << "To write: " << size << " " << total << std::endl;
-            }
+			for (size_t c = 0; c < size; c++) {
+				*(buf.get() + c) = generator_state++;
+			}
 
-            engine().coutln(u"Total written: {}", total);
-        });
-        producer.join();
+            size_t written = out.write(buf.get(), size);
+
+			total += written;
+        }
+
+        engine().coutln(u"Total written: {}", total);
+        
 
         return 0;
     });

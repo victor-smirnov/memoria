@@ -118,8 +118,18 @@ public:
         return BinaryOutputStream(StaticPointerCast<IBinaryOutputStream>(shared_from_this()));
     }
 
-    virtual size_t read(uint8_t* data, size_t size);
-    virtual size_t write(const uint8_t* data, size_t size);
+    size_t write_(const uint8_t* data, size_t size);
+
+	size_t read(uint8_t* data, size_t size);
+	virtual size_t write(const uint8_t* data, size_t size) {
+		size_t total{};
+		while (total < size) {
+			total += write_(data + total, size - total);
+		}
+		return total;
+	}
+
+
     virtual void flush() {}
 
     virtual void close();
@@ -158,8 +168,19 @@ public:
      virtual const IPAddress& address() const {return ip_address_;}
      virtual uint16_t port() const {return ip_port_;}
 
-     virtual size_t read(uint8_t* data, size_t size);
-     virtual size_t write(const uint8_t* data, size_t size);
+     size_t write_(const uint8_t* data, size_t size);
+
+	 virtual size_t read(uint8_t* data, size_t size);
+	 virtual size_t write(const uint8_t* data, size_t size) {
+		 size_t total{};
+		 while (total < size) {
+			 total += write_(data + total, size - total);
+		 }
+		 return total;
+	 }
+
+
+
      virtual void flush() {}
 
      virtual void close();

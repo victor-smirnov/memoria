@@ -77,7 +77,7 @@ if (BUILD_SANDBOX)
 endif()
 
 
-SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm files timers alloc shared_ptrs ustrings icu_regexp fmt_u16 sockets)
+SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm timers alloc shared_ptrs ustrings icu_regexp fmt_u16 sockets)
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)

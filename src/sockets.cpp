@@ -25,15 +25,17 @@ int main(int argc, char** argv) {
     return Application::run(argc, argv, [&]{
         ShutdownOnScopeExit hh;
 
-        size_t total_bytes = 1024 * 256;
+        size_t total_bytes = 1024 * 1024 * 256;
         size_t producer_block_size = 1024 * 128;
         size_t consumer_block_size = 1024 * 32;
 
-        ServerSocket ss(IPAddress(127,0,0,1), 5556);
-        ss.listen();
+		Seed(getTimeInMillis());
 
+        ServerSocket ss(IPAddress(127,0,0,1), 5554);
+		ss.listen();
 
-        //auto pipe = open_pipe();
+		uint8_t generator_state{};
+		uint8_t reader_state{};
 
         fibers::fiber producer([&]{
 
@@ -46,9 +48,16 @@ int main(int argc, char** argv) {
 
             while (total < total_bytes)
             {
-                size_t size = getRandomG(producer_block_size - 100) + 100;
-                std::cout << "To write: " << size << std::endl;
-                total += out.write(buf.get(), size);
+				size_t max = (producer_block_size + total <= total_bytes) ? producer_block_size : (total_bytes - total);
+				size_t size = max > 10 ? getNonZeroRandomG(max) : max;
+
+				for (size_t c = 0; c < size; c++)
+				{
+					*(buf.get() + c) = generator_state++;
+				}
+
+                size_t written = out.write(buf.get(), size);
+				total += written;
             }
 
             engine().coutln(u"Total written: {}", total);
@@ -57,19 +66,33 @@ int main(int argc, char** argv) {
 
         fibers::fiber consumer([&]{
 
-            ClientSocket cs(IPAddress(127,0,0,1), 5556);
+            ClientSocket cs(IPAddress(127,0,0,1), 5554);
 
             auto input = cs.input();
 
             auto buf = allocate_system_zeroed<uint8_t>(consumer_block_size);
 
-            size_t total{};
+			size_t total{};
 
             while (total < total_bytes)
             {
-                size_t size = getRandomG(consumer_block_size - 100) + 100;
-                std::cout << "To read: " << size << std::endl;
-                total += input.read(buf.get(), size);
+				size_t max = (consumer_block_size + total <= total_bytes) ? consumer_block_size : (total_bytes - total);
+				size_t size = max > 10 ? getNonZeroRandomG(max) : max;
+
+				size_t read = input.read(buf.get(), size);
+
+				for (size_t c = 0; c < read; c++)
+				{
+					uint8_t value = *(buf.get() + c);
+					if (value != reader_state) {
+						engine().coutln(u"Data checksum error at {}:{}:{}:{} {}:{}", total, c, read, size, (int)value, (int)reader_state);
+						std::terminate();
+					}
+					
+					reader_state++;
+				}
+
+				total += read;
             }
 
             engine().coutln(u"Total read: {}", total);
