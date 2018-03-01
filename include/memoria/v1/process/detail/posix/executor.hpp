@@ -419,8 +419,6 @@ child executor<Sequence>::invoke(boost::mpl::false_, boost::mpl::false_)
 
     child c(child_handle(pid), exit_status);
 
-
-
     ::close(p[1]);
     _read_error(p[0]);
     ::close(p[0]);

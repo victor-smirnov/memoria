@@ -18,6 +18,8 @@
 #include <fcntl.h>
 #include <memory>
 
+#include <sys/epoll.h>
+
 namespace boost { namespace process { namespace detail { namespace posix {
 
 
@@ -45,6 +47,7 @@ public:
         _source = fds[0];
         _sink   = fds[1];
     }
+
     inline basic_pipe(const basic_pipe& rhs);
     explicit inline basic_pipe(const std::string& name);
     basic_pipe(basic_pipe&& lhs)  : _source(lhs._source), _sink(lhs._sink)

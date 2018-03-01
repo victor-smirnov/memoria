@@ -25,11 +25,13 @@ namespace reactor {
 class IPipeInputStream: public IBinaryInputStream {
 public:
     virtual IOHandle hande() const = 0;
+    virtual IOHandle detach() = 0;
 };
 
 class IPipeOutputStream: public IBinaryOutputStream {
 public:
     virtual IOHandle hande() const = 0;
+    virtual IOHandle detach() = 0;
 };
 
 
@@ -54,7 +56,13 @@ public:
 
     IOHandle hande() const {
         return this->ptr_->is_closed();
-    }};
+    }
+
+    IOHandle detach() {
+        return this->ptr_->detach();
+    }
+
+};
 
 
 class PipeOutputStream: public PimplBase<IPipeOutputStream> {
@@ -82,6 +90,10 @@ public:
     IOHandle hande() const {
         return this->ptr_->is_closed();
     }
+
+    IOHandle detach() {
+        return this->ptr_->detach();
+    }
 };
 
 
@@ -92,6 +104,7 @@ struct PipeStreams {
 };
 
 PipeStreams open_pipe();
+PipeStreams duplicate_pipe(IOHandle input, IOHandle output);
 
 PipeInputStream open_input_pipe(const char16_t* name);
 PipeOutputStream open_output_pipe(const char16_t* name);

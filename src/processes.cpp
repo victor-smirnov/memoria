@@ -14,23 +14,39 @@
 // limitations under the License.
 
 
-#include <memoria/v1/process/process.hpp>
+#include <memoria/v1/reactor/process.hpp>
 #include <memoria/v1/reactor/application.hpp>
+
+#include <memoria/v1/core/tools/type_name.hpp>
 
 #include <iostream>
 
 using namespace memoria::v1;
 using namespace memoria::v1::reactor;
 
-namespace bp = boost::process;
 
 int main(int argc, char** argv)
 {
     return Application::run(argc, argv, []{
         ShutdownOnScopeExit hh;
 
+        Process process = Process::create(u"/usr/bin/ls", u"ls -l");
 
-        bp::system("ls", bp::std_out > stdout, bp::std_err > stderr, bp::std_in < stdin);
+        auto out = process.out_stream();
+
+        while (!out.is_closed())
+        {
+            uint8_t buf[200];
+            std::memset(buf, 0, sizeof(buf));
+
+            size_t read = out.read(buf, sizeof(buf) - 1);
+
+            if (read > 0) {
+                engine().cout(u"{}", T2T<const char*>(buf)) << std::flush;
+            }
+        }
+
+        process.join();
 
         return 0;
     });

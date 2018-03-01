@@ -111,6 +111,38 @@ public:
     virtual bool is_closed() const {
         return op_closed_ || fiber_io_message_.connection_closed() || data_closed_;
     }
+
+
+    virtual IOHandle detach()
+    {
+        if (!is_closed())
+        {
+            op_closed_ = true;
+
+            int res = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_DEL, handle_, nullptr);
+            if (res < 0)
+            {
+                int32_t err_code = errno;
+                ::close(handle_);
+                MMA1_THROW(SystemException(err_code)) << fmt::format_ex(u"Can't remove epoller for pipe {}", handle_);
+            }
+
+            int state = fcntl(handle_, F_GETFL);
+            if (state >= 0) {
+                fcntl(handle_, F_SETFL, state & ~O_NONBLOCK);
+            }
+
+            engine().drain_pending_io_events(&fiber_io_message_);
+
+            int32_t hh = handle_;
+
+            handle_ = -1;
+
+            return hh;
+        }
+
+        return handle_;
+    }
 };
 
 class PipeOutputStreamImpl: public IPipeOutputStream {
@@ -210,6 +242,37 @@ public:
     }
 
     virtual void flush() {}
+
+    virtual IOHandle detach()
+    {
+        if (!is_closed())
+        {
+            op_closed_ = true;
+
+            int res = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_DEL, handle_, nullptr);
+            if (res < 0)
+            {
+                int32_t err_code = errno;
+                ::close(handle_);
+                MMA1_THROW(SystemException(err_code)) << fmt::format_ex(u"Can't remove epoller for pipe {}", handle_);
+            }
+
+            int state = fcntl(handle_, F_GETFL);
+            if (state >= 0) {
+                fcntl(handle_, F_SETFL, state & ~O_NONBLOCK);
+            }
+
+            engine().drain_pending_io_events(&fiber_io_message_);
+
+            int32_t hh = handle_;
+
+            handle_ = -1;
+
+            return hh;
+        }
+
+        return handle_;
+    }
 };
 
 
@@ -223,6 +286,26 @@ PipeStreams open_pipe()
     return PipeStreams{
         PipeInputStream(MakeLocalShared<PipeInputStreamImpl>(fds[0])),
         PipeOutputStream(MakeLocalShared<PipeOutputStreamImpl>(fds[1])),
+    };
+}
+
+PipeStreams duplicate_pipe(IOHandle input, IOHandle output)
+{
+    int32_t new_input   = dup(input);
+
+    if (new_input < 0) {
+        MMA1_THROW(SystemException()) << WhatCInfo("Can't duplicate input stream of a pipe");
+    }
+
+    int32_t new_output  = dup(output);
+
+    if (new_output < 0) {
+        MMA1_THROW(SystemException()) << WhatCInfo("Can't duplicate output stream of a pipe");
+    }
+
+    return PipeStreams{
+        PipeInputStream(MakeLocalShared<PipeInputStreamImpl>(new_input)),
+        PipeOutputStream(MakeLocalShared<PipeOutputStreamImpl>(new_output)),
     };
 }
 

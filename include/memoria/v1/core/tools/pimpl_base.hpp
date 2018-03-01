@@ -34,6 +34,7 @@ struct PimplBase {
 protected:
     PtrType ptr_;
 public:
+    PimplBase(){}
     PimplBase(PtrType ptr): ptr_(ptr) {}
     PimplBase(const PimplBase&) = default;
     PimplBase(PimplBase&&) = default;
@@ -50,10 +51,19 @@ public:
     void reset() {
         ptr_.reset();
     }
+
+    operator bool () const {
+        return ptr_.get() != nullptr;
+    }
+
+    PtrType ptr() {
+        return ptr_;
+    }
 };
 
 
 #define MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ClassName)     \
+    ClassName():Base(){}                                    \
     ClassName(const typename Base::PtrType& ptr): Base(ptr) {}\
     ClassName(const ClassName& other): Base(other) {}       \
     ClassName(ClassName&& other): Base(std::move(other)) {} \

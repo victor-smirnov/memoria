@@ -19,13 +19,13 @@
 #include <memoria/v1/core/strings/format.hpp>
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 
+#include <memoria/v1/reactor/message/thread_pool_message.hpp>
+
 #include "scheduler.hpp"
 #include "file.hpp"
 #include "timer.hpp"
 
 #include <memoria/v1/reactor/smart_ptr.hpp>
-
-//#include <memoria/v1/reactor/smart_ptr/detail/shared_count.hpp>
 
 #include "../fiber/protected_stack_pool.hpp"
 #include "../fiber/pooled_fixedsize_stack.hpp"
@@ -165,7 +165,7 @@ public:
     }
     
     template <typename Fn, typename... Args>
-    auto run_in_thread_pool(Fn&& task, Args&&... args) 
+    auto run_in_thread_pool(Fn&& task, Args&&... args)
     {
         auto ctx = fibers::context::active();
         BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
@@ -184,6 +184,29 @@ public:
         return msg->result();
     }
 
+    template <typename Fn, typename RtnFn, typename... Args>
+    void run_in_thread_pool_special(Fn&& task, RtnFn&& result_handler, Args&&... args)
+    {
+        auto ctx = fibers::context::active();
+        BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
+
+        auto msg = make_thread_pool_lambda_message(
+                    cpu_,
+                    this,
+                    ctx,
+                    std::forward<Fn>(task),
+                    std::forward<RtnFn>(result_handler),
+                    std::forward<Args>(args)...
+        );
+
+        while(!thread_pool_.try_run(msg.get()))
+        {
+            memoria::v1::this_fiber::yield();
+        }
+
+        msg.release();
+    }
+
 	void send_message(Message* message) {
 		smp_->submit_to(message->cpu(), message);
 	}
@@ -193,6 +216,7 @@ public:
     friend bool has_engine();
     
     template <typename> friend class FiberMessage;
+    template <typename, typename, typename, typename, typename...> friend class ThreadPoolMessage;
     friend class FiberIOMessage;
     
     void stop() {

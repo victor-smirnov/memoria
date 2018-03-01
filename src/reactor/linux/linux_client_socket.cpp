@@ -67,7 +67,7 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     event.data.ptr = &fiber_io_message_;
 
-    event.events = EPOLLIN | EPOLLOUT | EPOLLET; //EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP | EPOLLET;
+    event.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP | EPOLLET;
 
     int sres = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, fd_, &event);
     if (sres < 0) {

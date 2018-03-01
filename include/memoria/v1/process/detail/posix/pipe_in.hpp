@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <memoria/v1/reactor/pipe_streams.hpp>
+
 #include <memoria/v1/process/pipe.hpp>
 #include <memoria/v1/process/detail/posix/handler.hpp>
 #include <unistd.h>
@@ -46,7 +48,7 @@ struct pipe_in : handler_base_ext
     void on_exec_setup(Executor &e) const
     {
         if (::dup2(source, STDIN_FILENO) == -1)
-             e.set_error(::boost::process::detail::get_last_error(), "dup2() failed");
+             e.set_error(::boost::process::detail::get_last_error(), "dup2() failed AAAAA");
         ::close(source);
         ::close(sink);
     }

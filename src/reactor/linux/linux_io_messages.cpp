@@ -50,7 +50,8 @@ void SocketIOMessage::wait_for()
     
     engine().scheduler()->suspend(fiber_context);
 
-    connection_closed_ = connection_closed_ || (flags_ & (EPOLLRDHUP | EPOLLHUP | EPOLLERR));
+    // Currently we use only read() == 0 for closed connection indication
+    //connection_closed_ = connection_closed_ || (flags_ & ~(EPOLLRDHUP | EPOLLHUP | EPOLLERR));
 }
 
 

@@ -199,6 +199,7 @@ Application& app();
 class ShutdownOnScopeExit {
 public:
     ~ShutdownOnScopeExit() {
+        engine().cout() << std::flush;
         app().shutdown();
     }
 };

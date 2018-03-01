@@ -27,14 +27,14 @@ template <typename Reactor, typename RtnType, typename Fn, typename... Args>
 class FiberLambdaMessage: public FiberMessage<Reactor> {
     
     using Base = FiberMessage<Reactor>;
-    
+protected:
     using Base::return_;
     using Base::exception_;
     
     Fn fn_;
     std::tuple<Args...> args_;
-    
-    RtnType result_;
+    RtnType result_{};
+
 public:
     template <typename... CtrArgs>
     FiberLambdaMessage(int cpu, Reactor* reactor, FiberContext* fiber_context, Fn&& fn, CtrArgs&&... args): 
@@ -69,9 +69,8 @@ public:
 
 template <typename Reactor, typename Fn, typename... Args>
 class FiberLambdaMessage<Reactor, void, Fn, Args...>: public FiberMessage<Reactor> {
-protected:    
     using Base = FiberMessage<Reactor>;
-
+protected:
     using Base::return_;
     using Base::exception_;
     
