@@ -21,6 +21,8 @@
 
 #include <memoria/v1/reactor/pipe_streams.hpp>
 
+#include <ostream>
+
 namespace memoria {
 namespace v1 {
 namespace reactor {
@@ -32,8 +34,14 @@ class Process: public PimplBase<ProcessImpl> {
 public:
     MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Process)
 
-    int join();
+    enum class Status {RUNNING, EXITED, TERMINATED, CRASHED, OTHER};
+
+    Status join();
     void terminate();
+    void kill();
+
+    int32_t exit_code() const;
+    Status status() const;
 
     PipeInputStream out_stream();
     PipeInputStream err_stream();
@@ -53,5 +61,6 @@ public:
 };
 
 
+std::ostream& operator<<(std::ostream& out, Process::Status status) ;
 
 }}}

@@ -19,6 +19,11 @@
 
 namespace memoria {
 namespace v1 {
+
+namespace reactor {
+    void resume_ctx(fibers::context* ctx);
+}
+
 namespace fibers {
 
 void
@@ -62,17 +67,21 @@ void
 mutex::unlock() {
     context * ctx = context::active();
     detail::spinlock_lock lk( wait_queue_splk_);
-    if ( ctx != owner_) {
+    if ( ctx != owner_)
+    {
         throw lock_error(
                 std::make_error_code( std::errc::operation_not_permitted),
                 "boost fiber: no  privilege to perform the operation");
     }
-    if ( ! wait_queue_.empty() ) {
+
+    if ( ! wait_queue_.empty() )
+    {
         context * ctx = & wait_queue_.front();
         wait_queue_.pop_front();
         owner_ = ctx;
         context::active()->set_ready( ctx);
-    } else {
+    }
+    else {
         owner_ = nullptr;
         return;
     }

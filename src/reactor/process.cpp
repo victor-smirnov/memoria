@@ -26,12 +26,24 @@ namespace v1 {
 namespace reactor {
 
 
-int Process::join() {
+Process::Status Process::join() {
     return ptr_->join();
 }
 
 void Process::terminate() {
     return ptr_->terminate();
+}
+
+void Process::kill() {
+    return ptr_->kill();
+}
+
+int32_t Process::exit_code() const {
+    return ptr_->exit_code();
+}
+
+Process::Status Process::status() const {
+    return ptr_->status();
 }
 
 PipeInputStream Process::out_stream() {
@@ -46,6 +58,20 @@ PipeOutputStream Process::in_stream() {
     return PipeOutputStream(ptr_->in_stream());
 }
 
+std::ostream& operator<<(std::ostream& out, Process::Status status)
+{
+    switch (status)
+    {
+        case Process::Status::RUNNING: out << "RUNNING"; break;
+        case Process::Status::EXITED: out << "EXITED"; break;
+        case Process::Status::TERMINATED: out << "TERMINATED"; break;
+        case Process::Status::CRASHED: out << "CRASHED"; break;
+        case Process::Status::OTHER: out << "OTHER"; break;
+        default: out << "UNKNOWN"; break;
+    }
+
+    return out;
+}
 
 
 }}}

@@ -54,11 +54,13 @@ public:
 	void inc() {
 		std::unique_lock<Mutex> lk(mutex_);
 		++value_;
+        cv.notify_all();
 	}
 
 	void dec() {
 		std::unique_lock<Mutex> lk(mutex_);
 		--value_;
+        cv.notify_all();
 	}
 
 	const T& get() {
@@ -69,7 +71,9 @@ public:
 	void wait(const T& value)
 	{
 		std::unique_lock<Mutex> lk(mutex_);
-		cv.wait(lk, [&]{return value_ == value;});
+        cv.wait(lk, [&]{
+            return value_ == value;
+        });
 	}
 
 	template< class Rep, class Period, class Predicate >

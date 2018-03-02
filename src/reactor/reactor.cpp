@@ -140,7 +140,9 @@ int32_t number_of_cpus() {
     return engine().cpu_num();
 }
 
-
+void resume_ctx(fibers::context* ctx) {
+    engine().scheduler()->resume(ctx);
+}
 
 
 }}}

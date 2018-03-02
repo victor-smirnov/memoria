@@ -104,6 +104,7 @@ class ThreadPoolMessage<RtnFn, Reactor, void, Fn, Args...>: public FiberLambdaMe
     using Base::fiber_context_;
     using Base::reactor_;
     using Base::exception_;
+    using Base::fn_;
 
 public:
     template <typename... CtrArgs>
@@ -116,9 +117,11 @@ public:
     {
         BOOST_ASSERT_MSG(fiber_context_ != nullptr, "FiberContext is not set for a Message object");
 
-        rtn_fn_( exception_, fiber_context_);
+        _::VoidNoexceptHelper<noexcept(fn_(std::declval<Args>()...))>::process(rtn_fn_, exception_, fiber_context_);
 
         reactor_->thread_pool_.release(this);
+
+        delete this;
     }
 };
 

@@ -27,6 +27,10 @@
 
 #include <unistd.h>
 #include <fstream>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <signal.h>
+
 
 namespace memoria {
 namespace v1 {
@@ -39,6 +43,11 @@ class ProcessImpl {
     PipeInputStream  err_stream_;
 
     pid_t pid_;
+
+    bool finished_{false};
+    int32_t status_{};
+    int32_t error_code_{};
+    int32_t waitpid_ret_{};
 
     fibers::count_down_latch<int32_t> process_status_latch_{1};
 
@@ -97,25 +106,62 @@ public:
             close(stdin_child_fd);
 
             engine().run_in_thread_pool_special([&]() noexcept {
-                return 1;
-            }, [&](auto status, auto fiber_context){
-
+                wait_for_pid();
+            }, [&](auto fiber_context){
+                process_status_latch_.dec();
+                finished_ = true;
             });
         }
     }
 
     virtual ~ProcessImpl() noexcept {}
 
-    int join() {
-
-        waitpid(pid_, NULL, 0);
-
-        return 0;
+    Process::Status join()
+    {
+        process_status_latch_.wait(0);
+        return status();
     }
 
     void terminate()
     {
+        if (::kill(pid_, SIGTERM) < 0) {
+            std::cout << "Cant terminalte process: " << strerror(errno) << std::endl;
+        }
+    }
 
+    void kill()
+    {
+        if (::kill(pid_, SIGKILL) < 0) {
+            std::cout << "Cant kill process: " << strerror(errno) << std::endl;
+        }
+    }
+
+    Process::Status status() const
+    {
+        if (!finished_)
+        {
+            return Process::Status::RUNNING;
+        }
+        else if (WIFEXITED(status_)) {
+            return Process::Status::EXITED;
+        }
+        else if (WIFSIGNALED(status_))
+        {
+            int sign = WTERMSIG(status_);
+
+            if (sign == SIGTERM) {
+                return Process::Status::TERMINATED;
+            }
+            else {
+                return Process::Status::CRASHED;
+            }
+        }
+
+        return Process::Status::OTHER;
+    }
+
+    int32_t exit_code() const {
+        return WEXITSTATUS(status_);
     }
 
     auto out_stream() {
@@ -128,6 +174,18 @@ public:
 
     auto in_stream() {
         return in_stream_.ptr();
+    }
+
+private:
+    void wait_for_pid()
+    {
+        do
+        {
+            waitpid_ret_ = ::waitpid(pid_, &status_, 0);
+        }
+        while (((waitpid_ret_ == -1) && (errno == EINTR)) || (waitpid_ret_ != -1 && !WIFEXITED(status_) && !WIFSIGNALED(status_)));
+
+        error_code_ = errno;
     }
 };
 
