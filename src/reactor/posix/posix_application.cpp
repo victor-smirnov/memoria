@@ -1,5 +1,5 @@
 
-// Copyright 2018 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,30 +13,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <memoria/v1/core/types.hpp>
-
-#if defined(MMA1_WINDOWS)
-#include <boost/winapi/handles.hpp>
-#endif
-
+#include <memoria/v1/reactor/application.hpp>
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
 
-#ifdef MMA1_POSIX
+namespace _ {
 
-using IOHandle = int32_t;
-constexpr IOHandle INVALID_IO_HANDLE = -1;
+U16String get_image_name(const std::vector<U16String>& args) 
+{
+	if (args.size() > 0) 
+	{
+		auto& arg0 = args[0];
 
-#elif defined(MMA1_WINDOWS)
+		size_t start = arg0.find_last_of(u"/");
 
-using IOHandle = boost::winapi::HANDLE_;
-const IOHandle INVALID_IO_HANDLE = boost::winapi::INVALID_HANDLE_VALUE_;
+		if (start == U16String::NPOS) {
+			start = 0;
+		}
 
-#endif
+		return arg0.substring(start);
+	}
+	else {
+		return "none";
+	}
+}
 
+}
 
 }}}

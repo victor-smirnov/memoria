@@ -54,7 +54,7 @@ public:
         close();
     }
 
-    virtual IOHandle hande() const {return fd_;}
+    virtual IOHandle handle() const {return fd_;}
 
     size_t read(uint8_t* data, size_t size)
     {
@@ -150,7 +150,7 @@ public:
         close();
     }
 
-    virtual IOHandle hande() const {return fd_;}
+    virtual IOHandle handle() const {return fd_;}
 
     virtual size_t write(const uint8_t* data, size_t size)
     {

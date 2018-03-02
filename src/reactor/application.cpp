@@ -32,6 +32,20 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
+namespace _ {
+	std::vector<U16String> arg_list_as_vector(const char* const * args)
+	{
+		std::vector<U16String> v;
+
+		while (args && *args){
+			v.emplace_back(*args);
+			++args;
+		}
+
+		return v;
+	}
+}
+
 ApplicationInit::ApplicationInit() {
     InitSockets();
 }
@@ -46,20 +60,24 @@ Application::Application(options_description descr, int argc, char** argv, char*
     descr_(descr),
     smp_{},
     reactors_(),
-    shutdown_hook_([](){engine().stop();})
+    shutdown_hook_([](){engine().stop();}),
+	args_(_::arg_list_as_vector(argv)),
+	env_(_::arg_list_as_vector(envp)),
+	image_name_(_::get_image_name(args_)),
+	image_name_u8_(image_name_.to_u8())
 {
     boost::program_options::store(
         boost::program_options::parse_command_line(argc, argv, descr), 
         options_
     );
     boost::program_options::notify(options_);
-    
-	smp_ = std::make_shared<Smp>(options_["threads"].as<uint32_t>());
-	
+
     debug_ = options_["debug"].as<bool>();
     
     application_ = this;
-   
+
+	smp_ = std::make_shared<Smp>(options_["threads"].as<uint32_t>());
+
     for (int c = 0; c < smp_->cpu_num(); c++)
     {
         reactors_.push_back(std::make_shared<Reactor>(smp_, c, c > 0));
@@ -69,8 +87,6 @@ Application::Application(options_description descr, int argc, char** argv, char*
     {
         reactors_[c]->start();
     }
-
-    InitSockets();
 }
 
 Application& app() {

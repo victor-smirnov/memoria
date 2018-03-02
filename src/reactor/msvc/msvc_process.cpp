@@ -13,30 +13,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
 
-#include <memoria/v1/core/types.hpp>
-
-#if defined(MMA1_WINDOWS)
-#include <boost/winapi/handles.hpp>
-#endif
+#include "msvc_process_impl.hpp"
 
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
 
-#ifdef MMA1_POSIX
+Process Process::create2(const U16String& path, const std::vector<U16String>& args, const std::vector<U16String>& env)
+{
+	U16String cmd_line;
 
-using IOHandle = int32_t;
-constexpr IOHandle INVALID_IO_HANDLE = -1;
+	for (auto& str: args) {
+		cmd_line += str + u" ";
+	}
 
-#elif defined(MMA1_WINDOWS)
+    return Process::create(path, cmd_line, env);
+}
 
-using IOHandle = boost::winapi::HANDLE_;
-const IOHandle INVALID_IO_HANDLE = boost::winapi::INVALID_HANDLE_VALUE_;
 
-#endif
-
+Process Process::create(const U16String& path, const U16String& args, const std::vector<U16String>& env)
+{
+    return Process(MakeLocalShared<ProcessImpl>(path.to_uwstring().data(), args.to_uwstring()));
+}
 
 }}}

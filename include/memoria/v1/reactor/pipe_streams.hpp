@@ -24,13 +24,13 @@ namespace reactor {
 
 class IPipeInputStream: public IBinaryInputStream {
 public:
-    virtual IOHandle hande() const = 0;
+    virtual IOHandle handle() const = 0;
     virtual IOHandle detach() = 0;
 };
 
 class IPipeOutputStream: public IBinaryOutputStream {
 public:
-    virtual IOHandle hande() const = 0;
+    virtual IOHandle handle() const = 0;
     virtual IOHandle detach() = 0;
 };
 
@@ -54,8 +54,8 @@ public:
         return this->ptr_->is_closed();
     }
 
-    IOHandle hande() const {
-        return this->ptr_->is_closed();
+    IOHandle handle() const {
+        return this->ptr_->handle();
     }
 
     IOHandle detach() {
@@ -87,8 +87,8 @@ public:
         return this->ptr_->is_closed();
     }
 
-    IOHandle hande() const {
-        return this->ptr_->is_closed();
+    IOHandle handle() const {
+        return this->ptr_->handle();
     }
 
     IOHandle detach() {

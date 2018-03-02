@@ -25,15 +25,33 @@ using namespace memoria::v1;
 using namespace memoria::v1::reactor;
 
 
-int main(int argc, char** argv)
+int main(int argc, char** argv, char** envp)
 {
-    return Application::run(argc, argv, []{
+    return Application::run_e(argc, argv, envp, []{
         ShutdownOnScopeExit hh;
 
-        Process process = Process::create(u"/bin/ls", u"ls -l");
+		engine().coutln(u"Image name: {}", app().image_name());
+
+		for (auto& str : app().args()) 
+		{
+			engine().coutln(u"Arg: {}", str);
+		}
+
+		for (auto& str : app().env())
+		{
+			engine().coutln(u"Entry: {}", str);
+		}
+
+
+
+        Process process = Process::create(u"processes.exe", u"processes_abcd"); //c:\\msys64\\usr\\bin\\ls.exe
+		//Process process = Process::create(u"c:\\msys64\\usr\\bin\\ls.exe", u""); 
+
+		//Process process = Process::create(u"c:\\msys64\\usr\\bin\\sleep.exe", u"sleep 3");
 
         auto out = process.out_stream();
 
+		
         while (!out.is_closed())
         {
             uint8_t buf[200];
@@ -45,8 +63,9 @@ int main(int argc, char** argv)
                 engine().cout(u"{}", T2T<const char*>(buf)) << std::flush;
             }
         }
+		
 
-        //process.kill();
+        process.kill();
 
         process.join();
 

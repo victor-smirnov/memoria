@@ -104,7 +104,15 @@ public:
 		}
 	}
 
-    virtual IOHandle hande() const {return (IOHandle)handle_;}
+    virtual IOHandle handle() const {return (IOHandle)handle_;}
+
+	virtual IOHandle detach()
+	{
+		auto tmp = handle_;
+		handle_ = INVALID_HANDLE_VALUE;
+		op_closed_ = true;
+		return tmp;
+	}
 
 	size_t read(uint8_t* buffer, size_t size)
 	{
@@ -243,7 +251,15 @@ public:
         close();
     }
 
-    virtual IOHandle hande() const {return (IOHandle)handle_;}
+    virtual IOHandle handle() const {return (IOHandle)handle_;}
+
+	virtual IOHandle detach()
+	{
+		auto tmp = handle_;
+		handle_ = INVALID_HANDLE_VALUE;
+		op_closed_ = true;
+		return tmp;
+	}
 
     virtual size_t write(const uint8_t* data, size_t size)
     {

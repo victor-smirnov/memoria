@@ -109,6 +109,14 @@ public:
     U8String  to_u8() const;
     U32String to_u32() const;
 
+	const CharT* data() const { 
+		return content_.data();
+	}
+
+	CharT* data() {
+		return &content_[0];
+	}
+
 	ContentT& to_std_string() { return content_; }
 	const ContentT& to_std_string() const { return content_; }
 };

@@ -61,7 +61,7 @@ public:
         close();
     }
 
-    virtual IOHandle hande() const {return handle_;}
+    virtual IOHandle handle() const {return handle_;}
 
     size_t total_r{};
 
@@ -180,7 +180,7 @@ public:
         close();
     }
 
-    virtual IOHandle hande() const {return handle_;}
+    virtual IOHandle handle() const {return handle_;}
 
     virtual size_t write(const uint8_t* data, size_t size)
     {

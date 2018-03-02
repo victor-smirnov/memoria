@@ -37,6 +37,8 @@
 
 #include "socket.hpp"
 
+#include <memoria/v1/core/tools/strlist.hpp>
+
 #include <boost/program_options.hpp>
 
 #include <functional>
@@ -49,13 +51,20 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
+namespace _ {
+
+	std::vector<U16String> arg_list_as_vector(const char* const* args);
+	U16String get_image_name(const std::vector<U16String>& args);
+
+}
+
 class ApplicationInit {
 public:
 	ApplicationInit();
 	~ApplicationInit();
 };
 
-class Application final: protected ApplicationInit { //: public std::enable_shared_from_this<Application>
+class Application final: protected ApplicationInit {
     
     using options_description   = boost::program_options::options_description;
     using variables_map         = boost::program_options::variables_map;
@@ -72,6 +81,12 @@ class Application final: protected ApplicationInit { //: public std::enable_shar
     
     bool debug_{};
 
+	std::vector<U16String> args_;
+	std::vector<U16String> env_;
+
+	U16String image_name_;
+	U8String  image_name_u8_;
+
 public:
 
     //Application(int argc, char** argv): Application(argc, argv, nullptr) {}
@@ -87,6 +102,11 @@ public:
     
     Application& operator=(const Application&) = delete;
     Application& operator=(Application&&) = delete;
+
+	const std::vector<U16String>& args() const { return args_; }
+	const std::vector<U16String>& env() const { return env_; }
+	const U16String& image_name() const { return image_name_; }
+	const U8String&  image_name_u8() const { return image_name_u8_; }
     
     const variables_map& options() {return options_;}
     
@@ -163,6 +183,17 @@ public:
         );
     }
     
+	template <typename Fn, typename... Args>
+	static int run_e(int argc, char** argv, char** envp, Fn&& fn, Args&&... args) noexcept
+	{
+		return run_e(
+			boost::program_options::options_description(),
+			argc, argv, envp,
+			std::forward<Fn>(fn), std::forward<Args>(args)...
+		);
+	}
+
+
     template <typename Fn, typename... Args>
     static int run(
         boost::program_options::options_description options,
@@ -192,7 +223,39 @@ public:
         
         return 1;
     }
+
+	template <typename Fn, typename... Args>
+	static int run_e(
+		boost::program_options::options_description options,
+		int argc, char** argv, char** envp, Fn&& fn, Args&&... args
+	) noexcept
+	{
+		try {
+			Application app(argc, argv, envp);
+
+			if (app.is_help()) {
+				app.print_options_and_shutdown();
+				return 0;
+			}
+			else {
+				return app.run(std::forward<Fn>(fn), std::forward<Args>(args)...);
+			}
+		}
+		catch (MemoriaThrowable& ex) {
+			ex.dump(std::cout);
+		}
+		catch (std::exception& ex) {
+			std::cerr << "Exception cought main thread: " << ex.what() << std::endl;
+		}
+		catch (...) {
+			std::cerr << "Unrecognized exception cought main thread" << std::endl;
+		}
+
+		return 1;
+	}
 };
+
+
 
 Application& app();
 
