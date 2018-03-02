@@ -81,7 +81,7 @@ public:
     virtual void on_receive(const kevent64_s& event)
     {
         available_ = event.data;
-        connection_closed_ = event.flags & EV_EOF;
+        //connection_closed_ = event.flags & EV_EOF;
         error_ = event.flags & EV_ERROR;
         error_code_ = event.data;
     }

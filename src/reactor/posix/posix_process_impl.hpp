@@ -66,7 +66,7 @@ public:
         int32_t stderr_child_fd = pipe_err.output.detach();
         int32_t stdin_child_fd  = pipe_in.input.detach();
 
-        pid_ = vfork();
+        pid_ = fork();
         if (pid_ == -1)
         {
             MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't create process {}", path);
@@ -74,6 +74,10 @@ public:
         else if (pid_ == 0)
         {
             // child
+
+            fcntl(stdin_child_fd, F_SETFL, O_CLOEXEC);
+            fcntl(stderr_child_fd, F_SETFL, O_CLOEXEC);
+            fcntl(stdout_child_fd, F_SETFL, O_CLOEXEC);
 
             if (dup2(stdin_child_fd, 0) < 0)
             {
@@ -124,16 +128,12 @@ public:
 
     void terminate()
     {
-        if (::kill(pid_, SIGTERM) < 0) {
-            std::cout << "Cant terminalte process: " << strerror(errno) << std::endl;
-        }
+        ::kill(pid_, SIGTERM);
     }
 
     void kill()
     {
-        if (::kill(pid_, SIGKILL) < 0) {
-            std::cout << "Cant kill process: " << strerror(errno) << std::endl;
-        }
+        ::kill(pid_, SIGKILL);
     }
 
     Process::Status status() const

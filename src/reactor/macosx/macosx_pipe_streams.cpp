@@ -65,6 +65,7 @@ public:
             ssize_t result = ::read(fd_, data, available_size);
 
             if (result >= 0) {
+                data_closed_ = result == 0;
                 return result;
             }
             else if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -84,7 +85,20 @@ public:
         }
     }
 
+    virtual IOHandle detach()
+    {
+        if (!op_closed_)
+        {
+            op_closed_ = true;
 
+            int queue_fd = engine().io_poller().queue_fd();
+
+            KEvent64(queue_fd, fd_, EVFILT_READ, EV_DELETE, nullptr);
+            return fd_;
+        }
+
+        return -1;
+    }
 
     virtual void close()
     {
@@ -171,6 +185,21 @@ public:
                 );
             }
         }
+    }
+
+    virtual IOHandle detach()
+    {
+        if (!op_closed_)
+        {
+            op_closed_ = true;
+
+            int queue_fd = engine().io_poller().queue_fd();
+
+            KEvent64(queue_fd, fd_, EVFILT_WRITE, EV_DELETE, nullptr);
+            return fd_;
+        }
+
+        return -1;
     }
 
     virtual void close()

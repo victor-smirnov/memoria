@@ -30,23 +30,23 @@ int main(int argc, char** argv)
     return Application::run(argc, argv, []{
         ShutdownOnScopeExit hh;
 
-        Process process = Process::create(u"/usr/bin/sleep", u"sleep 3");
+        Process process = Process::create(u"/bin/ls", u"ls -l");
 
         auto out = process.out_stream();
 
-//        while (!out.is_closed())
-//        {
-//            uint8_t buf[200];
-//            std::memset(buf, 0, sizeof(buf));
+        while (!out.is_closed())
+        {
+            uint8_t buf[200];
+            std::memset(buf, 0, sizeof(buf));
 
-//            size_t read = out.read(buf, sizeof(buf) - 1);
+            size_t read = out.read(buf, sizeof(buf) - 1);
 
-//            if (read > 0) {
-//                engine().cout(u"{}", T2T<const char*>(buf)) << std::flush;
-//            }
-//        }
+            if (read > 0) {
+                engine().cout(u"{}", T2T<const char*>(buf)) << std::flush;
+            }
+        }
 
-        process.terminate();
+        //process.kill();
 
         process.join();
 

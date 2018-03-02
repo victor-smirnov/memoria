@@ -154,6 +154,7 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
         ssize_t result = ::read(fd_, data, available_size);
 
         if (result >= 0) {
+            data_closed_ = result == 0;
             return result;
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK)

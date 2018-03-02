@@ -171,6 +171,8 @@ class ClientSocketImpl: public ClientSocketConnectionImpl {
     SocketIOMessage fiber_io_read_message_;
     SocketIOMessage fiber_io_write_message_;
 
+    bool data_closed_{};
+
 public:
      ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port);
      virtual ~ClientSocketImpl() noexcept;
@@ -193,7 +195,7 @@ public:
 
      virtual void close();
      virtual bool is_closed() const {
-         return op_closed_
+         return op_closed_ || data_closed_
                  || fiber_io_read_message_.connection_closed()
                  || fiber_io_write_message_.connection_closed();
      }
