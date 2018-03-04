@@ -48,8 +48,6 @@ namespace _ {
 
 		return v;
 	}
-
-
 }
 
 ApplicationInit::ApplicationInit() {

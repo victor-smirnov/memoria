@@ -392,7 +392,7 @@ public:
 };
 
 template <typename T, typename Fn>
-auto MakeScopedDtr(T* ptr, typename Fn&& dtr) {
+auto MakeScopedDtr(T* ptr, Fn&& dtr) {
 	return ScopedDtr<T, Fn>(ptr, std::forward<Fn>(dtr));
 }
 

@@ -20,26 +20,5 @@
 namespace memoria {
 namespace v1 {
 namespace reactor {
-/*
-Process Process::create2(const U16String& path, const std::vector<U16String>& args, const std::vector<U16String>& env)
-{
-	U16String cmd_line;
-
-	for (auto& str: args) {
-		cmd_line += str + u" ";
-	}
-
-    return Process::create(path, cmd_line, env);
-}
-
-
-Process Process::create(const U16String& path, const U16String& args, const std::vector<U16String>& env)
-{
-    return Process(MakeLocalShared<ProcessImpl>(path.to_uwstring().data(), args.to_uwstring()));
-}
-*/
-
-
-
 
 }}}

@@ -56,9 +56,6 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
-
-
-
 class EnvironmentImpl;
 
 class Environment : public PimplBase<EnvironmentImpl, std::shared_ptr> {
@@ -79,8 +76,6 @@ public:
 namespace _ {
 
 	std::vector<U16String> arg_list_as_vector(const char* const* args);
-	//AppEnvironment parse_envp(const char* const* envp);
-
 	U16String get_image_name(const std::vector<U16String>& args);
 
 }

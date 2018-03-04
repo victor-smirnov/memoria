@@ -31,10 +31,9 @@ int main(int argc, char** argv, char** envp)
     return Application::run_e(argc, argv, envp, []{
         ShutdownOnScopeExit hh;
 
-		auto env_map = app().env().entries();
+        auto env_map = app().env().entries();
 
-		Process process = ProcessBuilder::create("print_env.exe")
-			.with_env(env_map)
+        Process process = ProcessBuilder::create("print_env.exe")
 			.run();
 
         auto out = process.out_stream();

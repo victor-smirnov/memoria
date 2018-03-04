@@ -68,9 +68,4 @@ U16String get_image_name(const std::vector<U16String>& args)
 }
 
 
-
-
-
-
-
 }}}
