@@ -34,6 +34,7 @@ int main(int argc, char** argv, char** envp)
         auto env_map = app().env().entries();
 
         Process process = ProcessBuilder::create("print_env.exe")
+            .with_env(env_map)
 			.run();
 
         auto out = process.out_stream();

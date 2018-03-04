@@ -19,6 +19,11 @@
 #include <memoria/v1/core/strings/string.hpp>
 
 #include <stdlib.h>
+#include <unistd.h>
+
+#ifdef MMA1_MACOSX
+extern char **environ;
+#endif
 
 namespace memoria {
 namespace v1 {

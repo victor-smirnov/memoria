@@ -127,7 +127,6 @@ public:
 	{
         with_env(app().env().entries_list());
 
-
         auto name = _::get_image_name(exe_path_.filename().to_u16()).to_u8();
         args_.add(name.data(), name.size());
         args_.finish();

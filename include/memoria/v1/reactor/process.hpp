@@ -51,18 +51,6 @@ public:
     PipeInputStream out_stream();
     PipeInputStream err_stream();
     PipeOutputStream in_stream();
-
-	/*
-    static Process create2(const U16String& path,
-                          const std::vector<U16String>& args,
-                          const std::vector<U16String>& env = std::vector<U16String>()
-                         );
-
-    static Process create(const U16String& path,
-                          const U16String& args = u"",
-                          const std::vector<U16String>& env = std::vector<U16String>()
-                         );
-	*/
 };
 
 
@@ -79,10 +67,10 @@ public:
 
 	static ProcessBuilder create(filesystem::path exe_path);
 	
-	ProcessBuilder& with_args(U16String args);
-	ProcessBuilder& with_args(std::vector<U16String> args);
+    ProcessBuilder& with_args(U16String args);
+    ProcessBuilder& with_args(std::vector<U16String> args);
 
-	ProcessBuilder& with_env(EnvironmentList entries);
+    ProcessBuilder& with_env(EnvironmentList entries = EnvironmentList());
 	ProcessBuilder& with_env(EnvironmentMap entries);
 
 	Process run();
