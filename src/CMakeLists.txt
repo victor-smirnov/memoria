@@ -24,6 +24,7 @@ add_subdirectory(containers)
 add_subdirectory(fiber)
 add_subdirectory(reactor)
 add_subdirectory(filesystem)
+add_subdirectory(yaml-cpp)
 
 
 if (BUILD_MACOSX)
@@ -77,7 +78,7 @@ if (BUILD_SANDBOX)
 endif()
 
 
-SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm timers alloc shared_ptrs )
+SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm timers alloc shared_ptrs yaml)
 SET(MEMORIA_APPS ${MEMORIA_APPS} ustrings icu_regexp fmt_u16 sockets anon_pipes processes crash print_env)
 
 
