@@ -73,6 +73,8 @@ public:
     ProcessBuilder& with_env(EnvironmentList entries = EnvironmentList());
 	ProcessBuilder& with_env(EnvironmentMap entries);
 
+    ProcessBuilder& with_vfork(bool use_vfork);
+
 	Process run();
 };
 

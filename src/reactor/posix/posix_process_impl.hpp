@@ -121,6 +121,8 @@ class ProcessBuilderImpl {
     CharPtrList args_;
     CharPtrList envp_;
 
+    bool use_vfork_{false};
+
 public:
 	ProcessBuilderImpl(filesystem::path&& exe_path) :
         exe_path_(std::move(exe_path))
@@ -135,6 +137,10 @@ public:
 	~ProcessBuilderImpl() noexcept
 	{
 	}
+
+    bool is_use_vfork() const {
+        return use_vfork_;
+    }
 
 	filesystem::path& exe_path() {
 		return exe_path_;
@@ -199,6 +205,10 @@ public:
 
        envp_.finish();
 	}
+
+    void with_vfork(bool vfork) {
+        use_vfork_ = vfork;
+    }
 };
 
 
@@ -236,12 +246,13 @@ public:
         int32_t stdin_child_fd  = pipe_in.input.detach();
 
 
+        if (builder->is_use_vfork()) {
+            pid_ = vfork();
+        }
+        else {
+            pid_ = fork();
+        }
 
-#ifdef MMA1_LINUX
-        pid_ = vfork();
-#else
-        pid_ = fork();
-#endif
         if (pid_ == -1)
         {
             MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't create process {}", builder->exe_path());

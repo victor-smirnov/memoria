@@ -33,9 +33,10 @@ int main(int argc, char** argv, char** envp)
 
         auto env_map = app().env().entries();
 
-        Process process = ProcessBuilder::create("print_env.exe")
-            .with_env(env_map)
-			.run();
+        Process process = ProcessBuilder::create("print_env")
+                .with_env(env_map)
+                .with_vfork(true)
+                .run();
 
         auto out = process.out_stream();
 
@@ -51,6 +52,9 @@ int main(int argc, char** argv, char** envp)
             }
         }
 
+        process.terminate();
+
+        engine().coutln(u"Joining process {}", "");
         process.join();
 
         engine().coutln(u"Exit. Status: {}, exit code: {}", process.status(), process.exit_code());

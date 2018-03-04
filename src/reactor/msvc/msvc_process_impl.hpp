@@ -139,6 +139,9 @@ public:
 
 		std::memcpy(env_data_.get(), e_buf.data(), env_data_size);
 	}
+	
+	// Not used for Windows
+	void with_vfork(bool vfork) {}
 };
 
 

@@ -102,6 +102,11 @@ ProcessBuilder& ProcessBuilder::with_env(EnvironmentMap entries)
 	return *this;
 }
 
+ProcessBuilder& ProcessBuilder::with_vfork(bool use_vfork) {
+    ptr_->with_vfork(use_vfork);
+    return *this;
+}
+
 Process ProcessBuilder::run() {
 	return Process(MakeLocalShared<ProcessImpl>(ptr_.get()));
 }
