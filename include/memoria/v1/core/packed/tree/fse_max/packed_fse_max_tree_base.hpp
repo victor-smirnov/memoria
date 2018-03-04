@@ -526,7 +526,7 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, int32_t block, const Optional<IndexValue>& val) const
+    auto findForward(SearchType search_type, int32_t block, const OptionalT<IndexValue>& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -549,7 +549,7 @@ public:
         }
     }
 
-    auto findBackward(SearchType search_type, int32_t block, const Optional<IndexValue>& val) const
+    auto findBackward(SearchType search_type, int32_t block, const OptionalT<IndexValue>& val) const
     {
         if (search_type == SearchType::GT)
         {

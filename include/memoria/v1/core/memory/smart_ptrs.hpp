@@ -336,4 +336,66 @@ reactor::local_shared_ptr<T> ConstPointerCast( reactor::local_shared_ptr<U>&& r 
 
 #endif
 
+template <typename T, typename DtrT>
+class ScopedDtr {
+	T* ptr_;
+	DtrT dtr_;
+public:
+	ScopedDtr(T* ptr, DtrT dtr = [](T* ptr) { delete ptr; }) :
+		ptr_(ptr), dtr_(std::move(dtr)) 
+	{}
+
+	ScopedDtr(ScopedDtr&& other) :
+		ptr_(other.ptr_), dtr_(std::move(other.dtr_))
+	{
+		other.ptr_ = nullptr;
+	}
+
+	ScopedDtr(const ScopedDtr&) = delete;
+
+	~ScopedDtr() noexcept {
+		if (ptr_) dtr_(ptr_);
+	}
+
+	ScopedDtr& operator=(ScopedDtr&& other) 
+	{
+		if (&other != this) 
+		{
+			if (ptr_) {
+				dtr_(ptr_);
+			}
+
+			ptr_ = other.ptr_;
+			other.ptr_ = nullptr;
+			dtr_ = std::move(other.dtr_);
+		}
+
+		return this;
+	}
+
+	template <typename TT, typename FFn>
+	bool operator==(const ScopedDtr<TT, FFn>& other) const {
+		return ptr_ == other.get();
+	}
+
+	T* operator->() const {
+		return ptr_;
+	}
+
+	T* get() const {
+		return ptr_;
+	}
+
+	operator bool() const {
+		return ptr_ != nullptr;
+	}
+};
+
+template <typename T, typename Fn>
+auto MakeScopedDtr(T* ptr, typename Fn&& dtr) {
+	return ScopedDtr<T, Fn>(ptr, std::forward<Fn>(dtr));
+}
+
+
+
 }}

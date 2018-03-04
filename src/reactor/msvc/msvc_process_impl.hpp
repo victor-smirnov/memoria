@@ -25,6 +25,7 @@
 
 
 #include <memoria/v1/fiber/count_down_latch.hpp>
+#include <memoria/v1/filesystem/path.hpp>
 
 #include <boost/winapi/process.hpp>
 #include <boost/winapi/synchronization.hpp>
@@ -43,6 +44,104 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
+
+
+class ProcessBuilderImpl {
+	filesystem::path exe_path_;
+
+	UWString args_;
+
+	UniquePtr<void> env_data_;
+
+public:
+	ProcessBuilderImpl(filesystem::path&& exe_path) :
+		exe_path_(std::move(exe_path)), 
+		env_data_{ empty_unique_ptr<void>() }
+	{
+	}
+
+	~ProcessBuilderImpl() noexcept
+	{
+	}
+
+	filesystem::path& exe_path() {
+		return exe_path_;
+	}
+
+	void* env_data() {
+		return env_data_.get();
+	}
+
+	void with_args(U16String&& args) {
+		args_ = std::move(args.to_uwstring());
+	}
+
+	UWString& args() {
+		return args_;
+	}
+	
+	void with_args(std::vector<U16String>&& args)
+	{
+		U16String joined_args;
+
+		for (auto& arg : args) {
+			joined_args += arg + u" ";
+		}
+
+		args_ = std::move(joined_args.to_uwstring());
+	}
+
+
+	void with_env(EnvironmentList&& entries) 
+	{
+		if (env_data_) {
+			env_data_.reset();
+		}
+
+		UWString e_buf;
+
+		UWString zero_str(L" ");
+		zero_str[0] = 0;
+
+		for (auto& entry : entries)
+		{
+			e_buf += entry.to_uwstring() + zero_str;
+		}
+
+		e_buf += zero_str;
+
+		size_t env_data_size = e_buf.size() * sizeof(UWString::CharT);
+		env_data_ = allocate_system<void>(env_data_size);
+
+		std::memcpy(env_data_.get(), e_buf.data(), env_data_size);
+	}
+
+
+	void with_env(EnvironmentMap&& entries) 
+	{
+		if (env_data_) {
+			env_data_.reset();
+		}
+
+		UWString e_buf;
+		UWString zero_str(L" ");
+		zero_str[0] = 0;
+
+		for (auto& entry : entries)
+		{
+			e_buf += entry.first.to_uwstring() + L"=" + entry.second.to_uwstring() + zero_str;
+		}
+
+		e_buf += zero_str;
+
+		size_t env_data_size = e_buf.size() * sizeof(UWString::CharT);
+		env_data_ = allocate_system<void>(env_data_size);
+
+		std::memcpy(env_data_.get(), e_buf.data(), env_data_size);
+	}
+};
+
+
 class ProcessImpl {
 
 	using Handle = ::boost::winapi::HANDLE_;
@@ -50,8 +149,6 @@ class ProcessImpl {
     PipeOutputStream in_stream_;
     PipeInputStream  out_stream_;
     PipeInputStream  err_stream_;
-
-	
 
     bool finished_{false};
     DWORD error_code_{};
@@ -74,8 +171,8 @@ class ProcessImpl {
 	UWString cmd_line_;
 
 public:
-	ProcessImpl(const wchar_t* path, UWString cmd_line) : 
-		cmd_line_(std::move(cmd_line))
+	ProcessImpl(ProcessBuilderImpl* builder) :
+		cmd_line_(builder->args())
     {
         auto pipe_out = open_pipe();
         auto pipe_in  = open_pipe();
@@ -105,20 +202,21 @@ public:
 
 
 		int proc_err_code = ::boost::winapi::create_process(
-			path,                                       //       LPCSTR_ lpApplicationName,
-			cmd_line_.data(),							//       LPSTR_ lpCommandLine,
+			builder->exe_path().to_uwstring().data(),   //       LPCWSTR_ lpApplicationName,
+			cmd_line_.data(),							//       LPWSTR_ lpCommandLine,
 			nullptr,									//       LPSECURITY_ATTRIBUTES_ lpProcessAttributes,
 			nullptr,									//       LPSECURITY_ATTRIBUTES_ lpThreadAttributes,
 			TRUE,										//       INT_ bInheritHandles,
-			0,											//       DWORD_ dwCreationFlags,
-			nullptr,									//		 LPVOID_ lpEnvironment,
+			boost::winapi::CREATE_UNICODE_ENVIRONMENT_,	//       DWORD_ dwCreationFlags,
+			builder->env_data(),						//		 LPVOID_ lpEnvironment,
 			nullptr,                                    //       LPCSTR_ lpCurrentDirectory,
 			&startup_info_,								//       LPSTARTUPINFOA_ lpStartupInfo,
-			&proc_info_);                               //       LPPROCESS_INFORMATION_ lpProcessInformation)
+			&proc_info_									//       LPPROCESS_INFORMATION_ lpProcessInformation)
+		);
 
 		if (!proc_err_code)
 		{
-			MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't start process {}", UWString(path).to_u8());
+			MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't start process {}", builder->exe_path().to_u8());
 		}
 
         engine().run_in_thread_pool_special([&]() noexcept {

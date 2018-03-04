@@ -77,7 +77,8 @@ if (BUILD_SANDBOX)
 endif()
 
 
-SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm timers alloc shared_ptrs ustrings icu_regexp fmt_u16 sockets anon_pipes processes crash)
+SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm timers alloc shared_ptrs )
+SET(MEMORIA_APPS ${MEMORIA_APPS} ustrings icu_regexp fmt_u16 sockets anon_pipes processes crash print_env)
 
 
 if(BUILD_MSVC)

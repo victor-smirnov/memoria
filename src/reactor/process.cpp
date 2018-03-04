@@ -74,4 +74,36 @@ std::ostream& operator<<(std::ostream& out, Process::Status status)
 }
 
 
+ProcessBuilder ProcessBuilder::create(filesystem::path exe_path) {
+	return ProcessBuilder(MakeLocalShared<ProcessBuilderImpl>(std::move(exe_path)));
+}
+
+ProcessBuilder& ProcessBuilder::with_args(U16String args) 
+{
+	ptr_->with_args(std::move(args));
+	return *this;
+}
+
+ProcessBuilder& ProcessBuilder::with_args(std::vector<U16String> args) 
+{
+	ptr_->with_args(std::move(args));
+	return *this;
+}
+
+ProcessBuilder& ProcessBuilder::with_env(EnvironmentList entries) 
+{
+	ptr_->with_env(std::move(entries));
+	return *this;
+}
+
+ProcessBuilder& ProcessBuilder::with_env(EnvironmentMap entries) 
+{
+	ptr_->with_env(std::move(entries));
+	return *this;
+}
+
+Process ProcessBuilder::run() {
+	return Process(MakeLocalShared<ProcessImpl>(ptr_.get()));
+}
+
 }}}

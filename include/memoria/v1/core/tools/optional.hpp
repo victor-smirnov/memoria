@@ -21,23 +21,25 @@
 #include <vector>
 #include <ostream>
 
+#include <boost/optional.hpp>
+
 namespace memoria {
 namespace v1 {
 
 template <typename T>
-class Optional {
+class OptionalT {
     T value_;
     bool is_set_;
 public:
     using ValueType = T;
 
     template <typename TT>
-    Optional(TT&& value): value_(value), is_set_(true) {}
+    OptionalT(TT&& value): value_(value), is_set_(true) {}
 
     template <typename TT>
-    Optional(TT&& value, bool is_set): value_(value), is_set_(is_set) {}
+    OptionalT(TT&& value, bool is_set): value_(value), is_set_(is_set) {}
 
-    Optional(): is_set_(false) {}
+    OptionalT(): is_set_(false) {}
 
     const T& value() const {
         return value_;
@@ -60,8 +62,12 @@ public:
     }
 };
 
+
 template <typename T>
-std::ostream& operator<<(std::ostream& out, const Optional<T>& op) {
+using Optional = boost::optional<T>;
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const OptionalT<T>& op) {
     if (op) {
         out<<op.value();
     }
@@ -72,9 +78,18 @@ std::ostream& operator<<(std::ostream& out, const Optional<T>& op) {
 }
 
 template <typename T>
-struct HasFieldFactory<Optional<T>>: HasFieldFactory<T> {};
+struct HasFieldFactory<OptionalT<T>>: HasFieldFactory<T> {};
 
 template <typename T>
-struct HasValueCodec<Optional<T>>: HasValueCodec<T> {};
+struct HasValueCodec<OptionalT<T>>: HasValueCodec<T> {};
+
+
+template <typename T>
+struct HasFieldFactory<Optional<T>> : HasFieldFactory<T> {};
+
+template <typename T>
+struct HasValueCodec<Optional<T>> : HasValueCodec<T> {};
+
+
 
 }}

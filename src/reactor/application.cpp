@@ -22,10 +22,14 @@
 #include "macosx/macosx_socket.hpp"
 #elif defined(MMA1_WINDOWS)
 #include "msvc/msvc_socket.hpp"
-#else 
-#error "Unsupported platform"
 #endif 
 
+
+#ifdef MMA1_POSIX
+#include "posix/posix_application_impl.hpp"
+#elif defined (MMA1_WINDOWS)
+#include "msvc/msvc_application_impl.hpp"
+#endif
 
 
 namespace memoria {
@@ -44,6 +48,8 @@ namespace _ {
 
 		return v;
 	}
+
+
 }
 
 ApplicationInit::ApplicationInit() {
@@ -62,7 +68,7 @@ Application::Application(options_description descr, int argc, char** argv, char*
     reactors_(),
     shutdown_hook_([](){engine().stop();}),
 	args_(_::arg_list_as_vector(argv)),
-	env_(_::arg_list_as_vector(envp)),
+	env_(Environment::create(envp)),
 	image_name_(_::get_image_name(args_)),
 	image_name_u8_(image_name_.to_u8())
 {
@@ -92,5 +98,27 @@ Application::Application(options_description descr, int argc, char** argv, char*
 Application& app() {
     return *Application::application_;
 }
+
+
+Optional<U16String> Environment::get(const U16String& name) {
+	return ptr_->get(name);
+}
+
+void Environment::set(const U16String& name, const U16String& value) {
+	return ptr_->set(name, value);
+}
+
+EnvironmentMap Environment::entries() const {
+	return ptr_->entries();
+}
+
+EnvironmentList Environment::entries_list() const {
+	return ptr_->entries_list();
+}
+
+Environment Environment::create(const char* const* envp) {
+	return Environment(make_shared<EnvironmentImpl>(envp));
+}
+
     
 }}}

@@ -22,10 +22,15 @@
 #include <memoria/v1/reactor/pipe_streams.hpp>
 
 #include <ostream>
+#include <map>
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
+
+using EnvironmentMap  = std::map<U16String, U16String>;
+using EnvironmentList = std::vector<U16String>;
+
 
 class ProcessImpl;
 
@@ -47,7 +52,7 @@ public:
     PipeInputStream err_stream();
     PipeOutputStream in_stream();
 
-
+	/*
     static Process create2(const U16String& path,
                           const std::vector<U16String>& args,
                           const std::vector<U16String>& env = std::vector<U16String>()
@@ -57,10 +62,32 @@ public:
                           const U16String& args = u"",
                           const std::vector<U16String>& env = std::vector<U16String>()
                          );
-
+	*/
 };
 
 
 std::ostream& operator<<(std::ostream& out, Process::Status status) ;
+
+
+class ProcessBuilderImpl;
+
+class ProcessBuilder : public PimplBase<ProcessBuilderImpl> {
+	using Base = PimplBase<ProcessBuilderImpl>;
+public:
+	MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ProcessBuilder)
+
+
+	static ProcessBuilder create(filesystem::path exe_path);
+	
+	ProcessBuilder& with_args(U16String args);
+	ProcessBuilder& with_args(std::vector<U16String> args);
+
+	ProcessBuilder& with_env(EnvironmentList entries);
+	ProcessBuilder& with_env(EnvironmentMap entries);
+
+	Process run();
+};
+
+
 
 }}}

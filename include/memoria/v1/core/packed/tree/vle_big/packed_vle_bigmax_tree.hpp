@@ -1161,7 +1161,7 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, int32_t block, int32_t start, const Optional<Value>& val) const
+    auto findForward(SearchType search_type, int32_t block, int32_t start, const OptionalT<Value>& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -1183,7 +1183,7 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, int32_t block, const Optional<Value>& val) const
+    auto findForward(SearchType search_type, int32_t block, const OptionalT<Value>& val) const
     {
     	if (search_type == SearchType::GT)
     	{
@@ -1977,7 +1977,7 @@ struct IndexesSize<PkdVBMTree<Types>> {
 
 template <typename T>
 struct PkdSearchKeyTypeProvider<PkdVBMTree<T>> {
-	using Type = Optional<typename PkdVBMTree<T>::Value>;
+	using Type = OptionalT<typename PkdVBMTree<T>::Value>;
 };
 
 

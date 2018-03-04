@@ -18,6 +18,7 @@
 #include <memoria/v1/reactor/application.hpp>
 
 #include <memoria/v1/core/tools/type_name.hpp>
+#include <boost/optional/optional_io.hpp>
 
 #include <iostream>
 
@@ -30,28 +31,14 @@ int main(int argc, char** argv, char** envp)
     return Application::run_e(argc, argv, envp, []{
         ShutdownOnScopeExit hh;
 
-		engine().coutln(u"Image name: {}", app().image_name());
+		auto env_map = app().env().entries();
 
-		for (auto& str : app().args()) 
-		{
-			engine().coutln(u"Arg: {}", str);
-		}
-
-		for (auto& str : app().env())
-		{
-			engine().coutln(u"Entry: {}", str);
-		}
-
-
-
-        Process process = Process::create(u"processes.exe", u"processes_abcd"); //c:\\msys64\\usr\\bin\\ls.exe
-		//Process process = Process::create(u"c:\\msys64\\usr\\bin\\ls.exe", u""); 
-
-		//Process process = Process::create(u"c:\\msys64\\usr\\bin\\sleep.exe", u"sleep 3");
+		Process process = ProcessBuilder::create("print_env.exe")
+			.with_env(env_map)
+			.run();
 
         auto out = process.out_stream();
 
-		
         while (!out.is_closed())
         {
             uint8_t buf[200];
@@ -63,9 +50,6 @@ int main(int argc, char** argv, char** envp)
                 engine().cout(u"{}", T2T<const char*>(buf)) << std::flush;
             }
         }
-		
-
-        process.kill();
 
         process.join();
 

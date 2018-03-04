@@ -27,10 +27,10 @@ namespace memoria {
 namespace v1 {
 
     
-template <typename T>
+template <typename T, template <typename> class SharedPtrT = LocalSharedPtr>
 struct PimplBase {
     using TargetType = T;
-    using PtrType = LocalSharedPtr<TargetType>;
+    using PtrType = SharedPtrT<TargetType>;
 protected:
     PtrType ptr_;
 public:
@@ -85,6 +85,7 @@ public:
 
 
 #define MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS_NO_DTR(ClassName)  \
+    ClassName():Base(){}										\
     ClassName(const typename Base::PtrType& ptr): Base(ptr) {}  \
     ClassName(const ClassName& other): Base(other) {}       \
     ClassName(ClassName&& other): Base(std::move(other)) {} \

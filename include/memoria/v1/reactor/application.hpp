@@ -16,28 +16,32 @@
 #pragma once
 
 #include <memoria/v1/core/tools/ptr_cast.hpp>
+#include <memoria/v1/core/tools/pimpl_base.hpp>
+#include <memoria/v1/core/tools/optional.hpp>
 
-#include "../fiber/all.hpp"
+#include <memoria/v1/fiber/all.hpp>
 
-#include "reactor.hpp"
-#include "timer.hpp"
+#include <memoria/v1/core/tools/optional.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/v1/reactor/process.hpp>
+#include <memoria/v1/reactor/timer.hpp>
 
-#ifdef __linux__
-#include "linux/linux_smp.hpp"
-#include "linux/linux_file.hpp"
-#elif __APPLE__
-#include "macosx/macosx_smp.hpp"
-#include "macosx/macosx_file.hpp"
-#elif _WIN32
-#include "msvc/msvc_smp.hpp"
-#include "msvc/msvc_file.hpp"
-#else 
-#error "Unsupported platform"
+#ifdef MMA1_LINUX
+#include <memoria/v1/reactor/linux/linux_smp.hpp>
+#include <memoria/v1/reactor/linux/linux_file.hpp>
+#elif defined (MMA1_MACOSX)
+#include <memoria/v1/reactor/macosx/macosx_smp.hpp>
+#include <memoria/v1/reactor/macosx/macosx_file.hpp>
+#elif defined (MMA1_WINDOWS)
+#include <memoria/v1/reactor/msvc/msvc_smp.hpp>
+#include <memoria/v1/reactor/msvc/msvc_file.hpp>
 #endif
 
-#include "socket.hpp"
+#include <memoria/v1/reactor/socket.hpp>
 
-#include <memoria/v1/core/tools/strlist.hpp>
+
+
+
 
 #include <boost/program_options.hpp>
 
@@ -46,14 +50,37 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <unordered_map>
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
 
+
+
+
+class EnvironmentImpl;
+
+class Environment : public PimplBase<EnvironmentImpl, std::shared_ptr> {
+	using Base = PimplBase<EnvironmentImpl, std::shared_ptr>;
+public:
+	MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Environment);
+
+	Optional<U16String> get(const U16String& name);
+	void set(const U16String& name, const U16String& value);
+
+	EnvironmentMap entries() const;
+	EnvironmentList entries_list() const;
+
+	static Environment create(const char* const* envp);
+};
+
+
 namespace _ {
 
 	std::vector<U16String> arg_list_as_vector(const char* const* args);
+	//AppEnvironment parse_envp(const char* const* envp);
+
 	U16String get_image_name(const std::vector<U16String>& args);
 
 }
@@ -82,7 +109,8 @@ class Application final: protected ApplicationInit {
     bool debug_{};
 
 	std::vector<U16String> args_;
-	std::vector<U16String> env_;
+	Environment env_;
+
 
 	U16String image_name_;
 	U8String  image_name_u8_;
@@ -104,7 +132,9 @@ public:
     Application& operator=(Application&&) = delete;
 
 	const std::vector<U16String>& args() const { return args_; }
-	const std::vector<U16String>& env() const { return env_; }
+	const Environment& env() const { return env_; }
+	Environment& env() { return env_; }
+
 	const U16String& image_name() const { return image_name_; }
 	const U8String&  image_name_u8() const { return image_name_u8_; }
     

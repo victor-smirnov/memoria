@@ -39,7 +39,6 @@ class PipeInputStream: public PimplBase<IPipeInputStream> {
 
     using Base = PimplBase<IPipeInputStream>;
 public:
-    PipeInputStream(): Base(PtrType()){}
     MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS_NO_DTR(PipeInputStream)
 
     size_t read(uint8_t* data, size_t size) {
@@ -68,7 +67,6 @@ public:
 class PipeOutputStream: public PimplBase<IPipeOutputStream> {
     using Base = PimplBase<IPipeOutputStream>;
 public:
-    PipeOutputStream(): Base(PtrType()){}
     MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS_NO_DTR(PipeOutputStream)
 
     size_t write(const uint8_t* data, size_t size) {

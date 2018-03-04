@@ -14,32 +14,29 @@
 // limitations under the License.
 
 
-#include "msvc_process_impl.hpp"
 
+#include <memoria/v1/reactor/application.hpp>
 
-namespace memoria {
-namespace v1 {
-namespace reactor {
-/*
-Process Process::create2(const U16String& path, const std::vector<U16String>& args, const std::vector<U16String>& env)
+using namespace memoria::v1;
+using namespace memoria::v1::reactor;
+
+int main(int argc, char** argv)
 {
-	U16String cmd_line;
+    return Application::run(argc, argv, []{
+        ShutdownOnScopeExit hh;
 
-	for (auto& str: args) {
-		cmd_line += str + u" ";
-	}
+		engine().coutln(u"Image name: {}", app().image_name());
 
-    return Process::create(path, cmd_line, env);
+		for (auto& str : app().args())
+		{
+			engine().coutln(u"Arg: {}", str);
+		}
+
+		for (auto& str : app().env().entries_list())
+		{
+			engine().coutln(u"Entry: {}", str);
+		}
+
+        return 0;
+    });
 }
-
-
-Process Process::create(const U16String& path, const U16String& args, const std::vector<U16String>& env)
-{
-    return Process(MakeLocalShared<ProcessImpl>(path.to_uwstring().data(), args.to_uwstring()));
-}
-*/
-
-
-
-
-}}}

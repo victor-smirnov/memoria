@@ -226,7 +226,7 @@ public:
     }
 
 
-    Optional<Value> max(int32_t block) const
+    OptionalT<Value> max(int32_t block) const
     {
         auto size = this->size();
 
@@ -235,7 +235,7 @@ public:
             return this->value(block, size - 1);
         }
         else {
-            return Optional<Value>();
+            return OptionalT<Value>();
         }
     }
 
@@ -858,7 +858,7 @@ struct IndexesSize<PkdFMTree<Types>> {
 
 template <typename T>
 struct PkdSearchKeyTypeProvider<PkdFMTree<T>> {
-	using Type = Optional<typename PkdFMTree<T>::Value>;
+	using Type = OptionalT<typename PkdFMTree<T>::Value>;
 };
 
 

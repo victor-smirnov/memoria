@@ -52,5 +52,10 @@ static inline void free_system(void* ptr)
     ::free(ptr);
 }
 
+template <typename T>
+UniquePtr<T> empty_unique_ptr() 
+{
+	return UniquePtr<T>(T2T<T*>(nullptr), ::free);
+}
 
 }}

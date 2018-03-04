@@ -211,7 +211,7 @@ public:
         return iter;
     }
 
-    Optional<Value> find(const Key& key) const
+    OptionalT<Value> find(const Key& key) const
     {
         return this->find_value_in(this->root(), key);
     }
@@ -325,7 +325,7 @@ protected:
         }
     }
 
-    Optional<Value> find_value_in(const NodeBaseT* node, const Key& key) const
+    OptionalT<Value> find_value_in(const NodeBaseT* node, const Key& key) const
     {
         while (node->is_branch())
         {
@@ -339,10 +339,10 @@ protected:
 
         if (idx < leaf_node->size() && leaf_node->key(idx) == key)
         {
-            return Optional<Value>(leaf_node->data(idx));
+            return OptionalT<Value>(leaf_node->data(idx));
         }
         else {
-            return Optional<Value>();
+            return OptionalT<Value>();
         }
     }
 
