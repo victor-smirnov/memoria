@@ -15,6 +15,7 @@
 
 #include <memoria/v1/tests/runner.hpp>
 #include <memoria/v1/reactor/process.hpp>
+#include <memoria/v1/reactor/pipe_streams_reader.hpp>
 
 #include <sstream>
 
@@ -103,7 +104,7 @@ void run_tests()
     {
         std::vector<U16String> failed;
         std::vector<U16String> crashed;
-
+		
         for (auto& test: suite.second->tests())
         {
             U16String test_path = suite.first + u"/" + test.first;
@@ -112,7 +113,13 @@ void run_tests()
                     .with_args(U16String("tests2 --test ") + test_path)
                     .run();
 
+			reactor::InputStreamReader out_reader = process.out_stream();
+			reactor::InputStreamReader err_reader = process.err_stream();
+
             process.join();
+
+			out_reader.join();
+			err_reader.join();
 
             auto status = process.status();
 

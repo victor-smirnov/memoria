@@ -20,6 +20,7 @@
 #include <memoria/v1/core/tools/pimpl_base.hpp>
 
 #include <memoria/v1/reactor/pipe_streams.hpp>
+#include <memoria/v1/reactor/pipe_streams_reader.hpp>
 
 #include <ostream>
 #include <map>

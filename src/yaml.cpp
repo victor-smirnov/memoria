@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 {
     return Application::run(argc, argv, []{
         ShutdownOnScopeExit hh;
-
+		
         YAML::Node node = YAML::Load("{name: Brewers, city: Milwaukee}");
         if (node["name"]) {
           std::cout << node["name"].as<std::string>() << "\n";
