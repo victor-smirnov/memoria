@@ -226,7 +226,7 @@ public:
     ) noexcept 
     {
         try {
-            Application app(argc, argv);
+            Application app(default_options(options), argc, argv);
         
             if (app.is_help()) {
                 app.print_options_and_shutdown();
@@ -256,7 +256,7 @@ public:
 	) noexcept
 	{
 		try {
-			Application app(argc, argv, envp);
+            Application app(default_options(options), argc, argv, envp);
 
 			if (app.is_help()) {
 				app.print_options_and_shutdown();

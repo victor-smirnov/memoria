@@ -1,0 +1,49 @@
+
+// Copyright 2018 Victor Smirnov
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include <memoria/v1/reactor/application.hpp>
+
+#include <memoria/v1/tests/runner.hpp>
+
+using namespace memoria::v1;
+using namespace memoria::v1::reactor;
+
+namespace po = boost::program_options;
+
+int main(int argc, char** argv, char** envp)
+{
+    po::options_description options;
+
+    options.add_options()
+        ("runs", "Number of runs for entire test suites set")
+        ("test", po::value<std::string>(), "Specific test name to run")
+        ;
+
+
+    return Application::run_e(options, argc, argv, envp, [&]{
+        ShutdownOnScopeExit hh;
+
+        if (app().options().count("test") > 0)
+        {
+            U16String test_name = U16String(app().options()["test"].as<std::string>());
+            return (tests::run_single_test(test_name) == tests::TestStatus::PASSED ? 0 : 1);
+        }
+        else {
+            tests::run_tests();
+        }
+
+        return 0;
+    });
+}

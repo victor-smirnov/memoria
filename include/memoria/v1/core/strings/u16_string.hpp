@@ -230,6 +230,16 @@ public:
         return *this;
     }
 
+    U16String trim_copy() const
+    {
+        U16String copy = *this;
+
+        copy.trim_end();
+        copy.trim_start();
+
+        return copy;
+    }
+
     U16String& trim_start()
     {
         size_t length = content_.size();
