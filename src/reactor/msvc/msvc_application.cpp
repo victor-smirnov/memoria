@@ -19,7 +19,6 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
-namespace _ {
 
 
 namespace {
@@ -45,27 +44,21 @@ auto find_last_of(const U16String& str, const char16_t* pp)
 
 }
 
-U16String get_image_name(const std::vector<U16String>& args) 
+
+filesystem::path get_image_name()
 {
-	if (args.size() > 0) 
-	{
-		auto& arg0 = args[0];
-
-		size_t end = find_last_of(arg0, u".");
-		size_t start = find_last_of(arg0, u"\\");
-
-		if (start == U16String::NPOS) {
-			start = 0;
-		}
-
-		return arg0.substring(start, end);
-	}
-	else {
-		return "none";
-	}
+    auto name = get_program_path().filename().to_u16();
+    
+    size_t pos = find_last_of(name, u".");
+    
+    if (pos != U16String::NPOS) {
+	return name.substring(0, pos);
+    }
+    else {
+	return name;
+    }
 }
 
-}
 
 
 }}}

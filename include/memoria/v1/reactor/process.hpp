@@ -22,12 +22,18 @@
 #include <memoria/v1/reactor/pipe_streams.hpp>
 #include <memoria/v1/reactor/pipe_streams_reader.hpp>
 
+#include <memoria/v1/filesystem/path.hpp>
+
 #include <ostream>
 #include <map>
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
+
+
+filesystem::path get_program_path();
+filesystem::path get_image_name();
 
 using EnvironmentMap  = std::map<U16String, U16String>;
 using EnvironmentList = std::vector<U16String>;

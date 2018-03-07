@@ -16,12 +16,19 @@
 #include <memoria/v1/tests/runner.hpp>
 #include <memoria/v1/reactor/process.hpp>
 #include <memoria/v1/reactor/pipe_streams_reader.hpp>
+#include <memoria/v1/reactor/application.hpp>
+#include <memoria/v1/filesystem/operations.hpp>
+
+#include <memoria/v1/yaml-cpp/yaml.h>
 
 #include <sstream>
 
 namespace memoria {
 namespace v1 {
 namespace tests {
+
+using filesystem::path;
+using namespace reactor;
 
 void dump_exception(std::ostream& out, std::exception_ptr& ex)
 {
@@ -45,6 +52,38 @@ TestStatus run_single_test(const U16String& test_path)
     auto test = tests_registry().find_test(test_path);
     if (test)
     {
+        auto& app = reactor::app();
+
+        path config_path;
+
+        if (app.options().count("config") > 0)
+        {
+            config_path = U16String(app.options()["config"].as<std::string>());
+        }
+        else {
+            auto program_path = reactor::get_program_path();
+            config_path = program_path.parent_path();
+            config_path.append((get_image_name().to_u8() + ".yaml").data());
+        }
+
+        YAML::Node test_config;
+
+        if (filesystem::is_regular_file(config_path)) // && !filesystem::is_directory(config_path)
+        {
+            YAML::Node config = YAML::LoadFile(config_path.to_u8().to_std_string());
+
+            U16String suite_name;
+            U16String test_name;
+
+            std::tie(suite_name, test_name) = TestsRegistry::split_path(test_path);
+
+            YAML::Node suite_node = config[suite_name.to_u8().to_std_string()];
+            if (suite_node)
+            {
+                test_config = suite_node[test_name.to_u8().to_std_string()];
+            }
+        }
+
         DefaultTestContext ctx;
         test.get().run(&ctx);
 
@@ -98,6 +137,12 @@ U16String to_string(const std::vector<T>& array)
 
 void run_tests()
 {
+    auto& app = reactor::app();
+    U16String config_file;
+    if (app.options().count("config") > 0) {
+        config_file = U16String(app.options()["config"].as<std::string>());
+    }
+
     const auto& suites = tests_registry().suites();
 
     for (auto& suite: suites)
@@ -109,8 +154,8 @@ void run_tests()
         {
             U16String test_path = suite.first + u"/" + test.first;
 
-            reactor::Process process = reactor::ProcessBuilder::create("tests2")
-                    .with_args(U16String("tests2 --test ") + test_path)
+            reactor::Process process = reactor::ProcessBuilder::create(reactor::get_program_path())
+                    .with_args(U16String("tests2 --test ") + test_path + (config_file.is_empty() ? u"" : U16String(u" --config ") + config_file))
                     .run();
 
 			reactor::InputStreamReader out_reader = process.out_stream();
@@ -120,6 +165,9 @@ void run_tests()
 
 			out_reader.join();
 			err_reader.join();
+
+            reactor::engine().coutln(u"TEST OUTPUT: {}", out_reader.to_u16());
+            reactor::engine().coutln(u"TEST ERROR: {}", err_reader.to_u16());
 
             auto status = process.status();
 

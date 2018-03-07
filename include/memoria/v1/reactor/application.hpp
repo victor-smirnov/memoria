@@ -61,7 +61,7 @@ class EnvironmentImpl;
 class Environment : public PimplBase<EnvironmentImpl, std::shared_ptr> {
 	using Base = PimplBase<EnvironmentImpl, std::shared_ptr>;
 public:
-	MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Environment);
+    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Environment)
 
 	Optional<U16String> get(const U16String& name);
 	void set(const U16String& name, const U16String& value);
@@ -76,7 +76,7 @@ public:
 namespace _ {
 
 	std::vector<U16String> arg_list_as_vector(const char* const* args);
-	U16String get_image_name(const std::vector<U16String>& args);
+    U16String get_image_name();
 
 }
 
@@ -105,11 +105,6 @@ class Application final: protected ApplicationInit {
 
 	std::vector<U16String> args_;
 	Environment env_;
-
-
-	U16String image_name_;
-	U8String  image_name_u8_;
-
 public:
 
     //Application(int argc, char** argv): Application(argc, argv, nullptr) {}
@@ -129,9 +124,6 @@ public:
 	const std::vector<U16String>& args() const { return args_; }
 	const Environment& env() const { return env_; }
 	Environment& env() { return env_; }
-
-	const U16String& image_name() const { return image_name_; }
-	const U8String&  image_name_u8() const { return image_name_u8_; }
     
     const variables_map& options() {return options_;}
     

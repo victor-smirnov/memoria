@@ -25,6 +25,8 @@
 
 #include <memoria/v1/core/tools/optional.hpp>
 
+#include <memoria/v1/tests/state.hpp>
+
 #include <memory>
 #include <vector>
 #include <functional>
@@ -60,16 +62,6 @@ struct TestContext {
 
 
 
-
-struct TestState {
-
-    TestState() {}
-    TestState(TestState&&) = default;
-    TestState(const TestState&) = delete;
-
-    virtual ~TestState() noexcept {}
-
-};
 
 
 struct Test {
@@ -137,6 +129,9 @@ public:
     Optional<TestSuite&> find_suite(const U16String& suite_name);
     Optional<Test&> find_test(const U16String& test_path);
 
+
+    static std::tuple<U16String, U16String> split_path(U16String test_path);
+
     template <typename TestT, typename... Args>
     void emplace_in_suite(const U16String& suite_name, const U16String& test_name, Args&&... args)
     {
@@ -170,7 +165,7 @@ EmptyType register_test_in_suite(const U16String& suite_name, const U16String& t
 }
 
 struct EmptyState: TestState{
-    EmptyState(TestConfigurator* configurator) {}
+    EmptyState() {}
 };
 
 template <typename StateT = EmptyState>
@@ -185,7 +180,7 @@ public:
     }
 
     std::unique_ptr<TestState> create_state(TestConfigurator* configurator) {
-        return std::make_unique<StateT>(configurator);
+        return std::make_unique<StateT>();
     }
 };
 

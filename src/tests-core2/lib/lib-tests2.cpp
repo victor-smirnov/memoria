@@ -63,7 +63,8 @@ Optional<TestSuite&> TestsRegistry::find_suite(const U16String& suite_name)
     }
 }
 
-Optional<Test&> TestsRegistry::find_test(const U16String& test_path)
+
+std::tuple<U16String, U16String> TestsRegistry::split_path(U16String test_path)
 {
     U16String suite_name;
     U16String test_name;
@@ -78,6 +79,16 @@ Optional<Test&> TestsRegistry::find_test(const U16String& test_path)
         suite_name = DEFAULT_SUITE_NAME;
         test_name  = test_path.trim_copy();
     }
+
+    return std::make_tuple(suite_name, test_name);
+}
+
+Optional<Test&> TestsRegistry::find_test(const U16String& test_path)
+{
+    U16String suite_name;
+    U16String test_name;
+
+    std::tie(suite_name, test_name) = split_path(test_path);
 
     auto suite = find_suite(suite_name);
 
@@ -103,6 +114,8 @@ void Test::run(TestContext *context) noexcept
 
     try {
         state = create_state(context->configurator());
+        state->add_field_handlers();
+        state->add_indirect_field_handlers();
     }
     catch (...) {
         context->failed(TestStatus::SETUP_FAILED, std::current_exception());

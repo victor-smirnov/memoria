@@ -29,11 +29,14 @@ int main(int argc, char** argv, char** envp)
     options.add_options()
         ("runs", "Number of runs for entire test suites set")
         ("test", po::value<std::string>(), "Specific test name to run")
+        ("config", po::value<std::string>(), "Path to config file, defaults to tests2.yaml")
         ;
 
 
     return Application::run_e(options, argc, argv, envp, [&]{
         ShutdownOnScopeExit hh;
+
+        engine().coutln(u"Program path: {}", get_program_path());
 
         if (app().options().count("test") > 0)
         {

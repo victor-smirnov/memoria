@@ -66,9 +66,7 @@ Application::Application(options_description descr, int argc, char** argv, char*
     reactors_(),
     shutdown_hook_([](){engine().stop();}),
 	args_(_::arg_list_as_vector(argv)),
-	env_(Environment::create(envp)),
-	image_name_(_::get_image_name(args_)),
-	image_name_u8_(image_name_.to_u8())
+    env_(Environment::create(envp))
 {
     boost::program_options::store(
         boost::program_options::parse_command_line(argc, argv, descr), 
@@ -117,6 +115,8 @@ EnvironmentList Environment::entries_list() const {
 Environment Environment::create(const char* const* envp) {
 	return Environment(make_shared<EnvironmentImpl>(envp));
 }
+
+
 
     
 }}}

@@ -27,6 +27,8 @@
 
 #include <memoria/v1/core/tools/time.hpp>
 
+#include <memoria/v1/filesystem/operations.hpp>
+
 #include "linux_file_impl.hpp"
 
 
@@ -214,13 +216,10 @@ void BufferedFileImpl::fdsync() {
         MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't fsync file {}", path_);
     }
 }
-    
-
-
 
 File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode) 
 {
     return MakeLocalShared<BufferedFileImpl>(file_path, flags, mode);
 }
-    
+
 }}}

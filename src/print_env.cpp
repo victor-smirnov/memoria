@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     return Application::run(argc, argv, []{
         ShutdownOnScopeExit hh;
 
-		engine().coutln(u"Image name: {}", app().image_name());
+        engine().coutln(u"Image name: {}", get_image_name().to_u16());
 
 		for (auto& str : app().args())
 		{
