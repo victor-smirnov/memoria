@@ -15,8 +15,9 @@
 
 #pragma once
 
-#include "file.hpp"
-#include "dma_buffer.hpp"
+#include <memoria/v1/reactor/file.hpp>
+#include <memoria/v1/reactor/dma_buffer.hpp>
+#include <memoria/v1/reactor/streambuf.hpp>
 
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 
@@ -26,6 +27,7 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
        
+/*
 template <typename BufferT = DefaultIOBuffer>    
 class BufferedIS: public IBinaryInputStream {
     BufferT buffer_;
@@ -84,6 +86,7 @@ public:
     BufferT& buffer() {return buffer_;}
     const BufferT& buffer() const {return buffer_;}
 };
+*/
 
 enum class FilePos {BEGIN, END};
 
@@ -179,7 +182,7 @@ class BufferedFileOStream: public std::basic_ostream<Char> {
     FileStrembuf<Char> buffer_;
 public:
     BufferedFileOStream(File file, FilePos pos = FilePos::BEGIN, size_t buffer_size = 4096): 
-		Base(nullptr),
+	Base(nullptr),
         buffer_(file, pos, buffer_size)
     {
         this->init(&buffer_);
@@ -197,6 +200,42 @@ public:
 using bfstream = BufferedFileOStream<char>;
 
 
+template <typename CharT> class FileInputStream;
+
+template <>
+class FileInputStream<char>: public std::basic_istream<char> {
+    using Base = std::basic_istream<char>;
+
+    std::unique_ptr<std::basic_streambuf<char>> buf_;
+    BinaryInputStream istream_;
+public:
+    FileInputStream(File file):
+        Base(std::make_unique<BinaryIStreamBuf<char>>(file.istream().ptr().get()).release()),
+        buf_(Base::rdbuf()),
+        istream_(file.istream())
+    {}
+
+    FileInputStream(FileInputStream&&) = default;
+    FileInputStream(const FileInputStream&) = delete;
+};
+
+template <typename CharT> class FileOutputStream;
+
+template <>
+class FileOutputStream<char>: public std::basic_ostream<char> {
+    using Base = std::basic_ostream<char>;
+
+    std::unique_ptr<std::basic_streambuf<char>> buf_;
+    BinaryOutputStream ostream_;
+public:
+    FileOutputStream(File file):
+        Base(std::make_unique<BinaryOStreamBuf<char>>(file.ostream().ptr().get()).release()),
+        buf_(Base::rdbuf()),
+        ostream_(file.ostream())
+    {}
+
+    FileOutputStream(FileOutputStream&&) = default;
+    FileOutputStream(const FileOutputStream&) = delete;
+};
 
 }}}
-

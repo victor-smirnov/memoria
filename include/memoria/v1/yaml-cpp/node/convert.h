@@ -21,11 +21,7 @@
 
 #pragma once
 
-#if defined(_MSC_VER) ||                                            \
-    (defined(__GNUC__) && (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) || \
-     (__GNUC__ >= 4))  // GCC supports "pragma once" correctly since 3.4
-#pragma once
-#endif
+#include <memoria/v1/core/strings/string.hpp>
 
 #include <array>
 #include <limits>
@@ -90,16 +86,44 @@ struct convert<std::string> {
   }
 };
 
+template <>
+struct convert<U8String> {
+  static Node encode(const U8String& rhs) { return Node(rhs); }
+
+  static bool decode(const Node& node, U8String& rhs) {
+    if (!node.IsScalar())
+      return false;
+    rhs = U8String(node.Scalar());
+    return true;
+  }
+};
+
+template <>
+struct convert<U16String> {
+  static Node encode(const U16String& rhs) { return Node(rhs); }
+
+  static bool decode(const Node& node, U16String& rhs) {
+    if (!node.IsScalar())
+      return false;
+    rhs = U16String(node.Scalar());
+    return true;
+  }
+};
+
+
 // C-strings can only be encoded
 template <>
 struct convert<const char*> {
   static Node encode(const char*& rhs) { return Node(rhs); }
 };
 
+
+
 template <std::size_t N>
 struct convert<const char[N]> {
   static Node encode(const char(&rhs)[N]) { return Node(rhs); }
 };
+
 
 template <>
 struct convert<_Null> {

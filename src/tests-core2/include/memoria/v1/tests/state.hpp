@@ -17,12 +17,15 @@
 
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/yaml-cpp/yaml.h>
-
+#include <memoria/v1/filesystem/path.hpp>
 
 #include <boost/preprocessor/list/for_each.hpp>
 #include <boost/preprocessor/variadic/to_list.hpp>
 
+
+
 #include <string>
+#include <iostream>
 
 namespace memoria {
 namespace v1 {
@@ -30,14 +33,22 @@ namespace tests {
 
 struct ConfigurationContext {
     virtual ~ConfigurationContext() noexcept {}
-    virtual std::string resource_path(const std::string& name) = 0;
+    virtual filesystem::path resource_path(const std::string& name) = 0;
 };
 
-template <typename T>
-void externalize(const T& value, std::string path, ConfigurationContext* context);
+template <typename T> struct IndirectStateFiledSerializer;
 
-template <typename T>
-void internalize(T& value, std::string path, ConfigurationContext* context);
+template <>
+struct IndirectStateFiledSerializer<U8String> {
+    static void externalize(const U8String& value, filesystem::path path, ConfigurationContext* context)
+    {
+
+    }
+
+    static void internalize(U8String& value, filesystem::path path, ConfigurationContext* context) {
+        std::cout << "INTERNALIZE: " << path << std::endl;
+    }
+};
 
 
 struct FieldHandler {
@@ -61,7 +72,7 @@ public:
 
     virtual void internalize(const YAML::Node& node, ConfigurationContext* context)
     {
-        if (node.IsDefined()) {
+        if (node[name_]) {
             field_ = node[name_].template as<T>();
         }
     }
@@ -80,13 +91,26 @@ public:
     virtual void externalize(YAML::Node& node, ConfigurationContext* context)
     {
         auto path = context->resource_path(name_);
-        node[name_] = path;
-        externalize(field_, path, context);
+        node[name_] = path.to_u8();
+        IndirectStateFiledSerializer<T>::externalize(field_, path, context);
     }
 
     virtual void internalize(const YAML::Node& node, ConfigurationContext* context)
     {
-        internalize(field_, node[name_].template as<T>(), context);
+        if (node[name_])
+        {
+            auto file_name = node[name_].template as<std::string>();
+            filesystem::path file_path = file_name;
+
+            if (file_path.is_relative())
+            {
+                auto path = context->resource_path(file_name);
+                IndirectStateFiledSerializer<T>::internalize(field_, path, context);
+            }
+            else {
+                IndirectStateFiledSerializer<T>::internalize(field_, file_path, context);
+            }
+        }
     }
 };
 
@@ -132,16 +156,28 @@ public:
 };
 
 class CommonConfigurationContext: public ConfigurationContext {
+
+    filesystem::path config_base_path_;
+
 public:
-    virtual std::string resource_path(const std::string& name) {
-        return name;
+    CommonConfigurationContext(filesystem::path config_base_path):
+        config_base_path_(config_base_path)
+    {}
+
+    virtual filesystem::path resource_path(const std::string& name)
+    {
+        filesystem::path pp = config_base_path_;
+        return pp.append(name.data());
     }
 };
+
 
 #define MMA1_TESTS_STATE_FILED(name) this->add_field_handler(MMA1_TOSTRING(name), name)
 #define MMA1_TESTS_INDIRECT_STATE_FILED(name) this->add_indirect_field_handler(MMA1_TOSTRING(name), name)
 
 #define MMA1_BOOST_PP_STATE_FILED(r, data, elem) MMA1_TESTS_STATE_FILED(elem);\
+
+#define MMA1_BOOST_PP_INDIRECT_STATE_FILED(r, data, elem) MMA1_TESTS_INDIRECT_STATE_FILED(elem);\
 
 
 #define MMA1_STATE_FILEDS(...)          \
@@ -153,8 +189,8 @@ public:
 
 #define MMA1_INDIRECT_STATE_FILEDS(...)             \
     virtual void add_indirect_field_handlers() {    \
-        Base::add_indirect_field_handlers() {       \
-        BOOST_PP_LIST_FOR_EACH(MMA1_BOOST_PP_STATE_FILED, _, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__)) \
+        Base::add_indirect_field_handlers();        \
+        BOOST_PP_LIST_FOR_EACH(MMA1_BOOST_PP_INDIRECT_STATE_FILED, _, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__)) \
     }
 
 

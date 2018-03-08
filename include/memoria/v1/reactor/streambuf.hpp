@@ -17,6 +17,8 @@
 #pragma once
 
 #include <memoria/v1/core/tools/iostreams.hpp>
+#include <memoria/v1/reactor/file.hpp>
+#include <memoria/v1/core/types/type2type.hpp>
 
 #include <iterator>
 
@@ -24,35 +26,8 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
 
-
-class ConsoleInputStream: public IBinaryInputStream {
-    int32_t fd_;
-public:
-    ConsoleInputStream(int32_t fd) noexcept : fd_(fd) {}
-
-    virtual ~ConsoleInputStream() noexcept {}
-    virtual size_t read(uint8_t* data, size_t size);
-    virtual void close() {}
-    virtual bool is_closed() const {return false;}
-};
-
-
-class ConsoleOutputStream: public IBinaryOutputStream {
-    int32_t fd_;
-public:
-    ConsoleOutputStream(int32_t fd) noexcept : fd_(fd){}
-
-    virtual ~ConsoleOutputStream() noexcept {}
-    virtual size_t write(const uint8_t* data, size_t size);
-    virtual void flush();
-    virtual void close() {}
-    virtual bool is_closed() const {return false;}
-};
-
-/*
 template<class CharT = char>
 class BinaryOStreamBuf;
-
 
 template <>
 class BinaryOStreamBuf<char>: public std::basic_streambuf<char> {
@@ -85,7 +60,7 @@ protected:
 
         if (ch != Traits::eof())
         {
-            *buffer_.get() = ch;
+            *buffer_.get() = Traits::to_char_type(ch);
             Base::pbump(1);
         }
 
@@ -95,13 +70,57 @@ protected:
     int sync()
     {
         auto size = std::distance(Base::pbase(), Base::pptr());
-        output_stream_->write(T2T<uint8_t*>(buffer_.get()), size);
+        size_t written = output_stream_->write(T2T<uint8_t*>(buffer_.get()), size);
 
-        Base::pbump(-(int)size);
+        Base::pbump(-(int32_t)written);
 
         return 0;
     }
 };
-*/
+
+
+template<class CharT = char>
+class BinaryIStreamBuf;
+
+template <>
+class BinaryIStreamBuf<char>: public std::basic_streambuf<char> {
+
+    using CharT         = char;
+
+    using Base          = std::basic_streambuf<CharT>;
+    using char_type     = typename Base::char_type;
+    using int_type      = typename Base::int_type;
+    using Traits        = typename Base::traits_type;
+
+    size_t size_;
+    UniquePtr<CharT> buffer_;
+    IBinaryInputStream* input_stream_{};
+
+public:
+    BinaryIStreamBuf(IBinaryInputStream* input_stream, size_t size = 1024):
+        size_(size),
+        buffer_(allocate_system_zeroed<CharT>(size)),
+        input_stream_(input_stream)
+    {
+        Base::setg(buffer_.get(), buffer_.get() + size_, buffer_.get() + size_);
+    }
+
+protected:
+    int_type underflow()
+    {
+        size_t read = input_stream_->read(T2T<uint8_t*>(buffer_.get()), size_);
+
+        if (read != 0)
+        {
+            setg(buffer_.get(), buffer_.get(), buffer_.get() + read);
+            return Traits::to_int_type(*gptr());
+        }
+        else {
+            return Traits::eof();
+        }
+    }
+};
+
+
 
 }}}

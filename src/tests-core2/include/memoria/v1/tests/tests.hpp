@@ -27,6 +27,8 @@
 
 #include <memoria/v1/tests/state.hpp>
 
+#include <memoria/v1/yaml-cpp/yaml.h>
+
 #include <memory>
 #include <vector>
 #include <functional>
@@ -46,6 +48,8 @@ enum class TestStatus {PASSED, TEST_FAILED, SETUP_FAILED};
 
 struct TestConfigurator {
     virtual ~TestConfigurator() noexcept {}
+    virtual YAML::Node& configuration() = 0;
+    virtual filesystem::path config_base_path() const = 0;
 };
 
 struct TestContext {

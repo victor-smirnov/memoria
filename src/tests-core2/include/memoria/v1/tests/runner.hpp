@@ -18,12 +18,29 @@
 #include <memoria/v1/tests/tests.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
 
+#include <memoria/v1/yaml-cpp/yaml.h>
+
 namespace memoria {
 namespace v1 {
 namespace tests {
 
-struct NOOPConfigurator: public TestConfigurator {
+class NOOPConfigurator: public TestConfigurator {
+    YAML::Node configuration_;
+    filesystem::path config_base_path_;
+public:
 
+    NOOPConfigurator(YAML::Node configuration, filesystem::path config_base_path):
+        configuration_(configuration),
+        config_base_path_(config_base_path)
+    {}
+
+    YAML::Node& configuration() {
+        return configuration_;
+    }
+
+    filesystem::path config_base_path() const {
+        return config_base_path_;
+    }
 };
 
 
@@ -36,6 +53,10 @@ class DefaultTestContext: public TestContext {
     std::exception_ptr ex_;
 
 public:
+    DefaultTestContext(YAML::Node configuration, filesystem::path config_base_path):
+        configurator_(configuration, config_base_path)
+    {}
+
 
     TestStatus status() const {return status_;}
 

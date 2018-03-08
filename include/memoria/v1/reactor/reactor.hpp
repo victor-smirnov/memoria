@@ -27,25 +27,25 @@
 
 #include <memoria/v1/reactor/smart_ptr.hpp>
 
-#include "../fiber/protected_stack_pool.hpp"
-#include "../fiber/pooled_fixedsize_stack.hpp"
+#include <memoria/v1/fiber/protected_stack_pool.hpp>
+#include <memoria/v1/fiber/pooled_fixedsize_stack.hpp>
 
 #ifdef MMA1_WINDOWS
-#include "msvc/msvc_io_poller.hpp"
-#include "msvc/msvc_smp.hpp"
+#include <memoria/v1/reactor/msvc/msvc_io_poller.hpp>
+#include <memoria/v1/reactor/msvc/msvc_smp.hpp>
 #elif defined(MMA1_MACOSX)
-#include "macosx/macosx_smp.hpp"
-#include "macosx/macosx_io_poller.hpp"
+#include <memoria/v1/reactor/macosx/macosx_smp.hpp>
+#include <memoria/v1/reactor/macosx/macosx_io_poller.hpp>
 #elif defined(MMA1_LINUX)
-#include "linux/linux_smp.hpp"
-#include "linux/linux_io_poller.hpp"
+#include <memoria/v1/reactor/linux/linux_smp.hpp>
+#include <memoria/v1/reactor/linux/linux_io_poller.hpp>
 #endif
 
-#include "thread_pool.hpp"
-#include "ring_buffer.hpp"
+#include <memoria/v1/reactor/thread_pool.hpp>
+#include <memoria/v1/reactor/ring_buffer.hpp>
 
 #include <memoria/v1/reactor/console_streams.hpp>
-//#include <memoria/v1/reactor/pipe_streams.hpp>
+#include <memoria/v1/reactor/streambuf.hpp>
 
 #include <thread>
 #include <memory>

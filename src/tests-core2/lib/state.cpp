@@ -13,36 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tests/tests.hpp>
+
+#include <memoria/v1/tests/state.hpp>
 
 namespace memoria {
 namespace v1 {
 namespace tests {
-
-struct CustomState: TestState {
-    using Base = TestState;
-
-    int foo_{};
-
-    U8String long_text_;
-
-    MMA1_STATE_FILEDS(foo_)
-
-    MMA1_INDIRECT_STATE_FILEDS(long_text_)
-};
-
-
-auto test1 = register_test<FnTest<>>(u"Crashed-HelloWorldTest", [](auto&){
-    int* a = nullptr;
-    *a = 12345;
-});
-
-auto test2 = register_test<FnTest<>>(u"Failed-HelloWorldTest", [](auto&){
-    MMA1_THROW(TestException()) << WhatCInfo("Something happened");
-});
-
-auto test3 = register_test<FnTest<CustomState>>(u"Passed-HelloWorldTest", [](auto&){
-
-});
 
 }}}

@@ -116,6 +116,10 @@ void Test::run(TestContext *context) noexcept
         state = create_state(context->configurator());
         state->add_field_handlers();
         state->add_indirect_field_handlers();
+
+        CommonConfigurationContext configuration_context(context->configurator()->config_base_path());
+
+        state->internalize(context->configurator()->configuration(), &configuration_context);
     }
     catch (...) {
         context->failed(TestStatus::SETUP_FAILED, std::current_exception());
