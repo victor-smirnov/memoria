@@ -16,9 +16,30 @@
 
 #include "msvc_process_impl.hpp"
 
+#include <memoria/v1/core/memory/malloc.hpp>
+
+#include <boost/winapi/dll.hpp>
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
+
+
+
+filesystem::path get_program_path()
+{
+	DWORD bSize = 65535;
+	auto buf = allocate_system_zeroed<wchar_t>(bSize + 1);
+
+	DWORD actual_size = boost::detail::winapi::GetModuleFileNameW(nullptr, buf.get(), bSize + 1);
+	if (GetLastError() == 0) 
+	{
+		return filesystem::path(UWString(buf.get(), actual_size));
+	}
+	else {
+		MMA1_THROW(SystemException()) << WhatCInfo("Can't obtain this module's file name");
+	}
+}
+
 
 }}}

@@ -69,7 +69,8 @@ DWORD get_disposition(FileFlags flags, FileMode mode) {
 	if (to_bool(flags & FileFlags::TRUNCATE)) {
 		disposition = TRUNCATE_EXISTING;
 	}
-	else if (to_bool(flags & FileFlags::CREATE)) 
+	
+	if (to_bool(flags & FileFlags::CREATE)) 
 	{
 		if (to_bool(flags & FileFlags::EXCL)) {
 			disposition = CREATE_NEW;
@@ -77,6 +78,9 @@ DWORD get_disposition(FileFlags flags, FileMode mode) {
 		else {
 			disposition = OPEN_ALWAYS;
 		}
+	}
+	else {
+		disposition |= OPEN_EXISTING;
 	}
 	
 	return disposition;
@@ -113,16 +117,19 @@ GenericFile::GenericFile(filesystem::path file_path, FileFlags flags, FileMode m
 	DWORD last_error{};
 
 	std::tie(fd_, last_error) = engine().run_in_thread_pool([&] {
+
+		auto handle = CreateFileW(
+			file_path.std_wstring().c_str(),
+			get_access(flags, mode),
+			get_share_mode(flags, mode),
+			nullptr,
+			creation_disposition,
+			get_flags_and_attributes(flags, mode, no_buffering_),
+			nullptr
+		);
+
 		return std::make_tuple(
-			CreateFile(
-				file_path.std_string().c_str(),
-				get_access(flags, mode),
-				get_share_mode(flags, mode),
-				NULL,
-				creation_disposition,
-				get_flags_and_attributes(flags, mode, no_buffering_),
-				NULL
-			), 
+			handle, 
 			GetLastError()
 		);
 	});
