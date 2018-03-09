@@ -68,7 +68,7 @@ U8String FormatTime(int64_t millis)
         int64_t seconds  = millis / 1000;
         millis = millis % 1000;
 
-        return toString(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
+        return toString(minutes) + ":" + getTwoDigitsPart(seconds) + "." + getMillisPart(millis);
     }
     else if (millis < 60000 * 60 * 24)
     {

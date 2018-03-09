@@ -19,6 +19,8 @@
 #include <memoria/v1/yaml-cpp/yaml.h>
 #include <memoria/v1/filesystem/path.hpp>
 
+#include <memoria/v1/core/tools/optional.hpp>
+
 #include <boost/preprocessor/list/for_each.hpp>
 #include <boost/preprocessor/variadic/to_list.hpp>
 
@@ -40,13 +42,12 @@ template <typename T> struct IndirectStateFiledSerializer;
 
 template <>
 struct IndirectStateFiledSerializer<U8String> {
-    static void externalize(const U8String& value, filesystem::path path, ConfigurationContext* context)
-    {
+    static void externalize(const U8String& value, filesystem::path path, ConfigurationContext* context){
 
     }
 
     static void internalize(U8String& value, filesystem::path path, ConfigurationContext* context) {
-        std::cout << "INTERNALIZE: " << path << std::endl;
+
     }
 };
 
@@ -114,6 +115,10 @@ public:
     }
 };
 
+enum class TestCoverage {SMOKE, TINY, SMALL, MEDIUM, LARGE, XLARGE};
+
+Optional<TestCoverage> coverage_from_string(const U8String& str);
+
 class TestState {
     std::vector<std::unique_ptr<FieldHandler>> handlers_;
 public:
@@ -125,6 +130,10 @@ public:
 
     virtual void add_field_handlers() {}
     virtual void add_indirect_field_handlers() {}
+
+    virtual int32_t threads() const noexcept {
+        return 1;
+    }
 
     template <typename T>
     void add_field_handler(const char* name, T& field)
@@ -153,6 +162,9 @@ public:
             handler->internalize(node, context);
         }
     }
+
+    virtual void pre_configure(TestCoverage coverage)  {}
+    virtual void post_configure(TestCoverage coverage) {}
 };
 
 class CommonConfigurationContext: public ConfigurationContext {

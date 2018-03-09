@@ -46,6 +46,7 @@ struct TestExecutionException: virtual TestException {};
 
 enum class TestStatus {PASSED, TEST_FAILED, SETUP_FAILED};
 
+
 struct TestConfigurator {
     virtual ~TestConfigurator() noexcept {}
     virtual YAML::Node& configuration() = 0;
@@ -54,6 +55,8 @@ struct TestConfigurator {
 
 struct TestContext {
     virtual ~TestContext() noexcept {}
+
+    virtual TestCoverage coverage() const noexcept     = 0;
 
     virtual TestConfigurator* configurator() noexcept  = 0;
     virtual std::ostream& out() noexcept               = 0;
@@ -70,7 +73,7 @@ struct TestContext {
 
 struct Test {
     virtual ~Test() {}
-    virtual std::unique_ptr<TestState> create_state(TestConfigurator* configurator) = 0;
+    virtual std::unique_ptr<TestState> create_state() = 0;
     void run(TestContext* context) noexcept;
 
     virtual void test(TestState* state) = 0;
@@ -164,7 +167,7 @@ EmptyType register_test(const U16String& test_name, Args&&... args)
 template <typename TestT, typename... Args>
 EmptyType register_test_in_suite(const U16String& suite_name, const U16String& test_name, Args&&... args)
 {
-    tests_registry().emplace_in_suite<TestT>(test_name, std::forward<Args>(args)...);
+    tests_registry().emplace_in_suite<TestT>(suite_name, test_name, std::forward<Args>(args)...);
     return EmptyType();
 }
 
@@ -183,7 +186,7 @@ public:
         fn_(*tools::ptr_cast<StateT>(state));
     }
 
-    std::unique_ptr<TestState> create_state(TestConfigurator* configurator) {
+    std::unique_ptr<TestState> create_state() {
         return std::make_unique<StateT>();
     }
 };

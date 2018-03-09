@@ -20,6 +20,9 @@
 #include <memoria/v1/reactor/file_streams.hpp>
 #include <memoria/v1/filesystem/operations.hpp>
 
+#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/v1/core/tools/time.hpp>
+
 #include <memoria/v1/yaml-cpp/yaml.h>
 
 #include <sstream>
@@ -81,8 +84,14 @@ TestStatus run_single_test(const U16String& test_path)
 
         if (filesystem::is_regular_file(config_path))
         {
-
             YAML::Node config = YAML::LoadFile(config_path.to_u8().to_std_string());
+
+            if (config["seed"])
+            {
+                int64_t seed = config["seed"].as<int64_t>();
+                Seed(seed);
+                SeedBI(seed);
+            }
 
             U16String suite_name;
             U16String test_name;
@@ -95,8 +104,23 @@ TestStatus run_single_test(const U16String& test_path)
                 test_config = suite_node[test_name.to_u8().to_std_string()];
             }
         }
+        else
+        {
+            int64_t seed = getTimeInMillis();
+            Seed(seed);
+            SeedBI(seed);
+        }
 
-        DefaultTestContext ctx(test_config, config_path.parent_path());
+        U8String coverage;
+
+        if (app().options().count("coverage") > 0) {
+            coverage = app().options()["coverage"].as<std::string>();
+        }
+        else {
+            coverage = "small";
+        }
+
+        DefaultTestContext ctx(test_config, config_path.parent_path(), coverage_from_string(coverage).get());
         test.get().run(&ctx);
 
         if (ctx.status() == TestStatus::PASSED)
@@ -225,8 +249,30 @@ void run_tests()
 
                 U16String test_path = suite.first + u"/" + test.first;
 
+                std::vector<U16String> args;
+
+                args.emplace_back(u"tests2");
+                args.emplace_back(u"--test");
+                args.emplace_back(test_path);
+
+                if (!config_file.is_empty()) {
+                    args.emplace_back(u"--config");
+                    args.emplace_back(config_file);
+                }
+
+                if (test_node["threads"])
+                {
+                    args.emplace_back(u"-t");
+                    args.emplace_back(test_node["threads"].as<std::string>());
+                }
+                else {
+                    auto state = test.second->create_state();
+                    args.emplace_back(u"-t");
+                    args.emplace_back(std::to_string(state->threads()));
+                }
+
                 reactor::Process process = reactor::ProcessBuilder::create(reactor::get_program_path())
-                        .with_args(U16String("tests2 --test ") + test_path + (config_file.is_empty() ? u"" : U16String(u" --config ") + config_file))
+                        .with_args(args)
                         .run();
 
                 reactor::InputStreamReader out_reader = process.out_stream();
@@ -274,5 +320,36 @@ void run_tests()
         }
     }
 }
+
+void Test::run(TestContext *context) noexcept
+{
+    std::unique_ptr<TestState> state;
+
+    try {
+        state = create_state();
+
+        state->pre_configure(context->coverage());
+        state->add_field_handlers();
+        state->add_indirect_field_handlers();
+        state->post_configure(context->coverage());
+
+        CommonConfigurationContext configuration_context(context->configurator()->config_base_path());
+
+        state->internalize(context->configurator()->configuration(), &configuration_context);
+    }
+    catch (...) {
+        context->failed(TestStatus::SETUP_FAILED, std::current_exception());
+        return;
+    }
+
+    try {
+        test(state.get());
+        context->passed();
+    }
+    catch (...) {
+        context->failed(TestStatus::TEST_FAILED, std::current_exception());
+    }
+}
+
 
 }}}

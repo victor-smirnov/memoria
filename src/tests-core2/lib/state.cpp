@@ -16,8 +16,36 @@
 
 #include <memoria/v1/tests/state.hpp>
 
+#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/v1/core/strings/format.hpp>
+
 namespace memoria {
 namespace v1 {
 namespace tests {
+
+Optional<TestCoverage> coverage_from_string(const U8String& str)
+{
+    if (str == "smoke") {
+        return TestCoverage::SMOKE;
+    }
+    else if (str == "tiny") {
+        return TestCoverage::TINY;
+    }
+    else if (str == "small") {
+        return TestCoverage::SMALL;
+    }
+    else if (str == "medium") {
+        return TestCoverage::MEDIUM;
+    }
+    else if (str == "large") {
+        return TestCoverage::LARGE;
+    }
+    else if (str == "xlarge") {
+        return TestCoverage::XLARGE;
+    }
+    else {
+        return Optional<TestCoverage>();
+    }
+}
 
 }}}

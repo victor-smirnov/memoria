@@ -15,59 +15,68 @@
 
 #include <memoria/v1/core/tools/random.hpp>
 
+#include <memoria/v1/core/exceptions/exceptions.hpp>
+
 namespace memoria {
 namespace v1 {
 
-RngInt     int_generator;
-RngInt64   bigint_generator;
-
-
 RngInt& getGlobalIntGenerator() {
+
+    thread_local RngInt int_generator;
+
     return int_generator;
 }
 
 RngInt64& getGlobalInt64Generator() {
+    thread_local RngInt64 bigint_generator;
     return bigint_generator;
 }
 
 int32_t getRandomG()
 {
-    return int_generator();
+    return getGlobalIntGenerator()();
 }
 
 int32_t getRandomG(int32_t max)
 {
-    return max > 0 ? int_generator() % max : 0;
+    return max > 0 ? getGlobalIntGenerator()() % max : 0;
 }
 
 void Seed(int32_t value)
 {
     std::seed_seq ss({value});
-    int_generator.engine().seed(ss);
+    getGlobalIntGenerator().engine().seed(ss);
 }
 
 
 int64_t getBIRandomG()
 {
-    return bigint_generator();
+    return getGlobalInt64Generator()();
 }
 
 int64_t getBIRandomG(int64_t max)
 {
-    return max > 0 ? bigint_generator() % max : 0;
+    return max > 0 ? getGlobalInt64Generator()() % max : 0;
 }
 
 void SeedBI(int64_t value)
 {
     std::seed_seq ss({value});
-    bigint_generator.engine().seed(ss);
+    getGlobalInt64Generator().engine().seed(ss);
 }
 
 
 int32_t getNonZeroRandomG(int32_t size)
 {
-    int32_t value = getRandomG(size);
-    return value != 0 ? value : getNonZeroRandomG(size);
+    if (size > 1)
+    {
+        int32_t value;
+        while ((value = getRandomG(size)) == 0) {}
+        return value;
+    }
+    else {
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Invalid argument");
+    }
 }
 
 

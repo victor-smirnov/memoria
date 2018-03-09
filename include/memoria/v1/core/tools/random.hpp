@@ -60,27 +60,28 @@ public:
         return engine_;
     }
 
-    void seed(T value) {
+    void seed(T value)
+    {
         std::seed_seq ss({value});
         engine_.seed(ss);
     }
 };
 
-using RngInt    = RNG<int32_t, RngEngine32>;
+using RngInt   = RNG<int32_t, RngEngine32>;
 using RngInt64 = RNG<int64_t, RngEngine64>;
 
 
 RngInt& getGlobalIntGenerator();
 RngInt64& getGlobalInt64Generator();
 
-int32_t     getRandomG();
-int32_t     getRandomG(int32_t max);
+int32_t getRandomG();
+int32_t getRandomG(int32_t max);
 void    Seed(int32_t value);
-int32_t     getSeed();
+int32_t getSeed();
 
 int64_t  getBIRandomG();
 int64_t  getBIRandomG(int64_t max);
-void    SeedBI(int64_t value);
+void     SeedBI(int64_t value);
 int64_t  getSeedBI();
 
 

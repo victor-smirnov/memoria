@@ -52,13 +52,16 @@ class DefaultTestContext: public TestContext {
 
     std::exception_ptr ex_;
 
+    TestCoverage coverage_;
+
 public:
-    DefaultTestContext(YAML::Node configuration, filesystem::path config_base_path):
-        configurator_(configuration, config_base_path)
+    DefaultTestContext(YAML::Node configuration, filesystem::path config_base_path, TestCoverage coverage):
+        configurator_(configuration, config_base_path),
+        coverage_(coverage)
     {}
 
-
-    TestStatus status() const {return status_;}
+    virtual TestCoverage coverage() const noexcept {return coverage_;}
+    TestStatus status() const noexcept {return status_;}
 
     std::exception_ptr& ex() {return ex_;}
 

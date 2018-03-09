@@ -16,6 +16,7 @@
 
 
 #include <memoria/v1/tests/tests.hpp>
+#include <memoria/v1/tests/arg_helper.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -108,30 +109,52 @@ TestsRegistry& tests_registry() {
 }
 
 
-void Test::run(TestContext *context) noexcept
+
+char* ThreadsArgHelper::make_copy(const char* str)
 {
-    std::unique_ptr<TestState> state;
+    char* copy = allocate_system<char>(::strlen(str) + 1).release();
+    ::strcpy(copy, str);
+    return copy;
+}
 
-    try {
-        state = create_state(context->configurator());
-        state->add_field_handlers();
-        state->add_indirect_field_handlers();
-
-        CommonConfigurationContext configuration_context(context->configurator()->config_base_path());
-
-        state->internalize(context->configurator()->configuration(), &configuration_context);
+char* ThreadsArgHelper::has_arg(const std::string& target_arg_name)
+{
+    size_t max = args_.size() - 1;
+    for (size_t c = 0; c < max; c++)
+    {
+        if (target_arg_name == args_[c])
+        {
+            if (c < max - 1){
+                return args_[c + 1];
+            }
+            else {
+                std::cout << "Incorrect " << target_arg_name << " command line switch. Aborting." << std::endl;
+                std::terminate();
+            }
+        }
     }
-    catch (...) {
-        context->failed(TestStatus::SETUP_FAILED, std::current_exception());
-        return;
-    }
 
-    try {
-        test(state.get());
-        context->passed();
-    }
-    catch (...) {
-        context->failed(TestStatus::TEST_FAILED, std::current_exception());
+    return nullptr;
+}
+
+
+void ThreadsArgHelper::fix_thread_arg()
+{
+    char* test_name = has_arg("--test");
+
+    if (test_name)
+    {
+        char* threads1 = has_arg("--threads");
+        char* threads2 = has_arg("-t");
+
+        if (!(threads1 || threads2))
+        {
+            Test& test = tests_registry().find_test(test_name).get();
+            auto state = test.create_state();
+
+            args_.insert(args_.begin() + 1, make_copy("-t"));
+            args_.insert(args_.begin() + 2, make_copy(std::to_string(state->threads()).data()));
+        }
     }
 }
 

@@ -16,6 +16,7 @@
 #include <memoria/v1/reactor/application.hpp>
 
 #include <memoria/v1/tests/runner.hpp>
+#include <memoria/v1/tests/arg_helper.hpp>
 
 using namespace memoria::v1;
 using namespace memoria::v1::reactor;
@@ -24,19 +25,30 @@ namespace po = boost::program_options;
 
 int main(int argc, char** argv, char** envp)
 {
+    tests::ThreadsArgHelper helper(argv);
+
     po::options_description options;
 
     options.add_options()
         ("runs", "Number of runs for entire test suites set")
         ("test", po::value<std::string>(), "Specific test name to run")
         ("config", po::value<std::string>(), "Path to config file, defaults to tests2.yaml")
+        ("output", po::value<std::string>(), "Path to tests' output directory, defaults to tests2.out in the CWD")
+        ("coverage",
+            po::value<std::string>()->default_value("small"),
+            "Test coverage type: smoke, tiny, small, medium, large, xlarge"
+        )
         ;
 
-
-    return Application::run_e(options, argc, argv, envp, [&]{
+    return Application::run_e(options, helper.argc(), helper.args(), envp, [&]{
         ShutdownOnScopeExit hh;
 
-        engine().coutln(u"Program path: {}", get_program_path());
+        std::string coverage = app().options()["coverage"].as<std::string>();
+        if (!tests::coverage_from_string(coverage))
+        {
+            engine().coutln(u"Invalid test coverage type: {}", coverage);
+            return 1;
+        }
 
         if (app().options().count("test") > 0)
         {
