@@ -36,7 +36,6 @@ auto test = register_test_in_suite<FnTest<PipeTestState>>(u"ReactorSuite", u"Pip
     {
         reactor::engine().coutln(u"THREADS: {} {} {}", c, reactor::engine().cpu_num(), state.working_directory_);
     }
-
 });
 
 }}}

@@ -313,22 +313,22 @@ void run_tests()
                 std_output.append("stdout.txt");
                 File out_file = open_buffered_file(std_output, FileFlags::CREATE | FileFlags::RDWR);
 
-//                filesystem::path std_error = test_output_dir;
-//                std_error.append("stderr.txt");
-//                File err_file = open_buffered_file(std_error, FileFlags::CREATE | FileFlags::RDWR);
+                filesystem::path std_error = test_output_dir;
+                std_error.append("stderr.txt");
+                File err_file = open_buffered_file(std_error, FileFlags::CREATE | FileFlags::RDWR);
 
                 reactor::InputStreamReaderWriter out_reader(process.out_stream(), out_file.ostream());
-//                reactor::InputStreamReaderWriter err_reader(process.err_stream(), err_file.ostream());
+                reactor::InputStreamReaderWriter err_reader(process.err_stream(), err_file.ostream());
 
 //                reactor::InputStreamReader err_reader(process.err_stream());
 
                 process.join();
 
                 out_reader.join();
-//                err_reader.join();
+                err_reader.join();
 
                 out_file.close();
-//                err_file.close();
+                err_file.close();
 
                 auto status = process.status();
 
