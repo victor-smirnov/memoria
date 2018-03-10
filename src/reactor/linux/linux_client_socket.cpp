@@ -144,6 +144,10 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
         {
             fiber_io_message_.wait_for();
         }
+        else if (errno == ECONNRESET || errno == ECONNABORTED) {
+            data_closed_ = true;
+            return 0;
+        }
         else {            
             MMA1_THROW(SystemException()) << fmt::format_ex(u"Error reading from socket connection for {}:{}:{}", ip_address_, ip_port_, fd_);
         }
@@ -163,6 +167,10 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
         else if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
             fiber_io_message_.wait_for();
+        }
+        else if (errno == ECONNRESET || errno == ECONNABORTED) {
+            data_closed_ = true;
+            return 0;
         }
         else {
             MMA1_THROW(SystemException()) << fmt::format_ex(u"Error writing to socket connection for {}:{}:{}", ip_address_, ip_port_, fd_);

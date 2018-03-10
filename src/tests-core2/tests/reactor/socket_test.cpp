@@ -15,7 +15,7 @@
 
 #include <memoria/v1/tests/tests.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/pipe_streams.hpp>
+#include <memoria/v1/reactor/socket.hpp>
 
 #include "stream_test.hpp"
 
@@ -23,9 +23,9 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
-using TestRunner = StreamTester<reactor::PipeInputStream, reactor::PipeOutputStream>;
+using TestRunner = StreamTester<BinaryInputStream, BinaryOutputStream>;
 
-struct PipeTestState: TestState {
+struct SocketTestState: TestState {
     using Base = TestState;
 
     TestDuration duration;
@@ -54,17 +54,51 @@ struct PipeTestState: TestState {
 };
 
 
+auto sokcet_test = register_test_in_suite<FnTest<SocketTestState>>(u"ReactorSuite", u"SocketTest", [](auto& state){
+
+    int32_t outbound_port = getRandomG(1000);
+    int32_t inbound_port  = getRandomG(1000);
+
+    reactor::ServerSocket sender_server_socket(reactor::IPAddress(127,0,0,1), 5000 + outbound_port);
+    sender_server_socket.listen();
+
+    reactor::ServerSocket looper_server_socket(reactor::IPAddress(127,0,0,1), 5000 + inbound_port);
+    looper_server_socket.listen();
+
+    reactor::ServerSocketConnection sender_server_connection;
+    reactor::ServerSocketConnection looper_server_connection;
 
 
-auto pipe_test = register_test_in_suite<FnTest<PipeTestState>>(u"ReactorSuite", u"PipeTest", [](auto& state){
-    auto outbound_pipe = reactor::open_pipe();
-    auto inbound_pipe  = reactor::open_pipe();
+    reactor::ClientSocket looper_client_connection;
+    reactor::ClientSocket receiver_client_connection;
+
+    fibers::fiber sender_connector([&]{
+        sender_server_connection = sender_server_socket.accept();
+    });
+
+    fibers::fiber looper_connector([&]{
+        looper_client_connection = reactor::ClientSocket(reactor::IPAddress(127,0,0,1), 5000 + outbound_port);
+        looper_server_connection = looper_server_socket.accept();
+    });
+
+    fibers::fiber receiver_connector([&]{
+        receiver_client_connection = reactor::ClientSocket(reactor::IPAddress(127,0,0,1), 5000 + inbound_port);
+    });
+
+
+
+    sender_connector.join();
+    looper_connector.join();
+    receiver_connector.join();
 
     TestRunner runner(
-            outbound_pipe.input,
-            outbound_pipe.output,
-            inbound_pipe.input,
-            inbound_pipe.output,
+            sender_server_connection.output(),
+
+            looper_client_connection.input(),
+            looper_server_connection.output(),
+
+            receiver_client_connection.input(),
+
             state.duration,
             1,
             65536
@@ -80,5 +114,7 @@ auto pipe_test = register_test_in_suite<FnTest<PipeTestState>>(u"ReactorSuite", 
     assert_equals(runner.total_sent(), runner.total_received(), "Sent/received");
     assert_equals(runner.total_sent(), runner.total_transferred(), "Sent/transferred");
 });
+
+
 
 }}}

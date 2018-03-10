@@ -147,7 +147,7 @@ SocketConnectionData ServerSocketImpl::accept()
             fiber_io_message_.wait_for();
         }
         else {
-            MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't start accepting connections for {}:{}", ip_address_, ip_port_);
+            MMA1_THROW(SystemException(errno)) << fmt::format_ex(u"Can't start accepting connections for {}:{}", ip_address_, ip_port_);
         }
     }
 }

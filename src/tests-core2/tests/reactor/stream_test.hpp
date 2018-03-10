@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <functional>
 
 namespace memoria {
 namespace v1 {
@@ -34,13 +35,15 @@ namespace tests {
 
 using TestDuration = std::chrono::duration<double>;
 
+
 template <typename InputStream, typename OutputStream>
 class StreamTester {
-    InputStream sender_istream_;
     OutputStream sender_ostream_;
 
+    InputStream looper_istream_;
+    OutputStream looper_ostream_;
+
     InputStream receiver_istream_;
-    OutputStream receiver_ostream_;
 
     TestDuration test_length_;
     size_t block_size_min_;
@@ -56,14 +59,19 @@ class StreamTester {
 
 public:
     StreamTester(
-        InputStream sender_istream, OutputStream sender_ostream,
-        InputStream receiver_istream, OutputStream receiver_ostream,
+        OutputStream sender_ostream,
+        InputStream looper_istream,
+        OutputStream looper_ostream,
+        InputStream receiver_istream,
+
         TestDuration test_length,
         size_t block_size_min,
         size_t block_size_max
     ):
-        sender_istream_(sender_istream), sender_ostream_(sender_ostream),
-        receiver_istream_(receiver_istream), receiver_ostream_(receiver_ostream),
+        sender_ostream_(sender_ostream),
+        looper_istream_(looper_istream),
+        looper_ostream_(looper_ostream),
+        receiver_istream_(receiver_istream),
         test_length_(test_length),
         block_size_min_(block_size_min),
         block_size_max_(block_size_max)
@@ -71,9 +79,32 @@ public:
 
     void start()
     {
-        sender_ = fibers::fiber([&]{send();});
-        receiver_ = fibers::fiber([&]{receive();});
-        looper_ = fibers::fiber([&]{loop();});
+        sender_ = fibers::fiber([&]{
+            try {
+                send();
+            }
+            catch (MemoriaThrowable& th) {
+                th.dump(reactor::engine().cout());
+            }
+        });
+
+        receiver_ = fibers::fiber([&]{
+            try {
+                receive();
+            }
+            catch (MemoriaThrowable& th) {
+                th.dump(reactor::engine().cout());
+            }
+        });
+
+        looper_ = fibers::fiber([&]{
+            try {
+                loop();
+            }
+            catch (MemoriaThrowable& th) {
+                th.dump(reactor::engine().cout());
+            }
+        });
     }
 
     void join()
@@ -108,7 +139,7 @@ private:
             }
 
             size_t written = sender_ostream_.write(buffer_ptr, block_size);
-            assert_equals(written, block_size, "Stream write size");
+            assert_equals(block_size, written, "Sender stream write size");
             total_sent_ += written;
         }
 
@@ -122,23 +153,23 @@ private:
 
         uint8_t stream_state_{};
 
-        while (!sender_istream_.is_closed())
+        while (!looper_istream_.is_closed())
         {
             size_t block_size = getRandomG(block_size_max_ - block_size_min_) + block_size_min_;
 
-            size_t read = sender_istream_.read(buffer_ptr, block_size);
+            size_t read = looper_istream_.read(buffer_ptr, block_size);
 
             for (size_t c = 0; c < read; c++, stream_state_++)
             {
-                assert_equals(buffer_ptr[c], stream_state_, "Looper stream state");
+                assert_equals(stream_state_, buffer_ptr[c], "Looper stream state");
             }
 
-            size_t written = receiver_ostream_.write(buffer_ptr, read);
-            assert_equals(written, read, "Looper write size");
+            size_t written = looper_ostream_.write(buffer_ptr, read);
+            assert_equals(read, written, "Looper write size");
             total_transferred_ += written;
         }
 
-        receiver_ostream_.close();
+        looper_ostream_.close();
     }
 
     void receive()
@@ -156,7 +187,7 @@ private:
 
             for (size_t c = 0; c < read; c++, stream_state_++)
             {
-                assert_equals(buffer_ptr[c], stream_state_, "Receiver stream state");
+                assert_equals(stream_state_, buffer_ptr[c], "Receiver stream state");
             }
 
             total_received_ += read;

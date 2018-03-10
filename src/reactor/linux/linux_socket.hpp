@@ -122,7 +122,7 @@ public:
     virtual size_t read(uint8_t* data, size_t size);
     virtual size_t write(const uint8_t* data, size_t size) {
         size_t tt{};
-        while (tt < size) {
+        while (tt < size && !data_closed_) {
             tt += write_(data + tt, size - tt);
         }
         return tt;
@@ -174,7 +174,7 @@ public:
      virtual size_t read(uint8_t* data, size_t size);
      virtual size_t write(const uint8_t* data, size_t size) {
          size_t tt{};
-         while (tt < size) {
+         while (tt < size && !data_closed_) {
              tt += write_(data + tt, size - tt);
          }
          return tt;
