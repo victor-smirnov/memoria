@@ -73,6 +73,10 @@ auto test = register_test_in_suite<FnTest<PipeTestState>>(u"ReactorSuite", u"Pip
     runner.start();
     runner.join();
 
+	reactor::engine().coutln(u"Sent {} bytes", runner.total_sent());
+	reactor::engine().coutln(u"Transferred {} bytes", runner.total_transferred());
+	reactor::engine().coutln(u"Received {} bytes", runner.total_received());
+
     assert_equals(runner.total_sent(), runner.total_received(), "Sent/received");
     assert_equals(runner.total_sent(), runner.total_transferred(), "Sent/transferred");
 });
