@@ -121,11 +121,7 @@ class ProcessBuilderImpl {
     CharPtrList args_;
     CharPtrList envp_;
 
-#ifdef MMA1_LINUX
-    bool use_vfork_{true};
-#else
     bool use_vfork_{false};
-#endif
 
 public:
 	ProcessBuilderImpl(filesystem::path&& exe_path) :
@@ -265,9 +261,13 @@ public:
         {
             // child
 
-            //fcntl(pipe_in.output.handle(), F_SETFL, O_CLOEXEC);
-            //fcntl(pipe_err.input.handle(), F_SETFL, O_CLOEXEC);
-            //fcntl(pipe_out.input.handle(), F_SETFL, O_CLOEXEC);
+            clear_flags(stdout_child_fd, O_NONBLOCK);
+            clear_flags(stderr_child_fd, O_NONBLOCK);
+            clear_flags(stdin_child_fd, O_NONBLOCK);
+
+            add_flags(pipe_in.output.handle(), O_CLOEXEC);
+            add_flags(pipe_err.input.handle(), O_CLOEXEC);
+            add_flags(pipe_out.input.handle(), O_CLOEXEC);
 
             if (dup2(stdin_child_fd, 0) < 0)
             {
@@ -309,6 +309,19 @@ public:
     }
 
     virtual ~ProcessImpl() noexcept {}
+
+    void add_flags(int fd, int flags)
+    {
+        int ff = fcntl(fd, F_GETFL);
+        fcntl(fd, F_SETFL, ff | flags);
+    }
+
+    void clear_flags(int fd, int flags)
+    {
+        int ff = fcntl(fd, F_GETFL);
+        fcntl(fd, F_SETFL, ff & ~flags);
+    }
+
 
     Process::Status join()
     {
