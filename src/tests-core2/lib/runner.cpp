@@ -90,6 +90,27 @@ filesystem::path get_tests_output_path()
     return output_path;
 }
 
+U16String get_test_coverage_str()
+{
+    if (app().options().count("coverage") > 0) {
+        return U16String(app().options()["coverage"].as<std::string>());
+    }
+    else {
+        return "small";
+    }
+}
+
+Optional<TestCoverage> get_test_coverage()
+{
+    if (app().options().count("coverage") > 0) {
+        return coverage_from_string(get_test_coverage_str().to_u8());
+    }
+    else {
+        return TestCoverage::SMALL;
+    }
+}
+
+
 }
 
 TestStatus run_single_test(const U16String& test_path)
@@ -131,28 +152,25 @@ TestStatus run_single_test(const U16String& test_path)
             SeedBI(seed);
         }
 
-        U8String coverage;
-
-        if (app().options().count("coverage") > 0) {
-            coverage = app().options()["coverage"].as<std::string>();
-        }
-        else {
-            coverage = "small";
-        }
-
         filesystem::path test_output_dir = output_dir_base;
         test_output_dir.append(suite_name.to_u8().to_std_string());
         test_output_dir.append(test_name.to_u8().to_std_string());
 
-        DefaultTestContext ctx(test_config, config_path.parent_path(), filesystem::absolute(test_output_dir), coverage_from_string(coverage).get());
+        Optional<TestCoverage> coverage = get_test_coverage();
+
+        DefaultTestContext ctx(test_config, config_path.parent_path(), filesystem::absolute(test_output_dir), coverage.get());
+
+        int64_t start_time = getTimeInMillis();
         test.get().run(&ctx);
+        int64_t end_time = getTimeInMillis();
+
 
         if (ctx.status() == TestStatus::PASSED)
         {
-            reactor::engine().cout() << "PASSED" << std::flush;
+            reactor::engine().coutln(u"PASSED in {}s", FormatTime(end_time - start_time));
         }
         else {
-            reactor::engine().cout() << "FAILED" << std::flush;
+            reactor::engine().coutln(u"FAILED in {}s", FormatTime(end_time - start_time));
             if (ctx.ex())
             {
                 dump_exception(ctx.out(), ctx.ex());
@@ -304,6 +322,8 @@ void run_tests()
                 args.emplace_back(u"--output");
                 args.emplace_back(test_output_dir.to_u16());
 
+                args.emplace_back(u"--coverage");
+                args.emplace_back(get_test_coverage_str());
 
                 reactor::Process process = reactor::ProcessBuilder::create(reactor::get_program_path())
                         .with_args(args)
@@ -319,8 +339,6 @@ void run_tests()
 
                 reactor::InputStreamReaderWriter out_reader(process.out_stream(), out_file.ostream());
                 reactor::InputStreamReaderWriter err_reader(process.err_stream(), err_file.ostream());
-
-//                reactor::InputStreamReader err_reader(process.err_stream());
 
                 process.join();
 

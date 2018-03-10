@@ -14,31 +14,67 @@
 // limitations under the License.
 
 #include <memoria/v1/tests/tests.hpp>
-
 #include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/v1/reactor/pipe_streams.hpp>
+
+#include "stream_test.hpp"
 
 namespace memoria {
 namespace v1 {
 namespace tests {
 
+using TestRunner = StreamTester<reactor::PipeInputStream, reactor::PipeOutputStream>;
+
 struct PipeTestState: TestState {
     using Base = TestState;
 
-    int size{256*1024};
+    TestDuration duration;
 
-    MMA1_STATE_FILEDS(size)
-
+    virtual void post_configure(TestCoverage coverage)
+    {
+        if (coverage == TestCoverage::SMOKE) {
+            duration = std::chrono::milliseconds(100);
+        }
+        else if (coverage == TestCoverage::TINY) {
+            duration = std::chrono::milliseconds(500);
+        }
+        else if (coverage == TestCoverage::SMALL) {
+            duration = std::chrono::seconds(1);
+        }
+        else if (coverage == TestCoverage::MEDIUM) {
+            duration = std::chrono::seconds(10);
+        }
+        else if (coverage == TestCoverage::LARGE) {
+            duration = std::chrono::seconds(60);
+        }
+        else {
+            duration = std::chrono::seconds(300);
+        }
+    }
 };
 
 
-auto test = register_test_in_suite<FnTest<PipeTestState>>(u"ReactorSuite", u"PipeTest", [](auto& state){
-    for (int c = 0; c < 100000; c++)
-    {
-        //fcntl(1, F_SETFL, O_NONBLOCK);
-        int flags = fcntl(1, F_GETFL);
 
-        reactor::engine().coutln(u"THREADS: {} {} {} {}", c, reactor::engine().cpu_num(), state.working_directory_, flags & O_NONBLOCK);
-    }
+
+auto test = register_test_in_suite<FnTest<PipeTestState>>(u"ReactorSuite", u"PipeTest", [](auto& state){
+    auto outbound_pipe = reactor::open_pipe();
+    auto inbound_pipe  = reactor::open_pipe();
+
+    TestRunner runner(
+            outbound_pipe.input,
+            outbound_pipe.output,
+            inbound_pipe.input,
+            inbound_pipe.output,
+            state.duration,
+            1,
+            65536
+    );
+
+    runner.start();
+    runner.join();
+
+    assert_equals(runner.total_sent(), runner.total_received(), "Sent/received");
+    assert_equals(runner.total_sent(), runner.total_transferred(), "Sent/transferred");
 });
 
 }}}
