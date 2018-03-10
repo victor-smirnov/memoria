@@ -75,6 +75,7 @@ class InputStreamReaderWriter {
     BinaryOutputStream output_;
 
     fibers::fiber reader_;
+
 public:
     InputStreamReaderWriter(PipeInputStream pipe_in, BinaryOutputStream output):
         pipe_in_(pipe_in),
@@ -91,7 +92,7 @@ public:
 private:
     void do_read_data()
     {
-        uint8_t buf[256];
+        uint8_t buf[1024];
         while (!pipe_in_.is_closed())
         {
             size_t read = pipe_in_.read(buf, sizeof(buf));

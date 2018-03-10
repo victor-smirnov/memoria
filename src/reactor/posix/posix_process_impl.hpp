@@ -121,7 +121,11 @@ class ProcessBuilderImpl {
     CharPtrList args_;
     CharPtrList envp_;
 
+#ifdef MMA1_LINUX
+    bool use_vfork_{true};
+#else
     bool use_vfork_{false};
+#endif
 
 public:
 	ProcessBuilderImpl(filesystem::path&& exe_path) :
@@ -261,9 +265,9 @@ public:
         {
             // child
 
-            fcntl(pipe_in.output.handle(), F_SETFL, O_CLOEXEC);
-            fcntl(pipe_err.input.handle(), F_SETFL, O_CLOEXEC);
-            fcntl(pipe_out.input.handle(), F_SETFL, O_CLOEXEC);
+            //fcntl(pipe_in.output.handle(), F_SETFL, O_CLOEXEC);
+            //fcntl(pipe_err.input.handle(), F_SETFL, O_CLOEXEC);
+            //fcntl(pipe_out.input.handle(), F_SETFL, O_CLOEXEC);
 
             if (dup2(stdin_child_fd, 0) < 0)
             {

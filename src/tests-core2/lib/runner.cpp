@@ -311,11 +311,11 @@ void run_tests()
 
                 filesystem::path std_output = test_output_dir;
                 std_output.append("stdout.txt");
-                File out_file = open_buffered_file(std_output, FileFlags::CREATE | FileFlags::RDWR);
+                File out_file = open_buffered_file(std_output, FileFlags::CREATE | FileFlags::RDWR | FileFlags::TRUNCATE);
 
                 filesystem::path std_error = test_output_dir;
                 std_error.append("stderr.txt");
-                File err_file = open_buffered_file(std_error, FileFlags::CREATE | FileFlags::RDWR);
+                File err_file = open_buffered_file(std_error, FileFlags::CREATE | FileFlags::RDWR | FileFlags::TRUNCATE);
 
                 reactor::InputStreamReaderWriter out_reader(process.out_stream(), out_file.ostream());
                 reactor::InputStreamReaderWriter err_reader(process.err_stream(), err_file.ostream());
