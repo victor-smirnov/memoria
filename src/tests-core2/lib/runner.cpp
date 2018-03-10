@@ -71,6 +71,25 @@ filesystem::path get_tests_config_path()
     return config_path;
 }
 
+
+filesystem::path get_tests_output_path()
+{
+    auto& app = reactor::app();
+
+    filesystem::path output_path;
+
+    if (app.options().count("output") > 0)
+    {
+        output_path = U16String(app.options()["output"].as<std::string>());
+    }
+    else {
+        auto image_name = get_image_name();
+        output_path = image_name.to_u16() + u".out";
+    }
+
+    return output_path;
+}
+
 }
 
 TestStatus run_single_test(const U16String& test_path)
@@ -78,7 +97,13 @@ TestStatus run_single_test(const U16String& test_path)
     auto test = tests_registry().find_test(test_path);
     if (test)
     {
-        filesystem::path config_path = get_tests_config_path();
+        filesystem::path output_dir_base = get_tests_output_path();
+        filesystem::path config_path     = get_tests_config_path();
+
+        U16String suite_name;
+        U16String test_name;
+
+        std::tie(suite_name, test_name) = TestsRegistry::split_path(test_path);
 
         YAML::Node test_config;
 
@@ -92,11 +117,6 @@ TestStatus run_single_test(const U16String& test_path)
                 Seed(seed);
                 SeedBI(seed);
             }
-
-            U16String suite_name;
-            U16String test_name;
-
-            std::tie(suite_name, test_name) = TestsRegistry::split_path(test_path);
 
             YAML::Node suite_node = config[suite_name.to_u8().to_std_string()];
             if (suite_node)
@@ -120,16 +140,18 @@ TestStatus run_single_test(const U16String& test_path)
             coverage = "small";
         }
 
-        DefaultTestContext ctx(test_config, config_path.parent_path(), coverage_from_string(coverage).get());
+        filesystem::path test_output_dir = output_dir_base;
+        test_output_dir.append(suite_name.to_u8().to_std_string());
+        test_output_dir.append(test_name.to_u8().to_std_string());
+
+        DefaultTestContext ctx(test_config, config_path.parent_path(), filesystem::absolute(test_output_dir), coverage_from_string(coverage).get());
         test.get().run(&ctx);
 
         if (ctx.status() == TestStatus::PASSED)
         {
-            ctx.out() << "PASSED" << std::endl;
             reactor::engine().cout() << "PASSED" << std::flush;
         }
         else {
-            ctx.out() << "FAILED" << std::endl;
             reactor::engine().cout() << "FAILED" << std::flush;
             if (ctx.ex())
             {
@@ -213,8 +235,10 @@ bool is_test_enabled(EnablementType global, EnablementType suite, EnablementType
 
 void run_tests()
 {
-    filesystem::path config_path = get_tests_config_path();
-    U16String config_file = config_path.to_u16();
+    filesystem::path output_dir_base = get_tests_output_path();
+
+    filesystem::path config_path    = get_tests_config_path();
+    U16String config_file           = config_path.to_u16();
 
     YAML::Node tests_config;
 
@@ -247,6 +271,12 @@ void run_tests()
             {
                 tests_run++;
 
+                filesystem::path test_output_dir = output_dir_base;
+                test_output_dir.append(suite.first.to_u8().to_std_string());
+                test_output_dir.append(test.first.to_u8().to_std_string());
+
+                filesystem::create_directories(test_output_dir);
+
                 U16String test_path = suite.first + u"/" + test.first;
 
                 std::vector<U16String> args;
@@ -271,17 +301,34 @@ void run_tests()
                     args.emplace_back(std::to_string(state->threads()));
                 }
 
+                args.emplace_back(u"--output");
+                args.emplace_back(test_output_dir.to_u16());
+
+
                 reactor::Process process = reactor::ProcessBuilder::create(reactor::get_program_path())
                         .with_args(args)
                         .run();
 
-                reactor::InputStreamReader out_reader = process.out_stream();
-                reactor::InputStreamReader err_reader = process.err_stream();
+                filesystem::path std_output = test_output_dir;
+                std_output.append("stdout.txt");
+                File out_file = open_buffered_file(std_output, FileFlags::CREATE | FileFlags::RDWR);
+
+//                filesystem::path std_error = test_output_dir;
+//                std_error.append("stderr.txt");
+//                File err_file = open_buffered_file(std_error, FileFlags::CREATE | FileFlags::RDWR);
+
+                reactor::InputStreamReaderWriter out_reader(process.out_stream(), out_file.ostream());
+//                reactor::InputStreamReaderWriter err_reader(process.err_stream(), err_file.ostream());
+
+//                reactor::InputStreamReader err_reader(process.err_stream());
 
                 process.join();
 
                 out_reader.join();
-                err_reader.join();
+//                err_reader.join();
+
+                out_file.close();
+//                err_file.close();
 
                 auto status = process.status();
 
@@ -327,6 +374,8 @@ void Test::run(TestContext *context) noexcept
 
     try {
         state = create_state();
+
+        state->working_directory_ = context->data_directory();
 
         state->pre_configure(context->coverage());
         state->add_field_handlers();

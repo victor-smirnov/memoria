@@ -55,8 +55,14 @@ class DefaultTestContext: public TestContext {
     TestCoverage coverage_;
 
 public:
-    DefaultTestContext(YAML::Node configuration, filesystem::path config_base_path, TestCoverage coverage):
+    DefaultTestContext(
+            YAML::Node configuration,
+            filesystem::path config_base_path,
+            filesystem::path data_directory,
+            TestCoverage coverage
+    ):
         configurator_(configuration, config_base_path),
+        data_directory_(data_directory),
         coverage_(coverage)
     {}
 

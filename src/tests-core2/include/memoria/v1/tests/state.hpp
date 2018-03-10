@@ -122,6 +122,8 @@ Optional<TestCoverage> coverage_from_string(const U8String& str);
 class TestState {
     std::vector<std::unique_ptr<FieldHandler>> handlers_;
 public:
+    filesystem::path working_directory_;
+
     TestState() = default;
     TestState(TestState&&) = default;
     TestState(const TestState&) = delete;

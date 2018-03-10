@@ -32,7 +32,11 @@ struct PipeTestState: TestState {
 
 
 auto test = register_test_in_suite<FnTest<PipeTestState>>(u"ReactorSuite", u"PipeTest", [](auto& state){
-    reactor::engine().coutln(u"THREADS: {}", reactor::engine().cpu_num());
+    for (int c = 0; c < 100000; c++)
+    {
+        reactor::engine().coutln(u"THREADS: {} {} {}", c, reactor::engine().cpu_num(), state.working_directory_);
+    }
+
 });
 
 }}}
