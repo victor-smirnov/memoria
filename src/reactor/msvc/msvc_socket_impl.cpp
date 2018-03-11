@@ -384,6 +384,7 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 			message.wait_for();
 
 			if (overlapped.status_) {
+				conn_closed_ = overlapped.size_ == 0;
 				return overlapped.size_;
 			}
 			else {
@@ -427,6 +428,7 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
 			message.wait_for();
 
 			if (overlapped.status_) {
+				conn_closed_ = overlapped.size_ == 0;
 				return overlapped.size_;
 			}
 			else {
