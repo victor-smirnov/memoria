@@ -86,9 +86,9 @@ void ClientSocketImpl::connect()
 
     while(true)
     {
-        int fd = ::connect(fd_, tools::ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
+        int status = ::connect(fd_, tools::ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
 
-        if (fd >= 0)
+        if (status >= 0)
         {
            break;
         }
@@ -118,7 +118,15 @@ void ClientSocketImpl::connect()
 
 ClientSocketImpl::~ClientSocketImpl() noexcept
 {
-    close();
+    if (!op_closed_)
+    {
+        int queue_fd = engine().io_poller().queue_fd();
+
+        KEvent64(queue_fd, fd_, EVFILT_READ, EV_DELETE, nullptr, false);
+        KEvent64(queue_fd, fd_, EVFILT_WRITE, EV_DELETE, nullptr, false);
+
+        ::close(fd_);
+    }
 }
 
 void ClientSocketImpl::close()
@@ -130,13 +138,7 @@ void ClientSocketImpl::close()
         KEvent64(queue_fd, fd_, EVFILT_READ, EV_DELETE, nullptr);
         KEvent64(queue_fd, fd_, EVFILT_WRITE, EV_DELETE, nullptr);
 
-        if (::close(fd_) < 0)
-        {
-            MMA1_THROW(SystemException()) << fmt::format_ex(
-                u"Can't close socket {}:{}",
-                ip_address_, ip_port_
-            );
-        }
+        ::close(fd_);
 
         op_closed_ = true;
     }

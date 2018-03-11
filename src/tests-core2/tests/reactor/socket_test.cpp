@@ -17,11 +17,15 @@
 #include <memoria/v1/reactor/reactor.hpp>
 #include <memoria/v1/reactor/socket.hpp>
 
+#include <memoria/v1/core/tools/time.hpp>
+
 #include "stream_test.hpp"
 
 namespace memoria {
 namespace v1 {
 namespace tests {
+
+using namespace memoria::v1::reactor;
 
 using TestRunner = StreamTester<BinaryInputStream, BinaryOutputStream>;
 
@@ -56,48 +60,39 @@ struct SocketTestState: TestState {
 
 auto sokcet_test = register_test_in_suite<FnTest<SocketTestState>>(u"ReactorSuite", u"SocketTest", [](auto& state){
 
+    Seed(getTimeInMillis());
+
     int32_t outbound_port = getRandomG(1000);
     int32_t inbound_port  = getRandomG(1000);
 
-    reactor::ServerSocket sender_server_socket(reactor::IPAddress(127,0,0,1), 5000 + outbound_port);
+    std::cout << "Ports: " << outbound_port << " " << inbound_port << std::endl;
+
+    int32_t port_base = 11000;
+
+    ServerSocket sender_server_socket(IPAddress(127,0,0,1), port_base + outbound_port);
     sender_server_socket.listen();
 
-    reactor::ServerSocket looper_server_socket(reactor::IPAddress(127,0,0,1), 5000 + inbound_port);
+    ServerSocket looper_server_socket(IPAddress(127,0,0,1), port_base + inbound_port);
     looper_server_socket.listen();
 
-    reactor::ServerSocketConnection sender_server_connection;
-    reactor::ServerSocketConnection looper_server_connection;
-
-
-    reactor::ClientSocket looper_client_connection;
-    reactor::ClientSocket receiver_client_connection;
-
-    fibers::fiber sender_connector([&]{
-        sender_server_connection = sender_server_socket.accept();
-    });
-
-    fibers::fiber looper_connector([&]{
-        looper_client_connection = reactor::ClientSocket(reactor::IPAddress(127,0,0,1), 5000 + outbound_port);
-        looper_server_connection = looper_server_socket.accept();
-    });
-
-    fibers::fiber receiver_connector([&]{
-        receiver_client_connection = reactor::ClientSocket(reactor::IPAddress(127,0,0,1), 5000 + inbound_port);
-    });
-
-
-
-    sender_connector.join();
-    looper_connector.join();
-    receiver_connector.join();
-
     TestRunner runner(
-            sender_server_connection.output(),
+            [&]{
+                ServerSocketConnection conn = sender_server_socket.accept();
+                return conn.output();
+            },
 
-            looper_client_connection.input(),
-            looper_server_connection.output(),
+            [&]{
+                return reactor::ClientSocket(IPAddress(127,0,0,1), port_base + outbound_port).input();
+            },
 
-            receiver_client_connection.input(),
+            [&]{
+                ServerSocketConnection conn = looper_server_socket.accept();
+                return conn.output();
+            },
+
+            [&]{
+                return reactor::ClientSocket(IPAddress(127,0,0,1), port_base + inbound_port).input();
+            },
 
             state.duration,
             1,

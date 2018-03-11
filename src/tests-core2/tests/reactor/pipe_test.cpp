@@ -61,10 +61,12 @@ auto pipe_test = register_test_in_suite<FnTest<PipeTestState>>(u"ReactorSuite", 
     auto inbound_pipe  = reactor::open_pipe();
 
     TestRunner runner(
-            outbound_pipe.input,
-            outbound_pipe.output,
-            inbound_pipe.input,
-            inbound_pipe.output,
+            [&]{return outbound_pipe.output;},
+            [&]{return outbound_pipe.input;},
+
+            [&]{return inbound_pipe.output;},
+            [&]{return inbound_pipe.input;},
+
             state.duration,
             1,
             65536

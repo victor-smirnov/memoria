@@ -35,15 +35,17 @@ namespace tests {
 
 using TestDuration = std::chrono::duration<double>;
 
+template <typename T>
+using Fn = std::function<T()>;
 
 template <typename InputStream, typename OutputStream>
 class StreamTester {
-    OutputStream sender_ostream_;
+    Fn<OutputStream> sender_ostream_fn_;
 
-    InputStream looper_istream_;
-    OutputStream looper_ostream_;
+    Fn<InputStream> looper_istream_fn_;
+    Fn<OutputStream> looper_ostream_fn_;
 
-    InputStream receiver_istream_;
+    Fn<InputStream> receiver_istream_fn_;
 
     TestDuration test_length_;
     size_t block_size_min_;
@@ -59,19 +61,19 @@ class StreamTester {
 
 public:
     StreamTester(
-        OutputStream sender_ostream,
-        InputStream looper_istream,
-        OutputStream looper_ostream,
-        InputStream receiver_istream,
+        Fn<OutputStream> sender_ostream,
+        Fn<InputStream> looper_istream,
+        Fn<OutputStream> looper_ostream,
+        Fn<InputStream> receiver_istream,
 
         TestDuration test_length,
         size_t block_size_min,
         size_t block_size_max
     ):
-        sender_ostream_(sender_ostream),
-        looper_istream_(looper_istream),
-        looper_ostream_(looper_ostream),
-        receiver_istream_(receiver_istream),
+        sender_ostream_fn_(std::move(sender_ostream)),
+        looper_istream_fn_(std::move(looper_istream)),
+        looper_ostream_fn_(std::move(looper_ostream)),
+        receiver_istream_fn_(std::move(receiver_istream)),
         test_length_(test_length),
         block_size_min_(block_size_min),
         block_size_max_(block_size_max)
@@ -125,10 +127,11 @@ private:
         auto buffer = allocate_system<uint8_t>(block_size_max_);
         uint8_t* buffer_ptr = buffer.get();
 
-        auto start = std::chrono::system_clock::now();
+        auto sender_ostream = sender_ostream_fn_();
 
         uint8_t stream_state_{};
 
+        auto start = std::chrono::system_clock::now();
         while ((std::chrono::system_clock::now() - start) < test_length_)
         {
             size_t block_size = getRandomG(block_size_max_ - block_size_min_) + block_size_min_;
@@ -138,12 +141,14 @@ private:
                 buffer_ptr[c] = stream_state_++;
             }
 
-            size_t written = sender_ostream_.write(buffer_ptr, block_size);
+            size_t written = sender_ostream.write(buffer_ptr, block_size);
             assert_equals(block_size, written, "Sender stream write size");
             total_sent_ += written;
+
+            this_fiber::yield();
         }
 
-        sender_ostream_.close();
+        sender_ostream.close();
     }
 
     void loop()
@@ -151,25 +156,28 @@ private:
         auto buffer = allocate_system<uint8_t>(block_size_max_);
         uint8_t* buffer_ptr = buffer.get();
 
+        auto looper_ostream = looper_ostream_fn_();
+        auto looper_istream = looper_istream_fn_();
+
         uint8_t stream_state_{};
 
-        while (!looper_istream_.is_closed())
+        while (!looper_istream.is_closed())
         {
             size_t block_size = getRandomG(block_size_max_ - block_size_min_) + block_size_min_;
 
-            size_t read = looper_istream_.read(buffer_ptr, block_size);
+            size_t read = looper_istream.read(buffer_ptr, block_size);
 
             for (size_t c = 0; c < read; c++, stream_state_++)
             {
                 assert_equals(stream_state_, buffer_ptr[c], "Looper stream state");
             }
 
-            size_t written = looper_ostream_.write(buffer_ptr, read);
+            size_t written = looper_ostream.write(buffer_ptr, read);
             assert_equals(read, written, "Looper write size");
             total_transferred_ += written;
         }
 
-        looper_ostream_.close();
+        looper_ostream.close();
     }
 
     void receive()
@@ -177,13 +185,15 @@ private:
         auto buffer = allocate_system<uint8_t>(block_size_max_);
         uint8_t* buffer_ptr = buffer.get();
 
+        auto receiver_istream = receiver_istream_fn_();
+
         uint8_t stream_state_{};
 
-        while (!receiver_istream_.is_closed())
+        while (!receiver_istream.is_closed())
         {
             size_t block_size = getRandomG(block_size_max_ - block_size_min_) + block_size_min_;
 
-            size_t read = receiver_istream_.read(buffer_ptr, block_size);
+            size_t read = receiver_istream.read(buffer_ptr, block_size);
 
             for (size_t c = 0; c < read; c++, stream_state_++)
             {

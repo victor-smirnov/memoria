@@ -74,18 +74,15 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
 
 ServerSocketConnectionImpl::~ServerSocketConnectionImpl() noexcept
 {
-    int queue_fd = engine().io_poller().queue_fd();
-    
-    KEvent64(queue_fd, fd_, EVFILT_READ, EV_DELETE);
-    KEvent64(queue_fd, fd_, EVFILT_WRITE, EV_DELETE);
-
-    if (::close(fd_) < 0)
+    if (!op_closed_)
     {
-        MMA1_THROW(SystemException()) << fmt::format_ex(
-            u"Can't close connection {}:{}:{}",
-            ip_address_, ip_port_, fd_
-        );
-    } 
+        int queue_fd = engine().io_poller().queue_fd();
+
+        KEvent64(queue_fd, fd_, EVFILT_READ, EV_DELETE);
+        KEvent64(queue_fd, fd_, EVFILT_WRITE, EV_DELETE);
+
+        ::close(fd_);
+    }
 }
 
 
@@ -94,7 +91,6 @@ void ServerSocketConnectionImpl::close()
     if (!op_closed_)
     {
         int queue_fd = engine().io_poller().queue_fd();
-
 
         KEvent64(queue_fd, fd_, EVFILT_READ, EV_DELETE);
         KEvent64(queue_fd, fd_, EVFILT_WRITE, EV_DELETE);

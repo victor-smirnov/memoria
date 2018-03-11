@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     return Application::run(argc, argv, [&]{
         ShutdownOnScopeExit hh;
 
-        size_t total_bytes = 1024 * 1024 * 256;
+        size_t total_bytes = 1024 * 1024 * 10;
         size_t producer_block_size = 1024 * 32;
         size_t consumer_block_size = 1024 * 32;
 
@@ -63,6 +63,10 @@ int main(int argc, char** argv) {
 
                 size_t written = out.write(buf.get(), size);
 				total += written;
+
+                std::cout << "Written " << written << std::endl;
+
+                this_fiber::yield();
             }
 
             engine().coutln(u"Total written: {}", total);
@@ -84,6 +88,9 @@ int main(int argc, char** argv) {
 				size_t size = max > 10 ? getNonZeroRandomG(max) : max;
 
 				size_t read = input.read(buf.get(), size);
+
+                std::cout << "Read " << read << std::endl;
+
 				for (size_t c = 0; c < read; c++)
 				{
 					uint8_t value = *(buf.get() + c);
@@ -96,6 +103,8 @@ int main(int argc, char** argv) {
 				}
 
 				total += read;
+
+                this_fiber::yield();
             }
 
             engine().coutln(u"Total read: {}", total);

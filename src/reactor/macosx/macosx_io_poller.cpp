@@ -97,15 +97,15 @@ void KEvent64(int poller_fd, int fd, int filter, int flags, void * fiber_message
 
     struct kevent64_s event;
 
-    EV_SET64(&event, fd, filter, flags, 0, 0, (uint64_t)fiber_message_ptr, 0, 0);
+    EV_SET64(&event, fd, filter, flags, 0, 0, T2T<uint64_t>(fiber_message_ptr), 0, 0);
 
     int res = ::kevent64(poller_fd, &event, 1, nullptr, 0, 0, &timeout);
     if (res < 0)
     {
         ::close(fd);
 
-        if (throw_ex) {
-
+        if (throw_ex)
+        {
             MMA1_THROW(SystemException()) << fmt::format_ex(
                 u"Can't configure poller for connection {}", fd
             );

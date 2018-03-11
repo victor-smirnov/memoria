@@ -94,7 +94,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     
     struct kevent64_s event;
     
-    EV_SET64(&event, fd_, EVFILT_READ, EV_ADD, 0, 0, (uint64_t)&fiber_io_message_, 0, 0);
+    EV_SET64(&event, fd_, EVFILT_READ, EV_ADD | EV_ERROR, 0, 0, (uint64_t)&fiber_io_message_, 0, 0);
     
     int sres = ::kevent64(queue_fd, &event, 1, nullptr, 0, 0, &timeout);
     if (sres < 0) {
