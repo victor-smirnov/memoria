@@ -61,9 +61,14 @@ endif()
 export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
 
 
-if (BUILD_EXAMPLES) 
+if (BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
+
+if (BUILD_BENCHMARKS)
+    add_subdirectory(benchmarks)
+endif()
+
 
 add_subdirectory(tests-core2)
 

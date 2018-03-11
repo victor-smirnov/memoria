@@ -48,6 +48,7 @@ option(BUILD_TESTS      "Build Unit/Functional tests" OFF)
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
 option(BUILD_STATIC     "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES   "Build project examples" OFF)
+option(BUILD_BENCHMARKS "Build project benchmarks" ON)
 option(ICU_DEBUG        "Debug FindICU" OFF)
 option(Boost_DEBUG      "Debug FindBoost" OFF)
 

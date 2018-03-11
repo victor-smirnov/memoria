@@ -92,7 +92,7 @@ auto sokcet_test = register_test_in_suite<FnTest<SocketTestState>>(u"ReactorSuit
 
             state.duration,
             1,
-            65536
+            64
     );
 
     runner.start();
