@@ -138,6 +138,10 @@ TestStatus run_single_test(const U16String& test_path)
                 Seed(seed);
                 SeedBI(seed);
             }
+            else {
+                Seed(getTimeInMillis());
+                SeedBI(getTimeInMillis());
+            }
 
             YAML::Node suite_node = config[suite_name.to_u8().to_std_string()];
             if (suite_node)

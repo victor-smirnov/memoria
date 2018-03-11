@@ -60,12 +60,8 @@ struct SocketTestState: TestState {
 
 auto sokcet_test = register_test_in_suite<FnTest<SocketTestState>>(u"ReactorSuite", u"SocketTest", [](auto& state){
 
-    Seed(getTimeInMillis());
-
     int32_t outbound_port = getRandomG(1000);
     int32_t inbound_port  = getRandomG(1000);
-
-    std::cout << "Ports: " << outbound_port << " " << inbound_port << std::endl;
 
     int32_t port_base = 11000;
 
