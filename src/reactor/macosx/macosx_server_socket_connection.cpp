@@ -111,11 +111,13 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 {
     size_t available_size = size;
     
-    while (true) 
+    while (!data_closed_)
     {
         ssize_t result = ::read(fd_, data, available_size);
         
-        if (result >= 0) {
+        if (result >= 0)
+        {
+            data_closed_ = result == 0;
             return result;
         }
         else if (errno == EAGAIN || errno == EWOULDBLOCK) 
@@ -126,6 +128,10 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
             size_t av = fiber_io_read_message_.available();
             available_size = av >= size ? size : av;
         }
+        else if (errno == EPIPE || errno == ECONNRESET || errno == ECONNABORTED) {
+            data_closed_ = true;
+            return 0;
+        }
         else {
             MMA1_THROW(SystemException()) << fmt::format_ex(
                 u"Error reading from socket connection for {}:{}:{}",
@@ -133,25 +139,32 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
             );
         }
     }
+
+    return 0;
 }
 
 size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 {
     size_t available_size = size;
-    while (true) 
+    while (!data_closed_)
     {
         ssize_t result = ::write(fd_, data, available_size);
-        
+
         if (result >= 0) {
+            data_closed_ = result == 0;
             return result;
         }
-        else if (errno == EAGAIN || errno == EWOULDBLOCK) 
+        else if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
             // FIXME: handle eof flag properly
             fiber_io_write_message_.wait_for();
 
             size_t av = fiber_io_write_message_.available();
             available_size = av >= size ? size : av;
+        }
+        else if (errno == EPIPE || errno == ECONNRESET || errno == ECONNABORTED || errno == EPROTOTYPE) {
+            data_closed_ = true;
+            return 0;
         }
         else {
             MMA1_THROW(SystemException()) << fmt::format_ex(
@@ -160,6 +173,8 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
             );
         }
     }
+
+    return 0;
 }
 
 

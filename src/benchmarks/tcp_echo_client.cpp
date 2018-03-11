@@ -30,7 +30,7 @@ int main(int argc, char** argv, char** envp) {
         ("host,h", po::value<std::string>()->default_value("0.0.0.0"), "Host address to bind to or 0.0.0.0")
         ("port,p", po::value<int32_t>()->default_value(5000), "Host port to bind to, default 5000")
         ("block,b", po::value<size_t>()->default_value(64), "Mean transfer block size, default 64 bytes")
-        ("size,s", po::value<uint64_t>()->default_value(100 * 1024 * 1024), "Data size to transfer, in bytes. Default is 100M")
+        ("size,s", po::value<uint64_t>()->default_value(20 * 1024 * 1024), "Data size to transfer, in bytes. Default is 20M")
         ;
 
     return Application::run_e(options, argc, argv, envp, [&]{
@@ -60,6 +60,10 @@ int main(int argc, char** argv, char** envp) {
         uint64_t sent_size_cnt{};
         uint64_t received_size_cnt{};
 
+        uint64_t sent_data_size{data_size};
+        uint64_t received_data_size{data_size + 1};
+
+
         uint64_t sent_blocks_cnt{};
         uint64_t received_blocks_cnt{};
 
@@ -67,9 +71,11 @@ int main(int argc, char** argv, char** envp) {
 
         int64_t start_time = getTimeInMillis();
 
-        while (sent_size_cnt < data_size && received_size_cnt < data_size && !socket.is_closed())
+
+
+        while (sent_size_cnt < sent_data_size && received_size_cnt < received_data_size && !socket.is_closed())
         {
-            if (sent_size_cnt < data_size)
+            if (sent_size_cnt < sent_data_size)
             {
                 size_t block = getRandomG(block_size_max - 1) + 1;
 
@@ -83,7 +89,7 @@ int main(int argc, char** argv, char** envp) {
                 sent_blocks_cnt++;
             }
 
-            if (received_size_cnt < data_size)
+            if (received_size_cnt < received_data_size)
             {
                 size_t block = getRandomG(block_size_max - 1) + 1;
 
@@ -97,19 +103,12 @@ int main(int argc, char** argv, char** envp) {
         socket.close();
 
         int64_t end_time = getTimeInMillis();
-        int64_t duration = end_time - start_time;
+        double duration = (end_time - start_time) / 1000.0l;
 
-        uint64_t sent_speed{};
-        uint64_t recv_speed{};
+        double sent_speed = sent_blocks_cnt / duration;
+        double recv_speed = received_blocks_cnt / duration;
 
-        if (duration / 1000 > 0)
-        {
-            sent_speed = sent_blocks_cnt / (duration / 1000);
-            recv_speed = received_blocks_cnt / (duration / 1000);
-        }
-
-        engine().cerrln(u"Time: {}s, blocks sent: {}, block recv: {}, speed: {} {} blocks/sec", FormatTime(duration), sent_blocks_cnt, received_blocks_cnt, sent_speed, recv_speed);
-
+        engine().cerrln(u"Time: {}s, blocks sent: {}, block recv: {}, speed: {} {} blocks/sec", FormatTime(duration * 1000), sent_blocks_cnt, received_blocks_cnt, sent_speed, recv_speed);
 
         return 0;
     });

@@ -151,7 +151,7 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 {
     size_t available_size = size;
 
-    while (true)
+    while (!data_closed_)
     {
         ssize_t result = ::read(fd_, data, available_size);
 
@@ -168,6 +168,10 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
             size_t av = fiber_io_read_message_.available();
             available_size = av >= size ? size : av;
         }
+        else if (errno == EPIPE || errno == ECONNRESET || errno == ECONNABORTED) {
+            data_closed_ = true;
+            return 0;
+        }
         else {
             MMA1_THROW(SystemException()) << fmt::format_ex(
                 u"Error reading from socket connection for {}:{}:{}",
@@ -175,12 +179,14 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
             );
         }
     }
+
+    return 0;
 }
 
 size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
 {
     size_t available_size = size;
-    while (true)
+    while (!data_closed_)
     {
         ssize_t result = ::write(fd_, data, available_size);
 
@@ -195,6 +201,10 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
             size_t av = fiber_io_write_message_.available();
             available_size = av >= size ? size : av;
         }
+        else if (errno == EPIPE || errno == ECONNRESET || errno == ECONNABORTED) {
+            data_closed_ = true;
+            return 0;
+        }
         else {
             MMA1_THROW(SystemException()) << fmt::format_ex(
                 u"Error writing to socket connection for {}:{}:{}",
@@ -202,6 +212,8 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
             );
         }
     }
+
+    return 0;
 }
 
     

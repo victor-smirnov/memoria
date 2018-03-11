@@ -54,35 +54,45 @@ int main(int argc, char** argv, char** envp) {
             ServerSocketConnection csconn = socket.accept();
 
             active_fibers.emplace_back(fibers::fiber([&](auto conn){
+                try {
+                    int64_t start_time = getTimeInMillis();
 
-                int64_t start_time = getTimeInMillis();
+                    size_t block_size_max = block_size * 2;
+                    auto buffer = allocate_system<uint8_t>(block_size_max);
+                    uint8_t* buffer_ptr = buffer.get();
 
-                size_t block_size_max = block_size * 2;
-                auto buffer = allocate_system<uint8_t>(block_size_max);
-                uint8_t* buffer_ptr = buffer.get();
+                    auto looper_ostream = conn.output();
+                    auto looper_istream = conn.input();
 
-                auto looper_ostream = conn.output();
-                auto looper_istream = conn.input();
+                    uint8_t buf[1]{0};
+                    looper_ostream.write(buf, 1);
 
-                uint64_t cnt{};
+                    uint64_t cnt{};
 
-                while (!conn.is_closed())
-                {
-                    size_t block = getRandomG(block_size_max - 1) + 1;
-                    size_t read = looper_istream.read(buffer_ptr, block);
-                    looper_ostream.write(buffer_ptr, read);
-                    cnt++;
+                    while (!conn.is_closed())
+                    {
+                        size_t block = getRandomG(block_size_max - 1) + 1;
+                        size_t read = looper_istream.read(buffer_ptr, block);
+                        looper_ostream.write(buffer_ptr, read);
+                        cnt++;
+                    }
+
+                    int64_t end_time = getTimeInMillis();
+                    double duration = (end_time - start_time) / 1000.0l;
+
+                    double speed = cnt / duration;
+
+                    engine().cerrln(u"Time: {}, blocks: {}, speed: {} blocks/sec", FormatTime(duration * 1000), cnt, speed);
                 }
-
-                int64_t end_time = getTimeInMillis();
-                int64_t duration = end_time - start_time;
-
-                uint64_t speed{};
-                if (duration / 1000 > 0) {
-                    speed = cnt / (duration / 1000);
+                catch (MemoriaThrowable& ex) {
+                    ex.dump(engine().cout());
                 }
-
-                engine().cerrln(u"Time: {}, blocks: {}, speed: {} blocks/sec", FormatTime(duration), cnt, speed);
+                catch (std::exception& ex) {
+                    engine().coutln(u"STD exception in connection fiber: {}", ex.what());
+                }
+                catch (...) {
+                    engine().coutln(u"Unknown exception in connection fiber");
+                }
             }, csconn));
         }
 

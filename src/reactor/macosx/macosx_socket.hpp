@@ -103,6 +103,7 @@ class ServerSocketConnectionImpl:
 {
     IPAddress ip_address_;
     uint16_t ip_port_;
+    bool data_closed_{false};
 
     SocketIOMessage fiber_io_read_message_;
     SocketIOMessage fiber_io_write_message_;
@@ -123,7 +124,13 @@ public:
     virtual size_t write(const uint8_t* data, size_t size) {
         size_t tt{};
         while (tt < size) {
-            tt += write_(data + tt, size - tt);
+            size_t written = write_(data + tt, size - tt);
+            if (written > 0) {
+                tt += written;
+            }
+            else {
+                break;
+            }
         }
         return tt;
     }
@@ -136,7 +143,7 @@ public:
 
     virtual void close();
     virtual bool is_closed() const {
-        return op_closed_
+        return op_closed_ || data_closed_
                 || fiber_io_read_message_.connection_closed()
                 || fiber_io_write_message_.connection_closed();
     }
@@ -184,7 +191,13 @@ public:
      virtual size_t write(const uint8_t* data, size_t size) {
          size_t tt{};
          while (tt < size) {
-             tt += write_(data + tt, size - tt);
+             size_t written = write_(data + tt, size - tt);
+             if (written > 0) {
+                 tt += written;
+             }
+             else {
+                 break;
+             }
          }
          return tt;
      }
