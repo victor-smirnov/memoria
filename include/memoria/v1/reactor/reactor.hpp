@@ -259,7 +259,7 @@ public:
     template <typename... Args>
     std::basic_ostream<char>& coutln(const char16_t* fmt, Args&&... args)
     {
-        cout_ << fmt::format(fmt, std::forward<Args>(args)...) << std::endl;
+        cout_ << fmt::format(fmt, std::forward<Args>(args)...) << std::flush << std::endl;
         return cout_;
     }
 
@@ -273,7 +273,7 @@ public:
     template <typename... Args>
     std::basic_ostream<char>& cerrln(const char16_t* fmt, Args&&... args)
     {
-        cerr_ << fmt::format(fmt, std::forward<Args>(args)...) << std::endl;
+        cerr_ << fmt::format(fmt, std::forward<Args>(args)...) << std::flush << std::endl;
         return cerr_;
     }
 

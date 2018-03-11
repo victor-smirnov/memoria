@@ -82,7 +82,7 @@ int main(int argc, char** argv, char** envp) {
 
                     double speed = cnt / duration;
 
-                    engine().cerrln(u"Time: {}, blocks: {}, speed: {} blocks/sec", FormatTime(duration * 1000), cnt, speed);
+                    engine().coutln(u"Time: {}, blocks: {}, speed: {} blocks/sec", FormatTime(duration * 1000), cnt, speed);
                 }
                 catch (MemoriaThrowable& ex) {
                     ex.dump(engine().cout());
@@ -91,7 +91,7 @@ int main(int argc, char** argv, char** envp) {
                     engine().coutln(u"STD exception in connection fiber: {}", ex.what());
                 }
                 catch (...) {
-                    engine().coutln(u"Unknown exception in connection fiber");
+                    engine().coutln(u"Unknown exception in connection fiber", "");
                 }
             }, csconn));
         }

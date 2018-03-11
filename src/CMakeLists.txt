@@ -28,12 +28,12 @@ add_subdirectory(yaml-cpp)
 
 
 if (BUILD_MACOSX)
-    add_subdirectory(jemalloc/src/linux)
-    add_subdirectory(jemalloc/src/macosx)
+#    add_subdirectory(jemalloc/src/linux)
+#    add_subdirectory(jemalloc/src/macosx)
 elseif (BUILD_MSVC)
-    add_subdirectory(jemalloc/src/linux)
+#    add_subdirectory(jemalloc/src/linux)
 else()
-    add_subdirectory(jemalloc/src/linux)
+#    add_subdirectory(jemalloc/src/linux)
 endif()
 
 
@@ -87,10 +87,10 @@ endif()
 #SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm timers alloc shared_ptrs yaml)
 #SET(MEMORIA_APPS ${MEMORIA_APPS} ustrings icu_regexp fmt_u16 sockets anon_pipes processes crash print_env)
 
-SET(MEMORIA_APPS sockets )
+#SET(MEMORIA_APPS sockets )
 
 if(BUILD_MSVC)
-    SET(MEMORIA_APPS ${MEMORIA_APPS} named_pipes)
+#    SET(MEMORIA_APPS ${MEMORIA_APPS} named_pipes)
 endif()
 
 

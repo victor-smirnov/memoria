@@ -128,7 +128,6 @@ set (Boost_USE_RELEASE_LIBS	 ON)
 set (Boost_USE_DEBUG_RUNTIME	 ON)
 set (Boost_USE_MULTITHREADED     ON)
 
-
 if (MSVC)
     set (Boost_USE_STATIC_RUNTIME    OFF)
     set (Boost_USE_STATIC_LIBS       ON)
@@ -139,7 +138,7 @@ else()
     find_package(ICU 60.2 COMPONENTS i18n data uc REQUIRED)
 endif()
 
-find_package(Boost 1.66.0 COMPONENTS filesystem context program_options REQUIRED) 
+find_package(Boost 1.66.0 COMPONENTS filesystem context program_options REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})

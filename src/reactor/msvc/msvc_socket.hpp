@@ -124,7 +124,13 @@ public:
 	virtual size_t write(const uint8_t* data, size_t size) {
 		size_t total{};
 		while (total < size) {
-			total += write_(data + total, size - total);
+			size_t written = write_(data + total, size - total);
+			if (written > 0) {
+				total += written;
+			}
+			else {
+				break;
+			}
 		}
 		return total;
 	}
@@ -174,7 +180,13 @@ public:
 	 virtual size_t write(const uint8_t* data, size_t size) {
 		 size_t total{};
 		 while (total < size) {
-			 total += write_(data + total, size - total);
+			 size_t written = write_(data + total, size - total);
+			 if (written > 0) {
+				 total += written;
+			 }
+			 else {
+				 break;
+			 }
 		 }
 		 return total;
 	 }

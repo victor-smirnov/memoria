@@ -71,7 +71,7 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 	auto overlapped = tools::make_zeroed<OVERLAPPEDMsg>();
 	overlapped.msg_ = &message;
 	
-	while (true) 
+	while (!conn_closed_) 
 	{
 		bool read_result = ::ReadFile((HANDLE)fd_, data, (DWORD)size, nullptr, &overlapped);
 
@@ -85,6 +85,10 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 				conn_closed_ = overlapped.size_ == 0;
 				return overlapped.size_;
 			}
+			else if (overlapped.error_code_ == ERROR_NETNAME_DELETED) {
+				conn_closed_ = true;
+				return overlapped.size_;
+			}
 			else {
 				MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(
 					u"Error reading from socket connection for {}:{}:{}",
@@ -95,6 +99,10 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 		else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY) {
 			message.wait_for(); // jsut sleep and wait for required resources to appear
 		}
+		else if (error_code == ERROR_NETNAME_DELETED) {
+			conn_closed_ = true;
+			return 0;
+		}
 		else {
 			MMA1_THROW(SystemException(error_code)) << fmt::format_ex(
 				u"Error starting read operation from socket connection for {}:{}:{}",
@@ -103,6 +111,7 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 		}
 	}
 
+	return 0;
 }
 
 size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size) 
@@ -115,7 +124,7 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 	auto overlapped = tools::make_zeroed<OVERLAPPEDMsg>();
 	overlapped.msg_ = &message;
 
-	while (true) 
+	while (!conn_closed_) 
 	{
 		bool read_result = ::WriteFile((HANDLE)fd_, data, (DWORD)size, &number_of_bytes_read, &overlapped);
 
@@ -129,6 +138,10 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 				conn_closed_ = overlapped.size_ == 0;
 				return overlapped.size_;
 			}
+			else if (overlapped.error_code_ == ERROR_NETNAME_DELETED) {
+				conn_closed_ = true;
+				return overlapped.size_;
+			}
 			else {
 				MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(
 					u"Error writing to socket connection for {}:{}:{}",
@@ -139,6 +152,10 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 		else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY) {
 			message.wait_for(); // jsut sleep and wait for required resources to appear
 		}
+		else if (error_code == ERROR_NETNAME_DELETED) {
+			conn_closed_ = true;
+			return 0;
+		}
 		else {
 			MMA1_THROW(SystemException(error_code)) << fmt::format_ex(
 				u"Error starting write operation to socket connection for {}:{}:{}",
@@ -146,6 +163,8 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 			);
 		}
 	}
+
+	return 0;
 }
 
 
@@ -373,7 +392,7 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 	auto overlapped = tools::make_zeroed<OVERLAPPEDMsg>();
 	overlapped.msg_ = &message;
 
-	while (true)
+	while (!conn_closed_)
 	{
 		bool read_result = ::ReadFile((HANDLE)fd_, data, (DWORD)size, nullptr, &overlapped);
 
@@ -387,6 +406,10 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 				conn_closed_ = overlapped.size_ == 0;
 				return overlapped.size_;
 			}
+			else if (overlapped.error_code_ == error_code == ERROR_NETNAME_DELETED) {
+				conn_closed_ = true;
+				return overlapped.size_;
+			}
 			else {
 				MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(
 					u"Error reading from socket connection for {}:{}:{}",
@@ -397,6 +420,10 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 		else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY) {
 			message.wait_for(); // jsut sleep and wait for required resources to appear
 		}
+		else if (error_code == ERROR_NETNAME_DELETED) {
+			conn_closed_ = true;
+			return 0;
+		}
 		else {
 			MMA1_THROW(SystemException(error_code)) << fmt::format_ex(
 				u"Error starting read operation from socket connection for {}:{}:{}",
@@ -404,6 +431,8 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 			);
 		}
 	}
+
+	return 0;
 
 }
 
@@ -417,7 +446,7 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
 	auto overlapped = tools::make_zeroed<OVERLAPPEDMsg>();
 	overlapped.msg_ = &message;
 
-	while (true)
+	while (!conn_closed_)
 	{
 		bool read_result = ::WriteFile((HANDLE)fd_, data, (DWORD)size, &number_of_bytes_read, &overlapped);
 
@@ -441,6 +470,10 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
 		else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY) {
 			message.wait_for(); // jsut sleep and wait for required resources to appear
 		}
+		else if (error_code == ERROR_NETNAME_DELETED) {
+			conn_closed_ = true;
+			return 0;
+		}
 		else {
 			MMA1_THROW(SystemException(error_code)) << fmt::format_ex(
 				u"Error starting write operation to socket connection for {}:{}:{}",
@@ -448,6 +481,8 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
 			);
 		}
 	}
+
+	return 0;
 }
 
 
