@@ -73,7 +73,7 @@ int main(int argc, char** argv, char** envp) {
                     {
                         cnt++;
 
-                        size_t block = getRandomG(block_size_max - 1) + 1;
+                        size_t block = block_size;//getRandomG(block_size_max - 1) + 1;
                         size_t read = looper_istream.read(buffer_ptr, block);
                         //std::cout << "Read: " << read << std::endl;
 
