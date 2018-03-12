@@ -70,6 +70,11 @@ public:
 
 	uint64_t seek(uint64_t position) {
 		pos_ = position;
+		return pos_;
+	}
+
+	uint64_t fpos() {
+		return pos_;
 	}
 
 	virtual void close() {

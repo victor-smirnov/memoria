@@ -217,7 +217,7 @@ T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& other)
 }
 
 template <typename T>
-T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&& other)
+T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small_, T&& other)
 {
     if (coverage == TestCoverage::SMOKE) {
         return smoke;
@@ -226,7 +226,7 @@ T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&&
         return tiny;
     }
     else if (coverage == TestCoverage::SMALL) {
-        return small;
+        return small_;
     }
     else {
         return other;
@@ -234,7 +234,7 @@ T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&&
 }
 
 template <typename T>
-T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&& medium, T&& other)
+T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small_, T&& medium, T&& other)
 {
     if (coverage == TestCoverage::SMOKE) {
         return smoke;
@@ -243,7 +243,7 @@ T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&&
         return tiny;
     }
     else if (coverage == TestCoverage::SMALL) {
-        return small;
+        return small_;
     }
     else if (coverage == TestCoverage::MEDIUM) {
         return medium;
@@ -255,7 +255,7 @@ T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&&
 
 
 template <typename T>
-T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&& medium, T&& large, T&& xlarge)
+T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small_, T&& medium, T&& large, T&& xlarge)
 {
     if (coverage == TestCoverage::SMOKE) {
         return smoke;
@@ -264,7 +264,7 @@ T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&&
         return tiny;
     }
     else if (coverage == TestCoverage::SMALL) {
-        return small;
+        return small_;
     }
     else if (coverage == TestCoverage::MEDIUM) {
         return medium;

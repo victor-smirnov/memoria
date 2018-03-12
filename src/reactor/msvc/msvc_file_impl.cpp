@@ -67,16 +67,16 @@ DWORD get_disposition(FileFlags flags, FileMode mode) {
 	DWORD disposition{};
 
 	if (to_bool(flags & FileFlags::TRUNCATE)) {
-		disposition = TRUNCATE_EXISTING;
+		disposition |= TRUNCATE_EXISTING;
 	}
 	
 	if (to_bool(flags & FileFlags::CREATE)) 
 	{
 		if (to_bool(flags & FileFlags::EXCL)) {
-			disposition = CREATE_NEW;
+			disposition |= CREATE_NEW;
 		}
 		else {
-			disposition = OPEN_ALWAYS;
+			disposition |= OPEN_ALWAYS;
 		}
 	}
 	else {

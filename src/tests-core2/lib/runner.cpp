@@ -132,16 +132,19 @@ TestStatus run_single_test(const U16String& test_path)
         {
             YAML::Node config = YAML::LoadFile(config_path.to_u8().to_std_string());
 
+			int64_t seed;
             if (config["seed"])
             {
-                int64_t seed = config["seed"].as<int64_t>();
-                Seed(seed);
-                SeedBI(seed);
+                seed = config["seed"].as<int64_t>();
             }
             else {
-                Seed(getTimeInMillis());
-                SeedBI(getTimeInMillis());
+				seed = getTimeInMillis();
             }
+			reactor::engine().coutln(u"seed = {}", seed);
+
+			Seed(seed);
+			SeedBI(seed);
+
 
             YAML::Node suite_node = config[suite_name.to_u8().to_std_string()];
             if (suite_node)
@@ -152,6 +155,8 @@ TestStatus run_single_test(const U16String& test_path)
         else
         {
             int64_t seed = getTimeInMillis();
+			reactor::engine().coutln(u"seed = {}", seed);
+
             Seed(seed);
             SeedBI(seed);
         }
@@ -160,6 +165,8 @@ TestStatus run_single_test(const U16String& test_path)
         test_output_dir.append(suite_name.to_u8().to_std_string());
         test_output_dir.append(test_name.to_u8().to_std_string());
 
+		filesystem::create_directories(test_output_dir);
+
         Optional<TestCoverage> coverage = get_test_coverage();
 
         DefaultTestContext ctx(test_config, config_path.parent_path(), filesystem::absolute(test_output_dir), coverage.get());
@@ -167,7 +174,6 @@ TestStatus run_single_test(const U16String& test_path)
         int64_t start_time = getTimeInMillis();
         test.get().run(&ctx);
         int64_t end_time = getTimeInMillis();
-
 
         if (ctx.status() == TestStatus::PASSED)
         {

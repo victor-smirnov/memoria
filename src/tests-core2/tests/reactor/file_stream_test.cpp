@@ -55,7 +55,7 @@ struct FileTestState: TestState {
 
 auto file_test = register_test_in_suite<FnTest<FileTestState>>(u"ReactorSuite", u"FileStreamTest", [](auto& state){
 
-    auto wd = state.working_directory_;
+	auto wd = state.working_directory_;
     wd.append("file.bin");
 
     File file = open_buffered_file(wd, FileFlags::RDWR | FileFlags::CREATE | FileFlags::TRUNCATE);
@@ -67,22 +67,22 @@ auto file_test = register_test_in_suite<FnTest<FileTestState>>(u"ReactorSuite", 
 
     uint8_t stream_state{};
     uint64_t total_written{};
+	uint64_t total_write_requested{};
 
     while (total_written < state.stream_size)
     {
         size_t write_size = getRandomG(state.buffer_size - 1) + 1;
+		total_write_requested += write_size;
 
         for (size_t c = 0; c < write_size; c++) {
             buffer.get()[c] = stream_state++;
         }
 
         size_t written = ostream.write(buffer.get(), write_size);
-        total_written += written;
-
-        if (written < write_size){
-            break;
-        }
+		total_written += written;
     }
+
+	assert_equals(total_written, total_write_requested);
 
     assert_equals(total_written, file.fpos());
     assert_equals(0, file.seek(0));
