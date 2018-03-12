@@ -57,8 +57,7 @@ int main(int argc, char** argv, char** envp) {
                 try {
                     int64_t start_time = getTimeInMillis();
 
-                    size_t block_size_max = block_size * 2;
-                    auto buffer = allocate_system<uint8_t>(block_size_max);
+                    auto buffer = allocate_system<uint8_t>(block_size);
                     uint8_t* buffer_ptr = buffer.get();
 
                     auto looper_ostream = conn.output();
@@ -72,26 +71,8 @@ int main(int argc, char** argv, char** envp) {
                     while (!conn.is_closed())
                     {
                         cnt++;
-
-                        size_t block = block_size;//getRandomG(block_size_max - 1) + 1;
-                        size_t read = looper_istream.read(buffer_ptr, block);
-                        //std::cout << "Read: " << read << std::endl;
-
-                        if (read == 0) {
-                            break;
-                        }
-
-                        if (conn.is_closed()) {
-                            //std::cout << "Connection closed, breaking" << std::endl;
-                            break;
-                        }
-
-                        size_t written = looper_ostream.write(buffer_ptr, read);
-                        //std::cout << "written: " << written << std::endl;
-
-                        if (written < read) {
-                            break;
-                        }
+                        size_t read = looper_istream.read(buffer_ptr, block_size);
+                        looper_ostream.write(buffer_ptr, read);
                     }
 
                     int64_t end_time = getTimeInMillis();
@@ -110,9 +91,6 @@ int main(int argc, char** argv, char** envp) {
                 catch (...) {
                     engine().coutln(u"Unknown exception in connection fiber", "");
                 }
-
-                std::cout << "Cycle finished" << std::endl;
-
             }, csconn));
         }
 

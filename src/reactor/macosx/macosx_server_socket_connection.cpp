@@ -148,16 +148,7 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
     size_t available_size = size;
     while (!data_closed_)
     {
-//        std::cout
-//                << "About to write " << available_size << " bytes || "
-//                << fiber_io_read_message_.connection_closed()
-//                << " "
-//                << fiber_io_write_message_.connection_closed()
-//                << std::endl;
-
         ssize_t result = ::write(fd_, data, available_size);
-
-//        std::cout << " === Written " << result << std::endl;
 
         if (result >= 0) {
             data_closed_ = result == 0;
