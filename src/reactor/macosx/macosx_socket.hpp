@@ -143,9 +143,9 @@ public:
 
     virtual void close();
     virtual bool is_closed() const {
-        return op_closed_ || data_closed_
-                || fiber_io_read_message_.connection_closed()
-                || fiber_io_write_message_.connection_closed();
+        return op_closed_ || data_closed_;
+                //|| fiber_io_read_message_.connection_closed()
+                //|| fiber_io_write_message_.connection_closed();
     }
 };
 
@@ -208,9 +208,9 @@ public:
 
      virtual void close();
      virtual bool is_closed() const {
-         return op_closed_ || data_closed_
-                 || fiber_io_read_message_.connection_closed()
-                 || fiber_io_write_message_.connection_closed();
+         return op_closed_ || data_closed_;
+                 //|| fiber_io_read_message_.connection_closed()
+                 //|| fiber_io_write_message_.connection_closed();
      }
 
 private:

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SET(MEMORIA_APPS tcp_echo_server tcp_echo_client)
+SET(MEMORIA_APPS tcp_echo_server tcp_echo_client asio_echo_server asio_echo_client)
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
