@@ -28,8 +28,8 @@
 using boost::asio::ip::tcp;
 using namespace memoria::v1;
 
-enum { mean_length = 64 };
-enum { data_size = 10000000 };
+enum { mean_length = 4096 };
+enum { data_size = 1000000000 };
 
 int main(int argc, char* argv[])
 {
