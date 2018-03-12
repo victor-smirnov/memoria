@@ -25,6 +25,10 @@ public:
     {
     }
 
+    ~session() {
+        std::cout << "Connection closed" << std::endl;
+    }
+
     void start()
     {
         do_read();
@@ -58,7 +62,7 @@ private:
     }
 
     tcp::socket socket_;
-    enum { max_length = 128 };
+    enum { max_length = 64 };
     char data_[max_length];
 };
 
@@ -77,6 +81,8 @@ private:
         acceptor_.async_accept(
                     [this](boost::system::error_code ec, tcp::socket socket)
         {
+            std::cout << "New connection" << std::endl;
+
             if (!ec)
             {
                 std::make_shared<session>(std::move(socket))->start();
