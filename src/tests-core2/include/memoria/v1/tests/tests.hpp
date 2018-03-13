@@ -192,4 +192,89 @@ public:
 };
 
 
+template <typename T>
+T select_for_coverage(TestCoverage coverage, T&& for_all) {
+    return for_all;
+}
+
+template <typename T>
+T select_for_coverage(TestCoverage coverage, T&& smoke, T&& other) {
+    return coverage == TestCoverage::SMOKE ? smoke : other;
+}
+
+template <typename T>
+T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& other)
+{
+    if (coverage == TestCoverage::SMOKE) {
+        return smoke;
+    }
+    else if (coverage == TestCoverage::TINY) {
+        return tiny;
+    }
+    else {
+        return other;
+    }
+}
+
+template <typename T>
+T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&& other)
+{
+    if (coverage == TestCoverage::SMOKE) {
+        return smoke;
+    }
+    else if (coverage == TestCoverage::TINY) {
+        return tiny;
+    }
+    else if (coverage == TestCoverage::SMALL) {
+        return small;
+    }
+    else {
+        return other;
+    }
+}
+
+template <typename T>
+T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&& medium, T&& other)
+{
+    if (coverage == TestCoverage::SMOKE) {
+        return smoke;
+    }
+    else if (coverage == TestCoverage::TINY) {
+        return tiny;
+    }
+    else if (coverage == TestCoverage::SMALL) {
+        return small;
+    }
+    else if (coverage == TestCoverage::MEDIUM) {
+        return medium;
+    }
+    else {
+        return other;
+    }
+}
+
+
+template <typename T>
+T select_for_coverage(TestCoverage coverage, T&& smoke, T&& tiny, T&& small, T&& medium, T&& large, T&& xlarge)
+{
+    if (coverage == TestCoverage::SMOKE) {
+        return smoke;
+    }
+    else if (coverage == TestCoverage::TINY) {
+        return tiny;
+    }
+    else if (coverage == TestCoverage::SMALL) {
+        return small;
+    }
+    else if (coverage == TestCoverage::MEDIUM) {
+        return medium;
+    }
+    else if (coverage == TestCoverage::LARGE) {
+        return large;
+    }
+    else {
+        return xlarge;
+    }
+}
+
 }}}

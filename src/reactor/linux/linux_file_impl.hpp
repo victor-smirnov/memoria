@@ -57,6 +57,7 @@ public:
     }
 
     virtual uint64_t seek(uint64_t position);
+    virtual uint64_t fpos();
 
     virtual size_t read(uint8_t* buffer, size_t size);
     virtual size_t write(const uint8_t* buffer, size_t size);

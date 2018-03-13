@@ -93,9 +93,13 @@ const filesystem::path& File::path()
     return this->ptr_->path();
 }
 
+uint64_t File::seek(uint64_t pos) {
+    return this->ptr_->seek(pos);
+}
 
-
-
+uint64_t File::fpos() {
+    return this->ptr_->fpos();
+}
 
 
 

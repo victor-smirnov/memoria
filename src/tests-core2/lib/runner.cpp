@@ -324,7 +324,7 @@ void run_tests()
                 }
 
                 args.emplace_back(u"--output");
-                args.emplace_back(test_output_dir.to_u16());
+                args.emplace_back(output_dir_base.to_u16());
 
                 args.emplace_back(u"--coverage");
                 args.emplace_back(get_test_coverage_str());

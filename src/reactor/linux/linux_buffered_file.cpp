@@ -102,6 +102,25 @@ uint64_t BufferedFileImpl::seek(uint64_t position)
 }
 
 
+uint64_t BufferedFileImpl::fpos()
+{
+    off64_t res;
+    int errno0;
+
+    std::tie(res, errno0) = engine().run_in_thread_pool([&]{
+        off64_t r = lseek64(fd_, 0, SEEK_CUR);
+        return std::make_tuple(r, errno);
+    });
+
+    if (res >= 0) {
+        return res;
+    }
+    else {
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't seek into the file  {}", path_);
+    }
+}
+
+
 size_t BufferedFileImpl::read(uint8_t* buffer, uint64_t offset, size_t size)
 {
     off64_t res;

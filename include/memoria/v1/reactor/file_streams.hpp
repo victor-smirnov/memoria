@@ -27,67 +27,6 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
        
-/*
-template <typename BufferT = DefaultIOBuffer>    
-class BufferedIS: public IBinaryInputStream {
-    BufferT buffer_;
-    File file_;
-    
-    uint64_t position_;
-    
-public:
-    BufferedIS(size_t buffer_size, const File& file, uint64_t start):
-        buffer_(buffer_size), file_(file), position_(start)
-    {}
-    
-    virtual size_t read(uint8_t* data, size_t size)
-    {
-        size_t len = file_.read(data, position_, size);
-        position_ += len;
-        return len;
-    }
-
-    virtual void close() {}
-    virtual bool is_closed() const {return false;}
-    
-    BufferT& buffer() {return buffer_;}
-    const BufferT& buffer() const {return buffer_;}
-};
-
-
-template <typename BufferT = DefaultIOBuffer>    
-class BufferedOS: public IBinaryOutputStream {
-    BufferT buffer_;
-    File file_;
-    
-    uint64_t position_;
-    
-public:
-    BufferedOS(size_t buffer_size, const File& file, uint64_t start):
-        buffer_(buffer_size), file_(file), position_(start)
-    {}
-    
-    virtual size_t write(const uint8_t* data, size_t size)
-    {
-        size_t len = file_.write(data, position_, size);
-        
-        position_ += len;
-        
-        return len;
-    }
-    
-    virtual void flush() {
-        file_.fsync();
-    }
-
-    virtual void close() {}
-    virtual bool is_closed() const {return false;}
-
-    BufferT& buffer() {return buffer_;}
-    const BufferT& buffer() const {return buffer_;}
-};
-*/
-
 enum class FilePos {BEGIN, END};
 
 template <typename Char = char> 

@@ -46,6 +46,7 @@ public:
 
     uint64_t size();
 
+    uint64_t fpos();
     uint64_t seek(uint64_t pos);
 
     size_t read(uint8_t* buffer, size_t size);
