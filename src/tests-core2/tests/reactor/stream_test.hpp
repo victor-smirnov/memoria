@@ -120,6 +120,9 @@ public:
     uint64_t total_received() {return total_received_;}
     uint64_t total_transferred() {return total_received_;}
 
+    bool send_is_done_{false};
+    bool resend_is_done_{false};
+
 private:
 
     void send()
@@ -144,11 +147,9 @@ private:
             size_t written = sender_ostream.write(buffer_ptr, block_size);
             assert_equals(block_size, written, "Sender stream write size");
             total_sent_ += written;
-
-            this_fiber::yield();
         }
 
-        sender_ostream.close();
+        send_is_done_ = true;
     }
 
     void loop()
@@ -161,11 +162,14 @@ private:
 
         uint8_t stream_state_{};
 
-        while (!looper_istream.is_closed())
+        uint64_t loop_received{};
+
+        while (!send_is_done_ || ((loop_received < total_sent_) && total_transferred_ < total_sent_))
         {
             size_t block_size = getRandomG(block_size_max_ - block_size_min_) + block_size_min_;
 
             size_t read = looper_istream.read(buffer_ptr, block_size);
+            loop_received += read;
 
             for (size_t c = 0; c < read; c++, stream_state_++)
             {
@@ -177,7 +181,7 @@ private:
             total_transferred_ += written;
         }
 
-        looper_ostream.close();
+        resend_is_done_ = true;
     }
 
     void receive()
@@ -189,7 +193,7 @@ private:
 
         uint8_t stream_state_{};
 
-        while (!receiver_istream.is_closed())
+        while (!resend_is_done_ || (total_received_ < total_sent_))
         {
             size_t block_size = getRandomG(block_size_max_ - block_size_min_) + block_size_min_;
 

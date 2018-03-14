@@ -49,6 +49,7 @@ public:
     virtual bool is_closed() const {return closed_;}
 
     virtual uint64_t size();
+    virtual uint64_t fpos();
 
     virtual uint64_t seek(uint64_t position);
 

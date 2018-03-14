@@ -108,6 +108,24 @@ uint64_t BufferedFileImpl::seek(uint64_t position) {
 }
 
 
+uint64_t BufferedFileImpl::fpos() {
+    off_t res;
+    int errno0;
+
+    std::tie(res, errno0) = engine().run_in_thread_pool([&]{
+        off_t r = lseek(fd_, 0, SEEK_CUR);
+        return std::make_tuple(r, errno);
+    });
+
+    if (res >= 0) {
+        return res;
+    }
+    else {
+        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't read from file {}", path_);
+    }
+}
+
+
 uint64_t BufferedFileImpl::size() {
     return filesystem::file_size(path_);
 }
