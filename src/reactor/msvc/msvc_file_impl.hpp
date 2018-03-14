@@ -41,6 +41,9 @@ protected:
 	HANDLE fd_{ INVALID_HANDLE_VALUE };
 	bool no_buffering_;
 	bool closed_{false};
+
+	uint64_t pos_{};
+
 public:
 
 	GenericFile(filesystem::path file_path, FileFlags flags, FileMode mode, bool no_buffering_);
@@ -59,7 +62,7 @@ public:
 
 
 class BufferedFileImpl: public GenericFile, public IBinaryIOStream, public EnableSharedFromThis<BufferedFileImpl> {
-	uint64_t pos_{};
+	
 public:
 	using GenericFile::read;
 	using GenericFile::write;
@@ -84,16 +87,12 @@ public:
 
 	virtual size_t read(uint8_t* buffer, size_t size) 
 	{
-		auto rr = GenericFile::read(buffer, pos_, size);
-		pos_ += rr;
-		return rr;
+		return GenericFile::read(buffer, pos_, size);
 	}
 
 	virtual size_t write(const uint8_t* buffer, size_t size) 
 	{
-		auto rr = GenericFile::write(buffer, pos_, size);
-		pos_ += rr;
-		return rr;	
+		return GenericFile::write(buffer, pos_, size);
 	}
 	
 	virtual BinaryInputStream istream() 

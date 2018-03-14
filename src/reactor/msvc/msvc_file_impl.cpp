@@ -66,21 +66,26 @@ DWORD get_disposition(FileFlags flags, FileMode mode) {
 
 	DWORD disposition{};
 
-	if (to_bool(flags & FileFlags::TRUNCATE)) {
-		disposition |= TRUNCATE_EXISTING;
-	}
-	
-	if (to_bool(flags & FileFlags::CREATE)) 
+	if (to_bool(flags & FileFlags::TRUNCATE)) 
 	{
-		if (to_bool(flags & FileFlags::EXCL)) {
-			disposition |= CREATE_NEW;
+		if (to_bool(flags & FileFlags::CREATE)) {
+			disposition = CREATE_ALWAYS;
 		}
 		else {
-			disposition |= OPEN_ALWAYS;
+			disposition = TRUNCATE_EXISTING;
+		}
+	}
+	else if (to_bool(flags & FileFlags::CREATE)) 
+	{
+		if (to_bool(flags & FileFlags::EXCL)) {
+			disposition = CREATE_NEW;
+		}
+		else {
+			disposition = OPEN_ALWAYS;
 		}
 	}
 	else {
-		disposition |= OPEN_EXISTING;
+		disposition = OPEN_EXISTING;
 	}
 	
 	return disposition;
@@ -184,9 +189,11 @@ size_t GenericFile::read(uint8_t* buffer, uint64_t offset, size_t size)
 			message.wait_for();
 			
 			if (overlapped.status_) {
+				pos_ = offset + overlapped.size_;
 				return overlapped.size_;
 			}
 			else if (overlapped.error_code_ == ERROR_HANDLE_EOF) {
+				pos_ = offset;
 				return 0;
 			}
 			else {
@@ -227,6 +234,7 @@ size_t GenericFile::write(const uint8_t* buffer, uint64_t offset, size_t size)
 			message.wait_for();
 			
 			if (overlapped.status_) {
+				pos_ = offset + overlapped.size_;
 				return overlapped.size_;
 			}
 			else {

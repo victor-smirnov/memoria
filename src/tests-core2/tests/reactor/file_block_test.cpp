@@ -141,6 +141,7 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
         }
     }
 
+	
     engine().coutln(u"Rewrite file in chunks", "");
 
     for (auto& chunk: create_chunks_vector(state.buffer_size, total_written))
@@ -180,7 +181,6 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
             read_stream_state++;
         }
     }
-
 
     file.close();
 });
