@@ -31,7 +31,7 @@ namespace tests {
 
 using namespace memoria::v1::reactor;
 
-struct FileTestState: TestState {
+struct FileStreamTestState: TestState {
     using Base = TestState;
 
     size_t buffer_size{4096};
@@ -53,7 +53,7 @@ struct FileTestState: TestState {
 };
 
 
-auto file_test = register_test_in_suite<FnTest<FileTestState>>(u"ReactorSuite", u"FileStreamTest", [](auto& state){
+auto file_stream_test = register_test_in_suite<FnTest<FileStreamTestState>>(u"ReactorSuite", u"FileStreamTest", [](auto& state){
 
 	auto wd = state.working_directory_;
     wd.append("file.bin");
