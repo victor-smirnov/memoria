@@ -136,6 +136,7 @@ private:
 
         auto start = std::chrono::system_clock::now();
         while ((std::chrono::system_clock::now() - start) < test_length_)
+        //for (int c = 0; c < 10; c++)
         {
             size_t block_size = getRandomG(block_size_max_ - block_size_min_) + block_size_min_;
 
@@ -150,6 +151,7 @@ private:
         }
 
         send_is_done_ = true;
+        sender_ostream.close();
     }
 
     void loop()
@@ -164,7 +166,8 @@ private:
 
         uint64_t loop_received{};
 
-        while (!send_is_done_ || ((loop_received < total_sent_) && total_transferred_ < total_sent_))
+        //while (!send_is_done_ || ((loop_received < total_sent_) && total_transferred_ < total_sent_))
+        while(!looper_istream.is_closed())
         {
             size_t block_size = getRandomG(block_size_max_ - block_size_min_) + block_size_min_;
 
@@ -182,6 +185,7 @@ private:
         }
 
         resend_is_done_ = true;
+        looper_ostream.close();
     }
 
     void receive()
@@ -193,7 +197,8 @@ private:
 
         uint8_t stream_state_{};
 
-        while (!resend_is_done_ || (total_received_ < total_sent_))
+        //while (!resend_is_done_ || (total_received_ < total_sent_))
+        while (!receiver_istream.is_closed())
         {
             size_t block_size = getRandomG(block_size_max_ - block_size_min_) + block_size_min_;
 

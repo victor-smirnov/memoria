@@ -60,7 +60,7 @@ public:
     {
         size_t available_size = size;
 
-        while (true)
+        while (!data_closed_)
         {
             ssize_t result = ::read(fd_, data, available_size);
 
@@ -83,6 +83,8 @@ public:
                 );
             }
         }
+
+        return 0;
     }
 
     virtual IOHandle detach()
@@ -118,7 +120,7 @@ public:
     }
 
     virtual bool is_closed() const {
-        return op_closed_ || fiber_io_read_message_.connection_closed() || data_closed_;
+        return op_closed_ || data_closed_;
     }
 };
 
@@ -155,8 +157,16 @@ public:
     virtual size_t write(const uint8_t* data, size_t size)
     {
         size_t total{};
-        while (total < size) {
-            total += write_(data + total, size - total);
+        while (total < size)
+        {
+            size_t written = write_(data + total, size - total);
+
+            if (written > 0) {
+                total += written;
+            }
+            else {
+                break;
+            }
         }
         return total;
     }
@@ -164,11 +174,12 @@ public:
     size_t write_(const uint8_t* data, size_t size)
     {
         size_t available_size = size;
-        while (true)
+        while (!data_closed_)
         {
             ssize_t result = ::write(fd_, data, available_size);
 
             if (result >= 0) {
+                data_closed_ = result == 0;
                 return result;
             }
             else if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -185,6 +196,8 @@ public:
                 );
             }
         }
+
+        return 0;
     }
 
     virtual IOHandle detach()
@@ -220,7 +233,7 @@ public:
     }
 
     virtual bool is_closed() const {
-        return op_closed_ || fiber_io_write_message_.connection_closed() || data_closed_;
+        return op_closed_ || data_closed_;
     }
 
     virtual void flush() {}
