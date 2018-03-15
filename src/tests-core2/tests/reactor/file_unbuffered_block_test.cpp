@@ -33,7 +33,7 @@ namespace tests {
 
 using namespace memoria::v1::reactor;
 
-struct FileBlockTestState: TestState {
+struct FileUnbufferedBlockTestState: TestState {
     using Base = TestState;
 
     size_t buffer_size{4096};
@@ -52,42 +52,39 @@ struct FileBlockTestState: TestState {
     }
 };
 
-using FileChunk = std::pair<uint64_t, uint64_t>;
 
-
-
-auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"ReactorSuite", u"FileBlockTest", [](auto& state){
+auto file_unbuffered_block_test = register_test_in_suite<FnTest<FileUnbufferedBlockTestState>>(u"ReactorSuite", u"FileUnbufferedBlockTest", [](auto& state){
 
     auto wd = state.working_directory_;
     wd.append("file.bin");
 
-    File file = open_buffered_file(wd, FileFlags::RDWR | FileFlags::CREATE | FileFlags::TRUNCATE);
+    DMAFile file = open_dma_file(wd, FileFlags::RDWR | FileFlags::CREATE | FileFlags::TRUNCATE);
 
-    auto buffer = allocate_system<uint8_t>(state.buffer_size);
+    auto buffer = allocate_dma_buffer(state.buffer_size);
 
     uint8_t stream_state{};
     uint64_t total_written{};
 
     engine().coutln(u"Prepare file of size: {}", state.file_size);
 
-    while (total_written < state.file_size)
-    {
-        size_t write_size = getRandomG(state.buffer_size - 1) + 1;
 
+    for (uint64_t pos = 0; pos < state.file_size; pos += state.buffer_size)
+    {
+        size_t write_size = (pos + state.buffer_size <= state.file_size) ? state.buffer_size : state.file_size - pos;
         for (size_t c = 0; c < write_size; c++) {
             buffer.get()[c] = stream_state++;
         }
 
-        size_t written = file.write(buffer.get(), write_size);
+        size_t written = file.write(buffer.get(), pos, write_size);
         total_written += written;
     }
 
-    assert_equals(total_written, file.fpos());
-    assert_equals(0, file.seek(0));
+    assert_equals(total_written, state.file_size);
+    assert_equals(total_written, filesystem::file_size(file.path()));
 
     engine().coutln(u"Read file in chunks", "");
 
-    for (auto& chunk: create_random_chunks_vector<>(state.buffer_size, total_written))
+    for (auto& chunk: create_fixed_chunks_vector<>(state.buffer_size, total_written))
     {
         uint64_t chunk_pos;
         uint64_t chunk_size;
@@ -96,7 +93,6 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
         uint8_t read_stream_state = chunk_pos % 256;
 
         size_t read = file.read(buffer.get(), chunk_pos, chunk_size);
-        assert_equals(chunk_pos + read, file.fpos());
         assert_equals(read, chunk_size);
 
         for (size_t c = 0; c < read; c++)
@@ -106,10 +102,10 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
         }
     }
 
-	
+
     engine().coutln(u"Rewrite file in chunks", "");
 
-    for (auto& chunk: create_random_chunks_vector<>(state.buffer_size, total_written))
+    for (auto& chunk: create_fixed_chunks_vector<>(state.buffer_size, total_written))
     {
         uint64_t chunk_pos;
         uint64_t chunk_size;
@@ -122,13 +118,13 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
         }
 
         size_t written = file.write(buffer.get(), chunk_pos, chunk_size);
-        assert_equals(chunk_pos + written, file.fpos());
         assert_equals(written, chunk_size);
     }
 
+
     engine().coutln(u"Read file in chunks again", "");
 
-    for (auto& chunk: create_random_chunks_vector<>(state.buffer_size, total_written))
+    for (auto& chunk: create_fixed_chunks_vector<>(state.buffer_size, total_written))
     {
         uint64_t chunk_pos;
         uint64_t chunk_size;
@@ -137,7 +133,6 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
         uint8_t read_stream_state = (chunk_pos - total_written + 1) % 256;
 
         size_t read = file.read(buffer.get(), chunk_pos, chunk_size);
-        assert_equals(chunk_pos + read, file.fpos());
         assert_equals(read, chunk_size);
 
         for (size_t c = 0; c < read; c++)

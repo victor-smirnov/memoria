@@ -4,6 +4,7 @@ set (SRCS ${SRCS} reactor/file_stream_test.cpp)
 set (SRCS ${SRCS} reactor/pipe_test.cpp)
 set (SRCS ${SRCS} reactor/socket_test.cpp)
 set (SRCS ${SRCS} reactor/file_block_test.cpp)
+set (SRCS ${SRCS} reactor/file_unbuffered_block_test.cpp)
 
 add_executable(tests2 tests2.cpp ${SRCS})
         

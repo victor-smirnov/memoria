@@ -67,7 +67,7 @@ public:
 
     size_t read(uint8_t* data, size_t size)
     {
-        while (true)
+        while (!data_closed_)
         {
             ssize_t result = ::read(handle_, data, size);
 
@@ -84,6 +84,8 @@ public:
                 MMA1_THROW(SystemException()) << fmt::format_ex(u"Error reading from pipe for {}", handle_);
             }
         }
+
+        return 0;
     }
 
     virtual void close()
@@ -195,7 +197,7 @@ public:
 
     size_t write_(const uint8_t* data, size_t size)
     {
-        while (true)
+        while (!data_closed_)
         {
             ssize_t result = ::write(handle_, data, size);
 
@@ -213,6 +215,8 @@ public:
                 MMA1_THROW(SystemException()) << fmt::format_ex(u"Error writing pipe for {}", handle_);
             }
         }
+
+        return 0;
     }
 
     virtual void close()
