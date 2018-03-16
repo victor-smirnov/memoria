@@ -106,7 +106,7 @@ public:
     
     ~IOPoller();
     
-    void poll();
+    void poll(DWORD dwMilliseconds);
     
 	void sleep_for(const std::chrono::milliseconds& time);
     

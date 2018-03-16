@@ -79,7 +79,7 @@ IOPoller::~IOPoller()
 #endif
 
 
-void IOPoller::poll() 
+void IOPoller::poll(DWORD dwMilliseconds) 
 {
 	auto room_size = buffer_.capacity();
 	if (room_size > 0)
@@ -92,7 +92,7 @@ void IOPoller::poll()
 			ULONG_PTR completion_key{};
 			OVERLAPPED* overlapped {};
 
-			auto status = GetQueuedCompletionStatus(completion_port_, &num_bytes, &completion_key, &overlapped, 0);
+			auto status = GetQueuedCompletionStatus(completion_port_, &num_bytes, &completion_key, &overlapped, dwMilliseconds);
 			
 			auto error_code = GetLastError();
 

@@ -406,7 +406,7 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 				conn_closed_ = overlapped.size_ == 0;
 				return overlapped.size_;
 			}
-			else if (overlapped.error_code_ == error_code == ERROR_NETNAME_DELETED) {
+			else if (overlapped.error_code_ == ERROR_NETNAME_DELETED) {
 				conn_closed_ = true;
 				return overlapped.size_;
 			}
