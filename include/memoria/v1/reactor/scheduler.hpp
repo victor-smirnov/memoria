@@ -43,8 +43,12 @@ class Scheduler: public fibers::algo::algorithm_with_properties<FiberProperties>
     ReadyQueue ready_queue_ {};
     WaitQueue wait_queue_ {};
     
+    uint64_t activations_{};
+
 public:
     Scheduler(std::shared_ptr<Reactor> reactor): reactor_(reactor) {}
+
+    uint64_t activations() const {return activations_;}
     
     virtual void awakened( fibers::context* ctx, FiberProperties& properties) noexcept 
     {
@@ -58,11 +62,14 @@ public:
     {
         fibers::context* victim{ nullptr };
         
-        if ( ! ready_queue_.empty() ) {
+        if ( ! ready_queue_.empty() )
+        {
             victim = & ready_queue_.front();
             ready_queue_.pop_front();
             BOOST_ASSERT( nullptr != victim);
             BOOST_ASSERT( ! victim->ready_is_linked() );
+
+            ++activations_;
         }
         
         return victim;

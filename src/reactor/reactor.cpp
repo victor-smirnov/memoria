@@ -42,7 +42,21 @@ Reactor& engine()
     return *Reactor::local_engine_;
 }
 
-void Reactor::event_loop ()
+void Reactor::start()
+{
+    if (own_thread_)
+    {
+        worker_ = std::thread([this](){
+            local_engine_ = this;
+            event_loop(app().iopoll_timeout());
+        });
+    }
+    else {
+        local_engine_ = this;
+    }
+}
+
+void Reactor::event_loop (uint64_t iopoll_timeout)
 {
     scheduler_ = new Scheduler<Reactor>(shared_from_this());
     running_ = true;
@@ -88,16 +102,31 @@ void Reactor::event_loop ()
         }
     };
 
-    
+    int io_poll_batch = 32;
+
     while(running_ || fibers::context::contexts() > fibers::DEFAULT_CONTEXTS) 
     {
-        if (++io_poll_cnt_ == 32) 
+        if (++io_poll_cnt_ >= io_poll_batch)
         {
             io_poll_cnt_ = 0;
-            io_poller_.poll();
+
+            bool use_long_timeout{};
+
+            if (this->idle_ticks() >= io_poll_batch)
+            {
+                auto duration = this->idle_duration();
+
+                if (duration > 10)
+                {
+                    use_long_timeout = true;
+                }
+            }
+
+            io_poller_.poll(use_long_timeout ? iopoll_timeout : 0);
             
             while (ring_buffer_.available())
             {
+                this->reset_idle_ticks();
                 auto msg = ring_buffer_.pop_back();
                 if (msg) {
                     process_fn(msg);
@@ -116,9 +145,21 @@ void Reactor::event_loop ()
         
         smp_->receive_all(cpu_, process_fn);
         
+        auto acct0 = scheduler_->activations();
+
         withTime(yield_stat, []{
             memoria::v1::this_fiber::yield();
         });
+
+        auto acct1 = scheduler_->activations();
+
+        if (acct1 - acct0 <= 2)
+        {
+            this->inc_idle_ticks();
+        }
+        else {
+            this->reset_idle_ticks();
+        }
     }
     
     if (app().is_debug()) 

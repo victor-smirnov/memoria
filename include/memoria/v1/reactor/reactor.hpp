@@ -91,6 +91,14 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
     std::basic_ostream<char> cerr_{&stderr_streambuf_};
 
 public:
+    using Clock = std::chrono::system_clock;
+    using TimePoint = std::chrono::time_point<Clock>;
+
+private:
+    TimePoint idle_start_{};
+    uint64_t idle_ticks_;
+
+public:
 	using EventLoopTask = std::function<void(void)>;
 private:
 	std::vector<EventLoopTask> event_loop_tasks_;
@@ -109,6 +117,29 @@ public:
     
     Reactor* operator=(const Reactor&) = delete;
     Reactor* operator=(Reactor&&) = delete;
+
+    uint64_t idle_ticks() const {
+        return idle_ticks_;
+    }
+
+    void inc_idle_ticks() {
+        if (++idle_ticks_ == 1) {
+            idle_start_ = std::chrono::system_clock::now();
+        }
+    }
+
+    void reset_idle_ticks() {
+        idle_ticks_ = 0;
+    }
+
+
+    uint64_t idle_duration() const
+    {
+        auto now = Clock::now();
+        using Ms = std::chrono::milliseconds;
+        auto duration = std::chrono::duration_cast<Ms>(now - idle_start_).count();
+        return duration;
+    }
     
     int cpu() const {return cpu_;}
     int cpu_num() const {return smp_->cpu_num();}
@@ -287,21 +318,21 @@ private:
 
     static thread_local Reactor* local_engine_;
     
-    void start()
-    {
-        if (own_thread_) 
-        {
-            worker_ = std::thread([this](){
-                local_engine_ = this;
-                event_loop();
-            });
-        }
-        else {
-            local_engine_ = this;
-        }
-    }
+    void start();
+//    {
+//        if (own_thread_)
+//        {
+//            worker_ = std::thread([this](){
+//                local_engine_ = this;
+//                event_loop();
+//            });
+//        }
+//        else {
+//            local_engine_ = this;
+//        }
+//    }
     
-    void event_loop();
+    void event_loop(uint64_t iopoll_timeout);
     
     
     void shutdown() 

@@ -48,13 +48,13 @@ class IOPoller {
 
     const int cpu_;
     IOBuffer& buffer_;
-    
+
 public:
     IOPoller(int cpu, IOBuffer& buffer);
     
     ~IOPoller();
     
-    void poll();
+    void poll(int timeout);
     
     int epoll_fd() const {return epoll_fd_;}
     int event_fd() const {return event_fd_;}

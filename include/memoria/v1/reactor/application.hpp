@@ -25,6 +25,7 @@
 #include <memoria/v1/reactor/reactor.hpp>
 #include <memoria/v1/reactor/process.hpp>
 #include <memoria/v1/reactor/timer.hpp>
+#include <memoria/v1/reactor/socket.hpp>
 
 #ifdef MMA1_LINUX
 #include <memoria/v1/reactor/linux/linux_smp.hpp>
@@ -37,7 +38,7 @@
 #include <memoria/v1/reactor/msvc/msvc_file.hpp>
 #endif
 
-#include <memoria/v1/reactor/socket.hpp>
+
 
 
 
@@ -105,6 +106,9 @@ class Application final: protected ApplicationInit {
 
 	std::vector<U16String> args_;
 	Environment env_;
+
+    uint64_t iopoll_timeout_{10}; // 10 ms
+
 public:
 
     //Application(int argc, char** argv): Application(argc, argv, nullptr) {}
@@ -126,6 +130,10 @@ public:
 	Environment& env() { return env_; }
     
     const variables_map& options() {return options_;}
+
+    uint64_t iopoll_timeout() const {
+        return iopoll_timeout_;
+    }
     
     void set_shutdown_hook(const std::function<void()>& fn) {
         shutdown_hook_ = fn;
@@ -145,7 +153,7 @@ public:
         auto msg = make_special_one_way_lambda_message(0, std::forward<Fn>(fn), std::forward<Args>(args)...);
         smp_->submit_to(0, msg.get());
         
-        reactors_[0]->event_loop();
+        reactors_[0]->event_loop(iopoll_timeout_);
         
         join();
         
@@ -185,7 +193,8 @@ public:
         descr.add_options()
             ("help,h", "Prints command line switches")
             ("threads,t", boost::program_options::value<uint32_t>()->default_value(1), "Specifies number of threads to use")
-            ("debug,d", boost::program_options::value<bool>()->default_value(false), "Enable debug output");
+            ("debug,d", boost::program_options::value<bool>()->default_value(false), "Enable debug output")
+            ("io-timeout", boost::program_options::value<uint64_t>()->default_value(20), "Event poller timeout value, in milliseconds.");
         
         return descr;
     }

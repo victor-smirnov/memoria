@@ -80,6 +80,8 @@ Application::Application(options_description descr, int argc, char** argv, char*
 
 	smp_ = std::make_shared<Smp>(options_["threads"].as<uint32_t>());
 
+    iopoll_timeout_ = options_["io-timeout"].as<uint64_t>();
+
     for (int c = 0; c < smp_->cpu_num(); c++)
     {
         reactors_.push_back(std::make_shared<Reactor>(smp_, c, c > 0));

@@ -83,7 +83,7 @@ IOPoller::IOPoller(int cpu, IOBuffer& buffer):
     assert_ok(event_fd_, "Can't initialize file EVENTFD subsystem");
     
     epoll_event ev0;
-    ev0.events = EPOLLIN | EPOLLOUT ; //| EPOLLET
+    ev0.events = EPOLLIN | EPOLLOUT | EPOLLET; ; //
     ev0.data.ptr = &event_fd_;
     
     assert_ok(
@@ -108,7 +108,7 @@ IOPoller::~IOPoller()
     //FIXME: How to close/destroy epoll_fd_?
 }
 
-void IOPoller::poll() 
+void IOPoller::poll(int timeout)
 {
     int buffer_capacity = buffer_.capacity_i();
     if (buffer_capacity > 0)
@@ -118,8 +118,7 @@ void IOPoller::poll()
         sigset_t sigmask = tools::make_zeroed<sigset_t>();
         
         int max_events = std::min(buffer_capacity, (int)BATCH_SIZE);
-        
-        int epoll_result = epoll_pwait(epoll_fd_, eevents, max_events, 0, &sigmask);
+        int epoll_result = epoll_pwait(epoll_fd_, eevents, max_events, timeout, &sigmask);
         
         if (epoll_result >= 0)
         {
@@ -139,8 +138,8 @@ void IOPoller::poll()
                 }
             }
         }
-        else {
-            std::cout << "epoll_pwait failed: " << epoll_result << std::endl;
+        else if (errno != EINTR) {
+            std::cout << "epoll_pwait failed: " << epoll_result << ": " << strerror(errno) << std::endl;
             std::terminate();
         }
     }

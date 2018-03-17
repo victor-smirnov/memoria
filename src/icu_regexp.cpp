@@ -30,26 +30,11 @@ int main(int argc, char** argv)
 
         ShutdownOnScopeExit hh;
 
-        auto pattern = ICURegexPattern::compile(as_cu16_provider(u"a+"));
-        std::cout << U8String(pattern.pattern()) << std::endl;
+//        while (true) {
+//            this_fiber::yield();
+//        }
 
-        auto matcher = pattern.matcher(as_cu16_provider("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), 20);
-
-        std::cout << matcher.matches() << std::endl;
-        std::cout << matcher.start() << std::endl;
-        std::cout << matcher.end() << std::endl;
-
-        std::cout << "'" << U16String(u" z   A   x ").trim() << "'" << std::endl;
-
-        U16String str0(u"    The quick brown fox jumps over the lazy dog    ");
-
-        std::cout << str0.find("dog") << std::endl;
-
-        auto tokens = ICURegexPattern::compile(u" +").split(str0);
-
-        for (auto& tt: tokens) {
-            std::cout << tt << std::endl;
-        }
+        engine().sleep_for(std::chrono::seconds(1));
 
         return 0;
     });
