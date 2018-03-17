@@ -53,7 +53,7 @@ public:
     
     ~IOPoller();
     
-    void poll();
+    void poll(uint64_t timeout_ms);
     
     int queue_fd() const {return queue_fd_;}
 

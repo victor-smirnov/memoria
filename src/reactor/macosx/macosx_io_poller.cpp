@@ -58,9 +58,10 @@ IOPoller::~IOPoller()
     ::close(queue_fd_);
 }
 
-void IOPoller::poll() 
+void IOPoller::poll(uint64_t timeout_ms)
 {
-    timespec zero_timeout = tools::make_zeroed<timespec>();
+    timespec timeout = tools::make_zeroed<timespec>();
+    timeout.tv_nsec = timeout_ms * 1000000;
     
     int buffer_capacity = buffer_.capacity_i();
     if (buffer_capacity > 0)
@@ -69,7 +70,7 @@ void IOPoller::poll()
         
         int max_events = std::min(buffer_capacity, (int)BATCH_SIZE);
         
-        int kevent_result = kevent64(queue_fd_, nullptr, 0, eevents, max_events, 0, &zero_timeout);
+        int kevent_result = kevent64(queue_fd_, nullptr, 0, eevents, max_events, 0, &timeout);
         
         if (kevent_result >= 0)
         {
