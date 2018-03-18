@@ -30,29 +30,33 @@ size_t ConsoleInputStream::read(uint8_t* data, size_t size)
 size_t ConsoleOutputStream::write(const uint8_t* data, size_t size)
 {
     size_t result{};
-    int32_t errno_v{};
-    bool error_v{};
 
-    std::tie(result, errno_v, error_v) = engine().run_in_thread_pool([&]{
-        size_t total{};
+    if (size > 0 && !ext_closed_)
+    {
+        int32_t errno_v{};
+        bool error_v{};
 
-        while (total < size)
-        {
-            ssize_t result0 = ::write(fd_, data + total, size - total);
-            if (result0 < 0)
+        std::tie(result, errno_v, error_v) = engine().run_in_thread_pool([&]{
+            size_t total{};
+
+            while (total < size)
             {
-                return std::make_tuple(total, (int32_t)errno, true);
+                ssize_t result0 = ::write(fd_, data + total, size - total);
+                if (result0 < 0)
+                {
+                    return std::make_tuple(total, (int32_t)errno, true);
+                }
+
+                total += result0;
             }
 
-            total += result0;
+            return std::make_tuple(total, (int32_t)errno, false);
+        });
+
+        if (error_v)
+        {
+            MMA1_THROW(SystemException()) << WhatInfo(strerror(errno_v));
         }
-
-        return std::make_tuple(total, (int32_t)errno, false);
-    });
-
-    if (error_v)
-    {
-        MMA1_THROW(SystemException()) << WhatInfo(strerror(errno_v));
     }
 
     return result;

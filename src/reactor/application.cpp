@@ -77,21 +77,33 @@ Application::Application(options_description descr, int argc, char** argv, char*
     debug_ = options_["debug"].as<bool>();
     
     application_ = this;
-
-	smp_ = std::make_shared<Smp>(options_["threads"].as<uint32_t>());
-
     iopoll_timeout_ = options_["io-timeout"].as<uint64_t>();
+
+    threads_ = options_["threads"].as<uint32_t>();
+}
+
+void Application::start_engines() {
+
+    smp_ = std::make_shared<Smp>(threads_);
 
     for (int c = 0; c < smp_->cpu_num(); c++)
     {
         reactors_.push_back(std::make_shared<Reactor>(smp_, c, c > 0));
     }
-    
+
     for (int c = 0; c < smp_->cpu_num(); c++)
     {
         reactors_[c]->start();
     }
 }
+
+
+int Application::start_main_event_loop()
+{
+    reactors_[0]->event_loop(iopoll_timeout_);
+    return reactors_[0]->exit_status();
+}
+
 
 Application& app() {
     return *Application::application_;

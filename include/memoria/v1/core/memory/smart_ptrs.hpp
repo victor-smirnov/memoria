@@ -397,5 +397,29 @@ auto MakeScopedDtr(T* ptr, Fn&& dtr) {
 }
 
 
+template <typename DtrT>
+class OnScopeExit {
+    DtrT dtr_;
+public:
+    OnScopeExit(DtrT&& dtr) :
+        dtr_(std::move(dtr))
+    {}
+
+    OnScopeExit(OnScopeExit&& other): dtr_(std::move(other.dtr_)) {}
+
+    OnScopeExit(const OnScopeExit&) = delete;
+
+    ~OnScopeExit() noexcept {
+        dtr_();
+    }
+};
+
+template <typename Fn>
+auto MakeOnScopeExit(Fn&& dtr) {
+    return OnScopeExit<Fn>(std::forward<Fn>(dtr));
+}
+
+
+
 
 }}

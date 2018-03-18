@@ -39,14 +39,15 @@ public:
 
 class ConsoleOutputStream: public IBinaryOutputStream {
     int32_t fd_;
+    bool ext_closed_{};
 public:
     ConsoleOutputStream(int32_t fd) noexcept : fd_(fd){}
 
     virtual ~ConsoleOutputStream() noexcept {}
     virtual size_t write(const uint8_t* data, size_t size);
     virtual void flush();
-    virtual void close() {}
-    virtual bool is_closed() const {return false;}
+    virtual void close() {ext_closed_ = true;}
+    virtual bool is_closed() const {return ext_closed_;}
 };
 
 /*

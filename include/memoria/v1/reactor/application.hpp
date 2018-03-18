@@ -38,12 +38,6 @@
 #include <memoria/v1/reactor/msvc/msvc_file.hpp>
 #endif
 
-
-
-
-
-
-
 #include <boost/program_options.hpp>
 
 #include <functional>
@@ -109,6 +103,8 @@ class Application final: protected ApplicationInit {
 
     uint64_t iopoll_timeout_{10}; // 10 ms
 
+    uint32_t threads_{1};
+
 public:
 
     //Application(int argc, char** argv): Application(argc, argv, nullptr) {}
@@ -125,15 +121,25 @@ public:
     Application& operator=(const Application&) = delete;
     Application& operator=(Application&&) = delete;
 
+    uint32_t threads() const {return threads_;}
+    void set_threads(int threads) {
+        threads_ = threads;
+    }
+
+    uint64_t iopoll_timeout() const {return iopoll_timeout_;}
+    void set_iopoll_timeout(uint64_t value_ms) {
+        iopoll_timeout_ = value_ms;
+    }
+
+    void start_engines();
+
+
 	const std::vector<U16String>& args() const { return args_; }
 	const Environment& env() const { return env_; }
 	Environment& env() { return env_; }
     
     const variables_map& options() {return options_;}
 
-    uint64_t iopoll_timeout() const {
-        return iopoll_timeout_;
-    }
     
     void set_shutdown_hook(const std::function<void()>& fn) {
         shutdown_hook_ = fn;
@@ -160,12 +166,9 @@ public:
         return msg->result();
     }
     
-    void print_options_and_shutdown() 
+    void print_options()
     {
         std::cout << descr_;
-        run([this]{
-            this->shutdown();
-        });
     }
     
     
@@ -187,6 +190,7 @@ public:
         }
     }
     
+    int start_main_event_loop();
     
     static options_description default_options(options_description descr)
     {
@@ -228,9 +232,9 @@ public:
     {
         try {
             Application app(default_options(options), argc, argv);
-        
+
             if (app.is_help()) {
-                app.print_options_and_shutdown();
+                app.print_options();
                 return 0;
             }
             else {
@@ -260,7 +264,7 @@ public:
             Application app(default_options(options), argc, argv, envp);
 
 			if (app.is_help()) {
-				app.print_options_and_shutdown();
+                app.print_options();
 				return 0;
 			}
 			else {
@@ -289,6 +293,7 @@ class ShutdownOnScopeExit {
 public:
     ~ShutdownOnScopeExit() {
         engine().cout() << std::flush;
+        engine().cerr() << std::flush;
         app().shutdown();
     }
 };

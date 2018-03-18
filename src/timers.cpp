@@ -27,7 +27,11 @@ int main(int argc, char **argv)
 {    
     Application app(argc, argv);
     
-    app.run([](){
+    app.start_engines();
+
+    int cnt_ = 0;
+
+    app.run([&](){
         try {
             using Time = std::chrono::high_resolution_clock;
 
@@ -37,9 +41,9 @@ int main(int argc, char **argv)
 
             auto fs = t1 - t0;
 
-            std::cout << "Speep time: " << fs.count() << std::endl;
+            std::cout << "Sleep time: " << fs.count() << std::endl;
 			
-            int cnt_ = 0;
+
 
             dr::Timer tt = dr::Timer::schedule(std::chrono::seconds(4), std::chrono::seconds(1), 5, [&]{
                 std::cout << "In the periodic timer: " << (++cnt_) << std::endl;

@@ -48,6 +48,8 @@ void ThreadPool::stop_workers()
     for (auto ii = free_workers_.begin(); ii != free_workers_.end(); ii++) {
         (*ii).stop();
     }
+
+    pool_stopped_ = true;
 }
 
 bool ThreadPool::wait_for_termination() 

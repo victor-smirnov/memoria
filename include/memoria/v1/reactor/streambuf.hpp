@@ -70,9 +70,11 @@ protected:
     int sync()
     {
         auto size = std::distance(Base::pbase(), Base::pptr());
-        size_t written = output_stream_->write(T2T<uint8_t*>(buffer_.get()), size);
-
-        Base::pbump(-(int32_t)written);
+        if (size > 0)
+        {
+            size_t written = output_stream_->write(T2T<uint8_t*>(buffer_.get()), size);
+            Base::pbump(-(int32_t)written);
+        }
 
         return 0;
     }

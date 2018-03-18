@@ -149,6 +149,11 @@ include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})
 add_global_libs(${ICU_LIBRARIES})
 
+
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
+
+
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 
 add_subdirectory(src)

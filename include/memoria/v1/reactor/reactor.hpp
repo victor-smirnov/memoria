@@ -55,7 +55,6 @@
 namespace memoria {
 namespace v1 {
 namespace reactor {
-    
 
 class Reactor: public std::enable_shared_from_this<Reactor> {
     std::shared_ptr<Smp> smp_ {};
@@ -90,6 +89,12 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
     std::basic_ostream<char> cout_{&stdout_streambuf_};
     std::basic_ostream<char> cerr_{&stderr_streambuf_};
 
+    int exit_status_{};
+
+    bool shutdown_requested_{false};
+
+    uint64_t service_fibers_{2};
+
 public:
     using Clock = std::chrono::system_clock;
     using TimePoint = std::chrono::time_point<Clock>;
@@ -117,6 +122,18 @@ public:
     
     Reactor* operator=(const Reactor&) = delete;
     Reactor* operator=(Reactor&&) = delete;
+
+    int exit_status() const {return exit_status_;}
+
+    void start_service_fiber() {
+        service_fibers_++;
+    }
+
+    void stop_service_fiber()
+    {
+        BOOST_ASSERT_MSG(service_fibers_ > 0, "No service tibers running");
+        service_fibers_--;
+    }
 
     uint64_t idle_ticks() const {
         return idle_ticks_;
@@ -200,6 +217,7 @@ public:
     {
         auto ctx = fibers::context::active();
         BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
+        BOOST_ASSERT_MSG(thread_pool_.pool_running(), "Thread pool has been alredy stopped");
         
         auto msg = make_fiber_lambda_message(cpu_, this, ctx, std::forward<Fn>(task), std::forward<Args>(args)...);
         
@@ -220,6 +238,7 @@ public:
     {
         auto ctx = fibers::context::active();
         BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
+        BOOST_ASSERT_MSG(thread_pool_.pool_running(), "Thread pool has been alredy stopped");
 
         auto msg = make_thread_pool_lambda_message(
                     cpu_,
@@ -308,37 +327,14 @@ public:
         return cerr_;
     }
 
-    void println() {
-        cout_ << std::endl;
-    }
-
-
+    bool shutdown_requested() const {return !running_;}
 
 private:
 
     static thread_local Reactor* local_engine_;
     
-    void start();
-//    {
-//        if (own_thread_)
-//        {
-//            worker_ = std::thread([this](){
-//                local_engine_ = this;
-//                event_loop();
-//            });
-//        }
-//        else {
-//            local_engine_ = this;
-//        }
-//    }
-    
+    void start();    
     void event_loop(uint64_t iopoll_timeout);
-    
-    
-    void shutdown() 
-    {
-        running_ = false;
-    }
 };
 
 bool has_engine();

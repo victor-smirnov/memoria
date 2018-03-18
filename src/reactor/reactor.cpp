@@ -153,7 +153,7 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
 
         auto acct1 = scheduler_->activations();
 
-        if (acct1 - acct0 <= 2)
+        if (acct1 - acct0 <= service_fibers_)
         {
             this->inc_idle_ticks();
         }
@@ -161,6 +161,9 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
             this->reset_idle_ticks();
         }
     }
+
+    stdout_stream().close();
+    stderr_stream().close();
     
     if (app().is_debug()) 
     {

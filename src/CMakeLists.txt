@@ -101,3 +101,18 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
     target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS})
 ENDFOREACH()
 
+if (Qt5_FOUND)
+    add_subdirectory(datascope)
+
+    set(CMAKE_AUTOMOC ON)
+
+    SET(MEMORIA_QT_APPS qt_app)
+
+    FOREACH(MEMORIA_QT_TARGET ${MEMORIA_QT_APPS})
+        add_executable(${MEMORIA_QT_TARGET} ${MEMORIA_QT_TARGET}.cpp)
+        SET_TARGET_PROPERTIES(${MEMORIA_QT_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+        set_target_properties(${MEMORIA_QT_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+        target_link_libraries(${MEMORIA_QT_TARGET} Memoria ${MEMORIA_LIBS} ${Qt5_LIBRARIES})
+        qt5_use_modules(${MEMORIA_QT_TARGET} Widgets Core Gui)
+    ENDFOREACH()
+endif()

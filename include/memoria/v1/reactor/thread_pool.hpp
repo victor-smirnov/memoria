@@ -107,7 +107,7 @@ namespace detail {
         
         void stop() 
         {
-            if (thread_.joinable()) 
+            if (thread_.joinable())
             {
                 {
                     std::unique_lock<std::mutex> lk(mutex_);
@@ -132,15 +132,21 @@ namespace detail {
         void run(Message* task)
         {
             BOOST_ASSERT_MSG(task != nullptr, "Task argument must not be null for ThreadPool::run()");
-            BOOST_ASSERT_MSG(!stop_, "ThreadPool has been already stopped");
+            //BOOST_ASSERT_MSG(!stop_, "ThreadPool has been already stopped");
             
+            if (!stop_)
             {
-                std::unique_lock<std::mutex> lk(mutex_);
-                task_  = task;
-                ready_ = true;
-            }
+                {
+                    std::unique_lock<std::mutex> lk(mutex_);
+                    task_  = task;
+                    ready_ = true;
+                }
 
-            cv_.notify_all();
+                cv_.notify_all();
+            }
+            else {
+                std::cerr << "Thread pool has been already stopped" << std::endl;
+            }
         }
     };
 }
@@ -159,11 +165,17 @@ class ThreadPool {
     WorkerList busy_workers_;
     
     std::shared_ptr<Smp> smp_;
+
+    bool pool_stopped_{false};
     
 public:
     ThreadPool(size_t min_size, size_t max_size, std::shared_ptr<Smp>& smp);
     
     ~ThreadPool();
+
+    bool pool_running() const {
+        return !pool_stopped_;
+    }
     
     bool try_run(Message* task)
     {
