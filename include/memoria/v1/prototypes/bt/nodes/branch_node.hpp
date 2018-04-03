@@ -1287,7 +1287,6 @@ public:
     void forAllValues(int32_t start, std::function<void (const V&, int32_t)> fn) const
     {
         auto end = this->size();
-
         forAllValues(start, end, fn);
     }
 
@@ -1295,6 +1294,27 @@ public:
     void forAllValues(std::function<void (const V&, int32_t)> fn) const
     {
         forAllValues(0, fn);
+    }
+
+    template <typename V>
+    std::vector<V> values_as_vector(int32_t start, int32_t end) const
+    {
+        std::vector<V> vals;
+
+        const auto* vv = values();
+
+        for (int32_t c = start; c < end; c++)
+        {
+            vals.emplace_back(vv[c]);
+        }
+
+        return vals;
+    }
+
+    template <typename V>
+    std::vector<V> values_as_vector() const
+    {
+        return values_as_vector<V>(0, size());
     }
 
 
@@ -1534,10 +1554,10 @@ public:
         int32_t size = this->size();
         auto values = this->values();
 
-        std::cout<<"Values:"<<std::endl;
+        std::cout << "Values:" << std::endl;
         for (int32_t c = 0; c < size; c++)
         {
-            std::cout<<c<<" "<<values[c]<<std::endl;
+            std::cout << c << " " << values[c] << std::endl;
         }
     }
 
@@ -1732,7 +1752,7 @@ public:
 
             PageOperations* ops = new PageOperations();
 
-            page_metadata_ = std::make_shared<PageMetadata>("BTREE_PAGE", attrs, hash(), ops);
+            page_metadata_ = metadata_make_shared<PageMetadata>("BTREE_PAGE", attrs, hash(), ops);
         }
         else {}
 

@@ -34,10 +34,17 @@
 #include <memoria/v1/core/container/defaults.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
+#include <memoria/v1/core/container/page_vertex.hpp>
+
 #include <memoria/v1/core/strings/string.hpp>
 
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
+
+#include <memoria/v1/core/graph/graph.hpp>
+#include <memoria/v1/core/graph/graph_default_edge.hpp>
+#include <memoria/v1/core/graph/graph_default_vertex_property.hpp>
+
 
 #include <string>
 #include <memory>
@@ -46,7 +53,7 @@
 
 
 #define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() \
-        throw Exception(MMA1_SOURCE, SBuf()<<"Method is not implemented for "<<me()->typeName())
+        throw Exception(MMA1_SOURCE, SBuf() << "Method is not implemented for " << me()->typeName())
 
 namespace memoria {
 namespace v1 {
@@ -106,7 +113,7 @@ public:
 
 
 template <typename TypesType>
-class CtrBase: public CtrReferenceable, public CtrSharedFromThis<Ctr<TypesType>> {
+class CtrBase: public IVertex, public CtrReferenceable, public CtrSharedFromThis<Ctr<TypesType>> {
 public:
 
     using ThisType  = CtrBase<TypesType>;
@@ -124,6 +131,8 @@ public:
     using Iterator          = Iter<typename Types::IterTypes>;
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
     using IteratorPtr       = CtrSharedPtr<SharedIterator>;
+    using AllocatorPtr      = CtrSharedPtr<Allocator>;
+    using AllocatorBasePtr  = SnpSharedPtr<AllocatorBase>;
     
     static constexpr uint64_t CONTAINER_HASH = TypeHashV<Name>;
 
@@ -144,10 +153,10 @@ protected:
 
     PairPtr pair_;
     
-    CtrSharedPtr<Allocator> allocator_holder_;
+    AllocatorPtr allocator_holder_;
 
 public:
-    CtrBase(const CtrInitData& data, const CtrSharedPtr<Allocator>& allocator): 
+    CtrBase(const CtrInitData& data, const AllocatorPtr& allocator):
         init_data_(data),
         allocator_holder_(allocator)
     {}
@@ -228,14 +237,35 @@ public:
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
-    	virtual ~CtrInterfaceImpl() {}
+        virtual Vertex describe_page(const UUID& page_id, const UUID& name, const AllocatorBasePtr& allocator)
+        {
+            Allocator* alloc = T2T<Allocator*>(allocator.get());
+
+            auto ctr_ptr = static_pointer_cast<MyType>(alloc->get(name));
+
+            return ctr_ptr->page_as_vertex(page_id);
+        }
+
+        virtual Collection<Edge> describe_page_links(const UUID& page_id, const UUID& name, const AllocatorBasePtr& allocator, Direction direction)
+        {
+            Allocator* alloc = T2T<Allocator*>(allocator.get());
+            auto ctr_ptr = static_pointer_cast<MyType>(alloc->get(name));
+            return ctr_ptr->describe_page_links(page_id, name, direction);
+        }
+
+        virtual Collection<VertexProperty> page_properties(const Vertex& vx, const ID& page_id, const UUID& name, const AllocatorBasePtr& allocator)
+        {
+            Allocator* alloc = T2T<Allocator*>(allocator.get());
+            auto ctr_ptr = static_pointer_cast<MyType>(alloc->get(name));
+            return ctr_ptr->page_properties(vx, page_id, name);
+        }
 
         virtual U16String ctr_name()
         {
             return TypeNameFactory<Name>::name();
         }
 
-        void with_ctr(const UUID& root_id, const UUID& name, const SnpSharedPtr<Allocator>& allocator, std::function<void(MyType&)> fn) const
+        void with_ctr(const UUID& root_id, const UUID& name, const AllocatorPtr& allocator, std::function<void(MyType&)> fn) const
         {
             PageG page = allocator->getPage(root_id, name);
 
@@ -256,7 +286,7 @@ public:
             }
         }
 
-        virtual bool check(const UUID& root_id, const UUID& name, const SnpSharedPtr<AllocatorBase>& allocator) const
+        virtual bool check(const UUID& root_id, const UUID& name, const AllocatorBasePtr& allocator) const
         {
             bool result = false;
 
@@ -272,7 +302,7 @@ public:
         virtual void walk(
                 const UUID& root_id,
                 const UUID& name,
-                const SnpSharedPtr<AllocatorBase>& allocator,
+                const AllocatorBasePtr& allocator,
                 ContainerWalker* walker
         ) const
         {
@@ -285,7 +315,7 @@ public:
 
         virtual void walk(
                 const UUID& name,
-                const SnpSharedPtr<AllocatorBase>& allocator,
+                const AllocatorBasePtr& allocator,
                 ContainerWalker* walker
         ) const
         {
@@ -297,7 +327,7 @@ public:
             });
         }
 
-        virtual void drop(const UUID& root_id, const UUID& name, const SnpSharedPtr<AllocatorBase>& allocator)
+        virtual void drop(const UUID& root_id, const UUID& name, const AllocatorBasePtr& allocator)
         {
         	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
             with_ctr(root_id, name, alloc, [&](MyType& ctr){
@@ -340,11 +370,11 @@ public:
 
         virtual void for_each_ctr_node(
             const UUID& name, 
-            const SnpSharedPtr<AllocatorBase>& allocator,
+            const AllocatorBasePtr& allocator,
             BlockCallbackFn consumer
         )
         {
-        	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
+            AllocatorPtr alloc = static_pointer_cast<Allocator>(allocator);
         	auto root_id = alloc->getRootID(name);
 
         	CtrNodesWalkerAdapter walker(consumer);
@@ -354,7 +384,7 @@ public:
         	});
         }
         
-        virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const CtrSharedPtr<AllocatorBase>& allocator) 
+        virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const AllocatorBasePtr& allocator)
         {
             SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
             
@@ -377,7 +407,8 @@ public:
 
     static ContainerInterfacePtr getContainerInterface()
     {
-        return ctr_make_shared<CtrInterfaceImpl>();
+        static thread_local auto container_interface_ptr = metadata_make_shared<CtrInterfaceImpl>();
+        return container_interface_ptr;
     }
 
 
@@ -399,10 +430,89 @@ public:
     void initCtr(int32_t command) {}
     void initCtr(const ID& root_id) {}
 
+    Vertex as_vertex() const {
+        return Vertex(StaticPointerCast<IVertex>(ConstPointerCast<MyType>(this->shared_from_this())));
+    }
+
+    virtual Graph graph() const
+    {
+        return allocator_holder_->allocator_vertex().graph();
+    }
+
+    virtual Any id() const
+    {
+        return Any(name());
+    }
+
+    virtual U16String label() const
+    {
+        return U16String(u"container");
+    }
+
+    virtual void remove()
+    {
+        MMA1_THROW(GraphException()) << WhatCInfo("Can't remove container with Vertex::remove()");
+    }
+
+    virtual bool is_removed() const
+    {
+        return false;
+    }
+
+    virtual Collection<VertexProperty> properties() const
+    {
+        return make_fn_vertex_properties(
+            as_vertex(),
+            u"type", [&]{return U16String(TypeNameFactory<Name>::name());}
+        );
+    }
+
+    Vertex page_as_vertex(const UUID& page_id) const
+    {
+        Graph my_graph = this->graph();
+        Vertex page_vx = PageVertex<AllocatorBasePtr, ContainerInterfacePtr>::make(
+                    my_graph,
+                    static_pointer_cast<AllocatorBase>(allocator_holder_),
+                    getContainerInterface(),
+                    page_id,
+                    name()
+        );
+
+        return page_vx;
+    }
+
+    Collection<Edge> describe_page_links(const UUID& page_id, const UUID& name, Direction direction) const
+    {
+        return EmptyCollection<Edge>::make();
+    }
+
+    virtual Collection<Edge> edges(Direction direction) const
+    {
+        std::vector<Edge> edges;
+
+        Graph my_graph  = this->graph();
+        Vertex alloc_vx = allocator_holder_->allocator_vertex();
+
+        Vertex my_vx = as_vertex();
+
+        if (is_out(direction))
+        {
+            Vertex root_vx = page_as_vertex(root());
+            edges.emplace_back(DefaultEdge::make(my_graph, u"root", my_vx, root_vx));
+        }
+
+        if (is_in(direction))
+        {
+            edges.emplace_back(DefaultEdge::make(my_graph, u"container", alloc_vx, my_vx));
+        }
+
+        return STLCollection<Edge>::make(std::move(edges));
+    }
+
+
+
+
 protected:
-
-
-
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) const {
@@ -751,7 +861,6 @@ public:
 
         return *this;
     }
-
 };
 
 template<

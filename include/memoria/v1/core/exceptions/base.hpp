@@ -56,7 +56,7 @@ using Traced = boost::error_info<struct tag_stacktrace, boost::stacktrace::stack
 #define MMA1_THROW(Ex) throw Ex << ::memoria::v1::Traced(boost::stacktrace::stacktrace()) \
     << ::boost::throw_function(BOOST_THROW_EXCEPTION_CURRENT_FUNCTION) \
     << ::boost::throw_file(__FILE__) \
-    << ::boost::throw_line((int)__LINE__)
+    << ::boost::throw_line(static_cast<int>(__LINE__))
 
 
 std::ostream& operator<<(std::ostream& out, const MemoriaThrowable& t);

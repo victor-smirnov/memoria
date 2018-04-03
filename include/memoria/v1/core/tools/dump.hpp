@@ -57,7 +57,7 @@ namespace {
     };
 
     template <typename V>
-    size_t max_width(int32_t count, bool hex, function<V(int32_t)> fn)
+    size_t max_width(int32_t count, bool hex, std::function<V(int32_t)> fn)
     {
         size_t max = 0;
 
@@ -103,7 +103,7 @@ namespace {
 }
 
 template <typename V>
-void dumpArray(std::ostream& out, int32_t count, function<V (int32_t)> fn)
+void dumpArray(std::ostream& out, int32_t count, std::function<V (int32_t)> fn)
 {
     bool is_char = std::is_same<V, uint8_t>::value || std::is_same<V, int8_t>::value || std::is_same<V, char>::value;
 
@@ -120,7 +120,7 @@ void dumpArray(std::ostream& out, int32_t count, function<V (int32_t)> fn)
         default: columns = (80 / width > 0 ? 80 / width : 1);
     }
 
-    out << endl;
+    out << std::endl;
     Expand(out, 28);
     for (int c = 0; c < columns; c++)
     {
@@ -140,23 +140,23 @@ void dumpArray(std::ostream& out, int32_t count, function<V (int32_t)> fn)
         }
     }
 
-    out << dec << endl;
+    out << std::dec << std::endl;
 
     for (int32_t c = 0; c < count; c+= columns)
     {
         Expand(out, 12);
         out << " ";
         out.width(6);
-        out << dec << c << " " << hex;
+        out << std::dec << c << " " << std::hex;
         out.width(6);
         out << c << ": ";
 
         int32_t d;
         for (d = 0; d < columns && c + d < count; d++)
         {
-            stringstream ss;
+            std::stringstream ss;
 
-            ss << (is_char ? hex : dec);
+            ss << (is_char ? std::hex : std::dec);
 
             OutputHelepr<V>::out(ss, fn(c + d));
 
@@ -164,7 +164,7 @@ void dumpArray(std::ostream& out, int32_t count, function<V (int32_t)> fn)
             out<<ss.str();
         }
 
-        out << dec;
+        out << std::dec;
 
         if (is_char)
         {
@@ -185,7 +185,7 @@ void dumpArray(std::ostream& out, int32_t count, function<V (int32_t)> fn)
             }
         }
 
-        out << endl;
+        out << std::endl;
     }
 }
 
@@ -201,7 +201,7 @@ void dumpVector(std::ostream& out, const std::vector<V>& data)
 
 
 template <typename V>
-void dumpSymbols(ostream& out_, int32_t size_, int32_t bits_per_symbol, function<V(int32_t)> fn)
+void dumpSymbols(std::ostream& out_, int32_t size_, int32_t bits_per_symbol, std::function<V(int32_t)> fn)
 {
     int32_t columns;
 
@@ -219,33 +219,33 @@ void dumpSymbols(ostream& out_, int32_t size_, int32_t bits_per_symbol, function
 
     do
     {
-        out_<<endl;
+        out_ << std::endl;
         Expand(out_, 31 - width * 5 - (bits_per_symbol <= 4 ? 2 : 0));
         for (int c = 0; c < columns; c += 5)
         {
             out_.width(width*5);
-            out_<<dec<<c;
+            out_ << std::dec << c;
         }
-        out_<<endl;
+        out_ << std::endl;
 
         int32_t rows = 0;
         for (; c < size_ && rows < 10; c += columns, rows++)
         {
             Expand(out_, 12);
-            out_<<" ";
+            out_ << " ";
             out_.width(6);
-            out_<<dec<<c<<" "<<hex;
+            out_ << std::dec << c << " " << std::hex;
             out_.width(6);
             out_<<c<<": ";
 
             for (int32_t d = 0; d < columns && c + d < size_; d++)
             {
-                out_<<hex;
+                out_ << std::hex;
                 out_.width(width);
                 OutputHelepr<V>::out(out_, fn(c + d));
             }
 
-            out_<<dec<<endl;
+            out_ << std::dec << std::endl;
         }
     } while (c < size_);
 }
@@ -253,7 +253,7 @@ void dumpSymbols(ostream& out_, int32_t size_, int32_t bits_per_symbol, function
 
 
 template <typename T>
-void dumpSymbols(ostream& out_, T* symbols, int32_t size_, int32_t bits_per_symbol)
+void dumpSymbols(std::ostream& out_, T* symbols, int32_t size_, int32_t bits_per_symbol)
 {
     int32_t columns;
 
@@ -271,28 +271,28 @@ void dumpSymbols(ostream& out_, T* symbols, int32_t size_, int32_t bits_per_symb
 
     do
     {
-        out_<<endl;
+        out_ << std::endl;
         Expand(out_, 31 - width * 5 - (bits_per_symbol <= 4 ? 2 : 0));
         for (int c = 0; c < columns; c += 5)
         {
             out_.width(width*5);
-            out_<<dec<<c;
+            out_ << std::dec << c;
         }
-        out_<<endl;
+        out_ << std::endl;
 
         int32_t rows = 0;
         for (; c < size_ && rows < 10; c += columns, rows++)
         {
             Expand(out_, 12);
-            out_<<" ";
+            out_ << " ";
             out_.width(6);
-            out_<<dec<<c<<" "<<hex;
+            out_ << std::dec << c << " " << std::hex;
             out_.width(6);
             out_<<c<<": ";
 
             for (int32_t d = 0; d < columns && c + d < size_; d++)
             {
-                out_<<hex;
+                out_ << std::hex;
                 out_.width(width);
 
                 int32_t idx = (c + d) * bits_per_symbol;
@@ -305,7 +305,7 @@ void dumpSymbols(ostream& out_, T* symbols, int32_t size_, int32_t bits_per_symb
                 }
             }
 
-            out_<<dec<<endl;
+            out_ << std::dec << std::endl;
         }
     } while (c < size_);
 }

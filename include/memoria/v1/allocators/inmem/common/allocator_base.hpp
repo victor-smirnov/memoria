@@ -24,12 +24,12 @@
 #include <memoria/v1/core/tools/memory.hpp>
 #include <memoria/v1/core/memory/malloc.hpp>
 
-#include "../common/container_collection_cfg.hpp"
+#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
+
 
 #include "persistent_tree_node.hpp"
 #include "persistent_tree.hpp"
 #include "snapshot_base.hpp"
-
 
 
 #include <stdlib.h>
@@ -151,7 +151,7 @@ std::ostream& operator<<(std::ostream& out, const persistent_inmem::details::Per
 namespace persistent_inmem {
 
 template <typename Profile, typename MyType>
-class InMemAllocatorBase: public std::enable_shared_from_this<MyType> { 
+class InMemAllocatorBase: public EnableSharedFromThis<MyType> {
 public:
     using PageType = ProfilePageType<Profile>;
 
@@ -451,15 +451,11 @@ public:
 
 
     using PersistentTreeT       = typename v1::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
-//     using SnapshotT             = v1::persistent_inmem::ThreadSnapshot<Profile, MyType>;
-//     using SnapshotPtr           = SnpSharedPtr<SnapshotT>;
-//     using AllocatorPtr          = AllocSharedPtr<MyType>;
+    using TxnMap                = std::unordered_map<TxnId, HistoryNode*>;
 
-    using TxnMap                = std::unordered_map<TxnId, HistoryNode*, UUIDKeyHash, UUIDKeyEq>;
-
-    using HistoryTreeNodeMap    = std::unordered_map<PTreeNodeId, HistoryNodeBuffer*, UUIDKeyHash, UUIDKeyEq>;
-    using PersistentTreeNodeMap = std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>, UUIDKeyHash, UUIDKeyEq>;
-    using PageMap               = std::unordered_map<typename PageType::ID, RCPagePtr*, UUIDKeyHash, UUIDKeyEq>;
+    using HistoryTreeNodeMap    = std::unordered_map<PTreeNodeId, HistoryNodeBuffer*>;
+    using PersistentTreeNodeMap = std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>>;
+    using PageMap               = std::unordered_map<typename PageType::ID, RCPagePtr*>;
     using RCPageSet             = std::unordered_set<RCPagePtr*>;
     using BranchMap             = std::unordered_map<U16String, HistoryNode*>;
     using ReverseBranchMap      = std::unordered_map<const HistoryNode*, U16String>;
@@ -520,7 +516,6 @@ protected:
 
     PairPtr pair_;
 
-
     ReverseBranchMap snapshot_labels_metadata_;
 
 public:
@@ -550,6 +545,9 @@ public:
         
     }
 
+    auto get_root_snapshot_uuid() const {
+        return history_tree_->txn_id();
+    }
 
 
     PairPtr& pair() {
@@ -590,7 +588,9 @@ public:
 
     static AllocSharedPtr<MyType> load(InputStreamHandler *input)
     {
-        MyType* allocator = new MyType(0);
+        auto alloc_ptr = MakeLocalShared<MyType>(0);
+
+        MyType* allocator = alloc_ptr.get();
 
         char signature[12];
 
@@ -750,7 +750,7 @@ public:
         allocator->do_delete_dropped();
         allocator->pack();
 
-        return AllocSharedPtr<MyType>(allocator);
+        return alloc_ptr;
     }
 
 protected:

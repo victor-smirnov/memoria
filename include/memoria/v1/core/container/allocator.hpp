@@ -19,6 +19,9 @@
 #include <memoria/v1/core/container/names.hpp>
 #include <memoria/v1/core/container/page.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
+
+#include <memoria/v1/core/graph/graph.hpp>
 
 #include <memoria/v1/core/tools/memory.hpp>
 
@@ -98,9 +101,16 @@ struct IAllocator: AllocatorBase {
 
     virtual SnpSharedPtr<IAllocator<PageType>> self_ptr()                       = 0;
     virtual CtrSharedPtr<CtrReferenceable> get(const UUID& name)                = 0;
-    
+    virtual CtrSharedPtr<CtrReferenceable> from_root_id(const UUID& root_page_id, const UUID& name) = 0;
+
     virtual bool check()                                                        = 0;
     virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr) = 0;
+
+
+
+    virtual Vertex allocator_vertex() {
+        return Vertex();
+    }
     
     virtual ~IAllocator() {}
 };

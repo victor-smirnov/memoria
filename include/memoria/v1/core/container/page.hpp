@@ -145,7 +145,7 @@ public:
 
     FlagsType &flags() {
         return flags_;
-    };
+    }
 
     uint32_t &crc() {
         return crc_;

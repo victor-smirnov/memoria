@@ -403,7 +403,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     void prepareNode(NodeBaseG& node) const
     {
         MEMORIA_V1_ASSERT_TRUE(node.isSet());
-
         NodeDispatcher::dispatch(node, PrepareNodeFn(self()));
     }
 
@@ -446,6 +445,76 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         return !root->root_metadata().roots(name).is_null();
     }
+
+
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(ValuesAsVectorFn, template values_as_vector<ID>, std::vector<ID>);
+    Collection<Edge> describe_page_links(const UUID& page_id, const UUID& name, Direction direction) const
+    {
+        std::vector<Edge> links;
+
+        NodeBaseG page = this->allocator_holder_->getPage(page_id, name);
+
+        Graph graph = this->graph();
+        Vertex ctr_vx = this->as_vertex();
+        Vertex page_vx = this->page_as_vertex(page_id);
+
+        if (is_in(direction))
+        {
+            if (!page->is_root())
+            {
+                links.push_back(DefaultEdge::make(graph, "child", this->page_as_vertex(page->parent_id()), page_vx));
+            }
+            else {
+                links.push_back(DefaultEdge::make(graph, "root", ctr_vx, page_vx));
+            }
+        }
+
+        if (is_out(direction))
+        {
+            if (!page->is_leaf())
+            {
+                auto child_ids = BranchDispatcher::dispatch(page, ValuesAsVectorFn());
+                for (auto& child_id: child_ids)
+                {
+                    links.push_back(DefaultEdge::make(graph, "child", this->page_as_vertex(child_id), page_vx));
+                }
+            }
+        }
+
+        return STLCollection<Edge>::make(std::move(links));
+    }
+
+    Collection<VertexProperty> page_properties(const Vertex& vx, const ID& page_id, const UUID& name)
+    {
+        NodeBaseG page = this->allocator_holder_->getPage(page_id, name);
+
+        std::vector<VertexProperty> props;
+
+        CtrPageType page_type{};
+
+        if (page->is_root() && page->is_leaf()) {
+            page_type = CtrPageType::ROOT_LEAF;
+        }
+        else if (page->is_root() && !page->is_leaf()) {
+            page_type = CtrPageType::ROOT;
+        }
+        else if ((!page->is_root()) && page->is_leaf()) {
+            page_type = CtrPageType::LEAF;
+        }
+        else {
+            page_type = CtrPageType::INTERNAL;
+        }
+
+        props.emplace_back(DefaultVertexProperty::make(vx, u"type", page_type));
+
+        std::stringstream buf;
+        self().dump(page, buf);
+
+        props.emplace_back(DefaultVertexProperty::make(vx, u"content", buf.str()));
+
+        return STLCollection<VertexProperty>::make(std::move(props));
+    }
+
 
  private:
 

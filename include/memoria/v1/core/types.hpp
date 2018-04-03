@@ -65,6 +65,20 @@ namespace internal {
     };
 }
 
+enum class CtrPageType {ROOT, LEAF, INTERNAL, ROOT_LEAF};
+
+inline bool is_root(CtrPageType type) {
+    return type == CtrPageType::ROOT || type == CtrPageType::ROOT_LEAF;
+}
+
+inline bool is_leaf(CtrPageType type) {
+    return type == CtrPageType::LEAF || type == CtrPageType::ROOT_LEAF;
+}
+
+inline bool is_branch(CtrPageType type) {
+    return type == CtrPageType::ROOT || type == CtrPageType::INTERNAL;
+}
+
 
 
 enum {

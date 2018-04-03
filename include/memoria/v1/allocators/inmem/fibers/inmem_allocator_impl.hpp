@@ -25,9 +25,8 @@
 #include <memoria/v1/core/tools/latch.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
 
-#include "../common/allocator_base.hpp"
-
-#include "fibers_snapshot_impl.hpp"
+#include <memoria/v1/allocators/inmem/common/allocator_base.hpp>
+#include <memoria/v1/allocators/inmem/fibers/fibers_snapshot_impl.hpp>
 
 #include <memoria/v1/reactor/reactor.hpp>
 
@@ -36,6 +35,8 @@
 #include <memoria/v1/fiber/shared_mutex.hpp>
 #include <memoria/v1/fiber/recursive_shared_mutex.hpp>
 #include <memoria/v1/fiber/shared_lock.hpp>
+
+#include <memoria/v1/core/graph/graph.hpp>
 
 #include <stdlib.h>
 #include <memory>
@@ -52,8 +53,10 @@ namespace v1 {
 
 namespace persistent_inmem {
 
+
+
 template <typename Profile>
-class InMemAllocatorImpl: public InMemAllocatorBase<Profile, InMemAllocatorImpl<Profile>> { 
+class InMemAllocatorImpl: public IGraph, public InMemAllocatorBase<Profile, InMemAllocatorImpl<Profile>> {
 public:
     using Base      = InMemAllocatorBase<Profile, InMemAllocatorImpl<Profile>>;
     using MyType    = InMemAllocatorImpl<Profile>;
@@ -115,10 +118,12 @@ private:
     memoria::v1::fibers::recursive_shared_mutex store_rw_mutex_;
     
     memoria::v1::fibers::count_down_latch<int64_t> active_snapshots_;
+
+    LocalSharedPtr<AllocatorEventListener> event_listener_;
  
 public:
     InMemAllocatorImpl() {
-        auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this);
+        auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this, OperationType::CREATE);
         snapshot->commit();
     }
     
@@ -127,8 +132,9 @@ public:
         free_memory(history_tree_);
     }
 
-private:
+
     InMemAllocatorImpl(int32_t v): Base(v) {}
+private:
     
     auto ref_active() {
         return active_snapshots_.inc();
@@ -139,6 +145,14 @@ private:
     }
     
 public:
+
+    void set_event_listener(LocalSharedPtr<AllocatorEventListener> ptr) {
+        event_listener_ = ptr;
+    }
+
+    LocalSharedPtr<AllocatorEventListener> event_listener() {
+        return event_listener_;
+    }
     
     int64_t active_snapshots() {
         return active_snapshots_.get();
@@ -195,7 +209,7 @@ public:
 
                 if (history_node->is_committed())
                 {
-                    return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
+                    return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::FIND);
                 }
                 if (history_node->is_data_locked())
                 {
@@ -224,13 +238,13 @@ public:
 
                 if (history_node->is_committed())
                 {
-                    return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
+                    return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::FIND);
                 }
                 else if (history_node->is_data_locked())
                 {
                     if (history_node->references() == 0)
                     {
-                        return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
+                        return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::FIND);
                     }
                     else {
                         MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is locked and open", history_node->txn_id()));
@@ -249,7 +263,7 @@ public:
     SnapshotPtr master()
     {
         return reactor::engine().run_at(cpu_, [&]{
-            return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this());
+            return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this(), OperationType::FIND);
         });
     }
 
@@ -425,13 +439,63 @@ public:
         return create(reactor::engine().cpu());
     }
 
+
+    // Graph API
+
+    Graph as_graph() {
+        return Graph(static_pointer_cast<IGraph>(this->shared_from_this()));
+    }
+
+    virtual Collection<Vertex> vertices()
+    {
+        return EmptyCollection<Vertex>::make();
+    }
+
+    virtual Collection<Vertex> vertices(const IDList& ids)
+    {
+        return EmptyCollection<Vertex>::make();
+    }
+
+    virtual Collection<Vertex> roots()
+    {
+        return roots({u"snapshot"});
+    }
+
+    virtual Collection<Vertex> roots(const LabelList& vx_labels)
+    {
+        std::vector<Vertex> vxx;
+
+        append_snapsots(vxx);
+
+        return STLCollection<Vertex>::make(std::move(vxx));
+    }
+
+    template <typename StlCtr>
+    void append_snapsots(StlCtr& stl_ctr)
+    {
+        auto uuid = this->get_root_snapshot_uuid();
+        auto root_snapshot = this->find(uuid);
+
+        stl_ctr.emplace_back(root_snapshot->as_vertex());
+    }
+
+    virtual Collection<Edge> edges()
+    {
+        return EmptyCollection<Edge>::make();
+    }
+
+    virtual Collection<Edge> edges(const IDList& ids)
+    {
+        return EmptyCollection<Edge>::make();
+    }
+
 protected:
     
     void walk_version_tree(HistoryNode* node, std::function<void (HistoryNode*, SnapshotT*)> fn)
     {
         if (node->is_committed())
         {
-            auto txn = snp_make_shared_init<SnapshotT>(node, this);
+            auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::FIND);
             fn(node, txn.get());
         }
 
@@ -455,7 +519,7 @@ protected:
     {
     	if (node->is_committed())
         {
-            auto txn = snp_make_shared_init<SnapshotT>(node, this);
+            auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::FIND);
             txn->walkContainers(walker, get_labels_for(node));
         }
 
@@ -717,6 +781,24 @@ SnpSharedPtr<SnapshotMetadata<typename InMemAllocator<Profile>::TxnId>> InMemAll
 template <typename Profile>
 SnpSharedPtr<SnapshotMetadata<typename InMemAllocator<Profile>::TxnId>> InMemAllocator<Profile>::describe_master() const {
     return pimpl_->describe_master();
+}
+
+
+
+
+template <typename Profile>
+void InMemAllocator<Profile>::set_event_listener(LocalSharedPtr<AllocatorEventListener> ptr) {
+    return pimpl_->set_event_listener(std::move(ptr));
+}
+
+template <typename Profile>
+LocalSharedPtr<AllocatorEventListener> InMemAllocator<Profile>::event_listener() {
+    return pimpl_->event_listener();
+}
+
+template <typename Profile>
+Graph InMemAllocator<Profile>::as_graph() {
+    return pimpl_->as_graph();
 }
 
 }}

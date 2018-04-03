@@ -118,9 +118,10 @@ public:
         free_memory(history_tree_);
     }
 
-private:
+
     ThreadInMemAllocatorImpl(int32_t v): Base(v) {}
-    
+
+private:
     auto ref_active() {
         return active_snapshots_.inc();
     }

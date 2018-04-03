@@ -31,6 +31,8 @@
 #include <memoria/v1/filesystem/path.hpp>
 #include <memoria/v1/reactor/file_streams.hpp>
 
+#include <memoria/v1/core/graph/graph.hpp>
+
 #include <boost/filesystem.hpp>
 
 #include <stack>
@@ -120,8 +122,15 @@ struct AllocatorBase;
 
 struct ContainerInterface {
 
-	// uuid, id, page data
-	using BlockCallbackFn = std::function<void(const UUID&, const UUID&, const void*)>;
+    virtual ~ContainerInterface() noexcept {}
+
+    // uuid, id, page data
+    using BlockCallbackFn = std::function<void(const UUID&, const UUID&, const void*)>;
+
+    virtual Vertex describe_page(const UUID& page_id, const UUID& name, const SnpSharedPtr<AllocatorBase>& allocator) = 0;
+    virtual Collection<Edge> describe_page_links(const UUID& page_id, const UUID& name, const SnpSharedPtr<AllocatorBase>& allocator, Direction direction) = 0;
+    virtual Collection<VertexProperty> page_properties(const Vertex& vx, const UUID& page_id, const UUID& name, const SnpSharedPtr<AllocatorBase>& allocator) = 0;
+
 
     // FIXME: remove name from parameters, it's already in Ctr's page root metadata
 
@@ -166,11 +175,9 @@ struct ContainerInterface {
         const UUID& name, 
         const SnpSharedPtr<AllocatorBase>& allocator
     ) = 0;
-
-    virtual ~ContainerInterface() noexcept {}
 };
 
-using ContainerInterfacePtr = CtrSharedPtr<ContainerInterface>;
+using ContainerInterfacePtr = std::shared_ptr<ContainerInterface>;
 
 
 template <typename Profile> class MetadataRepository;

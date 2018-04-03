@@ -159,13 +159,13 @@ void CtrApiBase<CtrName, Profile>::reset()
 template <typename CtrName, typename Profile>
 CtrRef<Profile> CtrApiBase<CtrName, Profile>::to_ref() 
 {
-    return std::static_pointer_cast<CtrReferenceable>(pimpl_);
+    return static_pointer_cast<CtrReferenceable>(pimpl_);
 }
 
 template <typename CtrName, typename Profile>
 CtrApi<CtrName, Profile> CtrApiBase<CtrName, Profile>::cast_from(const CtrRef<Profile>& ref)
 {
-    return std::static_pointer_cast<CtrT>(ref.ptr_);
+    return static_pointer_cast<CtrT>(ref.ptr_);
 }
 
 
@@ -235,7 +235,7 @@ IterApiBase<CtrName, Profile>::operator bool() const
 template <typename CtrName, typename Profile>
 CtrApi<CtrName, Profile> IterApiBase<CtrName, Profile>::ctr() 
 {
-    return std::static_pointer_cast<CtrT>(pimpl_->ctr_ptr());
+    return static_pointer_cast<CtrT>(pimpl_->ctr_ptr());
 }
 
 

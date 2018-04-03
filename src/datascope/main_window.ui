@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>768</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Editable Tree Model</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QTreeView" name="view">
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectItems</enum>
+       </property>
+       <property name="horizontalScrollMode">
+        <enum>QAbstractItemView::ScrollPerPixel</enum>
+       </property>
+       <property name="animated">
+        <bool>false</bool>
+       </property>
+       <property name="allColumnsShowFocus">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPlainTextEdit" name="plainTextEdit"/>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="fileMenu">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="exitAction"/>
+   </widget>
+   <widget class="QMenu" name="actionsMenu">
+    <property name="title">
+     <string>&amp;Actions</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="separator"/>
+    <addaction name="createAllocatorAction"/>
+   </widget>
+   <addaction name="fileMenu"/>
+   <addaction name="actionsMenu"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar1"/>
+  <action name="exitAction">
+   <property name="icon">
+    <iconset resource="datascope.qrc">
+     <normaloff>:/resources/icon.png</normaloff>:/resources/icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>E&amp;xit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="createAllocatorAction">
+   <property name="icon">
+    <iconset resource="datascope.qrc">
+     <normaloff>:/resources/icon.png</normaloff>:/resources/icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Create Allocator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="datascope.qrc"/>
+ </resources>
+ <connections/>
+</ui>

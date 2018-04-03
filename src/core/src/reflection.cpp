@@ -39,7 +39,7 @@ ContainerMetadataRepository::ContainerMetadataRepository(U16StringRef name, cons
     {
         if (content[c]->getTypeCode() == Metadata::CONTAINER)
         {
-            ContainerMetadataPtr model = std::static_pointer_cast<ContainerMetadata> (content_[c]);
+            ContainerMetadataPtr model = static_pointer_cast<ContainerMetadata> (content_[c]);
             process_model(model);
         }
         else {
@@ -61,12 +61,12 @@ void ContainerMetadataRepository::process_model(const ContainerMetadataPtr& mode
             auto item = model->getItem(d);
             if (item->getTypeCode() == Metadata::PAGE)
             {
-                PageMetadataPtr page = std::static_pointer_cast<PageMetadata> (item);
+                PageMetadataPtr page = static_pointer_cast<PageMetadata> (item);
                 page_map_[page->hash() ^ model->ctr_hash()] = page;
             }
             else if (item->getTypeCode() == Metadata::CONTAINER)
             {
-                process_model(std::static_pointer_cast<ContainerMetadata> (item));
+                process_model(static_pointer_cast<ContainerMetadata> (item));
             }
             else {
                 //exception ?

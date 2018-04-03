@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../common/snapshot_base.hpp"
+#include <memoria/v1/allocators/inmem/common/snapshot_base.hpp>
 
 #include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 
@@ -37,6 +37,9 @@
 #include <memoria/v1/fiber/shared_mutex.hpp>
 #include <memoria/v1/fiber/recursive_shared_mutex.hpp>
 
+#include <memoria/v1/core/graph/graph.hpp>
+#include <memoria/v1/core/graph/graph_default_vertex_property.hpp>
+
 #include <vector>
 #include <memory>
 #include <mutex>
@@ -47,10 +50,11 @@ namespace memoria {
 namespace v1 {
 namespace persistent_inmem {
 
+enum class OperationType {FIND, CREATE, UPDATE, DELETE};
 
 
 template <typename Profile, typename PersistentAllocator>
-class Snapshot: public SnapshotBase<Profile, PersistentAllocator, Snapshot<Profile, PersistentAllocator>>
+class Snapshot: public IVertex, public SnapshotBase<Profile, PersistentAllocator, Snapshot<Profile, PersistentAllocator>>
 {    
 protected:
     using Base = SnapshotBase<Profile, PersistentAllocator, Snapshot<Profile, PersistentAllocator>>;
@@ -84,15 +88,26 @@ public:
     using Base::uuid;
     
     
-    Snapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
-        Base(history_node, history_tree),
-        cpu_(history_tree->cpu_)
-    {}
-
-    Snapshot(HistoryNode* history_node, PersistentAllocator* history_tree):
+    Snapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree, OperationType op_type):
         Base(history_node, history_tree),
         cpu_(history_tree->cpu_)
     {
+        if (history_tree->event_listener_.get()) {
+            if (op_type == OperationType::CREATE) {
+                history_tree->event_listener_->shapshot_created(history_node->txn_id());
+            }
+        }
+    }
+
+    Snapshot(HistoryNode* history_node, PersistentAllocator* history_tree, OperationType op_type):
+        Base(history_node, history_tree),
+        cpu_(history_tree->cpu_)
+    {
+        if (history_tree->event_listener_.get()) {
+            if (op_type == OperationType::CREATE) {
+                history_tree->event_listener_->shapshot_created(history_node->txn_id());
+            }
+        }
     }
  
     virtual ~Snapshot()
@@ -252,15 +267,15 @@ public:
 
                 history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
-                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this());
+                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::CREATE);
             }
             else if (history_node_->is_data_locked())
             {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is locked, branching is not possible.", uuid()));
+                MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot {} is locked, branching is not possible.", uuid());
             }
             else
             {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is still being active. Commit it first.", uuid()));
+                MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot {} is still being active. Commit it first.", uuid());
             }
         });
     }
@@ -279,7 +294,7 @@ public:
             if (history_node_->parent())
             {
                 HistoryNode* history_node = history_node_->parent();
-                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this());
+                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::FIND);
             }
             else
             {
@@ -303,6 +318,93 @@ public:
 
             history_node_->allocator()->snapshot_labels_metadata().clear();
         });
+    }
+
+
+    // Vertex API
+
+    virtual Vertex allocator_vertex() {
+        return as_vertex();
+    }
+
+    Vertex as_vertex() const {
+        return Vertex(StaticPointerCast<IVertex>(ConstPointerCast<MyType>(this->shared_from_this())));
+    }
+
+    virtual Graph graph() const
+    {
+        return history_tree_->as_graph();
+    }
+
+    virtual Any id() const
+    {
+        return Any(uuid());
+    }
+
+    virtual U16String label() const
+    {
+        return U16String(u"snapshot");
+    }
+
+    virtual void remove()
+    {
+        MMA1_THROW(GraphException()) << WhatCInfo("Can't remove snapshot with Vertex::remove()");
+    }
+
+    virtual bool is_removed() const
+    {
+        return false;
+    }
+
+    virtual Collection<VertexProperty> properties() const
+    {
+        return make_fn_vertex_properties(
+            as_vertex(),
+            u"metadata", [&]{return metadata();}
+        );
+    }
+
+    virtual Collection<Edge> edges(Direction direction) const
+    {
+        std::vector<Edge> edges;
+
+        Vertex my_vx = as_vertex();
+        Graph my_graph = this->graph();
+
+        if (is_in(direction))
+        {
+            if (history_node_->parent())
+            {
+                auto pn_snp = history_tree_->find(history_node_->parent()->txn_id());
+                edges.emplace_back(DefaultEdge::make(my_graph, u"child", pn_snp->as_vertex(), my_vx));
+            }
+        }
+
+        if (is_out(direction))
+        {
+            for (auto& child: history_node_->children())
+            {
+                auto ch_snp = history_tree_->find(child->txn_id());
+                edges.emplace_back(DefaultEdge::make(my_graph, u"child", my_vx, ch_snp->as_vertex()));
+            }
+
+            auto iter = this->root_map_->Begin();
+            while (!iter->isEnd())
+            {
+                auto ctr_name   = iter->key();
+                auto root_id    = iter->value();
+
+                auto vertex_ptr = dynamic_pointer_cast<IVertex>(
+                     const_cast<MyType*>(this)->from_root_id(root_id, ctr_name)
+                );
+
+                edges.emplace_back(DefaultEdge::make(my_graph, u"container", my_vx, vertex_ptr));
+
+                iter->next();
+            }
+        }
+
+        return STLCollection<Edge>::make(std::move(edges));
     }
 };
 
@@ -562,6 +664,11 @@ template <typename Profile>
 CtrRef<Profile> InMemSnapshot<Profile>::get(const UUID& name) 
 {
     return CtrRef<Profile>(pimpl_->get(name));
+}
+
+template <typename Profile>
+Vertex InMemSnapshot<Profile>::as_vertex() {
+    return pimpl_->as_vertex();
 }
 
 }}

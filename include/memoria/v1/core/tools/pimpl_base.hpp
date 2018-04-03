@@ -105,4 +105,36 @@ public:
     }
 
 
+#define MMA1_UNIQUE_PTR_DECLARE_DEFAULT_FUNCTIONS(ClassName)\
+    ClassName(const ClassName& ptr) = delete;               \
+    ClassName(ClassName&& other): ptr_(std::move(other.ptr_)) {} \
+    ~ClassName() noexcept {}                                \
+                                                            \
+    ClassName& operator=(const ClassName& other) = delete;  \
+                                                            \
+                                                            \
+    ClassName& operator=(ClassName&& other) {               \
+        ptr_ = std::move(other);                            \
+        return *this;                                       \
+    }                                                       \
+                                                            \
+    bool operator==(const ClassName& other) const {         \
+        return ptr_ == other.ptr_;                          \
+    }
+
+#define MMA1_UNIQUE_PTR_DECLARE_DEFAULT_FUNCTIONS_NO_DTR(ClassName)\
+    ClassName(const ClassName& ptr) = delete;               \
+    ClassName(ClassName&& other): ptr_(std::move(other.ptr_)) {} \
+                                                            \
+    ClassName& operator=(const ClassName& other) = delete;  \
+                                                            \
+    ClassName& operator=(ClassName&& other) {               \
+        ptr_ = std::move(other);                            \
+        return *this;                                       \
+    }                                                       \
+                                                            \
+    bool operator==(const ClassName& other) const {         \
+        return ptr_ == other.ptr_;                          \
+    }
+
 }}

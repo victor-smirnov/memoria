@@ -30,7 +30,12 @@
 
 #include <memoria/v1/filesystem/path.hpp>
 
-#include "allocator_inmem_api_common.hpp"
+#include <memoria/v1/api/allocator/allocator_inmem_api_common.hpp>
+#include <memoria/v1/api/allocator/allocator_inmem_event_listener.hpp>
+
+#include <memoria/v1/core/graph/graph.hpp>
+
+#include <memoria/v1/core/memory/smart_ptrs.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -102,6 +107,11 @@ public:
     
     SnpSharedPtr<SnapshotMetadata<TxnId>> describe(const TxnId& snapshot_id) const;
     SnpSharedPtr<SnapshotMetadata<TxnId>> describe_master() const;
+
+    void set_event_listener(LocalSharedPtr<AllocatorEventListener> ptr);
+    LocalSharedPtr<AllocatorEventListener> event_listener();
+
+    Graph as_graph();
 };
 
 
@@ -200,6 +210,8 @@ public:
     
     
     SnpSharedPtr<SnapshotMetadata<UUID>> describe() const;
+
+    Vertex as_vertex();
     
 private:
     AllocSharedPtr<AllocatorT> snapshot_ref_creation_allowed();

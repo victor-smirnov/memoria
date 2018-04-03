@@ -35,13 +35,18 @@ namespace memoria {
 namespace v1 {
 
 struct Metadata;
-using MetadataPtr = CtrSharedPtr<Metadata>;
+using MetadataPtr = std::shared_ptr<Metadata>;
 
 struct PageMetadata;
-using PageMetadataPtr = CtrSharedPtr<PageMetadata>;
+using PageMetadataPtr = std::shared_ptr<PageMetadata>;
 
 struct ContainerMetadata;
-using ContainerMetadataPtr = CtrSharedPtr<ContainerMetadata>;
+using ContainerMetadataPtr = std::shared_ptr<ContainerMetadata>;
+
+template <typename T, typename... Args>
+auto metadata_make_shared(Args&&... args) {
+    return make_shared<T>(std::forward<Args>(args)...);
+}
 
 struct ContainerCollection;
 struct Container;

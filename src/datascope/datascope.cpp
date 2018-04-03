@@ -1,6 +1,27 @@
 
+// Copyright 2018 Victor Smirnov
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 #include <memoria/v1/reactor/application.hpp>
 #include <memoria/v1/reactor/qt_support.hpp>
+#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+#include <memoria/v1/api/map/map_api.hpp>
+#include <memoria/v1/api/set/set_api.hpp>
+
+#include <memoria/v1/core/graph/graph.hpp>
+#include <memoria/v1/core/tools/fixed_array.hpp>
 
 #include <QApplication>
 #include <QMainWindow>
@@ -10,39 +31,12 @@
 
 #include <iostream>
 
+#include <ui_main_window.h>
+#include "main_window.hpp"
+
+
 using namespace memoria::v1;
 using namespace memoria::v1::reactor;
-
-class MainWindow: public QMainWindow {
-    Q_OBJECT
-    QPushButton* button_;
-public:
-
-    virtual ~MainWindow(){}
-
-    MainWindow(): button_(new QPushButton(this))
-    {
-        setCentralWidget(button_);
-
-        connect(button_,
-               &QPushButton::clicked,
-               this,
-               &MainWindow::onPress
-        );
-    }
-
-    void closeEvent(QCloseEvent *event) {
-        app().shutdown();
-    }
-
-    void onPress()
-    {
-        engine().coutln(u"My First App!!! {}", 12345);
-    }
-};
-
-
-#include <datascope.moc>
 
 int main(int argc, char** argv, char** envp)
 {
@@ -52,8 +46,37 @@ int main(int argc, char** argv, char** envp)
     app.start_engines();
 
     MainWindow mwin;
-
     mwin.show();
 
-    return app.run(QtEventLoopFiberFn());
+
+    return app.run([&]{
+
+//        InMemAllocator<> alloc = InMemAllocator<>::create();
+
+//        auto bb = alloc.master().branch();
+
+//        auto ctr = create<Set<FixedArray<16>>>(bb);
+
+//        bb.commit();
+//        bb.set_as_master();
+
+//        Graph graph = alloc.as_graph();
+//        auto roots = graph.roots();
+
+//        for (Vertex& vx: roots)
+//        {
+//            std::cout << "Label: " << vx.label() << " :: " << boost::any_cast<UUID>(vx.id()) << std::endl;
+//            for (Edge& ee: vx.edges(Direction::OUT))
+//            {
+//                engine().coutln(u"\tEdge Label: {}", ee.label());
+//                for (Vertex& ctr_vx: ee.out_vertex().vertices(Direction::OUT)) {
+//                    engine().coutln(u"\t\tContainer: {}", boost::any_cast<UUID>(ctr_vx.id()));
+//                }
+//            }
+//        }
+
+        return QtEventLoopFiberFn()();
+    });
 }
+
+

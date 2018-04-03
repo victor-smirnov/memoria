@@ -15,52 +15,57 @@
 
 #pragma once
 
+#include <memoria/v1/core/memory/smart_ptrs.hpp>
+
 #include <memory>
 
 namespace memoria {
 namespace v1 {
 
 template <typename T>
-using CtrSharedPtr = std::shared_ptr<T>;
+using CtrSharedPtr = LocalSharedPtr<T>;
 
 template <typename T>
-using CtrSharedFromThis = std::enable_shared_from_this<T>;
+using CtrSharedFromThis = EnableSharedFromThis<T>;
 
 template <typename T, typename... Args>
 auto ctr_make_shared(Args&&... args) {
-    return std::make_shared<T>(std::forward<Args>(args)...);
+    return MakeLocalShared<T>(std::forward<Args>(args)...);
 }
 
 
 
-template <typename T>
-using SnpSharedPtr = std::shared_ptr<T>;
+
+
 
 template <typename T>
-using SnpSharedFromThis = std::enable_shared_from_this<T>;
+using SnpSharedPtr = LocalSharedPtr<T>;
+
+template <typename T>
+using SnpSharedFromThis = EnableSharedFromThis<T>;
 
 template <typename T, typename... Args>
 auto snp_make_shared(Args&&... args) {
-    return std::make_shared<T>(std::forward<Args>(args)...);
+    return MakeLocalShared<T>(std::forward<Args>(args)...);
 }
 
 template <typename T, typename... Args>
 auto snp_make_shared_init(Args&&... args) {
-    auto snp = std::make_shared<T>(std::forward<Args>(args)...);
+    auto snp = MakeLocalShared<T>(std::forward<Args>(args)...);
     snp->post_init();
     return snp;
 }
 
 
 template <typename T>
-using AllocSharedPtr = std::shared_ptr<T>;
+using AllocSharedPtr = LocalSharedPtr<T>;
 
 template <typename T>
-using AllocSharedFromThis = std::enable_shared_from_this<T>;
+using AllocSharedFromThis = EnableSharedFromThis<T>;
 
 template <typename T, typename... Args>
 auto alloc_make_shared(Args&&... args) {
-    return std::make_shared<T>(std::forward<Args>(args)...);
+    return MakeLocalShared<T>(std::forward<Args>(args)...);
 }
 
 
@@ -71,5 +76,11 @@ auto static_pointer_cast(const std::shared_ptr<T>& ptr)
     return std::static_pointer_cast<T>(ptr);
 }
 
+
+template <typename T>
+auto static_pointer_cast(const LocalSharedPtr<T>& ptr)
+{
+    return MakeLocalShared<T>(ptr);
+}
 
 }}

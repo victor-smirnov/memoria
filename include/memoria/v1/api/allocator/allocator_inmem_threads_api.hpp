@@ -43,7 +43,7 @@ namespace persistent_inmem {
 
 template <typename Profile = DefaultProfile<>>
 class ThreadInMemSnapshot;
-	
+
 template <typename Profile = DefaultProfile<>>
 class ThreadInMemAllocator {
     using PImpl = persistent_inmem::ThreadInMemAllocatorImpl<Profile>;

@@ -47,7 +47,7 @@ public:
     static constexpr int32_t DataStreams = 1;
     using CtrSizesT = CtrSizes<Profile, DataStreams>;
     
-    CtrApiBTSSBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name):
+    CtrApiBTSSBase(const AllocSharedPtr<AllocatorT>& allocator, int command, const UUID& name):
         Base(allocator, command, name) 
     {}
         

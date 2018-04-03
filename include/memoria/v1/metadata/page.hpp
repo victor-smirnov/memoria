@@ -138,14 +138,12 @@ struct PageMetadata: public MetadataGroup
         return hash_;
     }
 
-
     virtual const IPageOperations* getPageOperations() const {
         return page_operations_;
     }
 
 private:
-    uint64_t  hash_;
-
+    uint64_t hash_;
     const IPageOperations* page_operations_;
 };
 

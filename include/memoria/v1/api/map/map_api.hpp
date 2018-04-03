@@ -43,8 +43,6 @@ public:
 
     using typename Base::Iterator;
     
-
-
     MMA1_DECLARE_CTRAPI_BASIC_METHODS()
     
     Iterator find(const Key& key);

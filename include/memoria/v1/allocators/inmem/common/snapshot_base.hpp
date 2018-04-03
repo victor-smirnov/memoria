@@ -34,6 +34,9 @@
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
+#include <memoria/v1/reactor/reactor.hpp>
+
+
 
 #include "persistent_tree.hpp"
 
@@ -993,7 +996,8 @@ public:
     	this->history_tree_raw_->pack();
     }
     
-    virtual CtrSharedPtr<CtrReferenceable> get(const UUID& name) {
+    virtual CtrSharedPtr<CtrReferenceable> get(const UUID& name)
+    {
         UUID root_id = getRootID(name);
 
         if (root_id.is_set())
@@ -1005,7 +1009,22 @@ public:
             return ctr_meta->getCtrInterface()->new_ctr_instance(root_id, name, this->shared_from_this());
         }
         else {
-            return nullptr;
+            return CtrSharedPtr<CtrReferenceable>();
+        }
+    }
+
+    virtual CtrSharedPtr<CtrReferenceable> from_root_id(const UUID& root_page_id, const UUID& name)
+    {
+        if (root_page_id.is_set())
+        {
+            PageG page = this->getPage(root_page_id, name);
+
+            auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
+
+            return ctr_meta->getCtrInterface()->new_ctr_instance(root_page_id, name, this->shared_from_this());
+        }
+        else {
+            return CtrSharedPtr<CtrReferenceable>();
         }
     }
 

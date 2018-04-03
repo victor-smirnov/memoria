@@ -28,7 +28,7 @@ template< class E, class Y > inline void lsp_pointer_construct( reactor::local_s
 
     typedef reactor::detail::local_sp_deleter< boost::checked_deleter<Y> > D;
 
-    reactor::shared_ptr<E> p2( p, D() );
+    reactor::shared_ptr<E> p2( engine_current_cpu(), p, D() );
 
     D * pd = static_cast< D * >( p2._internal_get_untyped_deleter() );
 
@@ -43,7 +43,7 @@ template< class E, class Y > inline void lsp_pointer_construct( reactor::local_s
 
     typedef reactor::detail::local_sp_deleter< boost::checked_array_deleter<E> > D;
 
-    reactor::shared_ptr<E[]> p2( p, D() );
+    reactor::shared_ptr<E[]> p2(engine_current_cpu(), p, D() );
 
     D * pd = static_cast< D * >( p2._internal_get_untyped_deleter() );
 
@@ -489,6 +489,10 @@ public:
     template<class Y> bool owner_before( local_shared_ptr<Y> const & r ) const noexcept
     {
         return std::less< reactor::detail::local_counted_base* >()( pn, r.pn );
+    }
+
+    operator bool() const {
+        return get() != nullptr;
     }
 };
 

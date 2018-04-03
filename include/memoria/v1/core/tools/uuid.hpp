@@ -114,17 +114,6 @@ struct TypeHash;
 template <>
 struct TypeHash<UUID>: UInt64Value<741231> {};
 
-struct UUIDKeyHash
-{
-    long operator() (const UUID &k) const { return k.hi() ^ k.lo(); }
-};
-
-struct UUIDKeyEq
-{
-    bool operator() (const UUID &x, const UUID &y) const { return x == y; }
-};
-
-
 inline InputStreamHandler& operator>>(InputStreamHandler& in, UUID& value) {
     value.hi() = in.readUInt64();
     value.lo() = in.readUInt64();
@@ -152,10 +141,19 @@ struct FromString<UUID> {
 };
 
 
-
-
-
-
-
-
 }}
+
+namespace std {
+
+template <>
+struct hash<memoria::v1::UUID> {
+    using argument_type	= memoria::v1::UUID;
+    using result_type = std::size_t;
+
+    result_type operator()(const argument_type& uuid) const {
+        std::hash<uint64_t> hf;
+        return hf(uuid.hi()) ^ hf(uuid.lo());
+    }
+};
+
+}
