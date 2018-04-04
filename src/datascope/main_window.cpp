@@ -30,13 +30,11 @@ MainWindow::MainWindow(QWidget *parent)
     setupUi(this);
 
     QStringList headers;
-    headers << tr("Type") << tr("Name") << tr("Details");
+    headers << tr("Type") << tr("Name/ID") << tr("Details");
 
     AllocatorModel *model = new AllocatorModel(headers);
 
     view->setModel(model);
-    for (int column = 0; column < model->columnCount(); ++column)
-        view->resizeColumnToContents(column);
 
     connect(exitAction, &QAction::triggered, this, &MainWindow::quit);
 
@@ -53,6 +51,8 @@ void MainWindow::createAllocator()
 {
     AllocatorModel* model = static_cast<AllocatorModel*>(view->model());
     model->createNewInMemAllocator();
+
+    view->reset();
 }
 
 

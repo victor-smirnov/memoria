@@ -62,7 +62,11 @@ AbstractTreeItem *AbstractTreeItem::parent()
 }
 
 
-RootTreeItem::RootTreeItem(): AbstractTreeItem() {}
+RootTreeItem::RootTreeItem(QVector<QVariant> data):
+    AbstractTreeItem(),
+    data_(data)
+{}
+
 
 
 void RootTreeItem::add_inmem_allocator(InMemAllocator<> allocator, QString label)
@@ -108,7 +112,7 @@ void VertexTreeItem::expand()
 
 
 QVariant InMemAllocatorTreeItem::data(int column) {
-    return column == 0 ? label_ : QVariant();
+    return column == 0 ? node_type() : column == 1 ? label_ : QVariant();
 }
 
 void InMemAllocatorTreeItem::expand()
@@ -164,11 +168,13 @@ QVariant to_variant(const VertexProperty& prop)
 VertexSchemaFn get_vertex_schema(const U16String& label)
 {
     return [=](Vertex& vx, int column) -> QVariant {
-        std::cout << vx.label().data() << std::endl;
         switch (column) {
             case 0: return QString::fromUtf16(vx.label().data());
             case 1: return QString::fromUtf8(toString(boost::any_cast<UUID>(vx.id())).data());
             case 2: {
+                if (label == u"snapshot") {
+                    return to_variant(vx.property(u"metadata"));
+                }
                 return to_variant(vx.property(u"type"));
             }
         }

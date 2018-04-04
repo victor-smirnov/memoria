@@ -61,11 +61,12 @@ protected:
 
 
 class RootTreeItem: public AbstractTreeItem {
+    QVector<QVariant> data_;
 public:
-    RootTreeItem();
+    RootTreeItem(QVector<QVariant> data);
 
-    virtual QVariant data(int) const {
-        return QVariant();
+    virtual QVariant data(int column) const {
+        return data_[column];
     }
 
     void add_inmem_allocator(InMemAllocator<> allocator, QString label);
@@ -76,7 +77,9 @@ public:
     }
 
 protected:
-    virtual void expand() {}
+    virtual void expand() {
+        expanded_ = true;
+    }
 };
 
 

@@ -21,6 +21,12 @@
        <enum>Qt::Horizontal</enum>
       </property>
       <widget class="QTreeView" name="view">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
        <property name="alternatingRowColors">
         <bool>true</bool>
        </property>
@@ -71,7 +77,7 @@
   <widget class="QStatusBar" name="statusBar1"/>
   <action name="exitAction">
    <property name="icon">
-    <iconset resource="datascope.qrc">
+    <iconset>
      <normaloff>:/resources/icon.png</normaloff>:/resources/icon.png</iconset>
    </property>
    <property name="text">
@@ -83,7 +89,7 @@
   </action>
   <action name="createAllocatorAction">
    <property name="icon">
-    <iconset resource="datascope.qrc">
+    <iconset>
      <normaloff>:/resources/icon.png</normaloff>:/resources/icon.png</iconset>
    </property>
    <property name="text">
@@ -94,8 +100,6 @@
    </property>
   </action>
  </widget>
- <resources>
-  <include location="datascope.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

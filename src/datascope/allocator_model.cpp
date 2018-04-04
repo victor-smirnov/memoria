@@ -32,7 +32,7 @@ AllocatorModel::AllocatorModel(const QStringList &headers, QObject *parent)
     foreach (QString header, headers)
         rootData << header;
 
-    root_item_ = new RootTreeItem();
+    root_item_ = new RootTreeItem(rootData);
 }
 
 AllocatorModel::~AllocatorModel()
@@ -55,8 +55,8 @@ QVariant AllocatorModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-//    if (role != Qt::DisplayRole && role != Qt::EditRole)
-//        return QVariant();
+    if (role != Qt::DisplayRole && role != Qt::EditRole)
+        return QVariant();
 
     AbstractTreeItem *item = get_item(index);
 
@@ -105,17 +105,6 @@ QModelIndex AllocatorModel::index(int row, int column, const QModelIndex &parent
 }
 
 
-bool AllocatorModel::insertRows(int position, int rows, const QModelIndex &parent)
-{
-    AbstractTreeItem *parentItem = get_item(parent);
-    bool success;
-
-    beginInsertRows(parent, position, position + rows - 1);
-    //success = parentItem->insert_children(position, rows, columnCount(parent));
-    endInsertRows();
-
-    return success;
-}
 
 QModelIndex AllocatorModel::parent(const QModelIndex &index) const
 {
@@ -132,18 +121,6 @@ QModelIndex AllocatorModel::parent(const QModelIndex &index) const
 }
 
 
-bool AllocatorModel::removeRows(int position, int rows, const QModelIndex &parent)
-{
-    AbstractTreeItem *parentItem = get_item(parent);
-    bool success = true;
-
-    beginRemoveRows(parent, position, position + rows - 1);
-    //success = parentItem->remove_children(position, rows);
-    endRemoveRows();
-
-    return success;
-}
-
 int AllocatorModel::rowCount(const QModelIndex &parent) const
 {
     AbstractTreeItem *parentItem = get_item(parent);
@@ -159,16 +136,18 @@ void AllocatorModel::createNewInMemAllocator()
 
     auto row_pos = root_item_->children();
 
-    beginInsertRows(root_idx, row_pos, row_pos + 1);
-
     InMemAllocator<> alloc = InMemAllocator<>::create();
 
     auto bb = alloc.master().branch();
 
     auto ctr = create<Set<FixedArray<16>>>(bb);
 
+    bb.set_snapshot_metadata(u"My cool snapshot");
+
     bb.commit();
     bb.set_as_master();
+
+    beginInsertRows(root_idx, row_pos, row_pos);
 
     root_item_->add_inmem_allocator(alloc, QString::fromUtf8("allocator"));
 
