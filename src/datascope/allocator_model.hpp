@@ -19,6 +19,8 @@
 #include <memoria/v1/core/graph/graph.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#include "vertex_tree_item.hpp"
+
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
@@ -50,14 +52,11 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
-//    bool insertRows(int position, int rows, const QModelIndex &parent = QModelIndex()) override;
-//    bool removeRows(int position, int rows, const QModelIndex &parent = QModelIndex()) override;
-
-
     void createNewInMemAllocator();
-private:
+
     AbstractTreeItem *get_item(const QModelIndex &index) const;
 
+private:
     RootTreeItem *root_item_;
 
     std::unordered_map<UUID, AbstractTreeItem*> tree_content_;

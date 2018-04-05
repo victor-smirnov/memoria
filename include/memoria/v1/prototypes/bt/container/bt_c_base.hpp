@@ -448,7 +448,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(ValuesAsVectorFn, template values_as_vector<ID>, std::vector<ID>);
-    Collection<Edge> describe_page_links(const UUID& page_id, const UUID& name, Direction direction) const
+    Collection<Edge> describe_page_links(const UUID& page_id, const UUID& name, Direction direction)
     {
         std::vector<Edge> links;
 
@@ -476,7 +476,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 auto child_ids = BranchDispatcher::dispatch(page, ValuesAsVectorFn());
                 for (auto& child_id: child_ids)
                 {
-                    links.push_back(DefaultEdge::make(graph, "child", this->page_as_vertex(child_id), page_vx));
+                    links.push_back(DefaultEdge::make(graph, "child", page_vx, this->page_as_vertex(child_id)));
                 }
             }
         }
@@ -510,7 +510,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         std::stringstream buf;
         self().dump(page, buf);
 
-        props.emplace_back(DefaultVertexProperty::make(vx, u"content", buf.str()));
+        props.emplace_back(DefaultVertexProperty::make(vx, u"content", U16String(buf.str())));
 
         return STLCollection<VertexProperty>::make(std::move(props));
     }

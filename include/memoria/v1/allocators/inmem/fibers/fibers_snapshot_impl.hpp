@@ -327,11 +327,11 @@ public:
         return as_vertex();
     }
 
-    Vertex as_vertex() const {
-        return Vertex(StaticPointerCast<IVertex>(ConstPointerCast<MyType>(this->shared_from_this())));
+    Vertex as_vertex() {
+        return Vertex(StaticPointerCast<IVertex>(this->shared_from_this()));
     }
 
-    virtual Graph graph() const
+    virtual Graph graph()
     {
         return history_tree_->as_graph();
     }
@@ -356,7 +356,7 @@ public:
         return false;
     }
 
-    virtual Collection<VertexProperty> properties() const
+    virtual Collection<VertexProperty> properties()
     {
         return make_fn_vertex_properties(
             as_vertex(),
@@ -364,7 +364,7 @@ public:
         );
     }
 
-    virtual Collection<Edge> edges(Direction direction) const
+    virtual Collection<Edge> edges(Direction direction)
     {
         std::vector<Edge> edges;
 

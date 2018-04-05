@@ -19,6 +19,7 @@
 #include "allocator_model.hpp"
 
 #include <QFile>
+#include <QPlainTextDocumentLayout>
 
 namespace memoria {
 namespace v1 {
@@ -39,33 +40,62 @@ MainWindow::MainWindow(QWidget *parent)
     connect(exitAction, &QAction::triggered, this, &MainWindow::quit);
 
     connect(view->selectionModel(), &QItemSelectionModel::selectionChanged,
-            this, &MainWindow::updateActions);
+            this, &MainWindow::update_actions);
 
-    connect(createAllocatorAction, &QAction::triggered, this, &MainWindow::createAllocator);
+    connect(view->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &MainWindow::item_selected);
 
-    updateActions();
+    connect(createAllocatorAction, &QAction::triggered, this, &MainWindow::create_allocator);
+
+    update_actions();
 }
 
 
-void MainWindow::createAllocator()
+void MainWindow::create_allocator()
 {
     AllocatorModel* model = static_cast<AllocatorModel*>(view->model());
     model->createNewInMemAllocator();
-
-    view->reset();
 }
 
 
-void MainWindow::updateActions()
+void MainWindow::update_actions()
 {
+}
 
+void MainWindow::item_selected()
+{
+    auto selection = view->selectionModel()->selectedIndexes();
+    if (selection.size() > 0)
+    {
+        auto item_idx = selection[0];
+        AllocatorModel* model = static_cast<AllocatorModel*>(view->model());
+        AbstractTreeItem* item = model->get_item(item_idx);
+
+        if (item->node_type() == u"page")
+        {
+            VertexTreeItem* vx_item = static_cast<VertexTreeItem*>(item);
+            VertexProperty content_prop = vx_item->vertex().property(u"content");
+
+            if (!content_prop.is_empty())
+            {
+                U16String text = boost::any_cast<U16String>(content_prop.value());
+
+                plainTextEdit->clear();
+                plainTextEdit->insertPlainText(QString::fromUtf16(text.data()));
+            }
+        }
+        else {
+            plainTextEdit->clear();
+        }
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent*) {
     memoria::v1::reactor::app().shutdown();
 }
 
-void MainWindow::quit() {
+void MainWindow::quit()
+{
     QApplication::quit();
     memoria::v1::reactor::app().shutdown();
 }

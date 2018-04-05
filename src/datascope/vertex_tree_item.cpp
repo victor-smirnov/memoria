@@ -175,7 +175,9 @@ VertexSchemaFn get_vertex_schema(const U16String& label)
                 if (label == u"snapshot") {
                     return to_variant(vx.property(u"metadata"));
                 }
-                return to_variant(vx.property(u"type"));
+                else if (label == u"container") {
+                    return to_variant(vx.property(u"type"));
+                }
             }
         }
 

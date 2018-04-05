@@ -16,6 +16,7 @@
 
 #include <QtWidgets>
 
+#include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/fixed_array.hpp>
 #include <memoria/v1/api/set/set_api.hpp>
 
@@ -125,7 +126,8 @@ int AllocatorModel::rowCount(const QModelIndex &parent) const
 {
     AbstractTreeItem *parentItem = get_item(parent);
 
-    return parentItem->children();
+    int children = parentItem->children();
+    return children;
 }
 
 
@@ -142,16 +144,26 @@ void AllocatorModel::createNewInMemAllocator()
 
     auto ctr = create<Set<FixedArray<16>>>(bb);
 
+    FixedArray<16> array;
+
+    for (int c = 0; c < 10000; c++) {
+        for (int d = 0; d < 16; d++) {
+            array[d] = getRandomG(255);
+        }
+
+        ctr.insert(array);
+    }
+
     bb.set_snapshot_metadata(u"My cool snapshot");
 
     bb.commit();
     bb.set_as_master();
 
     beginInsertRows(root_idx, row_pos, row_pos);
-
     root_item_->add_inmem_allocator(alloc, QString::fromUtf8("allocator"));
-
     endInsertRows();
+
+    emit layoutChanged();
 }
 
 

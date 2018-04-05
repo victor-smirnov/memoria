@@ -434,7 +434,7 @@ public:
         return Vertex(StaticPointerCast<IVertex>(ConstPointerCast<MyType>(this->shared_from_this())));
     }
 
-    virtual Graph graph() const
+    virtual Graph graph()
     {
         return allocator_holder_->allocator_vertex().graph();
     }
@@ -459,7 +459,7 @@ public:
         return false;
     }
 
-    virtual Collection<VertexProperty> properties() const
+    virtual Collection<VertexProperty> properties()
     {
         return make_fn_vertex_properties(
             as_vertex(),
@@ -467,7 +467,7 @@ public:
         );
     }
 
-    Vertex page_as_vertex(const UUID& page_id) const
+    Vertex page_as_vertex(const UUID& page_id)
     {
         Graph my_graph = this->graph();
         Vertex page_vx = PageVertex<AllocatorBasePtr, ContainerInterfacePtr>::make(
@@ -486,7 +486,7 @@ public:
         return EmptyCollection<Edge>::make();
     }
 
-    virtual Collection<Edge> edges(Direction direction) const
+    virtual Collection<Edge> edges(Direction direction)
     {
         std::vector<Edge> edges;
 

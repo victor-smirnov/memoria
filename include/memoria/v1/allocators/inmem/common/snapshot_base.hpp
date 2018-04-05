@@ -834,7 +834,7 @@ public:
     }
 
     virtual Logger& logger() {return logger_;}
-    virtual IAllocatorProperties& properties() {
+    virtual IAllocatorProperties& allocator_properties() {
         return properties_;
     }
 

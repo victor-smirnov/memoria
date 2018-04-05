@@ -66,7 +66,7 @@ public:
         ));
     }
 
-    virtual Graph graph() const {
+    virtual Graph graph() {
         return graph_;
     }
 
@@ -87,26 +87,26 @@ public:
         return false;
     }
 
-    virtual Vertex in_vertex() const
+    virtual Vertex in_vertex()
     {
         return in_vertex_;
     }
 
-    virtual Vertex out_vertex() const {
+    virtual Vertex out_vertex() {
         return out_vertex_;
     }
 
-    virtual Collection<Property> properties() const
+    virtual Collection<Property> properties()
     {
         return properties_;
     }
 
-    virtual Property property(const U16String& name) const
+    virtual Property property(const U16String& name)
     {
         return empty_property();
     }
 
-    virtual Property property(const U16String& name, const Any& value) const
+    virtual Property property(const U16String& name, const Any& value)
     {
         MMA1_THROW(GraphException()) << WhatCInfo("Can't set property value");
     }

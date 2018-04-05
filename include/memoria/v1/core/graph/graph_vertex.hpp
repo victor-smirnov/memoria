@@ -33,16 +33,16 @@ namespace memoria {
 namespace v1 {
 
 struct IVertex: IElement {
-    virtual Collection<VertexProperty> properties() const = 0;
+    virtual Collection<VertexProperty> properties() = 0;
 
-    virtual Collection<Edge> edges(Direction direction = Direction::BOTH) const = 0;
-    virtual Collection<Edge> edges(Direction direction, const LabelList& labels) const;
+    virtual Collection<Edge> edges(Direction direction = Direction::BOTH) = 0;
+    virtual Collection<Edge> edges(Direction direction, const LabelList& labels);
 
-    virtual Collection<Vertex> vertices(Direction direction = Direction::BOTH) const;
-    virtual Collection<Vertex> vertices(Direction direction, const LabelList& edge_labels) const;
+    virtual Collection<Vertex> vertices(Direction direction = Direction::BOTH);
+    virtual Collection<Vertex> vertices(Direction direction, const LabelList& edge_labels);
 
-    virtual VertexProperty property(const U16String& name) const;
-    virtual VertexProperty property(const U16String& name, const Any& value) const;
+    virtual VertexProperty property(const U16String& name);
+    virtual VertexProperty property(const U16String& name, const Any& value);
 };
 
 
@@ -51,7 +51,7 @@ class Vertex: public PimplBase<IVertex> {
 public:
     MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Vertex)
 
-    Graph graph() const;
+    Graph graph();
 
     Any id() const {
         return this->ptr_->id();
@@ -69,24 +69,24 @@ public:
         return this->ptr_->is_removed();
     }
 
-    Collection<VertexProperty> properties() const {
+    Collection<VertexProperty> properties() {
         return this->ptr_->properties();
     }
 
-    Collection<Edge> edges(Direction direction = Direction::BOTH) const
+    Collection<Edge> edges(Direction direction = Direction::BOTH)
     {
         return this->ptr_->edges(direction);
     }
 
-    Collection<Edge> edges(Direction direction, const LabelList& labels) const {
+    Collection<Edge> edges(Direction direction, const LabelList& labels) {
         return this->ptr_->edges(direction, labels);
     }
 
-    Collection<Vertex> vertices(Direction direction = Direction::BOTH) const {
+    Collection<Vertex> vertices(Direction direction = Direction::BOTH) {
         return this->ptr_->vertices(direction);
     }
 
-    Collection<Vertex> vertices(Direction direction, const LabelList& edge_labels) const
+    Collection<Vertex> vertices(Direction direction, const LabelList& edge_labels)
     {
         return this->ptr_->vertices(direction, edge_labels);
     }
@@ -95,11 +95,11 @@ public:
         return Element(StaticPointerCast<IElement>(this->ptr_));
     }
 
-    VertexProperty property(const U16String& name) const {
+    VertexProperty property(const U16String& name) {
         return this->ptr_->property(name);
     }
 
-    VertexProperty property(const U16String& name, const Any& value) const {
+    VertexProperty property(const U16String& name, const Any& value) {
         return this->ptr_->property(name, value);
     }
 };

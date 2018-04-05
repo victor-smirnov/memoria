@@ -31,11 +31,12 @@ public:
     MainWindow(QWidget *parent = nullptr);
 
 public slots:
-    void updateActions();
+    void update_actions();
 
 private slots:
 
-    void createAllocator();
+    void create_allocator();
+    void item_selected();
 
     void closeEvent(QCloseEvent* event);
 

@@ -17,7 +17,7 @@ VertexProperty empty_vertex_property()
     return property;
 }
 
-Collection<Edge> IVertex::edges(Direction direction, const LabelList& labels) const
+Collection<Edge> IVertex::edges(Direction direction, const LabelList& labels)
 {
     std::vector<Edge> filtered_edges;
 
@@ -31,7 +31,7 @@ Collection<Edge> IVertex::edges(Direction direction, const LabelList& labels) co
     return STLCollection<Edge>::make(std::move(filtered_edges));
 }
 
-Collection<Vertex> IVertex::vertices(Direction direction) const
+Collection<Vertex> IVertex::vertices(Direction direction)
 {
     std::vector<Vertex> vxx;
 
@@ -60,7 +60,7 @@ Collection<Vertex> IVertex::vertices(Direction direction) const
     return STLCollection<Vertex>::make(std::move(vxx));
 }
 
-Collection<Vertex> IVertex::vertices(Direction direction, const LabelList& edge_labels) const
+Collection<Vertex> IVertex::vertices(Direction direction, const LabelList& edge_labels)
 {
     std::vector<Vertex> vxx;
 
@@ -89,7 +89,7 @@ Collection<Vertex> IVertex::vertices(Direction direction, const LabelList& edge_
     return STLCollection<Vertex>::make(std::move(vxx));
 }
 
-VertexProperty IVertex::property(const U16String& name) const
+VertexProperty IVertex::property(const U16String& name)
 {
     for (VertexProperty& prop: this->properties())
     {
@@ -101,7 +101,7 @@ VertexProperty IVertex::property(const U16String& name) const
     return empty_vertex_property();
 }
 
-VertexProperty IVertex::property(const U16String& name, const Any& value) const
+VertexProperty IVertex::property(const U16String& name, const Any& value)
 {
     MMA1_THROW(GraphException()) << WhatCInfo("Property update is not dupported");
 }

@@ -35,7 +35,7 @@ namespace v1 {
 struct IElement {
     virtual ~IElement() noexcept {}
 
-    virtual Graph graph() const = 0;
+    virtual Graph graph() = 0;
 
     virtual Any id() const = 0;
     virtual U16String label() const = 0;

@@ -80,21 +80,21 @@ public:
     }
 };
 
-inline Graph Vertex::graph() const {
+inline Graph Vertex::graph() {
     return this->ptr_->graph();
 }
 
 
-inline Vertex Edge::in_vertex() const {
+inline Vertex Edge::in_vertex() {
     return this->ptr_->in_vertex();
 }
 
-inline Vertex Edge::out_vertex() const {
+inline Vertex Edge::out_vertex() {
     return this->ptr_->out_vertex();
 }
 
 
-inline Graph Edge::graph() const {
+inline Graph Edge::graph() {
     return this->ptr_->graph();
 }
 

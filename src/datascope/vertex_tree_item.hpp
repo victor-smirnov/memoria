@@ -118,6 +118,9 @@ public:
         return QString::fromUtf16(vertex_.label().data());
     }
 
+    Vertex& vertex() {return vertex_;}
+    const Vertex& vertex() const {return vertex_;}
+
     virtual void expand();
 };
 

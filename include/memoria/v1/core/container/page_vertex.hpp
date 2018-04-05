@@ -25,7 +25,7 @@ namespace memoria {
 namespace v1 {
 
 template <typename AllocatorPtr, typename CtrInterfacePtr>
-class PageVertex: public IVertex {
+class PageVertex: public IVertex, public EnableSharedFromThis<PageVertex<AllocatorPtr, CtrInterfacePtr>> {
 
     Graph graph_;
     AllocatorPtr allocator_;
@@ -44,7 +44,15 @@ public:
         return Vertex(MakeLocalShared<PageVertex>(graph, allocator, ctr_interface, page_id, name));
     }
 
-    virtual Graph graph() const
+    Vertex self() {
+        return Vertex(DynamicPointerCast<IVertex>(this->shared_from_this()));
+    }
+
+    Vertex self() const {
+        return Vertex(DynamicPointerCast<IVertex>(ConstPointerCast<PageVertex>(this->shared_from_this())));
+    }
+
+    virtual Graph graph()
     {
         return graph_;
     }
@@ -65,13 +73,13 @@ public:
         return false; // FIXME: check with the allocator
     }
 
-    virtual Collection<VertexProperty> properties() const
+    virtual Collection<VertexProperty> properties()
     {
-        return EmptyCollection<VertexProperty>::make();
+        return ctr_interface_->page_properties(self(), page_id_, name_, allocator_);
     }
 
-    virtual Collection<Edge> edges(Direction direction = Direction::BOTH) const {
-        return EmptyCollection<Edge>::make();
+    virtual Collection<Edge> edges(Direction direction) {
+        return ctr_interface_->describe_page_links(page_id_, name_, allocator_, direction);
     }
 };
 

@@ -35,13 +35,13 @@ namespace v1 {
 
 
 struct IEdge: IElement {
-    virtual Vertex in_vertex() const = 0;
-    virtual Vertex out_vertex() const = 0;
+    virtual Vertex in_vertex() = 0;
+    virtual Vertex out_vertex() = 0;
 
-    virtual Collection<Property> properties() const = 0;
+    virtual Collection<Property> properties() = 0;
 
-    virtual Property property(const U16String& name) const = 0;
-    virtual Property property(const U16String& name, const Any& value) const = 0;
+    virtual Property property(const U16String& name) = 0;
+    virtual Property property(const U16String& name, const Any& value) = 0;
 };
 
 
@@ -52,7 +52,7 @@ class Edge: public PimplBase<IEdge> {
 public:
     MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Edge)
 
-    Graph graph() const;
+    Graph graph();
 
     Any id() const {
         return this->ptr_->id();
@@ -70,22 +70,22 @@ public:
         return this->ptr_->is_removed();
     }
 
-    Collection<Property> properties() const {
+    Collection<Property> properties() {
         return this->ptr_->properties();
     }
 
-    Property property(const U16String& name) const {
+    Property property(const U16String& name) {
         return this->ptr_->property(name);
     }
 
-    Property property(const U16String& name, const Any& value) const {
+    Property property(const U16String& name, const Any& value) {
         return this->ptr_->property(name, value);
     }
 
-    Vertex in_vertex() const;
-    Vertex out_vertex() const;
+    Vertex in_vertex();
+    Vertex out_vertex();
 
-    Element as_element() const {
+    Element as_element() {
         return Element(StaticPointerCast<IElement>(this->ptr_));
     }
 };

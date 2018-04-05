@@ -92,7 +92,7 @@ struct IAllocator: AllocatorBase {
     virtual void  freeMemory(void* ptr)                                         = 0;
 
     virtual Logger& logger()                                                    = 0;
-    virtual IAllocatorProperties& properties()                                  = 0;
+    virtual IAllocatorProperties& allocator_properties()                        = 0;
 
     virtual bool isActive()                                                     = 0;
 
