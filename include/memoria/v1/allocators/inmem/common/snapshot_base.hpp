@@ -109,10 +109,9 @@ public:
     using typename Base::PageG;
     using typename Base::Shared;
 
-
-protected:
     using RootMapType = CtrT<Map<UUID, ID>>;
 
+protected:
     class Properties: public IAllocatorProperties {
     public:
         virtual int32_t defaultPageSize() const
@@ -129,7 +128,7 @@ protected:
         virtual int64_t newTxnId() {return 0;}
     };
 
-    HistoryNode*    history_node_;
+    HistoryNode*            history_node_;
     PersistentAllocatorPtr  history_tree_;
     PersistentAllocator*    history_tree_raw_ = nullptr;
 
@@ -178,7 +177,7 @@ public:
         logger_("PersistentInMemAllocatorSnp", Logger::DERIVED, &history_tree->logger_),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
-        root_map_->getMetadata();
+        //root_map_->getMetadata();
         
     	history_node_->ref();
 
@@ -199,7 +198,7 @@ public:
         logger_("PersistentInMemAllocatorTxn"),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
-        root_map_->getMetadata();
+        //root_map_->getMetadata();
         
     	history_node_->ref();
 
@@ -220,6 +219,9 @@ public:
         root_map_->reset_allocator_holder();
     }
     
+    static void initMetadata() {
+        RootMapType::getMetadata();
+    }
 
 
     virtual ~SnapshotBase()

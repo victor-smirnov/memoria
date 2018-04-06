@@ -146,7 +146,8 @@ void AllocatorModel::createNewInMemAllocator()
 
     FixedArray<16> array;
 
-    for (int c = 0; c < 10000; c++) {
+    for (int c = 0; c < 10000; c++)
+    {
         for (int d = 0; d < 16; d++) {
             array[d] = getRandomG(255);
         }
@@ -164,6 +165,33 @@ void AllocatorModel::createNewInMemAllocator()
     endInsertRows();
 
     emit layoutChanged();
+}
+
+
+
+
+void AllocatorModel::open_allocator(const QString& file, const QModelIndex& after)
+{
+    QModelIndex root_idx = this->createIndex(0, 0, root_item_);
+
+    auto row_pos = root_item_->children();
+
+    try {
+
+        InMemAllocator<> alloc = InMemAllocator<>::load(filesystem::path(file.toStdU16String()));
+
+        beginInsertRows(root_idx, row_pos, row_pos);
+        root_item_->add_inmem_allocator(alloc, file);
+        endInsertRows();
+
+        emit layoutChanged();
+    }
+    catch (MemoriaThrowable& ex) {
+        ex.dump(std::cout);
+    }
+    catch (...) {
+        std::cout << "Unknown exception" << std::endl;
+    }
 }
 
 

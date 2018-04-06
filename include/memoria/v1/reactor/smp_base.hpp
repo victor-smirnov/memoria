@@ -64,6 +64,10 @@ public:
     
     bool submit_to(int cpu, Message* msg) 
     {
+        if (cpu < 0 || cpu >= cpu_num_) {
+            std::cout << "here!" << std::endl;
+        }
+
         BOOST_ASSERT_MSG(cpu >= 0 && cpu < cpu_num_, "Invalid cpu number");
         return inboxes_[cpu]->send(msg);
     }

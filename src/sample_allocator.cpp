@@ -1,0 +1,71 @@
+
+// Copyright 2018 Victor Smirnov
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+
+
+#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/v1/core/tools/fixed_array.hpp>
+#include <memoria/v1/api/set/set_api.hpp>
+#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+
+
+#include <memoria/v1/reactor/application.hpp>
+
+
+using namespace memoria::v1;
+using namespace memoria::v1::reactor;
+
+
+int main(int argc, char** argv, char** envp)
+{
+    Application app(argc, argv, envp);
+    app.start_engines();
+
+    return app.run([&]{
+
+        ShutdownOnScopeExit exh;
+
+        InMemAllocator<> alloc = InMemAllocator<>::create();
+
+        auto bb = alloc.master().branch();
+
+        auto ctr = create<Set<FixedArray<16>>>(bb);
+
+        FixedArray<16> array;
+
+        for (int c = 0; c < 10000; c++)
+        {
+            for (int d = 0; d < 16; d++)
+            {
+                array[d] = getRandomG(255);
+            }
+
+            ctr.insert(array);
+        }
+
+        bb.set_snapshot_metadata(u"My cool snapshot");
+
+        bb.commit();
+        bb.set_as_master();
+
+        alloc.store("sample-alloc.mma1");
+
+        auto alloc2 = InMemAllocator<>::load("sample-alloc.mma1");
+
+
+        return 0;
+    });
+}

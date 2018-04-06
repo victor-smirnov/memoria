@@ -33,7 +33,11 @@ public:
 public slots:
     void update_actions();
 
+    void open_context_menu(const QPoint& point_at);
+
 private slots:
+
+    void open_allocator();
 
     void create_allocator();
     void item_selected();

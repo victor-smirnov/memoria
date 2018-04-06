@@ -123,6 +123,7 @@ private:
  
 public:
     InMemAllocatorImpl() {
+        cpu_ = reactor::engine().cpu();
         auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this, OperationType::CREATE);
         snapshot->commit();
     }
@@ -133,7 +134,9 @@ public:
     }
 
 
-    InMemAllocatorImpl(int32_t v): Base(v) {}
+    InMemAllocatorImpl(int32_t v): Base(v) {
+        cpu_ = reactor::engine().cpu();
+    }
 private:
     
     auto ref_active() {
@@ -416,8 +419,10 @@ public:
  
     static AllocSharedPtr<MyType> load(const char16_t* file, int32_t cpu)
     {
-        auto fileh = FileInputStreamHandler::create(U16String(file).to_u8().data());
-        return Base::load(fileh.get());
+        return reactor::engine().run_at(cpu, [&]{
+            auto fileh = FileInputStreamHandler::create(U16String(file).to_u8().data());
+            return Base::load(fileh.get());
+        });
     }
     
     static AllocSharedPtr<MyType> load(const char16_t* file)

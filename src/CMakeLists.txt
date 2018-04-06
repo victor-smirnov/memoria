@@ -87,7 +87,7 @@ endif()
 #SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm timers alloc shared_ptrs yaml)
 #SET(MEMORIA_APPS ${MEMORIA_APPS} ustrings icu_regexp fmt_u16 sockets anon_pipes processes crash print_env)
 
-SET(MEMORIA_APPS timers)
+SET(MEMORIA_APPS timers sample_allocator)
 
 if(BUILD_MSVC)
 #    SET(MEMORIA_APPS ${MEMORIA_APPS} named_pipes)

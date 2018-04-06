@@ -523,6 +523,8 @@ public:
         logger_("PersistentInMemAllocator"),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
+
+
         master_ = history_tree_ = new HistoryNode(&self(), HistoryNode::Status::ACTIVE);
 
         snapshot_map_[history_tree_->txn_id()] = history_tree_;

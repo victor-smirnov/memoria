@@ -29,6 +29,14 @@ namespace persistent_inmem {
     
     template class InMemAllocatorImpl<Profile>;
     template class Snapshot<Profile, InMemAllocatorImpl<Profile>>;
+
+    template <typename PP>
+    struct Initializer {
+        Initializer() {
+            Snapshot<PP, InMemAllocatorImpl<PP>>::initMetadata();
+            ThreadSnapshot<PP, ThreadInMemAllocatorImpl<PP>>::initMetadata();
+        }
+    };
 }
 
 template class ThreadInMemAllocator<Profile>;
@@ -37,6 +45,11 @@ template class ThreadInMemSnapshot<Profile>;
 template class InMemAllocator<Profile>;
 template class InMemSnapshot<Profile>;
 
+namespace {
+
+persistent_inmem::Initializer<Profile> init0;
+
+}
 
 }
 }

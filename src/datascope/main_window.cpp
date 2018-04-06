@@ -20,6 +20,7 @@
 
 #include <QFile>
 #include <QPlainTextDocumentLayout>
+#include <QFileDialog>
 
 namespace memoria {
 namespace v1 {
@@ -36,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
     AllocatorModel *model = new AllocatorModel(headers);
 
     view->setModel(model);
+    view->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(exitAction, &QAction::triggered, this, &MainWindow::quit);
 
@@ -44,6 +46,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(view->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &MainWindow::item_selected);
+
+    connect(view, &QTreeView::customContextMenuRequested, this, &MainWindow::open_context_menu);
 
     connect(createAllocatorAction, &QAction::triggered, this, &MainWindow::create_allocator);
 
@@ -58,8 +62,37 @@ void MainWindow::create_allocator()
 }
 
 
+void MainWindow::open_allocator()
+{
+    QString fileName = QFileDialog::getOpenFileName(
+            this, ("Open File"),
+            ".",
+            ("Memoria Files (*.mma1)")
+    );
+
+    if (!fileName.isNull())
+    {
+        AllocatorModel* model = static_cast<AllocatorModel*>(view->model());
+        model->open_allocator(fileName);
+    }
+}
+
+
+
 void MainWindow::update_actions()
 {
+
+}
+
+void MainWindow::open_context_menu(const QPoint& point_at)
+{
+    QMenu contextMenu(tr("Context menu"), this);
+
+    QAction action1("Open InMem Allocator", this);
+    connect(&action1, &QAction::triggered, this, &MainWindow::open_allocator);
+    contextMenu.addAction(&action1);
+
+    contextMenu.exec(mapToGlobal(point_at));
 }
 
 void MainWindow::item_selected()

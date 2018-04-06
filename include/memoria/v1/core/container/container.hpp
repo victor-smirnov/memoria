@@ -219,15 +219,13 @@ public:
     }
 
     static const ContainerMetadataPtr& getMetadata()
-    {
-        static thread_local ContainerMetadata* reflection_ptr = new ContainerMetadata(
+    {        
+        static thread_local ContainerMetadataPtr reflection(std::make_shared<ContainerMetadata>(
             TypeNameFactory<Name>::name(),
             (Types*)nullptr,
             static_cast<uint64_t>(CONTAINER_HASH),
             MyType::getContainerInterface()
-        );
-        
-        static thread_local ContainerMetadataPtr reflection(reflection_ptr);
+        ));
         
         static thread_local ContainerMetadata::RegistrationHelper<typename Types::Profile> helper(reflection);
         
