@@ -16,4 +16,22 @@
 
 #pragma once
 
-//#include <memoria/v1/allocators/inmem/threads/allocator_impl.hpp>
+#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+#include <memoria/v1/api/set/set_api.hpp>
+#include <memoria/v1/api/map/map_api.hpp>
+
+#include <memoria/v1/core/tools/fixed_array.hpp>
+#include <memoria/v1/core/strings/string.hpp>
+
+
+namespace memoria {
+namespace v1{
+
+struct LibraryCtrs{
+    static void init() {
+        CtrApi<Set<FixedArray<16>>, DefaultProfile<>>::do_link();
+        CtrApi<Map<U8String, U8String>, DefaultProfile<>>::do_link();
+    }
+};
+
+}}

@@ -48,6 +48,8 @@ public:
     AbstractTreeItem *child(int number);
     int children();
 
+    void remove_child(int child_num);
+
     AbstractTreeItem *parent();
 
     int child_number();

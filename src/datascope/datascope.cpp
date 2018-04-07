@@ -13,12 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/v1/memoria.hpp>
+
 
 #include <memoria/v1/reactor/application.hpp>
 #include <memoria/v1/reactor/qt_support.hpp>
-#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
-#include <memoria/v1/api/map/map_api.hpp>
-#include <memoria/v1/api/set/set_api.hpp>
 
 #include <memoria/v1/core/graph/graph.hpp>
 #include <memoria/v1/core/tools/fixed_array.hpp>
@@ -40,6 +39,8 @@ using namespace memoria::v1::reactor;
 
 int main(int argc, char** argv, char** envp)
 {
+    LibraryCtrs::init();
+
     QApplication q_app(argc, argv);
     Application app(argc, argv, envp);
 
@@ -50,31 +51,6 @@ int main(int argc, char** argv, char** envp)
 
 
     return app.run([&]{
-
-//        InMemAllocator<> alloc = InMemAllocator<>::create();
-
-//        auto bb = alloc.master().branch();
-
-//        auto ctr = create<Set<FixedArray<16>>>(bb);
-
-//        bb.commit();
-//        bb.set_as_master();
-
-//        Graph graph = alloc.as_graph();
-//        auto roots = graph.roots();
-
-//        for (Vertex& vx: roots)
-//        {
-//            std::cout << "Label: " << vx.label() << " :: " << boost::any_cast<UUID>(vx.id()) << std::endl;
-//            for (Edge& ee: vx.edges(Direction::OUT))
-//            {
-//                engine().coutln(u"\tEdge Label: {}", ee.label());
-//                for (Vertex& ctr_vx: ee.out_vertex().vertices(Direction::OUT)) {
-//                    engine().coutln(u"\t\tContainer: {}", boost::any_cast<UUID>(ctr_vx.id()));
-//                }
-//            }
-//        }
-
         return QtEventLoopFiberFn()();
     });
 }

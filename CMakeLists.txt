@@ -75,7 +75,7 @@ add_definitions(-DBOOST_NO_AUTO_PTR -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE -DJ
 
 if (BUILD_POSIX)
 
-    add_definitions(-Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT)
+    add_definitions(-Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     #add_definitions(-DBOOST_STACKTRACE_USE_BACKTRACE)
 
     add_definitions(-fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
@@ -107,7 +107,6 @@ if (BUILD_POSIX)
     endif()
     
     add_global_libs(dl pthread )
-
     add_global_linker(-static-libstdc++)
 
     if (BUILD_STATIC)

@@ -1,5 +1,5 @@
 
-// Copyright 2018 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,38 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
 
-#include "ui_main_window.h"
 
-#include <QMainWindow>
-#include <QModelIndex>
+#include <memoria/v1/containers/map/map_impl.hpp>
+
+#include <memoria/v1/core/strings/string.hpp>
+
+#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
 
 namespace memoria {
 namespace v1 {
 
-class MainWindow : public QMainWindow, private Ui::MainWindow
-{
-    Q_OBJECT
+using Profile = DefaultProfile<>;    
+using CtrName = Map<U8String, U8String>;
 
-public:
-    MainWindow(QWidget *parent = nullptr);
-
-public slots:
-    void update_actions();
-
-    void open_context_menu(const QPoint& point_at);
-
-private slots:
-
-    void open_allocator();
-    void close_allocator();
-
-    void item_selected();
-
-    void closeEvent(QCloseEvent* event);
-
-    void quit();
-};
-
+MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_s_s)
+    
 }}
+

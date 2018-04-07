@@ -19,8 +19,9 @@
 #include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/fixed_array.hpp>
 #include <memoria/v1/api/set/set_api.hpp>
-#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+#include <memoria/v1/api/map/map_api.hpp>
 
+#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 
 #include <memoria/v1/reactor/application.hpp>
 
@@ -42,7 +43,8 @@ int main(int argc, char** argv, char** envp)
 
         auto bb = alloc.master().branch();
 
-        auto ctr = create<Set<FixedArray<16>>>(bb);
+        auto fset = create<Set<FixedArray<16>>>(bb);
+        auto smap = create<Map<U8String, U8String>>(bb);
 
         FixedArray<16> array;
 
@@ -53,7 +55,8 @@ int main(int argc, char** argv, char** envp)
                 array[d] = getRandomG(255);
             }
 
-            ctr.insert(array);
+            fset.insert(array);
+            smap.assign(toString(c) + "_key", toString(c) + "_value");
         }
 
         bb.set_snapshot_metadata(u"My cool snapshot");
@@ -62,9 +65,6 @@ int main(int argc, char** argv, char** envp)
         bb.set_as_master();
 
         alloc.store("sample-alloc.mma1");
-
-        auto alloc2 = InMemAllocator<>::load("sample-alloc.mma1");
-
 
         return 0;
     });

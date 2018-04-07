@@ -50,6 +50,15 @@ int AbstractTreeItem::child_number()
 }
 
 
+void AbstractTreeItem::remove_child(int child_num)
+{
+    if (child_num >= 0 && child_num < children_.size())
+    {
+        children_.removeAt(child_num);
+    }
+}
+
+
 QVariant AbstractTreeItem::data(int)
 {
     return QVariant();

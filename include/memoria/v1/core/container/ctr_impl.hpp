@@ -127,9 +127,12 @@ const ContainerMetadataPtr& CtrApiBase<CtrName, Profile>::metadata() {
 
 
 template <typename CtrName, typename Profile>
-void CtrApiBase<CtrName, Profile>::init() {
-    CtrT::getMetadata();
+ContainerMetadataPtr CtrApiBase<CtrName, Profile>::init() {
+    return CtrT::getMetadata();
 }
+
+template <typename CtrName, typename Profile>
+void CtrApiBase<CtrName, Profile>::do_link() {}
 
 template <typename CtrName, typename Profile>
 void CtrApiBase<CtrName, Profile>::new_page_size(int size) 

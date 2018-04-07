@@ -75,7 +75,6 @@
     </property>
     <addaction name="separator"/>
     <addaction name="separator"/>
-    <addaction name="createAllocatorAction"/>
    </widget>
    <addaction name="fileMenu"/>
    <addaction name="actionsMenu"/>
@@ -93,16 +92,17 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="createAllocatorAction">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/resources/icon.png</normaloff>:/resources/icon.png</iconset>
-   </property>
+  <action name="closeAllocatorAction">
    <property name="text">
-    <string>Create Allocator</string>
+    <string>Close Allocator</string>
+   </property>
+  </action>
+  <action name="openAllocatorAction">
+   <property name="text">
+    <string>Open Allocator</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+A</string>
+    <string>Ctrl+O</string>
    </property>
   </action>
  </widget>

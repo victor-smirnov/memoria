@@ -53,10 +53,13 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
-    void createNewInMemAllocator();
     void open_allocator(const QString& file, const QModelIndex &after = QModelIndex());
 
     AbstractTreeItem *get_item(const QModelIndex &index) const;
+
+    void remove(AbstractTreeItem* item);
+
+    static AbstractTreeItem* get_top_level(AbstractTreeItem* item);
 
 private:
     RootTreeItem *root_item_;

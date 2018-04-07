@@ -117,7 +117,10 @@ public:
     
     UUID name();
     const ContainerMetadataPtr& metadata();
-    static void init();
+    static ContainerMetadataPtr init();
+
+    static void do_link();
+
     void new_page_size(int size);
     
     void reset();
@@ -192,7 +195,7 @@ template class CtrApi<CtrName, Profile>;                \
 template class IterApi<CtrName, Profile>;               \
                                                         \
 namespace {                                             \
-CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
+auto init_##__VA_ARGS__ = CtrApi<CtrName, Profile>::init();\
 }
 
 

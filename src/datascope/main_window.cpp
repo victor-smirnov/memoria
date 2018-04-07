@@ -49,16 +49,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(view, &QTreeView::customContextMenuRequested, this, &MainWindow::open_context_menu);
 
-    connect(createAllocatorAction, &QAction::triggered, this, &MainWindow::create_allocator);
+    //connect(createAllocatorAction, &QAction::triggered, this, &MainWindow::create_allocator);
+    connect(closeAllocatorAction, &QAction::triggered, this, &MainWindow::close_allocator);
+    connect(openAllocatorAction, &QAction::triggered, this, &MainWindow::open_allocator);
 
     update_actions();
-}
-
-
-void MainWindow::create_allocator()
-{
-    AllocatorModel* model = static_cast<AllocatorModel*>(view->model());
-    model->createNewInMemAllocator();
 }
 
 
@@ -77,20 +72,55 @@ void MainWindow::open_allocator()
     }
 }
 
+void MainWindow::close_allocator()
+{
+    auto selection = view->selectionModel()->selectedIndexes();
+    closeAllocatorAction->setEnabled(selection.size() > 0);
+
+    if (selection.size() > 0)
+    {
+        auto item_idx = selection[0];
+        AllocatorModel* model = static_cast<AllocatorModel*>(view->model());
+        AbstractTreeItem* item = model->get_item(item_idx);
+
+        AbstractTreeItem* top_level_item = model->get_top_level(item);
+
+        model->remove(top_level_item);
+        view->selectionModel()->clearSelection();
+
+        delete top_level_item;
+
+        update_actions();
+    }
+}
 
 
 void MainWindow::update_actions()
 {
+    auto selection = view->selectionModel()->selectedIndexes();
+    closeAllocatorAction->setEnabled(selection.size() > 0);
 
+    if (selection.size() > 0)
+    {
+        auto item_idx = selection[0];
+        AllocatorModel* model = static_cast<AllocatorModel*>(view->model());
+        AbstractTreeItem* item = model->get_item(item_idx);
+
+        AbstractTreeItem* top_level_item = model->get_top_level(item);
+        closeAllocatorAction->setEnabled(top_level_item->node_type() == u"inmem_allocator");
+    }
+    else {
+        closeAllocatorAction->setEnabled(false);
+        plainTextEdit->clear();
+    }
 }
 
 void MainWindow::open_context_menu(const QPoint& point_at)
 {
     QMenu contextMenu(tr("Context menu"), this);
 
-    QAction action1("Open InMem Allocator", this);
-    connect(&action1, &QAction::triggered, this, &MainWindow::open_allocator);
-    contextMenu.addAction(&action1);
+    contextMenu.addAction(openAllocatorAction);
+    contextMenu.addAction(closeAllocatorAction);
 
     contextMenu.exec(mapToGlobal(point_at));
 }

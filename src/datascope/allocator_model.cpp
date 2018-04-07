@@ -72,6 +72,20 @@ Qt::ItemFlags AllocatorModel::flags(const QModelIndex &index) const
     return QAbstractItemModel::flags(index);
 }
 
+
+AbstractTreeItem* AllocatorModel::get_top_level(AbstractTreeItem* item)
+{
+    while (item->parent() && item->parent()->parent())
+    {
+        item = item->parent();
+    }
+
+    return item;
+}
+
+
+
+
 AbstractTreeItem *AllocatorModel::get_item(const QModelIndex &index) const
 {
     if (index.isValid())
@@ -132,44 +146,6 @@ int AllocatorModel::rowCount(const QModelIndex &parent) const
 
 
 
-void AllocatorModel::createNewInMemAllocator()
-{
-    QModelIndex root_idx = this->createIndex(0, 0, root_item_);
-
-    auto row_pos = root_item_->children();
-
-    InMemAllocator<> alloc = InMemAllocator<>::create();
-
-    auto bb = alloc.master().branch();
-
-    auto ctr = create<Set<FixedArray<16>>>(bb);
-
-    FixedArray<16> array;
-
-    for (int c = 0; c < 10000; c++)
-    {
-        for (int d = 0; d < 16; d++) {
-            array[d] = getRandomG(255);
-        }
-
-        ctr.insert(array);
-    }
-
-    bb.set_snapshot_metadata(u"My cool snapshot");
-
-    bb.commit();
-    bb.set_as_master();
-
-    beginInsertRows(root_idx, row_pos, row_pos);
-    root_item_->add_inmem_allocator(alloc, QString::fromUtf8("allocator"));
-    endInsertRows();
-
-    emit layoutChanged();
-}
-
-
-
-
 void AllocatorModel::open_allocator(const QString& file, const QModelIndex& after)
 {
     QModelIndex root_idx = this->createIndex(0, 0, root_item_);
@@ -177,7 +153,6 @@ void AllocatorModel::open_allocator(const QString& file, const QModelIndex& afte
     auto row_pos = root_item_->children();
 
     try {
-
         InMemAllocator<> alloc = InMemAllocator<>::load(filesystem::path(file.toStdU16String()));
 
         beginInsertRows(root_idx, row_pos, row_pos);
@@ -192,6 +167,22 @@ void AllocatorModel::open_allocator(const QString& file, const QModelIndex& afte
     catch (...) {
         std::cout << "Unknown exception" << std::endl;
     }
+}
+
+
+void AllocatorModel::remove(AbstractTreeItem* item)
+{
+    int row = item->child_number();
+
+    QModelIndex item_idx = this->createIndex(row, 0, item->parent());
+
+    beginRemoveRows(item_idx, row, row);
+
+    item->parent()->remove_child(row);
+
+    endRemoveRows();
+
+    emit layoutChanged();
 }
 
 
