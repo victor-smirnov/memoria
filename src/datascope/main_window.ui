@@ -68,16 +68,9 @@
      <string>&amp;File</string>
     </property>
     <addaction name="exitAction"/>
-   </widget>
-   <widget class="QMenu" name="actionsMenu">
-    <property name="title">
-     <string>&amp;Actions</string>
-    </property>
-    <addaction name="separator"/>
-    <addaction name="separator"/>
+    <addaction name="openAllocatorAction"/>
    </widget>
    <addaction name="fileMenu"/>
-   <addaction name="actionsMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusBar1"/>
   <action name="exitAction">

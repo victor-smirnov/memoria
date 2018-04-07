@@ -96,9 +96,7 @@ public:
     
     ContainerMetadataRepository* metadata() const;
     void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
-    
-    void dump(filesystem::path dump_at);
-    
+        
     Logger& logger();
     
     void reset();
@@ -174,7 +172,6 @@ public:
     void import_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
     void copy_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
     bool check();
-    void dump(filesystem::path destination);
     void dump_persistent_tree();
     void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
     

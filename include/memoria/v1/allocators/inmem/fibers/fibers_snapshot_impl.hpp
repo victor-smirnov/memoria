@@ -304,23 +304,6 @@ public:
     }
 
     
-    void dump(filesystem::path destination)
-    {
-        return reactor::engine().run_at(cpu_, [&]
-        {
-            using Walker = FiberFSDumpContainerWalker<Page>;
-
-            Walker walker(this->getMetadata(), destination);
-
-            history_node_->allocator()->build_snapshot_labels_metadata();
-
-            this->walkContainers(&walker, history_node_->allocator()->get_labels_for(history_node_));
-
-            history_node_->allocator()->snapshot_labels_metadata().clear();
-        });
-    }
-
-
     // Vertex API
 
     virtual Vertex allocator_vertex() {
@@ -607,10 +590,6 @@ bool InMemSnapshot<Profile>::check() {
     return pimpl_->check();
 }
 
-template <typename Profile>
-void InMemSnapshot<Profile>::dump(filesystem::path destination) {
-    return pimpl_->dump(destination);
-}
 
 template <typename Profile>
 void InMemSnapshot<Profile>::dump_persistent_tree() 

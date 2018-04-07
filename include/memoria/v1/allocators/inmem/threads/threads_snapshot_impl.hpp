@@ -277,27 +277,6 @@ public:
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has no parent.", uuid()));
         }
     }
-
-    
-    void dump(const char16_t* destination)
-    {
-    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
-
-    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
-    	using Walker = FSDumpContainerWalker<Page>;
-
-    	Walker walker(this->getMetadata(), destination);
-
-    	history_node_->allocator()->build_snapshot_labels_metadata();
-
-    	this->walkContainers(&walker, history_node_->allocator()->get_labels_for(history_node_));
-
-    	history_node_->allocator()->snapshot_labels_metadata().clear();
-    }
-
-
 };
 
 }
@@ -520,10 +499,7 @@ bool ThreadInMemSnapshot<Profile>::check() {
     return pimpl_->check();
 }
 
-template <typename Profile>
-void ThreadInMemSnapshot<Profile>::dump(boost::filesystem::path destination) {
-    return pimpl_->dump(U8String(destination.string()).to_u16().data());
-}
+
 
 template <typename Profile>
 void ThreadInMemSnapshot<Profile>::dump_persistent_tree() 

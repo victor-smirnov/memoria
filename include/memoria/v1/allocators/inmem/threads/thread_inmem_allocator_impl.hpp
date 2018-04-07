@@ -423,14 +423,7 @@ public:
         store(fileh.get());
     }
 
-    void dump(const char16_t* path)
-    {
-        using Walker = FSDumpContainerWalker<Page>;
 
-        Walker walker(this->getMetadata(), path);
-        this->walkContainers(&walker);
-    }
- 
     static AllocSharedPtr<MyType> load(const char16_t* file)
     {
         auto fileh = FileInputStreamHandler::create(U16String(file).to_u8().data());
@@ -684,11 +677,7 @@ void ThreadInMemAllocator<Profile>::walk_containers(ContainerWalker* walker, con
      return pimpl_->walkContainers(walker, allocator_descr);
 }
 
-template <typename Profile>
-void ThreadInMemAllocator<Profile>::dump(boost::filesystem::path dump_at) 
-{
-    pimpl_->dump(U8String(dump_at.string()).to_u16().data());
-}
+
 
 template <typename Profile>
 void ThreadInMemAllocator<Profile>::reset() 

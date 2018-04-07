@@ -409,14 +409,7 @@ public:
         store(fileh.get());
     }
 
-    void dump(filesystem::path path)
-    {
-        using Walker = FiberFSDumpContainerWalker<Page>;
 
-        Walker walker(this->getMetadata(), path);
-        this->walkContainers(&walker);
-    }
- 
     static AllocSharedPtr<MyType> load(const char16_t* file, int32_t cpu)
     {
         return reactor::engine().run_at(cpu, [&]{
@@ -745,11 +738,6 @@ void InMemAllocator<Profile>::walk_containers(ContainerWalker* walker, const cha
      return pimpl_->walkContainers(walker, allocator_descr);
 }
 
-template <typename Profile>
-void InMemAllocator<Profile>::dump(filesystem::path dump_at) 
-{
-    pimpl_->dump(dump_at);
-}
 
 template <typename Profile>
 void InMemAllocator<Profile>::reset() 
