@@ -233,6 +233,8 @@ public:
         try {
             Application app(default_options(options), argc, argv);
 
+            app.start_engines();
+
             if (app.is_help()) {
                 app.print_options();
                 return 0;
@@ -262,6 +264,8 @@ public:
 	{
 		try {
             Application app(default_options(options), argc, argv, envp);
+
+            app.start_engines();
 
 			if (app.is_help()) {
                 app.print_options();

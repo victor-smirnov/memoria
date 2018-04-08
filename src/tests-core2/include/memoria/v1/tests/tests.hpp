@@ -171,6 +171,21 @@ EmptyType register_test_in_suite(const U16String& suite_name, const U16String& t
     return EmptyType();
 }
 
+
+#define MMA1_CLASS_TEST(ClassName, MethodName) \
+auto ClassName##_##MethodName##_test = register_test_in_suite< \
+        ClassTest<ClassName, &ClassName::MethodName> \
+>(u###ClassName, u###MethodName)
+
+#define MMA1_BOOST_PP_CLASS_SUITE(r, data, elem) MMA1_CLASS_TEST(data, elem);\
+
+#define MMA1_CLASS_SUITE(ClassName, ...) \
+BOOST_PP_LIST_FOR_EACH(MMA1_BOOST_PP_CLASS_SUITE, ClassName, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__)) \
+
+
+
+
+
 struct EmptyState: TestState{
     EmptyState() {}
 };
@@ -184,6 +199,24 @@ public:
 
     void test(TestState* state) {
         fn_(*tools::ptr_cast<StateT>(state));
+    }
+
+    std::unique_ptr<TestState> create_state() {
+        return std::make_unique<StateT>();
+    }
+};
+
+
+
+
+
+
+template <typename StateT, void (StateT::*MethodT)()>
+class ClassTest: public Test {
+public:
+    void test(TestState* state)
+    {
+        (tools::ptr_cast<StateT>(state)->*MethodT)();
     }
 
     std::unique_ptr<TestState> create_state() {

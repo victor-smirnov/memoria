@@ -38,6 +38,13 @@ void assert_equals(T1&& expected, T2&& actual, const char* msg) {
 }
 
 
+template <typename T1, typename T2, typename... Args>
+void assert_equals(T1&& expected, T2&& actual, const char16_t* msg, Args&&... args) {
+    if (!(expected == actual)) {
+        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Equality: Expected {}, actual {}, detail: {}", expected, actual, fmt::format(msg, std::forward<Args>(args)...));
+    }
+}
+
 
 
 template <typename T1, typename T2>

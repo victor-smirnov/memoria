@@ -19,9 +19,17 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/format.hpp>
 
+#include <memoria/v1/reactor/reactor.hpp>
+
 namespace memoria {
 namespace v1 {
 namespace tests {
+
+TestState::~TestState() noexcept {}
+
+std::ostream& TestState::out() {
+    return reactor::engine().cout();
+}
 
 Optional<TestCoverage> coverage_from_string(const U8String& str)
 {

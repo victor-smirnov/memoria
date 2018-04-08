@@ -93,7 +93,7 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
         uint64_t chunk_size;
         std::tie(chunk_pos, chunk_size) = chunk;
 
-        uint8_t read_stream_state = chunk_pos % 256;
+        uint8_t read_stream_state = static_cast<uint8_t>(chunk_pos % 256);
 
         size_t read = file.read(buffer.get(), chunk_pos, chunk_size);
         assert_equals(chunk_pos + read, file.fpos());
@@ -115,7 +115,7 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
         uint64_t chunk_size;
         std::tie(chunk_pos, chunk_size) = chunk;
 
-        uint8_t write_stream_state = (chunk_pos - total_written + 1) % 256;
+        uint8_t write_stream_state = static_cast<uint8_t>((chunk_pos - total_written + 1) % 256);
 
         for (size_t c = 0; c < chunk_size; c++){
             buffer.get()[c] = write_stream_state++;
@@ -134,7 +134,7 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
         uint64_t chunk_size;
         std::tie(chunk_pos, chunk_size) = chunk;
 
-        uint8_t read_stream_state = (chunk_pos - total_written + 1) % 256;
+        uint8_t read_stream_state = static_cast<uint8_t>((chunk_pos - total_written + 1) % 256);
 
         size_t read = file.read(buffer.get(), chunk_pos, chunk_size);
         assert_equals(chunk_pos + read, file.fpos());

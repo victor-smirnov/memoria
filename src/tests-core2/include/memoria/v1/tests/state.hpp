@@ -20,6 +20,7 @@
 #include <memoria/v1/filesystem/path.hpp>
 
 #include <memoria/v1/core/tools/optional.hpp>
+#include <memoria/v1/core/tools/random.hpp>
 
 #include <boost/preprocessor/list/for_each.hpp>
 #include <boost/preprocessor/variadic/to_list.hpp>
@@ -128,7 +129,7 @@ public:
     TestState(TestState&&) = default;
     TestState(const TestState&) = delete;
 
-    virtual ~TestState() noexcept {}
+    virtual ~TestState() noexcept;
 
     virtual void add_field_handlers() {}
     virtual void add_indirect_field_handlers() {}
@@ -167,6 +168,24 @@ public:
 
     virtual void pre_configure(TestCoverage coverage)  {}
     virtual void post_configure(TestCoverage coverage) {}
+
+    int32_t getRandom() {
+        return getRandomG();
+    }
+
+    int32_t getRandom(int32_t max) {
+        return getRandomG(max);
+    }
+
+    int64_t getBIRandom() {
+        return getBIRandomG();
+    }
+
+    int64_t getBIRandom(int64_t max) {
+        return getBIRandomG(max);
+    }
+
+    std::ostream& out();
 };
 
 class CommonConfigurationContext: public ConfigurationContext {
