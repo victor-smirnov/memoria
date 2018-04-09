@@ -16,8 +16,11 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
+#include <memoria/v1/core/tools/type_name.hpp>
 
 #include <memoria/v1/tests/tests.hpp>
+
+
 
 namespace memoria {
 namespace v1 {
@@ -98,14 +101,14 @@ void assert_lt(T1&& expected, T2&& actual, const char* msg) {
 
 
 template <typename T1, typename T2>
-void assert_gte(T1&& expected, T2&& actual) {
+void assert_ge(T1&& expected, T2&& actual) {
     if (!(expected >= actual)) {
         MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Expected {} is not greather than or equal to actual {}", expected, actual);
     }
 }
 
 template <typename T1, typename T2>
-void assert_gte(T1&& expected, T2&& actual, const char* msg) {
+void assert_ge(T1&& expected, T2&& actual, const char* msg) {
     if (!(expected >= actual)) {
         MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"{}: Expected {} is not greather than or equal to actual {}", msg, expected, actual);
     }
@@ -114,7 +117,7 @@ void assert_gte(T1&& expected, T2&& actual, const char* msg) {
 
 
 template <typename T1, typename T2>
-void assert_lte(T1&& expected, T2&& actual) {
+void assert_le(T1&& expected, T2&& actual) {
     if (!(expected <= actual)) {
         MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Expected {} is not less than or equal to actual {}", expected, actual);
     }
@@ -122,10 +125,23 @@ void assert_lte(T1&& expected, T2&& actual) {
 
 
 template <typename T1, typename T2>
-void assert_lte(T1&& expected, T2&& actual, const char* msg) {
+void assert_le(T1&& expected, T2&& actual, const char* msg) {
     if (!(expected <= actual)) {
         MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"{}: Expected {} is not less than or equal to actual {}", msg, expected, actual);
     }
+}
+
+
+template <typename ExT, typename Fn, typename... Args>
+void assert_throws(Fn&& fn, Args&&... args) {
+    try {
+        fn(std::forward<Args>(args)...);
+    }
+    catch (ExT& ex) {
+        return;
+    }
+
+    MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Expected exception {} hasn't been thrown", TypeNameFactory<ExT>::name());
 }
 
 }}}

@@ -146,6 +146,13 @@ public:
         suite.emplace<TestT>(test_name, std::forward<Args>(args)...);
     }
 
+    template <typename SuiteClassT>
+    void init_suite_class(const U16String& suite_name)
+    {
+        auto& suite = get_suite(suite_name);
+        SuiteClassT::init_suite(suite);
+    }
+
     template <typename TestT, typename... Args>
     void emplace(const U16String& test_name, Args&&... args)
     {
@@ -171,18 +178,26 @@ EmptyType register_test_in_suite(const U16String& suite_name, const U16String& t
     return EmptyType();
 }
 
-
-#define MMA1_CLASS_TEST(ClassName, MethodName) \
-auto ClassName##_##MethodName##_test = register_test_in_suite< \
-        ClassTest<ClassName, &ClassName::MethodName> \
->(u###ClassName, u###MethodName)
-
-#define MMA1_BOOST_PP_CLASS_SUITE(r, data, elem) MMA1_CLASS_TEST(data, elem);\
-
-#define MMA1_CLASS_SUITE(ClassName, ...) \
-BOOST_PP_LIST_FOR_EACH(MMA1_BOOST_PP_CLASS_SUITE, ClassName, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__)) \
+template <typename SuiteT>
+EmptyType register_class_suite(const U16String& suite_name)
+{
+    tests_registry().init_suite_class<SuiteT>(suite_name);
+    return EmptyType();
+}
 
 
+#define MMA1_CLASS_SUITE(ClassName, SuiteName) \
+auto ClassName##_suite_init = register_class_suite<ClassName>(SuiteName)
+
+
+#define MMA1_CLASS_TEST(Suite, MethodName) \
+Suite.emplace<ClassTest<MyType, &MyType::MethodName>>(u###MethodName)
+
+#define MMA1_BOOST_PP_CLASS_TESTS(r, data, elem) MMA1_CLASS_TEST(data, elem);\
+
+
+#define MMA1_CLASS_TESTS(Suite, ...) \
+BOOST_PP_LIST_FOR_EACH(MMA1_BOOST_PP_CLASS_TESTS, Suite, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__)) \
 
 
 

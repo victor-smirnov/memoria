@@ -162,6 +162,9 @@ public:
         int32_t local_cnt() const {return idx - index_cnt;}
     };
 
+    void init_bs(int32_t block_size) {
+        return init();
+    }
 
     void init()
     {

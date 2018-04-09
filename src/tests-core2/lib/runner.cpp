@@ -25,6 +25,8 @@
 
 #include <memoria/v1/yaml-cpp/yaml.h>
 
+#include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
+
 #include <sstream>
 
 namespace memoria {
@@ -44,6 +46,9 @@ void dump_exception(std::ostream& out, std::exception_ptr& ex)
     }
     catch (std::exception& th) {
         out << "STD Exception: " << th.what() << std::endl;
+    }
+    catch (PackedOOMException& th) {
+        th.dump(out);
     }
     catch (...) {
         out << "Unknown exception" << std::endl;

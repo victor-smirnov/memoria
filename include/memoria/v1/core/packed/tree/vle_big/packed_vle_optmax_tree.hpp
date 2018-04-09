@@ -103,6 +103,14 @@ public:
         return MyType::block_size(size() + other->size());
     }
 
+    void init_bs(int32_t block_size) {
+        init();
+    }
+
+    static int32_t elements_for(int32_t block_size) {
+        return -1;
+    }
+
     void init(int32_t capacity = 0)
     {
         Base::init(block_size(capacity), STRUCTS_NUM__);

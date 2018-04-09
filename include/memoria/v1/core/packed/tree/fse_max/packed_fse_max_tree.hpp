@@ -106,9 +106,14 @@ public:
         Base::init_tl(data_block_size, Blocks);
     }
 
+    void init_bs(int32_t block_size)
+    {
+        init(elements_for(block_size));
+    }
+
     void init(int32_t capacity = 0)
     {
-        Base::init(empty_size(), Blocks * SegmentsPerBlock + 1);
+        Base::init(block_size(capacity), Blocks * SegmentsPerBlock + 1);
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
 
@@ -122,6 +127,8 @@ public:
             this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity);
         }
     }
+
+
 
     void init(const SizesT& sizes)
     {
@@ -166,7 +173,8 @@ public:
 
     static int32_t empty_size()
     {
-        return block_size(0);
+        int32_t empty_size_v = block_size(0);
+        return empty_size_v;
     }
 
     void reindex() {

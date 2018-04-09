@@ -423,9 +423,10 @@ public:
     {
         int32_t allocation_size = roundUpBytesToAlignmentBlocks(size);
 
-        if (allocation_size > free_space())
+        int free_space_v = free_space();
+        if (allocation_size > free_space_v)
         {
-            enlarge(allocation_size - free_space());
+            enlarge(allocation_size - free_space_v);
         }
 
         moveElements(idx + 1, allocation_size);
