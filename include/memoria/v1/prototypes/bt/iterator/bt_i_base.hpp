@@ -261,11 +261,11 @@ public:
     }
 
 
-    void dump(std::ostream& out = cout, const char* header = nullptr) const
+    void dump(std::ostream& out = std::cout, const char* header = nullptr) const
     {
         auto& self = this->self();
 
-        out<<(header != NULL ? header : self.getDumpHeader())<<std::endl;
+        out << (header != NULL ? header : self.getDumpHeader()) << std::endl;
 
         self.dumpKeys(out);
         self.dumpCache(out);
@@ -282,17 +282,17 @@ public:
     void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const
     {
         auto& self  = this->self();
-        out<<(header != NULL ? header : self.getDumpHeader())<<std::endl;
+        out << (header != NULL ? header : self.getDumpHeader()) << std::endl;
         dumpCache(out);
         dumpKeys(out);
         self.ctr().dumpPath(self.leaf(), out);
-        out<<"======================================================================"<<std::endl;
+        out << "======================================================================" << std::endl;
     }
 
     void dumpCache(std::ostream& out = std::cout) const
     {
         auto& self  = this->self();
-        out<<self.cache()<<std::endl;
+        out << self.cache() << std::endl;
     }
 
     void dumpHeader(std::ostream& out = std::cout) const
@@ -300,7 +300,7 @@ public:
         self().dumpCache(out);
         self().dumpKeys(out);
         if (self().leaf().isSet()) {
-            cout<<"Node ID: "<<self().leaf()->id()<<endl;
+            std::cout << "Node ID: " << self().leaf()->id() << std::endl;
         }
     }
 
@@ -308,8 +308,8 @@ public:
     {
         auto& self = this->self();
 
-        out<<"Stream:  "<<self.stream()<<std::endl;
-        out<<"Idx:  "<<self.idx()<<std::endl;
+        out << "Stream:  " << self.stream() << std::endl;
+        out << "Idx:  " << self.idx() << std::endl;
     }
 
     void dumpBeforePath(std::ostream& out) const {}

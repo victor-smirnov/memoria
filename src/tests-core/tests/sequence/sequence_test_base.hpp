@@ -32,8 +32,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 
 template <int32_t BitsPerSymbol, bool Dense = true>
 class SequenceTestBase: public BTTestBase<Sequence<BitsPerSymbol, Dense>, PersistentInMemAllocator<>, DefaultProfile<>> {

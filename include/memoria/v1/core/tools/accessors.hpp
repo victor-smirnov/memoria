@@ -23,8 +23,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 template <typename T, typename V, int32_t BitsPerElement> class BitmapAccessor;
 
 template <typename T, typename V, int32_t BitsPerElement>
@@ -72,8 +70,8 @@ template <typename V>
 class FnAccessor {
 public:
 
-    typedef function <void (const V&)>  Setter;
-    typedef function <V ()>             Getter;
+    typedef std::function <void (const V&)>  Setter;
+    typedef std::function <V ()>             Getter;
 
 private:
     Getter getter_fn_;
@@ -120,7 +118,7 @@ class VLEFnAccessor: public FnAccessor<V> {
     typedef FnAccessor<V> Base;
 
 public:
-    typedef function <size_t ()>                LengthGetter;
+    typedef std::function <size_t ()>                LengthGetter;
 
 private:
 
@@ -141,7 +139,7 @@ template <typename V>
 class ConstFnAccessor {
 public:
 
-    typedef function <V ()>             Getter;
+    typedef std::function <V ()>             Getter;
 
 private:
     Getter getter_fn_;
@@ -167,7 +165,7 @@ class ConstVLEFnAccessor: public ConstFnAccessor<V> {
     typedef FnAccessor<V> Base;
 
 public:
-    typedef function <size_t ()>                LengthGetter;
+    typedef std::function <size_t ()>                LengthGetter;
 
 private:
 

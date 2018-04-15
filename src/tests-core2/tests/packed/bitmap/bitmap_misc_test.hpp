@@ -28,8 +28,6 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
-using namespace std;
-
 template <typename T>
 class BitmapMiscTest: public BitmapTestBase<T> {
     using MyType = BitmapMiscTest<T>;

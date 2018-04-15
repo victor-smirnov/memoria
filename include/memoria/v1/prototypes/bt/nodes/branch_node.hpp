@@ -1539,7 +1539,7 @@ public:
         template <typename Tree>
         void stream(const Tree* tree)
         {
-            tree->dump(cout);
+            tree->dump(std::cout);
         }
     };
 

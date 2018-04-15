@@ -25,7 +25,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
 
 class CtrTestSuite: public TestSuite {
 

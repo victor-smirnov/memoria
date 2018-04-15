@@ -171,14 +171,14 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, con
             {
                 errors = true;
                 MMA1_ERROR(self, "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
-                cout<<"parent_idx: "<<child->parent_idx()<<" "<<c<<endl;
+                std::cout << "parent_idx: " << child->parent_idx() << " " << c << std::endl;
             }
 
             if (child->parent_id() != node->id())
             {
                 errors = true;
                 MMA1_ERROR(self, "child.parent_id != node.id", child->parent_id(), node->id());
-                cout<<"parent_idx: "<<child->parent_id()<<" "<<node->id()<<endl;
+                std::cout << "parent_idx: " << child->parent_id() << " " << node->id() << std::endl;
             }
 
             self.checkTreeStructure(node, c, child, errors);

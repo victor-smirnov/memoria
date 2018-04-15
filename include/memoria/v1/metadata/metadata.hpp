@@ -45,7 +45,7 @@ using ContainerMetadataPtr = std::shared_ptr<ContainerMetadata>;
 
 template <typename T, typename... Args>
 auto metadata_make_shared(Args&&... args) {
-    return make_shared<T>(std::forward<Args>(args)...);
+    return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
 struct ContainerCollection;

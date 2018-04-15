@@ -577,7 +577,7 @@ public:
     }
 
 
-    virtual void registerCtr(const type_info& ti)
+    virtual void registerCtr(const std::type_info& ti)
     {
     	auto ii = instance_map_.find(ti);
     	if (ii == instance_map_.end())
@@ -589,7 +589,7 @@ public:
     	}
     }
 
-    virtual void unregisterCtr(const type_info& ti)
+    virtual void unregisterCtr(const std::type_info& ti)
     {
     	auto ii = instance_map_.find(ti);
     	if (ii == instance_map_.end())

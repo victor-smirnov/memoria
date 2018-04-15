@@ -127,7 +127,7 @@ EnvironmentList Environment::entries_list() const {
 }
 
 Environment Environment::create(const char* const* envp) {
-	return Environment(make_shared<EnvironmentImpl>(envp));
+    return Environment(std::make_shared<EnvironmentImpl>(envp));
 }
 
 

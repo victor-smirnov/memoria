@@ -116,13 +116,13 @@ public:
         msg_(msg)
     {}
 
-    virtual void dump(ostream& out) const noexcept
+    virtual void dump(std::ostream& out) const noexcept
     {
         if (msg_ != nullptr) {
-            out<<"PackedOOMException at "<<source_<<": "<<msg_;
+            out << "PackedOOMException at " << source_ << ": " << msg_;
         }
         else {
-            out<<"PackedOOMException at "<<source_<<": Total="<<total_<<" Requested="<<requested_<<" Free="<<free_;
+            out << "PackedOOMException at " << source_ << ": Total=" << total_ << " Requested=" << requested_ << " Free=" << free_;
         }
     }
 };

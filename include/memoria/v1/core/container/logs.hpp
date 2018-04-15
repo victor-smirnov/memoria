@@ -55,7 +55,7 @@ struct LogHandler {
 
     LogHandler() {}
 
-    virtual void begin(v1::int32_t level)       = 0;
+    virtual void begin(int32_t level)       = 0;
 
     virtual void log(const bool value)        = 0;
     virtual void log(const int8_t value)        = 0;

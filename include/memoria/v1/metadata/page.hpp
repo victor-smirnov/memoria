@@ -372,7 +372,7 @@ public:
     virtual void endLine()
     {
         line_ = false;
-        out_ << endl;
+        out_ << std::endl;
     }
 
 
@@ -512,7 +512,7 @@ public:
 
         if (!line_)
         {
-            out_<<endl;
+            out_ << std::endl;
         }
     }
 
@@ -561,7 +561,7 @@ public:
 
 private:
 
-    void dumpFieldHeader(ostream &out, int32_t level, int32_t idx, U8StringRef name)
+    void dumpFieldHeader(std::ostream &out, int32_t level, int32_t idx, U8StringRef name)
     {
         std::stringstream str;
         v1::Expand(str, level);
@@ -573,7 +573,7 @@ private:
         out << str.str();
     }
 
-    void dumpLineHeader(ostream &out, int32_t level, int32_t idx, U8StringRef name)
+    void dumpLineHeader(std::ostream &out, int32_t level, int32_t idx, U8StringRef name)
     {
         std::stringstream str;
         v1::Expand(str, level);

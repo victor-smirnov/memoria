@@ -23,8 +23,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 class LoudsTree1: public PackedFSESequence<1> {
 
     typedef LoudsTree1                                                           MyType;

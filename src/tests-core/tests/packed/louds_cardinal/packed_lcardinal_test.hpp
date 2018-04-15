@@ -26,8 +26,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 class PackedLoudsCardinalTest: public PackedLoudsCardinalTreeTestBase {
 
     typedef PackedLoudsCardinalTreeTestBase                                     Base;

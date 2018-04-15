@@ -22,13 +22,14 @@
 
 #include <sstream>
 #include <string>
+#include <ostream>
 
 namespace memoria {
 namespace v1 {
 
-using namespace std;
 
-void Expand(ostream& os, int32_t level)
+
+void Expand(std::ostream& os, int32_t level)
 {
     for (int32_t c = 0; c < level; c++) {
         os<<" ";
@@ -77,7 +78,7 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProv
         columns = (80 / width > 0 ? 80 / width : 1);
     }
 
-    out << endl;
+    out << std::endl;
     Expand(out, 28);
     for (int c = 0; c < columns; c++)
     {
@@ -85,21 +86,21 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProv
         out << c;
     }
 
-    out << dec << endl;
+    out << std::dec << std::endl;
 
     for (int32_t c = 0; c < provider.size(); c+= columns)
     {
         Expand(out, 12);
         out << " ";
         out.width(6);
-        out << dec << c << " " << hex;
+        out << std::dec << c << " " << std::hex;
         out.width(6);
         out << c << ": ";
 
         int32_t d;
         for (d = 0; d < columns && c + d < provider.size(); d++)
         {
-            stringstream ss;
+            std::stringstream ss;
 
             ss << provider.value(c + d);
 
@@ -107,7 +108,7 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProv
             out<<ss.str();
         }
 
-        out << dec << endl;
+        out << std::dec << std::endl;
     }
 
 //    out.copyfmt(state);

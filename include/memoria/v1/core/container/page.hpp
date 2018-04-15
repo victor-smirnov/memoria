@@ -751,7 +751,7 @@ private:
 
 
 template <typename T, typename A>
-ostream& operator<<(ostream& out, const PageGuard<T, A>& pg)
+std::ostream& operator<<(std::ostream& out, const PageGuard<T, A>& pg)
 {
     if (pg.isSet()) {
         out<<pg->id();
@@ -773,7 +773,7 @@ LogHandler* logIt(LogHandler* log, const PageGuard<T, A>& value) {
 
 
 template <typename T>
-ostream& operator<<(ostream& out, const PageID<T>& id)
+std::ostream& operator<<(std::ostream& out, const PageID<T>& id)
 {
     IDValue idv(id);
     out<<idv;

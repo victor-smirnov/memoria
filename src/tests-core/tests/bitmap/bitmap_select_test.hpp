@@ -29,9 +29,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
-
 class BitmapSelectTest: public BitmapTestBase<uint64_t> {
 
     typedef uint64_t T;

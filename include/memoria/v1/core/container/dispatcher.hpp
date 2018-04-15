@@ -103,7 +103,7 @@ public:
     }
 
     static void printContainerHashes() {
-        cout<<TypeNameFactory<Name1>::name()<<" "<<Head1::hash()<<endl;
+        std::cout << TypeNameFactory<Name1>::name() << " " << Head1::hash() << std::endl;
         ContainerDispatcher<Profile, Allocator, Tail1>::printContainerHashes();
     }
 };

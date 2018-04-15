@@ -503,18 +503,18 @@ public:
 
     void dump(std::ostream& out = std::cout) const
     {
-        out << "PackedAllocator Layout:"<<endl;
-        out << "Block Size: " << block_size_ << endl;
-        out << "Layout Size: " << layout_size_ << endl;
-        out << "Bitmap Size: " << bitmap_size_ << endl;
+        out << "PackedAllocator Layout:" << std::endl;
+        out << "Block Size: " << block_size_ << std::endl;
+        out << "Layout Size: " << layout_size_ << std::endl;
+        out << "Bitmap Size: " << bitmap_size_ << std::endl;
 
-        out << "Allocated Size: " << allocated() << endl;
-        out << "ClientArea Size: " << client_area() << endl;
-        out << "FreeSpace Size: " << free_space() << endl;
+        out << "Allocated Size: " << allocated() << std::endl;
+        out << "ClientArea Size: " << client_area() << std::endl;
+        out << "FreeSpace Size: " << free_space() << std::endl;
 
         dumpLayout(out);
 
-        out<<"PackedAllocator Block Types Bitmap:"<<endl;
+        out << "PackedAllocator Block Types Bitmap:" << std::endl;
         const Bitmap* bitmap = this->bitmap();
 
         dumpSymbols<Bitmap>(out, layout_size_/4, 1, [bitmap](int32_t idx){

@@ -464,9 +464,9 @@ public:
     // ==================================== Dump =========================================== //
 
 
-    void dump(std::ostream& out = cout) const
+    void dump(std::ostream& out = std::cout) const
     {
-        out<<"size_ = "<<size_<<endl;
+        out << "size_ = " << size_ << std::endl;
     }
 
 

@@ -646,13 +646,13 @@ public:
     // ==================================== Dump =========================================== //
 
 
-    void dump(std::ostream& out = cout) const
+    void dump(std::ostream& out = std::cout) const
     {
-        out<<"size_       = "<<size_<<endl;
-        out<<"max_size_   = "<<max_size_<<endl;
-        out<<endl;
+        out << "size_       = " << size_ << std::endl;
+        out << "max_size_   = " << max_size_ << std::endl;
+        out << std::endl;
 
-        out<<"Data:"<<endl;
+        out << "Data:" << std::endl;
 
         const Value* values_ = buffer_;
 
@@ -665,12 +665,12 @@ public:
         else {
             for (int32_t c = 0; c < size_; c++)
             {
-                out<<c<<": ";
+                out << c << ": ";
                 for (int32_t b = 0; b < Blocks; b++)
                 {
-                    out<<values_[c * Blocks + b]<<", ";
+                    out << values_[c * Blocks + b] << ", ";
                 }
-                out<<endl;
+                out << std::endl;
             }
         }
     }

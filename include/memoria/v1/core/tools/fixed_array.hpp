@@ -112,10 +112,10 @@ std::ostream& operator<<(std::ostream& out, const FixedArray<Size>& array)
     std::ios state(nullptr);
     state.copyfmt(out);
 
-    out<<std::setbase(16);
+    out << std::setbase(16);
     for (int32_t c = 0; c < Size; c++)
     {
-        out<<std::setw(2)<<setfill('0');
+        out << std::setw(2) << std::setfill('0');
         out << (uint32_t)array[c];
     }
 

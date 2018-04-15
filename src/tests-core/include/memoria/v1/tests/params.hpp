@@ -35,8 +35,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 class AbstractParamDescriptor {
 public:
     virtual void Process(Configurator* cfg)                             = 0;

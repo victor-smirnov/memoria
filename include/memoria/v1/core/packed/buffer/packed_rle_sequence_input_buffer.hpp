@@ -457,7 +457,7 @@ public:
     void reset() {clear();}
 
 
-    void dump(std::ostream& out = cout, bool dump_index = true) const
+    void dump(std::ostream& out = std::cout, bool dump_index = true) const
     {
         TextPageDumper dumper(out);
 

@@ -28,7 +28,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
 
 template <int32_t Symbols>
 class PackedRLESearchableSequenceBufferTest: public PackedRLESequenceTestBase<Symbols> {

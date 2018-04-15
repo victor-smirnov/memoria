@@ -66,7 +66,7 @@ MEMORIA_V1_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperIteratorBase)
         return Base::isNotEqual(other);
     }
 
-    void dump(ostream& out = cout, const char* header = NULL)
+    void dump(std::ostream& out = std::cout, const char* header = NULL)
     {
 
     }

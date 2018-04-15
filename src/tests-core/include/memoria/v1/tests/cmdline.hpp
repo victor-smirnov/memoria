@@ -27,8 +27,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 class CmdLine {
     int             argc_;
     const char**    argv_;

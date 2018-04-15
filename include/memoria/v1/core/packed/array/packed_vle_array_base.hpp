@@ -356,47 +356,47 @@ public:
     }
 
 
-    void dump_index(int32_t blocks, std::ostream& out = cout) const
+    void dump_index(int32_t blocks, std::ostream& out = std::cout) const
     {
         auto meta = this->metadata();
 
-        out<<"size_         = "<<meta->size()<<std::endl;
+        out << "size_         = " << meta->size() << std::endl;
 
         for (int32_t block = 0; block < blocks; block++)
         {
-            out<<"++++++++++++++++++ Block: "<<block<<" ++++++++++++++++++"<<endl;
+            out << "++++++++++++++++++ Block: " << block << " ++++++++++++++++++" << std::endl;
 
             auto data_size  = this->data_size(block);
             auto index_size = this->index_size(data_size);
 
-            out<<"index_size_   = "<<index_size<<std::endl;
+            out << "index_size_   = " << index_size << std::endl;
 
             TreeLayout layout = this->compute_tree_layout(data_size);
 
             if (layout.levels_max >= 0)
             {
-                out<<"TreeLayout: "<<endl;
+                out << "TreeLayout: " << std::endl;
 
                 out<<"Level sizes: ";
                 for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_sizes[c]<<" ";
                 }
-                out<<endl;
+                out<<std::endl;
 
                 out<<"Level starts: ";
                 for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_starts[c]<<" ";
                 }
-                out<<endl;
+                out<<std::endl;
                 out<<std::endl;
 
                 auto value_indexes = this->value_index(block);
                 auto size_indexes = this->size_index(block);
 
-                out<<"Index:"<<endl;
+                out << "Index:" << std::endl;
                 for (int32_t c = 0; c < index_size; c++)
                 {
-                    out<<c<<": "<<value_indexes[c]<<" "<<size_indexes[c]<<std::endl;
+                    out << c << ": " << value_indexes[c] << " " << size_indexes[c] << std::endl;
                 }
             }
         }
@@ -404,7 +404,7 @@ public:
 
     void dump_block(int32_t block, std::ostream& out = std::cout) const
     {
-        out<<"Dump values"<<std::endl;
+        out << "Dump values" << std::endl;
         Codec codec;
         size_t pos = 0;
 
@@ -416,7 +416,7 @@ public:
             ValueT value;
             auto len = codec.decode(values, value, pos);
 
-            out<<c<<": "<<pos<<" "<<value<<std::endl;
+            out << c << ": " << pos << " " << value << std::endl;
 
             pos += len;
         }

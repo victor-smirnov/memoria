@@ -29,11 +29,7 @@ namespace memoria {
 namespace v1 {
 namespace tools {
 
-using namespace std;
-
 const TermImpl* Term::term_;
-
-
 
 class LinuxTerminal: public TermImpl {
     virtual const char* reds() const    {return "\033[1;31m";}
@@ -54,7 +50,7 @@ void Term::init(int argc, const char** argv, const char** envp)
 
     for (;*envp; envp++)
     {
-        string entry(*envp);
+        std::string entry(*envp);
 
         if (entry == "TERM=linux" || isStartsWith(entry, "TERM=xterm"))
         {

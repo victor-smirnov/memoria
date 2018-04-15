@@ -185,11 +185,11 @@ public:
         Base::check(Blocks);
     }
 
-    void dump_index(std::ostream& out = cout) const {
+    void dump_index(std::ostream& out = std::cout) const {
         Base::dump_index(Blocks, out);
     }
 
-    void dump(std::ostream& out = cout, bool dump_index = true) const {
+    void dump(std::ostream& out = std::cout, bool dump_index = true) const {
         Base::dump(Blocks, out, dump_index);
     }
 

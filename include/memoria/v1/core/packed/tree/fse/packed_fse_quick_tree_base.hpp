@@ -609,14 +609,14 @@ public:
         return metadata()->max_size();
     }
 
-    void dump_index(int32_t blocks, std::ostream& out = cout) const
+    void dump_index(int32_t blocks, std::ostream& out = std::cout) const
     {
         auto meta = this->metadata();
 
-        out<<"size_         = "<<meta->size()<<std::endl;
-        out<<"index_size_   = "<<meta->index_size()<<std::endl;
+        out << "size_         = " << meta->size() << std::endl;
+        out << "index_size_   = " << meta->index_size() << std::endl;
 
-        out<<std::endl;
+        out << std::endl;
 
         TreeLayout layout;
 
@@ -624,33 +624,33 @@ public:
 
         if (levels > 0)
         {
-            out<<"TreeLayout: "<<endl;
+            out << "TreeLayout: " << std::endl;
 
-            out<<"Level sizes: ";
+            out << "Level sizes: ";
             for (int32_t c = 0; c <= layout.levels_max; c++) {
                 out<<layout.level_sizes[c]<<" ";
             }
-            out<<endl;
+            out << std::endl;
 
             out<<"Level starts: ";
             for (int32_t c = 0; c <= layout.levels_max; c++) {
                 out<<layout.level_starts[c]<<" ";
             }
-            out<<endl;
+            out << std::endl;
         }
 
         for (int32_t block = 0; block < blocks; block++)
         {
-            out<<"++++++++++++++++++ Block: "<<block<<" ++++++++++++++++++"<<endl;
+            out << "++++++++++++++++++ Block: " << block << " ++++++++++++++++++" << std::endl;
 
             if (levels > 0)
             {
                 auto indexes = this->index(block);
 
-                out<<"Index:"<<endl;
+                out << "Index:" << std::endl;
                 for (int32_t c = 0; c < meta->index_size(); c++)
                 {
-                    out<<c<<": "<<indexes[c]<<endl;
+                    out << c << ": " << indexes[c] << std::endl;
                 }
             }
         }
@@ -658,14 +658,14 @@ public:
     }
 
 
-    void dump(int32_t blocks, std::ostream& out = cout, bool dump_index = true) const
+    void dump(int32_t blocks, std::ostream& out = std::cout, bool dump_index = true) const
     {
         auto meta = this->metadata();
 
-        out<<"size_         = "<<meta->size()<<std::endl;
-        out<<"index_size_   = "<<meta->index_size()<<std::endl;
+        out << "size_         = " << meta->size() << std::endl;
+        out << "index_size_   = " << meta->index_size() << std::endl;
 
-        out<<std::endl;
+        out << std::endl;
 
         TreeLayout layout;
 
@@ -675,46 +675,46 @@ public:
         {
             if (levels > 0)
             {
-                out<<"TreeLayout: "<<endl;
+                out << "TreeLayout: " << std::endl;
 
-                out<<"Level sizes: ";
+                out << "Level sizes: ";
                 for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_sizes[c]<<" ";
                 }
-                out<<endl;
+                out << std::endl;
 
-                out<<"Level starts: ";
+                out << "Level starts: ";
                 for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_starts[c]<<" ";
                 }
-                out<<endl;
+                out << std::endl;
             }
         }
 
         for (int32_t block = 0; block < blocks; block++)
         {
-            out<<"++++++++++++++++++ Block: "<<block<<" ++++++++++++++++++"<<endl;
+            out << "++++++++++++++++++ Block: " << block << " ++++++++++++++++++" << std::endl;
 
             if (dump_index && levels > 0)
             {
                 auto indexes = this->index(block);
 
-                out<<"Index:"<<endl;
+                out << "Index:" << std::endl;
                 for (int32_t c = 0; c < meta->index_size(); c++)
                 {
-                    out<<c<<": "<<indexes[c]<<endl;
+                    out << c << ": " << indexes[c] << std::endl;
                 }
             }
 
-            out<<endl;
+            out << std::endl;
 
-            out<<"Values: "<<endl;
+            out << "Values: " << std::endl;
 
             auto values = this->values(block);
 
             for (int32_t c = 0; c < meta->size(); c++)
             {
-                out<<c<<": "<<values[c]<<endl;
+                out << c << ": " << values[c] << std::endl;
             }
         }
     }

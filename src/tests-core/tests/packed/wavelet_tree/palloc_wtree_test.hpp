@@ -29,7 +29,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
 
 class PackedWaveletTreeTest: public TestTask {
 

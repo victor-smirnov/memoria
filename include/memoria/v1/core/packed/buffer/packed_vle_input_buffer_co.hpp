@@ -163,7 +163,16 @@ public:
 
     void init(const SizesT& sizes)
     {
-        Base::init(block_size(sizes), Blocks * SegmentsPerBlock + BlocksStart);
+        init_bs(block_size(sizes), sizes);
+    }
+
+    void init_bs(int32_t block_size) {
+        init_bs(block_size, SizesT());
+    }
+
+    void init_bs(int32_t block_size, const SizesT& sizes)
+    {
+        Base::init(block_size, Blocks * SegmentsPerBlock + BlocksStart);
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
 
@@ -647,64 +656,64 @@ public:
         return position;
     }
 
-    void dump(std::ostream& out = cout) const
+    void dump(std::ostream& out = std::cout) const
     {
         auto meta = this->metadata();
         auto size = meta->size();
 
-        out<<"size_         = "<<size<<std::endl;
-        out<<"block_size_   = "<<this->block_size()<<std::endl;
+        out << "size_         = " << size << std::endl;
+        out << "block_size_   = " << this->block_size() << std::endl;
 
         for (int32_t block = 0; block < Blocks; block++) {
-            out<<"data_size_["<<block<<"] = "<<this->data_size(block)<<std::endl;
+            out << "data_size_[" << block << "] = " << this->data_size(block) << std::endl;
         }
 
         for (int32_t block = 0; block < Blocks; block++)
         {
-            out<<"++++++++++++++++++ Block: "<<block<<" ++++++++++++++++++"<<endl;
+            out << "++++++++++++++++++ Block: " << block << " ++++++++++++++++++" << std::endl;
 
             auto data_size  = this->data_size(block);
             auto index_size = this->index_size(data_size);
 
-            out<<"index_size_   = "<<index_size<<std::endl;
+            out << "index_size_   = " << index_size << std::endl;
 
             TreeLayout layout = this->compute_tree_layout(data_size);
 
             if (layout.levels_max >= 0)
             {
-                out<<"TreeLayout: "<<endl;
+                out << "TreeLayout: " << std::endl;
 
-                out<<"Level sizes: ";
+                out << "Level sizes: ";
                 for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_sizes[c]<<" ";
                 }
-                out<<endl;
+                out << std::endl;
 
-                out<<"Level starts: ";
+                out << "Level starts: ";
                 for (int32_t c = 0; c <= layout.levels_max; c++) {
                     out<<layout.level_starts[c]<<" ";
                 }
-                out<<endl;
+                out << std::endl;
 
                 auto size_indexes = this->size_index(block);
 
-                out<<"Index:"<<endl;
+                out << "Index:" << std::endl;
                 for (int32_t c = 0; c < index_size; c++)
                 {
-                    out<<c<<": "<<size_indexes[c]<<std::endl;
+                    out << c << ": " << size_indexes[c] << std::endl;
                 }
             }
 
-            out<<endl;
+            out << std::endl;
 
-            out<<"Offsets: ";
+            out << "Offsets: ";
             for (int32_t c = 0; c <= this->divUpV(data_size); c++) {
-                out<<this->offset(block, c)<<" ";
+                out << this->offset(block, c) << " ";
             }
-            out<<endl;
+            out << std::endl;
         }
 
-        out<<"Values: "<<endl;
+        out<<"Values: "<<std::endl;
 
         const ValueData* values[Blocks];
         size_t block_pos[Blocks];
@@ -717,16 +726,16 @@ public:
         Codec codec;
         for (int32_t c = 0; c < size; c++)
         {
-            out<<c<<": "<<c<<" ";
+            out << c << ": " << c << " ";
             for (int32_t block = 0; block < Blocks; block++)
             {
                 Value value;
                 auto len = codec.decode(values[block], value, block_pos[block]);
 
-                out<<"  ("<<block_pos[block]<<") "<<value;
+                out << "  (" << block_pos[block] << ") " << value;
                 block_pos[block] += len;
             }
-            out<<endl;
+            out << std::endl;
         }
     }
 

@@ -213,13 +213,13 @@ std::ostream& operator<<(std::ostream& out, const RawData<T>& val)
 {
     if (val.size() > 0)
     {
-        std::ios  state(nullptr);
+        std::ios state(nullptr);
         state.copyfmt(out);
 
-        out<<std::setbase(16);
+        out << std::setbase(16);
         for (size_t c = 0; c < val.size(); c++)
         {
-            out<<std::setw(sizeof(T) * 2)<<setfill('0');
+            out << std::setw(sizeof(T) * 2) << std::setfill('0');
             out << (uint64_t)val[c];
         }
 

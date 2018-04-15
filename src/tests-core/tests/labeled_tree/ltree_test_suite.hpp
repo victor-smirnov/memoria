@@ -28,8 +28,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 class LabeledTreeTestSuite: public TestSuite {
 
 public:

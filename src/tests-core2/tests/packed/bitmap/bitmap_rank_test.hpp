@@ -26,8 +26,6 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
-using namespace std;
-
 template <typename T>
 class BitmapRankTest: public BitmapTestBase<T> {
 

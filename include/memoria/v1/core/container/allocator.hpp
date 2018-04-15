@@ -96,8 +96,8 @@ struct IAllocator: AllocatorBase {
 
     virtual bool isActive()                                                     = 0;
 
-    virtual void registerCtr(const type_info&)                                  = 0;
-    virtual void unregisterCtr(const type_info&)                                = 0;
+    virtual void registerCtr(const std::type_info&)                             = 0;
+    virtual void unregisterCtr(const std::type_info&)                           = 0;
 
     virtual SnpSharedPtr<IAllocator<PageType>> self_ptr()                       = 0;
     virtual CtrSharedPtr<CtrReferenceable> get(const UUID& name)                = 0;

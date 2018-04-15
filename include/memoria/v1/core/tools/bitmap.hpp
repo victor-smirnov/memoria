@@ -41,8 +41,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 const char kPopCountFW_LUT [] = {0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,5,0,1,0,2,0,1,0,3,0,1,0,2,\
                                  0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,6,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,\
                                  0,1,0,2,0,1,0,5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,7,0,1,0,2,\
@@ -144,7 +142,7 @@ namespace intrnl {
     template <typename uT, typename sT>
     uT MakeMask0(int32_t start, int32_t length)
     {
-        sT svalue   = numeric_limits<sT>::min();
+        sT svalue   = std::numeric_limits<sT>::min();
 
         int32_t bitsize = TypeBitsize<uT>();
 

@@ -34,7 +34,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
 
 template <typename PackedTreeT>
 class PackedTreeTestBase: public TestTask {

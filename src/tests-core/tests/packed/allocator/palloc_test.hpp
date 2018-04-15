@@ -27,8 +27,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 class PackedAllocatorTest: public TestTask {
 
     typedef PackedAllocatorTest                                                 MyType;

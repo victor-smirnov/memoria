@@ -310,7 +310,7 @@ public:
     // ==================================== Dump =========================================== //
 
 
-    void dump(std::ostream& out = cout) const
+    void dump(std::ostream& out = std::cout) const
     {
         TextPageDumper dumper(out);
         generateDataEvents(&dumper);

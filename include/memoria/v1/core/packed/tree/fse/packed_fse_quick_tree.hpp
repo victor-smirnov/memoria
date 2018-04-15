@@ -210,6 +210,10 @@ public:
         }
     }
 
+    void init_bs(int32_t block_size)
+    {
+        init_by_block(block_size, elements_for(block_size));
+    }
 
     void init_by_block(int32_t block_size, int32_t capacity = 0)
     {
@@ -278,11 +282,11 @@ public:
         Base::reindex(Blocks);
     }
 
-    void dump_index(std::ostream& out = cout) const {
+    void dump_index(std::ostream& out = std::cout) const {
         Base::dump_index(Blocks, out);
     }
 
-    void dump(std::ostream& out = cout) const {
+    void dump(std::ostream& out = std::cout) const {
         TextPageDumper dumper(out);
         generateDataEvents(&dumper);
     }

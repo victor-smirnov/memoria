@@ -101,7 +101,7 @@ protected:
         return (!self.isEnd()) && self.isNotEmpty();
     }
 
-    void dumpKeys(ostream& out) const
+    void dumpKeys(std::ostream& out) const
     {
         Base::dumpKeys(out);
     }

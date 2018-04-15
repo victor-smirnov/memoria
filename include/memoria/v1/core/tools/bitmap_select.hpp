@@ -22,8 +22,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 inline uint64_t BroadwordGTZ8 (uint64_t x)
 {
     uint64_t H8 = 0x8080808080808080;

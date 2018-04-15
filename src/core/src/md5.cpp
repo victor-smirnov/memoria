@@ -24,8 +24,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 
 
 void MD5Hash::add(uint32_t value)
@@ -160,7 +158,7 @@ void MD5Hash::Block(FunPtr Fun, int32_t k, int32_t s, int32_t i)
 }
 
 void MD5Hash::dumpState() {
-    cout<<Q0_.A_<<" "<<Q0_.B_<<" "<<Q0_.C_<<" "<<Q0_.D_<<endl;
+    std::cout << Q0_.A_ << " " << Q0_.B_ << " " << Q0_.C_ << " " << Q0_.D_ << std::endl;
 }
 
 

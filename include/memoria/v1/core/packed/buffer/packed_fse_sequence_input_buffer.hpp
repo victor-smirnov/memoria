@@ -216,13 +216,13 @@ public:
     // ==================================== Dump =========================================== //
 
 
-    void dump(std::ostream& out = cout) const
+    void dump(std::ostream& out = std::cout) const
     {
-        out<<"size_       = "<<size_<<endl;
-        out<<"max_size_   = "<<max_size_<<endl;
-        out<<endl;
+        out << "size_       = " << size_ << std::endl;
+        out << "max_size_   = " << max_size_ << std::endl;
+        out << std::endl;
 
-        out<<"Data:"<<endl;
+        out << "Data:" << std::endl;
 
         dumpSymbols<int32_t>(out, size_, BitsPerSymbol, [this](int32_t pos) -> int32_t {
             return this->symbol(pos);

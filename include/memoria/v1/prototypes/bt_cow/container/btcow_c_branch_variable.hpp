@@ -30,8 +30,6 @@ namespace v1 {
 using namespace v1::bt;
 using namespace v1::core;
 
-using namespace std;
-
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btcow::BranchVariableName)
 
 public:

@@ -713,11 +713,11 @@ public:
     		allocator_->unregisterCtr(typeid(*this));
     	}
     	catch (Exception& ex) {
-            ex.dump(cout);
+            ex.dump(std::cout);
     		std::abort();
     	}
     	catch(...) {
-    		cout << "Unknown exception in ~Ctr(): " << typeid(*this).name() << endl;
+            std::cout << "Unknown exception in ~Ctr(): " << typeid(*this).name() << std::endl;
     		std::abort();
     	}
     }

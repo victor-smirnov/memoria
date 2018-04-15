@@ -27,8 +27,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 class PackedLoudsTestBase: public TestTask {
 
 protected:

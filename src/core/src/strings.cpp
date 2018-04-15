@@ -25,8 +25,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 U8String trimString(U8StringRef str)
 {
     if (str.length() == 0)

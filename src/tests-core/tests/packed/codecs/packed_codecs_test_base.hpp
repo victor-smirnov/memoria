@@ -22,8 +22,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 template <typename ValueT>
 class PackedCodecsTestBase: public TestTask {
     using Base = TestTask;

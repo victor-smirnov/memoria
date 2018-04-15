@@ -136,7 +136,17 @@ public:
 
     void init(int32_t total_capacity)
     {
-        Base::init(empty_size(), TreeBlocks * SegmentsPerBlock + BlocksStart);
+        init_bs(empty_size(), total_capacity);
+    }
+
+    void init_bs(int32_t block_size)
+    {
+        init_bs(block_size, 0);
+    }
+
+    void init_bs(int32_t block_size, int32_t total_capacity)
+    {
+        Base::init(block_size, TreeBlocks * SegmentsPerBlock + BlocksStart);
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
 
@@ -1206,56 +1216,56 @@ public:
     }
 
 
-    void dump(std::ostream& out = cout) const
+    void dump(std::ostream& out = std::cout) const
     {
         int32_t size = this->size();
 
         auto data_size  = this->data_size();
 
-        out<<"size_         = "<<size<<std::endl;
-        out<<"block_size_   = "<<this->block_size()<<std::endl;
-        out<<"data_size_    = "<<data_size<<std::endl;
+        out << "size_         = " << size << std::endl;
+        out << "block_size_   = " << this->block_size() << std::endl;
+        out << "data_size_    = " << data_size << std::endl;
 
         auto index_size = this->index_size(data_size);
 
-        out<<"index_size_   = "<<index_size<<std::endl;
+        out << "index_size_   = " << index_size << std::endl;
 
         TreeLayout layout = this->compute_tree_layout(data_size);
 
         if (layout.levels_max >= 0)
         {
-            out<<"TreeLayout: "<<endl;
+            out << "TreeLayout: " << std::endl;
 
-            out<<"Level sizes: ";
+            out << "Level sizes: ";
             for (int32_t c = 0; c <= layout.levels_max; c++) {
-                out<<layout.level_sizes[c]<<" ";
+                out << layout.level_sizes[c] << " ";
             }
-            out<<endl;
+            out << std::endl;
 
-            out<<"Level starts: ";
+            out << "Level starts: ";
             for (int32_t c = 0; c <= layout.levels_max; c++) {
-                out<<layout.level_starts[c]<<" ";
+                out << layout.level_starts[c] << " ";
             }
-            out<<endl;
+            out << std::endl;
 
             auto size_indexes = this->size_index(0);
 
-            out<<"Index:"<<endl;
+            out << "Index:" << std::endl;
             for (int32_t c = 0; c < index_size; c++)
             {
-                out<<c<<": "<<size_indexes[c]<<std::endl;
+                out << c << ": " << size_indexes[c] << std::endl;
             }
         }
 
-        out<<endl;
+        out << std::endl;
 
-        out<<"Offsets: ";
+        out << "Offsets: ";
         for (int32_t c = 0; c <= this->divUpV(data_size); c++) {
-            out<<this->offset(0, c)<<" ";
+            out << this->offset(0, c) << " ";
         }
-        out<<endl;
+        out << std::endl;
 
-        out<<"Values: "<<endl;
+        out << "Values: " << std::endl;
 
         auto values = this->values();
 
@@ -1265,15 +1275,15 @@ public:
 
         for (int32_t c = 0; c < size; c++)
         {
-            out<<"c: "<<c<<" ";
+            out << "c: " << c << " ";
             for (int32_t block = 0; block < Blocks; block++)
             {
                 Value value;
                 auto len = codec.decode(values, value, pos);
-                out<<value<<" ";
+                out << value << " ";
                 pos += len;
             }
-            out<<endl;
+            out << std::endl;
         }
     }
 };

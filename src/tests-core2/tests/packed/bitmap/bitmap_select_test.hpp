@@ -49,7 +49,7 @@ class BitmapSelectTest: public BitmapTestBase<uint64_t> {
 
     T bitmap_[5];
 
-    using AssertSelectBWFn = function<void (MyType*, size_t, size_t, size_t)>;
+    using AssertSelectBWFn = std::function<void (MyType*, size_t, size_t, size_t)>;
 
 public:
     MMA1_STATE_FILEDS(start_, stop_, target_idx_, target_rank_, target_found_, value_, rank_); //bitmap_

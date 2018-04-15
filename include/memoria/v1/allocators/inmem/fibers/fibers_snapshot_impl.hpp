@@ -377,7 +377,7 @@ public:
                 auto ctr_name   = iter->key();
                 auto root_id    = iter->value();
 
-                auto vertex_ptr = dynamic_pointer_cast<IVertex>(
+                auto vertex_ptr = DynamicPointerCast<IVertex>(
                      const_cast<MyType*>(this)->from_root_id(root_id, ctr_name)
                 );
 

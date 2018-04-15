@@ -27,8 +27,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 template <typename T>
 class BitmapTestBase: public TestTask {
     typedef BitmapTestBase<T>                                                       MyType;

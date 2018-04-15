@@ -135,9 +135,9 @@ public:
         }
     }
 
-    void init()
+    void init_bs(int32_t block_size)
     {
-        Base::init(empty_size(), TreeBlocks * SegmentsPerBlock + BlocksStart);
+        Base::init(block_size, TreeBlocks * SegmentsPerBlock + BlocksStart);
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
         this->template allocateArrayBySize<int32_t>(DATA_SIZES, TreeBlocks);
@@ -152,6 +152,11 @@ public:
             this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
             this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + VALUES + BlocksStart, 0);
         }
+    }
+
+    void init()
+    {
+        init_bs(empty_size());
     }
 
 
@@ -1536,15 +1541,15 @@ public:
     }
 
 
-    void dump(std::ostream& out = cout) const
+    void dump(std::ostream& out = std::cout) const
     {
         int32_t size = this->size();
 
         auto data_size  = this->data_size();
 
-        out<<"size_         = "<<size<<std::endl;
-        out<<"block_size_   = "<<this->block_size()<<std::endl;
-        out<<"data_size_    = "<<data_size<<std::endl;
+        out << "size_         = " << size << std::endl;
+        out << "block_size_   = " << this->block_size() << std::endl;
+        out << "data_size_    = " << data_size << std::endl;
 
         int32_t block_starts[Blocks];
 
@@ -1555,52 +1560,52 @@ public:
 
         for (int32_t block = 0; block < Blocks - 1; block++)
         {
-            out<<"block_data_size_["<<block<<"] = "<<block_starts[block + 1] - block_starts[block]<<std::endl;
+            out << "block_data_size_[" << block << "] = " << block_starts[block + 1] - block_starts[block] << std::endl;
         }
 
-        out<<"block_data_size_["<<(Blocks - 1)<<"] = "<<data_size - block_starts[Blocks - 1]<<std::endl;
+        out << "block_data_size_[" << (Blocks - 1) << "] = " << data_size - block_starts[Blocks - 1] << std::endl;
 
         auto index_size = this->index_size(data_size);
 
-        out<<"index_size_   = "<<index_size<<std::endl;
+        out << "index_size_   = " << index_size << std::endl;
 
         TreeLayout layout = this->compute_tree_layout(data_size);
 
         if (layout.levels_max >= 0)
         {
-            out<<"TreeLayout: "<<endl;
+            out << "TreeLayout: " << std::endl;
 
-            out<<"Level sizes: ";
+            out << "Level sizes: ";
             for (int32_t c = 0; c <= layout.levels_max; c++) {
-                out<<layout.level_sizes[c]<<" ";
+                out << layout.level_sizes[c] << " ";
             }
-            out<<endl;
+            out << std::endl;
 
             out<<"Level starts: ";
             for (int32_t c = 0; c <= layout.levels_max; c++) {
-                out<<layout.level_starts[c]<<" ";
+                out << layout.level_starts[c] << " ";
             }
-            out<<endl;
+            out << std::endl;
 
             auto value_indexes = this->value_index(0);
             auto size_indexes = this->size_index(0);
 
-            out<<"Index:"<<endl;
+            out << "Index:" << std::endl;
             for (int32_t c = 0; c < index_size; c++)
             {
-                out<<c<<": "<<value_indexes[c]<<" "<<size_indexes[c]<<std::endl;
+                out << c << ": " << value_indexes[c] << " " << size_indexes[c] << std::endl;
             }
         }
 
-        out<<endl;
+        out << std::endl;
 
         out<<"Offsets: ";
         for (int32_t c = 0; c <= this->divUpV(data_size); c++) {
             out<<this->offset(0, c)<<" ";
         }
-        out<<endl;
+        out << std::endl;
 
-        out<<"Values: "<<endl;
+        out << "Values: " << std::endl;
 
         auto values = this->values();
 
@@ -1608,7 +1613,7 @@ public:
 
         for (int32_t c = 0; c < size; c++)
         {
-            out<<"c: "<<c<<" ";
+            out << "c: " << c << " ";
             for (int32_t block = 0; block < Blocks; block++)
             {
                 Value value;
@@ -1616,7 +1621,7 @@ public:
                 out<<" ("<<block_starts[block]<<") "<<value<<" ";
                 block_starts[block] += len;
             }
-            out<<endl;
+            out << std::endl;
         }
     }
 };

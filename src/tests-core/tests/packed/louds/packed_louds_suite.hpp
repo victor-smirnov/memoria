@@ -24,8 +24,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
-
 class PackedLoudsTestSuite: public TestSuite {
 public:
 
