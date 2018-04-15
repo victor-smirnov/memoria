@@ -21,8 +21,8 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
-//using FixedWidthBufferSuite = PackedMaxTreeInputBufferTest<PkdFMTreeT<int64_t, 1>>;
-//MMA1_CLASS_SUITE(FixedWidthBufferSuite, u"FixedWidthBufferSuite");
+using FixedWidthBufferSuite = PackedMaxTreeInputBufferTest<PkdFMTreeT<int64_t, 1>>;
+MMA1_CLASS_SUITE(FixedWidthBufferSuite, u"FixedWidthBufferSuite");
 
 using FixedWidthArgMiscSuite = PackedMaxTreeMiscTest<PkdFMTreeT<int64_t, 1>>;
 MMA1_CLASS_SUITE(FixedWidthArgMiscSuite, u"FixedWidthArgMiscSuite");

@@ -301,6 +301,16 @@ public:
     }
 
 
+    void init_bs(int32_t block_size)
+    {
+        init(block_size, SizesT());
+    }
+
+    void init_bs(int32_t block_size, const SizesT& symbols_capacity)
+    {
+        init(block_size, symbols_capacity);
+    }
+
     void init(int32_t block_size, const SizesT& symbols_capacity)
     {
         Base::init(block_size, TOTAL_SEGMENTS__);

@@ -33,59 +33,59 @@ namespace tests {
 namespace {
 
 using Suite1 = PackedTreeMiscTest<PkdFQTreeT<int64_t, 4>>;
-MMA1_CLASS_SUITE(Suite1, "Misc.4.FSQ");
+MMA1_CLASS_SUITE(Suite1, "Tree.Misc.4.FSQ");
 
 using Suite2 = PackedTreeFindTest<PkdFQTreeT<int64_t, 4>>;
-MMA1_CLASS_SUITE(Suite2, "Find.4.FSQ");
+MMA1_CLASS_SUITE(Suite2, "Tree.Find.4.FSQ");
 
 using Suite3 = PackedTreeSumTest<PkdFQTreeT<int64_t, 4>>;
-MMA1_CLASS_SUITE(Suite3, "Sum.4.FSQ");
+MMA1_CLASS_SUITE(Suite3, "Tree.Sum.4.FSQ");
 
 
 using Suite4 = PackedTreeMiscTest<PkdVQTreeT<int64_t, 4, UByteI7Codec>>;
-MMA1_CLASS_SUITE(Suite4, "Misc.4.VLQ.I7");
+MMA1_CLASS_SUITE(Suite4, "Tree.Misc.4.VLQ.I7");
 
 using Suite5 = PackedTreeMiscTest<PkdVQTreeT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite5, "Misc.4.VLQ.Elias");
+MMA1_CLASS_SUITE(Suite5, "Tree.Misc.4.VLQ.Elias");
 
 using Suite6 = PackedTreeMiscTest<PkdVDTreeT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite6, "Misc.4.VLD.Elias");
+MMA1_CLASS_SUITE(Suite6, "Tree.Misc.4.VLD.Elias");
 
 using Suite7 = PackedTreeSumTest<PkdVQTreeT<int64_t, 4, UByteI7Codec>>;
-MMA1_CLASS_SUITE(Suite7, "Sum.4.VLQ.I7");
+MMA1_CLASS_SUITE(Suite7, "Tree.Sum.4.VLQ.I7");
 
 using Suite8 = PackedTreeSumTest<PkdVQTreeT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite8, "Sum.4.VLQ.Elias");
+MMA1_CLASS_SUITE(Suite8, "Tree.Sum.4.VLQ.Elias");
 
 using Suite9 = PackedTreeSumTest<PkdVDTreeT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite9, "Sum.4.VLD.Elias");
+MMA1_CLASS_SUITE(Suite9, "Tree.Sum.4.VLD.Elias");
 
 
 using Suite10 = PackedTreeFindTest<PkdVQTreeT<int64_t, 4, UByteI7Codec>>;
-MMA1_CLASS_SUITE(Suite10, "Find.4.VLQ.I7");
+MMA1_CLASS_SUITE(Suite10, "Tree.Find.4.VLQ.I7");
 
 using Suite11 = PackedTreeFindTest<PkdVQTreeT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite11, "Find.4.VLQ.Elias");
+MMA1_CLASS_SUITE(Suite11, "Tree.Find.4.VLQ.Elias");
 
 using Suite12 = PackedTreeFindTest<PkdVDTreeT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite12, "Find.4.VLD.Elias");
+MMA1_CLASS_SUITE(Suite12, "Tree.Find.4.VLD.Elias");
 
 
 using Suite13 = PackedTreeInputBufferTest<PkdVQTreeT<int64_t, 4, UByteI7Codec>>;
-MMA1_CLASS_SUITE(Suite13, "Buffer.4.VLQ.I7");
+MMA1_CLASS_SUITE(Suite13, "Tree.Buffer.4.VLQ.I7");
 
 using Suite14 = PackedTreeInputBufferTest<PkdVQTreeT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite14, "Buffer.4.VLQ.Elias");
+MMA1_CLASS_SUITE(Suite14, "Tree.Buffer.4.VLQ.Elias");
 
 
 using Suite15 = PackedTreeInputBufferTest<PkdVDTreeT<int64_t, 4, UByteI7Codec>>;
-MMA1_CLASS_SUITE(Suite15, "Buffer.4.VLD.I7");
+MMA1_CLASS_SUITE(Suite15, "Tree.Buffer.4.VLD.I7");
 
 using Suite16 = PackedTreeInputBufferTest<PkdVDTreeT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite16, "Buffer.4.VLD.Elias");
+MMA1_CLASS_SUITE(Suite16, "Tree.Buffer.4.VLD.Elias");
 
 using Suite17 = PackedTreeInputBufferTest<PkdFQTreeT<int64_t, 4>>;
-MMA1_CLASS_SUITE(Suite17, "Buffer.4.FSQ");
+MMA1_CLASS_SUITE(Suite17, "Tree.Buffer.4.FSQ");
 
 }
 

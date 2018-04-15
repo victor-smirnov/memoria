@@ -37,19 +37,19 @@ namespace tests {
 namespace {
 
 using Suite1 = PackedArrayMiscTest<PkdVDArrayT<int64_t, 1, UByteExintCodec>>;
-MMA1_CLASS_SUITE(Suite1, "Misc.VLD.Exint");
+MMA1_CLASS_SUITE(Suite1, "Array.Misc.VLD.Exint");
 
 using Suite2 = PackedArrayMiscTest<PkdVDArrayT<int64_t, 1, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite2, "Misc.VLD.Elias");
+MMA1_CLASS_SUITE(Suite2, "Array.Misc.VLD.Elias");
 
 using Suite3 = PackedArrayInputBufferTest<PkdVDArrayT<int64_t, 4, UByteI7Codec>>;
-MMA1_CLASS_SUITE(Suite3, "Buffer.4.VLD.I7");
+MMA1_CLASS_SUITE(Suite3, "Array.Buffer.4.VLD.I7");
 
 using Suite4 = PackedArrayInputBufferTest<PkdVDArrayT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite4, "Buffer.4.VLD.Elias");
+MMA1_CLASS_SUITE(Suite4, "Array.Buffer.4.VLD.Elias");
 
 using Suite5 = PackedArrayInputBufferTest<PkdFSQArrayT<int64_t, 4>>;
-MMA1_CLASS_SUITE(Suite5, "Buffer.4.FSQ");
+MMA1_CLASS_SUITE(Suite5, "Array.Buffer.4.FSQ");
 
 }
 

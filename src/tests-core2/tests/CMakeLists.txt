@@ -12,6 +12,8 @@ set (SRCS ${SRCS} packed/codecs/packed_codecs_test_suite.cpp)
 set (SRCS ${SRCS} packed/maxtree/packed_maxtree_test_suite.cpp)
 set (SRCS ${SRCS} packed/tree/packed_tree_test_suite.cpp)
 set (SRCS ${SRCS} packed/array/packed_array_test_suite.cpp)
+set (SRCS ${SRCS} packed/sequence/fse/pseq_test_suite.cpp)
+set (SRCS ${SRCS} packed/sequence/rle/rleseq_test_suite.cpp)
 
 add_executable(tests2 tests2.cpp ${SRCS})
 

@@ -35,17 +35,17 @@ namespace tests {
 namespace {
 
 MMA1_BITMAP_MISC_SUITE(BitmapMiscSuite32, uint32_t);
-//MMA1_BITMAP_MISC_SUITE(BitmapMiscSuite64, uint64_t);
+MMA1_BITMAP_MISC_SUITE(BitmapMiscSuite64, uint64_t);
 
-//MMA1_BITMAP_RANK_SUITE(BitmapRankSuite32, uint32_t);
-//MMA1_BITMAP_RANK_SUITE(BitmapRankSuite64, uint64_t);
+MMA1_BITMAP_RANK_SUITE(BitmapRankSuite32, uint32_t);
+MMA1_BITMAP_RANK_SUITE(BitmapRankSuite64, uint64_t);
 
-//MMA1_BITMAP_COUNT_SUITE(BitmapCountSuite32, uint32_t);
-//MMA1_BITMAP_COUNT_SUITE(BitmapCountSuite64, uint64_t);
+MMA1_BITMAP_COUNT_SUITE(BitmapCountSuite32, uint32_t);
+MMA1_BITMAP_COUNT_SUITE(BitmapCountSuite64, uint64_t);
 
-//MMA1_BITMAP_SELECT_SUITE();
+MMA1_BITMAP_SELECT_SUITE();
 
-//MMA1_BITMAP_SPEED_SUITE(BitmapSpeedSuite64, uint64_t);
+MMA1_BITMAP_SPEED_SUITE(BitmapSpeedSuite64, uint64_t);
 
 }
 

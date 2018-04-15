@@ -245,16 +245,21 @@ public:
 
     // ===================================== Allocation ================================= //
 
+    void init()
+    {
+        init_bs(empty_size());
+    }
+
     void init(int32_t block_size)
     {
         MEMORIA_V1_ASSERT(block_size, >=, empty_size());
 
-        init();
+        init_bs(empty_size());
     }
 
-    void init()
+    void init_bs(int32_t block_size)
     {
-        Base::init(empty_size(), 3);
+        Base::init(block_size, 3);
 
         Metadata* meta  = Base::template allocate<Metadata>(METADATA);
 

@@ -453,9 +453,13 @@ public:
         init();
     }
 
-    void init()
+    void init() {
+        init_bs(empty_size());
+    }
+
+    void init_bs(int32_t block_size)
     {
-        Base::init(empty_size(), TOTAL_SEGMENTS__);
+        Base::init(block_size, TOTAL_SEGMENTS__);
 
         Metadata* meta  = Base::template allocate<Metadata>(METADATA);
 
@@ -1373,7 +1377,7 @@ public:
     }
 
 
-    void dump(std::ostream& out = cout, bool dump_index = true) const
+    void dump(std::ostream& out = std::cout, bool dump_index = true) const
     {
         TextPageDumper dumper(out);
         generateDataEvents(&dumper);
