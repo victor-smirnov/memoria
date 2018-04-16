@@ -32,6 +32,7 @@ int main(int argc, char** argv, char** envp)
     options.add_options()
         ("runs", "Number of runs for entire test suites set")
         ("test", po::value<std::string>(), "Specific test name to run")
+        ("replay", "Run the test in replay mode, implies --test is specified")
         ("config", po::value<std::string>(), "Path to config file, defaults to tests2.yaml")
         ("output", po::value<std::string>(), "Path to tests' output directory, defaults to tests2.out in the CWD")
         ("coverage",
@@ -53,7 +54,15 @@ int main(int argc, char** argv, char** envp)
         if (app().options().count("test") > 0)
         {
             U16String test_name = U16String(app().options()["test"].as<std::string>());
-            return (tests::run_single_test(test_name) == tests::TestStatus::PASSED ? 0 : 1);
+
+            bool replay = app().options().count("replay") > 0;
+
+            if (replay) {
+                return (tests::replay_single_test(test_name) == tests::TestStatus::PASSED ? 0 : 1);
+            }
+            else {
+                return (tests::run_single_test(test_name) == tests::TestStatus::PASSED ? 0 : 1);
+            }
         }
         else {
             tests::run_tests();

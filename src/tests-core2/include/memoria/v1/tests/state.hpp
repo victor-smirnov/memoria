@@ -122,6 +122,8 @@ Optional<TestCoverage> coverage_from_string(const U8String& str);
 
 class TestState {
     std::vector<std::unique_ptr<FieldHandler>> handlers_;
+    bool replay_;
+    int64_t seed_;
 public:
     filesystem::path working_directory_;
 
@@ -131,7 +133,9 @@ public:
 
     virtual ~TestState() noexcept;
 
-    virtual void add_field_handlers() {}
+    virtual void add_field_handlers() {
+        add_field_handler("seed", seed_);
+    }
     virtual void add_indirect_field_handlers() {}
 
     virtual int32_t threads() const noexcept {
@@ -186,6 +190,27 @@ public:
     }
 
     std::ostream& out();
+
+    virtual void set_up() noexcept {}
+    virtual void tear_down() noexcept {}
+
+    virtual void on_test_failure() noexcept {}
+
+    bool is_replay() const noexcept {
+        return replay_;
+    }
+
+    void set_replay(bool replay) {
+        replay_ = replay;
+    }
+
+    int64_t seed() const noexcept {
+        return seed_;
+    }
+
+    void set_seed(int64_t seed) {
+        seed_ = seed;
+    }
 };
 
 class CommonConfigurationContext: public ConfigurationContext {

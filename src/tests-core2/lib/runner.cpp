@@ -118,6 +118,8 @@ Optional<TestCoverage> get_test_coverage()
 
 }
 
+
+
 TestStatus run_single_test(const U16String& test_path)
 {
     auto test = tests_registry().find_test(test_path);
@@ -133,23 +135,18 @@ TestStatus run_single_test(const U16String& test_path)
 
         YAML::Node test_config;
 
+        int64_t seed = getTimeInMillis();
+
         if (filesystem::is_regular_file(config_path))
         {
-            YAML::Node config = YAML::LoadFile(config_path.to_u8().to_std_string());
+            FileInputStream<char> fi_stream(open_buffered_file(config_path, FileFlags::RDONLY));
+            YAML::Node config = YAML::Load(fi_stream);
 
 			int64_t seed;
             if (config["seed"])
             {
                 seed = config["seed"].as<int64_t>();
             }
-            else {
-				seed = getTimeInMillis();
-            }
-			reactor::engine().coutln(u"seed = {}", seed);
-
-			Seed(seed);
-			SeedBI(seed);
-
 
             YAML::Node suite_node = config[suite_name.to_u8().to_std_string()];
             if (suite_node)
@@ -157,14 +154,11 @@ TestStatus run_single_test(const U16String& test_path)
                 test_config = suite_node[test_name.to_u8().to_std_string()];
             }
         }
-        else
-        {
-            int64_t seed = getTimeInMillis();
-			reactor::engine().coutln(u"seed = {}", seed);
 
-            Seed(seed);
-            SeedBI(seed);
-        }
+        reactor::engine().coutln(u"seed = {}", seed);
+
+        Seed(seed);
+        SeedBI(seed);
 
         filesystem::path test_output_dir = output_dir_base;
         test_output_dir.append(suite_name.to_u8().to_std_string());
@@ -174,7 +168,14 @@ TestStatus run_single_test(const U16String& test_path)
 
         Optional<TestCoverage> coverage = get_test_coverage();
 
-        DefaultTestContext ctx(test_config, config_path.parent_path(), filesystem::absolute(test_output_dir), coverage.get());
+        DefaultTestContext ctx(
+            test_config,
+            config_path.parent_path(),
+            filesystem::absolute(test_output_dir),
+            coverage.get(),
+            false,
+            seed
+        );
 
         int64_t start_time = getTimeInMillis();
         test.get().run(&ctx);
@@ -198,6 +199,83 @@ TestStatus run_single_test(const U16String& test_path)
         MMA1_THROW(TestConfigurationException()) << fmt::format_ex(u"No test with path '{}' found", test_path);
     }
 }
+
+
+TestStatus replay_single_test(const U16String& test_path)
+{
+    auto test = tests_registry().find_test(test_path);
+    if (test)
+    {
+        filesystem::path output_dir_base = get_tests_output_path();
+
+        U16String suite_name;
+        U16String test_name;
+
+        std::tie(suite_name, test_name) = TestsRegistry::split_path(test_path);
+
+        filesystem::path test_output_dir = output_dir_base;
+        test_output_dir.append(suite_name.to_u8().to_std_string());
+        test_output_dir.append(test_name.to_u8().to_std_string());
+
+        filesystem::path config_path = test_output_dir;
+        config_path.append("config.yaml");
+
+        YAML::Node config;
+
+        int64_t seed = getTimeInMillis();
+
+        if (filesystem::is_regular_file(config_path))
+        {
+            reactor::FileInputStream<char> fi_config(open_buffered_file(config_path, FileFlags::RDONLY));
+            config = YAML::Load(fi_config);
+
+            if (config["seed"])
+            {
+                seed = config["seed"].as<int64_t>();
+            }
+
+
+        }
+
+        reactor::engine().coutln(u"seed = {}", seed);
+        Seed(seed);
+        SeedBI(seed);
+
+        Optional<TestCoverage> coverage = get_test_coverage();
+
+        DefaultTestContext ctx(
+            config,
+            config_path.parent_path(),
+            filesystem::absolute(test_output_dir),
+            coverage.get(),
+            true,
+            seed
+        );
+
+        int64_t start_time = getTimeInMillis();
+        test.get().run(&ctx);
+        int64_t end_time = getTimeInMillis();
+
+        if (ctx.status() == TestStatus::PASSED)
+        {
+            reactor::engine().coutln(u"PASSED in {}s", FormatTime(end_time - start_time));
+        }
+        else {
+            reactor::engine().coutln(u"FAILED in {}s", FormatTime(end_time - start_time));
+            if (ctx.ex())
+            {
+                dump_exception(ctx.out(), ctx.ex());
+            }
+        }
+
+        return ctx.status();
+    }
+    else {
+        MMA1_THROW(TestConfigurationException()) << fmt::format_ex(u"No test with path '{}' found", test_path);
+    }
+}
+
+
 
 template <typename T>
 U16String to_string(const std::vector<T>& array)
@@ -407,6 +485,8 @@ void Test::run(TestContext *context) noexcept
 
     try {
         state = create_state();
+        state->set_seed(context->seed());
+        state->set_replay(context->is_replay());
 
         state->working_directory_ = context->data_directory();
 
@@ -418,20 +498,56 @@ void Test::run(TestContext *context) noexcept
         CommonConfigurationContext configuration_context(context->configurator()->config_base_path());
 
         state->internalize(context->configurator()->configuration(), &configuration_context);
+
+        state->set_up();
     }
     catch (...) {
-        context->failed(TestStatus::SETUP_FAILED, std::current_exception());
+        context->failed(TestStatus::SETUP_FAILED, std::current_exception(), state.get());
         return;
     }
 
     try {
-        test(state.get());
+        if (context->is_replay()) {
+            replay_test(state.get());
+        }
+        else {
+            test(state.get());
+        }
+
+        state->tear_down();
         context->passed();
     }
     catch (...) {
-        context->failed(TestStatus::TEST_FAILED, std::current_exception());
+        context->failed(TestStatus::TEST_FAILED, std::current_exception(), state.get());
     }
 }
 
+void Test::replay_test(TestState* state) {
+    MMA1_THROW(TestException()) << WhatCInfo("No Replay method exists for the test requested");
+}
+
+void DefaultTestContext::failed(TestStatus detail, std::exception_ptr ex, TestState* state) noexcept
+{
+    status_ = detail;
+    ex_ = ex;
+
+    if (detail == TestStatus::TEST_FAILED)
+    {
+        filesystem::path config_path = this->data_directory();
+        config_path.append("config.yaml");
+
+        CommonConfigurationContext configuration_context(data_directory());
+        YAML::Node config;
+        state->externalize(config, &configuration_context);
+
+        FileOutputStream<char> stream(open_buffered_file(config_path, FileFlags::RDWR | FileFlags::CREATE | FileFlags::TRUNCATE));
+        YAML::Emitter emitter(stream);
+
+        emitter.SetIndent(4);
+        emitter << config;
+
+        stream.flush();
+    }
+}
 
 }}}

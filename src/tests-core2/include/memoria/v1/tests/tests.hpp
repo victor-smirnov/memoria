@@ -62,8 +62,11 @@ struct TestContext {
     virtual std::ostream& out() noexcept               = 0;
     virtual filesystem::path data_directory() noexcept = 0;
 
-    virtual void passed() noexcept                                          = 0;
-    virtual void failed(TestStatus detail, std::exception_ptr ex) noexcept  = 0;
+    virtual void passed() noexcept                     = 0;
+    virtual void failed(TestStatus detail, std::exception_ptr ex, TestState* state) noexcept  = 0;
+
+    virtual bool is_replay() const noexcept            = 0;
+    virtual int64_t seed() const noexcept              = 0;
 };
 
 
@@ -77,6 +80,7 @@ struct Test {
     void run(TestContext* context) noexcept;
 
     virtual void test(TestState* state) = 0;
+    virtual void replay_test(TestState* state);
 };
 
 struct TestSuite {
@@ -193,6 +197,11 @@ auto ClassName##_suite_init = register_class_suite<ClassName>(SuiteName)
 #define MMA1_CLASS_TEST(Suite, MethodName) \
 Suite.emplace<ClassTest<MyType, &MyType::MethodName>>(u###MethodName)
 
+#define MMA1_CLASS_TEST_WITH_REPLAY(Suite, TestMethodName, ReplayMethodName) \
+Suite.emplace<ClassTestWithReplay<\
+    MyType, &MyType::TestMethodName, &MyType::ReplayMethodName\
+>>(u###TestMethodName)
+
 #define MMA1_BOOST_PP_CLASS_TESTS(r, data, elem) MMA1_CLASS_TEST(data, elem);\
 
 
@@ -239,6 +248,22 @@ public:
     }
 };
 
+template <typename StateT, void (StateT::*TestMethodT)(), void (StateT::*ReplayMethodT)()>
+class ClassTestWithReplay: public Test {
+public:
+    void test(TestState* state)
+    {
+        (tools::ptr_cast<StateT>(state)->*TestMethodT)();
+    }
+
+    void replay_test(TestState* state) {
+        (tools::ptr_cast<StateT>(state)->*ReplayMethodT)();
+    }
+
+    std::unique_ptr<TestState> create_state() {
+        return std::make_unique<StateT>();
+    }
+};
 
 template <typename T>
 T select_for_coverage(TestCoverage coverage, T&& for_all) {

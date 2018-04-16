@@ -54,16 +54,24 @@ class DefaultTestContext: public TestContext {
 
     TestCoverage coverage_;
 
+    bool replay_;
+
+    int64_t seed_;
+
 public:
     DefaultTestContext(
             YAML::Node configuration,
             filesystem::path config_base_path,
             filesystem::path data_directory,
-            TestCoverage coverage
+            TestCoverage coverage,
+            bool replay,
+            int64_t seed
     ):
         configurator_(configuration, config_base_path),
         data_directory_(data_directory),
-        coverage_(coverage)
+        coverage_(coverage),
+        replay_(replay),
+        seed_(seed)
     {}
 
     virtual TestCoverage coverage() const noexcept {return coverage_;}
@@ -88,14 +96,20 @@ public:
         status_ = TestStatus::PASSED;
     }
 
-    virtual void failed(TestStatus detail, std::exception_ptr ex) noexcept {
-        status_ = detail;
-        ex_ = ex;
+    virtual void failed(TestStatus detail, std::exception_ptr ex, TestState* state) noexcept;
+
+    virtual bool is_replay() const noexcept {
+        return replay_;
+    }
+
+    int64_t seed() const noexcept {
+        return seed_;
     }
 };
 
 void dump_exception(std::ostream& out, std::exception_ptr& ex);
 TestStatus run_single_test(const U16String& test_path);
+TestStatus replay_single_test(const U16String& test_path);
 
 void run_tests();
 

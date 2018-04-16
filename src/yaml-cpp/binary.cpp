@@ -1,5 +1,7 @@
 #include <memoria/v1/yaml-cpp/binary.h>
 
+namespace memoria {
+namespace v1 {
 namespace YAML {
 static const char encoding[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -90,4 +92,4 @@ std::vector<unsigned char> DecodeBase64(const std::string &input) {
   ret.resize(out - &ret[0]);
   return ret;
 }
-}
+}}}
