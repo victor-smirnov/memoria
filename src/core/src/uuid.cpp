@@ -25,7 +25,7 @@
 #include <string.h>
 #include <chrono>
 #include <memory>
-
+#include <sstream>
 
 namespace memoria {
 namespace v1 {
@@ -144,6 +144,14 @@ std::istream& operator>>(std::istream& in, UUID& uuid)
     }
 
     return in;
+}
+
+
+U8String UUID::to_u8() const
+{
+    std::stringstream ss;
+    ss << *this;
+    return U8String(ss.str());
 }
 
 }}

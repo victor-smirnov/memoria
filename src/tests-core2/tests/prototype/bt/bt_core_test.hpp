@@ -29,7 +29,7 @@ namespace tests {
 
 template <
     typename CtrName,
-    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename AllocatorT     = InMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class BTCoreTest: public BTTestBase<CtrName, AllocatorT, ProfileT> {

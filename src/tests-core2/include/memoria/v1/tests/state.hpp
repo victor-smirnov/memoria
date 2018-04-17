@@ -41,18 +41,6 @@ struct ConfigurationContext {
 
 template <typename T> struct IndirectStateFiledSerializer;
 
-template <>
-struct IndirectStateFiledSerializer<U8String> {
-    static void externalize(const U8String& value, filesystem::path path, ConfigurationContext* context){
-
-    }
-
-    static void internalize(U8String& value, filesystem::path path, ConfigurationContext* context) {
-
-    }
-};
-
-
 struct FieldHandler {
     virtual ~FieldHandler() noexcept {}
     virtual void externalize(YAML::Node& node, ConfigurationContext* context) = 0;

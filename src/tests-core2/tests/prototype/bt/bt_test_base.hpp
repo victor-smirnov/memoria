@@ -65,12 +65,7 @@ public:
 
     MMA1_STATE_FILEDS(dump_name_);
 
-    BTTestBase()
-    {
-        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
-    }
-
-    virtual ~BTTestBase() noexcept {}
+    BTTestBase(){}
 
     auto& allocator() {
         return allocator_;

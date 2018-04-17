@@ -104,6 +104,8 @@ public:
     static constexpr UUID make(uint64_t hi, uint64_t lo) {
         return UUID(hi, lo);
     }
+
+    U8String to_u8() const;
 };
 
 

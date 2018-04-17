@@ -15,13 +15,14 @@
 
 #include <memoria/v1/tests/tests.hpp>
 #include <memoria/v1/tests/assertions.hpp>
+#include <memoria/v1/tests/yaml.hpp>
 
 #include <memoria/v1/reactor/reactor.hpp>
 
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/random.hpp>
 
-
+#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -35,9 +36,18 @@ class SampleSuite: public TestState {
 
     StdString text_{"ABCDE"};
 
+    InMemAllocator<> allocator_;
+
+    UUID uuid_{UUID::make_random()};
+
 public:
 
-    MMA1_STATE_FILEDS(text_);
+    MMA1_STATE_FILEDS(text_, uuid_);
+    MMA1_INDIRECT_STATE_FILEDS(allocator_);
+
+    SampleSuite() {
+        allocator_ = InMemAllocator<>::create();
+    }
 
     static void init_suite(TestSuite& suite)
     {
@@ -48,24 +58,19 @@ public:
     {
         text_ += ": 12345 99";
         engine().coutln(u"Test doSomething: {}", text_);
-        assert_equals(1,2);
+        //assert_equals(1,2);
     }
 
     void replaySomething()
     {
-        engine().coutln(u"Replay doSomething: {}", text_);
+        engine().coutln(u"Replay doSomething: {} {}", text_, uuid_);
     }
 };
 
 
 
 namespace {
-
-
-
 auto Suite1 = register_class_suite<SampleSuite>("SampleSuite");
-
-
 }
 
 

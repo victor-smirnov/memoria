@@ -152,10 +152,12 @@ void ThreadsArgHelper::fix_thread_arg()
             auto test = tests_registry().find_test(test_name);
             if (test)
             {
-                auto state = test.get().create_state();
+                //auto state = test.get().create_state();
 
                 args_.insert(args_.begin() + 1, make_copy("-t"));
-                args_.insert(args_.begin() + 2, make_copy(std::to_string(state->threads()).data()));
+                args_.insert(args_.begin() + 2, make_copy("1"));
+
+                //args_.insert(args_.begin() + 2, make_copy(std::to_string(state->threads()).data()));
             }
         }
     }

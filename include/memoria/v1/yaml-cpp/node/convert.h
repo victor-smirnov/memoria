@@ -88,7 +88,7 @@ struct convert<std::string> {
 
 template <>
 struct convert<U8String> {
-  static Node encode(const U8String& rhs) { return Node(rhs); }
+  static Node encode(const U8String& rhs) { return Node(rhs.data()); }
 
   static bool decode(const Node& node, U8String& rhs) {
     if (!node.IsScalar())
