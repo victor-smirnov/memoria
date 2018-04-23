@@ -37,7 +37,7 @@ std::vector<typename IterApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>
     
     BTSSAdaptorFn<DataValue, std::remove_reference_t<decltype(fn)>, CtrIOBuffer> consumer(fn);
     
-    this->read(consumer);
+    this->read(consumer, size);
     
     return data;
 }

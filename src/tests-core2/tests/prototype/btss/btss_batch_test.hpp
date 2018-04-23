@@ -18,6 +18,8 @@
 #include "btss_test_base.hpp"
 #include "btss_test_factory.hpp"
 
+#include <memoria/v1/core/strings/format.hpp>
+
 #include <vector>
 #include <algorithm>
 #include <sstream>
@@ -27,9 +29,11 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
+using namespace reactor;
+
 template <
     typename CtrName,
-    typename AllocatorT     = ThreadInMemAllocator<>,
+    typename AllocatorT     = InMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
@@ -52,6 +56,7 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
     using Base::snapshot;
     using Base::check;
     using Base::out;
+    using Base::coutln;
     using Base::fillRandom;
     using Base::size_;
     using Base::storeAllocator;
@@ -83,36 +88,27 @@ public:
 
 public:
 
-    BTSSBatchTest(U16StringRef name):
-        Base(name)
+    MMA1_STATE_FILEDS(max_block_size_, check_size_, ctr_name_, prefix_size_, suffix_size_, block_size_, random_position_, iteration_);
+
+    BTSSBatchTest()
     {
         size_ = 1024 * 1024;
+    }
 
-        MEMORIA_ADD_TEST_PARAM(max_block_size_);
-        MEMORIA_ADD_TEST_PARAM(check_size_);
+    static void init_suite(TestSuite& suite)
+    {
+        MMA1_CLASS_TEST_WITH_REPLAY(suite, testInsertFromStart,   replayInsertFromStart);
+        MMA1_CLASS_TEST_WITH_REPLAY(suite, testInsertAtEnd,       replayInsertAtEnd);
+        MMA1_CLASS_TEST_WITH_REPLAY(suite, testInsertInTheMiddle, replayInsertInTheMiddle);
 
-        MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
-        MEMORIA_ADD_TEST_PARAM(block_size_)->state();
-        MEMORIA_ADD_TEST_PARAM(prefix_size_)->state();
-        MEMORIA_ADD_TEST_PARAM(suffix_size_)->state();
-        MEMORIA_ADD_TEST_PARAM(random_position_)->state();
-
-        MEMORIA_ADD_TEST_PARAM(iteration_)->state();
-
-        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart,   replayInsertFromStart);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd,       replayInsertAtEnd);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
-
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart,   replayRemoveFromStart);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd,       replayRemoveAtEnd);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
+        MMA1_CLASS_TEST_WITH_REPLAY(suite, testRemoveFromStart,   replayRemoveFromStart);
+        MMA1_CLASS_TEST_WITH_REPLAY(suite, testRemoveAtEnd,       replayRemoveAtEnd);
+        MMA1_CLASS_TEST_WITH_REPLAY(suite, testRemoveInTheMiddle, replayRemoveInTheMiddle);
     }
 
     int64_t iteration() const {
         return iteration_;
     }
-
-    virtual ~BTSSBatchTest() noexcept {}
 
     virtual MemBuffer createRandomBuffer(int32_t size)
     {
@@ -159,8 +155,6 @@ public:
 
             suffix_size_ = length = check_size_ >= remainder ? remainder : check_size_;
         }
-
-        //MemBuffer buf = this->createBuffer(length);
 
         MemBuffer buf = iter.read(length);
 
@@ -241,9 +235,9 @@ public:
 
         int64_t size2 = ctr.size();
 
-        AssertEQ(MA_SRC, size2, size + data.size());
+        assert_equals(size2, size + data.size());
 
-        AssertEQ(MA_SRC, iter.pos(), data.size());
+        assert_equals(iter.pos(), data.size());
 
         checkIterator(iter, MA_SRC);
 
@@ -284,7 +278,7 @@ public:
 
         checkIterator(iter, MA_SRC);
 
-        AssertEQ(MA_SRC, iter.pos(), position + data.size());
+        assert_equals(iter.pos(), position + data.size());
 
         iter.skip(-data.size() - prefix.size());
 
@@ -305,10 +299,6 @@ public:
         replay(&MyType::insertAtEnd);
     }
 
-
-
-
-
     void insertInTheMiddle(Ctr& ctr)
     {
         auto iter = ctr.seek(getRandomPosition(ctr));
@@ -317,9 +307,6 @@ public:
         MemBuffer suffix = createSuffixCheckBuffer(iter);
 
         MemBuffer data   = createDataBuffer();
-
-//         BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
-//         iter->insert_iobuffer(&provider);
 
         iter.insert(data);
         
@@ -380,7 +367,7 @@ public:
 
         iter.remove(size);
 
-        AssertEQ(MA_SRC, iter.pos(), 0);
+        assert_equals(0, iter.pos());
 
         checkIterator(iter, MA_SRC);
 
@@ -422,15 +409,15 @@ public:
 
         checkIterator(iter, MA_SRC);
 
-        AssertEQ(MA_SRC, last_size - size, ctr.size());
+        assert_equals(last_size - size, ctr.size());
 
         checkIterator(iter, MA_SRC);
 
-        AssertEQ(MA_SRC, iter.pos(), ctr.size());
+        assert_equals(iter.pos(), ctr.size());
 
         iter.skip(-prefix.size());
 
-        AssertEQ(MA_SRC, iter.pos(), ctr.size() - prefix.size());
+        assert_equals(iter.pos(), ctr.size() - prefix.size());
 
         checkBufferWritten(iter, prefix, MA_SRC);
     }
@@ -484,13 +471,13 @@ public:
 
         checkIterator(iter, MA_SRC);
 
-        AssertEQ(MA_SRC, iter.pos(), position);
+        assert_equals(iter.pos(), position);
 
         iter.skip(-prefix.size());
 
         checkBufferWritten(iter, prefix, MA_SRC);
 
-        AssertEQ(MA_SRC, iter.pos(), position);
+        assert_equals(iter.pos(), position);
         checkBufferWritten(iter, suffix, MA_SRC);
     }
 
@@ -526,7 +513,7 @@ public:
 
             test_fn(this, ctr);
 
-            out()<<"Size: "<<ctr.size()<<endl;
+            out() << "Size: " << ctr.size() << std::endl;
 
             check(snp, "Insert: Container Check Failed", MA_SRC);
 
@@ -539,7 +526,7 @@ public:
 
         if (!isReplayMode())
         {
-            storeAllocator(getResourcePath(U16String((SBuf() << "Insert_" << (++cnt_i_) << ".dump").str())));
+            storeAllocator(getResourcePath(fmt::format(u"Insert_{}.mma1", ++cnt_i_)));
         }
     }
 
@@ -566,7 +553,7 @@ public:
 
             test_fn(this, ctr);
 
-            out()<<"Size: "<<ctr.size()<<endl;
+            out() << "Size: " << ctr.size() << std::endl;
 
             check("Remove: Container Check Failed", MA_SRC);
 
@@ -578,7 +565,7 @@ public:
 
         if (!isReplayMode())
         {
-            storeAllocator(getResourcePath(U16String((SBuf()<<"Remove_"<<(++cnt_i_)<<".dump").str())));
+            storeAllocator(getResourcePath(U16String((SBuf() << "Remove_" << (++cnt_i_) << ".dump").str())));
         }
     }
 

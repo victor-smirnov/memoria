@@ -28,7 +28,7 @@ namespace tests {
 
 template <
     typename CtrName,
-    typename AllocatorT     = ThreadInMemAllocator<>,
+    typename AllocatorT     = InMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class BTSSCoreTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
@@ -46,11 +46,6 @@ public:
     {
 
     }
-
-    virtual void createAllocator(AllocatorSPtr& allocator) {
-        allocator = std::make_shared<Allocator>();
-    }
-
 };
 
 }}}

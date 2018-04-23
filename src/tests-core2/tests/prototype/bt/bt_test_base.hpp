@@ -18,13 +18,19 @@
 
 #include <memoria/v1/tests/tests.hpp>
 #include <memoria/v1/tests/assertions.hpp>
+#include <memoria/v1/tests/yaml.hpp>
+#include <memoria/v1/tests/tools.hpp>
+
 
 #include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 
 #include <memoria/v1/core/tools/time.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
 
 #include <functional>
 #include <memory>
+
+
 
 namespace memoria {
 namespace v1 {
@@ -59,13 +65,20 @@ protected:
     AllocatorPtr allocator_;
     SnapshotPtr  snapshot_;
 
-    U16String dump_name_;
+    int64_t size_{};
+    UUID snapshot_id_{};
+
 
 public:
 
-    MMA1_STATE_FILEDS(dump_name_);
+    MMA1_STATE_FILEDS(size_, snapshot_id_);
+    MMA1_INDIRECT_STATE_FILEDS(allocator_);
 
-    BTTestBase(){}
+    BTTestBase()
+    {
+        allocator_ = Allocator::create();
+        snapshot_ = allocator_.master();
+    }
 
     auto& allocator() {
         return allocator_;
@@ -91,6 +104,8 @@ public:
         else {
             snapshot_ = allocator_.master().branch();
         }
+
+        snapshot_id_ = snapshot_.uuid();
 
         return snapshot_;
     }
@@ -129,78 +144,64 @@ public:
 
     void check(SnapshotPtr& snapshot, const char* source)
     {
-        //v1::check(snapshot, "Snapshot check failed", source);
+        v1::tests::check(snapshot, "Snapshot check failed", source);
     }
 
     void check(const char* source)
     {
-        //v1::check(snapshot_, "Snapshot check failed", source);
+        v1::tests::check(snapshot_, "Snapshot check failed", source);
     }
 
     void check(SnapshotPtr& snapshot, const char* msg, const char* source)
     {
-        //v1::check(snapshot, msg, source);
+        v1::tests::check(snapshot, msg, source);
     }
 
     void check(const char* msg, const char* source)
     {
-        //v1::check(snapshot_, msg, source);
+        v1::tests::check(snapshot_, msg, source);
     }
 
-    // FIXME: remove it
-    virtual void createAllocator(AllocatorPtr& allocator)
-    {
-        allocator = Allocator::create();
-    }
+//    // FIXME: remove it
+//    virtual void createAllocator(AllocatorPtr& allocator)
+//    {
+//        allocator = Allocator::create();
+//    }
 
-    virtual void set_up()
+    virtual void set_up() noexcept
     {
-//        Base::setUp();
-
-//        if (!isReplayMode())
-//        {
-//            createAllocator(allocator_);
-//            MEMORIA_V1_ASSERT_TRUE(allocator_);
-//        }
-//        else {
-//            loadAllocator(dump_name_);
-//            snapshot_ = allocator_.master();
-//        }
-    }
-
-    virtual void tear_down()
-    {
-        if (snapshot_) {
-            snapshot_.reset();
+        if (is_replay())
+        {
+            snapshot_ = allocator_.find(snapshot_id_);
         }
-
-        allocator_.reset();
     }
 
-    virtual void onException() noexcept
+    virtual void tear_down() noexcept
+    {
+//        if (snapshot_) {
+//            snapshot_.reset();
+//        }
+
+//        allocator_.reset();
+    }
+
+    virtual void on_test_failure() noexcept
     {
         try {
-
             if (snapshot_.is_active())
             {
                 commit();
-
-                auto file_name_invalid = getAllocatorFileName(u".invalid");
-                storeAllocator(file_name_invalid);
-
-                drop();
-
-                dump_name_ = getAllocatorFileName(u".valid");
-                storeAllocator(dump_name_);
             }
-            else if (snapshot_.is_committed())
-            {
-                dump_name_ = getAllocatorFileName(u".valid");
-                storeAllocator(dump_name_);
-            }
+
+            snapshot_id_ = snapshot_.uuid();
+
+//            filesystem::path allocator_path = this->working_directory_;
+//            allocator_path.append("allocator-invalid.mma1");
+
+//            allocator_.store(allocator_path);
         }
         catch (...) {
-            out() << "Exception is thrown in BTTestBase::onException()";
+            out() << "Exception is thrown in BTTestBase::on_test_failure()";
         }
     }
 
@@ -210,42 +211,37 @@ public:
     }
 
 
-    virtual void loadAllocator(U16StringRef file_name)
+    virtual void loadAllocator(U16String file_name)
     {
         allocator_ = Allocator::load(file_name.to_u8().data());
     }
 
-    virtual void dumpAllocator()
-    {
-        U16String file_name = getAllocatorFileName(u"-allocator.dump");
-        FSDumpAllocator(allocator_, file_name);
-    }
-
-    virtual void dumpSnapshot()
-    {
-        if (snapshot_)
-        {
-            U16String file_name = getAllocatorFileName(u"-snapshot.dump");
-            FSDumpAllocator(snapshot_, file_name);
-        }
-    }
-
-
 
     virtual void checkAllocator(const char* msg, const char* source)
     {
-        //v1::check<Allocator>(this->allocator(), msg, source);
-    }
-
-    virtual U16String getAllocatorFileName(U16StringRef infix = u"") const
-    {
-        //return getResourcePath(U16String(u"Allocator") + infix + u".dump");
-        return U16String();
+        v1::tests::check<Allocator>(allocator_, msg, source);
     }
 
     bool checkSoftMemLimit()
     {
         return true;
+    }
+
+    bool isReplayMode() const noexcept {
+        return this->is_replay();
+    }
+
+    U16String getResourcePath(const U16String& resource)
+    {
+        filesystem::path path = this->working_directory_;
+        path.append(resource.to_u8().to_std_string());
+
+        return path.to_u16();
+    }
+
+    template <typename... Args>
+    void coutln(const char16_t* format, Args&&... args) {
+        reactor::engine().coutln(format, std::forward<Args>(args)...);
     }
 };
 

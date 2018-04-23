@@ -257,6 +257,12 @@ void IterApiBase<CtrName, Profile>::dump_path()
 }
 
 template <typename CtrName, typename Profile>
+void IterApiBase<CtrName, Profile>::dump_header()
+{
+    return this->pimpl_->dumpHeader();
+}
+
+template <typename CtrName, typename Profile>
 void IterApiBase<CtrName, Profile>::reset()
 {
     return this->pimpl_.reset();

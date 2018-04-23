@@ -531,8 +531,10 @@ void DefaultTestContext::failed(TestStatus detail, std::exception_ptr ex, TestSt
     status_ = detail;
     ex_ = ex;
 
-    if (detail == TestStatus::TEST_FAILED)
+    if (detail == TestStatus::TEST_FAILED && !state->is_replay())
     {
+        state->on_test_failure();
+
         filesystem::path config_path = this->data_directory();
         config_path.append("config.yaml");
 

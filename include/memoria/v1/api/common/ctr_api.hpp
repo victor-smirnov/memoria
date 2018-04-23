@@ -171,6 +171,7 @@ public:
     
     void dump();
     void dump_path();
+    void dump_header();
     void check(std::ostream& out, const char* source);
 };
 

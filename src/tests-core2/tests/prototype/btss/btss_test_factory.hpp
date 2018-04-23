@@ -30,7 +30,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace tests {
+
 
 template <
     PackedSizeType LeafSizeType,
@@ -139,4 +139,4 @@ struct TypeHash<BTSSTestCtr<LeafSizeType, BranchSizeType>>: UInt64Value<
 > {};
 
 
-}}}
+}}

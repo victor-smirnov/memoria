@@ -34,12 +34,16 @@ template <typename T>
 struct IndirectStateFiledSerializer<InMemAllocator<T>> {
     static void externalize(InMemAllocator<T>& alloc, filesystem::path path, ConfigurationContext* context)
     {
-        alloc.store(path);
+        auto path_str = path.to_u8();
+        path_str += ".mma1";
+        alloc.store(filesystem::path(path_str.to_std_string()));
     }
 
     static void internalize(InMemAllocator<T>& alloc, filesystem::path path, ConfigurationContext* context)
     {
-        alloc = InMemAllocator<T>::load(path);
+        auto path_str = path.to_u8();
+        path_str += ".mma1";
+        alloc = InMemAllocator<T>::load(filesystem::path(path_str.to_std_string()));
     }
 };
 
