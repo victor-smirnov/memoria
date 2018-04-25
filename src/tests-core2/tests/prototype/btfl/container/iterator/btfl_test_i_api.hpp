@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/algo/for_each.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
 #include <memoria/v1/core/container/iterator.hpp>
@@ -124,7 +125,7 @@ public:
             return data;
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Invalid stream: {}", stream);
         }
     }
 
@@ -151,7 +152,7 @@ public:
             return data;
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Invalid stream: {}", stream);
         }
     }
 
@@ -186,7 +187,7 @@ public:
             return r1 - r0;
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Invalid stream: {}", stream);
         }
     }
 
@@ -200,7 +201,7 @@ public:
     		self.selectFw(1, stream + 1);
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Invalid stream: {}", stream);
     	}
     }
 

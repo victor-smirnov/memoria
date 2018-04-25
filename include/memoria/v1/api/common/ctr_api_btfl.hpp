@@ -49,7 +49,7 @@ protected:
     using Iterator = IterApi<CtrName, Profile>;
     
 public:
-    CtrApiBTFLBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name):
+    CtrApiBTFLBase(const AllocSharedPtr<AllocatorT>& allocator, int command, const UUID& name):
         Base(allocator, command, name) 
     {}
         

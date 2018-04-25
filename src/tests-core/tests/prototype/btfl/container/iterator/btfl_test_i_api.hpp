@@ -200,7 +200,7 @@ public:
     		self.selectFw(1, stream + 1);
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
     	}
     }
 

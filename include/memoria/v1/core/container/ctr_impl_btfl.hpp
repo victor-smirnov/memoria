@@ -51,7 +51,7 @@ typename CtrApiBTFLBase<CtrName, Profile>::Iterator CtrApiBTFLBase<CtrName, Prof
 template <typename CtrName, typename Profile>
 typename CtrApiBTFLBase<CtrName, Profile>::Iterator CtrApiBTFLBase<CtrName, Profile>::seq_seek(int64_t pos)
 {
-    return this->pimpl_->seek(pos);
+    return this->pimpl_->seq_seek(pos);
 }
 
 template <typename CtrName, typename Profile>

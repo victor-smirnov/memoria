@@ -81,14 +81,13 @@ public:
 
     BTFLCreateTest()
     {
-        MEMORIA_ADD_TEST(testCreation1);
-        MEMORIA_ADD_TEST(testCreation2);
-        MEMORIA_ADD_TEST(testCreation3);
-        MEMORIA_ADD_TEST(testCreation4);
-        MEMORIA_ADD_TEST(testCreation5);
     }
 
-    virtual ~BTFLCreateTest() throw () {}
+    static void init_suite(TestSuite& suite)
+    {
+        MMA1_CLASS_TESTS(suite, testCreation1, testCreation2, testCreation3);
+        MMA1_CLASS_TESTS(suite, testCreation4, testCreation5);
+    }
 
 
 
@@ -121,33 +120,32 @@ public:
 
     void testCreation(const DataSizesT& shape)
     {
-        out() << "Test Creation for shape: " << shape << endl;
+        out() << "Test Creation for shape: " << shape << std::endl;
 
         auto snp = branch();
 
-        auto ctr_name = create<CtrName>(snp)->name();
+        auto ctr_name = create<CtrName>(snp).name();
         auto ctr = find<CtrName>(snp, ctr_name);
 
         auto data = fillCtrRandomly(ctr, shape);
         auto data_len = dataLength(data);
 
-        auto rdata = ctr->begin()->template readData<0>(data_len);
+        auto rdata = ctr.begin().template read_data0(data_len);
 
         checkEquality(data, rdata);
 
-        auto ii = ctr->begin();
+        auto ii = ctr.begin();
 
         for (size_t c = 0; c < data.size(); )
         {
             int32_t len = getRandom(5) + 1;
 
-            auto entry = ii->template readEntries<0>(len);
-            AssertLE(MA_SRC, entry.size(), len);
+            auto entry = ii.read_entries0(len);
+            assert_le(entry.size(), len);
 
             for (size_t l = 0; l < entry.size(); l++)
             {
-            	AssertEQ(MA_SRC, std::get<0>(data[c + l]), std::get<0>(entry[l]));
-
+                assert_equals(std::get<0>(data[c + l]), std::get<0>(entry[l]));
             	checkEquality(std::get<1>(data[c + l]), std::get<1>(entry[l]));
             }
 

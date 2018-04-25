@@ -13,9 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#pragma once
-
 #include "btfl_create_test.hpp"
 #include "btfl_seek_test.hpp"
 #include "btfl_iterator_test.hpp"
@@ -25,23 +22,20 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
+namespace {
 
-//class BTFLTestSuite: public TestSuite {
+auto Suite1 = register_class_suite<BTFLCreateTest<BTFLTestCtr<2>>>("BTFL.Create.2");
+//auto Suite2 = register_class_suite<BTFLCreateTest<BTFLTestCtr<4>>>("BTFL.Create.4");
 
-//public:
+//auto Suite3 = register_class_suite<BTFLSeekTest<BTFLTestCtr<2>>>("BTFL.Seek.2");
+//auto Suite4 = register_class_suite<BTFLSeekTest<BTFLTestCtr<4>>>("BTFL.Seek.4");
 
-//    BTFLTestSuite(): TestSuite("BT.FL")
-//    {
-//      registerTask(new BTFLCreateTest<BTFLTestCtr<2>>("Create.2"));
-//      registerTask(new BTFLSeekTest<BTFLTestCtr<2>>("Seek.2"));
-//      registerTask(new BTFLIteratorTest<BTFLTestCtr<2>>("Iterator.2"));
-//      registerTask(new BTFLRemoveTest<BTFLTestCtr<2>>("Remove.2"));
+//auto Suite5 = register_class_suite<BTFLIteratorTest<BTFLTestCtr<2>>>("BTFL.Iterator.2") ;
+//auto Suite6 = register_class_suite<BTFLIteratorTest<BTFLTestCtr<4>>>("BTFL.Iterator.4");
 
-//      registerTask(new BTFLCreateTest<BTFLTestCtr<4>>("Create.4"));
-//      registerTask(new BTFLSeekTest<BTFLTestCtr<4>>("Seek.4"));
-//      registerTask(new BTFLIteratorTest<BTFLTestCtr<4>>("Iterator.4"));
-//      registerTask(new BTFLRemoveTest<BTFLTestCtr<4>>("Remove.4"));
-//    }
-//};
+//auto Suite7 = register_class_suite<BTFLRemoveTest<BTFLTestCtr<2>>>("BTFL.Remove.2");
+//auto Suite8 = register_class_suite<BTFLRemoveTest<BTFLTestCtr<4>>>("BTFL.Remove.4");
+
+}
 
 }}}

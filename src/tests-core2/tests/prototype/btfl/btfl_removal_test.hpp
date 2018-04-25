@@ -17,9 +17,6 @@
 
 #include <memoria/v1/memoria.hpp>
 
-#include <memoria/v1/tools/tests.hpp>
-#include <memoria/v1/tools/tools.hpp>
-
 #include "btfl_test_base.hpp"
 
 #include <vector>
@@ -33,7 +30,7 @@ namespace tests {
 
 template <
     typename CtrName,
-    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename AllocatorT     = InMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class BTFLRemoveTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
@@ -84,19 +81,15 @@ class BTFLRemoveTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
 
 public:
 
-    BTFLRemoveTest(String name):
-        Base(name)
+    BTFLRemoveTest()
+    {}
+
+
+    static void init_suite(TestSuite& suite)
     {
-        MEMORIA_ADD_TEST(testRemoval1);
-        MEMORIA_ADD_TEST(testRemoval2);
-        MEMORIA_ADD_TEST(testRemoval3);
-        MEMORIA_ADD_TEST(testRemoval4);
-        MEMORIA_ADD_TEST(testRemoval5);
+        MMA1_CLASS_TESTS(suite, testRemoval1, testRemoval2, testRemoval3);
+        MMA1_CLASS_TESTS(suite, testRemoval4, testRemoval5);
     }
-
-
-
-
 
     void testRemoval1()
     {
@@ -126,21 +119,21 @@ public:
     template <typename Ctr>
     auto readAllData(Ctr&& ctr)
     {
-    	return ctr->begin()->template readEntries<0>();
+        return ctr.begin().read_entries0();
     }
 
     void testRemoval(const DataSizesT& shape)
     {
-        out() << "Test Removal for shape: " << shape << endl;
+        out() << "Test Removal for shape: " << shape << std::endl;
 
         auto snp = branch();
 
-        auto ctr_name = create<CtrName>(snp)->name();
+        auto ctr_name = create<CtrName>(snp).name();
         auto ctr = find<CtrName>(snp, ctr_name);
 
         auto data = fillCtrRandomly(ctr, shape);
 
-        auto ii = ctr->begin();
+        auto ii = ctr.begin();
 
         auto size = data.size();
 
@@ -148,11 +141,11 @@ public:
         {
             size_t pos = getRandom(data.size());
 
-            out() << "Remove element " << pos << ", size = " << data.size() << " of " << size << endl;
+            out() << "Remove element " << pos << ", size = " << data.size() << " of " << size << std::endl;
 
-            auto ii = ctr->seekL0(pos);
+            auto ii = ctr.seekL0(pos);
 
-            ii->removeGE(1);
+            ii.remove_ge(1);
 
             data.erase(data.begin() + pos, data.begin() + pos + 1);
 

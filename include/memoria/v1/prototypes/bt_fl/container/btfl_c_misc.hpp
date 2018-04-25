@@ -56,7 +56,7 @@ public:
 
     auto seq_end() {
         auto& self = this->self();
-        return self.template seek_stream<StructureStreamIdx>(self.size());
+        return self.template seek_stream<StructureStreamIdx>(self.seq_size());
     }
 
     CtrSizeT seq_size() const {

@@ -28,7 +28,7 @@ namespace tests {
 
 template <
     typename CtrName,
-    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename AllocatorT     = InMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class BTFLIteratorTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
@@ -77,16 +77,13 @@ class BTFLIteratorTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
 
 
 public:
+    BTFLIteratorTest()
+    {}
 
-    BTFLIteratorTest(String name):
-        Base(name)
+    static void init_suite(TestSuite& suite)
     {
-        MEMORIA_ADD_TEST(testIterator1);
-        MEMORIA_ADD_TEST(testIterator2);
-        MEMORIA_ADD_TEST(testIterator3);
-        MEMORIA_ADD_TEST(testIterator4);
-        MEMORIA_ADD_TEST(testIterator5);
-        MEMORIA_ADD_TEST(testIterator6);
+        MMA1_CLASS_TESTS(suite, testIterator1, testIterator2, testIterator3);
+        MMA1_CLASS_TESTS(suite, testIterator4, testIterator5, testIterator6);
     }
 
     void testIterator1()
@@ -123,18 +120,18 @@ public:
 
     void testIterator(const DataSizesT& shape)
     {
-        out() << "Test Creation for shape: " << shape << endl;
+        out() << "Test Creation for shape: " << shape << std::endl;
 
         auto snp = branch();
 
-        auto ctr_name = create<CtrName>(snp)->name();
+        auto ctr_name = create<CtrName>(snp).name();
         auto ctr 			= find<CtrName>(snp, ctr_name);
 
         auto data = fillCtrRandomly(ctr, shape);
 
         btfl_test::BTFLDataChecker<decltype(data), DataStreams, 0> checker(data);
 
-        auto ii = ctr->begin();
+        auto ii = ctr.begin();
 
         checker.check(ii);
 

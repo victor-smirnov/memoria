@@ -57,7 +57,6 @@ protected:
 
     using Iterator          = IterApi<CtrName, Profile>;
 
-
     using Allocator     = AllocatorType;
     using AllocatorPtr  = Allocator;
     using SnapshotPtr   = typename Allocator::SnapshotPtr;
@@ -68,6 +67,8 @@ protected:
     int64_t size_{};
     UUID snapshot_id_{};
 
+    RngInt int_generator_{};
+    RngInt64 bigint_generator_{};
 
 public:
 

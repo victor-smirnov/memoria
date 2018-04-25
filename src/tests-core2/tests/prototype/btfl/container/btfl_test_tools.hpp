@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <memoria/v1/tests/assertions.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
 
@@ -149,24 +150,25 @@ public:
     {
     	for (size_t child_idx = 0; start_ != end_; child_idx++)
     	{
-    		auto key = iter->template key<StartLevel>();
-    		AssertEQ(MA_SRC, key, std::get<0>(*start_));
+            //auto key = iter.template key<StartLevel>();
+            auto key = iter.key0();
+            v1::tests::assert_equals(key, std::get<0>(*start_));
 
-    		auto children = iter->countChildren();
+            auto children = iter.count_children();
 
-    		AssertEQ(MA_SRC, (size_t)children, std::get<1>(*start_).size());
+            v1::tests::assert_equals((size_t)children, std::get<1>(*start_).size());
 
     		if (children > 0)
     		{
     			next_checker_ = NextBTFLDataChecker(std::get<1>(*start_));
 
-    			iter->toChild(child_idx);
+                iter.to_child(child_idx);
     			next_checker_.check(iter);
-    			iter->toParent(StartLevel);
+                iter.to_parent(StartLevel);
     		}
 
     		start_++;
-    		iter->selectGEFw(1, StartLevel);
+            iter.select_ge_fw(1, StartLevel);
     	}
     }
 };
@@ -205,11 +207,12 @@ public:
     {
     	while (start_ != end_)
     	{
-    		auto value = iter->template key<StartLevel>();
-    		AssertEQ(MA_SRC, value, *start_);
+            //auto value = iter.template key<StartLevel>();
+            auto value = iter.key0();
+            v1::tests::assert_equals(value, *start_);
 
     		start_++;
-    		iter->next();
+            iter.next();
     	}
     }
 

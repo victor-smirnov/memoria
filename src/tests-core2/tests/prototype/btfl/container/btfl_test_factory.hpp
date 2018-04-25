@@ -16,9 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/memoria.hpp>
-
-#include <memoria/v1/tools/tools.hpp>
+#include "../btfl_ctr_api.hpp"
 
 #include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
@@ -36,9 +34,6 @@ namespace memoria {
 namespace v1 {
 
 
-template <int32_t DataStreams, PackedSizeType SizeType = PackedSizeType::VARIABLE>
-class BTFLTestCtr {};
-
 
 template <
     typename Profile,
@@ -49,18 +44,18 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
 
     using Base = BTTypes<Profile, BTFreeLayout>;
 
-    using Key       = int64_t;
-    using Value     = int8_t;
-    using Column    = int64_t;
+    using Key       = BTFLTestKeyT;
+    using Value     = BTFLTestValueT;
+    using Column    = BTFLTestColumnT;
 
     using CtrSizeT = int64_t;
 
     using StreamVariableTF = StreamTF<
         TL<TL<
             StreamSize,
-                      PkdFQTreeT<Key>
+            PkdFQTreeT<Key>
         >>,
-                bt::DefaultBranchStructTF
+        bt::DefaultBranchStructTF
     >;
 
     using DataStreamTF = StreamTF<
@@ -69,7 +64,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
             PackedFSEArray<PackedFSEArrayTypes<Value>>
             >
         >,
-                bt::DefaultBranchStructTF
+        bt::DefaultBranchStructTF
     >;
 
     using StructureStreamTF = StreamTF<

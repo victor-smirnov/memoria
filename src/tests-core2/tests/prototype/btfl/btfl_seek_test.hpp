@@ -28,7 +28,7 @@ namespace tests {
 
 template <
     typename CtrName,
-    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename AllocatorT     = InMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class BTFLSeekTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
@@ -78,14 +78,14 @@ class BTFLSeekTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
 
 public:
 
-    BTFLSeekTest(String name):
-        Base(name)
+    BTFLSeekTest()
     {
-        MEMORIA_ADD_TEST(testSeek1);
-        MEMORIA_ADD_TEST(testSeek2);
-        MEMORIA_ADD_TEST(testSeek3);
-        MEMORIA_ADD_TEST(testSeek4);
-        MEMORIA_ADD_TEST(testSeek5);
+    }
+
+    static void init_suite(TestSuite& suite)
+    {
+        MMA1_CLASS_TESTS(suite, testSeek1, testSeek2, testSeek3);
+        MMA1_CLASS_TESTS(suite, testSeek4, testSeek5);
     }
 
     void testSeek1()
@@ -117,20 +117,19 @@ public:
 
     void testSeek(const DataSizesT& shape)
     {
-        out() << "Test Creation for shape: " << shape << endl;
+        out() << "Test Creation for shape: " << shape << std::endl;
 
         auto snp = branch();
 
-        auto ctr_name = create<CtrName>(snp)->name();
-        auto ctr 			= find<CtrName>(snp, ctr_name);
+        auto ctr_name = create<CtrName>(snp).name();
+        auto ctr 	  = find<CtrName>(snp, ctr_name);
 
         auto data = fillCtrRandomly(ctr, shape);
 
         for (size_t c = 0; c < data.size(); c++)
         {
-        		auto ii = ctr->seekL0(c);
-
-        		AssertEQ(MA_SRC, ii->rank(0), c);
+            auto ii = ctr.seekL0(c);
+            assert_equals(c, ii.rank(0));
         }
 
         commit();

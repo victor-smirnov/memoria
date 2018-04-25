@@ -16,7 +16,9 @@ set (SRCS )
 #set (SRCS ${SRCS} packed/sequence/rle/rleseq_test_suite.cpp)
 
 #set (SRCS ${SRCS} prototype/sample_suite.cpp)
-set (SRCS ${SRCS} prototype/btss/btss_test_suite.cpp prototype/btss/btss_test_ctr_dflt.cpp)
+
+#set (SRCS ${SRCS} prototype/btss/btss_test_suite.cpp prototype/btss/btss_test_ctr_dflt.cpp)
+set (SRCS ${SRCS} prototype/btfl/btfl_test_suite.cpp prototype/btfl/btfl_test_ctr_dflt.cpp)
 
 add_executable(tests2 tests2.cpp ${SRCS})
 

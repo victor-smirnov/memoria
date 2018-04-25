@@ -16,12 +16,8 @@
 
 #pragma once
 
-
-
-
-#include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
-
 #include "../bt/bt_test_base.hpp"
+
 #include "container/btfl_test_factory.hpp"
 
 #include <functional>
@@ -208,12 +204,12 @@ public:
     template <typename K, typename V, template <typename...> class Container1, template <typename...> class Container2, typename... Args1, typename... Args2>
     void checkEquality(const Container1<std::tuple<K, V>, Args1...>& first, const Container2<std::tuple<K, V>, Args2...>& second)
     {
-        AssertEQ(MA_SRC, first.size(), second.size());
+        assert_equals(first.size(), second.size());
 
         auto i2 = second.begin();
         for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
         {
-            AssertEQ(MA_SRC, std::get<0>(*i1), std::get<0>(*i2));
+            assert_equals(std::get<0>(*i1), std::get<0>(*i2));
 
             checkEquality(std::get<1>(*i1), std::get<1>(*i2));
         }
@@ -222,12 +218,12 @@ public:
     template <typename V, template <typename...> class Container1, template <typename...> class Container2, typename... Args1, typename... Args2>
     void checkEquality(const Container1<V, Args1...>& first, const Container2<V, Args2...>& second)
     {
-        AssertEQ(MA_SRC, first.size(), second.size());
+        assert_equals(first.size(), second.size());
 
         auto i2 = second.begin();
         for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
         {
-            AssertEQ(MA_SRC, *i1, *i2);
+            assert_equals(*i1, *i2);
         }
     }
 
@@ -264,18 +260,18 @@ public:
     template <typename Ctr>
     auto fillCtrRandomly(Ctr&& ctr, const DataSizesT& shape)
     {
-        auto iter = ctr->begin();
+        auto iter = ctr.begin();
 
         long t0 = getTimeInMillis();
 
         auto data  = createSampleBTFLData(shape);
-        auto totals = iter->insert_iodata(data);
+        auto totals = iter.insert_iodata(data);
 
         check("Bulk Insertion", MA_SRC);
 
         long t1 = getTimeInMillis();
 
-        out() << "Creation time: " << FormatTime(t1 - t0) << " consumed: " << totals << endl;
+        out() << "Creation time: " << FormatTime(t1 - t0) << " consumed: " << totals << std::endl;
 
         return data;
     }
