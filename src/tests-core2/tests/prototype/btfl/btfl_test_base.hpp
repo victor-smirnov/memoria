@@ -20,6 +20,8 @@
 
 #include "container/btfl_test_factory.hpp"
 
+#include "btfl_ctr_impl.hpp"
+
 #include <functional>
 
 namespace memoria {

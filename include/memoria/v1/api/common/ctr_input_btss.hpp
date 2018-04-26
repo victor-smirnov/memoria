@@ -37,7 +37,7 @@ template <typename Value, typename Iterator, typename EndIterator, typename IOBu
 class InputIteratorProvider<Value, Iterator, EndIterator, IOBuffer, false>: public bt::BufferProducer<IOBuffer> {
 
     Iterator iterator_;
-    const EndIterator& end_;
+    EndIterator end_;
 public:
     InputIteratorProvider(const Iterator& start, const EndIterator& end): 
         iterator_(start), end_(end)
@@ -56,7 +56,7 @@ public:
                 return total;
             }
             
-            iterator_++;
+            ++iterator_;
         }
 
         return -total;

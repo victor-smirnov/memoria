@@ -38,7 +38,7 @@ FreeUniquePtr<T> AllocateUnique(size_t block_size)
 {
     auto ptr = allocate_system<T>(block_size);
 
-    if (!ptr.get())
+    if (ptr.get())
     {
         return ptr;
     }

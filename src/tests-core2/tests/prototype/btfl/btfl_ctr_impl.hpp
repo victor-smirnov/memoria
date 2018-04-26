@@ -107,14 +107,6 @@ bool IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::next()
 
 
 template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
-BTFLTestKeyT IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::key0()
-{
-    return this->pimpl_->template key<0>();
-}
-
-void remove_ge(int64_t size);
-
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
 core::StaticVector<int64_t, DataStreams + 1> IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::remove_ge(int64_t size)
 {
     return this->pimpl_->removeGE(size);

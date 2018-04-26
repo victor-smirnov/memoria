@@ -25,16 +25,16 @@ namespace tests {
 namespace {
 
 auto Suite1 = register_class_suite<BTFLCreateTest<BTFLTestCtr<2>>>("BTFL.Create.2");
-//auto Suite2 = register_class_suite<BTFLCreateTest<BTFLTestCtr<4>>>("BTFL.Create.4");
+auto Suite2 = register_class_suite<BTFLCreateTest<BTFLTestCtr<4>>>("BTFL.Create.4");
 
-//auto Suite3 = register_class_suite<BTFLSeekTest<BTFLTestCtr<2>>>("BTFL.Seek.2");
-//auto Suite4 = register_class_suite<BTFLSeekTest<BTFLTestCtr<4>>>("BTFL.Seek.4");
+auto Suite3 = register_class_suite<BTFLSeekTest<BTFLTestCtr<2>>>("BTFL.Seek.2");
+auto Suite4 = register_class_suite<BTFLSeekTest<BTFLTestCtr<4>>>("BTFL.Seek.4");
 
-//auto Suite5 = register_class_suite<BTFLIteratorTest<BTFLTestCtr<2>>>("BTFL.Iterator.2") ;
-//auto Suite6 = register_class_suite<BTFLIteratorTest<BTFLTestCtr<4>>>("BTFL.Iterator.4");
+auto Suite5 = register_class_suite<BTFLIteratorTest<BTFLTestCtr<2>>>("BTFL.Iterator.2") ;
+auto Suite6 = register_class_suite<BTFLIteratorTest<BTFLTestCtr<4>>>("BTFL.Iterator.4");
 
-//auto Suite7 = register_class_suite<BTFLRemoveTest<BTFLTestCtr<2>>>("BTFL.Remove.2");
-//auto Suite8 = register_class_suite<BTFLRemoveTest<BTFLTestCtr<4>>>("BTFL.Remove.4");
+auto Suite7 = register_class_suite<BTFLRemoveTest<BTFLTestCtr<2>>>("BTFL.Remove.2");
+auto Suite8 = register_class_suite<BTFLRemoveTest<BTFLTestCtr<4>>>("BTFL.Remove.4");
 
 }
 

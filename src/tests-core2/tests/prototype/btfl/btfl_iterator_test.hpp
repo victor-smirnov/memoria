@@ -120,7 +120,7 @@ public:
 
     void testIterator(const DataSizesT& shape)
     {
-        out() << "Test Creation for shape: " << shape << std::endl;
+        out() << "Test Iteration for shape: " << shape << std::endl;
 
         auto snp = branch();
 

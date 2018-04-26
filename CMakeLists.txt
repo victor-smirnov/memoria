@@ -76,7 +76,7 @@ add_definitions(-DBOOST_NO_AUTO_PTR -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE -DJ
 if (BUILD_POSIX)
     add_definitions(-Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     add_definitions(-Wno-old-style-cast)
-    #add_definitions(-DBOOST_STACKTRACE_USE_ADDR2LINE)
+    add_definitions(-DBOOST_STACKTRACE_USE_BACKTRACE)
 
     add_definitions(-fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
     add_definitions(-Wno-comment -Wno-unknown-warning-option -Wunused-variable)
@@ -106,7 +106,7 @@ if (BUILD_POSIX)
         add_global_linker(-fsanitize=thread)
     endif()
     
-    add_global_libs(dl pthread )
+    add_global_libs(dl pthread backtrace)
     add_global_linker(-static-libstdc++)
 
     if (BUILD_STATIC)
@@ -150,8 +150,6 @@ add_global_libs(${ICU_LIBRARIES})
 
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
-
-
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 

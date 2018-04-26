@@ -149,9 +149,12 @@ public:
 
             data.erase(data.begin() + pos, data.begin() + pos + 1);
 
-            auto new_data = readAllData(ctr);
+            if (c % 100 == 0) {
+                auto new_data = readAllData(ctr);
 
-            checkEquality(data, new_data);
+                out() << "Checking container" << std::endl;
+                checkEquality(data, new_data);
+            }
         }
 
         commit();

@@ -82,7 +82,10 @@ public:
 
     core::StaticVector<int64_t, DataStreams + 1> remove_ge(int64_t size);
 
-    BTFLTestKeyT key0();
+    template <int32_t Stream>
+    auto key() const {
+        return this->pimpl_->template key<Stream>();
+    }
 
     bool next();
 };

@@ -21,6 +21,7 @@
 #include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
 
 
+
 #include <functional>
 #include <vector>
 #include <algorithm>
@@ -150,8 +151,8 @@ public:
     {
     	for (size_t child_idx = 0; start_ != end_; child_idx++)
     	{
-            //auto key = iter.template key<StartLevel>();
-            auto key = iter.key0();
+            auto key = iter.template key<StartLevel>();
+            //auto key = iter.key0();
             v1::tests::assert_equals(key, std::get<0>(*start_));
 
             auto children = iter.count_children();
@@ -207,8 +208,7 @@ public:
     {
     	while (start_ != end_)
     	{
-            //auto value = iter.template key<StartLevel>();
-            auto value = iter.key0();
+            auto value = iter.template key<StartLevel>();
             v1::tests::assert_equals(value, *start_);
 
     		start_++;
