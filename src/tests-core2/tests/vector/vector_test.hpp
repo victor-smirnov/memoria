@@ -16,24 +16,20 @@
 
 #pragma once
 
-
-#include <memoria/v1/tests/tests.hpp>
-
-#include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
-#include <memoria/v1/api/vector/vector_api.hpp>
-
 #include "../prototype/btss/btss_test_base.hpp"
 
-
+#include <memoria/v1/api/vector/vector_api.hpp>
 
 #include <vector>
 
 namespace memoria {
 namespace v1 {
+namespace tests {
+
 
 template <
     typename CtrName,
-    typename AllocatorT     = ThreadInMemAllocator<>,
+    typename AllocatorT     = InMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
@@ -64,13 +60,16 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
     using Base::getRandom;
 
 public:
-    VectorTest(U16StringRef name):
-        Base(name)
+    VectorTest()
     {
-        MEMORIA_ADD_TEST_PARAM(size);
-
-        MEMORIA_ADD_TEST_WITH_REPLAY(testCreate, replayCreate);
     }
+
+    MMA1_STATE_FILEDS(size)
+
+    static void init_suite(TestSuite& suite) {
+        MMA1_CLASS_TEST_WITH_REPLAY(suite, testCreate, replayCreate);
+    }
+
 
     virtual MemBuffer createRandomBuffer(int32_t size)
     {
@@ -100,15 +99,15 @@ public:
 
         ctr.begin().insert(data);
 
-        AssertEQ(MA_SRC, ctr.size(), data.size());
+        assert_equals(ctr.size(), data.size());
 
         std::vector<Value> data2 = ctr.begin().read(size);
 
-        AssertEQ(MA_SRC, size, data2.size());
+        assert_equals(size, data2.size());
 
         for (size_t c = 0; c< data.size(); c++)
         {
-            AssertEQ(MA_SRC, data[c], data2[c]);
+            assert_equals(data[c], data2[c]);
         }
 
         commit();
@@ -121,4 +120,4 @@ public:
 
 
 
-}}
+}}}

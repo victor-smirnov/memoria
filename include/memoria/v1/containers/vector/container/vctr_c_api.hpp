@@ -59,7 +59,7 @@ public:
     }
 
 
-    MyType& operator<<(const vector<Value>& v)
+    MyType& operator<<(const std::vector<Value>& v)
     {
         auto& self = this->self();
         auto i = self.seek(self.size());

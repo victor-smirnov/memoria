@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/tests/tests_inc.hpp>
+
 
 #include "multimap_basic_test.hpp"
 
@@ -22,26 +22,17 @@
 
 namespace memoria {
 namespace v1 {
+namespace tests {
+namespace {
 
-using namespace std;
-
-class MultiMapTestSuite: public TestSuite {
-
-public:
-
-    MultiMapTestSuite(): TestSuite("MMapSuite")
-    {
-        //registerTask(new MultiMapBasicTest<Multimap<String, int64_t>>("Basic.S.I"));
-        registerTask(new MultiMapBasicTest<Multimap<double, int64_t>>("Basic.D.I"));
-        registerTask(new MultiMapBasicTest<Multimap<int64_t, int64_t>>("Basic.I.I"));
-        registerTask(new MultiMapBasicTest<Multimap<UUID, int64_t>>("Basic.U.I"));
-        //registerTask(new MultiMapBasicTest<Multimap<UUID, String>>("Basic.U.S"));
-    }
-
-};
-
-MMA1_REGISTER_TEST_SUITE(MultiMapTestSuite)
+auto Suite1 = register_class_suite<MultiMapBasicTest<Multimap<U8String, int64_t>>>("Miltimap.Basic.S.I");
+auto Suite2 = register_class_suite<MultiMapBasicTest<Multimap<double, int64_t>>>("Miltimap.Basic.D.I");
+auto Suite3 = register_class_suite<MultiMapBasicTest<Multimap<int64_t, int64_t>>>("Miltimap.Basic.I.I");
+//auto Suite4 = register_class_suite<MultiMapBasicTest<Multimap<UUID, int64_t>>>("Miltimap.Basic.U.I");
+//auto Suite5 = register_class_suite<MultiMapBasicTest<Multimap<UUID, U8String>>>("Miltimap.Basic.U.S");
 
 
 
-}}
+
+}
+}}}
