@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2012 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "btss_batch_test.hpp"
+
+#include "map_create_test.hpp"
+#include "map_remove_test.hpp"
 
 namespace memoria {
 namespace v1 {
 namespace tests {
 
-auto Suite1 = register_class_suite<BTSSBatchTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::FIXED>>>("BTSS.Batch.FX.FX");
-auto Suite2 = register_class_suite<BTSSBatchTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::VARIABLE>>>("BTSS.Batch.FX.VL");
+namespace {
 
-//auto Suite3 = register_class_suite<BTSSBatchTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::FIXED>>>("BTSS.Batch.FX.FX");
-//auto Suite4 = register_class_suite<BTSSBatchTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE>>>("BTSS.Batch.FX.VL");
+auto Suite1 = register_class_suite<MapRemoveTest<Map<UUID, int64_t>>>("MapM.Remove");
+auto Suite2 = register_class_suite<MapCreateTest<Map<UUID, int64_t>>>("MapM.Create");
 
+}
 
 }}}
