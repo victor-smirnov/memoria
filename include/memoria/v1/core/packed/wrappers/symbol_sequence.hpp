@@ -18,9 +18,10 @@
 
 #include <memoria/v1/core/memory/malloc.hpp>
 
-
 #include <memoria/v1/core/tools/isequencedata.hpp>
 #include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
+
+#include <memoria/v1/core/tools/bitmap.hpp>
 
 #include <iostream>
 #include <functional>
@@ -244,9 +245,9 @@ public:
 
         int32_t block_size = other_allocator->block_size();
 
-        PackedAllocator* allocator = allocate_system<PackedAllocator>(block_size);
+        auto allocator = allocate_system<PackedAllocator>(block_size);
 
-        CopyByteBuffer(other_allocator, allocator, block_size);
+        CopyByteBuffer(other_allocator, allocator.get(), block_size);
 
         sequence_ = allocator->template get<Seq>(0);
     }

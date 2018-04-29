@@ -15,18 +15,17 @@
 
 #pragma once
 
-#include "map_factory.hpp"
+#include "seqd_factory.hpp"
 
-#include <memoria/v1/api/map/map_api.hpp>
+#include <memoria/v1/api/sequence/sequence_api.hpp>
 #include <memoria/v1/core/container/ctr_impl_btss.hpp>
-#include <memoria/v1/core/tools/static_array.hpp>
 
 #include <memory>
 
 namespace memoria {
 namespace v1 {
 
-template <typename Key, typename Value, typename Profile>
+/*template <typename Key, typename Value, typename Profile>
 typename CtrApi<Map<Key, Value>, Profile>::Iterator CtrApi<Map<Key, Value>, Profile>::find(const Key& key) 
 {
     return this->pimpl_->find(key);
@@ -117,6 +116,6 @@ std::vector<typename IterApi<Map<Key, Value>, Profile>::DataValue> IterApi<Map<K
     
     return data;
 }
-
+*/
     
 }}

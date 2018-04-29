@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/prototypes/bt/bt_factory.hpp>
+#include <memoria/v1/prototypes/bt_ss/btss_factory.hpp>
 
 #include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
@@ -46,10 +46,10 @@ struct BTTypes<Profile, v1::Sequence<BitsPerSymbol_, true> >: public BTTypes<Pro
 
     typedef BTTypes<Profile, v1::BTSingleStream>                           Base;
 
-    typedef uint8_t                                                               Value;
+    typedef uint8_t                                                        Value;
 
-    static const int32_t BitsPerSymbol                                              = BitsPerSymbol_;
-    static const int32_t Symbols                                                    = 1<<BitsPerSymbol;
+    static const int32_t BitsPerSymbol                                     = BitsPerSymbol_;
+    static const int32_t Symbols                                           = 1 << BitsPerSymbol;
 
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 

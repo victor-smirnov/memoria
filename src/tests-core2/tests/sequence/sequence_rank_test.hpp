@@ -16,16 +16,13 @@
 
 #pragma once
 
-#include <memoria/v1/memoria.hpp>
-#include <memoria/v1/tools/tests.hpp>
-
 #include "sequence_test_base.hpp"
 
 #include <vector>
 
 namespace memoria {
 namespace v1 {
-
+namespace tests {
 
 template <int32_t BitsPerSymbol, bool Dense = true>
 class SequenceRankTest: public SequenceTestBase<BitsPerSymbol, Dense> {
@@ -60,17 +57,17 @@ class SequenceRankTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
 
 public:
-    SequenceRankTest(StringRef name):
-        Base(name)
+    SequenceRankTest()
     {
         Base::size_ = 300000;
-
-        MEMORIA_ADD_TEST_PARAM(iterations_);
-
-        MEMORIA_ADD_TEST(testCtrRank);
-        MEMORIA_ADD_TEST(testIterRank);
     }
 
+    MMA1_STATE_FILEDS(iterations_)
+
+    static void init_suite(TestSuite& suite)
+    {
+        MMA1_CLASS_TESTS(suite, testIterRank, testCtrRank);
+    }
 
     void testCtrRank()
     {
@@ -84,7 +81,7 @@ public:
 
         for (int32_t c = 0; c < iterations_; c++)
         {
-            out()<<c<<std::endl;
+            out() << c << std::endl;
 
             int32_t pos     = getRandom(size_);
             int32_t symbol  = getRandom(Base::Symbols);
@@ -92,7 +89,7 @@ public:
             int64_t rank1 = ctr->rank(pos, symbol);
             int64_t rank2 = seq->rank(pos, symbol);
 
-            AssertEQ(MA_SRC, rank1, rank2);
+            assert_equals(rank1, rank2);
         }
 
         commit();
@@ -109,7 +106,7 @@ public:
 
         for (int32_t c = 0; c < iterations_; c++)
         {
-            out()<<c<<std::endl;
+            out() << c << std::endl;
 
             int32_t pos1    = getRandom(size_);
             int32_t pos2    = pos1 + getRandom(size_ - pos1);
@@ -120,17 +117,17 @@ public:
             int64_t rank1 = iter->rankFw(pos2 - pos1, symbol);
             int64_t rank2 = seq->rank(pos1, pos2, symbol);
 
-            AssertEQ(MA_SRC, rank1, rank2);
-            AssertEQ(MA_SRC, iter->pos(), pos2);
+            assert_equals(rank1, rank2);
+            assert_equals(iter->pos(), pos2);
 
             int64_t rank3 = iter->rank(pos1 - pos2, symbol);
 
-            AssertEQ(MA_SRC, iter->pos(), pos1);
-            AssertEQ(MA_SRC, rank1, rank3);
+            assert_equals(iter->pos(), pos1);
+            assert_equals(rank1, rank3);
         }
 
         commit();
     }
 };
 
-}}
+}}}

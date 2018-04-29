@@ -247,13 +247,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
         return total;
     }
 
-
-
-
-
-
-
-
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::IOReadName)

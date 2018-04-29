@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/memoria.hpp>
-#include <memoria/v1/tools/profile_tests.hpp>
 
 #include <memoria/v1/containers/seq_dense/seqd_factory.hpp>
 
@@ -31,14 +29,14 @@
 
 namespace memoria {
 namespace v1 {
-
+namespace tests {
 
 template <int32_t BitsPerSymbol, bool Dense = true>
-class SequenceTestBase: public BTTestBase<Sequence<BitsPerSymbol, Dense>, PersistentInMemAllocator<>, DefaultProfile<>> {
+class SequenceTestBase: public BTTestBase<Sequence<BitsPerSymbol, Dense>, InMemAllocator<>, DefaultProfile<>> {
 
     using MyType = SequenceTestBase<BitsPerSymbol, Dense>;
 
-    using Base   = BTTestBase<Sequence<BitsPerSymbol, Dense>, PersistentInMemAllocator<>, DefaultProfile<>>;
+    using Base   = BTTestBase<Sequence<BitsPerSymbol, Dense>, InMemAllocator<>, DefaultProfile<>>;
 
 protected:
     using CtrName = Sequence<BitsPerSymbol, Dense>;
@@ -79,7 +77,7 @@ protected:
     UUID ctr_name_;
 
 public:
-    SequenceTestBase(StringRef name): Base(name)
+    SequenceTestBase()
     {
         Ctr::initMetadata();
 
@@ -163,4 +161,4 @@ public:
 
 
 
-}}
+}}}

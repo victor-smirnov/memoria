@@ -21,6 +21,8 @@ set (SRCS )
 #set (SRCS ${SRCS} map/map_test_suite.cpp map/map_test_ctr_uuid_long_dflt.cpp)
 #set (SRCS ${SRCS} vector/vector_test_suite.cpp vector/vector_test_ctr_int_dflt.cpp vector/vector_test_ctr_vint_dflt.cpp)
 set (SRCS ${SRCS} multimap/multimap_test_suite.cpp multimap/multimap_dbl_i64_dflt.cpp multimap/multimap_i64_i64_dflt.cpp multimap/multimap_string_i64_dflt.cpp)
+#set (SRCS ${SRCS} sequence/sequence_test_suite.cpp sequence/sequence_ctr_dflt.cpp)
+
 
 add_executable(tests2 tests2.cpp ${SRCS})
 

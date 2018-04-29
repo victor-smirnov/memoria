@@ -16,16 +16,13 @@
 
 #pragma once
 
-#include <memoria/v1/memoria.hpp>
-#include <memoria/v1/tools/tests.hpp>
-
 #include "sequence_test_base.hpp"
 
 #include <vector>
 
 namespace memoria {
 namespace v1 {
-
+namespace tests {
 
 template <int32_t BitsPerSymbol, bool Dense = true>
 class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
@@ -55,21 +52,19 @@ class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
     using Base::ctr_name_;
     using Base::getRandom;
 
-
-
     int32_t iterations_ = 100000;
 
 public:
-    SequenceSelectTest(StringRef name):
-        Base(name)
+    SequenceSelectTest()
     {
         Base::size_ = 30000;
+    }
 
-        MEMORIA_ADD_TEST_PARAM(iterations_);
+    MMA1_STATE_FILEDS(iterations_)
 
-        MEMORIA_ADD_TEST(testCtrSelect);
-        MEMORIA_ADD_TEST(testIterSelectFw);
-        MEMORIA_ADD_TEST(testIterSelectBw);
+    static void init_suite(TestSuite& suite)
+    {
+        MMA1_CLASS_TESTS(suite, testCtrSelect, testIterSelectFw, testIterSelectBw);
     }
 
 
@@ -87,7 +82,7 @@ public:
 
         for (int32_t c = 0; c < iterations_; c++)
         {
-            out() << c <<std::endl;
+            out() << c << std::endl;
 
             int32_t symbol  = getRandom(Base::Symbols);
             int32_t rank    = getRandom(ranks[symbol]);
@@ -97,10 +92,10 @@ public:
             auto iter1 = ctr->select(symbol, rank);
             auto iter2 = seq->selectFw(symbol, rank);
 
-            AssertFalse(MA_SRC, iter1->isEof());
-            AssertTrue(MA_SRC,  iter2.is_found());
+            assert_equals(false, iter1->isEof());
+            assert_equals(true,  iter2.is_found());
 
-            AssertEQ(MA_SRC, iter1->pos(), iter2.idx());
+            assert_equals(iter1->pos(), iter2.idx());
         }
 
         commit();
@@ -202,4 +197,4 @@ public:
 
 };
 
-}}
+}}}

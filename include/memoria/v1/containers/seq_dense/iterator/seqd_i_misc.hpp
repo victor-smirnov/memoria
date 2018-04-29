@@ -202,7 +202,7 @@ public:
                 auto sym2 = value.symbol(c);
 
                 if (sym1 != sym2) {
-                    cout << "Mismatch! " << sym1 << " " << sym2 << " " << (pos_ + c - start) << endl;
+                    std::cout << "Mismatch! " << sym1 << " " << sym2 << " " << (pos_ + c - start) << std::endl;
                 }
             }
 
@@ -232,7 +232,7 @@ public:
     }
 
 
-    void check(const char* source = nullptr) const
+    void check(std::ostream& out, const char* source = nullptr) const
     {
         auto& self = this->self();
 
@@ -242,10 +242,7 @@ public:
 
         if (self.cache() != tmp.cache())
         {
-            throw TestException(
-                    source != nullptr ? source : MA_SRC,
-                    SBuf()<<"Iterator cache mismatch: having: "<<self.cache()<<", should be: "<<tmp.cache()
-            );
+            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Iterator cache mismatch: having: {}, should be {}", self.cache(), tmp.cache());
         }
     }
 
