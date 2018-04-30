@@ -518,12 +518,12 @@ protected:
         {
             static_assert(StreamIdx < std::tuple_size<StreamBuffer>::value, "");
 
-            stream->insert_buffer(
+            OOM_THROW_IF_FAILED(stream->insert_buffer(
                     at[StreamIdx],
                     std::get<StreamIdx>(buffer)->buffer()->template substream_by_idx<Idx>(),
                     starts[StreamIdx],
                     sizes[StreamIdx]
-            );
+            ), MMA1_SRC);
         }
 
         template <typename NodeTypes, typename... Args>

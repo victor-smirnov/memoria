@@ -129,32 +129,40 @@ private:
             using BSizesT = typename Stream::SizesT;
             Stream* buffer = alloc->template allocateSpace<Stream>(AllocatorIdx, Stream::block_size(BSizesT(capacity)));
 
-            buffer->init(BSizesT(capacity));
+            OOM_THROW_IF_FAILED(buffer->init(BSizesT(capacity)), MMA1_SRC);
         }
 
         template <int32_t AllocatorIdx, int32_t Idx, typename Stream>
         void stream(Stream*, PackedAllocator* alloc, const BufferSizesT& capacities)
         {
             Stream* buffer = alloc->template allocateSpace<Stream>(AllocatorIdx, Stream::block_size(std::get<Idx>(capacities)));
-            buffer->init(std::get<Idx>(capacities));
+            OOM_THROW_IF_FAILED(buffer->init(std::get<Idx>(capacities)), MMA1_SRC);
         }
     };
 
 
 public:
 
-    void init(int32_t buffer_block_size, int32_t capacity)
+    OpStatus init(int32_t buffer_block_size, int32_t capacity)
     {
-        Base::init(buffer_block_size, Substreams);
+        if(isFail(Base::init(buffer_block_size, Substreams))) {
+            return OpStatus::FAIL;
+        }
 
         Dispatcher::dispatchAllStatic(LayoutFn(), allocator(), capacity);
+
+        return OpStatus::OK;
     }
 
-    void init(int32_t buffer_block_size, const BufferSizesT& capacities)
+    OpStatus init(int32_t buffer_block_size, const BufferSizesT& capacities)
     {
-        Base::init(buffer_block_size, Substreams);
+        if(isFail(Base::init(buffer_block_size, Substreams))) {
+            return OpStatus::FAIL;
+        }
 
         Dispatcher::dispatchAllStatic(LayoutFn(), allocator(), capacities);
+
+        return OpStatus::OK;
     }
 
 
@@ -183,7 +191,7 @@ public:
         void stream(Stream* buf, MyType* other)
         {
             if (buf) {
-                buf->copyTo(other->template substream_by_idx<Idx>());
+                OOM_THROW_IF_FAILED(buf->copyTo(other->template substream_by_idx<Idx>()), MMA1_SRC);
             }
         }
     };
@@ -376,7 +384,7 @@ public:
         template <typename Tree>
         void stream(Tree* tree)
         {
-            tree->reindex();
+            OOM_THROW_IF_FAILED(tree->reindex(), MMA1_SRC);
         }
     };
 
@@ -389,7 +397,7 @@ public:
         template <typename Tree>
         void stream(Tree* tree)
         {
-            tree->reset();
+            OOM_THROW_IF_FAILED(tree->reset(), MMA1_SRC);
         }
     };
 
@@ -453,7 +461,7 @@ public:
         template <int32_t Idx, typename Value, int32_t Indexes, PkdSearchType SearchType>
         void stream(PackedSizedStruct<Value, Indexes, SearchType>* stream, int32_t symbol, uint64_t length)
         {
-            stream->insert(0, length);
+            OOM_THROW_IF_FAILED(stream->insert(0, length), MMA1_SRC);
         }
 
         template <int32_t Idx, typename SeqTypes>

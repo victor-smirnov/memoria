@@ -81,9 +81,9 @@ public:
             }
         }
 
-        tree->insert(0, size, [&](int32_t block, int32_t idx) {
+        OOM_THROW_IF_FAILED(tree->insert(0, size, [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        });
+        }), MMA1_SRC);
 
         return vals;
     }
@@ -123,9 +123,9 @@ public:
 
     void fillVector(ArrayPtr& tree, const std::vector<Values>& vals)
     {
-        tree->insert(0, vals.size(), [&](int32_t block, int32_t idx) {
+        OOM_THROW_IF_FAILED(tree->insert(0, vals.size(), [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        });
+        }), MMA1_SRC);
     }
 
     Values createRandom(int32_t max = 100)

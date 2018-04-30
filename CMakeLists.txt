@@ -84,6 +84,7 @@ if (BUILD_POSIX)
     add_definitions(-Wno-unused-private-field -Wno-pessimizing-move)
     add_definitions(-Wno-missing-braces)
     add_definitions(-Wno-variables)
+    add_definitions(-Werror=unused-result)
     
     add_definitions(-pthread)
     

@@ -93,6 +93,8 @@ struct Location {
         data_pos_(data_pos), data_length_(data_length), local_idx_(local_idx), block_base_(block_base), run_base_(run_base), run_(run), out_of_range_(out_of_range)
     {}
 
+    Location() {}
+
     size_t run_suffix() const {return run_.length() - local_idx_;}
     size_t run_prefix() const {return local_idx_;}
 

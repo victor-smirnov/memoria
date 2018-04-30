@@ -168,7 +168,7 @@ public:
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj>
         void stream(StreamObj* stream, int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
         {
-            stream->insert_buffer(at, buffer->template substream_by_idx<Idx>(), start, size);
+            OOM_THROW_IF_FAILED(stream->insert_buffer(at, buffer->template substream_by_idx<Idx>(), start, size), MMA1_SRC);
         }
 
         template <typename NodeTypes, typename... Args>
@@ -263,7 +263,7 @@ protected:
         {
             InputBuffer* buffer = T2T<InputBuffer*>(block);
             buffer->setTopLevelAllocator();
-            buffer->init(buffer_size, capacity);
+            OOM_THROW_IF_FAILED(buffer->init(buffer_size, capacity), MMA1_SRC);
 
             return buffer;
         }
@@ -281,7 +281,7 @@ protected:
         {
             InputBuffer* buffer = T2T<InputBuffer*>(block);
             buffer->setTopLevelAllocator();
-            buffer->init(buffer_size, capacity);
+            OOM_THROW_IF_FAILED(buffer->init(buffer_size, capacity), MMA1_SRC);
 
             return buffer;
         }

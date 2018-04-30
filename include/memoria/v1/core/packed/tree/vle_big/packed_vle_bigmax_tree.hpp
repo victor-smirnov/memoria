@@ -162,22 +162,37 @@ public:
         int32_t local_cnt() const {return idx - index_cnt;}
     };
 
-    void init_bs(int32_t block_size) {
+    OpStatus init_bs(int32_t block_size) {
         return init();
     }
 
-    void init()
+    OpStatus init()
     {
-        Base::init(empty_size(), TOTAL_BLOCKS);
+        if(isFail(Base::init(empty_size(), TOTAL_BLOCKS))) {
+            return OpStatus::FAIL;
+        }
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
+        if(isFail(meta)) {
+            return OpStatus::FAIL;
+        }
 
         meta->size() = 0;
         meta->data_size() = 0;
 
-        this->template allocateArrayBySize<int32_t>(SIZE_INDEX, 0);
-        this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(0));
-        this->template allocateArrayBySize<ValueData>(VALUES, 0);
+        if(isFail(this->template allocateArrayBySize<int32_t>(SIZE_INDEX, 0))) {
+            return OpStatus::FAIL;
+        }
+
+        if(isFail(this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(0)))) {
+            return OpStatus::FAIL;
+        }
+
+        if(isFail(this->template allocateArrayBySize<ValueData>(VALUES, 0))) {
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
     int32_t block_size() const
@@ -275,9 +290,9 @@ public:
 
 
     template <typename T>
-    void setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    OpStatus setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
-        update_values(idx, [&](int32_t block, const auto& old_value) -> const auto& {return values[block];});
+        return update_values(idx, [&](int32_t block, const auto& old_value) -> const auto& {return values[block];});
     }
 
 
@@ -337,13 +352,13 @@ public:
     }
 
     template <typename T>
-    void addValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    OpStatus addValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
         for (int32_t b = 0; b < Blocks; b++) {
             this->values(b)[idx] = values[b];
         }
 
-        reindex();
+        return reindex();
     }
 
     void sums(Values& values) const
@@ -472,21 +487,29 @@ public:
 //    }
 
     template <int32_t Offset, int32_t Size, typename T1, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    void _insert(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
+    OpStatus _insert(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
-        insert(idx, values);
+        if (isFail(insert(idx, values))) {
+            return OpStatus::FAIL;
+        }
 
         sum<Offset>(this->size() - 1, accum);
+
+        return OpStatus::OK;
     }
 
     template <int32_t Offset, int32_t Size, typename T2, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    void _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    OpStatus _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
     {
-        this->_insert(idx, 1, [&](int32_t block, int32_t idx) -> const auto& {
+        if(isFail(this->_insert(idx, 1, [&](int32_t block, int32_t idx) -> const auto& {
             return values(block);
-        });
+        }))) {
+            return OpStatus::FAIL;
+        }
 
         sum<Offset>(this->size() - 1, accum);
+
+        return OpStatus::OK;
     }
 
 
@@ -497,42 +520,58 @@ public:
 //    }
 
     template <int32_t Offset, int32_t Size, typename T1, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    void _update(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
+    OpStatus _update(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
-        update(idx, values);
+        if(isFail(update(idx, values))) {
+            return OpStatus::FAIL;
+        }
 
         sum<Offset>(this->size() - 1, accum);
+
+        return OpStatus::OK;
     }
 
     template <int32_t Offset, int32_t Size, typename T2, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    void _update_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    OpStatus _update_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
     {
-        update(idx, idx + 1, [&](int32_t block, int32_t idx){
+        if(isFail(update(idx, idx + 1, [&](int32_t block, int32_t idx){
             return values(block);
-        });
+        }))) {
+            return OpStatus::FAIL;
+        }
 
         sum<Offset>(this->size() - 1, accum);
+
+        return OpStatus::OK;
     }
 
 
     template <int32_t Offset, int32_t Size, typename T1, typename T2, typename I, template <typename, int32_t> class BranchNodeEntryItem>
-    void _update(int32_t idx, const std::pair<T1, I>& values, BranchNodeEntryItem<T2, Size>& accum)
+    OpStatus _update(int32_t idx, const std::pair<T1, I>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
-        this->setValue(values.first, idx, values.second);
+        if(isFail(this->setValue(values.first, idx, values.second))) {
+            return OpStatus::FAIL;
+        }
 
         sum<Offset>(this->size() - 1, accum);
+
+        return OpStatus::OK;
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
-        remove(idx, idx + 1);
+        if (isFail(remove(idx, idx + 1))) {
+            return OpStatus::FAIL;
+        }
 
         auto size = this->size();
         if (size > 0)
         {
             sum<Offset>(size - 1, accum);
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -544,7 +583,7 @@ public:
 
 
 public:
-    void splitTo(MyType* other, int32_t idx)
+    OpStatus splitTo(MyType* other, int32_t idx)
     {
         auto meta = this->metadata();
 
@@ -556,19 +595,24 @@ public:
         int32_t start       = locate(layout, values, idx).idx;
         int32_t data_size   = meta->data_size() - start;
 
-        other->insert_space(0, data_size);
+        if (isFail(other->insert_space(0, data_size))) {
+            return OpStatus::FAIL;
+        }
+
         codec.copy(values, start, other->values(), 0, data_size);
 
         int32_t size        = meta->size();
         other->size()   += size - idx;
 
-        other->reindex();
+        if (isFail(other->reindex())) {
+            return OpStatus::FAIL;
+        }
 
-        remove(idx, size);
+        return remove(idx, size);
     }
 
 
-    void mergeWith(MyType* other)
+    OpStatus mergeWith(MyType* other)
     {
         auto meta       = this->metadata();
         auto other_meta = other->metadata();
@@ -577,24 +621,28 @@ public:
         int32_t other_data_size = other_meta->data_size();
         int32_t start           = other_data_size;
 
-        other->insert_space(other_data_size, data_size);
+        if (isFail(other->insert_space(other_data_size, data_size))) {
+            return OpStatus::FAIL;
+        }
 
         Codec codec;
         codec.copy(this->values(), 0, other->values(), start, data_size);
 
         other->size() += meta->size();
 
-        other->reindex();
+        if (isFail(other->reindex())) {
+            return OpStatus::FAIL;
+        }
 
-        clear();
+        return clear();
     }
 
 
-    void removeSpace(int32_t start, int32_t end) {
-        remove(start, end);
+    OpStatus removeSpace(int32_t start, int32_t end) {
+        return remove(start, end);
     }
 
-    void remove(int32_t start, int32_t end)
+    OpStatus remove(int32_t start, int32_t end)
     {
         auto meta           = this->metadata();
 
@@ -604,20 +652,26 @@ public:
         int32_t start_pos = locate(layout, values, start).idx;
         int32_t end_pos   = locate(layout, values, end).idx;
 
-        this->remove_space(start_pos, end_pos - start_pos);
+        if (isFail(this->remove_space(start_pos, end_pos - start_pos))) {
+            return OpStatus::FAIL;
+        }
 
         meta->size() -= end - start;
 
-        reindex();
+        if (isFail(reindex())){
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
 
 
 
     template <typename T>
-    void insert(int32_t idx, const core::StaticVector<T, 1>& values)
+    OpStatus insert(int32_t idx, const core::StaticVector<T, 1>& values)
     {
-        this->_insert(idx, 1, [&](int32_t block, int32_t idx) -> const T& {
+        return this->_insert(idx, 1, [&](int32_t block, int32_t idx) -> const T& {
             return values[block];
         });
     }
@@ -625,13 +679,13 @@ public:
 
 
     template <typename Adaptor>
-    void insert(int32_t pos, int32_t processed, Adaptor&& adaptor) {
-        _insert(pos, processed, std::forward<Adaptor>(adaptor));
+    OpStatus insert(int32_t pos, int32_t processed, Adaptor&& adaptor) {
+        return _insert(pos, processed, std::forward<Adaptor>(adaptor));
     }
 
 
     template <typename Adaptor>
-    void _insert(int32_t pos, int32_t processed, Adaptor&& adaptor)
+    OpStatus _insert(int32_t pos, int32_t processed, Adaptor&& adaptor)
     {
         auto meta = this->metadata();
 
@@ -652,7 +706,7 @@ public:
             total_lengths += len;
         }
 
-        int32_t data_size       = meta->data_size();
+        int32_t data_size   = meta->data_size();
         auto values         = this->values();
         TreeLayout layout   = compute_tree_layout(data_size);
 
@@ -660,7 +714,9 @@ public:
 
         size_t insertion_pos = lr.idx;
 
-        insert_space(insertion_pos, total_lengths);
+        if(isFail(insert_space(insertion_pos, total_lengths))) {
+            return OpStatus::FAIL;
+        }
 
         values = this->values();
 
@@ -673,7 +729,7 @@ public:
 
         meta->size() += processed;
 
-        reindex();
+        return reindex();
     }
 
 
@@ -697,7 +753,7 @@ public:
     }
 
 
-    SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
+    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
     {
         auto meta = this->metadata();
 
@@ -717,12 +773,14 @@ public:
 
         meta->size() += size;
 
-        reindex();
+        if(isFail(reindex())) {
+            return OpStatus::FAIL;
+        }
 
-        return at + total_lengths;
+        return OpStatusT<SizesT>(at + total_lengths);
     }
 
-    void insert_buffer(int32_t pos, const InputBuffer* buffer, int32_t start, int32_t size)
+    OpStatus insert_buffer(int32_t pos, const InputBuffer* buffer, int32_t start, int32_t size)
     {
         Codec codec;
 
@@ -737,7 +795,9 @@ public:
 
         size_t insertion_pos = at.data_pos(0);
 
-        insert_space(insertion_pos, total_lengths[0]);
+        if(isFail(insert_space(insertion_pos, total_lengths[0]))) {
+            return OpStatus::FAIL;
+        }
 
         values = this->values();
 
@@ -745,13 +805,13 @@ public:
 
         this->size() += size;
 
-        reindex();
+        return reindex();
     }
 
 
 
     template <typename Adaptor>
-    SizesT populate(const SizesT& at, int32_t size, Adaptor&& adaptor)
+    OpStatusT<SizesT> populate(const SizesT& at, int32_t size, Adaptor&& adaptor)
     {
         auto meta = this->metadata();
 
@@ -779,13 +839,13 @@ public:
 
         meta->size() += size;
 
-        return at + total_lengths;
+        return OpStatusT<SizesT>(at + total_lengths);
     }
 
 
 
     template <typename UpdateFn>
-    void update_values(int32_t start, int32_t end, UpdateFn&& update_fn)
+    OpStatus update_values1(int32_t start, int32_t end, UpdateFn&& update_fn)
     {
         auto meta = this->metadata();
 
@@ -827,14 +887,18 @@ public:
             if (new_length > old_length)
             {
                 auto delta = new_length - old_length;
-                insert_space(data_start, delta);
+                if (isFail(insert_space(data_start, delta))) {
+                    return OpStatus::FAIL;
+                }
 
                 values = this->values();
             }
             else if (new_length < old_length)
             {
                 auto delta = old_length - new_length;
-                remove_space(data_start, delta);
+                if (isFail(remove_space(data_start, delta))) {
+                    return OpStatus::FAIL;
+                }
 
                 values = this->values();
             }
@@ -845,19 +909,19 @@ public:
             }
         }
 
-        reindex();
+        return reindex();
     }
 
 
     template <typename UpdateFn>
-    void update_values(int32_t start, UpdateFn&& update_fn)
+    OpStatus update_values(int32_t start, UpdateFn&& update_fn)
     {
-        update_value(start, std::forward<UpdateFn>(update_fn));
+        return update_value(start, std::forward<UpdateFn>(update_fn));
     }
 
 
     template <typename UpdateFn>
-    void update_value(int32_t start, UpdateFn&& update_fn)
+    OpStatus update_value(int32_t start, UpdateFn&& update_fn)
     {
         auto meta = this->metadata();
 
@@ -866,7 +930,7 @@ public:
 
         Codec codec;
 
-        int32_t data_size           = meta->data_size();
+        int32_t data_size       = meta->data_size();
 
         auto values             = this->values();
         TreeLayout layout       = compute_tree_layout(data_size);
@@ -882,36 +946,46 @@ public:
 
             if (new_length > old_length)
             {
-                insert_space(insertion_pos, new_length - old_length);
+                if (isFail(insert_space(insertion_pos, new_length - old_length))) {
+                    return OpStatus::FAIL;
+                }
+
                 values = this->values();
 
             }
             else if (old_length > new_length)
             {
-                remove_space(insertion_pos, old_length - new_length);
+                if(isFail(remove_space(insertion_pos, old_length - new_length))) {
+                    return OpStatus::FAIL;
+                }
+
                 values = this->values();
             }
 
             codec.encode(values, new_value, insertion_pos);
 
-            reindex();
+            return reindex();
         }
+
+        return OpStatus::OK;
     }
 
 
 
 
 
-    void clear()
+    OpStatus clear()
     {
         if (Base::has_allocator())
         {
             auto alloc = this->allocator();
             int32_t empty_size = MyType::empty_size();
-            alloc->resizeBlock(this, empty_size);
+            if(isFail(alloc->resizeBlock(this, empty_size))) {
+                return OpStatus::FAIL;
+            }
         }
 
-        init();
+        return init();
     }
 
     void dump(std::ostream& out = std::cout) const
@@ -1285,14 +1359,18 @@ public:
         read(0, start, end, std::forward<ConsumerFn>(fn));
     }
 
-    void reindex()
+    OpStatus reindex()
     {
         auto meta = this->metadata();
 
         int32_t data_size     = meta->data_size();
         TreeLayout layout = compute_tree_layout(data_size);
 
-        reindex(layout, meta);
+        if (isFail(reindex(layout, meta))) {
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
     void check() const
@@ -1571,7 +1649,7 @@ protected:
     }
 
 
-    void resize(int32_t data_size, int32_t length)
+    OpStatus resize(int32_t data_size, int32_t length)
     {
         int32_t new_data_size = data_size + length;
 
@@ -1579,18 +1657,30 @@ protected:
         int32_t offsets_segment_size = this->offsets_segment_size(new_data_size);
         int32_t index_size           = MyType::index_size(new_data_size);
 
-        this->resizeBlock(VALUES, data_segment_size);
-        this->resizeBlock(OFFSETS, offsets_segment_size);
-        this->resizeBlock(SIZE_INDEX, index_size * sizeof(SizesValue));
+        if (isFail(this->resizeBlock(VALUES, data_segment_size))) {
+            return OpStatus::FAIL;
+        }
+
+        if (isFail(this->resizeBlock(OFFSETS, offsets_segment_size))) {
+            return OpStatus::FAIL;
+        }
+
+        if (isFail(this->resizeBlock(SIZE_INDEX, index_size * sizeof(SizesValue)))) {
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
 
-    void insert_space(int32_t start, int32_t length)
+    OpStatus insert_space(int32_t start, int32_t length)
     {
         auto meta = this->metadata();
 
         int32_t data_size = meta->data_size();
-        resize(data_size, length);
+        if (isFail(resize(data_size, length))) {
+            return OpStatus::FAIL;
+        }
 
         auto values = this->values();
 
@@ -1598,11 +1688,13 @@ protected:
         codec.move(values, start, start + length, data_size - start);
 
         meta->data_size() += length;
+
+        return OpStatus::OK;
     }
 
 
 
-    void remove_space(int32_t start, int32_t length)
+    [[nodiscard]] OpStatus remove_space(int32_t start, int32_t length)
     {
         auto meta = this->metadata();
 
@@ -1613,9 +1705,13 @@ protected:
         int32_t end = start + length;
         codec.move(values, end, start, data_size - end);
 
-        resize(data_size, -(end - start));
+        if (isFail(resize(data_size, -(end - start)))) {
+            return OpStatus::FAIL;
+        }
 
         meta->data_size() -= (end - start);
+
+        return OpStatus::OK;
     }
 
     static int32_t index_size(int32_t capacity)
@@ -1626,7 +1722,7 @@ protected:
     }
 
 
-    void reindex(TreeLayout& layout, Metadata* meta)
+    OpStatus reindex(TreeLayout& layout, Metadata* meta)
     {
         if (layout.levels_max >= 0)
         {
@@ -1714,8 +1810,13 @@ protected:
 
             if (idx > 0)
             {
-                this->template allocateEmpty<MyType>(INDEX);
-                index()->insert_data(0, buffer.get(), 0, buffer_pos, idx);
+                if(isFail(this->template allocateEmpty<MyType>(INDEX))) {
+                    return OpStatus::FAIL;
+                }
+
+                if (isFail(index()->insert_data(0, buffer.get(), 0, buffer_pos, idx))) {
+                    return OpStatus::FAIL;
+                }
             }
             else {
                 Base::free(INDEX);
@@ -1725,6 +1826,8 @@ protected:
             Base::clear(OFFSETS);
             Base::free(INDEX);
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -1785,13 +1888,6 @@ protected:
                 }
 
                 auto len = codec.decode(values, value, pos);
-
-//              if (pos > 0)
-//              {
-//                  MEMORIA_V1_ASSERT(value, >=, prev_value);
-//              }
-//
-//              prev_value = value;
 
                 size_cnt++;
 
@@ -1882,7 +1978,7 @@ protected:
         }
     }
 
-    void insert_data(int32_t at, const ValueData* buffer, int32_t start, int32_t end, int32_t size)
+    OpStatus insert_data(int32_t at, const ValueData* buffer, int32_t start, int32_t end, int32_t size)
     {
         auto meta = this->metadata();
 
@@ -1894,7 +1990,9 @@ protected:
 
         size_t insertion_pos = at;
 
-        insert_space(insertion_pos, data_size);
+        if (isFail(insert_space(insertion_pos, data_size))) {
+            return OpStatus::FAIL;
+        }
 
         values = this->values();
 
@@ -1902,7 +2000,11 @@ protected:
 
         meta->size() += size;
 
-        reindex();
+        if (isFail(reindex())) {
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
     static TreeLayout compute_tree_layout(int32_t size)

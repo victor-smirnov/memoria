@@ -16,57 +16,25 @@
 
 #pragma once
 
-#include "pseq_test_base.hpp"
-
 #include <memory>
 
+#include "rleseq_test_base.hpp"
 
 namespace memoria {
 namespace v1 {
 namespace tests {
 
-template <
-    int32_t Bits,
-    typename IndexType,
-    template <typename> class ReindexFnType = BitmapReindexFn,
-    template <typename> class SelectFnType  = BitmapSelectFn,
-    template <typename> class RankFnType    = BitmapRankFn,
-    template <typename> class ToolsFnType   = BitmapToolsFn
->
-class PackedSearchableSequenceMiscTest: public PackedSearchableSequenceTestBase<
-    Bits,
-    IndexType,
-    ReindexFnType,
-    SelectFnType,
-    RankFnType,
-    ToolsFnType
-> {
+template <int32_t Symbols>
+class PackedRLESearchableSequenceMiscTest: public PackedRLESequenceTestBase<Symbols> {
 
-    typedef PackedSearchableSequenceMiscTest<
-            Bits,
-            IndexType,
-            ReindexFnType,
-            SelectFnType,
-            RankFnType,
-            ToolsFnType
-    >                                                                           MyType;
-
-    typedef PackedSearchableSequenceTestBase<
-            Bits,
-            IndexType,
-            ReindexFnType,
-            SelectFnType,
-            RankFnType,
-            ToolsFnType
-    >                                                                           Base;
+    using MyType = PackedRLESearchableSequenceMiscTest<Symbols>;
+    using Base = PackedRLESequenceTestBase<Symbols>;
 
 
     using typename Base::Seq;
     using typename Base::SeqPtr;
 
-    static const int32_t Blocks                 = Seq::Indexes;
-    static const int32_t Symbols                = 1 << Bits;
-    static const int32_t VPB                    = Seq::ValuesPerBranch;
+    static const int32_t Blocks = Seq::Indexes;
 
     using Value = typename Seq::Value;
 
@@ -83,21 +51,19 @@ class PackedSearchableSequenceMiscTest: public PackedSearchableSequenceTestBase<
 
 public:
 
-    PackedSearchableSequenceMiscTest()
+    PackedRLESearchableSequenceMiscTest()
     {
-        this->size_ = 8192;
+        this->size_ = 2048;
     }
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testCreate, testInsertSingle, testInsertMultiple, testRemoveMulti);
-        MMA1_CLASS_TESTS(suite, testRemoveAll, testClear);
+        MMA1_CLASS_TESTS(suite, testMerge, testCreate, testInsertSingle, testRemoveMulti, testRemoveAll, testClear, testSplit); //
     }
-
 
     void testCreate()
     {
-        for (int32_t size = 2048; size <= this->size_; size *= 2)
+        for (int32_t size = 64; size <= this->size_; size *= 2)
         {
             out() << size << std::endl;
 
@@ -117,8 +83,7 @@ public:
         {
             out() << size << std::endl;
 
-            auto seq = this->createEmptySequence();
-
+            auto seq = createEmptySequence();
             auto symbols = fillRandom(seq, size);
 
             for (int32_t c = 0; c < this->iterations_; c++)
@@ -126,7 +91,9 @@ public:
                 int32_t idx     = getRandom(seq->size());
                 int32_t symbol  = getRandom(Blocks);
 
-                seq->insert(idx, symbol);
+                out() << "Insert " << symbol << " at " << idx << std::endl;
+
+                OOM_THROW_IF_FAILED(seq->insert(idx, symbol), MMA1_SRC);
 
                 symbols.insert(symbols.begin() + idx, symbol);
 
@@ -136,57 +103,100 @@ public:
         }
     }
 
-    void testInsertMultiple()
+    void testSplit()
     {
-        for (int32_t size = 8192; size <= this->size_; size *= 2)
+        for (int32_t size = 16; size <= this->size_; size *= 2)
         {
             out() << size << std::endl;
 
-            auto seq = this->createEmptySequence();
-
-            auto symbols = fillRandom(seq, size);
-
             for (int32_t c = 0; c < this->iterations_; c++)
             {
-                int32_t idx     = getRandom(seq->size());
+                auto seq = createEmptySequence();
+                auto symbols = fillRandom(seq, size);
 
-                std::vector<int32_t> block(10);
-                for (int32_t d = 0; d < block.size(); d++)
-                {
-                    block[d] = getRandom(Blocks);
-                }
+                int32_t idx = getRandom(seq->size());
 
-                int32_t cnt = 0;
-                seq->insert(idx, block.size(), [&](){
-                    return block[cnt++];
-                });
+                auto seq2 = createEmptySequence();
 
-                symbols.insert(symbols.begin() + idx, block.begin(), block.end());
+                out() << "Split at " << idx << std::endl;
 
-                assertIndexCorrect(MA_SRC, seq);
+                OOM_THROW_IF_FAILED(seq->splitTo(seq2.get(), idx), MMA1_SRC);
+
+                seq2->check();
+                seq->check();
+
+                std::vector<int32_t> symbols2(symbols.begin() + idx, symbols.end());
+
+                symbols.erase(symbols.begin() + idx, symbols.end());
+
+
                 assertEqual(seq, symbols);
+                assertEqual(seq2, symbols2);
             }
         }
     }
+
+    void testMerge()
+    {
+        for (int32_t size = 16; size <= this->size_; size *= 2)
+        {
+            out() << size << std::endl;
+
+            for (int32_t c = 0; c < this->iterations_; c++)
+            {
+                auto seq1 = createEmptySequence();
+                auto symbols1 = fillRandom(seq1, size);
+
+                auto seq2 = createEmptySequence();
+                auto symbols2 = fillRandom(seq2, size);
+                
+                //out() << "Seq1" << std::endl;
+                seq1->dump(out());
+                this->dumpAsSymbols(symbols1);
+                
+                //out() << "Seq2" << std::endl;
+                seq2->dump(out());
+                this->dumpAsSymbols(symbols2);
+
+                OOM_THROW_IF_FAILED(seq1->mergeWith(seq2.get()), MMA1_SRC);
+
+                //out() << "Seq1" << std::endl;
+                seq1->dump(out());
+                
+                //out() << "Seq2" << std::endl;
+                seq2->dump(out());
+                
+                seq2->check();
+
+                symbols2.insert(symbols2.end(), symbols1.begin(), symbols1.end());
+
+                assertEqual(seq2, symbols2);
+            }
+        }
+    }
+
+
 
     void testRemoveMulti()
     {
         for (int32_t size = 1; size <= this->size_; size *= 2)
         {
-            out() << size << std::endl;
+            out() << "Sequence size: " << size << std::endl;
 
-            auto seq = this->createEmptySequence();
+            auto seq = createEmptySequence();
 
-            auto symbols = this->fillRandom(seq, size);
+            auto symbols = fillRandom(seq, size);
 
             for (int32_t c = 0; c < this->iterations_; c++)
             {
                 int32_t start   = getRandom(seq->size());
                 int32_t end     = start + getRandom(seq->size() - start);
 
+                out() << "Remove from " << start << " to " << end << std::endl;
+
                 int32_t block_size = seq->block_size();
 
-                seq->remove(start, end);
+                OOM_THROW_IF_FAILED(seq->remove(start, end), MMA1_SRC);
 
                 symbols.erase(symbols.begin() + start, symbols.begin() + end);
 
@@ -209,7 +219,7 @@ public:
             auto symbols = this->fillRandom(seq, size);
             assertEqual(seq, symbols);
 
-            seq->remove(0, seq->size());
+            OOM_THROW_IF_FAILED(seq->remove(0, seq->size()), MMA1_SRC);
 
             assertEmpty(seq);
         }
@@ -230,7 +240,7 @@ public:
             assert_gt(seq->size(), 0);
             assert_gt(seq->block_size(), Seq::empty_size());
 
-            seq->clear();
+            OOM_THROW_IF_FAILED(seq->clear(), MMA1_SRC);
 
             assertEmpty(seq);
         }

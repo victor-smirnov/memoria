@@ -270,7 +270,7 @@ public:
             {
                 if (alloc->is_empty(AllocatorIdx))
                 {
-                    alloc->template allocateEmpty<Stream>(AllocatorIdx);
+                    OOM_THROW_IF_FAILED(alloc->template allocateEmpty<Stream>(AllocatorIdx), MMA1_SRC);
                 }
             }
         }
@@ -678,7 +678,7 @@ public:
         void stream(Tree* tree, const Position& room_start, const Position& room_end)
         {
             if (tree != nullptr) {
-                tree->removeSpace(room_start[StreamIdx], room_end[StreamIdx]);
+                OOM_THROW_IF_FAILED(tree->removeSpace(room_start[StreamIdx], room_end[StreamIdx]), MMA1_SRC);
             }
         }
 
@@ -687,7 +687,7 @@ public:
         {
             if (tree != nullptr)
             {
-                tree->removeSpace(room_start, room_end);
+                OOM_THROW_IF_FAILED(tree->removeSpace(room_start, room_end), MMA1_SRC);
             }
         }
     };
@@ -769,11 +769,11 @@ public:
             {
                 if (other->allocator()->is_empty(AllocatorIdx))
                 {
-                    other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
+                    OOM_THROW_IF_FAILED(other->allocator()->template allocateEmpty<Tree>(AllocatorIdx), MMA1_SRC);
                 }
 
                 Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
-                tree->mergeWith(other_tree);
+                OOM_THROW_IF_FAILED(tree->mergeWith(other_tree), MMA1_SRC);
             }
         }
     };
@@ -808,10 +808,7 @@ public:
                 	other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
                 }
 
-//                cout << "Before Split: " << tree->block_size() << " -- " <<other->allocator()->free_space() << endl;
-                tree->splitTo(other_tree, idx);
-//                cout << "After Split: " << other_tree->block_size() << " -- " <<other->allocator()->free_space() << endl;
-//                other->allocator()->dumpLayout();
+                OOM_THROW_IF_FAILED(tree->splitTo(other_tree, idx), MMA1_SRC);
             }
         }
     };

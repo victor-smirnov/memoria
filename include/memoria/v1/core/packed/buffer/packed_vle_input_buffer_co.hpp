@@ -161,20 +161,26 @@ public:
         Metadata* meta() {return meta_;}
     };
 
-    void init(const SizesT& sizes)
+    OpStatus init(const SizesT& sizes)
     {
-        init_bs(block_size(sizes), sizes);
+        return init_bs(block_size(sizes), sizes);
     }
 
-    void init_bs(int32_t block_size) {
-        init_bs(block_size, SizesT());
+    OpStatus init_bs(int32_t block_size) {
+        return init_bs(block_size, SizesT());
     }
 
-    void init_bs(int32_t block_size, const SizesT& sizes)
+    OpStatus init_bs(int32_t block_size, const SizesT& sizes)
     {
-        Base::init(block_size, Blocks * SegmentsPerBlock + BlocksStart);
+        if(isFail(Base::init(block_size, Blocks * SegmentsPerBlock + BlocksStart))) {
+            return OpStatus::FAIL;
+        }
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
+
+        if(isFail(meta)) {
+            return OpStatus::FAIL;
+        }
 
         meta->size() = 0;
 
@@ -187,10 +193,20 @@ public:
 
             meta->max_data_size(block) = capacity;
 
-            this->resizeBlock(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size * sizeof(int32_t));
-            this->resizeBlock(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
-            this->resizeBlock(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length);
+            if(isFail(this->resizeBlock(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size * sizeof(int32_t)))) {
+                return OpStatus::FAIL;
+            }
+
+            if(isFail(this->resizeBlock(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size))) {
+                return OpStatus::FAIL;
+            }
+
+            if(isFail(this->resizeBlock(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length))) {
+                return OpStatus::FAIL;
+            }
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -287,7 +303,7 @@ public:
         return this->metadata()->max_data_size();
     }
 
-    void copyTo(MyType* other) const
+    OpStatus copyTo(MyType* other) const
     {
         auto meta = this->metadata();
         auto other_meta = other->metadata();
@@ -301,6 +317,8 @@ public:
         {
             codec.copy(this->values(b), 0, other->values(b), 0, meta->data_size(b));
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -334,15 +352,19 @@ public:
         return block_size(0);
     }
 
-    void reindex()
+    OpStatus reindex()
     {
         auto metadata = this->metadata();
         for (int32_t block = 0; block < Blocks; block++)
         {
             auto data_size = metadata->data_size(block);
             TreeLayout layout = this->compute_tree_layout(metadata->max_data_size(block));
-            Base::reindex_block(block, layout, data_size);
+            if(isFail(Base::reindex_block(block, layout, data_size))) {
+                return OpStatus::FAIL;
+            }
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -361,10 +383,12 @@ public:
         return alloc->free_space() >= delta;
     }
 
-    void reset() {
+    OpStatus reset() {
         auto meta = this->metadata();
         meta->data_size().clear();
         meta->size() = 0;
+
+        return OpStatus::OK;
     }
 
     Values get_values(int32_t idx) const

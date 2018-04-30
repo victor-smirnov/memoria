@@ -70,7 +70,6 @@ if (BUILD_BENCHMARKS)
 endif()
 
 
-add_subdirectory(tests-core2)
 
 if (BUILD_TESTS) 
     add_subdirectory(tests-core)

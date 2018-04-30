@@ -94,10 +94,10 @@ public:
 
         for (auto& s: symbols) s = value;
 
-        seq->clear();
-        seq->insert(0, size, [&](){
+        OOM_THROW_IF_FAILED(seq->clear(), MMA1_SRC);
+        OOM_THROW_IF_FAILED(seq->insert(0, size, [&](){
             return value;
-        });
+        }), MMA1_SRC);
 
         assertEqual(seq, symbols);
         assertIndexCorrect(MA_SRC, seq);
@@ -107,7 +107,7 @@ public:
 
     std::vector<int32_t> populateRandom(SeqPtr& seq, int32_t size)
     {
-        seq->clear();
+        OOM_THROW_IF_FAILED(seq->clear(), MMA1_SRC);
         return fillRandom(seq, size);
     }
 
@@ -115,11 +115,11 @@ public:
     {
         std::vector<int32_t> symbols;
 
-        seq->insert(0, size, [&]() {
+        OOM_THROW_IF_FAILED(seq->insert(0, size, [&]() {
             int32_t sym = getRandom(Blocks);
             symbols.push_back(sym);
             return sym;
-        });
+        }), MMA1_SRC);
 
         seq->check();
 

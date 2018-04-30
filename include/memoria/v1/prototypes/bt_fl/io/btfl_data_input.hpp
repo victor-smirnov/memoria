@@ -95,7 +95,7 @@ public:
         if (buffer)
         {
             buffer->setTopLevelAllocator();
-            buffer->init(block_size, buffer_sizes);
+            OOM_THROW_IF_FAILED(buffer->init(block_size, buffer_sizes), MMA1_SRC);
             return buffer;
         }
         else {
@@ -110,7 +110,7 @@ public:
         if (buffer)
         {
             buffer->setTopLevelAllocator();
-            buffer->init(block_size, buffer_size);
+            OOM_THROW_IF_FAILED(buffer->init(block_size, buffer_size), MMA1_SRC);
             return buffer;
         }
         else {

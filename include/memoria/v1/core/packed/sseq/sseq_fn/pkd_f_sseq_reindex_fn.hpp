@@ -104,14 +104,16 @@ class BitmapReindexFn {
             "BitmapReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
 
 public:
-    void reindex(Seq& seq)
+    OpStatus reindex(Seq& seq)
     {
         int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
             int32_t index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
-            seq.createIndex(index_size);
+            if (isFail(seq.createIndex(index_size))) {
+                return OpStatus::FAIL;
+            }
 
             Index* index = seq.index();
 
@@ -133,18 +135,22 @@ public:
             int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
+                if (isFail(index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
-                });
+                }))) {
+                    return OpStatus::FAIL;
+                }
 
                 at += buffer_size;
             }
 
-            index->reindex();
+            return index->reindex();
         }
         else {
-            seq.removeIndex();
+            return seq.removeIndex();
         }
+
+        return OpStatus::OK;
     }
 
     void check(const Seq& seq)
@@ -217,14 +223,16 @@ class ReindexFn {
                     "ReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
 
 public:
-    void reindex(Seq& seq)
+    OpStatus reindex(Seq& seq)
     {
         int32_t size = seq.size();
 
         if (size > ValuesPerBranch)
         {
             int32_t index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
-            seq.createIndex(index_size);
+            if(isFail(seq.createIndex(index_size))) {
+                return OpStatus::FAIL;
+            }
 
             Index* index = seq.index();
 
@@ -249,18 +257,22 @@ public:
             int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
+                if(isFail(index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
-                });
+                }))) {
+                    return OpStatus::FAIL;
+                }
 
                 at += buffer_size;
             }
 
-            index->reindex();
+            return index->reindex();
         }
         else {
-            seq.removeIndex();
+            return seq.removeIndex();
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -339,7 +351,7 @@ class VLEReindexFn {
                 "VLEReindexFn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-    void reindex(Seq& seq)
+    OpStatus reindex(Seq& seq)
     {
         int32_t size = seq.size();
 
@@ -370,7 +382,9 @@ public:
                 }
             }
 
-            seq.createIndex(length);
+            if(isFail(seq.createIndex(length))) {
+                return OpStatus::FAIL;
+            }
 
             Index* index = seq.index();
 
@@ -394,16 +408,24 @@ public:
             SizesT at;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                at = index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
+                auto at_s = index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
                 });
+
+                if (isFail(at_s)) {
+                    return OpStatus::FAIL;
+                }
+
+                at = at_s.value();
             }
 
-            index->reindex();
+            return index->reindex();
         }
         else {
-            seq.removeIndex();
+            return seq.removeIndex();
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -479,7 +501,7 @@ class VLEReindex8Fn {
                 "VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-    void reindex(Seq& seq)
+    OpStatus reindex(Seq& seq)
     {
         int32_t size = seq.size();
 
@@ -510,7 +532,9 @@ public:
                 }
             }
 
-            seq.createIndex(length);
+            if(isFail(seq.createIndex(length))) {
+                return OpStatus::FAIL;
+            }
 
             symbols = seq.symbols();
 
@@ -535,16 +559,24 @@ public:
             int32_t buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-                at = index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
+                auto at_s = index->populate(at, buffer_size, [&](int32_t block, int32_t idx) {
                     return buffer.buffer()[idx][block];
                 });
+
+                if(isFail(at_s)) {
+                    return OpStatus::FAIL;
+                }
+
+                at = at_s.value();
             }
 
-            index->reindex();
+            return index->reindex();
         }
         else {
-            seq.removeIndex();
+            return seq.removeIndex();
         }
+
+        return OpStatus::OK;
     }
 
     void check(const Seq& seq)
@@ -615,13 +647,13 @@ class VLEReindex8BlkFn: public VLEReindex8Fn<Seq> {
                 "VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-    void reindex(Seq& seq)
+    OpStatus reindex(Seq& seq)
     {
         int32_t size = seq.size();
 
         if (size <= ValuesPerBranch)
         {
-            seq.removeIndex();
+            return seq.removeIndex();
         }
 //        else if (size > ValuesPerBranch && size <= 4096)
 //        {
@@ -671,8 +703,10 @@ public:
 ////            index->_insert(0, )
 //        }
         else {
-            Base::reindex(seq);
+            return Base::reindex(seq);
         }
+
+        return OpStatus::OK;
     }
 };
 

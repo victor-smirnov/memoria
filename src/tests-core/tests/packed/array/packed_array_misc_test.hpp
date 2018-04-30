@@ -16,47 +16,50 @@
 
 #pragma once
 
-#include "packed_tree_test_base.hpp"
+#include "packed_array_test_base.hpp"
 
 namespace memoria {
 namespace v1 {
 namespace tests {
 
-template <
-    typename PackedTreeT
->
-class PackedTreeMiscTest: public PackedTreeTestBase<PackedTreeT> {
 
-    using MyType = PackedTreeMiscTest<PackedTreeT>;
-    using Base   = PackedTreeTestBase<PackedTreeT>;
+template <typename TreeType>
+class PackedArrayMiscTest: public PackedArrayTestBase <TreeType> {
 
-    typedef typename Base::Tree                                                 Tree;
+    typedef PackedArrayMiscTest<TreeType>                                       MyType;
+
+    typedef PackedArrayTestBase <TreeType>                                      Base;
+
+    typedef typename Base::Array                                                Array;
     typedef typename Base::Values                                               Values;
 
-    static constexpr int32_t Blocks = Base::Blocks;
+    int32_t iterations_ = 10;
+
+    using Base::getRandom;
+    using Base::createEmptyArray;
+    using Base::createRandomValuesVector;
+    using Base::fillVector;
+    using Base::fillRandom;
+    using Base::createRandom;
+    using Base::assertIndexCorrect;
+    using Base::assertEqual;
+    using Base::assertEmpty;
+    using Base::out;
 
 public:
 
-    using Base::createEmptyTree;
-    using Base::fillVector;
-    using Base::assertIndexCorrect;
-    using Base::assertEqual;
-    using Base::getRandom;
-    using Base::createRandomValuesVector;
-    using Base::assertEmpty;
-    using Base::out;
-    using Base::iterations_;
-    using Base::size_;
 
+    PackedArrayMiscTest()
+    {
+        this->size_ = 8192;
+    }
 
     static void init_suite(TestSuite& suite)
     {
         MMA1_CLASS_TESTS(suite, testInsertVector, testFillTree, testAddValue, testMerge);
-        MMA1_CLASS_TESTS(suite, testSplitToEmpty, testSplitToPreFilled, testRemoveMulti, testRemoveAll);
-        MMA1_CLASS_TESTS(suite, testClear);
+        MMA1_CLASS_TESTS(suite, testSplitToEmpty, testSplitToPreFilled, testRemoveMulti);
+        MMA1_CLASS_TESTS(suite, testRemoveAll, testClear);
     }
-
-
 
     void testInsertVector()
     {
@@ -70,7 +73,7 @@ public:
     {
         out() << size << std::endl;
 
-        auto tree = createEmptyTree();
+        auto tree = createEmptyArray();
 
         std::vector<Values> v = createRandomValuesVector(size);
 
@@ -89,17 +92,17 @@ public:
         }
     }
 
-    void testFillTree(int32_t tree_size)
+    void testFillTree(int32_t array_size)
     {
-        Base::out() << tree_size << std::endl;
+        out() << array_size/1024 << std::endl;
 
-        auto tree = Base::createEmptyTree();
+        auto tree = createEmptyArray();
 
-        std::vector<Values> v = Base::fillRandom(tree, tree_size);
+        std::vector<Values> v = fillRandom(tree, array_size);
 
-        Base::assertIndexCorrect(MA_SRC, tree);
+        assertIndexCorrect(MA_SRC, tree);
 
-        Base::assertEqual(tree, v);
+        assertEqual(tree, v);
     }
 
     void testAddValue()
@@ -112,7 +115,7 @@ public:
 
     void addValues(std::vector<Values>& values, int32_t idx, const Values v)
     {
-        for (int32_t c = 0; c< Blocks; c++)
+        for (int32_t c = 0; c< Base::Blocks; c++)
         {
             values[idx][c] += v[c];
         }
@@ -121,31 +124,32 @@ public:
 
     void testAddValue(int32_t size)
     {
-        Base::out() << size << std::endl;
+        out() << size << std::endl;
 
-        auto tree = createEmptyTree();
+        auto tree = createEmptyArray(4*1024*1024);
+
         auto tree_values = createRandomValuesVector(size);
 
         fillVector(tree, tree_values);
 
         for (int32_t c = 0; c < iterations_; c++)
         {
-            Values value = Base::createRandom();
+            Values value = createRandom();
             int32_t idx = getRandom(tree->size());
 
-            tree->addValues(idx, value);
-            Base::assertIndexCorrect(MA_SRC, tree);
+            OOM_THROW_IF_FAILED(tree->addValues(idx, value), MMA1_SRC);
+            assertIndexCorrect(MA_SRC, tree);
 
             addValues(tree_values, idx, value);
 
-            Base::assertEqual(tree, tree_values);
+            assertEqual(tree, tree_values);
         }
     }
 
 
     void testSplitToEmpty()
     {
-        for (int c = 64; c <= this->size_; c*=2)
+        for (int c = 2; c <= 32*1024; c*=2)
         {
             testSplitToEmpty(c);
         }
@@ -155,16 +159,18 @@ public:
     {
         Base::out() << size << std::endl;
 
-        auto tree1 = createEmptyTree();
-        auto tree2 = createEmptyTree();
+        auto tree1 = createEmptyArray(16*1024*1024);
 
-        auto tree_values1 = Base::createRandomValuesVector(size);
+
+        auto tree2 = createEmptyArray(16*1024*1024);
+
+        auto tree_values1 = createRandomValuesVector(size);
 
         fillVector(tree1, tree_values1);
 
-        int32_t idx = this->getRandom(size);
+        int32_t idx = getRandom(size);
 
-        tree1->splitTo(tree2.get(), idx);
+        OOM_THROW_IF_FAILED(tree1->splitTo(tree2.get(), idx), MMA1_SRC);
 
         std::vector<Values> tree_values2(tree_values1.begin() + idx, tree_values1.end());
 
@@ -176,7 +182,7 @@ public:
 
     void testSplitToPreFilled()
     {
-        for (int c = 2; c <= this->size_; c*=2)
+        for (int c = 2; c <= 32*1024; c*=2)
         {
             testSplitPreFilled(c);
         }
@@ -184,10 +190,11 @@ public:
 
     void testSplitPreFilled(int32_t size)
     {
-        Base::out() << size << std::endl;
+        out() << size << std::endl;
 
-        auto tree1 = createEmptyTree();
-        auto tree2 = createEmptyTree();
+        auto tree1 = createEmptyArray(16*1024*1024);
+        auto tree2 = createEmptyArray(16*1024*1024);
+
 
         auto tree_values1 = createRandomValuesVector(size);
         auto tree_values2 = createRandomValuesVector(size < 100 ? size : 100);
@@ -197,7 +204,7 @@ public:
 
         int32_t idx = getRandom(size);
 
-        tree1->splitTo(tree2.get(), idx);
+        OOM_THROW_IF_FAILED(tree1->splitTo(tree2.get(), idx), MMA1_SRC);
 
         tree_values2.insert(tree_values2.begin(), tree_values1.begin() + idx, tree_values1.end());
 
@@ -210,12 +217,13 @@ public:
 
     void testRemoveMulti()
     {
-        for (int32_t size = 8; size <= this->size_; size*=2)
+        for (int32_t size = 1; size <= 32768; size*=2)
         {
             out() << size << std::endl;
 
-            auto tree = Base::createEmptyTree();
-            auto tree_values = createRandomValuesVector(size, 300);
+
+            auto tree = createEmptyArray(16*1024*1024);
+            auto tree_values = createRandomValuesVector(size);
 
             fillVector(tree, tree_values);
 
@@ -228,33 +236,33 @@ public:
 
                 int32_t block_size = tree->block_size();
 
-                tree->remove(start, end);
+                OOM_THROW_IF_FAILED(tree->removeSpace(start, end), MMA1_SRC);
 
                 tree_values.erase(tree_values.begin() + start, tree_values.begin() + end);
 
                 assertIndexCorrect(MA_SRC, tree);
                 assertEqual(tree, tree_values);
 
-                auto new_block_size = tree->block_size();
-
-                assert_le(new_block_size, block_size);
+                assert_le(tree->block_size(), block_size);
             }
         }
+
+        out() << std::endl;
     }
 
     void testRemoveAll()
     {
-        for (int32_t size = 1; size <= this->size_; size*=2)
+        for (int32_t size = 1; size <= 32768; size*=2)
         {
             out() << size << std::endl;
 
-            auto tree = createEmptyTree();
+            auto tree = createEmptyArray(16*1024*1024);
             auto tree_values = createRandomValuesVector(size);
             fillVector(tree, tree_values);
 
             assertEqual(tree, tree_values);
 
-            tree->remove(0, tree->size());
+            OOM_THROW_IF_FAILED(tree->removeSpace(0, tree->size()), MMA1_SRC);
 
             assertEmpty(tree);
         }
@@ -264,7 +272,7 @@ public:
 
     void testMerge()
     {
-        for (int c = 1; c <= this->size_; c*=2)
+        for (int c = 1; c <= 32*1024; c*=2)
         {
             testMerge(c);
         }
@@ -274,17 +282,16 @@ public:
     {
         Base::out() << size << std::endl;
 
-        auto tree1 = Base::createEmptyTree();
+        auto tree1 = createEmptyArray(16*1024*1024);
+        auto tree2 = Base::createEmptyArray(16*1024*1024);
 
-        auto tree2 = Base::createEmptyTree();
+        auto tree_values1 = createRandomValuesVector(size);
+        auto tree_values2 = createRandomValuesVector(size);
 
-        auto tree_values1 = Base::createRandomValuesVector(size);
-        auto tree_values2 = Base::createRandomValuesVector(size);
+        fillVector(tree1, tree_values1);
+        fillVector(tree2, tree_values2);
 
-        Base::fillVector(tree1, tree_values1);
-        Base::fillVector(tree2, tree_values2);
-
-        tree1->mergeWith(tree2.get());
+        OOM_THROW_IF_FAILED(tree1->mergeWith(tree2.get()), MMA1_SRC);
 
         tree_values2.insert(tree_values2.end(), tree_values1.begin(), tree_values1.end());
 
@@ -294,9 +301,7 @@ public:
 
     void testClear()
     {
-        testClear(0);
-
-        for (int c = 1; c <= this->size_; c*=2)
+        for (int c = 1; c <= 32*1024; c*=2)
         {
             testClear(c);
         }
@@ -304,9 +309,10 @@ public:
 
     void testClear(int32_t size)
     {
-        out() << size << std::endl;
+        Base::out() << size << std::endl;
 
-        auto tree = createEmptyTree();
+        auto tree = createEmptyArray(16*1024*1024);
+
         auto block_size = tree->block_size();
 
         auto tree_values = createRandomValuesVector(size);
@@ -314,7 +320,7 @@ public:
 
         assertEqual(tree, tree_values);
 
-        tree->clear();
+        OOM_THROW_IF_FAILED(tree->clear(), MMA1_SRC);
         tree->set_block_size(block_size);
 
         assertEmpty(tree);
@@ -323,7 +329,7 @@ public:
 
         assertEqual(tree, tree_values);
 
-        tree->clear();
+        OOM_THROW_IF_FAILED(tree->clear(), MMA1_SRC);
         assertEmpty(tree);
     }
 

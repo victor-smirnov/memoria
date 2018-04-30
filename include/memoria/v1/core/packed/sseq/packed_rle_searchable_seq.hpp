@@ -373,7 +373,7 @@ public:
     }
 
 
-    void append(int32_t symbol, uint64_t length)
+    OpStatus append(int32_t symbol, uint64_t length)
     {
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
 
@@ -384,16 +384,22 @@ public:
         Codec codec;
         auto len = codec.length(run_value);
 
-        ensure_capacity(len);
+        if(isFail(ensure_capacity(len))) {
+            return OpStatus::FAIL;
+        }
 
         meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
         meta->size() += length;
+
+        return OpStatus::OK;
     }
 
-    void append_and_reindex(int32_t symbol, uint64_t length)
+    OpStatus append_and_reindex(int32_t symbol, uint64_t length)
     {
-        append(symbol, length);
-        reindex();
+        if(isFail(append(symbol, length))) {
+            return OpStatus::FAIL;
+        }
+        return reindex();
     }
 
     bool emplace_back(int32_t symbol, uint64_t length)
@@ -446,44 +452,60 @@ public:
         return block_size;
     }
 
-    void init(int32_t block_size)
+    OpStatus init(int32_t block_size)
     {
         MEMORIA_V1_ASSERT(block_size, >=, empty_size());
 
-        init();
+        return init();
     }
 
-    void init() {
-        init_bs(empty_size());
+    OpStatus init() {
+        return init_bs(empty_size());
     }
 
-    void init_bs(int32_t block_size)
+    OpStatus init_bs(int32_t block_size)
     {
-        Base::init(block_size, TOTAL_SEGMENTS__);
+        if(isFail(Base::init(block_size, TOTAL_SEGMENTS__))) {
+            return OpStatus::FAIL;
+        }
 
         Metadata* meta  = Base::template allocate<Metadata>(METADATA);
+
+        if(isFail(meta)) {
+            return OpStatus::FAIL;
+        }
 
         meta->size() = 0;
         meta->data_size() = 0;
 
-        this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(0));
+        if(isFail(this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(0)))) {
+            return OpStatus::FAIL;
+        }
 
         Base::setBlockType(SIZE_INDEX, PackedBlockType::ALLOCATABLE);
         Base::setBlockType(SUM_INDEX,  PackedBlockType::ALLOCATABLE);
         Base::setBlockType(SYMBOLS, PackedBlockType::RAW_MEMORY);
 
+        return OpStatus::OK;
         // other sections are empty at this moment
     }
 
-    void clear()
+    OpStatus clear()
     {
-        Base::resizeBlock(SYMBOLS, 0);
-        removeIndex();
+        if(isFail(Base::resizeBlock(SYMBOLS, 0))) {
+            return OpStatus::FAIL;
+        }
+
+        if(isFail(removeIndex())) {
+            return OpStatus::FAIL;
+        }
 
         auto meta = this->metadata();
 
         meta->size()        = 0;
         meta->data_size()   = 0;
+
+        return OpStatus::OK;
     }
 
     void reset() {
@@ -508,30 +530,44 @@ public:
     }
 
 
-    void removeIndex()
+    OpStatus removeIndex()
     {
         Base::free(SIZE_INDEX);
         Base::free(SUM_INDEX);
 
-        Base::resizeBlock(OFFSETS, offsets_segment_size(0));
+        if(isFail(Base::resizeBlock(OFFSETS, offsets_segment_size(0)))) {
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
 
-    void createIndex(int32_t index_size)
+    OpStatus createIndex(int32_t index_size)
     {
         int32_t size_index_block_size = SizeIndex::block_size(index_size);
-        Base::resizeBlock(SIZE_INDEX, size_index_block_size);
+        if(isFail(Base::resizeBlock(SIZE_INDEX, size_index_block_size))) {
+            return OpStatus::FAIL;
+        }
 
         int32_t sum_index_block_size = SumIndex::block_size(index_size);
-        Base::resizeBlock(SUM_INDEX, sum_index_block_size);
+        if(isFail(Base::resizeBlock(SUM_INDEX, sum_index_block_size))) {
+            return OpStatus::FAIL;
+        }
 
         auto size_index = this->size_index();
         size_index->setAllocatorOffset(this);
-        size_index->init(index_size);
+        if(isFail(size_index->init(index_size))) {
+            return OpStatus::FAIL;
+        }
 
         auto sum_index = this->sum_index();
         sum_index->setAllocatorOffset(this);
-        sum_index->init(index_size);
+        if(isFail(sum_index->init(index_size))) {
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
     Iterator iterator(int32_t symbol_pos) const
@@ -578,10 +614,10 @@ public:
 
     // ========================================= Update ================================= //
 
-    void reindex()
+    OpStatus reindex()
     {
         rleseq::ReindexFn<MyType> reindex_fn;
-        reindex_fn.reindex(*this);
+        return reindex_fn.reindex(*this);
     }
 
     void check() const
@@ -596,14 +632,16 @@ public:
         }
     }
 
-    void ensure_capacity(int32_t capacity)
+    OpStatus ensure_capacity(int32_t capacity)
     {
         int32_t current_capacity = this->symbols_block_capacity();
 
         if (current_capacity < capacity)
         {
-            enlargeData(capacity - current_capacity);
+            return enlargeData(capacity - current_capacity);
         }
+
+        return OpStatus::OK;
     }
 
     bool has_capacity(int32_t required_capacity) const
@@ -613,52 +651,54 @@ public:
     }
 
 
-    void enlargeData(int32_t length)
+    OpStatus enlargeData(int32_t length)
     {
         int32_t new_size = this->element_size(SYMBOLS) + length;
-        Base::resizeBlock(SYMBOLS, new_size);
+        return toOpStatus(Base::resizeBlock(SYMBOLS, new_size));
     }
 
 protected:
 
-    void shrinkData(int32_t length)
+    OpStatus shrinkData(int32_t length)
     {
         int32_t current_size = this->element_size(SYMBOLS);
 
         int32_t new_size = current_size - length;
 
-        if (new_size >= 0)
+        if (!isFail(new_size))
         {
-            Base::resizeBlock(SYMBOLS, new_size);
+            return toOpStatus(Base::resizeBlock(SYMBOLS, new_size));
         }
+
+        return OpStatus::OK;
     }
 
 
-    void shrink_to_data()
+    OpStatus shrink_to_data()
     {
-        shrinkData(this->symbols_block_capacity());
+        return shrinkData(this->symbols_block_capacity());
     }
 
 public:
 
     template <int32_t Offset, int32_t Size, typename AccessorFn, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    void _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    OpStatus _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
     {
-        insert(idx, values(0));
+        return insert(idx, values(0));
     }
 
 
 
-    void insert(int32_t pos, int32_t symbol)
+    OpStatus insert(int32_t pos, int32_t symbol)
     {
-        insert(pos, symbol, 1);
+        return insert(pos, symbol, 1);
     }
 
-    void removeSpace(int32_t start, int32_t end) {
-    	remove(start, end);
+    OpStatus removeSpace(int32_t start, int32_t end) {
+        return remove(start, end);
     }
 
-    void remove(int32_t start, int32_t end, bool compactify = false)
+    OpStatus remove(int32_t start, int32_t end, bool compactify = false)
     {
         auto meta = this->metadata();
 
@@ -674,7 +714,9 @@ public:
         {
             if (location_start.run_prefix() > 0)
             {
-                remove_runs(location_start, location_end);
+                if(isFail(remove_runs(location_start, location_end))) {
+                    return OpStatus::FAIL;
+                }
 
                 if (location_start.symbol() == location_end.symbol())
                 {
@@ -700,11 +742,13 @@ public:
 
         if (compactify)
         {
-            this->compactify();
+            return this->compactify();
         }
         else {
-            shrink_to_data();
-            reindex();
+            if(isFail(shrink_to_data())) {
+                return OpStatus::FAIL;
+            }
+            return reindex();
         }
     }
 
@@ -735,7 +779,7 @@ public:
 //     }
 
 
-    void insert(int32_t idx, int32_t symbol, uint64_t length)
+    OpStatus insert(int32_t idx, int32_t symbol, uint64_t length)
     {
         auto meta = this->metadata();
         
@@ -747,13 +791,21 @@ public:
             {
                 if (location.run_prefix() > 0)
                 {
-                    location = split_run(location);
+                    auto location_s = split_run(location);
+                    if (isFail(location_s)) {
+                        return OpStatus::FAIL;
+                    }
+                    location = location_s.value();
                 }
 
-                insert_run(location.data_pos(), symbol, length);
+                if(isFail(insert_run(location.data_pos(), symbol, length))) {
+                    return OpStatus::FAIL;
+                }
             }
             else {
-                add_run_length(location, length);
+                if(isFail(add_run_length(location, length))) {
+                    return OpStatus::FAIL;
+                }
             }
         }
         else {
@@ -761,18 +813,22 @@ public:
             
             if (location.symbol() != symbol || location.length() + length > MaxRunLength)
             {
-                insert_run(location.data_pos() + location.run().length(), symbol, length);
+                if(isFail(insert_run(location.data_pos() + location.run().length(), symbol, length))) {
+                    return OpStatus::FAIL;
+                }
             }
             else {
-                add_run_length(location, length);
+                if(isFail(add_run_length(location, length))) {
+                    return OpStatus::FAIL;
+                }
             }
         }
         
-        reindex();
+        return reindex();
     }
 
 
-    void insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
+    OpStatus insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
     {
         if (size > 0)
         {
@@ -794,7 +850,12 @@ public:
             {
                 if (location.run_prefix() > 0)
                 {
-                    location = split_run(location);
+                    auto location_s = split_run(location);
+                    if (isFail(location_s)) {
+                        return OpStatus::FAIL;
+                    }
+
+                    location = location_s.value();
                 }
 
                 uint64_t start_run_value = encode_run(start_run.symbol(), start_run.run_suffix());
@@ -808,7 +869,9 @@ public:
                     size_t to_copy      = end_run.data_pos() - start_run.data_end();
                     size_t total_length = start_run_value_length + to_copy + end_run_value_length;
 
-                    ensure_capacity(total_length);
+                    if(isFail(ensure_capacity(total_length))) {
+                        return OpStatus::FAIL;
+                    }
 
                     size_t pos = location.data_pos();
                     codec.move(symbols, pos, pos + total_length, meta->data_size() - pos);
@@ -825,7 +888,9 @@ public:
                     size_t to_copy      = end_run.data_pos() - start_run.data_end();
                     size_t total_length = start_run_value_length + to_copy;
 
-                    ensure_capacity(total_length);
+                    if(isFail(ensure_capacity(total_length))) {
+                        return OpStatus::FAIL;
+                    }
 
                     size_t pos = location.data_pos();
                     codec.move(symbols, pos, pos + total_length, meta->data_size() - pos);
@@ -840,19 +905,31 @@ public:
             }
             else if (location.symbol() == start_run.symbol())
             {
-                add_run_length(location, size);
+                if(isFail(add_run_length(location, size))) {
+                    return OpStatus::FAIL;
+                }
             }
             else {
                 if (location.run_prefix() > 0)
                 {
-                    location = split_run(location);
+                    auto location_s = split_run(location);
+
+                    if (isFail(location_s)) {
+                        return OpStatus::FAIL;
+                    }
+
+                    location = location_s.value();
                 }
 
-                insert_run(location.data_pos(), start_run.symbol(), size);
+                if(isFail(insert_run(location.data_pos(), start_run.symbol(), size))) {
+                    return OpStatus::FAIL;
+                }
             }
 
-            reindex();
+            return reindex();
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -863,30 +940,38 @@ public:
 
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void _insert(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _insert(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
     {
-        insert(idx, symbol);
+        if(isFail(insert(idx, symbol))) {
+            return OpStatus::FAIL;
+        }
 
         sum<Offset>(idx, accum);
+
+        return OpStatus::OK;
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void _update(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _update(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
     {
         sub<Offset>(idx, accum);
 
         this->symbol(idx) = symbol;
 
-        this->reindex();
+        if(isFail(this->reindex())) {
+            return OpStatus::FAIL;
+        }
 
         sum<Offset>(idx, accum);
+
+        return OpStatus::OK;
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
         sub<Offset>(idx, accum);
-        remove(idx, idx + 1);
+        return remove(idx, idx + 1);
     }
 
 
@@ -895,7 +980,7 @@ public:
 
 
 
-    void splitTo(MyType* other, int32_t idx)
+    OpStatus splitTo(MyType* other, int32_t idx)
     {
         auto meta = this->metadata();
 
@@ -917,7 +1002,9 @@ public:
 
             int32_t data_to_move = data_to_move_remainder + suffix_value_length;
 
-            other->ensure_capacity(data_to_move);
+            if(isFail(other->ensure_capacity(data_to_move))) {
+                return OpStatus::FAIL;
+            }
 
             codec.move(other->symbols(), 0, data_to_move, other_meta->data_size());
 
@@ -929,20 +1016,26 @@ public:
 
             //other->try_merge_two_adjustent_runs(0);
 
-            other->compactify();
+            if(isFail(other->compactify())) {
+                return OpStatus::FAIL;
+            }
 
-            remove(idx, meta->size(), true);
+            return remove(idx, meta->size(), true);
         }
+
+        return OpStatus::OK;
     }
 
-    void mergeWith(MyType* other) const
+    OpStatus mergeWith(MyType* other) const
     {
         auto meta       = this->metadata();
         auto other_meta = other->metadata();
 
         int32_t data_to_move = meta->data_size();
 
-        other->ensure_capacity(data_to_move);
+        if (isFail(other->ensure_capacity(data_to_move))) {
+            return OpStatus::FAIL;
+        }
 
         Codec codec;
 
@@ -952,9 +1045,11 @@ public:
         other_meta->data_size() += data_to_move;
         other_meta->size()      += meta->size();
 
-        other->compactify_runs();
+        if (isFail(other->compactify_runs())) {
+            return OpStatus::FAIL;
+        }
 
-        other->reindex();
+        return other->reindex();
     }
 
 
@@ -1532,10 +1627,13 @@ private:
 public:    
     
 
-    void compactify()
+    OpStatus compactify()
     {
-        compactify_runs();
-        reindex();
+        if (isFail(compactify_runs())) {
+            return OpStatus::FAIL;
+        }
+
+        return reindex();
     }
 
 private:
@@ -1778,7 +1876,7 @@ private:
 
 
 
-    void compactify_runs()
+    OpStatus compactify_runs()
     {
         auto meta    = this->metadata();
         auto symbols = this->symbols();
@@ -1846,7 +1944,7 @@ private:
 
         meta->data_size() = data_size;
 
-        shrink_to_data();
+        return shrink_to_data();
     }
 
 
@@ -1914,7 +2012,7 @@ private:
 
 
 
-    void remove_runs(const Location& start, const Location& end)
+    OpStatus remove_runs(const Location& start, const Location& end)
     {
         if (start.data_pos() < end.data_pos())
         {
@@ -1944,8 +2042,12 @@ private:
         }
         else {
             int64_t delta = end.local_idx() - start.local_idx();
-            add_run_length0(start, -delta);
+            if (isFail(add_run_length0(start, -delta))) {
+                return OpStatus::FAIL;
+            }
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -2046,7 +2148,7 @@ private:
         }
     }
 
-    Location split_run(const Location& location, uint64_t subtraction = 0)
+    OpStatusT<Location> split_run(const Location& location, uint64_t subtraction = 0)
     {
         uint64_t pos = location.local_idx();
 
@@ -2070,7 +2172,10 @@ private:
 
                 if (delta > 0)
                 {
-                    ensure_capacity(delta);
+                    if (isFail(ensure_capacity(delta))) {
+                        return OpStatus::FAIL;
+                    }
+
                     codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
                 }
 
@@ -2093,24 +2198,26 @@ private:
                 meta->data_size() -= delta;
                 meta->size() -= subtraction;
 
-                shrink_to_data();
+                if (isFail(shrink_to_data())) {
+                    return OpStatus::FAIL;
+                }
             }
 
-            return Location(
+            return OpStatusT<Location>(Location(
                     location.data_pos() + prefix_value_length,
                     suffix_value_length,
                     0,
                     location.block_base(),
                     location.run_base() + location.run_prefix(),
                     RLESymbolsRun(location.symbol(), location.run_suffix())
-            );
+            ));
         }
         else {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"split_run: invalid split position: {} {}", pos, location.length()));
         }
     }
 
-    size_t add_run_length0(const Location& location, int64_t length)
+    OpStatusT<size_t> add_run_length0(const Location& location, int64_t length)
     {
         Codec codec;
         auto meta = this->metadata();
@@ -2118,7 +2225,9 @@ private:
         uint64_t run_value       = encode_run(location.symbol(), location.length() + length);
         size_t run_value_length = codec.length(run_value);
 
-        ensure_capacity(run_value_length);
+        if(isFail(ensure_capacity(run_value_length))) {
+            return OpStatus::FAIL;
+        }
 
         auto symbols = this->symbols();
 
@@ -2127,20 +2236,24 @@ private:
 
         meta->data_size() += (run_value_length - location.data_length());
 
-        return run_value_length;
+        return OpStatusT<size_t>(run_value_length);
     }
 
-    size_t add_run_length(const Location& location, int64_t length)
+    OpStatusT<size_t> add_run_length(const Location& location, int64_t length)
     {
-        auto run_value_length = add_run_length0(location, length);
+        auto run_value_length_s = add_run_length0(location, length);
+
+        if(isFail(run_value_length_s)) {
+            return OpStatus::FAIL;
+        }
 
         auto meta = this->metadata();
         meta->size() += length;
 
-        return run_value_length;
+        return run_value_length_s;
     }
 
-    void remove_run(const Location& location)
+    OpStatus remove_run(const Location& location)
     {
         Codec codec;
         auto meta = this->metadata();
@@ -2152,10 +2265,10 @@ private:
         meta->data_size() -= location.data_length();
         meta->size() -= location.length();
 
-        shrink_to_data();
+        return shrink_to_data();
     }
 
-    size_t insert_run(const size_t& location, int32_t symbol, uint64_t length)
+    OpStatusT<size_t> insert_run(const size_t& location, int32_t symbol, uint64_t length)
     {
         Codec codec;
         auto symbols = this->symbols();
@@ -2164,7 +2277,9 @@ private:
         uint64_t run_value       = encode_run(symbol, length);
         size_t run_value_length = codec.length(run_value);
 
-        ensure_capacity(run_value_length);
+        if (isFail(ensure_capacity(run_value_length))) {
+            return OpStatus::FAIL;
+        }
 
         codec.move(symbols, location, location + run_value_length, meta->data_size() - location);
         codec.encode(symbols, run_value, location);
@@ -2172,7 +2287,7 @@ private:
         meta->data_size() += run_value_length;
         meta->size() += length;
 
-        return run_value_length;
+        return OpStatusT<size_t>(run_value_length);
     }
 
 

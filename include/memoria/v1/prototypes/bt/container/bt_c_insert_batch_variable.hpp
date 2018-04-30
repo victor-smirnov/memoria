@@ -70,7 +70,7 @@ protected:
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
-    MEMORIA_V1_DECLARE_NODE_FN(InsertChildFn, insert);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(InsertChildFn, insert, OpStatus);
     InsertBatchResult insertSubtree(NodeBaseG& node, int32_t idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
     {
         auto& self = this->self();
@@ -102,7 +102,7 @@ protected:
                     child->parent_idx() = idx + c;
 
                     BranchNodeEntry sums = self.max(child);
-                    BranchDispatcher::dispatch(node, InsertChildFn(), idx + c, sums, child->id());
+                    OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(node, InsertChildFn(), idx + c, sums, child->id()), MMA1_SRC);
                 }
 
                 idx += c;

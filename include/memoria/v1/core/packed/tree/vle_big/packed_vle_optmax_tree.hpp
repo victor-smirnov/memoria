@@ -103,30 +103,42 @@ public:
         return MyType::block_size(size() + other->size());
     }
 
-    void init_bs(int32_t block_size) {
-        init();
+    OpStatus init_bs(int32_t block_size) {
+        return init();
     }
 
     static int32_t elements_for(int32_t block_size) {
         return -1;
     }
 
-    void init(int32_t capacity = 0)
+    OpStatus init(int32_t capacity = 0)
     {
-        Base::init(block_size(capacity), STRUCTS_NUM__);
+        if(isFail(Base::init(block_size(capacity), STRUCTS_NUM__))) {
+            return OpStatus::FAIL;
+        }
 
         int32_t bitmap_block_size = Bitmap::packed_block_size(capacity);
 
         Bitmap* bitmap = allocateSpace<Bitmap>(BITMAP, bitmap_block_size);
-        bitmap->init(bitmap_block_size);
+        if(isFail(bitmap)) {
+            return OpStatus::FAIL;
+        }
+
+        if(isFail(bitmap->init(bitmap_block_size))) {
+            return OpStatus::FAIL;
+        }
 
         Tree* tree = allocateSpace<Tree>(TREE, Tree::empty_size());
-        tree->init();
+        if(isFail(tree)) {
+            return OpStatus::FAIL;
+        }
+
+        return tree->init();
     }
 
-    void init(const SizesT& sizes)
+    OpStatus init(const SizesT& sizes)
     {
-        MyType::init(sizes[0]);
+        return MyType::init(sizes[0]);
     }
 
 
@@ -194,7 +206,7 @@ public:
 
 
     template <typename T>
-    void setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    OpStatus setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
         Bitmap* bitmap  = this->bitmap();
         Tree* tree      = this->tree();
@@ -202,16 +214,24 @@ public:
         if (values[0].is_set())
         {
             TreeValues tree_values  = this->tree_values(values);
-            int32_t tree_idx            = this->tree_idx(idx);
+            int32_t tree_idx        = this->tree_idx(idx);
 
             if (bitmap->symbol(idx))
             {
-                tree->setValues(tree_idx, tree_values);
+                if(isFail(tree->setValues(tree_idx, tree_values))) {
+                    return OpStatus::FAIL;
+                }
             }
             else {
-                tree->insert(tree_idx, tree_values);
+                if(isFail(tree->insert(tree_idx, tree_values))) {
+                    return OpStatus::FAIL;
+                }
+
                 bitmap->symbol(idx) = 1;
-                bitmap->reindex();
+
+                if (isFail(bitmap->reindex())) {
+                    return OpStatus::FAIL;
+                }
             }
         }
         else {
@@ -219,15 +239,21 @@ public:
 
             if (bitmap->symbol(idx))
             {
-                tree->remove(tree_idx, tree_idx + 1);
+                if (isFail(tree->remove(tree_idx, tree_idx + 1))) {
+                    return OpStatus::FAIL;
+                }
 
                 bitmap->symbol(idx) = 0;
-                bitmap->reindex();
+                if (isFail(bitmap->reindex())) {
+                    return OpStatus::FAIL;
+                }
             }
             else {
                 // Do nothing
             }
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -304,10 +330,12 @@ public:
 
 
 
-    void reindex()
+    OpStatus reindex()
     {
-        bitmap()->reindex();
-        tree()->reindex();
+        if(isFail(bitmap()->reindex())) {
+            return OpStatus::FAIL;
+        }
+        return tree()->reindex();
     }
 
     void check() const
@@ -317,62 +345,75 @@ public:
     }
 
 
-    void splitTo(MyType* other, int32_t idx)
+    OpStatus splitTo(MyType* other, int32_t idx)
     {
         Bitmap* bitmap = this->bitmap();
 
         int32_t tree_idx = this->tree_idx(bitmap, idx);
 
-        bitmap->splitTo(other->bitmap(), idx);
-        tree()->splitTo(other->tree(), tree_idx);
+        if(isFail(bitmap->splitTo(other->bitmap(), idx))) {
+            return OpStatus::FAIL;
+        }
 
-        reindex();
+        if(isFail(tree()->splitTo(other->tree(), tree_idx))) {
+            return OpStatus::FAIL;
+        }
+
+        return reindex();
     }
 
-    void mergeWith(MyType* other)
+    OpStatus mergeWith(MyType* other)
     {
-        bitmap()->mergeWith(other->bitmap());
-        tree()->mergeWith(other->tree());
+        if(isFail(bitmap()->mergeWith(other->bitmap()))) {
+            return OpStatus::FAIL;
+        }
+
+        return tree()->mergeWith(other->tree());
     }
 
-    void removeSpace(int32_t start, int32_t end)
+    OpStatus removeSpace(int32_t start, int32_t end)
     {
-        remove(start, end);
+        return remove(start, end);
     }
 
-    void remove(int32_t start, int32_t end)
+    OpStatus remove(int32_t start, int32_t end)
     {
         Bitmap* bitmap = this->bitmap();
 
         int32_t tree_start = tree_idx(bitmap, start);
         int32_t tree_end = tree_idx(bitmap, end);
 
-        bitmap->remove(start, end);
-        tree()->remove(tree_start, tree_end);
+        if(isFail(bitmap->remove(start, end))) {
+            return OpStatus::FAIL;
+        }
+
+        return tree()->remove(tree_start, tree_end);
     }
 
     template <typename T>
-    void insert(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    OpStatus insert(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
         Bitmap* bitmap  = this->bitmap();
 
         if (values[0].is_set())
         {
-            bitmap->insert(idx, 1);
+            if(isFail(bitmap->insert(idx, 1))) {
+                return OpStatus::FAIL;
+            }
 
             TreeValues tree_values  = this->tree_values(values);
-            int32_t tree_idx            = this->tree_idx(bitmap, idx);
+            int32_t tree_idx        = this->tree_idx(bitmap, idx);
 
             Tree* tree = this->tree();
-            tree->insert(tree_idx, tree_values);
+            return tree->insert(tree_idx, tree_values);
         }
         else {
-            bitmap->insert(idx, 0);
+            return bitmap->insert(idx, 0);
         }
     }
 
 
-    void insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true)
+    OpStatus insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true)
     {
         auto bitmap = this->bitmap();
         int32_t bitidx = 0;
@@ -384,14 +425,14 @@ public:
             return v[0].is_set();
         });
 
-        auto tree    = this->tree();
+        auto tree = this->tree();
         int32_t tree_idx = this->tree_idx(bitmap, idx);
 
         int tidx = 0;
 
         TreeValues tv;
 
-        tree->insert(tree_idx, setted, [&, this](int32_t) -> const auto& {
+        if(isFail(tree->insert(tree_idx, setted, [&, this](int32_t) -> const auto& {
             while(true)
             {
                 if (tidx < size)
@@ -411,7 +452,11 @@ public:
                     MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Position {} exceeds {}", tidx, size));
                 }
             }
-        });
+        }))) {
+            return OpStatus::FAIL;
+        };
+
+        return OpStatus::OK;
     }
 
 

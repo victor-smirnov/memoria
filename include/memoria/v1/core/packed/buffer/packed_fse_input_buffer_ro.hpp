@@ -118,16 +118,20 @@ public:
         return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size[0] * sizeof(Value) * Blocks);
     }
 
-    void init(int32_t block_size)
+    OpStatus init(int32_t block_size)
     {
         size_ = 0;
         max_size_ = max_size_for(block_size);
+
+        return OpStatus::OK;
     }
 
-    void init(const SizesT& capacities)
+    OpStatus init(const SizesT& capacities)
     {
         size_ = 0;
         max_size_ = capacities[0];
+
+        return OpStatus::OK;
     }
 
     SizesT data_capacity() const
@@ -135,10 +139,12 @@ public:
         return SizesT(max_size_);
     }
 
-    void copyTo(MyType* other) const
+    OpStatus copyTo(MyType* other) const
     {
         other->size() = this->size();
         CopyBuffer(buffer_, other->buffer_, size_ * Blocks);
+
+        return OpStatus::OK;
     }
 
 
@@ -190,7 +196,7 @@ public:
 
 
 
-    void reindex() {}
+    OpStatus reindex() {return OpStatus::OK;}
     void check() const {}
 
 
@@ -203,9 +209,10 @@ public:
 
 
 
-    void reset()
+    OpStatus reset()
     {
         size_ = 0;
+        return OpStatus::OK;
     }
 
 

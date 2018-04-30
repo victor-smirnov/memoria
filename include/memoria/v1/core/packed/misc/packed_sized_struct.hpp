@@ -104,19 +104,20 @@ public:
     static int32_t elements_for(int32_t block_size)
     {
         size_t bsize = block_size;
-
         return bsize >= sizeof(MyType) ? std::numeric_limits<int32_t>::max() : 0;
     }
 
 
-    void init(int32_t block_size)
+    OpStatus init(int32_t block_size)
     {
         size_ = 0;
+        return OpStatus::OK;
     }
 
-    void init(const SizesT& capacities)
+    OpStatus init(const SizesT& capacities)
     {
         size_ = 0;
+        return OpStatus::OK;
     }
 
     static constexpr int32_t empty_size()
@@ -125,9 +126,11 @@ public:
     }
 
 
-    void init()
+    OpStatus init()
     {
         size_ = 0;
+
+        return OpStatus::OK;
     }
 
     SizesT data_capacity() const
@@ -156,16 +159,16 @@ public:
     }
 
     template <typename T>
-    void setValues(int32_t idx, T&&) {}
+    OpStatus setValues(int32_t idx, T&&) {return OpStatus::OK;}
 
     template <typename T>
-    void insert(int32_t idx, T&&) {
-        insertSpace(idx, 1);
+    OpStatus insert(int32_t idx, T&&) {
+        return insertSpace(idx, 1);
     }
 
     template <int32_t Offset, typename T>
-    void _insert(int32_t idx, T&&) {
-        insertSpace(idx, 1);
+    OpStatus _insert(int32_t idx, T&&) {
+        return insertSpace(idx, 1);
     }
 
 
@@ -231,9 +234,11 @@ public:
     }
 
 
-    void copyTo(MyType* other) const
+    OpStatus copyTo(MyType* other) const
     {
         other->size_ = this->size_;
+
+        return OpStatus::OK;
     }
 
 
@@ -262,13 +267,14 @@ public:
 
     // =================================== Update ========================================== //
 
-    void reindex() {}
+    OpStatus reindex() {return OpStatus::OK;}
+
     void check() const
     {
         MEMORIA_V1_ASSERT(size_, >=, 0);
     }
 
-    void remove(int32_t start, int32_t end)
+    OpStatus remove(int32_t start, int32_t end)
     {
         if (end < 0) {
             int32_t a = 0; a++;
@@ -279,91 +285,96 @@ public:
 
         int32_t room_length = end - start;
         size_ -= room_length;
+
+        return OpStatus::OK;
     }
 
-    void removeSpace(int32_t room_start, int32_t room_end) {
-        remove(room_start, room_end);
+    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
+        return remove(room_start, room_end);
     }
 
-    void insertSpace(int32_t idx, int32_t room_length)
+    OpStatus insertSpace(int32_t idx, int32_t room_length)
     {
-        if (idx > this->size()) {
-            int a = 0;
-            a++;
-        }
-
-        if (room_length < 0) {
-            int a = 0; a++;
-        }
-
-
         MEMORIA_V1_ASSERT(idx, <=, this->size());
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(room_length, >=, 0);
 
         size_ += room_length;
+
+        return OpStatus::OK;
     }
 
-    void reset()
+    OpStatus reset()
     {
         size_ = 0;
+
+        return OpStatus::OK;
     }
 
 
-    void splitTo(MyType* other, int32_t idx)
+    OpStatus splitTo(MyType* other, int32_t idx)
     {
         MEMORIA_V1_ASSERT(other->size(), ==, 0);
 
         int32_t split_size = this->size() - idx;
-        other->insertSpace(0, split_size);
+        if(isFail(other->insertSpace(0, split_size))) {
+            return OpStatus::FAIL;
+        }
 
-        removeSpace(idx, this->size());
+        return removeSpace(idx, this->size());
     }
 
-    void mergeWith(MyType* other)
+    OpStatus mergeWith(MyType* other)
     {
         int32_t my_size     = this->size();
         int32_t other_size  = other->size();
 
-        other->insertSpace(other_size, my_size);
+        if(isFail(other->insertSpace(other_size, my_size))) {
+            return OpStatus::FAIL;
+        }
 
-        removeSpace(0, my_size);
+        return removeSpace(0, my_size);
     }
 
     // ===================================== IO ============================================ //
 
-    void insert(int32_t pos, Value val)
+    OpStatus insert(int32_t pos, Value val)
     {
-        insertSpace(pos, 1);
+        return insertSpace(pos, 1);
     }
 
-    void insert(int32_t block, int32_t pos, Value val)
+    OpStatus insert(int32_t block, int32_t pos, Value val)
     {
-        insertSpace(pos, 1);
+        return insertSpace(pos, 1);
     }
 
-    void insert(int32_t pos, int32_t start, int32_t size, const InputBuffer* buffer)
+    OpStatus insert(int32_t pos, int32_t start, int32_t size, const InputBuffer* buffer)
     {
-        insertSpace(pos, size);
+        return insertSpace(pos, size);
     }
 
     template <typename Adaptor>
-    void insert(int32_t pos, int32_t size, Adaptor&& adaptor)
+    OpStatus insert(int32_t pos, int32_t size, Adaptor&& adaptor)
     {
-        insertSpace(pos, size);
+        return insertSpace(pos, size);
     }
 
-
-    SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
+    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
     {
-        insertSpace(at[0], size);
-        return at + SizesT(size);
+        if(isFail(insertSpace(at[0], size))) {
+            return OpStatusT<SizesT>();
+        }
+
+        return OpStatusT<SizesT>(at + SizesT(size));
     }
 
-    int32_t insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
+    OpStatusT<int32_t> insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
     {
-        insertSpace(at, size);
-        return at + size;
+        if(isFail(insertSpace(at, size))) {
+            return OpStatusT<int32_t>();
+        }
+
+        return OpStatusT<int32_t>(at + size);
     }
 
     Value value(int32_t, int32_t) const {
@@ -384,48 +395,56 @@ public:
 
 
     template <typename Adaptor>
-    void _insert(int32_t pos, int32_t size, Adaptor&& adaptor)
+    OpStatus _insert(int32_t pos, int32_t size, Adaptor&& adaptor)
     {
-        insertSpace(pos, size);
+        return insertSpace(pos, size);
     }
 
 
     template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    void _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
-    {}
+    OpStatus _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
+    {
+        return OpStatus::OK;
+    }
 
     template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    void _update_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
-    {}
+    OpStatus _update_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
+    {
+        return OpStatus::OK;
+    }
 
     template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    void _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {
         if (Offset < Size)
         {
             accum[Offset] += 1;
         }
 
-        insertSpace(pos, 1);
+        return insertSpace(pos, 1);
     }
 
 
     template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
-    void _insert_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
+    OpStatus _insert_b(int32_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
     {
         if (Offset < Size)
         {
             accum[Offset] += 1;
         }
 
-        insertSpace(pos, 1);
+        return insertSpace(pos, 1);
     }
 
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
-        remove(idx, idx + 1);
+        if(isFail(remove(idx, idx + 1))) {
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
 

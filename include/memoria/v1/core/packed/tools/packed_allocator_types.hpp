@@ -25,15 +25,11 @@
 namespace memoria {
 namespace v1 {
 
-
 template <typename PkdStruct>
 struct AccumType: HasType<typename PkdStruct::Value> {};
 
 template <typename PkdStruct>
 struct PkdStructInputType: HasType<typename PkdStruct::InputType> {};
-
-
-
 
 enum class PkdSearchType {SUM, MAX};
 
@@ -116,6 +112,8 @@ public:
         msg_(msg)
     {}
 
+    PackedOOMException(const char* source): MemoriaThrowableLW(source), msg_("Packed Structure Memory Allocation Failed") {}
+
     virtual void dump(std::ostream& out) const noexcept
     {
         if (msg_ != nullptr) {
@@ -127,6 +125,32 @@ public:
     }
 };
 
+
+
+static inline void OOM_THROW_IF_FAILED(OpStatus status, const char* source) {
+    if (isFail(status)) {
+        throw PackedOOMException(source);
+    }
+}
+
+static inline OpStatus toOpStatus(int32_t res)
+{
+    return res >= 0 ? OpStatus::OK : OpStatus::FAIL;
+}
+
+template <typename T>
+static inline void OOM_THROW_IF_FAILED(const OpStatusT<T>& status, const char* source) {
+    if (isFail(status)) {
+        throw PackedOOMException(source);
+    }
+}
+
+template <typename T>
+static inline void OOM_THROW_IF_FAILED(const T* ptr, const char* source) {
+    if (!ptr) {
+        throw PackedOOMException(source);
+    }
+}
 
 template <typename MyType, typename Base> class PackedAllocatorBase;
 
@@ -259,6 +283,7 @@ struct AllocationBlock {
     uint8_t* ptr_;
 
     AllocationBlock(int32_t size, int32_t offset, uint8_t* ptr): size_(size), offset_(offset), ptr_(ptr) {}
+    AllocationBlock(): size_{}, offset_{}, ptr_{nullptr} {}
 
     int32_t size() const    {return size_;}
     int32_t offset() const  {return offset_;}
@@ -273,6 +298,10 @@ struct AllocationBlock {
     template <typename T>
     T* cast() {
         return T2T<T*>(ptr_);
+    }
+
+    operator bool() const {
+        return ptr_ != nullptr;
     }
 };
 

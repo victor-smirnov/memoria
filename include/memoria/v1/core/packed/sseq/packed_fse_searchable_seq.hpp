@@ -245,30 +245,37 @@ public:
 
     // ===================================== Allocation ================================= //
 
-    void init()
+    OpStatus init()
     {
-        init_bs(empty_size());
+        return init_bs(empty_size());
     }
 
-    void init(int32_t block_size)
+    OpStatus init(int32_t block_size)
     {
         MEMORIA_V1_ASSERT(block_size, >=, empty_size());
 
-        init_bs(empty_size());
+        return init_bs(empty_size());
     }
 
-    void init_bs(int32_t block_size)
+    OpStatus init_bs(int32_t block_size)
     {
-        Base::init(block_size, 3);
+        if(isFail(Base::init(block_size, 3))) {
+            return OpStatus::FAIL;
+        }
 
         Metadata* meta  = Base::template allocate<Metadata>(METADATA);
+        if(isFail(meta)) {
+            return OpStatus::FAIL;
+        }
 
         meta->size()    = 0;
 
         Base::setBlockType(INDEX,   PackedBlockType::ALLOCATABLE);
+
         Base::setBlockType(SYMBOLS, PackedBlockType::RAW_MEMORY);
 
         // other sections are empty at this moment
+        return OpStatus::OK;
     }
 
     int32_t block_size() const {
@@ -326,21 +333,28 @@ public:
         return block_size;
     }
 
-    void removeIndex()
+    OpStatus removeIndex()
     {
         Base::free(INDEX);
+        return OpStatus::OK;
     }
 
     template <typename IndexSizeT>
-    void createIndex(IndexSizeT&& index_size)
+    OpStatus createIndex(IndexSizeT&& index_size)
     {
         int32_t index_block_size = Index::block_size(index_size);
-        Base::resizeBlock(INDEX, index_block_size);
+        if (isFail(Base::resizeBlock(INDEX, index_block_size))) {
+            return OpStatus::FAIL;
+        }
 
         Index* index = this->index();
         index->setAllocatorOffset(this);
 
-        index->init(index_size);
+        if(isFail(index->init(index_size))) {
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
 
@@ -352,10 +366,10 @@ public:
 
     // ========================================= Update ================================= //
 
-    void reindex()
+    OpStatus reindex()
     {
         typename Types::template ReindexFn<MyType> reindex_fn;
-        reindex_fn.reindex(*this);
+        return reindex_fn.reindex(*this);
     }
 
     void check() const
@@ -376,17 +390,24 @@ public:
         tools().set(symbols(), idx, symbol);
     }
 
-    void clear()
+    OpStatus clear()
     {
-        Base::resizeBlock(SYMBOLS, 0);
-        removeIndex();
+        if (isFail(Base::resizeBlock(SYMBOLS, 0))) {
+            return OpStatus::FAIL;
+        }
+
+        if (isFail(removeIndex())){
+            return OpStatus::FAIL;
+        }
 
         size() = 0;
+
+        return OpStatus::OK;
     }
 
 
 
-    void enlargeData(int32_t length)
+    OpStatus enlargeData(int32_t length)
     {
         int32_t capacity = this->capacity();
 
@@ -394,14 +415,20 @@ public:
         {
             int32_t new_size        = size() + length;
             int32_t new_block_size  = roundUpBitToBytes(new_size * BitsPerSymbol);
-            Base::resizeBlock(SYMBOLS, new_block_size);
+            if(isFail(Base::resizeBlock(SYMBOLS, new_block_size))) {
+                return OpStatus::FAIL;
+            }
         }
+
+        return OpStatus::OK;
     }
 
 protected:
-    void insertDataRoom(int32_t pos, int32_t length)
+    OpStatus insertDataRoom(int32_t pos, int32_t length)
     {
-        enlargeData(length);
+        if(isFail(enlargeData(length))) {
+            return OpStatus::FAIL;
+        }
 
         auto symbols = this->symbols();
 
@@ -410,9 +437,11 @@ protected:
         tools().move(symbols, pos, (pos + length), rest);
 
         size() += length;
+
+        return OpStatus::OK;
     }
 
-    void shrinkData(int32_t length)
+    OpStatus shrinkData(int32_t length)
     {
         int32_t new_size        = size() - length;
 
@@ -420,32 +449,38 @@ protected:
         {
             int32_t new_block_size  = roundUpBitToBytes(new_size * BitsPerSymbol);
 
-            Base::resizeBlock(SYMBOLS, new_block_size);
+            if(isFail(Base::resizeBlock(SYMBOLS, new_block_size))) {
+                return OpStatus::FAIL;
+            }
         }
+
+        return OpStatus::OK;
     }
 
 public:
 
     template <int32_t Offset, int32_t Size, typename AccessorFn, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
-    void _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    OpStatus _insert_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
     {
-        insert(idx, values(0));
+        return insert(idx, values(0));
     }
 
 
 
-    void insert(int32_t pos, int32_t symbol)
+    OpStatus insert(int32_t pos, int32_t symbol)
     {
-        insertDataRoom(pos, 1);
+        if(isFail(insertDataRoom(pos, 1))) {
+            return OpStatus::FAIL;
+        }
 
         Value* symbols = this->symbols();
 
         tools().set(symbols, pos, symbol);
 
-        reindex();
+        return reindex();
     }
 
-    void remove(int32_t start, int32_t end)
+    OpStatus remove(int32_t start, int32_t end)
     {
         int32_t& size = this->size();
 
@@ -461,20 +496,22 @@ public:
 
         tools().move(symbols, end, start, rest);
 
-        shrinkData(end - start);
+        if(isFail(shrinkData(end - start))) {
+            return OpStatus::FAIL;
+        }
 
         size -= (end - start);
 
-        reindex();
+        return reindex();
     }
 
-    void removeSpace(int32_t start, int32_t end) {
-        remove(start, end);
+    OpStatus removeSpace(int32_t start, int32_t end) {
+        return remove(start, end);
     }
 
 
-    void removeSymbol(int32_t idx) {
-        remove(idx, idx + 1);
+    OpStatus removeSymbol(int32_t idx) {
+        return remove(idx, idx + 1);
     }
 
 
@@ -493,29 +530,36 @@ public:
         }
     }
 
-    void insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
+    OpStatus insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
     {
-        insertDataRoom(at, size);
+        if(isFail(insertDataRoom(at, size))) {
+            return OpStatus::FAIL;
+        }
         tools().move(buffer->symbols(), this->symbols(), start, at, size);
-        reindex();
+
+        return reindex();
     }
 
 
-    void insert(int32_t start, int32_t length, std::function<Value ()> fn)
+    OpStatus insert(int32_t start, int32_t length, std::function<Value ()> fn)
     {
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(start, <=, size());
 
         MEMORIA_V1_ASSERT(length, >=, 0);
 
-        insertDataRoom(start, length);
+        if(isFail(insertDataRoom(start, length))) {
+            return OpStatus::FAIL;
+        }
+
         fill(start, start + length, fn);
-        reindex();
+
+        return reindex();
     }
 
 
     template <typename Adaptor>
-    void fill_with_buf(int32_t start, int32_t length, Adaptor&& adaptor)
+    OpStatus fill_with_buf(int32_t start, int32_t length, Adaptor&& adaptor)
     {
         int32_t size = this->size();
 
@@ -523,7 +567,9 @@ public:
         MEMORIA_V1_ASSERT(start, <=, size);
         MEMORIA_V1_ASSERT(length, >=, 0);
 
-        insertDataRoom(start, length);
+        if(isFail(insertDataRoom(start, length))) {
+            return OpStatus::FAIL;
+        }
 
         auto symbols = this->symbols();
 
@@ -538,18 +584,18 @@ public:
             total += buf.size();
         }
 
-        reindex();
+        return reindex();
     }
 
 
-    void update(int32_t start, int32_t end, std::function<Value ()> fn)
+    OpStatus update(int32_t start, int32_t end, std::function<Value ()> fn)
     {
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(start, <=, end);
         MEMORIA_V1_ASSERT(end, <=, size());
 
         fill(start, end, fn);
-        reindex();
+        return reindex();
     }
 
 
@@ -573,53 +619,65 @@ public:
 
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void _insert(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _insert(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
     {
-        insert(idx, symbol);
+        if(isFail(insert(idx, symbol))) {
+            return OpStatus::FAIL;
+        }
 
         sum<Offset>(idx, accum);
+
+        return OpStatus::OK;
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void _update(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _update(int32_t idx, int32_t symbol, BranchNodeEntryItem<T, Size>& accum)
     {
         sub<Offset>(idx, accum);
 
         this->symbol(idx) = symbol;
 
-        this->reindex();
+        if(isFail(this->reindex())) {
+            return OpStatus::FAIL;
+        }
 
         sum<Offset>(idx, accum);
+
+        return OpStatus::OK;
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
         sub<Offset>(idx, accum);
-        remove(idx, idx + 1);
+        return remove(idx, idx + 1);
     }
 
 
     // ========================================= Node ================================== //
 
     template <typename TreeType>
-    void transferDataTo(TreeType* other) const
+    OpStatus transferDataTo(TreeType* other) const
     {
-        other->enlargeData(this->size());
+        if(isFail(other->enlargeData(this->size()))) {
+            return OpStatus::FAIL;
+        }
 
         int32_t data_size = this->element_size(SYMBOLS);
 
         CopyByteBuffer(symbols(), other->symbols(), data_size);
 
-        other->reindex();
+        return other->reindex();
     }
 
-    void splitTo(MyType* other, int32_t idx)
+    OpStatus splitTo(MyType* other, int32_t idx)
     {
         int32_t to_move     = this->size() - idx;
         int32_t other_size  = other->size();
 
-        other->enlargeData(to_move);
+        if(isFail(other->enlargeData(to_move))) {
+            return OpStatus::FAIL;
+        }
 
         auto tools = this->tools();
 
@@ -628,23 +686,27 @@ public:
         tools.move(this->symbols(), other->symbols(), idx, 0, to_move);
 
         other->size() += to_move;
-        other->reindex();
+        if(isFail(other->reindex())) {
+            return OpStatus::FAIL;
+        }
 
-        remove(idx, this->size());
+        return remove(idx, this->size());
     }
 
-    void mergeWith(MyType* other) const
+    OpStatus mergeWith(MyType* other) const
     {
         int32_t my_size     = this->size();
         int32_t other_size  = other->size();
 
-        other->enlargeData(my_size);
+        if(isFail(other->enlargeData(my_size))) {
+            return OpStatus::FAIL;
+        }
 
         tools().move(this->symbols(), other->symbols(), 0, other_size, my_size);
 
         other->size() += my_size;
 
-        other->reindex();
+        return other->reindex();
     }
 
 

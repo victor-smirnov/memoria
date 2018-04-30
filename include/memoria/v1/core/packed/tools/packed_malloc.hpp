@@ -43,7 +43,7 @@ struct AllocTool<PackedAllocator> {
         auto ptr = AllocateUnique<Type>(full_block_size);
 
         ptr->setTopLevelAllocator();
-        ptr->init(full_block_size, slots);
+        OOM_THROW_IF_FAILED(ptr->init(full_block_size, slots), MMA1_SRC);
 
         return ptr;
     }

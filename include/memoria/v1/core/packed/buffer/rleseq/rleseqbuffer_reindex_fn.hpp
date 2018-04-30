@@ -150,7 +150,7 @@ class ReindexFn {
 
 
 public:
-    void reindex(Seq& seq)
+    OpStatus reindex(Seq& seq)
     {
         auto meta = seq.metadata();
 
@@ -158,7 +158,9 @@ public:
 
         if (seq.has_index())
         {
-            seq.clear_index();
+            if(isFail(seq.clear_index())) {
+                return OpStatus::FAIL;
+            }
 
             auto size_index = seq.size_index();
 
@@ -179,11 +181,15 @@ public:
 
                 typename Seq::SizeIndex::Values sizes(size_iterator.value(0));
 
-                size_index->append(sizes);
+                if(isFail(size_index->append(sizes))) {
+                    return OpStatus::FAIL;
+                }
             }
 
-            size_index->reindex();
+            return size_index->reindex();
         }
+
+        return OpStatus::OK;
     }
 
 

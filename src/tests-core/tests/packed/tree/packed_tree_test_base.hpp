@@ -1,5 +1,5 @@
 
-// Copyright 2016 Victor Smirnov
+// Copyright 2013 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,17 +19,19 @@
 #include <memoria/v1/tests/tests.hpp>
 #include <memoria/v1/tests/assertions.hpp>
 
+
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 
+#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+
 #include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <memoria/v1/core/tools/i7_codec.hpp>
 #include <memoria/v1/core/tools/elias_codec.hpp>
 #include <memoria/v1/core/tools/exint_codec.hpp>
-
-#include <memoria/v1/core/bignum/bigint.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -37,10 +39,8 @@ namespace tests {
 
 
 template <typename PackedTreeT>
-class PackedMaxTreeTestBase: public TestState {
-    using Base   = TestState;
-    using MyType = PackedMaxTreeTestBase;
-
+class PackedTreeTestBase: public TestState {
+    using Base = TestState;
 protected:
 
     static constexpr int32_t MEMBUF_SIZE = 1024*1024*64;
@@ -55,14 +55,29 @@ protected:
 
     static constexpr int32_t Blocks = Tree::Blocks;
 
-    int32_t size_{};
+    int64_t size_{4096};
+    int32_t iterations_ {10};
 
 public:
 
     using Base::getRandom;
     using Base::out;
 
-    MMA1_STATE_FILEDS(size_);
+    MMA1_STATE_FILEDS(size_, iterations_);
+
+    template <typename T>
+    IndexValue sum(const std::vector<T>& tree, int32_t block, int32_t start, int32_t end)
+    {
+        IndexValue sum = 0;
+
+        for (int32_t c = start; c < end; c++)
+        {
+            sum += tree[c][block];
+        }
+
+        return sum;
+    }
+
 
     TreePtr createEmptyTree(int32_t block_size = MEMBUF_SIZE)
     {
@@ -86,27 +101,21 @@ public:
 
     std::vector<Values> fillRandom(TreePtr& tree, int32_t size, int32_t max_value = 300, int32_t min = 1)
     {
-        Values accum;
-
         std::vector<Values> vals(size);
         for (auto& v: vals)
         {
             for (int32_t b = 0; b < Blocks; b++) {
-                v[b] = accum[b] + getRandom(max_value) + min;
-                accum[b] = v[b];
+                v[b] = getRandom(max_value) + min;
             }
         }
 
-        tree->_insert(0, size, [&](int32_t block, int32_t idx) {
+        OOM_THROW_IF_FAILED(tree->_insert(0, size, [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        });
+        }), MMA1_SRC);
 
         truncate(vals, size);
 
         assert_equals(size, tree->size());
-
-        dumpVector(this->out(), vals);
-
 
         for (int32_t b = 0; b < Blocks; b++)
         {
@@ -119,13 +128,46 @@ public:
         return vals;
     }
 
+    std::vector<Values> fillSolid(TreePtr& tree, const Values& values)
+    {
+        std::vector<Values> vals;
 
+        int32_t size = tree->insert(0, [&](Values& v) -> bool {
+            v = values;
+            vals.push_back(values);
+
+            return true;
+        });
+
+        truncate(vals, size);
+
+        return vals;
+    }
+
+    std::vector<Values> fillSolid(Tree* tree, int32_t value)
+    {
+        std::vector<Values> vals;
+
+        int32_t size = tree->insert(0, [&](Values& v) -> bool {
+            for (int32_t b = 0; b < Blocks; b++) {
+                v[b] = value;
+            }
+
+            vals.push_back(v);
+
+            return true;
+        });
+
+        truncate(vals, size);
+
+        return vals;
+    }
 
     void fillVector(TreePtr& tree, const std::vector<Values>& vals)
     {
-        tree->_insert(0, vals.size(), [&](int32_t block, int32_t idx) {
+        OOM_THROW_IF_FAILED(tree->_insert(0, vals.size(), [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        });
+        }), MMA1_SRC);
     }
 
     Values createRandom(int32_t max = 100)
@@ -172,7 +214,7 @@ public:
 
     void assertEqual(const TreePtr& tree1, const TreePtr& tree2)
     {
-        assert_equals(tree1->size(), tree2->size());
+        AssertEQ(MA_SRC, tree1->size(), tree2->size());
 
         for (int32_t c = 0; c < tree1->size(); c++)
         {
@@ -183,7 +225,7 @@ public:
                 v2[b] = tree2->value(b, c);
             }
 
-            assert_equals(v1, v2, u"Index: {}", c);
+            assert_equals(v1, v2, "Index: {}", c);
         }
     }
 
@@ -192,7 +234,8 @@ public:
         try {
             tree->check();
         }
-        catch (Exception& e) {
+        catch (Exception& e)
+        {
             out() << "Tree structure check failed" << std::endl;
             tree->dump(out());
             throw e;

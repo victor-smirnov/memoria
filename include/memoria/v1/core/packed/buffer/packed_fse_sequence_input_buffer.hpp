@@ -98,22 +98,24 @@ public:
     const int32_t& max_size() const {return max_size_;}
 
 public:
-    void init(int32_t capacity)
+    OpStatus init(int32_t capacity)
     {
         size_ = 0;
         alignment_gap_ = 0;
 
         max_size_   = capacity;
+
+        return OpStatus::OK;
     }
 
-    void init(SizesT capacity)
+    OpStatus init(SizesT capacity)
     {
-        init(capacity[0]);
+        return init(capacity[0]);
     }
 
-    void init()
+    OpStatus init()
     {
-        init(empty_size());
+        return init(empty_size());
     }
 
     static constexpr int32_t block_size(int32_t elements)
@@ -126,8 +128,9 @@ public:
         return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements[0] * BitsPerSymbol);
     }
 
-    void reset() {
+    OpStatus reset() {
         size_ = 0;
+        return OpStatus::OK;
     }
 
     int32_t block_size() const {

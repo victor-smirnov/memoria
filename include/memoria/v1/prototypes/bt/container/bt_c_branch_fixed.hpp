@@ -62,7 +62,7 @@ public:
 
 
 protected:
-    MEMORIA_V1_DECLARE_NODE_FN(InsertFn, insert);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(InsertFn, insert, OpStatus);
     void insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, int32_t split_at);
@@ -105,7 +105,8 @@ void M_TYPE::insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeE
     auto& self = this->self();
 
     self.updatePageG(node);
-    BranchDispatcher::dispatch(node, InsertFn(), idx, keys, id);
+    OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(node, InsertFn(), idx, keys, id), MMA1_SRC);
+
     self.updateChildren(node, idx);
 
     if (!node->is_root())

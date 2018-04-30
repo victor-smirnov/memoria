@@ -78,7 +78,7 @@ public:
     template <typename T>
     std::vector<int32_t> populateRandom(T& seq, int32_t size, bool compactify = true)
     {
-        seq->clear();
+        OOM_THROW_IF_FAILED(seq->clear(), MMA1_SRC);
         return fillRandom(seq, size, compactify);
     }
 
@@ -89,14 +89,14 @@ public:
         {
             int32_t sym = getRandom(Blocks);
             int32_t len = getRandom(100) + 1;
-            seq->append(sym, len);
+            OOM_THROW_IF_FAILED(seq->append(sym, len), MMA1_SRC);
         }
 
-        seq->reindex();
+        OOM_THROW_IF_FAILED(seq->reindex(), MMA1_SRC);
         seq->check();
 
         if (compactify) {
-            seq->compactify();
+            OOM_THROW_IF_FAILED(seq->compactify(), MMA1_SRC);
             seq->check();
         }
 

@@ -226,9 +226,13 @@ public:
         int32_t block_size = PackedAllocator::block_size(sequence_block_size, 1);
 
         PackedAllocator* alloc = allocate_system<PackedAllocator>(block_size).release();
-        alloc->init(block_size, 1);
+        OOM_THROW_IF_FAILED(alloc, MMA1_SRC);
+
+        OOM_THROW_IF_FAILED(alloc->init(block_size, 1), MMA1_SRC);
 
         sequence_ = alloc->template allocateEmpty<Seq>(0);
+
+        OOM_THROW_IF_FAILED(sequence_, MMA1_SRC);
     }
 
     ~PackedFSESequence()

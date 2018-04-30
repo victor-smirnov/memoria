@@ -110,11 +110,16 @@ public:
     >;
 
 
-    void init_tl(int32_t data_block_size, int32_t blocks)
+    OpStatus init_tl(int32_t data_block_size, int32_t blocks)
     {
-        Base::init(data_block_size, blocks * SegmentsPerBlock + 1);
+        if(isFail(Base::init(data_block_size, blocks * SegmentsPerBlock + 1))) {
+            return OpStatus::FAIL;
+        }
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
+        if(isFail(meta)) {
+            return OpStatus::FAIL;
+        }
 
         int32_t max_size        = 0;
 
@@ -124,9 +129,16 @@ public:
 
         for (int32_t block = 0; block < blocks; block++)
         {
-            this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
-            this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, max_size);
+            if(isFail(this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size()))){
+                return OpStatus::FAIL;
+            }
+
+            if(isFail(this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, max_size))) {
+                return OpStatus::FAIL;
+            }
         }
+
+        return OpStatus::OK;
     }
 
 

@@ -88,9 +88,9 @@ public:
     }
 
 
-    void init(int32_t block_size){}
+    OpStatus init(int32_t block_size) {return OpStatus::OK;}
 
-    void init(const SizesT& capacities){}
+    OpStatus init(const SizesT& capacities) {return OpStatus::OK;}
 
     static constexpr int32_t empty_size()
     {
@@ -98,9 +98,9 @@ public:
     }
 
 
-    void init()
+    OpStatus init()
     {
-
+        return OpStatus::OK;
     }
 
     template <typename T>
@@ -109,13 +109,13 @@ public:
     }
 
     template <typename T>
-    void setValues(int32_t idx, T&&) {}
+    OpStatus setValues(int32_t idx, T&&) {return OpStatus::OK;}
 
     template <typename T>
-    void insert(int32_t idx, T&&) {}
+    OpStatus insert(int32_t idx, T&&) {return OpStatus::OK;}
 
     template <int32_t Offset, typename T>
-    void _insert(int32_t idx, T&&) {}
+    OpStatus _insert(int32_t idx, T&&) {return OpStatus::OK;}
 
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
@@ -157,56 +157,68 @@ public:
 
     // =================================== Update ========================================== //
 
-    void reindex() {}
+    OpStatus reindex() {return OpStatus::OK;}
     void check() const {}
 
-    void remove(int32_t start, int32_t end)
+    OpStatus remove(int32_t start, int32_t end)
     {
-
+        return OpStatus::OK;
     }
 
-    void removeSpace(int32_t room_start, int32_t room_end) {
-        remove(room_start, room_end);
+    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
+        return remove(room_start, room_end);
     }
 
 
 
-    void reset()
+    OpStatus reset()
     {
-
+        return OpStatus::OK;
     }
 
 
-    void splitTo(MyType* other, int32_t idx)
-    {}
+    OpStatus splitTo(MyType* other, int32_t idx)
+    {
+        return OpStatus::OK;
+    }
 
-    void mergeWith(MyType* other)
-    {}
+    OpStatus mergeWith(MyType* other)
+    {
+        return OpStatus::OK;
+    }
 
     // ===================================== IO ============================================ //
 
-    void insert(int32_t pos, Value val)
-    {}
-
-    void insert(int32_t block, int32_t pos, Value val)
-    {}
-
-    void insert(int32_t pos, int32_t start, int32_t size, const InputBuffer* buffer)
-    {}
-
-    template <typename Adaptor>
-    void insert(int32_t pos, int32_t size, Adaptor&& adaptor)
-    {}
-
-
-    SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
+    OpStatus insert(int32_t pos, Value val)
     {
-        return at + SizesT(size);
+        return OpStatus::OK;
     }
 
-    int32_t insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
+    OpStatus insert(int32_t block, int32_t pos, Value val)
     {
-        return at + size;
+        return OpStatus::OK;
+    }
+
+    OpStatus insert(int32_t pos, int32_t start, int32_t size, const InputBuffer* buffer)
+    {
+        return OpStatus::OK;
+    }
+
+    template <typename Adaptor>
+    OpStatus insert(int32_t pos, int32_t size, Adaptor&& adaptor)
+    {
+        return OpStatus::OK;
+    }
+
+
+    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
+    {
+        return OpStatusT<SizesT>(at + SizesT(size));
+    }
+
+    OpStatusT<int32_t> insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
+    {
+        return OpStatusT<int32_t>(at + size);
     }
 
     Values get_values(int32_t) const {
@@ -219,24 +231,28 @@ public:
 
 
     template <typename Adaptor>
-    void _insert(int32_t pos, int32_t size, Adaptor&& adaptor)
+    OpStatus _insert(int32_t pos, int32_t size, Adaptor&& adaptor)
     {
+        return OpStatus::OK;
     }
 
 
     template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    void _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
-    {}
+    OpStatus _update(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
+    {
+        return OpStatus::OK;
+    }
 
     template <int32_t Offset, typename Value, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem>
-    void _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _insert(int32_t pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {
+        return OpStatus::OK;
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
+    OpStatus _remove(int32_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
-
+        return OpStatus::OK;
     }
 
 

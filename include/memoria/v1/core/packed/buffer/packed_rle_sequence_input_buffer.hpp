@@ -251,7 +251,7 @@ public:
     }
 
 
-    void append(int32_t symbol, uint64_t length)
+    OpStatus append(int32_t symbol, uint64_t length)
     {
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
 
@@ -262,6 +262,8 @@ public:
         Codec codec;
         meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
         meta->size() += length;
+
+        return OpStatus::OK;
     }
 
     bool emplace_back(int32_t symbol, uint64_t length)
@@ -295,49 +297,66 @@ public:
 
     // ===================================== Allocation ================================= //
 
-    void init(const SizesT& symbols_capacity)
+    OpStatus init(const SizesT& symbols_capacity)
     {
-        init(block_size(symbols_capacity[0]), symbols_capacity);
+        return init(block_size(symbols_capacity[0]), symbols_capacity);
     }
 
 
-    void init_bs(int32_t block_size)
+    OpStatus init_bs(int32_t block_size)
     {
-        init(block_size, SizesT());
+        return init(block_size, SizesT());
     }
 
-    void init_bs(int32_t block_size, const SizesT& symbols_capacity)
+    OpStatus init_bs(int32_t block_size, const SizesT& symbols_capacity)
     {
-        init(block_size, symbols_capacity);
+        return init(block_size, symbols_capacity);
     }
 
-    void init(int32_t block_size, const SizesT& symbols_capacity)
+    OpStatus init(int32_t block_size, const SizesT& symbols_capacity)
     {
-        Base::init(block_size, TOTAL_SEGMENTS__);
+        if(isFail(Base::init(block_size, TOTAL_SEGMENTS__))) {
+            return OpStatus::FAIL;
+        }
 
         int32_t capacity = symbols_capacity[0];
 
         Metadata* meta  = Base::template allocate<Metadata>(METADATA);
 
+        if(isFail(meta)) {
+            return OpStatus::FAIL;
+        }
+
         meta->size()      = 0;
         meta->data_size() = 0;
 
-        this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(capacity));
-        this->template allocateArrayBySize<OffsetsType>(SYMBOLS, capacity);
+        if(isFail(this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(capacity)))){
+            return OpStatus::FAIL;
+        }
+
+        if(isFail(this->template allocateArrayBySize<OffsetsType>(SYMBOLS, capacity))) {
+            return OpStatus::FAIL;
+        }
 
         int32_t index_size = number_of_indexes(capacity);
 
         if (index_size > 0)
         {
             int32_t size_index_block_size = SizeIndex::block_size(index_size);
-            Base::resizeBlock(SIZE_INDEX, size_index_block_size);
+            if(isFail(Base::resizeBlock(SIZE_INDEX, size_index_block_size))) {
+                return OpStatus::FAIL;
+            }
 
             auto size_index = this->size_index();
-            size_index->init_by_block(size_index_block_size, index_size);
+            if(isFail(size_index->init_by_block(size_index_block_size, index_size))) {
+                return OpStatus::FAIL;
+            }
         }
         else {
             Base::setBlockType(SIZE_INDEX, PackedBlockType::ALLOCATABLE);
         }
+
+        return OpStatus::OK;
     }
 
     static int32_t block_size(const SizesT& symbols_capacity) {
@@ -361,7 +380,7 @@ public:
     }
 
 
-    void clear_index()
+    OpStatus clear_index()
     {
         if (has_index())
         {
@@ -373,12 +392,14 @@ public:
             auto size_index = this->size_index();
 
             int32_t size_index_block_size = SizeIndex::block_size(index_size);
-            size_index->init_by_block(size_index_block_size, index_size);
+            return size_index->init_by_block(size_index_block_size, index_size);
         }
+
+        return OpStatus::OK;
     }
 
 
-    void copyTo(MyType* other) const
+    OpStatus copyTo(MyType* other) const
     {
         auto meta = this->metadata();
         auto other_meta = other->metadata();
@@ -388,6 +409,8 @@ public:
 
         Codec codec;
         codec.copy(this->symbols(), 0, other->symbols(), 0, meta->data_size());
+
+        return OpStatus::OK;
     }
 
 
@@ -440,10 +463,10 @@ public:
 
     // ========================================= Update ================================= //
 
-    void reindex()
+    OpStatus reindex()
     {
         rleseq::buffer::ReindexFn<MyType> reindex_fn;
-        reindex_fn.reindex(*this);
+        return reindex_fn.reindex(*this);
     }
 
     void check() const
@@ -457,14 +480,16 @@ public:
         }
     }
 
-    void clear()
+    OpStatus clear()
     {
         auto meta = this->metadata();
         meta->size() = 0;
         meta->data_size() = 0;
+
+        return OpStatus::OK;
     }
 
-    void reset() {clear();}
+    OpStatus reset() {return clear();}
 
 
     void dump(std::ostream& out = std::cout, bool dump_index = true) const
@@ -552,15 +577,17 @@ public:
         }
     }
 
-    void compactify()
+    OpStatus compactify()
     {
-        compactify_runs();
-        reindex();
+        if(isFail(compactify_runs())) {
+            return OpStatus::FAIL;
+        }
+        return reindex();
     }
 
 private:
 
-    void compactify_runs()
+    OpStatus compactify_runs()
     {
         auto meta    = this->metadata();
         auto symbols = this->symbols();
@@ -627,6 +654,8 @@ private:
         }
 
         meta->data_size() = data_size;
+
+        return OpStatus::OK;
     }
 
 

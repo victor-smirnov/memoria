@@ -113,14 +113,23 @@ public:
         return block_size;
     }
 
-    void init()
+    OpStatus init()
     {
         int32_t block_size = MyType::empty_size();
 
-        Base::init(block_size, 2);
+        if(isFail(Base::init(block_size, 2))) {
+            return OpStatus::FAIL;
+        }
 
-        Base::template allocateEmpty<LabelArray>(LABELS);
-        Base::template allocateEmpty<Sequence>(SYMBOLS);
+        if(isFail(Base::template allocateEmpty<LabelArray>(LABELS))) {
+            return OpStatus::FAIL;
+        }
+
+        if(isFail(Base::template allocateEmpty<Sequence>(SYMBOLS))) {
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
     int32_t rank(int32_t subseq_num, int32_t to, int32_t symbol) const
@@ -154,10 +163,13 @@ public:
         }
     }
 
-    void insertSubsequence(int32_t idx)
+    OpStatus insertSubsequence(int32_t idx)
     {
-        labels()->insert(idx, LabelArrayValues());
-        labels()->reindex();
+        if(isFail(labels()->insert(idx, LabelArrayValues()))) {
+            return OpStatus::FAIL;
+        }
+
+        return labels()->reindex();
     }
 
     void appendSubsequence()
@@ -165,7 +177,7 @@ public:
         insertSubsequence(labels()->size());
     }
 
-    void insertSymbol(int32_t subseq_num, int32_t idx, int32_t symbol)
+    OpStatus insertSymbol(int32_t subseq_num, int32_t idx, int32_t symbol)
     {
         Sequence* seq       = sequence();
         LabelArray* labels  = this->labels();
@@ -174,17 +186,19 @@ public:
 
         MEMORIA_V1_ASSERT(idx, <=, labels->value(0, subseq_num));
 
-        seq->insert(seq_prefix + idx, symbol);
+        if(isFail(seq->insert(seq_prefix + idx, symbol))) {
+            return OpStatus::FAIL;
+        }
 
         labels->value(0, subseq_num)++;
 //        labels->setValue(0, subseq_num)++;
 
         labels->reindex();
 
-        seq->reindex();
+        return seq->reindex();
     }
 
-    void removeSymbol(int32_t subseq_num, int32_t idx)
+    OpStatus removeSymbol(int32_t subseq_num, int32_t idx)
     {
         Sequence* seq       = sequence();
         LabelArray* labels  = this->labels();
@@ -193,29 +207,31 @@ public:
 
         MEMORIA_V1_ASSERT(idx, <=, labels->value(0, subseq_num));
 
-        seq->removeSymbol(seq_prefix + idx);
+        if(isFail(seq->removeSymbol(seq_prefix + idx))) {
+            return OpStatus::FAIL;
+        }
 
         labels->value(0, subseq_num)--;
 
         labels->reindex();
 
-        seq->reindex();
+        return seq->reindex();
     }
 
-    void appendSymbol(int32_t subseq_num, int32_t symbol)
+    OpStatus appendSymbol(int32_t subseq_num, int32_t symbol)
     {
         LabelArray* labels  = this->labels();
-        int32_t size            = labels->value(0, subseq_num);
+        int32_t size        = labels->value(0, subseq_num);
 
-        insertSymbol(subseq_num, size, symbol);
+        return insertSymbol(subseq_num, size, symbol);
     }
 
-    void remove(int32_t subseq_num)
+    OpStatus remove(int32_t subseq_num)
     {
         LabelArray* labels  = this->labels();
         MEMORIA_V1_ASSERT(labels->value(0, subseq_num), ==, 0);
 
-        labels->removeSpace(subseq_num, subseq_num + 1);
+        return labels->removeSpace(subseq_num, subseq_num + 1);
     }
 
     int32_t subseq_size(int32_t seq_num) const
@@ -256,15 +272,15 @@ public:
         return sequence()->symbol(seq_prefix + idx);
     }
 
-    void dump(ostream& out = cout, bool multi = true, bool dump_index = true) const
+    void dump(std::ostream& out = std::cout, bool multi = true, bool dump_index = true) const
     {
 //      if (dump_index) {
 //          Base::dump(out);
 //      }
 
-        out<<"Sequence Labels: "<<endl;
+        out << "Sequence Labels: " << std::endl;
         labels()->dump(out, dump_index);
-        out<<endl;
+        out << std::endl;
 
         if (multi)
         {
@@ -283,7 +299,7 @@ public:
             {
                 int32_t size = labels->value(0, c);
 
-                out<<"seq: "<<c<<" offset: "<<offset<<" size: "<<size<<endl;
+                out << "seq: " << c << " offset: " << offset << " size: " << size << std::endl;
 
                 dumpSymbols<typename Sequence::Value>(out, size, 8, [values, offset](int32_t idx) {
                     return values[idx + offset];
@@ -291,13 +307,13 @@ public:
 
                 offset += size;
 
-                out<<endl<<endl;
+                out << std::endl << std::endl;
             }
         }
         else {
-            out<<"Sequence: "<<endl;
+            out << "Sequence: " << std::endl;
             sequence()->dump(out, dump_index);
-            out<<endl;
+            out << std::endl;
         }
     }
 };

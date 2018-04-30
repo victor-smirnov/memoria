@@ -171,15 +171,23 @@ public:
 //      }
 //    }
 
-    void init_tl(int32_t data_block_size, int32_t blocks)
+    OpStatus init_tl(int32_t data_block_size, int32_t blocks)
     {
-        Base::init(data_block_size, blocks * SegmentsPerBlock + BlocksStart);
+        if(isFail(Base::init(data_block_size, blocks * SegmentsPerBlock + BlocksStart))) {
+            return OpStatus::FAIL;
+        }
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
-        this->template allocateArrayBySize<int32_t>(DATA_SIZES, blocks);
+        if(isFail(meta)) {
+            return OpStatus::FAIL;
+        }
 
-        meta->size()        = 0;
 
+        if(isFail(this->template allocateArrayBySize<int32_t>(DATA_SIZES, blocks))) {
+            return OpStatus::FAIL;
+        }
+
+        meta->size()            = 0;
         int32_t max_size        = 0;
         int32_t offsets_size    = offsets_segment_size(max_size);
 
@@ -188,11 +196,24 @@ public:
 
         for (int32_t block = 0; block < blocks; block++)
         {
-            this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, index_size);
-            this->template allocateArrayBySize<int32_t>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size);
-            this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
-            this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length);
+            if(isFail(this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, index_size))) {
+                return OpStatus::FAIL;
+            }
+
+            if(isFail(this->template allocateArrayBySize<int32_t>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size))) {
+                return OpStatus::FAIL;
+            }
+
+            if(isFail(this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size))) {
+                return OpStatus::FAIL;
+            }
+
+            if(isFail(this->template allocateArrayBySize<int8_t>(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length))) {
+                return OpStatus::FAIL;
+            }
         }
+
+        return OpStatus::OK;
     }
 
 //    void init(int32_t blocks)
@@ -996,15 +1017,19 @@ public:
     }
 
 
-    void reindex(int32_t blocks)
+    OpStatus reindex(int32_t blocks)
     {
         for (int32_t block = 0; block < blocks; block++)
         {
             int32_t data_size = this->data_size(block);
             TreeLayout layout = this->compute_tree_layout(data_size);
 
-            this->reindex_block(block, layout);
+            if(isFail(this->reindex_block(block, layout))) {
+                return OpStatus::FAIL;
+            }
         }
+
+        return OpStatus::OK;
     }
 
 
@@ -1094,13 +1119,13 @@ public:
 
 
 protected:
-    void reindex_block(int32_t block)
+    OpStatus reindex_block(int32_t block)
     {
         TreeLayout layout = this->compute_tree_layout(this->data_size(block));
-        reindex_block(block, layout);
+        return reindex_block(block, layout);
     }
 
-    void reindex_block(int32_t block, TreeLayout& layout)
+    OpStatus reindex_block(int32_t block, TreeLayout& layout)
     {
         if (layout.levels_max >= 0)
         {
@@ -1193,6 +1218,8 @@ protected:
         else {
             this->clear(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
         }
+
+        return OpStatus::OK;
     }
 
 

@@ -101,9 +101,9 @@ protected:
         template <int32_t ListIdx, typename StreamType>
         void stream(StreamType* obj, int32_t from, int32_t to, const BranchNodeEntryT* entries)
         {
-            obj->insert(from, to - from, [entries](int32_t idx) -> const auto& {
+            OOM_THROW_IF_FAILED(obj->insert(from, to - from, [entries](int32_t idx) -> const auto& {
                 return std::get<ListIdx>(entries[idx].accum());
-            });
+            }), MMA1_SRC);
         }
     };
 

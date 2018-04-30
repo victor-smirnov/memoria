@@ -87,7 +87,7 @@ public:
     const int32_t& max_size() const {return max_size_;}
 
 public:
-    void init(int32_t block_size)
+    OpStatus init(int32_t block_size)
     {
         size_ = 0;
         alignment_gap_ = 0;
@@ -95,11 +95,13 @@ public:
         int32_t data_size = block_size - empty_size();
 
         max_size_   = data_size * 8 / BitsPerSymbol;
+
+        return OpStatus::OK;
     }
 
-    void init()
+    OpStatus init()
     {
-        init(empty_size());
+        return init(empty_size());
     }
 
     static constexpr int32_t packed_block_size(int32_t elements)
@@ -249,12 +251,14 @@ public:
 
     // ==================================== Node =========================================== //
 
-    void splitTo(MyType* other, int32_t idx)
+    OpStatus splitTo(MyType* other, int32_t idx)
     {
         int32_t to_move     = this->size() - idx;
         int32_t other_size  = other->size();
 
-        other->enlargeData(to_move);
+        if(isFail(other->enlargeData(to_move))) {
+            return OpStatus::FAIL;
+        }
 
         move(other->symbols(), other->symbols(), 0, to_move, other_size);
 
@@ -262,19 +266,23 @@ public:
 
         other->size() += to_move;
 
-        removeSpace(idx, this->size());
+        return removeSpace(idx, this->size());
     }
 
-    void mergeWith(MyType* other) const
+    OpStatus mergeWith(MyType* other) const
     {
         int32_t my_size     = this->size();
         int32_t other_size  = other->size();
 
-        other->enlargeData(my_size);
+        if(isFail(other->enlargeData(my_size))) {
+            return OpStatus::FAIL;
+        }
 
         move(this->symbols(), other->symbols(), 0, other_size, my_size);
 
         other->size() += my_size;
+
+        return OpStatus::OK;
     }
 
     // ==================================== Dump =========================================== //

@@ -16,7 +16,9 @@
 
 #pragma once
 
-#include "packed_tree_test_base.hpp"
+
+
+#include "packed_array_test_base.hpp"
 
 namespace memoria {
 namespace v1 {
@@ -25,46 +27,57 @@ namespace tests {
 template <
     typename PackedTreeT
 >
-class PackedTreeInputBufferTest: public PackedTreeTestBase<PackedTreeT> {
+class PackedArrayInputBufferTest: public PackedArrayTestBase<PackedTreeT> {
 
-    using MyType = PackedTreeInputBufferTest<PackedTreeT>;
-    using Base   = PackedTreeTestBase<PackedTreeT>;
+    using MyType = PackedArrayInputBufferTest<PackedTreeT>;
+    using Base   = PackedArrayTestBase<PackedTreeT>;
 
-    typedef typename Base::Tree                                                 Tree;
+    typedef typename Base::Array                                                Array;
     typedef typename Base::Values                                               Values;
 
-    using InputBuffer = typename Tree::InputBuffer;
+    using InputBuffer    = typename Array::InputBuffer;
     using InputBufferPtr = PkdStructSPtr<InputBuffer>;
+    using SizesT         = typename Array::InputBuffer::SizesT;
 
-    using SizesT      = typename Tree::InputBuffer::SizesT;
-
-    static constexpr int32_t Blocks = Base::Blocks;
+    static constexpr int32_t Blocks = Array::Blocks;
     static constexpr int32_t SafetyMargin = InputBuffer::SafetyMargin;
+
+
 
 public:
 
-    using Base::createEmptyTree;
+    using Base::createEmptyArray;
     using Base::getRandom;
     using Base::fillRandom;
     using Base::assertEqual;
     using Base::out;
-    using Base::MEMBUF_SIZE;
+    using Base::iterations_;
 
 
+
+    PackedArrayInputBufferTest()
+    {
+        this->size_ = 8192*8;
+    }
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testCreate, testValue, testPosition); //, testInsertion
+        MMA1_CLASS_TESTS(suite, testCreate, testInsertion);
+
+        if (PkdStructSizeType<Array>::Value == PackedSizeType::VARIABLE)
+        {
+            MMA1_CLASS_TESTS(suite, testValue, testPosition);
+        }
     }
 
     InputBufferPtr createInputBuffer(int32_t capacity, int32_t free_space = 0)
     {
         int32_t object_block_size = InputBuffer::block_size(capacity);
 
-        return MakeSharedPackedStructByBlock<InputBuffer>(object_block_size + free_space, SizesT(capacity));
+        return MakeSharedPackedStructByBlock<InputBuffer>(object_block_size, SizesT(capacity));
     }
 
-    std::vector<Values> fillBuffer(InputBufferPtr& buffer, int32_t max_value = 500)
+    std::vector<Values> fillBuffer(const InputBufferPtr& buffer, int32_t max_value = 500)
     {
         std::vector<Values> data;
 
@@ -91,7 +104,7 @@ public:
             }
         }
 
-        buffer->reindex();
+        OOM_THROW_IF_FAILED(buffer->reindex(), MMA1_SRC);
 
         assert_equals(buffer->size(), (int32_t)data.size());
 
@@ -124,13 +137,7 @@ public:
 
         out() << "Block size=" << buffer->block_size() << std::endl;
 
-        try {
-            fillBuffer(buffer);
-        }
-        catch (...) {
-            buffer->dump(out());
-            throw;
-        }
+        fillBuffer(buffer);
     }
 
     void testValue()
@@ -155,7 +162,7 @@ public:
         {
             for (size_t c = 0; c < values.size(); c++)
             {
-                assert_equals(values[c][b], buffer->value(b, c));
+                assert_equals(values[c][b], buffer->value(b, c), u"{}, {}", b, c);
             }
         }
     }
@@ -184,14 +191,14 @@ public:
 
             auto pos2 = buffer->positions(c);
 
-            assert_equals(pos1, pos2);
+            assert_equals(pos1[0], pos2[0]);
         }
     }
 
 
     void testInsertion()
     {
-        for (int32_t c = 256; c <= this->size_; c *= 2)
+        for (int32_t c = 32; c <= this->size_; c *= 2)
         {
             testInsertion(c);
         }
@@ -201,29 +208,28 @@ public:
     {
         out() << "Buffer capacity: " << size << std::endl;
 
-        auto tree = createEmptyTree();
-        auto tree_data = fillRandom(tree, size);
+        auto array = createEmptyArray();
+        auto tree_data = fillRandom(array, size);
 
         auto buffer = createInputBuffer(size);
-
 
         auto values = fillBuffer(buffer);
 
         for (int32_t c = 0; c < 5; c++)
         {
-            int32_t pos = getRandom(tree->size());
-
-            auto at = tree->positions(pos);
+            int32_t pos = getRandom(array->size());
 
             int32_t buffer_size = buffer->size();
-            auto buffer_starts = buffer->positions(0);
-            auto buffer_ends = buffer->positions(buffer_size);
 
-            tree->insert_buffer(at.idx(), buffer.get(), buffer_starts, buffer_ends, buffer_size);
+            auto array_size = array->size();
+
+            OOM_THROW_IF_FAILED(array->insert_buffer(pos, buffer.get(), 0, buffer_size), MMA1_SRC);
+
+            assert_equals(array->size(), buffer->size() + array_size);
 
             tree_data.insert(tree_data.begin() + pos, values.begin(), values.end());
 
-            assertEqual(tree, tree_data);
+            assertEqual(array, tree_data);
         }
     }
 };

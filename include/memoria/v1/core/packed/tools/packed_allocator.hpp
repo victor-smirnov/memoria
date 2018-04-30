@@ -31,8 +31,6 @@
 namespace memoria {
 namespace v1 {
 
-
-
 enum class PackedBlockType {
     RAW_MEMORY = 0, ALLOCATABLE = 1
 };
@@ -127,7 +125,7 @@ public:
         this->block_size_ = block_size;
     }
 
-    void init(int32_t block_size, int32_t blocks)
+    OpStatus init(int32_t block_size, int32_t blocks)
     {
         block_size_ = roundDownBytesToAlignmentBlocks(block_size);
 
@@ -141,6 +139,8 @@ public:
 
         Bitmap* bitmap = this->bitmap();
         memset(bitmap, 0, bitmap_size_);
+
+        return OpStatus::OK;
     }
 
     static constexpr int32_t empty_size(int32_t blocks)
@@ -150,13 +150,6 @@ public:
 
     static constexpr int32_t block_size(int32_t client_area, int32_t blocks)
     {
-//        int32_t layout_blocks = blocks + (blocks % 2 ? 1 : 2);
-//
-//        int32_t layout_size = layout_blocks * sizeof(int32_t);
-//        int32_t bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
-
-//        return my_size() + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
-
         return roundUpBytesToAlignmentBlocks(
                 my_size() +
                 (blocks + (blocks % 2 ? 1 : 2))*sizeof(int32_t) +
@@ -167,13 +160,6 @@ public:
 
     static constexpr int32_t client_area(int32_t block_size, int32_t blocks)
     {
-//        int32_t layout_blocks = blocks + (blocks % 2 ? 1 : 2);
-//
-//        int32_t layout_size = layout_blocks * sizeof(int32_t);
-//        int32_t bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
-
-//        return roundDownBytesToAlignmentBlocks(block_size - (my_size() + layout_size + bitmap_size));
-
         return roundDownBytesToAlignmentBlocks(
                 block_size -
                 (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(int32_t) + roundUpBitsToAlignmentBlocks(blocks))
@@ -190,14 +176,14 @@ public:
         return diff;
     }
 
-    int32_t resizeBlock(const void* element, int32_t new_size)
+    [[nodiscard]] int32_t resizeBlock(const void* element, int32_t new_size)
     {
         int32_t idx = findElement(element);
 
         return resizeBlock(idx, new_size);
     }
 
-    int32_t resizeBlock(int32_t idx, int32_t new_size)
+    [[nodiscard]] int32_t resizeBlock(int32_t idx, int32_t new_size)
     {
         MEMORIA_V1_ASSERT(new_size, >=, 0);
 
@@ -211,7 +197,10 @@ public:
         	int32_t free_space = this->free_space();
             if (delta > free_space)
             {
-                enlarge(delta);
+                if (isFail(enlarge(delta)))
+                {
+                    return -1;
+                }
             }
 
             moveElements(idx + 1, delta);
@@ -222,7 +211,9 @@ public:
 
             if (allocator_offset() > 0)
             {
-                pack();
+                if (isFail(pack())) {
+                    return -1;
+                }
             }
         }
 
@@ -285,10 +276,6 @@ public:
     const T* get(int32_t idx) const
     {
         const T* addr = T2T<const T*>(base() + element_offset(idx));
-
-//        MEMORIA_V1_ASSERT_ALIGN(addr, 8);
-//        __builtin_prefetch(addr);
-
         return addr;
     }
 
@@ -296,10 +283,6 @@ public:
     T* get(int32_t idx)
     {
         T* addr = T2T<T*>(base() + element_offset(idx));
-
-//        MEMORIA_V1_ASSERT_ALIGN(addr, 8);
-//        __builtin_prefetch(addr);
-
         return addr;
     }
 
@@ -325,7 +308,7 @@ public:
     }
 
     template <typename T>
-    T* allocate(int32_t idx, int32_t block_size)
+    [[nodiscard]] T* allocate(int32_t idx, int32_t block_size)
     {
         static_assert(std::is_base_of<PackedAllocatable, T>::value,
                 "Only derived classes of PackedAllocatable "
@@ -335,13 +318,15 @@ public:
 
         T* object = block.cast<T>();
 
-        object->init(block.size());
+        if(isFail(object->init(block.size()))) {
+            return nullptr;
+        }
 
         return object;
     }
 
     template <typename T>
-    T* allocateSpace(int32_t idx, int32_t block_size)
+    [[nodiscard]] T* allocateSpace(int32_t idx, int32_t block_size)
     {
         static_assert(std::is_base_of<PackedAllocatable, T>::value,
                 "Only derived classes of PackedAllocatable "
@@ -353,7 +338,7 @@ public:
     }
 
     template <typename T>
-    T* allocateEmpty(int32_t idx)
+    [[nodiscard]] T* allocateEmpty(int32_t idx)
     {
         static_assert(std::is_base_of<PackedAllocatable, T>::value,
                 "Only derived classes of PackedAllocatable "
@@ -365,13 +350,15 @@ public:
 
         T* object = block.cast<T>();
 
-        object->init();
+        if(isFail(object->init())) {
+            return nullptr;
+        }
 
         return object;
     }
 
 
-    PackedAllocator* allocateAllocator(int32_t idx, int32_t streams)
+    [[nodiscard]] PackedAllocator* allocateAllocator(int32_t idx, int32_t streams)
     {
         int32_t block_size = PackedAllocator::empty_size(streams);
 
@@ -379,14 +366,16 @@ public:
 
         PackedAllocator* object = block.cast<PackedAllocator>();
 
-        object->init(block_size, streams);
+        if(isFail(object->init(block_size, streams))) {
+            return nullptr;
+        }
 
         return object;
     }
 
 
     template <typename T>
-    T* allocate(int32_t idx)
+    [[nodiscard]] T* allocate(int32_t idx)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -397,7 +386,7 @@ public:
     }
 
     template <typename T>
-    T* allocateArrayByLength(int32_t idx, int32_t length)
+    [[nodiscard]] T* allocateArrayByLength(int32_t idx, int32_t length)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -408,7 +397,7 @@ public:
     }
 
     template <typename T>
-    T* allocateArrayBySize(int32_t idx, int32_t size)
+    [[nodiscard]] T* allocateArrayBySize(int32_t idx, int32_t size)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -419,14 +408,17 @@ public:
     }
 
 
-    AllocationBlock allocate(int32_t idx, int32_t size, PackedBlockType type)
+    [[nodiscard]] AllocationBlock allocate(int32_t idx, int32_t size, PackedBlockType type)
     {
         int32_t allocation_size = roundUpBytesToAlignmentBlocks(size);
 
         int free_space_v = free_space();
         if (allocation_size > free_space_v)
         {
-            enlarge(allocation_size - free_space_v);
+            if (enlarge(allocation_size - free_space_v) < 0)
+            {
+                return AllocationBlock();
+            }
         }
 
         moveElements(idx + 1, allocation_size);
@@ -450,12 +442,15 @@ public:
         return AllocationBlock(allocation_size, offset, base() + offset);
     }
 
-    void importBlock(int32_t idx, const PackedAllocator* src, int32_t src_idx)
+    OpStatus importBlock(int32_t idx, const PackedAllocator* src, int32_t src_idx)
     {
         auto src_block  = src->describe(src_idx);
         auto type       = src->block_type(src_idx);
 
-        resizeBlock(idx, src_block.size());
+        if (resizeBlock(idx, src_block.size()) < 0) {
+            return OpStatus::FAIL;
+        }
+
         setBlockType(idx, type);
 
         auto tgt_block  = this->describe(idx);
@@ -470,6 +465,8 @@ public:
             PackedAllocatable* element = T2T<PackedAllocatable*>(tgt_block.ptr());
             element->setAllocatorOffset(this);
         }
+
+        return OpStatus::OK;
     }
 
     void free(int32_t idx)
@@ -479,7 +476,10 @@ public:
 
         if (allocator_offset() > 0)
         {
-            pack();
+            if(isFail(pack()))
+            {
+                MMA1_THROW(RuntimeException()) << WhatCInfo("PackedAllocator::pack() failed");
+            }
         }
     }
 
@@ -534,12 +534,12 @@ public:
     }
 
 
-    int32_t enlarge(int32_t delta)
+    [[nodiscard]] int32_t enlarge(int32_t delta)
     {
         return resize(roundUpBytesToAlignmentBlocks(block_size_ + delta));
     }
 
-    int32_t shrink(int32_t delta)
+    [[nodiscard]] int32_t shrink(int32_t delta)
     {
         return resize(roundUpBytesToAlignmentBlocks(block_size_ - delta));
     }
@@ -549,7 +549,7 @@ public:
         block_size_ = new_size;
     }
 
-    int32_t resize(int32_t new_size)
+    [[nodiscard]] int32_t resize(int32_t new_size)
     {
         if (allocator_offset() > 0)
         {
@@ -563,13 +563,15 @@ public:
                 block_size_ = new_size;
             }
             else {
-                throw PackedOOMException(MA_RAW_SRC, allocated(), new_size, free_space());
+                return -1;
+                //throw PackedOOMException(MA_RAW_SRC, allocated(), new_size, free_space());
             }
         }
         else {
-        	int allocated = this->allocated();
-        	int free_space = this->free_space();
-        	throw PackedOOMException(MA_RAW_SRC, allocated, new_size, free_space);
+            //int allocated = this->allocated();
+            //int free_space = this->free_space();
+            return -1;
+            //throw PackedOOMException(MA_RAW_SRC, allocated, new_size, free_space);
         }
 
         return block_size_;
@@ -580,7 +582,7 @@ public:
         block_size_ += roundDownBytesToAlignmentBlocks(amount);
     }
 
-    int32_t pack()
+    [[nodiscard]] int32_t pack()
     {
         int32_t free_space = this->free_space();
         return resize(block_size_ - free_space);

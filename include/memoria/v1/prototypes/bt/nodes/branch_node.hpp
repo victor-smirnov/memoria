@@ -167,7 +167,7 @@ public:
     {
         if (!has_root_metadata())
         {
-            allocator_.template allocate<Metadata>(METADATA);
+            OOM_THROW_IF_FAILED(allocator_.template allocate<Metadata>(METADATA), MMA1_SRC);
         }
 
         root_metadata() = meta;
@@ -207,7 +207,7 @@ public:
         MEMORIA_V1_ASSERT(page_size, >, (int)sizeof(Me) + PackedAllocator::my_size());
 
         allocator_.setTopLevelAllocator();
-        allocator_.init(page_size - sizeof(Me) + PackedAllocator::my_size(), entries);
+        OOM_THROW_IF_FAILED(allocator_.init(page_size - sizeof(Me) + PackedAllocator::my_size(), entries), MMA1_SRC);
     }
 
     void transferDataTo(Me* other) const
@@ -585,7 +585,7 @@ public:
             {
                 if (allocator->is_empty(AllocatorIdx))
                 {
-                    allocator->template allocateEmpty<StreamType>(AllocatorIdx);
+                    OOM_THROW_IF_FAILED(allocator->template allocateEmpty<StreamType>(AllocatorIdx), MMA1_SRC);
                 }
             }
         }
@@ -661,7 +661,7 @@ public:
         template <typename Tree>
         void stream(Tree* tree)
         {
-            tree->reindex();
+            OOM_THROW_IF_FAILED(tree->reindex(), MMA1_SRC);
         }
     };
 
@@ -828,11 +828,11 @@ public:
         template <int32_t Idx, typename StreamType>
         void stream(StreamType* obj, int32_t idx, const BranchNodeEntry& keys)
         {
-            obj->insert(idx, std::get<Idx>(keys));
+            OOM_THROW_IF_FAILED(obj->insert(idx, std::get<Idx>(keys)), MMA1_SRC);
         }
     };
 
-    void insert(int32_t idx, const BranchNodeEntry& keys, const Value& value)
+    OpStatus insert(int32_t idx, const BranchNodeEntry& keys, const Value& value)
     {
         int32_t size = this->size();
 
@@ -843,13 +843,17 @@ public:
 
         int32_t requested_block_size = (size + 1) * sizeof(Value);
 
-        allocator()->resizeBlock(ValuesBlockIdx, requested_block_size);
+        if (isFail(allocator()->resizeBlock(ValuesBlockIdx, requested_block_size))) {
+            return OpStatus::FAIL;
+        }
 
         Value* values = this->values();
 
         CopyBuffer(values + idx, values + idx + 1, size - idx);
 
         values[idx] = value;
+
+        return OpStatus::OK;
     }
 
 
@@ -900,16 +904,12 @@ public:
 
     void insertValuesSpace(int32_t old_size, int32_t room_start, int32_t room_length)
     {
-        if (room_start < 0 || room_start > old_size) {
-            int a = 0; a++;
-        }
-
         MEMORIA_V1_ASSERT(room_start, >=, 0);
         MEMORIA_V1_ASSERT(room_start, <=, old_size);
 
         int32_t requested_block_size = (old_size + room_length) * sizeof(Value);
 
-        allocator()->resizeBlock(ValuesBlockIdx, requested_block_size);
+        OOM_THROW_IF_FAILED(toOpStatus(allocator()->resizeBlock(ValuesBlockIdx, requested_block_size)), MMA1_SRC);
 
         Value* values = this->values();
 
@@ -939,7 +939,7 @@ public:
         template <typename Tree>
         void stream(Tree* tree, int32_t room_start, int32_t room_end)
         {
-            tree->removeSpace(room_start, room_end);
+            OOM_THROW_IF_FAILED(tree->removeSpace(room_start, room_end), MMA1_SRC);
         }
     };
 
@@ -968,7 +968,7 @@ public:
         MEMORIA_V1_ASSERT(old_size, >=, room_end - room_start);
 
         int32_t requested_block_size = (old_size - (room_end - room_start)) * sizeof(Value);
-        allocator()->resizeBlock(values, requested_block_size);
+        OOM_THROW_IF_FAILED(toOpStatus(allocator()->resizeBlock(values, requested_block_size)), MMA1_SRC);
     }
 
     void removeSpace(int32_t stream, int32_t room_start, int32_t room_end)
@@ -1053,12 +1053,12 @@ public:
             {
                 if (other->allocator()->is_empty(AllocatorIdx))
                 {
-                    other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
+                    OOM_THROW_IF_FAILED(other->allocator()->template allocateEmpty<Tree>(AllocatorIdx), MMA1_SRC);
                 }
 
                 Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
 
-                tree->mergeWith(other_tree);
+                OOM_THROW_IF_FAILED(tree->mergeWith(other_tree), MMA1_SRC);
             }
         }
     };
@@ -1075,7 +1075,7 @@ public:
 
         if (required_other_values_block_size >= other_values_block_size)
         {
-            other->allocator()->resizeBlock(other->values(), required_other_values_block_size);
+            OOM_THROW_IF_FAILED(toOpStatus(other->allocator()->resizeBlock(other->values(), required_other_values_block_size)), MMA1_SRC);
         }
 
         CopyBuffer(values(), other->values() + other_size, my_size);
@@ -1090,7 +1090,7 @@ public:
             if (size > 0)
             {
                 Tree* other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
-                tree->splitTo(other_tree, idx);
+                OOM_THROW_IF_FAILED(tree->splitTo(other_tree, idx), MMA1_SRC);
             }
         }
     };
@@ -1108,7 +1108,7 @@ public:
 
         Dispatcher::dispatchNotEmpty(allocator(), SplitToFn(), other, split_idx);
 
-        other->allocator()->template allocateArrayBySize<Value>(ValuesBlockIdx, remainder);
+        OOM_THROW_IF_FAILED(other->allocator()->template allocateArrayBySize<Value>(ValuesBlockIdx, remainder), MMA1_SRC);
 
         Value* other_values = other->values();
         Value* my_values    = this->values();
@@ -1510,7 +1510,7 @@ public:
         template <int32_t Idx, typename StreamType>
         void stream(StreamType* tree, int32_t idx, const BranchNodeEntry& accum)
         {
-            tree->setValues(idx, std::get<Idx>(accum));
+            OOM_THROW_IF_FAILED(tree->setValues(idx, std::get<Idx>(accum)), MMA1_SRC);
         }
     };
 

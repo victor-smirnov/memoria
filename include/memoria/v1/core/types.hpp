@@ -541,4 +541,34 @@ enum class MemoryAccess {
 
 template <typename T> struct TypeTag {};
 
+
+enum class [[nodiscard]] OpStatus: int32_t {
+    FAIL = 0, OK = 1
+};
+
+template <typename T>
+class [[nodiscard]] OpStatusT {
+    T value_;
+    OpStatus status_;
+public:
+    OpStatusT(T value): value_(std::move(value)), status_(OpStatus::OK) {}
+    OpStatusT(): value_{}, status_(OpStatus::FAIL) {}
+    OpStatusT(OpStatus s): value_{}, status_(s) {}
+
+    OpStatus status() const {return status_;}
+    const T& value() const {return value_;}
+};
+
+static inline bool isFail(OpStatus status) {return status == OpStatus::FAIL;}
+static inline bool isFail(int32_t status) {return status < 0;}
+static inline bool isFail(void) {return false;}
+
+template <typename T>
+static inline bool isFail(const T* ptr) {return ptr == nullptr;}
+
+template <typename T>
+bool isFail(const OpStatusT<T>& op_status) {
+    return isFail(op_status.status());
+}
+
 }}

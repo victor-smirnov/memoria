@@ -1,5 +1,5 @@
 
-// Copyright 2016 Victor Smirnov
+// Copyright 2015 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,23 +16,22 @@
 
 #pragma once
 
-#include "packed_maxtree_test_base.hpp"
+#include "packed_tree_test_base.hpp"
 
 namespace memoria {
 namespace v1 {
 namespace tests {
 
-
 template <
     typename PackedTreeT
 >
-class PackedMaxTreeInputBufferTest: public PackedMaxTreeTestBase<PackedTreeT> {
+class PackedTreeInputBufferTest: public PackedTreeTestBase<PackedTreeT> {
 
-    using MyType = PackedMaxTreeInputBufferTest<PackedTreeT>;
-    using Base   = PackedMaxTreeTestBase<PackedTreeT>;
+    using MyType = PackedTreeInputBufferTest<PackedTreeT>;
+    using Base   = PackedTreeTestBase<PackedTreeT>;
 
-    using Tree = typename Base::Tree;
-    using Values = typename Base::Values;
+    typedef typename Base::Tree                                                 Tree;
+    typedef typename Base::Values                                               Values;
 
     using InputBuffer = typename Tree::InputBuffer;
     using InputBufferPtr = PkdStructSPtr<InputBuffer>;
@@ -41,8 +40,6 @@ class PackedMaxTreeInputBufferTest: public PackedMaxTreeTestBase<PackedTreeT> {
 
     static constexpr int32_t Blocks = Base::Blocks;
     static constexpr int32_t SafetyMargin = InputBuffer::SafetyMargin;
-
-    int32_t iterations_ = 10;
 
 public:
 
@@ -53,18 +50,12 @@ public:
     using Base::out;
     using Base::MEMBUF_SIZE;
 
-    MMA1_STATE_FILEDS(iterations_);
 
-
-    PackedMaxTreeInputBufferTest() {
-        this->size_ = 8192*8;
-    }
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testCreate, testValue, testPosition); //testInsertion
+        MMA1_CLASS_TESTS(suite, testCreate, testValue, testPosition); //, testInsertion
     }
-
 
     InputBufferPtr createInputBuffer(int32_t capacity, int32_t free_space = 0)
     {
@@ -100,7 +91,7 @@ public:
             }
         }
 
-        buffer->reindex();
+        OOM_THROW_IF_FAILED(buffer->reindex(), MMA1_SRC);
 
         assert_equals(buffer->size(), (int32_t)data.size());
 
@@ -222,13 +213,13 @@ public:
         {
             int32_t pos = getRandom(tree->size());
 
-            SizesT at = tree->positions(pos);
+            auto at = tree->positions(pos);
 
             int32_t buffer_size = buffer->size();
             auto buffer_starts = buffer->positions(0);
             auto buffer_ends = buffer->positions(buffer_size);
 
-            tree->insert_buffer(at, buffer.get(), buffer_starts, buffer_ends, buffer_size);
+            OOM_THROW_IF_FAILED(tree->insert_buffer(at.idx(), buffer.get(), buffer_starts, buffer_ends, buffer_size), MMA1_SRC);
 
             tree_data.insert(tree_data.begin() + pos, values.begin(), values.end());
 
@@ -236,8 +227,6 @@ public:
         }
     }
 };
-
-
 
 
 }}}

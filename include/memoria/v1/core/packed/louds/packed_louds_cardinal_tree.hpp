@@ -86,14 +86,23 @@ public:
         tree()->removeLeaf(node);
     }
 
-    void init()
+    OpStatus init()
     {
         int32_t block_size = empty_size();
 
-        Base::init(block_size, 2);
+        if(isFail(Base::init(block_size, 2))) {
+            return OpStatus::FAIL;
+        }
 
-        Base::template allocateEmpty<LoudsTree>(TREE);
-        Base::template allocateEmpty<LabelArray>(LABELS);
+        if(isFail(Base::template allocateEmpty<LoudsTree>(TREE))) {
+            return OpStatus::FAIL;
+        }
+
+        if(isFail(Base::template allocateEmpty<LabelArray>(LABELS))) {
+            return OpStatus::FAIL;
+        }
+
+        return OpStatus::OK;
     }
 
     PackedLoudsNode find_child(const PackedLoudsNode& node, int32_t label) const

@@ -68,7 +68,7 @@ public:
 
         auto new_ptr = allocate(new_size);
 
-        get()->splitTo(new_ptr->template get<SeqT>(0), 0);
+        OOM_THROW_IF_FAILED(get()->splitTo(new_ptr->template get<SeqT>(0), 0), MMA1_SRC);
 
         ref_.reset(new_ptr.release());
     }
@@ -89,7 +89,7 @@ public:
             last_symbol_ = -1;
         }
 
-        get()->reindex();
+        OOM_THROW_IF_FAILED(get()->reindex(), MMA1_SRC);
     }
 
     void append_run(int32_t symbol, uint64_t run_length)
@@ -134,7 +134,7 @@ private:
 
         SeqT* seq = ptr->template allocate<SeqT>(0, block_size);
 
-        seq->enlargeData(capacity);
+        OOM_THROW_IF_FAILED(seq->enlargeData(capacity), MMA1_SRC);
 
         return ptr;
     }

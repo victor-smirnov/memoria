@@ -205,21 +205,26 @@ class ReindexFn {
 
 
 public:
-    void reindex(Seq& seq)
+    OpStatus reindex(Seq& seq)
     {
         auto meta = seq.metadata();
 
         auto symbols_block_size = seq.element_size(Seq::SYMBOLS);
         auto symbols_blocks     = seq.number_of_offsets(symbols_block_size);
 
-        seq.resizeBlock(Seq::OFFSETS, symbols_blocks);
+        if (isFail(seq.resizeBlock(Seq::OFFSETS, symbols_blocks))) {
+            return OpStatus::FAIL;
+        }
+
         seq.clear(Seq::OFFSETS);
 
         if (symbols_block_size > ValuesPerBranch)
         {
             size_t index_size = symbols_blocks;
 
-            seq.createIndex(index_size);
+            if (isFail(seq.createIndex(index_size))) {
+                return OpStatus::FAIL;
+            }
 
             auto size_index = seq.size_index();
             auto sum_index  = seq.sum_index();
@@ -238,19 +243,28 @@ public:
 
                 typename Seq::SizeIndex::Values sizes(size_iterator.value(0));
 
-                size_index->append(sizes);
+                if (isFail(size_index->append(sizes))) {
+                    return OpStatus::FAIL;
+                }
             }
 
-            size_index->reindex();
+            if (isFail(size_index->reindex())) {
+                return OpStatus::FAIL;
+            }
 
             SymbolsSumIterator<Seq> sum_iterator(symbols, data_size, index_size);
 
-            sum_index->populate_from_iterator(0, index_size, sum_iterator);
-            sum_index->reindex();
+            if (isFail(sum_index->populate_from_iterator(0, index_size, sum_iterator))) {
+                return OpStatus::FAIL;
+            }
+
+            return sum_index->reindex();
         }
         else {
-            seq.removeIndex();
+            return seq.removeIndex();
         }
+
+        return OpStatus::OK;
     }
 
 

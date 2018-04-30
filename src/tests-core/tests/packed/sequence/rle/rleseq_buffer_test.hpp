@@ -118,7 +118,7 @@ public:
     {
         out() << "Insert Buffer at " << at << " start: " << start << " size: " << size << std::endl;
 
-        seq->insert_buffer(at, buf.get(), start, size);
+        OOM_THROW_IF_FAILED(seq->insert_buffer(at, buf.get(), start, size), MMA1_SRC);
 
         seq_data.insert(
                 seq_data.begin() + at,

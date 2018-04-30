@@ -69,9 +69,9 @@ protected:
         >
         void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
-            obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
+            OOM_THROW_IF_FAILED(obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
                 return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
-            });
+            }), MMA1_SRC);
         }
 
 
@@ -126,7 +126,7 @@ protected:
         >
         void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx)
         {
-            obj->template _remove<Offset>(idx, accum);
+            OOM_THROW_IF_FAILED(obj->template _remove<Offset>(idx, accum), MMA1_SRC);
         }
 
         template <typename NTypes>
@@ -179,9 +179,9 @@ protected:
         >
         void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
-            obj->template _update_b<Offset>(idx, accum, [&](int32_t block){
+            OOM_THROW_IF_FAILED(obj->template _update_b<Offset>(idx, accum, [&](int32_t block){
                 return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
-            });
+            }), MMA1_SRC);
         }
 
         template <typename NTypes, typename... Args>
