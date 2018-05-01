@@ -105,6 +105,10 @@ class PackedAllocatorTest: public TestState {
             int32_t block_size   = alloc->element_size(this);
             int32_t new_size     = alloc->resizeBlock(this, block_size + delta);
 
+            if (isFail(new_size)) {
+                throw PackedOOMException(MMA1_SRC);
+            }
+
             OOM_THROW_IF_FAILED(init(new_size), MMA1_SRC);
             fill(data_);
         }

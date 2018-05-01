@@ -187,7 +187,7 @@ public:
             }
         }
 
-        return OpStatus::FAIL;
+        return OpStatus::OK;
     }
 
     OpStatus init()

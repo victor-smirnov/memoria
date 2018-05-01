@@ -348,6 +348,10 @@ public:
 
         AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
+        if (!block) {
+            return nullptr;
+        }
+
         T* object = block.cast<T>();
 
         if(isFail(object->init())) {
@@ -363,6 +367,10 @@ public:
         int32_t block_size = PackedAllocator::empty_size(streams);
 
         AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
+
+        if (!block) {
+            return nullptr;
+        }
 
         PackedAllocator* object = block.cast<PackedAllocator>();
 
