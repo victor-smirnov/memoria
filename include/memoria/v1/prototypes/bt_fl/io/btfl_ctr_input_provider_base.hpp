@@ -513,17 +513,18 @@ protected:
 
     struct InsertBuffersFn {
 
+        OpStatus status_{OpStatus::OK};
+
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj, typename StreamBuffer>
         void stream(StreamObj* stream, PackedAllocator* alloc, const Position& at, const Position& starts, const Position& sizes, StreamBuffer&& buffer)
         {
             static_assert(StreamIdx < std::tuple_size<StreamBuffer>::value, "");
-
-            OOM_THROW_IF_FAILED(stream->insert_buffer(
+            status_ <<= stream->insert_buffer(
                     at[StreamIdx],
                     std::get<StreamIdx>(buffer)->buffer()->template substream_by_idx<Idx>(),
                     starts[StreamIdx],
                     sizes[StreamIdx]
-            ), MMA1_SRC);
+            );
         }
 
         template <typename NodeTypes, typename... Args>
@@ -573,27 +574,27 @@ protected:
     }
 
 
-    bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size)
+    [[nodiscard]] bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size)
     {
-        try {
-            CtrT::Types::Pages::LeafDispatcher::dispatch(
+        InsertBuffersFn insert_fn;
+
+        CtrT::Types::Pages::LeafDispatcher::dispatch(
                     leaf,
-                    InsertBuffersFn(),
+                    insert_fn,
                     to_position(at),
                     to_position(start_),
                     to_position(size),
                     make_joined_buffers_tuple()
-            );
+        );
 
-            mgr.checkpoint(leaf);
-
-            return true;
-        }
-        catch (PackedOOMException& ex)
-        {
+        if (isFail(insert_fn.status_)) {
             mgr.restoreNodeState();
             return false;
         }
+
+        mgr.checkpoint(leaf);
+
+        return true;
     }
 
     static float getFreeSpacePart(const NodeBaseG& node)

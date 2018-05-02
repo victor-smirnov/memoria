@@ -808,7 +808,8 @@ public:
                 	other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
                 }
 
-                OOM_THROW_IF_FAILED(tree->splitTo(other_tree, idx), MMA1_SRC);
+                OpStatus ss = tree->splitTo(other_tree, idx);
+                OOM_THROW_IF_FAILED(ss, MMA1_SRC);
             }
         }
     };

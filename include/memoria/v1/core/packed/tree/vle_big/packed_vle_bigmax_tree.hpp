@@ -1808,8 +1808,10 @@ protected:
                 }
             }
 
+            Base::free(INDEX);
+
             if (idx > 0)
-            {
+            {                
                 if(isFail(this->template allocateEmpty<MyType>(INDEX))) {
                     return OpStatus::FAIL;
                 }
@@ -1817,9 +1819,6 @@ protected:
                 if (isFail(index()->insert_data(0, buffer.get(), 0, buffer_pos, idx))) {
                     return OpStatus::FAIL;
                 }
-            }
-            else {
-                Base::free(INDEX);
             }
         }
         else {

@@ -825,10 +825,12 @@ public:
 
 
     struct InsertFn {
+        OpStatus status_{OpStatus::OK};
+
         template <int32_t Idx, typename StreamType>
         void stream(StreamType* obj, int32_t idx, const BranchNodeEntry& keys)
         {
-            OOM_THROW_IF_FAILED(obj->insert(idx, std::get<Idx>(keys)), MMA1_SRC);
+            status_ <<= obj->insert(idx, std::get<Idx>(keys));
         }
     };
 
@@ -836,10 +838,21 @@ public:
     {
         int32_t size = this->size();
 
+        if (idx > size) {
+            dump();
+
+            std::cout << "HERE" << std::endl;
+        }
+
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(idx, <=, size);
 
-        Dispatcher::dispatchNotEmpty(allocator(), InsertFn(), idx, keys);
+        InsertFn insert_fn;
+        Dispatcher::dispatchNotEmpty(allocator(), insert_fn, idx, keys);
+
+        if (isFail(insert_fn.status_)) {
+            return OpStatus::FAIL;
+        }
 
         int32_t requested_block_size = (size + 1) * sizeof(Value);
 
@@ -1044,6 +1057,8 @@ public:
     }
 
     struct MergeWithFn {
+        OpStatus status_{OpStatus::OK};
+
         template <int32_t AllocatorIdx, int32_t ListIdx, typename Tree>
         void stream(Tree* tree, MyType* other)
         {
@@ -1053,32 +1068,45 @@ public:
             {
                 if (other->allocator()->is_empty(AllocatorIdx))
                 {
-                    OOM_THROW_IF_FAILED(other->allocator()->template allocateEmpty<Tree>(AllocatorIdx), MMA1_SRC);
+                    if (isFail(other->allocator()->template allocateEmpty<Tree>(AllocatorIdx)))
+                    {
+                        status_ <<= OpStatus::FAIL;
+                        return;
+                    }
                 }
 
                 Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
 
-                OOM_THROW_IF_FAILED(tree->mergeWith(other_tree), MMA1_SRC);
+                status_ <<= tree->mergeWith(other_tree);
             }
         }
     };
 
-    void mergeWith(MyType* other)
+    OpStatus mergeWith(MyType* other)
     {
         int32_t other_size  = other->size();
         int32_t my_size     = this->size();
 
-        Dispatcher::dispatchNotEmpty(allocator(), MergeWithFn(), other);
+        MergeWithFn fn;
+        Dispatcher::dispatchNotEmpty(allocator(), fn, other);
+
+        if (isFail(fn.status_)) {
+            return OpStatus::FAIL;
+        }
 
         int32_t other_values_block_size          = other->allocator()->element_size(ValuesBlockIdx);
         int32_t required_other_values_block_size = (my_size + other_size) * sizeof(Value);
 
         if (required_other_values_block_size >= other_values_block_size)
         {
-            OOM_THROW_IF_FAILED(toOpStatus(other->allocator()->resizeBlock(other->values(), required_other_values_block_size)), MMA1_SRC);
+            if(isFail(other->allocator()->resizeBlock(other->values(), required_other_values_block_size))) {
+                return OpStatus::FAIL;
+            }
         }
 
         CopyBuffer(values(), other->values() + other_size, my_size);
+
+        return OpStatus::OK;
     }
 
 
@@ -1507,17 +1535,21 @@ public:
 
 
     struct UpdateUpFn {
+        OpStatus status_{OpStatus::OK};
+
         template <int32_t Idx, typename StreamType>
         void stream(StreamType* tree, int32_t idx, const BranchNodeEntry& accum)
         {
-            OOM_THROW_IF_FAILED(tree->setValues(idx, std::get<Idx>(accum)), MMA1_SRC);
+            status_ <<= tree->setValues(idx, std::get<Idx>(accum));
         }
     };
 
 
-    void updateUp(int32_t idx, const BranchNodeEntry& keys)
+    OpStatus updateUp(int32_t idx, const BranchNodeEntry& keys)
     {
-        Dispatcher::dispatchNotEmpty(allocator(), UpdateUpFn(), idx, keys);
+        UpdateUpFn fn;
+        Dispatcher::dispatchNotEmpty(allocator(), fn, idx, keys);
+        return fn.status_;
     }
 
 
@@ -1539,7 +1571,7 @@ public:
         template <typename Tree>
         void stream(const Tree* tree)
         {
-            tree->dump(std::cout);
+            tree->dump();
         }
     };
 

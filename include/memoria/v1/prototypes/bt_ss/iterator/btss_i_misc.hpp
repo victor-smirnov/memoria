@@ -20,6 +20,8 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/prototypes/bt_ss/btss_names.hpp>
 
+#include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -250,7 +252,6 @@ protected:
         int32_t split_idx   = size/2;
 
         auto right = self.ctr().split_leaf_p(leaf, Position::create(0, split_idx));
-
 
         if (idx > split_idx)
         {

@@ -19,6 +19,7 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 #include <memoria/v1/core/container/macros.hpp>
+#include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 
 #include <vector>
 
@@ -105,7 +106,7 @@ void M_TYPE::newRootP(NodeBaseG& root)
 
     BranchNodeEntry max = self.max(root);
 
-    self.insertToBranchNodeP(new_root, 0, max, root->id());
+    OOM_THROW_IF_FAILED(self.insertToBranchNodeP(new_root, 0, max, root->id()), MMA1_SRC);
 
     root->parent_id()  = new_root->id();
     root->parent_idx() = 0;

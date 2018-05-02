@@ -65,7 +65,7 @@ public:
 
 protected:
     MEMORIA_V1_DECLARE_NODE_FN(InsertFn, insert);
-    void insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id);
+    OpStatus insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, int32_t split_at);
 
@@ -102,7 +102,7 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-void M_TYPE::insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id)
+OpStatus M_TYPE::insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id)
 {
     auto& self = this->self();
 
@@ -116,6 +116,8 @@ void M_TYPE::insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeE
         auto max = self.max(node);
         self.updateBranchNodes(parent, node->parent_idx(), max);
     }
+
+    return OpStatus::OK;
 }
 
 

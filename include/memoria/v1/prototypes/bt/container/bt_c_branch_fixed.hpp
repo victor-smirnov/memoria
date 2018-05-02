@@ -63,13 +63,13 @@ public:
 
 protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(InsertFn, insert, OpStatus);
-    void insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id);
+    OpStatus insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, int32_t split_at);
 
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
 
-    MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(UpdateNodeFn, updateUp, OpStatus);
     bool updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry);
 
     void updateBranchNodes(NodeBaseG& node, int32_t& idx, const BranchNodeEntry& entry);
@@ -85,7 +85,7 @@ protected:
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(MergeNodesFn, mergeWith, OpStatus);
     void doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
     bool mergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
     bool mergeCurrentBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
@@ -100,12 +100,14 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-void M_TYPE::insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id)
+OpStatus M_TYPE::insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id)
 {
     auto& self = this->self();
 
     self.updatePageG(node);
-    OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(node, InsertFn(), idx, keys, id), MMA1_SRC);
+    if (isFail(BranchDispatcher::dispatch(node, InsertFn(), idx, keys, id))) {
+        return OpStatus::FAIL;
+    }
 
     self.updateChildren(node, idx);
 
@@ -115,6 +117,8 @@ void M_TYPE::insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeE
         auto max = self.max(node);
         self.updateBranchNodes(parent, node->parent_idx(), max);
     }
+
+    return OpStatus::OK;
 }
 
 
@@ -145,12 +149,12 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     if (self.getBranchNodeCapacity(left_parent, -1) > 0)
     {
-        self.insertToBranchNodeP(left_parent, parent_idx + 1, right_max, right_node->id());
+        OOM_THROW_IF_FAILED(self.insertToBranchNodeP(left_parent, parent_idx + 1, right_max, right_node->id()), MMA1_SRC);
     }
     else {
         NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
 
-        self.insertToBranchNodeP(right_parent, 0, right_max, right_node->id());
+        OOM_THROW_IF_FAILED(self.insertToBranchNodeP(right_parent, 0, right_max, right_node->id()), MMA1_SRC);
     }
 
     return right_node;
@@ -171,7 +175,7 @@ M_PARAMS
 bool M_TYPE::updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys)
 {
     self().updatePageG(node);
-    BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
+    OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, keys), MMA1_SRC);
     return true;
 }
 
@@ -248,7 +252,7 @@ void M_TYPE::doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     int32_t tgt_size = self.getNodeSize(tgt, 0);
 
-    BranchDispatcher::dispatch(src, tgt, MergeNodesFn());
+    OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(src, tgt, MergeNodesFn()), MMA1_SRC);
 
     self.updateChildren(tgt, tgt_size);
 

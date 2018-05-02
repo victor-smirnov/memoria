@@ -142,7 +142,6 @@ TestStatus run_single_test(const U16String& test_path)
             FileInputStream<char> fi_stream(open_buffered_file(config_path, FileFlags::RDONLY));
             YAML::Node config = YAML::Load(fi_stream);
 
-			int64_t seed;
             if (config["seed"])
             {
                 seed = config["seed"].as<int64_t>();

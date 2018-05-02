@@ -543,8 +543,13 @@ template <typename T> struct TypeTag {};
 
 
 enum class [[nodiscard]] OpStatus: int32_t {
-    FAIL = 0, OK = 1
+    OK = 0, FAIL = 1
 };
+
+static inline OpStatus& operator<<=(OpStatus& s1, OpStatus s2) {
+    s1 = static_cast<OpStatus>(static_cast<int32_t>(s1) + static_cast<int32_t>(s2));
+    return s1;
+}
 
 template <typename T>
 class [[nodiscard]] OpStatusT {
@@ -559,9 +564,17 @@ public:
     const T& value() const {return value_;}
 };
 
-static inline bool isFail(OpStatus status) {return status == OpStatus::FAIL;}
+template <typename T>
+static inline OpStatus& operator<<=(OpStatus& s1, OpStatusT<T> s2) {
+    s1 = static_cast<OpStatus>(static_cast<int32_t>(s1) + static_cast<int32_t>(s2.status()));
+    return s1;
+}
+
+static inline bool isFail(OpStatus status) {return status != OpStatus::OK;}
 static inline bool isFail(int32_t status) {return status < 0;}
 static inline bool isFail(void) {return false;}
+
+static inline bool isOk(OpStatus status) {return status == OpStatus::OK;}
 
 template <typename T>
 static inline bool isFail(const T* ptr) {return ptr == nullptr;}

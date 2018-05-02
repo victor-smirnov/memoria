@@ -88,26 +88,28 @@ protected:
 
             int32_t c;
 
-            try {
-                for (c = 0; c < batch_size && provider.size() > 0; c++)
+            OpStatus status{OpStatus::OK};
+
+            for (c = 0; c < batch_size && provider.size() > 0; c++)
+            {
+                auto child = child_fn();
+
+                if (!child.isSet())
                 {
-                    auto child = child_fn();
-
-                    if (!child.isSet())
-                    {
-                        MMA1_THROW(NullPointerException()) << WhatInfo("Subtree is null");
-                    }
-
-                    child->parent_id()  = node->id();
-                    child->parent_idx() = idx + c;
-
-                    BranchNodeEntry sums = self.max(child);
-                    OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(node, InsertChildFn(), idx + c, sums, child->id()), MMA1_SRC);
+                    MMA1_THROW(NullPointerException()) << WhatInfo("Subtree is null");
                 }
 
-                idx += c;
+                child->parent_id()  = node->id();
+                child->parent_idx() = idx + c;
+
+                BranchNodeEntry sums = self.max(child);
+                if(isFail(BranchDispatcher::dispatch(node, InsertChildFn(), idx + c, sums, child->id()))) {
+                    status = OpStatus::FAIL;
+                    break;
+                }
             }
-            catch (PackedOOMException& ex)
+
+            if (isFail(status))
             {
                 if (node->level() > 1)
                 {
@@ -121,6 +123,9 @@ protected:
                 provider.rollback(checkpoint);
                 mgr.rollback();
                 batch_size /= 2;
+            }
+            else {
+                idx += c;
             }
         }
 
