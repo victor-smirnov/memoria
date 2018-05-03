@@ -59,6 +59,8 @@ protected:
     template <int32_t Stream>
     struct InsertStreamEntryFn
     {
+        OpStatus status_{OpStatus::OK};
+
         template <
             int32_t Offset,
             bool StreamStart,
@@ -69,9 +71,11 @@ protected:
         >
         void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
-            OOM_THROW_IF_FAILED(obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
-                return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
-            }), MMA1_SRC);
+            if (isOk(status_)) {
+                status_ <<= obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
+                        return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
+                });
+            }
         }
 
 
@@ -87,7 +91,7 @@ protected:
 
 
     template <int32_t Stream, typename Entry>
-    std::tuple<bool> try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
+    [[nodiscard]] std::tuple<bool> try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -97,16 +101,17 @@ protected:
 
         mgr.add(iter.leaf());
 
-        try {
-            BranchNodeEntry accum;
-            LeafDispatcher::dispatch(iter.leaf(), InsertStreamEntryFn<Stream>(), idx, accum, entry);
-            return std::make_tuple(true);
-        }
-        catch (PackedOOMException& e)
-        {
+
+        BranchNodeEntry accum;
+        InsertStreamEntryFn<Stream> fn;
+        LeafDispatcher::dispatch(iter.leaf(), fn, idx, accum, entry);
+
+        if (isFail(fn.status_)) {
             mgr.rollback();
             return std::make_tuple(false);
         }
+
+        return std::make_tuple(true);
     }
 
 
@@ -117,6 +122,8 @@ protected:
     template <int32_t Stream>
     struct RemoveFromLeafFn
     {
+        OpStatus status_{OpStatus::OK};
+
         template <
             int32_t Offset,
             bool StreamStart,
@@ -126,7 +133,9 @@ protected:
         >
         void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx)
         {
-            OOM_THROW_IF_FAILED(obj->template _remove<Offset>(idx, accum), MMA1_SRC);
+            if (isOk(status_)) {
+                status_ <<= obj->template _remove<Offset>(idx, accum);
+            }
         }
 
         template <typename NTypes>
@@ -139,7 +148,7 @@ protected:
 
 
     template <int32_t Stream>
-    std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, int32_t idx)
+    [[nodiscard]] std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, int32_t idx)
     {
         auto& self = this->self();
 
@@ -149,16 +158,16 @@ protected:
 
         mgr.add(iter.leaf());
 
-        try {
-            BranchNodeEntry accum;
-            LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), idx, accum);
-            return std::make_tuple(true, accum);
-        }
-        catch (PackedOOMException& e)
-        {
+        BranchNodeEntry accum;
+        RemoveFromLeafFn<Stream> fn;
+        LeafDispatcher::dispatch(iter.leaf(), fn, idx, accum);
+
+        if (isFail(fn.status_)) {
             mgr.rollback();
             return std::make_tuple(false, BranchNodeEntry());
         }
+
+        return std::make_tuple(true, accum);
     }
 
 
@@ -169,6 +178,7 @@ protected:
     template <int32_t Stream, typename SubstreamsList>
     struct UpdateStreamEntryBufferFn
     {
+        OpStatus status_{OpStatus::OK};
         template <
             int32_t Offset,
             bool Start,
@@ -179,9 +189,11 @@ protected:
         >
         void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
-            OOM_THROW_IF_FAILED(obj->template _update_b<Offset>(idx, accum, [&](int32_t block){
-                return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
-            }), MMA1_SRC);
+            if (isOk(status_)) {
+                status_ <<= obj->template _update_b<Offset>(idx, accum, [&](int32_t block){
+                        return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
+                });
+            }
         }
 
         template <typename NTypes, typename... Args>
@@ -201,7 +213,7 @@ protected:
 
 
     template <int32_t Stream, typename SubstreamsList, typename Entry>
-    std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
+    [[nodiscard]] std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -211,22 +223,22 @@ protected:
 
         mgr.add(iter.leaf());
 
-        try {
-            BranchNodeEntry accum;
-            LeafDispatcher::dispatch(
+        BranchNodeEntry accum;
+        UpdateStreamEntryBufferFn<Stream, SubstreamsList> fn;
+        LeafDispatcher::dispatch(
                     iter.leaf(),
-                    UpdateStreamEntryBufferFn<Stream, SubstreamsList>(),
+                    fn,
                     idx,
                     accum,
                     entry
-            );
-            return std::make_tuple(true, accum);
-        }
-        catch (PackedOOMException& e)
-        {
+        );
+
+        if (isFail(fn.status_)) {
             mgr.rollback();
             return std::make_tuple(false, BranchNodeEntry());
         }
+
+        return std::make_tuple(true, accum);
     }
 
     template <typename Fn, typename... Args>
@@ -237,10 +249,10 @@ protected:
     }
 
     // FIXME: not used
-    NodeBaseG createNextLeaf(NodeBaseG& leaf);
+    // NodeBaseG createNextLeaf(NodeBaseG& leaf);
 
-    MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
-    bool tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(TryMergeNodesFn, mergeWith, OpStatus);
+    [[nodiscard]] bool tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
     bool mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
     bool mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
 
@@ -251,58 +263,58 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
-M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
-{
-    auto& self = this->self();
+//M_PARAMS
+//typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
+//{
+//    auto& self = this->self();
 
-    if (left_node->is_root())
-    {
-        self.newRootP(left_node);
-    }
-    else {
-        self.updatePageG(left_node);
-    }
+//    if (left_node->is_root())
+//    {
+//        self.newRootP(left_node);
+//    }
+//    else {
+//        self.updatePageG(left_node);
+//    }
 
-    NodeBaseG left_parent  = self.getNodeParentForUpdate(left_node);
+//    NodeBaseG left_parent  = self.getNodeParentForUpdate(left_node);
 
-    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+//    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
 
-    BranchNodeEntry sums;
+//    BranchNodeEntry sums;
 
-    int32_t parent_idx = left_node->parent_idx();
+//    int32_t parent_idx = left_node->parent_idx();
 
-    PageUpdateMgr mgr(self);
-    mgr.add(left_parent);
+//    PageUpdateMgr mgr(self);
+//    mgr.add(left_parent);
 
-    try {
-        self.insertNonLeafP(left_parent, parent_idx + 1, sums, other->id());
-    }
-    catch (PackedOOMException ex)
-    {
-        mgr.rollback();
+//    try {
+//        self.insertNonLeafP(left_parent, parent_idx + 1, sums, other->id());
+//    }
+//    catch (PackedOOMException ex)
+//    {
+//        mgr.rollback();
 
-        NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
+//        NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
 
-        mgr.add(right_parent);
+//        mgr.add(right_parent);
 
-        try {
-            self.insertNonLeafP(right_parent, 0, sums, other->id());
-        }
-        catch (PackedOOMException ex2)
-        {
-            mgr.rollback();
+//        try {
+//            self.insertNonLeafP(right_parent, 0, sums, other->id());
+//        }
+//        catch (PackedOOMException ex2)
+//        {
+//            mgr.rollback();
 
-            int32_t right_parent_size = self.getNodeSize(right_parent, 0);
+//            int32_t right_parent_size = self.getNodeSize(right_parent, 0);
 
-            splitPathP(right_parent, right_parent_size / 2);
+//            splitPathP(right_parent, right_parent_size / 2);
 
-            self.insertNonLeafP(right_parent, 0, sums, other->id());
-        }
-    }
+//            self.insertNonLeafP(right_parent, 0, sums, other->id());
+//        }
+//    }
 
-    return other;
-}
+//    return other;
+//}
 
 
 M_PARAMS
@@ -320,37 +332,33 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
     Position tgt_sizes  = self.getNodeSizes(tgt);
 
-    try {
-        int32_t tgt_size            = self.getNodeSize(tgt, 0);
-        NodeBaseG src_parent    = self.getNodeParent(src);
-        int32_t parent_idx          = src->parent_idx();
+    int32_t tgt_size            = self.getNodeSize(tgt, 0);
+    NodeBaseG src_parent    = self.getNodeParent(src);
+    int32_t parent_idx          = src->parent_idx();
 
-        MEMORIA_V1_ASSERT(parent_idx, >, 0);
+    MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
-        LeafDispatcher::dispatch(src, tgt, TryMergeNodesFn());
-
-        self.updateChildren(tgt, tgt_size);
-
-        BranchNodeEntry max = self.max(tgt);
-
-        self.removeNonLeafNodeEntry(src_parent, parent_idx);
-
-        int32_t idx = parent_idx - 1;
-
-        self.updateBranchNodes(src_parent, idx, max);
-
-        self.allocator().removePage(src->id(), self.master_name());
-
-        fn(tgt_sizes);
-
-        return true;
-    }
-    catch (PackedOOMException ex)
-    {
+    if (isFail(LeafDispatcher::dispatch(src, tgt, TryMergeNodesFn()))) {
         mgr.rollback();
+        return false;
     }
 
-    return false;
+    self.updateChildren(tgt, tgt_size);
+
+    BranchNodeEntry max = self.max(tgt);
+
+    // FIXME. This is apecial OOM condition that, if occurs, must be handled separately.
+    OOM_THROW_IF_FAILED(self.removeNonLeafNodeEntry(src_parent, parent_idx), MMA1_SRC);
+
+    int32_t idx = parent_idx - 1;
+
+    self.updateBranchNodes(src_parent, idx, max);
+
+    self.allocator().removePage(src->id(), self.master_name());
+
+    fn(tgt_sizes);
+
+    return true;
 }
 
 

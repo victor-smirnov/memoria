@@ -263,7 +263,7 @@ void M_TYPE::doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     auto max = self.max(tgt);
 
-    self.removeNonLeafNodeEntry(src_parent, parent_idx);
+    OOM_THROW_IF_FAILED(self.removeNonLeafNodeEntry(src_parent, parent_idx), MMA1_SRC);
 
     int32_t idx = parent_idx - 1;
 

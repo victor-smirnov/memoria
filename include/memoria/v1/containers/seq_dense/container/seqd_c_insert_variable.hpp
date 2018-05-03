@@ -46,7 +46,7 @@ public:
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -55,14 +55,10 @@ public:
 
     //==========================================================================================
 
-//    MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
-//    void layoutLeafNode(NodeBaseG& node, int32_t size) const
-//    {
-//      LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
-//    }
-
     struct InsertBufferIntoLeafFn
     {
+        OpStatus status_{OpStatus::OK};
+
         template <typename NTypes, typename LeafPosition, typename Buffer>
         void treeNode(LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
         {
@@ -72,21 +68,24 @@ public:
         template <typename StreamType, typename LeafPosition, typename Buffer>
         void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
         {
-            obj->insert(buffer, pos, start, size);
+            if (isOk(status_)) {
+                status_ <<= obj->insert(buffer, pos, start, size);
+            }
         }
     };
 
 
     template <typename LeafPosition, typename Buffer>
-    bool doInsertBufferIntoLeaf(NodeBaseG& leaf, PageUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+    [[nodiscard]] bool doInsertBufferIntoLeaf(NodeBaseG& leaf, PageUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
     {
-        try {
-            LeafDispatcher::dispatch(leaf, InsertBufferIntoLeafFn(), pos, start, size - start, buffer);
+        InsertBufferIntoLeafFn fn;
+        LeafDispatcher::dispatch(leaf, fn, pos, start, size - start, buffer);
+
+        if (isOk(fn.status_)) {
             mgr.checkpoint(leaf);
             return true;
         }
-        catch (PackedOOMException& ex)
-        {
+        else {
             mgr.restoreNodeState();
             return false;
         }

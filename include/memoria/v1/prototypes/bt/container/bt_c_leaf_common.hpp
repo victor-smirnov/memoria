@@ -67,8 +67,8 @@ public:
         });
     }
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
-    BranchNodeEntry split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, OpStatus);
+    OpStatus split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
     {
         return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
     }
@@ -408,29 +408,33 @@ protected:
 
         mgr.add(iter.leaf());
 
-        try {
-            LeafDispatcher::dispatch(
-                    iter.leaf(),
-                    fn,
-                    std::forward<Args>(args)...
-            );
 
+        LeafDispatcher::dispatch(
+            iter.leaf(),
+            fn,
+            std::forward<Args>(args)...
+        );
+
+        if (isOk(fn.status_)) {
             return SplitStatus::NONE;
         }
-        catch (PackedOOMException& e)
-        {
-            mgr.rollback();
 
-            SplitStatus status = iter.split();
+        mgr.rollback();
 
-            LeafDispatcher::dispatch(
+        SplitStatus status = iter.split();
+
+        fn.status_ = OpStatus::OK;
+
+        LeafDispatcher::dispatch(
                     iter.leaf(),
                     fn,
                     std::forward<Args>(args)...
-            );
+                    );
 
-            return status;
-        }
+        OOM_THROW_IF_FAILED(fn.status_, MMA1_SRC);
+
+        return status;
+
     }
 
 MEMORIA_V1_CONTAINER_PART_END

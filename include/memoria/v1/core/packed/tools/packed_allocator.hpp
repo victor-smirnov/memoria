@@ -572,14 +572,10 @@ public:
             }
             else {
                 return -1;
-                //throw PackedOOMException(MA_RAW_SRC, allocated(), new_size, free_space());
             }
         }
         else {
-            //int allocated = this->allocated();
-            //int free_space = this->free_space();
             return -1;
-            //throw PackedOOMException(MA_RAW_SRC, allocated, new_size, free_space);
         }
 
         return block_size_;

@@ -91,21 +91,21 @@ struct PackedSizeTypeList<> {
 
 class PackedOOMException: public MemoriaThrowableLW {
 
-    int32_t total_;
-    int32_t requested_;
-    int32_t free_;
+//    int32_t total_;
+//    int32_t requested_;
+//    int32_t free_;
 
     const char* msg_;
 
 public:
 
-    PackedOOMException(const char* source, int32_t total, int32_t requested, int32_t free):
-                MemoriaThrowableLW(source ),
-                total_(total),
-                requested_(requested),
-                free_(free),
-                msg_(nullptr)
-    {}
+//    PackedOOMException(const char* source, int32_t total, int32_t requested, int32_t free):
+//                MemoriaThrowableLW(source ),
+//                total_(total),
+//                requested_(requested),
+//                free_(free),
+//                msg_(nullptr)
+//    {}
 
     PackedOOMException(const char* source, const char* msg):
         MemoriaThrowableLW(source ),
@@ -120,7 +120,8 @@ public:
             out << "PackedOOMException at " << source_ << ": " << msg_;
         }
         else {
-            out << "PackedOOMException at " << source_ << ": Total=" << total_ << " Requested=" << requested_ << " Free=" << free_;
+            //out << "PackedOOMException at " << source_ << ": Total=" << total_ << " Requested=" << requested_ << " Free=" << free_;
+            out << "PackedOOMException at " << source_;
         }
     }
 };
@@ -210,7 +211,7 @@ public:
             return T2T<PackedAllocator*>(my_ptr - allocator_offset());
         }
         else {
-            throw PackedOOMException(MA_SRC, "No allocation is defined for this object");
+            MMA1_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
         }
     }
 
@@ -222,7 +223,7 @@ public:
             return T2T<const PackedAllocator*>(my_ptr - allocator_offset());
         }
         else {
-            throw PackedOOMException(MA_SRC, "No allocation is defined for this object");
+            MMA1_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
         }
     }
 

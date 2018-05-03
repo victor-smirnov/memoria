@@ -103,7 +103,7 @@ VertexProperty IVertex::property(const U16String& name)
 
 VertexProperty IVertex::property(const U16String& name, const Any& value)
 {
-    MMA1_THROW(GraphException()) << WhatCInfo("Property update is not dupported");
+    MMA1_THROW(GraphException()) << WhatCInfo("Property update is not supported");
 }
 
 

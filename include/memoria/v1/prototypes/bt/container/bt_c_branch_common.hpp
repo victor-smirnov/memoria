@@ -66,8 +66,8 @@ protected:
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
-    BranchNodeEntry splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, OpStatus);
+    OpStatus splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at);
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -76,15 +76,17 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-typename M_TYPE::BranchNodeEntry M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at)
+OpStatus M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at)
 {
     auto& self = this->self();
 
-    BranchNodeEntry accum = BranchDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+    if (isFail(BranchDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at))) {
+        return OpStatus::FAIL;
+    }
 
     self.updateChildren(tgt);
 
-    return accum;
+    return OpStatus::OK;
 }
 
 

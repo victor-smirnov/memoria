@@ -674,36 +674,44 @@ public:
     }
 
     struct RemoveSpaceFn {
+        OpStatus status_{OpStatus::OK};
+
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(Tree* tree, const Position& room_start, const Position& room_end)
         {
-            if (tree != nullptr) {
-                OOM_THROW_IF_FAILED(tree->removeSpace(room_start[StreamIdx], room_end[StreamIdx]), MMA1_SRC);
+            if (tree != nullptr && isOk(status_))
+            {
+                status_ <<= tree->removeSpace(room_start[StreamIdx], room_end[StreamIdx]);
             }
         }
 
         template <typename Tree>
         void stream(Tree* tree, int32_t room_start, int32_t room_end)
         {
-            if (tree != nullptr)
+            if (tree != nullptr && isOk(status_))
             {
-                OOM_THROW_IF_FAILED(tree->removeSpace(room_start, room_end), MMA1_SRC);
+                status_ <<= tree->removeSpace(room_start, room_end);
             }
         }
     };
 
-    void removeSpace(int32_t stream, int32_t room_start, int32_t room_end)
+    OpStatus removeSpace(int32_t stream, int32_t room_start, int32_t room_end)
     {
-        Dispatcher::dispatch(stream, allocator(), RemoveSpaceFn(), room_start, room_end);
+        RemoveSpaceFn fn;
+        Dispatcher::dispatch(stream, allocator(), fn, room_start, room_end);
+        return fn.status_;
     }
 
-    void removeSpace(const Position& room_start, const Position& room_end)
+    OpStatus removeSpace(const Position& room_start, const Position& room_end)
     {
-        this->processSubstreamGroups(RemoveSpaceFn(), room_start, room_end);
+        RemoveSpaceFn fn;
+        this->processSubstreamGroups(fn, room_start, room_end);
 
         // FIXME: enable once other methods (finders) are ready for
         // this optimization
         // removeEmptyStreams();
+
+        return fn.status_;
     }
 
 //    FIXME: this code doesn't work with substreams
@@ -760,41 +768,49 @@ public:
 
 
     struct MergeWithFn {
+        OpStatus status_{OpStatus::OK};
+
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(Tree* tree, MyType* other)
         {
-            int32_t size = tree->size();
-
-            if (size > 0)
+            if (isOk(status_))
             {
-                if (other->allocator()->is_empty(AllocatorIdx))
-                {
-                    OOM_THROW_IF_FAILED(other->allocator()->template allocateEmpty<Tree>(AllocatorIdx), MMA1_SRC);
-                }
+                int32_t size = tree->size();
 
-                Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
-                OOM_THROW_IF_FAILED(tree->mergeWith(other_tree), MMA1_SRC);
+                if (size > 0)
+                {
+                    if (other->allocator()->is_empty(AllocatorIdx))
+                    {
+                        if(isFail(other->allocator()->template allocateEmpty<Tree>(AllocatorIdx))) {
+                            status_ <<= OpStatus::FAIL;
+                            return;
+                        }
+                    }
+
+                    Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
+                    status_ <<= tree->mergeWith(other_tree);
+                }
             }
         }
     };
 
-    void mergeWith(MyType* other)
+    OpStatus mergeWith(MyType* other)
     {
-        Dispatcher::dispatchNotEmpty(allocator(), MergeWithFn(), other);
+        MergeWithFn fn;
+        Dispatcher::dispatchNotEmpty(allocator(), fn, other);
+        return fn.status_;
     }
 
     struct SplitToFn {
+        OpStatus status_{OpStatus::OK};
+
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(Tree* tree, MyType* other, const Position& indexes)
         {
-            if (tree != nullptr)
+            if (tree != nullptr && isOk(status_))
             {
                 int32_t idx   = indexes[StreamIdx];
                 int32_t size  = tree->size();
-
-                if (idx < 0 || idx > size) {
-                    int a = 0; a++;
-                }
 
                 MEMORIA_V1_ASSERT(idx, >=, 0);
                 MEMORIA_V1_ASSERT(idx, <=, size);
@@ -808,27 +824,23 @@ public:
                 	other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
                 }
 
-                OpStatus ss = tree->splitTo(other_tree, idx);
-                OOM_THROW_IF_FAILED(ss, MMA1_SRC);
+                if (isFail(other_tree)) {
+                    status_ <<= OpStatus::FAIL;
+                    return;
+                }
+
+                status_ <<= tree->splitTo(other_tree, idx);
             }
         }
     };
 
 
-    BranchNodeEntry splitTo(MyType* other, const Position& from)
+    OpStatus splitTo(MyType* other, const Position& from)
     {
-        BranchNodeEntry result;
+        SplitToFn split_fn;
+        this->processSubstreamGroups(split_fn, other, from);
 
-//        Position sizes = this->sizes();
-
-//        sums(from, sizes, result);
-
-//        this->allocator()->dumpAllocator();
-//        other->allocator()->dumpAllocator();
-
-        this->processSubstreamGroups(SplitToFn(), other, from);
-
-        return result;
+        return split_fn.status_;
     }
 
 
@@ -869,11 +881,6 @@ public:
         {
             if (obj != nullptr)
             {
-//                if (StreamStart)
-//                {
-//                  accum[Offset - 1] += end - start;
-//                }
-
                 obj->template sum<Offset>(start, end, accum);
             }
         }

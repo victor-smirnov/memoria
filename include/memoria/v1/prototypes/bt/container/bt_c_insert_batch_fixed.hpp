@@ -107,9 +107,6 @@ protected:
         }
     };
 
-
-    MEMORIA_V1_DECLARE_NODE_FN(ReindexBranchNodeFn, reindex);
-
     InsertBatchResult insertSubtree(NodeBaseG& node, int32_t idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
     {
         auto& self = this->self();

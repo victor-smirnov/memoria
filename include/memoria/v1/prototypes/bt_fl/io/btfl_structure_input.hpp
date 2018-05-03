@@ -175,7 +175,7 @@ protected:
 
         auto new_buffer = create_input_buffer(new_capacity);
 
-        buffer_.get()->copyTo(new_buffer);
+        OOM_THROW_IF_FAILED(buffer_.get()->copyTo(new_buffer), MMA1_SRC);
 
         init(DataBuffer(new_buffer));
     }

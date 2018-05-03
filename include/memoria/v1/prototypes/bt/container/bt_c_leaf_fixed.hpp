@@ -237,7 +237,7 @@ protected:
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(MergeNodesFn, mergeWith, OpStatus);
     void doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src);
     bool mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
     bool mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
@@ -259,7 +259,7 @@ void M_TYPE::doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     int32_t tgt_size = self.getNodeSize(tgt, 0);
 
-    LeafDispatcher::dispatch(src, tgt, MergeNodesFn());
+    OOM_THROW_IF_FAILED(LeafDispatcher::dispatch(src, tgt, MergeNodesFn()), MMA1_SRC);
 
     self.updateChildren(tgt, tgt_size);
 
@@ -268,7 +268,7 @@ void M_TYPE::doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
-    self.removeNonLeafNodeEntry(src_parent, parent_idx);
+    OOM_THROW_IF_FAILED(self.removeNonLeafNodeEntry(src_parent, parent_idx), MMA1_SRC);
 
     int32_t idx = parent_idx - 1;
 

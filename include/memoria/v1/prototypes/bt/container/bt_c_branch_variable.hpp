@@ -308,7 +308,10 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     auto max = self.max(tgt);
 
-    self.removeNonLeafNodeEntry(src_parent, parent_idx);
+    if (isFail(self.removeNonLeafNodeEntry(src_parent, parent_idx))) {
+        mgr.rollback();
+        return false;
+    }
 
     int32_t idx = parent_idx - 1;
 

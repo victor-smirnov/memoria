@@ -88,7 +88,7 @@ public:
 
 
 protected:
-    MEMORIA_V1_DECLARE_NODE_FN(RemoveSpaceFn, removeSpace);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, OpStatus);
 
     void removeNodeRecursively(NodeBaseG& node, Position& accum);
     void removeNode(NodeBaseG& node);
@@ -98,8 +98,8 @@ protected:
     Position removeLeafContent(NodeBaseG& node, const Position& start, const Position& end);
     Position removeLeafContent(NodeBaseG& node, int32_t stream, int32_t start, int32_t end);
 
-    MEMORIA_V1_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, removeSpaceAcc);
-    void removeNonLeafNodeEntry(NodeBaseG& node, int32_t idx);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(RemoveNonLeafNodeEntryFn, removeSpaceAcc, OpStatus);
+    OpStatus removeNonLeafNodeEntry(NodeBaseG& node, int32_t idx);
 
     bool mergeLeafWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const Position&, int32_t){});
     bool mergeLeafWithRightSibling(NodeBaseG& node);
@@ -202,15 +202,13 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, int32_t start, int32_t end, Posi
 
     MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
 
-
-
     self.forAllIDs(node, start, end, [&, this](const ID& id, int32_t idx){
         auto& self = this->self();
         NodeBaseG child = self.allocator().getPage(id, self.master_name());
         self.removeNodeRecursively(child, sizes);
     });
 
-    BranchDispatcher::dispatch(node, RemoveSpaceFn(), start, end);
+    OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(node, RemoveSpaceFn(), start, end), MMA1_SRC);
 
     self.update_path(node);
 
@@ -219,18 +217,22 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, int32_t start, int32_t end, Posi
 
 
 M_PARAMS
-void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, int32_t start)
+OpStatus M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, int32_t start)
 {
     auto& self = this->self();
 
     MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
 
     self.updatePageG(node);
-    BranchDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
+    if (isFail(BranchDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1))) {
+        return OpStatus::FAIL;
+    }
 
     self.updateChildren(node, start);
 
     self.update_path(node);
+
+    return OpStatus::OK;
 }
 
 
@@ -242,7 +244,7 @@ typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, const Posit
 
     self.updatePageG(node);
 
-    LeafDispatcher::dispatch(node, RemoveSpaceFn(), start, end);
+    OOM_THROW_IF_FAILED(LeafDispatcher::dispatch(node, RemoveSpaceFn(), start, end), MMA1_SRC);
 
     self.update_path(node);
 
@@ -256,7 +258,7 @@ typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, int32_t str
 
     self.updatePageG(node);
 
-    LeafDispatcher::dispatch(node, RemoveSpaceFn(), stream, start, end);
+    OOM_THROW_IF_FAIL(LeafDispatcher::dispatch(node, RemoveSpaceFn(), stream, start, end), MMA1_SRC);
 
     self.update_path(node);
 

@@ -186,20 +186,22 @@ public:
     }
 
     struct CopyToFn {
-
+        OpStatus status_{OpStatus::OK};
         template <int32_t Idx, typename Stream>
         void stream(Stream* buf, MyType* other)
         {
-            if (buf) {
-                OOM_THROW_IF_FAILED(buf->copyTo(other->template substream_by_idx<Idx>()), MMA1_SRC);
+            if (buf && isOk(status_)) {
+                status_ <<= buf->copyTo(other->template substream_by_idx<Idx>());
             }
         }
     };
 
 
-    void copyTo(MyType* other) const
+    OpStatus copyTo(MyType* other) const
     {
-        Dispatcher::dispatchAll(allocator(), CopyToFn(), other);
+        CopyToFn fn;
+        Dispatcher::dispatchAll(allocator(), fn, other);
+        return fn.status_;
     }
 
 

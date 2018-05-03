@@ -142,7 +142,7 @@ public:
 
             if (capacity > 0)
             {
-                insertBuffer(leaf, pos[0], capacity);
+                OOM_THROW_IF_FAILED(insertBuffer(leaf, pos[0], capacity), MMA1_SRC);
 
                 auto rest = buffer_size();
 
@@ -165,10 +165,14 @@ public:
 
     struct InsertBufferFn {
 
+        OpStatus status_{OpStatus::OK};
+
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj>
         void stream(StreamObj* stream, int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
         {
-            OOM_THROW_IF_FAILED(stream->insert_buffer(at, buffer->template substream_by_idx<Idx>(), start, size), MMA1_SRC);
+            if (isOk(status_)) {
+                status_ <<= stream->insert_buffer(at, buffer->template substream_by_idx<Idx>(), start, size);
+            }
         }
 
         template <typename NodeTypes, typename... Args>
@@ -179,15 +183,23 @@ public:
     };
 
 
-    virtual void insertBuffer(NodeBaseG& leaf, int32_t at, int32_t size)
+    virtual OpStatus insertBuffer(NodeBaseG& leaf, int32_t at, int32_t size)
     {
-        CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, input_buffer_, start_, size);
+        InsertBufferFn fn;
+        CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, fn, at, input_buffer_, start_, size);
+
+        if (isFail(fn.status_)) {
+            return OpStatus::FAIL;
+        }
+
         start_ += size;
 
         if (leaf->parent_id().isSet())
         {
             ctr().update_path(leaf);
         }
+
+        return OpStatus::OK;
     }
 
     int32_t buffer_size() const
@@ -299,7 +311,7 @@ protected:
 
         auto new_buffer = create_input_buffer(new_capacity);
 
-        input_buffer_->copyTo(new_buffer);
+        OOM_THROW_IF_FAILED(input_buffer_->copyTo(new_buffer), MMA1_SRC);
 
         delete_buffer(input_buffer_);
 
@@ -472,16 +484,18 @@ protected:
 
     bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
     {
-        try {
-            CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, typename Base::InsertBufferFn(), at, this->input_buffer_, this->start_, size);
-            mgr.checkpoint(leaf);
-            return true;
-        }
-        catch (PackedOOMException& ex)
+        typename Base::InsertBufferFn fn;
+
+        CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, fn, at, this->input_buffer_, this->start_, size);
+
+        if (isFail(fn.status_))
         {
             mgr.restoreNodeState();
             return false;
         }
+
+        mgr.checkpoint(leaf);
+        return true;
     }
 
     float getFreeSpacePart(const NodeBaseG& node)

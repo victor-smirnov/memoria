@@ -658,16 +658,21 @@ public:
     void clearUnused() {}
 
     struct ReindexFn {
+
+        OpStatus status_{OpStatus::OK};
+
         template <typename Tree>
         void stream(Tree* tree)
         {
-            OOM_THROW_IF_FAILED(tree->reindex(), MMA1_SRC);
+            status_ <<= tree->reindex();
         }
     };
 
-    void reindex()
+    OpStatus reindex()
     {
-        Dispatcher::dispatchNotEmpty(allocator(), ReindexFn());
+        ReindexFn fn;
+        Dispatcher::dispatchNotEmpty(allocator(), fn);
+        return fn.status_;
     }
 
     struct CheckFn {
@@ -947,46 +952,56 @@ public:
     }
 
 
-
     struct RemoveSpaceFn {
+        OpStatus status_{OpStatus::OK};
+
         template <typename Tree>
         void stream(Tree* tree, int32_t room_start, int32_t room_end)
         {
-            OOM_THROW_IF_FAILED(tree->removeSpace(room_start, room_end), MMA1_SRC);
+            if (isOk(status_)) {
+                status_ <<= tree->removeSpace(room_start, room_end);
+            }
         }
     };
 
-    void removeSpace(const Position& from_pos, const Position& end_pos)
+    OpStatus removeSpace(const Position& from_pos, const Position& end_pos)
     {
-        this->removeSpace(from_pos.get(), end_pos.get());
+        return this->removeSpace(from_pos.get(), end_pos.get());
     }
 
-    void removeSpaceAcc(int32_t room_start, int32_t room_end)
+    OpStatus removeSpaceAcc(int32_t room_start, int32_t room_end)
     {
-        removeSpace(room_start, room_end);
+        return removeSpace(room_start, room_end);
     }
 
-    void removeSpace(int32_t room_start, int32_t room_end)
+    OpStatus removeSpace(int32_t room_start, int32_t room_end)
     {
         int32_t old_size = this->size();
 
-        Dispatcher::dispatchNotEmpty(allocator(), RemoveSpaceFn(), room_start, room_end);
+        RemoveSpaceFn remove_fn;
+        Dispatcher::dispatchNotEmpty(allocator(), remove_fn, room_start, room_end);
+
+        if (isFail(remove_fn.status_)) {
+            return OpStatus::FAIL;
+        }
 
         Value* values = this->values();
 
         CopyBuffer(values + room_end, values + room_start, old_size - room_end);
 
-        this->reindex();
+        if (isFail(this->reindex())) {
+            return OpStatus::FAIL;
+        }
 
         MEMORIA_V1_ASSERT(old_size, >=, room_end - room_start);
 
         int32_t requested_block_size = (old_size - (room_end - room_start)) * sizeof(Value);
-        OOM_THROW_IF_FAILED(toOpStatus(allocator()->resizeBlock(values, requested_block_size)), MMA1_SRC);
+        return toOpStatus(allocator()->resizeBlock(values, requested_block_size));
     }
 
-    void removeSpace(int32_t stream, int32_t room_start, int32_t room_end)
+    OpStatus removeSpace(int32_t stream, int32_t room_start, int32_t room_end)
     {
-        removeSpace(room_start, room_end);
+        return removeSpace(room_start, room_end);
     }
 
 
@@ -1111,39 +1126,54 @@ public:
 
 
     struct SplitToFn {
+        OpStatus status_{OpStatus::OK};
+
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(Tree* tree, MyType* other, int32_t idx)
         {
-            int32_t size = tree->size();
-            if (size > 0)
+            if (isOk(status_))
             {
-                Tree* other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
-                OOM_THROW_IF_FAILED(tree->splitTo(other_tree, idx), MMA1_SRC);
+                int32_t size = tree->size();
+                if (size > 0)
+                {
+                    Tree* other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
+                    if (isFail(other_tree)) {
+                        status_ <<= OpStatus::FAIL;
+                        return;
+                    }
+
+                    status_ <<= tree->splitTo(other_tree, idx);
+                }
             }
         }
     };
 
 
-    BranchNodeEntry splitTo(MyType* other, int32_t split_idx)
+    OpStatus splitTo(MyType* other, int32_t split_idx)
     {
         int32_t size        = this->size();
         int32_t remainder   = size - split_idx;
 
         MEMORIA_V1_ASSERT(split_idx, <=, size);
 
-        BranchNodeEntry result;
-//        this->sums(split_idx, size, result);
 
-        Dispatcher::dispatchNotEmpty(allocator(), SplitToFn(), other, split_idx);
+        SplitToFn fn;
+        Dispatcher::dispatchNotEmpty(allocator(), fn, other, split_idx);
 
-        OOM_THROW_IF_FAILED(other->allocator()->template allocateArrayBySize<Value>(ValuesBlockIdx, remainder), MMA1_SRC);
+        if (isFail(fn.status_)) {
+            return OpStatus::FAIL;
+        }
+
+        if (isFail(other->allocator()->template allocateArrayBySize<Value>(ValuesBlockIdx, remainder))) {
+            return OpStatus::FAIL;
+        }
 
         Value* other_values = other->values();
         Value* my_values    = this->values();
 
         CopyBuffer(my_values + split_idx, other_values, remainder);
 
-        return result;
+        return OpStatus::OK;
     }
 
     void reindexAll(int32_t from, int32_t to)
@@ -1156,13 +1186,6 @@ public:
         template <int32_t Idx, typename Tree>
         void stream(const Tree* tree, int32_t idx, BranchNodeEntry* acc)
         {
-//            const int32_t Blocks = Tree::Blocks;
-
-//            for (int32_t c = 0; c < Blocks; c++)
-//            {
-//                std::get<Idx>(*acc)[c] = tree->value(c, idx);
-//            }
-
             std::get<Idx>(*acc) = tree->get_values(idx);
         }
     };
