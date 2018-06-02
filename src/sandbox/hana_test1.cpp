@@ -25,8 +25,16 @@
 using namespace std;
 namespace hana = boost::hana;
 
-using namespace memoria;
+using namespace memoria::v1;
+using namespace hana::literals;
 
+template <typename T> struct PartialStruct;
+
+template <>
+struct PartialStruct<int> {};
+
+//template <>
+//struct PartialStruct<long> {};
 
 int main() {
     constexpr auto ints = hana::tuple_c<int, 1, 2, 3, 2, 2, 4, 2>;
@@ -49,8 +57,16 @@ int main() {
         decltype(hana::make_tuple(1, 2, 3, 4, 5)),
         decltype(i)
     >
-    ::print(std::cout)<<std::endl;
+    ::print(std::cout) << endl;
 
-    cout<<hana::value<decltype(i)>()<<endl;
-    cout<<hana::value(i)<<endl;
+    cout<<hana::value<decltype(i)>() << endl;
+    cout<<hana::value(i) << endl;
+
+    auto res = hana::if_(
+        1_c,
+        []{return hana::type_c<PartialStruct<int>>;},
+        []{return hana::type_c<PartialStruct<long>>;}
+    )();
+
+    TypesPrinter<decltype(res)::type>::print(std::cout) << endl;
 }

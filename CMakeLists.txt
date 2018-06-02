@@ -23,6 +23,8 @@ project (Memoria)
 
 set(VERSION "0.1.0")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Memoria.cmake)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -85,6 +87,9 @@ if (BUILD_POSIX)
     add_definitions(-Wno-missing-braces)
     add_definitions(-Wno-variables)
     add_definitions(-Werror=unused-result)
+    #add_definitions(-fpermissive)
+    add_definitions(-faligned-new)
+    add_definitions(-Wno-class-memaccess)
     
     add_definitions(-pthread)
     

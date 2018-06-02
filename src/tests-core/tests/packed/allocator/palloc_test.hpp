@@ -21,6 +21,7 @@
 
 #include <memoria/v1/core/memory/malloc.hpp>
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
 
 #include <memory>
 

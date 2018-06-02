@@ -35,7 +35,7 @@ public:
     using typename Base::Iterator;
 
 
-protected:
+public:
     using typename Base::NodeBaseG;
     using typename Base::NodeDispatcher;
     using typename Base::LeafDispatcher;

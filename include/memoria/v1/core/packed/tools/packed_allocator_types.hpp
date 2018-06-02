@@ -90,22 +90,8 @@ struct PackedSizeTypeList<> {
 };
 
 class PackedOOMException: public MemoriaThrowableLW {
-
-//    int32_t total_;
-//    int32_t requested_;
-//    int32_t free_;
-
     const char* msg_;
-
 public:
-
-//    PackedOOMException(const char* source, int32_t total, int32_t requested, int32_t free):
-//                MemoriaThrowableLW(source ),
-//                total_(total),
-//                requested_(requested),
-//                free_(free),
-//                msg_(nullptr)
-//    {}
 
     PackedOOMException(const char* source, const char* msg):
         MemoriaThrowableLW(source ),
@@ -120,7 +106,6 @@ public:
             out << "PackedOOMException at " << source_ << ": " << msg_;
         }
         else {
-            //out << "PackedOOMException at " << source_ << ": Total=" << total_ << " Requested=" << requested_ << " Free=" << free_;
             out << "PackedOOMException at " << source_;
         }
     }
@@ -272,10 +257,6 @@ public:
     }
 };
 
-template <int32_t Alignment = PackedAllocationAlignment>
-struct PackedAllocatorTypes {
-    static const int32_t AllocationAlignment = Alignment;
-};
 
 
 struct AllocationBlock {
@@ -326,10 +307,17 @@ struct AllocationBlockConst {
     }
 };
 
-struct EmptyAllocator {
-    int32_t enlargeBlock(void*, int32_t size) {return 0;}
 
-    static int32_t roundUpBytesToAlignmentBlocks(int size) {return size;}
-};
+
+
+
+
+
+// ====================== PackedStruct Traits ====================
+
+
+template <typename PkdStruct> struct PackedStructTraits;
+
+
 
 }}

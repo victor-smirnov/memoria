@@ -33,7 +33,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::LeafFixedName)
 public:
     using Types = typename Base::Types;
 
-protected:
+public:
     typedef typename Base::Allocator                                            Allocator;
 
     typedef typename Base::ID                                                   ID;

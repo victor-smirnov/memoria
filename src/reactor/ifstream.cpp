@@ -17,6 +17,7 @@
 #include <memoria/v1/reactor/file.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
 #include <memoria/v1/core/tools/ptr_cast.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
 
 namespace memoria {
 namespace v1 {

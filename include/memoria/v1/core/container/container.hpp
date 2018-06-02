@@ -143,7 +143,7 @@ public:
     template <typename> friend class IterStart;
 
     template <typename> friend class CtrStart;
-    template <typename, typename, typename> friend class CtrPart;
+    //template <typename, typename, typename> friend class CtrPart;
     template <typename> friend class Ctr;
 
 protected:

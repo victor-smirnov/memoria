@@ -14,8 +14,8 @@
 // limitations under the License.
 
 #include <memoria/v1/core/regexp/icu_regexp.hpp>
-
 #include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
 
 #include <unicode/utext.h>
 #include <unicode/utypes.h>

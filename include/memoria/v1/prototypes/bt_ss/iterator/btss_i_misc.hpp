@@ -239,7 +239,7 @@ public:
 
 
 
-protected:
+public:
 
     SplitResult split(int32_t stream, int32_t target_idx)
     {

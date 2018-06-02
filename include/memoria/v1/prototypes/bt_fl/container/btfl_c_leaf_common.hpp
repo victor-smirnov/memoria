@@ -34,7 +34,7 @@ public:
     using Types             = typename Base::Types;
     using Iterator          = typename Base::Iterator;
 
-protected:
+public:
     using NodeBaseG         = typename Types::NodeBaseG;
     using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
     using LeafDispatcher    = typename Types::Pages::LeafDispatcher;

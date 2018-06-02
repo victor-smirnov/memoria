@@ -50,7 +50,7 @@ public:
         return self.ctr().bulkio_insert(self, provider, initial_capacity);
     }
 
-protected:
+public:
 
     template <int32_t Stream>
     struct InsertSymbolFn {

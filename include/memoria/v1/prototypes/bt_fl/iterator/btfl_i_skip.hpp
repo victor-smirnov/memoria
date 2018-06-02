@@ -259,7 +259,7 @@ public:
         return fn.pos_;
     }
 
-protected:
+public:
 
     void toStructureStream()
     {

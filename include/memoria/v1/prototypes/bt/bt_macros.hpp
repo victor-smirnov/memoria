@@ -62,7 +62,7 @@ class BTreeIteratorBaseClassName: public IteratorBase<TypesType>                
 {                                                                                       \
     typedef IteratorBase<TypesType>                                             Base;   \
     typedef BTreeIteratorBaseClassName<TypesType>                               ThisType;\
-    template <typename, typename, typename> friend class CtrPart;                       \
+    template <typename, typename, typename> friend class CtrPart1;                       \
     template <typename, typename, typename> friend class IterPart;                      \
 public:                                                                                 \
     typedef Iter<TypesType>                                                     MyType;

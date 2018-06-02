@@ -28,7 +28,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
+//using namespace v1::bt;
 
 
 
@@ -401,7 +401,7 @@ protected:
 
     struct GetBranchNodeChildernCount {
         template <typename T, typename... Args>
-        int32_t treeNode(const BranchNode<T>* node, Args&&... args) const
+        int32_t treeNode(const bt::BranchNode<T>* node, Args&&... args) const
         {
             return node->size();
         }
@@ -410,7 +410,7 @@ protected:
     template <int32_t Stream>
     struct GetLeafNodeStreamSize {
         template <typename T, typename... Args>
-        int32_t treeNode(const LeafNode<T>* node, Args&&... args) const
+        int32_t treeNode(const bt::LeafNode<T>* node, Args&&... args) const
         {
             return node->template streamSize<Stream>();
         }
@@ -418,7 +418,7 @@ protected:
 
     struct GetLeafNodeStreamSizes {
         template <typename T, typename... Args>
-        Position treeNode(const LeafNode<T>* node, Args&&... args) const
+        Position treeNode(const bt::LeafNode<T>* node, Args&&... args) const
         {
             return node->sizes();
         }
@@ -426,9 +426,9 @@ protected:
 
     struct GetLeafNodeStreamSizesStatic {
         template <typename T, typename... Args>
-        Position treeNode(const LeafNode<T>* node, Args&&... args) const
+        Position treeNode(const bt::LeafNode<T>* node, Args&&... args) const
         {
-            return LeafNode<T>::sizes(std::forward<Args>(args)...);
+            return bt::LeafNode<T>::sizes(std::forward<Args>(args)...);
         }
     };
 

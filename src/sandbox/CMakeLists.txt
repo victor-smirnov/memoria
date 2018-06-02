@@ -16,7 +16,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX set_insert value_list)
+    set(MEMORIA_SANDBOX hana_test1)
 endif()
 
 

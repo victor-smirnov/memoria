@@ -58,7 +58,7 @@ protected:
     using ILeafProvider = typename Base::ILeafProvider;
 
 
-
+public:
     class InsertBatchResult {
         int32_t idx_;
         CtrSizeT subtree_size_;

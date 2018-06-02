@@ -60,7 +60,7 @@ protected:
 public:
     void update_path(const NodeBaseG& node);
 
-protected:
+public:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(InsertFn, insert, OpStatus);
     OpStatus insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id);
 

@@ -20,6 +20,8 @@
 #include <memoria/v1/metadata/page.hpp>
 #include <memoria/v1/core/tools/dump.hpp>
 
+#include <memoria/v1/reactor/reactor.hpp>
+
 #include <sstream>
 #include <string>
 #include <ostream>

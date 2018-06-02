@@ -22,6 +22,8 @@
 #include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
 #include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
 
+#include <memoria/v1/reactor/reactor.hpp>
+
 #include <memory>
 
 namespace memoria {

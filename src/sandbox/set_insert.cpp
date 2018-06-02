@@ -74,7 +74,7 @@ int main()
             if (ticker.is_threshold())
             {
             	int64_t tt = getTimeInMillis();
-            	cout << "Inserted: " << (ticker.ticks() + 1)<< " in " << (tt - tl) << endl;
+                std::cout << "Inserted: " << (ticker.ticks() + 1)<< " in " << (tt - tl) << std::endl;
             	tl = tt;
 
             	ticker.next();
@@ -85,7 +85,7 @@ int main()
 
         int64_t t1 = getTimeInMillis();
 
-        cout << "Inserted " << size << " in " << (t1 - t0) << endl;
+        std::cout << "Inserted " << size << " in " << (t1 - t0) << std::endl;
         
         //size_t cnt = 0;
         for (auto ii = map.begin(); !ii.is_end(); ii.next())
@@ -120,11 +120,11 @@ int main()
             return entries;
         });
         
-        alloc2.dump("alloc2.dump");
+        //alloc2.dump("alloc2.dump");
     }
     catch (std::exception& ex)
     {
-        cout << ex.what() << endl;
+        std::cout << ex.what() << std::endl;
     }
     catch (MemoriaThrowable& ex)
     {

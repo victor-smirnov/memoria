@@ -73,7 +73,7 @@ public:
         return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
     }
 
-protected:
+public:
 
 
 

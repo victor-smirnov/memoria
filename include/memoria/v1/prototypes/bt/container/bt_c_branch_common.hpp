@@ -54,7 +54,7 @@ public:
 
     typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>             SplitFn;
 
-protected:
+public:
     static const int32_t Streams = Types::Streams;
 
     void newRootP(NodeBaseG& root);

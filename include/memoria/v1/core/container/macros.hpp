@@ -62,12 +62,12 @@ public:                                                                         
 template <typename Base1, typename TypesType>                                   \
 class CtrPart<PartName, Base1, TypesType>: public Base1 {                       \
     typedef Base1 Base;                                                         \
-    typedef CtrPart<PartName, Base1, TypesType> ThisType;                       \
+    using ThisType = CtrPart<PartName, Base1, TypesType>;                       \
     typedef Ctr<TypesType> MyType;                                              \
-    template <typename, typename, typename> friend class CtrPart;               \
+    template <typename, typename, typename> friend class CtrPart1;               \
     template <typename, typename, typename> friend class IterPart;              \
     template <typename> class BTreeCtrBase;										\
-protected:
+public:
 
 
 #define MEMORIA_V1_CONTAINER_PART_BEGIN(PartName)                               \
@@ -79,7 +79,7 @@ public:                                                                         
         Base(data, allocator)                                                   \
     {}                                                                          \
     virtual ~CtrPart() noexcept {}                                              \
-protected:
+public:
 
 
 #define MEMORIA_V1_CONTAINER_PART_END                                           \
@@ -114,10 +114,10 @@ class IterPart<PartName, Base1, Types1>: public Base1 {                         
     typedef Iter<Types1> MyType;                                                \
     using Types = Types1;														\
                                                                                 \
-    template <typename, typename, typename> friend class CtrPart;               \
+    template <typename, typename, typename> friend class CtrPart1;               \
     template <typename, typename, typename> friend class IterPart;              \
     template <typename> friend class BTIteratorBase;                            \
-protected:
+public:
 
 
 
@@ -128,7 +128,7 @@ public:                                                                         
     IterPart(ThisPartType&& other): Base(std::move(other)) {}                   \
     IterPart(const ThisPartType& other): Base(other) {}                         \
     virtual ~IterPart() noexcept {}                                              \
-protected:
+public:
 
 
 

@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,20 +15,17 @@
 
 
 
-
-#include <memoria/v1/metadata/tools.hpp>
-#include <memoria/v1/core/tools/hash.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/v1/containers/multimap/multimap_impl.hpp>
+#include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
 
 namespace memoria {
 namespace v1 {
 
+using Profile = DefaultProfile<>;
 
-int64_t DebugCounter = 0;
-int64_t DebugCounter1 = 0;
-int64_t DebugCounter2 = -1;
+using CtrName = Multimap<UUID, String>;
+MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
 
-LogHandler* Logger::default_handler_ = new DefaultLogHandlerImpl();
-Logger logger("Memoria", Logger::INFO, NULL);
 
 }}
+

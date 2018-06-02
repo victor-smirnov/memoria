@@ -142,7 +142,7 @@ public:
         return more_data ? entries : -entries;
     }
 
-protected:
+public:
 
     template <template <typename> class WalkerPoolT, typename IOBuffer>
     auto create_walker_(CtrSizeT limit)

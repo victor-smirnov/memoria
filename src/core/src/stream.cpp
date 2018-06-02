@@ -19,6 +19,7 @@
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/strings/string.hpp>
 #include <memoria/v1/core/strings/format.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
 
 #include <boost/filesystem.hpp>
 

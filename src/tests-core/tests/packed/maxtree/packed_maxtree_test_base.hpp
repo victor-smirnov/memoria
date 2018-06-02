@@ -31,6 +31,8 @@
 
 #include <memoria/v1/core/bignum/bigint.hpp>
 
+#include <memoria/v1/reactor/reactor.hpp>
+
 namespace memoria {
 namespace v1 {
 namespace tests {

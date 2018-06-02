@@ -14,6 +14,7 @@
 // limitations under the License.
 
 #include <memoria/v1/core/container/logs.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
 
 namespace memoria {
 namespace v1 {

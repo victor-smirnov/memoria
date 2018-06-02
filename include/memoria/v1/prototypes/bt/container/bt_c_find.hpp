@@ -140,7 +140,7 @@ protected:
 
             if (node->is_leaf())
             {
-                WalkCmd cmd;
+                WalkCmd cmd = WalkCmd::NONE;
 
                 if (leaf_cnt == 1)
                 {

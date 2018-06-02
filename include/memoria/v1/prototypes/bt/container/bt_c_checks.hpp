@@ -65,7 +65,7 @@ public:
         }
     }
 
-protected:
+public:
     bool checkTree() const;
 
     MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);

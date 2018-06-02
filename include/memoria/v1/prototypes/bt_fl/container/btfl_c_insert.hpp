@@ -32,7 +32,7 @@ public:
     using Types             = typename Base::Types;
     using Iterator          = typename Base::Iterator;
 
-protected:
+public:
 
     template <typename IOBuffer>
     using CtrInputProviderPool = ObjectPool<btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer>>;

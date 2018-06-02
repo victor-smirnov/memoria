@@ -49,7 +49,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorMiscName)
 
 
 
-protected:
+public:
 
 
 

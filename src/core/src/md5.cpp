@@ -18,6 +18,7 @@
 
 #include <memoria/v1/metadata/tools.hpp>
 #include <memoria/v1/core/tools/md5.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
 
 #include <iostream>
 

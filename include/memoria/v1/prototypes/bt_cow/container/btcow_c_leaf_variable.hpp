@@ -58,6 +58,7 @@ protected:
 
     static const int32_t Streams                                                    = Types::Streams;
 
+public:
     template <int32_t Stream>
     struct InsertStreamEntryFn
     {

@@ -128,6 +128,7 @@ private:
         {
             using BSizesT = typename Stream::SizesT;
             Stream* buffer = alloc->template allocateSpace<Stream>(AllocatorIdx, Stream::block_size(BSizesT(capacity)));
+            OOM_THROW_IF_FAILED(buffer, MMA1_SRC);
 
             OOM_THROW_IF_FAILED(buffer->init(BSizesT(capacity)), MMA1_SRC);
         }
@@ -136,6 +137,9 @@ private:
         void stream(Stream*, PackedAllocator* alloc, const BufferSizesT& capacities)
         {
             Stream* buffer = alloc->template allocateSpace<Stream>(AllocatorIdx, Stream::block_size(std::get<Idx>(capacities)));
+
+            OOM_THROW_IF_FAILED(buffer, MMA1_SRC);
+
             OOM_THROW_IF_FAILED(buffer->init(std::get<Idx>(capacities)), MMA1_SRC);
         }
     };

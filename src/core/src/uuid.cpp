@@ -17,6 +17,7 @@
 
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>

@@ -16,7 +16,7 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/string.hpp>
 #include <memoria/v1/core/strings/format.hpp>
-
+#include <memoria/v1/core/tools/ptr_cast.hpp>
 
 #include <unicode/utext.h>
 #include <cstring>
@@ -108,7 +108,7 @@ shallow_text_clone(UText * dest, const UText * src, UErrorCode * status)
     adjust_ptr(dest, &dest->p, src);
     adjust_ptr(dest, &dest->q, src);
     adjust_ptr(dest, &dest->r, src);
-    adjust_ptr(dest, (const void **)&dest->chunkContents, src);
+    adjust_ptr(dest, tools::ptr_cast<const void*>(&dest->chunkContents), src); //(const void **)
 
     // Not actually needed here, but let's do it anyway.
     dest->providerProperties &= ~I32_FLAG(UTEXT_PROVIDER_OWNS_TEXT);

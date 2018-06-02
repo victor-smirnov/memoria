@@ -475,11 +475,13 @@ public:
     {
         if (delta > 0)
         {
-            insertSpace(size_, delta);
+            return insertSpace(size_, delta);
         }
         else {
-            removeSpace(size_, -delta);
+            return removeSpace(size_, -delta);
         }
+
+        return OpStatus::OK;
     }
 
     // ===================================== IO ============================================ //
