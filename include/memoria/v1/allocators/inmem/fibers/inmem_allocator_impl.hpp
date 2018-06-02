@@ -124,7 +124,7 @@ private:
 public:
     InMemAllocatorImpl() {
         cpu_ = reactor::engine().cpu();
-        auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this, OperationType::CREATE);
+        auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this, OperationType::OP_CREATE);
         snapshot->commit();
     }
     
@@ -212,7 +212,7 @@ public:
 
                 if (history_node->is_committed())
                 {
-                    return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::FIND);
+                    return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND);
                 }
                 if (history_node->is_data_locked())
                 {
@@ -241,13 +241,13 @@ public:
 
                 if (history_node->is_committed())
                 {
-                    return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::FIND);
+                    return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND);
                 }
                 else if (history_node->is_data_locked())
                 {
                     if (history_node->references() == 0)
                     {
-                        return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::FIND);
+                        return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND);
                     }
                     else {
                         MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is locked and open", history_node->txn_id()));
@@ -266,7 +266,7 @@ public:
     SnapshotPtr master()
     {
         return reactor::engine().run_at(cpu_, [&]{
-            return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this(), OperationType::FIND);
+            return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this(), OperationType::OP_FIND);
         });
     }
 
@@ -493,7 +493,7 @@ protected:
     {
         if (node->is_committed())
         {
-            auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::FIND);
+            auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::OP_FIND);
             fn(node, txn.get());
         }
 
@@ -517,7 +517,7 @@ protected:
     {
     	if (node->is_committed())
         {
-            auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::FIND);
+            auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::OP_FIND);
             txn->walkContainers(walker, get_labels_for(node));
         }
 

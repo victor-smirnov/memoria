@@ -155,7 +155,7 @@ link_directories(${ICU_LIBRARY_DIRS})
 add_global_libs(${ICU_LIBRARIES})
 
 
-find_package(Qt5 COMPONENTS Widgets)
+find_package(Qt5 COMPONENTS Widgets QUIET)
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 

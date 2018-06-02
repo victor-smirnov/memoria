@@ -50,7 +50,7 @@ namespace memoria {
 namespace v1 {
 namespace persistent_inmem {
 
-enum class OperationType {FIND, CREATE, UPDATE, DELETE};
+enum class OperationType {OP_FIND, OP_CREATE, OP_UPDATE, OP_DELETE};
 
 
 template <typename Profile, typename PersistentAllocator>
@@ -93,7 +93,7 @@ public:
         cpu_(history_tree->cpu_)
     {
         if (history_tree->event_listener_.get()) {
-            if (op_type == OperationType::CREATE) {
+            if (op_type == OperationType::OP_CREATE) {
                 history_tree->event_listener_->shapshot_created(history_node->txn_id());
             }
         }
@@ -104,7 +104,7 @@ public:
         cpu_(history_tree->cpu_)
     {
         if (history_tree->event_listener_.get()) {
-            if (op_type == OperationType::CREATE) {
+            if (op_type == OperationType::OP_CREATE) {
                 history_tree->event_listener_->shapshot_created(history_node->txn_id());
             }
         }
@@ -267,7 +267,7 @@ public:
 
                 history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
-                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::CREATE);
+                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_CREATE);
             }
             else if (history_node_->is_data_locked())
             {
@@ -294,7 +294,7 @@ public:
             if (history_node_->parent())
             {
                 HistoryNode* history_node = history_node_->parent();
-                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::FIND);
+                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_FIND);
             }
             else
             {

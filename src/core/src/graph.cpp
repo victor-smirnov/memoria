@@ -35,14 +35,14 @@ Collection<Vertex> IVertex::vertices(Direction direction)
 {
     std::vector<Vertex> vxx;
 
-    if (direction == Direction::OUT)
+    if (direction == Direction::EDGE_OUT)
     {
         for (Edge& ee: this->edges(direction))
         {
             vxx.push_back(ee.out_vertex());
         }
     }
-    else if (direction == Direction::IN)
+    else if (direction == Direction::EDGE_IN)
     {
         for (Edge& ee: this->edges(direction))
         {
@@ -64,14 +64,14 @@ Collection<Vertex> IVertex::vertices(Direction direction, const LabelList& edge_
 {
     std::vector<Vertex> vxx;
 
-    if (direction == Direction::OUT)
+    if (direction == Direction::EDGE_OUT)
     {
         for (Edge& ee: this->edges(direction, edge_labels))
         {
             vxx.push_back(ee.out_vertex());
         }
     }
-    else if (direction == Direction::IN)
+    else if (direction == Direction::EDGE_IN)
     {
         for (Edge& ee: this->edges(direction, edge_labels))
         {
