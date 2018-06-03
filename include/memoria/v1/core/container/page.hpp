@@ -177,7 +177,7 @@ public:
         return deleted_;
     }
 
-    const int32_t deleted() const {
+    const int32_t& deleted() const {
         return deleted_;
     }
 
@@ -299,7 +299,7 @@ template <typename PageIdType, int32_t FlagsCount>
 struct TypeHash<AbstractPage<PageIdType, FlagsCount>>: HasValue<
 		uint64_t,
 		HashHelper<
-            AbstractPage<AbstractPage<PageIdType, FlagsCount>>::VERSION,
+            AbstractPage<PageIdType, FlagsCount>::VERSION,
             TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>,
             TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::ID>,
             TypeHashV<int32_t>,

@@ -27,7 +27,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Memoria.cmake)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 if (NOT CMAKE_BUILD_TYPE)
      set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
@@ -79,6 +79,7 @@ if (BUILD_POSIX)
     add_definitions(-Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     add_definitions(-Wno-old-style-cast)
     add_definitions(-DBOOST_STACKTRACE_USE_BACKTRACE)
+    add_definitions(-DBOOST_LIBSTDCXX_VERSION=80100)
 
     add_definitions(-fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
     add_definitions(-Wno-comment -Wno-unknown-warning-option -Wunused-variable)
