@@ -1694,7 +1694,7 @@ protected:
 
 
 
-    [[nodiscard]] OpStatus remove_space(int32_t start, int32_t length)
+    OpStatus remove_space(int32_t start, int32_t length)
     {
         auto meta = this->metadata();
 

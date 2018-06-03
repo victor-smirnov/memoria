@@ -542,7 +542,7 @@ enum class MemoryAccess {
 template <typename T> struct TypeTag {};
 
 
-enum class [[nodiscard]] OpStatus: int32_t {
+enum class MMA1_NODISCARD OpStatus: int32_t {
     OK = 0, FAIL = 1
 };
 
@@ -552,7 +552,7 @@ static inline OpStatus& operator<<=(OpStatus& s1, OpStatus s2) {
 }
 
 template <typename T>
-class [[nodiscard]] OpStatusT {
+class MMA1_NODISCARD OpStatusT {
     T value_;
     OpStatus status_;
 public:

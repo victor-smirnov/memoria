@@ -574,7 +574,7 @@ protected:
     }
 
 
-    [[nodiscard]] bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size)
+    MMA1_NODISCARD bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size)
     {
         InsertBuffersFn insert_fn;
 

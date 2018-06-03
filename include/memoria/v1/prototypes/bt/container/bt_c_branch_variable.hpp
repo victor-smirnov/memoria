@@ -70,7 +70,7 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(UpdateNodeFn, updateUp, OpStatus);
 
 
-    [[nodiscard]] bool updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry);
+    MMA1_NODISCARD bool updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry);
 
     void updateBranchNodes(NodeBaseG& node, int32_t& idx, const BranchNodeEntry& entry);
 

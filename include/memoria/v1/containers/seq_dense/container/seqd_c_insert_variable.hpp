@@ -76,7 +76,7 @@ public:
 
 
     template <typename LeafPosition, typename Buffer>
-    [[nodiscard]] bool doInsertBufferIntoLeaf(NodeBaseG& leaf, PageUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+    MMA1_NODISCARD bool doInsertBufferIntoLeaf(NodeBaseG& leaf, PageUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
     {
         InsertBufferIntoLeafFn fn;
         LeafDispatcher::dispatch(leaf, fn, pos, start, size - start, buffer);

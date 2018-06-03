@@ -91,7 +91,7 @@ public:
 
 
     template <int32_t Stream, typename Entry>
-    [[nodiscard]] std::tuple<bool> try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
+    MMA1_NODISCARD std::tuple<bool> try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -148,7 +148,7 @@ public:
 
 
     template <int32_t Stream>
-    [[nodiscard]] std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, int32_t idx)
+    MMA1_NODISCARD std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, int32_t idx)
     {
         auto& self = this->self();
 
@@ -213,7 +213,7 @@ public:
 
 
     template <int32_t Stream, typename SubstreamsList, typename Entry>
-    [[nodiscard]] std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
+    MMA1_NODISCARD std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -252,7 +252,7 @@ public:
     // NodeBaseG createNextLeaf(NodeBaseG& leaf);
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(TryMergeNodesFn, mergeWith, OpStatus);
-    [[nodiscard]] bool tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
+    MMA1_NODISCARD bool tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
     bool mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
     bool mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
 

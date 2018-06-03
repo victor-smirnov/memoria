@@ -176,14 +176,14 @@ public:
         return diff;
     }
 
-    [[nodiscard]] int32_t resizeBlock(const void* element, int32_t new_size)
+    MMA1_NODISCARD int32_t resizeBlock(const void* element, int32_t new_size)
     {
         int32_t idx = findElement(element);
 
         return resizeBlock(idx, new_size);
     }
 
-    [[nodiscard]] int32_t resizeBlock(int32_t idx, int32_t new_size)
+    MMA1_NODISCARD int32_t resizeBlock(int32_t idx, int32_t new_size)
     {
         MEMORIA_V1_ASSERT(new_size, >=, 0);
 
@@ -308,7 +308,7 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] T* allocate(int32_t idx, int32_t block_size)
+    MMA1_NODISCARD T* allocate(int32_t idx, int32_t block_size)
     {
         static_assert(std::is_base_of<PackedAllocatable, T>::value,
                 "Only derived classes of PackedAllocatable "
@@ -326,7 +326,7 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] T* allocateSpace(int32_t idx, int32_t block_size)
+    MMA1_NODISCARD T* allocateSpace(int32_t idx, int32_t block_size)
     {
         static_assert(std::is_base_of<PackedAllocatable, T>::value,
                 "Only derived classes of PackedAllocatable "
@@ -338,7 +338,7 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] T* allocateEmpty(int32_t idx)
+    MMA1_NODISCARD T* allocateEmpty(int32_t idx)
     {
         static_assert(std::is_base_of<PackedAllocatable, T>::value,
                 "Only derived classes of PackedAllocatable "
@@ -362,7 +362,7 @@ public:
     }
 
 
-    [[nodiscard]] PackedAllocator* allocateAllocator(int32_t idx, int32_t streams)
+    MMA1_NODISCARD PackedAllocator* allocateAllocator(int32_t idx, int32_t streams)
     {
         int32_t block_size = PackedAllocator::empty_size(streams);
 
@@ -383,7 +383,7 @@ public:
 
 
     template <typename T>
-    [[nodiscard]] T* allocate(int32_t idx)
+    MMA1_NODISCARD T* allocate(int32_t idx)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -394,7 +394,7 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] T* allocateArrayByLength(int32_t idx, int32_t length)
+    MMA1_NODISCARD T* allocateArrayByLength(int32_t idx, int32_t length)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -405,7 +405,7 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] T* allocateArrayBySize(int32_t idx, int32_t size)
+    MMA1_NODISCARD T* allocateArrayBySize(int32_t idx, int32_t size)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -416,7 +416,7 @@ public:
     }
 
 
-    [[nodiscard]] AllocationBlock allocate(int32_t idx, int32_t size, PackedBlockType type)
+    MMA1_NODISCARD AllocationBlock allocate(int32_t idx, int32_t size, PackedBlockType type)
     {
         int32_t allocation_size = roundUpBytesToAlignmentBlocks(size);
 
@@ -542,12 +542,12 @@ public:
     }
 
 
-    [[nodiscard]] int32_t enlarge(int32_t delta)
+    MMA1_NODISCARD int32_t enlarge(int32_t delta)
     {
         return resize(roundUpBytesToAlignmentBlocks(block_size_ + delta));
     }
 
-    [[nodiscard]] int32_t shrink(int32_t delta)
+    MMA1_NODISCARD int32_t shrink(int32_t delta)
     {
         return resize(roundUpBytesToAlignmentBlocks(block_size_ - delta));
     }
@@ -557,7 +557,7 @@ public:
         block_size_ = new_size;
     }
 
-    [[nodiscard]] int32_t resize(int32_t new_size)
+    MMA1_NODISCARD int32_t resize(int32_t new_size)
     {
         if (allocator_offset() > 0)
         {
@@ -586,7 +586,7 @@ public:
         block_size_ += roundDownBytesToAlignmentBlocks(amount);
     }
 
-    [[nodiscard]] int32_t pack()
+    MMA1_NODISCARD int32_t pack()
     {
         int32_t free_space = this->free_space();
         return resize(block_size_ - free_space);

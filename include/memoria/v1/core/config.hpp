@@ -54,7 +54,6 @@
 #define MMA1_LIKELY(expr) (expr)
 #define MMA1_UNLIKELY(expr) (expr)
 
-
 #else
 
 #define MMA1_V1_ALWAYS_INLINE __attribute__((always_inline))
@@ -68,6 +67,13 @@
 #pragma clang diagnostic ignored "-Woverloaded-virtual"
 #pragma clang diagnostic ignored "-Wunused-private-field"
 #pragma clang diagnostic ignored "-Wunused-command-line-argument"
+#endif
+
+
+#if defined(MMA1_POSIX) || defined(MMA1_CLANG)
+#define MMA1_NODISCARD [[nodiscard]]
+#else
+#define MMA1_NODISCARD
 #endif
 
 
