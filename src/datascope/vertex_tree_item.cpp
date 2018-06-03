@@ -108,7 +108,7 @@ void VertexTreeItem::expand()
 {
     if (!expanded_)
     {
-        for (Edge& ee: vertex_.edges(Direction::OUT))
+        for (Edge& ee: vertex_.edges(Direction::EDGE_OUT))
         {
             Vertex vx = ee.in_vertex();
             children_.append(new VertexTreeItem(vx, get_vertex_schema(vx.label()), this));
