@@ -1,4 +1,5 @@
-// Copyright 2016 Victor Smirnov
+
+// Copyright 2018 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +13,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
 
-#include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
+#include <memoria/v1/core/types.hpp>
+
+#include <memoria/v1/core/integer/u64_accumulator.hpp>
+#include <memoria/v1/core/integer/big_accumulator.hpp>
+
+namespace memoria {
+namespace v1 {
 
 
-
-#include <memory>
-#include <vector>
-
-using namespace memoria::v1;
-using namespace std;
-
-int main()
-{
-    try {
-
-    }
-    catch (::memoria::v1::Exception& ex) {
-        cout << ex.message() << " at " << ex.source() << endl;
-    }
-    catch (::memoria::v1::PackedOOMException& ex) {
-        cout << "PackedOOMException at " << ex.source() << endl;
-    }
-}
+}}

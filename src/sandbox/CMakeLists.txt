@@ -16,14 +16,10 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX hana_test1)
+    set(MEMORIA_SANDBOX integer )
 endif()
 
-
-
-
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
-
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
     set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")

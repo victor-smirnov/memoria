@@ -207,12 +207,12 @@ public:
 
 
     struct FindGEWalker {
-        IndexValue sum_ = 0;
+        IndexValue sum_{};
         IndexValue target_;
 
-        IndexValue next_;
+        IndexValue next_{};
 
-        int32_t idx_;
+        int32_t idx_{};
     public:
         FindGEWalker(IndexValue target): target_(target) {}
 
@@ -241,12 +241,12 @@ public:
     };
 
     struct FindGTWalker {
-        IndexValue sum_ = 0;
+        IndexValue sum_{};
         IndexValue target_;
 
-        IndexValue next_;
+        IndexValue next_{};
 
-        int32_t idx_;
+        int32_t idx_{};
     public:
         FindGTWalker(IndexValue target): target_(target) {}
 
@@ -910,7 +910,7 @@ protected:
 
         for (int i = 0; i < level_size; i++)
         {
-            IndexValue sum = 0;
+            IndexValue sum{};
 
             int32_t start = i << ValuesPerBranchLog2;
             int32_t window_end = (i + 1) << ValuesPerBranchLog2;
@@ -935,7 +935,7 @@ protected:
 
             for (int i = 0; i < previous_level_size; i++)
             {
-                IndexValue sum = 0;
+                IndexValue sum{};
 
                 int32_t start       = (i << BranchingFactorLog2) + current_level_start;
                 int32_t window_end  = ((i + 1) << BranchingFactorLog2);

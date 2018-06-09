@@ -77,4 +77,7 @@ static inline U16String demangle(const char* name)
 #endif
 
 
+template <typename T>
+U16String Type2Str = TypeNameFactory<T>::name();
+
 }}

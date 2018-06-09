@@ -1,5 +1,5 @@
 
-// Copyright 2014 Victor Smirnov
+// Copyright 2018 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,25 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
 
-#include <typeinfo>
-#include <iostream>
-#include <math.h>
-#include <limits.h>
+#include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/core/types/types.hpp>
-#include <memoria/v1/core/tools/type_name.hpp>
-#include <memoria/v1/core/types/list/append.hpp>
-#include <memoria/v1/core/types/algo/select.hpp>
+#include <memoria/v1/core/integer/clang/integer_primitives.hpp>
 
-using namespace std;
-using namespace memoria;
 
-int main(void) {
+#include <ostream>
 
-    for (int i = 1; i <= 64; i++) {
-        cout<<uint32_t(UINT_MAX * fabs(sin(i)))<<", "<<endl;
-    }
+namespace memoria {
+namespace v1 {
 
-    return 0;
-}
+template <size_t Size> struct UnsignedAccumulator;
+
+template <typename T>
+using UnsignedAccumulatorT = UnsignedAccumulator<sizeof(T) * 8>;
+
+}}
