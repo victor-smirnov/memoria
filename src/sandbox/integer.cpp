@@ -35,7 +35,7 @@ int main()
 
     *d.backend().limbs() = 56789;
 
-    std::cout << Type2Str<mp::limb_type> << std::endl;
+    std::cout << Type2Str<mp::limb_type> << " :: " << sizeof(mp::limb_type) << std::endl;
 
 //    using FQTree = PkdFQTreeT<UAcc, 1, uint64_t>;
 
@@ -63,7 +63,7 @@ int main()
 //    std::cout << __builtin_sadd_overflow(a, b, &of) << std::endl;
 //    std::cout << of << std::endl;
 
-    std::cout << a << " :: " << b << " :: " << (a == b) << " :: " << d << std::endl;
+    //std::cout << a << " :: " << b << " :: " << (a == b) << " :: " << d << std::endl;
 
     return 0;
 }

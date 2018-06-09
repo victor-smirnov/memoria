@@ -17,7 +17,6 @@
 
 #include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/core/integer/clang/integer_primitives.hpp>
 #include <memoria/v1/core/integer/accumulator_common.hpp>
 
 #include <boost/multiprecision/integer.hpp>
