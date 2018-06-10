@@ -19,19 +19,15 @@
 
 #include <boost/config.hpp>
 
-/*
-#ifdef __clang__
+
+#if BOOST_CLANG
 #include <memoria/v1/core/integer/clang/integer_primitives.hpp>
-#elseif _MSC_VER
+#elif BOOST_MSVC
 #include <memoria/v1/core/integer/msvc/integer_primitives.hpp>
 #else
 #include <memoria/v1/core/integer/gcc/integer_primitives.hpp>
 #endif
-*/
 
-#ifdef __clang__
-#include <memoria/v1/core/integer/clang/integer_primitives.hpp>
-#endif
 
 #include <ostream>
 
