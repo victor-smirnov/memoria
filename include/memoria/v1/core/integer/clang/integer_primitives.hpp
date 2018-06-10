@@ -15,94 +15,104 @@
 
 #pragma once
 
+#include <memoria/v1/core/types.hpp>
+
+#include <iostream>
+
 namespace memoria {
 namespace v1 {
 
-static inline bool clang_sadd_overflow(int a, int b, int* res) {
-    return __builtin_sadd_overflow(a, b, res);
+namespace _ {
+
+template <typename V> struct BuiltinAddCH;
+template <typename V> struct BuiltinSubCH;
+
+template <>
+struct BuiltinAddCH<unsigned long> {
+    static unsigned long process(unsigned long x, unsigned long y, unsigned long carry_in, unsigned long& carry_out) {
+        return __builtin_addcl(x, y, carry_in, &carry_out);
+    }
+};
+
+template <>
+struct BuiltinAddCH<unsigned long long> {
+    static unsigned long long process(unsigned long long x, unsigned long long y, unsigned long long carry_in, unsigned long long& carry_out) {
+        return __builtin_addcll(x, y, carry_in, &carry_out);
+    }
+};
+
+template <>
+struct BuiltinSubCH<unsigned long> {
+    static unsigned long process(unsigned long x, unsigned long y, unsigned long carry_in, unsigned long& carry_out) {
+        return __builtin_subcl(x, y, carry_in, &carry_out);
+    }
+};
+
+template <>
+struct BuiltinSubCH<unsigned long long> {
+    static unsigned long long process(unsigned long long x, unsigned long long y, unsigned long long carry_in, unsigned long long& carry_out) {
+        return __builtin_subcll(x, y, carry_in, &carry_out);
+    }
+};
+
+static inline bool long_add_to(uint64_t* dest, const uint64_t* source, size_t length)
+{
+    uint64_t carry_in{};
+    uint64_t carry_out{};
+
+    for (size_t c = 0; c < length; c++)
+    {
+        dest[c] = BuiltinAddCH<uint64_t>::process(dest[c], source[c], carry_in, carry_out);
+        carry_in = carry_out;
+    }
+
+    return carry_out == 0;
 }
 
-static inline bool clang_sadd_overflow(long int a, long int b, long int* res) {
-    return __builtin_saddl_overflow(a, b, res);
-}
+static inline bool long_add_to(uint64_t* dest, const uint64_t* x, const uint64_t* y, size_t length)
+{
+    uint64_t carry_in{};
+    uint64_t carry_out{};
 
-static inline bool clang_sadd_overflow(long long int a, long long int b, long long int* res) {
-    return __builtin_saddll_overflow(a, b, res);
-}
+    for (size_t c = 0; c < length; c++)
+    {
+        dest[c] = BuiltinAddCH<uint64_t>::process(x[c], y[c], carry_in, carry_out);
+        carry_in = carry_out;
+    }
 
-static inline bool clang_uadd_overflow(unsigned int a, unsigned int b, unsigned int* res) {
-    return __builtin_uadd_overflow(a, b, res);
-}
-
-static inline bool clang_uadd_overflow(unsigned long int a, unsigned long int b, unsigned long int* res) {
-    return __builtin_uaddl_overflow(a, b, res);
-}
-
-static inline bool clang_uadd_overflow(unsigned long long int a, unsigned long long int b, unsigned long long int* res) {
-    return __builtin_uaddll_overflow(a, b, res);
-}
-
-
-
-static inline bool clang_ssub_overflow(int a, int b, int* res) {
-    return __builtin_ssub_overflow(a, b, res);
-}
-
-static inline bool clang_ssub_overflow(long int a, long int b, long int* res) {
-    return __builtin_ssubl_overflow(a, b, res);
-}
-
-static inline bool clang_ssub_overflow(long long int a, long long int b, long long int* res) {
-    return __builtin_ssubll_overflow(a, b, res);
-}
-
-static inline bool clang_usub_overflow(unsigned int a, unsigned int b, unsigned int* res) {
-    return __builtin_usub_overflow(a, b, res);
-}
-
-static inline bool clang_usub_overflow(unsigned long int a, unsigned long int b, unsigned long int* res) {
-    return __builtin_usubl_overflow(a, b, res);
-}
-
-static inline bool clang_usub_overflow(unsigned long long int a, unsigned long long int b, unsigned long long int* res) {
-    return __builtin_usubll_overflow(a, b, res);
-}
-
-
-
-static inline bool clang_smul_overflow(int a, int b, int* res) {
-    return __builtin_smul_overflow(a, b, res);
-}
-
-static inline bool clang_smul_overflow(long int a, long int b, long int* res) {
-    return __builtin_smull_overflow(a, b, res);
-}
-
-static inline bool clang_smul_overflow(long long int a, long long int b, long long int* res) {
-    return __builtin_smulll_overflow(a, b, res);
-}
-
-static inline bool clang_umul_overflow(unsigned int a, unsigned int b, unsigned int* res) {
-    return __builtin_umul_overflow(a, b, res);
-}
-
-static inline bool clang_umul_overflow(unsigned long int a, unsigned long int b, unsigned long int* res) {
-    return __builtin_umull_overflow(a, b, res);
-}
-
-static inline bool clang_umul_overflow(unsigned long long int a, unsigned long long int b, unsigned long long int* res) {
-    return __builtin_umulll_overflow(a, b, res);
+    return carry_out == 0;
 }
 
 
-//constexpr bool clang_check_add_overflow(int a, int b) {
-//    return __builtin_add_overflow_p(a, b, (decltype(a + b))0);
-//}
+static inline bool long_sub_from(uint64_t* dest, const uint64_t* op, size_t length)
+{
+    uint64_t carry_in{};
+    uint64_t carry_out{};
 
-//constexpr bool clang_check_add_overflow(int a, int b) {
-//    return __builtin_mul_overflow_p(a, b, (decltype(a + b))0);
-//}
+    for (size_t c = 0; c < length; c++)
+    {
+        dest[c] = BuiltinSubCH<uint64_t>::process(dest[c], op[c], carry_in, carry_out);
+        carry_in = carry_out;
+    }
+
+    return carry_out == 0;
+}
+
+static inline bool long_sub_from(uint64_t* dest, const uint64_t* x, const uint64_t* y, size_t length)
+{
+    uint64_t carry_in{};
+    uint64_t carry_out{};
+
+    for (size_t c = 0; c < length; c++)
+    {
+        dest[c] = BuiltinSubCH<uint64_t>::process(x[c], y[c], carry_in, carry_out);
+        carry_in = carry_out;
+    }
+
+    return carry_out == 0;
+}
 
 
+}
 
 }}

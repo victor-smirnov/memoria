@@ -16,8 +16,6 @@
 #include <memoria/v1/core/tools/type_name.hpp>
 #include <memoria/v1/core/integer/integer.hpp>
 
-#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-
 #include <iostream>
 #include <type_traits>
 
@@ -27,43 +25,37 @@ namespace mp = boost::multiprecision;
 
 int main()
 {
-    using UAcc = UnsignedAccumulatorT<uint64_t>;
+    using UAcc = UnsignedAccumulator<256>;
+    bmp::uint256_t tt{0};
 
-    UAcc a{1}, b{2};
+    UAcc aa{0};
+    UAcc bb{0};
+    aa -= 1;
+    bb -= 1;
 
-    mp::uint512_t d{12345};
+    aa += 2;
+    bb += 2;
 
-    *d.backend().limbs() = 56789;
+    aa += 2;
+    bb += 2;
 
-    std::cout << Type2Str<mp::limb_type> << " :: " << sizeof(mp::limb_type) << std::endl;
+    //bb.value_[1] = 0;
+    //aa.value_[1] = 1;
 
-//    using FQTree = PkdFQTreeT<UAcc, 1, uint64_t>;
+    std::cout << aa << std::endl;
+    std::cout << bb << std::endl;
 
-//    FQTree* tree{};
-
-//    std::cout << TypeNameFactory<FQTree::IndexValue>::name() << std::endl;
-
-//    (void)tree->reindex();
-
-//    tree->findGEBackward(0, 0, UAcc{});
-//    tree->findGEForward(0, 0, UAcc{});
-
-//    tree->findGTBackward(0, 0, UAcc{});
-//    tree->findGTForward(0, 0, UAcc{});
-
-//    (void)tree->remove(0,0);
-    
-    
+//    std::cout << (aa < bb)  << " :: " << (aa.to_bmp() < bb.to_bmp())  << std::endl;
+//    std::cout << (aa <= bb) << " :: " << (aa.to_bmp() <= bb.to_bmp()) << std::endl;
+//    std::cout << (aa > bb)  << " :: " << (aa.to_bmp() > bb.to_bmp())  << std::endl;
+//    std::cout << (aa >= bb) << " :: " << (aa.to_bmp() >= bb.to_bmp()) << std::endl;
+//    std::cout << (aa != bb) << " :: " << (aa.to_bmp() != bb.to_bmp()) << std::endl;
+//    std::cout << (aa == bb) << " :: " << (aa.to_bmp() == bb.to_bmp()) << std::endl;
 
 
-//    int a = 0;
-//    int b = std::numeric_limits<int>::max() - 1;
-//    int of = 0;
-
-//    std::cout << __builtin_sadd_overflow(a, b, &of) << std::endl;
-//    std::cout << of << std::endl;
-
-    //std::cout << a << " :: " << b << " :: " << (a == b) << " :: " << d << std::endl;
+    //std::cout << (aa - 1) << std::endl;
+    //std::cout << (tt - 1) << std::endl;
+    //std::cout << ((tt - 1) == (aa - 1)) << std::endl;
 
     return 0;
 }

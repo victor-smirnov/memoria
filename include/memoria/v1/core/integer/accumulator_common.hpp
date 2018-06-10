@@ -17,7 +17,7 @@
 
 #include <memoria/v1/core/types.hpp>
 
-#ifdef __CLANG__
+#ifdef __clang__
 #include <memoria/v1/core/integer/clang/integer_primitives.hpp>
 #endif
 
