@@ -351,7 +351,7 @@ private:
 
 
     template <unsigned BmpBitLength>
-    void to_smaller_limb_cppint(_::UAccBmpInt<BmpBitLength>& bmp_value)
+    void to_smaller_limb_cppint(_::UAccBmpInt<BmpBitLength>& bmp_value) const
     {
         bmp_value.backend().resize(Size * 2, Size * 2);
 
@@ -372,7 +372,7 @@ private:
 
 
     template <unsigned BmpBitLength>
-    void from_smaller_limb_cppint(const _::UAccBmpInt<BmpBitLength>& bmp_value) const
+    void from_smaller_limb_cppint(const _::UAccBmpInt<BmpBitLength>& bmp_value)
     {
         unsigned size = bmp_value.backend().size();
         const auto* limbs = bmp_value.backend().limbs();
