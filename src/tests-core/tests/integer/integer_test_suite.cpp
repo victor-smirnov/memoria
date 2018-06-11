@@ -60,7 +60,7 @@ public:
 
     void basic_tests()
     {
-        Acc256T acc0{};
+		Acc256T acc0{};
         BmpInt256T int0{};
         assert_equals(int0, acc0);
 
@@ -90,6 +90,8 @@ public:
 
     void complex_tests()
     {
+		Seed(12340);
+
         for (size_t c = 0; c < 100000; c++)
         {
             auto str = make_random_num_str(69);

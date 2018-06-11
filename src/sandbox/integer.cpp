@@ -28,41 +28,9 @@ int main()
     using UAcc = UnsignedAccumulator<256>;
     bmp::uint256_t tt{0};
 
-    UAcc aa{0};
-//    UAcc bb{0};
-    aa -= 1;
-//    bb -= 1;
+    UAcc aa{"12345678901234567890123456789012345678901234567890"};
 
-//    aa += 2;
-//   bb += 2;
-
-//    aa += 2;
-//    bb += 2;
-
-    //bb.value_[1] = 0;
-    //aa.value_[1] = 1;
-
-    std::cout << aa << std::endl;
-    std::cout << (tt - 1) << std::endl;
-
-    aa++;
-
-    std::cout << aa << std::endl;
-
-
-//    std::cout << bb << std::endl;
-
-//    std::cout << (aa < bb)  << " :: " << (aa.to_bmp() < bb.to_bmp())  << std::endl;
-//    std::cout << (aa <= bb) << " :: " << (aa.to_bmp() <= bb.to_bmp()) << std::endl;
-//    std::cout << (aa > bb)  << " :: " << (aa.to_bmp() > bb.to_bmp())  << std::endl;
-//    std::cout << (aa >= bb) << " :: " << (aa.to_bmp() >= bb.to_bmp()) << std::endl;
-//    std::cout << (aa != bb) << " :: " << (aa.to_bmp() != bb.to_bmp()) << std::endl;
-//    std::cout << (aa == bb) << " :: " << (aa.to_bmp() == bb.to_bmp()) << std::endl;
-
-
-    //std::cout << (aa - 1) << std::endl;
-    //std::cout << (tt - 1) << std::endl;
-    //std::cout << ((tt - 1) == (aa - 1)) << std::endl;
+	std::cout << aa << std::endl;
 
     return 0;
 }

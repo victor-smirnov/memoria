@@ -392,7 +392,7 @@ private:
 #endif
         }
 
-        if (size & 0xFFFFFFFE)
+        if (size & 0x00000001)
         {
 #ifdef BOOST_LITTLE_ENDIAN
             value_[size / 2] = limbs[size - 1];
