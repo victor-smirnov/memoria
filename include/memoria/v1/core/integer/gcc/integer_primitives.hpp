@@ -82,62 +82,6 @@ struct BuiltinSubCH<unsigned long long> {
     }
 };
 
-static inline bool long_add_to(uint64_t* dest, const uint64_t* source, size_t length)
-{
-    uint64_t carry_in{};
-    uint64_t carry_out{};
-
-    for (size_t c = 0; c < length; c++)
-    {
-        dest[c] = BuiltinAddCH<uint64_t>::process(dest[c], source[c], carry_in, carry_out);
-        carry_in = carry_out;
-    }
-
-    return carry_out == 0;
-}
-
-static inline bool long_add_to(uint64_t* dest, const uint64_t* x, const uint64_t* y, size_t length)
-{
-    uint64_t carry_in{};
-    uint64_t carry_out{};
-
-    for (size_t c = 0; c < length; c++)
-    {
-        dest[c] = BuiltinAddCH<uint64_t>::process(x[c], y[c], carry_in, carry_out);
-        carry_in = carry_out;
-    }
-
-    return carry_out == 0;
-}
-
-
-static inline bool long_sub_from(uint64_t* dest, const uint64_t* op, size_t length)
-{
-    uint64_t carry_in{};
-    uint64_t carry_out{};
-
-    for (size_t c = 0; c < length; c++)
-    {
-        dest[c] = BuiltinSubCH<uint64_t>::process(dest[c], op[c], carry_in, carry_out);
-        carry_in = carry_out;
-    }
-
-    return carry_out == 0;
-}
-
-static inline bool long_sub_from(uint64_t* dest, const uint64_t* x, const uint64_t* y, size_t length)
-{
-    uint64_t carry_in{};
-    uint64_t carry_out{};
-
-    for (size_t c = 0; c < length; c++)
-    {
-        dest[c] = BuiltinSubCH<uint64_t>::process(x[c], y[c], carry_in, carry_out);
-        carry_in = carry_out;
-    }
-
-    return carry_out == 0;
-}
 
 
 }
