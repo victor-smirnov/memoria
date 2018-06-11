@@ -78,7 +78,6 @@ public:
         s1 >> acc4;
         assert_equals(acc3, acc4);
 
-        //69
         std::string str_num5 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
         Acc256T acc5{};
         acc5--;
@@ -90,10 +89,9 @@ public:
 
     void complex_tests()
     {
-		Seed(12340);
-
         for (size_t c = 0; c < 100000; c++)
         {
+            //69 digits max
             auto str = make_random_num_str(69);
 
             Acc256T acc(str);

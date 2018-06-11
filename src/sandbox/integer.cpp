@@ -28,9 +28,18 @@ int main()
     using UAcc = UnsignedAccumulator<256>;
     bmp::uint256_t tt{0};
 
-    UAcc aa{"12345678901234567890123456789012345678901234567890"};
+    UAcc aa{"3030637821958132234455144011643073604769281956997818082246049392"};
 
-	std::cout << aa << std::endl;
+    UAcc aa2;
+
+    aa2 -= aa;
+
+    bmp::uint256_t bi{};
+
+    bi -= aa.to_bmp();
+
+    std::cout << aa2 << std::endl;
+    std::cout << (bi) << std::endl;
 
     return 0;
 }

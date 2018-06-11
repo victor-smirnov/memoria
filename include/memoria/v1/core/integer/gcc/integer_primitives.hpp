@@ -35,7 +35,7 @@ struct BuiltinAddCH<unsigned long> {
         unsigned long res2{};
 
         __builtin_uaddl_overflow(x, carry_in, &res1);
-        carry_out += __builtin_uaddl_overflow(res1, y, &res2);
+        carry_out = __builtin_uaddl_overflow(res1, y, &res2);
 
         return res2;
     }
@@ -49,7 +49,7 @@ struct BuiltinAddCH<unsigned long long> {
         unsigned long long res2{};
 
         __builtin_uaddll_overflow(x, carry_in, &res1);
-        carry_out += __builtin_uaddll_overflow(res1, y, &res2);
+        carry_out = __builtin_uaddll_overflow(res1, y, &res2);
 
         return res2;
     }
@@ -62,8 +62,10 @@ struct BuiltinSubCH<unsigned long> {
         unsigned long res1{};
         unsigned long res2{};
 
-        __builtin_usubl_overflow(x, carry_in, &res1);
-        carry_out += __builtin_usubl_overflow(res1, y, &res2);
+        auto carry_out1 = __builtin_usubl_overflow(x, carry_in, &res1);
+        auto carry_out2 = __builtin_usubl_overflow(res1, y, &res2);
+
+        carry_out = carry_out1 || carry_out2;
 
         return res2;
     }
@@ -75,8 +77,10 @@ struct BuiltinSubCH<unsigned long long> {
         unsigned long long res1{};
         unsigned long long res2{};
 
-        __builtin_usubll_overflow(x, carry_in, &res1);
-        carry_out += __builtin_usubll_overflow(res1, y, &res2);
+        auto carry_out1 = __builtin_usubll_overflow(x, carry_in, &res1);
+        auto carry_out2 = __builtin_usubll_overflow(res1, y, &res2);
+
+        carry_out = carry_out1 || carry_out2;
 
         return res2;
     }
