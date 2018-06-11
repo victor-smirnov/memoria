@@ -29,29 +29,56 @@ template <typename V> struct BuiltinSubCH;
 
 template <>
 struct BuiltinAddCH<unsigned long> {
-    static unsigned long process(unsigned long x, unsigned long y, unsigned long carry_in, unsigned long& carry_out) {
-        return 0;//__builtin_addcl(x, y, carry_in, &carry_out);
+    static unsigned long process(unsigned long x, unsigned long y, unsigned long carry_in, unsigned long& carry_out)
+    {
+        unsigned long res1{};
+        unsigned long res2{};
+
+        __builtin_uaddl_overflow(x, carry_in, &res1);
+        carry_out += __builtin_uaddl_overflow(res1, y, &res2);
+
+        return res2;
     }
 };
 
 template <>
 struct BuiltinAddCH<unsigned long long> {
-    static unsigned long long process(unsigned long long x, unsigned long long y, unsigned long long carry_in, unsigned long long& carry_out) {
-        return 0;//__builtin_addcll(x, y, carry_in, &carry_out);
+    static unsigned long long process(unsigned long long x, unsigned long long y, unsigned long long carry_in, unsigned long long& carry_out)
+    {
+        unsigned long long res1{};
+        unsigned long long res2{};
+
+        __builtin_uaddll_overflow(x, carry_in, &res1);
+        carry_out += __builtin_uaddll_overflow(res1, y, &res2);
+
+        return res2;
     }
 };
 
 template <>
 struct BuiltinSubCH<unsigned long> {
-    static unsigned long process(unsigned long x, unsigned long y, unsigned long carry_in, unsigned long& carry_out) {
-        return 0;//__builtin_subcl(x, y, carry_in, &carry_out);
+    static unsigned long process(unsigned long x, unsigned long y, unsigned long carry_in, unsigned long& carry_out)
+    {
+        unsigned long res1{};
+        unsigned long res2{};
+
+        __builtin_usubl_overflow(x, carry_in, &res1);
+        carry_out += __builtin_usubl_overflow(res1, y, &res2);
+
+        return res2;
     }
 };
 
 template <>
 struct BuiltinSubCH<unsigned long long> {
     static unsigned long long process(unsigned long long x, unsigned long long y, unsigned long long carry_in, unsigned long long& carry_out) {
-        return 0;//__builtin_subcll(x, y, carry_in, &carry_out);
+        unsigned long long res1{};
+        unsigned long long res2{};
+
+        __builtin_usubll_overflow(x, carry_in, &res1);
+        carry_out += __builtin_usubll_overflow(res1, y, &res2);
+
+        return res2;
     }
 };
 
