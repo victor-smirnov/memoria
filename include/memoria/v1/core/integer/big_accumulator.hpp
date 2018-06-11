@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/integer/accumulator_common.hpp>
 
 #include <boost/multiprecision/integer.hpp>
@@ -347,6 +346,8 @@ private:
         {
             limbs[c] = value_[c];
         }
+
+        bmp_value.backend().normalize();
     }
 
 
@@ -368,6 +369,8 @@ private:
             limbs[c]     = (value_[c / 2] >> 32) & 0xFFFFFFFFull;
 #endif
         }
+
+        bmp_value.backend().normalize();
     }
 
 
