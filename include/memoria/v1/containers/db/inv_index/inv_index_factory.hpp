@@ -13,21 +13,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/tools/type_name.hpp>
-#include <memoria/v1/core/integer/integer.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
+
+#pragma once
+
+#include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
+
+namespace memoria {
+namespace v1 {
+
+template <
+    typename Profile
+>
+struct BTTypes<Profile, InvertedIndex>: public BTTypes<Profile, v1::BTFreeLayout>{};
 
 
-#include <iostream>
-#include <type_traits>
+template <typename Profile, typename T>
+class CtrTF<Profile, InvertedIndex, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
+};
 
 
 
-namespace mp = boost::multiprecision;
-
-int main()
-{
-    //using UAcc = memoria::v1::UnsignedAccumulator<256>;
-
-    return 0;
-}
+}}

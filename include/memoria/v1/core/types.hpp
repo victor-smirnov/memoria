@@ -197,13 +197,8 @@ struct CowMap       {};
 template <typename Key, typename Value, PackedSizeType SizeType>
 struct Table        {};
 
-
-
-
 template <typename Key>
 struct Set          {};
-
-
 
 template <typename T>
 struct Vector       {};
@@ -216,7 +211,6 @@ using BitVector = Sequence<1, Dense>;
 
 template <typename ChildType = void>
 class DefaultProfile  {};
-
 
 enum class Granularity  {Bit, int8_t};
 enum class Indexed      {No, Yes};
@@ -239,10 +233,8 @@ template <
 >
 struct VLabel       {};
 
-
 template <typename... LabelDescriptors>
 struct LabeledTree  {};
-
 
 struct WT           {};
 struct VTree        {};
@@ -257,11 +249,19 @@ template <Granularity gr = Granularity::int8_t>
 using CCMap = Map<VLen<gr>, VLen<gr>>;
 
 
+// Database-specific containers
+struct BlobStore        {};
+struct EdgeMap          {};
+struct InvertedIndex    {};
+struct ObjectStore      {};
+struct RowStore         {};
+struct ScopedDictionary {};
+struct UpdateLog        {};
+
+struct UBytes;
 
 // Placeholder type to be used in place of Page IDs
 struct IDType {};
-
-
 /*
  * End of container type names and profiles
  */

@@ -1,5 +1,5 @@
 
-// Copyright 2018 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,21 +13,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/tools/type_name.hpp>
-#include <memoria/v1/core/integer/integer.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
 
 
-#include <iostream>
-#include <type_traits>
+#include <memoria/v1/containers/db/edge_map/edge_map_impl.hpp>
+#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
 
+namespace memoria {
+namespace v1 {
 
+using Profile = DefaultProfile<>;    
+using CtrName = EdgeMap;
 
-namespace mp = boost::multiprecision;
+MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+    
+}}
 
-int main()
-{
-    //using UAcc = memoria::v1::UnsignedAccumulator<256>;
-
-    return 0;
-}

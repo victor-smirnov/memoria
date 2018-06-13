@@ -262,6 +262,39 @@ public:
         return static_cast<double>(v);
     }
 
+    template <size_t BitLength>
+    bool put(const UnsignedAccumulator<BitLength>& value)
+    {
+        using UAccT = UnsignedAccumulator<BitLength>;
+
+        if (has_capacity(UAccT::ByteSize))
+        {
+            CopyBuffer(T2T<uint8_t*>(value.value_), array_ + pos_, UAccT::ByteSize);
+            pos_ += UAccT::ByteSize;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+
+    template <size_t BitLength>
+    UnsignedAccumulator<BitLength> getUAcc()
+    {
+        using UAcc = UnsignedAccumulator<BitLength>;
+        assertRange(UAcc::ByteSize, "getUAcc()");
+
+        const auto* v = T2T<const typename UAcc::ValueT*>(array_ + pos_);
+
+        pos_ += UAcc::ByteSize;
+
+        UAcc acc{};
+
+        CopyBuffer(v, acc.value_, UAcc::ByteSize);
+
+        return acc;
+    }
 
 };
 

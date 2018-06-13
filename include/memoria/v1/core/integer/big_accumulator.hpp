@@ -76,6 +76,8 @@ struct UnsignedAccumulator {
 
     static constexpr size_t Size = (BitLength / ValueTBitLength) + (BitLength % ValueTBitLength > 0);
 
+    static constexpr size_t ByteSize = Size * sizeof (ValueT);
+
     ValueT value_[Size];
 
     constexpr UnsignedAccumulator(): value_{} {}

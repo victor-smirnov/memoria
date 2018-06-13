@@ -28,6 +28,8 @@
 
 #include <memoria/v1/core/packed/sseq/rleseq/rleseq_tools.hpp>
 
+#include <memoria/v1/core/integer/integer.hpp>
+
 #include <limits>
 #include <cstring>
 

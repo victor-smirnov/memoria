@@ -197,4 +197,10 @@ struct TypeHash<Table<Key, Value, PackedSizeType::VARIABLE>>: UInt64Value <
     HashHelper<3099, TypeHashV<Key>, TypeHashV<Value>>
 > {};
 
+template <>
+struct TypeHash<EdgeMap>: UInt64Value <
+    HashHelper<4000>
+> {};
+
+
 }}

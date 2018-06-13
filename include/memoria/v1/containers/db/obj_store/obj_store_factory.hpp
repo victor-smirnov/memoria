@@ -13,21 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/tools/type_name.hpp>
-#include <memoria/v1/core/integer/integer.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
+
+#pragma once
 
 
-#include <iostream>
-#include <type_traits>
+namespace memoria {
+namespace v1 {
 
 
 
-namespace mp = boost::multiprecision;
 
-int main()
-{
-    //using UAcc = memoria::v1::UnsignedAccumulator<256>;
-
-    return 0;
-}
+}}
