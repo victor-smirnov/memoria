@@ -222,7 +222,7 @@ public:
 
             int32_t block   = this->getRandom(Tree::Blocks);
 
-            int32_t sum     = tree->sum(block, 0, end);
+            auto sum        = tree->sum(block, 0, end);
 
             if (sum == 0) continue;
 
@@ -294,7 +294,7 @@ public:
 
             assert_ge(end, 0);
 
-            int32_t sum     = tree->sum(block, end + 1, start + 1);
+            auto sum = tree->sum(block, end + 1, start + 1);
 
             // we do not handle zero sums correctly in this test yet
             if (sum == 0) continue;
@@ -339,7 +339,7 @@ public:
 
             assert_ge(end, 0);
 
-            int32_t sum     = tree->sum(block, end + 1, start + 1);
+            auto sum = tree->sum(block, end + 1, start + 1);
 
             // we do not handle zero sums correctly in this test yet
             if (sum == 0) continue;

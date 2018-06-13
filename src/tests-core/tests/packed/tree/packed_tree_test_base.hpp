@@ -19,6 +19,7 @@
 #include <memoria/v1/tests/tests.hpp>
 #include <memoria/v1/tests/assertions.hpp>
 
+#include <memoria/v1/core/integer/integer.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 
@@ -38,20 +39,41 @@ namespace v1 {
 namespace tests {
 
 
+template <typename R, typename T>
+R from_number(TypeTag<R> tag, T value);
+
+template <typename T>
+UUID from_number(TypeTag<UUID>, T value)
+{
+    return UUID(value, value);
+}
+
+template <size_t BitLength, typename T>
+UnsignedAccumulator<BitLength> from_number(TypeTag<UnsignedAccumulator<BitLength>>, T value)
+{
+    return UnsignedAccumulator<BitLength>(value);
+}
+
+
+template <typename R, typename T>
+R from_number(TypeTag<R>, T value)
+{
+    return value;
+}
+
 template <typename PackedTreeT>
 class PackedTreeTestBase: public TestState {
     using Base = TestState;
 protected:
 
-    static constexpr int32_t MEMBUF_SIZE = 1024*1024*64;
-
+    static constexpr int32_t MEMBUF_SIZE = 1024*1024*8;
 
     using Tree      = PackedTreeT;
     using TreePtr   = PkdStructSPtr<Tree>;
 
     typedef typename Tree::Value                                                Value;
     typedef typename Tree::IndexValue                                           IndexValue;
-    typedef typename Tree::Values                                               Values;
+    typedef typename Tree::DataValues                                           Values;
 
     static constexpr int32_t Blocks = Tree::Blocks;
 
@@ -105,7 +127,7 @@ public:
         for (auto& v: vals)
         {
             for (int32_t b = 0; b < Blocks; b++) {
-                v[b] = getRandom(max_value) + min;
+                v[b] = from_number(TypeTag<Value>(), getRandom(max_value) + min);
             }
         }
 
@@ -175,7 +197,7 @@ public:
         Values values;
 
         for (int32_t c = 0; c < Blocks; c++) {
-            values[c] = getRandom(max);
+            values[c] = from_number(TypeTag<Value>(), getRandom(max));
         }
 
         return values;
@@ -189,7 +211,7 @@ public:
         {
             for (int32_t b = 0; b < Blocks; b++)
             {
-                vals[c][b] = getRandom(max_value);
+                vals[c][b] = from_number(TypeTag<Value>(), getRandom(max_value));
             }
         }
 

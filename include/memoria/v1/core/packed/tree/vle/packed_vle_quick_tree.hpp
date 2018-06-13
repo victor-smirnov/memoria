@@ -87,7 +87,8 @@ public:
     using IndexValue = typename Types::IndexValue;
     using Value      = typename Types::Value;
 
-    using Values = core::StaticVector<IndexValue, Blocks>;
+    using Values     = core::StaticVector<IndexValue, Blocks>;
+    using DataValues = core::StaticVector<Value, Blocks>;
 
     using InputBuffer   = PkdVLEColumnOrderInputBuffer<Types>;
     using InputType     = Values;

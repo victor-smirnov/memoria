@@ -20,13 +20,13 @@
 #include <memoria/v1/core/tools/dump.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
-#ifdef HAVE_BOOST
-#include <memoria/v1/core/bignum/bigint.hpp>
-#endif
+#include <memoria/v1/core/integer/integer.hpp>
 
 #include <memoria/v1/core/strings/strings.hpp>
 #include <memoria/v1/core/strings/format.hpp>
 #include <memoria/v1/core/bytes/bytes.hpp>
+
+
 
 #include <tuple>
 #include <functional>
@@ -87,6 +87,10 @@ struct IPageDataEventHandler {
     virtual void value(const char* name, const float* value, int32_t count = 1, int32_t kind = 0)       = 0;
     virtual void value(const char* name, const double* value, int32_t count = 1, int32_t kind = 0)      = 0;
     virtual void value(const char* name, const UUID* value, int32_t count = 1, int32_t kind = 0)        = 0;
+    virtual void value(const char* name, const UAcc64T* value, int32_t count = 1, int32_t kind = 0)     = 0;
+    virtual void value(const char* name, const UAcc128T* value, int32_t count = 1, int32_t kind = 0)    = 0;
+    virtual void value(const char* name, const UAcc192T* value, int32_t count = 1, int32_t kind = 0)    = 0;
+    virtual void value(const char* name, const UAcc256T* value, int32_t count = 1, int32_t kind = 0)    = 0;
 
     virtual void symbols(const char* name, const uint64_t* value, int32_t count, int32_t bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const uint8_t* value, int32_t count, int32_t bits_per_symbol)     = 0;
@@ -203,7 +207,6 @@ struct TupleValueHelper {
     static void setup(IPageDataEventHandler* handler, const Tuple& field)
     {
         ValueHelper<CurrentType>::setup(handler, std::get<Idx>(field));
-
         TupleValueHelper<Tuple, Idx - 1>::setup(handler, field);
     }
 };
@@ -521,6 +524,50 @@ public:
         if (kind == BYTE_ARRAY)
         {
             v1::dumpArray<UUID>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const UAcc64T* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            v1::dumpArray<UAcc64T>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const UAcc128T* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            v1::dumpArray<UAcc128T>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const UAcc192T* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            v1::dumpArray<UAcc192T>(out_, count, [=](int32_t idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const UAcc256T* value, int32_t count = 1, int32_t kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            v1::dumpArray<UAcc256T>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);

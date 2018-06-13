@@ -19,15 +19,15 @@
 
 #include <boost/config.hpp>
 
-//#if BOOST_CLANG
-//#include <memoria/v1/core/integer/clang/integer_primitives.hpp>
-//#elif BOOST_MSVC
-//#include <memoria/v1/core/integer/msvc/integer_primitives.hpp>
-//#else
-//#include <memoria/v1/core/integer/gcc/integer_primitives.hpp>
-//#endif
+#if BOOST_CLANG
+#   include <memoria/v1/core/integer/clang/integer_primitives.hpp>
+#elif BOOST_MSVC
+#   include <memoria/v1/core/integer/msvc/integer_primitives.hpp>
+#else
+#   include <memoria/v1/core/integer/gcc/integer_primitives.hpp>
+#endif
 
-#include <memoria/v1/core/integer/gcc/integer_primitives.hpp>
+
 
 #include <ostream>
 
@@ -38,6 +38,11 @@ template <size_t Size> struct UnsignedAccumulator;
 
 template <typename T>
 using UnsignedAccumulatorT = UnsignedAccumulator<sizeof(T) * 8>;
+
+using UAcc64T = UnsignedAccumulator<64>;
+using UAcc128T = UnsignedAccumulator<128>;
+using UAcc192T = UnsignedAccumulator<192>;
+using UAcc256T = UnsignedAccumulator<256>;
 
 
 namespace _ {

@@ -66,10 +66,6 @@ public:
         return sum;
     }
 
-
-
-
-
     void testBlockSum()
     {
         for (int32_t c = 1024; c <= size_; c += 1024)
@@ -95,9 +91,9 @@ public:
 
             int32_t block   = this->getRandom(Tree::Blocks);
 
-            int32_t sum1 = tree->sum(block, start, end);
-            int32_t sum2 = Base::sum(values, block, start, end);
-            int32_t sum3 = this->sum(tree, block, start, end);
+            auto sum1 = tree->sum(block, start, end);
+            auto sum2 = Base::sum(values, block, start, end);
+            auto sum3 = this->sum(tree, block, start, end);
 
             assert_equals(sum2, sum3);
             assert_equals(sum1, sum2);

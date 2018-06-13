@@ -68,7 +68,8 @@ public:
     using IndexValue = typename Types::IndexValue;
     using Value      = typename Types::Value;
 
-    using Values = core::StaticVector<IndexValue, Blocks>;
+    using Values     = core::StaticVector<IndexValue, Blocks>;
+    using DataValues = core::StaticVector<Value, Blocks>;
 
     using Metadata = typename Base::Metadata;
 
@@ -643,7 +644,7 @@ protected:
             );
 
             for (int32_t c = idx; c < idx + room_length; c++) {
-                values[c] = 0;
+                values[c] = Value{};
             }
         }
 

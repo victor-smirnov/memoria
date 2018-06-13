@@ -25,6 +25,10 @@
 #include <memoria/v1/core/packed/array/packed_fse_array.hpp>
 #include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
 
+#include <memoria/v1/core/integer/integer.hpp>
+
+#include "../tree/packed_tree_test_base.hpp"
+
 namespace memoria {
 namespace v1 {
 namespace tests {

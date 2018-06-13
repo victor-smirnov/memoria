@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memoria/v1/core/integer/accumulator_common.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
 
 #include <boost/multiprecision/integer.hpp>
 #include <boost/detail/endian.hpp>
@@ -35,12 +36,12 @@ namespace _ {
     struct UAccCvtHelper<T, 1>
     {
         template <typename UAcc, typename BmpInt>
-        static void to_acc(UAcc& acc, const BmpInt& value) {
+        static constexpr void to_acc(UAcc& acc, const BmpInt& value) {
             acc.from_same_limb_cppint(value);
         }
 
         template <typename UAcc, typename BmpInt>
-        static void to_bmp_int(const UAcc& acc, BmpInt& value) {
+        static constexpr void to_bmp_int(const UAcc& acc, BmpInt& value) {
             acc.to_same_limb_cppint(value);
         }
     };
@@ -49,12 +50,12 @@ namespace _ {
     struct UAccCvtHelper<T, 2>
     {
         template <typename UAcc, typename BmpInt>
-        static void to_acc(UAcc& acc, const BmpInt& value) {
+        static constexpr void to_acc(UAcc& acc, const BmpInt& value) {
             acc.from_smaller_limb_cppint(value);
         }
 
         template <typename UAcc, typename BmpInt>
-        static void to_bmp_int(const UAcc& acc, BmpInt& value) {
+        static constexpr void to_bmp_int(const UAcc& acc, BmpInt& value) {
             acc.to_smaller_limb_cppint(value);
         }
     };
@@ -81,10 +82,11 @@ struct UnsignedAccumulator {
 
     template <unsigned BmpBitLength>
     constexpr UnsignedAccumulator(
-            const _::UAccBmpInt<BmpBitLength>& bmp_value,
-            std::enable_if_t<BitLength >= BmpBitLength>* tt = nullptr
+            const _::UAccBmpInt<BmpBitLength>& bmp_value
     ): value_{}
     {
+        static_assert(BitLength >= BmpBitLength, "");
+
         _::UAccCvtHelper<ValueT>::to_acc(*this, bmp_value);
     }
 
@@ -96,7 +98,28 @@ struct UnsignedAccumulator {
         UnsignedAccumulator(_::UAccBmpInt<BitLength>(digits))
     {}
 
+    template <size_t OtherBitLength>
+    constexpr UnsignedAccumulator(const UnsignedAccumulator<OtherBitLength>& other):value_{}
+    {
+        static_assert(BitLength >= OtherBitLength, "");
+        for (size_t c = 0; c < other.Size; c++) {
+            value_[c] = other.value_[c];
+        }
+    }
 
+
+    constexpr UnsignedAccumulator(const UUID& uuid): value_{}
+    {
+        static_assert(BitLength >= 128, "");
+        value_[0] = uuid.lo();
+        value_[1] = uuid.hi();
+    }
+
+    UUID to_uuid() const
+    {
+        static_assert (BitLength >= 128, "");
+        return UUID(value_[1], value_[0]);
+    }
 
     bool operator<(const UnsignedAccumulator& other) const
     {
@@ -323,7 +346,7 @@ private:
     template <typename T, size_t N> friend struct _::UAccCvtHelper;
 
     template <unsigned BmpBitLength>
-    void from_same_limb_cppint(const _::UAccBmpInt<BmpBitLength>& bmp_value)
+    constexpr void from_same_limb_cppint(const _::UAccBmpInt<BmpBitLength>& bmp_value)
     {
         auto size = bmp_value.backend().size();
         const auto* limbs = bmp_value.backend().limbs();
@@ -336,7 +359,7 @@ private:
 
 
     template <unsigned BmpBitLength>
-    void to_same_limb_cppint(_::UAccBmpInt<BmpBitLength>& bmp_value) const
+    constexpr void to_same_limb_cppint(_::UAccBmpInt<BmpBitLength>& bmp_value) const
     {
         bmp_value.backend().resize(Size, Size);
         auto size = bmp_value.backend().size();
@@ -352,7 +375,7 @@ private:
 
 
     template <unsigned BmpBitLength>
-    void to_smaller_limb_cppint(_::UAccBmpInt<BmpBitLength>& bmp_value) const
+    constexpr void to_smaller_limb_cppint(_::UAccBmpInt<BmpBitLength>& bmp_value) const
     {
         bmp_value.backend().resize(Size * 2, Size * 2);
 
@@ -375,7 +398,7 @@ private:
 
 
     template <unsigned BmpBitLength>
-    void from_smaller_limb_cppint(const _::UAccBmpInt<BmpBitLength>& bmp_value)
+    constexpr void from_smaller_limb_cppint(const _::UAccBmpInt<BmpBitLength>& bmp_value)
     {
         unsigned size = bmp_value.backend().size();
         const auto* limbs = bmp_value.backend().limbs();

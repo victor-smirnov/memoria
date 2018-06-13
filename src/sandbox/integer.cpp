@@ -15,6 +15,10 @@
 
 #include <memoria/v1/core/tools/type_name.hpp>
 #include <memoria/v1/core/integer/integer.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
+
+
+#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 
 #include <iostream>
 #include <type_traits>
@@ -27,6 +31,16 @@ int main()
 {
     using UAcc = UnsignedAccumulator<256>;
     bmp::uint256_t tt{0};
+
+    using TreeT = PkdFQTreeT<UAcc, 1, UUID>;
+
+    TreeT* tree{};
+
+    (void)tree->init();
+
+    (void)tree->reindex();
+
+    tree->findGEForward(0, 0, {});
 
     UAcc aa{"3030637821958132234455144011643073604769281956997818082246049392"};
 

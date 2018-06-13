@@ -21,6 +21,8 @@
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/random.hpp>
 
+#include <memoria/v1/core/integer/integer.hpp>
+
 #include "packed_tree_buffer_test.hpp"
 #include "packed_tree_find_test.hpp"
 #include "packed_tree_sum_test.hpp"
@@ -86,6 +88,20 @@ MMA1_CLASS_SUITE(Suite16, "Tree.Buffer.4.VLD.Elias");
 
 using Suite17 = PackedTreeInputBufferTest<PkdFQTreeT<int64_t, 4>>;
 MMA1_CLASS_SUITE(Suite17, "Tree.Buffer.4.FSQ");
+
+
+using Suite18 = PackedTreeMiscTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
+MMA1_CLASS_SUITE(Suite18, "Tree.Misc.UAcc128.FSQ");
+
+using Suite19 = PackedTreeFindTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
+MMA1_CLASS_SUITE(Suite19, "Tree.Find.UAcc128.FSQ");
+
+using Suite20 = PackedTreeSumTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
+MMA1_CLASS_SUITE(Suite20, "Tree.Sum.UAcc128.FSQ");
+
+using Suite21 = PackedTreeInputBufferTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
+MMA1_CLASS_SUITE(Suite21, "Tree.Buffer.UAcc128.FSQ");
+
 
 }
 
