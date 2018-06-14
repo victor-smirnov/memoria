@@ -55,7 +55,7 @@ template <typename ValueType, int32_t Selector = HasFieldFactory<ValueType>::Val
 struct EdgeMapValueStructTF;
 
 template <typename ValueType>
-struct EdgeMapValueStructTF<ValueType, 1>: HasType<PkdFSQArrayT<ValueType>> {};
+struct EdgeMapValueStructTF<ValueType, 1>: HasType<PkdFQTreeT<UAcc192T, 1, ValueType>> {};
 
 
 
@@ -82,11 +82,7 @@ struct EdgeMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>
     //FIXME: Extend KeyType to contain enough space to represent practically large sums
     //Should be done systematically on the level of BT
 
-    using Type = IfThenElse <
-            HasFieldFactory<KeyType>::Value,
-            PkdFQTreeT<KeyType, Indexes>,
-            PkdVQTreeT<KeyType, Indexes>
-    >;
+    using Type = PkdFQTreeT<KeyType, Indexes>;
 
     static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };
@@ -99,11 +95,7 @@ struct EdgeMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>
             "Type must either has ValueCodec or FieldFactory defined"
     );
 
-    using Type = IfThenElse<
-            HasFieldFactory<KeyType>::Value,
-            PkdFMOTreeT<KeyType, Indexes>,
-            PkdVMOTreeT<KeyType>
-    >;
+    using Type = PkdFMOTreeT<KeyType, Indexes>;;
 
     static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };

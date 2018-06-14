@@ -17,17 +17,48 @@
 #include <memoria/v1/core/integer/integer.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
+#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+
+#include <memoria/v1/reactor/application.hpp>
 
 #include <iostream>
 #include <type_traits>
-
-
+#include <vector>
 
 namespace mp = boost::multiprecision;
 
-int main()
-{
-    //using UAcc = memoria::v1::UnsignedAccumulator<256>;
+using namespace memoria::v1;
+using namespace memoria::v1::reactor;
 
-    return 0;
+
+int main(int argc, char** argv, char** envp)
+{
+    using UAcc = memoria::v1::UnsignedAccumulator<128>;
+
+    return Application::run_e(argc, argv, envp, [](){
+
+        InMemAllocator<> alloc = InMemAllocator<>::create();
+
+        auto snp = alloc.master().branch();
+
+        auto ctr = create<EdgeMap>(snp);
+
+        UUID k1 = UUID::make_random();
+
+        auto iter = ctr.find_or_create(k1);
+        iter.to_values();
+
+        for (uint64_t c = 1; c < 1000; c++) {
+            iter.insert_value(UAcc{2});
+            iter.skipFw(1);
+        }
+
+        snp.commit();
+
+        alloc.store("allocator.mma1");
+
+        app().shutdown();
+        return 0;
+    });
 }

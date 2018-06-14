@@ -42,7 +42,6 @@ struct EdgeMapBTTypesBaseBase: public BTTypes<Profile, v1::BTFreeLayout> {
 
     using Base = BTTypes<Profile, v1::BTFreeLayout>;
 
-
     using Key   = UUID;
     using Value = UAcc128T;
 
@@ -59,9 +58,7 @@ struct EdgeMapBTTypesBaseBase: public BTTypes<Profile, v1::BTFreeLayout> {
 
 
 
-template <
-    typename Profile
->
+template <typename Profile>
 struct EdgeMapBTTypesBase: public EdgeMapBTTypesBaseBase<Profile> {
 
     using Base = EdgeMapBTTypesBaseBase<Profile>;
