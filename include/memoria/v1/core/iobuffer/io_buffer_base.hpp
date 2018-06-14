@@ -609,11 +609,11 @@ protected:
 
     static uint8_t* allocate(size_t length)
     {
-        uint8_t* data = allocate_system<uint8_t>(length).release();
+        auto ptr = allocate_system<uint8_t>(length);
 
-        if (data)
+        if (ptr)
         {
-            return data;
+            return ptr.release();
         }
         else {
             MMA1_THROW(Exception()) << WhatCInfo("Can't allocate IOBuffer");

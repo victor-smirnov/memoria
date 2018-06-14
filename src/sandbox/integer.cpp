@@ -31,10 +31,11 @@ namespace mp = boost::multiprecision;
 using namespace memoria::v1;
 using namespace memoria::v1::reactor;
 
+using UAcc = memoria::v1::UnsignedAccumulator<128>;
 
 int main(int argc, char** argv, char** envp)
 {
-    using UAcc = memoria::v1::UnsignedAccumulator<128>;
+
 
     return Application::run_e(argc, argv, envp, [](){
 
@@ -46,13 +47,13 @@ int main(int argc, char** argv, char** envp)
 
         UUID k1 = UUID::make_random();
 
-        auto iter = ctr.find_or_create(k1);
-        iter.to_values();
+        std::vector<UAcc> values;
 
-        for (uint64_t c = 1; c < 1000; c++) {
-            iter.insert_value(UAcc{2});
-            iter.skipFw(1);
+        for (uint64_t c = 0; c < 1000; c++) {
+            values.push_back(UAcc{2});
         }
+
+        ctr.assign(k1, values.begin(), values.end());
 
         snp.commit();
 

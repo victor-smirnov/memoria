@@ -78,6 +78,8 @@ struct UnsignedAccumulator {
 
     static constexpr size_t ByteSize = Size * sizeof (ValueT);
 
+    static constexpr size_t AccBitLength = BitLength;
+
     ValueT value_[Size];
 
     constexpr UnsignedAccumulator(): value_{} {}
@@ -342,6 +344,32 @@ struct UnsignedAccumulator {
         _::UAccBmpInt<BitLength> bmp_value;
         _::UAccCvtHelper<ValueT>::to_bmp_int(*this, bmp_value);
         return bmp_value;
+    }
+
+    template <size_t TgtBitLength>
+    std::enable_if_t<TgtBitLength >= BitLength, UnsignedAccumulator<TgtBitLength>> cast_to() const
+    {
+        UnsignedAccumulator<TgtBitLength> tgt{};
+
+        for (size_t c = 0; c < Size; c++)
+        {
+            tgt.value_[c] = value_[c];
+        }
+
+        return tgt;
+    }
+
+    template <size_t TgtBitLength>
+    std::enable_if_t<TgtBitLength < BitLength, UnsignedAccumulator<TgtBitLength>> cast_to() const
+    {
+        UnsignedAccumulator<TgtBitLength> tgt{};
+
+        for (size_t c = 0; c < Size; c++)
+        {
+            tgt.value_[c] = value_[c];
+        }
+
+        return tgt;
     }
 
 private:

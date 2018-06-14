@@ -20,13 +20,16 @@
 #include <memoria/v1/core/iobuffer/io_buffer.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
+#include <memoria/v1/core/integer/uacc_field_factory.hpp>
+
 #include <memory>
 #include <tuple>
 #include <exception>
 
 namespace memoria {
 namespace v1 {
-    
+namespace edge_map {
+
 template <typename IOBuffer, int32_t Symbols>
 class SingleStreamProducerAdapter: public bt::BufferProducer<IOBuffer> {
     
@@ -124,4 +127,4 @@ public:
 };
 
     
-}}
+}}}

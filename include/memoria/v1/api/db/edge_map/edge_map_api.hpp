@@ -60,11 +60,18 @@ public:
     Iterator find_or_create(const Key& key);
     
     bool contains(const Key& key);
+    bool contains(const Key& key, const Value& value);
+
+    bool upsert(const Key& key, const Value& value);
+
     bool remove(const Key& key);
-    
+    bool remove(const Key& key, const Value& value);
+
     Iterator begin() {return Base::seq_begin();}
     Iterator end() {return Base::seq_begin();}
     Iterator seek(int64_t pos);
+
+    int64_t size(const Key& key);
     int64_t size() const;
     
     Iterator assign(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);
@@ -75,8 +82,7 @@ public:
         InputIteratorProvider<Value, InputIterator, EndIterator, CtrIOBuffer> provider(start, end);        
         return assign(key, provider);
     }
-    
-    
+
     CtrSizeT read(const Key& key, bt::BufferConsumer<CtrIOBuffer>& values_consumer, CtrSizeT start = 0, CtrSizeT length = std::numeric_limits<CtrSizeT>::max());
 };
 
@@ -119,7 +125,7 @@ public:
     std::vector<Value> read_values(int64_t size = std::numeric_limits<int64_t>::max());
     
     int64_t remove(int64_t length = 1);
-    int64_t values_size() const;
+    //int64_t values_size() const;
     bool is_found(const Key& key);
 
     bool to_values();

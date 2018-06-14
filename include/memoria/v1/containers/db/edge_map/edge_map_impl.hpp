@@ -57,6 +57,14 @@ bool CtrApi<EdgeMap, Profile>::contains(const Key& key)
 }
 
 template <typename Profile>
+bool CtrApi<EdgeMap, Profile>::contains(const Key& key, const Value& value)
+{
+    auto iter = this->pimpl_->find(key);
+
+    return iter->contains(value);
+}
+
+template <typename Profile>
 bool CtrApi<EdgeMap, Profile>::remove(const Key& key)
 {
     auto ii = this->pimpl_->find(key);
@@ -69,6 +77,17 @@ bool CtrApi<EdgeMap, Profile>::remove(const Key& key)
     return false;
 }
 
+template <typename Profile>
+bool CtrApi<EdgeMap, Profile>::remove(const Key& key, const Value& value)
+{
+    return this->pimpl_->remove(key, value);
+}
+
+template <typename Profile>
+bool CtrApi<EdgeMap, Profile>::upsert(const Key& key, const Value& value)
+{
+    return this->pimpl_->upsert(key, value);
+}
 
 
 template <typename Profile>

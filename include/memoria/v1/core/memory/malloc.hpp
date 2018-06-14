@@ -30,7 +30,11 @@ using UniquePtr = std::unique_ptr<T, void (*)(void*)>;
 template <typename T>
 UniquePtr<T> allocate_system(size_t size)
 {
-    return UniquePtr<T>(T2T<T*>(::malloc(size)), ::free);
+    void* ptr = ::malloc(size);
+
+    T* tptr = T2T<T*>(ptr);
+
+    return UniquePtr<T>(tptr, ::free);
 }
 
 template <typename T>

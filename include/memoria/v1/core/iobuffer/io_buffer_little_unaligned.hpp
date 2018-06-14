@@ -291,7 +291,10 @@ public:
 
         UAcc acc{};
 
-        CopyBuffer(v, acc.value_, UAcc::ByteSize);
+        for (size_t c = 0; c < UAcc::Size; c++)
+        {
+            acc.value_[c] = *(v + c);
+        }
 
         return acc;
     }

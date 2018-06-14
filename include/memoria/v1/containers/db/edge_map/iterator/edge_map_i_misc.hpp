@@ -301,7 +301,7 @@ public:
     {
         auto& self = this->self();
         
-        SingleStreamProducerAdapter<IOBuffer, 2> adapter(producer, 1);
+        edge_map::SingleStreamProducerAdapter<IOBuffer, 2> adapter(producer, 1);
         
         return self.bulkio_insert(adapter).sum();
     }
@@ -310,11 +310,86 @@ public:
     CtrSizeT insert_mmap_entry(const Key& key, bt::BufferProducer<IOBuffer>& producer)
     {
         auto& self = this->self();
-        SingleEntryProducerAdapter<Key, IOBuffer, 2> adapter(key, producer, 0);
+        edge_map::SingleEntryProducerAdapter<Key, IOBuffer, 2> adapter(key, producer, 0);
         
         return self.bulkio_insert(adapter)[1];
     }
+
+
+
+
+    struct FindResult {
+        Value prefix;
+        bool found;
+    };
     
+    FindResult find_value(const Value& value)
+    {
+        auto& self = this->self();
+
+        auto size = self.count_values();
+        self.to_values();
+
+        typename Types::template FindGTForwardWalker<Types, IntList<1, 1>> walker(1, value);
+        auto prefix = self.find_fw(walker).template cast_to<Value::AccBitLength>();
+
+        auto pos = self.run_pos();
+
+        return FindResult{prefix, pos < size};
+    }
+
+    bool upsert_value(const Value& value)
+    {
+        auto& self = this->self();
+
+        auto result = self.find_value(value);
+
+        if (result.found)
+        {
+            auto value_at = this->value() + result.prefix;
+
+            if (value_at != value)
+            {
+                self.insert_value(value - result.prefix);
+                return true;
+            }
+        }
+        else {
+            self.insert_value(value - result.prefix);
+            return true;
+        }
+
+        return false;
+    }
+
+    bool contains(const Value& value)
+    {
+        auto& self = this->self();
+
+        auto result = self.find_value(value);
+
+        return result.found;
+    }
+
+    bool remove_value(const Value& value)
+    {
+        auto& self = this->self();
+
+        auto result = self.find_value(value);
+
+        if (result.found)
+        {
+            auto value_at = this->value() + result.prefix;
+
+            if (value_at == value)
+            {
+                self.remove(1);
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 MEMORIA_V1_ITERATOR_PART_END
 

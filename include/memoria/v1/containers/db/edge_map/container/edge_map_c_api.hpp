@@ -59,8 +59,6 @@ public:
         return self.template seek_stream<0>(self.sizes()[0]);
     }
 
-    //using Base::seek;
-
     IteratorPtr seek(CtrSizeT idx) {
         auto& self = this->self();
         return self.template seek_stream<0>(idx);
@@ -104,6 +102,49 @@ public:
         }
 
         return iter;
+    }
+
+    bool upsert(const Key& key, const Value& value)
+    {
+        auto& self = this->self();
+
+        auto iter = self.find_or_create(key);
+
+        return iter->upsert_value(value);
+    }
+
+
+    bool remove(const Key& key, const Value& value)
+    {
+        auto& self = this->self();
+
+        auto ii = self.find(key);
+
+        if (ii->is_found(key))
+        {
+            auto size = ii->count_values();
+            if (size > 0)
+            {
+                ii->to_values();
+                if (ii->remove_value(value))
+                {
+                    if (size == 1)
+                    {
+                        ii->to_prev_key();
+                        ii->remove(1);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            else {
+                ii->remove(1);
+                return false;
+            }
+        }
+
+        return false;
     }
 
 protected:

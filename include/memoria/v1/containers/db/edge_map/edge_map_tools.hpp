@@ -35,6 +35,8 @@ namespace memoria {
 namespace v1 {
 namespace edge_map {
 
+
+
 using bt::IdxSearchType;
 using bt::StreamTag;
 

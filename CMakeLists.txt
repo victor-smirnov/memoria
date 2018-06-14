@@ -78,8 +78,14 @@ add_definitions(-DBOOST_NO_AUTO_PTR -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE -DJ
 if (BUILD_POSIX)
     add_definitions(-Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     add_definitions(-Wno-old-style-cast)
-    add_definitions(-DBOOST_STACKTRACE_USE_BACKTRACE)
-    add_definitions(-DBOOST_LIBSTDCXX_VERSION=80100)
+
+    if (BUILD_MACOSX)
+        add_definitions(-DBOOST_STACKTRACE_USE_ADDR2LINE)
+    else()
+        add_definitions(-DBOOST_STACKTRACE_USE_BACKTRACE)
+        add_global_libs(backtrace)
+        add_global_linker(-static-libstdc++)
+    endif()
 
     add_definitions(-fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0)
     add_definitions(-Wno-comment -Wno-unknown-warning-option -Wunused-variable)
@@ -113,8 +119,8 @@ if (BUILD_POSIX)
         add_global_linker(-fsanitize=thread)
     endif()
     
-    add_global_libs(dl pthread backtrace)
-    add_global_linker(-static-libstdc++)
+    add_global_libs(dl pthread)
+
 
     if (BUILD_STATIC)
         add_definitions(-static)
