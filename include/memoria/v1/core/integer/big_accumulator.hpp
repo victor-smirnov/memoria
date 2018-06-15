@@ -30,10 +30,28 @@ namespace bmp = boost::multiprecision;
 
 namespace _ {
 
-    template <typename T, size_t N = sizeof(T) / sizeof (bmp::limb_type)> struct UAccCvtHelper;
+    template <typename IntT>
+    using LimbType = std::remove_pointer_t<std::decay_t<decltype(std::declval<IntT>().backend().limbs())>>;
 
-    template <typename T>
-    struct UAccCvtHelper<T, 1>
+    template <typename T, typename IntT, size_t N = sizeof(T) / sizeof(LimbType<IntT>)> struct UAccCvtHelper;
+
+    template <typename T, typename IntT>
+    struct UAccCvtHelper<T, IntT, 0>
+    {
+        template <typename UAcc, typename BmpInt>
+        static constexpr void to_acc(UAcc& acc, const BmpInt& value) {
+            acc.from_larger_limb_cppint(value);
+        }
+
+        template <typename UAcc, typename BmpInt>
+        static constexpr void to_bmp_int(const UAcc& acc, BmpInt& value) {
+            acc.to_larger_limb_cppint(value);
+        }
+    };
+
+
+    template <typename T, typename IntT>
+    struct UAccCvtHelper<T, IntT, 1>
     {
         template <typename UAcc, typename BmpInt>
         static constexpr void to_acc(UAcc& acc, const BmpInt& value) {
@@ -46,8 +64,8 @@ namespace _ {
         }
     };
 
-    template <typename T>
-    struct UAccCvtHelper<T, 2>
+    template <typename T, typename IntT>
+    struct UAccCvtHelper<T, IntT, 2>
     {
         template <typename UAcc, typename BmpInt>
         static constexpr void to_acc(UAcc& acc, const BmpInt& value) {
@@ -59,6 +77,7 @@ namespace _ {
             acc.to_smaller_limb_cppint(value);
         }
     };
+
 
     template <unsigned BitLength>
     using UAccBmpInt = bmp::number<
@@ -91,7 +110,7 @@ struct UnsignedAccumulator {
     {
         static_assert(BitLength >= BmpBitLength, "");
 
-        _::UAccCvtHelper<ValueT>::to_acc(*this, bmp_value);
+        _::UAccCvtHelper<ValueT, _::UAccBmpInt<BmpBitLength>>::to_acc(*this, bmp_value);
     }
 
     constexpr UnsignedAccumulator(ValueT v): value_{} {
@@ -106,7 +125,8 @@ struct UnsignedAccumulator {
     constexpr UnsignedAccumulator(const UnsignedAccumulator<OtherBitLength>& other):value_{}
     {
         static_assert(BitLength >= OtherBitLength, "");
-        for (size_t c = 0; c < other.Size; c++) {
+        for (size_t c = 0; c < other.Size; c++)
+        {
             value_[c] = other.value_[c];
         }
     }
@@ -325,7 +345,7 @@ struct UnsignedAccumulator {
     {
         static_assert(BmpBitLength <= BitLength, "");
         std::memset(value_, 0, BitLength / 8);
-        _::UAccCvtHelper<ValueT>::to_acc(*this, other);
+        _::UAccCvtHelper<ValueT, _::UAccBmpInt<BmpBitLength>>::to_acc(*this, other);
         return *this;
     }
 
@@ -333,7 +353,7 @@ struct UnsignedAccumulator {
     operator _::UAccBmpInt<BmpBitLength>() const
     {
         _::UAccBmpInt<BmpBitLength> bmp_value;
-        _::UAccCvtHelper<ValueT>::to_bmp_int(*this, bmp_value);
+        _::UAccCvtHelper<ValueT, _::UAccBmpInt<BmpBitLength>>::to_bmp_int(*this, bmp_value);
 
         return bmp_value;
     }
@@ -342,7 +362,7 @@ struct UnsignedAccumulator {
     _::UAccBmpInt<BitLength> to_bmp() const
     {
         _::UAccBmpInt<BitLength> bmp_value;
-        _::UAccCvtHelper<ValueT>::to_bmp_int(*this, bmp_value);
+        _::UAccCvtHelper<ValueT, _::UAccBmpInt<BitLength>>::to_bmp_int(*this, bmp_value);
         return bmp_value;
     }
 
@@ -364,7 +384,7 @@ struct UnsignedAccumulator {
     {
         UnsignedAccumulator<TgtBitLength> tgt{};
 
-        for (size_t c = 0; c < Size; c++)
+        for (size_t c = 0; c < UnsignedAccumulator<TgtBitLength>::Size; c++)
         {
             tgt.value_[c] = value_[c];
         }
@@ -373,7 +393,7 @@ struct UnsignedAccumulator {
     }
 
 private:
-    template <typename T, size_t N> friend struct _::UAccCvtHelper;
+    template <typename T, typename IntT, size_t N> friend struct _::UAccCvtHelper;
 
     template <unsigned BmpBitLength>
     constexpr void from_same_limb_cppint(const _::UAccBmpInt<BmpBitLength>& bmp_value)
@@ -428,30 +448,84 @@ private:
 
 
     template <unsigned BmpBitLength>
+    constexpr void to_larger_limb_cppint(_::UAccBmpInt<BmpBitLength>& bmp_value) const
+    {
+        using LimbT = _::LimbType<_::UAccBmpInt<BmpBitLength>>;
+
+        bmp_value.backend().resize(Size / 2 , Size / 2);
+        auto* limbs = bmp_value.backend().limbs();
+
+        for (unsigned c = 0; c < Size; c += 2)
+        {
+            LimbT v0 = value_[c];
+            LimbT v1 = value_[c + 1];
+
+#ifdef BOOST_LITTLE_ENDIAN
+            limbs[c / 2] = v0 | (v1 << 64);
+#else
+            limbs[c / 2] = v1 | (v0 << 64);
+#endif
+        }
+
+        bmp_value.backend().normalize();
+    }
+
+
+
+    template <unsigned BmpBitLength>
     constexpr void from_smaller_limb_cppint(const _::UAccBmpInt<BmpBitLength>& bmp_value)
     {
         unsigned size = bmp_value.backend().size();
         const auto* limbs = bmp_value.backend().limbs();
 
-        for (size_t c = 0; c < (size & 0xFFFFFFFE); c += 2)
+        for (size_t c = 0; c < size; c += 2)
         {
             ValueT v0 = limbs[c];
             ValueT v1 = limbs[c + 1];
 
 #ifdef BOOST_LITTLE_ENDIAN
-            value_[c / 2] = v1 << 32 | v0;
+            value_[c / 2] = (v1 << 32) | v0;
 #else
-            value_[c / 2] = v0 << 32 | v1;
+            value_[c / 2] = (v0 << 32) | v1;
 #endif
         }
 
-        if (size & 0x00000001)
+        if (size & 0x1)
         {
 #ifdef BOOST_LITTLE_ENDIAN
             value_[size / 2] = limbs[size - 1];
 #else
             value_[size / 2] = ((ValueT)limbs[size - 1]) << 32;
 #endif
+        }
+    }
+
+
+    template <unsigned BmpBitLength>
+    constexpr void from_larger_limb_cppint(const _::UAccBmpInt<BmpBitLength>& bmp_value)
+    {
+        unsigned size = bmp_value.backend().size();
+        const auto* limbs = bmp_value.backend().limbs();
+
+        using LimbT = _::LimbType<_::UAccBmpInt<BmpBitLength>>;
+        LimbT mask = 0xFFFFFFFFFFFFFFFFull;
+
+        for (size_t c = 0; c < Size; c += 2)
+        {
+            LimbT vv = limbs[c / 2];
+
+#ifdef BOOST_LITTLE_ENDIAN
+            value_[c] = vv;
+            value_[c + 1] = vv >> 64;
+#else
+            value_[c + 1] = vv;
+            value_[c] = vv >> 64;
+#endif
+        }
+
+        if (Size & 0x01)
+        {
+            value_[Size - 1] = limbs[size - 1];
         }
     }
 };

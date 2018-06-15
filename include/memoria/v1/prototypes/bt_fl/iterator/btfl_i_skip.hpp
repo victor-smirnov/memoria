@@ -302,9 +302,9 @@ public:
 
     	if (self.stream() == StructureStreamIdx)
     	{
-    		int32_t data_idx 	= self.data_stream_idx(stream);
-    		self.idx() 		= data_idx;
-    		self.stream() 	= stream;
+            int32_t data_idx = self.data_stream_idx(stream);
+            self.idx() 		 = data_idx;
+            self.stream() 	 = stream;
     	}
     	else {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", self.stream()));

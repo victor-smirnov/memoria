@@ -52,7 +52,10 @@ using Suite5 = PackedArrayInputBufferTest<PkdFSQArrayT<int64_t, 4>>;
 MMA1_CLASS_SUITE(Suite5, "Array.Buffer.4.FSQ");
 
 using Suite6 = PackedArrayInputBufferTest<PkdFSQArrayT<UAcc128T, 4>>;
-MMA1_CLASS_SUITE(Suite6, "Array.Buffer.UAcc.FSQ");
+MMA1_CLASS_SUITE(Suite6, "Array.Buffer.UAcc128.FSQ");
+
+using Suite7 = PackedArrayInputBufferTest<PkdFSQArrayT<UAcc256T, 4>>;
+MMA1_CLASS_SUITE(Suite7, "Array.Buffer.UAcc256.FSQ");
 
 }
 

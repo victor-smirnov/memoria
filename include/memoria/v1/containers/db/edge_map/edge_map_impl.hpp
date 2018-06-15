@@ -291,5 +291,9 @@ IterApi<EdgeMap, Profile>::insert_entry(
 }
 
 
+template <typename Profile>
+EdgeMapFindResult IterApi<EdgeMap, Profile>::find_value(const Value& value) {
+    return this->pimpl_->find_value(value);
+}
 
 }}

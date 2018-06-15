@@ -23,6 +23,7 @@
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
+#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
 #include <memoria/v1/api/db/edge_map/edge_map_input.hpp>
 
 #include <iostream>
@@ -314,28 +315,27 @@ public:
         
         return self.bulkio_insert(adapter)[1];
     }
-
-
-
-
-    struct FindResult {
-        Value prefix;
-        bool found;
-    };
     
-    FindResult find_value(const Value& value)
+    EdgeMapFindResult find_value(const Value& value)
     {
         auto& self = this->self();
 
         auto size = self.count_values();
         self.to_values();
 
-        typename Types::template FindGTForwardWalker<Types, IntList<1, 1>> walker(1, value);
-        auto prefix = self.find_fw(walker).template cast_to<Value::AccBitLength>();
+        DebugCounter = 1;
+
+        self.dump();
+
+        typename Types::template FindGEForwardWalker<Types, IntList<1, 1>> walker(0, value);
+        //self.idx() = 0;
+        auto prefix = self.find_fw(walker);
 
         auto pos = self.run_pos();
 
-        return FindResult{prefix, pos < size};
+        std::cout << "PosXX = " << self.idx() << std::endl;
+
+        return EdgeMapFindResult{prefix.template cast_to<Value::AccBitLength>(), pos < size};
     }
 
     bool upsert_value(const Value& value)

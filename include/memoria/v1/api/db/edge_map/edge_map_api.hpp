@@ -29,6 +29,10 @@ namespace memoria {
 namespace v1 {
 
 
+struct EdgeMapFindResult {
+    UAcc128T prefix;
+    bool found;
+};
 
 template <typename Profile>
 class CtrApi<EdgeMap, Profile>: public CtrApiBTFLBase<EdgeMap, Profile> {
@@ -136,6 +140,8 @@ public:
     
     CtrSizeT insert_values(bt::BufferProducer<CtrIOBuffer>& values_producer);
     CtrSizeT insert_entry(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);
+
+    EdgeMapFindResult find_value(const Value& value);
 };
 
 

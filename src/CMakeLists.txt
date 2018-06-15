@@ -86,7 +86,7 @@ endif()
 #SET(MEMORIA_APPS tcp_server tcp_client disruptor_bm spsc_queue_bm timers alloc shared_ptrs yaml)
 #SET(MEMORIA_APPS ${MEMORIA_APPS} ustrings icu_regexp fmt_u16 sockets anon_pipes processes crash print_env)
 
-SET(MEMORIA_APPS timers sample_allocator)
+SET(MEMORIA_APPS)
 
 if(BUILD_MSVC)
 #    SET(MEMORIA_APPS ${MEMORIA_APPS} named_pipes)
@@ -105,7 +105,7 @@ if (Qt5_FOUND)
 
     set(CMAKE_AUTOMOC ON)
 
-    SET(MEMORIA_QT_APPS qt_app)
+    SET(MEMORIA_QT_APPS)
 
     FOREACH(MEMORIA_QT_TARGET ${MEMORIA_QT_APPS})
         add_executable(${MEMORIA_QT_TARGET} ${MEMORIA_QT_TARGET}.cpp)

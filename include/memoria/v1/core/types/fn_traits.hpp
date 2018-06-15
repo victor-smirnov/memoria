@@ -31,7 +31,7 @@ struct FnTraits<RtnType_ (ClassType_::*)(Args_...)> {
     typedef ClassType_              ClassType;
     typedef TypeList<Args_...>      ArgsList;
 
-    static const int32_t Arity          = sizeof...(Args_);
+    static const int32_t Arity      = sizeof...(Args_);
     static const bool Const         = false;
 
 
@@ -47,7 +47,7 @@ struct FnTraits<RtnType_ (ClassType_::*)(Args_...) const> {
     typedef ClassType_              ClassType;
     typedef TypeList<Args_...>      ArgsList;
 
-    static const int32_t Arity          = sizeof...(Args_);
+    static const int32_t Arity      = sizeof...(Args_);
     static const bool Const         = true;
 
     template <int32_t I>
@@ -62,7 +62,7 @@ struct FnTraits<RtnType_ (*)(Args_...)> {
     typedef void                    ClassType;
     typedef TypeList<Args_...>      ArgsList;
 
-    static const int32_t Arity          = sizeof...(Args_);
+    static const int32_t Arity      = sizeof...(Args_);
     static const bool Const         = true;
 
     template <int32_t I>
@@ -77,7 +77,7 @@ struct FnTraits<RtnType_ (Args_...)> {
     typedef void                    ClassType;
     typedef TypeList<Args_...>      ArgsList;
 
-    static const int32_t Arity          = sizeof...(Args_);
+    static const int32_t Arity      = sizeof...(Args_);
     static const bool Const         = true;
 
     template <int32_t I>

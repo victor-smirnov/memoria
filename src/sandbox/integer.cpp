@@ -25,6 +25,7 @@
 #include <iostream>
 #include <type_traits>
 #include <vector>
+#include <algorithm>
 
 namespace mp = boost::multiprecision;
 
@@ -35,8 +36,6 @@ using UAcc = memoria::v1::UnsignedAccumulator<128>;
 
 int main(int argc, char** argv, char** envp)
 {
-
-
     return Application::run_e(argc, argv, envp, [](){
 
         InMemAllocator<> alloc = InMemAllocator<>::create();
@@ -49,11 +48,35 @@ int main(int argc, char** argv, char** envp)
 
         std::vector<UAcc> values;
 
-        for (uint64_t c = 0; c < 1000; c++) {
-            values.push_back(UAcc{2});
+        for (uint64_t c = 0; c < 1000; c++)
+        {
+            UAcc128T kk = UUID::make_random();
+            values.push_back(kk);
+        }
+
+        std::sort(values.begin(), values.end());
+
+        std::vector<UAcc> values_sorted = values;
+
+        UAcc128T last{};
+
+        for (auto& vv: values)
+        {
+            UAcc128T tmp = vv;
+            vv -= last;
+            last = tmp;
         }
 
         ctr.assign(k1, values.begin(), values.end());
+
+
+        auto iter = ctr.find(k1);
+
+        if (iter.is_found(k1))
+        {
+            iter.find_value(values_sorted[100]);
+            engine().coutln(u"Pos = {}", iter.run_pos());
+        }
 
         snp.commit();
 
