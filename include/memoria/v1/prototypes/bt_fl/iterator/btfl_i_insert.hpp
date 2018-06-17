@@ -72,20 +72,63 @@ public:
     };
 
 
+//    template <int32_t Stream, typename EntryFn>
+//    void insert_entry(EntryFn&& entry)
+//    {
+//        auto& self = this->self();
+
+//        if (DebugCounter) {
+//            self.dump();
+//        }
+
+//        self.ctr().template insert_stream_entry<StructureStreamIdx>(self, StructureStreamIdx, self.idx(), InsertSymbolFn<StructureStreamIdx>(Stream));
+
+//        if (DebugCounter) {
+//            self.dump();
+//        }
+
+//        int32_t key_idx = self.data_stream_idx(Stream);
+//        self.ctr().template insert_stream_entry<Stream>(self, Stream, key_idx, std::forward<EntryFn>(entry));
+
+//        if (DebugCounter) {
+//            self.dump();
+//        }
+//    }
+
+
     template <int32_t Stream, typename EntryFn>
     void insert_entry(EntryFn&& entry)
     {
-        auto& self = this->self();        
-        self.ctr().template insert_stream_entry<StructureStreamIdx>(self, StructureStreamIdx, self.idx(), InsertSymbolFn<StructureStreamIdx>(Stream));
+        auto& self = this->self();
 
+        std::function<OpStatus(int, int)> insert_fn = [&](int structure_idx, int stream_idx) -> OpStatus {
+            auto status1 = self.ctr().template try_insert_stream_entry_no_mgr<StructureStreamIdx>(self.leaf(), structure_idx, InsertSymbolFn<StructureStreamIdx>(Stream));
+            if (isOk(status1))
+            {
+                return self.ctr().template try_insert_stream_entry_no_mgr<Stream>(self.leaf(), stream_idx, std::forward<EntryFn>(entry));
+            }
+
+            return OpStatus::FAIL;
+        };
+
+        int structure_idx = self.idx();
+
+        int32_t stream_idx = self.data_stream_idx(Stream, structure_idx);
+        self.ctr().template insert_stream_entry0<Stream>(self, structure_idx, stream_idx, insert_fn);
+    }
+
+
+    template <int32_t Stream, typename SubstreamsList, typename EntryFn>
+    void update_entry(EntryFn&& entry)
+    {
+        auto& self = this->self();
         int32_t key_idx = self.data_stream_idx(Stream);
-        self.ctr().template insert_stream_entry<Stream>(self, Stream, key_idx, std::forward<EntryFn>(entry));
+        self.ctr().template update_stream_entry<Stream, SubstreamsList>(self, Stream, key_idx, std::forward<EntryFn>(entry));
     }
 
 
 
-
-    SplitResult split(int32_t stream, int32_t target_idx)
+    SplitResult split(int32_t stream, int32_t target_stream_idx)
     {
         auto& self  = this->self();
         auto& leaf  = self.leaf();
@@ -94,101 +137,34 @@ public:
 
         if (structure_size > 1)
         {
-            int32_t split_idx = structure_size / 2;
+            int32_t structure_split_idx = structure_size / 2;
 
-            auto half_ranks = self.leafrank(split_idx);
+            auto half_ranks = self.leafrank(structure_split_idx);
             auto right      = self.ctr().split_leaf_p(leaf, half_ranks);
 
-            auto& idx = self.idx();
+            auto& structure_idx = self.idx();
 
-            if (idx > split_idx)
+            if (structure_idx > structure_split_idx)
             {
                 leaf = right;
-                idx -= split_idx;
+                structure_idx -= structure_split_idx;
 
                 self.refresh();
                 
-                return SplitResult(SplitStatus::RIGHT, idx);
+                return SplitResult(SplitStatus::RIGHT, target_stream_idx - half_ranks[stream]);
             }
             else {
-                return SplitResult(SplitStatus::LEFT, idx);
+                return SplitResult(SplitStatus::LEFT, target_stream_idx);
             }
-
-//             if (target_idx > half_ranks[stream - 1])
-//             {
-//                 leaf = right;
-//                 target_idx -= half_ranks[stream - 1];
-// 
-//                 return SplitResult(SplitStatus::RIGHT, target_idx);
-//             }
-//             else {
-//                 return SplitResult(SplitStatus::LEFT, target_idx);
-//             }
         }
         else {
-            //auto ranks = self.leaf_sizes();
+            auto leaf_sizes = self.leaf_sizes();
 
-            self.ctr().split_leaf_p(leaf, self.leaf_sizes());
+            self.ctr().split_leaf_p(leaf, leaf_sizes);
             
-            return SplitResult(SplitStatus::LEFT, self.idx());
-
-//             if (target_idx > ranks[stream])
-//             {
-//                 target_idx -= ranks[stream];
-// 
-//                 return SplitResult(SplitStatus::RIGHT, target_idx);
-//             }
-//             else {
-//                 return SplitResult(SplitStatus::LEFT, target_idx);
-//             }
+            return SplitResult(SplitStatus::LEFT, leaf_sizes[stream]);
         }
     }
-
-
-
-
-
-//    template <int32_t StreamIdx, typename EntryBuffer>
-//    SplitStatus _insert(const EntryBuffer& data)
-//    {
-//        auto& self  = this->self();
-//        auto stream = self.stream();
-//
-//        MEMORIA_V1_ASSERT(StreamIdx, ==, stream);
-//
-//        auto main_split_status = self.ctr().template insert_stream_entry<StreamIdx>(self, data);
-//
-//        auto tmp = self;
-//        tmp.toIndex();
-//
-//        if (tmp.has_same_leaf(self))
-//        {
-//            auto status = tmp.add_substream_size(tmp.stream(), tmp.idx(), 1);
-//
-//            if (status == SplitStatus::NONE)
-//            {
-//                return main_split_status;
-//            }
-//            else
-//            {
-//                auto pos = self.pos();
-//
-//                self = tmp;
-//                self.toData(pos);
-//
-//                return SplitStatus::UNKNOWN;
-//            }
-//        }
-//        else {
-//            tmp.add_substream_size(tmp.stream(), tmp.idx(), 1);
-//        }
-//
-//        return main_split_status;
-//    }
-
-
-
-
 
 MEMORIA_V1_ITERATOR_PART_END
 

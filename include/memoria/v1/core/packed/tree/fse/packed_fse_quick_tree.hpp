@@ -989,6 +989,23 @@ public:
         return OpStatus::OK;
     }
 
+    template <int32_t Offset, int32_t Size, typename AccessorFn, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
+    OpStatus _update_b(int32_t idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    {
+        for (int32_t b = 0; b < Blocks; b++)
+        {
+            this->values(b)[idx] = values(b);
+        }
+
+        if(isFail(reindex())) {
+            return OpStatus::FAIL;
+        }
+
+        //sum<Offset>(idx, accum);
+
+        return OpStatus::OK;
+    }
+
 
     template <int32_t Offset, int32_t Size, typename T1, typename T2, template <typename, int32_t> class BranchNodeEntryItem>
     OpStatus _update(int32_t idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)

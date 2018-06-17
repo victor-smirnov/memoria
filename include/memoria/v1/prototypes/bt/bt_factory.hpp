@@ -76,6 +76,7 @@
 #include <memoria/v1/prototypes/bt/container/bt_c_remove_batch.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_remove_tools.hpp>
 
+#include <type_traits>
 
 namespace memoria {
 namespace v1 {
@@ -237,6 +238,8 @@ struct BTTypes {
 };
 
 
+
+
 template <
         typename Profile,
         typename ContainerTypeName_
@@ -324,7 +327,7 @@ public:
         using NodeBaseG         = NodePageBase0G;
     };
 
-    typedef bt::BTreeDispatchers<DispatcherTypes>                              PageDispatchers;
+    using PageDispatchers = bt::BTreeDispatchers<DispatcherTypes>;
 
     static const PackedSizeType BranchSizeType  = PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
     static const PackedSizeType LeafSizeType    = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;

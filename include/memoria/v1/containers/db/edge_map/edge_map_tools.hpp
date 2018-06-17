@@ -93,7 +93,7 @@ template <typename KeyType, int32_t Indexes>
 struct EdgeMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(
-            IsExternalizable<FailIf<KeyType, false>>::Value,
+            IsExternalizable<KeyType>::Value,
             "Type must either has ValueCodec or FieldFactory defined"
     );
 
@@ -185,6 +185,26 @@ public:
 	}
 };
 
+
+template <int32_t Stream, typename T, typename CtrSizeT>
+struct SingleValueUpdateEntryFn {
+
+    const T& value_;
+
+    CtrSizeT one_{1};
+
+    SingleValueUpdateEntryFn(const T& value): value_(value) {}
+
+    const auto& get(const StreamTag<Stream>& , const StreamTag<0>&, int32_t block) const
+    {
+        return value_;
+    }
+
+//    const auto& get(const StreamTag<Stream>& , const StreamTag<1>&, int32_t block) const
+//    {
+//        return value_;
+//    }
+};
 
 
 }

@@ -141,9 +141,9 @@ public:
 
         using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
 
-        using LeafStreamsStructList = FailIf<typename BaseTypes::LeafStreamsStructList, false>;
+        using LeafStreamsStructList = typename BaseTypes::LeafStreamsStructList;
 
-        using IteratorBranchNodeEntry = FailIf<typename BaseTypes::IteratorBranchNodeEntry, false>;
+        using IteratorBranchNodeEntry = typename BaseTypes::IteratorBranchNodeEntry;
     };
 
     using CtrTypes  = typename Types::CtrTypes;

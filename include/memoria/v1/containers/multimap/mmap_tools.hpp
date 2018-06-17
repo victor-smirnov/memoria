@@ -107,7 +107,7 @@ template <typename KeyType, int32_t Indexes>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(
-            IsExternalizable<FailIf<KeyType, false>>::Value,
+            IsExternalizable<KeyType>::Value,
             "Type must either has ValueCodec or FieldFactory defined"
     );
 

@@ -30,6 +30,7 @@ namespace memoria {
 namespace v1 {
 namespace edge_map {
 
+
 template <typename IOBuffer, int32_t Symbols>
 class SingleStreamProducerAdapter: public bt::BufferProducer<IOBuffer> {
     

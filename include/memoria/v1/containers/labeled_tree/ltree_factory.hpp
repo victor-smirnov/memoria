@@ -51,7 +51,7 @@ struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, 
 
     using SymbolsSubstreamPath = IntList<0, 1>;
 
-    using StreamDescriptors = FailIf<TL<
+    using StreamDescriptors = TL<
             StreamTF<
                 TL<
                     StreamSize,
@@ -70,7 +70,7 @@ struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, 
                     TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>
                 >
             >
-    >, false>;
+    >;
 
 
 
@@ -132,7 +132,7 @@ public:
 
     struct Types: Base::Types
     {
-        using LeafStreamsStructList = FailIf<typename Base::Types::LeafStreamsStructList, false>;
+        using LeafStreamsStructList = typename Base::Types::LeafStreamsStructList;
     };
 
 

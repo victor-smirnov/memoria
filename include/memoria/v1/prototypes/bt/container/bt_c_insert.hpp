@@ -65,7 +65,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertName)
 
             split_status = split_result.type();
 
-            result = self.template try_insert_stream_entry<Stream>(iter, split_result.idx(), entry);
+            result = self.template try_insert_stream_entry<Stream>(iter, split_result.stream_idx(), entry);
 
             if (!std::get<0>(result))
             {
@@ -82,6 +82,38 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertName)
     }
 
 
+
+
+    template <int32_t Stream>
+    SplitStatus insert_stream_entry0(Iterator& iter, int32_t structure_idx, int32_t stream_idx, std::function<OpStatus(int, int)> insert_fn)
+    {
+        auto& self = this->self();
+
+        bool result = self.with_page_manager(iter.leaf(), structure_idx, stream_idx, insert_fn);
+
+        SplitStatus split_status;
+
+        if (!result)
+        {
+            auto split_result = iter.split(Stream, stream_idx);
+
+            split_status = split_result.type();
+
+            result = self.with_page_manager(iter.leaf(), iter.idx(), split_result.stream_idx(), insert_fn);
+
+            if (!result)
+            {
+                MMA1_THROW(Exception()) << WhatCInfo("Second insertion attempt failed");
+            }
+        }
+        else {
+            split_status = SplitStatus::NONE;
+        }
+
+        self.update_path(iter.leaf());
+
+        return split_status;
+    }
 
 
 MEMORIA_V1_CONTAINER_PART_END

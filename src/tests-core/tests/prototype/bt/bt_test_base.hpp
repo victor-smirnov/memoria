@@ -71,14 +71,13 @@ protected:
     RngInt64 bigint_generator_{};
 
 public:
-
     MMA1_STATE_FILEDS(size_, snapshot_id_);
     MMA1_INDIRECT_STATE_FILEDS(allocator_);
 
     BTTestBase()
     {
         allocator_ = Allocator::create();
-        snapshot_ = allocator_.master();
+        snapshot_  = allocator_.master();
     }
 
     auto& allocator() {
@@ -163,12 +162,6 @@ public:
         v1::tests::check(snapshot_, msg, source);
     }
 
-//    // FIXME: remove it
-//    virtual void createAllocator(AllocatorPtr& allocator)
-//    {
-//        allocator = Allocator::create();
-//    }
-
     virtual void set_up() noexcept
     {
         if (is_replay())
@@ -178,28 +171,18 @@ public:
     }
 
     virtual void tear_down() noexcept
-    {
-//        if (snapshot_) {
-//            snapshot_.reset();
-//        }
-
-//        allocator_.reset();
-    }
+    {}
 
     virtual void on_test_failure() noexcept
     {
         try {
             if (snapshot_.is_active())
             {
-                commit();
+                snapshot_id_ = snapshot_.parent().uuid();
+                snapshot_.commit();
+
+                allocator_.pack();
             }
-
-            snapshot_id_ = snapshot_.uuid();
-
-//            filesystem::path allocator_path = this->working_directory_;
-//            allocator_path.append("allocator-invalid.mma1");
-
-//            allocator_.store(allocator_path);
         }
         catch (...) {
             out() << "Exception is thrown in BTTestBase::on_test_failure()";

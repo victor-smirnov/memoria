@@ -380,13 +380,16 @@ enum class SplitStatus {NONE, LEFT, RIGHT, UNKNOWN};
 
 class SplitResult {
     SplitStatus type_;
-    int32_t idx_;
+    int32_t stream_idx_;
 public:
-    SplitResult(SplitStatus type, int32_t idx): type_(type), idx_(idx) {}
-    SplitResult(SplitStatus type): type_(type), idx_() {}
+    SplitResult(SplitStatus type, int32_t stream_idx):
+        type_(type), stream_idx_(stream_idx)
+    {}
+
+    SplitResult(SplitStatus type): type_(type), stream_idx_() {}
 
     SplitStatus type() const {return type_;}
-    int32_t idx() const {return idx_;}
+    int32_t stream_idx() const {return stream_idx_;}
 };
 
 
@@ -425,19 +428,20 @@ struct HasValue {
 };
 
 
-namespace details {
-    template <typename T, bool Flag, typename T2>
+namespace _ {
+    template <typename T, bool Flag, typename... AdditionalTypes>
     struct FailIfT {
         static_assert(!Flag, "Template failed");
         using Type = T;
     };
+
 }
 
-template <typename T, bool Flag = true, typename T2 = void>
-using FailIf = typename v1::details::FailIfT<T, Flag, T2>::Type;
+template <bool Flag, typename T, typename... AdditionalTypes>
+using FailIf = typename v1::_::FailIfT<T, Flag, AdditionalTypes...>::Type;
 
-template <int32_t V, bool Flag = true, typename T2 = void>
-using FailIfV = typename v1::details::FailIfT<IntValue<V>, Flag, T2>::Type;
+template <bool Flag, int32_t V, typename... AdditionalTypes>
+using FailIfV = typename v1::_::FailIfT<IntValue<V>, Flag, AdditionalTypes...>::Type;
 
 template <typename T, typename T1 = int32_t, T1 V = T1{}>
 struct FakeValue: HasValue<T1, V> {};

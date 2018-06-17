@@ -22,9 +22,11 @@
 #include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/tools/random.hpp>
 
+#include <memoria/v1/tests/serialization.hpp>
+
+
 #include <boost/preprocessor/list/for_each.hpp>
 #include <boost/preprocessor/variadic/to_list.hpp>
-
 
 
 #include <string>
@@ -34,10 +36,7 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
-struct ConfigurationContext {
-    virtual ~ConfigurationContext() noexcept {}
-    virtual filesystem::path resource_path(const std::string& name) = 0;
-};
+
 
 template <typename T> struct IndirectStateFiledSerializer;
 

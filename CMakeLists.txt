@@ -150,7 +150,7 @@ else()
     find_package(ICU 60.2 COMPONENTS i18n data uc REQUIRED)
 endif()
 
-find_package(Boost 1.66.0 COMPONENTS filesystem context program_options REQUIRED)
+find_package(Boost 1.66.0 COMPONENTS filesystem context program_options serialization REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})

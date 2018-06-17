@@ -139,7 +139,7 @@ public:
 using bfstream = BufferedFileOStream<char>;
 
 
-template <typename CharT> class FileInputStream;
+template <typename CharT = char> class FileInputStream;
 
 template <>
 class FileInputStream<char>: public std::basic_istream<char> {
@@ -158,7 +158,7 @@ public:
     FileInputStream(const FileInputStream&) = delete;
 };
 
-template <typename CharT> class FileOutputStream;
+template <typename CharT = char> class FileOutputStream;
 
 template <>
 class FileOutputStream<char>: public std::basic_ostream<char> {

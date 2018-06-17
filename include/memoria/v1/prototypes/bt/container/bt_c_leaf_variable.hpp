@@ -90,6 +90,40 @@ public:
 
 
 
+//    template <int32_t Stream, typename Entry>
+//    MMA1_NODISCARD std::tuple<bool> try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
+//    {
+//        auto& self = this->self();
+
+//        PageUpdateMgr mgr(self);
+
+//        self.updatePageG(iter.leaf());
+
+//        mgr.add(iter.leaf());
+
+//        BranchNodeEntry accum;
+//        InsertStreamEntryFn<Stream> fn;
+//        LeafDispatcher::dispatch(iter.leaf(), fn, idx, accum, entry);
+
+//        if (isFail(fn.status_)) {
+//            mgr.rollback();
+//            return std::make_tuple(false);
+//        }
+
+//        return std::make_tuple(true);
+//    }
+
+    template <int32_t Stream, typename Entry>
+    OpStatus try_insert_stream_entry_no_mgr(NodeBaseG& leaf, int32_t idx, const Entry& entry)
+    {
+        BranchNodeEntry accum;
+        InsertStreamEntryFn<Stream> fn;
+        LeafDispatcher::dispatch(leaf, fn, idx, accum, entry);
+
+        return fn.status_;
+    }
+
+
     template <int32_t Stream, typename Entry>
     MMA1_NODISCARD std::tuple<bool> try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
     {
@@ -101,12 +135,10 @@ public:
 
         mgr.add(iter.leaf());
 
+        auto status = self.template try_insert_stream_entry_no_mgr<Stream>(iter.leaf(), idx, entry);
 
-        BranchNodeEntry accum;
-        InsertStreamEntryFn<Stream> fn;
-        LeafDispatcher::dispatch(iter.leaf(), fn, idx, accum, entry);
-
-        if (isFail(fn.status_)) {
+        if (isFail(status))
+        {
             mgr.rollback();
             return std::make_tuple(false);
         }
@@ -114,6 +146,25 @@ public:
         return std::make_tuple(true);
     }
 
+    MMA1_NODISCARD bool with_page_manager(NodeBaseG& leaf, int structure_idx, int stream_idx, std::function<OpStatus(int, int)> insert_fn)
+    {
+        auto& self = this->self();
+
+        PageUpdateMgr mgr(self);
+
+        self.updatePageG(leaf);
+
+        mgr.add(leaf);
+
+        auto status = insert_fn(structure_idx, stream_idx);
+
+        if (isFail(status)) {
+            mgr.rollback();
+            return false;
+        }
+
+        return true;
+    }
 
 
 
@@ -191,7 +242,7 @@ public:
         {
             if (isOk(status_)) {
                 status_ <<= obj->template _update_b<Offset>(idx, accum, [&](int32_t block){
-                        return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
+                    return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
                 });
             }
         }

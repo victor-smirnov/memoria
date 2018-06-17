@@ -261,6 +261,28 @@ public:
 
 public:
 
+    int structure_stream_idx(int stream, int data_idx)
+    {
+        auto& self = this->self();
+        auto s = self.leaf_structure();
+
+        if (s != nullptr)
+        {
+            auto result = s->selectFW(data_idx + 1, stream);
+
+            if (result.is_found())
+            {
+                return result.idx();
+            }
+            else {
+                return self.leaf_size(StructureStreamIdx);
+            }
+        }
+        else {
+            MMA1_THROW(Exception()) << WhatCInfo("Structure stream is empty");
+        }
+    }
+
     void toStructureStream()
     {
     	auto& self = this->self();
@@ -275,7 +297,8 @@ public:
 
     		if (s != nullptr)
     		{
-    			auto result = s->selectFW(data_idx + 1, stream);
+                auto result = s->selectFW(stream, data_idx);
+                //auto result = s->selectFW(data_idx + 1, stream);
 
     			self.stream() = StructureStreamIdx;
 

@@ -31,7 +31,10 @@ namespace v1 {
 
 struct EdgeMapFindResult {
     UAcc128T prefix;
-    bool found;
+    int64_t pos;
+    int64_t size;
+
+    bool is_found() const {return pos >= 0 && pos < size;}
 };
 
 template <typename Profile>
@@ -57,6 +60,7 @@ public:
     static constexpr int32_t DataStreams = 2;
     using CtrSizesT = CtrSizes<Profile, DataStreams + 1>;
     
+    using EdgeMapValueIterator = typename Iterator::EdgeMapValueIterator;
 
     MMA1_DECLARE_CTRAPI_BASIC_METHODS()
     
@@ -70,6 +74,8 @@ public:
 
     bool remove(const Key& key);
     bool remove(const Key& key, const Value& value);
+
+    EdgeMapValueIterator iterate(const Key& key);
 
     Iterator begin() {return Base::seq_begin();}
     Iterator end() {return Base::seq_begin();}
@@ -88,6 +94,52 @@ public:
     }
 
     CtrSizeT read(const Key& key, bt::BufferConsumer<CtrIOBuffer>& values_consumer, CtrSizeT start = 0, CtrSizeT length = std::numeric_limits<CtrSizeT>::max());
+
+    class EdgeMapKeyIterator {
+        Iterator iterator_;
+        CtrSizeT cnt_{};
+        CtrSizeT size_{};
+    public:
+        EdgeMapKeyIterator(Iterator iterator, CtrSizeT size):
+            iterator_(iterator), size_(size)
+        {}
+
+        EdgeMapKeyIterator():iterator_(nullptr) {}
+
+        bool has_next() const
+        {
+            return cnt_ < size_;
+        }
+
+        Key next()
+        {
+            if (cnt_ < size_)
+            {
+                auto key = iterator_.key();
+
+                cnt_++;
+
+                if (iterator_.skipFw(1) < 1)
+                {
+                    MMA1_THROW(RuntimeException()) << WhatCInfo("Can't move forward to expected key element");
+                }
+
+                return key;
+            }
+            else {
+                MMA1_THROW(RuntimeException()) << WhatCInfo("No suche element in iterator");
+            }
+        }
+
+        CtrSizeT cnt() const {return cnt_;}
+        CtrSizeT size() const {return size_;}
+
+        //EdgeMapValueIterator values();
+    };
+
+    EdgeMapKeyIterator keys() {
+        return EdgeMapKeyIterator{this->begin(), this->size()};
+    }
 };
 
 
@@ -129,7 +181,6 @@ public:
     std::vector<Value> read_values(int64_t size = std::numeric_limits<int64_t>::max());
     
     int64_t remove(int64_t length = 1);
-    //int64_t values_size() const;
     bool is_found(const Key& key);
 
     bool to_values();
@@ -142,6 +193,50 @@ public:
     CtrSizeT insert_entry(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);
 
     EdgeMapFindResult find_value(const Value& value);
+
+    class EdgeMapValueIterator
+    {
+        UAcc128T acc_;
+        IterApi iterator_;
+        CtrSizeT pos_{};
+        CtrSizeT size_{};
+    public:
+        EdgeMapValueIterator(const UAcc128T& acc, const IterApi& iterator, CtrSizeT size):
+            acc_{acc},
+            iterator_{iterator},
+            size_{size}
+        {}
+
+        EdgeMapValueIterator(): acc_{}, iterator_{nullptr}, size_{}
+        {}
+
+        bool has_next() const {
+            return pos_ < size_;
+        }
+
+        UAcc128T next()
+        {
+            if (pos_ < size_)
+            {
+                auto vv = iterator_.value();
+                acc_ += vv;
+
+                pos_++;
+
+                if (iterator_.skipFw(1) < 1) {
+                    MMA1_THROW(RuntimeException()) << WhatCInfo("Can't move forward to expected value element");
+                }
+
+                return acc_;
+            }
+            else {
+                MMA1_THROW(RuntimeException()) << WhatCInfo("No suche element in iterator");
+            }
+        }
+
+        CtrSizeT size() const {return size_;}
+        CtrSizeT pos() const {return pos_;}
+    };
 };
 
 

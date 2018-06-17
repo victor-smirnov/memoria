@@ -20,12 +20,21 @@
 #include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
 #include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 
+#include <memoria/v1/core/tools/time.hpp>
+
 #include <memoria/v1/reactor/application.hpp>
+#include <memoria/v1/core/tools/boost_serialization.hpp>
+
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include <iostream>
 #include <type_traits>
 #include <vector>
 #include <algorithm>
+#include <random>
 
 namespace mp = boost::multiprecision;
 
@@ -34,9 +43,14 @@ using namespace memoria::v1::reactor;
 
 using UAcc = memoria::v1::UnsignedAccumulator<128>;
 
+
+
+
 int main(int argc, char** argv, char** envp)
 {
     return Application::run_e(argc, argv, envp, [](){
+
+        ShutdownOnScopeExit sh;
 
         InMemAllocator<> alloc = InMemAllocator<>::create();
 
@@ -48,41 +62,38 @@ int main(int argc, char** argv, char** envp)
 
         std::vector<UAcc> values;
 
+        auto t1 = getTimeInMillis();
+
         for (uint64_t c = 0; c < 1000; c++)
         {
-            UAcc128T kk = UUID::make_random();
-            values.push_back(kk);
+            UAcc128T vv = UUID::make_random();
+            values.push_back(vv);
+            ctr.upsert(k1, vv);
         }
+
+        auto t2 = getTimeInMillis();
+
+        engine().coutln(u"Creation time: {}", FormatTime(t2 - t1));
 
         std::sort(values.begin(), values.end());
+        auto values_sorted = values;
 
-        std::vector<UAcc> values_sorted = values;
-
-        UAcc128T last{};
-
-        for (auto& vv: values)
+        size_t cnt{};
+        for (auto ii = ctr.iterate(k1); ii.has_next();)
         {
-            UAcc128T tmp = vv;
-            vv -= last;
-            last = tmp;
-        }
-
-        ctr.assign(k1, values.begin(), values.end());
-
-
-        auto iter = ctr.find(k1);
-
-        if (iter.is_found(k1))
-        {
-            iter.find_value(values_sorted[100]);
-            engine().coutln(u"Pos = {}", iter.run_pos());
+            auto nn = ii.next();
+            engine().coutln(u"values: {} {}", nn, values_sorted[cnt++]);
         }
 
         snp.commit();
 
         alloc.store("allocator.mma1");
 
-        app().shutdown();
+        std::ofstream ofs( "store.dat" );
+        boost::archive::text_oarchive ar(ofs);
+
+        ar << values;
+
         return 0;
     });
 }

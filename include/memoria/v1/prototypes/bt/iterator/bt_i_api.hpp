@@ -276,7 +276,7 @@ typename M_TYPE::CtrSizeT M_TYPE::skipStreamFw(int32_t stream, CtrSizeT amount)
 
     walker.prepare(self);
 
-    int32_t idx = self.model().findFw(self.leaf(), stream, self.idx(), walker);
+    int32_t idx = self.model().findFw(self.leaf(), stream, self.idx(    ), walker);
 
     return walker.finish(self, idx);
 }
@@ -364,7 +364,7 @@ bool M_TYPE::findNextLeaf(Walker&& walker)
     auto& self = this->self();
 
     NodeBaseG&  leaf    = self.leaf();
-    int32_t         stream  = self.stream();
+    int32_t stream      = self.stream();
 
     if (!leaf->is_root())
     {
@@ -411,7 +411,7 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
     auto& self = this->self();
 
     NodeBaseG&  leaf    = self.leaf();
-    int32_t         stream  = self.stream();
+    int32_t stream      = self.stream();
 
     if (!leaf->is_root())
     {

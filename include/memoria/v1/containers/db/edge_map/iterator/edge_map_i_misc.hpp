@@ -55,9 +55,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::edge_map::ItrMiscName)
 
 public:
 
-
-
-
     Key key() const
     {
         auto& self = this->self();
@@ -71,7 +68,6 @@ public:
             return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
         else {
-        	  self.dump();
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
         }
     }
@@ -146,7 +142,7 @@ public:
             }
         }
         else {
-            return 0;
+            return -1;
         }
     }
 
@@ -175,6 +171,23 @@ public:
 
         self.template insert_entry<1>(SingleValueEntryFn<1, Value, CtrSizeT>(value));
     }
+
+    void subtract_value(const Value& value)
+    {
+        auto& self = this->self();
+
+        Value existing = self.value();
+        self.template update_entry<1, IntList<1>>(edge_map::SingleValueUpdateEntryFn<1, Value, CtrSizeT>(existing - value));
+    }
+
+    void add_value(const Value& value)
+    {
+        auto& self = this->self();
+
+        Value existing = self.value();
+        self.template update_entry<1, IntList<1>>(edge_map::SingleValueUpdateEntryFn<1, Value, CtrSizeT>(existing + value));
+    }
+
 
 
     template <typename ValueConsumer>
@@ -241,6 +254,8 @@ public:
     CtrSizeT values_size() const {
         return self().substream_size();
     }
+
+
 
     bool is_found(const Key& key)
     {
@@ -315,27 +330,24 @@ public:
         
         return self.bulkio_insert(adapter)[1];
     }
-    
+
     EdgeMapFindResult find_value(const Value& value)
     {
         auto& self = this->self();
 
         auto size = self.count_values();
+
         self.to_values();
-
-        DebugCounter = 1;
-
-        self.dump();
+        self.toDataStream(1);
 
         typename Types::template FindGEForwardWalker<Types, IntList<1, 1>> walker(0, value);
-        //self.idx() = 0;
         auto prefix = self.find_fw(walker);
+
+        self.stream() = StructureStreamIdx;
 
         auto pos = self.run_pos();
 
-        std::cout << "PosXX = " << self.idx() << std::endl;
-
-        return EdgeMapFindResult{prefix.template cast_to<Value::AccBitLength>(), pos < size};
+        return EdgeMapFindResult{prefix.template cast_to<Value::AccBitLength>(), pos, size};
     }
 
     bool upsert_value(const Value& value)
@@ -344,22 +356,26 @@ public:
 
         auto result = self.find_value(value);
 
-        if (result.found)
+        if (result.is_found())
         {
             auto value_at = this->value() + result.prefix;
 
             if (value_at != value)
             {
-                self.insert_value(value - result.prefix);
+                auto vv = value - result.prefix;
+                self.insert_value(vv);
+                self.skipFw(1);
+
+                self.subtract_value(vv);
                 return true;
             }
+
+            return false;
         }
         else {
             self.insert_value(value - result.prefix);
             return true;
         }
-
-        return false;
     }
 
     bool contains(const Value& value)
@@ -368,7 +384,7 @@ public:
 
         auto result = self.find_value(value);
 
-        return result.found;
+        return result.is_found();
     }
 
     bool remove_value(const Value& value)
@@ -377,13 +393,21 @@ public:
 
         auto result = self.find_value(value);
 
-        if (result.found)
+        if (result.is_found())
         {
-            auto value_at = this->value() + result.prefix;
+            auto vv = this->value();
+
+            auto value_at = vv + result.prefix;
 
             if (value_at == value)
             {
                 self.remove(1);
+
+                if (result.pos + 1 < result.size)
+                {
+                    self.add_value(vv);
+                }
+
                 return true;
             }
         }
