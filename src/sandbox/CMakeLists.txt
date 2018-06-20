@@ -16,7 +16,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX integer serialization_demo)
+    set(MEMORIA_SANDBOX integer)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
