@@ -84,8 +84,6 @@ public:
     int64_t size(const Key& key);
     int64_t size() const;
     
-
-
     Iterator assign(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);
 
     template <typename InputIterator, typename EndIterator>

@@ -373,10 +373,8 @@ public:
         if (size > 0)
         {
             self.to_values();
-            auto values_start_ii = self.clone();
-
-
-            auto values_start = self.pos();
+            auto ii = self.clone();
+            auto values_start_pos = self.pos();
 
             self.toDataStream(1);
 
@@ -385,9 +383,9 @@ public:
 
             self.stream() = StructureStreamIdx;
 
-            auto values_end = self.pos();
+            auto values_end_pos = self.pos();
 
-            auto actual_size = values_end - values_start;
+            auto actual_size = values_end_pos - values_start_pos;
 
             if (actual_size <= size)
             {
@@ -397,10 +395,9 @@ public:
             else {
                 self.skipBw(actual_size - size);
 
-                auto prefix1 = values_start_ii->template sum_up<UAcc192T, IntList<1, 1>>(0);
-                auto prefix2 = self.template sum_up<UAcc192T, IntList<1, 1>>(0);
-
-                return EdgeMapFindResult{(prefix2 - prefix1).template cast_to<Value::AccBitLength>(), size, size};
+                auto values_start_prefix = ii->template sum_up<UAcc192T, IntList<1, 1>>(0);
+                auto values_end_prefix = self.template sum_up<UAcc192T, IntList<1, 1>>(0);
+                return EdgeMapFindResult{(values_end_prefix - values_start_prefix).template cast_to<Value::AccBitLength>(), size, size};
             }
         }
         else {

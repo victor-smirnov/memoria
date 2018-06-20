@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2018 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -165,9 +165,9 @@ public:
 
         check_keys(ctr, keys_);
 
-        commit();
-        snp = branch();
-        ctr = find<CtrName>(snp, ctr_name_);
+        //commit();
+        //snp = branch();
+        //ctr = find<CtrName>(snp, ctr_name_);
 
         auto t1 = getTimeInMillis();
 
@@ -192,7 +192,7 @@ public:
                 check_keys(ctr, keys_);
             }
 
-            if (cnt % commit_rate_ == 0)
+            if (false && cnt % commit_rate_ == 0)
             {
                 commit();
 
