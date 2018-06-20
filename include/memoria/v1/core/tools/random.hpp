@@ -36,8 +36,10 @@ class RNG {
     Engine engine_;
 
     std::uniform_int_distribution<T> distribution_;
-
 public:
+
+    using result_type = T;
+
     RNG(){}
 
     auto operator()()
@@ -64,6 +66,14 @@ public:
     {
         std::seed_seq ss({value});
         engine_.seed(ss);
+    }
+
+    static constexpr T max() {
+        return std::numeric_limits<T>::max();
+    }
+
+    static constexpr T min() {
+        return 0;
     }
 };
 

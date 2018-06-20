@@ -98,33 +98,6 @@ public:
     }
 
 
-    CtrSizeT count_values() const
-    {
-        auto& self = this->self();
-        int32_t stream = self.data_stream();
-
-        if (stream == 0)
-        {
-            auto ii = self.clone();
-            if (ii->next())
-            {
-                int32_t next_stream = ii->data_stream_s();
-                if (next_stream == 1)
-                {
-                    return ii->countFw();
-                }
-                else {
-                    return 0;
-                }
-            }
-            else {
-                return 0;
-            }
-        }
-        else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
-        }
-    }
 
     CtrSizeT run_pos() const
     {
@@ -331,23 +304,109 @@ public:
         return self.bulkio_insert(adapter)[1];
     }
 
+    CtrSizeT count_values() const
+    {
+        auto& self = this->self();
+        int32_t stream = self.data_stream();
+
+        if (stream == 0)
+        {
+            auto ii = self.clone();
+            if (ii->next())
+            {
+                int32_t next_stream = ii->data_stream_s();
+                if (next_stream == 1)
+                {
+                    return ii->countFw();
+                }
+                else {
+                    return 0;
+                }
+            }
+            else {
+                return 0;
+            }
+        }
+        else {
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
+        }
+    }
+
+
+    CtrSizeT count_values_skip()
+    {
+        auto& self = this->self();
+        int32_t stream = self.data_stream();
+
+        if (stream == 0)
+        {
+            if (self.next())
+            {
+                int32_t next_stream = self.data_stream_s();
+                if (next_stream == 1)
+                {
+                    return self.countFw();
+                }
+                else {
+                    return 0;
+                }
+            }
+            else {
+                return 0;
+            }
+        }
+        else {
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
+        }
+    }
+
+
+
     EdgeMapFindResult find_value(const Value& value)
     {
         auto& self = this->self();
 
+        auto ii = self.clone();
+
         auto size = self.count_values();
 
-        self.to_values();
-        self.toDataStream(1);
+        if (size > 0)
+        {
+            self.to_values();
+            auto values_start_ii = self.clone();
 
-        typename Types::template FindGEForwardWalker<Types, IntList<1, 1>> walker(0, value);
-        auto prefix = self.find_fw(walker);
 
-        self.stream() = StructureStreamIdx;
+            auto values_start = self.pos();
 
-        auto pos = self.run_pos();
+            self.toDataStream(1);
 
-        return EdgeMapFindResult{prefix.template cast_to<Value::AccBitLength>(), pos, size};
+            typename Types::template FindGEForwardWalker<Types, IntList<1, 1>> walker(0, value);
+            auto prefix = self.find_fw(walker);
+
+            self.stream() = StructureStreamIdx;
+
+            auto values_end = self.pos();
+
+            auto actual_size = values_end - values_start;
+
+            if (actual_size <= size)
+            {
+                auto pos = self.run_pos();
+                return EdgeMapFindResult{prefix.template cast_to<Value::AccBitLength>(), pos, size};
+            }
+            else {
+                self.skipBw(actual_size - size);
+
+                auto prefix1 = values_start_ii->template sum_up<UAcc192T, IntList<1, 1>>(0);
+                auto prefix2 = self.template sum_up<UAcc192T, IntList<1, 1>>(0);
+
+                return EdgeMapFindResult{(prefix2 - prefix1).template cast_to<Value::AccBitLength>(), size, size};
+            }
+        }
+        else {
+            self.next();
+            return EdgeMapFindResult{Value{}, 0, 0};
+        }
     }
 
     bool upsert_value(const Value& value)

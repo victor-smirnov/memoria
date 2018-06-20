@@ -35,6 +35,7 @@ class InsertBatchFixedName  {};
 class InsertBatchCommonName {};
 class InsertToolsName       {};
 class StreamRankName        {};
+class StreamSumsName        {};
 
 //class BranchCommonName      {};
 //class LeafCommonName        {};
@@ -75,7 +76,8 @@ class IteratorRankName      {};
 class IteratorSkipName      {};
 class IteratorLeafName      {};
 class IteratorMiscName      {};
-class IteratorStreamRankName{};
+class IteratorStreamRankName {};
+class IteratorStreamSumsName {};
 class IteratorUpdateName    {};
 class IteratorRemoveName    {};
 class IteratorInsertName    {};

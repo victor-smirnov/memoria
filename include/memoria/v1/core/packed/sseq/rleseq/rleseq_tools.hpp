@@ -99,8 +99,8 @@ struct Location {
     size_t run_prefix() const {return local_idx_;}
 
     size_t local_idx()  const {return local_idx_;}
-    auto symbol()       const {return run_.symbol();}
-    auto length()       const {return run_.length();}
+    //auto symbol()       const {return run_.symbol();}
+    //auto length()       const {return run_.length();}
 
     auto data_pos()     const {return data_pos_;}
     auto data_length()  const {return data_length_;}

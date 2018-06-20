@@ -99,8 +99,7 @@ typename CtrApi<EdgeMap, Profile>::EdgeMapValueIterator CtrApi<EdgeMap, Profile>
         if (size > 0)
         {
             ii.to_values();
-            auto acc0 = ii.value();
-            return EdgeMapValueIterator(acc0, ii, size);
+            return EdgeMapValueIterator(ii, size);
         }
         else {
             return EdgeMapValueIterator();
@@ -161,6 +160,21 @@ CtrApi<EdgeMap, Profile>::assign(
 }
 
 
+template <typename Profile>
+typename CtrApi<EdgeMap, Profile>::EdgeMapValueIterator
+CtrApi<EdgeMap, Profile>::EdgeMapKeyIterator::values()
+{
+    auto ii = iterator_.clone();
+    auto size = ii.count_values();
+    if (size > 0)
+    {
+        ii.to_values();
+        return EdgeMapValueIterator(ii, size);
+    }
+    else {
+        return EdgeMapValueIterator();
+    }
+}
 
 
 

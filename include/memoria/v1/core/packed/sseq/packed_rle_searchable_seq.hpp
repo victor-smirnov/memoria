@@ -298,7 +298,7 @@ public:
 
         if (!result.out_of_range1())
         {
-            return result.symbol();
+            return result.run().symbol();
         }
         else {
             MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Symbol index {} is out of range {}", idx, this->size()));
@@ -327,7 +327,7 @@ public:
                         insert_run(location.data_pos() + run_value_length, symbol, 1);
                     }
                 }
-                else if (location.length() > 1)
+                else if (location.run().length() > 1)
                 {
                     add_run_length(location, -1);
                     insert_run(location.data_pos(), symbol, 1);
@@ -718,7 +718,7 @@ public:
                     return OpStatus::FAIL;
                 }
 
-                if (location_start.symbol() == location_end.symbol())
+                if (location_start.run().symbol() == location_end.run().symbol())
                 {
                     try_merge_two_adjustent_runs(location_start.data_pos());
                 }
@@ -758,7 +758,7 @@ public:
 // 
 //         if (!location.out_of_range1())
 //         {
-//             if (location.symbol() != symbol || location.length() + length > MaxRunLength)
+//             if (location.symbol() != symbol || location.run().length() + length > MaxRunLength)
 //             {
 //                 if (location.run_prefix() > 0)
 //                 {
@@ -779,6 +779,7 @@ public:
 //     }
 
 
+
     OpStatus insert(int32_t idx, int32_t symbol, uint64_t length)
     {
         auto meta = this->metadata();
@@ -787,7 +788,7 @@ public:
         {
             auto location = find_run(meta, idx);
             
-            if (location.symbol() != symbol || location.length() + length > MaxRunLength)
+            if (location.run().symbol() != symbol || location.run().length() + length > MaxRunLength)
             {
                 if (location.run_prefix() > 0)
                 {
@@ -811,9 +812,9 @@ public:
         else {
             auto location = find_last_run(meta);
             
-            if (location.symbol() != symbol || location.length() + length > MaxRunLength)
+            if (location.run().symbol() != symbol || location.run().length() + length > MaxRunLength)
             {
-                if(isFail(insert_run(location.data_pos() + location.run().length(), symbol, length))) {
+                if(isFail(insert_run(location.data_pos() + location.data_length(), symbol, length))) {
                     return OpStatus::FAIL;
                 }
             }
@@ -858,12 +859,12 @@ public:
                     location = location_s.value();
                 }
 
-                uint64_t start_run_value = encode_run(start_run.symbol(), start_run.run_suffix());
+                uint64_t start_run_value = encode_run(start_run.run().symbol(), start_run.run_suffix());
                 size_t start_run_value_length = codec.length(start_run_value);
 
                 if (end_run.run_prefix() > 0)
                 {
-                    uint64_t end_run_value = encode_run(end_run.symbol(), end_run.run_prefix());
+                    uint64_t end_run_value = encode_run(end_run.run().symbol(), end_run.run_prefix());
                     size_t end_run_value_length = codec.length(end_run_value);
 
                     size_t to_copy      = end_run.data_pos() - start_run.data_end();
@@ -903,7 +904,7 @@ public:
 
                 meta->size() += size;
             }
-            else if (location.symbol() == start_run.symbol())
+            else if (location.run().symbol() == start_run.run().symbol())
             {
                 if(isFail(add_run_length(location, size))) {
                     return OpStatus::FAIL;
@@ -921,7 +922,7 @@ public:
                     location = location_s.value();
                 }
 
-                if(isFail(insert_run(location.data_pos(), start_run.symbol(), size))) {
+                if(isFail(insert_run(location.data_pos(), start_run.run().symbol(), size))) {
                     return OpStatus::FAIL;
                 }
             }
@@ -993,7 +994,7 @@ public:
             Codec codec;
 
             size_t symbols_to_move      = location.run_suffix();
-            uint64_t suffix_value        = encode_run(location.symbol(), symbols_to_move);
+            uint64_t suffix_value       = encode_run(location.run().symbol(), symbols_to_move);
             size_t  suffix_value_length = codec.length(suffix_value);
 
             int32_t current_run_data_length = location.data_length();
@@ -1443,7 +1444,7 @@ public:
 
         auto location = find_run(pos);
 
-        if (location.symbol() == symbol)
+        if (location.run().symbol() == symbol)
         {
         	rank += location.local_idx() + 1;
 
@@ -2020,10 +2021,10 @@ private:
 
             Codec codec;
 
-            uint64_t new_start_run_value     = encode_run(start.symbol(), start.run_prefix());
+            uint64_t new_start_run_value     = encode_run(start.run().symbol(), start.run_prefix());
             size_t new_start_run_length     = codec.length(new_start_run_value);
 
-            uint64_t new_end_run_value       = encode_run(end.symbol(), end.run_suffix());
+            uint64_t new_end_run_value       = encode_run(end.run().symbol(), end.run_suffix());
             size_t new_end_run_length       = codec.length(new_end_run_value);
 
             size_t hole_start   = start.data_pos() + new_start_run_length;
@@ -2057,7 +2058,7 @@ private:
 
         auto meta = this->metadata();
 
-        uint64_t new_end_run_value       = encode_run(end.symbol(), end.run_suffix());
+        uint64_t new_end_run_value       = encode_run(end.run().symbol(), end.run_suffix());
         size_t new_end_run_length       = codec.length(new_end_run_value);
 
         size_t hole_start   = start.data_pos();
@@ -2081,7 +2082,7 @@ private:
 
         auto meta = this->metadata();
 
-        uint64_t new_run_value   = encode_run(start.symbol(), start.run_prefix());
+        uint64_t new_run_value   = encode_run(start.run().symbol(), start.run_prefix());
         size_t new_run_length   = codec.length(new_run_value);
 
         size_t hole_start = start.data_pos() + new_run_length;
@@ -2130,7 +2131,7 @@ private:
 
             if (first_run.symbol() == next_run.symbol() && first_run.length() + next_run.length() <= MaxRunLength)
             {
-                uint64_t new_run_value       = encode_run(first_run.symbol(), first_run.length() + next_run.length());
+                uint64_t new_run_value      = encode_run(first_run.symbol(), first_run.length() + next_run.length());
                 size_t new_run_value_length = codec.length(new_run_value);
 
                 size_t window_size = first_len + next_len;
@@ -2152,16 +2153,16 @@ private:
     {
         uint64_t pos = location.local_idx();
 
-        if (pos > 0 && pos < location.length())
+        if (pos > 0 && pos < location.run().length())
         {
             Codec codec;
             auto symbols = this->symbols();
             auto meta    = this->metadata();
 
-            uint64_t prefix_run_value    = encode_run(location.symbol(), location.run_prefix());
+            uint64_t prefix_run_value    = encode_run(location.run().symbol(), location.run_prefix());
             size_t  prefix_value_length = codec.length(prefix_run_value);
 
-            uint64_t suffix_run_value = encode_run(location.symbol(), location.run_suffix() - subtraction);
+            uint64_t suffix_run_value = encode_run(location.run().symbol(), location.run_suffix() - subtraction);
             size_t  suffix_value_length = codec.length(suffix_run_value);
 
             size_t total_length = prefix_value_length + suffix_value_length;
@@ -2209,11 +2210,11 @@ private:
                     0,
                     location.block_base(),
                     location.run_base() + location.run_prefix(),
-                    RLESymbolsRun(location.symbol(), location.run_suffix())
+                    RLESymbolsRun(location.run().symbol(), location.run_suffix())
             ));
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"split_run: invalid split position: {} {}", pos, location.length()));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"split_run: invalid split position: {} {}", pos, location.run().length()));
         }
     }
 
@@ -2222,7 +2223,7 @@ private:
         Codec codec;
         auto meta = this->metadata();
 
-        uint64_t run_value       = encode_run(location.symbol(), location.length() + length);
+        uint64_t run_value      = encode_run(location.run().symbol(), location.run().length() + length);
         size_t run_value_length = codec.length(run_value);
 
         if(isFail(ensure_capacity(run_value_length))) {
@@ -2263,7 +2264,7 @@ private:
         codec.move(symbols, location.data_end(), location.data_pos(), meta->data_size() - location.data_end());
 
         meta->data_size() -= location.data_length();
-        meta->size() -= location.length();
+        meta->size() -= location.run().length();
 
         return shrink_to_data();
     }
@@ -2275,7 +2276,7 @@ private:
         auto meta    = this->metadata();
 
         uint64_t run_value       = encode_run(symbol, length);
-        size_t run_value_length = codec.length(run_value);
+        size_t run_value_length  = codec.length(run_value);
 
         if (isFail(ensure_capacity(run_value_length))) {
             return OpStatus::FAIL;
@@ -2289,8 +2290,6 @@ private:
 
         return OpStatusT<size_t>(run_value_length);
     }
-
-
 };
 
 template <typename T>

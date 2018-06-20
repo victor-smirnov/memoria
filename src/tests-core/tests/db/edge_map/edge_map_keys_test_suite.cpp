@@ -48,7 +48,7 @@ public:
 
     UUID ctr_name_;
 
-    size_t max_keys_{10000000};
+    size_t max_keys_{3000000};
     size_t commit_rate_{10000};
 
     MMA1_STATE_FILEDS(commit_rate_, ctr_name_)
@@ -58,13 +58,25 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testCreateKey, replayCreateKey);
+        MMA1_CLASS_TEST_WITH_REPLAY(suite, testInsertKey, replayInsertKey);
         MMA1_CLASS_TEST_WITH_REPLAY(suite, testRemoveKey, replayRemoveKey);
     }
 
+    virtual void post_configure(TestCoverage coverage)
+    {
+        max_keys_ = select_for_coverage<size_t>(
+            coverage,
+            1000,
+            10000,
+            100000,
+            1000000,
+            10000000,
+            100000000
+        );
+    }
 
 
-    void testCreateKey()
+    void testInsertKey()
     {
         auto snp = branch();
 
@@ -104,7 +116,7 @@ public:
         commit();
     }
 
-    void replayCreateKey()
+    void replayInsertKey()
     {
         out() << "Replaying createTest. Snapshot size " << keys_snapshot_.size() << std::endl;
 
@@ -158,6 +170,8 @@ public:
         ctr = find<CtrName>(snp, ctr_name_);
 
         auto t1 = getTimeInMillis();
+
+        commit_rate_ = max_keys_;
 
         for (size_t cnt = 0; cnt < max_keys_; cnt++)
         {
@@ -224,12 +238,14 @@ public:
         assert_equals(keys.size(), (size_t)ctr.size());
 
         auto ki = keys.begin();
-        for (auto keys_ii = ctr.keys(); keys_ii.has_next(); ki++)
+        for (auto keys_ii = ctr.keys(); keys_ii.has_keys(); ki++)
         {
-            auto k1 = keys_ii.next();
+            auto k1 = keys_ii.key();
             auto k2 = *ki;
 
             assert_equals(k2, k1);
+
+            keys_ii.next_key();
         }
     }
 

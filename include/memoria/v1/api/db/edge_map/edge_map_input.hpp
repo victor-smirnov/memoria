@@ -105,6 +105,7 @@ public:
             {
                 if (IOBufferAdapter<Key>::put(buffer, key_)) 
                 {
+                    key_processed_ = true;
                     entries += 2;
                 }
                 else {

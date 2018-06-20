@@ -36,6 +36,16 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
+template <typename T>
+struct AlwaysCommitHandler {
+    T& test_;
+
+    ~AlwaysCommitHandler() {
+        test_.commit();
+    }
+};
+
+
 template <
     typename ContainerTypeName,
     typename AllocatorType,

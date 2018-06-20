@@ -508,8 +508,6 @@ private:
         const auto* limbs = bmp_value.backend().limbs();
 
         using LimbT = _::LimbType<_::UAccBmpInt<BmpBitLength>>;
-        LimbT mask = 0xFFFFFFFFFFFFFFFFull;
-
         for (size_t c = 0; c < Size; c += 2)
         {
             LimbT vv = limbs[c / 2];

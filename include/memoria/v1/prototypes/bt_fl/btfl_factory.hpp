@@ -40,6 +40,7 @@
 
 #include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_misc.hpp>
 #include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_srank.hpp>
+#include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_sums.hpp>
 #include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_find.hpp>
 #include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_skip.hpp>
 #include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_update.hpp>
@@ -106,6 +107,7 @@ struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
                 typename Base::IteratorPartsList,
                 v1::btfl::IteratorMiscName,
                 v1::btfl::IteratorStreamRankName,
+                v1::btfl::IteratorStreamSumsName,
                 v1::btfl::IteratorFindName,
                 v1::btfl::IteratorSkipName,
                 v1::btfl::IteratorUpdateName,

@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/integer/integer.hpp>
 #include <memoria/v1/core/strings/string.hpp>
 
@@ -136,6 +137,42 @@ void load(Archive& ar, memoria::v1::UWString& u_str, const unsigned int version)
 template<class Archive>
 inline void serialize(Archive & ar, memoria::v1::UWString& t, const unsigned int file_version){
     split_free(ar, t, file_version);
+}
+
+
+
+
+template<typename Archive, typename T>
+void save(Archive& ar, const memoria::v1::Optional<T>& opt, const unsigned int version)
+{
+    bool non_empty = (bool)opt;
+    ar & non_empty;
+
+    if (non_empty)
+    {
+        ar & opt.value();
+    }
+}
+
+template<typename Archive, typename T>
+void load(Archive& ar, memoria::v1::Optional<T>& opt, const unsigned int version)
+{
+    bool non_empty{};
+    ar & non_empty;
+    if (non_empty)
+    {
+        T value{};
+        ar & value;
+        opt = memoria::v1::Optional<T>(value);
+    }
+    else {
+        opt = memoria::v1::Optional<T>();
+    }
+}
+
+template<typename Archive, typename T>
+inline void serialize(Archive & ar, memoria::v1::Optional<T>& opt, const unsigned int file_version){
+    split_free(ar, opt, file_version);
 }
 
 

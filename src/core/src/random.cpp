@@ -37,9 +37,9 @@ int32_t getRandomG()
     return getGlobalIntGenerator()();
 }
 
-int32_t getRandomG(int32_t max)
+int32_t getRandomG(int32_t max_v)
 {
-    return max > 0 ? getGlobalIntGenerator()() % max : 0;
+    return max_v > 0 ? getGlobalIntGenerator()(max_v) : 0;
 }
 
 void Seed(int32_t value)
@@ -56,7 +56,7 @@ int64_t getBIRandomG()
 
 int64_t getBIRandomG(int64_t max)
 {
-    return max > 0 ? getGlobalInt64Generator()() % max : 0;
+    return max > 0 ? getGlobalInt64Generator()(max) : 0;
 }
 
 void SeedBI(int64_t value)

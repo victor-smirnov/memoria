@@ -125,15 +125,15 @@ public:
             auto size = ii->count_values();
             if (size > 0)
             {
-                ii->to_values();
                 if (ii->remove_value(value))
                 {
                     if (size == 1)
                     {
                         ii->to_prev_key();
                         ii->remove(1);
-                        return true;
                     }
+
+                    return true;
                 }
 
                 return false;

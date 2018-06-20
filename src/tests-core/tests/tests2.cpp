@@ -36,7 +36,7 @@ int main(int argc, char** argv, char** envp)
         ("config", po::value<std::string>(), "Path to config file, defaults to tests2.yaml")
         ("output", po::value<std::string>(), "Path to tests' output directory, defaults to tests2.out in the CWD")
         ("coverage",
-            po::value<std::string>()->default_value("small"),
+            po::value<std::string>()->default_value("tiny"),
             "Test coverage type: smoke, tiny, small, medium, large, xlarge"
         )
         ;

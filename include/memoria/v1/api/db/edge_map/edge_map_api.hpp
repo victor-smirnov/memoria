@@ -84,8 +84,10 @@ public:
     int64_t size(const Key& key);
     int64_t size() const;
     
+
+
     Iterator assign(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);
-    
+
     template <typename InputIterator, typename EndIterator>
     Iterator assign(const Key& key, const InputIterator& start, const EndIterator& end)
     {
@@ -106,35 +108,33 @@ public:
 
         EdgeMapKeyIterator():iterator_(nullptr) {}
 
-        bool has_next() const
+        bool has_keys() const
         {
             return cnt_ < size_;
         }
 
-        Key next()
+        void next_key()
         {
             if (cnt_ < size_)
-            {
-                auto key = iterator_.key();
-
+            {                
                 cnt_++;
-
-                if (iterator_.skipFw(1) < 1)
-                {
-                    MMA1_THROW(RuntimeException()) << WhatCInfo("Can't move forward to expected key element");
-                }
-
-                return key;
+                iterator_.next_key();
             }
             else {
-                MMA1_THROW(RuntimeException()) << WhatCInfo("No suche element in iterator");
+                MMA1_THROW(RuntimeException()) << WhatCInfo("No such element in iterator");
             }
         }
 
         CtrSizeT cnt() const {return cnt_;}
         CtrSizeT size() const {return size_;}
 
-        //EdgeMapValueIterator values();
+        Key key() {
+            return iterator_.key();
+        }
+
+        EdgeMapValueIterator values();
+
+        Iterator& iterator() {return iterator_;}
     };
 
     EdgeMapKeyIterator keys() {
@@ -196,38 +196,36 @@ public:
 
     class EdgeMapValueIterator
     {
-        UAcc128T acc_;
+        UAcc128T acc_{};
+        UAcc128T value_{};
+
         IterApi iterator_;
-        CtrSizeT pos_{};
+        CtrSizeT cnt_{};
         CtrSizeT size_{};
     public:
-        EdgeMapValueIterator(const UAcc128T& acc, const IterApi& iterator, CtrSizeT size):
-            acc_{acc},
+        EdgeMapValueIterator(const IterApi& iterator, CtrSizeT size):
             iterator_{iterator},
             size_{size}
         {}
 
-        EdgeMapValueIterator(): acc_{}, iterator_{nullptr}, size_{}
+        EdgeMapValueIterator(): iterator_{nullptr}
         {}
 
-        bool has_next() const {
-            return pos_ < size_;
+        bool has_values() const {
+            return cnt_ < size_;
         }
 
-        UAcc128T next()
+        void next_value()
         {
-            if (pos_ < size_)
+            if (cnt_ < size_)
             {
-                auto vv = iterator_.value();
-                acc_ += vv;
-
-                pos_++;
-
-                if (iterator_.skipFw(1) < 1) {
+                if (iterator_.skipFw(1) < 1)
+                {
                     MMA1_THROW(RuntimeException()) << WhatCInfo("Can't move forward to expected value element");
                 }
 
-                return acc_;
+                acc_ += value_;
+                cnt_++;
             }
             else {
                 MMA1_THROW(RuntimeException()) << WhatCInfo("No suche element in iterator");
@@ -235,7 +233,15 @@ public:
         }
 
         CtrSizeT size() const {return size_;}
-        CtrSizeT pos() const {return pos_;}
+        CtrSizeT pos() const {return cnt_;}
+
+        UAcc128T value()
+        {
+            value_ = iterator_.value();
+            return acc_ + value_;
+        }
+
+        auto& iterator() {return iterator_;}
     };
 };
 
