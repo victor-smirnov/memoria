@@ -79,10 +79,12 @@ int main(int argc, char** argv, char** envp)
         auto values_sorted = values;
 
         size_t cnt{};
-        for (auto ii = ctr.iterate(k1); ii.has_next();)
+        for (auto ii = ctr.iterate(k1); ii.has_values();)
         {
-            auto nn = ii.next();
+            auto nn = ii.value();
             engine().coutln(u"values: {} {}", nn, values_sorted[cnt++]);
+
+            ii.next_value();
         }
 
         snp.commit();

@@ -31,12 +31,9 @@
 namespace memoria {
 namespace v1 {
 
-
-
 template <typename Types> class Ctr;
 template <typename Types> class Iter;
 template <typename Name, typename Base, typename Types> class IterPart;
-
 
 template <int Idx, typename Types1>
 class IterHelper: public IterPart<
@@ -90,15 +87,15 @@ class IterStart: public IterHelper<ListSize<typename Types1::List> - 1, Types1> 
 public:
     IterStart(): Base(), ctr_ptr_(), model_() {}
 
-    IterStart(CtrPtr ptr): Base(), ctr_ptr_(std::move(ptr)), model_(ctr_ptr_.get()) {
-    	//std::cout << "Create Iterator: " << ctr_ptr_.use_count() << "\n";
+    IterStart(CtrPtr ptr): Base(), ctr_ptr_(std::move(ptr)), model_(ctr_ptr_.get())
+    {
+        this->ctr_holder_ = ptr;
     }
+
     IterStart(ThisType&& other): Base(std::move(other)), ctr_ptr_(std::move(other.ctr_ptr_)), model_(other.model_) {}
     IterStart(const ThisType& other): Base(other), ctr_ptr_(other.ctr_ptr_), model_(other.model_) {}
 
-    virtual ~IterStart() {
-    	//std::cout << "Destroy Iterator: " << ctr_ptr_.use_count() << "\n";
-    }
+    virtual ~IterStart() {}
 
     ContainerType& model() {
         return *model_;
@@ -136,7 +133,11 @@ public:
     typedef Iter<TypesType>                                                         MyType;
 
     enum {NORMAL = 0, END = 1, START = 2, EMPTY = 3};
-    
+
+protected:
+
+    CtrSharedPtr<Container> ctr_holder_;
+
 private:
     Logger logger_;
 
@@ -150,8 +151,15 @@ public:
         type_(NORMAL)
     {}
 
-    IteratorBase(ThisType&& other): logger_(std::move(other.logger_)), type_(other.type_) {}
-    IteratorBase(const ThisType& other): logger_(other.logger_), type_(other.type_)       {}
+    IteratorBase(ThisType&& other):
+        ctr_holder_(std::move(other.ctr_holder_)),
+        logger_(std::move(other.logger_)), type_(other.type_)
+    {}
+
+    IteratorBase(const ThisType& other):
+        ctr_holder_(other.ctr_holder_),
+        logger_(other.logger_), type_(other.type_)
+    {}
 
 
     PairPtr& pair() {return pair_;}
@@ -178,12 +186,14 @@ public:
 
     void assign(const ThisType& other)
     {
+        ctr_holder_ = other.ctr_holder_;
         logger_ = other.logger_;
         type_   = other.type_;
     }
 
     void assign(ThisType&& other)
     {
+        ctr_holder_ = std::move(other.ctr_holder_);
         logger_ = std::move(other.logger_);
         type_   = other.type_;
     }

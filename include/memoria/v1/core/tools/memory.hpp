@@ -34,20 +34,19 @@ auto ctr_make_shared(Args&&... args) {
 }
 
 
-
-
-
-
 template <typename T>
 using SnpSharedPtr = LocalSharedPtr<T>;
 
 template <typename T>
 using SnpSharedFromThis = EnableSharedFromThis<T>;
 
+
 template <typename T, typename... Args>
 auto snp_make_shared(Args&&... args) {
-    return MakeLocalShared<T>(std::forward<Args>(args)...);
+    auto snp = MakeLocalShared<T>(std::forward<Args>(args)...);
+    return snp;
 }
+
 
 template <typename T, typename... Args>
 auto snp_make_shared_init(Args&&... args) {

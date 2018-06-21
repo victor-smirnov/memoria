@@ -89,30 +89,6 @@ public:
 
 
 
-
-//    template <int32_t Stream, typename Entry>
-//    MMA1_NODISCARD std::tuple<bool> try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
-//    {
-//        auto& self = this->self();
-
-//        PageUpdateMgr mgr(self);
-
-//        self.updatePageG(iter.leaf());
-
-//        mgr.add(iter.leaf());
-
-//        BranchNodeEntry accum;
-//        InsertStreamEntryFn<Stream> fn;
-//        LeafDispatcher::dispatch(iter.leaf(), fn, idx, accum, entry);
-
-//        if (isFail(fn.status_)) {
-//            mgr.rollback();
-//            return std::make_tuple(false);
-//        }
-
-//        return std::make_tuple(true);
-//    }
-
     template <int32_t Stream, typename Entry>
     OpStatus try_insert_stream_entry_no_mgr(NodeBaseG& leaf, int32_t idx, const Entry& entry)
     {

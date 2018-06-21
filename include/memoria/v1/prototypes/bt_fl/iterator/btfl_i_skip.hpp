@@ -297,8 +297,8 @@ public:
 
     		if (s != nullptr)
     		{
-                auto result = s->selectFW(stream, data_idx);
-                //auto result = s->selectFW(data_idx + 1, stream);
+                //auto result = s->selectFW(stream, data_idx);
+                auto result = s->selectFW(data_idx + 1, stream);
 
     			self.stream() = StructureStreamIdx;
 

@@ -48,7 +48,7 @@ public:
 
     UUID ctr_name_;
 
-    size_t max_keys_{3000000};
+    size_t max_keys_{10000000};
     size_t commit_rate_{10000};
 
     MMA1_STATE_FILEDS(commit_rate_, ctr_name_)
@@ -62,18 +62,18 @@ public:
         MMA1_CLASS_TEST_WITH_REPLAY(suite, testRemoveKey, replayRemoveKey);
     }
 
-    virtual void post_configure(TestCoverage coverage)
-    {
-        max_keys_ = select_for_coverage<size_t>(
-            coverage,
-            1000,
-            10000,
-            100000,
-            1000000,
-            10000000,
-            100000000
-        );
-    }
+//    virtual void post_configure(TestCoverage coverage)
+//    {
+//        max_keys_ = select_for_coverage<size_t>(
+//            coverage,
+//            1000,
+//            10000,
+//            100000,
+//            1000000,
+//            10000000,
+//            100000000
+//        );
+//    }
 
 
     void testInsertKey()
@@ -165,13 +165,11 @@ public:
 
         check_keys(ctr, keys_);
 
-        //commit();
-        //snp = branch();
-        //ctr = find<CtrName>(snp, ctr_name_);
+//        commit();
+//        snp = branch();
+//        ctr = find<CtrName>(snp, ctr_name_);
 
         auto t1 = getTimeInMillis();
-
-        commit_rate_ = max_keys_;
 
         for (size_t cnt = 0; cnt < max_keys_; cnt++)
         {
@@ -190,14 +188,10 @@ public:
             if (cnt % (max_keys_ / 10) == 0)
             {
                 check_keys(ctr, keys_);
-            }
+//                commit();
 
-            if (false && cnt % commit_rate_ == 0)
-            {
-                commit();
-
-                snp = branch();
-                ctr = find<CtrName>(snp, ctr_name_);
+//                snp = branch();
+//                ctr = find<CtrName>(snp, ctr_name_);
 
                 keys_snapshot_.clear();
             }

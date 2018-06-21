@@ -72,30 +72,6 @@ public:
     };
 
 
-//    template <int32_t Stream, typename EntryFn>
-//    void insert_entry(EntryFn&& entry)
-//    {
-//        auto& self = this->self();
-
-//        if (DebugCounter) {
-//            self.dump();
-//        }
-
-//        self.ctr().template insert_stream_entry<StructureStreamIdx>(self, StructureStreamIdx, self.idx(), InsertSymbolFn<StructureStreamIdx>(Stream));
-
-//        if (DebugCounter) {
-//            self.dump();
-//        }
-
-//        int32_t key_idx = self.data_stream_idx(Stream);
-//        self.ctr().template insert_stream_entry<Stream>(self, Stream, key_idx, std::forward<EntryFn>(entry));
-
-//        if (DebugCounter) {
-//            self.dump();
-//        }
-//    }
-
-
     template <int32_t Stream, typename EntryFn>
     void insert_entry(EntryFn&& entry)
     {
