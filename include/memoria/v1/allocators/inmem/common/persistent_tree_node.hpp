@@ -24,6 +24,8 @@
 #include <atomic>
 #include <mutex>
 
+#include <boost/thread.hpp>
+
 namespace memoria {
 namespace v1 {
 namespace persistent_inmem {
@@ -34,7 +36,7 @@ template <typename Key_, int32_t NodeSize, int32_t NodeIndexSize, typename NodeI
 class NodeBase {
 public:
 
-	using MutexT = std::recursive_mutex;
+    using MutexT = boost::recursive_mutex;//std::mutex; //boost::detail::spinlock;  //
 	using LockGuardT = std::lock_guard<MutexT>;
 
     using Key       = Key_;
@@ -80,6 +82,7 @@ private:
     int32_t cpu_id_; // not used here...
 
 protected:
+
     int64_t refs_;
     mutable MutexT mutex_;
 
@@ -91,28 +94,39 @@ private:
     Key keys_ [NodeSize];
 
 public:
-    NodeBase() {}
+    NodeBase() {
+    }
 
     NodeBase(const TxnId& txn_id, const NodeId& node_id, NodeType node_type):
         node_type_(node_type),
         node_id_(node_id),
         txn_id_(txn_id),
 		refs_(0)
-    {}
+    {
+    }
+
+    void copy_data_from(const NodeBase* other) {
+        this->metadata_ = other->metadata_;
+        this->node_type_ = other->node_type_;
+        this->node_id_ = other->node_id_;
+        this->txn_id_ = other->txn_id_;
+        this->size_ = other->size_;
+        this->cpu_id_ = other->cpu_id_;
+
+        CopyBuffer(other->index_, index_, Indexes);
+        CopyBuffer(other->keys_, keys_, NodeSize);
+    }
+
 
     MutexT& mutex() {return mutex_;}
     MutexT& mutex() const {return mutex_;}
 
     void lock() {
-    	mutex_.lock();
+        mutex_.lock();
     }
 
     void unlock() {
-    	mutex_.unlock();
-    }
-
-    auto try_lock() {
-    	return mutex_.try_lock();
+        mutex_.unlock();
     }
 
     template <typename Base>
@@ -197,20 +211,21 @@ public:
         return size_ < max_size();
     }
 
-    RCType references() const {
-    	LockGuardT lk(mutex_);
+    RCType references() const
+    {
+        LockGuardT lk(mutex_);
         return refs_;
     }
 
     void ref()
     {
-    	LockGuardT lk(mutex_);
+        LockGuardT lk(mutex_);
     	++refs_;
     }
 
     RCType unref()
     {
-    	LockGuardT lk(mutex_);
+        LockGuardT lk(mutex_);
         auto r = --refs_;
         MEMORIA_V1_ASSERT(r, >=, 0);
         return r;
@@ -409,9 +424,7 @@ public:
         in >> txn_id_;
         in >> size_;
 
-//        int64_t refs;
         in >> refs_;
-//        refs_.store(refs);
 
         int32_t last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
         for (int32_t c = 0; c < last_idx; c++)
@@ -454,11 +467,11 @@ protected:
     }
 
     void clear_refs() {
-        refs_ = 0;
+        refs_ = 0; // FIXME: LOCK!!!!
     }
 
     void set_refs(int32_t refs) {
-        this->refs_ = refs;
+        this->refs_ = refs; // FIXME: LOCK!!!!
     }
 
     void hash(MD5Hash& md5) const
@@ -545,6 +558,12 @@ public:
         this->merge_keys_from(other);
     }
 
+    void copy_data_from(const MyType* other)
+    {
+        CopyBuffer(other->data_, data_, NodeSize);
+        Base::copy_data_from(other);
+    }
+
     uint64_t hash() const
     {
         MD5Hash md5;
@@ -602,9 +621,7 @@ public:
         Base(txn_id, node_id, NodeType::BRANCH)
     {}
 
-    ~BranchNode() {
-//    	cout << "Remove BRANCH node " << this->node_id() << endl;
-    }
+    ~BranchNode() {}
 
 
     void del() const {
@@ -666,8 +683,6 @@ public:
 
         out << std::endl;
     }
-
-
 };
 
 template <typename Key, typename Value_, int32_t NodeSize, int32_t NodeIndexSize, typename NodeId, typename TxnId>
@@ -681,12 +696,6 @@ public:
     LeafNode(const TxnId& txn_id, const NodeId& node_id):
         Base(txn_id, node_id, NodeType::LEAF)
     {}
-
-
-    ~LeafNode() {
-//    	cout << "Remove LEAF node " << this->node_id() << endl;
-    }
-
 
     void del() const {
         delete this;

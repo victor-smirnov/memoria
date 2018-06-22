@@ -150,6 +150,10 @@ public:
     
     bool operator==(const InMemSnapshot&) const;
     operator bool() const;
+
+    void* ptr() {
+        return pimpl_.get();
+    }
     
     ContainerMetadataRepository* metadata() const;
     const UUID& uuid() const;

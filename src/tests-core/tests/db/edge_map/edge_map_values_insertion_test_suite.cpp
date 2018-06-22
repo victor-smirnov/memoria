@@ -76,7 +76,7 @@ public:
             data.push_back(std::make_pair(item.first, item.second));
         }
 
-        std::shuffle(data.begin(), data.end(), getGlobalInt64Generator());
+        std::random_shuffle(data.begin(), data.end(), getGlobalInt64Generator());
         return data;
     }
 

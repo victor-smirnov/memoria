@@ -54,8 +54,8 @@ private:
 
     NodeBaseG           leaf_;
 
-    int32_t                 idx_;
-    int32_t                 stream_;
+    int32_t             idx_;
+    int32_t             stream_;
 
     bool                found_;
 
@@ -65,7 +65,6 @@ public:
     BTIteratorBase():
         Base(), idx_(0), stream_(0), found_(false)
     {
-//        cache_.init(&self());
     }
 
     BTIteratorBase(ThisType&& other):
@@ -85,8 +84,8 @@ public:
         stream_(other.stream_),
         cache_(other.cache_)
     {
-        //cache_.init(me());
     }
+
 
     void assign(ThisType&& other)
     {

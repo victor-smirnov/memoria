@@ -134,7 +134,7 @@ public:
             }
         }
 
-        std::shuffle(data.begin(), data.end(), getGlobalInt64Generator());
+        std::random_shuffle(data.begin(), data.end(), getGlobalInt64Generator());
         return data;
     }
 

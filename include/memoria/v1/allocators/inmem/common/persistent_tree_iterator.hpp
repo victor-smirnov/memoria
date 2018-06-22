@@ -55,13 +55,13 @@ protected:
 public:
     PersistentTreeIteratorBase() {}
 
-    void unlock()
-    {
-    	for (int32_t c = 0; c < path_.size(); c++)
-    	{
-    		path_[c]->unlock();
-    	}
-    }
+//    void unlock()
+//    {
+//    	for (int32_t c = 0; c < path_.size(); c++)
+//    	{
+//    		path_[c]->unlock();
+//    	}
+//    }
 
     int32_t idx() const {
         return idx_;

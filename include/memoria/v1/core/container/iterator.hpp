@@ -87,9 +87,9 @@ class IterStart: public IterHelper<ListSize<typename Types1::List> - 1, Types1> 
 public:
     IterStart(): Base(), ctr_ptr_(), model_() {}
 
-    IterStart(CtrPtr ptr): Base(), ctr_ptr_(std::move(ptr)), model_(ctr_ptr_.get())
+    IterStart(CtrPtr ptr): Base(), ctr_ptr_(ptr), model_(ctr_ptr_.get())
     {
-        this->ctr_holder_ = ptr;
+        this->ctr_holder_ = std::move(ptr);
     }
 
     IterStart(ThisType&& other): Base(std::move(other)), ctr_ptr_(std::move(other.ctr_ptr_)), model_(other.model_) {}

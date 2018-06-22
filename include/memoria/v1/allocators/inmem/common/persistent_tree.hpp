@@ -420,6 +420,7 @@ protected:
     	PathLocker(Path& path): path_(path) {lock_path(path_);}
     	~PathLocker() {unlock_path(path_);}
 
+    private:
         void lock_path(Path& path)
         {
         	int32_t c = path.size() - 2;
@@ -436,6 +437,8 @@ protected:
         		{
         			path[d]->unlock();
         		}
+
+                throw ex;
         	}
         }
 
@@ -832,7 +835,9 @@ protected:
 
         NodeT* new_node = new NodeT(txn_id, node_id);
 
-        CopyBuffer(node, new_node, 1);
+        new_node->copy_data_from(node);
+
+        //CopyBuffer(node, new_node, 1);
 
         new_node->set_txn_id(txn_id);
         new_node->set_node_id(node_id);

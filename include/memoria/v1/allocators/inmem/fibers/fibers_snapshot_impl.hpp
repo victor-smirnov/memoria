@@ -112,7 +112,7 @@ public:
  
     virtual ~Snapshot()
     {
-    	//FIXME This code doesn't decrement properly number of active snapshots
+        //FIXME This code doesn't decrement properly number of active snapshots
     	// for allocator to store data correctly.
 
         reactor::engine().run_at(cpu_, [&]
