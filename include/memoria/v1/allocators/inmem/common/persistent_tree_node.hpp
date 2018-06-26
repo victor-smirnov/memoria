@@ -24,8 +24,6 @@
 #include <atomic>
 #include <mutex>
 
-#include <boost/thread.hpp>
-
 namespace memoria {
 namespace v1 {
 namespace persistent_inmem {
@@ -36,7 +34,7 @@ template <typename Key_, int32_t NodeSize, int32_t NodeIndexSize, typename NodeI
 class NodeBase {
 public:
 
-    using MutexT = boost::recursive_mutex;//std::mutex; //boost::detail::spinlock;  //
+    using MutexT = std::recursive_mutex;
 	using LockGuardT = std::lock_guard<MutexT>;
 
     using Key       = Key_;
