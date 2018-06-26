@@ -26,7 +26,7 @@
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
-
+#include <memoria/v1/api/common/ctr_api_btfl.hpp>
 
 #include <iostream>
 
@@ -73,18 +73,23 @@ public:
     }
 
     template <typename IOBuffer>
-    auto create_read_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
-        return create_walker_<ReadWalkerPool, IOBuffer>(limit);
+    auto create_read_walker(int32_t expected_stream, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
+        return create_walker_<ReadWalkerPool, IOBuffer>(expected_stream, limit);
     }
 
     template <typename IOBuffer>
-    auto create_scan_ge_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
-        return create_walker_<ScanWalkerPool, IOBuffer>(limit);
+    auto create_scan_ge_walker(int32_t expected_stream, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
+        return create_walker_<ScanWalkerPool, IOBuffer>(expected_stream, limit);
     }
 
     template <typename IOBuffer>
-    auto create_scan_run_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
-    	return create_walker_<ScanRunWalkerPool, IOBuffer>(limit);
+    auto create_scan_run_walker(int32_t expected_stream, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
+        return create_walker_<ScanRunWalkerPool, IOBuffer>(expected_stream, limit);
+    }
+
+    template <typename IOBuffer>
+    auto create_scan_run_walker_handler(int32_t expected_stream, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
+        return create_walker_handler<ScanRunWalkerPool, IOBuffer>(expected_stream, limit);
     }
 
 
@@ -145,15 +150,25 @@ public:
 public:
 
     template <template <typename> class WalkerPoolT, typename IOBuffer>
-    auto create_walker_(CtrSizeT limit)
+    auto create_walker_(int expected_stream, CtrSizeT limit)
     {
         auto& self = this->self();
 
         auto walker = self.ctr().pools().get_instance(PoolT<WalkerPoolT<IOBuffer>>()).get_unique();
 
-        walker->init(self, limit);
+        walker->init(self, expected_stream, limit);
 
         return walker;
+    }
+
+    template <template <typename> class WalkerPoolT, typename IOBuffer>
+    auto create_walker_handler(int expected_stream, CtrSizeT limit)
+    {
+        auto& self = this->self();
+        return make_btfl_populate_walker_handler<IOBuffer>(
+            self,
+            self.template create_walker_<WalkerPoolT, IOBuffer>(expected_stream, limit)
+        );
     }
 
 

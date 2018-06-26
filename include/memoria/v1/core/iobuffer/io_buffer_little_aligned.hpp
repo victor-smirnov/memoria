@@ -89,6 +89,17 @@ public:
         return v;
     }
 
+    int16_t getShort(size_t pos) const
+    {
+        assertRange(pos, 2, "getShort()");
+        int16_t v = 0;
+
+        v = array_[pos];
+        v |= ((int16_t)array_[pos + 1]) << 8;
+
+        return v;
+    }
+
 
     bool put(uint16_t v)
     {
@@ -119,6 +130,19 @@ public:
         return v;
     }
 
+
+    uint16_t getUShort(size_t pos) const
+    {
+        assertRange(pos, 2, "getShort()");
+        int16_t v = 0;
+
+        v = array_[pos];
+        v |= ((uint16_t)array_[pos + 1]) << 8;
+
+        return v;
+    }
+
+
     bool put(int32_t v)
     {
         if (has_capacity(4))
@@ -148,6 +172,20 @@ public:
         v |= ((int32_t)array_[pos_ + 3]) << 24;
 
         pos_ += 4;
+
+        return v;
+    }
+
+
+    int32_t getInt(size_t pos) const
+    {
+        assertRange(pos, 4, "getInt()");
+        int32_t v = 0;
+
+        v = array_[pos];
+        v |= ((int32_t)array_[pos + 1]) << 8;
+        v |= ((int32_t)array_[pos + 2]) << 16;
+        v |= ((int32_t)array_[pos + 3]) << 24;
 
         return v;
     }
@@ -185,6 +223,21 @@ public:
 
         return v;
     }
+
+
+    uint32_t getUInt32(size_t pos) const
+    {
+        assertRange(pos, 4, "getUInt32()");
+        uint32_t v = 0;
+
+        v = array_[pos];
+        v |= ((uint32_t)array_[pos + 1]) << 8;
+        v |= ((uint32_t)array_[pos + 2]) << 16;
+        v |= ((uint32_t)array_[pos + 3]) << 24;
+
+        return v;
+    }
+
 
     bool put(int64_t v)
     {
@@ -227,6 +280,25 @@ public:
         return v;
     }
 
+
+    int64_t getInt64(size_t pos) const
+    {
+        assertRange(pos, 8, "getInt64()");
+        int64_t v = 0;
+
+        v = array_[pos];
+        v |= ((int64_t)array_[pos + 1]) << 8;
+        v |= ((int64_t)array_[pos + 2]) << 16;
+        v |= ((int64_t)array_[pos + 3]) << 24;
+        v |= ((int64_t)array_[pos + 4]) << 32;
+        v |= ((int64_t)array_[pos + 5]) << 40;
+        v |= ((int64_t)array_[pos + 6]) << 48;
+        v |= ((int64_t)array_[pos + 7]) << 56;
+
+        return v;
+    }
+
+
     bool put(uint64_t v)
     {
         if (has_capacity(8))
@@ -268,6 +340,26 @@ public:
         return v;
     }
 
+
+    uint64_t getUInt64(size_t pos) const
+    {
+        assertRange(pos, 8, "getUInt64()");
+
+        uint64_t v = 0;
+        v = array_[pos];
+        v |= ((uint64_t)array_[pos + 1]) << 8;
+        v |= ((uint64_t)array_[pos + 2]) << 16;
+        v |= ((uint64_t)array_[pos + 3]) << 24;
+        v |= ((uint64_t)array_[pos + 4]) << 32;
+        v |= ((uint64_t)array_[pos + 5]) << 40;
+        v |= ((uint64_t)array_[pos + 6]) << 48;
+        v |= ((uint64_t)array_[pos + 7]) << 56;
+
+        return v;
+    }
+
+
+
     bool put(float f)
     {
         if (has_capacity(4))
@@ -302,6 +394,21 @@ public:
 
         return static_cast<float>(v);
     }
+
+
+    float getFloat(size_t pos) const
+    {
+        assertRange(pos, 4, "getFloat()");
+        int32_t v = 0;
+
+        v = array_[pos];
+        v |= ((int32_t)array_[pos + 1]) << 8;
+        v |= ((int32_t)array_[pos + 2]) << 16;
+        v |= ((int32_t)array_[pos + 3]) << 24;
+
+        return static_cast<float>(v);
+    }
+
 
 
     bool put(double f)
@@ -343,6 +450,24 @@ public:
         v |= ((int64_t)array_[pos_ + 7]) << 56;
 
         pos_ += 8;
+
+        return static_cast<double>(v);
+    }
+
+
+    double getDouble(size_t pos) const
+    {
+        assertRange(pos, 8, "getDouble()");
+        int64_t v = 0;
+
+        v = array_[pos];
+        v |= ((int64_t)array_[pos + 1]) << 8;
+        v |= ((int64_t)array_[pos + 2]) << 16;
+        v |= ((int64_t)array_[pos + 3]) << 24;
+        v |= ((int64_t)array_[pos + 4]) << 32;
+        v |= ((int64_t)array_[pos + 5]) << 40;
+        v |= ((int64_t)array_[pos + 6]) << 48;
+        v |= ((int64_t)array_[pos + 7]) << 56;
 
         return static_cast<double>(v);
     }

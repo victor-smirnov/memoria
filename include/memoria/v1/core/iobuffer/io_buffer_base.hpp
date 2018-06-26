@@ -271,6 +271,12 @@ public:
         return (uint8_t)array_[pos_++];
     }
 
+    uint8_t getUByte(size_t pos) const
+    {
+        assertRange(pos, 1, "getByte()");
+        return (uint8_t)array_[pos];
+    }
+
     bool put(char v)
     {
         if (has_capacity(1))
@@ -289,6 +295,13 @@ public:
         return (char)array_[pos_++];
     }
 
+
+    uint8_t getChar(size_t pos) const
+    {
+        assertRange(1, "getChar()");
+        return (char)array_[pos];
+    }
+
     bool put(bool v)
     {
         if (has_capacity(1))
@@ -305,6 +318,12 @@ public:
     {
         assertRange(1, "getBool()");
         return (bool)array_[pos_++];
+    }
+
+    bool getBool(size_t pos) const
+    {
+        assertRange(pos, 1, "getBool()");
+        return (bool)array_[pos];
     }
 
     bool put(const Bytes& bytes)
@@ -394,10 +413,25 @@ public:
         return len;
     }
 
+    int64_t getVLen(size_t& pos) const
+    {
+        int64_t len = 0;
+        pos += vlen_codec_.decode(array_, len, pos);
+        return len;
+    }
+
     int64_t getUVLen()
     {
         uint64_t len = 0;
         pos_ += uvlen_codec_.decode(array_, len, pos_);
+        return len;
+    }
+
+
+    int64_t getUVLen(size_t& pos) const
+    {
+        uint64_t len = 0;
+        pos += uvlen_codec_.decode(array_, len, pos);
         return len;
     }
 
@@ -425,15 +459,25 @@ public:
     void get(uint8_t* data, size_t length)
     {
         assertRange(length, "get(uint8_t*, size_t)");
-        //CopyBuffer(array_ + pos_, data, length);
         std::memcpy(data, array_ + pos_, length);
         pos_ += length;
+    }
+
+    void get(size_t pos, uint8_t* data, size_t length) const
+    {
+        assertRange(pos, length, "get(size_t, uint8_t*, size_t)");
+        std::memcpy(data, array_ + pos, length);
     }
     
     void get_(uint8_t* data, size_t length)
     {
         std::memcpy(data, array_ + pos_, length);
         pos_ += length;
+    }
+
+    void get_(size_t pos, uint8_t* data, size_t length) const
+    {
+        std::memcpy(data, array_ + pos, length);
     }
 
 
@@ -505,6 +549,13 @@ public:
         return memoria::v1::rleseq::DecodeRun<Symbols>(value);
     }
 
+    template <int32_t Symbols>
+    memoria::v1::rleseq::RLESymbolsRun getSymbolsRun(size_t pos) const
+    {
+        uint64_t value = getUVLen(pos);
+        return memoria::v1::rleseq::DecodeRun<Symbols>(value);
+    }
+
     void enlarge(size_t minimal_capacity = 0)
     {
         if (owner_)
@@ -531,9 +582,20 @@ public:
         }
     }
 
-    void assertRange(size_t window, const char* op_type)
+    void assertRange(size_t window, const char* op_type) const
     {
         if (pos_ + window <= limit_)
+        {
+            return;
+        }
+        else {
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"IOBuffer:: {} is out of bounds: {} {} {}", op_type, pos_, window, limit_));
+        }
+    }
+
+    void assertRange(size_t pos, size_t window, const char* op_type) const
+    {
+        if (pos + window <= limit_)
         {
             return;
         }

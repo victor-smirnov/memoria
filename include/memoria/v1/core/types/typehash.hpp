@@ -202,5 +202,10 @@ struct TypeHash<EdgeMap>: UInt64Value <
     HashHelper<4000>
 > {};
 
+template <>
+struct TypeHash<UpdateLog>: UInt64Value <
+    HashHelper<4001>
+> {};
+
 
 }}

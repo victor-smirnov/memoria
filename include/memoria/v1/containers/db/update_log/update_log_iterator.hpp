@@ -1,5 +1,5 @@
 
-// Copyright 2016 Victor Smirnov
+// Copyright 2015 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,12 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 #pragma once
+
+#include <memoria/v1/prototypes/bt_fl/btfl_iterator.hpp>
+#include <memoria/v1/containers/db/edge_map/edge_map_names.hpp>
 
 namespace memoria {
 namespace v1 {
 
-
-    
-} 
+template <typename Types, typename Value>
+void AssignToItem(Iter<EdgeMapIterTypes<Types>>& iter, Value&& value)
+{
+    iter.setValue(value);
 }
+
+}}

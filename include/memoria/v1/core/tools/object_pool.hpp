@@ -51,12 +51,45 @@ struct PoolBase {
     virtual ~PoolBase() noexcept {}
 };
 
+
+template <typename ObjectType>
+class PoolUniquePtr: public PoolBase, public std::unique_ptr<ObjectType, std::function<void (void*)>> {
+    using Base = std::unique_ptr<ObjectType, std::function<void (void*)>>;
+public:
+    PoolUniquePtr(ObjectType* tt, std::function<void (void*)> dtr):
+        Base(tt, std::move(dtr))
+    {}
+
+    PoolUniquePtr(const PoolUniquePtr&) = delete;
+    PoolUniquePtr() = default;
+    PoolUniquePtr(PoolUniquePtr&& other): Base(std::move(other)) {}
+
+    PoolUniquePtr& operator=(const PoolUniquePtr&) = delete;
+    PoolUniquePtr& operator=(PoolUniquePtr&& other)
+    {
+        Base::operator=(std::move(other));
+        return *this;
+    }
+
+    bool operator==(const PoolUniquePtr& other) const
+    {
+        return Base::operator==(other);
+    }
+
+    auto convert_to_ptr() {
+        return new PoolUniquePtr(std::move(*this));
+    }
+};
+
+
+
+
 template <typename ObjectType>
 class ObjectPool: public PoolBase {
 
     using MyType = ObjectPool<ObjectType>;
 
-    using UniquePtr = std::unique_ptr<ObjectType, std::function<void (void*)>>;
+    using UniquePtr = PoolUniquePtr<ObjectType>;
     using SharedPtr = std::shared_ptr<ObjectType>;
 
     struct Descriptor {

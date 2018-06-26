@@ -25,9 +25,11 @@ set (SRCS )
 
 #set (SRCS ${SRCS} integer/integer_test_suite.cpp)
 
-set (SRCS ${SRCS} db/edge_map/edge_map_keys_test_suite.cpp)
-set (SRCS ${SRCS} db/edge_map/edge_map_values_insertion_test_suite.cpp)
-set (SRCS ${SRCS} db/edge_map/edge_map_values_removal_test_suite.cpp)
+#set (SRCS ${SRCS} db/edge_map/edge_map_keys_test_suite.cpp)
+#set (SRCS ${SRCS} db/edge_map/edge_map_values_insertion_test_suite.cpp)
+#set (SRCS ${SRCS} db/edge_map/edge_map_values_removal_test_suite.cpp)
+
+set (SRCS ${SRCS} db/update_log/update_log_append_test_suite.cpp)
 
 add_executable(tests2 tests2.cpp ${SRCS})
 

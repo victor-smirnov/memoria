@@ -164,6 +164,9 @@ public:
     void operator=(const IterApiBase& other);
     void operator=(IterApiBase&& other);
     
+    const IterPtr& ptr() const;
+    IterPtr& ptr();
+
     CtrApi<CtrName, Profile> ctr();
     
     Iterator clone();

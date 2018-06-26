@@ -1,5 +1,5 @@
 
-// Copyright 2018 Victor Smirnov
+// Copyright 2015 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,145 @@
 
 #pragma once
 
+#include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
+#include <memoria/v1/containers/db/update_log/update_log_names.hpp>
+
+#include <memoria/v1/containers/db/update_log/update_log_input.hpp>
+
+#include <memoria/v1/containers/db/update_log/container/update_log_c_api.hpp>
+#include <memoria/v1/containers/db/update_log/iterator/update_log_i_api.hpp>
+
+#include <memoria/v1/containers/db/update_log/update_log_tools.hpp>
+#include <memoria/v1/containers/db/update_log/update_log_iterator.hpp>
+
+#include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
+
+#include <tuple>
 
 namespace memoria {
 namespace v1 {
 
 
+template <typename Profile>
+struct UpdateLogBTTypesBaseBase: public BTTypes<Profile, v1::BTFreeLayout> {
+
+    using Base = BTTypes<Profile, v1::BTFreeLayout>;
+
+    using CommonContainerPartsList = MergeLists<
+                typename Base::CommonContainerPartsList,
+                v1::update_log::CtrApiName
+    >;
+
+    using IteratorPartsList = MergeLists<
+                typename Base::IteratorPartsList,
+                v1::update_log::ItrApiName
+    >;
+};
+
+
+
+template <typename Profile>
+struct UpdateLogBTTypesBase: public UpdateLogBTTypesBaseBase<Profile> {
+
+    using Base = UpdateLogBTTypesBaseBase<Profile>;
+
+    using SnapshotIdT    = UUID;
+    using CtrNameT       = UAcc128T;
+    using DataT          = uint8_t;
+
+    using CtrSizeT = typename Base::CtrSizeT;
+
+    using SnapshotIdStreamTF = StreamTF<
+        TL<
+            TL<StreamSize>,
+            TL<typename update_log::SnapshotIdStructTF<SnapshotIdT>::Type>
+        >,
+        update_log::UpdateLogBranchStructTF
+    >;
+
+    using CtrNameStreamTF = StreamTF<
+        TL<
+            TL<StreamSize>,
+            TL<typename update_log::CtrNameStructTF<CtrNameT>::Type>
+        >,
+        update_log::UpdateLogBranchStructTF
+    >;
+
+    using CommandDataStreamTF = StreamTF<
+        TL<
+            TL<StreamSize>,
+            TL<typename update_log::CommandDataStructTF<DataT>::Type>
+        >,
+        update_log::UpdateLogBranchStructTF
+    >;
+
+    using StructureStreamTF = StreamTF<
+        TL<
+            TL<StreamSize>,
+            TL<typename btfl::StructureStreamTF<3>::Type>
+        >,
+        update_log::UpdateLogBranchStructTF
+    >;
+
+
+    using StreamDescriptors = TL<
+        SnapshotIdStreamTF,
+        CtrNameStreamTF,
+        CommandDataStreamTF,
+        StructureStreamTF
+    >;
+
+
+    static constexpr int32_t DataStreams = ListSize<StreamDescriptors> - 1;
+
+
+    template <int32_t Level>
+    using IOData = btfl::BTFLData<
+        DataStreams,
+        Level,
+        SnapshotIdT,
+        CtrNameT,
+        DataT
+    >;
+
+};
+
+
+
+
+
+
+
+template <
+    typename Profile
+>
+struct BTTypes<Profile, UpdateLog>: public UpdateLogBTTypesBase<Profile>
+{
+};
+
+
+template <typename Profile, typename T>
+class CtrTF<Profile, UpdateLog, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
+    using Base1 = CtrTF<Profile, v1::BTFreeLayout, T>;
+public:
+
+    struct Types: Base1::Types
+    {
+	using BaseTypes = typename Base1::Types;
+
+        using CtrTypes          = UpdateLogCtrTypes<Types>;
+        using IterTypes         = UpdateLogIterTypes<Types>;
+
+        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
+
+        using LeafStreamsStructList = typename BaseTypes::LeafStreamsStructList;
+
+        using IteratorBranchNodeEntry = typename BaseTypes::IteratorBranchNodeEntry;
+    };
+
+    using CtrTypes  = typename Types::CtrTypes;
+    using Type      = Ctr<CtrTypes>;
+};
 
 
 }}

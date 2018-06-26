@@ -38,8 +38,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorRemoveName)
 
     using CtrSizeT  = typename Container::Types::CtrSizeT;
     using CtrSizesT = typename Container::Types::CtrSizesT;
-    using Key       = typename Container::Types::Key;
-    using Value     = typename Container::Types::Value;
 
     using BranchNodeEntry               = typename Container::Types::BranchNodeEntry;
     using IteratorBranchNodeEntry       = typename Container::Types::IteratorBranchNodeEntry;

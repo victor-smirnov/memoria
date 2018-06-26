@@ -18,6 +18,8 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 
 #include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
+#include <memoria/v1/api/db/update_log/update_log_api.hpp>
+
 #include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 
 #include <memoria/v1/core/tools/time.hpp>
@@ -43,9 +45,6 @@ using namespace memoria::v1::reactor;
 
 using UAcc = memoria::v1::UnsignedAccumulator<128>;
 
-
-
-
 int main(int argc, char** argv, char** envp)
 {
     return Application::run_e(argc, argv, envp, [](){
@@ -56,45 +55,40 @@ int main(int argc, char** argv, char** envp)
 
         auto snp = alloc.master().branch();
 
-        auto ctr = create<EdgeMap>(snp);
+        auto ctr = create<UpdateLog>(snp);
 
-        UUID k1 = UUID::make_random();
+//        UUID id = UUID::make_random();
+//        ctr.create_snapshot(id);
 
-        std::vector<UAcc> values;
+        std::vector<UUID> ids_v;
+//        ids_v.push_back(id);
 
-        auto t1 = getTimeInMillis();
+        UUID id;
 
-        for (uint64_t c = 0; c < 1000; c++)
+        for (size_t c = 0; c < 10000; c++)
         {
-            UAcc128T vv = UUID::make_random();
-            values.push_back(vv);
-            ctr.upsert(k1, vv);
+            UUID id0 = UUID::make_random();
+
+            if (c == 3) {
+                id = id0;
+            }
+
+            ctr.create_snapshot(id0);
+            ids_v.push_back(id0);
         }
 
-        auto t2 = getTimeInMillis();
+        auto ii = ctr.find_snapshot(id);
 
-        engine().coutln(u"Creation time: {}", FormatTime(t2 - t1));
-
-        std::sort(values.begin(), values.end());
-        auto values_sorted = values;
-
-        size_t cnt{};
-        for (auto ii = ctr.iterate(k1); ii.has_values();)
+        size_t cnt = 3;
+        while (ii.has_next())
         {
-            auto nn = ii.value();
-            engine().coutln(u"values: {} {}", nn, values_sorted[cnt++]);
-
-            ii.next_value();
+            engine().coutln(u"{} {} {}", cnt, ii.next(), ids_v[cnt]);
+            cnt++;
         }
 
         snp.commit();
 
         alloc.store("allocator.mma1");
-
-        std::ofstream ofs( "store.dat" );
-        boost::archive::text_oarchive ar(ofs);
-
-        ar << values;
 
         return 0;
     });

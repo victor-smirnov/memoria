@@ -194,6 +194,15 @@ IterApiBase<CtrName, Profile>::IterApiBase(IterApiBase&& other): pimpl_(std::mov
 template <typename CtrName, typename Profile>
 IterApiBase<CtrName, Profile>::~IterApiBase() {}
 
+template <typename CtrName, typename Profile>
+const typename IterApiBase<CtrName, Profile>::IterPtr& IterApiBase<CtrName, Profile>::ptr() const {
+    return pimpl_;
+}
+
+template <typename CtrName, typename Profile>
+typename IterApiBase<CtrName, Profile>::IterPtr& IterApiBase<CtrName, Profile>::ptr() {
+    return pimpl_;
+}
 
 template <typename CtrName, typename Profile>
 void IterApiBase<CtrName, Profile>::operator=(const IterApiBase& other) 

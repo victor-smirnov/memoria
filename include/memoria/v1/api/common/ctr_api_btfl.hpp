@@ -24,6 +24,8 @@
 
 #include "../common/ctr_input_btss.hpp"
 #include "../common/ctr_output_btss.hpp"
+#include "../common/ctr_output_btfl.hpp"
+
 
 #include "ctr_api.hpp"
 

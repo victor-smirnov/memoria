@@ -26,6 +26,8 @@
 
 #include <memoria/v1/prototypes/bt/bt_iterator.hpp>
 
+
+
 #include <memory>
 #include <tuple>
 #include <limits>
@@ -86,7 +88,7 @@ public:
 
 
 
-namespace {
+namespace _ {
     template <typename LeafNode, int32_t Idx, int32_t Streams, template <typename> class MapFn>
     struct MapAllStreams4Data {
         using Type = MergeLists<
@@ -226,19 +228,17 @@ protected:
     using LeafDispatcher = typename Types::Pages::LeafDispatcher;
     using Iterator  = IteratorT;
 
-    static constexpr int32_t DataStreams                = Types::DataStreams;
-    static constexpr int32_t StructureStreamIdx         = Types::StructureStreamIdx;
+    static constexpr int32_t DataStreams            = Types::DataStreams;
+    static constexpr int32_t StructureStreamIdx     = Types::StructureStreamIdx;
 
     using DataStreamsSizes  = core::StaticVector<int32_t, DataStreams>;
 
     template <typename PackedStructDescr>
     using StreamDataMapFn = HasType<ReadIterator<typename PackedStructDescr::Type>>;
 
-    using ReadStreamDataStates  = AsTuple<typename MapAllStreams4Data<typename Types::LeafNode, 0, DataStreams, StreamDataMapFn>::Type>;
+    using ReadStreamDataStates  = AsTuple<typename _::MapAllStreams4Data<typename Types::LeafNode, 0, DataStreams, StreamDataMapFn>::Type>;
 
     using StructureIterator     = typename Types::template LeafPackedStruct<IntList<StructureStreamIdx, 1>>::Iterator;
-
-
 
 
     class WriteStreamFn;
@@ -677,7 +677,6 @@ protected:
 
     using typename Base::CtrT;
     using typename Base::Types;
-
 
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;

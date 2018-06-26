@@ -40,8 +40,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorUpdateName)
     typedef typename Base::Container::Position                                  Position;
 
     using CtrSizeT  = typename Container::Types::CtrSizeT;
-    using Key       = typename Container::Types::Key;
-    using Value     = typename Container::Types::Value;
 
     using IteratorBranchNodeEntry = typename Container::Types::IteratorBranchNodeEntry;
 

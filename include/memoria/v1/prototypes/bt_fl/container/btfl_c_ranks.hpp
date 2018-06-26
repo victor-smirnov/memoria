@@ -37,14 +37,10 @@ protected:
     using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
     using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
-    using Key                   = typename Types::Key;
-    using Value                 = typename Types::Value;
-    using CtrSizeT              = typename Types::CtrSizeT;
+    using CtrSizeT          = typename Types::CtrSizeT;
 
-    using BranchNodeEntry       = typename Types::BranchNodeEntry;
-    using Position              = typename Types::Position;
-
-    static const int32_t Streams            = Types::Streams;
+    using BranchNodeEntry   = typename Types::BranchNodeEntry;
+    using Position          = typename Types::Position;
 
     using PageUpdateMgt     = typename Types::PageUpdateMgr;
 

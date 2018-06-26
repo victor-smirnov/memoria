@@ -83,6 +83,12 @@ public:
         return v;
     }
 
+    int16_t getShort(size_t pos) const
+    {
+        assertRange(pos, 2, "getShort()");
+        return *T2T<const int16_t*>(array_ + pos);
+    }
+
 
     bool put(uint16_t v)
     {
@@ -109,6 +115,12 @@ public:
         return v;
     }
 
+    uint16_t getUShort(size_t pos) const
+    {
+        assertRange(pos, 2, "getShort()");
+        return *T2T<const uint16_t*>(array_ + pos);
+    }
+
     bool put(int32_t v)
     {
         if (has_capacity(4))
@@ -124,6 +136,7 @@ public:
         }
     }
 
+
     int32_t getInt()
     {
         assertRange(4, "getInt()");
@@ -132,6 +145,12 @@ public:
         pos_ += 4;
 
         return v;
+    }
+
+    int32_t getInt(size_t pos) const
+    {
+        assertRange(pos, 4, "getInt()");
+        return *T2T<const int32_t*>(array_ + pos);
     }
 
 
@@ -160,6 +179,13 @@ public:
         return v;
     }
 
+
+    uint32_t getUInt32(size_t pos) const
+    {
+        assertRange(pos, 4, "getUInt32()");
+        return *T2T<const uint32_t*>(array_ + pos);
+    }
+
     bool put(int64_t v)
     {
         if (has_capacity(8))
@@ -184,6 +210,14 @@ public:
 
         return v;
     }
+
+
+    int64_t getInt64(size_t pos) const
+    {
+        assertRange(pos, 8, "getInt64()");
+        return *T2T<const int64_t*>(array_ + pos);
+    }
+
 
     bool put(uint64_t v)
     {
@@ -211,6 +245,14 @@ public:
         return v;
     }
 
+
+    uint64_t getUInt64(size_t pos) const
+    {
+        assertRange(pos, 8, "getUInt64()");
+        return *T2T<const uint64_t*>(array_ + pos);
+    }
+
+
     bool put(float v)
     {
         if (has_capacity(4))
@@ -226,6 +268,8 @@ public:
         }
     }
 
+
+
     float getFloat()
     {
         assertRange(4, "getFloat()");
@@ -235,6 +279,13 @@ public:
 
         return v;
     }
+
+    float getFloat(size_t pos) const
+    {
+        assertRange(pos, 4, "getFloat()");
+        return *T2T<const float*>(array_ + pos);
+    }
+
 
 
     bool put(double v)
@@ -262,6 +313,13 @@ public:
         return static_cast<double>(v);
     }
 
+    double getDouble(size_t pos) const
+    {
+        assertRange(pos, 8, "getDouble()");
+        return *T2T<const double*>(array_ + pos);
+    }
+
+
     template <size_t BitLength>
     bool put(const UnsignedAccumulator<BitLength>& value)
     {
@@ -288,6 +346,25 @@ public:
         const auto* v = T2T<const typename UAcc::ValueT*>(array_ + pos_);
 
         pos_ += UAcc::ByteSize;
+
+        UAcc acc{};
+
+        for (size_t c = 0; c < UAcc::Size; c++)
+        {
+            acc.value_[c] = *(v + c);
+        }
+
+        return acc;
+    }
+
+
+    template <size_t BitLength>
+    UnsignedAccumulator<BitLength> getUAcc(size_t pos) const
+    {
+        using UAcc = UnsignedAccumulator<BitLength>;
+        assertRange(pos, UAcc::ByteSize, "getUAcc()");
+
+        const auto* v = T2T<const typename UAcc::ValueT*>(array_ + pos);
 
         UAcc acc{};
 

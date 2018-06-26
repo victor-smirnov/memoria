@@ -533,6 +533,14 @@ struct IsExternalizable: HasValue<bool, HasValueCodec<T>::Value || HasFieldFacto
 
 template <typename T> struct IOBufferAdapter;
 
+struct Referenceable {
+    virtual ~Referenceable() {}
+};
+
+struct ReferenceableNoExcept {
+    virtual ~ReferenceableNoExcept() noexcept {}
+};
+
 
 enum class ByteOrder {
     BIG, LITTLE
