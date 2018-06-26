@@ -57,43 +57,5 @@ auto make_btfl_populate_walker_handler(CtrT& ctr, WalkerT&& walker)
 }
 
 
-class SymbolsRunParser {
-
-    int32_t entry_{};
-    int32_t n_entries_{};
-
-    rleseq::RLESymbolsRun run_{};
-    uint64_t run_pos_{};
-public:
-
-    void parse_run(const rleseq::RLESymbolsRun& run)
-    {
-        run_ = run;
-        entry_++;
-        run_pos_ = 0;
-    }
-
-    void reset(int32_t n_entries)
-    {
-        entry_ = 0;
-        n_entries_ = n_entries;
-    }
-
-    bool is_parse_data() const
-    {
-        return run_pos_ < run_.length();
-    }
-
-    bool has_entries() const {
-        return entry_ < n_entries_;
-    }
-
-    void advance_run(uint64_t processed) {
-        run_pos_ += processed;
-        entry_++;
-    }
-};
-
-
 
 }}

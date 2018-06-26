@@ -86,6 +86,36 @@ public:
         }
     }
 
+    CtrSizeT snapshot_id_run_pos() const
+    {
+        auto& self = this->self();
+        if (!self.is_end())
+        {
+            int32_t stream = self.data_stream();
+            if (stream == 0)
+            {
+                auto ii = self.clone();
+
+                auto r1 = ii->rank(0);
+                ii->selectBw(1, 0);
+
+                CtrSizeT r0{};
+
+                if (ii->idx() >= 0)
+                {
+                    r0 = ii->rank(0);
+                }
+
+                return r1 - r0;
+            }
+            else {
+                return 0;
+            }
+        }
+        else {
+            return -1;
+        }
+    }
 
 
     CtrSizeT ctr_names_run_pos() const

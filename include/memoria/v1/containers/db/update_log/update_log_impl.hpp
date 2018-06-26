@@ -80,7 +80,7 @@ typename CtrApi<UpdateLog, Profile>::SnapshotIDIteratorT
 CtrApi<UpdateLog, Profile>::find_snapshot(const UUID& snapshot_id)
 {
     auto ii = this->pimpl_->find_snapshot(snapshot_id);
-    return SnapshotIDIteratorT{ii, ii->pos(), ii->ctr().size()};
+    return SnapshotIDIteratorT{ii, ii->snapshot_id_run_pos(), ii->ctr().size()};
 }
 
 
