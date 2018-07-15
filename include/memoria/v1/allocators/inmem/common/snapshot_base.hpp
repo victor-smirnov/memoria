@@ -292,7 +292,7 @@ public:
     	return history_node_->is_data_locked();
     }
 
-    virtual bool isActive() {
+    virtual bool isActive() const {
         return is_active();
     }
 

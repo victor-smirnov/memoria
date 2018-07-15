@@ -237,6 +237,14 @@ void CtrApiBase<CtrName, Profile>::set_descriptor_str(const std::string& str)
 }
 
 
+template <typename CtrName, typename Profile>
+bool CtrApiBase<CtrName, Profile>::is_updatable() const
+{
+    return this->pimpl_->is_updatable();
+}
+
+
+
 
 template <typename CtrName, typename Profile>
 IterApiBase<CtrName, Profile>::IterApiBase(IterPtr ptr): pimpl_(ptr) {}

@@ -123,6 +123,8 @@ public:
 
     void new_page_size(int size);
     int new_page_size();
+
+    bool is_updatable() const;
     
     void reset();
 

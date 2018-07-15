@@ -526,6 +526,9 @@ public:
         MMA1_THROW(Exception()) << WhatCInfo("Clone operation is not supported for this container");
     }
 
+    bool is_updatable() const {
+        return self().allocator().isActive();
+    }
 
 protected:
 

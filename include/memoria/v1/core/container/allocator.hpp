@@ -100,7 +100,7 @@ struct IAllocator: AllocatorBase {
     virtual Logger& logger()                                                    = 0;
     virtual IAllocatorProperties& allocator_properties()                        = 0;
 
-    virtual bool isActive()                                                     = 0;
+    virtual bool isActive() const                                               = 0;
 
     virtual void registerCtr(const std::type_info&)                             = 0;
     virtual void unregisterCtr(const std::type_info&)                           = 0;
@@ -111,8 +111,6 @@ struct IAllocator: AllocatorBase {
 
     virtual bool check()                                                        = 0;
     virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr) = 0;
-
-
 
     virtual Vertex allocator_vertex() {
         return Vertex();
