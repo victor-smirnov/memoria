@@ -68,6 +68,12 @@ Key IterApi<Map<Key, Value>, Profile>::key() const
     return this->pimpl_->key();
 }
 
+template <typename Key, typename Value, typename Profile>
+bool IterApi<Map<Key, Value>, Profile>::is_found(const Key& key) const
+{
+    return this->pimpl_->is_found(key);
+}
+
 
 namespace detail01 {
     template <typename T>

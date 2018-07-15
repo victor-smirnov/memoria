@@ -74,6 +74,7 @@ public:
     
     void insert(const Key& key, const Value& value);
     
+    bool is_found(const Key& key) const;
     
     template <typename KeyT, typename ValueT>
     auto insert(const std::vector<std::tuple<KeyT, ValueT>>& data) 
