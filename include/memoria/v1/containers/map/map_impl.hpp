@@ -109,6 +109,12 @@ void IterApi<Map<Key, Value>, Profile>::insert(const Key& key, const Value& valu
 }
 
 template <typename Key, typename Value, typename Profile>
+void IterApi<Map<Key, Value>, Profile>::assign(const Value& value)
+{
+    return this->pimpl_->assign(value);
+}
+
+template <typename Key, typename Value, typename Profile>
 std::vector<typename IterApi<Map<Key, Value>, Profile>::DataValue> IterApi<Map<Key, Value>, Profile>::read(size_t size) 
 {
     std::vector<DataValue> data;

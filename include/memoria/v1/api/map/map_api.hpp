@@ -73,6 +73,7 @@ public:
     Value value() const;
     
     void insert(const Key& key, const Value& value);
+    void assign(const Value& value);
     
     bool is_found(const Key& key) const;
     
