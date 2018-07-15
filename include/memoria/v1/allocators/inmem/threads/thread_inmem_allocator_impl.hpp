@@ -747,6 +747,22 @@ bool ThreadInMemAllocator<Profile>::check()
 }
 
 template <typename Profile>
+void ThreadInMemAllocator<Profile>::lock() {
+    return pimpl_->lock();
+}
+
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::unlock(){
+    return pimpl_->unlock();
+}
+
+template <typename Profile>
+bool ThreadInMemAllocator<Profile>::try_lock() {
+    return pimpl_->try_lock();
+}
+
+
+template <typename Profile>
 std::vector<UUID> ThreadInMemAllocator<Profile>::children_of(const UUID& snapshot_id) const
 {
     return pimpl_->children_of(snapshot_id);

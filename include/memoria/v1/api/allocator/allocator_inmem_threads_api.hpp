@@ -94,6 +94,9 @@ public:
     void pack();
     bool check();
 
+    void lock();
+    void unlock();
+    bool try_lock();
 
     UUID root_shaphot_id() const;
     std::vector<UUID> children_of(const UUID& snapshot_id) const;
