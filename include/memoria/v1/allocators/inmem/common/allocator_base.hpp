@@ -24,6 +24,8 @@
 #include <memoria/v1/core/tools/memory.hpp>
 #include <memoria/v1/core/memory/malloc.hpp>
 
+#include <memoria/v1/core/tools/pair.hpp>
+
 #include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
 
 
@@ -499,8 +501,6 @@ protected:
 
     enum {TYPE_UNKNOWN, TYPE_METADATA, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE, TYPE_CHECKSUM};
 
-    
-    
     Logger logger_;
 
     HistoryNode* history_tree_  = nullptr;

@@ -244,6 +244,18 @@ bool CtrApiBase<CtrName, Profile>::is_updatable() const
 }
 
 
+template <typename CtrName, typename Profile>
+PairPtr& CtrApiBase<CtrName, Profile>::pair()
+{
+    return this->pimpl_->pair();
+}
+
+template <typename CtrName, typename Profile>
+const PairPtr& CtrApiBase<CtrName, Profile>::pair() const
+{
+    return this->pimpl_->pair();
+}
+
 
 
 template <typename CtrName, typename Profile>
@@ -360,6 +372,17 @@ void IterApiBase<CtrName, Profile>::check(std::ostream& out, const char* source)
 }
 
 
+template <typename CtrName, typename Profile>
+PairPtr& IterApiBase<CtrName, Profile>::pair()
+{
+    return this->pimpl_->pair();
+}
+
+template <typename CtrName, typename Profile>
+const PairPtr& IterApiBase<CtrName, Profile>::pair() const
+{
+    return this->pimpl_->pair();
+}
 
 
 }

@@ -100,6 +100,10 @@ public:
     std::vector<std::string> children_of_str(const UUID& snapshot_id) const;
     void remove_named_branch(const std::string& name);
 
+
+    PairPtr& pair();
+    const PairPtr& pair() const;
+
 };
 
 
@@ -168,6 +172,9 @@ public:
     
     UUID clone_ctr(const UUID& name, const UUID& new_name);
     UUID clone_ctr(const UUID& name);
+
+    const PairPtr& pair() const;
+    PairPtr& pair();
     
     template <typename CtrName>
     auto find_or_create(const UUID& name)

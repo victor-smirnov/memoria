@@ -772,4 +772,15 @@ UUID ThreadInMemAllocator<Profile>::root_shaphot_id() const
 }
 
 
+template <typename Profile>
+const PairPtr& ThreadInMemAllocator<Profile>::pair() const {
+    return pimpl_->pair();
+}
+
+template <typename Profile>
+PairPtr& ThreadInMemAllocator<Profile>::pair() {
+    return pimpl_->pair();
+}
+
+
 }}

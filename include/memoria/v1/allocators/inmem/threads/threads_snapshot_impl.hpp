@@ -564,4 +564,15 @@ CtrRef<Profile> ThreadInMemSnapshot<Profile>::get(const UUID& name)
     return CtrRef<Profile>(pimpl_->get(name));
 }
 
+
+template <typename Profile>
+const PairPtr& ThreadInMemSnapshot<Profile>::pair() const {
+    return pimpl_->pair();
+}
+
+template <typename Profile>
+PairPtr& ThreadInMemSnapshot<Profile>::pair() {
+    return pimpl_->pair();
+}
+
 }}

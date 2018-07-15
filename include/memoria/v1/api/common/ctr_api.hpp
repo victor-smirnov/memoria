@@ -149,6 +149,9 @@ public:
 
     void set_descriptor_str(const std::string& str);
 
+    const PairPtr& pair() const;
+    PairPtr& pair();
+
     
     CtrRef<Profile> to_ref();
     operator CtrRef<Profile>() {return to_ref();}
@@ -201,6 +204,9 @@ public:
     void dump_path();
     void dump_header();
     void check(std::ostream& out, const char* source);
+
+    const PairPtr& pair() const;
+    PairPtr& pair();
 };
 
 
