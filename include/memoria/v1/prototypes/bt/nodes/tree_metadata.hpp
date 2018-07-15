@@ -35,6 +35,8 @@ class BalancedTreeMetadata
 
 public:
     static const int32_t ROOTS = 2;
+    static const int32_t LINKS = 2;
+    static const int32_t DESCRIPTOR_SIZE = 200;
 
 private:
     UUID  model_name_;
@@ -44,8 +46,14 @@ private:
     int32_t   page_size_;
 
     ID    roots_[ROOTS];
+    ID    links_[LINKS];
+
+    UUID  type_tag_;
+
 
     UUID  txn_id_;
+
+    uint8_t descriptor_[DESCRIPTOR_SIZE];
 
 public:
 
@@ -56,7 +64,10 @@ public:
                 decltype(branching_factor_),
                 decltype(page_size_),
                 decltype(txn_id_),
-                ID
+                ID,
+                ID,
+                decltype(type_tag_),
+                ConstValue<uint32_t, DESCRIPTOR_SIZE>
     >;
 
     BalancedTreeMetadata()  = default;
@@ -110,7 +121,17 @@ public:
 
         handler->endLine();
 
+        handler->startLine("LINKS", LINKS);
+        for (int32_t c = 0; c < LINKS; c++)
+        {
+            handler->value("LINK",  &links_[c]);
+        }
+        handler->endLine();
+
+        handler->value("TYPE_TAG", &type_tag_);
         handler->value("TXN_ID", &txn_id_);
+
+        handler->value("DESCRIPTOR", descriptor_, DESCRIPTOR_SIZE, IPageDataEventHandler::BYTE_ARRAY);
 
         handler->endGroup();
     }
@@ -126,7 +147,14 @@ public:
             FieldFactory<ID>::serialize(buf, roots_[c]);
         }
 
-        FieldFactory<UUID>::serialize(buf, txn_id_);
+        for (int32_t c = 0; c < LINKS; c++)
+        {
+            FieldFactory<ID>::serialize(buf, links_[c]);
+        }
+
+        FieldFactory<UUID>::serialize(buf, type_tag_);
+        FieldFactory<ID>::serialize(buf, txn_id_);
+        FieldFactory<uint8_t>::serialize(buf, descriptor_, DESCRIPTOR_SIZE);
     }
 
     void deserialize(DeserializationData& buf)
@@ -140,7 +168,14 @@ public:
             FieldFactory<ID>::deserialize(buf, roots_[c]);
         }
 
-        FieldFactory<UUID>::deserialize(buf, txn_id_);
+        for (int32_t c = 0; c < LINKS; c++)
+        {
+            FieldFactory<ID>::deserialize(buf, links_[c]);
+        }
+
+        FieldFactory<ID>::deserialize(buf, type_tag_);
+        FieldFactory<ID>::deserialize(buf, txn_id_);
+        FieldFactory<uint8_t>::deserialize(buf, descriptor_, DESCRIPTOR_SIZE);
     }
 
     const ID& roots(const UUID& idx) const {
@@ -151,12 +186,67 @@ public:
         return roots_[idx.lo()];
     }
 
+    const ID& links(int32_t idx) const
+    {
+        if (idx >= 0 && idx < LINKS) {
+            return links_[idx];
+        }
+        else {
+            MMA1_THROW(Exception()) << WhatCInfo("Link num is out of range");
+        }
+    }
+
+    ID& links(int32_t idx)
+    {
+        if (idx >= 0 && idx < LINKS) {
+            return links_[idx];
+        }
+        else {
+            MMA1_THROW(Exception()) << WhatCInfo("Link num is out of range");
+        }
+    }
+
     auto& txn_id() {
         return txn_id_;
     }
 
     const auto& txn_id() const {
         return txn_id_;
+    }
+
+    const UUID& type_tag() const {
+        return type_tag_;
+    }
+
+    UUID& type_tag() {
+        return type_tag_;
+    }
+
+
+    int32_t roots_num() const {
+        return ROOTS;
+    }
+
+    int32_t links_num() const {
+        return LINKS;
+    }
+
+    uint8_t* descriptor() {return descriptor_;}
+    const uint8_t* descriptor() const {return descriptor_;}
+
+    std::string descriptor_str() const {
+        return std::string(T2T<const char*>(descriptor()));
+    }
+
+    void set_descriptor(const std::string& str)
+    {
+        std::memset(descriptor(), 0, DESCRIPTOR_SIZE);
+        size_t to_copy = (str.length() < DESCRIPTOR_SIZE) ? str.length() : DESCRIPTOR_SIZE - 1;
+        std::memcpy(descriptor(), str.data(), to_copy);
+    }
+
+    int32_t descriptor_size() const {
+        return DESCRIPTOR_SIZE - 1;
     }
 };
 

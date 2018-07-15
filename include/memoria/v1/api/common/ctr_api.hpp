@@ -122,6 +122,7 @@ public:
     static void do_link();
 
     void new_page_size(int size);
+    int new_page_size();
     
     void reset();
 
@@ -131,6 +132,21 @@ public:
     UUID clone_ctr();
 
     void cleanup();
+
+    static std::string ctr_type_name() {
+        return TypeNameFactory<CtrName>::name().to_u8().to_std_string();
+    }
+
+    int32_t metadata_links_num() const;
+
+    UUID get_metadata_link(int num) const;
+
+    void set_metadata_link(int num, const UUID& link_id);
+
+    std::string get_descriptor_str() const;
+
+    void set_descriptor_str(const std::string& str);
+
     
     CtrRef<Profile> to_ref();
     operator CtrRef<Profile>() {return to_ref();}

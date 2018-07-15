@@ -140,6 +140,11 @@ void CtrApiBase<CtrName, Profile>::new_page_size(int size)
     this->pimpl_->setNewPageSize(size);
 }
 
+template <typename CtrName, typename Profile>
+int CtrApiBase<CtrName, Profile>::new_page_size()
+{
+    return this->pimpl_->getNewPageSize();
+}
 
 template <typename CtrName, typename Profile>
 bool CtrApiBase<CtrName, Profile>::operator==(const CtrApiBase& other) const 
@@ -196,6 +201,41 @@ void CtrApiBase<CtrName, Profile>::cleanup()
 {
     this->pimpl_->cleanup();
 }
+
+template <typename CtrName, typename Profile>
+int32_t CtrApiBase<CtrName, Profile>::metadata_links_num() const
+{
+    return this->pimpl_->metadata_links_num();
+}
+
+
+template <typename CtrName, typename Profile>
+UUID CtrApiBase<CtrName, Profile>::get_metadata_link(int num) const
+{
+    return this->pimpl_->get_metadata_link(num);
+}
+
+
+template <typename CtrName, typename Profile>
+void CtrApiBase<CtrName, Profile>::set_metadata_link(int num, const UUID& link_id)
+{
+    return this->pimpl_->set_metadata_link(num, link_id);
+}
+
+
+template <typename CtrName, typename Profile>
+std::string CtrApiBase<CtrName, Profile>::get_descriptor_str() const
+{
+    return this->pimpl_->get_descriptor_str();
+}
+
+
+template <typename CtrName, typename Profile>
+void CtrApiBase<CtrName, Profile>::set_descriptor_str(const std::string& str)
+{
+    return this->pimpl_->set_descriptor_str(str);
+}
+
 
 
 template <typename CtrName, typename Profile>

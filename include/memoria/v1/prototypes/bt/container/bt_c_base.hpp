@@ -515,6 +515,40 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return STLCollection<VertexProperty>::make(std::move(props));
     }
 
+    int32_t metadata_links_num() const {
+        return self().getRootMetadata().links_num();
+    }
+
+    UUID get_metadata_link(int num) const
+    {
+        return self().getRootMetadata().links(num);
+    }
+
+    void set_metadata_link(int num, const UUID& link_id)
+    {
+        auto& self = this->self();
+
+        Metadata metadata   = self.getRootMetadata();
+        metadata.links(num) = link_id;
+
+        self.setRootMetadata(metadata);
+    }
+
+    std::string get_descriptor_str() const {
+        return self().getRootMetadata().descriptor_str();
+    }
+
+    void set_descriptor_str(const std::string& str)
+    {
+        auto& self = this->self();
+
+        Metadata metadata = self.getRootMetadata();
+        metadata.set_descriptor(str);
+
+        self.setRootMetadata(metadata);
+    }
+
+
 
  private:
 
