@@ -17,7 +17,10 @@
 
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+
+#ifndef MMA1_NO_REACTOR
+#   include <memoria/v1/reactor/reactor.hpp>
+#endif
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>

@@ -15,7 +15,11 @@
 
 #include <memoria/v1/core/regexp/icu_regexp.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+
+#ifndef MMA1_NO_REACTOR
+#   include <memoria/v1/reactor/reactor.hpp>
+#endif
+
 
 #include <unicode/utext.h>
 #include <unicode/utypes.h>

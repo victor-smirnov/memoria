@@ -20,7 +20,10 @@
 #include <memoria/v1/metadata/page.hpp>
 #include <memoria/v1/core/tools/dump.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#ifndef MMA1_NO_REACTOR
+#   include <memoria/v1/reactor/reactor.hpp>
+#endif
+
 
 #include <sstream>
 #include <string>

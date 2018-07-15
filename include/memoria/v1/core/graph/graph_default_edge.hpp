@@ -17,7 +17,11 @@
 
 
 #include <memoria/v1/core/graph/graph.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+
+#ifndef MMA1_NO_REACTOR
+#   include <memoria/v1/reactor/reactor.hpp>
+#endif
+
 
 
 namespace memoria {

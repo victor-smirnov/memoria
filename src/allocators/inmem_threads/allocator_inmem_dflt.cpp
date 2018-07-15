@@ -16,7 +16,6 @@
 
 
 #include <memoria/v1/allocators/inmem/threads/thread_inmem_allocator_impl.hpp>
-#include <memoria/v1/allocators/inmem/fibers/inmem_allocator_impl.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -27,13 +26,9 @@ namespace persistent_inmem {
     template class ThreadInMemAllocatorImpl<Profile>;
     template class ThreadSnapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
     
-    template class InMemAllocatorImpl<Profile>;
-    template class Snapshot<Profile, InMemAllocatorImpl<Profile>>;
-
     template <typename PP>
     struct Initializer {
         Initializer() {
-            Snapshot<PP, InMemAllocatorImpl<PP>>::initMetadata();
             ThreadSnapshot<PP, ThreadInMemAllocatorImpl<PP>>::initMetadata();
         }
     };
@@ -41,9 +36,6 @@ namespace persistent_inmem {
 
 template class ThreadInMemAllocator<Profile>;
 template class ThreadInMemSnapshot<Profile>;
-
-template class InMemAllocator<Profile>;
-template class InMemSnapshot<Profile>;
 
 namespace {
 

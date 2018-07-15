@@ -45,6 +45,7 @@ SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}
 SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 target_link_libraries(Memoria ${MEMORIA_LIBS})
 
+
 if (BUILD_MACOSX)
     target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/macosx)
 elseif (BUILD_MSVC)
@@ -54,11 +55,32 @@ else()
     target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/linux)
 endif()
 
-
-
-
-    
 export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
+
+
+
+if (BUILD_CLASSIC_MEMORIA_LIB)
+    get_property(GLOBAL_SRCS_CLASSIC GLOBAL PROPERTY GLOBAL_SOURCES_CLASSIC)
+    add_library(MemoriaClassic STATIC ${GLOBAL_SRCS_CLASSIC})
+
+    SET_TARGET_PROPERTIES(MemoriaClassic PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR} -DMMA1_NO_REACTOR")
+    SET_TARGET_PROPERTIES(MemoriaClassic PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+    target_link_libraries(MemoriaClassic ${MEMORIA_LIBS})
+
+    if (BUILD_MACOSX)
+        target_include_directories(MemoriaClassic PRIVATE BEFORE jemalloc/include/macosx)
+    elseif (BUILD_MSVC)
+        target_include_directories(MemoriaClassic PRIVATE BEFORE jemalloc/include/msvc/msvc_compat)
+        target_include_directories(MemoriaClassic PRIVATE BEFORE jemalloc/include/msvc)
+    else()
+        target_include_directories(MemoriaClassic PRIVATE BEFORE jemalloc/include/linux)
+    endif()
+
+    export(TARGETS MemoriaClassic FILE ${LIBRARY_OUTPUT_PATH}/MemoriaClassic.cmake)
+endif()
+
+
+
 
 
 if (BUILD_EXAMPLES)
@@ -78,8 +100,11 @@ if (BUILD_TESTS)
 #    add_subdirectory(tests-other/reactor)
 endif()
 
-if (BUILD_SANDBOX) 
+if (BUILD_SANDBOX)
     add_subdirectory(sandbox)
+    if (BUILD_CLASSIC_MEMORIA_LIB)
+        add_subdirectory(sandbox-classic)
+    endif()
 endif()
 
 

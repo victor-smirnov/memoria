@@ -18,7 +18,11 @@
 
 #include <memoria/v1/metadata/tools.hpp>
 #include <memoria/v1/core/tools/hash.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+
+#ifndef MMA1_NO_REACTOR
+#   include <memoria/v1/reactor/reactor.hpp>
+#endif
+
 
 namespace memoria {
 namespace v1 {

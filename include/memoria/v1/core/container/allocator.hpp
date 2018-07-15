@@ -19,7 +19,11 @@
 #include <memoria/v1/core/container/names.hpp>
 #include <memoria/v1/core/container/page.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+
+#ifndef MMA1_NO_REACTOR
+#   include <memoria/v1/reactor/reactor.hpp>
+#endif
+
 
 #include <memoria/v1/core/graph/graph.hpp>
 

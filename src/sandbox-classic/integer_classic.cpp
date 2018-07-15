@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2018 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,19 +13,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/container/logs.hpp>
+#include <memoria/v1/core/types.hpp>
 
-#ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
-#endif
+#include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 
+#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
 
-namespace memoria {
-namespace v1 {
+#include <iostream>
+#include <type_traits>
+#include <vector>
+#include <algorithm>
+#include <random>
 
+using namespace memoria::v1;
 
-const char* ExtractFunctionName(const char* full_name) {
-    return full_name;
+int main(int argc, char** argv, char** envp)
+{
+    auto alloc = ThreadInMemAllocator<>::create();
+
+    auto snp = alloc.master().branch();
+
+    auto ctr = create<EdgeMap>(snp);
+
+    snp.commit();
+
+    alloc.store("th_alloc.mma1");
 }
-
-}}

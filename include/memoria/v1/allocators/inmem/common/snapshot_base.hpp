@@ -34,9 +34,9 @@
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
-
-
+#ifndef MMA1_NO_REACTOR
+#   include <memoria/v1/reactor/reactor.hpp>
+#endif
 
 #include "persistent_tree.hpp"
 

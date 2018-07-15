@@ -14,6 +14,11 @@
 
 #pragma once
 
+#ifdef MMA1_NO_REACTOR
+#   error reactor/shared_ptr.hpp is included while MMA1_NO_REACTOR is defined
+#endif
+
+
 #include <boost/config.hpp>   // for broken compiler workarounds
 
 // In order to avoid circular dependencies with Boost.TR1

@@ -23,7 +23,9 @@
 #include <boost/smart_ptr/make_local_shared.hpp>
 #include <boost/smart_ptr/atomic_shared_ptr.hpp>
 
-#include <memoria/v1/reactor/smart_ptr.hpp>
+#ifndef MMA1_NO_REACTOR
+#   include <memoria/v1/reactor/smart_ptr.hpp>
+#endif
 
 namespace memoria {
 namespace v1 {
@@ -72,7 +74,7 @@ auto AllocateLocalShared(const Allocator& alloc, Args&&... args) {
 template <typename T>
 using EnableSharedFromThis = boost::enable_shared_from_this<T>;
 
-using EnableSharedFromRaw = boost::enable_shared_from_raw<T>;
+//using EnableSharedFromRaw = boost::enable_shared_from_raw<T>;
 
 template <typename T>
 using WeakPtr = boost::weak_ptr<T>;
@@ -80,50 +82,50 @@ using WeakPtr = boost::weak_ptr<T>;
 
 template<typename T, typename U>
 boost::shared_ptr<T> StaticPointerCast( const boost::shared_ptr<U>& r ) noexcept {
-    return reactor::static_pointer_cast<T>(r);
+    return boost::static_pointer_cast<T>(r);
 }
 
 
 template<typename T, typename U>
 boost::shared_ptr<T> StaticPointerCast( boost::shared_ptr<U>&& r ) noexcept {
-    return reactor::static_pointer_cast<T>(std::move(r));
+    return boost::static_pointer_cast<T>(std::move(r));
 }
 
 
 
 template<typename T, typename U>
 boost::shared_ptr<T> DynamicPointerCast( const boost::shared_ptr<U>& r ) noexcept {
-    return reactor::dynamic_pointer_cast<T>(r);
+    return boost::dynamic_pointer_cast<T>(r);
 }
 
 
 template<typename T, typename U>
 boost::shared_ptr<T> DynamicPointerCast( boost::shared_ptr<U>&& r ) noexcept {
-    return reactor::dynamic_pointer_cast<T>(std::move(r));
+    return boost::dynamic_pointer_cast<T>(std::move(r));
 }
 
 
 template<typename T, typename U>
 boost::shared_ptr<T> ReinterpretPointerCast( const boost::shared_ptr<U>& r ) noexcept {
-    return reactor::reinterpret_pointer_cast<T>(r);
+    return boost::reinterpret_pointer_cast<T>(r);
 }
 
 
 template<typename T, typename U>
 boost::shared_ptr<T> ReinterpretPointerCast( boost::shared_ptr<U>&& r ) noexcept {
-    return reactor::reinterpret_pointer_cast<T>(std::move(r));
+    return boost::reinterpret_pointer_cast<T>(std::move(r));
 }
 
 
 template<typename T, typename U>
 boost::shared_ptr<T> ConstPointerCast( const boost::shared_ptr<U>& r ) noexcept {
-    return reactor::const_pointer_cast<T>(r);
+    return boost::const_pointer_cast<T>(r);
 }
 
 
 template<typename T, typename U>
 boost::shared_ptr<T> ConstPointerCast( boost::shared_ptr<U>&& r ) noexcept {
-    return reactor::const_pointer_cast<T>(std::move(r));
+    return boost::const_pointer_cast<T>(std::move(r));
 }
 
 
@@ -131,50 +133,50 @@ boost::shared_ptr<T> ConstPointerCast( boost::shared_ptr<U>&& r ) noexcept {
 
 template<typename T, typename U>
 boost::local_shared_ptr<T> StaticPointerCast( const boost::local_shared_ptr<U>& r ) noexcept {
-    return reactor::static_pointer_cast<T>(r);
+    return boost::static_pointer_cast<T>(r);
 }
 
 
 template<typename T, typename U>
 boost::local_shared_ptr<T> StaticPointerCast( boost::local_shared_ptr<U>&& r ) noexcept {
-    return reactor::static_pointer_cast<T>(std::move(r));
+    return boost::static_pointer_cast<T>(std::move(r));
 }
 
 
 
 template<typename T, typename U>
 boost::local_shared_ptr<T> DynamicPointerCast( const boost::local_shared_ptr<U>& r ) noexcept {
-    return reactor::dynamic_pointer_cast<T>(r);
+    return boost::dynamic_pointer_cast<T>(r);
 }
 
 
 template<typename T, typename U>
 boost::local_shared_ptr<T> DynamicPointerCast( boost::local_shared_ptr<U>&& r ) noexcept {
-    return reactor::dynamic_pointer_cast<T>(std::move(r));
+    return boost::dynamic_pointer_cast<T>(std::move(r));
 }
 
 
 template<typename T, typename U>
 boost::local_shared_ptr<T> ReinterpretPointerCast( const boost::local_shared_ptr<U>& r ) noexcept {
-    return reactor::reinterpret_pointer_cast<T>(r);
+    return boost::reinterpret_pointer_cast<T>(r);
 }
 
 
 template<typename T, typename U>
 boost::local_shared_ptr<T> ReinterpretPointerCast( boost::local_shared_ptr<U>&& r ) noexcept {
-    return reactor::reinterpret_pointer_cast<T>(std::move(r));
+    return boost::reinterpret_pointer_cast<T>(std::move(r));
 }
 
 
 template<typename T, typename U>
 boost::local_shared_ptr<T> ConstPointerCast( const boost::local_shared_ptr<U>& r ) noexcept {
-    return reactor::const_pointer_cast<T>(r);
+    return boost::const_pointer_cast<T>(r);
 }
 
 
 template<typename T, typename U>
 boost::local_shared_ptr<T> ConstPointerCast( boost::local_shared_ptr<U>&& r ) noexcept {
-    return reactor::const_pointer_cast<T>(std::move(r));
+    return boost::const_pointer_cast<T>(std::move(r));
 }
 
 

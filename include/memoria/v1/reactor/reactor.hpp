@@ -15,6 +15,10 @@
 
 #pragma once
 
+#ifdef MMA1_NO_REACTOR
+#error ractor.hpp is inluded while MMA1_NO_REACTOR is defined
+#endif
+
 #include <memoria/v1/core/config.hpp>
 #include <memoria/v1/core/strings/format.hpp>
 #include <memoria/v1/core/tools/ptr_cast.hpp>

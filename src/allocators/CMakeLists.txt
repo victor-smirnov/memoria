@@ -14,5 +14,6 @@
 
 
 
-add_subdirectory(inmem)
+add_subdirectory(inmem_threads)
+add_subdirectory(inmem_fibers)
 

@@ -13,19 +13,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/container/logs.hpp>
 
-#ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
-#endif
 
+#include <memoria/v1/allocators/inmem/fibers/inmem_allocator_impl.hpp>
 
 namespace memoria {
 namespace v1 {
 
+using Profile = DefaultProfile<>;    
+    
+namespace persistent_inmem {
+    template class InMemAllocatorImpl<Profile>;
+    template class Snapshot<Profile, InMemAllocatorImpl<Profile>>;
 
-const char* ExtractFunctionName(const char* full_name) {
-    return full_name;
+    template <typename PP>
+    struct Initializer {
+        Initializer() {
+            Snapshot<PP, InMemAllocatorImpl<PP>>::initMetadata();
+        }
+    };
 }
 
-}}
+template class InMemAllocator<Profile>;
+template class InMemSnapshot<Profile>;
+
+namespace {
+
+persistent_inmem::Initializer<Profile> init1;
+
+}
+
+}
+}

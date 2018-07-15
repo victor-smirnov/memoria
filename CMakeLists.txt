@@ -54,6 +54,8 @@ option(BUILD_BENCHMARKS "Build project benchmarks" ON)
 option(ICU_DEBUG        "Debug FindICU" OFF)
 option(Boost_DEBUG      "Debug FindBoost" OFF)
 
+option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" OFF)
+
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 set (BUILD_POSIX  FALSE)

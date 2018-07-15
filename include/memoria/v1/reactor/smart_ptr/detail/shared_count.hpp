@@ -44,6 +44,11 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#ifdef MMA1_NO_REACTOR
+#   error reactor/shared_ptr.hpp is included while MMA1_NO_REACTOR is defined
+#endif
+
+
 namespace memoria {
 namespace v1 {
 namespace reactor {

@@ -19,7 +19,11 @@
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/strings/string.hpp>
 #include <memoria/v1/core/strings/format.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+
+#ifndef MMA1_NO_REACTOR
+#   include <memoria/v1/reactor/reactor.hpp>
+#endif
+
 
 #include <boost/filesystem.hpp>
 
