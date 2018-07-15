@@ -97,7 +97,60 @@ public:
         }
     }
 
+    UUID clone(UUID new_name) const
+    {
+        if (new_name.is_null())
+        {
+            new_name = UUID::make_random();
+        }
+
+        auto& self = this->self();
+
+        ID root_id = self.allocator().getRootID(new_name);
+        if (root_id.is_null())
+        {
+            NodeBaseG root = self.getRoot();
+
+            NodeBaseG new_root = self.clone_tree(root, root->parent_id());
+
+            auto new_meta = self.getCtrRootMetadata(new_root);
+
+            new_meta.model_name() = new_name;
+            new_meta.txn_id()     = self.allocator().currentTxnId();
+
+            self.setCtrRootMetadata(new_root, new_meta);
+
+            self.allocator().setRoot(new_name, new_root->id());
+
+            return new_name;
+        }
+        else {
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Requested container name of {} is already in use.", new_name);
+        }
+    }
+
+
 private:
+
+    NodeBaseG clone_tree(const NodeBaseG& node, const ID& parent_id) const
+    {
+        auto& self = this->self();
+
+        NodeBaseG new_node = self.allocator().clonePage(node.shared(), ID{}, self.master_name());
+        new_node->parent_id() = parent_id;
+
+        if (!node->is_leaf())
+        {
+            self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&](const ID& id, int32_t idx)
+            {
+                NodeBaseG child = self.allocator().getPage(id, self.master_name());
+                NodeBaseG new_child = self.clone_tree(child, new_node->id());
+                self.setChildId(new_node, idx, new_child->id());
+            });
+        }
+
+        return new_node;
+    }
 
     void traverseTree(const NodeBaseG& node, ContainerWalker* walker)
     {

@@ -590,6 +590,18 @@ bool InMemSnapshot<Profile>::check() {
     return pimpl_->check();
 }
 
+template <typename Profile>
+UUID InMemSnapshot<Profile>::clone_ctr(const UUID& name, const UUID& new_name) {
+    return pimpl_->clone_ctr(name, new_name);
+}
+
+template <typename Profile>
+UUID InMemSnapshot<Profile>::clone_ctr(const UUID& name) {
+    return pimpl_->clone_ctr(name);
+}
+
+
+
 
 template <typename Profile>
 void InMemSnapshot<Profile>::dump_persistent_tree() 

@@ -179,6 +179,8 @@ public:
     void dump_persistent_tree();
     void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
     
+    UUID clone_ctr(const UUID& name, const UUID& new_name);
+    UUID clone_ctr(const UUID& name);
     
     template <typename CtrName>
     auto find_or_create(const UUID& name)

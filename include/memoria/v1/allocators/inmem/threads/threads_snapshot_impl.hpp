@@ -499,6 +499,15 @@ bool ThreadInMemSnapshot<Profile>::check() {
     return pimpl_->check();
 }
 
+template <typename Profile>
+UUID ThreadInMemSnapshot<Profile>::clone_ctr(const UUID& name, const UUID& new_name) {
+    return pimpl_->clone_ctr(name, new_name);
+}
+
+template <typename Profile>
+UUID ThreadInMemSnapshot<Profile>::clone_ctr(const UUID& name) {
+    return pimpl_->clone_ctr(name);
+}
 
 
 template <typename Profile>

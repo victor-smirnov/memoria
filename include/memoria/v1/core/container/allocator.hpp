@@ -83,6 +83,8 @@ struct IAllocator: AllocatorBase {
     virtual void  removePage(const ID& id, const UUID&name)                     = 0;
     virtual PageG createPage(int32_t initial_size, const UUID& name)            = 0;
 
+    virtual PageG clonePage(const Shared* shared, const ID& new_id, const UUID& name) = 0;
+
     virtual void  resizePage(Shared* page, int32_t new_size)                    = 0;
     virtual void  releasePage(Shared* shared) noexcept                          = 0;
     virtual PageG getPageG(Page* page)                                          = 0;

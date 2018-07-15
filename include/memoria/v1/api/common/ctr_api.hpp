@@ -124,6 +124,13 @@ public:
     void new_page_size(int size);
     
     void reset();
+
+    void drop();
+
+    UUID clone_ctr(const UUID& new_name);
+    UUID clone_ctr();
+
+    void cleanup();
     
     CtrRef<Profile> to_ref();
     operator CtrRef<Profile>() {return to_ref();}

@@ -171,7 +171,8 @@ public:
             do_pack(history_tree_);
         });
     }
-    
+
+
     SnpSharedPtr<SnapshotMetadata<TxnId>> describe(const TxnId& snapshot_id) const
     {
     	return reactor::engine().run_at(cpu_, [&]{

@@ -93,6 +93,13 @@ public:
     void reset();
     void pack();
     bool check();
+
+
+    UUID root_shaphot_id() const;
+    std::vector<UUID> children_of(const UUID& snapshot_id) const;
+    std::vector<std::string> children_of_str(const UUID& snapshot_id) const;
+    void remove_named_branch(const std::string& name);
+
 };
 
 
@@ -159,6 +166,8 @@ public:
     void dump_persistent_tree();
     void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
     
+    UUID clone_ctr(const UUID& name, const UUID& new_name);
+    UUID clone_ctr(const UUID& name);
     
     template <typename CtrName>
     auto find_or_create(const UUID& name)

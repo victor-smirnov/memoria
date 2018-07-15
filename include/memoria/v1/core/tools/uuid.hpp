@@ -106,6 +106,10 @@ public:
     }
 
     U8String to_u8() const;
+
+    std::string str() const {
+        return to_u8().to_std_string();
+    }
 };
 
 

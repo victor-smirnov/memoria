@@ -140,6 +140,8 @@ public:
     template <int32_t Stream>
     std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, int32_t idx)
     {
+        self().updatePageG(iter.leaf());
+
         BranchNodeEntry accum;
         LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), idx, accum);
         return std::make_tuple(true, accum);
@@ -156,6 +158,8 @@ public:
     template <typename Fn, typename... Args>
     bool update(Iterator& iter, Fn&& fn, Args&&... args)
     {
+        self().updatePageG(iter.leaf());
+
         auto& self = this->self();
         LeafDispatcher::dispatch(
                 iter.leaf(),

@@ -172,6 +172,47 @@ public:
     	do_pack(history_tree_);
     }
 
+    UUID root_shaphot_id() const {
+        return history_tree_->txn_id();
+    }
+
+    std::vector<UUID> children_of(const UUID& snapshot_id) const
+    {
+        std::vector<UUID> ids;
+
+        LockGuardT lock_guard(mutex_);
+
+        auto iter = snapshot_map_.find(snapshot_id);
+        if (iter != snapshot_map_.end())
+        {
+            const auto history_node = iter->second;
+            for (const auto* child: history_node->children())
+            {
+                ids.push_back(child->txn_id());
+            }
+        }
+
+        return ids;
+    }
+
+    std::vector<std::string> children_of_str(const UUID& snapshot_id) const
+    {
+        std::vector<std::string> ids;
+        auto uids = children_of(snapshot_id);
+
+        for (const auto& uid: uids)
+        {
+            ids.push_back(uid.str());
+        }
+
+        return ids;
+    }
+
+    void remove_named_branch(const std::string& name)
+    {
+        LockGuardT lock_guard(mutex_);
+        named_branches_.erase(U16String(name));
+    }
 
     
     SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
@@ -704,5 +745,31 @@ bool ThreadInMemAllocator<Profile>::check()
 {
     return pimpl_->check();
 }
+
+template <typename Profile>
+std::vector<UUID> ThreadInMemAllocator<Profile>::children_of(const UUID& snapshot_id) const
+{
+    return pimpl_->children_of(snapshot_id);
+}
+
+
+template <typename Profile>
+std::vector<std::string> ThreadInMemAllocator<Profile>::children_of_str(const UUID& snapshot_id) const
+{
+    return pimpl_->children_of_str(snapshot_id);
+}
+
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::remove_named_branch(const std::string& name)
+{
+    return pimpl_->remove_named_branch(name);
+}
+
+template <typename Profile>
+UUID ThreadInMemAllocator<Profile>::root_shaphot_id() const
+{
+    return pimpl_->root_shaphot_id();
+}
+
 
 }}

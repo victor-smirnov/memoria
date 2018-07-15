@@ -533,6 +533,28 @@ public:
     }
 
 
+    UUID clone_ctr(const UUID ctr_name) {
+        return clone_ctr(ctr_name, UUID{});
+    }
+
+    UUID clone_ctr(const UUID ctr_name, const UUID& new_ctr_name)
+    {
+        auto root_id = this->getRootID(ctr_name);
+        auto page 	 = this->getPage(root_id, ctr_name);
+
+        if (page)
+        {
+            auto ctr_hash    = page->ctr_type_hash();
+            auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
+
+            return ctr_meta->getCtrInterface()->clone_ctr(ctr_name, new_ctr_name, this->shared_from_this());
+        }
+        else {
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Container with name {} does not exist in snapshot {} ", ctr_name, history_node_->txn_id());
+        }
+    }
+
+
     virtual PageG getPage(const ID& id, const UUID& name)
     {
         if (id.isSet())
@@ -768,6 +790,27 @@ public:
         ptree_set_new_page(p);
 
         return PageG(shared);
+    }
+
+
+    virtual PageG clonePage(const Shared* shared, const ID& new_id, const UUID& name)
+    {
+        ID new_id_v = new_id.is_set() ? new_id : newId();
+        Page* new_page = this->clone_page(shared->get());
+
+        new_page->id() = new_id_v;
+
+        Shared* new_shared  = pool_.allocate(new_id_v);
+
+        new_shared->id()    = new_id_v;
+        new_shared->state() = Shared::UPDATE;
+
+        new_shared->set_page(new_page);
+        new_shared->set_allocator(this);
+
+        ptree_set_new_page(new_page);
+
+        return PageG(new_shared);
     }
 
 

@@ -400,6 +400,20 @@ public:
                 MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"No container root page is found for id {} and name {}", root_id, name));
             }
         }
+
+        virtual UUID clone_ctr(const UUID& name, const UUID& new_name, const AllocatorBasePtr& allocator) {
+
+            AllocatorPtr alloc = static_pointer_cast<Allocator>(allocator);
+            auto root_id = alloc->getRootID(name);
+
+            UUID new_name_rtn{};
+
+            with_ctr(root_id, name, alloc, [&](MyType& ctr){
+                new_name_rtn = ctr.clone(new_name);
+            });
+
+            return new_name_rtn;
+        }
     };
 
 
@@ -507,7 +521,10 @@ public:
         return STLCollection<Edge>::make(std::move(edges));
     }
 
-
+    UUID clone(const UUID& new_name)
+    {
+        MMA1_THROW(Exception()) << WhatCInfo("Clone operation is not supported for this container");
+    }
 
 
 protected:

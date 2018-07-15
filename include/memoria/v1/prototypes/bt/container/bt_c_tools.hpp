@@ -399,6 +399,22 @@ protected:
     }
 
 
+    struct SetChildIDFn {
+        template <typename T>
+        void treeNode(BranchNode<T>* node, int child_idx, const ID& child_id) const
+        {
+            node->value(child_idx) = child_id;
+        }
+    };
+
+    void setChildId(NodeBaseG& node, int32_t child_idx, const ID& child_id) const
+    {
+        self().updatePageG(node);
+        BranchDispatcher::dispatch(node, SetChildIDFn(), child_idx, child_id);
+    }
+
+
+
     struct GetBranchNodeChildernCount {
         template <typename T, typename... Args>
         int32_t treeNode(const bt::BranchNode<T>* node, Args&&... args) const

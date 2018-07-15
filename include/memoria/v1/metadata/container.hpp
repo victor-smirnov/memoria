@@ -175,6 +175,12 @@ struct ContainerInterface {
         const UUID& name, 
         const SnpSharedPtr<AllocatorBase>& allocator
     ) = 0;
+
+    virtual UUID clone_ctr(
+        const UUID& name,
+        const UUID& new_name,
+        const SnpSharedPtr<AllocatorBase>& allocator
+    )                                                                           = 0;
 };
 
 using ContainerInterfacePtr = std::shared_ptr<ContainerInterface>;

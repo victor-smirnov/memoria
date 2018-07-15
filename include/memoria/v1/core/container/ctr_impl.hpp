@@ -172,10 +172,30 @@ CtrApi<CtrName, Profile> CtrApiBase<CtrName, Profile>::cast_from(const CtrRef<Pr
 }
 
 
+template <typename CtrName, typename Profile>
+void CtrApiBase<CtrName, Profile>::drop()
+{
+    this->pimpl_->drop();
+}
+
+template <typename CtrName, typename Profile>
+UUID CtrApiBase<CtrName, Profile>::clone_ctr(const UUID& new_name)
+{
+    return this->pimpl_->clone(new_name);
+}
+
+template <typename CtrName, typename Profile>
+UUID CtrApiBase<CtrName, Profile>::clone_ctr()
+{
+    return this->pimpl_->clone(UUID{});
+}
 
 
-
-
+template <typename CtrName, typename Profile>
+void CtrApiBase<CtrName, Profile>::cleanup()
+{
+    this->pimpl_->cleanup();
+}
 
 
 template <typename CtrName, typename Profile>

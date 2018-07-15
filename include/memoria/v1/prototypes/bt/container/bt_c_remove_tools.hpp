@@ -87,6 +87,17 @@ public:
     }
 
 
+    void cleanup()
+    {
+        auto& self = this->self();
+        auto metadata = self.getRootMetadata();
+
+        NodeBaseG new_root = self.createNode(0, true, true, metadata.page_size());
+
+        self.drop();
+        self.set_root(new_root->id());
+    }
+
 protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, OpStatus);
 
