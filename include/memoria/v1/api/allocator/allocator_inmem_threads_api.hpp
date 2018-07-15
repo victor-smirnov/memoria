@@ -103,10 +103,11 @@ public:
     std::vector<std::string> children_of_str(const UUID& snapshot_id) const;
     void remove_named_branch(const std::string& name);
 
+    std::vector<U16String> branch_names();
+    UUID branch_head(const U16String& branch_name);
 
     PairPtr& pair();
     const PairPtr& pair() const;
-
 };
 
 

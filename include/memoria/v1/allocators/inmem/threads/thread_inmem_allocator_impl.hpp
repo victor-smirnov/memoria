@@ -214,6 +214,33 @@ public:
         named_branches_.erase(U16String(name));
     }
 
+    std::vector<U16String> branch_names()
+    {
+        std::lock_guard<MutexT> lock(mutex_);
+
+        std::vector<U16String> branches;
+
+        for (auto pair: named_branches_)
+        {
+            branches.push_back(pair.first);
+        }
+
+        return branches;
+    }
+
+    UUID branch_head(const U16String& branch_name)
+    {
+        std::lock_guard<MutexT> lock(mutex_);
+
+        auto ii = named_branches_.find(branch_name);
+        if (ii != named_branches_.end())
+        {
+            return ii->second->txn_id();
+        }
+
+        return UUID{};
+    }
+
     
     SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
     {
@@ -796,6 +823,18 @@ const PairPtr& ThreadInMemAllocator<Profile>::pair() const {
 template <typename Profile>
 PairPtr& ThreadInMemAllocator<Profile>::pair() {
     return pimpl_->pair();
+}
+
+template <typename Profile>
+std::vector<U16String> ThreadInMemAllocator<Profile>::branch_names()
+{
+    return pimpl_->branch_names();
+}
+
+template <typename Profile>
+UUID ThreadInMemAllocator<Profile>::branch_head(const U16String& branch_name)
+{
+    return pimpl_->branch_head(branch_name);
 }
 
 
