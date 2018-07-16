@@ -40,7 +40,7 @@ using DCtr = typename CtrTF<DefaultProfile<>, CtrName>::Type;
 
 template <typename CtrName>
 void DInit() {
-    DCtr<CtrName>::initMetadata();
+    DCtr<CtrName>::getMetadata();
 }
 
 
