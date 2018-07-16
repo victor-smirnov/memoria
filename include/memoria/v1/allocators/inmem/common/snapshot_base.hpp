@@ -623,6 +623,7 @@ public:
     	}
     }
 
+public:
     bool has_open_containers() {
     	return instance_map_.size() > 1;
     }
@@ -635,6 +636,7 @@ public:
     	}
     }
 
+protected:
     virtual PageG getPageForUpdate(const ID& id, const UUID& name)
     {
         // FIXME: Though this check prohibits new page acquiring for update,

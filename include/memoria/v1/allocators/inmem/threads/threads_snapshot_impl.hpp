@@ -72,12 +72,14 @@ protected:
     using Base::history_node_;
     using Base::history_tree_;
     using Base::history_tree_raw_;
-    using Base::has_open_containers;
     using Base::do_drop;
     using Base::check_tree_structure;
 
 
 public:
+    using Base::has_open_containers;
+
+
     using Base::uuid;
     
     
@@ -515,6 +517,20 @@ void ThreadInMemSnapshot<Profile>::dump_persistent_tree()
 {
     return pimpl_->dump_persistent_tree();
 }
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::dump_open_containers()
+{
+    return pimpl_->dump_open_containers();
+}
+
+template <typename Profile>
+bool ThreadInMemSnapshot<Profile>::has_open_containers()
+{
+    return pimpl_->has_open_containers();
+}
+
+
 
 template <typename Profile>
 void ThreadInMemSnapshot<Profile>::walk_containers(ContainerWalker* walker, const char16_t* allocator_descr)

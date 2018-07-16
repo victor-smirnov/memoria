@@ -178,7 +178,11 @@ public:
     void copy_ctr_from(ThreadInMemSnapshot<Profile>& txn, const UUID& name);
     bool check();
 
+
+    void dump_open_containers();
+    bool has_open_containers();
     void dump_persistent_tree();
+
     void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
     
     UUID clone_ctr(const UUID& name, const UUID& new_name);
