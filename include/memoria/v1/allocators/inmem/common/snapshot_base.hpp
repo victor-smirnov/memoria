@@ -326,6 +326,24 @@ public:
         }
     }
 
+
+    Optional<U16String> ctr_type_name_for(const UUID& name)
+    {
+        auto root_id = this->getRootID(name);
+        auto page 	 = this->getPage(root_id, name);
+
+        if (page)
+        {
+            auto ctr_hash = page->ctr_type_hash();
+            auto ctr_meta = metadata_->getContainerMetadata(ctr_hash);
+
+            return ctr_meta->getCtrInterface()->ctr_type_name();
+        }
+        else {
+            return Optional<U16String>();
+        }
+    }
+
     void set_as_master()
     {
     	history_tree_raw_->set_master(uuid());

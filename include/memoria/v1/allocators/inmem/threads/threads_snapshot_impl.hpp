@@ -131,8 +131,6 @@ public:
     		// FIXME: check if absence of snapshot lock here leads to data races...
     	}
     }
-    
-    
 
     SnapshotMetadata<UUID> describe() const
     {
@@ -528,6 +526,12 @@ template <typename Profile>
 bool ThreadInMemSnapshot<Profile>::has_open_containers()
 {
     return pimpl_->has_open_containers();
+}
+
+template <typename Profile>
+Optional<U16String> ThreadInMemSnapshot<Profile>::ctr_type_name_for(const UUID& name)
+{
+    return pimpl_->ctr_type_name_for(name);
 }
 
 

@@ -178,6 +178,7 @@ public:
     void copy_ctr_from(ThreadInMemSnapshot<Profile>& txn, const UUID& name);
     bool check();
 
+    Optional<U16String> ctr_type_name_for(const UUID& name);
 
     void dump_open_containers();
     bool has_open_containers();
