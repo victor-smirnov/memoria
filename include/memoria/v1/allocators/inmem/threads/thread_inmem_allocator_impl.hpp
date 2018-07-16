@@ -272,6 +272,58 @@ public:
     }
 
 
+    auto snapshot_status(const TxnId& snapshot_id)
+    {
+        LockGuardT lock_guard2(mutex_);
+
+        auto iter = snapshot_map_.find(snapshot_id);
+        if (iter != snapshot_map_.end())
+        {
+            const auto history_node = iter->second;
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+            return history_node->status();
+        }
+        else {
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+        }
+    }
+
+    UUID snapshot_parent(const TxnId& snapshot_id)
+    {
+        LockGuardT lock_guard2(mutex_);
+
+        auto iter = snapshot_map_.find(snapshot_id);
+        if (iter != snapshot_map_.end())
+        {
+            const auto history_node = iter->second;
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
+            auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
+            return parent_id;
+        }
+        else {
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+        }
+    }
+
+    U16String snapshot_description(const TxnId& snapshot_id)
+    {
+        LockGuardT lock_guard2(mutex_);
+
+        auto iter = snapshot_map_.find(snapshot_id);
+        if (iter != snapshot_map_.end())
+        {
+            const auto history_node = iter->second;
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+            return history_node->metadata();
+        }
+        else {
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+        }
+    }
+
+
+
 
     SnapshotPtr find(const TxnId& snapshot_id)
     {
@@ -837,5 +889,20 @@ UUID ThreadInMemAllocator<Profile>::branch_head(const U16String& branch_name)
     return pimpl_->branch_head(branch_name);
 }
 
+
+template <typename Profile>
+int32_t ThreadInMemAllocator<Profile>::snapshot_status(const TxnId& snapshot_id) {
+    return static_cast<int32_t>(pimpl_->snapshot_status(snapshot_id));
+}
+
+template <typename Profile>
+UUID ThreadInMemAllocator<Profile>::snapshot_parent(const TxnId& snapshot_id) {
+    return pimpl_->snapshot_parent(snapshot_id);
+}
+
+template <typename Profile>
+U16String ThreadInMemAllocator<Profile>::snapshot_description(const TxnId& snapshot_id) {
+    return pimpl_->snapshot_description(snapshot_id);
+}
 
 }}

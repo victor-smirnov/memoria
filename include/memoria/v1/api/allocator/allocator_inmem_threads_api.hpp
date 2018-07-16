@@ -106,6 +106,13 @@ public:
     std::vector<U16String> branch_names();
     UUID branch_head(const U16String& branch_name);
 
+    int32_t snapshot_status(const TxnId& snapshot_id);
+
+    UUID snapshot_parent(const TxnId& snapshot_id);
+
+    U16String snapshot_description(const TxnId& snapshot_id);
+
+
     PairPtr& pair();
     const PairPtr& pair() const;
 };
