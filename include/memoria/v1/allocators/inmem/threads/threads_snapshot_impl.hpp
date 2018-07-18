@@ -108,6 +108,7 @@ public:
     			if (history_node_->is_active())
     			{
     				drop1 = true;
+                    history_tree_raw_->unref_active();
     			}
     			else if(history_node_->is_dropped())
     			{
@@ -174,6 +175,16 @@ public:
 
         if (history_node_->parent() != nullptr)
         {
+            if (history_node_->is_active())
+            {
+                history_tree_raw_->unref_active();
+            }
+
+            if (history_node_->status() == SnapshotStatus::COMMITTED)
+            {
+                history_tree_raw_->adjust_named_references(history_node_);
+            }
+
             history_node_->mark_to_clear();
         }
         else {

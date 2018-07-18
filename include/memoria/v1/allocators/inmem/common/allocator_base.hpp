@@ -1322,20 +1322,6 @@ protected:
     	return set;
     }
 
-    void update_master(HistoryNode* node)
-    {
-    	if (node->parent())
-    	{
-    		if (master_ == node)
-    		{
-    			master_ = node->parent();
-    		}
-    	}
-    	else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Null snapshot's parent in do_pack() for snapshot: {}", node->txn_id()));
-    	}
-    }
-
     void do_pack(HistoryNode* node)
     {
         std::unordered_set<HistoryNode*> branches = get_named_branch_nodeset();
@@ -1357,8 +1343,6 @@ protected:
     {
         if (node->children().size() == 0)
         {
-        	update_master(node);
-
             node->remove_from_parent();
             delete node;
 
@@ -1366,8 +1350,6 @@ protected:
         }
         else if (node->children().size() == 1)
         {
-        	update_master(node);
-
         	auto parent = node->parent();
             auto child  = node->children()[0];
 
@@ -1384,13 +1366,40 @@ protected:
         return false;
     }
 
+    void adjust_named_references(HistoryNode* node)
+    {
+        HistoryNode* parent = node->parent();
+        while (parent && parent->status() != HistoryNode::Status::COMMITTED)
+        {
+            parent = parent->parent();
+        }
+
+        if (parent)
+        {
+            std::unordered_set<U16String> branch_set_;
+            for (auto& pair: named_branches_)
+            {
+                if (pair.second == node)
+                {
+                    branch_set_.insert(pair.first);
+                }
+            }
+
+            for(auto& branch_name: branch_set_)
+            {
+                named_branches_[branch_name] = parent;
+            }
+
+            if (master_ == node)
+            {
+                master_ = parent;
+            }
+        }
+    }
 
 
-
-    
     MyType& self() {return *static_cast<MyType*>(this);}
     const MyType& self() const {return *static_cast<const MyType*>(this);}
-
 };
 
 }

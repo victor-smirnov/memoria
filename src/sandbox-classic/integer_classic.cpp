@@ -29,13 +29,54 @@ using namespace memoria::v1;
 
 int main(int argc, char** argv, char** envp)
 {
-    auto alloc = ThreadInMemAllocator<>::create();
+    try {
 
-    auto snp = alloc.master().branch();
+        auto alloc = ThreadInMemAllocator<>::create();
 
-    auto ctr = create<EdgeMap>(snp);
+        auto root = alloc.master();
 
-    snp.commit();
+        auto snp = alloc.master().branch();
+        snp.commit();
 
-    alloc.store("th_alloc.mma1");
+        auto snp1 = snp.branch();
+        snp1.commit();
+
+        auto snp2 = snp1.branch();
+        snp2.commit();
+
+        snp2.set_as_master();
+        snp2.set_as_branch("BOO");
+
+        alloc.branch_names();
+
+        auto mm1 = alloc.master();
+        mm1.reset();
+
+        auto mm2 = alloc.find_branch("BOO");
+        mm2.reset();
+
+        snp.drop();
+        snp1.drop();
+
+        snp.reset();
+        snp1.reset();
+
+        //snp2.drop();
+
+        snp2.reset();
+
+        auto mm3 = alloc.master();
+        mm3.reset();
+
+        auto mm4 = alloc.find_branch("BOO");
+
+        alloc.remove_named_branch("BOO");
+        alloc.branch_names();
+
+        alloc.store("th_alloc.mma1");
+
+    }
+    catch (MemoriaThrowable& ex) {
+        ex.dump(std::cout);
+    }
 }
