@@ -473,7 +473,7 @@ public:
         int32_t free_space      = MyType::free_space(this->page_size(), this->is_root());
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
-        return client_area >= mem_size;
+        return client_area >= mem_size + 300;
     }
 
 

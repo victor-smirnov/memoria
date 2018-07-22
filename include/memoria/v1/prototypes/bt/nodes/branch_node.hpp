@@ -445,7 +445,7 @@ public:
         int32_t block_size  = page_size - sizeof(MyType) + PackedAllocator::my_size();
         int32_t client_area = PackedAllocator::client_area(block_size, SubstreamsStart + Substreams + 1);
 
-        return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata)) - 200;
     }
 
 
@@ -1068,7 +1068,8 @@ public:
         fn.mem_used_ += my_data_size;
         fn.mem_used_ += other_data_size;
 
-        return client_area >= fn.mem_used_;
+        // FIXME +10 is an extra safety gap
+        return client_area >= fn.mem_used_ + 10;
     }
 
     struct MergeWithFn {
