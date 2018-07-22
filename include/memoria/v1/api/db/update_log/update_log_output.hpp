@@ -21,9 +21,8 @@
 #include <memoria/v1/api/db/update_log/update_log_input.hpp>
 
 #include <memoria/v1/core/tools/uuid.hpp>
-
 #include <memoria/v1/core/tools/object_pool.hpp>
-
+#include <memoria/v1/core/tools/pair.hpp>
 
 
 #include <memory>
@@ -131,6 +130,13 @@ public:
         MMA1_THROW(RuntimeException()) << WhatCInfo("No such element");
     }
 
+    PairPtr& pair() {
+        return iterator_.pair();
+    }
+
+    const PairPtr& pair() const {
+        return iterator_.pair();
+    }
 
 protected:
     bool prefetch();
@@ -218,6 +224,14 @@ public:
     }
 
     CommandsDataIteratorT commands();
+
+    PairPtr& pair() {
+        return iterator_.pair();
+    }
+
+    const PairPtr& pair() const {
+        return iterator_.pair();
+    }
 };
 
 
@@ -290,6 +304,14 @@ public:
 
     ContainerNameIteratorT containers();
     CtrSizeT containers_size();
+
+    PairPtr& pair() {
+        return iterator_.pair();
+    }
+
+    const PairPtr& pair() const {
+        return iterator_.pair();
+    }
 };
 
 
