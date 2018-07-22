@@ -114,6 +114,9 @@ public:
     
     bool operator==(const CtrApiBase& other) const;
     operator bool() const;
+
+    CtrPtr& ptr();
+    const CtrPtr& ptr() const;
     
     UUID name();
     const ContainerMetadataPtr& metadata();

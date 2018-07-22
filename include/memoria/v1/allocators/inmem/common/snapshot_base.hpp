@@ -392,7 +392,7 @@ public:
 
     void import_new_ctr_from(const SnapshotPtr& txn, const UUID& name)
     {
-    	checkIfDataLocked();
+        checkUpdateAllowed();
     	txn->checkIfExportAllowed();
 
     	ID root_id = this->getRootID(name);
@@ -425,7 +425,7 @@ public:
     		}
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container with name {}already exists in snapshot {}", name, txn_id));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container with name {} already exists in snapshot {}", name, txn_id));
     	}
     }
 
@@ -460,14 +460,9 @@ public:
     }
 
 
-
-
-
-
-
     void import_ctr_from(const SnapshotPtr& txn, const UUID& name)
     {
-    	checkIfDataLocked();
+        checkUpdateAllowed();
     	txn->checkIfExportAllowed();
 
     	ID root_id = this->getRootID(name);

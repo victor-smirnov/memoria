@@ -149,7 +149,7 @@ if (MSVC)
     find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
 else()
     set (Boost_USE_STATIC_RUNTIME    OFF)
-    set (Boost_USE_STATIC_LIBS       ON)
+    set (Boost_USE_STATIC_LIBS       OFF)
     find_package(ICU 60.2 COMPONENTS i18n data uc REQUIRED)
 endif()
 

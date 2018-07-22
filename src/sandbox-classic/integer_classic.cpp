@@ -18,6 +18,9 @@
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 
 #include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
+#include <memoria/v1/api/map/map_api.hpp>
+
+#include <memoria/v1/core/strings/format.hpp>
 
 #include <iostream>
 #include <type_traits>
@@ -30,48 +33,26 @@ using namespace memoria::v1;
 int main(int argc, char** argv, char** envp)
 {
     try {
-
         auto alloc = ThreadInMemAllocator<>::create();
 
-        auto root = alloc.master();
-
         auto snp = alloc.master().branch();
+
+        using SMap = Map<U8String, U8String>;
+
+        auto ctr = create<SMap>(snp);
+
+        auto iter = ctr.begin();
+
+        for (int c = 0; c < 100; c++)
+        {
+            iter.insert(fmt::format(u"Boo {}", c).to_u8(), fmt::format(u"Zoo {}", c).to_u8());
+        }
+
+        iter.reset();
+        ctr.reset();
+
         snp.commit();
-
-        auto snp1 = snp.branch();
-        snp1.commit();
-
-        auto snp2 = snp1.branch();
-        snp2.commit();
-
-        snp2.set_as_master();
-        snp2.set_as_branch("BOO");
-
-        alloc.branch_names();
-
-        auto mm1 = alloc.master();
-        mm1.reset();
-
-        auto mm2 = alloc.find_branch("BOO");
-        mm2.reset();
-
-        snp.drop();
-        snp1.drop();
-
-        snp.reset();
-        snp1.reset();
-
-        //snp2.drop();
-
-        snp2.reset();
-
-        auto mm3 = alloc.master();
-        mm3.reset();
-
-        auto mm4 = alloc.find_branch("BOO");
-
-        alloc.remove_named_branch("BOO");
-        alloc.branch_names();
+        snp.set_as_master();
 
         alloc.store("th_alloc.mma1");
 

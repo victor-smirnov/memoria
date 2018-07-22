@@ -95,6 +95,15 @@ template <typename CtrName, typename Profile>
 CtrApiBase<CtrName, Profile>::CtrApiBase(CtrApiBase&& other): pimpl_(std::move(other.pimpl_))
 {}
 
+template <typename CtrName, typename Profile>
+typename CtrApiBase<CtrName, Profile>::CtrPtr& CtrApiBase<CtrName, Profile>::ptr() {
+    return pimpl_;
+}
+
+template <typename CtrName, typename Profile>
+const typename CtrApiBase<CtrName, Profile>::CtrPtr& CtrApiBase<CtrName, Profile>::ptr() const {
+    return pimpl_;
+}
 
 
 template <typename CtrName, typename Profile>
