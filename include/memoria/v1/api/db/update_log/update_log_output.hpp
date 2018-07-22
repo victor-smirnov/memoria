@@ -194,6 +194,13 @@ public:
 
     UUID next();
 
+
+    size_t fetch_to_bytes(Bytes buffer)
+    {
+        return fetch(T2T<UUID*>(buffer.data()), buffer.length() / sizeof (UUID));
+    }
+
+
     size_t fetch(UUID* mem, size_t size)
     {
         size_t cnt{};
@@ -272,6 +279,11 @@ public:
     bool has_next() {return pos_ < size_;}
 
     UUID next();
+
+    size_t fetch_to_bytes(Bytes buffer)
+    {
+        return fetch(T2T<UUID*>(buffer.data()), buffer.length() / sizeof (UUID));
+    }
 
     size_t fetch(UUID* mem, size_t size)
     {
