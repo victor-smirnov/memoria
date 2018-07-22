@@ -41,6 +41,8 @@ namespace std {
 namespace memoria {
 namespace v1 {
 
+using UnicodeString = MMA1_ICU_CXX_NS::UnicodeString;
+
 class U8String;
 class U32String;
 class UWString;

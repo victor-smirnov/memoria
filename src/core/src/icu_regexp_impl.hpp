@@ -21,6 +21,10 @@
 
 namespace memoria {
 namespace v1 {
+
+using RegexMatcher = MMA1_ICU_CXX_NS::RegexMatcher;
+using RegexPattern = MMA1_ICU_CXX_NS::RegexPattern;
+
 namespace _ {
 
 class ICURegexMatcherImpl {

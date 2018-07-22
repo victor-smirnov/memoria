@@ -97,5 +97,7 @@
 #endif
 
 
+#ifndef MMA1_ICU_CXX_NS
+#define MMA1_ICU_CXX_NS icu_60
+#endif
 
-#include <memoria/v1/core/types.hpp>

@@ -100,6 +100,9 @@ if (BUILD_POSIX)
     #add_definitions(-fpermissive)
     add_definitions(-faligned-new)
     add_definitions(-Wno-class-memaccess)
+
+    #add_definitions(-DU_HAVE_LIB_SUFFIX=1)
+    #add_definitions(-DU_LIB_SUFFIX_C_NAME=__mariana)
     
     add_definitions(-pthread)
     
@@ -143,6 +146,8 @@ set (Boost_USE_RELEASE_LIBS	 ON)
 set (Boost_USE_DEBUG_RUNTIME	 ON)
 set (Boost_USE_MULTITHREADED     ON)
 
+set (ICU_ROOT /usr/local/icu4c-mariana)
+
 if (MSVC)
     set (Boost_USE_STATIC_RUNTIME    OFF)
     set (Boost_USE_STATIC_LIBS       ON)
@@ -150,7 +155,7 @@ if (MSVC)
 else()
     set (Boost_USE_STATIC_RUNTIME    OFF)
     set (Boost_USE_STATIC_LIBS       OFF)
-    find_package(ICU 60.2 COMPONENTS i18n data uc REQUIRED)
+    find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
 endif()
 
 find_package(Boost 1.66.0 COMPONENTS filesystem context program_options serialization REQUIRED)
