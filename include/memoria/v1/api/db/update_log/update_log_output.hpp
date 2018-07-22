@@ -79,6 +79,11 @@ public:
     CtrSizeT pos();
     CtrSizeT size();
 
+    size_t fetch_to_bytes(Bytes buffer)
+    {
+        return fetch(buffer.data(), buffer.length());
+    }
+
     size_t fetch(uint8_t* mem, size_t size)
     {
         size_t cnt{};
@@ -129,6 +134,8 @@ public:
 
         MMA1_THROW(RuntimeException()) << WhatCInfo("No such element");
     }
+
+
 
     PairPtr& pair() {
         return iterator_.pair();
@@ -315,76 +322,6 @@ public:
 };
 
 
-
-
-
-//template <typename Iterator, typename CtrSizeT>
-//class SnapshotIDIterator {
-//    Iterator iterator_;
-
-//    int32_t entry_{};
-//    int32_t n_entries_{};
-
-//    bool empty_{};
-
-//    PoolUniquePtr<DefaultIOBuffer> buffer_;
-
-//    std::unique_ptr<IBTFLPopulateWalker<DefaultIOBuffer>> walker_{};
-
-//public:
-//    using ContainerNameIteratorT = ContainerNameIterator<Iterator, CtrSizeT>;
-
-//    SnapshotIDIterator(): iterator_{nullptr}, empty_{true} {}
-//    SnapshotIDIterator(SnapshotIDIterator&& other) = default;
-
-//    SnapshotIDIterator(Iterator ii): iterator_{ii}
-//    {
-//        prepare();
-//    }
-
-//    bool has_next() {return entry_ < n_entries_ || ((!empty_) && prefetch()) ;}
-
-//    UUID next()
-//    {
-//        if (MMA1_LIKELY(has_next()))
-//        {
-//            entry_++;
-//            return IOBufferAdapter<UUID>::get(*buffer_.get());
-//        }
-
-//        MMA1_THROW(RuntimeException()) << WhatCInfo("No such element");
-//    }
-
-//    size_t fetch(UUID* mem, size_t size);
-
-//    template <typename OutputIterator>
-//    size_t fetch(OutputIterator& ii, size_t max = std::numeric_limits<size_t>::max())
-//    {
-//        size_t cnt{};
-//        while(cnt < max && has_next())
-//        {
-//            *ii = next();
-//            ++ii;
-//        }
-//    }
-
-//    std::vector<UUID> as_vector()
-//    {
-//        std::vector<UUID> vv;
-
-//        while (has_next()){
-//            vv.push_back(next());
-//        }
-
-//        return vv;
-//    }
-
-//    ContainerNameIteratorT containers();
-
-//protected:
-//    bool prefetch();
-//    void prepare();
-//};
 
 
 }
