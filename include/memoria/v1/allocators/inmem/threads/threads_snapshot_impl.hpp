@@ -528,6 +528,12 @@ void ThreadInMemSnapshot<Profile>::dump_persistent_tree()
 }
 
 template <typename Profile>
+void ThreadInMemSnapshot<Profile>::dump_dictionary_pages()
+{
+    return pimpl_->dump_dictionary_pages();
+}
+
+template <typename Profile>
 void ThreadInMemSnapshot<Profile>::dump_open_containers()
 {
     return pimpl_->dump_open_containers();
@@ -605,5 +611,16 @@ template <typename Profile>
 PairPtr& ThreadInMemSnapshot<Profile>::pair() {
     return pimpl_->pair();
 }
+
+template <typename Profile>
+std::vector<UUID> ThreadInMemSnapshot<Profile>::container_names() const {
+    return pimpl_->container_names();
+}
+
+template <typename Profile>
+std::vector<U16String> ThreadInMemSnapshot<Profile>::container_names_str() const {
+    return pimpl_->container_names_str();
+}
+
 
 }}

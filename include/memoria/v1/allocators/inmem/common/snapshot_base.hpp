@@ -226,42 +226,6 @@ public:
 
     virtual ~SnapshotBase()
     {
-//     	//FIXME This code doesn't decrement properly number of active snapshots
-//     	// for allocator to store data correctly.
-// 
-//     	bool drop1 = false;
-//     	bool drop2 = false;
-// 
-//     	{
-//     		LockGuardT snapshot_lock_guard(history_node_->snapshot_mutex());
-// 
-//     		if (history_node_->unref() == 0)
-//     		{
-//     			if (history_node_->is_active())
-//     			{
-//     				drop1 = true;
-//     			}
-//     			else if(history_node_->is_dropped())
-//     			{
-//     				drop2 = true;
-//     				check_tree_structure(history_node_->root());
-//     			}
-//     		}
-//     	}
-// 
-//     	if (drop1)
-//     	{
-//     		do_drop();
-//     		history_tree_raw_->forget_snapshot(history_node_);
-//     	}
-// 
-//     	if (drop2)
-//     	{
-//     		StoreLockGuardT store_lock_guard(history_node_->store_mutex());
-//     		do_drop();
-// 
-//     		// FIXME: check if absence of snapshot lock here leads to data races...
-//     	}
     }
     
     virtual SnpSharedPtr<IAllocator<ProfilePageType<Profile>>> self_ptr() {
@@ -302,6 +266,30 @@ public:
 
     bool is_committed() const {
         return history_node_->is_committed();
+    }
+
+    std::vector<UUID> container_names() const
+    {
+        std::vector<UUID> names;
+
+        auto ii = root_map_->begin();
+        while (!ii->isEnd()) {
+            names.push_back(ii->key());
+        }
+
+        return names;
+    }
+
+    std::vector<U16String> container_names_str() const
+    {
+        std::vector<U16String> names;
+
+        auto ii = root_map_->begin();
+        while (!ii->isEnd()) {
+            names.push_back(ii->key().to_u16());
+        }
+
+        return names;
     }
 
 
@@ -647,6 +635,18 @@ public:
     	{
             std::cout << demangle(pair.first.name()) << " -- " << pair.second.references() << std::endl;
     	}
+    }
+
+    void dump_dictionary_pages()
+    {
+        auto ii = root_map_->begin();
+        if (!ii->isEnd())
+        {
+            do {
+                ii->dump();
+            }
+            while (ii->nextLeaf());
+        }
     }
 
 protected:

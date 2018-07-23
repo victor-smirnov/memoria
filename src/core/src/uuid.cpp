@@ -158,4 +158,9 @@ U8String UUID::to_u8() const
     return U8String(ss.str());
 }
 
+U16String UUID::to_u16() const
+{
+    return to_u8().to_u16();
+}
+
 }}

@@ -112,7 +112,6 @@ public:
 
     U16String snapshot_description(const TxnId& snapshot_id);
 
-
     PairPtr& pair();
     const PairPtr& pair() const;
 };
@@ -180,6 +179,11 @@ public:
 
     Optional<U16String> ctr_type_name_for(const UUID& name);
 
+    std::vector<UUID> container_names() const;
+    std::vector<U16String> container_names_str() const;
+
+
+    void dump_dictionary_pages();
     void dump_open_containers();
     bool has_open_containers();
     void dump_persistent_tree();
