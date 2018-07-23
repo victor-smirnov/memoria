@@ -33,6 +33,11 @@ int64_t CtrApi<Multimap<Key, Value>, Profile>::size() const
     return this->pimpl_->size();
 }
 
+template <typename Key, typename Value, typename Profile>
+typename CtrApi<Multimap<Key, Value>, Profile>::Iterator CtrApi<Multimap<Key, Value>, Profile>::seek(int64_t pos)
+{
+    return this->pimpl_->seek(pos);
+}
 
 template <typename Key, typename Value, typename Profile>
 typename CtrApi<Multimap<Key, Value>, Profile>::Iterator CtrApi<Multimap<Key, Value>, Profile>::find(const Key& key) 
