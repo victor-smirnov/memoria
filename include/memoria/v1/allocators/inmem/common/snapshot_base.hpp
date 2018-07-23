@@ -275,6 +275,7 @@ public:
         auto ii = root_map_->begin();
         while (!ii->isEnd()) {
             names.push_back(ii->key());
+            ii->next();
         }
 
         return names;
@@ -287,6 +288,7 @@ public:
         auto ii = root_map_->begin();
         while (!ii->isEnd()) {
             names.push_back(ii->key().to_u16());
+            ii->next();
         }
 
         return names;
