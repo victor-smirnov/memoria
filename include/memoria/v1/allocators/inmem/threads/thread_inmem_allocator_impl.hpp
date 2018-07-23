@@ -172,7 +172,10 @@ public:
     	do_pack(history_tree_);
     }
 
-    UUID root_shaphot_id() const {
+
+    UUID root_shaphot_id() const
+    {
+        LockGuardT lock_guard(mutex_);
         return history_tree_->txn_id();
     }
 

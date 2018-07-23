@@ -110,6 +110,23 @@ public:
     LocalSharedPtr<AllocatorEventListener> event_listener();
 
     Graph as_graph();
+
+    UUID root_shaphot_id() const;
+    std::vector<UUID> children_of(const UUID& snapshot_id) const;
+    std::vector<std::string> children_of_str(const UUID& snapshot_id) const;
+    void remove_named_branch(const std::string& name);
+
+    std::vector<U16String> branch_names();
+    UUID branch_head(const U16String& branch_name);
+
+    int32_t snapshot_status(const TxnId& snapshot_id);
+
+    UUID snapshot_parent(const TxnId& snapshot_id);
+
+    U16String snapshot_description(const TxnId& snapshot_id);
+
+    PairPtr& pair();
+    const PairPtr& pair() const;
 };
 
 
@@ -176,7 +193,19 @@ public:
     void import_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
     void copy_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
     bool check();
+
+
+    Optional<U16String> ctr_type_name_for(const UUID& name);
+
+    std::vector<UUID> container_names() const;
+    std::vector<U16String> container_names_str() const;
+
+    void dump_dictionary_pages();
+    void dump_open_containers();
+    bool has_open_containers();
     void dump_persistent_tree();
+
+
     void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
     
     UUID clone_ctr(const UUID& name, const UUID& new_name);
@@ -215,6 +244,9 @@ public:
     SnpSharedPtr<SnapshotMetadata<UUID>> describe() const;
 
     Vertex as_vertex();
+
+    const PairPtr& pair() const;
+    PairPtr& pair();
     
 private:
     AllocSharedPtr<AllocatorT> snapshot_ref_creation_allowed();

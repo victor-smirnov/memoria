@@ -173,6 +173,129 @@ public:
     }
 
 
+    UUID root_shaphot_id() const
+    {
+        return reactor::engine().run_at(cpu_, [&]{
+            return history_tree_->txn_id();
+        });
+    }
+
+    std::vector<UUID> children_of(const UUID& snapshot_id) const
+    {
+        return reactor::engine().run_at(cpu_, [&]{
+            std::vector<UUID> ids;
+
+            auto iter = snapshot_map_.find(snapshot_id);
+            if (iter != snapshot_map_.end())
+            {
+                const auto history_node = iter->second;
+                for (const auto* child: history_node->children())
+                {
+                    ids.push_back(child->txn_id());
+                }
+            }
+
+            return ids;
+        });
+    }
+
+    std::vector<std::string> children_of_str(const UUID& snapshot_id) const
+    {
+        std::vector<std::string> ids;
+        auto uids = children_of(snapshot_id);
+
+        for (const auto& uid: uids)
+        {
+            ids.push_back(uid.str());
+        }
+
+        return ids;
+    }
+
+    void remove_named_branch(const std::string& name)
+    {
+        return reactor::engine().run_at(cpu_, [&]{
+            named_branches_.erase(U16String(name));
+        });
+    }
+
+    std::vector<U16String> branch_names()
+    {
+        return reactor::engine().run_at(cpu_, [&]{
+            std::vector<U16String> branches;
+
+            for (auto pair: named_branches_)
+            {
+                branches.push_back(pair.first);
+            }
+
+            return branches;
+        });
+    }
+
+    UUID branch_head(const U16String& branch_name)
+    {
+        return reactor::engine().run_at(cpu_, [&]{
+
+            auto ii = named_branches_.find(branch_name);
+            if (ii != named_branches_.end())
+            {
+                return ii->second->txn_id();
+            }
+
+            return UUID{};
+        });
+    }
+
+    auto snapshot_status(const TxnId& snapshot_id)
+    {
+        return reactor::engine().run_at(cpu_, [&]{
+            auto iter = snapshot_map_.find(snapshot_id);
+            if (iter != snapshot_map_.end())
+            {
+                const auto history_node = iter->second;
+                return history_node->status();
+            }
+            else {
+                MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+            }
+        });
+    }
+
+    UUID snapshot_parent(const TxnId& snapshot_id)
+    {
+        return reactor::engine().run_at(cpu_, [&]{
+            auto iter = snapshot_map_.find(snapshot_id);
+            if (iter != snapshot_map_.end())
+            {
+                const auto history_node = iter->second;
+                auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
+                return parent_id;
+            }
+            else {
+                MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+            }
+        });
+    }
+
+    U16String snapshot_description(const TxnId& snapshot_id)
+    {
+        return reactor::engine().run_at(cpu_, [&]{
+            auto iter = snapshot_map_.find(snapshot_id);
+            if (iter != snapshot_map_.end())
+            {
+                const auto history_node = iter->second;
+                return history_node->metadata();
+            }
+            else {
+                MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+            }
+        });
+    }
+
+
+
+
     SnpSharedPtr<SnapshotMetadata<TxnId>> describe(const TxnId& snapshot_id) const
     {
     	return reactor::engine().run_at(cpu_, [&]{
@@ -794,5 +917,72 @@ template <typename Profile>
 Graph InMemAllocator<Profile>::as_graph() {
     return pimpl_->as_graph();
 }
+
+
+
+template <typename Profile>
+std::vector<UUID> InMemAllocator<Profile>::children_of(const UUID& snapshot_id) const
+{
+    return pimpl_->children_of(snapshot_id);
+}
+
+
+template <typename Profile>
+std::vector<std::string> InMemAllocator<Profile>::children_of_str(const UUID& snapshot_id) const
+{
+    return pimpl_->children_of_str(snapshot_id);
+}
+
+template <typename Profile>
+void InMemAllocator<Profile>::remove_named_branch(const std::string& name)
+{
+    return pimpl_->remove_named_branch(name);
+}
+
+template <typename Profile>
+UUID InMemAllocator<Profile>::root_shaphot_id() const
+{
+    return pimpl_->root_shaphot_id();
+}
+
+
+template <typename Profile>
+const PairPtr& InMemAllocator<Profile>::pair() const {
+    return pimpl_->pair();
+}
+
+template <typename Profile>
+PairPtr& InMemAllocator<Profile>::pair() {
+    return pimpl_->pair();
+}
+
+template <typename Profile>
+std::vector<U16String> InMemAllocator<Profile>::branch_names()
+{
+    return pimpl_->branch_names();
+}
+
+template <typename Profile>
+UUID InMemAllocator<Profile>::branch_head(const U16String& branch_name)
+{
+    return pimpl_->branch_head(branch_name);
+}
+
+
+template <typename Profile>
+int32_t InMemAllocator<Profile>::snapshot_status(const TxnId& snapshot_id) {
+    return static_cast<int32_t>(pimpl_->snapshot_status(snapshot_id));
+}
+
+template <typename Profile>
+UUID InMemAllocator<Profile>::snapshot_parent(const TxnId& snapshot_id) {
+    return pimpl_->snapshot_parent(snapshot_id);
+}
+
+template <typename Profile>
+U16String InMemAllocator<Profile>::snapshot_description(const TxnId& snapshot_id) {
+    return pimpl_->snapshot_description(snapshot_id);
+}
+
 
 }}

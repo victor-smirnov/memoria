@@ -78,13 +78,14 @@ protected:
     using Base::history_node_;
     using Base::history_tree_;
     using Base::history_tree_raw_;
-    using Base::has_open_containers;
     using Base::do_drop;
     using Base::check_tree_structure;
 
     int32_t cpu_;
 
 public:
+
+    using Base::has_open_containers;
     using Base::uuid;
     
     
@@ -602,12 +603,47 @@ UUID InMemSnapshot<Profile>::clone_ctr(const UUID& name) {
 
 
 
-
 template <typename Profile>
-void InMemSnapshot<Profile>::dump_persistent_tree() 
+void InMemSnapshot<Profile>::dump_persistent_tree()
 {
     return pimpl_->dump_persistent_tree();
 }
+
+template <typename Profile>
+void InMemSnapshot<Profile>::dump_dictionary_pages()
+{
+    return pimpl_->dump_dictionary_pages();
+}
+
+template <typename Profile>
+void InMemSnapshot<Profile>::dump_open_containers()
+{
+    return pimpl_->dump_open_containers();
+}
+
+template <typename Profile>
+bool InMemSnapshot<Profile>::has_open_containers()
+{
+    return pimpl_->has_open_containers();
+}
+
+template <typename Profile>
+Optional<U16String> InMemSnapshot<Profile>::ctr_type_name_for(const UUID& name)
+{
+    return pimpl_->ctr_type_name_for(name);
+}
+
+
+template <typename Profile>
+const PairPtr& ThreadInMemSnapshot<Profile>::pair() const {
+    return pimpl_->pair();
+}
+
+template <typename Profile>
+PairPtr& ThreadInMemSnapshot<Profile>::pair() {
+    return pimpl_->pair();
+}
+
 
 template <typename Profile>
 void InMemSnapshot<Profile>::walk_containers(ContainerWalker* walker, const char16_t* allocator_descr)
