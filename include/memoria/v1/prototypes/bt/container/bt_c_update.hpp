@@ -45,13 +45,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::UpdateName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
 
-    static const int32_t Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                = Types::Streams;
 
 
     using CtrSizeT = typename Types::CtrSizeT;

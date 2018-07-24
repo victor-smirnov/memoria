@@ -17,6 +17,12 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
+
+#include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
+#include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
+
+#include <memoria/v1/core/container/container.hpp>
+
 #include <memoria/v1/core/types/list/list_tree.hpp>
 #include <memoria/v1/prototypes/bt/walkers/bt_walker_base_detail.hpp>
 

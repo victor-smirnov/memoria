@@ -80,12 +80,11 @@ public:
 
 
 
-    static const int32_t Streams = 1;
+    static const int32_t Streams            = 1;
+    static const int32_t Substreams         = Dispatcher::Size;
 
-    static const int32_t Substreams                                                 = Dispatcher::Size;
-
-    static const int32_t SubstreamsStart                                            = Dispatcher::AllocatorIdxStart;
-    static const int32_t SubstreamsEnd                                              = Dispatcher::AllocatorIdxEnd;
+    static const int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
+    static const int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
 
     using SizesT = core::StaticVector<int32_t, Substreams>;
 

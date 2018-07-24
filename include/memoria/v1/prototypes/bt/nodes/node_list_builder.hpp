@@ -18,10 +18,11 @@
 
 #include <memoria/v1/core/types/typelist.hpp>
 
+#include <memoria/v1/prototypes/bt/nodes/node_dispatcher.hpp>
 
 namespace memoria {
 namespace v1 {
-namespace bt    {
+namespace bt {
 
 template <
     template <typename> class TreeNode,

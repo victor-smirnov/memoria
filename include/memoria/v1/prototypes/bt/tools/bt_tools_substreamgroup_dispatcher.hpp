@@ -24,13 +24,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt        {
-
-namespace detail {
-
-
-
-}
+namespace bt {
 
 template <typename List, int32_t Offset = 0, int32_t Idx = 0, int32_t Max = ListSize<List>>
 class BuildTopLevelLeafSubsetsH;

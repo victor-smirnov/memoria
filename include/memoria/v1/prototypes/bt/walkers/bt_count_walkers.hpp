@@ -16,8 +16,10 @@
 
 #pragma once
 
-#include <memoria/v1/prototypes/bt/walkers/bt_find_walkers.hpp>
+#include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
+#include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
 
+#include <memoria/v1/prototypes/bt/walkers/bt_find_walkers.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
 namespace memoria {

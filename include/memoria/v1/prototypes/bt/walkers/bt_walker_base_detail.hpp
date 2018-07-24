@@ -18,13 +18,13 @@
 
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/list/list_tree.hpp>
-
+#include <memoria/v1/prototypes/bt/tools/bt_tools_index_range.hpp>
 
 #include <tuple>
 
 namespace memoria {
 namespace v1 {
-namespace bt      {
+namespace bt {
 namespace details  {
 
 template <typename StreamIdxList> struct IteratorStreamRangesListWalker;

@@ -22,7 +22,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt        {
+namespace bt {
 
 template <typename Tree>
 using FlattenBranchTree = Linearize<Tree, 1>;

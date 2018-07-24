@@ -16,9 +16,12 @@
 
 #pragma once
 
+#include <memoria/v1/core/types.hpp>
+#include <memoria/v1/core/container/container.hpp>
+
 namespace memoria {
 namespace v1 {
-namespace bt1     {
+namespace bt1 {
 
 template <typename Types>
 class FindEdgeWalkerBase {

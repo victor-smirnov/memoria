@@ -28,10 +28,6 @@
 namespace memoria {
 namespace v1 {
 
-//using namespace v1::bt;
-
-
-
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ToolsName)
 public:
     using Types = typename Base::Types;

@@ -34,7 +34,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorRankName)
     typedef typename Base::Container                                                Container;
 
     typedef typename Container::Allocator                                           Allocator;
-    typedef typename Container::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Container::Iterator                                            Iterator;
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
