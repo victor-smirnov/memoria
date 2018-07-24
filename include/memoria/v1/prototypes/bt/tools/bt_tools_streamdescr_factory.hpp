@@ -152,7 +152,7 @@ struct VLDBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 
 
-namespace detail {
+namespace _ {
 
 	
 
@@ -370,9 +370,9 @@ struct BTStreamDescritorsBuilder<TL<LeafStruct, Tail...>, BranchStructTF, SumTyp
 
     using StructList = TL<LeafStruct, Tail...>;
 
-    using KeyMetadataList = detail::BuildKeyMetadataList<StructList, SumType>;
+    using KeyMetadataList = _::BuildKeyMetadataList<StructList, SumType>;
 
-    using Type = detail::BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
+    using Type = _::BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
 };
 
 template <typename LeafStruct, typename... Tail1, typename... Tail2, template <typename> class BranchStructTF, typename SumType>
@@ -385,9 +385,9 @@ struct BTStreamDescritorsBuilder<TL<TL<LeafStruct, Tail1...>, Tail2...>, BranchS
 
     using StructList = TL<TL<LeafStruct, Tail1...>, Tail2...>;
 
-    using KeyMetadataList = detail::BuildKeyMetadataList<StructList, SumType>;
+    using KeyMetadataList = _::BuildKeyMetadataList<StructList, SumType>;
 
-    using Type = detail::BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
+    using Type = _::BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
 };
 
 

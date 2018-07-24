@@ -26,7 +26,7 @@ namespace v1 {
 namespace list_tree {
 
     
-namespace detail {    
+namespace _ {    
 
     template <typename List, typename Path, int32_t Depth = 1, int32_t Ptr = 0> struct LeafCountH;
 
@@ -89,10 +89,10 @@ namespace detail {
 }
 
 template <typename List, typename Path, int32_t Depth = 1, int32_t Ptr = 0> 
-constexpr int32_t LeafCount = detail::LeafCountH<List, Path, Depth, Ptr>::Value;
+constexpr int32_t LeafCount = _::LeafCountH<List, Path, Depth, Ptr>::Value;
 
 
-namespace detail {
+namespace _ {
 
     template <typename List, typename Path, int32_t Ptr = 0> struct SubtreeH;
 
@@ -143,7 +143,7 @@ namespace detail {
 }
 
 template <typename List, typename Path> 
-using Subtree = typename detail::SubtreeH<List, Path>::Type;
+using Subtree = typename _::SubtreeH<List, Path>::Type;
 
 
 template <typename List, typename Path = IntList<>, int32_t Depth = 1>
@@ -163,7 +163,7 @@ constexpr int32_t LeafCountSup = LeafCount<List, Path, Depth> + SubtreeLeafCount
 
 
 
-namespace detail {
+namespace _ {
 
     template <typename T, T From, T To> struct MakeValueListH;
 
@@ -180,7 +180,7 @@ namespace detail {
 }
 
 template <typename T, T From, T To>
-using MakeValueList = typename detail::MakeValueListH<T, From, To>::Type;
+using MakeValueList = typename _::MakeValueListH<T, From, To>::Type;
 
 
 

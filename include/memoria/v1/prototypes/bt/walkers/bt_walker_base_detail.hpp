@@ -25,7 +25,7 @@
 namespace memoria {
 namespace v1 {
 namespace bt {
-namespace details  {
+namespace _ {
 
 template <typename StreamIdxList> struct IteratorStreamRangesListWalker;
 

@@ -23,7 +23,7 @@
 namespace memoria {
 namespace v1 {
 
-namespace detail {
+namespace _ {
 
     template <typename Item1, typename Item2> struct AppendToolH;
 
@@ -172,14 +172,14 @@ namespace detail {
 
 
 template <typename ... Lists>
-using MergeLists = typename memoria::v1::detail::MergeListsH<Lists...>::Type;
+using MergeLists = typename memoria::v1::_::MergeListsH<Lists...>::Type;
 
 template <typename ... Lists>
-using MergeValueLists = typename memoria::v1::detail::MergeValueListsH<Lists...>::Type;
+using MergeValueLists = typename memoria::v1::_::MergeValueListsH<Lists...>::Type;
 
 
 template <typename List, typename Item, int32_t Idx>
-using Replace = typename memoria::v1::detail::ReplaceH<List, Item, Idx>::Type;
+using Replace = typename memoria::v1::_::ReplaceH<List, Item, Idx>::Type;
 
 
 

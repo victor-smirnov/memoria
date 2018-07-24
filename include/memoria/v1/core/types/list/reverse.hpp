@@ -22,7 +22,7 @@
 namespace memoria {
 namespace v1 {
 
-namespace detail {
+namespace _ {
     template <typename List> struct RevertListH;
 
     template <typename Head, typename ... Tail>
@@ -40,6 +40,6 @@ namespace detail {
 }
 
 template <typename List> 
-using RevertList = detail::RevertListH<List>;
+using RevertList = _::RevertListH<List>;
 
 }}
