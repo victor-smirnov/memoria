@@ -28,9 +28,7 @@
 namespace memoria {
 namespace v1 {
 
-using v1::bt::StreamTag;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ReadName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -59,7 +57,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ReadName)
         auto stream(const StreamObj* obj, Entry&& entry, int32_t idx)
         {
             obj->read(idx, idx + 1, make_fn_with_next([&](int32_t block, auto&& value) {
-                entry.put(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), block, value);
+                entry.put(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), block, value);
             }));
         }
 
@@ -116,7 +114,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ReadName)
             static constexpr int32_t StreamIdx = ListHead<SubstreamPath>::Value;
 
             obj->read(from, to, make_fn_with_next([&](int32_t block, auto&& value) {
-                entry.put(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), value);
+                entry.put(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), value);
             }));
         }
 
@@ -169,7 +167,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ReadName)
             static constexpr int32_t StreamIdx = ListHead<SubstreamPath>::Value;
 
             obj->read(from, to, make_fn_with_next([&](int32_t block, auto&& value) {
-                entry.put(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), value);
+                entry.put(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), value);
             }));
         }
 
@@ -220,7 +218,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ReadName)
             static constexpr int32_t StreamIdx = ListHead<SubstreamPath>::Value;
 
             obj->describe(block, from, to, make_fn_with_next([&](int32_t block, auto&& value) {
-                return entry.put(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), block, value);
+                return entry.put(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), block, value);
             }));
         }
 
@@ -272,7 +270,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ReadName)
         {
             static constexpr int32_t StreamIdx = ListHead<SubstreamPath>::Value;
 
-            entry.process(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), from, to, *obj);
+            entry.process(bt::StreamTag<StreamIdx>(), bt::StreamTag<SubstreamIdx>(), from, to, *obj);
         }
 
         template <typename Node, typename Fn>
@@ -315,7 +313,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ReadName)
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::ReadName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::ReadName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

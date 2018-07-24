@@ -52,7 +52,7 @@ template <
     typename ... Tail,
     typename DefaultType
 >
-struct Type2TypeMap<T, v1::TypeList<Head, Tail...>, DefaultType> {
+struct Type2TypeMap<T, TypeList<Head, Tail...>, DefaultType> {
     typedef typename Type2TypeMap<T, TypeList<Tail...>, DefaultType>::Result Result;
 };
 

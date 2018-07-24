@@ -28,7 +28,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::IOReadName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -85,9 +85,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
 
         template <typename NodeType, typename IOBuffer>
-        PopulateIOBufferStatus treeNode(const LeafNode<NodeType>* node, IOBuffer&& buffer, int32_t from, CtrSizeT to)
+        PopulateIOBufferStatus treeNode(const bt::LeafNode<NodeType>* node, IOBuffer&& buffer, int32_t from, CtrSizeT to)
         {
-            using Node = LeafNode<NodeType>;
+            using Node = bt::LeafNode<NodeType>;
 
             using ReadStatesTuple = AsTuple<typename Node::template MapStreamStructs<StreamIdx, ReadStateFn>>;
 
@@ -249,7 +249,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::IOReadName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::IOReadName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

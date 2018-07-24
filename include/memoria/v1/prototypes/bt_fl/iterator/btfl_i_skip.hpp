@@ -29,7 +29,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorSkipName)
 
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
@@ -140,7 +140,7 @@ public:
     {
     	auto& self = this->self();
     	int32_t stream = self.stream();
-    	return ForEachStream<Streams - 1>::process(stream, SkipFWFn(), self, n);
+        return bt::ForEachStream<Streams - 1>::process(stream, SkipFWFn(), self, n);
     }
 
     struct SkipBWFn {
@@ -155,7 +155,7 @@ public:
     {
     	auto& self = this->self();
     	int32_t stream = self.stream();
-    	return ForEachStream<Streams - 1>::process(stream, SkipBWFn(), self, n);
+        return bt::ForEachStream<Streams - 1>::process(stream, SkipBWFn(), self, n);
     }
 
     CtrSizeT skip(CtrSizeT n)
@@ -415,7 +415,7 @@ public:
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::btfl::IteratorSkipName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(btfl::IteratorSkipName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

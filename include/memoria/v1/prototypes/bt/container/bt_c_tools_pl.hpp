@@ -28,11 +28,8 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
 
-
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ToolsPLName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsPLName)
 public:
     using Types = typename Base::Types;
 
@@ -104,7 +101,7 @@ protected:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::ToolsPLName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::ToolsPLName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

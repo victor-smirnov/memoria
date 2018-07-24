@@ -99,7 +99,7 @@ protected:
 public:
 
     template <typename CtrName>
-    using CtrT = v1::SharedCtr<CtrName, IAllocator<ProfilePageType<Profile>>, Profile>;
+    using CtrT = SharedCtr<CtrName, IAllocator<ProfilePageType<Profile>>, Profile>;
 
     template <typename CtrName>
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;

@@ -29,7 +29,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorFindName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorFindName)
 
 
     using Container = typename Base::Container;
@@ -98,32 +98,32 @@ public:
 
 
     template <typename WWTypes>
-    void finish_walking(int32_t idx, const FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void finish_walking(int32_t idx, const bt::FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
     template <typename WWTypes>
-    void finish_walking(int32_t idx, const FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void finish_walking(int32_t idx, const bt::FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
 
     template <typename WWTypes>
-    void finish_walking(int32_t idx, const FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void finish_walking(int32_t idx, const bt::FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
     template <typename WWTypes>
-    void finish_walking(int32_t idx, const FindGEBackwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void finish_walking(int32_t idx, const bt::FindGEBackwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
     template <typename WWTypes>
-    void finish_walking(int32_t idx, const FindMaxGEWalker<WWTypes>& walker, WalkCmd cmd)
+    void finish_walking(int32_t idx, const bt::FindMaxGEWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
@@ -132,7 +132,7 @@ public:
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::btfl::IteratorFindName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(btfl::IteratorFindName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

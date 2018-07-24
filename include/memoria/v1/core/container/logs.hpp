@@ -25,23 +25,23 @@
 
 #define MMA1_LOG(logger_, level, ...)                                        \
     if (logger_.is_log(level))                                               \
-        v1::log(logger_.logger(), level, MMA1_SOURCE, logger_.typeName(),    \
+        memoria::v1::log(logger_.logger(), level, MMA1_SOURCE, logger_.typeName(),    \
                 ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
 
 #define MMA1_DEBUG(logger_, ...)                                             \
-    MMA1_LOG(logger_, v1::Logger::LDEBUG, ##__VA_ARGS__)
+    MMA1_LOG(logger_, memoria::v1::Logger::LDEBUG, ##__VA_ARGS__)
 
 #define MMA1_WARN(logger_, ...)                                              \
-    MMA1_LOG(logger_, v1::Logger::WARN, ##__VA_ARGS__)
+    MMA1_LOG(logger_, memoria::v1::Logger::WARN, ##__VA_ARGS__)
 
 #define MMA1_ERROR(logger_, ...)                                             \
-    MMA1_LOG(logger_, v1::Logger::_ERROR, ##__VA_ARGS__)
+    MMA1_LOG(logger_, memoria::v1::Logger::_ERROR, ##__VA_ARGS__)
 
 #define MMA1_INFO(logger_, ...)                                              \
-    MMA1_LOG(logger_, v1::Logger::INFO, ##__VA_ARGS__)
+    MMA1_LOG(logger_, memoria::v1::Logger::INFO, ##__VA_ARGS__)
 
 #define MMA1_TRACE(logger_, ...)                                             \
-    MMA1_LOG(logger_, v1::Logger::TRACE, ##__VA_ARGS__)
+    MMA1_LOG(logger_, memoria::v1::Logger::TRACE, ##__VA_ARGS__)
 
 
 namespace memoria {
@@ -102,7 +102,7 @@ public:
     enum {DERIVED = 0, TRACE = 10000, LDEBUG = 20000, _ERROR = 30000,
           WARNING = 40000, INFO = 50000, FATAL = 60000, NONE = 70000};
 
-    Logger(const char* category, int level = DERIVED, Logger* parent = &v1::logger):
+    Logger(const char* category, int level = DERIVED, Logger* parent = &memoria::v1::logger):
         category_(category), level_(level), parent_(parent), handler_(NULL)
     {}
 
@@ -142,7 +142,7 @@ public:
         return level_;
     }
 
-    void configure(const char* category, int level = DERIVED, Logger* parent = &v1::logger)
+    void configure(const char* category, int level = DERIVED, Logger* parent = &memoria::v1::logger)
     {
         category_   = category;
         level_      = level;

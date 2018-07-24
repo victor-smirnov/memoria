@@ -829,15 +829,15 @@ public:
         return logger_.isLogEnabled(level);
     }
 
-    const v1::Logger& logger() const {
+    const Logger& logger() const {
         return logger_;
     }
 
-    v1::Logger& logger() {
+    Logger& logger() {
         return logger_;
     }
 
-    static v1::Logger& class_logger() {
+    static Logger& class_logger() {
         return class_logger_;
     }
 
@@ -884,7 +884,7 @@ public:
 template<
         typename Types
 >
-Logger Ctr<Types>::class_logger_(typeid(typename Types::ContainerTypeName).name(), Logger::DERIVED, &v1::logger);
+Logger Ctr<Types>::class_logger_(typeid(typename Types::ContainerTypeName).name(), Logger::DERIVED, &logger);
 
 
 }}

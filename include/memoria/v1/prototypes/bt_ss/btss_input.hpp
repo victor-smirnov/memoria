@@ -512,9 +512,9 @@ protected:
 
 
 template <typename CtrT, typename IOBuffer>
-class AbstractIOBufferBTSSInputProvider1: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+class AbstractIOBufferBTSSInputProvider1: public btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
 
-    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+    using Base = btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 protected:
 
@@ -589,9 +589,9 @@ public:
 
 
 template <typename CtrT, typename IOBuffer>
-class AbstractIOBufferBTSSInputProvider: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+class AbstractIOBufferBTSSInputProvider: public btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
 
-    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+    using Base = btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 protected:
 

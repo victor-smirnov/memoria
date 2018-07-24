@@ -26,8 +26,8 @@ namespace v1 {
 namespace types     {
 namespace relation  {
 
-using namespace v1::tools::types::algo;
-using namespace v1::tools::types::typelist;
+using namespace tools::types::algo;
+using namespace tools::types::typelist;
 
 template <typename Item, typename List>
 class AddIfNotcontains {

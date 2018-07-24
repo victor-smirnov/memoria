@@ -84,12 +84,12 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::btfl_test::CtrApiName
+                btfl_test::CtrApiName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::btfl_test::IterApiName
+                btfl_test::IterApiName
     >;
 
     template <int32_t Level>
@@ -119,8 +119,8 @@ struct BTTypes<Profile, BTFLTestCtr<Levels, SizeType>>: public BTFLTestTypesBase
 
 
 template <typename Profile, int32_t Levels, PackedSizeType SizeType, typename T>
-class CtrTF<Profile, BTFLTestCtr<Levels, SizeType>, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
-    using Base = CtrTF<Profile, v1::BTFreeLayout, T>;
+class CtrTF<Profile, BTFLTestCtr<Levels, SizeType>, T>: public CtrTF<Profile, BTFreeLayout, T> {
+    using Base = CtrTF<Profile, BTFreeLayout, T>;
 public:
 
 //    struct Types: Base::Types

@@ -297,7 +297,7 @@ public:
 template <
     typename Types
 >
-class FindForwardWalker: public FindForwardWalkerBase<Types,FindForwardWalker<Types>> {
+class FindForwardWalker: public FindForwardWalkerBase<Types, FindForwardWalker<Types>> {
 
     using Base  = FindForwardWalkerBase<Types,FindForwardWalker<Types>>;
 protected:

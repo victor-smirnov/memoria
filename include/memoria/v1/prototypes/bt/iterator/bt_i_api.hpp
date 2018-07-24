@@ -32,10 +32,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-
-
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorAPIName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
 
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
@@ -211,7 +208,7 @@ protected:
         auto& self  = this->self();
         auto& cache = self.cache();
 
-        FindForwardWalker<bt::WalkerTypes<Types, IntList<0>>> walker(0, 0);
+        bt::FindForwardWalker<bt::WalkerTypes<Types, IntList<0>>> walker(0, 0);
 
         cache.reset();
 
@@ -226,7 +223,7 @@ protected:
         auto& self  = this->self();
         auto idx    = self.idx();
 
-        FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
+        bt::FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
         LeafDispatcher::dispatch(self.leaf(), walker, WalkCmd::LAST_LEAF, 0, idx);
     }
 
@@ -259,7 +256,7 @@ protected:
 MEMORIA_V1_ITERATOR_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bt::IteratorAPIName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(bt::IteratorAPIName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 // --------------------- PUBLIC API --------------------------------------

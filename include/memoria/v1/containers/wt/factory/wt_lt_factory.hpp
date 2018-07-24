@@ -25,9 +25,9 @@ namespace v1 {
 
 template <typename Profile, typename... LabelDescriptors>
 struct BTTypes<Profile, wt::WTLabeledTree<LabelDescriptors...>>:
-    BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>> {
+    BTTypes<Profile, LabeledTree<LabelDescriptors...>> {
 
-    typedef BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>         Base;
+    typedef BTTypes<Profile, LabeledTree<LabelDescriptors...>>         Base;
 
     using CommonContainerPartsList = MergeLists<
                     typename Base::CommonContainerPartsList,
@@ -39,7 +39,7 @@ struct BTTypes<Profile, wt::WTLabeledTree<LabelDescriptors...>>:
 
 template <typename Profile, typename... LabelDescriptors, typename T>
 class CtrTF<Profile, wt::WTLabeledTree<LabelDescriptors...>, T>:
-    public CtrTF<Profile, v1::LabeledTree<LabelDescriptors...>, T> {
+    public CtrTF<Profile, LabeledTree<LabelDescriptors...>, T> {
 };
 
 

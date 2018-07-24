@@ -81,7 +81,6 @@
 namespace memoria {
 namespace v1 {
 
-using v1::bt::WalkerTypes;
 
 template <typename Profile_, typename ContainerTypeSelector>
 struct BTTypes {
@@ -150,16 +149,16 @@ struct BTTypes {
     using Metadata  = BalancedTreeMetadata<ID>;
 
     typedef TypeList<
-            BranchNodeTypes<BranchNode>,
-            LeafNodeTypes<LeafNode>
+            bt::BranchNodeTypes<bt::BranchNode>,
+            bt::LeafNodeTypes<bt::LeafNode>
     >                                                                           NodeTypesList;
 
     typedef TypeList<
-            TreeNodeType<BranchNode>
+            bt::TreeNodeType<bt::BranchNode>
     >                                                                           DefaultBranchNodeTypesList;
 
     typedef TypeList<
-            TreeNodeType<LeafNode>
+            bt::TreeNodeType<bt::LeafNode>
     >                                                                           DefaultLeafNodeTypesList;
     //FIXME DefaultNodeTypesList is not used anymore
 
@@ -182,41 +181,41 @@ struct BTTypes {
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef v1::bt::BTreeIteratorPrefixCache<Iterator, Container>   Type;
+        typedef bt::BTreeIteratorPrefixCache<Iterator, Container>   Type;
     };
 
 
 
     template <typename Types, typename LeafPath>
-    using FindGTForwardWalker          = bt::FindGTForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using FindGTForwardWalker          = bt::FindGTForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindMaxGTWalker              = bt::FindMaxGTWalker<WalkerTypes<Types, LeafPath>>;
+    using FindMaxGTWalker              = bt::FindMaxGTWalker<bt::WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types, typename LeafPath>
-    using FindGTBackwardWalker         = bt::FindGTBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using FindGTBackwardWalker         = bt::FindGTBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindGEForwardWalker          = bt::FindGEForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using FindGEForwardWalker          = bt::FindGEForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindMaxGEWalker              = bt::FindMaxGEWalker<WalkerTypes<Types, LeafPath>>;
+    using FindMaxGEWalker              = bt::FindMaxGEWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindGEBackwardWalker         = bt::FindGEBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using FindGEBackwardWalker         = bt::FindGEBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = bt::SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using SkipForwardWalker     = bt::SkipForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = bt::SkipBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using SkipBackwardWalker    = bt::SkipBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SelectForwardWalker   = bt::SelectForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using SelectForwardWalker   = bt::SelectForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SelectBackwardWalker  = bt::SelectBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using SelectBackwardWalker  = bt::SelectBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
     using RankForwardWalker   = bt::RankForwardWalker<bt::RankWalkerTypes<Types, LeafPath>>;
@@ -231,10 +230,10 @@ struct BTTypes {
     using PrevLeafWalker      = bt::BackwardLeafWalker<Types>;
 
     template <typename Types, typename LeafPath>
-    using NextLeafMutistreamWalker  = bt::SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using NextLeafMutistreamWalker  = bt::SkipForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using PrevLeafMutistreamWalker  = bt::SkipBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using PrevLeafMutistreamWalker  = bt::SkipBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 };
 
 
@@ -244,9 +243,9 @@ template <
         typename Profile,
         typename ContainerTypeName_
 >
-class CtrTF<Profile, v1::BT, ContainerTypeName_> {
+class CtrTF<Profile, BT, ContainerTypeName_> {
 
-    typedef CtrTF<Profile, v1::BT, ContainerTypeName_>                     MyType;
+    typedef CtrTF<Profile, BT, ContainerTypeName_>                     MyType;
 
 public:
 
@@ -259,34 +258,34 @@ public:
     using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
     using Page              = typename ContainerTypes::Allocator::Page;
 
-    using NodePageBase0     = TreeNodeBase<typename ContainerTypes::Metadata, Page>;
+    using NodePageBase0     = bt::TreeNodeBase<typename ContainerTypes::Metadata, Page>;
     using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
 
     using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
 
-    using BranchStreamsStructList   = typename PackedBranchStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
+    using BranchStreamsStructList   = typename bt::PackedBranchStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
 
-    using LeafStreamsStructList     = typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
-    using StreamsInputTypeList      = typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StreamInputList;
-    using InputBufferStructList     = typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::InputBufferList;
+    using LeafStreamsStructList     = typename bt::PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
+    using StreamsInputTypeList      = typename bt::PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StreamInputList;
+    using InputBufferStructList     = typename bt::PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::InputBufferList;
 
-    using IteratorBranchNodeEntry = TypeListToTuple<
+    using IteratorBranchNodeEntry = bt::TypeListToTuple<
                 Linearize<
-                    typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::AccumTuple
+                    typename bt::IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::AccumTuple
                 >
     >;
 
     using LeafRangeOffsetList = Linearize<
-                    typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::RangeOffsetList
+                    typename bt::IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::RangeOffsetList
     >;
 
     using LeafRangeList = Linearize<
-                    typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::IndexRangeList,
+                    typename bt::IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::IndexRangeList,
                     2
     >;
 
 
-    using BranchNodeEntry_ = AsTuple<typename BranchNodeEntryBuilder<Linearize<BranchStreamsStructList>>::Type>;
+    using BranchNodeEntry_ = AsTuple<typename bt::BranchNodeEntryBuilder<Linearize<BranchStreamsStructList>>::Type>;
 
     struct NodeTypesBase: ContainerTypes {
         using NodeBase  = Page;
@@ -348,8 +347,8 @@ public:
                         typename ContainerTypes::VariableLeafContainerPartsList
     >;
 
-    using CtrExtensionsList  = typename ContainerExtensionsTF<Profile, ContainerTypeName_>::Type;
-    using IterExtensionsList = typename IteratorExtensionsTF<Profile, ContainerTypeName_>::Type;
+    using CtrExtensionsList  = typename bt::ContainerExtensionsTF<Profile, ContainerTypeName_>::Type;
+    using IterExtensionsList = typename bt::IteratorExtensionsTF<Profile, ContainerTypeName_>::Type;
 
     using CtrList = MergeLists<
             typename ContainerTypes::ContainerPartsList,
@@ -386,7 +385,7 @@ public:
         using Position  = Position_;
         using CtrSizesT = Position_;
 
-        using PageUpdateMgr = PageUpdateManager<CtrTypes>;
+        using PageUpdateMgr = bt::PageUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList     = typename MyType::LeafStreamsStructList;
 
@@ -401,7 +400,7 @@ public:
 
         template <typename LeafPath>
         using TargetType = typename AccumType<
-                BrachStructAccessorTool<
+                bt::BrachStructAccessorTool<
                     LeafStreamsStructList,
                     BranchStreamsStructList,
                     LeafPath
@@ -410,7 +409,7 @@ public:
 
         template <typename LeafPath>
         using TargetType2 = typename AccumType<
-                BrachStructAccessorTool<
+                bt::BrachStructAccessorTool<
                     LeafStreamsStructList,
                     BranchStreamsStructList,
                     LeafPath
@@ -420,20 +419,20 @@ public:
         using StreamsInputTypeList = typename MyType::StreamsInputTypeList;
 
         template <int32_t Stream>
-        using StreamInputTuple  = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
+        using StreamInputTuple  = bt::TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
 
         template <int32_t Stream>
-        using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
+        using InputTupleAdapter = bt::StreamTupleHelper<StreamInputTuple<Stream>>;
 
         template <typename LeafPath>
-        using AccumItemH = AccumItem<LeafStreamsStructList, LeafPath, IteratorBranchNodeEntry>;
+        using AccumItemH = bt::AccumItem<LeafStreamsStructList, LeafPath, IteratorBranchNodeEntry>;
 
 
         template <int32_t SubstreamIdx>
-        using LeafPathT   = typename v1::list_tree::BuildTreePath<LeafStreamsStructList, SubstreamIdx>::Type;
+        using LeafPathT   = typename list_tree::BuildTreePath<LeafStreamsStructList, SubstreamIdx>::Type;
 
         template <int32_t SubstreamIdx>
-        using BranchPathT = typename v1::list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
+        using BranchPathT = typename list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
 
         template <int32_t StreamIdx>
         using StreamInputBufferStructList = Select<StreamIdx, InputBufferStructList>;

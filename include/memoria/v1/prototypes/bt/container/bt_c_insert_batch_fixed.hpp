@@ -26,10 +26,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-using namespace v1::core;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchFixedName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchFixedName)
 
 public:
     using Types = typename Base::Types;
@@ -86,7 +83,7 @@ public:
 
     struct InsertChildrenFn {
         template <typename NodeTypes>
-        void treeNode(BranchNode<NodeTypes>* node, int32_t from, int32_t to, const BranchNodeEntryT* entries)
+        void treeNode(bt::BranchNode<NodeTypes>* node, int32_t from, int32_t to, const BranchNodeEntryT* entries)
         {
             int old_size = node->size();
 
@@ -209,7 +206,7 @@ public:
                 return node;
             }
             else {
-                MMA1_THROW(v1::BoundsException()) << WhatInfo("Leaf List is empty");
+                MMA1_THROW(BoundsException()) << WhatInfo("Leaf List is empty");
             }
         }
 
@@ -381,7 +378,7 @@ public:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::InsertBatchFixedName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::InsertBatchFixedName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

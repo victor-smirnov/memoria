@@ -36,7 +36,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::update_log::ItrApiName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(update_log::ItrApiName)
 
     using typename Base::NodeBaseG;
     using Container = typename Base::Container;
@@ -462,7 +462,7 @@ public:
     void insert_snapshot(const UUID& snapshot_id)
     {
         auto& self = this->self();
-        self.template insert_entry<0>(SingleValueEntryFn<0, UUID, CtrSizeT>(snapshot_id));
+        self.template insert_entry<0>(bt::SingleValueEntryFn<0, UUID, CtrSizeT>(snapshot_id));
     }
 
 
@@ -473,7 +473,7 @@ public:
         // FIXME: Allows inserting into start of the sequence that is incorrect,
         // but doesn't break the structure
 
-        self.template insert_entry<1>(SingleValueEntryFn<1, UAcc128T, CtrSizeT>(value));
+        self.template insert_entry<1>(bt::SingleValueEntryFn<1, UAcc128T, CtrSizeT>(value));
     }
 
     void subtract_ctr_name(const UAcc128T& value)
@@ -535,7 +535,7 @@ public:
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::update_log::ItrApiName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(update_log::ItrApiName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

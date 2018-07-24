@@ -30,7 +30,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterCountName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(seq_dense::IterCountName)
 public:
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
@@ -47,7 +47,7 @@ public:
 MEMORIA_V1_ITERATOR_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::seq_dense::IterCountName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(seq_dense::IterCountName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

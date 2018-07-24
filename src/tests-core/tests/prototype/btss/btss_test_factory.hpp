@@ -127,8 +127,8 @@ struct BTTypes<Profile, BTSSTestCtr<LeafSizeType, BranchSizeType>>: public BTSST
 
 
 template <typename Profile, PackedSizeType LeafSizeType, PackedSizeType BranchSizeType, typename T>
-class CtrTF<Profile, BTSSTestCtr<LeafSizeType, BranchSizeType>, T>: public CtrTF<Profile, v1::BTSingleStream, T> {
-    using Base = CtrTF<Profile, v1::BTSingleStream, T>;
+class CtrTF<Profile, BTSSTestCtr<LeafSizeType, BranchSizeType>, T>: public CtrTF<Profile, BTSingleStream, T> {
+    using Base = CtrTF<Profile, BTSingleStream, T>;
 public:
 };
 

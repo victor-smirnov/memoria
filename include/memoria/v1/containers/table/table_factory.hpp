@@ -48,9 +48,9 @@ template <
     typename Value_,
     PackedSizeType SizeType
 >
-struct TableBTTypesBase: public BTTypes<Profile, v1::BTTreeLayout> {
+struct TableBTTypesBase: public BTTypes<Profile, BTTreeLayout> {
 
-    using Base = BTTypes<Profile, v1::BTTreeLayout>;
+    using Base = BTTypes<Profile, BTTreeLayout>;
 
     using ValueType = IfThenElse<
                     IfTypesEqual<Value_, IDType>::Value,
@@ -136,12 +136,12 @@ struct TableBTTypesBase: public BTTypes<Profile, v1::BTTreeLayout> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::table::CtrApiName
+                table::CtrApiName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::table::ItrMiscName
+                table::ItrMiscName
     >;
 };
 
@@ -157,14 +157,14 @@ template <
     typename Value_,
     PackedSizeType SizeType
 >
-struct BTTypes<Profile, v1::Table<Key_, Value_, SizeType>>: public TableBTTypesBase<Profile, Key_, Value_, SizeType>
+struct BTTypes<Profile, Table<Key_, Value_, SizeType>>: public TableBTTypesBase<Profile, Key_, Value_, SizeType>
 {
 };
 
 
 template <typename Profile, typename Key, typename Value, PackedSizeType SizeType, typename T>
-class CtrTF<Profile, v1::Table<Key, Value, SizeType>, T>: public CtrTF<Profile, v1::BTTreeLayout, T> {
-    using Base = CtrTF<Profile, v1::BTTreeLayout, T>;
+class CtrTF<Profile, Table<Key, Value, SizeType>, T>: public CtrTF<Profile, BTTreeLayout, T> {
+    using Base = CtrTF<Profile, BTTreeLayout, T>;
 public:
 
     struct Types: Base::Types

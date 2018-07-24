@@ -25,10 +25,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-using namespace v1::core;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::LeafVariableName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafVariableName)
 public:
     using Types = typename Base::Types;
 
@@ -73,14 +70,14 @@ public:
         {
             if (isOk(status_)) {
                 status_ <<= obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
-                        return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
+                        return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
                 });
             }
         }
 
 
         template <typename NTypes, typename... Args>
-        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
+        void treeNode(bt::LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
             node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
@@ -166,7 +163,7 @@ public:
         }
 
         template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum)
+        void treeNode(bt::LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum)
         {
             node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx);
@@ -218,13 +215,13 @@ public:
         {
             if (isOk(status_)) {
                 status_ <<= obj->template _update_b<Offset>(idx, accum, [&](int32_t block){
-                    return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
+                    return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
                 });
             }
         }
 
         template <typename NTypes, typename... Args>
-        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
+        void treeNode(bt::LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
             node->template processSubstreamsByIdxAcc<
                 Stream,
@@ -286,62 +283,8 @@ public:
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::LeafVariableName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::LeafVariableName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
-
-
-//M_PARAMS
-//typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
-//{
-//    auto& self = this->self();
-
-//    if (left_node->is_root())
-//    {
-//        self.newRootP(left_node);
-//    }
-//    else {
-//        self.updatePageG(left_node);
-//    }
-
-//    NodeBaseG left_parent  = self.getNodeParentForUpdate(left_node);
-
-//    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
-
-//    BranchNodeEntry sums;
-
-//    int32_t parent_idx = left_node->parent_idx();
-
-//    PageUpdateMgr mgr(self);
-//    mgr.add(left_parent);
-
-//    try {
-//        self.insertNonLeafP(left_parent, parent_idx + 1, sums, other->id());
-//    }
-//    catch (PackedOOMException ex)
-//    {
-//        mgr.rollback();
-
-//        NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
-
-//        mgr.add(right_parent);
-
-//        try {
-//            self.insertNonLeafP(right_parent, 0, sums, other->id());
-//        }
-//        catch (PackedOOMException ex2)
-//        {
-//            mgr.rollback();
-
-//            int32_t right_parent_size = self.getNodeSize(right_parent, 0);
-
-//            splitPathP(right_parent, right_parent_size / 2);
-
-//            self.insertNonLeafP(right_parent, 0, sums, other->id());
-//        }
-//    }
-
-//    return other;
-//}
 
 
 M_PARAMS

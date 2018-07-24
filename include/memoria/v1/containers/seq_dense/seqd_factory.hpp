@@ -23,7 +23,7 @@ namespace memoria {
 namespace v1 {
 
 template <typename Profile, int32_t BitsPerSymbol, bool Dense, typename T>
-class CtrTF<Profile, v1::Sequence<BitsPerSymbol, Dense>, T>: public CtrTF<Profile, v1::BTSingleStream, T> {
+class CtrTF<Profile, Sequence<BitsPerSymbol, Dense>, T>: public CtrTF<Profile, BTSingleStream, T> {
 };
 
 }}

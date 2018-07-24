@@ -31,7 +31,7 @@ namespace v1 {
 using louds::LoudsNode;
 using louds::LoudsNodeRange;
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(louds::CtrApiName)
 public:
     typedef typename Base::Iterator                                             Iterator;
 

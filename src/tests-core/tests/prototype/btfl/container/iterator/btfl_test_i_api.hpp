@@ -32,7 +32,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl_test::IterApiName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(btfl_test::IterApiName)
 
 
     using Container = typename Base::Container;
@@ -213,7 +213,7 @@ public:
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::btfl_test::IterApiName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(btfl_test::IterApiName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 #undef M_TYPE

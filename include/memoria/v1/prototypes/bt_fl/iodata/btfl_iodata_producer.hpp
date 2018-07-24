@@ -211,7 +211,7 @@ public:
 
 
 template <typename BTFLData, int32_t DataStreams, int32_t StartLevel = 0, typename IOBufferT = DefaultIOBuffer>
-class BTFLDataIOBufferProducer: public BufferProducer<IOBufferT> {
+class BTFLDataIOBufferProducer: public bt::BufferProducer<IOBufferT> {
 
     using Helper = BTFLDataIOBufferProducerHelper<BTFLData, DataStreams, StartLevel, IOBufferT>;
 

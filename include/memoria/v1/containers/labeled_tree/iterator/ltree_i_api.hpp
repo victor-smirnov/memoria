@@ -33,7 +33,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::louds::ItrApiName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(louds::ItrApiName)
 public:
     typedef Ctr<typename Types::CtrTypes>                                       Container;
     typedef Ctr<typename Types::IterTypes>                                      Iterator;

@@ -42,9 +42,9 @@ namespace v1 {
 
 
 template <typename Profile>
-struct BTTypes<Profile, v1::Sequence<8, true> >: public BTTypes<Profile, v1::BTSingleStream> {
+struct BTTypes<Profile, Sequence<8, true> >: public BTTypes<Profile, BTSingleStream> {
 
-    typedef BTTypes<Profile, v1::BTSingleStream>                           Base;
+    typedef BTTypes<Profile, BTSingleStream>                           Base;
 
     typedef uint8_t                                                               Value;
 

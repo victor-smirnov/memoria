@@ -506,7 +506,7 @@ public:
     {
         if (length <= getMaxSymbolsRunLength<Symbols>())
         {
-            uint64_t value = memoria::v1::rleseq::EncodeRun<Symbols, MaxRLERunLength>(symbol, length);
+            uint64_t value = rleseq::EncodeRun<Symbols, MaxRLERunLength>(symbol, length);
             return putUVLen(value);
         }
         else {
@@ -521,7 +521,7 @@ public:
         if (length <= getMaxSymbolsRunLength<Symbols>())
         {
             auto current_length     = uvlen_codec_.length(array_, pos);
-            auto new_value          = memoria::v1::rleseq::EncodeRun<Symbols, MaxRLERunLength>(symbol, length);
+            auto new_value          = rleseq::EncodeRun<Symbols, MaxRLERunLength>(symbol, length);
             auto new_length         = uvlen_codec_.length(new_value);
 
             if (new_length > current_length)
@@ -543,17 +543,17 @@ public:
 
 
     template <int32_t Symbols>
-    memoria::v1::rleseq::RLESymbolsRun getSymbolsRun()
+    rleseq::RLESymbolsRun getSymbolsRun()
     {
         uint64_t value = getUVLen();
-        return memoria::v1::rleseq::DecodeRun<Symbols>(value);
+        return rleseq::DecodeRun<Symbols>(value);
     }
 
     template <int32_t Symbols>
-    memoria::v1::rleseq::RLESymbolsRun getSymbolsRun(size_t pos) const
+    rleseq::RLESymbolsRun getSymbolsRun(size_t pos) const
     {
         uint64_t value = getUVLen(pos);
-        return memoria::v1::rleseq::DecodeRun<Symbols>(value);
+        return rleseq::DecodeRun<Symbols>(value);
     }
 
     void enlarge(size_t minimal_capacity = 0)

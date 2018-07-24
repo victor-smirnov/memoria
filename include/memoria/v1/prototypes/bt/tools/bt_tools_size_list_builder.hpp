@@ -165,7 +165,7 @@ namespace detail {
 
     template <typename List, int32_t Offset, int32_t Idx, int32_t Max>
     class ForAllTopLevelElements {
-        static const int32_t LeafOffset = v1::list_tree::LeafCountInf<List, IntList<Idx>>;
+        static const int32_t LeafOffset = list_tree::LeafCountInf<List, IntList<Idx>>;
     public:
         using Type = MergeValueLists<
             IntValue<LeafOffset + Offset>,
@@ -187,18 +187,18 @@ namespace detail {
 template <typename LeafTree>
 class LeafOffsetListBuilder {
     using LinearLeafList = FlattenLeafTree<LeafTree>;
-    using OffsetList = v1::bt::detail::OffsetBuilder<LinearLeafList>;
+    using OffsetList = bt::detail::OffsetBuilder<LinearLeafList>;
 public:
-    using Type = v1::bt::detail::TagStreamsStart<OffsetList, LeafTree>;
+    using Type = bt::detail::TagStreamsStart<OffsetList, LeafTree>;
 };
 
 
 
 
 template <typename List, typename Path>
-using LeafSubsetInf = typename v1::bt::detail::ForAllTopLevelElements<
-        v1::list_tree::Subtree<List, Path>,
-        v1::list_tree::LeafCount<List, Path>
+using LeafSubsetInf = typename bt::detail::ForAllTopLevelElements<
+        list_tree::Subtree<List, Path>,
+        list_tree::LeafCount<List, Path>
 >::Type;
 
 
@@ -217,7 +217,7 @@ template <
 >
 struct FindTopLevelIdx<TypeList<Head, Tail...>, Idx, Pos>
 {
-    static const int32_t Children = v1::list_tree::SubtreeLeafCount<TypeList<Head>, IntList<>>;
+    static const int32_t Children = list_tree::SubtreeLeafCount<TypeList<Head>, IntList<>>;
 
     static const int32_t Value = Idx < Children ?
             Pos :
@@ -347,7 +347,7 @@ private:
     static const int32_t LocalSize = ListSize<LocalList>;
 public:
 
-    static const int32_t Value = v1::bt::detail::FindLocalLeafOffsetHelperV<
+    static const int32_t Value = bt::detail::FindLocalLeafOffsetHelperV<
         TypeList<TypeList<List...>, Tail...>,
         Idx,
         Pos,
@@ -367,7 +367,7 @@ struct FindLocalLeafOffsetT<TypeList<IntList<List...>, Tail...>, Idx, Pos> {
 private:
     static const int32_t LocalSize = ListSize<IntList<List...>>;
 public:
-    using Type = typename v1::bt::detail::FindLocalLeafOffsetHelperT<
+    using Type = typename bt::detail::FindLocalLeafOffsetHelperT<
             TypeList<IntList<List...>, Tail...>,
             Idx,
             Pos,
@@ -387,7 +387,7 @@ struct FindLocalLeafOffsetT<TypeList<StreamStartTag<IntList<List...>>, Tail...>,
 private:
     static const int32_t LocalSize = ListSize<IntList<List...>>;
 public:
-    using Type = typename v1::bt::detail::FindLocalLeafOffsetHelperT<
+    using Type = typename bt::detail::FindLocalLeafOffsetHelperT<
             TypeList<StreamStartTag<IntList<List...>>, Tail...>,
             Idx,
             Pos,
@@ -492,14 +492,14 @@ protected:
 
     using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
 
-    using LeafPath = typename v1::list_tree::BuildTreePath<LeafStructList, LeafIdx>::Type;
+    using LeafPath = typename list_tree::BuildTreePath<LeafStructList, LeafIdx>::Type;
 
 public:
     static const int32_t LeafOffset = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
 
-    static const int32_t BranchStructIdx = v1::list_tree::LeafCount<LeafStructList, LeafPath, 2> - LocalLeafOffset;
+    static const int32_t BranchStructIdx = list_tree::LeafCount<LeafStructList, LeafPath, 2> - LocalLeafOffset;
 
-    static const bool IsStreamStart = LocalLeafOffset == 0 && v1::bt::detail::IsStreamStartTag<LocalLeafGroup>::Value;
+    static const bool IsStreamStart = LocalLeafOffset == 0 && bt::detail::IsStreamStartTag<LocalLeafGroup>::Value;
 };
 
 
@@ -512,7 +512,7 @@ protected:
 
     using Leafs = FlattenLeafTree<LeafStructList>;
 
-    static const int32_t LeafIdx            = v1::list_tree::LeafCount<LeafStructList, LeafPath>;
+    static const int32_t LeafIdx            = list_tree::LeafCount<LeafStructList, LeafPath>;
     static const int32_t LocalLeafOffset    = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
 
     using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
@@ -524,7 +524,7 @@ public:
 
     static int32_t translate(int32_t leaf_index)
     {
-        const int32_t LeafIdx           = v1::list_tree::LeafCount<LeafStructList, LeafPath>;
+        const int32_t LeafIdx           = list_tree::LeafCount<LeafStructList, LeafPath>;
         const int32_t LocalLeafOffset   = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
 
         using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
@@ -540,12 +540,12 @@ public:
 
 
 template <typename LeafStructList, typename BranchStructList, typename LeafPath>
-using BuildBranchPath = typename v1::list_tree::BuildTreePath<
+using BuildBranchPath = typename list_tree::BuildTreePath<
             BranchStructList,
-            v1::list_tree::LeafCountInf<LeafStructList, LeafPath, 2> -
+            list_tree::LeafCountInf<LeafStructList, LeafPath, 2> -
             FindLocalLeafOffsetV<
                     FlattenLeafTree<LeafStructList>,
-                    v1::list_tree::LeafCount<LeafStructList, LeafPath>
+                    list_tree::LeafCount<LeafStructList, LeafPath>
             >::Value
 >::Type;
 
@@ -557,10 +557,10 @@ template <
     typename LeafPath
 >
 using BrachStructAccessorTool = Select<
-        v1::list_tree::LeafCountInf<LeafStructList, LeafPath, 2> -
+        list_tree::LeafCountInf<LeafStructList, LeafPath, 2> -
         FindLocalLeafOffsetV<
                 FlattenLeafTree<LeafStructList>,
-                v1::list_tree::LeafCount<LeafStructList, LeafPath>
+                list_tree::LeafCount<LeafStructList, LeafPath>
         >::Value,
         Linearize<BranchStructList>
 >;

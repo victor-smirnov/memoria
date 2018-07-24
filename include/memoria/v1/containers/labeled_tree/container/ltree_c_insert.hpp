@@ -34,7 +34,7 @@ namespace v1 {
 
 
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(louds::CtrInsertName)
 public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;

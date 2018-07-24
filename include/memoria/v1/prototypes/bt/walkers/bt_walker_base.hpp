@@ -34,6 +34,7 @@ namespace memoria {
 namespace v1 {
 
 namespace bt {
+
 template <typename Types, typename LeafPath_>
 struct WalkerTypes: Types {
     using LeafPath = LeafPath_;
@@ -218,7 +219,7 @@ public:
 
     static constexpr int32_t branchIndex(int32_t leaf_index)
     {
-        return v1::bt::LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>::BranchIndex + leaf_index;
+        return bt::LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>::BranchIndex + leaf_index;
     }
 
 
@@ -410,7 +411,7 @@ public:
     template <typename Node, typename... Args>
     void processBranchIteratorBranchNodeEntry(Node* node, Args&&... args)
     {
-        using ItrAccList = v1::list_tree::MakeValueList<int32_t, 0, Node::Streams>;
+        using ItrAccList = list_tree::MakeValueList<int32_t, 0, Node::Streams>;
 
         details::IteratorStreamRangesListWalker<
             ItrAccList

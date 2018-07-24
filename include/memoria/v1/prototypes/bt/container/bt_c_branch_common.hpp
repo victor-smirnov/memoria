@@ -26,10 +26,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-using namespace v1::core;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::BranchCommonName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::BranchCommonName)
 public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -72,7 +69,7 @@ public:
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::BranchCommonName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::BranchCommonName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

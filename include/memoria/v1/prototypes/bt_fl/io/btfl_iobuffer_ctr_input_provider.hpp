@@ -41,9 +41,9 @@ template <
     typename CtrT,
     typename IOBuffer
 >
-class IOBufferCtrInputProvider: public v1::btfl::io::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
+class IOBufferCtrInputProvider: public btfl::io::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
 public:
-    using Base = v1::btfl::io::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
+    using Base = btfl::io::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
 
     using typename Base::DataPositions;

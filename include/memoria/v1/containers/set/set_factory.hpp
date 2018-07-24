@@ -59,9 +59,9 @@ template <
     typename Profile,
     typename Key_
 >
-struct SetBTTypesBaseBase: public BTTypes<Profile, v1::BTSingleStream> {
+struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
-    using Base = BTTypes<Profile, v1::BTSingleStream>;
+    using Base = BTTypes<Profile, BTSingleStream>;
 
     using Key   = Key_;
 
@@ -69,14 +69,14 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, v1::BTSingleStream> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::set::CtrInsertName,
-                v1::set::CtrRemoveName
+                set::CtrInsertName,
+                set::CtrRemoveName
     >;
 
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::set::ItrNavName
+                set::ItrNavName
     >;
 };
 
@@ -97,7 +97,7 @@ struct SetBTTypesBase: public SetBTTypesBaseBase<Profile, Key> {
     using LeafKeyStruct = typename set::SetKeyStructTF<Key, HasFieldFactory<Key>::Value>::Type;
 
     using StreamDescriptors = TL<
-            StreamTF<
+            bt::StreamTF<
                 TL<
                     TL<StreamSize>,
                     TL<LeafKeyStruct>
@@ -115,11 +115,11 @@ template <
     typename Profile,
     typename Key_
 >
-struct BTTypes<Profile, v1::Set<Key_>>: public SetBTTypesBase<Profile, Key_>{};
+struct BTTypes<Profile, Set<Key_>>: public SetBTTypesBase<Profile, Key_>{};
 
 
 template <typename Profile, typename Key, typename T>
-class CtrTF<Profile, v1::Set<Key>, T>: public CtrTF<Profile, v1::BTSingleStream, T> {
+class CtrTF<Profile, Set<Key>, T>: public CtrTF<Profile, BTSingleStream, T> {
 };
 
 

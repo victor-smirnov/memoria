@@ -29,7 +29,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorRemoveName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorRemoveName)
 
 
     using typename Base::NodeBaseG;
@@ -108,7 +108,7 @@ protected:
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::btfl::IteratorRemoveName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(btfl::IteratorRemoveName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

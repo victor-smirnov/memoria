@@ -38,21 +38,21 @@ namespace v1 {
 template <
     typename Profile
 >
-struct EdgeMapBTTypesBaseBase: public BTTypes<Profile, v1::BTFreeLayout> {
+struct EdgeMapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
 
-    using Base = BTTypes<Profile, v1::BTFreeLayout>;
+    using Base = BTTypes<Profile, BTFreeLayout>;
 
     using Key   = UUID;
     using Value = UAcc128T;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::edge_map::CtrApiName
+                edge_map::CtrApiName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::edge_map::ItrMiscName
+                edge_map::ItrMiscName
     >;
 };
 
@@ -68,7 +68,7 @@ struct EdgeMapBTTypesBase: public EdgeMapBTTypesBaseBase<Profile> {
 
     using CtrSizeT = typename Base::CtrSizeT;
 
-    using FirstStreamTF = StreamTF<
+    using FirstStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename edge_map::EdgeMapKeyStructTF<Key>::Type>
@@ -76,7 +76,7 @@ struct EdgeMapBTTypesBase: public EdgeMapBTTypesBaseBase<Profile> {
         edge_map::EdgeMapBranchStructTF
     >;
 
-    using DataStreamTF = StreamTF<
+    using DataStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename edge_map::EdgeMapValueStructTF<Value>::Type>
@@ -84,7 +84,7 @@ struct EdgeMapBTTypesBase: public EdgeMapBTTypesBaseBase<Profile> {
         edge_map::EdgeMapBranchStructTF
     >;
 
-    using StructureStreamTF = StreamTF<
+    using StructureStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename btfl::StructureStreamTF<2>::Type>
@@ -128,8 +128,8 @@ struct BTTypes<Profile, EdgeMap>: public EdgeMapBTTypesBase<Profile>
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, EdgeMap, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
-    using Base1 = CtrTF<Profile, v1::BTFreeLayout, T>;
+class CtrTF<Profile, EdgeMap, T>: public CtrTF<Profile, BTFreeLayout, T> {
+    using Base1 = CtrTF<Profile, BTFreeLayout, T>;
 public:
 
     struct Types: Base1::Types
@@ -139,7 +139,7 @@ public:
         using CtrTypes          = EdgeMapCtrTypes<Types>;
         using IterTypes         = EdgeMapIterTypes<Types>;
 
-        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
+        using PageUpdateMgr     = bt::PageUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList = typename BaseTypes::LeafStreamsStructList;
 

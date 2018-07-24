@@ -29,7 +29,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btfl::LeafFixedName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::LeafFixedName)
 public:
     using Types             = typename Base::Types;
     using Iterator          = typename Base::Iterator;
@@ -54,7 +54,7 @@ protected:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::btfl::InsertBatchFixedName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btfl::InsertBatchFixedName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

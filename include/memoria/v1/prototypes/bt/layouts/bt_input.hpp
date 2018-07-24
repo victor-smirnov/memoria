@@ -618,14 +618,14 @@ public:
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args) const
     {
-        const int32_t StreamIdx = v1::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>;
+        const int32_t StreamIdx = list_tree::LeafCount<SubstreamsStructList, SubstreamPath>;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args)
     {
-        const int32_t StreamIdx = v1::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>;
+        const int32_t StreamIdx = list_tree::LeafCount<SubstreamsStructList, SubstreamPath>;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 

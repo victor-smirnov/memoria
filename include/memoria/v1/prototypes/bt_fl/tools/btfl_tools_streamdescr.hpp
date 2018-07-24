@@ -29,7 +29,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace btfl    {
+namespace btfl {
 
 namespace {
     template <typename StreamDescriptorsList> struct GetLeafList;
@@ -40,7 +40,7 @@ namespace {
         typename IndexRangeList,
         template <typename> class BranchStructTF
     >
-    struct GetLeafList<TL<v1::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>, Tail...>> {
+    struct GetLeafList<TL<bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>, Tail...>> {
         using Type = MergeLists<
                 TL<LeafType>,
                 typename GetLeafList<TL<Tail...>>::Type
@@ -101,7 +101,7 @@ namespace {
 template <
     typename StreamDescriptorsList,
     typename SizeStruct     = typename InferSizeStruct<StreamDescriptorsList>::Type,
-    typename SizeIndexes    = TL<SumRange<0, 1>>
+    typename SizeIndexes    = TL<bt::SumRange<0, 1>>
 > class BTTLAugmentStreamDescriptors;
 
 template <
@@ -112,12 +112,12 @@ template <
     typename SizeStruct,
     typename SizeIndexes
 >
-class BTTLAugmentStreamDescriptors<TL<v1::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>, Tail...>, SizeStruct, SizeIndexes> {
+class BTTLAugmentStreamDescriptors<TL<bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>, Tail...>, SizeStruct, SizeIndexes> {
     using NewLeafType       = typename AppendSizeStruct<LeafType, SizeStruct>::Type;
     using NewIndexRangeList = typename AppendSizeIndexes<IndexRangeList, SizeIndexes>::Type;
 public:
     using Type = MergeLists<
-        v1::bt::StreamTF<NewLeafType, BranchStructTF, NewIndexRangeList>,
+        bt::StreamTF<NewLeafType, BranchStructTF, NewIndexRangeList>,
         typename BTTLAugmentStreamDescriptors<TL<Tail...>, SizeStruct, SizeIndexes>::Type
     >;
 };
@@ -131,10 +131,10 @@ template <
     typename SizeStruct,
     typename SizeIndexes
 >
-class BTTLAugmentStreamDescriptors<TL<v1::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>>, SizeStruct, SizeIndexes> {
+class BTTLAugmentStreamDescriptors<TL<bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>>, SizeStruct, SizeIndexes> {
     // Last stream don't need sizes augmentation
 public:
-    using Type = v1::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>;
+    using Type = bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>;
 };
 
 

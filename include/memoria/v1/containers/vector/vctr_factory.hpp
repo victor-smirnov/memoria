@@ -40,12 +40,10 @@
 namespace memoria {
 namespace v1 {
 
-
-
 template <typename Profile, typename Value_>
-struct VectorBTTypesBase: public BTTypes<Profile, v1::BTSingleStream> {
+struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
 
-    using Base = BTTypes<Profile, v1::BTSingleStream>;
+    using Base = BTTypes<Profile, BTSingleStream>;
 
     using Value = Value_;
     using Entry = Value_;
@@ -72,7 +70,7 @@ struct VectorBTTypesBase: public BTTypes<Profile, v1::BTSingleStream> {
 
 
 template <typename Profile, typename Value>
-struct BTTypes<Profile, v1::Vector<Value> >: public VectorBTTypesBase<Profile, Value> {
+struct BTTypes<Profile, Vector<Value> >: public VectorBTTypesBase<Profile, Value> {
 
     static_assert(
             IsExternalizable<Value>::Value ,
@@ -112,9 +110,9 @@ struct CodecClassTF<Granularity::Bit> {
 
 
 template <typename Profile, Granularity Gr, typename Value_>
-struct BTTypes<Profile, v1::Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, v1::BTSingleStream> {
+struct BTTypes<Profile, Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, BTSingleStream> {
 
-    typedef BTTypes<Profile, v1::BTSingleStream>                           Base;
+    typedef BTTypes<Profile, BTSingleStream>                           Base;
 
     typedef Value_                                                              Value;
 
@@ -158,9 +156,9 @@ struct BTTypes<Profile, v1::Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, 
 
 
 template <typename Profile, typename Value, typename T>
-class CtrTF<Profile, v1::Vector<Value>, T>: public CtrTF<Profile, v1::BTSingleStream, T> {
+class CtrTF<Profile, Vector<Value>, T>: public CtrTF<Profile, BTSingleStream, T> {
 
-    using Base = CtrTF<Profile, v1::BTSingleStream, T>;
+    using Base = CtrTF<Profile, BTSingleStream, T>;
 public:
 
     struct Types: Base::Types

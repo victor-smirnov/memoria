@@ -77,7 +77,7 @@ struct KVPair {
 };
 
 template <typename K, typename V>
-std::ostream& operator<<(std::ostream& out, const v1::tests::KVPair<K, V>& pair)
+std::ostream& operator<<(std::ostream& out, const tests::KVPair<K, V>& pair)
 {
     out << pair.key_ << " " << pair.value_;
     return out;
@@ -109,7 +109,7 @@ std::ostream& operator<<(std::ostream& out, const std::vector<uint8_t, A>& vec)
 
 
 template <typename K, typename V>
-std::istream& operator>>(std::istream& in, v1::tests::KVPair<K, V>& pair)
+std::istream& operator>>(std::istream& in, tests::KVPair<K, V>& pair)
 {
     in >> std::skipws;
     in >> pair.key_;

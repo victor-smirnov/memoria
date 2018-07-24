@@ -18,6 +18,8 @@
 
 #include <memoria/v1/core/types.hpp>
 
+#include <memoria/v1/core/tools/object_pool.hpp>
+
 #include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 
@@ -34,7 +36,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorReadName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorReadName)
 
     using Container = typename Base::Container;
 
@@ -58,17 +60,17 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorReadName)
 public:
 
     template <typename IOBuffer>
-    CtrSizeT bulkio_read(BufferConsumer<IOBuffer>* consumer, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
+    CtrSizeT bulkio_read(bt::BufferConsumer<IOBuffer>* consumer, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
         return bulkio_read_<ReadWalkerPool>(consumer, -1, limits);
     }
 
     template <typename IOBuffer>
-    CtrSizeT bulkio_scan_ge(BufferConsumer<IOBuffer>* consumer, int32_t expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
+    CtrSizeT bulkio_scan_ge(bt::BufferConsumer<IOBuffer>* consumer, int32_t expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
         return bulkio_read_<ScanWalkerPool>(consumer, expected_stream, limits);
     }
 
     template <typename IOBuffer>
-    CtrSizeT bulkio_scan_run(BufferConsumer<IOBuffer>* consumer, int32_t expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
+    CtrSizeT bulkio_scan_run(bt::BufferConsumer<IOBuffer>* consumer, int32_t expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
     	return bulkio_read_<ScanRunWalkerPool>(consumer, expected_stream, limits);
     }
 
@@ -173,7 +175,7 @@ public:
 
 
     template <template <typename> class WalkerPoolT, typename IOBuffer>
-    CtrSizeT bulkio_read_(BufferConsumer<IOBuffer>* consumer, int32_t expected_stream, const CtrSizeT& limits)
+    CtrSizeT bulkio_read_(bt::BufferConsumer<IOBuffer>* consumer, int32_t expected_stream, const CtrSizeT& limits)
     {
         auto& self = this->self();
 
@@ -298,7 +300,7 @@ public:
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::btfl::IteratorReadName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(btfl::IteratorReadName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

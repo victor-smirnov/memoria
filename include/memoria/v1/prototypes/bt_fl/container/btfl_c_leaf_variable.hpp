@@ -28,7 +28,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btfl::LeafVariableName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::LeafVariableName)
 public:
     using Types             = typename Base::Types;
     using Iterator          = typename Base::Iterator;
@@ -52,7 +52,7 @@ protected:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::btfl::LeafVariableName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btfl::LeafVariableName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

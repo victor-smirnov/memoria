@@ -259,7 +259,7 @@ template <typename T> struct BranchNodeEntryBuilder;
 template <typename PackedStruct, typename... Tail>
 struct BranchNodeEntryBuilder<TL<PackedStruct, Tail...>> {
     using Type = MergeLists<
-                    v1::core::StaticVector<
+                    core::StaticVector<
                         typename PkdSearchKeyTypeProvider<PackedStruct>::Type,
                         StructSizeProvider<PackedStruct>::Value
                     >,

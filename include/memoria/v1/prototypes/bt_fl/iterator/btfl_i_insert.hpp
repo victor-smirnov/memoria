@@ -29,7 +29,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorInsertName)
 
 
     using Container = typename Base::Container;
@@ -44,7 +44,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
 
 public:
     template <typename IOBuffer>
-    auto bulkio_insert(BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
+    auto bulkio_insert(bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
     {
         auto& self = this->self();
         return self.ctr().bulkio_insert(self, provider, initial_capacity);
@@ -60,12 +60,12 @@ public:
 
         InsertSymbolFn(int32_t symbol): one_(1), symbol_(symbol) {}
 
-        const auto& get(const StreamTag<Stream>& , const StreamTag<0>&, int32_t block) const
+        const auto& get(const bt::StreamTag<Stream>& , const bt::StreamTag<0>&, int32_t block) const
         {
             return one_;
         }
 
-        const auto& get(const StreamTag<Stream>& , const StreamTag<1>&, int32_t block) const
+        const auto& get(const bt::StreamTag<Stream>& , const bt::StreamTag<1>&, int32_t block) const
         {
             return symbol_;
         }
@@ -144,7 +144,7 @@ public:
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::btfl::IteratorInsertName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(btfl::IteratorInsertName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

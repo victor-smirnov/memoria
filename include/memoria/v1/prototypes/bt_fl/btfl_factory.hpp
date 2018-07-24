@@ -68,52 +68,52 @@ struct BTFreeLayout {};
 template <
     typename Profile
 >
-struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
+struct BTTypes<Profile, BTFreeLayout>: public BTTypes<Profile, BT> {
 
-    using Base = BTTypes<Profile, v1::BT>;
+    using Base = BTTypes<Profile, BT>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::btfl::MiscName,
-                v1::btfl::InsertName,
-                v1::btfl::BranchCommonName,
-                v1::btfl::LeafCommonName,
-                v1::btfl::RanksName,
-                v1::btfl::ChecksName
+                btfl::MiscName,
+                btfl::InsertName,
+                btfl::BranchCommonName,
+                btfl::LeafCommonName,
+                btfl::RanksName,
+                btfl::ChecksName
     >;
 
     using FixedBranchContainerPartsList = MergeLists<
                 typename Base::FixedBranchContainerPartsList,
-                v1::btfl::BranchFixedName
+                btfl::BranchFixedName
     >;
 
     using VariableBranchContainerPartsList = MergeLists<
                 typename Base::VariableBranchContainerPartsList,
-                v1::btfl::BranchVariableName
+                btfl::BranchVariableName
     >;
 
     using FixedLeafContainerPartsList = MergeLists<
                     typename Base::FixedLeafContainerPartsList,
-                    v1::btfl::LeafFixedName
+                    btfl::LeafFixedName
     >;
 
     using VariableLeafContainerPartsList = MergeLists<
                     typename Base::VariableLeafContainerPartsList,
-                    v1::btfl::LeafVariableName
+                    btfl::LeafVariableName
     >;
 
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::btfl::IteratorMiscName,
-                v1::btfl::IteratorStreamRankName,
-                v1::btfl::IteratorStreamSumsName,
-                v1::btfl::IteratorFindName,
-                v1::btfl::IteratorSkipName,
-                v1::btfl::IteratorUpdateName,
-                v1::btfl::IteratorRemoveName,
-                v1::btfl::IteratorInsertName,
-                v1::btfl::IteratorReadName
+                btfl::IteratorMiscName,
+                btfl::IteratorStreamRankName,
+                btfl::IteratorStreamSumsName,
+                btfl::IteratorFindName,
+                btfl::IteratorSkipName,
+                btfl::IteratorUpdateName,
+                btfl::IteratorRemoveName,
+                btfl::IteratorInsertName,
+                btfl::IteratorReadName
     >;
 
 
@@ -121,7 +121,7 @@ struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef v1::btfl::BTFLIteratorPrefixCache<Iterator, Container>   Type;
+        typedef btfl::BTFLIteratorPrefixCache<Iterator, Container>   Type;
     };
 
     template <typename Types, typename LeafPath>
@@ -139,9 +139,9 @@ struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, v1::BTFreeLayout, T>: public CtrTF<Profile, v1::BT, T> {
+class CtrTF<Profile, BTFreeLayout, T>: public CtrTF<Profile, BT, T> {
 
-    using Base1 = CtrTF<Profile, v1::BT, T>;
+    using Base1 = CtrTF<Profile, BT, T>;
 
 public:
 
@@ -152,7 +152,7 @@ public:
         using CtrTypes          = BTFLCtrTypes<Types>;
         using IterTypes         = BTFLIterTypes<Types>;
 
-        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
+        using PageUpdateMgr     = bt::PageUpdateManager<CtrTypes>;
 
         static const int32_t DataStreams            = BaseTypes::Streams - 1;
         static const int32_t StructureStreamIdx     = DataStreams;

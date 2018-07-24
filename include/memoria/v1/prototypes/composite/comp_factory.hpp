@@ -33,7 +33,7 @@ struct CompositeTypes {
     typedef Profile_                                                            Profile;
 
     typedef TypeList<
-        v1::bt::AllocatorName
+        bt::AllocatorName
     >                                                                           ContainerPartsList;
 
     typedef TypeList<>                                                          IteratorPartsList;
@@ -54,7 +54,7 @@ struct CompositeTypes {
 
 
 template <typename Profile_, typename T>
-class CtrTF<Profile_, v1::Composite, T> {
+class CtrTF<Profile_, Composite, T> {
 
     using MyType = CtrTF<Profile_, Composite, T>;
 

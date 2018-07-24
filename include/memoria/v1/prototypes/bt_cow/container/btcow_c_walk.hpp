@@ -26,7 +26,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btcow::WalkName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(btcow::WalkName)
 private:
     
 public:
@@ -122,7 +122,7 @@ private:
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::btcow::WalkName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btcow::WalkName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 #undef M_TYPE

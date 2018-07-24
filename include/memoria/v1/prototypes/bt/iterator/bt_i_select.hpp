@@ -28,7 +28,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorSelectName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorSelectName)
 
     typedef typename Base::NodeBaseG                                                NodeBaseG;
     typedef typename Base::Container                                                Container;
@@ -63,7 +63,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorSelectName)
     }
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bt::IteratorSelectName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(bt::IteratorSelectName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

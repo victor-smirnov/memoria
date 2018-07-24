@@ -31,8 +31,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::louds;
-
 class LabeledTreeCreateTest: public LabeledTreeTestBase {
 
     typedef LabeledTreeTestBase                                                 Base;

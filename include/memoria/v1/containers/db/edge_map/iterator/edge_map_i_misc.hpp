@@ -32,7 +32,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::edge_map::ItrMiscName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(edge_map::ItrMiscName)
 
     using typename Base::NodeBaseG;
     using Container = typename Base::Container;
@@ -132,7 +132,7 @@ public:
             }
         }
 
-        self.template insert_entry<0>(SingleValueEntryFn<0, Key, CtrSizeT>(key));
+        self.template insert_entry<0>(bt::SingleValueEntryFn<0, Key, CtrSizeT>(key));
     }
 
     void insert_value(const Value& value)
@@ -142,7 +142,7 @@ public:
         // FIXME: Allows inserting into start of the sequence that is incorrect, 
         // but doesn't break the structure
 
-        self.template insert_entry<1>(SingleValueEntryFn<1, Value, CtrSizeT>(value));
+        self.template insert_entry<1>(bt::SingleValueEntryFn<1, Value, CtrSizeT>(value));
     }
 
     void subtract_value(const Value& value)
@@ -164,7 +164,7 @@ public:
 
 
     template <typename ValueConsumer>
-    class ReadValuesFn: public BufferConsumer<IOBuffer> {
+    class ReadValuesFn: public bt::BufferConsumer<IOBuffer> {
 
         ValueConsumer* consumer_;
 
@@ -202,7 +202,7 @@ public:
     }
 
 
-    CtrSizeT read_values(BufferConsumer<IOBuffer>& consumer, CtrSizeT start, CtrSizeT length)
+    CtrSizeT read_values(bt::BufferConsumer<IOBuffer>& consumer, CtrSizeT start, CtrSizeT length)
     {
         auto& self = this->self();
         
@@ -473,7 +473,7 @@ public:
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::edge_map::ItrMiscName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(edge_map::ItrMiscName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

@@ -57,9 +57,9 @@ template <
     typename Key_,
     typename Value_
 >
-struct MapBTTypesBaseBase: public BTTypes<Profile, v1::BTSingleStream> {
+struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
-    using Base = BTTypes<Profile, v1::BTSingleStream>;
+    using Base = BTTypes<Profile, BTSingleStream>;
 
     using Key   = Key_;
     using Value = Value_;
@@ -68,14 +68,14 @@ struct MapBTTypesBaseBase: public BTTypes<Profile, v1::BTSingleStream> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::map::CtrInsertMaxName,
-                v1::map::CtrRemoveName
+                map::CtrInsertMaxName,
+                map::CtrRemoveName
     >;
 
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::map::ItrNavMaxName
+                map::ItrNavMaxName
     >;
 };
 
@@ -104,7 +104,7 @@ struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key, Value> {
     using LeafValueStruct = typename map::MapValueStructTF<Value, HasFieldFactory<Value>::Value>::Type;
 
     using StreamDescriptors = TL<
-            StreamTF<
+            bt::StreamTF<
                 TL<
                     TL<StreamSize>,
                     TL<LeafKeyStruct>,
@@ -124,11 +124,11 @@ template <
     typename Key_,
     typename Value_
 >
-struct BTTypes<Profile, v1::Map<Key_, Value_>>: public MapBTTypesBase<Profile, Key_, Value_>{};
+struct BTTypes<Profile, Map<Key_, Value_>>: public MapBTTypesBase<Profile, Key_, Value_>{};
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, v1::Map<Key, Value>, T>: public CtrTF<Profile, v1::BTSingleStream, T> {
+class CtrTF<Profile, Map<Key, Value>, T>: public CtrTF<Profile, BTSingleStream, T> {
 };
 
 

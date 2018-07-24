@@ -28,7 +28,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ToolsName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ToolsName)
 public:
     using Types = typename Base::Types;
 
@@ -104,7 +104,7 @@ public:
             PageWrapper<const Page> pw(page);
             auto meta = self().getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
 
-            v1::dumpPage(meta.get(), &pw, out);
+            dumpPage(meta.get(), &pw, out);
 
             out<<std::endl;
             out<<std::endl;
@@ -397,7 +397,7 @@ protected:
 
     struct SetChildIDFn {
         template <typename T>
-        void treeNode(BranchNode<T>* node, int child_idx, const ID& child_id) const
+        void treeNode(bt::BranchNode<T>* node, int child_idx, const ID& child_id) const
         {
             node->value(child_idx) = child_id;
         }
@@ -473,7 +473,7 @@ public:
 
     Position getStreamSizes(const BranchNodeEntry& sums) const
     {
-        return LeafDispatcher::template dispatch<LeafNode>(true, GetLeafNodeStreamSizesStatic(), sums);
+        return LeafDispatcher::template dispatch<bt::LeafNode>(true, GetLeafNodeStreamSizesStatic(), sums);
     }
 
 
@@ -483,13 +483,13 @@ protected:
     template <typename SubstreamPath>
     struct GetPackedStructFn {
         template <typename T>
-        auto treeNode(const LeafNode<T>* node) const
+        auto treeNode(const bt::LeafNode<T>* node) const
         {
             return node->template substream<SubstreamPath>();
         }
 
         template <typename T>
-        auto treeNode(LeafNode<T>* node) const
+        auto treeNode(bt::LeafNode<T>* node) const
         {
             return node->template substream<SubstreamPath>();
         }
@@ -511,7 +511,7 @@ protected:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::ToolsName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::ToolsName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

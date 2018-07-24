@@ -65,7 +65,7 @@ public:
     }
 
     void setBit(int index, int bit) {
-        v1::SetBit(*this, index + RESERVED_BITSIZE, bit);
+        SetBit(*this, index + RESERVED_BITSIZE, bit);
     }
 };
 

@@ -25,10 +25,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-using namespace v1::core;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btss_cow::FindName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(btss_cow::FindName)
 public:
     using typename Base::Types;
     using typename Base::IteratorPtr;
@@ -90,7 +87,7 @@ public:
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::btss_cow::LeafCommonName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btss_cow::LeafCommonName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

@@ -197,7 +197,7 @@ public:
     template <typename BTFLDataT>
     size_t dataLength(const BTFLDataT& data)
     {
-        return v1::btfl::BTFLDataComputeLengthHelper<BTFLDataT>(data).compute();
+        return btfl::BTFLDataComputeLengthHelper<BTFLDataT>(data).compute();
     }
 
 

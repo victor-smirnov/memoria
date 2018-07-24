@@ -74,13 +74,13 @@ template <typename T, typename RangesList>
 struct IndexDescr {};
 
 template <typename T, int32_t From_, int32_t To_>
-struct SumVector: public v1::core::StaticVector<T, To_ - From_> {
+struct SumVector: public core::StaticVector<T, To_ - From_> {
     static const int32_t To     = To_;
     static const int32_t From   = From_;
 };
 
 template <typename T, int32_t From_, int32_t To_>
-struct MaxVector: public v1::core::StaticVector<T, To_ - From_> {
+struct MaxVector: public core::StaticVector<T, To_ - From_> {
     static const int32_t To     = To_;
     static const int32_t From   = From_;
 };
@@ -397,11 +397,11 @@ struct BranchNodeRangeListBuilder<TypeList<BranchStruct, BTail...>, TypeList<Lea
             Offset
     >::OffsetList;
 
-    static_assert(v1::bt::detail::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "RangeList exceeds PackedStruct size");
+    static_assert(bt::detail::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "RangeList exceeds PackedStruct size");
 
     using Type = MergeLists<
             TL<
-                typename v1::bt::detail::GlueRanges<List>::Type
+                typename bt::detail::GlueRanges<List>::Type
             >,
             typename BranchNodeRangeListBuilder<
                 TypeList<BTail...>,
@@ -442,7 +442,7 @@ struct IteratorBranchNodeEntryBuilder<TL<BranchStruct, BTail...>, TL<RangeList, 
     MergeLists<
         detail::MakeTuple<
             typename detail::AccumBuilderH<
-                typename v1::AccumType<BranchStruct>::Type,
+                typename AccumType<BranchStruct>::Type,
                 RangeList,
                 IndexesSize<BranchStruct>::Value
             >::Type
@@ -589,7 +589,7 @@ struct AccumItem: public LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0
 public:
     using Base = LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>;
 
-    static constexpr int32_t BranchIdx  = v1::list_tree::LeafCountInf<LeafStructList, LeafPath, 2> - Base::LocalLeafOffset;
+    static constexpr int32_t BranchIdx  = list_tree::LeafCountInf<LeafStructList, LeafPath, 2> - Base::LocalLeafOffset;
 
     static constexpr int32_t LeafPrefix = Base::BranchIndex;
 
@@ -638,7 +638,7 @@ public:
 
 template <typename LeafStructList, typename LeafPath>
 struct PackedStructValueTypeH {
-    static const int32_t LeafIdx = v1::list_tree::LeafCount<LeafStructList, LeafPath>;
+    static const int32_t LeafIdx = list_tree::LeafCount<LeafStructList, LeafPath>;
     using PkdStruct = Select<LeafIdx, Linearize<LeafStructList>>;
 
     using Type = typename AccumType<PkdStruct>::Type;

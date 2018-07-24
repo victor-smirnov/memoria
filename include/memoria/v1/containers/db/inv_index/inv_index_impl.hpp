@@ -134,7 +134,7 @@ Key IterApi<Multimap<Key, Value>, Profile>::key() const
 
 
 
-namespace detail {
+namespace _ {
     template <typename T>
     struct ValueHelper {
         template <typename TT>
@@ -156,7 +156,7 @@ namespace detail {
 template <typename Key, typename Value, typename Profile>
 Value IterApi<Multimap<Key, Value>, Profile>::value() const
 {
-    return memoria::v1::detail::ValueHelper<decltype(this->pimpl_->value())>::convert(this->pimpl_->value());
+    return _::ValueHelper<decltype(this->pimpl_->value())>::convert(this->pimpl_->value());
 }
 
 

@@ -26,9 +26,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::mvector::CtrFindName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(mvector::CtrFindName)
 public:
     using Types = typename Base::Types;
     using typename Base::IteratorPtr;
@@ -78,7 +76,7 @@ public:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::mvector::CtrFindName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(mvector::CtrFindName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

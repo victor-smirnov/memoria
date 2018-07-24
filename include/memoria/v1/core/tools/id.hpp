@@ -161,6 +161,6 @@ private:
 };
 
 
-std::ostream& operator<<(std::ostream& os, const v1::IDValue& id);
+std::ostream& operator<<(std::ostream& os, const IDValue& id);
 
 }}

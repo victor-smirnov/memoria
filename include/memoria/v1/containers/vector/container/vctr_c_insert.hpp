@@ -28,9 +28,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::mvector::CtrInsertName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(mvector::CtrInsertName)
 public:
     using Types = typename Base::Types;
     using typename Base::Iterator;
@@ -60,7 +58,7 @@ protected:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::mvector::CtrInsertName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(mvector::CtrInsertName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

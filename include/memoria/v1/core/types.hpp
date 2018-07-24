@@ -438,10 +438,10 @@ namespace _ {
 }
 
 template <bool Flag, typename T, typename... AdditionalTypes>
-using FailIf = typename v1::_::FailIfT<T, Flag, AdditionalTypes...>::Type;
+using FailIf = typename _::FailIfT<T, Flag, AdditionalTypes...>::Type;
 
 template <bool Flag, int32_t V, typename... AdditionalTypes>
-using FailIfV = typename v1::_::FailIfT<IntValue<V>, Flag, AdditionalTypes...>::Type;
+using FailIfV = typename _::FailIfT<IntValue<V>, Flag, AdditionalTypes...>::Type;
 
 template <typename T, typename T1 = int32_t, T1 V = T1{}>
 struct FakeValue: HasValue<T1, V> {};

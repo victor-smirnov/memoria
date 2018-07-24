@@ -58,13 +58,13 @@ protected:
         {}
 
 
-        auto prepare(const StreamTag<0>&)
+        auto prepare(const bt::StreamTag<0>&)
         {
             return adapter_->structure()[0];
         }
 
         template <int32_t Idx, typename Pos>
-        auto prepare(const StreamTag<Idx>&, const Pos& pos)
+        auto prepare(const bt::StreamTag<Idx>&, const Pos& pos)
         {
             return adapter_->structure()[Idx];
         }
@@ -139,13 +139,13 @@ protected:
         {}
 
 
-        auto prepare(const StreamTag<0>&)
+        auto prepare(const bt::StreamTag<0>&)
         {
             return adapter_->structure()[0];
         }
 
         template <int32_t Idx, typename Pos>
-        auto prepare(const StreamTag<Idx>&, const Pos& pos)
+        auto prepare(const bt::StreamTag<Idx>&, const Pos& pos)
         {
             auto limit = adapter_->structure()[Idx];
             int64_t v = adapter_->rng()();

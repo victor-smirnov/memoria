@@ -29,7 +29,7 @@ namespace v1 {
 
 using louds::LoudsNode;
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(vtree::CtrApiName)
 public:
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Vec                                                  Vec;

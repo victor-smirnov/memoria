@@ -29,7 +29,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorUpdateName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorUpdateName)
 
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -54,7 +54,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorUpdateName)
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::btfl::IteratorUpdateName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(btfl::IteratorUpdateName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

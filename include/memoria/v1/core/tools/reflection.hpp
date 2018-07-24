@@ -214,27 +214,27 @@ struct FieldFactory<std::tuple<Types...> > {
 
     static void serialize(SerializationData& data, const Type& field)
     {
-        v1::internal::TupleFactoryHelper<Type>::serialize(data, field);
+        internal::TupleFactoryHelper<Type>::serialize(data, field);
     }
 
     static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)
         {
-            v1::internal::TupleFactoryHelper<Type>::serialize(data, field[c]);
+            internal::TupleFactoryHelper<Type>::serialize(data, field[c]);
         }
     }
 
     static void deserialize(DeserializationData& data, Type& field)
     {
-        v1::internal::TupleFactoryHelper<Type>::deserialize(data, field);
+        internal::TupleFactoryHelper<Type>::deserialize(data, field);
     }
 
     static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)
         {
-            v1::internal::TupleFactoryHelper<Type>::deserialize(data, field[c]);
+            internal::TupleFactoryHelper<Type>::deserialize(data, field[c]);
         }
     }
 };

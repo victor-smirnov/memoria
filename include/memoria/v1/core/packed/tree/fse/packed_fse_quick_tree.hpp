@@ -42,7 +42,7 @@ template <typename IndexValueT, int32_t kBlocks = 1, typename ValueT = IndexValu
 using PkdFQTreeT = PkdFQTree<PkdFQTreeTypes<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>>;
 
 
-using v1::core::StaticVector;
+using core::StaticVector;
 
 template <typename Types>
 class PkdFQTree: public PkdFQTreeBase<typename Types::IndexValue, typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch> {

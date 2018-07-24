@@ -38,30 +38,30 @@ struct BTCowSingleStream {};
 template <
     typename Profile
 >
-struct BTCowTypes<Profile, v1::BTCowSingleStream>: public BTCowTypes<Profile, v1::BTCow> {
+struct BTCowTypes<Profile, BTCowSingleStream>: public BTCowTypes<Profile, BTCow> {
 
-    using Base = BTCowTypes<Profile, v1::BT>;
+    using Base = BTCowTypes<Profile, BT>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::btss_cow::LeafCommonName,
-                v1::btss_cow::FindName
+                btss_cow::LeafCommonName,
+                btss_cow::FindName
     >;
 
     using FixedLeafContainerPartsList = MergeLists<
                 typename Base::FixedLeafContainerPartsList,
-                v1::btss_cow::LeafFixedName
+                btss_cow::LeafFixedName
     >;
 
 
     using VariableLeafContainerPartsList = MergeLists<
                 typename Base::VariableLeafContainerPartsList,
-                v1::btss_cow::LeafVariableName
+                btss_cow::LeafVariableName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::btss_cow::IteratorMiscName
+                btss_cow::IteratorMiscName
     >;
 
 };
@@ -70,9 +70,9 @@ struct BTCowTypes<Profile, v1::BTCowSingleStream>: public BTCowTypes<Profile, v1
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, v1::BTCowSingleStream, T>: public CtrTF<Profile, v1::BTCow, T> {
+class CtrTF<Profile, BTCowSingleStream, T>: public CtrTF<Profile, BTCow, T> {
 
-    using Base = CtrTF<Profile, v1::BTCow, T>;
+    using Base = CtrTF<Profile, BTCow, T>;
 public:
 
     struct Types: Base::Types

@@ -26,7 +26,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::map::CtrRemoveName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrRemoveName)
 
 public:
     using Types = typename Base::Types;
@@ -50,7 +50,7 @@ protected:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::map::CtrInsertName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(map::CtrInsertName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

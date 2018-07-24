@@ -28,7 +28,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btcow::ToolsName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(btcow::ToolsName)
 
 	using TreePath = typename TypesType::TreePath;
 
@@ -158,7 +158,7 @@ protected:
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::btcow::ToolsName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btcow::ToolsName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

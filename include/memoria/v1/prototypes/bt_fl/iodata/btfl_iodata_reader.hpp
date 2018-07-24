@@ -116,7 +116,7 @@ public:
 
 
 template <typename BTFLData, int32_t DataStreams, int32_t StartLevel = 0, typename IOBufferT = DefaultIOBuffer>
-class BTFLDataReader: public BufferConsumer<IOBufferT> {
+class BTFLDataReader: public bt::BufferConsumer<IOBufferT> {
 
     using Helper = BTFLDataIOBufferReaderHelper<BTFLData, DataStreams, StartLevel, IOBufferT>;
 

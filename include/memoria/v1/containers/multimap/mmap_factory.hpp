@@ -40,9 +40,9 @@ template <
     typename Key_,
     typename Value_
 >
-struct MultimapBTTypesBaseBase: public BTTypes<Profile, v1::BTFreeLayout> {
+struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
 
-    using Base = BTTypes<Profile, v1::BTFreeLayout>;
+    using Base = BTTypes<Profile, BTFreeLayout>;
 
 
     using Key   = Key_;
@@ -50,12 +50,12 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, v1::BTFreeLayout> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::mmap::CtrApiName
+                mmap::CtrApiName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::mmap::ItrMiscName
+                mmap::ItrMiscName
     >;
 };
 
@@ -128,14 +128,14 @@ template <
     typename Key_,
     typename Value_
 >
-struct BTTypes<Profile, v1::Multimap<Key_, Value_>>: public MultimapBTTypesBase<Profile, Key_, Value_>
+struct BTTypes<Profile, Multimap<Key_, Value_>>: public MultimapBTTypesBase<Profile, Key_, Value_>
 {
 };
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, v1::Multimap<Key, Value>, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
-    using Base1 = CtrTF<Profile, v1::BTFreeLayout, T>;
+class CtrTF<Profile, Multimap<Key, Value>, T>: public CtrTF<Profile, BTFreeLayout, T> {
+    using Base1 = CtrTF<Profile, BTFreeLayout, T>;
 public:
 
     struct Types: Base1::Types

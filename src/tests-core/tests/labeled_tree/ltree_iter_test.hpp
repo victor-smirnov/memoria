@@ -30,8 +30,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::louds;
-
 class LabeledTreeIterTest: public LabeledTreeTestBase {
 
     using MyType = LabeledTreeIterTest;

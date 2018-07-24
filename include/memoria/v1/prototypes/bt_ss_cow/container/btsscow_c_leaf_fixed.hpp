@@ -25,10 +25,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-using namespace v1::core;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btss_cow::LeafFixedName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(btss_cow::LeafFixedName)
 public:
     using typename Base::Types;
 
@@ -70,12 +67,8 @@ public:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::btss_cow::LeafFixedName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btss_cow::LeafFixedName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
-
-
-
 
 #undef M_TYPE
 #undef M_PARAMS

@@ -25,10 +25,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-using namespace v1::core;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::LeafCommonName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafCommonName)
 public:
     using Types = typename Base::Types;
 
@@ -87,25 +84,25 @@ public:
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto apply_substreams_fn(NodeBaseG& leaf, Fn&& fn, Args&&... args)
     {
-        return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return LeafDispatcher::dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto apply_substreams_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
     {
-        return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return LeafDispatcher::dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename Fn, typename... Args>
     auto apply_stream_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
     {
-        return LeafDispatcher::dispatch(leaf, StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return LeafDispatcher::dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto read_substreams(const NodeBaseG& leaf, Args&&... args) const
     {
-         return self().template apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
+         return self().template apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
@@ -113,7 +110,7 @@ public:
     template <int32_t Stream, typename... Args>
     auto read_stream(const NodeBaseG& leaf, Args&&... args) const
     {
-         return self().template apply_stream_fn<Stream>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
+         return self().template apply_stream_fn<Stream>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
@@ -139,7 +136,7 @@ public:
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto _sum(const NodeBaseG& leaf, Args&&... args) const
     {
-        return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), SumFn(), std::forward<Args>(args)...);
+        return LeafDispatcher::dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), SumFn(), std::forward<Args>(args)...);
     }
 
     struct FindFn {
@@ -153,7 +150,7 @@ public:
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto find_forward(const NodeBaseG& leaf, Args&&... args) const
     {
-        return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
+        return LeafDispatcher::dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
     }
 
 
@@ -440,12 +437,8 @@ public:
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::LeafCommonName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::LeafCommonName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
-
-
-
-
 
 
 #undef M_TYPE

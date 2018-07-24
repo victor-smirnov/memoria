@@ -25,11 +25,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-using namespace v1::core;
-
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::LeafFixedName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::LeafFixedName)
 public:
     using Types = typename Base::Types;
 
@@ -76,12 +72,12 @@ public:
         void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
             OOM_THROW_IF_FAILED(obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
-                return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
+                return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
             }), MMA1_SRC);
         }
 
         template <typename NTypes, typename... Args>
-        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
+        void treeNode(bt::LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
             node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
@@ -118,7 +114,7 @@ public:
     struct RemoveFromLeafFn
     {
         template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum)
+        void treeNode(bt::LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum)
         {
             node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx);
@@ -188,13 +184,13 @@ public:
         void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
             OOM_THROW_IF_FAILED(obj->template _update_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
-                return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
+                return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
             }), MMA1_SRC);
         }
 
 
         template <typename NTypes, typename... Args>
-        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
+        void treeNode(bt::LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
             node->template processSubstreamsByIdxAcc<
                 Stream,
@@ -249,7 +245,7 @@ public:
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::LeafFixedName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::LeafFixedName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

@@ -53,7 +53,7 @@ public:
     
     using typename Base::Page;
 
-    using SnapshotT             = v1::persistent_inmem::ThreadSnapshot<Profile, MyType>;
+    using SnapshotT             = persistent_inmem::ThreadSnapshot<Profile, MyType>;
     using SnapshotPtr           = SnpSharedPtr<SnapshotT>;
     using AllocatorPtr          = AllocSharedPtr<MyType>;
     

@@ -36,18 +36,18 @@ namespace v1 {
 
 
 template <typename Profile>
-struct UpdateLogBTTypesBaseBase: public BTTypes<Profile, v1::BTFreeLayout> {
+struct UpdateLogBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
 
-    using Base = BTTypes<Profile, v1::BTFreeLayout>;
+    using Base = BTTypes<Profile, BTFreeLayout>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::update_log::CtrApiName
+                update_log::CtrApiName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::update_log::ItrApiName
+                update_log::ItrApiName
     >;
 };
 
@@ -64,7 +64,7 @@ struct UpdateLogBTTypesBase: public UpdateLogBTTypesBaseBase<Profile> {
 
     using CtrSizeT = typename Base::CtrSizeT;
 
-    using SnapshotIdStreamTF = StreamTF<
+    using SnapshotIdStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename update_log::SnapshotIdStructTF<SnapshotIdT>::Type>
@@ -72,7 +72,7 @@ struct UpdateLogBTTypesBase: public UpdateLogBTTypesBaseBase<Profile> {
         update_log::UpdateLogBranchStructTF
     >;
 
-    using CtrNameStreamTF = StreamTF<
+    using CtrNameStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename update_log::CtrNameStructTF<CtrNameT>::Type>
@@ -80,7 +80,7 @@ struct UpdateLogBTTypesBase: public UpdateLogBTTypesBaseBase<Profile> {
         update_log::UpdateLogBranchStructTF
     >;
 
-    using CommandDataStreamTF = StreamTF<
+    using CommandDataStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename update_log::CommandDataStructTF<DataT>::Type>
@@ -88,7 +88,7 @@ struct UpdateLogBTTypesBase: public UpdateLogBTTypesBaseBase<Profile> {
         update_log::UpdateLogBranchStructTF
     >;
 
-    using StructureStreamTF = StreamTF<
+    using StructureStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename btfl::StructureStreamTF<3>::Type>
@@ -134,8 +134,8 @@ struct BTTypes<Profile, UpdateLog>: public UpdateLogBTTypesBase<Profile>
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, UpdateLog, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
-    using Base1 = CtrTF<Profile, v1::BTFreeLayout, T>;
+class CtrTF<Profile, UpdateLog, T>: public CtrTF<Profile, BTFreeLayout, T> {
+    using Base1 = CtrTF<Profile, BTFreeLayout, T>;
 public:
 
     struct Types: Base1::Types
@@ -145,7 +145,7 @@ public:
         using CtrTypes          = UpdateLogCtrTypes<Types>;
         using IterTypes         = UpdateLogIterTypes<Types>;
 
-        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
+        using PageUpdateMgr     = bt::PageUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList = typename BaseTypes::LeafStreamsStructList;
 

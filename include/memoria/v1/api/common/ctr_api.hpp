@@ -41,7 +41,7 @@ template <typename Profile> struct ProfileCtrSizeT: HasType<int64_t> {};
 template <typename Profile> using CtrSize = typename ProfileCtrSizeT<Profile>::Type;
 
 template <typename Profile, int32_t Streams> struct ProfileCtrSizesT: HasType<
-    memoria::v1::core::StaticVector<CtrSize<Profile>, Streams>
+    core::StaticVector<CtrSize<Profile>, Streams>
 > {};
 
 template <typename Profile, int32_t Streams> 

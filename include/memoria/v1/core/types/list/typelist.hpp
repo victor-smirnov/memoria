@@ -34,7 +34,7 @@ namespace detail {
     };
 
     template <typename ... List>
-    struct ListSizeH<v1::TypeList<List...>>: HasValue<int32_t, sizeof...(List)> {};
+    struct ListSizeH<TypeList<List...>>: HasValue<int32_t, sizeof...(List)> {};
 
     template <typename T, T ... List>
     struct ListSizeH<ValueList<T, List...>>: HasValue<int32_t, sizeof...(List)> {};
@@ -73,7 +73,7 @@ template <typename T>
 struct TypePrinter {
     static std::ostream& print(std::ostream& out)
     {
-        out<<v1::TypeNameFactory<T>::name();
+        out<<TypeNameFactory<T>::name();
         return out;
     }
 
@@ -92,7 +92,7 @@ template <typename Head, typename... Tail>
 struct ListPrinter<TypeList<Head, Tail...>> {
     static std::ostream& print(std::ostream& out = std::cout)
     {
-        out<<v1::TypeNameFactory<Head>::name()<<std::endl;
+        out<<TypeNameFactory<Head>::name()<<std::endl;
         return ListPrinter<TypeList<Tail...>>::print(out);
     }
 };

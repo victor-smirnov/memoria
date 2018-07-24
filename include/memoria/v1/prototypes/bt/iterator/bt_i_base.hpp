@@ -27,9 +27,6 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-
-
 MEMORIA_V1_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
     using Types     = typename Base::Container::Types;

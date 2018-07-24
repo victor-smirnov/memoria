@@ -66,7 +66,7 @@ namespace {
         static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
         {
             using RangesTuple   = typename std::tuple_element<Idx, BranchNodeEntry>::type;
-            using RangesIdxList = v1::list_tree::MakeValueList<int32_t, 0, std::tuple_size<RangesTuple>::value>;
+            using RangesIdxList = list_tree::MakeValueList<int32_t, 0, std::tuple_size<RangesTuple>::value>;
 
             IteratorSubstreamsRangesListWalker<IntList<Idx, Tail...>> w;
 
@@ -116,7 +116,7 @@ struct IteratorStreamRangesListWalker<IntList<StreamIdx, Tail...>> {
         const int32_t SubstreamsStartIdx = Node::template StreamStartIdx<StreamIdx>::Value;
         const int32_t StreamSize         = Node::template StreamSize<StreamIdx>::Value;
 
-        using StreamIdxList = v1::list_tree::MakeValueList<int32_t, SubstreamsStartIdx, SubstreamsStartIdx + StreamSize>;
+        using StreamIdxList = list_tree::MakeValueList<int32_t, SubstreamsStartIdx, SubstreamsStartIdx + StreamSize>;
 
         IteratorSubstreamsRangesListWalker<StreamIdxList>::process(walker, node, accum, std::forward<Args>(args)...);
 
@@ -144,7 +144,7 @@ template <
     typename... Tail,
     int32_t... RTail
 >
-struct LeafIndexRangeWalker<AccumItemH, TL<v1::bt::SumRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
+struct LeafIndexRangeWalker<AccumItemH, TL<bt::SumRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
 
     template <typename StreamObj, typename Walker, typename Accum, typename... Args>
     static void process(const StreamObj* obj, Walker& walker, Accum& accum, Args&&... args)
@@ -165,7 +165,7 @@ template <
     typename... Tail,
     int32_t... RTail
 >
-struct LeafIndexRangeWalker<AccumItemH, TL<v1::bt::MaxRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
+struct LeafIndexRangeWalker<AccumItemH, TL<bt::MaxRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
 
     template <typename StreamObj, typename Walker, typename Accum, typename... Args>
     static void process(const StreamObj* obj, Walker& walker, Accum& accum, Args&&... args)
@@ -202,8 +202,8 @@ struct LeafAccumWalker {
     {
         constexpr int32_t SubstreamIdx = StreamIdx + Idx;
 
-        using LeafPath   = typename v1::list_tree::BuildTreePath<LeafStructList, SubstreamIdx>::Type;
-        using AccumItemH = v1::bt::AccumItem<LeafStructList, LeafPath, Accum>;
+        using LeafPath   = typename list_tree::BuildTreePath<LeafStructList, SubstreamIdx>::Type;
+        using AccumItemH = bt::AccumItem<LeafStructList, LeafPath, Accum>;
 
         using RangeList = Select<SubstreamIdx, Linearize<LeafRangeList, 2>>;
         using RangeOffsetList = Select<SubstreamIdx, Linearize<LeafRangeOffsetList>>;

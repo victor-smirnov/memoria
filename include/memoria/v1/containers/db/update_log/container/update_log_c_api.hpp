@@ -28,7 +28,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::update_log::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(update_log::CtrApiName)
 public:
     using Types = typename Base::Types;
     using typename Base::IteratorPtr;
@@ -224,7 +224,7 @@ protected:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::update_log::CtrApiName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(update_log::CtrApiName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

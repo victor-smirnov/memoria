@@ -42,30 +42,30 @@ struct BTSingleStream {};
 template <
     typename Profile
 >
-struct BTTypes<Profile, v1::BTSingleStream>: public BTTypes<Profile, v1::BT> {
+struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
 
-    using Base = BTTypes<Profile, v1::BT>;
+    using Base = BTTypes<Profile, BT>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::btss::LeafCommonName,
-                v1::btss::FindName
+                btss::LeafCommonName,
+                btss::FindName
     >;
 
     using FixedLeafContainerPartsList = MergeLists<
                 typename Base::FixedLeafContainerPartsList,
-                v1::btss::LeafFixedName
+                btss::LeafFixedName
     >;
 
 
     using VariableLeafContainerPartsList = MergeLists<
                 typename Base::VariableLeafContainerPartsList,
-                v1::btss::LeafVariableName
+                btss::LeafVariableName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::btss::IteratorMiscName
+                btss::IteratorMiscName
     >;
 
 };
@@ -74,9 +74,9 @@ struct BTTypes<Profile, v1::BTSingleStream>: public BTTypes<Profile, v1::BT> {
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, v1::BTSingleStream, T>: public CtrTF<Profile, v1::BT, T> {
+class CtrTF<Profile, BTSingleStream, T>: public CtrTF<Profile, BT, T> {
 
-    using Base = CtrTF<Profile, v1::BT, T>;
+    using Base = CtrTF<Profile, BT, T>;
 public:
 
     struct Types: Base::Types
@@ -84,7 +84,7 @@ public:
         using CtrTypes          = BTSSCtrTypes<Types>;
         using IterTypes         = BTSSIterTypes<Types>;
 
-        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
+        using PageUpdateMgr     = bt::PageUpdateManager<CtrTypes>;
     };
 
     using CtrTypes  = typename Types::CtrTypes;

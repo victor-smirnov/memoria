@@ -22,7 +22,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrChecksName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(wt::CtrChecksName)
 public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;

@@ -109,7 +109,7 @@ public:
 
     template <int32_t From = 0, int32_t To = sizeof...(Tail) + 1, int32_t GroupIdx_ = GroupIdx>
     using SubrangeDispatcher = PackedDispatcher<
-                                typename v1::Sublist<
+                                typename Sublist<
                                     List,
                                     From, To
                                 >::Type,
@@ -118,7 +118,7 @@ public:
 
     template <typename Subset, int32_t GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
-                                v1::ListSubset<
+                                ListSubset<
                                     List,
                                     Subset
                                 >,
@@ -671,7 +671,7 @@ public:
 
     template <int32_t From = 0, int32_t To = 1, int32_t GroupIdx_ = GroupIdx>
     using SubrangeDispatcher = PackedDispatcher<
-                                typename v1::Sublist<
+                                typename Sublist<
                                     TypeList<SubstreamDescr<Head, Index>>,
                                     From, To
                                 >::Type,
@@ -680,7 +680,7 @@ public:
 
     template <typename Subset, int32_t GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
-                                    v1::ListSubset<
+                                    ListSubset<
                                         TypeList<SubstreamDescr<Head, Index>>,
                                         Subset
                                     >,

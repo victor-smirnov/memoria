@@ -30,9 +30,9 @@ namespace table   {
 
 
 template <typename CtrT, typename Rng>
-class RandomDataInputProvider: public v1::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
+class RandomDataInputProvider: public bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
 
-    using Base = v1::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
+    using Base = bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
 public:
 
@@ -80,7 +80,7 @@ public:
         {
             if (level_ == 0)
             {
-                std::get<0>(this->buffer_)[pos[0]] = InputTupleAdapter<0>::convert(v1::core::StaticVector<int64_t, 1>({1}));
+                std::get<0>(this->buffer_)[pos[0]] = InputTupleAdapter<0>::convert(core::StaticVector<int64_t, 1>({1}));
 
                 col_ = 0;
 
@@ -92,7 +92,7 @@ public:
             }
             else if (level_ == 1)
             {
-                std::get<1>(this->buffer_)[pos[1]] = InputTupleAdapter<1>::convert(v1::core::StaticVector<int64_t, 1>({1}));
+                std::get<1>(this->buffer_)[pos[1]] = InputTupleAdapter<1>::convert(core::StaticVector<int64_t, 1>({1}));
 
                 col_++;
 

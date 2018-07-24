@@ -154,22 +154,22 @@ public:
 
     void check(SnapshotPtr& snapshot, const char* source)
     {
-        v1::tests::check(snapshot, "Snapshot check failed", source);
+        tests::check(snapshot, "Snapshot check failed", source);
     }
 
     void check(const char* source)
     {
-        v1::tests::check(snapshot_, "Snapshot check failed", source);
+        tests::check(snapshot_, "Snapshot check failed", source);
     }
 
     void check(SnapshotPtr& snapshot, const char* msg, const char* source)
     {
-        v1::tests::check(snapshot, msg, source);
+        tests::check(snapshot, msg, source);
     }
 
     void check(const char* msg, const char* source)
     {
-        v1::tests::check(snapshot_, msg, source);
+        tests::check(snapshot_, msg, source);
     }
 
     virtual void set_up() noexcept
@@ -213,7 +213,7 @@ public:
 
     virtual void checkAllocator(const char* msg, const char* source)
     {
-        v1::tests::check<Allocator>(allocator_, msg, source);
+        tests::check<Allocator>(allocator_, msg, source);
     }
 
     bool checkSoftMemLimit()

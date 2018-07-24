@@ -337,7 +337,7 @@ public:
 
     virtual void startGroupWithAddr(const char* name, const void* ptr) {
         cnt_ = 0;
-        v1::Expand(out_, level_++);
+        Expand(out_, level_++);
 
         out_ << name;
 
@@ -348,7 +348,7 @@ public:
     virtual void startGroup(const char* name, int32_t elements = -1)
     {
         cnt_ = 0;
-        v1::Expand(out_, level_++);
+        Expand(out_, level_++);
 
         out_ << name;
 
@@ -384,7 +384,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<int8_t>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<int8_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -395,7 +395,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<uint8_t>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<uint8_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -406,7 +406,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<int16_t>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<int16_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -418,7 +418,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<uint16_t>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<uint16_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -429,7 +429,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<int32_t>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<int32_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -441,7 +441,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<uint32_t>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<uint32_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -452,7 +452,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<int64_t>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<int64_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -463,7 +463,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<uint64_t>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<uint64_t>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -474,7 +474,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<float>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<float>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -485,7 +485,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<double>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<double>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -523,7 +523,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<UUID>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<UUID>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -534,7 +534,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<UAcc64T>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<UAcc64T>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -545,7 +545,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<UAcc128T>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<UAcc128T>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -556,7 +556,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<UAcc192T>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<UAcc192T>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -567,7 +567,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            v1::dumpArray<UAcc256T>(out_, count, [=](int32_t idx){return value[idx];});
+            dumpArray<UAcc256T>(out_, count, [=](int32_t idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -611,24 +611,24 @@ private:
     void dumpFieldHeader(std::ostream &out, int32_t level, int32_t idx, U8StringRef name)
     {
         std::stringstream str;
-        v1::Expand(str, level);
+        Expand(str, level);
         str << "FIELD: ";
         str << idx << " " << name;
 
         int size = str.str().size();
-        v1::Expand(str, 30 - size);
+        Expand(str, 30 - size);
         out << str.str();
     }
 
     void dumpLineHeader(std::ostream &out, int32_t level, int32_t idx, U8StringRef name)
     {
         std::stringstream str;
-        v1::Expand(str, level);
+        Expand(str, level);
         str << name << ": ";
         str << idx << " ";
 
         int size = str.str().size();
-        v1::Expand(str, 15 - size);
+        Expand(str, 15 - size);
         out << str.str();
     }
 

@@ -26,10 +26,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-using namespace v1::core;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchVariableName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchVariableName)
 public:
     using Types = typename Base::Types;
     using typename Base::Iterator;
@@ -391,7 +388,7 @@ public:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::InsertBatchVariableName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::InsertBatchVariableName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

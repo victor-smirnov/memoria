@@ -28,7 +28,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btfl::BranchFixedName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::BranchFixedName)
 
 public:
     using Types             = typename Base::Types;
@@ -51,7 +51,7 @@ protected:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::btfl::BranchFixedName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btfl::BranchFixedName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

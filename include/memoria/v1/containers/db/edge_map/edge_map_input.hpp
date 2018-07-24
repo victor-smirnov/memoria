@@ -58,13 +58,13 @@ class MultimapIOBufferProducer: public btfl::io::FlatTreeIOBufferAdapter<2, IOBu
             adapter_(adapter)
         {}
 
-        auto prepare(const StreamTag<0>&)
+        auto prepare(const bt::StreamTag<0>&)
         {
             return adapter_->data().size();
         }
 
         template <int32_t Idx, typename Pos>
-        auto prepare(const StreamTag<Idx>&, const Pos& pos)
+        auto prepare(const bt::StreamTag<Idx>&, const Pos& pos)
         {
             return adapter_->data()[pos[Idx - 1]].second.size();
         }

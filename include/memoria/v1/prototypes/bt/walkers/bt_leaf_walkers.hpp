@@ -48,7 +48,7 @@ protected:
 public:
 
     template <typename LeafPath>
-    using AccumItemH = v1::bt::AccumItem<LeafStructList, LeafPath, IteratorBranchNodeEntry>;
+    using AccumItemH = bt::AccumItem<LeafStructList, LeafPath, IteratorBranchNodeEntry>;
 
 protected:
 

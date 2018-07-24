@@ -22,7 +22,6 @@
 namespace memoria {
 namespace v1 {
 
-using v1::TypeList;
 
 template <
     typename TChain,

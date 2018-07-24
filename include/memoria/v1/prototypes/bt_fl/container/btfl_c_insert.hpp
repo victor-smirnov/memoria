@@ -26,7 +26,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btfl::InsertName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(btfl::InsertName)
 
 public:
     using Types             = typename Base::Types;
@@ -41,7 +41,7 @@ public:
     static const int32_t Streams = Types::Streams;
 
     template <typename IOBuffer>
-    auto bulkio_insert(Iterator& iter, BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 4000)
+    auto bulkio_insert(Iterator& iter, bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 4000)
     {
         auto& self = this->self();
 
@@ -68,7 +68,7 @@ public:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::btfl::InsertName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btfl::InsertName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

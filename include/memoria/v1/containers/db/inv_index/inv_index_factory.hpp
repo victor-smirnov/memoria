@@ -24,11 +24,11 @@ namespace v1 {
 template <
     typename Profile
 >
-struct BTTypes<Profile, InvertedIndex>: public BTTypes<Profile, v1::BTFreeLayout>{};
+struct BTTypes<Profile, InvertedIndex>: public BTTypes<Profile, BTFreeLayout>{};
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, InvertedIndex, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
+class CtrTF<Profile, InvertedIndex, T>: public CtrTF<Profile, BTFreeLayout, T> {
 };
 
 

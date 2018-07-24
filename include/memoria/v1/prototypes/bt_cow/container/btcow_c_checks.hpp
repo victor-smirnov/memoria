@@ -22,12 +22,13 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
+#include <memoria/v1/prototypes/bt/bt_names.hpp>
 
 
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btcow::ChecksName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(btcow::ChecksName)
 private:
     
 public:
@@ -98,7 +99,7 @@ private:
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::btcow::ChecksName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btcow::ChecksName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

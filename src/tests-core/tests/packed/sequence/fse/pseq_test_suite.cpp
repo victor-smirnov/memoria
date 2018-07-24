@@ -37,7 +37,7 @@ namespace {
 auto Suite1 = register_class_suite<PackedSearchableSequenceMiscTest<
                 1,
                 PkdFQTreeT<int32_t, 2>,
-                v1::BitmapReindexFn,
+                BitmapReindexFn,
                 BitmapSelectFn,
                 BitmapRankFn,
                 BitmapToolsFn
@@ -48,7 +48,7 @@ auto Suite1 = register_class_suite<PackedSearchableSequenceMiscTest<
 auto Suite2 = register_class_suite<PackedSearchableSequenceMiscTest<
                         4,
                         PkdFQTreeT<int32_t, 16>,
-                        v1::ReindexFn,
+                        ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
                         SeqToolsFn
@@ -95,16 +95,16 @@ auto Suite6 = register_class_suite<PackedSearchableSequenceMiscTest<
 auto Suite7 = register_class_suite<PackedSearchableSequenceRankTest<
                 1,
                 PkdFQTreeT<int32_t, 2>,
-                v1::BitmapReindexFn,
-                 BitmapSelectFn,
-                 BitmapRankFn,
-                 BitmapToolsFn
+                BitmapReindexFn,
+                BitmapSelectFn,
+                BitmapRankFn,
+                BitmapToolsFn
         >>("PSeq.Rank.1");
 
 auto Suite8 = register_class_suite<PackedSearchableSequenceRankTest<
                 4,
                 PkdFQTreeT<int32_t, 16>,
-                v1::ReindexFn,
+                ReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
                 SeqToolsFn
@@ -136,16 +136,16 @@ auto Suite10 = register_class_suite<PackedSearchableSequenceRankTest<
 auto Suite11 = register_class_suite<PackedSearchableSequenceSelectTest<
                 1,
                 PkdFQTreeT<int32_t, 2>,
-                v1::BitmapReindexFn,
-                 BitmapSelectFn,
-                 BitmapRankFn,
-                 BitmapToolsFn
+                BitmapReindexFn,
+                BitmapSelectFn,
+                BitmapRankFn,
+                BitmapToolsFn
         >>("PSeq.Select.1");
 
 auto Suite12 = register_class_suite<PackedSearchableSequenceSelectTest<
                 4,
                 PkdFQTreeT<int32_t, 16>,
-                v1::ReindexFn,
+                ReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
                 SeqToolsFn

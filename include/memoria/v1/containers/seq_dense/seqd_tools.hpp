@@ -21,6 +21,7 @@
 #include <memoria/v1/core/packed/wrappers/symbol_sequence.hpp>
 
 #include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
+#include <memoria/v1/prototypes/bt_ss/btss_input.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -89,8 +90,8 @@ public:
 
 
 template <typename CtrT>
-class SequenceInputProviderBase: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
-    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+class SequenceInputProviderBase: public btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+    using Base = btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 public:
 

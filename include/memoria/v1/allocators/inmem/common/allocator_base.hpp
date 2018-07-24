@@ -169,11 +169,11 @@ public:
     using TxnId             = UUID;
     using PTreeNodeId       = UUID;
 
-    using LeafNodeT         = v1::persistent_inmem::LeafNode<Key, persistent_inmem::details::PersistentTreeValue<RCPagePtr*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-    using LeafNodeBufferT   = v1::persistent_inmem::LeafNode<Key, persistent_inmem::details::PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeT         = persistent_inmem::LeafNode<Key, persistent_inmem::details::PersistentTreeValue<RCPagePtr*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeBufferT   = persistent_inmem::LeafNode<Key, persistent_inmem::details::PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
 
-    using BranchNodeT       = v1::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-    using BranchNodeBufferT = v1::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId, PTreeNodeId>;
+    using BranchNodeT       = persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using BranchNodeBufferT = persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId, PTreeNodeId>;
     using NodeBaseT         = typename BranchNodeT::NodeBaseT;
     using NodeBaseBufferT   = typename BranchNodeBufferT::NodeBaseT;
 
@@ -452,7 +452,7 @@ public:
     };
 
 
-    using PersistentTreeT       = typename v1::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
+    using PersistentTreeT       = typename persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
     using TxnMap                = std::unordered_map<TxnId, HistoryNode*>;
 
     using HistoryTreeNodeMap    = std::unordered_map<PTreeNodeId, HistoryNodeBuffer*>;

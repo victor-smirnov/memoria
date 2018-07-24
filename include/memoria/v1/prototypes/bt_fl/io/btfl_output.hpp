@@ -298,7 +298,7 @@ protected:
         {
             io_buffer.mark();
         	WriteEntryFn fn;
-            ForAllTuple<std::tuple_size<std::remove_reference_t<StreamData>>::value>::process(stream_data, fn, io_buffer);
+            bt::ForAllTuple<std::tuple_size<std::remove_reference_t<StreamData>>::value>::process(stream_data, fn, io_buffer);
             return fn.ending_;
         }
     };
@@ -388,7 +388,7 @@ public:
     PopulateStatus write_stream(int32_t stream, int64_t length, IOBufferT& io_buffer)
     {
         WriteStreamFn fn(this);
-        ForAllTuple<DataStreams>::process(stream_data_, fn, stream, length, io_buffer);
+        bt::ForAllTuple<DataStreams>::process(stream_data_, fn, stream, length, io_buffer);
         return fn.status_;
     }
 
@@ -444,13 +444,13 @@ private:
     template <typename SubstreamPath>
     struct GetPackedStructFn {
         template <typename T>
-        auto treeNode(const LeafNode<T>* node) const
+        auto treeNode(const bt::LeafNode<T>* node) const
         {
             return node->template substream<SubstreamPath>();
         }
 
         template <typename T>
-        auto treeNode(LeafNode<T>* node) const
+        auto treeNode(bt::LeafNode<T>* node) const
         {
             return node->template substream<SubstreamPath>();
         }
@@ -481,7 +481,7 @@ private:
         {
             constexpr int32_t Substreams = std::tuple_size<typename std::remove_reference<StreamData>::type>::value;
 
-            ForAllTuple<Substreams>::process(data, *this, idx[StreamIdx], leaf, bt::StreamTag<StreamIdx>());
+            bt::ForAllTuple<Substreams>::process(data, *this, idx[StreamIdx], leaf, bt::StreamTag<StreamIdx>());
         }
 
         template <int32_t SubstreamIdx, typename StreamData, typename Node, int32_t StreamIdx>
@@ -496,9 +496,9 @@ private:
         }
 
         template <typename NTypes>
-        void treeNode(const LeafNode<NTypes>* leaf, ReadStreamDataStates& stream_data, const DataStreamsSizes& idx)
+        void treeNode(const bt::LeafNode<NTypes>* leaf, ReadStreamDataStates& stream_data, const DataStreamsSizes& idx)
         {
-            ForAllTuple<DataStreams>::process(stream_data, *this, idx, leaf);
+            bt::ForAllTuple<DataStreams>::process(stream_data, *this, idx, leaf);
         }
     };
 
@@ -763,7 +763,7 @@ public:
 
 
 template <typename IOBufferT, typename Iterator>
-class ChainedIOBufferProducer: public BufferProducer<IOBufferT> {
+class ChainedIOBufferProducer: public bt::BufferProducer<IOBufferT> {
 
     using WalkerType = BTFLWalker<Iterator, IOBufferT>;
 

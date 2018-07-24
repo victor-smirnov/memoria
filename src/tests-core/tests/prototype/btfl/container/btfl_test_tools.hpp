@@ -153,11 +153,11 @@ public:
     	{
             auto key = iter.template key<StartLevel>();
             //auto key = iter.key0();
-            v1::tests::assert_equals(key, std::get<0>(*start_));
+            tests::assert_equals(key, std::get<0>(*start_));
 
             auto children = iter.count_children();
 
-            v1::tests::assert_equals((size_t)children, std::get<1>(*start_).size());
+            tests::assert_equals((size_t)children, std::get<1>(*start_).size());
 
     		if (children > 0)
     		{
@@ -209,7 +209,7 @@ public:
     	while (start_ != end_)
     	{
             auto value = iter.template key<StartLevel>();
-            v1::tests::assert_equals(value, *start_);
+            tests::assert_equals(value, *start_);
 
     		start_++;
             iter.next();

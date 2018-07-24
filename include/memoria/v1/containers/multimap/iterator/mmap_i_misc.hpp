@@ -31,7 +31,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mmap::ItrMiscName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(mmap::ItrMiscName)
 
     using typename Base::NodeBaseG;
     using Container = typename Base::Container;
@@ -318,7 +318,7 @@ public:
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::mmap::ItrMiscName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(mmap::ItrMiscName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 

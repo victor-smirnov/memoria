@@ -36,7 +36,7 @@
 namespace memoria {
 namespace v1 {
 
-using v1::tools::LblTreeNode;
+using tools::LblTreeNode;
 
 using LTreeCtrName = LabeledTree<
         FLabel<uint16_t>,

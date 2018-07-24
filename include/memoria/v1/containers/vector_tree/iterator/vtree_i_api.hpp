@@ -27,7 +27,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::vtree::ItrApiName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(vtree::ItrApiName)
 public:
     typedef Ctr<VTreeCtrTypes<Types>>                           ContainerType;
 

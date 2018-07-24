@@ -18,6 +18,7 @@
 
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
+#include <memoria/v1/prototypes/bt/walkers/bt_walker_base.hpp>
 
 #include <memoria/v1/core/container/macros.hpp>
 
@@ -26,9 +27,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::FindName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::FindName)
 public:
     using Types = TypesType;
 
@@ -177,7 +176,7 @@ protected:
     };
 
     template <typename Walker>
-    StreamOpResult find_fw(NodeBaseG& node, int32_t stream, int32_t idx, Walker&& walker);
+    bt::StreamOpResult find_fw(NodeBaseG& node, int32_t stream, int32_t idx, Walker&& walker);
 
     template <typename Walker>
     FindResult find_fw(NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
@@ -218,12 +217,9 @@ protected:
 
 protected:
 
-
 MEMORIA_V1_CONTAINER_PART_END
 
-
-
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::FindName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::FindName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

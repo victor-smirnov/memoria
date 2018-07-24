@@ -25,7 +25,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
+
 
 
 template <typename ID>

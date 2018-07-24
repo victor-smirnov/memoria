@@ -57,9 +57,9 @@ template <
     typename Key_,
     typename Value_
 >
-struct CowMapBTTypesBaseBase: public BTCowTypes<Profile, v1::BTCowSingleStream> {
+struct CowMapBTTypesBaseBase: public BTCowTypes<Profile, BTCowSingleStream> {
 
-    using Base = BTCowTypes<Profile, v1::BTCowSingleStream>;
+    using Base = BTCowTypes<Profile, BTCowSingleStream>;
 
     using Key   = Key_;
     using Value = Value_;
@@ -68,14 +68,14 @@ struct CowMapBTTypesBaseBase: public BTCowTypes<Profile, v1::BTCowSingleStream> 
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::cowmap::CtrInsertMaxName,
-                v1::cowmap::CtrRemoveName
+                cowmap::CtrInsertMaxName,
+                cowmap::CtrRemoveName
     >;
 
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::cowmap::ItrNavMaxName
+                cowmap::ItrNavMaxName
     >;
 };
 
@@ -124,11 +124,11 @@ template <
     typename Key_,
     typename Value_
 >
-struct BTCowTypes<Profile, v1::CowMap<Key_, Value_>>: public CowMapBTTypesBase<Profile, Key_, Value_>{};
+struct BTCowTypes<Profile, CowMap<Key_, Value_>>: public CowMapBTTypesBase<Profile, Key_, Value_>{};
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, v1::CowMap<Key, Value>, T>: public CtrTF<Profile, v1::BTCowSingleStream, T> {
+class CtrTF<Profile, CowMap<Key, Value>, T>: public CtrTF<Profile, BTCowSingleStream, T> {
 };
 
 

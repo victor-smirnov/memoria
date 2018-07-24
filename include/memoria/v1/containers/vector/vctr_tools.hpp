@@ -41,13 +41,13 @@ struct VectorValueStructTF<KeyType, 0>: HasType<PkdVDArrayT<KeyType>> {};
 
 //
 //template <typename CtrT, typename InputIterator, int32_t EntryBufferSize = 1000>
-//class VectorIteratorInputProvider: public v1::btss::AbstractIteratorBTSSInputProvider<
+//class VectorIteratorInputProvider: public btss::AbstractIteratorBTSSInputProvider<
 //    CtrT,
 //    VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
 //    InputIterator
 //>
 //{
-//    using Base = v1::btss::AbstractIteratorBTSSInputProvider<
+//    using Base = btss::AbstractIteratorBTSSInputProvider<
 //            CtrT,
 //            VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
 //            InputIterator

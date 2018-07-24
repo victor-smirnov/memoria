@@ -31,7 +31,7 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 
 #define MEMORIA_V1_STATIC_ASSERT(B) \
-    enum { MMA1_JOIN(MEMORIA_V1_STATIC_ASSERT_, __LINE__) = sizeof(v1::STATIC_ASSERT_FAILURE<(bool)(B)>)}
+    enum { MMA1_JOIN(MEMORIA_V1_STATIC_ASSERT_, __LINE__) = sizeof(STATIC_ASSERT_FAILURE<(bool)(B)>)}
 
 
 #ifndef MEMORIA_V1_NO_ASSERTS

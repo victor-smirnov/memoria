@@ -46,9 +46,9 @@ namespace v1 {
 
 
 template <typename Profile>
-struct BTTypes<Profile, v1::Sequence<1, true> >: public BTTypes<Profile, v1::BTSingleStream> {
+struct BTTypes<Profile, Sequence<1, true> >: public BTTypes<Profile, BTSingleStream> {
 
-    typedef BTTypes<Profile, v1::BTSingleStream>                           Base;
+    typedef BTTypes<Profile, BTSingleStream>                           Base;
 
     typedef uint64_t                                                             Value;
     typedef TypeList<int64_t>                                                    KeysList;

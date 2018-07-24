@@ -35,8 +35,6 @@
 namespace memoria {
 namespace v1 {
 
-using v1::tools::LblTreeNode;
-
 class VectorTreeTestBase: public BTTestBase<VTree, PersistentInMemAllocator<>, DefaultProfile<>> {
 
     using MyType = VectorTreeTestBase;

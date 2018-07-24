@@ -25,7 +25,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btcow::AllocatorName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(btcow::AllocatorName)
     
 public:
 
@@ -101,13 +101,13 @@ public:
         return self().allocator().newId();
     }
 
-    virtual void registerCtr(const type_info&) {}
-    virtual void unregisterCtr(const type_info&) {}
+    virtual void registerCtr(const std::type_info&) {}
+    virtual void unregisterCtr(const std::type_info&) {}
 
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::btcow::AllocatorName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btcow::AllocatorName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

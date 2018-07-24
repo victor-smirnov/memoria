@@ -42,9 +42,9 @@ namespace v1 {
 
 
 template <typename Profile, typename... LabelDescriptors>
-struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, v1::BT> {
+struct BTTypes<Profile, LabeledTree<LabelDescriptors...>>: BTTypes<Profile, BT> {
 
-    typedef BTTypes<Profile, v1::BT>                                            Base;
+    typedef BTTypes<Profile, BT>                                            Base;
 
     static constexpr int32_t BitsPerSymbol  = 1;
     static constexpr int32_t Symbols        = 2;
@@ -118,16 +118,16 @@ struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, 
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef v1::louds::LOUDSIteratorCache<Iterator, Container> Type;
+        typedef louds::LOUDSIteratorCache<Iterator, Container> Type;
     };
 };
 
 
 
 template <typename Profile, typename... LabelDescriptors, typename T>
-class CtrTF<Profile, v1::LabeledTree<LabelDescriptors...>, T>: public CtrTF<Profile, v1::BT, T> {
+class CtrTF<Profile, LabeledTree<LabelDescriptors...>, T>: public CtrTF<Profile, BT, T> {
 
-    using Base = CtrTF<Profile, v1::BT, T>;
+    using Base = CtrTF<Profile, BT, T>;
 public:
 
     struct Types: Base::Types

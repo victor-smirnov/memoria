@@ -31,7 +31,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mvector::ItrApiName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(mvector::ItrApiName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
@@ -162,7 +162,7 @@ public:
 
 MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::mvector::ItrApiName)
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(mvector::ItrApiName)
 #define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 #undef M_TYPE

@@ -27,9 +27,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace v1::bt;
-
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::mvector::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(mvector::CtrApiName)
 
 public:
     using Types = typename Base::Types;

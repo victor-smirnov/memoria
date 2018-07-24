@@ -22,7 +22,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::RemoveBatchName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveBatchName)
 
     typedef TypesType                                                           Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -97,7 +97,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::RemoveBatchName)
 MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::RemoveBatchName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(bt::RemoveBatchName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

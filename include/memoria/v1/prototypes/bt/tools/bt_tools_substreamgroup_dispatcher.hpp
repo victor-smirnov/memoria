@@ -36,11 +36,11 @@ using BuildTopLevelLeafSubsets = typename BuildTopLevelLeafSubsetsH<List, Offset
 
 template <typename List, int32_t Offset, int32_t Idx, int32_t Max>
 class BuildTopLevelLeafSubsetsH {
-    static const int32_t LeafOffsetInf = v1::list_tree::LeafCountInf<List, IntList<Idx>>;
-    static const int32_t LeafOffsetSup = v1::list_tree::LeafCountSup<List, IntList<Idx>>;
+    static const int32_t LeafOffsetInf = list_tree::LeafCountInf<List, IntList<Idx>>;
+    static const int32_t LeafOffsetSup = list_tree::LeafCountSup<List, IntList<Idx>>;
 public:
     using Type = MergeLists<
-            v1::list_tree::MakeValueList<
+            list_tree::MakeValueList<
                 int32_t,
                 LeafOffsetInf + Offset,
                 LeafOffsetSup + Offset

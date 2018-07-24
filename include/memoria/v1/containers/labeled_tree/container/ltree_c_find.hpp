@@ -29,7 +29,7 @@ namespace v1 {
 
 
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrFindName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(louds::CtrFindName)
 public:
     typedef TypesType                                                           Types;
     typedef typename Base::Iterator                                             Iterator;

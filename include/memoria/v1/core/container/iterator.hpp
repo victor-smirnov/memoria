@@ -147,7 +147,7 @@ private:
 
 public:
     IteratorBase():
-        logger_("Iterator", Logger::DERIVED, &v1::logger),
+        logger_("Iterator", Logger::DERIVED, &memoria::v1::logger),
         type_(NORMAL)
     {}
 
@@ -212,7 +212,7 @@ public:
         return logger_.isLogEnabled(level);
     }
 
-    v1::Logger& logger()
+    Logger& logger()
     {
           return logger_;
     }
