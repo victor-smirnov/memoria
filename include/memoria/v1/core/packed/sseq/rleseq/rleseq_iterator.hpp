@@ -92,7 +92,7 @@ public:
     size_t data_pos() const {return data_pos_;}
     size_t data_size() const {return data_size_;}
 
-    size_t idx() const {return run_prefix_ + local_idx();}
+    size_t local_pos() const {return run_prefix_ + local_idx();}
 
     int32_t symbol() const {return run_.symbol();}
 

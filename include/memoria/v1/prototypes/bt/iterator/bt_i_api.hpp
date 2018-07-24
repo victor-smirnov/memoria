@@ -167,7 +167,7 @@ protected:
 
         self.leaf() = next;
 
-        self.idx() = 0;
+        self.local_pos() = 0;
     }
 
     template <int32_t Stream, typename SubstreamsList, typename... Args>
@@ -212,16 +212,16 @@ protected:
 
         cache.reset();
 
-        self.walkUpForRefresh(self.leaf(), self.idx(), walker);
+        self.walkUpForRefresh(self.leaf(), self.local_pos(), walker);
 
-        walker.finish(self, self.idx(), WalkCmd::REFRESH);
+        walker.finish(self, self.local_pos(), WalkCmd::REFRESH);
     }
 
     template <int StreamIdx>
     void _refreshLeafPrefixes()
     {
         auto& self  = this->self();
-        auto idx    = self.idx();
+        auto idx    = self.local_pos();
 
         bt::FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
         LeafDispatcher::dispatch(self.leaf(), walker, WalkCmd::LAST_LEAF, 0, idx);
@@ -289,7 +289,7 @@ typename M_TYPE::CtrSizeT M_TYPE::skipStreamBw(int32_t stream, CtrSizeT amount)
 
     walker.prepare(self);
 
-    int32_t idx = self.model().findBw(self.leaf(), stream, self.idx(), walker);
+    int32_t idx = self.model().findBw(self.leaf(), stream, self.local_pos(), walker);
 
     return walker.finish(self, idx);
 }
@@ -390,7 +390,7 @@ bool M_TYPE::findNextLeaf(Walker&& walker)
 
         walker.finish(self, idx < size);
 
-        self.idx() = 0;
+        self.local_pos() = 0;
 
         return idx < size;
     }
@@ -437,7 +437,7 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
 
         walker.finish(self, idx >= 0);
 
-        self.idx() = idx >= 0 ? self.leafSize(stream) - 1 : -1;
+        self.local_pos() = idx >= 0 ? self.leafSize(stream) - 1 : -1;
 
         return idx >= 0;
     }

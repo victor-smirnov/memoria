@@ -57,7 +57,7 @@ public:
 
 
 
-    int32_t idx() const {
+    int32_t local_pos() const {
         return idx_;
     }
 
@@ -312,11 +312,11 @@ class CoWTreeIterator: public CoWTreeIteratorBase<BranchNode, LeafNode> {
 public:
 
     const auto& value() const {
-        return this->leaf()->data(this->idx());
+        return this->leaf()->data(this->local_pos());
     }
 
     auto& value() {
-        return this->leaf()->data(this->idx());
+        return this->leaf()->data(this->local_pos());
     }
 };
 
@@ -327,7 +327,7 @@ class CoWTreeConstIterator: public CoWTreeIteratorBase<BranchNode, LeafNode> {
 public:
 
     const auto& value() const {
-        return this->leaf()->data(this->idx());
+        return this->leaf()->data(this->local_pos());
     }
 };
 

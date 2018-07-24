@@ -65,7 +65,7 @@ public:
     template <typename EntryBuffer>
     void insert_entry(Iterator& iter, const EntryBuffer& entry)
     {
-        self().template insert_stream_entry<0>(iter, iter.stream(), iter.idx(), entry);
+        self().template insert_stream_entry<0>(iter, iter.stream(), iter.local_pos(), entry);
     }
 
 
@@ -74,12 +74,12 @@ public:
     template <typename SubstreamsList, typename EntryBuffer>
     void update_entry(Iterator& iter, const EntryBuffer& entry)
     {
-        self().template update_stream_entry<0, SubstreamsList>(iter, iter.stream(), iter.idx(), entry);
+        self().template update_stream_entry<0, SubstreamsList>(iter, iter.stream(), iter.local_pos(), entry);
     }
 
 
     void removeEntry(Iterator& iter) {
-        self().template remove_stream_entry<0>(iter, iter.stream(), iter.idx());
+        self().template remove_stream_entry<0>(iter, iter.stream(), iter.local_pos());
     }
 
 
@@ -89,14 +89,14 @@ public:
     {
         auto& self = this->self();
 
-        auto pos = Position(iter.idx());
+        auto pos = Position(iter.local_pos());
 
         auto id = iter.leaf()->id();
 
         auto result = self.insert_provided_data(iter.leaf(), pos, provider);
 
         iter.leaf() = result.leaf();
-        iter.idx() = result.position()[0];
+        iter.local_pos() = result.position()[0];
 
         if (id != iter.leaf()->id())
         {

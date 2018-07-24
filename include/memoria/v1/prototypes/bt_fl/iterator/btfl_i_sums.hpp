@@ -114,7 +114,7 @@ public:
     	auto& self = this->self();
         SumWalker<SumT, LeafPath> fn(block);
 
-        auto structure_idx = self.idx();
+        auto structure_idx = self.local_pos();
 
         int32_t stream = ListHead<LeafPath>::Value;
 
@@ -132,7 +132,7 @@ public:
 //    	auto& self = this->self();
 //    	RankWalker fn;
 
-//    	auto idx = self.idx();
+//    	auto idx = self.local_pos();
 
 //    	self.ctr().walkUp(self.leaf(), idx, fn);
 

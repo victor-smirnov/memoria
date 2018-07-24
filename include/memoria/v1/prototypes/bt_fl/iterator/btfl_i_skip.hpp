@@ -50,20 +50,20 @@ public:
     bool isBegin() const
     {
         auto& self = this->self();
-        return self.idx() < 0 || self.isEmpty();
+        return self.local_pos() < 0 || self.isEmpty();
     }
 
     bool isEnd() const
     {
         auto& self = this->self();
 
-        return self.leaf().isSet() ? self.idx() >= self.leaf_size(StructureStreamIdx) : true;
+        return self.leaf().isSet() ? self.local_pos() >= self.leaf_size(StructureStreamIdx) : true;
     }
 
     bool is_end() const
     {
         auto& self = this->self();
-        return self.leaf().isSet() ? self.idx() >= self.leaf_size(StructureStreamIdx) : true;
+        return self.leaf().isSet() ? self.local_pos() >= self.leaf_size(StructureStreamIdx) : true;
     }
 
     bool isEnd(int32_t idx) const
@@ -111,7 +111,7 @@ public:
         auto& self = this->self();
 
         out<<"Stream:  "<<self.data_stream_s()<<std::endl;
-        out<<"Idx:  "<<self.idx()<<std::endl;
+        out<<"Idx:  "<<self.local_pos()<<std::endl;
     }
 
 
@@ -175,7 +175,7 @@ public:
 
         if (s != nullptr)
         {
-        	auto idx    = self.idx();
+        	auto idx    = self.local_pos();
 
         	if (idx < s->size())
         	{
@@ -193,7 +193,7 @@ public:
 
         if (s != nullptr)
         {
-        	auto idx    = self.idx();
+        	auto idx    = self.local_pos();
 
         	if (idx < s->size())
         	{
@@ -215,13 +215,13 @@ public:
     CtrSizeT pos() const
     {
         auto& self = this->self();
-        return self.template stream_size_prefix<StructureStreamIdx>() + self.idx();
+        return self.template stream_size_prefix<StructureStreamIdx>() + self.local_pos();
     }
 
 //    CtrSizeT stream_pos() const
 //    {
 //
-//        return fn.pos_ + self.idx();
+//        return fn.pos_ + self.local_pos();
 //    }
 
 
@@ -254,7 +254,7 @@ public:
         auto& self = this->self();
         SizePrefix<Stream> fn;
 
-        self.ctr().walkUp(self.leaf(), self.idx(), fn);
+        self.ctr().walkUp(self.leaf(), self.local_pos(), fn);
 
         return fn.pos_;
     }
@@ -272,7 +272,7 @@ public:
 
             if (result.is_found())
             {
-                return result.idx();
+                return result.local_pos();
             }
             else {
                 return self.leaf_size(StructureStreamIdx);
@@ -291,7 +291,7 @@ public:
     	{
     		int32_t stream = self.stream();
 
-    		int32_t data_idx = self.idx();
+    		int32_t data_idx = self.local_pos();
 
     		auto s = self.leaf_structure();
 
@@ -304,10 +304,10 @@ public:
 
     			if (result.is_found())
     			{
-    				self.idx() = result.idx();
+    				self.local_pos() = result.local_pos();
     			}
     			else {
-    				self.idx() = self.leaf_size(StructureStreamIdx);
+    				self.local_pos() = self.leaf_size(StructureStreamIdx);
     			}
     		}
     		else {
@@ -326,7 +326,7 @@ public:
     	if (self.stream() == StructureStreamIdx)
     	{
             int32_t data_idx = self.data_stream_idx(stream);
-            self.idx() 		 = data_idx;
+            self.local_pos() 		 = data_idx;
             self.stream() 	 = stream;
     	}
     	else {
@@ -337,7 +337,7 @@ public:
     int32_t data_stream_idx(int32_t stream) const
     {
         auto& self = this->self();
-        return self.data_stream_idx(stream, self.idx());
+        return self.data_stream_idx(stream, self.local_pos());
     }
 
     int32_t data_stream_idx(int32_t stream, int32_t structure_idx) const
@@ -354,7 +354,7 @@ public:
     }
 
     CtrSizesT leafrank() const {
-    	return self().leafrank(self().idx());
+    	return self().leafrank(self().local_pos());
     }
 
 
@@ -405,7 +405,7 @@ public:
 
         if (s != nullptr)
         {
-        	return self.leaf_structure()->selectFW(position + 1, stream).idx();
+        	return self.leaf_structure()->selectFW(position + 1, stream).local_pos();
         }
         else {
         	return 0;

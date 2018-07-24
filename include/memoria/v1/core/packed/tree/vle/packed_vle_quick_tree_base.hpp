@@ -347,8 +347,8 @@ public:
             sum_ += next_;
         }
 
-        int32_t& idx() {return idx_;}
-        const int32_t& idx() const {return idx_;}
+        int32_t& local_pos() {return idx_;}
+        const int32_t& local_pos() const {return idx_;}
 
         FindGEWalker& idx(int32_t idx) {
             idx_ = idx;
@@ -424,8 +424,8 @@ public:
             sum_ += next_;
         }
 
-        int32_t& idx() {return idx_;}
-        const int32_t& idx() const {return idx_;}
+        int32_t& local_pos() {return idx_;}
+        const int32_t& local_pos() const {return idx_;}
 
         FindGTWalker& idx(int32_t idx) {
             idx_ = idx;

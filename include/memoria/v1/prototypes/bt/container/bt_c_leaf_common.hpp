@@ -143,7 +143,7 @@ public:
         template <typename Stream, typename... Args>
         auto stream(const Stream* s, Args&&... args)
         {
-            return s->findForward(std::forward<Args>(args)...).idx();
+            return s->findForward(std::forward<Args>(args)...).local_pos();
         }
     };
 

@@ -54,13 +54,11 @@ private:
     int32_t             idx_;
     int32_t             stream_;
 
-    bool                found_;
-
     IteratorCache       cache_;
 
 public:
     BTIteratorBase():
-        Base(), idx_(0), stream_(0), found_(false)
+        Base(), idx_(0), stream_(0)
     {
     }
 
@@ -89,8 +87,6 @@ public:
         leaf_       = other.leaf_;
         idx_        = other.idx_;
         stream_     = other.stream_;
-        found_      = other.found_;
-
         cache_      = other.cache_;
 
         Base::assign(std::move(other));
@@ -100,7 +96,6 @@ public:
     {
         leaf_       = other.leaf_;
         idx_        = other.idx_;
-        found_      = other.found_;
         stream_     = other.stream_;
 
         cache_      = other.cache_;
@@ -111,15 +106,6 @@ public:
     auto clone() const
     {
         return self().ctr().clone_iterator(self());
-    }
-
-    const bool& found() const {
-        return found_;
-    }
-
-    bool& found()
-    {
-        return found_;
     }
 
     bool isEqual(const ThisType& other) const
@@ -137,26 +123,18 @@ public:
         return stream_;
     }
 
-    const int32_t& stream() const {
+
+    int32_t stream() const {
         return stream_;
     }
 
-    int32_t &key_idx()
+
+    int32_t &local_pos()
     {
         return idx_;
     }
 
-    const int32_t key_idx() const
-    {
-        return idx_;
-    }
-
-    int32_t &idx()
-    {
-        return idx_;
-    }
-
-    const int32_t idx() const
+    int32_t local_pos() const
     {
         return idx_;
     }
@@ -184,26 +162,25 @@ public:
 
     bool isBegin() const
     {
-        return key_idx() < 0 || isEmpty();
+        return local_pos() < 0 || isEmpty();
     }
 
     bool isEnd() const
     {
         auto& self = this->self();
 
-        return leaf().isSet() ? idx() >= self.leaf_size() : true;
+        return leaf().isSet() ? local_pos() >= self.leaf_size() : true;
     }
 
     bool is_end() const
     {
         auto& self = this->self();
-        return leaf().isSet() ? idx() >= self.leaf_size() : true;
+        return leaf().isSet() ? local_pos() >= self.leaf_size() : true;
     }
 
     bool isEnd(int32_t idx) const
     {
         auto& self = this->self();
-
         return leaf().isSet() ? idx >= self.leaf_size() : true;
     }
 
@@ -305,7 +282,7 @@ public:
         auto& self = this->self();
 
         out << "Stream:  " << self.stream() << std::endl;
-        out << "Idx:  " << self.idx() << std::endl;
+        out << "Idx:  " << self.local_pos() << std::endl;
     }
 
     void dumpBeforePath(std::ostream& out) const {}

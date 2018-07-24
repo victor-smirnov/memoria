@@ -89,9 +89,9 @@ public:
         ReadState(const ConstPtrsT& values, int32_t idx): values_(values), idx_(idx) {}
 
         ConstPtrsT& values() {return values_;}
-        int32_t& idx() {return idx_;}
+        int32_t& local_pos() {return idx_;}
         const ConstPtrsT& values() const {return values_;}
-        const int32_t& idx() const {return idx_;}
+        const int32_t& local_pos() const {return idx_;}
     };
 
 
@@ -535,7 +535,7 @@ public:
     {
         for (int32_t b = 0; b < Blocks; b++)
         {
-            auto val = state.values()[b][state.idx()];
+            auto val = state.values()[b][state.local_pos()];
 
             if (!IOBufferAdapter<Value>::put(buffer, val))
             {
@@ -543,7 +543,7 @@ public:
             }
         }
 
-        state.idx()++;
+        state.local_pos()++;
 
         return true;
     }
@@ -883,7 +883,7 @@ public:
     {
         ReadState state;
 
-        state.idx() = idx;
+        state.local_pos() = idx;
 
         for (int32_t b = 0; b < Blocks; b++) {
             state.values()[b] = this->values(b);

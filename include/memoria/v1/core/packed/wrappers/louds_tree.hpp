@@ -168,19 +168,19 @@ public:
     int32_t select(int32_t rank, int32_t symbol) const
     {
         SelectResult result = Base::sequence_->selectFw(symbol, rank);
-        return result.is_found() ? result.idx() : END;
+        return result.is_found() ? result.local_pos() : END;
     }
 
     int32_t selectFw(int32_t start, int32_t rank, int32_t symbol) const
     {
         SelectResult result = Base::sequence_->selectFw(start, symbol, rank);
-        return result.is_found() ? result.idx() : Base::sequence_->size();
+        return result.is_found() ? result.local_pos() : Base::sequence_->size();
     }
 
     int32_t selectBw(int32_t start, int32_t rank, int32_t symbol) const
     {
         SelectResult result = Base::sequence_->selectBw(start, symbol, rank);
-        return result.is_found() ? result.idx() : END;
+        return result.is_found() ? result.local_pos() : END;
     }
 
 

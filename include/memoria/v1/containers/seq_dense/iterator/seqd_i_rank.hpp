@@ -116,9 +116,9 @@ int64_t M_TYPE::rank(int32_t symbol) const
 
     RankFn<IntList<0, 1>> fn(symbol);
 
-    if (self.idx() >= 0)
+    if (self.local_pos() >= 0)
     {
-        self.ctr().walkUp(self.leaf(), self.idx(), fn);
+        self.ctr().walkUp(self.leaf(), self.local_pos(), fn);
     }
 
     return fn.rank_;
@@ -144,7 +144,7 @@ int64_t M_TYPE::ranki(int32_t symbol) const
 
     RankFn<IntList<0, 1>> fn(symbol);
 
-    self.ctr().walkUp(self.leaf(), self.idx() + 1, fn);
+    self.ctr().walkUp(self.leaf(), self.local_pos() + 1, fn);
 
     return fn.rank_;
 }

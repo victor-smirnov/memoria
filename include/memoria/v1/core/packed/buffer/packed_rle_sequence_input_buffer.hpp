@@ -434,8 +434,8 @@ public:
                 auto find_result    = this->size_index()->find_gt(0, symbol_pos);
 
                 int32_t local_pos       = symbol_pos - find_result.prefix();
-                size_t block_offset = find_result.idx() * ValuesPerBranch;
-                auto offset         = offsets()[find_result.idx()];
+                size_t block_offset = find_result.local_pos() * ValuesPerBranch;
+                auto offset         = offsets()[find_result.local_pos()];
 
                 block_offset += offset;
 
@@ -560,8 +560,8 @@ public:
                     auto find_result = this->size_index()->find_gt(0, symbol_pos);
 
                     int32_t local_pos       = symbol_pos - find_result.prefix();
-                    size_t block_offset = find_result.idx() * ValuesPerBranch;
-                    auto offset         = offsets()[find_result.idx()];
+                    size_t block_offset = find_result.local_pos() * ValuesPerBranch;
+                    auto offset         = offsets()[find_result.local_pos()];
 
                     block_offset += offset;
 

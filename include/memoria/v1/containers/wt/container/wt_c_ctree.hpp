@@ -60,7 +60,7 @@ public:
 
             if (result.is_found())
             {
-                end_ = start_ + (result.idx() - idx);
+                end_ = start_ + (result.local_pos() - idx);
             }
             else {
                 end_ = start_ + (size_ - idx);
@@ -108,7 +108,7 @@ public:
         while (true)
         {
             FindChildFn fn(label);
-            int32_t idx = iter->idx();
+            int32_t idx = iter->local_pos();
 
             Tree::LeafDispatcher::dispatch(iter->leaf(), fn, idx);
 
@@ -116,14 +116,14 @@ public:
             {
                 if (idx + fn.target_idx_ < fn.size_)
                 {
-                    iter->idx() += fn.target_idx_;
+                    iter->local_pos() += fn.target_idx_;
                 }
 
                 break;
             }
             else if (fn.try_next_)
             {
-                int32_t leaf_rest = iter->leaf_size(0) - iter->idx();
+                int32_t leaf_rest = iter->leaf_size(0) - iter->local_pos();
 
                 iter->skipFw(leaf_rest);
 
@@ -133,7 +133,7 @@ public:
                 }
             }
             else {
-                iter->idx() += fn.end_ - fn.start_;
+                iter->local_pos() += fn.end_ - fn.start_;
                 break;
             }
         }
@@ -193,10 +193,10 @@ public:
             {
                 louds = this->tree();
 
-                louds->insert(node.idx(), 1, 2 - first);
+                louds->insert(node.local_pos(), 1, 2 - first);
                 louds->reindex();
 
-                node = louds->node(node.idx()); // refresh
+                node = louds->node(node.local_pos()); // refresh
 
                 int32_t label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
@@ -214,7 +214,7 @@ public:
                 first = false;
             }
 
-            tree()->insert(node.idx(), 0, 1);
+            tree()->insert(node.local_pos(), 0, 1);
             tree()->reindex();
         }
     }
@@ -265,7 +265,7 @@ public:
                 {
                     bool alone = louds->isAlone(node);
 
-                    if (node.idx() > 0)
+                    if (node.local_pos() > 0)
                     {
                         removeLeaf(node);
                     }

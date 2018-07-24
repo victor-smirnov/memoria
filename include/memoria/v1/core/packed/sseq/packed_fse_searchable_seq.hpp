@@ -1015,9 +1015,9 @@ public:
 
             auto result = index->findGEForward(symbol, rank);
 
-            if (result.idx() < index_size)
+            if (result.local_pos() < index_size)
             {
-                int32_t start = result.idx() * ValuesPerBranch;
+                int32_t start = result.local_pos() * ValuesPerBranch;
 
                 typename Types::template SelectFn<MyType> fn(*this);
 
@@ -1028,7 +1028,7 @@ public:
                 return fn(start, size, symbol, localrank_);
             }
             else {
-                return SelectResult(result.idx(), result.prefix(), false);
+                return SelectResult(result.local_pos(), result.prefix(), false);
             }
         }
         else {

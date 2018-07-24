@@ -48,7 +48,7 @@ public:
 
     Iter(CtrPtr ptr): Base(std::move(ptr))
     {
-        Base::idx() = 0;
+        Base::local_pos() = 0;
     }
     
     Iter(const MyType& other): Base(other) {}

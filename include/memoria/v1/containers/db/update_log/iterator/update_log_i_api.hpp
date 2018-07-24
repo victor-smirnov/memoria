@@ -101,7 +101,7 @@ public:
 
                 CtrSizeT r0{};
 
-                if (ii->idx() >= 0)
+                if (ii->local_pos() >= 0)
                 {
                     r0 = ii->rank(0);
                 }
@@ -133,7 +133,7 @@ public:
 
                 CtrSizeT r0{};
 
-                if (ii->idx() >= 0)
+                if (ii->local_pos() >= 0)
                 {
                     r0 = ii->rank(1);
                 }

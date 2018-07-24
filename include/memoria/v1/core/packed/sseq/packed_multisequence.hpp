@@ -154,9 +154,9 @@ public:
         int32_t rank_prefix = seq->rank(seq_prefix, symbol);
 
         SelectResult result = seq->selectFw(symbol, rank_prefix + rank);
-        if (result.idx() - seq_prefix < seq_size)
+        if (result.local_pos() - seq_prefix < seq_size)
         {
-            return SelectResult(result.idx() - seq_prefix, rank, true);
+            return SelectResult(result.local_pos() - seq_prefix, rank, true);
         }
         else {
             return SelectResult(seq_prefix + seq_size, seq->rank(seq_prefix, seq_prefix + seq_size), false);

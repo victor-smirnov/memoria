@@ -63,7 +63,7 @@ public:
 
     void finish(Iterator& iter, int32_t idx)
     {
-        iter.key_idx()  = idx;
+        iter.local_pos()  = idx;
 
         int32_t size = iter.size();
 
@@ -78,7 +78,7 @@ public:
 
     void empty(Iterator& iter)
     {
-        iter.key_idx()  = 0;
+        iter.local_pos()  = 0;
 
         iter.cache().setup(0);
     }
@@ -169,7 +169,7 @@ public:
 
     void finish(Iterator& iter, int32_t idx)
     {
-        iter.idx() = 0;
+        iter.local_pos() = 0;
 
         iter.cache().setup(BranchNodeEntry());
     }

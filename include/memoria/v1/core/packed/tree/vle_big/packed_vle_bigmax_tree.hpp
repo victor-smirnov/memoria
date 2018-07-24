@@ -1145,7 +1145,7 @@ public:
         }
         else {
             int32_t index_size  = this->index()->size();
-            auto idx = this->index()->find(walker).idx();
+            auto idx = this->index()->find(walker).local_pos();
             if (idx < index_size)
             {
                 size_t local_pos = (idx << BranchingFactorVLog2) + offset(idx);
@@ -1218,8 +1218,8 @@ public:
         int32_t idx_;
     public:
         template <typename Fn>
-        FindResult(Fn&& fn): idx_(fn.idx()) {}
-        int32_t idx() const {return idx_;}
+        FindResult(Fn&& fn): idx_(fn.local_pos()) {}
+        int32_t local_pos() const {return idx_;}
 
         void set_idx(int32_t idx)
         {
@@ -1400,8 +1400,8 @@ public:
 
         void next() {}
 
-        int32_t& idx() {return idx_;}
-        const int32_t& idx() const {return idx_;}
+        int32_t& local_pos() {return idx_;}
+        const int32_t& local_pos() const {return idx_;}
 
         FindGEWalker& idx(int32_t value) {
             idx_ = value;
@@ -1424,8 +1424,8 @@ public:
 
         void next() {}
 
-        int32_t& idx() {return idx_;}
-        const int32_t& idx() const {return idx_;}
+        int32_t& local_pos() {return idx_;}
+        const int32_t& local_pos() const {return idx_;}
 
         FindGTWalker& idx(int32_t value) {
             idx_ = value;

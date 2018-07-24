@@ -63,7 +63,7 @@ public:
 
     void empty(Iterator& iter)
     {
-        iter.idx() = 0;
+        iter.local_pos() = 0;
     }
 
     const bool& compute_branch() const {
@@ -126,7 +126,7 @@ public:
     {
         iter.finish_walking(idx, self(), cmd);
 
-        iter.idx() = idx;
+        iter.local_pos() = idx;
 
         iter.cache().prefixes()      = branch_prefix_;
         iter.cache().leaf_prefixes() = leaf_prefix_;

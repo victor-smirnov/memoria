@@ -217,7 +217,7 @@ public:
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
-        int32_t& idx    = iter.idx();
+        int32_t& idx    = iter.local_pos();
         int32_t stream  = iter.stream();
         int32_t size    = iter.leaf_size(stream);
 
@@ -238,7 +238,7 @@ public:
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
-        int32_t& idx    = iter.idx();
+        int32_t& idx    = iter.local_pos();
 
         int32_t label_idx = iter.label_idx();
 
@@ -264,7 +264,7 @@ public:
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
-        int32_t& idx    = iter.idx();
+        int32_t& idx    = iter.local_pos();
 
         BranchNodeEntry sums;
 

@@ -96,8 +96,8 @@ public:
     class ReadState {
         int32_t idx_ = 0;
     public:
-        int32_t& idx() {return idx_;}
-        const int32_t& idx() const {return idx_;}
+        int32_t& local_pos() {return idx_;}
+        const int32_t& local_pos() const {return idx_;}
     };
 
 private:
@@ -581,7 +581,7 @@ public:
     ReadState positions(int32_t idx) const {
         ReadState state;
 
-        state.idx() = idx;
+        state.local_pos() = idx;
 
         return state;
     }
@@ -652,7 +652,7 @@ public:
     {
         const auto* values = this->values();
 
-        const int32_t base = state.idx() * Blocks;
+        const int32_t base = state.local_pos() * Blocks;
 
         for (int32_t b = 0; b < Blocks; b++)
         {
@@ -664,7 +664,7 @@ public:
             }
         }
 
-        state.idx()++;
+        state.local_pos()++;
 
         return true;
     }

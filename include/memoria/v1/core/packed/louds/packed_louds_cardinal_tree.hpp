@@ -118,11 +118,11 @@ public:
 
             if (node_label >= label)
             {
-                return PackedLoudsNode(children.idx() + c, children.rank1() + c);
+                return PackedLoudsNode(children.local_pos() + c, children.rank1() + c);
             }
         }
 
-        return PackedLoudsNode(children.idx() + children.length(), children.rank1() + children.length() - 1);
+        return PackedLoudsNode(children.local_pos() + children.length(), children.rank1() + children.length() - 1);
     }
 
 
@@ -160,10 +160,10 @@ public:
             {
                 louds = this->tree();
 
-                louds->insert(node.idx(), 1, 2 - first);
+                louds->insert(node.local_pos(), 1, 2 - first);
                 louds->reindex();
 
-                node = louds->node(node.idx()); // refresh
+                node = louds->node(node.local_pos()); // refresh
 
                 int32_t label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
@@ -181,7 +181,7 @@ public:
                 first = false;
             }
 
-            tree()->insert(node.idx(), 0, 1);
+            tree()->insert(node.local_pos(), 0, 1);
             tree()->reindex();
         }
     }
@@ -232,7 +232,7 @@ public:
                 {
                     bool alone = louds->isAlone(node);
 
-                    if (node.idx() > 0)
+                    if (node.local_pos() > 0)
                     {
                         removeLeaf(node);
                     }

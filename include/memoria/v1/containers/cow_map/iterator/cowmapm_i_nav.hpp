@@ -108,12 +108,12 @@ public:
 
     auto key() const -> Key
     {
-        return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().idx(), 0));
+        return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().local_pos(), 0));
     }
 
     auto value() const
     {
-        return std::get<0>(self().ctr().template read_leaf_entry<IntList<2>>(self().leaf(), self().idx()));
+        return std::get<0>(self().ctr().template read_leaf_entry<IntList<2>>(self().leaf(), self().local_pos()));
     }
 
     void assign(const Value& v)

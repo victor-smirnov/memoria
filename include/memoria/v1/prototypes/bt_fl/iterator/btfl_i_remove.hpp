@@ -65,7 +65,7 @@ public:
 
         	self.ctr().removeEntries(self.leaf(), start, ii->leaf(), end, sizes, true);
 
-        	self.idx() = end[StructureStreamIdx];
+        	self.local_pos() = end[StructureStreamIdx];
 
         	self.leaf() = ii->leaf();
 
@@ -92,7 +92,7 @@ public:
 
         	self.ctr().removeEntries(self.leaf(), start, ii->leaf(), end, sizes, true);
 
-        	self.idx() = end[StructureStreamIdx];
+        	self.local_pos() = end[StructureStreamIdx];
 
         	self.leaf() = ii->leaf();
 

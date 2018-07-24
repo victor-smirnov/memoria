@@ -29,7 +29,7 @@ public:
     PackedLoudsNode(): idx_(-1), rank_(0) {}
     PackedLoudsNode(int32_t idx, int32_t rank): idx_(idx), rank_(rank) {}
 
-    int32_t idx() const     {return idx_;}
+    int32_t local_pos() const     {return idx_;}
     int32_t node() const    {return rank_;}
 
     int32_t rank0() const
@@ -76,7 +76,7 @@ public:
     {}
 
     PackedLoudsNodeSet(const PackedLoudsNode& node, int32_t length):
-        Base(node.idx(), node.rank1()), length_(length)
+        Base(node.local_pos(), node.rank1()), length_(length)
     {}
 
     int32_t length() const {
@@ -85,7 +85,7 @@ public:
 
     PackedLoudsNode node(int32_t idx) const
     {
-        return PackedLoudsNode(Base::idx() + idx, Base::rank1() + idx);
+        return PackedLoudsNode(Base::local_pos() + idx, Base::rank1() + idx);
     }
 };
 
@@ -152,9 +152,9 @@ public:
 
     PackedLoudsNode left_sibling(const PackedLoudsNode& node) const
     {
-        if (this->symbol(node.idx() - 1) == 1)
+        if (this->symbol(node.local_pos() - 1) == 1)
         {
-            return PackedLoudsNode(node.idx() - 1, node.rank1() - 1);
+            return PackedLoudsNode(node.local_pos() - 1, node.rank1() - 1);
         }
         else {
             return PackedLoudsNode();
@@ -163,9 +163,9 @@ public:
 
     PackedLoudsNode right_sibling(const PackedLoudsNode& node) const
     {
-        if (this->symbol(node.idx() + 1) == 1)
+        if (this->symbol(node.local_pos() + 1) == 1)
         {
-            return PackedLoudsNode(node.idx() + 1, node.rank1() + 1);
+            return PackedLoudsNode(node.local_pos() + 1, node.rank1() + 1);
         }
         else {
             return PackedLoudsNode();
@@ -194,17 +194,17 @@ public:
         PackedLoudsNode first = this->first_child(node);
         PackedLoudsNode last  = this->last_child(node);
 
-        return PackedLoudsNodeSet(first, last.idx() - first.idx());
+        return PackedLoudsNodeSet(first, last.local_pos() - first.local_pos());
     }
 
     PackedLoudsNode insertNode(const PackedLoudsNode& at)
     {
-        this->insert(at.idx(), 1, 1);
+        this->insert(at.local_pos(), 1, 1);
         this->reindex();
 
-        PackedLoudsNode node = this->node(at.idx());
+        PackedLoudsNode node = this->node(at.local_pos());
 
-        int32_t zero_idx = first_child(node).idx();
+        int32_t zero_idx = first_child(node).local_pos();
 
         this->insert(zero_idx, 0, 1);
 
@@ -225,10 +225,10 @@ public:
     void removeLeaf(const PackedLoudsNode& at)
     {
         PackedLoudsNode child = first_child(at);
-        if (this->symbol(child.idx()) == 0)
+        if (this->symbol(child.local_pos()) == 0)
         {
-            Base::remove(child.idx(),   child.idx() + 1);
-            Base::remove(at.idx(),      at.idx() + 1);
+            Base::remove(child.local_pos(),   child.local_pos() + 1);
+            Base::remove(at.local_pos(),      at.local_pos() + 1);
 
             Base::reindex();
         }
@@ -241,14 +241,14 @@ public:
 
     bool isLeaf(const PackedLoudsNode& node) const
     {
-        return this->symbol(node.idx()) == 0;
+        return this->symbol(node.local_pos()) == 0;
     }
 
     bool isAlone(const PackedLoudsNode& node) const
     {
-        MEMORIA_V1_ASSERT(node.idx(), <, this->size());
+        MEMORIA_V1_ASSERT(node.local_pos(), <, this->size());
 
-        int32_t idx = node.idx();
+        int32_t idx = node.local_pos();
 
         int32_t size = (idx < this->size() - 1) ? 3 : 2;
 
@@ -284,12 +284,12 @@ public:
 
     int32_t select0(int32_t rank) const
     {
-        return Base::selectFw(0, rank).idx();
+        return Base::selectFw(0, rank).local_pos();
     }
 
     int32_t select1(int32_t rank) const
     {
-        return Base::selectFw(1, rank).idx();
+        return Base::selectFw(1, rank).local_pos();
     }
 
     PackedLoudsNode select1Fw(const PackedLoudsNode& node, int32_t distance) const
@@ -306,8 +306,8 @@ public:
 
     PackedLoudsNode next(const PackedLoudsNode& node) const
     {
-        int32_t bit = this->value(node.idx() + 1);
-        return PackedLoudsNode(node.idx() + 1, node.rank1() + bit);
+        int32_t bit = this->value(node.local_pos() + 1);
+        return PackedLoudsNode(node.local_pos() + 1, node.rank1() + bit);
     }
 
     template <typename Functor>
@@ -327,18 +327,18 @@ public:
 //      int32_t tree_size = 0;
 //
 //      this->traverseSubtree(node, [&tree_size](const PackedLoudsNode& left, const PackedLoudsNode& right, int32_t level) {
-//          if (left.idx() <= right.idx())
+//          if (left.local_pos() <= right.local_pos())
 //          {
-//              tree_size += right.idx() - left.idx() + 1;
+//              tree_size += right.local_pos() - left.local_pos() + 1;
 //          }
 //      });
 //
 //      LoudsTree tree(tree_size);
 //
 //      this->traverseSubtree(node, [&tree, this](const PackedLoudsNode& left, const PackedLoudsNode& right, int32_t level) {
-//          if (left.idx() <= right.idx())
+//          if (left.local_pos() <= right.local_pos())
 //          {
-//              if (left.idx() < right.idx())
+//              if (left.local_pos() < right.local_pos())
 //              {
 //                  auto src = this->source(left, right - left);
 //                  tree.append(src);
@@ -389,7 +389,7 @@ private:
                 right_tgt = right_node;
             }
 
-            if (left_tgt.idx() < tree.size())
+            if (left_tgt.local_pos() < tree.size())
             {
                 PackedLoudsNode left_child  = tree.first_child(left_tgt);
                 PackedLoudsNode right_child = tree.last_child(right_tgt);
@@ -433,7 +433,7 @@ private:
                 right_tgt = right_node;
             }
 
-            if (left_tgt.idx() < tree.size())
+            if (left_tgt.local_pos() < tree.size())
             {
                 PackedLoudsNode left_child  = tree.first_child(left_tgt);
                 PackedLoudsNode right_child = tree.last_child(right_tgt);
@@ -447,7 +447,7 @@ private:
 
     bool is_end(const PackedLoudsNode& left_node, const PackedLoudsNode& right_node) const
     {
-        return left_node.idx() >= right_node.idx();
+        return left_node.local_pos() >= right_node.local_pos();
     }
 };
 

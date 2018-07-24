@@ -117,7 +117,7 @@ public:
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
-        int32_t& idx    = iter.idx();
+        int32_t& idx    = iter.local_pos();
 
         removeFromLeaf(leaf, idx);
 

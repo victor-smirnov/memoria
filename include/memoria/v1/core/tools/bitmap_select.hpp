@@ -212,7 +212,7 @@ class SelectResult {
 public:
     SelectResult(size_t idx, size_t rank, bool found): idx_(idx), rank_(rank), found_(found) {}
 
-    size_t idx() const   {return idx_;}
+    size_t local_pos() const   {return idx_;}
     size_t rank() const  {return rank_;}
 
     size_t& rank() {return rank_;}

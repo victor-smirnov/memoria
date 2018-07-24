@@ -55,7 +55,7 @@ public:
         if (result.is_found())
         {
             sum  += rank;
-            return StreamOpResult(result.idx(), start, false);
+            return StreamOpResult(result.local_pos(), start, false);
         }
         else {
             int32_t size = seq->size();
@@ -140,7 +140,7 @@ public:
         if (result.is_found())
         {
             sum += target;
-            return StreamOpResult(result.idx(), start, false);
+            return StreamOpResult(result.local_pos(), start, false);
         }
         else {
             sum += result.rank();

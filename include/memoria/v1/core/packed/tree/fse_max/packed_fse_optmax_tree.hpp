@@ -258,7 +258,7 @@ public:
     {
         auto result = tree()->find_gt(block, val);
 
-        result.set_idx(global_idx(result.idx()));
+        result.set_idx(global_idx(result.local_pos()));
 
         return result;
     }
@@ -268,7 +268,7 @@ public:
     {
         auto result = tree()->find_gt(block, val.value());
 
-        result.set_idx(global_idx(result.idx()));
+        result.set_idx(global_idx(result.local_pos()));
 
         return result;
     }
@@ -278,7 +278,7 @@ public:
     {
         auto result = tree()->find_ge(block, val.value());
 
-        result.set_idx(global_idx(result.idx()));
+        result.set_idx(global_idx(result.local_pos()));
 
         return result;
     }
@@ -288,7 +288,7 @@ public:
     {
         auto result = tree()->findForward(search_type, block, val);
 
-        result.set_idx(global_idx(result.idx()));
+        result.set_idx(global_idx(result.local_pos()));
 
         return result;
     }
@@ -298,7 +298,7 @@ public:
     {
         auto result = tree()->findForward(search_type, block, val.value());
 
-        result.set_idx(global_idx(result.idx()));
+        result.set_idx(global_idx(result.local_pos()));
 
         return result;
     }
@@ -309,7 +309,7 @@ public:
     {
         auto result = tree()->findBackward(search_type, block, val);
 
-        result.set_idx(global_idx(result.idx()));
+        result.set_idx(global_idx(result.local_pos()));
 
         return result;
     }
@@ -319,7 +319,7 @@ public:
     {
         auto result = tree()->findBackward(search_type, block, val.value());
 
-        result.set_idx(global_idx(result.idx()));
+        result.set_idx(global_idx(result.local_pos()));
 
         return result;
     }
@@ -534,7 +534,7 @@ protected:
     int32_t global_idx(const Bitmap* bitmap, int32_t tree_idx) const
     {
         auto result = bitmap->selectFw(1, tree_idx + 1);
-        return result.idx();
+        return result.local_pos();
     }
 
 

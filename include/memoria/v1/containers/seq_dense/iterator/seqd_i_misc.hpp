@@ -60,7 +60,7 @@ public:
     int32_t symbol() const
     {
         auto& self  = this->self();
-        return std::get<0>(self.ctr().template read_leaf_entry<IntList<1>>(self.leaf(), self.idx()));
+        return std::get<0>(self.ctr().template read_leaf_entry<IntList<1>>(self.leaf(), self.local_pos()));
     }
 
 
@@ -173,10 +173,10 @@ public:
 //
 //        seq_dense::SymbolsInputBufferProvider<BitsPerSymbol> provider(data);
 //
-//        auto result = model.insertBuffers(leaf, self.idx(), provider);
+//        auto result = model.insertBuffers(leaf, self.local_pos(), provider);
 //
 //        self.leaf() = result.leaf();
-//        self.idx() = result.position();
+//        self.local_pos() = result.position();
 //
 //        self.refresh();
 //

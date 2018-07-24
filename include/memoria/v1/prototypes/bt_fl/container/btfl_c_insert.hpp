@@ -52,11 +52,11 @@ public:
 
         streamingProvider->init(&provider, iobuffer.get());
 
-        auto pos = iter.leafrank(iter.idx());
+        auto pos = iter.leafrank(iter.local_pos());
 
         auto result = self.insert_provided_data(iter.leaf(), pos, *streamingProvider.get());
 
-        iter.idx()  = result.position().sum();
+        iter.local_pos()  = result.position().sum();
         iter.leaf() = result.leaf();
 
         if (iter.leaf()->id() != id) {

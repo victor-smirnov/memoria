@@ -82,7 +82,7 @@ public:
 
     void finish(Iterator& iter, int32_t idx)
     {
-        iter.key_idx() = idx + 1;
+        iter.local_pos() = idx + 1;
         iter.cache().setup(prefix_);
     }
 };
@@ -109,7 +109,7 @@ public:
 
     void finish(Iterator& iter, int32_t idx)
     {
-        iter.key_idx() = idx - 1;
+        iter.local_pos() = idx - 1;
 
         iter.cache().setup(BranchNodeEntry());
     }
@@ -140,7 +140,7 @@ public:
 
     void finish(Iterator& iter, int32_t idx)
     {
-        iter.idx() = 0;
+        iter.local_pos() = 0;
     }
 };
 
@@ -172,7 +172,7 @@ public:
 
     void finish(Iterator& iter, int32_t idx)
     {
-        iter.key_idx() = idx;
+        iter.local_pos() = idx;
 
         iter.cache().setup(prefix_);
     }

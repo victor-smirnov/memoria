@@ -50,7 +50,7 @@ class StreamOpResult {
 public:
     StreamOpResult(int32_t idx, int32_t start, bool out_of_range, bool empty = false): idx_(idx), start_(start), out_of_range_(out_of_range), empty_(empty) {}
 
-    int32_t idx() const {
+    int32_t local_pos() const {
         return idx_;
     }
 
@@ -124,7 +124,7 @@ protected:
             StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, root, index, start, std::forward<Args>(args)...);
 
             // TODO: should we also forward args... to this call?
-            walker_.template postProcessBranchStream<ListIdx>(stream, start, result.idx());
+            walker_.template postProcessBranchStream<ListIdx>(stream, start, result.local_pos());
 
             return result;
         }
@@ -142,7 +142,7 @@ protected:
             StreamOpResult result = walker_.template find_leaf<ListIdx>(stream, start, std::forward<Args>(args)...);
 
             // TODO: should we also forward args... to this call?
-            walker_.template postProcessLeafStream<ListIdx>(stream, start, result.idx());
+            walker_.template postProcessLeafStream<ListIdx>(stream, start, result.local_pos());
 
             return result;
         }
@@ -184,7 +184,7 @@ public:
 
     void empty(Iterator& iter)
     {
-        iter.idx() = 0;
+        iter.local_pos() = 0;
     }
 
     static constexpr int32_t current_stream() {
@@ -262,12 +262,12 @@ public:
         branch_size_prefix_ = iter.cache().size_prefix();
 
         branch_size_prefix_backup_  = iter.cache().size_prefix();
-        idx_backup_         = iter.idx();
+        idx_backup_         = iter.local_pos();
     }
 
     void finish(Iterator& iter, int32_t idx, WalkCmd cmd) const
     {
-        iter.idx() = idx;
+        iter.local_pos() = idx;
 
         iter.finish_walking(idx, self(), cmd);
 

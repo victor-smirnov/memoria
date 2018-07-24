@@ -64,7 +64,7 @@ public:
     public:
         InsertBatchResult(int32_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
-        int32_t idx() const {return idx_;}
+        int32_t local_pos() const {return idx_;}
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
@@ -310,16 +310,16 @@ public:
 
         if (provider.size() == 0)
         {
-            return result.idx();
+            return result.local_pos();
         }
         else {
             auto node_size = self.getBranchNodeSize(node);
 
             NodeBaseG next;
 
-            if (result.idx() < node_size)
+            if (result.local_pos() < node_size)
             {
-                next = self.splitPathP(node, result.idx());
+                next = self.splitPathP(node, result.local_pos());
             }
             else {
                 next = self.getNextNodeP(node);
@@ -327,11 +327,11 @@ public:
 
             if (next.isSet())
             {
-                auto left_result = insertBatchToNode(node, result.idx(), provider);
+                auto left_result = insertBatchToNode(node, result.local_pos(), provider);
 
                 if (provider.size() == 0)
                 {
-                    return left_result.idx();
+                    return left_result.local_pos();
                 }
                 else {
                     PageUpdateMgr mgr(self);
@@ -345,11 +345,11 @@ public:
                     {
                         self.update_path(next);
 
-                        self.updateChildIndexes(next, next_result.idx());
+                        self.updateChildIndexes(next, next_result.local_pos());
 
                         node = next;
 
-                        return next_result.idx();
+                        return next_result.local_pos();
                     }
                     else {
                         mgr.rollback();

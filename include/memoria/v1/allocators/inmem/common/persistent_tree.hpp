@@ -505,22 +505,22 @@ protected:
 
         if (iter.leaf()->has_space())
         {
-            iter.leaf()->insert(iter.idx(), key, value);
+            iter.leaf()->insert(iter.local_pos(), key, value);
         }
         else {
             Path next = iter.path();
 
             split_path(iter.path(), next);
 
-            if (iter.idx() >= iter.leaf()->size())
+            if (iter.local_pos() >= iter.leaf()->size())
             {
                 iter.add_idx(-iter.leaf()->size());
 
                 iter.path() = next;
             }
 
-            iter.leaf()->insert(iter.idx(), key, value);
-            update_keys_up(iter.path(), iter.idx(), 0);
+            iter.leaf()->insert(iter.local_pos(), key, value);
+            update_keys_up(iter.path(), iter.local_pos(), 0);
         }
 
         this->root()->metadata().add_size(1);
@@ -532,16 +532,16 @@ protected:
 
         LeafNodeT* leaf = iter.leaf();
 
-        auto page = leaf->data(iter.idx()).page_ptr();
+        auto page = leaf->data(iter.local_pos()).page_ptr();
 
         if (page->unref() == 0 && delete_on_unref)
         {
             delete page;
         }
 
-        leaf->remove(iter.idx(), iter.idx() + 1);
+        leaf->remove(iter.local_pos(), iter.local_pos() + 1);
 
-        update_keys_up(iter.path(), iter.idx(), 0);
+        update_keys_up(iter.path(), iter.local_pos(), 0);
 
         root()->metadata().add_size(-1);
 

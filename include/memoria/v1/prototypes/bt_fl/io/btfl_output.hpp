@@ -64,7 +64,7 @@ public:
         return size_;
     }
 
-    int32_t idx() const {
+    int32_t local_pos() const {
         return idx_;
     }
 
@@ -334,7 +334,7 @@ public:
     	iter_   = &iter;
     	leaf_   = iter.leaf();
 
-    	idx_     = iter.idx();
+    	idx_     = iter.local_pos();
     	symbols_ = leaf_structure()->iterator(idx_);
 
     	stream_     = symbols_.symbol();
@@ -347,12 +347,12 @@ public:
 
     	partial_run_ = run_length_ < symbols_.length();
 
-    	auto data_positions = rank(iter.idx());
+    	auto data_positions = rank(iter.local_pos());
 
     	configure_data(data_positions);
     }
 
-    int32_t idx() const {
+    int32_t local_pos() const {
         return idx_;
     }
 

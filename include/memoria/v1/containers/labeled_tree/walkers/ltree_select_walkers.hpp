@@ -56,9 +56,9 @@ public:
     {
         int32_t size    = stream->size();
 
-        if (result.idx() < size)
+        if (result.local_pos() < size)
         {
-            pos_ += stream->sum(0, start, result.idx());
+            pos_ += stream->sum(0, start, result.local_pos());
         }
         else {
             pos_ += stream->sum(0, start, size);
@@ -78,10 +78,10 @@ public:
 
         if (result.is_found())
         {
-            pos_ += result.idx() - start;
+            pos_ += result.local_pos() - start;
             sum  += target;
 
-            return result.idx();
+            return result.local_pos();
         }
         else {
             int32_t size = seq->size();
@@ -100,7 +100,7 @@ public:
 
     int64_t finish(Iterator& iter, int32_t idx)
     {
-        iter.idx() = idx;
+        iter.local_pos() = idx;
 
         int32_t symbol = this->index_ - 1;
         auto sum   = this->sum_;
@@ -145,9 +145,9 @@ public:
     template <int32_t StreamIdx, typename StreamType, typename Result>
     void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
     {
-        if (result.idx() >= 0)
+        if (result.local_pos() >= 0)
         {
-            pos_ += stream->sum(0, result.idx() + 1, start + 1);
+            pos_ += stream->sum(0, result.local_pos() + 1, start + 1);
         }
         else {
             pos_ += stream->sum(0, 0, start + 1);
@@ -169,10 +169,10 @@ public:
 
         if (result.is_found())
         {
-            pos_ += start - result.idx();
+            pos_ += start - result.local_pos();
             sum  += target;
 
-            return result.idx();
+            return result.local_pos();
         }
         else {
             pos_ += start;
@@ -189,7 +189,7 @@ public:
 
     int64_t finish(Iterator& iter, int32_t idx)
     {
-        iter.idx() = idx;
+        iter.local_pos() = idx;
 
         int32_t symbol = this->index_ - 1;
         auto sum   = this->sum_;

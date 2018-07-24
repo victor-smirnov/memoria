@@ -63,7 +63,7 @@ public:
 //    	}
 //    }
 
-    int32_t idx() const {
+    int32_t local_pos() const {
         return idx_;
     }
 
@@ -318,11 +318,11 @@ class PersistentTreeIterator: public PersistentTreeIteratorBase<BranchNode, Leaf
 public:
 
     const auto& value() const {
-        return this->leaf()->data(this->idx());
+        return this->leaf()->data(this->local_pos());
     }
 
     auto& value() {
-        return this->leaf()->data(this->idx());
+        return this->leaf()->data(this->local_pos());
     }
 };
 
@@ -333,7 +333,7 @@ class PersistentTreeConstIterator: public PersistentTreeIteratorBase<BranchNode,
 public:
 
     const auto& value() const {
-        return this->leaf()->data(this->idx());
+        return this->leaf()->data(this->local_pos());
     }
 };
 

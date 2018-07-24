@@ -65,7 +65,7 @@ public:
             StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, root, index, start, std::forward<Args>(args)...);
 
             // TODO: should we also forward args... to this call?
-            walker_.template postProcessBranchStream<ListIdx>(stream, start, result.idx());
+            walker_.template postProcessBranchStream<ListIdx>(stream, start, result.local_pos());
 
             return result;
         }
@@ -218,7 +218,7 @@ public:
         {
             StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, root, index, start, std::forward<Args>(args)...);
 
-            walker_.template postProcessBranchStream<ListIdx>(stream, start, result.idx());
+            walker_.template postProcessBranchStream<ListIdx>(stream, start, result.local_pos());
 
             return result;
         }

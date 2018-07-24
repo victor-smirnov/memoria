@@ -225,8 +225,8 @@ public:
 
         void next() {}
 
-        int32_t& idx() {return idx_;}
-        const int32_t& idx() const {return idx_;}
+        int32_t& local_pos() {return idx_;}
+        const int32_t& local_pos() const {return idx_;}
 
         FindGEWalker& idx(int32_t value) {
             idx_ = value;
@@ -249,8 +249,8 @@ public:
 
         void next() {}
 
-        int32_t& idx() {return idx_;}
-        const int32_t& idx() const {return idx_;}
+        int32_t& local_pos() {return idx_;}
+        const int32_t& local_pos() const {return idx_;}
 
         FindGTWalker& idx(int32_t value) {
             idx_ = value;
@@ -517,9 +517,9 @@ public:
         int32_t idx_;
     public:
         template <typename Fn>
-        FindResult(Fn&& fn): idx_(fn.idx()) {}
+        FindResult(Fn&& fn): idx_(fn.local_pos()) {}
 
-        int32_t idx() const {return idx_;}
+        int32_t local_pos() const {return idx_;}
 
         void set_idx(int32_t idx)
         {

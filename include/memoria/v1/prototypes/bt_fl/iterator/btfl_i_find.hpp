@@ -92,7 +92,7 @@ public:
             constexpr int32_t stream = ListHead<typename Walker::LeafPath>::Value;
             auto& self = this->self();
             int iidx = self.symbol_idx(stream, idx);
-            self.idx() = iidx;
+            self.local_pos() = iidx;
         }
     }
 

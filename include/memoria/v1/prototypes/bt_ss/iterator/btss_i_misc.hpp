@@ -80,11 +80,11 @@ public:
     }
 
     bool isEof() const {
-        return self().idx() >= self().size();
+        return self().local_pos() >= self().size();
     }
 
     bool isBof() const {
-        return self().idx() < 0;
+        return self().local_pos() < 0;
     }
 
     CtrSizeT skipFw(CtrSizeT amount) {
@@ -103,7 +103,7 @@ public:
     {
         auto& self = this->self();
 
-        return self.idx() + self.cache().size_prefix()[0];
+        return self.local_pos() + self.cache().size_prefix()[0];
     }
 
 
@@ -129,16 +129,16 @@ public:
         to.skipFw(size);
 
         auto& from_path     = self.leaf();
-        Position from_pos   = Position(self.idx());
+        Position from_pos   = Position(self.local_pos());
 
         auto& to_path       = to.leaf();
-        Position to_pos     = Position(to.idx());
+        Position to_pos     = Position(to.local_pos());
 
         Position sizes;
 
         self.ctr().removeEntries(from_path, from_pos, to_path, to_pos, sizes, true);
 
-        self.idx() = to_pos.get();
+        self.local_pos() = to_pos.get();
 
         self.refresh();
 
@@ -246,7 +246,7 @@ public:
         auto& self = this->self();
 
         NodeBaseG& leaf = self.leaf();
-        int32_t& idx        = self.idx();
+        int32_t& idx        = self.local_pos();
 
         int32_t size        = self.leaf_size(0);
         int32_t split_idx   = size/2;

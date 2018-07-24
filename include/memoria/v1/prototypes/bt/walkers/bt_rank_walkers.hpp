@@ -116,13 +116,13 @@ public:
         using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
         const int32_t index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
-        rank_ += node->template processStream<BranchPath>(BranchFn(), index, start, result.idx());
+        rank_ += node->template processStream<BranchPath>(BranchFn(), index, start, result.local_pos());
     }
 
     template <typename Node, typename Result>
     void postProcessLeafNode(const Node* node, WalkDirection direction, int32_t start, Result&& result)
     {
-        rank_ += node->template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.idx());
+        rank_ += node->template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos());
     }
 };
 
@@ -217,13 +217,13 @@ public:
         using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
         const int32_t index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
-        rank_ += node->template processStream<BranchPath>(BranchFn(), index, start, result.idx());
+        rank_ += node->template processStream<BranchPath>(BranchFn(), index, start, result.local_pos());
     }
 
     template <typename Node, typename Result>
     void postProcessLeafNode(const Node* node, WalkDirection direction, int32_t start, Result&& result)
     {
-        rank_ += node->template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.idx());
+        rank_ += node->template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos());
     }
 
 

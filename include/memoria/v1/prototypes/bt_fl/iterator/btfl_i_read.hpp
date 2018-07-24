@@ -138,7 +138,7 @@ public:
             }
         }
 
-        self.idx()  = walker.idx();
+        self.local_pos()  = walker.local_pos();
         self.leaf() = walker.leaf();
 
         if (self.leaf()->id() != start_id)
@@ -242,7 +242,7 @@ public:
             }
         }
 
-        self.idx()  = walker->idx();
+        self.local_pos()  = walker->local_pos();
         self.leaf() = walker->leaf();
 
         CtrSizeT total = walker->totals();
@@ -254,7 +254,7 @@ public:
             self.refresh();
         }
 
-        if (self.idx() >= self.leaf_size(StructureStreamIdx))
+        if (self.local_pos() >= self.leaf_size(StructureStreamIdx))
         {
             self.skipFw(0);
         }

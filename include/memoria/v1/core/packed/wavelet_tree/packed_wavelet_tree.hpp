@@ -236,7 +236,7 @@ private:
 
         seq->removeSymbol(seq_num, idx);
 
-        if (seq->length(seq_num) == 0 && node.idx() > 0)
+        if (seq->length(seq_num) == 0 && node.local_pos() > 0)
         {
             seq->remove(seq_num);
             ctree()->removeLeaf(node);
@@ -254,7 +254,7 @@ private:
             int32_t rnk = select(child, rank, symbol, level - 1);
 
             int32_t seq_num = node.rank1() - 1;
-            return msequence()->select(seq_num, rnk, label).idx() + 1;
+            return msequence()->select(seq_num, rnk, label).local_pos() + 1;
         }
         else {
             return rank;

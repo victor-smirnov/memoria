@@ -586,8 +586,8 @@ public:
                 auto find_result = this->size_index()->find_gt(0, symbol_pos);
 
                 int32_t local_pos       = symbol_pos - find_result.prefix();
-                size_t block_offset = find_result.idx() * ValuesPerBranch;
-                auto offset         = offsets()[find_result.idx()];
+                size_t block_offset = find_result.local_pos() * ValuesPerBranch;
+                auto offset         = offsets()[find_result.local_pos()];
 
                 block_offset += offset;
 
@@ -1344,13 +1344,13 @@ public:
             auto find_result            = sum_index->find_ge(symbol, rank);
             int32_t blocks                  = sum_index->size();
 
-            if (find_result.idx() < blocks)
+            if (find_result.local_pos() < blocks)
             {
-                auto block_start   = find_result.idx() * ValuesPerBranch;
-                auto block_offset  = offsets()[find_result.idx()];
+                auto block_start   = find_result.local_pos() * ValuesPerBranch;
+                auto block_offset  = offsets()[find_result.local_pos()];
                 uint64_t local_rank = rank - find_result.prefix();
 
-                auto block_size_start  = this->size_index()->sum(0, find_result.idx());
+                auto block_size_start  = this->size_index()->sum(0, find_result.local_pos());
 
                 auto result = block_select(meta, symbols, block_start + block_offset, local_rank, block_size_start, symbol);
 
@@ -1585,8 +1585,8 @@ private:
                     auto find_result = this->size_index()->find_gt(0, symbol_pos);
 
                     int32_t local_pos   = symbol_pos - find_result.prefix();
-                    size_t block_offset = find_result.idx() * ValuesPerBranch;
-                    auto offset         = offsets()[find_result.idx()];
+                    size_t block_offset = find_result.local_pos() * ValuesPerBranch;
+                    auto offset         = offsets()[find_result.local_pos()];
 
                     block_offset += offset;
 

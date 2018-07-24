@@ -88,9 +88,9 @@ public:
         int32_t idx_ = 0;
     public:
         ConstPtrsT& values() {return values_;}
-        int32_t& idx() {return idx_;}
+        int32_t& local_pos() {return idx_;}
         const ConstPtrsT& values() const {return values_;}
-        const int32_t& idx() const {return idx_;}
+        const int32_t& local_pos() const {return idx_;}
     };
 
     static int32_t estimate_block_size(int32_t tree_capacity, int32_t density_hi = 1, int32_t density_lo = 1)
@@ -751,7 +751,7 @@ public:
     {
         ReadState state;
 
-        state.idx() = idx;
+        state.local_pos() = idx;
 
         for (int32_t b = 0; b < Blocks; b++) {
             state.values()[b] = this->values(b);
@@ -766,7 +766,7 @@ public:
     {
         for (int32_t b = 0; b < Blocks; b++)
         {
-            auto val = state.values()[b][state.idx()];
+            auto val = state.values()[b][state.local_pos()];
 
             if (!IOBufferAdapter<Value>::put(buffer, val))
             {
@@ -774,7 +774,7 @@ public:
             }
         }
 
-        state.idx()++;
+        state.local_pos()++;
 
         return true;
     }

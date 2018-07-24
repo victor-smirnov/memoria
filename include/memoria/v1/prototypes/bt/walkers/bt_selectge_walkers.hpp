@@ -54,10 +54,10 @@ public:
 
             int32_t nearest_nz_idx = tree->findNZLT(index, start);
 
-            if (nearest_nz_idx >= result.idx())
+            if (nearest_nz_idx >= result.local_pos())
             {
             	Base::sum_ += result.prefix();
-            	return StreamOpResult(result.idx(), start, result.idx() >= size, false);
+            	return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
             }
             else {
             	Base::sum_ += tree->sum(index, start, nearest_nz_idx);
@@ -84,7 +84,7 @@ public:
         if (result.is_found())
         {
             sum  += rank;
-            return StreamOpResult(result.idx(), start, false);
+            return StreamOpResult(result.local_pos(), start, false);
         }
         else {
             int32_t size = seq->size();
@@ -169,7 +169,7 @@ public:
         if (result.is_found())
         {
             sum += target;
-            return StreamOpResult(result.idx(), start, false);
+            return StreamOpResult(result.local_pos(), start, false);
         }
         else {
             sum += result.rank();

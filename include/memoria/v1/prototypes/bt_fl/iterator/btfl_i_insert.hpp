@@ -87,7 +87,7 @@ public:
             return OpStatus::FAIL;
         };
 
-        int structure_idx = self.idx();
+        int structure_idx = self.local_pos();
 
         int32_t stream_idx = self.data_stream_idx(Stream, structure_idx);
         self.ctr().template insert_stream_entry0<Stream>(self, structure_idx, stream_idx, insert_fn);
@@ -118,7 +118,7 @@ public:
             auto half_ranks = self.leafrank(structure_split_idx);
             auto right      = self.ctr().split_leaf_p(leaf, half_ranks);
 
-            auto& structure_idx = self.idx();
+            auto& structure_idx = self.local_pos();
 
             if (structure_idx > structure_split_idx)
             {

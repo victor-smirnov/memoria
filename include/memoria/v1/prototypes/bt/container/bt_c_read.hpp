@@ -90,7 +90,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
         while (total < length)
         {
-            auto idx = iter.idx();
+            auto idx = iter.local_pos();
 
             int32_t processed = LeafDispatcher::dispatch(iter.leaf(), ReadEntriesFn<StreamIdx>(), std::forward<Fn>(fn), idx, idx + (length - total));
 
@@ -140,7 +140,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
         while (total < length)
         {
-            auto idx = iter.idx();
+            auto idx = iter.local_pos();
 
             int32_t processed = LeafDispatcher::dispatch(iter.leaf(), ReadSubstreamFn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
 
@@ -193,7 +193,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
         while (total < length)
         {
-            auto idx = iter.idx();
+            auto idx = iter.local_pos();
 
             int32_t processed = LeafDispatcher::dispatch(iter.leaf(), ReadSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
 
@@ -244,7 +244,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
         while (total < length)
         {
-            auto idx = iter.idx();
+            auto idx = iter.local_pos();
 
             int32_t processed = LeafDispatcher::dispatch(iter.leaf(), DescribeSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
 
@@ -295,7 +295,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
         while (total < length)
         {
-            auto idx = iter.idx();
+            auto idx = iter.local_pos();
 
             int32_t processed = LeafDispatcher::dispatch(iter.leaf(), ReadSingleSubstream2Fn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
 

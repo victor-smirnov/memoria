@@ -130,7 +130,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::IOReadName)
 
         while (total < length)
         {
-            auto idx = iter.idx();
+            auto idx = iter.local_pos();
 
             auto result = LeafDispatcher::dispatch(iter.leaf(), PopulateIOBufferFn<StreamIdx>(), io_buffer, idx, idx + (length - total));
 
@@ -226,7 +226,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::IOReadName)
 
         while (total < length)
         {
-            auto idx = iter.idx();
+            auto idx = iter.local_pos();
 
             auto result = LeafDispatcher::dispatch(iter.leaf(), PopulateIOBufferFn<StreamIdx>(), io_buffer, idx, idx + (length - total));
 

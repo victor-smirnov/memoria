@@ -1387,10 +1387,10 @@ public:
         int32_t idx_;
     public:
         template <typename Fn>
-        FindResult(Fn&& fn): prefix_(fn.prefix()), idx_(fn.idx()) {}
+        FindResult(Fn&& fn): prefix_(fn.prefix()), idx_(fn.local_pos()) {}
 
         IndexValue prefix() {return prefix_;}
-        int32_t idx() const {return idx_;}
+        int32_t local_pos() const {return idx_;}
     };
 
     auto findForward(SearchType search_type, int32_t block, int32_t start, IndexValue val) const

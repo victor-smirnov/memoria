@@ -143,7 +143,7 @@ public:
 
             auto result = tree->findForward(Base::search_type_, index, Base::target_);
 
-            return StreamOpResult(result.idx(), start, result.idx() >= size, false);
+            return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
         }
         else {
             return StreamOpResult(size, start, true, true);
@@ -174,7 +174,7 @@ public:
 
                 auto result = tree->findForward(Base::search_type_, index, Base::target_);
 
-                return StreamOpResult(result.idx(), start, result.idx() >= tree->size());
+                return StreamOpResult(result.local_pos(), start, result.local_pos() >= tree->size());
             }
             else {
                 return StreamOpResult(start, start, true, true);

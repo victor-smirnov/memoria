@@ -79,7 +79,7 @@ protected:
             if (prev.isSet())
             {
                 self.mergeLeafNodes(prev, iter.leaf(), [&](const Position& sizes){
-                    iter.idx() += sizes[0];
+                    iter.local_pos() += sizes[0];
                     iter.leaf() = prev;
                 });
             }

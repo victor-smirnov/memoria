@@ -87,11 +87,11 @@ public:
     }
 
     bool isEof() const {
-        return self().idx() >= self().size();
+        return self().local_pos() >= self().size();
     }
 
     bool isBof() const {
-        return self().idx() < 0;
+        return self().local_pos() < 0;
     }
 
     CtrSizeT skipFw(CtrSizeT amount) {
@@ -110,7 +110,7 @@ public:
     {
         auto& self = this->self();
 
-        return self.idx() + self.cache().size_prefix()[0];
+        return self.local_pos() + self.cache().size_prefix()[0];
     }
 
     CtrSizeT noderank_() const
@@ -329,7 +329,7 @@ public:
     int32_t label_idx() const
     {
         auto& self = this->self();
-        return self.label_idx(self.idx());
+        return self.label_idx(self.local_pos());
     }
 
     int32_t label_idx(int32_t node_idx) const
@@ -405,7 +405,7 @@ public:
 
         SumLabelFn<LabelIdx> fn;
 
-        if (self.idx() >= 0)
+        if (self.local_pos() >= 0)
         {
             self.ctr().walkUp(self.leaf(), self.label_idx(), fn);
         }
@@ -526,9 +526,9 @@ public:
 
         GPosFn fn;
 
-        self.ctr().walkUp(self.leaf(), self.idx(), fn);
+        self.ctr().walkUp(self.leaf(), self.local_pos(), fn);
 
-        return fn.pos_ + self.idx();
+        return fn.pos_ + self.local_pos();
     }
 
 

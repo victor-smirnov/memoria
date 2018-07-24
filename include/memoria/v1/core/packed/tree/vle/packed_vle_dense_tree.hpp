@@ -1378,7 +1378,7 @@ public:
 
         auto result = find(0, FindGEWalker(value + sum));
 
-        if (result.idx() < block_start + size)
+        if (result.local_pos() < block_start + size)
         {
             return result.adjust_s(block_start, size, sum);
         }
@@ -1397,7 +1397,7 @@ public:
 
         auto result = find(0, FindGTWalker(value + sum));
 
-        if (result.idx() < block_start + size)
+        if (result.local_pos() < block_start + size)
         {
             return result.adjust_s(block_start, size, sum);
         }
@@ -1413,7 +1413,7 @@ public:
         int32_t block_start = block * size;
         auto result = walk_fw(0, block_start + start, block_start + size, FindGEWalker(value));
 
-        if (result.idx() < block_start + size)
+        if (result.local_pos() < block_start + size)
         {
             return result.adjust(block_start, size);
         }
@@ -1430,7 +1430,7 @@ public:
         auto result = walk_fw(0, block_start + start, block_start + size, FindGTWalker(value));
 
 
-        if (result.idx() < block_start + size)
+        if (result.local_pos() < block_start + size)
         {
             return result.adjust(block_start, size);
         }
@@ -1447,7 +1447,7 @@ public:
         int32_t block_start = block * size;
         auto result = walk_bw(0, block_start + start, FindGEWalker(value));
 
-        if (result.idx() >= block_start)
+        if (result.local_pos() >= block_start)
         {
             return result.adjust(block_start, size);
         }
@@ -1463,7 +1463,7 @@ public:
         int32_t block_start = block * size;
         auto result = walk_bw(0, block_start + start, FindGTWalker(value));
 
-        if (result.idx() >= block_start)
+        if (result.local_pos() >= block_start)
         {
             return result.adjust(block_start, size);
         }
@@ -1551,10 +1551,10 @@ public:
         int32_t idx_;
     public:
         template <typename Fn>
-        FindResult(Fn&& fn): prefix_(fn.prefix()), idx_(fn.idx()) {}
+        FindResult(Fn&& fn): prefix_(fn.prefix()), idx_(fn.local_pos()) {}
 
         IndexValue prefix() {return prefix_;}
-        int32_t idx() const {return idx_;}
+        int32_t local_pos() const {return idx_;}
     };
 
     auto findForward(SearchType search_type, int32_t block, int32_t start, const IndexValue& val) const

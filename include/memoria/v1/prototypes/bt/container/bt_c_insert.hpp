@@ -97,7 +97,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
             split_status = split_result.type();
 
-            result = self.with_page_manager(iter.leaf(), iter.idx(), split_result.stream_idx(), insert_fn);
+            result = self.with_page_manager(iter.leaf(), iter.local_pos(), split_result.stream_idx(), insert_fn);
 
             if (!result)
             {

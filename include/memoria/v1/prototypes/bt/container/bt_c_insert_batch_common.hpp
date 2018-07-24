@@ -114,7 +114,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     public:
         InsertBatchResult(int32_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
-        int32_t idx() const {return idx_;}
+        int32_t local_pos() const {return idx_;}
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
