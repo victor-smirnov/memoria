@@ -72,7 +72,7 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
 
     using CtrSizeT = typename Base::CtrSizeT;
 
-    using FirstStreamTF = StreamTF<
+    using FirstStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename mmap::MMapKeyStructTF<Key>::Type>
@@ -80,7 +80,7 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
         mmap::MMapBranchStructTF
     >;
 
-    using DataStreamTF = StreamTF<
+    using DataStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename mmap::MMapValueStructTF<Value>::Type>
@@ -88,7 +88,7 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
         mmap::MMapBranchStructTF
     >;
 
-    using StructureStreamTF = StreamTF<
+    using StructureStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename btfl::StructureStreamTF<2>::Type>
@@ -145,7 +145,7 @@ public:
         using CtrTypes          = MultimapCtrTypes<Types>;
         using IterTypes         = MultimapIterTypes<Types>;
 
-        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
+        using PageUpdateMgr     = bt::PageUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList = typename BaseTypes::LeafStreamsStructList;
 

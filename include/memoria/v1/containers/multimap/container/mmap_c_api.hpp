@@ -18,8 +18,8 @@
 #pragma once
 
 
-#include <memoria/v1/containers/map/map_names.hpp>
-#include <memoria/v1/containers/map/map_tools.hpp>
+#include <memoria/v1/containers/multimap/mmap_names.hpp>
+#include <memoria/v1/containers/multimap/mmap_tools.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
