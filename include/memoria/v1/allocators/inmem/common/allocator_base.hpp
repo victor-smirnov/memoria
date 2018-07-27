@@ -218,8 +218,6 @@ public:
             if (parent_) {
                 parent_->children().push_back(this);
             }
-
-            init();
         }
 
         HistoryNode(HistoryNode* parent, Status status = Status::ACTIVE):
@@ -233,8 +231,6 @@ public:
         	if (parent_) {
         		parent_->children().push_back(this);
         	}
-
-            init();
         }
 
         HistoryNode(MyType* allocator, const TxnId& txn_id, HistoryNode* parent, Status status):
@@ -248,17 +244,8 @@ public:
             if (parent_) {
                 parent_->children().push_back(this);
             }
-
-            init();
         }
 
-        ~HistoryNode() {
-            std::cout << "Destroy HistoryNode: " << this << " " << txn_id_ << std::endl;
-        }
-
-        void init() {
-            std::cout << "Create HistoryNode: " << this << " " << txn_id_ << std::endl;
-        }
 
         auto* allocator() {
         	return allocator_;
