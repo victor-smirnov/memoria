@@ -24,6 +24,7 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 #include <memoria/v1/api/multimap/multimap_input.hpp>
+#include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 
 #include <iostream>
 
@@ -162,7 +163,7 @@ public:
             }
         }
 
-        self.template insert_entry<0>(SingleValueEntryFn<0, Key, CtrSizeT>(key));
+        self.template insert_entry<0>(bt::SingleValueEntryFn<0, Key, CtrSizeT>(key));
     }
 
     void insert_value(const Value& value)
@@ -172,12 +173,12 @@ public:
         // FIXME: Allows inserting into start of the sequence that is incorrect, 
         // but doesn't break the structure
 
-        self.template insert_entry<1>(SingleValueEntryFn<1, Value, CtrSizeT>(value));
+        self.template insert_entry<1>(bt::SingleValueEntryFn<1, Value, CtrSizeT>(value));
     }
 
 
     template <typename ValueConsumer>
-    class ReadValuesFn: public BufferConsumer<IOBuffer> {
+    class ReadValuesFn: public bt::BufferConsumer<IOBuffer> {
 
         ValueConsumer* consumer_;
 
