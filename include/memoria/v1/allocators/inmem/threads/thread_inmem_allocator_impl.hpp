@@ -609,17 +609,20 @@ protected:
     
     virtual void free_memory(HistoryNode* node)
     {
-        for (auto child: node->children())
+        if (node)
         {
-            free_memory(child);
-        }
+            for (auto child: node->children())
+            {
+                free_memory(child);
+            }
 
-        if (node->root())
-        {
-            SnapshotT::delete_snapshot(node);
-        }
+            if (node->root())
+            {
+                SnapshotT::delete_snapshot(node);
+            }
 
-        delete node;
+            delete node;
+        }
     }
     
     void do_delete_dropped()

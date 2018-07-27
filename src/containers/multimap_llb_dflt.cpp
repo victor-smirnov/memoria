@@ -1,5 +1,5 @@
 
-// Copyright 2018 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,34 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/types.hpp>
-
-#include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
-
-#include <memoria/v1/api/multimap/multimap_api.hpp>
-
-#include <memoria/v1/core/tools/uuid.hpp>
 
 
-#include <iostream>
-#include <type_traits>
-#include <vector>
-#include <algorithm>
-#include <random>
-
-using namespace memoria::v1;
-
-int main(int argc, char** argv, char** envp)
-{
-    try {
-
-
-        auto alloc = ThreadInMemAllocator<>::load("allocator.mma1");
+#include <memoria/v1/containers/multimap/multimap_impl.hpp>
+#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
 
 
 
-    }
-    catch (MemoriaThrowable& ex) {
-        ex.dump(std::cout);
-    }
-}
+namespace memoria {
+namespace v1 {
+
+using Profile = DefaultProfile<>;    
+using CtrName = memoria::v1::Multimap<int64_t, uint8_t>;
+
+MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+    
+}}
+

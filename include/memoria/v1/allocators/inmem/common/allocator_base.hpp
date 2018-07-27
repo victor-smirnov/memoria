@@ -459,7 +459,7 @@ public:
     using HistoryTreeNodeMap    = std::unordered_map<PTreeNodeId, HistoryNodeBuffer*>;
     using PersistentTreeNodeMap = std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>>;
     using PageMap               = std::unordered_map<typename PageType::ID, RCPagePtr*>;
-    using RCPageSet             = std::unordered_set<RCPagePtr*>;
+    using RCPageSet             = std::unordered_set<const void*>;
     using BranchMap             = std::unordered_map<U16String, HistoryNode*>;
     using ReverseBranchMap      = std::unordered_map<const HistoryNode*, U16String>;
 
@@ -1211,38 +1211,37 @@ protected:
 
     void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node, RCPageSet& stored_pages)
     {
-        const auto& txn_id = node->txn_id();
-
-        if (node->is_leaf())
+        if (stored_pages.count(node) == 0)
         {
-            auto leaf = PersistentTreeT::to_leaf_node(node);
-            auto buf  = to_leaf_buffer(leaf);
+            stored_pages.insert(node);
 
-            write(out, buf.get());
-
-            for (int32_t c = 0; c < leaf->size(); c++)
+            if (node->is_leaf())
             {
-                const auto& data = leaf->data(c);
+                auto leaf = PersistentTreeT::to_leaf_node(node);
+                auto buf  = to_leaf_buffer(leaf);
 
-                if (stored_pages.count(data.page_ptr()) == 0)
+                write(out, buf.get());
+
+                for (int32_t c = 0; c < leaf->size(); c++)
                 {
-                	write(out, data.page_ptr());
-                	stored_pages.insert(data.page_ptr());
+                    const auto& data = leaf->data(c);
+
+                    if (stored_pages.count(data.page_ptr()) == 0)
+                    {
+                        write(out, data.page_ptr());
+                        stored_pages.insert(data.page_ptr());
+                    }
                 }
             }
-        }
-        else {
-            auto branch = PersistentTreeT::to_branch_node(node);
-            auto buf    = to_branch_buffer(branch);
+            else {
+                auto branch = PersistentTreeT::to_branch_node(node);
+                auto buf    = to_branch_buffer(branch);
 
-            write(out, buf.get());
+                write(out, buf.get());
 
-            for (int32_t c = 0; c < branch->size(); c++)
-            {
-                auto child = branch->data(c);
-
-                if (child->txn_id() == txn_id || child->references() == 1)
+                for (int32_t c = 0; c < branch->size(); c++)
                 {
+                    auto child = branch->data(c);
                     write_persistent_tree(out, child, stored_pages);
                 }
             }
@@ -1404,161 +1403,7 @@ protected:
 };
 
 }
-/*
-template <typename Profile = DefaultProfile<>>
-using PersistentInMemAllocator = class persistent_inmem_thread::ThreadInMemAllocatorImpl<Profile>;
 
-
-
-template <typename Profile>
-ThreadInMemAllocator<Profile>::ThreadInMemAllocator() {}
-
-template <typename Profile>
-ThreadInMemAllocator<Profile>::ThreadInMemAllocator(AllocSharedPtr<PImpl> impl): pimpl_(impl) {}
-
-template <typename Profile>
-ThreadInMemAllocator<Profile>::ThreadInMemAllocator(ThreadInMemAllocator&& other): pimpl_(std::move(other.pimpl_)) {}
-
-template <typename Profile>
-ThreadInMemAllocator<Profile>::ThreadInMemAllocator(const ThreadInMemAllocator& other): pimpl_(other.pimpl_) {}
-
-template <typename Profile>
-ThreadInMemAllocator<Profile>& ThreadInMemAllocator<Profile>::operator=(const ThreadInMemAllocator& other) 
-{
-    pimpl_ = other.pimpl_;
-    return *this;
-}
-
-template <typename Profile>
-ThreadInMemAllocator<Profile>& ThreadInMemAllocator<Profile>::operator=(ThreadInMemAllocator&& other) 
-{
-    pimpl_ = std::move(other.pimpl_);
-    return *this;
-}
-
-template <typename Profile>
-ThreadInMemAllocator<Profile>::~ThreadInMemAllocator() {}
-
-
-template <typename Profile>
-bool ThreadInMemAllocator<Profile>::operator==(const ThreadInMemAllocator& other) const
-{
-    return pimpl_ == other.pimpl_;
-}
-
-
-template <typename Profile>
-ThreadInMemAllocator<Profile>::operator bool() const 
-{
-    return pimpl_ != nullptr;
-}
-
-
-
-template <typename Profile>
-ThreadInMemAllocator<Profile> ThreadInMemAllocator<Profile>::load(InputStreamHandler* input_stream) 
-{
-    return ThreadInMemAllocator<Profile>(PImpl::load(input_stream));
-}
-
-template <typename Profile>
-ThreadInMemAllocator<Profile> ThreadInMemAllocator<Profile>::load(boost::filesystem::path file_name) 
-{
-    return ThreadInMemAllocator<Profile>(PImpl::load(file_name.string().c_str()));
-}
-
-template <typename Profile>
-ThreadInMemAllocator<Profile> ThreadInMemAllocator<Profile>::create() 
-{
-    return ThreadInMemAllocator<Profile>(PImpl::create());
-}
-
-template <typename Profile>
-void ThreadInMemAllocator<Profile>::store(boost::filesystem::path file_name) 
-{
-    pimpl_->store(file_name.string().c_str());
-}
-
-template <typename Profile>
-void ThreadInMemAllocator<Profile>::store(OutputStreamHandler* output_stream) 
-{
-    pimpl_->store(output_stream);
-}
-
-template <typename Profile>
-typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::master() 
-{
-    return SnapshotPtr(pimpl_->master());
-}
-
-
-template <typename Profile>
-typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::find(const TxnId& snapshot_id) 
-{
-    return pimpl_->find(snapshot_id);
-}
-
-template <typename Profile>
-typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::find_branch(StringRef name) 
-{
-    return pimpl_->find_branch(name);
-}
-
-template <typename Profile>
-void ThreadInMemAllocator<Profile>::set_master(const TxnId& txn_id) 
-{
-    pimpl_->set_master(txn_id);
-}
-
-template <typename Profile>
-void ThreadInMemAllocator<Profile>::set_branch(StringRef name, const TxnId& txn_id) 
-{
-    pimpl_->set_branch(name, txn_id);
-}
-
-template <typename Profile>
-ContainerMetadataRepository* ThreadInMemAllocator<Profile>::metadata() const 
-{
-    return pimpl_->getMetadata();
-}
-
-template <typename Profile>
-void ThreadInMemAllocator<Profile>::walk_containers(ContainerWalker* walker, const char* allocator_descr) 
-{
-     return pimpl_->walkContainers(walker, allocator_descr);
-}
-
-template <typename Profile>
-void ThreadInMemAllocator<Profile>::dump(boost::filesystem::path dump_at) 
-{
-    pimpl_->dump(dump_at.string().c_str());
-}
-
-template <typename Profile>
-void ThreadInMemAllocator<Profile>::reset() 
-{
-    pimpl_.reset();
-}
-
-
-template <typename Profile>
-void ThreadInMemAllocator<Profile>::pack() 
-{
-    return pimpl_->pack();
-}
-
-template <typename Profile>
-Logger& ThreadInMemAllocator<Profile>::logger()
-{
-    return pimpl_->logger();
-}
-
-
-template <typename Profile>
-bool ThreadInMemAllocator<Profile>::check() 
-{
-    return pimpl_->check();
-}*/
 
 }}
 
