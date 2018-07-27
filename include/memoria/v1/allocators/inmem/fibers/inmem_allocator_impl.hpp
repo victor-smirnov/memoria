@@ -704,7 +704,8 @@ protected:
     {
     	// FIXME: use dedicated stack data structure
 
-        for (auto child: node->children())
+        auto children = node->children();
+        for (auto child: children)
         {
             do_pack(child, depth + 1, branches);
         }
