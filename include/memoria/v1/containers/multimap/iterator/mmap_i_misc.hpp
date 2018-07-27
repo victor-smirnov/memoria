@@ -26,6 +26,8 @@
 #include <memoria/v1/api/multimap/multimap_input.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 
+#include <memoria/v1/core/tools/object_pool.hpp>
+
 #include <iostream>
 
 namespace memoria {
@@ -216,7 +218,7 @@ public:
     }
 
 
-    CtrSizeT read_values(BufferConsumer<IOBuffer>& consumer, CtrSizeT start, CtrSizeT length)
+    CtrSizeT read_values(bt::BufferConsumer<IOBuffer>& consumer, CtrSizeT start, CtrSizeT length)
     {
         auto& self = this->self();
         
