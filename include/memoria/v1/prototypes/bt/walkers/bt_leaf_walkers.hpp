@@ -205,13 +205,13 @@ public:
     template <typename Node, typename... Args>
     void processBranchSizePrefix(Node* node, Args&&... args)
     {
-        node->template processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
+        node->processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <typename Node, typename... Args>
     void processLeafSizePrefix(Node* node, Args&&... args)
     {
-        node->template processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
+        node->processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
     }
 };
 
