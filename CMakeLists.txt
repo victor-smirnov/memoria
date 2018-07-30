@@ -97,10 +97,10 @@ if (BUILD_POSIX)
     add_definitions(-Wno-missing-braces)
     add_definitions(-Wno-variables)
     add_definitions(-Werror=unused-result)
-    #add_definitions(-fpermissive)
     add_definitions(-faligned-new)
     add_definitions(-Wno-class-memaccess)
 
+    #add_definitions(-DMMA1_ICU_CXX_NS=icu_62__mariana)
     #add_definitions(-DU_HAVE_LIB_SUFFIX=1)
     #add_definitions(-DU_LIB_SUFFIX_C_NAME=__mariana)
     
@@ -136,8 +136,6 @@ else()
     add_definitions(/W3 /std:c++14 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-DJEMALLOC_NO_PRIVATE_NAMESPACE -D_REENTRANT)
     add_definitions(-DDLLEXPORT -DNOMINMAX  /bigobj)
-
-    #add_global_libs(rpcrt4)
 endif()
 
 
@@ -146,19 +144,18 @@ set (Boost_USE_RELEASE_LIBS	 ON)
 set (Boost_USE_DEBUG_RUNTIME	 ON)
 set (Boost_USE_MULTITHREADED     ON)
 
-set (ICU_ROOT /usr/local/icu4c-mariana)
 
 if (MSVC)
     set (Boost_USE_STATIC_RUNTIME    OFF)
     set (Boost_USE_STATIC_LIBS       ON)
     find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
 else()
-    set (Boost_USE_STATIC_RUNTIME    OFF)
-    set (Boost_USE_STATIC_LIBS       OFF)
+    set (Boost_USE_STATIC_RUNTIME    ON)
+    set (Boost_USE_STATIC_LIBS       ON)
     find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
 endif()
 
-find_package(Boost 1.66.0 COMPONENTS filesystem context program_options serialization REQUIRED)
+find_package(Boost 1.67.0 COMPONENTS filesystem context program_options serialization REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})

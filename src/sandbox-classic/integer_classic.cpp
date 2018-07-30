@@ -33,12 +33,12 @@ using namespace memoria::v1;
 int main(int argc, char** argv, char** envp)
 {
     try {
+        auto alloc = ThreadInMemAllocator<>::create();
 
-
-        auto alloc = ThreadInMemAllocator<>::load("allocator.mma1");
-
-
-
+        auto snp1 = alloc.master().branch();
+        snp1.commit();
+        std::cout << "Active snapshots num: " << alloc.active_snapshots() << std::endl;
+        alloc.store("allocator.mma1", 3000);
     }
     catch (MemoriaThrowable& ex) {
         ex.dump(std::cout);

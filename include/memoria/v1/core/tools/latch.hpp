@@ -59,16 +59,16 @@ public:
 	}
 
 	template< class Rep, class Period, class Predicate >
-	void waitFor(const T& value, const std::chrono::duration<Rep, Period>& rel_time)
+    bool waitFor(const T& value, const std::chrono::duration<Rep, Period>& rel_time)
 	{
 		std::unique_lock<std::mutex> lk(mutex_);
-		cv.wait_for(lk, rel_time, [&]{return value_ == value;});
+        return cv.wait_for(lk, rel_time, [&]{return value_ == value;});
 	}
 
-	void waitFor(const T& value, int64_t rel_time_ms)
+    bool waitFor(const T& value, int64_t rel_time_ms)
 	{
 		std::unique_lock<std::mutex> lk(mutex_);
-		cv.wait_for(lk, std::chrono::milliseconds(rel_time_ms), [&]{return value_ == value;});
+        return cv.wait_for(lk, std::chrono::milliseconds(rel_time_ms), [&]{return value_ == value;});
 	}
 };
 

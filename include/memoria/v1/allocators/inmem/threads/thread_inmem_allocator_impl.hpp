@@ -504,17 +504,10 @@ public:
     }
 
     
-
-    virtual void store(OutputStreamHandler *output)
+private:
+    virtual void do_store(OutputStreamHandler *output)
     {
-    	std::lock(mutex_, store_mutex_);
-
-    	LockGuardT lock_guard2(mutex_, std::adopt_lock);
-    	StoreLockGuardT lock_guard1(store_mutex_, std::adopt_lock);
-
-    	active_snapshots_.wait(0);
-
-    	do_pack(history_tree_);
+        do_pack(history_tree_);
 
         records_ = 0;
 
@@ -538,12 +531,41 @@ public:
 
         output->close();
     }
+public:
 
-
-    virtual void store(const char* file)
+    virtual void store(OutputStreamHandler *output, int64_t wait_duration)
     {
+        std::lock(mutex_, store_mutex_);
+
+        LockGuardT lock_guard2(mutex_, std::adopt_lock);
+        StoreLockGuardT lock_guard1(store_mutex_, std::adopt_lock);
+
+        if (wait_duration == 0) {
+            active_snapshots_.wait(0);
+        }
+        else if (!active_snapshots_.waitFor(0, wait_duration)) {
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
+        }
+
+        do_store(output);
+    }
+
+    virtual void store(const char* file, int64_t wait_duration)
+    {
+        std::lock(mutex_, store_mutex_);
+
+        LockGuardT lock_guard2(mutex_, std::adopt_lock);
+        StoreLockGuardT lock_guard1(store_mutex_, std::adopt_lock);
+
+        if (wait_duration == 0) {
+            active_snapshots_.wait(0);
+        }
+        else if (!active_snapshots_.waitFor(0, wait_duration)){
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
+        }
+
     	auto fileh = FileOutputStreamHandler::create(file);
-        store(fileh.get());
+        do_store(fileh.get());
     }
 
 
@@ -750,15 +772,15 @@ ThreadInMemAllocator<Profile> ThreadInMemAllocator<Profile>::create()
 }
 
 template <typename Profile>
-void ThreadInMemAllocator<Profile>::store(boost::filesystem::path file_name) 
+void ThreadInMemAllocator<Profile>::store(boost::filesystem::path file_name, int64_t wait_duration)
 {
-    pimpl_->store(file_name.string().c_str());
+    pimpl_->store(file_name.string().c_str(), wait_duration);
 }
 
 template <typename Profile>
-void ThreadInMemAllocator<Profile>::store(OutputStreamHandler* output_stream) 
+void ThreadInMemAllocator<Profile>::store(OutputStreamHandler* output_stream, int64_t wait_duration)
 {
-    pimpl_->store(output_stream);
+    pimpl_->store(output_stream, wait_duration);
 }
 
 template <typename Profile>
@@ -830,6 +852,11 @@ template <typename Profile>
 bool ThreadInMemAllocator<Profile>::check() 
 {
     return pimpl_->check();
+}
+
+template <typename Profile>
+int64_t ThreadInMemAllocator<Profile>::active_snapshots() {
+    return pimpl_->active_snapshots();
 }
 
 template <typename Profile>

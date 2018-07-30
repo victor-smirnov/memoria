@@ -74,9 +74,11 @@ public:
     static ThreadInMemAllocator load(boost::filesystem::path file_name);
     
     static ThreadInMemAllocator create();
-    
-    void store(boost::filesystem::path file_name);
-    void store(OutputStreamHandler* output_stream);
+
+    int64_t active_snapshots();
+
+    void store(boost::filesystem::path file_name, int64_t wait_duration = 0);
+    void store(OutputStreamHandler* output_stream, int64_t wait_duration = 0);
     
     SnapshotPtr master();
     SnapshotPtr find(const TxnId& snapshot_id);
