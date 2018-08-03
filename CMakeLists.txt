@@ -52,6 +52,8 @@ option(BUILD_STATIC     "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES   "Build project examples" OFF)
 option(BUILD_BENCHMARKS "Build project benchmarks" ON)
 option(BUILD_WITH_BACKTRACE "Include backtrace suport on Linux" OFF)
+option(BUILD_WITH_STATIC_BOOST "Use static boost libraries" OFF)
+
 option(ICU_DEBUG        "Debug FindICU" OFF)
 option(Boost_DEBUG      "Debug FindBoost" OFF)
 
@@ -148,14 +150,13 @@ set (Boost_USE_RELEASE_LIBS	 ON)
 set (Boost_USE_DEBUG_RUNTIME	 ON)
 set (Boost_USE_MULTITHREADED     ON)
 
-
 if (MSVC)
     set (Boost_USE_STATIC_RUNTIME    OFF)
     set (Boost_USE_STATIC_LIBS       ON)
     find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
 else()
-    set (Boost_USE_STATIC_RUNTIME    ON)
-    set (Boost_USE_STATIC_LIBS       ON)
+    set (Boost_USE_STATIC_RUNTIME    ${BUILD_WITH_STATIC_BOOST})
+    set (Boost_USE_STATIC_LIBS       ${BUILD_WITH_STATIC_BOOST})
     find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
 endif()
 
