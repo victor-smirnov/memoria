@@ -152,7 +152,7 @@ public:
             }
         }
         else {
-            assert_equals(result1.idx(),  result2.idx(), u"{} {}", start, rank);
+            assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {}", start, rank);
         }
     }
 
@@ -168,7 +168,7 @@ public:
             assert_equals(result1.rank(), result2.rank(), u"{} {}", start, rank);
         }
         else {
-            assert_equals(result1.idx(),  result2.idx(), u"{} {}", start, rank);
+            assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {}", start, rank);
         }
     }
 
@@ -348,7 +348,7 @@ public:
                     assert_equals(result.rank(), pair.rank);
                 }
                 else {
-                    assert_equals(result.idx(),  pair.idx);
+                    assert_equals(result.local_pos(),  pair.idx);
                 }
             }
         }
@@ -377,8 +377,8 @@ public:
 
             if (result1.is_found())
             {
-                assert_equals(result1.idx(), result2.idx(), u"{}", rank);
-                assert_equals(result1.idx(), result3.idx(), u"{}", rank);
+                assert_equals(result1.local_pos(), result2.local_pos(), u"{}", rank);
+                assert_equals(result1.local_pos(), result3.local_pos(), u"{}", rank);
             }
             else {
                 assert_equals(result1.rank(), result2.rank(), u"{}", rank);
@@ -459,7 +459,7 @@ public:
                         assert_equals(result.rank(), pair.rank, u"{} {}", start, pair.rank);
                     }
                     else {
-                        assert_equals(result.idx(),  pair.idx, u"{} {}", start, pair.rank);
+                        assert_equals(result.local_pos(),  pair.idx, u"{} {}", start, pair.rank);
                     }
                 }
             }

@@ -60,7 +60,7 @@ public:
         OpStatus status_{OpStatus::OK};
 
         template <typename NTypes, typename LeafPosition, typename Buffer>
-        void treeNode(LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+        void treeNode(bt::LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
         {
             node->processAll(*this, pos, start, size, buffer);
         }

@@ -140,8 +140,8 @@ public:
 
         while (iter.has_data())
         {
-            int32_t block_start = iter.idx();
-            int32_t block_end   = iter.idx() + iter.run().length();
+            int32_t block_start = iter.local_pos();
+            int32_t block_end   = iter.local_pos() + iter.run().length();
 
             ranks.push_back(Pair(countFW(seq, block_start).count(), block_start));
             ranks.push_back(Pair(countFW(seq, block_start + 1).count(), block_start + 1));
@@ -162,8 +162,8 @@ public:
 
         while (iter.has_data())
         {
-            int32_t block_start = iter.idx();
-            int32_t block_end   = iter.idx() + iter.run().length();
+            int32_t block_start = iter.local_pos();
+            int32_t block_end   = iter.local_pos() + iter.run().length();
 
             ranks.push_back(Pair(countBW(seq, block_start).count(), block_start));
             ranks.push_back(Pair(countBW(seq, block_start + 1).count(), block_start + 1));

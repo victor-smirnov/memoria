@@ -72,7 +72,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl_test::IterApiName)
 public:
 
     template <typename IOBuffer>
-    auto bulkio_insert(BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
+    auto bulkio_insert(bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
     {
         auto& self = this->self();
 

@@ -41,52 +41,52 @@ template <
 
 template <typename CtrSizeT, int32_t Indexes>
 struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::FIXED, CtrSizeT, Indexes> {
-    using Type = StreamTF<
+    using Type = bt::StreamTF<
             TL<TL<
                 StreamSize,
                 PkdFQTreeT<CtrSizeT, Indexes>
             >>,
-            FSEBranchStructTF,
-            TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
+            bt::FSEBranchStructTF,
+            TL<TL<TL<>, TL<bt::SumRange<0, Indexes>>>>
     >;
 };
 
 
 template <typename CtrSizeT, int32_t Indexes>
 struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSizeT, Indexes> {
-    using Type = StreamTF<
+    using Type = bt::StreamTF<
             TL<TL<
                 StreamSize,
                 PkdVQTreeT<CtrSizeT, Indexes, ValueCodec>
             >>,
-            FSEBranchStructTF,
-            TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
+            bt::FSEBranchStructTF,
+            TL<TL<TL<>, TL<bt::SumRange<0, Indexes>>>>
     >;
 };
 
 
 template <typename CtrSizeT, int32_t Indexes>
 struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
-    using Type = StreamTF<
+    using Type = bt::StreamTF<
             TL<TL<
                 StreamSize,
                 PkdFQTreeT<CtrSizeT, Indexes>
             >>,
-            VLQBranchStructTF,
-            TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
+            bt::VLQBranchStructTF,
+            TL<TL<TL<>, TL<bt::SumRange<0, Indexes>>>>
     >;
 };
 
 
 template <typename CtrSizeT, int32_t Indexes>
 struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
-    using Type = StreamTF<
+    using Type = bt::StreamTF<
             TL<TL<
                 StreamSize,
                 PkdVDTreeT<CtrSizeT, Indexes, ValueCodec>
             >>,
-            VLQBranchStructTF,
-            TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
+            bt::VLQBranchStructTF,
+            TL<TL<TL<>, TL<bt::SumRange<0, Indexes>>>>
     >;
 };
 

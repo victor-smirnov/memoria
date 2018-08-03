@@ -117,7 +117,7 @@ public:
 
         if (result1.is_found())
         {
-            assert_equals(result1.idx(),  result2.idx(), u"{} {}", start, rank);
+            assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {}", start, rank);
         }
     }
 
@@ -133,7 +133,7 @@ public:
 
         if (result1.is_found())
         {
-            assert_equals(result1.idx(),  result2.idx(), u"{} {}", start, rank);
+            assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {}", start, rank);
         }
     }
 
@@ -160,8 +160,8 @@ public:
 
         while (iter.has_data())
         {
-            int32_t block_start = iter.idx();
-            int32_t block_end   = iter.idx() + iter.run().length();
+            int32_t block_start = iter.local_pos();
+            int32_t block_end   = iter.local_pos() + iter.run().length();
 
             ranks.push_back(createRankFw(seq, block_start, symbol));
             ranks.push_back(createRankFw(seq, block_start + 1, symbol));
@@ -224,8 +224,8 @@ public:
 
         while (iter.has_data())
         {
-            int32_t block_start = iter.idx();
-            int32_t block_end   = iter.idx() + iter.run().length();
+            int32_t block_start = iter.local_pos();
+            int32_t block_end   = iter.local_pos() + iter.run().length();
 
             ranks.push_back(createRankBw(seq, block_start, symbol));
             ranks.push_back(createRankBw(seq, block_start + 1, symbol));
@@ -279,7 +279,7 @@ public:
             auto result3 = selectFW(seq, -1, rank, 1);
 
             assert_equals(result1.is_found(), result3.is_found(), u"{}", rank);
-            assert_equals(result1.idx(), result3.idx(), u"{}", rank);
+            assert_equals(result1.local_pos(), result3.local_pos(), u"{}", rank);
             assert_equals(result1.rank(), result3.rank(), u"{}", rank);
         }
 
@@ -309,7 +309,7 @@ public:
             auto result3 = selectBW(seq, seq->size(), rank, 1);
 
             assert_equals(result1.is_found(), result3.is_found(), u"{}", rank);
-            assert_equals(result1.idx(), result3.idx(), u"{}", rank);
+            assert_equals(result1.local_pos(), result3.local_pos(), u"{}", rank);
 
             assert_equals(result1.rank(), result3.rank(), u"{}", rank);
         }

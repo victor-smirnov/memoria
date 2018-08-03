@@ -119,8 +119,8 @@ public:
             auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, max);
             auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, max);
 
-            assert_equals(result1_lt.idx(), result2_lt.idx(), u"IDX {} {}", max, block);
-            assert_equals(result1_le.idx(), result2_le.idx(), u"IDX {} {}", max, block);
+            assert_equals(result1_lt.local_pos(), result2_lt.local_pos(), u"IDX {} {}", max, block);
+            assert_equals(result1_le.local_pos(), result2_le.local_pos(), u"IDX {} {}", max, block);
         }
     }
 };

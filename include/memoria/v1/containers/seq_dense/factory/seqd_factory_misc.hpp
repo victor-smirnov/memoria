@@ -55,17 +55,17 @@ struct BTTypes<Profile, Sequence<BitsPerSymbol_, true> >: public BTTypes<Profile
 
     using SymbolsSubstreamPath = IntList<0, 1>;
 
-    using SeqStreamTF = StreamTF<
+    using SeqStreamTF = bt::StreamTF<
         TL<
             StreamSize,
             TL<PkdFSSeq<SequenceTypes>>
         >,
-        VLDBranchStructTF
+        bt::VLDBranchStructTF
     >;
 
 
     typedef TypeList<
-                SeqStreamTF
+         SeqStreamTF
     >                                                                           StreamDescriptors;
 
 

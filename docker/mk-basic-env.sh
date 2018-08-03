@@ -5,7 +5,7 @@ set -e
 echo "Configuring basic system..."
 
 
-dnf install -y sudo mc clang gcc cmake boost-devel libicu-devel
+dnf install -y git sudo mc clang gcc cmake boost-devel libicu-devel make
 
 
 echo "Build environment configuration finished..."

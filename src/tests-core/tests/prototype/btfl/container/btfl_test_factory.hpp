@@ -50,7 +50,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
 
     using CtrSizeT = int64_t;
 
-    using StreamVariableTF = StreamTF<
+    using StreamVariableTF = bt::StreamTF<
         TL<TL<
             StreamSize,
             PkdFQTreeT<Key>
@@ -58,7 +58,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
         bt::DefaultBranchStructTF
     >;
 
-    using DataStreamTF = StreamTF<
+    using DataStreamTF = bt::StreamTF<
         TL<TL<
             StreamSize,
             PackedFSEArray<PackedFSEArrayTypes<Value>>
@@ -67,7 +67,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
         bt::DefaultBranchStructTF
     >;
 
-    using StructureStreamTF = StreamTF<
+    using StructureStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
             TL<typename btfl::StructureStreamTF<DataStreams>::Type>

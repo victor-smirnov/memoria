@@ -61,10 +61,10 @@ struct BTTypes<Profile, Sequence<1, true> >: public BTTypes<Profile, BTSingleStr
 
     using SymbolsSubstreamPath = IntList<0, 1>;
 
-    using SeqStreamTF = StreamTF<
+    using SeqStreamTF = bt::StreamTF<
         TL<StreamSize, TL<PkdFSSeq<SequenceTypes>>>,
-        FSEBranchStructTF,
-        TL<TL<>, TL<TL<SumRange<0, BranchIndexes - 1>>>>
+        bt::FSEBranchStructTF,
+        TL<TL<>, TL<TL<bt::SumRange<0, BranchIndexes - 1>>>>
     >;
 
     using StreamDescriptors = TypeList<SeqStreamTF>;

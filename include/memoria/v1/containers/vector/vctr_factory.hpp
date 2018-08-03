@@ -81,12 +81,12 @@ struct BTTypes<Profile, Vector<Value> >: public VectorBTTypesBase<Profile, Value
     using LeafValueStruct = typename mvector::VectorValueStructTF<Value, HasFieldFactory<Value>::Value>::Type;
 
 
-    using StreamDescriptors = TL<StreamTF<
+    using StreamDescriptors = TL<bt::StreamTF<
         TL<
             StreamSize,
             LeafValueStruct
         >,
-        DefaultBranchStructTF,
+        bt::DefaultBranchStructTF,
         TL<TL<>, TL<>>
     >>;
 };
@@ -116,18 +116,18 @@ struct BTTypes<Profile, Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, BTSi
 
     typedef Value_                                                              Value;
 
-    using VectorStreamTF = StreamTF<
+    using VectorStreamTF = bt::StreamTF<
         TL<TL<
             StreamSize,
             PkdVDArrayT<Value, 1, CodecClassTF<Gr>::template Type>
         >>,
-        FSEBranchStructTF,
+        bt::FSEBranchStructTF,
         TL<TL<TL<>, TL<>>>
     >;
 
 
     typedef TypeList<
-                VectorStreamTF
+        VectorStreamTF
     >                                                                           StreamDescriptors;
 
     using Entry = Value;
@@ -166,7 +166,7 @@ public:
         typedef Vector2CtrTypes<Types>                                          CtrTypes;
         typedef Vector2IterTypes<Types>                                         IterTypes;
 
-        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
+        typedef bt::PageUpdateManager<CtrTypes>                                 PageUpdateMgr;
     };
 
 

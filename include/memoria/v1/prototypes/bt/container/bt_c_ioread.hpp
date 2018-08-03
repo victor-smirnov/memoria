@@ -22,6 +22,9 @@
 
 #include <memoria/v1/core/iobuffer/io_buffer.hpp>
 
+#include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
+#include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
+
 #include <vector>
 #include <utility>
 

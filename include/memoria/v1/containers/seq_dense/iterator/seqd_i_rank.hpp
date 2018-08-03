@@ -62,19 +62,19 @@ public:
         }
 
         template <typename NodeTypes>
-        void treeNode(const LeafNode<NodeTypes>* node, WalkCmd, int32_t start, int32_t idx)
+        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd, int32_t start, int32_t idx)
         {
             node->template processStream<RankSubstreamPath>(*this, idx);
         }
 
         template <typename NodeTypes>
-        void treeNode(const LeafNode<NodeTypes>* node, int32_t idx)
+        void treeNode(const bt::LeafNode<NodeTypes>* node, int32_t idx)
         {
             node->template processStream<RankSubstreamPath>(*this, idx);
         }
 
         template <typename NodeTypes>
-        void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, int32_t start, int32_t idx)
+        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd, int32_t start, int32_t idx)
         {
             if (node != nullptr)
             {

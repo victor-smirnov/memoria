@@ -259,7 +259,7 @@ public:
         auto result2 = select1FW(bitmap_, start_, stop_, rank_);
 
         assert_equals(result1.is_found(),  result2.is_found(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.idx(),  result2.idx(), u"{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {} {}", start_, stop_, rank_);
         assert_equals(result1.rank(), result2.rank(), u"{} {} {}", start_, stop_, rank_);
     }
 
@@ -273,7 +273,7 @@ public:
         auto result2 = select0FW(bitmap_, start_, stop_, rank_);
 
         assert_equals(result1.is_found(),  result2.is_found(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.idx(),  result2.idx(), u"{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {} {}", start_, stop_, rank_);
         assert_equals(result1.rank(), result2.rank(), u"{} {} {}", start_, stop_, rank_);
     }
 
@@ -346,7 +346,7 @@ public:
         auto result2 = select1BW(bitmap_, start_, stop_, rank_);
 
         assert_equals(result1.is_found(),  result2.is_found(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.idx(),  result2.idx(), u"{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {} {}", start_, stop_, rank_);
         assert_equals(result1.rank(), result2.rank(), u"{} {} {}", start_, stop_, rank_);
     }
 
@@ -360,7 +360,7 @@ public:
         auto result2 = select0BW(bitmap_, start_, stop_, rank_);
 
         assert_equals(result1.is_found(),  result2.is_found(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.idx(),  result2.idx(), u"{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {} {}", start_, stop_, rank_);
         assert_equals(result1.rank(), result2.rank(), u"{} {} {}", start_, stop_, rank_);
     }
 
@@ -467,7 +467,7 @@ public:
         auto result2 = select1BW(bitmap_, start_, stop_, rank_);
 
         assert_equals(result1.is_found(), result2.is_found());
-        assert_equals(result1.idx(),      result2.idx());
+        assert_equals(result1.local_pos(), result2.local_pos());
         assert_equals(result1.rank(),     result2.rank());
     }
 
@@ -477,7 +477,7 @@ public:
         auto result2 = select0BW(bitmap_, start_, stop_, rank_);
 
         assert_equals(result1.is_found(), result2.is_found());
-        assert_equals(result1.idx(),      result2.idx());
+        assert_equals(result1.local_pos(), result2.local_pos());
         assert_equals(result1.rank(),     result2.rank());
     }
 };

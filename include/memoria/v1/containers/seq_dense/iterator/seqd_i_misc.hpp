@@ -79,11 +79,11 @@ public:
 
         InsertSymbolFn(int32_t symbol): symbol_(symbol) {}
 
-        const auto& get(StreamTag<0>, StreamTag<0>, int32_t block) const {
+        const auto& get(bt::StreamTag<0>, bt::StreamTag<0>, int32_t block) const {
             return one_;
         }
 
-        const auto& get(StreamTag<0>, StreamTag<1>, int32_t block) const {
+        const auto& get(bt::StreamTag<0>, bt::StreamTag<1>, int32_t block) const {
             return symbol_;
         }
     };
@@ -194,7 +194,7 @@ public:
         ReadAdaptor(const Seq& seq): seq_(seq) {}
 
         template <typename V>
-        void process(StreamTag<0>, StreamTag<1>, int32_t start, int32_t end, V&& value)
+        void process(bt::StreamTag<0>, bt::StreamTag<1>, int32_t start, int32_t end, V&& value)
         {
             for (int32_t c = start; c < end; c++)
             {
