@@ -61,9 +61,16 @@ public:
 
     //using Base::seek;
 
-    IteratorPtr seek(CtrSizeT idx) {
+    IteratorPtr seek(CtrSizeT idx)
+    {
         auto& self = this->self();
-        return self.template seek_stream<0>(idx);
+        auto ii = self.template seek_stream<0>(idx);
+
+        ii->stream() = 0;
+
+        ii->toStructureStream();
+
+        return ii;
     }
 
     CtrSizeT size() const {

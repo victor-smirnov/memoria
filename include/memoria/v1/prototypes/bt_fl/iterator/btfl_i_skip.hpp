@@ -23,6 +23,9 @@
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
+#include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
+#include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
+
 #include <iostream>
 
 namespace memoria {

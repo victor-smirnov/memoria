@@ -36,6 +36,30 @@ int main(int argc, char** argv, char** envp)
         auto alloc = ThreadInMemAllocator<>::create();
 
         auto snp1 = alloc.master().branch();
+
+        auto ctr = create<Multimap<int64_t, uint8_t>>(snp1);
+
+        std::vector<uint8_t> data(100);
+
+        for (int c = 0; c < 10000; c++) {
+            ctr.assign(c + 1, data.begin(), data.end());
+        }
+
+        std::cout << "Ctr size: " << ctr.size() << std::endl;
+
+        for (int c = 0; c < ctr.size(); c++)
+        {
+            auto ii = ctr.seek(c);
+            auto kk = ii.key();
+            ii.to_values();
+            auto dsize = ii.read_values().size();
+
+            if (kk != c + 1 || dsize != data.size())
+            {
+                std::cout << ii.key() << " " << (c + 1) << " " << dsize<< std::endl;
+            }
+        }
+
         snp1.commit();
         std::cout << "Active snapshots num: " << alloc.active_snapshots() << std::endl;
         alloc.store("allocator.mma1", 3000);
