@@ -105,6 +105,8 @@ public:
     
     int64_t count_values() const;
     int64_t run_pos() const;
+    int64_t key_pos() const;
+
     void insert_key(const Key& key);
     void insert_value(const Value& value);
     

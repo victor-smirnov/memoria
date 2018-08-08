@@ -51,12 +51,14 @@ int main(int argc, char** argv, char** envp)
         {
             auto ii = ctr.seek(c);
             auto kk = ii.key();
+            auto kp = ii.key_pos();
+
             ii.to_values();
             auto dsize = ii.read_values().size();
 
-            if (kk != c + 1 || dsize != data.size())
+            if (kk != c + 1 || dsize != data.size() || kp != c)
             {
-                std::cout << ii.key() << " " << (c + 1) << " " << dsize<< std::endl;
+                std::cout << ii.key() << " " << (c + 1) << " " << dsize << " " << ii.key_pos() << std::endl;
             }
         }
 

@@ -152,6 +152,11 @@ public:
         }
     }
 
+    CtrSizeT key_pos() const
+    {
+        auto& self = this->self();
+        return self.rank(0);
+    }
 
     void insert_key(const Key& key)
     {

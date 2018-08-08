@@ -199,6 +199,12 @@ int64_t IterApi<Multimap<Key, Value>, Profile>::run_pos() const
 {
     return this->pimpl_->run_pos();
 }
+
+template <typename Key, typename Value, typename Profile>
+int64_t IterApi<Multimap<Key, Value>, Profile>::key_pos() const
+{
+    return this->pimpl_->key_pos();
+}
  
  
 template <typename Key, typename Value, typename Profile>
