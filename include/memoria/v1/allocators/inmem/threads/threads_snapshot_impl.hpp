@@ -160,6 +160,10 @@ public:
         {
             history_node_->commit();
             history_tree_raw_->unref_active();
+
+            if (history_tree_raw_->isDumpSnapshotLifecycle()) {
+                std::cout << "MEMORIA: COMMIT snapshot: " << history_node_->txn_id();
+            }
         }
         else {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
@@ -186,6 +190,10 @@ public:
             }
 
             history_node_->mark_to_clear();
+
+            if (history_tree_raw_->isDumpSnapshotLifecycle()) {
+                std::cout << "MEMORIA: MARK snapshot DROPPED: " << history_node_->txn_id();
+            }
         }
         else {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Can't drop root snapshot {}", uuid()));
@@ -247,6 +255,10 @@ public:
         if (history_node_->is_committed())
         {
             HistoryNode* history_node = new HistoryNode(history_node_);
+
+            if (history_tree_raw_->isDumpSnapshotLifecycle()) {
+                std::cout << "MEMORIA: BRANCH snapshot: " << history_node->txn_id();
+            }
 
             LockGuardT lock_guard3(history_node->snapshot_mutex());
 

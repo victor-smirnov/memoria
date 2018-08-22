@@ -656,6 +656,10 @@ protected:
     {
         if (node->is_dropped() && node->root() != nullptr)
         {
+            if (this->isDumpSnapshotLifecycle()) {
+                std::cout << "MEMORIA: DELETE snapshot's DATA (do_delete_dropped): " << node->txn_id();
+            }
+
             SnapshotT::delete_snapshot(node);
         }
 
@@ -670,6 +674,10 @@ protected:
     	LockGuardT lock_guard(mutex_);
 
         snapshot_map_.erase(history_node->txn_id());
+
+        if (this->isDumpSnapshotLifecycle()) {
+            std::cout << "MEMORIA: FORGET snapshot from allocator: " << history_node->txn_id();
+        }
 
         history_node->remove_from_parent();
 
@@ -872,6 +880,16 @@ void ThreadInMemAllocator<Profile>::unlock(){
 template <typename Profile>
 bool ThreadInMemAllocator<Profile>::try_lock() {
     return pimpl_->try_lock();
+}
+
+template <typename Profile>
+bool ThreadInMemAllocator<Profile>::is_dump_snapshot_lifecycle() {
+    return pimpl_->isDumpSnapshotLifecycle();
+}
+
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::set_dump_snapshot_lifecycle(bool do_dump) {
+    return pimpl_->set_dump_snapshot_lifecycle(do_dump);
 }
 
 

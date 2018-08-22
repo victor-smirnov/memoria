@@ -100,6 +100,9 @@ public:
     void unlock();
     bool try_lock();
 
+    bool is_dump_snapshot_lifecycle();
+    void set_dump_snapshot_lifecycle(bool do_dump);
+
     UUID root_shaphot_id() const;
     std::vector<UUID> children_of(const UUID& snapshot_id) const;
     std::vector<std::string> children_of_str(const UUID& snapshot_id) const;

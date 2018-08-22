@@ -1260,6 +1260,10 @@ protected:
 
     void do_drop() throw ()
     {
+        if (history_tree_raw_->isDumpSnapshotLifecycle()) {
+            std::cout << "MEMORIA: DROP snapshot's DATA: " << history_node_->txn_id();
+        }
+
     	persistent_tree_.delete_tree([&](LeafNodeT* leaf){
             for (int32_t c = 0; c < leaf->size(); c++)
             {

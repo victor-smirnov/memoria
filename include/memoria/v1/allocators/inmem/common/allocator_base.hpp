@@ -521,6 +521,8 @@ protected:
 
     ReverseBranchMap snapshot_labels_metadata_;
 
+    std::atomic<bool> dump_snapshot_lifecycle_{false};
+
 public:
     InMemAllocatorBase():
         logger_("PersistentInMemAllocator"),
@@ -549,6 +551,9 @@ public:
     {
         
     }
+
+    bool isDumpSnapshotLifecycle() {return dump_snapshot_lifecycle_.load();}
+    void set_dump_snapshot_lifecycle(bool do_dump) {dump_snapshot_lifecycle_.store(do_dump);}
 
     auto get_root_snapshot_uuid() const {
         return history_tree_->txn_id();
@@ -1346,6 +1351,11 @@ protected:
         if (node->children().size() == 0)
         {
             node->remove_from_parent();
+
+            if (this->isDumpSnapshotLifecycle()) {
+                std::cout << "MEMORIA: do_remove_history_node: " << node->txn_id();
+            }
+
             delete node;
 
             return true;
@@ -1356,6 +1366,10 @@ protected:
             auto child  = node->children()[0];
 
             node->remove_from_parent();
+
+            if (this->isDumpSnapshotLifecycle()) {
+                std::cout << "MEMORIA: do_remove_history_node: " << node->txn_id();
+            }
 
             delete node;
 
