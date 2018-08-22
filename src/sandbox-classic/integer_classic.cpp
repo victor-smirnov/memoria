@@ -37,30 +37,18 @@ int main(int argc, char** argv, char** envp)
 
         auto snp1 = alloc.master().branch();
 
-        auto ctr = create<Multimap<int64_t, uint8_t>>(snp1);
+        auto name = UUID::make_random();
+
+        auto ctr1 = create<Multimap<int64_t, uint8_t>>(snp1, name);
+        auto ctr2 = find<Multimap<int64_t, uint8_t>>(snp1, name);
+
+        std::cout << ctr1.ptr() << " :: " << ctr2.ptr() << std::endl;
+
+        ctr2.cleanup();
 
         std::vector<uint8_t> data(100);
 
-        for (int c = 0; c < 10000; c++) {
-            ctr.assign(c + 1, data.begin(), data.end());
-        }
-
-        std::cout << "Ctr size: " << ctr.size() << std::endl;
-
-        for (int c = 0; c < ctr.size(); c++)
-        {
-            auto ii = ctr.seek(c);
-            auto kk = ii.key();
-            auto kp = ii.key_pos();
-
-            ii.to_values();
-            auto dsize = ii.read_values().size();
-
-            if (kk != c + 1 || dsize != data.size() || kp != c)
-            {
-                std::cout << ii.key() << " " << (c + 1) << " " << dsize << " " << ii.key_pos() << std::endl;
-            }
-        }
+        //ctr1.assign(1, data.begin(), data.end());
 
         snp1.commit();
         std::cout << "Active snapshots num: " << alloc.active_snapshots() << std::endl;

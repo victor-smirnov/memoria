@@ -53,6 +53,7 @@ option(BUILD_EXAMPLES   "Build project examples" OFF)
 option(BUILD_BENCHMARKS "Build project benchmarks" ON)
 option(BUILD_WITH_BACKTRACE "Include backtrace suport on Linux" OFF)
 option(BUILD_WITH_STATIC_BOOST "Use static boost libraries" OFF)
+option(BUILD_EMIT_LLVM  "Emit LLVM bytecode for compiled binaries. Implies Clang is the compiler." OFF)
 
 option(ICU_DEBUG        "Debug FindICU" OFF)
 option(Boost_DEBUG      "Debug FindBoost" OFF)
@@ -81,6 +82,12 @@ endif()
 add_definitions(-DBOOST_NO_AUTO_PTR -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE -DJEMALLOC_NO_PRIVATE_NAMESPACE)
 
 if (BUILD_POSIX)
+
+    if (BUILD_EMIT_LLVM)
+        set (CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -flto -fuse-ld=lld -Wl,-save-temps")
+        add_definitions(-Wl,-save-temps -flto)
+    endif()
+
     add_definitions(-Wall -Wno-sign-compare -fPIC -DPIC -D_GNU_SOURCE -D_REENTRANT -Wno-unused-command-line-argument)
     add_definitions(-Wno-old-style-cast)
 

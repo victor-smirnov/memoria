@@ -205,6 +205,8 @@ public:
 
         mutable HMutexT mutex_;
 
+        int64_t uses_ = 0;
+
     public:
 
         HistoryNode(MyType* allocator, Status status = Status::ACTIVE):
