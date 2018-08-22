@@ -162,7 +162,7 @@ public:
             history_tree_raw_->unref_active();
 
             if (history_tree_raw_->isDumpSnapshotLifecycle()) {
-                std::cout << "MEMORIA: COMMIT snapshot: " << history_node_->txn_id();
+                std::cout << "MEMORIA: COMMIT snapshot: " << history_node_->txn_id() << std::endl;
             }
         }
         else {
@@ -192,7 +192,7 @@ public:
             history_node_->mark_to_clear();
 
             if (history_tree_raw_->isDumpSnapshotLifecycle()) {
-                std::cout << "MEMORIA: MARK snapshot DROPPED: " << history_node_->txn_id();
+                std::cout << "MEMORIA: MARK snapshot DROPPED: " << history_node_->txn_id() << std::endl;
             }
         }
         else {
@@ -257,7 +257,7 @@ public:
             HistoryNode* history_node = new HistoryNode(history_node_);
 
             if (history_tree_raw_->isDumpSnapshotLifecycle()) {
-                std::cout << "MEMORIA: BRANCH snapshot: " << history_node->txn_id();
+                std::cout << "MEMORIA: BRANCH snapshot: " << history_node->txn_id() << std::endl;
             }
 
             LockGuardT lock_guard3(history_node->snapshot_mutex());

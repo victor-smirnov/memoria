@@ -1353,7 +1353,7 @@ protected:
             node->remove_from_parent();
 
             if (this->isDumpSnapshotLifecycle()) {
-                std::cout << "MEMORIA: do_remove_history_node: " << node->txn_id();
+                std::cout << "MEMORIA: do_remove_history_node: " << node->txn_id() << std::endl;
             }
 
             delete node;
@@ -1368,7 +1368,7 @@ protected:
             node->remove_from_parent();
 
             if (this->isDumpSnapshotLifecycle()) {
-                std::cout << "MEMORIA: do_remove_history_node: " << node->txn_id();
+                std::cout << "MEMORIA: do_remove_history_node: " << node->txn_id() << std::endl;
             }
 
             delete node;

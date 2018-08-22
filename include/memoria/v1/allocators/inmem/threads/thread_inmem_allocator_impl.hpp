@@ -657,7 +657,7 @@ protected:
         if (node->is_dropped() && node->root() != nullptr)
         {
             if (this->isDumpSnapshotLifecycle()) {
-                std::cout << "MEMORIA: DELETE snapshot's DATA (do_delete_dropped): " << node->txn_id();
+                std::cout << "MEMORIA: DELETE snapshot's DATA (do_delete_dropped): " << node->txn_id() << std::endl;
             }
 
             SnapshotT::delete_snapshot(node);
@@ -676,7 +676,7 @@ protected:
         snapshot_map_.erase(history_node->txn_id());
 
         if (this->isDumpSnapshotLifecycle()) {
-            std::cout << "MEMORIA: FORGET snapshot from allocator: " << history_node->txn_id();
+            std::cout << "MEMORIA: FORGET snapshot from allocator: " << history_node->txn_id() << std::endl;
         }
 
         history_node->remove_from_parent();
