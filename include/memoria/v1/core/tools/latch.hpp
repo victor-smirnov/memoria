@@ -40,11 +40,13 @@ public:
 	void inc() {
 		std::unique_lock<std::mutex> lk(mutex_);
 		++value_;
+        cv.notify_all();
 	}
 
 	void dec() {
 		std::unique_lock<std::mutex> lk(mutex_);
 		--value_;
+        cv.notify_all();
 	}
 
 	const T& get() {

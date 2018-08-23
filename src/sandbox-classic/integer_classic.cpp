@@ -28,6 +28,8 @@
 #include <algorithm>
 #include <random>
 
+#include <thread>
+
 using namespace memoria::v1;
 
 int main(int argc, char** argv, char** envp)
@@ -35,24 +37,28 @@ int main(int argc, char** argv, char** envp)
     try {
         auto alloc = ThreadInMemAllocator<>::create();
 
-        auto snp1 = alloc.master().branch();
+        alloc.set_dump_snapshot_lifecycle(true);
 
-        auto name = UUID::make_random();
+        std::thread th1([&](){
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            auto snp1 = alloc.master().branch();
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+            snp1.commit();
+        });
 
-        auto ctr1 = create<Multimap<int64_t, uint8_t>>(snp1, name);
-        auto ctr2 = find<Multimap<int64_t, uint8_t>>(snp1, name);
+        std::thread th2([&](){
+            auto snp1 = alloc.master().branch();
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+            snp1.commit();
+        });
 
-        std::cout << ctr1.ptr() << " :: " << ctr2.ptr() << std::endl;
-
-        ctr2.cleanup();
-
-        std::vector<uint8_t> data(100);
-
-        //ctr1.assign(1, data.begin(), data.end());
-
-        snp1.commit();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         std::cout << "Active snapshots num: " << alloc.active_snapshots() << std::endl;
         alloc.store("allocator.mma1", 3000);
+        std::cout << "Stored..." << std::endl;
+        th1.join();
+        th2.join();
+        std::cout << "Done..." << std::endl;
     }
     catch (MemoriaThrowable& ex) {
         ex.dump(std::cout);
