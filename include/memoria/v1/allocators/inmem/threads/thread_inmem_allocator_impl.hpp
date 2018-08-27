@@ -238,10 +238,27 @@ public:
         auto ii = named_branches_.find(branch_name);
         if (ii != named_branches_.end())
         {
+            // TODO: need to take a lock here on the snapshot
             return ii->second->txn_id();
         }
 
         return UUID{};
+    }
+
+    std::vector<UUID> heads()
+    {
+        std::lock_guard<MutexT> lock(mutex_);
+        std::unordered_set<UUID> ids;
+
+        for (const auto& entry: named_branches_)
+        {
+            // TODO: need to take a lock here on the snapshot
+            ids.insert(entry.second->txn_id());
+        }
+
+        ids.insert(master_->txn_id());
+
+        return std::vector<UUID>(ids.begin(), ids.end());
     }
 
     
@@ -955,6 +972,23 @@ UUID ThreadInMemAllocator<Profile>::snapshot_parent(const TxnId& snapshot_id) {
 template <typename Profile>
 U16String ThreadInMemAllocator<Profile>::snapshot_description(const TxnId& snapshot_id) {
     return pimpl_->snapshot_description(snapshot_id);
+}
+
+template <typename Profile>
+std::vector<std::string> ThreadInMemAllocator<Profile>::heads_str()
+{
+    auto heads_v = this->heads();
+    std::vector<std::string> heads_s;
+    for (auto& id: heads_v) {
+        heads_s.emplace_back(id.str());
+    }
+
+    return heads_s;
+}
+
+template <typename Profile>
+std::vector<UUID> ThreadInMemAllocator<Profile>::heads() {
+    return pimpl_->heads();
 }
 
 }}

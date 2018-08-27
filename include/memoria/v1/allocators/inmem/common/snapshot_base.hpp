@@ -1199,7 +1199,7 @@ protected:
     {
     	if (!is_active())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot's {} data is not active", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status()));
     	}
     }
 

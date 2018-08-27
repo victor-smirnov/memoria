@@ -304,6 +304,10 @@ public:
         	return status_ == Status::DATA_LOCKED;
         }
 
+        Status status() const {
+            return status_;
+        }
+
         const TxnId& txn_id() const {return txn_id_;}
 
         const auto& root() const {
@@ -346,12 +350,7 @@ public:
         }
 
 
-
-        const Status& status() const {
-        	return status_;
-        }
-
-        void set_status(Status& status) {
+        void set_status(const Status& status) {
         	status_ = status;
         }
 
