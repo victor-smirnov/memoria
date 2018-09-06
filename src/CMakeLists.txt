@@ -60,12 +60,31 @@ export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
 
 
 if (BUILD_CLASSIC_MEMORIA_LIB)
+
+    add_library(MemoriaLMDB STATIC lmdb/mdb.c lmdb/midl.c)
+
+    target_include_directories(MemoriaLMDB PUBLIC lmdb/include)
+    set_target_properties(MemoriaLMDB PROPERTIES COMPILE_FLAGS "-pthread -fPIC")
+    set_target_properties(MemoriaLMDB PROPERTIES LINK_FLAGS "")
+    target_link_libraries(MemoriaLMDB pthread)
+
+    set(LMDB_TOOLS mdb_copy mdb_load mdb_dump mdb_stat mtest mtest2 mtest3 mtest4 mtest5)
+
+    FOREACH(LMDB_TOOLS_TARGET_BASE ${LMDB_TOOLS})
+        set(LMDB_TOOLS_TARGET mma1_${LMDB_TOOLS_TARGET_BASE})
+        add_executable(${LMDB_TOOLS_TARGET} lmdb/${LMDB_TOOLS_TARGET_BASE}.c)
+        set_target_properties(${LMDB_TOOLS_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+        set_target_properties(${LMDB_TOOLS_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+        target_link_libraries(${LMDB_TOOLS_TARGET} MemoriaLMDB)
+    ENDFOREACH()
+
+
     get_property(GLOBAL_SRCS_CLASSIC GLOBAL PROPERTY GLOBAL_SOURCES_CLASSIC)
     add_library(MemoriaClassic STATIC ${GLOBAL_SRCS_CLASSIC})
 
     SET_TARGET_PROPERTIES(MemoriaClassic PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR} -DMMA1_NO_REACTOR")
     SET_TARGET_PROPERTIES(MemoriaClassic PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    target_link_libraries(MemoriaClassic ${MEMORIA_LIBS})
+    target_link_libraries(MemoriaClassic MemoriaLMDB ${MEMORIA_LIBS})
 
     if (BUILD_MACOSX)
         target_include_directories(MemoriaClassic PRIVATE BEFORE jemalloc/include/macosx)
@@ -76,7 +95,7 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
         target_include_directories(MemoriaClassic PRIVATE BEFORE jemalloc/include/linux)
     endif()
 
-    export(TARGETS MemoriaClassic FILE ${LIBRARY_OUTPUT_PATH}/MemoriaClassic.cmake)
+    export(TARGETS MemoriaClassic MemoriaLMDB FILE ${LIBRARY_OUTPUT_PATH}/MemoriaClassic.cmake)
 endif()
 
 
