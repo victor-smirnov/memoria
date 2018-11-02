@@ -53,13 +53,17 @@ int main(int argc, char** argv, char** envp)
 
         auto ctr2 = find<MapType>(snp2, ctr.name());
 
-        for (int c = 0; c < 500000; c++) {
+        for (int c = 0; c < 5000; c++) {
             ctr2.assign(U8String("AAA") + std::to_string(c), "BBB");
         }
 
         snp2.commit();
 
-        auto stat2 = alloc.memory_stat();
+        alloc.lock();
+
+        auto stat2 = alloc.memory_stat(false);
+
+        alloc.unlock();
 
         print(std::cout, *stat2.get());
         std::cout << "\n";

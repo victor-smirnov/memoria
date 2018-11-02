@@ -123,7 +123,7 @@ public:
     PairPtr& pair();
     const PairPtr& pair() const;
 
-    SharedPtr<AllocatorMemoryStat> memory_stat();
+    SharedPtr<AllocatorMemoryStat> memory_stat(bool include_containers = true);
 };
 
 
@@ -234,7 +234,7 @@ public:
     void reset();
     Logger& logger();
 
-    SharedPtr<SnapshotMemoryStat> memory_stat();
+    SharedPtr<SnapshotMemoryStat> memory_stat(bool include_containers = true);
     
 private:
     AllocSharedPtr<AllocatorT> snapshot_ref_creation_allowed();

@@ -598,7 +598,7 @@ public:
         return Base::load(fileh.get());
     }
 
-    SharedPtr<AllocatorMemoryStat> compute_memory_stat()
+    SharedPtr<AllocatorMemoryStat> compute_memory_stat(bool include_containers)
     {
         LockGuardT lock_guard(mutex_);
 
@@ -612,7 +612,7 @@ public:
             if (node->is_committed() || node->is_dropped())
             {
                 auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this());
-                auto snp_stat = snp->compute_memory_stat();
+                auto snp_stat = snp->do_compute_memory_stat(visited_pages, include_containers);
                 alloc_stat->add_snapshot_stat(snp_stat);
             }
         };
@@ -1018,8 +1018,8 @@ std::vector<UUID> ThreadInMemAllocator<Profile>::heads() {
 }
 
 template <typename Profile>
-SharedPtr<AllocatorMemoryStat> ThreadInMemAllocator<Profile>::memory_stat() {
-    return pimpl_->compute_memory_stat();
+SharedPtr<AllocatorMemoryStat> ThreadInMemAllocator<Profile>::memory_stat(bool include_containers) {
+    return pimpl_->compute_memory_stat(include_containers);
 }
 
 }}

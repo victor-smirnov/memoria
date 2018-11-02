@@ -301,10 +301,10 @@ public:
         }
     }
 
-    SharedPtr<SnapshotMemoryStat> compute_memory_stat()
+    SharedPtr<SnapshotMemoryStat> compute_memory_stat(bool include_containers)
     {
         std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
-        return this->do_compute_memory_stat();
+        return this->do_compute_memory_stat(include_containers);
     }
 };
 
@@ -641,8 +641,8 @@ std::vector<U16String> ThreadInMemSnapshot<Profile>::container_names_str() const
 }
 
 template <typename Profile>
-SharedPtr<SnapshotMemoryStat> ThreadInMemSnapshot<Profile>::memory_stat() {
-    return pimpl_->compute_memory_stat();
+SharedPtr<SnapshotMemoryStat> ThreadInMemSnapshot<Profile>::memory_stat(bool include_containers) {
+    return pimpl_->compute_memory_stat(include_containers);
 }
 
 }}

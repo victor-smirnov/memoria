@@ -169,8 +169,13 @@ public:
 
 void print(std::ostream& out, const ContainerMemoryStat& stat);
 void print(std::ostream& out, const SnapshotMemoryStat& stat, int ntabs = 0);
-
 void print(std::ostream& out, const AllocatorMemoryStat& stat);
+
+
+void print_json(std::ostream& out, const ContainerMemoryStat& stat);
+void print_json(std::ostream& out, const SnapshotMemoryStat& stat);
+void print_json(std::ostream& out, const AllocatorMemoryStat& stat);
+
 
 }
 }

@@ -391,7 +391,7 @@ public:
         return STLCollection<Edge>::make(std::move(edges));
     }
 
-    SharedPtr<SnapshotMemoryStat> compute_memory_stat()
+    SharedPtr<SnapshotMemoryStat> compute_memory_stat(bool include_containers)
     {
         return SharedPtr<SnapshotMemoryStat>();
     }
@@ -704,8 +704,8 @@ Vertex InMemSnapshot<Profile>::as_vertex() {
 }
 
 template <typename Profile>
-SharedPtr<SnapshotMemoryStat> InMemSnapshot<Profile>::memory_stat() {
-    return pimpl_->compute_memory_stat();
+SharedPtr<SnapshotMemoryStat> InMemSnapshot<Profile>::memory_stat(bool include_containers) {
+    return pimpl_->compute_memory_stat(include_containers);
 }
 
 }}

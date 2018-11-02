@@ -1123,7 +1123,7 @@ public:
 
 protected:
 
-    SharedPtr<SnapshotMemoryStat> do_compute_memory_stat()
+    SharedPtr<SnapshotMemoryStat> do_compute_memory_stat(bool include_containers)
     {
         _::PageSet visited_pages;
 
@@ -1139,7 +1139,16 @@ protected:
             node = node->parent();
         }
 
-        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_pages, this);
+        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_pages, this, include_containers);
+
+        persistent_tree_.conditional_tree_traverse(consumer);
+
+        return consumer.finish();
+    }
+
+    SharedPtr<SnapshotMemoryStat> do_compute_memory_stat(_::PageSet& visited_pages, bool include_containers)
+    {
+        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_pages, this, include_containers);
 
         persistent_tree_.conditional_tree_traverse(consumer);
 

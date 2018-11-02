@@ -611,7 +611,7 @@ public:
         return EmptyCollection<Edge>::make();
     }
 
-    SharedPtr<AllocatorMemoryStat> compute_memory_stat()
+    SharedPtr<AllocatorMemoryStat> compute_memory_stat(bool include_containers)
     {
         return SharedPtr<AllocatorMemoryStat>();
     }
@@ -992,8 +992,8 @@ U16String InMemAllocator<Profile>::snapshot_description(const TxnId& snapshot_id
 
 
 template <typename Profile>
-SharedPtr<AllocatorMemoryStat> InMemAllocator<Profile>::memory_stat() {
-    return pimpl_->compute_memory_stat();
+SharedPtr<AllocatorMemoryStat> InMemAllocator<Profile>::memory_stat(bool include_containers) {
+    return pimpl_->compute_memory_stat(include_containers);
 }
 
 }}

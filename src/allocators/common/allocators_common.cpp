@@ -16,8 +16,55 @@
 
 #include <memoria/v1/api/allocator/allocator_inmem_api_common.hpp>
 
+#include <type_traits>
+
 namespace memoria {
 namespace v1 {
+
+
+namespace {
+    void print_tabs(std::ostream& out, int ntabs) {
+        for (int n = 0; n < ntabs; n++) {
+            out << "\t";
+        }
+    }
+
+    class ListState {
+        int32_t cnt_{};
+    public:
+        void tick() {cnt_++;}
+
+        operator bool() const {
+            return cnt_ > 0;
+        }
+    };
+
+    template <typename T>
+    std::enable_if_t<std::is_arithmetic<T>::value, void> out_json_val(ListState& state, std::ostream& out, const char* name, const T& val)
+    {
+        if (val != 0)
+        {
+            if (state) {
+                out << ", ";
+            }
+            out << "\"" << name << "\": " << val;
+            state.tick();
+        }
+    }
+
+    template <typename T>
+    std::enable_if_t<!std::is_arithmetic<T>::value, void>  out_json_val(ListState& state, std::ostream& out, const char* name, const T& val)
+    {
+        if (state) {
+            out << ", ";
+        }
+
+        out << "\"" << name << "\": \"" << val << "\"";
+
+        state.tick();
+    }
+}
+
 
 
 void print(std::ostream& out, const ContainerMemoryStat& stat)
@@ -27,13 +74,27 @@ void print(std::ostream& out, const ContainerMemoryStat& stat)
     out << stat.total_leaf_pages() << ", " << stat.total_branch_pages() << "}";
 }
 
-namespace {
-    void print_tabs(std::ostream& out, int ntabs) {
-        for (int n = 0; n < ntabs; n++) {
-            out << "\t";
-        }
-    }
+
+
+
+
+void print_json(std::ostream& out, const ContainerMemoryStat& stat)
+{
+    ListState state;
+
+    out << "{";
+
+    out_json_val(state, out, "ctrTypeName", stat.ctr_type_name());
+    out_json_val(state, out, "totalSize", stat.total_size());
+    out_json_val(state, out, "totalLeafSize", stat.total_leaf_size());
+    out_json_val(state, out, "totalBranchSize", stat.total_branch_size());
+    out_json_val(state, out, "totalLeafPages", stat.total_leaf_pages());
+    out_json_val(state, out, "totalBranchPages", stat.total_branch_pages());
+
+    out << "}";
 }
+
+
 
 void print(std::ostream& out, const SnapshotMemoryStat& stat, int ntabs)
 {
@@ -62,6 +123,39 @@ void print(std::ostream& out, const SnapshotMemoryStat& stat, int ntabs)
     out << "]";
 }
 
+
+void print_json(std::ostream& out, const SnapshotMemoryStat& stat)
+{
+    ListState state;
+
+    out << "{";
+
+    out_json_val(state, out, "totalSize", stat.total_size());
+    out_json_val(state, out, "totalDataSize", stat.total_data_size());
+    out_json_val(state, out, "totalPTreeSize", stat.total_ptree_size());
+
+    if (stat.containers().size() > 0)
+    {
+        if (state) out << ", ";
+        out << "\"containers\": {";
+
+        ListState state2;
+        for (auto ctr_stat: stat.containers())
+        {
+            if (state2) out << ", ";
+
+            out << "\"" << ctr_stat.first << "\":";
+            print_json(out, *(ctr_stat.second.get()));
+
+            state2.tick();
+        }
+
+        out << "}";
+    }
+
+    out << "}";
+}
+
 void print(std::ostream& out, const AllocatorMemoryStat& stat)
 {
     out << "AllocatorStat[Mem: " << stat.total_size();
@@ -80,6 +174,36 @@ void print(std::ostream& out, const AllocatorMemoryStat& stat)
     else {}
 
     out << "]";
+}
+
+void print_json(std::ostream& out, const AllocatorMemoryStat& stat)
+{
+    ListState state;
+
+    out << "{";
+    out_json_val(state, out, "totalSize", stat.total_size());
+
+    if (stat.snapshots().size() > 0)
+    {
+        if (state) out << ", ";
+        out << "\"snapshots\": {";
+
+        ListState state2;
+        for (auto snp_stat: stat.snapshots())
+        {
+            if (state2) out << ", ";
+
+            out << "\"" << snp_stat.first << "\":";
+            print_json(out, *(snp_stat.second.get()));
+
+            state2.tick();
+        }
+
+        out << "}";
+    }
+    else {}
+
+    out << "}";
 }
 
 }}

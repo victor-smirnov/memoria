@@ -80,16 +80,20 @@ class SnapshotStatsCountingConsumer {
 
     Snapshot* current_snapshot_{};
     _::PageSet& visited_pages_;
+    bool include_containers_;
 
     std::unordered_map<UUID, CtrStat> ctr_stat_{};
 
     uint64_t total_ptree_size_{};
     uint64_t total_data_size_{};
 
+
+
 public:
-    SnapshotStatsCountingConsumer(_::PageSet& visits, Snapshot* snp):
+    SnapshotStatsCountingConsumer(_::PageSet& visits, Snapshot* snp, bool include_containers):
         current_snapshot_(snp),
-        visited_pages_(visits)
+        visited_pages_(visits),
+        include_containers_(include_containers)
     {}
 
     template <typename PageT>
@@ -124,21 +128,27 @@ public:
         bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
         if (proceed_next)
         {
-            CtrPageDescription descr = current_snapshot_->describe_page(page->id());
-
-            CtrStat& stat = ctr_stat_[descr.ctr_name()];
-
-            if (descr.is_branch())
+            if (include_containers_)
             {
-                stat.total_branch_pages_ ++;
-                stat.total_branch_size_ += descr.size() / 1024;
+                CtrPageDescription descr = current_snapshot_->describe_page(page->id());
+
+                CtrStat& stat = ctr_stat_[descr.ctr_name()];
+
+                if (descr.is_branch())
+                {
+                    stat.total_branch_pages_ ++;
+                    stat.total_branch_size_ += descr.size() / 1024;
+                }
+                else {
+                    stat.total_leaf_pages_ ++;
+                    stat.total_leaf_size_ += descr.size() / 1024;
+                }
+
+                total_data_size_ += descr.size() / 1024;
             }
             else {
-                stat.total_leaf_pages_ ++;
-                stat.total_leaf_size_ += descr.size() / 1024;
+                total_data_size_ += page->page_size() / 1024;
             }
-
-            total_data_size_ += descr.size() / 1024;
 
             visited_pages_.insert(page);
         }
