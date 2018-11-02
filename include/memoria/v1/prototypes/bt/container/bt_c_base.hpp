@@ -558,12 +558,15 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         bool leaf = node->is_leaf();
         bool root = node->is_root();
 
+        uint64_t offset{};
+
         while (!node->is_root())
         {
+            offset += node->parent_idx();
             node = alloc->getPage(node->parent_id(), UUID());
         }
 
-        return CtrPageDescription(size, getModelNameS(node), root, leaf);
+        return CtrPageDescription(size, getModelNameS(node), root, leaf, offset);
     }
 
  private:

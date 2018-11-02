@@ -125,9 +125,10 @@ class CtrPageDescription {
     UUID ctr_name_;
     bool root_;
     bool leaf_;
+    uint64_t offset_;
 public:
-    CtrPageDescription(int32_t size, UUID ctr_name, bool root, bool leaf):
-        size_(size), ctr_name_(ctr_name), root_(root), leaf_(leaf)
+    CtrPageDescription(int32_t size, UUID ctr_name, bool root, bool leaf, uint64_t offset):
+        size_(size), ctr_name_(ctr_name), root_(root), leaf_(leaf), offset_(offset)
     {}
 
     int32_t size() const {return size_;}
@@ -135,6 +136,7 @@ public:
     bool is_root() const {return root_;}
     bool is_leaf() const {return leaf_;}
     bool is_branch() const {return !is_leaf();}
+    uint64_t offset() const {return offset_;}
 };
 
 struct ContainerInterface {
