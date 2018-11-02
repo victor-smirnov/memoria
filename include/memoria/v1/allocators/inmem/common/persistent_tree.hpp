@@ -268,6 +268,43 @@ public:
     }
 
 
+    template <typename NodeConsumer>
+    void conditional_tree_traverse(NodeConsumer& node_consumer) {
+        conditional_tree_traverse(root(), node_consumer);
+    }
+
+    template <typename NodeConsumer>
+    void conditional_tree_traverse(NodeBaseT* node, NodeConsumer& node_consumer)
+    {
+        if (node->is_leaf())
+        {
+            auto leaf_node = to_leaf_node(node);
+            bool proceed = node_consumer.process_ptree_leaf(leaf_node);
+            if(proceed)
+            {
+                for (int32_t c = 0; c < leaf_node->size(); c++)
+                {
+                    auto& child = leaf_node->data(c);
+                    node_consumer.process_data_page(child.page_ptr()->raw_data());
+                }
+            }
+        }
+        else
+        {
+            auto branch_node = to_branch_node(node);
+            bool proceed = node_consumer.process_ptree_branch(branch_node);
+            if (proceed)
+            {
+                for (int32_t c = 0; c < branch_node->size(); c++)
+                {
+                    auto child = branch_node->data(c);
+                    conditional_tree_traverse(child, node_consumer);
+                }
+            }
+        }
+    }
+
+
 protected:
 
     void walk_tree(NodeBaseT* node, std::function<void (NodeBaseT*)> fn)

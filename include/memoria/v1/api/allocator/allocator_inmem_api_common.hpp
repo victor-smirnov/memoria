@@ -62,6 +62,115 @@ public:
 };
 
 
+class ContainerMemoryStat {
+    UUID ctr_name_;
+    U16String ctr_type_name_;
+
+    uint64_t total_leaf_pages_;
+    uint64_t total_branch_pages_;
+
+    uint64_t total_leaf_size_;
+    uint64_t total_branch_size_;
+
+    uint64_t total_size_;
+
+public:
+    ContainerMemoryStat(
+            const UUID& ctr_name, U16String ctr_type_name, uint64_t total_leaf_pages, uint64_t total_branch_pages,
+            uint64_t total_leaf_size, uint64_t total_branch_size, uint64_t total_size
+    ):
+        ctr_name_(ctr_name),
+        ctr_type_name_(ctr_type_name),
+        total_leaf_pages_(total_leaf_pages), total_branch_pages_(total_branch_pages),
+        total_leaf_size_(total_leaf_size), total_branch_size_(total_branch_size),
+        total_size_(total_size)
+    {}
+
+    const UUID& ctr_name() const {return ctr_name_;}
+    const U16String& ctr_type_name() const {return ctr_type_name_;}
+
+    uint64_t total_leaf_pages() const {return total_leaf_pages_;}
+    uint64_t total_branch_pages() const {return total_branch_pages_;}
+
+    uint64_t total_leaf_size() const {return total_leaf_size_;}
+    uint64_t total_branch_size() const {return total_branch_size_;}
+
+    uint64_t total_size() const {return total_size_;}
+};
+
+
+
+class SnapshotMemoryStat {
+    UUID snapshot_id_;
+
+    uint64_t total_ptree_size_;
+    uint64_t total_data_size_;
+    uint64_t total_size_;
+
+    using CtrMap = std::unordered_map<UUID, SharedPtr<ContainerMemoryStat>>;
+
+    std::unordered_map<UUID, SharedPtr<ContainerMemoryStat>> containers_;
+public:
+    SnapshotMemoryStat(
+            const UUID& snapshot_id, uint64_t total_ptree_size, uint64_t total_data_size, uint64_t total_size
+    ):
+        snapshot_id_(snapshot_id),
+        total_ptree_size_(total_ptree_size),
+        total_data_size_(total_data_size),
+        total_size_(total_size)
+    {}
+
+    const UUID& snapshot_id() const {return snapshot_id_;}
+    uint64_t total_size() const {return total_size_;}
+
+    uint64_t total_ptree_size() const {return total_ptree_size_;}
+    uint64_t total_data_size() const {return total_data_size_;}
+
+    const CtrMap& containers() const {return containers_;}
+
+    template <typename... Args>
+    void add_container_stat(SharedPtr<ContainerMemoryStat> container_stat)
+    {
+        containers_[container_stat->ctr_name()] = container_stat;
+    }
+};
+
+
+
+class AllocatorMemoryStat {
+    uint64_t total_size_;
+
+    using SnapshotMap = std::unordered_map<UUID, SharedPtr<SnapshotMemoryStat>>;
+    SnapshotMap snapshots_;
+
+public:
+    AllocatorMemoryStat(): total_size_(0) {}
+
+    AllocatorMemoryStat(uint64_t total_size): total_size_(total_size) {}
+    const SnapshotMap& snapshots() const {return snapshots_;}
+
+    uint64_t total_size() const {return total_size_;}
+
+    template <typename... Args>
+    void add_snapshot_stat(SharedPtr<SnapshotMemoryStat> snapshot_stat)
+    {
+        snapshots_[snapshot_stat->snapshot_id()] = snapshot_stat;
+    }
+
+    void compute_total_size()
+    {
+        total_size_ = 0;
+        for (const auto& snp: snapshots_)
+        {
+            total_size_ += snp.second->total_size();
+        }
+    }
+};
+
+void print(std::ostream& out, const ContainerMemoryStat& stat);
+void print(std::ostream& out, const SnapshotMemoryStat& stat, int ntabs = 0);
+
+void print(std::ostream& out, const AllocatorMemoryStat& stat);
 
 }
 }

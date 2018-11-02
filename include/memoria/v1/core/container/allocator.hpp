@@ -112,6 +112,8 @@ struct IAllocator: AllocatorBase {
     virtual bool check()                                                        = 0;
     virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr) = 0;
 
+    virtual U16String ctr_type_name(const UUID& name)                           = 0;
+
     virtual Vertex allocator_vertex() {
         return Vertex();
     }

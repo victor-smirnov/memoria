@@ -126,7 +126,7 @@ public:
     {
     }
 
-    sp_counted_impl_pd( P p ): ptr( p ), del()
+    sp_counted_impl_pd( P p ): ptr( p ), del(cpu())
     {
     }
 

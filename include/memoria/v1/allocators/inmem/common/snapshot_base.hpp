@@ -21,6 +21,8 @@
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 
+#include <memoria/v1/allocators/inmem/common/allocator_stat.hpp>
+
 
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/ctr_impl.hpp>
@@ -651,7 +653,7 @@ public:
         }
     }
 
-protected:
+
     virtual PageG getPageForUpdate(const ID& id, const UUID& name)
     {
         // FIXME: Though this check prohibits new page acquiring for update,
@@ -1075,6 +1077,23 @@ protected:
         }
     }
 
+    virtual U16String ctr_type_name(const UUID& name)
+    {
+        UUID root_id = getRootID(name);
+
+        if (root_id.is_set())
+        {
+            PageG page = this->getPage(root_id, name);
+
+            auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
+
+            return ctr_meta->getCtrInterface()->ctr_type_name();
+        }
+        else {
+            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't find container with name {}", name);
+        }
+    }
+
     virtual CtrSharedPtr<CtrReferenceable> from_root_id(const UUID& root_page_id, const UUID& name)
     {
         if (root_page_id.is_set())
@@ -1090,8 +1109,42 @@ protected:
         }
     }
 
+    CtrPageDescription describe_page(const UUID& page_id)
+    {
+        PageG page = this->getPage(page_id, UUID());
+        return describe_page(page);
+    }
+
+    CtrPageDescription describe_page(const PageG& page)
+    {
+        auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
+        return ctr_meta->getCtrInterface()->describe_page(page->id(), this->shared_from_this());
+    }
+
 protected:
 
+    SharedPtr<SnapshotMemoryStat> do_compute_memory_stat()
+    {
+        _::PageSet visited_pages;
+
+        PersistentTreeStatVisitAccumulatingConsumer vp_accum(visited_pages);
+
+        HistoryNode* node = this->history_node_->parent();
+
+        while (node)
+        {
+            PersistentTreeT persistent_tree(node);
+            persistent_tree.conditional_tree_traverse(vp_accum);
+
+            node = node->parent();
+        }
+
+        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_pages, this);
+
+        persistent_tree_.conditional_tree_traverse(consumer);
+
+        return consumer.finish();
+    }
 
     auto export_page_rchandle(const UUID& id)
     {
@@ -1302,6 +1355,7 @@ protected:
         node->assign_root_no_ref(nullptr);
         node->root_id() = ID();
     }
+
 
 
     void check_tree_structure(const NodeBaseT* node)

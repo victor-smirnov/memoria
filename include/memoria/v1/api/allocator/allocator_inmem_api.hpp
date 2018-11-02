@@ -127,6 +127,8 @@ public:
 
     PairPtr& pair();
     const PairPtr& pair() const;
+
+    SharedPtr<AllocatorMemoryStat> memory_stat();
 };
 
 
@@ -247,6 +249,8 @@ public:
 
     const PairPtr& pair() const;
     PairPtr& pair();
+
+    SharedPtr<SnapshotMemoryStat> memory_stat();
     
 private:
     AllocSharedPtr<AllocatorT> snapshot_ref_creation_allowed();

@@ -598,6 +598,32 @@ public:
         return Base::load(fileh.get());
     }
 
+    SharedPtr<AllocatorMemoryStat> compute_memory_stat()
+    {
+        LockGuardT lock_guard(mutex_);
+
+        _::PageSet visited_pages;
+
+        SharedPtr<AllocatorMemoryStat> alloc_stat = MakeShared<AllocatorMemoryStat>(0);
+
+        auto history_visitor = [&](HistoryNode* node) {
+            SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
+
+            if (node->is_committed() || node->is_dropped())
+            {
+                auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this());
+                auto snp_stat = snp->compute_memory_stat();
+                alloc_stat->add_snapshot_stat(snp_stat);
+            }
+        };
+
+        this->walk_version_tree(history_tree_, history_visitor);
+
+        alloc_stat->compute_total_size();
+
+        return alloc_stat;
+    }
+
 protected:
     
     void walk_version_tree(HistoryNode* node, std::function<void (HistoryNode*, SnapshotT*)> fn)
@@ -989,6 +1015,11 @@ std::vector<std::string> ThreadInMemAllocator<Profile>::heads_str()
 template <typename Profile>
 std::vector<UUID> ThreadInMemAllocator<Profile>::heads() {
     return pimpl_->heads();
+}
+
+template <typename Profile>
+SharedPtr<AllocatorMemoryStat> ThreadInMemAllocator<Profile>::memory_stat() {
+    return pimpl_->compute_memory_stat();
 }
 
 }}

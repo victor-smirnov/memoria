@@ -18,6 +18,7 @@
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 
 #include <memoria/v1/api/multimap/multimap_api.hpp>
+#include <memoria/v1/api/map/map_api.hpp>
 
 #include <memoria/v1/core/tools/uuid.hpp>
 
@@ -32,33 +33,40 @@
 
 using namespace memoria::v1;
 
+using MapType = Map<U8String, U8String>;
+
 int main(int argc, char** argv, char** envp)
 {
     try {
         auto alloc = ThreadInMemAllocator<>::create();
 
-        alloc.set_dump_snapshot_lifecycle(true);
+        auto snp = alloc.master().branch();
+        auto ctr = create<MapType>(snp);
 
-        std::thread th1([&](){
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            auto snp1 = alloc.master().branch();
-            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-            snp1.commit();
-        });
+        auto stat = snp.memory_stat();
 
-        std::thread th2([&](){
-            auto snp1 = alloc.master().branch();
-            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-            snp1.commit();
-        });
+        std::cout << "Ctr: " << ctr.name() << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        std::cout << "Active snapshots num: " << alloc.active_snapshots() << std::endl;
-        alloc.store("allocator.mma1", 3000);
-        std::cout << "Stored..." << std::endl;
-        th1.join();
-        th2.join();
+        snp.commit();
+
+        auto snp2 = snp.branch();
+
+        auto ctr2 = find<MapType>(snp2, ctr.name());
+
+        for (int c = 0; c < 500000; c++) {
+            ctr2.assign(U8String("AAA") + std::to_string(c), "BBB");
+        }
+
+        snp2.commit();
+
+        auto stat2 = alloc.memory_stat();
+
+        print(std::cout, *stat2.get());
+        std::cout << "\n";
+
         std::cout << "Done..." << std::endl;
+
+        alloc.store("alloc.mma1");
     }
     catch (MemoriaThrowable& ex) {
         ex.dump(std::cout);

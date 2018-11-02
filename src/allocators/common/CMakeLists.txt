@@ -1,4 +1,4 @@
-# Copyright 2016 Victor Smirnov
+# Copyright 2018 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,8 +13,6 @@
 # limitations under the License.
 
 
-
-add_subdirectory(inmem_threads)
-add_subdirectory(inmem_fibers)
-add_subdirectory(common)
-
+file(GLOB SRCS *.cpp)
+set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})

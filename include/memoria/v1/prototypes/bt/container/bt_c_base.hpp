@@ -550,6 +550,22 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
+    static CtrPageDescription describe_page(const UUID& node_id, Allocator* alloc)
+    {
+        NodeBaseG node = alloc->getPage(node_id, UUID());
+
+        int32_t size = node->page_size();
+        bool leaf = node->is_leaf();
+        bool root = node->is_root();
+
+        while (!node->is_root())
+        {
+            node = alloc->getPage(node->parent_id(), UUID());
+        }
+
+        return CtrPageDescription(size, getModelNameS(node), root, leaf);
+    }
+
  private:
 
     void findCtrByName()

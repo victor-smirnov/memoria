@@ -300,6 +300,12 @@ public:
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has no parent.", uuid()));
         }
     }
+
+    SharedPtr<SnapshotMemoryStat> compute_memory_stat()
+    {
+        std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+        return this->do_compute_memory_stat();
+    }
 };
 
 }
@@ -634,5 +640,9 @@ std::vector<U16String> ThreadInMemSnapshot<Profile>::container_names_str() const
     return pimpl_->container_names_str();
 }
 
+template <typename Profile>
+SharedPtr<SnapshotMemoryStat> ThreadInMemSnapshot<Profile>::memory_stat() {
+    return pimpl_->compute_memory_stat();
+}
 
 }}

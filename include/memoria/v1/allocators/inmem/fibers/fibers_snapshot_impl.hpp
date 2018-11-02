@@ -390,6 +390,11 @@ public:
 
         return STLCollection<Edge>::make(std::move(edges));
     }
+
+    SharedPtr<SnapshotMemoryStat> compute_memory_stat()
+    {
+        return SharedPtr<SnapshotMemoryStat>();
+    }
 };
 
 }
@@ -696,6 +701,11 @@ CtrRef<Profile> InMemSnapshot<Profile>::get(const UUID& name)
 template <typename Profile>
 Vertex InMemSnapshot<Profile>::as_vertex() {
     return pimpl_->as_vertex();
+}
+
+template <typename Profile>
+SharedPtr<SnapshotMemoryStat> InMemSnapshot<Profile>::memory_stat() {
+    return pimpl_->compute_memory_stat();
 }
 
 }}

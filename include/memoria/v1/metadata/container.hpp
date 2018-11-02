@@ -120,6 +120,23 @@ struct ContainerWalkerBase: ContainerWalker {
 
 struct AllocatorBase;
 
+class CtrPageDescription {
+    int32_t size_;
+    UUID ctr_name_;
+    bool root_;
+    bool leaf_;
+public:
+    CtrPageDescription(int32_t size, UUID ctr_name, bool root, bool leaf):
+        size_(size), ctr_name_(ctr_name), root_(root), leaf_(leaf)
+    {}
+
+    int32_t size() const {return size_;}
+    UUID ctr_name() const {return ctr_name_;}
+    bool is_root() const {return root_;}
+    bool is_leaf() const {return leaf_;}
+    bool is_branch() const {return !is_leaf();}
+};
+
 struct ContainerInterface {
 
     virtual ~ContainerInterface() noexcept {}
@@ -179,6 +196,11 @@ struct ContainerInterface {
     virtual UUID clone_ctr(
         const UUID& name,
         const UUID& new_name,
+        const SnpSharedPtr<AllocatorBase>& allocator
+    )                                                                           = 0;
+
+    virtual CtrPageDescription describe_page(
+        const UUID& page_id,
         const SnpSharedPtr<AllocatorBase>& allocator
     )                                                                           = 0;
 };

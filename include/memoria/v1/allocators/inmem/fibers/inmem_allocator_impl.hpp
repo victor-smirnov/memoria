@@ -611,6 +611,11 @@ public:
         return EmptyCollection<Edge>::make();
     }
 
+    SharedPtr<AllocatorMemoryStat> compute_memory_stat()
+    {
+        return SharedPtr<AllocatorMemoryStat>();
+    }
+
 protected:
     
     void walk_version_tree(HistoryNode* node, std::function<void (HistoryNode*, SnapshotT*)> fn)
@@ -985,5 +990,10 @@ U16String InMemAllocator<Profile>::snapshot_description(const TxnId& snapshot_id
     return pimpl_->snapshot_description(snapshot_id);
 }
 
+
+template <typename Profile>
+SharedPtr<AllocatorMemoryStat> InMemAllocator<Profile>::memory_stat() {
+    return pimpl_->compute_memory_stat();
+}
 
 }}

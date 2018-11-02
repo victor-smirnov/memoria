@@ -414,6 +414,12 @@ public:
 
             return new_name_rtn;
         }
+
+        virtual CtrPageDescription describe_page(const UUID& page_id, const AllocatorBasePtr& allocator)
+        {
+            AllocatorPtr alloc = static_pointer_cast<Allocator>(allocator);
+            return MyType::describe_page(page_id, alloc.get());
+        }
     };
 
 
