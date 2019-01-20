@@ -26,8 +26,7 @@
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/logs.hpp>
 
-#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
-
+#include <memoria/v1/profiles/common/common.hpp>
 #include <boost/filesystem.hpp>
 
 #include "allocator_inmem_api_common.hpp"
@@ -52,7 +51,7 @@ class ThreadInMemAllocator {
     AllocSharedPtr<PImpl> pimpl_;
 public:
     using SnapshotPtr   = ThreadInMemSnapshot<Profile>;
-    using Page          = ProfilePageType<Profile>;
+    using Page          = ProfileBlockType<Profile>;
     
     ThreadInMemAllocator();
     
@@ -138,7 +137,7 @@ class ThreadInMemSnapshot {
     using SnapshotPtr = ThreadInMemSnapshot;
     using TxnId = UUID;
 
-    using AllocatorT = IAllocator<ProfilePageType<Profile>>;
+    using AllocatorT = ProfileAllocatorType<Profile>;
     
     AllocSharedPtr<PImpl> pimpl_;
     
@@ -146,7 +145,7 @@ public:
     template <typename CtrName>
     using CtrT = CtrApi<CtrName, Profile>;
     
-    using Page = ProfilePageType<Profile>;
+    using Page = ProfileBlockType<Profile>;
     
     
 public:

@@ -147,7 +147,7 @@ public:
     		children.emplace_back(node->txn_id());
     	}
 
-    	auto parent_id = history_node_->parent() ? history_node_->parent()->txn_id() : UUID();
+    	auto parent_id = history_node_->parent() ? history_node_->parent()->txn_id() : UUID{};
 
     	return SnapshotMetadata<UUID>(parent_id, history_node_->txn_id(), children, history_node_->metadata(), history_node_->status());
     }
@@ -591,18 +591,18 @@ ContainerMetadataRepository* ThreadInMemSnapshot<Profile>::metadata() const
 
 
 template <typename Profile>
-SnpSharedPtr<IAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_creation_allowed() 
+SnpSharedPtr<ProfileAllocatorType<Profile>> ThreadInMemSnapshot<Profile>::snapshot_ref_creation_allowed()
 {
     pimpl_->checkIfConainersCreationAllowed();
-    return static_pointer_cast<IAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
+    return static_pointer_cast<ProfileAllocatorType<Profile>>(pimpl_->shared_from_this());
 }
 
 
 template <typename Profile>
-SnpSharedPtr<IAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_opening_allowed() 
+SnpSharedPtr<ProfileAllocatorType<Profile>> ThreadInMemSnapshot<Profile>::snapshot_ref_opening_allowed()
 {
     pimpl_->checkIfConainersOpeneingAllowed();
-    return static_pointer_cast<IAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
+    return static_pointer_cast<ProfileAllocatorType<Profile>>(pimpl_->shared_from_this());
 }
 
 

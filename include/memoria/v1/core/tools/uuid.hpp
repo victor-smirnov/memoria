@@ -22,7 +22,7 @@
 #include <boost/uuid/uuid.hpp>
 
 #include <iostream>
-
+#include <type_traits>
 
 namespace memoria {
 namespace v1 {
@@ -35,8 +35,9 @@ std::istream& operator>>(std::istream& in, UUID& uuid);
 class UUID {
     uint64_t hi_;
     uint64_t lo_;
+
 public:
-    constexpr UUID(): hi_(), lo_() {}
+    UUID() = default;
 
     constexpr UUID(uint64_t hi, uint64_t lo): hi_(hi), lo_(lo) {}
 

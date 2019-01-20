@@ -13,8 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/memoria.hpp>
+#include <memoria/v1/profiles/default/default.hpp>
 
+#include <memoria/v1/memoria.hpp>
 
 #include <memoria/v1/reactor/application.hpp>
 #include <memoria/v1/reactor/qt_support.hpp>

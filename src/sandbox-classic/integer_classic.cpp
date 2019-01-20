@@ -16,6 +16,7 @@
 #include <memoria/v1/core/types.hpp>
 
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
+#include <memoria/v1/profiles/default/default.hpp>
 
 #include <memoria/v1/api/multimap/multimap_api.hpp>
 #include <memoria/v1/api/map/map_api.hpp>

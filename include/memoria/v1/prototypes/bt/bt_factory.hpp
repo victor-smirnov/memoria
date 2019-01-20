@@ -76,6 +76,8 @@
 #include <memoria/v1/prototypes/bt/container/bt_c_remove_batch.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_remove_tools.hpp>
 
+#include <memoria/v1/profiles/common/common.hpp>
+
 #include <type_traits>
 
 namespace memoria {
@@ -143,8 +145,8 @@ struct BTTypes {
     typedef EmptyType                                                           IteratorData;
 
 
-    using Allocator = typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator;
-    using ID        = typename Allocator::ID;
+    using Allocator = ProfileAllocatorType<Profile_>;
+    using ID        = ProfileBlockID<Profile_>;
 
     using Metadata  = BalancedTreeMetadata<ID>;
 

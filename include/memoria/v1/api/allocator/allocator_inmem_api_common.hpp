@@ -26,7 +26,7 @@
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/logs.hpp>
 
-#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
+#include <memoria/v1/profiles/common/common.hpp>
 
 #include <memoria/v1/filesystem/path.hpp>
 

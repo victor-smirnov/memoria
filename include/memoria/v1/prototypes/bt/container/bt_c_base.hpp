@@ -331,7 +331,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         node->ctr_type_hash()           = self.hash();
         
-        node->parent_id()               = ID();
+        node->parent_id()               = ID{};
         node->parent_idx()              = 0;
 
         node->set_root(root);
@@ -370,7 +370,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         node->ctr_type_hash()           = self.hash();
         
-        node->parent_id()               = ID();
+        node->parent_id()               = ID{};
         node->parent_idx()              = 0;
 
         node->set_root(true);
@@ -552,7 +552,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     static CtrPageDescription describe_page(const UUID& node_id, Allocator* alloc)
     {
-        NodeBaseG node = alloc->getPage(node_id, UUID());
+        NodeBaseG node = alloc->getPage(node_id, UUID{});
 
         int32_t size = node->page_size();
         bool leaf = node->is_leaf();
@@ -563,7 +563,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         while (!node->is_root())
         {
             offset += node->parent_idx();
-            node = alloc->getPage(node->parent_id(), UUID());
+            node = alloc->getPage(node->parent_id(), UUID{});
         }
 
         return CtrPageDescription(size, getModelNameS(node), root, leaf, offset);

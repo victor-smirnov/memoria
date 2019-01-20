@@ -19,7 +19,8 @@
 #include <memoria/v1/core/types/type2type.hpp>
 
 #include <memory>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 
 namespace memoria {
 namespace v1 {

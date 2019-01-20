@@ -31,10 +31,11 @@
 #include <memoria/v1/core/container/builder.hpp>
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/dispatcher.hpp>
-#include <memoria/v1/core/container/defaults.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
 #include <memoria/v1/core/container/page_vertex.hpp>
+
+#include <memoria/v1/profiles/common/common.hpp>
 
 #include <memoria/v1/core/strings/string.hpp>
 
@@ -441,7 +442,7 @@ public:
 
     UUID getModelName(ID root_id)
     {
-        return UUID();
+        return UUID{};
     }
 
 

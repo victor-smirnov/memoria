@@ -96,7 +96,7 @@ public:
         auto& self = this->self();
 
         tree_->initCtr(&self.allocator(), self.master_name(), command);
-        seq_->initCtr(tree_.get(), UUID(), command);
+        seq_->initCtr(tree_.get(), UUID{}, command);
     }
 
     void initCtr(const ID& root_id, const UUID& name)

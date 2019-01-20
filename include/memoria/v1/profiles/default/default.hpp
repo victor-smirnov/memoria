@@ -1,5 +1,5 @@
 
-// Copyright 2016 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,34 +16,25 @@
 
 #pragma once
 
-#include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/container/container.hpp>
+#include <memoria/v1/profiles/common/common.hpp>
+#include <memoria/v1/profiles/common/page.hpp>
+#include <memoria/v1/core/container/allocator.hpp>
+
+#include <memoria/v1/core/tools/uuid.hpp>
 
 namespace memoria {
 namespace v1 {
 
 template <typename Profile>
-class ContainerCollectionCfg;
+struct ProfileTraits {
+    using BlockID       = UUID;
+    using SnapshotID    = UUID;
+    using CtrID         = UUID;
 
-template <typename T>
-class ContainerCollectionCfg<DefaultProfile<T> > {
-public:
-    using Types = BasicContainerCollectionCfg<DefaultProfile<T>>;
+    using Page = AbstractPage <BlockID, 32>;
+    using BlockType = Page;
+
+    using AllocatorType = IAllocator<Page>;
 };
-
-
-template <typename CtrName>
-using DCtrTF = CtrTF<DefaultProfile<>, CtrName>;
-
-template <typename CtrName>
-using DCtr = typename CtrTF<DefaultProfile<>, CtrName>::Type;
-
-template <typename CtrName>
-void DInit() {
-    DCtr<CtrName>::getMetadata();
-}
-
-
-
 
 }}

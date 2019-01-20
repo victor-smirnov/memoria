@@ -23,7 +23,7 @@
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
 
-
+#include <memoria/v1/profiles/common/common.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -91,7 +91,8 @@ CtrApi<CtrName, Profile> cast(const CtrRef<Profile>& ref)
 template <typename CtrName, typename Profile> 
 class CtrApiBase {
 public:    
-    using AllocatorT = IAllocator<ProfilePageType<Profile>>;
+    using AllocatorT = ProfileAllocatorType<Profile>;
+
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
     using CtrPtr     = CtrSharedPtr<CtrT>;
     
@@ -165,9 +166,9 @@ public:
 
 template <typename CtrName, typename Profile> 
 class IterApiBase {
-protected:    
+protected:
     
-    using AllocatorT = IAllocator<ProfilePageType<Profile>>;
+    using AllocatorT = ProfileAllocatorType<Profile>;
     using IterT      = SharedIter<CtrName, Profile>;
     using IterPtr    = CtrSharedPtr<IterT>;
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;

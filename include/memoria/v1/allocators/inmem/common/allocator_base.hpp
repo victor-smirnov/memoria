@@ -26,8 +26,7 @@
 
 #include <memoria/v1/core/tools/pair.hpp>
 
-#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
-
+#include <memoria/v1/profiles/common/common.hpp>
 
 #include "persistent_tree_node.hpp"
 #include "persistent_tree.hpp"
@@ -155,7 +154,7 @@ namespace persistent_inmem {
 template <typename Profile, typename MyType>
 class InMemAllocatorBase: public EnableSharedFromThis<MyType> {
 public:
-    using PageType = ProfilePageType<Profile>;
+    using PageType = ProfileBlockType<Profile>;
 
     static constexpr int32_t NodeIndexSize  = 32;
     static constexpr int32_t NodeSize       = NodeIndexSize * 32;

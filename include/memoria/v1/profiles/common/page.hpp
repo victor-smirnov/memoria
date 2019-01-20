@@ -30,10 +30,8 @@
 
 #include <type_traits>
 
-
 namespace memoria {
 namespace v1 {
-
 
 template <int32_t Size>
 class BitBuffer: public StaticBuffer<Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1)> {
@@ -476,7 +474,7 @@ public:
 
     void init()
     {
-        id_         = ID();
+        id_         = ID{};
         references_ = 0;
         state_      = READ;
         page_       = nullptr;

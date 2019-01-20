@@ -264,7 +264,7 @@ public:
         delete_tree( root(), fn);
 
         root_provider_->assign_root_no_ref(nullptr);
-        root_provider_->root_id() = typename PageType::ID();
+        root_provider_->root_id() = typename PageType::ID{};
     }
 
 

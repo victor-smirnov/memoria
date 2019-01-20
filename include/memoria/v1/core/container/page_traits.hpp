@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/types/typehash.hpp>
 #include <memoria/v1/core/tools/reflection.hpp>
-#include <memoria/v1/core/container/page.hpp>
+#include <memoria/v1/profiles/common/page.hpp>
 
 
 namespace memoria {

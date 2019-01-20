@@ -52,18 +52,14 @@ namespace memoria {
 namespace v1 {
 namespace persistent_inmem {
 
-
-
-
-
 template <typename Profile, typename PersistentAllocator, typename SnapshotType>
 class SnapshotBase:
-        public IAllocator<ProfilePageType<Profile>>,
+        public ProfileAllocatorType<Profile>,
         public SnpSharedFromThis<SnapshotType>
 {    
 protected:
 	using MyType			= SnapshotType;
-    using PageType          = ProfilePageType<Profile>;
+    using PageType          = ProfileBlockType<Profile>;
     using Base              = IAllocator<PageType>;
         
 	using HistoryNode		= typename PersistentAllocator::HistoryNode;
@@ -101,7 +97,7 @@ protected:
 public:
 
     template <typename CtrName>
-    using CtrT = SharedCtr<CtrName, IAllocator<ProfilePageType<Profile>>, Profile>;
+    using CtrT = SharedCtr<CtrName, ProfileAllocatorType<Profile>, Profile>;
 
     template <typename CtrName>
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
@@ -217,7 +213,7 @@ public:
     void post_init() 
     {
         auto ptr = this->shared_from_this();
-        root_map_ = ctr_make_shared<RootMapType>(ptr, ctr_op_, UUID());
+        root_map_ = ctr_make_shared<RootMapType>(ptr, ctr_op_, UUID{});
         root_map_->reset_allocator_holder();
     }
     
@@ -230,7 +226,7 @@ public:
     {
     }
     
-    virtual SnpSharedPtr<IAllocator<ProfilePageType<Profile>>> self_ptr() {
+    virtual SnpSharedPtr<ProfileAllocatorType<Profile>> self_ptr() {
         return this->shared_from_this();
     }
     
@@ -913,7 +909,7 @@ public:
                 return iter->value();
             }
             else {
-                return ID();
+                return ID{};
             }
         }
         else {
@@ -1111,7 +1107,7 @@ public:
 
     CtrPageDescription describe_page(const UUID& page_id)
     {
-        PageG page = this->getPage(page_id, UUID());
+        PageG page = this->getPage(page_id, UUID{});
         return describe_page(page);
     }
 
@@ -1362,7 +1358,7 @@ protected:
         });
 
         node->assign_root_no_ref(nullptr);
-        node->root_id() = ID();
+        node->root_id() = ID{};
     }
 
 

@@ -49,11 +49,13 @@ struct IPageLayoutEventHandler {
 
     virtual void Layout(const char* name, int32_t type, int32_t ptr, int32_t size, int32_t count)   = 0;
 
-    virtual ~IPageLayoutEventHandler(){}
+    virtual ~IPageLayoutEventHandler() noexcept {}
 };
 
 
 struct PageDataValueProvider {
+    virtual ~PageDataValueProvider() noexcept {}
+
     virtual int32_t size() const = 0;
     virtual bool isArray() const = 0;
     virtual U8String value(int32_t idx) const = 0;
@@ -63,7 +65,7 @@ struct IPageDataEventHandler {
 
     enum {BYTE_ARRAY = 100, BITMAP};
 
-    virtual ~IPageDataEventHandler() {}
+    virtual ~IPageDataEventHandler() noexcept {}
 
     virtual void startPage(const char* name, const void* ptr)                                   = 0;
     virtual void endPage()                                                                      = 0;
@@ -122,7 +124,7 @@ struct IPageOperations
                     const LayoutEventsParams& params,
                     IPageLayoutEventHandler* handler) const                                     = 0;
 
-    virtual ~IPageOperations() {}
+    virtual ~IPageOperations() noexcept {}
 };
 
 
@@ -134,7 +136,7 @@ struct PageMetadata: public MetadataGroup
             uint64_t hash0,
             const IPageOperations* page_operations);
 
-    virtual ~PageMetadata() throw () {
+    virtual ~PageMetadata() noexcept {
         delete page_operations_;
     }
 

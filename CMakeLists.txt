@@ -113,7 +113,7 @@ if (BUILD_POSIX)
     add_definitions(-faligned-new)
     add_definitions(-Wno-class-memaccess)
 
-    #add_definitions(-DMMA1_ICU_CXX_NS=icu_62__mariana)
+    add_definitions(-DMMA1_ICU_CXX_NS=icu_61)
     #add_definitions(-DU_HAVE_LIB_SUFFIX=1)
     #add_definitions(-DU_LIB_SUFFIX_C_NAME=__mariana)
     

@@ -92,7 +92,7 @@ public:
         auto& self = this->self();
 
         tree_->initCtr(&self.allocator(), self.master_name(), command);
-        vector_->initCtr(tree_.get(), UUID(), command);
+        vector_->initCtr(tree_.get(), UUID{}, command);
     }
 
     void initCtr(const ID& root_id, UUID name)

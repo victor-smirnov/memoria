@@ -64,7 +64,7 @@ public:
                 const auto& root = meta.roots(UUID(0, c));
                 if (!root.is_null())
                 {
-                    auto root_page      = self.allocator().getPage(root, UUID());
+                    auto root_page      = self.allocator().getPage(root, UUID{});
                     auto ctr_meta_rep   = MetadataRepository<typename Types::Profile>::getMetadata();
 
                     int32_t ctr_hash        = root_page->ctr_type_hash();
@@ -73,13 +73,13 @@ public:
 
                     auto ctr_interface  = ctr_meta->getCtrInterface();
 
-                    ctr_interface->drop(root, UUID(), self.allocator().self_ptr());
+                    ctr_interface->drop(root, UUID{}, self.allocator().self_ptr());
                 }
             }
 
             NodeBaseG root = self.getRoot();
             self.removeRootNode(root);
-            self.set_root(ID());
+            self.set_root(ID{});
         }
         else {
             MMA1_THROW(Exception()) << WhatCInfo("Transaction must be in active state to drop containers");

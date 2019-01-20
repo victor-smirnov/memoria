@@ -269,7 +269,7 @@ public:
             if (iter != snapshot_map_.end())
             {
                 const auto history_node = iter->second;
-                auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
+                auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID{};
                 return parent_id;
             }
             else {
@@ -311,7 +311,7 @@ public:
                     children.emplace_back(node->txn_id());
                 }
 
-                auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
+                auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID{};
 
                 return snp_make_shared<SnapshotMetadata<TxnId>>(
                     parent_id, history_node->txn_id(), children, history_node->metadata(), history_node->status()
@@ -404,7 +404,7 @@ public:
                 children.emplace_back(node->txn_id());
             }
 
-            auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID();
+            auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID{};
 
             return snp_make_shared<SnapshotMetadata<TxnId>>(
                 parent_id, master_->txn_id(), children, master_->metadata(), master_->status()

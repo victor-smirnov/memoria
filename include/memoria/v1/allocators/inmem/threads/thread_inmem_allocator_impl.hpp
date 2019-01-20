@@ -280,7 +280,7 @@ public:
         		children.emplace_back(node->txn_id());
         	}
 
-        	auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
+        	auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID{};
 
         	return SnapshotMetadata<TxnId>(
         		parent_id, history_node->txn_id(), children, history_node->metadata(), history_node->status()
@@ -318,7 +318,7 @@ public:
             const auto history_node = iter->second;
             SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
-            auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
+            auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID{};
             return parent_id;
         }
         else {
@@ -433,7 +433,7 @@ public:
     		children.emplace_back(node->txn_id());
     	}
 
-    	auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID();
+    	auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID{};
 
     	return SnapshotMetadata<TxnId>(
             parent_id, master_->txn_id(), children, master_->metadata(), master_->status()

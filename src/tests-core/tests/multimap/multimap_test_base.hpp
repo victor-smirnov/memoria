@@ -378,7 +378,7 @@ public:
             return UUID::make_random();
         }
         else {
-            return UUID();
+            return UUID{};
         }
     }
 };

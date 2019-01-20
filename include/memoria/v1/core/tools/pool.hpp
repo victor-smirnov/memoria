@@ -35,9 +35,9 @@ class StaticPool {
     typedef StaticPool<ID, Object, Size> MyType;
     typedef ID T;
 
-    T       ids_[Size];
-    Object  objects_[Size];
-    uint8_t   idxs_[Size];
+    T           ids_[Size];
+    Object      objects_[Size];
+    uint8_t     idxs_[Size];
     int32_t     size_;
     int32_t     Max;
 
@@ -46,7 +46,7 @@ public:
     {
         for (int32_t c = 0; c < Size; c++)
         {
-            ids_[c] = ID();
+            ids_[c] = ID{};
         }
     }
 
@@ -94,7 +94,7 @@ public:
             if (ids_[c] == id)
             {
                 size_--;
-                ids_[c] = ID();
+                ids_[c] = ID{};
                 return;
             }
         }
@@ -115,7 +115,7 @@ public:
         int32_t cnt = 0;
         for (int32_t c = 0; c < Size; c++)
         {
-            if (ids_[c] == ID())
+            if (ids_[c] == ID{})
             {
                 cnt++;
             }
@@ -127,14 +127,14 @@ public:
     void clear() {
         for (int32_t c = 0; c < Size; c++)
         {
-            ids_[c] = ID();
+            ids_[c] = ID{};
         }
     }
 
 private:
     int32_t selectFirst0Idx()
     {
-        const ID EMPTY;
+        const ID EMPTY{};
         for (int32_t c = 0; c < Size; c++)
         {
             if (ids_[c] == EMPTY)

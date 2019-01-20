@@ -19,6 +19,7 @@
 #include <memoria/v1/core/graph/graph.hpp>
 
 #include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+#include <memoria/v1/profiles/default/default.hpp>
 
 #include <QList>
 #include <QVariant>

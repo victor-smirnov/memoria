@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/v1/core/container/names.hpp>
-#include <memoria/v1/core/container/page.hpp>
+#include <memoria/v1/profiles/common/page.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
 
 #ifndef MMA1_NO_REACTOR
