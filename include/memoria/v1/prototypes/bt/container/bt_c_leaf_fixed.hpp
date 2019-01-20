@@ -88,7 +88,7 @@ public:
     {
         auto& self = this->self();
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         if (self.checkCapacities(iter.leaf(), Position::create(Stream, 1)))
         {
@@ -134,7 +134,7 @@ public:
     template <int32_t Stream>
     std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, int32_t idx)
     {
-        self().updatePageG(iter.leaf());
+        self().updateBlockG(iter.leaf());
 
         BranchNodeEntry accum;
         LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), idx, accum);
@@ -152,7 +152,7 @@ public:
     template <typename Fn, typename... Args>
     bool update(Iterator& iter, Fn&& fn, Args&&... args)
     {
-        self().updatePageG(iter.leaf());
+        self().updateBlockG(iter.leaf());
 
         auto& self = this->self();
         LeafDispatcher::dispatch(
@@ -208,7 +208,7 @@ public:
     {
         auto& self = this->self();
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         BranchNodeEntry accum;
         LeafDispatcher::dispatch(
@@ -252,8 +252,8 @@ void M_TYPE::doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
-    self.updatePageG(tgt);
-    self.updatePageG(src);
+    self.updateBlockG(tgt);
+    self.updateBlockG(src);
 
     int32_t tgt_size = self.getNodeSize(tgt, 0);
 

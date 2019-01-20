@@ -112,7 +112,7 @@ public:
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
     using typename Base::Page;
-    using typename Base::PageG;
+    using typename Base::BlockG;
     using typename Base::Shared;
 
     using RootMapType = CtrT<Map<CtrID, BlockID>>;
@@ -309,7 +309,7 @@ public:
 
         if (root_id.is_set())
         {
-            PageG page = this->getBlock(root_id);
+            BlockG page = this->getBlock(root_id);
 
             auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
@@ -564,7 +564,7 @@ public:
     }
 
 
-    virtual PageG getBlock(const BlockID& id)
+    virtual BlockG getBlock(const BlockID& id)
     {
         if (id.isSet())
         {
@@ -595,10 +595,10 @@ public:
                 }
             }
 
-            return PageG(shared);
+            return BlockG(shared);
         }
         else {
-            return PageG();
+            return BlockG();
         }
     }
 
@@ -658,7 +658,7 @@ public:
     }
 
 
-    virtual PageG getBlockForUpdate(const BlockID& id)
+    virtual BlockG getBlockForUpdate(const BlockID& id)
     {
         // FIXME: Though this check prohibits new page acquiring for update,
         // already acquired updatable pages can be updated further.
@@ -726,16 +726,16 @@ public:
 
             shared->state() = Shared::UPDATE;
 
-            return PageG(shared);
+            return BlockG(shared);
         }
         else {
-            return PageG();
+            return BlockG();
         }
     }
 
 
 
-    virtual PageG updateBlock(Shared* shared)
+    virtual BlockG updateBlock(Shared* shared)
     {
         // FIXME: Though this check prohibits new page acquiring for update,
         // already acquired updatable pages can be updated further.
@@ -755,7 +755,7 @@ public:
             shared->refresh();
         }
 
-        return PageG(shared);
+        return BlockG(shared);
     }
 
     virtual void removeBlock(const BlockID& id)
@@ -783,7 +783,7 @@ public:
 
 
 
-    virtual PageG createBlock(int32_t initial_size)
+    virtual BlockG createBlock(int32_t initial_size)
     {
         checkUpdateAllowed(CtrID{});
 
@@ -812,11 +812,11 @@ public:
 
         ptree_set_new_page(p);
 
-        return PageG(shared);
+        return BlockG(shared);
     }
 
 
-    virtual PageG cloneBlock(const Shared* shared, const BlockID& new_id)
+    virtual BlockG cloneBlock(const Shared* shared, const BlockID& new_id)
     {
         checkUpdateAllowed(CtrID{});
 
@@ -835,7 +835,7 @@ public:
 
         ptree_set_new_page(new_page);
 
-        return PageG(new_shared);
+        return BlockG(new_shared);
     }
 
 
@@ -881,7 +881,7 @@ public:
         pool_.release(shared->id());
     }
 
-    virtual PageG getBlockG(Page* page)
+    virtual BlockG getBlockG(Page* page)
     {
         MMA1_THROW(Exception()) << WhatCInfo("Method getBlockG is not implemented for this allocator");
     }
@@ -976,7 +976,7 @@ public:
         {
             auto ctr_name = iter->key();
 
-            PageG page = this->getBlock(iter->value());
+            BlockG page = this->getBlock(iter->value());
 
             auto ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
@@ -1070,7 +1070,7 @@ public:
 
         if (root_id.is_set())
         {
-            PageG page = this->getBlock(root_id);
+            BlockG page = this->getBlock(root_id);
 
             auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
@@ -1087,7 +1087,7 @@ public:
 
         if (root_id.is_set())
         {
-            PageG page = this->getBlock(root_id);
+            BlockG page = this->getBlock(root_id);
 
             auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
@@ -1102,7 +1102,7 @@ public:
     {
         if (root_page_id.is_set())
         {
-            PageG page = this->getBlock(root_page_id);
+            BlockG page = this->getBlock(root_page_id);
 
             auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
@@ -1115,11 +1115,11 @@ public:
 
     CtrBlockDescription<Profile> describe_block(const CtrID& page_id)
     {
-        PageG page = this->getBlock(page_id);
+        BlockG page = this->getBlock(page_id);
         return describe_block(page);
     }
 
-    CtrBlockDescription<Profile> describe_block(const PageG& page)
+    CtrBlockDescription<Profile> describe_block(const BlockG& page)
     {
         auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
         return ctr_meta->getCtrInterface()->describe_block1(page->id(), this->shared_from_this());

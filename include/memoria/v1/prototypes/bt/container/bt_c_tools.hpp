@@ -34,7 +34,7 @@ public:
 
 protected:
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::Allocator::PageG                                     PageG;
+    typedef typename Base::Allocator::BlockG                                     BlockG;
 
     typedef typename Allocator::Page                                            Page;
 
@@ -140,7 +140,7 @@ protected:
 
     void root2Node(NodeBaseG& node) const
     {
-        self().updatePageG(node);
+        self().updateBlockG(node);
 
         node->set_root(false);
 
@@ -149,7 +149,7 @@ protected:
 
     void node2Root(NodeBaseG& node, const Metadata& meta) const
     {
-        self().updatePageG(node);
+        self().updateBlockG(node);
 
         node->set_root(true);
 
@@ -161,7 +161,7 @@ protected:
 
     void copyRootMetadata(NodeBaseG& src, NodeBaseG& tgt) const
     {
-        self().updatePageG(tgt);
+        self().updateBlockG(tgt);
         tgt->setMetadata(src->root_metadata());
     }
 
@@ -319,7 +319,7 @@ protected:
     MEMORIA_V1_DECLARE_NODE_FN(SetKeysFn, setKeys);
     void setBranchKeys(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys) const
     {
-        self().updatePageG(node);
+        self().updateBlockG(node);
         BranchDispatcher::dispatch(node, SetKeysFn(), idx, keys);
     }
 
@@ -392,7 +392,7 @@ protected:
 
     void setChildId(NodeBaseG& node, int32_t child_idx, const BlockID& child_id) const
     {
-        self().updatePageG(node);
+        self().updateBlockG(node);
         BranchDispatcher::dispatch(node, SetChildIDFn(), child_idx, child_id);
     }
 

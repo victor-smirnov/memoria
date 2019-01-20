@@ -94,7 +94,7 @@ public:
 
         PageUpdateMgr mgr(self);
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         mgr.add(iter.leaf());
 
@@ -146,7 +146,7 @@ public:
 
         PageUpdateMgr mgr(self);
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         mgr.add(iter.leaf());
 
@@ -208,7 +208,7 @@ public:
 
         PageUpdateMgr mgr(self);
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         mgr.add(iter.leaf());
 
@@ -262,7 +262,7 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
         self.newRootP(left_node);
     }
     else {
-        self.updatePageG(left_node);
+        self.updateBlockG(left_node);
     }
 
     NodeBaseG left_parent  = self.getNodeParentForUpdate(left_node);
@@ -313,8 +313,8 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
     PageUpdateMgr mgr(self);
 
-    self.updatePageG(src);
-    self.updatePageG(tgt);
+    self.updateBlockG(src);
+    self.updateBlockG(tgt);
 
     mgr.add(src);
     mgr.add(tgt);

@@ -237,7 +237,7 @@ OpStatus M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, int32_t start)
 
     MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
 
-    self.updatePageG(node);
+    self.updateBlockG(node);
     if (isFail(BranchDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1))) {
         return OpStatus::FAIL;
     }
@@ -256,7 +256,7 @@ typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, const Posit
 {
     auto& self = this->self();
 
-    self.updatePageG(node);
+    self.updateBlockG(node);
 
     OOM_THROW_IF_FAILED(LeafDispatcher::dispatch(node, RemoveSpaceFn(), start, end), MMA1_SRC);
 
@@ -270,7 +270,7 @@ typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, int32_t str
 {
     auto& self = this->self();
 
-    self.updatePageG(node);
+    self.updateBlockG(node);
 
     OOM_THROW_IF_FAIL(LeafDispatcher::dispatch(node, RemoveSpaceFn(), stream, start, end), MMA1_SRC);
 

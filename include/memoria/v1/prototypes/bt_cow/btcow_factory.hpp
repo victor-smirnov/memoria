@@ -270,7 +270,7 @@ public:
     using Page              = typename ContainerTypes::Allocator::Page;
 
     using NodePageBase0     = btcow::TreeNodeBase<typename ContainerTypes::Metadata, Page>;
-    using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
+    using NodePageBase0G    = BlockGuard<NodePageBase0, typename ContainerTypes::Allocator>;
 
     using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
 

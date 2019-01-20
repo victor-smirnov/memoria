@@ -102,7 +102,7 @@ OpStatus M_TYPE::insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchN
 {
     auto& self = this->self();
 
-    self.updatePageG(node);
+    self.updateBlockG(node);
     if (isFail(BranchDispatcher::dispatch(node, InsertFn(), idx, keys, id))) {
         return OpStatus::FAIL;
     }
@@ -131,7 +131,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
         self.newRootP(left_node);
     }
 
-    self.updatePageG(left_node);
+    self.updateBlockG(left_node);
     NodeBaseG left_parent = self.getNodeParentForUpdate(left_node);
 
     NodeBaseG right_node = self.createNode(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
@@ -172,7 +172,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, int32_t spli
 M_PARAMS
 bool M_TYPE::updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys)
 {
-    self().updatePageG(node);
+    self().updateBlockG(node);
     OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, keys), MMA1_SRC);
     return true;
 }
@@ -245,8 +245,8 @@ void M_TYPE::doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
-    self.updatePageG(tgt);
-    self.updatePageG(src);
+    self.updateBlockG(tgt);
+    self.updateBlockG(src);
 
     int32_t tgt_size = self.getNodeSize(tgt, 0);
 

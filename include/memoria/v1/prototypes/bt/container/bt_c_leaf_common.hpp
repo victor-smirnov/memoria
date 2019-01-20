@@ -189,7 +189,7 @@ public:
     {
         auto& self = this->self();
 
-        self.updatePageG(leaf);
+        self.updateBlockG(leaf);
 
         self.layoutLeafNode(leaf, Position(0));
 
@@ -399,7 +399,7 @@ public:
 
         PageUpdateMgr mgr(self);
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         mgr.add(iter.leaf());
 

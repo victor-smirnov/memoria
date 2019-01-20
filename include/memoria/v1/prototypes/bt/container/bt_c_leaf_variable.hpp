@@ -102,7 +102,7 @@ public:
 
         PageUpdateMgr mgr(self);
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         mgr.add(iter.leaf());
 
@@ -123,7 +123,7 @@ public:
 
         PageUpdateMgr mgr(self);
 
-        self.updatePageG(leaf);
+        self.updateBlockG(leaf);
 
         mgr.add(leaf);
 
@@ -176,7 +176,7 @@ public:
 
         PageUpdateMgr mgr(self);
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         mgr.add(iter.leaf());
 
@@ -241,7 +241,7 @@ public:
 
         PageUpdateMgr mgr(self);
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         mgr.add(iter.leaf());
 
@@ -292,8 +292,8 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
     PageUpdateMgr mgr(self);
 
-    self.updatePageG(src);
-    self.updatePageG(tgt);
+    self.updateBlockG(src);
+    self.updateBlockG(tgt);
 
     mgr.add(src);
     mgr.add(tgt);

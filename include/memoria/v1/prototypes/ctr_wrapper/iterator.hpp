@@ -38,8 +38,8 @@ public:
     typedef typename Types::Profile                                             Profile;
     typedef typename Types::Allocator                                           Allocator;
     typedef typename Types::Allocator::CtrShared                                CtrShared;
-    typedef typename Types::Allocator::PageG                                    PageG;
-    typedef typename PageG::Page::ID                                            ID;
+    typedef typename Types::Allocator::BlockG                                    BlockG;
+    typedef typename BlockG::Page::ID                                            ID;
 
 private:
     ContainerType&      model_;

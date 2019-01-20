@@ -72,8 +72,8 @@ struct IAllocator: AllocatorBase {
     using CtrID         = ProfileCtrID<Profile>;
 
 
-    using PageG     = PageGuard<Page, MyType>;
-    using Shared    = typename PageG::Shared;
+    using BlockG     = BlockGuard<Page, MyType>;
+    using Shared    = typename BlockG::Shared;
     
     virtual BlockID getRootID(const CtrID& ctr_id)                              = 0;
     virtual void setRoot(const CtrID& ctr_id, const BlockID& root)              = 0;
@@ -82,18 +82,18 @@ struct IAllocator: AllocatorBase {
     virtual CtrID createCtrName()                                               = 0;
 
 
-    virtual PageG getBlock(const BlockID& id)                                    = 0;
-    virtual PageG getBlockForUpdate(const BlockID& id)                           = 0;
+    virtual BlockG getBlock(const BlockID& id)                                  = 0;
+    virtual BlockG getBlockForUpdate(const BlockID& id)                         = 0;
 
-    virtual PageG updateBlock(Shared* shared)                                    = 0;
-    virtual void  removeBlock(const ID& id)                                      = 0;
-    virtual PageG createBlock(int32_t initial_size)                              = 0;
+    virtual BlockG updateBlock(Shared* shared)                                  = 0;
+    virtual void  removeBlock(const ID& id)                                     = 0;
+    virtual BlockG createBlock(int32_t initial_size)                            = 0;
 
-    virtual PageG cloneBlock(const Shared* shared, const BlockID& new_id)        = 0;
+    virtual BlockG cloneBlock(const Shared* shared, const BlockID& new_id)      = 0;
 
-    virtual void  resizeBlock(Shared* page, int32_t new_size)                    = 0;
-    virtual void  releaseBlock(Shared* shared) noexcept                          = 0;
-    virtual PageG getBlockG(BlockType* page)                                     = 0;
+    virtual void  resizeBlock(Shared* page, int32_t new_size)                   = 0;
+    virtual void  releaseBlock(Shared* shared) noexcept                         = 0;
+    virtual BlockG getBlockG(BlockType* page)                                   = 0;
 
     virtual ID newId()                                                          = 0;
     virtual SnapshotID currentTxnId() const                                     = 0;

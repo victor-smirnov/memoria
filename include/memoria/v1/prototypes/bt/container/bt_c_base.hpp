@@ -44,7 +44,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using Allocator = typename Base::Allocator;
 
     using typename Base::Page;
-    using typename Base::PageG;
+    using typename Base::BlockG;
     using typename Base::BlockID;
     using typename Base::CtrID;
 
@@ -77,7 +77,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     ObjectPools& pools() {return pools_;}
 
-    PageG createRoot() const {
+    BlockG createRoot() const {
         return self().createNode(0, true, true);
     }
 
@@ -224,7 +224,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
-        self().updatePageG(node);
+        self().updateBlockG(node);
         node->setMetadata(metadata);
     }
 
@@ -431,7 +431,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         }
     }
 
-    void updatePageG(NodeBaseG& node) const
+    void updateBlockG(NodeBaseG& node) const
     {
         node.update();
     }
@@ -581,7 +581,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (!root_id.is_null())
         {
-            PageG node = self.allocator().getBlock(root_id);
+            BlockG node = self.allocator().getBlock(root_id);
 
             if (node->ctr_type_hash() == CONTAINER_HASH)
             {

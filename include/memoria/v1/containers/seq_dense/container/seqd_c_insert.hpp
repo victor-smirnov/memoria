@@ -117,7 +117,7 @@ public:
 //        auto& leaf  = iter.leaf();
 //        int32_t& idx    = iter.local_pos();
 //
-//        self.updatePageG(leaf);
+//        self.updateBlockG(leaf);
 //
 //        BranchNodeEntry sums;
 //

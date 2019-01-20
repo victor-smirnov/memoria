@@ -90,7 +90,7 @@ void M_TYPE::newRootP(NodeBaseG& root)
 {
     auto& self = this->self();
 
-    self.updatePageG(root);
+    self.updateBlockG(root);
 
     NodeBaseG new_root = self.createNode(root->level() + 1, true, false, root->page_size());
 

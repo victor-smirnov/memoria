@@ -130,7 +130,7 @@ public:
     using BlockType = typename Allocator::BlockType;
     using CtrID     = typename Allocator::CtrID;
     using Page      = typename Allocator::Page;
-    using PageG     = typename Allocator::PageG;
+    using BlockG     = typename Allocator::BlockG;
 
     using Iterator          = Iter<typename Types::IterTypes>;
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
@@ -369,7 +369,7 @@ public:
         {
             SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
             
-            PageG page = alloc->getBlock(root_id);
+            BlockG page = alloc->getBlock(root_id);
 
             if (page)
             {
@@ -623,7 +623,7 @@ public:
     using MyType = Ctr<Types>;
 
     using Allocator = typename Types::Allocator;
-    using PageG     = typename Types::Allocator::PageG;
+    using BlockG     = typename Types::Allocator::BlockG;
     using BlockID   = typename Allocator::BlockID;
     using CtrID     = typename Allocator::CtrID;
 

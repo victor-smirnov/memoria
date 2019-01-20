@@ -35,8 +35,8 @@ class Iter<VTreeIterTypes<Types> >: public IterStart<VTreeIterTypes<Types> >
 
     typedef typename Types::Profile                                             Profile;
     typedef typename Types::Allocator                                           Allocator;
-    typedef typename Types::Allocator::PageG                                    PageG;
-    typedef typename PageG::Page::ID                                            ID;
+    typedef typename Types::Allocator::BlockG                                    BlockG;
+    typedef typename BlockG::Page::ID                                            ID;
 
     using CtrPtr = std::shared_ptr<ContainerType>;
 

@@ -93,7 +93,7 @@ public:
     {
         auto& self = this->self();
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         if (self.checkCapacities(iter.leaf(), Position::create(Stream, 1)))
         {
@@ -209,7 +209,7 @@ public:
     {
         auto& self = this->self();
 
-        self.updatePageG(iter.leaf());
+        self.updateBlockG(iter.leaf());
 
         BranchNodeEntry accum;
         LeafDispatcher::dispatch(
@@ -253,8 +253,8 @@ void M_TYPE::doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
-    self.updatePageG(tgt);
-    self.updatePageG(src);
+    self.updateBlockG(tgt);
+    self.updateBlockG(src);
 
     int32_t tgt_size = self.getNodeSize(tgt, 0);
 

@@ -507,11 +507,11 @@ private:
 
 
 template <typename PageT, typename AllocatorT>
-class PageGuard {
+class BlockGuard {
 
 public:
 
-    typedef PageGuard<PageT, AllocatorT>                                MyType;
+    typedef BlockGuard<PageT, AllocatorT>                                MyType;
     typedef PageT                                                       Page;
     typedef AllocatorT                                                  Allocator;
     typedef PageShared<AllocatorT>                                      Shared;
@@ -522,27 +522,19 @@ private:
 public:
 
 
-    PageGuard(Shared* shared): shared_(shared)
+    BlockGuard(Shared* shared): shared_(shared)
     {
         inc();
         ref();
     }
 
 
-    PageGuard(): shared_(nullptr)
+    BlockGuard(): shared_(nullptr)
     {
         inc();
     }
 
-    PageGuard(const MyType& guard): shared_(guard.shared_)
-    {
-        ref();
-        check();
-        inc();
-    }
-
-    template <typename Page>
-    PageGuard(const PageGuard<Page, AllocatorT>& guard): shared_(guard.shared_)
+    BlockGuard(const MyType& guard): shared_(guard.shared_)
     {
         ref();
         check();
@@ -550,14 +542,22 @@ public:
     }
 
     template <typename Page>
-    PageGuard(PageGuard<Page, AllocatorT>&& guard): shared_(guard.shared_)
+    BlockGuard(const BlockGuard<Page, AllocatorT>& guard): shared_(guard.shared_)
+    {
+        ref();
+        check();
+        inc();
+    }
+
+    template <typename Page>
+    BlockGuard(BlockGuard<Page, AllocatorT>&& guard): shared_(guard.shared_)
     {
         guard.shared_   = NULL;
         check();
         inc();
     }
 
-    ~PageGuard()
+    ~BlockGuard()
     {
         dec();
         unref();
@@ -590,7 +590,7 @@ public:
 
 
     template <typename P>
-    MyType& operator=(const PageGuard<P, AllocatorT>& guard)
+    MyType& operator=(const BlockGuard<P, AllocatorT>& guard)
     {
         unref();
         shared_ = guard.shared_;
@@ -611,7 +611,7 @@ public:
 
 
     template <typename P>
-    MyType& operator=(PageGuard<P, AllocatorT>&& guard)
+    MyType& operator=(BlockGuard<P, AllocatorT>&& guard)
     {
         unref();
 
@@ -716,7 +716,7 @@ public:
         return shared_;
     }
 
-    template <typename Page, typename Allocator> friend class PageGuard;
+    template <typename Page, typename Allocator> friend class BlockGuard;
 
 private:
 
@@ -749,7 +749,7 @@ private:
 
 
 template <typename T, typename A>
-std::ostream& operator<<(std::ostream& out, const PageGuard<T, A>& pg)
+std::ostream& operator<<(std::ostream& out, const BlockGuard<T, A>& pg)
 {
     if (pg.isSet()) {
         out<<pg->id();
@@ -762,7 +762,7 @@ std::ostream& operator<<(std::ostream& out, const PageGuard<T, A>& pg)
 
 
 template <typename T, typename A>
-LogHandler* logIt(LogHandler* log, const PageGuard<T, A>& value) {
+LogHandler* logIt(LogHandler* log, const BlockGuard<T, A>& value) {
     log->log(value.page());
     log->log(" ");
     return log;

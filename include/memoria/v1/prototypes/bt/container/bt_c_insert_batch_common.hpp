@@ -224,7 +224,7 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
         self.newRootP(left_node);
     }
     else {
-        self.updatePageG(left_node);
+        self.updateBlockG(left_node);
     }
 
     NodeBaseG left_parent = self.getNodeParentForUpdate(left_node);

@@ -35,7 +35,7 @@ public:
 
 protected:
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::Allocator::PageG                                     PageG;
+    typedef typename Base::Allocator::BlockG                                     BlockG;
 
     typedef typename Allocator::Page                                            Page;
 
