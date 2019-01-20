@@ -59,7 +59,6 @@ class SnapshotBase:
 {    
 protected:
 	using MyType			= SnapshotType;
-    using PageType          = ProfileBlockType<Profile>;
     using Base              = ProfileAllocatorType<Profile>;
 
 public:
@@ -84,7 +83,7 @@ protected:
     using LeafNodeT         = typename PersistentTreeT::LeafNodeT;
     using PTreeValue        = typename LeafNodeT::Value;
     
-    using RCPagePtr			= typename std::remove_pointer<typename PersistentTreeT::Value::Value>::type;
+    using RCBlockPtr			= typename std::remove_pointer<typename PersistentTreeT::Value::Value>::type;
 
     using Status            = typename HistoryNode::Status;
 
@@ -111,7 +110,6 @@ public:
     template <typename CtrName>
     using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
-    using typename Base::Page;
     using typename Base::BlockG;
     using typename Base::Shared;
 
@@ -120,7 +118,7 @@ public:
 protected:
     class Properties: public IAllocatorProperties {
     public:
-        virtual int32_t defaultPageSize() const
+        virtual int32_t defaultBlockSize() const
         {
             return 8192;
         }
@@ -140,7 +138,7 @@ protected:
 
     PersistentTreeT persistent_tree_;
 
-    StaticPool<BlockID, Shared, 256>  pool_;
+    StaticPool<BlockID, Shared, 256> pool_;
 
     Logger logger_;
 
@@ -309,9 +307,9 @@ public:
 
         if (root_id.is_set())
         {
-            BlockG page = this->getBlock(root_id);
+            BlockG block = this->getBlock(root_id);
 
-            auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
+            auto& ctr_meta = getMetadata()->getContainerMetadata(block->ctr_type_hash());
 
             ctr_meta->getCtrInterface()->drop(name, this->shared_from_this());
 
@@ -326,11 +324,11 @@ public:
     Optional<U16String> ctr_type_name_for(const CtrID& name)
     {
         auto root_id = this->getRootID(name);
-        auto page 	 = this->getBlock(root_id);
+        auto block 	 = this->getBlock(root_id);
 
-        if (page)
+        if (block)
         {
-            auto ctr_hash = page->ctr_type_hash();
+            auto ctr_hash = block->ctr_type_hash();
             auto ctr_meta = metadata_->getContainerMetadata(ctr_hash);
 
             return ctr_meta->getCtrInterface()->ctr_type_name();
@@ -370,11 +368,11 @@ public:
     void for_each_ctr_node(const CtrID& name, typename ContainerInterface<Profile>::BlockCallbackFn fn)
     {
     	auto root_id = this->getRootID(name);
-        auto page 	 = this->getBlock(root_id);
+        auto block 	 = this->getBlock(root_id);
 
-    	if (page)
+        if (block)
     	{
-    		auto ctr_hash   = page->ctr_type_hash();
+            auto ctr_hash   = block->ctr_type_hash();
     		auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
 
     		ctr_meta->getCtrInterface()->for_each_ctr_node(name, this->shared_from_this(), fn);
@@ -397,17 +395,17 @@ public:
 
     	if (root_id.is_null())
     	{
-            txn->for_each_ctr_node(name, [&](const BlockID& uuid, const BlockID& id, const void* page_data){
-    			auto rc_handle = txn->export_page_rchandle(id);
+            txn->for_each_ctr_node(name, [&](const BlockID& uuid, const BlockID& id, const void* block_data){
+                auto rc_handle = txn->export_block_rchandle(id);
     			using Value = typename PersistentTreeT::Value;
 
     			rc_handle->ref();
 
     			auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
 
-    			if (old_value.page_ptr())
+                if (old_value.block_ptr())
     			{
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page with ID {} is not new in snapshot {}", id, txn_id));
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block with ID {} is not new in snapshot {}", id, txn_id));
     			}
     		});
 
@@ -437,8 +435,8 @@ public:
 
     	if (root_id.is_null())
     	{
-            txn->for_each_ctr_node(name, [&](const BlockID& uuid, const BlockID& id, const void* page_data){
-    			clone_foreign_page(T2T<const Page*>(page_data));
+            txn->for_each_ctr_node(name, [&](const BlockID& uuid, const BlockID& id, const void* block_data){
+                clone_foreign_block(T2T<const BlockType*>(block_data));
     		});
 
     		auto root_id = txn->getRootID(name);
@@ -467,26 +465,26 @@ public:
 
     	if (!root_id.is_null())
     	{
-            txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void* page_data) {
-                auto page = this->getBlock(id);
-    			if (page && page->uuid() == uuid)
+            txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void* block_data) {
+                auto block = this->getBlock(id);
+                if (block && block->uuid() == uuid)
     			{
     				return;
     			}
 
-    			auto rc_handle = txn->export_page_rchandle(id);
+                auto rc_handle = txn->export_block_rchandle(id);
     			using Value = typename PersistentTreeT::Value;
 
     			rc_handle->ref();
 
     			auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
 
-    			if (old_value.page_ptr())
+                if (old_value.block_ptr())
     			{
-    				if (old_value.page_ptr()->unref() == 0)
+                    if (old_value.block_ptr()->unref() == 0)
     				{
-    					// FIXME: just delete the page?
-                        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected refcount == 0 for page {}", old_value.page_ptr()->raw_data()->uuid()));
+                        // FIXME: just delete the block?
+                        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected refcount == 0 for block {}", old_value.block_ptr()->raw_data()->uuid()));
     				}
     			}
     		});
@@ -517,14 +515,14 @@ public:
 
     	if (!root_id.is_null())
     	{
-            txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void* page_data) {
-                auto page = this->getBlock(id);
-    			if (page && page->uuid() == uuid)
+            txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void* block_data) {
+                auto block = this->getBlock(id);
+                if (block && block->uuid() == uuid)
     			{
     				return;
     			}
 
-    			clone_foreign_page(T2T<const Page*>(page_data));
+                clone_foreign_block(T2T<const BlockType*>(block_data));
     		});
 
     		auto root_id = txn->getRootID(name);
@@ -549,11 +547,11 @@ public:
     CtrID clone_ctr(const CtrID& ctr_name, const CtrID& new_ctr_name)
     {
         auto root_id = this->getRootID(ctr_name);
-        auto page 	 = this->getBlock(root_id);
+        auto block 	 = this->getBlock(root_id);
 
-        if (page)
+        if (block)
         {
-            auto ctr_hash    = page->ctr_type_hash();
+            auto ctr_hash    = block->ctr_type_hash();
             auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
 
             return ctr_meta->getCtrInterface()->clone_ctr(ctr_name, new_ctr_name, this->shared_from_this());
@@ -574,13 +572,13 @@ public:
             {
                 checkReadAllowed();
 
-                auto page_opt = persistent_tree_.find(id);
+                auto block_opt = persistent_tree_.find(id);
 
-                if (page_opt)
+                if (block_opt)
                 {
                     const auto& txn_id = history_node_->snapshot_id();
 
-                    if (page_opt.value().snapshot_id() != txn_id)
+                    if (block_opt.value().snapshot_id() != txn_id)
                     {
                         shared->state() = Shared::READ;
                     }
@@ -588,10 +586,10 @@ public:
                         shared->state() = Shared::UPDATE;
                     }
 
-                    shared->set_page(page_opt.value().page_ptr()->raw_data());
+                    shared->set_block(block_opt.value().block_ptr()->raw_data());
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page is not found for the specified id: {}", id));
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block is not found for the specified id: {}", id));
                 }
             }
 
@@ -645,7 +643,7 @@ public:
     	}
     }
 
-    void dump_dictionary_pages()
+    void dump_dictionary_blocks()
     {
         auto ii = root_map_->begin();
         if (!ii->isEnd())
@@ -660,8 +658,8 @@ public:
 
     virtual BlockG getBlockForUpdate(const BlockID& id)
     {
-        // FIXME: Though this check prohibits new page acquiring for update,
-        // already acquired updatable pages can be updated further.
+        // FIXME: Though this check prohibits new block acquiring for update,
+        // already acquired updatable blocks can be updated further.
         // To guarantee non-updatability, MMU-protection should be used
         checkUpdateAllowed(CtrID{});
 
@@ -671,49 +669,49 @@ public:
 
             if (!shared->get())
             {
-                auto page_opt = persistent_tree_.find(id);
+                auto block_opt = persistent_tree_.find(id);
 
-                if (page_opt)
+                if (block_opt)
                 {
                     const auto& txn_id = history_node_->snapshot_id();
 
-                    if (page_opt.value().snapshot_id() != txn_id)
+                    if (block_opt.value().snapshot_id() != txn_id)
                     {
-                        Page* new_page = clone_page(page_opt.value().page_ptr()->raw_data());
+                        BlockType* new_block = clone_block(block_opt.value().block_ptr()->raw_data());
 
-                        ptree_set_new_page(new_page);
+                        ptree_set_new_block(new_block);
 
-                        shared->set_page(new_page);
+                        shared->set_block(new_block);
 
                         shared->refresh();
                     }
                     else {
                         MEMORIA_V1_ASSERT(shared->state(), ==, Shared::UPDATE);
 
-                        shared->set_page(page_opt.value().page_ptr()->raw_data());
+                        shared->set_block(block_opt.value().block_ptr()->raw_data());
 
                         shared->refresh();
                     }
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page is not found for the specified id: {}", id));
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block is not found for the specified id: {}", id));
                 }
             }
             else if (shared->state() == Shared::READ)
             {
-                auto page_opt = persistent_tree_.find(id);
+                auto block_opt = persistent_tree_.find(id);
 
-                if (page_opt)
+                if (block_opt)
                 {
-                    Page* new_page = clone_page(page_opt.value().page_ptr()->raw_data());
+                    BlockType* new_block = clone_block(block_opt.value().block_ptr()->raw_data());
 
-                    ptree_set_new_page(new_page);
-                    shared->set_page(new_page);
+                    ptree_set_new_block(new_block);
+                    shared->set_block(new_block);
 
                     shared->refresh();
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page is not found for the specified id: {}", id));
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block is not found for the specified id: {}", id));
                 }
             }
             else if (shared->state() == Shared::UPDATE)
@@ -721,7 +719,7 @@ public:
                 //MEMORIA_ASEERT();
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid PageShared state: {}", shared->state()));
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid BlockShared state: {}", shared->state()));
             }
 
             shared->state() = Shared::UPDATE;
@@ -737,18 +735,18 @@ public:
 
     virtual BlockG updateBlock(Shared* shared)
     {
-        // FIXME: Though this check prohibits new page acquiring for update,
-        // already acquired updatable pages can be updated further.
+        // FIXME: Though this check prohibits new block acquiring for update,
+        // already acquired updatable blocks can be updated further.
         // To guarantee non-updatability, MMU-protection should be used
         checkUpdateAllowed(CtrID{});
 
         if (shared->state() == Shared::READ)
         {
-            Page* new_page = clone_page(shared->get());
+            BlockType* new_block = clone_block(shared->get());
 
-            ptree_set_new_page(new_page);
+            ptree_set_new_block(new_block);
 
-            shared->set_page(new_page);
+            shared->set_block(new_block);
 
             shared->state() = Shared::UPDATE;
 
@@ -789,7 +787,7 @@ public:
 
         if (initial_size == -1)
         {
-            initial_size = properties_.defaultPageSize();
+            initial_size = properties_.defaultBlockSize();
         }
 
         void* buf = allocate_system<void>(initial_size).release();
@@ -798,19 +796,19 @@ public:
 
         BlockID id = newId();
 
-        Page* p = new (buf) Page(id);
+        BlockType* p = new (buf) BlockType(id);
 
-        p->page_size() = initial_size;
+        p->memory_block_size() = initial_size;
 
         Shared* shared  = pool_.allocate(id);
 
         shared->id()    = id;
         shared->state() = Shared::UPDATE;
 
-        shared->set_page(p);
+        shared->set_block(p);
         shared->set_allocator(this);
 
-        ptree_set_new_page(p);
+        ptree_set_new_block(p);
 
         return BlockG(shared);
     }
@@ -821,19 +819,19 @@ public:
         checkUpdateAllowed(CtrID{});
 
         BlockID new_id_v = new_id.is_set() ? new_id : newId();
-        Page* new_page = this->clone_page(shared->get());
+        BlockType* new_block = this->clone_block(shared->get());
 
-        new_page->id() = new_id_v;
+        new_block->id() = new_id_v;
 
         Shared* new_shared  = pool_.allocate(new_id_v);
 
         new_shared->id()    = new_id_v;
         new_shared->state() = Shared::UPDATE;
 
-        new_shared->set_page(new_page);
+        new_shared->set_block(new_block);
         new_shared->set_allocator(this);
 
-        ptree_set_new_page(new_page);
+        ptree_set_new_block(new_block);
 
         return BlockG(new_shared);
     }
@@ -845,29 +843,29 @@ public:
 
         if (shared->state() == Shared::READ)
         {
-            BlockType* page = shared->get();
-            auto blockMetadata = metadata_->getBlockMetadata(page->ctr_type_hash(), page->page_type_hash());
+            BlockType* block = shared->get();
+            auto blockMetadata = metadata_->getBlockMetadata(block->ctr_type_hash(), block->block_type_hash());
 
-            BlockType* new_page = allocate_system<BlockType>(new_size).release();
+            BlockType* new_block = allocate_system<BlockType>(new_size).release();
 
-            blockMetadata->getBlockOperations()->resize(page, new_page, new_size);
+            blockMetadata->getBlockOperations()->resize(block, new_block, new_size);
 
-            shared->set_page(new_page);
+            shared->set_block(new_block);
 
-            ptree_set_new_page(new_page);
+            ptree_set_new_block(new_block);
         }
         else if (shared->state() == Shared::UPDATE)
         {
-            BlockType* page = shared->get();
-            auto blockMetadata = metadata_->getBlockMetadata(page->ctr_type_hash(), page->page_type_hash());
+            BlockType* block = shared->get();
+            auto blockMetadata = metadata_->getBlockMetadata(block->ctr_type_hash(), block->block_type_hash());
 
-            BlockType* new_page = reallocate_system<BlockType>(page, new_size).release();
+            BlockType* new_block = reallocate_system<BlockType>(block, new_size).release();
 
-            blockMetadata->getBlockOperations()->resize(page, new_page, new_size);
+            blockMetadata->getBlockOperations()->resize(block, new_block, new_size);
 
-            shared->set_page(new_page);
+            shared->set_block(new_block);
 
-            ptree_set_new_page(new_page);
+            ptree_set_new_block(new_block);
         }
     }
 
@@ -881,7 +879,7 @@ public:
         pool_.release(shared->id());
     }
 
-    virtual BlockG getBlockG(Page* page)
+    virtual BlockG getBlockG(BlockType* block)
     {
         MMA1_THROW(Exception()) << WhatCInfo("Method getBlockG is not implemented for this allocator");
     }
@@ -976,9 +974,9 @@ public:
         {
             auto ctr_name = iter->key();
 
-            BlockG page = this->getBlock(iter->value());
+            BlockG block = this->getBlock(iter->value());
 
-            auto ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+            auto ctr_meta = metadata_->getContainerMetadata(block->ctr_type_hash());
 
             result = ctr_meta->getCtrInterface()->check(ctr_name, this->shared_from_this()) || result;
 
@@ -1010,9 +1008,9 @@ public:
             auto ctr_name   = iter->key();
             auto root_id    = iter->value();
 
-            auto page       = this->getBlock(root_id);
+            auto block       = this->getBlock(root_id);
 
-            auto ctr_hash   = page->ctr_type_hash();
+            auto ctr_hash   = block->ctr_type_hash();
             auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
 
             ctr_meta->getCtrInterface()->walk(ctr_name, this->shared_from_this(), walker);
@@ -1070,9 +1068,9 @@ public:
 
         if (root_id.is_set())
         {
-            BlockG page = this->getBlock(root_id);
+            BlockG block = this->getBlock(root_id);
 
-            auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
+            auto& ctr_meta = getMetadata()->getContainerMetadata(block->ctr_type_hash());
 
             return ctr_meta->getCtrInterface()->new_ctr_instance(root_id, name, this->shared_from_this());
         }
@@ -1087,9 +1085,9 @@ public:
 
         if (root_id.is_set())
         {
-            BlockG page = this->getBlock(root_id);
+            BlockG block = this->getBlock(root_id);
 
-            auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
+            auto& ctr_meta = getMetadata()->getContainerMetadata(block->ctr_type_hash());
 
             return ctr_meta->getCtrInterface()->ctr_type_name();
         }
@@ -1098,40 +1096,40 @@ public:
         }
     }
 
-    virtual CtrSharedPtr<CtrReferenceable> from_root_id(const CtrID& root_page_id, const CtrID& name)
+    virtual CtrSharedPtr<CtrReferenceable> from_root_id(const CtrID& root_block_id, const CtrID& name)
     {
-        if (root_page_id.is_set())
+        if (root_block_id.is_set())
         {
-            BlockG page = this->getBlock(root_page_id);
+            BlockG block = this->getBlock(root_block_id);
 
-            auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
+            auto& ctr_meta = getMetadata()->getContainerMetadata(block->ctr_type_hash());
 
-            return ctr_meta->getCtrInterface()->new_ctr_instance(root_page_id, name, this->shared_from_this());
+            return ctr_meta->getCtrInterface()->new_ctr_instance(root_block_id, name, this->shared_from_this());
         }
         else {
             return CtrSharedPtr<CtrReferenceable>();
         }
     }
 
-    CtrBlockDescription<Profile> describe_block(const CtrID& page_id)
+    CtrBlockDescription<Profile> describe_block(const CtrID& block_id)
     {
-        BlockG page = this->getBlock(page_id);
-        return describe_block(page);
+        BlockG block = this->getBlock(block_id);
+        return describe_block(block);
     }
 
-    CtrBlockDescription<Profile> describe_block(const BlockG& page)
+    CtrBlockDescription<Profile> describe_block(const BlockG& block)
     {
-        auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
-        return ctr_meta->getCtrInterface()->describe_block1(page->id(), this->shared_from_this());
+        auto& ctr_meta = getMetadata()->getContainerMetadata(block->ctr_type_hash());
+        return ctr_meta->getCtrInterface()->describe_block1(block->id(), this->shared_from_this());
     }
 
 protected:
 
     SharedPtr<SnapshotMemoryStat> do_compute_memory_stat(bool include_containers)
     {
-        _::BlockSet visited_pages;
+        _::BlockSet visited_blocks;
 
-        PersistentTreeStatVisitAccumulatingConsumer vp_accum(visited_pages);
+        PersistentTreeStatVisitAccumulatingConsumer vp_accum(visited_blocks);
 
         HistoryNode* node = this->history_node_->parent();
 
@@ -1143,70 +1141,70 @@ protected:
             node = node->parent();
         }
 
-        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_pages, this, include_containers);
+        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_blocks, this, include_containers);
 
         persistent_tree_.conditional_tree_traverse(consumer);
 
         return consumer.finish();
     }
 
-    SharedPtr<SnapshotMemoryStat> do_compute_memory_stat(_::BlockSet& visited_pages, bool include_containers)
+    SharedPtr<SnapshotMemoryStat> do_compute_memory_stat(_::BlockSet& visited_blocks, bool include_containers)
     {
-        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_pages, this, include_containers);
+        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_blocks, this, include_containers);
 
         persistent_tree_.conditional_tree_traverse(consumer);
 
         return consumer.finish();
     }
 
-    auto export_page_rchandle(const CtrID& id)
+    auto export_block_rchandle(const CtrID& id)
     {
     	auto opt = persistent_tree_.find(id);
 
     	if (opt)
     	{
-    		return opt.value().page_ptr();
+            return opt.value().block_ptr();
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page with id {} does not exist in snapshot {}", id, currentTxnId()));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block with id {} does not exist in snapshot {}", id, currentTxnId()));
     	}
     }
 
 
 
 
-    void clone_foreign_page(const BlockType* foreign_page)
+    void clone_foreign_block(const BlockType* foreign_block)
     {
-        BlockType* new_page = clone_page(foreign_page);
-    	ptree_set_new_page(new_page);
+        BlockType* new_block = clone_block(foreign_block);
+        ptree_set_new_block(new_block);
     }
 
 
-    BlockType* clone_page(const BlockType* page)
+    BlockType* clone_block(const BlockType* block)
     {
-        char* buffer = (char*) this->malloc(page->page_size());
+        char* buffer = (char*) this->malloc(block->memory_block_size());
 
-        CopyByteBuffer(page, buffer, page->page_size());
-        BlockType* new_page = T2T<BlockType*>(buffer);
+        CopyByteBuffer(block, buffer, block->memory_block_size());
+        BlockType* new_block = T2T<BlockType*>(buffer);
 
-        new_page->uuid() = newId();
+        new_block->uuid() = newId();
 
-        return new_page;
+        return new_block;
     }
 
-    Shared* get_shared(BlockType* page)
+    Shared* get_shared(BlockType* block)
     {
-        MEMORIA_V1_ASSERT_TRUE(page != nullptr);
+        MEMORIA_V1_ASSERT_TRUE(block != nullptr);
 
-        Shared* shared = pool_.get(page->id());
+        Shared* shared = pool_.get(block->id());
 
         if (shared == NULL)
         {
-            shared = pool_.allocate(page->id());
+            shared = pool_.allocate(block->id());
 
-            shared->id()        = page->id();
+            shared->id()        = block->id();
             shared->state()     = Shared::UNDEFINED;
-            shared->set_page(page);
+            shared->set_block(block);
             shared->set_allocator(this);
         }
 
@@ -1223,7 +1221,7 @@ protected:
 
             shared->id()        = id;
             shared->state()     = state;
-            shared->set_page((Page*)nullptr);
+            shared->set_block((BlockType*)nullptr);
             shared->set_allocator(this);
         }
 
@@ -1235,17 +1233,17 @@ protected:
         return ::malloc(size);
     }
 
-    void ptree_set_new_page(Page* page)
+    void ptree_set_new_block(BlockType* block)
     {
         const auto& txn_id = history_node_->snapshot_id();
         using Value = typename PersistentTreeT::Value;
-        auto ptr = new RCPagePtr(page, 1);
-        auto old_value = persistent_tree_.assign(page->id(), Value(ptr, txn_id));
+        auto ptr = new RCBlockPtr(block, 1);
+        auto old_value = persistent_tree_.assign(block->id(), Value(ptr, txn_id));
 
-        if (old_value.page_ptr())
+        if (old_value.block_ptr())
         {
-        	if (old_value.page_ptr()->unref() == 0) {
-        		delete old_value.page_ptr();
+            if (old_value.block_ptr()->unref() == 0) {
+                delete old_value.block_ptr();
         	}
         }
     }
@@ -1333,18 +1331,18 @@ protected:
     	persistent_tree_.delete_tree([&](LeafNodeT* leaf){
             for (int32_t c = 0; c < leaf->size(); c++)
             {
-                auto& page_descr = leaf->data(c);
-                if (page_descr.page_ptr()->unref() == 0)
+                auto& block_descr = leaf->data(c);
+                if (block_descr.block_ptr()->unref() == 0)
                 {
-                    auto shared = pool_.get(page_descr.page_ptr()->raw_data()->id());
+                    auto shared = pool_.get(block_descr.block_ptr()->raw_data()->id());
 
                     if (shared)
                     {
-                    	page_descr.page_ptr()->clear();
+                        block_descr.block_ptr()->clear();
                         shared->state() = Shared::_DELETE;
                     }
 
-                    delete page_descr.page_ptr();
+                    delete block_descr.block_ptr();
                 }
             }
         });
@@ -1357,10 +1355,10 @@ protected:
         persistent_tree.delete_tree([&](LeafNodeT* leaf){
             for (int32_t c = 0; c < leaf->size(); c++)
             {
-                auto& page_descr = leaf->data(c);
-                if (page_descr.page_ptr()->unref() == 0)
+                auto& block_descr = leaf->data(c);
+                if (block_descr.block_ptr()->unref() == 0)
                 {
-                    delete page_descr.page_ptr();
+                    delete block_descr.block_ptr();
                 }
             }
         });

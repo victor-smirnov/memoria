@@ -43,7 +43,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl_test::IterApiName)
     using Value     = typename Container::Types::Value;
 
 
-    using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
+    using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
 
     static const int32_t Streams          = Container::Types::Streams;
     static const int32_t DataStreams      = Container::Types::DataStreams;

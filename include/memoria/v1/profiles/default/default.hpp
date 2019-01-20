@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/v1/profiles/common/common.hpp>
-#include <memoria/v1/profiles/common/page.hpp>
+#include <memoria/v1/profiles/common/block.hpp>
 #include <memoria/v1/core/container/allocator.hpp>
 
 #include <memoria/v1/core/tools/uuid.hpp>

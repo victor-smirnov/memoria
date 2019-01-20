@@ -42,7 +42,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorStreamSumsName)
     using DataSizesT  = typename Container::Types::DataSizesT;
 
 
-    using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
+    using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
 
     static constexpr int32_t DataStreams = Container::Types::DataStreams;
     static constexpr int32_t StructureStreamIdx = Container::Types::StructureStreamIdx;

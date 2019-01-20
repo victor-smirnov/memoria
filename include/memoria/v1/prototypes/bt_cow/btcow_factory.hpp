@@ -337,7 +337,7 @@ public:
         using NodeBaseG         = NodePageBase0G;
     };
 
-    using PageDispatchers 	= bt::BTreeDispatchers<DispatcherTypes>;
+    using BlockDispatchers 	= bt::BTreeDispatchers<DispatcherTypes>;
     using TreePath 			= core::StaticArray<NodePageBase0G, 8>;
 
     static const PackedSizeType BranchSizeType  = PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
@@ -374,7 +374,7 @@ public:
     struct Types: ContainerTypes
     {
         typedef ContainerTypeName_                                              ContainerTypeName;
-        typedef typename MyType::PageDispatchers                                Pages;
+        typedef typename MyType::BlockDispatchers                                Pages;
 
         typedef typename ContainerTypes::Allocator                              Allocator;
         typedef typename ContainerTypes::Metadata                               Metadata;
@@ -399,7 +399,7 @@ public:
         using Position  = Position_;
         using CtrSizesT = Position_;
 
-        using PageUpdateMgr = PageUpdateManager<CtrTypes>;
+        using BlockUpdateMgr = BlockUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList     = typename MyType::LeafStreamsStructList;
 

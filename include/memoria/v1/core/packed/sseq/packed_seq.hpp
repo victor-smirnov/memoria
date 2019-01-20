@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/container/page_traits.hpp>
+#include <memoria/v1/core/container/block_traits.hpp>
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/types/traits.hpp>
@@ -56,8 +56,8 @@ struct ValueHelper {
 };
 
 template <typename T>
-struct ValueHelper<PageID<T> > {
-    typedef PageID<T>                                                   Type;
+struct ValueHelper<BlockID<T> > {
+    typedef BlockID<T>                                                   Type;
 
     static void setup(IBlockDataEventHandler* handler, const Type& value)
     {

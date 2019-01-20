@@ -203,11 +203,11 @@ public:
 
     void initAllocator(int32_t entries)
     {
-        int32_t page_size = this->page_size();
-        MEMORIA_V1_ASSERT(page_size, >, (int)sizeof(Me) + PackedAllocator::my_size());
+        int32_t block_size = this->memory_block_size();
+        MEMORIA_V1_ASSERT(block_size, >, (int)sizeof(Me) + PackedAllocator::my_size());
 
         allocator_.setTopLevelAllocator();
-        OOM_THROW_IF_FAILED(allocator_.init(page_size - sizeof(Me) + PackedAllocator::my_size(), entries), MMA1_SRC);
+        OOM_THROW_IF_FAILED(allocator_.init(block_size - sizeof(Me) + PackedAllocator::my_size(), entries), MMA1_SRC);
     }
 
     void transferDataTo(Me* other) const
@@ -220,7 +220,7 @@ public:
 
     void resizePage(int32_t new_size)
     {
-        this->page_size() = new_size;
+        this->memory_block_size() = new_size;
         allocator_.resizeBlock(new_size - sizeof(Me) + PackedAllocator::my_size());
     }
 
@@ -296,19 +296,19 @@ public:
         }
     }
 
-    void copyFrom(const Me* page)
+    void copyFrom(const Me* block)
     {
-        Base::copyFrom(page);
+        Base::copyFrom(block);
 
-        this->set_root(page->is_root());
-        this->set_leaf(page->is_leaf());
+        this->set_root(block->is_root());
+        this->set_leaf(block->is_leaf());
 
-        this->level()       = page->level();
+        this->level()       = block->level();
 
-        this->next_leaf_id() = page->next_leaf_id();
+        this->next_leaf_id() = block->next_leaf_id();
 
-        this->parent_id()   = page->parent_id();
-        this->parent_idx()  = page->parent_idx();
+        this->parent_id()   = block->parent_id();
+        this->parent_idx()  = block->parent_idx();
 
         //FIXME: copy allocator?
         //FIXME: copy root metadata ?
@@ -440,10 +440,10 @@ private:
 
 public:
 
-    static int32_t free_space(int32_t page_size, bool root)
+    static int32_t free_space(int32_t block_size, bool root)
     {
-        int32_t block_size  = page_size - sizeof(MyType) + PackedAllocator::my_size();
-        int32_t client_area = PackedAllocator::client_area(block_size, SubstreamsStart + Substreams + 1);
+        int32_t fixed_block_size  = block_size - sizeof(MyType) + PackedAllocator::my_size();
+        int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
 
         return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata)) - 200;
     }
@@ -477,7 +477,7 @@ public:
 
     int32_t capacity(uint64_t active_streams) const
     {
-        int32_t free_space  = MyType::free_space(Base::page_size(), Base::is_root());
+        int32_t free_space  = MyType::free_space(Base::memory_block_size(), Base::is_root());
         int32_t max_size    = max_tree_size1(free_space, active_streams);
         int32_t cap         = max_size - size();
 
@@ -565,10 +565,10 @@ private:
     }
 
 public:
-    static int32_t max_tree_size_for_block(int32_t page_size, bool root)
+    static int32_t max_tree_size_for_block(int32_t block_size, bool root)
     {
-        int32_t block_size = MyType::free_space(page_size, root);
-        return max_tree_size1(block_size);
+        int32_t fixed_block_size = MyType::free_space(block_size, root);
+        return max_tree_size1(fixed_block_size);
     }
 
     void prepare()
@@ -1700,7 +1700,7 @@ public:
     using Base    = TreeNode<Types>;
     using Profile = typename Types::Profile;
 
-    static const uint64_t PAGE_HASH = TypeHashV<Base>;
+    static const uint64_t BLOCK_HASH = TypeHashV<Base>;
 
 //    static_assert(std::is_trivial<TreeNode<Types>>::value, "TreeNode must be a trivial type");
 
@@ -1718,10 +1718,10 @@ public:
     NodePageAdaptor() = default;
 
     static uint64_t hash() {
-        return PAGE_HASH;
+        return BLOCK_HASH;
     }
 
-    static const BlockMetadataPtr<Profile>& page_metadata() {
+    static const BlockMetadataPtr<Profile>& block_metadata() {
         return block_metadata_;
     }
 
@@ -1731,9 +1731,9 @@ public:
 
         virtual ~BlockOperations() noexcept {}
 
-        virtual int32_t serialize(const BlockType* page, void* buf) const
+        virtual int32_t serialize(const BlockType* block, void* buf) const
         {
-            const MyType* me = T2T<const MyType*>(page);
+            const MyType* me = T2T<const MyType*>(block);
 
             SerializationData data;
             data.buf = T2T<char*>(buf);
@@ -1743,9 +1743,9 @@ public:
             return data.total;
         }
 
-        virtual void deserialize(const void* buf, int32_t buf_size, BlockType* page) const
+        virtual void deserialize(const void* buf, int32_t buf_size, BlockType* block) const
         {
-            MyType* me = T2T<MyType*>(page);
+            MyType* me = T2T<MyType*>(block);
 
             DeserializationData data;
             data.buf = T2T<const char*>(buf);
@@ -1753,19 +1753,19 @@ public:
             me->template deserialize<FieldFactory>(data);
         }
 
-        virtual int32_t getPageSize(const BlockType *page) const
+        virtual int32_t getBlockSize(const BlockType *block) const
         {
-            const MyType* me = T2T<const MyType*>(page);
-            return me->page_size();
+            const MyType* me = T2T<const MyType*>(block);
+            return me->memory_block_size();
         }
 
-        virtual void resize(const BlockType* page, void* buffer, int32_t new_size) const
+        virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const
         {
-//            const MyType* me = T2T<const MyType*>(page);
+//            const MyType* me = T2T<const MyType*>(block);
             MyType* tgt = T2T<MyType*>(buffer);
 //
 //            tgt->copyFrom(me);
-//            tgt->page_size() = new_size;
+//            tgt->memory_block_size() = new_size;
 //            tgt->init();
 //
 //            me->transferDataTo(tgt);
@@ -1777,24 +1777,24 @@ public:
         }
 
         virtual void generateDataEvents(
-                        const BlockType* page,
+                        const BlockType* block,
                         const DataEventsParams& params,
                         IBlockDataEventHandler* handler
                      ) const
         {
-            const MyType* me = T2T<const MyType*>(page);
+            const MyType* me = T2T<const MyType*>(block);
             handler->startBlock("BTREE_NODE", me);
             me->generateDataEvents(handler);
             handler->endBlock();
         }
 
         virtual void generateLayoutEvents(
-                        const BlockType* page,
+                        const BlockType* block,
                         const LayoutEventsParams& params,
                         IBlockLayoutEventHandler* handler
                      ) const
         {
-            const MyType* me = T2T<const MyType*>(page);
+            const MyType* me = T2T<const MyType*>(block);
             handler->startBlock("BTREE_NODE");
             me->generateLayoutEvents(handler);
             handler->endBlock();

@@ -38,8 +38,8 @@ struct AllocatorEventListener {
     virtual void container_removed(UUID snapshot_id, UUID container_name) = 0;
     virtual void container_updated(UUID snapshot_id, UUID container_name) = 0;
 
-    virtual void page_created(UUID snapshot_id, UUID container_name, UUID page_id) = 0;
-    virtual void page_removed(UUID snapshot_id, UUID container_name, UUID page_id) = 0;
+    virtual void block_created(UUID snapshot_id, UUID container_name, UUID block_id) = 0;
+    virtual void block_removed(UUID snapshot_id, UUID container_name, UUID block_id) = 0;
 };
 
 }

@@ -36,16 +36,16 @@ protected:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
     typedef std::function<void (const Position&)>                               MergeFn;
 
@@ -100,7 +100,7 @@ public:
     {
         auto& self = this->self();
 
-        PageUpdateMgr mgr(self);
+        BlockUpdateMgr mgr(self);
 
         self.updateBlockG(iter.leaf());
 
@@ -117,11 +117,11 @@ public:
         return std::make_tuple(true);
     }
 
-    MMA1_NODISCARD bool with_page_manager(NodeBaseG& leaf, int structure_idx, int stream_idx, std::function<OpStatus(int, int)> insert_fn)
+    MMA1_NODISCARD bool with_block_manager(NodeBaseG& leaf, int structure_idx, int stream_idx, std::function<OpStatus(int, int)> insert_fn)
     {
         auto& self = this->self();
 
-        PageUpdateMgr mgr(self);
+        BlockUpdateMgr mgr(self);
 
         self.updateBlockG(leaf);
 
@@ -174,7 +174,7 @@ public:
     {
         auto& self = this->self();
 
-        PageUpdateMgr mgr(self);
+        BlockUpdateMgr mgr(self);
 
         self.updateBlockG(iter.leaf());
 
@@ -239,7 +239,7 @@ public:
     {
         auto& self = this->self();
 
-        PageUpdateMgr mgr(self);
+        BlockUpdateMgr mgr(self);
 
         self.updateBlockG(iter.leaf());
 
@@ -290,7 +290,7 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 {
     auto& self = this->self();
 
-    PageUpdateMgr mgr(self);
+    BlockUpdateMgr mgr(self);
 
     self.updateBlockG(src);
     self.updateBlockG(tgt);

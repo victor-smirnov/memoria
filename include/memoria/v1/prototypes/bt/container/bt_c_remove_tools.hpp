@@ -39,9 +39,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
@@ -67,10 +67,10 @@ public:
                 auto root = meta.roots(CtrID(0, c));
                 if (!root.is_null())
                 {
-                    auto root_page      = self.allocator().getBlock(root);
+                    auto root_block      = self.allocator().getBlock(root);
                     auto ctr_meta_rep   = MetadataRepository<typename Types::Profile>::getMetadata();
 
-                    int32_t ctr_hash    = root_page->ctr_type_hash();
+                    int32_t ctr_hash    = root_block->ctr_type_hash();
 
                     auto ctr_meta       = ctr_meta_rep->getContainerMetadata(ctr_hash);
 
@@ -95,7 +95,7 @@ public:
         auto& self = this->self();
         auto metadata = self.getRootMetadata();
 
-        NodeBaseG new_root = self.createNode(0, true, true, metadata.page_size());
+        NodeBaseG new_root = self.createNode(0, true, true, metadata.memory_block_size());
 
         self.drop();
         self.set_root(new_root->id());

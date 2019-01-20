@@ -177,10 +177,10 @@ private:
 
 public:
 
-    static int32_t free_space(int32_t page_size, bool root)
+    static int32_t free_space(int32_t block_size, bool root)
     {
-        int32_t block_size = page_size - sizeof(Me) + PackedAllocator::my_size();
-        int32_t client_area = PackedAllocator::client_area(block_size, SubstreamsStart + Substreams + 1);
+        int32_t fixed_block_size = block_size - sizeof(Me) + PackedAllocator::my_size();
+        int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
 
         return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
     }
@@ -470,7 +470,7 @@ public:
 
         this->processSubstreamGroups(CheckCapacitiesFn(), fillment, &mem_size);
 
-        int32_t free_space      = MyType::free_space(this->page_size(), this->is_root());
+        int32_t free_space      = MyType::free_space(this->memory_block_size(), this->is_root());
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
         return client_area >= mem_size + 300;
@@ -491,7 +491,7 @@ public:
 
         this->processSubstreamGroups(CheckCapacitiesFn(), entropy, fillment, &mem_size);
 
-        int32_t free_space      = MyType::free_space(this->page_size(), this->is_root());
+        int32_t free_space      = MyType::free_space(this->memory_block_size(), this->is_root());
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
         return client_area >= mem_size;
@@ -521,9 +521,9 @@ public:
     int32_t single_stream_capacity(int32_t max_hops) const
     {
         int32_t min = sizes()[0];
-        int32_t max = this->page_size() * 8;
+        int32_t max = this->memory_block_size() * 8;
 
-        int32_t free_space      = MyType::free_space(this->page_size(), this->is_root());
+        int32_t free_space      = MyType::free_space(this->memory_block_size(), this->is_root());
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
         int32_t total = FindTotalElementsNumber(min, max, client_area, max_hops, [&](int32_t stream_size){
@@ -1505,7 +1505,7 @@ public:
     	template <typename Tree>
     	void stream(Tree* tree)
     	{
-    		std::cout << tree->block_size() << std::endl;
+            std::cout << tree->memory_block_size() << std::endl;
     	}
     };
 

@@ -33,40 +33,40 @@ namespace _ {
 
 class PersistentTreeStatVisitAccumulatingConsumer {
 
-    _::BlockSet& visited_pages_;
+    _::BlockSet& visited_blocks_;
 
 public:
     PersistentTreeStatVisitAccumulatingConsumer(_::BlockSet& visits):
-        visited_pages_(visits)
+        visited_blocks_(visits)
     {}
 
     template <typename BlockT>
-    bool process_ptree_leaf(const BlockT* page)
+    bool process_ptree_leaf(const BlockT* block)
     {
-        bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
-        visited_pages_.insert(page);
+        bool proceed_next = visited_blocks_.find(block) == visited_blocks_.end();
+        visited_blocks_.insert(block);
         return proceed_next;
     }
 
     template <typename BlockT>
-    bool process_ptree_branch(const BlockT* page)
+    bool process_ptree_branch(const BlockT* block)
     {
-        bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
-        visited_pages_.insert(page);
+        bool proceed_next = visited_blocks_.find(block) == visited_blocks_.end();
+        visited_blocks_.insert(block);
         return proceed_next;
     }
 
     template <typename BlockT>
-    void process_data_page(const BlockT* page)
+    void process_data_block(const BlockT* block)
     {
-        visited_pages_.insert(page);
+        visited_blocks_.insert(block);
     }
 };
 
 
 struct CtrStat {
-    uint64_t total_leaf_pages_{};
-    uint64_t total_branch_pages_{};
+    uint64_t total_leaf_blocks_{};
+    uint64_t total_branch_blocks_{};
 
     uint64_t total_leaf_size_{};
     uint64_t total_branch_size_{};
@@ -79,7 +79,7 @@ template <typename Snapshot>
 class SnapshotStatsCountingConsumer {
 
     Snapshot* current_snapshot_{};
-    _::BlockSet& visited_pages_;
+    _::BlockSet& visited_blocks_;
     bool include_containers_;
 
     using CtrID = typename Snapshot::CtrID;
@@ -95,17 +95,17 @@ class SnapshotStatsCountingConsumer {
 public:
     SnapshotStatsCountingConsumer(_::BlockSet& visits, Snapshot* snp, bool include_containers):
         current_snapshot_(snp),
-        visited_pages_(visits),
+        visited_blocks_(visits),
         include_containers_(include_containers)
     {}
 
     template <typename BlockT>
-    bool process_ptree_leaf(const BlockT* page)
+    bool process_ptree_leaf(const BlockT* block)
     {
-        bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
+        bool proceed_next = visited_blocks_.find(block) == visited_blocks_.end();
         if (proceed_next)
         {
-            visited_pages_.insert(page);
+            visited_blocks_.insert(block);
             total_ptree_size_ += sizeof(BlockT) / 1024;
         }
 
@@ -113,12 +113,12 @@ public:
     }
 
     template <typename BlockT>
-    bool process_ptree_branch(const BlockT* page)
+    bool process_ptree_branch(const BlockT* block)
     {
-        bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
+        bool proceed_next = visited_blocks_.find(block) == visited_blocks_.end();
         if (proceed_next)
         {
-            visited_pages_.insert(page);
+            visited_blocks_.insert(block);
             total_ptree_size_ += sizeof(BlockT) / 1024;
         }
 
@@ -126,34 +126,34 @@ public:
     }
 
     template <typename BlockT>
-    void process_data_page(const BlockT* page)
+    void process_data_block(const BlockT* block)
     {
-        bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
+        bool proceed_next = visited_blocks_.find(block) == visited_blocks_.end();
         if (proceed_next)
         {
             if (include_containers_)
             {
-                CtrBlockDescription<Profile> descr = current_snapshot_->describe_block(page->id());
+                CtrBlockDescription<Profile> descr = current_snapshot_->describe_block(block->id());
 
                 CtrStat& stat = ctr_stat_[descr.ctr_name()];
 
                 if (descr.is_branch())
                 {
-                    stat.total_branch_pages_ ++;
+                    stat.total_branch_blocks_ ++;
                     stat.total_branch_size_ += descr.size() / 1024;
                 }
                 else {
-                    stat.total_leaf_pages_ ++;
+                    stat.total_leaf_blocks_ ++;
                     stat.total_leaf_size_ += descr.size() / 1024;
                 }
 
                 total_data_size_ += descr.size() / 1024;
             }
             else {
-                total_data_size_ += page->page_size() / 1024;
+                total_data_size_ += block->memory_block_size() / 1024;
             }
 
-            visited_pages_.insert(page);
+            visited_blocks_.insert(block);
         }
     }
 
@@ -175,8 +175,8 @@ public:
             SharedPtr<ContainerMemoryStat> ctr_mem_stat = MakeShared<ContainerMemoryStat>(
                     ctr_name,
                     current_snapshot_->ctr_type_name(ctr_name),
-                    stat.total_leaf_pages_,
-                    stat.total_branch_pages_,
+                    stat.total_leaf_blocks_,
+                    stat.total_branch_blocks_,
                     stat.total_leaf_size_,
                     stat.total_branch_size_,
                     stat.total_leaf_size_ + stat.total_branch_size_

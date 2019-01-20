@@ -70,9 +70,9 @@ public:
     virtual BlockG createBlock(int32_t initial_size, const UUID& name);
 
 
-    virtual BlockG getBlockG(Page* page);
+    virtual BlockG getBlockG(Page* block);
 
-    virtual void  resizePage(Shared* page, int32_t new_size);
+    virtual void  resizePage(Shared* block, int32_t new_size);
 
     virtual void  releasePage(Shared* shared) noexcept;
 
@@ -111,8 +111,8 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-typename M_TYPE::BlockG M_TYPE::getBlockG(Page* page) {
-    return self().allocator().getBlockG(page);
+typename M_TYPE::BlockG M_TYPE::getBlockG(Page* block) {
+    return self().allocator().getBlockG(block);
 }
 
 M_PARAMS
@@ -131,8 +131,8 @@ typename M_TYPE::BlockG M_TYPE::createBlock(int32_t initial_size, const UUID& na
 }
 
 M_PARAMS
-void M_TYPE::resizePage(Shared* page, int32_t new_size) {
-    self().allocator().resizePage(page, new_size);
+void M_TYPE::resizePage(Shared* block, int32_t new_size) {
+    self().allocator().resizePage(block, new_size);
 }
 
 M_PARAMS

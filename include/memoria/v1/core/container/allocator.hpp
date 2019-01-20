@@ -19,7 +19,7 @@
 #include <memoria/v1/profiles/common/common.hpp>
 
 #include <memoria/v1/core/container/names.hpp>
-#include <memoria/v1/profiles/common/page.hpp>
+#include <memoria/v1/profiles/common/block.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
 
 #ifndef MMA1_NO_REACTOR
@@ -42,13 +42,13 @@ namespace memoria {
 namespace v1 {
 
 struct IAllocatorProperties {
-    virtual int32_t defaultPageSize() const                                      = 0;
+    virtual int32_t defaultBlockSize() const                                     = 0;
 
     virtual int64_t lastCommitId() const                                         = 0;
     virtual void setLastCommitId(int64_t txn_id)                                 = 0;
     virtual int64_t newTxnId()                                                   = 0;
 
-    virtual ~IAllocatorProperties() {}
+    virtual ~IAllocatorProperties() noexcept {}
 };
 
 
@@ -64,7 +64,6 @@ struct IAllocator: AllocatorBase {
 
     using MyType        = IAllocator<Profile>;
 
-    using Page          = ProfileBlockType<Profile>;
     using BlockType     = ProfileBlockType<Profile>;
     using ID            = ProfileBlockID<Profile>;
     using BlockID       = ProfileBlockID<Profile>;
@@ -72,7 +71,7 @@ struct IAllocator: AllocatorBase {
     using CtrID         = ProfileCtrID<Profile>;
 
 
-    using BlockG     = BlockGuard<Page, MyType>;
+    using BlockG     = BlockGuard<BlockType, MyType>;
     using Shared    = typename BlockG::Shared;
     
     virtual BlockID getRootID(const CtrID& ctr_id)                              = 0;
@@ -91,9 +90,9 @@ struct IAllocator: AllocatorBase {
 
     virtual BlockG cloneBlock(const Shared* shared, const BlockID& new_id)      = 0;
 
-    virtual void  resizeBlock(Shared* page, int32_t new_size)                   = 0;
+    virtual void  resizeBlock(Shared* block, int32_t new_size)                   = 0;
     virtual void  releaseBlock(Shared* shared) noexcept                         = 0;
-    virtual BlockG getBlockG(BlockType* page)                                   = 0;
+    virtual BlockG getBlockG(BlockType* block)                                   = 0;
 
     virtual ID newId()                                                          = 0;
     virtual SnapshotID currentTxnId() const                                     = 0;
@@ -113,7 +112,7 @@ struct IAllocator: AllocatorBase {
 
     virtual SnpSharedPtr<MyType> self_ptr()                                     = 0;
     virtual CtrSharedPtr<CtrReferenceable> get(const CtrID& ctr_id)             = 0;
-    virtual CtrSharedPtr<CtrReferenceable> from_root_id(const BlockID& root_page_id, const CtrID& name) = 0;
+    virtual CtrSharedPtr<CtrReferenceable> from_root_id(const BlockID& root_block_id, const CtrID& name) = 0;
 
     virtual bool check()                                                        = 0;
     virtual void walkContainers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr) = 0;

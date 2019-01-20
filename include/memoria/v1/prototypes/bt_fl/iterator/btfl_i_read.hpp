@@ -116,7 +116,7 @@ public:
 
             if (result.ending() == btfl::io::Ending::END_OF_PAGE)
             {
-                if (!walker.next_page())
+                if (!walker.next_block())
                 {
                     more_data = false;
                     break;
@@ -199,7 +199,7 @@ public:
 
             if (result.ending() == btfl::io::Ending::END_OF_PAGE)
             {
-                if (!walker->next_page())
+                if (!walker->next_block())
                 {
                     if (entries > 0)
                     {

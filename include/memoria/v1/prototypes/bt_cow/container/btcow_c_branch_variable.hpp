@@ -41,16 +41,16 @@ protected:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
     typedef std::function<void (NodeBaseG&, NodeBaseG&)>                        SplitFn;
 
@@ -129,7 +129,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     NodeBaseG left_parent = self.getNodeParentForUpdate(left_node);
 
-    NodeBaseG right_node = self.createNode(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+    NodeBaseG right_node = self.createNode(left_node->level(), false, left_node->is_leaf(), left_node->memory_block_size());
 
     split_fn(left_node, right_node);
 
@@ -140,7 +140,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     self.updateBranchNodes(left_parent, parent_idx, left_max);
 
-    PageUpdateMgr mgr(self);
+    BlockUpdateMgr mgr(self);
     mgr.add(left_parent);
 
     try {
@@ -189,7 +189,7 @@ bool M_TYPE::updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntr
 {
     auto& self = this->self();
 
-    PageUpdateMgr mgr(self);
+    BlockUpdateMgr mgr(self);
 
     mgr.add(node);
 
@@ -286,7 +286,7 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
-    PageUpdateMgr mgr(self);
+    BlockUpdateMgr mgr(self);
 
     self.updateBlockG(src);
     self.updateBlockG(tgt);

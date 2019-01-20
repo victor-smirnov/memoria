@@ -152,7 +152,7 @@ public:
         using CtrTypes          = BTFLCtrTypes<Types>;
         using IterTypes         = BTFLIterTypes<Types>;
 
-        using PageUpdateMgr     = bt::PageUpdateManager<CtrTypes>;
+        using BlockUpdateMgr     = bt::BlockUpdateManager<CtrTypes>;
 
         static const int32_t DataStreams            = BaseTypes::Streams - 1;
         static const int32_t StructureStreamIdx     = DataStreams;

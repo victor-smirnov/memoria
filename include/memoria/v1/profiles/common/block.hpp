@@ -86,8 +86,8 @@ private:
 
     uint32_t    crc_;
     uint64_t    ctr_type_hash_;
-    uint64_t    page_type_hash_;
-    int32_t     page_size_;
+    uint64_t    block_type_hash_;
+    int32_t     memory_block_size_;
 
     uint64_t    next_block_pos_;
     uint64_t    target_block_pos_;
@@ -100,8 +100,6 @@ private:
     int32_t     deleted_;
 
     //Txn rollback intrusive list fields. Not used by containers.
-
-
 public:
     typedef TypeList<
                 ConstValue<uint32_t, VERSION>,
@@ -110,9 +108,9 @@ public:
                 decltype(uuid_),
                 decltype(crc_),
                 decltype(ctr_type_hash_),
-                decltype(page_type_hash_),
+                decltype(block_type_hash_),
                 decltype(deleted_),
-                decltype(page_size_),
+                decltype(memory_block_size_),
                 decltype(next_block_pos_),
                 decltype(target_block_pos_)
     >                                                                           FieldsList;
@@ -162,12 +160,12 @@ public:
     }
 
     
-    uint64_t &page_type_hash() {
-        return page_type_hash_;
+    uint64_t &block_type_hash() {
+        return block_type_hash_;
     }
 
-    const uint64_t &page_type_hash() const {
-        return page_type_hash_;
+    const uint64_t &block_type_hash() const {
+        return block_type_hash_;
     }
 
 
@@ -179,12 +177,12 @@ public:
         return deleted_;
     }
 
-    int32_t& page_size() {
-        return page_size_;
+    int32_t& memory_block_size() {
+        return memory_block_size_;
     }
 
-    const int32_t& page_size() const {
-        return page_size_;
+    const int32_t& memory_block_size() const {
+        return memory_block_size_;
     }
 
     int32_t data_size() const {
@@ -217,13 +215,13 @@ public:
 
 
 
-    void *operator new(size_t size, void *page) {
-        return page;
+    void *operator new(size_t size, void *block) {
+        return block;
     }
 
     void operator delete(void *buf) {}
 
-    //Rebuild page content such indexes using provided data.
+    //Rebuild block content such indexes using provided data.
     void Rebiuild(){}
 
     void generateLayoutEvents(IBlockLayoutEventHandler* handler) const {}
@@ -234,26 +232,26 @@ public:
         handler->value("ID",                &id_);
         handler->value("CRC",               &crc_);
         handler->value("CTR_HASH",          &ctr_type_hash_);
-        handler->value("PAGE_TYPE_HASH",    &page_type_hash_);
+        handler->value("PAGE_TYPE_HASH",    &block_type_hash_);
         handler->value("DELETED",           &deleted_);
-        handler->value("PAGE_SIZE",         &page_size_);
+        handler->value("PAGE_SIZE",         &memory_block_size_);
 
         handler->value("NEXT_BLOCK_POS",    &next_block_pos_);
         handler->value("TARGET_BLOCK_POS",  &target_block_pos_);
     }
 
 
-    void copyFrom(const Me* page)
+    void copyFrom(const Me* block)
     {
-        this->id()              = page->id();
-        this->gid()             = page->gid();
-        this->crc()             = page->crc();
+        this->id()              = block->id();
+        this->gid()             = block->gid();
+        this->crc()             = block->crc();
 
-        this->ctr_type_hash()           = page->ctr_type_hash();
+        this->ctr_type_hash()       = block->ctr_type_hash();
         
-        this->page_type_hash()  = page->page_type_hash();
-        this->deleted()         = page->deleted();
-        this->page_size()       = page->page_size();
+        this->block_type_hash()     = block->block_type_hash();
+        this->deleted()             = block->deleted();
+        this->memory_block_size()   = block->memory_block_size();
     }
 
     template <template <typename> class FieldFactory>
@@ -261,8 +259,8 @@ public:
     {
         FieldFactory<uint32_t>::serialize(buf, crc());
         FieldFactory<uint64_t>::serialize(buf, ctr_type_hash());
-        FieldFactory<uint64_t>::serialize(buf, page_type_hash());
-        FieldFactory<int32_t>::serialize(buf, page_size_);
+        FieldFactory<uint64_t>::serialize(buf, block_type_hash());
+        FieldFactory<int32_t>::serialize(buf, memory_block_size_);
 
         FieldFactory<uint64_t>::serialize(buf, next_block_pos_);
         FieldFactory<uint64_t>::serialize(buf, target_block_pos_);
@@ -278,8 +276,8 @@ public:
     {
         FieldFactory<uint32_t>::deserialize(buf, crc());
         FieldFactory<uint64_t>::deserialize(buf, ctr_type_hash());
-        FieldFactory<uint64_t>::deserialize(buf, page_type_hash());
-        FieldFactory<int32_t>::deserialize(buf, page_size_);
+        FieldFactory<uint64_t>::deserialize(buf, block_type_hash());
+        FieldFactory<int32_t>::deserialize(buf, memory_block_size_);
 
         FieldFactory<uint64_t>::deserialize(buf, next_block_pos_);
         FieldFactory<uint64_t>::deserialize(buf, target_block_pos_);
@@ -320,7 +318,7 @@ class PageShared {
 
 
     BlockID     id_;
-    PageT*      page_;
+    PageT*      block_;
     int32_t     references_;
     int32_t     state_;
 
@@ -335,31 +333,31 @@ public:
     enum {UNDEFINED, READ, UPDATE, _DELETE};
 
     template <typename Page>
-    const Page* page() const {
-        return static_cast<const Page*>(page_);
+    const Page* block() const {
+        return static_cast<const Page*>(block_);
     }
 
     template <typename Page>
-    Page* page() {
-        return static_cast<Page*>(page_);
+    Page* block() {
+        return static_cast<Page*>(block_);
     }
 
     PageT* get() {
-        return page_;
+        return block_;
     }
 
     const PageT* get() const {
-        return page_;
+        return block_;
     }
 
     template <typename Page>
     operator Page* () {
-        return page<Page>();
+        return block<Page>();
     }
 
     template <typename Page>
     operator const Page* () {
-        return page<Page>();
+        return block<Page>();
     }
 
     int32_t references() const {
@@ -387,13 +385,13 @@ public:
     }
 
     template <typename Page>
-    void set_page(Page* page)
+    void set_block(Page* block)
     {
-        this->page_ = static_cast<PageT*>(page);
+        this->block_ = static_cast<PageT*>(block);
     }
 
     void resetPage() {
-        this->page_ = nullptr;
+        this->block_ = nullptr;
     }
 
     int32_t ref() {
@@ -477,7 +475,7 @@ public:
         id_         = BlockID{};
         references_ = 0;
         state_      = READ;
-        page_       = nullptr;
+        block_       = nullptr;
         allocator_  = nullptr;
 
         owner_      = nullptr;
@@ -487,7 +485,7 @@ public:
 private:
     void refreshData(MyType* shared)
     {
-        this->page_     = shared->page_;
+        this->block_     = shared->block_;
         this->state_    = shared->state_;
 
         refresh();
@@ -623,14 +621,14 @@ public:
     }
 
 
-    bool operator==(const PageT* page) const
+    bool operator==(const PageT* block) const
     {
-        return shared_ != NULL ? *shared_ == page : (char*)shared_ == (char*)page;
+        return shared_ != NULL ? *shared_ == block : (char*)shared_ == (char*)block;
     }
 
-    bool operator!=(const PageT* page) const
+    bool operator!=(const PageT* block) const
     {
-        return shared_ != NULL ? *shared_ != page : (char*)shared_ != (char*)page;
+        return shared_ != NULL ? *shared_ != block : (char*)shared_ != (char*)block;
     }
 
     bool isEmpty() const {
@@ -655,17 +653,17 @@ public:
         return this->isSet();
     }
 
-    const PageT* page() const {
+    const PageT* block() const {
         return *shared_;
     }
 
-    PageT* page() {
+    PageT* block() {
         return *shared_;
     }
 
-    void set_page(PageT* page)
+    void set_block(PageT* block)
     {
-        shared_->set_page(page);
+        shared_->set_block(block);
     }
 
     const PageT* operator->() const {
@@ -763,7 +761,7 @@ std::ostream& operator<<(std::ostream& out, const BlockGuard<T, A>& pg)
 
 template <typename T, typename A>
 LogHandler* logIt(LogHandler* log, const BlockGuard<T, A>& value) {
-    log->log(value.page());
+    log->log(value.block());
     log->log(" ");
     return log;
 }
@@ -771,7 +769,7 @@ LogHandler* logIt(LogHandler* log, const BlockGuard<T, A>& value) {
 
 
 template <typename T>
-std::ostream& operator<<(std::ostream& out, const PageID<T>& id)
+std::ostream& operator<<(std::ostream& out, const BlockID<T>& id)
 {
     IDValue idv(id);
     out<<idv;
@@ -780,14 +778,14 @@ std::ostream& operator<<(std::ostream& out, const PageID<T>& id)
 
 
 template <typename T>
-OutputStreamHandler& operator<<(OutputStreamHandler& out, const PageID<T>& id)
+OutputStreamHandler& operator<<(OutputStreamHandler& out, const BlockID<T>& id)
 {
     out << id.value();
     return out;
 }
 
 template <typename T>
-InputStreamHandler& operator>>(InputStreamHandler& in, PageID<T>& id)
+InputStreamHandler& operator>>(InputStreamHandler& in, BlockID<T>& id)
 {
     in >> id.value();
     return in;

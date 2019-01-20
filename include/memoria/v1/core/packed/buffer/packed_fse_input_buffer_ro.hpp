@@ -319,7 +319,7 @@ public:
 
     void dump(std::ostream& out = std::cout) const
     {
-        TextPageDumper dumper(out);
+        TextBlockDumper dumper(out);
         generateDataEvents(&dumper);
     }
 

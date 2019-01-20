@@ -535,10 +535,10 @@ private:
 
         write_metadata(*output);
 
-        RCBlockSet stored_pages;
+        RCBlockSet stored_blocks;
 
         walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) {
-            write_history_node(*output, history_tree_node, stored_pages);
+            write_history_node(*output, history_tree_node, stored_blocks);
         });
 
         Checksum checksum;
@@ -602,7 +602,7 @@ public:
     {
         LockGuardT lock_guard(mutex_);
 
-        _::BlockSet visited_pages;
+        _::BlockSet visited_blocks;
 
         SharedPtr<AllocatorMemoryStat> alloc_stat = MakeShared<AllocatorMemoryStat>(0);
 
@@ -612,7 +612,7 @@ public:
             if (node->is_committed() || node->is_dropped())
             {
                 auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this());
-                auto snp_stat = snp->do_compute_memory_stat(visited_pages, include_containers);
+                auto snp_stat = snp->do_compute_memory_stat(visited_blocks, include_containers);
                 alloc_stat->add_snapshot_stat(snp_stat);
             }
         };

@@ -18,46 +18,6 @@
 
 #include <memoria/v1/core/config.hpp>
 
-#define MEMORIA_V1_PAGE_PART_BEGIN(PartName)                                            \
-template <typename BaseType>                                                            \
-class PagePart<PartName, BaseType>: public BaseType {                                   \
-public:                                                                                 \
-    typedef BaseType                                                            Base;   \
-    typedef PagePart<                                                                   \
-                PartName,                                                               \
-                BaseType                                                                \
-    >                                                                           Me;
-
-
-
-#define MEMORIA_V1_PAGE_PART_BEGIN1(PartName, Param)                                    \
-template <typename Param, typename BaseType>                                            \
-class PagePart<PartName<Param>, BaseType>: public BaseType {                            \
-public:                                                                                 \
-    typedef BaseType                                                            Base;   \
-    typedef PagePart<                                                                   \
-                PartName< Param >,                                                      \
-                BaseType                                                                \
-    >                                                                           Me;
-
-
-
-
-#define MEMORIA_V1_PAGE_PART_BEGIN2(PartName, Param)                                    \
-template <Param, typename BaseType>                                                     \
-class PagePart<PartName, BaseType>: public BaseType {                                   \
-public:                                                                                 \
-    typedef BaseType                                                            Base;   \
-    typedef PagePart<                                                                   \
-                PartName,                                                               \
-                BaseType                                                                \
-    >                                                                           Me;
-
-
-#define MEMORIA_V1_PAGE_PART_END };
-
-
-
 #define MEMORIA_V1_CONTAINER_PART_NO_CTR_BEGIN(PartName)                        \
 template <typename Base1, typename TypesType>                                   \
 class CtrPart<PartName, Base1, TypesType>: public Base1 {                       \

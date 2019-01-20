@@ -42,7 +42,7 @@ protected:
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
     
 public:    
     bool remove(const Key& key) 

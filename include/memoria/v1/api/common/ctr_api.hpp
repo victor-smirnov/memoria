@@ -131,8 +131,8 @@ public:
 
     static void do_link();
 
-    void new_page_size(int size);
-    int new_page_size();
+    void new_block_size(int size);
+    int new_block_size();
 
     bool is_updatable() const;
     

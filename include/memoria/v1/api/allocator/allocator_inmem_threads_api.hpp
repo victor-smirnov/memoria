@@ -51,7 +51,7 @@ class ThreadInMemAllocator {
     AllocSharedPtr<PImpl> pimpl_;
 public:
     using SnapshotPtr   = ThreadInMemSnapshot<Profile>;
-    using Page          = ProfileBlockType<Profile>;
+    using BlockType     = ProfileBlockType<Profile>;
     
     ThreadInMemAllocator();
     
@@ -192,7 +192,7 @@ public:
     std::vector<CtrID> container_names() const;
     std::vector<U16String> container_names_str() const;
 
-    void dump_dictionary_pages();
+    void dump_dictionary_blocks();
     void dump_open_containers();
     bool has_open_containers();
     void dump_persistent_tree();

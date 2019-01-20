@@ -35,16 +35,16 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
     template <int32_t Stream, typename Entry>
     SplitStatus insert_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Entry& entry)
@@ -85,7 +85,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
     {
         auto& self = this->self();
 
-        bool result = self.with_page_manager(iter.leaf(), structure_idx, stream_idx, insert_fn);
+        bool result = self.with_block_manager(iter.leaf(), structure_idx, stream_idx, insert_fn);
 
         SplitStatus split_status;
 
@@ -95,7 +95,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
             split_status = split_result.type();
 
-            result = self.with_page_manager(iter.leaf(), iter.local_pos(), split_result.stream_idx(), insert_fn);
+            result = self.with_block_manager(iter.leaf(), iter.local_pos(), split_result.stream_idx(), insert_fn);
 
             if (!result)
             {

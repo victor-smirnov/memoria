@@ -33,7 +33,7 @@
 #include <memoria/v1/core/container/dispatcher.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
-#include <memoria/v1/core/container/page_vertex.hpp>
+#include <memoria/v1/core/container/block_vertex.hpp>
 
 #include <memoria/v1/profiles/common/common.hpp>
 
@@ -129,8 +129,7 @@ public:
     using BlockID   = typename Allocator::BlockID;
     using BlockType = typename Allocator::BlockType;
     using CtrID     = typename Allocator::CtrID;
-    using Page      = typename Allocator::Page;
-    using BlockG     = typename Allocator::BlockG;
+    using BlockG    = typename Allocator::BlockG;
 
     using Iterator          = Iter<typename Types::IterTypes>;
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
@@ -252,11 +251,11 @@ public:
             return ctr_ptr->block_as_vertex(block_id);
         }
 
-        virtual Collection<Edge> describe_block_links(const BlockID& page_id, const CtrID& ctr_id, AllocatorBasePtr allocator, Direction direction) const
+        virtual Collection<Edge> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator, Direction direction) const
         {
             Allocator* alloc = T2T<Allocator*>(allocator.get());
             auto ctr_ptr = static_pointer_cast<MyType>(alloc->get(ctr_id));
-            return ctr_ptr->describe_block_links(page_id, direction);
+            return ctr_ptr->describe_block_links(block_id, direction);
         }
 
         virtual Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const
@@ -369,18 +368,18 @@ public:
         {
             SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
             
-            BlockG page = alloc->getBlock(root_id);
+            BlockG block = alloc->getBlock(root_id);
 
-            if (page)
+            if (block)
             {
             	return ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
                     alloc,
                     root_id, 
-                    CtrInitData(ctr_id, page->ctr_type_hash())
+                    CtrInitData(ctr_id, block->ctr_type_hash())
                 );
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"No container root page is found for id {} and name {}", root_id, ctr_id));
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"No container root block is found for id {} and name {}", root_id, ctr_id));
             }
         }
 
@@ -467,21 +466,21 @@ public:
         );
     }
 
-    Vertex block_as_vertex(const BlockID& page_id)
+    Vertex block_as_vertex(const BlockID& block_id)
     {
         Graph my_graph = this->graph();
-        Vertex page_vx = PageVertex<AllocatorBasePtr, ContainerInterfacePtr<ProfileT>>::make(
+        Vertex block_vx = BlockVertex<AllocatorBasePtr, ContainerInterfacePtr<ProfileT>>::make(
                     my_graph,
                     static_pointer_cast<AllocatorBase>(allocator_holder_),
                     getContainerInterface(),
-                    page_id,
+                    block_id,
                     name()
         );
 
-        return page_vx;
+        return block_vx;
     }
 
-    Collection<Edge> describe_block_links(const BlockID& page_id, const CtrID& name, Direction direction) const
+    Collection<Edge> describe_block_links(const BlockID& block_id, const CtrID& name, Direction direction) const
     {
         return EmptyCollection<Edge>::make();
     }

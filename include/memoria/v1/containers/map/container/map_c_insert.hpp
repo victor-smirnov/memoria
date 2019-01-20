@@ -40,7 +40,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertName)
     using typename Base::BranchDispatcher;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
-    using typename Base::PageUpdateMgr;
+    using typename Base::BlockUpdateMgr;
 
     using Key = typename Types::Key;
     using Value = typename Types::Value;

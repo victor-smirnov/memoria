@@ -44,7 +44,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(update_log::ItrApiName)
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 
-    using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
+    using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
 
     static constexpr int32_t DataStreams            = Container::Types::DataStreams;
     static constexpr int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;

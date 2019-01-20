@@ -42,7 +42,7 @@ class NDTTree {
     using NodeBaseG = typename Types::NodeBaseG;
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
-    static const uint64_t HASH  = Head::PAGE_HASH;
+    static const uint64_t HASH  = Head::BLOCK_HASH;
     static const bool Leaf      = Head::Leaf;
 
     using NextNDT3 = NDTTree<Types, Idx - 1>;
@@ -59,10 +59,10 @@ public:
             Args&&... args
     )
     {
-        if (HASH == parent->page_type_hash())
+        if (HASH == parent->block_type_hash())
         {
             return NDT2<Types, ListSize<typename Types::ChildList> - 1>::dispatchTreeConst(
-                    static_cast<const Head*>(parent.page()),
+                    static_cast<const Head*>(parent.block()),
                     child,
                     std::forward<Functor>(functor),
                     std::forward<Args>(args)...
@@ -83,7 +83,7 @@ class NDTTree<Types, 0> {
     using NodeBaseG = typename Types::NodeBaseG;
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
-    static const uint64_t HASH  = Head::PAGE_HASH;
+    static const uint64_t HASH  = Head::BLOCK_HASH;
     static const bool Leaf      = Head::Leaf;
 
     using NextNDT3 = NDTTree<Types, Idx - 1>;
@@ -102,10 +102,10 @@ public:
             Args&&... args
     )
     {
-        if (HASH == parent->page_type_hash())
+        if (HASH == parent->block_type_hash())
         {
             return NDT2Start::dispatchTree(
-                    static_cast<const Head*>(parent.page()),
+                    static_cast<const Head*>(parent.block()),
                     child,
                     std::forward<Functor>(functor),
                     std::forward<Args>(args)...
@@ -127,7 +127,7 @@ class NDT2 {
 
     using NextNDT2 = NDT2<Types, Idx - 1>;
 
-    static const uint64_t HASH = Head::PAGE_HASH;
+    static const uint64_t HASH = Head::BLOCK_HASH;
 
 
 
@@ -140,11 +140,11 @@ public:
             Args&&... args
     )
     {
-        if (HASH == child->page_type_hash())
+        if (HASH == child->block_type_hash())
         {
             return functor.treeNode(
                     parent,
-                    static_cast<const Head*>(child.page()),
+                    static_cast<const Head*>(child.block()),
                     std::forward<Args>(args)...
             );
         }
@@ -164,7 +164,7 @@ class NDT2<Types, 0> {
     using NodeBaseG     = typename Types::NodeBaseG;
     using Head          = SelectByIndex<Idx, typename Types::ChildList>;
 
-    static const uint64_t HASH = Head::PAGE_HASH;
+    static const uint64_t HASH = Head::BLOCK_HASH;
 
 
 
@@ -177,11 +177,11 @@ public:
             Args&&... args
     )
     {
-        if (HASH == child->page_type_hash())
+        if (HASH == child->block_type_hash())
         {
             return functor.treeNode(
                     parent,
-                    static_cast<const Head*>(child.page()),
+                    static_cast<const Head*>(child.block()),
                     std::forward<Args>(args)...
             );
         }

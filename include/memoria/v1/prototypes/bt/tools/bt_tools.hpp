@@ -84,9 +84,9 @@ struct ForEachStream<Idx, Idx> {
 
 
 template <typename Types>
-class PageUpdateManager {
+class BlockUpdateManager {
 
-    using MyType = PageUpdateManager<Types>;
+    using MyType = BlockUpdateManager<Types>;
 
     typedef Ctr<Types>                                                          CtrT;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
@@ -101,31 +101,31 @@ class PageUpdateManager {
         }
     };
 
-    core::StaticArray<TxnRecord, 4, ClearFn> pages_;
+    core::StaticArray<TxnRecord, 4, ClearFn> blocks_;
 
 public:
 
     struct Remover {
         MyType& mgr_;
-        const NodeBaseG& page_;
+        const NodeBaseG& block_;
 
-        Remover(MyType& mgr, const NodeBaseG& page):
-            mgr_(mgr), page_(page)
+        Remover(MyType& mgr, const NodeBaseG& block):
+            mgr_(mgr), block_(block)
         {}
 
         ~Remover() {
-            mgr_.remove(page_);
+            mgr_.remove(block_);
         }
     };
 
 
-    PageUpdateManager(CtrT& ctr): ctr_(ctr) {}
+    BlockUpdateManager(CtrT& ctr): ctr_(ctr) {}
 
-    ~PageUpdateManager() noexcept
+    ~BlockUpdateManager() noexcept
     {
-        for (int32_t c = 0; c < pages_.getSize(); c++)
+        for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
-            void* backup_buffer = std::get<1>(pages_[c]);
+            void* backup_buffer = std::get<1>(blocks_[c]);
             ctr_.allocator().freeMemory(backup_buffer);
         }
     }
@@ -134,9 +134,9 @@ public:
     {
         MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
-        for (int32_t c = pages_.getSize() - 1; c >= 0; c--)
+        for (int32_t c = blocks_.getSize() - 1; c >= 0; c--)
         {
-            if (node->id() == std::get<0>(pages_[c])->id())
+            if (node->id() == std::get<0>(blocks_[c])->id())
             {
                 return true;
             }
@@ -149,18 +149,18 @@ public:
     {
         MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
-        if (pages_.capacity() > 0)
+        if (blocks_.capacity() > 0)
         {
-            int32_t page_size = node->page_size();
+            int32_t block_size = node->memory_block_size();
 
-            void* backup_buffer = ctr_.allocator().allocateMemory(page_size);
+            void* backup_buffer = ctr_.allocator().allocateMemory(block_size);
 
-            CopyByteBuffer(node.page(), backup_buffer, page_size);
+            CopyByteBuffer(node.block(), backup_buffer, block_size);
 
-            pages_.append(TxnRecord(node, backup_buffer, page_size));
+            blocks_.append(TxnRecord(node, backup_buffer, block_size));
         }
         else {
-            MMA1_THROW(Exception()) << WhatCInfo("No space left for new pages in the PageUpdateMgr");
+            MMA1_THROW(Exception()) << WhatCInfo("No space left for new blocks in the BlockUpdateMgr");
         }
     }
 
@@ -168,28 +168,28 @@ public:
     {
         MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
-        for (int32_t c = pages_.getSize() - 1; c >= 0; c--)
+        for (int32_t c = blocks_.getSize() - 1; c >= 0; c--)
         {
-            if (node->id() == std::get<0>(pages_[c])->id())
+            if (node->id() == std::get<0>(blocks_[c])->id())
             {
-                void* backup_buffer = std::get<1>(pages_[c]);
+                void* backup_buffer = std::get<1>(blocks_[c]);
                 ctr_.allocator().freeMemory(backup_buffer);
 
-                pages_.remove(c);
+                blocks_.remove(c);
             }
         }
     }
 
     void checkpoint(NodeBaseG& node)
     {
-        for (int32_t c = 0; c < pages_.getSize(); c++)
+        for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
-            if (std::get<0>(pages_[c])->id() == node->id())
+            if (std::get<0>(blocks_[c])->id() == node->id())
             {
-                void* backup_buffer = std::get<1>(pages_[c]);
-                int32_t page_size       = std::get<2>(pages_[c]);
+                void* backup_buffer = std::get<1>(blocks_[c]);
+                int32_t block_size       = std::get<2>(blocks_[c]);
 
-                CopyByteBuffer(node.page(), backup_buffer, page_size);
+                CopyByteBuffer(node.block(), backup_buffer, block_size);
 
                 return;
             }
@@ -201,30 +201,30 @@ public:
     // FIXME: unify with rollback()
     void restoreNodeState()
     {
-        for (int32_t c = 0; c < pages_.getSize(); c++)
+        for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
-            NodeBaseG& node     = std::get<0>(pages_[c]);
-            void* backup_buffer = std::get<1>(pages_[c]);
-            int32_t page_size       = std::get<2>(pages_[c]);
+            NodeBaseG& node     = std::get<0>(blocks_[c]);
+            void* backup_buffer = std::get<1>(blocks_[c]);
+            int32_t block_size       = std::get<2>(blocks_[c]);
 
-            CopyByteBuffer(backup_buffer, node.page(), page_size);
+            CopyByteBuffer(backup_buffer, node.block(), block_size);
         }
     }
 
     void rollback()
     {
-        for (int32_t c = 0; c < pages_.getSize(); c++)
+        for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
-            NodeBaseG& node     = std::get<0>(pages_[c]);
-            void* backup_buffer = std::get<1>(pages_[c]);
-            int32_t page_size       = std::get<2>(pages_[c]);
+            NodeBaseG& node     = std::get<0>(blocks_[c]);
+            void* backup_buffer = std::get<1>(blocks_[c]);
+            int32_t block_size       = std::get<2>(blocks_[c]);
 
-            CopyByteBuffer(backup_buffer, node.page(), page_size);
+            CopyByteBuffer(backup_buffer, node.block(), block_size);
 
             ctr_.allocator().freeMemory(backup_buffer);
         }
 
-        pages_.clear();
+        blocks_.clear();
     }
 };
 

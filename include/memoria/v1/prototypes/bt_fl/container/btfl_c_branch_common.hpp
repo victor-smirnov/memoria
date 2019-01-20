@@ -38,9 +38,9 @@ public:
 protected:
 
     using NodeBaseG         = typename Types::NodeBaseG;
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
     using CtrSizeT          = typename Types::CtrSizeT;
 
@@ -49,7 +49,7 @@ protected:
 
     static const int32_t Streams = Types::Streams;
 
-    using PageUpdateMgt     = typename Types::PageUpdateMgr;
+    using BlockUpdateMgr     = typename Types::BlockUpdateMgr;
 
 MEMORIA_V1_CONTAINER_PART_END
 

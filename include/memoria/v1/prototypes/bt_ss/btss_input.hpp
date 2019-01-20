@@ -186,7 +186,7 @@ public:
     virtual OpStatus insertBuffer(NodeBaseG& leaf, int32_t at, int32_t size)
     {
         InsertBufferFn fn;
-        CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, fn, at, input_buffer_, start_, size);
+        CtrT::Types::Blocks::LeafDispatcher::dispatch(leaf, fn, at, input_buffer_, start_, size);
 
         if (isFail(fn.status_)) {
             return OpStatus::FAIL;
@@ -210,7 +210,7 @@ public:
 
     void dump_buffer(std::ostream& out = std::cout) const
     {
-        TextPageDumper dumper(std::cout);
+        TextBlockDumper dumper(std::cout);
         input_buffer_->generateDataEvents(&dumper);
     }
 
@@ -377,7 +377,7 @@ public:
 
     using Position  = typename Base::Position;
 
-    using PageUpdateMgr     = typename CtrT::Types::PageUpdateMgr;
+    using BlockUpdateMgr     = typename CtrT::Types::BlockUpdateMgr;
 
 public:
 
@@ -387,7 +387,7 @@ public:
     {
         int32_t pos = from[0];
 
-        PageUpdateMgr mgr(this->ctr());
+        BlockUpdateMgr mgr(this->ctr());
 
         mgr.add(leaf);
 
@@ -414,7 +414,7 @@ public:
         return Position(pos);
     }
 
-    virtual int32_t insertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
+    virtual int32_t insertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
     {
         int32_t inserted = this->insertBuffer_(mgr, leaf, at, size);
 
@@ -426,7 +426,7 @@ public:
         return inserted;
     }
 
-    int32_t insertBuffer_(PageUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
+    int32_t insertBuffer_(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
     {
         if (tryInsertBuffer(mgr, leaf, at, size))
         {
@@ -482,11 +482,11 @@ protected:
     }
 
 
-    bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
+    bool tryInsertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
     {
         typename Base::InsertBufferFn fn;
 
-        CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, fn, at, this->input_buffer_, this->start_, size);
+        CtrT::Types::Blocks::LeafDispatcher::dispatch(leaf, fn, at, this->input_buffer_, this->start_, size);
 
         if (isFail(fn.status_))
         {

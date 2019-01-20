@@ -36,9 +36,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(table::CtrApiName)
     using NodeBaseG         = typename Types::NodeBaseG;
     using Iterator          = typename Base::Iterator;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
     using Key                   = typename Types::Key;
     using Value                 = typename Types::Value;
@@ -49,7 +49,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(table::CtrApiName)
 
     static const int32_t Streams = Types::Streams;
 
-    using PageUpdateMgt     = typename Types::PageUpdateMgr;
+    using BlockUpdateMgr     = typename Types::BlockUpdateMgr;
 
     Iterator Begin() {
         return self().template _seek<0>(0);

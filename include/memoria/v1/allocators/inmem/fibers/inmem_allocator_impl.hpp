@@ -511,10 +511,10 @@ public:
 
             write_metadata(*output);
 
-            RCBlockSet stored_pages;
+            RCBlockSet stored_blocks;
 
             walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) {
-                write_history_node(*output, history_tree_node, stored_pages);
+                write_history_node(*output, history_tree_node, stored_blocks);
             });
 
             Checksum checksum;

@@ -41,16 +41,16 @@ protected:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
     typedef std::function<void (const Position&)>                               MergeFn;
 
@@ -92,7 +92,7 @@ public:
     {
         auto& self = this->self();
 
-        PageUpdateMgr mgr(self);
+        BlockUpdateMgr mgr(self);
 
         self.updateBlockG(iter.leaf());
 
@@ -144,7 +144,7 @@ public:
     {
         auto& self = this->self();
 
-        PageUpdateMgr mgr(self);
+        BlockUpdateMgr mgr(self);
 
         self.updateBlockG(iter.leaf());
 
@@ -206,7 +206,7 @@ public:
     {
         auto& self = this->self();
 
-        PageUpdateMgr mgr(self);
+        BlockUpdateMgr mgr(self);
 
         self.updateBlockG(iter.leaf());
 
@@ -267,13 +267,13 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 
     NodeBaseG left_parent  = self.getNodeParentForUpdate(left_node);
 
-    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->memory_block_size());
 
     BranchNodeEntry sums;
 
     int32_t parent_idx = left_node->parent_idx();
 
-    PageUpdateMgr mgr(self);
+    BlockUpdateMgr mgr(self);
     mgr.add(left_parent);
 
     try {
@@ -311,7 +311,7 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 {
     auto& self = this->self();
 
-    PageUpdateMgr mgr(self);
+    BlockUpdateMgr mgr(self);
 
     self.updateBlockG(src);
     self.updateBlockG(tgt);

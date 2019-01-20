@@ -128,7 +128,7 @@ public:
 //      using CtrTypes          = TableCtrTypes<Types>;
 //        using IterTypes       = TableIterTypes<Types>;
 //
-//        using PageUpdateMgr   = PageUpdateManager<CtrTypes>;
+//        using BlockUpdateMgr   = BlockUpdateManager<CtrTypes>;
 //    };
 //
 //    using CtrTypes    = typename Types::CtrTypes;

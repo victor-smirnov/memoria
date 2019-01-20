@@ -145,7 +145,7 @@ public:
         using CtrTypes          = UpdateLogCtrTypes<Types>;
         using IterTypes         = UpdateLogIterTypes<Types>;
 
-        using PageUpdateMgr     = bt::PageUpdateManager<CtrTypes>;
+        using BlockUpdateMgr     = bt::BlockUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList = typename BaseTypes::LeafStreamsStructList;
 

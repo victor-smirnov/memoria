@@ -145,7 +145,7 @@ public:
         using CtrTypes          = MultimapCtrTypes<Types>;
         using IterTypes         = MultimapIterTypes<Types>;
 
-        using PageUpdateMgr     = bt::PageUpdateManager<CtrTypes>;
+        using BlockUpdateMgr     = bt::BlockUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList = typename BaseTypes::LeafStreamsStructList;
 

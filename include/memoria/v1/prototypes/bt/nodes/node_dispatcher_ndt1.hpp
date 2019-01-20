@@ -40,7 +40,7 @@ class NDT1 {
 
     using NextNDT1 = NDT1<Types, Idx - 1>;
 
-    static const uint64_t HASH = Head::PAGE_HASH;
+    static const uint64_t HASH = Head::BLOCK_HASH;
 
 public:
 
@@ -52,11 +52,11 @@ public:
             Args&&... args
     )
     {
-        if (HASH == node2->page_type_hash())
+        if (HASH == node2->block_type_hash())
         {
             return functor.treeNode(
                     node1,
-                    static_cast<Head*>(node2.page()),
+                    static_cast<Head*>(node2.block()),
                     std::forward<Args>(args)...
             );
         }
@@ -74,11 +74,11 @@ public:
             Args&&... args
     )
     {
-        if (HASH == node2->page_type_hash())
+        if (HASH == node2->block_type_hash())
         {
             return functor.treeNode(
                     node1,
-                    static_cast<const Head*>(node2.page()),
+                    static_cast<const Head*>(node2.block()),
                     std::forward<Args>(args)...
             );
         }
@@ -98,7 +98,7 @@ class NDT1<Types, 0> {
     using NodeBaseG = typename Types::NodeBaseG;
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
-    static const uint64_t HASH = Head::PAGE_HASH;
+    static const uint64_t HASH = Head::BLOCK_HASH;
 
 
 public:
@@ -107,11 +107,11 @@ public:
     static auto
     dispatch(Node *node1, NodeBaseG& node2, Functor&& functor, Args&& ... args)
     {
-        if (HASH == node2->page_type_hash())
+        if (HASH == node2->block_type_hash())
         {
             return functor.treeNode(
                     node1,
-                    static_cast<Head*>(node2.page()),
+                    static_cast<Head*>(node2.block()),
                     std::forward<Args>(args)...
             );
         }
@@ -125,11 +125,11 @@ public:
     static auto
     dispatch(const Node* node1, const NodeBaseG& node2, Functor&& functor, Args&&... args)
     {
-        if (HASH == node2->page_type_hash())
+        if (HASH == node2->block_type_hash())
         {
             return functor.treeNode(
                     node1,
-                    static_cast<const Head*>(node2.page()),
+                    static_cast<const Head*>(node2.block()),
                     std::forward<Args>(args)...
             );
         }

@@ -43,7 +43,7 @@ private:
 
     int32_t   branching_factor_;
 
-    int32_t   page_size_;
+    int32_t   block_size_;
 
     ID    roots_[ROOTS];
     ID    links_[LINKS];
@@ -62,7 +62,7 @@ public:
                 ConstValue<uint32_t, ROOTS>,
                 decltype(model_name_),
                 decltype(branching_factor_),
-                decltype(page_size_),
+                decltype(block_size_),
                 decltype(txn_id_),
                 ID,
                 ID,
@@ -93,14 +93,14 @@ public:
         return branching_factor_;
     }
 
-    int32_t &page_size()
+    int32_t &memory_block_size()
     {
-        return page_size_;
+        return block_size_;
     }
 
-    const int32_t &page_size() const
+    const int32_t &memory_block_size() const
     {
-        return page_size_;
+        return block_size_;
     }
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
@@ -110,7 +110,7 @@ public:
         handler->value("MODEL_NAME",        &model_name_);
 
         handler->value("BRANCHING_FACTOR",  &branching_factor_);
-        handler->value("PAGE_SIZE",         &page_size_);
+        handler->value("PAGE_SIZE",         &block_size_);
 
         handler->startLine("ROOTS", ROOTS);
 
@@ -140,7 +140,7 @@ public:
     {
         FieldFactory<UUID>::serialize(buf, model_name_);
         FieldFactory<int32_t>::serialize(buf,  branching_factor_);
-        FieldFactory<int32_t>::serialize(buf,  page_size_);
+        FieldFactory<int32_t>::serialize(buf,  block_size_);
 
         for (int32_t c = 0; c < ROOTS; c++)
         {
@@ -161,7 +161,7 @@ public:
     {
         FieldFactory<UUID>::deserialize(buf, model_name_);
         FieldFactory<int32_t>::deserialize(buf,  branching_factor_);
-        FieldFactory<int32_t>::deserialize(buf,  page_size_);
+        FieldFactory<int32_t>::deserialize(buf,  block_size_);
 
         for (int32_t c = 0; c < ROOTS; c++)
         {

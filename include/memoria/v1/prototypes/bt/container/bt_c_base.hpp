@@ -43,7 +43,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     using Allocator = typename Base::Allocator;
 
-    using typename Base::Page;
+
     using typename Base::BlockG;
     using typename Base::BlockID;
     using typename Base::CtrID;
@@ -59,14 +59,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using CtrSizeT  = typename Types::CtrSizeT;
     using CtrSizesT = typename Types::CtrSizesT;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
-    using DefaultDispatcher = typename Types::Pages::DefaultDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
+    using DefaultDispatcher = typename Types::Blocks::DefaultDispatcher;
 
     using Metadata = typename Types::Metadata;
 
-    using PageUpdateMgr = typename Types::PageUpdateMgr;
+    using BlockUpdateMgr = typename Types::BlockUpdateMgr;
 
     using Base::CONTAINER_HASH;
 
@@ -266,7 +266,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         memset(&metadata, 0, sizeof(Metadata));
 
         metadata.model_name()       = self().name();
-        metadata.page_size()        = DEFAULT_BLOCK_SIZE;
+        metadata.memory_block_size()        = DEFAULT_BLOCK_SIZE;
         metadata.branching_factor() = 0;
 
         auto txn_id = self().allocator().currentTxnId();
@@ -275,15 +275,15 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return metadata;
     }
 
-    int32_t getNewPageSize() const
+    int32_t getNewBlockSize() const
     {
-        return self().getRootMetadata().page_size();
+        return self().getRootMetadata().memory_block_size();
     }
 
-    void setNewPageSize(int32_t page_size) const
+    void setNewBlockSize(int32_t block_size) const
     {
         Metadata metadata       = self().getRootMetadata();
-        metadata.page_size()    = page_size;
+        metadata.memory_block_size()    = block_size;
 
         self().setRootMetadata(metadata);
     }
@@ -296,7 +296,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         NodeBaseG node = self.allocator().createBlock(size);
         node->init();
 
-        node->page_type_hash() = Node::hash();
+        node->block_type_hash() = Node::hash();
 
         return node;
     }
@@ -321,7 +321,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (size == -1)
         {
-            size = meta.page_size();
+            size = meta.memory_block_size();
         }
 
         NodeBaseG node = DefaultDispatcher::dispatch2(
@@ -365,7 +365,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG node = NodeDispatcher::dispatch2(
             leaf,
-            CreateNodeFn(self), metadata.page_size()
+            CreateNodeFn(self), metadata.memory_block_size()
         );
 
 
@@ -448,35 +448,35 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(ValuesAsVectorFn, template values_as_vector<BlockID>, std::vector<BlockID>);
-    Collection<Edge> describe_block_links(const BlockID& page_id, Direction direction)
+    Collection<Edge> describe_block_links(const BlockID& block_id, Direction direction)
     {
         std::vector<Edge> links;
 
-        NodeBaseG page = this->allocator_holder_->getBlock(page_id);
+        NodeBaseG block = this->allocator_holder_->getBlock(block_id);
 
         Graph graph     = this->graph();
         Vertex ctr_vx   = this->as_vertex();
-        Vertex page_vx  = this->block_as_vertex(page_id);
+        Vertex block_vx  = this->block_as_vertex(block_id);
 
         if (is_in(direction))
         {
-            if (!page->is_root())
+            if (!block->is_root())
             {
-                links.push_back(DefaultEdge::make(graph, "child", this->block_as_vertex(page->parent_id()), page_vx));
+                links.push_back(DefaultEdge::make(graph, "child", this->block_as_vertex(block->parent_id()), block_vx));
             }
             else {
-                links.push_back(DefaultEdge::make(graph, "root", ctr_vx, page_vx));
+                links.push_back(DefaultEdge::make(graph, "root", ctr_vx, block_vx));
             }
         }
 
         if (is_out(direction))
         {
-            if (!page->is_leaf())
+            if (!block->is_leaf())
             {
-                auto child_ids = BranchDispatcher::dispatch(page, ValuesAsVectorFn());
+                auto child_ids = BranchDispatcher::dispatch(block, ValuesAsVectorFn());
                 for (auto& child_id: child_ids)
                 {
-                    links.push_back(DefaultEdge::make(graph, "child", page_vx, this->block_as_vertex(child_id)));
+                    links.push_back(DefaultEdge::make(graph, "child", block_vx, this->block_as_vertex(child_id)));
                 }
             }
         }
@@ -484,31 +484,31 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return STLCollection<Edge>::make(std::move(links));
     }
 
-    Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& page_id)
+    Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id)
     {
-        NodeBaseG page = this->allocator_holder_->getBlock(page_id);
+        NodeBaseG block = this->allocator_holder_->getBlock(block_id);
 
         std::vector<VertexProperty> props;
 
-        CtrPageType page_type{};
+        CtrBlockType block_type{};
 
-        if (page->is_root() && page->is_leaf()) {
-            page_type = CtrPageType::ROOT_LEAF;
+        if (block->is_root() && block->is_leaf()) {
+            block_type = CtrBlockType::ROOT_LEAF;
         }
-        else if (page->is_root() && !page->is_leaf()) {
-            page_type = CtrPageType::ROOT;
+        else if (block->is_root() && !block->is_leaf()) {
+            block_type = CtrBlockType::ROOT;
         }
-        else if ((!page->is_root()) && page->is_leaf()) {
-            page_type = CtrPageType::LEAF;
+        else if ((!block->is_root()) && block->is_leaf()) {
+            block_type = CtrBlockType::LEAF;
         }
         else {
-            page_type = CtrPageType::INTERNAL;
+            block_type = CtrBlockType::INTERNAL;
         }
 
-        props.emplace_back(DefaultVertexProperty::make(vx, u"type", page_type));
+        props.emplace_back(DefaultVertexProperty::make(vx, u"type", block_type));
 
         std::stringstream buf;
-        self().dump(page, buf);
+        self().dump(block, buf);
 
         props.emplace_back(DefaultVertexProperty::make(vx, u"content", U16String(buf.str())));
 
@@ -554,7 +554,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         NodeBaseG node = alloc->getBlock(node_id);
 
-        int32_t size = node->page_size();
+        int32_t size = node->memory_block_size();
         bool leaf = node->is_leaf();
         bool root = node->is_root();
 

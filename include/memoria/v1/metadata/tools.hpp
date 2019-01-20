@@ -18,7 +18,7 @@
 
 #include <memoria/v1/metadata/group.hpp>
 #include <memoria/v1/metadata/block.hpp>
-#include <memoria/v1/core/container/pages.hpp>
+#include <memoria/v1/core/container/blocks.hpp>
 
 
 #include <iostream>
@@ -27,16 +27,16 @@ namespace memoria {
 namespace v1 {
 
 template <typename Profile>
-void dumpPage(BlockMetadata<Profile>* meta, const Block* block, std::ostream& out)
+void dumpBlock(BlockMetadata<Profile>* meta, const Block* block, std::ostream& out)
 {
-    TextPageDumper dumper(out);
+    TextBlockDumper dumper(out);
     meta->getBlockOperations()->generateDataEvents(T2T<const ProfileBlockType<Profile>*>(block->Ptr()), DataEventsParams(), &dumper);
 }
 
 template <typename Profile>
-void dumpPageData(BlockMetadata<Profile>* meta, const ProfileBlockType<Profile>* block, std::ostream& out)
+void dumpBlockData(BlockMetadata<Profile>* meta, const ProfileBlockType<Profile>* block, std::ostream& out)
 {
-    TextPageDumper dumper(out);
+    TextBlockDumper dumper(out);
 
     meta->getBlockOperations()->generateDataEvents(block, DataEventsParams(), &dumper);
 }

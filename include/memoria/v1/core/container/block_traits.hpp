@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/types/typehash.hpp>
 #include <memoria/v1/core/tools/reflection.hpp>
-#include <memoria/v1/profiles/common/page.hpp>
+#include <memoria/v1/profiles/common/block.hpp>
 
 
 namespace memoria {
@@ -29,9 +29,9 @@ template <typename T> struct FieldFactory;
 
 
 template <typename T>
-struct FieldFactory<PageID<T> > {
+struct FieldFactory<BlockID<T> > {
 private:
-    using Type = PageID<T>;
+    using Type = BlockID<T>;
 
 public:
     static void serialize(SerializationData& data, const Type& field, int32_t count = 1)

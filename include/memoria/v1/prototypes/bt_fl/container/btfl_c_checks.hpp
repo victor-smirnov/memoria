@@ -41,14 +41,14 @@ public:
     using typename Base::BranchDispatcher;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
-    using typename Base::PageUpdateMgr;
+    using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 
 
     static const int32_t Streams = Types::Streams;
 
-    using PageUpdateMgt = typename Types::PageUpdateMgr;
+    using BlockUpdateMgr = typename Types::BlockUpdateMgr;
 
 
     bool checkContent(const NodeBaseG& node) const

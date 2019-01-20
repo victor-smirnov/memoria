@@ -36,16 +36,15 @@ protected:
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Allocator::BlockG                                     BlockG;
 
-    typedef typename Allocator::Page                                            Page;
-
     using typename Base::BlockID;
+    using typename Base::BlockType;
 
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -98,14 +97,14 @@ public:
         return NodeDispatcher::dispatch(node, CheckCapacitiesFn(), sizes);
     }
 
-    void dump(const NodeBaseG& page, std::ostream& out = std::cout) const
+    void dump(const NodeBaseG& block, std::ostream& out = std::cout) const
     {
-        if (page)
+        if (block)
         {
-            BlockWrapper<const Page> pw(page);
-            auto meta = self().getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
+            BlockWrapper<const BlockType> pw(block);
+            auto meta = self().getMetadata()->getBlockMetadata(pw.getContainerHash(), pw.getBlockTypeHash());
 
-            dumpPage(meta.get(), &pw, out);
+            dumpBlock(meta.get(), &pw, out);
 
             out<<std::endl;
             out<<std::endl;

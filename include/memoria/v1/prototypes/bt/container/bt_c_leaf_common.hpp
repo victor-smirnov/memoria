@@ -36,9 +36,9 @@ protected:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
 
     typedef typename Base::Metadata                                             Metadata;
@@ -46,7 +46,7 @@ protected:
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
     using CtrSizeT = typename Types::CtrSizeT;
 
@@ -274,11 +274,11 @@ public:
         NodeBaseG   head;
         NodeBaseG   current;
 
-        int32_t page_size = self.getRootMetadata().page_size();
+        int32_t block_size = self.getRootMetadata().memory_block_size();
 
         while (provider.hasData())
         {
-            NodeBaseG node = self.createNode(0, false, true, page_size);
+            NodeBaseG node = self.createNode(0, false, true, block_size);
 
             if (head.isSet())
             {
@@ -397,7 +397,7 @@ public:
     {
         auto& self = this->self();
 
-        PageUpdateMgr mgr(self);
+        BlockUpdateMgr mgr(self);
 
         self.updateBlockG(iter.leaf());
 

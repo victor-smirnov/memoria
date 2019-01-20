@@ -36,7 +36,7 @@ struct Block {
 
     virtual UUID getId() const                       = 0;
     virtual uint64_t getContainerHash() const        = 0;
-    virtual uint64_t getPageTypeHash() const         = 0;
+    virtual uint64_t getBlockTypeHash() const         = 0;
     virtual int64_t getFlags() const                 = 0;
     virtual const void* Ptr() const                  = 0;
     virtual void* Ptr()                              = 0;
@@ -54,47 +54,47 @@ struct Block {
 
 template <typename BlockType>
 class BlockWrapper: public Block {
-    BlockType *page_;
+    BlockType *block_;
 public:
-    BlockWrapper(BlockType* page): page_(page) {}
-    BlockWrapper(): page_(NULL) {}
+    BlockWrapper(BlockType* block): block_(block) {}
+    BlockWrapper(): block_(NULL) {}
 
     virtual ~BlockWrapper() noexcept  {}
 
     virtual bool isNull() const {
-        return page_ == NULL;
+        return block_ == NULL;
     }
 
     virtual UUID getId() const
     {
-        if (page_)
+        if (block_)
         {
-            return page_->id();
+            return block_->id();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
     virtual uint64_t getContainerHash() const
     {
-        if (page_)
+        if (block_)
         {
-            return page_->ctr_type_hash();
+            return block_->ctr_type_hash();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
-    virtual uint64_t getPageTypeHash() const
+    virtual uint64_t getBlockTypeHash() const
     {
-        if (page_)
+        if (block_)
         {
-            return page_->page_type_hash();
+            return block_->block_type_hash();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
     
@@ -103,52 +103,52 @@ public:
     }
     
     virtual void* Ptr() {
-        return page_;
+        return block_;
     }
 
     virtual const void* Ptr() const {
-        return page_;
+        return block_;
     }
 
     virtual void setPtr(void* ptr)
     {
-        page_ = static_cast<BlockType*>(ptr);
+        block_ = static_cast<BlockType*>(ptr);
     }
 
     virtual int32_t size() const {
-        return page_->page_size();
+        return block_->memory_block_size();
     }
 
     virtual int32_t getByte(int32_t idx) const
     {
-        if (page_ != NULL)
+        if (block_ != NULL)
         {
-            if (idx >= 0 && idx < page_->page_size()) {
-                return T2T<uint8_t*>(page_)[idx];
+            if (idx >= 0 && idx < block_->memory_block_size()) {
+                return T2T<uint8_t*>(block_)[idx];
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, page_->page_size()));
+                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
             }
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
     virtual void setByte(int32_t idx, int32_t value)
     {
-        if (page_ != NULL)
+        if (block_ != NULL)
         {
-            if (idx >= 0 && idx < page_->page_size())
+            if (idx >= 0 && idx < block_->memory_block_size())
             {
-                T2T<uint8_t*>(page_)[idx] = (uint8_t)value;
+                T2T<uint8_t*>(block_)[idx] = (uint8_t)value;
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, page_->page_size()));
+                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
             }
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 };
@@ -156,47 +156,47 @@ public:
 
 template <typename BlockType>
 class BlockWrapper<const BlockType>: public Block {
-    const BlockType *page_;
+    const BlockType* block_;
 public:
-    BlockWrapper(const BlockType* page): page_(page) {}
-    BlockWrapper(): page_(NULL) {}
+    BlockWrapper(const BlockType* block): block_(block) {}
+    BlockWrapper(): block_(NULL) {}
 
     virtual ~BlockWrapper() noexcept  {}
 
     virtual bool isNull() const {
-        return page_ == NULL;
+        return block_ == NULL;
     }
 
     virtual UUID getId() const
     {
-        if (page_ != NULL)
+        if (block_ != NULL)
         {
-            return page_->id();
+            return block_->id();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
     virtual uint64_t getContainerHash() const
     {
-        if (page_ != NULL)
+        if (block_ != NULL)
         {
-            return page_->ctr_type_hash();
+            return block_->ctr_type_hash();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
-    virtual uint64_t getPageTypeHash() const
+    virtual uint64_t getBlockTypeHash() const
     {
-        if (page_ != NULL)
+        if (block_ != NULL)
         {
-            return page_->page_type_hash();
+            return block_->block_type_hash();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
@@ -205,85 +205,46 @@ public:
     }
 
     virtual void* Ptr() {
-        MMA1_THROW(Exception()) << WhatCInfo("Page in not mutable");
+        MMA1_THROW(Exception()) << WhatCInfo("Block is not mutable");
     }
 
     virtual const void* Ptr() const {
-        return page_;
+        return block_;
     }
 
     virtual void setPtr(void* ptr)
     {
-        MMA1_THROW(Exception()) << WhatCInfo("Page in not mutable");
+        MMA1_THROW(Exception()) << WhatCInfo("Block is not mutable");
     }
 
     virtual int32_t size() const {
-        return page_->page_size();
+        return block_->memory_block_size();
     }
 
     virtual int32_t getByte(int32_t idx) const
     {
-        if (page_ != NULL)
+        if (block_ != NULL)
         {
-            if (idx >= 0 && idx < page_->page_size()) {
-                return T2T<uint8_t*>(page_)[idx];
+            if (idx >= 0 && idx < block_->memory_block_size()) {
+                return T2T<uint8_t*>(block_)[idx];
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, page_->page_size()));
+                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
             }
 
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Page data is not set");
+            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
     virtual void setByte(int32_t idx, int32_t value)
     {
-        MMA1_THROW(Exception()) << WhatCInfo("Page in not mutable");
+        MMA1_THROW(Exception()) << WhatCInfo("Block is not mutable");
     }
 };
 
 
-
-template <typename Name, typename Base>
-class PagePart;
-
-template <typename Name>
-class PagePartNotFound;
-
-
-class EmptyPart{};
-
-
-
-
-template <
-        typename PartsList,
-        typename Base
->
-struct PageBuilder: public Builder<PartsList, PagePart, Base> {};
-
-
-template <int Idx, typename Types>
-class PageHelper: public PagePart<
-                    SelectByIndex<Idx, typename Types::List>,
-                    PageHelper<Idx - 1, Types>
-                  >
-{
-};
-
-template <typename Types>
-class PageHelper<-1, Types>: public Types::NodePageBase {
-
-};
-
-
-template <typename Types>
-class PageStart: public PageHelper<ListSize<typename Types::List> - 1, Types> {
-
-};
-
 }}
 
-#include <memoria/v1/core/container/page_traits.hpp>
+#include <memoria/v1/core/container/block_traits.hpp>

@@ -65,18 +65,18 @@ namespace internal {
     };
 }
 
-enum class CtrPageType {ROOT, LEAF, INTERNAL, ROOT_LEAF};
+enum class CtrBlockType {ROOT, LEAF, INTERNAL, ROOT_LEAF};
 
-inline bool is_root(CtrPageType type) {
-    return type == CtrPageType::ROOT || type == CtrPageType::ROOT_LEAF;
+inline bool is_root(CtrBlockType type) {
+    return type == CtrBlockType::ROOT || type == CtrBlockType::ROOT_LEAF;
 }
 
-inline bool is_leaf(CtrPageType type) {
-    return type == CtrPageType::LEAF || type == CtrPageType::ROOT_LEAF;
+inline bool is_leaf(CtrBlockType type) {
+    return type == CtrBlockType::LEAF || type == CtrBlockType::ROOT_LEAF;
 }
 
-inline bool is_branch(CtrPageType type) {
-    return type == CtrPageType::ROOT || type == CtrPageType::INTERNAL;
+inline bool is_branch(CtrBlockType type) {
+    return type == CtrBlockType::ROOT || type == CtrBlockType::INTERNAL;
 }
 
 
@@ -88,7 +88,7 @@ enum {
 };
 
 /**
- * Please note that Long/ULong types are not intended to be used for data page properties.
+ * Please note that Long/ULong types are not intended to be used for data block properties.
  * Use types with known size instead.
  */
 
@@ -260,7 +260,7 @@ struct UpdateLog        {};
 
 struct UBytes;
 
-// Placeholder type to be used in place of Page IDs
+// Placeholder type to be used in place of Block IDs
 struct IDType {};
 /*
  * End of container type names and profiles

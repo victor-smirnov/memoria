@@ -328,7 +328,7 @@ public:
         using NodeBaseG         = NodePageBase0G;
     };
 
-    using PageDispatchers = bt::BTreeDispatchers<DispatcherTypes>;
+    using BlockDispatchers = bt::BTreeDispatchers<DispatcherTypes>;
 
     static const PackedSizeType BranchSizeType  = PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
     static const PackedSizeType LeafSizeType    = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
@@ -364,7 +364,7 @@ public:
     struct Types: ContainerTypes
     {
         typedef ContainerTypeName_                                              ContainerTypeName;
-        typedef typename MyType::PageDispatchers                                Pages;
+        typedef typename MyType::BlockDispatchers                                Blocks;
 
         typedef typename ContainerTypes::Allocator                              Allocator;
         typedef typename ContainerTypes::Metadata                               Metadata;
@@ -387,7 +387,7 @@ public:
         using Position  = Position_;
         using CtrSizesT = Position_;
 
-        using PageUpdateMgr = bt::PageUpdateManager<CtrTypes>;
+        using BlockUpdateMgr = bt::BlockUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList     = typename MyType::LeafStreamsStructList;
 
@@ -440,17 +440,17 @@ public:
         using StreamInputBufferStructList = Select<StreamIdx, InputBufferStructList>;
 
         template <typename SubstreamPath>
-        using LeafPackedStruct = typename Pages::LeafDispatcher::Head::template PackedStruct<SubstreamPath>;
+        using LeafPackedStruct = typename Blocks::LeafDispatcher::Head::template PackedStruct<SubstreamPath>;
 
 
-        using LeafNode = typename Pages::LeafDispatcher::Head;
+        using LeafNode = typename Blocks::LeafDispatcher::Head;
 
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
                                                         LeafDataLengthType::FIXED :
                                                         LeafDataLengthType::VARIABLE;
 
 
-        using LeafType = typename Pages::LeafDispatcher::Head::Base;
+        using LeafType = typename Blocks::LeafDispatcher::Head::Base;
     };
 
     typedef typename Types::CtrTypes                                            CtrTypes;

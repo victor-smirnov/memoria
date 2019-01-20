@@ -80,7 +80,7 @@ public:
         using CtrTypes          = BTCowSSCtrTypes<Types>;
         using IterTypes         = BTCowSSIterTypes<Types>;
 
-        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
+        using BlockUpdateMgr     = BlockUpdateManager<CtrTypes>;
     };
 
     using CtrTypes  = typename Types::CtrTypes;

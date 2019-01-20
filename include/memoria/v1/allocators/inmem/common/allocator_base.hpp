@@ -56,7 +56,7 @@ namespace _ {
 		std::atomic<RefCntT> refs_;
 
 		// Currently for debug purposes
-		static std::atomic<int64_t> page_cnt_;
+		static std::atomic<int64_t> block_cnt_;
 	public:
         BlockPtr(BlockT* block, int64_t refs): block_(block), refs_(refs) {}
 
@@ -86,21 +86,21 @@ namespace _ {
 	};
 
     template <typename BlockT>
-    std::atomic<int64_t> BlockPtr<BlockT>::page_cnt_(0);
+    std::atomic<int64_t> BlockPtr<BlockT>::block_cnt_(0);
 
 
     template <typename ValueT, typename SnapshotIdT>
 	class PersistentTreeValue {
-		ValueT page_;
+		ValueT block_;
         SnapshotIdT snapshot_id_;
 	public:
 		using Value = ValueT;
 
-        PersistentTreeValue(): page_(), snapshot_id_() {}
-        PersistentTreeValue(const ValueT& page, const SnapshotIdT& snapshot_id): page_(page), snapshot_id_(snapshot_id) {}
+        PersistentTreeValue(): block_(), snapshot_id_() {}
+        PersistentTreeValue(const ValueT& block, const SnapshotIdT& snapshot_id): block_(block), snapshot_id_(snapshot_id) {}
 
-		const ValueT& page_ptr() const {return page_;}
-		ValueT& page_ptr() {return page_;}
+		const ValueT& block_ptr() const {return block_;}
+		ValueT& block_ptr() {return block_;}
 
         const SnapshotIdT& snapshot_id() const {return snapshot_id_;}
         SnapshotIdT& snapshot_id() {return snapshot_id_;}
@@ -113,7 +113,7 @@ namespace _ {
 template <typename V, typename T>
 OutputStreamHandler& operator<<(OutputStreamHandler& out, const persistent_inmem::_::PersistentTreeValue<V, T>& value)
 {
-    out << value.page_ptr();
+    out << value.block_ptr();
     out << value.snapshot_id();
     return out;
 }
@@ -121,7 +121,7 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const persistent_inmem
 template <typename V, typename T>
 InputStreamHandler& operator>>(InputStreamHandler& in, persistent_inmem::_::PersistentTreeValue<V, T>& value)
 {
-    in >> value.page_ptr();
+    in >> value.block_ptr();
     in >> value.snapshot_id();
     return in;
 }
@@ -130,9 +130,9 @@ template <typename V, typename T>
 std::ostream& operator<<(std::ostream& out, const persistent_inmem::_::PersistentTreeValue<V, T>& value)
 {
     out << "PersistentTreeValue[";
-    out << value.page_ptr()->raw_data();
+    out << value.block_ptr()->raw_data();
     out << ", ";
-    out << value.page_ptr()->references();
+    out << value.block_ptr()->references();
     out << ", ";
     out << value.snapshot_id();
     out << "]";
@@ -488,7 +488,7 @@ protected:
         const int64_t& records() const {return records_;}
     };
 
-    enum {TYPE_UNKNOWN, TYPE_METADATA, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE, TYPE_CHECKSUM};
+    enum {TYPE_UNKNOWN, TYPE_METADATA, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_BLOCK, TYPE_CHECKSUM};
 
     Logger logger_;
 
@@ -615,7 +615,7 @@ public:
 
         HistoryTreeNodeMap      history_node_map;
         PersistentTreeNodeMap   ptree_node_map;
-        BlockMap                page_map;
+        BlockMap                block_map;
 
         AllocatorMetadata metadata;
 
@@ -631,7 +631,7 @@ public:
             switch (type)
             {
                 case TYPE_METADATA:     allocator->read_metadata(*input, metadata); break;
-                case TYPE_DATA_PAGE:    allocator->read_data_page(*input, page_map); break;
+                case TYPE_DATA_BLOCK:    allocator->read_data_block(*input, block_map); break;
                 case TYPE_LEAF_NODE:    allocator->read_leaf_node(*input, ptree_node_map); break;
                 case TYPE_BRANCH_NODE:  allocator->read_branch_node(*input, ptree_node_map); break;
                 case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
@@ -662,14 +662,14 @@ public:
                 {
                     const auto& descr = leaf_buffer->data(c);
 
-                    auto page_iter = page_map.find(descr.page_ptr());
+                    auto block_iter = block_map.find(descr.block_ptr());
 
-                    if (page_iter != page_map.end())
+                    if (block_iter != block_map.end())
                     {
-                        leaf_node->data(c) = typename LeafNodeT::Value(page_iter->second, descr.snapshot_id());
+                        leaf_node->data(c) = typename LeafNodeT::Value(block_iter->second, descr.snapshot_id());
                     }
                     else {
-                        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified uuid {} is not found in the page map", descr.page_ptr()));
+                        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified uuid {} is not found in the block map", descr.block_ptr()));
                     }
                 }
             }
@@ -890,7 +890,7 @@ protected:
                 auto& data = leaf->data(c);
                 if (data.snapshot_id() == snapshot_id)
                 {
-                    free_system(data.page_ptr());
+                    free_system(data.block_ptr());
                 }
             }
 
@@ -938,38 +938,38 @@ protected:
         in >> checksum.records();
     }
 
-    void read_data_page(InputStreamHandler& in, BlockMap& map)
+    void read_data_block(InputStreamHandler& in, BlockMap& map)
     {
         typename RCBlockPtr::RefCntT references;
 
     	in >> references;
 
-    	int32_t page_data_size;
-        in >> page_data_size;
+    	int32_t block_data_size;
+        in >> block_data_size;
 
-        int32_t page_size;
-        in >> page_size;
+        int32_t block_size;
+        in >> block_size;
 
         uint64_t ctr_hash;
         in >> ctr_hash;
 
-        uint64_t page_hash;
-        in >> page_hash;
+        uint64_t block_hash;
+        in >> block_hash;
 
-        auto page_data = allocate_system<int8_t>(page_data_size);
-        BlockType* page = allocate_system<BlockType>(page_size).release();
+        auto block_data = allocate_system<int8_t>(block_data_size);
+        BlockType* block = allocate_system<BlockType>(block_size).release();
 
-        in.read(page_data.get(), 0, page_data_size);
+        in.read(block_data.get(), 0, block_data_size);
 
-        auto pageMetadata = metadata_->getBlockMetadata(ctr_hash, page_hash);
-        pageMetadata->getBlockOperations()->deserialize(page_data.get(), page_data_size, page);
+        auto blockMetadata = metadata_->getBlockMetadata(ctr_hash, block_hash);
+        blockMetadata->getBlockOperations()->deserialize(block_data.get(), block_data_size, block);
 
-        if (map.find(page->uuid()) == map.end())
+        if (map.find(block->uuid()) == map.end())
         {
-            map[page->uuid()] = new RCBlockPtr(page, references);
+            map[block->uuid()] = new RCBlockPtr(block, references);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block {} was already registered", page->uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block {} was already registered", block->uuid()));
         }
     }
 
@@ -1059,7 +1059,7 @@ protected:
 //    {
 //        for (int32_t c = 0; c < node->size(); c++)
 //        {
-//        	node->data(c)->page_ptr()->raw_data()->references() = node->data(c)->page_ptr()->references();
+//        	node->data(c)->block_ptr()->raw_data()->references() = node->data(c)->block_ptr()->references();
 //        }
 //    }
 
@@ -1074,7 +1074,7 @@ protected:
         for (int32_t c = 0; c < node->size(); c++)
         {
         	buf->data(c) = typename LeafNodeBufferT::Value(
-                node->data(c).page_ptr()->raw_data()->uuid(),
+                node->data(c).block_ptr()->raw_data()->uuid(),
                 node->data(c).snapshot_id()
             );
         }
@@ -1105,7 +1105,7 @@ protected:
 //      for (int32_t c = 0; c < node->size(); c++)
 //      {
 //          buf->data(c) = typename LeafNodeBufferT::Value(
-//                  node->data(c).page()->uuid(),
+//                  node->data(c).block()->uuid(),
 //                  node->data(c).snapshot_id()
 //          );
 //      }
@@ -1155,7 +1155,7 @@ protected:
         out << checksum.records() + 1;
     }
 
-    void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCBlockSet& stored_pages)
+    void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCBlockSet& stored_blocks)
     {
     	uint8_t type = TYPE_HISTORY_NODE;
         out << type;
@@ -1193,15 +1193,15 @@ protected:
 
         if (history_node->root())
         {
-            write_persistent_tree(out, history_node->root(), stored_pages);
+            write_persistent_tree(out, history_node->root(), stored_blocks);
         }
     }
 
-    void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node, RCBlockSet& stored_pages)
+    void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node, RCBlockSet& stored_blocks)
     {
-        if (stored_pages.count(node) == 0)
+        if (stored_blocks.count(node) == 0)
         {
-            stored_pages.insert(node);
+            stored_blocks.insert(node);
 
             if (node->is_leaf())
             {
@@ -1214,10 +1214,10 @@ protected:
                 {
                     const auto& data = leaf->data(c);
 
-                    if (stored_pages.count(data.page_ptr()) == 0)
+                    if (stored_blocks.count(data.block_ptr()) == 0)
                     {
-                        write(out, data.page_ptr());
-                        stored_pages.insert(data.page_ptr());
+                        write(out, data.block_ptr());
+                        stored_blocks.insert(data.block_ptr());
                     }
                 }
             }
@@ -1230,7 +1230,7 @@ protected:
                 for (int32_t c = 0; c < branch->size(); c++)
                 {
                     auto child = branch->data(c);
-                    write_persistent_tree(out, child, stored_pages);
+                    write_persistent_tree(out, child, stored_blocks);
                 }
             }
         }
@@ -1256,29 +1256,29 @@ protected:
         records_++;
     }
 
-    void write(OutputStreamHandler& out, const RCBlockPtr* page_ptr)
+    void write(OutputStreamHandler& out, const RCBlockPtr* block_ptr)
     {
-    	auto page = page_ptr->raw_data();
+    	auto block = block_ptr->raw_data();
 
-        uint8_t type = TYPE_DATA_PAGE;
+        uint8_t type = TYPE_DATA_BLOCK;
         out << type;
 
-        out << page_ptr->references();
+        out << block_ptr->references();
 
-        auto blockMetadata = metadata_->getBlockMetadata(page->ctr_type_hash(), page->page_type_hash());
+        auto blockMetadata = metadata_->getBlockMetadata(block->ctr_type_hash(), block->block_type_hash());
 
-        auto page_size = page->page_size();
+        auto block_size = block->memory_block_size();
 
-        auto buffer = allocate_system<uint8_t>(page_size);
+        auto buffer = allocate_system<uint8_t>(block_size);
 
         const auto operations = blockMetadata->getBlockOperations();
 
-        int32_t total_data_size = operations->serialize(page, buffer.get());
+        int32_t total_data_size = operations->serialize(block, buffer.get());
 
         out << total_data_size;
-        out << page->page_size();
-        out << page->ctr_type_hash();
-        out << page->page_type_hash();
+        out << block->memory_block_size();
+        out << block->ctr_type_hash();
+        out << block->block_type_hash();
 
         out.write(buffer.get(), 0, total_data_size);
 
@@ -1286,13 +1286,13 @@ protected:
     }
 
 
-    void dump(const BlockType* page, std::ostream& out = std::cout)
+    void dump(const BlockType* block, std::ostream& out = std::cout)
     {
-        TextPageDumper dumper(out);
+        TextBlockDumper dumper(out);
 
-        auto meta = metadata_->getBlockMetadata(page->ctr_type_hash(), page->page_type_hash());
+        auto meta = metadata_->getBlockMetadata(block->ctr_type_hash(), block->block_type_hash());
 
-        meta->getBlockOperations()->generateDataEvents(page, DataEventsParams(), &dumper);
+        meta->getBlockOperations()->generateDataEvents(block, DataEventsParams(), &dumper);
     }
 
     virtual void forget_snapshot(HistoryNode* history_node) = 0;

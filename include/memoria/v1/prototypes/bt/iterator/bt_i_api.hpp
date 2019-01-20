@@ -40,9 +40,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
 
     typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
     typedef typename Base::Container                                            Container;
-    typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
-    typedef typename Container::Types::Pages::BranchDispatcher                  BranchDispatcher;
-    typedef typename Container::Types::Pages::NodeDispatcher                    NodeDispatcher;
+    typedef typename Container::Types::Blocks::LeafDispatcher                    LeafDispatcher;
+    typedef typename Container::Types::Blocks::BranchDispatcher                  BranchDispatcher;
+    typedef typename Container::Types::Blocks::NodeDispatcher                    NodeDispatcher;
     typedef typename Types::Position                                            Position;
 
     typedef typename Container::Types::CtrSizeT                                 CtrSizeT;

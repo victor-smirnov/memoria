@@ -35,7 +35,7 @@
 namespace memoria {
 namespace v1 {
 
-template <typename T> class PageID;
+template <typename T> class BlockID;
 
 enum {BTREE = 1, ROOT = 2, LEAF = 4, BITMAP = 8};
 
@@ -114,7 +114,7 @@ struct IBlockOperations {
 
     virtual int32_t serialize(const BlockType* block, void* buf) const                               = 0;
     virtual void deserialize(const void* buf, int32_t buf_size, BlockType* block) const              = 0;
-    virtual int32_t getPageSize(const BlockType* block) const                                        = 0;
+    virtual int32_t getBlockSize(const BlockType* block) const                                       = 0;
 
     virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const                = 0;
 
@@ -149,7 +149,7 @@ struct BlockMetadata: public MetadataGroup
 
         if (!block_operations)
         {
-            MMA1_THROW(NullPointerException()) << WhatInfo("Page operations is not specified");
+            MMA1_THROW(NullPointerException()) << WhatInfo("Block operations instance is not specified");
         }
     }
 
@@ -185,8 +185,8 @@ struct ValueHelper {
 };
 
 template <typename T>
-struct ValueHelper<PageID<T> > {
-    using Type = PageID<T>;
+struct ValueHelper<BlockID<T> > {
+    using Type = BlockID<T>;
 
     static void setup(IBlockDataEventHandler* handler, const char* name, const Type& value)
     {
@@ -299,7 +299,7 @@ public:
             return toString(value_);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid index access in PageValueProviderT: idx = {}, size = 1", idx));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid index access in BlockValueProviderT: idx = {}, size = 1", idx));
         }
     }
 };
@@ -330,7 +330,7 @@ void Expand(std::ostream& os, int32_t level);
 
 void dumpPageDataValueProviderAsArray(std::ostream& out, const BlockDataValueProvider& provider);
 
-class TextPageDumper: public IBlockDataEventHandler {
+class TextBlockDumper: public IBlockDataEventHandler {
     std::ostream& out_;
 
     int32_t level_;
@@ -339,8 +339,8 @@ class TextPageDumper: public IBlockDataEventHandler {
     bool line_;
 
 public:
-    TextPageDumper(std::ostream& out): out_(out), level_(0), cnt_(0), line_(false) {}
-    virtual ~TextPageDumper() {}
+    TextBlockDumper(std::ostream& out): out_(out), level_(0), cnt_(0), line_(false) {}
+    virtual ~TextBlockDumper() {}
 
     virtual void startBlock(const char* name, const void* ptr)
     {
@@ -723,7 +723,7 @@ private:
 template <typename Struct>
 void DumpStruct(const Struct* s, std::ostream& out = std::cout)
 {
-    TextPageDumper dumper(out);
+    TextBlockDumper dumper(out);
 
     s->generateDataEvents(&dumper);
 }

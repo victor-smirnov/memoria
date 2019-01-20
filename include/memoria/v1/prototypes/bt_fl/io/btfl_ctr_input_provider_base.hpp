@@ -306,7 +306,7 @@ public:
 
     void dump_buffer(std::ostream& out = std::cout) const
     {
-        TextPageDumper dumper(out);
+        TextBlockDumper dumper(out);
         ForAllDataStreams::process(data_buffers_, DumpBufferFn(), dumper, out);
 
         out<<"Begin Symbols"<<std::endl;
@@ -374,7 +374,7 @@ public:
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
     using Iterator  = typename CtrT::Iterator;
 
-    using PageUpdateMgr         = typename CtrT::Types::PageUpdateMgr;
+    using BlockUpdateMgr         = typename CtrT::Types::BlockUpdateMgr;
 
     using typename Base::DataPositions;
     using typename Base::Position;
@@ -423,7 +423,7 @@ public:
         DataPositions data_start = to_data_positions(start);
         DataPositions pos        = data_start;
 
-        PageUpdateMgr mgr(ctr());
+        BlockUpdateMgr mgr(ctr());
 
         mgr.add(leaf);
 
@@ -457,7 +457,7 @@ public:
     }
 
 
-    virtual DataPositions insertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, DataPositions at, const DataPositions& size)
+    virtual DataPositions insertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, DataPositions at, const DataPositions& size)
     {
         if (tryInsertBuffer(mgr, leaf, at, size))
         {
@@ -574,11 +574,11 @@ protected:
     }
 
 
-    MMA1_NODISCARD bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size)
+    MMA1_NODISCARD bool tryInsertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size)
     {
         InsertBuffersFn insert_fn;
 
-        CtrT::Types::Pages::LeafDispatcher::dispatch(
+        CtrT::Types::Blocks::LeafDispatcher::dispatch(
                     leaf,
                     insert_fn,
                     to_position(at),

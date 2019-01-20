@@ -42,7 +42,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mvector::ItrApiName)
     typedef typename Container::Value                                           Value;
     typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
 
-    typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
+    typedef typename Container::Types::Blocks::LeafDispatcher                    LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
     using CtrSizeT = typename Container::Types::CtrSizeT;

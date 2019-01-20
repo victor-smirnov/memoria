@@ -34,7 +34,7 @@ namespace memoria {
 namespace v1 {
 
 
-class TextPageDumper;
+class TextBlockDumper;
 
 
 
@@ -990,7 +990,7 @@ public:
 
     void dump(std::ostream& out = std::cout) const
     {
-        std::unique_ptr<TextPageDumper> dumper = std::make_unique<TextPageDumper>(out);
+        std::unique_ptr<TextBlockDumper> dumper = std::make_unique<TextBlockDumper>(out);
         this->generateDataEvents(dumper.get());
     }
 

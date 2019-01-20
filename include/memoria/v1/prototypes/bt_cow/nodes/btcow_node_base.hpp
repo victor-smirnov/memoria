@@ -170,11 +170,11 @@ public:
 
     void initAllocator(int32_t entries)
     {
-        int32_t page_size = this->page_size();
-        MEMORIA_V1_ASSERT(page_size, >, (int)sizeof(MyType) + PackedAllocator::my_size());
+        int32_t block_size = this->memory_block_size();
+        MEMORIA_V1_ASSERT(block_size, >, (int)sizeof(MyType) + PackedAllocator::my_size());
 
         allocator_.setTopLevelAllocator();
-        allocator_.init(page_size - sizeof(MyType) + PackedAllocator::my_size(), entries);
+        allocator_.init(block_size - sizeof(MyType) + PackedAllocator::my_size(), entries);
     }
 
     void transferDataTo(MyType* other) const
@@ -187,7 +187,7 @@ public:
 
     void resizePage(int32_t new_size)
     {
-        this->page_size() = new_size;
+        this->memory_block_size() = new_size;
         allocator_.resizeBlock(new_size - sizeof(MyType) + PackedAllocator::my_size());
     }
 
@@ -254,16 +254,16 @@ public:
         }
     }
 
-    void copyFrom(const MyType* page)
+    void copyFrom(const MyType* block)
     {
-        Base::copyFrom(page);
+        Base::copyFrom(block);
 
-        this->set_root(page->is_root());
-        this->set_leaf(page->is_leaf());
+        this->set_root(block->is_root());
+        this->set_leaf(block->is_leaf());
 
-        this->level()       = page->level();
+        this->level()       = block->level();
 
-        this->next_leaf_id() = page->next_leaf_id();
+        this->next_leaf_id() = block->next_leaf_id();
 
         //FIXME: copy allocator?
         //FIXME: copy root metadata ?

@@ -37,7 +37,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorLeafName)
     typedef typename Container::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Container::Iterator                                            Iterator;
 
-    using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
+    using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 

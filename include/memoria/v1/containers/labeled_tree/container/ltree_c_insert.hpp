@@ -47,7 +47,7 @@ public:
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
 
     using LabelsTuple = typename Types::LabelsTuple;
@@ -162,7 +162,7 @@ public:
     {
         auto& self = this->self();
 
-        PageUpdateMgr mgr(self);
+        BlockUpdateMgr mgr(self);
 
         mgr.add(leaf);
 
@@ -196,7 +196,7 @@ public:
     {
         auto& self = this->self();
 
-        PageUpdateMgr mgr(self);
+        BlockUpdateMgr mgr(self);
 
         mgr.add(leaf);
 

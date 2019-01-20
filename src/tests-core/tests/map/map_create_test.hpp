@@ -92,7 +92,7 @@ public:
         auto snp = branch();
         auto map = create<MapName>(snp);
 
-        map.new_page_size(4096);
+        map.new_block_size(4096);
 
         ctr_name_ = map.name();
 

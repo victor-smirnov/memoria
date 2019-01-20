@@ -208,10 +208,10 @@ public:
     }
 
 
-    static int32_t free_space(int32_t page_size)
+    static int32_t free_space(int32_t block_size)
     {
-        int32_t block_size = page_size - sizeof(MyType) + PackedAllocator::my_size();
-        int32_t client_area = PackedAllocator::client_area(block_size, SubstreamsStart + Substreams + 1);
+        int32_t fixed_block_size = block_size - sizeof(MyType) + PackedAllocator::my_size();
+        int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
 
         return client_area;
     }
@@ -657,7 +657,7 @@ public:
     }
 
     void dump(std::ostream& out = std::cout) {
-        TextPageDumper dumper(out);
+        TextBlockDumper dumper(out);
         generateDataEvents(&dumper);
     }
 };

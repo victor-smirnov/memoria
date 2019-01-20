@@ -170,7 +170,7 @@ struct ContainerInterface {
 
     virtual ~ContainerInterface() noexcept {}
 
-    // uuid, id, page data
+    // uuid, id, block data
     using BlockCallbackFn = std::function<void(const BlockID&, const BlockID&, const BlockType*)>;
     using AllocatorBasePtr = SnpSharedPtr<AllocatorBase>;
 
@@ -180,7 +180,7 @@ struct ContainerInterface {
     virtual Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const = 0;
 
 
-    // FIXME: remove name from parameters, it's already in Ctr's page root metadata
+    // FIXME: remove name from parameters, it's already in Ctr's block root metadata
     virtual U16String ctr_name() const = 0;
 
     virtual bool check(
@@ -247,8 +247,8 @@ public:
         {
             if (content_[c]->getTypeCode() == Metadata::PAGE)
             {
-                BlockMetadataPtr<Profile> page = static_pointer_cast<BlockMetadata<Profile>> (content_[c]);
-                page_map_[page->hash() ^ ctr_hash] = page;
+                BlockMetadataPtr<Profile> block = static_pointer_cast<BlockMetadata<Profile>> (content_[c]);
+                block_map_[block->hash() ^ ctr_hash] = block;
             }
             else if (content_[c]->getTypeCode() == Metadata::CONTAINER) {
                 // nothing to do
@@ -267,15 +267,15 @@ public:
         return ctr_hash_;
     }
 
-    virtual const BlockMetadataPtr<Profile>& getPageMetadata(uint64_t model_hash, uint64_t page_hash) const
+    virtual const BlockMetadataPtr<Profile>& getBlockMetadata(uint64_t model_hash, uint64_t block_hash) const
     {
-        auto i = page_map_.find(model_hash ^ page_hash);
-        if (i != page_map_.end())
+        auto i = block_map_.find(model_hash ^ block_hash);
+        if (i != block_map_.end())
         {
             return i->second;
         }
         else {
-            MMA1_THROW(Exception()) << WhatCInfo("Unknown page type hash code");
+            MMA1_THROW(Exception()) << WhatCInfo("Unknown block type hash code");
         }
     }
 
@@ -297,11 +297,11 @@ private:
     static auto buildPageMetadata() 
     {
         MetadataList list;
-        Types::Pages::NodeDispatcher::buildMetadataList(list);
+        Types::Blocks::NodeDispatcher::buildMetadataList(list);
         return list;
     }
 
-    BlockMetadataMap<Profile>       page_map_;
+    BlockMetadataMap<Profile>       block_map_;
     ContainerInterfacePtr<Profile>  container_interface_;
 
     uint64_t                        ctr_hash_;
@@ -345,8 +345,8 @@ public:
 
     const BlockMetadataPtr<Profile>& getBlockMetadata(uint64_t ctr_hash, uint64_t block_hash) const
     {
-        auto i = page_map_.find(ctr_hash ^ block_hash);
-        if (i != page_map_.end())
+        auto i = block_map_.find(ctr_hash ^ block_hash);
+        if (i != block_map_.end())
         {
             return i->second;
         }
@@ -393,7 +393,7 @@ public:
 
 private:
     uint64_t                        hash_;
-    BlockMetadataMap<Profile>       page_map_;
+    BlockMetadataMap<Profile>       block_map_;
     ContainerMetadataMap<Profile>   model_map_;
     
     std::mutex mutex_;
@@ -411,8 +411,8 @@ private:
                 auto item = model->getItem(d);
                 if (item->getTypeCode() == Metadata::PAGE)
                 {
-                    auto page = static_pointer_cast<BlockMetadata<Profile>> (item);
-                    page_map_[page->hash() ^ model->ctr_hash()] = page;
+                    auto block = static_pointer_cast<BlockMetadata<Profile>> (item);
+                    block_map_[block->hash() ^ model->ctr_hash()] = block;
                 }
                 else if (item->getTypeCode() == Metadata::CONTAINER)
                 {

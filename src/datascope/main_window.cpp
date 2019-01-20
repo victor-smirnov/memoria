@@ -134,7 +134,7 @@ void MainWindow::item_selected()
         AllocatorModel* model = static_cast<AllocatorModel*>(view->model());
         AbstractTreeItem* item = model->get_item(item_idx);
 
-        if (item->node_type() == u"page")
+        if (item->node_type() == u"block")
         {
             VertexTreeItem* vx_item = static_cast<VertexTreeItem*>(item);
             VertexProperty content_prop = vx_item->vertex().property(u"content");

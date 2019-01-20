@@ -225,7 +225,7 @@ protected:
     using DataSizesT    = typename Types::DataSizesT;
     using NodeBaseG     = typename Types::NodeBaseG;
 
-    using LeafDispatcher = typename Types::Pages::LeafDispatcher;
+    using LeafDispatcher = typename Types::Blocks::LeafDispatcher;
     using Iterator  = IteratorT;
 
     static constexpr int32_t DataStreams            = Types::DataStreams;
@@ -371,7 +371,7 @@ public:
 
 
 
-    void prepare_new_page(int32_t start_idx = 0)
+    void prepare_new_block(int32_t start_idx = 0)
     {
         idx_     = start_idx;
         symbols_ = leaf_structure()->iterator(idx_);
@@ -393,7 +393,7 @@ public:
     }
 
 
-    bool next_page()
+    bool next_block()
     {
         NodeBaseG next = iter_->ctr().getNextNodeP(leaf_);
 
@@ -401,7 +401,7 @@ public:
         {
             leaf_ = next;
 
-            prepare_new_page();
+            prepare_new_block();
 
             configure_data(DataStreamsSizes());
 

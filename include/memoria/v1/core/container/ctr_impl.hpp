@@ -144,15 +144,15 @@ template <typename CtrName, typename Profile>
 void CtrApiBase<CtrName, Profile>::do_link() {}
 
 template <typename CtrName, typename Profile>
-void CtrApiBase<CtrName, Profile>::new_page_size(int size) 
+void CtrApiBase<CtrName, Profile>::new_block_size(int size) 
 {
-    this->pimpl_->setNewPageSize(size);
+    this->pimpl_->setNewBlockSize(size);
 }
 
 template <typename CtrName, typename Profile>
-int CtrApiBase<CtrName, Profile>::new_page_size()
+int CtrApiBase<CtrName, Profile>::new_block_size()
 {
-    return this->pimpl_->getNewPageSize();
+    return this->pimpl_->getNewBlockSize();
 }
 
 template <typename CtrName, typename Profile>

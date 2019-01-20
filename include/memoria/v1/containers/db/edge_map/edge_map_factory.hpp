@@ -139,7 +139,7 @@ public:
         using CtrTypes          = EdgeMapCtrTypes<Types>;
         using IterTypes         = EdgeMapIterTypes<Types>;
 
-        using PageUpdateMgr     = bt::PageUpdateManager<CtrTypes>;
+        using BlockUpdateMgr     = bt::BlockUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList = typename BaseTypes::LeafStreamsStructList;
 

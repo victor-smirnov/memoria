@@ -39,7 +39,7 @@ protected:
     using typename Base::BranchDispatcher;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
-    using typename Base::PageUpdateMgr;
+    using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
 
     using Value = typename Types::Value;

@@ -71,7 +71,7 @@ void print(std::ostream& out, const ContainerMemoryStat& stat)
 {
     out << "ContainerStat{" << stat.ctr_type_name() << "::" << stat.ctr_name() << " Data: ";
     out << stat.total_size() << ", " << stat.total_leaf_size() << ", " << stat.total_branch_size() << " Pages: ";
-    out << stat.total_leaf_pages() << ", " << stat.total_branch_pages() << "}";
+    out << stat.total_leaf_blocks() << ", " << stat.total_branch_blocks() << "}";
 }
 
 
@@ -88,8 +88,8 @@ void print_json(std::ostream& out, const ContainerMemoryStat& stat)
     out_json_val(state, out, "totalSize", stat.total_size());
     out_json_val(state, out, "totalLeafSize", stat.total_leaf_size());
     out_json_val(state, out, "totalBranchSize", stat.total_branch_size());
-    out_json_val(state, out, "totalLeafPages", stat.total_leaf_pages());
-    out_json_val(state, out, "totalBranchPages", stat.total_branch_pages());
+    out_json_val(state, out, "totalLeafPages", stat.total_leaf_blocks());
+    out_json_val(state, out, "totalBranchPages", stat.total_branch_blocks());
 
     out << "}";
 }

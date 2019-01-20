@@ -63,8 +63,7 @@ protected:
     using typename Base::PersistentAllocatorPtr;
     using typename Base::HistoryNode;
     using typename Base::SnapshotPtr;
-    using typename Base::Page;
-    
+
     using AllocatorMutexT	= typename std::remove_reference<decltype(std::declval<HistoryNode>().allocator_mutex())>::type;
     using MutexT			= typename std::remove_reference<decltype(std::declval<HistoryNode>().snapshot_mutex())>::type;
     using StoreMutexT		= typename std::remove_reference<decltype(std::declval<HistoryNode>().store_mutex())>::type;
@@ -617,9 +616,9 @@ void InMemSnapshot<Profile>::dump_persistent_tree()
 }
 
 template <typename Profile>
-void InMemSnapshot<Profile>::dump_dictionary_pages()
+void InMemSnapshot<Profile>::dump_dictionary_blocks()
 {
-    return pimpl_->dump_dictionary_pages();
+    return pimpl_->dump_dictionary_blocks();
 }
 
 template <typename Profile>

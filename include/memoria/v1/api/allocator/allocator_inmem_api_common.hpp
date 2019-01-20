@@ -65,8 +65,8 @@ class ContainerMemoryStat {
     UUID ctr_name_;
     U16String ctr_type_name_;
 
-    uint64_t total_leaf_pages_;
-    uint64_t total_branch_pages_;
+    uint64_t total_leaf_blocks_;
+    uint64_t total_branch_blocks_;
 
     uint64_t total_leaf_size_;
     uint64_t total_branch_size_;
@@ -75,12 +75,12 @@ class ContainerMemoryStat {
 
 public:
     ContainerMemoryStat(
-            const UUID& ctr_name, U16String ctr_type_name, uint64_t total_leaf_pages, uint64_t total_branch_pages,
+            const UUID& ctr_name, U16String ctr_type_name, uint64_t total_leaf_blocks, uint64_t total_branch_blocks,
             uint64_t total_leaf_size, uint64_t total_branch_size, uint64_t total_size
     ):
         ctr_name_(ctr_name),
         ctr_type_name_(ctr_type_name),
-        total_leaf_pages_(total_leaf_pages), total_branch_pages_(total_branch_pages),
+        total_leaf_blocks_(total_leaf_blocks), total_branch_blocks_(total_branch_blocks),
         total_leaf_size_(total_leaf_size), total_branch_size_(total_branch_size),
         total_size_(total_size)
     {}
@@ -88,8 +88,8 @@ public:
     const UUID& ctr_name() const {return ctr_name_;}
     const U16String& ctr_type_name() const {return ctr_type_name_;}
 
-    uint64_t total_leaf_pages() const {return total_leaf_pages_;}
-    uint64_t total_branch_pages() const {return total_branch_pages_;}
+    uint64_t total_leaf_blocks() const {return total_leaf_blocks_;}
+    uint64_t total_branch_blocks() const {return total_branch_blocks_;}
 
     uint64_t total_leaf_size() const {return total_leaf_size_;}
     uint64_t total_branch_size() const {return total_branch_size_;}

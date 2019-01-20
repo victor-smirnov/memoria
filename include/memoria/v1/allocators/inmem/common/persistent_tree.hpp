@@ -35,7 +35,7 @@ namespace v1 {
 namespace persistent_inmem {
 
 
-template <typename BranchNodeT, typename LeafNodeT_, typename RootProvider, typename PageType>
+template <typename BranchNodeT, typename LeafNodeT_, typename RootProvider, typename BlockType>
 class PersistentTree {
 public:
     using LeafNodeT     = LeafNodeT_;
@@ -264,7 +264,7 @@ public:
         delete_tree( root(), fn);
 
         root_provider_->assign_root_no_ref(nullptr);
-        root_provider_->root_id() = typename PageType::BlockID{};
+        root_provider_->root_id() = typename BlockType::BlockID{};
     }
 
 
@@ -285,7 +285,7 @@ public:
                 for (int32_t c = 0; c < leaf_node->size(); c++)
                 {
                     auto& child = leaf_node->data(c);
-                    node_consumer.process_data_page(child.page_ptr()->raw_data());
+                    node_consumer.process_data_block(child.block_ptr()->raw_data());
                 }
             }
         }
@@ -569,11 +569,11 @@ protected:
 
         LeafNodeT* leaf = iter.leaf();
 
-        auto page = leaf->data(iter.local_pos()).page_ptr();
+        auto block = leaf->data(iter.local_pos()).block_ptr();
 
-        if (page->unref() == 0 && delete_on_unref)
+        if (block->unref() == 0 && delete_on_unref)
         {
-            delete page;
+            delete block;
         }
 
         leaf->remove(iter.local_pos(), iter.local_pos() + 1);
@@ -857,7 +857,7 @@ protected:
 
         for (int32_t c = 0; c < clone->size(); c++)
         {
-            clone->data(c).page_ptr()->ref();
+            clone->data(c).block_ptr()->ref();
         }
 
         return clone;

@@ -46,7 +46,7 @@ protected:
 
     static const int32_t Streams                                                    = Types::Streams;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
 MEMORIA_V1_CONTAINER_PART_END
 

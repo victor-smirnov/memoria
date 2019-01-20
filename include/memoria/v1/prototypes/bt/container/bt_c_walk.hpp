@@ -40,9 +40,9 @@ public:
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
@@ -70,18 +70,18 @@ public:
         {
             if (node->is_leaf())
             {
-                walker->rootLeaf(node->parent_idx(), node.page());
+                walker->rootLeaf(node->parent_idx(), node.block());
             }
             else {
-                walker->beginRoot(node->parent_idx(), node.page());
+                walker->beginRoot(node->parent_idx(), node.block());
             }
         }
         else if (node->is_leaf())
         {
-            walker->leaf(node->parent_idx(), node.page());
+            walker->leaf(node->parent_idx(), node.block());
         }
         else {
-            walker->beginNode(node->parent_idx(), node.page());
+            walker->beginNode(node->parent_idx(), node.block());
         }
     }
 

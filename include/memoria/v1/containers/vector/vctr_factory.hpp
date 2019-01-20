@@ -166,7 +166,7 @@ public:
         typedef Vector2CtrTypes<Types>                                          CtrTypes;
         typedef Vector2IterTypes<Types>                                         IterTypes;
 
-        typedef bt::PageUpdateManager<CtrTypes>                                 PageUpdateMgr;
+        typedef bt::BlockUpdateManager<CtrTypes>                                 BlockUpdateMgr;
     };
 
 

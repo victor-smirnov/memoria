@@ -494,7 +494,7 @@ public:
 
     void dump(std::ostream& out = std::cout, bool dump_index = true) const
     {
-        TextPageDumper dumper(out);
+        TextBlockDumper dumper(out);
 
         generateDataEvents(&dumper);
     }

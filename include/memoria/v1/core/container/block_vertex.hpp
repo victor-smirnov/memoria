@@ -25,23 +25,23 @@ namespace memoria {
 namespace v1 {
 
 template <typename AllocatorPtr, typename CtrInterfacePtr>
-class PageVertex: public IVertex, public EnableSharedFromThis<PageVertex<AllocatorPtr, CtrInterfacePtr>> {
+class BlockVertex: public IVertex, public EnableSharedFromThis<BlockVertex<AllocatorPtr, CtrInterfacePtr>> {
 
     Graph graph_;
     AllocatorPtr allocator_;
     CtrInterfacePtr ctr_interface_;
-    UUID page_id_;
+    UUID block_id_;
     UUID name_;
 
 public:
-    PageVertex(Graph graph, AllocatorPtr allocator, CtrInterfacePtr ctr_interface, UUID page_id, UUID name):
+    BlockVertex(Graph graph, AllocatorPtr allocator, CtrInterfacePtr ctr_interface, UUID block_id, UUID name):
         graph_(std::move(graph)), allocator_(std::move(allocator)),
-        ctr_interface_(std::move(ctr_interface)), page_id_(page_id), name_(name)
+        ctr_interface_(std::move(ctr_interface)), block_id_(block_id), name_(name)
     {
     }
 
-    static Vertex make(Graph graph, AllocatorPtr allocator, CtrInterfacePtr ctr_interface, UUID page_id, UUID name) {
-        return Vertex(MakeLocalShared<PageVertex>(graph, allocator, ctr_interface, page_id, name));
+    static Vertex make(Graph graph, AllocatorPtr allocator, CtrInterfacePtr ctr_interface, UUID block_id, UUID name) {
+        return Vertex(MakeLocalShared<BlockVertex>(graph, allocator, ctr_interface, block_id, name));
     }
 
     Vertex self() {
@@ -49,7 +49,7 @@ public:
     }
 
     Vertex self() const {
-        return Vertex(DynamicPointerCast<IVertex>(ConstPointerCast<PageVertex>(this->shared_from_this())));
+        return Vertex(DynamicPointerCast<IVertex>(ConstPointerCast<BlockVertex>(this->shared_from_this())));
     }
 
     virtual Graph graph()
@@ -58,15 +58,15 @@ public:
     }
 
     virtual Any id() const {
-        return page_id_;
+        return block_id_;
     }
 
     virtual U16String label() const {
-        return u"page";
+        return u"block";
     }
 
     virtual void remove() {
-        MMA1_THROW(GraphException()) << WhatCInfo("Can't remove page via Vertex::remove()");
+        MMA1_THROW(GraphException()) << WhatCInfo("Can't remove block via Vertex::remove()");
     }
 
     virtual bool is_removed() const {
@@ -75,11 +75,11 @@ public:
 
     virtual Collection<VertexProperty> properties()
     {
-        return ctr_interface_->block_properties(self(), page_id_, name_, allocator_);
+        return ctr_interface_->block_properties(self(), block_id_, name_, allocator_);
     }
 
     virtual Collection<Edge> edges(Direction direction) {
-        return ctr_interface_->describe_block_links(page_id_, name_, allocator_, direction);
+        return ctr_interface_->describe_block_links(block_id_, name_, allocator_, direction);
     }
 };
 

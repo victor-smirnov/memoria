@@ -35,9 +35,9 @@ public:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
 
     typedef typename Base::Metadata                                             Metadata;
@@ -45,7 +45,7 @@ public:
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
     typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>             SplitFn;
 
@@ -92,7 +92,7 @@ void M_TYPE::newRootP(NodeBaseG& root)
 
     self.updateBlockG(root);
 
-    NodeBaseG new_root = self.createNode(root->level() + 1, true, false, root->page_size());
+    NodeBaseG new_root = self.createNode(root->level() + 1, true, false, root->memory_block_size());
 
     uint64_t root_active_streams = self.getActiveStreams(root);
     self.layoutBranchNode(new_root, root_active_streams);

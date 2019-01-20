@@ -84,7 +84,7 @@ public:
         using CtrTypes          = BTSSCtrTypes<Types>;
         using IterTypes         = BTSSIterTypes<Types>;
 
-        using PageUpdateMgr     = bt::PageUpdateManager<CtrTypes>;
+        using BlockUpdateMgr     = bt::BlockUpdateManager<CtrTypes>;
     };
 
     using CtrTypes  = typename Types::CtrTypes;

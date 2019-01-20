@@ -37,7 +37,7 @@ protected:
     using typename Base::BranchDispatcher;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
-    using typename Base::PageUpdateMgr;
+    using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
 
     using SplitFn = std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>;
