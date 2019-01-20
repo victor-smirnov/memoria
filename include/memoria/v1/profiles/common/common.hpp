@@ -38,4 +38,9 @@ using ProfileCtrID = typename ProfileTraits<Profile>::CtrID;
 template <typename Profile>
 using ProfileSnapshotID = typename ProfileTraits<Profile>::SnapshotID;
 
+template <typename Profile>
+using ProfileCtrSizeT = typename ProfileTraits<Profile>::CtrSizeT;
+
+template <typename ID> struct IDTools;
+
 }}

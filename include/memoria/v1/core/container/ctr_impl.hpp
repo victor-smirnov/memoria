@@ -32,11 +32,11 @@ template <typename CtrName, typename Allocator, typename Profile>
 class SharedCtr: public CtrTF<Profile, CtrName, CtrName>::Type {
     using Base = typename CtrTF<Profile, CtrName, CtrName>::Type;
 public:
-    SharedCtr(const CtrSharedPtr<Allocator>& allocator, int32_t command, const UUID& name):
+    SharedCtr(const CtrSharedPtr<Allocator>& allocator, int32_t command, const ProfileCtrID<Profile>& name):
         Base(allocator, command, name)
     {}
     
-    SharedCtr(const CtrSharedPtr<Allocator>& allocator, const UUID& root_id, const CtrInitData& ctr_init_data):
+    SharedCtr(const CtrSharedPtr<Allocator>& allocator, const ProfileBlockID<Profile>& root_id, const CtrInitData& ctr_init_data):
         Base(allocator, root_id, ctr_init_data)
     {}
 };
@@ -72,8 +72,8 @@ public:
 
 
 template <typename CtrName, typename Profile>    
-CtrApiBase<CtrName, Profile>::CtrApiBase(const CtrSharedPtr<AllocatorT>& allocator, int command, const UUID& name):
-    pimpl_(ctr_make_shared<SharedCtr<CtrName, ProfileAllocatorType<Profile>, Profile>>(allocator, command, name))
+CtrApiBase<CtrName, Profile>::CtrApiBase(const CtrSharedPtr<AllocatorT>& allocator, int command, const CtrID& ctr_id):
+    pimpl_(ctr_make_shared<SharedCtr<CtrName, ProfileAllocatorType<Profile>, Profile>>(allocator, command, ctr_id))
 {}
 
 template <typename CtrName, typename Profile>    
@@ -124,7 +124,7 @@ void CtrApiBase<CtrName, Profile>::operator=(CtrApiBase&& other)
 
 
 template <typename CtrName, typename Profile>
-UUID CtrApiBase<CtrName, Profile>::name() 
+typename CtrApiBase<CtrName, Profile>::CtrID CtrApiBase<CtrName, Profile>::name()
 {
     return this->pimpl_->name();
 }
@@ -193,15 +193,15 @@ void CtrApiBase<CtrName, Profile>::drop()
 }
 
 template <typename CtrName, typename Profile>
-UUID CtrApiBase<CtrName, Profile>::clone_ctr(const UUID& new_name)
+typename CtrApiBase<CtrName, Profile>::CtrID CtrApiBase<CtrName, Profile>::clone_ctr(const CtrID& new_id)
 {
-    return this->pimpl_->clone(new_name);
+    return this->pimpl_->clone(new_id);
 }
 
 template <typename CtrName, typename Profile>
-UUID CtrApiBase<CtrName, Profile>::clone_ctr()
+typename CtrApiBase<CtrName, Profile>::CtrID CtrApiBase<CtrName, Profile>::clone_ctr()
 {
-    return this->pimpl_->clone(UUID{});
+    return this->pimpl_->clone(CtrID{});
 }
 
 
@@ -219,14 +219,14 @@ int32_t CtrApiBase<CtrName, Profile>::metadata_links_num() const
 
 
 template <typename CtrName, typename Profile>
-UUID CtrApiBase<CtrName, Profile>::get_metadata_link(int num) const
+typename CtrApiBase<CtrName, Profile>::CtrID CtrApiBase<CtrName, Profile>::get_metadata_link(int num) const
 {
     return this->pimpl_->get_metadata_link(num);
 }
 
 
 template <typename CtrName, typename Profile>
-void CtrApiBase<CtrName, Profile>::set_metadata_link(int num, const UUID& link_id)
+void CtrApiBase<CtrName, Profile>::set_metadata_link(int num, const CtrID& link_id)
 {
     return this->pimpl_->set_metadata_link(num, link_id);
 }

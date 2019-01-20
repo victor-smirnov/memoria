@@ -19,7 +19,6 @@
 #include <memoria/v1/containers/map/map_factory.hpp>
 
 #include <memoria/v1/core/tools/pool.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/latch.hpp>
@@ -67,7 +66,8 @@ public:
     
     using typename Base::HistoryNode;
     using typename Base::HistoryNodeBuffer;
-    using typename Base::TxnId;
+    using typename Base::SnapshotID;
+    using typename Base::BlockID;
     using typename Base::RCPageSet;
     using typename Base::Checksum;
     
@@ -173,15 +173,15 @@ public:
     }
 
 
-    UUID root_shaphot_id() const
+    SnapshotID root_shaphot_id() const
     {
         LockGuardT lock_guard(mutex_);
-        return history_tree_->txn_id();
+        return history_tree_->snapshot_id();
     }
 
-    std::vector<UUID> children_of(const UUID& snapshot_id) const
+    std::vector<SnapshotID> children_of(const SnapshotID& snapshot_id) const
     {
-        std::vector<UUID> ids;
+        std::vector<SnapshotID> ids;
 
         LockGuardT lock_guard(mutex_);
 
@@ -191,14 +191,14 @@ public:
             const auto history_node = iter->second;
             for (const auto* child: history_node->children())
             {
-                ids.push_back(child->txn_id());
+                ids.push_back(child->snapshot_id());
             }
         }
 
         return ids;
     }
 
-    std::vector<std::string> children_of_str(const UUID& snapshot_id) const
+    std::vector<std::string> children_of_str(const SnapshotID& snapshot_id) const
     {
         std::vector<std::string> ids;
         auto uids = children_of(snapshot_id);
@@ -231,7 +231,7 @@ public:
         return branches;
     }
 
-    UUID branch_head(const U16String& branch_name)
+    SnapshotID branch_head(const U16String& branch_name)
     {
         std::lock_guard<MutexT> lock(mutex_);
 
@@ -239,30 +239,30 @@ public:
         if (ii != named_branches_.end())
         {
             // TODO: need to take a lock here on the snapshot
-            return ii->second->txn_id();
+            return ii->second->snapshot_id();
         }
 
-        return UUID{};
+        return SnapshotID{};
     }
 
-    std::vector<UUID> heads()
+    std::vector<SnapshotID> heads()
     {
         std::lock_guard<MutexT> lock(mutex_);
-        std::unordered_set<UUID> ids;
+        std::unordered_set<SnapshotID> ids;
 
         for (const auto& entry: named_branches_)
         {
             // TODO: need to take a lock here on the snapshot
-            ids.insert(entry.second->txn_id());
+            ids.insert(entry.second->snapshot_id());
         }
 
-        ids.insert(master_->txn_id());
+        ids.insert(master_->snapshot_id());
 
-        return std::vector<UUID>(ids.begin(), ids.end());
+        return std::vector<SnapshotID>(ids.begin(), ids.end());
     }
 
     
-    SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
+    SnapshotMetadata<SnapshotID> describe(const SnapshotID& snapshot_id) const
     {
     	LockGuardT lock_guard2(mutex_);
 
@@ -273,17 +273,17 @@ public:
 
             SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
-        	std::vector<TxnId> children;
+            std::vector<SnapshotID> children;
 
         	for (const auto& node: history_node->children())
         	{
-        		children.emplace_back(node->txn_id());
+                children.emplace_back(node->snapshot_id());
         	}
 
-        	auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID{};
+            auto parent_id = history_node->parent() ? history_node->parent()->snapshot_id() : SnapshotID{};
 
-        	return SnapshotMetadata<TxnId>(
-        		parent_id, history_node->txn_id(), children, history_node->metadata(), history_node->status()
+            return SnapshotMetadata<SnapshotID>(
+                parent_id, history_node->snapshot_id(), children, history_node->metadata(), history_node->status()
 			);
         }
         else {
@@ -292,7 +292,7 @@ public:
     }
 
 
-    auto snapshot_status(const TxnId& snapshot_id)
+    auto snapshot_status(const SnapshotID& snapshot_id)
     {
         LockGuardT lock_guard2(mutex_);
 
@@ -308,7 +308,7 @@ public:
         }
     }
 
-    UUID snapshot_parent(const TxnId& snapshot_id)
+    SnapshotID snapshot_parent(const SnapshotID& snapshot_id)
     {
         LockGuardT lock_guard2(mutex_);
 
@@ -318,7 +318,7 @@ public:
             const auto history_node = iter->second;
             SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
-            auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID{};
+            auto parent_id = history_node->parent() ? history_node->parent()->snapshot_id() : SnapshotID{};
             return parent_id;
         }
         else {
@@ -326,7 +326,7 @@ public:
         }
     }
 
-    U16String snapshot_description(const TxnId& snapshot_id)
+    U16String snapshot_description(const SnapshotID& snapshot_id)
     {
         LockGuardT lock_guard2(mutex_);
 
@@ -345,7 +345,7 @@ public:
 
 
 
-    SnapshotPtr find(const TxnId& snapshot_id)
+    SnapshotPtr find(const SnapshotID& snapshot_id)
     {
     	LockGuardT lock_guard(mutex_);
 
@@ -362,10 +362,10 @@ public:
             }
             if (history_node->is_data_locked())
             {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} data is locked", history_node->txn_id()));
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} data is locked", history_node->snapshot_id()));
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is {}", history_node->txn_id(), (history_node->is_active() ? u"active" : u"dropped")));
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? u"active" : u"dropped")));
             }
         }
         else {
@@ -398,11 +398,11 @@ public:
             		return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this());
             	}
             	else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is locked and open", history_node->txn_id()));
+                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is locked and open", history_node->snapshot_id()));
             	}
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is {} ", history_node->txn_id(), (history_node->is_active() ? u"active" : u"dropped")));
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is {} ", history_node->snapshot_id(), (history_node->is_active() ? u"active" : u"dropped")));
             }
         }
         else {
@@ -420,27 +420,27 @@ public:
         return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this());
     }
 
-    SnapshotMetadata<TxnId> describe_master() const
+    SnapshotMetadata<SnapshotID> describe_master() const
     {
     	std::lock(mutex_, master_->snapshot_mutex());
     	LockGuardT lock_guard2(mutex_, std::adopt_lock);
     	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
 
-    	std::vector<TxnId> children;
+        std::vector<SnapshotID> children;
 
     	for (const auto& node: master_->children())
     	{
-    		children.emplace_back(node->txn_id());
+            children.emplace_back(node->snapshot_id());
     	}
 
-    	auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID{};
+        auto parent_id = master_->parent() ? master_->parent()->snapshot_id() : SnapshotID{};
 
-    	return SnapshotMetadata<TxnId>(
-            parent_id, master_->txn_id(), children, master_->metadata(), master_->status()
+        return SnapshotMetadata<SnapshotID>(
+            parent_id, master_->snapshot_id(), children, master_->metadata(), master_->status()
     	);
     }
 
-    void set_master(const TxnId& txn_id)
+    void set_master(const SnapshotID& txn_id)
     {
     	LockGuardT lock_guard(mutex_);
 
@@ -472,7 +472,7 @@ public:
         }
     }
 
-    void set_branch(U16StringRef name, const TxnId& txn_id)
+    void set_branch(U16StringRef name, const SnapshotID& txn_id)
     {
     	LockGuardT lock_guard(mutex_);
 
@@ -700,7 +700,7 @@ protected:
         if (node->is_dropped() && node->root() != nullptr)
         {
             if (this->isDumpSnapshotLifecycle()) {
-                std::cout << "MEMORIA: DELETE snapshot's DATA (do_delete_dropped): " << node->txn_id() << std::endl;
+                std::cout << "MEMORIA: DELETE snapshot's DATA (do_delete_dropped): " << node->snapshot_id() << std::endl;
             }
 
             SnapshotT::delete_snapshot(node);
@@ -716,10 +716,10 @@ protected:
     {
     	LockGuardT lock_guard(mutex_);
 
-        snapshot_map_.erase(history_node->txn_id());
+        snapshot_map_.erase(history_node->snapshot_id());
 
         if (this->isDumpSnapshotLifecycle()) {
-            std::cout << "MEMORIA: FORGET snapshot from allocator: " << history_node->txn_id() << std::endl;
+            std::cout << "MEMORIA: FORGET snapshot from allocator: " << history_node->snapshot_id() << std::endl;
         }
 
         history_node->remove_from_parent();
@@ -842,7 +842,7 @@ typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile
 
 
 template <typename Profile>
-typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::find(const TxnId& snapshot_id) 
+typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::find(const SnapshotID& snapshot_id)
 {
     return pimpl_->find(snapshot_id);
 }
@@ -854,13 +854,13 @@ typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile
 }
 
 template <typename Profile>
-void ThreadInMemAllocator<Profile>::set_master(const TxnId& txn_id) 
+void ThreadInMemAllocator<Profile>::set_master(const SnapshotID& txn_id)
 {
     pimpl_->set_master(txn_id);
 }
 
 template <typename Profile>
-void ThreadInMemAllocator<Profile>::set_branch(U16StringRef name, const TxnId& txn_id)
+void ThreadInMemAllocator<Profile>::set_branch(U16StringRef name, const SnapshotID& txn_id)
 {
     pimpl_->set_branch(name, txn_id);
 }
@@ -937,14 +937,14 @@ void ThreadInMemAllocator<Profile>::set_dump_snapshot_lifecycle(bool do_dump) {
 
 
 template <typename Profile>
-std::vector<UUID> ThreadInMemAllocator<Profile>::children_of(const UUID& snapshot_id) const
+std::vector<typename ThreadInMemAllocator<Profile>::SnapshotID> ThreadInMemAllocator<Profile>::children_of(const SnapshotID& snapshot_id) const
 {
     return pimpl_->children_of(snapshot_id);
 }
 
 
 template <typename Profile>
-std::vector<std::string> ThreadInMemAllocator<Profile>::children_of_str(const UUID& snapshot_id) const
+std::vector<std::string> ThreadInMemAllocator<Profile>::children_of_str(const SnapshotID& snapshot_id) const
 {
     return pimpl_->children_of_str(snapshot_id);
 }
@@ -956,7 +956,7 @@ void ThreadInMemAllocator<Profile>::remove_named_branch(const std::string& name)
 }
 
 template <typename Profile>
-UUID ThreadInMemAllocator<Profile>::root_shaphot_id() const
+typename ThreadInMemAllocator<Profile>::SnapshotID ThreadInMemAllocator<Profile>::root_shaphot_id() const
 {
     return pimpl_->root_shaphot_id();
 }
@@ -979,24 +979,24 @@ std::vector<U16String> ThreadInMemAllocator<Profile>::branch_names()
 }
 
 template <typename Profile>
-UUID ThreadInMemAllocator<Profile>::branch_head(const U16String& branch_name)
+typename ThreadInMemAllocator<Profile>::SnapshotID ThreadInMemAllocator<Profile>::branch_head(const U16String& branch_name)
 {
     return pimpl_->branch_head(branch_name);
 }
 
 
 template <typename Profile>
-int32_t ThreadInMemAllocator<Profile>::snapshot_status(const TxnId& snapshot_id) {
+int32_t ThreadInMemAllocator<Profile>::snapshot_status(const SnapshotID& snapshot_id) {
     return static_cast<int32_t>(pimpl_->snapshot_status(snapshot_id));
 }
 
 template <typename Profile>
-UUID ThreadInMemAllocator<Profile>::snapshot_parent(const TxnId& snapshot_id) {
+typename ThreadInMemAllocator<Profile>::SnapshotID ThreadInMemAllocator<Profile>::snapshot_parent(const SnapshotID& snapshot_id) {
     return pimpl_->snapshot_parent(snapshot_id);
 }
 
 template <typename Profile>
-U16String ThreadInMemAllocator<Profile>::snapshot_description(const TxnId& snapshot_id) {
+U16String ThreadInMemAllocator<Profile>::snapshot_description(const SnapshotID& snapshot_id) {
     return pimpl_->snapshot_description(snapshot_id);
 }
 
@@ -1013,7 +1013,7 @@ std::vector<std::string> ThreadInMemAllocator<Profile>::heads_str()
 }
 
 template <typename Profile>
-std::vector<UUID> ThreadInMemAllocator<Profile>::heads() {
+std::vector<typename ThreadInMemAllocator<Profile>::SnapshotID> ThreadInMemAllocator<Profile>::heads() {
     return pimpl_->heads();
 }
 

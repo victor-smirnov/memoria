@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/tools/md5.hpp>
 
@@ -30,7 +29,7 @@ namespace persistent_inmem {
 
 enum class NodeType {LEAF, BRANCH};
 
-template <typename Key_, int32_t NodeSize, int32_t NodeIndexSize, typename NodeId_, typename TxnId_>
+template <typename Key_, int32_t NodeSize, int32_t NodeIndexSize, typename NodeId_, typename SnapshotID_>
 class NodeBase {
 public:
 
@@ -39,7 +38,7 @@ public:
 
     using Key       = Key_;
     using NodeId    = NodeId_;
-    using TxnId     = TxnId_;
+    using SnapshotID     = SnapshotID_;
     using RCType	= int64_t;
 
     class RootMetadata {
@@ -73,7 +72,7 @@ private:
     NodeType node_type_;
 
     NodeId node_id_;
-    TxnId  txn_id_;
+    SnapshotID  snapshot_id_;
 
     int32_t size_ = 0;
 
@@ -95,10 +94,10 @@ public:
     NodeBase() {
     }
 
-    NodeBase(const TxnId& txn_id, const NodeId& node_id, NodeType node_type):
+    NodeBase(const SnapshotID& snapshot_id, const NodeId& node_id, NodeType node_type):
         node_type_(node_type),
         node_id_(node_id),
-        txn_id_(txn_id),
+        snapshot_id_(snapshot_id),
 		refs_(0)
     {
     }
@@ -107,7 +106,7 @@ public:
         this->metadata_ = other->metadata_;
         this->node_type_ = other->node_type_;
         this->node_id_ = other->node_id_;
-        this->txn_id_ = other->txn_id_;
+        this->snapshot_id_ = other->snapshot_id_;
         this->size_ = other->size_;
         this->cpu_id_ = other->cpu_id_;
 
@@ -132,7 +131,7 @@ public:
     {
         node_type_  = node->node_type();
         node_id_    = node->node_id();
-        txn_id_     = node->txn_id();
+        snapshot_id_     = node->snapshot_id();
 
         metadata_   = node->metadata();
         size_       = node->size();
@@ -173,8 +172,8 @@ public:
         return node_type_ == NodeType::BRANCH;
     }
 
-    const TxnId& txn_id() const {
-        return txn_id_;
+    const SnapshotID& snapshot_id() const {
+        return snapshot_id_;
     }
 
     int32_t size() const {
@@ -374,7 +373,7 @@ public:
         out << "NodeType: " << node_type() << std::endl;
         out << "Size: " << size_ << std::endl;
         out << "NodeId: " << node_id_ << std::endl;
-        out << "TxnId: " << txn_id_ << std::endl;
+        out << "SnapshotID: " << snapshot_id_ << std::endl;
         out << "Refs: " << refs_ << std::endl;
 
         out << "Index: " << std::endl;
@@ -393,7 +392,7 @@ public:
 
         out << (int32_t)this->node_type();
         out << this->node_id();
-        out << this->txn_id();
+        out << this->snapshot_id();
         out << this->size();
         out << this->references();
 
@@ -419,7 +418,7 @@ public:
         this->node_type_ = (NodeType)node_type;
 
         in >> node_id_;
-        in >> txn_id_;
+        in >> snapshot_id_;
         in >> size_;
 
         in >> refs_;
@@ -456,8 +455,8 @@ protected:
         CopyBuffer(src + from, dst + to, size);
     }
 
-    void set_txn_id(const TxnId& txn_id) {
-        this->txn_id_ = txn_id;
+    void set_snapshot_id(const SnapshotID& snapshot_id) {
+        this->snapshot_id_ = snapshot_id;
     }
 
     void set_node_id(const NodeId& id) {
@@ -477,7 +476,7 @@ protected:
         md5.add((uint32_t)node_type_);
         md5.add_ubi(metadata_.size());
         md5.add_ubi(node_id_);
-        md5.add_ubi(txn_id_);
+        md5.add_ubi(snapshot_id_);
         md5.add_ubi(size_);
 
         for (int32_t c = 0; c < size_; c++) {
@@ -487,21 +486,21 @@ protected:
 };
 
 
-template <typename Key, typename Data, int32_t NodeSize, int32_t NodeIndexSize, typename NodeId, typename TxnId>
-class Node: public NodeBase<Key, NodeSize, NodeIndexSize, NodeId, TxnId> {
-    using Base = NodeBase<Key, NodeSize, NodeIndexSize, NodeId, TxnId>;
+template <typename Key, typename Data, int32_t NodeSize, int32_t NodeIndexSize, typename NodeId, typename SnapshotID>
+class Node: public NodeBase<Key, NodeSize, NodeIndexSize, NodeId, SnapshotID> {
+    using Base = NodeBase<Key, NodeSize, NodeIndexSize, NodeId, SnapshotID>;
 
 protected:
     Data data_[NodeSize];
 
 public:
-    using MyType    = Node<Key, Data, NodeSize, NodeIndexSize, NodeId, TxnId>;
+    using MyType    = Node<Key, Data, NodeSize, NodeIndexSize, NodeId, SnapshotID>;
     using NodeBaseT = Base;
 
     Node() {}
 
-    Node(const TxnId& txn_id, const NodeId& node_id, NodeType node_type):
-        Base(txn_id, node_id, node_type)
+    Node(const SnapshotID& snapshot_id, const NodeId& node_id, NodeType node_type):
+        Base(snapshot_id, node_id, node_type)
     {}
 
     const Data& data(int32_t idx) const {
@@ -604,19 +603,19 @@ template <
     int32_t NodeSize,
     int32_t NodeIndexSize,
     typename NodeId,
-    typename TxnId,
-    typename ChildPtrType = NodeBase<Key, NodeSize, NodeIndexSize, NodeId, TxnId>*
+    typename SnapshotID,
+    typename ChildPtrType = NodeBase<Key, NodeSize, NodeIndexSize, NodeId, SnapshotID>*
     >
-class BranchNode: public Node<Key, ChildPtrType, NodeSize, NodeIndexSize, NodeId, TxnId> {
-    using Base = Node<Key, ChildPtrType, NodeSize, NodeIndexSize, NodeId, TxnId>;
+class BranchNode: public Node<Key, ChildPtrType, NodeSize, NodeIndexSize, NodeId, SnapshotID> {
+    using Base = Node<Key, ChildPtrType, NodeSize, NodeIndexSize, NodeId, SnapshotID>;
 
 public:
-    using NodeBaseT = NodeBase<Key, NodeSize, NodeIndexSize, NodeId, TxnId>;
+    using NodeBaseT = NodeBase<Key, NodeSize, NodeIndexSize, NodeId, SnapshotID>;
 
     BranchNode() {}
 
-    BranchNode(const TxnId& txn_id, const NodeId& node_id):
-        Base(txn_id, node_id, NodeType::BRANCH)
+    BranchNode(const SnapshotID& snapshot_id, const NodeId& node_id):
+        Base(snapshot_id, node_id, NodeType::BRANCH)
     {}
 
     ~BranchNode() {}
@@ -676,23 +675,23 @@ public:
         for (int32_t c = 0; c < this->size(); c++)
         {
             auto node = this->data(c);
-            out << c << ": " << this->key(c) << " = " << node << " (" << node->node_id() << ", " << node->txn_id() << ")" << std::endl;
+            out << c << ": " << this->key(c) << " = " << node << " (" << node->node_id() << ", " << node->snapshot_id() << ")" << std::endl;
         }
 
         out << std::endl;
     }
 };
 
-template <typename Key, typename Value_, int32_t NodeSize, int32_t NodeIndexSize, typename NodeId, typename TxnId>
-class LeafNode: public Node<Key, Value_, NodeSize, NodeIndexSize, NodeId, TxnId> {
-    using Base = Node<Key, Value_, NodeSize, NodeIndexSize, NodeId, TxnId>;
+template <typename Key, typename Value_, int32_t NodeSize, int32_t NodeIndexSize, typename NodeId, typename SnapshotID>
+class LeafNode: public Node<Key, Value_, NodeSize, NodeIndexSize, NodeId, SnapshotID> {
+    using Base = Node<Key, Value_, NodeSize, NodeIndexSize, NodeId, SnapshotID>;
 
 public:
     using Value = Value_;
 
     LeafNode() {}
-    LeafNode(const TxnId& txn_id, const NodeId& node_id):
-        Base(txn_id, node_id, NodeType::LEAF)
+    LeafNode(const SnapshotID& snapshot_id, const NodeId& node_id):
+        Base(snapshot_id, node_id, NodeType::LEAF)
     {}
 
     void del() const {

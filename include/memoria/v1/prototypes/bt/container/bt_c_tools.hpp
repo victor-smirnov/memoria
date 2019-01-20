@@ -37,7 +37,8 @@ protected:
     typedef typename Base::Allocator::PageG                                     PageG;
 
     typedef typename Allocator::Page                                            Page;
-    typedef typename Allocator::Page::ID                                        ID;
+
+    using typename Base::BlockID;
 
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -337,8 +338,8 @@ protected:
     }
 
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, ID);
-    ID getChildID(const NodeBaseG& node, int32_t idx) const
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, BlockID);
+    BlockID getChildID(const NodeBaseG& node, int32_t idx) const
     {
         return BranchDispatcher::dispatch(node, GetINodeDataFn(), idx);
     }
@@ -379,17 +380,17 @@ protected:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
-    void forAllIDs(const NodeBaseG& node, int32_t start, int32_t end, std::function<void (const ID&, int32_t)> fn) const
+    void forAllIDs(const NodeBaseG& node, int32_t start, int32_t end, std::function<void (const BlockID&, int32_t)> fn) const
     {
         BranchDispatcher::dispatch(node, ForAllIDsFn(), start, end, fn);
     }
 
-    void forAllIDs(const NodeBaseG& node, int32_t start, std::function<void (const ID&, int32_t)> fn) const
+    void forAllIDs(const NodeBaseG& node, int32_t start, std::function<void (const BlockID&, int32_t)> fn) const
     {
         BranchDispatcher::dispatch(node, ForAllIDsFn(), start, fn);
     }
 
-    void forAllIDs(const NodeBaseG& node, std::function<void (const ID&, int32_t)> fn) const
+    void forAllIDs(const NodeBaseG& node, std::function<void (const BlockID&, int32_t)> fn) const
     {
         BranchDispatcher::dispatch(node, ForAllIDsFn(), fn);
     }
@@ -397,13 +398,13 @@ protected:
 
     struct SetChildIDFn {
         template <typename T>
-        void treeNode(bt::BranchNode<T>* node, int child_idx, const ID& child_id) const
+        void treeNode(bt::BranchNode<T>* node, int child_idx, const BlockID& child_id) const
         {
             node->value(child_idx) = child_id;
         }
     };
 
-    void setChildId(NodeBaseG& node, int32_t child_idx, const ID& child_id) const
+    void setChildId(NodeBaseG& node, int32_t child_idx, const BlockID& child_id) const
     {
         self().updatePageG(node);
         BranchDispatcher::dispatch(node, SetChildIDFn(), child_idx, child_id);

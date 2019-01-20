@@ -32,7 +32,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
 
     typedef TypesType                                                           Types;
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::ID                                                   ID;
+
+    using typename Base::BlockID;
+    using typename Base::CtrID;
+
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -61,10 +64,10 @@ public:
 
             for (int32_t c = 0; c < meta.ROOTS; c++)
             {
-                const auto& root = meta.roots(UUID(0, c));
+                auto root = meta.roots(CtrID(0, c));
                 if (!root.is_null())
                 {
-                    auto root_page      = self.allocator().getPage(root, UUID{});
+                    auto root_page      = self.allocator().getPage(root, CtrID{});
                     auto ctr_meta_rep   = MetadataRepository<typename Types::Profile>::getMetadata();
 
                     int32_t ctr_hash        = root_page->ctr_type_hash();
@@ -73,13 +76,13 @@ public:
 
                     auto ctr_interface  = ctr_meta->getCtrInterface();
 
-                    ctr_interface->drop(root, UUID{}, self.allocator().self_ptr());
+                    ctr_interface->drop(root, CtrID{}, self.allocator().self_ptr());
                 }
             }
 
             NodeBaseG root = self.getRoot();
             self.removeRootNode(root);
-            self.set_root(ID{});
+            self.set_root(BlockID{});
         }
         else {
             MMA1_THROW(Exception()) << WhatCInfo("Transaction must be in active state to drop containers");
@@ -157,7 +160,7 @@ void M_TYPE::removeNodeRecursively(NodeBaseG& node, Position& sizes)
     if (!node->is_leaf())
     {
         int32_t size = self.getNodeSize(node, 0);
-        self.forAllIDs(node, 0, size, [&, this](const ID& id, int32_t idx)
+        self.forAllIDs(node, 0, size, [&, this](const BlockID& id, int32_t idx)
         {
             auto& self = this->self();
             NodeBaseG child = self.allocator().getPage(id, self.master_name());
@@ -213,7 +216,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, int32_t start, int32_t end, Posi
 
     MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
 
-    self.forAllIDs(node, start, end, [&, this](const ID& id, int32_t idx){
+    self.forAllIDs(node, start, end, [&, this](const BlockID& id, int32_t idx){
         auto& self = this->self();
         NodeBaseG child = self.allocator().getPage(id, self.master_name());
         self.removeNodeRecursively(child, sizes);

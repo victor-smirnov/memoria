@@ -247,18 +247,18 @@ template <
 >
 class CtrTF<Profile, BT, ContainerTypeName_> {
 
-    typedef CtrTF<Profile, BT, ContainerTypeName_>                     MyType;
+    using MyType = CtrTF<Profile, BT, ContainerTypeName_>;
 
 public:
 
     using ContainerTypes = BTTypes<Profile, ContainerTypeName_>;
-    using ID             = typename ContainerTypes::Allocator::Page::ID;
+    using BlockID        = typename ContainerTypes::Allocator::BlockID;
 
     using StreamDescriptors         = typename ContainerTypes::StreamDescriptors;
     static const int32_t Streams    = ListSize<StreamDescriptors>;
 
     using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
-    using Page              = typename ContainerTypes::Allocator::Page;
+    using Page              = typename ContainerTypes::Allocator::BlockType;
 
     using NodePageBase0     = bt::TreeNodeBase<typename ContainerTypes::Metadata, Page>;
     using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
@@ -293,7 +293,7 @@ public:
         using NodeBase  = Page;
         using Name      = ContainerTypeName_;
         using Metadata  = typename ContainerTypes::Metadata;
-        using ID        = typename MyType::ID;
+        using BlockID   = typename MyType::BlockID;
 
         using BranchNodeEntry   = BranchNodeEntry_;
         using Position          = Position_;

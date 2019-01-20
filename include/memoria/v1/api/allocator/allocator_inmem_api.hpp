@@ -18,7 +18,6 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/strings/strings.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
 
 #include <memoria/v1/api/common/ctr_api.hpp>
@@ -53,13 +52,13 @@ class InMemSnapshot;
 	
 template <typename Profile = DefaultProfile<>>
 class InMemAllocator {
-    using PImpl = persistent_inmem::InMemAllocatorImpl<Profile>;
-    using TxnId = UUID;
+    using PImpl      = persistent_inmem::InMemAllocatorImpl<Profile>;
+    using SnapshotID = ProfileSnapshotID<Profile>;
     
     AllocSharedPtr<PImpl> pimpl_;
 public:
     using SnapshotPtr   = InMemSnapshot<Profile>;
-    using Page          = ProfileBlockType<Profile>;
+    using BlockType     = ProfileBlockType<Profile>;
     
     InMemAllocator();
     
@@ -90,11 +89,11 @@ public:
     void store(OutputStreamHandler* output_stream);
     
     SnapshotPtr master();
-    SnapshotPtr find(const TxnId& snapshot_id);
+    SnapshotPtr find(const SnapshotID& snapshot_id);
     SnapshotPtr find_branch(U16StringRef name);
     
-    void set_master(const TxnId& txn_id);
-    void set_branch(U16StringRef name, const TxnId& txn_id);
+    void set_master(const SnapshotID& txn_id);
+    void set_branch(U16StringRef name, const SnapshotID& txn_id);
     
     ContainerMetadataRepository* metadata() const;
     void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
@@ -105,27 +104,27 @@ public:
     void pack();
     bool check();
     
-    SnpSharedPtr<SnapshotMetadata<TxnId>> describe(const TxnId& snapshot_id) const;
-    SnpSharedPtr<SnapshotMetadata<TxnId>> describe_master() const;
+    SnpSharedPtr<SnapshotMetadata<SnapshotID>> describe(const SnapshotID& snapshot_id) const;
+    SnpSharedPtr<SnapshotMetadata<SnapshotID>> describe_master() const;
 
     void set_event_listener(LocalSharedPtr<AllocatorEventListener> ptr);
     LocalSharedPtr<AllocatorEventListener> event_listener();
 
     Graph as_graph();
 
-    UUID root_shaphot_id() const;
-    std::vector<UUID> children_of(const UUID& snapshot_id) const;
-    std::vector<std::string> children_of_str(const UUID& snapshot_id) const;
+    SnapshotID root_shaphot_id() const;
+    std::vector<SnapshotID> children_of(const SnapshotID& snapshot_id) const;
+    std::vector<std::string> children_of_str(const SnapshotID& snapshot_id) const;
     void remove_named_branch(const std::string& name);
 
     std::vector<U16String> branch_names();
-    UUID branch_head(const U16String& branch_name);
+    SnapshotID branch_head(const U16String& branch_name);
 
-    int32_t snapshot_status(const TxnId& snapshot_id);
+    int32_t snapshot_status(const SnapshotID& snapshot_id);
 
-    UUID snapshot_parent(const TxnId& snapshot_id);
+    SnapshotID snapshot_parent(const SnapshotID& snapshot_id);
 
-    U16String snapshot_description(const TxnId& snapshot_id);
+    U16String snapshot_description(const SnapshotID& snapshot_id);
 
     PairPtr& pair();
     const PairPtr& pair() const;
@@ -142,8 +141,9 @@ class InMemSnapshot {
     using AllocatorImpl = persistent_inmem::InMemAllocatorImpl<Profile>;
     using PImpl         = persistent_inmem::Snapshot<Profile, AllocatorImpl>;
     
-    using SnapshotPtr = InMemSnapshot;
-    using TxnId = UUID;
+    using SnapshotPtr   = InMemSnapshot;
+    using SnapshotID    = ProfileSnapshotID<Profile>;
+    using CtrID         = ProfileCtrID<Profile>;
 
     using AllocatorT = ProfileAllocatorType<Profile>;
     
@@ -152,8 +152,8 @@ class InMemSnapshot {
 public:
     template <typename CtrName>
     using CtrT = CtrApi<CtrName, Profile>;
-    
-    using Page = ProfileBlockType<Profile>;
+
+    using BlockType = ProfileBlockType<Profile>;
     
     
 public:
@@ -177,13 +177,13 @@ public:
     }
     
     ContainerMetadataRepository* metadata() const;
-    const UUID& uuid() const;
+    const SnapshotID& uuid() const;
     bool is_active() const;
     bool is_marked_to_clear() const;
     bool is_committed() const;
     void commit();
     void drop();
-    bool drop_ctr(const UUID& name);
+    bool drop_ctr(const CtrID& name);
     void set_as_master();
     void set_as_branch(U16StringRef name);
     U16String snapshot_metadata() const;
@@ -192,16 +192,16 @@ public:
     SnapshotPtr branch();
     bool has_parent() const;
     SnapshotPtr parent();
-    void import_new_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
-    void copy_new_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
-    void import_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
-    void copy_ctr_from(InMemSnapshot<Profile>& txn, const UUID& name);
+    void import_new_ctr_from(InMemSnapshot<Profile>& txn, const CtrID& name);
+    void copy_new_ctr_from(InMemSnapshot<Profile>& txn, const CtrID& name);
+    void import_ctr_from(InMemSnapshot<Profile>& txn, const CtrID& name);
+    void copy_ctr_from(InMemSnapshot<Profile>& txn, const CtrID& name);
     bool check();
 
 
-    Optional<U16String> ctr_type_name_for(const UUID& name);
+    Optional<U16String> ctr_type_name_for(const CtrID& name);
 
-    std::vector<UUID> container_names() const;
+    std::vector<CtrID> container_names() const;
     std::vector<U16String> container_names_str() const;
 
     void dump_dictionary_pages();
@@ -212,17 +212,17 @@ public:
 
     void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
     
-    UUID clone_ctr(const UUID& name, const UUID& new_name);
-    UUID clone_ctr(const UUID& name);
+    CtrID clone_ctr(const CtrID& name, const CtrID& new_name);
+    CtrID clone_ctr(const CtrID& name);
     
     template <typename CtrName>
-    auto find_or_create(const UUID& name)
+    auto find_or_create(const CtrID& name)
     {
         return CtrT<CtrName>(snapshot_ref_creation_allowed(), CTR_FIND | CTR_CREATE, name);
     }
 
     template <typename CtrName>
-    auto create(const UUID& name)
+    auto create(const CtrID& name)
     {
         return CtrT<CtrName>(snapshot_ref_creation_allowed(), CTR_CREATE, name);
     }
@@ -234,18 +234,18 @@ public:
     }
 
     template <typename CtrName>
-    auto find(const UUID& name)
+    auto find(const CtrID& name)
     {
         return CtrT<CtrName>(snapshot_ref_opening_allowed(), CTR_FIND, name);
     }
     
-    CtrRef<Profile> get(const UUID& name);
+    CtrRef<Profile> get(const CtrID& name);
     
     void reset();
     Logger& logger();
     
     
-    SnpSharedPtr<SnapshotMetadata<UUID>> describe() const;
+    SnpSharedPtr<SnapshotMetadata<CtrID>> describe() const;
 
     Vertex as_vertex();
 
@@ -263,13 +263,13 @@ private:
 
 
 template <typename CtrName, typename Profile>
-auto create(InMemSnapshot<Profile>& alloc, const UUID& name)
+auto create(InMemSnapshot<Profile>& alloc, const ProfileCtrID<Profile>& name)
 {
     return alloc.template create<CtrName>(name);
 }
 
 template <typename CtrName, typename Profile>
-auto create(InMemSnapshot<Profile>&& alloc, const UUID& name)
+auto create(InMemSnapshot<Profile>&& alloc, const ProfileCtrID<Profile>& name)
 {
     return alloc.template create<CtrName>(name);
 }
@@ -291,13 +291,13 @@ auto create(InMemSnapshot<Profile>&& alloc)
 
 
 template <typename CtrName, typename Profile>
-auto find_or_create(InMemSnapshot<Profile>& alloc, const UUID& name)
+auto find_or_create(InMemSnapshot<Profile>& alloc, const ProfileCtrID<Profile>& name)
 {
     return alloc.template find_or_create<CtrName>(name);
 }
 
 template <typename CtrName, typename Profile>
-auto find_or_create(InMemSnapshot<Profile>&& alloc, const UUID& name)
+auto find_or_create(InMemSnapshot<Profile>&& alloc, const ProfileCtrID<Profile>& name)
 {
     return alloc.template find_or_create<CtrName>(name);
 }
@@ -305,13 +305,13 @@ auto find_or_create(InMemSnapshot<Profile>&& alloc, const UUID& name)
 
 
 template <typename CtrName, typename Profile>
-auto find(InMemSnapshot<Profile>& alloc, const UUID& name)
+auto find(InMemSnapshot<Profile>& alloc, const ProfileCtrID<Profile>& name)
 {
     return alloc.template find<CtrName>(name);
 }
 
 template <typename CtrName, typename Profile>
-auto find(InMemSnapshot<Profile>&& alloc, const UUID& name)
+auto find(InMemSnapshot<Profile>&& alloc, const ProfileCtrID<Profile>& name)
 {
     return alloc.template find<CtrName>(name);
 }

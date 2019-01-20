@@ -36,7 +36,7 @@ private:
     
     using Base = CtrApiBTSSBase<Map<Key, Value>, Profile>;
 public:    
-    
+    using typename Base::CtrID;
     using typename Base::AllocatorT;
     using typename Base::CtrT;
     using typename Base::CtrPtr;

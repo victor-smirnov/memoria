@@ -53,7 +53,7 @@ public:
     static const uint32_t VERSION = 1;
     typedef Base_                               Base;
 
-    typedef typename Base::ID                   ID;
+    using typename Base::BlockID;
 
 
 //    static_assert(std::is_trivial<Metadata>::value, "TreeNodeBase: metadata must be a trivial type");
@@ -68,9 +68,9 @@ private:
     int32_t leaf_;
     int32_t level_;
 
-    ID  next_leaf_id_;
+    BlockID  next_leaf_id_;
 
-    ID  parent_id_;
+    BlockID  parent_id_;
     int32_t parent_idx_;
 
     int32_t alignment_gap_;
@@ -111,15 +111,15 @@ public:
         return level_;
     }
 
-    const ID& next_leaf_id() const {
+    const BlockID& next_leaf_id() const {
         return next_leaf_id_;
     }
 
-    ID& next_leaf_id() {
+    BlockID& next_leaf_id() {
         return next_leaf_id_;
     }
 
-    const ID& parent_id() const
+    const BlockID& parent_id() const
     {
         return parent_id_;
     }
@@ -129,7 +129,7 @@ public:
         return parent_idx_;
     }
 
-    ID& parent_id()
+    BlockID& parent_id()
     {
         return parent_id_;
     }
@@ -258,9 +258,9 @@ public:
         FieldFactory<int32_t>::serialize(buf, leaf_);
         FieldFactory<int32_t>::serialize(buf, level_);
 
-        FieldFactory<ID>::serialize(buf, next_leaf_id_);
+        FieldFactory<BlockID>::serialize(buf, next_leaf_id_);
 
-        FieldFactory<ID>::serialize(buf, parent_id_);
+        FieldFactory<BlockID>::serialize(buf, parent_id_);
         FieldFactory<int32_t>::serialize(buf, parent_idx_);
 
         allocator()->serialize(buf);
@@ -282,9 +282,9 @@ public:
         FieldFactory<int32_t>::deserialize(buf, leaf_);
         FieldFactory<int32_t>::deserialize(buf, level_);
 
-        FieldFactory<ID>::deserialize(buf, next_leaf_id_);
+        FieldFactory<BlockID>::deserialize(buf, next_leaf_id_);
 
-        FieldFactory<ID>::deserialize(buf, parent_id_);
+        FieldFactory<BlockID>::deserialize(buf, parent_id_);
         FieldFactory<int32_t>::deserialize(buf, parent_idx_);
 
         allocator()->deserialize(buf);
@@ -1837,7 +1837,7 @@ struct TypeHash<bt::TreeNodeBase<Metadata, Base>> {
             TypeHashV<int32_t>,
             TypeHashV<int32_t>,
             TypeHashV<int32_t>,
-            TypeHashV<typename TargetType::ID>,
+            TypeHashV<typename TargetType::BlockID>,
             TypeHashV<int32_t>,
             TypeHashV<Metadata>
     >;

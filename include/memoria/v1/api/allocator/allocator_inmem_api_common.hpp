@@ -18,7 +18,6 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/strings/strings.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
 
 #include <memoria/v1/api/common/ctr_api.hpp>
@@ -38,15 +37,15 @@ namespace v1 {
 
 enum class SnapshotStatus {ACTIVE, COMMITTED, DROPPED, DATA_LOCKED};
 
-template <typename TxnId>
+template <typename SnapshotID>
 class SnapshotMetadata {
-	TxnId parent_id_;
-	TxnId snapshot_id_;
-	std::vector<TxnId> children_;
+    SnapshotID parent_id_;
+    SnapshotID snapshot_id_;
+    std::vector<SnapshotID> children_;
     U16String description_;
 	SnapshotStatus status_;
 public:
-    SnapshotMetadata(const TxnId& parent_id, const TxnId& snapshot_id, const std::vector<TxnId>& children, U16StringRef description, SnapshotStatus status):
+    SnapshotMetadata(const SnapshotID& parent_id, const SnapshotID& snapshot_id, const std::vector<SnapshotID>& children, U16StringRef description, SnapshotStatus status):
 		parent_id_(parent_id),
 		snapshot_id_(snapshot_id),
 		children_(children),
@@ -54,11 +53,11 @@ public:
 		status_(status)
 	{}
 
-    const TxnId& parent_id() const              {return parent_id_;}
-    const TxnId& snapshot_id() const            {return snapshot_id_;}
-    const std::vector<TxnId>& children() const 	{return children_;}
-    const U16String& description() const        {return description_;}
-    SnapshotStatus status() const               {return status_;}
+    const SnapshotID& parent_id() const             {return parent_id_;}
+    const SnapshotID& snapshot_id() const           {return snapshot_id_;}
+    const std::vector<SnapshotID>& children() const {return children_;}
+    const U16String& description() const            {return description_;}
+    SnapshotStatus status() const                   {return status_;}
 };
 
 

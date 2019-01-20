@@ -40,7 +40,7 @@ class BitBuffer: public StaticBuffer<Size % 32 == 0 ? Size / 32 : ((Size / 32) +
     >                                                                           Base;
 public:
 
-    typedef int32_t                                                                 Index;
+    typedef int32_t                                                             Index;
     typedef typename Base::ElementType                                          Bits;
 
     static const int32_t kBitSize           = Size;
@@ -117,7 +117,7 @@ public:
                 decltype(target_block_pos_)
     >                                                                           FieldsList;
 
-    typedef PageIdType                                                          ID;
+    using BlockID  = PageIdType;
 
     AbstractPage() = default;
 
@@ -299,7 +299,7 @@ struct TypeHash<AbstractPage<PageIdType, FlagsCount>>: HasValue<
 		HashHelper<
             AbstractPage<PageIdType, FlagsCount>::VERSION,
             TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>,
-            TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::ID>,
+            TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::BlockID>,
             TypeHashV<int32_t>,
             8
 		>
@@ -315,12 +315,12 @@ class PageShared {
     typedef PageShared<AllocatorT>          MyType;
     typedef MyType*                         MyTypePtr;
 
-    typedef typename AllocatorT::Page       PageT;
-    typedef typename AllocatorT::Page::ID   ID;
+    using PageT   = typename AllocatorT::BlockType;
+    using BlockID = typename AllocatorT::BlockID;
 
 
-    ID      id_;
-    PageT*  page_;
+    BlockID     id_;
+    PageT*      page_;
     int32_t     references_;
     int32_t     state_;
 
@@ -378,11 +378,11 @@ public:
         return state_;
     }
 
-    const ID& id() const {
+    const BlockID& id() const {
         return id_;
     }
 
-    ID& id() {
+    BlockID& id() {
         return id_;
     }
 
@@ -474,7 +474,7 @@ public:
 
     void init()
     {
-        id_         = ID{};
+        id_         = BlockID{};
         references_ = 0;
         state_      = READ;
         page_       = nullptr;

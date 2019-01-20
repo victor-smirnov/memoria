@@ -55,10 +55,11 @@ private:
     using typename Base::Iterator;
     
 public:
+    using typename Base::CtrID;
     using typename Base::CtrSizeT;
     
     static constexpr int32_t DataStreams = 2;
-    using CtrSizesT = CtrSizes<Profile, DataStreams + 1>;
+    using CtrSizesT = ProfileCtrSizesT<Profile, DataStreams + 1>;
     
     using EdgeMapValueIterator = typename Iterator::EdgeMapValueIterator;
 

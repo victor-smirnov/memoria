@@ -31,7 +31,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Base::ID                                                   ID;
+    using typename Base::BlockID;
     
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
@@ -80,7 +80,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
         if (start < size)
         {
-            self.forAllIDs(node, start, size, [&, this](const ID& id, int32_t parent_idx)
+            self.forAllIDs(node, start, size, [&, this](const BlockID& id, int32_t parent_idx)
             {
                 auto& self = this->self();
                 NodeBaseG child = self.allocator().getPageForUpdate(id, self.master_name());
@@ -90,7 +90,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         }
     }
 
-    void remove_branch_nodes(ID node_id)
+    void remove_branch_nodes(const BlockID& node_id)
     {
         auto& self = this->self();
 
@@ -98,7 +98,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
         if (node->level() > 0)
         {
-            self.forAllIDs(node, [&, this](const ID& id, int32_t idx)
+            self.forAllIDs(node, [&, this](const BlockID& id, int32_t idx)
             {
                 auto& self = this->self();
                 self.remove_branch_nodes(id);
@@ -282,9 +282,9 @@ void M_TYPE::updateChildrenInternal(const NodeBaseG& node, int32_t start, int32_
 {
     auto& self = this->self();
 
-    ID node_id = node->id();
+    BlockID node_id = node->id();
 
-    self.forAllIDs(node, start, end, [&self, &node_id](const ID& id, int32_t idx)
+    self.forAllIDs(node, start, end, [&self, &node_id](const BlockID& id, int32_t idx)
     {
         NodeBaseG child = self.allocator().getPageForUpdate(id, self.master_name());
 

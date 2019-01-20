@@ -37,15 +37,16 @@ template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Profile> class SharedIter;
 
-template <typename Profile> struct ProfileCtrSizeT: HasType<int64_t> {};
-template <typename Profile> using CtrSize = typename ProfileCtrSizeT<Profile>::Type;
+namespace _ {
 
-template <typename Profile, int32_t Streams> struct ProfileCtrSizesT: HasType<
-    core::StaticVector<CtrSize<Profile>, Streams>
+template <typename Profile, int32_t Streams> struct ProfileCtrSizesTS: HasType<
+    core::StaticVector<ProfileCtrSizeT<Profile>, Streams>
 > {};
 
+}
+
 template <typename Profile, int32_t Streams> 
-using CtrSizes = typename ProfileCtrSizesT<Profile, Streams>::Type;
+using ProfileCtrSizesT = typename _::ProfileCtrSizesTS<Profile, Streams>::Type;
 
 
 
@@ -53,6 +54,9 @@ template <typename Profile = DefaultProfile<>>
 class CtrRef {
     using CtrPtrT = CtrSharedPtr<CtrReferenceable>;
     CtrPtrT ptr_;
+
+    using CtrID = ProfileCtrID<Profile>;
+
 public:
     CtrRef() {}
     
@@ -63,7 +67,7 @@ public:
         ptr_.swap(other.ptr_);
     }
     
-    const UUID& name() const {return ptr_->name();}
+    const CtrID& name() const {return ptr_->name();}
     
     template <typename CtrName, typename ProfileT>
     friend bool is_castable_to(const CtrRef<ProfileT>& ref);
@@ -96,13 +100,15 @@ public:
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
     using CtrPtr     = CtrSharedPtr<CtrT>;
     
-    using CtrSizeT   = typename ProfileCtrSizeT<Profile>::Type;
+    using CtrSizeT   = ProfileCtrSizeT<Profile>;
     
+    using CtrID      = ProfileCtrID<Profile>;
+
 protected:    
     CtrPtr pimpl_;
     
 public:
-    CtrApiBase(const CtrSharedPtr<AllocatorT>& allocator, int command, const UUID& name);
+    CtrApiBase(const CtrSharedPtr<AllocatorT>& allocator, int command, const CtrID& ctr_id);
     CtrApiBase(CtrPtr ptr);
     CtrApiBase();
     ~CtrApiBase();
@@ -119,7 +125,7 @@ public:
     CtrPtr& ptr();
     const CtrPtr& ptr() const;
     
-    UUID name();
+    CtrID name();
     const ContainerMetadataPtr& metadata();
     static ContainerMetadataPtr init();
 
@@ -134,8 +140,8 @@ public:
 
     void drop();
 
-    UUID clone_ctr(const UUID& new_name);
-    UUID clone_ctr();
+    CtrID clone_ctr(const CtrID& new_id);
+    CtrID clone_ctr();
 
     void cleanup();
 
@@ -145,9 +151,9 @@ public:
 
     int32_t metadata_links_num() const;
 
-    UUID get_metadata_link(int num) const;
+    CtrID get_metadata_link(int num) const;
 
-    void set_metadata_link(int num, const UUID& link_id);
+    void set_metadata_link(int num, const CtrID& link_id);
 
     std::string get_descriptor_str() const;
 
@@ -174,7 +180,7 @@ protected:
     using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
     using CtrPtr     = CtrSharedPtr<CtrT>;
     
-    using CtrSizeT   = typename ProfileCtrSizeT<Profile>::Type;
+    using CtrSizeT   = ProfileCtrSizeT<Profile>;
      
     IterPtr pimpl_;
     
@@ -254,8 +260,8 @@ CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
 
 
 #define MMA1_DECLARE_CTRAPI_BASIC_METHODS()                                            \
-    CtrApi(const CtrSharedPtr<AllocatorT>& allocator, int32_t command, const UUID& name):   \
-        Base(allocator, command, name) {}                                                   \
+    CtrApi(const CtrSharedPtr<AllocatorT>& allocator, int32_t command, const CtrID& ctr_id):\
+        Base(allocator, command, ctr_id) {}                                                 \
     ~CtrApi() {}                                                                            \
                                                                                             \
     CtrApi(const CtrApi& other): Base(other) {}                                             \

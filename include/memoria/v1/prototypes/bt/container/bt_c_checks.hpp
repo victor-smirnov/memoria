@@ -35,7 +35,7 @@ public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Allocator::Page::ID                                        ID;
+    using typename Base::BlockID;
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
@@ -157,7 +157,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, con
 
         for (int32_t c = 0; c < children; c++)
         {
-            ID child_id = self.getChildID(node, c);
+            BlockID child_id = self.getChildID(node, c);
 
             NodeBaseG child = self.getChild(node, c);
 

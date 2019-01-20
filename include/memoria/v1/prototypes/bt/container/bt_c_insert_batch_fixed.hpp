@@ -33,7 +33,8 @@ public:
     using Allocator = typename Base::Allocator;
 
 protected:
-    typedef typename Base::ID                                                   ID;
+    using typename Base::BlockID;
+
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
@@ -68,16 +69,16 @@ public:
 
     class BranchNodeEntryT {
         BranchNodeEntry accum_;
-        ID child_id_;
+        BlockID child_id_;
     public:
-        BranchNodeEntryT(const BranchNodeEntryT& accum, const ID& id): accum_(accum), child_id_(id) {}
+        BranchNodeEntryT(const BranchNodeEntryT& accum, const BlockID& id): accum_(accum), child_id_(id) {}
         BranchNodeEntryT() : child_id_() {}
 
         const BranchNodeEntry& accum() const {return accum_;}
-        const ID& child_id() const {return child_id_;}
+        const BlockID& child_id() const {return child_id_;}
 
         BranchNodeEntry& accum() {return accum_;}
-        ID& child_id() {return child_id_;}
+        BlockID& child_id() {return child_id_;}
     };
 
 

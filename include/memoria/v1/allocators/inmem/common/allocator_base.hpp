@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/v1/core/tools/pool.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/latch.hpp>
@@ -98,21 +97,21 @@ namespace _ {
 	std::atomic<int64_t> PagePtr<PageT>::page_cnt_(0);
 
 
-	template <typename ValueT, typename TxnIdT>
+    template <typename ValueT, typename SnapshotIdT>
 	class PersistentTreeValue {
 		ValueT page_;
-		TxnIdT txn_id_;
+        SnapshotIdT snapshot_id_;
 	public:
 		using Value = ValueT;
 
-		PersistentTreeValue(): page_(), txn_id_() {}
-		PersistentTreeValue(const ValueT& page, const TxnIdT& txn_id): page_(page), txn_id_(txn_id) {}
+        PersistentTreeValue(): page_(), snapshot_id_() {}
+        PersistentTreeValue(const ValueT& page, const SnapshotIdT& snapshot_id): page_(page), snapshot_id_(snapshot_id) {}
 
 		const ValueT& page_ptr() const {return page_;}
 		ValueT& page_ptr() {return page_;}
 
-		const TxnIdT& txn_id() const {return txn_id_;}
-		TxnIdT& txn_id() {return txn_id_;}
+        const SnapshotIdT& snapshot_id() const {return snapshot_id_;}
+        SnapshotIdT& snapshot_id() {return snapshot_id_;}
 	};
 
 }
@@ -123,7 +122,7 @@ template <typename V, typename T>
 OutputStreamHandler& operator<<(OutputStreamHandler& out, const persistent_inmem::_::PersistentTreeValue<V, T>& value)
 {
     out << value.page_ptr();
-    out << value.txn_id();
+    out << value.snapshot_id();
     return out;
 }
 
@@ -131,7 +130,7 @@ template <typename V, typename T>
 InputStreamHandler& operator>>(InputStreamHandler& in, persistent_inmem::_::PersistentTreeValue<V, T>& value)
 {
     in >> value.page_ptr();
-    in >> value.txn_id();
+    in >> value.snapshot_id();
     return in;
 }
 
@@ -143,7 +142,7 @@ std::ostream& operator<<(std::ostream& out, const persistent_inmem::_::Persisten
     out << ", ";
     out << value.page_ptr()->references();
     out << ", ";
-    out << value.txn_id();
+    out << value.snapshot_id();
     out << "]";
 
     return out;
@@ -162,17 +161,17 @@ public:
     using Page          = PageType;
     using RCPagePtr		= persistent_inmem::_::PagePtr<Page>;
 
-    using Key           = typename PageType::ID;
+    using Key           = ProfileBlockID<Profile>;
     using Value         = PageType*;
 
-    using TxnId             = UUID;
-    using PTreeNodeId       = UUID;
+    using SnapshotID        = ProfileSnapshotID<Profile>;
+    using BlockID           = ProfileBlockID<Profile>;
 
-    using LeafNodeT         = persistent_inmem::LeafNode<Key, persistent_inmem::_::PersistentTreeValue<RCPagePtr*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-    using LeafNodeBufferT   = persistent_inmem::LeafNode<Key, persistent_inmem::_::PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeT         = persistent_inmem::LeafNode<Key, persistent_inmem::_::PersistentTreeValue<RCPagePtr*, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
+    using LeafNodeBufferT   = persistent_inmem::LeafNode<Key, persistent_inmem::_::PersistentTreeValue<BlockID, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
 
-    using BranchNodeT       = persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-    using BranchNodeBufferT = persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId, PTreeNodeId>;
+    using BranchNodeT       = persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
+    using BranchNodeBufferT = persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, BlockID, SnapshotID, BlockID>;
     using NodeBaseT         = typename BranchNodeT::NodeBaseT;
     using NodeBaseBufferT   = typename BranchNodeBufferT::NodeBaseT;
 
@@ -194,11 +193,11 @@ public:
 
         NodeBaseT* root_;
 
-        typename PageType::ID root_id_;
+        BlockID root_id_;
 
         Status status_;
 
-        TxnId txn_id_;
+        SnapshotID snapshot_id_;
 
         int64_t references_ = 0;
 
@@ -214,7 +213,7 @@ public:
             root_(nullptr),
             root_id_(),
             status_(status),
-            txn_id_(UUID::make_random())
+            snapshot_id_(IDTools<SnapshotID>::make_random())
         {
             if (parent_) {
                 parent_->children().push_back(this);
@@ -227,20 +226,20 @@ public:
 			root_(nullptr),
 			root_id_(),
 			status_(status),
-			txn_id_(UUID::make_random())
+            snapshot_id_(IDTools<SnapshotID>::make_random())
         {
         	if (parent_) {
         		parent_->children().push_back(this);
         	}
         }
 
-        HistoryNode(MyType* allocator, const TxnId& txn_id, HistoryNode* parent, Status status):
+        HistoryNode(MyType* allocator, const SnapshotID& snapshot_id, HistoryNode* parent, Status status):
         	allocator_(allocator),
             parent_(parent),
             root_(nullptr),
             root_id_(),
             status_(status),
-            txn_id_(txn_id)
+            snapshot_id_(snapshot_id)
         {
             if (parent_) {
                 parent_->children().push_back(this);
@@ -307,7 +306,7 @@ public:
             return status_;
         }
 
-        const TxnId& txn_id() const {return txn_id_;}
+        const SnapshotID& snapshot_id() const {return snapshot_id_;}
 
         const auto& root() const {
         	return root_;
@@ -333,8 +332,8 @@ public:
             root_ = new_root;
         }
 
-        PTreeNodeId new_node_id() {
-            return UUID::make_random();
+        BlockID new_node_id() {
+            return IDTools<BlockID>::make_random();
         }
 
         const auto& parent() const {return parent_;}
@@ -402,29 +401,29 @@ public:
         friend class SnapshotBase;
         
     private:
-        TxnId parent_;
+        SnapshotID parent_;
 
         U16String metadata_;
 
-        std::vector<TxnId> children_;
+        std::vector<SnapshotID> children_;
 
-        PTreeNodeId root_;
-        typename PageType::ID root_id_;
+        BlockID root_;
+        BlockID root_id_;
 
         typename HistoryNode::Status status_;
 
-        TxnId txn_id_;
+        SnapshotID snapshot_id_;
 
     public:
 
         HistoryNodeBuffer(){}
 
-        const TxnId& txn_id() const {
-            return txn_id_;
+        const SnapshotID& snapshot_id() const {
+            return snapshot_id_;
         }
 
-        TxnId& txn_id() {
-            return txn_id_;
+        SnapshotID& snapshot_id() {
+            return snapshot_id_;
         }
 
         const auto& root() const {return root_;}
@@ -454,11 +453,11 @@ public:
 
 
     using PersistentTreeT       = typename persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
-    using TxnMap                = std::unordered_map<TxnId, HistoryNode*>;
+    using TxnMap                = std::unordered_map<SnapshotID, HistoryNode*>;
 
-    using HistoryTreeNodeMap    = std::unordered_map<PTreeNodeId, HistoryNodeBuffer*>;
-    using PersistentTreeNodeMap = std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>>;
-    using PageMap               = std::unordered_map<typename PageType::ID, RCPagePtr*>;
+    using HistoryTreeNodeMap    = std::unordered_map<BlockID, HistoryNodeBuffer*>;
+    using PersistentTreeNodeMap = std::unordered_map<BlockID, std::pair<NodeBaseBufferT*, NodeBaseT*>>;
+    using PageMap               = std::unordered_map<BlockID, RCPagePtr*>;
     using RCPageSet             = std::unordered_set<const void*>;
     using BranchMap             = std::unordered_map<U16String, HistoryNode*>;
     using ReverseBranchMap      = std::unordered_map<const HistoryNode*, U16String>;
@@ -475,19 +474,19 @@ public:
 protected:
  
     class AllocatorMetadata {
-        TxnId master_;
-        TxnId root_;
+        SnapshotID master_;
+        SnapshotID root_;
 
-        std::unordered_map<U16String, TxnId> named_branches_;
+        std::unordered_map<U16String, SnapshotID> named_branches_;
 
     public:
         AllocatorMetadata() {}
 
-        TxnId& master() {return master_;}
-        TxnId& root() {return root_;}
+        SnapshotID& master() {return master_;}
+        SnapshotID& root() {return root_;}
 
-        const TxnId& master() const {return master_;}
-        const TxnId& root()   const {return root_;}
+        const SnapshotID& master() const {return master_;}
+        const SnapshotID& root()   const {return root_;}
 
         auto& named_branches() {return named_branches_;}
         const auto& named_branches() const {return named_branches_;}
@@ -530,9 +529,9 @@ public:
 
         master_ = history_tree_ = new HistoryNode(&self(), HistoryNode::Status::ACTIVE);
 
-        snapshot_map_[history_tree_->txn_id()] = history_tree_;
+        snapshot_map_[history_tree_->snapshot_id()] = history_tree_;
 
-        auto leaf = new LeafNodeT(history_tree_->txn_id(), UUID::make_random());
+        auto leaf = new LeafNodeT(history_tree_->snapshot_id(), IDTools<BlockID>::make_random());
         history_tree_->set_root(leaf);
     }
 
@@ -554,7 +553,7 @@ public:
     void set_dump_snapshot_lifecycle(bool do_dump) {dump_snapshot_lifecycle_.store(do_dump);}
 
     auto get_root_snapshot_uuid() const {
-        return history_tree_->txn_id();
+        return history_tree_->snapshot_id();
     }
 
 
@@ -588,11 +587,8 @@ public:
 
     auto newId()
     {
-        return PageType::ID::make_random();
+        return IDTools<BlockID>::make_random();
     }
-
-
-
 
     static AllocSharedPtr<MyType> load(InputStreamHandler *input)
     {
@@ -683,7 +679,7 @@ public:
 
                     if (page_iter != page_map.end())
                     {
-                        leaf_node->data(c) = typename LeafNodeT::Value(page_iter->second, descr.txn_id());
+                        leaf_node->data(c) = typename LeafNodeT::Value(page_iter->second, descr.snapshot_id());
                     }
                     else {
                         MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified uuid {} is not found in the page map", descr.page_ptr()));
@@ -835,24 +831,24 @@ protected:
 
 
     HistoryNode* build_history_tree(
-        const TxnId& txn_id,
+        const SnapshotID& snapshot_id,
         HistoryNode* parent,
         const HistoryTreeNodeMap& history_map,
         const PersistentTreeNodeMap& ptree_map
     )
     {
-        auto iter = history_map.find(txn_id);
+        auto iter = history_map.find(snapshot_id);
 
         if (iter != history_map.end())
         {
             HistoryNodeBuffer* buffer = iter->second;
 
-            HistoryNode* node = new HistoryNode(&self(), txn_id, parent, buffer->status());
+            HistoryNode* node = new HistoryNode(&self(), snapshot_id, parent, buffer->status());
 
             node->root_id() = buffer->root_id();
             node->set_metadata(buffer->metadata());
 
-            snapshot_map_[txn_id] = node;
+            snapshot_map_[snapshot_id] = node;
 
             if (!buffer->root().is_null())
             {
@@ -862,9 +858,9 @@ protected:
                 {
                     node->assign_root_no_ref(ptree_iter->second.second);
 
-                    for (const auto& child_txn_id: buffer->children())
+                    for (const auto& child_snapshot_id: buffer->children())
                     {
-                        build_history_tree(child_txn_id, node, history_map, ptree_map);
+                        build_history_tree(child_snapshot_id, node, history_map, ptree_map);
                     }
 
                     return node;
@@ -874,16 +870,16 @@ protected:
                 }
             }
             else {
-                for (const auto& child_txn_id: buffer->children())
+                for (const auto& child_snapshot_id: buffer->children())
                 {
-                    build_history_tree(child_txn_id, node, history_map, ptree_map);
+                    build_history_tree(child_snapshot_id, node, history_map, ptree_map);
                 }
 
                 return node;
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified txn_id {} is not found in history data", txn_id));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Specified snapshot_id {} is not found in history data", snapshot_id));
         }
     }
 
@@ -897,7 +893,7 @@ protected:
 
     void free_memory(const NodeBaseT* node)
     {
-        const auto& txn_id = node->txn_id();
+        const auto& snapshot_id = node->snapshot_id();
         if (node->is_leaf())
         {
             auto leaf = PersistentTreeT::to_leaf_node(node);
@@ -905,7 +901,7 @@ protected:
             for (int32_t c = 0; c < leaf->size(); c++)
             {
                 auto& data = leaf->data(c);
-                if (data.txn_id() == txn_id)
+                if (data.snapshot_id() == snapshot_id)
                 {
                     free_system(data.page_ptr());
                 }
@@ -919,7 +915,7 @@ protected:
             for (int32_t c = 0; c < branch->size(); c++)
             {
                 auto child = branch->data(c);
-                if (child->txn_id() == txn_id)
+                if (child->snapshot_id() == snapshot_id)
                 {
                     free_memory(child);
                 }
@@ -943,7 +939,7 @@ protected:
             U16String name;
             in >> name;
 
-            TxnId value;
+            SnapshotID value;
             in >> value;
 
             metadata.named_branches()[name] = value;
@@ -1041,7 +1037,7 @@ protected:
 
         node->status() = static_cast<typename HistoryNode::Status>(status);
 
-        in >> node->txn_id();
+        in >> node->snapshot_id();
         in >> node->root();
         in >> node->root_id();
 
@@ -1054,18 +1050,18 @@ protected:
 
         for (int64_t c = 0; c < children; c++)
         {
-            TxnId child_txn_id;
-            in >> child_txn_id;
+            SnapshotID child_snapshot_id;
+            in >> child_snapshot_id;
 
-            node->children().push_back(child_txn_id);
+            node->children().push_back(child_snapshot_id);
         }
 
-        if (map.find(node->txn_id()) == map.end())
+        if (map.find(node->snapshot_id()) == map.end())
         {
-            map[node->txn_id()] = node;
+            map[node->snapshot_id()] = node;
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"HistoryTree Node {} has been already registered", node->txn_id()));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"HistoryTree Node {} has been already registered", node->snapshot_id()));
         }
     }
 
@@ -1092,7 +1088,7 @@ protected:
         {
         	buf->data(c) = typename LeafNodeBufferT::Value(
                 node->data(c).page_ptr()->raw_data()->uuid(),
-                node->data(c).txn_id()
+                node->data(c).snapshot_id()
             );
         }
 
@@ -1123,7 +1119,7 @@ protected:
 //      {
 //          buf->data(c) = typename LeafNodeBufferT::Value(
 //                  node->data(c).page()->uuid(),
-//                  node->data(c).txn_id()
+//                  node->data(c).snapshot_id()
 //          );
 //      }
 //
@@ -1151,15 +1147,15 @@ protected:
         uint8_t type = TYPE_METADATA;
         out << type;
 
-        out << master_->txn_id();
-        out << history_tree_->txn_id();
+        out << master_->snapshot_id();
+        out << history_tree_->snapshot_id();
 
         out << (int64_t) named_branches_.size();
 
         for (auto& entry: named_branches_)
         {
             out << entry.first;
-            out << entry.second->txn_id();
+            out << entry.second->snapshot_id();
         }
 
         records_++;
@@ -1177,24 +1173,24 @@ protected:
     	uint8_t type = TYPE_HISTORY_NODE;
         out << type;
         out << (int32_t)history_node->status();
-        out << history_node->txn_id();
+        out << history_node->snapshot_id();
 
         if (history_node->root())
         {
             out << history_node->root()->node_id();
         }
         else {
-            out << PTreeNodeId();
+            out << BlockID{};
         }
 
         out << history_node->root_id();
 
         if (history_node->parent())
         {
-            out << history_node->parent()->txn_id();
+            out << history_node->parent()->snapshot_id();
         }
         else {
-            out << TxnId();
+            out << SnapshotID{};
         }
 
         out << history_node->metadata();
@@ -1203,7 +1199,7 @@ protected:
 
         for (auto child: history_node->children())
         {
-            out << child->txn_id();
+            out << child->snapshot_id();
         }
 
         records_++;
@@ -1351,7 +1347,7 @@ protected:
             node->remove_from_parent();
 
             if (this->isDumpSnapshotLifecycle()) {
-                std::cout << "MEMORIA: do_remove_history_node: " << node->txn_id() << std::endl;
+                std::cout << "MEMORIA: do_remove_history_node: " << node->snapshot_id() << std::endl;
             }
 
             delete node;
@@ -1366,7 +1362,7 @@ protected:
             node->remove_from_parent();
 
             if (this->isDumpSnapshotLifecycle()) {
-                std::cout << "MEMORIA: do_remove_history_node: " << node->txn_id() << std::endl;
+                std::cout << "MEMORIA: do_remove_history_node: " << node->snapshot_id() << std::endl;
             }
 
             delete node;

@@ -33,9 +33,7 @@ public:
 
 protected:
     typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Base::ID                                                   ID;
-    
+    using typename Base::BlockID;
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
@@ -60,7 +58,7 @@ public:
 
 public:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(InsertFn, insert, OpStatus);
-    OpStatus insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const ID& id);
+    OpStatus insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const BlockID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, int32_t split_at);
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
@@ -91,7 +89,7 @@ OpStatus M_TYPE::insertToBranchNodeP(
         NodeBaseG& node,
         int32_t idx,
         const BranchNodeEntry& sums,
-        const ID& id
+        const BlockID& id
 )
 {
     auto& self = this->self();

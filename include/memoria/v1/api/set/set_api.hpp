@@ -30,7 +30,7 @@ template <typename Key, typename Profile>
 class CtrApi<Set<Key>, Profile>: public CtrApiBTSSBase<Set<Key>, Profile> {
     using Base = CtrApiBTSSBase<Set<Key>, Profile>;
 public:    
-    
+    using typename Base::CtrID;
     using typename Base::AllocatorT;
     using typename Base::CtrT;
     using typename Base::CtrPtr;

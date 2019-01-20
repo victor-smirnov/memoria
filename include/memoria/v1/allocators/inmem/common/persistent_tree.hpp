@@ -40,7 +40,7 @@ class PersistentTree {
 public:
     using LeafNodeT     = LeafNodeT_;
     using NodeId        = typename LeafNodeT::NodeId;
-    using TxnId         = typename LeafNodeT::TxnId;
+    using SnapshotID    = typename LeafNodeT::SnapshotID;
     using Key           = typename LeafNodeT::Key;
     using Value         = typename LeafNodeT::Value;
     using NodeBaseT     = typename BranchNodeT::NodeBaseT;
@@ -110,8 +110,8 @@ public:
         return root_provider_->root();
     }
 
-    const TxnId& txn_id() const {
-        return root_provider_->txn_id();
+    const SnapshotID& snapshot_id() const {
+        return root_provider_->snapshot_id();
     }
 
 
@@ -264,7 +264,7 @@ public:
         delete_tree( root(), fn);
 
         root_provider_->assign_root_no_ref(nullptr);
-        root_provider_->root_id() = typename PageType::ID{};
+        root_provider_->root_id() = typename PageType::BlockID{};
     }
 
 
@@ -309,9 +309,9 @@ protected:
 
     void walk_tree(NodeBaseT* node, std::function<void (NodeBaseT*)> fn)
     {
-        const auto& txn_id = root_provider_->txn_id();
+        const auto& snapshot_id = root_provider_->snapshot_id();
 
-        if (node->txn_id() == txn_id)
+        if (node->snapshot_id() == snapshot_id)
         {
             fn(node);
 
@@ -356,9 +356,9 @@ protected:
 
     void assert_current_txn(const NodeBaseT* node)
     {
-        if (node->txn_id() != this->txn_id())
+        if (node->snapshot_id() != this->snapshot_id())
         {
-            throw Exception(MA_SRC, SBuf()<<"Transaction IDs do not match: "<<node->txn_id()<<" "<<this->txn_id());
+            throw Exception(MA_SRC, SBuf()<<"Transaction IDs do not match: "<<node->snapshot_id()<<" "<<this->snapshot_id());
         }
     }
 
@@ -628,7 +628,7 @@ protected:
 
         int32_t split_at = node->size() / 2;
 
-        NodeBaseT* right = create_node(level, this->txn_id());
+        NodeBaseT* right = create_node(level, this->snapshot_id());
         split_node(node, split_at, right);
 
         if (level < path.size() - 1)
@@ -675,7 +675,7 @@ protected:
         }
         else
         {
-            BranchNodeT* new_root = create_branch_node(this->txn_id());
+            BranchNodeT* new_root = create_branch_node(this->snapshot_id());
             new_root->metadata() = this->root()->metadata();
 
             insert_child_node(new_root, 0, node);
@@ -778,7 +778,7 @@ protected:
 
 
 
-    void ref_children(BranchNodeT* node, const TxnId& txn_id)
+    void ref_children(BranchNodeT* node, const SnapshotID& snapshot_id)
     {
         for (int32_t c = 0; c < node->size(); c++)
         {
@@ -788,72 +788,72 @@ protected:
         }
     }
 
-    NodeBaseT* create_node(int32_t level, const TxnId& txn_id)
+    NodeBaseT* create_node(int32_t level, const SnapshotID& snapshot_id)
     {
         if (level == 0) {
-            return create_leaf_node(txn_id);
+            return create_leaf_node(snapshot_id);
         }
         else {
-            return create_branch_node(txn_id);
+            return create_branch_node(snapshot_id);
         }
     }
 
     NodeBaseT* create_node(int32_t level)
     {
         if (level == 0) {
-            return create_leaf_node(this->txn_id());
+            return create_leaf_node(this->snapshot_id());
         }
         else {
-            return create_branch_node(this->txn_id());
+            return create_branch_node(this->snapshot_id());
         }
     }
 
-    NodeBaseT* clone_node(NodeBaseT* node, int64_t txn_id)
+    NodeBaseT* clone_node(NodeBaseT* node, int64_t snapshot_id)
     {
         if (node->is_leaf()) {
-            return clone_leaf_node(to_leaf_node(node), txn_id);
+            return clone_leaf_node(to_leaf_node(node), snapshot_id);
         }
         else {
-            return clone_branch_node(to_branch_node(node), txn_id);
+            return clone_branch_node(to_branch_node(node), snapshot_id);
         }
     }
 
     NodeBaseT* clone_node(NodeBaseT* node)
     {
         if (node->is_leaf()) {
-            return clone_leaf_node(to_leaf_node(node), this->txn_id());
+            return clone_leaf_node(to_leaf_node(node), this->snapshot_id());
         }
         else {
-            return clone_branch_node(to_branch_node(node), this->txn_id());
+            return clone_branch_node(to_branch_node(node), this->snapshot_id());
         }
     }
 
-    BranchNodeT* create_branch_node(const TxnId& txn_id)
+    BranchNodeT* create_branch_node(const SnapshotID& snapshot_id)
     {
         ensure_node_budget(1);
 
-        return new BranchNodeT(txn_id, root_provider_->new_node_id());
+        return new BranchNodeT(snapshot_id, root_provider_->new_node_id());
     }
 
-    BranchNodeT* clone_branch_node(BranchNodeT* node, const TxnId& txn_id)
+    BranchNodeT* clone_branch_node(BranchNodeT* node, const SnapshotID& snapshot_id)
     {
-        BranchNodeT* clone = clone_node_t(node, txn_id);
+        BranchNodeT* clone = clone_node_t(node, snapshot_id);
 
-        ref_children(node, txn_id);
+        ref_children(node, snapshot_id);
 
         return clone;
     }
 
-    LeafNodeT* create_leaf_node(const TxnId& txn_id)
+    LeafNodeT* create_leaf_node(const SnapshotID& snapshot_id)
     {
         ensure_node_budget(1);
 
-        return new LeafNodeT(txn_id, root_provider_->new_node_id());
+        return new LeafNodeT(snapshot_id, root_provider_->new_node_id());
     }
 
-    LeafNodeT* clone_leaf_node(LeafNodeT* node, const TxnId& txn_id)
+    LeafNodeT* clone_leaf_node(LeafNodeT* node, const SnapshotID& snapshot_id)
     {
-        auto clone = clone_node_t(node, txn_id);
+        auto clone = clone_node_t(node, snapshot_id);
 
         for (int32_t c = 0; c < clone->size(); c++)
         {
@@ -864,19 +864,19 @@ protected:
     }
 
     template <typename NodeT>
-    NodeT* clone_node_t(NodeT* node, const TxnId& txn_id)
+    NodeT* clone_node_t(NodeT* node, const SnapshotID& snapshot_id)
     {
         ensure_node_budget(1);
 
         auto node_id = root_provider_->new_node_id();
 
-        NodeT* new_node = new NodeT(txn_id, node_id);
+        NodeT* new_node = new NodeT(snapshot_id, node_id);
 
         new_node->copy_data_from(node);
 
         //CopyBuffer(node, new_node, 1);
 
-        new_node->set_txn_id(txn_id);
+        new_node->set_snapshot_id(snapshot_id);
         new_node->set_node_id(node_id);
         new_node->clear_refs();
 

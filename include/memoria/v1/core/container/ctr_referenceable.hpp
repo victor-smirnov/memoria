@@ -33,7 +33,7 @@ struct CtrReferenceable {
     
     virtual const UUID& name() const = 0;
     
-    virtual ~CtrReferenceable() {}
+    virtual ~CtrReferenceable() noexcept {}
 };
 
 

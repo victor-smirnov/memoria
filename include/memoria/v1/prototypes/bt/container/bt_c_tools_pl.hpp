@@ -38,7 +38,6 @@ protected:
     typedef typename Base::Allocator::PageG                                     PageG;
 
     typedef typename Allocator::Page                                            Page;
-    typedef typename Allocator::Page::ID                                        ID;
 
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;

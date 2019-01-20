@@ -43,12 +43,14 @@ protected:
     using Iterator = IterApi<CtrName, Profile>;
 
 public:
+    using CtrID = typename Base::CtrID;
+
 
     static constexpr int32_t DataStreams = 1;
-    using CtrSizesT = CtrSizes<Profile, DataStreams>;
+    using CtrSizesT = ProfileCtrSizesT<Profile, DataStreams>;
     
-    CtrApiBTSSBase(const AllocSharedPtr<AllocatorT>& allocator, int command, const UUID& name):
-        Base(allocator, command, name) 
+    CtrApiBTSSBase(const AllocSharedPtr<AllocatorT>& allocator, int command, const CtrID& ctr_id):
+        Base(allocator, command, ctr_id)
     {}
         
     CtrApiBTSSBase(CtrPtr ptr): Base(ptr) {}

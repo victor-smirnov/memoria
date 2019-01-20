@@ -50,8 +50,10 @@ protected:
     using Iterator = IterApi<CtrName, Profile>;
     
 public:
-    CtrApiBTFLBase(const AllocSharedPtr<AllocatorT>& allocator, int command, const UUID& name):
-        Base(allocator, command, name) 
+    using typename Base::CtrID;
+
+    CtrApiBTFLBase(const AllocSharedPtr<AllocatorT>& allocator, int command, const CtrID& ctr_id):
+        Base(allocator, command, ctr_id)
     {}
         
     CtrApiBTFLBase(CtrPtr ptr): Base(ptr) {}

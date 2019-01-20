@@ -32,12 +32,10 @@ public:
     using typename Base::Iterator;
 
 protected:
-    typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Base::ID                                                   ID;
-    
+    typedef typename Base::Allocator                                            Allocator;    
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
+    using typename Base::BlockID;
 
 
     using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
@@ -46,7 +44,7 @@ protected:
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -111,7 +109,7 @@ public:
             {
                 if (node->level() > 1)
                 {
-                    self.forAllIDs(node, idx, c, [&, this](const ID& id, int32_t parent_idx)
+                    self.forAllIDs(node, idx, c, [&, this](const BlockID& id, int32_t parent_idx)
                     {
                         auto& self = this->self();
                         self.remove_branch_nodes(id);

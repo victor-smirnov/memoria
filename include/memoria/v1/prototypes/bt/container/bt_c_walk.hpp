@@ -33,7 +33,8 @@ public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Allocator::Page::ID                                        ID;
+    using typename Base::BlockID;
+    using typename Base::CtrID;
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
@@ -41,7 +42,7 @@ public:
     using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
     using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    using BranchNodeEntry = typename Types::BranchNodeEntry;
 
 
     void walkTree(ContainerWalker* walker)
@@ -97,16 +98,16 @@ public:
         }
     }
 
-    UUID clone(UUID new_name) const
+    CtrID clone(CtrID new_name) const
     {
         if (new_name.is_null())
         {
-            new_name = UUID::make_random();
+            new_name = IDTools<CtrID>::make_random();
         }
 
         auto& self = this->self();
 
-        ID root_id = self.allocator().getRootID(new_name);
+        BlockID root_id = self.allocator().getRootID(new_name);
         if (root_id.is_null())
         {
             NodeBaseG root = self.getRoot();
@@ -132,16 +133,16 @@ public:
 
 private:
 
-    NodeBaseG clone_tree(const NodeBaseG& node, const ID& parent_id) const
+    NodeBaseG clone_tree(const NodeBaseG& node, const BlockID& parent_id) const
     {
         auto& self = this->self();
 
-        NodeBaseG new_node = self.allocator().clonePage(node.shared(), ID{}, self.master_name());
+        NodeBaseG new_node = self.allocator().clonePage(node.shared(), BlockID{}, self.master_name());
         new_node->parent_id() = parent_id;
 
         if (!node->is_leaf())
         {
-            self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&](const ID& id, int32_t idx)
+            self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&](const BlockID& id, int32_t idx)
             {
                 NodeBaseG child = self.allocator().getPage(id, self.master_name());
                 NodeBaseG new_child = self.clone_tree(child, new_node->id());
@@ -160,7 +161,7 @@ private:
 
         if (!node->is_leaf())
         {
-            self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const ID& id, int32_t idx)
+            self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const BlockID& id, int32_t idx)
             {
                 NodeBaseG child = self.allocator().getPage(id, self.master_name());
 

@@ -125,7 +125,8 @@ public:
     using Types             = TypesType;
     
     using Allocator = typename Types::Allocator;
-    using ID        = typename Allocator::ID;
+    using BlockID   = typename Allocator::BlockID;
+    using CtrID     = typename Allocator::CtrID;
     using Page      = typename Allocator::Page;
     using PageG     = typename Allocator::PageG;
 
@@ -148,7 +149,7 @@ public:
     template <typename> friend class Ctr;
 
 protected:
-    ID root_;
+    BlockID root_;
 
     CtrInitData init_data_;
 
@@ -187,18 +188,18 @@ public:
     PairPtr& pair() {return pair_;}
     const PairPtr& pair() const {return pair_;}
 
-    void set_root(const ID &root)
+    void set_root(const BlockID &root)
     {
         root_ = root;
         self().allocator().setRoot(self().master_name(), root);
     }
 
-    void set_root_id(const ID &root)
+    void set_root_id(const BlockID &root)
     {
         root_ = root;
     }
 
-    const ID &root() const
+    const BlockID &root() const
     {
         return root_;
     }
@@ -236,7 +237,7 @@ public:
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
-        virtual Vertex describe_page(const UUID& page_id, const UUID& name, const AllocatorBasePtr& allocator)
+        virtual Vertex describe_page(const BlockID& page_id, const CtrID& name, const AllocatorBasePtr& allocator)
         {
             Allocator* alloc = T2T<Allocator*>(allocator.get());
 
@@ -245,14 +246,14 @@ public:
             return ctr_ptr->page_as_vertex(page_id);
         }
 
-        virtual Collection<Edge> describe_page_links(const UUID& page_id, const UUID& name, const AllocatorBasePtr& allocator, Direction direction)
+        virtual Collection<Edge> describe_page_links(const BlockID& page_id, const CtrID& name, const AllocatorBasePtr& allocator, Direction direction)
         {
             Allocator* alloc = T2T<Allocator*>(allocator.get());
             auto ctr_ptr = static_pointer_cast<MyType>(alloc->get(name));
             return ctr_ptr->describe_page_links(page_id, name, direction);
         }
 
-        virtual Collection<VertexProperty> page_properties(const Vertex& vx, const ID& page_id, const UUID& name, const AllocatorBasePtr& allocator)
+        virtual Collection<VertexProperty> page_properties(const Vertex& vx, const BlockID& page_id, const CtrID& name, const AllocatorBasePtr& allocator)
         {
             Allocator* alloc = T2T<Allocator*>(allocator.get());
             auto ctr_ptr = static_pointer_cast<MyType>(alloc->get(name));
@@ -264,7 +265,7 @@ public:
             return TypeNameFactory<Name>::name();
         }
 
-        void with_ctr(const UUID& root_id, const UUID& name, const AllocatorPtr& allocator, std::function<void(MyType&)> fn) const
+        void with_ctr(const BlockID& root_id, const CtrID& name, const AllocatorPtr& allocator, std::function<void(MyType&)> fn) const
         {
             PageG page = allocator->getPage(root_id, name);
 
@@ -285,7 +286,7 @@ public:
             }
         }
 
-        virtual bool check(const UUID& root_id, const UUID& name, const AllocatorBasePtr& allocator) const
+        virtual bool check(const BlockID& root_id, const CtrID& name, const AllocatorBasePtr& allocator) const
         {
             bool result = false;
 
@@ -326,7 +327,7 @@ public:
             });
         }
 
-        virtual void drop(const UUID& root_id, const UUID& name, const AllocatorBasePtr& allocator)
+        virtual void drop(const BlockID& root_id, const CtrID& name, const AllocatorBasePtr& allocator)
         {
         	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
             with_ctr(root_id, name, alloc, [&](MyType& ctr){
@@ -368,7 +369,7 @@ public:
 
 
         virtual void for_each_ctr_node(
-            const UUID& name, 
+            const CtrID& name,
             const AllocatorBasePtr& allocator,
             BlockCallbackFn consumer
         )
@@ -383,7 +384,7 @@ public:
         	});
         }
         
-        virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const UUID& root_id, const UUID& name, const AllocatorBasePtr& allocator)
+        virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const BlockID& root_id, const CtrID& name, const AllocatorBasePtr& allocator)
         {
             SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
             
@@ -402,12 +403,12 @@ public:
             }
         }
 
-        virtual UUID clone_ctr(const UUID& name, const UUID& new_name, const AllocatorBasePtr& allocator) {
+        virtual CtrID clone_ctr(const BlockID& name, const CtrID& new_name, const AllocatorBasePtr& allocator) {
 
             AllocatorPtr alloc = static_pointer_cast<Allocator>(allocator);
             auto root_id = alloc->getRootID(name);
 
-            UUID new_name_rtn{};
+            CtrID new_name_rtn{};
 
             with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 new_name_rtn = ctr.clone(new_name);
@@ -416,7 +417,7 @@ public:
             return new_name_rtn;
         }
 
-        virtual CtrPageDescription describe_page(const UUID& page_id, const AllocatorBasePtr& allocator)
+        virtual CtrPageDescription describe_page(const BlockID& page_id, const AllocatorBasePtr& allocator)
         {
             AllocatorPtr alloc = static_pointer_cast<Allocator>(allocator);
             return MyType::describe_page(page_id, alloc.get());
@@ -440,14 +441,14 @@ public:
     }
 
 
-    UUID getModelName(ID root_id)
+    CtrID getModelName(const BlockID root_id)
     {
-        return UUID{};
+        return CtrID{};
     }
 
 
     void initCtr(int32_t command) {}
-    void initCtr(const ID& root_id) {}
+    void initCtr(const BlockID& root_id) {}
 
     Vertex as_vertex() const {
         return Vertex(StaticPointerCast<IVertex>(ConstPointerCast<MyType>(this->shared_from_this())));
@@ -486,7 +487,7 @@ public:
         );
     }
 
-    Vertex page_as_vertex(const UUID& page_id)
+    Vertex page_as_vertex(const BlockID& page_id)
     {
         Graph my_graph = this->graph();
         Vertex page_vx = PageVertex<AllocatorBasePtr, ContainerInterfacePtr>::make(
@@ -500,7 +501,7 @@ public:
         return page_vx;
     }
 
-    Collection<Edge> describe_page_links(const UUID& page_id, const UUID& name, Direction direction) const
+    Collection<Edge> describe_page_links(const BlockID& page_id, const CtrID& name, Direction direction) const
     {
         return EmptyCollection<Edge>::make();
     }
@@ -528,7 +529,7 @@ public:
         return STLCollection<Edge>::make(std::move(edges));
     }
 
-    UUID clone(const UUID& new_name)
+    CtrID clone(const CtrID& new_name)
     {
         MMA1_THROW(Exception()) << WhatCInfo("Clone operation is not supported for this container");
     }
@@ -636,26 +637,25 @@ extern int32_t CtrUnrefCounters;
 
 template <typename Types>
 class Ctr: public CtrStart<Types> {
-    typedef CtrStart<Types>                                                     Base;
-public:
-    typedef Ctr<Types>                                                          MyType;
-
-    typedef typename Types::Allocator                                           Allocator;
-    typedef typename Types::Allocator::PageG                                    PageG;
-    typedef typename PageG::Page::ID                                            ID;
+    using Base = CtrStart<Types>;
 
 public:
+    using MyType = Ctr<Types>;
 
-    typedef typename Types::ContainerTypeName                                   ContainerTypeName;
-    typedef ContainerTypeName                                                   Name;
+    using Allocator = typename Types::Allocator;
+    using PageG     = typename Types::Allocator::PageG;
+    using BlockID   = typename Allocator::BlockID;
+    using CtrID     = typename Allocator::CtrID;
 
-    
-    
-    
+public:
+
+    using ContainerTypeName = typename Types::ContainerTypeName;
+    using Name = ContainerTypeName;
+
 private:
 
     Allocator*  allocator_;
-    UUID        name_;
+    CtrID       name_;
     const char* model_type_name_;
 
     Logger          logger_;
@@ -671,7 +671,7 @@ public:
     Ctr(
         const CtrSharedPtr<Allocator>& allocator,
         int32_t command = CTR_CREATE,
-        const UUID& name = CTR_DEFAULT_NAME,
+        const CtrID& name = CTR_DEFAULT_NAME,
         const char* mname = NULL
     ):
         Base(CtrInitData(Base::CONTAINER_HASH), allocator),
@@ -694,7 +694,7 @@ public:
         }
     }
 
-    void checkCommandArguments(int32_t command, const UUID& name)
+    void checkCommandArguments(int32_t command, const CtrID& name)
     {
         if ((command & CTR_CREATE) == 0 && (command & CTR_FIND) == 0)
         {
@@ -708,7 +708,7 @@ public:
     }
 
 
-    Ctr(const CtrSharedPtr<Allocator>& allocator, const ID& root_id, const CtrInitData& ctr_init_data, const char* mname = NULL):
+    Ctr(const CtrSharedPtr<Allocator>& allocator, const BlockID& root_id, const CtrInitData& ctr_init_data, const char* mname = NULL):
         Base(ctr_init_data, allocator),
         allocator_(allocator.get()),
         name_(),
@@ -763,7 +763,7 @@ public:
         logger_.configure(model_type_name_, Logger::DERIVED, &allocator_->logger());
     }
 
-    void initCtr(const CtrSharedPtr<Allocator>& allocator, const UUID& name, int32_t command, const char* mname = NULL)
+    void initCtr(const CtrSharedPtr<Allocator>& allocator, const CtrID& name, int32_t command, const char* mname = NULL)
     {
         Base::allocator_holder_ = allocator;
         
@@ -781,7 +781,7 @@ public:
         Base::initCtr(command);
     }
 
-    void initCtr(const CtrSharedPtr<Allocator>& allocator, const ID& root_id, const char* mname = NULL)
+    void initCtr(const CtrSharedPtr<Allocator>& allocator, const BlockID& root_id, const char* mname = NULL)
     {
         MEMORIA_V1_ASSERT_EXPR(!root_id.is_null(), "Container root ID must not be empty");
 
@@ -848,7 +848,7 @@ public:
         return class_logger_;
     }
 
-    virtual const UUID& name() const {
+    virtual const CtrID& name() const {
         return name_;
     }
 

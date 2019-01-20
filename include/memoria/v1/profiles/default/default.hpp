@@ -30,11 +30,19 @@ struct ProfileTraits {
     using BlockID       = UUID;
     using SnapshotID    = UUID;
     using CtrID         = UUID;
+    using CtrSizeT      = int64_t;
 
     using Page = AbstractPage <BlockID, 32>;
     using BlockType = Page;
 
-    using AllocatorType = IAllocator<Page>;
+    using AllocatorType = IAllocator<Profile>;
+};
+
+template <>
+struct IDTools<UUID> {
+    static UUID make_random() {
+        return UUID::make_random();
+    }
 };
 
 }}

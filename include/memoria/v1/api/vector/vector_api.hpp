@@ -38,6 +38,7 @@ template <typename Value, typename Profile>
 class CtrApi<Vector<Value>, Profile>: public CtrApiBTSSBase<Vector<Value>, Profile>  {
     using Base = CtrApiBTSSBase<Vector<Value>, Profile>;
 public:    
+    using typename Base::CtrID;
     using typename Base::AllocatorT;
     using typename Base::CtrT;
     using typename Base::CtrPtr;

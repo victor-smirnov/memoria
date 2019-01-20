@@ -29,7 +29,9 @@ namespace v1 {
 template <int32_t BitsPerSymbol, bool Dense, typename Profile>
 class CtrApi<Sequence<BitsPerSymbol, Dense>, Profile>: public CtrApiBTSSBase<Sequence<BitsPerSymbol, Dense>, Profile>  {
     using Base = CtrApiBTSSBase<Sequence<BitsPerSymbol, Dense>, Profile>;
-public:    
+public:
+
+    using typename Base::CtrID;
     using typename Base::AllocatorT;
     using typename Base::CtrT;
     using typename Base::CtrPtr;

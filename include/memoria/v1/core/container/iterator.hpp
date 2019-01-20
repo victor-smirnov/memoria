@@ -128,7 +128,6 @@ public:
 
     typedef Ctr<typename TypesType::CtrTypes>                                       Container;
     typedef typename Container::Allocator                                           Allocator;
-    typedef typename Allocator::Page::ID                                            PageId;
 
     typedef Iter<TypesType>                                                         MyType;
 

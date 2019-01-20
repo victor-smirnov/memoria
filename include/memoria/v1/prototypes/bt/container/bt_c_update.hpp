@@ -30,8 +30,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Base::ID                                                   ID;
     
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;

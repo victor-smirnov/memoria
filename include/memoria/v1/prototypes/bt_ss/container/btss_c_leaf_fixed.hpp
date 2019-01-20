@@ -32,8 +32,6 @@ public:
 protected:
     typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Base::ID                                                   ID;
-    
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
@@ -52,7 +50,7 @@ protected:
 
     using CtrSizeT = typename Types::CtrSizeT;
 
-    static const int32_t Streams                                                    = Types::Streams;
+    static const int32_t Streams = Types::Streams;
 
 
 

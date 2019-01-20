@@ -82,7 +82,9 @@ class SnapshotStatsCountingConsumer {
     _::PageSet& visited_pages_;
     bool include_containers_;
 
-    std::unordered_map<UUID, CtrStat> ctr_stat_{};
+    using CtrID = typename Snapshot::CtrID;
+
+    std::unordered_map<CtrID, CtrStat> ctr_stat_{};
 
     uint64_t total_ptree_size_{};
     uint64_t total_data_size_{};
@@ -166,7 +168,7 @@ public:
 
         for (const auto& ctr_stat_item: ctr_stat_)
         {
-            UUID ctr_name = ctr_stat_item.first;
+            CtrID ctr_name = ctr_stat_item.first;
             const CtrStat& stat = ctr_stat_item.second;
 
             SharedPtr<ContainerMemoryStat> ctr_mem_stat = MakeShared<ContainerMemoryStat>(
