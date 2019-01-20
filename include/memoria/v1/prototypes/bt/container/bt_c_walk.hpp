@@ -137,14 +137,14 @@ private:
     {
         auto& self = this->self();
 
-        NodeBaseG new_node = self.allocator().clonePage(node.shared(), BlockID{}, self.master_name());
+        NodeBaseG new_node = self.allocator().clonePage(node.shared(), BlockID{});
         new_node->parent_id() = parent_id;
 
         if (!node->is_leaf())
         {
             self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&](const BlockID& id, int32_t idx)
             {
-                NodeBaseG child = self.allocator().getPage(id, self.master_name());
+                NodeBaseG child = self.allocator().getPage(id);
                 NodeBaseG new_child = self.clone_tree(child, new_node->id());
                 self.setChildId(new_node, idx, new_child->id());
             });
@@ -163,8 +163,7 @@ private:
         {
             self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const BlockID& id, int32_t idx)
             {
-                NodeBaseG child = self.allocator().getPage(id, self.master_name());
-
+                NodeBaseG child = self.allocator().getPage(id);
                 self.traverseTree(child, walker);
             });
         }

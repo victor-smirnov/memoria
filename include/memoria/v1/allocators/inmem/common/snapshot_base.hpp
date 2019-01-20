@@ -301,13 +301,13 @@ public:
 
     bool drop_ctr(const CtrID& name)
     {
-    	checkUpdateAllowed(name);
+        checkUpdateAllowed();
 
         CtrID root_id = getRootID(name);
 
         if (root_id.is_set())
         {
-            PageG page = this->getPage(root_id, name);
+            PageG page = this->getPage(root_id);
 
             auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
@@ -324,7 +324,7 @@ public:
     Optional<U16String> ctr_type_name_for(const CtrID& name)
     {
         auto root_id = this->getRootID(name);
-        auto page 	 = this->getPage(root_id, name);
+        auto page 	 = this->getPage(root_id);
 
         if (page)
         {
@@ -368,7 +368,7 @@ public:
     void for_each_ctr_node(const CtrID& name, typename ContainerInterface::BlockCallbackFn fn)
     {
     	auto root_id = this->getRootID(name);
-    	auto page 	 = this->getPage(root_id, name);
+        auto page 	 = this->getPage(root_id);
 
     	if (page)
     	{
@@ -466,7 +466,7 @@ public:
     	if (!root_id.is_null())
     	{
             txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void* page_data) {
-    			auto page = this->getPage(id, name);
+                auto page = this->getPage(id);
     			if (page && page->uuid() == uuid)
     			{
     				return;
@@ -516,7 +516,7 @@ public:
     	if (!root_id.is_null())
     	{
             txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void* page_data) {
-    			auto page = this->getPage(id, name);
+                auto page = this->getPage(id);
     			if (page && page->uuid() == uuid)
     			{
     				return;
@@ -547,7 +547,7 @@ public:
     CtrID clone_ctr(const CtrID& ctr_name, const CtrID& new_ctr_name)
     {
         auto root_id = this->getRootID(ctr_name);
-        auto page 	 = this->getPage(root_id, ctr_name);
+        auto page 	 = this->getPage(root_id);
 
         if (page)
         {
@@ -562,7 +562,7 @@ public:
     }
 
 
-    virtual PageG getPage(const BlockID& id, const CtrID& name)
+    virtual PageG getPage(const BlockID& id)
     {
         if (id.isSet())
         {
@@ -656,12 +656,12 @@ public:
     }
 
 
-    virtual PageG getPageForUpdate(const BlockID& id, const CtrID& name)
+    virtual PageG getPageForUpdate(const BlockID& id)
     {
         // FIXME: Though this check prohibits new page acquiring for update,
         // already acquired updatable pages can be updated further.
         // To guarantee non-updatability, MMU-protection should be used
-        checkUpdateAllowed(name);
+        checkUpdateAllowed(CtrID{});
 
         if (id.isSet())
         {
@@ -733,12 +733,12 @@ public:
 
 
 
-    virtual PageG updatePage(Shared* shared, const CtrID& name)
+    virtual PageG updatePage(Shared* shared)
     {
         // FIXME: Though this check prohibits new page acquiring for update,
         // already acquired updatable pages can be updated further.
         // To guarantee non-updatability, MMU-protection should be used
-        checkUpdateAllowed(name);
+        checkUpdateAllowed(CtrID{});
 
         if (shared->state() == Shared::READ)
         {
@@ -756,9 +756,9 @@ public:
         return PageG(shared);
     }
 
-    virtual void removePage(const BlockID& id, const CtrID& name)
+    virtual void removePage(const BlockID& id)
     {
-        checkUpdateAllowed(name);
+        checkUpdateAllowed(CtrID{});
 
         auto iter = persistent_tree_.locate(id);
 
@@ -781,9 +781,9 @@ public:
 
 
 
-    virtual PageG createPage(int32_t initial_size, const CtrID& name)
+    virtual PageG createPage(int32_t initial_size)
     {
-        checkUpdateAllowed(name);
+        checkUpdateAllowed(CtrID{});
 
         if (initial_size == -1)
         {
@@ -814,8 +814,10 @@ public:
     }
 
 
-    virtual PageG clonePage(const Shared* shared, const BlockID& new_id, const CtrID& name)
+    virtual PageG clonePage(const Shared* shared, const BlockID& new_id)
     {
+        checkUpdateAllowed(CtrID{});
+
         BlockID new_id_v = new_id.is_set() ? new_id : newId();
         Page* new_page = this->clone_page(shared->get());
 
@@ -946,8 +948,6 @@ public:
         }
     }
 
-    virtual void markUpdated(const CtrID& name) {}
-
     virtual bool hasRoot(const CtrID& name)
     {
         if (!name.is_null())
@@ -974,7 +974,7 @@ public:
         {
             auto ctr_name = iter->key();
 
-            PageG page = this->getPage(iter->value(), ctr_name);
+            PageG page = this->getPage(iter->value());
 
             auto ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
@@ -1008,7 +1008,7 @@ public:
             auto ctr_name   = iter->key();
             auto root_id    = iter->value();
 
-            auto page       = this->getPage(root_id, ctr_name);
+            auto page       = this->getPage(root_id);
 
             auto ctr_hash   = page->ctr_type_hash();
             auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
@@ -1068,7 +1068,7 @@ public:
 
         if (root_id.is_set())
         {
-            PageG page = this->getPage(root_id, name);
+            PageG page = this->getPage(root_id);
 
             auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
@@ -1085,7 +1085,7 @@ public:
 
         if (root_id.is_set())
         {
-            PageG page = this->getPage(root_id, name);
+            PageG page = this->getPage(root_id);
 
             auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
@@ -1100,7 +1100,7 @@ public:
     {
         if (root_page_id.is_set())
         {
-            PageG page = this->getPage(root_page_id, name);
+            PageG page = this->getPage(root_page_id);
 
             auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
@@ -1113,7 +1113,7 @@ public:
 
     CtrPageDescription describe_page(const CtrID& page_id)
     {
-        PageG page = this->getPage(page_id, CtrID{});
+        PageG page = this->getPage(page_id);
         return describe_page(page);
     }
 

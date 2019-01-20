@@ -77,13 +77,13 @@ protected:
     NodeBaseG getNodeParent(const NodeBaseG& node) const
     {
         auto& self = this->self();
-        return self.allocator().getPage(node->parent_id(), self.master_name());
+        return self.allocator().getPage(node->parent_id());
     }
 
     NodeBaseG getNodeParentForUpdate(const NodeBaseG& node) const
     {
         auto& self = this->self();
-        return self.allocator().getPageForUpdate(node->parent_id(), self.master_name());
+        return self.allocator().getPageForUpdate(node->parent_id());
     }
 
 

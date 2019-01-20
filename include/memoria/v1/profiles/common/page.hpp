@@ -683,11 +683,11 @@ public:
 
 
 
-    void update(const UUID& name)
+    void update()
     {
         if (shared_)// && !shared_->updated())
         {
-            auto guard = shared_->allocator()->updatePage(shared_, name);
+            auto guard = shared_->allocator()->updatePage(shared_);
 
             if (guard.shared() != shared_)
             {

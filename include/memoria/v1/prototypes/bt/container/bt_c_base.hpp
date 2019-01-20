@@ -110,7 +110,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto& self = this->self();
 
-        NodeBaseG root = self.allocator().getPage(root_id, self.master_name());
+        NodeBaseG root = self.allocator().getPage(root_id);
 
         return NodeDispatcher::dispatch(root, GetModelNameFn(self));
     }
@@ -184,7 +184,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());
+        NodeBaseG root = self.allocator().getPage(self.root());
 
         return root->root_metadata().roots(name);
     }
@@ -196,7 +196,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG root  = self.allocator().getPageForUpdate(self.root(), self.master_name());
+        NodeBaseG root  = self.allocator().getPageForUpdate(self.root());
 
         Metadata& metadata = root->root_metadata();
         metadata.roots(name) = root_id;
@@ -230,7 +230,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self          = this->self();
         const auto& root_id = self.root();
-        NodeBaseG root      = self.allocator().getPage(root_id, self.master_name());
+        NodeBaseG root      = self.allocator().getPage(root_id);
 
         return root->root_metadata();
     }
@@ -291,7 +291,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG node = self.allocator().createPage(size, self.master_name());
+        NodeBaseG node = self.allocator().createPage(size);
         node->init();
 
         node->page_type_hash() = Node::hash();
@@ -431,7 +431,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void updatePageG(NodeBaseG& node) const
     {
-        node.update(self().master_name());
+        node.update();
     }
 
 
@@ -439,7 +439,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());
+        NodeBaseG root = self.allocator().getPage(self.root());
 
         return !root->root_metadata().roots(name).is_null();
     }
@@ -450,7 +450,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         std::vector<Edge> links;
 
-        NodeBaseG page = this->allocator_holder_->getPage(page_id, name);
+        NodeBaseG page = this->allocator_holder_->getPage(page_id);
 
         Graph graph     = this->graph();
         Vertex ctr_vx   = this->as_vertex();
@@ -484,7 +484,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     Collection<VertexProperty> page_properties(const Vertex& vx, const BlockID& page_id, const CtrID& name)
     {
-        NodeBaseG page = this->allocator_holder_->getPage(page_id, name);
+        NodeBaseG page = this->allocator_holder_->getPage(page_id);
 
         std::vector<VertexProperty> props;
 
@@ -550,7 +550,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     static CtrPageDescription describe_page(const BlockID& node_id, Allocator* alloc)
     {
-        NodeBaseG node = alloc->getPage(node_id, BlockID{});
+        NodeBaseG node = alloc->getPage(node_id);
 
         int32_t size = node->page_size();
         bool leaf = node->is_leaf();
@@ -561,7 +561,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         while (!node->is_root())
         {
             offset += node->parent_idx();
-            node = alloc->getPage(node->parent_id(), BlockID{});
+            node = alloc->getPage(node->parent_id());
         }
 
         return CtrPageDescription(size, getModelNameS(node), root, leaf, offset);
@@ -579,7 +579,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (!root_id.is_null())
         {
-            PageG node = self.allocator().getPage(root_id, name);
+            PageG node = self.allocator().getPage(root_id);
 
             if (node->ctr_type_hash() == CONTAINER_HASH)
             {

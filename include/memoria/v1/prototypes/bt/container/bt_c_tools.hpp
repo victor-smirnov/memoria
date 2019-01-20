@@ -56,13 +56,13 @@ public:
     NodeBaseG getRoot() const
     {
         auto& self = this->self();
-        return self.allocator().getPage(self.root(), self.master_name());
+        return self.allocator().getPage(self.root());
     }
 
     NodeBaseG getRootForUpdate() const
     {
         auto& self = this->self();
-        return self.allocator().getPageForUpdate(self.root(), self.master_name());
+        return self.allocator().getPageForUpdate(self.root());
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(DumpBlockSizesFn, dumpBlockSizes);
@@ -176,14 +176,14 @@ protected:
     NodeBaseG getChildFn(const Node* node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.allocator().getPage(node->value(idx), self.master_name());
+        return self.allocator().getPage(node->value(idx));
     }
 
     template <typename Node>
     NodeBaseG getLastChildFn(const Node* node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.allocator().getPage(node->value(node->size() - 1), self.master_name());
+        return self.allocator().getPage(node->value(node->size() - 1));
     }
 
 
@@ -191,7 +191,7 @@ protected:
     NodeBaseG getChildForUpdateFn(const Node* node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.allocator().getPageForUpdate(node->value(idx), self.master_name());
+        return self.allocator().getPageForUpdate(node->value(idx));
     }
 
 
@@ -238,20 +238,6 @@ protected:
             MMA1_THROW(NullPointerException()) << WhatCInfo("Child must not be NULL");
         }
     }
-
-
-//    NodeBaseG getNodeParent(const NodeBaseG& node) const
-//    {
-//        auto& self = this->self();
-//        return self.allocator().getPage(node->parent_id(), self.master_name());
-//    }
-//
-//    NodeBaseG getNodeParentForUpdate(const NodeBaseG& node) const
-//    {
-//        auto& self = this->self();
-//        return self.allocator().getPageForUpdate(node->parent_id(), self.master_name());
-//    }
-
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(NodeStreamSizesFn, size_sums, Position);
     Position node_stream_sizes(const NodeBaseG& node) const

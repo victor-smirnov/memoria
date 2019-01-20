@@ -62,7 +62,7 @@ struct IAllocator: AllocatorBase {
 
     enum {UNDEFINED, READ, UPDATE};
 
-    using MyType    = IAllocator<Profile>;
+    using MyType        = IAllocator<Profile>;
 
     using Page          = ProfileBlockType<Profile>;
     using BlockType     = ProfileBlockType<Profile>;
@@ -77,20 +77,19 @@ struct IAllocator: AllocatorBase {
     
     virtual BlockID getRootID(const CtrID& ctr_id)                              = 0;
     virtual void setRoot(const CtrID& ctr_id, const BlockID& root)              = 0;
-    virtual void markUpdated(const CtrID& ctr_id)                               = 0;
 
     virtual bool hasRoot(const CtrID& ctr_id)                                   = 0;
     virtual CtrID createCtrName()                                               = 0;
 
 
-    virtual PageG getPage(const BlockID& id, const CtrID& ctr_if)               = 0;
-    virtual PageG getPageForUpdate(const BlockID& id, const CtrID& ctr_id)      = 0;
+    virtual PageG getPage(const BlockID& id)                                    = 0;
+    virtual PageG getPageForUpdate(const BlockID& id)                           = 0;
 
-    virtual PageG updatePage(Shared* shared, const CtrID& ctr_id)               = 0;
-    virtual void  removePage(const ID& id, const CtrID& ctr_id)                 = 0;
-    virtual PageG createPage(int32_t initial_size, const CtrID& ctr_id)         = 0;
+    virtual PageG updatePage(Shared* shared)                                    = 0;
+    virtual void  removePage(const ID& id)                                      = 0;
+    virtual PageG createPage(int32_t initial_size)                              = 0;
 
-    virtual PageG clonePage(const Shared* shared, const BlockID& new_id, const CtrID& name) = 0;
+    virtual PageG clonePage(const Shared* shared, const BlockID& new_id)        = 0;
 
     virtual void  resizePage(Shared* page, int32_t new_size)                    = 0;
     virtual void  releasePage(Shared* shared) noexcept                          = 0;
@@ -119,7 +118,7 @@ struct IAllocator: AllocatorBase {
     virtual bool check()                                                        = 0;
     virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr) = 0;
 
-    virtual U16String ctr_type_name(const CtrID& name)                          = 0;
+    virtual U16String ctr_type_name(const CtrID& ctr_id)                        = 0;
 
     virtual Vertex allocator_vertex() {
         return Vertex();

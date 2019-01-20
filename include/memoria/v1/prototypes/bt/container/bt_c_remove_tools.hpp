@@ -67,7 +67,7 @@ public:
                 auto root = meta.roots(CtrID(0, c));
                 if (!root.is_null())
                 {
-                    auto root_page      = self.allocator().getPage(root, CtrID{});
+                    auto root_page      = self.allocator().getPage(root);
                     auto ctr_meta_rep   = MetadataRepository<typename Types::Profile>::getMetadata();
 
                     int32_t ctr_hash        = root_page->ctr_type_hash();
@@ -163,7 +163,7 @@ void M_TYPE::removeNodeRecursively(NodeBaseG& node, Position& sizes)
         self.forAllIDs(node, 0, size, [&, this](const BlockID& id, int32_t idx)
         {
             auto& self = this->self();
-            NodeBaseG child = self.allocator().getPage(id, self.master_name());
+            NodeBaseG child = self.allocator().getPage(id);
             this->removeNodeRecursively(child, sizes);
         });
     }
@@ -171,7 +171,7 @@ void M_TYPE::removeNodeRecursively(NodeBaseG& node, Position& sizes)
         sizes += self.leaf_sizes(node);
     }
 
-    self.allocator().removePage(node->id(), self.master_name());
+    self.allocator().removePage(node->id());
 }
 
 M_PARAMS
@@ -218,7 +218,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, int32_t start, int32_t end, Posi
 
     self.forAllIDs(node, start, end, [&, this](const BlockID& id, int32_t idx){
         auto& self = this->self();
-        NodeBaseG child = self.allocator().getPage(id, self.master_name());
+        NodeBaseG child = self.allocator().getPage(id);
         self.removeNodeRecursively(child, sizes);
     });
 
@@ -306,7 +306,7 @@ void M_TYPE::removeRedundantRootP(NodeBaseG& node)
                 {
                     self.node2Root(node, root_metadata);
 
-                    self.allocator().removePage(parent->id(), self.master_name());
+                    self.allocator().removePage(parent->id());
 
                     self.set_root(node->id());
                 }

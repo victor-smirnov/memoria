@@ -21,7 +21,7 @@
 #include <memoria/v1/tests/yaml.hpp>
 #include <memoria/v1/tests/tools.hpp>
 
-
+#include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 
 #include <memoria/v1/core/tools/time.hpp>

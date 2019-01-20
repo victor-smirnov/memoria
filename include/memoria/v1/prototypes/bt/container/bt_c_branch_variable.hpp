@@ -313,7 +313,7 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     self.updateBranchNodes(src_parent, idx, max);
 
-    self.allocator().removePage(src->id(), self.master_name());
+    self.allocator().removePage(src->id());
 
     return true;
 }
