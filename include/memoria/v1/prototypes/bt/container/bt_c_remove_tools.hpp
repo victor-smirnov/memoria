@@ -70,13 +70,13 @@ public:
                     auto root_page      = self.allocator().getBlock(root);
                     auto ctr_meta_rep   = MetadataRepository<typename Types::Profile>::getMetadata();
 
-                    int32_t ctr_hash        = root_page->ctr_type_hash();
+                    int32_t ctr_hash    = root_page->ctr_type_hash();
 
                     auto ctr_meta       = ctr_meta_rep->getContainerMetadata(ctr_hash);
 
                     auto ctr_interface  = ctr_meta->getCtrInterface();
 
-                    ctr_interface->drop(root, CtrID{}, self.allocator().self_ptr());
+                    ctr_interface->drop(root, self.allocator().self_ptr());
                 }
             }
 

@@ -446,7 +446,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(ValuesAsVectorFn, template values_as_vector<BlockID>, std::vector<BlockID>);
-    Collection<Edge> describe_page_links(const BlockID& page_id, const CtrID& name, Direction direction)
+    Collection<Edge> describe_block_links(const BlockID& page_id, Direction direction)
     {
         std::vector<Edge> links;
 
@@ -454,13 +454,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         Graph graph     = this->graph();
         Vertex ctr_vx   = this->as_vertex();
-        Vertex page_vx  = this->page_as_vertex(page_id);
+        Vertex page_vx  = this->block_as_vertex(page_id);
 
         if (is_in(direction))
         {
             if (!page->is_root())
             {
-                links.push_back(DefaultEdge::make(graph, "child", this->page_as_vertex(page->parent_id()), page_vx));
+                links.push_back(DefaultEdge::make(graph, "child", this->block_as_vertex(page->parent_id()), page_vx));
             }
             else {
                 links.push_back(DefaultEdge::make(graph, "root", ctr_vx, page_vx));
@@ -474,7 +474,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 auto child_ids = BranchDispatcher::dispatch(page, ValuesAsVectorFn());
                 for (auto& child_id: child_ids)
                 {
-                    links.push_back(DefaultEdge::make(graph, "child", page_vx, this->page_as_vertex(child_id)));
+                    links.push_back(DefaultEdge::make(graph, "child", page_vx, this->block_as_vertex(child_id)));
                 }
             }
         }
@@ -482,7 +482,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return STLCollection<Edge>::make(std::move(links));
     }
 
-    Collection<VertexProperty> page_properties(const Vertex& vx, const BlockID& page_id, const CtrID& name)
+    Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& page_id)
     {
         NodeBaseG page = this->allocator_holder_->getBlock(page_id);
 
@@ -548,7 +548,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
-    static CtrPageDescription describe_page(const BlockID& node_id, Allocator* alloc)
+    static CtrPageDescription describe_block(const BlockID& node_id, Allocator* alloc)
     {
         NodeBaseG node = alloc->getBlock(node_id);
 

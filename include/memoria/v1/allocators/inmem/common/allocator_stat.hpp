@@ -132,7 +132,7 @@ public:
         {
             if (include_containers_)
             {
-                CtrPageDescription descr = current_snapshot_->describe_page(page->id());
+                CtrPageDescription descr = current_snapshot_->describe_block(page->id());
 
                 CtrStat& stat = ctr_stat_[descr.ctr_name()];
 

@@ -75,11 +75,11 @@ public:
 
     virtual Collection<VertexProperty> properties()
     {
-        return ctr_interface_->page_properties(self(), page_id_, name_, allocator_);
+        return ctr_interface_->block_properties(self(), page_id_, name_, allocator_);
     }
 
     virtual Collection<Edge> edges(Direction direction) {
-        return ctr_interface_->describe_page_links(page_id_, name_, allocator_, direction);
+        return ctr_interface_->describe_block_links(page_id_, name_, allocator_, direction);
     }
 };
 

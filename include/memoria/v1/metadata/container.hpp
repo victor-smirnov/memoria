@@ -145,70 +145,61 @@ struct ContainerInterface {
 
     // uuid, id, page data
     using BlockCallbackFn = std::function<void(const UUID&, const UUID&, const void*)>;
+    using AllocatorBasePtr = SnpSharedPtr<AllocatorBase>;
 
-    virtual Vertex describe_page(const UUID& page_id, const UUID& name, const SnpSharedPtr<AllocatorBase>& allocator) = 0;
-    virtual Collection<Edge> describe_page_links(const UUID& page_id, const UUID& name, const SnpSharedPtr<AllocatorBase>& allocator, Direction direction) = 0;
-    virtual Collection<VertexProperty> page_properties(const Vertex& vx, const UUID& page_id, const UUID& name, const SnpSharedPtr<AllocatorBase>& allocator) = 0;
+
+    virtual Vertex describe_block(const UUID& block_id, const UUID& ctr_id, AllocatorBasePtr allocator) const = 0;
+    virtual Collection<Edge> describe_block_links(const UUID& block_id, const UUID& ctr_id, AllocatorBasePtr allocator, Direction direction) const = 0;
+    virtual Collection<VertexProperty> block_properties(const Vertex& vx, const UUID& block_id, const UUID& ctr_id, AllocatorBasePtr allocator) const = 0;
 
 
     // FIXME: remove name from parameters, it's already in Ctr's page root metadata
-
-    virtual U16String ctr_name() = 0;
+    virtual U16String ctr_name() const = 0;
 
     virtual bool check(
-        const UUID& root_id, 
-        const UUID& name, 
-        const SnpSharedPtr<AllocatorBase>& allocator
-    ) const                                                                     = 0;
-    
-    virtual void walk(
-            const UUID& root_id,
-            const UUID& name,
-            const SnpSharedPtr<AllocatorBase>& allocator,
-            ContainerWalker* walker
-    ) const                                                                     = 0;
+        const UUID& name,
+        AllocatorBasePtr allocator
+    ) const = 0;
 
     virtual void walk(
             const UUID& name,
-            const SnpSharedPtr<AllocatorBase>& allocator,
+            AllocatorBasePtr allocator,
             ContainerWalker* walker
-    ) const                                                                     = 0;
+    ) const = 0;
 
 
-    virtual U16String ctr_type_name() const                                        = 0;
+    virtual U16String ctr_type_name() const = 0;
 
     virtual void drop(
-            const UUID& root_id,
             const UUID& name,
-            const SnpSharedPtr<AllocatorBase>& allocator
-    )                                                                           = 0;
+            AllocatorBasePtr allocator
+    ) const = 0;
 
     virtual void for_each_ctr_node(
         const UUID& name, 
-        const SnpSharedPtr<AllocatorBase>& allocator,
+        AllocatorBasePtr allocator,
         BlockCallbackFn consumer
-    )                                                                           = 0;
+    ) const = 0;
     
     virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(
-        const UUID& root_id, 
+        const UUID& root_id,
         const UUID& name, 
-        const SnpSharedPtr<AllocatorBase>& allocator
-    ) = 0;
+        AllocatorBasePtr allocator
+    ) const = 0;
 
     virtual UUID clone_ctr(
         const UUID& name,
         const UUID& new_name,
-        const SnpSharedPtr<AllocatorBase>& allocator
-    )                                                                           = 0;
+        AllocatorBasePtr allocator
+    ) const = 0;
 
-    virtual CtrPageDescription describe_page(
-        const UUID& page_id,
-        const SnpSharedPtr<AllocatorBase>& allocator
-    )                                                                           = 0;
+    virtual CtrPageDescription describe_block1(
+        const UUID& block_id,
+        AllocatorBasePtr allocator
+    ) const = 0;
 };
 
 using ContainerInterfacePtr = std::shared_ptr<ContainerInterface>;
-
 
 template <typename Profile> class MetadataRepository;
 

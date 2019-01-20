@@ -311,7 +311,7 @@ public:
 
             auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
-            ctr_meta->getCtrInterface()->drop(root_id, name, this->shared_from_this());
+            ctr_meta->getCtrInterface()->drop(name, this->shared_from_this());
 
             return true;
         }
@@ -978,7 +978,7 @@ public:
 
             auto ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
-            result = ctr_meta->getCtrInterface()->check(page->id(), ctr_name, this->shared_from_this()) || result;
+            result = ctr_meta->getCtrInterface()->check(ctr_name, this->shared_from_this()) || result;
 
             iter->next();
         }
@@ -1013,7 +1013,7 @@ public:
             auto ctr_hash   = page->ctr_type_hash();
             auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
 
-            ctr_meta->getCtrInterface()->walk(page->id(), ctr_name, this->shared_from_this(), walker);
+            ctr_meta->getCtrInterface()->walk(ctr_name, this->shared_from_this(), walker);
 
             iter->next();
         }
@@ -1111,16 +1111,16 @@ public:
         }
     }
 
-    CtrPageDescription describe_page(const CtrID& page_id)
+    CtrPageDescription describe_block(const CtrID& page_id)
     {
         PageG page = this->getBlock(page_id);
-        return describe_page(page);
+        return describe_block(page);
     }
 
-    CtrPageDescription describe_page(const PageG& page)
+    CtrPageDescription describe_block(const PageG& page)
     {
         auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
-        return ctr_meta->getCtrInterface()->describe_page(page->id(), this->shared_from_this());
+        return ctr_meta->getCtrInterface()->describe_block1(page->id(), this->shared_from_this());
     }
 
 protected:
