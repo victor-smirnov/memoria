@@ -593,7 +593,7 @@ public:
     }
 
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("ALLOCATOR");
 
@@ -822,7 +822,7 @@ template <typename... Types> struct GenerateDataEventsTool;
 
 template <typename Head, typename... Tail>
 struct GenerateDataEventsTool<Head, Tail...> {
-    static void generateDataEvents(const PackedAllocator* allocator, IPageDataEventHandler* handler, int32_t idx = 0)
+    static void generateDataEvents(const PackedAllocator* allocator, IBlockDataEventHandler* handler, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
         {
@@ -836,7 +836,7 @@ struct GenerateDataEventsTool<Head, Tail...> {
 
 template <typename Head, typename... Tail>
 struct GenerateDataEventsTool<TypeList<Head, Tail...>> {
-    static void generateDataEvents(const PackedAllocator* allocator, IPageDataEventHandler* handler, int32_t idx = 0)
+    static void generateDataEvents(const PackedAllocator* allocator, IBlockDataEventHandler* handler, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
         {
@@ -850,12 +850,12 @@ struct GenerateDataEventsTool<TypeList<Head, Tail...>> {
 
 template <>
 struct GenerateDataEventsTool<> {
-    static void generateDataEvents(PackedAllocator* allocator, IPageDataEventHandler* handler, int32_t idx = 0) {}
+    static void generateDataEvents(PackedAllocator* allocator, IBlockDataEventHandler* handler, int32_t idx = 0) {}
 };
 
 template <>
 struct GenerateDataEventsTool<TypeList<>> {
-    static void generateDataEvents(PackedAllocator* allocator, IPageDataEventHandler* handler, int32_t idx = 0) {}
+    static void generateDataEvents(PackedAllocator* allocator, IBlockDataEventHandler* handler, int32_t idx = 0) {}
 };
 
 

@@ -20,7 +20,7 @@
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/reflection.hpp>
-#include <memoria/v1/metadata/page.hpp>
+#include <memoria/v1/metadata/block.hpp>
 
 namespace memoria {
 namespace v1 {

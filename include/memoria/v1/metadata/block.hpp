@@ -26,7 +26,7 @@
 #include <memoria/v1/core/strings/format.hpp>
 #include <memoria/v1/core/bytes/bytes.hpp>
 
-
+#include <memoria/v1/profiles/common/common.hpp>
 
 #include <tuple>
 #include <functional>
@@ -39,36 +39,36 @@ template <typename T> class PageID;
 
 enum {BTREE = 1, ROOT = 2, LEAF = 4, BITMAP = 8};
 
-struct IPageLayoutEventHandler {
+struct IBlockLayoutEventHandler {
 
-    virtual void startPage(const char* name)                                        = 0;
-    virtual void endPage()                                                          = 0;
+    virtual void startBlock(const char* name)                                       = 0;
+    virtual void endBlock()                                                         = 0;
 
     virtual void startGroup(const char* name, int32_t elements = -1)                = 0;
     virtual void endGroup()                                                         = 0;
 
     virtual void Layout(const char* name, int32_t type, int32_t ptr, int32_t size, int32_t count)   = 0;
 
-    virtual ~IPageLayoutEventHandler() noexcept {}
+    virtual ~IBlockLayoutEventHandler() noexcept {}
 };
 
 
-struct PageDataValueProvider {
-    virtual ~PageDataValueProvider() noexcept {}
+struct BlockDataValueProvider {
+    virtual ~BlockDataValueProvider() noexcept {}
 
     virtual int32_t size() const = 0;
     virtual bool isArray() const = 0;
     virtual U8String value(int32_t idx) const = 0;
 };
 
-struct IPageDataEventHandler {
+struct IBlockDataEventHandler {
 
     enum {BYTE_ARRAY = 100, BITMAP};
 
-    virtual ~IPageDataEventHandler() noexcept {}
+    virtual ~IBlockDataEventHandler() noexcept {}
 
-    virtual void startPage(const char* name, const void* ptr)                                   = 0;
-    virtual void endPage()                                                                      = 0;
+    virtual void startBlock(const char* name, const void* ptr)                                  = 0;
+    virtual void endBlock()                                                                     = 0;
 
     virtual void startLine(const char* name, int32_t size = -1)                                 = 0;
     virtual void endLine()                                                                      = 0;
@@ -97,7 +97,7 @@ struct IPageDataEventHandler {
     virtual void symbols(const char* name, const uint64_t* value, int32_t count, int32_t bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const uint8_t* value, int32_t count, int32_t bits_per_symbol)     = 0;
 
-    virtual void value(const char* name, const PageDataValueProvider& value)                    = 0;
+    virtual void value(const char* name, const BlockDataValueProvider& value)                    = 0;
 
     virtual void startStruct()                                                                  = 0;
     virtual void endStruct()                                                                    = 0;
@@ -106,62 +106,79 @@ struct IPageDataEventHandler {
 struct DataEventsParams {};
 struct LayoutEventsParams {};
 
-struct IPageOperations
-{
-    virtual int32_t serialize(const void* page, void* buf) const                                    = 0;
-    virtual void deserialize(const void* buf, int32_t buf_size, void* page) const                   = 0;
-    virtual int32_t getPageSize(const void *page) const                                             = 0;
+template <typename Profile>
+struct IBlockOperations {
 
-    virtual void resize(const void* page, void* buffer, int32_t new_size) const                     = 0;
+    using BlockType = ProfileBlockType<Profile>;
+    using BlockID   = ProfileBlockID<Profile>;
+
+    virtual int32_t serialize(const BlockType* block, void* buf) const                               = 0;
+    virtual void deserialize(const void* buf, int32_t buf_size, BlockType* block) const              = 0;
+    virtual int32_t getPageSize(const BlockType* block) const                                        = 0;
+
+    virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const                = 0;
 
     virtual void generateDataEvents(
-                    const void* page,
+                    const BlockType* block,
                     const DataEventsParams& params,
-                    IPageDataEventHandler* handler) const                                       = 0;
+                    IBlockDataEventHandler* handler) const                                       = 0;
 
     virtual void generateLayoutEvents(
-                    const void* page,
+                    const BlockType* block,
                     const LayoutEventsParams& params,
-                    IPageLayoutEventHandler* handler) const                                     = 0;
+                    IBlockLayoutEventHandler* handler) const                                     = 0;
 
-    virtual ~IPageOperations() noexcept {}
+    virtual ~IBlockOperations() noexcept {}
 };
 
 
-struct PageMetadata: public MetadataGroup
+template <typename Profile>
+struct BlockMetadata: public MetadataGroup
 {
-    PageMetadata(
-            U16StringRef name,
-            int32_t attributes,
-            uint64_t hash0,
-            const IPageOperations* page_operations);
+    BlockMetadata(
+        U16StringRef name,
+        int32_t attributes,
+        uint64_t hash,
+        const IBlockOperations<Profile>* block_operations
+    ):
+        MetadataGroup(name)
+    {
+        MetadataGroup::set_type() = Metadata::PAGE;
+        hash_ = hash;
+        block_operations_ = block_operations;
 
-    virtual ~PageMetadata() noexcept {
-        delete page_operations_;
+        if (!block_operations)
+        {
+            MMA1_THROW(NullPointerException()) << WhatInfo("Page operations is not specified");
+        }
+    }
+
+    virtual ~BlockMetadata() noexcept {
+        delete block_operations_;
     }
 
     virtual uint64_t hash() const {
         return hash_;
     }
 
-    virtual const IPageOperations* getPageOperations() const {
-        return page_operations_;
+    virtual const IBlockOperations<Profile>* getBlockOperations() const {
+        return block_operations_;
     }
 
 private:
     uint64_t hash_;
-    const IPageOperations* page_operations_;
+    const IBlockOperations<Profile>* block_operations_;
 };
 
 
 template <typename T>
 struct ValueHelper {
-    static void setup(IPageDataEventHandler* handler, const char* name, const T& value)
+    static void setup(IBlockDataEventHandler* handler, const char* name, const T& value)
     {
         handler->value(name, &value);
     }
 
-    static void setup(IPageDataEventHandler* handler, const char* name, const T* value, int32_t size, int32_t type)
+    static void setup(IBlockDataEventHandler* handler, const char* name, const T* value, int32_t size, int32_t type)
     {
         handler->value(name, value, size, type);
     }
@@ -171,13 +188,13 @@ template <typename T>
 struct ValueHelper<PageID<T> > {
     using Type = PageID<T>;
 
-    static void setup(IPageDataEventHandler* handler, const char* name, const Type& value)
+    static void setup(IBlockDataEventHandler* handler, const char* name, const Type& value)
     {
         IDValue id(&value);
         handler->value(name, &id);
     }
 
-    static void setup(IPageDataEventHandler* handler, const char* name, const Type* value, int32_t size, int32_t type)
+    static void setup(IBlockDataEventHandler* handler, const char* name, const Type* value, int32_t size, int32_t type)
     {
         for (int32_t c = 0; c < size; c++)
         {
@@ -191,7 +208,7 @@ template <>
 struct ValueHelper<EmptyValue> {
     using Type = EmptyValue;
 
-    static void setup(IPageDataEventHandler* handler, const char* name, const Type& value)
+    static void setup(IBlockDataEventHandler* handler, const char* name, const Type& value)
     {
         int64_t val = 0;
         handler->value(name, &val);
@@ -206,7 +223,7 @@ struct TupleValueHelper {
 
     using CurrentType = typename std::tuple_element<Idx, Tuple>::type;
 
-    static void setup(IPageDataEventHandler* handler, const Tuple& field)
+    static void setup(IBlockDataEventHandler* handler, const Tuple& field)
     {
         ValueHelper<CurrentType>::setup(handler, std::get<Idx>(field));
         TupleValueHelper<Tuple, Idx - 1>::setup(handler, field);
@@ -217,7 +234,7 @@ struct TupleValueHelper {
 
 template <typename Tuple>
 struct TupleValueHelper<Tuple, -1> {
-    static void setup(IPageDataEventHandler* handler, const Tuple& field) {}
+    static void setup(IBlockDataEventHandler* handler, const Tuple& field) {}
 };
 
 }
@@ -228,7 +245,7 @@ struct ValueHelper<std::tuple<Types...>> {
 
     using Type = std::tuple<Types...>;
 
-    static void setup(IPageDataEventHandler* handler, const Type& value)
+    static void setup(IBlockDataEventHandler* handler, const Type& value)
     {
         handler->startLine("VALUE", std::tuple_size<Type>::value);
 
@@ -243,12 +260,12 @@ struct ValueHelper<std::tuple<Types...>> {
 
 
 template <typename Fn>
-class PageValueFnProviderT: public PageDataValueProvider {
+class BlockValueFnProviderT: public BlockDataValueProvider {
     Fn fn_;
     int32_t size_;
     bool array_;
 public:
-    PageValueFnProviderT(bool array, int32_t size, Fn fn): fn_(fn), size_(size), array_(array) {}
+    BlockValueFnProviderT(bool array, int32_t size, Fn fn): fn_(fn), size_(size), array_(array) {}
 
     virtual int32_t size() const {return size_;}
     virtual bool isArray() const {return array_;}
@@ -259,19 +276,19 @@ public:
             return toString(fn_(idx));
         }
         else {
-            MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid index access in PageValueProviderT: idx = {}, size = {}", idx, size_));
+            MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid index access in BlockValueProviderT: idx = {}, size = {}", idx, size_));
         }
     }
 };
 
 
 template <typename T>
-class PageValueProviderT: public PageDataValueProvider {
+class BlockValueProviderT: public BlockDataValueProvider {
 
     const T& value_;
 
 public:
-    PageValueProviderT(const T& value): value_(value) {}
+    BlockValueProviderT(const T& value): value_(value) {}
 
     virtual int32_t size() const {return 1;}
     virtual bool isArray() const {return false;}
@@ -290,20 +307,20 @@ public:
 
 
 
-struct PageValueProviderFactory {
+struct BlockValueProviderFactory {
     template <typename Fn>
     static auto provider(bool is_array, int32_t size, Fn fn) {
-        return PageValueFnProviderT<Fn>(is_array, size, fn);
+        return BlockValueFnProviderT<Fn>(is_array, size, fn);
     }
 
     template <typename Fn>
     static auto provider(int32_t size, Fn fn) {
-        return PageValueFnProviderT<Fn>(false, size, fn);
+        return BlockValueFnProviderT<Fn>(false, size, fn);
     }
 
     template <typename V>
     static auto provider(V&& v) {
-        return PageValueProviderT<V>(v);
+        return BlockValueProviderT<V>(v);
     }
 };
 
@@ -311,9 +328,9 @@ struct PageValueProviderFactory {
 
 void Expand(std::ostream& os, int32_t level);
 
-void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProvider& provider);
+void dumpPageDataValueProviderAsArray(std::ostream& out, const BlockDataValueProvider& provider);
 
-class TextPageDumper: public IPageDataEventHandler {
+class TextPageDumper: public IBlockDataEventHandler {
     std::ostream& out_;
 
     int32_t level_;
@@ -325,13 +342,13 @@ public:
     TextPageDumper(std::ostream& out): out_(out), level_(0), cnt_(0), line_(false) {}
     virtual ~TextPageDumper() {}
 
-    virtual void startPage(const char* name, const void* ptr)
+    virtual void startBlock(const char* name, const void* ptr)
     {
         out_ << name << " at " << ptr << std::endl;
         level_++;
     }
 
-    virtual void endPage()
+    virtual void endBlock()
     {
         out_ << std::endl;
         level_--;
@@ -588,7 +605,7 @@ public:
     }
 
 
-    virtual void value(const char* name, const PageDataValueProvider& value)
+    virtual void value(const char* name, const BlockDataValueProvider& value)
     {
         if (value.isArray())
         {
@@ -678,7 +695,7 @@ private:
     }
 
 
-    void OutValueInLine(const char* name, const PageDataValueProvider& value)
+    void OutValueInLine(const char* name, const BlockDataValueProvider& value)
     {
         OutLine(name);
 

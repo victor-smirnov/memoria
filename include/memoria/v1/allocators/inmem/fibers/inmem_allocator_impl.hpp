@@ -61,7 +61,7 @@ public:
     using Base      = InMemAllocatorBase<Profile, InMemAllocatorImpl<Profile>>;
     using MyType    = InMemAllocatorImpl<Profile>;
     
-    using typename Base::Page;
+    using typename Base::BlockType;
 
     using SnapshotT             = persistent_inmem::Snapshot<Profile, MyType>;
     using SnapshotPtr           = SnpSharedPtr<SnapshotT>;
@@ -76,7 +76,7 @@ public:
     using typename Base::HistoryNode;
     using typename Base::HistoryNodeBuffer;
     using typename Base::SnapshotID;
-    using typename Base::RCPageSet;
+    using typename Base::RCBlockSet;
     using typename Base::Checksum;
     
     using Base::load;
@@ -470,12 +470,12 @@ public:
         });
     }
 
-    ContainerMetadataRepository* getMetadata() const
+    ContainerMetadataRepository<Profile>* getMetadata() const
     {
         return metadata_;
     }
 
-    virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr)
+    virtual void walkContainers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr)
     {
         return reactor::engine().run_at(cpu_, [&]
         {
@@ -511,7 +511,7 @@ public:
 
             write_metadata(*output);
 
-            RCPageSet stored_pages;
+            RCBlockSet stored_pages;
 
             walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) {
                 write_history_node(*output, history_tree_node, stored_pages);
@@ -642,7 +642,7 @@ protected:
         }
     }
 
-    void walk_containers(HistoryNode* node, ContainerWalker* walker)
+    void walk_containers(HistoryNode* node, ContainerWalker<Profile>* walker)
     {
     	if (node->is_committed())
         {
@@ -857,13 +857,13 @@ void InMemAllocator<Profile>::set_branch(U16StringRef name, const SnapshotID& tx
 }
 
 template <typename Profile>
-ContainerMetadataRepository* InMemAllocator<Profile>::metadata() const 
+ContainerMetadataRepository<Profile>* InMemAllocator<Profile>::metadata() const
 {
     return pimpl_->getMetadata();
 }
 
 template <typename Profile>
-void InMemAllocator<Profile>::walk_containers(ContainerWalker* walker, const char16_t* allocator_descr)
+void InMemAllocator<Profile>::walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr)
 {
      return pimpl_->walkContainers(walker, allocator_descr);
 }

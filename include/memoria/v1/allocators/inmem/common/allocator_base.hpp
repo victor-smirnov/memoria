@@ -48,38 +48,30 @@ namespace v1 {
 namespace persistent_inmem {
 namespace _ {
 
-	template <typename PageT>
-	struct PagePtr {
+    template <typename BlockT>
+    struct BlockPtr {
 		using RefCntT = int64_t;
 	private:
-		PageT* page_;
+        BlockT* block_;
 		std::atomic<RefCntT> refs_;
 
 		// Currently for debug purposes
 		static std::atomic<int64_t> page_cnt_;
 	public:
-		PagePtr(PageT* page, int64_t refs): page_(page), refs_(refs) {
-			//page_cnt_++;
-			//cout << "Create page: " << page_cnt_ << endl;
+        BlockPtr(BlockT* block, int64_t refs): block_(block), refs_(refs) {}
+
+        ~BlockPtr() {
+            free_system(block_);
 		}
 
-		~PagePtr() {
-			//if (--page_cnt_ == 0) {
-			//	cout << "All Pages removed" << endl;
-			//}
-			//cout << "Remove page: " << page_cnt_ << endl;
+        BlockT* raw_data() {return block_;}
+        const BlockT* raw_data() const {return block_;}
 
-            free_system(page_);
-		}
-
-		PageT* raw_data() {return page_;}
-		const PageT* raw_data() const {return page_;}
-
-		PageT* operator->() {return page_;}
-		const PageT* operator->() const {return page_;}
+        BlockT* operator->() {return block_;}
+        const BlockT* operator->() const {return block_;}
 
 		void clear() {
-			page_ = nullptr;
+            block_ = nullptr;
 		}
 
 		void ref() {
@@ -93,8 +85,8 @@ namespace _ {
 		}
 	};
 
-	template <typename PageT>
-	std::atomic<int64_t> PagePtr<PageT>::page_cnt_(0);
+    template <typename BlockT>
+    std::atomic<int64_t> BlockPtr<BlockT>::page_cnt_(0);
 
 
     template <typename ValueT, typename SnapshotIdT>
@@ -153,21 +145,20 @@ namespace persistent_inmem {
 template <typename Profile, typename MyType>
 class InMemAllocatorBase: public EnableSharedFromThis<MyType> {
 public:
-    using PageType = ProfileBlockType<Profile>;
+    using BlockType = ProfileBlockType<Profile>;
 
     static constexpr int32_t NodeIndexSize  = 32;
     static constexpr int32_t NodeSize       = NodeIndexSize * 32;
 
-    using Page          = PageType;
-    using RCPagePtr		= persistent_inmem::_::PagePtr<Page>;
+    using RCBlockPtr    = persistent_inmem::_::BlockPtr<BlockType>;
 
     using Key           = ProfileBlockID<Profile>;
-    using Value         = PageType*;
+    using Value         = BlockType*;
 
     using SnapshotID        = ProfileSnapshotID<Profile>;
     using BlockID           = ProfileBlockID<Profile>;
 
-    using LeafNodeT         = persistent_inmem::LeafNode<Key, persistent_inmem::_::PersistentTreeValue<RCPagePtr*, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
+    using LeafNodeT         = persistent_inmem::LeafNode<Key, persistent_inmem::_::PersistentTreeValue<RCBlockPtr*, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
     using LeafNodeBufferT   = persistent_inmem::LeafNode<Key, persistent_inmem::_::PersistentTreeValue<BlockID, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
 
     using BranchNodeT       = persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
@@ -193,7 +184,7 @@ public:
 
         NodeBaseT* root_;
 
-        BlockID root_id_;
+        BlockID root_id_{};
 
         Status status_;
 
@@ -211,7 +202,6 @@ public:
         	allocator_(allocator),
             parent_(nullptr),
             root_(nullptr),
-            root_id_(),
             status_(status),
             snapshot_id_(IDTools<SnapshotID>::make_random())
         {
@@ -224,7 +214,6 @@ public:
         	allocator_(parent->allocator_),
 			parent_(parent),
 			root_(nullptr),
-			root_id_(),
 			status_(status),
             snapshot_id_(IDTools<SnapshotID>::make_random())
         {
@@ -407,8 +396,8 @@ public:
 
         std::vector<SnapshotID> children_;
 
-        BlockID root_;
-        BlockID root_id_;
+        BlockID root_{};
+        BlockID root_id_{};
 
         typename HistoryNode::Status status_;
 
@@ -452,13 +441,13 @@ public:
     };
 
 
-    using PersistentTreeT       = typename persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
-    using TxnMap                = std::unordered_map<SnapshotID, HistoryNode*>;
+    using PersistentTreeT       = typename persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, BlockType>;
+    using SnapshotMap           = std::unordered_map<SnapshotID, HistoryNode*>;
 
     using HistoryTreeNodeMap    = std::unordered_map<BlockID, HistoryNodeBuffer*>;
     using PersistentTreeNodeMap = std::unordered_map<BlockID, std::pair<NodeBaseBufferT*, NodeBaseT*>>;
-    using PageMap               = std::unordered_map<BlockID, RCPagePtr*>;
-    using RCPageSet             = std::unordered_set<const void*>;
+    using BlockMap              = std::unordered_map<BlockID, RCBlockPtr*>;
+    using RCBlockSet            = std::unordered_set<const void*>;
     using BranchMap             = std::unordered_map<U16String, HistoryNode*>;
     using ReverseBranchMap      = std::unordered_map<const HistoryNode*, U16String>;
 
@@ -506,11 +495,11 @@ protected:
     HistoryNode* history_tree_  = nullptr;
     HistoryNode* master_ 		= nullptr;
 
-    TxnMap snapshot_map_;
+    SnapshotMap snapshot_map_;
 
     BranchMap named_branches_;
 
-    ContainerMetadataRepository* metadata_;
+    ContainerMetadataRepository<Profile>* metadata_;
 
     int64_t records_ = 0;
 
@@ -525,8 +514,6 @@ public:
         logger_("PersistentInMemAllocator"),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
-
-
         master_ = history_tree_ = new HistoryNode(&self(), HistoryNode::Status::ACTIVE);
 
         snapshot_map_[history_tree_->snapshot_id()] = history_tree_;
@@ -628,7 +615,7 @@ public:
 
         HistoryTreeNodeMap      history_node_map;
         PersistentTreeNodeMap   ptree_node_map;
-        PageMap                 page_map;
+        BlockMap                page_map;
 
         AllocatorMetadata metadata;
 
@@ -951,9 +938,9 @@ protected:
         in >> checksum.records();
     }
 
-    void read_data_page(InputStreamHandler& in, PageMap& map)
+    void read_data_page(InputStreamHandler& in, BlockMap& map)
     {
-    	typename RCPagePtr::RefCntT references;
+        typename RCBlockPtr::RefCntT references;
 
     	in >> references;
 
@@ -970,19 +957,19 @@ protected:
         in >> page_hash;
 
         auto page_data = allocate_system<int8_t>(page_data_size);
-        Page* page = allocate_system<Page>(page_size).release();
+        BlockType* page = allocate_system<BlockType>(page_size).release();
 
         in.read(page_data.get(), 0, page_data_size);
 
-        auto pageMetadata = metadata_->getPageMetadata(ctr_hash, page_hash);
-        pageMetadata->getPageOperations()->deserialize(page_data.get(), page_data_size, T2T<void*>(page));
+        auto pageMetadata = metadata_->getBlockMetadata(ctr_hash, page_hash);
+        pageMetadata->getBlockOperations()->deserialize(page_data.get(), page_data_size, page);
 
         if (map.find(page->uuid()) == map.end())
         {
-            map[page->uuid()] = new RCPagePtr(page, references);
+            map[page->uuid()] = new RCBlockPtr(page, references);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Page {} was already registered", page->uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block {} was already registered", page->uuid()));
         }
     }
 
@@ -1168,7 +1155,7 @@ protected:
         out << checksum.records() + 1;
     }
 
-    void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCPageSet& stored_pages)
+    void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCBlockSet& stored_pages)
     {
     	uint8_t type = TYPE_HISTORY_NODE;
         out << type;
@@ -1210,7 +1197,7 @@ protected:
         }
     }
 
-    void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node, RCPageSet& stored_pages)
+    void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node, RCBlockSet& stored_pages)
     {
         if (stored_pages.count(node) == 0)
         {
@@ -1269,7 +1256,7 @@ protected:
         records_++;
     }
 
-    void write(OutputStreamHandler& out, const RCPagePtr* page_ptr)
+    void write(OutputStreamHandler& out, const RCBlockPtr* page_ptr)
     {
     	auto page = page_ptr->raw_data();
 
@@ -1278,13 +1265,13 @@ protected:
 
         out << page_ptr->references();
 
-        auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+        auto blockMetadata = metadata_->getBlockMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         auto page_size = page->page_size();
 
         auto buffer = allocate_system<uint8_t>(page_size);
 
-        const auto operations = pageMetadata->getPageOperations();
+        const auto operations = blockMetadata->getBlockOperations();
 
         int32_t total_data_size = operations->serialize(page, buffer.get());
 
@@ -1299,13 +1286,13 @@ protected:
     }
 
 
-    void dump(const Page* page, std::ostream& out = std::cout)
+    void dump(const BlockType* page, std::ostream& out = std::cout)
     {
         TextPageDumper dumper(out);
 
-        auto meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+        auto meta = metadata_->getBlockMetadata(page->ctr_type_hash(), page->page_type_hash());
 
-        meta->getPageOperations()->generateDataEvents(page, DataEventsParams(), &dumper);
+        meta->getBlockOperations()->generateDataEvents(page, DataEventsParams(), &dumper);
     }
 
     virtual void forget_snapshot(HistoryNode* history_node) = 0;

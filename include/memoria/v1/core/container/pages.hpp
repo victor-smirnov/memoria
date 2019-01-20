@@ -32,7 +32,7 @@
 namespace memoria {
 namespace v1 {
 
-struct Page {
+struct Block {
 
     virtual UUID getId() const                       = 0;
     virtual uint64_t getContainerHash() const        = 0;
@@ -47,19 +47,19 @@ struct Page {
     virtual int32_t getByte(int32_t idx) const       = 0;
     virtual void setByte(int32_t idx, int32_t value) = 0;
 
-    virtual ~Page() noexcept {}
+    virtual ~Block() noexcept {}
 };
 
 
 
-template <typename PageType>
-class PageWrapper: public Page {
-    PageType *page_;
+template <typename BlockType>
+class BlockWrapper: public Block {
+    BlockType *page_;
 public:
-    PageWrapper(PageType* page): page_(page) {}
-    PageWrapper(): page_(NULL) {}
+    BlockWrapper(BlockType* page): page_(page) {}
+    BlockWrapper(): page_(NULL) {}
 
-    virtual ~PageWrapper() noexcept  {}
+    virtual ~BlockWrapper() noexcept  {}
 
     virtual bool isNull() const {
         return page_ == NULL;
@@ -112,7 +112,7 @@ public:
 
     virtual void setPtr(void* ptr)
     {
-        page_ = static_cast<PageType*>(ptr);
+        page_ = static_cast<BlockType*>(ptr);
     }
 
     virtual int32_t size() const {
@@ -154,14 +154,14 @@ public:
 };
 
 
-template <typename PageType>
-class PageWrapper<const PageType>: public Page {
-    const PageType *page_;
+template <typename BlockType>
+class BlockWrapper<const BlockType>: public Block {
+    const BlockType *page_;
 public:
-    PageWrapper(const PageType* page): page_(page) {}
-    PageWrapper(): page_(NULL) {}
+    BlockWrapper(const BlockType* page): page_(page) {}
+    BlockWrapper(): page_(NULL) {}
 
-    virtual ~PageWrapper() noexcept  {}
+    virtual ~BlockWrapper() noexcept  {}
 
     virtual bool isNull() const {
         return page_ == NULL;

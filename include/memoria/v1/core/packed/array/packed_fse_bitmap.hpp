@@ -301,7 +301,7 @@ public:
         });
     }
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("PACKED_FSE_BITMAP");
 

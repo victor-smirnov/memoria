@@ -45,7 +45,7 @@ namespace {
         template <int32_t Blocks, typename Value, typename H, typename S, typename B>
         static void process(H* handler, S size_, const B* buffer_)
         {
-            handler->value("DATA_ITEMS", PageValueProviderFactory::provider(true, size_ * Blocks, [&](int32_t idx) -> const Value& {
+            handler->value("DATA_ITEMS", BlockValueProviderFactory::provider(true, size_ * Blocks, [&](int32_t idx) -> const Value& {
                 return *(buffer_ + idx);
             }));
         }
@@ -56,7 +56,7 @@ namespace {
         template <int32_t Blocks, typename Value, typename H, typename S, typename B>
         static void process(H* handler, S size_, const B* buffer_)
         {
-            ValueHelper<Value>::setup(handler, "DATA_ITEMS", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+            ValueHelper<Value>::setup(handler, "DATA_ITEMS", buffer_, size_ * Blocks, IBlockDataEventHandler::BYTE_ARRAY);
         }
     };
 
@@ -740,7 +740,7 @@ public:
     }
 
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startStruct();
         handler->startGroup("FSE_ARRAY");

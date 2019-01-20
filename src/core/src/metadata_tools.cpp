@@ -17,7 +17,7 @@
 
 
 #include <memoria/v1/metadata/tools.hpp>
-#include <memoria/v1/metadata/page.hpp>
+#include <memoria/v1/metadata/block.hpp>
 #include <memoria/v1/core/tools/dump.hpp>
 
 #ifndef MMA1_NO_REACTOR
@@ -42,7 +42,7 @@ void Expand(std::ostream& os, int32_t level)
 }
 
 
-size_t max_width(const PageDataValueProvider& provider)
+size_t max_width(const BlockDataValueProvider& provider)
 {
     size_t max = 0;
 
@@ -62,7 +62,7 @@ size_t max_width(const PageDataValueProvider& provider)
 }
 
 
-void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProvider& provider)
+void dumpPageDataValueProviderAsArray(std::ostream& out, const BlockDataValueProvider& provider)
 {
 //  std::ios  state(nullptr);
 //  state.copyfmt(out);
@@ -118,29 +118,6 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProv
 
 //    out.copyfmt(state);
 }
-
-
-
-
-
-void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out)
-{
-    TextPageDumper dumper(out);
-
-    meta->getPageOperations()->generateDataEvents(page->Ptr(), DataEventsParams(), &dumper);
-}
-
-
-void dumpPageData(PageMetadata* meta, const void* page, std::ostream& out)
-{
-    TextPageDumper dumper(out);
-
-    meta->getPageOperations()->generateDataEvents(page, DataEventsParams(), &dumper);
-}
-
-
-
-
 
 
 }}

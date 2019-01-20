@@ -102,7 +102,7 @@ public:
     {
         if (page)
         {
-            PageWrapper<const Page> pw(page);
+            BlockWrapper<const Page> pw(page);
             auto meta = self().getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
 
             dumpPage(meta.get(), &pw, out);

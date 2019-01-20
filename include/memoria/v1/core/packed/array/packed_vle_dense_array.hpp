@@ -1115,7 +1115,7 @@ public:
         return OpStatus::OK;
     }
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
 
@@ -1139,7 +1139,7 @@ public:
 
             for (int32_t c = 0; c < index_size; c++)
             {
-                handler->value("INDEX", PageValueProviderFactory::provider(size_indexes[c]));
+                handler->value("INDEX", BlockValueProviderFactory::provider(size_indexes[c]));
             }
 
             handler->endGroup();
@@ -1170,7 +1170,7 @@ public:
                 positions[block] += len;
             }
 
-            handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](int32_t idx) -> const Value& {
+            handler->value("ARRAY_ITEM", BlockValueProviderFactory::provider(Blocks, [&](int32_t idx) -> const Value& {
                 return values_data[idx];
             }));
         }

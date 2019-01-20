@@ -37,11 +37,17 @@ namespace v1 {
 struct Metadata;
 using MetadataPtr = std::shared_ptr<Metadata>;
 
-struct PageMetadata;
-using PageMetadataPtr = std::shared_ptr<PageMetadata>;
+template <typename Profile> struct BlockMetadata;
 
-struct ContainerMetadata;
-using ContainerMetadataPtr = std::shared_ptr<ContainerMetadata>;
+template <typename Profile>
+using BlockMetadataPtr = std::shared_ptr<BlockMetadata<Profile>>;
+
+
+
+template <typename Profile> struct ContainerMetadata;
+
+template <typename Profile>
+using ContainerMetadataPtr = std::shared_ptr<ContainerMetadata<Profile>>;
 
 template <typename T, typename... Args>
 auto metadata_make_shared(Args&&... args) {
@@ -53,8 +59,12 @@ struct Container;
 
 // FIXME change map key to uint32_t
 using MetadataList          = std::vector<MetadataPtr>;
-using PageMetadataMap       = std::unordered_map<uint64_t, PageMetadataPtr>;
-using ContainerMetadataMap  = std::unordered_map<uint64_t, ContainerMetadataPtr>;
+
+template <typename Profile>
+using BlockMetadataMap       = std::unordered_map<uint64_t, BlockMetadataPtr<Profile>>;
+
+template <typename Profile>
+using ContainerMetadataMap  = std::unordered_map<uint64_t, ContainerMetadataPtr<Profile>>;
 
 struct Metadata {
 

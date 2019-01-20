@@ -633,7 +633,7 @@ public:
         }
     }
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
 
@@ -692,7 +692,7 @@ public:
                 positions[block] += len;
             }
 
-            handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](int32_t idx) {
+            handler->value("ARRAY_ITEM", BlockValueProviderFactory::provider(Blocks, [&](int32_t idx) {
                 return values_data[idx];
             }));
         }

@@ -63,6 +63,8 @@ protected:
     using Base              = ProfileAllocatorType<Profile>;
 
 public:
+    using ProfileT = Profile;
+
     using typename Base::CtrID;
     using typename Base::BlockID;
     using typename Base::BlockType;
@@ -146,7 +148,7 @@ protected:
 
     CtrInstanceMap instance_map_;
 
-    ContainerMetadataRepository* metadata_; //FIXME:: make it static thread local or remove at all
+    ContainerMetadataRepository<Profile>* metadata_; //FIXME:: make it static thread local or remove at all
 
     template <typename>
     friend class ThreadInMemAllocatorImpl;
@@ -244,7 +246,7 @@ public:
         return pair_;
     }
 
-    ContainerMetadataRepository* getMetadata() const {
+    ContainerMetadataRepository<Profile>* getMetadata() const {
         return metadata_;
     }
 
@@ -365,7 +367,7 @@ public:
         }
     }
 
-    void for_each_ctr_node(const CtrID& name, typename ContainerInterface::BlockCallbackFn fn)
+    void for_each_ctr_node(const CtrID& name, typename ContainerInterface<Profile>::BlockCallbackFn fn)
     {
     	auto root_id = this->getRootID(name);
         auto page 	 = this->getBlock(root_id);
@@ -843,12 +845,12 @@ public:
 
         if (shared->state() == Shared::READ)
         {
-            Page* page = shared->get();
-            auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+            BlockType* page = shared->get();
+            auto blockMetadata = metadata_->getBlockMetadata(page->ctr_type_hash(), page->page_type_hash());
 
-            Page* new_page = allocate_system<Page>(new_size).release();
+            BlockType* new_page = allocate_system<BlockType>(new_size).release();
 
-            pageMetadata->getPageOperations()->resize(page, new_page, new_size);
+            blockMetadata->getBlockOperations()->resize(page, new_page, new_size);
 
             shared->set_page(new_page);
 
@@ -856,12 +858,12 @@ public:
         }
         else if (shared->state() == Shared::UPDATE)
         {
-            Page* page = shared->get();
-            auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+            BlockType* page = shared->get();
+            auto blockMetadata = metadata_->getBlockMetadata(page->ctr_type_hash(), page->page_type_hash());
 
-            Page* new_page = reallocate_system<Page>(page, new_size).release();
+            BlockType* new_page = reallocate_system<BlockType>(page, new_size).release();
 
-            pageMetadata->getPageOperations()->resize(page, new_page, new_size);
+            blockMetadata->getBlockOperations()->resize(page, new_page, new_size);
 
             shared->set_page(new_page);
 
@@ -991,7 +993,7 @@ public:
         return u"";
     }
 
-    virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr)
+    virtual void walkContainers(ContainerWalker<ProfileT>* walker, const char16_t* allocator_descr = nullptr)
     {
 		if (allocator_descr != nullptr)
 		{
@@ -1111,13 +1113,13 @@ public:
         }
     }
 
-    CtrPageDescription describe_block(const CtrID& page_id)
+    CtrBlockDescription<Profile> describe_block(const CtrID& page_id)
     {
         PageG page = this->getBlock(page_id);
         return describe_block(page);
     }
 
-    CtrPageDescription describe_block(const PageG& page)
+    CtrBlockDescription<Profile> describe_block(const PageG& page)
     {
         auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
         return ctr_meta->getCtrInterface()->describe_block1(page->id(), this->shared_from_this());
@@ -1127,7 +1129,7 @@ protected:
 
     SharedPtr<SnapshotMemoryStat> do_compute_memory_stat(bool include_containers)
     {
-        _::PageSet visited_pages;
+        _::BlockSet visited_pages;
 
         PersistentTreeStatVisitAccumulatingConsumer vp_accum(visited_pages);
 
@@ -1148,7 +1150,7 @@ protected:
         return consumer.finish();
     }
 
-    SharedPtr<SnapshotMemoryStat> do_compute_memory_stat(_::PageSet& visited_pages, bool include_containers)
+    SharedPtr<SnapshotMemoryStat> do_compute_memory_stat(_::BlockSet& visited_pages, bool include_containers)
     {
         SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_pages, this, include_containers);
 
@@ -1173,26 +1175,26 @@ protected:
 
 
 
-    void clone_foreign_page(const Page* foreign_page)
+    void clone_foreign_page(const BlockType* foreign_page)
     {
-    	Page* new_page = clone_page(foreign_page);
+        BlockType* new_page = clone_page(foreign_page);
     	ptree_set_new_page(new_page);
     }
 
 
-    Page* clone_page(const Page* page)
+    BlockType* clone_page(const BlockType* page)
     {
         char* buffer = (char*) this->malloc(page->page_size());
 
         CopyByteBuffer(page, buffer, page->page_size());
-        Page* new_page = T2T<Page*>(buffer);
+        BlockType* new_page = T2T<BlockType*>(buffer);
 
         new_page->uuid() = newId();
 
         return new_page;
     }
 
-    Shared* get_shared(Page* page)
+    Shared* get_shared(BlockType* page)
     {
         MEMORIA_V1_ASSERT_TRUE(page != nullptr);
 

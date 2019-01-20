@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/v1/metadata/metadata.hpp>
-#include <memoria/v1/metadata/page.hpp>
+#include <memoria/v1/metadata/block.hpp>
 
 #include <memoria/v1/core/tools/buffer.hpp>
 #include <memoria/v1/core/tools/id.hpp>
@@ -226,9 +226,9 @@ public:
     //Rebuild page content such indexes using provided data.
     void Rebiuild(){}
 
-    void generateLayoutEvents(IPageLayoutEventHandler* handler) const {}
+    void generateLayoutEvents(IBlockLayoutEventHandler* handler) const {}
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->value("GID",               &uuid_);
         handler->value("ID",                &id_);

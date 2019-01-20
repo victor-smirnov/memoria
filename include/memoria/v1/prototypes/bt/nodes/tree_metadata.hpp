@@ -103,7 +103,7 @@ public:
         return page_size_;
     }
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("ROOT_METADATA");
 
@@ -131,7 +131,7 @@ public:
         handler->value("TYPE_TAG", &type_tag_);
         handler->value("TXN_ID", &txn_id_);
 
-        handler->value("DESCRIPTOR", descriptor_, DESCRIPTOR_SIZE, IPageDataEventHandler::BYTE_ARRAY);
+        handler->value("DESCRIPTOR", descriptor_, DESCRIPTOR_SIZE, IBlockDataEventHandler::BYTE_ARRAY);
 
         handler->endGroup();
     }

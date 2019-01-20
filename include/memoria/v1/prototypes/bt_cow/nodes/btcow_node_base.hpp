@@ -193,7 +193,7 @@ public:
 
 public:
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
 

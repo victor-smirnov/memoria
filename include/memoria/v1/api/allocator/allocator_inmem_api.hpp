@@ -95,8 +95,8 @@ public:
     void set_master(const SnapshotID& txn_id);
     void set_branch(U16StringRef name, const SnapshotID& txn_id);
     
-    ContainerMetadataRepository* metadata() const;
-    void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
+    ContainerMetadataRepository<Profile>* metadata() const;
+    void walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr);
         
     Logger& logger();
     
@@ -176,7 +176,7 @@ public:
         return pimpl_.get();
     }
     
-    ContainerMetadataRepository* metadata() const;
+    ContainerMetadataRepository<Profile>* metadata() const;
     const SnapshotID& uuid() const;
     bool is_active() const;
     bool is_marked_to_clear() const;
@@ -210,7 +210,7 @@ public:
     void dump_persistent_tree();
 
 
-    void walk_containers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr);
+    void walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr);
     
     CtrID clone_ctr(const CtrID& name, const CtrID& new_name);
     CtrID clone_ctr(const CtrID& name);

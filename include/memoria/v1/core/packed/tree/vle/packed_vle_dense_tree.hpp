@@ -1249,7 +1249,7 @@ public:
         return OpStatus::OK;
     }
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
 
@@ -1279,7 +1279,7 @@ public:
                     size_indexes[c]
                 };
 
-                handler->value("INDEX", PageValueProviderFactory::provider(2, [&](int32_t idx) {
+                handler->value("INDEX", BlockValueProviderFactory::provider(2, [&](int32_t idx) {
                     return indexes[idx];
                 }));
             }
@@ -1312,7 +1312,7 @@ public:
                 positions[block] += len;
             }
 
-            handler->value("TREE_ITEM", PageValueProviderFactory::provider(Blocks, [&](int32_t b) {
+            handler->value("TREE_ITEM", BlockValueProviderFactory::provider(Blocks, [&](int32_t b) {
                 return values_data[b];
             }));
         }

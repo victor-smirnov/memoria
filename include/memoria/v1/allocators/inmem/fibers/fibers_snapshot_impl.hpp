@@ -653,7 +653,7 @@ PairPtr& ThreadInMemSnapshot<Profile>::pair() {
 
 
 template <typename Profile>
-void InMemSnapshot<Profile>::walk_containers(ContainerWalker* walker, const char16_t* allocator_descr)
+void InMemSnapshot<Profile>::walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr)
 {
      return pimpl_->walkContainers(walker, allocator_descr);
 }
@@ -665,7 +665,7 @@ void InMemSnapshot<Profile>::reset()
 }
 
 template <typename Profile>
-ContainerMetadataRepository* InMemSnapshot<Profile>::metadata() const
+ContainerMetadataRepository<Profile>* InMemSnapshot<Profile>::metadata() const
 {
     return pimpl_->getMetadata();
 }

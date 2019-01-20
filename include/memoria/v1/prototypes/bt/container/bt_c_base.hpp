@@ -48,6 +48,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using typename Base::BlockID;
     using typename Base::CtrID;
 
+    using ProfileT = typename Types::Profile;
+
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
     using NodeBase  = typename Types::NodeBase;
@@ -548,7 +550,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
 
-    static CtrPageDescription describe_block(const BlockID& node_id, Allocator* alloc)
+    static CtrBlockDescription<ProfileT> describe_block(const BlockID& node_id, Allocator* alloc)
     {
         NodeBaseG node = alloc->getBlock(node_id);
 
@@ -564,7 +566,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             node = alloc->getBlock(node->parent_id());
         }
 
-        return CtrPageDescription(size, getModelNameS(node), root, leaf, offset);
+        return CtrBlockDescription<ProfileT>(size, getModelNameS(node), root, leaf, offset);
     }
 
  private:

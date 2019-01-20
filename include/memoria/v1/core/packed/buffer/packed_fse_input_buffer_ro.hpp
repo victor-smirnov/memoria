@@ -323,7 +323,7 @@ public:
         generateDataEvents(&dumper);
     }
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startStruct();
         handler->startGroup("FSE_ROW_ORDER_INPUT_BUFFER");
@@ -336,14 +336,14 @@ public:
 
         if (Blocks == 1)
         {
-            ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+            ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IBlockDataEventHandler::BYTE_ARRAY);
         }
         else {
             auto values = this->values();
 
             for (int32_t c = 0; c < size_; c++)
             {
-                handler->value("DATA_ITEM", PageValueProviderFactory::provider(Blocks, [&](int32_t idx) {
+                handler->value("DATA_ITEM", BlockValueProviderFactory::provider(Blocks, [&](int32_t idx) {
                     return values + c * Blocks + idx;
                 }));
             }

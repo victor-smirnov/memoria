@@ -24,12 +24,12 @@
 namespace memoria {
 namespace v1 {
 
-template <typename T> class PageID;
+template <typename T> class BlockID;
 
 
 
 class IDValue {
-    int8_t data_[8];
+    int8_t data_[16];
 public:
     IDValue() {
         clear();
@@ -52,14 +52,14 @@ public:
     }
 
     template <typename T>
-    IDValue(const PageID<T>& id)
+    IDValue(const BlockID<T>& id)
     {
         clear();
         id.copyTo(ptr());
     }
 
     template <typename T>
-    IDValue& operator=(const PageID<T>& id)
+    IDValue& operator=(const BlockID<T>& id)
     {
         clear();
         id.copyTo(ptr());

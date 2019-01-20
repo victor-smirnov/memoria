@@ -462,7 +462,7 @@ public:
 
 
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startStruct();
         handler->startGroup("VMO_TREE");

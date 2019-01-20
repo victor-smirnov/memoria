@@ -995,7 +995,7 @@ public:
     }
 
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
 
@@ -1034,7 +1034,7 @@ public:
 
         auto offsets = this->offsets();
 
-        handler->value("OFFSETS", offsets, offsets_num, IPageDataEventHandler::BYTE_ARRAY);
+        handler->value("OFFSETS", offsets, offsets_num, IBlockDataEventHandler::BYTE_ARRAY);
 
         handler->endGroup();
 
@@ -1056,7 +1056,7 @@ public:
             auto len = codec.decode(values, value, position);
             position += len;
 
-            handler->value("TREE_ITEM", PageValueProviderFactory::provider(value));
+            handler->value("TREE_ITEM", BlockValueProviderFactory::provider(value));
         }
 
         handler->endGroup();

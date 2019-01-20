@@ -130,13 +130,13 @@ typename CtrApiBase<CtrName, Profile>::CtrID CtrApiBase<CtrName, Profile>::name(
 }
 
 template <typename CtrName, typename Profile>
-const ContainerMetadataPtr& CtrApiBase<CtrName, Profile>::metadata() {
+const ContainerMetadataPtr<Profile>& CtrApiBase<CtrName, Profile>::metadata() {
     return CtrT::getMetadata();
 }
 
 
 template <typename CtrName, typename Profile>
-ContainerMetadataPtr CtrApiBase<CtrName, Profile>::init() {
+ContainerMetadataPtr<Profile> CtrApiBase<CtrName, Profile>::init() {
     return CtrT::getMetadata();
 }
 

@@ -28,36 +28,36 @@ namespace v1 {
 namespace persistent_inmem {
 
 namespace _ {
-    using PageSet = std::unordered_set<const void*>;
+    using BlockSet = std::unordered_set<const void*>;
 }
 
 class PersistentTreeStatVisitAccumulatingConsumer {
 
-    _::PageSet& visited_pages_;
+    _::BlockSet& visited_pages_;
 
 public:
-    PersistentTreeStatVisitAccumulatingConsumer(_::PageSet& visits):
+    PersistentTreeStatVisitAccumulatingConsumer(_::BlockSet& visits):
         visited_pages_(visits)
     {}
 
-    template <typename PageT>
-    bool process_ptree_leaf(const PageT* page)
+    template <typename BlockT>
+    bool process_ptree_leaf(const BlockT* page)
     {
         bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
         visited_pages_.insert(page);
         return proceed_next;
     }
 
-    template <typename PageT>
-    bool process_ptree_branch(const PageT* page)
+    template <typename BlockT>
+    bool process_ptree_branch(const BlockT* page)
     {
         bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
         visited_pages_.insert(page);
         return proceed_next;
     }
 
-    template <typename PageT>
-    void process_data_page(const PageT* page)
+    template <typename BlockT>
+    void process_data_page(const BlockT* page)
     {
         visited_pages_.insert(page);
     }
@@ -79,10 +79,11 @@ template <typename Snapshot>
 class SnapshotStatsCountingConsumer {
 
     Snapshot* current_snapshot_{};
-    _::PageSet& visited_pages_;
+    _::BlockSet& visited_pages_;
     bool include_containers_;
 
     using CtrID = typename Snapshot::CtrID;
+    using Profile = typename Snapshot::ProfileT;
 
     std::unordered_map<CtrID, CtrStat> ctr_stat_{};
 
@@ -92,47 +93,47 @@ class SnapshotStatsCountingConsumer {
 
 
 public:
-    SnapshotStatsCountingConsumer(_::PageSet& visits, Snapshot* snp, bool include_containers):
+    SnapshotStatsCountingConsumer(_::BlockSet& visits, Snapshot* snp, bool include_containers):
         current_snapshot_(snp),
         visited_pages_(visits),
         include_containers_(include_containers)
     {}
 
-    template <typename PageT>
-    bool process_ptree_leaf(const PageT* page)
+    template <typename BlockT>
+    bool process_ptree_leaf(const BlockT* page)
     {
         bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
         if (proceed_next)
         {
             visited_pages_.insert(page);
-            total_ptree_size_ += sizeof(PageT) / 1024;
+            total_ptree_size_ += sizeof(BlockT) / 1024;
         }
 
         return proceed_next;
     }
 
-    template <typename PageT>
-    bool process_ptree_branch(const PageT* page)
+    template <typename BlockT>
+    bool process_ptree_branch(const BlockT* page)
     {
         bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
         if (proceed_next)
         {
             visited_pages_.insert(page);
-            total_ptree_size_ += sizeof(PageT) / 1024;
+            total_ptree_size_ += sizeof(BlockT) / 1024;
         }
 
         return proceed_next;
     }
 
-    template <typename PageT>
-    void process_data_page(const PageT* page)
+    template <typename BlockT>
+    void process_data_page(const BlockT* page)
     {
         bool proceed_next = visited_pages_.find(page) == visited_pages_.end();
         if (proceed_next)
         {
             if (include_containers_)
             {
-                CtrPageDescription descr = current_snapshot_->describe_block(page->id());
+                CtrBlockDescription<Profile> descr = current_snapshot_->describe_block(page->id());
 
                 CtrStat& stat = ctr_stat_[descr.ctr_name()];
 

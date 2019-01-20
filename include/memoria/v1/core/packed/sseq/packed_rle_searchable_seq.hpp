@@ -25,7 +25,7 @@
 #include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/bignum/primitive_codec.hpp>
 
-#include <memoria/v1/metadata/page.hpp>
+#include <memoria/v1/metadata/block.hpp>
 
 #include "rleseq/rleseq_reindex_fn.hpp"
 #include "rleseq/rleseq_iterator.hpp"
@@ -1480,7 +1480,7 @@ public:
     }
 
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("PACKED_RLE_SEQUENCE");
         auto meta = this->metadata();
@@ -1496,7 +1496,7 @@ public:
             handler->endGroup();
         }
 
-        handler->value("OFFSETS", PageValueProviderFactory::provider(true, number_of_offsets(), [&](int32_t idx) {
+        handler->value("OFFSETS", BlockValueProviderFactory::provider(true, number_of_offsets(), [&](int32_t idx) {
             return offsets()[idx];
         }));
 

@@ -50,7 +50,7 @@ public:
     using Base      = InMemAllocatorBase<Profile, ThreadInMemAllocatorImpl<Profile>>;
     using MyType    = ThreadInMemAllocatorImpl<Profile>;
     
-    using typename Base::Page;
+    using typename Base::BlockType;
 
     using SnapshotT             = persistent_inmem::ThreadSnapshot<Profile, MyType>;
     using SnapshotPtr           = SnpSharedPtr<SnapshotT>;
@@ -68,7 +68,7 @@ public:
     using typename Base::HistoryNodeBuffer;
     using typename Base::SnapshotID;
     using typename Base::BlockID;
-    using typename Base::RCPageSet;
+    using typename Base::RCBlockSet;
     using typename Base::Checksum;
     
     using Base::load;
@@ -500,12 +500,12 @@ public:
         }
     }
 
-    ContainerMetadataRepository* getMetadata() const
+    ContainerMetadataRepository<Profile>* getMetadata() const
     {
         return metadata_;
     }
 
-    virtual void walkContainers(ContainerWalker* walker, const char16_t* allocator_descr = nullptr)
+    virtual void walkContainers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr)
     {
     	this->build_snapshot_labels_metadata();
 
@@ -535,7 +535,7 @@ private:
 
         write_metadata(*output);
 
-        RCPageSet stored_pages;
+        RCBlockSet stored_pages;
 
         walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) {
             write_history_node(*output, history_tree_node, stored_pages);
@@ -602,7 +602,7 @@ public:
     {
         LockGuardT lock_guard(mutex_);
 
-        _::PageSet visited_pages;
+        _::BlockSet visited_pages;
 
         SharedPtr<AllocatorMemoryStat> alloc_stat = MakeShared<AllocatorMemoryStat>(0);
 
@@ -650,7 +650,7 @@ protected:
         }
     }
 
-    void walk_containers(HistoryNode* node, ContainerWalker* walker)
+    void walk_containers(HistoryNode* node, ContainerWalker<Profile>* walker)
     {
     	SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
 
@@ -866,13 +866,13 @@ void ThreadInMemAllocator<Profile>::set_branch(U16StringRef name, const Snapshot
 }
 
 template <typename Profile>
-ContainerMetadataRepository* ThreadInMemAllocator<Profile>::metadata() const 
+ContainerMetadataRepository<Profile>* ThreadInMemAllocator<Profile>::metadata() const
 {
     return pimpl_->getMetadata();
 }
 
 template <typename Profile>
-void ThreadInMemAllocator<Profile>::walk_containers(ContainerWalker* walker, const char16_t* allocator_descr)
+void ThreadInMemAllocator<Profile>::walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr)
 {
      return pimpl_->walkContainers(walker, allocator_descr);
 }

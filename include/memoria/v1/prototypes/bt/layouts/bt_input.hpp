@@ -644,13 +644,13 @@ public:
 
     struct GenerateDataEventsFn {
         template <int32_t Idx, typename Tree>
-        void stream(const Tree* tree, IPageDataEventHandler* handler)
+        void stream(const Tree* tree, IBlockDataEventHandler* handler)
         {
             tree->generateDataEvents(handler);
         }
     };
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
         Dispatcher::dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);

@@ -49,7 +49,7 @@ struct EmptyMainWalker {
 
 template <typename T>
 struct ValueHelper {
-    static void setup(IPageDataEventHandler* handler, const T& value)
+    static void setup(IBlockDataEventHandler* handler, const T& value)
     {
         handler->value("VALUE", &value);
     }
@@ -59,7 +59,7 @@ template <typename T>
 struct ValueHelper<PageID<T> > {
     typedef PageID<T>                                                   Type;
 
-    static void setup(IPageDataEventHandler* handler, const Type& value)
+    static void setup(IBlockDataEventHandler* handler, const Type& value)
     {
         IDValue id(&value);
         handler->value("VALUE", &id);
@@ -70,7 +70,7 @@ template <>
 struct ValueHelper<EmptyValue> {
     typedef EmptyValue Type;
 
-    static void setup(IPageDataEventHandler* handler, const Type& value)
+    static void setup(IBlockDataEventHandler* handler, const Type& value)
     {
         int64_t val = 0;
         handler->value("VALUE", &val);
@@ -141,7 +141,7 @@ public:
     PackedSeq() {}
 
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->startGroup("PACKED_TREE");
 

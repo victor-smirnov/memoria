@@ -226,7 +226,7 @@ public:
 
 public:
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
 
@@ -1619,13 +1619,13 @@ public:
 
     struct GenerateDataEventsFn {
         template <int32_t Idx, typename Tree>
-        void stream(const Tree* tree, IPageDataEventHandler* handler)
+        void stream(const Tree* tree, IBlockDataEventHandler* handler)
         {
             tree->generateDataEvents(handler);
         }
     };
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
 
@@ -1696,8 +1696,9 @@ class NodePageAdaptor: public TreeNode<Types>
 {
 public:
 
-    using MyType = NodePageAdaptor<TreeNode, Types>;
-    using Base   = TreeNode<Types>;
+    using MyType  = NodePageAdaptor<TreeNode, Types>;
+    using Base    = TreeNode<Types>;
+    using Profile = typename Types::Profile;
 
     static const uint64_t PAGE_HASH = TypeHashV<Base>;
 
@@ -1711,7 +1712,7 @@ public:
     friend class NodePageAdaptor;
 
 private:
-    static PageMetadataPtr page_metadata_;
+    static BlockMetadataPtr<Profile> block_metadata_;
 
 public:
     NodePageAdaptor() = default;
@@ -1720,15 +1721,17 @@ public:
         return PAGE_HASH;
     }
 
-    static const PageMetadataPtr& page_metadata() {
-        return page_metadata_;
+    static const BlockMetadataPtr<Profile>& page_metadata() {
+        return block_metadata_;
     }
 
-    class PageOperations: public IPageOperations
+    class BlockOperations: public IBlockOperations<Profile>
     {
-        virtual ~PageOperations() {}
+        using typename IBlockOperations<Profile>::BlockType;
 
-        virtual int32_t serialize(const void* page, void* buf) const
+        virtual ~BlockOperations() noexcept {}
+
+        virtual int32_t serialize(const BlockType* page, void* buf) const
         {
             const MyType* me = T2T<const MyType*>(page);
 
@@ -1740,7 +1743,7 @@ public:
             return data.total;
         }
 
-        virtual void deserialize(const void* buf, int32_t buf_size, void* page) const
+        virtual void deserialize(const void* buf, int32_t buf_size, BlockType* page) const
         {
             MyType* me = T2T<MyType*>(page);
 
@@ -1750,13 +1753,13 @@ public:
             me->template deserialize<FieldFactory>(data);
         }
 
-        virtual int32_t getPageSize(const void *page) const
+        virtual int32_t getPageSize(const BlockType *page) const
         {
             const MyType* me = T2T<const MyType*>(page);
             return me->page_size();
         }
 
-        virtual void resize(const void* page, void* buffer, int32_t new_size) const
+        virtual void resize(const BlockType* page, void* buffer, int32_t new_size) const
         {
 //            const MyType* me = T2T<const MyType*>(page);
             MyType* tgt = T2T<MyType*>(buffer);
@@ -1774,27 +1777,27 @@ public:
         }
 
         virtual void generateDataEvents(
-                        const void* page,
+                        const BlockType* page,
                         const DataEventsParams& params,
-                        IPageDataEventHandler* handler
+                        IBlockDataEventHandler* handler
                      ) const
         {
             const MyType* me = T2T<const MyType*>(page);
-            handler->startPage("BTREE_NODE", me);
+            handler->startBlock("BTREE_NODE", me);
             me->generateDataEvents(handler);
-            handler->endPage();
+            handler->endBlock();
         }
 
         virtual void generateLayoutEvents(
-                        const void* page,
+                        const BlockType* page,
                         const LayoutEventsParams& params,
-                        IPageLayoutEventHandler* handler
+                        IBlockLayoutEventHandler* handler
                      ) const
         {
             const MyType* me = T2T<const MyType*>(page);
-            handler->startPage("BTREE_NODE");
+            handler->startBlock("BTREE_NODE");
             me->generateLayoutEvents(handler);
-            handler->endPage();
+            handler->endBlock();
         }
     };
 
@@ -1802,17 +1805,17 @@ public:
     {
         Base::InitType();
 
-        if (!page_metadata_)
+        if (!block_metadata_)
         {
             int32_t attrs = 0;
 
-            PageOperations* ops = new PageOperations();
+            BlockOperations* ops = new BlockOperations();
 
-            page_metadata_ = metadata_make_shared<PageMetadata>("BTREE_PAGE", attrs, hash(), ops);
+            block_metadata_ = metadata_make_shared<BlockMetadata<Profile>>("BTREE_BLOCK", attrs, hash(), ops);
         }
         else {}
 
-        return page_metadata_->hash();
+        return block_metadata_->hash();
     }
 };
 
@@ -1821,7 +1824,7 @@ template <
     template <typename> class TreeNode,
     typename Types
 >
-PageMetadataPtr NodePageAdaptor<TreeNode, Types>::page_metadata_;
+BlockMetadataPtr<typename Types::Profile> NodePageAdaptor<TreeNode, Types>::block_metadata_;
 
 }
 

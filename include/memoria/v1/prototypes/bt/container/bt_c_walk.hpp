@@ -36,6 +36,8 @@ public:
     using typename Base::BlockID;
     using typename Base::CtrID;
 
+    using ProfileT = typename Types::Profile;
+
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
     using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
@@ -45,7 +47,7 @@ public:
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
 
-    void walkTree(ContainerWalker* walker)
+    void walkTree(ContainerWalker<ProfileT>* walker)
     {
         auto& self = this->self();
 
@@ -62,7 +64,7 @@ public:
         walker->endCtr();
     }
 
-    void beginNode(const NodeBaseG& node, ContainerWalker* walker)
+    void beginNode(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
     {
         if (node->is_root())
         {
@@ -83,7 +85,7 @@ public:
         }
     }
 
-    void endNode(const NodeBaseG& node, ContainerWalker* walker)
+    void endNode(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
     {
         if (node->is_root())
         {
@@ -153,7 +155,7 @@ private:
         return new_node;
     }
 
-    void traverseTree(const NodeBaseG& node, ContainerWalker* walker)
+    void traverseTree(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
     {
         auto& self = this->self();
 

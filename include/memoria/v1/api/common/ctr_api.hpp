@@ -126,8 +126,8 @@ public:
     const CtrPtr& ptr() const;
     
     CtrID name();
-    const ContainerMetadataPtr& metadata();
-    static ContainerMetadataPtr init();
+    const ContainerMetadataPtr<Profile>& metadata();
+    static ContainerMetadataPtr<Profile> init();
 
     static void do_link();
 

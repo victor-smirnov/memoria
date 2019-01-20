@@ -575,7 +575,7 @@ Optional<U16String> ThreadInMemSnapshot<Profile>::ctr_type_name_for(const CtrID&
 
 
 template <typename Profile>
-void ThreadInMemSnapshot<Profile>::walk_containers(ContainerWalker* walker, const char16_t* allocator_descr)
+void ThreadInMemSnapshot<Profile>::walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr)
 {
      return pimpl_->walkContainers(walker, allocator_descr);
 }
@@ -587,7 +587,7 @@ void ThreadInMemSnapshot<Profile>::reset()
 }
 
 template <typename Profile>
-ContainerMetadataRepository* ThreadInMemSnapshot<Profile>::metadata() const
+ContainerMetadataRepository<Profile>* ThreadInMemSnapshot<Profile>::metadata() const
 {
     return pimpl_->getMetadata();
 }

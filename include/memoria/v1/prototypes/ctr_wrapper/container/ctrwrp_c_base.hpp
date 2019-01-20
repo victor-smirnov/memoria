@@ -103,7 +103,7 @@ public:
 
             list.push_back(WrappedCtr::getMetadata());
 
-            Base::setMetadata(new ContainerMetadata(
+            Base::setMetadata(new ContainerMetadata<Profile>(
                                         TypeNameFactory<typename Types::ContainerTypeName>::name(),
                                         list,
                                         Base::CONTAINER_HASH,
@@ -111,7 +111,7 @@ public:
                                   )
                              );
 
-            MetadataRepository<typename Types::Profile>::registerMetadata(Base::getMetadata());
+            MetadataRepository<Profile>::registerMetadata(Base::getMetadata());
         }
 
         return hash;

@@ -855,7 +855,7 @@ public:
         return OpStatus::OK;
     }
 
-    void generateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IBlockDataEventHandler* handler) const
     {
 //        Base::generateDataEvents(handler);
 
@@ -880,7 +880,7 @@ public:
 
         for (int32_t c = 0; c < index_size; c++)
         {
-            handler->value("INDEX", PageValueProviderFactory::provider(Blocks, [&](int32_t idx) {
+            handler->value("INDEX", BlockValueProviderFactory::provider(Blocks, [&](int32_t idx) {
                 return index[idx][c];
             }));
         }
@@ -899,7 +899,7 @@ public:
 
         for (int32_t c = 0; c < meta->size(); c++)
         {
-            handler->value("TREE_ITEM", PageValueProviderFactory::provider(Blocks, [&](int32_t idx) {
+            handler->value("TREE_ITEM", BlockValueProviderFactory::provider(Blocks, [&](int32_t idx) {
                 return values[idx][c];
             }));
         }
