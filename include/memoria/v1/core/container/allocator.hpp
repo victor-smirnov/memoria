@@ -82,18 +82,18 @@ struct IAllocator: AllocatorBase {
     virtual CtrID createCtrName()                                               = 0;
 
 
-    virtual PageG getPage(const BlockID& id)                                    = 0;
-    virtual PageG getPageForUpdate(const BlockID& id)                           = 0;
+    virtual PageG getBlock(const BlockID& id)                                    = 0;
+    virtual PageG getBlockForUpdate(const BlockID& id)                           = 0;
 
-    virtual PageG updatePage(Shared* shared)                                    = 0;
-    virtual void  removePage(const ID& id)                                      = 0;
-    virtual PageG createPage(int32_t initial_size)                              = 0;
+    virtual PageG updateBlock(Shared* shared)                                    = 0;
+    virtual void  removeBlock(const ID& id)                                      = 0;
+    virtual PageG createBlock(int32_t initial_size)                              = 0;
 
-    virtual PageG clonePage(const Shared* shared, const BlockID& new_id)        = 0;
+    virtual PageG cloneBlock(const Shared* shared, const BlockID& new_id)        = 0;
 
-    virtual void  resizePage(Shared* page, int32_t new_size)                    = 0;
-    virtual void  releasePage(Shared* shared) noexcept                          = 0;
-    virtual PageG getPageG(BlockType* page)                                     = 0;
+    virtual void  resizeBlock(Shared* page, int32_t new_size)                    = 0;
+    virtual void  releaseBlock(Shared* shared) noexcept                          = 0;
+    virtual PageG getBlockG(BlockType* page)                                     = 0;
 
     virtual ID newId()                                                          = 0;
     virtual SnapshotID currentTxnId() const                                     = 0;

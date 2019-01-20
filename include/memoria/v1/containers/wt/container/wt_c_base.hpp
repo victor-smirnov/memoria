@@ -200,7 +200,7 @@ private:
 
     static ID get_ctr_root(Allocator& allocator, const ID& root_id, const UUID& ctr_name, int64_t name)
     {
-        NodeBaseG root  = allocator.getPage(root_id, ctr_name);
+        NodeBaseG root  = allocator.getBlock(root_id, ctr_name);
         Metadata  meta  = Tree::getCtrRootMetadata(root);
 
         return meta.roots(UUID(0, name));

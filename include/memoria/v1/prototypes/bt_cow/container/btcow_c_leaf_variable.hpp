@@ -340,7 +340,7 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         self.updateBranchNodes(src_parent, idx, max);
 
-        self.allocator().removePage(src->id(), self.master_name());
+        self.allocator().removeBlock(src->id(), self.master_name());
 
         fn(tgt_sizes);
 

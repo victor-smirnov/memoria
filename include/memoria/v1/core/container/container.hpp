@@ -267,7 +267,7 @@ public:
 
         void with_ctr(const BlockID& root_id, const CtrID& name, const AllocatorPtr& allocator, std::function<void(MyType&)> fn) const
         {
-            PageG page = allocator->getPage(root_id);
+            PageG page = allocator->getBlock(root_id);
 
             if (page)
             {
@@ -388,7 +388,7 @@ public:
         {
             SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
             
-            PageG page = alloc->getPage(root_id);
+            PageG page = alloc->getBlock(root_id);
 
             if (page)
             {

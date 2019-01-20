@@ -112,7 +112,7 @@ MEMORIA_V1_CONTAINER_PART_END
  *
  * \return number of removed entries
  *
- * \see removeAllPages, removePagesFromStart, removePagesAtEnd, removePages
+ * \see removeAllPages, removeBlocksFromStart, removeBlocksAtEnd, removeBlocks
  * \see mergeWithRightSibling, addTotalKeyCount
  */
 

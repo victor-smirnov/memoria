@@ -53,24 +53,24 @@ public:
 
 
 
-    virtual PageG getPage(const ID& id, const UUID& name)
+    virtual PageG getBlock(const ID& id, const UUID& name)
     {
-        return self().allocator().getPage(id, name);
+        return self().allocator().getBlock(id, name);
     }
 
-    virtual PageG getPageForUpdate(const ID& id, const UUID& name)
+    virtual PageG getBlockForUpdate(const ID& id, const UUID& name)
     {
-        return self().allocator().getPageForUpdate(id, name);
+        return self().allocator().getBlockForUpdate(id, name);
     }
 
     virtual PageG updatePage(Shared* shared, const UUID& name);
 
-    virtual void  removePage(const ID& id, const UUID& name);
+    virtual void  removeBlock(const ID& id, const UUID& name);
 
-    virtual PageG createPage(int32_t initial_size, const UUID& name);
+    virtual PageG createBlock(int32_t initial_size, const UUID& name);
 
 
-    virtual PageG getPageG(Page* page);
+    virtual PageG getBlockG(Page* page);
 
     virtual void  resizePage(Shared* page, int32_t new_size);
 
@@ -111,8 +111,8 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-typename M_TYPE::PageG M_TYPE::getPageG(Page* page) {
-    return self().allocator().getPageG(page);
+typename M_TYPE::PageG M_TYPE::getBlockG(Page* page) {
+    return self().allocator().getBlockG(page);
 }
 
 M_PARAMS
@@ -121,13 +121,13 @@ typename M_TYPE::PageG M_TYPE::updatePage(Shared* shared, const UUID& name) {
 }
 
 M_PARAMS
-void M_TYPE::removePage(const ID& id, const UUID& name) {
-    self().allocator().removePage(id, name);
+void M_TYPE::removeBlock(const ID& id, const UUID& name) {
+    self().allocator().removeBlock(id, name);
 }
 
 M_PARAMS
-typename M_TYPE::PageG M_TYPE::createPage(int32_t initial_size, const UUID& name) {
-    return self().allocator().createPage(initial_size, name);
+typename M_TYPE::PageG M_TYPE::createBlock(int32_t initial_size, const UUID& name) {
+    return self().allocator().createBlock(initial_size, name);
 }
 
 M_PARAMS

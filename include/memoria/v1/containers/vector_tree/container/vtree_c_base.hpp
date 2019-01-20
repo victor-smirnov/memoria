@@ -194,7 +194,7 @@ private:
         typedef typename Tree::NodeBaseG   NodeBaseG;
         typedef typename Tree::Metadata    Metadata;
 
-        NodeBaseG root  = allocator.getPage(root_id, ctr_name);
+        NodeBaseG root  = allocator.getBlock(root_id, ctr_name);
         Metadata  meta  = Tree::getCtrRootMetadata(root);
 
         return meta.roots(UUID(0, name));

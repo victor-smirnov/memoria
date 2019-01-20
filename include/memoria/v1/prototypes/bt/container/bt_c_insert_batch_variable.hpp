@@ -186,7 +186,7 @@ public:
             if (head_.isSet())
             {
                 auto node = head_;
-                head_ = ctr_.allocator().getPage(head_->next_leaf_id(), ctr_.master_name());
+                head_ = ctr_.allocator().getBlock(head_->next_leaf_id(), ctr_.master_name());
                 size_--;
                 return node;
             }

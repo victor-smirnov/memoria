@@ -497,7 +497,7 @@ private:
     {
         if (delegate_ && delegate_->unref() == 0)
         {
-            delegate_->allocator()->releasePage(delegate_);
+            delegate_->allocator()->releaseBlock(delegate_);
             delegate_ = nullptr;
         }
     }
@@ -687,7 +687,7 @@ public:
     {
         if (shared_)// && !shared_->updated())
         {
-            auto guard = shared_->allocator()->updatePage(shared_);
+            auto guard = shared_->allocator()->updateBlock(shared_);
 
             if (guard.shared() != shared_)
             {
@@ -700,7 +700,7 @@ public:
     {
         if (shared_ != nullptr)
         {
-            shared_->allocator()->resizePage(shared_, new_size);
+            shared_->allocator()->resizeBlock(shared_, new_size);
         }
     }
 
@@ -740,7 +740,7 @@ private:
         {
             if (shared_->unref() == 0)
             {
-                shared_->allocator()->releasePage(shared_);
+                shared_->allocator()->releaseBlock(shared_);
             }
         }
     }

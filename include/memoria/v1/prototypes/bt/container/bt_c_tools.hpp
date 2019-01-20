@@ -56,13 +56,13 @@ public:
     NodeBaseG getRoot() const
     {
         auto& self = this->self();
-        return self.allocator().getPage(self.root());
+        return self.allocator().getBlock(self.root());
     }
 
     NodeBaseG getRootForUpdate() const
     {
         auto& self = this->self();
-        return self.allocator().getPageForUpdate(self.root());
+        return self.allocator().getBlockForUpdate(self.root());
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(DumpBlockSizesFn, dumpBlockSizes);
@@ -176,14 +176,14 @@ protected:
     NodeBaseG getChildFn(const Node* node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.allocator().getPage(node->value(idx));
+        return self.allocator().getBlock(node->value(idx));
     }
 
     template <typename Node>
     NodeBaseG getLastChildFn(const Node* node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.allocator().getPage(node->value(node->size() - 1));
+        return self.allocator().getBlock(node->value(node->size() - 1));
     }
 
 
@@ -191,7 +191,7 @@ protected:
     NodeBaseG getChildForUpdateFn(const Node* node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.allocator().getPageForUpdate(node->value(idx));
+        return self.allocator().getBlockForUpdate(node->value(idx));
     }
 
 
