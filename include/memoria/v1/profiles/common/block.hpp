@@ -224,8 +224,6 @@ public:
     //Rebuild block content such indexes using provided data.
     void Rebiuild(){}
 
-    void generateLayoutEvents(IBlockLayoutEventHandler* handler) const {}
-
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
         handler->value("GID",               &uuid_);

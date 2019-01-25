@@ -28,6 +28,8 @@
 
 #include <memoria/v1/profiles/common/common.hpp>
 
+#include <memoria/v1/core/graph/graph.hpp>
+
 #include <tuple>
 #include <functional>
 #include <sstream>
@@ -36,22 +38,6 @@ namespace memoria {
 namespace v1 {
 
 template <typename T> class BlockID;
-
-enum {BTREE = 1, ROOT = 2, LEAF = 4, BITMAP = 8};
-
-struct IBlockLayoutEventHandler {
-
-    virtual void startBlock(const char* name)                                       = 0;
-    virtual void endBlock()                                                         = 0;
-
-    virtual void startGroup(const char* name, int32_t elements = -1)                = 0;
-    virtual void endGroup()                                                         = 0;
-
-    virtual void Layout(const char* name, int32_t type, int32_t ptr, int32_t size, int32_t count)   = 0;
-
-    virtual ~IBlockLayoutEventHandler() noexcept {}
-};
-
 
 struct BlockDataValueProvider {
     virtual ~BlockDataValueProvider() noexcept {}
@@ -109,27 +95,32 @@ struct LayoutEventsParams {};
 template <typename Profile>
 struct IBlockOperations {
 
+    virtual ~IBlockOperations() noexcept {}
+
     using BlockType = ProfileBlockType<Profile>;
     using BlockID   = ProfileBlockID<Profile>;
 
-    virtual int32_t serialize(const BlockType* block, void* buf) const                               = 0;
-    virtual void deserialize(const void* buf, int32_t buf_size, BlockType* block) const              = 0;
-    virtual int32_t getBlockSize(const BlockType* block) const                                       = 0;
+    virtual int32_t serialize(const BlockType* block, void* buf) const                          = 0;
+    virtual void deserialize(const void* buf, int32_t buf_size, BlockType* block) const         = 0;
 
-    virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const                = 0;
+    virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const           = 0;
 
     virtual void generateDataEvents(
                     const BlockType* block,
                     const DataEventsParams& params,
-                    IBlockDataEventHandler* handler) const                                       = 0;
+                    IBlockDataEventHandler* handler) const                                      = 0;
 
-    virtual void generateLayoutEvents(
-                    const BlockType* block,
-                    const LayoutEventsParams& params,
-                    IBlockLayoutEventHandler* handler) const                                     = 0;
+    virtual Collection<VertexProperty> describe_block(
+            const void* buf,
+            int32_t buf_size,
+            int32_t block_size
+    ) const                                                                                     = 0;
 
-    virtual ~IBlockOperations() noexcept {}
+    virtual uint64_t block_type_hash() const                                                    = 0;
 };
+
+template <typename Profile>
+using BlockOperationsPtr = std::shared_ptr<IBlockOperations<Profile>>;
 
 
 template <typename Profile>

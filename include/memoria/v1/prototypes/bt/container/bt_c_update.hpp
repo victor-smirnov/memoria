@@ -62,7 +62,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
         if (!std::get<0>(result))
         {
-            iter.split(stream, idx);
+            SplitResult split_r = iter.split(stream, idx);
+
+            idx = split_r.stream_idx();
 
             result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
 

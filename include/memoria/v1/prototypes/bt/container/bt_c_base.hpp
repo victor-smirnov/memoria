@@ -456,7 +456,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         Graph graph     = this->graph();
         Vertex ctr_vx   = this->as_vertex();
-        Vertex block_vx  = this->block_as_vertex(block_id);
+        Vertex block_vx = this->block_as_vertex(block_id);
 
         if (is_in(direction))
         {

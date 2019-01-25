@@ -16,13 +16,16 @@
 
 #pragma once
 
+#include <memoria/v1/profiles/common/block.hpp>
+
 #include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt1.hpp>
 #include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt2.hpp>
 
+#include <vector>
 
 namespace memoria {
-namespace v1 {
-namespace bt            {
+namespace v1      {
+namespace bt      {
 
 
 template <typename Types, int idx> class NDT0;
@@ -223,6 +226,13 @@ public:
         list.push_back(Head::block_metadata());
         NextNDT0::buildMetadataList(list);
     }
+
+    template <typename T>
+    static void build_metadata_list(std::vector<T> &list)
+    {
+        list.push_back(Head::block_operations());
+        NextNDT0::build_metadata_list(list);
+    }
 };
 
 
@@ -245,8 +255,6 @@ public:
     using NodeBaseG = typename Types::NodeBaseG;
 
     using StartNDT1 = NDT1<Types, ListSize<typename Types::List> - 1>;
-
-
 
 
 public:
@@ -397,6 +405,12 @@ public:
     static void buildMetadataList(MetadataList &list) {
         Head::initMetadata();
         list.push_back(Head::block_metadata());
+    }
+
+    template <typename T>
+    static void build_metadata_list(std::vector<T> &list)
+    {
+        list.push_back(Head::block_operations());
     }
 };
 

@@ -46,12 +46,10 @@
 #include <memoria/v1/core/graph/graph_default_edge.hpp>
 #include <memoria/v1/core/graph/graph_default_vertex_property.hpp>
 
+#include <memoria/v1/profiles/common/metadata.hpp>
 
 #include <string>
 #include <memory>
-
-
-
 
 #define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() \
         throw Exception(MMA1_SOURCE, SBuf() << "Method is not implemented for " << me()->typeName())
@@ -221,8 +219,26 @@ public:
         return CONTAINER_HASH;
     }
 
+    struct NodesInit {
+        NodesInit()
+        {
+            std::vector<BlockOperationsPtr<ProfileT>> list;
+            Types::Blocks::NodeDispatcher::build_metadata_list(list);
+
+            for (auto& ptr: list)
+            {
+                ProfileMetadata<ProfileT>::get_thread_local()->add_block_metadata(
+                            static_cast<uint64_t>(CONTAINER_HASH),
+                            std::move(ptr)
+                );
+            }
+        }
+    };
+
     static const ContainerMetadataPtr<ProfileT>& getMetadata()
     {
+        static thread_local NodesInit nodes_init;
+
         static thread_local ContainerMetadataPtr<ProfileT> reflection(std::make_shared<ContainerMetadata<ProfileT>>(
             TypeNameFactory<Name>::name(),
             (Types*)nullptr,

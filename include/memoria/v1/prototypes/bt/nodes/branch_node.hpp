@@ -1725,7 +1725,7 @@ public:
         return block_metadata_;
     }
 
-    class BlockOperations: public IBlockOperations<Profile>
+    struct BlockOperations: public IBlockOperations<Profile>
     {
         using typename IBlockOperations<Profile>::BlockType;
 
@@ -1753,26 +1753,9 @@ public:
             me->template deserialize<FieldFactory>(data);
         }
 
-        virtual int32_t getBlockSize(const BlockType *block) const
-        {
-            const MyType* me = T2T<const MyType*>(block);
-            return me->memory_block_size();
-        }
-
         virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const
         {
-//            const MyType* me = T2T<const MyType*>(block);
             MyType* tgt = T2T<MyType*>(buffer);
-//
-//            tgt->copyFrom(me);
-//            tgt->memory_block_size() = new_size;
-//            tgt->init();
-//
-//            me->transferDataTo(tgt);
-//
-//            tgt->clearUnused();
-//            tgt->reindex();
-
             tgt->resizePage(new_size);
         }
 
@@ -1780,7 +1763,7 @@ public:
                         const BlockType* block,
                         const DataEventsParams& params,
                         IBlockDataEventHandler* handler
-                     ) const
+        ) const
         {
             const MyType* me = T2T<const MyType*>(block);
             handler->startBlock("BTREE_NODE", me);
@@ -1788,18 +1771,63 @@ public:
             handler->endBlock();
         }
 
-        virtual void generateLayoutEvents(
-                        const BlockType* block,
-                        const LayoutEventsParams& params,
-                        IBlockLayoutEventHandler* handler
-                     ) const
+
+        virtual Collection<VertexProperty> describe_block(
+                const void* buf,
+                int32_t buf_size,
+                int32_t block_size
+        ) const
         {
-            const MyType* me = T2T<const MyType*>(block);
-            handler->startBlock("BTREE_NODE");
-            me->generateLayoutEvents(handler);
-            handler->endBlock();
+            auto block_mem = allocate_system<uint8_t>(block_size);
+            MyType* block = T2T<MyType*>(block_mem.get());
+
+            deserialize(buf, buf_size, block);
+
+            std::vector<VertexProperty> props;
+
+            Vertex vx;
+
+            props.emplace_back(DefaultVertexProperty::make(
+                vx,
+                u"CtrType",
+                U16String(TypeNameFactory<typename Types::Name>::name())
+            ));
+
+            CtrBlockType block_type{};
+
+            if (block->is_root() && block->is_leaf()) {
+                block_type = CtrBlockType::ROOT_LEAF;
+            }
+            else if (block->is_root() && !block->is_leaf()) {
+                block_type = CtrBlockType::ROOT;
+            }
+            else if ((!block->is_root()) && block->is_leaf()) {
+                block_type = CtrBlockType::LEAF;
+            }
+            else {
+                block_type = CtrBlockType::INTERNAL;
+            }
+
+            props.emplace_back(DefaultVertexProperty::make(vx, u"type", block_type));
+
+            std::stringstream sbuf;
+
+            TextBlockDumper dumper(sbuf);
+            this->generateDataEvents(block, DataEventsParams(), &dumper);
+
+            props.emplace_back(DefaultVertexProperty::make(vx, u"content", U16String(sbuf.str())));
+
+            return STLCollection<VertexProperty>::make(std::move(props));
+        }
+
+        virtual uint64_t block_type_hash() const {
+            return MyType::BLOCK_HASH;
         }
     };
+
+    static BlockOperationsPtr<Profile> block_operations() {
+        return std::make_shared<BlockOperations>();
+    }
 
     static uint64_t initMetadata()
     {

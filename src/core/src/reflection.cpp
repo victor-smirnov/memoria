@@ -18,6 +18,9 @@
 #include <memoria/v1/core/strings/string.hpp>
 #include <memoria/v1/metadata/container.hpp>
 
+#include <memoria/v1/profiles/common/metadata.hpp>
+#include <memoria/v1/profiles/default/default.hpp>
+
 #ifndef MMA1_NO_REACTOR
 #   include <memoria/v1/reactor/reactor.hpp>
 #endif
@@ -29,6 +32,15 @@ namespace v1 {
 std::ostream& operator<<(std::ostream& os, const IDValue& id) {
     os << id.str();
     return os;
+}
+
+template class ProfileMetadata<DefaultProfile<>>;
+
+
+namespace {
+
+ProfileMetadata<DefaultProfile<>>::Init init_def;
+
 }
 
 }}
