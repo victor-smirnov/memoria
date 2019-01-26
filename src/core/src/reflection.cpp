@@ -16,7 +16,7 @@
 
 
 #include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/metadata/container.hpp>
+#include <memoria/v1/profiles/common/container_operations.hpp>
 
 #include <memoria/v1/profiles/common/metadata.hpp>
 #include <memoria/v1/profiles/default/default.hpp>

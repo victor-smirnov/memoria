@@ -25,7 +25,7 @@
 #include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/bignum/primitive_codec.hpp>
 
-#include <memoria/v1/metadata/block.hpp>
+#include <memoria/v1/profiles/common/block_operations.hpp>
 
 #include "rleseq/rleseq_reindex_fn.hpp"
 #include "rleseq/rleseq_iterator.hpp"

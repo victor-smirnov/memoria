@@ -129,15 +129,17 @@ typename CtrApiBase<CtrName, Profile>::CtrID CtrApiBase<CtrName, Profile>::name(
     return this->pimpl_->name();
 }
 
+
 template <typename CtrName, typename Profile>
-const ContainerMetadataPtr<Profile>& CtrApiBase<CtrName, Profile>::metadata() {
-    return CtrT::getMetadata();
+ContainerOperationsPtr<Profile> CtrApiBase<CtrName, Profile>::continer_interface()
+{
+    return CtrT::getContainerOperations();
 }
 
 
 template <typename CtrName, typename Profile>
-ContainerMetadataPtr<Profile> CtrApiBase<CtrName, Profile>::init() {
-    return CtrT::getMetadata();
+void CtrApiBase<CtrName, Profile>::init_profile_metadata() {
+    CtrT::init_profile_metadata();
 }
 
 template <typename CtrName, typename Profile>

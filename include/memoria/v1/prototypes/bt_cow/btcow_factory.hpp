@@ -151,7 +151,7 @@ struct BTCowTypes {
             bt::IteratorLeafName
     >;
 
-    using ContainerInterface = EmptyType;
+    using ContainerOperations = EmptyType;
     using IteratorInterface  = EmptyType;
     using IteratorData 		 = EmptyType;
 

@@ -16,8 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/metadata/metadata.hpp>
-#include <memoria/v1/metadata/block.hpp>
+#include <memoria/v1/profiles/common/block_operations.hpp>
 
 #include <memoria/v1/core/tools/buffer.hpp>
 #include <memoria/v1/core/tools/id.hpp>

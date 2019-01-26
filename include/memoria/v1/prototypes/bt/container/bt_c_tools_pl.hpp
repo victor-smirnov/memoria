@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/metadata/tools.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 #include <memoria/v1/core/strings/string.hpp>
 

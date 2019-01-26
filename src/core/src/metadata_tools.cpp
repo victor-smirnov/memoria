@@ -16,8 +16,8 @@
 
 
 
-#include <memoria/v1/metadata/tools.hpp>
-#include <memoria/v1/metadata/block.hpp>
+
+#include <memoria/v1/profiles/common/block_operations.hpp>
 #include <memoria/v1/core/tools/dump.hpp>
 
 #ifndef MMA1_NO_REACTOR

@@ -24,7 +24,6 @@
 #include <memoria/v1/core/types/typelist.hpp>
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/metadata/metadata.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -32,8 +31,6 @@ namespace v1 {
 
 template <typename Profile, typename BlockType, typename List>
 class BlockDispatcher {
-
-    //typedef typename BlockType::ID                                              BlockId;
 
     typedef typename List::Head                                                 ContainerType;
     typedef typename ContainerType::Types::Blocks::NodeDispatcher               NodeDispatcher;

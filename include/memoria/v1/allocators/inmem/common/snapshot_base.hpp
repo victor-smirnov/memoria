@@ -146,8 +146,6 @@ protected:
 
     CtrInstanceMap instance_map_;
 
-    ContainerMetadataRepository<Profile>* metadata_; //FIXME:: make it static thread local or remove at all
-
     template <typename>
     friend class ThreadInMemAllocatorImpl;
     
@@ -178,12 +176,9 @@ public:
         history_tree_(history_tree),
         history_tree_raw_(history_tree.get()),
         persistent_tree_(history_node_),
-        logger_("PersistentInMemAllocatorSnp", Logger::DERIVED, &history_tree->logger_),
-        metadata_(MetadataRepository<Profile>::getMetadata())
+        logger_("PersistentInMemAllocatorSnp", Logger::DERIVED, &history_tree->logger_)
     {
-        //root_map_->getMetadata();
-        
-    	history_node_->ref();
+        history_node_->ref();
 
         if (history_node->is_active())
         {
@@ -199,12 +194,9 @@ public:
         history_node_(history_node),
         history_tree_raw_(history_tree),
         persistent_tree_(history_node_),
-        logger_("PersistentInMemAllocatorTxn"),
-        metadata_(MetadataRepository<Profile>::getMetadata())
+        logger_("PersistentInMemAllocatorSnp")
     {
-        //root_map_->getMetadata();
-        
-    	history_node_->ref();
+        history_node_->ref();
 
         if (history_node->is_active())
         {
@@ -223,8 +215,8 @@ public:
         root_map_->reset_allocator_holder();
     }
     
-    static void initMetadata() {
-        RootMapType::getMetadata();
+    static void init_profile_metadata() {
+        RootMapType::init_profile_metadata();
     }
 
 
@@ -242,10 +234,6 @@ public:
 
     const PairPtr& pair() const {
         return pair_;
-    }
-
-    ContainerMetadataRepository<Profile>* getMetadata() const {
-        return metadata_;
     }
 
     const auto& uuid() const {
@@ -309,9 +297,8 @@ public:
         {
             BlockG block = this->getBlock(root_id);
 
-            auto& ctr_meta = getMetadata()->getContainerMetadata(block->ctr_type_hash());
-
-            ctr_meta->getCtrInterface()->drop(name, this->shared_from_this());
+            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()->get_container_operations(block->ctr_type_hash());
+            ctr_intf->drop(name, this->shared_from_this());
 
             return true;
         }
@@ -329,9 +316,11 @@ public:
         if (block)
         {
             auto ctr_hash = block->ctr_type_hash();
-            auto ctr_meta = metadata_->getContainerMetadata(ctr_hash);
 
-            return ctr_meta->getCtrInterface()->ctr_type_name();
+            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+                    ->get_container_operations(ctr_hash);
+
+            return ctr_intf->ctr_type_name();
         }
         else {
             return Optional<U16String>();
@@ -365,17 +354,17 @@ public:
         }
     }
 
-    void for_each_ctr_node(const CtrID& name, typename ContainerInterface<Profile>::BlockCallbackFn fn)
+    void for_each_ctr_node(const CtrID& name, typename ContainerOperations<Profile>::BlockCallbackFn fn)
     {
     	auto root_id = this->getRootID(name);
         auto block 	 = this->getBlock(root_id);
 
         if (block)
     	{
-            auto ctr_hash   = block->ctr_type_hash();
-    		auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
+            auto ctr_hash = block->ctr_type_hash();
+            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()->get_container_operations(ctr_hash);
 
-    		ctr_meta->getCtrInterface()->for_each_ctr_node(name, this->shared_from_this(), fn);
+            ctr_intf->for_each_ctr_node(name, this->shared_from_this(), fn);
     	}
     	else {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container with name {} does not exist in snapshot {}", name, history_node_->snapshot_id()));
@@ -551,10 +540,10 @@ public:
 
         if (block)
         {
-            auto ctr_hash    = block->ctr_type_hash();
-            auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
+            auto ctr_hash = block->ctr_type_hash();
+            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()->get_container_operations(ctr_hash);
 
-            return ctr_meta->getCtrInterface()->clone_ctr(ctr_name, new_ctr_name, this->shared_from_this());
+            return ctr_intf->clone_ctr(ctr_name, new_ctr_name, this->shared_from_this());
         }
         else {
             MMA1_THROW(Exception()) << fmt::format_ex(u"Container with name {} does not exist in snapshot {} ", ctr_name, history_node_->snapshot_id());
@@ -844,11 +833,11 @@ public:
         if (shared->state() == Shared::READ)
         {
             BlockType* block = shared->get();
-            auto blockMetadata = metadata_->getBlockMetadata(block->ctr_type_hash(), block->block_type_hash());
-
             BlockType* new_block = allocate_system<BlockType>(new_size).release();
 
-            blockMetadata->getBlockOperations()->resize(block, new_block, new_size);
+            ProfileMetadata<Profile>::get_thread_local()
+                    ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
+                    ->resize(block, new_block, new_size);
 
             shared->set_block(new_block);
 
@@ -857,11 +846,11 @@ public:
         else if (shared->state() == Shared::UPDATE)
         {
             BlockType* block = shared->get();
-            auto blockMetadata = metadata_->getBlockMetadata(block->ctr_type_hash(), block->block_type_hash());
-
             BlockType* new_block = reallocate_system<BlockType>(block, new_size).release();
 
-            blockMetadata->getBlockOperations()->resize(block, new_block, new_size);
+            ProfileMetadata<Profile>::get_thread_local()
+                    ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
+                    ->resize(block, new_block, new_size);
 
             shared->set_block(new_block);
 
@@ -976,9 +965,10 @@ public:
 
             BlockG block = this->getBlock(iter->value());
 
-            auto ctr_meta = metadata_->getContainerMetadata(block->ctr_type_hash());
+            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+                    ->get_container_operations(block->ctr_type_hash());
 
-            result = ctr_meta->getCtrInterface()->check(ctr_name, this->shared_from_this()) || result;
+            result = ctr_intf->check(ctr_name, this->shared_from_this()) || result;
 
             iter->next();
         }
@@ -1008,12 +998,13 @@ public:
             auto ctr_name   = iter->key();
             auto root_id    = iter->value();
 
-            auto block       = this->getBlock(root_id);
+            auto block      = this->getBlock(root_id);
 
             auto ctr_hash   = block->ctr_type_hash();
-            auto ctr_meta   = metadata_->getContainerMetadata(ctr_hash);
+            auto ctr_intf   = ProfileMetadata<Profile>::get_thread_local()
+                    ->get_container_operations(ctr_hash);
 
-            ctr_meta->getCtrInterface()->walk(ctr_name, this->shared_from_this(), walker);
+            ctr_intf->walk(ctr_name, this->shared_from_this(), walker);
 
             iter->next();
         }
@@ -1070,9 +1061,10 @@ public:
         {
             BlockG block = this->getBlock(root_id);
 
-            auto& ctr_meta = getMetadata()->getContainerMetadata(block->ctr_type_hash());
+            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+                    ->get_container_operations(block->ctr_type_hash());
 
-            return ctr_meta->getCtrInterface()->new_ctr_instance(root_id, name, this->shared_from_this());
+            return ctr_intf->new_ctr_instance(root_id, name, this->shared_from_this());
         }
         else {
             return CtrSharedPtr<CtrReferenceable>();
@@ -1087,9 +1079,10 @@ public:
         {
             BlockG block = this->getBlock(root_id);
 
-            auto& ctr_meta = getMetadata()->getContainerMetadata(block->ctr_type_hash());
+            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+                    ->get_container_operations(block->ctr_type_hash());
 
-            return ctr_meta->getCtrInterface()->ctr_type_name();
+            return ctr_intf->ctr_type_name();
         }
         else {
             MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't find container with name {}", name);
@@ -1102,9 +1095,10 @@ public:
         {
             BlockG block = this->getBlock(root_block_id);
 
-            auto& ctr_meta = getMetadata()->getContainerMetadata(block->ctr_type_hash());
+            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+                    ->get_container_operations(block->ctr_type_hash());
 
-            return ctr_meta->getCtrInterface()->new_ctr_instance(root_block_id, name, this->shared_from_this());
+            return ctr_intf->new_ctr_instance(root_block_id, name, this->shared_from_this());
         }
         else {
             return CtrSharedPtr<CtrReferenceable>();
@@ -1119,8 +1113,10 @@ public:
 
     CtrBlockDescription<Profile> describe_block(const BlockG& block)
     {
-        auto& ctr_meta = getMetadata()->getContainerMetadata(block->ctr_type_hash());
-        return ctr_meta->getCtrInterface()->describe_block1(block->id(), this->shared_from_this());
+        auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+                ->get_container_operations(block->ctr_type_hash());
+
+        return ctr_intf->describe_block1(block->id(), this->shared_from_this());
     }
 
 protected:

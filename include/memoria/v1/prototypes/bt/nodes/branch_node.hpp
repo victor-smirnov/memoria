@@ -445,7 +445,7 @@ public:
         int32_t fixed_block_size  = block_size - sizeof(MyType) + PackedAllocator::my_size();
         int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
 
-        return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata)) - 200;
+        return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(typename Types::Metadata)) - 200;
     }
 
 
@@ -1712,7 +1712,7 @@ public:
     friend class NodePageAdaptor;
 
 private:
-    static BlockMetadataPtr<Profile> block_metadata_;
+    //static BlockMetadataPtr<Profile> block_metadata_;
 
 public:
     NodePageAdaptor() = default;
@@ -1721,9 +1721,9 @@ public:
         return BLOCK_HASH;
     }
 
-    static const BlockMetadataPtr<Profile>& block_metadata() {
-        return block_metadata_;
-    }
+//    static const BlockMetadataPtr<Profile>& block_metadata() {
+//        return block_metadata_;
+//    }
 
     struct BlockOperations: public IBlockOperations<Profile>
     {
@@ -1829,30 +1829,30 @@ public:
         return std::make_shared<BlockOperations>();
     }
 
-    static uint64_t initMetadata()
-    {
-        Base::InitType();
+//    static uint64_t initMetadata()
+//    {
+//        Base::InitType();
 
-        if (!block_metadata_)
-        {
-            int32_t attrs = 0;
+//        if (!block_metadata_)
+//        {
+//            int32_t attrs = 0;
 
-            BlockOperations* ops = new BlockOperations();
+//            BlockOperations* ops = new BlockOperations();
 
-            block_metadata_ = metadata_make_shared<BlockMetadata<Profile>>("BTREE_BLOCK", attrs, hash(), ops);
-        }
-        else {}
+//            block_metadata_ = metadata_make_shared<BlockMetadata<Profile>>("BTREE_BLOCK", attrs, hash(), ops);
+//        }
+//        else {}
 
-        return block_metadata_->hash();
-    }
+//        return block_metadata_->hash();
+//    }
 };
 
 
-template <
-    template <typename> class TreeNode,
-    typename Types
->
-BlockMetadataPtr<typename Types::Profile> NodePageAdaptor<TreeNode, Types>::block_metadata_;
+//template <
+//    template <typename> class TreeNode,
+//    typename Types
+//>
+//BlockMetadataPtr<typename Types::Profile> NodePageAdaptor<TreeNode, Types>::block_metadata_;
 
 }
 

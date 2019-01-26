@@ -140,7 +140,7 @@ struct BTTypes {
             bt::IteratorLeafName
     >                                                                           IteratorPartsList;
 
-    typedef EmptyType                                                           ContainerInterface;
+    typedef EmptyType                                                           ContainerOperations;
     typedef EmptyType                                                           IteratorInterface;
     typedef EmptyType                                                           IteratorData;
 

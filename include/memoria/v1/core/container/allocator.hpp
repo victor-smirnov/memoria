@@ -31,7 +31,7 @@
 
 #include <memoria/v1/core/tools/memory.hpp>
 
-#include <memoria/v1/metadata/container.hpp>
+#include <memoria/v1/profiles/common/container_operations.hpp>
 
 #include <memoria/v1/core/types.hpp>
 
@@ -52,13 +52,8 @@ struct IAllocatorProperties {
 };
 
 
-struct AllocatorBase {
-    virtual ~AllocatorBase() noexcept {}
-};
-
-
 template <typename Profile>
-struct IAllocator: AllocatorBase {
+struct IAllocator {
 
     enum {UNDEFINED, READ, UPDATE};
 
@@ -71,8 +66,8 @@ struct IAllocator: AllocatorBase {
     using CtrID         = ProfileCtrID<Profile>;
 
 
-    using BlockG     = BlockGuard<BlockType, MyType>;
-    using Shared    = typename BlockG::Shared;
+    using BlockG        = BlockGuard<BlockType, MyType>;
+    using Shared        = typename BlockG::Shared;
     
     virtual BlockID getRootID(const CtrID& ctr_id)                              = 0;
     virtual void setRoot(const CtrID& ctr_id, const BlockID& root)              = 0;

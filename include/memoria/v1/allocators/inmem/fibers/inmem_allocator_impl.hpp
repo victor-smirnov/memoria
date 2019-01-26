@@ -86,9 +86,7 @@ protected:
     using Base::snapshot_map_;
     using Base::named_branches_;
     using Base::master_;
-    using Base::metadata_;
     using Base::snapshot_labels_metadata;
-    //using Base::active_snapshots_;
     using Base::records_;
     using Base::write_metadata;
     using Base::write_history_node;
@@ -470,10 +468,6 @@ public:
         });
     }
 
-    ContainerMetadataRepository<Profile>* getMetadata() const
-    {
-        return metadata_;
-    }
 
     virtual void walkContainers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr)
     {
@@ -856,11 +850,6 @@ void InMemAllocator<Profile>::set_branch(U16StringRef name, const SnapshotID& tx
     pimpl_->set_branch(name, txn_id);
 }
 
-template <typename Profile>
-ContainerMetadataRepository<Profile>* InMemAllocator<Profile>::metadata() const
-{
-    return pimpl_->getMetadata();
-}
 
 template <typename Profile>
 void InMemAllocator<Profile>::walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr)

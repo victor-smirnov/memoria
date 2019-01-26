@@ -17,9 +17,7 @@
 
 #pragma once
 
-#include <memoria/v1/metadata/group.hpp>
-#include <memoria/v1/metadata/block.hpp>
-#include <memoria/v1/metadata/tools.hpp>
+#include <memoria/v1/profiles/common/block_operations.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 #include <memoria/v1/core/tools/platform.hpp>
@@ -47,8 +45,6 @@ namespace memoria {
 namespace v1 {
     
 template <typename Profile> class MetadataRepository;
-
-namespace bf = boost::filesystem;    
 
 template <typename Profile>
 struct ContainerWalker {
@@ -135,7 +131,7 @@ struct ContainerWalkerBase: ContainerWalker<Profile> {
     virtual ~ContainerWalkerBase() noexcept {}
 };
 
-struct AllocatorBase;
+
 
 template <typename Profile>
 class CtrBlockDescription {
@@ -160,19 +156,20 @@ public:
     uint64_t offset() const {return offset_;}
 };
 
+template <typename Profile> struct IAllocator;
 
 template <typename Profile>
-struct ContainerInterface {
+struct ContainerOperations {
 
     using BlockType = ProfileBlockType<Profile>;
     using BlockID   = ProfileBlockID<Profile>;
     using CtrID     = ProfileCtrID<Profile>;
 
-    virtual ~ContainerInterface() noexcept {}
+    virtual ~ContainerOperations() noexcept {}
 
     // uuid, id, block data
     using BlockCallbackFn = std::function<void(const BlockID&, const BlockID&, const BlockType*)>;
-    using AllocatorBasePtr = SnpSharedPtr<AllocatorBase>;
+    using AllocatorBasePtr = SnpSharedPtr<IAllocator<Profile>>;
 
 
     virtual Vertex describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const = 0;
@@ -227,228 +224,6 @@ struct ContainerInterface {
 };
 
 template <typename Profile>
-using ContainerInterfacePtr = std::shared_ptr<ContainerInterface<Profile>>;
-
-template <typename Profile> class MetadataRepository;
-
-template <typename Profile>
-struct ContainerMetadata: public MetadataGroup {
-public:
-
-    template <typename Types>
-    ContainerMetadata(U16StringRef name, Types* nothing, uint64_t ctr_hash, ContainerInterfacePtr<Profile> container_interface):
-        MetadataGroup(name, buildPageMetadata<Types>()),
-        container_interface_(container_interface),
-        ctr_hash_(ctr_hash)
-        
-    {
-    	MetadataGroup::set_type() = MetadataGroup::CONTAINER;
-        for (uint32_t c = 0; c < content_.size(); c++)
-        {
-            if (content_[c]->getTypeCode() == Metadata::PAGE)
-            {
-                BlockMetadataPtr<Profile> block = static_pointer_cast<BlockMetadata<Profile>> (content_[c]);
-                block_map_[block->hash() ^ ctr_hash] = block;
-            }
-            else if (content_[c]->getTypeCode() == Metadata::CONTAINER) {
-                // nothing to do
-            }
-            else {
-                //exception;
-            }
-        }
-    }
-    
-
-    virtual ~ContainerMetadata() throw ()
-    {}
-
-    virtual uint64_t ctr_hash() const {
-        return ctr_hash_;
-    }
-
-    virtual const BlockMetadataPtr<Profile>& getBlockMetadata(uint64_t model_hash, uint64_t block_hash) const
-    {
-        auto i = block_map_.find(model_hash ^ block_hash);
-        if (i != block_map_.end())
-        {
-            return i->second;
-        }
-        else {
-            MMA1_THROW(Exception()) << WhatCInfo("Unknown block type hash code");
-        }
-    }
-
-    virtual const ContainerInterfacePtr<Profile>& getCtrInterface() const
-    {
-        return container_interface_;
-    }
-    
-
-    struct RegistrationHelper {
-        RegistrationHelper(const ContainerMetadataPtr<Profile>& ptr) {
-            MetadataRepository<Profile>::registerMetadata(ptr);
-        }
-    };
-
-private:
-    
-    template <typename Types>
-    static auto buildPageMetadata() 
-    {
-        MetadataList list;
-        Types::Blocks::NodeDispatcher::buildMetadataList(list);
-        return list;
-    }
-
-    BlockMetadataMap<Profile>       block_map_;
-    ContainerInterfacePtr<Profile>  container_interface_;
-
-    uint64_t                        ctr_hash_;
-};
-
-
-
-
-
-template <typename Profile>
-struct ContainerMetadataRepository: public MetadataGroup {
-
-public:
-    ContainerMetadataRepository(U16StringRef name, const MetadataList &content):
-            MetadataGroup(name, content), hash_(0)
-    {
-        MetadataGroup::set_type() = Metadata::CONTAINER;
-
-        for (size_t c = 0; c < content_.size(); c++)
-        {
-            if (content[c]->getTypeCode() == Metadata::CONTAINER)
-            {
-                ContainerMetadataPtr<Profile> model = static_pointer_cast<ContainerMetadata<Profile>> (content_[c]);
-                process_model(model);
-            }
-            else {
-                //exception;
-            }
-        }
-    }
-
-    virtual ~ContainerMetadataRepository() noexcept
-    {
-    }
-
-    virtual uint64_t hash() const {
-        return hash_;
-    }
-
-
-
-    const BlockMetadataPtr<Profile>& getBlockMetadata(uint64_t ctr_hash, uint64_t block_hash) const
-    {
-        auto i = block_map_.find(ctr_hash ^ block_hash);
-        if (i != block_map_.end())
-        {
-            return i->second;
-        }
-        else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unknown block type hash codes {} {}", ctr_hash, block_hash));
-        }
-    }
-
-
-    const ContainerMetadataPtr<Profile>& getContainerMetadata(uint64_t hashCode) const
-    {
-        auto i = model_map_.find(hashCode);
-        if (i != model_map_.end())
-        {
-            return i->second;
-        }
-        else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unknown container hash code {}", hashCode));
-        }
-    }
-
-
-    void dumpMetadata(std::ostream& out)
-    {
-        for (auto pair: model_map_)
-        {
-            if (pair.second->getCtrInterface() != nullptr)
-            {
-                out << pair.first << ": " << pair.second->getCtrInterface()->ctr_type_name() << std::endl;
-            }
-            else {
-                out << pair.first << ": " << "Composite" << std::endl;
-            }
-        }
-    }
-    virtual void registerMetadata(const ContainerMetadataPtr<Profile>& metadata)
-    {
-    	process_model(metadata);
-    }
-
-    virtual void unregisterMetadata(const ContainerMetadataPtr<Profile>& metadata) {}
-
-
-
-private:
-    uint64_t                        hash_;
-    BlockMetadataMap<Profile>       block_map_;
-    ContainerMetadataMap<Profile>   model_map_;
-    
-    std::mutex mutex_;
-
-    void process_model(const ContainerMetadataPtr<Profile>& model)
-    {
-        if (model_map_.find(model->ctr_hash()) == model_map_.end())
-        {
-            hash_ = hash_ + model->ctr_hash();
-
-            model_map_[model->ctr_hash()] = model;
-
-            for (int32_t d = 0; d < model->size(); d++)
-            {
-                auto item = model->getItem(d);
-                if (item->getTypeCode() == Metadata::PAGE)
-                {
-                    auto block = static_pointer_cast<BlockMetadata<Profile>> (item);
-                    block_map_[block->hash() ^ model->ctr_hash()] = block;
-                }
-                else if (item->getTypeCode() == Metadata::CONTAINER)
-                {
-                    process_model(static_pointer_cast<ContainerMetadata<Profile>>(item));
-                }
-                else {
-                    //exception ?
-                }
-            }
-        }
-    }
-};
-
-
-
-template <typename Profile>
-class MetadataRepository {
-
-public:
-
-    static ContainerMetadataRepository<Profile>* getMetadata()
-    {
-        static thread_local ContainerMetadataRepository<Profile> metadata(TypeNameFactory<Profile>::name(), MetadataList());
-        return &metadata;
-    }
-
-    static void registerMetadata(const ContainerMetadataPtr<Profile>& ctr_metadata)
-    {
-        getMetadata()->registerMetadata(ctr_metadata);
-    }
-
-    static void unregisterMetadata(const ContainerMetadataPtr<Profile>& ctr_metadata)
-    {
-        getMetadata()->unregisterMetadata(ctr_metadata);
-    }
-};
-
+using ContainerOperationsPtr = std::shared_ptr<ContainerOperations<Profile>>;
 
 }}

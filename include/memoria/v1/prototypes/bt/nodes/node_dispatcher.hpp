@@ -220,13 +220,6 @@ public:
         }
     }
 
-
-    static void buildMetadataList(MetadataList &list) {
-        Head::initMetadata();
-        list.push_back(Head::block_metadata());
-        NextNDT0::buildMetadataList(list);
-    }
-
     template <typename T>
     static void build_metadata_list(std::vector<T> &list)
     {
@@ -399,12 +392,6 @@ public:
         else {
             MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
-    }
-
-
-    static void buildMetadataList(MetadataList &list) {
-        Head::initMetadata();
-        list.push_back(Head::block_metadata());
     }
 
     template <typename T>

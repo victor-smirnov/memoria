@@ -29,7 +29,7 @@ namespace persistent_inmem {
     template <typename PP>
     struct Initializer {
         Initializer() {
-            ThreadSnapshot<PP, ThreadInMemAllocatorImpl<PP>>::initMetadata();
+            ThreadSnapshot<PP, ThreadInMemAllocatorImpl<PP>>::init_profile_metadata();
         }
     };
 }

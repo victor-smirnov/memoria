@@ -13,11 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-
-
-#include <memoria/v1/metadata/tools.hpp>
+#include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/tools/hash.hpp>
+#include <memoria/v1/core/container/logs.hpp>
 
 #ifndef MMA1_NO_REACTOR
 #   include <memoria/v1/reactor/reactor.hpp>

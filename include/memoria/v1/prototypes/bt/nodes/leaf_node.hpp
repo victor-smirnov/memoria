@@ -182,7 +182,7 @@ public:
         int32_t fixed_block_size = block_size - sizeof(Me) + PackedAllocator::my_size();
         int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
 
-        return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(typename Types::Metadata));
     }
 
 

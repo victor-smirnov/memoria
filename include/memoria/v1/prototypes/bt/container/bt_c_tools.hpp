@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/metadata/tools.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 #include <memoria/v1/core/strings/string.hpp>
 
@@ -38,6 +37,8 @@ protected:
 
     using typename Base::BlockID;
     using typename Base::BlockType;
+
+    using Profile = typename Types::Profile;
 
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -101,10 +102,16 @@ public:
     {
         if (block)
         {
-            BlockWrapper<const BlockType> pw(block);
-            auto meta = self().getMetadata()->getBlockMetadata(pw.getContainerHash(), pw.getBlockTypeHash());
+            //BlockWrapper<const BlockType> pw(block);
+            //auto meta = self().getMetadata()->getBlockMetadata(pw.getContainerHash(), pw.getBlockTypeHash());
 
-            dumpBlock(meta.get(), &pw, out);
+            //dumpBlock(meta.get(), &pw, out);
+
+            TextBlockDumper dumper(out);
+
+            ProfileMetadata<Profile>::get_thread_local()
+                    ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
+                    ->generateDataEvents(block.block(), DataEventsParams(), &dumper);
 
             out<<std::endl;
             out<<std::endl;

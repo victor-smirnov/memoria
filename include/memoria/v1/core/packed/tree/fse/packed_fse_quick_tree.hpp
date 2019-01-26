@@ -20,7 +20,7 @@
 #include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 
 #include <memoria/v1/core/tools/static_array.hpp>
-#include <memoria/v1/metadata/block.hpp>
+#include <memoria/v1/profiles/common/block_operations.hpp>
 
 namespace memoria {
 namespace v1 {

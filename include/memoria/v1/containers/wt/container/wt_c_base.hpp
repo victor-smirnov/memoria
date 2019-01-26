@@ -127,7 +127,7 @@ public:
                                     TypeNameFactory<typename Types::ContainerTypeName>::name(),
                                     list,
                                     static_cast<uint64_t>(TypeHash<typename Types::ContainerTypeName>::Value),
-                                    Base::getContainerInterface()
+                                    Base::getContainerOperations()
                              )
             );
 

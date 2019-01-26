@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/v1/core/graph/graph.hpp>
-#include <memoria/v1/metadata/metadata.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
 

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/metadata/group.hpp>
+#include <memoria/v1/core/tools/id.hpp>
 #include <memoria/v1/core/tools/dump.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
@@ -121,45 +121,6 @@ struct IBlockOperations {
 
 template <typename Profile>
 using BlockOperationsPtr = std::shared_ptr<IBlockOperations<Profile>>;
-
-
-template <typename Profile>
-struct BlockMetadata: public MetadataGroup
-{
-    BlockMetadata(
-        U16StringRef name,
-        int32_t attributes,
-        uint64_t hash,
-        const IBlockOperations<Profile>* block_operations
-    ):
-        MetadataGroup(name)
-    {
-        MetadataGroup::set_type() = Metadata::PAGE;
-        hash_ = hash;
-        block_operations_ = block_operations;
-
-        if (!block_operations)
-        {
-            MMA1_THROW(NullPointerException()) << WhatInfo("Block operations instance is not specified");
-        }
-    }
-
-    virtual ~BlockMetadata() noexcept {
-        delete block_operations_;
-    }
-
-    virtual uint64_t hash() const {
-        return hash_;
-    }
-
-    virtual const IBlockOperations<Profile>* getBlockOperations() const {
-        return block_operations_;
-    }
-
-private:
-    uint64_t hash_;
-    const IBlockOperations<Profile>* block_operations_;
-};
 
 
 template <typename T>
@@ -715,7 +676,6 @@ template <typename Struct>
 void DumpStruct(const Struct* s, std::ostream& out = std::cout)
 {
     TextBlockDumper dumper(out);
-
     s->generateDataEvents(&dumper);
 }
 

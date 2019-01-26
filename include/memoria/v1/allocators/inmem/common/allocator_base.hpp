@@ -26,6 +26,7 @@
 #include <memoria/v1/core/tools/pair.hpp>
 
 #include <memoria/v1/profiles/common/common.hpp>
+#include <memoria/v1/profiles/common/metadata.hpp>
 
 #include "persistent_tree_node.hpp"
 #include "persistent_tree.hpp"
@@ -499,8 +500,6 @@ protected:
 
     BranchMap named_branches_;
 
-    ContainerMetadataRepository<Profile>* metadata_;
-
     int64_t records_ = 0;
 
     PairPtr pair_;
@@ -511,8 +510,7 @@ protected:
 
 public:
     InMemAllocatorBase():
-        logger_("PersistentInMemAllocator"),
-        metadata_(MetadataRepository<Profile>::getMetadata())
+        logger_("PersistentInMemAllocator")
     {
         master_ = history_tree_ = new HistoryNode(&self(), HistoryNode::Status::ACTIVE);
 
@@ -523,11 +521,8 @@ public:
     }
 
 protected:
-    InMemAllocatorBase(int32_t):
-        metadata_(MetadataRepository<Profile>::getMetadata())
+    InMemAllocatorBase(int32_t)
     {}
-
-
 
 public:
 
@@ -961,8 +956,9 @@ protected:
 
         in.read(block_data.get(), 0, block_data_size);
 
-        auto blockMetadata = metadata_->getBlockMetadata(ctr_hash, block_hash);
-        blockMetadata->getBlockOperations()->deserialize(block_data.get(), block_data_size, block);
+        ProfileMetadata<Profile>::get_thread_local()
+                ->get_block_operations(ctr_hash, block_hash)
+                ->deserialize(block_data.get(), block_data_size, block);
 
         if (map.find(block->uuid()) == map.end())
         {
@@ -1265,15 +1261,13 @@ protected:
 
         out << block_ptr->references();
 
-        auto blockMetadata = metadata_->getBlockMetadata(block->ctr_type_hash(), block->block_type_hash());
-
         auto block_size = block->memory_block_size();
 
         auto buffer = allocate_system<uint8_t>(block_size);
 
-        const auto operations = blockMetadata->getBlockOperations();
-
-        int32_t total_data_size = operations->serialize(block, buffer.get());
+        int32_t total_data_size = ProfileMetadata<Profile>::get_thread_local()
+                ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
+                ->serialize(block, buffer.get());
 
         out << total_data_size;
         out << block->memory_block_size();
@@ -1290,14 +1284,14 @@ protected:
     {
         TextBlockDumper dumper(out);
 
-        auto meta = metadata_->getBlockMetadata(block->ctr_type_hash(), block->block_type_hash());
+        auto blk_ops = ProfileMetadata<Profile>::get_thread_local()
+                ->get_block_operations(block->ctr_type_hash(), block->block_type_hash());
 
-        meta->getBlockOperations()->generateDataEvents(block, DataEventsParams(), &dumper);
+        blk_ops->generateDataEvents(block, DataEventsParams(), &dumper);
     }
 
     virtual void forget_snapshot(HistoryNode* history_node) = 0;
     
-
     auto get_named_branch_nodeset() const
     {
     	std::unordered_set<HistoryNode*> set;

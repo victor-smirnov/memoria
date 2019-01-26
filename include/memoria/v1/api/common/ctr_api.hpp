@@ -126,8 +126,9 @@ public:
     const CtrPtr& ptr() const;
     
     CtrID name();
-    const ContainerMetadataPtr<Profile>& metadata();
-    static ContainerMetadataPtr<Profile> init();
+    static void init_profile_metadata();
+
+    static ContainerOperationsPtr<Profile> continer_interface();
 
     static void do_link();
 
@@ -223,7 +224,7 @@ public:
 template <typename CtrName, typename Profile>
 struct CtrMetadataInitializer {
     CtrMetadataInitializer() {
-        CtrApi<CtrName, Profile>::init();
+        CtrApi<CtrName, Profile>::init_profile_metadata();
     }
 };
 
@@ -240,7 +241,7 @@ template class CtrApi<CtrName, Profile>;                \
 template class IterApi<CtrName, Profile>;               \
                                                         \
 namespace {                                             \
-auto init_##__VA_ARGS__ = CtrApi<CtrName, Profile>::init();\
+CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
 }
 
 

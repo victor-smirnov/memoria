@@ -67,14 +67,12 @@ public:
                 auto root = meta.roots(CtrID(0, c));
                 if (!root.is_null())
                 {
-                    auto root_block      = self.allocator().getBlock(root);
-                    auto ctr_meta_rep   = MetadataRepository<typename Types::Profile>::getMetadata();
+                    auto root_block     = self.allocator().getBlock(root);
+                    auto meta_rep       = ProfileMetadata<typename Types::Profile>::get_thread_local();
 
                     int32_t ctr_hash    = root_block->ctr_type_hash();
 
-                    auto ctr_meta       = ctr_meta_rep->getContainerMetadata(ctr_hash);
-
-                    auto ctr_interface  = ctr_meta->getCtrInterface();
+                    auto ctr_interface  = meta_rep->get_container_operations(ctr_hash);
 
                     ctr_interface->drop(root, self.allocator().self_ptr());
                 }

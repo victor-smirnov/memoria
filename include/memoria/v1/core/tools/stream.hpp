@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/metadata/metadata.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/string.hpp>
 

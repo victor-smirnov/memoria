@@ -16,7 +16,6 @@
 
 
 
-#include <memoria/v1/metadata/tools.hpp>
 #include <memoria/v1/core/tools/md5.hpp>
 
 #ifndef MMA1_NO_REACTOR

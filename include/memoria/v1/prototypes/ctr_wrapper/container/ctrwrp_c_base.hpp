@@ -92,32 +92,6 @@ public:
         Base::setCtrShared(NULL);
     }
 
-
-    static int32_t initMetadata()
-    {
-        int32_t hash = WrappedCtr::initMetadata();
-
-        if (Base::getMetadata() == NULL)
-        {
-            MetadataList list;
-
-            list.push_back(WrappedCtr::getMetadata());
-
-            Base::setMetadata(new ContainerMetadata<Profile>(
-                                        TypeNameFactory<typename Types::ContainerTypeName>::name(),
-                                        list,
-                                        Base::CONTAINER_HASH,
-                                        Base::getContainerInterface()
-                                  )
-                             );
-
-            MetadataRepository<Profile>::registerMetadata(Base::getMetadata());
-        }
-
-        return hash;
-    }
-
-
     virtual ID getRootID(const UUID& name)
     {
         return self().ctr().getRootID(name);

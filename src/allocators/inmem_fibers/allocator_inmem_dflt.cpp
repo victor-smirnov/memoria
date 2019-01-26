@@ -29,7 +29,7 @@ namespace persistent_inmem {
     template <typename PP>
     struct Initializer {
         Initializer() {
-            Snapshot<PP, InMemAllocatorImpl<PP>>::initMetadata();
+            Snapshot<PP, InMemAllocatorImpl<PP>>::init_profile_metadata();
         }
     };
 }

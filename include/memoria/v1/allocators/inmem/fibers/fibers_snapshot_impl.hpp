@@ -663,12 +663,6 @@ void InMemSnapshot<Profile>::reset()
     return pimpl_.reset();
 }
 
-template <typename Profile>
-ContainerMetadataRepository<Profile>* InMemSnapshot<Profile>::metadata() const
-{
-    return pimpl_->getMetadata();
-}
-
 
 template <typename Profile>
 SnpSharedPtr<ProfileAllocatorType<Profile>> InMemSnapshot<Profile>::snapshot_ref_creation_allowed()

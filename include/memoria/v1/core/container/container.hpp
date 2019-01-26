@@ -24,7 +24,7 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
 
-#include <memoria/v1/metadata/container.hpp>
+#include <memoria/v1/profiles/common/container_operations.hpp>
 
 #include <memoria/v1/core/container/logs.hpp>
 #include <memoria/v1/core/container/names.hpp>
@@ -65,11 +65,6 @@ template <typename Types> class Ctr;
 template <typename Types> class Iter;
 template <typename CtrName, typename Profile> class SharedIter;
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
-
-
-template <typename Profile> class MetadataRepository;
-
-
 
 
 constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
@@ -133,8 +128,7 @@ public:
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
     using IteratorPtr       = CtrSharedPtr<SharedIterator>;
     using AllocatorPtr      = CtrSharedPtr<Allocator>;
-    using AllocatorBasePtr  = SnpSharedPtr<AllocatorBase>;
-    
+
     static constexpr uint64_t CONTAINER_HASH = TypeHashV<Name>;
 
     template <typename> friend class BTIteratorBase;
@@ -235,49 +229,32 @@ public:
         }
     };
 
-    static const ContainerMetadataPtr<ProfileT>& getMetadata()
+    static void init_profile_metadata()
     {
         static thread_local NodesInit nodes_init;
-
-        static thread_local ContainerMetadataPtr<ProfileT> reflection(std::make_shared<ContainerMetadata<ProfileT>>(
-            TypeNameFactory<Name>::name(),
-            (Types*)nullptr,
-            static_cast<uint64_t>(CONTAINER_HASH),
-            MyType::getContainerInterface()
-        ));
-        
-        static thread_local typename ContainerMetadata<ProfileT>::RegistrationHelper helper(reflection);
-        
-        return reflection;
     }
-    
 
-    struct CtrInterfaceImpl: public ContainerInterface<ProfileT> {
+    struct CtrInterfaceImpl: public ContainerOperations<ProfileT> {
 
-        using CIBase = ContainerInterface<ProfileT>;
+        using CIBase = ContainerOperations<ProfileT>;
 
         using typename CIBase::BlockCallbackFn;
 
-        virtual Vertex describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const
+        virtual Vertex describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const
         {
-            Allocator* alloc = T2T<Allocator*>(allocator.get());
-
-            auto ctr_ptr = static_pointer_cast<MyType>(alloc->get(ctr_id));
-
+            auto ctr_ptr = static_pointer_cast<MyType>(allocator->get(ctr_id));
             return ctr_ptr->block_as_vertex(block_id);
         }
 
-        virtual Collection<Edge> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator, Direction direction) const
+        virtual Collection<Edge> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator, Direction direction) const
         {
-            Allocator* alloc = T2T<Allocator*>(allocator.get());
-            auto ctr_ptr = static_pointer_cast<MyType>(alloc->get(ctr_id));
+            auto ctr_ptr = static_pointer_cast<MyType>(allocator->get(ctr_id));
             return ctr_ptr->describe_block_links(block_id, direction);
         }
 
-        virtual Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const
+        virtual Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const
         {
-            Allocator* alloc = T2T<Allocator*>(allocator.get());
-            auto ctr_ptr = static_pointer_cast<MyType>(alloc->get(ctr_id));
+            auto ctr_ptr = static_pointer_cast<MyType>(allocator->get(ctr_id));
             return ctr_ptr->block_properties(vx, block_id);
         }
 
@@ -299,13 +276,11 @@ public:
             }
         }
 
-        virtual bool check(const CtrID& ctr_id, AllocatorBasePtr allocator) const
+        virtual bool check(const CtrID& ctr_id, AllocatorPtr allocator) const
         {
             bool result = false;
 
-            SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
-
-            with_ctr(ctr_id, alloc, [&](MyType& ctr){
+            with_ctr(ctr_id, allocator, [&](MyType& ctr){
                 result = ctr.check(nullptr);
             });
 
@@ -314,21 +289,18 @@ public:
 
         virtual void walk(
                 const UUID& ctr_id,
-                AllocatorBasePtr allocator,
+                AllocatorPtr allocator,
                 ContainerWalker<ProfileT>* walker
         ) const
         {
-        	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
-
-            with_ctr(ctr_id, alloc, [&](MyType& ctr){
+            with_ctr(ctr_id, allocator, [&](MyType& ctr){
                 ctr.walkTree(walker);
             });
         }
 
-        virtual void drop(const CtrID& ctr_id, AllocatorBasePtr allocator) const
+        virtual void drop(const CtrID& ctr_id, AllocatorPtr allocator) const
         {
-        	SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
-            with_ctr(ctr_id, alloc, [&](MyType& ctr){
+            with_ctr(ctr_id, allocator, [&](MyType& ctr){
                 ctr.drop();
             });
         }
@@ -368,28 +340,25 @@ public:
 
         virtual void for_each_ctr_node(
             const CtrID& ctr_id,
-            AllocatorBasePtr allocator,
+            AllocatorPtr allocator,
             BlockCallbackFn consumer
         ) const
         {
-            AllocatorPtr alloc = static_pointer_cast<Allocator>(allocator);
-        	CtrNodesWalkerAdapter walker(consumer);
+            CtrNodesWalkerAdapter walker(consumer);
 
-            with_ctr(ctr_id, alloc, [&](MyType& ctr){
+            with_ctr(ctr_id, allocator, [&](MyType& ctr){
         		ctr.walkTree(&walker);
         	});
         }
         
-        virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const BlockID& root_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const
-        {
-            SnpSharedPtr<Allocator> alloc = static_pointer_cast<Allocator>(allocator);
-            
-            BlockG block = alloc->getBlock(root_id);
+        virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const BlockID& root_id, const CtrID& ctr_id, AllocatorPtr allocator) const
+        {    
+            BlockG block = allocator->getBlock(root_id);
 
             if (block)
             {
             	return ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
-                    alloc,
+                    allocator,
                     root_id, 
                     CtrInitData(ctr_id, block->ctr_type_hash())
                 );
@@ -399,31 +368,28 @@ public:
             }
         }
 
-        virtual CtrID clone_ctr(const BlockID& ctr_id, const CtrID& new_ctr_id, AllocatorBasePtr allocator) const
+        virtual CtrID clone_ctr(const BlockID& ctr_id, const CtrID& new_ctr_id, AllocatorPtr allocator) const
         {
-            AllocatorPtr alloc = static_pointer_cast<Allocator>(allocator);
-
             CtrID new_name_rtn{};
 
-            with_ctr(ctr_id, alloc, [&](MyType& ctr){
+            with_ctr(ctr_id, allocator, [&](MyType& ctr){
                 new_name_rtn = ctr.clone(new_ctr_id);
             });
 
             return new_name_rtn;
         }
 
-        virtual CtrBlockDescription<ProfileT> describe_block1(const BlockID& block_id, AllocatorBasePtr allocator) const
+        virtual CtrBlockDescription<ProfileT> describe_block1(const BlockID& block_id, AllocatorPtr allocator) const
         {
-            AllocatorPtr alloc = static_pointer_cast<Allocator>(allocator);
-            return MyType::describe_block(block_id, alloc.get());
+            return MyType::describe_block(block_id, allocator.get());
         }
     };
 
 
-    static ContainerInterfacePtr<ProfileT> getContainerInterface()
+    static ContainerOperationsPtr<ProfileT> getContainerOperations()
     {
-        static thread_local auto container_interface_ptr = metadata_make_shared<CtrInterfaceImpl>();
-        return container_interface_ptr;
+        static thread_local auto container_operations_ptr = metadata_make_shared<CtrInterfaceImpl>();
+        return container_operations_ptr;
     }
 
 
@@ -485,10 +451,10 @@ public:
     Vertex block_as_vertex(const BlockID& block_id)
     {
         Graph my_graph = this->graph();
-        Vertex block_vx = BlockVertex<AllocatorBasePtr, ContainerInterfacePtr<ProfileT>>::make(
+        Vertex block_vx = BlockVertex<AllocatorPtr, ContainerOperationsPtr<ProfileT>>::make(
                     my_graph,
-                    static_pointer_cast<AllocatorBase>(allocator_holder_),
-                    getContainerInterface(),
+                    allocator_holder_,
+                    getContainerOperations(),
                     block_id,
                     name()
         );

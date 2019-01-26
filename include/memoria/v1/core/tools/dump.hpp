@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/types.hpp>
+#include <memoria/v1/core/tools/bitmap.hpp>
 
 #include <iostream>
 #include <functional>
@@ -298,10 +298,10 @@ void dumpSymbols(std::ostream& out_, T* symbols, int32_t size_, int32_t bits_per
                 int32_t idx = (c + d) * bits_per_symbol;
 
                 if (sizeof(T) > 1) {
-                    out_<<GetBits(symbols, idx, bits_per_symbol);
+                    out_ << GetBits(symbols, idx, bits_per_symbol);
                 }
                 else {
-                    out_<<(int32_t)GetBits(symbols, idx, bits_per_symbol);
+                    out_ << (int32_t)GetBits(symbols, idx, bits_per_symbol);
                 }
             }
 
