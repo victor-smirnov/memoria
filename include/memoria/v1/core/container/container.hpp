@@ -214,16 +214,21 @@ public:
     }
 
     struct NodesInit {
-        NodesInit()
+        NodesInit(ContainerOperationsPtr<ProfileT> ctr_ops)
         {
+            ProfileMetadata<ProfileT>::get_thread_local()->add_container_operations(
+                        static_cast<uint64_t>(CONTAINER_HASH),
+                        std::move(ctr_ops)
+            );
+
             std::vector<BlockOperationsPtr<ProfileT>> list;
             Types::Blocks::NodeDispatcher::build_metadata_list(list);
 
             for (auto& ptr: list)
             {
-                ProfileMetadata<ProfileT>::get_thread_local()->add_block_metadata(
-                            static_cast<uint64_t>(CONTAINER_HASH),
-                            std::move(ptr)
+                ProfileMetadata<ProfileT>::get_thread_local()->add_block_operations(
+                        static_cast<uint64_t>(CONTAINER_HASH),
+                        std::move(ptr)
                 );
             }
         }
@@ -231,7 +236,7 @@ public:
 
     static void init_profile_metadata()
     {
-        static thread_local NodesInit nodes_init;
+        static thread_local NodesInit nodes_init(getContainerOperations());
     }
 
     struct CtrInterfaceImpl: public ContainerOperations<ProfileT> {

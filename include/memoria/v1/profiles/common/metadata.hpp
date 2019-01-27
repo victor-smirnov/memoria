@@ -93,7 +93,7 @@ public:
         }
     }
 
-    void add_block_metadata(
+    void add_block_operations(
             uint64_t ctr_type_hash,
             BlockOperationsPtr<Profile> block_meta
     )
@@ -123,7 +123,8 @@ public:
         else {
             MMA1_THROW(RuntimeException())
                     << fmt::format_ex(
-                           u"Container interface already registered for {}", ctr_type_hash
+                           u"Container interface already registered for {}",
+                           ctr_type_hash
                     );
         }
     }
