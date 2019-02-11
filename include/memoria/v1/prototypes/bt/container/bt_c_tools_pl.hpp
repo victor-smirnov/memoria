@@ -36,7 +36,6 @@ protected:
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Allocator::BlockG                                    BlockG;
 
-    typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;

@@ -30,7 +30,6 @@ namespace v1 {
 MEMORIA_V1_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
     using Types     = typename Base::Container::Types;
-    using NodeBase  = typename Types::NodeBase;
     using NodeBaseG = typename Types::NodeBaseG;
     using Allocator = typename Base::Container::Allocator;
 
@@ -44,7 +43,7 @@ public:
     using IteratorCache = typename Types::template IteratorCacheFactory<
             MyType,
             typename Base::Container
-    >::Type;
+    >;
 
 
 private:

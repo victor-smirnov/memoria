@@ -31,7 +31,6 @@ public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
     
-    typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 

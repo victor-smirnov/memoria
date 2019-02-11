@@ -91,11 +91,6 @@ public:
         return self().allocator().createCtrName();
     }
 
-    virtual IAllocatorProperties& properties()
-    {
-        return self().allocator().properties();
-    }
-
     virtual ID newId()
     {
         return self().allocator().newId();

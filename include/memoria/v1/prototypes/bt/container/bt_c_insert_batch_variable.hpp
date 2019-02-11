@@ -33,7 +33,6 @@ public:
 
 protected:
     typedef typename Base::Allocator                                            Allocator;    
-    typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     using typename Base::BlockID;
 

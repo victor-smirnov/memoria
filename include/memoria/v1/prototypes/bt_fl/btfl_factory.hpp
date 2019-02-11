@@ -120,12 +120,10 @@ struct BTTypes<Profile, BTFreeLayout>: public BTTypes<Profile, BT> {
 
 
     template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-        typedef btfl::BTFLIteratorPrefixCache<Iterator, Container>   Type;
-    };
+    using IteratorCacheFactory = btfl::BTFLIteratorPrefixCache<Iterator, Container>;
 
     template <typename Types, typename LeafPath>
-    using CountForwardWalker  = bt::CountForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
+    using CountForwardWalker   = bt::CountForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
     using CountBackwardWalker  = bt::CountBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;

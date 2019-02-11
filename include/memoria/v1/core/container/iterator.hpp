@@ -57,12 +57,12 @@ public:
 
 
 template <typename Types1>
-class IterHelper<-1, Types1>: public Types1::template BaseFactory<Types1>::Type {
+class IterHelper<-1, Types1>: public Types1::template BaseFactory<Types1> {
 
     typedef Iter<Types1>                                                             MyType;
     typedef IterHelper<-1, Types1>                                                   ThisType;
 
-    typedef typename Types1::template BaseFactory<Types1>::Type BaseType;
+    using BaseType = typename Types1::template BaseFactory<Types1>;
 
 public:
     IterHelper(): BaseType() {}

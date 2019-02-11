@@ -34,7 +34,7 @@ class BlockDispatcher {
 
     typedef typename List::Head                                                 ContainerType;
     typedef typename ContainerType::Types::Blocks::NodeDispatcher               NodeDispatcher;
-    typedef typename ContainerType::Types::NodeBase                             NodeBase;
+    typedef typename ContainerType::Types::NodeBaseG::BlockType                 NodeBase;
 
 public:
     void dispatch(BlockType *block) {

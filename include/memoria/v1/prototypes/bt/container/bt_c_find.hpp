@@ -49,9 +49,6 @@ public:
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
-    template <typename LeafPath>
-    using TargetType2 = typename Types::template TargetType2<LeafPath>;
-
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(SizesFn, size_sums, Position);
     Position sizes() const

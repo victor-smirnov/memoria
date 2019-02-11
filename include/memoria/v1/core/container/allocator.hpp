@@ -41,17 +41,6 @@
 namespace memoria {
 namespace v1 {
 
-struct IAllocatorProperties {
-    virtual int32_t defaultBlockSize() const                                     = 0;
-
-    virtual int64_t lastCommitId() const                                         = 0;
-    virtual void setLastCommitId(int64_t txn_id)                                 = 0;
-    virtual int64_t newTxnId()                                                   = 0;
-
-    virtual ~IAllocatorProperties() noexcept {}
-};
-
-
 template <typename Profile>
 struct IAllocator {
 
@@ -98,7 +87,6 @@ struct IAllocator {
     virtual void  freeMemory(void* ptr)                                         = 0;
 
     virtual Logger& logger()                                                    = 0;
-    virtual IAllocatorProperties& allocator_properties()                        = 0;
 
     virtual bool isActive() const                                               = 0;
 

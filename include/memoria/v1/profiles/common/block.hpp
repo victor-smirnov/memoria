@@ -506,8 +506,9 @@ class BlockGuard {
 
 public:
 
-    typedef BlockGuard<PageT, AllocatorT>                                MyType;
+    typedef BlockGuard<PageT, AllocatorT>                               MyType;
     typedef PageT                                                       Page;
+    typedef PageT                                                       BlockType;
     typedef AllocatorT                                                  Allocator;
     typedef PageShared<AllocatorT>                                      Shared;
 

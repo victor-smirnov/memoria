@@ -40,7 +40,6 @@ protected:
 
     using Profile = typename Types::Profile;
 
-    typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;

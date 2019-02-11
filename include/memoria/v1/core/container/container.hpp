@@ -560,10 +560,10 @@ public:
 };
 
 template <typename Types>
-class CtrHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
+class CtrHelper<-1, Types>: public Types::template BaseFactory<Types> {
     using ThisType = CtrHelper<-1, Types>;
     using MyType   = Ctr<Types>;
-    using Base     = typename Types::template BaseFactory<Types>::Type;
+    using Base     = typename Types::template BaseFactory<Types>;
 
 public:
 

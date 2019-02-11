@@ -41,22 +41,21 @@ namespace bt {
 template <
     typename Types
 >
-class LeafNode: public Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>
+class LeafNode: public Types::NodeBase
 {
-    static const int32_t BranchingFactor                                        = PackedTreeBranchingFactor;
+    static const int32_t BranchingFactor = PackedTreeBranchingFactor;
 
-    typedef LeafNode<Types>                                                     Me;
-    typedef LeafNode<Types>                                                     MyType;
+    using MyType = LeafNode<Types>;
 
 public:
-    static const uint32_t VERSION                                               = 2;
+    static const uint32_t VERSION = 2;
 
-    static const bool Leaf                                                      = true;
+    static const bool Leaf = true;
 
-    using Base = typename Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>;
+    using Base = typename Types::NodeBase;
 
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
+    using BranchNodeEntry = typename Types::BranchNodeEntry;
+    using Position        = typename Types::Position;
 
     template <template <typename> class, typename>
     friend class NodePageAdaptor;
@@ -179,7 +178,7 @@ public:
 
     static int32_t free_space(int32_t block_size, bool root)
     {
-        int32_t fixed_block_size = block_size - sizeof(Me) + PackedAllocator::my_size();
+        int32_t fixed_block_size = block_size - sizeof(MyType) + PackedAllocator::my_size();
         int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
 
         return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(typename Types::Metadata));
@@ -408,7 +407,7 @@ public:
 
     int32_t data_size() const
     {
-        return sizeof(Me) + this->getDataSize(); //FIXME: sizeof(Me) and array[] in PackedAllocator
+        return sizeof(MyType) + this->getDataSize(); //FIXME: sizeof(Me) and array[] in PackedAllocator
     }
 
 

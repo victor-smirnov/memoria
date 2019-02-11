@@ -37,7 +37,6 @@ protected:
 
     typedef typename Base::ID                                                   ID;
     
-    typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 

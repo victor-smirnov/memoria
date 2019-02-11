@@ -116,21 +116,6 @@ public:
     using RootMapType = CtrT<Map<CtrID, BlockID>>;
 
 protected:
-    class Properties: public IAllocatorProperties {
-    public:
-        virtual int32_t defaultBlockSize() const
-        {
-            return 8192;
-        }
-
-        virtual int64_t lastCommitId() const {
-            return 0;
-        }
-
-        virtual void setLastCommitId(int64_t txn_id) {}
-
-        virtual int64_t newTxnId() {return 0;}
-    };
 
     HistoryNode*            history_node_;
     PersistentAllocatorPtr  history_tree_;
@@ -141,8 +126,6 @@ protected:
     StaticPool<BlockID, Shared, 256> pool_;
 
     Logger logger_;
-
-    Properties properties_;
 
     CtrInstanceMap instance_map_;
 
@@ -776,7 +759,7 @@ public:
 
         if (initial_size == -1)
         {
-            initial_size = properties_.defaultBlockSize();
+            initial_size = DEFAULT_BLOCK_SIZE;
         }
 
         void* buf = allocate_system<void>(initial_size).release();
@@ -891,9 +874,6 @@ public:
     }
 
     virtual Logger& logger() {return logger_;}
-    virtual IAllocatorProperties& allocator_properties() {
-        return properties_;
-    }
 
     virtual BlockID getRootID(const CtrID& name)
     {

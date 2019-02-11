@@ -91,7 +91,7 @@ struct BTTypes {
 
     using CtrSizeT = int64_t;
 
-    typedef TypeList<
+    using ContainerPartsList = TypeList<
             bt::ToolsName,
 			bt::ToolsPLName,
             bt::ChecksName,
@@ -107,85 +107,70 @@ struct BTTypes {
             bt::IOReadName,
             bt::UpdateName,
             bt::WalkName
-    >                                                                           ContainerPartsList;
+    >;
 
 
-    typedef TypeList<
+    using FixedBranchContainerPartsList = TypeList<
             bt::BranchFixedName,
             bt::InsertBatchFixedName
-    >                                                                           FixedBranchContainerPartsList;
+    >;
 
-    typedef TypeList<
+    using VariableBranchContainerPartsList = TypeList<
             bt::BranchVariableName,
             bt::InsertBatchVariableName
-    >                                                                           VariableBranchContainerPartsList;
+    >;
 
-    typedef TypeList<
+    using FixedLeafContainerPartsList = TypeList<
             bt::LeafFixedName
-    >                                                                           FixedLeafContainerPartsList;
+    >;
 
-    typedef TypeList<
+    using VariableLeafContainerPartsList = TypeList<
             bt::LeafVariableName
-    >                                                                           VariableLeafContainerPartsList;
+    >;
     
-    typedef TypeList<>                                                          CommonContainerPartsList;
+    using CommonContainerPartsList = TypeList<>;
 
 
-    typedef TypeList<
+    using IteratorPartsList = TypeList<
             bt::IteratorAPIName,
             bt::IteratorFindName,
             bt::IteratorSelectName,
             bt::IteratorRankName,
             bt::IteratorSkipName,
             bt::IteratorLeafName
-    >                                                                           IteratorPartsList;
+    >;
 
-    typedef EmptyType                                                           ContainerOperations;
-    typedef EmptyType                                                           IteratorInterface;
-    typedef EmptyType                                                           IteratorData;
-
+    using IteratorInterface = EmptyType;
 
     using Allocator = ProfileAllocatorType<Profile_>;
     using ID        = ProfileBlockID<Profile_>;
 
     using Metadata  = BalancedTreeMetadata<ID>;
 
-    typedef TypeList<
+    using NodeTypesList = TypeList<
             bt::BranchNodeTypes<bt::BranchNode>,
             bt::LeafNodeTypes<bt::LeafNode>
-    >                                                                           NodeTypesList;
+    >;
 
-    typedef TypeList<
+    using DefaultBranchNodeTypesList = TypeList<
             bt::TreeNodeType<bt::BranchNode>
-    >                                                                           DefaultBranchNodeTypesList;
+    >;
 
-    typedef TypeList<
+    using DefaultLeafNodeTypesList = TypeList<
             bt::TreeNodeType<bt::LeafNode>
-    >                                                                           DefaultLeafNodeTypesList;
+    >;
     //FIXME DefaultNodeTypesList is not used anymore
 
-    typedef TypeList<>                                                          StreamDescriptors;
+    using StreamDescriptors = TypeList<>;
 
-    template <
-        typename Types_
-    >
-    struct CtrBaseFactory {
-        typedef bt::BTreeCtrBase<Types_>                    Type;
-    };
+    template <typename Types_>
+    using CtrBaseFactory = bt::BTreeCtrBase<Types_>;
 
-    template <
-        typename Types_
-    >
-    struct IterBaseFactory {
-        typedef BTIteratorBase<Types_>                      Type;
-    };
-
+    template <typename Types_>
+    using IterBaseFactory = BTIteratorBase<Types_>;
 
     template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-        typedef bt::BTreeIteratorPrefixCache<Iterator, Container>   Type;
-    };
-
+    using IteratorCacheFactory = bt::BTreeIteratorPrefixCache<Iterator, Container>;
 
 
     template <typename Types, typename LeafPath>
@@ -258,10 +243,10 @@ public:
     static const int32_t Streams    = ListSize<StreamDescriptors>;
 
     using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
-    using Page              = typename ContainerTypes::Allocator::BlockType;
+    using BlockType         = typename ContainerTypes::Allocator::BlockType;
 
-    using NodePageBase0     = bt::TreeNodeBase<typename ContainerTypes::Metadata, Page>;
-    using NodePageBase0G    = BlockGuard<NodePageBase0, typename ContainerTypes::Allocator>;
+    using TreeNodeBase      = bt::TreeNodeBase<typename ContainerTypes::Metadata, BlockType>;
+    using TreeNodeBaseG     = BlockGuard<TreeNodeBase, typename ContainerTypes::Allocator>;
 
     using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
 
@@ -289,31 +274,26 @@ public:
 
     using BranchNodeEntry_ = AsTuple<typename bt::BranchNodeEntryBuilder<Linearize<BranchStreamsStructList>>::Type>;
 
-    struct NodeTypesBase: ContainerTypes {
-        using NodeBase  = Page;
+    struct NodeTypesBase: ContainerTypes
+    {
+        using NodeBase  = TreeNodeBase;
         using Name      = ContainerTypeName_;
         using Metadata  = typename ContainerTypes::Metadata;
         using BlockID   = typename MyType::BlockID;
 
-        using BranchNodeEntry   = BranchNodeEntry_;
-        using Position          = Position_;
-        using CtrSizesT         = Position_;
+        using BranchNodeEntry = BranchNodeEntry_;
+        using Position        = Position_;
+        using CtrSizesT       = Position_;
 
         using LeafStreamsStructList     = typename MyType::LeafStreamsStructList;
         using BranchStreamsStructList   = typename MyType::BranchStreamsStructList;
         using IteratorBranchNodeEntry   = typename MyType::IteratorBranchNodeEntry;
         using StreamsInputTypeList      = typename MyType::StreamsInputTypeList;
         using InputBufferStructList     = typename MyType::InputBufferStructList;
-
-        template <typename Metadata, typename NodeBase>
-        using TreeNodeBaseTF = bt::TreeNodeBase<Metadata, NodeBase>;
     };
 
-    struct BranchNodeTypes: NodeTypesBase {
-    };
-
-    struct LeafNodeTypes: NodeTypesBase {
-    };
+    struct BranchNodeTypes: NodeTypesBase {};
+    struct LeafNodeTypes: NodeTypesBase {};
 
     struct DispatcherTypes
     {
@@ -325,7 +305,7 @@ public:
         using BranchNodeTypes   = typename MyType::BranchNodeTypes;
         using LeafNodeTypes     = typename MyType::LeafNodeTypes;
 
-        using NodeBaseG         = NodePageBase0G;
+        using NodeBaseG         = TreeNodeBaseG;
     };
 
     using BlockDispatchers = bt::BTreeDispatchers<DispatcherTypes>;
@@ -338,9 +318,9 @@ public:
 
 
     using CtrListBranch = IfThenElse<
-                            BranchSizeType == PackedSizeType::FIXED,
-                            typename ContainerTypes::FixedBranchContainerPartsList,
-                            typename ContainerTypes::VariableBranchContainerPartsList
+                        BranchSizeType == PackedSizeType::FIXED,
+                        typename ContainerTypes::FixedBranchContainerPartsList,
+                        typename ContainerTypes::VariableBranchContainerPartsList
     >;
 
     using CtrListLeaf = IfThenElse<
@@ -363,22 +343,21 @@ public:
 public:
     struct Types: ContainerTypes
     {
-        typedef ContainerTypeName_                                              ContainerTypeName;
-        typedef typename MyType::BlockDispatchers                                Blocks;
+        using ContainerTypeName = ContainerTypeName_;
+        using Blocks = typename MyType::BlockDispatchers;
 
-        typedef typename ContainerTypes::Allocator                              Allocator;
-        typedef typename ContainerTypes::Metadata                               Metadata;
+        using Allocator = typename ContainerTypes::Allocator;
+        using Metadata  = typename ContainerTypes::Metadata;
 
-        typedef NodePageBase0                                                   NodeBase;
-        typedef NodePageBase0G                                                  NodeBaseG;
+        using NodeBaseG = TreeNodeBaseG;
 
-        typedef typename MyType::CtrList                                        CtrList;
-        typedef typename MyType::IterList                                       IterList;
+        using CtrList  = typename MyType::CtrList;
+        using IterList = typename MyType::IterList;
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
-        typedef BTCtrTypes<Types>                                               CtrTypes;
-        typedef BTIterTypes<Types>                                              IterTypes;
+        using CtrTypes  = BTCtrTypes<Types>;
+        using IterTypes = BTIterTypes<Types>;
 
         static constexpr int32_t Streams = MyType::Streams;
 
@@ -402,15 +381,6 @@ public:
 
         template <typename LeafPath>
         using TargetType = typename AccumType<
-                bt::BrachStructAccessorTool<
-                    LeafStreamsStructList,
-                    BranchStreamsStructList,
-                    LeafPath
-                >
-        >::Type;
-
-        template <typename LeafPath>
-        using TargetType2 = typename AccumType<
                 bt::BrachStructAccessorTool<
                     LeafStreamsStructList,
                     BranchStreamsStructList,
@@ -449,12 +419,11 @@ public:
                                                         LeafDataLengthType::FIXED :
                                                         LeafDataLengthType::VARIABLE;
 
-
         using LeafType = typename Blocks::LeafDispatcher::Head::Base;
     };
 
-    typedef typename Types::CtrTypes                                            CtrTypes;
-    typedef Ctr<CtrTypes>                                                       Type;
+    using CtrTypes = typename Types::CtrTypes;
+    using Type     = Ctr<CtrTypes>;
 };
 
 

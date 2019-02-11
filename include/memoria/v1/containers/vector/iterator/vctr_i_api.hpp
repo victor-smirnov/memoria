@@ -36,7 +36,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mvector::ItrApiName)
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     typedef typename Container::Value                                           Value;

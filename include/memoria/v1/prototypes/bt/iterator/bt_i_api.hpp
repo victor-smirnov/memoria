@@ -35,7 +35,6 @@ namespace v1 {
 MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
 
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;

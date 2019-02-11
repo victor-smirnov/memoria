@@ -324,24 +324,18 @@ public:
 template <
     typename Types
 >
-class BranchNode: public Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>
+class BranchNode: public Types::NodeBase
 {
+    static const int32_t  BranchingFactor = PackedTreeBranchingFactor;
 
-//    static_assert(
-//            std::is_trivial<TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>>::value,
-//            "TreeNodeBase must be a trivial type"
-//            );
-
-    static const int32_t  BranchingFactor                                           = PackedTreeBranchingFactor;
-
-    typedef BranchNode<Types>                                                   MyType;
+    using MyType = BranchNode<Types>;
 
 public:
-    static const uint32_t VERSION                                                   = 1;
+    static const uint32_t VERSION = 1;
 
-    static const bool Leaf                                                      = false;
+    static const bool Leaf = false;
 
-    using Base = typename Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>;
+    using Base = typename Types::NodeBase;
 
 public:
 
