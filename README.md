@@ -48,3 +48,4 @@ $ ./tests --help
 
 Usually tests take several minutes to complete.
 
+See also [QtCreator IDE Instructions](https://bitbucket.org/vsmirnov/memoria/wiki/QtCreator%20IDE%20Instructions) for Linux and MacOS X.
