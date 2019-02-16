@@ -246,11 +246,13 @@ public:
         return (value / divider) + (value % divider ? 1 : 0);
     }
 
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         FieldFactory<int32_t>::serialize(buf, allocator_offset_);
     }
 
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<int32_t>::deserialize(buf, allocator_offset_);

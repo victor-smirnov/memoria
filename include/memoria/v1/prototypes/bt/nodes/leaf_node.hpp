@@ -1448,33 +1448,33 @@ public:
     }
 
     struct SerializeFn {
-        template <typename Tree>
+        template <typename Tree, typename SerializationData>
         void stream(const Tree* tree, SerializationData* buf)
         {
             tree->serialize(*buf);
         }
     };
 
-    template <template <typename> class FieldFactory>
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
-        Base::template serialize<FieldFactory>(buf);
+        Base::serialize(buf);
 
         Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
     }
 
     struct DeserializeFn {
-        template <typename Tree>
+        template <typename Tree, typename DeserializationData>
         void stream(Tree* tree, DeserializationData* buf)
         {
             tree->deserialize(*buf);
         }
     };
 
-    template <template <typename> class FieldFactory>
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
-        Base::template deserialize<FieldFactory>(buf);
+        Base::deserialize(buf);
 
         Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
     }

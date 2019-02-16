@@ -136,6 +136,7 @@ public:
         handler->endGroup();
     }
 
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         FieldFactory<UUID>::serialize(buf, model_name_);
@@ -157,6 +158,7 @@ public:
         FieldFactory<uint8_t>::serialize(buf, descriptor_, DESCRIPTOR_SIZE);
     }
 
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<UUID>::deserialize(buf, model_name_);
@@ -265,11 +267,13 @@ struct FieldFactory<BalancedTreeMetadata<ID>> {
 
     using Type = BalancedTreeMetadata<ID>;
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field)
     {
         field.serialize(data);
     }
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)
@@ -278,12 +282,13 @@ struct FieldFactory<BalancedTreeMetadata<ID>> {
         }
     }
 
-
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field)
     {
         field.deserialize(data);
     }
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)

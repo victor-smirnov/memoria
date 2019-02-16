@@ -474,6 +474,7 @@ public:
         handler->endStruct();
     }
 
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         Base::serialize(buf);
@@ -482,6 +483,7 @@ public:
         tree()->serialize(buf);
     }
 
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         Base::deserialize(buf);

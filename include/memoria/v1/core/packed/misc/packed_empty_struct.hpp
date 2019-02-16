@@ -290,11 +290,13 @@ public:
         handler->endStruct();
     }
 
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         header_.serialize(buf);
     }
 
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         header_.deserialize(buf);

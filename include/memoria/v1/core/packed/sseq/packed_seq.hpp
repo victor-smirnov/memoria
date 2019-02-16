@@ -173,6 +173,7 @@ public:
         handler->endGroup();
     }
 
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         FieldFactory<int32_t>::serialize(buf, size());
@@ -186,6 +187,8 @@ public:
         FieldFactory<Value>::serialize(buf, values, getUsedValueCells());
     }
 
+
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<int32_t>::deserialize(buf, size());

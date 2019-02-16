@@ -318,6 +318,7 @@ public:
         handler->endGroup();
     }
 
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         header_.serialize(buf);
@@ -328,6 +329,7 @@ public:
         FieldFactory<Value>::serialize(buf, buffer_, symbols_buffer_size());
     }
 
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         header_.deserialize(buf);

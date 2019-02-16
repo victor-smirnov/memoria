@@ -613,6 +613,8 @@ public:
         handler->endGroup();
     }
 
+
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         FieldFactory<int32_t>::serialize(buf, allocatable_.allocator_offset_);
@@ -627,6 +629,8 @@ public:
         FieldFactory<Bitmap>::serialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
     }
 
+
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<int32_t>::deserialize(buf, allocatable_.allocator_offset_);
@@ -641,14 +645,14 @@ public:
         FieldFactory<Bitmap>::deserialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
     }
 
-    template <typename T>
+    template <typename T, typename SerializationData>
     void serializeSegment(SerializationData& buf, int32_t segment) const
     {
         auto data = this->describe(segment);
         FieldFactory<T>::serialize(buf, T2T<const T*>(data.ptr()), data.size() / (int32_t)sizeof(T));
     }
 
-    template <typename T>
+    template <typename T, typename DeserializationData>
     void deserializeSegment(DeserializationData& buf, int32_t segment)
     {
         auto data = this->describe(segment);
@@ -738,6 +742,7 @@ template <typename... Types> struct SerializeTool;
 
 template <typename Head, typename... Tail>
 struct SerializeTool<Head, Tail...> {
+    template <typename SerializationData>
     static void serialize(const PackedAllocator* allocator, SerializationData& buf, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
@@ -752,6 +757,7 @@ struct SerializeTool<Head, Tail...> {
 
 template <typename Head, typename... Tail>
 struct SerializeTool<TypeList<Head, Tail...>> {
+    template <typename SerializationData>
     static void serialize(const PackedAllocator* allocator, SerializationData& buf, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
@@ -766,11 +772,13 @@ struct SerializeTool<TypeList<Head, Tail...>> {
 
 template <>
 struct SerializeTool<> {
+    template <typename SerializationData>
     static void serialize(const PackedAllocator* allocator, SerializationData& buf, int32_t idx = 0) {}
 };
 
 template <>
 struct SerializeTool<TypeList<>> {
+    template <typename SerializationData>
     static void serialize(const PackedAllocator* allocator, SerializationData& buf, int32_t idx = 0) {}
 };
 
@@ -780,6 +788,8 @@ template <typename... Types> struct DeserializeTool;
 
 template <typename Head, typename... Tail>
 struct DeserializeTool<Head, Tail...> {
+
+    template <typename DeserializationData>
     static void deserialize(PackedAllocator* allocator, DeserializationData& buf, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
@@ -794,6 +804,8 @@ struct DeserializeTool<Head, Tail...> {
 
 template <typename Head, typename... Tail>
 struct DeserializeTool<TypeList<Head, Tail...>> {
+
+    template <typename DeserializationData>
     static void deserialize(PackedAllocator* allocator, DeserializationData& buf, int32_t idx = 0)
     {
         if (!allocator->is_empty(idx))
@@ -808,11 +820,13 @@ struct DeserializeTool<TypeList<Head, Tail...>> {
 
 template <>
 struct DeserializeTool<> {
+    template <typename DeserializationData>
     static void deserialize(PackedAllocator* allocator, DeserializationData& buf, int32_t idx = 0) {}
 };
 
 template <>
 struct DeserializeTool<TypeList<>> {
+    template <typename DeserializationData>
     static void deserialize(PackedAllocator* allocator, DeserializationData& buf, int32_t idx = 0) {}
 };
 

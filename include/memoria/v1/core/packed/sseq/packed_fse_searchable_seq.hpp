@@ -1109,6 +1109,7 @@ public:
         handler->endGroup();
     }
 
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         Base::serialize(buf);
@@ -1124,6 +1125,7 @@ public:
         FieldFactory<Value>::serialize(buf, symbols(), symbol_buffer_size());
     }
 
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         Base::deserialize(buf);

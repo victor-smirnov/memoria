@@ -213,10 +213,10 @@ public:
     }
 
 
-    template <template <typename> class FieldFactory>
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
-        Base::template serialize<FieldFactory>(buf);
+        Base::serialize(buf);
 
         FieldFactory<int32_t>::serialize(buf, root_);
         FieldFactory<int32_t>::serialize(buf, leaf_);
@@ -234,10 +234,10 @@ public:
     }
 
 
-    template <template <typename> class FieldFactory>
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
-        Base::template deserialize<FieldFactory>(buf);
+        Base::deserialize(buf);
 
         FieldFactory<int32_t>::deserialize(buf, root_);
         FieldFactory<int32_t>::deserialize(buf, leaf_);

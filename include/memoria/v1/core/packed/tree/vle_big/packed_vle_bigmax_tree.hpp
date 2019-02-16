@@ -1066,6 +1066,8 @@ public:
         handler->endStruct();
     }
 
+
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         Base::serialize(buf);
@@ -1086,9 +1088,10 @@ public:
         int32_t data_block_size = this->data_block_size();
 
         FieldFactory<ValueData>::serialize(buf, this->values(), data_block_size);
-
     }
 
+
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         Base::deserialize(buf);

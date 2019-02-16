@@ -134,6 +134,8 @@ template <int32_t Size>
 struct FieldFactory<FixedArray<Size> > {
     using Type = FixedArray<Size>;
 
+
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field)
     {
         memmove(data.buf, field.data(), Size);
@@ -141,12 +143,14 @@ struct FieldFactory<FixedArray<Size> > {
         data.total  += Size;
     }
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field)
     {
         memmove(field.data(), data.buf, Size);
         data.buf += Size;
     }
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)
@@ -158,6 +162,7 @@ struct FieldFactory<FixedArray<Size> > {
 
     }
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)

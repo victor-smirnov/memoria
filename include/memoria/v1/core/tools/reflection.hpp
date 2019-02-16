@@ -36,11 +36,13 @@ template <typename T> struct FieldFactory;
 template <typename Type>
 struct CompositeFieldFactory {
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field)
     {
         field.serialize(data);
     }
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)
@@ -49,12 +51,13 @@ struct CompositeFieldFactory {
         }
     }
 
-
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field)
     {
         field.deserialize(data);
     }
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)
@@ -72,11 +75,13 @@ struct FieldFactory<BitField<Type> > {
 
     typedef BitField<Type> BFType;
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field)
     {
         field.template serialize<FieldFactory>(data);
     }
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field)
     {
         field.template deserialize<FieldFactory>(data);
@@ -85,10 +90,17 @@ struct FieldFactory<BitField<Type> > {
 
 template <>
 struct FieldFactory<EmptyValue> {
+
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const EmptyValue& field, int32_t count = 1) {}
+
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const EmptyValue* field, int32_t count = 1) {}
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, EmptyValue& field, int32_t count = 1) {}
+
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, EmptyValue* field, int32_t count = 1) {}
 };
 
@@ -96,31 +108,40 @@ struct FieldFactory<EmptyValue> {
 
 #define MEMORIA_TYPED_FIELD(Type)                                               \
 template <> struct FieldFactory<Type> {                                         \
-                                                                                \
+    template <typename SerializationData>                                       \
     static void serialize(SerializationData& data, const Type& field) {         \
         memmove(data.buf, &field, sizeof(Type));                                \
         data.buf += sizeof(Type);                                               \
         data.total += sizeof(Type);                                             \
     }                                                                           \
+                                                                                \
+    template <typename DeserializationData>                                     \
     static void deserialize(DeserializationData& data, Type& field) {           \
         memmove(&field, data.buf, sizeof(Type));                                \
         data.buf += sizeof(Type);                                               \
     }                                                                           \
                                                                                 \
+    template <typename SerializationData>                                       \
     static void serialize(SerializationData& data, const Type& field, int32_t count) {\
         memmove(data.buf, &field, count*sizeof(Type));                          \
         data.buf += count * sizeof(Type);                                       \
         data.total += count * sizeof(Type);                                     \
     }                                                                           \
+                                                                                \
+    template <typename DeserializationData>                                     \
     static void deserialize(DeserializationData& data, Type& field, int32_t count) {\
         memmove(&field, data.buf, count*sizeof(Type));                          \
         data.buf += count*sizeof(Type);                                         \
     }                                                                           \
+                                                                                \
+    template <typename SerializationData>                                       \
     static void serialize(SerializationData& data, const Type* field, int32_t count) {\
         memmove(data.buf, field, count*sizeof(Type));                           \
         data.buf += count * sizeof(Type);                                       \
         data.total += count * sizeof(Type);                                     \
     }                                                                           \
+                                                                                \
+    template <typename DeserializationData>                                     \
     static void deserialize(DeserializationData& data, Type* field, int32_t count) {\
         memmove(field, data.buf, count*sizeof(Type));                           \
         data.buf += count*sizeof(Type);                                         \
@@ -132,30 +153,40 @@ template <> struct FieldFactory<uint64_t> {
 
     using Type = uint64_t;
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field) {
         memmove(data.buf, &field, sizeof(Type));
         data.buf += sizeof(Type);
         data.total += sizeof(Type);
     }
+
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field) {
         memmove(&field, data.buf, sizeof(Type));
         data.buf += sizeof(Type);
     }
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field, int32_t count) {
         memmove(data.buf, &field, count*sizeof(Type));
         data.buf += count * sizeof(Type);
         data.total += count * sizeof(Type);
     }
+
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field, int32_t count) {
         memmove(&field, data.buf, count*sizeof(Type));
         data.buf += count*sizeof(Type);
     }
+
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type* field, int32_t count) {
         memmove(data.buf, field, count*sizeof(Type));
         data.buf += count * sizeof(Type);
         data.total += count * sizeof(Type);
     }
+
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type* field, int32_t count) {
         memmove(field, data.buf, count*sizeof(Type));
         data.buf += count*sizeof(Type);
@@ -183,6 +214,7 @@ struct TupleFactoryHelper {
 
     using CurrentType = typename std::tuple_element<Idx, Tuple>::type;
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Tuple& field)
     {
         FieldFactory<CurrentType>::serialize(data, std::get<Idx>(field));
@@ -190,6 +222,7 @@ struct TupleFactoryHelper {
         TupleFactoryHelper<Tuple, Idx - 1>::serialize(data, field);
     }
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Tuple& field)
     {
         FieldFactory<CurrentType>::deserialize(data, std::get<Idx>(field));
@@ -200,7 +233,10 @@ struct TupleFactoryHelper {
 
 template <typename Tuple>
 struct TupleFactoryHelper<Tuple, -1> {
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Tuple& field) {}
+
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Tuple& field) {}
 };
 
@@ -212,11 +248,13 @@ struct FieldFactory<std::tuple<Types...> > {
 
     using Type = std::tuple<Types...>;
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field)
     {
         internal::TupleFactoryHelper<Type>::serialize(data, field);
     }
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)
@@ -225,11 +263,13 @@ struct FieldFactory<std::tuple<Types...> > {
         }
     }
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field)
     {
         internal::TupleFactoryHelper<Type>::deserialize(data, field);
     }
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)

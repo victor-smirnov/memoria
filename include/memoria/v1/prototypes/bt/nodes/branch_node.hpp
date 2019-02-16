@@ -279,7 +279,7 @@ public:
     }
 
 
-    template <template <typename> class FieldFactory>
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         header_.template serialize<FieldFactory>(buf);
@@ -303,7 +303,7 @@ public:
     }
 
 
-    template <template <typename> class FieldFactory>
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         header_.template deserialize<FieldFactory>(buf);
@@ -1666,17 +1666,17 @@ public:
     }
 
     struct SerializeFn {
-        template <typename StreamObj>
+        template <typename StreamObj, typename SerializationData>
         void stream(const StreamObj* stream, SerializationData* buf)
         {
             stream->serialize(*buf);
         }
     };
 
-    template <template <typename> class FieldFactory>
+    template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
-        Base::template serialize<FieldFactory>(buf);
+        Base::serialize(buf);
 
         Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
 
@@ -1686,17 +1686,17 @@ public:
     }
 
     struct DeserializeFn {
-        template <typename StreamObj>
+        template <typename StreamObj, typename DeserializationData>
         void stream(StreamObj* obj, DeserializationData* buf)
         {
             obj->deserialize(*buf);
         }
     };
 
-    template <template <typename> class FieldFactory>
+    template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
-        Base::template deserialize<FieldFactory>(buf);
+        Base::deserialize(buf);
 
         Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
 
@@ -1757,7 +1757,7 @@ public:
             SerializationData data;
             data.buf = T2T<char*>(buf);
 
-            me->template serialize<FieldFactory>(data);
+            me->serialize(data);
 
             return data.total;
         }
@@ -1769,7 +1769,7 @@ public:
             DeserializationData data;
             data.buf = T2T<const char*>(buf);
 
-            me->template deserialize<FieldFactory>(data);
+            me->deserialize(data);
         }
 
         virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const

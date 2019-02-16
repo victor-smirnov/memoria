@@ -40,6 +40,7 @@ struct FieldFactory<UnsignedAccumulator<BitLength>> {
 
     static constexpr size_t Size = Type::Size * sizeof(typename Type::ValueT);
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field)
     {
         std::memcpy(data.buf, field.value_, Size);
@@ -47,12 +48,14 @@ struct FieldFactory<UnsignedAccumulator<BitLength>> {
         data.total  += Size;
     }
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field)
     {
         std::memcpy(field.value_, data.buf, Size);
         data.buf += Size;
     }
 
+    template <typename SerializationData>
     static void serialize(SerializationData& data, const Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)
@@ -63,6 +66,7 @@ struct FieldFactory<UnsignedAccumulator<BitLength>> {
         }
     }
 
+    template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type* field, int32_t size)
     {
         for (int32_t c = 0; c < size; c++)

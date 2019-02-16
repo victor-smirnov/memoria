@@ -251,7 +251,7 @@ public:
         this->memory_block_size()   = block->memory_block_size();
     }
 
-    template <template <typename> class FieldFactory>
+    template <template <typename T> class FieldFactory, typename SerializationData>
     void serialize(SerializationData& buf) const
     {
         FieldFactory<uint32_t>::serialize(buf, crc());
@@ -268,7 +268,7 @@ public:
         FieldFactory<int32_t>::serialize(buf, deleted_);
     }
 
-    template <template <typename> class FieldFactory>
+    template <template <typename T> class FieldFactory, typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<uint32_t>::deserialize(buf, crc());
@@ -290,14 +290,14 @@ public:
 
 template <typename PageIdType, int32_t FlagsCount>
 struct TypeHash<AbstractPage<PageIdType, FlagsCount>>: HasValue<
-		uint64_t,
-		HashHelper<
+        uint64_t,
+        HashHelper<
             AbstractPage<PageIdType, FlagsCount>::VERSION,
             TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>,
             TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::BlockID>,
             TypeHashV<int32_t>,
             8
-		>
+        >
 >{};
 
 
