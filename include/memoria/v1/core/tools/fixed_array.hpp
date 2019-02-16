@@ -33,7 +33,7 @@ class FixedArray {
 
     T data_[Size];
 public:
-    FixedArray() {}
+    constexpr FixedArray() = default;
 
     T* data() {
         return data_;
@@ -97,11 +97,11 @@ public:
         }
     }
 
-    T& operator[](size_t c) {
+    constexpr T& operator[](size_t c) {
         return data_[c];
     }
 
-    const T& operator[](size_t c) const {
+    constexpr const T& operator[](size_t c) const {
         return data_[c];
     }
 };

@@ -200,8 +200,8 @@ public:
 
     static int32_t block_size(const SizesT& capacity)
     {
-        int32_t metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
-        int32_t data_sizes_length = Base::roundUpBytesToAlignmentBlocks(Blocks * sizeof(int32_t));
+        int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t data_sizes_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(Blocks * sizeof(int32_t));
 
 
         int32_t segments_length = 0;
@@ -209,10 +209,10 @@ public:
         for (int32_t block = 0; block < Blocks; block++)
         {
             int32_t index_size      = MyType::index_size(capacity[block]);
-            int32_t index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexValue));
-            int32_t sizes_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(int32_t));
+            int32_t index_length    = PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexValue));
+            int32_t sizes_length    = PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(int32_t));
 
-            int32_t values_length   = Base::roundUpBitsToAlignmentBlocks(capacity[block] * BITS_PER_DATA_VALUE);
+            int32_t values_length   = PackedAllocatable::roundUpBitsToAlignmentBlocks(capacity[block] * BITS_PER_DATA_VALUE);
 
             int32_t offsets_length  = offsets_segment_size(capacity[block]);
 
@@ -1142,9 +1142,9 @@ public:
 
     OpStatus clear()
     {
-        if (Base::has_allocator())
+        if (this->allocatable().has_allocator())
         {
-            auto alloc = this->allocator();
+            auto alloc = this->allocatable().allocator();
             int32_t empty_size = MyType::empty_size();
             if(isFail(alloc->resizeBlock(this, empty_size))) {
                 return OpStatus::FAIL;

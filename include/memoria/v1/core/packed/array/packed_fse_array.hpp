@@ -64,9 +64,7 @@ namespace {
 
 
 template <typename Types_>
-class PackedFSEArray: public PackedAllocatable {
-
-    typedef PackedAllocatable                                                   Base;
+class PackedFSEArray {
 
 public:
     static const uint32_t VERSION                                                   = 1;
@@ -101,6 +99,7 @@ public:
     };
 
 private:
+    PackedAllocatable header_;
 
     int32_t size_;
     int32_t max_size_;
@@ -108,7 +107,7 @@ private:
     Value buffer_[];
 
 public:
-    PackedFSEArray() {}
+    PackedFSEArray() = default;
 
     int32_t& size() {return size_;}
     const int32_t& size() const {return size_;}
@@ -120,8 +119,8 @@ public:
 
     int32_t total_capacity() const
     {
-        int32_t my_size     = allocator()->element_size(this);
-        int32_t free_space  = allocator()->free_space();
+        int32_t my_size     = header_.allocator()->element_size(this);
+        int32_t free_space  = header_.allocator()->free_space();
         int32_t data_size   = sizeof(Value) * size_ * Blocks;
 
         return (my_size + free_space - data_size) / (sizeof(Value) * Blocks);
@@ -156,9 +155,9 @@ public:
 
     int32_t allocated_block_size() const
     {
-        if (Base::allocator_offset() != 0)
+        if (header_.allocator_offset() != 0)
         {
-            return this->allocator()->element_size(this);
+            return header_.allocator()->element_size(this);
         }
         else {
             return block_size();
@@ -297,7 +296,7 @@ public:
 
     OpStatus enlarge(int32_t items_num)
     {
-        Allocator* alloc = allocator();
+        Allocator* alloc = header_.allocator();
 
         int32_t requested_block_size    = (max_size_ + items_num) * sizeof(Value) * Blocks + empty_size();
         int32_t new_size                = alloc->resizeBlock(this, requested_block_size);
@@ -761,7 +760,8 @@ public:
 
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<int32_t>::serialize(buf, Base::allocator_offset_);
+        header_.serialize(buf);
+
         FieldFactory<int32_t>::serialize(buf, size_);
         FieldFactory<int32_t>::serialize(buf, max_size_);
 
@@ -770,7 +770,8 @@ public:
 
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<int32_t>::deserialize(buf, Base::allocator_offset_);
+        header_.deserialize(buf);
+
         FieldFactory<int32_t>::deserialize(buf, size_);
         FieldFactory<int32_t>::deserialize(buf, max_size_);
 

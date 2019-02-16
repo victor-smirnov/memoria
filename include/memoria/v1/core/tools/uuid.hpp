@@ -37,7 +37,9 @@ class UUID {
     uint64_t lo_;
 
 public:
-    UUID() = default;
+    constexpr UUID():
+        hi_(), lo_()
+    {}
 
     constexpr UUID(uint64_t hi, uint64_t lo): hi_(hi), lo_(lo) {}
 

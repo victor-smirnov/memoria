@@ -27,9 +27,7 @@ namespace v1 {
 
 
 template <typename Value_ = int64_t, PkdSearchType SearchType_ = PkdSearchType::SUM>
-class PackedEmptyStruct: public PackedAllocatable {
-
-    typedef PackedAllocatable                                                   Base;
+class PackedEmptyStruct {
 
 public:
     static const uint32_t VERSION = 1;
@@ -54,7 +52,7 @@ public:
     using ReadState = SizesT;
 
 private:
-
+    PackedAllocatable header_;
 public:
     PackedEmptyStruct() = default;
 
@@ -294,12 +292,12 @@ public:
 
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<int32_t>::serialize(buf, Base::allocator_offset_);
+        header_.serialize(buf);
     }
 
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<int32_t>::deserialize(buf, Base::allocator_offset_);
+        header_.deserialize(buf);
     }
 };
 

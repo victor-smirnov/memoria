@@ -1232,9 +1232,9 @@ public:
 
     OpStatus clear()
     {
-        if (Base::has_allocator())
+        if (this->allocatable().has_allocator())
         {
-            auto alloc = this->allocator();
+            auto alloc = this->allocatable().allocator();
             int32_t empty_size = MyType::empty_size();
             if(isFail(alloc->resizeBlock(this, empty_size))) {
                 return OpStatus::FAIL;

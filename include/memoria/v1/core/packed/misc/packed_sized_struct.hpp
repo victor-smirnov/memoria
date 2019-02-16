@@ -28,9 +28,7 @@ namespace v1 {
 
 
 template <typename Value_ = int64_t, int32_t Indexes_ = 0, PkdSearchType SearchType_ = PkdSearchType::SUM>
-class PackedSizedStruct: public PackedAllocatable {
-
-    typedef PackedAllocatable                                                   Base;
+class PackedSizedStruct {
 
 public:
     static const uint32_t VERSION = 1;
@@ -66,11 +64,12 @@ public:
 
 
 private:
+    PackedAllocatable header_;
 
     int32_t size_;
 
 public:
-    PackedSizedStruct() {}
+    PackedSizedStruct() = default;
 
     int32_t& size() {return size_;}
     const int32_t& size() const {return size_;}
@@ -494,8 +493,7 @@ public:
         handler->startStruct();
         handler->startGroup("SIZED_STRUCT");
 
-//        handler->value("ALLOCATOR",     &Base::allocator_offset());
-        handler->value("SIZE",          &size_);
+        handler->value("SIZE", &size_);
 
         handler->endGroup();
         handler->endStruct();
@@ -503,13 +501,13 @@ public:
 
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<int32_t>::serialize(buf, Base::allocator_offset_);
+        header_.serialize(buf);
         FieldFactory<int32_t>::serialize(buf, size_);
     }
 
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<int32_t>::deserialize(buf, Base::allocator_offset_);
+        header_.deserialize(buf);
         FieldFactory<int32_t>::deserialize(buf, size_);
     }
 };

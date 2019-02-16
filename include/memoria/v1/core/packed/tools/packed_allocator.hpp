@@ -316,9 +316,7 @@ public:
     template <typename T>
     MMA1_NODISCARD T* allocate(int32_t idx, int32_t block_size)
     {
-        //static_assert(std::is_base_of<PackedAllocatable, T>::value,
-        //        "Only derived classes of PackedAllocatable "
-        //        "should be instantiated this way");
+        static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
         AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
@@ -334,9 +332,7 @@ public:
     template <typename T>
     MMA1_NODISCARD T* allocateSpace(int32_t idx, int32_t block_size)
     {
-        //static_assert(std::is_base_of<PackedAllocatable, T>::value,
-        //        "Only derived classes of PackedAllocatable "
-        //        "should be instantiated this way");
+        static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
         AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
@@ -346,9 +342,7 @@ public:
     template <typename T>
     MMA1_NODISCARD T* allocateEmpty(int32_t idx)
     {
-        //static_assert(std::is_base_of<PackedAllocatable, T>::value,
-        //        "Only derived classes of PackedAllocatable "
-        //        "should be instantiated this way");
+        static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
         int32_t block_size = T::empty_size();
 

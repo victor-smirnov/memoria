@@ -138,7 +138,7 @@ MakeUniquePackedStructByBlock(int32_t block_size, Args&&... args)
 
     if (alloc)
     {
-        alloc->setTopLevelAllocator();
+        alloc->allocatable().setTopLevelAllocator();
         OOM_THROW_IF_FAILED(alloc->init(allocator_block_size, 1), MMA1_SRC);
 
         T* ptr = alloc->template allocateSpace<T>(0, block_size);
@@ -162,7 +162,7 @@ MakeSharedPackedStructByBlock(int32_t block_size, Args&&... args)
 {
     PkdStructSPtr<T> ptr = std::allocate_shared<T>(SharedPtrAllocator<T>(block_size, sizeof(T)));
 
-    ptr->setTopLevelAllocator();
+    ptr->allocatable().setTopLevelAllocator();
     OOM_THROW_IF_FAILED(ptr->init_bs(block_size, std::forward<Args>(args)...), MMA1_SRC);
     ptr->set_block_size(block_size);
 
@@ -183,7 +183,7 @@ MakeSharedPackedStructByBlock(int32_t block_size, Args&&... args)
 
     if (alloc)
     {
-        alloc->setTopLevelAllocator();
+        alloc->allocatable().setTopLevelAllocator();
         OOM_THROW_IF_FAILED(alloc->init(allocator_block_size, 1), MMA1_SRC);
 
         T* ptr = alloc->template allocateSpace<T>(0, block_size);

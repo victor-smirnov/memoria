@@ -103,6 +103,8 @@ struct UnsignedAccumulator {
 
     constexpr UnsignedAccumulator(): value_{} {}
 
+    constexpr UnsignedAccumulator(const UnsignedAccumulator& other) = default;
+
     template <unsigned BmpBitLength>
     constexpr UnsignedAccumulator(
             const _::UAccBmpInt<BmpBitLength>& bmp_value
@@ -327,11 +329,7 @@ struct UnsignedAccumulator {
     }
 
 
-    UnsignedAccumulator& operator=(const UnsignedAccumulator& other)
-    {
-        std::memcpy(this->value_, other.value_, BitLength / 8);
-        return *this;
-    }
+    UnsignedAccumulator& operator=(const UnsignedAccumulator& other) = default;
 
     UnsignedAccumulator& operator=(const ValueT& other)
     {

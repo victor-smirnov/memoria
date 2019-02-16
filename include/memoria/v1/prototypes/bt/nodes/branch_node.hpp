@@ -57,9 +57,9 @@ public:
     using BlockID = typename Header::BlockID;
 
 
-    static_assert(std::is_pod<Metadata>::value, "TreeNodeBase: Metadata must be a trivial type");
-    static_assert(std::is_pod<Header>::value, "TreeNodeBase: Header must be a trivial type");
-    static_assert(std::is_pod<BlockID>::value, "TreeNodeBase: ID must be a trivial type");
+    static_assert(IsPackedStructV<Metadata>, "TreeNodeBase: Metadata must satisfy IsPackedStructV<>");
+    static_assert(IsPackedStructV<Header>, "TreeNodeBase: Header must satisfy IsPackedStructV<>");
+    static_assert(IsPackedStructV<BlockID>, "TreeNodeBase: ID must satisfy IsPackedStructV<>");
 
     static const int32_t StreamsStart               = 1;
 
@@ -1726,7 +1726,7 @@ public:
 
     static const uint64_t BLOCK_HASH = TypeHashV<Base>;
 
-    static_assert(std::is_pod<TreeNode<Types>>::value, "TreeNode must be a POD type");
+    static_assert(IsPackedStructV<TreeNode<Types>>, "TreeNode must satisfy IsPackedStructV");
 
     template <
         template <typename> class,

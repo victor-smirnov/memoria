@@ -46,9 +46,7 @@ template <int32_t BitsPerSymbol>
 using PackedFSEBitmapT = PackedFSEBitmap<PackedFSEBitmapTypes<BitsPerSymbol>>;
 
 template <typename Types_>
-class PackedFSEBitmap: public PackedAllocatable {
-
-    typedef PackedAllocatable                                                   Base;
+class PackedFSEBitmap {
 
 public:
     static const uint32_t VERSION                                                   = 1;
@@ -61,7 +59,7 @@ public:
     typedef typename Types::Allocator                                           Allocator;
     typedef typename Types::Value                                               Value;
 
-    static const int32_t BitsPerSymbol                                              = Types::BitsPerSymbol;
+    static const int32_t BitsPerSymbol                                          = Types::BitsPerSymbol;
 
     typedef BitmapAccessor<Value*, Value, BitsPerSymbol>                        SymbolAccessor;
     typedef BitmapAccessor<const Value*, Value, BitsPerSymbol>                  ConstSymbolAccessor;
@@ -70,6 +68,7 @@ public:
     using ReadState = SizesT;
 
 private:
+    PackedAllocatable header_;
 
     int32_t size_;
     int32_t max_size_;
@@ -78,7 +77,7 @@ private:
     Value buffer_[];
 
 public:
-    PackedFSEBitmap() {}
+    PackedFSEBitmap() = default;
 
     int32_t& size() {return size_;}
     const int32_t& size() const {return size_;}
@@ -111,11 +110,11 @@ public:
 
     static constexpr int32_t block_size(int32_t elements)
     {
-        return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
+        return sizeof(MyType) + PackedAllocatable::roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
     }
 
     int32_t block_size() const {
-        const Allocator* alloc = this->allocator();
+        const Allocator* alloc = header_.allocator();
         return alloc->element_size(this);
     }
 
@@ -179,8 +178,8 @@ public:
 
     void enlarge1(int32_t elements)
     {
-        Allocator* alloc = Base::allocator();
-        int32_t amount = roundUpBitToBytes(roundUpBitToBytes(elements * BitsPerSymbol));
+        Allocator* alloc = header_.allocator();
+        int32_t amount = PackedAllocatable::roundUpBitToBytes(PackedAllocatable::roundUpBitToBytes(elements * BitsPerSymbol));
         int32_t size = alloc->element_size(this);
         int32_t new_size = alloc->resizeBlock(this, size + amount + empty_size());
         max_size_ = (new_size - empty_size()) * 8 / BitsPerSymbol;
@@ -305,7 +304,7 @@ public:
     {
         handler->startGroup("PACKED_FSE_BITMAP");
 
-        handler->value("PARENT_ALLOCATOR", &this->allocator_offset_);
+        handler->value("PARENT_ALLOCATOR", &header_.allocator_offset());
 
         handler->value("SIZE", &size_);
         handler->value("MAX_SIZE", &max_size_);
@@ -321,7 +320,7 @@ public:
 
     void serialize(SerializationData& buf) const
     {
-        Base::serialize(buf);
+        header_.serialize(buf);
 
         FieldFactory<int32_t>::serialize(buf, size_);
         FieldFactory<int32_t>::serialize(buf, max_size_);
@@ -331,7 +330,7 @@ public:
 
     void deserialize(DeserializationData& buf)
     {
-        Base::deserialize(buf);
+        header_.deserialize(buf);
 
         FieldFactory<int32_t>::deserialize(buf, size_);
         FieldFactory<int32_t>::deserialize(buf, max_size_);
@@ -346,7 +345,7 @@ private:
         int32_t buffer_size = block_size - sizeof(MyType);
 
         int32_t bit_size    = buffer_size * 8;
-        int32_t byte_size   = Base::roundUpBitsToAlignmentBlocks(bit_size);
+        int32_t byte_size   = PackedAllocatable::roundUpBitsToAlignmentBlocks(bit_size);
 
         return byte_size / sizeof(Value);
     }
@@ -367,8 +366,8 @@ private:
 
     void enlarge(int32_t elements)
     {
-        Allocator* alloc = Base::allocator();
-        int32_t amount = roundUpBitsToAlignmentBlocks((size_ + elements) * BitsPerSymbol);
+        Allocator* alloc = header_.allocator();
+        int32_t amount = PackedAllocatable::roundUpBitsToAlignmentBlocks((size_ + elements) * BitsPerSymbol);
 
         int32_t new_size = alloc->resizeBlock(this, amount + empty_size());
         max_size_ = (new_size - empty_size()) * 8 / BitsPerSymbol;
@@ -378,8 +377,8 @@ private:
     {
         MEMORIA_V1_ASSERT(size_, >=, elements);
 
-        Allocator* alloc = Base::allocator();
-        int32_t amount = roundUpBitsToAlignmentBlocks((size_ - elements) * BitsPerSymbol);
+        Allocator* alloc = header_.allocator();
+        int32_t amount = PackedAllocatable.roundUpBitsToAlignmentBlocks((size_ - elements) * BitsPerSymbol);
 
         int32_t new_size = alloc->resizeBlock(this, amount + empty_size());
         max_size_ = (new_size - empty_size()) * 8 / BitsPerSymbol;

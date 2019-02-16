@@ -38,7 +38,8 @@ class PackedAllocatorTest: public TestState {
 
     using AllocatorPtr = std::shared_ptr<Allocator>;
 
-    class SimpleStruct: public PackedAllocatable {
+    class SimpleStruct {
+        PackedAllocatable header_;
         int32_t size_;
         uint8_t data_;
         uint8_t content_[];
@@ -51,7 +52,7 @@ class PackedAllocatorTest: public TestState {
 
         int32_t block_size() const
         {
-            const Allocator* alloc = allocator();
+            const Allocator* alloc = header_.allocator();
             assert_equals(true, alloc != nullptr);
 
             return alloc->element_size(this);
@@ -102,7 +103,7 @@ class PackedAllocatorTest: public TestState {
 
         void enlarge(int32_t delta)
         {
-            Allocator* alloc = allocator();
+            Allocator* alloc = header_.allocator();
             int32_t block_size   = alloc->element_size(this);
             int32_t new_size     = alloc->resizeBlock(this, block_size + delta);
 
@@ -116,7 +117,7 @@ class PackedAllocatorTest: public TestState {
 
         void shrink(int32_t delta)
         {
-            Allocator* alloc = allocator();
+            Allocator* alloc = header_.allocator();
             int32_t block_size   = alloc->element_size(this);
             int32_t new_size     = alloc->resizeBlock(this, block_size - delta);
 
@@ -153,7 +154,7 @@ public:
         Allocator* alloc = allocate_system_zeroed<Allocator>(block_size).release();
 
         OOM_THROW_IF_FAILED(alloc->init(block_size, elements), MMA1_SRC);
-        alloc->setTopLevelAllocator();
+        alloc->allocatable().setTopLevelAllocator();
 
         assert_equals(alloc->elements(), elements);
         assert_equals(alloc->block_size(), block_size);

@@ -42,9 +42,7 @@ struct PackedFSESequenceInputBufferTypes {
 
 
 template <typename Types_>
-class PkdFSESequenceInputBuffer: public PackedAllocatable {
-
-    using Base = PackedAllocatable;
+class PkdFSESequenceInputBuffer {
 
 public:
     static const uint32_t VERSION = 1;
@@ -81,6 +79,7 @@ public:
     };
 
 private:
+    PackedAllocatable header_;
 
     int32_t size_;
     int32_t max_size_;
@@ -89,7 +88,7 @@ private:
     Value buffer_[];
 
 public:
-    PkdFSESequenceInputBuffer() {}
+    PkdFSESequenceInputBuffer() = default;
 
     int32_t& size() {return size_;}
     const int32_t& size() const {return size_;}
@@ -120,12 +119,12 @@ public:
 
     static constexpr int32_t block_size(int32_t elements)
     {
-        return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
+        return sizeof(MyType) + PackedAllocatable::roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
     }
 
     static constexpr int32_t block_size(const SizesT& elements)
     {
-        return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements[0] * BitsPerSymbol);
+        return sizeof(MyType) + PackedAllocatable::roundUpBitsToAlignmentBlocks(elements[0] * BitsPerSymbol);
     }
 
     OpStatus reset() {
@@ -236,7 +235,7 @@ public:
     {
         handler->startGroup("PACKED_FSE_INPUT_BUFFER");
 
-        handler->value("PARENT_ALLOCATOR", &this->allocator_offset_);
+        handler->value("PARENT_ALLOCATOR", &header_.allocator_offset());
 
         handler->value("SIZE", &size_);
         handler->value("MAX_SIZE", &max_size_);

@@ -38,9 +38,7 @@ struct PackedFSERowOrderInputBufferTypes {
 
 
 template <typename Types_>
-class PackedFSERowOrderInputBuffer: public PackedAllocatable {
-
-    typedef PackedAllocatable                                                   Base;
+class PackedFSERowOrderInputBuffer {
 
 public:
     static const uint32_t VERSION                                                   = 1;
@@ -59,6 +57,8 @@ public:
     using InputType = Value;
     using InputBuffer = MyType;
 
+    static_assert(std::is_standard_layout<Value>::value, "Value must be a POD type");
+
     using Values = core::StaticVector<Value, Blocks>;
     using SizesT = core::StaticVector<int32_t, Blocks>;
 
@@ -74,6 +74,7 @@ public:
     };
 
 private:
+    PackedAllocatable header_;
 
     int32_t size_;
     int32_t max_size_;
@@ -81,7 +82,7 @@ private:
     Value buffer_[];
 
 public:
-    PackedFSERowOrderInputBuffer() {}
+    PackedFSERowOrderInputBuffer() = default;
 
     int32_t& size() {return size_;}
     const int32_t& size() const {return size_;}
@@ -93,8 +94,8 @@ public:
 
     int32_t total_capacity() const
     {
-        int32_t my_size     = allocator()->element_size(this);
-        int32_t free_space  = allocator()->free_space();
+        int32_t my_size     = header_.allocator()->element_size(this);
+        int32_t free_space  = header_.allocator()->free_space();
         int32_t data_size   = sizeof(Value) * size_ * Blocks;
 
         return (my_size + free_space - data_size) / (sizeof(Value) * Blocks);
@@ -328,7 +329,7 @@ public:
         handler->startStruct();
         handler->startGroup("FSE_ROW_ORDER_INPUT_BUFFER");
 
-        handler->value("ALLOCATOR",     &Base::allocator_offset());
+        handler->value("ALLOCATOR",     &header_.allocator_offset());
         handler->value("SIZE",          &size_);
         handler->value("MAX_SIZE",      &max_size_);
 

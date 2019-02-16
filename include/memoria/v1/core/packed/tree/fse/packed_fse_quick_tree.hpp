@@ -1110,9 +1110,9 @@ public:
             return OpStatus::FAIL;
         }
 
-        if (Base::has_allocator())
+        if (this->allocatable().has_allocator())
         {
-            auto alloc = this->allocator();
+            auto alloc = this->allocatable().allocator();
             int32_t empty_size = MyType::empty_size();
             return toOpStatus(alloc->resizeBlock(this, empty_size));
         }
@@ -1137,8 +1137,6 @@ public:
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
-//        Base::generateDataEvents(handler);
-
         handler->startStruct();
         handler->startGroup("FSQ_TREE");
 
