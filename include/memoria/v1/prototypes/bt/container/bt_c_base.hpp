@@ -367,7 +367,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             CreateNodeFn(self), metadata.memory_block_size()
         );
 
-
         node->header().ctr_type_hash()   = self.hash();
         
         node->parent_id()       = BlockID{};

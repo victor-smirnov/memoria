@@ -18,12 +18,12 @@ set (SRCS ${SRCS} reactor/file_unbuffered_block_test.cpp)
 #set (SRCS ${SRCS} prototype/btss/btss_test_suite.cpp prototype/btss/btss_test_ctr_dflt.cpp)
 #set (SRCS ${SRCS} prototype/btfl/btfl_test_suite.cpp prototype/btfl/btfl_test_ctr_dflt.cpp)
 
-#set (SRCS ${SRCS} map/map_test_suite.cpp map/map_test_ctr_uuid_long_dflt.cpp)
+set (SRCS ${SRCS} map/map_test_suite.cpp map/map_test_ctr_uuid_long_dflt.cpp)
 #set (SRCS ${SRCS} vector/vector_test_suite.cpp vector/vector_test_ctr_int_dflt.cpp vector/vector_test_ctr_vint_dflt.cpp)
 set (SRCS ${SRCS} multimap/multimap_test_suite.cpp multimap/multimap_dbl_i64_dflt.cpp multimap/multimap_i64_i64_dflt.cpp multimap/multimap_string_i64_dflt.cpp)
 #set (SRCS ${SRCS} sequence/sequence_test_suite.cpp sequence/sequence_ctr_dflt.cpp)
 
-set (SRCS ${SRCS} integer/integer_test_suite.cpp)
+#set (SRCS ${SRCS} integer/integer_test_suite.cpp)
 
 set (SRCS ${SRCS} db/edge_map/edge_map_keys_test_suite.cpp)
 set (SRCS ${SRCS} db/edge_map/edge_map_values_insertion_test_suite.cpp)

@@ -71,9 +71,9 @@ RNG& get_RNG() {
 
 using UUIDData = decltype(boost::uuids::uuid::data);
 
-UUID make_uuid(UUIDData uuid)
+UUID make_uuid(const UUIDData& uuid)
 {
-    UUID uuid2;
+    UUID uuid2{};
 
     for (int c = 0; c < 8; c++)
     {

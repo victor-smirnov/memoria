@@ -13,14 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
+#include <memoria/v1/profiles/default/default.hpp>
 
 #include <memoria/v1/containers/map/map_impl.hpp>
 
 #include <memoria/v1/core/strings/string.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
-#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
+
 
 namespace memoria {
 namespace v1 {

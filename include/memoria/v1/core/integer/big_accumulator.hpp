@@ -19,7 +19,7 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 
 #include <boost/multiprecision/integer.hpp>
-#include <boost/detail/endian.hpp>
+#include <boost/predef/other/endian.h>
 
 #include <ostream>
 
