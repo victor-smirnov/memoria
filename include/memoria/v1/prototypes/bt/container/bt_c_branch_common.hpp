@@ -91,7 +91,7 @@ void M_TYPE::newRootP(NodeBaseG& root)
 
     self.updateBlockG(root);
 
-    NodeBaseG new_root = self.createNode(root->level() + 1, true, false, root->memory_block_size());
+    NodeBaseG new_root = self.createNode(root->level() + 1, true, false, root->header().memory_block_size());
 
     uint64_t root_active_streams = self.getActiveStreams(root);
     self.layoutBranchNode(new_root, root_active_streams);

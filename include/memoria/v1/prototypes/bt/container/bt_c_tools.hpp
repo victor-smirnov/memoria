@@ -101,22 +101,17 @@ public:
     {
         if (block)
         {
-            //BlockWrapper<const BlockType> pw(block);
-            //auto meta = self().getMetadata()->getBlockMetadata(pw.getContainerHash(), pw.getBlockTypeHash());
-
-            //dumpBlock(meta.get(), &pw, out);
-
             TextBlockDumper dumper(out);
 
             ProfileMetadata<Profile>::get_thread_local()
                     ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
-                    ->generateDataEvents(block.block(), DataEventsParams(), &dumper);
+                    ->generateDataEvents(block.block()->as_header(), DataEventsParams(), &dumper);
 
             out<<std::endl;
             out<<std::endl;
         }
         else {
-            out<<"NULL"<<std::endl;
+            out << "NULL" << std::endl;
         }
     }
 
@@ -124,7 +119,7 @@ public:
     {
         auto& self = this->self();
 
-        out<<"Path:"<<std::endl;
+        out << "Path:" << std::endl;
 
         self.dump(node, out);
 

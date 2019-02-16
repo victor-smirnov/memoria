@@ -70,18 +70,18 @@ public:
         {
             if (node->is_leaf())
             {
-                walker->rootLeaf(node->parent_idx(), node.block());
+                walker->rootLeaf(node->parent_idx(), node.block()->as_header());
             }
             else {
-                walker->beginRoot(node->parent_idx(), node.block());
+                walker->beginRoot(node->parent_idx(), node.block()->as_header());
             }
         }
         else if (node->is_leaf())
         {
-            walker->leaf(node->parent_idx(), node.block());
+            walker->leaf(node->parent_idx(), node.block()->as_header());
         }
         else {
-            walker->beginNode(node->parent_idx(), node.block());
+            walker->beginNode(node->parent_idx(), node.block()->as_header());
         }
     }
 

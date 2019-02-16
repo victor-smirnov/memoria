@@ -295,7 +295,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         NodeBaseG node = self.allocator().createBlock(size);
         node->init();
 
-        node->block_type_hash() = Node::hash();
+        node->header().block_type_hash() = Node::hash();
 
         return node;
     }
@@ -329,7 +329,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 						size
         );
 
-        node->ctr_type_hash()   = self.hash();
+        node->header().ctr_type_hash() = self.hash();
         
         node->parent_id()       = BlockID{};
         node->parent_idx()      = 0;
@@ -368,7 +368,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         );
 
 
-        node->ctr_type_hash()   = self.hash();
+        node->header().ctr_type_hash()   = self.hash();
         
         node->parent_id()       = BlockID{};
         node->parent_idx()      = 0;
@@ -553,7 +553,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         NodeBaseG node = alloc->getBlock(node_id);
 
-        int32_t size = node->memory_block_size();
+        int32_t size = node->header().memory_block_size();
         bool leaf = node->is_leaf();
         bool root = node->is_root();
 

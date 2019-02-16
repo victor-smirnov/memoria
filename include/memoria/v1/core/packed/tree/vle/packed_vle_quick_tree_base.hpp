@@ -135,15 +135,15 @@ public:
 
     static constexpr int32_t offsets_segment_size(int32_t values)
     {
-        return PackedAllocator::roundUpBitsToAlignmentBlocks(number_of_offsets(values) * BITS_PER_OFFSET);
+        return PackedAllocatable::roundUpBitsToAlignmentBlocks(number_of_offsets(values) * BITS_PER_OFFSET);
     }
 
     static constexpr int32_t index1_segment_size(int32_t index_size) {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexValue));
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexValue));
     }
 
     static constexpr int32_t index2_segment_size(int32_t index_size) {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(index_size * sizeof(int));
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(int));
     }
 
 
@@ -240,15 +240,15 @@ public:
     //FIXME: invalid block size calculation by capacity
     static int32_t block_size_equi(int32_t blocks, int32_t capacity)
     {
-        int32_t metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-        int32_t data_sizes_length = Base::roundUpBytesToAlignmentBlocks(blocks * sizeof(int32_t));
+        int32_t data_sizes_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(blocks * sizeof(int32_t));
 
         int32_t index_size      = MyType::index_size(capacity);
-        int32_t index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexValue));
-        int32_t sizes_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(int32_t));
+        int32_t index_length    = PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexValue));
+        int32_t sizes_length    = PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(int32_t));
 
-        int32_t values_length   = Base::roundUpBitsToAlignmentBlocks(capacity * BITS_PER_DATA_VALUE);
+        int32_t values_length   = PackedAllocatable::roundUpBitsToAlignmentBlocks(capacity * BITS_PER_DATA_VALUE);
 
         int32_t offsets_length  = offsets_segment_size(capacity);
 

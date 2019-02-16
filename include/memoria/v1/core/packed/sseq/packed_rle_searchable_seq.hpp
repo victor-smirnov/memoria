@@ -147,7 +147,7 @@ public:
 
     static constexpr int32_t offsets_segment_size(int32_t values)
     {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(number_of_offsets(values) * sizeof(OffsetsType));
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(number_of_offsets(values) * sizeof(OffsetsType));
     }
 
     static constexpr size_t divUp(size_t value, size_t divisor) {
@@ -436,7 +436,7 @@ public:
 
     static int32_t block_size(int32_t symbols_capacity)
     {
-        int32_t metadata_length     = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t metadata_length     = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
         int32_t capacity = symbols_capacity;
 
@@ -446,7 +446,7 @@ public:
         int32_t sum_index_length    = index_size > 0 ? SumIndex::block_size(index_size) : 0;
 
         int32_t offsets_length      = offsets_segment_size(capacity);
-        int32_t values_length       = Base::roundUpBytesToAlignmentBlocks(capacity);
+        int32_t values_length       = PackedAllocatable::roundUpBytesToAlignmentBlocks(capacity);
 
         int32_t block_size          = Base::block_size(metadata_length + size_index_length  + offsets_length + sum_index_length + values_length, TOTAL_SEGMENTS__);
         return block_size;
@@ -519,7 +519,7 @@ public:
 public:
     static int32_t empty_size()
     {
-        int32_t metadata_length     = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t metadata_length     = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
         int32_t size_index_length   = 0;
         int32_t offsets_length      = offsets_segment_size(0);
         int32_t sum_index_length    = 0;
@@ -556,13 +556,13 @@ public:
         }
 
         auto size_index = this->size_index();
-        size_index->setAllocatorOffset(this);
+        size_index->allocatable().setAllocatorOffset(this);
         if(isFail(size_index->init(index_size))) {
             return OpStatus::FAIL;
         }
 
         auto sum_index = this->sum_index();
-        sum_index->setAllocatorOffset(this);
+        sum_index->allocatable().setAllocatorOffset(this);
         if(isFail(sum_index->init(index_size))) {
             return OpStatus::FAIL;
         }

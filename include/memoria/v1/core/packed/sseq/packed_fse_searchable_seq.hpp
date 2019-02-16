@@ -313,7 +313,7 @@ public:
 
     static int32_t empty_size()
     {
-        int32_t metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
         int32_t index_length    = 0;
         int32_t values_length   = 0;
         int32_t block_size      = Base::block_size(metadata_length + index_length + values_length, 3);
@@ -322,10 +322,10 @@ public:
 
     static int32_t estimate_block_size(int32_t size, int32_t density_hi = 1, int32_t density_lo = 1)
     {
-        int32_t symbols_block_size  = Base::roundUpBitsToAlignmentBlocks(size * BitsPerSymbol);
+        int32_t symbols_block_size  = PackedAllocatable::roundUpBitsToAlignmentBlocks(size * BitsPerSymbol);
         int32_t index_size          = PackedAllocatable::divUp(size , ValuesPerBranch);
         int32_t index_block_size    = Index::estimate_block_size(index_size, density_hi, density_lo);
-        int32_t metadata_block_size = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t metadata_block_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
         int32_t client_area         = metadata_block_size + index_block_size + symbols_block_size;
         int32_t block_size          = Base::block_size(client_area, 3);
@@ -348,7 +348,7 @@ public:
         }
 
         Index* index = this->index();
-        index->setAllocatorOffset(this);
+        index->allocatable().setAllocatorOffset(this);
 
         if(isFail(index->init(index_size))) {
             return OpStatus::FAIL;
@@ -414,7 +414,7 @@ public:
         if (length >= capacity)
         {
             int32_t new_size        = size() + length;
-            int32_t new_block_size  = roundUpBitToBytes(new_size * BitsPerSymbol);
+            int32_t new_block_size  = PackedAllocatable::roundUpBitToBytes(new_size * BitsPerSymbol);
             if(isFail(Base::resizeBlock(SYMBOLS, new_block_size))) {
                 return OpStatus::FAIL;
             }
@@ -447,7 +447,7 @@ protected:
 
         if (new_size >= 0)
         {
-            int32_t new_block_size  = roundUpBitToBytes(new_size * BitsPerSymbol);
+            int32_t new_block_size  = PackedAllocatable::roundUpBitToBytes(new_size * BitsPerSymbol);
 
             if(isFail(Base::resizeBlock(SYMBOLS, new_block_size))) {
                 return OpStatus::FAIL;
@@ -1149,7 +1149,7 @@ private:
     int32_t symbol_buffer_size() const
     {
         int32_t bit_size    = this->element_size(SYMBOLS) * 8;
-        int32_t byte_size   = Base::roundUpBitsToAlignmentBlocks(bit_size);
+        int32_t byte_size   = PackedAllocatable::roundUpBitsToAlignmentBlocks(bit_size);
 
         return byte_size / sizeof(Value);
     }

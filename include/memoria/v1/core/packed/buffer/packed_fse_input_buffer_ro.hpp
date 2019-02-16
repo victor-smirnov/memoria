@@ -110,12 +110,12 @@ public:
 
     static constexpr int32_t block_size(int32_t array_size)
     {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
     }
 
     static constexpr int32_t block_size(const SizesT& array_size)
     {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size[0] * sizeof(Value) * Blocks);
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size[0] * sizeof(Value) * Blocks);
     }
 
     OpStatus init(int32_t block_size)

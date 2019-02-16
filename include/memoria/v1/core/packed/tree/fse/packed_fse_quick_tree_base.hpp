@@ -145,12 +145,12 @@ public:
 
     static int32_t block_size(int32_t blocks, int32_t capacity)
     {
-        int32_t metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
         int32_t index_size      = MyType::index_size(capacity);
-        int32_t index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexValue));
+        int32_t index_length    = PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(IndexValue));
 
-        int32_t values_length   = Base::roundUpBytesToAlignmentBlocks(capacity * sizeof(Value));
+        int32_t values_length   = PackedAllocatable::roundUpBytesToAlignmentBlocks(capacity * sizeof(Value));
 
         return Base::block_size(metadata_length + (index_length + values_length) * blocks, blocks * SegmentsPerBlock + 1);
     }

@@ -214,11 +214,11 @@ public:
 
 
 
-    void *operator new(size_t size, void *block) {
-        return block;
-    }
+//    void *operator new(size_t size, void *block) {
+//        return block;
+//    }
 
-    void operator delete(void *buf) {}
+//    void operator delete(void *buf) {}
 
     //Rebuild block content such indexes using provided data.
     void Rebiuild(){}
@@ -331,12 +331,12 @@ public:
 
     template <typename Page>
     const Page* block() const {
-        return static_cast<const Page*>(block_);
+        return T2T<const Page*>(block_);
     }
 
     template <typename Page>
     Page* block() {
-        return static_cast<Page*>(block_);
+        return T2T<Page*>(block_);
     }
 
     PageT* get() {

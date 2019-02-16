@@ -70,7 +70,7 @@ public:
                 ConstValue<uint32_t, DESCRIPTOR_SIZE>
     >;
 
-    BalancedTreeMetadata()  = default;
+    BalancedTreeMetadata() = default;
 
     UUID &model_name()
     {

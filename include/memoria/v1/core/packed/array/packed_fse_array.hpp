@@ -141,12 +141,12 @@ public:
 
     static constexpr int32_t block_size(int32_t array_size)
     {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
     }
 
     static constexpr int32_t packed_block_size(int32_t array_size)
     {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
     }
 
     static constexpr int32_t elements_for(int32_t block_size)
@@ -208,7 +208,7 @@ public:
     int32_t object_size() const
     {
         int32_t object_size = sizeof(MyType) + sizeof(Value) * size_ * Blocks;
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(object_size);
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(object_size);
     }
 
     Value& value(int32_t block, int32_t idx) {

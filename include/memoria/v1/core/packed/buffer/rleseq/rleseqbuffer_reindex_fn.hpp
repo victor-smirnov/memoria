@@ -237,7 +237,7 @@ public:
             MEMORIA_V1_ASSERT(size_iterator.data_pos(), ==, size_iterator.limit());
         }
         else {
-            MEMORIA_V1_ASSERT(seq.element_size(Seq::OFFSETS), ==, (int32_t)PackedAllocator::AlignmentBlock);
+            MEMORIA_V1_ASSERT(seq.element_size(Seq::OFFSETS), ==, (int32_t)PackedAllocatable::AlignmentBlock);
         }
     }
 };

@@ -52,7 +52,7 @@ inline auto AllocateAllocator(size_t block_size, int32_t blocks = 1)
 {
     auto ptr = AllocateUnique<PackedAllocator>(block_size);
 
-    ptr->setTopLevelAllocator();
+    ptr->allocatable().setTopLevelAllocator();
     OOM_THROW_IF_FAILED(ptr->init(block_size, blocks), MMA1_SRC);
 
     return ptr;

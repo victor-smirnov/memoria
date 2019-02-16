@@ -299,7 +299,7 @@ public:
 
     static int32_t empty_size()
     {
-        int32_t metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
         int32_t sizes_length    = 0;
 
@@ -976,9 +976,9 @@ public:
 
     OpStatus clear()
     {
-        if (Base::has_allocator())
+        if (allocatable().has_allocator())
         {
-            auto alloc = this->allocator();
+            auto alloc = this->allocatable().allocator();
             int32_t empty_size = MyType::empty_size();
             if(isFail(alloc->resizeBlock(this, empty_size))) {
                 return OpStatus::FAIL;
@@ -1503,7 +1503,7 @@ protected:
 
     static constexpr int32_t offsets_segment_size(int32_t values)
     {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(number_of_offsets(values) * sizeof(OffsetsType));
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(number_of_offsets(values) * sizeof(OffsetsType));
     }
 
     static constexpr int32_t divUpV(int32_t value) {
@@ -1653,7 +1653,7 @@ protected:
     {
         int32_t new_data_size = data_size + length;
 
-        int32_t data_segment_size    = PackedAllocator::roundUpBytesToAlignmentBlocks(new_data_size);
+        int32_t data_segment_size    = PackedAllocatable::roundUpBytesToAlignmentBlocks(new_data_size);
         int32_t offsets_segment_size = this->offsets_segment_size(new_data_size);
         int32_t index_size           = MyType::index_size(new_data_size);
 
@@ -1970,7 +1970,7 @@ protected:
 //              MEMORIA_V1_ASSERT(offset(0), ==, 0);
             }
             else {
-                MEMORIA_V1_ASSERT(offsets_size, ==, Base::roundUpBytesToAlignmentBlocks(sizeof(OffsetsType)));
+                MEMORIA_V1_ASSERT(offsets_size, ==, PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(OffsetsType)));
             }
 
             MEMORIA_V1_ASSERT(meta->data_size(), <=, (int32_t)BranchingFactorV);

@@ -34,6 +34,7 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#include <type_traits>
 
 namespace memoria {
 namespace v1 {
@@ -47,43 +48,72 @@ class NodePageAdaptor;
 
 
 
-template <typename Metadata, typename Base_>
-class TreeNodeBase: public Base_ {
+template <typename Metadata, typename Header_>
+class TreeNodeBase {
 public:
     static const uint32_t VERSION = 1;
-    typedef Base_                               Base;
+    using Header = Header_;
 
-    using typename Base::BlockID;
+    using BlockID = typename Header::BlockID;
 
 
-//    static_assert(std::is_trivial<Metadata>::value, "TreeNodeBase: metadata must be a trivial type");
-//    static_assert(std::is_trivial<Base_>::value,    "TreeNodeBase: base must be a trivial type");
-//    static_assert(std::is_trivial<ID>::value,       "TreeNodeBase: ID must be a trivial type");
+    static_assert(std::is_pod<Metadata>::value, "TreeNodeBase: Metadata must be a trivial type");
+    static_assert(std::is_pod<Header>::value, "TreeNodeBase: Header must be a trivial type");
+    static_assert(std::is_pod<BlockID>::value, "TreeNodeBase: ID must be a trivial type");
 
     static const int32_t StreamsStart               = 1;
 
 private:
+    Header header_;
 
     int32_t root_;
     int32_t leaf_;
     int32_t level_;
 
-    BlockID  next_leaf_id_;
+    BlockID next_leaf_id_;
 
-    BlockID  parent_id_;
+    BlockID parent_id_;
     int32_t parent_idx_;
 
     int32_t alignment_gap_;
 
     PackedAllocator allocator_;
 
+    static_assert(std::is_pod<PackedAllocator>::value, "PackedAllocator must be a POD tpye");
+
 public:
 
     enum {METADATA = 0};
 
-    typedef TreeNodeBase<Metadata, Base>        Me;
+    using Me = TreeNodeBase<Metadata, Header>;
 
     TreeNodeBase() = default;
+
+    Header& header() {return header_;}
+    const Header& header() const {return header_;}
+
+    Header* as_header() {return &header_;}
+    const Header* as_header() const {return &header_;}
+
+    BlockID& id() {return header_.id();}
+    const BlockID& id() const {return header_.id();}
+
+    BlockID& uuid() {return header_.uuid();}
+    const BlockID& uuid() const {return header_.uuid();}
+
+
+
+    uint64_t ctr_type_hash() const {
+        return header_.ctr_type_hash();
+    }
+
+    uint64_t block_type_hash() const {
+        return header_.block_type_hash();
+    }
+
+    void init() {
+        header_.init();
+    }
 
     inline bool is_root() const {
         return root_;
@@ -181,7 +211,7 @@ public:
     {
         if (!has_root_metadata())
         {
-            const int32_t metadata_size = PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+            const int32_t metadata_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
             return allocator_.free_space() >= metadata_size;
         }
         else {
@@ -203,10 +233,10 @@ public:
 
     void initAllocator(int32_t entries)
     {
-        int32_t block_size = this->memory_block_size();
+        int32_t block_size = this->header().memory_block_size();
         MEMORIA_V1_ASSERT(block_size, >, (int)sizeof(Me) + PackedAllocator::my_size());
 
-        allocator_.setTopLevelAllocator();
+        allocator_.allocatable().setTopLevelAllocator();
         OOM_THROW_IF_FAILED(allocator_.init(block_size - sizeof(Me) + PackedAllocator::my_size(), entries), MMA1_SRC);
     }
 
@@ -220,7 +250,7 @@ public:
 
     void resizePage(int32_t new_size)
     {
-        this->memory_block_size() = new_size;
+        header_.memory_block_size() = new_size;
         allocator_.resizeBlock(new_size - sizeof(Me) + PackedAllocator::my_size());
     }
 
@@ -228,7 +258,7 @@ public:
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
-        Base::generateDataEvents(handler);
+        header_.generateDataEvents(handler);
 
         handler->value("ROOT",  &root_);
         handler->value("LEAF",  &leaf_);
@@ -252,7 +282,7 @@ public:
     template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
-        Base::template serialize<FieldFactory>(buf);
+        header_.template serialize<FieldFactory>(buf);
 
         FieldFactory<int32_t>::serialize(buf, root_);
         FieldFactory<int32_t>::serialize(buf, leaf_);
@@ -276,7 +306,7 @@ public:
     template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
-        Base::template deserialize<FieldFactory>(buf);
+        header_.template deserialize<FieldFactory>(buf);
 
         FieldFactory<int32_t>::deserialize(buf, root_);
         FieldFactory<int32_t>::deserialize(buf, leaf_);
@@ -298,7 +328,7 @@ public:
 
     void copyFrom(const Me* block)
     {
-        Base::copyFrom(block);
+        header_.copyFrom(block);
 
         this->set_root(block->is_root());
         this->set_leaf(block->is_leaf());
@@ -439,7 +469,7 @@ public:
         int32_t fixed_block_size  = block_size - sizeof(MyType) + PackedAllocator::my_size();
         int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
 
-        return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(typename Types::Metadata)) - 200;
+        return client_area - root * PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(typename Types::Metadata)) - 200;
     }
 
 
@@ -471,7 +501,7 @@ public:
 
     int32_t capacity(uint64_t active_streams) const
     {
-        int32_t free_space  = MyType::free_space(Base::memory_block_size(), Base::is_root());
+        int32_t free_space  = MyType::free_space(Base::header().memory_block_size(), Base::is_root());
         int32_t max_size    = max_tree_size1(free_space, active_streams);
         int32_t cap         = max_size - size();
 
@@ -532,7 +562,7 @@ public:
         processSubstreamGroupsStatic(fn, tree_size, active_streams);
 
         int32_t tree_block_size     = fn.size_;
-        int32_t array_block_size    = PackedAllocator::roundUpBytesToAlignmentBlocks(tree_size * sizeof(Value));
+        int32_t array_block_size    = PackedAllocatable::roundUpBytesToAlignmentBlocks(tree_size * sizeof(Value));
         int32_t client_area         = tree_block_size + array_block_size;
 
         return PackedAllocator::block_size(client_area, Streams + 1);
@@ -546,7 +576,7 @@ public:
         processSubstreamGroupsStatic(fn, &sizes);
 
         int32_t tree_block_size     = fn.size_;
-        int32_t array_block_size    = PackedAllocator::roundUpBytesToAlignmentBlocks(values_size * sizeof(Value));
+        int32_t array_block_size    = PackedAllocatable::roundUpBytesToAlignmentBlocks(values_size * sizeof(Value));
         int32_t client_area         = tree_block_size + array_block_size;
 
         return PackedAllocator::block_size(client_area, Streams + 1);
@@ -1696,8 +1726,7 @@ public:
 
     static const uint64_t BLOCK_HASH = TypeHashV<Base>;
 
-//    static_assert(std::is_trivial<TreeNode<Types>>::value, "TreeNode must be a trivial type");
-
+    static_assert(std::is_pod<TreeNode<Types>>::value, "TreeNode must be a POD type");
 
     template <
         template <typename> class,
@@ -1706,7 +1735,6 @@ public:
     friend class NodePageAdaptor;
 
 private:
-    //static BlockMetadataPtr<Profile> block_metadata_;
 
 public:
     NodePageAdaptor() = default;
@@ -1715,9 +1743,6 @@ public:
         return BLOCK_HASH;
     }
 
-//    static const BlockMetadataPtr<Profile>& block_metadata() {
-//        return block_metadata_;
-//    }
 
     struct BlockOperations: public IBlockOperations<Profile>
     {
@@ -1775,7 +1800,7 @@ public:
             auto block_mem = allocate_system<uint8_t>(block_size);
             MyType* block = T2T<MyType*>(block_mem.get());
 
-            deserialize(buf, buf_size, block);
+            deserialize(buf, buf_size, block->as_header());
 
             std::vector<VertexProperty> props;
 
@@ -1807,7 +1832,7 @@ public:
             std::stringstream sbuf;
 
             TextBlockDumper dumper(sbuf);
-            this->generateDataEvents(block, DataEventsParams(), &dumper);
+            this->generateDataEvents(block->as_header(), DataEventsParams(), &dumper);
 
             props.emplace_back(DefaultVertexProperty::make(vx, u"content", U16String(sbuf.str())));
 
@@ -1822,31 +1847,7 @@ public:
     static BlockOperationsPtr<Profile> block_operations() {
         return std::make_shared<BlockOperations>();
     }
-
-//    static uint64_t initMetadata()
-//    {
-//        Base::InitType();
-
-//        if (!block_metadata_)
-//        {
-//            int32_t attrs = 0;
-
-//            BlockOperations* ops = new BlockOperations();
-
-//            block_metadata_ = metadata_make_shared<BlockMetadata<Profile>>("BTREE_BLOCK", attrs, hash(), ops);
-//        }
-//        else {}
-
-//        return block_metadata_->hash();
-//    }
 };
-
-
-//template <
-//    template <typename> class TreeNode,
-//    typename Types
-//>
-//BlockMetadataPtr<typename Types::Profile> NodePageAdaptor<TreeNode, Types>::block_metadata_;
 
 }
 

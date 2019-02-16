@@ -122,7 +122,7 @@ public:
         BufferT* buffer     = allocate_system<BufferT>(block_size).release();
         if (buffer)
         {
-            buffer->setTopLevelAllocator();
+            buffer->allocatable().setTopLevelAllocator();
             OOM_THROW_IF_FAILED(buffer->init(block_size, buffer_sizes), MMA1_SRC);
             return buffer;
         }
@@ -137,7 +137,7 @@ public:
         BufferT* buffer     = allocate_system<BufferT>(block_size).release();
         if (buffer)
         {
-            buffer->setTopLevelAllocator();
+            buffer->allocatable().setTopLevelAllocator();
             OOM_THROW_IF_FAILED(buffer->init(block_size, buffer_size), MMA1_SRC);
             return buffer;
         }

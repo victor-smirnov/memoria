@@ -36,7 +36,7 @@ enum class PackedBlockType {
 };
 
 
-class PackedAllocator: public PackedAllocatable {
+class PackedAllocator {
 
     typedef PackedAllocatable                                                   Base;
     typedef PackedAllocator                                                     MyType;
@@ -49,6 +49,8 @@ public:
     static const uint32_t VERSION                                                   = 1;
 
 private:
+    PackedAllocatable allocatable_;
+
     int32_t block_size_;
     int32_t layout_size_;
     int32_t bitmap_size_;
@@ -68,6 +70,9 @@ public:
     >;
 
     PackedAllocator() = default;
+
+    PackedAllocatable& allocatable() {return allocatable_;}
+    const PackedAllocatable& allocatable() const {return allocatable_;}
 
     bool is_allocatable(int32_t idx) const
     {
@@ -127,7 +132,7 @@ public:
 
     OpStatus init(int32_t block_size, int32_t blocks)
     {
-        block_size_ = roundDownBytesToAlignmentBlocks(block_size);
+        block_size_ = PackedAllocatable::roundDownBytesToAlignmentBlocks(block_size);
 
         int32_t layout_blocks = blocks + (blocks % 2 ? 1 : 2);
 
@@ -135,7 +140,7 @@ public:
 
         memset(buffer_, 0, layout_size_);
 
-        bitmap_size_ = roundUpBitsToAlignmentBlocks(layout_blocks);
+        bitmap_size_ = PackedAllocatable::roundUpBitsToAlignmentBlocks(layout_blocks);
 
         Bitmap* bitmap = this->bitmap();
         memset(bitmap, 0, bitmap_size_);
@@ -150,19 +155,20 @@ public:
 
     static constexpr int32_t block_size(int32_t client_area, int32_t blocks)
     {
-        return roundUpBytesToAlignmentBlocks(
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(
                 my_size() +
                 (blocks + (blocks % 2 ? 1 : 2))*sizeof(int32_t) +
-                roundUpBitsToAlignmentBlocks(blocks) +
-                roundUpBytesToAlignmentBlocks(client_area)
+                PackedAllocatable::roundUpBitsToAlignmentBlocks(blocks) +
+                PackedAllocatable::roundUpBytesToAlignmentBlocks(client_area)
         );
     }
 
     static constexpr int32_t client_area(int32_t block_size, int32_t blocks)
     {
-        return roundDownBytesToAlignmentBlocks(
+        return PackedAllocatable::roundDownBytesToAlignmentBlocks(
                 block_size -
-                (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(int32_t) + roundUpBitsToAlignmentBlocks(blocks))
+                (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(int32_t)
+                 + PackedAllocatable::roundUpBitsToAlignmentBlocks(blocks))
         );
     }
 
@@ -187,7 +193,7 @@ public:
     {
         MEMORIA_V1_ASSERT(new_size, >=, 0);
 
-        int32_t allocation_size = roundUpBytesToAlignmentBlocks(new_size);
+        int32_t allocation_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(new_size);
 
         int32_t size        = element_size(idx);
         int32_t delta       = allocation_size - size;
@@ -209,7 +215,7 @@ public:
         {
             moveElements(idx + 1, delta);
 
-            if (allocator_offset() > 0)
+            if (allocatable_.allocator_offset() > 0)
             {
                 if (isFail(pack())) {
                     return -1;
@@ -310,9 +316,9 @@ public:
     template <typename T>
     MMA1_NODISCARD T* allocate(int32_t idx, int32_t block_size)
     {
-        static_assert(std::is_base_of<PackedAllocatable, T>::value,
-                "Only derived classes of PackedAllocatable "
-                "should be instantiated this way");
+        //static_assert(std::is_base_of<PackedAllocatable, T>::value,
+        //        "Only derived classes of PackedAllocatable "
+        //        "should be instantiated this way");
 
         AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
@@ -328,9 +334,9 @@ public:
     template <typename T>
     MMA1_NODISCARD T* allocateSpace(int32_t idx, int32_t block_size)
     {
-        static_assert(std::is_base_of<PackedAllocatable, T>::value,
-                "Only derived classes of PackedAllocatable "
-                "should be instantiated this way");
+        //static_assert(std::is_base_of<PackedAllocatable, T>::value,
+        //        "Only derived classes of PackedAllocatable "
+        //        "should be instantiated this way");
 
         AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
@@ -340,9 +346,9 @@ public:
     template <typename T>
     MMA1_NODISCARD T* allocateEmpty(int32_t idx)
     {
-        static_assert(std::is_base_of<PackedAllocatable, T>::value,
-                "Only derived classes of PackedAllocatable "
-                "should be instantiated this way");
+        //static_assert(std::is_base_of<PackedAllocatable, T>::value,
+        //        "Only derived classes of PackedAllocatable "
+        //        "should be instantiated this way");
 
         int32_t block_size = T::empty_size();
 
@@ -418,7 +424,7 @@ public:
 
     MMA1_NODISCARD AllocationBlock allocate(int32_t idx, int32_t size, PackedBlockType type)
     {
-        int32_t allocation_size = roundUpBytesToAlignmentBlocks(size);
+        int32_t allocation_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(size);
 
         int free_space_v = free_space();
         if (allocation_size > free_space_v)
@@ -482,7 +488,7 @@ public:
         int32_t size        = element_size(idx);
         moveElements(idx + 1, -size);
 
-        if (allocator_offset() > 0)
+        if (allocatable_.allocator_offset() > 0)
         {
             if(isFail(pack()))
             {
@@ -544,12 +550,12 @@ public:
 
     MMA1_NODISCARD int32_t enlarge(int32_t delta)
     {
-        return resize(roundUpBytesToAlignmentBlocks(block_size_ + delta));
+        return resize(PackedAllocatable::roundUpBytesToAlignmentBlocks(block_size_ + delta));
     }
 
     MMA1_NODISCARD int32_t shrink(int32_t delta)
     {
-        return resize(roundUpBytesToAlignmentBlocks(block_size_ - delta));
+        return resize(PackedAllocatable::roundUpBytesToAlignmentBlocks(block_size_ - delta));
     }
 
     void resizeBlock(int32_t new_size)
@@ -559,9 +565,9 @@ public:
 
     MMA1_NODISCARD int32_t resize(int32_t new_size)
     {
-        if (allocator_offset() > 0)
+        if (allocatable_.allocator_offset() > 0)
         {
-            Allocator* alloc = allocator();
+            Allocator* alloc = allocatable_.allocator();
             block_size_ = alloc->resizeBlock(this, new_size);
         }
         else if (new_size <= block_size_)
@@ -583,7 +589,7 @@ public:
 
     void forceResize(int32_t amount)
     {
-        block_size_ += roundDownBytesToAlignmentBlocks(amount);
+        block_size_ += PackedAllocatable::roundDownBytesToAlignmentBlocks(amount);
     }
 
     MMA1_NODISCARD int32_t pack()
@@ -597,7 +603,7 @@ public:
     {
         handler->startGroup("ALLOCATOR");
 
-        handler->value("PARENT_ALLOCATOR", &Base::allocator_offset());
+        handler->value("PARENT_ALLOCATOR", &allocatable_.allocator_offset());
 
         handler->value("BLOCK_SIZE",    &block_size_);
 
@@ -615,7 +621,7 @@ public:
 
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<int32_t>::serialize(buf, allocator_offset_);
+        FieldFactory<int32_t>::serialize(buf, allocatable_.allocator_offset_);
         FieldFactory<int32_t>::serialize(buf, block_size_);
         FieldFactory<int32_t>::serialize(buf, layout_size_);
         FieldFactory<int32_t>::serialize(buf, bitmap_size_);
@@ -629,7 +635,7 @@ public:
 
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<int32_t>::deserialize(buf, allocator_offset_);
+        FieldFactory<int32_t>::deserialize(buf, allocatable_.allocator_offset_);
         FieldFactory<int32_t>::deserialize(buf, block_size_);
         FieldFactory<int32_t>::deserialize(buf, layout_size_);
         FieldFactory<int32_t>::deserialize(buf, bitmap_size_);

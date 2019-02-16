@@ -181,7 +181,7 @@ public:
         int32_t fixed_block_size = block_size - sizeof(MyType) + PackedAllocator::my_size();
         int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
 
-        return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(typename Types::Metadata));
+        return client_area - root * PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(typename Types::Metadata));
     }
 
 
@@ -469,7 +469,7 @@ public:
 
         this->processSubstreamGroups(CheckCapacitiesFn(), fillment, &mem_size);
 
-        int32_t free_space      = MyType::free_space(this->memory_block_size(), this->is_root());
+        int32_t free_space      = MyType::free_space(this->header().memory_block_size(), this->is_root());
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
         return client_area >= mem_size + 300;
@@ -490,7 +490,7 @@ public:
 
         this->processSubstreamGroups(CheckCapacitiesFn(), entropy, fillment, &mem_size);
 
-        int32_t free_space      = MyType::free_space(this->memory_block_size(), this->is_root());
+        int32_t free_space      = MyType::free_space(this->header().memory_block_size(), this->is_root());
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
         return client_area >= mem_size;
@@ -520,9 +520,9 @@ public:
     int32_t single_stream_capacity(int32_t max_hops) const
     {
         int32_t min = sizes()[0];
-        int32_t max = this->memory_block_size() * 8;
+        int32_t max = this->header().memory_block_size() * 8;
 
-        int32_t free_space      = MyType::free_space(this->memory_block_size(), this->is_root());
+        int32_t free_space      = MyType::free_space(this->header().memory_block_size(), this->is_root());
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
         int32_t total = FindTotalElementsNumber(min, max, client_area, max_hops, [&](int32_t stream_size){

@@ -171,13 +171,13 @@ public:
     static int32_t block_size(const SizesT& capacities)
     {
         int32_t capacity            = capacities.sum() + SafetyMargin * Blocks;
-        int32_t metadata_length     = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
-        int32_t data_sizes_length   = Base::roundUpBytesToAlignmentBlocks(TreeBlocks * sizeof(int32_t));
+        int32_t metadata_length     = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        int32_t data_sizes_length   = PackedAllocatable::roundUpBytesToAlignmentBlocks(TreeBlocks * sizeof(int32_t));
 
         int32_t index_size      = MyType::index_size(capacity);
-        int32_t sizes_length    = Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(int32_t));
+        int32_t sizes_length    = PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(int32_t));
 
-        int32_t values_length   = Base::roundUpBitsToAlignmentBlocks(capacity * BITS_PER_DATA_VALUE);
+        int32_t values_length   = PackedAllocatable::roundUpBitsToAlignmentBlocks(capacity * BITS_PER_DATA_VALUE);
 
         int32_t offsets_length  = offsets_segment_size(capacity);
 

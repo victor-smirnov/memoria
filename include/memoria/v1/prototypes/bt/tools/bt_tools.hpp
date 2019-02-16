@@ -151,7 +151,7 @@ public:
 
         if (blocks_.capacity() > 0)
         {
-            int32_t block_size = node->memory_block_size();
+            int32_t block_size = node->header().memory_block_size();
 
             void* backup_buffer = ctr_.allocator().allocateMemory(block_size);
 

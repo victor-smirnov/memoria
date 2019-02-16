@@ -274,7 +274,7 @@ protected:
         if (block != nullptr)
         {
             InputBuffer* buffer = T2T<InputBuffer*>(block);
-            buffer->setTopLevelAllocator();
+            buffer->allocatable().setTopLevelAllocator();
             OOM_THROW_IF_FAILED(buffer->init(buffer_size, capacity), MMA1_SRC);
 
             return buffer;
@@ -292,7 +292,7 @@ protected:
         if (block != nullptr)
         {
             InputBuffer* buffer = T2T<InputBuffer*>(block);
-            buffer->setTopLevelAllocator();
+            buffer->allocatable().setTopLevelAllocator();
             OOM_THROW_IF_FAILED(buffer->init(buffer_size, capacity), MMA1_SRC);
 
             return buffer;

@@ -508,7 +508,7 @@ protected:
     {
         int32_t block = 0;
 
-        int32_t data_segment_size    = PackedAllocator::roundUpBitsToAlignmentBlocks(new_data_size * Codec::ElementSize);
+        int32_t data_segment_size    = PackedAllocatable::roundUpBitsToAlignmentBlocks(new_data_size * Codec::ElementSize);
         int32_t index_size           = Base::index_size(new_data_size);
         int32_t offsets_segment_size = Base::offsets_segment_size(new_data_size);
 

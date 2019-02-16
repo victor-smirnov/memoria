@@ -334,7 +334,7 @@ public:
         }
         else {
             MEMORIA_V1_ASSERT_FALSE(seq.has_index());
-            MEMORIA_V1_ASSERT(seq.element_size(Seq::OFFSETS), ==, (int32_t)PackedAllocator::AlignmentBlock);
+            MEMORIA_V1_ASSERT(seq.element_size(Seq::OFFSETS), ==, (int32_t)PackedAllocatable::AlignmentBlock);
         }
     }
 };
