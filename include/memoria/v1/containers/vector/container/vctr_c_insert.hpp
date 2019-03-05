@@ -36,8 +36,6 @@ public:
 protected:
     typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Base::ID                                                   ID;
-
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
 

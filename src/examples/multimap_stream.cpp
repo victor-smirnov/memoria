@@ -24,14 +24,41 @@
 
 #include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
-#include <memoria/v1/api/map/map_api.hpp>
+#include <memoria/v1/api/multimap/multimap_api.hpp>
+
+#include <memoria/v1/containers/multimap/mmap_input.hpp>
+
+#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/v1/core/tools/ticker.hpp>
+
+#include <string>
+#include <algorithm>
+#include <map>
+#include <vector>
 
 using namespace memoria::v1;
+using namespace std;
 
-int main(int argc, char** argv)
+using Key   = int64_t;
+using Value = uint64_t;
+
+mmap::MapData<Key, Value> generate_data(size_t entries, size_t mean_entry_size)
 {
-    using Key   = int64_t;
-    using Value = U8String;
+    mmap::MapData<Key, Value> data;
+
+    for (int c = 0; c < entries; c++)
+    {
+        std::vector<Value> vv(getRandomG(mean_entry_size * 2));
+        data.push_back(std::make_pair(c, std::move(vv)));
+    }
+
+    return data;
+}
+
+int main()
+{
 
 
     try {
@@ -49,56 +76,27 @@ int main(int argc, char** argv)
 
 
         // Create Map
-        auto map = create<Map<Key, Value>>(snp);
+        auto map = create<Multimap<Key, Value>>(snp);
+        
+        auto data = generate_data(4000000, 44);
 
-        int from = -300;
-        int to   =  300;
+        int64_t t0 = getTimeInMillis();
+        
+        mmap::MultimapIOBufferProducer<Key, Value> provider(data);
 
-        // Fill map element by element.
-        for (int c = from; c < to; c++)
-        {
-            map.assign(c, U8String("str_") + toString(c));
-        }
+        map.begin().insert_subseq(provider);
+        
+        auto t1 = getTimeInMillis();
+        
+        std::cout << "Creation time: " << (t1 - t0) <<", size = " << map.size() << std::endl;
 
-        //             // Iterator on the whole container
-        //             for (auto iter = map.begin(); !iter.is_end(); iter.next())
-        //             {
-        //                 cout << iter.key() << " -- " << iter.value() << endl;
-        //             }
-
-        //             int cnt = 0;
-        //             auto entries = map.begin().read(map.size());
-        //
-        //             for (auto& entry: entries)
-        //             {
-        //                 std::cout << (cnt++) << " -- " << std::get<0>(entry) << ": " << std::get<1>(entry) << std::endl;
-        //             }
-
-
-        //             // Dump readable contents of allocator to disk to see what is under the hood.
-        //             // Mostly usable for hacking and debugging.
-        //             snp.dump("map_full.dir");
-        //
-        //             // Remove all entries by keys
-        //             for (int c = from; c < to; c++)
-        //             {
-        //                 map.remove(c);
-        //             }
-        //
         // Finish snapshot so no other updates are possible.
         snp.commit();
 
-        alloc.store("map.mma1");
+        alloc.store("multimap_stream_data.dump");
     }
     catch (MemoriaThrowable& ex)
     {
         ex.dump(std::cout);
     }
-    catch (std::exception& ex)
-    {
-        std::cout << ex.what() << std::endl;
-    }
-
-    return 0;
-
 }

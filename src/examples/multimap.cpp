@@ -22,7 +22,7 @@
 // others (not yet implemented ones). Fixed-size types are somewhat faster on updates than
 // variable-length (String, BigInteger) ones.
 
-
+#include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/multimap/multimap_api.hpp>
 

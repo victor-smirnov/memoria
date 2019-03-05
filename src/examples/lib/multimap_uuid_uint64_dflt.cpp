@@ -14,7 +14,7 @@
 // limitations under the License.
 
 #include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/containers/vector/vector_impl.hpp>
+#include <memoria/v1/containers/multimap/multimap_impl.hpp>
 
 #include <memoria/v1/core/strings/string.hpp>
 
@@ -22,9 +22,9 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-using CtrName = Vector<U8String>;
+using CtrName = Multimap<int64_t, uint64_t>;
 
-MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
+MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
     
 }}
 

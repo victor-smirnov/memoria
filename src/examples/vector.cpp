@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/vector/vector_api.hpp>
 
 
 using namespace memoria::v1;
-using namespace std;
 
 int main()
 {
@@ -48,8 +48,6 @@ int main()
         std::cout << vv.size() << std::endl;
         
         snp.commit();
-        
-        snp.dump("data.dir");
     }
     catch (MemoriaThrowable& ex)
     {

@@ -27,9 +27,10 @@
 #include <memoria/v1/core/container/logs.hpp>
 
 #include <memoria/v1/profiles/common/common.hpp>
-#include <boost/filesystem.hpp>
 
 #include "allocator_inmem_api_common.hpp"
+
+#include <boost/filesystem.hpp>
 
 namespace memoria {
 namespace v1 {
