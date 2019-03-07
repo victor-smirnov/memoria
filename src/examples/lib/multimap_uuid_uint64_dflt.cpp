@@ -16,7 +16,9 @@
 #include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/containers/multimap/multimap_impl.hpp>
 
-#include <memoria/v1/core/strings/string.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
+
+
 
 namespace memoria {
 namespace v1 {

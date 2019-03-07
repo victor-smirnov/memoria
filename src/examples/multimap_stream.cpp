@@ -57,6 +57,81 @@ mmap::MapData<Key, Value> generate_data(size_t entries, size_t mean_entry_size)
     return data;
 }
 
+template <typename IOBufferT>
+class RandomBufferPopulator: public bt::BufferProducer<IOBufferT> {
+    const size_t mean_value_size_;
+    Key key_cnt_{1};
+    Value vv_{};
+    uint64_t total_{};
+    uint64_t total_max_;
+public:
+    RandomBufferPopulator(size_t mean_value_size, uint64_t total_max):
+        mean_value_size_(mean_value_size), total_max_(total_max)
+    {}
+
+    virtual int32_t populate(IOBufferT& buffer)
+    {
+        int32_t entries{};
+        while (true)
+        {
+            size_t pos = buffer.pos();
+            if (buffer.template putSymbolsRun<2>(0, 1) && buffer.put(key_cnt_))
+            {
+                key_cnt_++;
+                entries += 2;
+                total_ += sizeof(Key);
+            }
+            else {
+                buffer.pos(pos);
+                break;
+            }
+
+            int32_t v_size = mean_value_size_;//getRandomG(mean_value_size_ * 2) + 1;
+            int32_t v_data_size = v_size * sizeof(Value);
+            int32_t v_full_data_size = v_data_size + 8;
+
+            if (buffer.capacity() >= v_full_data_size)
+            {
+                buffer.template putSymbolsRun<2>(1, v_size);
+                for (int c = 0; c < v_size; c++) {
+                    buffer.put(vv_);
+                }
+
+                entries += v_size + 1;
+                total_ += sizeof(Value) * v_size;
+            }
+            else if (buffer.capacity() > 8 + sizeof(Value))
+            {
+                int32_t av_size = (buffer.capacity() - 8) / sizeof(Value);
+                if (av_size > 0)
+                {
+                    if (buffer.template putSymbolsRun<2>(1, av_size))
+                    {
+                        for (int c = 0; c < av_size; c++) {
+                            if (!buffer.put(vv_)) {
+                                MMA1_THROW(RuntimeException()) << WhatCInfo("Ivalid buffer (2)");
+                            }
+                        }
+
+                        entries += av_size + 1;
+                        total_ += sizeof(Value) * av_size;
+                    }
+                    else {
+                        MMA1_THROW(RuntimeException()) << WhatCInfo("Ivalid buffer (1)");
+                    }
+                }
+
+                break;
+            }
+            else {
+                break;
+            }
+        }
+
+        return entries * (total_ < total_max_ ? 1 : -1);
+    }
+};
+
 int main()
 {
 
@@ -78,11 +153,14 @@ int main()
         // Create Map
         auto map = create<Multimap<Key, Value>>(snp);
         
-        auto data = generate_data(4000000, 44);
+        auto data = generate_data(1000000, 128);
+
 
         int64_t t0 = getTimeInMillis();
         
         mmap::MultimapIOBufferProducer<Key, Value> provider(data);
+
+        //RandomBufferPopulator<DefaultIOBuffer> provider(128, 1000000000);
 
         map.begin().insert_subseq(provider);
         
