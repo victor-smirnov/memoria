@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,45 +27,86 @@
 #include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/io/btfl_data_input.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_structure_input.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_rank_dictionary.hpp>
+#include <memoria/v1/core/iovector/io_vector.hpp>
 
+#include <memoria/v1/core/tools/assert.hpp>
 
 #include <memory>
 
 namespace memoria {
 namespace v1 {
 namespace btfl {
-namespace io {
+namespace io2 {
 
 namespace _ {
 
-    template <typename Types, int32_t Streams, int32_t Idx = 0>
-    struct DataStreamInputBufferBuilder {
-        using InputBuffer = bt::StreamInputBuffer<
-                Idx,
-                typename Types::template StreamInputBufferStructList<Idx>
-        >;
+    enum class StreamSelectorType {DATA, STRUCTURE};
 
-        using UInputBufferPtr   = InputBufferHandler<InputBuffer>;
-        using SizedBuffer       = DataStreamInputBuffer<UInputBufferPtr, typename Types::CtrSizeT>;
+    template <StreamSelectorType TT, int32_t DataStreams> struct StreamSelector;
 
-        using Type = MergeLists<
-                SizedBuffer,
-                typename DataStreamInputBufferBuilder<Types, Streams, Idx + 1>::Type
-        >;
+    template <int32_t DataStreams>
+    struct StreamSelector<StreamSelectorType::DATA, DataStreams>
+    {
+        template <int32_t StreamIdx, typename StreamObj, typename Position>
+        static void io_stream(
+                StreamObj* stream,
+                PackedAllocator* alloc,
+                const Position& at,
+                const Position& starts,
+                const Position& sizes,
+                memoria::v1::io::IOVector& io_vector,
+                OpStatus& status,
+                int32_t& current_substream
+        )
+        {
+            static_assert(StreamIdx < DataStreams, "");
+            if (isOk(status))
+            {
+                status <<= stream->insert_io_substream(
+                    at[StreamIdx],
+                    io_vector.substream(current_substream),
+                    starts[StreamIdx],
+                    sizes[StreamIdx]
+                );
+            }
+
+            current_substream++;
+        }
     };
 
-    template <typename Types, int32_t Streams>
-    struct DataStreamInputBufferBuilder<Types, Streams, Streams> {
-        using Type = TL<>;
+    template <int32_t DataStreams>
+    struct StreamSelector<StreamSelectorType::STRUCTURE, DataStreams>
+    {
+        template <int32_t StreamIdx, typename StreamObj, typename Position>
+        static void io_stream(
+                StreamObj* stream,
+                PackedAllocator* alloc,
+                const Position& at,
+                const Position& starts,
+                const Position& sizes,
+                memoria::v1::io::IOVector& io_vector,
+                OpStatus& status,
+                int32_t& current_substream
+        )
+        {
+            static_assert(StreamIdx == DataStreams, "");
+            if (isOk(status))
+            {
+                MEMORIA_V1_ASSERT_TRUE(typeid(StreamObj) == io_vector.symbol_sequence().sequence_type());
+                StreamObj* buffer = T2T<StreamObj*>(io_vector.symbol_sequence().buffer());
+
+                status <<= stream->insert_from(
+                    at[StreamIdx],
+                    buffer,
+                    starts[StreamIdx],
+                    sizes[StreamIdx]
+                );
+            }
+
+            current_substream++;
+        }
     };
 
-    template <typename... Args> struct JoinBuffersH;
-
-    template <typename... T1, typename T2>
-    struct JoinBuffersH<std::tuple<T1...>, T2>: HasType<std::tuple<const T1*..., const T2*>> {};
 }
 
 
@@ -91,129 +132,43 @@ public:
 
 
     using Iterator = typename CtrT::Iterator;
-
-    using DataStreamBuffers = AsTuple<
-            typename _::DataStreamInputBufferBuilder<
-                typename CtrT::Types,
-                DataStreams
-            >::Type
-    >;
-
-
-
-    using ForAllDataStreams = bt::ForAllTuple<std::tuple_size<DataStreamBuffers>::value>;
-
     using NodePair = std::pair<NodeBaseG, NodeBaseG>;
-    using RankDictionaryT = RankDictionary<DataStreams>;
-
-    using StructureStreamBuffer = StructureStreamInputBuffer<
-            InputBufferHandler<
-                bt::StreamInputBuffer<
-                    StructureStreamIdx,
-                    typename CtrT::Types::template StreamInputBufferStructList<StructureStreamIdx>
-                >
-            >,
-            CtrSizeT
-    >;
 
 protected:
-
-    DataStreamBuffers       data_buffers_;
-    StructureStreamBuffer   structure_buffer_;
-
 
     DataPositions start_;
     DataPositions size_;
-    bool finished_ = false;
 
-
-    RankDictionaryT symbols_;
+    bool finished_{false};
 
     CtrT& ctr_;
 
-    CtrSizeT orphan_splits_ = 0;
+    CtrSizeT orphan_splits_{};
 
     NodePair split_watcher_;
 
+    CtrSizeT total_symbols_{};
 
-    CtrSizeT total_symbols_ = 0;
+    CtrDataPositionsT totals_{};
 
-    CtrDataPositionsT totals_;
+    memoria::v1::io::IOVectorProducer* producer_{};
+    memoria::v1::io::IOVector* io_vector_{};
 
-private:
-    struct CreateBufferFn {
-        template <int32_t Idx, typename Buffer>
-        void process(Buffer&& buffer, int32_t initial_capacity)
-        {
-            buffer.init(initial_capacity);
-        }
-    };
-
-
-    struct FinishBufferFn {
-        template <int32_t Idx, typename Buffer>
-        void process(Buffer&& buffer)
-        {
-            buffer.finish();
-        }
-    };
-
-    struct DumpBufferFn {
-        template <int32_t Idx, typename Buffer, typename EventConsumer>
-        void process(Buffer&& buffer, EventConsumer&& consumer, std::ostream& out)
-        {
-            out<<"Begin Stream Dump: "<<Idx<<std::endl;
-            buffer.buffer()->generateDataEvents(&consumer);
-            out<<"End Stream Dump: "<<Idx<<std::endl<<std::endl<<std::endl<<std::endl;
-        }
-    };
-
-    struct ResetBufferFn {
-        template <int32_t Idx, typename Buffer>
-        void process(Buffer&& buffer)
-        {
-            buffer.reset();
-        }
-    };
+    CtrSizeT start_pos_;
+    CtrSizeT length_;
 
 public:
 
-    AbstractCtrInputProviderBase(CtrT& ctr, int32_t initial_capacity):
-        symbols_(initial_capacity),
-        ctr_(ctr)
-
-    {
-        ForAllDataStreams::process(data_buffers_, CreateBufferFn(), initial_capacity);
-
-        structure_buffer_.init(initial_capacity);
-    }
-
-
-protected:
-    void finish_buffer()
-    {
-        ForAllDataStreams::process(data_buffers_, FinishBufferFn());
-
-        structure_buffer_.finish();
-    }
-
-    void reset_buffer()
-    {
-        ForAllDataStreams::process(data_buffers_, ResetBufferFn());
-
-        structure_buffer_.reset();
-    }
-
-public:
-
-    void init()
-    {
-    	start_.clear();
-    	size_.clear();
-
-    	finished_ 		 = false;
-    	total_symbols_ = 0;
-    }
+    AbstractCtrInputProviderBase(
+            CtrT& ctr,
+            memoria::v1::io::IOVectorProducer* producer,
+            memoria::v1::io::IOVector* io_vector,
+            CtrSizeT start_pos,
+            CtrSizeT length
+    ):
+        ctr_(ctr), producer_(producer), io_vector_(io_vector),
+        start_pos_(start_pos), length_(length)
+    {}
 
 
     CtrT& ctr() {return ctr_;}
@@ -238,7 +193,6 @@ public:
     virtual bool hasData()
     {
         bool buffer_has_data = start_.sum() < size_.sum();
-
         return buffer_has_data || populate_buffer();
     }
 
@@ -246,30 +200,19 @@ public:
 
     void nextLeaf(const NodeBaseG& leaf) {}
 
-
-
-    const DataStreamBuffers& data_buffer() const {
-        return data_buffers_;
-    }
-
     DataPositions buffer_size() const
     {
         return size_ - start_;
     }
 
 
-    DataPositions rank(CtrSizeT idx) const
+    DataPositions rank(int32_t idx) const
     {
         DataPositions rnk;
 
         int32_t start_pos = start_.sum();
 
-        const auto* symbols = this->symbols();
-
-        for (int32_t s = 0; s < DataStreams; s++)
-        {
-            rnk[s] = symbols->rank(start_pos + idx, s);
-        }
+        io_vector_->symbol_sequence().rank_to(start_pos + idx, &rnk[0]);
 
         return rnk - start_;
     }
@@ -301,17 +244,42 @@ public:
         }
     }
 
-    virtual void do_populate_iobuffer() = 0;
-
-
-    void dump_buffer(std::ostream& out = std::cout) const
+    virtual void do_populate_iobuffer()
     {
-        TextBlockDumper dumper(out);
-        ForAllDataStreams::process(data_buffers_, DumpBufferFn(), dumper, out);
+        auto& seq = io_vector_->symbol_sequence();
 
-        out<<"Begin Symbols"<<std::endl;
-        symbols()->generateDataEvents(&dumper);
-        out<<"End Symbols"<<std::endl<<std::endl<<std::endl<<std::endl;
+        do
+        {
+            start_.clear();
+            size_.clear();
+
+            io_vector_->reset();
+            finished_ = producer_->populate(*io_vector_);
+            seq.reindex();
+
+            seq.rank_to(io_vector_->symbol_sequence().size(), &size_[0]);
+
+            if (start_pos_ > 0)
+            {
+                int32_t seq_size = seq.size();
+                if (start_pos_ < seq_size)
+                {
+                    seq.rank_to(start_pos_, &start_[0]);
+                    start_pos_ -= start_.sum();
+                }
+                else {
+                    start_pos_ -= seq_size;
+                }
+            }
+        }
+        while (start_pos_ > 0);
+
+        CtrSizeT remainder = length_ - total_symbols_;
+        if ((size_ - start_).sum() > remainder)
+        {
+            seq.rank_to(start_.sum() + remainder, &size_[0]);
+            finished_ = true;
+        }
     }
 
     DataPositions to_data_positions(const Position& pos)
@@ -323,17 +291,6 @@ public:
         }
 
         return dp;
-    }
-
-
-
-protected:
-    auto* symbols() {
-        return symbols_.get();
-    }
-
-    const auto* symbols() const {
-        return symbols_.get();
     }
 };
 
@@ -352,7 +309,7 @@ template <
     int32_t Streams = CtrT::Types::Streams,
     LeafDataLengthType LeafDataLength = CtrT::Types::LeafDataLength
 >
-class AbstractCtrInputProvider;
+class IOVectorCtrInputProvider;
 
 
 
@@ -360,44 +317,49 @@ template <
     typename CtrT,
     int32_t Streams
 >
-class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: public AbstractCtrInputProviderBase<CtrT> {
+class IOVectorCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: public AbstractCtrInputProviderBase<CtrT> {
 
     using Base = AbstractCtrInputProviderBase<CtrT>;
 
     static constexpr float FREE_SPACE_THRESHOLD = 0.1;
 
-
 public:
-    using MyType = AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>;
+    using MyType = IOVectorCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>;
 
     using NodeBaseG = typename CtrT::Types::NodeBaseG;
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
     using Iterator  = typename CtrT::Iterator;
 
-    using BlockUpdateMgr         = typename CtrT::Types::BlockUpdateMgr;
+    using BlockUpdateMgr = typename CtrT::Types::BlockUpdateMgr;
 
     using typename Base::DataPositions;
     using typename Base::Position;
-    using typename Base::DataStreamBuffers;
-    using typename Base::StructureStreamBuffer;
+
+    using Base::Streams;
+    using Base::StructureStreamIdx;
+    using Base::DataStreams;
 
 protected:
     using Base::rank;
     using Base::ctr_;
     using Base::start_;
     using Base::size_;
-    using Base::data_buffers_;
-    using Base::structure_buffer_;
+    using Base::totals_;
+    using Base::total_symbols_;
     using Base::to_data_positions;
 
-
-    using Base::DataStreams;
-    using Base::StructureStreamIdx;
+    using Base::io_vector_;
 
 public:
 
-    AbstractCtrInputProvider(CtrT& ctr, int32_t total_capacity):
-        Base(ctr, total_capacity)
+    IOVectorCtrInputProvider(
+            CtrT& ctr,
+            memoria::v1::io::IOVectorProducer* producer,
+            memoria::v1::io::IOVector* io_vector,
+            int32_t start_pos,
+            int32_t length
+    ):
+        Base(ctr, producer, io_vector, start_pos, length)
     {}
 
     CtrT& ctr() {
@@ -462,6 +424,8 @@ public:
         if (tryInsertBuffer(mgr, leaf, at, size))
         {
             start_ += size;
+            totals_ += size;
+            total_symbols_ += size.sum();
             return size;
         }
         else {
@@ -487,6 +451,9 @@ public:
                         start = mid;
                         at += sizes;
                         start_ += sizes;
+
+                        totals_ += sizes;
+                        total_symbols_ += sizes.sum();
                     }
                     else {
                         imax = mid - 1;
@@ -499,6 +466,8 @@ public:
                         start += 1;
                         at += sizes;
                         start_ += sizes;
+                        totals_ += sizes;
+                        total_symbols_ += sizes.sum();
                     }
 
                     break;
@@ -511,20 +480,55 @@ public:
 
 protected:
 
-    struct InsertBuffersFn {
+    struct InsertBuffersFn
+    {
+        enum class StreamType {DATA, STRUCTURE};
 
+        template <StreamType T> struct Tag {};
+
+        int32_t current_substream_{};
         OpStatus status_{OpStatus::OK};
 
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj, typename StreamBuffer>
-        void stream(StreamObj* stream, PackedAllocator* alloc, const Position& at, const Position& starts, const Position& sizes, StreamBuffer&& buffer)
+        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj>
+        void stream(
+                StreamObj* stream,
+                PackedAllocator* alloc,
+                const Position& at,
+                const Position& starts,
+                const Position& sizes,
+                memoria::v1::io::IOVector& io_vector)
         {
-            static_assert(StreamIdx < std::tuple_size<StreamBuffer>::value, "");
-            status_ <<= stream->insert_buffer(
-                    at[StreamIdx],
-                    std::get<StreamIdx>(buffer)->buffer()->template substream_by_idx<Idx>(),
-                    starts[StreamIdx],
-                    sizes[StreamIdx]
+            _::StreamSelector<
+                    StreamIdx < DataStreams ? _::StreamSelectorType::DATA : _::StreamSelectorType::STRUCTURE,
+                    DataStreams
+            >::template io_stream<StreamIdx>(
+                    stream,
+                    alloc,
+                    at,
+                    starts,
+                    sizes,
+                    io_vector,
+                    status_,
+                    current_substream_
             );
+        }
+
+        template <
+                int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx,
+                typename VV, int32_t Indexes_ = 0, PkdSearchType SearchType_>
+        void stream(
+                PackedSizedStruct<VV, Indexes_, SearchType_>* stream,
+                PackedAllocator* alloc,
+                const Position& at,
+                const Position& starts,
+                const Position& sizes,
+                memoria::v1::io::IOVector& io_vector)
+        {
+            static_assert(StreamIdx < Streams, "");
+            if (isOk(status_))
+            {
+                status_ <<= stream->insertSpace(at[StreamIdx], sizes[StreamIdx]);
+            }
         }
 
         template <typename NodeTypes, typename... Args>
@@ -534,30 +538,6 @@ protected:
             return leaf->processSubstreamGroups(*this, leaf->allocator(), std::forward<Args>(args)...);
         }
     };
-
-
-    struct AssignDataBuffersFn {
-        template <int32_t Idx, typename DataBuffers, typename JointBuffers>
-        void process(DataBuffers&& data_buffers, JointBuffers&& joint_buffers)
-        {
-            std::get<Idx>(joint_buffers) = &data_buffers;
-        }
-    };
-
-
-
-    auto make_joined_buffers_tuple()
-    {
-        using JointBufferTupleT = typename _::JoinBuffersH<DataStreamBuffers, StructureStreamBuffer>::Type;
-
-        JointBufferTupleT joint_buffer;
-
-        bt::ForAllTuple<std::tuple_size<DataStreamBuffers>::value>::process(data_buffers_, AssignDataBuffersFn(), joint_buffer);
-
-        std::get<StructureStreamIdx>(joint_buffer) = &structure_buffer_;
-
-        return joint_buffer;
-    }
 
     Position to_position(const DataPositions& data_pos)
     {
@@ -584,7 +564,7 @@ protected:
                     to_position(at),
                     to_position(start_),
                     to_position(size),
-                    make_joined_buffers_tuple()
+                    *io_vector_
         );
 
         if (isFail(insert_fn.status_)) {
@@ -610,14 +590,6 @@ protected:
         return getFreeSpacePart(node) > FREE_SPACE_THRESHOLD;
     }
 };
-
-
-
-
-
-
-
-
 
 
 

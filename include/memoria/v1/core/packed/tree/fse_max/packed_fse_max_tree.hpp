@@ -25,6 +25,8 @@
 #include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/iobuffer/io_buffer.hpp>
 
+#include <memoria/v1/core/iovector/io_substream_growable_fixed_size.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -182,13 +184,16 @@ public:
         return block_size(items_num);
     }
 
-
-
     static int32_t empty_size()
     {
         int32_t empty_size_v = block_size(0);
         return empty_size_v;
     }
+
+    static std::unique_ptr<io::IOSubstream> create_io_substream() {
+        return std::make_unique<io::IOSubstreamTypedFixedSizeGrowable<Value>>();
+    }
+
 
     OpStatus reindex() {
         Base::reindex(Blocks);
@@ -701,6 +706,20 @@ public:
     OpStatus insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t inserted)
     {
         auto buffer_values = buffer->values() + start * Blocks;
+
+        if(isFail(_insert(at, inserted, [=](int32_t block, int32_t idx) -> const auto& {
+            return buffer_values[idx * Blocks + block];
+        }))){
+            return OpStatus::FAIL;
+        };
+
+        return OpStatus::OK;
+    }
+
+
+    OpStatus insert_io_substream(int32_t at, io::IOSubstream* buffer, int32_t start, int32_t inserted)
+    {
+        auto buffer_values = T2T<const Value*>(buffer->select(start * Blocks));
 
         if(isFail(_insert(at, inserted, [=](int32_t block, int32_t idx) -> const auto& {
             return buffer_values[idx * Blocks + block];

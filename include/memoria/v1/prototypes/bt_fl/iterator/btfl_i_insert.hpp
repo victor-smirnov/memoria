@@ -23,6 +23,8 @@
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
 #include <iostream>
 
 namespace memoria {
@@ -48,6 +50,13 @@ public:
     {
         auto& self = this->self();
         return self.ctr().bulkio_insert(self, provider, initial_capacity);
+    }
+
+
+    auto bulkio_insert(io::IOVectorProducer& provider, int64_t start, int64_t length)
+    {
+        auto& self = this->self();
+        return self.ctr().bulkio_insert(self, provider, start, length);
     }
 
 public:

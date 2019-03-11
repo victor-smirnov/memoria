@@ -596,4 +596,7 @@ bool isFail(const OpStatusT<T>& op_status) {
     return isFail(op_status.status());
 }
 
+template <typename T>
+constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_trivially_copyable<T>::value;
+
 }}

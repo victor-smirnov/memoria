@@ -20,7 +20,11 @@
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
+#include <memoria/v1/prototypes/bt_fl/io2/btfl_io_input_provider_base.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -43,6 +47,8 @@ public:
     template <typename IOBuffer>
     auto bulkio_insert(Iterator& iter, bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 4000)
     {
+        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+
         auto& self = this->self();
 
         auto id = iter.leaf()->id();
@@ -64,6 +70,32 @@ public:
         }
 
         return streamingProvider->totals();
+    }
+
+
+
+    auto bulkio_insert(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
+    {
+        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+
+        auto& self = this->self();
+
+        auto id = iter.leaf()->id();
+
+        btfl::io2::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov.get(), start, length);
+
+        auto pos = iter.leafrank(iter.local_pos());
+
+        auto result = self.insert_provided_data(iter.leaf(), pos, streaming);
+
+        iter.local_pos()  = result.position().sum();
+        iter.leaf() = result.leaf();
+
+        if (iter.leaf()->id() != id) {
+            iter.refresh();
+        }
+
+        return streaming.totals();
     }
 
 MEMORIA_V1_CONTAINER_PART_END

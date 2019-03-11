@@ -27,6 +27,8 @@
 
 #include <memoria/v1/profiles/common/block_operations.hpp>
 
+#include <memoria/v1/core/iovector/io_substream_growable_fixed_size.hpp>
+
 #include "rleseq/rleseq_reindex_fn.hpp"
 #include "rleseq/rleseq_iterator.hpp"
 
@@ -175,6 +177,10 @@ public:
     static constexpr uint64_t encode_run(int32_t symbol, uint64_t length)
     {
         return rleseq::EncodeRun<Symbols, MaxRunLength>(symbol, length);
+    }
+
+    static std::unique_ptr<io::IOSubstream> create_io_substream() {
+        return std::make_unique<io::IOSubstreamTypedFixedSizeGrowable<Value>>();
     }
 
 
@@ -828,8 +834,13 @@ public:
         return reindex();
     }
 
+    OpStatus insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size) {
+        return insert_from(at, buffer, start, size);
+    }
 
-    OpStatus insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
+
+    template <typename InputSource>
+    OpStatus insert_from(int32_t at, const InputSource* buffer, int32_t start, int32_t size)
     {
         if (size > 0)
         {

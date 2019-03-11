@@ -276,6 +276,8 @@ public:
 
     struct NodeTypesBase: ContainerTypes
     {
+        static constexpr int32_t DataStreams = MyType::Streams > 1 ? (MyType::Streams - 1) : 1;
+
         using NodeBase  = TreeNodeBase;
         using Name      = ContainerTypeName_;
         using Metadata  = typename ContainerTypes::Metadata;

@@ -38,3 +38,4 @@ Example(map map.cpp lib/map_int64_string_dflt.cpp "")
 
 Example(multimap multimap.cpp lib/multimap_uuid_byte_dflt.cpp "")
 Example(multimap_stream multimap_stream.cpp lib/multimap_uuid_uint64_dflt.cpp "")
+Example(multimap_iovector multimap_iovector.cpp lib/multimap_uuid_uint64_dflt.cpp "")

@@ -26,7 +26,7 @@
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/multimap/multimap_api.hpp>
 
-#include <memoria/v1/containers/multimap/mmap_input.hpp>
+#include <memoria/v1/core/iovector/io_vector.hpp>
 
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
@@ -44,21 +44,8 @@ using namespace std;
 using Key   = int64_t;
 using Value = uint8_t;
 
-mmap::MapData<Key, Value> generate_data(size_t entries, size_t mean_entry_size)
-{
-    mmap::MapData<Key, Value> data;
 
-    for (int c = 0; c < entries; c++)
-    {
-        std::vector<Value> vv(getRandomG(mean_entry_size * 2));
-        data.push_back(std::make_pair(c, std::move(vv)));
-    }
-
-    return data;
-}
-
-template <typename IOBufferT>
-class RandomBufferPopulator: public bt::BufferProducer<IOBufferT> {
+class RandomBufferPopulator: public io::IOVectorProducer {
     const size_t mean_value_size_;
     Key key_cnt_{1};
     Value vv_{};
@@ -69,66 +56,24 @@ public:
         mean_value_size_(mean_value_size), total_max_(total_max)
     {}
 
-    virtual int32_t populate(IOBufferT& buffer)
+    virtual bool populate(io::IOVector& buffer)
     {
-        int32_t entries{};
-        while (true)
+        for (int r = 0; r < 100; r++)
         {
-            size_t pos = buffer.pos();
-            if (buffer.template putSymbolsRun<2>(0, 1) && buffer.put(key_cnt_))
-            {
-                key_cnt_++;
-                entries += 2;
-                total_ += sizeof(Key);
-            }
-            else {
-                buffer.pos(pos);
-                break;
-            }
+            int32_t len = mean_value_size_; //getRandomG(mean_value_size_ * 2) + 1;
+            buffer.symbol_sequence().append(0, 1);
+            buffer.substream(0)->append(key_cnt_);
+            total_ += sizeof(Key);
 
-            int32_t v_size = mean_value_size_;//getRandomG(mean_value_size_ * 2) + 1;
-            int32_t v_data_size = v_size * sizeof(Value);
-            int32_t v_full_data_size = v_data_size + 8;
+            buffer.symbol_sequence().append(1, len);
+            buffer.substream(1)->reserve(sizeof(Value), len);
 
-            if (buffer.capacity() >= v_full_data_size)
-            {
-                buffer.template putSymbolsRun<2>(1, v_size);
-                for (int c = 0; c < v_size; c++) {
-                    buffer.put(vv_);
-                }
+            total_ += len * sizeof(Value);
 
-                entries += v_size + 1;
-                total_ += sizeof(Value) * v_size;
-            }
-            else if (buffer.capacity() > 8 + sizeof(Value))
-            {
-                int32_t av_size = (buffer.capacity() - 8) / sizeof(Value);
-                if (av_size > 0)
-                {
-                    if (buffer.template putSymbolsRun<2>(1, av_size))
-                    {
-                        for (int c = 0; c < av_size; c++) {
-                            if (!buffer.put(vv_)) {
-                                MMA1_THROW(RuntimeException()) << WhatCInfo("Ivalid buffer (2)");
-                            }
-                        }
-
-                        entries += av_size + 1;
-                        total_ += sizeof(Value) * av_size;
-                    }
-                    else {
-                        MMA1_THROW(RuntimeException()) << WhatCInfo("Ivalid buffer (1)");
-                    }
-                }
-
-                break;
-            }
-            else {
-                break;
-            }
+            key_cnt_++;
         }
 
-        return entries * (total_ < total_max_ ? 1 : -1);
+        return total_ >= total_max_;
     }
 };
 
@@ -149,19 +94,16 @@ int main()
 
         auto snp = alloc.master().branch();
 
-
         // Create Map
         auto map = create<Multimap<Key, Value>>(snp);
         
-        //auto data = generate_data(1000000, 128);
-
         int64_t t0 = getTimeInMillis();
         
-        //mmap::MultimapIOBufferProducer<Key, Value> provider(data);
+        RandomBufferPopulator provider(512 / sizeof(Value), 1024*1024*1024);
 
-        RandomBufferPopulator<DefaultIOBuffer> provider(512 / sizeof(Value), 1024*1024*1024);
+        map.begin().insert_subseq(provider, 512 * 1024 * 1024);
 
-        map.begin().insert_subseq(provider);
+        //map.begin().dump();
         
         auto t1 = getTimeInMillis();
         
@@ -170,7 +112,7 @@ int main()
         // Finish snapshot so no other updates are possible.
         snp.commit();
 
-        alloc.store("multimap_stream_data_iobuf.dump");
+        alloc.store("multimap_stream_data_iovec.dump");
     }
     catch (MemoriaThrowable& ex)
     {

@@ -21,10 +21,14 @@
 #include <memoria/v1/core/tools/accessors.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
+#include <memoria/v1/core/iovector/io_substream_base.hpp>
+
+
 #include <limits>
 
 namespace memoria {
 namespace v1 {
+
 
 
 template <typename Value_ = int64_t, int32_t Indexes_ = 0, PkdSearchType SearchType_ = PkdSearchType::SUM>
@@ -70,6 +74,10 @@ private:
 
 public:
     PackedSizedStruct() = default;
+
+    static std::unique_ptr<io::IOSubstream> create_io_substream() {
+        return std::unique_ptr<io::IOSubstream>{};
+    }
 
     int32_t& size() {return size_;}
     const int32_t& size() const {return size_;}

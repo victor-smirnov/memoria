@@ -52,7 +52,7 @@ UniquePtr<T> allocate_system_zeroed(size_t size)
     return UniquePtr<T>(T2T<T*>(ptr), ::free);
 }
 
-static inline void free_system(void* ptr)
+static inline void free_system(void* ptr) noexcept
 {
     ::free(ptr);
 }

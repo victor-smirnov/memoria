@@ -115,6 +115,15 @@ int64_t IterApiBTFLBase<CtrName, Profile>::insert_subseq(bt::BufferProducer<CtrI
     return this->pimpl_->bulkio_insert(producer).sum();
 }
 
+template <typename CtrName, typename Profile>
+int64_t IterApiBTFLBase<CtrName, Profile>::insert_subseq(
+        io::IOVectorProducer& producer,
+        int64_t start,
+        int64_t length
+)
+{
+    return this->pimpl_->bulkio_insert(producer, start, length).sum();
+}
 
 
 

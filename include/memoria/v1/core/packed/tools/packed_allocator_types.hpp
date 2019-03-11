@@ -310,12 +310,6 @@ struct AllocationBlockConst {
 };
 
 
-template <typename T>
-constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_trivially_copyable<T>::value;
-
-
-
-
 // ====================== PackedStruct Traits ====================
 
 

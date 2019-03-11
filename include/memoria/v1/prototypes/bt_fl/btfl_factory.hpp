@@ -56,7 +56,7 @@
 
 #include <memoria/v1/prototypes/bt_fl/iodata/btfl_iodata.hpp>
 
-
+#include <memoria/v1/prototypes/bt_fl/io2/btfl_io_input_provider_base.hpp>
 
 #include <tuple>
 

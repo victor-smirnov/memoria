@@ -32,6 +32,7 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools_size_list_builder.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -195,6 +196,31 @@ public:
         return Base::allocator();
     }
 
+private:
+    struct CreateIOVectorFn
+    {
+        std::unique_ptr<io::IOVector> iov_{std::make_unique<io::IOVector>((int32_t)Types::DataStreams)};
+
+        template <int32_t AllocatorIdx, int32_t Idx, typename Stream>
+        void stream(Stream*)
+        {
+            iov_->add_substream(Stream::create_io_substream());
+        }
+
+        template <int32_t AllocatorIdx, int32_t Idx, typename VV, int32_t Indexes_ = 0, PkdSearchType SearchType_>
+        void stream(PackedSizedStruct<VV, Indexes_, SearchType_>*)
+        {
+        }
+    };
+
+public:
+
+    static std::unique_ptr<io::IOVector> create_iovector()
+    {
+        CreateIOVectorFn fn;
+        Dispatcher::dispatchAllStatic(fn);
+        return std::move(fn.iov_);
+    }
 
 
     bool is_empty() const
@@ -261,7 +287,8 @@ public:
     }
 
 
-    struct LayoutFn {
+    struct LayoutFn
+    {
         template <int32_t AllocatorIdx, int32_t Idx, typename Stream>
         void stream(Stream*, PackedAllocator* alloc, uint64_t streams)
         {
