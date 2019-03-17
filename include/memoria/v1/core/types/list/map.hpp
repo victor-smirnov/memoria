@@ -24,7 +24,7 @@
 namespace memoria {
 namespace v1 {
 
-namespace {
+namespace _ {
     template <typename State, typename Item, template <typename> class Fn>
     struct MapFoldFn {
         using Type = MergeLists<
@@ -54,7 +54,7 @@ namespace {
 
 
 template <typename List, template <typename> class MapFn>
-using MapTL2 = typename MapTLT<List, MapFn>::Type;
+using MapTL2 = typename _::MapTLT<List, MapFn>::Type;
 
 
 }}

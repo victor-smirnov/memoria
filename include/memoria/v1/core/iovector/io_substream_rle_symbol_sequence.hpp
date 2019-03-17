@@ -31,7 +31,7 @@ namespace v1 {
 namespace io {
 
 template <int32_t AlphabetSize>
-class PackedSymbolSequenceOwningImpl: public ISymbolSequence {
+class PackedSymbolSequenceOwningImpl: public IOSymbolSequence {
 
     using SeqT = PkdRLESeqT<AlphabetSize>;
 
@@ -129,7 +129,7 @@ private:
 
 
 template <>
-class PackedSymbolSequenceOwningImpl<1>: public ISymbolSequence {
+class PackedSymbolSequenceOwningImpl<1>: public IOSymbolSequence {
 
     int32_t size_{};
 
@@ -196,7 +196,7 @@ public:
 
 
 
-static inline std::unique_ptr<ISymbolSequence> make_packed_owning_symbol_sequence(int32_t alphabet_size)
+static inline std::unique_ptr<IOSymbolSequence> make_packed_owning_symbol_sequence(int32_t alphabet_size)
 {
     if (alphabet_size == 1) {
         return std::make_unique<PackedSymbolSequenceOwningImpl<1>>();

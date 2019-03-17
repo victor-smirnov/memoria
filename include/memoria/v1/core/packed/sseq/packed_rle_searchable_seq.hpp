@@ -27,7 +27,6 @@
 
 #include <memoria/v1/profiles/common/block_operations.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_growable_fixed_size.hpp>
 
 #include "rleseq/rleseq_reindex_fn.hpp"
 #include "rleseq/rleseq_iterator.hpp"
@@ -36,6 +35,13 @@
 
 namespace memoria {
 namespace v1 {
+
+namespace io {
+
+template <int32_t AlphabetSize> class PackedSymbolSequenceOwningImpl;
+
+}
+
 
 using rleseq::RLESymbolsRun;
 using rleseq::Location;
@@ -132,6 +138,8 @@ public:
 
     using Iterator = rleseq::RLESeqIterator<MyType>;
 
+    using GrowableIOSubstream = io::PackedSymbolSequenceOwningImpl<Symbols>;
+
     int32_t number_of_offsets() const
     {
         return number_of_offsets(this->element_size(SYMBOLS));
@@ -177,10 +185,6 @@ public:
     static constexpr uint64_t encode_run(int32_t symbol, uint64_t length)
     {
         return rleseq::EncodeRun<Symbols, MaxRunLength>(symbol, length);
-    }
-
-    static std::unique_ptr<io::IOSubstream> create_io_substream() {
-        return std::make_unique<io::IOSubstreamTypedFixedSizeGrowable<Value>>();
     }
 
 

@@ -17,35 +17,147 @@
 
 #include <memoria/v1/core/iovector/io_symbol_sequence.hpp>
 #include <memoria/v1/core/iovector/io_substream.hpp>
+#include <memoria/v1/core/tools/static_array.hpp>
+
+#include <memoria/v1/core/types/list/map.hpp>
 
 #include <vector>
+#include <tuple>
 
 namespace memoria {
 namespace v1 {
 namespace io {
 
-class IOVector {
-    IOSymbolSequence symbol_sequence_;
+struct IOVector {
+    virtual ~IOVector() noexcept {}
 
-    std::vector<std::unique_ptr<IOSubstream>> substreams_;
+    virtual void reset() = 0;
+    virtual void add_substream(std::unique_ptr<IOSubstream>&& ptr) = 0;
+    virtual IOSymbolSequence& symbol_sequence() = 0;
+
+    virtual const IOSymbolSequence& symbol_sequence() const = 0;
+
+    virtual size_t substreams() const = 0;
+
+    virtual IOSubstream& substream(size_t num) = 0;
+    virtual const IOSubstream& substream(size_t num) const = 0;
+};
+
+
+template <int32_t SubstreamsNum>
+class DefaultIOVector: public IOVector {
+
+    std::unique_ptr<IOSymbolSequence> symbol_sequence_;
+
+    struct CleanupFn {
+        template <typename Value>
+        void operator()(Value& val)
+        {}
+    };
+
+    core::StaticArray<std::unique_ptr<IOSubstream>, SubstreamsNum, CleanupFn> substreams_;
 
 public:
-    IOVector(int32_t symbols):
+    DefaultIOVector(int32_t symbols):
         symbol_sequence_(make_packed_owning_symbol_sequence(symbols))
     {}
 
     void reset()
     {
-        symbol_sequence_.reset();
+        symbol_sequence_->reset();
 
-        for (auto& substream: substreams_) {
-            substream->reset();
+        for (int32_t c = 0; c < SubstreamsNum; c++) {
+            substreams_[c]->reset();
         }
     }
 
     void add_substream(std::unique_ptr<IOSubstream>&& ptr)
     {
-        substreams_.push_back(std::move(ptr));
+        substreams_.append(std::move(ptr));
+    }
+
+    IOSymbolSequence& symbol_sequence() {
+        return *symbol_sequence_.get();
+    }
+
+    const IOSymbolSequence& symbol_sequence() const {
+        return *symbol_sequence_.get();
+    }
+
+    size_t substreams() const {
+        return substreams_.size();
+    }
+
+    IOSubstream& substream(size_t num) {
+        return *substreams_[num].get();
+    }
+
+    const IOSubstream& substream(size_t num) const {
+        return *substreams_[num].get();
+    }
+};
+
+namespace _ {
+
+    template <typename Tuple, int32_t Idx = 0, int32_t Max = std::tuple_size<Tuple>::value>
+    struct IOVectorSubstreamsInitializer {
+
+        template <typename StreamsArray>
+        static void process(Tuple& tuple, StreamsArray& streams)
+        {
+            streams[Idx] = & std::get<Idx>(tuple);
+            IOVectorSubstreamsInitializer<Tuple, Idx + 1, Max>::process(tuple, streams);
+        }
+    };
+
+    template <typename Tuple, int32_t Idx>
+    struct IOVectorSubstreamsInitializer<Tuple, Idx, Idx> {
+        template <typename StreamsArray>
+        static void process(Tuple& tuple, StreamsArray& streams){}
+    };
+
+}
+
+template <typename Types, template <typename> class IOVectorMapperTF>
+class StaticIOVector: public IOVector {
+
+    using InputVectorsList  = MapTL2<typename Types::PackedStructsList, IOVectorMapperTF>;
+    using IVTuple           = AsTuple<InputVectorsList>;
+
+    typename Types::SymbolSequence symbol_sequence_;
+
+    IVTuple streams_tuple_;
+
+    struct CleanupFn {
+        template <typename Value>
+        void operator()(Value& val)
+        {}
+    };
+
+    static constexpr int32_t SubstreamsNum = std::tuple_size<IVTuple>::value;
+
+    core::StaticArray<IOSubstream*, SubstreamsNum, CleanupFn> substreams_;
+
+public:
+    StaticIOVector():
+        symbol_sequence_(),
+        substreams_(SubstreamsNum)
+    {
+        _::IOVectorSubstreamsInitializer<IVTuple>::process(streams_tuple_, substreams_);
+    }
+
+    void reset()
+    {
+        symbol_sequence_.reset();
+
+        for (int32_t c = 0; c < SubstreamsNum; c++) {
+            substreams_[c]->reset();
+        }
+    }
+
+    void add_substream(std::unique_ptr<IOSubstream>&& ptr)
+    {
+        MMA1_THROW(UnsupportedOperationException());
     }
 
     IOSymbolSequence& symbol_sequence() {
@@ -60,19 +172,19 @@ public:
         return substreams_.size();
     }
 
-    IOSubstream* substream(size_t num) {
-        return substreams_[num].get();
+    IOSubstream& substream(size_t num) {
+        return *substreams_[num];
     }
 
-    const IOSubstream* substream(size_t num) const {
-        return substreams_[num].get();
+    const IOSubstream& substream(size_t num) const {
+        return *substreams_[num];
     }
 };
 
 
+
 struct IOVectorProducer {
     virtual ~IOVectorProducer() noexcept {}
-
     virtual bool populate(IOVector& io_vectors) = 0;
 };
 

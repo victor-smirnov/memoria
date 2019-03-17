@@ -31,12 +31,16 @@
 
 #include <memoria/v1/prototypes/bt/tools/bt_tools_size_list_builder.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
+#include <memoria/v1/prototypes/bt/tools/bt_tools_iovector.hpp>
 
-#include <memoria/v1/core/iovector/io_vector.hpp>
+
 
 namespace memoria {
 namespace v1 {
 namespace bt {
+
+
+
 
 
 template <
@@ -146,14 +150,17 @@ public:
             list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>
     >::Type;
 
+    //using NonSizedPackedStructsList = typename _::SelectNonSizedStruct<Linearize<LeafSubstreamsStructList>>::Type;
 
+    //static constexpr int32_t NonSizedStructSubstreams = ListSize<Linearize<LeafSubstreamsStructList>>;
 
-    static const int32_t Streams            = ListSize<LeafSubstreamsStructList>;
+    static constexpr int32_t Streams            = ListSize<LeafSubstreamsStructList>;
 
-    static const int32_t Substreams         = Dispatcher::Size;
+    static constexpr int32_t Substreams         = Dispatcher::Size;
+    static constexpr int32_t DataStreams        = Streams == 1 ? Streams : Streams - 1;
 
-    static const int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
-    static const int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
+    static constexpr int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
+    static constexpr int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
 
 
     //FIXME: Use SubDispatcher
@@ -196,30 +203,12 @@ public:
         return Base::allocator();
     }
 
-private:
-    struct CreateIOVectorFn
-    {
-        std::unique_ptr<io::IOVector> iov_{std::make_unique<io::IOVector>((int32_t)Types::DataStreams)};
-
-        template <int32_t AllocatorIdx, int32_t Idx, typename Stream>
-        void stream(Stream*)
-        {
-            iov_->add_substream(Stream::create_io_substream());
-        }
-
-        template <int32_t AllocatorIdx, int32_t Idx, typename VV, int32_t Indexes_ = 0, PkdSearchType SearchType_>
-        void stream(PackedSizedStruct<VV, Indexes_, SearchType_>*)
-        {
-        }
-    };
-
 public:
 
     static std::unique_ptr<io::IOVector> create_iovector()
     {
-        CreateIOVectorFn fn;
-        Dispatcher::dispatchAllStatic(fn);
-        return std::move(fn.iov_);
+        using IOVectorT = typename _::IOVectorsTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
+        return std::make_unique<IOVectorT>();
     }
 
 
@@ -705,7 +694,7 @@ public:
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(Tree* tree, const Position& room_start, const Position& room_end)
         {
-            if (tree != nullptr && isOk(status_))
+            if (tree && isOk(status_))
             {
                 status_ <<= tree->removeSpace(room_start[StreamIdx], room_end[StreamIdx]);
             }
@@ -714,7 +703,7 @@ public:
         template <typename Tree>
         void stream(Tree* tree, int32_t room_start, int32_t room_end)
         {
-            if (tree != nullptr && isOk(status_))
+            if (tree && isOk(status_))
             {
                 status_ <<= tree->removeSpace(room_start, room_end);
             }
@@ -997,7 +986,7 @@ public:
         template <int32_t ListIdx, typename Tree>
         void stream(Tree* tree, Position& sizes)
         {
-            sizes[ListIdx] = tree != nullptr ? tree->size() : 0;
+            sizes[ListIdx] = tree ? tree->size() : 0;
         }
     };
 

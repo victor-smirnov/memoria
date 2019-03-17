@@ -58,15 +58,19 @@ public:
 
     virtual bool populate(io::IOVector& buffer)
     {
+        auto& seq = buffer.symbol_sequence();
+        auto& s0 = io::substream_cast<io::IOArraySubstream>(buffer.substream(0));
+        auto& s1 = io::substream_cast<io::IOArraySubstream>(buffer.substream(1));
+
         for (int r = 0; r < 100; r++)
         {
             int32_t len = mean_value_size_; //getRandomG(mean_value_size_ * 2) + 1;
-            buffer.symbol_sequence().append(0, 1);
-            buffer.substream(0)->append(key_cnt_);
+            seq.append(0, 1);
+            s0.append(key_cnt_);
             total_ += sizeof(Key);
 
-            buffer.symbol_sequence().append(1, len);
-            buffer.substream(1)->reserve(sizeof(Value), len);
+            seq.append(1, len);
+            s1.reserve(sizeof(Value), len);
 
             total_ += len * sizeof(Value);
 
@@ -101,9 +105,7 @@ int main()
         
         RandomBufferPopulator provider(512 / sizeof(Value), 1024*1024*1024);
 
-        map.begin().insert_subseq(provider, 512 * 1024 * 1024);
-
-        //map.begin().dump();
+        map.begin().insert_subseq(provider);
         
         auto t1 = getTimeInMillis();
         

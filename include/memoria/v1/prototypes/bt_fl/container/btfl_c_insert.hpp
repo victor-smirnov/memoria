@@ -47,8 +47,6 @@ public:
     template <typename IOBuffer>
     auto bulkio_insert(Iterator& iter, bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 4000)
     {
-        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
-
         auto& self = this->self();
 
         auto id = iter.leaf()->id();

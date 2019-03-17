@@ -62,6 +62,7 @@ public:
 
     StaticArray(int32_t size): size_(size)
     {
+        ClearingFunctor functor;
         for (int32_t c = 0; c < Size; c++)
         {
             functor(values_[c]);
@@ -159,16 +160,32 @@ public:
     {
         for (int32_t c = size_; c > idx; c--)
         {
-            values_[c] = values_[c - 1];
+            values_[c] = std::move(values_[c - 1]);
         }
 
         values_[idx] = value;
         size_++;
     }
 
+    void insert(int32_t idx, Value&& value)
+    {
+        for (int32_t c = size_; c > idx; c--)
+        {
+            values_[c] = std::move(values_[c - 1]);
+        }
+
+        values_[idx] = std::move(value);
+        size_++;
+    }
+
     void append(const Value& value)
     {
         values_[size_++] = value;
+    }
+
+    void append(Value&& value)
+    {
+        values_[size_++] = std::move(value);
     }
 
     void remove(int32_t idx)

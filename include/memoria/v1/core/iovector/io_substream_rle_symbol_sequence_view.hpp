@@ -29,7 +29,7 @@ namespace v1 {
 namespace io {
 
 template <int32_t AlphabetSize>
-class PackedSymbolSequenceNonOwningImpl: public ISymbolSequence {
+class PackedSymbolSequenceNonOwningImpl: public IOSymbolSequence {
 
     using SeqT = PkdRLESeqT<AlphabetSize>;
 

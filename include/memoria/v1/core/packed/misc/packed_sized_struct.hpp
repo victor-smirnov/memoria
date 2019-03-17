@@ -75,10 +75,6 @@ private:
 public:
     PackedSizedStruct() = default;
 
-    static std::unique_ptr<io::IOSubstream> create_io_substream() {
-        return std::unique_ptr<io::IOSubstream>{};
-    }
-
     int32_t& size() {return size_;}
     const int32_t& size() const {return size_;}
 

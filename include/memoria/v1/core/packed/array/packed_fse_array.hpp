@@ -20,7 +20,7 @@
 #include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_growable_fixed_size.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -100,6 +100,8 @@ public:
         const int32_t& local_pos() const {return idx_;}
     };
 
+    using GrowableIOSubstream = io::IOArraySubstreamTypedFixedSizeGrowable<Value>;
+
 private:
     PackedAllocatable header_;
 
@@ -140,9 +142,7 @@ public:
 
 public:
 
-    static std::unique_ptr<io::IOSubstream> create_io_substream() {
-        return std::make_unique<io::IOSubstreamTypedFixedSizeGrowable<Value>>();
-    }
+
 
     static constexpr int32_t block_size(int32_t array_size)
     {
@@ -583,13 +583,15 @@ public:
         return OpStatusT<int32_t>(at + size);
     }
 
-    OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream* buffer, int32_t start, int32_t size)
+    OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
     {
+        io::IOArraySubstream& buffer = io::substream_cast<io::IOArraySubstream>(substream);
+
         if(isFail(insertSpace(at, size))) {
             return OpStatus::FAIL;
         }
 
-        auto buffer_values = T2T<const Value*>(buffer->data_buffer());
+        auto buffer_values = T2T<const Value*>(buffer.data_buffer());
 
         int32_t end = start + size;
 

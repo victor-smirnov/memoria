@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/iovector/io_substream_base.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_base.hpp>
 
 #include <memoria/v1/core/types/type2type.hpp>
 
@@ -34,22 +34,21 @@ namespace v1 {
 namespace io {
 
 
-class IOSubstreamFixedSizeGrowable: public IOSubstream {
+class IOArraySubstreamFixedSizeGrowable: public IOArraySubstream {
 
 public:
-    IOSubstreamFixedSizeGrowable(): IOSubstreamFixedSizeGrowable(64)
+    IOArraySubstreamFixedSizeGrowable(): IOArraySubstreamFixedSizeGrowable(64)
     {}
 
-    IOSubstreamFixedSizeGrowable(int32_t initial_capacity)
+    IOArraySubstreamFixedSizeGrowable(int32_t initial_capacity)
     {
         data_buffer_size_ = initial_capacity;        
         data_buffer_      = allocate_system<uint8_t>(initial_capacity).release();
     }
 
-    virtual ~IOSubstreamFixedSizeGrowable() noexcept {
+    virtual ~IOArraySubstreamFixedSizeGrowable() noexcept {
         free_system(data_buffer_);
     }
-
 
     uint8_t* reserve(int32_t data_size, int32_t values)
     {
@@ -113,23 +112,23 @@ protected:
 
 
 template <typename T>
-class IOSubstreamTypedFixedSizeGrowable: public IOSubstreamFixedSizeGrowable {
+class IOArraySubstreamTypedFixedSizeGrowable: public IOArraySubstreamFixedSizeGrowable {
 
     static_assert(sizeof(T) > 8 ? (sizeof(T) % 4 == 0) : true, "");
 
 public:
-    IOSubstreamTypedFixedSizeGrowable(): IOSubstreamTypedFixedSizeGrowable(64)
+    IOArraySubstreamTypedFixedSizeGrowable(): IOArraySubstreamTypedFixedSizeGrowable(64)
     {}
 
-    IOSubstreamTypedFixedSizeGrowable(int32_t initial_capacity):
-        IOSubstreamFixedSizeGrowable(initial_capacity)
+    IOArraySubstreamTypedFixedSizeGrowable(int32_t initial_capacity):
+        IOArraySubstreamFixedSizeGrowable(initial_capacity)
     {
         value_size_       = sizeof(T);
         alignment_        = alignof(T);
         alignment_mask_   = (1 << (Log2(alignof(T)) - 1)) - 1;
     }
 
-    virtual const std::type_info& type() const {
+    virtual const std::type_info& content_type() const {
         return typeid(T);
     }
 

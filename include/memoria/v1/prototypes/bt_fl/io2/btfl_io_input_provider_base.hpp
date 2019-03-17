@@ -259,7 +259,7 @@ public:
 
             seq.rank_to(io_vector_->symbol_sequence().size(), &size_[0]);
 
-            if (start_pos_ > 0)
+            if (MMA1_UNLIKELY(start_pos_ > 0))
             {
                 int32_t seq_size = seq.size();
                 if (start_pos_ < seq_size)
@@ -275,7 +275,7 @@ public:
         while (start_pos_ > 0);
 
         CtrSizeT remainder = length_ - total_symbols_;
-        if ((size_ - start_).sum() > remainder)
+        if (MMA1_UNLIKELY(length_ < std::numeric_limits<CtrSizeT>::max() && (size_ - start_).sum() > remainder))
         {
             seq.rank_to(start_.sum() + remainder, &size_[0]);
             finished_ = true;
@@ -356,8 +356,8 @@ public:
             CtrT& ctr,
             memoria::v1::io::IOVectorProducer* producer,
             memoria::v1::io::IOVector* io_vector,
-            int32_t start_pos,
-            int32_t length
+            CtrSizeT start_pos,
+            CtrSizeT length
     ):
         Base(ctr, producer, io_vector, start_pos, length)
     {}

@@ -22,7 +22,7 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/profiles/common/block_operations.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_growable_fixed_size.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -77,6 +77,8 @@ public:
 
     using InputBuffer   = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
     using InputType     = Values;
+
+    using GrowableIOSubstream = io::IOArraySubstreamTypedFixedSizeGrowable<Value>;
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
 
@@ -306,9 +308,7 @@ public:
         return block_size(0);
     }
 
-    static std::unique_ptr<io::IOSubstream> create_io_substream() {
-        return std::make_unique<io::IOSubstreamTypedFixedSizeGrowable<Value>>();
-    }
+
 
     OpStatus reindex() {
         Base::reindex(Blocks);
@@ -942,9 +942,11 @@ public:
     }
 
 
-    OpStatus insert_io_substream(int32_t at, io::IOSubstream* buffer, int32_t start, int32_t inserted)
+    OpStatus insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t inserted)
     {
-        auto buffer_values = T2T<const Value*>(buffer->data_buffer()) + start * Blocks;
+        io::IOArraySubstream& buffer = io::substream_cast<io::IOArraySubstream>(substream);
+
+        auto buffer_values = T2T<const Value*>(buffer.data_buffer()) + start * Blocks;
 
         if(isFail(_insert(at, inserted, [&](int32_t block, int32_t idx) -> const auto& {
             return buffer_values[idx * Blocks + block];
