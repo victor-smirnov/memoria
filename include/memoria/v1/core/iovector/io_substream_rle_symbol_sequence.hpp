@@ -31,24 +31,24 @@ namespace v1 {
 namespace io {
 
 template <int32_t AlphabetSize>
-class PackedSymbolSequenceOwningImpl: public IOSymbolSequence {
+class PackedSymbolSequenceImpl: public IOSymbolSequence {
 
     using SeqT = PkdRLESeqT<AlphabetSize>;
 
     SeqT* sequence_;
 
 public:
-    PackedSymbolSequenceOwningImpl()
+    PackedSymbolSequenceImpl()
     {
         sequence_ = T2T<SeqT*>(allocate_system<uint8_t>(SeqT::empty_size()).release());
         sequence_->allocatable().setTopLevelAllocator();
         (void)sequence_->init();
     }
 
-    PackedSymbolSequenceOwningImpl(PackedSymbolSequenceOwningImpl&&) = delete;
-    PackedSymbolSequenceOwningImpl(const PackedSymbolSequenceOwningImpl&) = delete;
+    PackedSymbolSequenceImpl(PackedSymbolSequenceImpl&&) = delete;
+    PackedSymbolSequenceImpl(const PackedSymbolSequenceImpl&) = delete;
 
-    virtual ~PackedSymbolSequenceOwningImpl() noexcept
+    virtual ~PackedSymbolSequenceImpl() noexcept
     {
         free_system(sequence_);
     }
@@ -112,6 +112,10 @@ public:
         return typeid(SeqT);
     }
 
+    virtual void init(void* ptr) {
+        MMA1_THROW(UnsupportedOperationException());
+    }
+
 private:
 
     void enlarge()
@@ -129,17 +133,17 @@ private:
 
 
 template <>
-class PackedSymbolSequenceOwningImpl<1>: public IOSymbolSequence {
+class PackedSymbolSequenceImpl<1>: public IOSymbolSequence {
 
     int32_t size_{};
 
 public:
-    PackedSymbolSequenceOwningImpl()
+    PackedSymbolSequenceImpl()
     {
     }
 
-    PackedSymbolSequenceOwningImpl(PackedSymbolSequenceOwningImpl&&) = delete;
-    PackedSymbolSequenceOwningImpl(const PackedSymbolSequenceOwningImpl&) = delete;
+    PackedSymbolSequenceImpl(PackedSymbolSequenceImpl&&) = delete;
+    PackedSymbolSequenceImpl(const PackedSymbolSequenceImpl&) = delete;
 
 
     virtual bool is_indexed() const {
@@ -190,7 +194,11 @@ public:
     }
 
     virtual const std::type_info& sequence_type() const {
-        return typeid(PackedSymbolSequenceOwningImpl<1>);
+        return typeid(PackedSymbolSequenceImpl<1>);
+    }
+
+    virtual void init(void* ptr) {
+        MMA1_THROW(UnsupportedOperationException());
     }
 };
 
@@ -199,25 +207,25 @@ public:
 static inline std::unique_ptr<IOSymbolSequence> make_packed_owning_symbol_sequence(int32_t alphabet_size)
 {
     if (alphabet_size == 1) {
-        return std::make_unique<PackedSymbolSequenceOwningImpl<1>>();
+        return std::make_unique<PackedSymbolSequenceImpl<1>>();
     }
     else if (alphabet_size == 2) {
-        return std::make_unique<PackedSymbolSequenceOwningImpl<2>>();
+        return std::make_unique<PackedSymbolSequenceImpl<2>>();
     }
     else if (alphabet_size == 3) {
-        return std::make_unique<PackedSymbolSequenceOwningImpl<3>>();
+        return std::make_unique<PackedSymbolSequenceImpl<3>>();
     }
     else if (alphabet_size == 4) {
-        return std::make_unique<PackedSymbolSequenceOwningImpl<4>>();
+        return std::make_unique<PackedSymbolSequenceImpl<4>>();
     }
     else if (alphabet_size == 5) {
-        return std::make_unique<PackedSymbolSequenceOwningImpl<5>>();
+        return std::make_unique<PackedSymbolSequenceImpl<5>>();
     }
     else if (alphabet_size == 6) {
-        return std::make_unique<PackedSymbolSequenceOwningImpl<6>>();
+        return std::make_unique<PackedSymbolSequenceImpl<6>>();
     }
     else if (alphabet_size == 7) {
-        return std::make_unique<PackedSymbolSequenceOwningImpl<7>>();
+        return std::make_unique<PackedSymbolSequenceImpl<7>>();
     }
     else {
         MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Unsupported alphabe_size value: {}", alphabet_size);

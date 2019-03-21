@@ -25,7 +25,7 @@ namespace io {
 
 enum class ArrayLayout {BY_COLUMN, BY_ROW};
 
-class IOArraySubstreamBase: public IOSubstream {
+class IORowwiseArraySubstreamBase: public IOSubstream {
 protected:
     uint8_t* data_buffer_{};
     int32_t data_buffer_size_{};
@@ -53,102 +53,109 @@ public:
     virtual uint8_t* reserve(int32_t data_size, int32_t values, uint64_t* nulls_bitmap) = 0;
 
     virtual uint8_t* enlarge(int32_t required)  = 0;
+};
 
-    //virtual ArrayLayout layout() const          = 0;
-    virtual ArrayLayout layout() const {
-        return ArrayLayout::BY_ROW;
-    }
+
+struct ArrayColumnMetadata {
+    uint8_t* data_buffer;
+    int32_t data_size;
+    int32_t data_buffer_size;
+    int32_t size;
+};
+
+
+struct IOColumnwiseArraySubstreamBase: IOSubstream {
+    virtual ArrayColumnMetadata describe(int32_t column) const  = 0;
+    virtual int32_t columns() const                             = 0;
+
+    virtual const std::type_info& content_type() const          = 0;
+
+    virtual uint8_t* select(int32_t column, int32_t idx) const  = 0;
+    virtual ArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const  = 0;
+
+    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values) = 0;
+    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, uint64_t* nulls_bitmap) = 0;
+
+    virtual uint8_t* enlarge(int32_t column, int32_t required)  = 0;
 };
 
 
 
 
-class IOArraySubstreamUnalignedNative: public IOArraySubstreamBase {
+class IOColumnwiseArraySubstreamUnalignedNative: public IOColumnwiseArraySubstreamBase {
 
 public:
-    IOArraySubstreamUnalignedNative(){}
+    IOColumnwiseArraySubstreamUnalignedNative(){}
 
     template <typename T>
-    void set(int32_t pos, T&& value)
+    void set(int32_t column, int32_t pos, T&& value)
     {
-        this->template access<T>(pos) = value;
+        this->template access<T>(column, pos) = value;
     }
 
 
     template <typename T>
-    T& access(int32_t pos)
+    T& access(int32_t column, int32_t pos)
     {
-        range_check(pos, sizeof(T));
         static_assert(IsPackedStructV<T>, "Requested value's type must satify IsPackedStructV<>");
-        return *T2T<T*>(data_buffer_ + pos);
+
+        auto descr = select_and_describe(column, pos);
+
+        range_check(descr, pos, sizeof(T));
+
+        return *T2T<T*>(descr.data_buffer);
     }
 
     template <typename T>
-    const T& access(int32_t pos) const
+    const T& access(int32_t column, int32_t pos) const
     {
-        range_check(pos, sizeof(T));
         static_assert(IsPackedStructV<T>, "Requested value's type must satify IsPackedStructV<>");
-        return *T2T<T*>(data_buffer_ + pos);
+
+        auto descr = select_and_describe(column, pos);
+
+        range_check(descr, pos, sizeof(T));
+
+        return *T2T<const T*>(descr.data_buffer);
     }
 
     template <typename T>
-    void append(const T& value)
+    void append(int column, const T& value)
     {
-        if (MMA1_UNLIKELY(data_size_ + sizeof(T) > data_buffer_size_))
-        {
-            enlarge(sizeof(T));
-        }
+        static_assert(IsPackedStructV<T>, "Requested value's type must satify IsPackedStructV<>");
 
-        *T2T<T*>(data_buffer_ + data_size_) = value;
+        uint8_t* data_buffer = reserve(column, sizeof(T), 1);
 
-        size_ += 1;
-        data_size_ += sizeof(T);
-    }
-
-
-    template <typename T>
-    void append_unchecked(const T& value)
-    {
-        *T2T<T*>(data_buffer_ + data_size_) = value;
-
-        size_ += 1;
-        data_size_ += sizeof(T);
-    }
-
-    void advance(int32_t data_size, int32_t size)
-    {
-        data_size_ += data_size;
-        size_ += size;
+        *T2T<T*>(data_buffer) = value;
     }
 
     virtual const std::type_info& substream_type() const
     {
-        return typeid(IOArraySubstreamUnalignedNative);
+        return typeid(IOColumnwiseArraySubstreamUnalignedNative);
     }
 
 protected:
-    void range_check(int32_t pos, int32_t size) const
+    void range_check(const ArrayColumnMetadata& descr, int32_t pos, int32_t value_size) const
     {
-        if (MMA1_UNLIKELY(pos + size > size_))
+        if (MMA1_UNLIKELY(value_size > descr.data_buffer_size))
         {
-            MMA1_THROW(BoundsException()) << fmt::format_ex(u"IOStreamUnalignedNative range check: pos={}, size={}, stream size={}", pos, size, size_);
+            MMA1_THROW(BoundsException()) << fmt::format_ex(u"IOColumnwiseArraySubstreamUnalignedNative range check: pos={}, value size={}", pos, value_size);
         }
     }
 };
 
 
-using IOArraySubstream = IOArraySubstreamUnalignedNative;
+using IOColumnwiseArraySubstream = IOColumnwiseArraySubstreamUnalignedNative;
 
 template <typename T>
-T& access(IOArraySubstreamUnalignedNative* stream, int32_t pos)
+T& access(IOColumnwiseArraySubstreamUnalignedNative* stream, int32_t column, int32_t pos)
 {
-    return stream->template access<T>(pos);
+    return stream->template access<T>(column, pos);
 }
 
 template <typename T>
-const T& access(const IOArraySubstreamUnalignedNative* stream, int32_t pos)
+const T& access(const IOColumnwiseArraySubstreamUnalignedNative* stream, int32_t column, int32_t pos)
 {
-    return stream->template access<T>(pos);
+    return stream->template access<T>(column, pos);
 }
 
 

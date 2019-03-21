@@ -33,110 +33,120 @@ namespace memoria {
 namespace v1 {
 namespace io {
 
-
-class IOArraySubstreamFixedSizeGrowable: public IOArraySubstream {
+template <typename Value, int32_t Columns>
+class IOColumnwiseArraySubstreamFixedSize: public IOColumnwiseArraySubstream {
+    ArrayColumnMetadata columns_[Columns]{};
 
 public:
-    IOArraySubstreamFixedSizeGrowable(): IOArraySubstreamFixedSizeGrowable(64)
+    IOColumnwiseArraySubstreamFixedSize(): IOColumnwiseArraySubstreamFixedSize(64)
     {}
 
-    IOArraySubstreamFixedSizeGrowable(int32_t initial_capacity)
+    IOColumnwiseArraySubstreamFixedSize(int32_t initial_capacity)
     {
-        data_buffer_size_ = initial_capacity;        
-        data_buffer_      = allocate_system<uint8_t>(initial_capacity).release();
+        for (int32_t c = 0; c < Columns; c++)
+        {
+            columns_[c].data_buffer  = allocate_system<uint8_t>(initial_capacity).release();
+            columns_[c].size         = 0;
+            columns_[c].data_size    = 0;
+            columns_[c].data_buffer_size = initial_capacity;
+        }
     }
 
-    virtual ~IOArraySubstreamFixedSizeGrowable() noexcept {
-        free_system(data_buffer_);
+    virtual ~IOColumnwiseArraySubstreamFixedSize() noexcept
+    {
+        for (int32_t c = 0; c < Columns; c++)
+        {
+            free_system(columns_[c].data_buffer);
+        }
     }
 
-    uint8_t* reserve(int32_t data_size, int32_t values)
+    ArrayColumnMetadata describe(int32_t column) const
     {
-        int32_t last_data_size = data_size_;
+        return columns_[column];
+    }
 
-        if (MMA1_UNLIKELY(data_size_ + data_size > data_buffer_size_)) {
-            enlarge(data_size);
+    int32_t columns() const
+    {
+        return Columns;
+    }
+
+    const std::type_info& content_type() const
+    {
+        return typeid(Value);
+    }
+
+    uint8_t* reserve(int32_t column, int32_t data_size, int32_t values)
+    {
+        auto& col = columns_[column];
+
+        int32_t last_data_size = col.data_size;
+
+        if (MMA1_UNLIKELY(col.data_size + data_size > col.data_buffer_size)) {
+            enlarge(column, data_size);
         }
 
-        size_ += values;
-        data_size_ += data_size;
+        col.size += values;
+        col.data_size += data_size;
 
-        return data_buffer_ + last_data_size;
+        return col.data_buffer + last_data_size;
     }
 
-    uint8_t* reserve(int32_t data_size, int32_t values, uint64_t* nulls_bitmap) {
-        return reserve(data_size, values);
+    uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, uint64_t* nulls_bitmap) {
+        return reserve(column, data_size, values);
     }
 
-    virtual bool is_static() const {
-        return false;
-    }
-
-    uint8_t* enlarge(int32_t required) final
+    uint8_t* enlarge(int32_t column, int32_t required) final
     {
-        if (data_size_ + required > data_buffer_size_)
-        {
-            int32_t db_size = data_buffer_size_;
+        auto& col = columns_[column];
 
-            while (data_size_ + required > db_size)
+        if (col.data_size + required > col.data_buffer_size)
+        {
+            int32_t db_size = col.data_buffer_size;
+
+            while (col.data_size + required > db_size)
             {
                 db_size *= 2;
             }
 
             uint8_t* new_data_buffer = allocate_system<uint8_t>(db_size).release();
-            std::memcpy(new_data_buffer, data_buffer_, data_buffer_size_);
+            std::memcpy(new_data_buffer, col.data_buffer, col.data_buffer_size);
 
-            free_system(data_buffer_);
+            free_system(col.data_buffer);
 
-            data_buffer_ = new_data_buffer;
-            data_buffer_size_ = db_size;
+            col.data_buffer      = new_data_buffer;
+            col.data_buffer_size = db_size;
         }
 
-        return data_buffer_;
+        return col.data_buffer;
     }
 
-    virtual void reset() {
-        data_size_ = 0;
-        size_ = 0;
+    void reset()
+    {
+        for (int32_t c = 0; c < Columns; c++)
+        {
+            columns_[c].size = 0;
+            columns_[c].data_size = 0;
+        }
+    }
+
+    uint8_t* select(int32_t column, int32_t idx) const
+    {
+        return columns_[column].data_buffer + idx * sizeof(Value);
+    }
+
+    ArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const
+    {
+        auto& col = columns_[column];
+
+        int32_t offs = idx * sizeof(Value);
+        return ArrayColumnMetadata{col.data_buffer + offs, col.data_size - offs, col.data_buffer_size - offs, col.size};
     }
 
 protected:
-    void range_check(int32_t pos, int32_t size) const
-    {
-        if (MMA1_UNLIKELY(pos + size > size_))
-        {
-            MMA1_THROW(BoundsException()) << fmt::format_ex(u"IOStreamUnalignedNative range check: pos={}, size={}, stream size={}", pos, size, size_);
-        }
+    void init(void* ptr) {
+        MMA1_THROW(UnsupportedOperationException());
     }
 };
-
-
-template <typename T>
-class IOArraySubstreamTypedFixedSizeGrowable: public IOArraySubstreamFixedSizeGrowable {
-
-    static_assert(sizeof(T) > 8 ? (sizeof(T) % 4 == 0) : true, "");
-
-public:
-    IOArraySubstreamTypedFixedSizeGrowable(): IOArraySubstreamTypedFixedSizeGrowable(64)
-    {}
-
-    IOArraySubstreamTypedFixedSizeGrowable(int32_t initial_capacity):
-        IOArraySubstreamFixedSizeGrowable(initial_capacity)
-    {
-        value_size_       = sizeof(T);
-        alignment_        = alignof(T);
-        alignment_mask_   = (1 << (Log2(alignof(T)) - 1)) - 1;
-    }
-
-    virtual const std::type_info& content_type() const {
-        return typeid(T);
-    }
-
-    virtual uint8_t* select(int32_t idx) const {
-        return data_buffer_ + idx * sizeof(T);
-    }
-};
-
 
 
 }}}

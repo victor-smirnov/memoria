@@ -98,6 +98,11 @@ public:
     virtual const std::type_info& sequence_type() const {
         return typeid(SeqT);
     }
+
+    virtual void init(void* ptr)
+    {
+        sequence_ = T2T<SeqT>(ptr);
+    }
 };
 
 

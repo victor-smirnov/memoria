@@ -78,7 +78,7 @@ public:
     using InputBuffer   = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
     using InputType     = Values;
 
-    using GrowableIOSubstream = io::IOArraySubstreamTypedFixedSizeGrowable<Value>;
+    using GrowableIOSubstream = io::IOColumnwiseArraySubstreamFixedSize<Value, Blocks>;
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
 
@@ -944,15 +944,17 @@ public:
 
     OpStatus insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t inserted)
     {
-        io::IOArraySubstream& buffer = io::substream_cast<io::IOArraySubstream>(substream);
+        io::IOColumnwiseArraySubstream& buffer = io::substream_cast<io::IOColumnwiseArraySubstream>(substream);
 
-        auto buffer_values = T2T<const Value*>(buffer.data_buffer()) + start * Blocks;
-
-        if(isFail(_insert(at, inserted, [&](int32_t block, int32_t idx) -> const auto& {
-            return buffer_values[idx * Blocks + block];
-        }))) {
+        if (isFail(insertSpace(at, inserted))) {
             return OpStatus::FAIL;
-        };
+        }
+
+        for (int32_t block = 0; block < Blocks; block++)
+        {
+            auto buffer_values = T2T<const Value*>(buffer.select(block, start));
+            CopyBuffer(buffer_values, this->values(block) + at, inserted);
+        }
 
         return OpStatus::OK;
     }

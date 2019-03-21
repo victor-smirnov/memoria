@@ -18,6 +18,7 @@
 #include <memoria/v1/core/iovector/io_symbol_sequence.hpp>
 #include <memoria/v1/core/iovector/io_substream_array_base.hpp>
 #include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_fixed_size_view.hpp>
 
 #include <vector>
 

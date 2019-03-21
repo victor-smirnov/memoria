@@ -52,7 +52,6 @@ class IOVectorsTF
 
     static constexpr int32_t PkdStructsListSize = ListSize<NonSizedPackedStructsList>;
 
-
     using SequencePkdStruct = typename ListHead<
         typename SublistToEnd<
             NonSizedPackedStructsList,

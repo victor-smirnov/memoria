@@ -59,18 +59,18 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOArraySubstream>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IOArraySubstream>(buffer.substream(1));
+        auto& s0 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(0));
+        auto& s1 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(1));
 
         for (int r = 0; r < 100; r++)
         {
             int32_t len = mean_value_size_; //getRandomG(mean_value_size_ * 2) + 1;
             seq.append(0, 1);
-            s0.append(key_cnt_);
+            s0.append(0, key_cnt_);
             total_ += sizeof(Key);
 
             seq.append(1, len);
-            s1.reserve(sizeof(Value), len);
+            s1.reserve(0, sizeof(Value), len);
 
             total_ += len * sizeof(Value);
 

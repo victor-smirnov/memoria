@@ -50,13 +50,13 @@ public:
     virtual bool populate(io::IOVector& io_vectors)
     {
         io::IOSymbolSequence& seq = io_vectors.symbol_sequence();
-        auto& keys   = io::substream_cast<io::IOArraySubstream>(io_vectors.substream(0));
-        auto& values = io::substream_cast<io::IOArraySubstream>(io_vectors.substream(1));
+        auto& keys   = io::substream_cast<io::IOColumnwiseArraySubstream>(io_vectors.substream(0));
+        auto& values = io::substream_cast<io::IOColumnwiseArraySubstream>(io_vectors.substream(1));
 
         while (true)
         {
             seq.append(0, 1);
-            keys.append(key_cnt_);
+            keys.append(0, key_cnt_);
 
             key_cnt_++;
             total_ += sizeof(Key);
@@ -65,7 +65,7 @@ public:
             seq.append(1, v_size);
 
             for (int c = 0; c < v_size; c++) {
-                values.append(vv_);
+                values.append(0, vv_);
             }
 
             total_ += v_size * sizeof(Value);
@@ -79,15 +79,15 @@ struct Boo {
     uint8_t mas[16];
 };
 
-io::IOArraySubstream* make_stream(int32_t capacity)
+io::IOColumnwiseArraySubstream* make_stream(int32_t capacity)
 {
-    return new io::IOArraySubstreamTypedFixedSizeGrowable<Boo>(capacity);
+    return new io::IOColumnwiseArraySubstreamFixedSize<Boo, 1>(capacity);
 }
 
 int main(int argc, char** argv, char** envp)
 {
     try {
-        io::IOArraySubstream* stream = make_stream(1024*1024*1024);
+        io::IOColumnwiseArraySubstream* stream = make_stream(1024*1024*1024);
 
         int64_t t_start = getTimeInMillis();
 
@@ -95,7 +95,7 @@ int main(int argc, char** argv, char** envp)
 
         for (int c = 0; c < 1024*1024*1024/4/batch_size; c++)
         {
-            uint8_t* ptr = stream->reserve(sizeof(int32_t) * batch_size, batch_size);
+            uint8_t* ptr = stream->reserve(0, sizeof(int32_t) * batch_size, batch_size);
             for (int d = 0; d < batch_size * 4; d += 4) {
                 *T2T<uint32_t*>(ptr + d) = c + d;
             }
@@ -110,7 +110,7 @@ int main(int argc, char** argv, char** envp)
 
 //        RandomBufferPopulator pop(128, 10000);
 
-//        io::PackedSymbolSequenceOwningImpl<2> seq0;
+//        io::PackedSymbolSequenceImpl<2> seq0;
 //        for (int c = 0; c < 500; c++) {
 //            seq0.append(c % 2, c + 1);
 //        }

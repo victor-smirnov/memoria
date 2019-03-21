@@ -22,6 +22,8 @@
 
 #include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
 
+#include <type_traits>
+
 namespace memoria {
 namespace v1 {
 
@@ -100,7 +102,7 @@ public:
         const int32_t& local_pos() const {return idx_;}
     };
 
-    using GrowableIOSubstream = io::IOArraySubstreamTypedFixedSizeGrowable<Value>;
+    using GrowableIOSubstream = io::IOColumnwiseArraySubstreamFixedSize<Value, Blocks>;
 
 private:
     PackedAllocatable header_;
@@ -311,7 +313,7 @@ public:
             return OpStatus::FAIL;
         }
 
-        max_size_                       = max_size_for(new_size);
+        max_size_ = max_size_for(new_size);
 
         return OpStatus::OK;
     }
@@ -585,17 +587,19 @@ public:
 
     OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
     {
-        io::IOArraySubstream& buffer = io::substream_cast<io::IOArraySubstream>(substream);
+        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
+
+        io::IOColumnwiseArraySubstream& buffer = io::substream_cast<io::IOColumnwiseArraySubstream>(substream);
 
         if(isFail(insertSpace(at, size))) {
             return OpStatus::FAIL;
         }
 
-        auto buffer_values = T2T<const Value*>(buffer.data_buffer());
+        auto buffer_values = T2T<const Value*>(buffer.select(0, start));
 
         int32_t end = start + size;
 
-        CopyBuffer(buffer_values + start * Blocks, this->values() + at * Blocks, (end - start) * Blocks);
+        CopyBuffer(buffer_values, this->values() + at * Blocks, (end - start) * Blocks);
 
         return OpStatusT<int32_t>(at + size);
     }

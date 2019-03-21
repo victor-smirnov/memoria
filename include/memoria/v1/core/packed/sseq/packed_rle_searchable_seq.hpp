@@ -38,7 +38,7 @@ namespace v1 {
 
 namespace io {
 
-template <int32_t AlphabetSize> class PackedSymbolSequenceOwningImpl;
+template <int32_t AlphabetSize> class PackedSymbolSequenceImpl;
 
 }
 
@@ -138,7 +138,7 @@ public:
 
     using Iterator = rleseq::RLESeqIterator<MyType>;
 
-    using GrowableIOSubstream = io::PackedSymbolSequenceOwningImpl<Symbols>;
+    using GrowableIOSubstream = io::PackedSymbolSequenceImpl<Symbols>;
 
     int32_t number_of_offsets() const
     {
