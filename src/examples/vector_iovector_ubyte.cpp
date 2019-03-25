@@ -24,7 +24,7 @@
 
 #include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
-#include <memoria/v1/api/multimap/multimap_api.hpp>
+#include <memoria/v1/api/vector/vector_api.hpp>
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
@@ -41,41 +41,29 @@
 using namespace memoria::v1;
 using namespace std;
 
-using Key   = int64_t;
 using Value = uint8_t;
 
 
-class RandomBufferPopulator: public io::IOVectorProducer {
-    const size_t mean_value_size_;
-    Key key_cnt_{1};
+class RandomBufferPopulator: public io::IOVectorProducer {    
     Value vv_{};
     uint64_t total_{};
     uint64_t total_max_;
 public:
-    RandomBufferPopulator(size_t mean_value_size, uint64_t total_max):
-        mean_value_size_(mean_value_size), total_max_(total_max)
+    RandomBufferPopulator(uint64_t total_max):
+        total_max_(total_max)
     {}
 
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
         auto& s0 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(1));
 
-        for (int r = 0; r < 100; r++)
-        {
-            int32_t len = mean_value_size_; //getRandomG(mean_value_size_ * 2) + 1;
-            seq.append(0, 1);
-            s0.append(0, key_cnt_);
-            total_ += sizeof(Key);
+        int32_t len = 128 * 1024;
 
-            seq.append(1, len);
-            s1.reserve(0, sizeof(Value), len);
+        seq.append(0, len);
+        s0.reserve(0, sizeof(Value), len);
 
-            total_ += len * sizeof(Value);
-
-            key_cnt_++;
-        }
+        total_ += len * sizeof(Value);
 
         return total_ >= total_max_;
     }
@@ -83,39 +71,30 @@ public:
 
 int main()
 {
-
-
     try {
-        // Create persistent in-memory allocator for containers to store their data in.
         auto alloc = ThreadInMemAllocator<>::create();
-
-        // This callocator is persistent not because it can dump its content to stream or file, but in a
-        // narrow sense: to make a group of changes to allocator one must first start new snapshot by
-        // branching form any exiting one's.
-
-        // Snapshots are completely isolated from each other, operations don't interfere with operations
-        // on other snapshots.
 
         auto snp = alloc.master().branch();
 
         // Create Map
-        auto map = create<Multimap<Key, Value>>(snp);
-        map.new_block_size(16 * 1024);
+        auto ctr = create<Vector<Value>>(snp);
+
+        ctr.new_block_size(128 * 1024);
         
         int64_t t0 = getTimeInMillis();
         
-        RandomBufferPopulator provider(512 / sizeof(Value), 1024*1024*1024);
+        RandomBufferPopulator provider(1024*1024*1024);
 
-        map.begin().insert_subseq(provider);
+        ctr.begin().insert(provider);
         
         auto t1 = getTimeInMillis();
         
-        std::cout << "Creation time: " << (t1 - t0) <<", size = " << map.size() << std::endl;
+        std::cout << "Creation time: " << (t1 - t0) <<", size = " << ctr.size() << std::endl;
 
         // Finish snapshot so no other updates are possible.
         snp.commit();
 
-        alloc.store("multimap_stream_data_iovec.dump");
+        alloc.store("vector_stream_data_iovec.dump");
     }
     catch (MemoriaThrowable& ex)
     {

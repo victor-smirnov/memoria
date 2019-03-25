@@ -20,6 +20,10 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_tools.hpp>
 #include <memoria/v1/core/packed/buffer/packed_vle_input_buffer_ro.hpp>
 
+#include <memoria/v1/core/iovector/io_substream_array_vlen.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_fixed_size_view.hpp>
+
+
 namespace memoria {
 namespace v1 {
 
@@ -116,6 +120,8 @@ public:
 
     using ReadState = SizesT;
 
+    using GrowableIOSubstream = io::IOColumnwiseArraySubstreamVlen<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseArraySubstreamFixedSizeView<Value, Blocks>;
 
     static int32_t estimate_block_size(int32_t tree_capacity, int32_t density_hi = 1000, int32_t density_lo = 333)
     {
@@ -770,6 +776,51 @@ public:
         }
 
         return OpStatusT<int32_t>(at + size);
+    }
+
+
+    OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
+    {
+        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
+
+        io::IOColumnwiseArraySubstream& buffer = io::substream_cast<io::IOColumnwiseArraySubstream>(substream);
+
+        auto buffer_values_start = T2T<const uint8_t*>(buffer.select(0, start));
+        auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(0, start + size));
+
+        ptrdiff_t total_length   = buffer_values_end - buffer_values_start;
+
+        auto meta = this->metadata();
+        size_t data_size = meta->data_size(0);
+
+        if(isFail(resize_segments(data_size + total_length))) {
+            return OpStatusT<int32_t>();
+        }
+
+        auto values         = this->values();
+        auto buffer_values  = T2T<const ValueData*>(buffer_values_start);
+
+        Codec codec;
+
+        size_t insertion_pos = locate(0, at);
+        codec.move(values, insertion_pos, insertion_pos + total_length, data_size - insertion_pos);
+
+        codec.copy(buffer_values, 0, values, insertion_pos, total_length);
+
+        meta->data_size(0) += total_length;
+
+        meta->size() += (size * Blocks);
+
+        if(isFail(reindex())) {
+            return OpStatusT<int32_t>();
+        }
+
+        return OpStatusT<int32_t>(at + size);
+    }
+
+    void configure_io_substream(io::IOSubstream& substream)
+    {
+        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
     }
 
 

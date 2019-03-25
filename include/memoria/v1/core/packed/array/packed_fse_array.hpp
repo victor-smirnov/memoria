@@ -21,6 +21,7 @@
 #include <memoria/v1/core/tools/accessors.hpp>
 
 #include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_fixed_size_view.hpp>
 
 #include <type_traits>
 
@@ -90,6 +91,7 @@ public:
 
     using InputBuffer = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
 
+
     using Values = core::StaticVector<Value, Blocks>;
     using SizesT = core::StaticVector<int32_t, Blocks>;
 
@@ -103,6 +105,8 @@ public:
     };
 
     using GrowableIOSubstream = io::IOColumnwiseArraySubstreamFixedSize<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseArraySubstreamFixedSizeView<Value, Blocks>;
+
 
 private:
     PackedAllocatable header_;
@@ -602,6 +606,25 @@ public:
         CopyBuffer(buffer_values, this->values() + at * Blocks, (end - start) * Blocks);
 
         return OpStatusT<int32_t>(at + size);
+    }
+
+    void configure_io_substream(io::IOSubstream& substream)
+    {
+        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
+
+        auto& view = io::substream_cast<IOSubstreamView>(substream);
+
+        io::ArrayColumnMetadata columns[Blocks]{};
+
+        for (int32_t blk = 0; blk < Blocks; blk++)
+        {
+            columns[blk].data_buffer = T2T<uint8_t*>(this->values());
+            columns[blk].size = this->size();
+            columns[blk].data_buffer_size = sizeof(Value) * columns[blk].size;
+            columns[blk].data_size = columns[blk].data_buffer_size;
+        }
+
+        view.configure(columns);
     }
 
     ReadState positions(int32_t idx) const {

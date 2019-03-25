@@ -20,6 +20,10 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/prototypes/bt_ss/btss_names.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
+#include <memoria/v1/prototypes/bt_ss/btss_input_iovector.hpp>
+
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 
 namespace memoria {
@@ -152,6 +156,12 @@ public:
         return self.ctr().insert(self, provider);
     }
 
+    auto bulk_insert(btss::io::IOVectorBTSSInputProvider<Container>& provider)
+    {
+        auto& self = this->self();
+        return self.ctr().insert(self, provider);
+    }
+
     template <typename InputIterator>
     auto bulk_insert(InputIterator begin, InputIterator end)
     {
@@ -238,6 +248,21 @@ public:
     }
 
 
+
+    auto insert_iovector(io::IOVectorProducer& producer, int64_t start, int64_t length)
+    {
+//        using InputProvider = btss::io::IOVectorBTSSInputProvider<Container>;
+
+//        io::IOVector
+
+//        InputProvider provider(self().ctr(), producer, *buffer.get(), start, length);
+
+//        return this->bulk_insert(*bulk.get());
+
+
+        auto& self = this->self();
+        return self.ctr().insert(self, producer, start, length);
+    }
 
 public:
 

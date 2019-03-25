@@ -59,7 +59,7 @@ class DefaultIOVector: public IOVector {
 
 public:
     DefaultIOVector(int32_t symbols):
-        symbol_sequence_(make_packed_owning_symbol_sequence(symbols))
+        symbol_sequence_(make_packed_rle_symbol_sequence(symbols))
     {}
 
     void reset()

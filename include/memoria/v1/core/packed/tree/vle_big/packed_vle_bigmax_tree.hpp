@@ -23,6 +23,9 @@
 #include <memoria/v1/core/strings/string_codec.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
 
+#include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_fixed_size_view.hpp>
+
 #ifdef HAVE_BOOST
 #include <memoria/v1/core/bignum/cppint_codec.hpp>
 #endif
@@ -124,6 +127,8 @@ public:
     using PtrsT         = core::StaticVector<ValueData*, Blocks>;
     using ConstPtrsT    = core::StaticVector<const ValueData*, Blocks>;
 
+    using GrowableIOSubstream = io::IOColumnwiseArraySubstreamFixedSize<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseArraySubstreamFixedSizeView<Value, Blocks>;
 
     class ReadState {
         ConstPtrsT values_;
@@ -806,6 +811,16 @@ public:
         this->size() += size;
 
         return reindex();
+    }
+
+
+    OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
+    {
+        return OpStatusT<int32_t>(at + size);
+    }
+
+    void configure_io_substream(io::IOSubstream& substream)
+    {
     }
 
 

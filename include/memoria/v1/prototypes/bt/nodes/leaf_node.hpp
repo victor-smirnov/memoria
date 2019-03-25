@@ -40,7 +40,66 @@ namespace v1 {
 namespace bt {
 
 
+namespace _ {
 
+template <int32_t Streams>
+class ConfigureIOVectorViewFn {
+
+    int32_t stream_idx_{};
+    int32_t data_substreams_;
+    io::IOVector& io_vector_;
+public:
+    ConfigureIOVectorViewFn(io::IOVector& io_vector):
+        data_substreams_(io_vector.substreams()),
+        io_vector_(io_vector)
+    {}
+
+    template <typename Stream>
+    void stream(Stream* stream)
+    {
+        if (stream_idx_ < data_substreams_)
+        {
+            stream->configure_io_substream(io_vector_.substream(stream_idx_));
+            stream_idx_++;
+        }
+        else
+        {
+            stream->configure_io_substream(io_vector_.symbol_sequence());
+        }
+    }
+
+    template <typename Value, int32_t Indexes, PkdSearchType SearchType>
+    void stream(PackedSizedStruct<Value, Indexes, SearchType>* stream)
+    {}
+};
+
+
+template <>
+class ConfigureIOVectorViewFn<1> {
+
+    int32_t stream_idx_{};
+    io::IOVector& io_vector_;
+public:
+    ConfigureIOVectorViewFn(io::IOVector& io_vector):
+        io_vector_(io_vector)
+    {}
+
+    template <typename Stream>
+    void stream(Stream* stream)
+    {
+        stream->configure_io_substream(io_vector_.substream(stream_idx_));
+        stream_idx_++;
+    }
+
+    template <typename Value, int32_t Indexes, PkdSearchType SearchType>
+    void stream(PackedSizedStruct<Value, Indexes, SearchType>* stream)
+    {
+        io_vector_.symbol_sequence().configure(T2T<void*>(stream->size()));
+    }
+};
+
+
+}
 
 
 template <
@@ -150,10 +209,6 @@ public:
             list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>
     >::Type;
 
-    //using NonSizedPackedStructsList = typename _::SelectNonSizedStruct<Linearize<LeafSubstreamsStructList>>::Type;
-
-    //static constexpr int32_t NonSizedStructSubstreams = ListSize<Linearize<LeafSubstreamsStructList>>;
-
     static constexpr int32_t Streams            = ListSize<LeafSubstreamsStructList>;
 
     static constexpr int32_t Substreams         = Dispatcher::Size;
@@ -209,6 +264,23 @@ public:
     {
         using IOVectorT = typename _::IOVectorsTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
         return std::make_unique<IOVectorT>();
+    }
+
+    std::unique_ptr<io::IOVector> create_iovector_view()
+    {
+        using IOVectorT = typename _::IOVectorViewTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
+        auto iov = std::make_unique<IOVectorT>();
+
+        configure_iovector_view(*iov.get());
+
+        return iov;
+    }
+
+
+
+    void configure_iovector_view(io::IOVector& io_vector)
+    {
+        Dispatcher::dispatchAll(allocator(), _::ConfigureIOVectorViewFn<Streams>(io_vector));
     }
 
 

@@ -33,28 +33,31 @@ namespace memoria {
 namespace v1 {
 namespace io {
 
-
 template <typename Value, int32_t Columns>
-class IOColumnwiseArraySubstreamFixedSizeView: public IOColumnwiseArraySubstream {
+class IOColumnwiseArraySubstreamVlen: public IOColumnwiseArraySubstream {
     ArrayColumnMetadata columns_[Columns]{};
+    std::vector<int32_t> offsets_[Columns]{};
 
 public:
-    IOColumnwiseArraySubstreamFixedSizeView(): IOColumnwiseArraySubstreamFixedSizeView(64)
+    IOColumnwiseArraySubstreamVlen(): IOColumnwiseArraySubstreamVlen(64)
     {}
 
-    IOColumnwiseArraySubstreamFixedSizeView(int32_t initial_capacity)
-    {
-
-    }
-
-    virtual ~IOColumnwiseArraySubstreamFixedSizeView() noexcept {}
-
-
-    void configure(ArrayColumnMetadata* columns) noexcept
+    IOColumnwiseArraySubstreamVlen(int32_t initial_capacity)
     {
         for (int32_t c = 0; c < Columns; c++)
         {
-            columns_[c] = columns[c];
+            columns_[c].data_buffer  = allocate_system<uint8_t>(initial_capacity).release();
+            columns_[c].size         = 0;
+            columns_[c].data_size    = 0;
+            columns_[c].data_buffer_size = initial_capacity;
+        }
+    }
+
+    virtual ~IOColumnwiseArraySubstreamVlen() noexcept
+    {
+        for (int32_t c = 0; c < Columns; c++)
+        {
+            free_system(columns_[c].data_buffer);
         }
     }
 
@@ -84,32 +87,77 @@ public:
 
     uint8_t* enlarge(int32_t column, int32_t required) final
     {
-        MMA1_THROW(UnsupportedOperationException());
+        auto& col = columns_[column];
+
+        if (col.data_size + required > col.data_buffer_size)
+        {
+            int32_t db_size = col.data_buffer_size;
+
+            while (col.data_size + required > db_size)
+            {
+                db_size *= 2;
+            }
+
+            uint8_t* new_data_buffer = allocate_system<uint8_t>(db_size).release();
+            std::memcpy(new_data_buffer, col.data_buffer, col.data_buffer_size);
+
+            free_system(col.data_buffer);
+
+            col.data_buffer      = new_data_buffer;
+            col.data_buffer_size = db_size;
+        }
+
+        return col.data_buffer;
     }
 
-    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths) {
-        MMA1_THROW(UnsupportedOperationException());
+    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths)
+    {
+        auto& col = columns_[column];
+
+        int32_t last_data_size = col.data_size;
+
+        int32_t offset0 = col.data_size;
+
+        if (MMA1_UNLIKELY(col.data_size + data_size > col.data_buffer_size)) {
+            enlarge(column, data_size);
+        }
+
+        col.size += values;
+        col.data_size += data_size;
+
+        for (int32_t c = 0; c < values; c++) {
+            offsets_[column].push_back(offset0);
+            offset0 += lengths[c];
+        }
+
+        return col.data_buffer + last_data_size;
     }
 
     virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths, uint64_t* nulls_bitmap) {
-        MMA1_THROW(UnsupportedOperationException());
+        return reserve(column, data_size, values, lengths);
     }
+
 
     void reset()
     {
-        MMA1_THROW(UnsupportedOperationException());
+        for (int32_t c = 0; c < Columns; c++)
+        {
+            columns_[c].size = 0;
+            columns_[c].data_size = 0;
+            offsets_[c].clear();
+        }
     }
 
     uint8_t* select(int32_t column, int32_t idx) const
     {
-        return columns_[column].data_buffer + idx * sizeof(Value);
+        return columns_[column].data_buffer + offsets_[column][idx];
     }
 
     ArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const
     {
         auto& col = columns_[column];
 
-        int32_t offs = idx * sizeof(Value);
+        int32_t offs = offsets_[column][idx];
         return ArrayColumnMetadata{col.data_buffer + offs, col.data_size - offs, col.data_buffer_size - offs, col.size};
     }
 

@@ -92,12 +92,9 @@ namespace _ {
             static_assert(StreamIdx == DataStreams, "");
             if (isOk(status))
             {
-                MEMORIA_V1_ASSERT_TRUE(typeid(StreamObj) == io_vector.symbol_sequence().sequence_type());
-                StreamObj* buffer = T2T<StreamObj*>(io_vector.symbol_sequence().buffer());
-
-                status <<= stream->insert_from(
+                status <<= stream->insert_io_substream(
                     at[StreamIdx],
-                    buffer,
+                    io_vector.symbol_sequence(),
                     starts[StreamIdx],
                     sizes[StreamIdx]
                 );
@@ -244,7 +241,7 @@ public:
         }
     }
 
-    virtual void do_populate_iobuffer()
+    void do_populate_iobuffer()
     {
         auto& seq = io_vector_->symbol_sequence();
 

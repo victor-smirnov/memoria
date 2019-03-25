@@ -60,13 +60,12 @@ private:
 public:
 
     using FieldsList = MergeLists<
-                typename Base::FieldsList,
+        typename Base::FieldsList,
 
-                UInt32Value<VERSION>,
-                decltype(block_size_),
-                decltype(layout_size_),
-                decltype(bitmap_size_)
-
+        UInt32Value<VERSION>,
+        decltype(block_size_),
+        decltype(layout_size_),
+        decltype(bitmap_size_)
     >;
 
     PackedAllocator() = default;

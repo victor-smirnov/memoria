@@ -22,8 +22,6 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/memory/malloc.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_rle_symbol_sequence_view_1.hpp>
-
 #include <functional>
 
 namespace memoria {
@@ -31,14 +29,15 @@ namespace v1 {
 namespace io {
 
 template <int32_t AlphabetSize>
-class PackedRLESymbolSequenceView: public IOSymbolSequence {
+class PackedRLESymbolSequenceView;
 
-    using SeqT = PkdRLESeqT<AlphabetSize>;
+template <>
+class PackedRLESymbolSequenceView<1>: public IOSymbolSequence {
 
-    SeqT* sequence_;
+    int32_t size_{};
 
 public:
-    PackedRLESymbolSequenceView(): sequence_()
+    PackedRLESymbolSequenceView()
     {
     }
 
@@ -52,7 +51,7 @@ public:
     }
 
     virtual int32_t alphabet_size() const {
-        return AlphabetSize;
+        return 1;
     }
 
     virtual bool is_const() const {
@@ -60,54 +59,50 @@ public:
     }
 
     virtual int32_t symbol(int32_t idx) const {
-        return sequence_->symbol(idx);
+        return 0;
     }
 
     virtual int32_t size() const {
-        return sequence_->size();
+        return size_;
     }
 
     virtual void* buffer() const {
-        return sequence_;
+        return nullptr;
     }
 
     virtual void rank_to(int32_t idx, int32_t* values) const
     {
-        for (int32_t sym = 0; sym < AlphabetSize; sym++) {
-            values[sym] = sequence_->rank(idx, sym);
-        }
+        values[0] = idx;
     }
 
     virtual void append(int32_t symbol, int32_t length)
     {
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Appending is not supported for PackedRLESymbolSequenceView");
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Appending is not supported for PackedSymbolSequenceNonOwningImpl");
     }
 
     virtual void reindex()
     {
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Reindexing is not supported for PackedRLESymbolSequenceView");
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Reindexing is not supported for PackedSymbolSequenceNonOwningImpl");
     }
 
     virtual void reset() {
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Resetting is not supported for PackedRLESymbolSequenceView");
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Resetting is not supported for PackedSymbolSequenceNonOwningImpl");
     }
 
     virtual void dump(std::ostream& out) const
     {
-        sequence_->dump(out, true);
+
     }
 
     virtual const std::type_info& sequence_type() const {
-        return typeid(SeqT);
+        return typeid(PackedRLESymbolSequenceView<1>);
     }
 
     virtual void configure(void* ptr)
     {
-        sequence_ = T2T<SeqT*>(ptr);
+        size_ = T2T<uint64_t>(ptr);
     }
 };
-
-
 
 
 }}}

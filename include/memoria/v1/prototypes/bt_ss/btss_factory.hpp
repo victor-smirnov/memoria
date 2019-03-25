@@ -32,6 +32,8 @@
 
 #include <memoria/v1/prototypes/bt_ss/iterator/btss_i_misc.hpp>
 
+#include <memoria/v1/prototypes/bt_ss/btss_input_iovector.hpp>
+
 #include <tuple>
 
 namespace memoria {

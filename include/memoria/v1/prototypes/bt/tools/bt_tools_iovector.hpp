@@ -21,6 +21,9 @@
 
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
+#include <memoria/v1/core/iovector/io_substream_rle_symbol_sequence_1.hpp>
+#include <memoria/v1/core/iovector/io_substream_rle_symbol_sequence_view_1.hpp>
+
 namespace memoria {
 namespace v1 {
 namespace bt {
@@ -46,8 +49,9 @@ struct SelectNonSizedStruct<TL<>> {
 
 
 template <int32_t Streams, typename PkdStructsList>
-class IOVectorsTF
+class IOVectorsTFBase
 {
+protected:
     using NonSizedPackedStructsList = typename SelectNonSizedStruct<PkdStructsList>::Type;
 
     static constexpr int32_t PkdStructsListSize = ListSize<NonSizedPackedStructsList>;
@@ -63,10 +67,18 @@ class IOVectorsTF
         NonSizedPackedStructsList,
         PkdStructsListSize - 1
     >::Type;
+};
+
+
+
+template <int32_t Streams, typename PkdStructsList>
+class IOVectorsTF: public IOVectorsTFBase<Streams, PkdStructsList>
+{
+    using Base = IOVectorsTFBase<Streams, PkdStructsList>;
 
     struct IOVTypes {
-        using PackedStructsList = DataStreamsPkdStructsList;
-        using SymbolSequence    = typename SequencePkdStruct::GrowableIOSubstream;
+        using PackedStructsList = typename Base::DataStreamsPkdStructsList;
+        using SymbolSequence    = typename Base::SequencePkdStruct::GrowableIOSubstream;
     };
 
     template <typename T>
@@ -74,10 +86,74 @@ class IOVectorsTF
         using Type = typename T::GrowableIOSubstream;
     };
 
+public:
+    using IOVectorT = io::StaticIOVector<IOVTypes, CreateIOVectorIVMapperTF>;
+};
+
+
+template <int32_t Streams, typename PkdStructsList>
+class IOVectorViewTF: public IOVectorsTFBase<Streams, PkdStructsList>
+{
+    using Base = IOVectorsTFBase<Streams, PkdStructsList>;
+
+    struct IOVTypes {
+        using PackedStructsList = typename Base::DataStreamsPkdStructsList;
+        using SymbolSequence    = typename Base::SequencePkdStruct::IOSubstreamView;
+    };
+
+
+    template <typename T>
+    struct CreateIOVectorViewIVMapperTF {
+        using Type = typename T::IOSubstreamView;
+    };
+
+public:
+    using IOVectorT = io::StaticIOVector<IOVTypes, CreateIOVectorViewIVMapperTF>;
+};
+
+
+
+template <typename PkdStructsList>
+class IOVectorsTF<1, PkdStructsList>
+{
+protected:
+    using NonSizedPackedStructsList = typename SelectNonSizedStruct<PkdStructsList>::Type;
+
+    struct IOVTypes {
+        using PackedStructsList = NonSizedPackedStructsList;
+        using SymbolSequence    = io::PackedRLESymbolSequence<1>;
+    };
+
+    template <typename T>
+    struct CreateIOVectorIVMapperTF {
+        using Type = typename T::GrowableIOSubstream;
+    };
 
 public:
     using IOVectorT = io::StaticIOVector<IOVTypes, CreateIOVectorIVMapperTF>;
 };
+
+
+template <typename PkdStructsList>
+class IOVectorViewTF<1, PkdStructsList>
+{
+protected:
+    using NonSizedPackedStructsList = typename SelectNonSizedStruct<PkdStructsList>::Type;
+
+    struct IOVTypes {
+        using PackedStructsList = NonSizedPackedStructsList;
+        using SymbolSequence    = io::PackedRLESymbolSequenceView<1>;
+    };
+
+    template <typename T>
+    struct CreateIOVectorIVMapperTF {
+        using Type = typename T::IOSubstreamView;
+    };
+
+public:
+    using IOVectorT = io::StaticIOVector<IOVTypes, CreateIOVectorIVMapperTF>;
+};
+
 
 
 }}}}

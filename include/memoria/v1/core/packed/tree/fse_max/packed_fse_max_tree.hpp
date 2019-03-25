@@ -26,6 +26,7 @@
 #include <memoria/v1/core/iobuffer/io_buffer.hpp>
 
 #include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_fixed_size_view.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -82,6 +83,7 @@ public:
     using ConstPtrsT    = core::StaticVector<const Value*, Blocks>;
 
     using GrowableIOSubstream = io::IOColumnwiseArraySubstreamFixedSize<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseArraySubstreamFixedSizeView<Value, Blocks>;
 
     class ReadState {
         ConstPtrsT values_;
@@ -728,6 +730,22 @@ public:
         return OpStatus::OK;
     }
 
+    void configure_io_substream(io::IOSubstream& substream)
+    {
+        auto& view = io::substream_cast<IOSubstreamView>(substream);
+
+        io::ArrayColumnMetadata columns[Blocks]{};
+
+        for (int32_t blk = 0; blk < Blocks; blk++)
+        {
+            columns[blk].data_buffer = T2T<uint8_t*>(this->values(blk));
+            columns[blk].size = this->size();
+            columns[blk].data_buffer_size = sizeof(Value) * columns[blk].size;
+            columns[blk].data_size = columns[blk].data_buffer_size;
+        }
+
+        view.configure(columns);
+    }
 
     template <typename T>
     OpStatus update(int32_t idx, const core::StaticVector<T, Blocks>& values)

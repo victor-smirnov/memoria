@@ -46,6 +46,8 @@ struct IOSymbolSequence: IOSubstream {
     virtual const std::type_info& substream_type() const {
         return typeid(IOSymbolSequence);
     }
+
+    virtual void configure(void* ptr) = 0;
 };
 
 

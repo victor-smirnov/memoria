@@ -27,6 +27,7 @@
 
 #include <memoria/v1/profiles/common/block_operations.hpp>
 
+#include <memoria/v1/core/iovector/io_symbol_sequence_base.hpp>
 
 #include "rleseq/rleseq_reindex_fn.hpp"
 #include "rleseq/rleseq_iterator.hpp"
@@ -38,7 +39,8 @@ namespace v1 {
 
 namespace io {
 
-template <int32_t AlphabetSize> class PackedSymbolSequenceImpl;
+template <int32_t AlphabetSize> class PackedRLESymbolSequence;
+template <int32_t AlphabetSize> class PackedRLESymbolSequenceView;
 
 }
 
@@ -138,7 +140,8 @@ public:
 
     using Iterator = rleseq::RLESeqIterator<MyType>;
 
-    using GrowableIOSubstream = io::PackedSymbolSequenceImpl<Symbols>;
+    using GrowableIOSubstream = io::PackedRLESymbolSequence<Symbols>;
+    using IOSubstreamView     = io::PackedRLESymbolSequenceView<Symbols>;
 
     int32_t number_of_offsets() const
     {
@@ -1584,6 +1587,19 @@ public:
     auto find_run(int32_t symbol_pos) const
     {
         return find_run(this->metadata(), symbol_pos);
+    }
+
+    OpStatus insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
+    {
+        const MyType* buffer = T2T<const MyType*>(io::substream_cast<io::IOSymbolSequence>(substream).buffer());
+        return this->insert_from(at, buffer, start, size);
+    }
+
+
+    void configure_io_substream(io::IOSubstream& substream)
+    {
+        auto& seq = io::substream_cast<IOSubstreamView>(substream);
+        seq.configure(this);
     }
     
 private:

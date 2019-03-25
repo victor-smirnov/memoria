@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,21 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
 
-#include <memoria/v1/core/types.hpp>
-
-#include <memoria/v1/core/iovector/io_symbol_sequence_base.hpp>
-#include <memoria/v1/core/iovector/io_substream_rle_symbol_sequence.hpp>
-#include <memoria/v1/core/iovector/io_substream_rle_symbol_sequence_view.hpp>
-
-#include <memoria/v1/core/iovector/io_substream_rle_symbol_sequence_1.hpp>
-#include <memoria/v1/core/iovector/io_substream_rle_symbol_sequence_view_1.hpp>
-
-#include <functional>
+#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/v1/containers/vector/vector_impl.hpp>
 
 namespace memoria {
 namespace v1 {
-namespace io {
 
-}}}
+using Profile = DefaultProfile<>;    
+using CtrName = Vector<uint8_t>;
+
+MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
+    
+}}
+

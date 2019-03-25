@@ -35,7 +35,6 @@ struct IOSubstream {
 
     virtual void reset() = 0;
     virtual const std::type_info& substream_type() const = 0;
-    virtual void init(void* ptr) = 0;
 };
 
 template <typename T>

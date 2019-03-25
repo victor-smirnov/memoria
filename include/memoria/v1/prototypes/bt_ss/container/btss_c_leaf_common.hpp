@@ -20,6 +20,10 @@
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
+#include <memoria/v1/prototypes/bt_ss/btss_input_iovector.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -104,6 +108,32 @@ public:
         }
 
         return provider.total();
+    }
+
+
+
+    CtrSizeT insert(Iterator& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length)
+    {
+        auto& self = this->self();
+
+        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+
+        auto id = iter.leaf()->id();
+
+        btss::io::IOVectorBTSSInputProvider<MyType> streaming(self, &producer, iov.get(), start, length);
+
+        auto pos = Position(iter.local_pos());
+
+        auto result = self.insert_provided_data(iter.leaf(), pos, streaming);
+
+        iter.local_pos()  = result.position().sum();
+        iter.leaf() = result.leaf();
+
+        if (iter.leaf()->id() != id) {
+            iter.refresh();
+        }
+
+        return streaming.totals();
     }
 
 MEMORIA_V1_CONTAINER_PART_END

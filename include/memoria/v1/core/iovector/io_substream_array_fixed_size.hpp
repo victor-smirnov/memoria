@@ -120,6 +120,15 @@ public:
         return col.data_buffer;
     }
 
+    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths) {
+        return reserve(column, data_size, values);
+    }
+
+    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths, uint64_t* nulls_bitmap) {
+        return reserve(column, data_size, values);
+    }
+
+
     void reset()
     {
         for (int32_t c = 0; c < Columns; c++)

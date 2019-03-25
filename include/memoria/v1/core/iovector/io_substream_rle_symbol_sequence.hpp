@@ -24,6 +24,9 @@
 #include <memoria/v1/core/strings/format.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
+
+#include <memoria/v1/core/iovector/io_substream_rle_symbol_sequence_1.hpp>
+
 #include <functional>
 
 namespace memoria {
@@ -31,24 +34,24 @@ namespace v1 {
 namespace io {
 
 template <int32_t AlphabetSize>
-class PackedSymbolSequenceImpl: public IOSymbolSequence {
+class PackedRLESymbolSequence: public IOSymbolSequence {
 
     using SeqT = PkdRLESeqT<AlphabetSize>;
 
     SeqT* sequence_;
 
 public:
-    PackedSymbolSequenceImpl()
+    PackedRLESymbolSequence()
     {
         sequence_ = T2T<SeqT*>(allocate_system<uint8_t>(SeqT::empty_size()).release());
         sequence_->allocatable().setTopLevelAllocator();
         (void)sequence_->init();
     }
 
-    PackedSymbolSequenceImpl(PackedSymbolSequenceImpl&&) = delete;
-    PackedSymbolSequenceImpl(const PackedSymbolSequenceImpl&) = delete;
+    PackedRLESymbolSequence(PackedRLESymbolSequence&&) = delete;
+    PackedRLESymbolSequence(const PackedRLESymbolSequence&) = delete;
 
-    virtual ~PackedSymbolSequenceImpl() noexcept
+    virtual ~PackedRLESymbolSequence() noexcept
     {
         free_system(sequence_);
     }
@@ -112,7 +115,7 @@ public:
         return typeid(SeqT);
     }
 
-    virtual void init(void* ptr) {
+    virtual void configure(void* ptr) {
         MMA1_THROW(UnsupportedOperationException());
     }
 
@@ -132,100 +135,33 @@ private:
 };
 
 
-template <>
-class PackedSymbolSequenceImpl<1>: public IOSymbolSequence {
-
-    int32_t size_{};
-
-public:
-    PackedSymbolSequenceImpl()
-    {
-    }
-
-    PackedSymbolSequenceImpl(PackedSymbolSequenceImpl&&) = delete;
-    PackedSymbolSequenceImpl(const PackedSymbolSequenceImpl&) = delete;
-
-
-    virtual bool is_indexed() const {
-        return true;
-    }
-
-    virtual int32_t alphabet_size() const {
-        return 1;
-    }
-
-    virtual bool is_const() const {
-        return false;
-    }
-
-    virtual int32_t symbol(int32_t idx) const {
-        return 0;
-    }
-
-    virtual int32_t size() const {
-        return size_;
-    }
-
-    virtual void* buffer() const {
-        return nullptr;
-    }
-
-    virtual void rank_to(int32_t idx, int32_t* values) const
-    {
-        values[0] = idx;
-    }
-
-    virtual void append(int32_t symbol, int32_t length)
-    {
-        size_ += length;
-    }
-
-    virtual void reindex()
-    {
-    }
-
-    virtual void dump(std::ostream& out) const
-    {
-        out << "[SingleBitSymbolSequence: " << size_ << "]";
-    }
-
-    virtual void reset() {
-        size_ = 0;
-    }
-
-    virtual const std::type_info& sequence_type() const {
-        return typeid(PackedSymbolSequenceImpl<1>);
-    }
-
-    virtual void init(void* ptr) {
-        MMA1_THROW(UnsupportedOperationException());
-    }
-};
 
 
 
-static inline std::unique_ptr<IOSymbolSequence> make_packed_owning_symbol_sequence(int32_t alphabet_size)
+
+
+static inline std::unique_ptr<IOSymbolSequence> make_packed_rle_symbol_sequence(int32_t alphabet_size)
 {
     if (alphabet_size == 1) {
-        return std::make_unique<PackedSymbolSequenceImpl<1>>();
+        return std::make_unique<PackedRLESymbolSequence<1>>();
     }
     else if (alphabet_size == 2) {
-        return std::make_unique<PackedSymbolSequenceImpl<2>>();
+        return std::make_unique<PackedRLESymbolSequence<2>>();
     }
     else if (alphabet_size == 3) {
-        return std::make_unique<PackedSymbolSequenceImpl<3>>();
+        return std::make_unique<PackedRLESymbolSequence<3>>();
     }
     else if (alphabet_size == 4) {
-        return std::make_unique<PackedSymbolSequenceImpl<4>>();
+        return std::make_unique<PackedRLESymbolSequence<4>>();
     }
     else if (alphabet_size == 5) {
-        return std::make_unique<PackedSymbolSequenceImpl<5>>();
+        return std::make_unique<PackedRLESymbolSequence<5>>();
     }
     else if (alphabet_size == 6) {
-        return std::make_unique<PackedSymbolSequenceImpl<6>>();
+        return std::make_unique<PackedRLESymbolSequence<6>>();
     }
     else if (alphabet_size == 7) {
-        return std::make_unique<PackedSymbolSequenceImpl<7>>();
+        return std::make_unique<PackedRLESymbolSequence<7>>();
     }
     else {
         MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Unsupported alphabe_size value: {}", alphabet_size);

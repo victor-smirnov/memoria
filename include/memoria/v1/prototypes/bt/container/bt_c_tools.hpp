@@ -22,6 +22,8 @@
 #include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
 #include <iostream>
 
 namespace memoria {
@@ -463,7 +465,34 @@ public:
         return LeafDispatcher::template dispatch<bt::LeafNode>(true, GetLeafNodeStreamSizesStatic(), sums);
     }
 
+    struct CreateIOVectorViewFn
+    {
+        template <typename T, typename... Args>
+        std::unique_ptr<io::IOVector> treeNode(bt::LeafNode<T>* node) const
+        {
+            return node->create_iovector_view();
+        }
+    };
 
+    std::unique_ptr<io::IOVector> create_iovector_view(NodeBaseG& node)
+    {
+        return LeafDispatcher::dispatch(node, CreateIOVectorViewFn());
+    }
+
+
+    struct ConfigureIOVectorViewFn
+    {
+        template <typename T, typename... Args>
+        void treeNode(bt::LeafNode<T>* node, io::IOVector& io_vector) const
+        {
+            return node->configure_iovector_view(io_vector);
+        }
+    };
+
+    void configure_iovector_view(NodeBaseG& node, io::IOVector& io_vector)
+    {
+        return LeafDispatcher::dispatch(node, ConfigureIOVectorViewFn(), io_vector);
+    }
 
 protected:
 

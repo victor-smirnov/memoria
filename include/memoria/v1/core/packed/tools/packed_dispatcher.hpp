@@ -68,7 +68,6 @@ public:
     static const int32_t AllocatorIdxStart  = Index;
     static const int32_t AllocatorIdxEnd    = Select<Size - 1, List>::Value + 1;
 
-
     template<typename, int32_t, int32_t> friend class PackedDispatcher;
 
     template<int32_t StreamIdx>

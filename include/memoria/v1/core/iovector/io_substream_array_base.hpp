@@ -76,6 +76,10 @@ struct IOColumnwiseArraySubstreamBase: IOSubstream {
     virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values) = 0;
     virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, uint64_t* nulls_bitmap) = 0;
 
+    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths) = 0;
+    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths, uint64_t* nulls_bitmap) = 0;
+
+
     virtual uint8_t* enlarge(int32_t column, int32_t required)  = 0;
 };
 

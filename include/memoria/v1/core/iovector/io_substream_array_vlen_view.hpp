@@ -35,19 +35,19 @@ namespace io {
 
 
 template <typename Value, int32_t Columns>
-class IOColumnwiseArraySubstreamFixedSizeView: public IOColumnwiseArraySubstream {
+class IOColumnwiseArraySubstreamVlenView: public IOColumnwiseArraySubstream {
     ArrayColumnMetadata columns_[Columns]{};
 
 public:
-    IOColumnwiseArraySubstreamFixedSizeView(): IOColumnwiseArraySubstreamFixedSizeView(64)
+    IOColumnwiseArraySubstreamVlenView(): IOColumnwiseArraySubstreamVlenView(64)
     {}
 
-    IOColumnwiseArraySubstreamFixedSizeView(int32_t initial_capacity)
+    IOColumnwiseArraySubstreamVlenView(int32_t initial_capacity)
     {
 
     }
 
-    virtual ~IOColumnwiseArraySubstreamFixedSizeView() noexcept {}
+    virtual ~IOColumnwiseArraySubstreamVlenView() noexcept {}
 
 
     void configure(ArrayColumnMetadata* columns) noexcept

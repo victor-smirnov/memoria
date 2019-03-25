@@ -22,6 +22,8 @@
 
 #include <memoria/v1/core/container/allocator.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
 #include "../common/ctr_input_btss.hpp"
 #include "../common/ctr_output_btss.hpp"
 
@@ -115,6 +117,8 @@ public:
     
     int64_t insert(bt::BufferProducer<CtrIOBuffer>& producer);
     int64_t insert(std::function<int32_t (CtrIOBuffer&)> producer);
+
+    int64_t insert(io::IOVectorProducer& producer, int64_t start = 0, int64_t length = std::numeric_limits<int64_t>::max());
 };
 
 

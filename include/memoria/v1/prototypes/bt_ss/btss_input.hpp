@@ -87,7 +87,7 @@ public:
         input_buffer_ = create_input_buffer(capacity);
     }
 
-    ~AbstractBTSSInputProviderBase() {
+    virtual ~AbstractBTSSInputProviderBase() {
         delete_buffer(input_buffer_);
     }
 

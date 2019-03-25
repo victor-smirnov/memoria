@@ -23,6 +23,7 @@
 #include <memoria/v1/profiles/common/block_operations.hpp>
 
 #include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_fixed_size_view.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -79,6 +80,7 @@ public:
     using InputType     = Values;
 
     using GrowableIOSubstream = io::IOColumnwiseArraySubstreamFixedSize<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseArraySubstreamFixedSizeView<Value, Blocks>;
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
 
@@ -957,6 +959,23 @@ public:
         }
 
         return OpStatus::OK;
+    }
+
+    void configure_io_substream(io::IOSubstream& substream)
+    {
+        auto& view = io::substream_cast<IOSubstreamView>(substream);
+
+        io::ArrayColumnMetadata columns[Blocks]{};
+
+        for (int32_t blk = 0; blk < Blocks; blk++)
+        {
+            columns[blk].data_buffer = T2T<uint8_t*>(this->values(blk));
+            columns[blk].size = this->size();
+            columns[blk].data_buffer_size = sizeof(Value) * columns[blk].size;
+            columns[blk].data_size = columns[blk].data_buffer_size;
+        }
+
+        view.configure(columns);
     }
 
     template <typename T>

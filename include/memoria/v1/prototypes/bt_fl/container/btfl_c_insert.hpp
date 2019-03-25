@@ -74,9 +74,9 @@ public:
 
     auto bulkio_insert(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
-        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
-
         auto& self = this->self();
+
+        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
 
         auto id = iter.leaf()->id();
 

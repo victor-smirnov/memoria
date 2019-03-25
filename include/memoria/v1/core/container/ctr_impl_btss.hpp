@@ -122,6 +122,17 @@ int64_t IterApiBTSSBase<CtrName, Profile>::insert(std::function<int32_t (CtrIOBu
     return this->pimpl_->insert_iobuffer(&fn_producer);
 }
 
+template <typename CtrName, typename Profile>
+int64_t IterApiBTSSBase<CtrName, Profile>::insert(
+        io::IOVectorProducer& producer,
+        int64_t start,
+        int64_t length
+)
+{
+    return this->pimpl_->insert_iovector(producer, start, length);
+}
+
+
 
 template <typename CtrName, typename Profile>
 int64_t IterApiBTSSBase<CtrName, Profile>::pos()
