@@ -867,12 +867,6 @@ public:
     {
         int32_t size = this->size();
 
-        if (idx > size) {
-            dump();
-
-            std::cout << "HERE" << std::endl;
-        }
-
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(idx, <=, size);
 

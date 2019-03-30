@@ -80,11 +80,11 @@ public:
             tmp[c] = buffer[c + pos];
         }
 
-        pos += len;
+        std::memcpy(tmp.data(), buffer + pos, len);
 
         std::swap(value, tmp);
 
-        return pos - idx;
+        return pos + len - idx;
     }
 
     size_t encode(T* buffer, const ValuePtr& value, size_t idx) const
@@ -106,12 +106,9 @@ public:
 
         size_t len = value.size();
 
-        for (size_t c = 0; c < len; c++)
-        {
-            buffer[pos++] = value[c];
-        }
+        std::memcpy(buffer + pos, value.data(), len);
 
-        return pos - idx;
+        return pos + len - idx;
     }
 
     void move(T* buffer, size_t from, size_t to, size_t size) const

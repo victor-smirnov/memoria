@@ -29,7 +29,7 @@ namespace v1 {
 template <typename Types> class PkdVMOTree;
 
 
-template <typename ValueT, template <typename> class CodecT = ValueCodec, int32_t kBranchingFactor = PackedTreeBranchingFactor>
+template <typename ValueT, template <typename> class CodecT = ValueCodec, int32_t kBranchingFactor = 1024>
 using PkdVMOTreeT = PkdVMOTree<PkdVBMTreeTypes<typename ValueT::ValueType, CodecT, kBranchingFactor>>;
 
 

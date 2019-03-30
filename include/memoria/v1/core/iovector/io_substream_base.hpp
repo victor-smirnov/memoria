@@ -33,7 +33,9 @@ namespace io {
 struct IOSubstream {
     virtual ~IOSubstream() noexcept {}
 
-    virtual void reset() = 0;
+    virtual void reset()   = 0;
+    virtual void reindex() = 0;
+
     virtual const std::type_info& substream_type() const = 0;
 };
 

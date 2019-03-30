@@ -252,7 +252,7 @@ public:
 
             io_vector_->reset();
             finished_ = producer_->populate(*io_vector_);
-            seq.reindex();
+            io_vector_->reindex();
 
             seq.rank_to(io_vector_->symbol_sequence().size(), &size_[0]);
 

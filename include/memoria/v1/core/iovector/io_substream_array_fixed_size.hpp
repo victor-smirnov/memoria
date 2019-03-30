@@ -151,6 +151,8 @@ public:
         return ArrayColumnMetadata{col.data_buffer + offs, col.data_size - offs, col.data_buffer_size - offs, col.size};
     }
 
+    virtual void reindex() {}
+
 protected:
     void init(void* ptr) {
         MMA1_THROW(UnsupportedOperationException());

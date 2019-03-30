@@ -23,8 +23,8 @@
 #include <memoria/v1/core/strings/string_codec.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
-#include <memoria/v1/core/iovector/io_substream_array_fixed_size_view.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_vlen.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_vlen_view.hpp>
 
 #ifdef HAVE_BOOST
 #include <memoria/v1/core/bignum/cppint_codec.hpp>
@@ -127,8 +127,8 @@ public:
     using PtrsT         = core::StaticVector<ValueData*, Blocks>;
     using ConstPtrsT    = core::StaticVector<const ValueData*, Blocks>;
 
-    using GrowableIOSubstream = io::IOColumnwiseArraySubstreamFixedSize<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseArraySubstreamFixedSizeView<Value, Blocks>;
+    using GrowableIOSubstream = io::IOColumnwiseArraySubstreamVlen<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseArraySubstreamVlenView<Value, Blocks>;
 
     class ReadState {
         ConstPtrsT values_;
@@ -814,9 +814,36 @@ public:
     }
 
 
-    OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
+    OpStatus insert_io_substream(int32_t pos, io::IOSubstream& substream, int32_t start, int32_t size)
     {
-        return OpStatusT<int32_t>(at + size);
+        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
+
+        io::IOColumnwiseArraySubstream& buffer = io::substream_cast<io::IOColumnwiseArraySubstream>(substream);
+
+        auto buffer_values_start = T2T<const uint8_t*>(buffer.select(0, start));
+        auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(0, start + size));
+
+        ptrdiff_t total_length   = buffer_values_end - buffer_values_start;
+
+        Codec codec;
+
+        auto at = this->positions(pos);
+
+        auto values = this->values();
+
+        size_t insertion_pos = at.data_pos(0);
+
+        if(isFail(insert_space(insertion_pos, total_length))) {
+            return OpStatus::FAIL;
+        }
+
+        values = this->values();
+
+        codec.copy(buffer_values_start, 0, values, insertion_pos, total_length);
+
+        this->size() += size;
+
+        return reindex();
     }
 
     void configure_io_substream(io::IOSubstream& substream)

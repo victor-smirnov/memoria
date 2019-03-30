@@ -41,6 +41,8 @@ struct IOVector {
 
     virtual IOSubstream& substream(size_t num) = 0;
     virtual const IOSubstream& substream(size_t num) const = 0;
+
+    virtual void reindex() = 0;
 };
 
 
@@ -94,6 +96,14 @@ public:
 
     const IOSubstream& substream(size_t num) const {
         return *substreams_[num].get();
+    }
+
+    virtual void reindex()
+    {
+        symbol_sequence_->reindex();
+        for (int32_t c = 0; c < SubstreamsNum; c++) {
+            substreams_[c]->reindex();
+        }
     }
 };
 
@@ -178,6 +188,14 @@ public:
 
     const IOSubstream& substream(size_t num) const {
         return *substreams_[num];
+    }
+
+    virtual void reindex()
+    {
+        symbol_sequence_.reindex();
+        for (int32_t c = 0; c < SubstreamsNum; c++) {
+            substreams_[c]->reindex();
+        }
     }
 };
 

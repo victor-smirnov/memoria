@@ -161,6 +161,14 @@ public:
         return ArrayColumnMetadata{col.data_buffer + offs, col.data_size - offs, col.data_buffer_size - offs, col.size};
     }
 
+    virtual void reindex()
+    {
+        for (int32_t column = 0; column < Columns; column++)
+        {
+            offsets_[column].push_back(columns_[column].data_size);
+        }
+    }
+
 protected:
     void init(void* ptr) {
         MMA1_THROW(UnsupportedOperationException());
