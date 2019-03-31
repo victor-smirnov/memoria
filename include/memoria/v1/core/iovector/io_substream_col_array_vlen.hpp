@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/iovector/io_substream_array_base.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_vlen_base.hpp>
 
 #include <memoria/v1/core/types/type2type.hpp>
 
@@ -34,15 +34,15 @@ namespace v1 {
 namespace io {
 
 template <typename Value, int32_t Columns>
-class IOColumnwiseArraySubstreamVlen: public IOColumnwiseArraySubstream {
-    ArrayColumnMetadata columns_[Columns]{};
+class IOColumnwiseVLenArraySubstreamImpl: public IOColumnwiseVLenArraySubstream {
+    VLenArrayColumnMetadata columns_[Columns]{};
     std::vector<int32_t> offsets_[Columns]{};
 
 public:
-    IOColumnwiseArraySubstreamVlen(): IOColumnwiseArraySubstreamVlen(64)
+    IOColumnwiseVLenArraySubstreamImpl(): IOColumnwiseVLenArraySubstreamImpl(64)
     {}
 
-    IOColumnwiseArraySubstreamVlen(int32_t initial_capacity)
+    IOColumnwiseVLenArraySubstreamImpl(int32_t initial_capacity)
     {
         for (int32_t c = 0; c < Columns; c++)
         {
@@ -53,7 +53,7 @@ public:
         }
     }
 
-    virtual ~IOColumnwiseArraySubstreamVlen() noexcept
+    virtual ~IOColumnwiseVLenArraySubstreamImpl() noexcept
     {
         for (int32_t c = 0; c < Columns; c++)
         {
@@ -61,7 +61,7 @@ public:
         }
     }
 
-    ArrayColumnMetadata describe(int32_t column) const
+    VLenArrayColumnMetadata describe(int32_t column) const
     {
         return columns_[column];
     }
@@ -76,16 +76,7 @@ public:
         return typeid(Value);
     }
 
-    uint8_t* reserve(int32_t column, int32_t data_size, int32_t values)
-    {
-        MMA1_THROW(UnsupportedOperationException());
-    }
-
-    uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, uint64_t* nulls_bitmap) {
-        MMA1_THROW(UnsupportedOperationException());
-    }
-
-    uint8_t* enlarge(int32_t column, int32_t required) final
+    uint8_t* ensure(int32_t column, int32_t required) final
     {
         auto& col = columns_[column];
 
@@ -110,33 +101,34 @@ public:
         return col.data_buffer;
     }
 
-    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths)
+    virtual uint8_t* reserve(int32_t column, int32_t size, int32_t* lengths)
     {
         auto& col = columns_[column];
 
-        int32_t last_data_size = col.data_size;
-
         int32_t offset0 = col.data_size;
 
-        if (MMA1_UNLIKELY(col.data_size + data_size > col.data_buffer_size)) {
-            enlarge(column, data_size);
-        }
-
-        col.size += values;
-        col.data_size += data_size;
-
-        for (int32_t c = 0; c < values; c++) {
+        for (int32_t c = 0; c < size; c++) {
             offsets_[column].push_back(offset0);
             offset0 += lengths[c];
         }
 
+        int32_t inserted_length = offset0 - col.data_size;
+
+        int32_t last_data_size = col.data_size;
+
+        if (MMA1_UNLIKELY(col.data_size + inserted_length > col.data_buffer_size)) {
+            ensure(column, inserted_length);
+        }
+
+        col.size += size;
+        col.data_size += inserted_length;
+
         return col.data_buffer + last_data_size;
     }
 
-    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths, uint64_t* nulls_bitmap) {
-        return reserve(column, data_size, values, lengths);
+    virtual uint8_t* reserve(int32_t column, int32_t values, int32_t* lengths, uint64_t* nulls_bitmap) {
+        return reserve(column, values, lengths);
     }
-
 
     void reset()
     {
@@ -153,13 +145,15 @@ public:
         return columns_[column].data_buffer + offsets_[column][idx];
     }
 
-    ArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const
+
+    VLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const
     {
         auto& col = columns_[column];
 
         int32_t offs = offsets_[column][idx];
-        return ArrayColumnMetadata{col.data_buffer + offs, col.data_size - offs, col.data_buffer_size - offs, col.size};
+        return VLenArrayColumnMetadata{col.data_buffer + offs, col.data_size - offs, col.data_buffer_size - offs, col.size};
     }
+
 
     virtual void reindex()
     {
@@ -167,11 +161,6 @@ public:
         {
             offsets_[column].push_back(columns_[column].data_size);
         }
-    }
-
-protected:
-    void init(void* ptr) {
-        MMA1_THROW(UnsupportedOperationException());
     }
 };
 

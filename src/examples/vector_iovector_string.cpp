@@ -62,7 +62,7 @@ public:
     {
         for (int c = 0; c < 1024; c++)
         {
-            U8String str = "loooooooooooooooong ooooooooooooo value_" + std::to_string(c);
+            U8String str = "loooooooooooooooong ooooooooooooooooooooooooooooooooooooooooo value_" + std::to_string(c);
 
             int32_t len = codec.length(str);
 
@@ -74,7 +74,7 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(0));
+        auto& s0 = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(buffer.substream(0));
 
         int32_t max_len = 128 * 1024;
         std::vector<int32_t> values;
@@ -94,7 +94,7 @@ public:
         }
 
         seq.append(0, values.size());
-        auto wrt_buffer = T2T<typename ValueCodec<Value>::BufferType*>(s0.reserve(0, total_len, sizes.size(), sizes.data()));
+        auto wrt_buffer = T2T<typename ValueCodec<Value>::BufferType*>(s0.reserve(0, sizes.size(), sizes.data()));
 
         size_t pos{};
         for (size_t c = 0; c < values.size(); c++)

@@ -50,8 +50,8 @@ public:
     virtual bool populate(io::IOVector& io_vectors)
     {
         io::IOSymbolSequence& seq = io_vectors.symbol_sequence();
-        auto& keys   = io::substream_cast<io::IOColumnwiseArraySubstream>(io_vectors.substream(0));
-        auto& values = io::substream_cast<io::IOColumnwiseArraySubstream>(io_vectors.substream(1));
+        auto& keys   = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(io_vectors.substream(0));
+        auto& values = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(io_vectors.substream(1));
 
         while (true)
         {
@@ -79,15 +79,15 @@ struct Boo {
     uint8_t mas[16];
 };
 
-io::IOColumnwiseArraySubstream* make_stream(int32_t capacity)
+io::IOColumnwiseFixedSizeArraySubstream* make_stream(int32_t capacity)
 {
-    return new io::IOColumnwiseArraySubstreamFixedSize<Boo, 1>(capacity);
+    return new io::IOColumnwiseFixedSizeArraySubstreamImpl<Boo, 1>(capacity);
 }
 
 int main(int argc, char** argv, char** envp)
 {
     try {
-        io::IOColumnwiseArraySubstream* stream = make_stream(1024*1024*1024);
+        io::IOColumnwiseFixedSizeArraySubstream* stream = make_stream(1024*1024*1024);
 
         int64_t t_start = getTimeInMillis();
 
@@ -95,7 +95,7 @@ int main(int argc, char** argv, char** envp)
 
         for (int c = 0; c < 1024*1024*1024/4/batch_size; c++)
         {
-            uint8_t* ptr = stream->reserve(0, sizeof(int32_t) * batch_size, batch_size);
+            uint8_t* ptr = stream->reserve(0, batch_size);
             for (int d = 0; d < batch_size * 4; d += 4) {
                 *T2T<uint32_t*>(ptr + d) = c + d;
             }

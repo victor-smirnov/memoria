@@ -20,8 +20,8 @@
 #include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
-#include <memoria/v1/core/iovector/io_substream_array_fixed_size_view.hpp>
+#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
+#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
 
 #include <type_traits>
 
@@ -104,8 +104,8 @@ public:
         const int32_t& local_pos() const {return idx_;}
     };
 
-    using GrowableIOSubstream = io::IOColumnwiseArraySubstreamFixedSize<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseArraySubstreamFixedSizeView<Value, Blocks>;
+    using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
 
 private:
@@ -593,7 +593,7 @@ public:
     {
         static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
 
-        io::IOColumnwiseArraySubstream& buffer = io::substream_cast<io::IOColumnwiseArraySubstream>(substream);
+        io::IOColumnwiseFixedSizeArraySubstream& buffer = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(substream);
 
         if(isFail(insertSpace(at, size))) {
             return OpStatus::FAIL;
@@ -614,14 +614,13 @@ public:
 
         auto& view = io::substream_cast<IOSubstreamView>(substream);
 
-        io::ArrayColumnMetadata columns[Blocks]{};
+        io::FixedSizeArrayColumnMetadata columns[Blocks]{};
 
         for (int32_t blk = 0; blk < Blocks; blk++)
         {
             columns[blk].data_buffer = T2T<uint8_t*>(this->values());
             columns[blk].size = this->size();
-            columns[blk].data_buffer_size = sizeof(Value) * columns[blk].size;
-            columns[blk].data_size = columns[blk].data_buffer_size;
+            columns[blk].capacity = columns[blk].size;
         }
 
         view.configure(columns);

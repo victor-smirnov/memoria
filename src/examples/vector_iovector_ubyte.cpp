@@ -56,12 +56,12 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(0));
+        auto& s0 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(buffer.substream(0));
 
         int32_t len = 128 * 1024;
 
         seq.append(0, len);
-        s0.reserve(0, sizeof(Value), len);
+        s0.reserve(0, len);
 
         total_ += len * sizeof(Value);
 

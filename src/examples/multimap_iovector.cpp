@@ -59,8 +59,8 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(1));
+        auto& s0 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(buffer.substream(0));
+        auto& s1 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(buffer.substream(1));
 
         for (int r = 0; r < 100; r++)
         {
@@ -70,7 +70,7 @@ public:
             total_ += sizeof(Key);
 
             seq.append(1, len);
-            s1.reserve(0, sizeof(Value), len);
+            s1.reserve(0, len);
 
             total_ += len * sizeof(Value);
 

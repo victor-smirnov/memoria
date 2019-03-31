@@ -25,8 +25,8 @@
 #include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/iobuffer/io_buffer.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_array_fixed_size.hpp>
-#include <memoria/v1/core/iovector/io_substream_array_fixed_size_view.hpp>
+#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
+#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -82,8 +82,8 @@ public:
     using PtrsT         = core::StaticVector<Value*, Blocks>;
     using ConstPtrsT    = core::StaticVector<const Value*, Blocks>;
 
-    using GrowableIOSubstream = io::IOColumnwiseArraySubstreamFixedSize<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseArraySubstreamFixedSizeView<Value, Blocks>;
+    using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
     class ReadState {
         ConstPtrsT values_;
@@ -715,7 +715,7 @@ public:
 
     OpStatus insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t inserted)
     {
-        io::IOColumnwiseArraySubstream& buffer = io::substream_cast<io::IOColumnwiseArraySubstream>(substream);
+        io::IOColumnwiseFixedSizeArraySubstream& buffer = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(substream);
 
         if (isFail(insertSpace(at, inserted))) {
             return OpStatus::FAIL;
@@ -734,14 +734,13 @@ public:
     {
         auto& view = io::substream_cast<IOSubstreamView>(substream);
 
-        io::ArrayColumnMetadata columns[Blocks]{};
+        io::FixedSizeArrayColumnMetadata columns[Blocks]{};
 
         for (int32_t blk = 0; blk < Blocks; blk++)
         {
             columns[blk].data_buffer = T2T<uint8_t*>(this->values(blk));
             columns[blk].size = this->size();
-            columns[blk].data_buffer_size = sizeof(Value) * columns[blk].size;
-            columns[blk].data_size = columns[blk].data_buffer_size;
+            columns[blk].capacity = columns[blk].size;
         }
 
         view.configure(columns);

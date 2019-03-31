@@ -96,11 +96,11 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(1));
+        auto& s0 = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(buffer.substream(0));
+        auto& s1 = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(buffer.substream(1));
 
-        auto key_buf   = s0.reserve(0, key_len_ * keys_lengths_.size(), keys_lengths_.size(), keys_lengths_.data());
-        auto value_buf = s1.reserve(0, value_len_ * values_lengths_.size(), values_lengths_.size(), values_lengths_.data());
+        auto key_buf   = s0.reserve(0, keys_lengths_.size(), keys_lengths_.data());
+        auto value_buf = s1.reserve(0, values_lengths_.size(), values_lengths_.data());
 
         seq.append(0, keys_lengths_.size());
 

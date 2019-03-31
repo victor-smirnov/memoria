@@ -20,8 +20,8 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_tools.hpp>
 #include <memoria/v1/core/packed/buffer/packed_vle_input_buffer_ro.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_array_vlen.hpp>
-#include <memoria/v1/core/iovector/io_substream_array_fixed_size_view.hpp>
+#include <memoria/v1/core/iovector/io_substream_col_array_vlen.hpp>
+#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
 
 
 namespace memoria {
@@ -120,8 +120,8 @@ public:
 
     using ReadState = SizesT;
 
-    using GrowableIOSubstream = io::IOColumnwiseArraySubstreamVlen<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseArraySubstreamFixedSizeView<Value, Blocks>;
+    using GrowableIOSubstream = io::IOColumnwiseVLenArraySubstreamImpl<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
     static int32_t estimate_block_size(int32_t tree_capacity, int32_t density_hi = 1000, int32_t density_lo = 333)
     {
@@ -783,7 +783,7 @@ public:
     {
         static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
 
-        io::IOColumnwiseArraySubstream& buffer = io::substream_cast<io::IOColumnwiseArraySubstream>(substream);
+        io::IOColumnwiseVLenArraySubstream& buffer = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(substream);
 
         auto buffer_values_start = T2T<const uint8_t*>(buffer.select(0, start));
         auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(0, start + size));

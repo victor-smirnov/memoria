@@ -65,8 +65,8 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IOColumnwiseArraySubstream>(buffer.substream(1));
+        auto& s0 = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(buffer.substream(0));
+        auto& s1 = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(buffer.substream(1));
 
         int32_t max_batch_size = 128 * 1024;
         int32_t batch_size{};
@@ -89,8 +89,8 @@ public:
                 values_data_size += values_lengths_[c];
             }
 
-            auto key_buf   = s0.reserve(0, keys_data_size, block_size, &keys_lengths_[idx_]);
-            auto value_buf = s1.reserve(0, values_data_size, block_size, &values_lengths_[idx_]);
+            auto key_buf   = s0.reserve(0, block_size, &keys_lengths_[idx_]);
+            auto value_buf = s1.reserve(0, block_size, &values_lengths_[idx_]);
 
             size_t key_pos{};
             size_t value_pos{};

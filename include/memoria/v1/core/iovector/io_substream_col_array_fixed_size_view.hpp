@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/iovector/io_substream_array_base.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_fixed_size_base.hpp>
 
 #include <memoria/v1/core/types/type2type.hpp>
 
@@ -35,22 +35,19 @@ namespace io {
 
 
 template <typename Value, int32_t Columns>
-class IOColumnwiseArraySubstreamVlenView: public IOColumnwiseArraySubstream {
-    ArrayColumnMetadata columns_[Columns]{};
+class IOColumnwiseFixedSizeArraySubstreamViewImpl: public IOColumnwiseFixedSizeArraySubstream {
+    FixedSizeArrayColumnMetadata columns_[Columns]{};
 
 public:
-    IOColumnwiseArraySubstreamVlenView(): IOColumnwiseArraySubstreamVlenView(64)
-    {}
-
-    IOColumnwiseArraySubstreamVlenView(int32_t initial_capacity)
+    IOColumnwiseFixedSizeArraySubstreamViewImpl()
     {
 
     }
 
-    virtual ~IOColumnwiseArraySubstreamVlenView() noexcept {}
+    virtual ~IOColumnwiseFixedSizeArraySubstreamViewImpl() noexcept {}
 
 
-    void configure(ArrayColumnMetadata* columns) noexcept
+    void configure(FixedSizeArrayColumnMetadata* columns) noexcept
     {
         for (int32_t c = 0; c < Columns; c++)
         {
@@ -58,7 +55,7 @@ public:
         }
     }
 
-    ArrayColumnMetadata describe(int32_t column) const
+    FixedSizeArrayColumnMetadata describe(int32_t column) const
     {
         return columns_[column];
     }
@@ -73,25 +70,17 @@ public:
         return typeid(Value);
     }
 
-    uint8_t* reserve(int32_t column, int32_t data_size, int32_t values)
+    uint8_t* reserve(int32_t column, int32_t values)
     {
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, uint64_t* nulls_bitmap) {
+    uint8_t* reserve(int32_t column, int32_t values, uint64_t* nulls_bitmap) {
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    uint8_t* enlarge(int32_t column, int32_t required) final
+    uint8_t* ensure(int32_t column, int32_t required) final
     {
-        MMA1_THROW(UnsupportedOperationException());
-    }
-
-    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths) {
-        MMA1_THROW(UnsupportedOperationException());
-    }
-
-    virtual uint8_t* reserve(int32_t column, int32_t data_size, int32_t values, int32_t* lengths, uint64_t* nulls_bitmap) {
         MMA1_THROW(UnsupportedOperationException());
     }
 
@@ -105,20 +94,7 @@ public:
         return columns_[column].data_buffer + idx * sizeof(Value);
     }
 
-    ArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const
-    {
-        auto& col = columns_[column];
-
-        int32_t offs = idx * sizeof(Value);
-        return ArrayColumnMetadata{col.data_buffer + offs, col.data_size - offs, col.data_buffer_size - offs, col.size};
-    }
-
     virtual void reindex() {}
-
-protected:
-    void init(void* ptr) {
-        MMA1_THROW(UnsupportedOperationException());
-    }
 };
 
 

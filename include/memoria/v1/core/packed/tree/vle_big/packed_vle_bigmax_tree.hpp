@@ -23,8 +23,8 @@
 #include <memoria/v1/core/strings/string_codec.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_array_vlen.hpp>
-#include <memoria/v1/core/iovector/io_substream_array_vlen_view.hpp>
+#include <memoria/v1/core/iovector/io_substream_col_array_vlen.hpp>
+#include <memoria/v1/core/iovector/io_substream_col_array_vlen_view.hpp>
 
 #ifdef HAVE_BOOST
 #include <memoria/v1/core/bignum/cppint_codec.hpp>
@@ -127,8 +127,8 @@ public:
     using PtrsT         = core::StaticVector<ValueData*, Blocks>;
     using ConstPtrsT    = core::StaticVector<const ValueData*, Blocks>;
 
-    using GrowableIOSubstream = io::IOColumnwiseArraySubstreamVlen<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseArraySubstreamVlenView<Value, Blocks>;
+    using GrowableIOSubstream = io::IOColumnwiseVLenArraySubstreamImpl<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseVLenArraySubstreamViewImpl<Value, Blocks>;
 
     class ReadState {
         ConstPtrsT values_;
@@ -818,7 +818,7 @@ public:
     {
         static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
 
-        io::IOColumnwiseArraySubstream& buffer = io::substream_cast<io::IOColumnwiseArraySubstream>(substream);
+        io::IOColumnwiseVLenArraySubstream& buffer = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(substream);
 
         auto buffer_values_start = T2T<const uint8_t*>(buffer.select(0, start));
         auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(0, start + size));
