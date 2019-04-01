@@ -139,7 +139,7 @@ public:
         }
 
         self.local_pos()  = walker.local_pos();
-        self.leaf() = walker.leaf();
+        self.leaf().assign(walker.leaf());
 
         if (self.leaf()->id() != start_id)
         {
@@ -243,7 +243,7 @@ public:
         }
 
         self.local_pos()  = walker->local_pos();
-        self.leaf() = walker->leaf();
+        self.leaf().assign(walker->leaf());
 
         CtrSizeT total = walker->totals();
 

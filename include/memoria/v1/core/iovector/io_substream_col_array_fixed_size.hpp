@@ -34,8 +34,8 @@ namespace v1 {
 namespace io {
 
 template <typename Value, int32_t Columns>
-class IOColumnwiseFixedSizeArraySubstreamImpl: public IOColumnwiseFixedSizeArraySubstream {
-    FixedSizeArrayColumnMetadata columns_[Columns]{};
+class IOColumnwiseFixedSizeArraySubstreamImpl final: public IOColumnwiseFixedSizeArraySubstream<Value> {
+    FixedSizeArrayColumnMetadata<Value> columns_[Columns]{};
 
 public:
     IOColumnwiseFixedSizeArraySubstreamImpl(): IOColumnwiseFixedSizeArraySubstreamImpl(64)
@@ -45,7 +45,7 @@ public:
     {
         for (int32_t c = 0; c < Columns; c++)
         {
-            columns_[c].data_buffer  = allocate_system<uint8_t>(initial_capacity * sizeof(Value)).release();
+            columns_[c].data_buffer  = allocate_system<Value>(initial_capacity).release();
             columns_[c].size         = 0;
             columns_[c].capacity     = initial_capacity;
         }
@@ -59,7 +59,7 @@ public:
         }
     }
 
-    FixedSizeArrayColumnMetadata describe(int32_t column) const
+    FixedSizeArrayColumnMetadata<Value> describe(int32_t column) const
     {
         return columns_[column];
     }
@@ -69,16 +69,12 @@ public:
         return Columns;
     }
 
-    const std::type_info& content_type() const
-    {
-        return typeid(Value);
-    }
 
-    uint8_t* reserve(int32_t column, int32_t size)
+    Value* reserve(int32_t column, int32_t size)
     {
         auto& col = columns_[column];
 
-        int32_t head = col.size * sizeof(Value);
+        int32_t head = col.size;
 
         if (MMA1_UNLIKELY(col.capacity + size > col.capacity)) {
             ensure(column, size);
@@ -89,11 +85,11 @@ public:
         return col.data_buffer + head;
     }
 
-    uint8_t* reserve(int32_t column, int32_t values, uint64_t* nulls_bitmap) {
+    Value* reserve(int32_t column, int32_t values, uint64_t* nulls_bitmap) {
         return reserve(column, values);
     }
 
-    uint8_t* ensure(int32_t column, int32_t capacity) final
+    Value* ensure(int32_t column, int32_t capacity)
     {
         auto& col = columns_[column];
 
@@ -106,7 +102,7 @@ public:
                 target_capacity *= 2;
             }
 
-            uint8_t* new_data_buffer = allocate_system<uint8_t>(target_capacity * sizeof(Value)).release();
+            Value* new_data_buffer = allocate_system<Value>(target_capacity).release();
             std::memcpy(new_data_buffer, col.data_buffer, col.size * sizeof(Value));
 
             free_system(col.data_buffer);
@@ -127,10 +123,25 @@ public:
         }
     }
 
-    uint8_t* select(int32_t column, int32_t idx) const
+    Value* select(int32_t column, int32_t idx) const
     {
-        return columns_[column].data_buffer + idx * sizeof(Value);
+        return columns_[column].data_buffer + idx;
     }
+
+    void append(int32_t column, const Value& value)
+    {
+        auto& col = columns_[column];
+
+        if (MMA1_UNLIKELY(col.free_space() == 0))
+        {
+            ensure(column, 1);
+        }
+
+        col.data_buffer[col.size] = value;
+        col.size++;
+    }
+
+
 
     virtual void reindex() {}
 };

@@ -80,7 +80,7 @@ protected:
             {
                 self.mergeLeafNodes(prev, iter.leaf(), [&](const Position& sizes){
                     iter.local_pos() += sizes[0];
-                    iter.leaf() = prev;
+                    iter.leaf().assign(prev);
                 });
             }
         }

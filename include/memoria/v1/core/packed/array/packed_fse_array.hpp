@@ -20,8 +20,8 @@
 #include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
+#include <memoria/v1/core/iovector/io_substream_row_array_fixed_size.hpp>
+#include <memoria/v1/core/iovector/io_substream_row_array_fixed_size_view.hpp>
 
 #include <type_traits>
 
@@ -104,8 +104,8 @@ public:
         const int32_t& local_pos() const {return idx_;}
     };
 
-    using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
+    using GrowableIOSubstream = io::IORowwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
+    using IOSubstreamView     = io::IORowwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
 
 private:
@@ -591,15 +591,14 @@ public:
 
     OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
     {
-        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
-
-        io::IOColumnwiseFixedSizeArraySubstream& buffer = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(substream);
+        io::IORowwiseFixedSizeArraySubstream<Value>& buffer
+                = io::substream_cast<io::IORowwiseFixedSizeArraySubstream<Value>>(substream);
 
         if(isFail(insertSpace(at, size))) {
             return OpStatus::FAIL;
         }
 
-        auto buffer_values = T2T<const Value*>(buffer.select(0, start));
+        auto buffer_values = T2T<const Value*>(buffer.select(start));
 
         int32_t end = start + size;
 
@@ -609,28 +608,15 @@ public:
     }
 
     void configure_io_substream(io::IOSubstream& substream)
-    {
-        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
-
+    {        
         auto& view = io::substream_cast<IOSubstreamView>(substream);
-
-        io::FixedSizeArrayColumnMetadata columns[Blocks]{};
-
-        for (int32_t blk = 0; blk < Blocks; blk++)
-        {
-            columns[blk].data_buffer = T2T<uint8_t*>(this->values());
-            columns[blk].size = this->size();
-            columns[blk].capacity = columns[blk].size;
-        }
-
-        view.configure(columns);
+        view.configure(this->values(), this->size());
     }
 
-    ReadState positions(int32_t idx) const {
+    ReadState positions(int32_t idx) const
+    {
         ReadState state;
-
         state.local_pos() = idx;
-
         return state;
     }
 

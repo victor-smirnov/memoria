@@ -20,8 +20,8 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_tools.hpp>
 #include <memoria/v1/core/packed/buffer/packed_vle_input_buffer_ro.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_col_array_vlen.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
+#include <memoria/v1/core/iovector/io_substream_row_array_vlen.hpp>
+#include <memoria/v1/core/iovector/io_substream_row_array_vlen_view.hpp>
 
 
 namespace memoria {
@@ -120,8 +120,8 @@ public:
 
     using ReadState = SizesT;
 
-    using GrowableIOSubstream = io::IOColumnwiseVLenArraySubstreamImpl<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
+    using GrowableIOSubstream = io::IORowwiseVLenArraySubstreamImpl<Value, Blocks>;
+    using IOSubstreamView     = io::IORowwiseVLenArraySubstreamViewImpl<MyType>;
 
     static int32_t estimate_block_size(int32_t tree_capacity, int32_t density_hi = 1000, int32_t density_lo = 333)
     {
@@ -265,17 +265,7 @@ public:
         return this->metadata()->size() / Blocks;
     }
 
-//    SizesT data_size_v() const
-//    {
-//      SizesT sizes;
-//
-//      for (int32_t block = 0; block < Blocks; block++)
-//      {
-//          sizes[block] = this->data_size(block);
-//      }
-//
-//      return sizes;
-//    }
+
 
     static int32_t elements_for(int32_t block_size)
     {
@@ -321,6 +311,53 @@ public:
 
         return value;
     }
+
+
+    const ValueData* row_ptr(int32_t row_idx) const
+    {
+        int32_t size = this->size();
+
+        MEMORIA_V1_ASSERT(row_idx, >=, 0);
+        MEMORIA_V1_ASSERT(row_idx, <, size);
+
+        int32_t data_size     = this->data_size();
+        auto values           = this->values();
+        TreeLayout layout     = this->compute_tree_layout(data_size);
+
+        int32_t global_idx    = row_idx * Blocks;
+        if (global_idx < this->size())
+        {
+            int32_t start_pos = this->locate(layout, values, 0, global_idx, data_size).idx;
+            return this->values() + start_pos;
+        }
+        else {
+            return this->values() + data_size;
+        }
+    }
+
+
+    ValueData* row_ptr(int32_t row_idx)
+    {
+        int32_t size = this->size();
+
+        MEMORIA_V1_ASSERT(row_idx, >=, 0);
+        MEMORIA_V1_ASSERT(row_idx, <, size);
+
+        int32_t data_size     = this->data_size();
+        auto values           = this->values();
+        TreeLayout layout     = this->compute_tree_layout(data_size);
+
+        int32_t global_idx    = row_idx * Blocks;
+        if (global_idx < this->size())
+        {
+            int32_t start_pos = this->locate(layout, values, 0, global_idx, data_size).idx;
+            return this->values() + start_pos;
+        }
+        else {
+            return this->values() + data_size;
+        }
+    }
+
 
     static int32_t empty_size()
     {
@@ -670,7 +707,7 @@ public:
         TreeLayout layout = compute_tree_layout(data_size);
 
         auto values          = this->values();
-        int32_t global_idx       = idx * Blocks;
+        int32_t global_idx   = idx * Blocks;
         size_t insertion_pos = this->locate(layout, values, 0, global_idx, data_size).idx;
 
         size_t total_length = 0;
@@ -710,8 +747,6 @@ public:
 
         return reindex();
     }
-
-
 
     ReadState positions(int32_t idx) const
     {
@@ -780,13 +815,12 @@ public:
 
 
     OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
-    {
-        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
+    {        
+        io::IORowwiseVLenArraySubstream<Value>& buffer
+                = io::substream_cast<io::IORowwiseVLenArraySubstream<Value>>(substream);
 
-        io::IOColumnwiseVLenArraySubstream& buffer = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(substream);
-
-        auto buffer_values_start = T2T<const uint8_t*>(buffer.select(0, start));
-        auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(0, start + size));
+        auto buffer_values_start = T2T<const uint8_t*>(buffer.select(start));
+        auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(start + size));
 
         ptrdiff_t total_length   = buffer_values_end - buffer_values_start;
 
@@ -820,7 +854,10 @@ public:
 
     void configure_io_substream(io::IOSubstream& substream)
     {
-        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
+        IOSubstreamView& view
+                = io::substream_cast<IOSubstreamView>(substream);
+
+        view.configure(this);
     }
 
 

@@ -25,6 +25,8 @@
 
 #include <memoria/v1/profiles/common/common.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -215,6 +217,11 @@ public:
     void dump_path();
     void dump_header();
     void check(std::ostream& out, const char* source);
+
+    int32_t local_pos() const;
+
+    io::IOVector& iovector_view();
+    const io::IOVector& iovector_view() const;
 
     const PairPtr& pair() const;
     PairPtr& pair();

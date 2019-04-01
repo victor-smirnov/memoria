@@ -67,7 +67,7 @@ public:
 
         	self.local_pos() = end[StructureStreamIdx];
 
-        	self.leaf() = ii->leaf();
+            self.leaf().assign(ii->leaf());
 
         	self.refresh();
         }
@@ -94,7 +94,7 @@ public:
 
         	self.local_pos() = end[StructureStreamIdx];
 
-        	self.leaf() = ii->leaf();
+            self.leaf().assign(ii->leaf());
 
         	self.refresh();
         }

@@ -1,4 +1,4 @@
-// Copyright 2016 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(buffer.substream(0));
+        auto& s0 = io::checked_substream_cast<io::IORowwiseVLenArraySubstream<Value>>(buffer.substream(0));
 
         int32_t max_len = 128 * 1024;
         std::vector<int32_t> values;
@@ -94,7 +94,7 @@ public:
         }
 
         seq.append(0, values.size());
-        auto wrt_buffer = T2T<typename ValueCodec<Value>::BufferType*>(s0.reserve(0, sizes.size(), sizes.data()));
+        auto wrt_buffer = T2T<typename ValueCodec<Value>::BufferType*>(s0.reserve(sizes.size(), sizes.data()));
 
         size_t pos{};
         for (size_t c = 0; c < values.size(); c++)
@@ -133,7 +133,7 @@ int main()
         // Finish snapshot so no other updates are possible.
         snp.commit();
 
-        alloc.store("vector_stream_data_iovec_strng.dump");
+        //alloc.store("vector_stream_data_iovec_strng.dump");
     }
     catch (MemoriaThrowable& ex)
     {

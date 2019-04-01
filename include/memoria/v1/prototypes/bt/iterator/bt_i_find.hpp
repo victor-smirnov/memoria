@@ -53,7 +53,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         auto result = self.ctr().find_fw(node_chain, walker);
 
-        self.leaf() = result.node;
+        self.leaf().assign(result.node);
         self.local_pos()  = result.idx;
 
         walker.finish(self, result.idx, result.cmd);
@@ -72,7 +72,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         auto result = self.ctr().find_bw(node_chain, walker);
 
-        self.leaf() = result.node;
+        self.leaf().assign(result.node);
         self.local_pos()  = result.idx;
 
         walker.finish(self, result.idx, result.cmd);

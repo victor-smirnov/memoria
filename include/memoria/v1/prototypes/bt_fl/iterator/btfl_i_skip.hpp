@@ -60,20 +60,20 @@ public:
     {
         auto& self = this->self();
 
-        return self.leaf().isSet() ? self.local_pos() >= self.leaf_size(StructureStreamIdx) : true;
+        return self.leaf().node().isSet() ? self.local_pos() >= self.leaf_size(StructureStreamIdx) : true;
     }
 
     bool is_end() const
     {
         auto& self = this->self();
-        return self.leaf().isSet() ? self.local_pos() >= self.leaf_size(StructureStreamIdx) : true;
+        return self.leaf().node().isSet() ? self.local_pos() >= self.leaf_size(StructureStreamIdx) : true;
     }
 
     bool isEnd(int32_t idx) const
     {
         auto& self = this->self();
 
-        return self.leaf().isSet() ? idx >= self.leaf_size(StructureStreamIdx) : true;
+        return self.leaf().node().isSet() ? idx >= self.leaf_size(StructureStreamIdx) : true;
     }
 
     bool isContent() const
@@ -86,7 +86,7 @@ public:
     {
         auto& self = this->self();
 
-        bool is_set = self.leaf().isSet();
+        bool is_set = self.leaf().node().isSet();
 
         auto leaf_size = self.leaf_size(StructureStreamIdx);
 
@@ -101,7 +101,7 @@ public:
     bool isEmpty() const
     {
         auto& self = this->self();
-        return self.leaf().isEmpty() || self.leaf_size(StructureStreamIdx) == 0;
+        return self.leaf().node().isEmpty() || self.leaf_size(StructureStreamIdx) == 0;
     }
 
     bool isNotEmpty() const

@@ -1,4 +1,4 @@
-// Copyright 2016 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -65,8 +65,8 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(buffer.substream(1));
+        auto& s0 = io::checked_substream_cast<io::IOColumnwiseVLenArraySubstream<Key>>(buffer.substream(0));
+        auto& s1 = io::checked_substream_cast<io::IORowwiseVLenArraySubstream<Value>>(buffer.substream(1));
 
         int32_t max_batch_size = 128 * 1024;
         int32_t batch_size{};
@@ -90,7 +90,7 @@ public:
             }
 
             auto key_buf   = s0.reserve(0, block_size, &keys_lengths_[idx_]);
-            auto value_buf = s1.reserve(0, block_size, &values_lengths_[idx_]);
+            auto value_buf = s1.reserve(block_size, &values_lengths_[idx_]);
 
             size_t key_pos{};
             size_t value_pos{};
@@ -134,7 +134,7 @@ int main()
         std::vector<int32_t> keys_lengths;
         std::vector<int32_t> values_lengths;
 
-        size_t total_data_size = 1024 * 1024 * 1024;
+        size_t total_data_size = 1024 * 1024;
         size_t size{};
 
         ValueCodec<U8String> codec;
@@ -167,10 +167,25 @@ int main()
         
         std::cout << "Creation time: " << (t1 - t0) <<", size = " << ctr.size() << std::endl;
 
+        auto ii = ctr.begin();
+
+        while (!ii.is_end())
+        {
+            auto& ss0 = io::substream_cast<io::IOColumnwiseVLenArraySubstream<Key>>(ii.iovector_view().substream(0));
+
+            const auto* key_ptr = ss0.select(0, ii.local_pos());
+            U8String key;
+            codec.decode(key_ptr, key, 0);
+
+            std::cout << "key = " << key << std::endl;
+
+            ii.next();
+        }
+
         // Finish snapshot so no other updates are possible.
         snp.commit();
 
-        alloc.store("map_ss_iovec.dump");
+        //alloc.store("map_ss_iovec.dump");
     }
     catch (MemoriaThrowable& ex)
     {

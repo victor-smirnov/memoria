@@ -20,6 +20,8 @@
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
 #include <memoria/v1/core/tools/hash.hpp>
 
 #include <iostream>
@@ -45,10 +47,13 @@ public:
             typename Base::Container
     >;
 
+    using IOVectorViewT = typename Types::LeafNode::IOVectorViewT;
 
 private:
 
     NodeBaseG           leaf_;
+
+    IOVectorViewT       iovector_view_;
 
     int32_t             idx_;
     int32_t             stream_;
@@ -88,6 +93,8 @@ public:
         stream_     = other.stream_;
         cache_      = other.cache_;
 
+        refresh_iovector_view();
+
         Base::assign(std::move(other));
     }
 
@@ -99,6 +106,8 @@ public:
 
         cache_      = other.cache_;
 
+        refresh_iovector_view();
+
         Base::assign(other);
     }
 
@@ -109,12 +118,12 @@ public:
 
     bool isEqual(const ThisType& other) const
     {
-        return leaf() == other.leaf() && idx_ == other.idx_ && Base::isEqual(other);
+        return leaf().node() == other.leaf().node() && idx_ == other.idx_ && Base::isEqual(other);
     }
 
     bool isNotEqual(const ThisType& other) const
     {
-        return leaf() != other.leaf() || idx_ != other.idx_ || Base::isNotEqual(other);
+        return leaf().node() != other.leaf().node() || idx_ != other.idx_ || Base::isNotEqual(other);
     }
 
 
@@ -138,15 +147,69 @@ public:
         return idx_;
     }
 
+    class NodeAccessor {
+        NodeBaseG& node_;
 
-    NodeBaseG& leaf()
+        MyType& iter_;
+
+    public:
+        NodeAccessor(NodeBaseG& node, MyType& iter): node_(node), iter_(iter) {}
+
+        operator NodeBaseG&() {return node_;}
+
+        void assign(NodeBaseG node)
+        {
+            node_ = node;
+            iter_.refresh_iovector_view();
+        }
+
+        NodeBaseG& node() {
+            return node_;
+        }
+
+        auto operator->() {
+            return node_.operator->();
+        }
+    };
+
+
+    class ConstNodeAccessor {
+        const NodeBaseG& node_;
+    public:
+        ConstNodeAccessor(const NodeBaseG& node): node_(node) {}
+        operator const NodeBaseG&() const {return node_;}
+
+        const auto operator->() const {
+            return node_.operator->();
+        }
+
+        const NodeBaseG& node() const {
+            return node_;
+        }
+    };
+
+    NodeAccessor leaf()
     {
-        return leaf_;
+        return NodeAccessor(leaf_, self());
     }
 
-    const NodeBaseG& leaf() const
+    ConstNodeAccessor leaf() const
     {
-        return leaf_;
+        return ConstNodeAccessor(leaf_);
+    }
+
+    io::IOVector& iovector_view() {
+        return iovector_view_;
+    }
+
+    const io::IOVector& iovector_view() const {
+        return iovector_view_;
+    }
+
+    MEMORIA_V1_DECLARE_NODE_FN(RefreshIOVectorViewFn, configure_iovector_view);
+    void refresh_iovector_view()
+    {
+        Types::Blocks::LeafDispatcher::dispatch(leaf_, RefreshIOVectorViewFn(), *&iovector_view_);
     }
 
 
@@ -168,19 +231,19 @@ public:
     {
         auto& self = this->self();
 
-        return leaf().isSet() ? local_pos() >= self.leaf_size() : true;
+        return leaf().node().isSet() ? local_pos() >= self.leaf_size() : true;
     }
 
     bool is_end() const
     {
         auto& self = this->self();
-        return leaf().isSet() ? local_pos() >= self.leaf_size() : true;
+        return leaf().node().isSet() ? local_pos() >= self.leaf_size() : true;
     }
 
     bool isEnd(int32_t idx) const
     {
         auto& self = this->self();
-        return leaf().isSet() ? idx >= self.leaf_size() : true;
+        return leaf().node().isSet() ? idx >= self.leaf_size() : true;
     }
 
     bool isContent() const
@@ -193,7 +256,7 @@ public:
     {
         auto& self = this->self();
 
-        bool is_set = self.leaf().isSet();
+        bool is_set = self.leaf().node().isSet();
 
         auto leaf_size = self.leaf_size();
 
@@ -208,7 +271,7 @@ public:
     bool isEmpty() const
     {
         auto& self = this->self();
-        return leaf().isEmpty() || self.leaf_size() == 0;
+        return (leaf().node().isEmpty()) || (self.leaf_size() == 0);
     }
 
     bool isNotEmpty() const
@@ -271,7 +334,7 @@ public:
     {
         self().dumpCache(out);
         self().dumpKeys(out);
-        if (self().leaf().isSet()) {
+        if (self().leaf().node().isSet()) {
             std::cout << "Node ID: " << self().leaf()->id() << std::endl;
         }
     }

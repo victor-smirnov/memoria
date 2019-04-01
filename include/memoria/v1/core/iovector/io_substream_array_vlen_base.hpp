@@ -24,23 +24,22 @@ namespace v1 {
 namespace io {
 
 
-
-struct IORowwiseVLenArraySubstreamBase: IOSubstream {
+template<typename Value>
+struct IORowwiseVLenArraySubstream: IOSubstream {
     virtual int32_t columns() const                     = 0;
-    virtual const std::type_info& content_type() const  = 0;
-    virtual uint8_t* select(int32_t idx) const          = 0;
 
-    virtual uint8_t* reserve(int32_t rows)              = 0;
-    virtual uint8_t* reserve(int32_t rows, uint64_t* nulls_bitmap) = 0;
+    virtual uint8_t* select(int32_t row) const          = 0;
 
     virtual uint8_t* reserve(int32_t rows, int32_t* lengths) = 0;
     virtual uint8_t* reserve(int32_t rows, int32_t* lengths, uint64_t* nulls_bitmap) = 0;
 
     virtual uint8_t* ensure(int32_t capacity) = 0;
+
+    virtual const std::type_info& substream_type() const {
+        return typeid(IORowwiseVLenArraySubstream<Value>);
+    }
 };
 
-
-using IORowwiseFixedSizeArraySubstream = IORowwiseFixedSizeArraySubstreamBase;
 
 
 struct VLenArrayColumnMetadata {
@@ -50,12 +49,14 @@ struct VLenArrayColumnMetadata {
     int32_t size;
 };
 
-
-struct IOColumnwiseVLenArraySubstreamBase: IOSubstream {
+template <typename Value>
+struct IOColumnwiseVLenArraySubstream: IOSubstream {
     virtual VLenArrayColumnMetadata describe(int32_t column) const  = 0;
     virtual int32_t columns() const                             = 0;
 
-    virtual const std::type_info& content_type() const          = 0;
+    virtual const std::type_info& content_type() const {
+        return typeid(Value);
+    }
 
     virtual uint8_t* select(int32_t column, int32_t idx) const  = 0;
     virtual VLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const  = 0;
@@ -64,9 +65,15 @@ struct IOColumnwiseVLenArraySubstreamBase: IOSubstream {
     virtual uint8_t* reserve(int32_t column, int32_t size, int32_t* lengths, uint64_t* nulls_bitmap) = 0;
 
     virtual uint8_t* ensure(int32_t column, int32_t capacity) = 0;
+
+
+    virtual const std::type_info& substream_type() const
+    {
+        return typeid(IOColumnwiseVLenArraySubstream<Value>);
+    }
 };
 
-
+/*
 class IOColumnwiseVLenArraySubstreamUnalignedNative: public IOColumnwiseVLenArraySubstreamBase {
 
 public:
@@ -142,7 +149,7 @@ const T& access(const IOColumnwiseVLenArraySubstreamUnalignedNative* stream, int
 {
     return stream->template access<T>(column, pos);
 }
-
+*/
 
 
 

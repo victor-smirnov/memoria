@@ -1,4 +1,4 @@
-// Copyright 2016 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -96,17 +96,16 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(buffer.substream(1));
+        auto& s0 = io::checked_substream_cast<io::IOColumnwiseVLenArraySubstream<Key>>(buffer.substream(0));
+        auto& s1 = io::checked_substream_cast<io::IORowwiseVLenArraySubstream<Value>>(buffer.substream(1));
 
         auto key_buf   = s0.reserve(0, keys_lengths_.size(), keys_lengths_.data());
-        auto value_buf = s1.reserve(0, values_lengths_.size(), values_lengths_.data());
+        auto value_buf = s1.reserve(values_lengths_.size(), values_lengths_.data());
 
         seq.append(0, keys_lengths_.size());
 
         size_t key_pos{};
         size_t value_pos{};
-
 
         for (size_t c = 0; c < keys_lengths_.size(); c++, key_pos += key_len_, value_pos += value_len_)
         {
@@ -145,7 +144,7 @@ int main()
         int64_t t0 = getTimeInMillis();
 
         ctr.begin().insert(provider);
-        
+
         auto t1 = getTimeInMillis();
         
         std::cout << "Creation time: " << (t1 - t0) <<", size = " << ctr.size() << std::endl;
@@ -153,7 +152,7 @@ int main()
         // Finish snapshot so no other updates are possible.
         snp.commit();
 
-        alloc.store("map_ss_iovec_lw.dump");
+        //alloc.store("map_ss_iovec_lw.dump");
     }
     catch (MemoriaThrowable& ex)
     {

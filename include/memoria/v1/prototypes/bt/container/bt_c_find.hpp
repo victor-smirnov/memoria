@@ -414,7 +414,7 @@ typename M_TYPE::IteratorPtr M_TYPE::find_(Walker&& walker)
 
         LeafDispatcher::dispatch(node, walker, WalkCmd::LAST_LEAF, 0, result.local_pos());
 
-        i->leaf() = node;
+        i->leaf().assign(node);
 
         walker.finish(*i.get(), result.local_pos(), WalkCmd::LAST_LEAF);
     }

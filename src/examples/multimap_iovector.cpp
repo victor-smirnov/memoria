@@ -1,4 +1,4 @@
-// Copyright 2016 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -59,8 +59,8 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(buffer.substream(1));
+        auto& s0 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Key>>(buffer.substream(0));
+        auto& s1 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(buffer.substream(1));
 
         for (int r = 0; r < 100; r++)
         {
@@ -115,7 +115,7 @@ int main()
         // Finish snapshot so no other updates are possible.
         snp.commit();
 
-        alloc.store("multimap_stream_data_iovec.dump");
+        //alloc.store("multimap_stream_data_iovec.dump");
     }
     catch (MemoriaThrowable& ex)
     {

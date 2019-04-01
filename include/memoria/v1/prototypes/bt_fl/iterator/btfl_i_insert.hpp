@@ -116,7 +116,7 @@ public:
     SplitResult split(int32_t stream, int32_t target_stream_idx)
     {
         auto& self  = this->self();
-        auto& leaf  = self.leaf();
+        auto leaf   = self.leaf();
         
         int32_t structure_size = self.structure_size();
 
@@ -131,7 +131,7 @@ public:
 
             if (structure_idx > structure_split_idx)
             {
-                leaf = right;
+                leaf.assign(right);
                 structure_idx -= structure_split_idx;
 
                 self.refresh();

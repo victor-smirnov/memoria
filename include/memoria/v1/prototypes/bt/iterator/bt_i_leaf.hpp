@@ -55,7 +55,7 @@ public:
 
             walker.prepare(self);
 
-            self.leaf() = next_leaf;
+            self.leaf().assign(next_leaf);
 
             LeafDispatcher::dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0);
 
@@ -64,7 +64,7 @@ public:
             return true;
         }
         else {
-            self.leaf() = current_leaf;
+            self.leaf().assign(current_leaf);
             return false;
         }
     }
@@ -83,7 +83,7 @@ public:
 
             walker.prepare(self);
 
-            self.leaf() = prev_leaf;
+            self.leaf().assign(prev_leaf);
 
             LeafDispatcher::dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
 
@@ -92,7 +92,7 @@ public:
             return true;
         }
         else {
-            self.leaf() = current_leaf;
+            self.leaf().assign(current_leaf);
             return false;
         }
     }

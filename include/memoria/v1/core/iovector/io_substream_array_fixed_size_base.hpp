@@ -23,121 +23,55 @@ namespace memoria {
 namespace v1 {
 namespace io {
 
+template <typename Value>
+struct IORowwiseFixedSizeArraySubstream: IOSubstream {
+    virtual int32_t columns() const                   = 0;
+    virtual Value* select(int32_t idx) const          = 0;
 
-struct IORowwiseFixedSizeArraySubstreamBase: IOSubstream {
-    virtual int32_t columns() const                     = 0;
-    virtual const std::type_info& content_type() const  = 0;
-    virtual uint8_t* select(int32_t idx) const          = 0;
+    virtual Value* reserve(int32_t rows)              = 0;
+    virtual Value* reserve(int32_t rows, uint64_t* nulls_bitmap) = 0;
 
-    virtual uint8_t* reserve(int32_t rows)              = 0;
-    virtual uint8_t* reserve(int32_t rows, uint64_t* nulls_bitmap) = 0;
-
-    virtual uint8_t* ensure(int32_t capacity) = 0;
-};
-
-
-using IORowwiseFixedSizeArraySubstream = IORowwiseFixedSizeArraySubstreamBase;
-
-
-struct FixedSizeArrayColumnMetadata {
-    uint8_t* data_buffer;
-    int32_t capacity;
-    int32_t size;
-};
-
-
-struct IOColumnwiseFixedSizeArraySubstreamBase: IOSubstream {
-    virtual FixedSizeArrayColumnMetadata describe(int32_t column) const  = 0;
-    virtual int32_t columns() const                             = 0;
-
-    virtual const std::type_info& content_type() const          = 0;
-
-    virtual uint8_t* select(int32_t column, int32_t idx) const  = 0;
-
-    virtual uint8_t* reserve(int32_t column, int32_t size) = 0;
-    virtual uint8_t* reserve(int32_t column, int32_t size, uint64_t* nulls_bitmap) = 0;
-
-    virtual uint8_t* ensure(int32_t column, int32_t capacity) = 0;
-};
-
-class IOColumnwiseFixedSizeArraySubstreamUnalignedNative: public IOColumnwiseFixedSizeArraySubstreamBase {
-
-public:
-    IOColumnwiseFixedSizeArraySubstreamUnalignedNative(){}
-
-    template <typename T>
-    void set(int32_t column, int32_t pos, T&& value)
-    {
-        this->template access<T>(column, pos) = value;
-    }
-
-
-    template <typename T>
-    T& access(int32_t column, int32_t pos)
-    {
-        static_assert(IsPackedStructV<T>, "Requested value's type must satify IsPackedStructV<>");
-
-        auto addr = select(column, pos);
-
-        //range_check(descr, pos, sizeof(T));
-
-        return *T2T<T*>(addr);
-    }
-
-    template <typename T>
-    const T& access(int32_t column, int32_t pos) const
-    {
-        static_assert(IsPackedStructV<T>, "Requested value's type must satify IsPackedStructV<>");
-
-        auto addr = select(column, pos);
-
-        //range_check(descr, pos, sizeof(T));
-
-        return *T2T<const T*>(addr);
-    }
-
-    template <typename T>
-    void append(int column, const T& value)
-    {
-        static_assert(IsPackedStructV<T>, "Requested value's type must satify IsPackedStructV<>");
-
-        uint8_t* data_buffer = reserve(column, 1);
-
-        *T2T<T*>(data_buffer) = value;
-    }
+    virtual Value* ensure(int32_t capacity) = 0;
 
     virtual const std::type_info& substream_type() const
     {
-        return typeid(IOColumnwiseFixedSizeArraySubstreamUnalignedNative);
+        return typeid(IORowwiseFixedSizeArraySubstream<Value>);
     }
-
-protected:
-//    void range_check(const FixedSizeArrayColumnMetadata& descr, int32_t pos, int32_t value_size) const
-//    {
-//        if (MMA1_UNLIKELY(value_size > descr.data_buffer_size))
-//        {
-//            MMA1_THROW(BoundsException()) << fmt::format_ex(u"IOColumnwiseArraySubstreamUnalignedNative range check: pos={}, value size={}", pos, value_size);
-//        }
-//    }
 };
 
 
 
-using IOColumnwiseFixedSizeArraySubstream = IOColumnwiseFixedSizeArraySubstreamUnalignedNative;
 
+template<typename Value>
+struct FixedSizeArrayColumnMetadata {
+    Value* data_buffer;
+    int32_t capacity;
+    int32_t size;
 
-template <typename T>
-T& access(IOColumnwiseFixedSizeArraySubstreamUnalignedNative* stream, int32_t column, int32_t pos)
-{
-    return stream->template access<T>(column, pos);
-}
+    int32_t free_space() const {
+        return capacity - size;
+    }
+};
 
-template <typename T>
-const T& access(const IOColumnwiseFixedSizeArraySubstreamUnalignedNative* stream, int32_t column, int32_t pos)
-{
-    return stream->template access<T>(column, pos);
-}
+template <typename Value>
+struct IOColumnwiseFixedSizeArraySubstream: IOSubstream {
 
+    virtual FixedSizeArrayColumnMetadata<Value> describe(int32_t column) const  = 0;
+    virtual int32_t columns() const                             = 0;
+
+    virtual Value* select(int32_t column, int32_t idx) const    = 0;
+
+    virtual Value* reserve(int32_t column, int32_t size) = 0;
+    virtual Value* reserve(int32_t column, int32_t size, uint64_t* nulls_bitmap) = 0;
+
+    virtual Value* ensure(int32_t column, int32_t capacity) = 0;
+
+    virtual void append(int32_t column, const Value& value) = 0;
+
+    virtual const std::type_info& substream_type() const {
+        return typeid(IOColumnwiseFixedSizeArraySubstream<Value>);
+    }
+};
 
 
 

@@ -50,8 +50,8 @@ public:
     virtual bool populate(io::IOVector& io_vectors)
     {
         io::IOSymbolSequence& seq = io_vectors.symbol_sequence();
-        auto& keys   = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(io_vectors.substream(0));
-        auto& values = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(io_vectors.substream(1));
+        auto& keys   = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Key>>(io_vectors.substream(0));
+        auto& values = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(io_vectors.substream(1));
 
         while (true)
         {
@@ -79,31 +79,32 @@ struct Boo {
     uint8_t mas[16];
 };
 
-io::IOColumnwiseFixedSizeArraySubstream* make_stream(int32_t capacity)
+template <typename Value>
+io::IOColumnwiseFixedSizeArraySubstream<Value>* make_stream(int32_t capacity)
 {
-    return new io::IOColumnwiseFixedSizeArraySubstreamImpl<Boo, 1>(capacity);
+    return new io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, 1>(capacity);
 }
 
 int main(int argc, char** argv, char** envp)
 {
     try {
-        io::IOColumnwiseFixedSizeArraySubstream* stream = make_stream(1024*1024*1024);
+//        auto* stream = make_stream<Boo>(1024*1024*1024);
 
-        int64_t t_start = getTimeInMillis();
+//        int64_t t_start = getTimeInMillis();
 
-        int32_t batch_size = 64;
+//        int32_t batch_size = 64;
 
-        for (int c = 0; c < 1024*1024*1024/4/batch_size; c++)
-        {
-            uint8_t* ptr = stream->reserve(0, batch_size);
-            for (int d = 0; d < batch_size * 4; d += 4) {
-                *T2T<uint32_t*>(ptr + d) = c + d;
-            }
-        }
+//        for (int c = 0; c < 1024*1024*1024/4/batch_size; c++)
+//        {
+//            Boo* ptr = stream->reserve(0, batch_size);
+//            for (int d = 0; d < batch_size * 4; d += 4) {
+//                *T2T<uint32_t*>(ptr + d) = c + d;
+//            }
+//        }
 
-        int64_t t_end = getTimeInMillis();
+//        int64_t t_end = getTimeInMillis();
 
-        std::cout << fmt::format(u"Time: {} ms :: {}", t_end - t_start, 0) << std::endl;
+//        std::cout << fmt::format(u"Time: {} ms :: {}", t_end - t_start, 0) << std::endl;
 
 
 //        auto alloc = ThreadInMemAllocator<>::create();

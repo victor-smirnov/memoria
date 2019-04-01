@@ -170,7 +170,7 @@ int main()
         // Finish snapshot so no other updates are possible.
         snp.commit();
 
-        alloc.store("multimap_stream_data_iobuf.dump");
+        //alloc.store("multimap_stream_data_iobuf.dump");
     }
     catch (MemoriaThrowable& ex)
     {

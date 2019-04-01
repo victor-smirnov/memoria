@@ -217,6 +217,8 @@ public:
     static constexpr int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
     static constexpr int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
 
+    using IOVectorT     = typename _::IOVectorsTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
+    using IOVectorViewT = typename _::IOVectorViewTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
 
     //FIXME: Use SubDispatcher
     LeafNode() = default;
@@ -262,14 +264,14 @@ public:
 
     static std::unique_ptr<io::IOVector> create_iovector()
     {
-        using IOVectorT = typename _::IOVectorsTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
+        //using IOVectorT = typename _::IOVectorsTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
         return std::make_unique<IOVectorT>();
     }
 
     std::unique_ptr<io::IOVector> create_iovector_view()
     {
-        using IOVectorT = typename _::IOVectorViewTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
-        auto iov = std::make_unique<IOVectorT>();
+
+        auto iov = std::make_unique<IOVectorViewT>();
 
         configure_iovector_view(*iov.get());
 

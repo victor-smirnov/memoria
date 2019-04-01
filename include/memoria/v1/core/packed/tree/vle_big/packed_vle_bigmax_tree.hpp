@@ -105,8 +105,8 @@ public:
         int32_t& size(){return size_;}
         const int32_t& size() const {return size_;}
 
-        int32_t& data_size() {return data_size_;}
-        const int32_t& data_size() const {return data_size_;}
+        int32_t& data_size(int32_t block = 0) {return data_size_;}
+        const int32_t& data_size(int32_t block = 0) const {return data_size_;}
     };
 
     using FieldsList = MergeLists<>;
@@ -128,7 +128,7 @@ public:
     using ConstPtrsT    = core::StaticVector<const ValueData*, Blocks>;
 
     using GrowableIOSubstream = io::IOColumnwiseVLenArraySubstreamImpl<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseVLenArraySubstreamViewImpl<Value, Blocks>;
+    using IOSubstreamView     = io::IOColumnwiseVLenArraySubstreamViewImpl<MyType>;
 
     class ReadState {
         ConstPtrsT values_;
@@ -246,14 +246,10 @@ public:
         return this->value(index, idx);
     }
 
-
-
     Value value(int32_t block, int32_t idx) const
     {
         return value(idx);
     }
-
-
 
     Value value(int32_t idx) const
     {
@@ -277,21 +273,51 @@ public:
         return value;
     }
 
+    const ValueData* value_ptr(int32_t block, int32_t idx) const
+    {
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <, this->size());
 
-//    int64_t setValue(int32_t block, int32_t idx, Value value)
-//    {
-//      if (value != 0)
-//      {
-//          Value val = this->value(block, idx);
-//          this->value(block, idx) = value;
-//
-//          return val - value;
-//      }
-//      else {
-//          return 0;
-//      }
-//    }
-//
+        auto meta         = this->metadata();
+
+        int32_t data_size = meta->data_size();
+        auto values       = this->values();
+        TreeLayout layout = compute_tree_layout(data_size);
+
+        int32_t start_pos = locate(layout, values, idx).idx;
+
+        if (idx < this->size())
+        {
+            return values + start_pos;
+        }
+        else {
+            return values + data_size;
+        }
+    }
+
+    ValueData* value_ptr(int32_t block, int32_t idx)
+    {
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <, this->size());
+
+        auto meta         = this->metadata();
+
+        int32_t data_size = meta->data_size();
+        auto values       = this->values();
+        TreeLayout layout = compute_tree_layout(data_size);
+
+        int32_t start_pos = locate(layout, values, idx).idx;
+
+        if (idx < this->size())
+        {
+            return values + start_pos;
+        }
+        else {
+            return values + data_size;
+        }
+    }
+
+
 
 
     template <typename T>
@@ -299,7 +325,6 @@ public:
     {
         return update_values(idx, [&](int32_t block, const auto& old_value) -> const auto& {return values[block];});
     }
-
 
 
     static int32_t empty_size()
@@ -313,7 +338,6 @@ public:
 
         int32_t segments_length = values_length + offsets_length + sizes_length;
 
-
         return PackedAllocator::block_size(
                 metadata_length +
                 segments_length,
@@ -324,21 +348,6 @@ public:
 
 
 
-
-
-//    bool check_capacity(int32_t size) const
-//    {
-//      MEMORIA_V1_ASSERT_TRUE(size >= 0);
-//
-//      auto alloc = this->allocator();
-//
-//      int32_t total_size          = this->size() + size;
-//      int32_t total_block_size    = MyType::block_size(total_size);
-//      int32_t my_block_size       = alloc->element_size(this);
-//      int32_t delta               = total_block_size - my_block_size;
-//
-//      return alloc->free_space() >= delta;
-//    }
 
 
     // ================================ Container API =========================================== //
@@ -818,7 +827,7 @@ public:
     {
         static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
 
-        io::IOColumnwiseVLenArraySubstream& buffer = io::substream_cast<io::IOColumnwiseVLenArraySubstream>(substream);
+        io::IOColumnwiseVLenArraySubstream<Value>& buffer = io::substream_cast<io::IOColumnwiseVLenArraySubstream<Value>>(substream);
 
         auto buffer_values_start = T2T<const uint8_t*>(buffer.select(0, start));
         auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(0, start + size));
@@ -848,6 +857,10 @@ public:
 
     void configure_io_substream(io::IOSubstream& substream)
     {
+        IOSubstreamView& view
+                = io::substream_cast<IOSubstreamView>(substream);
+
+        view.configure(this);
     }
 
 
@@ -1534,13 +1547,15 @@ protected:
         return this->template get<OffsetsType>(OFFSETS);
     }
 
-    ValueData* values() {
+public:
+    ValueData* values(int block = 0) {
         return this->template get<ValueData>(VALUES);
     }
-    const ValueData* values() const {
+    const ValueData* values(int block = 0) const {
         return this->template get<ValueData>(VALUES);
     }
 
+protected:
     static constexpr int32_t number_of_offsets(int32_t values)
     {
         return values > 0 ? divUpV(values) : 1;

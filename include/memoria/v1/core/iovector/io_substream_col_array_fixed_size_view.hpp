@@ -35,8 +35,8 @@ namespace io {
 
 
 template <typename Value, int32_t Columns>
-class IOColumnwiseFixedSizeArraySubstreamViewImpl: public IOColumnwiseFixedSizeArraySubstream {
-    FixedSizeArrayColumnMetadata columns_[Columns]{};
+class IOColumnwiseFixedSizeArraySubstreamViewImpl final: public IOColumnwiseFixedSizeArraySubstream<Value> {
+    FixedSizeArrayColumnMetadata<Value> columns_[Columns]{};
 
 public:
     IOColumnwiseFixedSizeArraySubstreamViewImpl()
@@ -47,7 +47,7 @@ public:
     virtual ~IOColumnwiseFixedSizeArraySubstreamViewImpl() noexcept {}
 
 
-    void configure(FixedSizeArrayColumnMetadata* columns) noexcept
+    void configure(FixedSizeArrayColumnMetadata<Value>* columns) noexcept
     {
         for (int32_t c = 0; c < Columns; c++)
         {
@@ -55,7 +55,7 @@ public:
         }
     }
 
-    FixedSizeArrayColumnMetadata describe(int32_t column) const
+    FixedSizeArrayColumnMetadata<Value> describe(int32_t column) const
     {
         return columns_[column];
     }
@@ -65,21 +65,21 @@ public:
         return Columns;
     }
 
-    const std::type_info& content_type() const
-    {
-        return typeid(Value);
+    void append(int32_t column, const Value& value) {
+        MMA1_THROW(UnsupportedOperationException());
     }
 
-    uint8_t* reserve(int32_t column, int32_t values)
+
+    Value* reserve(int32_t column, int32_t values)
     {
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    uint8_t* reserve(int32_t column, int32_t values, uint64_t* nulls_bitmap) {
+    Value* reserve(int32_t column, int32_t values, uint64_t* nulls_bitmap) {
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    uint8_t* ensure(int32_t column, int32_t required) final
+    Value* ensure(int32_t column, int32_t required) final
     {
         MMA1_THROW(UnsupportedOperationException());
     }
@@ -89,9 +89,9 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    uint8_t* select(int32_t column, int32_t idx) const
+    Value* select(int32_t column, int32_t idx) const
     {
-        return columns_[column].data_buffer + idx * sizeof(Value);
+        return columns_[column].data_buffer + idx;
     }
 
     virtual void reindex() {}

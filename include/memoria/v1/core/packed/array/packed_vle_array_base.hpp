@@ -58,14 +58,11 @@ class PkdVLEArrayBase: public PkdVLEArrayBaseBase<kBranchingFactor, kValuesPerBr
 public:
     static constexpr uint32_t VERSION = 1;
 
-    using Value         = ValueT;
-
-
     using typename Base::Metadata;
     using typename Base::TreeLayout;
 
+    using Value         = ValueT;
     using OffsetsType   = uint64_t;
-
     using Codec         = CodecT<Value>;
 
     using ValueData = typename Codec::BufferType;
@@ -83,7 +80,6 @@ public:
 
     static constexpr int32_t SegmentsPerBlock = 3;
 
-
     static constexpr int32_t BITS_PER_OFFSET        = Codec::BitsPerOffset;
     static constexpr int32_t BITS_PER_DATA_VALUE    = Codec::ElementSize;
 
@@ -97,7 +93,6 @@ public:
     using Base::SIZE_INDEX;
 
     using typename Base::LocateResult;
-
 
     struct InitFn {
         int32_t blocks_;
@@ -145,8 +140,6 @@ public:
     static constexpr int32_t index2_segment_size(int32_t index_size) {
         return PackedAllocatable::roundUpBytesToAlignmentBlocks(index_size * sizeof(int));
     }
-
-
 
     OpStatus init_tl(int32_t data_block_size, int32_t blocks)
     {

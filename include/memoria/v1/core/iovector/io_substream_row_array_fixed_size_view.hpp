@@ -34,26 +34,17 @@ namespace v1 {
 namespace io {
 
 template <typename Value, int32_t Columns>
-class IORowwiseFixedSizeArraySubstreamImpl final: public IORowwiseFixedSizeArraySubstream<Value> {
+class IORowwiseFixedSizeArraySubstreamViewImpl: public IORowwiseFixedSizeArraySubstream<Value> {
 
     Value* data_buffer_{};
     int32_t size_{};
-    int32_t capacity_{};
 
 public:
-    IORowwiseFixedSizeArraySubstreamImpl(): IORowwiseFixedSizeArraySubstreamImpl(64)
+    IORowwiseFixedSizeArraySubstreamViewImpl()
     {}
 
-    IORowwiseFixedSizeArraySubstreamImpl(int32_t initial_capacity)
+    virtual ~IORowwiseFixedSizeArraySubstreamViewImpl() noexcept
     {
-        data_buffer_  = allocate_system<Value>(initial_capacity * Columns).release();
-        size_         = 0;
-        capacity_     = initial_capacity;
-    }
-
-    virtual ~IORowwiseFixedSizeArraySubstreamImpl() noexcept
-    {
-        free_system(data_buffer_);
     }
 
     int32_t columns() const
@@ -63,44 +54,17 @@ public:
 
     Value* reserve(int32_t rows)
     {
-        int32_t head = size_ * Columns;
-
-        if (MMA1_UNLIKELY(size_ + rows > capacity_)) {
-            ensure(rows);
-        }
-
-        size_ += rows;
-
-        return data_buffer_ + head;
+        MMA1_THROW(UnsupportedOperationException());
     }
 
     Value* reserve(int32_t rows, uint64_t* nulls_bitmap) {
-        return reserve(rows);
+        MMA1_THROW(UnsupportedOperationException());
     }
 
     Value* ensure(int32_t capacity) final
     {
-        if (size_ + capacity > capacity_)
-        {
-            int32_t target_capacity = capacity_;
-
-            while (size_ + capacity > target_capacity)
-            {
-                target_capacity *= 2;
-            }
-
-            Value* new_data_buffer = allocate_system<Value>(target_capacity).release();
-            std::memcpy(new_data_buffer, data_buffer_, size_ * sizeof(Value) * Columns);
-
-            free_system(data_buffer_);
-
-            data_buffer_ = new_data_buffer;
-            capacity_    = target_capacity;
-        }
-
-        return data_buffer_;
+        MMA1_THROW(UnsupportedOperationException());
     }
-
 
     void reset()
     {
@@ -113,6 +77,12 @@ public:
     }
 
     virtual void reindex() {}
+
+    void configure(Value* buffer, int32_t size)
+    {
+        data_buffer_ = buffer;
+        size_        = size;
+    }
 };
 
 

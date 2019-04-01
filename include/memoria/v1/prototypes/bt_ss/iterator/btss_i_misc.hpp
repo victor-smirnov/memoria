@@ -132,10 +132,10 @@ public:
 
         to.skipFw(size);
 
-        auto& from_path     = self.leaf();
+        auto from_path      = self.leaf();
         Position from_pos   = Position(self.local_pos());
 
-        auto& to_path       = to.leaf();
+        auto to_path        = to.leaf();
         Position to_pos     = Position(to.local_pos());
 
         Position sizes;

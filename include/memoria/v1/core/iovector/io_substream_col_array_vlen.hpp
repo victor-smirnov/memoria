@@ -34,7 +34,7 @@ namespace v1 {
 namespace io {
 
 template <typename Value, int32_t Columns>
-class IOColumnwiseVLenArraySubstreamImpl: public IOColumnwiseVLenArraySubstream {
+class IOColumnwiseVLenArraySubstreamImpl: public IOColumnwiseVLenArraySubstream<Value> {
     VLenArrayColumnMetadata columns_[Columns]{};
     std::vector<int32_t> offsets_[Columns]{};
 

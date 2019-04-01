@@ -946,7 +946,7 @@ public:
 
     OpStatus insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t inserted)
     {
-        io::IOColumnwiseFixedSizeArraySubstream& buffer = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream>(substream);
+        io::IOColumnwiseFixedSizeArraySubstream<Value>& buffer = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(substream);
 
         if (isFail(insertSpace(at, inserted))) {
             return OpStatus::FAIL;
@@ -954,7 +954,7 @@ public:
 
         for (int32_t block = 0; block < Blocks; block++)
         {
-            auto buffer_values = T2T<const Value*>(buffer.select(block, start));
+            auto buffer_values = buffer.select(block, start);
             CopyBuffer(buffer_values, this->values(block) + at, inserted);
         }
 
@@ -965,11 +965,11 @@ public:
     {
         auto& view = io::substream_cast<IOSubstreamView>(substream);
 
-        io::FixedSizeArrayColumnMetadata columns[Blocks]{};
+        io::FixedSizeArrayColumnMetadata<Value> columns[Blocks]{};
 
         for (int32_t blk = 0; blk < Blocks; blk++)
         {
-            columns[blk].data_buffer = T2T<uint8_t*>(this->values(blk));
+            columns[blk].data_buffer = this->values(blk);
             columns[blk].size = this->size();
             columns[blk].capacity = columns[blk].size;
         }

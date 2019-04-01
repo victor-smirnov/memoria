@@ -99,7 +99,7 @@ public:
 
         auto result = self.insert_provided_data(iter.leaf(), pos, provider);
 
-        iter.leaf() = result.leaf();
+        iter.leaf().assign(result.leaf());
         iter.local_pos() = result.position()[0];
 
         if (id != iter.leaf()->id())
@@ -127,7 +127,7 @@ public:
         auto result = self.insert_provided_data(iter.leaf(), pos, streaming);
 
         iter.local_pos()  = result.position().sum();
-        iter.leaf() = result.leaf();
+        iter.leaf().assign(result.leaf());
 
         if (iter.leaf()->id() != id) {
             iter.refresh();
