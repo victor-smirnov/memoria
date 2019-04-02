@@ -31,23 +31,26 @@ struct IOSymbolSequence: IOSubstream {
     virtual int32_t alphabet_size() const           = 0;
     virtual bool is_const() const                   = 0;
 
-    virtual int32_t symbol(int32_t idx) const       = 0;
-    virtual int32_t size() const                    = 0;
-    virtual void* buffer() const                    = 0;
+
+    virtual int32_t symbol(uint64_t idx) const      = 0;
+    virtual uint64_t size() const                   = 0;
+    virtual const void* buffer() const              = 0;
+    virtual void* buffer()                          = 0;
+
     virtual void reindex()                          = 0;
     virtual void dump(std::ostream& out) const      = 0;
 
-    virtual void rank_to(int32_t idx, int32_t* values) const  = 0;
-    virtual void append(int32_t symbol, int32_t length)       = 0;
-    virtual const std::type_info& sequence_type() const       = 0;
+    virtual void rank_to(uint64_t idx, uint64_t* values) const  = 0;
+    virtual void append(int32_t symbol, uint64_t length)        = 0;
 
-    virtual void reset() = 0;
 
+    virtual const std::type_info& sequence_type() const         = 0;
     virtual const std::type_info& substream_type() const {
         return typeid(IOSymbolSequence);
     }
 
-    virtual void configure(void* ptr) = 0;
+    virtual void reset()                            = 0;
+    virtual void configure(void* ptr)               = 0;
 };
 
 

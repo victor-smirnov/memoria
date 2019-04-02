@@ -49,8 +49,8 @@ public:
     using NodePair  = std::pair<NodeBaseG, NodeBaseG>;
 
 protected:
-    int32_t start_ = 0;
-    int32_t size_ = 0;
+    uint64_t start_ = 0;
+    uint64_t size_ = 0;
     bool finished_ = false;
 
     CtrT& ctr_;

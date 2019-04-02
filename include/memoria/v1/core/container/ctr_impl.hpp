@@ -341,11 +341,6 @@ CtrApi<CtrName, Profile> IterApiBase<CtrName, Profile>::ctr()
     return static_pointer_cast<CtrT>(pimpl_->ctr_ptr());
 }
 
-template <typename CtrName, typename Profile>
-io::IOVector& IterApiBase<CtrName, Profile>::iovector_view()
-{
-    return this->pimpl_->iovector_view();
-}
 
 template <typename CtrName, typename Profile>
 const io::IOVector& IterApiBase<CtrName, Profile>::iovector_view() const

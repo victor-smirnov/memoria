@@ -59,26 +59,30 @@ public:
         return true;
     }
 
-    virtual int32_t symbol(int32_t idx) const {
+    virtual int32_t symbol(uint64_t idx) const {
         return sequence_->symbol(idx);
     }
 
-    virtual int32_t size() const {
+    virtual uint64_t size() const {
         return sequence_->size();
     }
 
-    virtual void* buffer() const {
+    virtual const void* buffer() const {
         return sequence_;
     }
 
-    virtual void rank_to(int32_t idx, int32_t* values) const
+    virtual void* buffer() {
+        return sequence_;
+    }
+
+    virtual void rank_to(uint64_t idx, uint64_t* values) const
     {
         for (int32_t sym = 0; sym < AlphabetSize; sym++) {
             values[sym] = sequence_->rank(idx, sym);
         }
     }
 
-    virtual void append(int32_t symbol, int32_t length)
+    virtual void append(int32_t symbol, uint64_t length)
     {
         MMA1_THROW(RuntimeException()) << WhatCInfo("Appending is not supported for PackedRLESymbolSequenceView");
     }

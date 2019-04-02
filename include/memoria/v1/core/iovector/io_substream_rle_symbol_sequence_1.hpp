@@ -35,7 +35,7 @@ class PackedRLESymbolSequence;
 template <>
 class PackedRLESymbolSequence<1>: public IOSymbolSequence {
 
-    int32_t size_{};
+    uint64_t size_{};
 
 public:
     PackedRLESymbolSequence()
@@ -58,11 +58,11 @@ public:
         return false;
     }
 
-    virtual int32_t symbol(int32_t idx) const {
+    virtual int32_t symbol(uint64_t idx) const {
         return 0;
     }
 
-    virtual int32_t size() const {
+    virtual uint64_t size() const {
         return size_;
     }
 
@@ -70,12 +70,16 @@ public:
         return nullptr;
     }
 
-    virtual void rank_to(int32_t idx, int32_t* values) const
+    virtual void* buffer() {
+        return nullptr;
+    }
+
+    virtual void rank_to(uint64_t idx, uint64_t* values) const
     {
         values[0] = idx;
     }
 
-    virtual void append(int32_t symbol, int32_t length)
+    virtual void append(int32_t symbol, uint64_t length)
     {
         size_ += length;
     }

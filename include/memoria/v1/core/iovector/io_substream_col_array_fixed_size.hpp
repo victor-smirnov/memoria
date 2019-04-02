@@ -59,9 +59,19 @@ public:
         }
     }
 
-    FixedSizeArrayColumnMetadata<Value> describe(int32_t column) const
+    FixedSizeArrayColumnMetadata<Value> describe(int32_t column)
     {
         return columns_[column];
+    }
+
+    FixedSizeArrayColumnMetadata<const Value> describe(int32_t column) const
+    {
+        auto& col = columns_[column];
+        return FixedSizeArrayColumnMetadata<const Value>{
+            col.data_buffer,
+            col.capacity,
+            col.size
+        };
     }
 
     int32_t columns() const
@@ -123,7 +133,12 @@ public:
         }
     }
 
-    Value* select(int32_t column, int32_t idx) const
+    const Value* select(int32_t column, int32_t idx) const
+    {
+        return columns_[column].data_buffer + idx;
+    }
+
+    Value* select(int32_t column, int32_t idx)
     {
         return columns_[column].data_buffer + idx;
     }
@@ -140,8 +155,6 @@ public:
         col.data_buffer[col.size] = value;
         col.size++;
     }
-
-
 
     virtual void reindex() {}
 };

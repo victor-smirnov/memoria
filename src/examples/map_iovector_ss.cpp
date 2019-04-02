@@ -33,6 +33,8 @@
 #include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/ticker.hpp>
 
+#include <memoria/v1/core/tools/type_name.hpp>
+
 #include <string>
 #include <algorithm>
 #include <map>
@@ -143,8 +145,8 @@ int main()
         while (size < total_data_size)
         {
             U8String tmp = std::to_string(idx++);
-            U8String key   = U8String("loooooooooooooooooooooooooooooooooooooooooooooo000ong key: ") + tmp;
-            U8String value = U8String("loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo0ooong value: ") + tmp;
+            U8String key   = U8String("looooooooooooooooooooooo000ong key: ") + tmp;
+            U8String value = U8String("looooooooooooooooooooo0ooong value: ") + tmp;
 
             keys_lengths.push_back(codec.length(key));
             keys.push_back(std::move(key));
@@ -169,15 +171,21 @@ int main()
 
         auto ii = ctr.begin();
 
+        auto& ss0 = io::checked_substream_cast<io::IOColumnwiseVLenArraySubstream<Key>>(ii.iovector_view().substream(0));
+        auto& ss1 = io::checked_substream_cast<io::IORowwiseVLenArraySubstream<Key>>(ii.iovector_view().substream(1));
+
         while (!ii.is_end())
         {
-            auto& ss0 = io::substream_cast<io::IOColumnwiseVLenArraySubstream<Key>>(ii.iovector_view().substream(0));
+            auto* key_ptr = ss0.select(0, ii.local_pos());
 
-            const auto* key_ptr = ss0.select(0, ii.local_pos());
             U8String key;
             codec.decode(key_ptr, key, 0);
 
-            std::cout << "key = " << key << std::endl;
+            auto* value_ptr = ss1.select(ii.local_pos());
+            U8String value;
+            codec.decode(value_ptr, value, 0);
+
+            std::cout << "key = " << key << " :: value = "  << value << std::endl;
 
             ii.next();
         }

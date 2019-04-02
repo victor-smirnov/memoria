@@ -43,14 +43,14 @@ template <typename T>
 T& substream_cast(IOSubstream& ss)
 {
     static_assert(std::is_base_of<IOSubstream, T>::value, "");
-    return *T2T<T*>(&ss);
+    return *static_cast<T*>(&ss);
 }
 
 template <typename T>
 const T& substream_cast(const IOSubstream& ss)
 {
     static_assert(std::is_base_of<IOSubstream, T>::value, "");
-    return *T2T<const T*>(&ss);
+    return *static_cast<const T*>(&ss);
 }
 
 template <typename T>
@@ -58,7 +58,7 @@ T& checked_substream_cast(IOSubstream& ss)
 {
     static_assert(std::is_base_of<IOSubstream, T>::value, "");
     MEMORIA_V1_ASSERT_TRUE(ss.substream_type() == typeid(T));
-    return *T2T<T*>(&ss);
+    return *static_cast<T*>(&ss);
 }
 
 template <typename T>
@@ -66,7 +66,7 @@ const T& checked_substream_cast(const IOSubstream& ss)
 {
     static_assert(std::is_base_of<IOSubstream, T>::value, "");
     MEMORIA_V1_ASSERT_TRUE(ss.substream_type() == typeid(T));
-    return *T2T<const T*>(&ss);
+    return *static_cast<const T*>(&ss);
 }
 
 }}}

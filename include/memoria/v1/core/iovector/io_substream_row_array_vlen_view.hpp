@@ -65,11 +65,11 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    virtual uint8_t* reserve(int32_t size, int32_t* lengths) {
+    virtual uint8_t* reserve(int32_t size, const int32_t* lengths) {
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    virtual uint8_t* reserve(int32_t size, int32_t* lengths, uint64_t* nulls_bitmap) {
+    virtual uint8_t* reserve(int32_t size, const int32_t* lengths, const uint64_t* nulls_bitmap) {
         MMA1_THROW(UnsupportedOperationException());
     }
 
@@ -81,6 +81,11 @@ public:
     uint8_t* select(int32_t row) const
     {
         return array_->row_ptr(row);
+    }
+
+    uint8_t* select(int32_t row)
+    {
+        MMA1_THROW(UnsupportedOperationException());
     }
 
     virtual void reindex() {}

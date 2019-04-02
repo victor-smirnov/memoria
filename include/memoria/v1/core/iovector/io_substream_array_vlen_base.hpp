@@ -28,10 +28,11 @@ template<typename Value>
 struct IORowwiseVLenArraySubstream: IOSubstream {
     virtual int32_t columns() const                     = 0;
 
-    virtual uint8_t* select(int32_t row) const          = 0;
+    virtual const uint8_t* select(int32_t row) const    = 0;
+    virtual uint8_t* select(int32_t row)                = 0;
 
-    virtual uint8_t* reserve(int32_t rows, int32_t* lengths) = 0;
-    virtual uint8_t* reserve(int32_t rows, int32_t* lengths, uint64_t* nulls_bitmap) = 0;
+    virtual uint8_t* reserve(int32_t rows, const int32_t* lengths) = 0;
+    virtual uint8_t* reserve(int32_t rows, const int32_t* lengths, const uint64_t* nulls_bitmap) = 0;
 
     virtual uint8_t* ensure(int32_t capacity) = 0;
 
@@ -49,20 +50,28 @@ struct VLenArrayColumnMetadata {
     int32_t size;
 };
 
+struct ConstVLenArrayColumnMetadata {
+    const uint8_t* data_buffer;
+    int32_t data_size;
+    int32_t data_buffer_size;
+    int32_t size;
+};
+
 template <typename Value>
 struct IOColumnwiseVLenArraySubstream: IOSubstream {
-    virtual VLenArrayColumnMetadata describe(int32_t column) const  = 0;
-    virtual int32_t columns() const                             = 0;
+    virtual ConstVLenArrayColumnMetadata describe(int32_t column) const    = 0;
+    virtual VLenArrayColumnMetadata describe(int32_t column)               = 0;
 
-    virtual const std::type_info& content_type() const {
-        return typeid(Value);
-    }
 
-    virtual uint8_t* select(int32_t column, int32_t idx) const  = 0;
-    virtual VLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const  = 0;
+    virtual int32_t columns() const                                   = 0;
+    virtual const uint8_t* select(int32_t column, int32_t idx) const  = 0;
+    virtual uint8_t* select(int32_t column, int32_t idx)              = 0;
 
-    virtual uint8_t* reserve(int32_t column, int32_t size, int32_t* lengths) = 0;
-    virtual uint8_t* reserve(int32_t column, int32_t size, int32_t* lengths, uint64_t* nulls_bitmap) = 0;
+    virtual VLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx)              = 0;
+    virtual ConstVLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const   = 0;
+
+    virtual uint8_t* reserve(int32_t column, int32_t size, const int32_t* lengths) = 0;
+    virtual uint8_t* reserve(int32_t column, int32_t size, const int32_t* lengths, const uint64_t* nulls_bitmap) = 0;
 
     virtual uint8_t* ensure(int32_t column, int32_t capacity) = 0;
 
@@ -71,86 +80,10 @@ struct IOColumnwiseVLenArraySubstream: IOSubstream {
     {
         return typeid(IOColumnwiseVLenArraySubstream<Value>);
     }
-};
 
-/*
-class IOColumnwiseVLenArraySubstreamUnalignedNative: public IOColumnwiseVLenArraySubstreamBase {
-
-public:
-    IOColumnwiseVLenArraySubstreamUnalignedNative(){}
-
-    template <typename T>
-    void set(int32_t column, int32_t pos, T&& value)
-    {
-        this->template access<T>(column, pos) = value;
-    }
-
-
-    template <typename T>
-    T& access(int32_t column, int32_t pos)
-    {
-        static_assert(IsPackedStructV<T>, "Requested value's type must satify IsPackedStructV<>");
-
-        auto descr = select_and_describe(column, pos);
-
-        range_check(descr, pos, sizeof(T));
-
-        return *T2T<T*>(descr.data_buffer);
-    }
-
-    template <typename T>
-    const T& access(int32_t column, int32_t pos) const
-    {
-        static_assert(IsPackedStructV<T>, "Requested value's type must satify IsPackedStructV<>");
-
-        auto descr = select_and_describe(column, pos);
-
-        range_check(descr, pos, sizeof(T));
-
-        return *T2T<const T*>(descr.data_buffer);
-    }
-
-    template <typename T>
-    void append(int column, const T& value)
-    {
-        static_assert(IsPackedStructV<T>, "Requested value's type must satify IsPackedStructV<>");
-
-        uint8_t* data_buffer = ensure(column, sizeof(T));
-
-        *T2T<T*>(data_buffer) = value;
-    }
-
-    virtual const std::type_info& substream_type() const
-    {
-        return typeid(IOColumnwiseVLenArraySubstreamUnalignedNative);
-    }
-
-protected:
-    void range_check(const VLenArrayColumnMetadata& descr, int32_t pos, int32_t value_size) const
-    {
-        if (MMA1_UNLIKELY(value_size > descr.data_buffer_size))
-        {
-            MMA1_THROW(BoundsException()) << fmt::format_ex(u"IOColumnwiseArraySubstreamUnalignedNative range check: pos={}, value size={}", pos, value_size);
-        }
+    virtual const std::type_info& content_type() const {
+        return typeid(Value);
     }
 };
-
-
-using IOColumnwiseVLenArraySubstream = IOColumnwiseVLenArraySubstreamUnalignedNative;
-
-template <typename T>
-T& access(IOColumnwiseVLenArraySubstreamUnalignedNative* stream, int32_t column, int32_t pos)
-{
-    return stream->template access<T>(column, pos);
-}
-
-template <typename T>
-const T& access(const IOColumnwiseVLenArraySubstreamUnalignedNative* stream, int32_t column, int32_t pos)
-{
-    return stream->template access<T>(column, pos);
-}
-*/
-
-
 
 }}}

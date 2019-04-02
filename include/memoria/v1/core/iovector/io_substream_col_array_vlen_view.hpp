@@ -53,11 +53,22 @@ public:
         array_ = array;
     }
 
-    VLenArrayColumnMetadata describe(int32_t column) const
+    ConstVLenArrayColumnMetadata describe(int32_t column) const
     {
         auto meta = array_->metadata();
-        return VLenArrayColumnMetadata{array_->values(column), meta->data_size(column), meta->data_size(column), meta->size()};
+        return ConstVLenArrayColumnMetadata{
+            array_->values(column),
+            meta->data_size(column),
+            meta->data_size(column),
+            meta->size()
+        };
     }
+
+    VLenArrayColumnMetadata describe(int32_t column)
+    {
+        MMA1_THROW(UnsupportedOperationException());
+    }
+
 
     int32_t columns() const
     {
@@ -70,11 +81,11 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    virtual uint8_t* reserve(int32_t column, int32_t size, int32_t* lengths) {
+    virtual uint8_t* reserve(int32_t column, int32_t size, const int32_t* lengths) {
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    virtual uint8_t* reserve(int32_t column, int32_t size, int32_t* lengths, uint64_t* nulls_bitmap) {
+    virtual uint8_t* reserve(int32_t column, int32_t size, const int32_t* lengths, const uint64_t* nulls_bitmap) {
         MMA1_THROW(UnsupportedOperationException());
     }
 
@@ -83,16 +94,31 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    uint8_t* select(int32_t column, int32_t idx) const
+    const uint8_t* select(int32_t column, int32_t idx) const
     {
         return array_->value_ptr(column, idx);
     }
 
-    VLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const
+    uint8_t* select(int32_t column, int32_t idx)
+    {
+        MMA1_THROW(UnsupportedOperationException());
+    }
+
+    ConstVLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const
     {
         auto meta = array_->metadata();
         auto* value = array_->value_ptr(column, idx);
-        return VLenArrayColumnMetadata{value, meta->data_size(column), meta->data_size(column), meta->size()};
+        return ConstVLenArrayColumnMetadata{
+            value,
+            meta->data_size(column),
+            meta->data_size(column),
+            meta->size()
+        };
+    }
+
+    VLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx)
+    {
+        MMA1_THROW(UnsupportedOperationException());
     }
 
     virtual void reindex() {}

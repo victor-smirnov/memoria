@@ -71,9 +71,14 @@ public:
         size_ = 0;
     }
 
-    Value* select(int32_t row_idx) const
+    const Value* select(int32_t row_idx) const
     {
         return data_buffer_ + row_idx * Columns;
+    }
+
+    Value* select(int32_t row_idx)
+    {
+        MMA1_THROW(UnsupportedOperationException());
     }
 
     virtual void reindex() {}

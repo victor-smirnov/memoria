@@ -34,7 +34,7 @@ namespace v1 {
 namespace io {
 
 template <typename Value, int32_t Columns>
-class IOColumnwiseVLenArraySubstreamImpl: public IOColumnwiseVLenArraySubstream<Value> {
+class IOColumnwiseVLenArraySubstreamImpl final: public IOColumnwiseVLenArraySubstream<Value> {
     VLenArrayColumnMetadata columns_[Columns]{};
     std::vector<int32_t> offsets_[Columns]{};
 
@@ -61,7 +61,18 @@ public:
         }
     }
 
-    VLenArrayColumnMetadata describe(int32_t column) const
+    ConstVLenArrayColumnMetadata describe(int32_t column) const
+    {
+        auto& col = columns_[column];
+        return ConstVLenArrayColumnMetadata{
+            col.data_buffer,
+            col.data_size,
+            col.data_buffer_size,
+            col.size
+        };
+    }
+
+    VLenArrayColumnMetadata describe(int32_t column)
     {
         return columns_[column];
     }
@@ -101,7 +112,7 @@ public:
         return col.data_buffer;
     }
 
-    virtual uint8_t* reserve(int32_t column, int32_t size, int32_t* lengths)
+    virtual uint8_t* reserve(int32_t column, int32_t size, const int32_t* lengths)
     {
         auto& col = columns_[column];
 
@@ -126,7 +137,7 @@ public:
         return col.data_buffer + last_data_size;
     }
 
-    virtual uint8_t* reserve(int32_t column, int32_t values, int32_t* lengths, uint64_t* nulls_bitmap) {
+    virtual uint8_t* reserve(int32_t column, int32_t values, const int32_t* lengths, const uint64_t* nulls_bitmap) {
         return reserve(column, values, lengths);
     }
 
@@ -140,18 +151,31 @@ public:
         }
     }
 
-    uint8_t* select(int32_t column, int32_t idx) const
+    uint8_t* select(int32_t column, int32_t idx)
+    {
+        return columns_[column].data_buffer + offsets_[column][idx];
+    }
+
+    const uint8_t* select(int32_t column, int32_t idx) const
     {
         return columns_[column].data_buffer + offsets_[column][idx];
     }
 
 
-    VLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const
+    VLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx)
     {
         auto& col = columns_[column];
 
         int32_t offs = offsets_[column][idx];
         return VLenArrayColumnMetadata{col.data_buffer + offs, col.data_size - offs, col.data_buffer_size - offs, col.size};
+    }
+
+    ConstVLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const
+    {
+        auto& col = columns_[column];
+
+        int32_t offs = offsets_[column][idx];
+        return ConstVLenArrayColumnMetadata{col.data_buffer + offs, col.data_size - offs, col.data_buffer_size - offs, col.size};
     }
 
 

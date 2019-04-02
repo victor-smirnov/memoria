@@ -32,6 +32,8 @@ struct IOVector {
     virtual ~IOVector() noexcept {}
 
     virtual void reset() = 0;
+    virtual void reindex() = 0;
+
     virtual void add_substream(std::unique_ptr<IOSubstream>&& ptr) = 0;
     virtual IOSymbolSequence& symbol_sequence() = 0;
 
@@ -41,8 +43,6 @@ struct IOVector {
 
     virtual IOSubstream& substream(size_t num) = 0;
     virtual const IOSubstream& substream(size_t num) const = 0;
-
-    virtual void reindex() = 0;
 };
 
 

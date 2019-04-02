@@ -220,7 +220,6 @@ public:
 
     int32_t local_pos() const;
 
-    io::IOVector& iovector_view();
     const io::IOVector& iovector_view() const;
 
     const PairPtr& pair() const;

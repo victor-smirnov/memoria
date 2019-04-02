@@ -198,9 +198,6 @@ public:
         return ConstNodeAccessor(leaf_);
     }
 
-    io::IOVector& iovector_view() {
-        return iovector_view_;
-    }
 
     const io::IOVector& iovector_view() const {
         return iovector_view_;

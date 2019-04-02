@@ -87,7 +87,7 @@ public:
         return data_buffer_;
     }
 
-    virtual uint8_t* reserve(int32_t size, int32_t* lengths)
+    virtual uint8_t* reserve(int32_t size, const int32_t* lengths)
     {
         int32_t offset0 = data_size_;
 
@@ -110,7 +110,7 @@ public:
         return data_buffer_ + last_data_size;
     }
 
-    virtual uint8_t* reserve(int32_t values, int32_t* lengths, uint64_t* nulls_bitmap) {
+    virtual uint8_t* reserve(int32_t values, const int32_t* lengths, const uint64_t* nulls_bitmap) {
         return reserve(values, lengths);
     }
 
@@ -122,7 +122,12 @@ public:
         row_offsets_.clear();
     }
 
-    uint8_t* select(int32_t row) const
+    const uint8_t* select(int32_t row) const
+    {
+        return data_buffer_ + row_offsets_[row];
+    }
+
+    uint8_t* select(int32_t row)
     {
         return data_buffer_ + row_offsets_[row];
     }

@@ -26,7 +26,8 @@ namespace io {
 template <typename Value>
 struct IORowwiseFixedSizeArraySubstream: IOSubstream {
     virtual int32_t columns() const                   = 0;
-    virtual Value* select(int32_t idx) const          = 0;
+    virtual Value* select(int32_t idx)                = 0;
+    virtual const Value* select(int32_t idx) const    = 0;
 
     virtual Value* reserve(int32_t rows)              = 0;
     virtual Value* reserve(int32_t rows, uint64_t* nulls_bitmap) = 0;
@@ -56,10 +57,13 @@ struct FixedSizeArrayColumnMetadata {
 template <typename Value>
 struct IOColumnwiseFixedSizeArraySubstream: IOSubstream {
 
-    virtual FixedSizeArrayColumnMetadata<Value> describe(int32_t column) const  = 0;
-    virtual int32_t columns() const                             = 0;
+    virtual FixedSizeArrayColumnMetadata<Value> describe(int32_t column) = 0;
+    virtual FixedSizeArrayColumnMetadata<const Value> describe(int32_t column) const  = 0;
 
-    virtual Value* select(int32_t column, int32_t idx) const    = 0;
+    virtual int32_t columns() const                                   = 0;
+
+    virtual Value* select(int32_t column, int32_t idx)                = 0;
+    virtual const Value* select(int32_t column, int32_t idx) const    = 0;
 
     virtual Value* reserve(int32_t column, int32_t size) = 0;
     virtual Value* reserve(int32_t column, int32_t size, uint64_t* nulls_bitmap) = 0;

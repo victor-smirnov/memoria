@@ -124,7 +124,7 @@ public:
     using NodeBaseG             = typename CtrT::Types::NodeBaseG;
     using CtrSizeT              = typename CtrT::Types::CtrSizeT;
     using Position              = typename CtrT::Types::Position;
-    using DataPositions         = core::StaticVector<int32_t, DataStreams>;
+    using DataPositions         = core::StaticVector<uint64_t, DataStreams>;
     using CtrDataPositionsT     = core::StaticVector<int64_t, DataStreams>;
 
 
