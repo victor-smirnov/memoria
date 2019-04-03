@@ -217,12 +217,11 @@ public:
     static constexpr int32_t SubstreamsStart    = Dispatcher::AllocatorIdxStart;
     static constexpr int32_t SubstreamsEnd      = Dispatcher::AllocatorIdxEnd;
 
-    using IOVectorT     = typename _::IOVectorsTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
-    using IOVectorViewT = typename _::IOVectorViewTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
+    using IOVectorT     = typename _::IOVectorsTF<Streams, LeafSubstreamsStructList>::IOVectorT;
+    using IOVectorViewT = typename _::IOVectorViewTF<Streams, LeafSubstreamsStructList>::IOVectorT;
 
     //FIXME: Use SubDispatcher
     LeafNode() = default;
-
 
 private:
     struct InitFn {

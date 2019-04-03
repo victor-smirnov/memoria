@@ -133,13 +133,15 @@ int main()
         auto ctr = create<Map<Key, Value>>(snp);
 
         ctr.new_block_size(32 * 1024);
-        
 
         size_t total_data_size = 1024 * 1024 * 1024;
 
-        RandomBufferPopulator provider("loooooooooooooooooooooooooooooooooooooooooooooo000ong key: 123", "loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo0ooong value: 123", 128 * 1024, total_data_size);
-
-
+        RandomBufferPopulator provider(
+            "loooooooooooooooooooooooooooooooooooooooooooooo000ong key: 123",
+            "loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo0ooong value: 123",
+            128 * 1024,
+            total_data_size
+        );
 
         int64_t t0 = getTimeInMillis();
 

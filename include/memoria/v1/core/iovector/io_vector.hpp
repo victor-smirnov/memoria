@@ -20,6 +20,7 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 
 #include <memoria/v1/core/types/list/map.hpp>
+#include <memoria/v1/core/types/list/typelist.hpp>
 
 #include <vector>
 #include <tuple>
@@ -43,6 +44,9 @@ struct IOVector {
 
     virtual IOSubstream& substream(size_t num) = 0;
     virtual const IOSubstream& substream(size_t num) const = 0;
+
+    virtual int32_t streams() const = 0;
+    virtual int32_t stream_size(int32_t stream) const = 0;
 };
 
 
@@ -58,6 +62,8 @@ class DefaultIOVector: public IOVector {
     };
 
     core::StaticArray<std::unique_ptr<IOSubstream>, SubstreamsNum, CleanupFn> substreams_;
+
+    std::vector<int32_t> schema_{};
 
 public:
     DefaultIOVector(int32_t symbols):
@@ -78,6 +84,11 @@ public:
         substreams_.append(std::move(ptr));
     }
 
+    void add_stream_schema(int32_t substreams)
+    {
+        schema_.push_back(substreams);
+    }
+
     IOSymbolSequence& symbol_sequence() {
         return *symbol_sequence_.get();
     }
@@ -96,6 +107,15 @@ public:
 
     const IOSubstream& substream(size_t num) const {
         return *substreams_[num].get();
+    }
+
+    int32_t streams() const {
+        return schema_.size();
+    }
+
+    int32_t stream_size(int32_t stream) const
+    {
+        return schema_[stream];
     }
 
     virtual void reindex()
@@ -126,6 +146,24 @@ namespace _ {
         static void process(Tuple& tuple, StreamsArray& streams){}
     };
 
+
+    template <typename List> struct ValueListToArray;
+
+    template <int32_t Head, int32_t... Tail>
+    struct ValueListToArray<IntList<Head, Tail...>> {
+        template <typename Array>
+        static void append_to(Array& array)
+        {
+            array.append(Head);
+            ValueListToArray<IntList<Tail...>>::append_to(array);
+        }
+    };
+
+    template <>
+    struct ValueListToArray<IntList<>> {
+        template <typename Array>
+        static void append_to(Array& array) {}
+    };
 }
 
 template <typename Types, template <typename> class IOVectorMapperTF>
@@ -133,6 +171,7 @@ class StaticIOVector: public IOVector {
 
     using InputVectorsList  = MapTL2<typename Types::PackedStructsList, IOVectorMapperTF>;
     using IVTuple           = AsTuple<InputVectorsList>;
+    using StreamsSchema     = typename Types::StreamsSchema;
 
     typename Types::SymbolSequence symbol_sequence_;
 
@@ -148,12 +187,15 @@ class StaticIOVector: public IOVector {
 
     core::StaticArray<IOSubstream*, SubstreamsNum, CleanupFn> substreams_;
 
+    core::StaticArray<int32_t, ListSize<StreamsSchema>> schema_{};
+
 public:
     StaticIOVector():
         symbol_sequence_(),
         substreams_(SubstreamsNum)
     {
         _::IOVectorSubstreamsInitializer<IVTuple>::process(streams_tuple_, substreams_);
+        _::ValueListToArray<StreamsSchema>::append_to(schema_);
     }
 
     void reset()
@@ -188,6 +230,15 @@ public:
 
     const IOSubstream& substream(size_t num) const {
         return *substreams_[num];
+    }
+
+    int32_t streams() const {
+        return schema_.size();
+    }
+
+    int32_t stream_size(int32_t stream) const
+    {
+        return schema_[stream];
     }
 
     virtual void reindex()

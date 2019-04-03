@@ -48,11 +48,28 @@ struct SelectNonSizedStruct<TL<>> {
 };
 
 
+template <typename StructList> struct StreamsListParserTF;
+
+template <typename Head, typename... Tail>
+struct StreamsListParserTF<TL<Head, Tail...>> {
+    using Type = MergeValueLists<
+        IntList<ListSize<typename SelectNonSizedStruct<Linearize<Head>>::Type>>,
+        typename StreamsListParserTF<TL<Tail...>>::Type
+    >;
+};
+
+template <typename Head>
+struct StreamsListParserTF<TL<Head>> {
+    // This is symbols sequence stream. Do nothing here.
+    using Type = IntList<>;
+};
+
+
 template <int32_t Streams, typename PkdStructsList>
 class IOVectorsTFBase
 {
 protected:
-    using NonSizedPackedStructsList = typename SelectNonSizedStruct<PkdStructsList>::Type;
+    using NonSizedPackedStructsList = typename SelectNonSizedStruct<Linearize<PkdStructsList>>::Type;
 
     static constexpr int32_t PkdStructsListSize = ListSize<NonSizedPackedStructsList>;
 
@@ -67,6 +84,8 @@ protected:
         NonSizedPackedStructsList,
         PkdStructsListSize - 1
     >::Type;
+
+    using StreamsSchema = typename StreamsListParserTF<PkdStructsList>::Type;
 };
 
 
@@ -79,6 +98,8 @@ class IOVectorsTF: public IOVectorsTFBase<Streams, PkdStructsList>
     struct IOVTypes {
         using PackedStructsList = typename Base::DataStreamsPkdStructsList;
         using SymbolSequence    = typename Base::SequencePkdStruct::GrowableIOSubstream;
+
+        using StreamsSchema     = typename Base::StreamsSchema;
     };
 
     template <typename T>
@@ -99,6 +120,7 @@ class IOVectorViewTF: public IOVectorsTFBase<Streams, PkdStructsList>
     struct IOVTypes {
         using PackedStructsList = typename Base::DataStreamsPkdStructsList;
         using SymbolSequence    = typename Base::SequencePkdStruct::IOSubstreamView;
+        using StreamsSchema     = typename Base::StreamsSchema;
     };
 
 
@@ -117,11 +139,12 @@ template <typename PkdStructsList>
 class IOVectorsTF<1, PkdStructsList>
 {
 protected:
-    using NonSizedPackedStructsList = typename SelectNonSizedStruct<PkdStructsList>::Type;
+    using NonSizedPackedStructsList = typename SelectNonSizedStruct<Linearize<PkdStructsList>>::Type;
 
     struct IOVTypes {
         using PackedStructsList = NonSizedPackedStructsList;
         using SymbolSequence    = io::PackedRLESymbolSequence<1>;
+        using StreamsSchema     = IntList<ListSize<NonSizedPackedStructsList>>;
     };
 
     template <typename T>
@@ -138,11 +161,12 @@ template <typename PkdStructsList>
 class IOVectorViewTF<1, PkdStructsList>
 {
 protected:
-    using NonSizedPackedStructsList = typename SelectNonSizedStruct<PkdStructsList>::Type;
+    using NonSizedPackedStructsList = typename SelectNonSizedStruct<Linearize<PkdStructsList>>::Type;
 
     struct IOVTypes {
         using PackedStructsList = NonSizedPackedStructsList;
         using SymbolSequence    = io::PackedRLESymbolSequenceView<1>;
+        using StreamsSchema = IntList<ListSize<NonSizedPackedStructsList>>;
     };
 
     template <typename T>
