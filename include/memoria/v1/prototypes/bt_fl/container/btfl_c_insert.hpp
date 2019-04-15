@@ -38,12 +38,14 @@ public:
 
 public:
 
+#ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
     using CtrInputProviderPool = ObjectPool<btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer>>;
-
+#endif
 
     static const int32_t Streams = Types::Streams;
 
+#ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
     auto bulkio_insert(Iterator& iter, bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 4000)
     {
@@ -69,7 +71,7 @@ public:
 
         return streamingProvider->totals();
     }
-
+#endif
 
 
     auto bulkio_insert(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)

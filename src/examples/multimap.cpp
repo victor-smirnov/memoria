@@ -145,8 +145,10 @@ int main()
         {
             auto key = getRandomG(10000); //UUID::make_random(); //uuids[c];
             auto val = make_vector<Value>(c, getRandomG(50000));
-        
+#ifdef MMA1_USE_IOBUFFER
             map.assign(key, val.begin(), val.end());
+#endif
+
             mapping[key] = val;
             
             if (ticker.is_threshold()) 

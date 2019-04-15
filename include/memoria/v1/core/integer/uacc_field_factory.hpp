@@ -21,7 +21,9 @@
 
 #include <memoria/v1/core/integer/integer.hpp>
 
-#include <memoria/v1/core/iobuffer/io_buffer.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
+#endif
 
 #include <ostream>
 

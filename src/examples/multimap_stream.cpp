@@ -26,7 +26,9 @@
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/multimap/multimap_api.hpp>
 
-#include <memoria/v1/containers/multimap/mmap_input.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/containers/multimap/mmap_input.hpp>
+#endif
 
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
@@ -43,6 +45,8 @@ using namespace std;
 
 using Key   = int64_t;
 using Value = uint8_t;
+
+#ifdef MMA1_USE_IOBUFFER
 
 mmap::MapData<Key, Value> generate_data(size_t entries, size_t mean_entry_size)
 {
@@ -132,6 +136,8 @@ public:
     }
 };
 
+#endif
+
 int main()
 {
 
@@ -158,11 +164,10 @@ int main()
         int64_t t0 = getTimeInMillis();
         
         //mmap::MultimapIOBufferProducer<Key, Value> provider(data);
-
+#ifdef MMA1_USE_IOBUFFER
         RandomBufferPopulator<DefaultIOBuffer> provider(512 / sizeof(Value), 1024*1024*1024);
-
         map.begin().insert_subseq(provider);
-        
+#endif
         auto t1 = getTimeInMillis();
         
         std::cout << "Creation time: " << (t1 - t0) <<", size = " << map.size() << std::endl;

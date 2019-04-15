@@ -19,8 +19,10 @@
 
 #include <memoria/v1/prototypes/bt/bt_factory.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/io/btfl_input.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_output.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/prototypes/bt_fl/io/btfl_input.hpp>
+#   include <memoria/v1/retired/prototypes/bt_fl/io/btfl_output.hpp>
+#endif
 
 #include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_iterator.hpp>
@@ -48,13 +50,15 @@
 #include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_insert.hpp>
 #include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_read.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/tools/btfl_tools_random_gen.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/prototypes/bt_fl/tools/btfl_tools_random_gen.hpp>
+#   include <memoria/v1/retired/prototypes/bt_fl/iodata/btfl_iodata.hpp>
+#endif
+
 #include <memoria/v1/prototypes/bt_fl/tools/btfl_tools_streamdescr.hpp>
 
 #include <memoria/v1/prototypes/bt/walkers/bt_count_walkers.hpp>
 #include <memoria/v1/prototypes/bt/walkers/bt_selectge_walkers.hpp>
-
-#include <memoria/v1/prototypes/bt_fl/iodata/btfl_iodata.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/io2/btfl_io_input_provider_base.hpp>
 

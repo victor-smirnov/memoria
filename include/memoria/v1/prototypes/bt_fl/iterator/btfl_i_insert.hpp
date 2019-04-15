@@ -45,13 +45,14 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorInsertName)
     using CtrSizeT  = typename Container::Types::CtrSizeT;
 
 public:
+#ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
     auto bulkio_insert(bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
     {
         auto& self = this->self();
         return self.ctr().bulkio_insert(self, provider, initial_capacity);
     }
-
+#endif
 
     auto bulkio_insert(io::IOVectorProducer& provider, int64_t start, int64_t length)
     {

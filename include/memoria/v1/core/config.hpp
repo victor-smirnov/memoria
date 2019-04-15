@@ -101,3 +101,4 @@
 #define MMA1_ICU_CXX_NS icu_60
 #endif
 
+//#define MMA1_USE_IOBUFFER 1

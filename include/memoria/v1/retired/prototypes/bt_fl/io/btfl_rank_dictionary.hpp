@@ -21,10 +21,10 @@
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/v1/core/packed/sseq/packed_rle_searchable_seq.hpp>
 
-#include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
+#include <memoria/v1/retired/prototypes/bt/layouts/bt_input.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/io/btfl_input_tools.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_input_tools.hpp>
 
 #include <memory>
 

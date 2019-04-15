@@ -21,7 +21,7 @@
 #include <memoria/v1/core/bignum/int64_codec.hpp>
 #include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/core/iobuffer/io_buffer.hpp>
+#include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
 
 namespace memoria {
 namespace v1 {

@@ -493,7 +493,7 @@ public:
     }
 
 
-
+#ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
     CtrSizeT insert_data_values(bt::BufferProducer<IOBuffer>& producer)
     {
@@ -501,6 +501,7 @@ public:
         update_log::SingleStreamProducerAdapter<IOBuffer, 3> adapter(producer, 2);
         return self.bulkio_insert(adapter)[2];
     }
+#endif
 
     auto make_snapshot_id_walker()
     {

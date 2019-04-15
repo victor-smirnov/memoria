@@ -24,12 +24,12 @@
 #include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
 
-#include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
+#include <memoria/v1/retired/prototypes/bt/layouts/bt_input.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/io/btfl_data_input.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_structure_input.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_rank_dictionary.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_data_input.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_structure_input.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_rank_dictionary.hpp>
 
 
 #include <memory>

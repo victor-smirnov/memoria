@@ -20,7 +20,7 @@
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/io/btfl_input.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_input.hpp>
 
 namespace memoria {
 namespace v1 {

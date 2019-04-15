@@ -21,7 +21,7 @@
 
 #include <memoria/v1/containers/db/update_log/update_log_tools.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/io/btfl_input.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_input.hpp>
 
 #include <tuple>
 #include <vector>

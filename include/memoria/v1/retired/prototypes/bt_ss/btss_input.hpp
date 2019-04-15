@@ -20,7 +20,7 @@
 
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 
-#include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
+#include <memoria/v1/retired/prototypes/bt/layouts/bt_input.hpp>
 
 #include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>

@@ -20,6 +20,8 @@
 #include <memoria/v1/reactor/file.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 
+#include <memoria/v1/core/memory/malloc.hpp>
+
 #include <iterator>
 
 namespace memoria {

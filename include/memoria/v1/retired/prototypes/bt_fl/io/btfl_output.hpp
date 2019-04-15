@@ -19,7 +19,7 @@
 #include <memoria/v1/core/types.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
-#include <memoria/v1/core/iobuffer/io_buffer.hpp>
+#include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
 
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>

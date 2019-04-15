@@ -62,10 +62,9 @@ class IterApi<Map<Key, Value>, Profile>: public IterApiBTSSBase<Map<Key, Value>,
     using typename Base::IterPtr;
     
 public:
-    using DataValue = std::tuple<Key, Value>;
-    
-    using Base::read;
     using Base::insert;
+
+    using DataValue = std::tuple<Key, Value>;
     
     MMA1_DECLARE_ITERAPI_BASIC_METHODS()
     
@@ -76,35 +75,6 @@ public:
     void assign(const Value& value);
     
     bool is_found(const Key& key) const;
-    
-    template <typename KeyT, typename ValueT>
-    auto insert(const std::vector<std::tuple<KeyT, ValueT>>& data) 
-    {
-        using StdIter = typename std::vector<std::tuple<KeyT, ValueT>>::const_iterator;
-        InputIteratorProvider<DataValue, StdIter, StdIter, CtrIOBuffer> provider(data.begin(), data.end());
-        return insert(provider);
-    }
-    
-    template <typename Iterator, typename EndIterator>
-    auto insert(const Iterator& iter, const EndIterator& end) 
-    {
-        InputIteratorProvider<DataValue, Iterator, EndIterator, CtrIOBuffer> provider(iter, end);
-        return insert(provider);
-    }
-    
-    template <typename Fn>
-    auto insert_fn(int64_t size, Fn&& fn) 
-    {
-        using Iterator = IteratorFn<std::remove_reference_t<decltype(fn)>>;
-        
-        Iterator fni(fn);
-        EndIteratorFn<int64_t> endi(size);
-        
-        InputIteratorProvider<DataValue, Iterator, EndIteratorFn<int64_t>, CtrIOBuffer> provider(fni, endi);
-        return insert(provider);
-    }
-    
-    std::vector<DataValue> read(size_t size);
 };
     
 }}

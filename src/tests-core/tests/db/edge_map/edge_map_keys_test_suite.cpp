@@ -151,8 +151,8 @@ public:
 
         out() << "Data populated in " << FormatTime(getTimeInMillis() - tt) << std::endl;
 
+#ifdef MMA1_USE_IOBUFFER
         using SetIterator = std::set<UUID>::iterator;
-
         InputIteratorProvider<UUID, SetIterator, SetIterator, CtrIOBuffer> keys_provider(keys_.begin(), keys_.end());
         edge_map::SingleStreamProducerAdapter<CtrIOBuffer, 2> adaptor(keys_provider, 0);
 
@@ -161,7 +161,9 @@ public:
         auto ii = ctr.begin();
         ii.insert_subseq(adaptor);
 
+
         out() << "Keys created in " << FormatTime(getTimeInMillis() - t0) << std::endl;
+#endif
 
         check_keys(ctr, keys_);
 

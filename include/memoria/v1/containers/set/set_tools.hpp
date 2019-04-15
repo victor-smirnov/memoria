@@ -29,7 +29,9 @@
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
-#include <memoria/v1/prototypes/bt_ss/btss_input.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/prototypes/bt_ss/btss_input.hpp>
+#endif
 
 namespace memoria {
 namespace v1 {

@@ -16,10 +16,12 @@
 #pragma once
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
-#include <memoria/v1/api/common/ctr_input_btss.hpp>
 
-#include <memoria/v1/api/db/inv_index/inv_index_input.hpp>
 
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/api/common/ctr_input_btss.hpp>
+#   include <memoria/v1/api/db/inv_index/inv_index_input.hpp>
+#endif
 
 
 #include <memory>

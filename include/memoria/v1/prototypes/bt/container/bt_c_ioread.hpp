@@ -20,7 +20,9 @@
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
-#include <memoria/v1/core/iobuffer/io_buffer.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
+#endif
 
 #include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
@@ -118,7 +120,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::IOReadName)
     };
 
 
-
+#ifdef MMA1_USE_IOBUFFER
     template <int32_t StreamIdx, typename IOBuffer>
     CtrSizeT buffered_read(Iterator& iter, CtrSizeT length, IOBuffer& io_buffer, bt::BufferConsumer<IOBuffer>& consumer)
     {
@@ -215,7 +217,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::IOReadName)
 
         return total;
     }
-
+#endif
 
 
     template <int32_t StreamIdx, typename IOBuffer>

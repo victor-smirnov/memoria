@@ -16,9 +16,10 @@
 #pragma once
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
-#include <memoria/v1/api/common/ctr_input_btss.hpp>
 
-#include <memoria/v1/api/db/edge_map/edge_map_input.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/api/db/edge_map/edge_map_input.hpp>
+#endif
 
 #include <memoria/v1/core/tools/uuid.hpp>
 
@@ -84,7 +85,8 @@ public:
 
     int64_t size(const Key& key);
     int64_t size() const;
-    
+
+#ifdef MMA1_USE_IOBUFFER
     Iterator assign(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);
 
     template <typename InputIterator, typename EndIterator>
@@ -95,6 +97,7 @@ public:
     }
 
     CtrSizeT read(const Key& key, bt::BufferConsumer<CtrIOBuffer>& values_consumer, CtrSizeT start = 0, CtrSizeT length = std::numeric_limits<CtrSizeT>::max());
+#endif
 
     class EdgeMapKeyIterator {
         Iterator iterator_;
@@ -184,12 +187,14 @@ public:
 
     bool to_values();
 
+#ifdef MMA1_USE_IOBUFFER
     int64_t read_keys(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t length = std::numeric_limits<int64_t>::max());
     
     CtrSizeT read_values(bt::BufferConsumer<CtrIOBuffer>& values_consumer, CtrSizeT start = 0, CtrSizeT length = std::numeric_limits<CtrSizeT>::max());
     
     CtrSizeT insert_values(bt::BufferProducer<CtrIOBuffer>& values_producer);
     CtrSizeT insert_entry(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);
+#endif
 
     EdgeMapFindResult find_value(const Value& value);
 

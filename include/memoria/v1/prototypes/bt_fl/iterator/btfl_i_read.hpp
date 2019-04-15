@@ -23,7 +23,9 @@
 #include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/io/btfl_output.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/prototypes/bt_fl/io/btfl_output.hpp>
+#endif
 
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
@@ -46,7 +48,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorReadName)
     static const int32_t Streams                = Container::Types::Streams;
     static const int32_t DataStreams            = Container::Types::DataStreams;
     static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
-
+#ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
     using ReadWalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanThroughStrategy>>;
 
@@ -55,10 +57,11 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorReadName)
 
     template <typename IOBuffer>
     using ScanRunWalkerPool = ObjectPool<btfl::io::BTFLScanRunWalker<MyType, IOBuffer>>;
-
+#endif
 
 public:
 
+#ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
     CtrSizeT bulkio_read(bt::BufferConsumer<IOBuffer>* consumer, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
         return bulkio_read_<ReadWalkerPool>(consumer, -1, limits);
@@ -148,9 +151,11 @@ public:
 
         return more_data ? entries : -entries;
     }
+#endif
 
 public:
 
+#ifdef MMA1_USE_IOBUFFER
     template <template <typename> class WalkerPoolT, typename IOBuffer>
     auto create_walker_(int expected_stream, CtrSizeT limit)
     {
@@ -261,7 +266,7 @@ public:
 
         return total;
     }
-
+#endif
 
 
 

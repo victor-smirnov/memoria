@@ -149,7 +149,7 @@ public:
         return sizes[0];
     }
 
-
+#ifdef MMA1_USE_IOBUFFER
     auto bulk_insert(btss::AbstractBTSSInputProvider<Container>& provider)
     {
         auto& self = this->self();
@@ -171,6 +171,7 @@ public:
 //
 //        return self.ctr().insert(self, provider);
     }
+#endif
 
     template <typename Iterator>
     class EntryAdaptor {
@@ -202,7 +203,7 @@ public:
     }
 
 
-
+#ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
     auto read_buffer(bt::BufferConsumer<IOBuffer>* consumer, CtrSizeT length)
     {
@@ -248,18 +249,9 @@ public:
     }
 
 
-
+#endif
     auto insert_iovector(io::IOVectorProducer& producer, int64_t start, int64_t length)
     {
-//        using InputProvider = btss::io::IOVectorBTSSInputProvider<Container>;
-
-//        io::IOVector
-
-//        InputProvider provider(self().ctr(), producer, *buffer.get(), start, length);
-
-//        return this->bulk_insert(*bulk.get());
-
-
         auto& self = this->self();
         return self.ctr().insert(self, producer, start, length);
     }

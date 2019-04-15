@@ -32,7 +32,9 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/v1/prototypes/bt/bt_walkers.hpp>
 
-#include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/prototypes/bt/layouts/bt_input.hpp>
+#endif
 
 #include <memoria/v1/prototypes/bt/walkers/bt_skip_walkers.hpp>
 #include <memoria/v1/prototypes/bt/walkers/bt_find_walkers.hpp>

@@ -57,9 +57,8 @@ class IterApi<Set<Key>, Profile>: public IterApiBTSSBase<Set<Key>, Profile> {
     using typename Base::IterPtr;
      
 public:
-    
-    using Base::read;
     using Base::insert;
+
     
     MMA1_DECLARE_ITERAPI_BASIC_METHODS()
     

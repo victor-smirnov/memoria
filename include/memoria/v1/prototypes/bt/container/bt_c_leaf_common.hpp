@@ -20,6 +20,8 @@
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -39,17 +41,16 @@ protected:
     using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
     using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
 
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
 
     using CtrSizeT = typename Types::CtrSizeT;
 
-    static const int32_t Streams                                                    = Types::Streams;
+    static const int32_t Streams = Types::Streams;
 
 public:
     NodeBaseG split_leaf_p(NodeBaseG& left_node, const Position& split_at)
@@ -202,6 +203,13 @@ public:
         return pos;
     }
 
+
+    static std::shared_ptr<io::IOVector> create_iovector()
+    {
+        return std::static_pointer_cast<io::IOVector>(
+            std::make_shared<typename Types::LeafNode::IOVectorT>()
+        );
+    }
 
 
     class InsertDataResult {

@@ -211,18 +211,18 @@ public:
 
     std::vector<Value> read_values(CtrSizeT length = std::numeric_limits<CtrSizeT>::max())
     {
-        auto& self = this->self();
+//        auto& self = this->self();
 
         std::vector<Value> values;
 
         ReadValuesFn<std::vector<Value>> read_fn(&values);
-
+#ifdef MMA1_USE_IOBUFFER
         self.bulkio_scan_run(&read_fn, 1, length);
-
+#endif
         return values;
     }
 
-
+#ifdef MMA1_USE_IOBUFFER
     CtrSizeT read_values(bt::BufferConsumer<IOBuffer>& consumer, CtrSizeT start, CtrSizeT length)
     {
         auto& self = this->self();
@@ -236,7 +236,7 @@ public:
             return CtrSizeT{};
         }
     }
-
+#endif
 
 
 
@@ -287,7 +287,7 @@ public:
     }
 
 
-
+#ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
     auto read_keys(bt::BufferConsumer<IOBuffer>* consumer, CtrSizeT length = std::numeric_limits<CtrSizeT>::max())
     {
@@ -322,7 +322,7 @@ public:
         
         return self.bulkio_insert(adapter)[1];
     }
-    
+#endif
 
 MEMORIA_V1_ITERATOR_PART_END
 

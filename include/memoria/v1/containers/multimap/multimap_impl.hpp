@@ -73,7 +73,7 @@ bool CtrApi<Multimap<Key, Value>, Profile>::remove(const Key& key)
     return false;
 }
 
-
+#ifdef MMA1_USE_IOBUFFER
 
 template <typename Key, typename Value, typename Profile>
 typename CtrApi<Multimap<Key, Value>, Profile>::CtrSizeT 
@@ -123,7 +123,7 @@ CtrApi<Multimap<Key, Value>, Profile>::assign(
 }
 
 
-
+#endif
 
 
 
@@ -248,6 +248,8 @@ bool IterApi<Multimap<Key, Value>, Profile>::to_values()
     return this->pimpl_->to_values();
 }
 
+#ifdef MMA1_USE_IOBUFFER
+
 template <typename Key, typename Value, typename Profile>
 int64_t IterApi<Multimap<Key, Value>, Profile>::read_keys(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t length)
 {
@@ -281,6 +283,6 @@ IterApi<Multimap<Key, Value>, Profile>::insert_entry(
     return this->pimpl_->insert_mmap_entry(key, values_producer);
 }
 
-
+#endif
 
 }}

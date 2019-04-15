@@ -187,6 +187,11 @@ CtrApi<CtrName, Profile> CtrApiBase<CtrName, Profile>::cast_from(const CtrRef<Pr
     return static_pointer_cast<CtrT>(ref.ptr_);
 }
 
+template <typename CtrName, typename Profile>
+std::shared_ptr<io::IOVector> CtrApiBase<CtrName, Profile>::create_iovector()
+{
+    return CtrT::create_iovector();
+}
 
 template <typename CtrName, typename Profile>
 void CtrApiBase<CtrName, Profile>::drop()

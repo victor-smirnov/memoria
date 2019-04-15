@@ -17,16 +17,13 @@
 
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/container/container.hpp>
-#include <memoria/v1/core/iobuffer/io_buffer.hpp>
+
 #include <memoria/v1/core/tools/uuid.hpp>
 
 #include <memoria/v1/core/container/allocator.hpp>
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
-#include "../common/ctr_input_btss.hpp"
-#include "../common/ctr_output_btss.hpp"
-#include "../common/ctr_output_btfl.hpp"
 
 #include "ctr_api.hpp"
 
@@ -109,13 +106,8 @@ public:
     
     int64_t seq_pos();
     int64_t skip_seq(int64_t offset);
-    
-    int64_t read_seq(CtrIOBuffer& buffer, int64_t size = std::numeric_limits<int64_t>::max());
-    int64_t read_seq(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t size = std::numeric_limits<int64_t>::max());
-    int64_t insert_subseq(bt::BufferProducer<CtrIOBuffer>& producer);
 
-    int64_t insert_subseq(io::IOVectorProducer& producer, int64_t start = 0, int64_t length = std::numeric_limits<int64_t>::max());
-    
+    int64_t insert_subseq(io::IOVectorProducer& producer, int64_t start = 0, int64_t length = std::numeric_limits<int64_t>::max());    
 };
 
 

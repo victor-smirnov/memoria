@@ -21,17 +21,17 @@
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/v1/core/packed/sseq/packed_rle_searchable_seq.hpp>
 
-#include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
+#include <memoria/v1/retired/prototypes/bt/layouts/bt_input.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/io/btfl_data_input.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_structure_input.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_rank_dictionary.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_flat_tree_structure_generator.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_flat_tree_iobuffer_adapter.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_ctr_input_provider_base.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_iobuffer_ctr_input_provider.hpp>
-#include <memoria/v1/prototypes/bt_fl/io/btfl_flat_tree_iobuffer_adapter.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_data_input.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_structure_input.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_rank_dictionary.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_flat_tree_structure_generator.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_flat_tree_iobuffer_adapter.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_ctr_input_provider_base.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_iobuffer_ctr_input_provider.hpp>
+#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_flat_tree_iobuffer_adapter.hpp>
 
 #include <memory>
 

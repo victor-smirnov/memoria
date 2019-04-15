@@ -16,9 +16,10 @@
 #pragma once
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
-#include <memoria/v1/api/common/ctr_input_btss.hpp>
 
-#include <memoria/v1/api/db/update_log/update_log_input.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/api/db/update_log/update_log_input.hpp>
+#endif
 
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/object_pool.hpp>
@@ -52,8 +53,10 @@ class CommandsDataIterator {
 
     bool empty_{};
 
+#ifdef MMA1_USE_IOBUFFER
     PoolUniquePtr<DefaultIOBuffer> buffer_{};
     std::unique_ptr<IBTFLPopulateWalker<DefaultIOBuffer>> walker_{};
+#endif
 
 public:
     CommandsDataIterator(): iterator_{nullptr} {}
@@ -126,12 +129,13 @@ public:
 
     uint8_t next()
     {
+#ifdef MMA1_USE_IOBUFFER
         if (MMA1_LIKELY(has_next()))
         {
             entry_++;
             return IOBufferAdapter<uint8_t>::get(*buffer_.get());
         }
-
+#endif
         MMA1_THROW(RuntimeException()) << WhatCInfo("No such element");
     }
 
@@ -153,9 +157,9 @@ protected:
     {
         size_t available = n_entries_ - entry_;
         size_t to_read = size <= available ? size : available;
-
+#ifdef MMA1_USE_IOBUFFER
         buffer_->get(mem, to_read);
-
+#endif
         n_entries_ += to_read;
 
         return to_read;

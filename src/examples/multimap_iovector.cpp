@@ -107,7 +107,7 @@ int main()
         RandomBufferPopulator provider(512 / sizeof(Value), 1024*1024*1024);
 
         map.begin().insert_subseq(provider);
-        
+
         auto t1 = getTimeInMillis();
         
         std::cout << "Creation time: " << (t1 - t0) <<", size = " << map.size() << std::endl;

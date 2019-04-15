@@ -189,7 +189,9 @@ public:
             last = tmp;
         }
 
+#ifdef MMA1_USE_IOBUFFER
         ctr.assign(key, values_data.begin(), values_data.end());
+#endif
     }
 
 };

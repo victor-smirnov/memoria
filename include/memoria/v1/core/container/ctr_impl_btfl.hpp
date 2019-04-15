@@ -91,7 +91,7 @@ int64_t IterApiBTFLBase<CtrName, Profile>::remove_entries(int64_t length)
 }
 
 
-
+#ifdef MMA1_USE_IOBUFFER
 template <typename CtrName, typename Profile>
 int64_t IterApiBTFLBase<CtrName, Profile>::read_seq(CtrIOBuffer& buffer, int64_t size) 
 {
@@ -114,6 +114,7 @@ int64_t IterApiBTFLBase<CtrName, Profile>::insert_subseq(bt::BufferProducer<CtrI
 {
     return this->pimpl_->bulkio_insert(producer).sum();
 }
+#endif
 
 template <typename CtrName, typename Profile>
 int64_t IterApiBTFLBase<CtrName, Profile>::insert_subseq(

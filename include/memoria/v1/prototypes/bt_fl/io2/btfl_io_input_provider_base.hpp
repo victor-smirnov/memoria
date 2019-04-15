@@ -24,7 +24,10 @@
 #include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
 
-#include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/prototypes/bt/layouts/bt_input.hpp>
+#endif
+
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 
 #include <memoria/v1/core/iovector/io_vector.hpp>

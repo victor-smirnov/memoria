@@ -17,7 +17,10 @@
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
 
-#include <memoria/v1/core/iobuffer/io_buffer.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
+#endif
+
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/core/integer/uacc_field_factory.hpp>
@@ -32,7 +35,7 @@ namespace update_log {
 
 
 
-
+#ifdef MMA1_USE_IOBUFFER
 
 template <typename IOBuffer, int32_t Symbols>
 class SingleStreamProducerAdapter: public bt::BufferProducer<IOBuffer> {
@@ -131,6 +134,6 @@ public:
     }
 };
 
-
+#endif
     
 }}}

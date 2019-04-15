@@ -18,8 +18,10 @@
 #include "../prototype/bt/bt_test_base.hpp"
 
 #include <memoria/v1/api/multimap/multimap_api.hpp>
-#include <memoria/v1/containers/multimap/mmap_input.hpp>
 
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/containers/multimap/mmap_input.hpp>
+#endif
 
 #include <vector>
 #include <algorithm>

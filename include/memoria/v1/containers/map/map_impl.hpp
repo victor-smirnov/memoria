@@ -114,21 +114,5 @@ void IterApi<Map<Key, Value>, Profile>::assign(const Value& value)
     return this->pimpl_->assign(value);
 }
 
-template <typename Key, typename Value, typename Profile>
-std::vector<typename IterApi<Map<Key, Value>, Profile>::DataValue> IterApi<Map<Key, Value>, Profile>::read(size_t size) 
-{
-    std::vector<DataValue> data;
-    
-    auto fn = [&](const DataValue& vv){
-        data.emplace_back(vv);
-    };
-    
-    BTSSAdaptorFn<DataValue, std::remove_reference_t<decltype(fn)>, CtrIOBuffer> consumer(fn);
-    
-    this->read(consumer);
-    
-    return data;
-}
-
     
 }}

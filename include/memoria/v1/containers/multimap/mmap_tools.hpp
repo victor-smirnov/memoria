@@ -122,7 +122,7 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 
 
-
+#ifdef MMA1_USE_IOBUFFER
 
 template <typename IOBuffer, typename Key, typename Iterator>
 class MultimapEntryBufferProducer: public bt::BufferProducer<IOBuffer> {
@@ -204,7 +204,7 @@ public:
 };
 
 
-
+#endif
 
 
 

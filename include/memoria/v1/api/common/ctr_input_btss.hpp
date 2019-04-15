@@ -21,6 +21,12 @@
 #include <memoria/v1/core/bignum/int64_codec.hpp>
 #include <memoria/v1/core/types.hpp>
 
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
+#endif
+
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -28,7 +34,9 @@ template <typename V> struct IsVLen: HasValue<bool, false> {};
 
 template <typename V, Granularity G> 
 struct IsVLen<VLen<G, V>>: HasValue<bool, true> {};
-    
+
+#ifdef MMA1_USE_IOBUFFER
+
 template <typename Value, typename Iterator, typename EndIterator, typename IOBuffer, bool VLenSelector = false> 
 class InputIteratorProvider;
 
@@ -94,6 +102,9 @@ public:
     }
 };
 
+#endif
+
+
 template <typename SizeT>
 class EndIteratorFn {
     SizeT size_;
@@ -121,5 +132,10 @@ public:
         return cnt_ < end.size();
     }
 };
+
+
+
+
+
 
 }}

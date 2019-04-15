@@ -23,7 +23,10 @@
 
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
-#include <memoria/v1/core/iobuffer/io_buffer.hpp>
+
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
+#endif
 
 #include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
 #include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>

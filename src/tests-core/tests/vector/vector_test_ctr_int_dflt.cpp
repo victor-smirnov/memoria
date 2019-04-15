@@ -15,9 +15,8 @@
 
 
 
-
+#include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/containers/vector/vector_impl.hpp>
-#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
 
 namespace memoria {
 namespace v1 {

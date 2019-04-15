@@ -33,6 +33,8 @@
 #include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/ticker.hpp>
 
+#include <memoria/v1/core/strings/string_codec.hpp>
+
 #include <string>
 #include <algorithm>
 #include <map>

@@ -19,7 +19,14 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 
-#include <memoria/v1/core/iobuffer/io_buffer.hpp>
+#include <memoria/v1/core/types/typehash.hpp>
+
+#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/v1/core/strings/format.hpp>
+
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
+#endif
 
 #include <ostream>
 

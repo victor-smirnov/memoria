@@ -84,10 +84,12 @@ public:
                 [this](auto k, auto v) {return this->make_value(this->getRandom(), TypeTag<Value>());}
         );
 
+#ifdef MMA1_USE_IOBUFFER
         mmap::MultimapIOBufferProducer<Key, Value> stream_adaptor(map_data, 65536);
 
         auto iter = map.begin();
         iter.insert_subseq(stream_adaptor);
+#endif
 
         checkData(map, map_data);
         checkRunPositions(map);
@@ -117,7 +119,8 @@ public:
         }
         
         std::random_shuffle(keys.begin(), keys.end());
-        
+
+#ifdef MMA1_USE_IOBUFFER
         for (auto& key: keys) 
         {
             const auto& value = vector_map[key];
@@ -128,7 +131,7 @@ public:
                 value.end()
             );
         }
-
+#endif
         auto iter = map.begin();
         
         checkData(map, vector_map);
@@ -159,7 +162,8 @@ public:
         }
         
         std::random_shuffle(keys.begin(), keys.end());
-        
+
+#ifdef MMA1_USE_IOBUFFER
         for (auto& key: keys) 
         {
             const auto& value = vector_map[key];
@@ -170,7 +174,7 @@ public:
                 value.end()
             );
         }
-        
+#endif
         size_t step_size = keys.size() / 10;
         if (step_size == 0) step_size = 1;
         

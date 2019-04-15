@@ -96,9 +96,9 @@ public:
         {
             d = this->getRandom(100);
         }
-
+#ifdef MMA1_USE_IOBUFFER
         ctr.begin().insert(data);
-
+#endif
         assert_equals(ctr.size(), data.size());
 
         std::vector<Value> data2 = ctr.begin().read(size);

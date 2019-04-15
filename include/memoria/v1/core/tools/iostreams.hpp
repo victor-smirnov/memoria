@@ -16,7 +16,12 @@
 
 #pragma once
 
-#include <memoria/v1/core/iobuffer/io_buffer.hpp>
+#include <memoria/v1/core/types.hpp>
+
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
+#endif
+
 #include <memoria/v1/core/tools/perror.hpp>
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/tools/ptr_cast.hpp>
@@ -103,6 +108,7 @@ struct BinaryOutputStream final: PimplBase<IBinaryOutputStream>{
     }
 };
 
+#ifdef MMA1_USE_IOBUFFER
 
 class IDataOutputStream;
 class IDataInputStream;
@@ -517,5 +523,6 @@ public:
     }
 };
 
+#endif
     
 }}

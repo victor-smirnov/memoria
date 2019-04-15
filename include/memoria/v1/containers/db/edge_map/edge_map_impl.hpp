@@ -112,6 +112,8 @@ typename CtrApi<EdgeMap, Profile>::EdgeMapValueIterator CtrApi<EdgeMap, Profile>
 }
 
 
+#ifdef MMA1_USE_IOBUFFER
+
 template <typename Profile>
 typename CtrApi<EdgeMap, Profile>::CtrSizeT
 CtrApi<EdgeMap, Profile>::read(
@@ -159,6 +161,7 @@ CtrApi<EdgeMap, Profile>::assign(
     return ii;
 }
 
+#endif
 
 template <typename Profile>
 typename CtrApi<EdgeMap, Profile>::EdgeMapValueIterator
@@ -294,6 +297,8 @@ bool IterApi<EdgeMap, Profile>::to_values()
     return this->pimpl_->to_values();
 }
 
+#ifdef MMA1_USE_IOBUFFER
+
 template <typename Profile>
 int64_t IterApi<EdgeMap, Profile>::read_keys(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t length)
 {
@@ -327,6 +332,7 @@ IterApi<EdgeMap, Profile>::insert_entry(
     return this->pimpl_->insert_mmap_entry(key, values_producer);
 }
 
+#endif
 
 template <typename Profile>
 EdgeMapFindResult IterApi<EdgeMap, Profile>::find_value(const Value& value) {

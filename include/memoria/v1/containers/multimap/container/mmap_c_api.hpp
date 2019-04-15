@@ -46,8 +46,9 @@ protected:
 
     using Key   = typename Types::Key;
     using Value = typename Types::Value;
-
+#ifdef MMA1_USE_IOBUFFER
     using IOBuffer = DefaultIOBuffer;
+#endif
 
 public:
     IteratorPtr begin() {
@@ -96,6 +97,7 @@ public:
         return iter;
     }
 
+#ifdef MMA1_USE_IOBUFFER
     template <typename Iterator>
     IteratorPtr find_or_create(const Key& key, const Iterator& start, const Iterator& end)
     {
@@ -112,6 +114,7 @@ public:
 
         return iter;
     }
+#endif
 
 protected:
 

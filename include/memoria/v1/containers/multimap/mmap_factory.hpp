@@ -19,7 +19,9 @@
 #include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
 #include <memoria/v1/containers/multimap/mmap_names.hpp>
 
-#include <memoria/v1/containers/multimap/mmap_input.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/containers/multimap/mmap_input.hpp>
+#endif
 
 #include <memoria/v1/containers/multimap/container/mmap_c_api.hpp>
 #include <memoria/v1/containers/multimap/iterator/mmap_i_misc.hpp>
@@ -27,7 +29,9 @@
 #include <memoria/v1/containers/multimap/mmap_tools.hpp>
 #include <memoria/v1/containers/multimap/mmap_iterator.hpp>
 
-#include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/prototypes/bt/layouts/bt_input.hpp>
+#endif
 
 #include <tuple>
 
@@ -106,7 +110,7 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
 
     static constexpr int32_t DataStreams = 2;
 
-
+#ifdef MMA1_USE_IOBUFFER
     template <int32_t Level>
     using IOData = btfl::BTFLData<
         DataStreams,
@@ -114,6 +118,7 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
             Key,
             Value
     >;
+#endif
 
 };
 

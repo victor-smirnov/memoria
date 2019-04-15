@@ -18,7 +18,9 @@
 
 #include <memoria/v1/prototypes/bt/bt_factory.hpp>
 
-#include <memoria/v1/prototypes/bt_ss/btss_input.hpp>
+#ifdef MMA1_USE_IOBUFFER
+#   include <memoria/v1/retired/prototypes/bt_ss/btss_input.hpp>
+#endif
 
 #include <memoria/v1/prototypes/bt_ss/btss_names.hpp>
 #include <memoria/v1/prototypes/bt_ss/btss_iterator.hpp>

@@ -40,12 +40,13 @@ void CtrApi<UpdateLog, Profile>::create_snapshot(const UUID& snapshot_id)
     return this->pimpl_->create_snapshot(snapshot_id);
 }
 
+#ifdef MMA1_USE_IOBUFFER
 template <typename Profile>
 void CtrApi<UpdateLog, Profile>::append_commands(const UUID& ctr_name, bt::BufferProducer<CtrIOBuffer>& data_producer)
 {
     this->pimpl_->append_commands(ctr_name, data_producer);
 }
-
+#endif
 
 template <typename Profile>
 typename CtrApi<UpdateLog, Profile>::CommandsDataIteratorT
@@ -156,8 +157,10 @@ update_log::ContainerNameIterator<Iterator, CtrSizeT>::commands()
 template <typename Iterator, typename CtrSizeT>
 void update_log::CommandsDataIterator<Iterator, CtrSizeT>::prepare()
 {
+#ifdef MMA1_USE_IOBUFFER
     walker_ = iterator_.ptr()->make_command_data_walker();
     buffer_ = iterator_.ptr()->make_io_buffer();
+#endif
 
     prefetch();
 }
@@ -192,6 +195,7 @@ CtrSizeT update_log::CommandsDataIterator<Iterator, CtrSizeT>::remove(CtrSizeT s
 template <typename Iterator, typename CtrSizeT>
 bool update_log::CommandsDataIterator<Iterator, CtrSizeT>::prefetch()
 {
+#ifdef MMA1_USE_IOBUFFER
     if (walker_.get())
     {
         int32_t n_entries = walker_->populate(buffer_.get());
@@ -213,7 +217,7 @@ bool update_log::CommandsDataIterator<Iterator, CtrSizeT>::prefetch()
     else {
         empty_ = true;
     }
-
+#endif
     return entry_ < n_entries_;
 }
 
