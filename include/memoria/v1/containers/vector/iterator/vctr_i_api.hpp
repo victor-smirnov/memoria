@@ -47,13 +47,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mvector::ItrApiName)
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 public:
-    template <typename InputIterator>
-    auto bulk_insert(const InputIterator& start, const InputIterator& end)
-    {
-//        mvector::VectorIteratorInputProvider<Container, InputIterator> provider(self().ctr(), start, end);
-//        return Base::bulk_insert(provider);
-    }
-
 
 
     template <typename Iterator>

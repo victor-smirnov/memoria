@@ -102,6 +102,10 @@ public:
         return typeid(PackedRLESymbolSequenceView<1>);
     }
 
+    virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const
+    {
+    }
+
     virtual void configure(void* ptr)
     {
         size_ = T2T<uint64_t>(ptr);

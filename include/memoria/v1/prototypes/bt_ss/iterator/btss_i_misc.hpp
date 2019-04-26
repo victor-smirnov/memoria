@@ -155,6 +155,7 @@ public:
         auto& self = this->self();
         return self.ctr().insert(self, provider);
     }
+#endif
 
     auto bulk_insert(btss::io::IOVectorBTSSInputProvider<Container>& provider)
     {
@@ -162,16 +163,8 @@ public:
         return self.ctr().insert(self, provider);
     }
 
-    template <typename InputIterator>
-    auto bulk_insert(InputIterator begin, InputIterator end)
-    {
-//        auto& self = this->self();
-//
-//        btss::BTSSIteratorInputProvider<Container, InputIterator> provider(self.ctr(), begin, end);
-//
-//        return self.ctr().insert(self, provider);
-    }
-#endif
+
+
 
     template <typename Iterator>
     class EntryAdaptor {
@@ -253,7 +246,29 @@ public:
     auto insert_iovector(io::IOVectorProducer& producer, int64_t start, int64_t length)
     {
         auto& self = this->self();
-        return self.ctr().insert(self, producer, start, length);
+        return self.ctr().insert_iovector(self, producer, start, length);
+    }
+
+    auto insert_iovector(io::IOVector& io_vector, int64_t start, int64_t length)
+    {
+        auto& self = this->self();
+        return self.ctr().insert_iovector(self, io_vector, start, length);
+    }
+
+    auto read_to(io::IOVectorConsumer& producer, int64_t length)
+    {
+        //auto& self = this->self();
+        //return self.ctr().insert_iovector(self, producer, start, length);
+
+        return 0;
+    }
+
+    auto populate(io::IOVector& io_vector, int64_t length)
+    {
+        //auto& self = this->self();
+        //return self.ctr().insert_iovector(self, io_vector, start, length);
+
+        return 0;
     }
 
 public:

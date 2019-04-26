@@ -105,6 +105,10 @@ public:
         return typeid(SeqT);
     }
 
+    virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const
+    {
+    }
+
     virtual void configure(void* ptr)
     {
         sequence_ = T2T<SeqT*>(ptr);

@@ -17,6 +17,8 @@
 
 #include <memoria/v1/core/iovector/io_substream_base.hpp>
 
+#include <memoria/v1/core/tools/type_name.hpp>
+
 #include <typeinfo>
 
 namespace memoria {
@@ -31,10 +33,14 @@ struct IORowwiseVLenArraySubstream: IOSubstream {
     virtual const uint8_t* select(int32_t row) const    = 0;
     virtual uint8_t* select(int32_t row)                = 0;
 
-    virtual uint8_t* reserve(int32_t rows, const int32_t* lengths) = 0;
-    virtual uint8_t* reserve(int32_t rows, const int32_t* lengths, const uint64_t* nulls_bitmap) = 0;
+    virtual void get_lengths_to(int32_t start, int32_t size, int32_t* array) const = 0;
 
+    virtual uint8_t* reserve(int32_t rows, const int32_t* lengths) = 0;    
     virtual uint8_t* ensure(int32_t capacity) = 0;
+
+    virtual U8String describe() const {
+        return TypeNameFactory<IORowwiseVLenArraySubstream<Value>>::name().to_u8();
+    }
 
     virtual const std::type_info& substream_type() const {
         return typeid(IORowwiseVLenArraySubstream<Value>);
@@ -67,17 +73,21 @@ struct IOColumnwiseVLenArraySubstream: IOSubstream {
     virtual const uint8_t* select(int32_t column, int32_t idx) const  = 0;
     virtual uint8_t* select(int32_t column, int32_t idx)              = 0;
 
+    virtual void get_lengths_to(int32_t column, int32_t start, int32_t size, int32_t* array) const = 0;
+
     virtual VLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx)              = 0;
     virtual ConstVLenArrayColumnMetadata select_and_describe(int32_t column, int32_t idx) const   = 0;
 
     virtual uint8_t* reserve(int32_t column, int32_t size, const int32_t* lengths) = 0;
-    virtual uint8_t* reserve(int32_t column, int32_t size, const int32_t* lengths, const uint64_t* nulls_bitmap) = 0;
 
     virtual uint8_t* ensure(int32_t column, int32_t capacity) = 0;
 
+    virtual U8String describe() const {
+        return TypeNameFactory<IOColumnwiseVLenArraySubstream<Value>>::name().to_u8();
+    }
 
-    virtual const std::type_info& substream_type() const
-    {
+
+    virtual const std::type_info& substream_type() const {
         return typeid(IOColumnwiseVLenArraySubstream<Value>);
     }
 

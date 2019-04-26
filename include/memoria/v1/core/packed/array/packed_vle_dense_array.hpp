@@ -425,7 +425,7 @@ public:
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(idx, <, size);
 
-        int32_t data_size     = this->data_size();
+        int32_t data_size = this->data_size();
         auto values       = this->values();
         TreeLayout layout = this->compute_tree_layout(data_size);
 
@@ -814,6 +814,29 @@ public:
     }
 
 
+    void get_lengths_to(int32_t start, int32_t size, int32_t* array) const
+    {
+        auto values = this->values();
+
+        size_t pos = locate(0, start);
+
+        Codec codec;
+
+        for (int32_t c = 0; c < size; c++)
+        {
+            size_t len = 0;
+            for (int32_t b = 0; b < Blocks; b++)
+            {
+                size_t vlen = codec.length(values, pos, -1ull);
+                pos += vlen;
+                len += vlen;
+            }
+
+            array[c] = len;
+        }
+    }
+
+
     OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
     {        
         io::IORowwiseVLenArraySubstream<Value>& buffer
@@ -1050,7 +1073,7 @@ public:
 
         Codec codec;
 
-        int32_t data_size       = this->data_size();
+        int32_t data_size   = this->data_size();
         auto values         = this->values();
         TreeLayout layout   = compute_tree_layout(data_size);
 
@@ -1111,7 +1134,7 @@ public:
 
         Codec codec;
 
-        int32_t data_size       = this->data_size();
+        int32_t data_size   = this->data_size();
         auto values         = this->values();
         TreeLayout layout   = compute_tree_layout(data_size);
 

@@ -85,10 +85,6 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    Value* reserve(int32_t column, int32_t values, uint64_t* nulls_bitmap) {
-        MMA1_THROW(UnsupportedOperationException());
-    }
-
     Value* ensure(int32_t column, int32_t required) final
     {
         MMA1_THROW(UnsupportedOperationException());
@@ -107,6 +103,21 @@ public:
     Value* select(int32_t column, int32_t idx)
     {
         MMA1_THROW(UnsupportedOperationException());
+    }
+
+
+
+    virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const
+    {
+        auto& tgt_substream = substream_cast<IOColumnwiseFixedSizeArraySubstream<Value>>(target);
+
+        for (int32_t col = 0; col < Columns; col++)
+        {
+            const Value* src = select(col, start);
+            Value* tgt = tgt_substream.reserve(col, length);
+
+            std::memcpy(tgt, src, sizeof(Value) * length);
+        }
     }
 
     virtual void reindex() {}

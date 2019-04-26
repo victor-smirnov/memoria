@@ -25,6 +25,9 @@
 #include <memoria/v1/core/memory/malloc.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 
+#include <memoria/v1/core/tools/bitmap.hpp>
+
+#include <memoria/v1/core/tools/spliterator.hpp>
 
 #include <type_traits>
 #include <cstring>
@@ -38,6 +41,8 @@ class IORowwiseFixedSizeArraySubstreamViewImpl: public IORowwiseFixedSizeArraySu
 
     Value* data_buffer_{};
     int32_t size_{};
+
+    static constexpr int32_t BUFFER_SIZE = 256;
 
 public:
     IORowwiseFixedSizeArraySubstreamViewImpl()
@@ -54,10 +59,6 @@ public:
 
     Value* reserve(int32_t rows)
     {
-        MMA1_THROW(UnsupportedOperationException());
-    }
-
-    Value* reserve(int32_t rows, uint64_t* nulls_bitmap) {
         MMA1_THROW(UnsupportedOperationException());
     }
 
@@ -81,7 +82,25 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    virtual void reindex() {}
+    void reindex() {}
+
+
+
+    void copy_to(IOSubstream& target, int32_t start, int32_t length) const
+    {
+        auto& tgt_substream = substream_cast<
+                IORowwiseFixedSizeArraySubstream<Value>
+        >(target);
+
+        FixedSizeSpliterator<int32_t, BUFFER_SIZE> splits(length);
+
+        while (splits.has_more())
+        {
+            auto* dest = tgt_substream.reserve(splits.split_size());
+            MemCpyBuffer(this->data_buffer_, dest, splits.split_size() * Columns);
+            splits.next_split();
+        }
+    }
 
     void configure(Value* buffer, int32_t size)
     {

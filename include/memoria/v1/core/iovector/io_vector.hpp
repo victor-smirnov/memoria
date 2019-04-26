@@ -254,7 +254,12 @@ public:
 
 struct IOVectorProducer {
     virtual ~IOVectorProducer() noexcept {}
-    virtual bool populate(IOVector& io_vectors) = 0;
+    virtual bool populate(IOVector& io_vector) = 0;
+};
+
+struct IOVectorConsumer {
+    virtual ~IOVectorConsumer() noexcept {}
+    virtual bool consume(IOVector& io_vector) = 0;
 };
 
 }}}

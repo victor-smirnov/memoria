@@ -258,11 +258,11 @@ public:
 
         auto meta         = this->metadata();
 
-        int32_t data_size     = meta->data_size();
+        int32_t data_size = meta->data_size();
         auto values       = this->values();
         TreeLayout layout = compute_tree_layout(data_size);
 
-        int32_t start_pos     = locate(layout, values, idx).idx;
+        int32_t start_pos = locate(layout, values, idx).idx;
 
         MEMORIA_V1_ASSERT(start_pos, <, data_size);
 
@@ -754,7 +754,7 @@ public:
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(idx, <=, meta->size());
 
-        int32_t data_size       = meta->data_size();
+        int32_t data_size   = meta->data_size();
         auto values         = this->values();
         TreeLayout layout   = compute_tree_layout(data_size);
 
@@ -820,6 +820,29 @@ public:
         this->size() += size;
 
         return reindex();
+    }
+
+    void get_lengths_to(int32_t column, int32_t start, int32_t size, int32_t* array) const
+    {        
+        auto meta = this->metadata();
+
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start + size, <=, this->size());
+
+        auto values         = this->values();
+        TreeLayout layout   = compute_tree_layout(meta->data_size());
+        size_t pos          = locate(layout, values, start).idx;
+        size_t data_size    = meta->data_size();
+
+        Codec codec;
+
+        int32_t c;
+        for (c = 0; c < size; c++)
+        {
+            auto len = codec.length(values, pos, data_size);
+            array[c] = len;
+            pos += len;
+        }
     }
 
 
@@ -1173,11 +1196,11 @@ public:
     template <typename Walker>
     auto find(Walker&& walker) const
     {
-        auto meta = this->metadata();
+        auto meta   = this->metadata();
         auto values = this->values();
 
         size_t data_size = meta->data_size();
-        int32_t size = meta->size();
+        int32_t size     = meta->size();
 
         Codec codec;
 

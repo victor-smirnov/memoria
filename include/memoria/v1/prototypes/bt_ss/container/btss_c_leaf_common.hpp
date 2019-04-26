@@ -88,31 +88,9 @@ public:
 
 
 
-    template <typename InputProvider>
-    CtrSizeT insert(Iterator& iter, InputProvider& provider)
-    {
-        auto& self = this->self();
-
-        auto pos = Position(iter.local_pos());
-
-        auto id = iter.leaf()->id();
-
-        auto result = self.insert_provided_data(iter.leaf(), pos, provider);
-
-        iter.leaf().assign(result.leaf());
-        iter.local_pos() = result.position()[0];
-
-        if (id != iter.leaf()->id())
-        {
-            iter.refresh();
-        }
-
-        return provider.total();
-    }
 
 
-
-    CtrSizeT insert(Iterator& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length)
+    CtrSizeT insert_iovector(Iterator& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length)
     {
         auto& self = this->self();
 
@@ -127,6 +105,40 @@ public:
         auto result = self.insert_provided_data(iter.leaf(), pos, streaming);
 
         iter.local_pos()  = result.position().sum();
+        iter.leaf().assign(result.leaf());
+
+        if (iter.leaf()->id() != id) {
+            iter.refresh();
+        }
+
+        return streaming.totals();
+    }
+
+    struct BTSSIOVectorProducer: io::IOVectorProducer {
+        virtual bool populate(io::IOVector& io_vector)
+        {
+            return true; // provided io_vector has been already populated
+        }
+    };
+
+
+    CtrSizeT insert_iovector(Iterator& iter, io::IOVector& io_vector, CtrSizeT start, CtrSizeT length)
+    {
+        auto& self = this->self();
+
+        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+
+        auto id = iter.leaf()->id();
+
+        BTSSIOVectorProducer producer{};
+
+        btss::io::IOVectorBTSSInputProvider<MyType> streaming(self, &producer, &io_vector, start, length, false);
+
+        auto pos = Position(iter.local_pos());
+
+        auto result = self.insert_provided_data(iter.leaf(), pos, streaming);
+
+        iter.local_pos() = result.position().sum();
         iter.leaf().assign(result.leaf());
 
         if (iter.leaf()->id() != id) {

@@ -16,7 +16,11 @@
 
 #pragma once
 
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/strings/string.hpp>
+#include <memoria/v1/core/strings/format.hpp>
+#include <memoria/v1/core/memory/malloc.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <string>
 #include <sstream>
@@ -27,20 +31,28 @@
 #endif
 
 #include <typeinfo>
-#include <memoria/v1/core/types.hpp>
 
 namespace memoria {
 namespace v1 {
 
 #ifdef __GNUC__
-template<typename T, int BufferSize = 40960>
+template<typename T>
 struct TypeNameFactory
 {
-    static U16String name() {
-        char buf[BufferSize];
-        size_t len = sizeof(buf);
-        abi::__cxa_demangle(typeid(T).name(), buf, &len, NULL);
-        return U8String(std::string(buf)).to_u16();
+    static U16String name()
+    {
+        UniquePtr<char> buf {
+            abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr),
+            ::free
+        };
+
+        if (buf)
+        {
+            return U8String(std::string(buf.get())).to_u16();
+        }
+        else {
+            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Demaingling failed for type {}", cname());
+        }
     }
 
     static const char* cname() {
@@ -57,7 +69,7 @@ static inline U16String demangle(const char* name)
 }
 
 #else
-template<typename T, int BufferSize = 40960>
+template<typename T>
 struct TypeNameFactory
 {
     static U16String name() {

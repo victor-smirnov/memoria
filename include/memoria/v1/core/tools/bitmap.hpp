@@ -33,8 +33,7 @@
 #include <iostream>
 #include <limits>
 #include <type_traits>
-#include <string.h>
-
+#include <cstring>
 
 
 
@@ -216,6 +215,12 @@ inline int32_t PopCnt(uint32_t v)
     v = (v * 0x01010101) >> 24;
     return v;
 }
+
+template <typename T>
+static constexpr T divUp(T value, T divider) {
+    return (value / divider) + (value % divider ? 1 : 0);
+}
+
 
 inline int32_t PopCnt(uint8_t v)
 {
@@ -1015,6 +1020,12 @@ template <typename T>
 void CopyBuffer(const T *src, T *dst, size_t size)
 {
     memmove(dst, src, size * sizeof(T));
+}
+
+template <typename T>
+void MemCpyBuffer(const T *src, T *dst, size_t size)
+{
+    std::memcpy(dst, src, size * sizeof(T));
 }
 
 

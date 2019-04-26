@@ -125,6 +125,26 @@ int64_t IterApiBTSSBase<CtrName, Profile>::insert(std::function<int32_t (CtrIOBu
 
 
 template <typename CtrName, typename Profile>
+int64_t IterApiBTSSBase<CtrName, Profile>::read_to(
+        io::IOVectorConsumer& producer,
+        int64_t length
+)
+{
+    return this->pimpl_->read_to(producer, length);
+}
+
+
+template <typename CtrName, typename Profile>
+int64_t IterApiBTSSBase<CtrName, Profile>::populate(
+        io::IOVector& io_vector,
+        int64_t length
+)
+{
+    return this->pimpl_->populate(io_vector, length);
+}
+
+
+template <typename CtrName, typename Profile>
 int64_t IterApiBTSSBase<CtrName, Profile>::insert(
         io::IOVectorProducer& producer,
         int64_t start,
@@ -134,6 +154,16 @@ int64_t IterApiBTSSBase<CtrName, Profile>::insert(
     return this->pimpl_->insert_iovector(producer, start, length);
 }
 
+
+template <typename CtrName, typename Profile>
+int64_t IterApiBTSSBase<CtrName, Profile>::insert(
+        io::IOVector& io_vector,
+        int64_t start,
+        int64_t length
+)
+{
+    return this->pimpl_->insert_iovector(io_vector, start, length);
+}
 
 
 template <typename CtrName, typename Profile>

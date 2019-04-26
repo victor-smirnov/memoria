@@ -65,6 +65,8 @@ protected:
     CtrSizeT start_pos_;
     CtrSizeT length_;
 
+    bool reset_iovector_;
+
 public:
 
     IOVectorBTSSInputProviderBase(
@@ -72,11 +74,13 @@ public:
             memoria::v1::io::IOVectorProducer* producer,
             memoria::v1::io::IOVector* io_vector,
             CtrSizeT start_pos,
-            CtrSizeT length
+            CtrSizeT length,
+            bool reset_iovector
     ):
         ctr_(ctr),
         producer_(producer), io_vector_(io_vector),
-        start_pos_(start_pos), length_(length)
+        start_pos_(start_pos), length_(length),
+        reset_iovector_(reset_iovector)
     {
 
     }
@@ -267,9 +271,15 @@ public:
             start_ = 0;
             size_ = 0;
 
-            io_vector_->reset();
+            if (MMA1_LIKELY(reset_iovector_)) {
+                io_vector_->reset();
+            }
+
             finished_ = producer_->populate(*io_vector_);
-            io_vector_->reindex();
+
+            if (MMA1_LIKELY(reset_iovector_)) {
+                io_vector_->reindex();
+            }
 
             seq.rank_to(io_vector_->symbol_sequence().size(), &size_);
 
@@ -295,39 +305,6 @@ public:
             finished_ = true;
         }
     }
-
-
-
-//    virtual bool populate_buffer()
-//    {
-//        auto& seq = io_vector_->symbol_sequence();
-
-//        if (size_ == start_)
-//        {
-//            if (!finish_)
-//            {
-//                start_ = 0;
-//                size_  = 0;
-
-//                io_vector_->reset();
-
-//                finish_ = producer_->populate(*io_vector_);
-//                seq.reindex();
-
-//                size_ = seq.size();
-
-//                total_ += this->size_;
-
-//                return size_ != 0;
-//            }
-//            else {
-//                return false;
-//            }
-//        }
-//        else {
-//            return true;
-//        }
-//    }
 };
 
 
@@ -360,8 +337,9 @@ public:
             memoria::v1::io::IOVectorProducer* producer,
             memoria::v1::io::IOVector* io_vector,
             CtrSizeT start_pos,
-            CtrSizeT length
-    ): Base(ctr, producer, io_vector, start_pos, length)
+            CtrSizeT length,
+            bool reset_iovector = true
+    ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
     virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size)
@@ -401,8 +379,9 @@ public:
             memoria::v1::io::IOVectorProducer* producer,
             memoria::v1::io::IOVector* io_vector,
             CtrSizeT start_pos,
-            CtrSizeT length
-    ): Base(ctr, producer, io_vector, start_pos, length)
+            CtrSizeT length,
+            bool reset_iovector = true
+    ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
     virtual Position fill(NodeBaseG& leaf, const Position& from)

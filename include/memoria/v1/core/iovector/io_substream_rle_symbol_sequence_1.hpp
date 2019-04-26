@@ -101,6 +101,10 @@ public:
         return typeid(PackedRLESymbolSequence<1>);
     }
 
+    virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const
+    {
+    }
+
     virtual void configure(void* ptr) {
         MMA1_THROW(UnsupportedOperationException());
     }

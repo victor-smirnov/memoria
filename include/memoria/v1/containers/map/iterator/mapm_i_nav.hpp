@@ -60,17 +60,6 @@ public:
         self.skipFw(1);
     }
 
-    template <typename InputIterator>
-    auto bulk_insert(InputIterator&& start, InputIterator&& end, int32_t ib_capacity = 10000)
-    {
-//        using InputProvider = map::MapEntryIteratorInputProvider<Container, InputIterator>;
-//
-//        auto bulk = std::make_unique<InputProvider>(self().ctr(), start, end, ib_capacity);
-//
-//        return Base::bulk_insert(*bulk.get());
-    }
-
-
 
     void remove()
     {

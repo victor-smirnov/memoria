@@ -17,6 +17,8 @@
 
 #include <memoria/v1/core/iovector/io_substream_base.hpp>
 
+#include <memoria/v1/core/tools/type_name.hpp>
+
 #include <typeinfo>
 
 namespace memoria {
@@ -30,12 +32,13 @@ struct IORowwiseFixedSizeArraySubstream: IOSubstream {
     virtual const Value* select(int32_t idx) const    = 0;
 
     virtual Value* reserve(int32_t rows)              = 0;
-    virtual Value* reserve(int32_t rows, uint64_t* nulls_bitmap) = 0;
+    virtual Value* ensure(int32_t capacity)           = 0;
 
-    virtual Value* ensure(int32_t capacity) = 0;
+    virtual U8String describe() const {
+        return TypeNameFactory<IORowwiseFixedSizeArraySubstream<Value>>::name().to_u8();
+    }
 
-    virtual const std::type_info& substream_type() const
-    {
+    virtual const std::type_info& substream_type() const {
         return typeid(IORowwiseFixedSizeArraySubstream<Value>);
     }
 };
@@ -66,11 +69,14 @@ struct IOColumnwiseFixedSizeArraySubstream: IOSubstream {
     virtual const Value* select(int32_t column, int32_t idx) const    = 0;
 
     virtual Value* reserve(int32_t column, int32_t size) = 0;
-    virtual Value* reserve(int32_t column, int32_t size, uint64_t* nulls_bitmap) = 0;
 
     virtual Value* ensure(int32_t column, int32_t capacity) = 0;
 
     virtual void append(int32_t column, const Value& value) = 0;
+
+    virtual U8String describe() const {
+        return TypeNameFactory<IOColumnwiseFixedSizeArraySubstream<Value>>::name().to_u8();
+    }
 
     virtual const std::type_info& substream_type() const {
         return typeid(IOColumnwiseFixedSizeArraySubstream<Value>);

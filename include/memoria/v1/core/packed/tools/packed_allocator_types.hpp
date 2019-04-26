@@ -22,6 +22,8 @@
 #include <memoria/v1/core/tools/reflection.hpp>
 #include <memoria/v1/profiles/common/block_operations.hpp>
 
+#include <memoria/v1/core/tools/bitmap.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -243,7 +245,8 @@ public:
     }
 
     static constexpr int32_t divUp(int32_t value, int32_t divider) {
-        return (value / divider) + (value % divider ? 1 : 0);
+        //return (value / divider) + (value % divider ? 1 : 0);
+        return v1::divUp(value, divider);
     }
 
     template <typename SerializationData>

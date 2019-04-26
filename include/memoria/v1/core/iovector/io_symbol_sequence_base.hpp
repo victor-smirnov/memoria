@@ -19,6 +19,9 @@
 
 #include <memoria/v1/core/iovector/io_substream_base.hpp>
 
+#include <memoria/v1/core/tools/type_name.hpp>
+
+
 #include <functional>
 
 namespace memoria {
@@ -43,6 +46,9 @@ struct IOSymbolSequence: IOSubstream {
     virtual void rank_to(uint64_t idx, uint64_t* values) const  = 0;
     virtual void append(int32_t symbol, uint64_t length)        = 0;
 
+    virtual U8String describe() const {
+        return TypeNameFactory<IOSymbolSequence>::name().to_u8();
+    }
 
     virtual const std::type_info& sequence_type() const         = 0;
     virtual const std::type_info& substream_type() const {

@@ -22,6 +22,8 @@
 #include <memoria/v1/core/strings/format.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
+
+
 #include <typeinfo>
 #include <type_traits>
 
@@ -36,7 +38,11 @@ struct IOSubstream {
     virtual void reset()   = 0;
     virtual void reindex() = 0;
 
+    virtual U8String describe() const = 0;
+
     virtual const std::type_info& substream_type() const = 0;
+
+    virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const = 0;
 };
 
 template <typename T>

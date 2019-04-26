@@ -24,6 +24,7 @@
 
 #include <memoria/v1/core/memory/malloc.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
+#include <memoria/v1/core/tools/spliterator.hpp>
 
 
 #include <type_traits>
@@ -43,14 +44,18 @@ class IORowwiseVLenArraySubstreamImpl final: public IORowwiseVLenArraySubstream<
 
     std::vector<int32_t> row_offsets_{};
 
+    static constexpr int32_t BUFFER_SIZE = 256;
+
+    mutable UniquePtr<int32_t> lengths_buffer_;
+
 public:
     IORowwiseVLenArraySubstreamImpl(): IORowwiseVLenArraySubstreamImpl(64)
     {}
 
-    IORowwiseVLenArraySubstreamImpl(int32_t initial_capacity)
+    IORowwiseVLenArraySubstreamImpl(int32_t initial_capacity): lengths_buffer_(nullptr, ::free)
     {
-        data_buffer_  = allocate_system<uint8_t>(initial_capacity).release();
-        data_buffer_size_  = initial_capacity;
+        data_buffer_ = allocate_system<uint8_t>(initial_capacity).release();
+        data_buffer_size_ = initial_capacity;
     }
 
     virtual ~IORowwiseVLenArraySubstreamImpl() noexcept
@@ -110,9 +115,6 @@ public:
         return data_buffer_ + last_data_size;
     }
 
-    virtual uint8_t* reserve(int32_t values, const int32_t* lengths, const uint64_t* nulls_bitmap) {
-        return reserve(values, lengths);
-    }
 
     void reset()
     {
@@ -132,9 +134,53 @@ public:
         return data_buffer_ + row_offsets_[row];
     }
 
+    virtual void get_lengths_to(int32_t start, int32_t size, int32_t* array) const
+    {
+        int32_t idx = start;
+        for (int32_t c = 0; c < size; c++, idx++) {
+            array[c] = row_offsets_[idx + 1] - row_offsets_[idx];
+        }
+    }
+
+
+
+    virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const
+    {
+        init_buffers();
+
+        auto& tgt_substream = substream_cast<IORowwiseVLenArraySubstream<Value>>(target);
+
+        FixedSizeSpliterator<int32_t, BUFFER_SIZE> splits(length);
+
+        while (splits.has_more())
+        {
+            int32_t at = start + splits.split_start();
+
+            get_lengths_to(at, splits.split_size(), lengths_buffer_.get());
+
+            const auto* src_buffer  = select(at);
+            std::ptrdiff_t buf_size = select(start + splits.split_end()) - src_buffer;
+
+            auto* tgt_buffer = tgt_substream.reserve(splits.split_size(), lengths_buffer_.get());
+
+            MemCpyBuffer(src_buffer, tgt_buffer, buf_size);
+
+            splits.next_split();
+        }
+    }
+
     virtual void reindex()
     {
         row_offsets_.push_back(data_size_);
+    }
+
+private:
+    void init_buffers() const
+    {
+        if (!lengths_buffer_)
+        {
+            lengths_buffer_ = allocate_system_zeroed<int32_t>(BUFFER_SIZE);
+        }
     }
 };
 
