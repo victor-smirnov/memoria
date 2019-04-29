@@ -37,8 +37,6 @@
 
 #include <memoria/v1/core/strings/string_codec.hpp>
 
-#include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
-
 #include <string>
 #include <algorithm>
 #include <map>

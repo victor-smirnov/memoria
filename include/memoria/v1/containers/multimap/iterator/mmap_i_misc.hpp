@@ -51,10 +51,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mmap::ItrMiscName)
     static constexpr int32_t DataStreams            = Container::Types::DataStreams;
     static constexpr int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
-    using IOBuffer  = DefaultIOBuffer;
-
-
-
 public:
 
 
@@ -183,7 +179,7 @@ public:
         self.template insert_entry<1>(bt::SingleValueEntryFn<1, Value, CtrSizeT>(value));
     }
 
-
+#ifdef MMA1_USE_IOBUFFER
     template <typename ValueConsumer>
     class ReadValuesFn: public bt::BufferConsumer<IOBuffer> {
 
@@ -207,16 +203,15 @@ public:
             return entries;
         }
     };
-
+#endif
 
     std::vector<Value> read_values(CtrSizeT length = std::numeric_limits<CtrSizeT>::max())
     {
 //        auto& self = this->self();
 
         std::vector<Value> values;
-
-        ReadValuesFn<std::vector<Value>> read_fn(&values);
 #ifdef MMA1_USE_IOBUFFER
+        ReadValuesFn<std::vector<Value>> read_fn(&values);
         self.bulkio_scan_run(&read_fn, 1, length);
 #endif
         return values;

@@ -17,7 +17,6 @@
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
 
-#include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
@@ -27,7 +26,8 @@
 
 namespace memoria {
 namespace v1 {
-    
+
+#ifdef MMA1_USE_IOBUFFER
 template <typename IOBuffer, int32_t Symbols>
 class SingleStreamProducerAdapter: public bt::BufferProducer<IOBuffer> {
     
@@ -123,6 +123,6 @@ public:
         }
     }
 };
-
+#endif
     
 }}
