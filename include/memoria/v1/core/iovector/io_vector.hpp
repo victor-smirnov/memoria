@@ -259,7 +259,7 @@ struct IOVectorProducer {
 
 struct IOVectorConsumer {
     virtual ~IOVectorConsumer() noexcept {}
-    virtual bool consume(IOVector& io_vector) = 0;
+    virtual void consume(IOVector& io_vector) = 0;
 };
 
 }}}

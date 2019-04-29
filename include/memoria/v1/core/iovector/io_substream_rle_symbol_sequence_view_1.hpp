@@ -67,11 +67,11 @@ public:
     }
 
     virtual const void* buffer() const {
-        return nullptr;
+        return &size_;
     }
 
     virtual void* buffer() {
-        return nullptr;
+        return &size_;
     }
 
     virtual void rank_to(uint64_t idx, uint64_t* values) const
@@ -104,6 +104,12 @@ public:
 
     virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const
     {
+        IOSymbolSequence& target_stream = substream_cast<IOSymbolSequence>(target);
+        target_stream.append_from(*this, start, length);
+    }
+
+    void append_from(const IOSymbolSequence& source, int32_t start, int32_t length) {
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Appending to not supported for PackedSymbolSequenceNonOwningImpl");
     }
 
     virtual void configure(void* ptr)

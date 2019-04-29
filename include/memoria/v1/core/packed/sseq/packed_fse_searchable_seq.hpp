@@ -530,15 +530,15 @@ public:
         }
     }
 
-    OpStatus insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
-    {
-        if(isFail(insertDataRoom(at, size))) {
-            return OpStatus::FAIL;
-        }
-        tools().move(buffer->symbols(), this->symbols(), start, at, size);
+//    OpStatus insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
+//    {
+//        if(isFail(insertDataRoom(at, size))) {
+//            return OpStatus::FAIL;
+//        }
+//        tools().move(buffer->symbols(), this->symbols(), start, at, size);
 
-        return reindex();
-    }
+//        return reindex();
+//    }
 
 
     OpStatus insert(int32_t start, int32_t length, std::function<Value ()> fn)

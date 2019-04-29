@@ -62,7 +62,7 @@ struct context_initializer {
             constexpr std::size_t ctx_size = sizeof( context);
             constexpr std::size_t sched_size = sizeof( scheduler);
             constexpr std::size_t size = 2 * alignment + ctx_size + sched_size;
-            void * vp = allocate_system<void>( size).release();
+            void * vp = allocate_system<uint8_t>( size).release();
             if ( nullptr == vp) {
                 throw std::bad_alloc();
             }

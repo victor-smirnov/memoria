@@ -95,6 +95,11 @@ public:
         }
     }
 
+    ~RandomBufferPopulator() {
+        ::free(key_buf_);
+        ::free(value_buf_);
+    }
+
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
@@ -136,7 +141,7 @@ int main()
 
         ctr.new_block_size(32 * 1024);
 
-        size_t total_data_size = 1024 * 1024 * 1024;
+        size_t total_data_size = 1024 * 1024;
 
         RandomBufferPopulator provider(
             "loooooooooooooooooooooooooooooooooooooooooooooo000ong key: 123",
@@ -149,9 +154,27 @@ int main()
 
         ctr.begin().insert(provider);
 
-        auto t1 = getTimeInMillis();
-        
+        auto t1 = getTimeInMillis();        
         std::cout << "Creation time: " << (t1 - t0) <<", size = " << ctr.size() << std::endl;
+
+        auto ii = ctr.begin();
+
+        auto iov = ctr.create_iovector();
+
+        ii.populate(*iov.get());
+
+        std::cout << iov->symbol_sequence().size() << std::endl;
+
+        auto& s0 = io::checked_substream_cast<io::IOColumnwiseVLenArraySubstream<Key>>(iov->substream(0));
+        auto& s1 = io::checked_substream_cast<io::IORowwiseVLenArraySubstream<Value>>(iov->substream(1));
+
+        std::cout << iov->symbol_sequence().size() << std::endl;
+
+        std::vector<int32_t> lengths(s0.describe(0).size);
+
+        s0.get_lengths_to(0, 0, s0.describe(0).size, lengths.data());
+
+        std::cout << s0.describe(0).size << std::endl;
 
         // Finish snapshot so no other updates are possible.
         snp.commit();

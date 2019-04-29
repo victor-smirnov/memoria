@@ -16,8 +16,6 @@
 #pragma once
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
-
-#include <memoria/v1/api/db/update_log/update_log_input.hpp>
 #include <memoria/v1/api/db/update_log/update_log_output.hpp>
 
 #include <memoria/v1/core/tools/uuid.hpp>
@@ -57,18 +55,6 @@ public:
     int64_t size() const;
 
     void create_snapshot(const UUID& snapshot_id);
-#ifdef MMA1_USE_IOBUFFER
-    void append_commands(const UUID& ctr_name, bt::BufferProducer<CtrIOBuffer>& data_producer);
-#endif
-
-    template <typename InputIterator, typename EndIterator>
-    void append_commands(const UUID& ctr_name, InputIterator start, EndIterator end)
-    {
-#ifdef MMA1_USE_IOBUFFER
-        InputIteratorProvider<uint8_t, InputIterator, EndIterator, CtrIOBuffer> provider(start, end);
-        return append_commands(ctr_name, provider);
-#endif
-    }
 
     CommandsDataIteratorT read_commads(const UUID& ctr_name, CtrSizeT start = 0);
 
@@ -96,6 +82,8 @@ public:
     using CtrSizesT = typename CtrApi<UpdateLog, Profile>::CtrSizesT;
     
     MMA1_DECLARE_ITERAPI_BASIC_METHODS()
+
+    int32_t leaf_pos(int32_t data_stream);
 };
 
 

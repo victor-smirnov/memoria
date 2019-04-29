@@ -78,25 +78,6 @@ struct FieldFactory<UUID> {
 
 namespace bt {
 
-
-
-
-template <typename PkdStructList> struct MakeStreamEntryTL;
-
-template <typename Head, typename... Tail>
-struct MakeStreamEntryTL<TL<Head, Tail...>> {
-    using Type = MergeLists<
-            typename PkdStructInputType<Head>::Type,
-            typename MakeStreamEntryTL<TL<Tail...>>::Type
-    >;
-};
-
-template <>
-struct MakeStreamEntryTL<TL<>> {
-    using Type = TL<>;
-};
-
-
 template <typename List> struct TypeListToTupleH;
 
 template <typename List>

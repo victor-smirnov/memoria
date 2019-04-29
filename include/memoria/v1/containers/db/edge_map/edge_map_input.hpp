@@ -21,7 +21,7 @@
 
 #include <memoria/v1/containers/multimap/mmap_tools.hpp>
 
-#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_input.hpp>
+//#include <memoria/v1/retired/prototypes/bt_fl/io/btfl_input.hpp>
 
 #include <tuple>
 #include <vector>
@@ -33,7 +33,7 @@ namespace edge_map {
 template <typename K, typename V>
 using MapData = std::vector<std::pair<K, std::vector<V>>>;
 
-
+/*
 template <typename Key, typename Value, typename IOBufferT = DefaultIOBuffer>
 class MultimapIOBufferProducer: public btfl::io::FlatTreeIOBufferAdapter<2, IOBufferT> {
 
@@ -135,7 +135,7 @@ public:
 
 };
 
-
+*/
 
 
 

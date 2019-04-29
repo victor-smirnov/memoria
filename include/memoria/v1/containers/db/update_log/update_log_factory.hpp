@@ -27,8 +27,6 @@
 #include <memoria/v1/containers/db/update_log/update_log_tools.hpp>
 #include <memoria/v1/containers/db/update_log/update_log_iterator.hpp>
 
-#include <memoria/v1/retired/prototypes/bt/layouts/bt_input.hpp>
-
 #include <tuple>
 
 namespace memoria {
@@ -106,17 +104,6 @@ struct UpdateLogBTTypesBase: public UpdateLogBTTypesBaseBase<Profile> {
 
 
     static constexpr int32_t DataStreams = ListSize<StreamDescriptors> - 1;
-
-#ifdef MMA1_USE_IOBUFFER
-    template <int32_t Level>
-    using IOData = btfl::BTFLData<
-        DataStreams,
-        Level,
-        SnapshotIdT,
-        CtrNameT,
-        DataT
-    >;
-#endif
 };
 
 

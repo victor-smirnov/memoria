@@ -362,23 +362,7 @@ public:
         return insertSpace(pos, size);
     }
 
-    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
-    {
-        if(isFail(insertSpace(at[0], size))) {
-            return OpStatusT<SizesT>();
-        }
 
-        return OpStatusT<SizesT>(at + SizesT(size));
-    }
-
-    OpStatusT<int32_t> insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
-    {
-        if(isFail(insertSpace(at, size))) {
-            return OpStatusT<int32_t>();
-        }
-
-        return OpStatusT<int32_t>(at + size);
-    }
 
     Value value(int32_t, int32_t) const {
         return Value();

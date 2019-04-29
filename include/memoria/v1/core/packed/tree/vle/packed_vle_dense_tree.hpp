@@ -840,90 +840,90 @@ public:
         return pos;
     }
 
-    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t inserted)
-    {
-        Codec codec;
+//    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t inserted)
+//    {
+//        Codec codec;
 
-        size_t data_size = this->data_size();
+//        size_t data_size = this->data_size();
 
-        SizesT total_lengths = ends - starts;
-        int32_t total_length = total_lengths.sum();
+//        SizesT total_lengths = ends - starts;
+//        int32_t total_length = total_lengths.sum();
 
-        if(isFail(resize_segments(data_size + total_length))) {
-            return OpStatus::FAIL;
-        }
+//        if(isFail(resize_segments(data_size + total_length))) {
+//            return OpStatus::FAIL;
+//        }
 
-        auto values = this->values();
+//        auto values = this->values();
 
-        int32_t shift = 0;
+//        int32_t shift = 0;
 
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            size_t insertion_pos = at[block] + shift;
-            codec.move(values, insertion_pos, insertion_pos + total_lengths[block], data_size - insertion_pos);
+//        for (int32_t block = 0; block < Blocks; block++)
+//        {
+//            size_t insertion_pos = at[block] + shift;
+//            codec.move(values, insertion_pos, insertion_pos + total_lengths[block], data_size - insertion_pos);
 
-            codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
+//            codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
 
-            shift += total_lengths[block];
+//            shift += total_lengths[block];
 
-            data_size += total_lengths[block];
+//            data_size += total_lengths[block];
 
-            at[block] = insertion_pos + total_lengths[block];
-        }
+//            at[block] = insertion_pos + total_lengths[block];
+//        }
 
-        this->data_size() += total_length;
+//        this->data_size() += total_length;
 
-        metadata()->size() += (inserted * Blocks);
+//        metadata()->size() += (inserted * Blocks);
 
-        if(isFail(reindex())) {
-            return OpStatus::FAIL;
-        }
+//        if(isFail(reindex())) {
+//            return OpStatus::FAIL;
+//        }
 
-        return OpStatusT<SizesT>(at);
-    }
+//        return OpStatusT<SizesT>(at);
+//    }
 
 
-    OpStatus insert_buffer(int32_t pos, const InputBuffer* buffer, int32_t start, int32_t inserted)
-    {
-        Codec codec;
+//    OpStatus insert_buffer(int32_t pos, const InputBuffer* buffer, int32_t start, int32_t inserted)
+//    {
+//        Codec codec;
 
-        size_t data_size = this->data_size();
+//        size_t data_size = this->data_size();
 
-        SizesT starts = buffer->positions(start);
-        SizesT ends   = buffer->positions(start + inserted);
-        SizesT at     = this->positions(pos);
+//        SizesT starts = buffer->positions(start);
+//        SizesT ends   = buffer->positions(start + inserted);
+//        SizesT at     = this->positions(pos);
 
-        SizesT total_lengths = ends - starts;
-        int32_t total_length = total_lengths.sum();
+//        SizesT total_lengths = ends - starts;
+//        int32_t total_length = total_lengths.sum();
 
-        if(isFail(resize_segments(data_size + total_length))) {
-            return OpStatus::FAIL;
-        }
+//        if(isFail(resize_segments(data_size + total_length))) {
+//            return OpStatus::FAIL;
+//        }
 
-        auto values = this->values();
+//        auto values = this->values();
 
-        int32_t shift = 0;
+//        int32_t shift = 0;
 
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            size_t insertion_pos = at[block] + shift;
-            codec.move(values, insertion_pos, insertion_pos + total_lengths[block], data_size - insertion_pos);
+//        for (int32_t block = 0; block < Blocks; block++)
+//        {
+//            size_t insertion_pos = at[block] + shift;
+//            codec.move(values, insertion_pos, insertion_pos + total_lengths[block], data_size - insertion_pos);
 
-            codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
+//            codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
 
-            shift += total_lengths[block];
+//            shift += total_lengths[block];
 
-            data_size += total_lengths[block];
+//            data_size += total_lengths[block];
 
-            at[block] = insertion_pos + total_lengths[block];
-        }
+//            at[block] = insertion_pos + total_lengths[block];
+//        }
 
-        this->data_size() += total_length;
+//        this->data_size() += total_length;
 
-        metadata()->size() += (inserted * Blocks);
+//        metadata()->size() += (inserted * Blocks);
 
-        return reindex();
-    }
+//        return reindex();
+//    }
 
 
 

@@ -17,11 +17,6 @@
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
 
-#ifdef MMA1_USE_IOBUFFER
-#   include <memoria/v1/api/common/ctr_input_btss.hpp>
-#   include "multimap_input.hpp"
-#endif
-
 #include <memory>
 #include <tuple>
 
@@ -125,15 +120,6 @@ public:
     bool is_found(const Key& key);
 
     bool to_values();
-#ifdef MMA1_USE_IOBUFFER
-    int64_t read_keys(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t length = std::numeric_limits<int64_t>::max());
-    
-    CtrSizeT read_values(bt::BufferConsumer<CtrIOBuffer>& values_consumer, CtrSizeT start = 0, CtrSizeT length = std::numeric_limits<CtrSizeT>::max());
-    
-    CtrSizeT insert_values(bt::BufferProducer<CtrIOBuffer>& values_producer);
-    CtrSizeT insert_entry(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);
-#endif
-
 };
     
 }}

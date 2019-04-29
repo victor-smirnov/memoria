@@ -47,18 +47,26 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorInsertName)
 public:
 #ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
-    auto bulkio_insert(bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
+    auto insert_iovector(bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
     {
         auto& self = this->self();
-        return self.ctr().bulkio_insert(self, provider, initial_capacity);
+        return self.ctr().insert_iovector(self, provider, initial_capacity);
     }
 #endif
 
-    auto bulkio_insert(io::IOVectorProducer& provider, int64_t start, int64_t length)
+    auto insert_iovector(io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
         auto& self = this->self();
-        return self.ctr().bulkio_insert(self, provider, start, length);
+        return self.ctr().insert_iovector(self, provider, start, length);
     }
+
+    auto insert_iovector(io::IOVector& iovector, int64_t start, int64_t length)
+    {
+        auto& self = this->self();
+        return self.ctr().insert_iovector(self, iovector, start, length);
+    }
+
+
 
 public:
 

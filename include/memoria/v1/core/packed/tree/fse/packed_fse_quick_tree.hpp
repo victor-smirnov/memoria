@@ -917,31 +917,6 @@ public:
     }
 
 
-    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t inserted)
-    {
-        auto buffer_values = buffer->values() + starts[0] * Blocks;
-
-        if(isFail(_insert(at[0], inserted, [&](int32_t block, int32_t idx) -> const auto& {
-            return buffer_values[idx * Blocks + block];
-        }))){
-            return OpStatus::FAIL;
-        };
-
-        return OpStatusT<SizesT>(at + SizesT(inserted));
-    }
-
-    OpStatus insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t inserted)
-    {
-        auto buffer_values = buffer->values() + start * Blocks;
-
-        if(isFail(_insert(at, inserted, [&](int32_t block, int32_t idx) -> const auto& {
-            return buffer_values[idx * Blocks + block];
-        }))) {
-            return OpStatus::FAIL;
-        };
-
-        return OpStatus::OK;
-    }
 
 
     OpStatus insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t inserted)

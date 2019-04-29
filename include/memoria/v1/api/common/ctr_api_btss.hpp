@@ -108,8 +108,8 @@ public:
     int64_t pos();
     int64_t skip(int64_t offset);
 
-    int64_t read_to(io::IOVectorConsumer& producer, int64_t length = std::numeric_limits<int64_t>::max());
-    int64_t populate(io::IOVector& io_vector, int64_t length = std::numeric_limits<int64_t>::max());
+    int64_t read_to(io::IOVectorConsumer& producer, int64_t length = std::numeric_limits<CtrSizeT>::max());
+    int64_t populate(io::IOVector& io_vector, int64_t length = std::numeric_limits<CtrSizeT>::max());
 
     int64_t insert(io::IOVectorProducer& producer, int64_t start = 0, int64_t length = std::numeric_limits<int64_t>::max());
     int64_t insert(io::IOVector& io_vector, int64_t start = 0, int64_t length = std::numeric_limits<int64_t>::max());

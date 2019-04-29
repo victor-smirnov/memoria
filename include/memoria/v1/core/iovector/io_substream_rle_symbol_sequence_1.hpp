@@ -103,6 +103,13 @@ public:
 
     virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const
     {
+        IOSymbolSequence& target_stream = substream_cast<IOSymbolSequence>(target);
+        target_stream.append_from(*this, start, length);
+    }
+
+    void append_from(const IOSymbolSequence& source, int32_t start, int32_t length)
+    {
+        size_ += length;
     }
 
     virtual void configure(void* ptr) {

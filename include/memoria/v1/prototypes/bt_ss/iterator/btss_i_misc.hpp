@@ -149,21 +149,12 @@ public:
         return sizes[0];
     }
 
-#ifdef MMA1_USE_IOBUFFER
-    auto bulk_insert(btss::AbstractBTSSInputProvider<Container>& provider)
-    {
-        auto& self = this->self();
-        return self.ctr().insert(self, provider);
-    }
-#endif
 
     auto bulk_insert(btss::io::IOVectorBTSSInputProvider<Container>& provider)
     {
         auto& self = this->self();
         return self.ctr().insert(self, provider);
     }
-
-
 
 
     template <typename Iterator>
@@ -196,53 +187,6 @@ public:
     }
 
 
-#ifdef MMA1_USE_IOBUFFER
-    template <typename IOBuffer>
-    auto read_buffer(bt::BufferConsumer<IOBuffer>* consumer, CtrSizeT length)
-    {
-        auto& self = this->self();
-
-        auto buffer = self.ctr().pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
-
-        return self.ctr().template buffered_read<0>(self, length, *buffer.get(), *consumer);
-    }
-
-    template <typename IOBuffer>
-    auto read_buffer(bt::BufferConsumer<IOBuffer>* consumer)
-    {
-        auto& self = this->self();
-        return self.read_buffer(consumer, self.ctr().size());
-    }
-
-    template <typename IOBuffer>
-    auto populate_buffer(IOBuffer* buffer, CtrSizeT length)
-    {
-        auto& self = this->self();
-        return self.ctr().template populate_buffer<0>(self, length, *buffer);
-    }
-
-    template <typename IOBuffer>
-    auto populate_buffer(IOBuffer* buffer)
-    {
-        auto& self = this->self();
-        return self.populate_buffer(buffer, self.ctr().size());
-    }
-
-
-    template <typename IOBuffer>
-    auto insert_iobuffer(bt::BufferProducer<IOBuffer>* producer, int32_t ib_initial_capacity = 10000)
-    {
-        using InputProvider = btss::IOBufferProducerBTSSInputProvider<Container, IOBuffer>;
-
-        auto buffer = self().ctr().pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
-
-        auto bulk = std::make_unique<InputProvider>(self().ctr(), *buffer.get(), producer, ib_initial_capacity);
-
-        return this->bulk_insert(*bulk.get());
-    }
-
-
-#endif
     auto insert_iovector(io::IOVectorProducer& producer, int64_t start, int64_t length)
     {
         auto& self = this->self();
@@ -255,20 +199,60 @@ public:
         return self.ctr().insert_iovector(self, io_vector, start, length);
     }
 
-    auto read_to(io::IOVectorConsumer& producer, int64_t length)
+    auto read_to(io::IOVectorConsumer& consumer, int64_t length)
     {
-        //auto& self = this->self();
-        //return self.ctr().insert_iovector(self, producer, start, length);
+        auto& self = this->self();
 
-        return 0;
+        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+
+        auto processed = self.populate(*iov.get(), length);
+
+        consumer.consume(*iov.get());
+
+        return processed;
     }
 
     auto populate(io::IOVector& io_vector, int64_t length)
     {
-        //auto& self = this->self();
-        //return self.ctr().insert_iovector(self, io_vector, start, length);
+        auto& self = this->self();
 
-        return 0;
+        auto& view = self.iovector_view();
+
+        int64_t processed{};
+
+        while (processed < length)
+        {
+            int32_t start = self.local_pos();
+            int32_t size  = self.leaf_size();
+
+            int32_t leaf_remainder = size - start;
+            int32_t to_copy;
+
+            if (processed + leaf_remainder <= length)
+            {
+                to_copy = leaf_remainder;
+            }
+            else {
+                to_copy = length - processed;
+            }
+
+            view.symbol_sequence().copy_to(io_vector.symbol_sequence(), start, to_copy);
+
+            for (int32_t ss = 0; ss < view.substreams(); ss++)
+            {
+                view.substream(ss).copy_to(io_vector.substream(ss), start, to_copy);
+            }
+
+            processed += to_copy;
+
+            if (!self.nextLeaf()) {
+                break;
+            }
+        }
+
+        io_vector.reindex();
+
+        return processed;
     }
 
 public:
@@ -277,7 +261,7 @@ public:
     {
         auto& self = this->self();
 
-        NodeBaseG& leaf = self.leaf();
+        NodeBaseG& leaf     = self.leaf();
         int32_t& idx        = self.local_pos();
 
         int32_t size        = self.leaf_size(0);

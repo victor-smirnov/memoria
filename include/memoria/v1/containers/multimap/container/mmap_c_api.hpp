@@ -46,9 +46,6 @@ protected:
 
     using Key   = typename Types::Key;
     using Value = typename Types::Value;
-#ifdef MMA1_USE_IOBUFFER
-    using IOBuffer = DefaultIOBuffer;
-#endif
 
 public:
     IteratorPtr begin() {
@@ -59,8 +56,6 @@ public:
         auto& self = this->self();
         return self.template seek_stream<0>(self.sizes()[0]);
     }
-
-    //using Base::seek;
 
     IteratorPtr seek(CtrSizeT idx)
     {
@@ -109,7 +104,7 @@ public:
         {
             mmap::MultimapEntryBufferProducer<IOBuffer, Key, Iterator> producer(key, start, end);
 
-            iter->bulkio_insert(producer);
+            iter->insert_iovector(producer);
         }
 
         return iter;

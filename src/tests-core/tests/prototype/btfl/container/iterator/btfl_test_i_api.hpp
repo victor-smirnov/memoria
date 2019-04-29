@@ -72,11 +72,11 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl_test::IterApiName)
 public:
 
     template <typename IOBuffer>
-    auto bulkio_insert(bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
+    auto insert_iovector(bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 20000)
     {
         auto& self = this->self();
 
-        return self.ctr().bulkio_insert(self, provider, initial_capacity);
+        return self.ctr().insert_iovector(self, provider, initial_capacity);
     }
 
     template <typename BTFLDataT>
@@ -88,7 +88,7 @@ public:
 
         iodata_producer->init(data);
 
-        return self.bulkio_insert(*iodata_producer.get());
+        return self.insert_iovector(*iodata_producer.get());
     }
 
     template <typename BTFLDataT, typename InputIter>
@@ -100,7 +100,7 @@ public:
 
         iodata_producer->init(start, end);
 
-        return self.bulkio_insert(*iodata_producer.get());
+        return self.insert_iovector(*iodata_producer.get());
     }
 
     template <int32_t Level>

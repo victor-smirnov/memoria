@@ -111,8 +111,8 @@ public:
     using Values = core::StaticVector<Value, Blocks>;
 
 
-    using InputBuffer   = PkdVLERowOrderInputBuffer<Types>;
-    using InputType     = Values;
+//    using InputBuffer   = PkdVLERowOrderInputBuffer<Types>;
+//    using InputType     = Values;
 
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
@@ -338,19 +338,19 @@ public:
 
     ValueData* row_ptr(int32_t row_idx)
     {
-        int32_t size = this->size();
+        //int32_t size = this->size();
 
         MEMORIA_V1_ASSERT(row_idx, >=, 0);
-        MEMORIA_V1_ASSERT(row_idx, <, size);
 
         int32_t data_size     = this->data_size();
         auto values           = this->values();
-        TreeLayout layout     = this->compute_tree_layout(data_size);
 
         int32_t global_idx    = row_idx * Blocks;
         if (global_idx < this->size())
         {
-            int32_t start_pos = this->locate(layout, values, 0, global_idx, data_size).idx;
+            TreeLayout layout   = this->compute_tree_layout(data_size);
+            int32_t start_pos   = this->locate(layout, values, 0, global_idx, data_size).idx;
+
             return this->values() + start_pos;
         }
         else {
@@ -771,46 +771,6 @@ public:
     SizesT capacities() const
     {
         return SizesT(0);
-    }
-
-
-    OpStatusT<int32_t> insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
-    {
-        if (size > 0)
-        {
-            Codec codec;
-
-            auto meta = this->metadata();
-
-            size_t data_size = meta->data_size(0);
-
-            int32_t buffer_start = buffer->locate(0, start);
-            int32_t buffer_end = buffer->locate(Blocks - 1, start + size);
-
-            int32_t total_length = buffer_end - buffer_start;
-
-            if(isFail(resize_segments(data_size + total_length))) {
-                return OpStatusT<int32_t>();
-            }
-
-            auto values         = this->values();
-            auto buffer_values  = buffer->values(0);
-
-            size_t insertion_pos = locate(0, at);
-            codec.move(values, insertion_pos, insertion_pos + total_length, data_size - insertion_pos);
-
-            codec.copy(buffer_values, buffer_start, values, insertion_pos, total_length);
-
-            meta->data_size(0) += total_length;
-
-            meta->size() += (size * Blocks);
-
-            if(isFail(reindex())) {
-                return OpStatusT<int32_t>();
-            }
-        }
-
-        return OpStatusT<int32_t>(at + size);
     }
 
 

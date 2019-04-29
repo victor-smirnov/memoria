@@ -32,10 +32,6 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/v1/prototypes/bt/bt_walkers.hpp>
 
-#ifdef MMA1_USE_IOBUFFER
-#   include <memoria/v1/retired/prototypes/bt/layouts/bt_input.hpp>
-#endif
-
 #include <memoria/v1/prototypes/bt/walkers/bt_skip_walkers.hpp>
 #include <memoria/v1/prototypes/bt/walkers/bt_find_walkers.hpp>
 #include <memoria/v1/prototypes/bt/walkers/bt_findmax_walkers.hpp>
@@ -255,8 +251,6 @@ public:
     using BranchStreamsStructList   = typename bt::PackedBranchStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
 
     using LeafStreamsStructList     = typename bt::PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
-    using StreamsInputTypeList      = typename bt::PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StreamInputList;
-    using InputBufferStructList     = typename bt::PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::InputBufferList;
 
     using IteratorBranchNodeEntry = bt::TypeListToTuple<
                 Linearize<
@@ -290,8 +284,6 @@ public:
         using LeafStreamsStructList     = typename MyType::LeafStreamsStructList;
         using BranchStreamsStructList   = typename MyType::BranchStreamsStructList;
         using IteratorBranchNodeEntry   = typename MyType::IteratorBranchNodeEntry;
-        using StreamsInputTypeList      = typename MyType::StreamsInputTypeList;
-        using InputBufferStructList     = typename MyType::InputBufferStructList;
     };
 
     struct BranchNodeTypes: NodeTypesBase {};
@@ -372,8 +364,6 @@ public:
 
         using LeafStreamsStructList     = typename MyType::LeafStreamsStructList;
 
-        using InputBufferStructList     = typename MyType::InputBufferStructList;
-
         using BranchStreamsStructList   = typename MyType::BranchStreamsStructList;
 
         using IteratorBranchNodeEntry   = typename MyType::IteratorBranchNodeEntry;
@@ -390,13 +380,6 @@ public:
                 >
         >::Type;
 
-        using StreamsInputTypeList = typename MyType::StreamsInputTypeList;
-
-        template <int32_t Stream>
-        using StreamInputTuple  = bt::TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
-
-        template <int32_t Stream>
-        using InputTupleAdapter = bt::StreamTupleHelper<StreamInputTuple<Stream>>;
 
         template <typename LeafPath>
         using AccumItemH = bt::AccumItem<LeafStreamsStructList, LeafPath, IteratorBranchNodeEntry>;
@@ -407,9 +390,6 @@ public:
 
         template <int32_t SubstreamIdx>
         using BranchPathT = typename list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
-
-        template <int32_t StreamIdx>
-        using StreamInputBufferStructList = Select<StreamIdx, InputBufferStructList>;
 
         template <typename SubstreamPath>
         using LeafPackedStruct = typename Blocks::LeafDispatcher::Head::template PackedStruct<SubstreamPath>;

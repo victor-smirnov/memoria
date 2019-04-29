@@ -94,7 +94,7 @@ public:
     template <typename Value, int32_t Indexes, PkdSearchType SearchType>
     void stream(PackedSizedStruct<Value, Indexes, SearchType>* stream)
     {
-        io_vector_.symbol_sequence().configure(T2T<void*>(stream->size()));
+        io_vector_.symbol_sequence().configure(reinterpret_cast<void*>(stream->size()));
     }
 };
 

@@ -58,35 +58,6 @@ namespace _ {
         static const bool Value = (sizeof...(List1) == sizeof...(List2)) &&
                                     IsPlainList<TypeList<T1, List1...>>::Value;
     };
-
-
-    template <typename List> struct InputBufferListBuilder;
-
-    template <typename Head, typename... Tail>
-    struct InputBufferListBuilder<TL<Head, Tail...>> {
-        using Type = MergeLists<
-                typename PkdStructInputBufferType<Head>::Type,
-                typename InputBufferListBuilder<TL<Tail...>>::Type
-        >;
-    };
-
-    template <typename PackedStruct>
-    struct InputBufferListBuilder {
-        using Type = TL<typename PkdStructInputBufferType<PackedStruct>::Type>;
-    };
-
-    template <typename... List, typename... Tail>
-    struct InputBufferListBuilder<TL<TL<List...>, Tail...>> {
-        using Type = MergeLists<
-                TL<typename InputBufferListBuilder<TL<List...>>::Type>,
-                typename InputBufferListBuilder<TL<Tail...>>::Type
-        >;
-    };
-
-    template <>
-    struct InputBufferListBuilder<TL<>> {
-        using Type = TL<>;
-    };
 }
 
 
@@ -120,8 +91,6 @@ class PackedLeafStructListBuilder<SumType, TypeList<StreamTF<LeafType, BranchStr
             "Invalid substream structure"
     );
 
-    using InputBufferType = typename _::InputBufferListBuilder<LeafType>::Type;
-
 public:
     using StructList = MergeLists<
                 TL<LeafType>,
@@ -129,22 +98,6 @@ public:
                     SumType,
                     TypeList<Tail...>
                 >::StructList
-    >;
-
-    using StreamInputList = MergeLists<
-            TL<typename MakeStreamEntryTL<Linearize<LeafType>>::Type>,
-            typename PackedLeafStructListBuilder<
-                SumType,
-                TypeList<Tail...>
-            >::StreamInputList
-    >;
-
-    using InputBufferList = MergeLists<
-            TL<InputBufferType>,
-            typename PackedLeafStructListBuilder<
-                        SumType,
-                        TypeList<Tail...>
-            >::InputBufferList
     >;
 };
 

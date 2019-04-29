@@ -298,18 +298,18 @@ public:
     ValueData* value_ptr(int32_t block, int32_t idx)
     {
         MEMORIA_V1_ASSERT(idx, >=, 0);
-        MEMORIA_V1_ASSERT(idx, <, this->size());
+        //MEMORIA_V1_ASSERT(idx, <, this->size());
 
+        auto values       = this->values();
         auto meta         = this->metadata();
 
         int32_t data_size = meta->data_size();
-        auto values       = this->values();
-        TreeLayout layout = compute_tree_layout(data_size);
-
-        int32_t start_pos = locate(layout, values, idx).idx;
 
         if (idx < this->size())
         {
+            TreeLayout layout = compute_tree_layout(data_size);
+            int32_t start_pos = locate(layout, values, idx).idx;
+
             return values + start_pos;
         }
         else {
@@ -767,60 +767,7 @@ public:
     }
 
 
-    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
-    {
-        auto meta = this->metadata();
 
-        Codec codec;
-
-        SizesT total_lengths = ends - starts;
-
-        auto values = this->values();
-
-        size_t insertion_pos = at[0];
-
-        insert_space(insertion_pos, total_lengths[0]);
-
-        values = this->values();
-
-        codec.copy(buffer->values(), starts[0], values, insertion_pos, total_lengths[0]);
-
-        meta->size() += size;
-
-        if(isFail(reindex())) {
-            return OpStatus::FAIL;
-        }
-
-        return OpStatusT<SizesT>(at + total_lengths);
-    }
-
-    OpStatus insert_buffer(int32_t pos, const InputBuffer* buffer, int32_t start, int32_t size)
-    {
-        Codec codec;
-
-        SizesT starts   = buffer->positions(start);
-        SizesT ends     = buffer->positions(start + size);
-
-        auto at         = this->positions(pos);
-
-        SizesT total_lengths = ends - starts;
-
-        auto values = this->values();
-
-        size_t insertion_pos = at.data_pos(0);
-
-        if(isFail(insert_space(insertion_pos, total_lengths[0]))) {
-            return OpStatus::FAIL;
-        }
-
-        values = this->values();
-
-        codec.copy(buffer->values(0), starts[0], values, insertion_pos, total_lengths[0]);
-
-        this->size() += size;
-
-        return reindex();
-    }
 
     void get_lengths_to(int32_t column, int32_t start, int32_t size, int32_t* array) const
     {        

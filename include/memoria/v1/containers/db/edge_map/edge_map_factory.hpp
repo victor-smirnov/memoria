@@ -27,7 +27,6 @@
 #include <memoria/v1/containers/db/edge_map/edge_map_tools.hpp>
 #include <memoria/v1/containers/db/edge_map/edge_map_iterator.hpp>
 
-#include <memoria/v1/retired/prototypes/bt/layouts/bt_input.hpp>
 
 #include <tuple>
 
@@ -101,17 +100,6 @@ struct EdgeMapBTTypesBase: public EdgeMapBTTypesBaseBase<Profile> {
 
 
     static constexpr int32_t DataStreams = 2;
-
-#ifdef MMA1_USE_IOBUFFER
-    template <int32_t Level>
-    using IOData = btfl::BTFLData<
-        DataStreams,
-            Level,
-            Key,
-            Value
-    >;
-#endif
-
 };
 
 

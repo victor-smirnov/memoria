@@ -100,3 +100,23 @@
 #ifndef MMA1_ICU_CXX_NS
 #define MMA1_ICU_CXX_NS icu_60
 #endif
+
+// Packed stucts mutators must be designed in the SAFE way by default,
+// that means if OOM occurs, then resizing and repeating the mutator must
+// return the structure into consistent state.
+
+// This is currently a documentation tag marking mutator methods of packed
+// structutres whaich are known to leave structure in an
+// inconsistent state in case of Out-Of-Memory error. Before
+// mutating a structure with such method, a deep copy of the entire
+// strucuture must be performed for rollbacking.
+
+#define MMA1_PKD_OOM_UNSAFE
+
+// It's not yet known if all packed struct mutators are OOM-safe, so,
+// until refactoring is done, they should
+// be considered unsafe, unless OOM-safety is explicitly specified with
+// MMA1_PKD_OOM_SAFE macro tag.
+
+#define MMA1_PKD_OOM_SAFE
+

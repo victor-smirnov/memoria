@@ -47,7 +47,7 @@ protected:
     using Key   = typename Types::Key;
     using Value = typename Types::Value;
 
-    using IOBuffer = DefaultIOBuffer;
+    //using IOBuffer = DefaultIOBuffer;
 
 public:
     IteratorPtr begin() {
@@ -96,9 +96,10 @@ public:
 
         if (!iter->is_found(key))
         {
+#ifdef MMA1_USE_IOBUFFER
             edge_map::EdgeMapEntryBufferProducer<IOBuffer, Key, Iterator> producer(key, start, end);
-
-            iter->bulkio_insert(producer);
+            iter->insert_iovector(producer);
+#endif
         }
 
         return iter;

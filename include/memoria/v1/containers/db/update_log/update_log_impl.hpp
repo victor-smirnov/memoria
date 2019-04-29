@@ -18,7 +18,6 @@
 #include <memoria/v1/containers/db/update_log/update_log_factory.hpp>
 
 #include <memoria/v1/api/db/update_log/update_log_api.hpp>
-#include <memoria/v1/api/db/update_log/update_log_input.hpp>
 
 #include <memoria/v1/core/container/ctr_impl_btfl.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
@@ -40,13 +39,6 @@ void CtrApi<UpdateLog, Profile>::create_snapshot(const UUID& snapshot_id)
     return this->pimpl_->create_snapshot(snapshot_id);
 }
 
-#ifdef MMA1_USE_IOBUFFER
-template <typename Profile>
-void CtrApi<UpdateLog, Profile>::append_commands(const UUID& ctr_name, bt::BufferProducer<CtrIOBuffer>& data_producer)
-{
-    this->pimpl_->append_commands(ctr_name, data_producer);
-}
-#endif
 
 template <typename Profile>
 typename CtrApi<UpdateLog, Profile>::CommandsDataIteratorT
@@ -82,6 +74,13 @@ CtrApi<UpdateLog, Profile>::find_snapshot(const UUID& snapshot_id)
 {
     auto ii = this->pimpl_->find_snapshot(snapshot_id);
     return SnapshotIDIteratorT{ii, ii->snapshot_id_run_pos(), ii->ctr().size()};
+}
+
+
+template <typename Profile>
+int32_t IterApi<UpdateLog, Profile>::leaf_pos(int32_t data_stream)
+{
+    return this->pimpl_->data_stream_idx(data_stream);
 }
 
 
@@ -157,11 +156,6 @@ update_log::ContainerNameIterator<Iterator, CtrSizeT>::commands()
 template <typename Iterator, typename CtrSizeT>
 void update_log::CommandsDataIterator<Iterator, CtrSizeT>::prepare()
 {
-#ifdef MMA1_USE_IOBUFFER
-    walker_ = iterator_.ptr()->make_command_data_walker();
-    buffer_ = iterator_.ptr()->make_io_buffer();
-#endif
-
     prefetch();
 }
 
@@ -195,29 +189,9 @@ CtrSizeT update_log::CommandsDataIterator<Iterator, CtrSizeT>::remove(CtrSizeT s
 template <typename Iterator, typename CtrSizeT>
 bool update_log::CommandsDataIterator<Iterator, CtrSizeT>::prefetch()
 {
-#ifdef MMA1_USE_IOBUFFER
-    if (walker_.get())
-    {
-        int32_t n_entries = walker_->populate(buffer_.get());
+    entry_ = 0;
+    n_entries_ = size();
 
-        buffer_->flip();
-
-        entry_ = 0;
-        if (MMA1_LIKELY(n_entries > 0))
-        {
-            empty_ = false;
-            n_entries_ = n_entries;
-        }
-        else
-        {
-            empty_ = true;
-            n_entries_ = -n_entries;
-        }
-    }
-    else {
-        empty_ = true;
-    }
-#endif
     return entry_ < n_entries_;
 }
 

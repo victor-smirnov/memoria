@@ -17,10 +17,6 @@
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
 
-#ifdef MMA1_USE_IOBUFFER
-#   include <memoria/v1/api/db/update_log/update_log_input.hpp>
-#endif
-
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/object_pool.hpp>
 #include <memoria/v1/core/tools/pair.hpp>
@@ -53,11 +49,6 @@ class CommandsDataIterator {
 
     bool empty_{};
 
-#ifdef MMA1_USE_IOBUFFER
-    PoolUniquePtr<DefaultIOBuffer> buffer_{};
-    std::unique_ptr<IBTFLPopulateWalker<DefaultIOBuffer>> walker_{};
-#endif
-
 public:
     CommandsDataIterator(): iterator_{nullptr} {}
     CommandsDataIterator(CommandsDataIterator&& other) = default;
@@ -74,7 +65,9 @@ public:
         }
     }
 
-    bool has_next() {return entry_ < n_entries_ || ((!empty_) && prefetch()) ;}
+    bool has_next() {
+        return entry_ < n_entries_ || ((!empty_) && prefetch());
+    }
 
     CtrSizeT seek(CtrSizeT pos);
     CtrSizeT remove(CtrSizeT length);
@@ -129,13 +122,15 @@ public:
 
     uint8_t next()
     {
-#ifdef MMA1_USE_IOBUFFER
         if (MMA1_LIKELY(has_next()))
         {
             entry_++;
-            return IOBufferAdapter<uint8_t>::get(*buffer_.get());
+            auto& iov = iterator_.iovector_view();
+            auto& data_ss = io::substream_cast<io::IORowwiseFixedSizeArraySubstream<uint8_t>>(iov.substream(2));
+
+            return *data_ss.select(iterator_.leaf_pos(2));
         }
-#endif
+
         MMA1_THROW(RuntimeException()) << WhatCInfo("No such element");
     }
 
@@ -156,7 +151,7 @@ protected:
     size_t fetch_buffer(uint8_t* mem, size_t size)
     {
         size_t available = n_entries_ - entry_;
-        size_t to_read = size <= available ? size : available;
+        size_t to_read   = size <= available ? size : available;
 #ifdef MMA1_USE_IOBUFFER
         buffer_->get(mem, to_read);
 #endif

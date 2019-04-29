@@ -66,53 +66,12 @@ class IterApi<Vector<Value>, Profile>: public IterApiBTSSBase<Vector<Value>, Pro
 public:
     
     using DataValue = typename detail01::VectorValueHelper<Value>::Type;
-#ifdef MMA1_USE_IOBUFFER
-    using Base::read;
-#endif
+
     using Base::insert;
     
     MMA1_DECLARE_ITERAPI_BASIC_METHODS()
     
     DataValue value();
-
-#ifdef MMA1_USE_IOBUFFER
-    template <typename T>
-    auto insert(const std::vector<T>& data) 
-    {
-
-        using StdIter = typename std::vector<T>::const_iterator;
-        InputIteratorProvider<DataValue, StdIter, StdIter, CtrIOBuffer, IsVLen<Value>::Value> provider(data.begin(), data.end());
-        return insert(provider);
-
-    }
-#endif
-
-#ifdef MMA1_USE_IOBUFFER
-
-    template <typename Iterator, typename EndIterator>
-    auto insert(const Iterator& iter, const EndIterator& end) 
-    {
-        InputIteratorProvider<DataValue, Iterator, EndIterator, CtrIOBuffer, IsVLen<Value>::Value> provider(iter, end);
-        return insert(provider);
-    }
-#endif
-
-
-#ifdef MMA1_USE_IOBUFFER
-
-    template <typename Fn>
-    auto insert_fn(int64_t size, Fn&& fn) 
-    {
-        using Iterator = IteratorFn<std::remove_reference_t<decltype(fn)>>;
-        
-        Iterator fni(fn);
-        EndIteratorFn<int64_t> endi(size);
-        
-        InputIteratorProvider<DataValue, Iterator, EndIteratorFn<int64_t>, CtrIOBuffer, IsVLen<Value>::Value> provider(fni, endi);
-        return insert(provider);
-    }
-#endif
-
     
     std::vector<DataValue> read(size_t size);
 };

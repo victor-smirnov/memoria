@@ -24,7 +24,6 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 #include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
-#include <memoria/v1/api/db/edge_map/edge_map_input.hpp>
 
 #include <iostream>
 
@@ -48,10 +47,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(edge_map::ItrMiscName)
 
     static constexpr int32_t DataStreams            = Container::Types::DataStreams;
     static constexpr int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
-
-    using IOBuffer  = DefaultIOBuffer;
-
-
 
 public:
 
@@ -161,7 +156,7 @@ public:
         self.template update_entry<1, IntList<1>>(edge_map::SingleValueUpdateEntryFn<1, Value, CtrSizeT>(existing + value));
     }
 
-
+#ifdef MMA1_USE_IOBUFFER
 
     template <typename ValueConsumer>
     class ReadValuesFn: public bt::BufferConsumer<IOBuffer> {
@@ -187,39 +182,7 @@ public:
         }
     };
 
-
-    std::vector<Value> read_values(CtrSizeT length = std::numeric_limits<CtrSizeT>::max())
-    {
-//        auto& self = this->self();
-
-        std::vector<Value> values;
-
-        ReadValuesFn<std::vector<Value>> read_fn(&values);
-#ifdef MMA1_USE_IOBUFFER
-        self.bulkio_scan_run(&read_fn, 1, length);
 #endif
-        return values;
-    }
-
-
-    CtrSizeT read_values(bt::BufferConsumer<IOBuffer>& consumer, CtrSizeT start, CtrSizeT length)
-    {
-        auto& self = this->self();
-        
-        if (self.to_values()) 
-        {
-            self.skipFw(start);
-#ifdef MMA1_USE_IOBUFFER
-
-            return self.bulkio_scan_run(&consumer, 1, length);
-#else
-            return 0;
-#endif
-        }
-        else {
-            return CtrSizeT{};
-        }
-    }
 
 
 
@@ -273,42 +236,7 @@ public:
     }
 
 
-#ifdef MMA1_USE_IOBUFFER
-    template <typename IOBuffer>
-    auto read_keys(bt::BufferConsumer<IOBuffer>* consumer, CtrSizeT length = std::numeric_limits<CtrSizeT>::max())
-    {
-        auto& self = this->self();
 
-        self.toDataStream(0);
-
-        auto buffer = self.ctr().pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
-
-        auto total = self.ctr().template buffered_read<0>(self, length, *buffer.get(), *consumer);
-
-        self.toStructureStream();
-
-        return total;
-    }
-    
-    template <typename IOBuffer>
-    CtrSizeT insert_values(bt::BufferProducer<IOBuffer>& producer)
-    {
-        auto& self = this->self();
-        
-        edge_map::SingleStreamProducerAdapter<IOBuffer, 2> adapter(producer, 1);
-        
-        return self.bulkio_insert(adapter).sum();
-    }
-    
-    template <typename IOBuffer>
-    CtrSizeT insert_mmap_entry(const Key& key, bt::BufferProducer<IOBuffer>& producer)
-    {
-        auto& self = this->self();
-        edge_map::SingleEntryProducerAdapter<Key, IOBuffer, 2> adapter(key, producer, 0);
-        
-        return self.bulkio_insert(adapter)[1];
-    }
-#endif
 
     CtrSizeT count_values() const
     {

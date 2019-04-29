@@ -47,7 +47,7 @@ public:
 
 #ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
-    auto bulkio_insert(Iterator& iter, bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 4000)
+    auto insert_iovector(Iterator& iter, bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 4000)
     {
         auto& self = this->self();
 
@@ -74,7 +74,7 @@ public:
 #endif
 
 
-    auto bulkio_insert(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
+    auto insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
         auto& self = this->self();
 
@@ -83,6 +83,39 @@ public:
         auto id = iter.leaf()->id();
 
         btfl::io2::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov.get(), start, length);
+
+        auto pos = iter.leafrank(iter.local_pos());
+
+        auto result = self.insert_provided_data(iter.leaf(), pos, streaming);
+
+        iter.local_pos()  = result.position().sum();
+        iter.leaf().assign(result.leaf());
+
+        if (iter.leaf()->id() != id) {
+            iter.refresh();
+        }
+
+        return streaming.totals();
+    }
+
+    struct BTFLIOVectorProducer: io::IOVectorProducer {
+        virtual bool populate(io::IOVector& io_vector)
+        {
+            return true; // provided io_vector has been already populated
+        }
+    };
+
+    auto insert_iovector(Iterator& iter, io::IOVector& iovector, int64_t start, int64_t length)
+    {
+        auto& self = this->self();
+
+        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+
+        auto id = iter.leaf()->id();
+
+        BTFLIOVectorProducer producer{};
+
+        btfl::io2::IOVectorCtrInputProvider<MyType> streaming(self, &producer, &iovector, start, length);
 
         auto pos = iter.leafrank(iter.local_pos());
 

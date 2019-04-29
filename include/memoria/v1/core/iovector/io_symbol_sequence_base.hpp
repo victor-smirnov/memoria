@@ -57,6 +57,8 @@ struct IOSymbolSequence: IOSubstream {
 
     virtual void reset()                            = 0;
     virtual void configure(void* ptr)               = 0;
+
+    virtual void append_from(const IOSymbolSequence& source, int32_t start, int32_t length) = 0;
 };
 
 

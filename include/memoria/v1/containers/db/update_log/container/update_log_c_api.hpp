@@ -44,8 +44,6 @@ protected:
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 
-    using IOBuffer = DefaultIOBuffer;
-
     static const int32_t StructureStreamIdx = Types::StructureStreamIdx;
 
 public:
@@ -98,7 +96,7 @@ public:
         {
             update_log::UpdateLogEntryBufferProducer<IOBuffer, Key, Iterator> producer(key, start, end);
 
-            iter->bulkio_insert(producer);
+            iter->insert_iovector(producer);
         }
 
         return iter;
@@ -169,6 +167,7 @@ public:
         ii->insert_snapshot(snapshot_id);
     }
 
+#ifdef MMA1_USE_IOBUFFER
     template <typename IOBuffer>
     void append_commands(const UUID& ctr_name, bt::BufferProducer<IOBuffer>& data_producer)
     {
@@ -187,6 +186,7 @@ public:
             MMA1_THROW(RuntimeException()) << WhatCInfo("Can't find any snapshot to append to.");
         }
     }
+#endif
 
     IteratorPtr read_commads(const UUID& ctr_name, CtrSizeT start = 0)
     {

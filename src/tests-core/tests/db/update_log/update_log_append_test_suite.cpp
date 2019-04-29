@@ -67,7 +67,19 @@ public:
     template <typename Ctr>
     void insert_pair(Ctr& ctr, SampleDataSorted& samples, UUID key, const std::vector<uint8_t>& data)
     {
-        ctr.append_commands(key, data.begin(), data.end());
+        //ctr.append_commands(key, data.begin(), data.end());
+
+        auto iov = ctr.create_iovector();
+
+        iov->symbol_sequence().append(1, 1);
+        iov->symbol_sequence().append(2, data.size());
+
+        auto& ctrid_ss = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<UUID>>(iov->substream(1));
+        auto& log_data_ss = io::substream_cast<io::IORowwiseFixedSizeArraySubstream<uint8_t>>(iov->substream(2));
+
+        ctrid_ss.append(0, key);
+        auto* ptr = log_data_ss.reserve(data.size());
+        MemCpyBuffer(data.data(), ptr, data.size());
 
         auto& s_data = samples[key];
         s_data.insert(s_data.end(), data.begin(), data.end());

@@ -31,7 +31,7 @@ using UniquePtr = std::unique_ptr<T, void (*)(void*)>;
 template <typename T>
 UniquePtr<T> allocate_system(size_t size)
 {
-    void* ptr = ::malloc(size);
+    void* ptr = ::malloc(size * sizeof(T));
 
     T* tptr = T2T<T*>(ptr);
 
@@ -41,14 +41,14 @@ UniquePtr<T> allocate_system(size_t size)
 template <typename T>
 UniquePtr<T> reallocate_system(void* ptr, size_t size)
 {
-    return UniquePtr<T>(T2T<T*>(::realloc(ptr, size)), ::free);
+    return UniquePtr<T>(T2T<T*>(::realloc(ptr, size * sizeof(T))), ::free);
 }
 
 template <typename T>
 UniquePtr<T> allocate_system_zeroed(size_t size)
 {
-    void* ptr = ::malloc(size);
-    std::memset(ptr, 0, size);
+    void* ptr = ::malloc(size * sizeof(T));
+    std::memset(ptr, 0, size * sizeof(T));
     return UniquePtr<T>(T2T<T*>(ptr), ::free);
 }
 

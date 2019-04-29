@@ -24,7 +24,6 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 #include <memoria/v1/api/db/update_log/update_log_api.hpp>
-#include <memoria/v1/api/db/update_log/update_log_input.hpp>
 
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 
@@ -48,8 +47,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(update_log::ItrApiName)
 
     static constexpr int32_t DataStreams            = Container::Types::DataStreams;
     static constexpr int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
-
-    using IOBuffer  = DefaultIOBuffer;
 
 public:
 
@@ -188,6 +185,7 @@ public:
             return -1;
         }
     }
+
 
     /*
         bool next_key()
@@ -492,17 +490,7 @@ public:
         self.template update_entry<1, IntList<1>>(update_log::SingleValueUpdateEntryFn<1, UAcc128T, CtrSizeT>(existing + value));
     }
 
-
 #ifdef MMA1_USE_IOBUFFER
-    template <typename IOBuffer>
-    CtrSizeT insert_data_values(bt::BufferProducer<IOBuffer>& producer)
-    {
-        auto& self = this->self();
-        update_log::SingleStreamProducerAdapter<IOBuffer, 3> adapter(producer, 2);
-        return self.bulkio_insert(adapter)[2];
-    }
-#endif
-
     auto make_snapshot_id_walker()
     {
         auto& self = this->self();
@@ -532,7 +520,7 @@ public:
     {
         return walker->populate(iobuffer.get());
     }
-
+#endif
 
 MEMORIA_V1_ITERATOR_PART_END
 

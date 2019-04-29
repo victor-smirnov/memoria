@@ -88,40 +88,7 @@ int64_t IterApiBTSSBase<CtrName, Profile>::remove(int64_t length)
     return this->pimpl_->remove(length);
 }
 
-#ifdef MMA1_USE_IOBUFFER
-template <typename CtrName, typename Profile>
-int64_t IterApiBTSSBase<CtrName, Profile>::read(CtrIOBuffer& buffer, int64_t size) 
-{
-    return this->pimpl_->populate_buffer(&buffer, size);
-}
 
-template <typename CtrName, typename Profile>
-int64_t IterApiBTSSBase<CtrName, Profile>::read(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t size) 
-{
-    return this->pimpl_->read_buffer(&consumer, size);
-}
-
-template <typename CtrName, typename Profile>
-int64_t IterApiBTSSBase<CtrName, Profile>::read(std::function<int32_t (CtrIOBuffer&, int32_t)> consumer, int64_t size) 
-{
-    BufferFnConsumer<CtrIOBuffer, std::function<int32_t (CtrIOBuffer&, int32_t)>> fn_consumer(consumer);
-    return this->pimpl_->read_buffer(&fn_consumer, size);
-}
-
-
-template <typename CtrName, typename Profile>
-int64_t IterApiBTSSBase<CtrName, Profile>::insert(bt::BufferProducer<CtrIOBuffer>& producer) 
-{
-    return this->pimpl_->insert_iobuffer(&producer);
-}
-
-template <typename CtrName, typename Profile>
-int64_t IterApiBTSSBase<CtrName, Profile>::insert(std::function<int32_t (CtrIOBuffer&)> producer)
-{
-    BufferFnProducer<CtrIOBuffer, std::function<int32_t (CtrIOBuffer&)>> fn_producer(producer);
-    return this->pimpl_->insert_iobuffer(&fn_producer);
-}
-#endif
 
 
 template <typename CtrName, typename Profile>

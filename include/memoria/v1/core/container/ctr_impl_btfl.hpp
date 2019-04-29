@@ -91,39 +91,45 @@ int64_t IterApiBTFLBase<CtrName, Profile>::remove_entries(int64_t length)
 }
 
 
-#ifdef MMA1_USE_IOBUFFER
+
+
+
 template <typename CtrName, typename Profile>
-int64_t IterApiBTFLBase<CtrName, Profile>::read_seq(CtrIOBuffer& buffer, int64_t size) 
+int64_t IterApiBTFLBase<CtrName, Profile>::read_to(
+        io::IOVectorConsumer& consumer,
+        int64_t length
+)
 {
-    auto walker = this->pimpl_->template create_read_walker<CtrIOBuffer>(size);
-    
-    return this->pimpl_->bulkio_populate(*walker.get(), &buffer);
+    return this->pimpl_->read_to(consumer, length);
 }
 
 template <typename CtrName, typename Profile>
-int64_t IterApiBTFLBase<CtrName, Profile>::read_seq(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t size) 
+int64_t IterApiBTFLBase<CtrName, Profile>::populate(
+        io::IOVector& iovector,
+        int64_t length
+)
 {
-    return this->pimpl_->bulkio_read(&consumer, size);
+    return this->pimpl_->populate(iovector, length);
 }
 
-
-
-
 template <typename CtrName, typename Profile>
-int64_t IterApiBTFLBase<CtrName, Profile>::insert_subseq(bt::BufferProducer<CtrIOBuffer>& producer) 
-{
-    return this->pimpl_->bulkio_insert(producer).sum();
-}
-#endif
-
-template <typename CtrName, typename Profile>
-int64_t IterApiBTFLBase<CtrName, Profile>::insert_subseq(
+int64_t IterApiBTFLBase<CtrName, Profile>::insert(
         io::IOVectorProducer& producer,
         int64_t start,
         int64_t length
 )
 {
-    return this->pimpl_->bulkio_insert(producer, start, length).sum();
+    return this->pimpl_->insert_iovector(producer, start, length).sum();
+}
+
+template <typename CtrName, typename Profile>
+int64_t IterApiBTFLBase<CtrName, Profile>::insert(
+        io::IOVector& iovector,
+        int64_t start,
+        int64_t length
+)
+{
+    return this->pimpl_->insert_iovector(iovector, start, length).sum();
 }
 
 

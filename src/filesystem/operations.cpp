@@ -2309,7 +2309,7 @@ namespace
         }
         
         dirent de;
-        buffer = ::memoria::v1::allocate_system<void>((sizeof(dirent) - sizeof(de.d_name)) +  path_size + 1).release(); // + 1 for "/0"
+        buffer = ::memoria::v1::allocate_system<uint8_t>((sizeof(dirent) - sizeof(de.d_name)) +  path_size + 1).release(); // + 1 for "/0"
         
         return ok;
     });

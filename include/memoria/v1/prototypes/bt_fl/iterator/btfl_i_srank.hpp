@@ -123,7 +123,6 @@ public:
     }
 
 
-
     CtrSizeT ranks() const
     {
     	auto& self = this->self();

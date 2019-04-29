@@ -18,10 +18,6 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
-#ifdef MMA1_USE_IOBUFFER
-#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
-#endif
-
 #include <memoria/v1/core/tools/memory.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/container/allocator.hpp>
@@ -33,10 +29,6 @@
 
 namespace memoria {
 namespace v1 {
-
-#ifdef MMA1_USE_IOBUFFER
-using CtrIOBuffer = DefaultIOBuffer;    
-#endif
 
 template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;
 template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;

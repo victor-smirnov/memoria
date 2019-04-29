@@ -30,9 +30,6 @@ namespace v1 {
 template <typename PkdStruct>
 struct AccumType: HasType<typename PkdStruct::Value> {};
 
-template <typename PkdStruct>
-struct PkdStructInputType: HasType<typename PkdStruct::InputType> {};
-
 enum class PkdSearchType {SUM, MAX};
 
 template <typename PkdStruct>
@@ -53,10 +50,10 @@ struct PkdStructSizeType {
     static const PackedSizeType Value = PkdStruct::SizeType;
 };
 
-template <typename PkdStruct>
-struct PkdStructInputBufferType {
-    using Type = typename PkdStruct::InputBuffer;
-};
+//template <typename PkdStruct>
+//struct PkdStructInputBufferType {
+//    using Type = typename PkdStruct::InputBuffer;
+//};
 
 
 

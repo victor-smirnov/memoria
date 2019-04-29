@@ -28,22 +28,11 @@ union T2TBuf {
     T2TBuf(SrcType src0): src(src0) {}
 };
 
-
 template <typename DstType, typename SrcType>
 DstType T2T(SrcType value) {
+    static_assert(sizeof(DstType) == sizeof(SrcType), "");
     T2TBuf<SrcType, DstType> buf(value);
     return buf.dst;
-}
-
-template <typename DstType, typename SrcType>
-DstType T2T_S(SrcType value) {
-    return static_cast<DstType>(value);
-}
-
-template <typename DstType, typename SrcType>
-DstType P2V(SrcType value) {
-    T2TBuf<SrcType, DstType*> buf(value);
-    return *buf.dst;
 }
 
 template <typename DstType, typename SrcType>
@@ -52,16 +41,6 @@ const DstType* CP2CP(const SrcType* value) {
     return buf.dst;
 }
 
-template <typename DstType, typename SrcType>
-DstType& P2R(SrcType value) {
-    T2TBuf<SrcType, DstType*> buf(value);
-    return *buf.dst;
-}
 
-template <typename DstType, typename SrcType>
-const DstType& P2CR(const SrcType value) {
-    T2TBuf<const SrcType, const DstType*> buf(value);
-    return *buf.dst;
-}
 
 }}

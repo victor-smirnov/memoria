@@ -105,7 +105,7 @@ struct EdgeMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>
 
 
 
-
+/*
 template <typename IOBuffer, typename Key, typename Iterator>
 class EdgeMapEntryBufferProducer: public bt::BufferProducer<IOBuffer> {
 
@@ -184,7 +184,7 @@ public:
 		return -entries;
 	}
 };
-
+*/
 
 template <int32_t Stream, typename T, typename CtrSizeT>
 struct SingleValueUpdateEntryFn {

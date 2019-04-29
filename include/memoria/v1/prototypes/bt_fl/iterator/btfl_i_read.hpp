@@ -23,10 +23,6 @@
 #include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 
-#ifdef MMA1_USE_IOBUFFER
-#   include <memoria/v1/retired/prototypes/bt_fl/io/btfl_output.hpp>
-#endif
-
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
@@ -44,6 +40,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorReadName)
 
     using CtrSizeT      = typename Container::Types::CtrSizeT;
     using DataSizesT    = typename Container::Types::DataSizesT;
+    using CtrSizesT     = typename Container::Types::CtrSizesT;
 
     static const int32_t Streams                = Container::Types::Streams;
     static const int32_t DataStreams            = Container::Types::DataStreams;
@@ -267,6 +264,79 @@ public:
         return total;
     }
 #endif
+
+
+    auto read_to(io::IOVectorConsumer& consumer, int64_t length)
+    {
+        auto& self = this->self();
+
+        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+
+        auto processed = self.populate(*iov.get(), length);
+
+        consumer.consume(*iov.get());
+
+        return processed;
+    }
+
+    auto populate(io::IOVector& io_vector, int64_t length)
+    {
+        auto& self = this->self();
+
+        auto& view = self.iovector_view();
+
+        int64_t processed{};
+
+        while (processed < length)
+        {
+            int32_t start = self.local_pos();
+            int32_t size  = self.structure_size();
+
+            int32_t leaf_remainder = size - start;
+            CtrSizesT to_copy;
+
+            if (processed + leaf_remainder <= length)
+            {
+                to_copy = self.leafrank(leaf_remainder);
+            }
+            else {
+                to_copy = self.leafrank(length - processed);
+            }
+
+            auto to_copy_symbols = to_copy.sum();
+
+            view.symbol_sequence().copy_to(
+                io_vector.symbol_sequence(),
+                start,
+                to_copy_symbols
+            );
+
+            for (int32_t stream = 0, ss_start = 0; stream < view.streams(); stream++)
+            {
+                int32_t ss_end = ss_start + view.stream_size(stream);
+
+                for (int32_t ss = ss_start; ss < ss_end; ss++)
+                {
+                    view.substream(ss).copy_to(
+                                io_vector.substream(ss), start, to_copy[stream]
+                    );
+                }
+
+                ss_start = ss_end;
+            }
+
+            processed += to_copy_symbols;
+
+            if (!self.nextLeaf()) {
+                break;
+            }
+        }
+
+        io_vector.reindex();
+
+        return processed;
+    }
+
 
 
 

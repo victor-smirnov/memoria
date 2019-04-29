@@ -804,64 +804,64 @@ public:
     }
 
 
-    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
-    {
-        Codec codec;
+//    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
+//    {
+//        Codec codec;
 
-        SizesT total_lengths = ends - starts;
+//        SizesT total_lengths = ends - starts;
 
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            auto values = this->values(block);
+//        for (int32_t block = 0; block < Blocks; block++)
+//        {
+//            auto values = this->values(block);
 
-            size_t insertion_pos = at[block];
+//            size_t insertion_pos = at[block];
 
-            if(isFail(this->insert_space(block, insertion_pos, total_lengths[block]))) {
-                return OpStatus::FAIL;
-            }
+//            if(isFail(this->insert_space(block, insertion_pos, total_lengths[block]))) {
+//                return OpStatus::FAIL;
+//            }
 
-            values = this->values(block);
+//            values = this->values(block);
 
-            codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
-        }
+//            codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
+//        }
 
-        this->size() += size;
+//        this->size() += size;
 
-        reindex();
+//        reindex();
 
-        return OpStatusT<SizesT>(at + total_lengths);
-    }
+//        return OpStatusT<SizesT>(at + total_lengths);
+//    }
 
-    OpStatus insert_buffer(int32_t pos, const InputBuffer* buffer, int32_t start, int32_t size)
-    {
-        Codec codec;
+//    OpStatus insert_buffer(int32_t pos, const InputBuffer* buffer, int32_t start, int32_t size)
+//    {
+//        Codec codec;
 
-        SizesT starts = buffer->positions(start);
-        SizesT ends   = buffer->positions(start + size);
+//        SizesT starts = buffer->positions(start);
+//        SizesT ends   = buffer->positions(start + size);
 
-        SizesT at     = this->positions(pos);
+//        SizesT at     = this->positions(pos);
 
-        SizesT total_lengths = ends - starts;
+//        SizesT total_lengths = ends - starts;
 
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            auto values = this->values(block);
+//        for (int32_t block = 0; block < Blocks; block++)
+//        {
+//            auto values = this->values(block);
 
-            size_t insertion_pos = at[block];
+//            size_t insertion_pos = at[block];
 
-            if(isFail(this->insert_space(block, insertion_pos, total_lengths[block]))) {
-                return OpStatus::FAIL;
-            }
+//            if(isFail(this->insert_space(block, insertion_pos, total_lengths[block]))) {
+//                return OpStatus::FAIL;
+//            }
 
-            values = this->values(block);
+//            values = this->values(block);
 
-            codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
-        }
+//            codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
+//        }
 
-        this->size() += size;
+//        this->size() += size;
 
-        return reindex();
-    }
+//        return reindex();
+//    }
 
 
 

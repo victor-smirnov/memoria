@@ -20,9 +20,6 @@
 #include <memoria/v1/core/tools/accessors.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
-#ifdef MMA1_USE_IOBUFFER
-#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
-#endif
 
 namespace memoria {
 namespace v1 {

@@ -26,9 +26,6 @@
 #include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/multimap/multimap_api.hpp>
 
-#ifdef MMA1_USE_IOBUFFER
-#   include <memoria/v1/containers/multimap/mmap_input.hpp>
-#endif
 
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>

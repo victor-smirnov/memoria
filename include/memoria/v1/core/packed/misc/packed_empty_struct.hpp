@@ -209,16 +209,6 @@ public:
     }
 
 
-    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
-    {
-        return OpStatusT<SizesT>(at + SizesT(size));
-    }
-
-    OpStatusT<int32_t> insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
-    {
-        return OpStatusT<int32_t>(at + size);
-    }
-
     Values get_values(int32_t) const {
         return Values();
     }

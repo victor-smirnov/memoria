@@ -386,6 +386,7 @@ public:
     }
 
 
+    MMA1_PKD_OOM_SAFE
     OpStatus append(int32_t symbol, uint64_t length)
     {
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
@@ -406,6 +407,8 @@ public:
 
         return OpStatus::OK;
     }
+
+
 
     OpStatus append_and_reindex(int32_t symbol, uint64_t length)
     {
@@ -627,6 +630,7 @@ public:
 
     // ========================================= Update ================================= //
 
+    MMA1_PKD_OOM_SAFE
     OpStatus reindex()
     {
         rleseq::ReindexFn<MyType> reindex_fn;
@@ -672,6 +676,7 @@ public:
 
 protected:
 
+    MMA1_PKD_OOM_SAFE
     OpStatus shrinkData(int32_t length)
     {
         int32_t current_size = this->element_size(SYMBOLS);
@@ -687,6 +692,7 @@ protected:
     }
 
 
+    MMA1_PKD_OOM_SAFE
     OpStatus shrink_to_data()
     {
         return shrinkData(this->symbols_block_capacity());
@@ -841,11 +847,8 @@ public:
         return reindex();
     }
 
-    OpStatus insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size) {
-        return insert_from(at, buffer, start, size);
-    }
 
-
+    MMA1_PKD_OOM_SAFE
     template <typename InputSource>
     OpStatus insert_from(int32_t at, const InputSource* buffer, int32_t start, int32_t size)
     {
@@ -2183,6 +2186,7 @@ private:
         }
     }
 
+    MMA1_PKD_OOM_SAFE
     OpStatusT<Location> split_run(const Location& location, uint64_t subtraction = 0)
     {
         uint64_t pos = location.local_idx();

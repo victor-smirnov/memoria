@@ -24,10 +24,6 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/format.hpp>
 
-#ifdef MMA1_USE_IOBUFFER
-#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
-#endif
-
 #include <ostream>
 
 namespace memoria {

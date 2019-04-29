@@ -762,7 +762,7 @@ public:
             initial_size = DEFAULT_BLOCK_SIZE;
         }
 
-        void* buf = allocate_system<void>(initial_size).release();
+        void* buf = allocate_system<uint8_t>(initial_size).release();
 
         memset(buf, 0, initial_size);
 
@@ -867,7 +867,7 @@ public:
 
     // memory pool allocator
     virtual void* allocateMemory(size_t size) {
-        return allocate_system<void>(size).release();
+        return allocate_system<uint8_t>(size).release();
     }
     virtual void  freeMemory(void* ptr) {
         free_system(ptr);

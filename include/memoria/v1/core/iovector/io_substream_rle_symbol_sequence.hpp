@@ -121,8 +121,20 @@ public:
 
     virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const
     {
-
+        IOSymbolSequence& target_stream = substream_cast<IOSymbolSequence>(target);
+        target_stream.append_from(*this, start, length);
     }
+
+    void append_from(const IOSymbolSequence& source, int32_t start, int32_t length)
+    {
+        SeqT* source_seq = T2T<SeqT*>(source.buffer());
+
+        while (sequence_->insert_from(sequence_->size(), source_seq, start, length) != OpStatus::OK) {
+            enlarge();
+        }
+    }
+
+
 
     virtual void configure(void* ptr) {
         MMA1_THROW(UnsupportedOperationException());

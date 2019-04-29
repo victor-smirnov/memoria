@@ -21,10 +21,6 @@
 #include <memoria/v1/core/bignum/int64_codec.hpp>
 #include <memoria/v1/core/types.hpp>
 
-#ifdef MMA1_USE_IOBUFFER
-#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
-#endif
-
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
 namespace memoria {
@@ -35,74 +31,6 @@ template <typename V> struct IsVLen: HasValue<bool, false> {};
 template <typename V, Granularity G> 
 struct IsVLen<VLen<G, V>>: HasValue<bool, true> {};
 
-#ifdef MMA1_USE_IOBUFFER
-
-template <typename Value, typename Iterator, typename EndIterator, typename IOBuffer, bool VLenSelector = false> 
-class InputIteratorProvider;
-
-
-template <typename Value, typename Iterator, typename EndIterator, typename IOBuffer>
-class InputIteratorProvider<Value, Iterator, EndIterator, IOBuffer, false>: public bt::BufferProducer<IOBuffer> {
-
-    Iterator iterator_;
-    EndIterator end_;
-public:
-    InputIteratorProvider(const Iterator& start, const EndIterator& end): 
-        iterator_(start), end_(end)
-    {}
-
-    virtual int32_t populate(IOBuffer& buffer)
-    {
-        int32_t total = 0;
-
-        for (;iterator_ != end_; total++)
-        {
-            auto pos = buffer.pos();
-            if (!IOBufferAdapter<Value>::put(buffer, *iterator_))
-            {
-                buffer.pos(pos);
-                return total;
-            }
-            
-            ++iterator_;
-        }
-
-        return -total;
-    }
-};
-
-
-template <typename Value, typename Iterator, typename EndIterator, typename IOBuffer>
-class InputIteratorProvider<Value, Iterator, EndIterator, IOBuffer, true>: public bt::BufferProducer<IOBuffer> {
-
-    Iterator iterator_;
-    const EndIterator& end_;
-public:
-    InputIteratorProvider(const Iterator& start, const EndIterator& end): 
-        iterator_(start), end_(end)
-    {}
-
-    virtual int32_t populate(IOBuffer& buffer)
-    {
-        int32_t total = 0;
-
-        for (;iterator_ != end_; total++)
-        {
-            auto pos = buffer.pos();
-            if (!IOBufferAdapter<Value>::putVLen(buffer, *iterator_))
-            {
-                buffer.pos(pos);
-                return total;
-            }
-            
-            iterator_++;
-        }
-
-        return -total;
-    }
-};
-
-#endif
 
 
 template <typename SizeT>

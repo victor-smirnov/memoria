@@ -311,7 +311,7 @@ public:
         
         SingleStreamProducerAdapter<IOBuffer, 2> adapter(producer, 1);
         
-        return self.bulkio_insert(adapter).sum();
+        return self.insert_iovector(adapter).sum();
     }
     
     template <typename IOBuffer>
@@ -320,7 +320,7 @@ public:
         auto& self = this->self();
         SingleEntryProducerAdapter<Key, IOBuffer, 2> adapter(key, producer, 0);
         
-        return self.bulkio_insert(adapter)[1];
+        return self.insert_iovector(adapter)[1];
     }
 #endif
 

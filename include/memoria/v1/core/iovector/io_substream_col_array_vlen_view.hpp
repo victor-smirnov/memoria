@@ -130,6 +130,8 @@ public:
 
     void copy_to(IOSubstream& target, int32_t start, int32_t length) const
     {
+        init_buffers();
+
         auto& tgt_substream = substream_cast<
             IOColumnwiseVLenArraySubstream<typename PkdStruct::Value>
         >(target);

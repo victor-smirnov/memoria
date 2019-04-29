@@ -560,34 +560,7 @@ public:
     }
 
 
-    OpStatusT<SizesT> insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, int32_t size)
-    {
-        insertSpace(at[0], size);
 
-        auto buffer_values = buffer->values();
-
-        int32_t start = starts[0];
-        int32_t end   = ends[0];
-
-        CopyBuffer(buffer_values + start * Blocks, this->values() + at[0] * Blocks, (end - start) * Blocks);
-
-        return OpStatusT<SizesT>(at + SizesT(size));
-    }
-
-    OpStatusT<int32_t> insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
-    {
-        if(isFail(insertSpace(at, size))) {
-            return OpStatus::FAIL;
-        }
-
-        auto buffer_values = buffer->values();
-
-        int32_t end = start + size;
-
-        CopyBuffer(buffer_values + start * Blocks, this->values() + at * Blocks, (end - start) * Blocks);
-
-        return OpStatusT<int32_t>(at + size);
-    }
 
     OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
     {
