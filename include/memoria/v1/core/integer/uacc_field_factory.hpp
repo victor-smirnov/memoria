@@ -86,25 +86,4 @@ struct TypeHash<UnsignedAccumulator<BitLength>> {
 };
 
 
-template <size_t BitLength>
-struct IOBufferAdapter<UnsignedAccumulator<BitLength>> {
-
-    using Type = UnsignedAccumulator<BitLength>;
-    static constexpr size_t Size = Type::Size;
-
-    template <typename IOBuffer>
-    static bool put(IOBuffer& buffer, const Type& value)
-    {
-        return buffer.put(value);
-    }
-
-    template <typename IOBuffer>
-    static Type get(IOBuffer& buffer)
-    {
-        return buffer. template getUAcc<BitLength>();
-    }
-};
-
-
-
 }}

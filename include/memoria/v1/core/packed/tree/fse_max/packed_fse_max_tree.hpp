@@ -771,23 +771,6 @@ public:
     }
 
 
-    template <typename IOBuffer>
-    bool readTo(ReadState& state, IOBuffer& buffer) const
-    {
-        for (int32_t b = 0; b < Blocks; b++)
-        {
-            auto val = state.values()[b][state.local_pos()];
-
-            if (!IOBufferAdapter<Value>::put(buffer, val))
-            {
-                return false;
-            }
-        }
-
-        state.local_pos()++;
-
-        return true;
-    }
 
 
     template <typename Fn>

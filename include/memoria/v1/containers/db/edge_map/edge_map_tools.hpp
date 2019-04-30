@@ -105,87 +105,6 @@ struct EdgeMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>
 
 
 
-/*
-template <typename IOBuffer, typename Key, typename Iterator>
-class EdgeMapEntryBufferProducer: public bt::BufferProducer<IOBuffer> {
-
-	Key key_;
-	Iterator start_;
-	Iterator end_;
-
-	bool key_finished_ = false;
-
-	using Value = typename Iterator::value_type;
-
-	static constexpr int32_t DataStreams = 2;
-
-	static constexpr int32_t KeyStream 		= 0;
-	static constexpr int32_t ValueStream 	= 1;
-
-	static constexpr size_t ValueBlockSize = 256;
-
-public:
-    EdgeMapEntryBufferProducer(const Key& key, const Iterator& start, const Iterator& end):
-		key_(key), start_(start), end_(end)
-	{}
-
-	virtual int32_t populate(IOBuffer& buffer)
-	{
-		int32_t entries = 0;
-
-		if (!key_finished_)
-		{
-			if (!buffer.template putSymbolsRun<DataStreams>(KeyStream, 1))
-			{
-                MMA1_THROW(Exception()) << WhatCInfo("Supplied IOBuffer is probably too small");
-			}
-
-			if (!IOBufferAdapter<Key>::put(buffer, key_))
-			{
-                MMA1_THROW(Exception()) << WhatCInfo("Supplied IOBuffer is probably too small");
-			}
-
-			key_finished_ = true;
-			entries += 2;
-		}
-
-		while (start_ != end_)
-		{
-			size_t pos = buffer.pos();
-			if (!buffer.template putSymbolsRun<DataStreams>(ValueStream, ValueBlockSize))
-			{
-				return entries;
-			}
-
-			entries++;
-
-			size_t c;
-			for (c = 0; c < ValueBlockSize && start_ != end_; c++, entries++, start_++)
-			{
-				if (!IOBufferAdapter<Value>::put(buffer, *start_))
-				{
-					if (c > 0) {
-						buffer.template updateSymbolsRun<DataStreams>(pos, ValueStream, c);
-					}
-					else {
-						entries--;
-					}
-
-					return entries;
-				}
-			}
-
-			if (c < ValueBlockSize)
-			{
-				buffer.template updateSymbolsRun<DataStreams>(pos, ValueStream, c);
-			}
-		}
-
-		return -entries;
-	}
-};
-*/
-
 template <int32_t Stream, typename T, typename CtrSizeT>
 struct SingleValueUpdateEntryFn {
 
@@ -199,11 +118,6 @@ struct SingleValueUpdateEntryFn {
     {
         return value_;
     }
-
-//    const auto& get(const StreamTag<Stream>& , const StreamTag<1>&, int32_t block) const
-//    {
-//        return value_;
-//    }
 };
 
 

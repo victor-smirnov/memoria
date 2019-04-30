@@ -156,36 +156,6 @@ public:
         self.template update_entry<1, IntList<1>>(edge_map::SingleValueUpdateEntryFn<1, Value, CtrSizeT>(existing + value));
     }
 
-#ifdef MMA1_USE_IOBUFFER
-
-    template <typename ValueConsumer>
-    class ReadValuesFn: public bt::BufferConsumer<IOBuffer> {
-
-        ValueConsumer* consumer_;
-
-    public:
-
-        ReadValuesFn(ValueConsumer* consumer)
-        {
-            consumer_ = consumer;
-        }
-
-        void clear() {}
-
-        virtual int32_t process(IOBuffer& buffer, int32_t entries)
-        {
-            for (int32_t entry = 0; entry < entries; entry++) {
-                consumer_->emplace_back(IOBufferAdapter<Value>::get(buffer));
-            }
-
-            return entries;
-        }
-    };
-
-#endif
-
-
-
 
     CtrSizesT remove(CtrSizeT length = 1)
     {

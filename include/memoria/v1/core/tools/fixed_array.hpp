@@ -187,38 +187,6 @@ struct TypeHash<FixedArray<Size>> {
 };
 
 
-template <int32_t Size>
-struct IOBufferAdapter<FixedArray<Size>> {
-
-    template <typename IOBuffer>
-    static bool put(IOBuffer& buffer, const FixedArray<Size>& value)
-    {
-        buffer.putVLen(Size);
-        return buffer.put(value.data(), Size);
-    }
-
-    template <typename IOBuffer>
-    static FixedArray<Size> get(IOBuffer& buffer)
-    {
-        int64_t len = buffer.getVLen();
-        if (len <= Size)
-        {
-            FixedArray<Size> array;
-
-            buffer.get(array.data(), len);
-
-            for (int64_t c = len; c < Size; c++) {
-                array[c] = 0;
-            }
-
-            return array;
-        }
-        else {
-            MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Array length {} exceeds fixed limit of {}", len, Size));
-        }
-    }
-};
-
 
 
 }}

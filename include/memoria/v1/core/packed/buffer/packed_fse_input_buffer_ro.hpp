@@ -229,30 +229,6 @@ public:
     }
 
 
-    template <typename IOBuffer>
-    bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
-    {
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            int capacity = max_size_ - size_;
-            int len = sizeof(Value);
-
-            if (len <= capacity)
-            {
-            	this->value(block, size_) = IOBufferAdapter<Value>::get(buffer);
-            }
-            else {
-                return false;
-            }
-        }
-
-        state.size()++;
-        this->size()++;
-
-        return true;
-    }
-
-
 
     void restore(const AppendState& state)
     {

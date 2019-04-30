@@ -531,7 +531,6 @@ struct HasFieldFactory: HasValue<bool, IsComplete<FieldFactory<T>>::type::value>
 template <typename T>
 struct IsExternalizable: HasValue<bool, HasValueCodec<T>::Value || HasFieldFactory<T>::Value> {};
 
-template <typename T> struct IOBufferAdapter;
 
 struct Referenceable {
     virtual ~Referenceable() {}

@@ -654,27 +654,7 @@ public:
     }
 
 
-    template <typename IOBuffer>
-    bool readTo(ReadState& state, IOBuffer& buffer) const
-    {
-        const auto* values = this->values();
 
-        const int32_t base = state.local_pos() * Blocks;
-
-        for (int32_t b = 0; b < Blocks; b++)
-        {
-            auto val = values[base + b];
-
-            if (!IOBufferAdapter<Value>::put(buffer, val))
-            {
-                return false;
-            }
-        }
-
-        state.local_pos()++;
-
-        return true;
-    }
 
 
 
