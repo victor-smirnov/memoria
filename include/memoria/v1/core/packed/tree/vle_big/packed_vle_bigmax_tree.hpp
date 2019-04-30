@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/core/packed/buffer/packed_vle_input_buffer_co.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree_base.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_tools.hpp>
 
@@ -26,9 +25,7 @@
 #include <memoria/v1/core/iovector/io_substream_col_array_vlen.hpp>
 #include <memoria/v1/core/iovector/io_substream_col_array_vlen_view.hpp>
 
-#ifdef HAVE_BOOST
 #include <memoria/v1/core/bignum/cppint_codec.hpp>
-#endif
 
 #include <memoria/v1/core/bignum/int64_codec.hpp>
 #include <memory>
@@ -120,8 +117,6 @@ public:
     using Codec         = typename Types::template Codec<Value>;
 
     using ValueData     = typename Codec::BufferType;
-    using InputBuffer   = PkdVLEColumnOrderInputBuffer<Types>;
-    using InputType     = Values;
 
     using SizesT        = core::StaticVector<int32_t, Blocks>;
     using PtrsT         = core::StaticVector<ValueData*, Blocks>;

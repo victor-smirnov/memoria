@@ -183,7 +183,6 @@ class PackedLeafStructListBuilder<SumType, TypeList<>> {
 public:
     using StructList        = TypeList<>;
     using StreamInputList   = TypeList<>;
-    using InputBufferList   = TypeList<>;
 };
 
 

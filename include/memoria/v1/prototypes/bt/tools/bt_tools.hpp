@@ -452,23 +452,6 @@ struct IteratorExtensionsTF {
 
 
 
-template <int32_t Size, int32_t Idx = 0>
-struct ForAllTuple {
-    template <typename InputBuffer, typename Fn, typename... Args>
-    static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
-    {
-        fn.template process<Idx>(std::get<Idx>(tuple), std::forward<Args>(args)...);
-        ForAllTuple<Size, Idx + 1>::process(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
-    }
-};
-
-template <int32_t Idx>
-struct ForAllTuple<Idx, Idx> {
-    template <typename InputBuffer, typename Fn, typename... Args>
-    static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
-    {}
-};
-
 
 
 template <int32_t Stream, typename CtrSizeT>

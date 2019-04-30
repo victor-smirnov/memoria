@@ -21,7 +21,6 @@
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/random.hpp>
 
-#include "packed_array_buffer_test.hpp"
 #include "packed_array_misc_test.hpp"
 
 
@@ -42,20 +41,6 @@ MMA1_CLASS_SUITE(Suite1, "Array.Misc.VLD.Exint");
 using Suite2 = PackedArrayMiscTest<PkdVDArrayT<int64_t, 1, UInt64EliasCodec>>;
 MMA1_CLASS_SUITE(Suite2, "Array.Misc.VLD.Elias");
 
-using Suite3 = PackedArrayInputBufferTest<PkdVDArrayT<int64_t, 4, UByteI7Codec>>;
-MMA1_CLASS_SUITE(Suite3, "Array.Buffer.4.VLD.I7");
-
-using Suite4 = PackedArrayInputBufferTest<PkdVDArrayT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite4, "Array.Buffer.4.VLD.Elias");
-
-using Suite5 = PackedArrayInputBufferTest<PkdFSQArrayT<int64_t, 4>>;
-MMA1_CLASS_SUITE(Suite5, "Array.Buffer.4.FSQ");
-
-using Suite6 = PackedArrayInputBufferTest<PkdFSQArrayT<UAcc128T, 4>>;
-MMA1_CLASS_SUITE(Suite6, "Array.Buffer.UAcc128.FSQ");
-
-using Suite7 = PackedArrayInputBufferTest<PkdFSQArrayT<UAcc256T, 4>>;
-MMA1_CLASS_SUITE(Suite7, "Array.Buffer.UAcc256.FSQ");
 
 }
 

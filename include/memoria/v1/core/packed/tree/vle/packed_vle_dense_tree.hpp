@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/core/packed/buffer/packed_vle_input_buffer_co.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree_base.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_tools.hpp>
 
@@ -88,9 +87,6 @@ public:
 
     using Values = core::StaticVector<IndexValue, Blocks>;
     using DataValues = core::StaticVector<Value, Blocks>;
-
-    using InputBuffer   = PkdVLEColumnOrderInputBuffer<Types>;
-    using InputType     = Values;
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
 

@@ -13,16 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "packed_maxtree_buffer_test.hpp"
 #include "packed_maxtree_find_test.hpp"
 #include "packed_maxtree_misc_test.hpp"
 
 namespace memoria {
 namespace v1 {
 namespace tests {
-
-using FixedWidthBufferSuite = PackedMaxTreeInputBufferTest<PkdFMTreeT<int64_t, 1>>;
-MMA1_CLASS_SUITE(FixedWidthBufferSuite, u"FixedWidthBufferSuite");
 
 using FixedWidthArgMiscSuite = PackedMaxTreeMiscTest<PkdFMTreeT<int64_t, 1>>;
 MMA1_CLASS_SUITE(FixedWidthArgMiscSuite, u"FixedWidthArgMiscSuite");

@@ -18,8 +18,6 @@
 
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/v1/core/packed/buffer/packed_rle_sequence_input_buffer.hpp>
-
 
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
@@ -116,12 +114,7 @@ public:
     using SumIndex  = typename SumIndexFactory<Symbols>::Type;
     using SizeIndex = PkdFQTreeT<int64_t, 1>;
 
-    using InputType = Value;
-    using InputBuffer = PkdRLESeqInputBuffer<Types_>;
-
     using OffsetsType = uint8_t;
-
-    //struct ReadState {};
 
     class Metadata {
         int32_t size_;

@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree_base.hpp>
-#include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/profiles/common/block_operations.hpp>
@@ -76,15 +75,12 @@ public:
 
     using Metadata = typename Base::Metadata;
 
-    using InputBuffer   = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
-    using InputType     = Values;
-
     using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
     using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
 
-    using ConstPtrsT    = core::StaticVector<const Value*, Blocks>;
+    using ConstPtrsT = core::StaticVector<const Value*, Blocks>;
 
     class ReadState {
     protected:

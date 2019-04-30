@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
-#include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
@@ -47,13 +46,8 @@ public:
 
     static constexpr int32_t Blocks = Indexes;
 
-
-
-    using InputBuffer = MyType;
-
     using Values = core::StaticVector<Value, Blocks>;
 
-    using InputType = Values;
     using IndexValue = Value;
     using SizesT = core::StaticVector<int32_t, Blocks>;
     using ReadState = SizesT;
@@ -351,10 +345,6 @@ public:
         return insertSpace(pos, 1);
     }
 
-    OpStatus insert(int32_t pos, int32_t start, int32_t size, const InputBuffer* buffer)
-    {
-        return insertSpace(pos, size);
-    }
 
     template <typename Adaptor>
     OpStatus insert(int32_t pos, int32_t size, Adaptor&& adaptor)

@@ -23,7 +23,6 @@
 
 #include <memoria/v1/core/integer/integer.hpp>
 
-#include "packed_tree_buffer_test.hpp"
 #include "packed_tree_find_test.hpp"
 #include "packed_tree_sum_test.hpp"
 #include "packed_tree_misc_test.hpp"
@@ -73,22 +72,6 @@ using Suite12 = PackedTreeFindTest<PkdVDTreeT<int64_t, 4, UInt64EliasCodec>>;
 MMA1_CLASS_SUITE(Suite12, "Tree.Find.4.VLD.Elias");
 
 
-using Suite13 = PackedTreeInputBufferTest<PkdVQTreeT<int64_t, 4, UByteI7Codec>>;
-MMA1_CLASS_SUITE(Suite13, "Tree.Buffer.4.VLQ.I7");
-
-using Suite14 = PackedTreeInputBufferTest<PkdVQTreeT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite14, "Tree.Buffer.4.VLQ.Elias");
-
-
-using Suite15 = PackedTreeInputBufferTest<PkdVDTreeT<int64_t, 4, UByteI7Codec>>;
-MMA1_CLASS_SUITE(Suite15, "Tree.Buffer.4.VLD.I7");
-
-using Suite16 = PackedTreeInputBufferTest<PkdVDTreeT<int64_t, 4, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite16, "Tree.Buffer.4.VLD.Elias");
-
-using Suite17 = PackedTreeInputBufferTest<PkdFQTreeT<int64_t, 4>>;
-MMA1_CLASS_SUITE(Suite17, "Tree.Buffer.4.FSQ");
-
 
 using Suite18 = PackedTreeMiscTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
 MMA1_CLASS_SUITE(Suite18, "Tree.Misc.UAcc128.FSQ");
@@ -99,8 +82,6 @@ MMA1_CLASS_SUITE(Suite19, "Tree.Find.UAcc128.FSQ");
 using Suite20 = PackedTreeSumTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
 MMA1_CLASS_SUITE(Suite20, "Tree.Sum.UAcc128.FSQ");
 
-using Suite21 = PackedTreeInputBufferTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
-MMA1_CLASS_SUITE(Suite21, "Tree.Buffer.UAcc128.FSQ");
 
 
 }

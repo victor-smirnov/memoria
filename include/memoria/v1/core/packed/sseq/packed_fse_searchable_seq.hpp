@@ -27,8 +27,6 @@
 #include <memoria/v1/core/packed/sseq/sseq_fn/pkd_f_sseq_select_fn.hpp>
 #include <memoria/v1/core/packed/sseq/sseq_fn/pkd_f_sseq_tools_fn.hpp>
 
-#include <memoria/v1/core/packed/buffer/packed_fse_sequence_input_buffer.hpp>
-
 #include <memoria/v1/core/types/algo/select.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 
@@ -113,16 +111,12 @@ public:
 
     typedef typename Types::Index                                               Index;
 
-    static const int32_t IndexSizeThreshold                                         = 0;
+    static const int32_t IndexSizeThreshold                                     = 0;
     static const PackedSizeType SizeType                                        = PkdStructSizeType<Index>::Value;
 
-    typedef core::StaticVector<int64_t, Indexes>                                 Values;
+    typedef core::StaticVector<int64_t, Indexes>                                Values;
 
     typedef typename Types::template ToolsFn<MyType>                            Tools;
-
-    using InputType     = Value;
-
-    using InputBuffer = PkdFSESequenceInputBuffer<Types>;
 
     class Metadata {
         int32_t size_;
@@ -529,16 +523,6 @@ public:
             tools.set(symbols, c, val);
         }
     }
-
-//    OpStatus insert_buffer(int32_t at, const InputBuffer* buffer, int32_t start, int32_t size)
-//    {
-//        if(isFail(insertDataRoom(at, size))) {
-//            return OpStatus::FAIL;
-//        }
-//        tools().move(buffer->symbols(), this->symbols(), start, at, size);
-
-//        return reindex();
-//    }
 
 
     OpStatus insert(int32_t start, int32_t length, std::function<Value ()> fn)

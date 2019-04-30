@@ -53,9 +53,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mmap::ItrMiscName)
 
 public:
 
-
-
-
     Key key() const
     {
         auto& self = this->self();
@@ -65,11 +62,9 @@ public:
         if (stream == 0)
         {
             int32_t key_idx = self.data_stream_idx(stream);
-
             return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
         else {
-        	  self.dump();
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
         }
     }

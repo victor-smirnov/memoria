@@ -18,7 +18,6 @@
 
 #include <memoria/v1/core/packed/array/packed_vle_array_base.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_tools.hpp>
-#include <memoria/v1/core/packed/buffer/packed_vle_input_buffer_ro.hpp>
 
 #include <memoria/v1/core/iovector/io_substream_row_array_vlen.hpp>
 #include <memoria/v1/core/iovector/io_substream_row_array_vlen_view.hpp>
@@ -106,14 +105,9 @@ public:
                 ConstValue<uint32_t, Blocks>
     >;
 
-    using Value      = typename Types::Value;
+    using Value  = typename Types::Value;
 
     using Values = core::StaticVector<Value, Blocks>;
-
-
-//    using InputBuffer   = PkdVLERowOrderInputBuffer<Types>;
-//    using InputType     = Values;
-
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
 

@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
-#include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 
 #include <memoria/v1/core/iovector/io_substream_row_array_fixed_size.hpp>
@@ -86,11 +85,6 @@ public:
     static constexpr int32_t Blocks                                                     = Types::Blocks;
 
     static constexpr int32_t SafetyMargin                                               = 0;
-
-    using InputType = core::StaticVector<Value, Blocks>;
-
-    using InputBuffer = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
-
 
     using Values = core::StaticVector<Value, Blocks>;
     using SizesT = core::StaticVector<int32_t, Blocks>;
@@ -522,21 +516,6 @@ public:
         return OpStatus::OK;
     }
 
-    OpStatus insert(int32_t pos, int32_t start, int32_t size, const InputBuffer* buffer)
-    {
-        if (isFail(insertSpace(pos, size))) {
-            return OpStatus::FAIL;
-        }
-
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            Value* vals         = values(block);
-            const Value* data   = buffer->values(block);
-            CopyBuffer(data + start, vals + pos, size);
-        }
-
-        return OpStatus::OK;
-    }
 
     template <typename Adaptor>
     OpStatus insert(int32_t pos, int32_t size, Adaptor&& adaptor)

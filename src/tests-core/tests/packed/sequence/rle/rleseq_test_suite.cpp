@@ -17,7 +17,6 @@
 #include "rleseq_select_test.hpp"
 #include "rleseq_count_test.hpp"
 #include "rleseq_misc_test.hpp"
-#include "rleseq_buffer_test.hpp"
 
 namespace memoria {
 namespace v1 {
@@ -29,14 +28,11 @@ auto Suite1 = register_class_suite<PackedRLESearchableSequenceRankTest<2>>("RleS
 auto Suite2 = register_class_suite<PackedRLESearchableSequenceSelectTest<2>>("RleSeq.Select.2");
 auto Suite3 = register_class_suite<PackedRLESearchableSequenceCountTest<2>>("RleSeq.Count.2");
 auto Suite4 = register_class_suite<PackedRLESearchableSequenceMiscTest<2>>("RleSeq.Misc.2");
-auto Suite5 = register_class_suite<PackedRLESearchableSequenceBufferTest<2>>("RleSeq.Buffer.2");
-
 
 auto Suite6 = register_class_suite<PackedRLESearchableSequenceMiscTest<4>>("RleSeq.Misc.4");
 auto Suite7 = register_class_suite<PackedRLESearchableSequenceRankTest<4>>("RleSeq.Rank.4");
 auto Suite8 = register_class_suite<PackedRLESearchableSequenceSelectTest<4>>("RleSeq.Select.4");
 auto Suite9 = register_class_suite<PackedRLESearchableSequenceCountTest<4>>("RleSeq.Count.4");
-auto Suite10 = register_class_suite<PackedRLESearchableSequenceBufferTest<4>>("RleSeq.Buffer.4");
 
 }
 

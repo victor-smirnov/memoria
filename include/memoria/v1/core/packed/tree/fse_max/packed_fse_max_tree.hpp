@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree_base.hpp>
-#include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 #include <memoria/v1/core/packed/tools/packed_tools.hpp>
 
 
@@ -73,9 +72,6 @@ public:
     using Values = core::StaticVector<IndexValue, Blocks>;
 
     using Metadata = typename Base::Metadata;
-
-    using InputBuffer   = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
-    using InputType     = Values;
 
     using SizesT        = core::StaticVector<int32_t, Blocks>;
     using PtrsT         = core::StaticVector<Value*, Blocks>;
