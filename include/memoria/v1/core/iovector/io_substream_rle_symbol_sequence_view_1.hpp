@@ -112,6 +112,21 @@ public:
         MMA1_THROW(RuntimeException()) << WhatCInfo("Appending to not supported for PackedSymbolSequenceNonOwningImpl");
     }
 
+    uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx) const
+    {
+        MEMORIA_V1_ASSERT_TRUE(idx >= 0 && idx <= size_);
+        buffer.append_run(0, size_ - idx);
+        return size_;
+    }
+
+    uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx, uint64_t size) const
+    {
+        MEMORIA_V1_ASSERT_TRUE(idx >= 0 && idx <= size_);
+        MEMORIA_V1_ASSERT_TRUE(idx + size >= 0 && idx + size <= size_)
+        buffer.append_run(0, size);
+        return idx + size;
+    }
+
     virtual void configure(void* ptr)
     {
         size_ = T2T<uint64_t>(ptr);

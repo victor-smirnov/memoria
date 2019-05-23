@@ -73,6 +73,10 @@ public:
         return local_idx_ < run_.length();
     }
 
+    size_t remaining_run_length() const {
+        return length() - local_idx();
+    }
+
     bool has_data() const {
         return has_symbol_in_run() || data_pos_ < data_size_;
     }

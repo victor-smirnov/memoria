@@ -134,9 +134,18 @@ public:
         }
     }
 
+    uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx) const
+    {
+        return sequence_->populate(buffer, idx);
+    }
+
+    uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx, uint64_t size) const
+    {
+        return sequence_->populate(buffer, idx, size);
+    }
 
 
-    virtual void configure(void* ptr) {
+    void configure(void* ptr) {
         MMA1_THROW(UnsupportedOperationException());
     }
 

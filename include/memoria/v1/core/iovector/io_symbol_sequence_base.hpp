@@ -21,12 +21,56 @@
 
 #include <memoria/v1/core/tools/type_name.hpp>
 
+#include <memoria/v1/core/iovector/io_buffer_base.hpp>
 
 #include <functional>
+#include <tuple>
 
 namespace memoria {
 namespace v1 {
 namespace io {
+
+namespace _ {
+
+struct SymbolsRun {
+    int32_t symbol;
+    uint64_t length;
+};
+
+}
+
+class SymbolsBuffer: IOBufferBase<_::SymbolsRun> {
+    using Base = IOBufferBase<_::SymbolsRun>;
+
+    using typename Base::ValueT;
+
+public:
+    using Base::clear;
+    using Base::reset;
+    using Base::size;
+
+    SymbolsBuffer(): SymbolsBuffer(64) {}
+    SymbolsBuffer(size_t capacity): Base(capacity) {}
+
+    void append_run(int32_t symbol, uint64_t length)
+    {
+        if (MMA1_LIKELY(size_ == 0 || head().symbol != symbol))
+        {
+            append_value(_::SymbolsRun{symbol, length});
+        }
+        else {
+            head().length += length;
+        }
+    }
+
+    _::SymbolsRun& operator[](size_t idx) {
+        return access(idx);
+    }
+
+    const _::SymbolsRun& operator[](size_t idx) const {
+        return access(idx);
+    }
+};
 
 struct IOSymbolSequence: IOSubstream {
 
@@ -57,6 +101,9 @@ struct IOSymbolSequence: IOSubstream {
 
     virtual void reset()                            = 0;
     virtual void configure(void* ptr)               = 0;
+
+    virtual uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx) const = 0;
+    virtual uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx, uint64_t size) const = 0;
 
     virtual void append_from(const IOSymbolSequence& source, int32_t start, int32_t length) = 0;
 };

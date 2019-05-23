@@ -579,6 +579,42 @@ public:
         return OpStatus::OK;
     }
 
+    uint64_t populate(io::SymbolsBuffer& buffer, uint64_t idx) const
+    {
+        auto iter = this->iterator(idx);
+        while (iter.has_data())
+        {
+            buffer.append_run(iter.symbol(), iter.remaining_run_length());
+            iter.next_run();
+        }
+
+        return this->size();
+    }
+
+    uint64_t populate(io::SymbolsBuffer& buffer, uint64_t idx, uint64_t size) const
+    {
+        auto iter = this->iterator(idx);
+        uint64_t total{};
+        while (iter.has_data())
+        {
+            auto len = iter.remaining_run_length();
+
+            if (MMA1_LIKELY(len + total <= size))
+            {
+                total += len;
+                buffer.append_run(iter.symbol(), len);
+                iter.next_run();
+            }
+            else {
+                auto remaining = size - total;
+                buffer.append_run(iter.symbol(), remaining);
+                total += remaining;
+            }
+        }
+
+        return idx + total;
+    }
+
     Iterator iterator(int32_t symbol_pos) const
     {
         auto meta = this->metadata();

@@ -262,4 +262,20 @@ struct IOVectorConsumer {
     virtual void consume(IOVector& io_vector) = 0;
 };
 
+
+
+
+template <
+        typename SubstreamTypeTag_,
+        template <typename> class Codec_
+>
+struct SSTraits
+{
+    using SubstreamTypeTag = SubstreamTypeTag_;
+
+    template <typename T> using Codec = Codec_<T>;
+};
+
+
+
 }}}

@@ -31,7 +31,7 @@ namespace v1 {
 namespace io {
 
 template <int32_t AlphabetSize>
-class PackedRLESymbolSequenceView: public IOSymbolSequence {
+class PackedRLESymbolSequenceView final: public IOSymbolSequence {
 
     using SeqT = PkdRLESeqT<AlphabetSize>;
 
@@ -101,11 +101,11 @@ public:
         sequence_->dump(out, true);
     }
 
-    virtual const std::type_info& sequence_type() const {
+    const std::type_info& sequence_type() const {
         return typeid(SeqT);
     }
 
-    virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const
+    void copy_to(IOSubstream& target, int32_t start, int32_t length) const
     {
         IOSymbolSequence& target_stream = substream_cast<IOSymbolSequence>(target);
         target_stream.append_from(*this, start, length);
@@ -116,7 +116,17 @@ public:
         MMA1_THROW(RuntimeException()) << WhatCInfo("Appending from is not supported for PackedRLESymbolSequenceView");
     }
 
-    virtual void configure(void* ptr)
+    uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx) const
+    {
+        return sequence_->populate(buffer, idx);
+    }
+
+    uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx, uint64_t size) const
+    {
+        return sequence_->populate(buffer, idx, size);
+    }
+
+    void configure(void* ptr)
     {
         sequence_ = T2T<SeqT*>(ptr);
     }
