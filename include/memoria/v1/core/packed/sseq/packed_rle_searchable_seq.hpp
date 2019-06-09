@@ -612,6 +612,8 @@ public:
             }
         }
 
+        buffer.finish();
+
         return idx + total;
     }
 

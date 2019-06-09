@@ -43,19 +43,33 @@ class SymbolsBuffer: IOBufferBase<_::SymbolsRun> {
     using Base = IOBufferBase<_::SymbolsRun>;
 
     using typename Base::ValueT;
-
+    int32_t last_symbol_;
 public:
     using Base::clear;
     using Base::reset;
     using Base::size;
 
-    SymbolsBuffer(): SymbolsBuffer(64) {}
-    SymbolsBuffer(size_t capacity): Base(capacity) {}
+    SymbolsBuffer(int32_t symbols):
+        SymbolsBuffer(symbols, 64)
+    {}
+
+    SymbolsBuffer(int32_t symbols, size_t capacity):
+        Base(capacity), last_symbol_(symbols - 1)
+    {}
 
     void append_run(int32_t symbol, uint64_t length)
     {
-        if (MMA1_LIKELY(size_ == 0 || head().symbol != symbol))
+        if (MMA1_UNLIKELY(size_ == 0))
         {
+            append_value(_::SymbolsRun{symbol, length});
+        }
+        else if (MMA1_LIKELY(head().symbol != symbol))
+        {
+            if (head().symbol < last_symbol_)
+            {
+                split_head();
+            }
+
             append_value(_::SymbolsRun{symbol, length});
         }
         else {
@@ -69,6 +83,25 @@ public:
 
     const _::SymbolsRun& operator[](size_t idx) const {
         return access(idx);
+    }
+
+    void finish()
+    {
+        if (size_ > 0 && head().symbol < last_symbol_) {
+            split_head();
+        }
+    }
+
+private:
+    void split_head()
+    {
+        auto& element = head();
+
+        if (element.length > 1)
+        {
+            element.length--;
+            append_run(element.symbol, 1);
+        }
     }
 };
 

@@ -60,31 +60,12 @@ int main(int argc, char** argv)
             map.assign(c, U8String("str_") + toString(c));
         }
 
-        //             // Iterator on the whole container
-        //             for (auto iter = map.begin(); !iter.is_end(); iter.next())
-        //             {
-        //                 cout << iter.key() << " -- " << iter.value() << endl;
-        //             }
+        // Iterator on the whole container
+        for (auto iter = map.begin(); !iter.is_end(); iter.next())
+        {
+            std::cout << iter.key() << " -- " << iter.value() << std::endl;
+        }
 
-        //             int cnt = 0;
-        //             auto entries = map.begin().read(map.size());
-        //
-        //             for (auto& entry: entries)
-        //             {
-        //                 std::cout << (cnt++) << " -- " << std::get<0>(entry) << ": " << std::get<1>(entry) << std::endl;
-        //             }
-
-
-        //             // Dump readable contents of allocator to disk to see what is under the hood.
-        //             // Mostly usable for hacking and debugging.
-        //             snp.dump("map_full.dir");
-        //
-        //             // Remove all entries by keys
-        //             for (int c = from; c < to; c++)
-        //             {
-        //                 map.remove(c);
-        //             }
-        //
         // Finish snapshot so no other updates are possible.
         snp.commit();
 

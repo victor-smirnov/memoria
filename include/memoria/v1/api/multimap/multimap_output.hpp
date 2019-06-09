@@ -43,10 +43,10 @@ class MultimapSequenceParserBase {
     uint64_t suffix_offset_{};
     uint64_t suffix_size_{};
 
-    io::IOBufferBase<int32_t> offsets_;
+    io::IOBufferBase<int32_t> values_offsets_;
     io::SymbolsBuffer buffer_;
 
-    uint64_t offsets_[2]{};
+    uint64_t value_starts_[2]{};
 
 public:
     MultimapSequenceParserBase() {}
@@ -57,8 +57,9 @@ public:
     void parse(io::IOSymbolSequence& sequence, uint64_t start)
     {
         buffer_.reset();
-        offsets_.reset();
-        sequence.rank_to(start, offsets_);
+        values_offsets_.reset();
+
+        sequence.rank_to(start, value_starts_);
         sequence.populate_buffer(buffer_, start);
 
         if (MMA1_LIKELY(buffer_.size() > 0))
