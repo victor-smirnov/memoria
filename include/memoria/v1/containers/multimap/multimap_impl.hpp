@@ -39,6 +39,20 @@ typename CtrApi<Multimap<Key, Value>, Profile>::Iterator CtrApi<Multimap<Key, Va
     return this->pimpl_->seek(pos);
 }
 
+
+template <typename Key, typename Value, typename Profile>
+CtrSharedPtr<IValuesIterator<Value>> CtrApi<Multimap<Key, Value>, Profile>::find_v(Key key)
+{
+    return this->pimpl_->find_v(key);
+}
+
+template <typename Key, typename Value, typename Profile>
+CtrSharedPtr<IEntriesIterator<Key,Value>> CtrApi<Multimap<Key, Value>, Profile>::seek_e(int64_t pos)
+{
+    return this->pimpl_->seek_e(pos);
+}
+
+
 template <typename Key, typename Value, typename Profile>
 typename CtrApi<Multimap<Key, Value>, Profile>::Iterator CtrApi<Multimap<Key, Value>, Profile>::find(const Key& key) 
 {

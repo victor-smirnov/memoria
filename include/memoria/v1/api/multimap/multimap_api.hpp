@@ -17,6 +17,8 @@
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
 
+#include <memoria/v1/api/multimap/multimap_output.hpp>
+
 #include <memory>
 #include <tuple>
 
@@ -59,6 +61,9 @@ public:
     Iterator end() {return Base::seq_begin();}
     Iterator seek(int64_t pos);
     int64_t size() const;
+
+    CtrSharedPtr<IEntriesIterator<Key,Value>> seek_e(int64_t pos);
+    CtrSharedPtr<IValuesIterator<Value>> find_v(Key key);
 
 #ifdef MMA1_USE_IOBUFFER
     Iterator assign(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);

@@ -19,6 +19,8 @@
 #include <memoria/v1/core/memory/malloc.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 
+#include <memoria/v1/core/tools/span.hpp>
+
 #include <type_traits>
 
 namespace memoria {
@@ -39,7 +41,8 @@ protected:
 protected:
     IOBufferBase(size_t capacity):
         buffer_(allocate_system<ValueT>(capacity)),
-        capaicty_(capacity)
+        capaicty_(capacity),
+        size_(0)
     {}
 
     size_t size() const {
@@ -58,8 +61,16 @@ protected:
         return *buffer_.get();
     }
 
+    ValueT* tail_ptr() {
+        return buffer_.get();
+    }
+
     const ValueT& tail() const {
         return *buffer_.get();
+    }
+
+    const ValueT* tail_ptr() const {
+        return buffer_.get();
     }
 
     ValueT& head() {
@@ -78,6 +89,13 @@ protected:
         size_++;
     }
 
+    void append_values(const ValueT* values, size_t size)
+    {
+        ensure(size);
+        MemCpyBuffer(values, buffer_.get() + size_, size);
+        size_ += size;
+    }
+
     void ensure(size_t size)
     {
         if (size_ + size > capaicty_)
@@ -89,18 +107,18 @@ protected:
 
     void enlarge(size_t requested)
     {
-        size_t capaicty = capaicty_;
+        size_t next_capaicty = capaicty_ * 2;
 
-        while (capaicty + requested < capaicty * 2)
+        while (capaicty_ + requested > next_capaicty)
         {
-            capaicty *= 2;
+            next_capaicty *= 2;
         }
 
-        auto new_ptr = allocate_system<ValueT>(capaicty);
+        auto new_ptr = allocate_system<ValueT>(next_capaicty);
 
         MemCpyBuffer(buffer_.get(), new_ptr.get(), size_);
         buffer_ = std::move(new_ptr);
-        capaicty_ = capaicty;
+        capaicty_ = next_capaicty;
     }
 
     ValueT& access(size_t idx) {
@@ -121,7 +139,56 @@ protected:
         capaicty_ = 64;
         buffer_ = allocate_system<ValueT>(capaicty_);
     }
+
+    Span<ValueT> span() {
+        return Span<ValueT>(buffer_.get(), size_);
+    }
+
+    Span<const ValueT> span() const {
+        return Span<ValueT>(buffer_.get(), size_);
+    }
+
+    Span<ValueT> span(size_t from) {
+        return Span<ValueT>(buffer_.get() + from, size_ - from);
+    }
+
+    Span<const ValueT> span(size_t from) const
+    {
+        return Span<ValueT>(buffer_.get() + from, size_ - from);
+    }
+
+    Span<ValueT> span(size_t from, size_t length)
+    {
+        return Span<ValueT>(buffer_.get() + from, length);
+    }
+
+    Span<const ValueT> span(size_t from, size_t length) const
+    {
+        return Span<ValueT>(buffer_.get() + from, length);
+    }
 };
 
+template <typename TT>
+class DefaultIOBuffer: public IOBufferBase<TT> {
+    using Base = IOBufferBase<TT>;
+
+public:
+    DefaultIOBuffer(size_t capacity): Base(capacity) {}
+
+    using Base::append_value;
+    using Base::append_values;
+    using Base::access;
+    using Base::size;
+    using Base::clear;
+    using Base::head;
+    using Base::tail;
+    using Base::tail_ptr;
+    using Base::remaining;
+    using Base::reset;
+    using Base::span;
+
+    TT& operator[](size_t idx) {return access(idx);}
+    const TT& operator[](size_t idx) const {return access(idx);}
+};
 
 }}}

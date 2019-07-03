@@ -20,6 +20,8 @@
 
 #include <memoria/v1/containers/multimap/mmap_names.hpp>
 #include <memoria/v1/containers/multimap/mmap_tools.hpp>
+#include <memoria/v1/containers/multimap/mmap_output_entries.hpp>
+#include <memoria/v1/containers/multimap/mmap_output_values.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
@@ -67,6 +69,36 @@ public:
         ii->toStructureStream();
 
         return ii;
+    }
+
+    CtrSharedPtr<IEntriesIterator<Key,Value>> seek_e(CtrSizeT idx)
+    {
+        auto& self = this->self();
+        auto ii = self.template seek_stream<0>(idx);
+
+        ii->stream() = 0;
+
+        ii->toStructureStream();
+
+        auto ptr = ctr_make_shared<mmap::EntriesIteratorImpl<Key, Value, IteratorPtr>>(ii);
+
+        return static_pointer_cast<IEntriesIterator<Key,Value>>(ptr);
+    }
+
+    CtrSharedPtr<IValuesIterator<Value>> find_v(Key key)
+    {
+        auto& self = this->self();
+        auto ii = self.find(key);
+
+        if (ii->is_found(key))
+        {
+            ii->to_values();
+            auto ptr = ctr_make_shared<mmap::ValuesIteratorImpl<Value, IteratorPtr>>(ii);
+            return static_pointer_cast<IValuesIterator<Value>>(ptr);
+        }
+        else {
+            return CtrSharedPtr<IValuesIterator<Value>>{};
+        }
     }
 
     CtrSizeT size() const {

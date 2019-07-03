@@ -359,6 +359,11 @@ int32_t IterApiBase<CtrName, Profile>::local_pos() const {
 }
 
 template <typename CtrName, typename Profile>
+bool IterApiBase<CtrName, Profile>::next_leaf() {
+    return this->pimpl_->nextLeaf();
+}
+
+template <typename CtrName, typename Profile>
 void IterApiBase<CtrName, Profile>::dump()
 {
     return this->pimpl_->dump();

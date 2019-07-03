@@ -579,6 +579,59 @@ public:
         return OpStatus::OK;
     }
 
+
+    uint64_t populate_entry(io::SymbolsBuffer& buffer, uint64_t idx, int32_t symbol, bool entry_start) const
+    {
+        auto iter = this->iterator(idx);
+        if (MMA1_LIKELY(iter.has_data()))
+        {
+            if (MMA1_UNLIKELY(entry_start && iter.symbol() == symbol))
+            {
+                if (MMA1_UNLIKELY(iter.remaining_run_length() > 1))
+                {
+                    buffer.append_run(iter.symbol(), iter.remaining_run_length());
+                    return idx + 1;
+                }
+                else
+                {
+                    iter.next_run();
+                }
+            }
+
+            while (iter.has_data())
+            {
+                if (iter.symbol() >= symbol)
+                {
+                    buffer.append_run(iter.symbol(), iter.remaining_run_length());
+                    iter.next_run();
+                }
+                else {
+                    return iter.local_pos();
+                }
+            }
+        }
+
+        return this->size();
+    }
+
+    uint64_t populate_while(io::SymbolsBuffer& buffer, uint64_t idx, int32_t symbol) const
+    {
+        auto iter = this->iterator(idx);
+        while (iter.has_data())
+        {
+            if (iter.symbol() >= symbol)
+            {
+                buffer.append_run(iter.symbol(), iter.remaining_run_length());
+                iter.next_run();
+            }
+            else {
+                return iter.local_pos();
+            }
+        }
+
+        return this->size();
+    }
+
     uint64_t populate(io::SymbolsBuffer& buffer, uint64_t idx) const
     {
         auto iter = this->iterator(idx);

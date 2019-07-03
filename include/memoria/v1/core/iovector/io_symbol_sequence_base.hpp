@@ -48,6 +48,7 @@ public:
     using Base::clear;
     using Base::reset;
     using Base::size;
+    using Base::head;
 
     SymbolsBuffer(int32_t symbols):
         SymbolsBuffer(symbols, 64)
@@ -65,7 +66,8 @@ public:
         }
         else if (MMA1_LIKELY(head().symbol != symbol))
         {
-            if (head().symbol < last_symbol_)
+            auto& hh = head();
+            if (hh.symbol < last_symbol_)
             {
                 split_head();
             }
@@ -100,7 +102,7 @@ private:
         if (element.length > 1)
         {
             element.length--;
-            append_run(element.symbol, 1);
+            append_value(_::SymbolsRun{element.symbol, 1});
         }
     }
 };
@@ -137,6 +139,9 @@ struct IOSymbolSequence: IOSubstream {
 
     virtual uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx) const = 0;
     virtual uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx, uint64_t size) const = 0;
+
+    virtual uint64_t populate_buffer_while(SymbolsBuffer& buffer, uint64_t idx, int32_t symbol) const = 0;
+    virtual uint64_t populate_buffer_entry(SymbolsBuffer& buffer, uint64_t idx, int32_t symbol, bool entry_start) const = 0;
 
     virtual void append_from(const IOSymbolSequence& source, int32_t start, int32_t length) = 0;
 };

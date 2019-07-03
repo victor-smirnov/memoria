@@ -224,6 +224,8 @@ public:
 
     const PairPtr& pair() const;
     PairPtr& pair();
+
+    bool next_leaf();
 };
 
 

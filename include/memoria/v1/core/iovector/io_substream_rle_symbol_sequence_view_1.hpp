@@ -109,7 +109,8 @@ public:
     }
 
     void append_from(const IOSymbolSequence& source, int32_t start, int32_t length) {
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Appending to not supported for PackedSymbolSequenceNonOwningImpl");
+        MMA1_THROW(RuntimeException())
+                << WhatCInfo("Appending to not supported for PackedSymbolSequenceNonOwningImpl");
     }
 
     uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx) const
@@ -125,6 +126,29 @@ public:
         MEMORIA_V1_ASSERT_TRUE(idx + size >= 0 && idx + size <= size_)
         buffer.append_run(0, size);
         return idx + size;
+    }
+
+    virtual uint64_t populate_buffer_while(SymbolsBuffer& buffer, uint64_t idx, int32_t symbol) const
+    {
+        MEMORIA_V1_ASSERT_TRUE(idx >= 0 && idx <= size_);
+
+        if (symbol == 0)
+        {
+            if (idx < size_)
+            {
+                buffer.append_run(0, size_ - idx);
+            }
+
+            return size_;
+        }
+        else {
+            return idx;
+        }
+    }
+
+    virtual uint64_t populate_buffer_entry(SymbolsBuffer& buffer, uint64_t idx, int32_t symbol, bool entry_start) const
+    {
+        MMA1_THROW(UnsupportedOperationException());
     }
 
     virtual void configure(void* ptr)

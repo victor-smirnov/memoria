@@ -144,6 +144,16 @@ public:
         return sequence_->populate(buffer, idx, size);
     }
 
+    virtual uint64_t populate_buffer_while(SymbolsBuffer& buffer, uint64_t idx, int32_t symbol) const
+    {
+        return sequence_->populate_while(buffer, idx, symbol);
+    }
+
+    virtual uint64_t populate_buffer_entry(SymbolsBuffer& buffer, uint64_t idx, int32_t symbol, bool entry_start) const
+    {
+        return sequence_->populate_entry(buffer, idx, symbol, entry_start);
+    }
+
 
     void configure(void* ptr) {
         MMA1_THROW(UnsupportedOperationException());

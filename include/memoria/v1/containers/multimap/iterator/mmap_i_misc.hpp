@@ -28,6 +28,9 @@
 
 #include <memoria/v1/core/tools/object_pool.hpp>
 
+#include <memoria/v1/containers/multimap/mmap_output_entries.hpp>
+#include <memoria/v1/containers/multimap/mmap_output_values.hpp>
+
 #include <iostream>
 
 namespace memoria {

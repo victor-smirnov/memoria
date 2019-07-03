@@ -115,7 +115,7 @@ public:
             free_system(col.data_buffer);
 
             col.data_buffer     = new_data_buffer;
-            col.capacity        = capacity;
+            col.capacity        = target_capacity;
         }
 
         return col.data_buffer;

@@ -699,6 +699,8 @@ public:
             CopyBuffer(buffer_values, this->values(block) + at, inserted);
         }
 
+        //(void)this->reindex();
+
         return OpStatus::OK;
     }
 
