@@ -791,9 +791,9 @@ public:
     }
 
 
-    OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
+    OpStatusT<int32_t> insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
     {        
-        io::IORowwiseVLenArraySubstream<Value>& buffer
+        const io::IORowwiseVLenArraySubstream<Value>& buffer
                 = io::substream_cast<io::IORowwiseVLenArraySubstream<Value>>(substream);
 
         auto buffer_values_start = T2T<const uint8_t*>(buffer.select(start));

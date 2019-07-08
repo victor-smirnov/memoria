@@ -1676,7 +1676,7 @@ public:
         return find_run(this->metadata(), symbol_pos);
     }
 
-    OpStatus insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
+    OpStatus insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
     {
         const MyType* buffer = T2T<const MyType*>(io::substream_cast<io::IOSymbolSequence>(substream).buffer());
         return this->insert_from(at, buffer, start, size);

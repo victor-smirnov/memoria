@@ -45,47 +45,6 @@ using Key   = int64_t;
 using Value = uint8_t;
 
 
-class RandomBufferPopulator: public io::IOVectorProducer {
-    const size_t mean_value_size_;
-    Key key_cnt_{1};
-    Value vv_{};
-    uint64_t total_{};
-    uint64_t total_max_;
-public:
-    RandomBufferPopulator(size_t mean_value_size, uint64_t total_max):
-        mean_value_size_(mean_value_size), total_max_(total_max)
-    {}
-
-    virtual bool populate(io::IOVector& buffer)
-    {
-        auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Key>>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IORowwiseFixedSizeArraySubstream<Value>>(buffer.substream(1));
-
-        for (int r = 0; r < 1000; r++)
-        {
-            int32_t len = getRandomG(mean_value_size_ * 2) + 1; //mean_value_size_; //
-            seq.append(0, 1);
-            s0.append(0, key_cnt_);
-            total_ += sizeof(Key);
-
-            seq.append(1, len);
-            Value* val = s1.reserve(len);
-
-            for (int c = 0; c < len; c++)
-            {
-                *(val + c) = c;
-            }
-
-            total_ += len * sizeof(Value);
-
-            key_cnt_++;
-        }
-
-        return total_ >= total_max_;
-    }
-};
-
 void check_values(absl::Span<const Value> span)
 {
     Value cc = 0; size_t cnt{};
@@ -137,19 +96,19 @@ int main()
 
         // Create Map
         auto map = create<Multimap<Key, Value>>(snp);
-        map.new_block_size(512 * 1024);
+        map.new_block_size(128 * 1024);
         
         int64_t t0 = getTimeInMillis();
         
-        RandomBufferPopulator provider(512 / sizeof(Value), 1024 * 1024 * 1024);
+        MultimapRandomBufferPopulator<Key, Value> provider(128 / sizeof(Value), 1024 * 1024 * 1024);
 
-        map.begin().insert(provider); //127 sq in
+        map.append_entries(provider); //127 sq in
 
         auto t1 = getTimeInMillis();
         
         std::cout << "Creation time: " << (t1 - t0) << ", size = " << map.size() << std::endl;
 
-        auto ii2 = map.seek_e(0);
+        auto ii2 = map.seek(0);
         ii2->set_buffered();
 
         io::DefaultIOBuffer<Value> suffix_buffer(4096);
@@ -206,10 +165,10 @@ int main()
 //        }
 
 
-        for (int64_t c = 0; c < map_size; c++)
-        {
-            auto key = getRandomG(map_size);
-            auto ii = map.find_v(key);
+//        for (int64_t c = 0; c < map_size; c++)
+//        {
+//            auto key = getRandomG(map_size);
+//            auto ii = map.find_v(key);
 
 //            if (ii)
 //            {
@@ -233,12 +192,29 @@ int main()
 //                    check_values_b(ii->buffer());
 //                }
 //            }
+//        }
+
+        auto keys = map.keys();
+
+        int64_t cnt = 1;
+        while(!keys->is_end())
+        {
+            for (auto& kk: keys->buffer())
+            {
+                if (kk != cnt) {
+                    cout << "Mismatch! " << kk << " :: " << cnt << std::endl;
+                }
+
+                cnt++;
+            }
+
+            keys->next();
         }
 
 
         auto t7 = getTimeInMillis();
 
-        std::cout << "Entries Iteration (2) time: " << (t7 - t6) << std::endl;
+        std::cout << "Entries Iteration (2) time: " << (t7 - t6) << " :: " << cnt << std::endl;
 
         // Finish snapshot so no other updates are possible.
         snp.commit();

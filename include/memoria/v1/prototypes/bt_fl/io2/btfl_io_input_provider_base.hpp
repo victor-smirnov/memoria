@@ -57,7 +57,7 @@ namespace _ {
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                memoria::v1::io::IOVector& io_vector,
+                const memoria::v1::io::IOVector& io_vector,
                 OpStatus& status,
                 int32_t& current_substream
         )
@@ -87,7 +87,7 @@ namespace _ {
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                memoria::v1::io::IOVector& io_vector,
+                const memoria::v1::io::IOVector& io_vector,
                 OpStatus& status,
                 int32_t& current_substream
         )
@@ -246,7 +246,7 @@ public:
 
     void do_populate_iobuffer()
     {
-        auto& seq = io_vector_->symbol_sequence();
+        const auto& seq = io_vector_->symbol_sequence();
 
         do
         {
@@ -496,7 +496,7 @@ protected:
                 const Position& at,
                 const Position& starts,
                 const Position& sizes,
-                memoria::v1::io::IOVector& io_vector)
+                const memoria::v1::io::IOVector& io_vector)
         {
             _::StreamSelector<
                     StreamIdx < DataStreams ? _::StreamSelectorType::DATA : _::StreamSelectorType::STRUCTURE,

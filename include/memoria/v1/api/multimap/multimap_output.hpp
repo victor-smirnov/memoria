@@ -19,12 +19,8 @@
 #include <memoria/v1/api/common/ctr_output_btfl_run.hpp>
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
-
 #include <memoria/v1/core/tools/static_array.hpp>
-
 #include <memoria/v1/core/iovector/io_symbol_sequence.hpp>
-
-#include <memoria/v1/core/tools/static_array.hpp>
 
 #include <absl/types/span.h>
 
@@ -129,8 +125,6 @@ public:
 
 template <typename Value>
 class IValuesIterator {
-
-
 protected:
     const Value* values_{};
     size_t size_{};
@@ -164,8 +158,32 @@ public:
     virtual bool is_end() const     = 0;
     virtual void next()             = 0;
     virtual void dump_iterator() const = 0;
-
 };
 
+
+template <typename Key, typename Value>
+class IKeysIterator {
+protected:
+    const Key* keys_{};
+    size_t size_{};
+
+    bool use_buffered_{};
+    bool buffer_is_ready_{false};
+
+public:
+    IKeysIterator() {}
+
+    virtual ~IKeysIterator() noexcept {}
+
+    Span<const Key> buffer() const {
+        return Span<const Key>{keys_, size_};
+    }
+
+    virtual CtrSharedPtr<IValuesIterator<Value>> values(size_t key_idx) = 0;
+
+    virtual bool is_end() const         = 0;
+    virtual void next()                 = 0;
+    virtual void dump_iterator() const  = 0;
+};
 
 }}

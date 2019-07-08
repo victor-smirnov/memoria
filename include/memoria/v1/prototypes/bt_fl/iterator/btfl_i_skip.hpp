@@ -387,6 +387,21 @@ public:
         }
     }
 
+    CtrSizeT leafrank(int32_t stream, int32_t structure_idx) const
+    {
+        auto& self = this->self();
+
+        auto leaf_structure = self.leaf_structure();
+
+        if (leaf_structure != nullptr)
+        {
+            return leaf_structure->rank(structure_idx, stream);
+        }
+        else {
+            return 0;
+        }
+    }
+
 
     int32_t structure_size() const
     {

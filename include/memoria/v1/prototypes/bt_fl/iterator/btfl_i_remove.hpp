@@ -103,6 +103,29 @@ public:
     }
 
 
+    bool remove_all(MyType& to)
+    {
+        auto& self = this->self();
+        CtrSizesT sizes;
+
+        if (!self.isEnd())
+        {
+            auto start = self.leafrank();
+            auto end   = to.leafrank();
+
+            self.ctr().removeEntries(self.leaf(), start, to.leaf(), end, sizes, true);
+
+            self.local_pos() = end[StructureStreamIdx];
+
+            self.leaf().assign(to.leaf());
+
+            self.refresh();
+        }
+
+        return sizes.sum() != 0;
+    }
+
+
 protected:
 
 

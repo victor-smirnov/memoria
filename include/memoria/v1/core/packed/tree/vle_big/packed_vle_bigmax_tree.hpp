@@ -788,11 +788,11 @@ public:
     }
 
 
-    OpStatus insert_io_substream(int32_t pos, io::IOSubstream& substream, int32_t start, int32_t size)
+    OpStatus insert_io_substream(int32_t pos, const io::IOSubstream& substream, int32_t start, int32_t size)
     {
         static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
 
-        io::IOColumnwiseVLenArraySubstream<Value>& buffer = io::substream_cast<io::IOColumnwiseVLenArraySubstream<Value>>(substream);
+        const io::IOColumnwiseVLenArraySubstream<Value>& buffer = io::substream_cast<io::IOColumnwiseVLenArraySubstream<Value>>(substream);
 
         auto buffer_values_start = T2T<const uint8_t*>(buffer.select(0, start));
         auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(0, start + size));

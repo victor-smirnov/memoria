@@ -39,7 +39,7 @@ namespace io {
 template <typename Value, int32_t Columns>
 class IORowwiseFixedSizeArraySubstreamViewImpl: public IORowwiseFixedSizeArraySubstream<Value> {
 
-    Value* data_buffer_{};
+    const Value* data_buffer_{};
     int32_t size_{};
 
     static constexpr int32_t BUFFER_SIZE = 256;
@@ -102,7 +102,7 @@ public:
         }
     }
 
-    void configure(Value* buffer, int32_t size)
+    void configure(const Value* buffer, int32_t size)
     {
         data_buffer_ = buffer;
         size_        = size;

@@ -18,6 +18,12 @@
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
 
 #include <memoria/v1/api/multimap/multimap_output.hpp>
+#include <memoria/v1/api/multimap/multimap_input.hpp>
+#include <memoria/v1/api/multimap/multimap_entry.hpp>
+
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
+#include <absl/types/span.h>
 
 #include <memory>
 #include <tuple>
@@ -48,37 +54,33 @@ public:
     static constexpr int32_t DataStreams = 2;
     using CtrSizesT = ProfileCtrSizesT<Profile, DataStreams + 1>;
     
-
     MMA1_DECLARE_CTRAPI_BASIC_METHODS()
-    
-    Iterator find(const Key& key);
-    Iterator find_or_create(const Key& key);
-    
+
     bool contains(const Key& key);
     bool remove(const Key& key);
-    
-    Iterator begin() {return Base::seq_begin();}
-    Iterator end() {return Base::seq_begin();}
-    Iterator seek(int64_t pos);
+
+    bool remove_all(const Key& from, const Key& to); //[from, to)
+    bool remove_after(const Key& from); //[from, end)
+    bool remove_before(const Key& to); //[begin, to)
+
     int64_t size() const;
 
-    CtrSharedPtr<IEntriesIterator<Key,Value>> seek_e(int64_t pos);
-    CtrSharedPtr<IValuesIterator<Value>> find_v(Key key);
+    CtrSharedPtr<IEntriesIterator<Key,Value>> seek(CtrSizeT pos);
+    CtrSharedPtr<IValuesIterator<Value>> find(Key key);
+    CtrSharedPtr<IKeysIterator<Key, Value>> keys();
 
-#ifdef MMA1_USE_IOBUFFER
-    Iterator assign(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);
-    
-    template <typename InputIterator, typename EndIterator>
-    Iterator assign(const Key& key, const InputIterator& start, const EndIterator& end)
-    {
-        InputIteratorProvider<Value, InputIterator, EndIterator, CtrIOBuffer> provider(start, end);        
-        return assign(key, provider);
-    }
-    
-    
-    CtrSizeT read(const Key& key, bt::BufferConsumer<CtrIOBuffer>& values_consumer, CtrSizeT start = 0, CtrSizeT length = std::numeric_limits<CtrSizeT>::max());
-#endif
+    // returns true if the entry was updated, and false if new entry was inserted
+    bool upsert(Key key, io::IOVectorProducer& producer);
+    bool upsert(Key key, absl::Span<const Value> span);
 
+    void append_entries(io::IOVectorProducer& producer);
+    void append_entry(Key key, absl::Span<const Value> span);
+
+    void prepend_entries(io::IOVectorProducer& producer);
+    void prepend_entry(Key key, absl::Span<const Value> span);
+
+    void insert_entries(Key before, io::IOVectorProducer& producer);
+    void insert_entry(Key before, Key key, absl::Span<const Value> span);
 };
 
 

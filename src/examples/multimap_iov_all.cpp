@@ -44,47 +44,42 @@ using namespace std;
 using Key   = int64_t;
 using Value = uint8_t;
 
-
-class RandomBufferPopulator: public io::IOVectorProducer {
-    const size_t mean_value_size_;
-    Key key_cnt_{1};
-    Value vv_{};
-    uint64_t total_{};
-    uint64_t total_max_;
-public:
-    RandomBufferPopulator(size_t mean_value_size, uint64_t total_max):
-        mean_value_size_(mean_value_size), total_max_(total_max)
-    {}
-
-    virtual bool populate(io::IOVector& buffer)
+void check_values(absl::Span<const Value> span)
+{
+    Value cc = 0; size_t cnt{};
+    for (auto vv: span)
     {
-        auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Key>>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(buffer.substream(1));
-
-        for (int r = 0; r < 100; r++)
+        if (MMA1_UNLIKELY(cc != vv))
         {
-            int32_t len = mean_value_size_; //getRandomG(mean_value_size_ * 2) + 1;
-            seq.append(0, 1);
-            s0.append(0, key_cnt_);
-            total_ += sizeof(Key);
-
-            seq.append(1, len);
-            s1.reserve(0, len);
-
-            total_ += len * sizeof(Value);
-
-            key_cnt_++;
+            std::cout << cnt << ") PFX NOT EQUALS" << std::endl;
         }
 
-        return total_ >= total_max_;
+        cc++;
+        cnt++;
     }
-};
+}
+
+bool check_values_b(absl::Span<const Value> span)
+{
+    Value cc = 0; size_t cnt{};
+    for (auto vv: span)
+    {
+        if (MMA1_UNLIKELY(cc != vv))
+        {
+            std::cout << cnt << ") PFX NOT EQUALS" << std::endl;
+            return false;
+        }
+
+        cc++;
+        cnt++;
+    }
+
+    return true;
+}
+
 
 int main()
 {
-
-
     try {
         // Create persistent in-memory allocator for containers to store their data in.
         auto alloc = ThreadInMemAllocator<>::create();
@@ -100,22 +95,15 @@ int main()
 
         // Create Map
         auto map = create<Multimap<Key, Value>>(snp);
-        map.new_block_size(16 * 1024);
+        //map.new_block_size(128 * 1024);
         
-        int64_t t0 = getTimeInMillis();
-        
-        RandomBufferPopulator provider(512 / sizeof(Value), 1024*1024*1024);
-
-        map.append_entries(provider);
-
-        auto t1 = getTimeInMillis();
-        
-        std::cout << "Creation time: " << (t1 - t0) <<", size = " << map.size() << std::endl;
+        std::vector<Value> data(409600);
+        map.upsert(1, data);
 
         // Finish snapshot so no other updates are possible.
         snp.commit();
 
-        //alloc.store("multimap_stream_data_iovec.dump");
+        alloc.store("multimap_stream_data_iovec.mma1");
     }
     catch (MemoriaThrowable& ex)
     {

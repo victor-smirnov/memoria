@@ -541,9 +541,9 @@ public:
 
 
 
-    OpStatusT<int32_t> insert_io_substream(int32_t at, io::IOSubstream& substream, int32_t start, int32_t size)
+    OpStatusT<int32_t> insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
     {
-        io::IORowwiseFixedSizeArraySubstream<Value>& buffer
+        const io::IORowwiseFixedSizeArraySubstream<Value>& buffer
                 = io::substream_cast<io::IORowwiseFixedSizeArraySubstream<Value>>(substream);
 
         if(isFail(insertSpace(at, size))) {

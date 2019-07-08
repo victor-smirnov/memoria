@@ -259,10 +259,8 @@ struct IOVectorProducer {
 
 struct IOVectorConsumer {
     virtual ~IOVectorConsumer() noexcept {}
-    virtual void consume(IOVector& io_vector) = 0;
+    virtual void consume(const IOVector& io_vector) = 0;
 };
-
-
 
 
 template <

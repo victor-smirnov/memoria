@@ -33,44 +33,118 @@ int64_t CtrApi<Multimap<Key, Value>, Profile>::size() const
     return this->pimpl_->size();
 }
 
-template <typename Key, typename Value, typename Profile>
-typename CtrApi<Multimap<Key, Value>, Profile>::Iterator CtrApi<Multimap<Key, Value>, Profile>::seek(int64_t pos)
-{
-    return this->pimpl_->seek(pos);
-}
 
 
 template <typename Key, typename Value, typename Profile>
-CtrSharedPtr<IValuesIterator<Value>> CtrApi<Multimap<Key, Value>, Profile>::find_v(Key key)
+CtrSharedPtr<IValuesIterator<Value>> CtrApi<Multimap<Key, Value>, Profile>::find(Key key)
 {
     return this->pimpl_->find_v(key);
 }
 
 template <typename Key, typename Value, typename Profile>
-CtrSharedPtr<IEntriesIterator<Key,Value>> CtrApi<Multimap<Key, Value>, Profile>::seek_e(int64_t pos)
+CtrSharedPtr<IEntriesIterator<Key,Value>> CtrApi<Multimap<Key, Value>, Profile>::seek(CtrSizeT pos)
 {
     return this->pimpl_->seek_e(pos);
 }
 
+template <typename Key, typename Value, typename Profile>
+CtrSharedPtr<IKeysIterator<Key,Value>> CtrApi<Multimap<Key, Value>, Profile>::keys()
+{
+    return this->pimpl_->keys();
+}
+
 
 template <typename Key, typename Value, typename Profile>
-typename CtrApi<Multimap<Key, Value>, Profile>::Iterator CtrApi<Multimap<Key, Value>, Profile>::find(const Key& key) 
+void CtrApi<Multimap<Key, Value>, Profile>::append_entries(io::IOVectorProducer& producer)
 {
-    return this->pimpl_->find(key);
+    this->pimpl_->end()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
 }
 
 template <typename Key, typename Value, typename Profile>
-typename CtrApi<Multimap<Key, Value>, Profile>::Iterator CtrApi<Multimap<Key, Value>, Profile>::find_or_create(const Key& key) 
+void CtrApi<Multimap<Key, Value>, Profile>::append_entry(Key key, absl::Span<const Value> values)
 {
-    return this->pimpl_->find_or_create(key);
+    io::MultimapEntryIOVector<Key, Value> iovector(&key, values.data(), values.size());
+    this->pimpl_->end()->insert_iovector(iovector, 0, std::numeric_limits<int64_t>::max());
+}
+
+
+
+template <typename Key, typename Value, typename Profile>
+void CtrApi<Multimap<Key, Value>, Profile>::prepend_entries(io::IOVectorProducer& producer)
+{
+    this->pimpl_->begin()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+}
+
+template <typename Key, typename Value, typename Profile>
+void CtrApi<Multimap<Key, Value>, Profile>::prepend_entry(Key key, absl::Span<const Value> values)
+{
+    io::MultimapEntryIOVector<Key, Value> iovector(&key, values.data(), values.size());
+    this->pimpl_->begin()->insert_iovector(iovector, 0, std::numeric_limits<int64_t>::max());
+}
+
+
+
+template <typename Key, typename Value, typename Profile>
+void CtrApi<Multimap<Key, Value>, Profile>::insert_entries(Key before, io::IOVectorProducer& producer)
+{
+    auto ii = this->pimpl_->find(before);
+    ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+}
+
+template <typename Key, typename Value, typename Profile>
+void CtrApi<Multimap<Key, Value>, Profile>::insert_entry(Key before, Key key, absl::Span<const Value> values)
+{
+    io::MultimapEntryIOVector<Key, Value> iovector(&key, values.data(), values.size());
+
+    auto ii = this->pimpl_->find(before);
+    ii->insert_iovector(iovector, 0, std::numeric_limits<int64_t>::max());
+}
+
+
+template <typename Key, typename Value, typename Profile>
+bool CtrApi<Multimap<Key, Value>, Profile>::upsert(Key key, io::IOVectorProducer& producer)
+{
+    auto ii = this->pimpl_->find(key);
+
+    if (ii->is_found(key))
+    {
+        ii->remove(1);
+        ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+
+        return true;
+    }
+
+    ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+
+    return false;
+}
+
+
+template <typename Key, typename Value, typename Profile>
+bool CtrApi<Multimap<Key, Value>, Profile>::upsert(Key key, absl::Span<const Value> values)
+{
+    auto ii = this->pimpl_->find(key);
+
+    io::MultimapEntryIOVector<Key, Value> iovector(&key, values.data(), values.size());
+
+    if (ii->is_found(key))
+    {
+        ii->remove(1);
+        ii->insert_iovector(iovector, 0, std::numeric_limits<int64_t>::max());
+
+        return true;
+    }
+
+    ii->insert_iovector(iovector, 0, std::numeric_limits<int64_t>::max());
+
+    return false;
 }
 
 
 template <typename Key, typename Value, typename Profile>
 bool CtrApi<Multimap<Key, Value>, Profile>::contains(const Key& key) 
 {
-    auto iter = this->pimpl_->find(key);
-    
+    auto iter = this->pimpl_->find(key);    
     return iter->is_found(key);
 }
 
@@ -87,57 +161,37 @@ bool CtrApi<Multimap<Key, Value>, Profile>::remove(const Key& key)
     return false;
 }
 
-#ifdef MMA1_USE_IOBUFFER
 
 template <typename Key, typename Value, typename Profile>
-typename CtrApi<Multimap<Key, Value>, Profile>::CtrSizeT 
-CtrApi<Multimap<Key, Value>, Profile>::read(
-    const Key& key,
-    bt::BufferConsumer<CtrIOBuffer>& values_consumer, 
-    CtrSizeT start, 
-    CtrSizeT length
-)
+bool CtrApi<Multimap<Key, Value>, Profile>::remove_all(const Key& from, const Key& to)
 {
-    auto ii = find(key);
-    if (ii.is_found(key)) 
-    {
-        return ii.read_values(values_consumer);
-    }
-    
-    return 0;
+    auto ii = this->pimpl_->find(from);
+    auto jj = this->pimpl_->find(to);
+
+    return ii->remove_all(*jj.get());
+}
+
+template <typename Key, typename Value, typename Profile>
+bool CtrApi<Multimap<Key, Value>, Profile>::remove_after(const Key& from)
+{
+    auto ii = this->pimpl_->find(from);
+    auto jj = this->pimpl_->end();
+
+    return ii->remove_all(*jj.get());
+}
+
+template <typename Key, typename Value, typename Profile>
+bool CtrApi<Multimap<Key, Value>, Profile>::remove_before(const Key& to)
+{
+    auto ii = this->pimpl_->begin();
+    auto jj = this->pimpl_->find(to);
+
+    return ii->remove_all(*jj.get());
 }
 
 
-template <typename Key, typename Value, typename Profile>
-typename CtrApi<Multimap<Key, Value>, Profile>::Iterator 
-CtrApi<Multimap<Key, Value>, Profile>::assign(
-    const Key& key,
-    bt::BufferProducer<CtrIOBuffer>& values_producer
-)
-{
-    auto ii = find(key);
-    
-    if (ii.is_found(key)) 
-    {
-        auto size = ii.count_values();
-        ii.next_sym();
-        if (size > 0) 
-        {
-            ii.remove(size);
-        }
-        
-        ii.insert_values(values_producer);
-        
-        return ii;
-    }
-    
-    ii.insert_entry(key, values_producer);
-    
-    return ii;
-}
 
 
-#endif
 
 
 
@@ -262,41 +316,6 @@ bool IterApi<Multimap<Key, Value>, Profile>::to_values()
     return this->pimpl_->to_values();
 }
 
-#ifdef MMA1_USE_IOBUFFER
 
-template <typename Key, typename Value, typename Profile>
-int64_t IterApi<Multimap<Key, Value>, Profile>::read_keys(bt::BufferConsumer<CtrIOBuffer>& consumer, int64_t length)
-{
-    return this->pimpl_->read_keys(&consumer, length);
-}
-
-template <typename Key, typename Value, typename Profile>
-typename IterApi<Multimap<Key, Value>, Profile>::CtrSizeT 
-IterApi<Multimap<Key, Value>, Profile>::read_values(
-    bt::BufferConsumer<CtrIOBuffer>& values_consumer, CtrSizeT start, CtrSizeT length)
-{
-    return this->pimpl_->read_values(values_consumer, start, length);
-}
-
-
-template <typename Key, typename Value, typename Profile>
-typename IterApi<Multimap<Key, Value>, Profile>::CtrSizeT 
-IterApi<Multimap<Key, Value>, Profile>::insert_values(
-    bt::BufferProducer<CtrIOBuffer>& values_producer)
-{
-    return this->pimpl_->insert_values(values_producer);
-}
-
-template <typename Key, typename Value, typename Profile>
-typename IterApi<Multimap<Key, Value>, Profile>::CtrSizeT 
-IterApi<Multimap<Key, Value>, Profile>::insert_entry(
-    const Key& key,
-    bt::BufferProducer<CtrIOBuffer>& values_producer
-)
-{
-    return this->pimpl_->insert_mmap_entry(key, values_producer);
-}
-
-#endif
 
 }}

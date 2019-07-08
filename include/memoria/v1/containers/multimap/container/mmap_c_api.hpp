@@ -22,6 +22,7 @@
 #include <memoria/v1/containers/multimap/mmap_tools.hpp>
 #include <memoria/v1/containers/multimap/mmap_output_entries.hpp>
 #include <memoria/v1/containers/multimap/mmap_output_values.hpp>
+#include <memoria/v1/containers/multimap/mmap_output_keys.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
@@ -83,6 +84,19 @@ public:
         auto ptr = ctr_make_shared<mmap::EntriesIteratorImpl<Key, Value, IteratorPtr>>(ii);
 
         return static_pointer_cast<IEntriesIterator<Key,Value>>(ptr);
+    }
+
+    CtrSharedPtr<IKeysIterator<Key,Value>> keys()
+    {
+        auto& self = this->self();
+        auto ii = self.template seek_stream<0>(0);
+
+        ii->stream() = 0;
+        ii->toStructureStream();
+
+        auto ptr = ctr_make_shared<mmap::KeysIteratorImpl<Key, Value, IteratorPtr>>(ii);
+
+        return static_pointer_cast<IKeysIterator<Key,Value>>(ptr);
     }
 
     CtrSharedPtr<IValuesIterator<Value>> find_v(Key key)
