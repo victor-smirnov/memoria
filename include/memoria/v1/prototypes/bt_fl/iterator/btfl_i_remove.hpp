@@ -57,7 +57,6 @@ public:
         if (!self.isEnd())
         {
         	auto ii = self.clone();
-
         	ii->selectGEFw(n, self.data_stream());
 
         	auto start = self.leafrank();

@@ -57,7 +57,12 @@ public:
 
     IteratorPtr end() {
         auto& self = this->self();
-        return self.template seek_stream<0>(self.sizes()[0]);
+        auto ii = self.template seek_stream<1>(self.sizes()[1]);
+
+        ii->stream() = 1;
+        ii->toStructureStream();
+
+        return ii;
     }
 
     IteratorPtr seek(CtrSizeT idx)

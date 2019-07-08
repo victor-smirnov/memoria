@@ -172,7 +172,7 @@ bool CtrApi<Multimap<Key, Value>, Profile>::remove_all(const Key& from, const Ke
 }
 
 template <typename Key, typename Value, typename Profile>
-bool CtrApi<Multimap<Key, Value>, Profile>::remove_after(const Key& from)
+bool CtrApi<Multimap<Key, Value>, Profile>::remove_from(const Key& from)
 {
     auto ii = this->pimpl_->find(from);
     auto jj = this->pimpl_->end();

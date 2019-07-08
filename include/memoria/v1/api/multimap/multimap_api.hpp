@@ -60,7 +60,7 @@ public:
     bool remove(const Key& key);
 
     bool remove_all(const Key& from, const Key& to); //[from, to)
-    bool remove_after(const Key& from); //[from, end)
+    bool remove_from(const Key& from); //[from, end)
     bool remove_before(const Key& to); //[begin, to)
 
     int64_t size() const;

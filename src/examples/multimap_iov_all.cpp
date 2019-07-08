@@ -97,8 +97,17 @@ int main()
         auto map = create<Multimap<Key, Value>>(snp);
         //map.new_block_size(128 * 1024);
         
-        std::vector<Value> data(409600);
-        map.upsert(1, data);
+        std::vector<Value> data1(4090*3);
+        map.upsert(1, data1);
+
+        //map.keys()->dump_iterator();
+
+        std::vector<Value> data2(409);
+        map.append_entry(2, data2);
+
+        //map.keys()->dump_iterator();
+
+        map.remove_all(1, 2);
 
         // Finish snapshot so no other updates are possible.
         snp.commit();
