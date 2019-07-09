@@ -19,11 +19,39 @@
 #include <memoria/v1/core/types.hpp>
 
 #include <absl/types/span.h>
+#include <ostream>
+
 
 namespace memoria {
 namespace v1 {
 
 template <typename T>
 using Span = absl::Span<T>;
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, Span<const T> span)
+{
+    bool first_iter = true;
+
+    out << "[";
+
+    for (auto& vv: span)
+    {
+        if (!first_iter)
+        {
+            out << ", ";
+        }
+        else {
+            first_iter = false;
+        }
+
+        out << vv;
+    }
+
+    out << "]";
+
+    return out;
+}
+
 
 }}

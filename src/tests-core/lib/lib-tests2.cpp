@@ -18,6 +18,8 @@
 #include <memoria/v1/tests/tests.hpp>
 #include <memoria/v1/tests/arg_helper.hpp>
 
+#include <memoria/v1/reactor/reactor.hpp>
+
 namespace memoria {
 namespace v1 {
 namespace tests {
@@ -99,6 +101,17 @@ Optional<Test&> TestsRegistry::find_test(const U16String& test_path)
     }
     else {
         return Optional<Test&>();
+    }
+}
+
+void TestsRegistry::print() const
+{
+    for (auto& suite: suites_)
+    {
+        for (auto& test: suite.second->tests())
+        {
+            reactor::engine().coutln(u"{}/{}", suite.first, test.first);
+        }
     }
 }
 

@@ -16,17 +16,12 @@
 
 #pragma once
 
-
-
-
 #include <sstream>
 #include <string>
 #include <vector>
 
 namespace memoria {
 namespace v1 {
-
-
 
 class SBuf {
 
@@ -59,22 +54,22 @@ public:
     template <typename T>
     SBuf& operator<<(const T& value)
     {
-        buffer_<<value;
+        buffer_ << value;
         return *this;
     }
 
     template <typename T>
     SBuf& operator<<(const std::vector<T>& values)
     {
-        buffer_<<"[";
+        buffer_ << "[";
         for (int32_t c = 0; c < values.size(); c++) {
             buffer_<<values[c];
 
             if (c != values.size() - 1) {
-                buffer_<<", ";
+                buffer_ << ", ";
             }
         }
-        buffer_<<"]";
+        buffer_ << "]";
 
         return *this;
     }

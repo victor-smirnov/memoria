@@ -163,6 +163,8 @@ public:
         auto& suite = get_suite(DEFAULT_SUITE_NAME);
         suite.emplace<TestT>(test_name, std::forward<Args>(args)...);
     }
+
+    void print() const;
 };
 
 TestsRegistry& tests_registry();

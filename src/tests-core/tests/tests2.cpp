@@ -33,6 +33,7 @@ int main(int argc, char** argv, char** envp)
         ("runs", "Number of runs for entire test suites set")
         ("test", po::value<std::string>(), "Specific test name to run")
         ("replay", "Run the test in replay mode, implies --test is specified")
+        ("print", "Print available test names")
         ("config", po::value<std::string>(), "Path to config file, defaults to tests2.yaml")
         ("output", po::value<std::string>(), "Path to tests' output directory, defaults to tests2.out in the CWD")
         ("coverage",
@@ -49,6 +50,12 @@ int main(int argc, char** argv, char** envp)
         {
             engine().coutln(u"Invalid test coverage type: {}", coverage);
             return 1;
+        }
+
+        if (app().options().count("print") > 0)
+        {
+            tests::tests_registry().print();
+            return 0;
         }
 
         if (app().options().count("test") > 0)

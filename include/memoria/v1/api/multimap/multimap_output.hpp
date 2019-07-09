@@ -27,6 +27,7 @@
 #include <memory>
 #include <tuple>
 #include <exception>
+#include <functional>
 
 namespace memoria {
 namespace v1 {
@@ -120,6 +121,69 @@ public:
     virtual bool is_end() const     = 0;
     virtual void next()             = 0;
     virtual void dump_iterator() const = 0;
+
+
+    void for_each_buffered(std::function<void (Key, Span<const Value>)> fn)
+    {
+        this->set_buffered();
+
+        while (!this->is_end())
+        {
+            if ((!this->is_first_iteration()) && this->is_buffer_ready())
+            {
+                fn(this->suffix_key(), this->buffer());
+            }
+
+            if (this->has_entries())
+            {
+                for (auto& entry: this->entries())
+                {
+                    fn(*entry.key, entry.values);
+                }
+            }
+
+            this->next();
+        }
+    }
+
+    void for_each_buffered(int64_t size, std::function<void (Key, Span<const Value>)> fn)
+    {
+        this->set_buffered();
+
+        int64_t cnt{};
+
+        while (!this->is_end())
+        {
+            if (cnt == size) {
+                return;
+            }
+
+            if ((!this->is_first_iteration()) && this->is_buffer_ready())
+            {
+                fn(this->suffix_key(), this->buffer());
+                cnt++;
+            }
+
+            if (cnt == size) {
+                return;
+            }
+
+            if (this->has_entries())
+            {
+                for (auto& entry: this->entries())
+                {
+                    if (cnt == size) {
+                        return;
+                    }
+
+                    fn(*entry.key, entry.values);
+                    cnt++;
+                }
+            }
+
+            this->next();
+        }
+    }
 };
 
 

@@ -17,6 +17,8 @@
 
 #include "multimap_test_base.hpp"
 
+
+
 #include <vector>
 #include <algorithm>
 #include <sstream>
@@ -51,14 +53,15 @@ class MultiMapBasicTest: public MultiMapTestBase<MapName> {
     using Base::getRandom;
 
     using Base::checkData;
-    using Base::checkRunPositions;
     using Base::out;
 
-    using Base::sampleTreeShape;
-    using Base::createRandomShapedMapData;
-    using Base::createRandomShapedVectorMap;
-    using Base::make_key;
-    using Base::make_value;
+    using Base::coverage_;
+    using Base::mean_value_size;
+
+    //using Base::createRandomShapedMapData;
+    //using Base::createRandomShapedVectorMap;
+    //using Base::make_key;
+    //using Base::make_value;
 
 public:
 
@@ -67,7 +70,7 @@ public:
     }
 
     static void init_suite(TestSuite& suite) {
-        MMA1_CLASS_TESTS(suite, runCreateTest, runAssignTest, runRemoveTest)
+        MMA1_CLASS_TESTS(suite, runCreateTest, runAssignTest, runRemoveTest);
     }
 
     void runCreateTest()
@@ -75,24 +78,13 @@ public:
         auto snp = branch();
         auto map = create<MapName>(snp);
 
-        auto shape = sampleTreeShape();
+        MultimapTestRandomBufferPopulator<Key, Value> provider(mean_value_size, coverage_);
 
-        auto map_data = createRandomShapedMapData(
-                shape[0],
-                shape[1],
-                [this](auto k) {return this->make_key(k, TypeTag<Key>());},
-                [this](auto k, auto v) {return this->make_value(this->getRandom(), TypeTag<Value>());}
-        );
+        map.append_entries(provider);
 
-#ifdef MMA1_USE_IOBUFFER
-        mmap::MultimapIOBufferProducer<Key, Value> stream_adaptor(map_data, 65536);
+        std::cout << "TOTAL: " << provider.total() << std::endl;
 
-        auto iter = map.begin();
-        iter.insert_subseq(stream_adaptor);
-#endif
-
-        checkData(map, map_data);
-        checkRunPositions(map);
+        checkData(map, provider.map_data());
 
         snp.commit();
     }
@@ -102,23 +94,23 @@ public:
         auto snp = branch();
         auto map = create<MapName>(snp);
 
-        auto shape = sampleTreeShape();
+//        auto shape = sampleTreeShape();
 
-        auto vector_map = createRandomShapedVectorMap(
-                shape[0],
-                shape[1],
-                [this](auto k) {return this->make_key(k, TypeTag<Key>());},
-                [this](auto k, auto v) {return this->make_value(this->getRandom(), TypeTag<Value>());}
-        );
+//        auto vector_map = createRandomShapedVectorMap(
+//                shape[0],
+//                shape[1],
+//                [this](auto k) {return this->make_key(k, TypeTag<Key>());},
+//                [this](auto k, auto v) {return this->make_value(this->getRandom(), TypeTag<Value>());}
+//        );
 
-        std::vector<Key> keys;
+//        std::vector<Key> keys;
 
         
-        for (const auto& entry: vector_map) {
-            keys.push_back(entry.first);
-        }
+//        for (const auto& entry: vector_map) {
+//            keys.push_back(entry.first);
+//        }
         
-        std::random_shuffle(keys.begin(), keys.end());
+//        std::random_shuffle(keys.begin(), keys.end());
 
 #ifdef MMA1_USE_IOBUFFER
         for (auto& key: keys) 
@@ -126,16 +118,16 @@ public:
             const auto& value = vector_map[key];
             
             map.assign(
-                key,  
+                key,
                 value.begin(),  
                 value.end()
             );
         }
 #endif
-        auto iter = map.begin();
+        //auto iter = map.begin();
         
-        checkData(map, vector_map);
-        checkRunPositions(map);
+//        checkData(map, vector_map);
+//        checkRunPositions(map);
 
         snp.commit();
     }
@@ -146,22 +138,22 @@ public:
         auto snp = branch();
         auto map = create<MapName>(snp);
 
-        auto shape = sampleTreeShape();
+//        auto shape = sampleTreeShape();
 
-        auto vector_map = createRandomShapedVectorMap(
-                shape[0],
-                shape[1],
-                [this](auto k) {return this->make_key(k, TypeTag<Key>());},
-                [this](auto k, auto v) {return this->make_value(this->getRandom(), TypeTag<Value>());}
-        );
+//        auto vector_map = createRandomShapedVectorMap(
+//                shape[0],
+//                shape[1],
+//                [this](auto k) {return this->make_key(k, TypeTag<Key>());},
+//                [this](auto k, auto v) {return this->make_value(this->getRandom(), TypeTag<Value>());}
+//        );
 
-        std::vector<Key> keys;
+//        std::vector<Key> keys;
 
-        for (const auto& entry: vector_map) {
-            keys.push_back(entry.first);
-        }
+//        for (const auto& entry: vector_map) {
+//            keys.push_back(entry.first);
+//        }
         
-        std::random_shuffle(keys.begin(), keys.end());
+//        std::random_shuffle(keys.begin(), keys.end());
 
 #ifdef MMA1_USE_IOBUFFER
         for (auto& key: keys) 
@@ -175,27 +167,27 @@ public:
             );
         }
 #endif
-        size_t step_size = keys.size() / 10;
-        if (step_size == 0) step_size = 1;
+//        size_t step_size = keys.size() / 10;
+//        if (step_size == 0) step_size = 1;
         
-        int32_t cnt{};
-        for (auto& key: keys) 
-        {
-            map.remove(key);
-            vector_map.erase(key);
+//        int32_t cnt{};
+//        for (auto& key: keys)
+//        {
+//            map.remove(key);
+//            vector_map.erase(key);
             
-            if (cnt % step_size == 0) 
-            {
-                out() << "Check data: size = " << map.size() << std::endl;
-                checkData(map, vector_map);
-                checkRunPositions(map);
-            }
+//            if (cnt % step_size == 0)
+//            {
+//                out() << "Check data: size = " << map.size() << std::endl;
+//                checkData(map, vector_map);
+//                checkRunPositions(map);
+//            }
             
-            cnt++;
-        }
+//            cnt++;
+//        }
 
-        checkData(map, vector_map);
-        checkRunPositions(map);
+//        checkData(map, vector_map);
+//        checkRunPositions(map);
 
         snp.commit();
     }
