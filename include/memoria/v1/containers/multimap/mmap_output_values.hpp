@@ -30,13 +30,15 @@ class ValuesIteratorImpl: public IValuesIterator<Value> {
     using Base::size_;
     using Base::use_buffered_;
     using Base::buffer_is_ready_;
-    using Base::iteration_num_;
+
 
     core::StaticVector<uint64_t, 2> offsets_;
     DefaultBTFLRunParser<2> parser_;
     io::DefaultIOBuffer<Value> values_buffer_{128};
 
     IteratorPtr iter_;
+
+    uint64_t iteration_num_{};
 public:
     ValuesIteratorImpl(IteratorPtr iter):
         parser_(iter->local_pos()),
@@ -74,7 +76,10 @@ public:
             if (iteration_num_ == 1)
             {
                 use_buffered_ = true;
-                values_buffer_.append_values(values_, size_);
+                if (!buffer_is_ready_)
+                {
+                    values_buffer_.append_values(values_, size_);
+                }
             }
             else {
                 MMA1_THROW(RuntimeException()) << WhatCInfo("set_buffered() must be invoked before next()");
@@ -111,21 +116,27 @@ private:
         if (MMA1_LIKELY((!parser_.is_empty()) || ss.size() > 0))
         {
             const Value* ptr = s1.select(offsets_[1]);
-            size_ = parser_.run_size();
+
+            size_t run_size = (!parser_.is_empty()) ? parser_.run_size() : 0;
 
             buffer_is_ready_ = parser_.is_finished();
 
             if (use_buffered_)
             {
-                values_buffer_.append_values(ptr, size_);
+                values_buffer_.append_values(ptr, run_size);
 
                 if (buffer_is_ready_)
                 {
                     values_ = values_buffer_.tail_ptr();
+                    size_ = values_buffer_.size();
+                }
+                else {
+                    size_ = run_size;
                 }
             }
             else {
                 values_ = ptr;
+                size_ = run_size;
             }
         }
         else {

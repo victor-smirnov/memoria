@@ -197,15 +197,11 @@ protected:
 
     bool buffer_is_ready_{false};
 
-
-    uint64_t iteration_num_{};
 public:
     IValuesIterator()
     {}
 
     virtual ~IValuesIterator() noexcept {}
-
-    bool is_first_iteration() const {return iteration_num_ == 1;}
 
     Span<const Value> buffer() const {
         return Span<const Value>{values_, size_};
@@ -215,9 +211,16 @@ public:
         return buffer_is_ready_;
     }
 
+    void read_buffer()
+    {
+        set_buffered();
+        while (!is_buffer_ready()) {
+            next();
+        }
+    }
+
     bool is_buffered() const {return use_buffered_;}
     virtual void set_buffered() = 0;
-
 
     virtual bool is_end() const     = 0;
     virtual void next()             = 0;

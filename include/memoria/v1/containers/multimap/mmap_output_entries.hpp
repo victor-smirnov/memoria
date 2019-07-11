@@ -91,6 +91,14 @@ public:
     virtual void dump_iterator() const
     {
         iter_->dump();
+
+        std::cout << "Buffer: " << std::endl;
+
+        size_t cnt{};
+        for (auto& entry: parser_.buffer().span()) {
+            std::cout << cnt << ") " << entry.symbol << " :: " << entry.length << std::endl;
+            cnt++;
+        }
     }
 
 private:
@@ -136,8 +144,6 @@ private:
 
     void build_index()
     {
-        //this->dump_iterator();
-
         auto& buffer = iter_->iovector_view();
 
         auto& ss = buffer.symbol_sequence();
@@ -172,26 +178,45 @@ private:
         size_t body_end = parser_.buffer().size() - parser_.suffix_size();
         for (size_t c = parser_.prefix_size(); c < body_end;)
         {
-            uint64_t keys_run_length = parser_.buffer()[c].length;
-            if (MMA1_LIKELY(keys_run_length == 1)) // typical case
+            auto& run = parser_.buffer()[c];
+            if (MMA1_LIKELY(run.symbol == 0))
             {
-                uint64_t values_run_length = parser_.buffer()[c + 1].length;
-                body_.append_value(Entry{keys, absl::Span<const Value>(values, values_run_length)});
-
-                keys++;
-                values += values_run_length;
-                c += 2;
-            }
-            else
-            {
-                // zero-length values
-                for (uint64_t s = 0; s < keys_run_length; s++)
+                uint64_t keys_run_length = run.length;
+                if (MMA1_LIKELY(keys_run_length == 1)) // typical case
                 {
-                    body_.append_value(Entry{keys, absl::Span<const Value>(nullptr, 0)});
-                    keys++;
-                }
+                    auto& next_run = parser_.buffer()[c + 1];
 
-                c += 1;
+                    if (MMA1_LIKELY(next_run.symbol == 1))
+                    {
+                        uint64_t values_run_length = next_run.length;
+                        body_.append_value(Entry{keys, absl::Span<const Value>(values, values_run_length)});
+
+                        keys++;
+                        values += values_run_length;
+                        c += 2;
+                    }
+                    else {
+                        // zero-length value
+                        body_.append_value(Entry{keys, absl::Span<const Value>(values, 0)});
+
+                        keys++;
+                        c += 1;
+                    }
+                }
+                else
+                {
+                    // A series of keys with zero-length values
+                    for (uint64_t s = 0; s < keys_run_length; s++)
+                    {
+                        body_.append_value(Entry{keys, absl::Span<const Value>(nullptr, 0)});
+                        keys++;
+                    }
+
+                    c += 1;
+                }
+            }
+            else {
+                MMA1_THROW(RuntimeException()) << WhatCInfo("Unexpected NON-KEY symbol in streams structure");
             }
         }
 

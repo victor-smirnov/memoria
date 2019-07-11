@@ -535,7 +535,9 @@ protected:
         auto treeNode(bt::LeafNode<NodeTypes>* leaf, Args&&... args)
         {
             leaf->layout(255);
-            return leaf->processSubstreamGroups(*this, leaf->allocator(), std::forward<Args>(args)...);
+            leaf->processSubstreamGroups(*this, leaf->allocator(), std::forward<Args>(args)...);
+
+            return;
         }
     };
 

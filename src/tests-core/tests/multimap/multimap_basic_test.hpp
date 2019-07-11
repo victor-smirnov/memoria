@@ -58,11 +58,6 @@ class MultiMapBasicTest: public MultiMapTestBase<MapName> {
     using Base::coverage_;
     using Base::mean_value_size;
 
-    //using Base::createRandomShapedMapData;
-    //using Base::createRandomShapedVectorMap;
-    //using Base::make_key;
-    //using Base::make_value;
-
 public:
 
     MultiMapBasicTest()
@@ -82,9 +77,17 @@ public:
 
         map.append_entries(provider);
 
-        std::cout << "TOTAL: " << provider.total() << std::endl;
-
         checkData(map, provider.map_data());
+
+        for (auto& entry: provider.map_data())
+        {
+            auto ii = map.find(entry.first);
+            AssertTrue(MA_RAW_SRC, ii != nullptr);
+
+            ii->read_buffer();
+
+            AssertSpansEQ(MA_RAW_SRC, ii->buffer(), Span<const Value>(entry.second));
+        }
 
         snp.commit();
     }

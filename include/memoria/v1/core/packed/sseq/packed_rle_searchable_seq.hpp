@@ -624,10 +624,13 @@ public:
                 buffer.append_run(iter.symbol(), iter.remaining_run_length());
                 iter.next_run();
             }
-            else {
+            else {                
+                buffer.finish();
                 return iter.local_pos();
             }
         }
+
+        buffer.finish();
 
         return this->size();
     }
@@ -640,6 +643,8 @@ public:
             buffer.append_run(iter.symbol(), iter.remaining_run_length());
             iter.next_run();
         }
+
+        buffer.finish();
 
         return this->size();
     }

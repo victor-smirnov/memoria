@@ -49,6 +49,7 @@ public:
     using Base::reset;
     using Base::size;
     using Base::head;
+    using Base::span;
 
     SymbolsBuffer(int32_t symbols):
         SymbolsBuffer(symbols, 64)

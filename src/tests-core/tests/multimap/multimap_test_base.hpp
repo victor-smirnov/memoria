@@ -57,7 +57,7 @@ protected:
     using DataSizesT = core::StaticVector<CtrSizeT, DataStreams>;
 
     int64_t size               = 10000000;
-    int64_t mean_value_size    = 1024;
+    int64_t mean_value_size    = 3;
 
     int64_t coverage_  = 0;
 

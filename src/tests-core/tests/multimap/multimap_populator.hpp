@@ -66,7 +66,7 @@ public:
 
         for (int r = 0; r < entries_per_batch_; r++)
         {
-            int32_t len = getRandomG(mean_value_size_ * 2) + 1;
+            int32_t len = getRandomG(mean_value_size_ * 2);
             seq.append(0, 1);
             s0.append(0, key_cnt_);
 
