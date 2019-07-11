@@ -51,7 +51,9 @@ public:
         substreams_[1] = &data_substream_;
 
         symbol_sequence_.append(0, 1);
-        symbol_sequence_.append(1, values_size);
+        if (values_size > 0) {
+            symbol_sequence_.append(1, values_size);
+        }
     }
 
     void reset()

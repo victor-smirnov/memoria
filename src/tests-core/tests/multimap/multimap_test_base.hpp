@@ -15,13 +15,14 @@
 
 #pragma once
 
+#include <memoria/v1/api/multimap/multimap_api.hpp>
+#include <memoria/v1/tests/tools.hpp>
+
 #include "../prototype/bt/bt_test_base.hpp"
 
 #include "multimap_populator.hpp"
+#include "multimap_map_data.hpp"
 
-#include <memoria/v1/api/multimap/multimap_api.hpp>
-
-#include <memoria/v1/tests/tools.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -50,37 +51,15 @@ public:
     using Key       = typename Ctr::Key;
     using Value     = typename Ctr::Value;
 
-protected:
-    static constexpr int32_t DataStreams = Ctr::DataStreams;
-    
-
-    using DataSizesT = core::StaticVector<CtrSizeT, DataStreams>;
-
-    int64_t size               = 10000000;
-    int64_t mean_value_size    = 3;
-
-    int64_t coverage_  = 0;
-
 public:
     using Base::getRandom;
 
     MultiMapTestBase()
     {}
 
-    MMA1_STATE_FILEDS(size, mean_value_size)
 
-    virtual void pre_configure(TestCoverage coverage)
-    {
-        switch(coverage) {
-            case TestCoverage::SMOKE:  coverage_ = 10000; break;
-            case TestCoverage::TINY:   coverage_ = 100000; break;
-            case TestCoverage::SMALL:  coverage_ = 1000000; break;
-            case TestCoverage::MEDIUM: coverage_ = size; break;
-            case TestCoverage::LARGE:  coverage_ = size * 10; break;
-            case TestCoverage::XLARGE: coverage_ = size * 100; break;
-            default: coverage_ = size;
-        }
-    }
+
+
 
     void checkData(Ctr& ctr, const MapData<Key, Value>& data)
     {
@@ -89,12 +68,56 @@ public:
         size_t c = 0;
         auto iter = ctr.seek(0);
 
+//        iter->for_each_buffered([&](auto key, auto values){
+//            AssertEQ(MA_RAW_SRC, key, data[c].first);
+//            AssertSpansEQ(MA_RAW_SRC, values, Span<const Value>(data[c].second));
+//            c++;
+//        });
+
+        iter->set_buffered();
+
+        while (!iter->is_end())
+        {
+            if ((!iter->is_first_iteration()) && iter->is_buffer_ready())
+            {
+                AssertEQ(MA_RAW_SRC, iter->suffix_key(), data[c].first);
+                AssertSpansEQ(MA_RAW_SRC, iter->buffer(), Span<const Value>(data[c].second));
+                c++;
+            }
+
+            if (iter->has_entries())
+            {
+                for (auto& entry: iter->entries())
+                {
+                    AssertEQ(MA_RAW_SRC, *entry.key, data[c].first);
+                    AssertSpansEQ(MA_RAW_SRC, entry.values, Span<const Value>(data[c].second));
+                    c++;
+                }
+            }
+
+            iter->next();
+        }
+    }
+
+
+    void checkData(Ctr& ctr, const std::map<Key, std::vector<Value>>& data)
+    {
+        AssertEQ(MA_RAW_SRC, ctr.size(), data.size());
+
+        size_t c = 0;
+        auto iter = ctr.seek(0);
+
         iter->for_each_buffered([&](auto key, auto values){
-            AssertEQ(MA_RAW_SRC, key, data[c].first);
-            AssertSpansEQ(MA_RAW_SRC, values, Span<const Value>(data[c].second));
+
+            auto ii = data.find(key);
+
+            AssertTrue(MA_RAW_SRC, ii != data.end());
+            AssertEQ(MA_RAW_SRC, key, ii->first);
+            AssertSpansEQ(MA_RAW_SRC, values, Span<const Value>(ii->second));
             c++;
         });
     }
+
 };
 
 }}}
