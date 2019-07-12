@@ -19,9 +19,9 @@
 
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
 
+#include <memoria/v1/api/vector/vector_input.hpp>
 
-
-#include <memoria/v1/core/types.hpp>
+#include <memoria/v1/core/tools/span.hpp>
 
 #include <memory>
 #include <vector>
@@ -74,6 +74,13 @@ public:
     DataValue value();
     
     std::vector<DataValue> read(size_t size);
+
+    void insert(Span<const DataValue> span)
+    {
+        io::VectorIOVector<DataValue> iov(span.data(), span.size());
+
+        this->insert(iov);
+    }
 };
     
 }}

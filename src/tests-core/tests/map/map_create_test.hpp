@@ -96,7 +96,6 @@ public:
 
         ctr_name_ = map.name();
 
-
         for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
         {
             out() << vector_idx_ << std::endl;
