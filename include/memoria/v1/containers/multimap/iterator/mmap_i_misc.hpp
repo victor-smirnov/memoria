@@ -177,61 +177,6 @@ public:
         self.template insert_entry<1>(bt::SingleValueEntryFn<1, Value, CtrSizeT>(value));
     }
 
-#ifdef MMA1_USE_IOBUFFER
-    template <typename ValueConsumer>
-    class ReadValuesFn: public bt::BufferConsumer<IOBuffer> {
-
-        ValueConsumer* consumer_;
-
-    public:
-
-        ReadValuesFn(ValueConsumer* consumer)
-        {
-            consumer_ = consumer;
-        }
-
-        void clear() {}
-
-        virtual int32_t process(IOBuffer& buffer, int32_t entries)
-        {
-            for (int32_t entry = 0; entry < entries; entry++) {
-                consumer_->emplace_back(IOBufferAdapter<Value>::get(buffer));
-            }
-
-            return entries;
-        }
-    };
-#endif
-
-    std::vector<Value> read_values(CtrSizeT length = std::numeric_limits<CtrSizeT>::max())
-    {
-//        auto& self = this->self();
-
-        std::vector<Value> values;
-#ifdef MMA1_USE_IOBUFFER
-        ReadValuesFn<std::vector<Value>> read_fn(&values);
-        self.bulkio_scan_run(&read_fn, 1, length);
-#endif
-        return values;
-    }
-
-#ifdef MMA1_USE_IOBUFFER
-    CtrSizeT read_values(bt::BufferConsumer<IOBuffer>& consumer, CtrSizeT start, CtrSizeT length)
-    {
-        auto& self = this->self();
-        
-        if (self.to_values()) 
-        {
-            self.skipFw(start);
-            return self.bulkio_scan_run(&consumer, 1, length);
-        }
-        else {
-            return CtrSizeT{};
-        }
-    }
-#endif
-
-
 
     CtrSizesT remove(CtrSizeT length = 1)
     {
@@ -296,7 +241,8 @@ public:
 
         return total;
     }
-    
+
+
     template <typename IOBuffer>
     CtrSizeT insert_values(bt::BufferProducer<IOBuffer>& producer)
     {

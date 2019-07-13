@@ -23,7 +23,7 @@
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
-#include <memoria/v1/prototypes/bt_fl/io2/btfl_io_input_provider_base.hpp>
+#include <memoria/v1/prototypes/bt_fl/io/btfl_io_input_provider_base.hpp>
 
 #include <vector>
 
@@ -45,33 +45,7 @@ public:
 
     static const int32_t Streams = Types::Streams;
 
-#ifdef MMA1_USE_IOBUFFER
-    template <typename IOBuffer>
-    auto insert_iovector(Iterator& iter, bt::BufferProducer<IOBuffer>& provider, const int32_t initial_capacity = 4000)
-    {
-        auto& self = this->self();
 
-        auto id = iter.leaf()->id();
-
-        auto streamingProvider  = self.pools().get_instance(PoolT<CtrInputProviderPool<IOBuffer>>()).get_unique(self, initial_capacity);
-        auto iobuffer 			= self.pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
-
-        streamingProvider->init(&provider, iobuffer.get());
-
-        auto pos = iter.leafrank(iter.local_pos());
-
-        auto result = self.insert_provided_data(iter.leaf(), pos, *streamingProvider.get());
-
-        iter.local_pos()  = result.position().sum();
-        iter.leaf().assign(result.leaf());
-
-        if (iter.leaf()->id() != id) {
-            iter.refresh();
-        }
-
-        return streamingProvider->totals();
-    }
-#endif
 
 
     auto insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
@@ -82,7 +56,7 @@ public:
 
         auto id = iter.leaf()->id();
 
-        btfl::io2::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov.get(), start, length);
+        btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov.get(), start, length);
 
         auto pos = iter.leafrank(iter.local_pos());
 
@@ -115,7 +89,7 @@ public:
 
         BTFLIOVectorProducer producer{};
 
-        btfl::io2::IOVectorCtrInputProvider<MyType> streaming(self, &producer, &iovector, start, length);
+        btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &producer, &iovector, start, length);
 
         auto pos = iter.leafrank(iter.local_pos());
 

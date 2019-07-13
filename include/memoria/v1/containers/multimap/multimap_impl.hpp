@@ -282,18 +282,9 @@ void IterApi<Multimap<Key, Value>, Profile>::insert_key(const Key& key)
 } 
 
 
-template <typename Key, typename Value, typename Profile>
-void IterApi<Multimap<Key, Value>, Profile>::insert_value(const Value& value)
-{
-    return this->pimpl_->insert_value(value);
-} 
 
 
-template <typename Key, typename Value, typename Profile>
-std::vector<Value> IterApi<Multimap<Key, Value>, Profile>::read_values(int64_t size) 
-{
-    return this->pimpl_->read_values(size);
-}
+
  
  
 template <typename Key, typename Value, typename Profile>

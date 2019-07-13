@@ -39,7 +39,7 @@
 namespace memoria {
 namespace v1 {
 namespace btfl {
-namespace io2 {
+namespace io {
 
 namespace _ {
 

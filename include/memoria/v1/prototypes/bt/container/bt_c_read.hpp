@@ -20,9 +20,6 @@
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
-#ifdef MMA1_USE_IOBUFFER
-#   include <memoria/v1/retired/core/iobuffer/io_buffer.hpp>
-#endif
 
 #include <vector>
 #include <utility>

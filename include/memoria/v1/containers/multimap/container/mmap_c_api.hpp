@@ -143,24 +143,7 @@ public:
         return iter;
     }
 
-#ifdef MMA1_USE_IOBUFFER
-    template <typename Iterator>
-    IteratorPtr find_or_create(const Key& key, const Iterator& start, const Iterator& end)
-    {
-        auto& self = this->self();
 
-        auto iter = self.find(key);
-
-        if (!iter->is_found(key))
-        {
-            mmap::MultimapEntryBufferProducer<IOBuffer, Key, Iterator> producer(key, start, end);
-
-            iter->insert_iovector(producer);
-        }
-
-        return iter;
-    }
-#endif
 
 protected:
 
