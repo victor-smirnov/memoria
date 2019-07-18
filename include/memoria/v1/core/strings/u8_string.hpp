@@ -24,6 +24,8 @@
 #include <unicode/ustring.h>
 #include "u_string_capi.hpp"
 
+#include <absl/strings/string_view.h>
+
 namespace memoria {
 namespace v1 {
 class U8String;
@@ -71,6 +73,8 @@ public:
     U8String(ContentT&& other): content_(std::move(other)) {}
 
     U8String(size_t size, char code_unit): content_(size, code_unit) {}
+
+    U8String(absl::string_view str): content_(str.data(), str.size()) {}
 
     explicit U8String(const U16String& other);
 
@@ -183,6 +187,19 @@ public:
         return content_;
     }
 
+    operator ContentT&() {
+        return content_;
+    }
+
+    operator const ContentT&() const {
+        return content_;
+    }
+
+    operator absl::string_view() const
+    {
+        return absl::string_view(content_);
+    }
+
     CharT* data() {
         return &content_[0];
     }
@@ -190,6 +207,8 @@ public:
     const CharT* data() const {
         return content_.data();
     }
+
+
 };
 
 
@@ -200,6 +219,7 @@ inline std::basic_ostream<char, CharTraits>& operator<<(std::basic_ostream<char,
     return out;
 }
 
+using U8StringView = absl::string_view;
 
 using U8StringRef = const U8String&;
 

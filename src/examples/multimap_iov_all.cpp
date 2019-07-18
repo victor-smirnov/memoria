@@ -33,6 +33,8 @@
 #include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/ticker.hpp>
 
+#include <memoria/v1/core/tools/type_name.hpp>
+
 #include <string>
 #include <algorithm>
 #include <map>
@@ -77,10 +79,19 @@ bool check_values_b(absl::Span<const Value> span)
     return true;
 }
 
+template <typename X>
+struct TT {
+    static U16String standard_type_name() {
+        return fmt::format(u"ABCD[{}]", Type2Str<X>());
+    }
+};
 
 int main()
 {
     try {
+        std::cout << Type2Str<TT<TT<int>>>() << std::endl;
+
+
         // Create persistent in-memory allocator for containers to store their data in.
         auto alloc = ThreadInMemAllocator<>::create();
 

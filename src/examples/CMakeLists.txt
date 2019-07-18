@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(MEMORIA_EXAMPLES map vector multimap)
 
 set (CTR_INST lib/map_int64_string_dflt.cpp)
 set (CTR_INST ${CTR_INST} lib/vector_int_dflt.cpp)
@@ -39,7 +38,7 @@ ENDMACRO()
 
 #Example(multimap multimap.cpp lib/multimap_uuid_byte_dflt.cpp "")
 #Example(multimap_reader multimap_reader.cpp lib/multimap_uuid_byte_dflt.cpp "")
-Example(multimap_iov_all multimap_iov_all.cpp "" "") #lib/multimap_uuid_byte_dflt.cpp
+#Example(multimap_iov_all multimap_iov_all.cpp "" "") #lib/multimap_uuid_byte_dflt.cpp
 #Example(multimap_stream multimap_stream.cpp lib/multimap_uuid_uint64_dflt.cpp "")
 #Example(multimap_iovector multimap_iovector.cpp lib/multimap_uuid_uint64_dflt.cpp "")
 #Example(vector_iovector_ubyte vector_iovector_ubyte.cpp lib/vector_ubyte_dflt.cpp "")
@@ -47,3 +46,6 @@ Example(multimap_iov_all multimap_iov_all.cpp "" "") #lib/multimap_uuid_byte_dfl
 
 #Example(map_iovector_ss map_iovector_ss.cpp lib/vector_string_dflt.cpp "")
 #Example(map_iovector_ss_lw map_iovector_ss_lw.cpp lib/vector_string_dflt.cpp "")
+
+
+Example(typesig typesig.cpp "" "")

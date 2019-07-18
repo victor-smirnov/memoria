@@ -22,8 +22,11 @@
 #include <memoria/v1/core/memory/malloc.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
+
+
 #include <string>
 #include <sstream>
+#include <type_traits>
 
 #ifdef __GNUC__
 #include <cxxabi.h>
@@ -34,6 +37,27 @@
 
 namespace memoria {
 namespace v1 {
+
+namespace _ {
+namespace tn {
+
+template<typename>
+struct SfinaeTrue : std::true_type{};
+
+template <typename T>
+static auto test_for_standard_type_name(int) -> SfinaeTrue<decltype(T::standard_type_name())>;
+
+template <typename T>
+static auto test_for_standard_type_name(long) -> std::false_type;
+
+template <typename T>
+using STTNHelper = decltype(test_for_standard_type_name<T>(0));
+
+}}
+
+
+
+
 
 #ifdef __GNUC__
 template<typename T>
@@ -89,7 +113,149 @@ static inline U16String demangle(const char* name)
 #endif
 
 
+
 template <typename T>
-U16String Type2Str = TypeNameFactory<T>::name();
+struct HasStandardTypeName: _::tn::STTNHelper<T> {};
+
+template<typename T, bool Special = HasStandardTypeName<T>::value>
+struct StandardTypeName;
+
+
+template<typename T>
+struct StandardTypeName<T, true>
+{
+    static U16String name()
+    {
+        return T::standard_type_name();
+    }
+};
+
+template<typename T>
+struct StandardTypeName<T, false>
+{
+    static U16String name()
+    {
+        return TypeNameFactory<T>::name();
+    }
+};
+
+
+template <typename T>
+U16String Type2Str() {
+    return TypeNameFactory<T>::name();
+}
+
+
+template <typename T>
+U16String StandardType2Str() {
+    return StandardTypeName<T>::name();
+}
+
+
+
+template<>
+struct StandardTypeName<uint8_t, false> {
+    static U16String name() {
+        return u"UInt8";
+    }
+};
+
+template<>
+struct StandardTypeName<int8_t, false> {
+    static U16String name() {
+        return u"Int8";
+    }
+};
+
+
+template<>
+struct StandardTypeName<uint16_t, false> {
+    static U16String name() {
+        return u"UInt16";
+    }
+};
+
+template<>
+struct StandardTypeName<int16_t, false> {
+    static U16String name() {
+        return u"Int16";
+    }
+};
+
+
+template<>
+struct StandardTypeName<uint32_t, false> {
+    static U16String name() {
+        return u"UInt32";
+    }
+};
+
+template<>
+struct StandardTypeName<int32_t, false> {
+    static U16String name() {
+        return u"Int32";
+    }
+};
+
+
+
+template<>
+struct StandardTypeName<uint64_t, false> {
+    static U16String name() {
+        return u"UInt64";
+    }
+};
+
+template<>
+struct StandardTypeName<int64_t, false> {
+    static U16String name() {
+        return u"Int64";
+    }
+};
+
+
+template<>
+struct StandardTypeName<double, false> {
+    static U16String name() {
+        return u"Double";
+    }
+};
+
+template<>
+struct StandardTypeName<float, false> {
+    static U16String name() {
+        return u"Float";
+    }
+};
+
+template<>
+struct StandardTypeName<bool, false> {
+    static U16String name() {
+        return u"Boolean";
+    }
+};
+
+template<>
+struct StandardTypeName<char, false> {
+    static U16String name() {
+        return u"Char8";
+    }
+};
+
+template<>
+struct StandardTypeName<char16_t, false> {
+    static U16String name() {
+        return u"Char16";
+    }
+};
+
+template<>
+struct StandardTypeName<char32_t, false> {
+    static U16String name() {
+        return u"Char32";
+    }
+};
+
+
 
 }}
