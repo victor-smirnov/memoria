@@ -29,6 +29,7 @@
 #include <boost/variant/recursive_variant.hpp>
 #include <boost/foreach.hpp>
 
+#include <boost/optional/optional_io.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -40,6 +41,7 @@ namespace v1 {
 
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
+namespace bp = boost::phoenix;
 
 class RawToken {
     U8String text_;
@@ -55,13 +57,20 @@ public:
     }
 };
 
+std::ostream& operator<<(std::ostream& out, const RawToken& tk) {
+    out << "RawToken[" << tk.text() << "]";
+    return out;
+}
+
 using TypeCtrArg = boost::variant<U8String, int64_t, double, RawToken>;
+using TypeCtrParams = boost::optional<std::vector<TypeCtrArg>>;
+
 
 
 struct TypeDeclarationStruct {
     std::vector<U8String> name_tokens_;
-    bool default_{true};
-    std::vector<TypeCtrArg> constructor_args_;
+
+    TypeCtrParams constructor_args_;
     std::vector<TypeDeclarationStruct> parameters_;
 };
 
@@ -69,7 +78,7 @@ struct TypeDeclarationStruct {
 
 class TypeDeclaration {
     std::vector<U8String> name_tokens_;
-    bool default_{true};
+    bool default_{};
     std::vector<TypeCtrArg> constructor_args_;
     std::vector<TypeDeclaration> parameters_;
 public:
@@ -93,12 +102,11 @@ public:
     const std::vector<TypeDeclaration>& parameters() const {return parameters_;}
 };
 
-using TypeDeclTuple = std::tuple<std::vector<std::string>(), std::vector<TypeCtrArg>()>;
+//using TypeDeclTuple = std::tuple<std::vector<U8String>(), std::vector<TypeCtrArg>()>;
 
 }}
 
 BOOST_FUSION_ADAPT_STRUCT(memoria::v1::TypeDeclarationStruct, name_tokens_, parameters_, constructor_args_)
-
 
 namespace memoria {
 namespace v1 {
@@ -114,51 +122,99 @@ struct TypeSignatureParser : qi::grammar<Iterator, TypeDeclarationStruct(), qi::
         using qi::lexeme;
         using ascii::char_;
         using qi::eps;
+        using qi::_1;
+        using qi::_val;
 
-        identifier    = (qi::alpha | char_('_')) >> *(qi::alnum | char_('_'));
-        quoted_string = lexeme['\'' >> +(char_ - '\'') >> '\''];
+        identifier    %= lexeme[(qi::alpha | char_('_')) >> *(qi::alnum | char_('_'))];
+
+        quoted_string %= lexeme['\'' >> +(char_ - '\'') >> '\''];
         type_name     = +identifier;
-        constructor_arg = identifier | double_ | quoted_string;
+        constructor_arg %= identifier | strict_double | long_ | quoted_string;
 
-        constructor_args_list = constructor_arg % ',';
+        //constructor_args_list %= constructor_arg % ',';
 
-        constructor_args = lit('(') >> ')' |
-                           '(' >> constructor_args_list >> ')';
+        constructor_args %= '(' >> (constructor_arg % ',') >> ')' | lit('(') >> lit(')');
 
-        type_parameters = lit('<') >> lit('>') |
-                          lit('<') >> type_declaration % lit(',')  >> lit('>');
+        type_parameters %= lit('<') >> lit('>') |
+                          '<' >> type_declaration % ','  >> '>';
 
-        type_declaration =
+        type_declaration %=
             type_name
             >> -type_parameters
             >> -constructor_args
         ;
+
+        BOOST_SPIRIT_DEBUG_NODE(identifier);
+        BOOST_SPIRIT_DEBUG_NODE(quoted_string);
+        BOOST_SPIRIT_DEBUG_NODE(type_name);
+        BOOST_SPIRIT_DEBUG_NODE(constructor_arg);
+//        BOOST_SPIRIT_DEBUG_NODE(constructor_args_list);
+        BOOST_SPIRIT_DEBUG_NODE(constructor_args);
+        BOOST_SPIRIT_DEBUG_NODE(type_parameters);
+        BOOST_SPIRIT_DEBUG_NODE(type_declaration);
+
+//        debug(identifier);
+//        debug(quoted_string);
+//        debug(type_name);
+//        debug(constructor_arg);
+//        debug(constructor_args_list);
+//        debug(constructor_args);
+//        debug(type_parameters);
+//        debug(type_declaration);
     }
+
+    qi::real_parser<double, qi::strict_real_policies<double>> strict_double;
 
     qi::rule<Iterator, std::string(), qi::space_type> quoted_string;
     qi::rule<Iterator, std::string(), qi::space_type> identifier;
-    qi::rule<Iterator, std::vector<std::string>(), qi::space_type> type_name;
-    qi::rule<Iterator, std::vector<TypeCtrArg>(), qi::space_type> constructor_args;
+    qi::rule<Iterator, std::vector<U8String>(), qi::space_type> type_name;
+    qi::rule<Iterator, std::vector<TypeCtrArg>, qi::space_type> constructor_args;
     qi::rule<Iterator, TypeCtrArg(), qi::space_type> constructor_arg;
-    qi::rule<Iterator, std::vector<TypeCtrArg>(), qi::space_type> constructor_args_list;
+//    qi::rule<Iterator, std::vector<TypeCtrArg>(), qi::space_type> constructor_args_list;
     qi::rule<Iterator, std::vector<TypeDeclarationStruct>(), qi::space_type> type_parameters;
 
     qi::rule<Iterator, TypeDeclarationStruct(), qi::space_type> type_declaration;
 };
 
+template <typename TT>
+std::ostream& operator<<(std::ostream& out, const std::vector<TT>& vec)
+{
+    out << "vector[";
+
+    bool first = true;
+
+    for (auto& vv: vec)
+    {
+        if (!first) {
+            out << ", ";
+        }
+        else {
+            first = false;
+        }
+
+        out << vv;
+    }
+
+    out << "]";
+    return out;
+}
+
 void TypeSignature::parse(absl::string_view str)
 {
-    std::string text = "Real<Boo<bb>>(1, 2, foo, '4', 5)";
-
-    str = text;
-
     TypeSignatureParser<const char*> grammar;
 
     TypeDeclarationStruct decl;
 
-    bool result = qi::phrase_parse(str.begin(), str.end(), grammar, qi::space_type(), decl);
+    auto ii = str.begin();
+    bool result = qi::phrase_parse(ii, str.end(), grammar, qi::space_type(), decl);
 
-    std::cout << (result ? "SUCCESS" : "FAIL") << std::endl;
+    result = result && ii == str.end();
+
+    std::cerr << "VArIANT: " << decl.constructor_args_ << std::endl;
+
+    std::cerr << std::flush;
+
+    std::cerr << (result ? "SUCCESS" : "FAIL") << std::endl;
 }
 
 

@@ -72,7 +72,7 @@ public:
     U8String(const ContentT& other): content_(other) {}
     U8String(ContentT&& other): content_(std::move(other)) {}
 
-    U8String(size_t size, char code_unit): content_(size, code_unit) {}
+    U8String(size_t size, CharT code_unit): content_(size, code_unit) {}
 
     U8String(absl::string_view str): content_(str.data(), str.size()) {}
 
