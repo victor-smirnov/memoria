@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//#define BOOST_SPIRIT_DEBUG
 
 #ifndef MMA1_NO_REACTOR
 #   include <memoria/v1/reactor/reactor.hpp>
@@ -25,6 +26,8 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
+#include <boost/spirit/include/phoenix_object.hpp>
+
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/variant/recursive_variant.hpp>
 #include <boost/foreach.hpp>
@@ -43,66 +46,45 @@ namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace bp = boost::phoenix;
 
-class RawToken {
-    U8String text_;
-public:
-    RawToken(U8String text): text_(text) {}
-
-    const U8String& text() const {
-        return text_;
-    }
-
-    U8String& text() {
-        return text_;
-    }
-};
-
-std::ostream& operator<<(std::ostream& out, const RawToken& tk) {
-    out << "RawToken[" << tk.text() << "]";
-    return out;
-}
-
 using TypeCtrArg = boost::variant<U8String, int64_t, double, RawToken>;
-using TypeCtrParams = boost::optional<std::vector<TypeCtrArg>>;
+using TypeCtrParams = std::vector<TypeCtrArg>;
 
-
+struct TypeDeclarationStruct;
+using TypeParams = std::vector<TypeDeclarationStruct>;
 
 struct TypeDeclarationStruct {
-    std::vector<U8String> name_tokens_;
+    std::vector<RawToken> name_tokens_;
 
-    TypeCtrParams constructor_args_;
-    std::vector<TypeDeclarationStruct> parameters_;
-};
+    boost::optional<TypeParams> parameters_;
+    boost::optional<TypeCtrParams> constructor_args_;
 
-
-
-class TypeDeclaration {
-    std::vector<U8String> name_tokens_;
-    bool default_{};
-    std::vector<TypeCtrArg> constructor_args_;
-    std::vector<TypeDeclaration> parameters_;
-public:
-
-    std::vector<U8String>& name_tokens() {return name_tokens_;}
-    const std::vector<U8String>& name_tokens() const {return name_tokens_;}
-
-    bool is_default() const {
-        return default_;
-    }
-
-    void set_non_default()
+    DataTypeDeclaration convert()
     {
-        this->default_ = false;
+        DataTypeDeclaration decl;
+
+        for (auto& token: name_tokens_) {
+            decl.name_tokens().emplace_back(token.text());
+        }
+
+        if (constructor_args_.has_value()) {
+            decl.constructor_args() =  std::move(constructor_args_);
+        }
+
+        if (parameters_.has_value())
+        {
+            auto& args = parameters_.get();
+            std::vector<DataTypeDeclaration> dt_args;
+            for (auto& arg: args)
+            {
+                dt_args.emplace_back(arg.convert());
+            }
+
+            decl.parameters() = std::move(dt_args);
+        }
+
+        return decl;
     }
-
-    std::vector<TypeCtrArg>& constructor_args() {return constructor_args_;}
-    const std::vector<TypeCtrArg>& constructor_args() const {return constructor_args_;}
-
-    std::vector<TypeDeclaration>& parameters() {return parameters_;}
-    const std::vector<TypeDeclaration>& parameters() const {return parameters_;}
 };
-
-//using TypeDeclTuple = std::tuple<std::vector<U8String>(), std::vector<TypeCtrArg>()>;
 
 }}
 
@@ -124,19 +106,23 @@ struct TypeSignatureParser : qi::grammar<Iterator, TypeDeclarationStruct(), qi::
         using qi::eps;
         using qi::_1;
         using qi::_val;
+        using qi::on_error;
+        using qi::fail;
+        using namespace qi::labels;
 
-        identifier    %= lexeme[(qi::alpha | char_('_')) >> *(qi::alnum | char_('_'))];
+        using bp::construct;
+        using bp::val;
+
+        identifier    = lexeme[(qi::alpha | char_('_'))[_val += _1] >> *(qi::alnum | char_('_'))[_val += _1]];
 
         quoted_string %= lexeme['\'' >> +(char_ - '\'') >> '\''];
         type_name     = +identifier;
         constructor_arg %= identifier | strict_double | long_ | quoted_string;
 
-        //constructor_args_list %= constructor_arg % ',';
-
         constructor_args %= '(' >> (constructor_arg % ',') >> ')' | lit('(') >> lit(')');
 
         type_parameters %= lit('<') >> lit('>') |
-                          '<' >> type_declaration % ','  >> '>';
+                '<' >> type_declaration % ','  >> '>';
 
         type_declaration %=
             type_name
@@ -148,30 +134,19 @@ struct TypeSignatureParser : qi::grammar<Iterator, TypeDeclarationStruct(), qi::
         BOOST_SPIRIT_DEBUG_NODE(quoted_string);
         BOOST_SPIRIT_DEBUG_NODE(type_name);
         BOOST_SPIRIT_DEBUG_NODE(constructor_arg);
-//        BOOST_SPIRIT_DEBUG_NODE(constructor_args_list);
         BOOST_SPIRIT_DEBUG_NODE(constructor_args);
         BOOST_SPIRIT_DEBUG_NODE(type_parameters);
         BOOST_SPIRIT_DEBUG_NODE(type_declaration);
-
-//        debug(identifier);
-//        debug(quoted_string);
-//        debug(type_name);
-//        debug(constructor_arg);
-//        debug(constructor_args_list);
-//        debug(constructor_args);
-//        debug(type_parameters);
-//        debug(type_declaration);
     }
 
     qi::real_parser<double, qi::strict_real_policies<double>> strict_double;
 
     qi::rule<Iterator, std::string(), qi::space_type> quoted_string;
-    qi::rule<Iterator, std::string(), qi::space_type> identifier;
-    qi::rule<Iterator, std::vector<U8String>(), qi::space_type> type_name;
-    qi::rule<Iterator, std::vector<TypeCtrArg>, qi::space_type> constructor_args;
+    qi::rule<Iterator, RawToken(), qi::space_type> identifier;
+    qi::rule<Iterator, std::vector<RawToken>(), qi::space_type> type_name;
     qi::rule<Iterator, TypeCtrArg(), qi::space_type> constructor_arg;
-//    qi::rule<Iterator, std::vector<TypeCtrArg>(), qi::space_type> constructor_args_list;
-    qi::rule<Iterator, std::vector<TypeDeclarationStruct>(), qi::space_type> type_parameters;
+    qi::rule<Iterator, TypeCtrParams(), qi::space_type> constructor_args;
+    qi::rule<Iterator, TypeParams(), qi::space_type> type_parameters;
 
     qi::rule<Iterator, TypeDeclarationStruct(), qi::space_type> type_declaration;
 };
@@ -199,22 +174,117 @@ std::ostream& operator<<(std::ostream& out, const std::vector<TT>& vec)
     return out;
 }
 
-void TypeSignature::parse(absl::string_view str)
+TypeSignature::TypeSignature(U8StringView name): name_(parse(name).to_standard_string())
+{}
+
+DataTypeDeclaration TypeSignature::parse() const
 {
-    TypeSignatureParser<const char*> grammar;
+    return parse(name_.to_std_string());
+}
+
+DataTypeDeclaration TypeSignature::parse(U8StringView str)
+{
+    static thread_local TypeSignatureParser<U8StringView::const_iterator> const grammar;
 
     TypeDeclarationStruct decl;
 
     auto ii = str.begin();
     bool result = qi::phrase_parse(ii, str.end(), grammar, qi::space_type(), decl);
 
-    result = result && ii == str.end();
+    if ((!result) || ii != str.end())
+    {
+        MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't parse data type signature: \"{}\", unparsed: \"{}\"", (std::string)str, (std::string)U8StringView(ii));
+    }
+    else {
+        return decl.convert();
+    }
+}
 
-    std::cerr << "VArIANT: " << decl.constructor_args_ << std::endl;
 
-    std::cerr << std::flush;
+class ArgPrintingVisitor: public boost::static_visitor<>
+{
+    SBuf& buf_;
 
-    std::cerr << (result ? "SUCCESS" : "FAIL") << std::endl;
+public:
+    ArgPrintingVisitor(SBuf& buf): buf_(buf)
+    {}
+
+    void operator()(long i) const
+    {
+        buf_ << i;
+    }
+
+    void operator()(double i) const
+    {
+        buf_ << std::scientific << i;
+    }
+
+    void operator()(const U8String& str) const
+    {
+        buf_ << "'" << str << "'";
+    }
+
+    void operator()(const RawToken& token) const
+    {
+        buf_ << token.text();
+    }
+};
+
+void DataTypeDeclaration::to_standard_string(SBuf& buf) const
+{
+    bool first_nm = true;
+    for (auto& name_token: name_tokens_) {
+        if (!first_nm) {
+            buf << " ";
+        }
+        else {
+            first_nm = false;
+        }
+
+        buf << name_token;
+    }
+
+    bool first_par = true;
+    if (parameters_.has_value())
+    {
+        buf << "<";
+
+        for (auto& param: parameters_.get())
+        {
+            if (!first_par) {
+                buf << ", ";
+            }
+            else {
+                first_par = false;
+            }
+
+            param.to_standard_string(buf);
+        }
+
+        buf << ">";
+    }
+
+    bool first_arg = true;
+    if (constructor_args_.has_value())
+    {
+        buf << "(";
+
+        ArgPrintingVisitor arg_visitor(buf);
+
+        for (auto& arg: constructor_args_.get())
+        {
+            if (!first_arg) {
+                buf << ", ";
+            }
+            else {
+                first_arg = false;
+            }
+
+            boost::apply_visitor(arg_visitor, arg);
+        }
+
+        buf << ")";
+    }
 }
 
 
