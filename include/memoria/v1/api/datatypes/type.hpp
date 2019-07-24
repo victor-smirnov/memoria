@@ -26,11 +26,11 @@
 namespace memoria {
 namespace v1 {
 
-class Type {
+class DataType {
     SharedPtr<TypeSignature> signature_;
 
 protected:
-    Type(SharedPtr<TypeSignature> signature):
+    DataType(SharedPtr<TypeSignature> signature):
         signature_(signature)
     {}
 
@@ -49,11 +49,11 @@ public:
     }
 };
 
-class FixedSizeType: public Type {
+class FixedSizeType: public DataType {
     size_t size_;
 protected:
     FixedSizeType(SharedPtr<TypeSignature> signature, size_t size):
-        Type(signature_), size_(size)
+        DataType(signature_), size_(size)
     {}
 public:
     size_t size() const {
@@ -61,10 +61,10 @@ public:
     }
 };
 
-class VariableSizeType: public Type {
+class VariableSizeType: public DataType {
 protected:
     VariableSizeType(SharedPtr<TypeSignature> signature):
-        Type(signature_)
+        DataType(signature_)
     {}
 public:
 };

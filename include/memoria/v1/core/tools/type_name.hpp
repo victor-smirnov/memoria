@@ -84,12 +84,20 @@ struct TypeNameFactory
     }
 };
 
-static inline U16String demangle(const char* name)
+static inline U8String demangle(const char* name)
 {
-	char buf[40960];
-	size_t len = sizeof(buf);
-	abi::__cxa_demangle(name, buf, &len, NULL);
-    return U8String(buf).to_u16();
+    UniquePtr<char> buf {
+        abi::__cxa_demangle(name, nullptr, nullptr, nullptr),
+        ::free
+    };
+
+    if (buf)
+    {
+        return U8String(std::string(buf.get()));
+    }
+    else {
+        MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Demaingling failed for type {}", name);
+    }
 }
 
 #else
@@ -105,9 +113,9 @@ struct TypeNameFactory
     }
 };
 
-static inline U16String demangle(const char* name)
+static inline U8String demangle(const char* name)
 {
-    return U8String(name).to_u16();
+    return U8String(name);
 }
 
 #endif

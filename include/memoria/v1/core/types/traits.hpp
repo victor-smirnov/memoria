@@ -29,7 +29,7 @@ namespace v1 {
 
 template <typename T>
 struct ValueTraits {
-    static const Long Size = sizeof(T); //T::SIZE;
+    static const LongType Size = sizeof(T); //T::SIZE;
     typedef T Type;
     static const bool IsPrimitive = false;
 };
@@ -38,7 +38,7 @@ struct ValueTraits {
 #define MEMORIA_VALUE_TRAITS(ValueType, MinValue, MaxValue)                     \
 template <>                                                                     \
 struct ValueTraits<ValueType> {                                                 \
-    static const Long Size              = sizeof(ValueType);                    \
+    static const LongType Size              = sizeof(ValueType);                \
     typedef ValueType                   Type;                                   \
                                                                                 \
     static const ValueType Min = MinValue;                                      \
@@ -48,7 +48,7 @@ struct ValueTraits<ValueType> {                                                 
                                                                                 \
 template <>                                                                     \
 struct ValueTraits<const ValueType> {                                           \
-    static const Long Size              = sizeof(ValueType);                    \
+    static const LongType Size              = sizeof(ValueType);                \
     typedef const ValueType                   Type;                             \
                                                                                 \
     static const ValueType Min = MinValue;                                      \
@@ -77,7 +77,7 @@ MEMORIA_VALUE_TRAITS(uint64_t,0ull, 0xFFFFFFFFFFFFFFFFull);
 
 template <>
 struct ValueTraits<EmptyValue> {
-    static const Long Size = 0;
+    static const LongType Size = 0;
     typedef EmptyValue Type;
     static const bool IsPrimitive = false;
 };

@@ -92,8 +92,8 @@ enum {
  * Use types with known size instead.
  */
 
-typedef internal::PlatformLongHelper<sizeof(void*)>::LongType                   Long;
-typedef internal::PlatformLongHelper<sizeof(void*)>::ULongType                  ULong;
+typedef internal::PlatformLongHelper<sizeof(void*)>::LongType                   LongType;
+typedef internal::PlatformLongHelper<sizeof(void*)>::ULongType                  ULongType;
 typedef internal::PlatformLongHelper<sizeof(void*)>::SizeTType                  SizeT;
 
 

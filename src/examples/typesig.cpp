@@ -15,31 +15,32 @@
 
 
 #include <memoria/v1/api/datatypes/type_signature.hpp>
-
+#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/api/datatypes/type_registry.hpp>
 
 #include <iostream>
 
 using namespace memoria::v1;
 
-int main() {
+int main()
+{
+    std::cout << make_datatype_signature<TimeWithTimeZone>().name() << std::endl;
 
-    //std::string text = "Real type <a b c d, b(1, 2, bar)>(1, 2, foo, '4', 5.1234e6)   ";
-    //std::string text = "Real dd<bbbbb<>, ccc(1)>(abc, 111,       222, 'BOOO!')";
-    std::string text = "Real<aaa<yy>(1234, 5593133453452345.66778899)  ,  bb(5678,'aaa')>()";
+    std::string text = "Multimap1<Dynamic BigDecimal, BigInt>";
 
     TypeSignature ts(text);
 
-    DataTypeDeclaration decl = ts.parse(text);
+    DataTypeRegistryStore::global().register_creator_fn<
+            Multimap1<Dynamic<BigDecimal>, BigInt>,
+            TL<>
+    >();
 
-    auto s1 = decl.to_standard_string();
+    boost::any obj = DataTypeRegistry::local().create_object(ts.parse());
 
-    TypeSignature ts2(s1);
+    std::cout << demangle(obj.type().name()) << std::endl;
 
-    auto s2 = ts2.parse().to_standard_string();
+    auto objt = boost::any_cast<Multimap1<Dynamic<BigDecimal>, BigInt>>(obj);
 
-
-    std::cout << s1 << std::endl;
-    std::cout << s2 << std::endl;
-
+    //std::cout << "0Arg: " << objt.key().precision() << " " << objt.key().scale() << std::endl;
     return 0;
 }

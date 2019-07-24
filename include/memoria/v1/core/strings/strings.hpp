@@ -32,7 +32,7 @@ bool isEmpty(U8StringRef str);
 bool isEmpty(U8StringRef str, size_t start, size_t end, U8StringRef sep);
 bool isEndsWith(U8StringRef str, U8StringRef end);
 bool isStartsWith(U8StringRef str, U8StringRef start);
-Long strToL(U8StringRef str);
+LongType strToL(U8StringRef str);
 
 // FIXME: move it into the string library
 template <typename T>

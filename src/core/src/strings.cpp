@@ -132,7 +132,7 @@ bool isEmpty(StdStringRef str, size_t start, size_t end, StdStringRef sep)
     }
 }
 
-Long strToL(U8StringRef value) {
+LongType strToL(U8StringRef value) {
     if (!isEmpty(value))
     {
         auto trimmed = trimString(value);
@@ -140,7 +140,7 @@ Long strToL(U8StringRef value) {
         char* end_ptr;
 
         errno = 0;
-        Long v = strtol(ptr, &end_ptr, 0);
+        LongType v = strtol(ptr, &end_ptr, 0);
 
         if (errno == 0)
         {

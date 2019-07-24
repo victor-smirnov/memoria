@@ -288,4 +288,58 @@ void DataTypeDeclaration::to_standard_string(SBuf& buf) const
 }
 
 
+void DataTypeDeclaration::to_typedecl_string(SBuf& buf) const
+{
+    bool first_nm = true;
+    for (auto& name_token: name_tokens_) {
+        if (!first_nm) {
+            buf << " ";
+        }
+        else {
+            first_nm = false;
+        }
+
+        buf << name_token;
+    }
+
+    bool first_par = true;
+    if (parameters_.has_value())
+    {
+        buf << "<";
+
+        for (auto& param: parameters_.get())
+        {
+            if (!first_par) {
+                buf << ", ";
+            }
+            else {
+                first_par = false;
+            }
+
+            param.to_typedecl_string(buf);
+        }
+
+        buf << ">";
+    }
+}
+
+U8String DataTypeDeclaration::full_type_name() const
+{
+    SBuf buf;
+    bool first = true;
+
+    for (auto& token: name_tokens_) {
+        if (!first) {
+            buf << " ";
+        }
+        else {
+            first = false;
+        }
+
+        buf << token;
+    }
+
+    return buf.str();
+}
+
 }}

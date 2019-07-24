@@ -23,6 +23,7 @@
 #include <memoria/v1/core/strings/string_buffer.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
+#include <memoria/v1/core/types/typelist.hpp>
 
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
@@ -114,6 +115,8 @@ public:
     DataTypeParams& parameters() {return parameters_;}
     const DataTypeParams& parameters() const {return parameters_;}
 
+    U8String full_type_name() const;
+
     U8String to_standard_string() const
     {
         SBuf buf;
@@ -121,10 +124,16 @@ public:
         return buf.str();
     }
 
+    U8String to_typedecl_string() const
+    {
+        SBuf buf;
+        to_typedecl_string(buf);
+        return buf.str();
+    }
+
 private:
     void to_standard_string(SBuf& buf) const;
+    void to_typedecl_string(SBuf& buf) const;
 };
-
-
 
 }}
