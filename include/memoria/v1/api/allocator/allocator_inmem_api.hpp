@@ -146,7 +146,7 @@ class InMemSnapshot {
 
     using AllocatorT = ProfileAllocatorType<Profile>;
     
-    AllocSharedPtr<PImpl> pimpl_;
+    SnpSharedPtr<PImpl> pimpl_;
     
 public:
     template <typename CtrName>
@@ -158,7 +158,7 @@ public:
 public:
     InMemSnapshot();
     
-    InMemSnapshot(AllocSharedPtr<PImpl> impl);
+    InMemSnapshot(SnpSharedPtr<PImpl> impl);
     InMemSnapshot(InMemSnapshot&& impl);
     
     InMemSnapshot(const InMemSnapshot&);
@@ -254,8 +254,8 @@ public:
     SharedPtr<SnapshotMemoryStat> memory_stat(bool include_containers = true);
     
 private:
-    AllocSharedPtr<AllocatorT> snapshot_ref_creation_allowed();
-    AllocSharedPtr<AllocatorT> snapshot_ref_opening_allowed();
+    SnpSharedPtr<AllocatorT> snapshot_ref_creation_allowed();
+    SnpSharedPtr<AllocatorT> snapshot_ref_opening_allowed();
 };
 
 

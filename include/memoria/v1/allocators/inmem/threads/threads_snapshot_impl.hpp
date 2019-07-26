@@ -590,7 +590,7 @@ template <typename Profile>
 SnpSharedPtr<ProfileAllocatorType<Profile>> ThreadInMemSnapshot<Profile>::snapshot_ref_creation_allowed()
 {
     pimpl_->checkIfConainersCreationAllowed();
-    return static_pointer_cast<ProfileAllocatorType<Profile>>(pimpl_->shared_from_this());
+    return memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(pimpl_->shared_from_this());
 }
 
 
@@ -598,7 +598,7 @@ template <typename Profile>
 SnpSharedPtr<ProfileAllocatorType<Profile>> ThreadInMemSnapshot<Profile>::snapshot_ref_opening_allowed()
 {
     pimpl_->checkIfConainersOpeneingAllowed();
-    return static_pointer_cast<ProfileAllocatorType<Profile>>(pimpl_->shared_from_this());
+    return memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(pimpl_->shared_from_this());
 }
 
 

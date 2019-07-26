@@ -152,7 +152,7 @@ public:
 public:
     ThreadInMemSnapshot();
     
-    ThreadInMemSnapshot(AllocSharedPtr<PImpl> impl);
+    ThreadInMemSnapshot(SnpSharedPtr<PImpl> impl);
     ThreadInMemSnapshot(ThreadInMemSnapshot&& impl);
     
     ThreadInMemSnapshot(const ThreadInMemSnapshot&);
@@ -236,8 +236,8 @@ public:
     SharedPtr<SnapshotMemoryStat> memory_stat(bool include_containers = true);
     
 private:
-    AllocSharedPtr<AllocatorT> snapshot_ref_creation_allowed();
-    AllocSharedPtr<AllocatorT> snapshot_ref_opening_allowed();
+    SnpSharedPtr<AllocatorT> snapshot_ref_creation_allowed();
+    SnpSharedPtr<AllocatorT> snapshot_ref_opening_allowed();
 };
 
 
@@ -296,7 +296,6 @@ auto find(ThreadInMemSnapshot<Profile>&& alloc, const ProfileCtrID<Profile>& nam
 {
     return alloc.template find<CtrName>(name);
 }
-
 
 
 }

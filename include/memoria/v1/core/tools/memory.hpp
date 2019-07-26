@@ -56,8 +56,9 @@ auto snp_make_shared_init(Args&&... args) {
 }
 
 
+
 template <typename T>
-using AllocSharedPtr = LocalSharedPtr<T>;
+using AllocSharedPtr = SharedPtr<T>;
 
 template <typename T>
 using AllocSharedFromThis = EnableSharedFromThis<T>;
@@ -69,17 +70,23 @@ auto alloc_make_shared(Args&&... args) {
 
 
 
-template <typename T>
-auto static_pointer_cast(const std::shared_ptr<T>& ptr)
+template <typename T, typename TT>
+auto memoria_static_pointer_cast(const std::shared_ptr<TT>& ptr)
 {
     return std::static_pointer_cast<T>(ptr);
 }
 
 
-template <typename T>
-auto static_pointer_cast(const LocalSharedPtr<T>& ptr)
+template <typename T, typename TT>
+auto memoria_static_pointer_cast(const LocalSharedPtr<TT>& ptr)
 {
-    return MakeLocalShared<T>(ptr);
+    return StaticPointerCast<T>(ptr);
+}
+
+template <typename T, typename TT>
+auto memoria_static_pointer_cast(const SharedPtr<TT>& ptr)
+{
+    return StaticPointerCast<T>(ptr);
 }
 
 }}

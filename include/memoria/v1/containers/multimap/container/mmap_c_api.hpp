@@ -88,7 +88,7 @@ public:
 
         auto ptr = ctr_make_shared<mmap::EntriesIteratorImpl<Key, Value, IteratorPtr>>(ii);
 
-        return static_pointer_cast<IEntriesIterator<Key,Value>>(ptr);
+        return memoria_static_pointer_cast<IEntriesIterator<Key,Value>>(ptr);
     }
 
     CtrSharedPtr<IKeysIterator<Key,Value>> keys()
@@ -101,7 +101,7 @@ public:
 
         auto ptr = ctr_make_shared<mmap::KeysIteratorImpl<Key, Value, IteratorPtr>>(ii);
 
-        return static_pointer_cast<IKeysIterator<Key,Value>>(ptr);
+        return memoria_static_pointer_cast<IKeysIterator<Key,Value>>(ptr);
     }
 
     CtrSharedPtr<IValuesIterator<Value>> find_v(Key key)
@@ -113,7 +113,7 @@ public:
         {
             ii->to_values();
             auto ptr = ctr_make_shared<mmap::ValuesIteratorImpl<Value, IteratorPtr>>(ii);
-            return static_pointer_cast<IValuesIterator<Value>>(ptr);
+            return memoria_static_pointer_cast<IValuesIterator<Value>>(ptr);
         }
         else {
             return CtrSharedPtr<IValuesIterator<Value>>{};

@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <memoria/v1/allocators/inmem/common/snapshot_base.hpp>
+#include <memoria/v1/store/memory/common/snapshot_base.hpp>
 
-#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+#include <memoria/v1/api/store/memory_store_api.hpp>
 
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/ctr_impl.hpp>
@@ -48,21 +48,23 @@
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem {
+namespace store {
+namespace memory {
 
 enum class OperationType {OP_FIND, OP_CREATE, OP_UPDATE, OP_DELETE};
 
 
 template <typename Profile, typename PersistentAllocator>
-class Snapshot: public IVertex, public SnapshotBase<Profile, PersistentAllocator, Snapshot<Profile, PersistentAllocator>>
+class FibersSnapshot: public IVertex, public SnapshotBase<Profile, PersistentAllocator, FibersSnapshot<Profile, PersistentAllocator>>
 {    
 protected:
-    using Base = SnapshotBase<Profile, PersistentAllocator, Snapshot<Profile, PersistentAllocator>>;
-    using MyType = Snapshot<Profile, PersistentAllocator>;
+    using Base = SnapshotBase<Profile, PersistentAllocator, FibersSnapshot<Profile, PersistentAllocator>>;
+    using MyType = FibersSnapshot<Profile, PersistentAllocator>;
     
     using typename Base::PersistentAllocatorPtr;
     using typename Base::HistoryNode;
     using typename Base::SnapshotPtr;
+    using typename Base::SnapshotApiPtr;
 
     using AllocatorMutexT	= typename std::remove_reference<decltype(std::declval<HistoryNode>().allocator_mutex())>::type;
     using MutexT			= typename std::remove_reference<decltype(std::declval<HistoryNode>().snapshot_mutex())>::type;
@@ -75,7 +77,6 @@ protected:
     using typename Base::SnapshotID;
     using typename Base::CtrID;
 
-    
     using Base::history_node_;
     using Base::history_tree_;
     using Base::history_tree_raw_;
@@ -90,7 +91,7 @@ public:
     using Base::uuid;
     
     
-    Snapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree, OperationType op_type):
+    FibersSnapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree, OperationType op_type):
         Base(history_node, history_tree),
         cpu_(history_tree->cpu_)
     {
@@ -101,7 +102,7 @@ public:
         }
     }
 
-    Snapshot(HistoryNode* history_node, PersistentAllocator* history_tree, OperationType op_type):
+    FibersSnapshot(HistoryNode* history_node, PersistentAllocator* history_tree, OperationType op_type):
         Base(history_node, history_tree),
         cpu_(history_tree->cpu_)
     {
@@ -111,8 +112,12 @@ public:
             }
         }
     }
+
+    FibersSnapshot(const FibersSnapshot&) = delete;
+    FibersSnapshot(FibersSnapshot&&) = delete;
+
  
-    virtual ~Snapshot()
+    virtual ~FibersSnapshot() noexcept
     {
         //FIXME This code doesn't decrement properly number of active snapshots
     	// for allocator to store data correctly.
@@ -208,14 +213,14 @@ public:
         });
     }
 
-    U16String metadata() const
+    U16String snapshot_metadata() const
     {
     	return reactor::engine().run_at(cpu_, [&]{
             return history_node_->metadata();
         });
     }
 
-    void set_metadata(U16StringRef metadata)
+    void set_snapshot_metadata(U16StringRef metadata)
     {
     	return reactor::engine().run_at(cpu_, [&]
         {
@@ -257,7 +262,7 @@ public:
     }
 
 
-    SnapshotPtr branch()
+    SnapshotApiPtr branch()
     {
         return reactor::engine().run_at(cpu_, [&] 
         {
@@ -289,7 +294,7 @@ public:
         });
     }
 
-    SnapshotPtr parent()
+    SnapshotApiPtr parent()
     {
         return reactor::engine().run_at(cpu_, [&] {
             AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
@@ -345,7 +350,7 @@ public:
     {
         return make_fn_vertex_properties(
             as_vertex(),
-            u"metadata", [&]{return metadata();}
+            u"metadata", [&]{return snapshot_metadata();}
         );
     }
 
@@ -360,7 +365,9 @@ public:
         {
             if (history_node_->parent())
             {
-                auto pn_snp = history_tree_->find(history_node_->parent()->snapshot_id());
+                auto pn_snp_api = history_tree_->find(history_node_->parent()->snapshot_id());
+                SnapshotPtr pn_snp = memoria_static_pointer_cast<MyType>(pn_snp_api);
+
                 edges.emplace_back(DefaultEdge::make(my_graph, u"child", pn_snp->as_vertex(), my_vx));
             }
         }
@@ -369,7 +376,10 @@ public:
         {
             for (auto& child: history_node_->children())
             {
-                auto ch_snp = history_tree_->find(child->snapshot_id());
+                auto ch_snp_api = history_tree_->find(child->snapshot_id());
+                SnapshotPtr ch_snp = memoria_static_pointer_cast<MyType>(ch_snp_api);
+
+
                 edges.emplace_back(DefaultEdge::make(my_graph, u"child", my_vx, ch_snp->as_vertex()));
             }
 
@@ -392,315 +402,25 @@ public:
         return STLCollection<Edge>::make(std::move(edges));
     }
 
-    SharedPtr<SnapshotMemoryStat> compute_memory_stat(bool include_containers)
+    SharedPtr<SnapshotMemoryStat> memory_stat(bool include_containers)
     {
-        return SharedPtr<SnapshotMemoryStat>();
+        std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+        return this->do_compute_memory_stat(include_containers);
+    }
+
+    SnpSharedPtr<ProfileAllocatorType<Profile>> snapshot_ref_creation_allowed()
+    {
+        this->checkIfConainersCreationAllowed();
+        return memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(this->shared_from_this());
+    }
+
+
+    SnpSharedPtr<ProfileAllocatorType<Profile>> snapshot_ref_opening_allowed()
+    {
+        this->checkIfConainersOpeneingAllowed();
+        return memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(this->shared_from_this());
     }
 };
 
-}
-
-template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto create(const SnpSharedPtr<persistent_inmem::Snapshot<Profile, PersistentAllocator>>& alloc, const ProfileCtrID<Profile>& name)
-{
-    return alloc->template create<CtrName>(name);
-}
-
-template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto create(const SnpSharedPtr<persistent_inmem::Snapshot<Profile, PersistentAllocator>>& alloc)
-{
-    return alloc->template create<CtrName>();
-}
-
-template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto find_or_create(const SnpSharedPtr<persistent_inmem::Snapshot<Profile, PersistentAllocator>>& alloc, const ProfileCtrID<Profile>& name)
-{
-    return alloc->template find_or_create<CtrName>(name);
-}
-
-template <typename CtrName, typename Profile, typename PersistentAllocator>
-auto find(const SnpSharedPtr<persistent_inmem::Snapshot<Profile, PersistentAllocator>>& alloc, const ProfileCtrID<Profile>& name)
-{
-    return alloc->template find<CtrName>(name);
-}
-
-
-
-
-
-
-
-
-template <typename Profile>
-InMemSnapshot<Profile>::InMemSnapshot() {}
-
-
-template <typename Profile>
-InMemSnapshot<Profile>::InMemSnapshot(SnpSharedPtr<PImpl> impl): pimpl_(impl) {}
-
-template <typename Profile>
-InMemSnapshot<Profile>::InMemSnapshot(InMemSnapshot<Profile>&& other): pimpl_(std::move(other.pimpl_)) {}
-
-template <typename Profile>
-InMemSnapshot<Profile>::InMemSnapshot(const InMemSnapshot<Profile>&other): pimpl_(other.pimpl_) {}
-
-template <typename Profile>
-InMemSnapshot<Profile>& InMemSnapshot<Profile>::operator=(const InMemSnapshot<Profile>& other) 
-{
-    pimpl_ = other.pimpl_;
-    return *this;
-}
-
-template <typename Profile>
-InMemSnapshot<Profile>& InMemSnapshot<Profile>::operator=(InMemSnapshot<Profile>&& other) 
-{
-    pimpl_ = std::move(other.pimpl_);
-    return *this;
-}
-
-
-template <typename Profile>
-InMemSnapshot<Profile>::~InMemSnapshot(){}
-
-
-template <typename Profile>
-bool InMemSnapshot<Profile>::operator==(const InMemSnapshot& other) const
-{
-    return pimpl_ == other.pimpl_;
-}
-
-template <typename Profile>
-InMemSnapshot<Profile>::operator bool() const
-{
-    return pimpl_ != nullptr; 
-}
-
-
-
-
-template <typename Profile>
-const typename InMemSnapshot<Profile>::SnapshotID& InMemSnapshot<Profile>::uuid() const
-{
-    return pimpl_->uuid();
-}
-
-template <typename Profile>
-bool InMemSnapshot<Profile>::is_active() const 
-{
-    return pimpl_->is_active();
-}
-
-template <typename Profile>
-bool InMemSnapshot<Profile>::is_marked_to_clear() const 
-{
-    return pimpl_->is_marked_to_clear();
-}
-
-template <typename Profile>
-bool InMemSnapshot<Profile>::is_committed() const 
-{
-    return pimpl_->is_committed();
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::commit() 
-{
-    return pimpl_->commit();
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::drop() 
-{
-    return pimpl_->drop();
-}
-
-template <typename Profile>
-bool InMemSnapshot<Profile>::drop_ctr(const CtrID& name)
-{
-    return pimpl_->drop_ctr(name);
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::set_as_master() 
-{
-    return pimpl_->set_as_master();
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::set_as_branch(U16StringRef name)
-{
-    return pimpl_->set_as_branch(name);
-}
-
-template <typename Profile>
-U16String InMemSnapshot<Profile>::snapshot_metadata() const
-{
-    return pimpl_->metadata();
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::set_snapshot_metadata(U16StringRef metadata)
-{
-    return pimpl_->set_metadata(metadata);
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::lock_data_for_import() 
-{
-    return pimpl_->lock_data_for_import();
-}
-
-template <typename Profile>
-typename InMemSnapshot<Profile>::SnapshotPtr InMemSnapshot<Profile>::branch() 
-{
-    return pimpl_->branch();
-}
-
-template <typename Profile>
-bool InMemSnapshot<Profile>::has_parent() const 
-{
-    return pimpl_->has_parent();
-}
-
-template <typename Profile>
-typename InMemSnapshot<Profile>::SnapshotPtr InMemSnapshot<Profile>::parent() 
-{
-    return pimpl_->parent();
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::import_new_ctr_from(InMemSnapshot<Profile>& txn, const CtrID& name)
-{
-    return pimpl_->import_new_ctr_from(txn.pimpl_, name);
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::copy_new_ctr_from(InMemSnapshot<Profile>& txn, const CtrID& name)
-{
-    return pimpl_->copy_new_ctr_from(txn.pimpl_, name);
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::import_ctr_from(InMemSnapshot<Profile>& txn, const CtrID& name)
-{
-    return pimpl_->import_ctr_from(txn.pimpl_, name);
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::copy_ctr_from(InMemSnapshot<Profile>& txn, const CtrID& name)
-{
-    return pimpl_->copy_ctr_from(txn.pimpl_, name);
-}
-
-template <typename Profile>
-bool InMemSnapshot<Profile>::check() {
-    return pimpl_->check();
-}
-
-template <typename Profile>
-typename InMemSnapshot<Profile>::CtrID InMemSnapshot<Profile>::clone_ctr(const CtrID& name, const CtrID& new_name) {
-    return pimpl_->clone_ctr(name, new_name);
-}
-
-template <typename Profile>
-typename InMemSnapshot<Profile>::CtrID InMemSnapshot<Profile>::clone_ctr(const CtrID& name) {
-    return pimpl_->clone_ctr(name);
-}
-
-
-
-template <typename Profile>
-void InMemSnapshot<Profile>::dump_persistent_tree()
-{
-    return pimpl_->dump_persistent_tree();
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::dump_dictionary_blocks()
-{
-    return pimpl_->dump_dictionary_blocks();
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::dump_open_containers()
-{
-    return pimpl_->dump_open_containers();
-}
-
-template <typename Profile>
-bool InMemSnapshot<Profile>::has_open_containers()
-{
-    return pimpl_->has_open_containers();
-}
-
-template <typename Profile>
-Optional<U16String> InMemSnapshot<Profile>::ctr_type_name_for(const CtrID& name)
-{
-    return pimpl_->ctr_type_name_for(name);
-}
-
-
-template <typename Profile>
-const PairPtr& ThreadInMemSnapshot<Profile>::pair() const {
-    return pimpl_->pair();
-}
-
-template <typename Profile>
-PairPtr& ThreadInMemSnapshot<Profile>::pair() {
-    return pimpl_->pair();
-}
-
-
-template <typename Profile>
-void InMemSnapshot<Profile>::walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr)
-{
-     return pimpl_->walkContainers(walker, allocator_descr);
-}
-
-template <typename Profile>
-void InMemSnapshot<Profile>::reset() 
-{
-    return pimpl_.reset();
-}
-
-
-template <typename Profile>
-SnpSharedPtr<ProfileAllocatorType<Profile>> InMemSnapshot<Profile>::snapshot_ref_creation_allowed()
-{
-    pimpl_->checkIfConainersCreationAllowed();
-    return memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(pimpl_->shared_from_this());
-}
-
-
-template <typename Profile>
-SnpSharedPtr<ProfileAllocatorType<Profile>> InMemSnapshot<Profile>::snapshot_ref_opening_allowed()
-{
-    pimpl_->checkIfConainersOpeneingAllowed();
-    return memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(pimpl_->shared_from_this());
-}
-
-
-template <typename Profile>
-Logger& InMemSnapshot<Profile>::logger()
-{
-    return pimpl_->logger();
-}
-
-
-template <typename Profile>
-CtrRef<Profile> InMemSnapshot<Profile>::get(const CtrID& name)
-{
-    return CtrRef<Profile>(pimpl_->get(name));
-}
-
-template <typename Profile>
-Vertex InMemSnapshot<Profile>::as_vertex() {
-    return pimpl_->as_vertex();
-}
-
-template <typename Profile>
-SharedPtr<SnapshotMemoryStat> InMemSnapshot<Profile>::memory_stat(bool include_containers) {
-    return pimpl_->compute_memory_stat(include_containers);
-}
-
+}}
 }}

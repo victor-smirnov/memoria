@@ -25,8 +25,8 @@
 #include <memoria/v1/core/tools/latch.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
 
-#include <memoria/v1/allocators/inmem/common/allocator_base.hpp>
-#include <memoria/v1/allocators/inmem/fibers/fibers_snapshot_impl.hpp>
+#include <memoria/v1/store/memory/common/store_base.hpp>
+#include <memoria/v1/store/memory/fibers/fibers_snapshot_impl.hpp>
 
 #include <memoria/v1/reactor/reactor.hpp>
 
@@ -37,6 +37,8 @@
 #include <memoria/v1/fiber/shared_lock.hpp>
 
 #include <memoria/v1/core/graph/graph.hpp>
+
+#include <memoria/v1/api/allocator/allocator_inmem_event_listener.hpp>
 
 #include <stdlib.h>
 #include <memory>
@@ -50,22 +52,23 @@
 
 namespace memoria {
 namespace v1 {
-
-namespace persistent_inmem {
-
+namespace store {
+namespace memory {
 
 
 template <typename Profile>
-class InMemAllocatorImpl: public IGraph, public InMemAllocatorBase<Profile, InMemAllocatorImpl<Profile>> {
+class FibersMemoryStoreImpl: public IGraph, public MemoryStoreBase<Profile, FibersMemoryStoreImpl<Profile>> {
 public:
-    using Base      = InMemAllocatorBase<Profile, InMemAllocatorImpl<Profile>>;
-    using MyType    = InMemAllocatorImpl<Profile>;
+    using Base      = MemoryStoreBase<Profile, FibersMemoryStoreImpl<Profile>>;
+    using MyType    = FibersMemoryStoreImpl<Profile>;
     
     using typename Base::BlockType;
 
-    using SnapshotT             = persistent_inmem::Snapshot<Profile, MyType>;
+    using SnapshotT             = FibersSnapshot<Profile, MyType>;
     using SnapshotPtr           = SnpSharedPtr<SnapshotT>;
-    using AllocatorPtr          = AllocSharedPtr<MyType>;
+    using SnapshotApiPtr        = SnpSharedPtr<IMemorySnapshot<Profile>>;
+
+    using StorePtr              = AllocSharedPtr<MyType>;
     
     using MutexT                = memoria::v1::fibers::detail::spinlock;
     using LockGuardT            = memoria::v1::fibers::detail::spinlock_lock;
@@ -97,13 +100,13 @@ protected:
 
 public:    
     template <typename, typename>
-    friend class InMemAllocatorBase;
+    friend class MemoryStoreBase;
     
     template <typename, typename, typename>
     friend class SnapshotBase;
     
     template <typename, typename>
-    friend class Snapshot;
+    friend class FibersSnapshot;
     
 
 private:
@@ -120,19 +123,19 @@ private:
     LocalSharedPtr<AllocatorEventListener> event_listener_;
  
 public:
-    InMemAllocatorImpl() {
+    FibersMemoryStoreImpl() {
         cpu_ = reactor::engine().cpu();
         auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this, OperationType::OP_CREATE);
         snapshot->commit();
     }
     
-    virtual ~InMemAllocatorImpl()
+    virtual ~FibersMemoryStoreImpl() noexcept
     {
         free_memory(history_tree_);
     }
 
 
-    InMemAllocatorImpl(int32_t v): Base(v) {
+    FibersMemoryStoreImpl(int32_t v): Base(v) {
         cpu_ = reactor::engine().cpu();
     }
 private:
@@ -159,7 +162,17 @@ public:
         return active_snapshots_.get();
     }
 
-    
+    void lock() {
+        mutex_.lock();
+    }
+
+    void unlock() {
+        mutex_.unlock();
+    }
+
+    bool try_lock() {
+        return mutex_.try_lock();
+    }
     
     int32_t cpu() const {return cpu_;}
     
@@ -245,14 +258,30 @@ public:
         });
     }
 
-    auto snapshot_status(const SnapshotID& snapshot_id)
+    std::vector<SnapshotID> heads()
+    {
+        std::lock_guard<MutexT> lock(mutex_);
+        std::unordered_set<SnapshotID> ids;
+
+        for (const auto& entry: named_branches_)
+        {
+            // TODO: need to take a lock here on the snapshot
+            ids.insert(entry.second->snapshot_id());
+        }
+
+        ids.insert(master_->snapshot_id());
+
+        return std::vector<SnapshotID>(ids.begin(), ids.end());
+    }
+
+    int32_t snapshot_status(const SnapshotID& snapshot_id)
     {
         return reactor::engine().run_at(cpu_, [&]{
             auto iter = snapshot_map_.find(snapshot_id);
             if (iter != snapshot_map_.end())
             {
                 const auto history_node = iter->second;
-                return history_node->status();
+                return (int32_t)history_node->status();
             }
             else {
                 MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
@@ -323,7 +352,7 @@ public:
 
 
 
-    SnapshotPtr find(const SnapshotID& snapshot_id)
+    SnapshotApiPtr find(const SnapshotID& snapshot_id)
     {
         return reactor::engine().run_at(cpu_, [&]
         {
@@ -353,7 +382,7 @@ public:
 
 
 
-    SnapshotPtr find_branch(U16StringRef name)
+    SnapshotApiPtr find_branch(U16StringRef name)
     {
         return reactor::engine().run_at(cpu_, [&]{
             auto iter = named_branches_.find(name);
@@ -385,7 +414,7 @@ public:
         });
     }
 
-    SnapshotPtr master()
+    SnapshotApiPtr master()
     {
         return reactor::engine().run_at(cpu_, [&]{
             return snp_make_shared_init<SnapshotT>(master_, this->shared_from_this(), OperationType::OP_FIND);
@@ -469,7 +498,7 @@ public:
     }
 
 
-    virtual void walkContainers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr)
+    virtual void walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr)
     {
         return reactor::engine().run_at(cpu_, [&]
         {
@@ -482,16 +511,15 @@ public:
             walker->endAllocator();
 
             snapshot_labels_metadata().clear();
-        
         });
     }
 
     
 
-    virtual void store(OutputStreamHandler *output)
+    virtual void store(OutputStreamHandler *output, int64_t wait_duration)
     {
         return reactor::engine().run_at(cpu_, [&]{
-            
+
             active_snapshots_.wait(0);
             
             do_pack(history_tree_);
@@ -520,11 +548,16 @@ public:
         });
     }
 
+    virtual void store(U8String file_name, int64_t wait_duration)
+    {
+        auto fileh = FileOutputStreamHandler::create_buffered(file_name.to_u16());
+        this->store(fileh.get(), wait_duration);
+    }
 
     virtual void store(filesystem::path file)
     {
     	auto fileh = FileOutputStreamHandler::create_buffered(file);
-        store(fileh.get());
+        store(fileh.get(), 0);
     }
 
 
@@ -590,7 +623,7 @@ public:
     void append_snapsots(StlCtr& stl_ctr)
     {
         auto uuid = this->get_root_snapshot_uuid();
-        auto root_snapshot = this->find(uuid);
+        SnapshotPtr root_snapshot = memoria_static_pointer_cast<SnapshotT>(this->find(uuid));
 
         stl_ctr.emplace_back(root_snapshot->as_vertex());
     }
@@ -605,9 +638,30 @@ public:
         return EmptyCollection<Edge>::make();
     }
 
-    SharedPtr<AllocatorMemoryStat> compute_memory_stat(bool include_containers)
+    SharedPtr<AllocatorMemoryStat> memory_stat(bool include_containers)
     {
-        return SharedPtr<AllocatorMemoryStat>();
+        LockGuardT lock_guard(mutex_);
+
+        _::BlockSet visited_blocks;
+
+        SharedPtr<AllocatorMemoryStat> alloc_stat = MakeShared<AllocatorMemoryStat>(0);
+
+        auto history_visitor = [&](HistoryNode* node) {
+            SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
+
+            if (node->is_committed() || node->is_dropped())
+            {
+                auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this(), OperationType::OP_FIND);
+                auto snp_stat = snp->do_compute_memory_stat(visited_blocks, include_containers);
+                alloc_stat->add_snapshot_stat(snp_stat);
+            }
+        };
+
+        this->walk_version_tree(history_tree_, history_visitor);
+
+        alloc_stat->compute_total_size();
+
+        return alloc_stat;
     }
 
 protected:
@@ -641,7 +695,7 @@ protected:
     	if (node->is_committed())
         {
             auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::OP_FIND);
-            txn->walkContainers(walker, get_labels_for(node));
+            txn->walk_containers(walker, get_labels_for(node));
         }
 
         if (node->children().size())
@@ -723,268 +777,5 @@ protected:
     }
 };
 
-}
 
-
-template <typename Profile>
-InMemAllocator<Profile>::InMemAllocator() {}
-
-template <typename Profile>
-InMemAllocator<Profile>::InMemAllocator(AllocSharedPtr<PImpl> impl): pimpl_(impl) {}
-
-template <typename Profile>
-InMemAllocator<Profile>::InMemAllocator(InMemAllocator&& other): pimpl_(std::move(other.pimpl_)) {}
-
-template <typename Profile>
-InMemAllocator<Profile>::InMemAllocator(const InMemAllocator& other): pimpl_(other.pimpl_) {}
-
-template <typename Profile>
-InMemAllocator<Profile>& InMemAllocator<Profile>::operator=(const InMemAllocator& other) 
-{
-    pimpl_ = other.pimpl_;
-    return *this;
-}
-
-template <typename Profile>
-InMemAllocator<Profile>& InMemAllocator<Profile>::operator=(InMemAllocator&& other) 
-{
-    pimpl_ = std::move(other.pimpl_);
-    return *this;
-}
-
-template <typename Profile>
-InMemAllocator<Profile>::~InMemAllocator() {}
-
-
-template <typename Profile>
-bool InMemAllocator<Profile>::operator==(const InMemAllocator& other) const
-{
-    return pimpl_ == other.pimpl_;
-}
-
-
-template <typename Profile>
-InMemAllocator<Profile>::operator bool() const 
-{
-    return pimpl_ != nullptr;
-}
-
-
-
-template <typename Profile>
-InMemAllocator<Profile> InMemAllocator<Profile>::load(InputStreamHandler* input_stream) 
-{
-    return InMemAllocator<Profile>(PImpl::load(input_stream));
-}
-
-template <typename Profile>
-InMemAllocator<Profile> InMemAllocator<Profile>::load(InputStreamHandler* input_stream, int32_t cpu) 
-{
-    return InMemAllocator<Profile>(PImpl::load(input_stream));
-}
-
-template <typename Profile>
-InMemAllocator<Profile> InMemAllocator<Profile>::load(memoria::v1::filesystem::path file_name) 
-{
-    return InMemAllocator<Profile>(PImpl::load(file_name.to_u16().data()));
-}
-
-template <typename Profile>
-InMemAllocator<Profile> InMemAllocator<Profile>::load(memoria::v1::filesystem::path file_name, int32_t cpu) 
-{
-    return InMemAllocator<Profile>(PImpl::load(file_name.to_u16().data()));
-}
-
-template <typename Profile>
-InMemAllocator<Profile> InMemAllocator<Profile>::create() 
-{
-    return InMemAllocator<Profile>(PImpl::create());
-}
-
-template <typename Profile>
-InMemAllocator<Profile> InMemAllocator<Profile>::create(int32_t cpu) 
-{
-    return InMemAllocator<Profile>(PImpl::create(cpu));
-}
-
-template <typename Profile>
-void InMemAllocator<Profile>::store(filesystem::path file_name) 
-{
-    pimpl_->store(file_name);
-}
-
-template <typename Profile>
-void InMemAllocator<Profile>::store(OutputStreamHandler* output_stream) 
-{
-    pimpl_->store(output_stream);
-}
-
-template <typename Profile>
-typename InMemAllocator<Profile>::SnapshotPtr InMemAllocator<Profile>::master() 
-{
-    return SnapshotPtr(pimpl_->master());
-}
-
-
-template <typename Profile>
-typename InMemAllocator<Profile>::SnapshotPtr InMemAllocator<Profile>::find(const SnapshotID& snapshot_id)
-{
-    return pimpl_->find(snapshot_id);
-}
-
-template <typename Profile>
-typename InMemAllocator<Profile>::SnapshotPtr InMemAllocator<Profile>::find_branch(U16StringRef name)
-{
-    return pimpl_->find_branch(name);
-}
-
-template <typename Profile>
-void InMemAllocator<Profile>::set_master(const SnapshotID& txn_id)
-{
-    pimpl_->set_master(txn_id);
-}
-
-template <typename Profile>
-void InMemAllocator<Profile>::set_branch(U16StringRef name, const SnapshotID& txn_id)
-{
-    pimpl_->set_branch(name, txn_id);
-}
-
-
-template <typename Profile>
-void InMemAllocator<Profile>::walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr)
-{
-     return pimpl_->walkContainers(walker, allocator_descr);
-}
-
-
-template <typename Profile>
-void InMemAllocator<Profile>::reset() 
-{
-    pimpl_.reset();
-}
-
-
-template <typename Profile>
-void InMemAllocator<Profile>::pack() 
-{
-    return pimpl_->pack();
-}
-
-template <typename Profile>
-Logger& InMemAllocator<Profile>::logger()
-{
-    return pimpl_->logger();
-}
-
-
-template <typename Profile>
-bool InMemAllocator<Profile>::check() 
-{
-    return pimpl_->check();
-}
-
-template <typename Profile>
-SnpSharedPtr<SnapshotMetadata<typename InMemAllocator<Profile>::SnapshotID>>
-InMemAllocator<Profile>::describe(const SnapshotID& snapshot_id) const
-{
-    return pimpl_->describe(snapshot_id);
-}
-
-template <typename Profile>
-SnpSharedPtr<SnapshotMetadata<typename InMemAllocator<Profile>::SnapshotID>>
-InMemAllocator<Profile>::describe_master() const {
-    return pimpl_->describe_master();
-}
-
-
-
-
-template <typename Profile>
-void InMemAllocator<Profile>::set_event_listener(LocalSharedPtr<AllocatorEventListener> ptr) {
-    return pimpl_->set_event_listener(std::move(ptr));
-}
-
-template <typename Profile>
-LocalSharedPtr<AllocatorEventListener> InMemAllocator<Profile>::event_listener() {
-    return pimpl_->event_listener();
-}
-
-template <typename Profile>
-Graph InMemAllocator<Profile>::as_graph() {
-    return pimpl_->as_graph();
-}
-
-
-
-template <typename Profile>
-std::vector<typename InMemAllocator<Profile>::SnapshotID> InMemAllocator<Profile>::children_of(const SnapshotID& snapshot_id) const
-{
-    return pimpl_->children_of(snapshot_id);
-}
-
-
-template <typename Profile>
-std::vector<std::string> InMemAllocator<Profile>::children_of_str(const SnapshotID& snapshot_id) const
-{
-    return pimpl_->children_of_str(snapshot_id);
-}
-
-template <typename Profile>
-void InMemAllocator<Profile>::remove_named_branch(const std::string& name)
-{
-    return pimpl_->remove_named_branch(name);
-}
-
-template <typename Profile>
-typename InMemAllocator<Profile>::SnapshotID InMemAllocator<Profile>::root_shaphot_id() const
-{
-    return pimpl_->root_shaphot_id();
-}
-
-
-template <typename Profile>
-const PairPtr& InMemAllocator<Profile>::pair() const {
-    return pimpl_->pair();
-}
-
-template <typename Profile>
-PairPtr& InMemAllocator<Profile>::pair() {
-    return pimpl_->pair();
-}
-
-template <typename Profile>
-std::vector<U16String> InMemAllocator<Profile>::branch_names()
-{
-    return pimpl_->branch_names();
-}
-
-template <typename Profile>
-typename InMemAllocator<Profile>::SnapshotID InMemAllocator<Profile>::branch_head(const U16String& branch_name)
-{
-    return pimpl_->branch_head(branch_name);
-}
-
-
-template <typename Profile>
-int32_t InMemAllocator<Profile>::snapshot_status(const SnapshotID& snapshot_id) {
-    return static_cast<int32_t>(pimpl_->snapshot_status(snapshot_id));
-}
-
-template <typename Profile>
-typename InMemAllocator<Profile>::SnapshotID InMemAllocator<Profile>::snapshot_parent(const SnapshotID& snapshot_id) {
-    return pimpl_->snapshot_parent(snapshot_id);
-}
-
-template <typename Profile>
-U16String InMemAllocator<Profile>::snapshot_description(const SnapshotID& snapshot_id) {
-    return pimpl_->snapshot_description(snapshot_id);
-}
-
-
-template <typename Profile>
-SharedPtr<AllocatorMemoryStat> InMemAllocator<Profile>::memory_stat(bool include_containers) {
-    return pimpl_->compute_memory_stat(include_containers);
-}
-
-}}
+}}}}

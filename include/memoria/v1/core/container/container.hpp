@@ -247,19 +247,19 @@ public:
 
         virtual Vertex describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const
         {
-            auto ctr_ptr = static_pointer_cast<MyType>(allocator->get(ctr_id));
+            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->get(ctr_id));
             return ctr_ptr->block_as_vertex(block_id);
         }
 
         virtual Collection<Edge> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator, Direction direction) const
         {
-            auto ctr_ptr = static_pointer_cast<MyType>(allocator->get(ctr_id));
+            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->get(ctr_id));
             return ctr_ptr->describe_block_links(block_id, direction);
         }
 
         virtual Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const
         {
-            auto ctr_ptr = static_pointer_cast<MyType>(allocator->get(ctr_id));
+            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->get(ctr_id));
             return ctr_ptr->block_properties(vx, block_id);
         }
 
@@ -273,7 +273,7 @@ public:
             auto ctr_ref = allocator->get(ctr_id);
             if (ctr_ref)
             {
-                auto ctr_ptr = static_pointer_cast<MyType>(ctr_ref);
+                auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref);
                 fn(*ctr_ptr.get());
             }
             else {

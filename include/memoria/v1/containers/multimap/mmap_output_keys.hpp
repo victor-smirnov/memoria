@@ -66,7 +66,7 @@ public:
         ii->to_values();
 
         auto ptr = ctr_make_shared<mmap::ValuesIteratorImpl<Value, IteratorPtr>>(ii);
-        return static_pointer_cast<IValuesIterator<Value>>(ptr);
+        return memoria_static_pointer_cast<IValuesIterator<Value>>(ptr);
     }
 
 private:

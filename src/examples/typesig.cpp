@@ -18,12 +18,57 @@
 #include <memoria/v1/api/datatypes/traits.hpp>
 #include <memoria/v1/api/datatypes/type_registry.hpp>
 
+#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/v1/api/store/memory_store_api.hpp>
+
+#include <memoria/v1/api/map/map_api.hpp>
+
 #include <iostream>
+
 
 using namespace memoria::v1;
 
 int main()
 {
+    auto alloc = IMemoryStore<>::create();
+
+
+    auto snp = alloc->master()->branch();
+
+    using MapType = Map<U8String, U8String>;
+
+    auto ctr = create<MapType>(snp);
+
+    UUID ctr_id = ctr.name();
+
+    ctr.assign("AAAAA", "BBBBB");
+
+    snp->commit();
+    snp->set_as_master();
+
+    auto ii = ctr.begin();
+
+    while (!ii.is_end()) {
+        std::cout << ii.key() << " = " << ii.value() << std::endl;
+        ii.next();
+    }
+
+
+    alloc->store("allocator.mma2");
+    auto alloc2 = IMemoryStore<>::load("allocator.mma2");
+    auto snp2 = alloc2->master();
+
+    auto ctr2 = find<MapType>(snp2, ctr_id);
+
+    auto ii2 = ctr2.begin();
+
+    while (!ii2.is_end()) {
+        std::cout << ii2.key() << " = " << ii2.value() << std::endl;
+        ii2.next();
+    }
+
+    std::cout << "C deleted" << std::endl;
+
     std::cout << make_datatype_signature<TimeWithTimeZone>().name() << std::endl;
 
     std::string text = "Multimap1<Dynamic BigDecimal, BigInt>";
