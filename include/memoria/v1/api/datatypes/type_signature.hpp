@@ -59,11 +59,11 @@ public:
 
 
 
-class RawToken {
+class NameToken {
     U8String text_;
 public:
-    RawToken(U8String text): text_(text) {}
-    RawToken() {}
+    NameToken(U8String text): text_(text) {}
+    NameToken() {}
 
     const U8String& text() const {
         return text_;
@@ -83,13 +83,13 @@ public:
     operator U8String&&() {return std::move(text_);}
 };
 
-static inline std::ostream& operator<<(std::ostream& out, const RawToken& tk) {
-    out << "RawToken[" << tk.text() << "]";
+static inline std::ostream& operator<<(std::ostream& out, const NameToken& tk) {
+    out << "NameToken[" << tk.text() << "]";
     return out;
 }
 
 using DataTypeCtrArg = typename boost::make_recursive_variant<
-    U8String, int64_t, double, RawToken, std::vector<boost::recursive_variant_>
+    U8String, int64_t, double, NameToken, std::vector<boost::recursive_variant_>
 >::type;
 
 using DataTypeCtrArgs = boost::optional<std::vector<DataTypeCtrArg>>;

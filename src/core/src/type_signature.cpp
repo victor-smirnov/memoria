@@ -52,7 +52,7 @@ struct TypeDeclarationStruct;
 using TypeParams = std::vector<TypeDeclarationStruct>;
 
 struct TypeDeclarationStruct {
-    std::vector<RawToken> name_tokens_;
+    std::vector<NameToken> name_tokens_;
 
     boost::optional<TypeParams> parameters_;
     boost::optional<TypeCtrParams> constructor_args_;
@@ -145,8 +145,8 @@ struct TypeSignatureParser : qi::grammar<Iterator, TypeDeclarationStruct(), qi::
     qi::real_parser<double, qi::strict_real_policies<double>> strict_double;
 
     qi::rule<Iterator, std::string(), qi::space_type> quoted_string;
-    qi::rule<Iterator, RawToken(), qi::space_type> identifier;
-    qi::rule<Iterator, std::vector<RawToken>(), qi::space_type> type_name;
+    qi::rule<Iterator, NameToken(), qi::space_type> identifier;
+    qi::rule<Iterator, std::vector<NameToken>(), qi::space_type> type_name;
     qi::rule<Iterator, DataTypeCtrArg(), qi::space_type> constructor_arg;
     qi::rule<Iterator, TypeCtrParams(), qi::space_type> array;
     qi::rule<Iterator, TypeCtrParams(), qi::space_type> constructor_args;
@@ -228,7 +228,7 @@ public:
         buf_ << "'" << str << "'";
     }
 
-    void operator()(const RawToken& token) const
+    void operator()(const NameToken& token) const
     {
         buf_ << token.text();
     }

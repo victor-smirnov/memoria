@@ -36,7 +36,7 @@ namespace _ {
 }
 
 class DataTypeRegistry {
-    using CreatorFn = std::function<boost::any (DataTypeRegistry&, DataTypeDeclaration&&)>;
+    using CreatorFn = std::function<boost::any (DataTypeRegistry&, const DataTypeDeclaration&)>;
 
     std::map<U8String, CreatorFn> creators_;
 
@@ -45,13 +45,13 @@ public:
 
     DataTypeRegistry();
 
-    boost::any create_object(DataTypeDeclaration&& decl)
+    boost::any create_object(const DataTypeDeclaration& decl)
     {
         U8String typedecl = decl.to_typedecl_string();
         auto ii = creators_.find(typedecl);
         if (ii != creators_.end())
         {
-            return ii->second(*this, std::move(decl));
+            return ii->second(*this, decl);
         }
         else {
             MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Type creator for {} is not registered", typedecl);
@@ -65,7 +65,7 @@ public:
 
 class DataTypeRegistryStore {
 
-    using CreatorFn = std::function<boost::any (DataTypeRegistry&, DataTypeDeclaration&&)>;
+    using CreatorFn = std::function<boost::any (DataTypeRegistry&, const DataTypeDeclaration&)>;
 
     std::map<U8String, CreatorFn> creators_;
 
@@ -108,7 +108,7 @@ public:
     template <typename T, typename... ArgTypesLists>
     void register_creator_fn()
     {
-        register_creator<T>([](DataTypeRegistry& registry, DataTypeDeclaration&& decl)
+        register_creator<T>([](DataTypeRegistry& registry, const DataTypeDeclaration& decl)
         {
             constexpr size_t declared_params_size = ListSize<typename DataTypeTraits<T>::Parameters>;
 
@@ -121,7 +121,7 @@ public:
                         T,
                         typename DataTypeTraits<T>::Parameters,
                         ArgTypesLists...
-                >::create(registry, std::move(decl.parameters()), std::move(decl.constructor_args()));
+                >::create(registry, decl.parameters(), decl.constructor_args());
             }
             else {
                 MMA1_THROW(RuntimeException())
@@ -182,7 +182,7 @@ namespace _ {
     };
 
     template <>
-    struct DTCtrArgTraits<RawToken> {
+    struct DTCtrArgTraits<NameToken> {
         static constexpr int32_t which = 3;
     };
 
@@ -220,46 +220,46 @@ namespace _ {
     template <size_t Idx, size_t Max>
     struct FillDTTypesList {
         template <typename Tuple>
-        static void process(DataTypeRegistry& registry, DataTypeParams&& params, Tuple& tpl)
+        static void process(DataTypeRegistry& registry, const DataTypeParams& params, Tuple& tpl)
         {
             using ParamType = std::tuple_element_t<Idx, Tuple>;
 
             auto& vec = params.get();
-            DataTypeDeclaration& param_decl = vec[Idx];
+            const DataTypeDeclaration& param_decl = vec[Idx];
 
-            std::get<Idx>(tpl) = boost::any_cast<std::decay_t<ParamType>>(registry.create_object(std::move(param_decl)));
+            std::get<Idx>(tpl) = boost::any_cast<std::decay_t<ParamType>>(registry.create_object(param_decl));
 
-            FillDTTypesList<Idx + 1, Max>::process(registry, std::move(params), tpl);
+            FillDTTypesList<Idx + 1, Max>::process(registry, params, tpl);
         }
     };
 
     template <size_t Max>
     struct FillDTTypesList<Max, Max> {
         template <typename Tuple>
-        static void process(DataTypeRegistry& registry, DataTypeParams&& params, Tuple& tpl){}
+        static void process(DataTypeRegistry& registry, const DataTypeParams& params, Tuple& tpl){}
     };
 
 
     template <size_t Idx, size_t Max>
     struct FillDTCtrArgsList {
         template <typename Tuple>
-        static void process(DataTypeCtrArgs&& args, Tuple& tpl)
+        static void process(const DataTypeCtrArgs& args, Tuple& tpl)
         {
             using ArgType = std::tuple_element_t<Idx, Tuple>;
 
             auto& vec = args.get();
-            DataTypeCtrArg& arg_decl = vec[Idx];
+            const DataTypeCtrArg& arg_decl = vec[Idx];
 
-            std::get<Idx>(tpl) = std::move(boost::get<std::decay_t<ArgType>>(arg_decl));
+            std::get<Idx>(tpl) = boost::get<std::decay_t<ArgType>>(arg_decl);
 
-            FillDTCtrArgsList<Idx + 1, Max>::process(std::move(args), tpl);
+            FillDTCtrArgsList<Idx + 1, Max>::process(args, tpl);
         }
     };
 
     template <size_t Max>
     struct FillDTCtrArgsList<Max, Max> {
         template <typename Tuple>
-        static void process(DataTypeCtrArgs&& args, Tuple& tpl){}
+        static void process(const DataTypeCtrArgs& args, Tuple& tpl){}
     };
 
 
@@ -285,17 +285,17 @@ namespace _ {
     template <typename T, typename... ParamsList, typename... ArgsList, typename... ArgsLists>
     struct DataTypeCreator<T, TL<ParamsList...>, TL<ArgsList...>, ArgsLists...>
     {
-        static T create(DataTypeRegistry& registry, DataTypeParams&& params, DataTypeCtrArgs&& args)
+        static T create(DataTypeRegistry& registry, const DataTypeParams& params, const DataTypeCtrArgs& args)
         {
             if (_::try_to_convert<TL<ArgsList...>>(args))
             {
                 std::tuple<ParamsList..., ArgsList...> tpl;
 
                 _::FillDTTypesList<0, sizeof...(ParamsList)>
-                        ::process(registry, std::move(params), tpl);
+                        ::process(registry, params, tpl);
 
                 _::FillDTCtrArgsList<sizeof...(ParamsList), sizeof...(ParamsList) + sizeof...(ArgsList)>
-                        ::process(std::move(args), tpl);
+                        ::process(args, tpl);
 
                 auto constructorFn = [](auto... args) {
                     return T(args...);
@@ -304,7 +304,7 @@ namespace _ {
                 return boost::context::detail::apply(constructorFn, tpl);
             }
             else {
-                return DataTypeCreator<T, TL<ParamsList...>, ArgsLists...>::create(registry, std::move(params), std::move(args));
+                return DataTypeCreator<T, TL<ParamsList...>, ArgsLists...>::create(registry, params, args);
             }
         }
     };
@@ -312,14 +312,14 @@ namespace _ {
     template <typename T, typename ParamsList>
     struct DataTypeCreator<T, ParamsList>
     {
-        static T create(DataTypeRegistry& registry, DataTypeParams&& params, DataTypeCtrArgs&& args)
+        static T create(DataTypeRegistry& registry, const DataTypeParams& params, const DataTypeCtrArgs& args)
         {
             MMA1_THROW(RuntimeException())
                     << fmt::format_ex(
                            u"No constructor is defined for ({}) in type {}",
                            "aaa",
                            TypeNameFactory<T>::name()
-                           );
+                    );
         }
     };
 

@@ -122,7 +122,7 @@ public:
     };
 
 private:
-    void fill_to(ProfileMetadata<Profile>& meta);
+    void fill_to(ProfileMetadata<Profile>& meta) const;
 };
 
 
@@ -177,10 +177,18 @@ public:
     }
 
     static const ProfileMetadataPtr<Profile>& local();
+
+    static void init() {
+        local();
+    }
+
+    void refresh() {
+        ProfileMetadataStore<Profile>::global().fill_to(*this);
+    }
 };
 
 template <typename Profile>
-void ProfileMetadataStore<Profile>::fill_to(ProfileMetadata<Profile>& meta)
+void ProfileMetadataStore<Profile>::fill_to(ProfileMetadata<Profile>& meta) const
 {
     LockT lock(mutex_);
 

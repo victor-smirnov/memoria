@@ -67,8 +67,6 @@ int main()
         ii2.next();
     }
 
-    std::cout << "C deleted" << std::endl;
-
     std::cout << make_datatype_signature<TimeWithTimeZone>().name() << std::endl;
 
     std::string text = "Multimap1<Dynamic BigDecimal, BigInt>";
@@ -78,15 +76,15 @@ int main()
     std::cout << TypeSignature::parse(text2).to_standard_string() << std::endl;
 
     DataTypeRegistryStore::global().register_creator_fn<
-            Multimap1<Dynamic<BigDecimal>, BigInt>,
-            TL<>
+        Multimap1<Dynamic<BigDecimal>, BigInt>,
+        TL<>
     >();
 
     boost::any obj = DataTypeRegistry::local().create_object(ts.parse());
 
     std::cout << demangle(obj.type().name()) << std::endl;
 
-    auto objt = boost::any_cast<Multimap1<Dynamic<BigDecimal>, BigInt>>(obj);
+    boost::any_cast<Multimap1<Dynamic<BigDecimal>, BigInt>>(obj);
 
     //std::cout << "0Arg: " << objt.key().precision() << " " << objt.key().scale() << std::endl;
     return 0;
