@@ -88,7 +88,10 @@ static inline std::ostream& operator<<(std::ostream& out, const RawToken& tk) {
     return out;
 }
 
-using DataTypeCtrArg = boost::variant<U8String, int64_t, double, RawToken>;
+using DataTypeCtrArg = typename boost::make_recursive_variant<
+    U8String, int64_t, double, RawToken, std::vector<boost::recursive_variant_>
+>::type;
+
 using DataTypeCtrArgs = boost::optional<std::vector<DataTypeCtrArg>>;
 
 class DataTypeDeclaration;

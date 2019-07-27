@@ -42,12 +42,11 @@
 namespace memoria {
 namespace v1 {
 
-namespace qi = boost::spirit::qi;
+namespace qi    = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
-namespace bp = boost::phoenix;
+namespace bp    = boost::phoenix;
 
-using TypeCtrArg = boost::variant<U8String, int64_t, double, RawToken>;
-using TypeCtrParams = std::vector<TypeCtrArg>;
+using TypeCtrParams = std::vector<DataTypeCtrArg>;
 
 struct TypeDeclarationStruct;
 using TypeParams = std::vector<TypeDeclarationStruct>;
@@ -116,8 +115,12 @@ struct TypeSignatureParser : qi::grammar<Iterator, TypeDeclarationStruct(), qi::
         identifier    = lexeme[(qi::alpha | char_('_'))[_val += _1] >> *(qi::alnum | char_('_'))[_val += _1]];
 
         quoted_string %= lexeme['\'' >> +(char_ - '\'') >> '\''];
+
         type_name     = +identifier;
-        constructor_arg %= identifier | strict_double | long_ | quoted_string;
+
+        constructor_arg %= identifier | strict_double | long_ | quoted_string | array;
+
+        array %= '[' >> (constructor_arg % ',') >> ']' | lit('[') >> lit(']');
 
         constructor_args %= '(' >> (constructor_arg % ',') >> ')' | lit('(') >> lit(')');
 
@@ -144,7 +147,8 @@ struct TypeSignatureParser : qi::grammar<Iterator, TypeDeclarationStruct(), qi::
     qi::rule<Iterator, std::string(), qi::space_type> quoted_string;
     qi::rule<Iterator, RawToken(), qi::space_type> identifier;
     qi::rule<Iterator, std::vector<RawToken>(), qi::space_type> type_name;
-    qi::rule<Iterator, TypeCtrArg(), qi::space_type> constructor_arg;
+    qi::rule<Iterator, DataTypeCtrArg(), qi::space_type> constructor_arg;
+    qi::rule<Iterator, TypeCtrParams(), qi::space_type> array;
     qi::rule<Iterator, TypeCtrParams(), qi::space_type> constructor_args;
     qi::rule<Iterator, TypeParams(), qi::space_type> type_parameters;
 
@@ -227,6 +231,27 @@ public:
     void operator()(const RawToken& token) const
     {
         buf_ << token.text();
+    }
+
+    void operator()(const std::vector<DataTypeCtrArg>& array) const
+    {
+        buf_ << "[";
+
+        bool first = true;
+
+        for (auto& vv: array)
+        {
+            if (!first) {
+                buf_ << ", ";
+            }
+            else {
+                first = false;
+            }
+
+            boost::apply_visitor(*this, vv);
+        }
+
+        buf_ << "]";
     }
 };
 

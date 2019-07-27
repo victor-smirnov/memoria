@@ -216,7 +216,7 @@ public:
     struct NodesInit {
         NodesInit(ContainerOperationsPtr<ProfileT> ctr_ops)
         {
-            ProfileMetadata<ProfileT>::get_thread_local()->add_container_operations(
+            ProfileMetadataStore<ProfileT>::global().add_container_operations(
                         static_cast<uint64_t>(CONTAINER_HASH),
                         std::move(ctr_ops)
             );
@@ -226,7 +226,7 @@ public:
 
             for (auto& ptr: list)
             {
-                ProfileMetadata<ProfileT>::get_thread_local()->add_block_operations(
+                ProfileMetadataStore<ProfileT>::global().add_block_operations(
                         static_cast<uint64_t>(CONTAINER_HASH),
                         std::move(ptr)
                 );

@@ -280,7 +280,7 @@ public:
         {
             BlockG block = this->getBlock(root_id);
 
-            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()->get_container_operations(block->ctr_type_hash());
+            auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(block->ctr_type_hash());
             ctr_intf->drop(name, this->shared_from_this());
 
             return true;
@@ -300,7 +300,7 @@ public:
         {
             auto ctr_hash = block->ctr_type_hash();
 
-            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+            auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
             return ctr_intf->ctr_type_name();
@@ -345,7 +345,7 @@ public:
         if (block)
     	{
             auto ctr_hash = block->ctr_type_hash();
-            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()->get_container_operations(ctr_hash);
+            auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(ctr_hash);
 
             ctr_intf->for_each_ctr_node(name, this->shared_from_this(), fn);
     	}
@@ -534,7 +534,7 @@ public:
         if (block)
         {
             auto ctr_hash = block->ctr_type_hash();
-            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()->get_container_operations(ctr_hash);
+            auto ctr_intf = ProfileMetadata<Profile>::local()->get_container_operations(ctr_hash);
 
             return ctr_intf->clone_ctr(ctr_name, new_ctr_name, this->shared_from_this());
         }
@@ -828,7 +828,7 @@ public:
             BlockType* block = shared->get();
             BlockType* new_block = allocate_system<BlockType>(new_size).release();
 
-            ProfileMetadata<Profile>::get_thread_local()
+            ProfileMetadata<Profile>::local()
                     ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
                     ->resize(block, new_block, new_size);
 
@@ -841,7 +841,7 @@ public:
             BlockType* block = shared->get();
             BlockType* new_block = reallocate_system<BlockType>(block, new_size).release();
 
-            ProfileMetadata<Profile>::get_thread_local()
+            ProfileMetadata<Profile>::local()
                     ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
                     ->resize(block, new_block, new_size);
 
@@ -955,7 +955,7 @@ public:
 
             BlockG block = this->getBlock(iter->value());
 
-            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+            auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
             result = ctr_intf->check(ctr_name, this->shared_from_this()) || result;
@@ -995,7 +995,7 @@ public:
             auto block      = this->getBlock(root_id);
 
             auto ctr_hash   = block->ctr_type_hash();
-            auto ctr_intf   = ProfileMetadata<Profile>::get_thread_local()
+            auto ctr_intf   = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
             ctr_intf->walk(ctr_name, this->shared_from_this(), walker);
@@ -1055,7 +1055,7 @@ public:
         {
             BlockG block = this->getBlock(root_id);
 
-            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+            auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
             return ctr_intf->new_ctr_instance(root_id, name, this->shared_from_this());
@@ -1073,7 +1073,7 @@ public:
         {
             BlockG block = this->getBlock(root_id);
 
-            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+            auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
             return ctr_intf->ctr_type_name();
@@ -1089,7 +1089,7 @@ public:
         {
             BlockG block = this->getBlock(root_block_id);
 
-            auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+            auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
             return ctr_intf->new_ctr_instance(root_block_id, name, this->shared_from_this());
@@ -1107,7 +1107,7 @@ public:
 
     CtrBlockDescription<Profile> describe_block(const BlockG& block)
     {
-        auto ctr_intf = ProfileMetadata<Profile>::get_thread_local()
+        auto ctr_intf = ProfileMetadata<Profile>::local()
                 ->get_container_operations(block->ctr_type_hash());
 
         return ctr_intf->describe_block1(block->id(), this->shared_from_this());

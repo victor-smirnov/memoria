@@ -105,7 +105,7 @@ public:
         {
             TextBlockDumper dumper(out);
 
-            ProfileMetadata<Profile>::get_thread_local()
+            ProfileMetadata<Profile>::local()
                     ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
                     ->generateDataEvents(block.block()->as_header(), DataEventsParams(), &dumper);
 

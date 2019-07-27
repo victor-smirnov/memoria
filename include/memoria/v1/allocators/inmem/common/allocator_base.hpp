@@ -956,7 +956,7 @@ protected:
 
         in.read(block_data.get(), 0, block_data_size);
 
-        ProfileMetadata<Profile>::get_thread_local()
+        ProfileMetadata<Profile>::local()
                 ->get_block_operations(ctr_hash, block_hash)
                 ->deserialize(block_data.get(), block_data_size, block);
 
@@ -1265,7 +1265,7 @@ protected:
 
         auto buffer = allocate_system<uint8_t>(block_size);
 
-        int32_t total_data_size = ProfileMetadata<Profile>::get_thread_local()
+        int32_t total_data_size = ProfileMetadata<Profile>::local()
                 ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
                 ->serialize(block, buffer.get());
 
@@ -1284,7 +1284,7 @@ protected:
     {
         TextBlockDumper dumper(out);
 
-        auto blk_ops = ProfileMetadata<Profile>::get_thread_local()
+        auto blk_ops = ProfileMetadata<Profile>::local()
                 ->get_block_operations(block->ctr_type_hash(), block->block_type_hash());
 
         blk_ops->generateDataEvents(block, DataEventsParams(), &dumper);

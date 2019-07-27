@@ -72,8 +72,10 @@ int main()
     std::cout << make_datatype_signature<TimeWithTimeZone>().name() << std::endl;
 
     std::string text = "Multimap1<Dynamic BigDecimal, BigInt>";
-
     TypeSignature ts(text);
+
+    std::string text2 = "BooType(aaa, 'bbb', 1234, 5.6789, [1, 2, 3, 4, 5, 'boo', foo, _])";
+    std::cout << TypeSignature::parse(text2).to_standard_string() << std::endl;
 
     DataTypeRegistryStore::global().register_creator_fn<
             Multimap1<Dynamic<BigDecimal>, BigInt>,

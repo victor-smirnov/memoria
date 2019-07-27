@@ -68,7 +68,7 @@ public:
                 if (!root.is_null())
                 {
                     auto root_block     = self.allocator().getBlock(root);
-                    auto meta_rep       = ProfileMetadata<typename Types::Profile>::get_thread_local();
+                    auto meta_rep       = ProfileMetadata<typename Types::Profile>::local();
 
                     int32_t ctr_hash    = root_block->ctr_type_hash();
 
