@@ -17,6 +17,7 @@
 
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
 
+#include <memoria/v1/core/types/typehash.hpp>
 
 #include <memory>
 
@@ -24,7 +25,16 @@
 namespace memoria {
 namespace v1 {
 
+template <typename Key>
+class Set {
+    Key key_;
+public:
+    Set(Key key):
+        key_(key)
+    {}
 
+    const Key& key() const {return key_;}
+};
     
 template <typename Key, typename Profile> 
 class CtrApi<Set<Key>, Profile>: public CtrApiBTSSBase<Set<Key>, Profile> {
@@ -66,4 +76,38 @@ public:
     void insert(const Key& key);
 };
     
+
+template <typename Key>
+struct TypeHash<Set<Key>>: UInt64Value<
+    HashHelper<1101, TypeHashV<Key>>
+> {};
+
+
+template <typename Key>
+struct DataTypeTraits<Set<Key>> {
+    using CxxType   = EmptyType;
+    using InputView = EmptyType;
+    using Ptr       = EmptyType*;
+
+    using Parameters = TL<Key>;
+
+    static constexpr size_t MemorySize        = sizeof(EmptyType);
+    static constexpr bool IsParametrised      = true;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const Set<Key>& obj)
+    {
+        buf << "Set<";
+        DataTypeTraits<Key>::create_signature(buf, obj.key());
+        buf << ">";
+    }
+
+    static void create_signature(SBuf& buf)
+    {
+        buf << "Set<";
+        DataTypeTraits<Key>::create_signature(buf);
+        buf << ">";
+    }
+};
+
 }}

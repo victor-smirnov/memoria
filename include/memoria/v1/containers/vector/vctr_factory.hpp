@@ -37,6 +37,8 @@
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
+#include <memoria/v1/api/vector/vector_api.hpp>
+
 namespace memoria {
 namespace v1 {
 

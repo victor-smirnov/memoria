@@ -46,6 +46,8 @@
 
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#include <memoria/v1/api/set/set_api.hpp>
+
 #include <tuple>
 
 #include "container/set_c_insert.hpp"

@@ -17,14 +17,15 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-
-#include <string>
-#include <sstream>
+#include <absl/strings/string_view.h>
 
 #include <unicode/ustring.h>
 #include "u_string_capi.hpp"
 
-#include <absl/strings/string_view.h>
+
+#include <string>
+#include <sstream>
+
 
 namespace memoria {
 namespace v1 {
@@ -253,7 +254,6 @@ inline bool compare_ge(const U8String& first, const U8String& second) {
 inline bool compare_le(const U8String& first, const U8String& second) {
     return first.compare(second) <= 0;
 }
-
 
 }}
 

@@ -33,7 +33,7 @@ struct Integer   {};
 struct UInteger  {};
 
 struct BigInt    {};
-struct UBigInt    {};
+struct UBigInt   {};
 
 struct Varchar   {};
 struct Real      {};

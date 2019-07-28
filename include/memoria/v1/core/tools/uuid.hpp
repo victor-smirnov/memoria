@@ -19,6 +19,8 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
 
+#include <memoria/v1/api/datatypes/traits.hpp>
+
 #include <boost/uuid/uuid.hpp>
 
 #include <iostream>
@@ -149,6 +151,13 @@ struct FromString<UUID> {
         return UUID::parse(str.data());
     }
 };
+
+
+MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(UUID, UUID);
+
+template <>
+struct DataTypeTraits<UUID>: ValueDataTypeTraits<UUID, UUID> {};
+
 
 
 }}

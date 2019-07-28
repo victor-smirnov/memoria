@@ -27,7 +27,7 @@
 #include <memory>
 #include <tuple>
 #include <mutex>
-
+#include <functional>
 
 namespace memoria {
 namespace v1 {
@@ -42,7 +42,6 @@ template<typename Profile> class ProfileMetadata;
 template<typename Profile>
 using ProfileMetadataPtr = std::shared_ptr<ProfileMetadata<Profile>>;
 
-
 template<typename Profile>
 class ProfileMetadataStore {
 
@@ -55,12 +54,14 @@ class ProfileMetadataStore {
         }
     };
 
-    using BlockMetadataMap = std::unordered_map<Key, BlockOperationsPtr<Profile>, hash>;
-    using ContainerMetadataMap = std::unordered_map<uint64_t, ContainerOperationsPtr<Profile>>;
+    using BlockMetadataMap      = std::unordered_map<Key, BlockOperationsPtr<Profile>, hash>;
+    using ContainerMetadataMap  = std::unordered_map<uint64_t, ContainerOperationsPtr<Profile>>;
+    using ContainerFactoryMap   = std::unordered_map<U8String, ContainerInstanceFactoryPtr<Profile>>;
 
 
     BlockMetadataMap block_map_;
     ContainerMetadataMap container_map_;
+    ContainerFactoryMap factory_map_;
 
     mutable std::mutex mutex_;
     using LockT = std::lock_guard<std::mutex>;
@@ -113,6 +114,25 @@ public:
         }
     }
 
+    void add_container_factories(
+            const U8String& typedecl_signature,
+            ContainerInstanceFactoryPtr<Profile> ctr_factories
+    )
+    {
+        LockT lock(mutex_);
+
+        if (factory_map_.find(typedecl_signature) == factory_map_.end()) {
+            factory_map_[typedecl_signature] = std::move(ctr_factories);
+        }
+        else {
+            MMA1_THROW(RuntimeException())
+                    << fmt::format_ex(
+                           u"Container instance factories already registered for {}",
+                           typedecl_signature
+                    );
+        }
+    }
+
     static ProfileMetadataStore<Profile>& global();
 
     struct Init {
@@ -132,11 +152,13 @@ class ProfileMetadata {
     using Key = typename ProfileMetadataStore<Profile>::Key;
     using hash = typename ProfileMetadataStore<Profile>::hash;
 
-    using BlockMetadataMap = typename ProfileMetadataStore<Profile>::BlockMetadataMap;
-    using ContainerMetadataMap = typename ProfileMetadataStore<Profile>::ContainerMetadataMap;
+    using BlockMetadataMap      = typename ProfileMetadataStore<Profile>::BlockMetadataMap;
+    using ContainerMetadataMap  = typename ProfileMetadataStore<Profile>::ContainerMetadataMap;
+    using ContainerFactoryMap   = typename ProfileMetadataStore<Profile>::ContainerFactoryMap;
 
     BlockMetadataMap block_map_;
     ContainerMetadataMap container_map_;
+    ContainerFactoryMap factory_map_;
 
     template <typename>
     friend class ProfileMetadataStore;
@@ -176,6 +198,19 @@ public:
         }
     }
 
+    const ContainerInstanceFactoryPtr<Profile>& get_container_factories(const U8String& signature) const
+    {
+        auto ii = factory_map_.find(signature);
+        if (ii != factory_map_.end())
+        {
+            return ii->second;
+        }
+        else {
+            MMA1_THROW(RuntimeException())
+                    << fmt::format_ex(u"ContainerFactories is not found for {}", signature);
+        }
+    }
+
     static const ProfileMetadataPtr<Profile>& local();
 
     static void init() {
@@ -194,6 +229,7 @@ void ProfileMetadataStore<Profile>::fill_to(ProfileMetadata<Profile>& meta) cons
 
     meta.block_map_ = block_map_;
     meta.container_map_ = container_map_;
+    meta.factory_map_ = factory_map_;
 }
 
 }}

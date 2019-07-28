@@ -20,15 +20,16 @@
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
-
-#include <memoria/v1/api/common/ctr_api.hpp>
-#include <memoria/v1/core/container/container.hpp>
-#include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/logs.hpp>
+#include <memoria/v1/api/datatypes/type_signature.hpp>
+#include <memoria/v1/api/datatypes/traits.hpp>
+
 
 #include <memoria/v1/profiles/common/common.hpp>
 
-#include  <memoria/v1/api/allocator/allocator_inmem_api_common.hpp>
+#include <memoria/v1/api/allocator/allocator_inmem_api_common.hpp>
+
+#include <memoria/v1/api/common/ctr_api.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -170,6 +171,49 @@ public:
 
     virtual const PairPtr& pair() const = 0;
     virtual PairPtr& pair() = 0;
+
+    virtual CtrSharedPtr<CtrReferenceable> create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
+    virtual CtrSharedPtr<CtrReferenceable> create_ctr(const DataTypeDeclaration& decl) = 0;
+
+    virtual CtrSharedPtr<CtrReferenceable> find_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
+    virtual CtrSharedPtr<CtrReferenceable> find_or_create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
+
+    template <typename CtrName>
+    CtrSharedPtr<ICtrApi<CtrName, Profile>> create_ctr(const CtrName& ctr_type_name, const CtrID& ctr_id)
+    {
+        U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
+        DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
+        CtrSharedPtr<CtrReferenceable> ctr_ref = create_ctr(decl, ctr_id);
+        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
+    }
+
+    template <typename CtrName>
+    CtrSharedPtr<ICtrApi<CtrName, Profile>> create_ctr(const CtrName& ctr_type_name)
+    {
+        U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
+        DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
+        CtrSharedPtr<CtrReferenceable> ctr_ref = create_ctr(decl);
+        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
+    }
+
+    template <typename CtrName>
+    CtrSharedPtr<ICtrApi<CtrName, Profile>> find_ctr(const CtrName& ctr_type_name, const CtrID& ctr_id)
+    {
+        U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
+        DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
+        CtrSharedPtr<CtrReferenceable> ctr_ref = find_ctr(decl, ctr_id);
+        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
+    }
+
+    template <typename CtrName>
+    CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create_ctr(const CtrName& ctr_type_name, const CtrID& ctr_id)
+    {
+        U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
+        DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
+        CtrSharedPtr<CtrReferenceable> ctr_ref = find_or_create_ctr(decl, ctr_id);
+        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
+    }
+
 
     template <typename CtrName>
     auto find_or_create(const CtrID& name)

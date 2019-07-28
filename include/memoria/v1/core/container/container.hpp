@@ -48,6 +48,11 @@
 
 #include <memoria/v1/profiles/common/metadata.hpp>
 
+#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/api/datatypes/type_registry.hpp>
+
+#include <memoria/v1/api/common/ctr_api.hpp>
+
 #include <string>
 #include <memory>
 
@@ -107,7 +112,11 @@ public:
 
 
 template <typename TypesType>
-class CtrBase: public IVertex, public CtrReferenceable, public CtrSharedFromThis<Ctr<TypesType>> {
+class CtrBase:
+        public IVertex,
+        public ::memoria::v1::ICtrApi<typename TypesType::ContainerTypeName, typename TypesType::Profile>,
+        public CtrSharedFromThis<Ctr<TypesType>>
+{
 public:
 
     using ThisType  = CtrBase<TypesType>;
@@ -214,11 +223,16 @@ public:
     }
 
     struct NodesInit {
-        NodesInit(ContainerOperationsPtr<ProfileT> ctr_ops)
+        NodesInit(ContainerOperationsPtr<ProfileT> ctr_ops, ContainerInstanceFactoryPtr<ProfileT> ctr_factory)
         {
+            ProfileMetadataStore<ProfileT>::global().add_container_factories(
+                make_datatype_signature<ContainerTypeName>().name(),
+                std::move(ctr_factory)
+            );
+
             ProfileMetadataStore<ProfileT>::global().add_container_operations(
-                        static_cast<uint64_t>(CONTAINER_HASH),
-                        std::move(ctr_ops)
+                static_cast<uint64_t>(CONTAINER_HASH),
+                std::move(ctr_ops)
             );
 
             std::vector<BlockOperationsPtr<ProfileT>> list;
@@ -236,14 +250,36 @@ public:
 
     static void init_profile_metadata()
     {
-        static thread_local NodesInit nodes_init(getContainerOperations());
+        static NodesInit nodes_init(getContainerOperations(), getContainerFactories());
     }
+
+    struct CtrInstanceFactoryImpl: public CtrInstanceFactory<ProfileT> {
+
+        template <typename CtrName>
+        using CtrT = SharedCtr<CtrName, ProfileAllocatorType<ProfileT>, ProfileT>;
+
+        template <typename CtrName>
+        using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
+
+        virtual SnpSharedPtr<CtrReferenceable> create_instance(
+                const AllocatorPtr& allocator,
+                int32_t command,
+                const CtrID& ctr_id
+        ) const
+        {
+            return ctr_make_shared<CtrT<ContainerTypeName>>(allocator, command, ctr_id);
+        }
+    };
 
     struct CtrInterfaceImpl: public ContainerOperations<ProfileT> {
 
         using CIBase = ContainerOperations<ProfileT>;
 
         using typename CIBase::BlockCallbackFn;
+
+        virtual U8String data_type_decl_signature() const {
+            return make_datatype_signature<ContainerTypeName>().name();
+        }
 
         virtual Vertex describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const
         {
@@ -393,8 +429,14 @@ public:
 
     static ContainerOperationsPtr<ProfileT> getContainerOperations()
     {
-        static thread_local auto container_operations_ptr = metadata_make_shared<CtrInterfaceImpl>();
+        static auto container_operations_ptr = metadata_make_shared<CtrInterfaceImpl>();
         return container_operations_ptr;
+    }
+
+    static ContainerInstanceFactoryPtr<ProfileT> getContainerFactories()
+    {
+        static auto container_factories_ptr = metadata_make_shared<CtrInstanceFactoryImpl>();
+        return container_factories_ptr;
     }
 
 
@@ -427,7 +469,7 @@ public:
 
     virtual Any id() const
     {
-        return Any(name());
+        return Any(this->name());
     }
 
     virtual U16String label() const
@@ -461,7 +503,7 @@ public:
                     allocator_holder_,
                     getContainerOperations(),
                     block_id,
-                    name()
+                    this->name()
         );
 
         return block_vx;

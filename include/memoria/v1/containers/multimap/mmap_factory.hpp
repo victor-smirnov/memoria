@@ -26,6 +26,8 @@
 #include <memoria/v1/containers/multimap/mmap_output_values.hpp>
 #include <memoria/v1/containers/multimap/mmap_iterator.hpp>
 
+#include <memoria/v1/api/multimap/multimap_api.hpp>
+
 #include <tuple>
 
 namespace memoria {

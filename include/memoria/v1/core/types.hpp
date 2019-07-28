@@ -170,6 +170,8 @@ using UInt32List = ValueList<uint32_t, Values...>;
 template <uint64_t... Values>
 using UInt64List = ValueList<uint64_t, Values...>;
 
+template <typename> struct TypeHash;
+
 
 /*
  * Container type names & profiles
@@ -186,22 +188,10 @@ template <typename CtrName>
 class CtrWrapper    {};
 
 template <typename Key, typename Value>
-struct Map          {};
-
-template <typename Key, typename Value>
-struct Multimap     {};
-
-template <typename Key, typename Value>
 struct CowMap       {};
 
 template <typename Key, typename Value, PackedSizeType SizeType>
 struct Table        {};
-
-template <typename Key>
-struct Set          {};
-
-template <typename T>
-struct Vector       {};
 
 template <int32_t BitsPerSymbol, bool Dense = true>
 struct Sequence {};
@@ -242,21 +232,14 @@ struct VTree        {};
 template <Granularity granularity, typename T = int64_t>
 struct VLen {};
 
-template <Granularity gr = Granularity::int8_t>
-using CMap = Map<VLen<gr>, int64_t>;
-
-template <Granularity gr = Granularity::int8_t>
-using CCMap = Map<VLen<gr>, VLen<gr>>;
-
 
 // Database-specific containers
 struct BlobStore        {};
-struct EdgeMap          {};
 struct InvertedIndex    {};
 struct ObjectStore      {};
 struct RowStore         {};
 struct ScopedDictionary {};
-struct UpdateLog        {};
+
 
 struct UBytes;
 

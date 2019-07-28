@@ -23,13 +23,29 @@
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
-#include <absl/types/span.h>
+#include <memoria/v1/core/tools/span.hpp>
+
+#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/core/types/typehash.hpp>
 
 #include <memory>
 #include <tuple>
 
 namespace memoria {
 namespace v1 {
+
+template <typename Key, typename Value>
+class Multimap {
+    Key key_;
+    Value value_;
+public:
+    Multimap(Key key, Value value):
+        key_(key), value_(value)
+    {}
+
+    const Key& key() const {return key_;}
+    const Value value() const {return value_;}
+};
 
 template <typename Key_, typename Value_, typename Profile>
 class CtrApi<Multimap<Key_, Value_>, Profile>: public CtrApiBTFLBase<Multimap<Key_, Value_>, Profile> {
@@ -127,6 +143,46 @@ public:
     bool is_found(const Key& key);
 
     bool to_values();
+};
+
+template <typename Key, typename Value>
+struct TypeHash<Multimap<Key, Value>>: UInt64Value<
+    HashHelper<1102, TypeHashV<Key>, TypeHashV<Value>>
+> {};
+
+template <typename Key, typename Value>
+struct DataTypeTraits<Multimap<Key, Value>> {
+    using CxxType   = EmptyType;
+    using InputView = EmptyType;
+    using Ptr       = EmptyType*;
+
+    using Parameters = TL<Key, Value>;
+
+    static constexpr size_t MemorySize        = sizeof(EmptyType);
+    static constexpr bool IsParametrised      = true;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const Multimap<Key, Value>& obj)
+    {
+        buf << "Multimap<";
+
+        DataTypeTraits<Key>::create_signature(buf, obj.key());
+        buf << ", ";
+        DataTypeTraits<Value>::create_signature(buf, obj.value());
+
+        buf << ">";
+    }
+
+    static void create_signature(SBuf& buf)
+    {
+        buf << "Multimap<";
+
+        DataTypeTraits<Key>::create_signature(buf);
+        buf << ", ";
+        DataTypeTraits<Value>::create_signature(buf);
+
+        buf << ">";
+    }
 };
     
 }}

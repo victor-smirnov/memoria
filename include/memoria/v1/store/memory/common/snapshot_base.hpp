@@ -1042,6 +1042,35 @@ public:
         return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND, name);
     }
 
+    virtual CtrSharedPtr<CtrReferenceable> create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id)
+    {
+        checkIfConainersCreationAllowed();
+        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_typedecl_string());
+        return factory->create_instance(this->shared_from_this(), CTR_CREATE, ctr_id);
+    }
+
+    virtual CtrSharedPtr<CtrReferenceable> create_ctr(const DataTypeDeclaration& decl)
+    {
+        checkIfConainersCreationAllowed();
+        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_typedecl_string());
+        return factory->create_instance(this->shared_from_this(), CTR_CREATE, CTR_DEFAULT_NAME);
+    }
+
+    virtual CtrSharedPtr<CtrReferenceable> find_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id)
+    {
+        checkIfConainersOpeneingAllowed();
+        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_typedecl_string());
+        return factory->create_instance(this->shared_from_this(), CTR_FIND, ctr_id);
+    }
+
+    virtual CtrSharedPtr<CtrReferenceable> find_or_create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id)
+    {
+        checkIfConainersCreationAllowed();
+        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_typedecl_string());
+        return factory->create_instance(this->shared_from_this(), CTR_FIND | CTR_CREATE, ctr_id);
+    }
+
+
     void pack_allocator()
     {
     	this->history_tree_raw_->pack();

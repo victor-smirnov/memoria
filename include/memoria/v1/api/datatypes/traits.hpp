@@ -25,8 +25,6 @@
 namespace memoria {
 namespace v1 {
 
-
-
 template <typename T> struct PrimitiveDataTypeName;
 
 #define MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(TypeName, TypeStr)  \
@@ -48,11 +46,15 @@ MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(TSWithTimeZone, Timestamp With Timezone);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(Time, Time);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(TimeWithTimeZone, Time With Timezone);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(Date, Date);
+MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(uint8_t, UByte);
+MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(int64_t, Int64);
+MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(uint64_t, UInt64);
+
 
 template <typename T> struct DataTypeTraits;
 
 template <typename T, typename DataType>
-struct PrimitiveDataTypeTraits
+struct ValueDataTypeTraits
 {
     using CxxType   = T;
     using InputView = T;
@@ -74,54 +76,78 @@ struct PrimitiveDataTypeTraits
 };
 
 template <>
-struct DataTypeTraits<TinyInt>: PrimitiveDataTypeTraits<int8_t, TinyInt> {};
+struct DataTypeTraits<TinyInt>: ValueDataTypeTraits<int8_t, TinyInt> {};
 
 template <>
-struct DataTypeTraits<UTinyInt>: PrimitiveDataTypeTraits<uint8_t, UTinyInt> {};
-
-
-template <>
-struct DataTypeTraits<SmallInt>: PrimitiveDataTypeTraits<int16_t, SmallInt> {};
+struct DataTypeTraits<UTinyInt>: ValueDataTypeTraits<uint8_t, UTinyInt> {};
 
 template <>
-struct DataTypeTraits<USmallInt>: PrimitiveDataTypeTraits<uint16_t, USmallInt> {};
+struct DataTypeTraits<uint8_t>: ValueDataTypeTraits<uint8_t, uint8_t> {};
 
 
 template <>
-struct DataTypeTraits<Integer>: PrimitiveDataTypeTraits<int32_t, Integer> {};
+struct DataTypeTraits<SmallInt>: ValueDataTypeTraits<int16_t, SmallInt> {};
 
 template <>
-struct DataTypeTraits<UInteger>: PrimitiveDataTypeTraits<uint32_t, UInteger> {};
-
-
-template <>
-struct DataTypeTraits<BigInt>: PrimitiveDataTypeTraits<int64_t, BigInt> {};
-
-template <>
-struct DataTypeTraits<UBigInt>: PrimitiveDataTypeTraits<uint64_t, UBigInt> {};
+struct DataTypeTraits<USmallInt>: ValueDataTypeTraits<uint16_t, USmallInt> {};
 
 
 template <>
-struct DataTypeTraits<Real>: PrimitiveDataTypeTraits<float, Real> {};
+struct DataTypeTraits<Integer>: ValueDataTypeTraits<int32_t, Integer> {};
 
 template <>
-struct DataTypeTraits<Double>: PrimitiveDataTypeTraits<double, Double> {};
+struct DataTypeTraits<UInteger>: ValueDataTypeTraits<uint32_t, UInteger> {};
+
 
 template <>
-struct DataTypeTraits<Timestamp>: PrimitiveDataTypeTraits<int64_t, Timestamp> {};
+struct DataTypeTraits<BigInt>: ValueDataTypeTraits<int64_t, BigInt> {};
 
 template <>
-struct DataTypeTraits<TSWithTimeZone>: PrimitiveDataTypeTraits<int64_t, TSWithTimeZone> {};
+struct DataTypeTraits<int64_t>: ValueDataTypeTraits<int64_t, int64_t> {};
 
 template <>
-struct DataTypeTraits<Time>: PrimitiveDataTypeTraits<int32_t, Time> {};
+struct DataTypeTraits<UBigInt>: ValueDataTypeTraits<uint64_t, UBigInt> {};
 
 template <>
-struct DataTypeTraits<TimeWithTimeZone>: PrimitiveDataTypeTraits<int64_t, TimeWithTimeZone> {};
+struct DataTypeTraits<uint64_t>: ValueDataTypeTraits<uint64_t, uint64_t> {};
 
 template <>
-struct DataTypeTraits<Date>: PrimitiveDataTypeTraits<int64_t, Date> {};
+struct DataTypeTraits<Real>: ValueDataTypeTraits<float, Real> {};
 
+template <>
+struct DataTypeTraits<Double>: ValueDataTypeTraits<double, Double> {};
+
+template <>
+struct DataTypeTraits<Timestamp>: ValueDataTypeTraits<int64_t, Timestamp> {};
+
+template <>
+struct DataTypeTraits<TSWithTimeZone>: ValueDataTypeTraits<int64_t, TSWithTimeZone> {};
+
+template <>
+struct DataTypeTraits<Time>: ValueDataTypeTraits<int32_t, Time> {};
+
+template <>
+struct DataTypeTraits<TimeWithTimeZone>: ValueDataTypeTraits<int64_t, TimeWithTimeZone> {};
+
+template <>
+struct DataTypeTraits<Date>: ValueDataTypeTraits<int64_t, Date> {};
+
+template <>
+struct DataTypeTraits<U8String> {
+    using Parameters = TL<>;
+
+    static constexpr size_t MemorySize        = sizeof(EmptyType);
+    static constexpr bool IsParametrised      = false;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const U8String& obj) {
+        buf << "U8String";
+    }
+
+    static void create_signature(SBuf& buf) {
+        buf << "U8String";
+    }
+};
 
 
 template <>
@@ -232,7 +258,6 @@ struct DataTypeTraits<Dynamic<T>>: DataTypeTraits<T>
         buf << "Dynamic ";
         DataTypeTraits<T>::create_signature(buf);
     }
-
 };
 
 

@@ -16,9 +16,10 @@
 
 #pragma once
 
+#include <memoria/v1/core/types.hpp>
+
 #include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
-#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/static_md5.hpp>
 
 #include <tuple>
@@ -71,10 +72,6 @@ template <uint64_t Base, uint64_t ... Values>
 static constexpr uint64_t HashHelper = md5::Md5Sum<UInt64List<Base, Values...>>::Type::Value64;
 
 
-
-
-
-
 template <typename T, T V>
 struct TypeHash<ConstValue<T, V>> {
     static const uint64_t Value = HashHelper<TypeHashV<T>, TypeHashes::CONST_VALUE, V>;
@@ -88,10 +85,8 @@ struct TypeHash<T[Size]> {
 };
 
 
-template <typename Key, typename Value>
-struct TypeHash<Map<Key, Value>>: UInt64Value<
-    HashHelper<1100, TypeHashV<Key>, TypeHashV<Value>>
-> {};
+
+
 
 template <typename Key, typename Value>
 struct TypeHash<CowMap<Key, Value>>: UInt64Value<
@@ -99,29 +94,11 @@ struct TypeHash<CowMap<Key, Value>>: UInt64Value<
 > {};
 
 
-template <typename Key>
-struct TypeHash<Set<Key>>: UInt64Value<
-    HashHelper<1101, TypeHashV<Key>>
-> {};
-
-
-template <typename Key, typename Value>
-struct TypeHash<Multimap<Key, Value>>: UInt64Value<
-    HashHelper<1102, TypeHashV<Key>, TypeHashV<Value>>
-> {};
-
-
-
 
 template <typename T, Granularity gr>
 struct TypeHash<VLen<gr, T>>: UInt64Value<
     HashHelper<1113, TypeHashV<T>, static_cast<uint64_t>(gr)>
 > {};
-
-
-template <typename T>
-struct TypeHash<Vector<T>>: UInt64Value<HashHelper<1300, TypeHashV<T>>> {};
-
 
 
 template <> struct TypeHash<Root>: UInt64Value<1400> {};
@@ -197,15 +174,9 @@ struct TypeHash<Table<Key, Value, PackedSizeType::VARIABLE>>: UInt64Value <
     HashHelper<3099, TypeHashV<Key>, TypeHashV<Value>>
 > {};
 
-template <>
-struct TypeHash<EdgeMap>: UInt64Value <
-    HashHelper<4000>
-> {};
 
-template <>
-struct TypeHash<UpdateLog>: UInt64Value <
-    HashHelper<4001>
-> {};
+
+
 
 
 }}

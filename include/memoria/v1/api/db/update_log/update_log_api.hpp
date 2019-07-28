@@ -22,6 +22,9 @@
 
 #include <memoria/v1/core/tools/object_pool.hpp>
 
+#include <memoria/v1/api/datatypes/traits.hpp>
+
+#include <memoria/v1/core/types/typehash.hpp>
 
 
 #include <memory>
@@ -29,6 +32,8 @@
 
 namespace memoria {
 namespace v1 {
+
+struct UpdateLog {};
 
 template <typename Profile>
 class CtrApi<UpdateLog, Profile>: public CtrApiBTFLBase<UpdateLog, Profile> {
@@ -87,5 +92,30 @@ public:
 };
 
 
+template <>
+struct TypeHash<UpdateLog>: UInt64Value <
+    HashHelper<4001>
+> {};
+
+template <>
+struct DataTypeTraits<UpdateLog> {
+    using CxxType   = EmptyType;
+    using InputView = EmptyType;
+    using Ptr       = EmptyType*;
+
+    using Parameters = TL<>;
+
+    static constexpr size_t MemorySize        = sizeof(EmptyType);
+    static constexpr bool IsParametrised      = false;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const UpdateLog& obj) {
+        buf << "UpdateLog";
+    }
+
+    static void create_signature(SBuf& buf) {
+        buf << "UpdateLog";
+    }
+};
     
 }}

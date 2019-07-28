@@ -1,5 +1,5 @@
 
-// Copyright 2016 Victor Smirnov
+// Copyright 2014 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
 // limitations under the License.
 
 
+
 #pragma once
 
 
 #include <memoria/v1/containers/map/map_names.hpp>
 #include <memoria/v1/containers/map/map_tools.hpp>
+#include <memoria/v1/containers/map/map_api_impl.hpp>
+
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
@@ -27,14 +30,13 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertMaxName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
-public:
     using Types = typename Base::Types;
+
+    using typename Base::NodeBaseG;
     using typename Base::IteratorPtr;
 
-protected:
-    using typename Base::NodeBaseG;
     using typename Base::NodeDispatcher;
     using typename Base::LeafDispatcher;
     using typename Base::BranchDispatcher;
@@ -45,60 +47,32 @@ protected:
     using Key = typename Types::Key;
     using Value = typename Types::Value;
 
-    static const int32_t Streams = Types::Streams;
-
-    using Element   = ValuePair<BranchNodeEntry, Value>;
-    using MapEntry  = typename Types::Entry;
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
 
-    using CtrSizeT = typename Types::CtrSizeT;
 
-public:
-    CtrSizeT size() const {
-        return self().sizes()[0];
+    int64_t map_size() const {
+        return self().size();
     }
 
-
-    IteratorPtr find(const Key& k)
-    {
-        return self().template find_max_ge<IntList<0, 1>>(0, k);
+    void assign_key(Key key, Value value) {
+        self().assign(key, value);
     }
 
-
-    bool remove(const Key& k)
-    {
-        auto iter = find(k);
-
-        if (iter->is_found(k))
-        {
-            iter->remove();
-            return true;
-        }
-        else {
-            return false;
-        }
+    void remove_key(Key key) {
+        self().remove(key);
     }
 
-    IteratorPtr assign(const Key& key, const Value& value)
+    CtrSharedPtr<MapIterator<Key,Value>> iterator()
     {
-        auto iter = self().find(key);
-
-        if (iter->is_found(key))
-        {
-            iter->assign(value);
-        }
-        else {
-            iter->insert(key, value);
-        }
-
-        return iter;
+        auto iter = self().begin();
+        return ctr_make_shared<MapIteratorImpl<Key,Value, IteratorPtr>>(iter);
     }
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(map::CtrInsertMaxName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(map::CtrApiName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 #undef M_PARAMS

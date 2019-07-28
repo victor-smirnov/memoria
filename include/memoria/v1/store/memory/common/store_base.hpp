@@ -28,7 +28,6 @@
 #include <memoria/v1/profiles/common/common.hpp>
 #include <memoria/v1/profiles/common/metadata.hpp>
 
-
 #include <memoria/v1/api/store/memory_store_api.hpp>
 
 #include "persistent_tree_node.hpp"
@@ -162,6 +161,7 @@ public:
 
     using SnapshotID        = ProfileSnapshotID<Profile>;
     using BlockID           = ProfileBlockID<Profile>;
+    using CtrID             = ProfileCtrID<Profile>;
 
     using LeafNodeT         = store::memory::LeafNode<Key, store::_::PersistentTreeValue<RCBlockPtr*, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
     using LeafNodeBufferT   = store::memory::LeafNode<Key, store::_::PersistentTreeValue<BlockID, SnapshotID>, NodeSize, NodeIndexSize, BlockID, SnapshotID>;
@@ -1395,8 +1395,13 @@ protected:
     }
 
 
+
+
+
     MyType& self() {return *static_cast<MyType*>(this);}
     const MyType& self() const {return *static_cast<const MyType*>(this);}
+
+
 };
 
 }

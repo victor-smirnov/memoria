@@ -172,6 +172,8 @@ struct ContainerOperations {
     using AllocatorBasePtr = SnpSharedPtr<IAllocator<Profile>>;
 
 
+    virtual U8String data_type_decl_signature() const = 0;
+
     virtual Vertex describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const = 0;
     virtual Collection<Edge> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator, Direction direction) const = 0;
     virtual Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const = 0;
@@ -225,5 +227,26 @@ struct ContainerOperations {
 
 template <typename Profile>
 using ContainerOperationsPtr = std::shared_ptr<ContainerOperations<Profile>>;
+
+
+template<typename Profile>
+struct CtrInstanceFactory {
+
+    virtual ~CtrInstanceFactory() noexcept {}
+
+    using CtrID         = ProfileCtrID<Profile>;
+    using Allocator     = ProfileAllocatorType<Profile>;
+    using AllocatorPtr  = SnpSharedPtr<Allocator>;
+
+    virtual SnpSharedPtr<CtrReferenceable> create_instance(
+            const AllocatorPtr& allocator,
+            int32_t command,
+            const CtrID& ctr_id
+    ) const = 0;
+};
+
+template <typename Profile>
+using ContainerInstanceFactoryPtr = std::shared_ptr<CtrInstanceFactory<Profile>>;
+
 
 }}

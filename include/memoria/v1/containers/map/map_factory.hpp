@@ -19,11 +19,13 @@
 #include <memoria/v1/containers/map/container/map_c_insert.hpp>
 #include <memoria/v1/containers/map/container/mapm_c_insert.hpp>
 #include <memoria/v1/containers/map/container/map_c_remove.hpp>
+#include <memoria/v1/containers/map/container/map_c_api.hpp>
 #include <memoria/v1/containers/map/iterator/map_i_nav.hpp>
 #include <memoria/v1/containers/map/iterator/mapm_i_nav.hpp>
 #include <memoria/v1/containers/map/map_iterator.hpp>
 #include <memoria/v1/containers/map/map_names.hpp>
 #include <memoria/v1/containers/map/map_tools.hpp>
+#include <memoria/v1/containers/map/map_api_impl.hpp>
 
 #include <memoria/v1/prototypes/bt_ss/btss_factory.hpp>
 #include <memoria/v1/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
@@ -45,6 +47,8 @@
 #include <memoria/v1/core/strings/string_codec.hpp>
 
 #include <memoria/v1/core/tools/uuid.hpp>
+
+#include <memoria/v1/api/map/map_api.hpp>
 
 #include <tuple>
 
@@ -69,7 +73,8 @@ struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 map::CtrInsertMaxName,
-                map::CtrRemoveName
+                map::CtrRemoveName,
+                map::CtrApiName
     >;
 
 

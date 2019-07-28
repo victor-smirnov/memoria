@@ -19,12 +19,16 @@
 
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/core/types/typehash.hpp>
+
 #include <memory>
 #include <tuple>
 
 namespace memoria {
 namespace v1 {
 
+struct EdgeMap {};
 
 struct EdgeMapFindResult {
     UAcc128T prefix;
@@ -234,6 +238,31 @@ public:
     };
 };
 
+template <>
+struct TypeHash<EdgeMap>: UInt64Value <
+    HashHelper<4000>
+> {};
+
+template <>
+struct DataTypeTraits<EdgeMap> {
+    using CxxType   = EmptyType;
+    using InputView = EmptyType;
+    using Ptr       = EmptyType*;
+
+    using Parameters = TL<>;
+
+    static constexpr size_t MemorySize        = sizeof(EmptyType);
+    static constexpr bool IsParametrised      = false;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const EdgeMap& obj) {
+        buf << "EdgeMap";
+    }
+
+    static void create_signature(SBuf& buf) {
+        buf << "EdgeMap";
+    }
+};
 
     
 }}

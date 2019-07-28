@@ -26,6 +26,9 @@
 namespace memoria {
 namespace v1 {
 
+
+
+
 template <typename Key, typename Value, typename Profile>
 typename CtrApi<Map<Key, Value>, Profile>::Iterator CtrApi<Map<Key, Value>, Profile>::find(const Key& key) 
 {
@@ -114,5 +117,5 @@ void IterApi<Map<Key, Value>, Profile>::assign(const Value& value)
     return this->pimpl_->assign(value);
 }
 
-    
+
 }}

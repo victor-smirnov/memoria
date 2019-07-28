@@ -15,13 +15,14 @@
 
 #pragma once
 
-
-
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
 
 #include <memoria/v1/api/vector/vector_input.hpp>
 
 #include <memoria/v1/core/tools/span.hpp>
+
+#include <memoria/v1/core/types/typehash.hpp>
+#include <memoria/v1/api/datatypes/traits.hpp>
 
 #include <memory>
 #include <vector>
@@ -36,6 +37,17 @@ namespace detail01 {
     template <Granularity G, typename V>
     struct VectorValueHelper<VLen<G, V>>: HasType<V> {};
 }
+
+template <typename T>
+class Vector {
+    T element_;
+public:
+    Vector(T element):
+        element_(element)
+    {}
+
+    const T& element() const {return element_;}
+};
     
 template <typename Value, typename Profile> 
 class CtrApi<Vector<Value>, Profile>: public CtrApiBTSSBase<Vector<Value>, Profile>  {
@@ -83,4 +95,35 @@ public:
     }
 };
     
+
+template <typename T>
+struct TypeHash<Vector<T>>: UInt64Value<HashHelper<1300, TypeHashV<T>>> {};
+
+template <typename T>
+struct DataTypeTraits<Vector<T>> {
+    using CxxType   = EmptyType;
+    using InputView = EmptyType;
+    using Ptr       = EmptyType*;
+
+    using Parameters = TL<T>;
+
+    static constexpr size_t MemorySize        = sizeof(EmptyType);
+    static constexpr bool IsParametrised      = true;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const Vector<T>& obj)
+    {
+        buf << "Vector<";
+        DataTypeTraits<T>::create_signature(buf, obj.key());
+        buf << ">";
+    }
+
+    static void create_signature(SBuf& buf)
+    {
+        buf << "Vector<";
+        DataTypeTraits<T>::create_signature(buf);
+        buf << ">";
+    }
+};
+
 }}

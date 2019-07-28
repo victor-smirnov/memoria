@@ -17,11 +17,55 @@
 
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
 
+#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/core/types/typehash.hpp>
+
 #include <memory>
 #include <tuple>
 
 namespace memoria {
 namespace v1 {
+
+template <typename Key, typename Value>
+class Map {
+    Key key_;
+    Value value_;
+public:
+    Map(): key_(), value_() {}
+
+    Map(Key key, Value value):
+        key_(key), value_(value)
+    {}
+
+    const Key& key() const {return key_;}
+    const Value value() const {return value_;}
+};
+
+template <typename Key, typename Value>
+struct MapIterator {
+
+    virtual ~MapIterator() noexcept {}
+
+    virtual Key key() const = 0;
+    virtual Value value() const = 0;
+    virtual bool is_end() const = 0;
+    virtual void next() = 0;
+
+
+};
+
+template <typename Key_, typename Value_, typename Profile>
+struct ICtrApi<Map<Key_, Value_>, Profile>: public CtrReferenceable {
+
+    using Key = Key_;
+    using Value = Value_;
+
+    virtual int64_t map_size() const = 0;
+    virtual void assign_key(Key key, Value value) = 0;
+    virtual void remove_key(Key key) = 0;
+
+    virtual CtrSharedPtr<MapIterator<Key_, Value_>> iterator() = 0;
+};
 
 
     
@@ -75,6 +119,47 @@ public:
     void assign(const Value& value);
     
     bool is_found(const Key& key) const;
+};
+
+
+template <typename Key, typename Value>
+struct TypeHash<Map<Key, Value>>: UInt64Value<
+    HashHelper<1100, TypeHashV<Key>, TypeHashV<Value>>
+> {};
+
+template <typename Key, typename Value>
+struct DataTypeTraits<Map<Key, Value>> {
+    using CxxType   = EmptyType;
+    using InputView = EmptyType;
+    using Ptr       = EmptyType*;
+
+    using Parameters = TL<Key, Value>;
+
+    static constexpr size_t MemorySize        = sizeof(EmptyType);
+    static constexpr bool IsParametrised      = true;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const Map<Key, Value>& obj)
+    {
+        buf << "Map<";
+
+        DataTypeTraits<Key>::create_signature(buf, obj.key());
+        buf << ", ";
+        DataTypeTraits<Value>::create_signature(buf, obj.value());
+
+        buf << ">";
+    }
+
+    static void create_signature(SBuf& buf)
+    {
+        buf << "Map<";
+
+        DataTypeTraits<Key>::create_signature(buf);
+        buf << ", ";
+        DataTypeTraits<Value>::create_signature(buf);
+
+        buf << ">";
+    }
 };
     
 }}

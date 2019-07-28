@@ -16,12 +16,13 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/container/container.hpp>
 
 #include <memoria/v1/core/tools/memory.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
+
+#include <memoria/v1/core/tools/pair.hpp>
 
 #include <memoria/v1/profiles/common/common.hpp>
 
@@ -30,9 +31,18 @@
 namespace memoria {
 namespace v1 {
 
+
+template <typename CtrName, typename Profile = DefaultProfile<>>
+struct ICtrApi: CtrReferenceable
+{
+
+};
+
+
+
+
 template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;
 template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
-
 
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Profile> class SharedIter;

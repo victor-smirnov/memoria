@@ -39,32 +39,34 @@ int main()
 
     auto ctr = create<MapType>(snp);
 
-    UUID ctr_id = ctr.name();
+    auto ctr0 = snp->create_ctr(MapType());
 
-    ctr.assign("AAAAA", "BBBBB");
+    UUID ctr_id = ctr0->name();
+
+    ctr0->assign_key("AAAAA", "BBBBB");
 
     snp->commit();
     snp->set_as_master();
 
-    auto ii = ctr.begin();
+    auto ii = ctr0->iterator();
 
-    while (!ii.is_end()) {
-        std::cout << ii.key() << " = " << ii.value() << std::endl;
-        ii.next();
+    while (!ii->is_end())
+    {
+        std::cout << ii->key() << " = " << ii->value() << std::endl;
+        ii->next();
     }
-
 
     alloc->store("allocator.mma2");
     auto alloc2 = IMemoryStore<>::load("allocator.mma2");
     auto snp2 = alloc2->master();
 
-    auto ctr2 = find<MapType>(snp2, ctr_id);
+    auto ctr2 = snp2->find_ctr(MapType(), ctr_id);
 
-    auto ii2 = ctr2.begin();
+    auto ii2 = ctr2->iterator();
 
-    while (!ii2.is_end()) {
-        std::cout << ii2.key() << " = " << ii2.value() << std::endl;
-        ii2.next();
+    while (!ii2->is_end()) {
+        std::cout << ii2->key() << " = " << ii2->value() << std::endl;
+        ii2->next();
     }
 
     std::cout << make_datatype_signature<TimeWithTimeZone>().name() << std::endl;

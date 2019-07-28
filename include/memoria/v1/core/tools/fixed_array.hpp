@@ -24,6 +24,8 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/format.hpp>
 
+#include <memoria/v1/api/datatypes/traits.hpp>
+
 #include <ostream>
 
 namespace memoria {
@@ -187,6 +189,26 @@ struct TypeHash<FixedArray<Size>> {
 };
 
 
+template <int32_t Size>
+struct DataTypeTraits<FixedArray<Size>>
+{
+    using CxxType   = FixedArray<Size>;
+    using InputView = FixedArray<Size>;
+    using Ptr       = FixedArray<Size>*;
 
+    using Parameters = TL<>;
+
+    static constexpr size_t MemorySize        = sizeof(FixedArray<Size>);
+    static constexpr bool IsParametrised      = false;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const Decimal& obj) {
+        buf << "UByte" << Size;
+    }
+
+    static void create_signature(SBuf& buf) {
+        buf << "UByte" << Size;
+    }
+};
 
 }}
