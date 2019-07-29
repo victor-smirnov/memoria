@@ -26,6 +26,6 @@ using Profile = DefaultProfile<>;
 using CtrName = memoria::v1::Multimap<UUID, uint8_t>;
 
 MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
-    
+
 }}
 

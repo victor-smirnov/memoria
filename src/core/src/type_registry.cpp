@@ -30,6 +30,8 @@
 namespace memoria {
 namespace v1 {
 
+MMA1_DEFINE_EXPLICIT_CU_LINKING(Datatypes)
+
 DataTypeRegistry::DataTypeRegistry() {
     refresh();
 }
@@ -95,6 +97,7 @@ DataTypeRegistryStore::Initializer<EdgeMap, TL<>> edge_map;
 DataTypeRegistryStore::Initializer<Map<UUID, UUID>, TL<>> root_map;
 
 DataTypeRegistryStore::Initializer<Map<U8String, U8String>, TL<>> string_string_map;
+DataTypeRegistryStore::Initializer<Map<Decimal, U8String>, TL<>> decimal_string_map;
 
 DataTypeRegistryStore::Initializer<Multimap<int64_t, uint8_t>, TL<>> llb_multimap;
 

@@ -40,7 +40,7 @@ using namespace memoria::v1::reactor;
 
 int main(int argc, char** argv, char** envp)
 {
-    LibraryCtrs::init();
+    StaticLibraryCtrs<>::init();
 
     QApplication q_app(argc, argv);
     Application app(argc, argv, envp);

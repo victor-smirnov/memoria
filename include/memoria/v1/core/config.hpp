@@ -120,3 +120,9 @@
 
 #define MMA1_PKD_OOM_SAFE
 
+#define MMA1_DECLARE_EXPLICIT_CU_LINKING(Name) \
+    extern int Name##_compilation_referencing_tag(); \
+    static int Name##_compilation_unit_tag_var = Name##_compilation_referencing_tag()
+
+#define MMA1_DEFINE_EXPLICIT_CU_LINKING(Name) \
+    int Name##_compilation_referencing_tag() {return 0;}

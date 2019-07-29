@@ -39,6 +39,8 @@ class Multimap {
     Key key_;
     Value value_;
 public:
+    Multimap(): key_(), value_() {}
+
     Multimap(Key key, Value value):
         key_(key), value_(value)
     {}

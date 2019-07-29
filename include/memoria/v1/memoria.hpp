@@ -19,22 +19,28 @@
 #include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
 #include <memoria/v1/api/set/set_api.hpp>
 #include <memoria/v1/api/map/map_api.hpp>
+#include <memoria/v1/api/multimap/multimap_api.hpp>
 #include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
 #include <memoria/v1/api/db/update_log/update_log_api.hpp>
 
 #include <memoria/v1/core/tools/fixed_array.hpp>
 #include <memoria/v1/core/strings/string.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
 
 
 namespace memoria {
 namespace v1{
 
-struct LibraryCtrs{
-    static void init() {
-        CtrApi<Set<FixedArray<16>>, DefaultProfile<>>::do_link();
-        CtrApi<Map<U8String, U8String>, DefaultProfile<>>::do_link();
-        CtrApi<EdgeMap, DefaultProfile<>>::do_link();
-        CtrApi<UpdateLog, DefaultProfile<>>::do_link();
+template <typename ProfileT = DefaultProfile<>>
+struct StaticLibraryCtrs {
+    static void init()
+    {
+        CtrApi<Set<FixedArray<16>>, ProfileT>::do_link();
+        CtrApi<Map<U8String, U8String>, ProfileT>::do_link();
+        CtrApi<Multimap<int64_t, uint8_t>, ProfileT>::do_link();
+        CtrApi<Multimap<UUID, uint8_t>, ProfileT>::do_link();
+        CtrApi<EdgeMap, ProfileT>::do_link();
+        CtrApi<UpdateLog, ProfileT>::do_link();
     }
 };
 

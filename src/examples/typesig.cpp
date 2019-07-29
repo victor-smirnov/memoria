@@ -23,6 +23,8 @@
 
 #include <memoria/v1/api/map/map_api.hpp>
 
+#include <memoria/v1/memoria.hpp>
+
 #include <iostream>
 
 
@@ -30,16 +32,34 @@ using namespace memoria::v1;
 
 int main()
 {
-    auto alloc = IMemoryStore<>::create();
+    StaticLibraryCtrs<>::init();
 
+    //U8String txt0 = "Map<Integer, Tensor<Double>(12, 3, 7, 9)>";
 
-    auto snp = alloc->master()->branch();
+//    U8String txt0 = "Map<Decimal(21, 32), U8String>(1,2,34)";
+
+//    DataTypeDeclaration decl = TypeSignature::parse(txt0);
+
+//    std::cout << decl.to_typedecl_string() << std::endl;
+//    std::cout << make_datatype_signature<Map<Decimal, U8String>>().name() << std::endl;
+
+//    boost::any dec0 = DataTypeRegistry::local().create_object(decl);
+
+//    auto map0 = boost::any_cast<Map<Decimal, U8String>>(dec0);
+
+//    std::cout << map0.key().precision() << " :: " << map0.key().scale() << std::endl;
 
     using MapType = Map<U8String, U8String>;
 
-    auto ctr = create<MapType>(snp);
+    auto alloc = IMemoryStore<>::create();
+
+    auto snp = alloc->master()->branch();
+
+    //auto ctr1 = create<MapType>(snp);
 
     auto ctr0 = snp->create_ctr(MapType());
+
+    //auto bbb = snp->create_ctr(TypeSignature::parse("Map<Real, U8String>"));
 
     UUID ctr_id = ctr0->name();
 
@@ -89,5 +109,6 @@ int main()
     boost::any_cast<Multimap1<Dynamic<BigDecimal>, BigInt>>(obj);
 
     //std::cout << "0Arg: " << objt.key().precision() << " " << objt.key().scale() << std::endl;
-    return 0;
+
+  return 0;
 }

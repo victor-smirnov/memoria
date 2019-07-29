@@ -26,6 +26,6 @@ using Profile = DefaultProfile<>;
 using CtrName = Map<U8String, U8String>;
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_s_s)
-    
+
 }}
 
