@@ -46,10 +46,23 @@ namespace qi    = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace bp    = boost::phoenix;
 
-using TypeCtrParams = std::vector<DataTypeCtrArg>;
 
 struct TypeDeclarationStruct;
 using TypeParams = std::vector<TypeDeclarationStruct>;
+
+struct TypeDeclarationStruct;
+
+struct TypedStringValueStruct {
+    U8String text_;
+    std::vector<TypeDeclarationStruct> type_;
+};
+
+using InternalDataTypeCtrArg = typename boost::make_recursive_variant<
+    TypedStringValueStruct, int64_t, double, NameToken, std::vector<boost::recursive_variant_>
+>::type;
+
+using TypeCtrParams = std::vector<InternalDataTypeCtrArg>;
+
 
 struct TypeDeclarationStruct {
     std::vector<NameToken> name_tokens_;
@@ -65,8 +78,16 @@ struct TypeDeclarationStruct {
             decl.name_tokens().emplace_back(token.text());
         }
 
-        if (constructor_args_.has_value()) {
-            decl.constructor_args() =  std::move(constructor_args_);
+        if (constructor_args_.has_value())
+        {
+            auto& args = constructor_args_.get();
+            std::vector<DataTypeCtrArg> dt_ctr_args;
+            for (auto& arg: args)
+            {
+                dt_ctr_args.emplace_back(convert_(std::move(arg)));
+            }
+
+            decl.constructor_args() =  std::move(dt_ctr_args);
         }
 
         if (parameters_.has_value())
@@ -83,11 +104,75 @@ struct TypeDeclarationStruct {
 
         return decl;
     }
+
+private:
+
+    class ConvertionVisitor: public boost::static_visitor<>
+    {
+        DataTypeCtrArg& o_arg_;
+
+    public:
+        ConvertionVisitor(DataTypeCtrArg& o_arg): o_arg_(o_arg)
+        {}
+
+        void operator()(long i) const
+        {
+            o_arg_ = i;
+        }
+
+        void operator()(double i) const
+        {
+            o_arg_ = i;
+        }
+
+        void operator()(TypedStringValueStruct& str) const
+        {
+            if (str.type_.size() == 0) {
+                o_arg_ = TypedStringValue(std::move(str.text_));
+            }
+            else {
+                o_arg_ = TypedStringValue(std::move(str.text_), str.type_[0].convert());
+            }
+        }
+
+        void operator()(NameToken& token) const
+        {
+            o_arg_ = std::move(token);
+        }
+
+        void operator()(std::vector<InternalDataTypeCtrArg>& array) const
+        {
+            std::vector<DataTypeCtrArg> o_args;
+
+            for (auto& i_arg: array)
+            {
+                DataTypeCtrArg o_arg0;
+                ConvertionVisitor visitor(o_arg0);
+                boost::apply_visitor(visitor, i_arg);
+                o_args.emplace_back(std::move(o_arg0));
+            }
+
+            o_arg_ = std::move(o_args);
+        }
+    };
+
+
+    DataTypeCtrArg convert_(InternalDataTypeCtrArg&& i_arg) const
+    {
+        DataTypeCtrArg o_arg;
+
+        ConvertionVisitor visitor(o_arg);
+
+        boost::apply_visitor(visitor, i_arg);
+
+        return std::move(o_arg);
+    }
 };
 
 }}
 
-BOOST_FUSION_ADAPT_STRUCT(memoria::v1::TypeDeclarationStruct, name_tokens_, parameters_, constructor_args_)
+BOOST_FUSION_ADAPT_STRUCT(memoria::v1::TypeDeclarationStruct, name_tokens_, parameters_, constructor_args_);
+BOOST_FUSION_ADAPT_STRUCT(memoria::v1::TypedStringValueStruct, text_, type_);
 
 namespace memoria {
 namespace v1 {
@@ -114,11 +199,13 @@ struct TypeSignatureParser : qi::grammar<Iterator, TypeDeclarationStruct(), qi::
 
         identifier    = lexeme[(qi::alpha | char_('_'))[_val += _1] >> *(qi::alnum | char_('_'))[_val += _1]];
 
-        quoted_string %= lexeme['\'' >> +(char_ - '\'') >> '\''];
+        quoted_string %= lexeme['\'' >> *(char_ - '\'' - "\\\'" | '\\' >> char_('\'')) >> '\''];
 
         type_name     = +identifier;
 
-        constructor_arg %= identifier | strict_double | long_ | quoted_string | array;
+        typed_string %= quoted_string >> -('@' >> type_declaration);
+
+        constructor_arg %= identifier | strict_double | long_ | typed_string  | array; //
 
         array %= '[' >> (constructor_arg % ',') >> ']' | lit('[') >> lit(']');
 
@@ -136,6 +223,8 @@ struct TypeSignatureParser : qi::grammar<Iterator, TypeDeclarationStruct(), qi::
         BOOST_SPIRIT_DEBUG_NODE(identifier);
         BOOST_SPIRIT_DEBUG_NODE(quoted_string);
         BOOST_SPIRIT_DEBUG_NODE(type_name);
+        BOOST_SPIRIT_DEBUG_NODE(array);
+        BOOST_SPIRIT_DEBUG_NODE(typed_string);
         BOOST_SPIRIT_DEBUG_NODE(constructor_arg);
         BOOST_SPIRIT_DEBUG_NODE(constructor_args);
         BOOST_SPIRIT_DEBUG_NODE(type_parameters);
@@ -147,7 +236,8 @@ struct TypeSignatureParser : qi::grammar<Iterator, TypeDeclarationStruct(), qi::
     qi::rule<Iterator, std::string(), qi::space_type> quoted_string;
     qi::rule<Iterator, NameToken(), qi::space_type> identifier;
     qi::rule<Iterator, std::vector<NameToken>(), qi::space_type> type_name;
-    qi::rule<Iterator, DataTypeCtrArg(), qi::space_type> constructor_arg;
+    qi::rule<Iterator, TypedStringValueStruct(), qi::space_type> typed_string;
+    qi::rule<Iterator, InternalDataTypeCtrArg(), qi::space_type> constructor_arg;
     qi::rule<Iterator, TypeCtrParams(), qi::space_type> array;
     qi::rule<Iterator, TypeCtrParams(), qi::space_type> constructor_args;
     qi::rule<Iterator, TypeParams(), qi::space_type> type_parameters;
@@ -223,9 +313,14 @@ public:
         buf_ << std::scientific << i;
     }
 
-    void operator()(const U8String& str) const
+    void operator()(const TypedStringValue& str) const
     {
         buf_ << "'" << str << "'";
+        if (str.has_type())
+        {
+            buf_ << "@";
+            str.type().to_standard_string(buf_);
+        }
     }
 
     void operator()(const NameToken& token) const

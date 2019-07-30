@@ -39,6 +39,8 @@ struct ICtrApi: CtrReferenceable
 };
 
 
+template <typename CtrName, typename Profile, typename DefaultIOSubstreamsTL>
+struct CtrApiIOSubstreamsProvider: TypeDef<DefaultIOSubstreamsTL> {};
 
 
 template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;

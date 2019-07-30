@@ -33,7 +33,6 @@ namespace v1 {
 
 class DataTypeDeclaration;
 
-
 class TypeSignature {
     U8String name_;
 public:
@@ -88,8 +87,44 @@ static inline std::ostream& operator<<(std::ostream& out, const NameToken& tk) {
     return out;
 }
 
+class TypedStringValue {
+    U8String text_;
+    std::vector<DataTypeDeclaration> type_;
+public:
+    TypedStringValue() {}
+    TypedStringValue(const U8String& text): text_(text) {}
+    TypedStringValue(U8String&& text): text_(std::move(text)) {}
+    TypedStringValue(const U8String& text, const DataTypeDeclaration& decl):
+        text_(text)
+    {
+        type_.push_back(decl);
+    }
+
+    TypedStringValue(U8String&& text, DataTypeDeclaration&& decl):
+        text_(std::move(text))
+    {
+        type_.push_back(std::move(decl));
+    }
+
+    const U8String& text() const {
+        return text_;
+    }
+
+    operator const U8String&() const {
+        return text_;
+    }
+
+    bool has_type() const {
+        return type_.size() > 0;
+    }
+
+    const DataTypeDeclaration& type() const {
+        return type_[0];
+    }
+};
+
 using DataTypeCtrArg = typename boost::make_recursive_variant<
-    U8String, int64_t, double, NameToken, std::vector<boost::recursive_variant_>
+    TypedStringValue, int64_t, double, NameToken, std::vector<boost::recursive_variant_>
 >::type;
 
 using DataTypeCtrArgs = boost::optional<std::vector<DataTypeCtrArg>>;
@@ -107,6 +142,7 @@ class DataTypeDeclaration {
     DataTypeParams parameters_;
 public:
     DataTypeDeclaration() {}
+    DataTypeDeclaration(const DataTypeDeclaration&) = default;
     DataTypeDeclaration(DataTypeDeclaration&&) = default;
 
     std::vector<U8String>& name_tokens() {return name_tokens_;}
@@ -134,7 +170,6 @@ public:
         return buf.str();
     }
 
-private:
     void to_standard_string(SBuf& buf) const;
     void to_typedecl_string(SBuf& buf) const;
 };

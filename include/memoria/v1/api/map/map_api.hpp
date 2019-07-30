@@ -20,6 +20,8 @@
 #include <memoria/v1/api/datatypes/traits.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
+
 #include <memory>
 #include <tuple>
 
@@ -59,6 +61,14 @@ struct ICtrApi<Map<Key_, Value_>, Profile>: public CtrReferenceable {
 
     using Key = Key_;
     using Value = Value_;
+
+    using DefaultIOSubstreams = TL<
+        TL<
+            //io::IOSubstreamTF<io::IOColumnwiseFixedSizeArraySubstream>
+        >
+    >;
+
+    using IOSubstreamsTL = typename CtrApiIOSubstreamsProvider<Map<Key_, Value_>, Profile, DefaultIOSubstreams>::Type;
 
     virtual int64_t map_size() const = 0;
     virtual void assign_key(Key key, Value value) = 0;

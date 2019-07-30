@@ -32,7 +32,11 @@ using namespace memoria::v1;
 
 int main()
 {
-    StaticLibraryCtrs<>::init();
+//    StaticLibraryCtrs<>::init();
+
+    //std::cout << TypeSignature::parse("Real('aaa'@Decimal<Fast>(10,2), '\\\'', 55, 66, [fff, aaa, 'zz', 'ttt' @ Long])").to_standard_string() << std::endl;
+
+    std::cout << TypeSignature::parse("Real('aaaa\\'bbbb')").to_standard_string() << std::endl;
 
     //U8String txt0 = "Map<Integer, Tensor<Double>(12, 3, 7, 9)>";
 
@@ -48,7 +52,7 @@ int main()
 //    auto map0 = boost::any_cast<Map<Decimal, U8String>>(dec0);
 
 //    std::cout << map0.key().precision() << " :: " << map0.key().scale() << std::endl;
-
+/*
     using MapType = Map<U8String, U8String>;
 
     auto alloc = IMemoryStore<>::create();
@@ -109,6 +113,6 @@ int main()
     boost::any_cast<Multimap1<Dynamic<BigDecimal>, BigInt>>(obj);
 
     //std::cout << "0Arg: " << objt.key().precision() << " " << objt.key().scale() << std::endl;
-
+*/
   return 0;
 }

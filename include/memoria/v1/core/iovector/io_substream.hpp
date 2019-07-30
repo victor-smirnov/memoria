@@ -34,5 +34,10 @@ namespace memoria {
 namespace v1 {
 namespace io {
 
+template<template <typename ValueType, int32_t Columns> class IOSubstreamT>
+struct IOSubstreamTF {
+    template <typename ValueType, int32_t Columns>
+    using Type = IOSubstreamT<ValueType, Columns>;
+};
 
 }}}
