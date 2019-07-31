@@ -15,6 +15,7 @@
 
 
 #include <memoria/v1/api/datatypes/type_signature.hpp>
+#include <memoria/v1/api/datatypes/sdn.hpp>
 #include <memoria/v1/api/datatypes/traits.hpp>
 #include <memoria/v1/api/datatypes/type_registry.hpp>
 
@@ -32,11 +33,15 @@ using namespace memoria::v1;
 
 int main()
 {
+    std::cout << SDNValue::parse("['boooo'@Decimal(5, 2, [1,2,3,4,5]), {'aaa': {'xxxx': ddd }}] @ Long").pretty_print(2) << std::endl;
+
+
+
 //    StaticLibraryCtrs<>::init();
 
     //std::cout << TypeSignature::parse("Real('aaa'@Decimal<Fast>(10,2), '\\\'', 55, 66, [fff, aaa, 'zz', 'ttt' @ Long])").to_standard_string() << std::endl;
 
-    std::cout << TypeSignature::parse("Real('aaaa\\'bbbb')").to_standard_string() << std::endl;
+    //std::cout << TypeSignature::parse("Real('aaaa\\'bbbb'@Varchar(25))").to_standard_string() << std::endl;
 
     //U8String txt0 = "Map<Integer, Tensor<Double>(12, 3, 7, 9)>";
 

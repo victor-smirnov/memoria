@@ -27,6 +27,9 @@
 
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
+
+#include <unordered_map>
 
 namespace memoria {
 namespace v1 {
@@ -89,22 +92,15 @@ static inline std::ostream& operator<<(std::ostream& out, const NameToken& tk) {
 
 class TypedStringValue {
     U8String text_;
-    std::vector<DataTypeDeclaration> type_;
+    boost::optional<boost::recursive_wrapper<DataTypeDeclaration>> type_;
 public:
+    friend struct boost::fusion::extension::access;
+
     TypedStringValue() {}
     TypedStringValue(const U8String& text): text_(text) {}
     TypedStringValue(U8String&& text): text_(std::move(text)) {}
-    TypedStringValue(const U8String& text, const DataTypeDeclaration& decl):
-        text_(text)
-    {
-        type_.push_back(decl);
-    }
-
-    TypedStringValue(U8String&& text, DataTypeDeclaration&& decl):
-        text_(std::move(text))
-    {
-        type_.push_back(std::move(decl));
-    }
+    TypedStringValue(const U8String& text, const DataTypeDeclaration& decl);
+    TypedStringValue(U8String&& text, DataTypeDeclaration&& decl);
 
     const U8String& text() const {
         return text_;
@@ -115,11 +111,11 @@ public:
     }
 
     bool has_type() const {
-        return type_.size() > 0;
+        return type_.has_value();
     }
 
     const DataTypeDeclaration& type() const {
-        return type_[0];
+        return type_.get().get();
     }
 };
 
@@ -140,10 +136,9 @@ class DataTypeDeclaration {
 
     DataTypeCtrArgs constructor_args_;
     DataTypeParams parameters_;
+
 public:
-    DataTypeDeclaration() {}
-    DataTypeDeclaration(const DataTypeDeclaration&) = default;
-    DataTypeDeclaration(DataTypeDeclaration&&) = default;
+    friend struct boost::fusion::extension::access;
 
     std::vector<U8String>& name_tokens() {return name_tokens_;}
     const std::vector<U8String>& name_tokens() const {return name_tokens_;}
@@ -173,5 +168,17 @@ public:
     void to_standard_string(SBuf& buf) const;
     void to_typedecl_string(SBuf& buf) const;
 };
+
+inline TypedStringValue::TypedStringValue(const U8String& text, const DataTypeDeclaration& decl):
+    text_(text), type_(decl)
+{}
+
+inline TypedStringValue::TypedStringValue(U8String&& text, DataTypeDeclaration&& decl):
+    text_(std::move(text)), type_(std::move(decl))
+{}
+
+
+
+
 
 }}
