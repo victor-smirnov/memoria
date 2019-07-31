@@ -68,7 +68,7 @@ struct TypeSignatureParser : qi::grammar<Iterator, DataTypeDeclaration(), qi::sp
     {
         using qi::long_;
         using qi::lit;
-        using qi::double_;
+//        using qi::double_;
         using qi::lexeme;
         using ascii::char_;
         using qi::eps;
@@ -133,79 +133,29 @@ struct TypeSignatureParser : qi::grammar<Iterator, DataTypeDeclaration(), qi::sp
 template <typename Iterator>
 struct SDNParser : qi::grammar<Iterator, SDNValue(), qi::space_type>
 {
+    TypeSignatureParser<Iterator> ts_parser_;
+
     SDNParser() : SDNParser::base_type(sdn_value)
     {
         using qi::long_;
         using qi::lit;
-        using qi::double_;
-        using qi::lexeme;
-        using ascii::char_;
-        using qi::eps;
-        using qi::_1;
-        using qi::_val;
-        using qi::on_error;
-        using qi::fail;
-        using namespace qi::labels;
 
-        using bp::construct;
-        using bp::val;
+        auto& identifier    = ts_parser_.identifier;
+        auto& strict_double = ts_parser_.strict_double;
+        auto& typed_string  = ts_parser_.typed_string;
+        auto& type_declaration = ts_parser_.type_declaration;
 
-        identifier    = lexeme[(qi::alpha | char_('_'))[_val += _1] >> *(qi::alnum | char_('_'))[_val += _1]];
-
-        quoted_string %= lexeme['\'' >> *(char_ - '\'' - "\\\'" | '\\' >> char_('\'')) >> '\''];
-
-        type_name     = +identifier;
-
-        typed_string %= quoted_string >> -('@' >> type_declaration);
-
-        constructor_arg %= identifier | strict_double | long_ | typed_string  | array; //
-
-        array %= '[' >> (constructor_arg % ',') >> ']' | lit('[') >> lit(']');
-
-        constructor_args %= '(' >> (constructor_arg % ',') >> ')' | lit('(') >> lit(')');
-
-        type_parameters %= lit('<') >> lit('>') |
-                '<' >> type_declaration % ','  >> '>';
-
-        type_declaration %=
-            type_name
-            >> -type_parameters
-            >> -constructor_args
-        ;
-
-        sdn_value = identifier | strict_double | long_ | typed_string | sdn_array | sdn_map;
+        sdn_value = identifier | strict_double | long_
+                    | typed_string
+                    | sdn_array | sdn_map;
 
         sdn_array_data  = '[' >> (sdn_value % ',') >> ']' | lit('[') >> ']';
         sdn_array       = sdn_array_data >>  -('@' >> type_declaration);
 
-        sdn_map_entry   = quoted_string >> ':' >> sdn_value;
+        sdn_map_entry   = ts_parser_.quoted_string >> ':' >> sdn_value;
         sdn_map_entries = '{' >> (sdn_map_entry % ',') >> '}' | lit('{') >> '}';
         sdn_map         = sdn_map_entries >> -('@' >> type_declaration);
-
-        BOOST_SPIRIT_DEBUG_NODE(identifier);
-        BOOST_SPIRIT_DEBUG_NODE(quoted_string);
-        BOOST_SPIRIT_DEBUG_NODE(type_name);
-        BOOST_SPIRIT_DEBUG_NODE(array);
-        BOOST_SPIRIT_DEBUG_NODE(typed_string);
-        BOOST_SPIRIT_DEBUG_NODE(constructor_arg);
-        BOOST_SPIRIT_DEBUG_NODE(constructor_args);
-        BOOST_SPIRIT_DEBUG_NODE(type_parameters);
-        BOOST_SPIRIT_DEBUG_NODE(type_declaration);
     }
-
-    qi::real_parser<double, qi::strict_real_policies<double>> strict_double;
-
-    qi::rule<Iterator, std::string(), qi::space_type> quoted_string;
-    qi::rule<Iterator, NameToken(), qi::space_type> identifier;
-    qi::rule<Iterator, std::vector<NameToken>(), qi::space_type> type_name;
-    qi::rule<Iterator, TypedStringValue(), qi::space_type> typed_string;
-    qi::rule<Iterator, DataTypeCtrArg(), qi::space_type> constructor_arg;
-    qi::rule<Iterator, std::vector<DataTypeCtrArg>(), qi::space_type> array;
-    qi::rule<Iterator, DataTypeCtrArgs(), qi::space_type> constructor_args;
-    qi::rule<Iterator, DataTypeParams(), qi::space_type> type_parameters;
-
-    qi::rule<Iterator, DataTypeDeclaration(), qi::space_type> type_declaration;
-
 
     qi::rule<Iterator, std::vector<SDNValue>(), qi::space_type> sdn_array_data;
     qi::rule<Iterator, TypedSDNArray(), qi::space_type> sdn_array;
@@ -281,6 +231,7 @@ SDNValue SDNValue::parse(U8StringView str)
         MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't parse data type signature: \"{}\", unparsed: \"{}\"", (std::string)str, (std::string)U8StringView(ii));
     }
     else {
+        decl.resolve_maps();
         return std::move(decl);
     }
 }
@@ -640,6 +591,50 @@ void SDNValue::pretty_print(SBuf& buf, int32_t indent, int32_t initial_indent) c
 {
     SDNValuePrettyPrintingVisitor visitor(buf, indent, initial_indent > 0 ? initial_indent : indent);
     boost::apply_visitor(visitor, value_);
+}
+
+
+
+
+
+class ResolveMapsVisitor: public boost::static_visitor<>
+{
+protected:
+
+public:
+    ResolveMapsVisitor()
+    {}
+
+    void operator()(long i) const {}
+    void operator()(double i) const {}
+    void operator()(const TypedStringValue& str) const {}
+    void operator()(const NameToken& token) const {}
+
+    void operator()(TypedSDNArray& array) const
+    {
+        for (auto& element: array.array()) {
+            boost::apply_visitor(*this, element.value());
+        }
+    }
+
+    void operator()(TypedSDNMap& map) const
+    {
+        map.build_index();
+    }
+};
+
+void TypedSDNMap::build_index()
+{
+    map_.clear();
+    for (auto& entry: entries_)
+    {
+        map_[entry.key()] = &entry.value();
+        entry.value().resolve_maps();
+    }
+}
+
+void SDNValue::resolve_maps() {
+    boost::apply_visitor(ResolveMapsVisitor(), this->value_);
 }
 
 }}

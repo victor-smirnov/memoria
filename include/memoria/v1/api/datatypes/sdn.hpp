@@ -47,6 +47,7 @@ public:
     }
 
     const SDNValue & value() const;
+    SDNValue& value();
 };
 
 class TypedSDNMap {
@@ -63,6 +64,8 @@ public:
 
     const std::vector<SDNEntry>& entries() const {return entries_;}
     const boost::optional<DataTypeDeclaration>& type() const {return type_;}
+
+    void build_index();
 };
 
 class SDNValue {
@@ -97,9 +100,15 @@ public:
     }
 
     void pretty_print(SBuf& buf, int32_t indent = 4, int32_t initial_indent = -1) const;
+
+    void resolve_maps();
 };
 
 inline const SDNValue & SDNEntry::value() const {
+    return value_[0];
+}
+
+inline SDNValue & SDNEntry::value() {
     return value_[0];
 }
 
