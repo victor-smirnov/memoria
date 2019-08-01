@@ -119,9 +119,54 @@ public:
     }
 };
 
-using DataTypeCtrArg = typename boost::make_recursive_variant<
-    TypedStringValue, int64_t, double, NameToken, std::vector<boost::recursive_variant_>
->::type;
+template <typename ArgType>
+class DataTypeArgMapEntry {
+    U8String key_;
+    ArgType value_;
+public:
+    friend struct boost::fusion::extension::access;
+
+    const U8String& key() const {return key_;}
+    const ArgType& value() const {return value_;}
+
+    const U8String& key() {return key_;}
+    const ArgType& value() {return value_;}
+};
+
+template <typename ArgType>
+class DataTypeArgMap {
+    std::vector<DataTypeArgMapEntry<ArgType>> entries_;
+    std::unordered_map<U8String, ArgType*> map_;
+
+public:
+    friend struct boost::fusion::extension::access;
+
+    std::vector<DataTypeArgMapEntry<ArgType>>& entries() {return entries_;}
+    const std::vector<DataTypeArgMapEntry<ArgType>>& entries() const {return entries_;}
+    const std::unordered_map<U8String, ArgType*>& map() const {return map_;}
+
+    void build_map()
+    {
+//        map_.clear();
+//        for (auto& entry: entries_) {
+
+//        }
+    }
+};
+
+
+class DataTypeCtrArg {
+    using ArgType = boost::variant<
+        TypedStringValue, int64_t, double, NameToken, std::vector<DataTypeCtrArg>, DataTypeArgMap<DataTypeCtrArg>
+    >;
+
+    ArgType value_;
+public:
+    friend struct boost::fusion::extension::access;
+
+    ArgType& value() {return value_;}
+    const ArgType& value() const {return value_;}
+};
 
 using DataTypeCtrArgs = boost::optional<std::vector<DataTypeCtrArg>>;
 

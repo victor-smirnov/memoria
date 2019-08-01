@@ -50,6 +50,7 @@ public:
     SDNValue& value();
 };
 
+
 class TypedSDNMap {
     std::vector<SDNEntry> entries_;
     std::unordered_map<U8String, SDNValue*> map_;
@@ -68,8 +69,55 @@ public:
     void build_index();
 };
 
+
+class SDNTypeDictionaryEntry {
+    U8String type_id_;
+    DataTypeDeclaration type_;
+public:
+    friend struct boost::fusion::extension::access;
+
+    const U8String & type_id() const {
+        return type_id_;
+    }
+
+    const DataTypeDeclaration& type() const {return type_;}
+    DataTypeDeclaration& type() {return type_;}
+};
+
+
+class SDNTypeDictionary
+{
+    std::vector<SDNTypeDictionaryEntry> entries_;
+    std::unordered_map<U8String, DataTypeDeclaration*> map_;
+
+public:
+    friend struct boost::fusion::extension::access;
+
+    const std::unordered_map<U8String, DataTypeDeclaration*>& map() const {return map_;}
+
+    std::vector<SDNTypeDictionaryEntry>& entries() {return entries_;}
+    const std::vector<SDNTypeDictionaryEntry>& entries() const {return entries_;}
+
+    void build_index();
+    void pretty_print(SBuf& buf, int32_t indent, int32_t initial_indent) const;
+    void to_string(SBuf& buf) const;
+};
+
+
 class SDNValue {
-    boost::variant<TypedStringValue, int64_t, double, NameToken, TypedSDNArray, TypedSDNMap> value_;
+public:
+    using Value = boost::variant<
+        TypedStringValue,
+        int64_t,
+        double,
+        NameToken,
+        TypedSDNArray,
+        TypedSDNMap,
+        DataTypeDeclaration
+    >;
+
+private:
+    Value value_;
 public:
     friend struct boost::fusion::extension::access;
 
@@ -111,5 +159,34 @@ inline const SDNValue & SDNEntry::value() const {
 inline SDNValue & SDNEntry::value() {
     return value_[0];
 }
+
+class SDNDocument {
+    SDNValue value_;
+    boost::optional<SDNTypeDictionary> type_dictionary_;
+public:
+    friend struct boost::fusion::extension::access;
+
+    static SDNDocument parse(U8StringView text);
+
+    U8String to_string() const
+    {
+        SBuf buf;
+        to_string(buf);
+        return U8String(std::move(buf.str()));
+    }
+
+    void to_string(SBuf& buf) const;
+
+    U8String pretty_print(int32_t indent = 4) const
+    {
+        SBuf buf;
+        pretty_print(buf, indent);
+        return U8String(std::move(buf.str()));
+    }
+
+    void pretty_print(SBuf& buf, int32_t indent = 4, int32_t initial_indent = -1) const;
+
+    void resolve_maps();
+};
 
 }}

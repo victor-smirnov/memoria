@@ -33,42 +33,16 @@ using namespace memoria::v1;
 
 int main()
 {
-    std::cout << SDNValue::parse("['boooo'@Decimal(5, 2, [1,2,3,4,5]), {'aaa': {'xxxx': ddd }}] @ Long").pretty_print(2) << std::endl;
+    StaticLibraryCtrs<>::init();
 
-
-
-//    StaticLibraryCtrs<>::init();
-
-    //std::cout << TypeSignature::parse("Real('aaa'@Decimal<Fast>(10,2), '\\\'', 55, 66, [fff, aaa, 'zz', 'ttt' @ Long])").to_standard_string() << std::endl;
-
-    //std::cout << TypeSignature::parse("Real('aaaa\\'bbbb'@Varchar(25))").to_standard_string() << std::endl;
-
-    //U8String txt0 = "Map<Integer, Tensor<Double>(12, 3, 7, 9)>";
-
-//    U8String txt0 = "Map<Decimal(21, 32), U8String>(1,2,34)";
-
-//    DataTypeDeclaration decl = TypeSignature::parse(txt0);
-
-//    std::cout << decl.to_typedecl_string() << std::endl;
-//    std::cout << make_datatype_signature<Map<Decimal, U8String>>().name() << std::endl;
-
-//    boost::any dec0 = DataTypeRegistry::local().create_object(decl);
-
-//    auto map0 = boost::any_cast<Map<Decimal, U8String>>(dec0);
-
-//    std::cout << map0.key().precision() << " :: " << map0.key().scale() << std::endl;
-/*
     using MapType = Map<U8String, U8String>;
 
     auto alloc = IMemoryStore<>::create();
 
     auto snp = alloc->master()->branch();
 
-    //auto ctr1 = create<MapType>(snp);
-
     auto ctr0 = snp->create_ctr(MapType());
 
-    //auto bbb = snp->create_ctr(TypeSignature::parse("Map<Real, U8String>"));
 
     UUID ctr_id = ctr0->name();
 
@@ -98,26 +72,5 @@ int main()
         ii2->next();
     }
 
-    std::cout << make_datatype_signature<TimeWithTimeZone>().name() << std::endl;
-
-    std::string text = "Multimap1<Dynamic BigDecimal, BigInt>";
-    TypeSignature ts(text);
-
-    std::string text2 = "BooType(aaa, 'bbb', 1234, 5.6789, [1, 2, 3, 4, 5, 'boo', foo, _])";
-    std::cout << TypeSignature::parse(text2).to_standard_string() << std::endl;
-
-    DataTypeRegistryStore::global().register_creator_fn<
-        Multimap1<Dynamic<BigDecimal>, BigInt>,
-        TL<>
-    >();
-
-    boost::any obj = DataTypeRegistry::local().create_object(ts.parse());
-
-    std::cout << demangle(obj.type().name()) << std::endl;
-
-    boost::any_cast<Multimap1<Dynamic<BigDecimal>, BigInt>>(obj);
-
-    //std::cout << "0Arg: " << objt.key().precision() << " " << objt.key().scale() << std::endl;
-*/
-  return 0;
+    return 0;
 }

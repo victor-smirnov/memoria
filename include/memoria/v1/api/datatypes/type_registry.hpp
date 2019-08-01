@@ -196,7 +196,7 @@ namespace _ {
         {
             if (Idx < args.size())
             {
-                int32_t arg_idx = args[Idx].which();
+                int32_t arg_idx = args[Idx].value().which();
                 int32_t which_idx = DTCtrArgTraits<std::decay_t<ArgType>>::which;
 
                 if (which_idx == arg_idx) {
@@ -250,7 +250,7 @@ namespace _ {
             auto& vec = args.get();
             const DataTypeCtrArg& arg_decl = vec[Idx];
 
-            std::get<Idx>(tpl) = boost::get<std::decay_t<ArgType>>(arg_decl);
+            std::get<Idx>(tpl) = boost::get<std::decay_t<ArgType>>(arg_decl.value());
 
             FillDTCtrArgsList<Idx + 1, Max>::process(args, tpl);
         }

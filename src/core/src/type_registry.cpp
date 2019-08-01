@@ -104,5 +104,5 @@ DataTypeRegistryStore::Initializer<Multimap<int64_t, uint8_t>, TL<>> llb_multima
 DataTypeRegistryStore::Initializer<Map<UUID, uint8_t>, TL<>> uub_multimap;
 
 DataTypeRegistryStore::Initializer<Set<FixedArray<16>>, TL<>> fixed_16_set;
-
+/**/
 }}

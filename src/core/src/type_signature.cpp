@@ -14,12 +14,16 @@
 
 //#define BOOST_SPIRIT_DEBUG
 
+#define BOOST_SPIRIT_UNICODE
+
 #ifndef MMA1_NO_REACTOR
 #   include <memoria/v1/reactor/reactor.hpp>
 #endif
 
 #include <memoria/v1/api/datatypes/type_signature.hpp>
 #include <memoria/v1/api/datatypes/sdn.hpp>
+
+#include <memoria/v1/core/iovector/io_buffer_base.hpp>
 
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
@@ -35,6 +39,7 @@
 
 #include <boost/optional/optional_io.hpp>
 
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -46,8 +51,13 @@ namespace v1 {
 namespace qi    = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace bp    = boost::phoenix;
+namespace bs    = boost::spirit;
 
 }}
+
+BOOST_FUSION_ADAPT_STRUCT(memoria::v1::DataTypeCtrArg, value_);
+BOOST_FUSION_ADAPT_STRUCT(memoria::v1::DataTypeArgMapEntry<memoria::v1::DataTypeCtrArg>, key_, value_);
+BOOST_FUSION_ADAPT_STRUCT(memoria::v1::DataTypeArgMap<memoria::v1::DataTypeCtrArg>, entries_);
 
 BOOST_FUSION_ADAPT_STRUCT(memoria::v1::DataTypeDeclaration, name_tokens_, parameters_, constructor_args_);
 BOOST_FUSION_ADAPT_STRUCT(memoria::v1::TypedStringValue, text_, type_);
@@ -57,48 +67,72 @@ BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNEntry, key_, value_);
 BOOST_FUSION_ADAPT_STRUCT(memoria::v1::TypedSDNArray, array_, type_);
 BOOST_FUSION_ADAPT_STRUCT(memoria::v1::TypedSDNMap, entries_, type_);
 
+BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNTypeDictionaryEntry, type_id_, type_);
+BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNTypeDictionary, entries_);
+BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNDocument, type_dictionary_, value_);
+
+
+namespace absl {
+
+std::ostream& operator<<(std::ostream& out, const ::absl::string_view& str)
+{
+    return out.write(str.begin(), str.size());
+}
+
+std::stringstream& operator<<(std::stringstream& out, const ::absl::string_view& str)
+{
+    out.write(str.begin(), str.size());
+
+    return out;
+}
+
+}
 
 namespace memoria {
 namespace v1 {
 
+std::ostream& operator<<(std::ostream& out, const boost::recursive_wrapper<memoria::v1::DataTypeDeclaration>& decl)
+{
+    return out;
+}
+
 template <typename Iterator>
-struct TypeSignatureParser : qi::grammar<Iterator, DataTypeDeclaration(), qi::space_type>
+struct TypeSignatureParser : qi::grammar<Iterator, DataTypeDeclaration(), qi::standard::space_type>
 {
     TypeSignatureParser() : TypeSignatureParser::base_type(type_declaration)
     {
         using qi::long_;
         using qi::lit;
-//        using qi::double_;
         using qi::lexeme;
-        using ascii::char_;
-        using qi::eps;
+        using qi::standard::char_;
         using qi::_1;
         using qi::_val;
-        using qi::on_error;
-        using qi::fail;
-        using namespace qi::labels;
 
         using bp::construct;
         using bp::val;
 
         identifier    = lexeme[(qi::alpha | char_('_'))[_val += _1] >> *(qi::alnum | char_('_'))[_val += _1]];
 
-        quoted_string %= lexeme['\'' >> *(char_ - '\'' - "\\\'" | '\\' >> char_('\'')) >> '\''];
+        quoted_string = lexeme['\'' >> *(char_ - '\'' - "\\\'" | '\\' >> char_('\'')) >> '\''];
 
         type_name     = +identifier;
 
-        typed_string %= quoted_string >> -('@' >> type_declaration);
+        typed_string = quoted_string >> -('@' >> type_declaration);
 
-        constructor_arg %= identifier | strict_double | long_ | typed_string  | array; //
+        arg_map_entry = (quoted_string | identifier) >> ':' >> constructor_arg;
 
-        array %= '[' >> (constructor_arg % ',') >> ']' | lit('[') >> lit(']');
+        arg_map = '{' >> (arg_map_entry % ',') >> '}' | lit('{') >> '}';
 
-        constructor_args %= '(' >> (constructor_arg % ',') >> ')' | lit('(') >> lit(')');
+        constructor_arg = identifier | strict_double | long_ | typed_string  | array | arg_map;
 
-        type_parameters %= lit('<') >> lit('>') |
+        array = '[' >> (constructor_arg % ',') >> ']' | lit('[') >> lit(']');
+
+        constructor_args = '(' >> (constructor_arg % ',') >> ')' | lit('(') >> lit(')');
+
+        type_parameters = lit('<') >> lit('>') |
                 '<' >> type_declaration % ','  >> '>';
 
-        type_declaration %=
+        type_declaration =
             type_name
             >> -type_parameters
             >> -constructor_args
@@ -113,6 +147,8 @@ struct TypeSignatureParser : qi::grammar<Iterator, DataTypeDeclaration(), qi::sp
         BOOST_SPIRIT_DEBUG_NODE(constructor_args);
         BOOST_SPIRIT_DEBUG_NODE(type_parameters);
         BOOST_SPIRIT_DEBUG_NODE(type_declaration);
+        BOOST_SPIRIT_DEBUG_NODE(arg_map_entry);
+        BOOST_SPIRIT_DEBUG_NODE(arg_map);
     }
 
     qi::real_parser<double, qi::strict_real_policies<double>> strict_double;
@@ -126,35 +162,60 @@ struct TypeSignatureParser : qi::grammar<Iterator, DataTypeDeclaration(), qi::sp
     qi::rule<Iterator, DataTypeCtrArgs(), qi::space_type> constructor_args;
     qi::rule<Iterator, DataTypeParams(), qi::space_type> type_parameters;
 
+    qi::rule<Iterator, DataTypeArgMapEntry<DataTypeCtrArg>(), qi::space_type> arg_map_entry;
+    qi::rule<Iterator, DataTypeArgMap<DataTypeCtrArg>(), qi::space_type> arg_map;
+
+
     qi::rule<Iterator, DataTypeDeclaration(), qi::space_type> type_declaration;
 };
 
 
 template <typename Iterator>
-struct SDNParser : qi::grammar<Iterator, SDNValue(), qi::space_type>
+struct SDNParser : qi::grammar<Iterator, SDNDocument(), qi::standard::space_type>
 {
     TypeSignatureParser<Iterator> ts_parser_;
 
-    SDNParser() : SDNParser::base_type(sdn_value)
+    SDNParser() : SDNParser::base_type(sdn_document)
     {
         using qi::long_;
         using qi::lit;
 
-        auto& identifier    = ts_parser_.identifier;
-        auto& strict_double = ts_parser_.strict_double;
-        auto& typed_string  = ts_parser_.typed_string;
-        auto& type_declaration = ts_parser_.type_declaration;
+        auto& identifier        = ts_parser_.identifier;
+        auto& strict_double     = ts_parser_.strict_double;
+        auto& typed_string      = ts_parser_.typed_string;
+        auto& type_declaration  = ts_parser_.type_declaration;
+        auto& quoted_string     = ts_parser_.quoted_string;
 
         sdn_value = identifier | strict_double | long_
                     | typed_string
-                    | sdn_array | sdn_map;
+                    | sdn_array | sdn_map
+                    | '@' >> type_declaration;
+
+        sdn_document = -sdn_type_dictionary >> sdn_value;
 
         sdn_array_data  = '[' >> (sdn_value % ',') >> ']' | lit('[') >> ']';
         sdn_array       = sdn_array_data >>  -('@' >> type_declaration);
 
-        sdn_map_entry   = ts_parser_.quoted_string >> ':' >> sdn_value;
+        sdn_map_entry   = (quoted_string | identifier) >> ':' >> sdn_value;
         sdn_map_entries = '{' >> (sdn_map_entry % ',') >> '}' | lit('{') >> '}';
         sdn_map         = sdn_map_entries >> -('@' >> type_declaration);
+
+        sdn_dictionary_entry   = identifier >> ':' >> type_declaration;
+        sdn_dictionary_entries = "#{" >> (sdn_dictionary_entry % ',') >> '}' | lit("#{") >> '}';
+        sdn_type_dictionary    = sdn_dictionary_entries;
+
+
+
+        BOOST_SPIRIT_DEBUG_NODE(sdn_array_data);
+        BOOST_SPIRIT_DEBUG_NODE(sdn_array);
+        BOOST_SPIRIT_DEBUG_NODE(sdn_map_entry);
+        BOOST_SPIRIT_DEBUG_NODE(sdn_map_entries);
+        BOOST_SPIRIT_DEBUG_NODE(sdn_map);
+        BOOST_SPIRIT_DEBUG_NODE(sdn_value);
+        BOOST_SPIRIT_DEBUG_NODE(sdn_dictionary_entry);
+        BOOST_SPIRIT_DEBUG_NODE(sdn_dictionary_entries);
+        BOOST_SPIRIT_DEBUG_NODE(sdn_type_dictionary);
+        BOOST_SPIRIT_DEBUG_NODE(sdn_document);
     }
 
     qi::rule<Iterator, std::vector<SDNValue>(), qi::space_type> sdn_array_data;
@@ -165,6 +226,12 @@ struct SDNParser : qi::grammar<Iterator, SDNValue(), qi::space_type>
     qi::rule<Iterator, TypedSDNMap(), qi::space_type> sdn_map;
 
     qi::rule<Iterator, SDNValue(), qi::space_type> sdn_value;
+
+    qi::rule<Iterator, SDNTypeDictionaryEntry(), qi::space_type> sdn_dictionary_entry;
+    qi::rule<Iterator, std::vector<SDNTypeDictionaryEntry>(), qi::space_type> sdn_dictionary_entries;
+    qi::rule<Iterator, SDNTypeDictionary(), qi::space_type> sdn_type_dictionary;
+
+    qi::rule<Iterator, SDNDocument(), qi::space_type> sdn_document;
 };
 
 
@@ -206,7 +273,7 @@ DataTypeDeclaration TypeSignature::parse(U8StringView str)
     DataTypeDeclaration decl;
 
     auto ii = str.begin();
-    bool result = qi::phrase_parse(ii, str.end(), grammar, qi::space_type(), decl);
+    bool result = qi::phrase_parse(ii, str.end(), grammar, qi::standard::space_type(), decl);
 
     if ((!result) || ii != str.end())
     {
@@ -217,14 +284,14 @@ DataTypeDeclaration TypeSignature::parse(U8StringView str)
     }
 }
 
-SDNValue SDNValue::parse(U8StringView str)
+SDNDocument SDNDocument::parse(U8StringView str)
 {
     static thread_local SDNParser<U8StringView::const_iterator> const grammar;
 
-    SDNValue decl;
+    SDNDocument decl;
 
     auto ii = str.begin();
-    bool result = qi::phrase_parse(ii, str.end(), grammar, qi::space_type(), decl);
+    bool result = qi::phrase_parse(ii, str.end(), grammar, qi::standard::space_type(), decl);
 
     if ((!result) || ii != str.end())
     {
@@ -237,7 +304,48 @@ SDNValue SDNValue::parse(U8StringView str)
 }
 
 
-class ArgPrintingVisitor: public boost::static_visitor<>
+class VisitorBase: public boost::static_visitor<> {
+protected:
+    mutable io::DefaultIOBuffer<char> escaping_{64};
+
+
+    bool has_quotes(U8StringView str) const
+    {
+        for (auto& ch: str) {
+            if (ch == '\'') return true;
+        }
+
+        return false;
+    }
+
+public:
+    U8StringView escape_quotes(const U8String& str) const
+    {
+        if (!has_quotes(str.to_std_string())) {
+            return str;
+        }
+        else {
+            escaping_.clear();
+
+            for (auto& ch: str.to_std_string())
+            {
+                if (MMA1_UNLIKELY(ch == '\''))
+                {
+                    escaping_.append_value('\\');
+                }
+
+                escaping_.append_value(ch);
+            }
+
+            escaping_.append_value(0);
+
+            return U8StringView(escaping_.tail_ptr(), escaping_.size() - 1);
+        }
+    }
+};
+
+
+class ArgPrintingVisitor: public VisitorBase
 {
 protected:
     SBuf& buf_;
@@ -258,7 +366,7 @@ public:
 
     void operator()(const TypedStringValue& str) const
     {
-        buf_ << "'" << str << "'";
+        buf_ << "'" << escape_quotes(str) << "'";
         if (str.has_type())
         {
             buf_ << "@";
@@ -286,10 +394,33 @@ public:
                 first = false;
             }
 
-            boost::apply_visitor(*this, vv);
+            boost::apply_visitor(*this, vv.value());
         }
 
         buf_ << "]";
+    }
+
+    void operator()(const DataTypeArgMap<DataTypeCtrArg>& map) const
+    {
+        buf_ << "{";
+
+        bool first = true;
+
+        for (auto& entry: map.entries())
+        {
+            if (!first) {
+                buf_ << ", ";
+            }
+            else {
+                first = false;
+            }
+
+            buf_ << escape_quotes(entry.key()) << ": ";
+
+            boost::apply_visitor(*this, entry.value().value());
+        }
+
+        buf_ << "}";
     }
 };
 
@@ -343,7 +474,7 @@ void DataTypeDeclaration::to_standard_string(SBuf& buf) const
                 first_arg = false;
             }
 
-            boost::apply_visitor(arg_visitor, arg);
+            boost::apply_visitor(arg_visitor, arg.value());
         }
 
         buf << ")";
@@ -416,6 +547,12 @@ struct SDNValuePrintingVisitor: ArgPrintingVisitor
     SDNValuePrintingVisitor(SBuf& buf): ArgPrintingVisitor(buf)
     {}
 
+    void operator()(const DataTypeDeclaration& decl)
+    {
+        buf_ << '@';
+        decl.to_standard_string(buf_);
+    }
+
     void operator()(const TypedSDNArray& array)
     {
         buf_ << "[";
@@ -458,7 +595,7 @@ struct SDNValuePrintingVisitor: ArgPrintingVisitor
                 first = false;
             }
 
-            buf_ << '\'' << vv.key() << '\'' << ": ";
+            buf_ << '\'' << escape_quotes(vv.key()) << '\'' << ": ";
 
             vv.value().to_string(buf_);
         }
@@ -499,6 +636,12 @@ struct SDNValuePrettyPrintingVisitor: ArgPrintingVisitor
         indent_(indent),
         current_indent_(current_indent)
     {}
+
+    void operator()(const DataTypeDeclaration& decl)
+    {
+        buf_ << '@';
+        decl.to_standard_string(buf_);
+    }
 
     void operator()(const TypedSDNArray& array)
     {
@@ -559,7 +702,7 @@ struct SDNValuePrettyPrintingVisitor: ArgPrintingVisitor
 
             indent();
 
-            buf_ << '\'' << vv.key() << '\'' << ": ";
+            buf_ << '\'' << escape_quotes(vv.key()) << '\'' << ": ";
 
             vv.value().pretty_print(buf_, indent_, current_indent_ + indent_);
         }
@@ -610,6 +753,8 @@ public:
     void operator()(const TypedStringValue& str) const {}
     void operator()(const NameToken& token) const {}
 
+    void operator()(const DataTypeDeclaration& decl) const {}
+
     void operator()(TypedSDNArray& array) const
     {
         for (auto& element: array.array()) {
@@ -635,6 +780,73 @@ void TypedSDNMap::build_index()
 
 void SDNValue::resolve_maps() {
     boost::apply_visitor(ResolveMapsVisitor(), this->value_);
+}
+
+void SDNDocument::resolve_maps()
+{
+    value_.resolve_maps();
+}
+
+void SDNTypeDictionary::pretty_print(SBuf& buf, int32_t indent, int32_t initial_indent) const
+{
+    if (entries_.size() > 0)
+    {
+        for (int c = 0; c < initial_indent; c++) buf << ' ';
+        buf << "#{\n";
+
+        for (auto& entry: entries_)
+        {
+            for (int c = 0; c < initial_indent + indent; c++) buf << ' ';
+
+            buf << entry.type_id() << ": ";
+            entry.type().to_standard_string(buf);
+            buf << ",\n";
+        }
+
+        for (int c = 0; c < initial_indent; c++) buf << ' ';
+        buf << "}";
+    }
+    else {
+        for (int c = 0; c < initial_indent; c++) buf << ' ';
+        buf << "#{}";
+    }
+}
+
+
+void SDNTypeDictionary::to_string(SBuf& buf) const
+{
+    buf << "#{";
+
+    for (auto& entry: entries_)
+    {
+        buf << entry.type_id() << ": ";
+        entry.type().to_standard_string(buf);
+        buf << ",";
+    }
+
+    buf << "}";
+}
+
+void SDNDocument::pretty_print(SBuf &buf, int32_t indent, int32_t initial_indent) const
+{
+    if (type_dictionary_.has_value())
+    {
+        type_dictionary_.get().pretty_print(buf, indent, initial_indent);
+        buf << "\n";
+    }
+
+    value_.pretty_print(buf, indent, initial_indent);
+}
+
+
+void SDNDocument::to_string(SBuf &buf) const
+{
+    if (type_dictionary_.has_value())
+    {
+        type_dictionary_.get().to_string(buf);
+    }
+
+    value_.to_string(buf);
 }
 
 }}
