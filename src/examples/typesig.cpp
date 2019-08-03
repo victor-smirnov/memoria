@@ -33,6 +33,8 @@ using namespace memoria::v1;
 
 int main()
 {
+    std::cout << TypeSignature::parse(R"(Root("boo"))").to_standard_string() << std::endl;
+
     StaticLibraryCtrs<>::init();
 
     using MapType = Map<U8String, U8String>;

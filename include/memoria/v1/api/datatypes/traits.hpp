@@ -51,7 +51,9 @@ MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(int64_t, Int64);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(uint64_t, UInt64);
 
 
-template <typename T> struct DataTypeTraits;
+template <typename T> struct DataTypeTraits {
+    static constexpr bool isDataType = false;
+};
 
 template <typename T, typename DataType>
 struct ValueDataTypeTraits
@@ -62,6 +64,7 @@ struct ValueDataTypeTraits
 
     using Parameters = TL<>;
 
+    static constexpr bool isDataType          = true;
     static constexpr size_t MemorySize        = sizeof(T);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
@@ -136,6 +139,7 @@ template <>
 struct DataTypeTraits<U8String> {
     using Parameters = TL<>;
 
+    static constexpr bool isDataType          = true;
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
@@ -159,6 +163,7 @@ struct DataTypeTraits<Decimal>
 
     using Parameters = TL<>;
 
+    static constexpr bool isDataType          = true;
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = true;
@@ -192,6 +197,7 @@ struct DataTypeTraits<BigDecimal>
 
     using Parameters = TL<>;
 
+    static constexpr bool isDataType          = true;
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = true;
@@ -225,6 +231,7 @@ struct DataTypeTraits<Varchar>
 
     using Parameters = TL<>;
 
+    static constexpr bool isDataType          = true;
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
@@ -243,6 +250,7 @@ struct DataTypeTraits<Varchar>
 template <typename T>
 struct DataTypeTraits<Dynamic<T>>: DataTypeTraits<T>
 {
+    static constexpr bool isDataType          = true;
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
 
@@ -270,6 +278,7 @@ struct DataTypeTraits<Multimap1<Key, Value>>
 
     using Parameters = TL<Key, Value>;
 
+    static constexpr bool isDataType          = true;
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = true;
     static constexpr bool HasTypeConstructors = false;

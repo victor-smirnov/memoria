@@ -113,7 +113,8 @@ struct TypeSignatureParser : qi::grammar<Iterator, DataTypeDeclaration(), qi::st
 
         identifier    = lexeme[(qi::alpha | char_('_'))[_val += _1] >> *(qi::alnum | char_('_'))[_val += _1]];
 
-        quoted_string = lexeme['\'' >> *(char_ - '\'' - "\\\'" | '\\' >> char_('\'')) >> '\''];
+        quoted_string = lexeme['\'' >> *(char_ - '\'' - "\\\'" | '\\' >> char_('\'')) >> '\'']
+                        | lexeme['"' >> *(char_ - '"' - "\\\"" | '\\' >> char_('"')) >> '"'] ;
 
         type_name     = +identifier;
 
