@@ -115,6 +115,10 @@ public:
         return content_ > other;
     }
 
+    bool operator==(const absl::string_view& other) const {
+        return content_ == other;
+    }
+
     bool operator<(const CharT* other) const {
         return content_ < other;
     }

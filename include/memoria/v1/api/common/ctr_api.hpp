@@ -32,12 +32,23 @@ namespace memoria {
 namespace v1 {
 
 
+
+
 template <typename CtrName, typename Profile = DefaultProfile<>>
 struct ICtrApi: CtrReferenceable
 {
 
 };
 
+template <typename DataType_, typename IOSustreamTag_, template <typename DataType> class EncodingTF_ = ValueCodec>
+struct ICtrApiSubstream
+{
+    using DataType      = DataType_;
+    using IOSustreamTag = IOSustreamTag_;
+
+    template <typename DataType0>
+    using EncodingTF = EncodingTF_<DataType0>;
+};
 
 template <typename CtrName, typename Profile, typename DefaultIOSubstreamsTL>
 struct CtrApiIOSubstreamsProvider: TypeDef<DefaultIOSubstreamsTL> {};
@@ -244,26 +255,31 @@ public:
 template <typename CtrName, typename Profile>
 struct CtrMetadataInitializer {
     CtrMetadataInitializer() {
-        CtrApi<CtrName, Profile>::init_profile_metadata();
+        ICtrApi<CtrName, Profile>::init_profile_metadata();
     }
 };
+
+#define MMA1_DECLARE_ICTRAPI() \
+    static void init_profile_metadata()
+
+
 
 
 
 
 
 #define MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, ...)\
-template class IterApiBase<CtrName, Profile>;           \
-template class IterApiBTSSBase<CtrName, Profile>;       \
-template class CtrApiBase<CtrName, Profile>;            \
-template class CtrApiBTSSBase<CtrName, Profile>;        \
-template class CtrApi<CtrName, Profile>;                \
-template class IterApi<CtrName, Profile>;               \
+template struct ICtrApi<CtrName, Profile>;               \
                                                         \
 namespace {                                             \
-CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
+    CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
 }
 
+
+//template class IterApiBase<CtrName, Profile>;           \
+//template class IterApiBTSSBase<CtrName, Profile>;       \
+//template class CtrApiBase<CtrName, Profile>;            \
+//template class CtrApiBTSSBase<CtrName, Profile>;        \
 
 
 #define MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile, ...)\
@@ -275,7 +291,7 @@ template class CtrApi<CtrName, Profile>;                \
 template class IterApi<CtrName, Profile>;               \
                                                         \
 namespace {                                             \
-CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
+    CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
 }
 
 

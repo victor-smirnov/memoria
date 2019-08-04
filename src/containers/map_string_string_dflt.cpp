@@ -23,7 +23,8 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-using CtrName = Map<U8String, U8String>;
+using CtrName = Map<Varchar, Varchar>;
+
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_s_s)
 

@@ -44,8 +44,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     using typename Base::BranchNodeEntry;
     using typename Base::BlockUpdateMgr;
 
-    using Key = typename Types::Key;
+    using Key   = typename Types::Key;
     using Value = typename Types::Value;
+
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using ValueView = typename DataTypeTraits<Value>::ViewType;
 
 
     template <typename LeafPath>
@@ -56,11 +59,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         return self().size();
     }
 
-    void assign_key(Key key, Value value) {
+    void assign_key(KeyView key, ValueView value) {
         self().assign(key, value);
     }
 
-    void remove_key(Key key) {
+    void remove_key(KeyView key) {
         self().remove(key);
     }
 

@@ -18,9 +18,14 @@
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
 
 #include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/api/datatypes/encoding_traits.hpp>
+#include <memoria/v1/api/datatypes/io_vector_traits.hpp>
+
 #include <memoria/v1/core/types/typehash.hpp>
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
+
+
 
 #include <memory>
 #include <tuple>
@@ -46,90 +51,46 @@ public:
 template <typename Key, typename Value>
 struct MapIterator {
 
+    using KeyV   = typename DataTypeTraits<Key>::ValueType;
+    using ValueV = typename DataTypeTraits<Value>::ValueType;
+
     virtual ~MapIterator() noexcept {}
 
-    virtual Key key() const = 0;
-    virtual Value value() const = 0;
+    virtual KeyV key() const = 0;
+    virtual ValueV value() const = 0;
     virtual bool is_end() const = 0;
     virtual void next() = 0;
 
 
 };
 
-template <typename Key_, typename Value_, typename Profile>
-struct ICtrApi<Map<Key_, Value_>, Profile>: public CtrReferenceable {
+template <typename Key, typename Value, typename Profile>
+struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable {
 
-    using Key = Key_;
-    using Value = Value_;
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using ValueView = typename DataTypeTraits<Value>::ViewType;
 
     using DefaultIOSubstreams = TL<
         TL<
-            //io::IOSubstreamTF<io::IOColumnwiseFixedSizeArraySubstream>
+            ICtrApiSubstream<Key, io::ColumnWise>,
+            ICtrApiSubstream<Value, io::RowWise>
         >
     >;
 
-    using IOSubstreamsTL = typename CtrApiIOSubstreamsProvider<Map<Key_, Value_>, Profile, DefaultIOSubstreams>::Type;
+    using IOSubstreamsTL = typename CtrApiIOSubstreamsProvider<
+        Map<Key, Value>, Profile, DefaultIOSubstreams
+    >::Type;
 
     virtual int64_t map_size() const = 0;
-    virtual void assign_key(Key key, Value value) = 0;
-    virtual void remove_key(Key key) = 0;
+    virtual void assign_key(KeyView key, ValueView value) = 0;
+    virtual void remove_key(KeyView key) = 0;
 
-    virtual CtrSharedPtr<MapIterator<Key_, Value_>> iterator() = 0;
+    virtual CtrSharedPtr<MapIterator<Key, Value>> iterator() = 0;
+
+    MMA1_DECLARE_ICTRAPI();
 };
 
 
-    
-template <typename Key_, typename Value_, typename Profile> 
-class CtrApi<Map<Key_, Value_>, Profile>: public CtrApiBTSSBase<Map<Key_, Value_>, Profile> {
-public:
-    using Key = Key_;
-    using Value = Value_;
-    using DataValue = std::tuple<Key, Value>;
-private:
-    using MapT = Map<Key, Value>;
-    
-    using Base = CtrApiBTSSBase<Map<Key, Value>, Profile>;
-public:    
-    using typename Base::CtrID;
-    using typename Base::AllocatorT;
-    using typename Base::CtrT;
-    using typename Base::CtrPtr;
-
-    using typename Base::Iterator;
-    
-    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
-    
-    Iterator find(const Key& key);
-    bool contains(const Key& key);
-    bool remove(const Key& key);
-    
-    Iterator assign(const Key& key, const Value& value);
-};
-
-
-template <typename Key, typename Value, typename Profile> 
-class IterApi<Map<Key, Value>, Profile>: public IterApiBTSSBase<Map<Key, Value>, Profile> {
-    
-    using Base = IterApiBTSSBase<Map<Key, Value>, Profile>;
-    
-    using typename Base::IterT;
-    using typename Base::IterPtr;
-    
-public:
-    using Base::insert;
-
-    using DataValue = std::tuple<Key, Value>;
-    
-    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
-    
-    Key key() const;
-    Value value() const;
-    
-    void insert(const Key& key, const Value& value);
-    void assign(const Value& value);
-    
-    bool is_found(const Key& key) const;
-};
 
 
 template <typename Key, typename Value>

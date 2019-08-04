@@ -36,6 +36,7 @@ struct BigInt    {};
 struct UBigInt   {};
 
 struct Varchar   {};
+struct Varbinary {};
 struct Real      {};
 struct Double    {};
 struct Timestamp {};
@@ -106,5 +107,11 @@ public:
     const Key& key() const {return key_;}
     const Value& value() const {return value_;}
 };
+
+template <>
+struct TypeHash<Varchar>: UInt64Value<9748271> {};
+
+template <>
+struct TypeHash<Varbinary>: UInt64Value<83248912347> {};
 
 }}

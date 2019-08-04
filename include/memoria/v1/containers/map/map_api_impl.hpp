@@ -43,18 +43,22 @@ namespace _ {
 
 template <typename Key, typename Value, typename IteratorPtr>
 class MapIteratorImpl: public MapIterator<Key, Value> {
+
+    using KeyV   = typename DataTypeTraits<Key>::ValueType;
+    using ValueV = typename DataTypeTraits<Value>::ValueType;
+
     IteratorPtr iter_;
 public:
     MapIteratorImpl(IteratorPtr iter):
         iter_(iter)
     {}
 
-    virtual Key key() const
+    virtual KeyV key() const
     {
         return iter_->key();
     }
 
-    virtual Value value() const
+    virtual ValueV value() const
     {
         using ValueTT = decltype(iter_->value());
         return _::MapValueHelper<ValueTT>::convert(iter_->value());

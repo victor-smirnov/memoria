@@ -26,96 +26,10 @@
 namespace memoria {
 namespace v1 {
 
-
-
-
 template <typename Key, typename Value, typename Profile>
-typename CtrApi<Map<Key, Value>, Profile>::Iterator CtrApi<Map<Key, Value>, Profile>::find(const Key& key) 
+void ICtrApi<Map<Key, Value>, Profile>::init_profile_metadata()
 {
-    return this->pimpl_->find(key);
+    SharedCtr<Map<Key, Value>, ProfileAllocatorType<Profile>, Profile>::init_profile_metadata();
 }
-
-template <typename Key, typename Value, typename Profile>
-bool CtrApi<Map<Key, Value>, Profile>::contains(const Key& key) 
-{
-    auto iter = this->pimpl_->find(key);
-    
-    if (!iter->isEnd()) {
-        return iter->key() == key;
-    }
-    
-    return false;
-}
-
-template <typename Key, typename Value, typename Profile>
-bool CtrApi<Map<Key, Value>, Profile>::remove(const Key& key) 
-{
-    return this->pimpl_->remove(key);
-}
-
-template <typename Key, typename Value, typename Profile>
-typename CtrApi<Map<Key, Value>, Profile>::Iterator CtrApi<Map<Key, Value>, Profile>::assign(const Key& key, const Value& value) 
-{
-    return this->pimpl_->assign(key, value);
-}
-
-
-
-
-
-
-
-template <typename Key, typename Value, typename Profile>
-Key IterApi<Map<Key, Value>, Profile>::key() const
-{
-    return this->pimpl_->key();
-}
-
-template <typename Key, typename Value, typename Profile>
-bool IterApi<Map<Key, Value>, Profile>::is_found(const Key& key) const
-{
-    return this->pimpl_->is_found(key);
-}
-
-
-namespace detail01 {
-    template <typename T>
-    struct ValueHelper {
-        template <typename TT>
-        static T convert(TT&& value) {
-            return value;
-        }
-    };
-    
-    template <typename T>
-    struct ValueHelper<StaticVector<T, 1>> {
-        template <typename TT>
-        static T convert(TT&& value) {
-            return value[0];
-        }
-    };
-} 
-
-
-template <typename Key, typename Value, typename Profile>
-Value IterApi<Map<Key, Value>, Profile>::value() const
-{
-    return detail01::ValueHelper<decltype(this->pimpl_->value())>::convert(this->pimpl_->value());
-}
-
-
-
-template <typename Key, typename Value, typename Profile>
-void IterApi<Map<Key, Value>, Profile>::insert(const Key& key, const Value& value)
-{
-    return this->pimpl_->insert(key, value);
-}
-
-template <typename Key, typename Value, typename Profile>
-void IterApi<Map<Key, Value>, Profile>::assign(const Value& value)
-{
-    return this->pimpl_->assign(value);
-}
-
 
 }}

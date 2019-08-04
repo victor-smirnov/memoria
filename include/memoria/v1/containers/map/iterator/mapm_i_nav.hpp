@@ -44,16 +44,22 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(map::ItrNavMaxName)
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
+    using KeyV   = typename DataTypeTraits<Key>::ValueType;
+    using ValueV = typename DataTypeTraits<Value>::ValueType;
+
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using ValueView = typename DataTypeTraits<Value>::ViewType;
+
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 public:
-    void insert(const Key& key, const Value& value)
+    void insert(const KeyView& key, const ValueView& value)
     {
         auto& self = this->self();
 
         self.ctr().insert_entry(
                 self,
-                map::KeyValueEntry<Key, Value, CtrSizeT>(key, value)
+                map::KeyValueEntry<KeyV, ValueV, CtrSizeT>(key, value)
         );
 
 
@@ -79,27 +85,27 @@ public:
     }
 
 
-    auto findFwGT(int32_t index, Key key)
+    auto findFwGT(int32_t index, KeyView key)
     {
         return self().template find_fw_gt<IntList<1>>(index, key);
     }
 
-    auto findFwGE(int32_t index, Key key)
+    auto findFwGE(int32_t index, KeyView key)
     {
         return self().template find_fw_ge<IntList<1>>(index, key);
     }
 
-    auto findBwGT(int32_t index, Key key)
+    auto findBwGT(int32_t index, KeyView key)
     {
         return self().template find_bw_gt<IntList<1>>(index, key);
     }
 
-    auto findBwGE(int32_t index, Key key)
+    auto findBwGE(int32_t index, KeyView key)
     {
         return self().template find_bw_ge<IntList<1>>(index, key);
     }
 
-    auto key() const -> Key
+    auto key() const
     {
         return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().local_pos(), 0));
     }
@@ -109,12 +115,12 @@ public:
 		return std::get<0>(self().ctr().template read_leaf_entry<IntList<2>>(self().leaf(), self().local_pos()));
     }
 
-    void assign(const Value& v)
+    void assign(const ValueView& v)
     {
-        self().ctr().template update_entry<IntList<2>>(self(), map::ValueBuffer<Value>(v));
+        self().ctr().template update_entry<IntList<2>>(self(), map::ValueBuffer<ValueV>(v));
     }
 
-    bool is_found(const Key& k) const
+    bool is_found(const KeyView& k) const
     {
         auto& self = this->self();
         return (!self.is_end()) && self.key() == k;
@@ -124,8 +130,8 @@ public:
     class EntryAdaptor {
         Iterator& current_;
 
-        Key key_;
-        Value value_;
+        KeyV key_;
+        ValueV value_;
 
     public:
         EntryAdaptor(Iterator& current): current_(current) {}

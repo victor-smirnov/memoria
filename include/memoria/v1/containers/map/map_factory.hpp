@@ -65,10 +65,13 @@ struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using Base = BTTypes<Profile, BTSingleStream>;
 
-    using Key   = Key_;
+    using Key = Key_;
     using Value = Value_;
 
-    using Entry = std::tuple<Key, Value>;
+    using KeyV   = typename DataTypeTraits<Key_>::ValueType;
+    using ValueV = typename DataTypeTraits<Value_>::ValueType;
+
+    using Entry = std::tuple<KeyV, ValueV>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
@@ -88,25 +91,29 @@ struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
 template <
     typename Profile,
-    typename Key,
-    typename Value,
+    typename Key_,
+    typename Value_,
     int32_t Special = 0
 >
-struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key, Value> {
+struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key_, Value_> {
+
+
+    using KeyV   = typename DataTypeTraits<Key_>::ValueType;
+    using ValueV = typename DataTypeTraits<Value_>::ValueType;
 
     static_assert(
-            IsExternalizable<Key>::Value ,
+            IsExternalizable<KeyV>::Value ,
             "Key type must have either ValueCodec or FieldFactory defined"
     );
 
     static_assert(
-            IsExternalizable<Value>::Value ,
+            IsExternalizable<ValueV>::Value ,
             "Value type must have either ValueCodec or FieldFactory defined"
     );
 
-    using LeafKeyStruct = typename map::MapKeyStructTF<Key, HasFieldFactory<Key>::Value>::Type;
+    using LeafKeyStruct = typename map::MapKeyStructTF<KeyV, HasFieldFactory<KeyV>::Value>::Type;
 
-    using LeafValueStruct = typename map::MapValueStructTF<Value, HasFieldFactory<Value>::Value>::Type;
+    using LeafValueStruct = typename map::MapValueStructTF<ValueV, HasFieldFactory<ValueV>::Value>::Type;
 
     using StreamDescriptors = TL<
             bt::StreamTF<

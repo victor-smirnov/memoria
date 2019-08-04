@@ -37,7 +37,7 @@ int main()
 
     StaticLibraryCtrs<>::init();
 
-    using MapType = Map<U8String, U8String>;
+    using MapType = Map<Varchar, Varchar>;
 
     auto alloc = IMemoryStore<>::create();
 

@@ -27,7 +27,7 @@ template class update_log::SnapshotIDIterator<IterApi<UpdateLog, Profile>, int64
 template class update_log::ContainerNameIterator<IterApi<UpdateLog, Profile>, int64_t>;
 template class update_log::CommandsDataIterator<IterApi<UpdateLog, Profile>, int64_t>;
 
-MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+//MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
     
 }}
 

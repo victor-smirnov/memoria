@@ -44,9 +44,9 @@ protected:
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    static const int32_t Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                = Types::Streams;
 
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
 
 MEMORIA_V1_CONTAINER_PART_END
 

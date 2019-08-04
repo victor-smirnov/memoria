@@ -45,9 +45,15 @@ protected:
     using Key = typename Types::Key;
     using Value = typename Types::Value;
 
+    using KeyV   = typename DataTypeTraits<Key>::ValueType;
+    using ValueV = typename DataTypeTraits<Value>::ValueType;
+
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using ValueView = typename DataTypeTraits<Value>::ViewType;
+
     static const int32_t Streams = Types::Streams;
 
-    using Element   = ValuePair<BranchNodeEntry, Value>;
+    using Element   = ValuePair<BranchNodeEntry, ValueV>;
     using MapEntry  = typename Types::Entry;
 
     template <typename LeafPath>
@@ -61,13 +67,13 @@ public:
     }
 
 
-    IteratorPtr find(const Key& k)
+    IteratorPtr find(const KeyView& k)
     {
         return self().template find_max_ge<IntList<0, 1>>(0, k);
     }
 
 
-    bool remove(const Key& k)
+    bool remove(const KeyView& k)
     {
         auto iter = find(k);
 
@@ -81,7 +87,7 @@ public:
         }
     }
 
-    IteratorPtr assign(const Key& key, const Value& value)
+    IteratorPtr assign(const KeyView& key, const ValueView& value)
     {
         auto iter = self().find(key);
 

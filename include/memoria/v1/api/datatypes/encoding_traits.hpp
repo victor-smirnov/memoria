@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,19 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/profiles/default/default.hpp>
+#pragma once
 
-#include <memoria/v1/containers/set/set_impl.hpp>
-
-#include <memoria/v1/core/tools/fixed_array.hpp>
+#include <memoria/v1/core/types.hpp>
 
 namespace memoria {
 namespace v1 {
 
-using Profile = DefaultProfile<>;    
-using CtrName = Set<FixedArray<16>>;
+template <typename DataType> struct DataEncodingTF;
 
-//MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
-    
 }}
-

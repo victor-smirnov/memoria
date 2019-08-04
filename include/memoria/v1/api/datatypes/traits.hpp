@@ -20,7 +20,8 @@
 #include <memoria/v1/core/strings/string_buffer.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
-
+#include <memoria/v1/api/datatypes/varbinaries.hpp>
+#include <memoria/v1/api/datatypes/varchars.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -55,19 +56,31 @@ template <typename T> struct DataTypeTraits {
     static constexpr bool isDataType = false;
 };
 
+template <typename T>
+using DTViewType = typename DataTypeTraits<T>::ViewType;
+
+template <typename T>
+using DTValueType = typename DataTypeTraits<T>::ValueType;
+
+template <typename T> struct DataTypeTraitsBase {
+    static constexpr bool isDataType = true;
+    static constexpr bool isFixedSize = false;
+};
+
+
 template <typename T, typename DataType>
-struct ValueDataTypeTraits
+struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 {
-    using CxxType   = T;
-    using InputView = T;
-    using Ptr       = T*;
+    using ViewType  = T;
+    using ConstViewType = T;
+    using ValueType = T;
 
     using Parameters = TL<>;
 
-    static constexpr bool isDataType          = true;
     static constexpr size_t MemorySize        = sizeof(T);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
+    static constexpr bool isFixedSize         = true;
 
     static void create_signature(SBuf& buf, DataType obj) {
         PrimitiveDataTypeName<DataType>::create_signature(buf, obj);
@@ -79,70 +92,75 @@ struct ValueDataTypeTraits
 };
 
 template <>
-struct DataTypeTraits<TinyInt>: ValueDataTypeTraits<int8_t, TinyInt> {};
+struct DataTypeTraits<TinyInt>: FixedSizeDataTypeTraits<int8_t, TinyInt> {};
 
 template <>
-struct DataTypeTraits<UTinyInt>: ValueDataTypeTraits<uint8_t, UTinyInt> {};
+struct DataTypeTraits<UTinyInt>: FixedSizeDataTypeTraits<uint8_t, UTinyInt> {};
 
 template <>
-struct DataTypeTraits<uint8_t>: ValueDataTypeTraits<uint8_t, uint8_t> {};
-
-
-template <>
-struct DataTypeTraits<SmallInt>: ValueDataTypeTraits<int16_t, SmallInt> {};
-
-template <>
-struct DataTypeTraits<USmallInt>: ValueDataTypeTraits<uint16_t, USmallInt> {};
+struct DataTypeTraits<uint8_t>: FixedSizeDataTypeTraits<uint8_t, uint8_t> {};
 
 
 template <>
-struct DataTypeTraits<Integer>: ValueDataTypeTraits<int32_t, Integer> {};
+struct DataTypeTraits<SmallInt>: FixedSizeDataTypeTraits<int16_t, SmallInt> {};
 
 template <>
-struct DataTypeTraits<UInteger>: ValueDataTypeTraits<uint32_t, UInteger> {};
+struct DataTypeTraits<USmallInt>: FixedSizeDataTypeTraits<uint16_t, USmallInt> {};
 
 
 template <>
-struct DataTypeTraits<BigInt>: ValueDataTypeTraits<int64_t, BigInt> {};
+struct DataTypeTraits<Integer>: FixedSizeDataTypeTraits<int32_t, Integer> {};
 
 template <>
-struct DataTypeTraits<int64_t>: ValueDataTypeTraits<int64_t, int64_t> {};
+struct DataTypeTraits<UInteger>: FixedSizeDataTypeTraits<uint32_t, UInteger> {};
+
 
 template <>
-struct DataTypeTraits<UBigInt>: ValueDataTypeTraits<uint64_t, UBigInt> {};
+struct DataTypeTraits<BigInt>: FixedSizeDataTypeTraits<int64_t, BigInt> {};
 
 template <>
-struct DataTypeTraits<uint64_t>: ValueDataTypeTraits<uint64_t, uint64_t> {};
+struct DataTypeTraits<int64_t>: FixedSizeDataTypeTraits<int64_t, int64_t> {};
 
 template <>
-struct DataTypeTraits<Real>: ValueDataTypeTraits<float, Real> {};
+struct DataTypeTraits<UBigInt>: FixedSizeDataTypeTraits<uint64_t, UBigInt> {};
 
 template <>
-struct DataTypeTraits<Double>: ValueDataTypeTraits<double, Double> {};
+struct DataTypeTraits<uint64_t>: FixedSizeDataTypeTraits<uint64_t, uint64_t> {};
 
 template <>
-struct DataTypeTraits<Timestamp>: ValueDataTypeTraits<int64_t, Timestamp> {};
+struct DataTypeTraits<Real>: FixedSizeDataTypeTraits<float, Real> {};
 
 template <>
-struct DataTypeTraits<TSWithTimeZone>: ValueDataTypeTraits<int64_t, TSWithTimeZone> {};
+struct DataTypeTraits<Double>: FixedSizeDataTypeTraits<double, Double> {};
 
 template <>
-struct DataTypeTraits<Time>: ValueDataTypeTraits<int32_t, Time> {};
+struct DataTypeTraits<Timestamp>: FixedSizeDataTypeTraits<int64_t, Timestamp> {};
 
 template <>
-struct DataTypeTraits<TimeWithTimeZone>: ValueDataTypeTraits<int64_t, TimeWithTimeZone> {};
+struct DataTypeTraits<TSWithTimeZone>: FixedSizeDataTypeTraits<int64_t, TSWithTimeZone> {};
 
 template <>
-struct DataTypeTraits<Date>: ValueDataTypeTraits<int64_t, Date> {};
+struct DataTypeTraits<Time>: FixedSizeDataTypeTraits<int32_t, Time> {};
 
 template <>
-struct DataTypeTraits<U8String> {
+struct DataTypeTraits<TimeWithTimeZone>: FixedSizeDataTypeTraits<int64_t, TimeWithTimeZone> {};
+
+template <>
+struct DataTypeTraits<Date>: FixedSizeDataTypeTraits<int64_t, Date> {};
+
+template <>
+struct DataTypeTraits<U8String>: DataTypeTraitsBase<U8String> {
+
+    using ViewType      = VarcharView;
+    using ConstViewType = VarcharView;
+    using ValueType     = U8String;
+
     using Parameters = TL<>;
 
-    static constexpr bool isDataType          = true;
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
+    static constexpr bool isFixedSize         = false;
 
     static void create_signature(SBuf& buf, const U8String& obj) {
         buf << "U8String";
@@ -155,7 +173,7 @@ struct DataTypeTraits<U8String> {
 
 
 template <>
-struct DataTypeTraits<Decimal>
+struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
 {
     using CxxType   = EmptyType;
     using InputView = EmptyType;
@@ -163,7 +181,6 @@ struct DataTypeTraits<Decimal>
 
     using Parameters = TL<>;
 
-    static constexpr bool isDataType          = true;
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = true;
@@ -189,7 +206,7 @@ struct DataTypeTraits<Decimal>
 
 
 template <>
-struct DataTypeTraits<BigDecimal>
+struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
 {
     using CxxType   = EmptyType;
     using InputView = EmptyType;
@@ -223,11 +240,11 @@ struct DataTypeTraits<BigDecimal>
 
 
 template <>
-struct DataTypeTraits<Varchar>
+struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
 {
-    using CxxType   = EmptyType;
-    using InputView = EmptyType;
-    using Ptr       = EmptyType*;
+    using ViewType      = VarcharView;
+    using ConstViewType = VarcharView;
+    using ValueType     = U8String;
 
     using Parameters = TL<>;
 
@@ -244,6 +261,34 @@ struct DataTypeTraits<Varchar>
     static void create_signature(SBuf& buf)
     {
         buf << "Varchar";
+    }
+};
+
+
+
+template <>
+struct DataTypeTraits<Varbinary>: DataTypeTraitsBase<Varbinary>
+{
+    using AtomType      = uint8_t;
+    using ViewType      = VarbinaryView<AtomType>;
+    using ConstViewType = VarbinaryView<const AtomType>;
+    using ValueType     = std::vector<AtomType>;
+
+    using Parameters = TL<>;
+
+    static constexpr bool isDataType          = true;
+    static constexpr size_t MemorySize        = sizeof(EmptyType);
+    static constexpr bool IsParametrised      = false;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const Varchar& obj)
+    {
+        buf << "Varbinary";
+    }
+
+    static void create_signature(SBuf& buf)
+    {
+        buf << "Varbinary";
     }
 };
 
@@ -270,7 +315,7 @@ struct DataTypeTraits<Dynamic<T>>: DataTypeTraits<T>
 
 
 template <typename Key, typename Value>
-struct DataTypeTraits<Multimap1<Key, Value>>
+struct DataTypeTraits<Multimap1<Key, Value>>: DataTypeTraitsBase<Multimap1<Key, Value>>
 {
     using CxxType   = EmptyType;
     using InputView = EmptyType;
@@ -278,7 +323,6 @@ struct DataTypeTraits<Multimap1<Key, Value>>
 
     using Parameters = TL<Key, Value>;
 
-    static constexpr bool isDataType          = true;
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = true;
     static constexpr bool HasTypeConstructors = false;

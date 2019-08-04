@@ -23,7 +23,7 @@ namespace v1 {
 using Profile = DefaultProfile<>;    
 using CtrName = EdgeMap;
 
-MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+//MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
     
 }}
 
