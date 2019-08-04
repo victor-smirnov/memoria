@@ -28,7 +28,6 @@
 
 #include <iostream>
 
-
 using namespace memoria::v1;
 
 int main()
@@ -45,6 +44,7 @@ int main()
 
     auto ctr0 = snp->create_ctr(MapType());
 
+    //ctr0->create_iovector();
 
     UUID ctr_id = ctr0->name();
 

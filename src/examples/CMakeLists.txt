@@ -49,3 +49,5 @@ ENDMACRO()
 
 
 Example(typesig typesig.cpp "" "")
+
+Example(store store.cpp "" "")

@@ -50,7 +50,6 @@ public:
 
 template <typename Key, typename Value>
 struct MapIterator {
-
     using KeyV   = typename DataTypeTraits<Key>::ValueType;
     using ValueV = typename DataTypeTraits<Value>::ValueType;
 
@@ -60,8 +59,20 @@ struct MapIterator {
     virtual ValueV value() const = 0;
     virtual bool is_end() const = 0;
     virtual void next() = 0;
+};
 
 
+template <typename CxxKey, typename CxxValue>
+class MapScanner {
+    Span<const CxxKey> keys_;
+    Span<const CxxValue> values_;
+public:
+
+    const Span<const CxxKey>& keys() const {return keys_;}
+    const Span<const CxxValue>& values() const {return values_;}
+
+    virtual bool is_end() const     = 0;
+    virtual void next()             = 0;
 };
 
 template <typename Key, typename Value, typename Profile>
@@ -84,6 +95,18 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable {
     virtual int64_t map_size() const = 0;
     virtual void assign_key(KeyView key, ValueView value) = 0;
     virtual void remove_key(KeyView key) = 0;
+
+    // returns true if the entry was updated, and false if new entry was inserted
+//    bool upsert(KeyView key, ValueView value) = 0;
+
+//    void append_entries(io::IOVectorProducer& producer) = 0;
+//    void append_entry(Key key, ValueView value) = 0;
+
+//    void prepend_entries(io::IOVectorProducer& producer) = 0;
+//    void prepend_entry(Key key, ValueView value) = 0;
+
+//    void insert_entries(Key before, io::IOVectorProducer& producer) = 0;
+//    void insert_entry(Key before, Key key, ValueView value)         = 0;
 
     virtual CtrSharedPtr<MapIterator<Key, Value>> iterator() = 0;
 

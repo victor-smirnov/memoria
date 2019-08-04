@@ -260,7 +260,8 @@ struct CtrMetadataInitializer {
 };
 
 #define MMA1_DECLARE_ICTRAPI() \
-    static void init_profile_metadata()
+    static void init_profile_metadata(); \
+    static std::shared_ptr<io::IOVector> create_iovector()
 
 
 
