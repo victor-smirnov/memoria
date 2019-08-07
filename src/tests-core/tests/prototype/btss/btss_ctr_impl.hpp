@@ -42,6 +42,5 @@ std::vector<typename IterApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>
     return data;
 }
 
-
 }}
 

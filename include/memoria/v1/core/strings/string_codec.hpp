@@ -19,6 +19,8 @@
 #include <memoria/v1/core/bignum/uint64_codec.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
 
+#include <memoria/v1/core/strings/u8_string.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -83,6 +85,98 @@ public:
         std::memcpy(tmp.data(), buffer + pos, len);
 
         std::swap(value, tmp);
+
+        return pos + len - idx;
+    }
+
+    size_t encode(T* buffer, const ValuePtr& value, size_t idx) const
+    {
+        copy(value.addr(), 0, buffer, idx, value.length());
+        return value.length();
+    }
+
+
+    size_t encode(T* buffer, const V& value, size_t idx, size_t limit) const
+    {
+        return encode(buffer, value, idx);
+    }
+
+    size_t encode(T* buffer, const V& value, size_t idx) const
+    {
+        size_t pos = idx;
+        pos += size_codec_.encode(buffer, value.size(), pos);
+
+        size_t len = value.size();
+
+        std::memcpy(buffer + pos, value.data(), len);
+
+        return pos + len - idx;
+    }
+
+    void move(T* buffer, size_t from, size_t to, size_t size) const
+    {
+        CopyBuffer(buffer + from, buffer + to, size);
+    }
+
+    void copy(const T* src, size_t from, T* tgt, size_t to, size_t size) const
+    {
+        CopyBuffer(src + from, tgt + to, size);
+    }
+};
+
+
+
+template<>
+class ValueCodec<U8StringView> {
+public:
+    using BufferType    = uint8_t;
+    using T             = BufferType;
+    using V             = U8StringView;
+
+    static_assert(sizeof(T) == sizeof(typename V::value_type), "");
+
+    using ValuePtr      = ValuePtrT1<BufferType>;
+
+    ValueCodec<uint64_t> size_codec_;
+
+    static const int32_t BitsPerOffset  = 16;
+    static const int32_t ElementSize    = 8; // In bits;
+
+    ValuePtr describe(const T* buffer, size_t idx)
+    {
+        return ValuePtr(buffer + idx, length(buffer, idx, -1ull));
+    }
+
+    size_t length(const T* buffer, size_t idx, size_t limit) const
+    {
+        uint64_t len;
+        size_t pos = idx;
+
+        pos += size_codec_.decode(buffer, len, idx);
+
+        return pos - idx + len;
+    }
+
+    size_t length(const V& value) const
+    {
+        auto len = value.size();
+        return size_codec_.length(len) + len;
+    }
+
+    size_t decode(const T* buffer, V& value, size_t idx, size_t limit) const
+    {
+        return decode(buffer, value, idx);
+    }
+
+    size_t decode(const T* buffer, V& value, size_t idx) const
+    {
+        uint64_t len0 = 0;
+        size_t pos = idx;
+        pos += size_codec_.decode(buffer, len0, idx);
+
+        size_t len = len0;
+
+        value = V(T2T<typename V::const_pointer>(buffer + pos), len);
 
         return pos + len - idx;
     }

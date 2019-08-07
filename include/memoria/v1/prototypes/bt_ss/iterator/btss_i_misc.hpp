@@ -46,6 +46,19 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btss::IteratorMiscName)
 
 
 public:
+    int32_t iovector_pos() const {
+        return self().local_pos();
+    }
+
+    bool next_leaf() {
+        return self().nextLeaf();
+    }
+
+    bool next_entry() {
+        return self().skipFw(1) > 0;
+    }
+
+
     bool operator++() {
         return self().skipFw(1);
     }

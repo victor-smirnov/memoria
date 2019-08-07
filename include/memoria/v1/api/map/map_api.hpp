@@ -25,7 +25,10 @@
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
+#include <memoria/v1/api/map/map_scanner.hpp>
+#include <memoria/v1/api/map/map_api_factory.hpp>
 
+#include <memoria/v1/core/strings/string_codec.hpp>
 
 #include <memory>
 #include <tuple>
@@ -33,20 +36,7 @@
 namespace memoria {
 namespace v1 {
 
-template <typename Key, typename Value>
-class Map {
-    Key key_;
-    Value value_;
-public:
-    Map(): key_(), value_() {}
 
-    Map(Key key, Value value):
-        key_(key), value_(value)
-    {}
-
-    const Key& key() const {return key_;}
-    const Value value() const {return value_;}
-};
 
 template <typename Key, typename Value>
 struct MapIterator {
@@ -62,18 +52,7 @@ struct MapIterator {
 };
 
 
-template <typename CxxKey, typename CxxValue>
-class MapScanner {
-    Span<const CxxKey> keys_;
-    Span<const CxxValue> values_;
-public:
 
-    const Span<const CxxKey>& keys() const {return keys_;}
-    const Span<const CxxValue>& values() const {return values_;}
-
-    virtual bool is_end() const     = 0;
-    virtual void next()             = 0;
-};
 
 template <typename Key, typename Value, typename Profile>
 struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable {
@@ -81,16 +60,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable {
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ValueView = typename DataTypeTraits<Value>::ViewType;
 
-    using DefaultIOSubstreams = TL<
-        TL<
-            ICtrApiSubstream<Key, io::ColumnWise>,
-            ICtrApiSubstream<Value, io::RowWise>
-        >
-    >;
-
-    using IOSubstreamsTL = typename CtrApiIOSubstreamsProvider<
-        Map<Key, Value>, Profile, DefaultIOSubstreams
-    >::Type;
+    using ApiTypes  = ICtrApiTypes<Map<Key, Value>, Profile>;
 
     virtual int64_t map_size() const = 0;
     virtual void assign_key(KeyView key, ValueView value) = 0;
@@ -108,7 +78,12 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable {
 //    void insert_entries(Key before, io::IOVectorProducer& producer) = 0;
 //    void insert_entry(Key before, Key key, ValueView value)         = 0;
 
-    virtual CtrSharedPtr<MapIterator<Key, Value>> iterator() = 0;
+    virtual CtrSharedPtr<MapIterator<Key, Value>> iterator()    = 0;
+    virtual CtrSharedPtr<BTSSIterator<Profile>> raw_iterator()  = 0;
+
+    MapScanner<ApiTypes, Profile> scanner() {
+        return MapScanner<ApiTypes, Profile>(raw_iterator());
+    }
 
     MMA1_DECLARE_ICTRAPI();
 };
@@ -116,44 +91,6 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable {
 
 
 
-template <typename Key, typename Value>
-struct TypeHash<Map<Key, Value>>: UInt64Value<
-    HashHelper<1100, TypeHashV<Key>, TypeHashV<Value>>
-> {};
 
-template <typename Key, typename Value>
-struct DataTypeTraits<Map<Key, Value>> {
-    using CxxType   = EmptyType;
-    using InputView = EmptyType;
-    using Ptr       = EmptyType*;
-
-    using Parameters = TL<Key, Value>;
-
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
-    static constexpr bool IsParametrised      = true;
-    static constexpr bool HasTypeConstructors = false;
-
-    static void create_signature(SBuf& buf, const Map<Key, Value>& obj)
-    {
-        buf << "Map<";
-
-        DataTypeTraits<Key>::create_signature(buf, obj.key());
-        buf << ", ";
-        DataTypeTraits<Value>::create_signature(buf, obj.value());
-
-        buf << ">";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Map<";
-
-        DataTypeTraits<Key>::create_signature(buf);
-        buf << ", ";
-        DataTypeTraits<Value>::create_signature(buf);
-
-        buf << ">";
-    }
-};
     
 }}

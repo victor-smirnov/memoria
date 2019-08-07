@@ -44,35 +44,27 @@ int main()
 
     auto ctr0 = snp->create_ctr(MapType());
 
-    //ctr0->create_iovector();
-
     UUID ctr_id = ctr0->name();
 
-    ctr0->assign_key("AAAAA", "BBBBB");
+    for (int c = 0; c < 10000; c++) {
+        ctr0->assign_key("AAAAA_" + std::to_string(c), "BBBBB_" + std::to_string(c));
+    }
 
     snp->commit();
     snp->set_as_master();
 
-    auto ii = ctr0->iterator();
+    auto ii = ctr0->scanner();
 
-    while (!ii->is_end())
+    while (!ii.is_end())
     {
-        std::cout << ii->key() << " = " << ii->value() << std::endl;
-        ii->next();
+        for (size_t c = 0; c < ii.keys().size(); c++) {
+            std::cout << ii.keys()[c] << " = " << ii.values()[c] << std::endl;
+        }
+
+        ii.next_leaf();
     }
 
-    alloc->store("allocator.mma2");
-    auto alloc2 = IMemoryStore<>::load("allocator.mma2");
-    auto snp2 = alloc2->master();
 
-    auto ctr2 = snp2->find_ctr(MapType(), ctr_id);
-
-    auto ii2 = ctr2->iterator();
-
-    while (!ii2->is_end()) {
-        std::cout << ii2->key() << " = " << ii2->value() << std::endl;
-        ii2->next();
-    }
 
     return 0;
 }

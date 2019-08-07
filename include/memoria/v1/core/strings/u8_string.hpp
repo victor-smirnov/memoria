@@ -25,6 +25,7 @@
 
 #include <string>
 #include <sstream>
+#include <ostream>
 
 
 namespace memoria {
@@ -273,5 +274,20 @@ struct hash<memoria::v1::U8String> {
         return hash<std::string>()(str.to_std_string());
     }
 };
+
+}
+
+namespace absl {
+
+//std::ostream& operator<<(std::ostream& out, const ::absl::string_view& str)
+//{
+//    return out.write(str.begin(), str.size());
+//}
+
+static inline std::stringstream& operator<<(std::stringstream& out, const ::absl::string_view& str)
+{
+    out.write(str.begin(), str.size());
+    return out;
+}
 
 }

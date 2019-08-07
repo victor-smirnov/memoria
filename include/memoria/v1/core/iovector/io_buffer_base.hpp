@@ -40,9 +40,12 @@ protected:
 
 protected:
     IOBufferBase(size_t capacity):
-        buffer_(allocate_system<ValueT>(capacity)),
+        buffer_(capacity > 0 ? allocate_system<ValueT>(capacity) : UniquePtr<ValueT>(nullptr, ::free)),
         capaicty_(capacity),
         size_(0)
+    {}
+
+    IOBufferBase(): IOBufferBase(0)
     {}
 
     size_t size() const {
@@ -108,6 +111,7 @@ protected:
     void enlarge(size_t requested)
     {
         size_t next_capaicty = capaicty_ * 2;
+        if (next_capaicty == 0) next_capaicty = 1;
 
         while (capaicty_ + requested > next_capaicty)
         {
@@ -116,7 +120,11 @@ protected:
 
         auto new_ptr = allocate_system<ValueT>(next_capaicty);
 
-        MemCpyBuffer(buffer_.get(), new_ptr.get(), size_);
+        if (size_ > 0)
+        {
+            MemCpyBuffer(buffer_.get(), new_ptr.get(), size_);
+        }
+
         buffer_ = std::move(new_ptr);
         capaicty_ = next_capaicty;
     }
@@ -174,6 +182,7 @@ class DefaultIOBuffer: public IOBufferBase<TT> {
 
 public:
     DefaultIOBuffer(size_t capacity): Base(capacity) {}
+    DefaultIOBuffer(): Base() {}
 
     using Base::append_value;
     using Base::append_values;
@@ -186,9 +195,18 @@ public:
     using Base::remaining;
     using Base::reset;
     using Base::span;
+    using Base::ensure;
 
     TT& operator[](size_t idx) {return access(idx);}
     const TT& operator[](size_t idx) const {return access(idx);}
+
+    void emplace_back(const TT& tt) {
+        append_value(tt);
+    }
+
+    void emplace_back(TT&& tt) {
+        append_value(tt);
+    }
 };
 
 }}}

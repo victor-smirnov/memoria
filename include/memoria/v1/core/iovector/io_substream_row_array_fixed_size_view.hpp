@@ -67,6 +67,10 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
+    int32_t size() const {
+        return size_;
+    }
+
     void reset()
     {
         size_ = 0;

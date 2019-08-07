@@ -31,11 +31,9 @@ namespace io {
 struct ColumnWise {};
 struct RowWise {};
 
-template <typename DataType, typename IOSubstreamTag> struct IOSubstreamApiTF;
+//template <typename DataType, typename IOSubstreamTag> struct IOSubstreamApiTF;
 
-namespace _ {
-
-template <typename Value, bool IsColumnSise, bool IsFixedSize>
+template <typename Value, bool IsColumnWise, bool IsFixedSize>
 struct IOSubstreamInterfaceTF;
 
 template <typename Value>
@@ -54,8 +52,8 @@ template <typename Value>
 struct IOSubstreamInterfaceTF<Value, false, false>: TypeDef<IORowwiseVLenArraySubstream<Value>>
 {};
 
-}
 
+/*
 template <typename DataType>
 struct IOSubstreamApiTF<DataType, RowWise>: TypeDef<
     typename _::IOSubstreamInterfaceTF<
@@ -73,6 +71,7 @@ struct IOSubstreamApiTF<DataType, ColumnWise>: TypeDef<
         DataTypeTraits<DataType>::isFixedSize
     >::Type
 > {};
+*/
 
 }
 }}

@@ -72,22 +72,6 @@ BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNTypeDictionary, entries_);
 BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNDocument, type_dictionary_, value_);
 
 
-namespace absl {
-
-std::ostream& operator<<(std::ostream& out, const ::absl::string_view& str)
-{
-    return out.write(str.begin(), str.size());
-}
-
-std::stringstream& operator<<(std::stringstream& out, const ::absl::string_view& str)
-{
-    out.write(str.begin(), str.size());
-
-    return out;
-}
-
-}
-
 namespace memoria {
 namespace v1 {
 

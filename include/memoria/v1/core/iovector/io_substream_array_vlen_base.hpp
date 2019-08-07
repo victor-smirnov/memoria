@@ -29,6 +29,7 @@ namespace io {
 template<typename Value>
 struct IORowwiseVLenArraySubstream: IOSubstream {
     virtual int32_t columns() const                     = 0;
+    virtual int32_t size() const                        = 0;
 
     virtual const uint8_t* select(int32_t row) const    = 0;
     virtual uint8_t* select(int32_t row)                = 0;

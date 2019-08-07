@@ -63,6 +63,10 @@ public:
         free_system(data_buffer_);
     }
 
+    int32_t size() const {
+        return size_;
+    }
+
 
     int32_t columns() const
     {

@@ -59,6 +59,10 @@ public:
         array_ = array;
     }
 
+    int32_t size() const {
+        return array_->size();
+    }
+
     int32_t columns() const
     {
         return PkdStruct::Blocks;

@@ -24,6 +24,8 @@
 
 #include <memoria/v1/prototypes/bt_ss/btss_input_iovector.hpp>
 
+#include <memoria/v1/api/common/ctr_api_btss.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -34,7 +36,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(btss::LeafCommonName)
 public:
     using typename Base::Types;
     using typename Base::Iterator;
-
 
 public:
     using typename Base::NodeBaseG;
@@ -52,6 +53,10 @@ public:
     using typename Base::CtrSizeT;
 
     static const int32_t Streams = Types::Streams;
+
+    CtrSharedPtr<BTSSIterator<typename Types::Profile>> raw_iterator() {
+        return self().begin();
+    }
 
     template <typename SubstreamsIdxList, typename... Args>
     auto read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const

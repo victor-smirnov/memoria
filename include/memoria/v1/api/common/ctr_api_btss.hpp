@@ -33,6 +33,20 @@
 namespace memoria {
 namespace v1 {
 
+template <typename Profile>
+struct BTSSIterator {
+    virtual ~BTSSIterator() noexcept {}
+
+    virtual const io::IOVector& iovector_view() const = 0;
+    virtual int32_t iovector_pos() const    = 0;
+
+    virtual bool is_end() const         = 0;
+    virtual bool next_leaf()            = 0;
+    virtual bool next_entry()           = 0;
+};
+
+
+
 template <typename CtrName, typename Profile> 
 class CtrApiBTSSBase: public CtrApiBase<CtrName, Profile> {
     using Base = CtrApiBase<CtrName, Profile>;

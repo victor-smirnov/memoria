@@ -30,6 +30,8 @@
 
 #include <memoria/v1/prototypes/bt_ss/btss_input_iovector.hpp>
 
+#include <memoria/v1/api/common/ctr_api_btss.hpp>
+
 #include <tuple>
 
 namespace memoria {
@@ -43,6 +45,8 @@ template <
 struct BTTypes<Profile, BTSingleStream>: public BTTypes<Profile, BT> {
 
     using Base = BTTypes<Profile, BT>;
+
+    using IteratorInterface = BTSSIterator<Profile>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,

@@ -31,14 +31,15 @@
 namespace memoria {
 namespace v1 {
 
-
-
-
 template <typename CtrName, typename Profile = DefaultProfile<>>
 struct ICtrApi: CtrReferenceable
 {
 
 };
+
+template <typename CtrName, typename Profile>
+struct ICtrApiTypes;
+
 
 template <typename DataType_, typename IOSustreamTag_, template <typename DataType> class EncodingTF_ = ValueCodec>
 struct ICtrApiSubstream
@@ -50,8 +51,8 @@ struct ICtrApiSubstream
     using EncodingTF = EncodingTF_<DataType0>;
 };
 
-template <typename CtrName, typename Profile, typename DefaultIOSubstreamsTL>
-struct CtrApiIOSubstreamsProvider: TypeDef<DefaultIOSubstreamsTL> {};
+//template <typename CtrName, typename Profile, typename DefaultIOSubstreamsTL>
+//struct CtrApiIOSubstreamsProvider: TypeDef<DefaultIOSubstreamsTL> {};
 
 
 template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;
