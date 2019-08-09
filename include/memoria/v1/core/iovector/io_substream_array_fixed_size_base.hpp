@@ -28,6 +28,9 @@ namespace io {
 template <typename Value>
 struct IORowwiseFixedSizeArraySubstream: IOSubstream {
     virtual int32_t columns() const                   = 0;
+    virtual int32_t size() const                      = 0;
+
+
     virtual Value* select(int32_t idx)                = 0;
     virtual const Value* select(int32_t idx) const    = 0;
 

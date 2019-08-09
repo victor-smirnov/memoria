@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,146 +17,107 @@
 
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
 
+#include <memoria/v1/api/common/iobuffer_adatpters.hpp>
+
 #include <memoria/v1/api/datatypes/traits.hpp>
 #include <memoria/v1/api/datatypes/encoding_traits.hpp>
 #include <memoria/v1/api/datatypes/io_vector_traits.hpp>
 
-#include <memoria/v1/core/types/typehash.hpp>
-
 #include <memoria/v1/core/iovector/io_vector.hpp>
-
-
-
-#include <memory>
-#include <tuple>
 
 namespace memoria {
 namespace v1 {
 
-template <
-        typename T,
-        bool FixedSize = DataTypeTraits<typename T::DataType>::isFixedSize
->
-struct MapSubstreamAdapter;
 
-template <typename DataType, template <typename CxxType> class ValueCodec>
-struct MapSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>, false>
+namespace _ {
+
+template <typename KeyT, typename ValueT, bool FixedSizeKey, bool FixedSizeValue>
+struct MapKeysValues;
+
+template <typename KeyT, typename ValueT>
+struct MapKeysValues<KeyT, ValueT, false, false>
 {
-    using ValueView = typename DataTypeTraits<DataType>::ViewType;
-    using Codec = ValueCodec<ValueView>;
+    io::DefaultIOBuffer<KeyT> keys_;
+    io::DefaultIOBuffer<ValueT> values_;
 
-    using SubstreamT = typename io::IOSubstreamInterfaceTF<
-        ValueView,
-        true, // ColumnWise
-        false // FixedSize
-    >::Type;
+    Span<const KeyT> keys() const {return keys_.span();}
+    Span<const ValueT> values() const {return values_.span();}
 
-    template <typename Buffer>
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, Buffer& buffer)
-    {
-        const auto& subs = io::substream_cast<SubstreamT>(substream);
-        io::ConstVLenArrayColumnMetadata descr = subs.select_and_describe(column, start);
-
-        if (start + size <= descr.size)
-        {
-            Codec codec;
-            size_t pos = 0;
-            for (int32_t c = 0; c < size; c++)
-            {
-                ValueView vv;
-                size_t len = codec.decode(descr.data_buffer, vv, pos);
-
-                buffer.emplace_back(std::move(vv));
-
-                pos += len;
-            }
-        }
-        else {
-            MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(
-                           u"Substream range check: start = {}, size = {}, size = {}",
-                           start, size, descr.size
-                       );
-        }
+    void prepare(size_t size) {
+        keys_.clear();
+        values_.clear();
+        keys_.ensure(size);
+        values_.ensure(size);
     }
 };
 
 
-template <typename DataType, template <typename CxxType> class ValueCodec>
-struct MapSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, false>
+template <typename KeyT, typename ValueT>
+struct MapKeysValues<KeyT, ValueT, true, false>
 {
-    using ValueView = typename DataTypeTraits<DataType>::ViewType;
-    using Codec = ValueCodec<ValueView>;
+    Span<const KeyT> keys_;
+    io::DefaultIOBuffer<ValueT> values_;
 
-    using SubstreamT = typename io::IOSubstreamInterfaceTF<
-        ValueView,
-        false, // RowWise
-        false // FixedSize
-    >::Type;
+    const Span<const KeyT>& keys() const {return keys_;}
+    Span<const ValueT> values() const {return values_.span();}
 
-    template <typename Buffer>
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, Buffer& buffer)
-    {
-        const auto& subs = io::substream_cast<SubstreamT>(substream);
-        if (subs.columns() == 1)
-        {
-            if (start + size <= subs.size())
-            {
-                auto data_buffer = subs.select(start);
-
-                Codec codec;
-                size_t pos = 0;
-                for (int32_t c = 0; c < size; c++)
-                {
-                    ValueView vv;
-                    size_t len = codec.decode(data_buffer, vv, pos);
-
-                    buffer.emplace_back(std::move(vv));
-
-                    pos += len;
-                }
-            }
-            else {
-                MMA1_THROW(RuntimeException())
-                        << fmt::format_ex(
-                               u"Substream range check: start = {}, size = {}, size = {}",
-                               start, size, subs.size()
-                           );
-            }
-        }
-        else {
-            MMA1_THROW(RuntimeException())
-                << WhatCInfo("Multicolumn RowWise substreams are not yet supported");
-        }
+    void prepare(size_t size) {
+        values_.clear();
+        values_.ensure(size);
     }
 };
 
 
-template <
-    typename Types,
-    typename Profile,
-    bool DirectKeys   = DataTypeTraits<typename Types::Key>::isFixedSize,
-    bool DirectValues = DataTypeTraits<typename Types::Value>::isFixedSize
->
-class MapScanner;
+template <typename KeyT, typename ValueT>
+struct MapKeysValues<KeyT, ValueT, false, true>
+{
+    io::DefaultIOBuffer<KeyT> keys_;
+    Span<const ValueT> values_;
+
+    Span<const KeyT> keys() const {return keys_.span();}
+    const Span<const ValueT>& values() const {return values_;}
+
+    void prepare(size_t size) {
+        keys_.clear();
+        keys_.ensure(size);
+    }
+};
+
+template <typename KeyT, typename ValueT>
+struct MapKeysValues<KeyT, ValueT, true, true>
+{
+    Span<const KeyT> keys_;
+    Span<const ValueT> values_;
+
+    const Span<const KeyT>& keys() const {return keys_;}
+    const Span<const ValueT>& values() const {return values_;}
+
+    void prepare(size_t size) {}
+};
+
+
+
+}
+
 
 template <typename Types, typename Profile>
-class MapScanner<Types, Profile, false, false> {
+class MapScanner {
 public:
     using KeyView   = typename DataTypeTraits<typename Types::Key>::ViewType;
     using ValueView = typename DataTypeTraits<typename Types::Value>::ViewType;
 
 private:
 
+    static constexpr bool DirectKeys   = DataTypeTraits<typename Types::Key>::isFixedSize;
+    static constexpr bool DirectValues = DataTypeTraits<typename Types::Value>::isFixedSize;
+
     using IOVSchema = Linearize<typename Types::IOVSchema>;
 
     bool finished_{false};
 
-    io::DefaultIOBuffer<KeyView> keys_;
-    io::DefaultIOBuffer<ValueView> values_;
+    _::MapKeysValues<KeyView, ValueView, DirectKeys, DirectValues> entries_;
 
     CtrSharedPtr<BTSSIterator<Profile>> btss_iterator_;
-
 
 public:
     MapScanner(CtrSharedPtr<BTSSIterator<Profile>> iterator):
@@ -165,8 +126,8 @@ public:
         populate();
     }
 
-    Span<const KeyView>   keys() const {return keys_.span();}
-    Span<const ValueView> values() const {return values_.span();}
+    Span<const KeyView>   keys() const {return entries_.keys();}
+    Span<const ValueView> values() const {return entries_.values();}
 
     bool is_end() const {
         return finished_ || btss_iterator_->is_end();
@@ -188,65 +149,33 @@ public:
 private:
     void populate()
     {
-        keys_.clear();
-        values_.clear();
-
         const io::IOVector& iovector = btss_iterator_->iovector_view();
 
         int32_t size = iovector.symbol_sequence().size();
         if (size > 0)
         {
-            keys_.ensure(size);
-            values_.ensure(size);
+            entries_.prepare(size);
 
             int32_t start = btss_iterator_->iovector_pos();
 
-            MapSubstreamAdapter<Select<0, IOVSchema>>::read_to(
+            IOSubstreamAdapter<Select<0, IOVSchema>>::read_to(
                 iovector.substream(0),
                 0, // Column
                 start,
                 size - start,
-                keys_
+                entries_.keys_
             );
 
-            MapSubstreamAdapter<Select<1, IOVSchema>>::read_to(
-                iovector.substream(0),
+            IOSubstreamAdapter<Select<1, IOVSchema>>::read_to(
+                iovector.substream(1),
                 0, // Column
                 start,
                 size - start,
-                values_
+                entries_.values_
             );
         }
     }
 };
 
-
-
-
-template <typename Types, typename Profile>
-class MapScanner<Types, Profile, true, true> {
-public:
-    using CxxKey   = typename Types::CxxKey;
-    using CxxValue = typename Types::CxxValue;
-
-private:
-    Span<const CxxKey> keys_;
-    Span<const CxxValue> values_;
-
-    CtrSharedPtr<BTSSIterator<Profile>> btss_iterator_;
-
-public:
-
-    const Span<const CxxKey>&   keys() const {return keys_;}
-    const Span<const CxxValue>& values() const {return values_;}
-
-    bool is_end() const {
-        return btss_iterator_->is_end();
-    }
-
-    bool next_leaf() {
-        return btss_iterator_->next_leaf();
-    }
-};
 
 }}

@@ -26,17 +26,13 @@
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
 #include <memoria/v1/api/map/map_scanner.hpp>
+#include <memoria/v1/api/map/map_populator.hpp>
 #include <memoria/v1/api/map/map_api_factory.hpp>
 
 #include <memoria/v1/core/strings/string_codec.hpp>
 
-#include <memory>
-#include <tuple>
-
 namespace memoria {
 namespace v1 {
-
-
 
 template <typename Key, typename Value>
 struct MapIterator {

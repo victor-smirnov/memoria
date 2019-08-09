@@ -64,6 +64,10 @@ public:
         return Columns;
     }
 
+    virtual int32_t size() const {
+        return size_;
+    }
+
     Value* reserve(int32_t rows)
     {
         int32_t head = size_ * Columns;

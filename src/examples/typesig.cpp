@@ -24,7 +24,10 @@
 
 #include <memoria/v1/api/map/map_api.hpp>
 
+#include <memoria/v1/core/tools/time.hpp>
+
 #include <memoria/v1/memoria.hpp>
+
 
 #include <iostream>
 
@@ -32,11 +35,9 @@ using namespace memoria::v1;
 
 int main()
 {
-    std::cout << TypeSignature::parse(R"(Root("boo"))").to_standard_string() << std::endl;
-
     StaticLibraryCtrs<>::init();
 
-    using MapType = Map<Varchar, Varchar>;
+    using MapType = Map<BigInt, BigInt>;
 
     auto alloc = IMemoryStore<>::create();
 
@@ -44,27 +45,45 @@ int main()
 
     auto ctr0 = snp->create_ctr(MapType());
 
-    UUID ctr_id = ctr0->name();
+    //ctr0->set_new_block_size(64*1024);
 
-    for (int c = 0; c < 10000; c++) {
-        ctr0->assign_key("AAAAA_" + std::to_string(c), "BBBBB_" + std::to_string(c));
+    int64_t t0 = getTimeInMillis();
+
+    //,"AAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c)
+
+    for (int c = 0; c < 10000000; c++) {
+        //ctr0->assign_key(c, "BBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c));
+        ctr0->assign_key(c, -c);
     }
+
+    int64_t t1 = getTimeInMillis();
+
+    std::cout << "Inserted 10M entries in " << (t1 - t0) << " ms" << std::endl;
 
     snp->commit();
     snp->set_as_master();
 
+
+    alloc->store("store.mma1");
+
+    int64_t t2 = getTimeInMillis();
+
     auto ii = ctr0->scanner();
+
+
 
     while (!ii.is_end())
     {
-        for (size_t c = 0; c < ii.keys().size(); c++) {
-            std::cout << ii.keys()[c] << " = " << ii.values()[c] << std::endl;
-        }
+//        for (size_t c = 0; c < ii.keys().size(); c++) {
+//            std::cout << ii.keys()[c] << " = " << ii.values()[c] << std::endl;
+//        }
 
         ii.next_leaf();
     }
 
+    int64_t t3 = getTimeInMillis();
 
+    std::cout << "Iterated over 10M entries in " << (t3 - t2) << " ms" << std::endl;
 
     return 0;
 }

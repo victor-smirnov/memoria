@@ -114,4 +114,8 @@ struct TypeHash<Varchar>: UInt64Value<9748271> {};
 template <>
 struct TypeHash<Varbinary>: UInt64Value<83248912347> {};
 
+template <>
+struct TypeHash<BigInt>: UInt64Value<8> {};
+
+
 }}

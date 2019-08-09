@@ -16,16 +16,9 @@
 #pragma once
 
 #include <memoria/v1/api/datatypes/traits.hpp>
-#include <memoria/v1/api/datatypes/encoding_traits.hpp>
-#include <memoria/v1/api/datatypes/io_vector_traits.hpp>
-
 #include <memoria/v1/core/types/typehash.hpp>
 
-#include <memoria/v1/api/common/ctr_api.hpp>
-
-
-#include <memory>
-#include <tuple>
+#include <memoria/v1/api/common/ctr_api_btss.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -54,7 +47,7 @@ struct ICtrApiTypes<Map<Key_, Value_>, Profile> {
     using IOVSchema = TL<
         TL<
             ICtrApiSubstream<Key, io::ColumnWise>,
-            ICtrApiSubstream<Value, io::ColumnWise>
+            ICtrApiSubstream<Value, io::RowWise>
         >
     >;
 };

@@ -13,31 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memoria/v1/profiles/default/default.hpp>
 
-#pragma once
-
-#include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/v1/containers/map/map_impl.hpp>
 
 #include <memoria/v1/core/strings/string.hpp>
-
-#include <string>
 
 namespace memoria {
 namespace v1 {
 
-struct CtrReferenceable {
-    virtual bool is_castable_to(uint64_t type_hash) const   = 0;
-    virtual U16String describe_type() const                 = 0;
-    virtual uint64_t type_hash()                            = 0;
+using Profile = DefaultProfile<>;    
+using CtrName = Map<BigInt, BigInt>;
 
-    virtual void set_new_block_size(int32_t block_size)     = 0;
-    virtual int32_t get_new_block_size()                    = 0;
-    
-    virtual const UUID& name() const = 0;
-    
-    virtual ~CtrReferenceable() noexcept {}
-};
 
+MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_bi_bi)
 
 }}
+

@@ -57,6 +57,10 @@ public:
         return Columns;
     }
 
+    int32_t size() const {
+        return size_;
+    }
+
     Value* reserve(int32_t rows)
     {
         MMA1_THROW(UnsupportedOperationException());
@@ -67,13 +71,10 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    int32_t size() const {
-        return size_;
-    }
 
     void reset()
     {
-        size_ = 0;
+        MMA1_THROW(UnsupportedOperationException());
     }
 
     const Value* select(int32_t row_idx) const

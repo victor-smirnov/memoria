@@ -51,8 +51,11 @@ struct ICtrApiSubstream
     using EncodingTF = EncodingTF_<DataType0>;
 };
 
-//template <typename CtrName, typename Profile, typename DefaultIOSubstreamsTL>
-//struct CtrApiIOSubstreamsProvider: TypeDef<DefaultIOSubstreamsTL> {};
+template <
+        typename T,
+        bool FixedSize = DataTypeTraits<typename T::DataType>::isFixedSize
+>
+struct IOSubstreamAdapter;
 
 
 template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;

@@ -287,6 +287,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         self().setRootMetadata(metadata);
     }
 
+    virtual void set_new_block_size(int32_t block_size) {
+        setNewBlockSize(block_size);
+    }
+
+    virtual int32_t get_new_block_size() {
+        return getNewBlockSize();
+    }
+
     template <typename Node>
     NodeBaseG createNodeFn(int32_t size) const
     {
