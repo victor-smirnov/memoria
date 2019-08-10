@@ -26,7 +26,7 @@
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
 #include <memoria/v1/api/map/map_scanner.hpp>
-#include <memoria/v1/api/map/map_populator.hpp>
+#include <memoria/v1/api/map/map_producer.hpp>
 #include <memoria/v1/api/map/map_api_factory.hpp>
 
 #include <memoria/v1/core/strings/string_codec.hpp>
@@ -58,6 +58,9 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable {
 
     using ApiTypes  = ICtrApiTypes<Map<Key, Value>, Profile>;
 
+    using Producer      = MapProducer<ApiTypes>;
+    using ProducerFn    = typename Producer::ProducerFn;
+
     virtual int64_t map_size() const = 0;
     virtual void assign_key(KeyView key, ValueView value) = 0;
     virtual void remove_key(KeyView key) = 0;
@@ -65,7 +68,12 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable {
     // returns true if the entry was updated, and false if new entry was inserted
 //    bool upsert(KeyView key, ValueView value) = 0;
 
-//    void append_entries(io::IOVectorProducer& producer) = 0;
+    void append_entries(ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        append_entries(producer);
+    }
+
+    virtual void append_entries(io::IOVectorProducer& producer) = 0;
 //    void append_entry(Key key, ValueView value) = 0;
 
 //    void prepend_entries(io::IOVectorProducer& producer) = 0;

@@ -41,6 +41,13 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
         true // FixedSize
     >::Type;
 
+    size_t size_{};
+    SubstreamT* substream_{};
+    int32_t column_;
+
+    IOSubstreamAdapter(int32_t column):
+        column_(column)
+    {}
 
     template <typename BufferView>
     static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, BufferView& buffer)
@@ -61,12 +68,19 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
         }
     }
 
-    void write_from(io::IOSubstream& substream, int32_t column, Span<const ValueType> buffer, size_t start, size_t size)
+    void reset(io::IOSubstream& substream) {
+        size_ = 0;
+        this->substream_ = &io::substream_cast<SubstreamT>(substream);
+    }
+
+    void append(ValueView view) {
+        append(Span<const ValueView>(&view, 1), 0, 1);
+    }
+
+    void append(Span<const ValueType> buffer, size_t start, size_t size)
     {
-        const auto& subs = io::substream_cast<SubstreamT>(substream);
-
-        auto* ptr = subs.reserve(column, size);
-
+        size_ += size;
+        auto* ptr = substream_->reserve(column_, size);
         MemCpyBuffer(buffer.data() + start, ptr, size);
     }
 

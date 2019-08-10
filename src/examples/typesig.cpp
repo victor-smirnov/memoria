@@ -37,7 +37,11 @@ int main()
 {
     StaticLibraryCtrs<>::init();
 
-    using MapType = Map<BigInt, BigInt>;
+    //using MapType = Map<BigInt, BigInt>;
+    //using Entry   = std::pair<int64_t, int64_t>;
+
+    using MapType = Map<Varchar, Varchar>;
+    using Entry   = std::pair<U8String, U8String>;
 
     auto alloc = IMemoryStore<>::create();
 
@@ -45,20 +49,46 @@ int main()
 
     auto ctr0 = snp->create_ctr(MapType());
 
-    //ctr0->set_new_block_size(64*1024);
+    ctr0->set_new_block_size(64*1024);
 
     int64_t t0 = getTimeInMillis();
 
-    //,"AAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c)
+    std::vector<Entry> entries_;
 
     for (int c = 0; c < 10000000; c++) {
-        //ctr0->assign_key(c, "BBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c));
-        ctr0->assign_key(c, -c);
+        //entries_.emplace_back(Entry(c, -c));
+        entries_.emplace_back(Entry(
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c),
+            "BBBBBBBBBBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c)
+        ));
     }
 
     int64_t t1 = getTimeInMillis();
 
-    std::cout << "Inserted 10M entries in " << (t1 - t0) << " ms" << std::endl;
+    std::cout << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
+
+    int64_t t0_i = getTimeInMillis();
+
+    ctr0->append_entries([&](auto& keys, auto& values, size_t batch_start) {
+
+        size_t batch_size = 8192;
+        size_t limit = (batch_start + batch_size <= entries_.size()) ? batch_size : entries_.size() - batch_start;
+
+        for (size_t c = 0; c < limit; c++) {
+            keys.append(std::get<0>(entries_[batch_start + c]));
+            values.append(std::get<1>(entries_[batch_start + c]));
+        }
+
+        return limit != batch_size;
+    });
+
+    int64_t t1_i = getTimeInMillis();
+
+
+
+    std::cout << "Inserted entries in " << (t1_i - t0_i) << " ms" << std::endl;
+    std::cout << "Size = " << ctr0->map_size() << std::endl;
+
 
     snp->commit();
     snp->set_as_master();

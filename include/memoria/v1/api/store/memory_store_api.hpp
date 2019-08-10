@@ -51,6 +51,9 @@ public:
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot<Profile>>;
     using BlockType     = ProfileBlockType<Profile>;
 
+    template <typename CtrName>
+    using CtrApiType = ICtrApi<CtrName, Profile>;
+
 
     virtual ~IMemoryStore() noexcept {}
 

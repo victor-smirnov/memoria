@@ -73,6 +73,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         return ctr_make_shared<MapIteratorImpl<Key,Value, IteratorPtr>>(iter);
     }
 
+    void append_entries(io::IOVectorProducer& producer)
+    {
+        auto& self = this->self();
+        auto iter = self.end();
+
+        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+    }
+
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(map::CtrApiName)
