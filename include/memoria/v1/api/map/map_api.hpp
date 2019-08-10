@@ -65,22 +65,27 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable {
     virtual void assign_key(KeyView key, ValueView value) = 0;
     virtual void remove_key(KeyView key) = 0;
 
-    // returns true if the entry was updated, and false if new entry was inserted
-//    bool upsert(KeyView key, ValueView value) = 0;
-
     void append_entries(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         append_entries(producer);
     }
 
     virtual void append_entries(io::IOVectorProducer& producer) = 0;
-//    void append_entry(Key key, ValueView value) = 0;
 
-//    void prepend_entries(io::IOVectorProducer& producer) = 0;
-//    void prepend_entry(Key key, ValueView value) = 0;
+    void prepend_entries(ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        prepend_entries(producer);
+    }
 
-//    void insert_entries(Key before, io::IOVectorProducer& producer) = 0;
-//    void insert_entry(Key before, Key key, ValueView value)         = 0;
+    virtual void prepend_entries(io::IOVectorProducer& producer) = 0;
+
+
+    void insert_entries(KeyView before, ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        insert_entries(before, producer);
+    }
+
+    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer) = 0;
 
     virtual CtrSharedPtr<MapIterator<Key, Value>> iterator()    = 0;
     virtual CtrSharedPtr<BTSSIterator<Profile>> raw_iterator()  = 0;

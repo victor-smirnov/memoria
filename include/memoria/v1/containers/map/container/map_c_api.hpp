@@ -81,6 +81,29 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
     }
 
+    virtual void prepend_entries(io::IOVectorProducer& producer)
+    {
+        auto& self = this->self();
+        auto iter = self.begin();
+
+        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+    }
+
+    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer)
+    {
+        auto& self = this->self();
+
+        auto iter = self.find(before);
+
+        if (iter->is_found(before))
+        {
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Requested key is found. Can't insert enties this way.");
+        }
+        else {
+            iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        }
+    }
+
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(map::CtrApiName)

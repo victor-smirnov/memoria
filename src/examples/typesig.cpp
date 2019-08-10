@@ -40,8 +40,11 @@ int main()
     //using MapType = Map<BigInt, BigInt>;
     //using Entry   = std::pair<int64_t, int64_t>;
 
-    using MapType = Map<Varchar, Varchar>;
-    using Entry   = std::pair<U8String, U8String>;
+//    using MapType = Map<Varchar, Varchar>;
+//    using Entry   = std::pair<U8String, U8String>;
+
+    using MapType = Map<BigInt, Varchar>;
+    using Entry   = std::pair<int64_t, U8String>;
 
     auto alloc = IMemoryStore<>::create();
 
@@ -58,7 +61,8 @@ int main()
     for (int c = 0; c < 10000000; c++) {
         //entries_.emplace_back(Entry(c, -c));
         entries_.emplace_back(Entry(
-            "AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c),
+            c,
+            //"AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c),
             "BBBBBBBBBBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c)
         ));
     }
@@ -100,10 +104,13 @@ int main()
 
     auto ii = ctr0->scanner();
 
+    size_t sum0 = 0;
 
 
     while (!ii.is_end())
     {
+        sum0 += ii.keys().size() + ii.values().size();
+
 //        for (size_t c = 0; c < ii.keys().size(); c++) {
 //            std::cout << ii.keys()[c] << " = " << ii.values()[c] << std::endl;
 //        }
@@ -113,7 +120,7 @@ int main()
 
     int64_t t3 = getTimeInMillis();
 
-    std::cout << "Iterated over 10M entries in " << (t3 - t2) << " ms" << std::endl;
+    std::cout << "Iterated over 10M entries in " << (t3 - t2) << " ms " << sum0 << std::endl;
 
     return 0;
 }
