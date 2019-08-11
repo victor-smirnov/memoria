@@ -287,17 +287,13 @@ namespace {                                             \
 //template class CtrApiBTSSBase<CtrName, Profile>;        \
 
 
-#define MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile, ...)\
-template class IterApiBase<CtrName, Profile>;           \
-template class IterApiBTFLBase<CtrName, Profile>;       \
-template class CtrApiBase<CtrName, Profile>;            \
-template class CtrApiBTFLBase<CtrName, Profile>;        \
-template class CtrApi<CtrName, Profile>;                \
-template class IterApi<CtrName, Profile>;               \
-                                                        \
-namespace {                                             \
+#define MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile, ...) \
+template struct ICtrApi<CtrName, Profile>;               \
+                                                         \
+namespace {                                              \
     CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
 }
+
 
 
 

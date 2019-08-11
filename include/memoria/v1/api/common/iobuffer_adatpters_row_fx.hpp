@@ -50,6 +50,13 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, t
         column_(column)
     {}
 
+    static const auto* select(const io::IOSubstream& substream, int32_t column, int32_t row)
+    {
+        const auto& subs = io::substream_cast<SubstreamT>(substream);
+        return subs.select(row);
+    }
+
+
     template <typename BufferView>
     static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, BufferView& buffer)
     {
@@ -79,6 +86,21 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, t
         }
     }
 
+    template <typename ItemView>
+    static void read_one(const io::IOSubstream& substream, int32_t column, int32_t idx, ItemView& item)
+    {
+        const auto& subs = io::substream_cast<SubstreamT>(substream);
+        if (subs.columns() == 1)
+        {
+            item = *subs.select(idx);
+        }
+        else {
+            MMA1_THROW(RuntimeException())
+                << WhatCInfo("Multicolumn RowWise substreams are not yet supported");
+        }
+    }
+
+
     void reset(io::IOSubstream& substream) {
         size_ = 0;
         this->substream_ = &io::substream_cast<SubstreamT>(substream);
@@ -86,10 +108,15 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, t
 
 
     void append(ValueView view) {
-        append(Span<const ValueView>(&view, 1), 0, 1);
+        append_buffer(Span<const ValueView>(&view, 1), 0, 1);
     }
 
-    void append(Span<const ValueType> buffer, size_t start, size_t size)
+
+    void append_buffer(Span<const ValueType> buffer) {
+        append_buffer(buffer, 0, buffer.size());
+    }
+
+    void append_buffer(Span<const ValueType> buffer, size_t start, size_t size)
     {
         size_ += size;
 

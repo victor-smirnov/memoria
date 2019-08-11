@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #pragma once
 
 #include <memoria/v1/api/multimap/multimap_output.hpp>
@@ -22,26 +21,30 @@ namespace memoria {
 namespace v1 {
 namespace mmap {
 
-template <typename Key, typename Value, typename IteratorPtr>
-class EntriesIteratorImpl: public IEntriesIterator<Key, Value> {
-    using Base = IEntriesIterator<Key, Value>;
+template <typename Types, typename Profile, typename IteratorPtr>
+class EntriesIteratorImpl: public IEntriesIterator<Types, Profile> {
+    using Base = IEntriesIterator<Types, Profile>;
 
     using Base::parser_;
     using Base::offsets_;
     using Base::prefix_;
-    using Base::prefix_size_;
     using Base::suffix_key_;
-    using Base::suffix_key_ptr_;
     using Base::suffix_;
-    using Base::suffix_size_;
     using Base::has_suffix_;
-    using Base::body_;
-    using Base::use_buffered_;
-    using Base::suffix_buffer_;
-    using Base::buffer_is_ready_;
     using Base::iteration_num_;
 
-    using typename Base::Entry;
+    using Base::keys_;
+    using Base::values_;
+
+    using typename Base::KeyView;
+    using typename Base::Key;
+    using typename Base::ValueView;
+    using typename Base::Value;
+
+    using typename Base::KeysIOVSubstreamAdapter;
+    using typename Base::ValuesIOVSubstreamAdapter;
+
+
 
     IteratorPtr iter_;
 public:
@@ -58,11 +61,6 @@ public:
 
     virtual void next()
     {
-        if (use_buffered_)
-        {
-            fill_buffer_suffix();
-        }
-
         if (iter_->nextLeaf())
         {
             offsets_.clear();
@@ -70,21 +68,6 @@ public:
         }
         else {
             iter_->local_pos() = iter_->leaf_sizes().sum();
-            buffer_is_ready_ = true;
-        }
-    }
-
-    virtual void set_buffered()
-    {
-        if (!use_buffered_)
-        {
-            if (iteration_num_ == 1)
-            {
-                use_buffered_ = true;
-            }
-            else {
-                MMA1_THROW(RuntimeException()) << WhatCInfo("set_buffered() must be invoked before next()");
-            }
         }
     }
 
@@ -113,144 +96,69 @@ private:
         build_index();
     }
 
-    void fill_buffer_suffix()
-    {
-        if (parser_.suffix_size() > 0)
-        {
-            suffix_buffer_.clear();
-            buffer_is_ready_ = false;
-        }
 
-        has_suffix_ = false;
-
-        if (parser_.suffix_size() == 2)
-        {
-            suffix_key_ = *suffix_key_ptr_;
-            size_t suffix_size_idx = parser_.buffer().size() - 1;
-            suffix_size_ = parser_.buffer()[suffix_size_idx].length;
-            suffix_buffer_.append_values(suffix_, suffix_size_);
-        }
-        else if (parser_.suffix_size() == 1)
-        {
-            suffix_key_ = *suffix_key_ptr_;
-            suffix_size_ = 0;
-            suffix_ = nullptr;
-        }
-        else {
-            suffix_size_ = 0;
-            suffix_ = nullptr;
-        }
-    }
 
     void build_index()
     {
         auto& buffer = iter_->iovector_view();
-
         auto& ss = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<const io::IOColumnwiseFixedSizeArraySubstream<Key>>(buffer.substream(0));
-        auto& s1 = io::substream_cast<const io::IORowwiseFixedSizeArraySubstream<Value>>(buffer.substream(1));
 
         parser_.parse(ss);
 
+        size_t prefix_size;
+
         if (MMA1_LIKELY(parser_.prefix_size() > 0))
         {
-            prefix_ = s1.select(0);
-            prefix_size_ = parser_.buffer()[0].length;
-
-            if (use_buffered_)
-            {
-                suffix_buffer_.append_values(prefix_, prefix_size_);
-            }
+            prefix_size = parser_.buffer()[0].length;
+            ValuesIOVSubstreamAdapter::read_to(buffer.substream(1), 0, 0, prefix_size, prefix_.array());
         }
         else {
-            prefix_ = nullptr;
-            prefix_size_ = 0;
+            prefix_.clear();
+            prefix_size = 0;
         }
 
-        body_.clear();
+        keys_.clear();
+        values_.clear();
 
         auto key_offset = offsets_[0];
-        auto value_offset = offsets_[1] + prefix_size_;
-
-        const Key* keys = s0.select(0, key_offset);
-        const Value* values = s1.select(value_offset);
+        auto value_offset = offsets_[1] + prefix_size;
 
         size_t body_end = parser_.buffer().size() - parser_.suffix_size();
-        for (size_t c = parser_.prefix_size(); c < body_end;)
-        {
-            auto& run = parser_.buffer()[c];
-            if (MMA1_LIKELY(run.symbol == 0))
-            {
-                uint64_t keys_run_length = run.length;
-                if (MMA1_LIKELY(keys_run_length == 1)) // typical case
-                {
-                    auto& next_run = parser_.buffer()[c + 1];
 
-                    if (MMA1_LIKELY(next_run.symbol == 1))
-                    {
-                        uint64_t values_run_length = next_run.length;
-                        body_.append_value(Entry{keys, absl::Span<const Value>(values, values_run_length)});
 
-                        keys++;
-                        values += values_run_length;
-                        c += 2;
-                    }
-                    else {
-                        // zero-length value
-                        body_.append_value(Entry{keys, absl::Span<const Value>(values, 0)});
+        size_t values_end;
+        size_t num_keys;
 
-                        keys++;
-                        c += 1;
-                    }
-                }
-                else
-                {
-                    // A series of keys with zero-length values
-                    for (uint64_t s = 0; s < keys_run_length; s++)
-                    {
-                        body_.append_value(Entry{keys, absl::Span<const Value>(nullptr, 0)});
-                        keys++;
-                    }
+        std::tie(values_end, num_keys) = values_.template populate<ValuesIOVSubstreamAdapter>(
+            buffer.substream(1),
+            parser_,
+            value_offset,
+            parser_.prefix_size(), body_end
+        );
 
-                    c += 1;
-                }
-            }
-            else {
-                MMA1_THROW(RuntimeException()) << WhatCInfo("Unexpected NON-KEY symbol in streams structure");
-            }
-        }
+        KeysIOVSubstreamAdapter::read_to(buffer.substream(0), 0, key_offset, num_keys, keys_.array());
+
+
 
         // suffix processing
 
-        suffix_key_ptr_ = keys;
-        suffix_ = values;
+        has_suffix_ = true;
 
-        if (!use_buffered_)
+        if (parser_.suffix_size() == 2)
         {
-            has_suffix_ = true;
+            size_t suffix_size = parser_.buffer()[body_end + 1].length;
 
-            if (parser_.suffix_size() == 2)
-            {
-                suffix_key_ = *keys;
-                suffix_size_ = parser_.buffer()[body_end + 1].length;
-            }
-            else if (parser_.suffix_size() == 1)
-            {
-                suffix_key_ = *keys;
-                suffix_size_ = 0;
-                suffix_ = nullptr;
-            }
-            else {
-                suffix_size_ = 0;
-                suffix_ = nullptr;
-                has_suffix_ = false;
-            }
+            KeysIOVSubstreamAdapter::read_one(buffer.substream(0), 0, key_offset + num_keys, suffix_key_);
+            ValuesIOVSubstreamAdapter::read_to(buffer.substream(1), 0, values_end, suffix_size, suffix_.array());
+        }
+        else if (parser_.suffix_size() == 1)
+        {
+            KeysIOVSubstreamAdapter::read_one(buffer.substream(0), 0, key_offset + num_keys, suffix_key_);
+            suffix_.clear();
         }
         else {
-            if (parser_.suffix_size() > 0)
-            {
-                buffer_is_ready_ = true;
-            }
+            suffix_.clear();
+            has_suffix_ = false;
         }
 
         iteration_num_++;

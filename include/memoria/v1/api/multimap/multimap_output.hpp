@@ -22,45 +22,183 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/iovector/io_symbol_sequence.hpp>
 
-#include <absl/types/span.h>
-
 #include <memory>
 #include <tuple>
-#include <exception>
 #include <functional>
+#include <vector>
 
 namespace memoria {
 namespace v1 {
 
-template <typename Key, typename Value>
+namespace _ {
+
+    template <
+        typename DataType,
+        typename ViewType = typename DataTypeTraits<DataType>::ViewType,
+        bool IsFixedSize = DataTypeTraits<DataType>::isFixedSize
+    >
+    class MMapSubstreamAdapter;
+
+    template <typename DataType, typename ViewType>
+    class MMapSubstreamAdapter<DataType, ViewType, true> {
+        Span<const ViewType> array_;
+
+    public:
+        auto& array() {return array_;}
+        const auto& array() const {return array_;}
+        Span<const ViewType> span() const {return array_;}
+        void clear() {}
+    };
+
+
+    template <typename DataType, typename ViewType>
+    class MMapSubstreamAdapter<DataType, ViewType, false> {
+        io::DefaultIOBuffer<ViewType> array_;
+
+    public:
+        auto& array() {return array_;}
+        const auto& array() const {return array_;}
+        Span<const ViewType> span() const {return array_;}
+        void clear() {
+            array_.clear();
+        }
+    };
+
+
+
+
+    template <
+        typename DataType,
+        typename ViewType = typename DataTypeTraits<DataType>::ViewType,
+        bool IsFixedSize = DataTypeTraits<DataType>::isFixedSize
+    >
+    class MMapValueGroupsAdapter;
+
+
+    template <typename DataType, typename ViewType>
+    class MMapValueGroupsAdapter<DataType, ViewType, true> {
+
+        io::DefaultIOBuffer<Span<const ViewType>> array_;
+
+    public:
+        auto& array() {return array_;}
+        const auto& array() const {return array_;}
+        Span<const Span<const ViewType>> span() const {return array_.span();}
+        void clear() {
+            array_.clear();
+        }
+
+        template <typename SubstreamAdapter, typename Parser>
+        auto populate(const io::IOSubstream& substream, Parser& parser, int32_t values_offset, size_t start, size_t end)
+        {
+            const ViewType* values = SubstreamAdapter::select(substream, 0, values_offset);
+
+            size_t keys_num{};
+            size_t values_end = values_offset;
+
+            for (size_t c = start; c < end;)
+            {
+                auto& run = parser.buffer()[c];
+                if (MMA1_LIKELY(run.symbol == 0))
+                {
+                    keys_num++;
+                    uint64_t keys_run_length = run.length;
+                    if (MMA1_LIKELY(keys_run_length == 1)) // typical case
+                    {
+                        auto& next_run = parser.buffer()[c + 1];
+
+                        if (MMA1_LIKELY(next_run.symbol == 1))
+                        {
+                            uint64_t values_run_length = next_run.length;
+                            array_.append_value(absl::Span<const ViewType>(values, values_run_length));
+
+                            values += values_run_length;
+                            values_end += values_run_length;
+                            c += 2;
+                        }
+                        else {
+                            // zero-length value
+                            array_.append_value(absl::Span<const ViewType>(values, 0));
+                            c += 1;
+                        }
+                    }
+                    else
+                    {
+                        // A series of keys with zero-length values
+                        for (uint64_t s = 0; s < keys_run_length; s++)
+                        {
+                            array_.append_value(absl::Span<const ViewType>(nullptr, 0));
+                        }
+
+                        c += 1;
+                    }
+                }
+                else {
+                    MMA1_THROW(RuntimeException()) << WhatCInfo("Unexpected NON-KEY symbol in streams structure");
+                }
+            }
+
+            return std::make_tuple(values_end, keys_num);
+        }
+    };
+
+
+    template <typename DataType, typename ViewType>
+    class MMapValueGroupsAdapter<DataType, ViewType, false>
+    {
+        io::DefaultIOBuffer<Span<const ViewType>> array_;
+        io::DefaultIOBuffer<ViewType> values_;
+
+    public:
+        auto& array() {return array_;}
+        const auto& array() const {return array_;}
+        auto& values() {return values_;}
+        const auto& values() const {return values_;}
+
+        Span<const Span<const ViewType>> span() const {return array_.tail_ptr();}
+        void clear() {
+            values_.clear();
+            array_.clear();
+        }
+    };
+
+}
+
+template <typename Types, typename Profile>
 class IEntriesIterator {
+
+public:
+    using Key_   = typename Types::Key;
+    using Value_ = typename Types::Value;
+
+    using KeyView   = typename DataTypeTraits<Key_>::ViewType;
+    using ValueView = typename DataTypeTraits<Value_>::ViewType;
+
+    using Key   = typename DataTypeTraits<Key_>::ValueType;
+    using Value = typename DataTypeTraits<Value_>::ValueType;
+
+    using IOVSchema = Linearize<typename Types::IOVSchema>;
+
 protected:
+
+    using KeysIOVSubstreamAdapter   = IOSubstreamAdapter<Select<0, IOVSchema>>;
+    using ValuesIOVSubstreamAdapter = IOSubstreamAdapter<Select<1, IOVSchema>>;
+
     core::StaticVector<uint64_t, 2> offsets_;
     DefaultBTFLSequenceParser<2> parser_;
 
-public:
-    struct Entry {
-        const Key* key;
-        absl::Span<const Value> values;
-    };
-
 protected:
-    io::DefaultIOBuffer<Entry> body_{128};
 
-    const Value* prefix_;
-    size_t prefix_size_;
+    _::MMapSubstreamAdapter<Key_> keys_;
+    _::MMapValueGroupsAdapter<Value_> values_;
+
+    _::MMapSubstreamAdapter<Value_> prefix_;
+
 
     bool has_suffix_;
-    Key suffix_key_;
-    const Key* suffix_key_ptr_{};
 
-    const Value* suffix_;
-    size_t suffix_size_;
-
-    bool use_buffered_{};
-
-    bool buffer_is_ready_{false};
-    io::DefaultIOBuffer<Value> suffix_buffer_{128};
+    KeyView suffix_key_;
+    _::MMapSubstreamAdapter<Value_> suffix_;
 
     uint64_t iteration_num_{};
 public:
@@ -70,125 +208,47 @@ public:
 
     virtual ~IEntriesIterator() noexcept {}
 
-    size_t prefix_size() const {
-        return prefix_size_;
-    }
+    Span<const ValueView> prefix() const {return prefix_.span();}
 
-    size_t suffix_size() const {
-        return suffix_size_;
-    }
+    const KeyView& suffix_key_view() const {return suffix_key_;}
+    Key suffix_key() const {return suffix_key_;}
 
-    Span<const Value> prefix() const {return Span<const Value>{prefix_, prefix_size_};}
-    Span<const Value> suffix() const {return Span<const Value>{suffix_, suffix_size_};}
+    Span<const ValueView> suffix() const {return suffix_.span();}
 
-    const Key& suffix_key() const {return suffix_key_;}
-
-    bool has_prefix() const {return prefix_ != nullptr;}
+    bool has_prefix() const {return prefix_.array().size() > 0;}
     bool has_suffix() const {return has_suffix_;}
+
     bool is_first_iteration() const {return iteration_num_ == 1;}
 
-    Span<const Entry> entries() const {
-        return body_.span();
+    Span<const KeyView> keys() const
+    {
+        return keys_.span();
     }
 
-    const Entry& entry(size_t idx) const {
-        return body_.span()[idx];
+    Span<const Span<const ValueView>> values() const
+    {
+        return values_.span();
     }
+
 
     bool has_entries() const {
-        return body_.size() > 0;
+        return values_.array().size() > 0;
     }
 
-    Span<const Value> buffer() const {
-        return suffix_buffer_.span();
-    }
-
-    bool is_buffer_ready() const {
-        return buffer_is_ready_;
-    }
-
-    bool is_buffered() const {return use_buffered_;}
-    virtual void set_buffered() = 0;
-
-    void next_buffer()
-    {
-        do {
-            next();
-        }
-        while (!is_buffer_ready());
-    }
 
     virtual bool is_end() const     = 0;
     virtual void next()             = 0;
     virtual void dump_iterator() const = 0;
 
-
-    void for_each_buffered(std::function<void (Key, Span<const Value>)> fn)
-    {
-        this->set_buffered();
-
-        while (!this->is_end())
-        {
-            if ((!this->is_first_iteration()) && this->is_buffer_ready())
-            {
-                fn(this->suffix_key(), this->buffer());
-            }
-
-            if (this->has_entries())
-            {
-                for (auto& entry: this->entries())
-                {
-                    fn(*entry.key, entry.values);
-                }
-            }
-
-            this->next();
-        }
-    }
-
-    void for_each_buffered(int64_t size, std::function<void (Key, Span<const Value>)> fn)
-    {
-        this->set_buffered();
-
-        int64_t cnt{};
-
-        while (!this->is_end())
-        {
-            if (cnt == size) {
-                return;
-            }
-
-            if ((!this->is_first_iteration()) && this->is_buffer_ready())
-            {
-                fn(this->suffix_key(), this->buffer());
-                cnt++;
-            }
-
-            if (cnt == size) {
-                return;
-            }
-
-            if (this->has_entries())
-            {
-                for (auto& entry: this->entries())
-                {
-                    if (cnt == size) {
-                        return;
-                    }
-
-                    fn(*entry.key, entry.values);
-                    cnt++;
-                }
-            }
-
-            this->next();
-        }
-    }
 };
 
 
-template <typename Value>
+template <typename Types, typename Profile>
 class IValuesIterator {
+public:
+    using Value_ = typename Types::Value;
+    using ValueView = typename DataTypeTraits<Value_>::ViewType;
+    using Value = typename DataTypeTraits<Value_>::ValueType;
 protected:
     const Value* values_{};
     size_t size_{};
@@ -228,8 +288,17 @@ public:
 };
 
 
-template <typename Key, typename Value>
+template <typename Types, typename Profile>
 class IKeysIterator {
+public:
+    using Key_ = typename Types::Key;
+    using Value_ = typename Types::Value;
+
+    using KeyView   = typename DataTypeTraits<Key_>::ViewType;
+    using ValueView = typename DataTypeTraits<Value_>::ViewType;
+
+    using Key   = typename DataTypeTraits<Key_>::ValueType;
+    using Value = typename DataTypeTraits<Value_>::ValueType;
 protected:
     const Key* keys_{};
     size_t size_{};
@@ -246,7 +315,7 @@ public:
         return Span<const Key>{keys_, size_};
     }
 
-    virtual CtrSharedPtr<IValuesIterator<Value>> values(size_t key_idx) = 0;
+    virtual CtrSharedPtr<IValuesIterator<Types, Profile>> values(size_t key_idx) = 0;
 
     virtual bool is_end() const         = 0;
     virtual void next()                 = 0;

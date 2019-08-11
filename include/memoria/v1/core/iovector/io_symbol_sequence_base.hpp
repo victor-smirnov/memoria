@@ -95,6 +95,20 @@ public:
         }
     }
 
+    size_t rank(int32_t symbol) const
+    {
+        size_t sum{};
+
+        for (auto& run: span())
+        {
+            if (run.symbol == symbol) {
+                sum += run.length;
+            }
+        }
+
+        return sum;
+    }
+
 private:
     void split_head()
     {

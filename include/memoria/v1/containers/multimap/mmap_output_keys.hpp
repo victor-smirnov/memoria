@@ -22,9 +22,16 @@ namespace memoria {
 namespace v1 {
 namespace mmap {
 
-template <typename Key, typename Value, typename IteratorPtr>
-class KeysIteratorImpl: public IKeysIterator<Key, Value> {
-    using Base = IKeysIterator<Key, Value>;
+template <typename Types, typename Profile, typename IteratorPtr>
+class KeysIteratorImpl: public IKeysIterator<Types, Profile> {
+    using Base = IKeysIterator<Types, Profile>;
+
+    using typename Base::KeyView;
+    using typename Base::Key;
+    using typename Base::ValueView;
+    using typename Base::Value;
+
+
 
     using Base::keys_;
     using Base::size_;
@@ -58,15 +65,15 @@ public:
         iter_->dump();
     }
 
-    virtual CtrSharedPtr<IValuesIterator<Value>> values(size_t key_idx)
+    virtual CtrSharedPtr<IValuesIterator<Types, Profile>> values(size_t key_idx)
     {
         auto ii = iter_->clone();
 
         ii->selectFw(key_idx, 0);
         ii->to_values();
 
-        auto ptr = ctr_make_shared<mmap::ValuesIteratorImpl<Value, IteratorPtr>>(ii);
-        return memoria_static_pointer_cast<IValuesIterator<Value>>(ptr);
+        auto ptr = ctr_make_shared<mmap::ValuesIteratorImpl<Types, Profile, IteratorPtr>>(ii);
+        return memoria_static_pointer_cast<IValuesIterator<Types, Profile>>(ptr);
     }
 
 private:

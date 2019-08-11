@@ -47,6 +47,10 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
     using Key   = Key_;
     using Value = Value_;
 
+
+    using KeyV   = typename DataTypeTraits<Key_>::ValueType;
+    using ValueV = typename DataTypeTraits<Value_>::ValueType;
+
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 mmap::CtrApiName
@@ -62,19 +66,23 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
 
 template <
     typename Profile,
-    typename Key,
-    typename Value
+    typename Key_,
+    typename Value_
 >
-struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> {
+struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key_, Value_> {
 
-    using Base = MultimapBTTypesBaseBase<Profile, Key, Value>;
+    using Base = MultimapBTTypesBaseBase<Profile, Key_, Value_>;
 
     using CtrSizeT = typename Base::CtrSizeT;
+
+
+    using KeyV   = typename DataTypeTraits<Key_>::ValueType;
+    using ValueV = typename DataTypeTraits<Value_>::ValueType;
 
     using FirstStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
-            TL<typename mmap::MMapKeyStructTF<Key>::Type>
+            TL<typename mmap::MMapKeyStructTF<KeyV>::Type>
         >,
         mmap::MMapBranchStructTF
     >;
@@ -82,7 +90,7 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
     using DataStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
-            TL<typename mmap::MMapValueStructTF<Value>::Type>
+            TL<typename mmap::MMapValueStructTF<ValueV>::Type>
         >,
         mmap::MMapBranchStructTF
     >;

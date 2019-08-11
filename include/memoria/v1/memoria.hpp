@@ -39,6 +39,8 @@ struct StaticLibraryCtrs {
         ICtrApi<Map<Varchar, Varchar>, ProfileT>::init_profile_metadata();
         ICtrApi<Map<BigInt, Varchar>, ProfileT>::init_profile_metadata();
         ICtrApi<Map<BigInt, BigInt>, ProfileT>::init_profile_metadata();
+        ICtrApi<Multimap<BigInt, UTinyInt>, ProfileT>::init_profile_metadata();
+
 //        CtrApi<Multimap<int64_t, uint8_t>, ProfileT>::do_link();
 //        CtrApi<Multimap<UUID, uint8_t>, ProfileT>::do_link();
 //        CtrApi<EdgeMap, ProfileT>::do_link();

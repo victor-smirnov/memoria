@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-set (CTR_INST lib/map_int64_string_dflt.cpp)
+#set (CTR_INST lib/map_int64_string_dflt.cpp)
 set (CTR_INST ${CTR_INST} lib/vector_int_dflt.cpp)
 set (CTR_INST ${CTR_INST} lib/vector_ubyte_dflt.cpp)
 set (CTR_INST ${CTR_INST} lib/vector_string_dflt.cpp)
@@ -48,6 +48,9 @@ ENDMACRO()
 #Example(map_iovector_ss_lw map_iovector_ss_lw.cpp lib/vector_string_dflt.cpp "")
 
 
-Example(typesig typesig.cpp "" "")
+Example(map_example map_example.cpp "" "")
+Example(multimap_example multimap_example.cpp "" "")
+
+
 
 Example(store store.cpp "" "")

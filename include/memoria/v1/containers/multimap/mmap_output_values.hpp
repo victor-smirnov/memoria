@@ -22,9 +22,13 @@ namespace memoria {
 namespace v1 {
 namespace mmap {
 
-template <typename Value, typename IteratorPtr>
-class ValuesIteratorImpl: public IValuesIterator<Value> {
-    using Base = IValuesIterator<Value>;
+template <typename Types, typename Profile, typename IteratorPtr>
+class ValuesIteratorImpl: public IValuesIterator<Types, Profile> {
+    using Base = IValuesIterator<Types, Profile>;
+
+    using typename Base::ValueView;
+    using typename Base::Value;
+
 
     using Base::values_;
     using Base::size_;

@@ -21,15 +21,26 @@ namespace memoria {
 namespace v1 {
 namespace io {
 
-template <typename Key, typename Value>
+template <typename Types>
 class MultimapEntryIOVector: public io::IOVector {
 
+public:
+    using Key   = typename Types::Key;
+    using Value = typename Types::Value;
+
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using ValueView = typename DataTypeTraits<Value>::ViewType;
+
+    using KeyV   = typename DataTypeTraits<Key>::ValueType;
+    using ValueV = typename DataTypeTraits<Value>::ValueType;
+
+private:
     static constexpr int32_t SubstreamsNum = 2;
 
     PackedRLESymbolSequence<2> symbol_sequence_;
 
-    using KeysSubstream = IOColumnwiseFixedSizeArraySubstreamViewImpl<Key, 1>;
-    using DataSubstream = IORowwiseFixedSizeArraySubstreamViewImpl<Value, 1>;
+    using KeysSubstream = IOColumnwiseFixedSizeArraySubstreamViewImpl<KeyV, 1>;
+    using DataSubstream = IORowwiseFixedSizeArraySubstreamViewImpl<ValueV, 1>;
 
     KeysSubstream keys_substream_;
     DataSubstream data_substream_;
@@ -39,9 +50,9 @@ class MultimapEntryIOVector: public io::IOVector {
     core::StaticVector<IOSubstream*, 2> substreams_;
 
 public:
-    MultimapEntryIOVector(const Key* key, const Value* values, size_t values_size)
+    MultimapEntryIOVector(const KeyV* key, const ValueV* values, size_t values_size)
     {
-        FixedSizeArrayColumnMetadata<Key> keys_meta{const_cast<Key*>(key), 1, 1};
+        FixedSizeArrayColumnMetadata<KeyV> keys_meta{const_cast<KeyV*>(key), 1, 1};
         keys_substream_.configure(&keys_meta);
         data_substream_.configure(values, values_size);
         schema_.push_back(1);

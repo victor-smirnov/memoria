@@ -31,6 +31,8 @@
 #include <memoria/v1/containers/multimap/mmap_output_entries.hpp>
 #include <memoria/v1/containers/multimap/mmap_output_values.hpp>
 
+#include <memoria/v1/api/datatypes/traits.hpp>
+
 #include <iostream>
 
 namespace memoria {
@@ -49,6 +51,11 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mmap::ItrMiscName)
     using Key       = typename Container::Types::Key;
     using Value     = typename Container::Types::Value;
 
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using ValueView = typename DataTypeTraits<Value>::ViewType;
+    using KeyV      = typename DataTypeTraits<Key>::ValueType;
+    using ValueV    = typename DataTypeTraits<Value>::ValueType;
+
     using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
 
     static constexpr int32_t DataStreams            = Container::Types::DataStreams;
@@ -56,7 +63,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mmap::ItrMiscName)
 
 public:
 
-    Key key() const
+    KeyV key() const
     {
         auto& self = this->self();
 
@@ -72,7 +79,7 @@ public:
         }
     }
 
-    Value value() const
+    ValueV value() const
     {
         auto& self = this->self();
 
@@ -152,7 +159,7 @@ public:
         return self.rank(0);
     }
 
-    void insert_key(const Key& key)
+    void insert_key(const KeyView& key)
     {
         auto& self = this->self();
 
@@ -167,7 +174,7 @@ public:
         self.template insert_entry<0>(bt::SingleValueEntryFn<0, Key, CtrSizeT>(key));
     }
 
-    void insert_value(const Value& value)
+    void insert_value(const ValueView& value)
     {
         auto& self = this->self();
         
@@ -187,7 +194,7 @@ public:
         return self().substream_size();
     }
 
-    bool is_found(const Key& key)
+    bool is_found(const KeyView& key)
     {
         auto& self = this->self();
         if (!self.isEnd())

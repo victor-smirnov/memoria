@@ -20,6 +20,7 @@
 #include <memoria/v1/api/multimap/multimap_output.hpp>
 #include <memoria/v1/api/multimap/multimap_input.hpp>
 #include <memoria/v1/api/multimap/multimap_entry.hpp>
+#include <memoria/v1/api/multimap/multimap_producer.hpp>
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
@@ -28,163 +29,136 @@
 #include <memoria/v1/api/datatypes/traits.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
+#include <memoria/v1/api/multimap/multimap_api_factory.hpp>
+
 #include <memory>
 #include <tuple>
 
 namespace memoria {
 namespace v1 {
 
-template <typename Key, typename Value>
-class Multimap {
-    Key key_;
-    Value value_;
-public:
-    Multimap(): key_(), value_() {}
 
-    Multimap(Key key, Value value):
-        key_(key), value_(value)
-    {}
-
-    const Key& key() const {return key_;}
-    const Value value() const {return value_;}
-};
 
 template <typename Key_, typename Value_, typename Profile>
-class CtrApi<Multimap<Key_, Value_>, Profile>: public CtrApiBTFLBase<Multimap<Key_, Value_>, Profile> {
+class ICtrApi<Multimap<Key_, Value_>, Profile>: public CtrReferenceable {
 public:
     using Key = Key_;
     using Value = Value_;
-    using DataValue = std::tuple<Key, Value>;
-private:
-    using MapT = Multimap<Key, Value>;
-    
-    using Base = CtrApiBTFLBase<Multimap<Key, Value>, Profile>;
-    using typename Base::AllocatorT;
-    using typename Base::CtrT;
-    using typename Base::CtrPtr;
 
-    using typename Base::Iterator;
-    
+
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using ValueView = typename DataTypeTraits<Value>::ViewType;
+
+    using ApiTypes  = ICtrApiTypes<Multimap<Key, Value>, Profile>;
+
+    using Producer      = MultimapProducer<ApiTypes>;
+    using ProducerFn    = typename Producer::ProducerFn;
+
 public:
-    using typename Base::CtrID;
-    using typename Base::CtrSizeT;
+
     
     static constexpr int32_t DataStreams = 2;
+    using CtrSizeT  = ProfileCtrSizeT<Profile>;
     using CtrSizesT = ProfileCtrSizesT<Profile, DataStreams + 1>;
     
-    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
+    virtual bool contains(const KeyView& key) = 0;
+    virtual bool remove(const KeyView& key) = 0;
 
-    bool contains(const Key& key);
-    bool remove(const Key& key);
+    virtual bool remove_all(const KeyView& from, const KeyView& to) = 0; //[from, to)
+    virtual bool remove_from(const KeyView& from) = 0; //[from, end)
+    virtual bool remove_before(const KeyView& to) = 0; //[begin, to)
 
-    bool remove_all(const Key& from, const Key& to); //[from, to)
-    bool remove_from(const Key& from); //[from, end)
-    bool remove_before(const Key& to); //[begin, to)
+    virtual CtrSizeT size() const = 0;
 
-    int64_t size() const;
+    virtual CtrSharedPtr<IEntriesIterator<ApiTypes, Profile>> seek_entry(CtrSizeT pos) = 0;
 
-    CtrSharedPtr<IEntriesIterator<Key,Value>> seek(CtrSizeT pos);
-    CtrSharedPtr<IValuesIterator<Value>> find(Key key);
-    CtrSharedPtr<IKeysIterator<Key, Value>> keys();
+    virtual CtrSharedPtr<IValuesIterator<ApiTypes, Profile>> find_entry(KeyView key) = 0;
+    virtual CtrSharedPtr<IKeysIterator<ApiTypes, Profile>> keys() = 0;
+
+    bool upsert(KeyView key, ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        return upsert(key, producer);
+    }
+
+
+    bool upsert(KeyView key, Span<const ValueView> data)
+    {
+        return upsert(key, [&](auto& seq, auto& keys, auto& values, auto& sizes){
+            seq.append(1, data.size());
+            values.append_buffer(data);
+            return true;
+        });
+    }
 
     // returns true if the entry was updated, and false if new entry was inserted
-    bool upsert(Key key, io::IOVectorProducer& producer);
-    bool upsert(Key key, absl::Span<const Value> span);
+    virtual bool upsert(KeyView key, io::IOVectorProducer& producer) = 0;
 
-    void append_entries(io::IOVectorProducer& producer);
-    void append_entry(Key key, absl::Span<const Value> span);
-
-    void prepend_entries(io::IOVectorProducer& producer);
-    void prepend_entry(Key key, absl::Span<const Value> span);
-
-    void insert_entries(Key before, io::IOVectorProducer& producer);
-    void insert_entry(Key before, Key key, absl::Span<const Value> span);
-};
-
-
-template <typename Key, typename Value, typename Profile> 
-class IterApi<Multimap<Key, Value>, Profile>: public IterApiBTFLBase<Multimap<Key, Value>, Profile> {
-    
-    using Base = IterApiBTFLBase<Multimap<Key, Value>, Profile>;
-    
-    using typename Base::IterT;
-    using typename Base::IterPtr;
-    
-public:
-    using typename Base::CtrSizeT;
-    
-    static constexpr int32_t DataStreams = CtrApi<Multimap<Key, Value>, Profile>::DataStreams;
-    using CtrSizesT = typename CtrApi<Multimap<Key, Value>, Profile>::CtrSizesT;
-    
-    using DataValue = std::tuple<Key, Value>;
-    
-    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
-    
-    Key key() const;
-    Value value() const;
-    
-    bool is_end();
-    
-    bool next_key();
-    void to_prev_key();
-    int64_t skipFw(int64_t offset) const;
-    
-    int64_t count_values() const;
-    int64_t run_pos() const;
-    int64_t key_pos() const;
-
-    void insert_key(const Key& key);
-    void insert_value(const Value& value);
-    
-    std::vector<Value> read_values(int64_t size = std::numeric_limits<int64_t>::max());
-    
-    int64_t remove(int64_t length = 1);
-
-    int64_t values_size() const;
-
-    bool is_found(const Key& key);
-
-    bool to_values();
-};
-
-template <typename Key, typename Value>
-struct TypeHash<Multimap<Key, Value>>: UInt64Value<
-    HashHelper<1102, TypeHashV<Key>, TypeHashV<Value>>
-> {};
-
-template <typename Key, typename Value>
-struct DataTypeTraits<Multimap<Key, Value>> {
-    using CxxType   = EmptyType;
-    using InputView = EmptyType;
-    using Ptr       = EmptyType*;
-
-    using Parameters = TL<Key, Value>;
-
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
-    static constexpr bool IsParametrised      = true;
-    static constexpr bool HasTypeConstructors = false;
-
-    static void create_signature(SBuf& buf, const Multimap<Key, Value>& obj)
-    {
-        buf << "Multimap<";
-
-        DataTypeTraits<Key>::create_signature(buf, obj.key());
-        buf << ", ";
-        DataTypeTraits<Value>::create_signature(buf, obj.value());
-
-        buf << ">";
+    void append_entries(ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        append_entries(producer);
     }
 
-    static void create_signature(SBuf& buf)
+    void append_entry(KeyView key, Span<const ValueView> data)
     {
-        buf << "Multimap<";
+        append_entries([&](auto& seq, auto& keys, auto& values, auto& sizes){
+            seq.append(0, 1);
+            keys.append(key);
 
-        DataTypeTraits<Key>::create_signature(buf);
-        buf << ", ";
-        DataTypeTraits<Value>::create_signature(buf);
+            seq.append(1, data.size());
+            values.append_buffer(data);
 
-        buf << ">";
+            return true;
+        });
     }
+
+    virtual void append_entries(io::IOVectorProducer& producer) = 0;
+
+
+    void prepend_entries(ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        prepend_entries(producer);
+    }
+
+    void prepend_entry(KeyView key, Span<const ValueView> data)
+    {
+        prepend_entries([&](auto& seq, auto& keys, auto& values, auto& sizes){
+            seq.append(0, 1);
+            keys.append(key);
+
+            seq.append(1, data.size());
+            values.append_buffer(data);
+
+            return true;
+        });
+    }
+
+
+    virtual void prepend_entries(io::IOVectorProducer& producer) = 0;
+
+
+    void insert_entries(KeyView before, ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        insert_entries(before, producer);
+    }
+
+    void insert_entry(KeyView before, KeyView key, Span<const ValueView> data)
+    {
+        insert_entries(before, [&](auto& seq, auto& keys, auto& values, auto& sizes){
+            seq.append(0, 1);
+            keys.append(key);
+
+            seq.append(1, data.size());
+            values.append_buffer(data);
+
+            return true;
+        });
+    }
+
+    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer) = 0;
+
+    MMA1_DECLARE_ICTRAPI();
 };
+
+
     
 }}
