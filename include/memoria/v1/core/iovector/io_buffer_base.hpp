@@ -76,6 +76,14 @@ protected:
         return buffer_.get();
     }
 
+    const ValueT* data() const {
+        return buffer_.get();
+    }
+
+    ValueT* data() {
+        return buffer_.get();
+    }
+
     ValueT& head() {
         return *(buffer_.get() + size_ - 1);
     }
@@ -96,6 +104,14 @@ protected:
     {
         ensure(size);
         MemCpyBuffer(values, buffer_.get() + size_, size);
+        size_ += size;
+    }
+
+    void append_values(Span<const ValueT> values)
+    {
+        size_t size = values.size();
+        ensure(size);
+        MemCpyBuffer(values.data(), buffer_.get() + size_, size);
         size_ += size;
     }
 
@@ -192,6 +208,7 @@ public:
     using Base::head;
     using Base::tail;
     using Base::tail_ptr;
+    using Base::data;
     using Base::remaining;
     using Base::reset;
     using Base::span;

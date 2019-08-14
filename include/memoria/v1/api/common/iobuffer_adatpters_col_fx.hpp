@@ -35,8 +35,10 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
     using ValueView = typename DataTypeTraits<DataType>::ViewType;
     using ValueType = typename DataTypeTraits<DataType>::ValueType;
 
+    using AtomType  = ValueType;
+
     using SubstreamT = typename io::IOSubstreamInterfaceTF<
-        ValueView,
+        ValueType,
         true, // ColumnWise
         true // FixedSize
     >::Type;
@@ -55,15 +57,15 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
         return subs.select(column, row);
     }
 
-    template <typename BufferView>
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, BufferView& buffer)
+
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, Span<const ValueType>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        io::FixedSizeArrayColumnMetadata<const ValueView> descr = subs.describe(column);
+        io::FixedSizeArrayColumnMetadata<const ValueType> descr = subs.describe(column);
 
         if (start + size <= descr.size)
         {
-            buffer = BufferView(descr.data_buffer + start, size);
+            buffer = Span<const ValueType>(descr.data_buffer + start, size);
         }
         else {
             MMA1_THROW(RuntimeException())
@@ -72,6 +74,13 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
                            start, size, descr.size
                        );
         }
+    }
+
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, io::DefaultIOBuffer<ValueType>& buffer)
+    {
+        const auto& subs = io::substream_cast<SubstreamT>(substream);
+        io::FixedSizeArrayColumnMetadata<const ValueType> descr = subs.describe(column);
+        buffer.append(Span<const ValueType>(descr.data_buffer + start, size));
     }
 
     template <typename ItemView>

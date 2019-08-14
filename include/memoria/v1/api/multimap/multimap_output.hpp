@@ -18,6 +18,8 @@
 #include <memoria/v1/api/common/ctr_output_btfl_entries.hpp>
 #include <memoria/v1/api/common/ctr_output_btfl_run.hpp>
 
+#include <memoria/v1/api/multimap/multimap_output_adapters.hpp>
+
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/iovector/io_symbol_sequence.hpp>
@@ -29,140 +31,6 @@
 
 namespace memoria {
 namespace v1 {
-
-namespace _ {
-
-    template <
-        typename DataType,
-        typename ViewType = typename DataTypeTraits<DataType>::ViewType,
-        bool IsFixedSize = DataTypeTraits<DataType>::isFixedSize
-    >
-    class MMapSubstreamAdapter;
-
-    template <typename DataType, typename ViewType>
-    class MMapSubstreamAdapter<DataType, ViewType, true> {
-        Span<const ViewType> array_;
-
-    public:
-        auto& array() {return array_;}
-        const auto& array() const {return array_;}
-        Span<const ViewType> span() const {return array_;}
-        void clear() {}
-    };
-
-
-    template <typename DataType, typename ViewType>
-    class MMapSubstreamAdapter<DataType, ViewType, false> {
-        io::DefaultIOBuffer<ViewType> array_;
-
-    public:
-        auto& array() {return array_;}
-        const auto& array() const {return array_;}
-        Span<const ViewType> span() const {return array_;}
-        void clear() {
-            array_.clear();
-        }
-    };
-
-
-
-
-    template <
-        typename DataType,
-        typename ViewType = typename DataTypeTraits<DataType>::ViewType,
-        bool IsFixedSize = DataTypeTraits<DataType>::isFixedSize
-    >
-    class MMapValueGroupsAdapter;
-
-
-    template <typename DataType, typename ViewType>
-    class MMapValueGroupsAdapter<DataType, ViewType, true> {
-
-        io::DefaultIOBuffer<Span<const ViewType>> array_;
-
-    public:
-        auto& array() {return array_;}
-        const auto& array() const {return array_;}
-        Span<const Span<const ViewType>> span() const {return array_.span();}
-        void clear() {
-            array_.clear();
-        }
-
-        template <typename SubstreamAdapter, typename Parser>
-        auto populate(const io::IOSubstream& substream, Parser& parser, int32_t values_offset, size_t start, size_t end)
-        {
-            const ViewType* values = SubstreamAdapter::select(substream, 0, values_offset);
-
-            size_t keys_num{};
-            size_t values_end = values_offset;
-
-            for (size_t c = start; c < end;)
-            {
-                auto& run = parser.buffer()[c];
-                if (MMA1_LIKELY(run.symbol == 0))
-                {
-                    keys_num++;
-                    uint64_t keys_run_length = run.length;
-                    if (MMA1_LIKELY(keys_run_length == 1)) // typical case
-                    {
-                        auto& next_run = parser.buffer()[c + 1];
-
-                        if (MMA1_LIKELY(next_run.symbol == 1))
-                        {
-                            uint64_t values_run_length = next_run.length;
-                            array_.append_value(absl::Span<const ViewType>(values, values_run_length));
-
-                            values += values_run_length;
-                            values_end += values_run_length;
-                            c += 2;
-                        }
-                        else {
-                            // zero-length value
-                            array_.append_value(absl::Span<const ViewType>(values, 0));
-                            c += 1;
-                        }
-                    }
-                    else
-                    {
-                        // A series of keys with zero-length values
-                        for (uint64_t s = 0; s < keys_run_length; s++)
-                        {
-                            array_.append_value(absl::Span<const ViewType>(nullptr, 0));
-                        }
-
-                        c += 1;
-                    }
-                }
-                else {
-                    MMA1_THROW(RuntimeException()) << WhatCInfo("Unexpected NON-KEY symbol in streams structure");
-                }
-            }
-
-            return std::make_tuple(values_end, keys_num);
-        }
-    };
-
-
-    template <typename DataType, typename ViewType>
-    class MMapValueGroupsAdapter<DataType, ViewType, false>
-    {
-        io::DefaultIOBuffer<Span<const ViewType>> array_;
-        io::DefaultIOBuffer<ViewType> values_;
-
-    public:
-        auto& array() {return array_;}
-        const auto& array() const {return array_;}
-        auto& values() {return values_;}
-        const auto& values() const {return values_;}
-
-        Span<const Span<const ViewType>> span() const {return array_.tail_ptr();}
-        void clear() {
-            values_.clear();
-            array_.clear();
-        }
-    };
-
-}
 
 template <typename Types, typename Profile>
 class IEntriesIterator {
@@ -184,8 +52,12 @@ protected:
     using KeysIOVSubstreamAdapter   = IOSubstreamAdapter<Select<0, IOVSchema>>;
     using ValuesIOVSubstreamAdapter = IOSubstreamAdapter<Select<1, IOVSchema>>;
 
+    using ValuesBufferAtomType      = typename ValuesIOVSubstreamAdapter::AtomType;
+
     core::StaticVector<uint64_t, 2> offsets_;
     DefaultBTFLSequenceParser<2> parser_;
+
+
 
 protected:
 
@@ -200,13 +72,100 @@ protected:
     KeyView suffix_key_;
     _::MMapSubstreamAdapter<Value_> suffix_;
 
+    _::MMapValuesBufferAdapter<Value_, ValuesBufferAtomType> suffix_buffer_;
+
     uint64_t iteration_num_{};
+
+public:
+
+    using EntryProcessorFn = std::function<void (uint64_t, KeyView, Span<const ValueView>, bool, bool)>;
+    using BufferedEntryProcessorFn = std::function<void (KeyView, Span<const ValueView>)>;
+
 public:
     IEntriesIterator(uint32_t start):
         parser_(start)
     {}
 
     virtual ~IEntriesIterator() noexcept {}
+
+    void for_each(EntryProcessorFn proc)
+    {
+        if (!is_end())
+        {
+            KeyView no_key{};
+
+            bool has_prefix = false;
+            uint64_t seq_id{};
+
+            while (!is_end())
+            {
+                if (has_prefix)
+                {
+                    bool is_run_end = has_suffix();
+                    proc(seq_id, no_key, prefix(), false, is_run_end);
+
+                    if (is_run_end) {
+                        seq_id++;
+                    }
+                }
+
+                auto keys   = this->keys();
+                auto values = this->values();
+
+                for (size_t c = 0; c < keys.size(); c++, seq_id++)
+                {
+                    proc(seq_id, keys[c], values[c], true, true); // fully available values
+                }
+
+                if (has_suffix())
+                {
+                    proc(seq_id, suffix_key_view(), suffix(), true, false);
+                    has_prefix = true;
+                }
+
+                next();
+            }
+
+            proc(seq_id, no_key, Span<const ValueView>(), false, true);
+        }
+    }
+
+
+    void for_each(BufferedEntryProcessorFn proc)
+    {
+        if (!is_end())
+        {
+            Key last_suffix_key{};
+
+            bool has_prefix = false;
+
+            while (!is_end())
+            {
+                if (has_prefix)
+                {
+                    proc(last_suffix_key, suffix_buffer_.span());
+                }
+
+                auto keys   = this->keys();
+                auto values = this->values();
+
+                for (size_t c = 0; c < keys.size(); c++)
+                {
+                    proc(keys[c], values[c]); // fully available values
+                }
+
+                if (has_suffix()) {
+                    last_suffix_key = suffix_key();
+                }
+
+                fill_suffix_buffer();
+
+                has_prefix = true;
+            }
+
+            proc(last_suffix_key, suffix_buffer_.span());
+        }
+    }
 
     Span<const ValueView> prefix() const {return prefix_.span();}
 
@@ -236,8 +195,10 @@ public:
     }
 
 
+    virtual void fill_suffix_buffer() = 0;
+
     virtual bool is_end() const     = 0;
-    virtual void next()             = 0;
+    virtual bool next()             = 0;
     virtual void dump_iterator() const = 0;
 
 };
@@ -249,13 +210,21 @@ public:
     using Value_ = typename Types::Value;
     using ValueView = typename DataTypeTraits<Value_>::ViewType;
     using Value = typename DataTypeTraits<Value_>::ValueType;
+
+    using IOVSchema = Linearize<typename Types::IOVSchema>;
+
+
 protected:
-    const Value* values_{};
+    using ValuesIOVSubstreamAdapter = IOSubstreamAdapter<Select<1, IOVSchema>>;
+    using ValuesBufferAtomType      = typename ValuesIOVSubstreamAdapter::AtomType;
+
+    _::MMapSubstreamAdapter<Value_> values_;
+    _::MMapValuesBufferAdapter<Value_, ValuesBufferAtomType> values_buffer_;
+
     size_t size_{};
 
-    bool use_buffered_{};
-
-    bool buffer_is_ready_{false};
+//    bool use_buffered_{};
+//    bool buffer_is_ready_{false};
 
 public:
     IValuesIterator()
@@ -263,24 +232,24 @@ public:
 
     virtual ~IValuesIterator() noexcept {}
 
-    Span<const Value> buffer() const {
-        return Span<const Value>{values_, size_};
+    Span<const ValueView> buffer() const {
+        return values_.span();
     }
 
-    bool is_buffer_ready() const {
-        return buffer_is_ready_;
-    }
+//    bool is_buffer_ready() const {
+//        return buffer_is_ready_;
+//    }
 
-    void read_buffer()
-    {
-        set_buffered();
-        while (!is_buffer_ready()) {
-            next();
-        }
-    }
+//    void read_buffer()
+//    {
+//        set_buffered();
+//        while (!is_buffer_ready()) {
+//            next();
+//        }
+//    }
 
-    bool is_buffered() const {return use_buffered_;}
-    virtual void set_buffered() = 0;
+//    bool is_buffered() const {return use_buffered_;}
+//    virtual void set_buffered() = 0;
 
     virtual bool is_end() const     = 0;
     virtual void next()             = 0;

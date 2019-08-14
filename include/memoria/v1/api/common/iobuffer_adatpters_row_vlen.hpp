@@ -33,7 +33,8 @@ template <typename DataType, template <typename CxxType> class ValueCodec>
 struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, false>
 {
     using ValueView = typename DataTypeTraits<DataType>::ViewType;
-    using Codec = ValueCodec<ValueView>;
+    using Codec     = ValueCodec<ValueView>;
+    using AtomType  = typename Codec::BufferType;
 
     using SubstreamT = typename io::IOSubstreamInterfaceTF<
         ValueView,
@@ -51,8 +52,14 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, f
     {}
 
 
-    template <typename Buffer>
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, Buffer& buffer)
+    static const auto* select(const io::IOSubstream& substream, int32_t column, int32_t row)
+    {
+        const auto& subs = io::substream_cast<SubstreamT>(substream);
+        return subs.select(row);
+    }
+
+
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, io::DefaultIOBuffer<ValueView>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
         if (subs.columns() == 1)
@@ -80,6 +87,52 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, f
                                start, size, subs.size()
                            );
             }
+        }
+        else {
+            MMA1_THROW(RuntimeException())
+                << WhatCInfo("Multicolumn RowWise substreams are not yet supported");
+        }
+    }
+
+    static void read_to(
+        const io::IOSubstream& substream,
+        int32_t column,
+        int32_t start,
+        int32_t size,
+        io::DefaultIOBuffer<AtomType>& raw_data,
+        io::DefaultIOBuffer<ValueView>& array
+    )
+    {
+        const auto& subs = io::substream_cast<SubstreamT>(substream);
+        if (subs.columns() == 1)
+        {
+            auto data_buffer = subs.select(start);
+            raw_data.append_values(Span<const AtomType>(data_buffer, size));
+
+            if (start + size <= subs.size())
+            {
+                auto data_buffer = subs.select(start);
+
+                Codec codec;
+                size_t pos = 0;
+                for (int32_t c = 0; c < size; c++)
+                {
+                    ValueView vv;
+                    size_t len = codec.decode(data_buffer, vv, pos);
+
+                    array.emplace_back(std::move(vv));
+
+                    pos += len;
+                }
+            }
+            else {
+                MMA1_THROW(RuntimeException())
+                        << fmt::format_ex(
+                               u"Substream range check: start = {}, size = {}, size = {}",
+                               start, size, subs.size()
+                           );
+            }
+
         }
         else {
             MMA1_THROW(RuntimeException())

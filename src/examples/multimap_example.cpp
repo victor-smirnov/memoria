@@ -37,8 +37,8 @@ int main()
 
     try {
 
-        using MultimapType = Multimap<BigInt, UTinyInt>;
-        using Entry   = std::pair<int64_t, std::vector<uint8_t>>;
+        using MultimapType = Multimap<Varchar, Varchar>;
+        using Entry   = std::pair<U8String, std::vector<U8String>>;
 
         auto alloc = IMemoryStore<>::create();
 
@@ -53,10 +53,17 @@ int main()
 
         std::vector<Entry> entries_;
 
-        for (int c = 0; c < 10000; c++) {
+        for (int c = 0; c < 1000000; c++) {
+
+            std::vector<U8String> values;
+
+            for (int d = 0; d < 10; d++) {
+                values.push_back("BBBBBBBBBBBBBBBBBBBBB___BBBBBBBB__" + std::to_string(d) + "__" + std::to_string(c));
+            }
+
             entries_.emplace_back(Entry(
-                c,
-                std::vector<uint8_t>(128)
+                "AAAAAAAAAAAAAAAA__" + std::to_string(c),
+                std::move(values)
             ));
         }
 
@@ -92,8 +99,6 @@ int main()
 
         int64_t t1_i = getTimeInMillis();
 
-
-
         std::cout << "Inserted entries in " << (t1_i - t0_i) << " ms" << std::endl;
         std::cout << "Size = " << ctr0->size() << std::endl;
 
@@ -110,44 +115,66 @@ int main()
         size_t sum0 = 0;
 
 
-        int64_t key_;
-        io::DefaultIOBuffer<uint8_t> buffer;
-        bool has_prefix = false;
+        U8String key_;
+        //io::DefaultIOBuffer<uint8_t> buffer;
+        size_t buffer{};
 
-        while (!ii->is_end())
-        {
-//            if (ii->has_prefix())
+
+//        ii->for_each([&](uint64_t seq_id, auto key, auto values, bool start, bool end){
+//            if (start && end)
 //            {
-//                buffer.append_values()
+//                //std::cout << seq_id << " :: " << key << " -> " << values.size() << " FULL" << std::endl;
+//                std::cout << seq_id << " :: " << key << " size:" << values.size() << " FULL" << std::endl;
+
+////                for (auto& vv: values) {
+////                    std::cout << "\t" << vv << std::endl;
+////                }
+//            }
+//            else if (start)
+//            {
+//                key_ = key;
+//                buffer = 0;
+//                buffer += values.size();
+
+
+//                std::cout << seq_id << " :: " << key << " START " << std::endl;
+
+//                for (auto& vv: values) {
+//                    std::cout << "\t" << vv << std::endl;
+//                }
+//            }
+//            else if (end)
+//            {
+//                //buffer.append_values(values);
+//                buffer += values.size();
+//                std::cout << seq_id << " :: " << key_ << " -> " << buffer << " END " << "(" << values.size() << ")" << std::endl;
+//                for (auto& vv: values) {
+//                    std::cout << "\t" << vv << std::endl;
+//                }
+//            }
+//            else {
+////                buffer.append_values(values);
+//                buffer += values.size();
+//            }
+//        });
+
+
+
+        ii->for_each([&](auto key, auto values){
+            sum0 += values.size();
+
+//            std::cout << key << " -> " << values.size() << std::endl;
+
+//            for (auto& vv: values) {
+//                std::cout << "\t" << vv << std::endl;
 //            }
 
-//            std::cout   << "keys: "
-//                        << ii->keys().size()
-//                        << " values: "
-//                        << ii->values().size()
-//                        << " hap_prefix: "
-//                        << ii->has_prefix()
-//                        << " prefix_size: "
-//                        << ii->prefix().size()
-//                        << " has_suffix: "
-//                        << ii->has_suffix()
-//                        << " suffix_size: "
-//                        << ii->suffix().size()
-//                        << " suffix_key: "
-//                        << ii->suffix_key()
-//                        << " "
-//                        << std::endl;
+        });
 
-//            for (auto& key: ii->keys()) {
-//                std::cout << "\t" << key << std::endl;
-//            }
-
-            ii->next();
-        }
 
         int64_t t3 = getTimeInMillis();
 
-        std::cout << "Iterated over 10M entries in " << (t3 - t2) << " ms " << sum0 << std::endl;
+        std::cout << "Iterated over entries in " << (t3 - t2) << " ms " << sum0 << std::endl;
 
     }
     catch (MemoriaThrowable& th) {

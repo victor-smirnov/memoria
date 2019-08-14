@@ -40,11 +40,11 @@ int main()
     //using MapType = Map<BigInt, BigInt>;
     //using Entry   = std::pair<int64_t, int64_t>;
 
-//    using MapType = Map<Varchar, Varchar>;
-//    using Entry   = std::pair<U8String, U8String>;
+    using MapType = Map<Varchar, Varchar>;
+    using Entry   = std::pair<U8String, U8String>;
 
-    using MapType = Map<BigInt, Varchar>;
-    using Entry   = std::pair<int64_t, U8String>;
+//    using MapType = Map<BigInt, Varchar>;
+//    using Entry   = std::pair<int64_t, U8String>;
 
     auto alloc = IMemoryStore<>::create();
 
@@ -61,8 +61,8 @@ int main()
     for (int c = 0; c < 10000000; c++) {
         //entries_.emplace_back(Entry(c, -c));
         entries_.emplace_back(Entry(
-            c,
-            //"AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c),
+            //c,
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c),
             "BBBBBBBBBBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c)
         ));
     }
@@ -111,9 +111,11 @@ int main()
     {
         sum0 += ii.keys().size() + ii.values().size();
 
-//        for (size_t c = 0; c < ii.keys().size(); c++) {
-//            std::cout << ii.keys()[c] << " = " << ii.values()[c] << std::endl;
-//        }
+        auto keys = ii.keys();
+
+        for (size_t c = 0; c < keys.size(); c++) {
+            std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
+        }
 
         ii.next_leaf();
     }

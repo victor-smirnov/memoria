@@ -36,6 +36,8 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, t
     using ValueView = typename DataTypeTraits<DataType>::ViewType;
     using ValueType = typename DataTypeTraits<DataType>::ValueType;
 
+    using AtomType  = ValueType;
+
     using SubstreamT = typename io::IOSubstreamInterfaceTF<
         ValueView,
         false, // RowWise
@@ -57,8 +59,8 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, t
     }
 
 
-    template <typename BufferView>
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, BufferView& buffer)
+
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, Span<const ValueView>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
         if (subs.columns() == 1)
@@ -70,7 +72,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, t
             if (start + size <= subs_size)
             {
                 auto* ptr = subs.select(start);
-                buffer = BufferView(ptr, size);
+                buffer = Span<const ValueView>(ptr, size);
             }
             else {
                 MMA1_THROW(RuntimeException())
@@ -79,6 +81,20 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, t
                                start, size, subs_size
                         );
             }
+        }
+        else {
+            MMA1_THROW(RuntimeException())
+                << WhatCInfo("Multicolumn RowWise substreams are not yet supported");
+        }
+    }
+
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, io::DefaultIOBuffer<ValueType>& buffer)
+    {
+        const auto& subs = io::substream_cast<SubstreamT>(substream);
+        if (subs.columns() == 1)
+        {
+            auto* ptr = subs.select(start);
+            buffer.append_values(Span<const ValueType>(ptr, size));
         }
         else {
             MMA1_THROW(RuntimeException())

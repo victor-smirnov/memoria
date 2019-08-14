@@ -36,7 +36,8 @@ template <typename DataType, template <typename CxxType> class ValueCodec>
 struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>, false>
 {
     using ValueView = typename DataTypeTraits<DataType>::ViewType;
-    using Codec = ValueCodec<ValueView>;
+    using Codec     = ValueCodec<ValueView>;
+    using AtomType  = typename Codec::BufferType;
 
     using SubstreamT = typename io::IOSubstreamInterfaceTF<
         ValueView,
@@ -53,9 +54,14 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
         column_(column)
     {}
 
+    static const auto* select(const io::IOSubstream& substream, int32_t column, int32_t row)
+    {
+        const auto& subs = io::substream_cast<SubstreamT>(substream);
+        return subs.select(column, row);
+    }
 
-    template <typename Buffer>
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, Buffer& buffer)
+
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, io::DefaultIOBuffer<ValueView>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
         io::ConstVLenArrayColumnMetadata descr = subs.select_and_describe(column, start);
@@ -81,6 +87,14 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
                            start, size, descr.size
                        );
         }
+    }
+
+
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, io::DefaultIOBuffer<AtomType>& buffer)
+    {
+        const auto& subs = io::substream_cast<SubstreamT>(substream);
+        io::ConstVLenArrayColumnMetadata descr = subs.select_and_describe(column, start);
+        buffer.append_values(Span<const AtomType>(descr.data_buffer, size));
     }
 
     template <typename ItemView>

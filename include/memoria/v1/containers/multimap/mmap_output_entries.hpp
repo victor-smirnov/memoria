@@ -30,11 +30,14 @@ class EntriesIteratorImpl: public IEntriesIterator<Types, Profile> {
     using Base::prefix_;
     using Base::suffix_key_;
     using Base::suffix_;
+    using Base::suffix_buffer_;
     using Base::has_suffix_;
     using Base::iteration_num_;
 
     using Base::keys_;
     using Base::values_;
+
+    using Base::has_suffix;
 
     using typename Base::KeyView;
     using typename Base::Key;
@@ -44,7 +47,7 @@ class EntriesIteratorImpl: public IEntriesIterator<Types, Profile> {
     using typename Base::KeysIOVSubstreamAdapter;
     using typename Base::ValuesIOVSubstreamAdapter;
 
-
+    size_t suffix_start_{};
 
     IteratorPtr iter_;
 public:
@@ -59,15 +62,17 @@ public:
         return iter_->isEnd();
     }
 
-    virtual void next()
+    virtual bool next()
     {
         if (iter_->nextLeaf())
         {
             offsets_.clear();
             build_index();
+            return true;
         }
         else {
             iter_->local_pos() = iter_->leaf_sizes().sum();
+            return false;
         }
     }
 
@@ -84,7 +89,32 @@ public:
         }
     }
 
+    virtual void fill_suffix_buffer()
+    {
+        suffix_buffer_.clear();
+
+        fill_buffer(suffix_start_, suffix_.size());
+
+        while (!is_end())
+        {
+            if (next())
+            {
+                fill_buffer(0, prefix_.size());
+
+                if (has_suffix()) {
+                    break;
+                }
+            }
+        }
+    }
+
 private:
+
+    void fill_buffer(size_t start, size_t end)
+    {
+        const io::IOVector& buffer = iter_->iovector_view();
+        suffix_buffer_.template append<ValuesIOVSubstreamAdapter>(buffer.substream(1), 0, start, end);
+    }
 
     void parse_first()
     {
@@ -105,31 +135,25 @@ private:
 
         parser_.parse(ss);
 
-        size_t prefix_size;
+        prefix_.clear();
 
         if (MMA1_LIKELY(parser_.prefix_size() > 0))
         {
-            prefix_size = parser_.buffer()[0].length;
+            size_t prefix_size = parser_.buffer()[0].length;
             ValuesIOVSubstreamAdapter::read_to(buffer.substream(1), 0, 0, prefix_size, prefix_.array());
         }
-        else {
-            prefix_.clear();
-            prefix_size = 0;
-        }
+
 
         keys_.clear();
         values_.clear();
 
         auto key_offset = offsets_[0];
-        auto value_offset = offsets_[1] + prefix_size;
+        auto value_offset = offsets_[1] + prefix_.size();
 
         size_t body_end = parser_.buffer().size() - parser_.suffix_size();
-
-
-        size_t values_end;
         size_t num_keys;
 
-        std::tie(values_end, num_keys) = values_.template populate<ValuesIOVSubstreamAdapter>(
+        std::tie(suffix_start_, num_keys) = values_.template populate<ValuesIOVSubstreamAdapter>(
             buffer.substream(1),
             parser_,
             value_offset,
@@ -138,26 +162,24 @@ private:
 
         KeysIOVSubstreamAdapter::read_to(buffer.substream(0), 0, key_offset, num_keys, keys_.array());
 
-
-
         // suffix processing
 
         has_suffix_ = true;
+
+        suffix_.clear();
 
         if (parser_.suffix_size() == 2)
         {
             size_t suffix_size = parser_.buffer()[body_end + 1].length;
 
             KeysIOVSubstreamAdapter::read_one(buffer.substream(0), 0, key_offset + num_keys, suffix_key_);
-            ValuesIOVSubstreamAdapter::read_to(buffer.substream(1), 0, values_end, suffix_size, suffix_.array());
+            ValuesIOVSubstreamAdapter::read_to(buffer.substream(1), 0, suffix_start_, suffix_size, suffix_.array());
         }
         else if (parser_.suffix_size() == 1)
         {
             KeysIOVSubstreamAdapter::read_one(buffer.substream(0), 0, key_offset + num_keys, suffix_key_);
-            suffix_.clear();
         }
         else {
-            suffix_.clear();
             has_suffix_ = false;
         }
 
