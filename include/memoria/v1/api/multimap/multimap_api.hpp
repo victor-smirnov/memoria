@@ -40,7 +40,7 @@ namespace v1 {
 
 
 template <typename Key_, typename Value_, typename Profile>
-class ICtrApi<Multimap<Key_, Value_>, Profile>: public CtrReferenceable {
+class ICtrApi<Multimap<Key_, Value_>, Profile>: public CtrReferenceable<Profile> {
 public:
     using Key = Key_;
     using Value = Value_;

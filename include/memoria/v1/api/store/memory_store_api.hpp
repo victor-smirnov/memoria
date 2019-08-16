@@ -175,18 +175,18 @@ public:
     virtual const PairPtr& pair() const = 0;
     virtual PairPtr& pair() = 0;
 
-    virtual CtrSharedPtr<CtrReferenceable> create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
-    virtual CtrSharedPtr<CtrReferenceable> create_ctr(const DataTypeDeclaration& decl) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create_ctr(const DataTypeDeclaration& decl) = 0;
 
-    virtual CtrSharedPtr<CtrReferenceable> find_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
-    virtual CtrSharedPtr<CtrReferenceable> find_or_create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> find_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> find_or_create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
 
     template <typename CtrName>
     CtrSharedPtr<ICtrApi<CtrName, Profile>> create_ctr(const CtrName& ctr_type_name, const CtrID& ctr_id)
     {
         U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
         DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
-        CtrSharedPtr<CtrReferenceable> ctr_ref = create_ctr(decl, ctr_id);
+        CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = create_ctr(decl, ctr_id);
         return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
     }
 
@@ -195,7 +195,7 @@ public:
     {
         U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
         DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
-        CtrSharedPtr<CtrReferenceable> ctr_ref = create_ctr(decl);
+        CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = create_ctr(decl);
         return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
     }
 
@@ -204,7 +204,7 @@ public:
     {
         U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
         DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
-        CtrSharedPtr<CtrReferenceable> ctr_ref = find_ctr(decl, ctr_id);
+        CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = find_ctr(decl, ctr_id);
         return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
     }
 
@@ -213,7 +213,7 @@ public:
     {
         U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
         DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
-        CtrSharedPtr<CtrReferenceable> ctr_ref = find_or_create_ctr(decl, ctr_id);
+        CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = find_or_create_ctr(decl, ctr_id);
         return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
     }
 

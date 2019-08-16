@@ -51,7 +51,7 @@ struct MapIterator {
 
 
 template <typename Key, typename Value, typename Profile>
-struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable {
+struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
 
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ValueView = typename DataTypeTraits<Value>::ViewType;

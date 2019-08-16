@@ -261,7 +261,7 @@ public:
         template <typename CtrName>
         using CtrPtr = CtrSharedPtr<CtrT<CtrName>>;
 
-        virtual SnpSharedPtr<CtrReferenceable> create_instance(
+        virtual SnpSharedPtr<CtrReferenceable<ProfileT>> create_instance(
                 const AllocatorPtr& allocator,
                 int32_t command,
                 const CtrID& ctr_id
@@ -392,7 +392,7 @@ public:
         	});
         }
         
-        virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(const BlockID& root_id, const CtrID& ctr_id, AllocatorPtr allocator) const
+        virtual CtrSharedPtr<CtrReferenceable<ProfileT>> new_ctr_instance(const BlockID& root_id, const CtrID& ctr_id, AllocatorPtr allocator) const
         {    
             BlockG block = allocator->getBlock(root_id);
 

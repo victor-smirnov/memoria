@@ -1033,7 +1033,7 @@ public:
     	this->history_tree_raw_->pack();
     }
     
-    virtual CtrSharedPtr<CtrReferenceable> get(const CtrID& name)
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> get(const CtrID& name)
     {
         CtrID root_id = getRootID(name);
 
@@ -1047,7 +1047,7 @@ public:
             return ctr_intf->new_ctr_instance(root_id, name, this->shared_from_this());
         }
         else {
-            return CtrSharedPtr<CtrReferenceable>();
+            return CtrSharedPtr<CtrReferenceable<Profile>>();
         }
     }
 
@@ -1069,7 +1069,7 @@ public:
         }
     }
 
-    virtual CtrSharedPtr<CtrReferenceable> from_root_id(const CtrID& root_block_id, const CtrID& name)
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> from_root_id(const CtrID& root_block_id, const CtrID& name)
     {
         if (root_block_id.is_set())
         {
@@ -1081,7 +1081,7 @@ public:
             return ctr_intf->new_ctr_instance(root_block_id, name, this->shared_from_this());
         }
         else {
-            return CtrSharedPtr<CtrReferenceable>();
+            return CtrSharedPtr<CtrReferenceable<Profile>>();
         }
     }
 

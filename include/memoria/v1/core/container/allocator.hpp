@@ -94,8 +94,8 @@ struct IAllocator {
     virtual void unregisterCtr(const std::type_info&)                           = 0;
 
     virtual SnpSharedPtr<MyType> self_ptr()                                     = 0;
-    virtual CtrSharedPtr<CtrReferenceable> get(const CtrID& ctr_id)             = 0;
-    virtual CtrSharedPtr<CtrReferenceable> from_root_id(const BlockID& root_block_id, const CtrID& name) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> get(const CtrID& ctr_id)    = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> from_root_id(const BlockID& root_block_id, const CtrID& name) = 0;
 
     virtual bool check()                                                        = 0;
     virtual void walkContainers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr) = 0;

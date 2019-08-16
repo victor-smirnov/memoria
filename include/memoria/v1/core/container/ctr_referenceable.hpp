@@ -26,6 +26,7 @@
 namespace memoria {
 namespace v1 {
 
+template <typename Profile>
 struct CtrReferenceable {
     virtual bool is_castable_to(uint64_t type_hash) const   = 0;
     virtual U16String describe_type() const                 = 0;

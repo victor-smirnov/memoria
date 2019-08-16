@@ -207,7 +207,7 @@ struct ContainerOperations {
         BlockCallbackFn consumer
     ) const = 0;
     
-    virtual CtrSharedPtr<CtrReferenceable> new_ctr_instance(
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> new_ctr_instance(
         const BlockID& root_id,
         const CtrID& name,
         AllocatorBasePtr allocator
@@ -238,7 +238,7 @@ struct CtrInstanceFactory {
     using Allocator     = ProfileAllocatorType<Profile>;
     using AllocatorPtr  = SnpSharedPtr<Allocator>;
 
-    virtual SnpSharedPtr<CtrReferenceable> create_instance(
+    virtual SnpSharedPtr<CtrReferenceable<Profile>> create_instance(
             const AllocatorPtr& allocator,
             int32_t command,
             const CtrID& ctr_id

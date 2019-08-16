@@ -32,7 +32,7 @@ namespace memoria {
 namespace v1 {
 
 template <typename CtrName, typename Profile = DefaultProfile<>>
-struct ICtrApi: CtrReferenceable
+struct ICtrApi: CtrReferenceable<Profile>
 {
 
 };
@@ -79,7 +79,7 @@ using ProfileCtrSizesT = typename _::ProfileCtrSizesTS<Profile, Streams>::Type;
 
 template <typename Profile = DefaultProfile<>>
 class CtrRef {
-    using CtrPtrT = CtrSharedPtr<CtrReferenceable>;
+    using CtrPtrT = CtrSharedPtr<CtrReferenceable<Profile>>;
     CtrPtrT ptr_;
 
     using CtrID = ProfileCtrID<Profile>;
@@ -88,7 +88,7 @@ public:
     CtrRef() {}
     
     CtrRef(const CtrPtrT& ptr): ptr_(ptr) {}
-    CtrRef(CtrReferenceable* raw_ptr): ptr_(raw_ptr) {}
+    CtrRef(CtrReferenceable<Profile>* raw_ptr): ptr_(raw_ptr) {}
     
     void swap(CtrRef& other) {
         ptr_.swap(other.ptr_);
