@@ -42,8 +42,13 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(set::ItrNavName)
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using KeyV      = typename DataTypeTraits<Key>::ValueType;
+
+    using Profile   = typename Types::Profile;
+
 public:
-    void insert(const Key& key)
+    void insert(const KeyView& key)
     {
         auto& self = this->self();
 
@@ -74,42 +79,43 @@ public:
     }
 
 
-    auto findFwGT(int32_t index, Key key)
+    auto findFwGT(int32_t index, KeyView key)
     {
         return self().template find_fw_gt<IntList<1>>(index, key);
     }
 
-    auto findFwGE(int32_t index, Key key)
+    auto findFwGE(int32_t index, KeyView key)
     {
         return self().template find_fw_ge<IntList<1>>(index, key);
     }
 
-    auto findBwGT(int32_t index, Key key)
+    auto findBwGT(int32_t index, KeyView key)
     {
         return self().template find_bw_gt<IntList<1>>(index, key);
     }
 
-    auto findBwGE(int32_t index, Key key)
+    auto findBwGE(int32_t index, KeyView key)
     {
         return self().template find_bw_ge<IntList<1>>(index, key);
     }
 
-    auto key() const -> Key
+    auto key() const -> KeyV
     {
         return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().local_pos(), 0));
     }
 
-    bool is_found(const Key& k) const
+    bool is_found(const KeyView& k) const
     {
         auto& self = this->self();
         return (!self.is_end()) && self.key() == k;
     }
 
+    /*
     template <typename Iterator>
     class EntryAdaptor {
         Iterator& current_;
 
-        Key key_;
+        KeyV key_;
 
 
     public:
@@ -149,7 +155,7 @@ public:
         auto& self = this->self();
 
         return read(iter, self.ctr().size());
-    }
+    }*/
 
 MEMORIA_V1_ITERATOR_PART_END
 

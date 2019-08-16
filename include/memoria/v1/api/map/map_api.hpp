@@ -61,7 +61,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     using Producer      = MapProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
-    virtual int64_t map_size() const = 0;
+    virtual int64_t size() const = 0;
     virtual void assign_key(KeyView key, ValueView value) = 0;
     virtual void remove_key(KeyView key) = 0;
 

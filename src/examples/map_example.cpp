@@ -91,7 +91,7 @@ int main()
 
 
     std::cout << "Inserted entries in " << (t1_i - t0_i) << " ms" << std::endl;
-    std::cout << "Size = " << ctr0->map_size() << std::endl;
+    std::cout << "Size = " << ctr0->size() << std::endl;
 
 
     snp->commit();

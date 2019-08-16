@@ -39,13 +39,17 @@ protected:
     using typename Base::BranchDispatcher;
 
     typedef typename Types::Key                                                 Key;
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using KeyV      = typename DataTypeTraits<Key>::ValueType;
+
+    using Profile   = typename Types::Profile;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
 
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
     
 public:    
-    bool remove(const Key& key) 
+    bool remove(const KeyView& key)
     {
         auto iter = self().find(key);
         if ((!iter->isEnd()) && iter->key() == key) 

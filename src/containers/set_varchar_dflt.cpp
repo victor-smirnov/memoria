@@ -15,16 +15,16 @@
 
 #include <memoria/v1/profiles/default/default.hpp>
 
-#include <memoria/v1/containers/set/set_factory.hpp>
-#include <memoria/v1/containers/set/set_api_impl.hpp>
+#include <memoria/v1/core/strings/string_codec.hpp>
 
-#include <memoria/v1/core/tools/fixed_array.hpp>
+#include <memoria/v1/containers/set/set_factory.hpp>
+
 
 namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-using CtrName = Set<FixedArray<24>>;
+using CtrName = Set<Varchar>;
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     

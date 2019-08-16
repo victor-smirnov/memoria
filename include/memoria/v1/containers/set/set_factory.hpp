@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <memoria/v1/containers/set/container/set_c_api.hpp>
 #include <memoria/v1/containers/set/container/set_c_insert.hpp>
 #include <memoria/v1/containers/set/container/set_c_remove.hpp>
 #include <memoria/v1/containers/set/iterator/set_i_nav.hpp>
@@ -66,11 +67,14 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
     using Base = BTTypes<Profile, BTSingleStream>;
 
     using Key   = Key_;
+    using KeyV  = typename DataTypeTraits<Key_>::ValueType;
 
-    using Entry = std::tuple<Key>;
+
+    using Entry = std::tuple<KeyV>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
+                set::CtrApiName,
                 set::CtrInsertName,
                 set::CtrRemoveName
     >;
@@ -86,17 +90,20 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
 template <
     typename Profile,
-    typename Key,
+    typename Key_,
     int32_t Special = 0
 >
-struct SetBTTypesBase: public SetBTTypesBaseBase<Profile, Key> {
+struct SetBTTypesBase: public SetBTTypesBaseBase<Profile, Key_> {
+
+    using KeyV   = typename DataTypeTraits<Key_>::ValueType;
+
 
     static_assert(
-            IsExternalizable<Key>::Value ,
+            IsExternalizable<KeyV>::Value ,
             "Key type must have either ValueCodec or FieldFactory defined"
     );
 
-    using LeafKeyStruct = typename set::SetKeyStructTF<Key, HasFieldFactory<Key>::Value>::Type;
+    using LeafKeyStruct = typename set::SetKeyStructTF<KeyV, HasFieldFactory<KeyV>::Value>::Type;
 
     using StreamDescriptors = TL<
             bt::StreamTF<

@@ -26,6 +26,8 @@
 
 #include <memoria/v1/api/datatypes/traits.hpp>
 
+#include <memoria/v1/core/tools/span.hpp>
+
 #include <ostream>
 
 namespace memoria {
@@ -60,6 +62,13 @@ public:
         return !operator==(other);
     }
 
+    operator Span<uint8_t> () {
+        return Span<uint8_t>(data_, Size);
+    }
+
+    operator Span<const uint8_t> () const {
+        return Span<const uint8_t>(data_, Size);
+    }
 
     bool operator==(const MyType& other) const
     {
@@ -190,17 +199,18 @@ struct TypeHash<FixedArray<Size>> {
 
 
 template <int32_t Size>
-struct DataTypeTraits<FixedArray<Size>>
+struct DataTypeTraits<FixedArray<Size>>:  DataTypeTraitsBase<FixedArray<Size>>
 {
-    using CxxType   = FixedArray<Size>;
-    using InputView = FixedArray<Size>;
-    using Ptr       = FixedArray<Size>*;
+    using ViewType      = FixedArray<Size>;
+    using ValueType     = FixedArray<Size>;
+
 
     using Parameters = TL<>;
 
     static constexpr size_t MemorySize        = sizeof(FixedArray<Size>);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
+    static constexpr bool isFixedSize         = true;
 
     static void create_signature(SBuf& buf, const Decimal& obj) {
         buf << "UByte" << Size;

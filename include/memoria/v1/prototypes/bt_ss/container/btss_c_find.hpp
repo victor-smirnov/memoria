@@ -40,13 +40,15 @@ protected:
     using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
 
+    using Profile = typename Types::Profile;
+
     using SplitFn = std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>;
     using MergeFn = std::function<void (const Position&)>;
 
     using Base::Streams;
 
 public:
-    auto size() const {
+    ProfileCtrSizeT<Profile> size() const {
         return self().sizes()[0];
     }
 

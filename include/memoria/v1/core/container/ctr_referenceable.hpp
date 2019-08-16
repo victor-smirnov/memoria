@@ -21,6 +21,9 @@
 
 #include <memoria/v1/core/strings/string.hpp>
 
+#include <memoria/v1/profiles/common/common.hpp>
+
+
 #include <string>
 
 namespace memoria {
@@ -35,7 +38,7 @@ struct CtrReferenceable {
     virtual void set_new_block_size(int32_t block_size)     = 0;
     virtual int32_t get_new_block_size()                    = 0;
     
-    virtual const UUID& name() const = 0;
+    virtual const ProfileCtrID<Profile>& name() const = 0;
     
     virtual ~CtrReferenceable() noexcept {}
 };

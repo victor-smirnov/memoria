@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "set_factory.hpp"
+
 
 #include <memoria/v1/api/set/set_api.hpp>
 #include <memoria/v1/core/container/ctr_impl_btss.hpp>
@@ -26,58 +26,43 @@ namespace memoria {
 namespace v1 {
 
 
+template <typename Key, typename IteratorPtr>
+class SetIteratorImpl: public SetIterator<Key> {
+    using KeyV   = typename DataTypeTraits<Key>::ValueType;
+    IteratorPtr iter_;
+
+public:
+    SetIteratorImpl(IteratorPtr iter):
+        iter_(iter)
+    {}
+
+    virtual KeyV key() const
+    {
+        return iter_->key();
+    }
+
+    virtual bool is_end() const
+    {
+        return iter_->isEnd();
+    }
+
+    virtual void next() {
+        iter_->next();
+    }
+};
  
 
-
-
-
-
 template <typename Key, typename Profile>
-typename CtrApi<Set<Key>, Profile>::Iterator CtrApi<Set<Key>, Profile>::find(const Key& key) 
+void ICtrApi<Set<Key>, Profile>::init_profile_metadata()
 {
-    return Base::pimpl_->find(key);
+    SharedCtr<Set<Key>, ProfileAllocatorType<Profile>, Profile>::init_profile_metadata();
 }
 
 template <typename Key, typename Profile>
-bool CtrApi<Set<Key>, Profile>::contains(const Key& key) 
+std::shared_ptr<io::IOVector> ICtrApi<Set<Key>, Profile>::create_iovector()
 {
-    return Base::pimpl_->contains(key);
+    return SharedCtr<Set<Key>, ProfileAllocatorType<Profile>, Profile>::create_iovector();
 }
-
-template <typename Key, typename Profile>
-bool CtrApi<Set<Key>, Profile>::remove(const Key& key) 
-{
-    return Base::pimpl_->remove(key);
-}
-
-template <typename Key, typename Profile>
-bool CtrApi<Set<Key>, Profile>::insert(const Key& key) 
-{
-    return Base::pimpl_->insert_key(key);
-}
-
-
-
-
-
-
-template <typename Key, typename Profile>
-Key IterApi<Set<Key>, Profile>::key() const
-{
-    return this->pimpl_->key();
-}
-
-
-
-
-template <typename Key, typename Profile>
-void IterApi<Set<Key>, Profile>::insert(const Key& key)
-{
-    return this->pimpl_->insert(key);
-}
-
-
-
 
 
     

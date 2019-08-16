@@ -19,6 +19,7 @@
 
 #include <memoria/v1/containers/set/set_names.hpp>
 #include <memoria/v1/containers/set/set_tools.hpp>
+#include <memoria/v1/containers/set/set_api_impl.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
@@ -27,7 +28,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(set::CtrInsertName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(set::CtrApiName)
 
 public:
     using Types = typename Base::Types;
@@ -43,10 +44,6 @@ protected:
     using typename Base::BlockUpdateMgr;
 
     using Key = typename Types::Key;
-    using KeyView   = typename DataTypeTraits<Key>::ViewType;
-    using KeyV      = typename DataTypeTraits<Key>::ValueType;
-
-    using Profile   = typename Types::Profile;
 
 
     template <typename LeafPath>
@@ -54,56 +51,72 @@ protected:
 
     using CtrSizeT = typename Types::CtrSizeT;
 
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using KeyV      = typename DataTypeTraits<Key>::ValueType;
+
+    using Profile   = typename Types::Profile;
+
 public:
 
+    template <typename LeafPath>
+    using TargetType = typename Types::template TargetType<LeafPath>;
 
-    IteratorPtr find(const KeyView& k)
+    CtrSharedPtr<BTSSIterator<Profile>> find_element_raw(KeyView key)
     {
-        return self().template find_max_ge<IntList<0, 1>>(0, k);
+        return self().find(key);
+    }
+
+    bool contains_element(KeyView key) {
+        return false;
+    }
+
+    bool insert_element(KeyView key) {
+        return false;
+    }
+
+    bool remove_element(KeyView key) {
+        return self().remove(key);
     }
 
 
-    bool remove(const KeyView& k)
-    {
-        auto iter = find(k);
 
-        if (iter->is_found(k))
+    CtrSharedPtr<SetIterator<Key>> iterator()
+    {
+        auto iter = self().begin();
+        return ctr_make_shared<SetIteratorImpl<Key, IteratorPtr>>(iter);
+    }
+
+    void append_entries(io::IOVectorProducer& producer)
+    {
+        auto& self = this->self();
+        auto iter = self.end();
+
+        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+    }
+
+    virtual void prepend_entries(io::IOVectorProducer& producer)
+    {
+        auto& self = this->self();
+        auto iter = self.begin();
+
+        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+    }
+
+    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer)
+    {
+        auto& self = this->self();
+
+        auto iter = self.find(before);
+
+        if (iter->is_found(before))
         {
-            iter->remove();
-            return true;
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Requested key is found. Can't insert enties this way.");
         }
         else {
-            return false;
+            iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
         }
     }
 
-    /**
-     * Returns true if the set contains the element
-     */
-
-    bool contains(const KeyView& k)
-    {
-        auto iter = find(k);
-        return iter->is_found(k);
-    }
-
-
-    /**
-     * Returns true if set is already containing the element
-     */
-    bool insert_key(const KeyView& k)
-    {
-    	auto iter = find(k);
-
-        if (iter->is_found(k))
-        {
-        	return true;
-        }
-        else {
-            iter->insert(k);
-            return false;
-        }
-    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

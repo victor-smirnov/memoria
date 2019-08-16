@@ -17,97 +17,83 @@
 
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
 
-#include <memoria/v1/core/types/typehash.hpp>
+#include <memoria/v1/api/set/set_api_factory.hpp>
+#include <memoria/v1/api/set/set_scanner.hpp>
+#include <memoria/v1/api/set/set_producer.hpp>
 
 #include <memory>
-
 
 namespace memoria {
 namespace v1 {
 
 template <typename Key>
-class Set {
-    Key key_;
-public:
-    Set(Key key):
-        key_(key)
-    {}
+struct SetIterator {
+    using KeyV   = typename DataTypeTraits<Key>::ValueType;
 
-    const Key& key() const {return key_;}
+    virtual ~SetIterator() noexcept {}
+
+    virtual KeyV key() const = 0;
+    virtual bool is_end() const = 0;
+    virtual void next() = 0;
 };
     
 template <typename Key, typename Profile> 
-class CtrApi<Set<Key>, Profile>: public CtrApiBTSSBase<Set<Key>, Profile> {
-    using Base = CtrApiBTSSBase<Set<Key>, Profile>;
-public:    
-    using typename Base::CtrID;
-    using typename Base::AllocatorT;
-    using typename Base::CtrT;
-    using typename Base::CtrPtr;
-
-    using typename Base::Iterator;
-    
+struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
 
 
-    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
-    
-    Iterator find(const Key& key);
-    bool contains(const Key& key);
-    bool remove(const Key& key);
-    bool insert(const Key& key);
-};
+    using KeyView   = typename DataTypeTraits<Key>::ViewType;
+    using ApiTypes  = ICtrApiTypes<Set<Key>, Profile>;
 
+    using Producer      = SetProducer<ApiTypes>;
+    using ProducerFn    = typename Producer::ProducerFn;
 
-template <typename Key, typename Profile> 
-class IterApi<Set<Key>, Profile>: public IterApiBTSSBase<Set<Key>, Profile> {
-    
-    using Base = IterApiBTSSBase<Set<Key>, Profile>;
-    
-    using typename Base::IterT;
-    using typename Base::IterPtr;
-     
-public:
-    using Base::insert;
+    virtual ProfileCtrSizeT<Profile> size() const = 0;
 
-    
-    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
-    
-    Key key() const;
-    void insert(const Key& key);
-};
-    
+    virtual CtrSharedPtr<BTSSIterator<Profile>> find_element_raw(KeyView key) = 0;
 
-template <typename Key>
-struct TypeHash<Set<Key>>: UInt64Value<
-    HashHelper<1101, TypeHashV<Key>>
-> {};
-
-
-template <typename Key>
-struct DataTypeTraits<Set<Key>> {
-    using CxxType   = EmptyType;
-    using InputView = EmptyType;
-    using Ptr       = EmptyType*;
-
-    using Parameters = TL<Key>;
-
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
-    static constexpr bool IsParametrised      = true;
-    static constexpr bool HasTypeConstructors = false;
-
-    static void create_signature(SBuf& buf, const Set<Key>& obj)
+    SetScanner<ApiTypes, Profile> find_element(KeyView key)
     {
-        buf << "Set<";
-        DataTypeTraits<Key>::create_signature(buf, obj.key());
-        buf << ">";
+        return SetScanner<ApiTypes, Profile>(find_element_raw(key));
     }
 
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Set<";
-        DataTypeTraits<Key>::create_signature(buf);
-        buf << ">";
+    virtual bool contains_element(KeyView key)   = 0;
+    virtual bool remove_element(KeyView key)     = 0;
+    virtual bool insert_element(KeyView key)     = 0;
+
+
+    void append_entries(ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        append_entries(producer);
     }
+
+    virtual void append_entries(io::IOVectorProducer& producer) = 0;
+
+    void prepend_entries(ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        prepend_entries(producer);
+    }
+
+    virtual void prepend_entries(io::IOVectorProducer& producer) = 0;
+
+
+    void insert_entries(KeyView before, ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        insert_entries(before, producer);
+    }
+
+    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer) = 0;
+
+    virtual CtrSharedPtr<SetIterator<Key>> iterator()           = 0;
+    virtual CtrSharedPtr<BTSSIterator<Profile>> raw_iterator()  = 0;
+
+    SetScanner<ApiTypes, Profile> scanner() {
+        return SetScanner<ApiTypes, Profile>(raw_iterator());
+    }
+
+    MMA1_DECLARE_ICTRAPI();
 };
+
+
+
 
 }}

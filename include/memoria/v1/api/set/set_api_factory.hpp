@@ -25,72 +25,58 @@
 namespace memoria {
 namespace v1 {
 
-template <typename Key, typename Value>
-class Map {
+template <typename Key>
+class Set {
     Key key_;
-    Value value_;
 public:
-    Map(): key_(), value_() {}
-
-    Map(Key key, Value value):
-        key_(key), value_(value)
+    Set(Key key):
+        key_(key)
     {}
 
     const Key& key() const {return key_;}
-    const Value value() const {return value_;}
 };
 
-template <typename Key_, typename Value_, typename Profile>
-struct ICtrApiTypes<Map<Key_, Value_>, Profile> {
+template <typename Key_, typename Profile>
+struct ICtrApiTypes<Set<Key_>, Profile> {
 
     using Key = Key_;
-    using Value = Value_;
 
     using IOVSchema = TL<
         TL<
-            ICtrApiSubstream<Key, io::ColumnWise>,
-            ICtrApiSubstream<Value, io::RowWise>
+            ICtrApiSubstream<Key, io::ColumnWise>
         >
     >;
 };
 
 
-template <typename Key, typename Value>
-struct TypeHash<Map<Key, Value>>: UInt64Value<
-    HashHelper<1100, TypeHashV<Key>, TypeHashV<Value>>
+template <typename Key>
+struct TypeHash<Set<Key>>: UInt64Value<
+    HashHelper<1101, TypeHashV<Key>>
 > {};
 
-template <typename Key, typename Value>
-struct DataTypeTraits<Map<Key, Value>> {
+template <typename Key>
+struct DataTypeTraits<Set<Key>> {
     using CxxType   = EmptyType;
     using InputView = EmptyType;
     using Ptr       = EmptyType*;
 
-    using Parameters = TL<Key, Value>;
+    using Parameters = TL<Key>;
 
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = true;
     static constexpr bool HasTypeConstructors = false;
 
-    static void create_signature(SBuf& buf, const Map<Key, Value>& obj)
+    static void create_signature(SBuf& buf, const Set<Key>& obj)
     {
-        buf << "Map<";
-
+        buf << "Set<";
         DataTypeTraits<Key>::create_signature(buf, obj.key());
-        buf << ", ";
-        DataTypeTraits<Value>::create_signature(buf, obj.value());
-
         buf << ">";
     }
 
     static void create_signature(SBuf& buf)
     {
-        buf << "Map<";
-
+        buf << "Set<";
         DataTypeTraits<Key>::create_signature(buf);
-        buf << ", ";
-        DataTypeTraits<Value>::create_signature(buf);
-
         buf << ">";
     }
 };
