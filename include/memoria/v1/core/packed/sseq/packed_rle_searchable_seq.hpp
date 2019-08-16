@@ -1485,7 +1485,7 @@ public:
 
     SelectResult selectFW(int32_t pos, uint64_t rank, int32_t symbol) const
     {
-        MEMORIA_V1_ASSERT(rank, >=, 1);
+        MEMORIA_V1_ASSERT(rank, >=, 0);
         MEMORIA_V1_ASSERT(pos, >=, -1);
 
         auto meta = this->metadata();

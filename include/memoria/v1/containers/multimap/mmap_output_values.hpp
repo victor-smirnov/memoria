@@ -29,16 +29,17 @@ class ValuesIteratorImpl: public IValuesIterator<Types, Profile> {
     using typename Base::ValueView;
     using typename Base::Value;
 
+    using typename Base::ValuesIOVSubstreamAdapter;
 
     using Base::values_;
     using Base::size_;
-//    using Base::use_buffered_;
-//    using Base::buffer_is_ready_;
+    using Base::run_is_finished_;
+    using Base::values_buffer_;
 
+    size_t values_start_{};
 
     core::StaticVector<uint64_t, 2> offsets_;
     DefaultBTFLRunParser<2> parser_;
-    io::DefaultIOBuffer<ValueView> values_buffer_;
 
     IteratorPtr iter_;
 
@@ -55,7 +56,7 @@ public:
         return iter_->isEnd();
     }
 
-    virtual void next()
+    virtual bool next_block()
     {
         if (iter_->nextLeaf())
         {
@@ -64,32 +65,23 @@ public:
         }
         else {
             iter_->local_pos() = iter_->leaf_sizes().sum();
-//            buffer_is_ready_ = true;
+            run_is_finished_ = true;
+        }
 
-//            if (use_buffered_)
-//            {
-//                values_ = values_buffer_.data();
-//            }
+        return run_is_finished_;
+    }
+
+    virtual void fill_suffix_buffer()
+    {
+        while (!is_end())
+        {
+            fill_buffer(values_start_, values_.size());
+            if (next_block()) {
+                break;
+            }
         }
     }
 
-//    virtual void set_buffered()
-//    {
-//        if (!use_buffered_)
-//        {
-//            if (iteration_num_ == 1)
-//            {
-//                use_buffered_ = true;
-//                if (!buffer_is_ready_)
-//                {
-//                    values_buffer_.append_values(values_, size_);
-//                }
-//            }
-//            else {
-//                MMA1_THROW(RuntimeException()) << WhatCInfo("set_buffered() must be invoked before next()");
-//            }
-//        }
-//    }
 
     virtual void dump_iterator() const
     {
@@ -97,6 +89,12 @@ public:
     }
 
 private:
+
+    void fill_buffer(size_t start, size_t end)
+    {
+        const io::IOVector& buffer = iter_->iovector_view();
+        values_buffer_.template append<ValuesIOVSubstreamAdapter>(buffer.substream(1), 0, start, end);
+    }
 
     void parse_first()
     {
@@ -110,42 +108,27 @@ private:
 
     void build_index()
     {
-        auto& buffer = iter_->iovector_view();
+        const io::IOVector& buffer = iter_->iovector_view();
 
         auto& ss = buffer.symbol_sequence();
-        auto& s1 = io::substream_cast<const io::IORowwiseFixedSizeArraySubstream<Value>>(buffer.substream(1));
 
         parser_.parse(ss);
 
-//        if (MMA1_LIKELY((!parser_.is_empty()) || ss.size() > 0))
-//        {
-//            const Value* ptr = s1.select(offsets_[1]);
+        if (MMA1_LIKELY((!parser_.is_empty()) || ss.size() > 0))
+        {
+            size_t run_size = (!parser_.is_empty()) ? parser_.run_size() : 0;
 
-//            size_t run_size = (!parser_.is_empty()) ? parser_.run_size() : 0;
+            values_start_ = offsets_[1];
+            values_.clear();
+            ValuesIOVSubstreamAdapter::read_to(buffer.substream(1), 0, values_start_, run_size, values_.array());
 
-//            buffer_is_ready_ = parser_.is_finished();
+            run_is_finished_ = parser_.is_finished();
 
-//            if (use_buffered_)
-//            {
-//                values_buffer_.append_values(ptr, run_size);
-
-//                if (buffer_is_ready_)
-//                {
-//                    values_ = values_buffer_.tail_ptr();
-//                    size_ = values_buffer_.size();
-//                }
-//                else {
-//                    size_ = run_size;
-//                }
-//            }
-//            else {
-//                values_ = ptr;
-//                size_ = run_size;
-//            }
-//        }
-//        else {
-//            // empty block requires nothing
-//        }
+            size_ = run_size;
+        }
+        else {
+            // empty block requires nothing
+        }
 
         offsets_.clear();
 

@@ -223,8 +223,7 @@ protected:
 
     size_t size_{};
 
-//    bool use_buffered_{};
-//    bool buffer_is_ready_{false};
+    bool run_is_finished_{};
 
 public:
     IValuesIterator()
@@ -232,27 +231,21 @@ public:
 
     virtual ~IValuesIterator() noexcept {}
 
-    Span<const ValueView> buffer() const {
+    Span<const ValueView> values() const {
         return values_.span();
     }
 
-//    bool is_buffer_ready() const {
-//        return buffer_is_ready_;
-//    }
+    Span<const ValueView> buffer() const {
+        return values_buffer_.span();
+    }
 
-//    void read_buffer()
-//    {
-//        set_buffered();
-//        while (!is_buffer_ready()) {
-//            next();
-//        }
-//    }
+    bool is_run_finished() const {return run_is_finished_;}
 
-//    bool is_buffered() const {return use_buffered_;}
-//    virtual void set_buffered() = 0;
+    virtual void fill_suffix_buffer() = 0;
+
 
     virtual bool is_end() const     = 0;
-    virtual void next()             = 0;
+    virtual bool next_block()       = 0;
     virtual void dump_iterator() const = 0;
 };
 
@@ -268,20 +261,22 @@ public:
 
     using Key   = typename DataTypeTraits<Key_>::ValueType;
     using Value = typename DataTypeTraits<Value_>::ValueType;
-protected:
-    const Key* keys_{};
-    size_t size_{};
 
-    bool use_buffered_{};
-    bool buffer_is_ready_{false};
+    using IOVSchema = Linearize<typename Types::IOVSchema>;
+
+protected:
+
+    using KeysIOVSubstreamAdapter = IOSubstreamAdapter<Select<0, IOVSchema>>;
+
+    _::MMapSubstreamAdapter<Key_> keys_;
 
 public:
     IKeysIterator() {}
 
     virtual ~IKeysIterator() noexcept {}
 
-    Span<const Key> buffer() const {
-        return Span<const Key>{keys_, size_};
+    Span<const KeyView> keys() const {
+        return keys_.span();
     }
 
     virtual CtrSharedPtr<IValuesIterator<Types, Profile>> values(size_t key_idx) = 0;

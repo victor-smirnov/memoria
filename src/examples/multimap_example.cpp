@@ -46,18 +46,18 @@ int main()
 
         auto ctr0 = snp->create_ctr(MultimapType());
 
-        ctr0->set_new_block_size(64*1024);
+        //ctr0->set_new_block_size(64*1024);
 
 
         int64_t t0 = getTimeInMillis();
 
         std::vector<Entry> entries_;
 
-        for (int c = 0; c < 1000000; c++) {
+        for (int c = 0; c < 100; c++) {
 
             std::vector<U8String> values;
 
-            for (int d = 0; d < 10; d++) {
+            for (int d = 0; d < 100; d++) {
                 values.push_back("BBBBBBBBBBBBBBBBBBBBB___BBBBBBBB__" + std::to_string(d) + "__" + std::to_string(c));
             }
 
@@ -115,50 +115,6 @@ int main()
         size_t sum0 = 0;
 
 
-        U8String key_;
-        //io::DefaultIOBuffer<uint8_t> buffer;
-        size_t buffer{};
-
-
-//        ii->for_each([&](uint64_t seq_id, auto key, auto values, bool start, bool end){
-//            if (start && end)
-//            {
-//                //std::cout << seq_id << " :: " << key << " -> " << values.size() << " FULL" << std::endl;
-//                std::cout << seq_id << " :: " << key << " size:" << values.size() << " FULL" << std::endl;
-
-////                for (auto& vv: values) {
-////                    std::cout << "\t" << vv << std::endl;
-////                }
-//            }
-//            else if (start)
-//            {
-//                key_ = key;
-//                buffer = 0;
-//                buffer += values.size();
-
-
-//                std::cout << seq_id << " :: " << key << " START " << std::endl;
-
-//                for (auto& vv: values) {
-//                    std::cout << "\t" << vv << std::endl;
-//                }
-//            }
-//            else if (end)
-//            {
-//                //buffer.append_values(values);
-//                buffer += values.size();
-//                std::cout << seq_id << " :: " << key_ << " -> " << buffer << " END " << "(" << values.size() << ")" << std::endl;
-//                for (auto& vv: values) {
-//                    std::cout << "\t" << vv << std::endl;
-//                }
-//            }
-//            else {
-////                buffer.append_values(values);
-//                buffer += values.size();
-//            }
-//        });
-
-
 
         ii->for_each([&](auto key, auto values){
             sum0 += values.size();
@@ -168,13 +124,46 @@ int main()
 //            for (auto& vv: values) {
 //                std::cout << "\t" << vv << std::endl;
 //            }
-
         });
 
 
         int64_t t3 = getTimeInMillis();
 
         std::cout << "Iterated over entries in " << (t3 - t2) << " ms " << sum0 << std::endl;
+
+
+        auto keys = ctr0->keys();
+
+        while (!keys->is_end())
+        {
+            auto kk = keys->keys();
+            for (size_t c = 0; c < kk.size(); c++)
+            {
+                std::cout << kk[c] << std::endl;
+
+                auto vals = keys->values(c);
+
+                size_t dd = 0;
+                while (!vals->is_end())
+                {
+                    for (auto& vv: vals->values())
+                    {
+                        std::cout << "\t" << dd << ") " << vv << std::endl;
+                        dd++;
+                    }
+
+                    if (!vals->is_run_finished())
+                    {
+                        vals->next_block();
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            keys->next();
+        }
 
     }
     catch (MemoriaThrowable& th) {

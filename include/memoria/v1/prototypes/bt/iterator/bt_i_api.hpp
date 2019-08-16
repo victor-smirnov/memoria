@@ -86,7 +86,7 @@ public:
     }
 
 
-protected:
+
 
 
     bool nextLeaf();

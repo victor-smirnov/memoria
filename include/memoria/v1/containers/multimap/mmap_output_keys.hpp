@@ -30,14 +30,11 @@ class KeysIteratorImpl: public IKeysIterator<Types, Profile> {
     using typename Base::Key;
     using typename Base::ValueView;
     using typename Base::Value;
-
-
+    using typename Base::KeysIOVSubstreamAdapter;
 
     using Base::keys_;
-    using Base::size_;
 
     int32_t idx_;
-    int32_t leaf_size_;
 
     IteratorPtr iter_;
 public:
@@ -54,8 +51,9 @@ public:
 
     virtual void next()
     {
-        iter_->selectFw(leaf_size_ - idx_, 0); // next leaf with keys;
-        idx_ = iter_->leafrank(0, iter_->local_pos());
+        size_t keys_size = keys_.array().size();
+        iter_->selectFw(keys_size, 0); // next leaf with keys;
+        idx_ = 0;
 
         build();
     }
@@ -72,6 +70,8 @@ public:
         ii->selectFw(key_idx, 0);
         ii->to_values();
 
+        //ii->dump();
+
         auto ptr = ctr_make_shared<mmap::ValuesIteratorImpl<Types, Profile, IteratorPtr>>(ii);
         return memoria_static_pointer_cast<IValuesIterator<Types, Profile>>(ptr);
     }
@@ -80,13 +80,11 @@ private:
 
     void build()
     {
-        auto& buffer = iter_->iovector_view();
-        auto& s0 = io::substream_cast<const io::IOColumnwiseFixedSizeArraySubstream<Key>>(buffer.substream(0));
+        const io::IOVector& buffer = iter_->iovector_view();
+        int32_t leaf_size = iter_->leaf_size(0);
 
-        leaf_size_ = s0.describe(0).size;
-
-        keys_ = s0.select(0, idx_);
-        size_ = leaf_size_ - idx_;
+        keys_.clear();
+        KeysIOVSubstreamAdapter::read_to(buffer.substream(0), 0, idx_, leaf_size - idx_, keys_.array());
     }
 };
 
