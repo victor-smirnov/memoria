@@ -58,8 +58,8 @@ template <
 struct IOSubstreamAdapter;
 
 
-template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;
-template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
+//template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;
+//template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
 
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Profile> class SharedIter;
@@ -75,7 +75,7 @@ template <typename Profile, int32_t Streams> struct ProfileCtrSizesTS: HasType<
 template <typename Profile, int32_t Streams> 
 using ProfileCtrSizesT = typename _::ProfileCtrSizesTS<Profile, Streams>::Type;
 
-
+/*
 
 template <typename Profile = DefaultProfile<>>
 class CtrRef {
@@ -254,7 +254,7 @@ public:
 
     bool next_leaf();
 };
-
+*/
 
 template <typename CtrName, typename Profile>
 struct CtrMetadataInitializer {

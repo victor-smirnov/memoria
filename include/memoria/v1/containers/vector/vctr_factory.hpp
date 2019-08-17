@@ -21,6 +21,7 @@
 #include <memoria/v1/containers/vector/vctr_walkers.hpp>
 #include <memoria/v1/containers/vector/vctr_tools.hpp>
 #include <memoria/v1/containers/vector/vctr_names.hpp>
+#include <memoria/v1/containers/vector/vector_api_impl.hpp>
 
 #include <memoria/v1/containers/vector/container/vctr_c_tools.hpp>
 #include <memoria/v1/containers/vector/container/vctr_c_insert.hpp>
@@ -47,7 +48,11 @@ struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
 
     using Base = BTTypes<Profile, BTSingleStream>;
 
+
     using Value = Value_;
+    using ValueV = typename DataTypeTraits<Value_>::ValueType;
+    using ValueView = typename DataTypeTraits<Value_>::ViewType;
+
     using Entry = Value_;
 
 
@@ -71,16 +76,21 @@ struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
 
 
 
-template <typename Profile, typename Value>
-struct BTTypes<Profile, Vector<Value> >: public VectorBTTypesBase<Profile, Value> {
+template <typename Profile, typename Value_>
+struct BTTypes<Profile, Vector<Value_> >: public VectorBTTypesBase<Profile, Value_> {
+
+    using Value = Value_;
+    using ValueV = typename DataTypeTraits<Value_>::ValueType;
+    using ValueView = typename DataTypeTraits<Value_>::ViewType;
+
 
     static_assert(
-            IsExternalizable<Value>::Value ,
+            IsExternalizable<ValueV>::Value ,
             "Value type must have either ValueCodec or FieldFactory defined"
     );
 
 
-    using LeafValueStruct = typename mvector::VectorValueStructTF<Value, HasFieldFactory<Value>::Value>::Type;
+    using LeafValueStruct = typename mvector::VectorValueStructTF<ValueV, HasFieldFactory<ValueV>::Value>::Type;
 
 
     using StreamDescriptors = TL<bt::StreamTF<
@@ -114,14 +124,17 @@ struct CodecClassTF<Granularity::Bit> {
 template <typename Profile, Granularity Gr, typename Value_>
 struct BTTypes<Profile, Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, BTSingleStream> {
 
-    typedef BTTypes<Profile, BTSingleStream>                           Base;
+    using Base = BTTypes<Profile, BTSingleStream>;
 
-    typedef Value_                                                              Value;
+    using Value = Value_;
+    using ValueV = typename DataTypeTraits<Value_>::ValueType;
+    using ValueView = typename DataTypeTraits<Value_>::ViewType;
+
 
     using VectorStreamTF = bt::StreamTF<
         TL<TL<
             StreamSize,
-            PkdVDArrayT<Value, 1, CodecClassTF<Gr>::template Type>
+            PkdVDArrayT<ValueV, 1, CodecClassTF<Gr>::template Type>
         >>,
         bt::FSEBranchStructTF,
         TL<TL<TL<>, TL<>>>

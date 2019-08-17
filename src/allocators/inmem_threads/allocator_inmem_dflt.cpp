@@ -15,33 +15,33 @@
 
 #include <memoria/v1/profiles/default/default.hpp>
 
-#include <memoria/v1/allocators/inmem/threads/thread_inmem_allocator_impl.hpp>
+//#include <memoria/v1/allocators/inmem/threads/thread_inmem_allocator_impl.hpp>
 
 namespace memoria {
 namespace v1 {
 
-using Profile = DefaultProfile<>;    
+//using Profile = DefaultProfile<>;
     
-namespace persistent_inmem {
-    template class ThreadInMemAllocatorImpl<Profile>;
-    template class ThreadSnapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
+//namespace persistent_inmem {
+//    template class ThreadInMemAllocatorImpl<Profile>;
+//    template class ThreadSnapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
     
-    template <typename PP>
-    struct Initializer {
-        Initializer() {
-            ThreadSnapshot<PP, ThreadInMemAllocatorImpl<PP>>::init_profile_metadata();
-        }
-    };
-}
+//    template <typename PP>
+//    struct Initializer {
+//        Initializer() {
+//            ThreadSnapshot<PP, ThreadInMemAllocatorImpl<PP>>::init_profile_metadata();
+//        }
+//    };
+//}
 
-template class ThreadInMemAllocator<Profile>;
-template class ThreadInMemSnapshot<Profile>;
+//template class ThreadInMemAllocator<Profile>;
+//template class ThreadInMemSnapshot<Profile>;
 
-namespace {
+//namespace {
 
-persistent_inmem::Initializer<Profile> init0;
+//persistent_inmem::Initializer<Profile> init0;
 
-}
+//}
 
 }
 }

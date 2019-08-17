@@ -42,7 +42,7 @@ namespace store {
 namespace memory {
 
 template <typename Profile>
-class ThreadsMemoryStoreImpl: public MemoryStoreBase<Profile, ThreadsMemoryStoreImpl<Profile>> {
+class ThreadsMemoryStoreImpl: public IGraph, public MemoryStoreBase<Profile, ThreadsMemoryStoreImpl<Profile>> {
 public:
     using Base      = MemoryStoreBase<Profile, ThreadsMemoryStoreImpl<Profile>>;
     using MyType    = ThreadsMemoryStoreImpl<Profile>;
@@ -632,6 +632,56 @@ public:
         alloc_stat->compute_total_size();
 
         return alloc_stat;
+    }
+
+
+    // Graph API
+
+    Graph as_graph() {
+        return Graph(memoria_static_pointer_cast<IGraph>(this->shared_from_this()));
+    }
+
+    virtual Collection<Vertex> vertices()
+    {
+        return EmptyCollection<Vertex>::make();
+    }
+
+    virtual Collection<Vertex> vertices(const IDList& ids)
+    {
+        return EmptyCollection<Vertex>::make();
+    }
+
+    virtual Collection<Vertex> roots()
+    {
+        return roots({u"snapshot"});
+    }
+
+    virtual Collection<Vertex> roots(const LabelList& vx_labels)
+    {
+        std::vector<Vertex> vxx;
+
+        append_snapsots(vxx);
+
+        return STLCollection<Vertex>::make(std::move(vxx));
+    }
+
+    template <typename StlCtr>
+    void append_snapsots(StlCtr& stl_ctr)
+    {
+        auto uuid = this->get_root_snapshot_uuid();
+        SnapshotPtr root_snapshot = memoria_static_pointer_cast<SnapshotT>(this->find(uuid));
+
+        stl_ctr.emplace_back(root_snapshot->as_vertex());
+    }
+
+    virtual Collection<Edge> edges()
+    {
+        return EmptyCollection<Edge>::make();
+    }
+
+    virtual Collection<Edge> edges(const IDList& ids)
+    {
+        return EmptyCollection<Edge>::make();
     }
 
 protected:

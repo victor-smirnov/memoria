@@ -24,7 +24,7 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-using CtrName = Set<FixedArray<24>>;
+using CtrName = Set<FixedArray<16>>;
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     

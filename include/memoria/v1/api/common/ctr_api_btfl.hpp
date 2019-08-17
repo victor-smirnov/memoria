@@ -38,7 +38,7 @@
 
 namespace memoria {
 namespace v1 {
-
+/*
 template <typename CtrName, typename Profile> 
 class CtrApiBTFLBase: public CtrApiBase<CtrName, Profile> {
     using Base = CtrApiBase<CtrName, Profile>;
@@ -113,7 +113,7 @@ public:
     int64_t insert(io::IOVectorProducer& producer, int64_t start = 0, int64_t length = std::numeric_limits<int64_t>::max());
     int64_t insert(io::IOVector& producer, int64_t start = 0, int64_t length = std::numeric_limits<int64_t>::max());
 };
-
+*/
 
 }
 }

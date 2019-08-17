@@ -48,7 +48,7 @@ namespace memory {
 
 
 template <typename Profile, typename PersistentAllocator>
-class ThreadsSnapshot: public SnapshotBase<Profile, PersistentAllocator, ThreadsSnapshot<Profile, PersistentAllocator>>
+class ThreadsSnapshot: public IVertex, public SnapshotBase<Profile, PersistentAllocator, ThreadsSnapshot<Profile, PersistentAllocator>>
 {    
 protected:
     using Base = SnapshotBase<Profile, PersistentAllocator, ThreadsSnapshot<Profile, PersistentAllocator>>;
@@ -301,6 +301,98 @@ public:
         {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has no parent.", uuid()));
         }
+    }
+
+
+    // Vertex API
+
+    virtual Vertex allocator_vertex() {
+        return as_vertex();
+    }
+
+    Vertex as_vertex() {
+        return Vertex(StaticPointerCast<IVertex>(this->shared_from_this()));
+    }
+
+    virtual Graph graph()
+    {
+        return history_tree_->as_graph();
+    }
+
+    virtual Any id() const
+    {
+        return Any(uuid());
+    }
+
+    virtual U16String label() const
+    {
+        return U16String(u"snapshot");
+    }
+
+    virtual void remove()
+    {
+        MMA1_THROW(GraphException()) << WhatCInfo("Can't remove snapshot with Vertex::remove()");
+    }
+
+    virtual bool is_removed() const
+    {
+        return false;
+    }
+
+    virtual Collection<VertexProperty> properties()
+    {
+        return make_fn_vertex_properties(
+            as_vertex(),
+            u"metadata", [&]{return snapshot_metadata();}
+        );
+    }
+
+    virtual Collection<Edge> edges(Direction direction)
+    {
+        std::vector<Edge> edges;
+
+        Vertex my_vx = as_vertex();
+        Graph my_graph = this->graph();
+
+        if (is_in(direction))
+        {
+            if (history_node_->parent())
+            {
+                auto pn_snp_api = history_tree_->find(history_node_->parent()->snapshot_id());
+                SnapshotPtr pn_snp = memoria_static_pointer_cast<MyType>(pn_snp_api);
+
+                edges.emplace_back(DefaultEdge::make(my_graph, u"child", pn_snp->as_vertex(), my_vx));
+            }
+        }
+
+        if (is_out(direction))
+        {
+            for (auto& child: history_node_->children())
+            {
+                auto ch_snp_api = history_tree_->find(child->snapshot_id());
+                SnapshotPtr ch_snp = memoria_static_pointer_cast<MyType>(ch_snp_api);
+
+
+                edges.emplace_back(DefaultEdge::make(my_graph, u"child", my_vx, ch_snp->as_vertex()));
+            }
+
+            auto iter = this->root_map_->Begin();
+            while (!iter->isEnd())
+            {
+                auto ctr_name   = iter->key();
+                auto root_id    = iter->value();
+
+                auto vertex_ptr = DynamicPointerCast<IVertex>(
+                     const_cast<MyType*>(this)->from_root_id(root_id, ctr_name)
+                );
+
+                edges.emplace_back(DefaultEdge::make(my_graph, u"container", my_vx, vertex_ptr));
+
+                iter->next();
+            }
+        }
+
+        return STLCollection<Edge>::make(std::move(edges));
     }
 
     SharedPtr<SnapshotMemoryStat> memory_stat(bool include_containers)

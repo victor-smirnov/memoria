@@ -69,7 +69,7 @@ public:
 
 
 
-
+/*
 
 template <typename CtrName, typename Profile>    
 CtrApiBase<CtrName, Profile>::CtrApiBase(const CtrSharedPtr<AllocatorT>& allocator, int command, const CtrID& ctr_id):
@@ -414,6 +414,7 @@ const PairPtr& IterApiBase<CtrName, Profile>::pair() const
     return this->pimpl_->pair();
 }
 
+*/
 
 }
 }

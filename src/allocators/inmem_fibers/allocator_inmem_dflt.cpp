@@ -15,33 +15,33 @@
 
 #include <memoria/v1/profiles/default/default.hpp>
 
-#include <memoria/v1/allocators/inmem/fibers/inmem_allocator_impl.hpp>
+//#include <memoria/v1/allocators/inmem/fibers/inmem_allocator_impl.hpp>
 
 namespace memoria {
 namespace v1 {
 
-using Profile = DefaultProfile<>;    
+//using Profile = DefaultProfile<>;
     
-namespace persistent_inmem {
-    template class InMemAllocatorImpl<Profile>;
-    template class Snapshot<Profile, InMemAllocatorImpl<Profile>>;
+//namespace persistent_inmem {
+//    template class InMemAllocatorImpl<Profile>;
+//    template class Snapshot<Profile, InMemAllocatorImpl<Profile>>;
 
-    template <typename PP>
-    struct Initializer {
-        Initializer() {
-            Snapshot<PP, InMemAllocatorImpl<PP>>::init_profile_metadata();
-        }
-    };
-}
+//    template <typename PP>
+//    struct Initializer {
+//        Initializer() {
+//            Snapshot<PP, InMemAllocatorImpl<PP>>::init_profile_metadata();
+//        }
+//    };
+//}
 
-template class InMemAllocator<Profile>;
-template class InMemSnapshot<Profile>;
+//template class InMemAllocator<Profile>;
+//template class InMemSnapshot<Profile>;
 
-namespace {
+//namespace {
 
-persistent_inmem::Initializer<Profile> init1;
+//persistent_inmem::Initializer<Profile> init1;
 
-}
+//}
 
 }
 }

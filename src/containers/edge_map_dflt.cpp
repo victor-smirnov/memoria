@@ -15,13 +15,13 @@
 
 #include <memoria/v1/profiles/default/default.hpp>
 
-#include <memoria/v1/containers/db/edge_map/edge_map_impl.hpp>
+//#include <memoria/v1/containers/db/edge_map/edge_map_impl.hpp>
 
 namespace memoria {
 namespace v1 {
 
-using Profile = DefaultProfile<>;    
-using CtrName = EdgeMap;
+//using Profile = DefaultProfile<>;
+//using CtrName = EdgeMap;
 
 //MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
     

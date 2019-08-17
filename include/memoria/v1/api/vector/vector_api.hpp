@@ -24,106 +24,33 @@
 #include <memoria/v1/core/types/typehash.hpp>
 #include <memoria/v1/api/datatypes/traits.hpp>
 
+#include <memoria/v1/api/vector/vector_api_factory.hpp>
+#include <memoria/v1/api/vector/vector_producer.hpp>
+#include <memoria/v1/api/vector/vector_scanner.hpp>
+
 #include <memory>
 #include <vector>
 
 namespace memoria {
 namespace v1 {
 
-namespace detail01 {
-    template <typename V>
-    struct VectorValueHelper: HasType<V> {};
-    
-    template <Granularity G, typename V>
-    struct VectorValueHelper<VLen<G, V>>: HasType<V> {};
-}
+template <typename Value>
+struct VectorIterator {
+    using ValueV = typename DataTypeTraits<Value>::ValueType;
 
-template <typename T>
-class Vector {
-    T element_;
-public:
-    Vector(T element):
-        element_(element)
-    {}
+    virtual ~VectorIterator() noexcept {}
 
-    const T& element() const {return element_;}
+    virtual ValueV value() const = 0;
+    virtual bool is_end() const = 0;
+    virtual void next() = 0;
 };
+
     
 template <typename Value, typename Profile> 
-class CtrApi<Vector<Value>, Profile>: public CtrApiBTSSBase<Vector<Value>, Profile>  {
-    using Base = CtrApiBTSSBase<Vector<Value>, Profile>;
-public:    
-    using typename Base::CtrID;
-    using typename Base::AllocatorT;
-    using typename Base::CtrT;
-    using typename Base::CtrPtr;
-
-    using typename Base::Iterator;
-    
-
-    using DataValue = typename detail01::VectorValueHelper<Value>::Type;
-    
-    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
+struct ICtrApi<Vector<Value>, Profile>: public CtrReferenceable<Profile> {
+    MMA1_DECLARE_ICTRAPI();
 };
 
 
-template <typename Value, typename Profile> 
-class IterApi<Vector<Value>, Profile>: public IterApiBTSSBase<Vector<Value>, Profile> {
-    
-    using Base = IterApiBTSSBase<Vector<Value>, Profile>;
-    
-    using typename Base::IterT;
-    using typename Base::IterPtr;
-    
-public:
-    
-    using DataValue = typename detail01::VectorValueHelper<Value>::Type;
-
-    using Base::insert;
-    
-    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
-    
-    DataValue value();
-    
-    std::vector<DataValue> read(size_t size);
-
-    void insert(Span<const DataValue> span)
-    {
-        io::VectorIOVector<DataValue> iov(span.data(), span.size());
-
-        this->insert(iov);
-    }
-};
-    
-
-template <typename T>
-struct TypeHash<Vector<T>>: UInt64Value<HashHelper<1300, TypeHashV<T>>> {};
-
-template <typename T>
-struct DataTypeTraits<Vector<T>> {
-    using CxxType   = EmptyType;
-    using InputView = EmptyType;
-    using Ptr       = EmptyType*;
-
-    using Parameters = TL<T>;
-
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
-    static constexpr bool IsParametrised      = true;
-    static constexpr bool HasTypeConstructors = false;
-
-    static void create_signature(SBuf& buf, const Vector<T>& obj)
-    {
-        buf << "Vector<";
-        DataTypeTraits<T>::create_signature(buf, obj.key());
-        buf << ">";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Vector<";
-        DataTypeTraits<T>::create_signature(buf);
-        buf << ">";
-    }
-};
 
 }}

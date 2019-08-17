@@ -15,9 +15,6 @@
 
 #include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/api/allocator/allocator_inmem_threads_api.hpp>
-
-#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
 
 #include <iostream>
 #include <type_traits>

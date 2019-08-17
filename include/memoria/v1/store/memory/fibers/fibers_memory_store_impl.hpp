@@ -778,4 +778,29 @@ protected:
 };
 
 
-}}}}
+}}
+
+
+template <typename Profile>
+AllocSharedPtr<IMemoryStore<Profile>> IMemoryStore<Profile>::load(InputStreamHandler* input_stream)
+{
+    return store::memory::FibersMemoryStoreImpl<Profile>::load(input_stream);
+}
+
+template <typename Profile>
+AllocSharedPtr<IMemoryStore<Profile>> IMemoryStore<Profile>::load(U8String input_file)
+{
+    auto fileh = FileInputStreamHandler::create(input_file.data());
+    return store::memory::FibersMemoryStoreImpl<Profile>::load(fileh.get());
+}
+
+
+template <typename Profile>
+AllocSharedPtr<IMemoryStore<Profile>> IMemoryStore<Profile>::create()
+{
+    return MakeShared<store::memory::FibersMemoryStoreImpl<Profile>>();
+}
+
+
+
+}}

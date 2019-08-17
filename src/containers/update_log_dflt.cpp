@@ -15,17 +15,17 @@
 
 #include <memoria/v1/profiles/default/default.hpp>
 
-#include <memoria/v1/containers/db/update_log/update_log_impl.hpp>
+//#include <memoria/v1/containers/db/update_log/update_log_impl.hpp>
 
 namespace memoria {
 namespace v1 {
 
-using Profile = DefaultProfile<>;    
-using CtrName = UpdateLog;
+//using Profile = DefaultProfile<>;
+//using CtrName = UpdateLog;
 
-template class update_log::SnapshotIDIterator<IterApi<UpdateLog, Profile>, int64_t>;
-template class update_log::ContainerNameIterator<IterApi<UpdateLog, Profile>, int64_t>;
-template class update_log::CommandsDataIterator<IterApi<UpdateLog, Profile>, int64_t>;
+//template class update_log::SnapshotIDIterator<IterApi<UpdateLog, Profile>, int64_t>;
+//template class update_log::ContainerNameIterator<IterApi<UpdateLog, Profile>, int64_t>;
+//template class update_log::CommandsDataIterator<IterApi<UpdateLog, Profile>, int64_t>;
 
 //MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
     

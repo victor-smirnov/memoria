@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/graph/graph.hpp>
 
-#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+#include <memoria/v1/api/store/memory_store_api.hpp>
 #include <memoria/v1/profiles/default/default.hpp>
 
 #include <QList>
@@ -72,7 +72,7 @@ public:
         return data_[column];
     }
 
-    void add_inmem_allocator(InMemAllocator<> allocator, QString label);
+    void add_inmem_allocator(IMemoryStorePtr<> allocator, QString label);
     void remove_inmem_allocator(AbstractTreeItem* item);
 
     virtual QString node_type() const {
@@ -89,10 +89,10 @@ protected:
 
 class InMemAllocatorTreeItem: public AbstractTreeItem {
 protected:
-    InMemAllocator<> allocator_;
+    IMemoryStorePtr<> allocator_;
     QString label_;
 public:
-    InMemAllocatorTreeItem(InMemAllocator<> allocator, const QString& label, AbstractTreeItem* parent):
+    InMemAllocatorTreeItem(IMemoryStorePtr<> allocator, const QString& label, AbstractTreeItem* parent):
         AbstractTreeItem(parent),
         allocator_(allocator),
         label_(label)

@@ -27,7 +27,7 @@
 namespace memoria {
 namespace v1 {
 
-
+/*
 
 template <typename CtrName, typename Profile>
 int64_t CtrApiBTFLBase<CtrName, Profile>::seq_size() const
@@ -146,7 +146,7 @@ int64_t IterApiBTFLBase<CtrName, Profile>::skip_seq(int64_t offset)
     return this->pimpl_->skip(offset);
 }
 
-
+*/
 
 }
 }

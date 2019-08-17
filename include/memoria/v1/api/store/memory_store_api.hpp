@@ -45,9 +45,10 @@ template <typename Profile = DefaultProfile<>>
 class IMemoryStore {
 
     using SnapshotID = ProfileSnapshotID<Profile>;
-    using StorePtr   = AllocSharedPtr<IMemoryStore>;
+
 
 public:
+    using StorePtr   = AllocSharedPtr<IMemoryStore>;
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot<Profile>>;
     using BlockType     = ProfileBlockType<Profile>;
 
@@ -60,13 +61,11 @@ public:
     static StorePtr load(InputStreamHandler* input_stream);
     static StorePtr load(U8String file_name);
 
-    //static StorePtr load(boost::filesystem::path file_name);
+    virtual Graph as_graph() = 0;
 
     static StorePtr create();
 
     virtual int64_t active_snapshots() = 0;
-
-    //virtual void store(boost::filesystem::path file_name, int64_t wait_duration = 0) = 0;
 
     virtual void store(U8String file_name, int64_t wait_duration = 0) = 0;
     virtual void store(OutputStreamHandler* output_stream, int64_t wait_duration = 0) = 0;
@@ -117,7 +116,8 @@ public:
     virtual SharedPtr<AllocatorMemoryStat> memory_stat(bool include_containers = true) = 0;
 };
 
-
+template <typename Profile = DefaultProfile<>>
+using IMemoryStorePtr = typename IMemoryStore<Profile>::StorePtr;
 
 template <typename Profile>
 class IMemorySnapshot {
@@ -130,7 +130,7 @@ class IMemorySnapshot {
 
 public:
     template <typename CtrName>
-    using CtrT = CtrApi<CtrName, Profile>;
+    using CtrT = ICtrApi<CtrName, Profile>;
 
     using BlockType = ProfileBlockType<Profile>;
 
@@ -244,6 +244,7 @@ public:
 
     //virtual CtrRef<Profile> get_ctr(const CtrID& name) = 0;
 
+    virtual Vertex as_vertex() = 0;
 
     virtual Logger& logger() = 0;
 

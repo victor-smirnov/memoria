@@ -27,7 +27,7 @@
 namespace memoria {
 namespace v1 {
 
-
+/*
 template <typename CtrName, typename Profile>
 int64_t CtrApiBTSSBase<CtrName, Profile>::size()
 {
@@ -144,6 +144,6 @@ int64_t IterApiBTSSBase<CtrName, Profile>::skip(int64_t offset)
 {
     return this->pimpl_->skip(offset);
 }
-
+*/
 }
 }

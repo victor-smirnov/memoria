@@ -78,7 +78,7 @@ RootTreeItem::RootTreeItem(QVector<QVariant> data):
 
 
 
-void RootTreeItem::add_inmem_allocator(InMemAllocator<> allocator, QString label)
+void RootTreeItem::add_inmem_allocator(IMemoryStorePtr<> allocator, QString label)
 {
     AbstractTreeItem* item = new InMemAllocatorTreeItem(allocator, label, this);
     this->children_.append(item);
@@ -128,7 +128,7 @@ void InMemAllocatorTreeItem::expand()
 {
     if (!expanded_)
     {
-        Graph graph = allocator_.as_graph();
+        Graph graph = allocator_->as_graph();
         for (Vertex& root: graph.roots())
         {
             children_.append(new VertexTreeItem(root, get_vertex_schema(root.label()), this));

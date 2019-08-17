@@ -153,7 +153,7 @@ void AllocatorModel::open_allocator(const QString& file, const QModelIndex& afte
     auto row_pos = root_item_->children();
 
     try {
-        InMemAllocator<> alloc = InMemAllocator<>::load(filesystem::path(file.toStdU16String()));
+        IMemoryStorePtr<> alloc = IMemoryStore<>::load(U16String(file.toStdU16String()).to_u8());
 
         beginInsertRows(root_idx, row_pos, row_pos);
         root_item_->add_inmem_allocator(alloc, file);

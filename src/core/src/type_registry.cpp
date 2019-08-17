@@ -23,8 +23,8 @@
 #include <memoria/v1/api/map/map_api.hpp>
 #include <memoria/v1/api/multimap/multimap_api.hpp>
 #include <memoria/v1/api/vector/vector_api.hpp>
-#include <memoria/v1/api/db/update_log/update_log_api.hpp>
-#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
+//#include <memoria/v1/api/db/update_log/update_log_api.hpp>
+//#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
 #include <memoria/v1/api/set/set_api.hpp>
 
 namespace memoria {
@@ -91,8 +91,8 @@ DataTypeRegistryStore::Initializer<int64_t, TL<>> int64_;
 DataTypeRegistryStore::Initializer<uint64_t, TL<>> uint64_;
 
 
-DataTypeRegistryStore::Initializer<UpdateLog, TL<>> update_log_;
-DataTypeRegistryStore::Initializer<EdgeMap, TL<>> edge_map;
+//DataTypeRegistryStore::Initializer<UpdateLog, TL<>> update_log_;
+//DataTypeRegistryStore::Initializer<EdgeMap, TL<>> edge_map;
 
 DataTypeRegistryStore::Initializer<Map<UUID, UUID>, TL<>> root_map;
 
