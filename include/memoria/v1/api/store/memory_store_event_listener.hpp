@@ -23,8 +23,8 @@
 namespace memoria {
 namespace v1 {
 
-struct AllocatorEventListener {
-    virtual ~AllocatorEventListener() noexcept {}
+struct StoreEventListener {
+    virtual ~StoreEventListener() noexcept {}
 
     virtual void shapshot_created(UUID snapshot_id) = 0;
     virtual void shapshot_removed(UUID snapshot_id) = 0;

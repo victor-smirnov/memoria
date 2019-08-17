@@ -27,7 +27,7 @@
 
 #include <memoria/v1/profiles/common/common.hpp>
 
-#include <memoria/v1/api/allocator/allocator_inmem_api_common.hpp>
+#include <memoria/v1/api/store/memory_store_common.hpp>
 
 #include <memoria/v1/api/common/ctr_api.hpp>
 

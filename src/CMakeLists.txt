@@ -19,7 +19,6 @@ include_directories(core/include)
 
 
 add_subdirectory(core)
-add_subdirectory(allocators)
 add_subdirectory(stores)
 add_subdirectory(containers)
 add_subdirectory(fiber)

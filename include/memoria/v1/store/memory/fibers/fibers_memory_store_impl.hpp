@@ -38,7 +38,7 @@
 
 #include <memoria/v1/core/graph/graph.hpp>
 
-#include <memoria/v1/api/allocator/allocator_inmem_event_listener.hpp>
+#include <memoria/v1/api/store/memory_store_event_listener.hpp>
 
 #include <stdlib.h>
 #include <memory>
@@ -120,7 +120,7 @@ private:
     
     memoria::v1::fibers::count_down_latch<int64_t> active_snapshots_;
 
-    LocalSharedPtr<AllocatorEventListener> event_listener_;
+    LocalSharedPtr<StoreEventListener> event_listener_;
  
 public:
     FibersMemoryStoreImpl() {
@@ -150,11 +150,11 @@ private:
     
 public:
 
-    void set_event_listener(LocalSharedPtr<AllocatorEventListener> ptr) {
+    void set_event_listener(LocalSharedPtr<StoreEventListener> ptr) {
         event_listener_ = ptr;
     }
 
-    LocalSharedPtr<AllocatorEventListener> event_listener() {
+    LocalSharedPtr<StoreEventListener> event_listener() {
         return event_listener_;
     }
     
@@ -640,28 +640,26 @@ public:
 
     SharedPtr<AllocatorMemoryStat> memory_stat(bool include_containers)
     {
-        LockGuardT lock_guard(mutex_);
+        return reactor::engine().run_at(cpu_, [&]{
+            _::BlockSet visited_blocks;
 
-        _::BlockSet visited_blocks;
+            SharedPtr<AllocatorMemoryStat> alloc_stat = MakeShared<AllocatorMemoryStat>(0);
 
-        SharedPtr<AllocatorMemoryStat> alloc_stat = MakeShared<AllocatorMemoryStat>(0);
+            auto history_visitor = [&](HistoryNode* node) {
+                if (node->is_committed() || node->is_dropped())
+                {
+                    auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this(), OperationType::OP_FIND);
+                    auto snp_stat = snp->do_compute_memory_stat(visited_blocks, include_containers);
+                    alloc_stat->add_snapshot_stat(snp_stat);
+                }
+            };
 
-        auto history_visitor = [&](HistoryNode* node) {
-            SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
+            this->walk_version_tree(history_tree_, history_visitor);
 
-            if (node->is_committed() || node->is_dropped())
-            {
-                auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this(), OperationType::OP_FIND);
-                auto snp_stat = snp->do_compute_memory_stat(visited_blocks, include_containers);
-                alloc_stat->add_snapshot_stat(snp_stat);
-            }
-        };
+            alloc_stat->compute_total_size();
 
-        this->walk_version_tree(history_tree_, history_visitor);
-
-        alloc_stat->compute_total_size();
-
-        return alloc_stat;
+            return alloc_stat;
+        });
     }
 
 protected:

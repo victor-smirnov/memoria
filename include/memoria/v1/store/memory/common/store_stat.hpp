@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/api/allocator/allocator_inmem_api_common.hpp>
+#include <memoria/v1/api/store/memory_store_common.hpp>
 
 #include <unordered_set>
 #include <unordered_map>
