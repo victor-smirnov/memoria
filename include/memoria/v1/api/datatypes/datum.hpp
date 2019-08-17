@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,18 +13,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/containers/vector/vector_impl.hpp>
+#pragma once
 
-#include <memoria/v1/core/strings/string.hpp>
+#include <memoria/v1/core/types.hpp>
+#include <memoria/v1/api/datatypes/traits.hpp>
+
+#include <typeinfo>
 
 namespace memoria {
 namespace v1 {
 
-using Profile = DefaultProfile<>;    
-using CtrName = Vector<U8String>;
+template <typename DataType, typename SelectorTag = typename DataTypeTraits<DataType>::DatumSelector>
+class Datum;
 
-MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
-    
+struct AnyDatum
+{
+    virtual ~AnyDatum() noexcept {}
+
+    virtual U8String data_type() const = 0;
+    virtual const std::type_info& cxx_datum_type() const = 0;
+    virtual const char* data() = 0;
+};
+
+
 }}
-

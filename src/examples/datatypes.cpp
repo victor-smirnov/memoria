@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,15 +15,13 @@
 
 
 #include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/containers/vector/vector_impl.hpp>
+#include <memoria/v1/api/datatypes/datatypes.hpp>
 
-namespace memoria {
-namespace v1 {
+#include <iostream>
 
-using Profile = DefaultProfile<>;    
-using CtrName = Vector<int32_t>;
+using namespace memoria::v1;
 
-MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
-    
-}}
-
+int main()
+{
+    return 0;
+}

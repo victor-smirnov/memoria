@@ -26,6 +26,9 @@
 namespace memoria {
 namespace v1 {
 
+
+
+
 template <typename T> struct PrimitiveDataTypeName;
 
 #define MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(TypeName, TypeStr)  \
@@ -69,7 +72,11 @@ using DTValueType = typename DataTypeTraits<T>::ValueType;
 template <typename T> struct DataTypeTraitsBase {
     static constexpr bool isDataType = true;
     static constexpr bool isFixedSize = false;
+    using DatumSelector = EmptyType;
 };
+
+
+struct FixedSizeDataTypeTag {};
 
 
 template <typename T, typename DataType>
@@ -86,6 +93,8 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isFixedSize         = true;
 
+    using DatumSelector = FixedSizeDataTypeTag;
+
     static void create_signature(SBuf& buf, DataType obj) {
         PrimitiveDataTypeName<DataType>::create_signature(buf, obj);
     }
@@ -94,6 +103,9 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
         PrimitiveDataTypeName<DataType>::create_signature(buf, DataType());
     }
 };
+
+
+
 
 template <>
 struct DataTypeTraits<TinyInt>: FixedSizeDataTypeTraits<int8_t, TinyInt> {};

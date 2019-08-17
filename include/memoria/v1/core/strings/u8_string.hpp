@@ -17,7 +17,8 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <absl/strings/string_view.h>
+//#include <absl/strings/string_view.h>
+#include <boost/utility/string_view.hpp>
 
 #include <unicode/ustring.h>
 #include "u_string_capi.hpp"
@@ -43,6 +44,9 @@ namespace v1 {
 class U16String;
 class U32String;
 class UWString;
+
+
+using U8StringView = boost::string_view;
 
 
 class U8String {
@@ -76,7 +80,7 @@ public:
 
     U8String(size_t size, CharT code_unit): content_(size, code_unit) {}
 
-    U8String(absl::string_view str): content_(str.data(), str.size()) {}
+    U8String(U8StringView str): content_(str.data(), str.size()) {}
 
     explicit U8String(const U16String& other);
 
@@ -116,7 +120,7 @@ public:
         return content_ > other;
     }
 
-    bool operator==(const absl::string_view& other) const {
+    bool operator==(const U8StringView& other) const {
         return content_ == other;
     }
 
@@ -201,9 +205,9 @@ public:
         return content_;
     }
 
-    operator absl::string_view() const
+    operator U8StringView() const
     {
-        return absl::string_view(content_);
+        return U8StringView(content_);
     }
 
     CharT* data() {
@@ -213,8 +217,6 @@ public:
     const CharT* data() const {
         return content_.data();
     }
-
-
 };
 
 
@@ -224,8 +226,6 @@ inline std::basic_ostream<char, CharTraits>& operator<<(std::basic_ostream<char,
     out << str.content_;
     return out;
 }
-
-using U8StringView = absl::string_view;
 
 using U8StringRef = const U8String&;
 
@@ -274,20 +274,5 @@ struct hash<memoria::v1::U8String> {
         return hash<std::string>()(str.to_std_string());
     }
 };
-
-}
-
-namespace absl {
-
-//std::ostream& operator<<(std::ostream& out, const ::absl::string_view& str)
-//{
-//    return out.write(str.begin(), str.size());
-//}
-
-static inline std::stringstream& operator<<(std::stringstream& out, const ::absl::string_view& str)
-{
-    out.write(str.begin(), str.size());
-    return out;
-}
 
 }

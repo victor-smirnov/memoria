@@ -40,7 +40,7 @@ public:
         return signature_;
     }
 
-    bool equals(const Type& other) const {
+    bool equals(const DataType& other) const {
         return signature_->equals(*other.signature_.get());
     }
 
@@ -53,7 +53,7 @@ class FixedSizeType: public DataType {
     size_t size_;
 protected:
     FixedSizeType(SharedPtr<TypeSignature> signature, size_t size):
-        DataType(signature_), size_(size)
+        DataType(signature), size_(size)
     {}
 public:
     size_t size() const {
@@ -64,7 +64,7 @@ public:
 class VariableSizeType: public DataType {
 protected:
     VariableSizeType(SharedPtr<TypeSignature> signature):
-        DataType(signature_)
+        DataType(signature)
     {}
 public:
 };
@@ -78,7 +78,7 @@ class PrimitiveType: public FixedSizeType {
     );
 public:
     PrimitiveType():
-        FixedSizeType(make_type_signature<T>(), sizeof(T))
+        FixedSizeType(make_datatype_signature<T>(), sizeof(T))
     {}
 };
 

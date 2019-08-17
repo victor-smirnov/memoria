@@ -39,25 +39,27 @@ endif()
 
 get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
 
-add_library(Memoria STATIC ${GLOBAL_SRCS})
+if (BUILD_REACTOR_MEMORIA_LIB)
 
-SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-target_link_libraries(Memoria ${MEMORIA_LIBS})
+    add_library(Memoria STATIC ${GLOBAL_SRCS})
+
+    SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+    SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+    target_link_libraries(Memoria ${MEMORIA_LIBS})
+    set_property(TARGET Memoria PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 
 
-if (BUILD_MACOSX)
-    target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/macosx)
-elseif (BUILD_MSVC)
-    target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc/msvc_compat)
-    target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc)
-else()
-    target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/linux)
+    if (BUILD_MACOSX)
+        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/macosx)
+    elseif (BUILD_MSVC)
+        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc/msvc_compat)
+        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc)
+    else()
+        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/linux)
+    endif()
+
+    export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
 endif()
-
-export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
-
-
 
 if (BUILD_CLASSIC_MEMORIA_LIB)
 
@@ -81,6 +83,8 @@ if (BUILD_CLASSIC_MEMORIA_LIB)
 
     get_property(GLOBAL_SRCS_CLASSIC GLOBAL PROPERTY GLOBAL_SOURCES_CLASSIC)
     add_library(MemoriaClassic STATIC ${GLOBAL_SRCS_CLASSIC})
+    set_property(TARGET MemoriaClassic PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
+
 
     SET_TARGET_PROPERTIES(MemoriaClassic PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR} -DMMA1_NO_REACTOR")
     SET_TARGET_PROPERTIES(MemoriaClassic PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
@@ -119,8 +123,11 @@ if (BUILD_TESTS)
 #    add_subdirectory(tests-other/reactor)
 endif()
 
-if (BUILD_SANDBOX)
-    add_subdirectory(sandbox)
+if (BUILD_SANDBOX)    
+    if (BUILD_REACTOR_MEMORIA_LIB)
+        add_subdirectory(sandbox)
+    endif()
+
     if (BUILD_CLASSIC_MEMORIA_LIB)
         add_subdirectory(sandbox-classic)
     endif()
@@ -136,26 +143,27 @@ if(BUILD_MSVC)
 #    SET(MEMORIA_APPS ${MEMORIA_APPS} named_pipes)
 endif()
 
-
-FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
-    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-    SET_TARGET_PROPERTIES(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS})
-ENDFOREACH()
-
-if (Qt5_FOUND)
-    add_subdirectory(datascope)
-
-    set(CMAKE_AUTOMOC ON)
-
-    SET(MEMORIA_QT_APPS)
-
-    FOREACH(MEMORIA_QT_TARGET ${MEMORIA_QT_APPS})
-        add_executable(${MEMORIA_QT_TARGET} ${MEMORIA_QT_TARGET}.cpp)
-        SET_TARGET_PROPERTIES(${MEMORIA_QT_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-        set_target_properties(${MEMORIA_QT_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-        target_link_libraries(${MEMORIA_QT_TARGET} Memoria ${MEMORIA_LIBS} ${Qt5_LIBRARIES})
-        qt5_use_modules(${MEMORIA_QT_TARGET} Widgets Core Gui)
+if (BUILD_REACTOR_MEMORIA_LIB)
+    FOREACH(MEMORIA_TARGET ${MEMORIA_APPS})
+        add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+        SET_TARGET_PROPERTIES(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+        target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS})
     ENDFOREACH()
+
+    if (Qt5_FOUND)
+        add_subdirectory(datascope)
+
+        set(CMAKE_AUTOMOC ON)
+
+        SET(MEMORIA_QT_APPS)
+
+        FOREACH(MEMORIA_QT_TARGET ${MEMORIA_QT_APPS})
+            add_executable(${MEMORIA_QT_TARGET} ${MEMORIA_QT_TARGET}.cpp)
+            SET_TARGET_PROPERTIES(${MEMORIA_QT_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+            set_target_properties(${MEMORIA_QT_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+            target_link_libraries(${MEMORIA_QT_TARGET} Memoria ${MEMORIA_LIBS} ${Qt5_LIBRARIES})
+            qt5_use_modules(${MEMORIA_QT_TARGET} Widgets Core Gui)
+        ENDFOREACH()
+    endif()
 endif()

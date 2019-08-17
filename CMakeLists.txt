@@ -27,7 +27,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Memoria.cmake)
 
-set(CMAKE_CXX_STANDARD 14)
+set (MEMORIA_API_CXX_STANDARD 14)
+set (MEMORIA_INTERNAL_CXX_STANDARD 17)
+
+set(CMAKE_CXX_STANDARD ${MEMORIA_API_CXX_STANDARD})
 
 if (NOT CMAKE_BUILD_TYPE)
      set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
@@ -59,6 +62,8 @@ option(ICU_DEBUG        "Debug FindICU" OFF)
 option(Boost_DEBUG      "Debug FindBoost" OFF)
 
 option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" OFF)
+option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using fibers for concurrency" ON)
+
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
