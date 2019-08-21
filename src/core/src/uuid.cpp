@@ -18,6 +18,8 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 
+#include <memoria/v1/api/datatypes/datum.hpp>
+
 #ifndef MMA1_NO_REACTOR
 #   include <memoria/v1/reactor/reactor.hpp>
 #endif
@@ -161,6 +163,29 @@ U8String UUID::to_u8() const
 U16String UUID::to_u16() const
 {
     return to_u8().to_u16();
+}
+
+template <>
+Datum<UUID> datum_from_sdn_value(const UUID*, int64_t value)
+{
+    MMA1_THROW(RuntimeException()) << WhatCInfo("SDN convertion from int64_t to UUID is not supported");
+}
+
+template <>
+Datum<UUID> datum_from_sdn_value(const UUID*, double value) {
+    MMA1_THROW(RuntimeException()) << WhatCInfo("SDN convertion from double to UUID is not supported");
+}
+
+
+template <>
+Datum<UUID> datum_from_sdn_value(const UUID*, const TypedStringValue& value)
+{
+    U8StringView str = value.text().to_std_string();
+    U8StringView tstr = trim_string(str);
+
+    UUID uuid = UUID::parse(tstr.to_string().c_str());
+
+    return Datum<UUID>(uuid);
 }
 
 }}

@@ -80,6 +80,10 @@ public:
         text_.to_std_string().push_back(ch);
     }
 
+    bool is_null_token() const {
+        return text_ == "null";
+    }
+
     operator U8String&() {return text_;}
     operator const U8String&() const {return text_;}
     operator U8String&&() {return std::move(text_);}
@@ -147,10 +151,7 @@ public:
 
     void build_map()
     {
-//        map_.clear();
-//        for (auto& entry: entries_) {
-
-//        }
+        // TODO: Implement
     }
 };
 

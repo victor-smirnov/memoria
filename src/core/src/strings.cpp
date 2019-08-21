@@ -25,6 +25,27 @@
 namespace memoria {
 namespace v1 {
 
+U8StringView trim_string(U8StringView str)
+{
+    size_t start;
+    size_t end;
+
+    for (start = 0; start < str.length(); start++) {
+        if (str[start] != ' ') {
+            break;
+        }
+    }
+
+    for (end = str.length(); end > 0; end--) {
+        if (str[end - 1] != ' ') {
+            break;
+        }
+    }
+
+    return str.substr(start, end - start);
+}
+
+
 U8String trimString(U8StringRef str)
 {
     if (str.length() == 0)

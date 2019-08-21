@@ -15,15 +15,37 @@
 
 include_directories(../tools/include)
 
-if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX integer)
+if (BUILD_REACTOR_MEMORIA_LIB)
+
+    if (NOT DEFINED MEMORIA_SANDBOX)
+        set(MEMORIA_SANDBOX)
+    endif()
+
+    FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
+        add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+        set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+        target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS})
+
+        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
+    ENDFOREACH(MEMORIA_TARGET)
+
 endif()
 
-FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
-    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS}) 
 
-    target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS}) 
-ENDFOREACH(MEMORIA_TARGET)
+if (BUILD_CLASSIC_MEMORIA_LIB)
+
+    if (NOT DEFINED MEMORIA_SANDBOX_CLASSIC)
+        set(MEMORIA_SANDBOX integer)
+    endif()
+
+    FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
+        add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+        set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMMA1_NO_REACTOR")
+        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+        target_link_libraries(${MEMORIA_TARGET} MemoriaClassic ${MEMORIA_LIBS})
+
+        target_link_libraries(${MEMORIA_TARGET} ${MEMORIA_LIBS})
+    ENDFOREACH(MEMORIA_TARGET )
+
+endif()

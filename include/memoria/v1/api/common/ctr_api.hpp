@@ -27,15 +27,14 @@
 #include <memoria/v1/profiles/common/common.hpp>
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
+#include <memoria/v1/api/datatypes/datatypes.hpp>
 
 namespace memoria {
 namespace v1 {
 
 template <typename CtrName, typename Profile = DefaultProfile<>>
-struct ICtrApi: CtrReferenceable<Profile>
-{
+struct ICtrApi;
 
-};
 
 template <typename CtrName, typename Profile>
 struct ICtrApiTypes;
@@ -57,9 +56,6 @@ template <
 >
 struct IOSubstreamAdapter;
 
-
-//template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;
-//template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
 
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Profile> class SharedIter;

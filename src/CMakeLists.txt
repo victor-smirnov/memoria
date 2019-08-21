@@ -124,13 +124,7 @@ if (BUILD_TESTS)
 endif()
 
 if (BUILD_SANDBOX)    
-    if (BUILD_REACTOR_MEMORIA_LIB)
-        add_subdirectory(sandbox)
-    endif()
-
-    if (BUILD_CLASSIC_MEMORIA_LIB)
-        add_subdirectory(sandbox-classic)
-    endif()
+    add_subdirectory(sandbox)
 endif()
 
 

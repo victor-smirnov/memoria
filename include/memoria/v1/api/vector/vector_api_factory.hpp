@@ -63,6 +63,7 @@ struct DataTypeTraits<Vector<T>>: DataTypeTraitsBase<Vector<T>> {
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = true;
     static constexpr bool HasTypeConstructors = false;
+    static constexpr bool isSdnDeserializable = false;
 
     static void create_signature(SBuf& buf, const Vector<T>& obj)
     {

@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-//#include <absl/strings/string_view.h>
 #include <boost/utility/string_view.hpp>
 
 #include <unicode/ustring.h>
@@ -27,16 +26,6 @@
 #include <string>
 #include <sstream>
 #include <ostream>
-
-
-namespace memoria {
-namespace v1 {
-class U8String;
-}}
-
-namespace std {
-    void swap(memoria::v1::U8String&, memoria::v1::U8String&);
-}
 
 namespace memoria {
 namespace v1 {
@@ -63,7 +52,8 @@ private:
     template <typename T2>
     friend std::basic_ostream<char, T2>& operator<<(std::basic_ostream<char, T2>&, const U8String&);
 
-    friend inline void std::swap(U8String&, U8String&);
+    template <typename T>
+    friend inline void std::swap(T&, T&) noexcept;
 
 public:
 
@@ -260,15 +250,19 @@ inline bool compare_le(const U8String& first, const U8String& second) {
     return first.compare(second) <= 0;
 }
 
+U8StringView trim_string(U8StringView str);
+
+
 }}
 
 namespace std {
 
-inline void swap(memoria::v1::U8String& one, memoria::v1::U8String& two) {
+template <>
+inline void swap(memoria::v1::U8String& one, memoria::v1::U8String& two) noexcept {
     std::swap(one.content_, two.content_);
 }
 
-template<>
+template <>
 struct hash<memoria::v1::U8String> {
     size_t operator()(const memoria::v1::U8String& str) const noexcept {
         return hash<std::string>()(str.to_std_string());

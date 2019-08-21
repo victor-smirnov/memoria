@@ -27,16 +27,6 @@
 
 namespace memoria {
 namespace v1 {
-class U32String;
-}}
-
-namespace std {
-    void swap(memoria::v1::U32String&, memoria::v1::U32String&);
-}
-
-
-namespace memoria {
-namespace v1 {
 
 class U8String;
 class U16String;
@@ -56,7 +46,8 @@ private:
     template <typename T1, typename T2>
     friend std::basic_ostream<T1, T2>& operator<<(std::basic_ostream<T1, T2>&, const U32String&);
 
-    friend void std::swap(U32String&, U32String&);
+    template <typename T>
+    friend void std::swap(T&, T&) noexcept;
 
 public:
     U32String() = default;
@@ -197,11 +188,12 @@ inline bool compare_le(const U32String& first, const U32String& second) {
 
 namespace std {
 
-inline void swap(memoria::v1::U32String& one, memoria::v1::U32String& two) {
+template <>
+inline void swap(memoria::v1::U32String& one, memoria::v1::U32String& two) noexcept {
     std::swap(one.content_, two.content_);
 }
 
-template<>
+template <>
 struct hash<memoria::v1::U32String> {
     size_t operator()(const memoria::v1::U32String& str) const noexcept {
         return hash<std::u32string>()(str.to_std_string());

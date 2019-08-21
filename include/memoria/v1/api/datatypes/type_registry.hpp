@@ -18,45 +18,81 @@
 #pragma once
 
 #include <memoria/v1/api/datatypes/type_signature.hpp>
-#include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/api/datatypes/datum_base.hpp>
+
 #include <memoria/v1/core/types/list/typelist.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <boost/any.hpp>
 #include <boost/context/detail/apply.hpp>
 
 #include <unordered_map>
 #include <mutex>
+#include <tuple>
 
 namespace memoria {
 namespace v1 {
 
+class SDNDocument;
+
 namespace _ {
     template <typename T, typename ParamsList, typename... CtrArgsLists> struct DataTypeCreator;
+
+    template <
+        typename T,
+        typename Registry,
+        typename SerializerFn,
+        bool SdnDeserializable = DataTypeTraits<T>::isSdnDeserializable
+    >
+    struct SDNSerializerFactory {
+        static SerializerFn get_deserializer()
+        {
+            return [](const Registry& registry, const SDNDocument& decl)
+            {
+                return Datum<T>::from_sdn(decl);
+            };
+        }
+    };
+
+    template <typename T, typename Registry, typename SerializerFn>
+    struct SDNSerializerFactory<T, Registry, SerializerFn, false> {
+        static SerializerFn get_deserializer()
+        {
+            return SerializerFn();
+        }
+    };
+
 }
 
-class DataTypeRegistry {
-    using CreatorFn = std::function<boost::any (DataTypeRegistry&, const DataTypeDeclaration&)>;
 
-    std::map<U8String, CreatorFn> creators_;
+
+
+class DataTypeRegistry {
+    using CreatorFn   = std::function<boost::any (const DataTypeRegistry&, const DataTypeDeclaration&)>;
+    using SdnParserFn = std::function<AnyDatum (const DataTypeRegistry&, const SDNDocument&)>;
+
+    std::map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
 
 public:
     friend class DataTypeRegistryStore;
 
     DataTypeRegistry();
 
-    boost::any create_object(const DataTypeDeclaration& decl)
+    boost::any create_object(const DataTypeDeclaration& decl) const
     {
         U8String typedecl = decl.to_typedecl_string();
         auto ii = creators_.find(typedecl);
         if (ii != creators_.end())
         {
-            return ii->second(*this, decl);
+            return std::get<0>(ii->second)(*this, decl);
         }
         else {
             MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Type creator for {} is not registered", typedecl);
         }
     }
+
+    AnyDatum from_sdn_string(U8StringView sdn_string) const;
 
     static DataTypeRegistry& local();
 
@@ -65,9 +101,10 @@ public:
 
 class DataTypeRegistryStore {
 
-    using CreatorFn = std::function<boost::any (DataTypeRegistry&, const DataTypeDeclaration&)>;
+    using CreatorFn   = typename DataTypeRegistry::CreatorFn;
+    using SdnParserFn = typename DataTypeRegistry::SdnParserFn;
 
-    std::map<U8String, CreatorFn> creators_;
+    std::map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
 
     mutable std::mutex mutex_;
 
@@ -80,12 +117,12 @@ public:
 
 
     template <typename T>
-    void register_creator(CreatorFn creator)
+    void register_creator(CreatorFn creator, SdnParserFn parser)
     {
         LockT lock(mutex_);
 
         TypeSignature ts = make_datatype_signature<T>();
-        creators_[ts.parse().to_typedecl_string()] = creator;
+        creators_[ts.parse().to_typedecl_string()] = std::make_tuple(creator, parser);
     }
 
     template <typename T>
@@ -108,7 +145,7 @@ public:
     template <typename T, typename... ArgTypesLists>
     void register_creator_fn()
     {
-        register_creator<T>([](DataTypeRegistry& registry, const DataTypeDeclaration& decl)
+        auto creator_fn = [](const DataTypeRegistry& registry, const DataTypeDeclaration& decl)
         {
             constexpr size_t declared_params_size = ListSize<typename DataTypeTraits<T>::Parameters>;
 
@@ -131,7 +168,11 @@ public:
                                decl.full_type_name()
                            );
             }
-        });
+        };
+
+        auto parser_fn = _::SDNSerializerFactory<T, DataTypeRegistry, SdnParserFn>::get_deserializer();
+
+        register_creator<T>(creator_fn, parser_fn);
     }
 
     static DataTypeRegistryStore& global();
@@ -220,7 +261,7 @@ namespace _ {
     template <size_t Idx, size_t Max>
     struct FillDTTypesList {
         template <typename Tuple>
-        static void process(DataTypeRegistry& registry, const DataTypeParams& params, Tuple& tpl)
+        static void process(const DataTypeRegistry& registry, const DataTypeParams& params, Tuple& tpl)
         {
             using ParamType = std::tuple_element_t<Idx, Tuple>;
 
@@ -236,7 +277,7 @@ namespace _ {
     template <size_t Max>
     struct FillDTTypesList<Max, Max> {
         template <typename Tuple>
-        static void process(DataTypeRegistry& registry, const DataTypeParams& params, Tuple& tpl){}
+        static void process(const DataTypeRegistry& registry, const DataTypeParams& params, Tuple& tpl){}
     };
 
 
@@ -285,7 +326,7 @@ namespace _ {
     template <typename T, typename... ParamsList, typename... ArgsList, typename... ArgsLists>
     struct DataTypeCreator<T, TL<ParamsList...>, TL<ArgsList...>, ArgsLists...>
     {
-        static T create(DataTypeRegistry& registry, const DataTypeParams& params, const DataTypeCtrArgs& args)
+        static T create(const DataTypeRegistry& registry, const DataTypeParams& params, const DataTypeCtrArgs& args)
         {
             if (_::try_to_convert<TL<ArgsList...>>(args))
             {
@@ -312,7 +353,7 @@ namespace _ {
     template <typename T, typename ParamsList>
     struct DataTypeCreator<T, ParamsList>
     {
-        static T create(DataTypeRegistry& registry, const DataTypeParams& params, const DataTypeCtrArgs& args)
+        static T create(const DataTypeRegistry& registry, const DataTypeParams& params, const DataTypeCtrArgs& args)
         {
             MMA1_THROW(RuntimeException())
                     << fmt::format_ex(

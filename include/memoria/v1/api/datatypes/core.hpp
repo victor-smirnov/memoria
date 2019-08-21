@@ -96,17 +96,6 @@ public:
 template <typename T>
 struct Dynamic {};
 
-template <typename Key, typename Value>
-class Multimap1 {
-    Key key_;
-    Value value_;
-
-public:
-    Multimap1(Key key, Value value): key_(key), value_(value) {}
-
-    const Key& key() const {return key_;}
-    const Value& value() const {return value_;}
-};
 
 template <>
 struct TypeHash<Varchar>: UInt64Value<9748271> {};

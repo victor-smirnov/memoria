@@ -103,6 +103,9 @@ public:
     void to_string(SBuf& buf) const;
 };
 
+enum class SDNValueType: int32_t {
+    TYPED_STRING_VALUE = 0, LONG, DOUBLE, NAME_TOKEN, ARRAY, MAP, TYPE_DECLARATION
+};
 
 class SDNValue {
 public:
@@ -150,6 +153,26 @@ public:
     void pretty_print(SBuf& buf, int32_t indent = 4, int32_t initial_indent = -1) const;
 
     void resolve_maps();
+
+    SDNValueType type() const {
+        return static_cast<SDNValueType>(value_.which());
+    }
+
+    bool is_null_token() const
+    {
+        if (type() == SDNValueType::NAME_TOKEN)
+        {
+            return boost::get<NameToken>(value_).is_null_token();
+        }
+
+        return false;
+    }
+
+    bool is_scalar() const
+    {
+        SDNValueType type = this->type();
+        return type == SDNValueType::DOUBLE || type == SDNValueType::LONG || type == SDNValueType::TYPED_STRING_VALUE;
+    }
 };
 
 inline const SDNValue & SDNEntry::value() const {
@@ -168,6 +191,9 @@ public:
 
     static SDNDocument parse(U8StringView text);
 
+    SDNValue& value() {return value_;}
+    const SDNValue& value() const {return value_;}
+
     U8String to_string() const
     {
         SBuf buf;
@@ -183,6 +209,7 @@ public:
         pretty_print(buf, indent);
         return U8String(std::move(buf.str()));
     }
+
 
     void pretty_print(SBuf& buf, int32_t indent = 4, int32_t initial_indent = -1) const;
 

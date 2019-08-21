@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
+MACRO (ClassicExample EX_TARGET MAIN SRCS1 SRCS2)
     message(STATUS ${MAIN} ${SRC1} ${SRCS2})
 
     add_executable(${EX_TARGET} ${MAIN} ${SRCS1} ${SRCS2})
@@ -25,8 +25,18 @@ MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
     target_link_libraries(${EX_TARGET} MemoriaClassic ${MEMORIA_LIBS})
 ENDMACRO()
 
+MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
+    message(STATUS ${MAIN} ${SRC1} ${SRCS2})
 
-Example(map_example map_example.cpp "" "")
-Example(multimap_example multimap_example.cpp "" "")
-Example(store store.cpp "" "")
-Example(datatypes datatypes.cpp "" "")
+    add_executable(${EX_TARGET} ${MAIN} ${SRCS1} ${SRCS2})
+
+    set_target_properties(${EX_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+    set_target_properties(${EX_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+
+    target_link_libraries(${EX_TARGET} Memoria ${MEMORIA_LIBS})
+ENDMACRO()
+
+ClassicExample(map_example map_example.cpp "" "")
+ClassicExample(multimap_example multimap_example.cpp "" "")
+ClassicExample(store store.cpp "" "")
+ClassicExample(datatypes datatypes.cpp "" "")

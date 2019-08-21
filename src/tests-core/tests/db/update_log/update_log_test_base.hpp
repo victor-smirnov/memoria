@@ -23,33 +23,6 @@
 #include <queue>
 
 
-
-//namespace memoria {
-//namespace v1 {
-//namespace tests {
-
-
-//struct CommandData {
-//    size_t pos;
-//    std::vector<uint8_t> data;
-
-//    CommandData(std::vector<uint8_t>&& data_):
-//        pos{}, data(std::move(data_))
-//    {}
-//};
-
-//}}}
-
-//namespace std {
-
-//static inline void swap(memoria::v1::tests::CommandData& d1, memoria::v1::tests::CommandData& d2) noexcept
-//{
-//    std::swap(d1.pos, d2.pos);
-//    std::swap(d1.data, d2.data);
-//}
-
-//}
-
 namespace memoria {
 namespace v1 {
 namespace tests {

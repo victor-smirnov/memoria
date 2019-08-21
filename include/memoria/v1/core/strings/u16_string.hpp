@@ -30,16 +30,6 @@
 
 namespace memoria {
 namespace v1 {
-class U16String;
-}}
-
-namespace std {
-    void swap(memoria::v1::U16String&, memoria::v1::U16String&);
-}
-
-
-namespace memoria {
-namespace v1 {
 
 using UnicodeString = MMA1_ICU_CXX_NS::UnicodeString;
 
@@ -82,7 +72,8 @@ private:
     template <typename T1, typename T2>
     friend std::basic_ostream<T1, T2>& operator<<(std::basic_ostream<T1, T2>&, const U16String&);
 
-    friend void std::swap(U16String&, U16String&);
+    template <typename T>
+    friend void std::swap(T&, T&) noexcept;
 
 public:
     static const size_t NPOS = ContentT::npos;
@@ -600,7 +591,8 @@ int64_t get_native_index_for(UText* ut);
 
 namespace std {
 
-inline void swap(memoria::v1::U16String& one, memoria::v1::U16String& two) {
+template <>
+inline void swap(memoria::v1::U16String& one, memoria::v1::U16String& two) noexcept {
     std::swap(one.content_, two.content_);
 }
 

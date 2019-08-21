@@ -65,6 +65,7 @@ struct DataTypeTraits<Set<Key>> {
     static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = true;
     static constexpr bool HasTypeConstructors = false;
+    static constexpr bool isSdnDeserializable = false;
 
     static void create_signature(SBuf& buf, const Set<Key>& obj)
     {

@@ -25,4 +25,31 @@ namespace v1 {
 template <typename T>
 using VarbinaryView = absl::Span<T>;
 
+template <>
+struct DataTypeTraits<Varbinary>: DataTypeTraitsBase<Varbinary>
+{
+    using AtomType      = uint8_t;
+    using ViewType      = VarbinaryView<AtomType>;
+    using ConstViewType = VarbinaryView<const AtomType>;
+    using ValueType     = std::vector<AtomType>;
+
+    using Parameters = TL<>;
+
+    static constexpr bool isDataType          = true;
+    static constexpr size_t MemorySize        = sizeof(EmptyType);
+    static constexpr bool IsParametrised      = false;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const Varchar& obj)
+    {
+        buf << "Varbinary";
+    }
+
+    static void create_signature(SBuf& buf)
+    {
+        buf << "Varbinary";
+    }
+};
+
+
 }}

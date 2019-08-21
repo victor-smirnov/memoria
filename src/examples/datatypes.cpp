@@ -23,5 +23,11 @@ using namespace memoria::v1;
 
 int main()
 {
+    AnyDatum uuid = DataTypeRegistry::local().from_sdn_string("'c7c9c4ef-cd29-4028-aee5-1832cca9ff0f'@UUID");
+
+    std::cout << uuid << std::endl;
+
+    std::cout << datum_cast<UUID>(std::move(uuid)).view() << std::endl;
+
     return 0;
 }

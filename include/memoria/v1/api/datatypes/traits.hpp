@@ -20,8 +20,8 @@
 #include <memoria/v1/core/strings/string_buffer.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
-#include <memoria/v1/api/datatypes/varbinaries.hpp>
-#include <memoria/v1/api/datatypes/varchars.hpp>
+//#include <memoria/v1/api/datatypes/varbinaries.hpp>
+//#include <memoria/v1/api/datatypes/varchars.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -61,6 +61,7 @@ MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(uint64_t, UInt64);
 
 template <typename T> struct DataTypeTraits {
     static constexpr bool isDataType = false;
+    static constexpr bool isSdnDeserializable = false;
 };
 
 template <typename T>
@@ -72,7 +73,11 @@ using DTValueType = typename DataTypeTraits<T>::ValueType;
 template <typename T> struct DataTypeTraitsBase {
     static constexpr bool isDataType = true;
     static constexpr bool isFixedSize = false;
-    using DatumSelector = EmptyType;
+    static constexpr bool isSdnDeserializable = false;
+
+
+    using DatumSelector         = EmptyType;
+    using DatumStorageSelector  = EmptyType;
 };
 
 
@@ -93,6 +98,8 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isFixedSize         = true;
 
+    static constexpr bool isSdnDeserializable = std::is_arithmetic<T>::value;
+
     using DatumSelector = FixedSizeDataTypeTag;
 
     static void create_signature(SBuf& buf, DataType obj) {
@@ -105,6 +112,17 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 };
 
 
+template <typename T, typename DataType>
+struct NonSdnFixedSizeDataTypeTraits: FixedSizeDataTypeTraits<T, DataType>
+{
+    static constexpr bool isSdnDeserializable = false;
+};
+
+template <typename T, typename DataType>
+struct SdnFixedSizeDataTypeTraits: FixedSizeDataTypeTraits<T, DataType>
+{
+    static constexpr bool isSdnDeserializable = true;
+};
 
 
 template <>
@@ -150,42 +168,20 @@ template <>
 struct DataTypeTraits<Double>: FixedSizeDataTypeTraits<double, Double> {};
 
 template <>
-struct DataTypeTraits<Timestamp>: FixedSizeDataTypeTraits<int64_t, Timestamp> {};
+struct DataTypeTraits<Timestamp>: NonSdnFixedSizeDataTypeTraits<int64_t, Timestamp> {};
 
 template <>
-struct DataTypeTraits<TSWithTimeZone>: FixedSizeDataTypeTraits<int64_t, TSWithTimeZone> {};
+struct DataTypeTraits<TSWithTimeZone>: NonSdnFixedSizeDataTypeTraits<int64_t, TSWithTimeZone> {};
 
 template <>
-struct DataTypeTraits<Time>: FixedSizeDataTypeTraits<int32_t, Time> {};
+struct DataTypeTraits<Time>: NonSdnFixedSizeDataTypeTraits<int32_t, Time> {};
 
 template <>
-struct DataTypeTraits<TimeWithTimeZone>: FixedSizeDataTypeTraits<int64_t, TimeWithTimeZone> {};
+struct DataTypeTraits<TimeWithTimeZone>: NonSdnFixedSizeDataTypeTraits<int64_t, TimeWithTimeZone> {};
 
 template <>
-struct DataTypeTraits<Date>: FixedSizeDataTypeTraits<int64_t, Date> {};
+struct DataTypeTraits<Date>: NonSdnFixedSizeDataTypeTraits<int64_t, Date> {};
 
-template <>
-struct DataTypeTraits<U8String>: DataTypeTraitsBase<U8String> {
-
-    using ViewType      = VarcharView;
-    using ConstViewType = VarcharView;
-    using ValueType     = U8String;
-
-    using Parameters = TL<>;
-
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
-    static constexpr bool IsParametrised      = false;
-    static constexpr bool HasTypeConstructors = false;
-    static constexpr bool isFixedSize         = false;
-
-    static void create_signature(SBuf& buf, const U8String& obj) {
-        buf << "U8String";
-    }
-
-    static void create_signature(SBuf& buf) {
-        buf << "U8String";
-    }
-};
 
 
 template <>
@@ -205,8 +201,7 @@ struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
     {
         buf << "Decimal";
 
-        if (obj.is_default())
-        {
+        if (obj.is_default()) {
             buf << "()";
         }
         else {
@@ -255,58 +250,6 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
 };
 
 
-template <>
-struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
-{
-    using ViewType      = VarcharView;
-    using ConstViewType = VarcharView;
-    using ValueType     = U8String;
-
-    using Parameters = TL<>;
-
-    static constexpr bool isDataType          = true;
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
-    static constexpr bool IsParametrised      = false;
-    static constexpr bool HasTypeConstructors = false;
-
-    static void create_signature(SBuf& buf, const Varchar& obj)
-    {
-        buf << "Varchar";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Varchar";
-    }
-};
-
-
-
-template <>
-struct DataTypeTraits<Varbinary>: DataTypeTraitsBase<Varbinary>
-{
-    using AtomType      = uint8_t;
-    using ViewType      = VarbinaryView<AtomType>;
-    using ConstViewType = VarbinaryView<const AtomType>;
-    using ValueType     = std::vector<AtomType>;
-
-    using Parameters = TL<>;
-
-    static constexpr bool isDataType          = true;
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
-    static constexpr bool IsParametrised      = false;
-    static constexpr bool HasTypeConstructors = false;
-
-    static void create_signature(SBuf& buf, const Varchar& obj)
-    {
-        buf << "Varbinary";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Varbinary";
-    }
-};
 
 template <typename T>
 struct DataTypeTraits<Dynamic<T>>: DataTypeTraits<T>
@@ -330,46 +273,6 @@ struct DataTypeTraits<Dynamic<T>>: DataTypeTraits<T>
 };
 
 
-template <typename Key, typename Value>
-struct DataTypeTraits<Multimap1<Key, Value>>: DataTypeTraitsBase<Multimap1<Key, Value>>
-{
-    using CxxType   = EmptyType;
-    using InputView = EmptyType;
-    using Ptr       = EmptyType*;
-
-    using Parameters = TL<Key, Value>;
-
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
-    static constexpr bool IsParametrised      = true;
-    static constexpr bool HasTypeConstructors = false;
-
-    static void create_signature(SBuf& buf, const Multimap1<Key, Value>& obj)
-    {
-        buf << "Multimap1<";
-
-        DataTypeTraits<Key>::create_signature(buf, obj.key());
-        buf << ", ";
-        DataTypeTraits<Value>::create_signature(buf, obj.value());
-
-        buf << ">";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Multimap1<";
-
-        DataTypeTraits<Key>::create_signature(buf);
-        buf << ", ";
-        DataTypeTraits<Value>::create_signature(buf);
-
-        buf << ">";
-    }
-};
-
-
-
-
-
 
 template<typename T>
 TypeSignature make_datatype_signature(T obj)
@@ -385,6 +288,14 @@ TypeSignature make_datatype_signature()
     SBuf buf;
     DataTypeTraits<T>::create_signature(buf);
     return TypeSignature(buf.str());
+}
+
+template<typename T>
+U8String make_datatype_signature_string()
+{
+    SBuf buf;
+    DataTypeTraits<T>::create_signature(buf);
+    return buf.str();
 }
 
 }}
