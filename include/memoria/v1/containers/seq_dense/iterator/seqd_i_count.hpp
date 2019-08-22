@@ -38,12 +38,9 @@ public:
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
+    typedef typename Container::BranchNodeEntry                                 BranchNodeEntry;
 
-    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
-
-    
 MEMORIA_V1_ITERATOR_PART_END
 
 

@@ -36,16 +36,14 @@ public:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
 
     typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
 
-    static const int32_t Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                = Types::Streams;
 
     template <int32_t LabelIdx>
     struct SetLabelValueFn {
@@ -103,7 +101,7 @@ public:
         mgr.add(leaf);
 
         try {
-            LeafDispatcher::dispatch(leaf, std::forward<Fn>(fn), std::forward<Args>(args)...);
+            self().leaf_dispatcher().dispatch(leaf, std::forward<Fn>(fn), std::forward<Args>(args)...);
             return true;
         }
         catch (PackedOOMException& e)

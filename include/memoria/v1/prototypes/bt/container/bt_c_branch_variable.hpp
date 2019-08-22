@@ -37,10 +37,6 @@ protected:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -95,7 +91,7 @@ OpStatus M_TYPE::insertToBranchNodeP(
 
     self.updateBlockG(node);
 
-    if(isFail(BranchDispatcher::dispatch(node, InsertFn(), idx, sums, id))) {
+    if(isFail(self.branch_dispatcher().dispatch(node, InsertFn(), idx, sums, id))) {
         return OpStatus::FAIL;
     }
 
@@ -188,7 +184,7 @@ bool M_TYPE::updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntr
     BlockUpdateMgr mgr(self);
     mgr.add(node);
 
-    if (isFail(BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, entry))) {
+    if (isFail(self.branch_dispatcher().dispatch(node, UpdateNodeFn(), idx, entry))) {
         mgr.rollback();
         return false;
     }
@@ -293,7 +289,7 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
-    if (isFail(BranchDispatcher::dispatch(src, tgt, TryMergeNodesFn())))
+    if (isFail(self.branch_dispatcher().dispatch(src, tgt, TryMergeNodesFn())))
     {
         mgr.rollback();
         return false;

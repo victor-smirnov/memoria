@@ -38,10 +38,6 @@ protected:
 
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;

@@ -39,9 +39,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
 
     typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
     typedef typename Base::Container                                            Container;
-    typedef typename Container::Types::Blocks::LeafDispatcher                    LeafDispatcher;
-    typedef typename Container::Types::Blocks::BranchDispatcher                  BranchDispatcher;
-    typedef typename Container::Types::Blocks::NodeDispatcher                    NodeDispatcher;
     typedef typename Types::Position                                            Position;
 
     typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
@@ -56,7 +53,7 @@ public:
 
 
     auto leaf_sizes() const {
-        return LeafDispatcher::dispatch(self().leaf(), SizesFn());
+        return self().ctr().leaf_dispatcher().dispatch(self().leaf(), SizesFn());
     }
 
     void refresh()
@@ -118,12 +115,12 @@ public:
 
     int32_t leaf_size(int32_t stream) const
     {
-        return LeafDispatcher::dispatch(self().leaf(), SizeFn(), stream);
+        return self().ctr().leaf_dispatcher().dispatch(self().leaf(), SizeFn(), stream);
     }
 
     int32_t leaf_size() const
     {
-        return LeafDispatcher::dispatch(self().leaf(), SizeFn(), self().stream());
+        return self().ctr().leaf_dispatcher().dispatch(self().leaf(), SizeFn(), self().stream());
     }
 
 
@@ -193,7 +190,7 @@ public:
     {
         if (!node->is_leaf())
         {
-            BranchDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
+            self().ctr().branch_dispatcher().dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
         }
 
         while (!node->is_root())
@@ -201,7 +198,7 @@ public:
             idx = node->parent_idx();
             node = self().ctr().getNodeParent(node);
 
-            NodeDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
+            self().ctr().node_dispatcher().dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
         }
     }
 
@@ -226,7 +223,7 @@ public:
         auto idx    = self.local_pos();
 
         bt::FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
-        LeafDispatcher::dispatch(self.leaf(), walker, WalkCmd::LAST_LEAF, 0, idx);
+        self.ctr().leaf_dispatcher().dispatch(self.leaf(), walker, WalkCmd::LAST_LEAF, 0, idx);
     }
 
 

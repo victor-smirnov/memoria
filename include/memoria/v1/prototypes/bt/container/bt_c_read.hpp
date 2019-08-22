@@ -34,11 +34,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
-
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -88,7 +83,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.local_pos();
 
-            int32_t processed = LeafDispatcher::dispatch(iter.leaf(), ReadEntriesFn<StreamIdx>(), std::forward<Fn>(fn), idx, idx + (length - total));
+            int32_t processed = self().leaf_dispatcher().dispatch(iter.leaf(), ReadEntriesFn<StreamIdx>(), std::forward<Fn>(fn), idx, idx + (length - total));
 
             if (processed > 0) {
                 total += iter.skipFw(processed);
@@ -138,7 +133,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.local_pos();
 
-            int32_t processed = LeafDispatcher::dispatch(iter.leaf(), ReadSubstreamFn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
+            int32_t processed = self().leaf_dispatcher().dispatch(iter.leaf(), ReadSubstreamFn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
                 total += iter.skipFw(processed);
@@ -191,7 +186,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.local_pos();
 
-            int32_t processed = LeafDispatcher::dispatch(iter.leaf(), ReadSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
+            int32_t processed = self().leaf_dispatcher().dispatch(iter.leaf(), ReadSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
                 total += iter.skipFw(processed);
@@ -242,7 +237,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.local_pos();
 
-            int32_t processed = LeafDispatcher::dispatch(iter.leaf(), DescribeSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
+            int32_t processed = self().leaf_dispatcher().dispatch(iter.leaf(), DescribeSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
                 total += iter.skipFw(processed);
@@ -293,7 +288,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
         {
             auto idx = iter.local_pos();
 
-            int32_t processed = LeafDispatcher::dispatch(iter.leaf(), ReadSingleSubstream2Fn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
+            int32_t processed = self().leaf_dispatcher().dispatch(iter.leaf(), ReadSingleSubstream2Fn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
                 total += iter.skipFw(processed);

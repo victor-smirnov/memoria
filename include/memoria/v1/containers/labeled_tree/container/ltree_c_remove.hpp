@@ -35,8 +35,6 @@ public:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
@@ -102,7 +100,7 @@ public:
     auto removeFromLeaf(NodeBaseG& leaf, int32_t idx)
     {
         RemoveFromLeafFn fn;
-        LeafDispatcher::dispatch(leaf, fn, idx);
+        self().leaf_dispatcher().dispatch(leaf, fn, idx);
     }
 
     void remove(CtrSizeT idx)

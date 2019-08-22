@@ -49,7 +49,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         walker.prepare(self);
 
-        typename Container::NodeChain node_chain(self.leaf(), self.local_pos());
+        typename Container::NodeChain node_chain(self.ctr(), self.leaf(), self.local_pos());
 
         auto result = self.ctr().find_fw(node_chain, walker);
 

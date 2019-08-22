@@ -36,10 +36,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
@@ -197,7 +193,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(IsEmptyFn, isEmpty, bool);
     bool isEmpty(const NodeBaseG& node) {
-        return NodeDispatcher::dispatch(node, IsEmptyFn());
+        return self().node_dispatcher().dispatch(node, IsEmptyFn());
     }
 
 private:

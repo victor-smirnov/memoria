@@ -40,10 +40,6 @@ public:
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
 

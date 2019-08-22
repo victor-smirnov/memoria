@@ -138,6 +138,8 @@ public:
     using IteratorPtr       = CtrSharedPtr<SharedIterator>;
     using AllocatorPtr      = CtrSharedPtr<Allocator>;
 
+    using NodeDispatcher = typename Types::Blocks::template NodeDispatcher<MyType>;
+
     static constexpr uint64_t CONTAINER_HASH = TypeHashV<Name>;
 
     template <typename> friend class BTIteratorBase;
@@ -236,7 +238,7 @@ public:
             );
 
             std::vector<BlockOperationsPtr<ProfileT>> list;
-            Types::Blocks::NodeDispatcher::build_metadata_list(list);
+            NodeDispatcher::build_metadata_list(list);
 
             for (auto& ptr: list)
             {

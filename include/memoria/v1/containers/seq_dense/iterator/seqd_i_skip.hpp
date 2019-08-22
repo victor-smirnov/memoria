@@ -33,14 +33,11 @@ namespace v1 {
 MEMORIA_V1_ITERATOR_PART_BEGIN(seq_dense::IterSkipName)
 public:
     typedef Ctr<typename Types::CtrTypes>                                       Container;
-
-
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
+    typedef typename Container::BranchNodeEntry                                 BranchNodeEntry;
 
-    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
     using CtrSizeT = typename Container::Types::CtrSizeT;

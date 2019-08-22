@@ -218,7 +218,7 @@ public:
     virtual OpStatus insertBuffer(NodeBaseG& leaf, int32_t at, int32_t size)
     {
         InsertBufferFn fn;
-        CtrT::Types::Blocks::LeafDispatcher::dispatch(leaf, fn, at, start_, size, *io_vector_);
+        ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_);
 
         if (isFail(fn.status_)) {
             return OpStatus::FAIL;
@@ -371,8 +371,11 @@ public:
     using BlockUpdateMgr     = typename CtrT::Types::BlockUpdateMgr;
 
     using Base::io_vector_;
+    using Base::ctr;
 
 public:
+
+
 
     IOVectorBTSSInputProvider(
             CtrT& ctr,
@@ -421,7 +424,7 @@ public:
 
         if (leaf->parent_id().isSet())
         {
-            this->ctr().update_path(leaf);
+            ctr().update_path(leaf);
         }
 
         return inserted;
@@ -487,7 +490,7 @@ protected:
     {
         typename Base::InsertBufferFn fn;
 
-        CtrT::Types::Blocks::LeafDispatcher::dispatch(leaf, fn, at, this->start_, size, *io_vector_);
+        ctr().leaf_dispatcher().dispatch(leaf, fn, at, this->start_, size, *io_vector_);
 
         if (isFail(fn.status_))
         {

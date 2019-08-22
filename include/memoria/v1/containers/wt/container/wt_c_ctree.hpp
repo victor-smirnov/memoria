@@ -110,7 +110,7 @@ public:
             FindChildFn fn(label);
             int32_t idx = iter->local_pos();
 
-            Tree::LeafDispatcher::dispatch(iter->leaf(), fn, idx);
+            Tree::self().leaf_dispatcher().dispatch(iter->leaf(), fn, idx);
 
             if (fn.target_idx_ >= 0)
             {

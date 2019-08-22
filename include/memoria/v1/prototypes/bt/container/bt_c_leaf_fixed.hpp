@@ -35,11 +35,6 @@ public:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -92,7 +87,7 @@ public:
         if (self.checkCapacities(iter.leaf(), Position::create(Stream, 1)))
         {
             BranchNodeEntry accum;
-            LeafDispatcher::dispatch(iter.leaf(), InsertStreamEntryFn<Stream>(), idx, accum, entry);
+            self.leaf_dispatcher().dispatch(iter.leaf(), InsertStreamEntryFn<Stream>(), idx, accum, entry);
             return std::make_tuple(true);
         }
         else {
@@ -136,7 +131,7 @@ public:
         self().updateBlockG(iter.leaf());
 
         BranchNodeEntry accum;
-        LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), idx, accum);
+        self().leaf_dispatcher().dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), idx, accum);
         return std::make_tuple(true, accum);
     }
 
@@ -154,7 +149,7 @@ public:
         self().updateBlockG(iter.leaf());
 
         auto& self = this->self();
-        LeafDispatcher::dispatch(
+        self().leaf_dispatcher().dispatch(
                 iter.leaf(),
                 fn,
                 FLSelector(),
@@ -210,7 +205,7 @@ public:
         self.updateBlockG(iter.leaf());
 
         BranchNodeEntry accum;
-        LeafDispatcher::dispatch(
+        self.leaf_dispatcher().dispatch(
                 iter.leaf(),
                 UpdateStreamEntryFn<Stream, SubstreamsList>(),
                 idx,
@@ -230,7 +225,7 @@ public:
     MEMORIA_V1_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
     bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
     {
-        return NodeDispatcher::dispatch(src, tgt, CanMergeFn());
+        return self().node_dispatcher().dispatch(src, tgt, CanMergeFn());
     }
 
 
@@ -256,7 +251,7 @@ void M_TYPE::doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     int32_t tgt_size = self.getNodeSize(tgt, 0);
 
-    OOM_THROW_IF_FAILED(LeafDispatcher::dispatch(src, tgt, MergeNodesFn()), MMA1_SRC);
+    OOM_THROW_IF_FAILED(self.leaf_dispatcher().dispatch(src, tgt, MergeNodesFn()), MMA1_SRC);
 
     self.updateChildren(tgt, tgt_size);
 

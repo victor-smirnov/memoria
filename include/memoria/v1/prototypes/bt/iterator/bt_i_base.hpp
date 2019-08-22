@@ -47,7 +47,9 @@ public:
             typename Base::Container
     >;
 
-    using IOVectorViewT = typename Types::LeafNode::IOVectorViewT;
+    using CtrT = Ctr<Types>;
+
+    using IOVectorViewT = typename Types::template LeafNode<CtrT>::IOVectorViewT;
 
 private:
 
@@ -206,7 +208,7 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(RefreshIOVectorViewFn, configure_iovector_view);
     void refresh_iovector_view()
     {
-        Types::Blocks::LeafDispatcher::dispatch(leaf_, RefreshIOVectorViewFn(), *&iovector_view_);
+        self().ctr().leaf_dispatcher().dispatch(leaf_, RefreshIOVectorViewFn(), *&iovector_view_);
     }
 
 

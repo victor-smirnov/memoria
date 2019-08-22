@@ -34,10 +34,6 @@ public:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -56,7 +52,7 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, int32_t);
     int32_t getBranchNodeCapacity(const NodeBaseG& node, uint64_t active_streams) const
     {
-        return BranchDispatcher::dispatch(node, GetNonLeafCapacityFn(), active_streams);
+        return self().branch_dispatcher().dispatch(node, GetNonLeafCapacityFn(), active_streams);
     }
 
 
@@ -74,7 +70,7 @@ OpStatus M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, int32_t split_a
 {
     auto& self = this->self();
 
-    if (isFail(BranchDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at))) {
+    if (isFail(self.branch_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at))) {
         return OpStatus::FAIL;
     }
 

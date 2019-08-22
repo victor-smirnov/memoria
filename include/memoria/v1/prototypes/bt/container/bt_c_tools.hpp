@@ -44,10 +44,6 @@ protected:
 
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -69,7 +65,7 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(DumpBlockSizesFn, dumpBlockSizes);
     void dumpBlockSizes(const NodeBaseG& node) const
     {
-    	LeafDispatcher::dispatch(node, DumpBlockSizesFn());
+        self().leaf_dispatcher().dispatch(node, DumpBlockSizesFn());
     }
 
 
@@ -77,26 +73,26 @@ public:
     BranchNodeEntry max(const NodeBaseG& node) const
     {
         BranchNodeEntry entry;
-        NodeDispatcher::dispatch(node, MaxFn(), entry);
+        self().node_dispatcher().dispatch(node, MaxFn(), entry);
         return entry;
     }
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetSizesFn, sizes, Position);
     Position getNodeSizes(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatch(node, GetSizesFn());
+        return self().node_dispatcher().dispatch(node, GetSizesFn());
     }
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetSizeFn, size, int32_t);
     int32_t getNodeSize(const NodeBaseG& node, int32_t stream) const
     {
-        return NodeDispatcher::dispatch(node, GetSizeFn(), stream);
+        return self().node_dispatcher().dispatch(node, GetSizeFn(), stream);
     }
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
     bool checkCapacities(const NodeBaseG& node, const Position& sizes) const
     {
-        return NodeDispatcher::dispatch(node, CheckCapacitiesFn(), sizes);
+        return self().node_dispatcher().dispatch(node, CheckCapacitiesFn(), sizes);
     }
 
     void dump(const NodeBaseG& block, std::ostream& out = std::cout) const
@@ -200,7 +196,7 @@ protected:
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
     NodeBaseG getChild(const NodeBaseG& node, int32_t idx) const
     {
-        NodeBaseG result = BranchDispatcher::dispatch(node, GetChildFn(self()), idx);
+        NodeBaseG result = self().branch_dispatcher().dispatch(node, GetChildFn(self()), idx);
 
         if (result.isSet())
         {
@@ -214,7 +210,7 @@ protected:
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetLastChildFn, getLastChildFn, NodeBaseG);
     NodeBaseG getLastChild(const NodeBaseG& node, int32_t idx) const
     {
-        NodeBaseG result = BranchDispatcher::dispatch(node, GetLastChildFn(self()), idx);
+        NodeBaseG result = self().branch_dispatcher().dispatch(node, GetLastChildFn(self()), idx);
 
         if (result.isSet())
         {
@@ -230,7 +226,7 @@ protected:
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetChildForUpdateFn, getChildForUpdateFn, NodeBaseG);
     NodeBaseG getChildForUpdate(const NodeBaseG& node, int32_t idx) const
     {
-        NodeBaseG result = BranchDispatcher::dispatch(node, GetChildForUpdateFn(self()), idx);
+        NodeBaseG result = self().branch_dispatcher().dispatch(node, GetChildForUpdateFn(self()), idx);
 
         if (result.isSet())
         {
@@ -244,7 +240,7 @@ protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(NodeStreamSizesFn, size_sums, Position);
     Position node_stream_sizes(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatch(node, NodeStreamSizesFn());
+        return self().node_dispatcher().dispatch(node, NodeStreamSizesFn());
     }
 
 
@@ -252,36 +248,36 @@ protected:
     MEMORIA_V1_DECLARE_NODE_FN(SumsFn, sums);
     void sums(const NodeBaseG& node, BranchNodeEntry& sums) const
     {
-        NodeDispatcher::dispatch(node, SumsFn(), sums);
+        self().node_dispatcher().dispatch(node, SumsFn(), sums);
     }
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(SumsRtnFn, sums, BranchNodeEntry);
     BranchNodeEntry sums(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatch(node, SumsRtnFn());
+        return self().node_dispatcher().dispatch(node, SumsRtnFn());
     }
 
     void sums(const NodeBaseG& node, int32_t start, int32_t end, BranchNodeEntry& sums) const
     {
-        NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
+        self().node_dispatcher().dispatch(node, SumsFn(), start, end, sums);
     }
 
     BranchNodeEntry sums(const NodeBaseG& node, int32_t start, int32_t end) const
     {
         BranchNodeEntry sums;
-        NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
+        self().node_dispatcher().dispatch(node, SumsFn(), start, end, sums);
         return sums;
     }
 
     void sums(const NodeBaseG& node, const Position& start, const Position& end, BranchNodeEntry& sums) const
     {
-        NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
+        self().node_dispatcher().dispatch(node, SumsFn(), start, end, sums);
     }
 
     BranchNodeEntry sums(const NodeBaseG& node, const Position& start, const Position& end) const
     {
         BranchNodeEntry sums;
-        NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
+        self().node_dispatcher().dispatch(node, SumsFn(), start, end, sums);
         return sums;
     }
 
@@ -306,13 +302,13 @@ protected:
     template <typename Path, typename... Args>
     auto leaf_sums(const NodeBaseG& node, Args&&... args) const
     {
-        return LeafDispatcher::dispatch(node, LeafSumsFn<Path>(), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(node, LeafSumsFn<Path>(), std::forward<Args>(args)...);
     }
 
 
     auto leaf_sizes(const NodeBaseG& node) const
     {
-        return LeafDispatcher::dispatch(node, LeafSizesFn());
+        return self().leaf_dispatcher().dispatch(node, LeafSizesFn());
     }
 
 
@@ -322,14 +318,14 @@ protected:
     void setBranchKeys(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys) const
     {
         self().updateBlockG(node);
-        BranchDispatcher::dispatch(node, SetKeysFn(), idx, keys);
+        self().branch_dispatcher().dispatch(node, SetKeysFn(), idx, keys);
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, BlockID);
     BlockID getChildID(const NodeBaseG& node, int32_t idx) const
     {
-        return BranchDispatcher::dispatch(node, GetINodeDataFn(), idx);
+        return self().branch_dispatcher().dispatch(node, GetINodeDataFn(), idx);
     }
 
 
@@ -342,12 +338,12 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
     void layoutBranchNode(NodeBaseG& node, uint64_t active_streams) const
     {
-        BranchDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
+        self().branch_dispatcher().dispatch(node, LayoutNodeFn(), active_streams);
     }
 
     void layoutLeafNode(NodeBaseG& node, const Position& sizes) const
     {
-        LeafDispatcher::dispatch(node, LayoutNodeFn(), sizes);
+        self().leaf_dispatcher().dispatch(node, LayoutNodeFn(), sizes);
     }
 
 
@@ -355,7 +351,7 @@ protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetActiveStreamsFn, active_streams, uint64_t);
     uint64_t getActiveStreams(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatch(node, GetActiveStreamsFn());
+        return self().node_dispatcher().dispatch(node, GetActiveStreamsFn());
     }
 
     void initLeaf(NodeBaseG& node) const {}
@@ -363,24 +359,24 @@ protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(IsNodeEmpty, is_empty, bool);
     bool isNodeEmpty(const NodeBaseG& node)
     {
-        return NodeDispatcher::dispatch(node, IsNodeEmpty());
+        return self().node_dispatcher().dispatch(node, IsNodeEmpty());
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
     void forAllIDs(const NodeBaseG& node, int32_t start, int32_t end, std::function<void (const BlockID&, int32_t)> fn) const
     {
-        BranchDispatcher::dispatch(node, ForAllIDsFn(), start, end, fn);
+        self().branch_dispatcher().dispatch(node, ForAllIDsFn(), start, end, fn);
     }
 
     void forAllIDs(const NodeBaseG& node, int32_t start, std::function<void (const BlockID&, int32_t)> fn) const
     {
-        BranchDispatcher::dispatch(node, ForAllIDsFn(), start, fn);
+        self().branch_dispatcher().dispatch(node, ForAllIDsFn(), start, fn);
     }
 
     void forAllIDs(const NodeBaseG& node, std::function<void (const BlockID&, int32_t)> fn) const
     {
-        BranchDispatcher::dispatch(node, ForAllIDsFn(), fn);
+        self().branch_dispatcher().dispatch(node, ForAllIDsFn(), fn);
     }
 
 
@@ -395,7 +391,7 @@ protected:
     void setChildId(NodeBaseG& node, int32_t child_idx, const BlockID& child_id) const
     {
         self().updateBlockG(node);
-        BranchDispatcher::dispatch(node, SetChildIDFn(), child_idx, child_id);
+        self().branch_dispatcher().dispatch(node, SetChildIDFn(), child_idx, child_id);
     }
 
 
@@ -436,14 +432,14 @@ protected:
 
     int32_t getNodeChildrenCount(const NodeBaseG& node) const
     {
-        return BranchDispatcher::dispatch(node, GetBranchNodeChildernCount());
+        return self().branch_dispatcher().dispatch(node, GetBranchNodeChildernCount());
     }
 
 
 
     int32_t getBranchNodeSize(const NodeBaseG& node) const
     {
-        return BranchDispatcher::dispatch(node, GetSizeFn());
+        return self().branch_dispatcher().dispatch(node, GetSizeFn());
     }
 
 public:
@@ -451,18 +447,18 @@ public:
     template <int32_t StreamIdx>
     int32_t getLeafStreamSize(const NodeBaseG& node) const
     {
-        return LeafDispatcher::dispatch(node, GetLeafNodeStreamSize<StreamIdx>());
+        return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSize<StreamIdx>());
     }
 
     Position getLeafStreamSizes(const NodeBaseG& node) const
     {
-        return LeafDispatcher::dispatch(node, GetLeafNodeStreamSizes());
+        return self().leaf_dispatcher().dispatch(node, GetLeafNodeStreamSizes());
     }
 
 
     Position getStreamSizes(const BranchNodeEntry& sums) const
     {
-        return LeafDispatcher::template dispatch<bt::LeafNode>(true, GetLeafNodeStreamSizesStatic(), sums);
+        return self().leaf_dispatcher().template dispatch<bt::LeafNode>(true, GetLeafNodeStreamSizesStatic(), sums);
     }
 
     struct CreateIOVectorViewFn
@@ -476,7 +472,7 @@ public:
 
     std::unique_ptr<io::IOVector> create_iovector_view(NodeBaseG& node)
     {
-        return LeafDispatcher::dispatch(node, CreateIOVectorViewFn());
+        return self().leaf_dispatcher().dispatch(node, CreateIOVectorViewFn());
     }
 
 
@@ -491,7 +487,7 @@ public:
 
     void configure_iovector_view(NodeBaseG& node, io::IOVector& io_vector)
     {
-        return LeafDispatcher::dispatch(node, ConfigureIOVectorViewFn(), io_vector);
+        return self().leaf_dispatcher().dispatch(node, ConfigureIOVectorViewFn(), io_vector);
     }
 
 protected:
@@ -516,13 +512,13 @@ protected:
     template <typename SubstreamPath>
     const auto* getPackedStruct(const NodeBaseG& leaf) const
     {
-        return LeafDispatcher::dispatch(leaf, GetPackedStructFn<SubstreamPath>());
+        return self().leaf_dispatcher().dispatch(leaf, GetPackedStructFn<SubstreamPath>());
     }
 
     template <typename SubstreamPath>
     auto* getPackedStruct(NodeBaseG& leaf)
     {
-        return LeafDispatcher::dispatch(leaf, GetPackedStructFn<SubstreamPath>());
+        return self().leaf_dispatcher().dispatch(leaf, GetPackedStructFn<SubstreamPath>());
     }
 
 MEMORIA_V1_CONTAINER_PART_END

@@ -34,12 +34,6 @@ protected:
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
-
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -58,7 +52,7 @@ protected:
 public:
     int32_t getLeafNodeCapacity(const NodeBaseG& node, int max_hops = 100) const
     {
-        return LeafDispatcher::dispatch(node, GetStreamCapacityFn(), max_hops);
+        return self().leaf_dispatcher().dispatch(node, GetStreamCapacityFn(), max_hops);
     }
 
 

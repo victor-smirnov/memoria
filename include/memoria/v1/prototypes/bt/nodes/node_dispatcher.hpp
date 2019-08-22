@@ -28,11 +28,14 @@ namespace v1      {
 namespace bt      {
 
 
-template <typename Types, int idx> class NDT0;
-template <typename Types> class NDT0<Types, -1>;
+template <typename CtrT, typename Types, int idx> class NDT0;
+template <typename CtrT, typename Types> class NDT0<CtrT, Types, -1>;
 
-template <typename Types>
-class NDT: public NDT0<Types, ListSize<typename Types::List> - 1> {};
+template <typename CtrT, typename Types>
+struct NDT: public NDT0<CtrT, Types, ListSize<typename Types::List> - 1> {
+    NDT(CtrT& ctr): NDT0<CtrT, Types, ListSize<typename Types::List> - 1>(ctr)
+    {}
+};
 
 
 template <
@@ -54,10 +57,10 @@ struct IsTreeNode<TreeNode, NodePageAdaptor<TreeNode, Types>> {
 
 
 
-template <typename Types, int Idx>
+template <typename CtrT, typename Types, int Idx>
 class NDT0 {
 
-    using MyType = NDT0<Types, Idx>;
+    using MyType = NDT0<CtrT, Types, Idx>;
 public:
     using Head = SelectByIndex<Idx, typename Types::List>;
 
@@ -65,12 +68,16 @@ private:
     static const uint64_t HASH  = Head::BLOCK_HASH;
     static const bool Leaf      = Head::Leaf;
 
-    using NextNDT0 = NDT0<Types, Idx - 1>;
+    using NextNDT0 = NDT0<CtrT, Types, Idx - 1>;
+
+    CtrT& ctr_;
 
 public:
     using NodeBaseG = typename Types::NodeBaseG;
 
 public:
+    NDT0(CtrT& ctr): ctr_(ctr) {}
+
     template <template <typename> class Wrapper, typename Functor, typename... Args>
     static auto
     wrappedDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
@@ -146,7 +153,7 @@ public:
     {
         if (HASH == node1->block_type_hash())
         {
-            return NDT1<Types, ListSize<typename Types::List> - 1>::dispatch(
+            return NDT1<CtrT, Types, ListSize<typename Types::List> - 1>::dispatch(
                     static_cast<Head*>(node1.block()),
                     node2,
                     functor,
@@ -171,7 +178,7 @@ public:
     {
         if (HASH == node1->block_type_hash())
         {
-            return NDT1<Types, ListSize<typename Types::List> - 1>::dispatchConstRtn(
+            return NDT1<CtrT, Types, ListSize<typename Types::List> - 1>::dispatchConstRtn(
                     static_cast<const Head*>(node1.block()),
                     node2,
                     std::forward<Functor>(functor),
@@ -233,8 +240,8 @@ public:
 
 
 
-template <typename Types>
-class NDT0<Types, 0> {
+template <typename CtrT, typename Types>
+class NDT0<CtrT, Types, 0> {
 
     static const int32_t Idx = 0;
 public:
@@ -244,13 +251,16 @@ private:
     static const uint64_t HASH  = Head::BLOCK_HASH;
     static const bool Leaf      = Head::Leaf;
 
+    CtrT& ctr_;
+
 public:
     using NodeBaseG = typename Types::NodeBaseG;
 
-    using StartNDT1 = NDT1<Types, ListSize<typename Types::List> - 1>;
+    using StartNDT1 = NDT1<CtrT, Types, ListSize<typename Types::List> - 1>;
 
 
 public:
+    NDT0(CtrT& ctr): ctr_(ctr) {}
 
 
     template <template <typename> class Wrapper, typename Functor, typename... Args>
@@ -329,7 +339,7 @@ public:
     {
         if (HASH == node1->block_type_hash())
         {
-            return NDT1<Types, ListSize<typename Types::List> - 1>::dispatch(
+            return NDT1<CtrT, Types, ListSize<typename Types::List> - 1>::dispatch(
                     static_cast<Head*>(node1.block()),
                     node2,
                     functor,
@@ -347,7 +357,7 @@ public:
     {
         if (HASH == node1->block_type_hash())
         {
-            return NDT1<Types, ListSize<typename Types::List> - 1>::dispatch(
+            return NDT1<CtrT, Types, ListSize<typename Types::List> - 1>::dispatch(
                     static_cast<const Head*>(node1.block()),
                     node2,
                     functor,

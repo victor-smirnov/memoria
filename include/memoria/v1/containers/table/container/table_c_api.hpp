@@ -36,10 +36,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(table::CtrApiName)
     using NodeBaseG         = typename Types::NodeBaseG;
     using Iterator          = typename Base::Iterator;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     using Key                   = typename Types::Key;
     using Value                 = typename Types::Value;
     using CtrSizeT            = typename Types::CtrSizeT;

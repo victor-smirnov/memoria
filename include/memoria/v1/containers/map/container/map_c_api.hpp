@@ -37,9 +37,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     using typename Base::NodeBaseG;
     using typename Base::IteratorPtr;
 
-    using typename Base::NodeDispatcher;
-    using typename Base::LeafDispatcher;
-    using typename Base::BranchDispatcher;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
     using typename Base::BlockUpdateMgr;

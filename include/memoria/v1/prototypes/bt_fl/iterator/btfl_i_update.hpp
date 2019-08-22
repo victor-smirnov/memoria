@@ -43,8 +43,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorUpdateName)
 
     using IteratorBranchNodeEntry = typename Container::Types::IteratorBranchNodeEntry;
 
-    using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
-
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 

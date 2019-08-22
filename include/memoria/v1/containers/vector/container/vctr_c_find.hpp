@@ -33,9 +33,6 @@ public:
 
 protected:
     using typename Base::NodeBaseG;
-    using typename Base::NodeDispatcher;
-    using typename Base::LeafDispatcher;
-    using typename Base::BranchDispatcher;
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
     using typename Base::BlockUpdateMgr;

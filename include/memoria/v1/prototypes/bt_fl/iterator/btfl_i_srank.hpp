@@ -44,9 +44,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorStreamRankName)
     using CtrSizeT 		= typename Container::Types::CtrSizeT;
     using DataSizesT  = typename Container::Types::DataSizesT;
 
-
-    using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
-
     static constexpr int32_t DataStreams 				= Container::Types::DataStreams;
     static constexpr int32_t StructureStreamIdx = Container::Types::StructureStreamIdx;
 

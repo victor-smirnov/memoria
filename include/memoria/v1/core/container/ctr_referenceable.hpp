@@ -23,6 +23,7 @@
 
 #include <memoria/v1/profiles/common/common.hpp>
 
+#include <memoria/v1/core/iovector/io_vector.hpp>
 
 #include <string>
 
@@ -31,6 +32,9 @@ namespace v1 {
 
 template <typename Profile>
 struct CtrReferenceable {
+
+    virtual ~CtrReferenceable() noexcept {}
+
     virtual bool is_castable_to(uint64_t type_hash) const   = 0;
     virtual U16String describe_type() const                 = 0;
     virtual uint64_t type_hash()                            = 0;
@@ -39,8 +43,8 @@ struct CtrReferenceable {
     virtual int32_t get_new_block_size()                    = 0;
     
     virtual const ProfileCtrID<Profile>& name() const = 0;
-    
-    virtual ~CtrReferenceable() noexcept {}
+
+    virtual std::shared_ptr<io::IOVector> create_iovector()  = 0;
 };
 
 

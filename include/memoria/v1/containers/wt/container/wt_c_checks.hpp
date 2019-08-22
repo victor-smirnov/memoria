@@ -32,16 +32,14 @@ public:
 
     typedef typename Allocator::Page::ID                                        ID;
 
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
 
     typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
 
-    static const int32_t Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                = Types::Streams;
 
 
     struct CheckContentFn {
@@ -102,7 +100,7 @@ public:
             {
                 CheckContentFn fn(self(), node->id(), node->is_root());
 
-                LeafDispatcher::dispatch(node, fn);
+                self().leaf_dispatcher().dispatch(node, fn);
 
                 return fn.errors_;
             }

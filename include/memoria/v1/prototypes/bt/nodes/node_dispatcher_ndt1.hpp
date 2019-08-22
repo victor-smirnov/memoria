@@ -29,20 +29,23 @@ namespace memoria {
 namespace v1 {
 namespace bt {
 
-template <typename Types, int idx> class NDT1;
-template <typename Types> class NDT1<Types, -1>;
+template <typename CtrT, typename Types, int idx> class NDT1;
+template <typename CtrT, typename Types> class NDT1<CtrT, Types, -1>;
 
-template <typename Types, int Idx>
+template <typename CtrT, typename Types, int Idx>
 class NDT1 {
 
     using NodeBaseG = typename Types::NodeBaseG;
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
-    using NextNDT1 = NDT1<Types, Idx - 1>;
+    using NextNDT1 = NDT1<CtrT, Types, Idx - 1>;
 
     static const uint64_t HASH = Head::BLOCK_HASH;
 
+    CtrT& ctr_;
+
 public:
+    NDT1(CtrT& ctr): ctr_(ctr) {}
 
     template <typename Node, typename Functor, typename... Args>
     static auto dispatch(
@@ -90,8 +93,8 @@ public:
 
 
 
-template <typename Types>
-class NDT1<Types, 0> {
+template <typename CtrT, typename Types>
+class NDT1<CtrT, Types, 0> {
 
     static const int32_t Idx = 0;
 
@@ -100,8 +103,10 @@ class NDT1<Types, 0> {
 
     static const uint64_t HASH = Head::BLOCK_HASH;
 
+    CtrT& ctr_;
 
 public:
+    NDT1(CtrT& ctr): ctr_(ctr) {}
 
     template <typename Node, typename Functor, typename... Args>
     static auto

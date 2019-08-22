@@ -34,11 +34,6 @@ protected:
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
-
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -88,7 +83,7 @@ public:
     {
         BranchNodeEntry accum;
         InsertStreamEntryFn<Stream> fn;
-        LeafDispatcher::dispatch(leaf, fn, idx, accum, entry);
+        self().leaf_dispatcher().dispatch(leaf, fn, idx, accum, entry);
 
         return fn.status_;
     }
@@ -181,7 +176,7 @@ public:
 
         BranchNodeEntry accum;
         RemoveFromLeafFn<Stream> fn;
-        LeafDispatcher::dispatch(iter.leaf(), fn, idx, accum);
+        self.leaf_dispatcher().dispatch(iter.leaf(), fn, idx, accum);
 
         if (isFail(fn.status_)) {
             mgr.rollback();
@@ -246,7 +241,7 @@ public:
 
         BranchNodeEntry accum;
         UpdateStreamEntryBufferFn<Stream, SubstreamsList> fn;
-        LeafDispatcher::dispatch(
+        self.leaf_dispatcher().dispatch(
                     iter.leaf(),
                     fn,
                     idx,
@@ -300,12 +295,12 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
     Position tgt_sizes  = self.getNodeSizes(tgt);
 
     int32_t tgt_size            = self.getNodeSize(tgt, 0);
-    NodeBaseG src_parent    = self.getNodeParent(src);
+    NodeBaseG src_parent        = self.getNodeParent(src);
     int32_t parent_idx          = src->parent_idx();
 
     MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
-    if (isFail(LeafDispatcher::dispatch(src, tgt, TryMergeNodesFn()))) {
+    if (isFail(self.leaf_dispatcher().dispatch(src, tgt, TryMergeNodesFn()))) {
         mgr.rollback();
         return false;
     }

@@ -60,7 +60,7 @@ protected:
 public:
     int32_t getLeafNodeCapacity(const NodeBaseG& node, int max_hops = 100) const
     {
-        return LeafDispatcher::dispatch(node, GetStreamCapacityFn(), max_hops);
+        return self().leaf_dispatcher().dispatch(node, GetStreamCapacityFn(), max_hops);
     }
 
 

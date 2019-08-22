@@ -391,17 +391,18 @@ public:
         template <int32_t SubstreamIdx>
         using BranchPathT = typename list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
 
-        template <typename SubstreamPath>
-        using LeafPackedStruct = typename Blocks::LeafDispatcher::Head::template PackedStruct<SubstreamPath>;
+        template <typename CtrT, typename SubstreamPath>
+        using LeafPackedStruct = typename Blocks::template LeafDispatcher<CtrT>::Head::template PackedStruct<SubstreamPath>;
 
 
-        using LeafNode = typename Blocks::LeafDispatcher::Head;
+        template <typename CtrT>
+        using LeafNode = typename Blocks::template LeafDispatcher<CtrT>::Head;
 
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
                                                         LeafDataLengthType::FIXED :
                                                         LeafDataLengthType::VARIABLE;
-
-        using LeafType = typename Blocks::LeafDispatcher::Head::Base;
+        template <typename CtrT>
+        using LeafType = typename Blocks::template LeafDispatcher<CtrT>::Head::Base;
     };
 
     using CtrTypes = typename Types::CtrTypes;

@@ -43,7 +43,6 @@ public:
     typedef typename Container::BranchNodeEntry                                 BranchNodeEntry;
     typedef typename Container::Iterator                                        Iterator;
 
-    typedef typename Container::Types::Blocks::LeafDispatcher                    LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
     using SymbolsSubstreamPath = typename Container::Types::SymbolsSubstreamPath;

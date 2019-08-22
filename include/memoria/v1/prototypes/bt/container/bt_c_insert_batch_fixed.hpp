@@ -38,10 +38,6 @@ protected:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -130,7 +126,7 @@ public:
                 child->parent_idx() = idx + c + i;
             }
 
-            BranchDispatcher::dispatch(node, InsertChildrenFn(), idx + c, idx + c + i, subtrees);
+            self.branch_dispatcher().dispatch(node, InsertChildrenFn(), idx + c, idx + c + i, subtrees);
 
             max = idx + c + i;
 

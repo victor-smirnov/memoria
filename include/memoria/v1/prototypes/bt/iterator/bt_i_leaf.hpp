@@ -37,8 +37,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorLeafName)
     typedef typename Container::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Container::Iterator                                            Iterator;
 
-    using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
-
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 public:
@@ -57,7 +55,7 @@ public:
 
             self.leaf().assign(next_leaf);
 
-            LeafDispatcher::dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0);
+            self.ctr().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0);
 
             walker.finish(self, 0, WalkCmd::NONE);
 
@@ -85,7 +83,7 @@ public:
 
             self.leaf().assign(prev_leaf);
 
-            LeafDispatcher::dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
+            self().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
 
             walker.finish(self, 0, WalkCmd::NONE);
 

@@ -152,7 +152,7 @@ protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(FindChildIdx, find_child_idx, int32_t);
     int32_t findChildIdx(const NodeBaseG& node, const ID& child_id)
     {
-    	return BranchDispatcher::dispatch(node, FindChildIdx(), child_id);
+    	return self().branch_dispatcher().dispatch(node, FindChildIdx(), child_id);
     }
 
 MEMORIA_V1_CONTAINER_PART_END

@@ -41,8 +41,7 @@ public:
     typedef typename Container::Allocator                                       Allocator;
     typedef typename Container::NodeBaseG                                       NodeBaseG;
 
-    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
+    typedef typename Container::BranchNodeEntry                                 BranchNodeEntry;
     typedef typename Container::Position                                        Position;
     typedef typename Container::Types::LabelsTuple                              LabelsTuple;
 

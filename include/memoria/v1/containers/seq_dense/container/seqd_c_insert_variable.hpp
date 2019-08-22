@@ -39,10 +39,6 @@ public:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -78,7 +74,7 @@ public:
     MMA1_NODISCARD bool doInsertBufferIntoLeaf(NodeBaseG& leaf, BlockUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
     {
         InsertBufferIntoLeafFn fn;
-        LeafDispatcher::dispatch(leaf, fn, pos, start, size - start, buffer);
+        self().leaf_dispatcher().dispatch(leaf, fn, pos, start, size - start, buffer);
 
         if (isOk(fn.status_)) {
             mgr.checkpoint(leaf);

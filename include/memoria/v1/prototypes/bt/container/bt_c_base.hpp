@@ -58,10 +58,11 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using CtrSizeT  = typename Types::CtrSizeT;
     using CtrSizesT = typename Types::CtrSizesT;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-    using DefaultDispatcher = typename Types::Blocks::DefaultDispatcher;
+    using NodeDispatcher    = typename Types::Blocks::template NodeDispatcher<MyType>;
+    using LeafDispatcher    = typename Types::Blocks::template LeafDispatcher<MyType>;
+    using BranchDispatcher  = typename Types::Blocks::template BranchDispatcher<MyType>;
+    using DefaultDispatcher = typename Types::Blocks::template DefaultDispatcher<MyType>;
+    using TreeDispatcher    = typename Types::Blocks::template TreeDispatcher<MyType>;
 
     using Metadata = typename Types::Metadata;
 
@@ -73,6 +74,12 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     ObjectPools pools_;
 
+    NodeDispatcher node_dispatcher_{self()};
+    LeafDispatcher leaf_dispatcher_{self()};
+    BranchDispatcher branch_dispatcher_{self()};
+    DefaultDispatcher default_dispatcher_{self()};
+    TreeDispatcher tree_dispatcher_{self()};
+
 
     ObjectPools& pools() {return pools_;}
 
@@ -80,6 +87,25 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return self().createNode(0, true, true);
     }
 
+    const NodeDispatcher& node_dispatcher() const {
+        return node_dispatcher_;
+    }
+
+    const LeafDispatcher& leaf_dispatcher() const {
+        return leaf_dispatcher_;
+    }
+
+    const BranchDispatcher& branch_dispatcher() const {
+        return branch_dispatcher_;
+    }
+
+    const DefaultDispatcher& default_dispatcher() const {
+        return default_dispatcher_;
+    }
+
+    const TreeDispatcher& tree_dispatcher() const {
+        return tree_dispatcher_;
+    }
 
 
     template <typename Node>
@@ -113,7 +139,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG root = self.allocator().getBlock(root_id);
 
-        return NodeDispatcher::dispatch(root, GetModelNameFn(self));
+        return self.node_dispatcher().dispatch(root, GetModelNameFn(self));
     }
 
     static CtrID getModelNameS(NodeBaseG root)
@@ -135,7 +161,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         NodeBaseG root = self().getRoot();
 
-        NodeDispatcher::dispatch(root, SetModelNameFn(self()), name);
+        self().node_dispatcher().dispatch(root, SetModelNameFn(self()), name);
     }
 
     void initCtr(int32_t command)
@@ -331,7 +357,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             size = meta.memory_block_size();
         }
 
-        NodeBaseG node = DefaultDispatcher::dispatch2(
+        NodeBaseG node = self.default_dispatcher().dispatch2(
                         leaf,
                         CreateNodeFn(self),
 						size
@@ -370,7 +396,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto& self = this->self();
 
-        NodeBaseG node = NodeDispatcher::dispatch2(
+        NodeBaseG node = self.node_dispatcher().dispatch2(
             leaf,
             CreateNodeFn(self), metadata.memory_block_size()
         );
@@ -410,7 +436,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     void prepareNode(NodeBaseG& node) const
     {
         MEMORIA_V1_ASSERT_TRUE(node.isSet());
-        NodeDispatcher::dispatch(node, PrepareNodeFn(self()));
+        self().node_dispatcher().dispatch(node, PrepareNodeFn(self()));
     }
 
     void markCtrUpdated()
@@ -479,7 +505,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         {
             if (!block->is_leaf())
             {
-                auto child_ids = BranchDispatcher::dispatch(block, ValuesAsVectorFn());
+                auto child_ids = self().branch_dispatcher().dispatch(block, ValuesAsVectorFn());
                 for (auto& child_id: child_ids)
                 {
                     links.push_back(DefaultEdge::make(graph, "child", block_vx, this->block_as_vertex(child_id)));

@@ -39,12 +39,7 @@ public:
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-    using TreeDispatcher    = typename Types::Blocks::TreeDispatcher;
-
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
 
     bool check(void *data) const
     {
@@ -72,7 +67,7 @@ public:
     bool checkContent(const NodeBaseG& node) const
     {
         try {
-            NodeDispatcher::dispatch(node, CheckContentFn());
+            self().node_dispatcher().dispatch(node, CheckContentFn());
             return false;
         }
         catch (Exception& ex)
@@ -136,7 +131,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, con
 
     if (!node->is_root())
     {
-        errors = TreeDispatcher::dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx) || errors;
+        errors = self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx) || errors;
 
         if (!node->is_leaf())
         {

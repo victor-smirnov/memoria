@@ -183,11 +183,20 @@ public:
         using ChildList = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::AllTypesList;
     };
 
-    using NodeDispatcher        = NDT<AllDTypes>;
-    using LeafDispatcher        = NDT<LeafDTypes>;
-    using BranchDispatcher      = NDT<BranchDTypes>;
-    using DefaultDispatcher     = NDT<DefaultDTypes>;
-    using TreeDispatcher        = NDTTree<TreeDTypes>;
+    template <typename CtrT>
+    using NodeDispatcher        = NDT<CtrT, AllDTypes>;
+
+    template <typename CtrT>
+    using LeafDispatcher        = NDT<CtrT, LeafDTypes>;
+
+    template <typename CtrT>
+    using BranchDispatcher      = NDT<CtrT, BranchDTypes>;
+
+    template <typename CtrT>
+    using DefaultDispatcher     = NDT<CtrT, DefaultDTypes>;
+
+    template <typename CtrT>
+    using TreeDispatcher        = NDTTree<CtrT, TreeDTypes>;
 };
 
 }

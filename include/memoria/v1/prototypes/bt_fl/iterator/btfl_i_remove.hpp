@@ -42,8 +42,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorRemoveName)
     using BranchNodeEntry               = typename Container::Types::BranchNodeEntry;
     using IteratorBranchNodeEntry       = typename Container::Types::IteratorBranchNodeEntry;
 
-    using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
-
     static const int32_t Streams          		= Container::Types::Streams;
     static const int32_t DataStreams      		= Container::Types::DataStreams;
     static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;

@@ -36,6 +36,8 @@ public:
     using Types             = typename Base::Types;
     using Iterator          = typename Base::Iterator;
 
+    using LeafNodeT         = typename Types::template LeafNode<MyType>;
+
 public:
 
 #ifdef MMA1_USE_IOBUFFER
@@ -45,14 +47,11 @@ public:
 
     static const int32_t Streams = Types::Streams;
 
-
-
-
     auto insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
         auto& self = this->self();
 
-        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+        std::unique_ptr<io::IOVector> iov = LeafNodeT::create_iovector();
 
         auto id = iter.leaf()->id();
 
@@ -83,7 +82,7 @@ public:
     {
         auto& self = this->self();
 
-        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+        std::unique_ptr<io::IOVector> iov = LeafNodeT::create_iovector();
 
         auto id = iter.leaf()->id();
 

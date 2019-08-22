@@ -34,7 +34,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(table::ItrMiscName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
 
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
+    typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
@@ -42,12 +42,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(table::ItrMiscName)
     using Key       = typename Container::Types::Key;
     using Value     = typename Container::Types::Value;
 
-    using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
-
     template <int32_t Stream>
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
-
-
 MEMORIA_V1_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(table::ItrMiscName)

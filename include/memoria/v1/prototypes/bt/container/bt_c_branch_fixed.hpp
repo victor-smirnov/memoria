@@ -37,11 +37,6 @@ public:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -78,7 +73,7 @@ public:
     MEMORIA_V1_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
     bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
     {
-        return NodeDispatcher::dispatch(src, tgt, CanMergeFn());
+        return self().node_dispatcher().dispatch(src, tgt, CanMergeFn());
     }
 
 
@@ -102,7 +97,7 @@ OpStatus M_TYPE::insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchN
     auto& self = this->self();
 
     self.updateBlockG(node);
-    if (isFail(BranchDispatcher::dispatch(node, InsertFn(), idx, keys, id))) {
+    if (isFail(self.branch_dispatcher().dispatch(node, InsertFn(), idx, keys, id))) {
         return OpStatus::FAIL;
     }
 
@@ -172,7 +167,7 @@ M_PARAMS
 bool M_TYPE::updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys)
 {
     self().updateBlockG(node);
-    OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, keys), MMA1_SRC);
+    OOM_THROW_IF_FAILED(self().branch_dispatcher().dispatch(node, UpdateNodeFn(), idx, keys), MMA1_SRC);
     return true;
 }
 
@@ -249,7 +244,7 @@ void M_TYPE::doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     int32_t tgt_size = self.getNodeSize(tgt, 0);
 
-    OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(src, tgt, MergeNodesFn()), MMA1_SRC);
+    OOM_THROW_IF_FAILED(self.branch_dispatcher().dispatch(src, tgt, MergeNodesFn()), MMA1_SRC);
 
     self.updateChildren(tgt, tgt_size);
 

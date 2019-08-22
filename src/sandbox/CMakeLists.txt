@@ -36,7 +36,7 @@ endif()
 if (BUILD_CLASSIC_MEMORIA_LIB)
 
     if (NOT DEFINED MEMORIA_SANDBOX_CLASSIC)
-        set(MEMORIA_SANDBOX integer)
+        set(MEMORIA_SANDBOX hana)
     endif()
 
     FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})

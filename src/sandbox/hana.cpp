@@ -1,5 +1,5 @@
 
-// Copyright 2018 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,18 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/types.hpp>
 
+#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/v1/api/datatypes/datatypes.hpp>
+
+#include <boost/hana.hpp>
 
 #include <iostream>
-#include <type_traits>
-#include <vector>
-#include <algorithm>
-#include <random>
 
 using namespace memoria::v1;
 
-int main(int argc, char** argv, char** envp)
+int main()
 {
 
+
+    return 0;
 }

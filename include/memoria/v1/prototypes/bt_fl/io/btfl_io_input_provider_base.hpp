@@ -560,7 +560,7 @@ protected:
     {
         InsertBuffersFn insert_fn;
 
-        CtrT::Types::Blocks::LeafDispatcher::dispatch(
+        ctr().leaf_dispatcher().dispatch(
                     leaf,
                     insert_fn,
                     to_position(at),

@@ -56,8 +56,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mmap::ItrMiscName)
     using KeyV      = typename DataTypeTraits<Key>::ValueType;
     using ValueV    = typename DataTypeTraits<Value>::ValueType;
 
-    using LeafDispatcher = typename Container::Types::Blocks::LeafDispatcher;
-
     static constexpr int32_t DataStreams            = Container::Types::DataStreams;
     static constexpr int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 

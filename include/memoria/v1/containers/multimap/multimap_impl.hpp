@@ -34,10 +34,5 @@ void ICtrApi<Multimap<Key, Value>, Profile>::init_profile_metadata()
     SharedCtr<Multimap<Key, Value>, ProfileAllocatorType<Profile>, Profile>::init_profile_metadata();
 }
 
-template <typename Key, typename Value, typename Profile>
-std::shared_ptr<io::IOVector> ICtrApi<Multimap<Key, Value>, Profile>::create_iovector()
-{
-    return SharedCtr<Multimap<Key, Value>, ProfileAllocatorType<Profile>, Profile>::create_iovector();
-}
 
 }}

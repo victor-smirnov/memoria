@@ -36,10 +36,6 @@ public:
 
 public:
     using NodeBaseG         = typename Types::NodeBaseG;
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     using CtrSizeT          = typename Types::CtrSizeT;
 
     using BranchNodeEntry   = typename Types::BranchNodeEntry;

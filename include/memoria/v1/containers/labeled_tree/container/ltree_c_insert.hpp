@@ -42,8 +42,6 @@ public:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
@@ -167,7 +165,7 @@ public:
         mgr.add(leaf);
 
         try {
-            LeafDispatcher::dispatch(
+            self().leaf_dispatcher().dispatch(
                     leaf,
                     InsertNodeFn(),
                     sums,
@@ -201,7 +199,7 @@ public:
         mgr.add(leaf);
 
         try {
-            LeafDispatcher::dispatch(leaf, InsertNodeFn(), sums, node_idx);
+            self().leaf_dispatcher().dispatch(leaf, InsertNodeFn(), sums, node_idx);
             return true;
         }
         catch (PackedOOMException& e)

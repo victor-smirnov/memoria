@@ -58,12 +58,5 @@ void ICtrApi<Set<Key>, Profile>::init_profile_metadata()
     SharedCtr<Set<Key>, ProfileAllocatorType<Profile>, Profile>::init_profile_metadata();
 }
 
-template <typename Key, typename Profile>
-std::shared_ptr<io::IOVector> ICtrApi<Set<Key>, Profile>::create_iovector()
-{
-    return SharedCtr<Set<Key>, ProfileAllocatorType<Profile>, Profile>::create_iovector();
-}
-
-
     
 }}

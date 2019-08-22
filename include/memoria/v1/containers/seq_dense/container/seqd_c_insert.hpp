@@ -39,10 +39,6 @@ public:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
@@ -90,7 +86,7 @@ public:
 //        mgr.add(leaf);
 //
 //        try {
-//            LeafDispatcher::dispatch(leaf, InsertIntoLeafFn(), 0, idx, symbol, &indexes);
+//            self().leaf_dispatcher().dispatch(leaf, InsertIntoLeafFn(), 0, idx, symbol, &indexes);
 //            return true;
 //        }
 //        catch (PackedOOMException& e)

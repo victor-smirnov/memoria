@@ -39,11 +39,6 @@ public:
 
 public:
     using typename Base::NodeBaseG;
-    using typename Base::NodeDispatcher;
-    using typename Base::LeafDispatcher;
-    using typename Base::BranchDispatcher;
-
-
     using typename Base::BranchNodeEntry;
     using typename Base::Position;
 
@@ -51,6 +46,8 @@ public:
     using MergeFn = std::function<void (const Position&)>;
 
     using typename Base::CtrSizeT;
+
+    using LeafNodeT = typename Types::template LeafNode<MyType>;
 
     static const int32_t Streams = Types::Streams;
 
@@ -99,7 +96,7 @@ public:
     {
         auto& self = this->self();
 
-        std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
+        std::unique_ptr<io::IOVector> iov = LeafNodeT::create_iovector();
 
         auto id = iter.leaf()->id();
 

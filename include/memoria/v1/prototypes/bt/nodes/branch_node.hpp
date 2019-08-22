@@ -77,6 +77,7 @@ private:
 
     int32_t alignment_gap_;
 
+    // TODO use alignof
     PackedAllocator allocator_;
 
     static_assert(std::is_pod<PackedAllocator>::value, "PackedAllocator must be a POD tpye");

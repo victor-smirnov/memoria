@@ -38,11 +38,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
 
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
-
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
@@ -121,7 +116,7 @@ protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
     bool shouldMergeNode(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatch(node, ShouldBeMergedNodeFn());
+        return self().node_dispatcher().dispatch(node, ShouldBeMergedNodeFn());
     }
 
 
@@ -220,7 +215,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, int32_t start, int32_t end, Posi
         self.removeNodeRecursively(child, sizes);
     });
 
-    OOM_THROW_IF_FAILED(BranchDispatcher::dispatch(node, RemoveSpaceFn(), start, end), MMA1_SRC);
+    OOM_THROW_IF_FAILED(self.branch_dispatcher().dispatch(node, RemoveSpaceFn(), start, end), MMA1_SRC);
 
     self.update_path(node);
 
@@ -236,7 +231,7 @@ OpStatus M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, int32_t start)
     MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
 
     self.updateBlockG(node);
-    if (isFail(BranchDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1))) {
+    if (isFail(self.branch_dispatcher().dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1))) {
         return OpStatus::FAIL;
     }
 
@@ -256,7 +251,7 @@ typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, const Posit
 
     self.updateBlockG(node);
 
-    OOM_THROW_IF_FAILED(LeafDispatcher::dispatch(node, RemoveSpaceFn(), start, end), MMA1_SRC);
+    OOM_THROW_IF_FAILED(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), start, end), MMA1_SRC);
 
     self.update_path(node);
 
@@ -270,7 +265,7 @@ typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, int32_t str
 
     self.updateBlockG(node);
 
-    OOM_THROW_IF_FAIL(LeafDispatcher::dispatch(node, RemoveSpaceFn(), stream, start, end), MMA1_SRC);
+    OOM_THROW_IF_FAIL(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), stream, start, end), MMA1_SRC);
 
     self.update_path(node);
 

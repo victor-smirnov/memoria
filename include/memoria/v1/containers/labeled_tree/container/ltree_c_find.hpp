@@ -35,8 +35,6 @@ public:
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
     typedef typename Base::Types::NodeBaseG                                     NodeBaseG;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-
     typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
     auto select0(CtrSizeT rank)
@@ -110,7 +108,7 @@ public:
     {
         LabelsFn fn;
 
-        LeafDispatcher::dispatch(leaf, fn, idx);
+        self().leaf_dispatcher().dispatch(leaf, fn, idx);
 
         return fn.labels_;
     }

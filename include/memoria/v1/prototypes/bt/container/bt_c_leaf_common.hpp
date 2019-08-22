@@ -37,10 +37,6 @@ protected:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -65,7 +61,7 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, OpStatus);
     OpStatus split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
     {
-        return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+        return self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
     }
 
 public:
@@ -82,19 +78,19 @@ public:
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto apply_substreams_fn(NodeBaseG& leaf, Fn&& fn, Args&&... args)
     {
-        return LeafDispatcher::dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto apply_substreams_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
     {
-        return LeafDispatcher::dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename Fn, typename... Args>
     auto apply_stream_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
     {
-        return LeafDispatcher::dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
@@ -134,7 +130,7 @@ public:
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto _sum(const NodeBaseG& leaf, Args&&... args) const
     {
-        return LeafDispatcher::dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), SumFn(), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), SumFn(), std::forward<Args>(args)...);
     }
 
     struct FindFn {
@@ -148,7 +144,7 @@ public:
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
     auto find_forward(const NodeBaseG& leaf, Args&&... args) const
     {
-        return LeafDispatcher::dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
+        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
     }
 
 
@@ -204,10 +200,10 @@ public:
     }
 
 
-    static std::shared_ptr<io::IOVector> create_iovector()
+    std::shared_ptr<io::IOVector> create_iovector()
     {
         return std::static_pointer_cast<io::IOVector>(
-            std::make_shared<typename Types::LeafNode::IOVectorT>()
+            std::make_shared<typename Types::template LeafNode<MyType>::IOVectorT>()
         );
     }
 
@@ -411,7 +407,7 @@ public:
         mgr.add(iter.leaf());
 
 
-        LeafDispatcher::dispatch(
+        self().leaf_dispatcher().dispatch(
             iter.leaf(),
             fn,
             std::forward<Args>(args)...
@@ -427,7 +423,7 @@ public:
 
         fn.status_ = OpStatus::OK;
 
-        LeafDispatcher::dispatch(
+        self().leaf_dispatcher().dispatch(
                     iter.leaf(),
                     fn,
                     std::forward<Args>(args)...

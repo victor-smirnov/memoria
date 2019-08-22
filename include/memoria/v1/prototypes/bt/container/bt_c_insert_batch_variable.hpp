@@ -36,11 +36,6 @@ protected:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     using typename Base::BlockID;
 
-
-    using NodeDispatcher    = typename Types::Blocks::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Blocks::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Blocks::BranchDispatcher;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
@@ -98,7 +93,7 @@ public:
                 child->parent_idx() = idx + c;
 
                 BranchNodeEntry sums = self.max(child);
-                if(isFail(BranchDispatcher::dispatch(node, InsertChildFn(), idx + c, sums, child->id()))) {
+                if(isFail(self.branch_dispatcher().dispatch(node, InsertChildFn(), idx + c, sums, child->id()))) {
                     status = OpStatus::FAIL;
                     break;
                 }

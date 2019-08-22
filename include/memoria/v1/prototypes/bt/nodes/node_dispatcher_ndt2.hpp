@@ -30,13 +30,13 @@ namespace memoria {
 namespace v1 {
 namespace bt {
 
-template <typename Types, int idx> class NDT2;
-template <typename Types> class NDT2<Types, -1>;
+template <typename CtrT, typename Types, int idx> class NDT2;
+template <typename CtrT, typename Types> class NDT2<CtrT, Types, -1>;
 
-template <typename Types, int Idx> class NDTTree;
-template <typename Types> class NDTTree<Types, -1>;
+template <typename CtrT, typename Types, int Idx> class NDTTree;
+template <typename CtrT, typename Types> class NDTTree<CtrT, Types, -1>;
 
-template <typename Types, int Idx = ListSize<typename Types::List> - 1>
+template <typename CtrT, typename Types, int Idx = ListSize<typename Types::List> - 1>
 class NDTTree {
 
     using NodeBaseG = typename Types::NodeBaseG;
@@ -45,10 +45,12 @@ class NDTTree {
     static const uint64_t HASH  = Head::BLOCK_HASH;
     static const bool Leaf      = Head::Leaf;
 
-    using NextNDT3 = NDTTree<Types, Idx - 1>;
+    using NextNDT3 = NDTTree<CtrT, Types, Idx - 1>;
+
+    CtrT& ctr_;
 
 public:
-
+    NDTTree(CtrT& ctr): ctr_(ctr) {}
 
     template <typename Functor, typename... Args>
     static auto
@@ -61,7 +63,7 @@ public:
     {
         if (HASH == parent->block_type_hash())
         {
-            return NDT2<Types, ListSize<typename Types::ChildList> - 1>::dispatchTreeConst(
+            return NDT2<CtrT, Types, ListSize<typename Types::ChildList> - 1>::dispatchTreeConst(
                     static_cast<const Head*>(parent.block()),
                     child,
                     std::forward<Functor>(functor),
@@ -75,8 +77,8 @@ public:
 };
 
 
-template <typename Types>
-class NDTTree<Types, 0> {
+template <typename CtrT, typename Types>
+class NDTTree<CtrT, Types, 0> {
 
     static const int32_t Idx = 0;
 
@@ -86,11 +88,14 @@ class NDTTree<Types, 0> {
     static const uint64_t HASH  = Head::BLOCK_HASH;
     static const bool Leaf      = Head::Leaf;
 
-    using NextNDT3 = NDTTree<Types, Idx - 1>;
+    using NextNDT3 = NDTTree<CtrT, Types, Idx - 1>;
+
+    CtrT& ctr_;
 
 public:
-    using NDT2Start = NDT2<Types, ListSize<typename Types::ChildList> - 1>;
+    using NDT2Start = NDT2<CtrT, Types, ListSize<typename Types::ChildList> - 1>;
 
+    NDTTree(CtrT& ctr): ctr_(ctr) {}
 
 
     template <typename Functor, typename... Args>
@@ -119,13 +124,13 @@ public:
 
 
 
-template <typename Types, int Idx>
+template <typename CtrT, typename Types, int Idx>
 class NDT2 {
 
     using NodeBaseG  = typename Types::NodeBaseG;
     using Head       = SelectByIndex<Idx, typename Types::ChildList>;
 
-    using NextNDT2 = NDT2<Types, Idx - 1>;
+    using NextNDT2 = NDT2<CtrT, Types, Idx - 1>;
 
     static const uint64_t HASH = Head::BLOCK_HASH;
 
@@ -156,8 +161,8 @@ public:
 
 
 
-template <typename Types>
-class NDT2<Types, 0> {
+template <typename CtrT, typename Types>
+class NDT2<CtrT, Types, 0> {
 
     static const int32_t Idx = 0;
 

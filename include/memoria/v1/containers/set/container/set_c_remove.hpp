@@ -34,10 +34,6 @@ public:
 protected:
     using typename Base::NodeBaseG;
 
-    using typename Base::NodeDispatcher;
-    using typename Base::LeafDispatcher;
-    using typename Base::BranchDispatcher;
-
     typedef typename Types::Key                                                 Key;
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using KeyV      = typename DataTypeTraits<Key>::ValueType;
