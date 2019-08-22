@@ -53,17 +53,17 @@ public:
     NDTTree(CtrT& ctr): ctr_(ctr) {}
 
     template <typename Functor, typename... Args>
-    static auto
+    auto
     dispatchTree(
             const NodeBaseG& parent,
             const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
-    )
+    ) const
     {
         if (HASH == parent->block_type_hash())
         {
-            return NDT2<CtrT, Types, ListSize<typename Types::ChildList> - 1>::dispatchTreeConst(
+            return NDT2<CtrT, Types, ListSize<typename Types::ChildList> - 1>(ctr_).dispatchTreeConst(
                     static_cast<const Head*>(parent.block()),
                     child,
                     std::forward<Functor>(functor),
@@ -71,7 +71,7 @@ public:
             );
         }
         else {
-            return NextNDT3::dispatchTree(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT3(ctr_).dispatchTree(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 };
@@ -99,17 +99,17 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static auto
+    auto
     dispatchTree(
             const NodeBaseG& parent,
             const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
-    )
+    ) const
     {
         if (HASH == parent->block_type_hash())
         {
-            return NDT2Start::dispatchTree(
+            return NDT2Start(ctr_).dispatchTree(
                     static_cast<const Head*>(parent.block()),
                     child,
                     std::forward<Functor>(functor),
@@ -134,16 +134,18 @@ class NDT2 {
 
     static const uint64_t HASH = Head::BLOCK_HASH;
 
-
+    CtrT& ctr_;
 
 public:
+    NDT2(CtrT& ctr): ctr_(ctr) {}
+
     template <typename Node, typename Functor, typename... Args>
-    static auto dispatchTree(
+    auto dispatchTree(
             const Node* parent,
             const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
-    )
+    ) const
     {
         if (HASH == child->block_type_hash())
         {
@@ -154,7 +156,8 @@ public:
             );
         }
         else {
-            return NextNDT2::dispatchTree(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            NextNDT2 dd(ctr_);
+            return dd.dispatchTree(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 };
@@ -171,16 +174,18 @@ class NDT2<CtrT, Types, 0> {
 
     static const uint64_t HASH = Head::BLOCK_HASH;
 
-
+    CtrT& ctr_;
 
 public:
+    NDT2(CtrT& ctr): ctr_(ctr) {}
+
     template <typename Node, typename Functor, typename... Args>
-    static auto dispatchTree(
+    auto dispatchTree(
             const Node* parent,
             const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
-    )
+    ) const
     {
         if (HASH == child->block_type_hash())
         {

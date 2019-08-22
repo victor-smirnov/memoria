@@ -48,12 +48,12 @@ public:
     NDT1(CtrT& ctr): ctr_(ctr) {}
 
     template <typename Node, typename Functor, typename... Args>
-    static auto dispatch(
+    auto dispatch(
             Node* node1,
             NodeBaseG& node2,
             Functor&& functor,
             Args&&... args
-    )
+    ) const
     {
         if (HASH == node2->block_type_hash())
         {
@@ -64,18 +64,18 @@ public:
             );
         }
         else {
-            return NextNDT1::dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT1(ctr_).dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
 
     template <typename Node, typename Functor, typename... Args>
-    static auto dispatch(
+    auto dispatch(
             const Node* node1,
             const NodeBaseG& node2,
             Functor&& functor,
             Args&&... args
-    )
+    ) const
     {
         if (HASH == node2->block_type_hash())
         {
@@ -86,7 +86,7 @@ public:
             );
         }
         else {
-            return NextNDT1::dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT1(ctr_).dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 };
@@ -109,8 +109,8 @@ public:
     NDT1(CtrT& ctr): ctr_(ctr) {}
 
     template <typename Node, typename Functor, typename... Args>
-    static auto
-    dispatch(Node *node1, NodeBaseG& node2, Functor&& functor, Args&& ... args)
+    auto
+    dispatch(Node *node1, NodeBaseG& node2, Functor&& functor, Args&& ... args) const
     {
         if (HASH == node2->block_type_hash())
         {
@@ -127,8 +127,8 @@ public:
 
 
     template <typename Node, typename Functor, typename... Args>
-    static auto
-    dispatch(const Node* node1, const NodeBaseG& node2, Functor&& functor, Args&&... args)
+    auto
+    dispatch(const Node* node1, const NodeBaseG& node2, Functor&& functor, Args&&... args) const
     {
         if (HASH == node2->block_type_hash())
         {

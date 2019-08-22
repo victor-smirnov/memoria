@@ -79,8 +79,8 @@ public:
     NDT0(CtrT& ctr): ctr_(ctr) {}
 
     template <template <typename> class Wrapper, typename Functor, typename... Args>
-    static auto
-    wrappedDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
+    auto
+    wrappedDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
     {
         if (HASH == node1->block_type_hash())
         {
@@ -88,68 +88,68 @@ public:
             return wrapper.treeNode(static_cast<Head*>(node1.block()), static_cast<Head*>(node2.block()), std::forward<Args>(args)...);
         }
         else {
-            return NextNDT0::template wrappedDispatch<Wrapper>(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT0(ctr_).template wrappedDispatch<Wrapper>(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
 
     template <typename Functor, typename... Args>
-    static auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args)
+    auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args) const
     {
         if (HASH == node->block_type_hash())
         {
             return functor.treeNode(static_cast<Head*>(node.block()), std::forward<Args>(args)...);
         }
         else {
-            return NextNDT0::dispatch(node, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT0(ctr_).dispatch(node, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
     template <typename Functor, typename... Args>
-    static auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
+    auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
     {
         if (HASH == node1->block_type_hash())
         {
             return functor.treeNode(static_cast<Head*>(node1.block()), static_cast<Head*>(node2.block()), std::forward<Args>(args)...);
         }
         else {
-            return NextNDT0::dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT0(ctr_).dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
     template <typename Functor, typename... Args>
-    static auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args)
+    auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args) const
     {
         if (HASH == node->block_type_hash())
         {
             return functor.treeNode(static_cast<const Head*>(node.block()), std::forward<Args>(args)...);
         }
         else {
-            return NextNDT0::dispatch(node, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT0(ctr_).dispatch(node, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
 
     template <typename Functor, typename... Args>
-    static auto dispatch(
+    auto dispatch(
             const NodeBaseG& node1,
             const NodeBaseG& node2,
             Functor&& functor,
             Args&&... args
-    )
+    ) const
     {
         if (HASH == node1->block_type_hash())
         {
             return functor.treeNode(static_cast<const Head*>(node1.block()), static_cast<const Head*>(node2.block()), std::forward<Args>(args)...);
         }
         else {
-            return NextNDT0::dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT0(ctr_).dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
     template <typename Functor, typename... Args>
-    static auto
-    doubleDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
+    auto
+    doubleDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
     {
         if (HASH == node1->block_type_hash())
         {
@@ -161,20 +161,20 @@ public:
             );
         }
         else {
-            return NextNDT0::doubleDispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT0(ctr_).doubleDispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
 
 
     template <typename Functor, typename... Args>
-    static auto
+    auto
     doubleDispatch(
             const NodeBaseG& node1,
             const NodeBaseG& node2,
             Functor&& functor,
             Args&&... args
-    )
+    ) const
     {
         if (HASH == node1->block_type_hash())
         {
@@ -186,7 +186,7 @@ public:
             );
         }
         else {
-            return NextNDT0::doubleDispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT0(ctr_).doubleDispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
@@ -197,7 +197,7 @@ public:
         typename Functor,
         typename... Args
     >
-    static auto dispatch(bool leaf, Functor&& fn, Args&&... args)
+    auto dispatch(bool leaf, Functor&& fn, Args&&... args) const
     {
         bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -207,7 +207,7 @@ public:
             return fn.treeNode(head, std::forward<Args>(args)...);
         }
         else {
-            return NextNDT0::template dispatch<TreeNode>(leaf, std::forward<Functor>(fn), std::forward<Args>(args)...);
+            return NextNDT0(ctr_).template dispatch<TreeNode>(leaf, std::forward<Functor>(fn), std::forward<Args>(args)...);
         }
     }
 
@@ -215,7 +215,7 @@ public:
         typename Functor,
         typename... Args
     >
-    static auto dispatch2(bool leaf, Functor&& fn, Args&&... args)
+    auto dispatch2(bool leaf, Functor&& fn, Args&&... args) const
     {
         if (leaf == Leaf)
         {
@@ -223,7 +223,7 @@ public:
             return fn.treeNode(head, std::forward<Args>(args)...);
         }
         else {
-            return NextNDT0::template dispatch2(leaf, std::forward<Functor>(fn), std::forward<Args>(args)...);
+            return NextNDT0(ctr_).template dispatch2(leaf, std::forward<Functor>(fn), std::forward<Args>(args)...);
         }
     }
 
@@ -264,8 +264,8 @@ public:
 
 
     template <template <typename> class Wrapper, typename Functor, typename... Args>
-    static auto
-    wrappedDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
+    auto
+    wrappedDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
     {
         if (HASH == node1->block_type_hash())
         {
@@ -279,7 +279,7 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args)
+    auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args) const
     {
         if (HASH == node->block_type_hash())
         {
@@ -291,7 +291,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    static auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
+    auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
     {
         if (HASH == node1->block_type_hash())
         {
@@ -304,7 +304,7 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args)
+    auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args) const
     {
         if (HASH == node->block_type_hash())
         {
@@ -317,12 +317,12 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static auto dispatch(
+    auto dispatch(
             const NodeBaseG& node1,
             const NodeBaseG& node2,
             Functor&& functor,
             Args&&... args
-    )
+    ) const
     {
         if (HASH == node1->block_type_hash())
         {
@@ -334,8 +334,8 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    static auto
-    doubleDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
+    auto
+    doubleDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
     {
         if (HASH == node1->block_type_hash())
         {
@@ -352,8 +352,8 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    static auto
-    doubleDispatch(const NodeBaseG& node1, const NodeBaseG& node2, Functor&& functor, Args&&... args)
+    auto
+    doubleDispatch(const NodeBaseG& node1, const NodeBaseG& node2, Functor&& functor, Args&&... args) const
     {
         if (HASH == node1->block_type_hash())
         {
@@ -374,7 +374,7 @@ public:
         typename Functor,
         typename... Args
     >
-    static auto dispatch(bool leaf, Functor&& fn, Args&&... args)
+    auto dispatch(bool leaf, Functor&& fn, Args&&... args) const
     {
         bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -392,7 +392,7 @@ public:
         typename Functor,
         typename... Args
     >
-    static auto dispatch2(bool leaf, Functor&& fn, Args&&... args)
+    auto dispatch2(bool leaf, Functor&& fn, Args&&... args) const
     {
         if (leaf == Leaf)
         {
