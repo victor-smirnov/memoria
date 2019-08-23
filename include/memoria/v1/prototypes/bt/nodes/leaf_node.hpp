@@ -33,7 +33,7 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_iovector.hpp>
 
-
+#include <memoria/v1/prototypes/bt/nodes/leaf_node_so.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -115,6 +115,9 @@ public:
     static const uint32_t VERSION = 2;
 
     static const bool Leaf = true;
+
+    template <typename CtrT>
+    using SparseObject = LeafNodeSO<CtrT, LeafNode<Types>>;
 
     using Base = typename Types::NodeBase;
 

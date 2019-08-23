@@ -34,6 +34,8 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#include <memoria/v1/prototypes/bt/nodes/branch_node_so.hpp>
+
 #include <type_traits>
 
 namespace memoria {
@@ -369,6 +371,9 @@ public:
     using Base = typename Types::NodeBase;
 
 public:
+
+    template <typename CtrT>
+    using SparseObject = BranchNodeSO<CtrT, BranchNode<Types>>;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;

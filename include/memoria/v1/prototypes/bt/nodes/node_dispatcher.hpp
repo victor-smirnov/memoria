@@ -21,6 +21,8 @@
 #include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt1.hpp>
 #include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt2.hpp>
 
+
+
 #include <vector>
 
 namespace memoria {
@@ -77,21 +79,6 @@ public:
 
 public:
     NDT0(CtrT& ctr): ctr_(ctr) {}
-
-    template <template <typename> class Wrapper, typename Functor, typename... Args>
-    auto
-    wrappedDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
-    {
-        if (HASH == node1->block_type_hash())
-        {
-            Wrapper<Head> wrapper(functor);
-            return wrapper.treeNode(static_cast<Head*>(node1.block()), static_cast<Head*>(node2.block()), std::forward<Args>(args)...);
-        }
-        else {
-            return NextNDT0(ctr_).template wrappedDispatch<Wrapper>(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
-        }
-    }
-
 
     template <typename Functor, typename... Args>
     auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args) const
@@ -262,20 +249,6 @@ public:
 public:
     NDT0(CtrT& ctr): ctr_(ctr) {}
 
-
-    template <template <typename> class Wrapper, typename Functor, typename... Args>
-    auto
-    wrappedDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
-    {
-        if (HASH == node1->block_type_hash())
-        {
-            Wrapper<Head> wrapper(functor);
-            return wrapper.treeNode(static_cast<Head*>(node1.block()), static_cast<Head*>(node2.block()), std::forward<Args>(args)...);
-        }
-        else {
-            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
-        }
-    }
 
 
     template <typename Functor, typename... Args>
