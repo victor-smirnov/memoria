@@ -266,17 +266,13 @@ public:
 
     static std::unique_ptr<io::IOVector> create_iovector()
     {
-        //using IOVectorT = typename _::IOVectorsTF<Streams, Linearize<LeafSubstreamsStructList>>::IOVectorT;
         return std::make_unique<IOVectorT>();
     }
 
     std::unique_ptr<io::IOVector> create_iovector_view()
     {
-
         auto iov = std::make_unique<IOVectorViewT>();
-
         configure_iovector_view(*iov.get());
-
         return iov;
     }
 

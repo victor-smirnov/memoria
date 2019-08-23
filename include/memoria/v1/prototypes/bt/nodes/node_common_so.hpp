@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include <memoria/v1/core/types.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -25,6 +27,7 @@ protected:
     NodeType_* node_;
 public:
     using NodeType = NodeType_;
+    using Position = typename NodeType_::Position;
 
     NodeCommonSO(): ctr_(), node_() {}
     NodeCommonSO(CtrT* ctr, NodeType* node):
@@ -36,6 +39,32 @@ public:
 
     NodeType* operator->() const {
         return node_;
+    }
+
+    void check() const {
+        node_->check();
+    }
+
+    int32_t size(int32_t stream) const {
+        return node_->size(stream);
+    }
+
+    auto size_sums() const {
+        return node_->size_sums();
+    }
+
+    uint64_t active_streams() const {
+        return node_->active_streams();
+    }
+
+    bool shouldBeMergedWithSiblings() const {
+        return node_->shouldBeMergedWithSiblings();
+    }
+
+
+    bool checkCapacities(const Position& sizes) const
+    {
+        return node_->checkCapacities(sizes);
     }
 };
 

@@ -77,13 +77,13 @@ MEMORIA_V1_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)     
 
 #define MEMORIA_BT_ITERATOR_BASE_CLASS_END                                              \
     MyType& self() {                                                                    \
-        /*return *static_cast<MyType*>(this);*/                                         \
-        return *(MyType*)(this);                                                        \
+        return *static_cast<MyType*>(this);                                             \
+        /*return *(MyType*)(this);*/                                                    \
     }                                                                                   \
                                                                                         \
     const MyType& self() const {                                                        \
-        /*return *static_cast<const MyType*>(this);*/                                   \
-        return *(MyType*)(this);                                                        \
+        return *static_cast<const MyType*>(this);                                       \
+        /*return *(MyType*)(this);*/                                                    \
     }                                                                                   \
 };
 
@@ -154,29 +154,29 @@ struct WrapperName {                                    \
 #define MEMORIA_V1_DECLARE_NODE_FN(WrapperName, NodeMethodName)\
 struct WrapperName {                                        \
     template <typename T, typename... Args>                 \
-    void treeNode(T&& node, Args&&... args) const             \
+    void treeNode(T&& node, Args&&... args) const           \
     {                                                       \
-        node->NodeMethodName(std::forward<Args>(args)...);\
+        node.NodeMethodName(std::forward<Args>(args)...);   \
     }                                                       \
 }
 
 #define MEMORIA_V1_DECLARE_NODE2_FN(WrapperName, NodeMethodName)\
-struct WrapperName {                                        \
-    template <typename T, typename... Args>                 \
+struct WrapperName {                                            \
+    template <typename T, typename... Args>                     \
     void treeNode(T&& node1, T&& node2, Args&&... args) const   \
-    {                                                       \
-        node1->NodeMethodName(node2, std::forward<Args>(args)...);\
-    }                                                       \
+    {                                                           \
+        node1.NodeMethodName(node2, std::forward<Args>(args)...);\
+    }                                                           \
 }
 
 #define MEMORIA_V1_DECLARE_NODE_FN_RTN(WrapperName, NodeMethodName, ReturnType_) \
-struct WrapperName {                                        \
-    typedef ReturnType_ ReturnType;                         \
-    template <typename T, typename... Args>                 \
-    ReturnType treeNode(T&& node, Args&&... args) const       \
-    {                                                       \
-        return node->NodeMethodName(std::forward<Args>(args)...);\
-    }                                                       \
+struct WrapperName {                                            \
+    typedef ReturnType_ ReturnType;                             \
+    template <typename T, typename... Args>                     \
+    ReturnType treeNode(T&& node, Args&&... args) const         \
+    {                                                           \
+        return node.NodeMethodName(std::forward<Args>(args)...);\
+    }                                                           \
 }
 
 #define MEMORIA_V1_DECLARE_NODE2_FN_RTN(WrapperName, NodeMethodName, ReturnType_) \
@@ -185,6 +185,6 @@ struct WrapperName {                                        \
     template <typename T, typename... Args>                 \
     ReturnType treeNode(T&& node1, T&& node2, Args&&... args) const \
     {                                                       \
-        return node1->NodeMethodName(node2, std::forward<Args>(args)...);\
+        return node1.NodeMethodName(node2, std::forward<Args>(args)...);\
     }                                                       \
 }
