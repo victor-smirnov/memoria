@@ -53,7 +53,7 @@ public:
     {
         auto& self = this->self();
 
-        if (self.allocator().isActive())
+        if (self.store().isActive())
         {
             auto meta = self.getRootMetadata();
 
@@ -62,14 +62,14 @@ public:
                 auto root = meta.roots(CtrID(0, c));
                 if (!root.is_null())
                 {
-                    auto root_block     = self.allocator().getBlock(root);
+                    auto root_block     = self.store().getBlock(root);
                     auto meta_rep       = ProfileMetadata<typename Types::Profile>::local();
 
                     int32_t ctr_hash    = root_block->ctr_type_hash();
 
                     auto ctr_interface  = meta_rep->get_container_operations(ctr_hash);
 
-                    ctr_interface->drop(root, self.allocator().self_ptr());
+                    ctr_interface->drop(root, self.store().self_ptr());
                 }
             }
 
@@ -156,7 +156,7 @@ void M_TYPE::removeNodeRecursively(NodeBaseG& node, Position& sizes)
         self.forAllIDs(node, 0, size, [&, this](const BlockID& id, int32_t idx)
         {
             auto& self = this->self();
-            NodeBaseG child = self.allocator().getBlock(id);
+            NodeBaseG child = self.store().getBlock(id);
             this->removeNodeRecursively(child, sizes);
         });
     }
@@ -164,7 +164,7 @@ void M_TYPE::removeNodeRecursively(NodeBaseG& node, Position& sizes)
         sizes += self.leaf_sizes(node);
     }
 
-    self.allocator().removeBlock(node->id());
+    self.store().removeBlock(node->id());
 }
 
 M_PARAMS
@@ -211,7 +211,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, int32_t start, int32_t end, Posi
 
     self.forAllIDs(node, start, end, [&, this](const BlockID& id, int32_t idx){
         auto& self = this->self();
-        NodeBaseG child = self.allocator().getBlock(id);
+        NodeBaseG child = self.store().getBlock(id);
         self.removeNodeRecursively(child, sizes);
     });
 
@@ -299,7 +299,7 @@ void M_TYPE::removeRedundantRootP(NodeBaseG& node)
                 {
                     self.node2Root(node, root_metadata);
 
-                    self.allocator().removeBlock(parent->id());
+                    self.store().removeBlock(parent->id());
 
                     self.set_root(node->id());
                 }

@@ -35,7 +35,7 @@ protected:
     typedef typename Types::LeafRangeList                                       LeafRangeList;
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
 
-    static const int32_t Streams                                                    = Types::Streams;
+    static const int32_t Streams                                                = Types::Streams;
 
     StaticVector<int64_t, Streams> branch_size_prefix_;
 
@@ -164,22 +164,22 @@ public:
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
-    template <typename NodeTypes>
-    void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+    template <typename CtrT, typename NodeT>
+    void treeNode(BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {}
 
 
     template <typename Node, typename... Args>
-    void processLeafIteratorBranchNodeEntry(Node* node, IteratorBranchNodeEntry&accum, Args&&... args)
+    void processLeafIteratorBranchNodeEntry(Node& node, IteratorBranchNodeEntry&accum, Args&&... args)
     {
         _::LeafAccumWalker<
             LeafStructList,
             LeafRangeList,
             LeafRangeOffsetList,
-            Node::template StreamStartIdx<0>::Value
+            Node::NodeType::template StreamStartIdx<0>::Value
         > w;
 
-        Node::Dispatcher::dispatchAll(node->allocator(), w, self(), accum, std::forward<Args>(args)...);
+        node.dispatchAll(w, self(), accum, std::forward<Args>(args)...);
     }
 
     struct BranchSizePrefix
@@ -203,15 +203,15 @@ public:
 
 
     template <typename Node, typename... Args>
-    void processBranchSizePrefix(Node* node, Args&&... args)
+    void processBranchSizePrefix(Node&& node, Args&&... args)
     {
-        node->processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
+        node.processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <typename Node, typename... Args>
-    void processLeafSizePrefix(Node* node, Args&&... args)
+    void processLeafSizePrefix(Node&& node, Args&&... args)
     {
-        node->processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
+        node.processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
     }
 };
 
@@ -242,8 +242,8 @@ public:
     }
 
 
-    template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, int32_t start)
+    template <typename CtrT, typename NodeT>
+    StreamOpResult treeNode(BranchNodeSO<CtrT, NodeT>* node, WalkDirection direction, int32_t start)
     {
         int32_t size = node->size();
 
@@ -274,8 +274,8 @@ public:
         }
         else if (cmd == WalkCmd::FIRST_LEAF)
         {
-            self.processLeafIteratorBranchNodeEntry(node.node(), this->branch_BranchNodeEntry());
-            self.processLeafSizePrefix(node.node());
+            self.processLeafIteratorBranchNodeEntry(node, this->branch_BranchNodeEntry());
+            self.processLeafSizePrefix(node);
         }
         else {
             self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();

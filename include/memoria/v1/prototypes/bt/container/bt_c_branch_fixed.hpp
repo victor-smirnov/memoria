@@ -261,7 +261,7 @@ void M_TYPE::doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     self.updateBranchNodes(src_parent, idx, max);
 
-    self.allocator().removeBlock(src->id());
+    self.store().removeBlock(src->id());
 }
 
 /**

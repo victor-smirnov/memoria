@@ -95,7 +95,7 @@ public:
     {
         auto& self = this->self();
 
-        tree_->initCtr(&self.allocator(), self.master_name(), command);
+        tree_->initCtr(&self.store(), self.master_name(), command);
         seq_->initCtr(tree_.get(), UUID{}, command);
     }
 
@@ -103,8 +103,8 @@ public:
     {
         auto& self = this->self();
 
-        tree_->initCtr(&self.allocator(), root_id);
-        seq_->initCtr(tree_.get(), get_ctr_root(self.allocator(), root_id, name, 0));
+        tree_->initCtr(&self.store(), root_id);
+        seq_->initCtr(tree_.get(), get_ctr_root(self.store(), root_id, name, 0));
     }
 
     virtual bool hasRoot(const UUID& name)

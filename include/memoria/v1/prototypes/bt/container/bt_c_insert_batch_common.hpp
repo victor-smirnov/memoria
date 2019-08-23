@@ -78,7 +78,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             self.forAllIDs(node, start, size, [&, this](const BlockID& id, int32_t parent_idx)
             {
                 auto& self = this->self();
-                NodeBaseG child = self.allocator().getBlockForUpdate(id);
+                NodeBaseG child = self.store().getBlockForUpdate(id);
 
                 child->parent_idx() = parent_idx;
             });
@@ -89,7 +89,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     {
         auto& self = this->self();
 
-        NodeBaseG node = self.allocator().getBlock(node_id);
+        NodeBaseG node = self.store().getBlock(node_id);
 
         if (node->level() > 0)
         {
@@ -99,7 +99,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
                 self.remove_branch_nodes(id);
             });
 
-            self.allocator().removeBlock(node->id());
+            self.store().removeBlock(node->id());
         }
     }
 
@@ -165,7 +165,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             if (head_.isSet())
             {
                 auto node = head_;
-                head_ = ctr_.allocator().getBlock(head_->next_leaf_id());
+                head_ = ctr_.store().getBlock(head_->next_leaf_id());
                 size_--;
                 return node;
             }
@@ -281,7 +281,7 @@ void M_TYPE::updateChildrenInternal(const NodeBaseG& node, int32_t start, int32_
 
     self.forAllIDs(node, start, end, [&self, &node_id](const BlockID& id, int32_t idx)
     {
-        NodeBaseG child = self.allocator().getBlockForUpdate(id);
+        NodeBaseG child = self.store().getBlockForUpdate(id);
 
         child->parent_id()  = node_id;
         child->parent_idx() = idx;

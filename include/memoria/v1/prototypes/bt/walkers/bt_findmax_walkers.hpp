@@ -91,13 +91,13 @@ public:
 
         if (cmd == WalkCmd::FIX_TARGET)
         {
-            self.processCmd(node.node(), cmd, start, end);
-            self.processBranchSizePrefix(node.node(), start, end, FixTargetTag());
+            self.processCmd(node, cmd, start, end);
+            self.processBranchSizePrefix(node, start, end, FixTargetTag());
         }
         else if (cmd == WalkCmd::PREFIXES)
         {
-            self.processBranchIteratorBranchNodeEntry(node.node(), start, end);
-            self.processBranchSizePrefix(node.node(), start, end);
+            self.processBranchIteratorBranchNodeEntry(node, start, end);
+            self.processBranchSizePrefix(node, start, end);
         }
     }
 
@@ -117,9 +117,9 @@ public:
             {
                 // FIXME: is this call necessary here?
 //              self.processLeafIteratorBranchNodeEntry(node, this->leaf_BranchNodeEntry(), start, end);
-                self.processBranchIteratorBranchNodeEntryWithLeaf(node.node(), this->branch_BranchNodeEntry());
+                self.processBranchIteratorBranchNodeEntryWithLeaf(node, this->branch_BranchNodeEntry());
 
-                self.processLeafSizePrefix(node.node());
+                self.processLeafSizePrefix(node);
             }
             else if (cmd == WalkCmd::LAST_LEAF) {
 //              self.processLeafIteratorBranchNodeEntry(node, this->leaf_BranchNodeEntry(), start, end);

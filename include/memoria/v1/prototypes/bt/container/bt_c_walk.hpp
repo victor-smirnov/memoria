@@ -105,7 +105,7 @@ public:
 
         auto& self = this->self();
 
-        BlockID root_id = self.allocator().getRootID(new_name);
+        BlockID root_id = self.store().getRootID(new_name);
         if (root_id.is_null())
         {
             NodeBaseG root = self.getRoot();
@@ -115,11 +115,11 @@ public:
             auto new_meta = self.getCtrRootMetadata(new_root);
 
             new_meta.model_name() = new_name;
-            new_meta.txn_id()     = self.allocator().currentTxnId();
+            new_meta.txn_id()     = self.store().currentTxnId();
 
             self.setCtrRootMetadata(new_root, new_meta);
 
-            self.allocator().setRoot(new_name, new_root->id());
+            self.store().setRoot(new_name, new_root->id());
 
             return new_name;
         }
@@ -135,14 +135,14 @@ private:
     {
         auto& self = this->self();
 
-        NodeBaseG new_node = self.allocator().cloneBlock(node.shared(), BlockID{});
+        NodeBaseG new_node = self.store().cloneBlock(node.shared(), BlockID{});
         new_node->parent_id() = parent_id;
 
         if (!node->is_leaf())
         {
             self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&](const BlockID& id, int32_t idx)
             {
-                NodeBaseG child = self.allocator().getBlock(id);
+                NodeBaseG child = self.store().getBlock(id);
                 NodeBaseG new_child = self.clone_tree(child, new_node->id());
                 self.setChildId(new_node, idx, new_child->id());
             });
@@ -161,7 +161,7 @@ private:
         {
             self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const BlockID& id, int32_t idx)
             {
-                NodeBaseG child = self.allocator().getBlock(id);
+                NodeBaseG child = self.store().getBlock(id);
                 self.traverseTree(child, walker);
             });
         }

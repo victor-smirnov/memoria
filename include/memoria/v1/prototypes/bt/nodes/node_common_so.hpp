@@ -26,6 +26,8 @@ protected:
     CtrT* ctr_;
     NodeType_* node_;
 public:
+    static constexpr int32_t Streams = NodeType_::Streams;
+
     using NodeType = NodeType_;
     using Position = typename NodeType_::Position;
 
@@ -65,6 +67,17 @@ public:
     bool checkCapacities(const Position& sizes) const
     {
         return node_->checkCapacities(sizes);
+    }
+
+    template <typename Fn, typename... Args>
+    void dispatchAll(Fn&& fn, Args&&... args) const
+    {
+        NodeType::Dispatcher::dispatchAll(node_->allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+    template <typename Fn, typename... Args>
+    auto processStreamsStart(Fn&& fn, Args&&... args) {
+        return node_->processStreamsStart(std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 };
 

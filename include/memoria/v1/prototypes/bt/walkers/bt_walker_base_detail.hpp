@@ -51,7 +51,7 @@ namespace {
     struct SubstreamRangesTupleWalker<IntList<>> {
 
         template <typename Walker, typename Node, typename RangesListTuple, typename... Args>
-        static void process(Walker& walker, const Node* node, RangesListTuple& accum, Args&&... args)
+        static void process(Walker& walker, Node& node, RangesListTuple& accum, Args&&... args)
         {}
     };
 
@@ -63,7 +63,7 @@ namespace {
     struct IteratorSubstreamsRangesListWalker<IntList<Idx, Tail...>> {
 
         template <typename Walker, typename Node, typename BranchNodeEntry, typename... Args>
-        static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
+        static void process(Walker& walker, Node& node, BranchNodeEntry& accum, Args&&... args)
         {
             using RangesTuple   = typename std::tuple_element<Idx, BranchNodeEntry>::type;
             using RangesIdxList = list_tree::MakeValueList<int32_t, 0, std::tuple_size<RangesTuple>::value>;
@@ -94,7 +94,7 @@ namespace {
     struct IteratorSubstreamsRangesListWalker<IntList<>> {
 
         template <typename Walker, typename Node, typename BranchNodeEntry, typename... Args>
-        static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
+        static void process(Walker& walker, Node& node, BranchNodeEntry& accum, Args&&... args)
         {}
     };
 
@@ -111,10 +111,10 @@ template <
 struct IteratorStreamRangesListWalker<IntList<StreamIdx, Tail...>> {
 
     template <typename Walker, typename Node, typename BranchNodeEntry, typename... Args>
-    static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
+    static void process(Walker& walker, Node& node, BranchNodeEntry& accum, Args&&... args)
     {
-        const int32_t SubstreamsStartIdx = Node::template StreamStartIdx<StreamIdx>::Value;
-        const int32_t StreamSize         = Node::template StreamSize<StreamIdx>::Value;
+        const int32_t SubstreamsStartIdx = Node::NodeType::template StreamStartIdx<StreamIdx>::Value;
+        const int32_t StreamSize         = Node::NodeType::template StreamSize<StreamIdx>::Value;
 
         using StreamIdxList = list_tree::MakeValueList<int32_t, SubstreamsStartIdx, SubstreamsStartIdx + StreamSize>;
 
@@ -129,7 +129,7 @@ template <>
 struct IteratorStreamRangesListWalker<IntList<>> {
 
     template <typename Walker, typename Node, typename BranchNodeEntry, typename... Args>
-    static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
+    static void process(Walker& walker, Node& node, BranchNodeEntry& accum, Args&&... args)
     {}
 };
 

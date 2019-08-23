@@ -106,28 +106,28 @@ public:
         return next_leaf_id_;
     }
 
-    PackedAllocator* allocator() {
+    PackedAllocator* store() {
         return &allocator_;
     }
 
-    const PackedAllocator* allocator() const {
+    const PackedAllocator* store() const {
         return &allocator_;
     }
 
     bool has_root_metadata() const
     {
-        return allocator()->element_size(METADATA) >= (int)sizeof(Metadata);
+        return store()->element_size(METADATA) >= (int)sizeof(Metadata);
     }
 
     const Metadata& root_metadata() const
     {
-        return *allocator()->template get<Metadata>(METADATA);
+        return *store()->template get<Metadata>(METADATA);
     }
 
     Metadata& root_metadata()
     {
         MEMORIA_V1_ASSERT_TRUE(!allocator_.is_empty(METADATA));
-        return *allocator()->template get<Metadata>(METADATA);
+        return *store()->template get<Metadata>(METADATA);
     }
 
     void setMetadata(const Metadata& meta)
@@ -203,7 +203,7 @@ public:
 
         handler->value("NEXT_LEAF_ID_", &next_leaf_id_);
 
-        allocator()->generateDataEvents(handler);
+        store()->generateDataEvents(handler);
 
         if (has_root_metadata())
         {
@@ -224,7 +224,7 @@ public:
 
         FieldFactory<ID>::serialize(buf, next_leaf_id_);
 
-        allocator()->serialize(buf);
+        store()->serialize(buf);
 
         if (has_root_metadata())
         {
@@ -245,7 +245,7 @@ public:
 
         FieldFactory<ID>::deserialize(buf, next_leaf_id_);
 
-        allocator()->deserialize(buf);
+        store()->deserialize(buf);
 
         if (has_root_metadata())
         {

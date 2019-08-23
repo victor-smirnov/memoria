@@ -241,11 +241,11 @@ public:
         }
 
 
-        auto* allocator() {
+        auto* store() {
         	return allocator_;
         }
 
-        const auto* callocator() const {
+        const auto* cstore() const {
         	return allocator_;
         }
 

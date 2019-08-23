@@ -308,7 +308,7 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     self.updateBranchNodes(src_parent, idx, max);
 
-    self.allocator().removeBlock(src->id());
+    self.store().removeBlock(src->id());
 
     return true;
 }

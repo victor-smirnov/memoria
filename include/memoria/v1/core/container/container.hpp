@@ -195,7 +195,7 @@ public:
     void set_root(const BlockID &root)
     {
         root_ = root;
-        self().allocator().setRoot(self().master_name(), root);
+        self().store().setRoot(self().master_name(), root);
     }
 
     void set_root_id(const BlockID &root)
@@ -545,7 +545,7 @@ public:
     }
 
     bool is_updatable() const {
-        return self().allocator().isActive();
+        return self().store().isActive();
     }
 
 protected:
@@ -817,11 +817,11 @@ public:
         return debug_;
     }
 
-    Allocator& allocator() {
+    Allocator& store() {
         return *allocator_;
     }
 
-    Allocator& allocator() const {
+    Allocator& store() const {
         return *allocator_;
     }
 

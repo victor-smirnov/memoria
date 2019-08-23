@@ -80,14 +80,14 @@ public:
 
     void initCtr(int32_t command)
     {
-        ctr_.initCtr(&self().allocator(), self().name(), command);
+        ctr_.initCtr(&self().store(), self().name(), command);
 
         Base::setCtrShared(NULL);
     }
 
     void initCtr(const ID& root_id)
     {
-        ctr_.initCtr(&self().allocator(), root_id);
+        ctr_.initCtr(&self().store(), root_id);
 
         Base::setCtrShared(NULL);
     }

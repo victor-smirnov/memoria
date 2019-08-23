@@ -110,7 +110,7 @@ private:
         {
             self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const ID& id, int32_t idx)
             {
-                NodeBaseG child = self.allocator().getBlock(id, self.master_name());
+                NodeBaseG child = self.store().getBlock(id, self.master_name());
 
                 self.traverseTree(idx, child, walker);
             });

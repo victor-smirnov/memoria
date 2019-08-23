@@ -37,8 +37,8 @@ public slots:
 
 private slots:
 
-    void open_allocator();
-    void close_allocator();
+    void open_store();
+    void close_store();
 
     void item_selected();
 

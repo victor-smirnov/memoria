@@ -44,23 +44,23 @@ public:
 
     virtual void markUpdated(const UUID& name)
     {
-        return self().allocator().markUpdated(name);
+        return self().store().markUpdated(name);
     }
 
     virtual UUID currentTxnId() const {
-        return self().allocator().currentTxnId();
+        return self().store().currentTxnId();
     }
 
 
 
     virtual BlockG getBlock(const ID& id, const UUID& name)
     {
-        return self().allocator().getBlock(id, name);
+        return self().store().getBlock(id, name);
     }
 
     virtual BlockG getBlockForUpdate(const ID& id, const UUID& name)
     {
-        return self().allocator().getBlockForUpdate(id, name);
+        return self().store().getBlockForUpdate(id, name);
     }
 
     virtual BlockG updatePage(Shared* shared, const UUID& name);
@@ -83,17 +83,17 @@ public:
     virtual void freeMemory(void* ptr);
 
     virtual bool isActive() {
-        return self().allocator().isActive();
+        return self().store().isActive();
     }
 
     virtual UUID createCtrName()
     {
-        return self().allocator().createCtrName();
+        return self().store().createCtrName();
     }
 
     virtual ID newId()
     {
-        return self().allocator().newId();
+        return self().store().newId();
     }
 
     virtual void registerCtr(const std::type_info&) {}
@@ -107,50 +107,50 @@ MEMORIA_V1_CONTAINER_PART_END
 
 M_PARAMS
 typename M_TYPE::BlockG M_TYPE::getBlockG(Page* block) {
-    return self().allocator().getBlockG(block);
+    return self().store().getBlockG(block);
 }
 
 M_PARAMS
 typename M_TYPE::BlockG M_TYPE::updatePage(Shared* shared, const UUID& name) {
-    return self().allocator().updatePage(shared, name);
+    return self().store().updatePage(shared, name);
 }
 
 M_PARAMS
 void M_TYPE::removeBlock(const ID& id, const UUID& name) {
-    self().allocator().removeBlock(id, name);
+    self().store().removeBlock(id, name);
 }
 
 M_PARAMS
 typename M_TYPE::BlockG M_TYPE::createBlock(int32_t initial_size, const UUID& name) {
-    return self().allocator().createBlock(initial_size, name);
+    return self().store().createBlock(initial_size, name);
 }
 
 M_PARAMS
 void M_TYPE::resizePage(Shared* block, int32_t new_size) {
-    self().allocator().resizePage(block, new_size);
+    self().store().resizePage(block, new_size);
 }
 
 M_PARAMS
 void M_TYPE::releasePage(Shared* shared) noexcept {
-    self().allocator().releasePage(shared);
+    self().store().releasePage(shared);
 }
 
 
 M_PARAMS
 Logger& M_TYPE::logger() {
-    return self().allocator().logger();
+    return self().store().logger();
 }
 
 M_PARAMS
 void* M_TYPE::allocateMemory(size_t size)
 {
-    return self().allocator().allocateMemory(size);
+    return self().store().allocateMemory(size);
 }
 
 M_PARAMS
 void M_TYPE::freeMemory(void* ptr)
 {
-    self().allocator().freeMemory(ptr);
+    self().store().freeMemory(ptr);
 }
 
 

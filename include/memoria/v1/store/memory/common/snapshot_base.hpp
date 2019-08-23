@@ -1071,7 +1071,7 @@ public:
     }
 
 
-    void pack_allocator()
+    void pack_store()
     {
     	this->history_tree_raw_->pack();
     }

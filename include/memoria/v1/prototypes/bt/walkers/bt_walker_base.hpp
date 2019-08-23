@@ -323,7 +323,7 @@ public:
         using BranchPath = typename BranchNodeSO<CtrT, NodeT>::NodeType::template BuildBranchPath<LeafPath>;
         auto result = node->template processStream<BranchPath>(FindBranchFn(self), node->is_root(), index, start);
 
-        self.postProcessBranchNode(node.node(), direction, start, result);
+        self.postProcessBranchNode(node, direction, start, result);
 
         return result;
     }
@@ -336,7 +336,7 @@ public:
         auto& self = this->self();
         auto result = node->template processStream<LeafPath>(FindLeafFn(self), start);
 
-        self.postProcessLeafNode(node.node(), direction, start, result);
+        self.postProcessLeafNode(node, direction, start, result);
 
         return result;
     }
@@ -359,7 +359,7 @@ public:
 
 
     template <typename Node, typename... Args>
-    void processLeafIteratorBranchNodeEntry(Node* node, IteratorBranchNodeEntry&accum, Args&&... args)
+    void processLeafIteratorBranchNodeEntry(Node& node, IteratorBranchNodeEntry&accum, Args&&... args)
     {
         _::LeafAccumWalker<
             LeafStructList,
@@ -380,18 +380,18 @@ public:
     struct ProcessBranchIteratorBranchNodeEntryWithLeaf
     {
         template <int32_t StreamIdx, typename Node, typename Walker, typename Accum, typename... Args>
-        static bool process(Node* node, Walker&& walker, Accum&& accum, Args&&... args)
+        static bool process(Node& node, Walker&& walker, Accum&& accum, Args&&... args)
         {
             _::LeafAccumWalker<
                 LeafStructList,
                 LeafRangeList,
                 LeafRangeOffsetList,
-                Node::template StreamStartIdx<
+                Node::NodeType::template StreamStartIdx<
                     StreamIdx
                 >::Value
             > w;
 
-            Node::template StreamDispatcher<
+            Node::NodeType::template StreamDispatcher<
                 StreamIdx
             >
             ::dispatchAll(node->allocator(), w, walker, accum, std::forward<Args>(args)...);
@@ -402,14 +402,14 @@ public:
 
 
     template <typename Node, typename... Args>
-    void processBranchIteratorBranchNodeEntryWithLeaf(Node* node, IteratorBranchNodeEntry&accum, Args&&... args)
+    void processBranchIteratorBranchNodeEntryWithLeaf(Node& node, IteratorBranchNodeEntry&accum, Args&&... args)
     {
         ForEach<0, Streams>::process(ProcessBranchIteratorBranchNodeEntryWithLeaf(), node, self(), accum, std::forward<Args>(args)...);
     }
 
 
     template <typename Node, typename... Args>
-    void processBranchIteratorBranchNodeEntry(Node* node, Args&&... args)
+    void processBranchIteratorBranchNodeEntry(Node& node, Args&&... args)
     {
         using ItrAccList = list_tree::MakeValueList<int32_t, 0, Node::Streams>;
 
@@ -441,13 +441,13 @@ public:
 
 
     template <typename Node, typename... Args>
-    void processBranchSizePrefix(Node* node, Args&&... args)
+    void processBranchSizePrefix(Node& node, Args&&... args)
     {
         node->processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <typename Node, typename... Args>
-    void processLeafSizePrefix(Node* node, Args&&... args)
+    void processLeafSizePrefix(Node& node, Args&&... args)
     {
         node->processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
     }
@@ -459,10 +459,10 @@ public:
     void postProcessLeafStream(const StreamType*, int32_t, int32_t) {}
 
     template <typename Node, typename Result>
-    void postProcessBranchNode(const Node* node, WalkDirection direction, int32_t start, Result&&) {}
+    void postProcessBranchNode(Node& node, WalkDirection direction, int32_t start, Result&&) {}
 
     template <typename Node, typename Result>
-    void postProcessLeafNode(const Node* node, WalkDirection direction, int32_t start, Result&&) {}
+    void postProcessLeafNode(Node& node, WalkDirection direction, int32_t start, Result&&) {}
 };
 
 

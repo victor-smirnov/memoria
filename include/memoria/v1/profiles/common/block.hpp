@@ -417,7 +417,7 @@ public:
         return state_ != READ;
     }
 
-    AllocatorT* allocator() {
+    AllocatorT* store() {
         return allocator_;
     }
 
@@ -447,7 +447,7 @@ public:
             delegate_->owner() = nullptr;
             if (delegate_->unref() == 0)
             {
-                delegate_->allocator()->releasePage(delegate_);
+                delegate_->store()->releasePage(delegate_);
                 delegate_ = nullptr;
             }
         }
@@ -492,7 +492,7 @@ private:
     {
         if (delegate_ && delegate_->unref() == 0)
         {
-            delegate_->allocator()->releaseBlock(delegate_);
+            delegate_->store()->releaseBlock(delegate_);
             delegate_ = nullptr;
         }
     }
@@ -683,7 +683,7 @@ public:
     {
         if (shared_)// && !shared_->updated())
         {
-            auto guard = shared_->allocator()->updateBlock(shared_);
+            auto guard = shared_->store()->updateBlock(shared_);
 
             if (guard.shared() != shared_)
             {
@@ -696,7 +696,7 @@ public:
     {
         if (shared_ != nullptr)
         {
-            shared_->allocator()->resizeBlock(shared_, new_size);
+            shared_->store()->resizeBlock(shared_, new_size);
         }
     }
 
@@ -736,7 +736,7 @@ private:
         {
             if (shared_->unref() == 0)
             {
-                shared_->allocator()->releaseBlock(shared_);
+                shared_->store()->releaseBlock(shared_);
             }
         }
     }

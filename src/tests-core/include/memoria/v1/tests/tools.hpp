@@ -50,9 +50,9 @@ public:
     PARemover(PackedAllocatable* obj): obj_(obj) {}
     ~PARemover()
     {
-        if (obj_->has_allocator())
+        if (obj_->has_store())
         {
-            free_system(obj_->allocator());
+            free_system(obj_->store());
         }
         else {
             free_system(obj_);

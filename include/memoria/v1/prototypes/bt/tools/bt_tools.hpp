@@ -126,7 +126,7 @@ public:
         for (int32_t c = 0; c < blocks_.getSize(); c++)
         {
             void* backup_buffer = std::get<1>(blocks_[c]);
-            ctr_.allocator().freeMemory(backup_buffer);
+            ctr_.store().freeMemory(backup_buffer);
         }
     }
 
@@ -153,7 +153,7 @@ public:
         {
             int32_t block_size = node->header().memory_block_size();
 
-            void* backup_buffer = ctr_.allocator().allocateMemory(block_size);
+            void* backup_buffer = ctr_.store().allocateMemory(block_size);
 
             CopyByteBuffer(node.block(), backup_buffer, block_size);
 
@@ -173,7 +173,7 @@ public:
             if (node->id() == std::get<0>(blocks_[c])->id())
             {
                 void* backup_buffer = std::get<1>(blocks_[c]);
-                ctr_.allocator().freeMemory(backup_buffer);
+                ctr_.store().freeMemory(backup_buffer);
 
                 blocks_.remove(c);
             }
@@ -221,7 +221,7 @@ public:
 
             CopyByteBuffer(backup_buffer, node.block(), block_size);
 
-            ctr_.allocator().freeMemory(backup_buffer);
+            ctr_.store().freeMemory(backup_buffer);
         }
 
         blocks_.clear();

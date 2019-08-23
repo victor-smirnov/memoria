@@ -86,17 +86,15 @@ public:
         return rank_;
     }
 
-    template <typename NodeTypes, typename... Args>
-    void processCmd(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end, Args&&... args)
+    template <typename CtrT, typename NodeT, typename... Args>
+    void processCmd(BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end, Args&&... args)
     {
-        using Node = bt::BranchNode<NodeTypes>;
-
         Base::processCmd(node, cmd, start, end, std::forward<Args>(args)...);
 
         if (cmd == WalkCmd::FIX_TARGET)
         {
-            using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
-            const int32_t index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
+            using BranchPath = typename NodeT::template BuildBranchPath<RankLeafSubstreamPath>;
+            const int32_t index = NodeT::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
             rank_ -= node->template processStream<BranchPath>(BranchFn(), index, end, end + 1);
         }
@@ -111,16 +109,16 @@ public:
 
 
     template <typename Node, typename Result>
-    void postProcessBranchNode(const Node* node, WalkDirection direction, int32_t start, Result&& result)
+    void postProcessBranchNode(Node& node, WalkDirection direction, int32_t start, Result&& result)
     {
-        using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
-        const int32_t index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
+        using BranchPath = typename Node::NodeType::template BuildBranchPath<RankLeafSubstreamPath>;
+        const int32_t index = Node::NodeType::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
 
         rank_ += node->template processStream<BranchPath>(BranchFn(), index, start, result.local_pos());
     }
 
     template <typename Node, typename Result>
-    void postProcessLeafNode(const Node* node, WalkDirection direction, int32_t start, Result&& result)
+    void postProcessLeafNode(Node& node, WalkDirection direction, int32_t start, Result&& result)
     {
         rank_ += node->template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.local_pos());
     }

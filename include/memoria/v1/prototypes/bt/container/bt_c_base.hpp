@@ -137,7 +137,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto& self = this->self();
 
-        NodeBaseG root = self.allocator().getBlock(root_id);
+        NodeBaseG root = self.store().getBlock(root_id);
 
         return self.node_dispatcher().dispatch(root, GetModelNameFn(self));
     }
@@ -172,7 +172,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if ((command & CTR_CREATE) && (command & CTR_FIND))
         {
-            if (self.allocator().hasRoot(self.master_name()))
+            if (self.store().hasRoot(self.master_name()))
             {
                 findCtrByName();
             }
@@ -182,7 +182,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         }
         else if (command & CTR_CREATE)
         {
-            if (!self.allocator().hasRoot(self.master_name()))
+            if (!self.store().hasRoot(self.master_name()))
             {
                 createCtrByName();
             }
@@ -211,7 +211,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG root = self.allocator().getBlock(self.root());
+        NodeBaseG root = self.store().getBlock(self.root());
 
         return root->root_metadata().roots(name);
     }
@@ -223,7 +223,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG root  = self.allocator().getBlockForUpdate(self.root());
+        NodeBaseG root  = self.store().getBlockForUpdate(self.root());
 
         Metadata& metadata = root->root_metadata();
         metadata.roots(name) = root_id;
@@ -257,7 +257,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self          = this->self();
         const auto& root_id = self.root();
-        NodeBaseG root      = self.allocator().getBlock(root_id);
+        NodeBaseG root      = self.store().getBlock(root_id);
 
         return root->root_metadata();
     }
@@ -294,7 +294,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         metadata.memory_block_size()        = DEFAULT_BLOCK_SIZE;
         metadata.branching_factor() = 0;
 
-        auto txn_id = self().allocator().currentTxnId();
+        auto txn_id = self().store().currentTxnId();
         metadata.txn_id() = txn_id;
 
         return metadata;
@@ -326,7 +326,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG node = self.allocator().createBlock(size);
+        NodeBaseG node = self.store().createBlock(size);
         node->init();
 
         node->header().block_type_hash() = Node::NodeType::hash();
@@ -443,7 +443,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        int64_t txn_id = self.allocator().currentTxnId();
+        int64_t txn_id = self.store().currentTxnId();
         const Metadata& metadata = self.getRootMetadata();
 
         if (txn_id == metadata.txn_id())
@@ -456,7 +456,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             copy.txn_id() = txn_id;
 
             self.setRootMetadata(copy);
-            self.allocator().markUpdated(self.master_name());
+            self.store().markUpdated(self.master_name());
         }
         else {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid txn_id {} < {}", txn_id, metadata.txn_id()));
@@ -473,7 +473,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG root = self.allocator().getBlock(self.root());
+        NodeBaseG root = self.store().getBlock(self.root());
 
         return !root->root_metadata().roots(name).is_null();
     }
@@ -609,11 +609,11 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto name = self.master_name();
 
-        BlockID root_id = self.allocator().getRootID(name);
+        BlockID root_id = self.store().getRootID(name);
 
         if (!root_id.is_null())
         {
-            BlockG node = self.allocator().getBlock(root_id);
+            BlockG node = self.store().getBlock(root_id);
 
             if (node->ctr_type_hash() == CONTAINER_HASH)
             {

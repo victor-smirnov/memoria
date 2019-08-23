@@ -90,11 +90,11 @@ public:
         snapshot_  = allocator_.master();
     }
 
-    auto& allocator() {
+    auto& store() {
         return allocator_;
     }
 
-    const auto& allocator() const {
+    const auto& store() const {
         return allocator_;
     }
 
