@@ -116,8 +116,8 @@ public:
 
     static const bool Leaf = true;
 
-    template <typename CtrT>
-    using SparseObject = LeafNodeSO<CtrT, LeafNode<Types>>;
+    template <typename CtrT, typename NodeT>
+    using NodeSparseObject = LeafNodeSO<CtrT, NodeT>;
 
     using Base = typename Types::NodeBase;
 
@@ -822,8 +822,8 @@ public:
     struct CanMergeWithFn {
         int32_t mem_used_ = 0;
 
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(const Tree* tree, const MyType* other)
+        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+        void stream(const Tree* tree, OtherNodeT&& other)
         {
             if (tree != nullptr)
             {
@@ -846,10 +846,11 @@ public:
         }
     };
 
-    bool canBeMergedWith(const MyType* other) const
+    template <typename OtherNodeT>
+    bool canBeMergedWith(OtherNodeT&& other) const
     {
         CanMergeWithFn fn;
-        Dispatcher::dispatchAll(allocator(), fn, other);
+        Dispatcher::dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other));
 
         int32_t client_area = this->allocator()->client_area();
 
@@ -861,8 +862,8 @@ public:
     struct MergeWithFn {
         OpStatus status_{OpStatus::OK};
 
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree* tree, MyType* other)
+        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+        void stream(Tree* tree, OtherNodeT&& other)
         {
             if (isOk(status_))
             {
@@ -885,18 +886,19 @@ public:
         }
     };
 
-    OpStatus mergeWith(MyType* other)
+    template <typename OtherNodeT>
+    OpStatus mergeWith(OtherNodeT&& other)
     {
         MergeWithFn fn;
-        Dispatcher::dispatchNotEmpty(allocator(), fn, other);
+        Dispatcher::dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other));
         return fn.status_;
     }
 
     struct SplitToFn {
         OpStatus status_{OpStatus::OK};
 
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree* tree, MyType* other, const Position& indexes)
+        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+        void stream(Tree* tree, OtherNodeT&& other, const Position& indexes)
         {
             if (tree != nullptr && isOk(status_))
             {
@@ -926,10 +928,11 @@ public:
     };
 
 
-    OpStatus splitTo(MyType* other, const Position& from)
+    template <typename OtherNodeT>
+    OpStatus splitTo(OtherNodeT&& other, const Position& from)
     {
         SplitToFn split_fn;
-        this->processSubstreamGroups(split_fn, other, from);
+        this->processSubstreamGroups(split_fn, std::forward<OtherNodeT>(other), from);
 
         return split_fn.status_;
     }
@@ -955,12 +958,13 @@ public:
     };
 
 
-    void copyTo(MyType* other, const Position& copy_from, const Position& count, const Position& copy_to) const
+    template <typename OtherNodeT>
+    void copyTo(OtherNodeT&& other, const Position& copy_from, const Position& count, const Position& copy_to) const
     {
         MEMORIA_V1_ASSERT_TRUE((copy_from + count).lteAll(sizes()));
         MEMORIA_V1_ASSERT_TRUE((copy_to + count).lteAll(other->max_sizes()));
 
-        this->processSubstreamGroups(CopyToFn(), other, copy_from, count, copy_to);
+        this->processSubstreamGroups(CopyToFn(), std::forward<OtherNodeT>(other), copy_from, count, copy_to);
     }
 
 

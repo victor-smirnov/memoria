@@ -171,14 +171,14 @@ protected:
 
 
     template <typename Node>
-    NodeBaseG getChildFn(const Node* node, int32_t idx) const
+    NodeBaseG getChildFn(Node&& node, int32_t idx) const
     {
         auto& self = this->self();
         return self.allocator().getBlock(node->value(idx));
     }
 
     template <typename Node>
-    NodeBaseG getLastChildFn(const Node* node, int32_t idx) const
+    NodeBaseG getLastChildFn(Node&& node, int32_t idx) const
     {
         auto& self = this->self();
         return self.allocator().getBlock(node->value(node->size() - 1));
@@ -186,7 +186,7 @@ protected:
 
 
     template <typename Node>
-    NodeBaseG getChildForUpdateFn(const Node* node, int32_t idx) const
+    NodeBaseG getChildForUpdateFn(Node&& node, int32_t idx) const
     {
         auto& self = this->self();
         return self.allocator().getBlockForUpdate(node->value(idx));
@@ -286,7 +286,7 @@ protected:
     template <typename Path>
     struct LeafSumsFn {
         template <typename Node, typename... Args>
-        auto treeNode(const Node* node, Args&&... args) {
+        auto treeNode(Node&& node, Args&&... args) {
             return node->template leaf_sums<Path>(std::forward<Args>(args)...);
         }
     };
@@ -294,7 +294,7 @@ protected:
 
     struct LeafSizesFn {
         template <typename Node, typename... Args>
-        auto treeNode(const Node* node, Args&&... args) {
+        auto treeNode(Node&& node, Args&&... args) {
             return node->sizes();
         }
     };
@@ -381,8 +381,8 @@ protected:
 
 
     struct SetChildIDFn {
-        template <typename T>
-        void treeNode(bt::BranchNode<T>* node, int child_idx, const BlockID& child_id) const
+        template <typename CtrT, typename T>
+        void treeNode(BranchNodeSO<CtrT, T>& node, int child_idx, const BlockID& child_id) const
         {
             node->value(child_idx) = child_id;
         }
@@ -397,8 +397,8 @@ protected:
 
 
     struct GetBranchNodeChildernCount {
-        template <typename T, typename... Args>
-        int32_t treeNode(const bt::BranchNode<T>* node, Args&&... args) const
+        template <typename CtrT, typename T, typename... Args>
+        int32_t treeNode(BranchNodeSO<CtrT, T>& node, Args&&... args) const
         {
             return node->size();
         }
@@ -406,24 +406,24 @@ protected:
 
     template <int32_t Stream>
     struct GetLeafNodeStreamSize {
-        template <typename T, typename... Args>
-        int32_t treeNode(const bt::LeafNode<T>* node, Args&&... args) const
+        template <typename CtrT, typename T, typename... Args>
+        int32_t treeNode(LeafNodeSO<CtrT, T>& node, Args&&... args) const
         {
             return node->template streamSize<Stream>();
         }
     };
 
     struct GetLeafNodeStreamSizes {
-        template <typename T, typename... Args>
-        Position treeNode(const bt::LeafNode<T>* node, Args&&... args) const
+        template <typename CtrT, typename T, typename... Args>
+        Position treeNode(LeafNodeSO<CtrT, T>& node, Args&&... args) const
         {
             return node->sizes();
         }
     };
 
     struct GetLeafNodeStreamSizesStatic {
-        template <typename T, typename... Args>
-        Position treeNode(const bt::LeafNode<T>* node, Args&&... args) const
+        template <typename CtrT, typename T, typename... Args>
+        Position treeNode(LeafNodeSO<CtrT, T>& node, Args&&... args) const
         {
             return bt::LeafNode<T>::sizes(std::forward<Args>(args)...);
         }
@@ -464,7 +464,7 @@ public:
     struct CreateIOVectorViewFn
     {
         template <typename T, typename... Args>
-        std::unique_ptr<io::IOVector> treeNode(bt::LeafNode<T>* node) const
+        std::unique_ptr<io::IOVector> treeNode(T&& node) const
         {
             return node->create_iovector_view();
         }
@@ -479,7 +479,7 @@ public:
     struct ConfigureIOVectorViewFn
     {
         template <typename T, typename... Args>
-        void treeNode(bt::LeafNode<T>* node, io::IOVector& io_vector) const
+        void treeNode(T&& node, io::IOVector& io_vector) const
         {
             return node->configure_iovector_view(io_vector);
         }
@@ -494,14 +494,14 @@ protected:
 
     template <typename SubstreamPath>
     struct GetPackedStructFn {
-        template <typename T>
-        auto treeNode(const bt::LeafNode<T>* node) const
+        template <typename CtrT, typename T>
+        auto treeNode(LeafNodeSO<CtrT, const T>& node) const
         {
             return node->template substream<SubstreamPath>();
         }
 
-        template <typename T>
-        auto treeNode(bt::LeafNode<T>* node) const
+        template <typename CtrT, typename T>
+        auto treeNode(LeafNodeSO<CtrT, T>& node) const
         {
             return node->template substream<SubstreamPath>();
         }

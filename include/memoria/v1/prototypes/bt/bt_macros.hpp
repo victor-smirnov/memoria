@@ -144,9 +144,9 @@ struct WrapperName {                                    \
     const MyType& me_;                                  \
     WrapperName(const MyType& v): me_(v) {}             \
     template <typename T, typename... Args>             \
-    ReturnType treeNode(const T*, Args&&... args) const \
+    ReturnType treeNode(T&&, Args&&... args) const \
     {                                                   \
-        return me_.template TargetMethod<T>(std::forward<Args>(args)...);\
+        return me_.template TargetMethod<std::decay_t<T>>(std::forward<Args>(args)...);\
     }                                                   \
 }
 

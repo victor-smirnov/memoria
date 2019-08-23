@@ -68,8 +68,8 @@ public:
             }), MMA1_SRC);
         }
 
-        template <typename NTypes, typename... Args>
-        void treeNode(bt::LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
+        template <typename CtrT, typename NTypes, typename... Args>
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
             node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
@@ -105,8 +105,8 @@ public:
     template <int32_t Stream>
     struct RemoveFromLeafFn
     {
-        template <typename NTypes>
-        void treeNode(bt::LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum)
+        template <typename CtrT, typename NTypes>
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum)
         {
             node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx);
@@ -181,8 +181,8 @@ public:
         }
 
 
-        template <typename NTypes, typename... Args>
-        void treeNode(bt::LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
+        template <typename CtrT, typename NTypes, typename... Args>
+        void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
             node->template processSubstreamsByIdxAcc<
                 Stream,

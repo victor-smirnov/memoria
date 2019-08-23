@@ -18,10 +18,7 @@
 
 #include <memoria/v1/profiles/common/block.hpp>
 
-#include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt1.hpp>
-#include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt2.hpp>
-
-
+#include <memoria/v1/prototypes/bt/nodes/node_dispatcher_tree.hpp>
 
 #include <vector>
 
@@ -70,6 +67,9 @@ private:
     static const uint64_t HASH  = Head::BLOCK_HASH;
     static const bool Leaf      = Head::Leaf;
 
+    using NodeSO        = typename Head::template SparseObject<CtrT>;
+    using ConstNodeSO   = typename Head::template ConstSparseObject<CtrT>;
+
     using NextNDT0 = NDT0<CtrT, Types, Idx - 1>;
 
     CtrT& ctr_;
@@ -85,7 +85,8 @@ public:
     {
         if (HASH == node->block_type_hash())
         {
-            return functor.treeNode(static_cast<Head*>(node.block()), std::forward<Args>(args)...);
+            NodeSO node_so(&ctr_, static_cast<Head*>(node.block()));
+            return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
             return NextNDT0(ctr_).dispatch(node, std::forward<Functor>(functor), std::forward<Args>(args)...);
@@ -97,7 +98,10 @@ public:
     {
         if (HASH == node1->block_type_hash())
         {
-            return functor.treeNode(static_cast<Head*>(node1.block()), static_cast<Head*>(node2.block()), std::forward<Args>(args)...);
+            NodeSO node1_so(&ctr_, static_cast<Head*>(node1.block()));
+            NodeSO node2_so(&ctr_, static_cast<Head*>(node2.block()));
+
+            return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
             return NextNDT0(ctr_).dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
@@ -109,7 +113,8 @@ public:
     {
         if (HASH == node->block_type_hash())
         {
-            return functor.treeNode(static_cast<const Head*>(node.block()), std::forward<Args>(args)...);
+            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(node.block()));
+            return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
             return NextNDT0(ctr_).dispatch(node, std::forward<Functor>(functor), std::forward<Args>(args)...);
@@ -127,55 +132,15 @@ public:
     {
         if (HASH == node1->block_type_hash())
         {
-            return functor.treeNode(static_cast<const Head*>(node1.block()), static_cast<const Head*>(node2.block()), std::forward<Args>(args)...);
+            ConstNodeSO node1_so(&ctr_, static_cast<const Head*>(node1.block()));
+            ConstNodeSO node2_so(&ctr_, static_cast<const Head*>(node2.block()));
+            return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
             return NextNDT0(ctr_).dispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
-    template <typename Functor, typename... Args>
-    auto
-    doubleDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
-    {
-        if (HASH == node1->block_type_hash())
-        {
-            return NDT1<CtrT, Types, ListSize<typename Types::List> - 1>::dispatch(
-                    static_cast<Head*>(node1.block()),
-                    node2,
-                    functor,
-                    std::forward<Args>(args)...
-            );
-        }
-        else {
-            return NextNDT0(ctr_).doubleDispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
-        }
-    }
-
-
-
-    template <typename Functor, typename... Args>
-    auto
-    doubleDispatch(
-            const NodeBaseG& node1,
-            const NodeBaseG& node2,
-            Functor&& functor,
-            Args&&... args
-    ) const
-    {
-        if (HASH == node1->block_type_hash())
-        {
-            return NDT1<CtrT, Types, ListSize<typename Types::List> - 1>::dispatchConstRtn(
-                    static_cast<const Head*>(node1.block()),
-                    node2,
-                    std::forward<Functor>(functor),
-                    std::forward<Args>(args)...
-            );
-        }
-        else {
-            return NextNDT0(ctr_).doubleDispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
-        }
-    }
 
 
 
@@ -190,8 +155,8 @@ public:
 
         if (types_equal && leaf == Leaf)
         {
-            const Head* head = nullptr;
-            return fn.treeNode(head, std::forward<Args>(args)...);
+            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(nullptr));
+            return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
             return NextNDT0(ctr_).template dispatch<TreeNode>(leaf, std::forward<Functor>(fn), std::forward<Args>(args)...);
@@ -206,8 +171,8 @@ public:
     {
         if (leaf == Leaf)
         {
-            const Head* head = nullptr;
-            return fn.treeNode(head, std::forward<Args>(args)...);
+            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(nullptr));
+            return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
             return NextNDT0(ctr_).template dispatch2(leaf, std::forward<Functor>(fn), std::forward<Args>(args)...);
@@ -238,13 +203,13 @@ private:
     static const uint64_t HASH  = Head::BLOCK_HASH;
     static const bool Leaf      = Head::Leaf;
 
+    using NodeSO        = typename Head::template SparseObject<CtrT>;
+    using ConstNodeSO   = typename Head::template ConstSparseObject<CtrT>;
+
     CtrT& ctr_;
 
 public:
     using NodeBaseG = typename Types::NodeBaseG;
-
-    using StartNDT1 = NDT1<CtrT, Types, ListSize<typename Types::List> - 1>;
-
 
 public:
     NDT0(CtrT& ctr): ctr_(ctr) {}
@@ -256,7 +221,8 @@ public:
     {
         if (HASH == node->block_type_hash())
         {
-            return functor.treeNode(static_cast<Head*>(node.block()), std::forward<Args>(args)...);
+            NodeSO node_so(&ctr_, static_cast<Head*>(node.block()));
+            return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
             MMA1_THROW(DispatchException()) << WhatInfo(fmt::format8(u"Can't dispatch btree node type: {}", node->block_type_hash()));
@@ -268,7 +234,9 @@ public:
     {
         if (HASH == node1->block_type_hash())
         {
-            return functor.treeNode(static_cast<Head*>(node1.block()), static_cast<Head*>(node2.block()), std::forward<Args>(args)...);
+            NodeSO node1_so(&ctr_, static_cast<Head*>(node1.block()));
+            NodeSO node2_so(&ctr_, static_cast<Head*>(node2.block()));
+            return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
             MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
@@ -281,7 +249,8 @@ public:
     {
         if (HASH == node->block_type_hash())
         {
-            return functor.treeNode(static_cast<const Head*>(node.block()), std::forward<Args>(args)...);
+            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(node.block()));
+            return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
             MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
@@ -299,43 +268,9 @@ public:
     {
         if (HASH == node1->block_type_hash())
         {
-            return functor.treeNode(static_cast<const Head*>(node1.block()), static_cast<const Head*>(node2.block()), std::forward<Args>(args)...);
-        }
-        else {
-            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
-        }
-    }
-
-    template <typename Functor, typename... Args>
-    auto
-    doubleDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args) const
-    {
-        if (HASH == node1->block_type_hash())
-        {
-            return NDT1<CtrT, Types, ListSize<typename Types::List> - 1>::dispatch(
-                    static_cast<Head*>(node1.block()),
-                    node2,
-                    functor,
-                    std::forward<Args>(args)...
-            );
-        }
-        else {
-            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
-        }
-    }
-
-    template <typename Functor, typename... Args>
-    auto
-    doubleDispatch(const NodeBaseG& node1, const NodeBaseG& node2, Functor&& functor, Args&&... args) const
-    {
-        if (HASH == node1->block_type_hash())
-        {
-            return NDT1<CtrT, Types, ListSize<typename Types::List> - 1>::dispatch(
-                    static_cast<const Head*>(node1.block()),
-                    node2,
-                    functor,
-                    std::forward<Args>(args)...
-            );
+            ConstNodeSO node1_so(&ctr_, static_cast<const Head*>(node1.block()));
+            ConstNodeSO node2_so(&ctr_, static_cast<const Head*>(node2.block()));
+            return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
             MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
@@ -353,8 +288,8 @@ public:
 
         if (types_equal && leaf == Leaf)
         {
-            const Head* head = nullptr;
-            return fn.treeNode(head, std::forward<Args>(args)...);
+            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(nullptr));
+            return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
             MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
@@ -369,8 +304,8 @@ public:
     {
         if (leaf == Leaf)
         {
-            const Head* head = nullptr;
-            return fn.treeNode(head, std::forward<Args>(args)...);
+            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(nullptr));
+            return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
             MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");

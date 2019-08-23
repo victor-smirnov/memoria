@@ -311,8 +311,8 @@ public:
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
-    template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, int32_t start)
+    template <typename CtrT, typename NodeT>
+    StreamOpResult treeNode(BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         auto& self = this->self();
 
@@ -320,23 +320,23 @@ public:
 
         int32_t index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
-        using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
+        using BranchPath = typename BranchNodeSO<CtrT, NodeT>::NodeType::template BuildBranchPath<LeafPath>;
         auto result = node->template processStream<BranchPath>(FindBranchFn(self), node->is_root(), index, start);
 
-        self.postProcessBranchNode(node, direction, start, result);
+        self.postProcessBranchNode(node.node(), direction, start, result);
 
         return result;
     }
 
-    template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, int32_t start)
+    template <typename CtrT, typename NodeT>
+    StreamOpResult treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         this->direction_ = direction;
 
-          auto& self = this->self();
+        auto& self = this->self();
         auto result = node->template processStream<LeafPath>(FindLeafFn(self), start);
 
-        self.postProcessLeafNode(node, direction, start, result);
+        self.postProcessLeafNode(node.node(), direction, start, result);
 
         return result;
     }
@@ -345,14 +345,14 @@ public:
     template <typename Node, typename... Args>
     void processCmd(const Node* node, WalkCmd cmd, Args&&... args){}
 
-    template <typename NodeTypes, typename... Args>
-    void processCmd(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Args&&... args)
+    template <typename CtrT, typename NodeT, typename... Args>
+    void processCmd(BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, Args&&... args)
     {
         auto& self = this->self();
 
         int32_t index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
-        using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
+        using BranchPath = typename BranchNodeSO<CtrT, NodeT>::NodeType::template BuildBranchPath<LeafPath>;
 
         return node->template processStream<BranchPath>(ProcessBranchCmdFn(self), cmd, index, std::forward<Args>(args)...);
     }

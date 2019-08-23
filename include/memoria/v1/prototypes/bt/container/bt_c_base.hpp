@@ -109,7 +109,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    CtrID getModelNameFn(const Node* node) const
+    CtrID getModelNameFn(Node& node) const
     {
         return node->root_metadata().model_name();
     }
@@ -118,7 +118,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    void setModelNameFn(Node* node, const CtrID& name)
+    void setModelNameFn(Node& node, const CtrID& name)
     {
         node->root_metadata().model_name() = name;
     }
@@ -329,7 +329,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         NodeBaseG node = self.allocator().createBlock(size);
         node->init();
 
-        node->header().block_type_hash() = Node::hash();
+        node->header().block_type_hash() = Node::NodeType::hash();
 
         return node;
     }
@@ -426,7 +426,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
     template <typename Node>
-    void prepareNode(Node* node) const
+    void prepareNode(Node&& node) const
     {
         node->prepare();
     }

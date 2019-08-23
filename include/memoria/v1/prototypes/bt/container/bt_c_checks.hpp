@@ -86,7 +86,7 @@ private:
 
 
     template <typename Node1, typename Node2>
-    bool checkTypedNodeContent(const Node1 *node, const Node2 *parent, int32_t parent_idx) const;
+    bool checkTypedNodeContent(Node1&& node, Node2&& parent, int32_t parent_idx) const;
 
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, checkTypedNodeContent, bool);
 
@@ -183,7 +183,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, con
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, int32_t parent_idx) const
+bool M_TYPE::checkTypedNodeContent(Node1&& parent, Node2&& node, int32_t parent_idx) const
 {
     bool errors = false;
 

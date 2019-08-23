@@ -90,26 +90,26 @@ public:
 
     using Base::treeNode;
 
-    template <typename NodeTypes>
-    void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+    template <typename CtrT, typename NodeT>
+    void treeNode(BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
         if (cmd == WalkCmd::FIX_TARGET)
         {
-            self.processCmd(node, cmd, start, end);
-            self.processBranchSizePrefix(node, start, end, FixTargetTag());
+            self.processCmd(node.node(), cmd, start, end);
+            self.processBranchSizePrefix(node.node(), start, end, FixTargetTag());
         }
         else if (cmd == WalkCmd::PREFIXES)
         {
-            self.processBranchIteratorBranchNodeEntry(node, start, end);
-            self.processBranchSizePrefix(node, start, end);
+            self.processBranchIteratorBranchNodeEntry(node.node(), start, end);
+            self.processBranchSizePrefix(node.node(), start, end);
         }
     }
 
 
-    template <typename NodeTypes>
-    void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+    template <typename CtrT, typename NodeT>
+    void treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -123,9 +123,9 @@ public:
             {
                 // FIXME: is this call necessary here?
 //              self.processLeafIteratorBranchNodeEntry(node, this->leaf_BranchNodeEntry(), start, end);
-                self.processBranchIteratorBranchNodeEntryWithLeaf(node, this->branch_BranchNodeEntry());
+                self.processBranchIteratorBranchNodeEntryWithLeaf(node.node(), this->branch_BranchNodeEntry());
 
-                self.processLeafSizePrefix(node);
+                self.processLeafSizePrefix(node.node());
             }
             else if (cmd == WalkCmd::LAST_LEAF) {
 //              self.processLeafIteratorBranchNodeEntry(node, this->leaf_BranchNodeEntry(), start, end);

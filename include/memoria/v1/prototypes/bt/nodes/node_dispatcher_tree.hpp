@@ -47,6 +47,9 @@ class NDTTree {
 
     using NextNDT3 = NDTTree<CtrT, Types, Idx - 1>;
 
+    using NodeSO        = typename Head::template SparseObject<CtrT>;
+    using ConstNodeSO   = typename Head::template ConstSparseObject<CtrT>;
+
     CtrT& ctr_;
 
 public:
@@ -63,8 +66,10 @@ public:
     {
         if (HASH == parent->block_type_hash())
         {
+            ConstNodeSO parent_so(&ctr_, static_cast<const Head*>(parent.block()));
+
             return NDT2<CtrT, Types, ListSize<typename Types::ChildList> - 1>(ctr_).dispatchTreeConst(
-                    static_cast<const Head*>(parent.block()),
+                    parent_so,
                     child,
                     std::forward<Functor>(functor),
                     std::forward<Args>(args)...
@@ -90,6 +95,9 @@ class NDTTree<CtrT, Types, 0> {
 
     using NextNDT3 = NDTTree<CtrT, Types, Idx - 1>;
 
+    using NodeSO        = typename Head::template SparseObject<CtrT>;
+    using ConstNodeSO   = typename Head::template ConstSparseObject<CtrT>;
+
     CtrT& ctr_;
 
 public:
@@ -109,8 +117,10 @@ public:
     {
         if (HASH == parent->block_type_hash())
         {
+            ConstNodeSO parent_so(&ctr_, static_cast<const Head*>(parent.block()));
+
             return NDT2Start(ctr_).dispatchTree(
-                    static_cast<const Head*>(parent.block()),
+                    parent_so,
                     child,
                     std::forward<Functor>(functor),
                     std::forward<Args>(args)...
@@ -134,6 +144,9 @@ class NDT2 {
 
     static const uint64_t HASH = Head::BLOCK_HASH;
 
+    using NodeSO        = typename Head::template SparseObject<CtrT>;
+    using ConstNodeSO   = typename Head::template ConstSparseObject<CtrT>;
+
     CtrT& ctr_;
 
 public:
@@ -141,7 +154,7 @@ public:
 
     template <typename Node, typename Functor, typename... Args>
     auto dispatchTree(
-            const Node* parent,
+            Node&& parent,
             const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
@@ -149,9 +162,11 @@ public:
     {
         if (HASH == child->block_type_hash())
         {
+            ConstNodeSO child_so(&ctr_, static_cast<const Head*>(child.block()));
+
             return functor.treeNode(
-                    parent,
-                    static_cast<const Head*>(child.block()),
+                    std::forward<Node>(parent),
+                    child_so,
                     std::forward<Args>(args)...
             );
         }
@@ -174,6 +189,9 @@ class NDT2<CtrT, Types, 0> {
 
     static const uint64_t HASH = Head::BLOCK_HASH;
 
+    using NodeSO        = typename Head::template SparseObject<CtrT>;
+    using ConstNodeSO   = typename Head::template ConstSparseObject<CtrT>;
+
     CtrT& ctr_;
 
 public:
@@ -181,7 +199,7 @@ public:
 
     template <typename Node, typename Functor, typename... Args>
     auto dispatchTree(
-            const Node* parent,
+            Node&& parent,
             const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
@@ -189,9 +207,10 @@ public:
     {
         if (HASH == child->block_type_hash())
         {
+            ConstNodeSO child_so(&ctr_, static_cast<const Head*>(child.block()));
             return functor.treeNode(
-                    parent,
-                    static_cast<const Head*>(child.block()),
+                    std::forward<Node>(parent),
+                    child_so,
                     std::forward<Args>(args)...
             );
         }

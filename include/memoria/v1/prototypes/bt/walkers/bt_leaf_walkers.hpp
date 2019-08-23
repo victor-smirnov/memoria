@@ -256,15 +256,15 @@ public:
         }
     }
 
-    template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, int32_t start)
+    template <typename CtrT, typename NodeT>
+    StreamOpResult treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         return StreamOpResult(0, 0, true);
     }
 
 
-    template <typename NodeTypes>
-    void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+    template <typename CtrT, typename NodeT>
+    void treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -274,8 +274,8 @@ public:
         }
         else if (cmd == WalkCmd::FIRST_LEAF)
         {
-            self.processLeafIteratorBranchNodeEntry(node, this->branch_BranchNodeEntry());
-            self.processLeafSizePrefix(node);
+            self.processLeafIteratorBranchNodeEntry(node.node(), this->branch_BranchNodeEntry());
+            self.processLeafSizePrefix(node.node());
         }
         else {
             self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
@@ -327,8 +327,8 @@ public:
     }
 
 
-    template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, int32_t start)
+    template <typename CtrT, typename NodeT>
+    StreamOpResult treeNode(BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         if (start >= 0)
         {
@@ -339,15 +339,15 @@ public:
         }
     }
 
-    template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, int32_t start)
+    template <typename CtrT, typename NodeT>
+    StreamOpResult treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         return StreamOpResult(0, 0, true);
     }
 
 
-    template <typename NodeTypes>
-    void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, int32_t start, int32_t end)
+    template <typename CtrT, typename NodeT>
+    void treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 

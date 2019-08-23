@@ -372,8 +372,8 @@ public:
 
 public:
 
-    template <typename CtrT>
-    using SparseObject = BranchNodeSO<CtrT, BranchNode<Types>>;
+    template <typename CtrT, typename NodeT>
+    using NodeSparseObject = BranchNodeSO<CtrT, NodeT>;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
@@ -1055,8 +1055,8 @@ public:
     struct CanMergeWithFn {
         int32_t mem_used_ = 0;
 
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(const Tree* tree, const MyType* other)
+        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+        void stream(const Tree* tree, OtherNodeT&& other)
         {
             if (tree != nullptr)
             {
@@ -1079,10 +1079,11 @@ public:
         }
     };
 
-    bool canBeMergedWith(const MyType* other) const
+    template <typename OtherNodeT>
+    bool canBeMergedWith(OtherNodeT&& other) const
     {
         CanMergeWithFn fn;
-        Dispatcher::dispatchAll(allocator(), fn, other);
+        Dispatcher::dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other));
 
         int32_t client_area = this->allocator()->client_area();
 
@@ -1099,8 +1100,8 @@ public:
     struct MergeWithFn {
         OpStatus status_{OpStatus::OK};
 
-        template <int32_t AllocatorIdx, int32_t ListIdx, typename Tree>
-        void stream(Tree* tree, MyType* other)
+        template <int32_t AllocatorIdx, int32_t ListIdx, typename Tree, typename OtherNodeT>
+        void stream(Tree* tree, OtherNodeT&& other)
         {
             int32_t size = tree->size();
 
@@ -1122,13 +1123,14 @@ public:
         }
     };
 
-    OpStatus mergeWith(MyType* other)
+    template <typename OtherNodeT>
+    OpStatus mergeWith(OtherNodeT&& other)
     {
         int32_t other_size  = other->size();
         int32_t my_size     = this->size();
 
         MergeWithFn fn;
-        Dispatcher::dispatchNotEmpty(allocator(), fn, other);
+        Dispatcher::dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other));
 
         if (isFail(fn.status_)) {
             return OpStatus::FAIL;
@@ -1153,8 +1155,8 @@ public:
     struct SplitToFn {
         OpStatus status_{OpStatus::OK};
 
-        template <int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree* tree, MyType* other, int32_t idx)
+        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+        void stream(Tree* tree, OtherNodeT&& other, int32_t idx)
         {
             if (isOk(status_))
             {
@@ -1174,7 +1176,8 @@ public:
     };
 
 
-    OpStatus splitTo(MyType* other, int32_t split_idx)
+    template <typename OtherNodeT>
+    OpStatus splitTo(OtherNodeT&& other, int32_t split_idx)
     {
         int32_t size        = this->size();
         int32_t remainder   = size - split_idx;
@@ -1183,7 +1186,7 @@ public:
 
 
         SplitToFn fn;
-        Dispatcher::dispatchNotEmpty(allocator(), fn, other, split_idx);
+        Dispatcher::dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), split_idx);
 
         if (isFail(fn.status_)) {
             return OpStatus::FAIL;
@@ -1723,6 +1726,12 @@ public:
     using MyType  = NodePageAdaptor<TreeNode, Types>;
     using Base    = TreeNode<Types>;
     using Profile = typename Types::Profile;
+
+    template <typename CtrT>
+    using SparseObject = typename Base::template NodeSparseObject<CtrT, MyType>;
+
+    template <typename CtrT>
+    using ConstSparseObject = typename Base::template NodeSparseObject<CtrT, const MyType>;
 
     static const uint64_t BLOCK_HASH = TypeHashV<Base>;
 

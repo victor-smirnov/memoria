@@ -78,8 +78,8 @@ public:
 
 
     struct InsertChildrenFn {
-        template <typename NodeTypes>
-        void treeNode(bt::BranchNode<NodeTypes>* node, int32_t from, int32_t to, const BranchNodeEntryT* entries)
+        template <typename CtrT, typename NodeT>
+        void treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries)
         {
             int old_size = node->size();
 

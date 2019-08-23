@@ -206,8 +206,8 @@ public:
             }
         }
 
-        template <typename NodeTypes, typename... Args>
-        auto treeNode(bt::LeafNode<NodeTypes>* leaf, Args&&... args)
+        template <typename LCtrT, typename NodeT, typename... Args>
+        auto treeNode(LeafNodeSO<LCtrT, NodeT>& leaf, Args&&... args)
         {
             leaf->layout(255);
             return leaf->processSubstreamGroups(*this, leaf->allocator(), std::forward<Args>(args)...);
