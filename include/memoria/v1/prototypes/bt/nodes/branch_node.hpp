@@ -386,6 +386,11 @@ public:
     using BranchSubstreamsStructList    = typename Types::BranchStreamsStructList;
     using LeafSubstreamsStructList      = typename Types::LeafStreamsStructList;
 
+    template <typename PkdT>
+    using PkdExtDataT = typename PkdT::ExtData;
+
+    using SubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<BranchSubstreamsStructList>>;
+
     using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
             FlattenBranchTree<BranchSubstreamsStructList>, Base::StreamsStart
     >::Type;

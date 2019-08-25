@@ -52,7 +52,7 @@ int main()
 
     std::vector<Entry> entries_;
 
-    for (int c = 0; c < 10000000; c++) {
+    for (int c = 0; c < 100000; c++) {
         //entries_.emplace_back(Entry(c, -c));
         entries_.emplace_back(Entry(
             //c,

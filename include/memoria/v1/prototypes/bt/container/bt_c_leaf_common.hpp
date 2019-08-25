@@ -202,8 +202,10 @@ public:
 
     std::shared_ptr<io::IOVector> create_iovector()
     {
+        using LeafNodeT = typename Types::template LeafNode<MyType>;
+
         return std::static_pointer_cast<io::IOVector>(
-            std::make_shared<typename Types::template LeafNode<MyType>::IOVectorT>()
+            std::make_shared<typename LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::IOVectorT>()
         );
     }
 

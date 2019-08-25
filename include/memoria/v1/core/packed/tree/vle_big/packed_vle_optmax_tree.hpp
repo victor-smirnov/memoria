@@ -19,6 +19,8 @@
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
 #include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
+#include <memoria/v1/core/packed/tree/vle_big/packed_vle_optmax_tree_so.hpp>
+
 #include <memoria/v1/core/tools/optional.hpp>
 
 namespace memoria {
@@ -68,6 +70,9 @@ public:
     using Value      = OptionalT<typename Tree::Value>;
     using Values     = core::StaticVector<Value, Blocks>;
     using SizesT     = typename Tree::SizesT;
+
+    using ExtData = EmptyType;
+    using SparseObject = PackedVLEOptMaxTreeSO<ExtData, MyType>;
 
     using Base::block_size;
 

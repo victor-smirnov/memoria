@@ -176,10 +176,12 @@ public:
             LeafStructList,
             LeafRangeList,
             LeafRangeOffsetList,
-            Node::NodeType::template StreamStartIdx<0>::Value
+            Node::template StreamStartIdx<0>::Value
         > w;
 
-        node.dispatchAll(w, self(), accum, std::forward<Args>(args)...);
+        using ND = typename std::decay_t<Node>::Dispatcher;
+
+        ND(node.state()).dispatchAll(node.allocator(), w, self(), accum, std::forward<Args>(args)...);
     }
 
     struct BranchSizePrefix

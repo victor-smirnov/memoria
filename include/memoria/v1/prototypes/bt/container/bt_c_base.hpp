@@ -71,10 +71,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using BlockUpdateMgr = typename Types::BlockUpdateMgr;
 
     using LeafNode = typename Types::template LeafNode<MyType>;
-    using BranchNode = typename Types::template LeafNode<MyType>;
+    using BranchNode = typename Types::template BranchNode<MyType>;
 
-    using LeafNodeExtData   = MakeTuple<typename LeafNode::SubstreamExtensionsList>;
-    using BranchNodeExtData = MakeTuple<typename LeafNode::SubstreamExtensionsList>;
+    using LeafNodeSO = typename Types::template LeafNode<MyType>::template NodeSparseObject<MyType, LeafNode>;
+    using BranchNodeSO = typename Types::template BranchNode<MyType>::template NodeSparseObject<MyType, BranchNode>;
+
+    using LeafNodeExtData   = MakeTuple<typename LeafNodeSO::SubstreamExtensionsList>;
+    using BranchNodeExtData = MakeTuple<typename BranchNode::SubstreamExtensionsList>;
 
     using Base::CONTAINER_HASH;
 

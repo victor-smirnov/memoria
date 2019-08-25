@@ -102,7 +102,7 @@ class LeafNodeSO: public NodeCommonSO<CtrT, NodeType_> {
 public:
 
     using BranchNodeEntry = typename NodeType_::TypesT::BranchNodeEntry;
-    using typename Base::Position;
+    using Position = typename NodeType_::TypesT::Position;
 
     template <template <typename> class, typename>
     friend class NodePageAdaptor;
@@ -245,20 +245,6 @@ public:
         return ctr_->leaf_node_ext_data();
     }
 
-//    static std::unique_ptr<io::IOVector> create_iovector()
-//    {
-//        return NodeType_::create_iovector();
-//    }
-
-//    std::unique_ptr<io::IOVector> create_iovector_view() const
-//    {
-//        return node_->create_iovector_view();
-//    }
-
-//    void configure_iovector_view(io::IOVector& io_vector) const
-//    {
-//        node_->configure_iovector_view(io_vector);
-//    }
 
     static std::unique_ptr<io::IOVector> create_iovector()
     {
@@ -272,12 +258,12 @@ public:
         return iov;
     }
 
-
-
     void configure_iovector_view(io::IOVector& io_vector) const
     {
         Dispatcher(state()).dispatchAll(allocator(), _::ConfigureIOVectorViewFn<Streams>(io_vector));
     }
+
+
 
     void prepare()
     {
@@ -411,6 +397,22 @@ public:
         }
     };
 
+    static int32_t free_space(int32_t block_size, bool root)
+    {
+        int32_t fixed_block_size = block_size - sizeof(NodeType_) + PackedAllocator::my_size();
+        int32_t client_area = PackedAllocator::client_area(fixed_block_size, SubstreamsStart + Substreams + 1);
+
+        return client_area - root * PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(typename NodeType_::TypesT::Metadata));
+    }
+
+    static int32_t client_area(int32_t block_size, bool root)
+    {
+        int32_t free_space = MyType::free_space(block_size, root);
+
+        //FIXME Check if Streams value below is correct.
+        return PackedAllocator::client_area(free_space, Streams);
+    }
+
     bool checkCapacities(const Position& sizes) const
     {
         Position fillment = this->sizes();
@@ -424,7 +426,7 @@ public:
 
         this->processSubstreamGroups(CheckCapacitiesFn(), fillment, &mem_size);
 
-        int32_t free_space      = node_->free_space(node_->header().memory_block_size(), node_->is_root());
+        int32_t free_space      = this->free_space(node_->header().memory_block_size(), node_->is_root());
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
         return client_area >= mem_size + 300;
@@ -471,7 +473,7 @@ public:
         int32_t min = sizes()[0];
         int32_t max = node_->header().memory_block_size() * 8;
 
-        int32_t free_space      = node_->free_space(node_->header().memory_block_size(), node_->is_root());
+        int32_t free_space      = this->free_space(node_->header().memory_block_size(), node_->is_root());
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
         int32_t total = FindTotalElementsNumber(min, max, client_area, max_hops, [&](int32_t stream_size){
@@ -754,6 +756,11 @@ public:
         int32_t client_area = allocator()->client_area();
 
         return client_area >= fn.mem_used_;
+    }
+
+    bool shouldBeMergedWithSiblings() const
+    {
+        return node_->shouldBeMergedWithSiblings();
     }
 
 

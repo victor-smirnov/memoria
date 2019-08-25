@@ -370,7 +370,7 @@ public:
             >::Value
         > w;
 
-        Node::template StreamDispatcher<
+        Node::NodeType::template StreamDispatcher<
             ListHead<LeafPath>::Value
         >
         ::dispatchAll(node->allocator(), w, self(), accum, std::forward<Args>(args)...);
@@ -386,15 +386,16 @@ public:
                 LeafStructList,
                 LeafRangeList,
                 LeafRangeOffsetList,
-                Node::NodeType::template StreamStartIdx<
+                Node::template StreamStartIdx<
                     StreamIdx
                 >::Value
             > w;
 
-            Node::NodeType::template StreamDispatcher<
+            using SD = typename Node::template StreamDispatcher<
                 StreamIdx
-            >
-            ::dispatchAll(node.allocator(), w, walker, accum, std::forward<Args>(args)...);
+            >;
+
+            SD(node.state()).dispatchAll(node.allocator(), w, walker, accum, std::forward<Args>(args)...);
 
             return true;
         }

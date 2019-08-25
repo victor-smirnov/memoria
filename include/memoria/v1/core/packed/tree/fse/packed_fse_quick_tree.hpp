@@ -24,6 +24,8 @@
 #include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
 #include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
 
+#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree_so.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -81,6 +83,9 @@ public:
     using SizesT = core::StaticVector<int32_t, Blocks>;
 
     using ConstPtrsT = core::StaticVector<const Value*, Blocks>;
+
+    using ExtData = EmptyType;
+    using SparseObject = PackedFSEQuickTreeSO<ExtData, MyType>;
 
     class ReadState {
     protected:

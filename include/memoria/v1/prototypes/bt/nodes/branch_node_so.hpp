@@ -27,8 +27,10 @@ class BranchNodeSO: public NodeCommonSO<CtrT, NodeType_> {
     using Base::node_;
     using Base::ctr_;
 
+    using Position = typename NodeType_::Position;
+
 public:
-    using Base::size;
+
 
     BranchNodeSO(): Base() {}
     BranchNodeSO(CtrT* ctr): Base(ctr, nullptr) {}
@@ -155,6 +157,44 @@ public:
     bool canBeMergedWith(OtherNodeT&& other) const {
         return node_->canBeMergedWith(std::forward<OtherNodeT>(other));
     }
+
+    void check() const {
+        node_->check();
+    }
+
+    int32_t size(int32_t stream) const {
+        return node_->size(stream);
+    }
+
+    auto size_sums() const {
+        return node_->size_sums();
+    }
+
+    uint64_t active_streams() const {
+        return node_->active_streams();
+    }
+
+    bool shouldBeMergedWithSiblings() const {
+        return node_->shouldBeMergedWithSiblings();
+    }
+
+
+    bool checkCapacities(const Position& sizes) const
+    {
+        return node_->checkCapacities(sizes);
+    }
+
+    template <typename Fn, typename... Args>
+    void dispatchAll(Fn&& fn, Args&&... args) const
+    {
+        NodeType_::Dispatcher::dispatchAll(node_->allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+    template <typename Fn, typename... Args>
+    auto processStreamsStart(Fn&& fn, Args&&... args) {
+        return node_->processStreamsStart(std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
 };
 
 }
