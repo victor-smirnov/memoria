@@ -19,6 +19,8 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 
+#include <memoria/v1/core/packed/misc/packed_empty_struct_so.hpp>
+
 #include <limits>
 
 namespace memoria {
@@ -46,6 +48,9 @@ public:
     using IndexValue = Value;
     using SizesT = core::StaticVector<int32_t, Blocks>;
     using ReadState = SizesT;
+
+    using ExtData = EmptyType;
+    using SparseObject = PackedEmptyStructSO<ExtData, MyType>;
 
 private:
     PackedAllocatable header_;

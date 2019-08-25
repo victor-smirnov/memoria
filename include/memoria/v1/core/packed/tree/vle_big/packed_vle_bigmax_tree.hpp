@@ -28,6 +28,11 @@
 #include <memoria/v1/core/bignum/cppint_codec.hpp>
 
 #include <memoria/v1/core/bignum/int64_codec.hpp>
+
+
+#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree_so.hpp>
+
+
 #include <memory>
 
 namespace memoria {
@@ -126,6 +131,7 @@ public:
     using IOSubstreamView     = io::IOColumnwiseVLenArraySubstreamViewImpl<MyType>;
 
     using ExtData = EmptyType;
+    using SparseObject = PackedVLEBigMaxTreeSO<ExtData, MyType>;
 
     class ReadState {
         ConstPtrsT values_;
@@ -822,7 +828,7 @@ public:
         return reindex();
     }
 
-    void configure_io_substream(io::IOSubstream& substream)
+    void configure_io_substream(io::IOSubstream& substream) const
     {
         IOSubstreamView& view
                 = io::substream_cast<IOSubstreamView>(substream);

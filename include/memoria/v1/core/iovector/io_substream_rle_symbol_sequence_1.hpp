@@ -158,7 +158,7 @@ public:
     }
 
 
-    virtual void configure(void* ptr) {
+    virtual void configure(const void* ptr) {
         MMA1_THROW(UnsupportedOperationException());
     }
 };

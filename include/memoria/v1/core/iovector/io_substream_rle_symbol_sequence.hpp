@@ -155,7 +155,7 @@ public:
     }
 
 
-    void configure(void* ptr) {
+    void configure(const void* ptr) {
         MMA1_THROW(UnsupportedOperationException());
     }
 

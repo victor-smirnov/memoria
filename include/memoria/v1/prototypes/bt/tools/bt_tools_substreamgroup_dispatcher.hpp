@@ -90,6 +90,22 @@ struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
     }
 
 
+    template <typename State, typename Allocator, typename Fn, typename... Args>
+    static void dispatchGroups(State&& state, Allocator* allocator, Fn&& fn, Args&&... args)
+    {
+        using SubgroupDispatcher = typename Dispatcher::template SubsetDispatcher<Group, GroupIdx>;
+
+        SubgroupDispatcher(state).dispatchAll(allocator, std::forward<Fn>(fn), std::forward<Args>(args)...);
+
+        GroupDispatcher<Dispatcher, TypeList<Tail...>, GroupIdx + 1>::dispatchGroups(
+                std::forward<State>(state),
+                allocator,
+                std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+
     template <typename Fn, typename... Args>
     static void dispatchGroupsStatic(Fn&& fn, Args&&... args)
     {
@@ -114,6 +130,16 @@ struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
         SubgroupDispatcher::dispatchAll(allocator, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
+    template <typename State, int32_t GroupIdx_, typename Allocator, typename Fn, typename... Args>
+    static void dispatchGroup(State&& state, Allocator* allocator, Fn&& fn, Args&&... args)
+    {
+        using TargetGroup = Select<GroupIdx_, TypeList<Group, Tail...>>;
+
+        using SubgroupDispatcher = typename Dispatcher::template SubsetDispatcher<TargetGroup, GroupIdx_>;
+
+        SubgroupDispatcher(state).dispatchAll(allocator, std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
     template <int32_t GroupIdx_, typename Fn, typename... Args>
     static void dispatchGroupStatic(Fn&& fn, Args&&... args)
     {
@@ -134,6 +160,10 @@ struct GroupDispatcher<Dispatcher, TypeList<>, GroupIdx>
 {
     template <typename Allocator, typename Fn, typename... Args>
     static void dispatchGroups(Allocator* allocator, Fn&& fn, Args&&... args) {}
+
+    template <typename State, typename Allocator, typename Fn, typename... Args>
+    static void dispatchGroups(State&&, Allocator* allocator, Fn&& fn, Args&&... args) {}
+
 
     template <typename Fn, typename... Args>
     static void dispatchGroupsStatic(Fn&& fn, Args&&... args) {}

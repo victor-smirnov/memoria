@@ -42,7 +42,7 @@ class IORowwiseVLenArraySubstreamViewImpl final: public IORowwiseVLenArraySubstr
 
     static constexpr int32_t BUFFER_SIZE = 256;
 
-    PkdStruct* array_{};
+    const PkdStruct* array_{};
 
     mutable UniquePtr<int32_t> lengths_buffer_;
 
@@ -54,7 +54,7 @@ public:
 
     virtual ~IORowwiseVLenArraySubstreamViewImpl() noexcept {}
 
-    void configure(PkdStruct* array) noexcept
+    void configure(const PkdStruct* array) noexcept
     {
         array_ = array;
     }
@@ -83,7 +83,7 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    uint8_t* select(int32_t row) const
+    const uint8_t* select(int32_t row) const
     {
         return array_->row_ptr(row);
     }

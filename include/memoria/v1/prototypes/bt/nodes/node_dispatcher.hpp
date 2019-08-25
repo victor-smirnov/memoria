@@ -68,7 +68,7 @@ private:
     static const bool Leaf      = Head::Leaf;
 
     using NodeSO        = typename Head::template SparseObject<CtrT>;
-    using ConstNodeSO   = typename Head::template ConstSparseObject<CtrT>;
+    using ConstNodeSO   = NodeSO;
 
     using NextNDT0 = NDT0<CtrT, Types, Idx - 1>;
 
@@ -113,7 +113,7 @@ public:
     {
         if (HASH == node->block_type_hash())
         {
-            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(node.block()));
+            const ConstNodeSO node_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(node.block())));
             return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
@@ -132,8 +132,8 @@ public:
     {
         if (HASH == node1->block_type_hash())
         {
-            ConstNodeSO node1_so(&ctr_, static_cast<const Head*>(node1.block()));
-            ConstNodeSO node2_so(&ctr_, static_cast<const Head*>(node2.block()));
+            const ConstNodeSO node1_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(node1.block())));
+            const ConstNodeSO node2_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(node2.block())));
             return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
@@ -155,7 +155,7 @@ public:
 
         if (types_equal && leaf == Leaf)
         {
-            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(nullptr));
+            const ConstNodeSO node_so(&ctr_, static_cast<Head*>(nullptr));
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
@@ -171,7 +171,7 @@ public:
     {
         if (leaf == Leaf)
         {
-            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(nullptr));
+            const ConstNodeSO node_so(&ctr_, static_cast<Head*>(nullptr));
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
@@ -204,7 +204,7 @@ private:
     static const bool Leaf      = Head::Leaf;
 
     using NodeSO        = typename Head::template SparseObject<CtrT>;
-    using ConstNodeSO   = typename Head::template ConstSparseObject<CtrT>;
+    using ConstNodeSO   = NodeSO;
 
     CtrT& ctr_;
 
@@ -249,7 +249,7 @@ public:
     {
         if (HASH == node->block_type_hash())
         {
-            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(node.block()));
+            const ConstNodeSO node_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(node.block())));
             return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
@@ -268,8 +268,8 @@ public:
     {
         if (HASH == node1->block_type_hash())
         {
-            ConstNodeSO node1_so(&ctr_, static_cast<const Head*>(node1.block()));
-            ConstNodeSO node2_so(&ctr_, static_cast<const Head*>(node2.block()));
+            const ConstNodeSO node1_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(node1.block())));
+            const ConstNodeSO node2_so(&ctr_, const_cast<Head*>(static_cast<const Head*>(node2.block())));
             return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
@@ -288,7 +288,7 @@ public:
 
         if (types_equal && leaf == Leaf)
         {
-            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(nullptr));
+            ConstNodeSO node_so(&ctr_, static_cast<Head*>(nullptr));
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
@@ -304,7 +304,7 @@ public:
     {
         if (leaf == Leaf)
         {
-            ConstNodeSO node_so(&ctr_, static_cast<const Head*>(nullptr));
+            const ConstNodeSO node_so(&ctr_, static_cast<Head*>(nullptr));
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {

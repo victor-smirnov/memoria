@@ -26,6 +26,8 @@
 #include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
 #include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
 
+#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree_so.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -81,6 +83,7 @@ public:
     using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
     using ExtData = EmptyType;
+    using SparseObject = PackedFSEMaxTreeSO<ExtData, MyType>;
 
     class ReadState {
         ConstPtrsT values_;
@@ -706,7 +709,7 @@ public:
         return OpStatus::OK;
     }
 
-    void configure_io_substream(io::IOSubstream& substream)
+    void configure_io_substream(io::IOSubstream& substream) const
     {
         auto& view = io::substream_cast<IOSubstreamView>(substream);
 
@@ -714,7 +717,7 @@ public:
 
         for (int32_t blk = 0; blk < Blocks; blk++)
         {
-            columns[blk].data_buffer = this->values(blk);
+            columns[blk].data_buffer = const_cast<Value*>(this->values(blk));
             columns[blk].size = this->size();
             columns[blk].capacity = columns[blk].size;
         }

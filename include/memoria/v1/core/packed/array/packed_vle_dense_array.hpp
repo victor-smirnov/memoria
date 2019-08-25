@@ -22,6 +22,7 @@
 #include <memoria/v1/core/iovector/io_substream_row_array_vlen.hpp>
 #include <memoria/v1/core/iovector/io_substream_row_array_vlen_view.hpp>
 
+#include <memoria/v1/core/packed/array/packed_vle_dense_array_so.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -111,6 +112,8 @@ public:
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
 
+    using ExtData = EmptyType;
+    using SparseObject = PackedVLDArraySO<ExtData, MyType>;
 
     using ReadState = SizesT;
 
@@ -829,7 +832,7 @@ public:
         return OpStatusT<int32_t>(at + size);
     }
 
-    void configure_io_substream(io::IOSubstream& substream)
+    void configure_io_substream(io::IOSubstream& substream) const
     {
         IOSubstreamView& view
                 = io::substream_cast<IOSubstreamView>(substream);

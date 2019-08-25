@@ -399,6 +399,9 @@ public:
 
 
         template <typename CtrT>
+        using BranchNode = typename Blocks::template BranchDispatcher<CtrT>::Head;
+
+        template <typename CtrT>
         using LeafNode = typename Blocks::template LeafDispatcher<CtrT>::Head;
 
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?

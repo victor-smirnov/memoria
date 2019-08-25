@@ -71,7 +71,7 @@ public:
     }
 
     virtual void* buffer() {
-        return &size_;
+        MMA1_THROW(UnsupportedOperationException());
     }
 
     virtual void rank_to(uint64_t idx, uint64_t* values) const
@@ -151,7 +151,7 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    virtual void configure(void* ptr)
+    virtual void configure(const void* ptr)
     {
         size_ = T2T<uint64_t>(ptr);
     }

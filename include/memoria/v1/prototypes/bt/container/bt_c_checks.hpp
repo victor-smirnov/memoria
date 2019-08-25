@@ -188,7 +188,7 @@ bool M_TYPE::checkTypedNodeContent(Node1&& parent, Node2&& node, int32_t parent_
     bool errors = false;
 
     BranchNodeEntry sums;
-    node->max(sums);
+    node.max(sums);
 
     BranchNodeEntry keys = parent->keysAt(parent_idx);
 
@@ -197,10 +197,10 @@ bool M_TYPE::checkTypedNodeContent(Node1&& parent, Node2&& node, int32_t parent_
         MMA1_ERROR(
                 self(),
                 "Invalid parent-child nodes chain",
-                (SBuf()<<sums).str(),
-                (SBuf()<<keys).str(),
+                (SBuf() << sums).str(),
+                (SBuf() << keys).str(),
                 "for node.id=",
-                node->id(),
+                node.node()->id(),
                 "parent.id=",
                 parent->id(),
                 "parent_idx",

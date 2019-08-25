@@ -30,6 +30,8 @@
 #include "rleseq/rleseq_reindex_fn.hpp"
 #include "rleseq/rleseq_iterator.hpp"
 
+#include <memoria/v1/core/packed/sseq/packed_rle_searchable_seq_so.hpp>
+
 #include <ostream>
 
 namespace memoria {
@@ -137,6 +139,7 @@ public:
     using IOSubstreamView     = io::PackedRLESymbolSequenceView<Symbols>;
 
     using ExtData = EmptyType;
+    using SparseObject = PackedRLESeqSO<ExtData, MyType>;
 
     int32_t number_of_offsets() const
     {
@@ -1690,7 +1693,7 @@ public:
     }
 
 
-    void configure_io_substream(io::IOSubstream& substream)
+    void configure_io_substream(io::IOSubstream& substream) const
     {
         auto& seq = io::substream_cast<IOSubstreamView>(substream);
         seq.configure(this);

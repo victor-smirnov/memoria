@@ -22,6 +22,8 @@
 #include <memoria/v1/core/iovector/io_substream_row_array_fixed_size.hpp>
 #include <memoria/v1/core/iovector/io_substream_row_array_fixed_size_view.hpp>
 
+#include <memoria/v1/core/packed/array/packed_fse_array_so.hpp>
+
 #include <type_traits>
 
 namespace memoria {
@@ -102,6 +104,7 @@ public:
     using IOSubstreamView     = io::IORowwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
     using ExtData = EmptyType;
+    using SparseObject = PackedFSEArraySO<ExtData, MyType>;
 
 private:
     PackedAllocatable header_;
@@ -560,7 +563,7 @@ public:
         return OpStatusT<int32_t>(at + size);
     }
 
-    void configure_io_substream(io::IOSubstream& substream)
+    void configure_io_substream(io::IOSubstream& substream) const
     {        
         auto& view = io::substream_cast<IOSubstreamView>(substream);
         view.configure(this->values(), this->size());

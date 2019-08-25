@@ -150,7 +150,7 @@ struct IOSymbolSequence: IOSubstream {
     }
 
     virtual void reset()                            = 0;
-    virtual void configure(void* ptr)               = 0;
+    virtual void configure(const void* ptr)         = 0;
 
     virtual uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx) const = 0;
     virtual uint64_t populate_buffer(SymbolsBuffer& buffer, uint64_t idx, uint64_t size) const = 0;

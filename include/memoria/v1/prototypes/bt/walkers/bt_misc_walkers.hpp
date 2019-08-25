@@ -127,14 +127,14 @@ struct SubstreamsSetNodeFn {
     template <typename CtrT, typename NodeT, typename... Args>
     auto treeNode(LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
-        return node->template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::forward<Args>(args)...);
+        return node.template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::forward<Args>(args)...);
     }
 
 
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(LeafNodeSO<CtrT, const NodeT>& node, Args&&... args)
+    auto treeNode(const LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
-        return node->template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::forward<Args>(args)...);
+        return node.template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::forward<Args>(args)...);
     }
 };
 
@@ -149,7 +149,7 @@ struct StreamNodeFn {
 
 
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(LeafNodeSO<CtrT, const NodeT>& node, Args&&... args)
+    auto treeNode(const LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
         return node->template processStream<IntList<Stream>>(std::forward<Args>(args)...);
     }

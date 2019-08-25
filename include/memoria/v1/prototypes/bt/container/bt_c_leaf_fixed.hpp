@@ -71,8 +71,8 @@ public:
         template <typename CtrT, typename NTypes, typename... Args>
         void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
-            node->layout(255);
-            node->template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
+            node.layout(255);
+            node.template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
         }
     };
 
@@ -108,8 +108,8 @@ public:
         template <typename CtrT, typename NTypes>
         void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum)
         {
-            node->layout(255);
-            node->template processStreamAcc<Stream>(*this, accum, idx);
+            node.layout(255);
+            node.template processStreamAcc<Stream>(*this, accum, idx);
         }
 
         template <
@@ -184,7 +184,7 @@ public:
         template <typename CtrT, typename NTypes, typename... Args>
         void treeNode(LeafNodeSO<CtrT, NTypes>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
-            node->template processSubstreamsByIdxAcc<
+            node.template processSubstreamsByIdxAcc<
                 Stream,
                 SubstreamsList
             >(

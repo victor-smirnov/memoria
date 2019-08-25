@@ -295,7 +295,7 @@ protected:
     struct LeafSizesFn {
         template <typename Node, typename... Args>
         auto treeNode(Node&& node, Args&&... args) {
-            return node->sizes();
+            return node.sizes();
         }
     };
 
@@ -407,23 +407,23 @@ protected:
     template <int32_t Stream>
     struct GetLeafNodeStreamSize {
         template <typename CtrT, typename T, typename... Args>
-        int32_t treeNode(LeafNodeSO<CtrT, T>& node, Args&&... args) const
+        int32_t treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const
         {
-            return node->template streamSize<Stream>();
+            return node.template streamSize<Stream>();
         }
     };
 
     struct GetLeafNodeStreamSizes {
         template <typename CtrT, typename T, typename... Args>
-        Position treeNode(LeafNodeSO<CtrT, T>& node, Args&&... args) const
+        Position treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const
         {
-            return node->sizes();
+            return node.sizes();
         }
     };
 
     struct GetLeafNodeStreamSizesStatic {
         template <typename CtrT, typename T, typename... Args>
-        Position treeNode(LeafNodeSO<CtrT, T>& node, Args&&... args) const
+        Position treeNode(const LeafNodeSO<CtrT, T>& node, Args&&... args) const
         {
             return bt::LeafNode<T>::sizes(std::forward<Args>(args)...);
         }
@@ -495,15 +495,15 @@ protected:
     template <typename SubstreamPath>
     struct GetPackedStructFn {
         template <typename CtrT, typename T>
-        auto treeNode(LeafNodeSO<CtrT, const T>& node) const
+        auto treeNode(LeafNodeSO<CtrT, T>& node) const
         {
-            return node->template substream<SubstreamPath>();
+            return node.template substream<SubstreamPath>();
         }
 
         template <typename CtrT, typename T>
-        auto treeNode(LeafNodeSO<CtrT, T>& node) const
+        auto treeNode(const LeafNodeSO<CtrT, T>& node) const
         {
-            return node->template substream<SubstreamPath>();
+            return node.template substream<SubstreamPath>();
         }
     };
 

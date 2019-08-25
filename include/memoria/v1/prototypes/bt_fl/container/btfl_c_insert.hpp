@@ -51,7 +51,7 @@ public:
     {
         auto& self = this->self();
 
-        std::unique_ptr<io::IOVector> iov = LeafNodeT::create_iovector();
+        std::unique_ptr<io::IOVector> iov = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
 
         auto id = iter.leaf()->id();
 
@@ -82,7 +82,7 @@ public:
     {
         auto& self = this->self();
 
-        std::unique_ptr<io::IOVector> iov = LeafNodeT::create_iovector();
+        std::unique_ptr<io::IOVector> iov = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
 
         auto id = iter.leaf()->id();
 

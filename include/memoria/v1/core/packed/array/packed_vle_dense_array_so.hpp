@@ -22,13 +22,13 @@ namespace memoria {
 namespace v1 {
 
 template <typename ExtData, typename PkdStruct>
-class PackedFSEMaxTreeSO {
+class PackedVLDArraySO {
     const ExtData* ext_data_;
     PkdStruct* data_;
 
 public:
-    PackedFSEMaxTreeSO(): ext_data_(), data_() {}
-    PackedFSEMaxTreeSO(const ExtData* ext_data, PkdStruct* data):
+    PackedVLDArraySO(): ext_data_(), data_() {}
+    PackedVLDArraySO(const ExtData* ext_data, PkdStruct* data):
         ext_data_(ext_data), data_(data)
     {}
 
@@ -56,8 +56,6 @@ public:
 
     const ExtData* ext_data() const {return ext_data_;}
 };
-
-
 
 
 }

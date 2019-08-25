@@ -916,7 +916,7 @@ public:
         return OpStatus::OK;
     }
 
-    void configure_io_substream(io::IOSubstream& substream)
+    void configure_io_substream(io::IOSubstream& substream) const
     {
         auto& view = io::substream_cast<IOSubstreamView>(substream);
 

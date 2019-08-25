@@ -22,6 +22,7 @@
 
 #include <memoria/v1/core/iovector/io_substream_base.hpp>
 
+#include <memoria/v1/core/packed/misc/packed_sized_struct_so.hpp>
 
 #include <limits>
 
@@ -51,6 +52,9 @@ public:
     using IndexValue = Value;
     using SizesT = core::StaticVector<int32_t, Blocks>;
     using ReadState = SizesT;
+
+    using ExtData = EmptyType;
+    using SparseObject = PackedSizedStructSO<ExtData, MyType>;
 
     class AppendState {
         int32_t size_ = 0;

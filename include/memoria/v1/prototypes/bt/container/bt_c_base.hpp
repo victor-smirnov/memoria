@@ -24,6 +24,8 @@
 #include <memoria/v1/core/tools/object_pool.hpp>
 
 
+#include <memoria/v1/core/types/mp11.hpp>
+#include <memoria/v1/core/types/list/tuple.hpp>
 
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 
@@ -68,11 +70,20 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     using BlockUpdateMgr = typename Types::BlockUpdateMgr;
 
+    using LeafNode = typename Types::template LeafNode<MyType>;
+    using BranchNode = typename Types::template LeafNode<MyType>;
+
+    using LeafNodeExtData   = MakeTuple<typename LeafNode::SubstreamExtensionsList>;
+    using BranchNodeExtData = MakeTuple<typename LeafNode::SubstreamExtensionsList>;
+
     using Base::CONTAINER_HASH;
 
     static const int32_t Streams = Types::Streams;
 
     ObjectPools pools_;
+
+    LeafNodeExtData leaf_node_ext_data_;
+    BranchNodeExtData branch_node_ext_data_;
 
     NodeDispatcher node_dispatcher_{self()};
     LeafDispatcher leaf_dispatcher_{self()};
@@ -107,11 +118,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return tree_dispatcher_;
     }
 
+    const LeafNodeExtData& leaf_node_ext_data() const {return leaf_node_ext_data_;}
+    const BranchNodeExtData& branch_node_ext_data() const {return branch_node_ext_data_;}
+
 
     template <typename Node>
     CtrID getModelNameFn(Node& node) const
     {
-        return node->root_metadata().model_name();
+        return node.node()->root_metadata().model_name();
     }
 
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetModelNameFn, getModelNameFn, CtrID);
@@ -428,7 +442,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     template <typename Node>
     void prepareNode(Node&& node) const
     {
-        node->prepare();
+        node.prepare();
     }
 
     MEMORIA_V1_CONST_FN_WRAPPER(PrepareNodeFn, prepareNode);

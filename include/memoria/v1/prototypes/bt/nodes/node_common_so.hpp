@@ -39,11 +39,11 @@ public:
     {}
 
     CtrT* ctr() const {return ctr_;}
-    NodeType* node() const {return node_;}
 
-    NodeType* operator->() const {
-        return node_;
-    }
+    NodeType* node() {return node_;}
+    const NodeType* node() const {return node_;}
+
+
 
     void check() const {
         node_->check();

@@ -31,9 +31,42 @@ public:
     using Base::size;
 
     BranchNodeSO(): Base() {}
+    BranchNodeSO(CtrT* ctr): Base(ctr, nullptr) {}
     BranchNodeSO(CtrT* ctr, NodeType_* node):
         Base(ctr, node)
     {}
+
+    const NodeType_* operator->() const {
+        return node_;
+    }
+
+    NodeType_* operator->() {
+        return node_;
+    }
+
+    void setup() {
+        ctr_ = nullptr;
+        node_ = nullptr;
+    }
+
+    void setup(CtrT* ctr) {
+        ctr_ = ctr;
+        node_ = nullptr;
+    }
+
+    void setup(CtrT* ctr, NodeType_* node) {
+        ctr_ = ctr;
+        node_ = node;
+    }
+
+    void setup(NodeType_* node) {
+        node_ = node;
+    }
+
+    void prepare()
+    {
+        node_->prepare(); // FIXME +1?
+    }
 
     template <typename V>
     std::vector<V> values_as_vector(int32_t start, int32_t end) const {

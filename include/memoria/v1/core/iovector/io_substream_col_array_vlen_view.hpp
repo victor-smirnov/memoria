@@ -40,7 +40,7 @@ class IOColumnwiseVLenArraySubstreamViewImpl final: public IOColumnwiseVLenArray
 
     static constexpr int32_t BUFFER_SIZE = 256;
 
-    PkdStruct* array_{};
+    const PkdStruct* array_{};
 
     mutable UniquePtr<int32_t> lengths_buffer_;
 
@@ -53,7 +53,7 @@ public:
     virtual ~IOColumnwiseVLenArraySubstreamViewImpl() noexcept {}
 
 
-    void configure(PkdStruct* array) noexcept
+    void configure(const PkdStruct* array) noexcept
     {
         array_ = array;
     }

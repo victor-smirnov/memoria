@@ -35,7 +35,7 @@ class PackedRLESymbolSequenceView final: public IOSymbolSequence {
 
     using SeqT = PkdRLESeqT<AlphabetSize>;
 
-    SeqT* sequence_;
+    const SeqT* sequence_;
 
 public:
     PackedRLESymbolSequenceView(): sequence_()
@@ -72,7 +72,7 @@ public:
     }
 
     virtual void* buffer() {
-        return sequence_;
+        MMA1_THROW(UnsupportedOperationException());
     }
 
     virtual void rank_to(uint64_t idx, uint64_t* values) const
@@ -137,9 +137,9 @@ public:
     }
 
 
-    void configure(void* ptr)
+    void configure(const void* ptr)
     {
-        sequence_ = T2T<SeqT*>(ptr);
+        sequence_ = T2T<const SeqT*>(ptr);
     }
 };
 

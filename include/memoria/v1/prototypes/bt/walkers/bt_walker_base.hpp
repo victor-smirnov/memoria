@@ -312,7 +312,7 @@ public:
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
     template <typename CtrT, typename NodeT>
-    StreamOpResult treeNode(BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
+    StreamOpResult treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         auto& self = this->self();
 
@@ -329,12 +329,12 @@ public:
     }
 
     template <typename CtrT, typename NodeT>
-    StreamOpResult treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
+    StreamOpResult treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkDirection direction, int32_t start)
     {
         this->direction_ = direction;
 
         auto& self = this->self();
-        auto result = node->template processStream<LeafPath>(FindLeafFn(self), start);
+        auto result = node.template processStream<LeafPath>(FindLeafFn(self), start);
 
         self.postProcessLeafNode(node, direction, start, result);
 
@@ -346,7 +346,7 @@ public:
     void processCmd(const Node* node, WalkCmd cmd, Args&&... args){}
 
     template <typename CtrT, typename NodeT, typename... Args>
-    void processCmd(BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, Args&&... args)
+    void processCmd(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, Args&&... args)
     {
         auto& self = this->self();
 
@@ -394,7 +394,7 @@ public:
             Node::NodeType::template StreamDispatcher<
                 StreamIdx
             >
-            ::dispatchAll(node->allocator(), w, walker, accum, std::forward<Args>(args)...);
+            ::dispatchAll(node.allocator(), w, walker, accum, std::forward<Args>(args)...);
 
             return true;
         }
@@ -449,7 +449,7 @@ public:
     template <typename Node, typename... Args>
     void processLeafSizePrefix(Node& node, Args&&... args)
     {
-        node->processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
+        node.processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <int32_t StreamIdx, typename StreamType>

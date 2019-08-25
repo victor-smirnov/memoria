@@ -21,5 +21,41 @@
 namespace memoria {
 namespace v1 {
 
+template <typename ExtData, typename PkdStruct>
+class PackedVLEBigMaxTreeSO {
+    const ExtData* ext_data_;
+    PkdStruct* data_;
+
+public:
+    PackedVLEBigMaxTreeSO(): ext_data_(), data_() {}
+    PackedVLEBigMaxTreeSO(const ExtData* ext_data, PkdStruct* data):
+        ext_data_(ext_data), data_(data)
+    {}
+
+    void setup() {
+        ext_data_ = nullptr;
+        data_ = nullptr;
+    }
+
+    void setup(const ExtData* ext_data, PkdStruct* data) {
+        ext_data_ = ext_data;
+        data_ = data;
+    }
+
+    void setup(const ExtData* ext_data) {
+        ext_data_ = ext_data;
+    }
+
+    void setup(PkdStruct* data) {
+        data_ = data;
+    }
+
+    PkdStruct* operator->() const {
+        return data_;
+    }
+
+    const ExtData* ext_data() const {return ext_data_;}
+};
+
 }
 }
