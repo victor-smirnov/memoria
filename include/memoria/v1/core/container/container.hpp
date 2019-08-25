@@ -587,13 +587,13 @@ private:
 
 template <int Idx, typename Types>
 class CtrHelper: public CtrPart<
-                            SelectByIndex<Idx, typename Types::List>,
+                            Select<Idx, typename Types::List>,
                             CtrHelper<Idx - 1, Types>,
                             Types>
 {
     using ThisType = CtrHelper<Idx, Types>;
     using MyType   = Ctr<Types>;
-    using Base     = CtrPart<SelectByIndex<Idx, typename Types::List>, CtrHelper<Idx - 1, Types>, Types>;
+    using Base     = CtrPart<Select<Idx, typename Types::List>, CtrHelper<Idx - 1, Types>, Types>;
 
     using Allocator0 = typename Types::Allocator;
 

@@ -74,16 +74,16 @@ protected:
     static constexpr int32_t PkdStructsListSize = ListSize<NonSizedPackedStructsList>;
 
     using SequencePkdStruct = typename ListHead<
-        typename SublistToEnd<
+        SublistToEnd<
             NonSizedPackedStructsList,
             PkdStructsListSize - 1
-        >::Type
+        >
     >::Type;
 
-    using DataStreamsPkdStructsList = typename SublistFromStart<
+    using DataStreamsPkdStructsList = SublistFromStart<
         NonSizedPackedStructsList,
         PkdStructsListSize - 1
-    >::Type;
+    >;
 
     using StreamsSchema = typename StreamsListParserTF<PkdStructsList>::Type;
 };

@@ -19,112 +19,31 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/list/append.hpp>
 
+#include <memoria/v1/core/types/mp11.hpp>
+
 namespace memoria {
 namespace v1 {
 
 
-template <typename List, int32_t Len> struct SublistFromStart;
+template <typename List, int32_t Len>
+using SublistFromStart = boost::mp11::mp_take_c<List, Len>;
 
-template <typename T, T Head, T... Tail, int32_t Len>
-struct SublistFromStart<ValueList<T, Head, Tail...>, Len> {
-    static_assert(Len >= 0, "Len parameter must be >= 0");
-    static_assert(Len <= sizeof...(Tail) + 1, "Len parameter must be <= the Length of value list");
+template <typename List, int32_t From>
+using SublistToEnd = boost::mp11::mp_drop_c<List, From>;
 
-    using Type = MergeValueLists<
-                ConstValue<T, Head>,
-                typename SublistFromStart<ValueList<T, Tail...>, Len - 1>::Type
-    >;
-};
+namespace _ {
+    template <typename List, int32_t From, int32_t To>
+    struct SublistH {
+        static_assert(From <= To, "Form must be <= To");
 
-
-
-template <typename T, T Head, T... Tail>
-struct SublistFromStart<ValueList<T, Head, Tail...>, 0> {
-    using Type = ValueList<T>;
-};
-
-template <typename T>
-struct SublistFromStart<ValueList<T>, 0> {
-    using Type = ValueList<T>;
-};
-
-
-
-
-template <typename Head, typename... Tail, int32_t Len>
-struct SublistFromStart<TypeList<Head, Tail...>, Len> {
-    static_assert(Len >= 0, "Len parameter must be >= 0");
-    static_assert(Len <= sizeof...(Tail) + 1, "Len parameter must be <= the Length of value list");
-
-    using Type = MergeLists<
-                Head,
-                typename SublistFromStart<TypeList<Tail...>, Len - 1>::Type
-    >;
-};
-
-template <typename Head, typename... Tail>
-struct SublistFromStart<TypeList<Head, Tail...>, 0> {
-    using Type = TypeList<>;
-};
-
-template <>
-struct SublistFromStart<TypeList<>, 0> {
-    using Type = TypeList<>;
-};
-
-
-
-template <typename List, int32_t From> struct SublistToEnd;
-
-template <typename T, T Head, T... Tail>
-struct SublistToEnd<ValueList<T, Head, Tail...>, 0> {
-    using Type = ValueList<T, Head, Tail...>;
-};
-
-template <typename T>
-struct SublistToEnd<ValueList<T>, 0> {
-    using Type = ValueList<T>;
-};
-
-
-template <typename T, T Head, T ... Tail, int32_t From>
-struct SublistToEnd<ValueList<T, Head, Tail...>, From> {
-    static_assert(From >= 0, "Form must be >= 0");
-    static_assert(From < sizeof...(Tail) + 1, "Form must be <= length of the list");
-
-    using Type = typename SublistToEnd<ValueList<T, Tail...>, From - 1>::Type;
-};
-
-
-
-template <typename Head, typename... Tail>
-struct SublistToEnd<TypeList<Head, Tail...>, 0> {
-    using Type = TypeList<Head, Tail...>;
-};
-
-template <>
-struct SublistToEnd<TypeList<>, 0> {
-    using Type = TypeList<>;
-};
-
-template <typename Head, typename... Tail, int32_t From>
-struct SublistToEnd<TypeList<Head, Tail...>, From> {
-    static_assert(From >= 0, "Form must be >= 0");
-    static_assert(From <= sizeof...(Tail) + 1, "Form must be <= length of the list");
-
-    using Type = typename SublistToEnd<TypeList<Tail...>, From - 1>::Type;
-};
-
-
+        using Type = SublistFromStart<
+            SublistToEnd<List, From>,
+            To - From
+        >;
+    };
+}
 
 template <typename List, int32_t From, int32_t To>
-struct Sublist {
-    static_assert(From <= To, "Form must be <= To");
-
-    using Type = typename SublistFromStart<
-            typename SublistToEnd<List, From>::Type,
-            To - From
-    >::Type;
-};
+using Sublist = typename _::SublistH<List, From, To>::Type;
 
 }}

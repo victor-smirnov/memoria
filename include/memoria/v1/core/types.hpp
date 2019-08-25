@@ -412,6 +412,10 @@ struct HasValue {
     static constexpr T Value = V_;
 };
 
+template <typename T>
+struct StdMetaFn {
+    using type = T;
+};
 
 namespace _ {
     template <typename T, bool Flag, typename... AdditionalTypes>

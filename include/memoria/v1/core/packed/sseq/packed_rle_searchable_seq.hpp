@@ -136,6 +136,8 @@ public:
     using GrowableIOSubstream = io::PackedRLESymbolSequence<Symbols>;
     using IOSubstreamView     = io::PackedRLESymbolSequenceView<Symbols>;
 
+    using ExtData = EmptyType;
+
     int32_t number_of_offsets() const
     {
         return number_of_offsets(this->element_size(SYMBOLS));

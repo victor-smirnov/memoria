@@ -1081,7 +1081,7 @@ public:
 
     template <typename OtherNodeT>
     bool canBeMergedWith(OtherNodeT&& other) const
-    {
+    { 
         CanMergeWithFn fn;
         Dispatcher::dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other));
 

@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,18 +17,9 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <cstdint>
-#include <ostream>
 
 namespace memoria {
 namespace v1 {
 
-typedef __uint64_t         UInt128;
-typedef __int64_t          Int128;
-
-}}
-
-namespace std {
-
-
+}
 }

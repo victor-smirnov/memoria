@@ -287,18 +287,18 @@ namespace _ {
     };
 
 
-    template <typename List> struct MakeTupleT;
-    template <typename List> using MakeTuple = typename MakeTupleT<List>::Type;
+//    template <typename List> struct MakeTupleT;
+//    template <typename List> using MakeTuple = typename MakeTupleT<List>::Type;
 
-    template <typename... Types>
-    struct MakeTupleT<TypeList<Types...>> {
-        using Type = std::tuple<Types...>;
-    };
+//    template <typename... Types>
+//    struct MakeTupleT<TypeList<Types...>> {
+//        using Type = std::tuple<Types...>;
+//    };
 
-    template <typename... Types>
-    struct MakeTupleT<std::tuple<Types...>> {
-        using type = std::tuple<Types...>;
-    };
+//    template <typename... Types>
+//    struct MakeTupleT<std::tuple<Types...>> {
+//        using type = std::tuple<Types...>;
+//    };
 }
 
 
@@ -440,7 +440,7 @@ template <typename BranchStructList, typename RangeLists> struct IteratorBranchN
 template <typename BranchStruct, typename... BTail, typename RangeList, typename... RTail>
 struct IteratorBranchNodeEntryBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTail...>>: HasType<
     MergeLists<
-        _::MakeTuple<
+        MakeTuple<
             typename _::AccumBuilderH<
                 typename AccumType<BranchStruct>::Type,
                 RangeList,

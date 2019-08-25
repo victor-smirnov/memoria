@@ -15,6 +15,10 @@
 
 #pragma once
 
+#if __cplusplus < 201402L
+#error "C++14 is required for Memoria"
+#endif
+
 #ifdef _WIN32
 #define MMA1_WINDOWS
 #elif __linux__

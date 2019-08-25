@@ -1,5 +1,5 @@
 
-// Copyright 2014 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,27 +18,8 @@
 
 #include <memoria/v1/core/types.hpp>
 
-#include <tuple>
-
 namespace memoria {
 namespace v1 {
 
-namespace _ {
-    template <typename T> struct MakeTupleH;
-
-    template <typename... List>
-    struct MakeTupleH<TypeList<List...>> {
-        using Type = std::tuple<List...>;
-    };
-
-    template <typename... List>
-    struct MakeTupleH<std::tuple<List...>> {
-        using Type = std::tuple<List...>;
-    };
 }
-
-template <typename List>
-using MakeTuple = typename _::MakeTupleH<List>::Type;
-
-
-}}
+}

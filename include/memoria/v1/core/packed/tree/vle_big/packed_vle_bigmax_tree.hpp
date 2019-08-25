@@ -125,6 +125,8 @@ public:
     using GrowableIOSubstream = io::IOColumnwiseVLenArraySubstreamImpl<Value, Blocks>;
     using IOSubstreamView     = io::IOColumnwiseVLenArraySubstreamViewImpl<MyType>;
 
+    using ExtData = EmptyType;
+
     class ReadState {
         ConstPtrsT values_;
         SizesT data_pos_;

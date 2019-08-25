@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2015 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,30 +16,25 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/typelist.hpp>
-#include <memoria/v1/core/types/list/append.hpp>
+#include <memoria/v1/core/types.hpp>
+#include <memoria/v1/core/types/mp11.hpp>
 
 namespace memoria {
 namespace v1 {
 
 namespace _ {
-    template <typename List> struct RevertListH;
+    template <typename List, template <typename> class MapFn>
+    struct TransformTL {
+        template <typename Item>
+        using FoldFn = typename MapFn<Item>::Type;
 
-    template <typename Head, typename ... Tail>
-    struct RevertListH<TypeList<Head, Tail...>>: HasType<
-        MergeLists<
-                    typename RevertListH<
-                                TypeList<Tail...>
-                    >::Type,
-                    TL<Head>
-        >
-    > {};
-
-    template <>
-    struct RevertListH<TypeList<>>: HasType<TL<>> {};
+        using Type = boost::mp11::mp_transform<FoldFn, List>;
+    };
 }
 
-template <typename List> 
-using RevertList = _::RevertListH<List>;
+
+template <typename List, template <typename> class MapFn>
+using TransformTL = typename _::TransformTL<List, MapFn>::Type;
+
 
 }}

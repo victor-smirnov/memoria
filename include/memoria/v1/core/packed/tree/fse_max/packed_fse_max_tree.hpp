@@ -80,6 +80,8 @@ public:
     using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
     using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
+    using ExtData = EmptyType;
+
     class ReadState {
         ConstPtrsT values_;
         int32_t idx_ = 0;

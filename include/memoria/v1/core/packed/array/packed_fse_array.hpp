@@ -101,6 +101,7 @@ public:
     using GrowableIOSubstream = io::IORowwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
     using IOSubstreamView     = io::IORowwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
+    using ExtData = EmptyType;
 
 private:
     PackedAllocatable header_;

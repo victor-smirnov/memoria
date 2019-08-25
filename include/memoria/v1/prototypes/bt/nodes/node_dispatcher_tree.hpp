@@ -19,7 +19,6 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/fn_traits.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/types/list/index.hpp>
 #include <memoria/v1/core/types/list/typelist.hpp>
 
 #include <type_traits>
@@ -40,7 +39,7 @@ template <typename CtrT, typename Types, int Idx = ListSize<typename Types::List
 class NDTTree {
 
     using NodeBaseG = typename Types::NodeBaseG;
-    using Head      = SelectByIndex<Idx, typename Types::List>;
+    using Head      = Select<Idx, typename Types::List>;
 
     static const uint64_t HASH  = Head::BLOCK_HASH;
     static const bool Leaf      = Head::Leaf;
@@ -88,7 +87,7 @@ class NDTTree<CtrT, Types, 0> {
     static const int32_t Idx = 0;
 
     using NodeBaseG = typename Types::NodeBaseG;
-    using Head      = SelectByIndex<Idx, typename Types::List>;
+    using Head      = Select<Idx, typename Types::List>;
 
     static const uint64_t HASH  = Head::BLOCK_HASH;
     static const bool Leaf      = Head::Leaf;
@@ -138,7 +137,7 @@ template <typename CtrT, typename Types, int Idx>
 class NDT2 {
 
     using NodeBaseG  = typename Types::NodeBaseG;
-    using Head       = SelectByIndex<Idx, typename Types::ChildList>;
+    using Head       = Select<Idx, typename Types::ChildList>;
 
     using NextNDT2 = NDT2<CtrT, Types, Idx - 1>;
 
@@ -185,7 +184,7 @@ class NDT2<CtrT, Types, 0> {
     static const int32_t Idx = 0;
 
     using NodeBaseG     = typename Types::NodeBaseG;
-    using Head          = SelectByIndex<Idx, typename Types::ChildList>;
+    using Head          = Select<Idx, typename Types::ChildList>;
 
     static const uint64_t HASH = Head::BLOCK_HASH;
 

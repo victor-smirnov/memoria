@@ -16,10 +16,12 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/algo/select.hpp>
-#include <memoria/v1/core/tools/type_name.hpp>
 #include <memoria/v1/core/types.hpp>
+
+#include <memoria/v1/core/types/algo/select.hpp>
 #include <memoria/v1/core/types/list/misc.hpp>
+
+#include <memoria/v1/core/tools/type_name.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -122,8 +124,8 @@ class Block<Quad<A, B, C, D>, Fun, X, K, S, I> {
 
     static const uint32_t ValueB = B
             + CShl<A + Fun<B, C, D>::Value
-                     + SelectByIndexTool<K, X, true>::Value
-                     + SelectByIndexTool<I - 1, Md5Inits>::Value, S
+                     + SelectVOrDefault<K, X>
+                     + SelectV<I - 1, Md5Inits>, S
                   >::Value;
 
 public:

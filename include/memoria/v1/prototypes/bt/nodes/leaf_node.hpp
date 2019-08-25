@@ -24,7 +24,6 @@
 #include <memoria/v1/core/types/list/misc.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/types/algo/fold.hpp>
 
 #include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_packed_struct_list_builder.hpp>

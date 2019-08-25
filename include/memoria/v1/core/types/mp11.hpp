@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,34 +16,36 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/types.hpp>
+#include <boost/mp11.hpp>
+
+#include <type_traits>
 
 namespace memoria {
 namespace v1 {
 
+namespace _ {
+    template <typename T> struct ToMp11H;
 
-template <
-    typename TChain,
-    template <typename, typename> class Element,
-    typename Base = EmptyType
->
-struct SimpleHierarchy;
+    template <typename... Type>
+    struct ToMp11H<TL<Type...>>: HasType<boost::mp11::mp_list<Type...>> {};
 
-template <
-    typename T1,
-    typename ... T2,
-    template <typename, typename> class Element,
-    typename Base
->
-struct SimpleHierarchy<TypeList<T1, T2...>, Element, Base>:
-        public Element<T1, SimpleHierarchy<TypeList <T2...>, Element, Base> > {};
+    template <typename T> struct FromMp11H;
 
-template <
-    typename T,
-    template <typename, typename> class Element,
-    typename Base
->
-struct SimpleHierarchy<TypeList<T>, Element, Base>: public Element<T, Base> {};
+    template <typename... Type>
+    struct FromMp11H<boost::mp11::mp_list<Type...>>: HasType<TL<Type...>> {};
+}
+
+
+
+
+template <typename T>
+using ToMp11 = typename _::ToMp11H<T>::Type;
+
+template <typename T>
+using FromMp11 = typename _::FromMp11H<T>::Type;
+
+
+
 
 }}

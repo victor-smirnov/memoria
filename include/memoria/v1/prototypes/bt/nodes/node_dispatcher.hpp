@@ -61,7 +61,7 @@ class NDT0 {
 
     using MyType = NDT0<CtrT, Types, Idx>;
 public:
-    using Head = SelectByIndex<Idx, typename Types::List>;
+    using Head = Select<Idx, typename Types::List>;
 
 private:
     static const uint64_t HASH  = Head::BLOCK_HASH;
@@ -197,7 +197,7 @@ class NDT0<CtrT, Types, 0> {
 
     static const int32_t Idx = 0;
 public:
-    using Head      = SelectByIndex<Idx, typename Types::List>;
+    using Head      = Select<Idx, typename Types::List>;
 
 private:
     static const uint64_t HASH  = Head::BLOCK_HASH;

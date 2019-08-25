@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/relation/metadata.hpp>
-#include <memoria/v1/core/types/relation/projection.hpp>
-#include <memoria/v1/core/types/relation/expression.hpp>
-#include <memoria/v1/core/types/relation/filter.hpp>
-#include <memoria/v1/core/types/relation/sort.hpp>
+#include <memoria/v1/core/types.hpp>
 
+namespace memoria {
+namespace v1 {
+
+}
+}

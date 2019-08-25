@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,25 +18,26 @@
 
 #include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/core/types/list/typelist.hpp>
-
 namespace memoria {
 namespace v1 {
 
-template <typename Type>
-struct IsList: ConstValue<bool, false> {};
+template <typename ExtData, typename PkdStruct>
+class PackedFSEArraySO {
+    ExtData* ext_data_;
+    PkdStruct* data_;
 
-template <typename ... List>
-struct IsList<TypeList<List...> >: ConstValue<bool, true> {};
+public:
+    PackedFSEArraySO(ExtData* ext_data, PkdStruct* data):
+        ext_data_(ext_data), data_(data)
+    {}
+
+    PkdStruct* operator->() const {
+        return data_;
+    }
+
+    ExtData* ext_data() const {return ext_data_;}
+};
 
 
-template <typename Type>
-struct IsNonemptyList: ConstValue<bool, false> {};
-
-template <typename ... List>
-struct IsNonemptyList<TypeList<List...>>: ConstValue<bool, true> {};
-
-template <>
-struct IsNonemptyList<TypeList<>>: ConstValue<bool, false> {};
-
-}}
+}
+}

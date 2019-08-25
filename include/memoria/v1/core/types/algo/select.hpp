@@ -16,76 +16,47 @@
 
 #pragma once
 
-#include <memoria/v1/core/types/list/typelist.hpp>
-#include <memoria/v1/core/types/list/index.hpp>
-#include <memoria/v1/core/types/list/append.hpp>
 #include <memoria/v1/core/types.hpp>
 
+#include <memoria/v1/core/types/mp11.hpp>
 
 
 namespace memoria {
 namespace v1 {
 
-namespace _ {
-
-    template <int32_t Num, typename List, int32_t Idx> struct SelectT;
-
-    template <int32_t Num, typename Head, typename ... Tail>
-    struct SelectT<Num, TypeList<Head, Tail...>, Num>: HasType<Head> {};
-
-    template <int32_t Num, typename Head, typename ... Tail, int32_t Idx>
-    struct SelectT<Num, TypeList<Head, Tail...>, Idx>: HasType<
-        typename SelectT<Num, TypeList<Tail...>, Idx + 1>::Type
-    > {};
-
-    template <int32_t Num, int32_t Idx>
-    struct SelectT<Num, TypeList<>, Idx>;
-}
-
 template <int32_t Num, typename List>
-using Select = typename memoria::v1::_::SelectT<Num, List, 0>::Type;
-
+using Select = boost::mp11::mp_at_c<List, Num>;
 
 namespace _ {
 
-    template <int32_t Pos, typename List, int32_t idx = 0> struct SelectVH;
+    template <int32_t Pos, typename List>
+    struct SelectVH;
 
-    template <int32_t Pos, typename T, T Head, T ... Tail>
-    struct SelectVH<Pos, ValueList<T, Head, Tail...>, Pos> {
-        static const T Value = Head;
+    template <int32_t Pos, typename T, T... Values>
+    struct SelectVH<Pos, ValueList<T, Values...>> {
+        static constexpr T get() {
+            T array[] = {Values...};
+            return array[Pos];
+        }
     };
 
-    template <int32_t Pos, typename T, T Head, T ... Tail, int32_t Idx>
-    struct SelectVH<Pos, ValueList<T, Head, Tail...>, Idx> {
-        static const T Value = SelectVH<Pos, ValueList<T, Tail...>, Idx + 1>::Value;
-    };
+    template <int32_t Pos, typename List>
+    struct SelectVHD;
 
-    template <int32_t Value, typename T, int32_t Idx>
-    struct SelectVH<Value, ValueList<T>, Idx>;
+    template <int32_t Pos, typename T, T... Values>
+    struct SelectVHD<Pos, ValueList<T, Values...>> {
+        static constexpr T get() {
+            T array[] = {Values...};
+            return Pos >= 0 && Pos < sizeof...(Values) ? array[Pos] : T();
+        }
+    };
 }
 
 template <int32_t Pos, typename List> 
-constexpr auto SelectV = memoria::v1::_::SelectVH<Pos, List>::Value;
+constexpr auto SelectV = memoria::v1::_::SelectVH<Pos, List>::get();
 
-
-
-
-
-template <typename List, typename Default> struct SelectHeadIfNotEmpty;
-
-template <typename Head, typename ... Tail, typename Default>
-struct SelectHeadIfNotEmpty<TypeList<Head, Tail...>, Default> {
-    typedef Head                                                                Result;
-};
-
-template <typename Default>
-struct SelectHeadIfNotEmpty<TypeList<>, Default> {
-    typedef Default                                                             Result;
-};
-
-
-
-
+template <int32_t Pos, typename List>
+constexpr auto SelectVOrDefault = memoria::v1::_::SelectVHD<Pos, List>::get();
 
 
 template <bool Value, typename ResultIfTrue, typename Else>

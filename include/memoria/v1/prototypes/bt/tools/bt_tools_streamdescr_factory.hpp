@@ -21,7 +21,6 @@
 #include <memoria/v1/core/types/list/append.hpp>
 #include <memoria/v1/core/types/list/linearize.hpp>
 #include <memoria/v1/core/types/list/list_tree.hpp>
-#include <memoria/v1/core/types/algo/fold.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 

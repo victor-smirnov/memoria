@@ -19,7 +19,7 @@
 #include <memoria/v1/core/iovector/io_substream.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 
-#include <memoria/v1/core/types/list/map.hpp>
+#include <memoria/v1/core/types/list/transform.hpp>
 #include <memoria/v1/core/types/list/typelist.hpp>
 
 #include <vector>
@@ -169,7 +169,7 @@ namespace _ {
 template <typename Types, template <typename> class IOVectorMapperTF>
 class StaticIOVector: public IOVector {
 
-    using InputVectorsList  = MapTL2<typename Types::PackedStructsList, IOVectorMapperTF>;
+    using InputVectorsList  = TransformTL<typename Types::PackedStructsList, IOVectorMapperTF>;
     using IVTuple           = AsTuple<InputVectorsList>;
     using StreamsSchema     = typename Types::StreamsSchema;
 

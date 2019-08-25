@@ -110,7 +110,7 @@ template <typename T, T Head, T... Tail>
 struct ListPrinter<ValueList<T, Head, Tail...>> {
     static std::ostream& print(std::ostream& out = std::cout)
     {
-        out<<Head<<std::endl;
+        out << Head << std::endl;
         return ListPrinter<ValueList<T, Tail...>>::print(out);
     }
 };

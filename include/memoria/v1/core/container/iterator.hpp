@@ -37,14 +37,14 @@ template <typename Name, typename Base, typename Types> class IterPart;
 
 template <int Idx, typename Types1>
 class IterHelper: public IterPart<
-                            SelectByIndex<Idx,typename Types1::List>,
+                            Select<Idx,typename Types1::List>,
                             IterHelper<Idx - 1, Types1>, Types1
                          >
 {
     using MyType    = Iter<Types1>;
     using ThisType  = IterHelper<Idx, Types1>;
     using BaseType  = IterPart<
-                SelectByIndex<Idx, typename Types1::List>,
+                Select<Idx, typename Types1::List>,
                 IterHelper<Idx - 1, Types1>, Types1
     >;
 

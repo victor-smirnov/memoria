@@ -107,7 +107,8 @@ int main()
 
         auto keys = ii.keys();
 
-        for (size_t c = 0; c < keys.size(); c++) {
+        for (size_t c = 0; c < keys.size(); c++)
+        {
             std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
         }
 

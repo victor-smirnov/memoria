@@ -21,6 +21,25 @@
 
 using namespace memoria::v1;
 
+struct TypeData;
+struct Digits;
+
+struct DecimalView {
+    TypeData* ext_data_;
+    Digits* disgits_;
+
+    bool is_zero() const {
+        //....
+        return true; // or false
+    }
+
+    //....
+    //....
+    //....
+};
+
+using DecimalBuf = Span<DecimalView>;
+
 int main()
 {
     AnyDatum uuid = DataTypeRegistry::local().from_sdn_string("'c7c9c4ef-cd29-4028-aee5-1832cca9ff0f'@UUID");
@@ -28,6 +47,10 @@ int main()
     std::cout << uuid << std::endl;
 
     std::cout << datum_cast<UUID>(std::move(uuid)).view() << std::endl;
+
+    //Datum<Decimal> dt;
+
+    //DataTypeTraits<Deciaml>::ViewType -> DecimalView
 
     return 0;
 }

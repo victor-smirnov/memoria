@@ -17,9 +17,4 @@
 #pragma once
 
 #include <memoria/v1/core/types/algo/for_each.hpp>
-#include <memoria/v1/core/types/algo/minmax.hpp>
 #include <memoria/v1/core/types/algo/select.hpp>
-#include <memoria/v1/core/types/algo/sort.hpp>
-#include <memoria/v1/core/types/algo/indexof.hpp>
-#include <memoria/v1/core/types/algo/fold.hpp>
-
