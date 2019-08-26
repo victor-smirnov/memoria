@@ -122,7 +122,7 @@ public:
     >::Type;
 
     using Dispatcher = PackedStatefulDispatcher<
-        MakeTuple<SubstreamExtensionsList>,
+        LeafExtData,
         StreamDispatcherStructList
     >;
 
@@ -863,42 +863,12 @@ public:
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
-        Base::generateDataEvents(handler);
+        node_->generateDataEvents(handler);
 
-        Dispatcher::dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
     }
 
-    struct SerializeFn {
-        template <typename Tree, typename SerializationData>
-        void stream(const Tree* tree, SerializationData* buf)
-        {
-            tree->serialize(*buf);
-        }
-    };
 
-    template <typename SerializationData>
-    void serialize(SerializationData& buf) const
-    {
-        Base::serialize(buf);
-
-        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
-    }
-
-    struct DeserializeFn {
-        template <typename Tree, typename DeserializationData>
-        void stream(Tree* tree, DeserializationData* buf)
-        {
-            tree->deserialize(*buf);
-        }
-    };
-
-    template <typename DeserializationData>
-    void deserialize(DeserializationData& buf)
-    {
-        Base::deserialize(buf);
-
-        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
-    }
 
 
     struct DumpFn {
@@ -930,6 +900,12 @@ public:
 
 
     /*********************************************************/
+
+    template <typename Fn, typename... Args>
+    void dispatchAll(Fn&& fn, Args&&... args) const
+    {
+        Dispatcher(state()).dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
 
     template <typename Fn, typename... Args>
     auto process(int32_t stream, Fn&& fn, Args&&... args) const

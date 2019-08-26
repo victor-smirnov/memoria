@@ -77,7 +77,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using BranchNodeSO  = typename BranchNode::template SparseObject<MyType>;
 
     using LeafNodeExtData   = MakeTuple<typename LeafNodeSO::SubstreamExtensionsList>;
-    using BranchNodeExtData = MakeTuple<typename BranchNode::SubstreamExtensionsList>;
+    using BranchNodeExtData = MakeTuple<typename BranchNodeSO::SubstreamExtensionsList>;
 
     using Base::CONTAINER_HASH;
 

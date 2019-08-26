@@ -95,15 +95,20 @@ public:
         return self().node_dispatcher().dispatch(node, CheckCapacitiesFn(), sizes);
     }
 
+    MEMORIA_V1_DECLARE_NODE_FN(GenerateDataEventsFn, generateDataEvents);
     void dump(const NodeBaseG& block, std::ostream& out = std::cout) const
     {
+        const auto& self = this->self();
+
         if (block)
         {
             TextBlockDumper dumper(out);
 
-            ProfileMetadata<Profile>::local()
-                    ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
-                    ->generateDataEvents(block.block()->as_header(), DataEventsParams(), &dumper);
+            self.node_dispatcher().dispatch(block, GenerateDataEventsFn(), &dumper);
+
+//            ProfileMetadata<Profile>::local()
+//                    ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
+//                    ->generateDataEvents(block.block()->as_header(), DataEventsParams(), &dumper);
 
             out<<std::endl;
             out<<std::endl;
@@ -174,14 +179,14 @@ protected:
     NodeBaseG getChildFn(Node&& node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.store().getBlock(node->value(idx));
+        return self.store().getBlock(node.value(idx));
     }
 
     template <typename Node>
     NodeBaseG getLastChildFn(Node&& node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.store().getBlock(node->value(node->size() - 1));
+        return self.store().getBlock(node.value(node->size() - 1));
     }
 
 
@@ -189,7 +194,7 @@ protected:
     NodeBaseG getChildForUpdateFn(Node&& node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.store().getBlockForUpdate(node->value(idx));
+        return self.store().getBlockForUpdate(node.value(idx));
     }
 
 
@@ -312,16 +317,6 @@ protected:
     }
 
 
-
-
-    MEMORIA_V1_DECLARE_NODE_FN(SetKeysFn, setKeys);
-    void setBranchKeys(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys) const
-    {
-        self().updateBlockG(node);
-        self().branch_dispatcher().dispatch(node, SetKeysFn(), idx, keys);
-    }
-
-
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, BlockID);
     BlockID getChildID(const NodeBaseG& node, int32_t idx) const
     {
@@ -384,7 +379,7 @@ protected:
         template <typename CtrT, typename T>
         void treeNode(BranchNodeSO<CtrT, T>& node, int child_idx, const BlockID& child_id) const
         {
-            node->value(child_idx) = child_id;
+            node.value(child_idx) = child_id;
         }
     };
 

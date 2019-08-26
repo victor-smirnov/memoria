@@ -105,17 +105,6 @@ struct IBlockOperations {
 
     virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const           = 0;
 
-    virtual void generateDataEvents(
-                    const BlockType* block,
-                    const DataEventsParams& params,
-                    IBlockDataEventHandler* handler) const                                      = 0;
-
-    virtual Collection<VertexProperty> describe_block(
-            const void* buf,
-            int32_t buf_size,
-            int32_t block_size
-    ) const                                                                                     = 0;
-
     virtual uint64_t block_type_hash() const                                                    = 0;
 };
 

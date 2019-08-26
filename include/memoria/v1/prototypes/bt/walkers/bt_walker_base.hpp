@@ -318,10 +318,12 @@ public:
 
         this->direction_ = direction;
 
-        int32_t index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
+        int32_t index = node.template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
-        using BranchPath = typename BranchNodeSO<CtrT, NodeT>::NodeType::template BuildBranchPath<LeafPath>;
-        auto result = node->template processStream<BranchPath>(FindBranchFn(self), node->is_root(), index, start);
+        using BranchPath = typename BranchNodeSO<CtrT, NodeT>::template BuildBranchPath<LeafPath>;
+        auto result = node.template processStream<BranchPath>(
+                FindBranchFn(self), node.node()->is_root(), index, start
+        );
 
         self.postProcessBranchNode(node, direction, start, result);
 
@@ -350,11 +352,13 @@ public:
     {
         auto& self = this->self();
 
-        int32_t index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
+        int32_t index = node.template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
-        using BranchPath = typename BranchNodeSO<CtrT, NodeT>::NodeType::template BuildBranchPath<LeafPath>;
+        using BranchPath = typename BranchNodeSO<CtrT, NodeT>::template BuildBranchPath<LeafPath>;
 
-        return node->template processStream<BranchPath>(ProcessBranchCmdFn(self), cmd, index, std::forward<Args>(args)...);
+        return node.template processStream<BranchPath>(
+                    ProcessBranchCmdFn(self), cmd, index, std::forward<Args>(args)...
+        );
     }
 
 
@@ -370,10 +374,10 @@ public:
             >::Value
         > w;
 
-        Node::NodeType::template StreamDispatcher<
+        Node::template StreamDispatcher<
             ListHead<LeafPath>::Value
         >
-        ::dispatchAll(node->allocator(), w, self(), accum, std::forward<Args>(args)...);
+        ::dispatchAll(node.allocator(), w, self(), accum, std::forward<Args>(args)...);
     }
 
 
@@ -444,7 +448,7 @@ public:
     template <typename Node, typename... Args>
     void processBranchSizePrefix(Node& node, Args&&... args)
     {
-        node->processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
+        node.processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <typename Node, typename... Args>

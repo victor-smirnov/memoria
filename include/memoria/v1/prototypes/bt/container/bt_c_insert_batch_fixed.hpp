@@ -81,12 +81,12 @@ public:
         template <typename CtrT, typename NodeT>
         void treeNode(BranchNodeSO<CtrT, NodeT>& node, int32_t from, int32_t to, const BranchNodeEntryT* entries)
         {
-            int old_size = node->size();
+            int old_size = node.size();
 
-            node->processAll(*this, from, to, entries);
+            node.processAll(*this, from, to, entries);
 
             int32_t idx = 0;
-            node->insertValues(old_size, from, to - from, [entries, &idx](){
+            node.insertValues(old_size, from, to - from, [entries, &idx](){
                 return entries[idx++].child_id();
             });
         }
@@ -104,9 +104,9 @@ public:
     {
         auto& self = this->self();
 
-        int32_t capacity            = self.getBranchNodeCapacity(node, -1ull);
-        CtrSizeT provider_size0 = provider.size();
-        const int32_t batch_size    = 32;
+        int32_t capacity         = self.getBranchNodeCapacity(node, -1ull);
+        CtrSizeT provider_size0  = provider.size();
+        const int32_t batch_size = 32;
 
         int32_t max = idx;
 

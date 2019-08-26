@@ -50,14 +50,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(view, &QTreeView::customContextMenuRequested, this, &MainWindow::open_context_menu);
 
     //connect(createAllocatorAction, &QAction::triggered, this, &MainWindow::create_allocator);
-    connect(closeAllocatorAction, &QAction::triggered, this, &MainWindow::close_allocator);
-    connect(openAllocatorAction, &QAction::triggered, this, &MainWindow::open_allocator);
+    connect(closeAllocatorAction, &QAction::triggered, this, &MainWindow::close_store);
+    connect(openAllocatorAction, &QAction::triggered, this, &MainWindow::open_store);
 
     update_actions();
 }
 
 
-void MainWindow::open_allocator()
+void MainWindow::open_store()
 {
     QString fileName = QFileDialog::getOpenFileName(
             this, ("Open File"),
@@ -72,7 +72,7 @@ void MainWindow::open_allocator()
     }
 }
 
-void MainWindow::close_allocator()
+void MainWindow::close_store()
 {
     auto selection = view->selectionModel()->selectedIndexes();
     closeAllocatorAction->setEnabled(selection.size() > 0);

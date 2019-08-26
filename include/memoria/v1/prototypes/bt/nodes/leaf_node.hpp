@@ -62,10 +62,54 @@ public:
 
     using TypesT = Types;
 
+    using LeafSubstreamsStructList      = typename Types::LeafStreamsStructList;
+
+    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
+            Linearize<LeafSubstreamsStructList>,
+            Base::StreamsStart
+    >::Type;
+
+
+    using Dispatcher = PackedDispatcher<
+        StreamDispatcherStructList
+    >;
+
+    using Base::allocator;
+
     //FIXME: Use SubDispatcher
     LeafNode() = default;
 
-    using Base::allocator;
+    struct SerializeFn {
+        template <typename Tree, typename SerializationData>
+        void stream(const Tree* tree, SerializationData* buf)
+        {
+            tree->serialize(*buf);
+        }
+    };
+
+    template <typename SerializationData>
+    void serialize(SerializationData& buf) const
+    {
+        Base::serialize(buf);
+
+        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
+    }
+
+    struct DeserializeFn {
+        template <typename Tree, typename DeserializationData>
+        void stream(Tree* tree, DeserializationData* buf)
+        {
+            tree->deserialize(*buf);
+        }
+    };
+
+    template <typename DeserializationData>
+    void deserialize(DeserializationData& buf)
+    {
+        Base::deserialize(buf);
+
+        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
+    }
 
 };
 

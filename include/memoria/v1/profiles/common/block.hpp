@@ -213,13 +213,6 @@ public:
     }
 
 
-
-//    void *operator new(size_t size, void *block) {
-//        return block;
-//    }
-
-//    void operator delete(void *buf) {}
-
     //Rebuild block content such indexes using provided data.
     void Rebiuild(){}
 

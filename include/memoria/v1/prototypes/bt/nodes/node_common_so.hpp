@@ -43,9 +43,6 @@ public:
     NodeType* node() {return node_;}
     const NodeType* node() const {return node_;}
 
-
-
-
 };
 
 }
