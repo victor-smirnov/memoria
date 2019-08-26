@@ -398,17 +398,15 @@ public:
         using LeafPackedStruct = typename Blocks::template LeafDispatcher<CtrT>::Head::template PackedStruct<SubstreamPath>;
 
 
-        template <typename CtrT>
-        using BranchNode = typename Blocks::template BranchDispatcher<CtrT>::Head;
-
-        template <typename CtrT>
-        using LeafNode = typename Blocks::template LeafDispatcher<CtrT>::Head;
+        using BranchNode = typename ListHead<typename Blocks::BranchDTypes::List>::Type;
+        using LeafNode   = typename ListHead<typename Blocks::LeafDTypes::List>::Type;
 
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
                                                         LeafDataLengthType::FIXED :
                                                         LeafDataLengthType::VARIABLE;
-        template <typename CtrT>
-        using LeafType = typename Blocks::template LeafDispatcher<CtrT>::Head::Base;
+
+        using LeafType   = typename LeafNode::Base;
+        using BranchType = typename BranchNode::Base;
     };
 
     using CtrTypes = typename Types::CtrTypes;

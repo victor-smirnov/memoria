@@ -36,7 +36,7 @@ public:
     using Types             = typename Base::Types;
     using Iterator          = typename Base::Iterator;
 
-    using LeafNodeT         = typename Types::template LeafNode<MyType>;
+    using LeafNodeT         = typename Types::LeafNode;
 
 public:
 

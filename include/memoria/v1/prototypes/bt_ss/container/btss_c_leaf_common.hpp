@@ -47,7 +47,7 @@ public:
 
     using typename Base::CtrSizeT;
 
-    using LeafNodeT = typename Types::template LeafNode<MyType>;
+    using LeafNodeT = typename Types::LeafNode;
 
     static const int32_t Streams = Types::Streams;
 

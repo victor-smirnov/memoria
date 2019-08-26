@@ -49,9 +49,7 @@ public:
 
     using CtrT = Ctr<Types>;
 
-    using LeafNodeT = typename Types::template LeafNode<CtrT>;
-
-    using IOVectorViewT = typename LeafNodeT::template NodeSparseObject<CtrT, LeafNodeT>::IOVectorViewT;
+    using IOVectorViewT = typename Types::LeafNode::template SparseObject<CtrT>::IOVectorViewT;
 
 private:
 

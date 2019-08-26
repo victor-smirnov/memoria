@@ -1735,9 +1735,6 @@ public:
     template <typename CtrT>
     using SparseObject = typename Base::template NodeSparseObject<CtrT, MyType>;
 
-    template <typename CtrT>
-    using ConstSparseObject = typename Base::template NodeSparseObject<CtrT, const MyType>;
-
     static const uint64_t BLOCK_HASH = TypeHashV<Base>;
 
     static_assert(IsPackedStructV<TreeNode<Types>>, "TreeNode must satisfy IsPackedStructV");
