@@ -27,6 +27,8 @@ class PackedRLESeqSO {
     PkdStruct* data_;
 
 public:
+    using PkdStructT = PkdStruct;
+
     PackedRLESeqSO(): ext_data_(), data_() {}
     PackedRLESeqSO(const ExtData* ext_data, PkdStruct* data):
         ext_data_(ext_data), data_(data)
@@ -50,8 +52,16 @@ public:
         data_ = data;
     }
 
-    PkdStruct* operator->() const {
+    const PkdStruct* operator->() const {
         return data_;
+    }
+
+    PkdStruct* operator->() {
+        return data_;
+    }
+
+    operator bool() const {
+        return data_ != nullptr;
     }
 
     const ExtData* ext_data() const {return ext_data_;}

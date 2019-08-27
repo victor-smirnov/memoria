@@ -61,7 +61,7 @@ public:
             typename BranchNodeEntryItem,
             typename Entry
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
+        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
             OOM_THROW_IF_FAILED(obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
                 return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
@@ -119,7 +119,7 @@ public:
             typename SubstreamType,
             typename BranchNodeEntryItem
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx)
+        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx)
         {
             OOM_THROW_IF_FAILED(obj->template _remove<Offset>(idx, accum), MMA1_SRC);
         }
@@ -173,7 +173,7 @@ public:
             typename BranchNodeEntryItem,
             typename Entry
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
+        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
             OOM_THROW_IF_FAILED(obj->template _update_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
                 return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);

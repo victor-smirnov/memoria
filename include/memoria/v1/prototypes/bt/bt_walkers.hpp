@@ -35,7 +35,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt            {
+namespace bt {
 
 }
 }}

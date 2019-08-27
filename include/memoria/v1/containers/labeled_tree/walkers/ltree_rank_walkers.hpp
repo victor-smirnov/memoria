@@ -50,13 +50,13 @@ public:
     }
 
     template <int32_t Idx, typename Tree>
-    ResultType stream(const Tree* tree, int32_t start)
+    ResultType stream(Tree&& tree, int32_t start)
     {
         return Base::template stream<Idx>(tree, start);
     }
 
     template <int32_t StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
+    void postProcessStream(StreamType&& stream, int32_t start, const Result& result)
     {
         int32_t size = stream->size();
 
@@ -146,13 +146,13 @@ public:
     }
 
     template <int32_t Idx, typename Tree>
-    ResultType stream(const Tree* tree, int32_t start)
+    ResultType stream(Tree&& tree, int32_t start)
     {
         return Base::template stream<Idx>(tree, start);
     }
 
     template <int32_t StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
+    void postProcessStream(StreamType&& stream, int32_t start, const Result& result)
     {
         if (result.local_pos() >= 0)
         {

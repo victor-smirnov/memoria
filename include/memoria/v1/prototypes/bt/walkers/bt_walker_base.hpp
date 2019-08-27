@@ -119,7 +119,7 @@ protected:
         FindBranchFn(MyType& walker): walker_(walker) {}
 
         template <int32_t ListIdx, typename StreamType, typename... Args>
-        StreamOpResult stream(const StreamType* stream, bool root, int32_t index, int32_t start, Args&&... args)
+        StreamOpResult stream(StreamType&& stream, bool root, int32_t index, int32_t start, Args&&... args)
         {
             StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, root, index, start, std::forward<Args>(args)...);
 
@@ -137,12 +137,14 @@ protected:
         FindLeafFn(MyType& walker): walker_(walker) {}
 
         template <int32_t ListIdx, typename StreamType, typename... Args>
-        StreamOpResult stream(const StreamType* stream, int32_t start, Args&&... args)
+        StreamOpResult stream(StreamType&& stream, int32_t start, Args&&... args)
         {
             StreamOpResult result = walker_.template find_leaf<ListIdx>(stream, start, std::forward<Args>(args)...);
 
             // TODO: should we also forward args... to this call?
-            walker_.template postProcessLeafStream<ListIdx>(stream, start, result.local_pos());
+            walker_.template postProcessLeafStream<ListIdx>(
+                std::forward<StreamType>(stream), start, result.local_pos()
+            );
 
             return result;
         }
@@ -154,9 +156,11 @@ protected:
         ProcessBranchCmdFn(MyType& walker): walker_(walker) {}
 
         template <int32_t ListIdx, typename StreamType, typename... Args>
-        void stream(const StreamType* stream, WalkCmd cmd, Args&&... args)
+        void stream(StreamType&& stream, WalkCmd cmd, Args&&... args)
         {
-            walker_.template process_branch_cmd<ListIdx>(stream, cmd, std::forward<Args>(args)...);
+            walker_.template process_branch_cmd<ListIdx>(
+                std::forward<StreamType>(stream), cmd, std::forward<Args>(args)...
+            );
         }
     };
 
@@ -166,9 +170,11 @@ protected:
         ProcessLeafCmdFn(MyType& walker): walker_(walker) {}
 
         template <int32_t ListIdx, typename StreamType, typename... Args>
-        void stream(const StreamType* stream, WalkCmd cmd, Args&&... args)
+        void stream(StreamType&& stream, WalkCmd cmd, Args&&... args)
         {
-            walker_.template process_leaf_cmd<ListIdx>(stream, cmd, std::forward<Args>(args)...);
+            walker_.template process_leaf_cmd<ListIdx>(
+                        std::forward<StreamType>(stream), cmd, std::forward<Args>(args)...
+            );
         }
     };
 
@@ -427,7 +433,7 @@ public:
     struct BranchSizePrefix
     {
         template <int32_t GroupIdx, int32_t AllocatorIdx, int32_t ListIdx, typename StreamObj, typename... Args>
-        void stream(const StreamObj* obj, MyType& walker, Args&&... args)
+        void stream(StreamObj&& obj, MyType& walker, Args&&... args)
         {
             walker.template branch_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
         }
@@ -437,7 +443,7 @@ public:
     struct LeafSizePrefix
     {
         template <int32_t GroupIdx, int32_t AllocatorIdx, int32_t ListIdx, typename StreamObj, typename... Args>
-        void stream(const StreamObj* obj, MyType& walker, Args&&... args)
+        void stream(StreamObj&& obj, MyType& walker, Args&&... args)
         {
             walker.template leaf_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
         }
@@ -458,10 +464,10 @@ public:
     }
 
     template <int32_t StreamIdx, typename StreamType>
-    void postProcessBranchStream(const StreamType*, int32_t, int32_t) {}
+    void postProcessBranchStream(StreamType&&, int32_t, int32_t) {}
 
     template <int32_t StreamIdx, typename StreamType>
-    void postProcessLeafStream(const StreamType*, int32_t, int32_t) {}
+    void postProcessLeafStream(StreamType&&, int32_t, int32_t) {}
 
     template <typename Node, typename Result>
     void postProcessBranchNode(Node& node, WalkDirection direction, int32_t start, Result&&) {}

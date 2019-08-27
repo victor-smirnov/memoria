@@ -43,7 +43,7 @@ public:
     {}
 
     template <typename Stream>
-    void stream(const Stream* stream)
+    void stream(const Stream& stream)
     {
         if (stream_idx_ < data_substreams_)
         {
@@ -56,8 +56,8 @@ public:
         }
     }
 
-    template <typename Value, int32_t Indexes, PkdSearchType SearchType>
-    void stream(const PackedSizedStruct<Value, Indexes, SearchType>* stream)
+    template <typename ExtData, typename PkdStruct>
+    void stream(const PackedSizedStructSO<ExtData, PkdStruct>& stream)
     {}
 };
 
@@ -73,14 +73,14 @@ public:
     {}
 
     template <typename Stream>
-    void stream(const Stream* stream)
+    void stream(const Stream& stream)
     {
         stream->configure_io_substream(io_vector_.substream(stream_idx_));
         stream_idx_++;
     }
 
-    template <typename Value, int32_t Indexes, PkdSearchType SearchType>
-    void stream(const PackedSizedStruct<Value, Indexes, SearchType>* stream)
+    template <typename ExtData, typename PkdStruct>
+    void stream(const PackedSizedStructSO<ExtData, PkdStruct>& stream)
     {
         io_vector_.symbol_sequence().configure(reinterpret_cast<void*>(stream->size()));
     }
@@ -280,13 +280,17 @@ public:
     struct LayoutFn
     {
         template <int32_t AllocatorIdx, int32_t Idx, typename Stream>
-        void stream(Stream*, PackedAllocator* alloc, uint64_t streams)
+        void stream(Stream&&, PackedAllocator* alloc, uint64_t streams)
         {
             if (streams & (1<<Idx))
             {
                 if (alloc->is_empty(AllocatorIdx))
                 {
-                    OOM_THROW_IF_FAILED(alloc->template allocateEmpty<Stream>(AllocatorIdx), MMA1_SRC);
+                    OOM_THROW_IF_FAILED(
+                        alloc->template allocateEmpty<
+                                typename std::decay_t<Stream>::PkdStructT
+                        >(AllocatorIdx), MMA1_SRC
+                    );
                 }
             }
         }
@@ -313,7 +317,7 @@ public:
 
     struct CheckFn {
         template <typename Tree>
-        void stream(const Tree* tree)
+        void stream(Tree&& tree)
         {
             tree->check();
         }
@@ -340,9 +344,9 @@ public:
 
     struct SizeFn {
         template <typename Tree>
-        int32_t stream(const Tree* tree)
+        int32_t stream(Tree&& tree)
         {
-            return tree != nullptr ? tree->size() : 0;
+            return tree ? tree->size() : 0;
         }
     };
 
@@ -355,15 +359,16 @@ public:
 
     struct MemUsedFn {
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(const Tree* tree, const Position& sizes, int32_t* mem_used, int32_t except)
+        void stream(Tree&& tree, const Position& sizes, int32_t* mem_used, int32_t except)
         {
+            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
             if (StreamIdx != except)
             {
                 int32_t size = sizes[StreamIdx];
 
-                if (tree != nullptr || size > 0)
+                if (tree || size > 0)
                 {
-                    *mem_used += Tree::packed_block_size(size);
+                    *mem_used += PkdTree::packed_block_size(size);
                 }
             }
         }
@@ -374,25 +379,27 @@ public:
     struct CheckCapacitiesFn {
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(const Tree* tree, const Position& sizes, int32_t* mem_size)
+        void stream(Tree&& tree, const Position& sizes, int32_t* mem_size)
         {
+            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
             int32_t size = sizes[StreamIdx];
 
-            if (tree != nullptr || size > 0)
+            if (tree || size > 0)
             {
-                *mem_size += Tree::packed_block_size(size);
+                *mem_size += PkdTree::packed_block_size(size);
             }
         }
 
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename Entropy>
-        void stream(const Tree* tree, const Entropy& entropy, const Position& sizes, int32_t* mem_size)
+        void stream(Tree&& tree, const Entropy& entropy, const Position& sizes, int32_t* mem_size)
         {
+            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
             int32_t size = sizes[StreamIdx];
 
-            if (tree != nullptr || size > 0)
+            if (tree || size > 0)
             {
-                *mem_size += Tree::packed_block_size(size);
+                *mem_size += PkdTree::packed_block_size(size);
             }
         }
     };
@@ -455,9 +462,9 @@ public:
 
     struct SizesFn {
         template <int32_t StreamIdx, typename Tree>
-        void stream(const Tree* tree, Position& pos)
+        void stream(Tree&& tree, Position& pos)
         {
-            pos[StreamIdx] = tree != nullptr ? tree->size() : 0;
+            pos[StreamIdx] = tree ? tree->size() : 0;
         }
     };
 
@@ -486,9 +493,10 @@ public:
     struct SingleStreamCapacityFn {
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(const Tree* tree, int32_t size, int32_t& mem_size)
+        void stream(Tree&& tree, int32_t size, int32_t& mem_size)
         {
-            mem_size += Tree::packed_block_size(size);
+            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
+            mem_size += PkdTree::packed_block_size(size);
         }
     };
 
@@ -507,7 +515,7 @@ public:
     struct BranchNodeEntryHandler
     {
         template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
-        void stream(const StreamType* obj, TupleItem& accum, int32_t start, int32_t end)
+        void stream(StreamType&& obj, TupleItem& accum, int32_t start, int32_t end)
         {
             if (obj != nullptr)
             {
@@ -516,7 +524,7 @@ public:
         }
 
         template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
-        void stream(const StreamType* obj, TupleItem& accum)
+        void stream(StreamType&& obj, TupleItem& accum)
         {
             if (obj != nullptr)
             {
@@ -530,7 +538,7 @@ public:
         }
 
         template <int32_t Offset, bool StreamStart, int32_t ListIdx, typename StreamType, typename TupleItem>
-        void stream(const StreamType* obj, TupleItem& accum, const Position& start, const Position& end)
+        void stream(StreamType&& obj, TupleItem& accum, const Position& start, const Position& end)
         {
             const int32_t StreamIdx = bt::FindTopLevelIdx<LeafSubstreamsStructList, ListIdx>::Value;
 
@@ -545,9 +553,9 @@ public:
     {
 
         template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
-        void stream(const StreamType* obj, TupleItem& accum)
+        void stream(StreamType&& obj, TupleItem& accum)
         {
-            if (obj != nullptr)
+            if (obj)
             {
                 obj->template max<Offset>(accum);
             }
@@ -573,9 +581,9 @@ public:
 
     struct InsertSpaceFn {
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree* tree, PackedAllocator* allocator, const Position& room_start, const Position& room_length)
+        void stream(Tree&& tree, PackedAllocator* allocator, const Position& room_start, const Position& room_length)
         {
-            if (tree != nullptr)
+            if (tree)
             {
                 tree->insertSpace(room_start[StreamIdx], room_length[StreamIdx]);
             }
@@ -601,7 +609,7 @@ public:
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(Tree* tree, PackedAllocator* allocator, const Position& sizes)
         {
-            if (tree == nullptr && sizes[StreamIdx] > 0)
+            if ((!tree) && sizes[StreamIdx] > 0)
             {
                 allocator->template allocate<Tree>(AllocatorIdx, Tree::empty_size());
             }
@@ -621,7 +629,7 @@ public:
         OpStatus status_{OpStatus::OK};
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree* tree, const Position& room_start, const Position& room_end)
+        void stream(Tree&& tree, const Position& room_start, const Position& room_end)
         {
             if (tree && isOk(status_))
             {
@@ -630,7 +638,7 @@ public:
         }
 
         template <typename Tree>
-        void stream(Tree* tree, int32_t room_start, int32_t room_end)
+        void stream(Tree&& tree, int32_t room_start, int32_t room_end)
         {
             if (tree && isOk(status_))
             {
@@ -665,7 +673,7 @@ public:
 
     struct LeafSumsFn {
         template <typename StreamType>
-        auto stream(const StreamType* obj, int32_t start, int32_t end)
+        auto stream(StreamType&& obj, int32_t start, int32_t end)
         {
             return obj ? obj->sum(start, end) : decltype(obj->sum(start, end))();
         }
@@ -688,8 +696,10 @@ public:
         OpStatus status_{OpStatus::OK};
 
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        void stream(Tree* tree, OtherNodeT&& other)
+        void stream(Tree&& tree, OtherNodeT&& other)
         {
+            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
+
             if (isOk(status_))
             {
                 int32_t size = tree->size();
@@ -698,13 +708,13 @@ public:
                 {
                     if (other.allocator()->is_empty(AllocatorIdx))
                     {
-                        if(isFail(other.allocator()->template allocateEmpty<Tree>(AllocatorIdx))) {
+                        if(isFail(other.allocator()->template allocateEmpty<PkdTree>(AllocatorIdx))) {
                             status_ <<= OpStatus::FAIL;
                             return;
                         }
                     }
 
-                    Tree* other_tree = other.allocator()->template get<Tree>(AllocatorIdx);
+                    PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
                     status_ <<= tree->mergeWith(other_tree);
                 }
             }
@@ -724,16 +734,18 @@ public:
         int32_t mem_used_ = 0;
 
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        void stream(const Tree* tree, OtherNodeT&& other)
+        void stream(Tree&& tree, OtherNodeT&& other)
         {
-            if (tree != nullptr)
+            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
+
+            if (tree)
             {
                 if (other.allocator()->is_empty(AllocatorIdx))
                 {
                     mem_used_ += tree->block_size();
                 }
                 else {
-                    const Tree* other_tree = other.allocator()->template get<Tree>(AllocatorIdx);
+                    const PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
                     mem_used_ += tree->block_size(other_tree);
                 }
             }
@@ -767,15 +779,16 @@ public:
     struct CopyToFn {
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(
-                const Tree* tree,
+                Tree&& tree,
                 MyType& other,
                 const Position& copy_from,
                 const Position& count,
                 const Position& copy_to
         )
         {
+            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
             tree->copyTo(
-                    other.allocator()->template get<Tree>(AllocatorIdx),
+                    other.allocator()->template get<PkdTree>(AllocatorIdx),
                     copy_from[StreamIdx],
                     count[StreamIdx],
                     copy_to[StreamIdx]
@@ -797,9 +810,11 @@ public:
         OpStatus status_{OpStatus::OK};
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        void stream(Tree* tree, OtherNodeT&& other, const Position& indexes)
+        void stream(Tree&& tree, OtherNodeT&& other, const Position& indexes)
         {
-            if (tree != nullptr && isOk(status_))
+            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
+
+            if (tree && isOk(status_))
             {
                 int32_t idx   = indexes[StreamIdx];
                 int32_t size  = tree->size();
@@ -807,13 +822,13 @@ public:
                 MEMORIA_V1_ASSERT(idx, >=, 0);
                 MEMORIA_V1_ASSERT(idx, <=, size);
 
-                Tree* other_tree;
+                PkdTree* other_tree;
 
                 if (!other.allocator()->is_empty(AllocatorIdx)) {
-                    other_tree = other.allocator()->template get<Tree>(AllocatorIdx);
+                    other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
                 }
                 else {
-                    other_tree = other.allocator()->template allocateEmpty<Tree>(AllocatorIdx);
+                    other_tree = other.allocator()->template allocateEmpty<PkdTree>(AllocatorIdx);
                 }
 
                 if (isFail(other_tree)) {
@@ -839,7 +854,7 @@ public:
 
     struct SizeSumsFn {
         template <int32_t ListIdx, typename Tree>
-        void stream(Tree* tree, Position& sizes)
+        void stream(Tree&& tree, Position& sizes)
         {
             sizes[ListIdx] = tree ? tree->size() : 0;
         }
@@ -855,7 +870,7 @@ public:
 
     struct GenerateDataEventsFn {
         template <int32_t Idx, typename Tree>
-        void stream(const Tree* tree, IBlockDataEventHandler* handler)
+        void stream(Tree&& tree, IBlockDataEventHandler* handler)
         {
             tree->generateDataEvents(handler);
         }
@@ -873,7 +888,7 @@ public:
 
     struct DumpFn {
         template <typename Tree>
-        void stream(const Tree* tree)
+        void stream(Tree&& tree)
         {
             tree->dump();
         }
@@ -887,7 +902,7 @@ public:
 
     struct DumpBlockSizesFn {
         template <typename Tree>
-        void stream(Tree* tree)
+        void stream(Tree&& tree)
         {
             std::cout << tree->memory_block_size() << std::endl;
         }
@@ -968,7 +983,7 @@ public:
             typename Fn,
             typename... Args
         >
-        void stream(StreamType* obj, Fn&& fn, Accum&& accum, Args&&... args)
+        void stream(StreamType&& obj, Fn&& fn, Accum&& accum, Args&&... args)
         {
             const int32_t LeafIdx = BranchNodeEntryIdx - SubstreamsStart;
 
@@ -977,7 +992,7 @@ public:
             const bool IsStreamStart        = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::IsStreamStart;
 
             fn.template stream<LeafOffset, IsStreamStart, ListIdx>(
-                    obj,
+                    std::forward<StreamType>(obj),
                     std::get<BranchStructIdx>(accum),
                     std::forward<Args>(args)...
             );

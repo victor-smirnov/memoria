@@ -38,9 +38,11 @@ namespace {
     struct SubstreamRangesTupleWalker<IntList<Idx, Tail...>> {
 
         template <typename Walker, typename StreamObj, typename RangesListTuple, typename... Args>
-        static void process(Walker& walker, const StreamObj* obj, RangesListTuple& ranges_tuple, Args&&... args)
+        static void process(Walker& walker, StreamObj&& obj, RangesListTuple& ranges_tuple, Args&&... args)
         {
-            walker.branch_iterator_BranchNodeEntry(obj, std::get<Idx>(ranges_tuple), std::forward<Args>(args)...);
+            walker.branch_iterator_BranchNodeEntry(
+                        std::forward<StreamObj>(obj), std::get<Idx>(ranges_tuple), std::forward<Args>(args)...
+            );
 
             SubstreamRangesTupleWalker<IntList<Tail...>>::process(walker, obj, ranges_tuple, std::forward<Args>(args)...);
         }
@@ -83,9 +85,11 @@ namespace {
             typename Walker,
             typename... Args
         >
-        void stream(const StreamObj* obj, RangesIdxList, T& ranges_tuple, Walker& walker, Args&&... args)
+        void stream(StreamObj&& obj, RangesIdxList, T& ranges_tuple, Walker& walker, Args&&... args)
         {
-            SubstreamRangesTupleWalker<RangesIdxList>::process(walker, obj, ranges_tuple, std::forward<Args>(args)...);
+            SubstreamRangesTupleWalker<RangesIdxList>::process(
+                walker, std::forward<StreamObj>(obj), ranges_tuple, std::forward<Args>(args)...
+            );
         }
     };
 
@@ -147,13 +151,15 @@ template <
 struct LeafIndexRangeWalker<AccumItemH, TL<bt::SumRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
 
     template <typename StreamObj, typename Walker, typename Accum, typename... Args>
-    static void process(const StreamObj* obj, Walker& walker, Accum& accum, Args&&... args)
+    static void process(StreamObj&& obj, Walker& walker, Accum& accum, Args&&... args)
     {
         auto& item = AccumItemH::template item<Offset>(accum);
 
         walker.template leaf_iterator_BranchNodeEntry<Offset, From, To - From>(obj, item, std::forward<Args>(args)...);
 
-        LeafIndexRangeWalker<AccumItemH, TL<Tail...>, IntList<RTail...>>::process(obj, walker, accum, std::forward<Args>(args)...);
+        LeafIndexRangeWalker<AccumItemH, TL<Tail...>, IntList<RTail...>>::process(
+            std::forward<StreamObj>(obj), walker, accum, std::forward<Args>(args)...
+        );
     }
 };
 
@@ -168,13 +174,15 @@ template <
 struct LeafIndexRangeWalker<AccumItemH, TL<bt::MaxRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
 
     template <typename StreamObj, typename Walker, typename Accum, typename... Args>
-    static void process(const StreamObj* obj, Walker& walker, Accum& accum, Args&&... args)
+    static void process(StreamObj&& obj, Walker& walker, Accum& accum, Args&&... args)
     {
         auto& item = AccumItemH::template item<Offset>(accum);
 
         walker.template leaf_iterator_BranchNodeEntry<Offset, From, To - From>(obj, item, std::forward<Args>(args)...);
 
-        LeafIndexRangeWalker<AccumItemH, TL<Tail...>, IntList<RTail...>>::process(obj, walker, accum, std::forward<Args>(args)...);
+        LeafIndexRangeWalker<AccumItemH, TL<Tail...>, IntList<RTail...>>::process(
+            std::forward<StreamObj>(obj), walker, accum, std::forward<Args>(args)...
+        );
     }
 };
 
@@ -184,7 +192,7 @@ template <
 >
 struct LeafIndexRangeWalker<AccumItemH, TL<>, IntList<>>{
     template <typename StreamObj, typename Walker, typename Accum, typename... Args>
-    static void process(const StreamObj* obj, Walker& walker, Accum& accum, Args&&... args)
+    static void process(StreamObj&& obj, Walker& walker, Accum& accum, Args&&... args)
     {
     }
 };
@@ -198,7 +206,7 @@ template <
 >
 struct LeafAccumWalker {
     template <int32_t Idx, typename StreamObj, typename Walker, typename Accum, typename... Args>
-    void stream(const StreamObj* obj, Walker& walker, Accum& accum, Args&&... args)
+    void stream(StreamObj&& obj, Walker& walker, Accum& accum, Args&&... args)
     {
         constexpr int32_t SubstreamIdx = StreamIdx + Idx;
 
@@ -208,7 +216,9 @@ struct LeafAccumWalker {
         using RangeList = Select<SubstreamIdx, Linearize<LeafRangeList, 2>>;
         using RangeOffsetList = Select<SubstreamIdx, Linearize<LeafRangeOffsetList>>;
 
-        LeafIndexRangeWalker<AccumItemH, RangeList, RangeOffsetList>::process(obj, walker, accum, std::forward<Args>(args)...);
+        LeafIndexRangeWalker<AccumItemH, RangeList, RangeOffsetList>::process(
+                    std::forward<StreamObj>(obj), walker, accum, std::forward<Args>(args)...
+        );
     }
 };
 

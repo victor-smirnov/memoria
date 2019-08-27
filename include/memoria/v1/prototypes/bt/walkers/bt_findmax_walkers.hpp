@@ -133,7 +133,7 @@ public:
 
 
     template <int32_t StreamIdx, typename Tree>
-    StreamOpResult find_non_leaf(const Tree* tree, bool root, int32_t index, int32_t start)
+    StreamOpResult find_non_leaf(Tree&& tree, bool root, int32_t index, int32_t start)
     {
         auto size = tree->size();
 
@@ -152,7 +152,7 @@ public:
 
 
     template <int32_t StreamIdx, typename Tree>
-    void process_branch_cmd(const Tree* tree, WalkCmd cmd, int32_t index, int32_t start, int32_t end)
+    void process_branch_cmd(Tree&& tree, WalkCmd cmd, int32_t index, int32_t start, int32_t end)
     {
         if (cmd == WalkCmd::FIX_TARGET)
         {
@@ -162,7 +162,7 @@ public:
 
 
     template <int32_t StreamIdx, typename Tree>
-    StreamOpResult find_leaf(const Tree* tree, int32_t start)
+    StreamOpResult find_leaf(Tree&& tree, int32_t start)
     {
         if (tree != nullptr)
         {
@@ -195,7 +195,7 @@ public:
 
 
     template <int32_t StreamIdx, typename StreamType>
-    void branch_size_prefix(const StreamType* stream, int32_t start, int32_t end)
+    void branch_size_prefix(StreamType&& stream, int32_t start, int32_t end)
     {
         auto sum = stream->sum(0, start, end);
 
@@ -204,7 +204,7 @@ public:
 
 
     template <int32_t StreamIdx, typename StreamType>
-    void branch_size_prefix(const StreamType* stream, int32_t start, int32_t end, FixTargetTag)
+    void branch_size_prefix(StreamType&& stream, int32_t start, int32_t end, FixTargetTag)
     {
 //        auto sum = stream->sum(0, start, end);
 //
@@ -213,7 +213,7 @@ public:
 
 
     template <int32_t StreamIdx, typename StreamType>
-    void leaf_size_prefix(const StreamType* stream)
+    void leaf_size_prefix(StreamType&& stream)
     {
         auto size = stream->size();
 
@@ -228,7 +228,7 @@ public:
         int32_t To,
         template <typename, int32_t, int32_t> class IterAccumItem
     >
-    void branch_iterator_BranchNodeEntry(const StreamObj* obj, IterAccumItem<T, From, To>& item, int32_t start, int32_t end)
+    void branch_iterator_BranchNodeEntry(StreamObj&& obj, IterAccumItem<T, From, To>& item, int32_t start, int32_t end)
     {
         static_assert(To <= StructSizeProvider<StreamObj>::Value, "Invalid BTree structure");
 
@@ -243,7 +243,7 @@ public:
         typename T,
         template <typename> class AccumItem
     >
-    void branch_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem<T>& item, int32_t start, int32_t end){}
+    void branch_iterator_BranchNodeEntry(StreamObj&& obj, AccumItem<T>& item, int32_t start, int32_t end){}
 
     template <int32_t Offset, int32_t From, int32_t Size, typename StreamObj, typename AccumItem>
     void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item, int32_t start, int32_t end)
@@ -270,7 +270,7 @@ public:
     }
 
     template <int32_t Offset, int32_t From, int32_t Size, typename StreamObj, typename AccumItem>
-    void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
+    void leaf_iterator_BranchNodeEntry(StreamObj&& obj, AccumItem& item)
     {
         const int32_t Idx = Offset - AccumItem::From;
 

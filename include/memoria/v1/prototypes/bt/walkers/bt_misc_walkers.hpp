@@ -159,7 +159,7 @@ struct StreamNodeFn {
 
 struct GetLeafValuesFn {
     template <typename StreamType, typename... Args>
-    auto stream(const StreamType* obj, Args&&... args)
+    auto stream(StreamType&& obj, Args&&... args)
     {
         return obj->get_values(std::forward<Args>(args)...);
     }
@@ -169,7 +169,7 @@ struct GetLeafValuesFn {
 
 struct SetLeafValuesFn {
     template <typename StreamType, typename... Args>
-    auto stream(const StreamType* obj, Args&&... args)
+    auto stream(StreamType&& obj, Args&&... args)
     {
         return obj->set_values(std::forward<Args>(args)...);
     }

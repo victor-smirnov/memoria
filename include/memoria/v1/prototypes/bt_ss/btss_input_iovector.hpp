@@ -169,7 +169,7 @@ public:
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj>
         void stream(
-                StreamObj* stream,
+                StreamObj&& stream,
                 PackedAllocator* alloc,
                 int32_t at,
                 int32_t start,
@@ -191,9 +191,10 @@ public:
 
         template <
                 int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx,
-                typename VV, int32_t Indexes_ = 0, PkdSearchType SearchType_>
+                typename ExtData, typename PkdStruct
+        >
         void stream(
-                PackedSizedStruct<VV, Indexes_, SearchType_>* stream,
+                PackedSizedStructSO<ExtData, PkdStruct>& stream,
                 PackedAllocator* alloc,
                 int32_t at,
                 int32_t start,

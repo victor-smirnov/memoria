@@ -58,7 +58,7 @@ public:
 template <typename List, int32_t Offset, int32_t Max>
 class BuildTopLevelLeafSubsetsH<List, Offset, Max, Max> {
 public:
-    using Type = TypeList<>;
+    using Type = TL<>;
 };
 
 

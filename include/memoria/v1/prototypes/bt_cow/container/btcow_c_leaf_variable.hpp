@@ -67,7 +67,7 @@ public:
             typename BranchNodeEntryItem,
             typename Entry
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
+        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
             obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
                 return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
@@ -75,8 +75,8 @@ public:
         }
 
 
-        template <typename NTypes, typename... Args>
-        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
+        template <typename CtrT, typename NT, typename... Args>
+        void treeNode(LeafNodeSO<CtrT, NT>& node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
             node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
@@ -124,13 +124,13 @@ public:
             typename SubstreamType,
             typename BranchNodeEntryItem
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx)
+        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx)
         {
             obj->template _remove<Offset>(idx, accum);
         }
 
-        template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum)
+        template <typename NT>
+        void treeNode(LeafNodeSO<CtrT, NT>& node, int32_t idx, BranchNodeEntry& accum)
         {
             node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx);
@@ -177,15 +177,15 @@ public:
             typename BranchNodeEntryItem,
             typename Entry
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
+        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
             obj->template _update_b<Offset>(idx, accum, [&](int32_t block){
                 return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
             });
         }
 
-        template <typename NTypes, typename... Args>
-        void treeNode(LeafNode<NTypes>* node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
+        template <typename Node, typename... Args>
+        void treeNode(Node& node, int32_t idx, BranchNodeEntry& accum, Args&&... args)
         {
             node->template processSubstreamsByIdxAcc<
                 Stream,

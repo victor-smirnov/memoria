@@ -58,7 +58,7 @@ public:
             typename BranchNodeEntryItem,
             typename Entry
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
+        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
             if (isOk(status_)) {
                 status_ <<= obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
@@ -147,7 +147,7 @@ public:
             typename SubstreamType,
             typename BranchNodeEntryItem
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx)
+        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx)
         {
             if (isOk(status_)) {
                 status_ <<= obj->template _remove<Offset>(idx, accum);
@@ -203,7 +203,7 @@ public:
             typename BranchNodeEntryItem,
             typename Entry
         >
-        void stream(SubstreamType* obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
+        void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
             if (isOk(status_)) {
                 status_ <<= obj->template _update_b<Offset>(idx, accum, [&](int32_t block){

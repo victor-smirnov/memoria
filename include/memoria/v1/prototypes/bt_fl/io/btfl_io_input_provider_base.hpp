@@ -48,7 +48,7 @@ namespace _ {
     {
         template <int32_t StreamIdx, typename StreamObj, typename Position>
         static void io_stream(
-                StreamObj* stream,
+                StreamObj&& stream,
                 PackedAllocator* alloc,
                 const Position& at,
                 const Position& starts,
@@ -78,7 +78,7 @@ namespace _ {
     {
         template <int32_t StreamIdx, typename StreamObj, typename Position>
         static void io_stream(
-                StreamObj* stream,
+                StreamObj&& stream,
                 PackedAllocator* alloc,
                 const Position& at,
                 const Position& starts,
@@ -487,7 +487,7 @@ protected:
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamObj>
         void stream(
-                StreamObj* stream,
+                StreamObj&& stream,
                 PackedAllocator* alloc,
                 const Position& at,
                 const Position& starts,
@@ -511,9 +511,10 @@ protected:
 
         template <
                 int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx,
-                typename VV, int32_t Indexes_ = 0, PkdSearchType SearchType_>
+                typename ExtData, typename PakdStruct
+        >
         void stream(
-                PackedSizedStruct<VV, Indexes_, SearchType_>* stream,
+                PackedSizedStructSO<ExtData, PakdStruct>& stream,
                 PackedAllocator* alloc,
                 const Position& at,
                 const Position& starts,
