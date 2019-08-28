@@ -22,6 +22,8 @@
 
 #include <memoria/v1/core/types/algo/select.hpp>
 
+#include <memoria/v1/core/tools/arena_buffer.hpp>
+
 #include <iostream>
 
 using namespace memoria::v1;
@@ -69,6 +71,23 @@ int main()
 
     std::cout << SelectVOrDefault<5, IntList<1,2,3,4,5>> << std::endl;
 
+
+    ArenaBuffer<int32_t> buffer([](int32_t id, ArenaBufferCmd cmd, size_t size, uint8_t* buf) -> uint8_t* {
+        if (cmd == ArenaBufferCmd::ALLOCATE) {
+            return allocate_system<uint8_t>(size).release();
+        }
+        else {
+            free_system(buf);
+            return nullptr;
+        }
+    });
+
+    buffer.set_buffer_id(0);
+    buffer.append_value(12345);
+
+    for (auto ii: buffer.span()) {
+        std::cout << ii << std::endl;
+    }
 
     return 0;
 }
