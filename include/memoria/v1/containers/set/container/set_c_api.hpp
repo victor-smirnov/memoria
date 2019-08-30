@@ -42,10 +42,6 @@ protected:
 
     using Key = typename Types::Key;
 
-
-    template <typename LeafPath>
-    using TargetType = typename Types::template TargetType<LeafPath>;
-
     using CtrSizeT = typename Types::CtrSizeT;
 
     using KeyView   = typename DataTypeTraits<Key>::ViewType;

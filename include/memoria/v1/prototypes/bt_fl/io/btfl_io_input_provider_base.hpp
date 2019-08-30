@@ -331,7 +331,6 @@ public:
     using typename Base::DataPositions;
     using typename Base::Position;
 
-    using Base::Streams;
     using Base::StructureStreamIdx;
     using Base::DataStreams;
 

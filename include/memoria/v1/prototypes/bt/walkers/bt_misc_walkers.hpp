@@ -38,7 +38,7 @@ class LeveledNodeWalkerBase {
         LeafStreamFn(MyType& walker): walker_(walker) {}
 
         template <int32_t StreamIdx, typename Stream, typename... Args>
-        auto stream(const Stream* stream, Args&&... args)
+        auto stream(const Stream& stream, Args&&... args)
         {
             return walker_.template leafStream<StreamIdx>(stream, args...);
         }
@@ -51,7 +51,7 @@ class LeveledNodeWalkerBase {
         NonLeafStreamFn(MyType& walker): walker_(walker) {}
 
         template <int32_t StreamIdx, typename Stream, typename... Args>
-        auto stream(const Stream* stream, Args&&... args)
+        auto stream(const Stream& stream, Args&&... args)
         {
             return walker_.template nonLeafStream<StreamIdx>(stream, args...);
         }
@@ -60,25 +60,25 @@ class LeveledNodeWalkerBase {
 public:
 
     template <typename NodeTypes, typename... Args>
-    auto treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(const bt::LeafNode<NodeTypes>& node, Args&&... args)
     {
         return node->template processStream<LeafPath>(LeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
-    auto treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(const bt::BranchNode<NodeTypes>& node, Args&&... args)
     {
         return node->template processStream<BranchPath>(NonLeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
-    auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(bt::LeafNode<NodeTypes>& node, Args&&... args)
     {
         return node->template processStream<LeafPath>(LeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
-    auto treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(bt::BranchNode<NodeTypes>& node, Args&&... args)
     {
         return node->template processStream<BranchPath>(NonLeafStreamFn(self()), args...);
     }
@@ -95,25 +95,25 @@ struct NodeWalkerBase {
     template <typename CtrT, typename NodeT, typename... Args>
     auto treeNode(LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
-        return node->template processStream<LeafPath>(self(), std::forward<Args>(args)...);
+        return node.template processStream<LeafPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename CtrT, typename NodeT, typename... Args>
     auto treeNode(BranchNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
-        return node->template processStream<BranchPath>(self(), std::forward<Args>(args)...);
+        return node.template processStream<BranchPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(LeafNodeSO<CtrT, const NodeT>& node, Args&&... args)
+    auto treeNode(const LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
-        return node->template processStream<LeafPath>(self(), std::forward<Args>(args)...);
+        return node.template processStream<LeafPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename CtrT, typename NodeT, typename... Args>
-    auto treeNode(BranchNodeSO<CtrT, const NodeT>& node, Args&&... args)
+    auto treeNode(const BranchNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
-        return node->template processStream<BranchPath>(self(), std::forward<Args>(args)...);
+        return node.template processStream<BranchPath>(self(), std::forward<Args>(args)...);
     }
 
     MyType& self() {return *T2T<MyType*>(this);}
@@ -144,14 +144,14 @@ struct StreamNodeFn {
     template <typename CtrT, typename NodeT, typename... Args>
     auto treeNode(LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
-        return node->template processStream<IntList<Stream>>(std::forward<Args>(args)...);
+        return node.template processStream<IntList<Stream>>(std::forward<Args>(args)...);
     }
 
 
     template <typename CtrT, typename NodeT, typename... Args>
     auto treeNode(const LeafNodeSO<CtrT, NodeT>& node, Args&&... args)
     {
-        return node->template processStream<IntList<Stream>>(std::forward<Args>(args)...);
+        return node.template processStream<IntList<Stream>>(std::forward<Args>(args)...);
     }
 };
 
@@ -159,9 +159,9 @@ struct StreamNodeFn {
 
 struct GetLeafValuesFn {
     template <typename StreamType, typename... Args>
-    auto stream(StreamType&& obj, Args&&... args)
+    auto stream(const StreamType& obj, Args&&... args)
     {
-        return obj->get_values(std::forward<Args>(args)...);
+        return obj.get_values(std::forward<Args>(args)...);
     }
 };
 
@@ -169,9 +169,9 @@ struct GetLeafValuesFn {
 
 struct SetLeafValuesFn {
     template <typename StreamType, typename... Args>
-    auto stream(StreamType&& obj, Args&&... args)
+    auto stream(StreamType& obj, Args&&... args)
     {
-        return obj->set_values(std::forward<Args>(args)...);
+        return obj.set_values(std::forward<Args>(args)...);
     }
 };
 

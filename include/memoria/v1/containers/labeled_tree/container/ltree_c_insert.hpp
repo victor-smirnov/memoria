@@ -52,7 +52,7 @@ public:
 
     typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
-    static const int32_t Streams                                                    = Types::Streams;
+    static const int32_t Streams = Types::Streams;
 
 
     template <typename SubstreamsIdxList, typename... Args>
@@ -69,17 +69,17 @@ public:
             int32_t Idx,
             typename BranchNodeEntryItem
         >
-        void stream(StreamSize* obj, BranchNodeEntryItem& accum, const LabelsTuple& labels, int32_t idx)
+        void stream(StreamSize& obj, BranchNodeEntryItem& accum, const LabelsTuple& labels, int32_t idx)
         {
-            obj->insert(idx, 1);
+            obj.insert(idx, 1);
             accum[Offset]++;
         }
 
 
-        template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamTypes, typename BranchNodeEntryItem>
-        void stream(PackedFSEArray<StreamTypes>* array, BranchNodeEntryItem& accum, const LabelsTuple& labels, int32_t idx)
+        template <int32_t Offset, bool StreamStart, int32_t Idx, typename ExtData, typename PkdArray, typename BranchNodeEntryItem>
+        void stream(PackedFSEArraySO<ExtData, PkdArray>& array, BranchNodeEntryItem& accum, const LabelsTuple& labels, int32_t idx)
         {
-            array->insert(idx, std::get<Idx - 1>(labels));
+            array.insert(idx, std::get<Idx - 1>(labels));
         }
 
         template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamTypes, typename BranchNodeEntryItem>
@@ -120,15 +120,15 @@ public:
             int32_t Idx,
             typename BranchNodeEntryItem
         >
-        void stream(StreamSize* obj, BranchNodeEntryItem& accum, int32_t idx, int32_t symbol)
+        void stream(StreamSize& obj, BranchNodeEntryItem& accum, int32_t idx, int32_t symbol)
         {
-            obj->insert(idx, symbol);
+            obj.insert(idx, symbol);
             accum[Offset]++;
         }
 
-        template <typename NTypes>
+        template <typename CtrT, typename NTypes>
         void treeNode(
-                LeafNode<NTypes>* node,
+                LeafNodeSO<CtrT, NTypes>& node,
                 BranchNodeEntry& delta,
                 const LabelsTuple& labels,
                 int32_t node_idx,
@@ -143,8 +143,8 @@ public:
             node->template processStreamAcc<1>(fn, delta, labels, label_idx);
         }
 
-        template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, BranchNodeEntry& delta, int32_t node_idx)
+        template <typename CtrT, typename NTypes>
+        void treeNode(LeafNodeSO<CtrT, NTypes>* node, BranchNodeEntry& delta, int32_t node_idx)
         {
             node->layout(-1ull);
             node->template processStreamAcc<0>(*this, delta, node_idx, 0);

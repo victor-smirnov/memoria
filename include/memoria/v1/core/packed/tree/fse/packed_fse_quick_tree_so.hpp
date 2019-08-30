@@ -18,6 +18,8 @@
 
 #include <memoria/v1/core/types.hpp>
 
+#include <memoria/v1/profiles/common/block_operations.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -26,8 +28,16 @@ class PackedFSEQuickTreeSO {
     const ExtData* ext_data_;
     PkdStruct* data_;
 
+    using Values = typename PkdStruct::Values;
+    using Value = typename PkdStruct::Value;
+    using IndexValue = typename PkdStruct::IndexValue;
+
+
+
 public:
     using PkdStructT = PkdStruct;
+
+    static constexpr int32_t Blocks = PkdStruct::Blocks;
 
     PackedFSEQuickTreeSO(): ext_data_(), data_() {}
     PackedFSEQuickTreeSO(const ExtData* ext_data, PkdStruct* data):
@@ -65,6 +75,72 @@ public:
     }
 
     const ExtData* ext_data() const {return ext_data_;}
+
+    OpStatus splitTo(PkdStruct* other, int32_t idx)
+    {
+        return data_->splitTo(other, idx);
+    }
+
+    OpStatus mergeWith(PkdStruct* other) {
+        return data_->mergeWith(other);
+    }
+
+    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
+        return data_->removeSpace(room_start, room_end);
+    }
+
+    template <typename T>
+    OpStatus insert(int32_t idx, const core::StaticVector<T, Blocks>& values) {
+        return data_->insert(idx, values);
+    }
+
+    OpStatus reindex() {
+        return data_->reindex();
+    }
+
+    Values get_values(int32_t idx) const {
+        return data_->get_values(idx);
+    }
+
+    template <typename T>
+    OpStatus setValues(int32_t idx, const core::StaticVector<T, Blocks>& values) {
+        return data_->setValues(idx, values);
+    }
+
+    int32_t size() const {
+        return data_->size();
+    }
+
+    auto findForward(SearchType search_type, int32_t block, int32_t start, IndexValue val) const {
+        return data_->findForward(search_type, block, start, val);
+    }
+
+    auto findBackward(SearchType search_type, int32_t block, int32_t start, IndexValue val) const {
+        return data_->findBackward(search_type, block, start, val);
+    }
+
+    const Value& value(int32_t block, int32_t idx) const {
+        return data_->value(block, idx);
+    }
+
+    template <typename... Args>
+    auto sum(Args&&... args) const {
+        return data_->sum(std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    auto findNZLT(Args&&... args) const {
+        return data_->findNZLT(std::forward<Args>(args)...);
+    }
+
+
+    void generateDataEvents(IBlockDataEventHandler* handler) const {
+        return data_->generateDataEvents(handler);
+    }
+
+    void check() const {
+        return data_->check();
+    }
 };
 
 

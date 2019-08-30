@@ -263,7 +263,7 @@ public:
         template <typename Tree>
         void stream(Tree&& tree)
         {
-            tree->check();
+            tree.check();
         }
     };
 
@@ -278,23 +278,7 @@ public:
         return node_->active_streams();
     }
 
-    struct ReindexFn {
 
-        OpStatus status_{OpStatus::OK};
-
-        template <typename Tree>
-        void stream(Tree&& tree)
-        {
-            status_ <<= tree->reindex();
-        }
-    };
-
-    OpStatus reindex()
-    {
-        ReindexFn fn;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), fn);
-        return fn.status_;
-    }
 
     int32_t capacity(uint64_t active_streams) const
     {
@@ -316,7 +300,7 @@ public:
         template <typename Tree>
         void stream(Tree&& tree)
         {
-            size_ = tree ? tree->size() : 0;
+            size_ = tree ? tree.size() : 0;
         }
     };
 
@@ -339,7 +323,7 @@ public:
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(Tree&& tree, Position& pos)
         {
-            pos.value(StreamIdx) = tree->size();
+            pos.value(StreamIdx) = tree.size();
         }
     };
 
@@ -354,7 +338,7 @@ public:
         template <int32_t ListIdx, typename Tree>
         void stream(Tree&& tree, Position& sizes)
         {
-            sizes[ListIdx] = tree ? tree->sum(0) : 0;
+            sizes[ListIdx] = tree ? tree.sum(0) : 0;
         }
     };
 
@@ -375,7 +359,7 @@ public:
         template <int32_t Idx, typename StreamType>
         void stream(StreamType&& obj, int32_t idx, const BranchNodeEntry& keys)
         {
-            status_ <<= obj->insert(idx, std::get<Idx>(keys));
+            status_ <<= obj.insert(idx, std::get<Idx>(keys));
         }
     };
 
@@ -409,49 +393,6 @@ public:
     }
 
 
-
-
-    struct InsertSpaceFn {
-        template <typename Tree>
-        void stream(Tree&& tree, int32_t room_start, int32_t room_length)
-        {
-            tree->insertSpace(room_start, room_length);
-        }
-    };
-
-    void insertSpace(const Position& from_pos, const Position& length_pos)
-    {
-        int32_t room_start  = from_pos.get();
-        int32_t room_length = length_pos.get();
-
-        insertSpace(0, room_start, room_length);
-    }
-
-
-    void insertSpace(int32_t stream, int32_t room_start, int32_t room_length)
-    {
-        int32_t size = this->size();
-
-        MEMORIA_V1_ASSERT(room_start, >=, 0);
-        MEMORIA_V1_ASSERT(room_start, <=, size);
-        MEMORIA_V1_ASSERT(stream, ==, 0);
-
-        Dispatcher(state()).dispatchNotEmpty(allocator(), InsertSpaceFn(), room_start, room_length);
-
-        insertValuesSpace(size, room_start, room_length);
-    }
-
-    void insertSpace(int32_t room_start, int32_t room_length)
-    {
-        int32_t size = this->size();
-
-        MEMORIA_V1_ASSERT(room_start, >=, 0);
-        MEMORIA_V1_ASSERT(room_start, <=, size);
-
-        Dispatcher(state()).dispatchNotEmpty(allocator(), InsertSpaceFn(), room_start, room_length);
-
-        insertValuesSpace(size, room_start, room_length);
-    }
 
 
     void insertValuesSpace(int32_t old_size, int32_t room_start, int32_t room_length)
@@ -495,7 +436,7 @@ public:
         void stream(Tree&& tree, int32_t room_start, int32_t room_end)
         {
             if (isOk(status_)) {
-                status_ <<= tree->removeSpace(room_start, room_end);
+                status_ <<= tree.removeSpace(room_start, room_end);
             }
         }
     };
@@ -508,6 +449,25 @@ public:
     OpStatus removeSpaceAcc(int32_t room_start, int32_t room_end)
     {
         return removeSpace(room_start, room_end);
+    }
+
+    struct ReindexFn {
+
+        OpStatus status_{OpStatus::OK};
+
+        template <typename Tree>
+        void stream(Tree& tree)
+        {
+            status_ <<= tree.reindex();
+        }
+    };
+
+    // Not used by BTree directly
+    OpStatus reindex()
+    {
+        ReindexFn fn;
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn);
+        return fn.status_;
     }
 
     OpStatus removeSpace(int32_t room_start, int32_t room_end)
@@ -599,7 +559,7 @@ public:
         void stream(Tree&& tree, OtherNodeT&& other)
         {
             using PkdTree = typename std::decay_t<Tree>::PkdStructT;
-            int32_t size = tree->size();
+            int32_t size = tree.size();
 
             if (size > 0)
             {
@@ -614,7 +574,7 @@ public:
 
                 PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
 
-                status_ <<= tree->mergeWith(other_tree);
+                status_ <<= tree.mergeWith(other_tree);
             }
         }
     };
@@ -657,7 +617,7 @@ public:
         {
             if (isOk(status_))
             {
-                int32_t size = tree->size();
+                int32_t size = tree.size();
                 if (size > 0)
                 {
                     auto* other_tree = other.allocator()->template allocateEmpty<
@@ -669,7 +629,7 @@ public:
                         return;
                     }
 
-                    status_ <<= tree->splitTo(other_tree, idx);
+                    status_ <<= tree.splitTo(other_tree, idx);
                 }
             }
         }
@@ -709,7 +669,7 @@ public:
         template <int32_t Idx, typename Tree>
         void stream(Tree&& tree, int32_t idx, BranchNodeEntry* acc)
         {
-            std::get<Idx>(*acc) = tree->get_values(idx);
+            std::get<Idx>(*acc) = tree.get_values(idx);
         }
     };
 
@@ -727,25 +687,25 @@ public:
         template <int32_t Idx, typename StreamType>
         void stream(StreamType&& obj, int32_t start, int32_t end, BranchNodeEntry& accum)
         {
-            obj->sums(start, end, std::get<Idx>(accum));
+            obj.sums(start, end, std::get<Idx>(accum));
         }
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamType>
         void stream(StreamType&& obj, const Position& start, const Position& end, BranchNodeEntry& accum)
         {
-            obj->sums(start[StreamIdx], end[StreamIdx], std::get<AllocatorIdx - SubstreamsStart>(accum));
+            obj.sums(start[StreamIdx], end[StreamIdx], std::get<AllocatorIdx - SubstreamsStart>(accum));
         }
 
         template <int32_t Idx, typename StreamType>
         void stream(StreamType&& obj, BranchNodeEntry& accum)
         {
-            obj->sums(std::get<Idx>(accum));
+            obj.sums(std::get<Idx>(accum));
         }
 
         template <typename StreamType>
         void stream(StreamType&& obj, int32_t block, int32_t start, int32_t end, int64_t& accum)
         {
-            accum += obj->sum(block, start, end);
+            accum += obj.sum(block, start, end);
         }
     };
 
@@ -800,7 +760,7 @@ public:
         template <int32_t Idx, typename StreamType>
         void stream(StreamType&& tree, int32_t idx, const BranchNodeEntry& accum)
         {
-            status_ <<= tree->setValues(idx, std::get<Idx>(accum));
+            status_ <<= tree.setValues(idx, std::get<Idx>(accum));
         }
     };
 

@@ -296,7 +296,7 @@ public:
 
         for (int32_t c = 0; c < Size; c++)
         {
-            obj->_add(c + From, item[Idx + c]);
+            obj._add(c + From, item[Idx + c]);
         }
     }
 };
@@ -378,7 +378,7 @@ public:
 
         for (int32_t c = 0; c < Size; c++)
         {
-            obj->_sub(c + From, item[Idx + c]);
+            obj._sub(c + From, item[Idx + c]);
         }
     }
 };

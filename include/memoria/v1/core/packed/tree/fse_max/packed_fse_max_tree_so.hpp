@@ -18,6 +18,8 @@
 
 #include <memoria/v1/core/types.hpp>
 
+#include <memoria/v1/profiles/common/block_operations.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -26,8 +28,12 @@ class PackedFSEMaxTreeSO {
     const ExtData* ext_data_;
     PkdStruct* data_;
 
+    using Values = typename PkdStruct::Values;
 public:
     using PkdStructT = PkdStruct;
+
+    static constexpr int32_t Blocks = PkdStruct::Blocks;
+
 
     PackedFSEMaxTreeSO(): ext_data_(), data_() {}
     PackedFSEMaxTreeSO(const ExtData* ext_data, PkdStruct* data):
@@ -65,6 +71,56 @@ public:
     }
 
     const ExtData* ext_data() const {return ext_data_;}
+
+    OpStatus splitTo(PkdStruct* other, int32_t idx)
+    {
+        return data_->splitTo(other, idx);
+    }
+
+    OpStatus mergeWith(PkdStruct* other) {
+        return data_->mergeWith(other);
+    }
+
+    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
+        return data_->removeSpace(room_start, room_end);
+    }
+
+    template <typename T>
+    OpStatus insert(int32_t idx, const core::StaticVector<T, Blocks>& values) {
+        return data_->insert(idx, values);
+    }
+
+    template <typename... Args>
+    auto findForward(Args&&... args) const {
+        return data_->findForward(std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    auto findBackward(Args&&... args) const {
+        return data_->findBackward(std::forward<Args>(args)...);
+    }
+
+    int32_t size() const {
+        return data_->size();
+    }
+
+    template <typename... Args>
+    auto get_values(Args&&... args) const {
+        return data_->get_values(std::forward<Args>(args)...);
+    }
+
+    void generateDataEvents(IBlockDataEventHandler* handler) const {
+        return data_->generateDataEvents(handler);
+    }
+
+    void check() const {
+        return data_->check();
+    }
+
+    template <int32_t Offset, typename... Args>
+    auto max(Args&&... args) const {
+        return data_->template max<Offset>(std::forward<Args>(args)...);
+    }
 };
 
 

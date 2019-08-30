@@ -24,15 +24,19 @@ namespace memoria {
 namespace v1 {
 
 template <typename ExtData, typename PkdStruct>
-class PackedRLESeqSO {
+class PackedFixedSizeElementArraySO {
     const ExtData* ext_data_;
     PkdStruct* data_;
+
+
 
 public:
     using PkdStructT = PkdStruct;
 
-    PackedRLESeqSO(): ext_data_(), data_() {}
-    PackedRLESeqSO(const ExtData* ext_data, PkdStruct* data):
+    static constexpr psize_t Columns = PkdStruct::Blocks;
+
+    PackedFixedSizeElementArraySO(): ext_data_(), data_() {}
+    PackedFixedSizeElementArraySO(const ExtData* ext_data, PkdStruct* data):
         ext_data_(ext_data), data_(data)
     {}
 
@@ -68,47 +72,57 @@ public:
 
     const ExtData* ext_data() const {return ext_data_;}
 
-    OpStatus splitTo(PkdStruct* other, int32_t idx)
+
+
+
+    Span<Value> values(psize_t block)
     {
-        return data_->splitTo(other, idx);
+        const auto& meta = data_->metadata();
+        return Span(data_->values(block), meta->size());
+    }
+
+    Span<const Value> values(psize_t block) const
+    {
+        const auto& meta = data_->metadata();
+        return Span(data_->values(block), meta.size());
     }
 
     OpStatus mergeWith(PkdStruct* other) {
         return data_->mergeWith(other);
     }
 
-    OpStatus removeSpace(int32_t room_start, int32_t room_end) {
-        return data_->removeSpace(room_start, room_end);
+    void generateDataEvents(IBlockDataEventHandler* handler) const
+    {
+        const auto& meta = data_->metadata();
+
+        handler->startStruct();
+        handler->startGroup("FX_SIZE_EL_ARRAY");
+
+        handler->value("SIZE",          &data_->meta.size());
+        handler->value("MAX_SIZE",      &data_->meta.max_size());
+
+        handler->startGroup("DATA", data_->meta.size());
+
+        std::vector<Span<const Value>> columns;
+
+        for (psize_t c = 0; c < Columns; c++) {
+            columns.emplace_back(values(c));
+        }
+
+        for (int32_t c = 0; c < meta.size(); c++)
+        {
+            handler->value("VALUES", BlockValueProviderFactory::provider(Blocks, [&](int32_t idx) {
+                return columns[idx][c];
+            }));
+        }
+
+        handler->endGroup();
+
+        handler->endGroup();
+        handler->endStruct();
     }
 
-    int32_t size() const {
-        return data_->size();
-    }
-
-    template <typename... Args>
-    auto selectGEFW(Args&&... args) const {
-        return data_->selectGEFW(std::forward<Args>(args)...);
-    }
-
-    template <typename... Args>
-    auto selectFW(Args&&... args) const {
-        return data_->selectFW(std::forward<Args>(args)...);
-    }
-
-    void generateDataEvents(IBlockDataEventHandler* handler) const {
-        return data_->generateDataEvents(handler);
-    }
-
-    void check() const {
-        return data_->check();
-    }
-
-    template <int32_t Offset, typename... Args>
-    auto max(Args&&... args) const {
-        return data_->template max<Offset>(std::forward<Args>(args)...);
-    }
 };
-
 
 
 }

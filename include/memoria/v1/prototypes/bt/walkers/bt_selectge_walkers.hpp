@@ -42,17 +42,17 @@ public:
     {}
 
     template <int32_t StreamIdx, typename Tree>
-    StreamOpResult find_non_leaf(const Tree* tree, bool root, int32_t index, int32_t start)
+    StreamOpResult find_non_leaf(const Tree& tree, bool root, int32_t index, int32_t start)
     {
-        auto size = tree->size();
+        auto size = tree.size();
 
         if (start < size)
         {
             auto k = Base::target_ - Base::sum_;
 
-            auto result = tree->findForward(Base::search_type_, index, start, k);
+            auto result = tree.findForward(Base::search_type_, index, start, k);
 
-            int32_t nearest_nz_idx = tree->findNZLT(index, start);
+            int32_t nearest_nz_idx = tree.findNZLT(index, start);
 
             if (nearest_nz_idx >= result.local_pos())
             {
@@ -60,7 +60,7 @@ public:
             	return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
             }
             else {
-            	Base::sum_ += tree->sum(index, start, nearest_nz_idx);
+                Base::sum_ += tree.sum(index, start, nearest_nz_idx);
             	return StreamOpResult(nearest_nz_idx, start, nearest_nz_idx >= size, false);
             }
         }
@@ -71,7 +71,7 @@ public:
 
 
     template <int32_t StreamIdx, typename Seq>
-    StreamOpResult find_leaf(const Seq* seq, int32_t start)
+    StreamOpResult find_leaf(const Seq& seq, int32_t start)
     {
         MEMORIA_V1_ASSERT_TRUE(seq);
 
@@ -87,7 +87,7 @@ public:
             return StreamOpResult(result.local_pos(), start, false);
         }
         else {
-            int32_t size = seq->size();
+            int32_t size = seq.size();
 
             sum  += result.rank();
             return StreamOpResult(size, start, true);
@@ -118,15 +118,15 @@ public:
     {}
 
     template <int32_t StreamIdx, typename Seq>
-    SelectResult select(const Seq* seq, int32_t start, int32_t symbol, CtrSizeT rank)
+    SelectResult select(const Seq& seq, int32_t start, int32_t symbol, CtrSizeT rank)
     {
         if (direction_ == WalkDirection::DOWN)
       {
           MEMORIA_V1_ASSERT(start, ==, 0);
-          return seq->selectGEFW(rank, symbol);
+          return seq.selectGEFW(rank, symbol);
       }
       else {
-          return seq->selectGEFW(start, rank, symbol);
+          return seq.selectGEFW(start, rank, symbol);
       }
     }
 };

@@ -27,6 +27,9 @@
 namespace memoria {
 namespace v1 {
 
+template <typename PkdStruct> struct PackedStructTraits;
+
+
 template <typename PkdStruct>
 struct AccumType: HasType<typename PkdStruct::Value> {};
 
@@ -313,7 +316,6 @@ struct AllocationBlockConst {
 // ====================== PackedStruct Traits ====================
 
 
-template <typename PkdStruct> struct PackedStructTraits;
 
 
 

@@ -26,7 +26,7 @@
 #include <memoria/v1/core/types/list/transform.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
-#include <memoria/v1/core/packed/tools/packed_rtn_type_list.hpp>
+#include <memoria/v1/core/packed/tools/packed_stateful_rtn_type_list.hpp>
 #include <memoria/v1/core/packed/tools/packed_dispatcher_detail.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
@@ -69,20 +69,20 @@ public:
 
     template <typename Fn, typename... Args>
     using RtnTuple = MakeTuple<
-            typename pd::MakeRtnTypeList<List, GroupIdx, ListIdx, Fn, Args...>::Type
+            typename pd_stateful::MakeRtnTypeList<List, GroupIdx, ListIdx, Fn, Args...>::Type
     >;
 
     template <typename Fn, typename... Args>
     using ConstRtnTuple = MakeTuple<
-            typename pd::MakeRtnTypeListConst<List, GroupIdx, ListIdx, Fn, Args...>::Type
+            typename pd_stateful::MakeRtnTypeListConst<List, GroupIdx, ListIdx, Fn, Args...>::Type
     >;
 
 
     template <typename Fn, typename... Args>
-    using HasVoid = pd::ContainsVoidRtnType<List, GroupIdx, ListIdx, Fn, Args...>;
+    using HasVoid = pd_stateful::ContainsVoidRtnType<List, GroupIdx, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
-    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, GroupIdx, ListIdx, Fn, Args...>;
+    using HasVoidConst = pd_stateful::ContainsVoidRtnTypeConst<List, GroupIdx, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnType = IfThenElse<
@@ -165,7 +165,7 @@ public:
             const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
 
             return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
-                        std::forward<Fn>(fn), so, std::forward<Args>(args)...
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
             );
         }
         else {
@@ -190,7 +190,9 @@ public:
 
         const typename StreamType::SparseObject so(&std::get<ListIdx>(state_), const_cast<StreamType*>(head));
 
-        return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+        return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
+                std::forward<Fn>(fn), so, std::forward<Args>(args)...
+        );
     }
 
 
@@ -242,7 +244,10 @@ public:
     {
         HeadSO so;
 
-        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), so, std::forward<Args>(args)...);
+        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+        );
+
         NextDispatcher::dispatchAllStatic(std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
@@ -257,7 +262,9 @@ public:
 
             HeadSO so(&std::get<ListIdx>(state_), head);
 
-            memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), so, std::forward<Args>(args)...);
+            memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+            );
         }
 
         NextDispatcher(state_).dispatchNotEmpty(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -328,7 +335,9 @@ public:
 
         HeadSO so(&std::get<ListIdx>(state_), head);
 
-        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), so, std::forward<Args>(args)...);
+        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            std::forward<Fn>(fn), so, std::forward<Args>(args)...
+        );
 
         NextDispatcher(state_).dispatchAll(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -402,7 +411,9 @@ public:
 
         HeadSO so(&std::get<ListIdx>(state_), head);
 
-        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), so, std::forward<Args>(args)...);
+        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+        );
 
         NextDispatcher(state_).dispatchAll2(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -438,7 +449,9 @@ public:
 
         const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
 
-        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), so, std::forward<Args>(args)...);
+        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+        );
 
         NextDispatcher(state_).dispatchAll(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -471,7 +484,9 @@ public:
         if (idx == ListIdx)
         {
             HeadSO so;
-            memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), so, std::forward<Args>(args)...);
+            memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                std::forward<Fn>(fn), so, std::forward<Args>(args)...
+            );
         }
         else {
             NextDispatcher::dispatchStatic(idx, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -523,7 +538,9 @@ public:
         }
         const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
 
-        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), so, std::forward<Args>(args)...);
+        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+        );
 
         NextDispatcher(state_).dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -558,7 +575,9 @@ public:
         }
         HeadSO so(&std::get<ListIdx>(state_), head);
 
-        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), so, std::forward<Args>(args)...);
+        memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+        );
 
         NextDispatcher(state_).dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -693,19 +712,19 @@ public:
 
     template <typename Fn, typename... Args>
     using RtnTuple = MakeTuple<
-            typename pd::MakeRtnTypeList<List, GroupIdx, ListIdx, Fn, Args...>::Type
+            typename pd_stateful::MakeRtnTypeList<List, GroupIdx, ListIdx, Fn, Args...>::Type
     >;
 
     template <typename Fn, typename... Args>
     using ConstRtnTuple = MakeTuple<
-            typename pd::MakeRtnTypeListConst<List, GroupIdx, ListIdx, Fn, Args...>::Type
+            typename pd_stateful::MakeRtnTypeListConst<List, GroupIdx, ListIdx, Fn, Args...>::Type
     >;
 
     template <typename Fn, typename... Args>
-    using HasVoid = pd::ContainsVoidRtnType<List, GroupIdx, ListIdx, Fn, Args...>;
+    using HasVoid = pd_stateful::ContainsVoidRtnType<List, GroupIdx, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
-    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, GroupIdx, ListIdx, Fn, Args...>;
+    using HasVoidConst = pd_stateful::ContainsVoidRtnTypeConst<List, GroupIdx, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnType = IfThenElse<
@@ -937,7 +956,9 @@ public:
         if (idx == ListIdx)
         {
             HeadSO so;
-            return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), so, std::forward<Args>(args)...);
+            return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+            );
         }
         else {
             MMA1_THROW(DispatchException()) << WhatInfo(fmt::format8(u"Can't dispatch packed allocator structure: {}", idx));
@@ -1102,7 +1123,9 @@ public:
 
         HeadSO so(&std::get<ListIdx>(state_), head);
 
-        return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), so, std::forward<Args>(args)...);
+        return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                std::forward<Fn>(fn), so, std::forward<Args>(args)...
+        );
     }
 
 

@@ -104,7 +104,7 @@ if (BUILD_POSIX)
             add_global_libs(backtrace)
         endif()
 
-        add_global_linker(-stdlib=libstdc++)
+        #add_global_linker(-stdlib=libstdc++)
         #add_global_linker(-static-libstdc++)
     endif()
 

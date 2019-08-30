@@ -59,7 +59,7 @@ public:
 
 
     template <typename Node>
-    int32_t treeNode(const Node* node, int32_t start)
+    int32_t treeNode(const Node& node, int32_t start)
     {
         return 0;
     }

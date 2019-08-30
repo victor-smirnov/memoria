@@ -34,8 +34,8 @@ template <
     int32_t Blocks_ = 1
 >
 struct PackedFSEArrayTypes {
-    typedef V                   Value;
-    static const int32_t Blocks     = Blocks_;
+    using Value = V;
+    static const int32_t Blocks = Blocks_;
 };
 
 template <typename Types> class PackedFSEArray;
@@ -44,7 +44,7 @@ template <typename V, int32_t Blocks = 1>
 using PkdFSQArrayT = PackedFSEArray<PackedFSEArrayTypes<V, Blocks>>;
 
 
-namespace {
+namespace _ {
 
     template <bool Selector>
     struct GenerateDataEventsHelper {
@@ -715,13 +715,12 @@ public:
         handler->startStruct();
         handler->startGroup("FSE_ARRAY");
 
-//        handler->value("ALLOCATOR",     &Base::allocator_offset());
         handler->value("SIZE",          &size_);
         handler->value("MAX_SIZE",      &max_size_);
 
         handler->startGroup("DATA", size_);
 
-        GenerateDataEventsHelper<sizeof(Value) == 1>::template process<Blocks, Value>(handler, size_, buffer_);
+        _::GenerateDataEventsHelper<sizeof(Value) == 1>::template process<Blocks, Value>(handler, size_, buffer_);
 
         handler->endGroup();
 

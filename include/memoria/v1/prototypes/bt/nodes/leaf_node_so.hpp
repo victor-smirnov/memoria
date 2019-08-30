@@ -319,7 +319,7 @@ public:
         template <typename Tree>
         void stream(Tree&& tree)
         {
-            tree->check();
+            tree.check();
         }
     };
 
@@ -346,7 +346,7 @@ public:
         template <typename Tree>
         int32_t stream(Tree&& tree)
         {
-            return tree ? tree->size() : 0;
+            return tree ? tree.size() : 0;
         }
     };
 
@@ -517,23 +517,23 @@ public:
         template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
         void stream(StreamType&& obj, TupleItem& accum, int32_t start, int32_t end)
         {
-            if (obj != nullptr)
+            if (obj)
             {
-                obj->template sum<Offset>(start, end, accum);
+                obj.template sum<Offset>(start, end, accum);
             }
         }
 
         template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
         void stream(StreamType&& obj, TupleItem& accum)
         {
-            if (obj != nullptr)
+            if (obj)
             {
                 if (StreamStart)
                 {
-                    accum[Offset - 1] += obj->size();
+                    accum[Offset - 1] += obj.size();
                 }
 
-                obj->template sum<Offset>(accum);
+                obj.template sum<Offset>(accum);
             }
         }
 
@@ -553,11 +553,11 @@ public:
     {
 
         template <int32_t Offset, bool StreamStart, int32_t Idx, typename StreamType, typename TupleItem>
-        void stream(StreamType&& obj, TupleItem& accum)
+        void stream(const StreamType& obj, TupleItem& accum)
         {
             if (obj)
             {
-                obj->template max<Offset>(accum);
+                obj.template max<Offset>(accum);
             }
         }
     };
@@ -579,48 +579,6 @@ public:
     }
 
 
-    struct InsertSpaceFn {
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree&& tree, PackedAllocator* allocator, const Position& room_start, const Position& room_length)
-        {
-            if (tree)
-            {
-                tree->insertSpace(room_start[StreamIdx], room_length[StreamIdx]);
-            }
-            else {
-                MEMORIA_V1_ASSERT_TRUE(room_length[StreamIdx] == 0);
-            }
-        }
-    };
-
-    void insertSpace(const Position& room_start, const Position& room_length)
-    {
-        initStreamsIfEmpty(room_length);
-        processSubstreamGroups(InsertSpaceFn(), allocator(), room_start, room_length);
-    }
-
-    void insertSpace(int32_t stream, int32_t room_start, int32_t room_length)
-    {
-        insertSpace(Position::create(stream, room_start), Position::create(stream, room_length));
-    }
-
-    struct InitStreamIfEmpty
-    {
-        template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename Tree>
-        void stream(Tree* tree, PackedAllocator* allocator, const Position& sizes)
-        {
-            if ((!tree) && sizes[StreamIdx] > 0)
-            {
-                allocator->template allocate<Tree>(AllocatorIdx, Tree::empty_size());
-            }
-        }
-    };
-
-
-    void initStreamsIfEmpty(const Position& sizes)
-    {
-        processSubstreamGroups(InitStreamIfEmpty(), allocator(), sizes);
-    }
 
 
 
@@ -633,7 +591,7 @@ public:
         {
             if (tree && isOk(status_))
             {
-                status_ <<= tree->removeSpace(room_start[StreamIdx], room_end[StreamIdx]);
+                status_ <<= tree.removeSpace(room_start[StreamIdx], room_end[StreamIdx]);
             }
         }
 
@@ -642,7 +600,7 @@ public:
         {
             if (tree && isOk(status_))
             {
-                status_ <<= tree->removeSpace(room_start, room_end);
+                status_ <<= tree.removeSpace(room_start, room_end);
             }
         }
     };
@@ -673,15 +631,15 @@ public:
 
     struct LeafSumsFn {
         template <typename StreamType>
-        auto stream(StreamType&& obj, int32_t start, int32_t end)
+        auto stream(const StreamType& obj, int32_t start, int32_t end)
         {
-            return obj ? obj->sum(start, end) : decltype(obj->sum(start, end))();
+            return obj ? obj.sum(start, end) : decltype(obj.sum(start, end))();
         }
 
         template <typename StreamType>
-        auto stream(const StreamType* obj, int32_t block, int32_t start, int32_t end)
+        auto stream(const StreamType& obj, int32_t block, int32_t start, int32_t end)
         {
-            return obj ? obj->sum(block, start, end) : 0;
+            return obj ? obj.sum(block, start, end) : 0;
         }
     };
 
@@ -702,7 +660,7 @@ public:
 
             if (isOk(status_))
             {
-                int32_t size = tree->size();
+                int32_t size = tree.size();
 
                 if (size > 0)
                 {
@@ -715,7 +673,7 @@ public:
                     }
 
                     PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
-                    status_ <<= tree->mergeWith(other_tree);
+                    status_ <<= tree.mergeWith(other_tree);
                 }
             }
         }
@@ -836,7 +794,7 @@ public:
                     return;
                 }
 
-                status_ <<= tree->splitTo(other_tree, idx);
+                status_ <<= tree.splitTo(other_tree, idx);
             }
         }
     };
@@ -872,7 +830,7 @@ public:
         template <int32_t Idx, typename Tree>
         void stream(Tree&& tree, IBlockDataEventHandler* handler)
         {
-            tree->generateDataEvents(handler);
+            tree.generateDataEvents(handler);
         }
     };
 

@@ -153,7 +153,7 @@ public:
                     suffix_size_ = 2;
                 }
             }
-            else if (s0 == data_sym_ & s1 == keys_sym_)
+            else if (s0 == data_sym_ && s1 == keys_sym_)
             {
                 prefix_size_ = 1;
                 suffix_size_ = 1;

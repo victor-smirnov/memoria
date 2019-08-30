@@ -47,6 +47,13 @@ static constexpr int PackedAllocationAlignment          = 8;
 
 static constexpr size_t MaxRLERunLength                 = 0x7FFFFFF;
 
+using psize_t = uint32_t;
+
+static constexpr psize_t PkdSizeMax  = std::numeric_limits<psize_t>::max();
+static constexpr psize_t PkdSizeSup  = std::numeric_limits<psize_t>::max() - 1;
+static constexpr psize_t PkdSizeInf  = std::numeric_limits<psize_t>::min();
+static constexpr psize_t PkdNotFound = PkdSizeMax;
+
 enum class PackedSizeType {FIXED, VARIABLE};
 
 namespace internal {

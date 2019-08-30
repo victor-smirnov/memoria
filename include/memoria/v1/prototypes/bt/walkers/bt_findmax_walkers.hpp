@@ -85,7 +85,7 @@ public:
 //    }
 
     template <typename CtrT, typename NodeT>
-    void treeNode(BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
+    void treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -103,7 +103,7 @@ public:
 
 
     template <typename CtrT, typename NodeT>
-    void treeNode(LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
+    void treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -133,7 +133,7 @@ public:
 
 
     template <int32_t StreamIdx, typename Tree>
-    StreamOpResult find_non_leaf(Tree&& tree, bool root, int32_t index, int32_t start)
+    StreamOpResult find_non_leaf(const Tree& tree, bool root, int32_t index, int32_t start)
     {
         auto size = tree->size();
 
@@ -141,7 +141,7 @@ public:
         {
             MEMORIA_V1_ASSERT(start, ==, 0);
 
-            auto result = tree->findForward(Base::search_type_, index, Base::target_);
+            auto result = tree.findForward(Base::search_type_, index, Base::target_);
 
             return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
         }
@@ -162,19 +162,19 @@ public:
 
 
     template <int32_t StreamIdx, typename Tree>
-    StreamOpResult find_leaf(Tree&& tree, int32_t start)
+    StreamOpResult find_leaf(const Tree& tree, int32_t start)
     {
-        if (tree != nullptr)
+        if (tree)
         {
-            if (start < tree->size())
+            if (start < tree.size())
             {
                 MEMORIA_V1_ASSERT(start, ==, 0);
 
                 int32_t index   = this->leaf_index();
 
-                auto result = tree->findForward(Base::search_type_, index, Base::target_);
+                auto result = tree.findForward(Base::search_type_, index, Base::target_);
 
-                return StreamOpResult(result.local_pos(), start, result.local_pos() >= tree->size());
+                return StreamOpResult(result.local_pos(), start, result.local_pos() >= tree.size());
             }
             else {
                 return StreamOpResult(start, start, true, true);
@@ -197,7 +197,7 @@ public:
     template <int32_t StreamIdx, typename StreamType>
     void branch_size_prefix(StreamType&& stream, int32_t start, int32_t end)
     {
-        auto sum = stream->sum(0, start, end);
+        auto sum = stream.sum(0, start, end);
 
         Base::branch_size_prefix()[StreamIdx] += sum;
     }
@@ -234,7 +234,7 @@ public:
 
         for (int32_t c = 0; c < To - From; c++)
         {
-            obj->_add(c + From, start, end, item[c]);
+            obj._add(c + From, start, end, item[c]);
         }
     }
 
@@ -246,9 +246,9 @@ public:
     void branch_iterator_BranchNodeEntry(StreamObj&& obj, AccumItem<T>& item, int32_t start, int32_t end){}
 
     template <int32_t Offset, int32_t From, int32_t Size, typename StreamObj, typename AccumItem>
-    void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item, int32_t start, int32_t end)
+    void leaf_iterator_BranchNodeEntry(const StreamObj& obj, AccumItem& item, int32_t start, int32_t end)
     {
-        if (obj != nullptr)
+        if (obj)
         {
             const int32_t Idx = Offset - AccumItem::From;
 
@@ -256,14 +256,14 @@ public:
             {
                 for (int32_t c = 0; c < Size; c++)
                 {
-                    item[Idx + c] += obj->value(c + From, start);
+                    item[Idx + c] += obj.value(c + From, start);
                 }
             }
             else {
                 for (int32_t c = 0; c < Size; c++)
                 {
                     item[Idx + c] = 0;
-                    obj->_add(c + From, end, item[Idx + c]);
+                    obj._add(c + From, end, item[Idx + c]);
                 }
             }
         }
@@ -277,7 +277,7 @@ public:
         if (obj != nullptr) {
             for (int32_t c = 0; c < Size; c++)
             {
-                obj->_add(c + From, item[Idx + c]);
+                obj._add(c + From, item[Idx + c]);
             }
         }
     }

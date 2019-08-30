@@ -66,7 +66,7 @@ public:
         return size_;
     }
 
-    virtual void* buffer() const {
+    virtual const void* buffer() const {
         return nullptr;
     }
 

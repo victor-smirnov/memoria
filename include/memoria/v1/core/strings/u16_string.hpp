@@ -593,7 +593,7 @@ namespace std {
 
 template <>
 inline void swap(memoria::v1::U16String& one, memoria::v1::U16String& two) noexcept {
-    std::swap(one.content_, two.content_);
+    std::swap(one.to_std_string(), two.to_std_string());
 }
 
 template<>

@@ -45,9 +45,6 @@ public:
 
     static const int32_t Streams = Types::Streams;
 
-    using BlockUpdateMgr = typename Types::BlockUpdateMgr;
-
-
     bool checkContent(const NodeBaseG& node) const
     {
     	auto& self = this->self();

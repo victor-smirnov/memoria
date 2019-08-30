@@ -763,7 +763,7 @@ struct TypeHash<bt::TreeNodeBase<Metadata, Base>> {
     using TargetType = bt::TreeNodeBase<Metadata, Base>;
 
     static constexpr uint64_t Value = HashHelper<
-            TypeHashV<Base>,
+           // TypeHashV<Base>,
             TargetType::VERSION,
             TypeHashV<int32_t>,
             TypeHashV<int32_t>,

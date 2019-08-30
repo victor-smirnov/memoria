@@ -115,13 +115,13 @@ public:
 
     struct SumFn {
         template <typename Stream>
-        auto stream(const Stream* s, int32_t block, int32_t from, int32_t to)
+        auto stream(const Stream& s, int32_t block, int32_t from, int32_t to)
         {
             return s->sum(block, from, to);
         }
 
         template <typename Stream>
-        auto stream(const Stream* s, int32_t from, int32_t to)
+        auto stream(const Stream& s, int32_t from, int32_t to)
         {
             return s->sums(from, to);
         }
@@ -135,7 +135,7 @@ public:
 
     struct FindFn {
         template <typename Stream, typename... Args>
-        auto stream(const Stream* s, Args&&... args)
+        auto stream(const Stream& s, Args&&... args)
         {
             return s->findForward(std::forward<Args>(args)...).local_pos();
         }

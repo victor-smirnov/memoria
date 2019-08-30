@@ -83,7 +83,11 @@ int main()
     });
 
     buffer.set_buffer_id(0);
+
+    std::vector<int32_t> vals = {1,2,3,4,5};
+
     buffer.append_value(12345);
+    buffer.append_values(vals);
 
     for (auto ii: buffer.span()) {
         std::cout << ii << std::endl;
