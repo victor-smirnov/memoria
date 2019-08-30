@@ -61,7 +61,7 @@ public:
         void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
             if (isOk(status_)) {
-                status_ <<= obj->template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
+                status_ <<= obj.template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
                         return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
                 });
             }
@@ -150,7 +150,7 @@ public:
         void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx)
         {
             if (isOk(status_)) {
-                status_ <<= obj->template _remove<Offset>(idx, accum);
+                status_ <<= obj.template _remove<Offset>(idx, accum);
             }
         }
 
@@ -206,7 +206,7 @@ public:
         void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
             if (isOk(status_)) {
-                status_ <<= obj->template _update_b<Offset>(idx, accum, [&](int32_t block){
+                status_ <<= obj.template _update_b<Offset>(idx, accum, [&](int32_t block){
                     return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
                 });
             }

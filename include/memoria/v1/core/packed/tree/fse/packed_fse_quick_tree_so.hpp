@@ -62,19 +62,13 @@ public:
         data_ = data;
     }
 
-    const PkdStruct* operator->() const {
-        return data_;
-    }
-
-    PkdStruct* operator->() {
-        return data_;
-    }
 
     operator bool() const {
         return data_ != nullptr;
     }
 
     const ExtData* ext_data() const {return ext_data_;}
+    const PkdStruct* data() const {return data_;}
 
     OpStatus splitTo(PkdStruct* other, int32_t idx)
     {
@@ -92,6 +86,11 @@ public:
     template <typename T>
     OpStatus insert(int32_t idx, const core::StaticVector<T, Blocks>& values) {
         return data_->insert(idx, values);
+    }
+
+    template <typename Fn>
+    OpStatus insert(int32_t idx, int32_t length, Fn&& fn) {
+        return data_->insert(idx, length, std::forward<Fn>(fn));
     }
 
     OpStatus reindex() {
@@ -140,6 +139,11 @@ public:
 
     void check() const {
         return data_->check();
+    }
+
+    template <typename... Args>
+    auto max(Args&&... args) const {
+        return data_->max(std::forward<Args>(args)...);
     }
 };
 

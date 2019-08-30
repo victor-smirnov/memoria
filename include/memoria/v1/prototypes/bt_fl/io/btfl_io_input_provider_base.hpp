@@ -61,7 +61,7 @@ namespace _ {
             static_assert(StreamIdx < DataStreams, "");
             if (isOk(status))
             {
-                status <<= stream->insert_io_substream(
+                status <<= stream.insert_io_substream(
                     at[StreamIdx],
                     io_vector.substream(current_substream),
                     starts[StreamIdx],
@@ -91,7 +91,7 @@ namespace _ {
             static_assert(StreamIdx == DataStreams, "");
             if (isOk(status))
             {
-                status <<= stream->insert_io_substream(
+                status <<= stream.insert_io_substream(
                     at[StreamIdx],
                     io_vector.symbol_sequence(),
                     starts[StreamIdx],
@@ -523,7 +523,7 @@ protected:
             static_assert(StreamIdx < Streams, "");
             if (isOk(status_))
             {
-                status_ <<= stream->insertSpace(at[StreamIdx], sizes[StreamIdx]);
+                status_ <<= stream.insertSpace(at[StreamIdx], sizes[StreamIdx]);
             }
         }
 

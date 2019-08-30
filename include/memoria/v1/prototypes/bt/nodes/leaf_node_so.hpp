@@ -47,12 +47,12 @@ public:
     {
         if (stream_idx_ < data_substreams_)
         {
-            stream->configure_io_substream(io_vector_.substream(stream_idx_));
+            stream.configure_io_substream(io_vector_.substream(stream_idx_));
             stream_idx_++;
         }
         else
         {
-            stream->configure_io_substream(io_vector_.symbol_sequence());
+            stream.configure_io_substream(io_vector_.symbol_sequence());
         }
     }
 
@@ -75,14 +75,14 @@ public:
     template <typename Stream>
     void stream(const Stream& stream)
     {
-        stream->configure_io_substream(io_vector_.substream(stream_idx_));
+        stream.configure_io_substream(io_vector_.substream(stream_idx_));
         stream_idx_++;
     }
 
     template <typename ExtData, typename PkdStruct>
     void stream(const PackedSizedStructSO<ExtData, PkdStruct>& stream)
     {
-        io_vector_.symbol_sequence().configure(reinterpret_cast<void*>(stream->size()));
+        io_vector_.symbol_sequence().configure(reinterpret_cast<void*>(stream.size()));
     }
 };
 
@@ -280,7 +280,7 @@ public:
     struct LayoutFn
     {
         template <int32_t AllocatorIdx, int32_t Idx, typename Stream>
-        void stream(Stream&&, PackedAllocator* alloc, uint64_t streams)
+        void stream(Stream&, PackedAllocator* alloc, uint64_t streams)
         {
             if (streams & (1<<Idx))
             {
@@ -288,7 +288,7 @@ public:
                 {
                     OOM_THROW_IF_FAILED(
                         alloc->template allocateEmpty<
-                                typename std::decay_t<Stream>::PkdStructT
+                                typename Stream::PkdStructT
                         >(AllocatorIdx), MMA1_SRC
                     );
                 }
@@ -464,7 +464,7 @@ public:
         template <int32_t StreamIdx, typename Tree>
         void stream(Tree&& tree, Position& pos)
         {
-            pos[StreamIdx] = tree ? tree->size() : 0;
+            pos[StreamIdx] = tree ? tree.size() : 0;
         }
     };
 
@@ -664,8 +664,7 @@ public:
 
                 if (size > 0)
                 {
-                    if (other.allocator()->is_empty(AllocatorIdx))
-                    {
+                    if (other.allocator()->is_empty(AllocatorIdx)){
                         if(isFail(other.allocator()->template allocateEmpty<PkdTree>(AllocatorIdx))) {
                             status_ <<= OpStatus::FAIL;
                             return;
@@ -700,11 +699,11 @@ public:
             {
                 if (other.allocator()->is_empty(AllocatorIdx))
                 {
-                    mem_used_ += tree->block_size();
+                    mem_used_ += tree.data()->block_size();
                 }
                 else {
                     const PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
-                    mem_used_ += tree->block_size(other_tree);
+                    mem_used_ += tree.data()->block_size(other_tree);
                 }
             }
             else {
@@ -775,7 +774,7 @@ public:
             if (tree && isOk(status_))
             {
                 int32_t idx   = indexes[StreamIdx];
-                int32_t size  = tree->size();
+                int32_t size  = tree.size();
 
                 MEMORIA_V1_ASSERT(idx, >=, 0);
                 MEMORIA_V1_ASSERT(idx, <=, size);
@@ -814,7 +813,7 @@ public:
         template <int32_t ListIdx, typename Tree>
         void stream(Tree&& tree, Position& sizes)
         {
-            sizes[ListIdx] = tree ? tree->size() : 0;
+            sizes[ListIdx] = tree ? tree.size() : 0;
         }
     };
 

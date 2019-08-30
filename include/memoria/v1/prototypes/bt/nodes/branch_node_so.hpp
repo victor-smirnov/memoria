@@ -195,7 +195,7 @@ public:
 
     struct LayoutFn {
         template <int32_t AllocatorIdx, int32_t Idx, typename StreamType>
-        void stream(StreamType&&, PackedAllocator* allocator, uint64_t active_streams)
+        void stream(StreamType&, PackedAllocator* allocator, uint64_t active_streams)
         {
             if (active_streams & (1 << Idx))
             {
@@ -203,7 +203,7 @@ public:
                 {
                     OOM_THROW_IF_FAILED(
                         allocator->template allocateEmpty<
-                            typename std::decay_t<StreamType>::PkdStructT
+                            typename StreamType::PkdStructT
                         >(AllocatorIdx), MMA1_SRC
                     );
                 }
@@ -219,9 +219,9 @@ public:
 
     struct MaxFn {
         template <int32_t Idx, typename StreamType>
-        void stream(StreamType&& obj, BranchNodeEntry& accum)
+        void stream(const StreamType& obj, BranchNodeEntry& accum)
         {
-            obj->max(std::get<Idx>(accum));
+            obj.max(std::get<Idx>(accum));
         }
     };
 
@@ -517,11 +517,11 @@ public:
             {
                 if (other.allocator()->is_empty(AllocatorIdx))
                 {
-                    mem_used_ += tree->block_size();
+                    mem_used_ += tree.data()->block_size();
                 }
                 else {
                     const PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
-                    mem_used_ += tree->block_size(other_tree);
+                    mem_used_ += tree.data()->block_size(other_tree);
                 }
             }
             else {
@@ -784,7 +784,7 @@ public:
         template <int32_t Idx, typename Tree>
         void stream(Tree&& tree, IBlockDataEventHandler* handler)
         {
-            tree->generateDataEvents(handler);
+            tree.generateDataEvents(handler);
         }
     };
 

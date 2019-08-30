@@ -178,7 +178,7 @@ public:
         {
             if (isOk(status_))
             {
-                status_ <<= stream->insert_io_substream(
+                status_ <<= stream.insert_io_substream(
                     at,
                     io_vector.substream(current_substream_),
                     start,
@@ -203,7 +203,7 @@ public:
         {
             if (isOk(status_))
             {
-                status_ <<= stream->insertSpace(at, size);
+                status_ <<= stream.insertSpace(at, size);
             }
         }
 

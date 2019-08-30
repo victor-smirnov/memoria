@@ -135,7 +135,7 @@ public:
     template <int32_t StreamIdx, typename Tree>
     StreamOpResult find_non_leaf(const Tree& tree, bool root, int32_t index, int32_t start)
     {
-        auto size = tree->size();
+        auto size = tree.size();
 
         if (start < size)
         {
@@ -215,7 +215,7 @@ public:
     template <int32_t StreamIdx, typename StreamType>
     void leaf_size_prefix(StreamType&& stream)
     {
-        auto size = stream->size();
+        auto size = stream.size();
 
         Base::branch_size_prefix()[StreamIdx] += size;
     }

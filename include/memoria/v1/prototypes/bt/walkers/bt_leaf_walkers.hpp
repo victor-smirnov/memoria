@@ -286,7 +286,7 @@ public:
     template <int32_t StreamIdx, typename StreamType>
     void leaf_size_prefix(StreamType&& stream)
     {
-        Base::branch_size_prefix()[StreamIdx] += stream->size();
+        Base::branch_size_prefix()[StreamIdx] += stream.size();
     }
 
     template <int32_t Offset, int32_t From, int32_t Size, typename StreamObj, typename AccumItem>

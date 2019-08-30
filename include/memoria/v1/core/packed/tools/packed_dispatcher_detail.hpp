@@ -179,7 +179,7 @@ struct FnDispatcher<TypeList<IntValue<0>, Tail...>, GroupIdx, AllocIdx, Idx, Rtn
     static RtnType dispatch(Fn&& fn, Args&&... args)
     {
         return FnDispatcher<TypeList<Tail...>, GroupIdx, AllocIdx, Idx, RtnType>::dispatch(std::forward<Fn>(fn), std::forward<Args>(args)...);
-    };
+    }
 };
 
 template <typename... Tail, int32_t GroupIdx, int32_t AllocIdx, int32_t Idx, typename RtnType>
@@ -188,7 +188,7 @@ struct FnDispatcher<TypeList<IntValue<1>, Tail...>, GroupIdx, AllocIdx, Idx, Rtn
     static RtnType dispatch(Fn&& fn, Args&&... args)
     {
         return fn.stream(std::forward<Args>(args)...);
-    };
+    }
 };
 
 template <typename... Tail, int32_t GroupIdx, int32_t AllocIdx, int32_t Idx, typename RtnType>
@@ -197,7 +197,7 @@ struct FnDispatcher<TypeList<IntValue<2>, Tail...>, GroupIdx, AllocIdx, Idx, Rtn
     static RtnType dispatch(Fn&& fn, Args&&... args)
     {
         return fn.template stream<Idx>(std::forward<Args>(args)...);
-    };
+    }
 };
 
 
@@ -207,7 +207,7 @@ struct FnDispatcher<TypeList<IntValue<3>, Tail...>, GroupIdx, AllocIdx, Idx, Rtn
     static RtnType dispatch(Fn&& fn, Args&&... args)
     {
         return fn.template stream<AllocIdx, Idx>(std::forward<Args>(args)...);
-    };
+    }
 };
 
 

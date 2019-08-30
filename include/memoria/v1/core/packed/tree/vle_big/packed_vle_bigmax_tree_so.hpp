@@ -58,19 +58,12 @@ public:
         data_ = data;
     }
 
-    const PkdStruct* operator->() const {
-        return data_;
-    }
-
-    PkdStruct* operator->() {
-        return data_;
-    }
-
     operator bool() const {
         return data_ != nullptr;
     }
 
     const ExtData* ext_data() const {return ext_data_;}
+    const PkdStruct* data() const {return data_;}
 
     OpStatus splitTo(PkdStruct* other, int32_t idx)
     {
@@ -120,6 +113,25 @@ public:
     template <int32_t Offset, typename... Args>
     auto max(Args&&... args) const {
         return data_->template max<Offset>(std::forward<Args>(args)...);
+    }
+
+    void configure_io_substream(io::IOSubstream& substream) const {
+        return data_->configure_io_substream(substream);
+    }
+
+    OpStatusT<int32_t> insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
+    {
+        return data_->insert_io_substream(at, substream, start, size);
+    }
+
+    template <int32_t Offset, typename... Args>
+    OpStatus _insert_b(Args&&... args) {
+        return data_->template _insert_b<Offset>(std::forward<Args>(args)...);
+    }
+
+    template <int32_t Offset, typename... Args>
+    OpStatus _remove(Args&&... args) {
+        return data_->template _remove<Offset>(std::forward<Args>(args)...);
     }
 };
 
