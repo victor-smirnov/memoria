@@ -42,7 +42,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, f
         false // Vlen
     >::Type;
 
-    io::DefaultIOBuffer<int32_t> lengths_;
+    ArenaBuffer<int32_t> lengths_;
     size_t size_{};
     SubstreamT* substream_{};
     int32_t column_;
@@ -59,7 +59,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, f
     }
 
 
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, io::DefaultIOBuffer<ValueView>& buffer)
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, ArenaBuffer<ValueView>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
         if (subs.columns() == 1)
@@ -99,8 +99,8 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, f
         int32_t column,
         int32_t start,
         int32_t size,
-        io::DefaultIOBuffer<AtomType>& raw_data,
-        io::DefaultIOBuffer<ValueView>& array
+        ArenaBuffer<AtomType>& raw_data,
+        ArenaBuffer<ValueView>& array
     )
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);

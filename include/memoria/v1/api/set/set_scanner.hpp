@@ -37,7 +37,7 @@ struct SetKeys;
 template <typename KeyT>
 struct SetKeys<KeyT, false>
 {
-    io::DefaultIOBuffer<KeyT> keys_;
+    ArenaBuffer<KeyT> keys_;
 
     Span<const KeyT> keys() const {return keys_.span();}
 

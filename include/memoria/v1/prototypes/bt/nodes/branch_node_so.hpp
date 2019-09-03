@@ -48,7 +48,7 @@ public:
             bt::FlattenBranchTree<BranchSubstreamsStructList>, NodeType_::Base::StreamsStart
     >::Type;
 
-    using Dispatcher = PackedStatefulDispatcher<BranchExtData, StreamDispatcherStructList>;
+    using Dispatcher = PackedStatefulDispatcher<BranchExtData, StreamDispatcherStructList, NodeType_::StreamsStart>;
 
     template <int32_t StartIdx, int32_t EndIdx>
     using SubrangeDispatcher = typename Dispatcher::template SubrangeDispatcher<StartIdx, EndIdx>;
@@ -555,24 +555,27 @@ public:
     struct MergeWithFn {
         OpStatus status_{OpStatus::OK};
 
-        template <int32_t AllocatorIdx, int32_t ListIdx, typename Tree, typename OtherNodeT>
-        void stream(Tree&& tree, OtherNodeT&& other)
+        template <int32_t AllocatorIdx, int32_t ListIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+        void stream(Tree& tree, OtherNodeT&& other)
         {
-            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
             int32_t size = tree.size();
 
             if (size > 0)
             {
+                Dispatcher other_disp = other.dispatcher();
+
                 if (other.allocator()->is_empty(AllocatorIdx))
                 {
-                    if (isFail(other.allocator()->template allocateEmpty<PkdTree>(AllocatorIdx)))
+                    Tree other_tree = other_disp.template allocateEmpty<Idx>(other.allocator());
+
+                    if (isFail(other_tree.data()))
                     {
                         status_ <<= OpStatus::FAIL;
                         return;
                     }
                 }
 
-                PkdTree* other_tree = other.allocator()->template get<PkdTree>(AllocatorIdx);
+                Tree other_tree = other_disp.template get<Idx>(other.allocator());
 
                 status_ <<= tree.mergeWith(other_tree);
             }
@@ -613,18 +616,18 @@ public:
         OpStatus status_{OpStatus::OK};
 
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        void stream(Tree&& tree, OtherNodeT&& other, int32_t idx)
+        void stream(Tree& tree, OtherNodeT& other, int32_t idx)
         {
             if (isOk(status_))
             {
                 int32_t size = tree.size();
                 if (size > 0)
                 {
-                    auto* other_tree = other.allocator()->template allocateEmpty<
-                            typename std::decay_t<Tree>::PkdStructT
-                    >(AllocatorIdx);
+                    Dispatcher other_disp = other.dispatcher();
 
-                    if (isFail(other_tree)) {
+                    Tree other_tree = other_disp.template allocateEmpty<Idx>(other.allocator());
+
+                    if (isFail(other_tree.data())) {
                         status_ <<= OpStatus::FAIL;
                         return;
                     }
@@ -808,6 +811,10 @@ public:
 
 
     /******************************************************************/
+
+    Dispatcher dispatcher() const {
+        return Dispatcher(state());
+    }
 
     template <typename Fn, typename... Args>
     void dispatchAll(Fn&& fn, Args&&... args) const

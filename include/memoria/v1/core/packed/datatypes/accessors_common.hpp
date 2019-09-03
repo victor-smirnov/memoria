@@ -15,12 +15,10 @@
 
 #pragma once
 
-#include <memoria/v1/api/common/iobuffer_adatpters_col_fx.hpp>
-#include <memoria/v1/api/common/iobuffer_adatpters_col_vlen.hpp>
+#include <memoria/v1/core/types.hpp>
+#include <memoria/v1/api/common/packed_api.hpp>
+#include <memoria/v1/core/tools/span.hpp>
 
-#include <memoria/v1/api/common/iobuffer_adapters_col1d_vlen.hpp>
-#include <memoria/v1/api/common/iobuffer_adapters_col1d_fx.hpp>
-
-#include <memoria/v1/api/common/iobuffer_adatpters_row_fx.hpp>
-#include <memoria/v1/api/common/iobuffer_adatpters_row_vlen.hpp>
-
+namespace memoria {
+namespace v1 {
+}}

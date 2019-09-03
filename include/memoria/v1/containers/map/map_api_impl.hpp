@@ -72,6 +72,10 @@ public:
     virtual void next() {
         iter_->next();
     }
+
+    void dump() const {
+        iter_->dump();
+    }
 };
 
 }}

@@ -29,6 +29,7 @@ class PackedVLEOptMaxTreeSO {
     PkdStruct* data_;
 
     using Values = typename PkdStruct::Values;
+    using MyType = PackedVLEOptMaxTreeSO;
 
 public:
     using PkdStructT = PkdStruct;
@@ -65,14 +66,15 @@ public:
 
     const ExtData* ext_data() const {return ext_data_;}
     const PkdStruct* data() const {return data_;}
+    PkdStruct* data() {return data_;}
 
-    OpStatus splitTo(PkdStruct* other, int32_t idx)
+    OpStatus splitTo(MyType& other, int32_t idx)
     {
-        return data_->splitTo(other, idx);
+        return data_->splitTo(other.data(), idx);
     }
 
-    OpStatus mergeWith(PkdStruct* other) {
-        return data_->mergeWith(other);
+    OpStatus mergeWith(MyType& other) {
+        return data_->mergeWith(other.data());
     }
 
     OpStatus removeSpace(int32_t room_start, int32_t room_end) {

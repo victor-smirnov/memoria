@@ -27,8 +27,12 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
 #include <memoria/v1/core/packed/array/packed_fse_array.hpp>
+#include <memoria/v1/core/packed/array/packed_fse_array_2.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
+
+#include <memoria/v1/core/packed/datatypes/varchar.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -47,13 +51,21 @@ struct MapKeyStructTF<KeyType, 0>: HasType<PkdVBMTreeT<KeyType>> {};
 
 
 
-template <typename ValueType, int32_t Selector> struct MapValueStructTF;
+template <typename ValueType, int32_t Selector, bool isDataType = DataTypeTraits<ValueType>::isDataType> struct MapValueStructTF;
 
 template <typename ValueType>
-struct MapValueStructTF<ValueType, 1>: HasType<PkdFSQArrayT<ValueType>> {};
+struct MapValueStructTF<ValueType, 1, true>: HasType<
+        PkdFSEArray2T<
+            typename DataTypeTraits<ValueType>::ValueType
+        >
+> {}; //PkdFSQArrayT
 
 template <typename ValueType>
-struct MapValueStructTF<ValueType, 0>: HasType<PkdVDArrayT<ValueType>> {};
+struct MapValueStructTF<ValueType, 1, false>: HasType<PkdFSEArray2T<ValueType>> {}; //PkdFSQArrayT
+
+
+template <typename ValueType>
+struct MapValueStructTF<ValueType, 0, true>: HasType<PkdVLEArrayT<ValueType>> {};
 
 
 

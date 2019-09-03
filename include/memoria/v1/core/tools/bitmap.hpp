@@ -1020,7 +1020,7 @@ template <typename T>
 void CopyBuffer(const T *src, T *dst, size_t size)
 {
     static_assert(std::is_trivially_copyable<T>::value, "CopyBuffer supports only trivially copyable types");
-    memmove(dst, src, size * sizeof(T));
+    std::memmove(dst, src, size * sizeof(T));
 }
 
 template <typename T>
@@ -1030,10 +1030,18 @@ void MemCpyBuffer(const T *src, T *dst, size_t size)
     std::memcpy(dst, src, size * sizeof(T));
 }
 
+template <typename T>
+void MemMoveBuffer(const T *src, T *dst, size_t size)
+{
+    static_assert(std::is_trivially_copyable<T>::value, "MemCpyBuffer supports only trivially copyable types");
+    std::memmove(dst, src, size * sizeof(T));
+}
+
+
 
 static inline void CopyByteBuffer(const void *src, void *dst, size_t size)
 {
-    memmove(dst, src, size);
+    std::memmove(dst, src, size);
 }
 
 template <typename T>

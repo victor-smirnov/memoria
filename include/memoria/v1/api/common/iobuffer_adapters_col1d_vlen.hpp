@@ -29,24 +29,16 @@ namespace memoria {
 namespace v1 {
 
 
-
-
-
 template <typename DataType, template <typename CxxType> class ValueCodec>
-struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>, false>
+struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCodec>, false>
 {
     using ValueView = typename DataTypeTraits<DataType>::ViewType;
     using Codec     = ValueCodec<ValueView>;
     using AtomType  = typename Codec::BufferType;
 
-    using SubstreamT = typename io::IOSubstreamInterfaceTF<
-        ValueView,
-        true, // ColumnWise
-        false // VLen
-    >::Type;
+    using SubstreamT = io::IOVLen1DArraySubstream<DataType>;
 
-    ArenaBuffer<int32_t> lengths_;
-    size_t size_{};
+
     SubstreamT* substream_{};
     int32_t column_;
 
@@ -64,98 +56,37 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
     static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, ArenaBuffer<ValueView>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        io::ConstVLenArrayColumnMetadata descr = subs.select_and_describe(column, start);
-
-        if (start + size <= descr.size)
-        {
-            Codec codec;
-            size_t pos = 0;
-            for (int32_t c = 0; c < size; c++)
-            {
-                ValueView vv;
-                size_t len = codec.decode(descr.data_buffer, vv, pos);
-
-                buffer.emplace_back(std::move(vv));
-
-                pos += len;
-            }
-        }
-        else {
-            MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(
-                           u"Substream range check: start = {}, size = {}, size = {}",
-                           start, size, descr.size
-                       );
-        }
+        subs.read_to(start, size, buffer);
     }
 
 
     static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, ArenaBuffer<AtomType>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        io::ConstVLenArrayColumnMetadata descr = subs.select_and_describe(column, start);
-        buffer.append_values(Span<const AtomType>(descr.data_buffer, size));
+        const auto* data = subs.data_for(start);
+        buffer.append_values(Span<const AtomType>(data, size));
     }
 
     template <typename ItemView>
     static void read_one(const io::IOSubstream& substream, int32_t column, int32_t idx, ItemView& item)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        io::ConstVLenArrayColumnMetadata descr = subs.select_and_describe(column, idx);
 
-        if (idx + 1 <= descr.size)
-        {
-            Codec codec;
-            codec.decode(descr.data_buffer, item, 0);
-        }
-        else {
-            MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(
-                           u"Substream range check: start = {}, size = {}, size = {}",
-                           idx, 1, descr.size
-                       );
-        }
+        item = subs.get(idx);
     }
 
     void reset(io::IOSubstream& substream) {
-        size_ = 0;
         this->substream_ = &io::substream_cast<SubstreamT>(substream);
     }
 
     void append(ValueView view) {
-        append_buffer(Span<const ValueView>(&view, 1), 0, 1);
+        substream_->append_from(Span<const ValueView>(&view, 1));
     }
 
 
     template <typename Buffer>
     void append_buffer(const Buffer& buffer) {
-        append_buffer(buffer, 0, buffer.size());
-    }
-
-
-    template <typename Buffer>
-    void append_buffer(const Buffer& buffer, size_t start, size_t size)
-    {
-        size_ += size;
-
-        Codec codec;
-
-        lengths_.clear();
-        lengths_.ensure(size);
-
-        for (size_t c = 0; c < size; c++)
-        {
-            lengths_.append_value(codec.length(buffer[c]));
-        }
-
-        auto* ptr = substream_->reserve(column_, size, lengths_.tail_ptr());
-
-        size_t pos = 0;
-        for (size_t c = 0; c < size; c++)
-        {
-            size_t len = codec.encode(ptr, buffer[start + c], pos);
-            pos += len;
-        }
+        substream_->append_from(buffer.span());
     }
 };
 

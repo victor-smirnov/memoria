@@ -29,23 +29,20 @@ namespace memoria {
 namespace v1 {
 
 
-
-
-
 template <typename DataType, template <typename CxxType> class ValueCodec>
-struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>, false>
+struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCodec>, true>
 {
     using ValueView = typename DataTypeTraits<DataType>::ViewType;
-    using Codec     = ValueCodec<ValueView>;
-    using AtomType  = typename Codec::BufferType;
+    using ValueType = typename DataTypeTraits<DataType>::ValueType;
+
+    using AtomType  = ValueType;
 
     using SubstreamT = typename io::IOSubstreamInterfaceTF<
-        ValueView,
+        ValueType,
         true, // ColumnWise
-        false // VLen
+        true // FixedSize
     >::Type;
 
-    ArenaBuffer<int32_t> lengths_;
     size_t size_{};
     SubstreamT* substream_{};
     int32_t column_;
@@ -61,24 +58,14 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
     }
 
 
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, ArenaBuffer<ValueView>& buffer)
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, Span<const ValueType>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        io::ConstVLenArrayColumnMetadata descr = subs.select_and_describe(column, start);
+        io::FixedSizeArrayColumnMetadata<const ValueType> descr = subs.describe(column);
 
         if (start + size <= descr.size)
         {
-            Codec codec;
-            size_t pos = 0;
-            for (int32_t c = 0; c < size; c++)
-            {
-                ValueView vv;
-                size_t len = codec.decode(descr.data_buffer, vv, pos);
-
-                buffer.emplace_back(std::move(vv));
-
-                pos += len;
-            }
+            buffer = Span<const ValueType>(descr.data_buffer + start, size);
         }
         else {
             MMA1_THROW(RuntimeException())
@@ -89,32 +76,18 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
         }
     }
 
-
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, ArenaBuffer<AtomType>& buffer)
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, ArenaBuffer<ValueType>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        io::ConstVLenArrayColumnMetadata descr = subs.select_and_describe(column, start);
-        buffer.append_values(Span<const AtomType>(descr.data_buffer, size));
+        io::FixedSizeArrayColumnMetadata<const ValueType> descr = subs.describe(column);
+        buffer.append(Span<const ValueType>(descr.data_buffer + start, size));
     }
 
     template <typename ItemView>
     static void read_one(const io::IOSubstream& substream, int32_t column, int32_t idx, ItemView& item)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        io::ConstVLenArrayColumnMetadata descr = subs.select_and_describe(column, idx);
-
-        if (idx + 1 <= descr.size)
-        {
-            Codec codec;
-            codec.decode(descr.data_buffer, item, 0);
-        }
-        else {
-            MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(
-                           u"Substream range check: start = {}, size = {}, size = {}",
-                           idx, 1, descr.size
-                       );
-        }
+        item = *subs.select(column, idx);
     }
 
     void reset(io::IOSubstream& substream) {
@@ -126,37 +99,17 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
         append_buffer(Span<const ValueView>(&view, 1), 0, 1);
     }
 
-
-    template <typename Buffer>
-    void append_buffer(const Buffer& buffer) {
+    void append_buffer(Span<const ValueType> buffer) {
         append_buffer(buffer, 0, buffer.size());
     }
 
-
-    template <typename Buffer>
-    void append_buffer(const Buffer& buffer, size_t start, size_t size)
+    void append_buffer(Span<const ValueType> buffer, size_t start, size_t size)
     {
         size_ += size;
-
-        Codec codec;
-
-        lengths_.clear();
-        lengths_.ensure(size);
-
-        for (size_t c = 0; c < size; c++)
-        {
-            lengths_.append_value(codec.length(buffer[c]));
-        }
-
-        auto* ptr = substream_->reserve(column_, size, lengths_.tail_ptr());
-
-        size_t pos = 0;
-        for (size_t c = 0; c < size; c++)
-        {
-            size_t len = codec.encode(ptr, buffer[start + c], pos);
-            pos += len;
-        }
+        auto* ptr = substream_->reserve(column_, size);
+        MemCpyBuffer(buffer.data() + start, ptr, size);
     }
+
 };
 
 

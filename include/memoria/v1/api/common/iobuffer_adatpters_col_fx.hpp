@@ -76,7 +76,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise, ValueCodec>
         }
     }
 
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, io::DefaultIOBuffer<ValueType>& buffer)
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, ArenaBuffer<ValueType>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
         io::FixedSizeArrayColumnMetadata<const ValueType> descr = subs.describe(column);

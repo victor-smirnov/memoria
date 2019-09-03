@@ -19,6 +19,10 @@
 
 #include <memoria/v1/core/tools/type_name.hpp>
 
+#include <memoria/v1/core/tools/arena_buffer.hpp>
+
+#include <memoria/v1/api/datatypes/traits.hpp>
+
 #include <typeinfo>
 
 namespace memoria {
@@ -96,5 +100,245 @@ struct IOColumnwiseVLenArraySubstream: IOSubstream {
         return typeid(Value);
     }
 };
+
+template <typename DataType>
+struct IOVLen1DArraySubstream: IOSubstream {
+
+    using ViewType  = typename DataTypeTraits<DataType>::ViewType;
+    using ValueType = typename DataTypeTraits<DataType>::ValueType;
+    using AtomType  = typename DataTypeTraits<DataType>::AtomType;
+    using DataSizeType = psize_t;
+
+
+    using Buffer = ArenaBuffer<ViewType>;
+
+    virtual psize_t size() const = 0;
+
+    virtual psize_t length(psize_t row, psize_t size) const = 0;
+
+    virtual void read_to(psize_t row, psize_t size, Buffer& buffer) const = 0;
+    virtual void append_from(Span<const ValueType> buffer) = 0;
+    virtual void append_from(Span<const ViewType> buffer) = 0;
+
+    virtual DataSizeType* offsets(psize_t row) = 0;
+    virtual const DataSizeType* offsets(psize_t row) const = 0;
+
+    virtual AtomType* data(psize_t pos) = 0;
+    virtual const AtomType* data(psize_t pos) const = 0;
+
+    virtual const AtomType* data_for(psize_t row) const = 0;
+
+    virtual ViewType get(psize_t row) const = 0;
+
+    virtual const std::type_info& substream_type() const {
+        return typeid(IOVLen1DArraySubstream<DataType>);
+    }
+
+};
+
+
+
+template <typename DataType>
+class IOVLen1DArraySubstreamImpl: public IOVLen1DArraySubstream<DataType> {
+    using Base = IOVLen1DArraySubstream<DataType>;
+public:
+    using typename Base::ViewType;
+    using typename Base::ValueType;
+    using typename Base::AtomType;
+    using typename Base::DataSizeType;
+    using typename Base::Buffer;
+
+private:
+
+    using Adapter = DataTypeTraits<DataType>;
+
+    ArenaBuffer<psize_t> offsets_;
+    ArenaBuffer<AtomType> data_;
+
+public:
+    IOVLen1DArraySubstreamImpl() {
+        offsets_.emplace_back(0);
+    }
+
+    virtual psize_t size() const {
+        return offsets_.size() - 1;
+    }
+
+    virtual psize_t length(psize_t row, psize_t size) const
+    {
+        return offsets_[row + size] - offsets_[row];
+    }
+
+    virtual void read_to(psize_t row, psize_t size, Buffer& buffer) const
+    {
+        for (size_t c = row; c < row + size; c++)
+        {
+            const AtomType* data = data_.data() + offsets_[c];
+            psize_t length = offsets_[c + 1] - offsets_[c];
+
+            ViewType view = Adapter::make_view(data, length);
+            buffer.append_value(view);
+        }
+    }
+
+    virtual void append_from(Span<const ViewType> buffer)
+    {
+        for (auto& value: buffer)
+        {
+            psize_t length = Adapter::length(value);
+            const AtomType* data = Adapter::data(value);
+            psize_t top = offsets_.head();
+
+            offsets_.append_value(top + length);
+            data_.append_values(data, length);
+        }
+    }
+
+    virtual void append_from(Span<const ValueType> buffer)
+    {
+        for (auto& value: buffer)
+        {
+            psize_t length = Adapter::length(value);
+            const AtomType* data = Adapter::data(value);
+            psize_t top = offsets_.head();
+
+            offsets_.append_value(top + length);
+            data_.append_values(data, length);
+        }
+    }
+
+    virtual DataSizeType* offsets(psize_t row) {
+        return offsets_.data() + row;
+    }
+
+    virtual const DataSizeType* offsets(psize_t row) const {
+        return offsets_.data() + row;
+    }
+
+    virtual AtomType* data(psize_t pos) {
+        return data_.data() + pos;
+    }
+
+    virtual const AtomType* data(psize_t pos) const {
+        return data_.data() + pos;
+    }
+
+    virtual const AtomType* data_for(psize_t row) const {
+        return data_.data() + offsets_[row];
+    }
+
+    virtual ViewType get(psize_t row) const
+    {
+        const AtomType* data = data_.data() + offsets_[row];
+        psize_t length = offsets_[row + 1] - offsets_[row];
+
+        return Adapter::make_view(data, length);
+    }
+
+    virtual void reset() {
+        offsets_.clear();
+        offsets_.append_value(0);
+        data_.clear();
+    }
+
+    virtual void reindex() {}
+
+    virtual U8String describe() const {
+        return TypeNameFactory<IOVLen1DArraySubstream<DataType>>::name().to_u8();
+    }
+};
+
+
+template <typename DataType, typename ArraySO>
+class IOVLen1DArraySubstreamViewImpl: public IOVLen1DArraySubstream<DataType> {
+    using Base = IOVLen1DArraySubstream<DataType>;
+public:
+    using typename Base::ViewType;
+    using typename Base::ValueType;
+    using typename Base::AtomType;
+    using typename Base::DataSizeType;
+    using typename Base::Buffer;
+
+    using Accessor = typename ArraySO::Accessor;
+
+private:
+
+    using Adapter = DataTypeTraits<DataType>;
+
+    ArraySO array_;
+
+public:
+    IOVLen1DArraySubstreamViewImpl() {}
+
+    void configure(ArraySO array)
+    {
+        array_ = array;
+    }
+
+    virtual psize_t size() const {
+        return array_.size();
+    }
+
+    virtual psize_t length(psize_t row, psize_t size) const
+    {
+        return array_.length(0, row, size);
+    }
+
+    virtual void read_to(psize_t row, psize_t size, Buffer& buffer) const
+    {
+        Accessor accessor(array_, 0);
+
+        for (size_t c = row; c < row + size; c++)
+        {
+            buffer.append_value(accessor.get(c));
+        }
+    }
+
+    virtual void append_from(Span<const ViewType> buffer)
+    {
+        MMA1_THROW(UnsupportedOperationException());
+    }
+
+    virtual void append_from(Span<const ValueType> buffer)
+    {
+        MMA1_THROW(UnsupportedOperationException());
+    }
+
+    virtual DataSizeType* offsets(psize_t row) {
+        MMA1_THROW(UnsupportedOperationException());
+    }
+
+    virtual const DataSizeType* offsets(psize_t row) const {
+        return array_.data()->offsets(0) + row;
+    }
+
+    virtual AtomType* data(psize_t pos) {
+        MMA1_THROW(UnsupportedOperationException());
+    }
+
+    virtual const AtomType* data(psize_t pos) const {
+        return array_.data()->data(0) + pos;
+    }
+
+    virtual const AtomType* data_for(psize_t row) const {
+        return array_.data_for(0, row);
+    }
+
+    virtual ViewType get(psize_t row) const
+    {
+        Accessor accessor(array_, 0);
+        return accessor.get(row);
+    }
+
+
+    virtual void reset() {}
+
+    virtual void reindex() {}
+
+    virtual U8String describe() const {
+        return TypeNameFactory<IOVLen1DArraySubstream<DataType>>::name().to_u8();
+    }
+};
+
 
 }}}

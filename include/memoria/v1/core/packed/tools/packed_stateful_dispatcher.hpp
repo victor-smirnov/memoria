@@ -38,11 +38,18 @@ namespace memoria {
 namespace v1 {
 
 
-template <typename State, typename List, int32_t GroupIdx = 0, int32_t ListIdx = 0> class PackedStatefulDispatcher;
+template <
+        typename State,
+        typename List,
+        int32_t AllocatorStartIdx,
+        int32_t GroupIdx = 0,
+        int32_t ListIdx = 0
+>
+class PackedStatefulDispatcher;
 
 
-template <typename State, typename Head, typename... Tail, int32_t Index, int32_t GroupIdx, int32_t ListIdx>
-class PackedStatefulDispatcher<State, TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, ListIdx> {
+template <typename State, typename Head, typename... Tail, int32_t AllocatorStartIdx, int32_t Index, int32_t GroupIdx, int32_t ListIdx>
+class PackedStatefulDispatcher<State, TypeList<SubstreamDescr<Head, Index>, Tail...>, AllocatorStartIdx, GroupIdx, ListIdx> {
 
     const State& state_;
 
@@ -55,14 +62,16 @@ public:
     using HeadSO = typename Head::SparseObject;
 
     using List              = TypeList<SubstreamDescr<Head, Index>, Tail...>;
-    using NextDispatcher    = PackedStatefulDispatcher<State, TypeList<Tail...>, GroupIdx, ListIdx + 1>;
+    using NextDispatcher    = PackedStatefulDispatcher<State, TypeList<Tail...>, AllocatorStartIdx, GroupIdx, ListIdx + 1>;
 
     static const int32_t Size = ListSize<List>;
 
     static const int32_t AllocatorIdxStart  = Index;
     static const int32_t AllocatorIdxEnd    = Select<Size - 1, List>::Value + 1;
 
-    template<typename, typename, int32_t, int32_t> friend class PackedStatefulDispatcher;
+    static const int32_t ExtDataTupleIdx    = AllocatorIdx - AllocatorStartIdx;
+
+    template<typename, typename, int32_t, int32_t, int32_t> friend class PackedStatefulDispatcher;
 
     template<int32_t StreamIdx>
     using StreamTypeT = Select<StreamIdx, List>;
@@ -107,6 +116,7 @@ public:
                                     List,
                                     From, To
                                 >,
+                                AllocatorStartIdx,
                                 GroupIdx_
                              >;
 
@@ -117,16 +127,77 @@ public:
                                     List,
                                     Subset
                                 >,
+                                AllocatorStartIdx,
                                 GroupIdx_
                            >;
 
     template <int32_t GroupIdx_>
-    using GroupDispatcher = PackedStatefulDispatcher<State, List, GroupIdx>;
+    using GroupDispatcher = PackedStatefulDispatcher<State, List, AllocatorStartIdx, GroupIdx>;
 
     template <template <typename> class MapFn>
     using ForAllStructs = TransformTL<List, MapFn>;
 
     PackedStatefulDispatcher(const State& state): state_(state) {}
+
+    template <int32_t SubstreamIdx>
+    auto allocateEmpty(PackedAllocator* alloc)
+    {
+        using StreamDescrT  = StreamTypeT<SubstreamIdx>;
+        using StreamType    = typename StreamDescrT::Type;
+
+        const int32_t AllocatorIdx  = StreamDescrT::Value;
+
+        StreamType* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx))
+        {
+            head = alloc->template allocateEmpty<StreamType>(AllocatorIdx);
+        }
+
+        using SubstreamSO = typename StreamType::SparseObject;
+
+        SubstreamSO so(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head);
+
+        return so;
+    }
+
+    template <int32_t SubstreamIdx>
+    auto get(PackedAllocator* alloc)
+    {
+        using StreamDescrT  = StreamTypeT<SubstreamIdx>;
+        using StreamType    = typename StreamDescrT::Type;
+
+        const int32_t AllocatorIdx  = StreamDescrT::Value;
+
+        StreamType* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx))
+        {
+            head = alloc->template get<StreamType>(AllocatorIdx);
+        }
+
+        using SubstreamSO = typename StreamType::SparseObject;
+
+        return SubstreamSO(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head);
+    }
+
+    template <int32_t SubstreamIdx>
+    const auto get(const PackedAllocator* alloc)
+    {
+        using StreamDescrT  = StreamTypeT<SubstreamIdx>;
+        using StreamType    = typename StreamDescrT::Type;
+
+        const int32_t AllocatorIdx  = StreamDescrT::Value;
+
+        StreamType* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx))
+        {
+            head = alloc->template get<StreamType>(AllocatorIdx);
+        }
+
+        using SubstreamSO = typename StreamType::SparseObject;
+
+        return SubstreamSO(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), const_cast<StreamType*>(head));
+    }
+
 
     template <typename Fn, typename... Args>
     auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
@@ -139,7 +210,7 @@ public:
                 head = alloc->template get<Head>(AllocatorIdx);
             }
 
-            HeadSO so(&std::get<ListIdx>(state_), head);
+            HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
             return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -162,7 +233,7 @@ public:
                 head = alloc->template get<Head>(AllocatorIdx);
             }
 
-            const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+            const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
             return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -188,7 +259,10 @@ public:
             head = alloc->template get<StreamType>(AllocatorIdx);
         }
 
-        const typename StreamType::SparseObject so(&std::get<ListIdx>(state_), const_cast<StreamType*>(head));
+        const typename StreamType::SparseObject so(
+                    &std::get<AllocatorIdx - AllocatorStartIdx>(state_),
+                    const_cast<StreamType*>(head)
+        );
 
         return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
                 std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -210,7 +284,9 @@ public:
             head = alloc->template get<StreamType>(AllocatorIdx);
         }
 
-        typename StreamType::SparseObject so(&std::get<ListIdx>(state_), head);
+        typename StreamType::SparseObject so(
+                    &std::get<AllocatorIdx - AllocatorStartIdx>(state_), head
+        );
 
         return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
                 std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -260,7 +336,7 @@ public:
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
 
-            HeadSO so(&std::get<ListIdx>(state_), head);
+            HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
             memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -277,7 +353,7 @@ public:
         if (!alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
-            const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+            const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
             memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -294,7 +370,7 @@ public:
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
-            HeadSO so(&std::get<ListIdx>(state_), head);
+            HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
             memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
             );
@@ -310,7 +386,8 @@ public:
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
-            const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+            const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
+
             memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
             );
@@ -333,7 +410,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        HeadSO so(&std::get<ListIdx>(state_), head);
+        HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
         memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
             std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -370,7 +447,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+        const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
         memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -409,7 +486,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        HeadSO so(&std::get<ListIdx>(state_), head);
+        HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
         memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -447,7 +524,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+        const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
         memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -536,7 +613,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+        const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
         memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -573,7 +650,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        HeadSO so(&std::get<ListIdx>(state_), head);
+        HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
         memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -593,7 +670,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        HeadSO so(&std::get<ListIdx>(state_), head);
+        HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
         std::get<ListIdx>(tuple) = memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -611,7 +688,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+        const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
         std::get<ListIdx>(tuple) = memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -643,7 +720,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+        const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
         std::get<ListIdx>(tuple) = memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -661,7 +738,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        HeadSO so(&std::get<ListIdx>(state_), head);
+        HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
         std::get<ListIdx>(tuple) = memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -687,8 +764,8 @@ public:
 
 
 
-template <typename State, typename Head, int32_t Index, int32_t GroupIdx, int32_t ListIdx>
-class PackedStatefulDispatcher<State, TypeList<SubstreamDescr<Head, Index>>, GroupIdx, ListIdx> {
+template <typename State, typename Head, int32_t AllocatorStartIdx, int32_t Index, int32_t GroupIdx, int32_t ListIdx>
+class PackedStatefulDispatcher<State, TypeList<SubstreamDescr<Head, Index>>, AllocatorStartIdx, GroupIdx, ListIdx> {
     const State& state_;
 public:
 
@@ -701,9 +778,11 @@ public:
     static const int32_t AllocatorIdxStart  = Index;
     static const int32_t AllocatorIdxEnd    = Index + 1;
 
+    static const int32_t ExtDataTupleIdx    = AllocatorIdx - AllocatorStartIdx;
+
     static const int32_t Size = ListSize<List>;
 
-    template<typename, typename, int32_t, int32_t> friend class PackedStatefulDispatcher;
+    template<typename, typename, int32_t, int32_t, int32_t> friend class PackedStatefulDispatcher;
 
 
     template<int32_t StreamIdx>
@@ -748,6 +827,7 @@ public:
                                     TypeList<SubstreamDescr<Head, Index>>,
                                     From, To
                                 >,
+                                AllocatorStartIdx,
                                 GroupIdx_
                           >;
 
@@ -758,6 +838,7 @@ public:
                                         TypeList<SubstreamDescr<Head, Index>>,
                                         Subset
                                     >,
+                                    AllocatorStartIdx,
                                     GroupIdx_
                               >;
 
@@ -766,6 +847,65 @@ public:
 
 
     PackedStatefulDispatcher(const State& state): state_(state) {}
+
+    template <int32_t SubstreamIdx>
+    auto allocateEmpty(PackedAllocator* alloc)
+    {
+        using StreamDescrT  = StreamTypeT<SubstreamIdx>;
+        using StreamType    = typename StreamDescrT::Type;
+
+        const int32_t AllocatorIdx  = StreamDescrT::Value;
+
+        StreamType* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx))
+        {
+            head = alloc->template allocateEmpty<StreamType>(AllocatorIdx);
+        }
+
+        using SubstreamSO = typename StreamType::SparseObject;
+
+        SubstreamSO so(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head);
+
+        return so;
+    }
+
+    template <int32_t SubstreamIdx>
+    auto get(PackedAllocator* alloc)
+    {
+        using StreamDescrT  = StreamTypeT<SubstreamIdx>;
+        using StreamType    = typename StreamDescrT::Type;
+
+        const int32_t AllocatorIdx  = StreamDescrT::Value;
+
+        StreamType* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx))
+        {
+            head = alloc->template get<StreamType>(AllocatorIdx);
+        }
+
+        using SubstreamSO = typename StreamType::SparseObject;
+
+        return SubstreamSO(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head);
+    }
+
+    template <int32_t SubstreamIdx>
+    const auto get(const PackedAllocator* alloc)
+    {
+        using StreamDescrT  = StreamTypeT<SubstreamIdx>;
+        using StreamType    = typename StreamDescrT::Type;
+
+        const int32_t AllocatorIdx  = StreamDescrT::Value;
+
+        StreamType* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx))
+        {
+            head = alloc->template get<StreamType>(AllocatorIdx);
+        }
+
+        using SubstreamSO = typename StreamType::SparseObject;
+
+        return SubstreamSO(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), const_cast<StreamType*>(head));
+    }
 
 
     template <typename Fn, typename... Args>
@@ -779,7 +919,7 @@ public:
                 head = alloc->template get<Head>(AllocatorIdx);
             }
 
-            HeadSO so(&std::get<ListIdx>(state_), head);
+            HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
             return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -802,7 +942,7 @@ public:
                 head = alloc->template get<Head>(AllocatorIdx);
             }
 
-            const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+            const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
             return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -828,7 +968,7 @@ public:
             head = alloc->template get<StreamType>(AllocatorIdx);
         }
 
-        HeadSO so(&std::get<ListIdx>(state_), head);
+        HeadSO so(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head);
 
         return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -850,7 +990,7 @@ public:
             head = alloc->template get<StreamType>(AllocatorIdx);
         }
 
-        const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+        const HeadSO so(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), const_cast<Head*>(head));
 
         return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -896,7 +1036,8 @@ public:
         if (!alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
-            HeadSO so(&std::get<ListIdx>(state_), head);
+            HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
+
             memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
             );
@@ -910,7 +1051,8 @@ public:
         if (!alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
-            const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+            const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
+
             memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
             );
@@ -924,7 +1066,8 @@ public:
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
-            HeadSO so(&std::get<ListIdx>(state_), head);
+            HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
+
             memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
             );
@@ -938,7 +1081,8 @@ public:
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
-            const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+            const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
+
             memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
             );
@@ -1025,7 +1169,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        HeadSO so(&std::get<ListIdx>(state_), head);
+        HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
         return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -1045,7 +1189,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+        const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
         return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -1085,7 +1229,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+        const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
         return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -1121,7 +1265,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        HeadSO so(&std::get<ListIdx>(state_), head);
+        HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
         return memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                 std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -1139,7 +1283,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        HeadSO so(&std::get<ListIdx>(state_), head);
+        HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
         std::get<ListIdx>(tuple) = memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -1155,7 +1299,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+        const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
         std::get<ListIdx>(tuple) = memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -1182,7 +1326,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        const HeadSO so(&std::get<ListIdx>(state_), const_cast<Head*>(head));
+        const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
         std::get<ListIdx>(tuple) = memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
@@ -1198,7 +1342,7 @@ public:
         {
             head = alloc->template get<Head>(AllocatorIdx);
         }
-        HeadSO so(&std::get<ListIdx>(state_), head);
+        HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
         std::get<ListIdx>(tuple) = memoria::v1::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...

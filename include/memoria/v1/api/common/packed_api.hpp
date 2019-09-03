@@ -1,5 +1,5 @@
 
-// Copyright 2019 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,12 +15,24 @@
 
 #pragma once
 
-#include <memoria/v1/api/common/iobuffer_adatpters_col_fx.hpp>
-#include <memoria/v1/api/common/iobuffer_adatpters_col_vlen.hpp>
+#include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/api/common/iobuffer_adapters_col1d_vlen.hpp>
-#include <memoria/v1/api/common/iobuffer_adapters_col1d_fx.hpp>
+#include <memoria/v1/api/datatypes/traits.hpp>
 
-#include <memoria/v1/api/common/iobuffer_adatpters_row_fx.hpp>
-#include <memoria/v1/api/common/iobuffer_adatpters_row_vlen.hpp>
+namespace memoria {
+namespace v1 {
 
+struct PkdFSEArrayTag {};
+struct PkdFSETreeTag  {};
+struct PkdRLESeqTag   {};
+struct PkdFSESeqTag   {};
+struct PkdVLEArrayTag {};
+struct PkdVLETreeTag  {};
+
+template <typename DataType, typename PkdStructTag, typename PkdStruct>
+struct PkdDataTypeAccessor;
+
+template <typename PkdStructTag>
+struct PkdStructApiTraits;
+
+}}

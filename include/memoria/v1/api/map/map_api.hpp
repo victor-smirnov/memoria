@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
+#include <memoria/v1/api/common/iobuffer_adatpters.hpp>
 
 #include <memoria/v1/api/datatypes/traits.hpp>
 #include <memoria/v1/api/datatypes/encoding_traits.hpp>
@@ -45,6 +46,8 @@ struct MapIterator {
     virtual ValueV value() const = 0;
     virtual bool is_end() const = 0;
     virtual void next() = 0;
+
+    virtual void dump() const = 0;
 };
 
 

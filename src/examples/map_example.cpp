@@ -31,8 +31,8 @@ int main()
 {
     StaticLibraryCtrs<>::init();
 
-    //using MapType = Map<BigInt, BigInt>;
-    //using Entry   = std::pair<int64_t, int64_t>;
+//    using MapType = Map<BigInt, BigInt>;
+//    using Entry   = std::pair<int64_t, int64_t>;
 
     using MapType = Map<Varchar, Varchar>;
     using Entry   = std::pair<U8String, U8String>;
@@ -46,18 +46,19 @@ int main()
 
     auto ctr0 = snp->create_ctr(MapType());
 
-    ctr0->set_new_block_size(64*1024);
+    //ctr0->set_new_block_size(64*1024);
 
     int64_t t0 = getTimeInMillis();
 
     std::vector<Entry> entries_;
 
-    for (int c = 0; c < 100000; c++) {
+    for (int c = 0; c < 110; c++) {
         //entries_.emplace_back(Entry(c, -c));
         entries_.emplace_back(Entry(
             //c,
             "AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c),
             "BBBBBBBBBBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c)
+           // c, -c
         ));
     }
 
@@ -82,11 +83,10 @@ int main()
 
     int64_t t1_i = getTimeInMillis();
 
-
-
     std::cout << "Inserted entries in " << (t1_i - t0_i) << " ms" << std::endl;
     std::cout << "Size = " << ctr0->size() << std::endl;
 
+    ctr0->iterator()->dump();
 
     snp->commit();
     snp->set_as_master();

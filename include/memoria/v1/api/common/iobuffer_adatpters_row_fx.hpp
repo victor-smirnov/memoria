@@ -88,7 +88,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::RowWise, ValueCodec>, t
         }
     }
 
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, io::DefaultIOBuffer<ValueType>& buffer)
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, ArenaBuffer<ValueType>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
         if (subs.columns() == 1)

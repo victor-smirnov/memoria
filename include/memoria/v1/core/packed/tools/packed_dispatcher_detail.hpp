@@ -217,7 +217,7 @@ struct FnDispatcher<TypeList<IntValue<4>, Tail...>, GroupIdx, AllocIdx, Idx, Rtn
     static RtnType dispatch(Fn&& fn, Args&&... args)
     {
         return fn.template stream<GroupIdx, AllocIdx, Idx>(std::forward<Args>(args)...);
-    };
+    }
 };
 
 

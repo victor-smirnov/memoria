@@ -410,7 +410,7 @@ public:
                 "Only classes that are not derived from PackedAllocatable "
                 "should be instantiated this way");
 
-        AllocationBlock block = allocate(idx, sizeof(T)*size, PackedBlockType::RAW_MEMORY);
+        AllocationBlock block = allocate(idx, sizeof(T) * size, PackedBlockType::RAW_MEMORY);
         return block.cast<T>();
     }
 

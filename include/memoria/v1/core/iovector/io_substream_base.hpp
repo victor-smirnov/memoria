@@ -42,7 +42,7 @@ struct IOSubstream {
 
     virtual const std::type_info& substream_type() const = 0;
 
-    virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const = 0;
+    //virtual void copy_to(IOSubstream& target, int32_t start, int32_t length) const = 0;
 };
 
 template <typename T>

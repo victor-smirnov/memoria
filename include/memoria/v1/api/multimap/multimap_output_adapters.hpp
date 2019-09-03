@@ -57,7 +57,7 @@ namespace _ {
 
     template <typename DataType, typename ViewType>
     class MMapSubstreamAdapter<DataType, ViewType, false> {
-        io::DefaultIOBuffer<ViewType> array_;
+        ArenaBuffer<ViewType> array_;
 
     public:
         size_t size() const {return array_.size();}
@@ -84,7 +84,7 @@ namespace _ {
     template <typename DataType, typename ViewType>
     class MMapValueGroupsAdapter<DataType, ViewType, true> {
 
-        io::DefaultIOBuffer<Span<const ViewType>> array_;
+        ArenaBuffer<Span<const ViewType>> array_;
 
     public:
         auto& array() {return array_;}
@@ -152,8 +152,8 @@ namespace _ {
     template <typename DataType, typename ViewType>
     class MMapValueGroupsAdapter<DataType, ViewType, false>
     {
-        io::DefaultIOBuffer<Span<const ViewType>> array_;
-        io::DefaultIOBuffer<ViewType> values_;
+        ArenaBuffer<Span<const ViewType>> array_;
+        ArenaBuffer<ViewType> values_;
 
     public:
         auto& array() {return array_;}
@@ -266,7 +266,7 @@ namespace _ {
     template <typename DataType, typename AtomType>
     class MMapValuesBufferAdapter<DataType, AtomType, true> {
 
-        io::DefaultIOBuffer<AtomType> array_;
+        ArenaBuffer<AtomType> array_;
 
     public:
         Span<const AtomType> span() const {return array_.span();}
@@ -287,8 +287,8 @@ namespace _ {
 
         using ViewType = typename DataTypeTraits<DataType>::ViewType;
 
-        io::DefaultIOBuffer<ViewType> views_;
-        io::DefaultIOBuffer<AtomType> data_;
+        ArenaBuffer<ViewType> views_;
+        ArenaBuffer<AtomType> data_;
 
     public:
 

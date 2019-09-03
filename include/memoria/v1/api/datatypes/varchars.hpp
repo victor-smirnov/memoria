@@ -20,8 +20,11 @@
 
 #include <memoria/v1/api/datatypes/datum.hpp>
 
+#include <memoria/v1/api/common/packed_api.hpp>
 
+#include <memoria/v1/core/tools/span.hpp>
 
+#include <memoria/v1/core/tools/arena_buffer.hpp>
 
 
 namespace memoria {
@@ -39,6 +42,7 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     using ViewType      = VarcharView;
     using ConstViewType = VarcharView;
     using ValueType     = U8String;
+    using AtomType      = typename VarcharView::value_type;
 
     using DatumStorage  = VarcharStorage;
 
@@ -60,6 +64,19 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     {
         buf << "Varchar";
     }
+
+    static ViewType make_view(const AtomType* data, size_t length)
+    {
+        return ViewType(data, length);
+    }
+
+    static const AtomType* data(const ViewType& view) {
+        return view.data();
+    }
+
+    static size_t length(const ViewType& view) {
+        return view.length();
+    }
 };
 
 
@@ -76,9 +93,5 @@ public:
     static VarcharStorage* create(ViewType view);
     virtual U8String to_sdn_string() const;
 };
-
-
-
-
 
 }}

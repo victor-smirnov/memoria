@@ -37,8 +37,8 @@ struct MapKeysValues;
 template <typename KeyT, typename ValueT>
 struct MapKeysValues<KeyT, ValueT, false, false>
 {
-    io::DefaultIOBuffer<KeyT> keys_;
-    io::DefaultIOBuffer<ValueT> values_;
+    ArenaBuffer<KeyT> keys_;
+    ArenaBuffer<ValueT> values_;
 
     Span<const KeyT> keys() const {return keys_.span();}
     Span<const ValueT> values() const {return values_.span();}
@@ -56,7 +56,7 @@ template <typename KeyT, typename ValueT>
 struct MapKeysValues<KeyT, ValueT, true, false>
 {
     Span<const KeyT> keys_;
-    io::DefaultIOBuffer<ValueT> values_;
+    ArenaBuffer<ValueT> values_;
 
     const Span<const KeyT>& keys() const {return keys_;}
     Span<const ValueT> values() const {return values_.span();}
@@ -71,7 +71,7 @@ struct MapKeysValues<KeyT, ValueT, true, false>
 template <typename KeyT, typename ValueT>
 struct MapKeysValues<KeyT, ValueT, false, true>
 {
-    io::DefaultIOBuffer<KeyT> keys_;
+    ArenaBuffer<KeyT> keys_;
     Span<const ValueT> values_;
 
     Span<const KeyT> keys() const {return keys_.span();}

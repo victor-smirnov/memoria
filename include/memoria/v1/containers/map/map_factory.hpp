@@ -37,6 +37,7 @@
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
 #include <memoria/v1/core/packed/array/packed_fse_array.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
 #ifdef HAVE_BOOST
@@ -113,7 +114,7 @@ struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key_, Value_> {
 
     using LeafKeyStruct = typename map::MapKeyStructTF<KeyV, HasFieldFactory<KeyV>::Value>::Type;
 
-    using LeafValueStruct = typename map::MapValueStructTF<ValueV, HasFieldFactory<ValueV>::Value>::Type;
+    using LeafValueStruct = typename map::MapValueStructTF<Value_, HasFieldFactory<ValueV>::Value>::Type;
 
     using StreamDescriptors = TL<
             bt::StreamTF<

@@ -110,40 +110,40 @@ struct FieldFactory<EmptyValue> {
 template <> struct FieldFactory<Type> {                                         \
     template <typename SerializationData>                                       \
     static void serialize(SerializationData& data, const Type& field) {         \
-        memmove(data.buf, &field, sizeof(Type));                                \
+        memcpy(data.buf, &field, sizeof(Type));                                 \
         data.buf += sizeof(Type);                                               \
         data.total += sizeof(Type);                                             \
     }                                                                           \
                                                                                 \
     template <typename DeserializationData>                                     \
     static void deserialize(DeserializationData& data, Type& field) {           \
-        memmove(&field, data.buf, sizeof(Type));                                \
+        memcpy(&field, data.buf, sizeof(Type));                                 \
         data.buf += sizeof(Type);                                               \
     }                                                                           \
                                                                                 \
     template <typename SerializationData>                                       \
     static void serialize(SerializationData& data, const Type& field, int32_t count) {\
-        memmove(data.buf, &field, count*sizeof(Type));                          \
+        memcpy(data.buf, &field, count*sizeof(Type));                           \
         data.buf += count * sizeof(Type);                                       \
         data.total += count * sizeof(Type);                                     \
     }                                                                           \
                                                                                 \
     template <typename DeserializationData>                                     \
     static void deserialize(DeserializationData& data, Type& field, int32_t count) {\
-        memmove(&field, data.buf, count*sizeof(Type));                          \
+        memcpy(&field, data.buf, count*sizeof(Type));                           \
         data.buf += count*sizeof(Type);                                         \
     }                                                                           \
                                                                                 \
     template <typename SerializationData>                                       \
     static void serialize(SerializationData& data, const Type* field, int32_t count) {\
-        memmove(data.buf, field, count*sizeof(Type));                           \
+        memcpy(data.buf, field, count*sizeof(Type));                            \
         data.buf += count * sizeof(Type);                                       \
         data.total += count * sizeof(Type);                                     \
     }                                                                           \
                                                                                 \
     template <typename DeserializationData>                                     \
     static void deserialize(DeserializationData& data, Type* field, int32_t count) {\
-        memmove(field, data.buf, count*sizeof(Type));                           \
+        memcpy(field, data.buf, count*sizeof(Type));                            \
         data.buf += count*sizeof(Type);                                         \
     }                                                                           \
 }
@@ -155,40 +155,40 @@ template <> struct FieldFactory<uint64_t> {
 
     template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field) {
-        memmove(data.buf, &field, sizeof(Type));
+        memcpy(data.buf, &field, sizeof(Type));
         data.buf += sizeof(Type);
         data.total += sizeof(Type);
     }
 
     template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field) {
-        memmove(&field, data.buf, sizeof(Type));
+        memcpy(&field, data.buf, sizeof(Type));
         data.buf += sizeof(Type);
     }
 
     template <typename SerializationData>
     static void serialize(SerializationData& data, const Type& field, int32_t count) {
-        memmove(data.buf, &field, count*sizeof(Type));
+        memcpy(data.buf, &field, count*sizeof(Type));
         data.buf += count * sizeof(Type);
         data.total += count * sizeof(Type);
     }
 
     template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type& field, int32_t count) {
-        memmove(&field, data.buf, count*sizeof(Type));
+        memcpy(&field, data.buf, count*sizeof(Type));
         data.buf += count*sizeof(Type);
     }
 
     template <typename SerializationData>
     static void serialize(SerializationData& data, const Type* field, int32_t count) {
-        memmove(data.buf, field, count*sizeof(Type));
+        memcpy(data.buf, field, count*sizeof(Type));
         data.buf += count * sizeof(Type);
         data.total += count * sizeof(Type);
     }
 
     template <typename DeserializationData>
     static void deserialize(DeserializationData& data, Type* field, int32_t count) {
-        memmove(field, data.buf, count*sizeof(Type));
+        memcpy(field, data.buf, count*sizeof(Type));
         data.buf += count*sizeof(Type);
     }
 };

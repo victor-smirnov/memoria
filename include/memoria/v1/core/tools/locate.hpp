@@ -14,41 +14,18 @@
 // limitations under the License.
 
 
-#include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/api/datatypes/datatypes.hpp>
-
-#include <memoria/v1/core/types/hana.hpp>
-#include <memoria/v1/core/types/mp11.hpp>
-
-#include <memoria/v1/core/types/algo/select.hpp>
-
-#include <memoria/v1/core/tools/arena_buffer.hpp>
-
-#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/v1/core/types.hpp>
 
 
-#include <iostream>
+namespace memoria {
+namespace v1 {
 
 
-using namespace memoria::v1;
-
-constexpr psize_t make_mask_for_stride(psize_t stride_log2)
+template <typename ProviderFn, typename Value>
+psize_t locate(psize_t stride_log2_ex, psize_t size, ProviderFn&& values, Value element)
 {
-    return (static_cast<psize_t>(1) << (stride_log2 - 1)) - 1;
-}
-
-constexpr psize_t compute_stride(psize_t stride_log2)
-{
-    return static_cast<psize_t>(1) << stride_log2;
-}
-
-using Value = psize_t;
-
-psize_t locate(psize_t stride_log2_ex, const std::vector<Value>& values, Value element)
-{
-    psize_t size = values.size();
     psize_t basic_stride_log2 = stride_log2_ex;
-    psize_t basic_stride = compute_stride(basic_stride_log2);
+    psize_t basic_stride = static_cast<psize_t>(1) << basic_stride_log2;
 
     psize_t stride_base = 0;
     if (MMA1_LIKELY(basic_stride <= size))
@@ -65,7 +42,6 @@ psize_t locate(psize_t stride_log2_ex, const std::vector<Value>& values, Value e
             stride_log2 = stride_log2_tmp;
         }
 
-
         psize_t strides = size >> stride_log2;
 
         while (stride >= basic_stride)
@@ -75,11 +51,13 @@ psize_t locate(psize_t stride_log2_ex, const std::vector<Value>& values, Value e
             {
                 psize_t row = stride_base + stride - 1;
 
-                if (MMA1_LIKELY(element < values[row]))
+                Value vv = values(row);
+
+                if (MMA1_LIKELY(element < vv))
                 {
                     break;
                 }
-                else if (element == values[row]) {
+                else if (element == vv) {
                     return row;
                 }
                 else {
@@ -102,7 +80,7 @@ psize_t locate(psize_t stride_log2_ex, const std::vector<Value>& values, Value e
     psize_t pos = PkdNotFound;
 
     for (psize_t c = stride_base; c < size; c++) {
-        if (element <= values[c]) {
+        if (element <= values(c)) {
             return c;
         }
     }
@@ -110,39 +88,4 @@ psize_t locate(psize_t stride_log2_ex, const std::vector<Value>& values, Value e
     return pos;
 }
 
-
-int main()
-{
-
-    std::vector<Value> values;
-    std::vector<psize_t> values_idx;
-
-    for (psize_t c = 0; c < 8*1024*1024; c++)
-    {
-        values.push_back(c);
-        values_idx.push_back(c);
-    }
-
-    std::random_shuffle(values_idx.begin(), values_idx.end());
-
-    int64_t t0 = getTimeInMillis();
-
-
-    for (psize_t c = 0; c < values_idx.size(); c++)
-    {
-//        std::cout << c << std::endl;
-//        psize_t pos = locate(3, values, values_idx[c]);
-
-        std::binary_search(values.begin(), values.end(), values_idx[c]);
-
-//        if (pos == PkdNotFound) {
-//            std::cout << c << " :: " << pos << std::endl;
-//        }
-    }
-
-    int64_t t1 = getTimeInMillis();
-
-    std::cout << "Time: " << (t1 - t0) << std::endl;
-
-    return 0;
-}
+}}

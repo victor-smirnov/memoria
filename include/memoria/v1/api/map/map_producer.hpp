@@ -23,7 +23,7 @@
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
-
+#include <memoria/v1/api/common/iobuffer_adatpters.hpp>
 
 #include <functional>
 
