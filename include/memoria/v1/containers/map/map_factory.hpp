@@ -112,7 +112,7 @@ struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key_, Value_> {
             "Value type must have either ValueCodec or FieldFactory defined"
     );
 
-    using LeafKeyStruct = typename map::MapKeyStructTF<KeyV, HasFieldFactory<KeyV>::Value>::Type;
+    using LeafKeyStruct = typename map::MapKeyStructTF<Key_, HasFieldFactory<KeyV>::Value>::Type;
 
     using LeafValueStruct = typename map::MapValueStructTF<Value_, HasFieldFactory<ValueV>::Value>::Type;
 

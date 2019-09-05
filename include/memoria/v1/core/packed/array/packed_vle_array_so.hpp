@@ -30,6 +30,8 @@
 #include <memoria/v1/core/tools/span.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 
+#include <algorithm>
+
 namespace memoria {
 namespace v1 {
 
@@ -42,11 +44,14 @@ class PackedVLenElementArraySO {
 
 public:
 
-    using Value         = typename PkdStruct::Value;
+    using ValueType     = typename PkdStruct::ValueType;
+    using ViewType      = typename PkdStruct::ViewType;
     using DataType      = typename PkdStruct::DataType;
     using DataSizeType  = typename PkdStruct::DataSizeType;
     using DataAtomType  = typename PkdStruct::DataAtomType;
     using Accessor      = typename PkdStruct::Accessor;
+
+    using Iterator = PkdRandomAccessIterator<Accessor>;
 
     using ConstIterator = PkdRandomAccessIterator<Accessor>;
 
@@ -82,14 +87,14 @@ public:
         data_ = data;
     }
 
-    ConstIterator begin() const {
-        return Iterator(Accessor(this), 0, data_->size());
+    ConstIterator begin(psize_t column) const {
+        return Iterator(Accessor(*this, column), 0, data_->size());
     }
 
-    ConstIterator end() const
+    ConstIterator end(psize_t column) const
     {
         psize_t size = data_->size();
-        return Iterator(Accessor(this), size, size);
+        return Iterator(Accessor(*this, column), size, size);
     }
 
     operator bool() const {
@@ -128,7 +133,7 @@ public:
         const auto& meta = data_->metadata();
 
         handler->startStruct();
-        handler->startGroup("FX_SIZE_EL_ARRAY");
+        handler->startGroup("VLE_ARRAY");
 
         handler->value("SIZE",          &meta.size());
         handler->value("DATA_SIZE",     &meta.data_size(0));
@@ -154,7 +159,7 @@ public:
         return data_->metadata().size();
     }
 
-    Value access(psize_t column, psize_t row) const
+    ViewType access(psize_t column, psize_t row) const
     {
         Accessor accessor(*this, column);
         return accessor.get(row);
@@ -290,18 +295,37 @@ public:
         return OpStatus::OK;
     }
 
-    Value get_values(psize_t idx) const {
-        return get_values(0, idx);
+    ViewType get_values(psize_t idx) const {
+        return get_values(idx, 0);
     }
 
-    Value get_values(psize_t idx, psize_t column) const {
+    ViewType get_values(psize_t idx, psize_t column) const {
         return Accessor::get(*this, column, idx);
+    }
+
+
+    OptionalT<ViewType> max(psize_t column) const
+    {
+        auto size = this->size();
+
+        if (size > 0)
+        {
+            return access(column, size - 1);
+        }
+        else {
+            return OptionalT<ViewType>();
+        }
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+        for (int32_t column = 0; column < Columns; column++)
+        {
+            accum[column] = this->max(column);
+        }
     }
 
 
@@ -334,7 +358,7 @@ public:
 
         for (psize_t c = 0; c < size; c++)
         {
-            local_offsets[c] = offsets[c] - buffer_offset_prefix + local_offset_prefix;
+            local_offsets[c + at] = offsets[c] - buffer_offset_prefix + local_offset_prefix;
         }
 
         return OpStatusT<int32_t>(at + size);
@@ -368,6 +392,71 @@ public:
     OpStatus _remove(psize_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
         return removeSpace(idx, idx + 1);
+    }
+
+
+
+
+
+    class FindResult {
+        int32_t idx_;
+    public:
+        FindResult(int32_t idx): idx_(idx)
+        {}
+
+        FindResult(): idx_()
+        {}
+
+        ViewType prefix() {return ViewType{};}
+        int32_t local_pos() const {return idx_;}
+    };
+
+    FindResult findGTForward(psize_t column, const ViewType& val) const
+    {
+        auto end = this->end(column);
+        auto ii = std::upper_bound(begin(column), end, val);
+
+        if (ii != end)
+        {
+            return ii.pos();
+        }
+
+        return FindResult(data_->size());
+    }
+
+    FindResult findGEForward(psize_t column, const ViewType& val) const
+    {
+        auto end = this->end(column);
+        auto ii = std::lower_bound(begin(column), end, val);
+
+        if (ii != end)
+        {
+            return ii.pos();
+        }
+
+        return FindResult(data_->size());
+    }
+
+    auto findForward(SearchType search_type, psize_t column, const ViewType& val) const
+    {
+        if (search_type == SearchType::GT)
+        {
+            return findGTForward(column, val);
+        }
+        else {
+            return findGEForward(column, val);
+        }
+    }
+
+    auto findForward(SearchType search_type, psize_t column, const OptionalT<ViewType>& val) const
+    {
+        if (search_type == SearchType::GT)
+        {
+            return findGTForward(column, val.value());
+        }
+        else {
+            return findGEForward(column, val.value());
+        }
     }
 
 private:

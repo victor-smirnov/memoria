@@ -33,17 +33,19 @@ namespace v1 {
 
 template <
     typename V,
-    int32_t Blocks_ = 1
+    int32_t Blocks_ = 1,
+    int32_t Indexes_ = 0
 >
 struct PackedVLenElementArrayTypes {
     using Value = V;
     static constexpr int32_t Blocks = Blocks_;
+    static constexpr int32_t Indexes = Indexes_;
 };
 
 template <typename Types> class PackedVLenElementArray;
 
-template <typename V, int32_t Blocks = 1>
-using PkdVLEArrayT = PackedVLenElementArray<PackedVLenElementArrayTypes<V, Blocks>>;
+template <typename V, int32_t Blocks = 1, int32_t Indexes = 0>
+using PkdVLEArrayT = PackedVLenElementArray<PackedVLenElementArrayTypes<V, Blocks, Indexes>>;
 
 
 
@@ -55,12 +57,14 @@ class PackedVLenElementArray: public PackedAllocator {
 public:
     static constexpr uint32_t VERSION = 1;
 
-    static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
-    static constexpr psize_t Blocks             = 1;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
+    static constexpr psize_t Blocks             = Types_::Blocks;
+    static constexpr psize_t Indexes            = Types_::Indexes;
 
     static constexpr psize_t SegmentsPerBlock   = 2;
     static constexpr psize_t OffsetsBlk         = 0;
     static constexpr psize_t DataBlk            = 1;
+
 
     using Types     = Types_;
     using MyType    = PackedVLenElementArray;
@@ -68,9 +72,12 @@ public:
 
     using DataType = typename Types::Value;
 
-    using Value         = typename DataTypeTraits<DataType>::ViewType;
+    using ViewType      = typename DataTypeTraits<DataType>::ViewType;
+    using ValueType     = typename DataTypeTraits<DataType>::ValueType;
     using DataSizeType  = psize_t;
     using DataAtomType  = typename DataTypeTraits<DataType>::AtomType;
+
+    using IndexValue = ValueType;
 
     using Allocator = PackedAllocator;
 
@@ -281,18 +288,18 @@ struct PkdStructSizeType<PackedVLenElementArray<Types>> {
 
 template <typename T>
 struct StructSizeProvider<PackedVLenElementArray<T>> {
-    static const int32_t Value = 0;
+    static const int32_t Value = PackedVLenElementArray<T>::Indexes;
 };
 
 
 template <typename T>
 struct PkdSearchKeyTypeProvider<PackedVLenElementArray<T>> {
-    using Type = typename PackedVLenElementArray<T>::Value;
+    using Type = OptionalT<typename PackedVLenElementArray<T>::ViewType>;
 };
 
 template <typename T>
 struct IndexesSize<PackedVLenElementArray<T>> {
-    static const int32_t Value = 0;
+    static const int32_t Value = PackedVLenElementArray<T>::Indexes;
 };
 
 }}

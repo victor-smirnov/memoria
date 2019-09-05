@@ -26,14 +26,10 @@
 namespace memoria {
 namespace v1 {
 
-
-
 template <typename Types> class PkdFMOTree;
-
 
 template <typename ValueT, int32_t kBlocks = 1, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
 using PkdFMOTreeT = PkdFMOTree<PkdFMTreeTypes<typename ValueT::ValueType, kBlocks, kBranchingFactor, kValuesPerBranch>>;
-
 
 
 template <typename Types>

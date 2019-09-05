@@ -110,6 +110,10 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
         MemCpyBuffer(buffer.data() + start, ptr, size);
     }
 
+    size_t size() const {
+        return size_;
+    }
+
 };
 
 

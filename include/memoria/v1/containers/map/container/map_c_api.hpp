@@ -70,6 +70,12 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         return ctr_make_shared<MapIteratorImpl<Key,Value, IteratorPtr>>(iter);
     }
 
+    virtual CtrSharedPtr<MapIterator<Key, Value>> find_entry(KeyView key)
+    {
+        auto iter = self().find(key);
+        return ctr_make_shared<MapIteratorImpl<Key,Value, IteratorPtr>>(iter);
+    }
+
     void append_entries(io::IOVectorProducer& producer)
     {
         auto& self = this->self();

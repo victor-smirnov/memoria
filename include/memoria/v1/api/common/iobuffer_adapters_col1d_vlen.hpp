@@ -88,6 +88,10 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
     void append_buffer(const Buffer& buffer) {
         substream_->append_from(buffer.span());
     }
+
+    size_t size() const {
+        return substream_->size();
+    }
 };
 
 

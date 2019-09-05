@@ -117,7 +117,7 @@ int main()
     std::vector<Value> values;
     std::vector<psize_t> values_idx;
 
-    for (psize_t c = 0; c < 8*1024*1024; c++)
+    for (psize_t c = 0; c < 35; c++)
     {
         values.push_back(c);
         values_idx.push_back(c);
@@ -133,7 +133,10 @@ int main()
 //        std::cout << c << std::endl;
 //        psize_t pos = locate(3, values, values_idx[c]);
 
-        std::binary_search(values.begin(), values.end(), values_idx[c]);
+
+        auto ii = std::upper_bound(values.begin(), values.end(), c);
+
+        std::cout << c << " :: " << *ii << std::endl;
 
 //        if (pos == PkdNotFound) {
 //            std::cout << c << " :: " << pos << std::endl;

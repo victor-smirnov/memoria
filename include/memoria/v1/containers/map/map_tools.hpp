@@ -41,13 +41,20 @@ namespace map {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, int32_t Selector> struct MapKeyStructTF;
+template <typename KeyType, int32_t Selector, bool isDataType = DataTypeTraits<KeyType>::isDataType> struct MapKeyStructTF;
 
 template <typename KeyType>
-struct MapKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
+struct MapKeyStructTF<KeyType, 1, false>: HasType<PkdFMTreeT<KeyType>> {};
 
 template <typename KeyType>
-struct MapKeyStructTF<KeyType, 0>: HasType<PkdVBMTreeT<KeyType>> {};
+struct MapKeyStructTF<KeyType, 1, true>: HasType<PkdFMTreeT<typename DataTypeTraits<KeyType>::ValueType>> {};
+
+template <typename KeyType>
+struct MapKeyStructTF<KeyType, 0, false>: HasType<PkdVBMTreeT<KeyType>> {};
+
+
+template <typename KeyType>
+struct MapKeyStructTF<KeyType, 0, true>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
 
 
 

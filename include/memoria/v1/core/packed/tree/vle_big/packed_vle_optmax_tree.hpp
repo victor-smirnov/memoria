@@ -35,7 +35,6 @@ template <typename ValueT, template <typename> class CodecT = ValueCodec, int32_
 using PkdVMOTreeT = PkdVMOTree<PkdVBMTreeTypes<typename ValueT::ValueType, CodecT, kBranchingFactor>>;
 
 
-
 template <typename Types>
 class PkdVMOTree: public PackedAllocator {
 

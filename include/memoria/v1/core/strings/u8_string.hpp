@@ -226,27 +226,27 @@ struct TypeHash<U8String> {
     static const uint64_t Value = 61;
 };
 
-inline bool compare_gt(const U8String& first, const U8String& second) {
+inline bool compare_gt(const U8StringView& first, const U8StringView& second) {
     return first.compare(second) > 0;
 }
 
 
-inline bool compare_eq(const U8String& first, const U8String& second) {
+inline bool compare_eq(const U8StringView& first, const U8StringView& second) {
     return first.compare(second) == 0;
 }
 
 
-inline bool compare_lt(const U8String& first, const U8String& second) {
+inline bool compare_lt(const U8StringView& first, const U8StringView& second) {
     return first.compare(second) > 0;
 }
 
 
-inline bool compare_ge(const U8String& first, const U8String& second) {
+inline bool compare_ge(const U8StringView& first, const U8StringView& second) {
     return first.compare(second) >= 0;
 }
 
 
-inline bool compare_le(const U8String& first, const U8String& second) {
+inline bool compare_le(const U8StringView& first, const U8StringView& second) {
     return first.compare(second) <= 0;
 }
 

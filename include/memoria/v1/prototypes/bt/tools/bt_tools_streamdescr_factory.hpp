@@ -59,7 +59,7 @@ namespace bt {
 template <PkdSearchType SearchType, typename KeyType_, int32_t Indexes_>
 struct IdxSearchType {
     static constexpr PkdSearchType  Value       = SearchType;
-    static constexpr int32_t            Indexes     = Indexes_;
+    static constexpr int32_t Indexes            = Indexes_;
 
     using KeyType = KeyType_;
 };
@@ -291,6 +291,8 @@ namespace _ {
     template <typename PkdStruct, typename... Tail1, typename... Tail2, typename SumType, int32_t Idx>
     struct BuildKeyMetadataListT<TL<TL<PkdStruct, Tail1...>, Tail2...>, SumType, Idx>
     {
+        //static_assert(!std::is_same_v<PkdStruct, int64_t>, "");
+
         using List = TL<PkdStruct, Tail1...>;
 
         static_assert(

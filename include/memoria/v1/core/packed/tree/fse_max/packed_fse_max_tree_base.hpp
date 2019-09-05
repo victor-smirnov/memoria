@@ -70,7 +70,7 @@ public:
     static const int32_t BranchingFactor        = kBranchingFactor;
     static const int32_t ValuesPerBranch        = kValuesPerBranch;
 
-    static const bool FixedSizeElement      = true;
+    static const bool FixedSizeElement = true;
 
     static constexpr int32_t ValuesPerBranchMask    = ValuesPerBranch - 1;
     static constexpr int32_t BranchingFactorMask    = BranchingFactor - 1;

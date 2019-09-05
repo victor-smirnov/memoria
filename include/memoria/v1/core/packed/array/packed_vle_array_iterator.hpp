@@ -24,13 +24,13 @@ namespace memoria {
 namespace v1 {
 
 template <typename AccessorType>
-class PkdRandomAccessIterator: boost::iterator_facade<
+class PkdRandomAccessIterator: public boost::iterator_facade<
         PkdRandomAccessIterator<AccessorType>,
-        const typename AccessorType::Value,
+        const typename AccessorType::ViewType,
         std::random_access_iterator_tag,
-        const typename AccessorType::Value
+        const typename AccessorType::ViewType
 > {
-    using Value = typename AccessorType::Value;
+    using ViewType = typename AccessorType::ViewType;
 
     psize_t pos_;
     psize_t size_;
@@ -54,7 +54,7 @@ public:
 private:
     friend class boost::iterator_core_access;
 
-    Value dereference() const {
+    ViewType dereference() const {
         return accessor_.get(pos_);
     }
 
@@ -76,7 +76,8 @@ private:
 
     ptrdiff_t distance_to(const PkdRandomAccessIterator& other) const
     {
-        return other.pos_ - pos_;
+        ptrdiff_t res = static_cast<ptrdiff_t>(other.pos_) - static_cast<ptrdiff_t>(pos_);
+        return res;
     }
 };
 

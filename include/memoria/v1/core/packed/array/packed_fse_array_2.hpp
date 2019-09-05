@@ -31,17 +31,19 @@ namespace v1 {
 
 template <
     typename V,
-    int32_t Blocks_ = 1
+    int32_t Blocks_ = 1,
+    int32_t Indexes_ = 0
 >
 struct PackedFixedSizeElementArrayTypes {
     using Value = V;
     static constexpr int32_t Blocks = Blocks_;
+    static constexpr int32_t Indexes = Indexes_;
 };
 
 template <typename Types> class PackedFixedSizeElementArray;
 
-template <typename V, int32_t Blocks = 1>
-using PkdFSEArray2T = PackedFixedSizeElementArray<PackedFixedSizeElementArrayTypes<V, Blocks>>;
+template <typename V, int32_t Blocks = 1, int32_t Indexes = 0>
+using PkdFSEArray2T = PackedFixedSizeElementArray<PackedFixedSizeElementArrayTypes<V, Blocks, Indexes>>;
 
 
 
@@ -53,8 +55,9 @@ class PackedFixedSizeElementArray: public PackedAllocator {
 public:
     static constexpr uint32_t VERSION = 1;
 
-    static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
-    static constexpr psize_t Blocks = 1;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
+    static constexpr psize_t Blocks  = Types_::Blocks;
+    static constexpr psize_t Indexes = Types_::Indexes;
 
     using Types = Types_;
     using MyType = PackedFixedSizeElementArray;
@@ -221,7 +224,7 @@ struct PkdStructSizeType<PackedFixedSizeElementArray<Types>> {
 
 template <typename T>
 struct StructSizeProvider<PackedFixedSizeElementArray<T>> {
-    static const int32_t Value = 0;
+    static const int32_t Value = PackedFixedSizeElementArray<T>::Indexes;
 };
 
 
@@ -232,7 +235,7 @@ struct PkdSearchKeyTypeProvider<PackedFixedSizeElementArray<T>> {
 
 template <typename T>
 struct IndexesSize<PackedFixedSizeElementArray<T>> {
-    static const int32_t Value = 0;
+    static const int32_t Value = PackedFixedSizeElementArray<T>::Indexes;
 };
 
 }}

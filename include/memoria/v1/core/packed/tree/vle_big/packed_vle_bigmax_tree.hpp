@@ -1894,7 +1894,7 @@ protected:
 
             auto index = has_index() ? this->index() : nullptr;
 
-            Value prev_value;
+            //Value prev_value;
             Value value;
 
             int32_t idx = 0;

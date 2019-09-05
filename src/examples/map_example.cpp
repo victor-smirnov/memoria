@@ -52,15 +52,19 @@ int main()
 
     std::vector<Entry> entries_;
 
-    for (int c = 0; c < 110; c++) {
+    for (int c = 0; c < 10000; c++) {
         //entries_.emplace_back(Entry(c, -c));
         entries_.emplace_back(Entry(
             //c,
-            "AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c),
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAA_"   + std::to_string(c),
             "BBBBBBBBBBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c)
            // c, -c
         ));
     }
+
+    std::sort(entries_.begin(), entries_.end(), [](const auto& one, const auto& two){
+        return std::get<0>(one) < std::get<0>(two);
+    });
 
     int64_t t1 = getTimeInMillis();
 
@@ -86,11 +90,8 @@ int main()
     std::cout << "Inserted entries in " << (t1_i - t0_i) << " ms" << std::endl;
     std::cout << "Size = " << ctr0->size() << std::endl;
 
-    ctr0->iterator()->dump();
-
     snp->commit();
     snp->set_as_master();
-
 
     alloc->store("store.mma1");
 
@@ -100,24 +101,37 @@ int main()
 
     size_t sum0 = 0;
 
+//    while (!ii.is_end())
+//    {
+//        sum0 += ii.keys().size() + ii.values().size();
 
-    while (!ii.is_end())
-    {
-        sum0 += ii.keys().size() + ii.values().size();
+//        auto keys = ii.keys();
 
-        auto keys = ii.keys();
+//        for (size_t c = 0; c < keys.size(); c++)
+//        {
+//            std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
+//        }
 
-        for (size_t c = 0; c < keys.size(); c++)
-        {
-            std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
-        }
-
-        ii.next_leaf();
-    }
+//        ii.next_leaf();
+//    }
 
     int64_t t3 = getTimeInMillis();
 
     std::cout << "Iterated over 10M entries in " << (t3 - t2) << " ms " << sum0 << std::endl;
+
+    for (int64_t c = 0; c < ctr0->size(); c++)
+    {
+        U8String key = "AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c);
+
+        auto ii = ctr0->find_entry(key);
+
+//        ii->dump();
+
+        if (!ii->is_end())
+        {
+            std::cout << key << " :: " << ii->value() << std::endl;
+        }
+    }
 
     return 0;
 }

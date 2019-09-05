@@ -45,7 +45,11 @@ public:
         data_(array.data()->data(column))
     {}
 
-    ViewType get(psize_t row)
+    bool operator==(const PkdDataTypeAccessor& other) const {
+        return offsets_ == other.offsets_;
+    }
+
+    ViewType get(psize_t row) const
     {
         psize_t length = offsets_[row + 1] - offsets_[row];
         const DataAtomType* data = data_ + offsets_[row];
@@ -55,10 +59,12 @@ public:
 
     static ViewType get(const ArraySO& array, psize_t column, psize_t row)
     {
-        psize_t length = array.length(column, row);
-        auto* data = array.data(column, row);
+        const DataSizeType* offsets = array.data()->offsets(column);
+        const DataAtomType* data = array.data()->data(column);
 
-        return ViewType(data, length);
+        psize_t length = offsets[row + 1] - offsets[row];
+
+        return ViewType(data + offsets[row], length);
     }
 
 

@@ -68,6 +68,8 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     virtual void assign_key(KeyView key, ValueView value) = 0;
     virtual void remove_key(KeyView key) = 0;
 
+    virtual CtrSharedPtr<MapIterator<Key, Value>> find_entry(KeyView key) = 0;
+
     void append_entries(ProducerFn producer_fn) {
         Producer producer(producer_fn);
         append_entries(producer);

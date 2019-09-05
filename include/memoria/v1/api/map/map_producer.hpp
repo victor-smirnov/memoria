@@ -61,9 +61,9 @@ public:
 
         bool has_more = producer_fn_(keys_, values_, total_size_);
 
-        total_size_ += keys_.size_;
+        total_size_ += keys_.size();
 
-        io_vector.symbol_sequence().append(0, keys_.size_);
+        io_vector.symbol_sequence().append(0, keys_.size());
 
         return has_more;
     }
