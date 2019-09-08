@@ -27,7 +27,10 @@
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_optmax_tree.hpp>
 
 #include <memoria/v1/core/packed/array/packed_fse_array.hpp>
+#include <memoria/v1/core/packed/array/packed_fse_array_2.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_opt_array.hpp>
 
 #include <tuple>
 #include <vector>
@@ -39,42 +42,38 @@ namespace mmap {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, int32_t Selector = HasFieldFactory<KeyType>::Value> struct MMapKeyStructTF;
-template <typename KeyType, int32_t Selector = HasFieldFactory<KeyType>::Value> struct MMapSumKeyStructTF;
+template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct MMapKeyStructTF;
+template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct MMapSumKeyStructTF;
 
 template <typename T> struct MMapBranchStructTF;
 
 template <typename KeyType>
-struct MMapKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
+struct MMapKeyStructTF<KeyType, true>: HasType<PkdFSEArray2T<KeyType, 1, 1>> {};
 
 template <typename KeyType>
-struct MMapKeyStructTF<KeyType, 0>: HasType<PkdVBMTreeT<KeyType>> {};
+struct MMapKeyStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
 
 
 template <typename KeyType>
-struct MMapSumKeyStructTF<KeyType, 1>: HasType<PkdFQTreeT<KeyType>> {};
+struct MMapSumKeyStructTF<KeyType, true>: HasType<PkdFQTreeT<KeyType>> {};
 
 template <typename KeyType>
-struct MMapSumKeyStructTF<KeyType, 0>: HasType<PkdVQTreeT<KeyType>> {};
+struct MMapSumKeyStructTF<KeyType, false>: HasType<PkdVQTreeT<KeyType>> {};
 
 
-template <typename ValueType, int32_t Selector = HasFieldFactory<ValueType>::Value> struct MMapValueStructTF;
+template <typename ValueType, bool Selector = DataTypeTraits<ValueType>::isFixedSize> struct MMapValueStructTF;
 
 template <typename ValueType>
-struct MMapValueStructTF<ValueType, 1>: HasType<PkdFSQArrayT<ValueType>> {};
+struct MMapValueStructTF<ValueType, true>: HasType<PkdFSEArray2T<ValueType>> {};
 
 template <typename ValueType>
-struct MMapValueStructTF<ValueType, 0>: HasType<PkdVDArrayT<ValueType>> {};
-
-
-
-
+struct MMapValueStructTF<ValueType, false>: HasType<PkdVLEArrayT<ValueType>> {};
 
 
 
 template <typename KeyType>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
-    using Type = PackedEmptyStruct<KeyType, PkdSearchType::MAX>;
+    using Type = FailIf<false, PackedEmptyStruct<KeyType, PkdSearchType::MAX>>;
 };
 
 
@@ -100,24 +99,22 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
             PkdVQTreeT<KeyType, Indexes>
     >;
 
-    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+    static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
 
 template <typename KeyType, int32_t Indexes>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
-    static_assert(
-            IsExternalizable<KeyType>::Value,
-            "Type must either has ValueCodec or FieldFactory defined"
-    );
+    using Type = bt::PkdStructSelector<
+            DataTypeTraits<KeyType>::isFixedSize,
+            PkdFMOTree,
+            PackedVLenElementOptArray,
 
-    using Type = IfThenElse<
-            HasFieldFactory<KeyType>::Value,
-            PkdFMOTreeT<KeyType, Indexes>,
-            PkdVMOTreeT<KeyType>
+            PkdFMTreeTypes<KeyType, Indexes>,
+            PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
     >;
 
-    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+    static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
 
 

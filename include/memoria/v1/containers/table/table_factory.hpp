@@ -46,7 +46,7 @@ template <
     typename Profile,
     typename Key_,
     typename Value_,
-    PackedSizeType SizeType
+    PackedDataTypeSize SizeType
 >
 struct TableBTTypesBase: public BTTypes<Profile, BTTreeLayout> {
 
@@ -108,7 +108,7 @@ struct TableBTTypesBase: public BTTypes<Profile, BTTreeLayout> {
 
 
     using RawStreamDescriptors = IfThenElse<
-            SizeType == PackedSizeType::FIXED,
+            SizeType == PackedDataTypeSize::FIXED,
             MergeLists<
                 FirstStreamFixedTF,
                 typename MakeList<StreamFixedTF, Levels - 2>::Type,
@@ -155,14 +155,14 @@ template <
     typename Profile,
     typename Key_,
     typename Value_,
-    PackedSizeType SizeType
+    PackedDataTypeSize SizeType
 >
 struct BTTypes<Profile, Table<Key_, Value_, SizeType>>: public TableBTTypesBase<Profile, Key_, Value_, SizeType>
 {
 };
 
 
-template <typename Profile, typename Key, typename Value, PackedSizeType SizeType, typename T>
+template <typename Profile, typename Key, typename Value, PackedDataTypeSize SizeType, typename T>
 class CtrTF<Profile, Table<Key, Value, SizeType>, T>: public CtrTF<Profile, BTTreeLayout, T> {
     using Base = CtrTF<Profile, BTTreeLayout, T>;
 public:

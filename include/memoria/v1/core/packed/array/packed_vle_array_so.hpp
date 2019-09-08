@@ -61,7 +61,7 @@ public:
     using PkdStructT = PkdStruct;
 
     static constexpr psize_t Columns = PkdStruct::Blocks;
-    static constexpr int32_t Indexes = 0;
+    static constexpr int32_t Indexes = PkdStruct::Indexes;
 
 
     PackedVLenElementArraySO(): ext_data_(), data_() {}
@@ -104,6 +104,10 @@ public:
     const ExtData* ext_data() const {return ext_data_;}
     const PkdStruct* data() const {return data_;}
     PkdStruct* data() {return data_;}
+
+    OpStatus reindex() {
+        return OpStatus::OK;
+    }
 
     psize_t length(psize_t column, psize_t row) const
     {
@@ -304,7 +308,18 @@ public:
     }
 
 
-    OptionalT<ViewType> max(psize_t column) const
+    template <typename T>
+    OpStatus setValues(int32_t idx, const core::StaticVector<T, Columns>& values) {
+        return OpStatus::OK;
+    }
+
+    template <typename T>
+    OpStatus insert(int32_t idx, const core::StaticVector<T, Columns>& values)
+    {
+        return OpStatus::OK;
+    }
+
+    ViewType max(psize_t column) const
     {
         auto size = this->size();
 
@@ -313,7 +328,27 @@ public:
             return access(column, size - 1);
         }
         else {
-            return OptionalT<ViewType>();
+            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Column {} is empty", column);
+        }
+    }
+
+    template <typename T>
+    void max(core::StaticVector<T, Columns>& accum) const
+    {
+        psize_t size = data_->size();
+
+        if (size > 0)
+        {
+            for (psize_t column = 0; column < Columns; column++)
+            {
+                accum[column] = access(column, size - 1);
+            }
+        }
+        else {
+            for (psize_t column = 0; column < Columns; column++)
+            {
+                accum[column] = T{};
+            }
         }
     }
 

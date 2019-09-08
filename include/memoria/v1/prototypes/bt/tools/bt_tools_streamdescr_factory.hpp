@@ -130,7 +130,7 @@ struct VLQBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
                 PkdVBMTreeT<KeyType>
             >;
 
-    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+    static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
 
 
@@ -160,8 +160,8 @@ namespace _ {
     template <typename PkdStruct1, typename PkdStruct2, typename... Tail>
     struct CheckPackedStructsHaveSameSearchType<TL<PkdStruct1, PkdStruct2, Tail...>>
     {
-        static constexpr PkdSearchType SearchType1 = PkdSearchTypeProvider<PkdStruct1>::Value;
-        static constexpr PkdSearchType SearchType2 = PkdSearchTypeProvider<PkdStruct2>::Value;
+        static constexpr PkdSearchType SearchType1 = PkdKeySearchType<PkdStruct1>;
+        static constexpr PkdSearchType SearchType2 = PkdKeySearchType<PkdStruct2>;
 
         static constexpr bool Value = SearchType1 == SearchType2 && CheckPackedStructsHaveSameSearchType<
                 TL<PkdStruct2, Tail...>
@@ -173,8 +173,8 @@ namespace _ {
     template <typename PkdStruct1, typename PkdStruct2>
     struct CheckPackedStructsHaveSameSearchType<TL<PkdStruct1, PkdStruct2>>
     {
-        static constexpr PkdSearchType SearchType1 = PkdSearchTypeProvider<PkdStruct1>::Value;
-        static constexpr PkdSearchType SearchType2 = PkdSearchTypeProvider<PkdStruct2>::Value;
+        static constexpr PkdSearchType SearchType1 = PkdKeySearchType<PkdStruct1>;
+        static constexpr PkdSearchType SearchType2 = PkdKeySearchType<PkdStruct2>;
 
         static constexpr bool Value = SearchType1 == SearchType2;
     };
@@ -192,10 +192,11 @@ namespace _ {
     template <typename PkdStruct1, typename PkdStruct2, typename... Tail>
     struct CheckPackedStructsHaveSameKeyType<TL<PkdStruct1, PkdStruct2, Tail...>>
     {
-        using KeyType1 = typename PkdSearchKeyTypeProvider<PkdStruct1>::Type;
-        using KeyType2 = typename PkdSearchKeyTypeProvider<PkdStruct2>::Type;
+        using KeyType1 = PkdSearchKeyType<PkdStruct1>;
+        using KeyType2 = PkdSearchKeyType<PkdStruct2>;
 
-        static constexpr bool Value = std::is_same<KeyType1, KeyType2>::value && CheckPackedStructsHaveSameKeyType<
+        static constexpr bool Value = std::is_same<KeyType1, KeyType2>::value
+            && CheckPackedStructsHaveSameKeyType<
                 TL<PkdStruct2, Tail...>
         >::Value;
     };
@@ -203,8 +204,8 @@ namespace _ {
     template <typename PkdStruct1, typename PkdStruct2>
     struct CheckPackedStructsHaveSameKeyType<TL<PkdStruct1, PkdStruct2>>
     {
-        using KeyType1 = typename PkdSearchKeyTypeProvider<PkdStruct1>::Type;
-        using KeyType2 = typename PkdSearchKeyTypeProvider<PkdStruct2>::Type;
+        using KeyType1 = PkdSearchKeyType<PkdStruct1>;
+        using KeyType2 = PkdSearchKeyType<PkdStruct2>;
 
         static constexpr bool Value = std::is_same<KeyType1, KeyType2>::value;
     };
@@ -268,12 +269,12 @@ namespace _ {
     struct BuildKeyMetadataListT<TL<PkdStruct, Tail...>, SumType, Idx>
     {
 
-        using KeyType = typename PkdSearchKeyTypeProvider<PkdStruct>::Type;
-        static constexpr PkdSearchType SearchType = PkdSearchTypeProvider<PkdStruct>::Value;
+        using KeyType = PkdSearchKeyDataType<PkdStruct>;
+        static constexpr PkdSearchType SearchType = PkdKeySearchType<PkdStruct>;
 
         using Type = MergeLists<
                 IdxSearchType<
-                    PkdSearchTypeProvider<PkdStruct>::Value,
+                    PkdKeySearchType<PkdStruct>,
                     IfThenElse<
                         SearchType == PkdSearchType::SUM,
                         SelectMaxType<
@@ -282,7 +283,7 @@ namespace _ {
                         >,
                         KeyType
                     >,
-                    IndexesSize<PkdStruct>::Value
+                    PkdStructIndexes<PkdStruct>
                 >,
                 BuildKeyMetadataList<TL<Tail...>, SumType, Idx + 1>
         >;
@@ -300,7 +301,7 @@ namespace _ {
                 "All grouped together leaf packed structs must be of the same search type"
         );
 
-        static constexpr PkdSearchType SearchType = PkdSearchTypeProvider<PkdStruct>::Value;
+        static constexpr PkdSearchType SearchType = PkdKeySearchType<PkdStruct>;
 
         static_assert(
                 SearchType != PkdSearchType::MAX || CheckPackedStructsHaveSameKeyType<List>::Value,
@@ -309,7 +310,7 @@ namespace _ {
 
         using LeafStructGroupKeyMetadataList = BuildKeyMetadataList<List, SumType>;
 
-        static constexpr PkdSearchType GroupSearchType = PkdSearchTypeProvider<PkdStruct>::Value;
+        static constexpr PkdSearchType GroupSearchType = PkdKeySearchType<PkdStruct>;
 
         static constexpr int32_t TotalIndexes = SumIndexes<LeafStructGroupKeyMetadataList>::Value;
 
@@ -319,7 +320,7 @@ namespace _ {
                     SumType,
                     GetSUPSearchKeyType<LeafStructGroupKeyMetadataList>
                 >,
-                typename PkdSearchKeyTypeProvider<PkdStruct>::Type
+                PkdSearchKeyDataType<PkdStruct>
         >;
 
         using Type = MergeLists<
@@ -365,7 +366,7 @@ template <typename LeafStruct, typename... Tail, template <typename> class Branc
 struct BTStreamDescritorsBuilder<TL<LeafStruct, Tail...>, BranchStructTF, SumType>
 {
     static_assert(
-            PkdSearchTypeProvider<LeafStruct>::Value == PkdSearchType::SUM,
+            PkdKeySearchType<LeafStruct> == PkdSearchType::SUM,
             "First packed struct in each stream must has PkdSearchType::SUM search type. Consider prepending PackedSizedStruct"
     );
 
@@ -380,7 +381,7 @@ template <typename LeafStruct, typename... Tail1, typename... Tail2, template <t
 struct BTStreamDescritorsBuilder<TL<TL<LeafStruct, Tail1...>, Tail2...>, BranchStructTF, SumType>
 {
     static_assert(
-            PkdSearchTypeProvider<LeafStruct>::Value == PkdSearchType::SUM,
+            PkdKeySearchType<LeafStruct> == PkdSearchType::SUM,
             "First packed struct in each stream must has PkdSearchType::SUM search type. Consider prepending PackedSizedStruct"
     );
 

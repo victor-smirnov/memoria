@@ -32,10 +32,10 @@ template <int32_t DataStreams, int32_t Level>
 using BTFLTestIOData = btfl::BTFLData<DataStreams, Level, BTFLTestKeyT, BTFLTestValueT, BTFLTestColumnT>;
 
 
-template <int32_t DataStreams, PackedSizeType SizeType = PackedSizeType::VARIABLE>
+template <int32_t DataStreams, PackedDataTypeSize SizeType = PackedDataTypeSize::VARIABLE>
 class BTFLTestCtr {};
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 class CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>: public CtrApiBTFLBase<BTFLTestCtr<DataStreams, LeafSizeType>, Profile> {
 
     using Base = CtrApiBTFLBase<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>;
@@ -54,7 +54,7 @@ public:
 };
 
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 class IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>: public IterApiBTFLBase<BTFLTestCtr<DataStreams, LeafSizeType>, Profile> {
     
     using Base = IterApiBTFLBase<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>;

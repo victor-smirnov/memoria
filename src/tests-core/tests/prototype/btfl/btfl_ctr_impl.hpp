@@ -25,47 +25,47 @@
 namespace memoria {
 namespace v1 {
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 typename CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::Iterator CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::begin()
 {
     return this->pimpl_->seq_begin();
 }
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 core::StaticVector<int64_t, DataStreams> IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::insert_iodata(const BTFLTestIOData<DataStreams, DataStreams - 1>& iodata)
 {
     return this->pimpl_->insert_iodata(iodata);
 }
 
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 typename CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::Iterator CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::seekL0(int64_t pos)
 {
     return this->pimpl_->seq_seekL0(pos);
 }
 
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 BTFLTestIOData<DataStreams, 0> IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::read_data0(int64_t length)
 {
     return this->pimpl_->template readData<0>(length);
 }
 
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 BTFLTestIOData<DataStreams, 0> IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::read_entries0(int64_t length)
 {
     return this->pimpl_->template readEntries<0>(length);
 }
 
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 BTFLTestIOData<DataStreams, 0> IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::read_entries0()
 {
     return this->pimpl_->template readEntries<0>();
 }
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 int64_t IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::rank(int32_t symbol)
 {
     return this->pimpl_->rank(symbol);
@@ -74,39 +74,39 @@ int64_t IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::rank(int32_t s
 
 
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 int64_t IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::count_children()
 {
     return this->pimpl_->countChildren();
 }
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 void IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::to_child(int64_t child_idx)
 {
     return this->pimpl_->toChild(child_idx);
 }
 
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 void IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::to_parent(int64_t parent_idx)
 {
     return this->pimpl_->toParent(parent_idx);
 }
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 int64_t IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::select_ge_fw(int64_t rank, int32_t level)
 {
     return this->pimpl_->selectGEFw(rank, level);
 }
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 bool IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::next()
 {
     return this->pimpl_->next();
 }
 
 
-template <int32_t DataStreams, PackedSizeType LeafSizeType, typename Profile>
+template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 core::StaticVector<int64_t, DataStreams + 1> IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::remove_ge(int64_t size)
 {
     return this->pimpl_->removeGE(size);

@@ -18,6 +18,8 @@
 
 #include <memoria/v1/core/types.hpp>
 
+#include <memoria/v1/core/tools/static_array.hpp>
+
 #include <memoria/v1/profiles/common/block_operations.hpp>
 
 namespace memoria {
@@ -68,6 +70,10 @@ public:
     const PkdStruct* data() const {return data_;}
     PkdStruct* data() {return data_;}
 
+    OpStatus reindex() {
+        return data_->reindex();
+    }
+
     OpStatus splitTo(MyType& other, int32_t idx)
     {
         return data_->splitTo(other.data(), idx);
@@ -79,6 +85,10 @@ public:
 
     OpStatus removeSpace(int32_t room_start, int32_t room_end) {
         return data_->removeSpace(room_start, room_end);
+    }
+
+    OpStatus insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true) {
+        return data_->insert(idx, size, provider, reindex);
     }
 
     template <typename T>
@@ -113,9 +123,21 @@ public:
         return data_->check();
     }
 
-    template <int32_t Offset, typename... Args>
-    auto max(Args&&... args) const {
-        return data_->template max<Offset>(std::forward<Args>(args)...);
+    template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
+    void max(BranchNodeEntryItem<T, Size>& accum) const {
+        data_->template max<Offset>(accum);
+    }
+
+    template <typename T>
+    void max(core::StaticVector<T, Blocks>& accum) const {
+        data_->max(accum);
+    }
+
+
+    template <typename T>
+    OpStatus setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
+    {
+        return data_->setValues(idx, values);
     }
 
     void configure_io_substream(io::IOSubstream& substream) const {

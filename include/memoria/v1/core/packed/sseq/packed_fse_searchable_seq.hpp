@@ -112,7 +112,7 @@ public:
     typedef typename Types::Index                                               Index;
 
     static const int32_t IndexSizeThreshold                                     = 0;
-    static const PackedSizeType SizeType                                        = PkdStructSizeType<Index>::Value;
+    static const PackedDataTypeSize SizeType = PkdStructSizeType<Index>;
 
     typedef core::StaticVector<int64_t, Indexes>                                Values;
 
@@ -1140,12 +1140,6 @@ private:
         return byte_size / sizeof(Value);
     }
 };
-
-template <typename T>
-struct StructSizeProvider<PkdFSSeq<T>> {
-    static const int32_t Value = PkdFSSeq<T>::Indexes;
-};
-
 
 
 template <int32_t BitsPerSymbol>

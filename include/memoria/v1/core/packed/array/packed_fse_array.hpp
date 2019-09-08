@@ -34,7 +34,7 @@ template <
     int32_t Blocks_ = 1
 >
 struct PackedFSEArrayTypes {
-    using Value = V;
+    using DataType = V;
     static const int32_t Blocks = Blocks_;
 };
 
@@ -81,7 +81,10 @@ public:
     typedef PackedFSEArray<Types>                                               MyType;
 
     typedef PackedAllocator                                                     Allocator;
-    typedef typename Types::Value                                               Value;
+    typedef typename Types::DataType                                            DataType;
+
+    using IndexDataType = DataType;
+    using Value = typename DataTypeTraits<DataType>::ValueType;
 
     static constexpr int32_t Indexes                                                    = 0;
     static constexpr int32_t Blocks                                                     = Types::Blocks;
@@ -750,24 +753,6 @@ public:
         FieldFactory<Value>::deserialize(buf, buffer_, size_ * Blocks);
     }
 };
-
-
-template <typename Types>
-struct PkdStructSizeType<PackedFSEArray<Types>> {
-    static const PackedSizeType Value = PackedSizeType::FIXED;
-};
-
-template <typename T>
-struct StructSizeProvider<PackedFSEArray<T>> {
-    static const int32_t Value = 0;
-};
-
-
-template <typename T>
-struct PkdSearchKeyTypeProvider<PackedFSEArray<T>> {
-    using Type = typename PackedFSEArray<T>::Value;
-};
-
 
 
 }}

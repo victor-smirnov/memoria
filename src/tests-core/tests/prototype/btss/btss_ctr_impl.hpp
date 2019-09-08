@@ -26,7 +26,7 @@ namespace memoria {
 namespace v1 {
 
 
-template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType, typename Profile> 
+template <PackedDataTypeSize LeafSizeType, PackedDataTypeSize BranchSizeType, typename Profile> 
 std::vector<typename IterApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>::DataValue> IterApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>::read(size_t size)
 {
     std::vector<DataValue> data;

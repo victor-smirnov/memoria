@@ -18,7 +18,9 @@
 
 #include <memoria/v1/api/set/set_api.hpp>
 #include <memoria/v1/api/map/map_api.hpp>
+#include <memoria/v1/api/vector/vector_api.hpp>
 #include <memoria/v1/api/multimap/multimap_api.hpp>
+
 //#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
 //#include <memoria/v1/api/db/update_log/update_log_api.hpp>
 
@@ -36,9 +38,11 @@ struct StaticLibraryCtrs {
     {
         ICtrApi<Set<FixedArray<16>>, ProfileT>::init_profile_metadata();
         ICtrApi<Map<Varchar, Varchar>, ProfileT>::init_profile_metadata();
+        ICtrApi<Vector<Varchar>, ProfileT>::init_profile_metadata();
         ICtrApi<Map<BigInt, Varchar>, ProfileT>::init_profile_metadata();
         ICtrApi<Map<BigInt, BigInt>, ProfileT>::init_profile_metadata();
-        ICtrApi<Multimap<BigInt, UTinyInt>, ProfileT>::init_profile_metadata();
+        //ICtrApi<Multimap<BigInt, UTinyInt>, ProfileT>::init_profile_metadata();
+        //ICtrApi<Multimap<UUID, UTinyInt>, ProfileT>::init_profile_metadata();
         ICtrApi<Multimap<Varchar, Varchar>, ProfileT>::init_profile_metadata();
 
 //        CtrApi<Multimap<int64_t, uint8_t>, ProfileT>::do_link();

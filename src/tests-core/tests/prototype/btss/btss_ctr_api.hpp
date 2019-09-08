@@ -24,10 +24,10 @@
 namespace memoria {
 namespace v1 {
 
-template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType>
+template <PackedDataTypeSize LeafSizeType, PackedDataTypeSize BranchSizeType>
 class BTSSTestCtr {};
     
-template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType, typename Profile> 
+template <PackedDataTypeSize LeafSizeType, PackedDataTypeSize BranchSizeType, typename Profile> 
 class CtrApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>: public CtrApiBTSSBase<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile> {
 
     using Base = CtrApiBTSSBase<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>;
@@ -45,7 +45,7 @@ public:
 };
 
 
-template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType, typename Profile> 
+template <PackedDataTypeSize LeafSizeType, PackedDataTypeSize BranchSizeType, typename Profile> 
 class IterApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>: public IterApiBTSSBase<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile> {
     
     using Base = IterApiBTSSBase<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>;

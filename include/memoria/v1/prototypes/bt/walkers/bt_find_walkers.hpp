@@ -240,7 +240,7 @@ public:
     >
     void branch_iterator_BranchNodeEntry(StreamObj&& obj, IterAccumItem<T, From, To>& item, int32_t start, int32_t end)
     {
-        static_assert(To <= StructSizeProvider<StreamObj>::Value, "Invalid BTree structure");
+        static_assert(To <= PkdStructIndexes<StreamObj>, "Invalid BTree structure");
 
         for (int32_t c = 0; c < To - From; c++)
         {
@@ -519,7 +519,7 @@ public:
     >
     void branch_iterator_BranchNodeEntry(StreamObj&& obj, IterAccumItem<T, From, To>& item, int32_t start, int32_t end)
     {
-        static_assert(To <= StructSizeProvider<StreamObj>::Value, "Invalid BTree structure");
+        static_assert(To <= PkdStructIndexes<StreamObj>, "Invalid BTree structure");
 
         int32_t s = start > (obj.size() - 1) ? obj.size() - 1 : start;
 

@@ -112,9 +112,9 @@ struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key_, Value_> {
             "Value type must have either ValueCodec or FieldFactory defined"
     );
 
-    using LeafKeyStruct = typename map::MapKeyStructTF<Key_, HasFieldFactory<KeyV>::Value>::Type;
+    using LeafKeyStruct = typename map::MapKeyStructTF<Key_>::Type;
 
-    using LeafValueStruct = typename map::MapValueStructTF<Value_, HasFieldFactory<ValueV>::Value>::Type;
+    using LeafValueStruct = typename map::MapValueStructTF<Value_>::Type;
 
     using StreamDescriptors = TL<
             bt::StreamTF<
@@ -123,7 +123,7 @@ struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key_, Value_> {
                     TL<LeafKeyStruct>,
                     TL<LeafValueStruct>
                 >,
-                bt::DefaultBranchStructTF
+                map::MapBranchStructTF
             >
     >;
 };

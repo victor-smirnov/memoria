@@ -38,7 +38,7 @@ namespace v1 {
 template <
     typename Profile,
     int32_t DataStreams,
-    PackedSizeType SizeType
+    PackedDataTypeSize SizeType
 >
 struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
 
@@ -111,14 +111,14 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
 template <
     typename Profile,
     int32_t Levels,
-    PackedSizeType SizeType
+    PackedDataTypeSize SizeType
 >
 struct BTTypes<Profile, BTFLTestCtr<Levels, SizeType>>: public BTFLTestTypesBase<Profile, Levels, SizeType>
 {
 };
 
 
-template <typename Profile, int32_t Levels, PackedSizeType SizeType, typename T>
+template <typename Profile, int32_t Levels, PackedDataTypeSize SizeType, typename T>
 class CtrTF<Profile, BTFLTestCtr<Levels, SizeType>, T>: public CtrTF<Profile, BTFreeLayout, T> {
     using Base = CtrTF<Profile, BTFreeLayout, T>;
 public:
@@ -136,7 +136,7 @@ public:
 };
 
 
-template <int32_t DataStreams, PackedSizeType SizeType>
+template <int32_t DataStreams, PackedDataTypeSize SizeType>
 struct TypeHash<BTFLTestCtr<DataStreams, SizeType>>: UInt64Value<
     HashHelper<30011, DataStreams, (int32_t)SizeType>
 > {};

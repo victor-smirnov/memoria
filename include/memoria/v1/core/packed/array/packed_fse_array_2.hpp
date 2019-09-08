@@ -35,7 +35,7 @@ template <
     int32_t Indexes_ = 0
 >
 struct PackedFixedSizeElementArrayTypes {
-    using Value = V;
+    using DataType = V;
     static constexpr int32_t Blocks = Blocks_;
     static constexpr int32_t Indexes = Indexes_;
 };
@@ -62,7 +62,10 @@ public:
     using Types = Types_;
     using MyType = PackedFixedSizeElementArray;
 
-    using Value = typename Types::Value;
+    using DataType = typename Types::DataType;
+    using IndexDataType = DataType;
+
+    using Value = typename DataTypeTraits<DataType>::ViewType;
 
     using Allocator = PackedAllocator;
 
@@ -206,36 +209,12 @@ public:
 
 template <typename Types>
 struct PackedStructTraits<PackedFixedSizeElementArray<Types>> {
+    using SearchKeyDataType = typename Types::DataType;
 
-};
-
-template <typename ExtData, typename PkdStruct>
-struct PackedStructTraits<PackedFixedSizeElementArraySO<ExtData, PkdStruct>>: PackedStructTraits<PkdStruct> {
-
-};
-
-
-
-
-template <typename Types>
-struct PkdStructSizeType<PackedFixedSizeElementArray<Types>> {
-    static const PackedSizeType Value = PackedSizeType::FIXED;
-};
-
-template <typename T>
-struct StructSizeProvider<PackedFixedSizeElementArray<T>> {
-    static const int32_t Value = PackedFixedSizeElementArray<T>::Indexes;
-};
-
-
-template <typename T>
-struct PkdSearchKeyTypeProvider<PackedFixedSizeElementArray<T>> {
-    using Type = typename PackedFixedSizeElementArray<T>::Value;
-};
-
-template <typename T>
-struct IndexesSize<PackedFixedSizeElementArray<T>> {
-    static const int32_t Value = PackedFixedSizeElementArray<T>::Indexes;
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
+    static constexpr int32_t Blocks = PackedFixedSizeElementArray<Types>::Blocks;
+    static constexpr int32_t Indexes = PackedFixedSizeElementArray<Types>::Indexes;
 };
 
 }}

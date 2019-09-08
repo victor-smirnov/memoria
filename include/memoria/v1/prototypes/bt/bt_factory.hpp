@@ -272,7 +272,6 @@ public:
                     2
     >;
 
-
     using BranchNodeEntry_ = AsTuple<typename bt::BranchNodeEntryBuilder<Linearize<BranchStreamsStructList>>::Type>;
 
     struct NodeTypesBase: ContainerTypes
@@ -309,21 +308,21 @@ public:
 
     using BlockDispatchers = bt::BTreeDispatchers<DispatcherTypes>;
 
-    static const PackedSizeType BranchSizeType  = PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
-    static const PackedSizeType LeafSizeType    = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
+    static const PackedDataTypeSize BranchSizeType  = PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
+    static const PackedDataTypeSize LeafSizeType    = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
 
-    static const PackedSizeType TotalSizeType   = PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
+    static const PackedDataTypeSize TotalSizeType   = PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
 
 
 
     using CtrListBranch = IfThenElse<
-                        BranchSizeType == PackedSizeType::FIXED,
+                        BranchSizeType == PackedDataTypeSize::FIXED,
                         typename ContainerTypes::FixedBranchContainerPartsList,
                         typename ContainerTypes::VariableBranchContainerPartsList
     >;
 
     using CtrListLeaf = IfThenElse<
-                        LeafSizeType == PackedSizeType::FIXED,
+                        LeafSizeType == PackedDataTypeSize::FIXED,
                         typename ContainerTypes::FixedLeafContainerPartsList,
                         typename ContainerTypes::VariableLeafContainerPartsList
     >;
@@ -377,13 +376,13 @@ public:
 
 
         template <typename LeafPath>
-        using TargetType = typename AccumType<
+        using TargetType = AccumType<
                 bt::BrachStructAccessorTool<
                     LeafStreamsStructList,
                     BranchStreamsStructList,
                     LeafPath
                 >
-        >::Type;
+        >;
 
 
         template <typename LeafPath>
@@ -403,7 +402,7 @@ public:
         using BranchNode = typename ListHead<typename Blocks::BranchDTypes::List>::Type;
         using LeafNode   = typename ListHead<typename Blocks::LeafDTypes::List>::Type;
 
-        static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
+        static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedDataTypeSize::FIXED ?
                                                         LeafDataLengthType::FIXED :
                                                         LeafDataLengthType::VARIABLE;
 

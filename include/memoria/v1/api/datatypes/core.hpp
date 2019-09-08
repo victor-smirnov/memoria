@@ -18,6 +18,8 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/format.hpp>
+#include <memoria/v1/core/types/typehash.hpp>
+
 #include <boost/any.hpp>
 
 namespace memoria {
@@ -96,6 +98,17 @@ public:
 template <typename T>
 struct Dynamic {};
 
+template <typename T>
+class Nullable {
+    T type_;
+public:
+    template <typename... Args>
+    Nullable(Args&&... args): type_(std::forward<Args>(args)...) {}
+
+    const T& type() const {
+        return type_;
+    }
+};
 
 template <>
 struct TypeHash<Varchar>: UInt64Value<9748271> {};
@@ -109,5 +122,7 @@ struct TypeHash<UTinyInt>: UInt64Value<3> {};
 template <>
 struct TypeHash<BigInt>: UInt64Value<8> {};
 
+template <typename T>
+struct TypeHash<Nullable<T>>: UInt64Value<HashHelper<495092348502309485ull, TypeHashV<T>>> {};
 
 }}

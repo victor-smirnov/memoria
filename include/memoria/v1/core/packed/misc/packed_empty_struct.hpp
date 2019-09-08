@@ -38,8 +38,11 @@ public:
 
     using MyType = PackedEmptyStruct<Value_, SearchType_>;
 
+    using DataType = typename std::remove_reference<Value_>::type;
 
-    using Value = typename std::remove_reference<Value_>::type;
+    using Value = typename DataTypeTraits<DataType>::ViewType;
+
+    using AccumValue = Value;
 
     static constexpr int32_t Blocks = Indexes;
 
@@ -290,19 +293,18 @@ public:
     }
 };
 
-
-
-
 template <typename T, PkdSearchType S>
-struct PkdStructSizeType<PackedEmptyStruct<T, S>> {
-    static const PackedSizeType Value = PackedSizeType::FIXED;
+struct PackedStructTraits<PackedEmptyStruct<T, S>>
+{
+    using SearchKeyDataType = T;
+
+    using AccumType = typename DataTypeTraits<SearchKeyDataType>::ViewType;
+    using SearchKeyType = typename DataTypeTraits<SearchKeyDataType>::ViewType;
+
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;
+    static constexpr PkdSearchType KeySearchType = S;
+    static constexpr int32_t Blocks = PackedEmptyStruct<T, S>::Blocks;
+    static constexpr int32_t Indexes = PackedEmptyStruct<T, S>::Indexes;
 };
-
-template <typename T, PkdSearchType S>
-struct StructSizeProvider<PackedEmptyStruct<T, S>> {
-    static const int32_t Value = PackedEmptyStruct<T, S>::Blocks;
-};
-
-
 
 }}

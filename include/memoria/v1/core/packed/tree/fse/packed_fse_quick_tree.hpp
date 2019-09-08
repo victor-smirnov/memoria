@@ -29,10 +29,13 @@
 namespace memoria {
 namespace v1 {
 
-template <typename IndexValueT, int32_t kBlocks, typename ValueT = IndexValueT, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
+template <typename IndexDataTypeT, int32_t kBlocks, typename ValueDataTypeT = IndexDataTypeT, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
 struct PkdFQTreeTypes {
-    using IndexValue    = IndexValueT;
-    using Value         = ValueT;
+    using IndexDataType    = IndexDataTypeT;
+    using ValueDataType    = IndexDataTypeT;
+
+    using IndexType = typename DataTypeTraits<IndexDataType>::ValueType;
+    using ValueType = typename DataTypeTraits<ValueDataType>::ValueType;
 
     static constexpr int32_t Blocks = kBlocks;
     static constexpr int32_t BranchingFactor = kBranchingFactor;
@@ -49,15 +52,17 @@ using PkdFQTreeT = PkdFQTree<PkdFQTreeTypes<IndexValueT, kBlocks, ValueT, kBranc
 using core::StaticVector;
 
 template <typename Types>
-class PkdFQTree: public PkdFQTreeBase<typename Types::IndexValue, typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch> {
+class PkdFQTree: public PkdFQTreeBase<typename Types::IndexType, typename Types::ValueType, Types::BranchingFactor, Types::ValuesPerBranch> {
 
-    using Base      = PkdFQTreeBase<typename Types::IndexValue, typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch>;
+    using Base      = PkdFQTreeBase<typename Types::IndexType, typename Types::ValueType, Types::BranchingFactor, Types::ValuesPerBranch>;
     using MyType    = PkdFQTree<Types>;
 
 public:
 
     static constexpr uint32_t VERSION = 1;
     static constexpr int32_t Blocks   = Types::Blocks;
+
+    static constexpr bool FQTree = true;
 
     using Base::METADATA;
     using Base::index_size;
@@ -69,11 +74,14 @@ public:
                 ConstValue<uint32_t, Blocks>
     >;
 
-    using IndexValue = typename Types::IndexValue;
-    using Value      = typename Types::Value;
+
+    using IndexValue = typename Types::IndexType;
+    using Value      = typename Types::ValueType;
 
     using Values     = core::StaticVector<IndexValue, Blocks>;
     using DataValues = core::StaticVector<Value, Blocks>;
+
+    using AccumValue = Value;
 
     using Metadata = typename Base::Metadata;
 
@@ -1230,19 +1238,20 @@ public:
 };
 
 template <typename Types>
-struct PkdStructSizeType<PkdFQTree<Types>> {
-    static const PackedSizeType Value = PackedSizeType::FIXED;
-};
+struct PackedStructTraits<PkdFQTree<Types>>
+{
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;
 
+    using SearchKeyType = typename Types::IndexType;
 
-template <typename Types>
-struct StructSizeProvider<PkdFQTree<Types>> {
-    static const int32_t Value = Types::Blocks;
-};
+    using SearchKeyDataType = typename Types::ValueDataType;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
 
-template <typename Types>
-struct IndexesSize<PkdFQTree<Types>> {
-    static const int32_t Value = Types::Blocks;
+    using AccumType = typename PkdFQTree<Types>::Value;
+
+    static constexpr int32_t Blocks = PkdFQTree<Types>::Blocks;
+    static constexpr int32_t Indexes = PkdFQTree<Types>::Blocks;
+
 };
 
 

@@ -340,21 +340,21 @@ public:
     using BlockDispatchers 	= bt::BTreeDispatchers<DispatcherTypes>;
     using TreePath 			= core::StaticArray<NodePageBase0G, 8>;
 
-    static const PackedSizeType BranchSizeType  = PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
-    static const PackedSizeType LeafSizeType    = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
+    static const PackedDataTypeSize BranchSizeType  = PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
+    static const PackedDataTypeSize LeafSizeType    = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
 
-    static const PackedSizeType TotalSizeType   = PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
+    static const PackedDataTypeSize TotalSizeType   = PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
 
 
 
     using CtrListBranch = IfThenElse<
-                            BranchSizeType == PackedSizeType::FIXED,
+                            BranchSizeType == PackedDataTypeSize::FIXED,
                             typename ContainerTypes::FixedBranchContainerPartsList,
                             typename ContainerTypes::VariableBranchContainerPartsList
     >;
 
     using CtrListLeaf = IfThenElse<
-                        LeafSizeType == PackedSizeType::FIXED,
+                        LeafSizeType == PackedDataTypeSize::FIXED,
                         typename ContainerTypes::FixedLeafContainerPartsList,
                         typename ContainerTypes::VariableLeafContainerPartsList
     >;
@@ -457,7 +457,7 @@ public:
 
         using LeafNode = typename Pages::LeafDispatcher::Head;
 
-        static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
+        static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedDataTypeSize::FIXED ?
                                                         LeafDataLengthType::FIXED :
                                                         LeafDataLengthType::VARIABLE;
 

@@ -19,10 +19,69 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
+#include <memoria/v1/core/tools/optional.hpp>
+#include <memoria/v1/core/tools/static_array.hpp>
+
+
 #include <memory>
 
 namespace memoria {
 namespace v1 {
+
+
+template <typename T, int32_t Indexes>
+void assign(core::StaticVector<OptionalT<T>, Indexes>& tgt, const core::StaticVector<OptionalT<T>, Indexes>& src) {
+    tgt = src;
+}
+
+template <typename T, int32_t Indexes>
+void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<OptionalT<T>, Indexes>& src) {
+    for (int32_t c = 0; c < Indexes; c++) {
+        tgt[c] = src[c].get();
+    }
+}
+
+template <typename T, int32_t Indexes>
+void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<T, Indexes>& src) {
+    for (int32_t c = 0; c < Indexes; c++) {
+        tgt[c] = src[c];
+    }
+}
+
+template <typename T, typename TT, int32_t Indexes>
+void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<TT, Indexes>& src) {
+    for (int32_t c = 0; c < Indexes; c++) {
+        tgt[c] = src[c];
+    }
+}
+
+template <typename T, int32_t Indexes>
+void assign(core::StaticVector<OptionalT<T>, Indexes>& tgt, const core::StaticVector<T, Indexes>& src)
+{
+    for (int32_t c = 0; c < Indexes; c++) {
+        tgt[c] = src[c];
+    }
+}
+
+template <typename T, int32_t Indexes>
+void assign(core::StaticVector<OptionalT<T>, Indexes>& tgt, const T& src)
+{
+    static_assert(Indexes == 1, "");
+    tgt[0] = src;
+}
+
+
+template <typename T, int32_t Indexes>
+void assign(core::StaticVector<T, Indexes>& tgt, const T& src)
+{
+    static_assert(Indexes <= 1, "");
+    if (Indexes == 1)
+    {
+        tgt[0] = src;
+    }
+}
+
+
 
 template <typename Fn>
 static int32_t FindTotalElementsNumber(int32_t block_size, Fn&& fn)

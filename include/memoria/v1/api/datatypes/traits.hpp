@@ -145,6 +145,10 @@ struct DataTypeTraits<USmallInt>: FixedSizeDataTypeTraits<uint16_t, USmallInt> {
 template <>
 struct DataTypeTraits<Integer>: FixedSizeDataTypeTraits<int32_t, Integer> {};
 
+
+template <>
+struct DataTypeTraits<int32_t>: FixedSizeDataTypeTraits<int32_t, Integer> {};
+
 template <>
 struct DataTypeTraits<UInteger>: FixedSizeDataTypeTraits<uint32_t, UInteger> {};
 
@@ -272,6 +276,20 @@ struct DataTypeTraits<Dynamic<T>>: DataTypeTraits<T>
     }
 };
 
+template <typename T>
+struct DataTypeTraits<Nullable<T>>: DataTypeTraits<T>
+{
+    static void create_signature(SBuf& buf, T obj)
+    {
+        buf << "Nullable ";
+        DataTypeTraits<T>::create_signature(buf);
+    }
+
+    static void create_signature(SBuf& buf) {
+        buf << "Nullable ";
+        DataTypeTraits<T>::create_signature(buf);
+    }
+};
 
 
 template<typename T>

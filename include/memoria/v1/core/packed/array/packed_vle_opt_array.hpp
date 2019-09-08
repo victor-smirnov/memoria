@@ -1,5 +1,5 @@
 
-// Copyright 2016 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,64 +16,76 @@
 
 #pragma once
 
-#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
+#include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
+#include <memoria/v1/core/tools/accessors.hpp>
+
+#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
 #include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
-#include <memoria/v1/core/packed/tree/fse_max/packed_fse_optmax_tree_so.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_opt_array_so.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
 
-#include <memoria/v1/core/tools/optional.hpp>
+#include <memoria/v1/api/common/packed_api.hpp>
+
+#include <type_traits>
 
 namespace memoria {
 namespace v1 {
 
-template <typename Types> class PkdFMOTree;
+template <
+    typename V,
+    int32_t Blocks_ = 1,
+    int32_t Indexes_ = 0
+>
+struct PackedVLenElementOptArrayTypes {
+    using Value = V;
+    static constexpr int32_t Blocks = Blocks_;
+    static constexpr int32_t Indexes = Indexes_;
+};
 
-template <typename ValueT, int32_t kBlocks = 1, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
-using PkdFMOTreeT = PkdFMOTree<PkdFMTreeTypes<ValueT, kBlocks, kBranchingFactor, kValuesPerBranch>>;
+template <typename Types> class PackedVLenElementOptArray;
+
+template <typename V, int32_t Blocks = 1, int32_t Indexes = 0>
+using PkdVLEOptArrayT = PackedVLenElementOptArray<PackedVLenElementOptArrayTypes<V, Blocks, Indexes>>;
 
 
-template <typename Types>
-class PkdFMOTree: public PackedAllocator {
 
-    using Base      = PackedAllocator;
-    using MyType    = PkdFMOTree<Types>;
 
+
+template <typename Types_>
+class PackedVLenElementOptArray: public PackedAllocator {
+    using Base = PackedAllocator;
 public:
+    using MyType = PackedVLenElementOptArray;
 
     static constexpr uint32_t VERSION = 1;
-    static constexpr int32_t Blocks = Types::Blocks;
+    static constexpr int32_t Blocks = Types_::Blocks;
+    static constexpr int32_t Indexes = Types_::Indexes;
 
-    using Tree      = PkdFMTree<Types>;
+    using Array     = PackedVLenElementArray<Types_>;
     using Bitmap    = PkdFSSeq<typename PkdFSSeqTF<1>::Type>;
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
-                typename Tree::FieldsList,
+                typename Array::FieldsList,
                 typename Bitmap::FieldsList,
                 ConstValue<uint32_t, VERSION>
     >;
 
 
 
-    enum {BITMAP, TREE, STRUCTS_NUM__};
+    enum {BITMAP, ARRAY, STRUCTS_NUM__};
 
 
-    using DataType      = typename Tree::DataType;
-    using IndexDataType = typename Tree::IndexDataType;
-    using CxxValue      = typename Tree::Value;
+    using IndexValue = typename Array::ViewType;
 
-    using IndexValue    = CxxValue;
-    using TreeValue     = CxxValue;
-    using TreeValues    = typename Tree::Values;
+    using ArrayValue  = typename Array::ViewType;
 
-    using Value      = OptionalT<CxxValue>;
+    using Value      = OptionalT<typename Array::ViewType>;
     using Values     = core::StaticVector<Value, Blocks>;
-    using SizesT     = typename Tree::SizesT;
-
-    using AccumValue = Value;
 
     using ExtData = EmptyType;
-    using SparseObject = PackedFSEOptMaxTreeSO<ExtData, MyType>;
+    using SparseObject = PackedVLenElementOptArraySO<ExtData, MyType>;
 
     using Base::block_size;
 
@@ -85,23 +97,24 @@ public:
         return this->template get<Bitmap>(BITMAP);
     }
 
-    Tree* tree() {
-        return this->template get<Tree>(TREE);
+    Array* array() {
+        return this->template get<Array>(ARRAY);
     }
 
-    const Tree* tree() const {
-        return this->template get<Tree>(TREE);
+    const Array* array() const {
+        return this->template get<Array>(ARRAY);
     }
 
+    // FIXME: Why it doesn't take PackedAllocator's space into account?
     static int32_t empty_size()
     {
-        return Bitmap::empty_size() + Tree::empty_size();
+        return Bitmap::empty_size() + Array::empty_size();
     }
 
 
     static int32_t block_size(int32_t capacity)
     {
-        return Bitmap::packed_block_size(capacity) + Tree::block_size(capacity);
+        return Bitmap::packed_block_size(capacity) + Array::empty_size();
     }
 
     int32_t block_size(const MyType* other) const
@@ -109,8 +122,9 @@ public:
         return MyType::block_size(size() + other->size());
     }
 
-    OpStatus init(int32_t capacity = 0)
+    OpStatus init()
     {
+        int32_t capacity = 0;
         if(isFail(Base::init(block_size(capacity), STRUCTS_NUM__))) {
             return OpStatus::FAIL;
         }
@@ -118,7 +132,7 @@ public:
         int32_t bitmap_block_size = Bitmap::packed_block_size(capacity);
 
         Bitmap* bitmap = allocateSpace<Bitmap>(BITMAP, bitmap_block_size);
-        if(isFail(bitmap)){
+        if(isFail(bitmap)) {
             return OpStatus::FAIL;
         }
 
@@ -126,25 +140,13 @@ public:
             return OpStatus::FAIL;
         }
 
-        Tree* tree = allocateSpace<Tree>(TREE, Tree::block_size(capacity));
-
-        if(isFail(tree)) {
+        Array* array = allocateSpace<Array>(ARRAY, Array::empty_size());
+        if(isFail(array)) {
             return OpStatus::FAIL;
         }
 
-        if(isFail(tree->init(capacity))) {
-            return OpStatus::FAIL;
-        }
-
-        return OpStatus::OK;
+        return array->init();
     }
-
-    OpStatus init(const SizesT& sizes)
-    {
-        return MyType::init(sizes[0]);
-    }
-
-
 
     int32_t size() const
     {
@@ -155,15 +157,15 @@ public:
     template <typename T>
     void max(core::StaticVector<T, Blocks>& accum) const
     {
-        const Tree* tree = this->tree();
+        const Array* array = this->array();
 
-        int32_t size = tree->size();
+        int32_t size = array->size();
 
         if (size > 0)
         {
             for (int32_t block = 0; block < Blocks; block++)
             {
-                accum[block] = tree->value(block, size - 1);
+                accum[block] = array->value(block, size - 1);
             }
         }
         else {
@@ -182,8 +184,8 @@ public:
 
         if (bitmap->symbol(idx) == 1)
         {
-            int32_t tree_idx = this->tree_idx(bitmap, idx);
-            return tree()->value(block, tree_idx);
+            int32_t array_idx = this->array_idx(bitmap, idx);
+            return array()->value(block, array_idx);
         }
         else {
             return Value();
@@ -198,10 +200,10 @@ public:
 
         if (bitmap->symbol(idx) == 1)
         {
-            auto tree = this->tree();
-            int32_t tree_idx = this->tree_idx(idx);
+            auto array = this->array();
+            int32_t array_idx = this->array_idx(idx);
 
-            core::OptionalAssignmentHelper(v, tree->get_values(tree_idx));
+            OptionalAssignmentHelper(v, array->get_values(array_idx));
         }
 
         return v;
@@ -211,37 +213,38 @@ public:
     template <typename T>
     OpStatus setValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
-        Bitmap* bitmap  = this->bitmap();
-        Tree* tree      = this->tree();
+        Bitmap* bitmap   = this->bitmap();
+        Array* array     = this->array();
 
         if (values[0].is_set())
         {
-            TreeValues tree_values  = this->tree_values(values);
-            int32_t tree_idx        = this->tree_idx(idx);
+            auto array_values  = this->array_values(values);
+            int32_t array_idx  = this->array_idx(idx);
 
             if (bitmap->symbol(idx))
             {
-                if(isFail(tree->setValues(tree_idx, tree_values))) {
+                if(isFail(array->setValues(array_idx, array_values))) {
                     return OpStatus::FAIL;
                 }
             }
             else {
-                if (isFail(tree->insert(tree_idx, tree_values))) {
+                if(isFail(array->insert(array_idx, array_values))) {
                     return OpStatus::FAIL;
                 }
 
                 bitmap->symbol(idx) = 1;
+
                 if (isFail(bitmap->reindex())) {
                     return OpStatus::FAIL;
                 }
             }
         }
         else {
-            int32_t tree_idx = this->tree_idx(idx);
+            int32_t array_idx = this->array_idx(idx);
 
             if (bitmap->symbol(idx))
             {
-                if (isFail(tree->remove(tree_idx, tree_idx + 1))) {
+                if (isFail(array->remove(array_idx, array_idx + 1))) {
                     return OpStatus::FAIL;
                 }
 
@@ -262,7 +265,7 @@ public:
     template <typename T>
     auto findGTForward(int32_t block, const T& val) const
     {
-        auto result = tree()->find_gt(block, val);
+        auto result = array()->find_gt(block, val);
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -272,7 +275,7 @@ public:
     template <typename T>
     auto findGTForward(int32_t block, const OptionalT<T>& val) const
     {
-        auto result = tree()->find_gt(block, val.value());
+        auto result = array()->find_gt(block, val.value());
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -282,7 +285,7 @@ public:
     template <typename T>
     auto findGEForward(int32_t block, const T& val) const
     {
-        auto result = tree()->find_ge(block, val.value());
+        auto result = array()->find_ge(block, val.value());
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -292,7 +295,7 @@ public:
     template <typename T>
     auto findForward(SearchType search_type, int32_t block, const T& val) const
     {
-        auto result = tree()->findForward(search_type, block, val);
+        auto result = array()->findForward(search_type, block, val);
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -302,7 +305,7 @@ public:
     template <typename T>
     auto findForward(SearchType search_type, int32_t block, const OptionalT<T>& val) const
     {
-        auto result = tree()->findForward(search_type, block, val.value());
+        auto result = array()->findForward(search_type, block, val.value());
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -313,7 +316,7 @@ public:
     template <typename T>
     auto findBackward(SearchType search_type, int32_t block, const T& val) const
     {
-        auto result = tree()->findBackward(search_type, block, val);
+        auto result = array()->findBackward(search_type, block, val);
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -323,7 +326,7 @@ public:
     template <typename T>
     auto findBackward(SearchType search_type, int32_t block, const OptionalT<T>& val) const
     {
-        auto result = tree()->findBackward(search_type, block, val.value());
+        auto result = array()->findBackward(search_type, block, val.value());
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -337,14 +340,13 @@ public:
         if(isFail(bitmap()->reindex())) {
             return OpStatus::FAIL;
         }
-
-        return tree()->reindex();
+        return array()->reindex();
     }
 
     void check() const
     {
         bitmap()->check();
-        tree()->check();
+        array()->check();
     }
 
 
@@ -352,13 +354,13 @@ public:
     {
         Bitmap* bitmap = this->bitmap();
 
-        int32_t tree_idx = this->tree_idx(bitmap, idx);
+        int32_t array_idx = this->array_idx(bitmap, idx);
 
         if(isFail(bitmap->splitTo(other->bitmap(), idx))) {
             return OpStatus::FAIL;
         }
 
-        if(isFail(tree()->splitTo(other->tree(), tree_idx))) {
+        if(isFail(array()->splitTo(other->array(), array_idx))) {
             return OpStatus::FAIL;
         }
 
@@ -371,7 +373,7 @@ public:
             return OpStatus::FAIL;
         }
 
-        return tree()->mergeWith(other->tree());
+        return array()->mergeWith(other->array());
     }
 
     OpStatus removeSpace(int32_t start, int32_t end)
@@ -383,14 +385,14 @@ public:
     {
         Bitmap* bitmap = this->bitmap();
 
-        int32_t tree_start = tree_idx(bitmap, start);
-        int32_t tree_end = tree_idx(bitmap, end);
+        int32_t array_start = array_idx(bitmap, start);
+        int32_t array_end = array_idx(bitmap, end);
 
         if(isFail(bitmap->remove(start, end))) {
             return OpStatus::FAIL;
         }
 
-        return tree()->remove(tree_start, tree_end);
+        return array()->remove(array_start, array_end);
     }
 
     template <typename T>
@@ -404,85 +406,18 @@ public:
                 return OpStatus::FAIL;
             }
 
-            TreeValues tree_values  = this->tree_values(values);
-            int32_t tree_idx        = this->tree_idx(bitmap, idx);
+            auto array_values  = this->array_values(values);
+            int32_t array_idx         = this->array_idx(bitmap, idx);
 
-            Tree* tree = this->tree();
-            if(isFail(tree->insert(tree_idx, tree_values))) {
-                return OpStatus::FAIL;
-            }
+            Array* array = this->array();
+            return array->insert(array_idx, array_values);
         }
         else {
-            if(isFail(bitmap->insert(idx, 0))) {
-                return OpStatus::FAIL;
-            }
+            return bitmap->insert(idx, 0);
         }
-
-        return OpStatus::OK;
     }
 
 
-    OpStatus insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true)
-    {
-        auto bitmap = this->bitmap();
-        int32_t bitidx = 0;
-        int32_t setted = 0;
-
-        if(isFail(bitmap->insert(idx, size, [&]() {
-            auto v = provider(bitidx++);
-            setted += v[0].is_set();
-            return v[0].is_set();
-        }))) {
-            return OpStatus::FAIL;
-        };
-
-        auto tree    = this->tree();
-        int32_t tree_idx = this->tree_idx(bitmap, idx);
-
-        int tidx = 0;
-
-        TreeValues tv;
-
-        if(isFail(tree->insert(tree_idx, setted, [&, this](int32_t) -> const auto& {
-            while(true)
-            {
-                if (tidx < size)
-                {
-                    const auto& v = provider(tidx++);
-
-                    if (v[0].is_set())
-                    {
-                        tv = this->tree_values(v);
-
-
-
-                        return tv;
-                    }
-                }
-                else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Position {} exceeds {}", tidx, size));
-                }
-            }
-        }))) {
-            return OpStatus::FAIL;
-        };
-
-        return OpStatus::OK;
-    }
-
-
-
-    void generateDataEvents(IBlockDataEventHandler* handler) const
-    {
-        handler->startStruct();
-        handler->startGroup("FSMO_TREE");
-
-        bitmap()->generateDataEvents(handler);
-        tree()->generateDataEvents(handler);
-
-        handler->endGroup();
-        handler->endStruct();
-    }
 
 
     template <typename SerializationData>
@@ -491,9 +426,8 @@ public:
         Base::serialize(buf);
 
         bitmap()->serialize(buf);
-        tree()->serialize(buf);
+        array()->serialize(buf);
     }
-
 
     template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
@@ -501,20 +435,17 @@ public:
         Base::deserialize(buf);
 
         bitmap()->deserialize(buf);
-        tree()->deserialize(buf);
+        array()->deserialize(buf);
     }
 
-    void dump() const {
-        bitmap()->dump();
-        tree()->dump();
-    }
+
 
 protected:
 
     template <typename T>
-    core::StaticVector<TreeValue, Blocks> tree_values(const core::StaticVector<OptionalT<T>, Blocks>& values)
+    core::StaticVector<ArrayValue, Blocks> array_values(const core::StaticVector<OptionalT<T>, Blocks>& values)
     {
-        core::StaticVector<TreeValue, Blocks> tv;
+        core::StaticVector<ArrayValue, Blocks> tv;
 
         for (int32_t b = 0;  b < Blocks; b++)
         {
@@ -524,44 +455,44 @@ protected:
         return tv;
     }
 
-    int32_t tree_idx(int32_t global_idx) const
+    int32_t array_idx(int32_t global_idx) const
     {
-        return tree_idx(bitmap(), global_idx);
+        return array_idx(bitmap(), global_idx);
     }
 
-    int32_t tree_idx(const Bitmap* bitmap, int32_t global_idx) const
+    int32_t array_idx(const Bitmap* bitmap, int32_t global_idx) const
     {
         int32_t rank = bitmap->rank(global_idx, 1);
         return rank;
     }
 
 
-    int32_t global_idx(int32_t tree_idx) const
+    int32_t global_idx(int32_t array_idx) const
     {
-        return global_idx(bitmap(), tree_idx);
+        return global_idx(bitmap(), array_idx);
     }
 
-    int32_t global_idx(const Bitmap* bitmap, int32_t tree_idx) const
+    int32_t global_idx(const Bitmap* bitmap, int32_t array_idx) const
     {
-        auto result = bitmap->selectFw(1, tree_idx + 1);
+        auto result = bitmap->selectFw(1, array_idx + 1);
         return result.local_pos();
     }
-
-
 };
 
 template <typename Types>
-struct PackedStructTraits<PkdFMOTree<Types>> {
+struct PackedStructTraits<PackedVLenElementOptArray<Types>> {
+    using SearchKeyDataType = typename Types::Value;
 
-    using SearchKeyDataType = typename Types::ValueDataType;
-    using AccumType = typename PkdFMOTree<Types>::AccumValue;
-    using SearchKeyType = typename PkdFMOTree<Types>::Value;
+    using AccumType = typename DataTypeTraits<SearchKeyDataType>::ViewType;
+    using SearchKeyType = OptionalT<typename DataTypeTraits<SearchKeyDataType>::ViewType>;
 
-    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
+
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
-    static constexpr int32_t Blocks = PkdFMOTree<Types>::Blocks;
-    static constexpr int32_t Indexes = PkdFMOTree<Types>::Blocks;
+    static constexpr int32_t Indexes = PackedVLenElementOptArray<Types>::Indexes;
 };
+
+
 
 
 

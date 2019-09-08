@@ -24,34 +24,56 @@
 
 #include <memoria/v1/core/tools/bitmap.hpp>
 
+#include <memoria/v1/core/packed/tools/packed_tools.hpp>
+
 namespace memoria {
 namespace v1 {
 
 template <typename PkdStruct> struct PackedStructTraits;
 
-
 template <typename PkdStruct>
-struct AccumType: HasType<typename PkdStruct::Value> {};
+using AccumType = typename PackedStructTraits<PkdStruct>::AccumType;
+
+//template <typename PkdStruct>
+//struct AccumType: HasType<typename PkdStruct::AccumValue> {};
 
 enum class PkdSearchType {SUM, MAX};
 
 template <typename PkdStruct>
-struct PkdSearchTypeProvider {
-    static constexpr PkdSearchType Value = PkdStruct::KeySearchType;
-};
+constexpr PkdSearchType PkdKeySearchType = PackedStructTraits<PkdStruct>::KeySearchType;
+
+
+
+//template <typename PkdStruct>
+//struct PkdSearchTypeProvider {
+//    static constexpr PkdSearchType Value = PkdStruct::KeySearchType;
+//};
 
 template <typename PkdStruct>
-struct PkdSearchKeyTypeProvider {
-    using Type = typename PkdStruct::IndexValue;
-};
+using PkdSearchKeyType = typename PackedStructTraits<PkdStruct>::SearchKeyType;
 
-template <typename T> struct StructSizeProvider;
+template <typename PkdStruct>
+using PkdSearchKeyDataType = typename PackedStructTraits<PkdStruct>::SearchKeyDataType;
+
+
+//template <typename PkdStruct>
+//struct PkdSearchKeyDataTypeProvider {
+//    using Type = typename PkdStruct::IndexDataType;
+//};
+
+template <typename PkdStruct>
+constexpr PackedDataTypeSize PkdStructSizeType = PackedStructTraits<PkdStruct>::DataTypeSize;
+
 
 
 template <typename PkdStruct>
-struct PkdStructSizeType {
-    static const PackedSizeType Value = PkdStruct::SizeType;
-};
+constexpr int32_t PkdStructIndexes = PackedStructTraits<PkdStruct>::Indexes;
+
+
+//template <typename PkdStruct>
+//struct PkdStructSizeType {
+//    static const PackedDataTypeSize Value = PkdStruct::SizeType;
+//};
 
 //template <typename PkdStruct>
 //struct PkdStructInputBufferType {
@@ -65,30 +87,34 @@ template <typename List> struct PackedListStructSizeType;
 
 template <typename Head, typename... Tail>
 struct PackedListStructSizeType<TL<Head, Tail...>> {
-    static const PackedSizeType HeadValue = PkdStructSizeType<Head>::Value;
+    static const PackedDataTypeSize HeadValue = PkdStructSizeType<Head>;
 
-    static const PackedSizeType Value =
-            (HeadValue == PackedSizeType::VARIABLE) ?
-                    PackedSizeType::VARIABLE :
+    static const PackedDataTypeSize Value =
+            (HeadValue == PackedDataTypeSize::VARIABLE) ?
+                    PackedDataTypeSize::VARIABLE :
                     PackedListStructSizeType<TL<Tail...>>::Value;
 };
 
 template <>
 struct PackedListStructSizeType<TL<>> {
-    static const PackedSizeType Value = PackedSizeType::FIXED;
+    static const PackedDataTypeSize Value = PackedDataTypeSize::FIXED;
 };
 
 
-template <PackedSizeType... SizeTypes> struct PackedSizeTypeList;
+template <PackedDataTypeSize... SizeTypes> struct PackedSizeTypeList;
 
-template <PackedSizeType Head, PackedSizeType... Tail>
-struct PackedSizeTypeList<Head, Tail...> {
-    static const PackedSizeType Value = (Head == PackedSizeType::VARIABLE) ? PackedSizeType::VARIABLE : PackedSizeTypeList<Tail...>::Value;
+template <PackedDataTypeSize Head, PackedDataTypeSize... Tail>
+struct PackedSizeTypeList<Head, Tail...>
+{
+    static const PackedDataTypeSize Value =
+            (Head == PackedDataTypeSize::VARIABLE) ?
+                PackedDataTypeSize::VARIABLE :
+                PackedSizeTypeList<Tail...>::Value;
 };
 
 template <>
 struct PackedSizeTypeList<> {
-    static const PackedSizeType Value = PackedSizeType::FIXED;
+    static const PackedDataTypeSize Value = PackedDataTypeSize::FIXED;
 };
 
 class PackedOOMException: public MemoriaThrowableLW {

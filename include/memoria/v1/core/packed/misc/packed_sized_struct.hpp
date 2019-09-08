@@ -31,7 +31,7 @@ namespace v1 {
 
 
 
-template <typename Value_ = int64_t, int32_t Indexes_ = 0, PkdSearchType SearchType_ = PkdSearchType::SUM>
+template <typename DataType_ = int64_t, int32_t Indexes_ = 0, PkdSearchType SearchType_ = PkdSearchType::SUM>
 class PackedSizedStruct {
 
 public:
@@ -42,8 +42,10 @@ public:
 
     using MyType = PackedSizedStruct;
 
+    using DataType = std::remove_reference_t<DataType_>;
 
-    using Value = typename std::remove_reference<Value_>::type;
+    using Value = typename DataTypeTraits<DataType>::ValueType;
+    using IndexDataType = DataType;
 
     static constexpr int32_t Blocks = Indexes;
 
@@ -500,15 +502,15 @@ public:
 using StreamSize = PackedSizedStruct<int64_t, 1, PkdSearchType::SUM>;
 
 template <typename T, int32_t V, PkdSearchType S>
-struct PkdStructSizeType<PackedSizedStruct<T, V, S>> {
-    static const PackedSizeType Value = PackedSizeType::FIXED;
-};
+struct PackedStructTraits<PackedSizedStruct<T, V, S>>
+{
+    using SearchKeyDataType = T;
 
-template <typename T, int32_t V, PkdSearchType S>
-struct StructSizeProvider<PackedSizedStruct<T, V, S>> {
-    static const int32_t Value = PackedSizedStruct<T, V, S>::Blocks;
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;
+    static constexpr PkdSearchType KeySearchType = S;
+    static constexpr int32_t Blocks = PackedSizedStruct<T, V, S>::Blocks;
+    static constexpr int32_t Indexes = PackedSizedStruct<T, V, S>::Indexes;
 };
-
 
 
 }}

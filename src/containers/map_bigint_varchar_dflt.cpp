@@ -25,7 +25,6 @@ namespace v1 {
 using Profile = DefaultProfile<>;    
 using CtrName = Map<BigInt, Varchar>;
 
-
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_bi_vc)
 
 }}

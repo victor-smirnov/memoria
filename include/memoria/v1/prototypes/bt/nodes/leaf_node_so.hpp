@@ -955,11 +955,11 @@ public:
         >
         void stream(StreamType&& obj, Fn&& fn, Accum&& accum, Args&&... args)
         {
-            const int32_t LeafIdx = BranchNodeEntryIdx - SubstreamsStart;
+            constexpr int32_t LeafIdx = BranchNodeEntryIdx - SubstreamsStart;
 
-            const int32_t BranchStructIdx   = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::BranchStructIdx;
-            const int32_t LeafOffset        = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::LeafOffset;
-            const bool IsStreamStart        = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::IsStreamStart;
+            constexpr int32_t BranchStructIdx   = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::BranchStructIdx;
+            constexpr int32_t LeafOffset        = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::LeafOffset;
+            constexpr bool IsStreamStart        = bt::LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::IsStreamStart;
 
             fn.template stream<LeafOffset, IsStreamStart, ListIdx>(
                     std::forward<StreamType>(obj),

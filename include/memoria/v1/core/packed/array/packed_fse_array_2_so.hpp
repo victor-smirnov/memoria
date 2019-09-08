@@ -35,6 +35,7 @@ class PackedFixedSizeElementArraySO {
     using MyType = PackedFixedSizeElementArraySO;
 
     using Value = typename PkdStruct::Value;
+    using ViewType = Value;
 
     static constexpr psize_t VALUES = PkdStruct::VALUES;
 
@@ -130,6 +131,67 @@ public:
     }
 
     /*********************** API *********************/
+
+    class FindResult {
+        int32_t idx_;
+    public:
+        FindResult(int32_t idx): idx_(idx)
+        {}
+
+        FindResult(): idx_()
+        {}
+
+        ViewType prefix() {return ViewType{};}
+        int32_t local_pos() const {return idx_;}
+    };
+
+    FindResult findGTForward(psize_t column, const ViewType& val) const
+    {
+//        auto end = this->end(column);
+//        auto ii = std::upper_bound(begin(column), end, val);
+
+//        if (ii != end)
+//        {
+//            return ii.pos();
+//        }
+
+        return FindResult(data_->size());
+    }
+
+    FindResult findGEForward(psize_t column, const ViewType& val) const
+    {
+//        auto end = this->end(column);
+//        auto ii = std::lower_bound(begin(column), end, val);
+
+//        if (ii != end)
+//        {
+//            return ii.pos();
+//        }
+
+        return FindResult(data_->size());
+    }
+
+    auto findForward(SearchType search_type, psize_t column, const ViewType& val) const
+    {
+        if (search_type == SearchType::GT)
+        {
+            return findGTForward(column, val);
+        }
+        else {
+            return findGEForward(column, val);
+        }
+    }
+
+    auto findForward(SearchType search_type, psize_t column, const OptionalT<ViewType>& val) const
+    {
+        if (search_type == SearchType::GT)
+        {
+            return findGTForward(column, val.value());
+        }
+        else {
+            return findGEForward(column, val.value());
+        }
+    }
 
     OpStatus insertSpace(psize_t idx, psize_t room_length)
     {

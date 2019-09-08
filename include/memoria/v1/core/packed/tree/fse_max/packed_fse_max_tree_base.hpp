@@ -59,9 +59,8 @@ class PkdFMTreeBase: public PkdFMTreeBaseBase<ValueT, kBranchingFactor, kValuesP
 public:
     static constexpr uint32_t VERSION = 1;
 
-
-    using Value         = ValueT;
-    using IndexValue    = ValueT;
+    using typename Base::Value;
+    using typename Base::IndexValue;
 
     using Metadata      = typename Base::Metadata;
     using TreeLayout    = typename Base::template IndexedTreeLayout<IndexValue>;

@@ -32,7 +32,7 @@ template <typename Types> class PkdVMOTree;
 
 
 template <typename ValueT, template <typename> class CodecT = ValueCodec, int32_t kBranchingFactor = 1024>
-using PkdVMOTreeT = PkdVMOTree<PkdVBMTreeTypes<typename ValueT::ValueType, CodecT, kBranchingFactor>>;
+using PkdVMOTreeT = PkdVMOTree<PkdVBMTreeTypes<ValueT, CodecT, kBranchingFactor>>;
 
 
 template <typename Types>
@@ -45,6 +45,7 @@ public:
 
     static constexpr uint32_t VERSION = 1;
     static constexpr int32_t Blocks = Types::Blocks;
+    static constexpr bool FQTree = false;
 
     using Tree      = PkdVBMTree<Types>;
     using Bitmap    = PkdFSSeq<typename PkdFSSeqTF<1>::Type>;
@@ -66,7 +67,7 @@ public:
     using TreeValue  = typename Tree::Value;
     using TreeValues = typename Tree::Values;
 
-    using Value      = OptionalT<typename Tree::Value>;
+    using Value      = typename Tree::Value;
     using Values     = core::StaticVector<Value, Blocks>;
     using SizesT     = typename Tree::SizesT;
 
@@ -418,51 +419,51 @@ public:
     }
 
 
-    OpStatus insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true)
-    {
-        auto bitmap = this->bitmap();
-        int32_t bitidx = 0;
-        int32_t setted = 0;
+//    OpStatus insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider, bool reindex = true)
+//    {
+//        auto bitmap = this->bitmap();
+//        int32_t bitidx = 0;
+//        int32_t setted = 0;
 
-        bitmap->insert(idx, size, [&]() {
-            auto v = provider(bitidx++);
-            setted += v[0].is_set();
-            return v[0].is_set();
-        });
+//        bitmap->insert(idx, size, [&]() {
+//            auto v = provider(bitidx++);
+//            setted += v[0].is_set();
+//            return v[0].is_set();
+//        });
 
-        auto tree = this->tree();
-        int32_t tree_idx = this->tree_idx(bitmap, idx);
+//        auto tree = this->tree();
+//        int32_t tree_idx = this->tree_idx(bitmap, idx);
 
-        int tidx = 0;
+//        int tidx = 0;
 
-        TreeValues tv;
+//        TreeValues tv;
 
-        if(isFail(tree->insert(tree_idx, setted, [&, this](int32_t) -> const auto& {
-            while(true)
-            {
-                if (tidx < size)
-                {
-                    const auto& v = provider(tidx++);
+//        if(isFail(tree->insert(tree_idx, setted, [&, this](int32_t) -> const auto& {
+//            while(true)
+//            {
+//                if (tidx < size)
+//                {
+//                    const auto& v = provider(tidx++);
 
-                    if (v[0].is_set())
-                    {
-                        tv = this->tree_values(v);
+//                    if (v[0].is_set())
+//                    {
+//                        tv = this->tree_values(v);
 
 
 
-                        return tv;
-                    }
-                }
-                else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Position {} exceeds {}", tidx, size));
-                }
-            }
-        }))) {
-            return OpStatus::FAIL;
-        };
+//                        return tv;
+//                    }
+//                }
+//                else {
+//                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Position {} exceeds {}", tidx, size));
+//                }
+//            }
+//        }))) {
+//            return OpStatus::FAIL;
+//        };
 
-        return OpStatus::OK;
-    }
+//        return OpStatus::OK;
+//    }
 
 
 
@@ -538,33 +539,7 @@ protected:
         auto result = bitmap->selectFw(1, tree_idx + 1);
         return result.local_pos();
     }
-
-
 };
-
-
-
-template <typename Types>
-struct PkdStructSizeType<PkdVMOTree<Types>> {
-    static const PackedSizeType Value = PackedSizeType::VARIABLE;
-};
-
-
-template <typename Types>
-struct StructSizeProvider<PkdVMOTree<Types>> {
-    static const int32_t Value = PkdVMOTree<Types>::Blocks;
-};
-
-template <typename Types>
-struct IndexesSize<PkdVMOTree<Types>> {
-    static const int32_t Value = PkdVMOTree<Types>::Blocks;
-};
-
-template <typename T>
-struct PkdSearchKeyTypeProvider<PkdVMOTree<T>> {
-    using Type = typename PkdVMOTree<T>::Value;
-};
-
 
 
 }}

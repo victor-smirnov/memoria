@@ -65,17 +65,21 @@ public:
     static constexpr psize_t OffsetsBlk         = 0;
     static constexpr psize_t DataBlk            = 1;
 
+    static constexpr bool FQTree = false;
 
     using Types     = Types_;
     using MyType    = PackedVLenElementArray;
     using Tag       = PkdVLEArrayTag;
 
-    using DataType = typename Types::Value;
+    using DataType      = typename Types::Value;
+    using IndexDataType = typename Types::Value;
 
     using ViewType      = typename DataTypeTraits<DataType>::ViewType;
     using ValueType     = typename DataTypeTraits<DataType>::ValueType;
     using DataSizeType  = psize_t;
     using DataAtomType  = typename DataTypeTraits<DataType>::AtomType;
+
+    using AccumValue = ViewType;
 
     using IndexValue = ValueType;
 
@@ -270,36 +274,21 @@ public:
 
 template <typename Types>
 struct PackedStructTraits<PackedVLenElementArray<Types>> {
+    using SearchKeyDataType = typename Types::Value;
 
-};
+    using AccumType = typename DataTypeTraits<SearchKeyDataType>::ViewType;
+    using SearchKeyType = typename DataTypeTraits<SearchKeyDataType>::ViewType;
 
-template <typename ExtData, typename PkdStruct>
-struct PackedStructTraits<PackedVLenElementArraySO<ExtData, PkdStruct>>: PackedStructTraits<PkdStruct> {
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 
-};
-
-
-
-
-template <typename Types>
-struct PkdStructSizeType<PackedVLenElementArray<Types>> {
-    static const PackedSizeType Value = PackedSizeType::VARIABLE;
-};
-
-template <typename T>
-struct StructSizeProvider<PackedVLenElementArray<T>> {
-    static const int32_t Value = PackedVLenElementArray<T>::Indexes;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
+    static constexpr int32_t Indexes = PackedVLenElementArray<Types>::Indexes;
 };
 
 
-template <typename T>
-struct PkdSearchKeyTypeProvider<PackedVLenElementArray<T>> {
-    using Type = OptionalT<typename PackedVLenElementArray<T>::ViewType>;
-};
 
-template <typename T>
-struct IndexesSize<PackedVLenElementArray<T>> {
-    static const int32_t Value = PackedVLenElementArray<T>::Indexes;
-};
+
+
+
 
 }}

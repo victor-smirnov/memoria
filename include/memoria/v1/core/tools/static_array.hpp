@@ -908,19 +908,19 @@ auto MakeStaticVector(Args&&... args) -> StaticVector<T, sizeof...(Args)>
 template <typename Key, int32_t Indexes>
 std::ostream& operator<<(std::ostream& out, const core::StaticVector<Key, Indexes>& accum)
 {
-    out<<"[";
+    out << "[";
 
     for (int32_t c = 0; c < Indexes; c++)
     {
-        out<<accum.value(c);
+        out << accum.value(c);
 
         if (c < Indexes - 1)
         {
-            out<<", ";
+            out << ", ";
         }
     }
 
-    out<<"]";
+    out << "]";
 
     return out;
 }

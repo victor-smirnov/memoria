@@ -90,84 +90,18 @@ struct BTTypes<Profile, Vector<Value_> >: public VectorBTTypesBase<Profile, Valu
     );
 
 
-    using LeafValueStruct = typename mvector::VectorValueStructTF<ValueV, HasFieldFactory<ValueV>::Value>::Type;
+    using LeafValueStruct = typename mvector::VectorValueStructTF<Value_>::Type;
 
 
     using StreamDescriptors = TL<bt::StreamTF<
         TL<
-            StreamSize,
-            LeafValueStruct
+            TL<StreamSize>,
+            TL<LeafValueStruct>
         >,
-        bt::DefaultBranchStructTF,
-        TL<TL<>, TL<>>
+        bt::DefaultBranchStructTF//,
+        //TL<TL<>, TL<>>
     >>;
 };
-
-
-
-template <Granularity Gr> struct CodecClassTF;
-
-template <>
-struct CodecClassTF<Granularity::int8_t> {
-    template <typename V>
-    using Type = UByteI7Codec<V>;
-};
-
-
-template <>
-struct CodecClassTF<Granularity::Bit> {
-    template <typename V>
-    using Type = UInt64EliasCodec<V>;
-};
-
-
-template <typename Profile, Granularity Gr, typename Value_>
-struct BTTypes<Profile, Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, BTSingleStream> {
-
-    using Base = BTTypes<Profile, BTSingleStream>;
-
-    using Value = Value_;
-    using ValueV = typename DataTypeTraits<Value_>::ValueType;
-    using ValueView = typename DataTypeTraits<Value_>::ViewType;
-
-
-    using VectorStreamTF = bt::StreamTF<
-        TL<TL<
-            StreamSize,
-            PkdVDArrayT<ValueV, 1, CodecClassTF<Gr>::template Type>
-        >>,
-        bt::FSEBranchStructTF,
-        TL<TL<TL<>, TL<>>>
-    >;
-
-
-    typedef TypeList<
-        VectorStreamTF
-    >                                                                           StreamDescriptors;
-
-    using Entry = Value;
-
-    using CommonContainerPartsList = MergeLists<
-            typename Base::CommonContainerPartsList,
-
-            mvector::CtrToolsName,
-            mvector::CtrInsertName,
-            mvector::CtrRemoveName,
-            mvector::CtrFindName,
-            mvector::CtrApiName
-    >;
-
-    using IteratorPartsList = MergeLists<
-            typename Base::IteratorPartsList,
-            mvector::ItrApiName
-    >;
-};
-
-
-
-
-
-
 
 
 template <typename Profile, typename Value, typename T>

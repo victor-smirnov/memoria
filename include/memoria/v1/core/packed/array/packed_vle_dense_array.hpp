@@ -1466,29 +1466,4 @@ public:
 };
 
 
-
-
-template <typename Types>
-struct PkdStructSizeType<PkdVDArray<Types>> {
-    static const PackedSizeType Value = PackedSizeType::VARIABLE;
-};
-
-
-template <typename Types>
-struct StructSizeProvider<PkdVDArray<Types>> {
-    static const int32_t Value = 0;
-};
-
-template <typename Types>
-struct IndexesSize<PkdVDArray<Types>> {
-    static const int32_t Value = 0;
-};
-
-template <typename T>
-struct PkdSearchKeyTypeProvider<PkdVDArray<T>> {
-    using Type = typename PkdVDArray<T>::Value;
-};
-
-
-
 }}

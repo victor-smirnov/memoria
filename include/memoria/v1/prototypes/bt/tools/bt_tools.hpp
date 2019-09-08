@@ -35,9 +35,7 @@
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_optmax_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
-
-
-
+#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
 
 #include <ostream>
 #include <tuple>
@@ -345,56 +343,6 @@ struct TupleEntryAccessor {
 
 
 
-template <typename T> struct DefaultBranchStructTF;
-
-template <typename KeyType>
-struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
-    using Type = PackedEmptyStruct<KeyType, PkdSearchType::MAX>;
-};
-
-template <typename KeyType>
-struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
-    using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
-};
-
-template <typename KeyType, int32_t Indexes>
-struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
-{
-    static_assert(
-            IsExternalizable<KeyType>::Value,
-            "Type must either has ValueCodec or FieldFactory defined"
-    );
-
-    //FIXME: Extend KeyType to contain enough space to represent practically large sums
-    //Should be done systematically on the level of BT
-
-    using Type = IfThenElse <
-            HasFieldFactory<KeyType>::Value,
-            PkdFQTreeT<KeyType, Indexes>,
-            PkdVQTreeT<KeyType, Indexes>
-    >;
-
-    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
-};
-
-template <typename KeyType, int32_t Indexes>
-struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
-
-    static_assert(
-            IsExternalizable<KeyType>::Value,
-            "Type must either has ValueCodec or FieldFactory defined"
-    );
-
-    using Type = IfThenElse<
-            HasFieldFactory<KeyType>::Value,
-            PkdFMOTreeT<KeyType, Indexes>,
-            PkdVMOTreeT<KeyType>
-    >;
-
-    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
-};
-
-
 
 
 
@@ -482,7 +430,108 @@ struct SingleValueEntryFn: EntryFnBase<Stream, CtrSizeT> {
     }
 };
 
+namespace _ {
+
+    template <
+        bool Selector,
+        template <typename> class PkdStruct1,
+        template <typename> class PkdStruct2,
+        typename Types1,
+        typename Types2
+    >
+    struct PkdStructSelectorH;
+
+    template <
+        template <typename> class PkdStruct1,
+        template <typename> class PkdStruct2,
+        typename Types1,
+        typename Types2
+    >
+    struct PkdStructSelectorH<true, PkdStruct1, PkdStruct2, Types1, Types2>: HasType<PkdStruct1<Types1>> {};
+
+
+    template <
+        template <typename> class PkdStruct1,
+        template <typename> class PkdStruct2,
+        typename Types1,
+        typename Types2
+    >
+    struct PkdStructSelectorH<false, PkdStruct1, PkdStruct2, Types1, Types2>: HasType<PkdStruct2<Types2>> {};
+}
+
+template <
+    bool Selector,
+    template <typename> class PkdStruct1,
+    template <typename> class PkdStruct2,
+    typename Types1,
+    typename Types2
+>
+using PkdStructSelector = typename _::PkdStructSelectorH<Selector, PkdStruct1, PkdStruct2, Types1, Types2>::Type;
+
+
+
+template <typename T> struct DefaultBranchStructTF;
+
+template <typename KeyType>
+struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
+    using Type = PackedEmptyStruct<KeyType, PkdSearchType::MAX>;
+};
+
+template <typename KeyType>
+struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
+    using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
+};
+
+
+template <typename KeyType, int32_t Indexes>
+struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
+{
+    static_assert(
+            IsExternalizable<KeyType>::Value,
+            "Type must either has ValueCodec or FieldFactory defined"
+    );
+
+    //FIXME: Extend KeyType to contain enough space to represent practically large sums
+    //Should be done systematically on the level of BT
+
+    using Type = IfThenElse <
+            HasFieldFactory<KeyType>::Value,
+            PkdFQTreeT<KeyType, Indexes>,
+            PkdVQTreeT<KeyType, Indexes>
+    >;
+
+    static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
+};
+
+template <typename KeyType, int32_t Indexes>
+struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
+
+//    static_assert(
+//            IsExternalizable<KeyType>::Value,
+//            "Type must either has ValueCodec or FieldFactory defined"
+//    );
+
+//    using Type = IfThenElse<
+//            HasFieldFactory<KeyType>::Value,
+//            PkdFMOTreeT<KeyType, Indexes>,
+//            PkdVMOTreeT<KeyType>
+//    >;
+
+    using Type = PkdStructSelector<
+            DataTypeTraits<KeyType>::isFixedSize,
+            PkdFMTree,
+            PackedVLenElementArray,
+
+            PkdFMTreeTypes<KeyType, Indexes>,
+            PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
+    >;
+
+    static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
+};
+
+
 
 
 }
+
 }}

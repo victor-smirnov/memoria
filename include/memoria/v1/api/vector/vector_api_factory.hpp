@@ -43,7 +43,7 @@ struct ICtrApiTypes<Vector<Value_>, Profile> {
 
     using IOVSchema = TL<
         TL<
-            ICtrApiSubstream<Value, io::RowWise>
+            ICtrApiSubstream<Value, io::ColumnWise1D>
         >
     >;
 };

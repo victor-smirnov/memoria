@@ -335,7 +335,7 @@ public:
                 BranchStruct,
                 TypeList<LTail...>,
                 typename ListTail<RangeList>::Type,
-                Offset + IndexesSize<LeafStruct>::Value
+                Offset + PkdStructIndexes<LeafStruct>
             >::Type
     >;
 
@@ -345,7 +345,7 @@ public:
                 BranchStruct,
                 TypeList<LTail...>,
                 typename ListTail<RangeList>::Type,
-                Offset + IndexesSize<LeafStruct>::Value
+                Offset + PkdStructIndexes<LeafStruct>
             >::OffsetList
     >;
 };
@@ -397,7 +397,7 @@ struct BranchNodeRangeListBuilder<TypeList<BranchStruct, BTail...>, TypeList<Lea
             Offset
     >::OffsetList;
 
-    static_assert(bt::_::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "RangeList exceeds PackedStruct size");
+    static_assert(bt::_::CheckRangeList<PkdStructIndexes<BranchStruct>, List>::Value, "RangeList exceeds PackedStruct size");
 
     using Type = MergeLists<
             TL<
@@ -442,9 +442,9 @@ struct IteratorBranchNodeEntryBuilder<TL<BranchStruct, BTail...>, TL<RangeList, 
     MergeLists<
         MakeTuple<
             typename _::AccumBuilderH<
-                typename AccumType<BranchStruct>::Type,
+                AccumType<BranchStruct>,
                 RangeList,
-                IndexesSize<BranchStruct>::Value
+                PkdStructIndexes<BranchStruct>
             >::Type
         >,
         typename IteratorBranchNodeEntryBuilder<TL<BTail...>, TL<RTail...>>::Type

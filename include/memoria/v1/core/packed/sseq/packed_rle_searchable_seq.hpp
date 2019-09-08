@@ -90,7 +90,7 @@ public:
 
     static constexpr PkdSearchType KeySearchType    = PkdSearchType::SUM;
     static constexpr PkdSearchType SearchType       = PkdSearchType::SUM;
-    static const PackedSizeType SizeType            = PackedSizeType::VARIABLE;
+    static const PackedDataTypeSize SizeType            = PackedDataTypeSize::VARIABLE;
 
     static constexpr int32_t ValuesPerBranch            = Types::ValuesPerBranch;
     static constexpr int32_t ValuesPerBranchLog2        = NumberOfBits(Types::ValuesPerBranch);
@@ -108,6 +108,7 @@ public:
 
     using Value = uint8_t;
     using IndexValue = int64_t;
+    using IndexDataType = int64_t;
 
     using Codec = ValueCodec<uint64_t>;
 
@@ -2424,9 +2425,18 @@ private:
     }
 };
 
-template <typename T>
-struct StructSizeProvider<PkdRLESeq<T>> {
-    static const int32_t Value = PkdRLESeq<T>::Indexes;
+
+template <typename Types>
+struct PackedStructTraits<PkdRLESeq<Types>> {
+    using SearchKeyDataType = BigInt;
+
+    using AccumType = BigInt;
+    using SearchKeyType = BigInt;
+
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
+
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
+    static constexpr int32_t Indexes = PkdRLESeq<Types>::Indexes;
 };
 
 

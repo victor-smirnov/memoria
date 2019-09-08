@@ -151,7 +151,7 @@ namespace _ {
                 IntList<Offset>,
                 typename InternalOffsetBuilder<
                 TypeList<Tail...>,
-                Offset + StructSizeProvider<Head>::Value
+                Offset + PkdStructIndexes<Head>
             >::Type
         >
     >{};
@@ -348,7 +348,7 @@ private:
 public:
 
     static const int32_t Value = bt::_::FindLocalLeafOffsetHelperV<
-        TypeList<TypeList<List...>, Tail...>,
+        FailIf<false, TypeList<TypeList<List...>, Tail...>>,
         Idx,
         Pos,
         Idx < Pos + LocalSize
@@ -488,18 +488,18 @@ protected:
 
     using Leafs = FlattenLeafTree<LeafStructList>;
 
-    static const int32_t LocalLeafOffset = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+    static constexpr int32_t LocalLeafOffset = FindLocalLeafOffsetV<FailIf<LeafIdx == 100, Leafs>, LeafIdx>::Value;
 
     using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
 
-    using LeafPath = typename list_tree::BuildTreePath<LeafStructList, LeafIdx>::Type;
+    using LeafPath = FailIf<LeafIdx == 100, typename list_tree::BuildTreePath<LeafStructList, LeafIdx>::Type>;
 
 public:
-    static const int32_t LeafOffset = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+    static constexpr int32_t LeafOffset = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
 
-    static const int32_t BranchStructIdx = list_tree::LeafCount<LeafStructList, LeafPath, 2> - LocalLeafOffset;
+    static constexpr int32_t BranchStructIdx = list_tree::LeafCount<LeafStructList, LeafPath, 2> - FailIfV<LeafIdx == 10, LocalLeafOffset>;
 
-    static const bool IsStreamStart = LocalLeafOffset == 0 && bt::_::IsStreamStartTag<LocalLeafGroup>::Value;
+    static constexpr bool IsStreamStart = LocalLeafOffset == 0 && bt::_::IsStreamStartTag<LocalLeafGroup>::Value;
 };
 
 

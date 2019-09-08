@@ -33,14 +33,14 @@ namespace v1 {
 
 
 template <
-    PackedSizeType LeafSizeType,
-    PackedSizeType BranchSizeType,
+    PackedDataTypeSize LeafSizeType,
+    PackedDataTypeSize BranchSizeType,
     typename CtrSizeT,
     int32_t Indexes = 1
 > struct BTSSTestStreamTF;
 
 template <typename CtrSizeT, int32_t Indexes>
-struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::FIXED, CtrSizeT, Indexes> {
+struct BTSSTestStreamTF<PackedDataTypeSize::FIXED, PackedDataTypeSize::FIXED, CtrSizeT, Indexes> {
     using Type = bt::StreamTF<
             TL<TL<
                 StreamSize,
@@ -53,7 +53,7 @@ struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::FIXED, CtrSizeT, 
 
 
 template <typename CtrSizeT, int32_t Indexes>
-struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSizeT, Indexes> {
+struct BTSSTestStreamTF<PackedDataTypeSize::VARIABLE, PackedDataTypeSize::FIXED, CtrSizeT, Indexes> {
     using Type = bt::StreamTF<
             TL<TL<
                 StreamSize,
@@ -66,7 +66,7 @@ struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSize
 
 
 template <typename CtrSizeT, int32_t Indexes>
-struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
+struct BTSSTestStreamTF<PackedDataTypeSize::FIXED, PackedDataTypeSize::VARIABLE, CtrSizeT, Indexes> {
     using Type = bt::StreamTF<
             TL<TL<
                 StreamSize,
@@ -79,7 +79,7 @@ struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::VARIABLE, CtrSize
 
 
 template <typename CtrSizeT, int32_t Indexes>
-struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
+struct BTSSTestStreamTF<PackedDataTypeSize::VARIABLE, PackedDataTypeSize::VARIABLE, CtrSizeT, Indexes> {
     using Type = bt::StreamTF<
             TL<TL<
                 StreamSize,
@@ -93,8 +93,8 @@ struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrS
 
 template <
     typename Profile,
-    PackedSizeType LeafSizeType,
-    PackedSizeType BranchSizeType
+    PackedDataTypeSize LeafSizeType,
+    PackedDataTypeSize BranchSizeType
 >
 struct BTSSTestTypesBase: public BTTypes<Profile, BTSingleStream> {
 
@@ -118,22 +118,22 @@ struct BTSSTestTypesBase: public BTTypes<Profile, BTSingleStream> {
 
 template <
     typename Profile,
-    PackedSizeType LeafSizeType,
-    PackedSizeType BranchSizeType
+    PackedDataTypeSize LeafSizeType,
+    PackedDataTypeSize BranchSizeType
 >
 struct BTTypes<Profile, BTSSTestCtr<LeafSizeType, BranchSizeType>>: public BTSSTestTypesBase<Profile, LeafSizeType, BranchSizeType>
 {
 };
 
 
-template <typename Profile, PackedSizeType LeafSizeType, PackedSizeType BranchSizeType, typename T>
+template <typename Profile, PackedDataTypeSize LeafSizeType, PackedDataTypeSize BranchSizeType, typename T>
 class CtrTF<Profile, BTSSTestCtr<LeafSizeType, BranchSizeType>, T>: public CtrTF<Profile, BTSingleStream, T> {
     using Base = CtrTF<Profile, BTSingleStream, T>;
 public:
 };
 
 
-template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType>
+template <PackedDataTypeSize LeafSizeType, PackedDataTypeSize BranchSizeType>
 struct TypeHash<BTSSTestCtr<LeafSizeType, BranchSizeType>>: UInt64Value<
     HashHelper<3011, (int32_t)LeafSizeType, (int32_t)BranchSizeType>
 > {};

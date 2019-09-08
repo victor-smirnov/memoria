@@ -1617,21 +1617,21 @@ public:
 
 
 
-template <typename Types>
-struct PkdStructSizeType<PkdVQTree<Types>> {
-    static const PackedSizeType Value = PackedSizeType::VARIABLE;
-};
+//template <typename Types>
+//struct PkdStructSizeType<PkdVQTree<Types>> {
+//    static const PackedDataTypeSize Value = PackedDataTypeSize::VARIABLE;
+//};
 
 
-template <typename Types>
-struct StructSizeProvider<PkdVQTree<Types>> {
-    static const int32_t Value = Types::Blocks;
-};
+//template <typename Types>
+//struct StructSizeProvider<PkdVQTree<Types>> {
+//    static const int32_t Value = Types::Blocks;
+//};
 
-template <typename Types>
-struct IndexesSize<PkdVQTree<Types>> {
-    static const int32_t Value = Types::Blocks;
-};
+//template <typename Types>
+//struct IndexesSize<PkdVQTree<Types>> {
+//    static const int32_t Value = Types::Blocks;
+//};
 
 
 }}

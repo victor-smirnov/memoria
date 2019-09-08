@@ -26,7 +26,9 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
 #include <memoria/v1/core/packed/array/packed_fse_array.hpp>
+#include <memoria/v1/core/packed/array/packed_fse_array_2.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
 namespace memoria {
@@ -36,13 +38,13 @@ namespace set {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, int32_t Selector> struct SetKeyStructTF;
+template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct SetKeyStructTF;
 
 template <typename KeyType>
-struct SetKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
+struct SetKeyStructTF<KeyType, true>: HasType<PkdFSEArray2T<KeyType, 1, 1>> {};
 
 template <typename KeyType>
-struct SetKeyStructTF<KeyType, 0>: HasType<PkdVBMTreeT<KeyType>> {};
+struct SetKeyStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
 
 
 
@@ -76,24 +78,27 @@ struct SetBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
             PkdVQTreeT<KeyType, Indexes>
     >;
 
-    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+    static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
 
 template <typename KeyType, int32_t Indexes>
 struct SetBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
-    static_assert(
-            IsExternalizable<KeyType>::Value,
-            "Type must either has ValueCodec or FieldFactory defined"
-    );
+//    static_assert(
+//            IsExternalizable<KeyType>::Value,
+//            "Type must either has ValueCodec or FieldFactory defined"
+//    );
 
-    using Type = IfThenElse<
-            HasFieldFactory<KeyType>::Value,
-            PkdFMOTreeT<KeyType, Indexes>,
-            PkdVBMTreeT<KeyType>
+    using Type = bt::PkdStructSelector<
+            DataTypeTraits<KeyType>::isFixedSize,
+            PkdFMTree,
+            PackedVLenElementArray,
+
+            PkdFMTreeTypes<KeyType, Indexes>,
+            PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
     >;
 
-    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+    static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
 
 

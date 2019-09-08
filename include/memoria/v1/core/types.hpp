@@ -54,7 +54,7 @@ static constexpr psize_t PkdSizeSup  = std::numeric_limits<psize_t>::max() - 1;
 static constexpr psize_t PkdSizeInf  = std::numeric_limits<psize_t>::min();
 static constexpr psize_t PkdNotFound = PkdSizeMax;
 
-enum class PackedSizeType {FIXED, VARIABLE};
+enum class PackedDataTypeSize {FIXED, VARIABLE};
 
 namespace internal {
     template <int size> struct PlatformLongHelper;
@@ -199,7 +199,7 @@ class CtrWrapper    {};
 template <typename Key, typename Value>
 struct CowMap       {};
 
-template <typename Key, typename Value, PackedSizeType SizeType>
+template <typename Key, typename Value, PackedDataTypeSize SizeType>
 struct Table        {};
 
 template <int32_t BitsPerSymbol, bool Dense = true>
@@ -385,12 +385,6 @@ public:
 };
 
 
-template <typename PkdStruct>
-struct IndexesSize {
-    static const int32_t Value = PkdStruct::Indexes;
-};
-
-
 extern int64_t DebugCounter;
 extern int64_t DebugCounter1;
 extern int64_t DebugCounter2;
@@ -430,14 +424,13 @@ namespace _ {
         static_assert(!Flag, "Template failed");
         using Type = T;
     };
-
 }
 
 template <bool Flag, typename T, typename... AdditionalTypes>
 using FailIf = typename _::FailIfT<T, Flag, AdditionalTypes...>::Type;
 
 template <bool Flag, int32_t V, typename... AdditionalTypes>
-using FailIfV = typename _::FailIfT<IntValue<V>, Flag, AdditionalTypes...>::Type;
+constexpr int32_t FailIfV = _::FailIfT<IntValue<V>, Flag, AdditionalTypes...>::Type::Value;
 
 template <typename T, typename T1 = int32_t, T1 V = T1{}>
 struct FakeValue: HasValue<T1, V> {};
@@ -500,6 +493,8 @@ public:
 };
 
 
+template <typename T> struct DataTypeTraits;
+
 namespace {
     template <typename T> struct Void {
         using Type = void;
@@ -525,7 +520,7 @@ template <typename T>
 struct HasFieldFactory: HasValue<bool, IsComplete<FieldFactory<T>>::type::value> {};
 
 template <typename T>
-struct IsExternalizable: HasValue<bool, HasValueCodec<T>::Value || HasFieldFactory<T>::Value> {};
+struct IsExternalizable: HasValue<bool, HasValueCodec<T>::Value || HasFieldFactory<T>::Value || DataTypeTraits<T>::isDataType> {};
 
 
 struct Referenceable {

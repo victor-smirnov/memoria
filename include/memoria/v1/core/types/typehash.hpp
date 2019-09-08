@@ -165,12 +165,12 @@ public:
 };
 
 template <typename Key, typename Value>
-struct TypeHash<Table<Key, Value, PackedSizeType::FIXED>>: UInt64Value <
+struct TypeHash<Table<Key, Value, PackedDataTypeSize::FIXED>>: UInt64Value <
     HashHelper<3098, TypeHashV<Key>, TypeHashV<Value>>
 > {};
 
 template <typename Key, typename Value>
-struct TypeHash<Table<Key, Value, PackedSizeType::VARIABLE>>: UInt64Value <
+struct TypeHash<Table<Key, Value, PackedDataTypeSize::VARIABLE>>: UInt64Value <
     HashHelper<3099, TypeHashV<Key>, TypeHashV<Value>>
 > {};
 

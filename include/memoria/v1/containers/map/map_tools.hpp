@@ -30,6 +30,7 @@
 #include <memoria/v1/core/packed/array/packed_fse_array_2.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_array.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_opt_array.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
 #include <memoria/v1/core/packed/datatypes/varchar.hpp>
@@ -41,39 +42,25 @@ namespace map {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, int32_t Selector, bool isDataType = DataTypeTraits<KeyType>::isDataType> struct MapKeyStructTF;
+template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct MapKeyStructTF;
 
 template <typename KeyType>
-struct MapKeyStructTF<KeyType, 1, false>: HasType<PkdFMTreeT<KeyType>> {};
+struct MapKeyStructTF<KeyType, true>: HasType<PkdFSEArray2T<KeyType, 1, 1>> {};
 
 template <typename KeyType>
-struct MapKeyStructTF<KeyType, 1, true>: HasType<PkdFMTreeT<typename DataTypeTraits<KeyType>::ValueType>> {};
-
-template <typename KeyType>
-struct MapKeyStructTF<KeyType, 0, false>: HasType<PkdVBMTreeT<KeyType>> {};
-
-
-template <typename KeyType>
-struct MapKeyStructTF<KeyType, 0, true>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
+struct MapKeyStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
 
 
 
-template <typename ValueType, int32_t Selector, bool isDataType = DataTypeTraits<ValueType>::isDataType> struct MapValueStructTF;
+template <typename ValueType, bool Selector = DataTypeTraits<ValueType>::isFixedSize> struct MapValueStructTF;
 
 template <typename ValueType>
-struct MapValueStructTF<ValueType, 1, true>: HasType<
-        PkdFSEArray2T<
-            typename DataTypeTraits<ValueType>::ValueType
-        >
-> {}; //PkdFSQArrayT
+struct MapValueStructTF<ValueType, true>: HasType<
+        PkdFSEArray2T<ValueType>
+> {};
 
 template <typename ValueType>
-struct MapValueStructTF<ValueType, 1, false>: HasType<PkdFSEArray2T<ValueType>> {}; //PkdFSQArrayT
-
-
-template <typename ValueType>
-struct MapValueStructTF<ValueType, 0, true>: HasType<PkdVLEArrayT<ValueType>> {};
-
+struct MapValueStructTF<ValueType, false>: HasType<PkdVLEArrayT<ValueType>> {};
 
 
 
@@ -101,29 +88,32 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
     //Should be done systematically on the level of BT
 
     using Type = IfThenElse <
-            HasFieldFactory<KeyType>::Value,
+            DataTypeTraits<KeyType>::isFixedSize,
             PkdFQTreeT<KeyType, Indexes>,
             PkdVQTreeT<KeyType, Indexes>
     >;
 
-    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+    static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
 
 template <typename KeyType, int32_t Indexes>
 struct MapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
-    static_assert(
-            IsExternalizable<KeyType>::Value,
-            "Type must either has ValueCodec or FieldFactory defined"
-    );
+//    static_assert(
+//        IsExternalizable<KeyType>::Value,
+//        "Type must either has ValueCodec or FieldFactory defined"
+//    );
 
-    using Type = IfThenElse<
-            HasFieldFactory<KeyType>::Value,
-            PkdFMTreeT<KeyType, Indexes>,
-            PkdVBMTreeT<KeyType>
+    using Type = bt::PkdStructSelector<
+            DataTypeTraits<KeyType>::isFixedSize,
+            PkdFMTree,
+            PackedVLenElementArray,
+
+            PkdFMTreeTypes<KeyType, Indexes>,
+            PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
     >;
 
-    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+    static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
 
 

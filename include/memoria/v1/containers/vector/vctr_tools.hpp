@@ -23,20 +23,22 @@
 #include <memoria/v1/core/container/container.hpp>
 
 #include <memoria/v1/core/packed/array/packed_fse_array.hpp>
+#include <memoria/v1/core/packed/array/packed_fse_array_2.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
 
 
 namespace memoria {
 namespace v1 {
 namespace mvector       {
 
-template <typename KeyType, int32_t Selector> struct VectorValueStructTF;
+template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct VectorValueStructTF;
 
 template <typename KeyType>
-struct VectorValueStructTF<KeyType, 1>: HasType<PkdFSQArrayT<KeyType>> {};
+struct VectorValueStructTF<KeyType, true>: HasType<PkdFSEArray2T<KeyType>> {};
 
 template <typename KeyType>
-struct VectorValueStructTF<KeyType, 0>: HasType<PkdVDArrayT<KeyType>> {};
+struct VectorValueStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType>> {};
 
 
 

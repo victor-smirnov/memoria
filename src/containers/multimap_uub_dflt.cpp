@@ -23,7 +23,7 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-using CtrName = memoria::v1::Multimap<UUID, uint8_t>;
+using CtrName = memoria::v1::Multimap<UUID, UTinyInt>;
 
 //MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
 

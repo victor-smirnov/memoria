@@ -48,10 +48,10 @@ struct ICtrApiTypes<Multimap<Key_, Value_>, Profile> {
 
     using IOVSchema = TL<
         TL<
-            ICtrApiSubstream<Key, io::ColumnWise>
+            ICtrApiSubstream<Key, io::ColumnWise1D>
         >,
         TL<
-            ICtrApiSubstream<Value, io::RowWise>
+            ICtrApiSubstream<Value, io::ColumnWise1D>
         >
     >;
 };

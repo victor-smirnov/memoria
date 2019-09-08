@@ -46,13 +46,13 @@ class TextBlockDumper;
 template <typename> class ValueCodec;
 
 template <
-    typename ValueT,
-    template <typename> class CodecT,
-    int32_t kBranchingFactor
+    typename DataValueT,
+    template <typename> class CodecT = ValueCodec,
+    int32_t kBranchingFactor = 1024
 >
 struct PkdVBMTreeTypes {
-    using Value = ValueT;
-    using IndexValue = ValueT;
+    using DataValue = DataValueT;
+    using IndexDataValue = DataValueT;
 
     template <typename T>
     using Codec = CodecT<T>;
@@ -67,11 +67,11 @@ struct PkdVBMTreeTypes {
 template <typename Types> class PkdVBMTree;
 
 template <
-    typename ValueT,
+    typename DataValueT,
     template <typename> class CodecT = ValueCodec,
     int32_t kBranchingFactor = 1024
 >
-using PkdVBMTreeT = PkdVBMTree<PkdVBMTreeTypes<ValueT, CodecT, kBranchingFactor>>;
+using PkdVBMTreeT = PkdVBMTree<PkdVBMTreeTypes<DataValueT, CodecT, kBranchingFactor>>;
 
 
 template <typename Types>
@@ -115,8 +115,12 @@ public:
 
     using OffsetsType   = uint16_t;
     using SizesValue    = int32_t;
-    using Value         = typename Types::Value;
-    using IndexValue    = typename Types::Value;
+
+    using DataType      = typename Types::DataValue;
+    using IndexDataType = DataType;
+
+    using Value         = typename DataTypeTraits<DataType>::ValueType;
+    using IndexValue    = Value;
 
     using Values        = core::StaticVector<Value, Blocks>;
     using Codec         = typename Types::template Codec<Value>;
@@ -2089,33 +2093,9 @@ protected:
             return level;
         }
     }
-
-
 };
 
 
-
-
-template <typename Types>
-struct PkdStructSizeType<PkdVBMTree<Types>> {
-    static const PackedSizeType Value = PackedSizeType::VARIABLE;
-};
-
-
-template <typename Types>
-struct StructSizeProvider<PkdVBMTree<Types>> {
-    static const int32_t Value = 1;
-};
-
-template <typename Types>
-struct IndexesSize<PkdVBMTree<Types>> {
-    static const int32_t Value = 1;
-};
-
-template <typename T>
-struct PkdSearchKeyTypeProvider<PkdVBMTree<T>> {
-	using Type = OptionalT<typename PkdVBMTree<T>::Value>;
-};
 
 
 }}

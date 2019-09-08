@@ -142,7 +142,6 @@ public:
             MEMORIA_V1_ASSERT(start, ==, 0);
 
             auto result = tree.findForward(Base::search_type_, index, Base::target_);
-
             return StreamOpResult(result.local_pos(), start, result.local_pos() >= size, false);
         }
         else {
@@ -230,7 +229,7 @@ public:
     >
     void branch_iterator_BranchNodeEntry(StreamObj&& obj, IterAccumItem<T, From, To>& item, int32_t start, int32_t end)
     {
-        static_assert(To <= StructSizeProvider<StreamObj>::Value, "Invalid BTree structure");
+        static_assert(To <= PkdStructIndexes<StreamObj>, "Invalid BTree structure");
 
         for (int32_t c = 0; c < To - From; c++)
         {

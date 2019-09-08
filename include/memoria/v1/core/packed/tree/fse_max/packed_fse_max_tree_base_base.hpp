@@ -32,7 +32,7 @@ namespace v1 {
 
 
 
-template <typename IndexValueT, int32_t kBranchingFactor, int32_t kValuesPerBranch, int32_t SegmentsPerBlock, typename MetadataT>
+template <typename ValueDataT, int32_t kBranchingFactor, int32_t kValuesPerBranch, int32_t SegmentsPerBlock, typename MetadataT>
 class PkdFMTreeBaseBase: public PackedAllocator {
 
     using Base = PackedAllocator;
@@ -40,7 +40,12 @@ class PkdFMTreeBaseBase: public PackedAllocator {
 public:
     static constexpr uint32_t VERSION = 1;
 
-    using IndexValue    = IndexValueT;
+    using IndexValue    = typename DataTypeTraits<ValueDataT>::ValueType;
+    using Value         = IndexValue;
+
+    using DataType      = ValueDataT;
+    using IndexDataType = ValueDataT;
+
     using Metadata      = MetadataT;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;

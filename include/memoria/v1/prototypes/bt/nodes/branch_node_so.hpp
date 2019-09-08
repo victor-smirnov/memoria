@@ -670,9 +670,11 @@ public:
 
     struct KeysAtFn {
         template <int32_t Idx, typename Tree>
-        void stream(Tree&& tree, int32_t idx, BranchNodeEntry* acc)
+        void stream(const Tree& tree, int32_t idx, BranchNodeEntry* acc)
         {
-            std::get<Idx>(*acc) = tree.get_values(idx);
+//            FailIf<true, BranchNodeEntry>* ttt;
+
+            assign(std::get<Idx>(*acc), tree.get_values(idx));
         }
     };
 
@@ -688,25 +690,25 @@ public:
 
     struct SumsFn {
         template <int32_t Idx, typename StreamType>
-        void stream(StreamType&& obj, int32_t start, int32_t end, BranchNodeEntry& accum)
+        void stream(const StreamType& obj, int32_t start, int32_t end, BranchNodeEntry& accum)
         {
             obj.sums(start, end, std::get<Idx>(accum));
         }
 
         template <int32_t StreamIdx, int32_t AllocatorIdx, int32_t Idx, typename StreamType>
-        void stream(StreamType&& obj, const Position& start, const Position& end, BranchNodeEntry& accum)
+        void stream(const StreamType& obj, const Position& start, const Position& end, BranchNodeEntry& accum)
         {
             obj.sums(start[StreamIdx], end[StreamIdx], std::get<AllocatorIdx - SubstreamsStart>(accum));
         }
 
         template <int32_t Idx, typename StreamType>
-        void stream(StreamType&& obj, BranchNodeEntry& accum)
+        void stream(const StreamType& obj, BranchNodeEntry& accum)
         {
             obj.sums(std::get<Idx>(accum));
         }
 
         template <typename StreamType>
-        void stream(StreamType&& obj, int32_t block, int32_t start, int32_t end, int64_t& accum)
+        void stream(const StreamType& obj, int32_t block, int32_t start, int32_t end, int64_t& accum)
         {
             accum += obj.sum(block, start, end);
         }

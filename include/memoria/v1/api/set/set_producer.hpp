@@ -35,7 +35,7 @@ class SetProducer: public io::IOVectorProducer {
 public:
     using IOVSchema         = Linearize<typename Types::IOVSchema>;
     using KeysSubstream     = IOSubstreamAdapter<Select<0, IOVSchema>>;
-    using ProducerFn       = std::function<bool (KeysSubstream&, size_t)>;
+    using ProducerFn        = std::function<bool (KeysSubstream&, size_t)>;
 
 private:
     KeysSubstream keys_{0};
@@ -58,9 +58,9 @@ public:
 
         bool has_more = producer_fn_(keys_, total_size_);
 
-        total_size_ += keys_.size_;
+        total_size_ += keys_.size();
 
-        io_vector.symbol_sequence().append(0, keys_.size_);
+        io_vector.symbol_sequence().append(0, keys_.size());
 
         return has_more;
     }

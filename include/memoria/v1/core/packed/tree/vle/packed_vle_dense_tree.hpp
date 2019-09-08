@@ -1744,21 +1744,4 @@ public:
 
 
 
-template <typename Types>
-struct PkdStructSizeType<PkdVDTree<Types>> {
-    static const PackedSizeType Value = PackedSizeType::VARIABLE;
-};
-
-
-template <typename Types>
-struct StructSizeProvider<PkdVDTree<Types>> {
-    static const int32_t Value = Types::Blocks;
-};
-
-template <typename Types>
-struct IndexesSize<PkdVDTree<Types>> {
-    static const int32_t Value = Types::Blocks;
-};
-
-
 }}

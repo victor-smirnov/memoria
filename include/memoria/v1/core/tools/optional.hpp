@@ -33,8 +33,11 @@ class OptionalT {
 public:
     using ValueType = T;
 
+    //template <typename TT>
+    OptionalT(const T& value): value_(value), is_set_(true) {}
+
     template <typename TT>
-    OptionalT(TT&& value): value_(value), is_set_(true) {}
+    explicit OptionalT(OptionalT<TT> value): value_(value.value()), is_set_(value.is_set()) {}
 
     template <typename TT>
     OptionalT(TT&& value, bool is_set): value_(value), is_set_(is_set) {}

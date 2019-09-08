@@ -103,7 +103,7 @@ struct SetBTTypesBase: public SetBTTypesBaseBase<Profile, Key_> {
             "Key type must have either ValueCodec or FieldFactory defined"
     );
 
-    using LeafKeyStruct = typename set::SetKeyStructTF<KeyV, HasFieldFactory<KeyV>::Value>::Type;
+    using LeafKeyStruct = typename set::SetKeyStructTF<Key_>::Type;
 
     using StreamDescriptors = TL<
             bt::StreamTF<

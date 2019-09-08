@@ -37,7 +37,7 @@ class BTFLTestBase;
 
 template <
     int32_t Levels,
-    PackedSizeType SizeType,
+    PackedDataTypeSize SizeType,
     typename AllocatorType,
     typename Profile
 >

@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memoria/v1/api/datatypes/traits.hpp>
+
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree_base.hpp>
 #include <memoria/v1/core/packed/tools/packed_tools.hpp>
 
@@ -31,9 +33,9 @@
 namespace memoria {
 namespace v1 {
 
-template <typename ValueT, int32_t kBlocks, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
+template <typename ValueDataT, int32_t kBlocks, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
 struct PkdFMTreeTypes {
-    using Value = ValueT;
+    using ValueDataType = ValueDataT;
 
     static constexpr int32_t Blocks = kBlocks;
     static constexpr int32_t BranchingFactor = kBranchingFactor;
@@ -43,15 +45,15 @@ struct PkdFMTreeTypes {
 template <typename Types> class PkdFMTree;
 
 
-template <typename ValueT, int32_t kBlocks = 1, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
-using PkdFMTreeT = PkdFMTree<PkdFMTreeTypes<ValueT, kBlocks, kBranchingFactor, kValuesPerBranch>>;
+template <typename ValueDataT, int32_t kBlocks = 1, int32_t kBranchingFactor = PackedTreeBranchingFactor, int32_t kValuesPerBranch = PackedTreeBranchingFactor>
+using PkdFMTreeT = PkdFMTree<PkdFMTreeTypes<ValueDataT, kBlocks, kBranchingFactor, kValuesPerBranch>>;
 
 
 
 template <typename Types>
-class PkdFMTree: public PkdFMTreeBase<typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch> {
+class PkdFMTree: public PkdFMTreeBase<typename Types::ValueDataType, Types::BranchingFactor, Types::ValuesPerBranch> {
 
-    using Base      = PkdFMTreeBase<typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch>;
+    using Base      = PkdFMTreeBase<typename Types::ValueDataType, Types::BranchingFactor, Types::ValuesPerBranch>;
     using MyType    = PkdFMTree<Types>;
 
 public:
@@ -68,8 +70,8 @@ public:
                 ConstValue<uint32_t, Blocks>
     >;
 
-    using IndexValue = typename Types::Value;
-    using Value      = typename Types::Value;
+    using typename Base::Value;
+    using typename Base::IndexValue;
 
     using Values = core::StaticVector<IndexValue, Blocks>;
 
@@ -249,7 +251,7 @@ public:
     }
 
 
-    OptionalT<Value> max(int32_t block) const
+    Value max(int32_t block) const
     {
         auto size = this->size();
 
@@ -258,9 +260,33 @@ public:
             return this->value(block, size - 1);
         }
         else {
-            return OptionalT<Value>();
+            MMA1_THROW(RuntimeException()) << WhatCInfo("PkdFMTree is empty");
         }
     }
+
+    template <typename T>
+    void max(core::StaticVector<T, Blocks>& accum) const
+    {
+        auto size = this->size();
+
+        if (MMA1_LIKELY(size > 0))
+        {
+            for (int32_t block = 0; block < Blocks; block++)
+            {
+                accum[block] = this->value(block, size - 1);
+            }
+        }
+        else {
+            for (int32_t block = 0; block < Blocks; block++)
+            {
+                accum[block] = T{};
+            }
+        }
+    }
+
+
+
+
 
     template <typename T>
     void addValues(int32_t idx, const core::StaticVector<T, Blocks>& values)
@@ -290,23 +316,26 @@ public:
         }
     }
 
-    template <typename T>
-    void max(core::StaticVector<T, Blocks>& accum) const
-    {
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            accum[block] = this->max(block);
-        }
-    }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
     {
         static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
-        for (int32_t block = 0; block < Blocks; block++)
+        auto size = this->size();
+
+        if (MMA1_LIKELY(size > 0))
         {
-            accum[block + Offset] = this->max(block);
+            for (int32_t block = 0; block < Blocks; block++)
+            {
+                accum[block + Offset] = this->value(block, size - 1);
+            }
+        }
+        else {
+            for (int32_t block = 0; block < Blocks; block++)
+            {
+                accum[block + Offset] = T{};
+            }
         }
     }
 
@@ -944,27 +973,20 @@ public:
     }
 };
 
-template <typename Types>
-struct PkdStructSizeType<PkdFMTree<Types>> {
-    static const PackedSizeType Value = PackedSizeType::FIXED;
-};
-
 
 template <typename Types>
-struct StructSizeProvider<PkdFMTree<Types>> {
-    static const int32_t Value = PkdFMTree<Types>::Blocks;
+struct PackedStructTraits<PkdFMTree<Types>> {
+    using SearchKeyDataType = typename Types::ValueDataType;
+
+    using AccumType = typename PkdFMTree<Types>::IndexValue;
+    using SearchKeyType = typename PkdFMTree<Types>::IndexValue;
+
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
+    static constexpr int32_t Blocks = PkdFMTree<Types>::Blocks;
+    static constexpr int32_t Indexes = PkdFMTree<Types>::Blocks;
 };
 
-template <typename Types>
-struct IndexesSize<PkdFMTree<Types>> {
-    static const int32_t Value = PkdFMTree<Types>::Blocks;
-};
-
-
-template <typename T>
-struct PkdSearchKeyTypeProvider<PkdFMTree<T>> {
-	using Type = OptionalT<typename PkdFMTree<T>::Value>;
-};
 
 
 }}
