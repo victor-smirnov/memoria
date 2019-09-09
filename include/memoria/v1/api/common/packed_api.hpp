@@ -29,7 +29,7 @@ struct PkdFSESeqTag   {};
 struct PkdVLEArrayTag {};
 struct PkdVLETreeTag  {};
 
-template <typename DataType, typename PkdStructTag, typename PkdStruct>
+template <typename DataType, typename PkdStructTag, typename PkdStruct, typename SelectorTag = EmptyType>
 struct PkdDataTypeAccessor;
 
 template <typename PkdStructTag>

@@ -44,6 +44,7 @@ struct BTSSIterator {
     virtual bool next_leaf()            = 0;
     virtual bool next_entry()           = 0;
     virtual void dump(std::ostream& out = std::cout, const char* header = nullptr) const = 0;
+    virtual void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const = 0;
 };
 
 }

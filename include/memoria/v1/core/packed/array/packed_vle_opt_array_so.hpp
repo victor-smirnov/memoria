@@ -24,8 +24,6 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/packed/tools/packed_tools.hpp>
 
-#include <memoria/v1/core/packed/array/packed_vle_array_iterator.hpp>
-
 #include <memoria/v1/core/iovector/io_substream_array_vlen_base.hpp>
 
 #include <memoria/v1/core/packed/array/packed_vle_array_so.hpp>
@@ -66,9 +64,6 @@ public:
     using Iterator = PkdRandomAccessIterator<Accessor>;
 
     using ConstIterator = PkdRandomAccessIterator<Accessor>;
-
-    template <typename, typename, typename>
-    friend struct PkdDataTypeAccessor;
 
     using PkdStructT = PkdStruct;
 
@@ -146,9 +141,13 @@ public:
             return OpStatus::FAIL;
         }
 
+        refresh_array();
+
         if(isFail(array_.splitTo(other.array_, array_idx))) {
             return OpStatus::FAIL;
         }
+
+        refresh_array();
 
         return reindex();
     }
@@ -158,6 +157,8 @@ public:
         if(isFail(data_->bitmap()->mergeWith(other.data_->bitmap()))) {
             return OpStatus::FAIL;
         }
+
+        refresh_array();
 
         return array_.mergeWith(other.array_);
     }
@@ -172,6 +173,8 @@ public:
         if(isFail(bitmap->remove(start, end))) {
             return OpStatus::FAIL;
         }
+
+        refresh_array();
 
         return array_.removeSpace(array_start, array_end);
     }
@@ -310,10 +313,10 @@ public:
     template <typename T>
     OpStatus setValues(int32_t idx, const core::StaticVector<T, Columns>& values)
     {
-        Bitmap* bitmap = data_->bitmap();
-
         if (values[0].is_set())
         {
+            Bitmap* bitmap = data_->bitmap();
+
             auto array_values  = this->array_values(values);
             int32_t array_idx  = this->array_idx(idx);
 
@@ -322,11 +325,17 @@ public:
                 if(isFail(array_.setValues(array_idx, array_values))) {
                     return OpStatus::FAIL;
                 }
+
+                refresh_array();
             }
             else {
+                bitmap = data_->bitmap();
+
                 if(isFail(array_.insert(array_idx, array_values))) {
                     return OpStatus::FAIL;
                 }
+
+                refresh_array();
 
                 bitmap->symbol(idx) = 1;
 
@@ -336,6 +345,7 @@ public:
             }
         }
         else {
+            Bitmap* bitmap = data_->bitmap();
             int32_t array_idx = this->array_idx(idx);
 
             if (bitmap->symbol(idx))
@@ -343,6 +353,9 @@ public:
                 if (isFail(array_.removeSpace(array_idx, array_idx + 1))) {
                     return OpStatus::FAIL;
                 }
+
+                refresh_array();
+                bitmap = data_->bitmap();
 
                 bitmap->symbol(idx) = 0;
                 if (isFail(bitmap->reindex())) {
@@ -353,6 +366,8 @@ public:
                 // Do nothing
             }
         }
+
+        refresh_array();
 
         return OpStatus::OK;
     }
@@ -368,13 +383,17 @@ public:
                 return OpStatus::FAIL;
             }
 
+            refresh_array();
+
             auto array_values  = this->array_values(values);
             int32_t array_idx  = this->array_idx(bitmap, idx);
 
             return array_.insert(array_idx, array_values);
         }
         else {
-            return bitmap->insert(idx, 0);
+            auto status = bitmap->insert(idx, 0);
+            refresh_array();
+            return status;
         }
     }
 
@@ -383,10 +402,17 @@ public:
         if(isFail(data_->bitmap()->reindex())) {
             return OpStatus::FAIL;
         }
+
+        refresh_array();
+
         return array_.reindex();
     }
 
 private:
+
+    void refresh_array() {
+        array_.setup(data_->array());
+    }
 
     template <typename T>
     core::StaticVector<ViewType, Columns> array_values(const core::StaticVector<OptionalT<T>, Columns>& values)

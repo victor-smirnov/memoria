@@ -31,106 +31,116 @@ int main()
 {
     StaticLibraryCtrs<>::init();
 
-//    using MapType = Map<BigInt, BigInt>;
-//    using Entry   = std::pair<int64_t, int64_t>;
+    try {
 
-    using MapType = Map<Varchar, Varchar>;
-    using Entry   = std::pair<U8String, U8String>;
+        //    using MapType = Map<BigInt, BigInt>;
+        //    using Entry   = std::pair<int64_t, int64_t>;
 
-//    using MapType = Map<BigInt, Varchar>;
-//    using Entry   = std::pair<int64_t, U8String>;
+        using MapType = Map<Varchar, Varchar>;
+        using Entry   = std::pair<U8String, U8String>;
 
-    auto alloc = IMemoryStore<>::create();
+        //    using MapType = Map<BigInt, Varchar>;
+        //    using Entry   = std::pair<int64_t, U8String>;
 
-    auto snp = alloc->master()->branch();
+        auto alloc = IMemoryStore<>::create();
 
-    auto ctr0 = snp->create_ctr(MapType());
+        auto snp = alloc->master()->branch();
 
-    //ctr0->set_new_block_size(64*1024);
+        auto ctr0 = snp->create_ctr(MapType());
 
-    int64_t t0 = getTimeInMillis();
+        //ctr0->set_new_block_size(64*1024);
 
-    std::vector<Entry> entries_;
+        int64_t t0 = getTimeInMillis();
 
-    for (int c = 0; c < 10000; c++) {
-        //entries_.emplace_back(Entry(c, -c));
-        entries_.emplace_back(Entry(
-            //c,
-            "AAAAAAAAAAAAAAAAAAAAAAAAAAA_"   + std::to_string(c),
-            "BBBBBBBBBBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c)
-           // c, -c
-        ));
-    }
+        std::vector<Entry> entries_;
 
-    std::sort(entries_.begin(), entries_.end(), [](const auto& one, const auto& two){
-        return std::get<0>(one) < std::get<0>(two);
-    });
-
-    int64_t t1 = getTimeInMillis();
-
-    std::cout << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
-
-    int64_t t0_i = getTimeInMillis();
-
-    ctr0->append_entries([&](auto& keys, auto& values, size_t batch_start) {
-
-        size_t batch_size = 8192;
-        size_t limit = (batch_start + batch_size <= entries_.size()) ? batch_size : entries_.size() - batch_start;
-
-        for (size_t c = 0; c < limit; c++) {
-            keys.append(std::get<0>(entries_[batch_start + c]));
-            values.append(std::get<1>(entries_[batch_start + c]));
+        for (int c = 0; c < 10000; c++) {
+            //entries_.emplace_back(Entry(c, -c));
+            entries_.emplace_back(Entry(
+                                      //c,
+                                      "AAAAAAAAAAAAAAAAAAAAAAAAAAA_"   + std::to_string(c),
+                                      "BBBBBBBBBBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c)
+                                      // c, -c
+                                      ));
         }
 
-        return limit != batch_size;
-    });
+        std::sort(entries_.begin(), entries_.end(), [](const auto& one, const auto& two){
+            return std::get<0>(one) < std::get<0>(two);
+        });
 
-    int64_t t1_i = getTimeInMillis();
+        int64_t t1 = getTimeInMillis();
 
-    std::cout << "Inserted entries in " << (t1_i - t0_i) << " ms" << std::endl;
-    std::cout << "Size = " << ctr0->size() << std::endl;
+        std::cout << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
 
-    snp->commit();
-    snp->set_as_master();
+        int64_t t0_i = getTimeInMillis();
 
-    alloc->store("store.mma1");
+        ctr0->append_entries([&](auto& keys, auto& values, size_t batch_start) {
 
-    int64_t t2 = getTimeInMillis();
+            size_t batch_size = 8192;
+            size_t limit = (batch_start + batch_size <= entries_.size()) ? batch_size : entries_.size() - batch_start;
 
-    auto ii = ctr0->scanner();
+            for (size_t c = 0; c < limit; c++) {
+                keys.append(std::get<0>(entries_[batch_start + c]));
+                values.append(std::get<1>(entries_[batch_start + c]));
+            }
 
-    size_t sum0 = 0;
+            return limit != batch_size;
+        });
 
-//    while (!ii.is_end())
-//    {
-//        sum0 += ii.keys().size() + ii.values().size();
 
-//        auto keys = ii.keys();
+        int64_t t1_i = getTimeInMillis();
 
-//        for (size_t c = 0; c < keys.size(); c++)
-//        {
-//            std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
-//        }
+        std::cout << "Inserted entries in " << (t1_i - t0_i) << " ms" << std::endl;
+        std::cout << "Size = " << ctr0->size() << std::endl;
 
-//        ii.next_leaf();
-//    }
+        //ctr0->raw_iterator()->dumpPath();
 
-    int64_t t3 = getTimeInMillis();
+        snp->commit();
+        snp->set_as_master();
 
-    std::cout << "Iterated over 10M entries in " << (t3 - t2) << " ms " << sum0 << std::endl;
+        alloc->store("store.mma1");
 
-    for (int64_t c = 0; c < ctr0->size(); c++)
-    {
-        U8String key = "AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c);
+        int64_t t2 = getTimeInMillis();
 
-        auto ii = ctr0->find_entry(key);
+        auto ii = ctr0->scanner();
 
-//        ii->dump();
+        size_t sum0 = 0;
 
-        if (!ii->is_end())
+        //    while (!ii.is_end())
+        //    {
+        //        sum0 += ii.keys().size() + ii.values().size();
+
+        //        auto keys = ii.keys();
+
+        //        for (size_t c = 0; c < keys.size(); c++)
+        //        {
+        //            std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
+        //        }
+
+        //        ii.next_leaf();
+        //    }
+
+        int64_t t3 = getTimeInMillis();
+
+        std::cout << "Iterated over 10M entries in " << (t3 - t2) << " ms " << sum0 << std::endl;
+
+        for (int64_t c = 0; c < ctr0->size(); c++)
         {
-            std::cout << key << " :: " << ii->value() << std::endl;
+            U8String key = "AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c);
+
+            auto ii = ctr0->find_entry(key);
+
+            //        ii->dump();
+
+            if (!ii->is_end())
+            {
+                std::cout << key << " :: " << ii->value() << std::endl;
+            }
         }
+
+    }
+    catch (MemoriaThrowable& th) {
+        th.dump(std::cerr);
     }
 
     return 0;

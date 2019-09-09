@@ -23,7 +23,7 @@
 
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 
-#include <memoria/v1/core/packed/array/packed_vle_array_iterator.hpp>
+#include <memoria/v1/core/packed/array/packed_array_iterator.hpp>
 
 #include <memoria/v1/core/iovector/io_substream_array_vlen_base.hpp>
 
@@ -51,11 +51,9 @@ public:
     using DataAtomType  = typename PkdStruct::DataAtomType;
     using Accessor      = typename PkdStruct::Accessor;
 
-    using Iterator = PkdRandomAccessIterator<Accessor>;
-
     using ConstIterator = PkdRandomAccessIterator<Accessor>;
 
-    template <typename, typename, typename>
+    template <typename, typename, typename, typename>
     friend struct PkdDataTypeAccessor;
 
     using PkdStructT = PkdStruct;
@@ -88,13 +86,13 @@ public:
     }
 
     ConstIterator begin(psize_t column) const {
-        return Iterator(Accessor(*this, column), 0, data_->size());
+        return ConstIterator(Accessor(*this, column), 0, data_->size());
     }
 
     ConstIterator end(psize_t column) const
     {
         psize_t size = data_->size();
-        return Iterator(Accessor(*this, column), size, size);
+        return ConstIterator(Accessor(*this, column), size, size);
     }
 
     operator bool() const {
@@ -116,7 +114,8 @@ public:
 
     psize_t length(psize_t column, psize_t row, psize_t size) const
     {
-        return data_->length(column, row + size) - data_->length(column, row);
+        const auto* offsets = data_->offsets(column);
+        return offsets[row + size] - offsets[row];
     }
 
     DataAtomType* data(psize_t column, psize_t row) {
@@ -309,13 +308,24 @@ public:
 
 
     template <typename T>
-    OpStatus setValues(int32_t idx, const core::StaticVector<T, Columns>& values) {
-        return OpStatus::OK;
+    OpStatus setValues(psize_t pos, const core::StaticVector<T, Columns>& values)
+    {
+        if (isFail(removeSpace(pos, pos + 1))) {
+            return OpStatus::FAIL;
+        }
+
+        return insert(pos, values);
     }
 
     template <typename T>
-    OpStatus insert(int32_t idx, const core::StaticVector<T, Columns>& values)
+    OpStatus insert(psize_t pos, const core::StaticVector<T, Columns>& values)
     {
+        if (isFail(Accessor::insert(*this, pos, Columns, [&](psize_t column, psize_t row){
+                return values[column];
+        }))) {
+            return OpStatus::FAIL;
+        }
+
         return OpStatus::OK;
     }
 

@@ -24,6 +24,11 @@
 #include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
 #include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
 
+#include <memoria/v1/core/packed/datatypes/fixed_size.hpp>
+#include <memoria/v1/core/packed/array/packed_array_iterator.hpp>
+
+#include <algorithm>
+
 namespace memoria {
 namespace v1 {
 
@@ -37,10 +42,18 @@ class PackedFixedSizeElementArraySO {
     using Value = typename PkdStruct::Value;
     using ViewType = Value;
 
+    using DataType = typename PkdStruct::DataType;
+
     static constexpr psize_t VALUES = PkdStruct::VALUES;
+
+    using Accessor = PkdDataTypeAccessor<
+        DataType, EmptyType, MyType, FixedSizeDataTypeTag
+    >;
 
 public:
     using PkdStructT = PkdStruct;
+
+    using ConstIterator = PkdRandomAccessIterator<Accessor>;
 
     static constexpr psize_t Columns = PkdStruct::Blocks;
     static constexpr int32_t Indexes = 0;
@@ -130,6 +143,16 @@ public:
         return data_->metadata().size();
     }
 
+    ConstIterator begin(psize_t column) const {
+        return ConstIterator(Accessor(*this, column), 0, size());
+    }
+
+    ConstIterator end(psize_t column) const
+    {
+        psize_t size = this->size();
+        return ConstIterator(Accessor(*this, column), size, size);
+    }
+
     /*********************** API *********************/
 
     class FindResult {
@@ -147,26 +170,26 @@ public:
 
     FindResult findGTForward(psize_t column, const ViewType& val) const
     {
-//        auto end = this->end(column);
-//        auto ii = std::upper_bound(begin(column), end, val);
+        auto end = this->end(column);
+        auto ii = std::upper_bound(begin(column), end, val);
 
-//        if (ii != end)
-//        {
-//            return ii.pos();
-//        }
+        if (ii != end)
+        {
+            return ii.pos();
+        }
 
         return FindResult(data_->size());
     }
 
     FindResult findGEForward(psize_t column, const ViewType& val) const
     {
-//        auto end = this->end(column);
-//        auto ii = std::lower_bound(begin(column), end, val);
+        auto end = this->end(column);
+        auto ii = std::lower_bound(begin(column), end, val);
 
-//        if (ii != end)
-//        {
-//            return ii.pos();
-//        }
+        if (ii != end)
+        {
+            return ii.pos();
+        }
 
         return FindResult(data_->size());
     }

@@ -25,8 +25,8 @@ namespace memoria {
 namespace v1 {
 
 
-template <typename ArraySO>
-struct PkdDataTypeAccessor<Varchar, PkdVLEArrayTag, ArraySO> {
+template <typename ArraySO, typename SelectorTag>
+struct PkdDataTypeAccessor<Varchar, PkdVLEArrayTag, ArraySO, SelectorTag> {
 
     using DataType = Varchar;
     using ViewType = DataTypeTraits<Varchar>::ViewType;

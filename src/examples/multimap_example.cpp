@@ -114,7 +114,7 @@ int main()
 
         size_t sum0 = 0;
 
-
+        ii->dump_iterator();
 
         ii->for_each([&](auto key, auto values){
             sum0 += values.size();
