@@ -22,18 +22,12 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 #include <memoria/v1/core/tools/object_pool.hpp>
-
+#include <memoria/v1/prototypes/bt/bt_macros.hpp>
 
 #include <memoria/v1/core/types/mp11.hpp>
 #include <memoria/v1/core/types/list/tuple.hpp>
 
-#include <memoria/v1/prototypes/bt/bt_macros.hpp>
-
-
-
-
 #include <iostream>
-#include <memoria/v1/core/tools/pair.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -49,6 +43,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using typename Base::BlockG;
     using typename Base::BlockID;
     using typename Base::CtrID;
+    using typename Base::ContainerTypeName;
 
     using ProfileT = typename Types::Profile;
 
@@ -181,48 +176,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         self().node_dispatcher().dispatch(root, SetModelNameFn(self()), name);
     }
 
-    void initCtr(int32_t command)
-    {
-        Base::initCtr(command);
-
-        auto& self = this->self();
-
-        if ((command & CTR_CREATE) && (command & CTR_FIND))
-        {
-            if (self.store().hasRoot(self.master_name()))
-            {
-                findCtrByName();
-            }
-            else {
-                createCtrByName();
-            }
-        }
-        else if (command & CTR_CREATE)
-        {
-            if (!self.store().hasRoot(self.master_name()))
-            {
-                createCtrByName();
-            }
-            else {
-                MMA1_THROW(CtrAlreadyExistsException()) << WhatInfo(fmt::format8(u"Container with name {} already exists", self.master_name()));
-            }
-        }
-        else {
-            findCtrByName();
-        }
-    }
-
-    void initCtr(const BlockID& root_id)
-    {
-        self().set_root_id(root_id);
-    }
-
-    void initCtr(const BlockID& root_id, const CtrID& name)
-    {
-        auto& self = this->self();
-        self.set_root_id(root_id);
-    }
-
 
     virtual BlockID getRootID(const CtrID& name)
     {
@@ -296,7 +249,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         setCtrRootMetadata(node, metadata);
     }
 
-    int64_t getContainerName() const
+    CtrID getContainerName() const
     {
         return getRootMetadata().model_name();
     }
@@ -307,9 +260,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         memset(&metadata, 0, sizeof(Metadata));
 
-        metadata.model_name()       = self().name();
-        metadata.memory_block_size()        = DEFAULT_BLOCK_SIZE;
-        metadata.branching_factor() = 0;
+        metadata.model_name()        = self().name();
+        metadata.memory_block_size() = DEFAULT_BLOCK_SIZE;
+        metadata.branching_factor()  = 0;
 
         auto txn_id = self().store().currentTxnId();
         metadata.txn_id() = txn_id;
@@ -456,29 +409,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         self().node_dispatcher().dispatch(node, PrepareNodeFn(self()));
     }
 
-    void markCtrUpdated()
-    {
-        auto& self = this->self();
-
-        int64_t txn_id = self.store().currentTxnId();
-        const Metadata& metadata = self.getRootMetadata();
-
-        if (txn_id == metadata.txn_id())
-        {
-            // do nothing
-        }
-        else if (txn_id > metadata.txn_id())
-        {
-            Metadata copy = metadata;
-            copy.txn_id() = txn_id;
-
-            self.setRootMetadata(copy);
-            self.store().markUpdated(self.master_name());
-        }
-        else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid txn_id {} < {}", txn_id, metadata.txn_id()));
-        }
-    }
 
     void updateBlockG(NodeBaseG& node) const
     {
@@ -618,41 +548,36 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return CtrBlockDescription<ProfileT>(size, getModelNameS(node), root, leaf, offset);
     }
 
- private:
+ protected:
 
-    void findCtrByName()
+    CtrID do_init_ctr(const BlockG& node)
     {
         auto& self = this->self();
 
-        auto name = self.master_name();
-
-        BlockID root_id = self.store().getRootID(name);
-
-        if (!root_id.is_null())
+        if (node->ctr_type_hash() == CONTAINER_HASH)
         {
-            BlockG node = self.store().getBlock(root_id);
-
-            if (node->ctr_type_hash() == CONTAINER_HASH)
-            {
-                self.set_root_id(root_id);
-            }
-            else {
-                MMA1_THROW(CtrTypeException()) << WhatInfo(fmt::format8(u"Invalid container type: {}", node->ctr_type_hash()));
-            }
+            self.set_root_id(node->id());
+            return self.getRootMetadata().model_name();
         }
         else {
-            MMA1_THROW(NoCtrException()) << WhatInfo(fmt::format8(u"Container with name {} does not exists", name));
+            MMA1_THROW(CtrTypeException()) << WhatInfo(fmt::format8(u"Invalid container type: {}", node->ctr_type_hash()));
         }
     }
 
-    void createCtrByName()
+    void do_create_ctr(const CtrID& ctr_id, const ContainerTypeName& ctr_type_name)
     {
         auto& self = this->self();
+
+        if (self.store().hasRoot(ctr_id))
+        {
+            MMA1_THROW(NoCtrException()) << WhatInfo(fmt::format8(u"Container with name {} already exists", ctr_id));
+        }
 
         NodeBaseG node = self.createRoot();
 
         self.set_root(node->id());
     }
+
 
 MEMORIA_V1_BT_MODEL_BASE_CLASS_END
 

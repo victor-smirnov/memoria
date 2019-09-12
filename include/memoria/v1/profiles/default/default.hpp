@@ -32,10 +32,12 @@ struct ProfileTraits {
     using CtrID         = UUID;
     using CtrSizeT      = int64_t;
 
-    using Page = AbstractPage <BlockID, 32>;
-    using BlockType = Page;
+    using Block = AbstractPage <BlockID, 32>;
+    using BlockType = Block;
 
     using AllocatorType = IAllocator<Profile>;
+
+    using BlockG = typename AllocatorType::BlockG;
 };
 
 template <>

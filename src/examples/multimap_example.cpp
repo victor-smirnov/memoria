@@ -44,7 +44,7 @@ int main()
 
         auto snp = alloc->master()->branch();
 
-        auto ctr0 = snp->create_ctr(MultimapType());
+        auto ctr0 = create(snp, MultimapType());
 
         //ctr0->set_new_block_size(64*1024);
 

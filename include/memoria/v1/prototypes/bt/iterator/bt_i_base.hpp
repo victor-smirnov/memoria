@@ -310,7 +310,7 @@ public:
 
     U8String getDumpHeader() const
     {
-        return U8String(self().ctr().typeName()) + " Iterator State";
+        return U8String(self().ctr().type_name_str()) + " Iterator State";
     }
 
     void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const

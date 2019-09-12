@@ -25,7 +25,6 @@
 #include <memoria/v1/containers/set/set_tools.hpp>
 
 #include <memoria/v1/prototypes/bt_ss/btss_factory.hpp>
-#include <memoria/v1/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>

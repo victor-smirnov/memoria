@@ -99,6 +99,23 @@ public:
                 >::Value
     >::Type;
 
+    template <typename BranchPath>
+    using SubstreamByBranchPath = typename Dispatcher::template StreamTypeT<
+        list_tree::LeafCount<BranchSubstreamsStructList, BranchPath>
+    >::Type;
+
+    template <typename LeafPath>
+    using SubstreamByLeafPath = typename Dispatcher::template StreamTypeT<
+        list_tree::LeafCount<BranchSubstreamsStructList, BuildBranchPath<LeafPath>>
+    >::Type;
+
+
+    template <typename LeafPath>
+    static constexpr int32_t SubstreamIdxByLeafPath = list_tree::LeafCount<
+        BranchSubstreamsStructList, BuildBranchPath<LeafPath>
+    >;
+
+
     template <typename LeafPath>
     static const int32_t translateLeafIndexToBranchIndex(int32_t leaf_index)
     {
@@ -129,6 +146,13 @@ public:
 
     void setup(NodeType_* node) {
         node_ = node;
+    }
+
+    template <typename LeafPath, typename ExtData>
+    void set_ext_data(ExtData&& data) const
+    {
+        constexpr int32_t substream_idx = SubstreamIdxByLeafPath<LeafPath>;
+        std::get<substream_idx>(ctr_->branch_node_ext_data()) = std::forward<ExtData>(data);
     }
 
     const PackedAllocator* allocator() const {

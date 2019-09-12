@@ -29,6 +29,7 @@ template <typename T>
 class Vector {
     T element_;
 public:
+    Vector(): element_() {}
     Vector(T element):
         element_(element)
     {}

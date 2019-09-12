@@ -135,6 +135,12 @@ DataTypeRegistryStore::Initializer<Time, TL<>> time;
 DataTypeRegistryStore::Initializer<TimeWithTimeZone, TL<>> time_with_tz;
 DataTypeRegistryStore::Initializer<UUID, TL<>> uuid;
 
+
+DataTypeRegistryStore::Initializer<Map<Varchar, Varchar>, TL<>> map_varchar_varchar;
+DataTypeRegistryStore::Initializer<Map<UUID, UUID>, TL<>> map_uuid_uuid;
+
+DataTypeRegistryStore::Initializer<Multimap<Varchar, Varchar>, TL<>> multimap_varchar_varchar;
+
 //DataTypeRegistryStore::Initializer<Decimal, TL<int64_t, int64_t>, TL<int64_t>, TL<>> decimal;
 //DataTypeRegistryStore::Initializer<Dynamic<Decimal>, TL<>> dynamic_decimal;
 //DataTypeRegistryStore::Initializer<BigDecimal, TL<int64_t, int64_t>, TL<int64_t>, TL<>> big_decimal;

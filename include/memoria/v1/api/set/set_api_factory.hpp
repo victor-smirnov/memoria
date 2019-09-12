@@ -29,6 +29,7 @@ template <typename Key>
 class Set {
     Key key_;
 public:
+    Set(): key_() {}
     Set(Key key):
         key_(key)
     {}

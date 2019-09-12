@@ -46,7 +46,7 @@ int main()
 
         auto snp = alloc->master()->branch();
 
-        auto ctr0 = snp->create_ctr(MapType());
+        auto ctr0 = create(snp, MapType());
 
         //ctr0->set_new_block_size(64*1024);
 

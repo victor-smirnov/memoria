@@ -46,7 +46,6 @@ class IMemoryStore {
 
     using SnapshotID = ProfileSnapshotID<Profile>;
 
-
 public:
     using StorePtr   = AllocSharedPtr<IMemoryStore>;
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot<Profile>>;
@@ -80,8 +79,6 @@ public:
     virtual void walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr) = 0;
 
     virtual Logger& logger() = 0;
-
-
 
     virtual void pack() = 0;
     virtual bool check() = 0;
@@ -119,12 +116,16 @@ public:
 template <typename Profile = DefaultProfile<>>
 using IMemoryStorePtr = typename IMemoryStore<Profile>::StorePtr;
 
+
+
+
+
 template <typename Profile>
 class IMemorySnapshot {
 
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot>;
     using SnapshotID    = ProfileSnapshotID<Profile>;
-    using CtrID         = ProfileSnapshotID<Profile>;
+    using CtrID         = ProfileCtrID<Profile>;
 
     using AllocatorT    = ProfileAllocatorType<Profile>;
 
@@ -175,74 +176,9 @@ public:
     virtual const PairPtr& pair() const = 0;
     virtual PairPtr& pair() = 0;
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> create_ctr(const DataTypeDeclaration& decl) = 0;
-
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> find_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> find_or_create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
-
-    template <typename CtrName>
-    CtrSharedPtr<ICtrApi<CtrName, Profile>> create_ctr(const CtrName& ctr_type_name, const CtrID& ctr_id)
-    {
-        U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
-        DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
-        CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = create_ctr(decl, ctr_id);
-        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
-    }
-
-    template <typename CtrName>
-    CtrSharedPtr<ICtrApi<CtrName, Profile>> create_ctr(const CtrName& ctr_type_name)
-    {
-        U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
-        DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
-        CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = create_ctr(decl);
-        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
-    }
-
-    template <typename CtrName>
-    CtrSharedPtr<ICtrApi<CtrName, Profile>> find_ctr(const CtrName& ctr_type_name, const CtrID& ctr_id)
-    {
-        U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
-        DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
-        CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = find_ctr(decl, ctr_id);
-        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
-    }
-
-    template <typename CtrName>
-    CtrSharedPtr<ICtrApi<CtrName, Profile>> find_or_create_ctr(const CtrName& ctr_type_name, const CtrID& ctr_id)
-    {
-        U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
-        DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
-        CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = find_or_create_ctr(decl, ctr_id);
-        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
-    }
-
-
-    template <typename CtrName>
-    auto find_or_create(const CtrID& name)
-    {
-        return CtrT<CtrName>(snapshot_ref_creation_allowed(), CTR_FIND | CTR_CREATE, name);
-    }
-
-    template <typename CtrName>
-    auto create(const CtrID& name)
-    {
-        return CtrT<CtrName>(snapshot_ref_creation_allowed(), CTR_CREATE, name);
-    }
-
-    template <typename CtrName>
-    auto create()
-    {
-        return CtrT<CtrName>(snapshot_ref_creation_allowed(), CTR_CREATE, CTR_DEFAULT_NAME);
-    }
-
-    template <typename CtrName>
-    auto find(const CtrID& name)
-    {
-        return CtrT<CtrName>(snapshot_ref_opening_allowed(), CTR_FIND, name);
-    }
-
-    //virtual CtrRef<Profile> get_ctr(const CtrID& name) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const DataTypeDeclaration& decl) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> find(const CtrID& ctr_id) = 0;
 
     virtual Vertex as_vertex() = 0;
 
@@ -256,62 +192,40 @@ protected:
 };
 
 
-
 template <typename CtrName, typename Profile>
-auto create(SnpSharedPtr<IMemorySnapshot<Profile>>& alloc, const ProfileCtrID<Profile>& name)
+CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
+        SnpSharedPtr<IMemorySnapshot<Profile>>& alloc,
+        const CtrName& ctr_type_name,
+        const ProfileCtrID<Profile>& ctr_id
+)
 {
-    return alloc->template create<CtrName>(name);
+    U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
+    DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
+    CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = alloc->create(decl, ctr_id);
+    return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
 }
 
 template <typename CtrName, typename Profile>
-auto create(SnpSharedPtr<IMemorySnapshot<Profile>>&& alloc, const ProfileCtrID<Profile>& name)
+CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
+        SnpSharedPtr<IMemorySnapshot<Profile>>& alloc,
+        const CtrName& ctr_type_name
+)
 {
-    return alloc->template create<CtrName>(name);
-}
-
-
-
-template <typename CtrName, typename Profile>
-auto create(SnpSharedPtr<IMemorySnapshot<Profile>>& alloc)
-{
-    return alloc->template create<CtrName>();
-}
-
-template <typename CtrName, typename Profile>
-auto create(SnpSharedPtr<IMemorySnapshot<Profile>>&& alloc)
-{
-    return alloc->template create<CtrName>();
-}
-
-
-
-template <typename CtrName, typename Profile>
-auto find_or_create(SnpSharedPtr<IMemorySnapshot<Profile>>& alloc, const ProfileCtrID<Profile>& name)
-{
-    return alloc->template find_or_create<CtrName>(name);
+    U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
+    DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
+    CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = alloc->create(decl);
+    return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
 }
 
 template <typename CtrName, typename Profile>
-auto find_or_create(SnpSharedPtr<IMemorySnapshot<Profile>>&& alloc, const ProfileCtrID<Profile>& name)
+CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
+        SnpSharedPtr<IMemorySnapshot<Profile>>& alloc,
+        const ProfileCtrID<Profile>& ctr_id
+)
 {
-    return alloc->template find_or_create<CtrName>(name);
+    CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = alloc->find(ctr_id);
+    return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
 }
-
-
-
-template <typename CtrName, typename Profile>
-auto find(SnpSharedPtr<IMemorySnapshot<Profile>>& alloc, const ProfileCtrID<Profile>& name)
-{
-    return alloc->template find<CtrName>(name);
-}
-
-template <typename CtrName, typename Profile>
-auto find(SnpSharedPtr<IMemorySnapshot<Profile>>&& alloc, const ProfileCtrID<Profile>& name)
-{
-    return alloc->template find<CtrName>(name);
-}
-
-
 
 
 }

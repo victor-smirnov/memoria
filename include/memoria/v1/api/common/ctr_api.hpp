@@ -91,16 +91,10 @@ struct CtrMetadataInitializer {
 
 #define MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, ...)\
 template struct ICtrApi<CtrName, Profile>;               \
-                                                        \
 namespace {                                             \
+    DataTypeRegistryStore::Initializer<CtrName, TL<>> init_type_##__VA_ARGS__;\
     CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
 }
-
-
-//template class IterApiBase<CtrName, Profile>;           \
-//template class IterApiBTSSBase<CtrName, Profile>;       \
-//template class CtrApiBase<CtrName, Profile>;            \
-//template class CtrApiBTSSBase<CtrName, Profile>;        \
 
 
 #define MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile, ...) \
@@ -109,42 +103,6 @@ template struct ICtrApi<CtrName, Profile>;               \
 namespace {                                              \
     CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
 }
-
-
-
-
-#define MMA1_DECLARE_CTRAPI_BASIC_METHODS()                                            \
-    CtrApi(const CtrSharedPtr<AllocatorT>& allocator, int32_t command, const CtrID& ctr_id):\
-        Base(allocator, command, ctr_id) {}                                                 \
-    ~CtrApi() {}                                                                            \
-                                                                                            \
-    CtrApi(const CtrApi& other): Base(other) {}                                             \
-    CtrApi(const CtrPtr& ptr): Base(ptr) {}                                                 \
-    CtrApi(CtrApi&& other): Base(std::move(other)) {}                                       \
-                                                                                            \
-    CtrApi& operator=(const CtrApi& other) {Base::operator=(other); return *this;}          \
-    CtrApi& operator=(CtrApi&& other){Base::operator=(std::move(other)); return *this;}
-    
-    
-    
-    
-
-
-#define MMA1_DECLARE_ITERAPI_BASIC_METHODS()        \
-    IterApi(IterPtr ptr):Base(ptr) {}               \
-    ~IterApi() {}                                   \
-                                                    \
-    IterApi(const IterApi& other): Base(other) {}   \
-    IterApi(IterApi&& other):                       \
-        Base(std::move(other)) {}                   \
-                                                    \
-    IterApi& operator=(const IterApi& other) {      \
-        Base::operator=(other); return *this;       \
-    }                                               \
-    IterApi& operator=(IterApi&& other) {           \
-        Base::operator=(std::move(other));          \
-        return *this;                               \
-    }
 
 }
 }

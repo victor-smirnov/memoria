@@ -35,6 +35,8 @@
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
+#include <memoria/v1/api/datatypes/type_registry.hpp>
+
 #include "persistent_tree.hpp"
 
 #ifndef MMA1_NO_REACTOR
@@ -143,15 +145,9 @@ protected:
     template <typename, typename>
     friend class MemoryStoreBase;
     
-    
-
-
     PairPtr pair_;
     
     CtrSharedPtr<RootMapType> root_map_;
-
-    int32_t ctr_op_;
-    
 public:
 
     SnapshotBase(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
@@ -159,17 +155,13 @@ public:
         history_tree_(history_tree),
         history_tree_raw_(history_tree.get()),
         persistent_tree_(history_node_),
-        logger_("PersistentInMemAllocatorSnp", Logger::DERIVED, &history_tree->logger_)
+        logger_("PersistentInMemStoreSnp", Logger::DERIVED, &history_tree->logger_)
     {
         history_node_->ref();
 
         if (history_node->is_active())
         {
             history_tree_raw_->ref_active();
-            ctr_op_ = CTR_CREATE | CTR_FIND;
-        }
-        else {
-            ctr_op_ = CTR_FIND;
         }
     }
 
@@ -177,24 +169,31 @@ public:
         history_node_(history_node),
         history_tree_raw_(history_tree),
         persistent_tree_(history_node_),
-        logger_("PersistentInMemAllocatorSnp")
+        logger_("PersistentInMemStoreSnp")
     {
         history_node_->ref();
 
         if (history_node->is_active())
         {
             history_tree_raw_->ref_active();
-            ctr_op_ = CTR_CREATE | CTR_FIND;
-        }
-        else {
-            ctr_op_ = CTR_FIND;
         }
     }
     
     void post_init() 
     {
         auto ptr = this->shared_from_this();
-        root_map_ = ctr_make_shared<RootMapType>(ptr, ctr_op_, CtrID{});
+
+        BlockID root_id = history_node_->root_id();
+
+        if (root_id.isSet())
+        {
+            BlockG root_block = findBlock(root_id);
+            root_map_ = ctr_make_shared<RootMapType>(ptr, root_block);
+        }
+        else {
+            root_map_ = ctr_make_shared<RootMapType>(ptr, CtrID{}, Map<CtrID, BlockID>());
+        }
+
         root_map_->reset_allocator_holder();
     }
     
@@ -543,39 +542,50 @@ public:
         }
     }
 
+    BlockG findBlock(const BlockID& id)
+    {
+        Shared* shared = get_shared(id, Shared::READ);
+
+        if (!shared->get())
+        {
+            checkReadAllowed();
+
+            auto block_opt = persistent_tree_.find(id);
+
+            if (block_opt)
+            {
+                const auto& txn_id = history_node_->snapshot_id();
+
+                if (block_opt.value().snapshot_id() != txn_id)
+                {
+                    shared->state() = Shared::READ;
+                }
+                else {
+                    shared->state() = Shared::UPDATE;
+                }
+
+                shared->set_block(block_opt.value().block_ptr()->raw_data());
+            }
+            else {
+                return BlockG();
+            }
+        }
+
+        return BlockG(shared);
+    }
 
     virtual BlockG getBlock(const BlockID& id)
     {
         if (id.isSet())
         {
-            Shared* shared = get_shared(id, Shared::READ);
+            BlockG block = findBlock(id);
 
-            if (!shared->get())
-            {
-                checkReadAllowed();
-
-                auto block_opt = persistent_tree_.find(id);
-
-                if (block_opt)
-                {
-                    const auto& txn_id = history_node_->snapshot_id();
-
-                    if (block_opt.value().snapshot_id() != txn_id)
-                    {
-                        shared->state() = Shared::READ;
-                    }
-                    else {
-                        shared->state() = Shared::UPDATE;
-                    }
-
-                    shared->set_block(block_opt.value().block_ptr()->raw_data());
-                }
-                else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block is not found for the specified id: {}", id));
-                }
+            if (block) {
+                return block;
             }
-
-            return BlockG(shared);
+            else {
+                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block is not found for the specified id: {}", id));
+            }
         }
         else {
             return BlockG();
@@ -929,6 +939,10 @@ public:
 
     virtual bool hasRoot(const CtrID& name)
     {
+        if (MMA1_UNLIKELY(!root_map_)) {
+            return false;
+        }
+
         if (!name.is_null())
         {
             auto iter = root_map_->find(name);
@@ -1013,72 +1027,25 @@ public:
     }
 
 
-
-    template <typename CtrName>
-    auto find_or_create(const CtrID& name)
-    {
-    	checkIfConainersCreationAllowed();
-        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND | CTR_CREATE, name);
-    }
-
-    template <typename CtrName>
-    auto create(const CtrID& name)
-    {
-    	checkIfConainersCreationAllowed();
-        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_CREATE, name);
-    }
-
-    template <typename CtrName>
-    auto create()
-    {
-    	checkIfConainersCreationAllowed();
-        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_CREATE, CTR_DEFAULT_NAME);
-    }
-
-    template <typename CtrName>
-    auto find(const CtrID& name)
-    {
-    	checkIfConainersOpeneingAllowed();
-        return ctr_make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND, name);
-    }
-
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id)
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const DataTypeDeclaration& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_typedecl_string());
-        return factory->create_instance(this->shared_from_this(), CTR_CREATE, ctr_id);
+        return factory->create_instance(this->shared_from_this(), ctr_id, decl);
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> create_ctr(const DataTypeDeclaration& decl)
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const DataTypeDeclaration& decl)
     {
         checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_typedecl_string());
-        return factory->create_instance(this->shared_from_this(), CTR_CREATE, CTR_DEFAULT_NAME);
+        return factory->create_instance(this->shared_from_this(), this->createCtrName(), decl);
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> find_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id)
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> find(const CtrID& ctr_id)
     {
         checkIfConainersOpeneingAllowed();
-        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_typedecl_string());
-        return factory->create_instance(this->shared_from_this(), CTR_FIND, ctr_id);
-    }
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> find_or_create_ctr(const DataTypeDeclaration& decl, const CtrID& ctr_id)
-    {
-        checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_typedecl_string());
-        return factory->create_instance(this->shared_from_this(), CTR_FIND | CTR_CREATE, ctr_id);
-    }
-
-
-    void pack_store()
-    {
-    	this->history_tree_raw_->pack();
-    }
-    
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> get(const CtrID& name)
-    {
-        CtrID root_id = getRootID(name);
+        CtrID root_id = getRootID(ctr_id);
 
         if (root_id.is_set())
         {
@@ -1087,11 +1054,17 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            return ctr_intf->new_ctr_instance(root_id, name, this->shared_from_this());
+            return ctr_intf->new_ctr_instance(block, this->shared_from_this());
         }
         else {
             return CtrSharedPtr<CtrReferenceable<Profile>>();
         }
+    }
+
+
+    void pack_store()
+    {
+        this->history_tree_raw_->pack();
     }
 
     virtual U16String ctr_type_name(const CtrID& name)
@@ -1121,7 +1094,7 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            return ctr_intf->new_ctr_instance(root_block_id, name, this->shared_from_this());
+            return ctr_intf->new_ctr_instance(block, this->shared_from_this());
         }
         else {
             return CtrSharedPtr<CtrReferenceable<Profile>>();

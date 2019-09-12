@@ -17,8 +17,7 @@
 #pragma once
 
 #include <memoria/v1/prototypes/bt_tl/bttl_factory.hpp>
-#include <memoria/v1/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
-
+#
 #include <memoria/v1/containers/table/table_names.hpp>
 
 #include <memoria/v1/containers/table/container/table_c_api.hpp>

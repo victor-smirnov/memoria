@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/prototypes/ctr_wrapper/iterator.hpp>
 #include <memoria/v1/containers/multimap/mmap_names.hpp>
 
 namespace memoria {

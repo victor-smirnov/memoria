@@ -56,9 +56,6 @@
 #include <string>
 #include <memory>
 
-#define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() \
-        throw Exception(MMA1_SOURCE, SBuf() << "Method is not implemented for " << me()->typeName())
-
 namespace memoria {
 namespace v1 {
 
@@ -73,42 +70,6 @@ template <typename CtrName, typename Allocator, typename Profile> class SharedCt
 
 
 constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
-
-class CtrInitData {
-    UUID master_name_;
-    uint64_t ctr_type_hash_;
-
-public:
-    CtrInitData(const UUID& master_name, uint64_t ctr_hash):
-        master_name_(master_name),
-        ctr_type_hash_(ctr_hash)
-    {}
-
-    CtrInitData(uint64_t ctr_hash):
-        master_name_{},
-        ctr_type_hash_(ctr_hash)
-    {}
-
-    const auto& master_name() const {
-        return master_name_;
-    }
-
-    void set_master_name(UUID name){
-        master_name_ = name;
-    }
-
-    uint64_t ctr_type_hash() const {
-        return ctr_type_hash_;
-    }
-
-    CtrInitData owner(uint64_t ctr_hash) const
-    {
-        return CtrInitData(master_name_, ctr_hash);
-    }
-};
-
-
-
 
 
 template <typename TypesType>
@@ -155,19 +116,14 @@ public:
 protected:
     BlockID root_{};
 
-    CtrInitData init_data_;
-
     PairPtr pair_;
     
     AllocatorPtr allocator_holder_;
 
 public:
-    CtrBase(const CtrInitData& data, const AllocatorPtr& allocator):
-        init_data_(data),
-        allocator_holder_(allocator)
-    {}
+    CtrBase(){}
 
-    virtual ~CtrBase() throw () {}
+    virtual ~CtrBase() noexcept {}
     
     bool isNew() const {
         return root_.is_null();
@@ -206,18 +162,6 @@ public:
     const BlockID &root() const
     {
         return root_;
-    }
-
-    void operator=(ThisType&& other)
-    {
-        init_data_  = other.init_data_;
-
-        other.shared_ = NULL;
-    }
-
-    void operator=(const ThisType& other)
-    {
-        init_data_  = other.init_data_;
     }
 
     static uint64_t hash() {
@@ -265,11 +209,15 @@ public:
 
         virtual SnpSharedPtr<CtrReferenceable<ProfileT>> create_instance(
                 const AllocatorPtr& allocator,
-                int32_t command,
-                const CtrID& ctr_id
+                const CtrID& ctr_id,
+                const DataTypeDeclaration& type_decl
         ) const
         {
-            return ctr_make_shared<CtrT<ContainerTypeName>>(allocator, command, ctr_id);
+            boost::any obj = DataTypeRegistry::local().create_object(type_decl);
+
+            return ctr_make_shared<CtrT<ContainerTypeName>>(
+                allocator, ctr_id, *boost::any_cast<ContainerTypeName>(&obj)
+            );
         }
     };
 
@@ -285,19 +233,19 @@ public:
 
         virtual Vertex describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const
         {
-            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->get(ctr_id));
+            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->find(ctr_id));
             return ctr_ptr->block_as_vertex(block_id);
         }
 
         virtual Collection<Edge> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator, Direction direction) const
         {
-            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->get(ctr_id));
+            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->find(ctr_id));
             return ctr_ptr->describe_block_links(block_id, direction);
         }
 
         virtual Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const
         {
-            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->get(ctr_id));
+            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->find(ctr_id));
             return ctr_ptr->block_properties(vx, block_id);
         }
 
@@ -308,7 +256,7 @@ public:
 
         void with_ctr(const CtrID& ctr_id, const AllocatorPtr& allocator, std::function<void(MyType&)> fn) const
         {
-            auto ctr_ref = allocator->get(ctr_id);
+            auto ctr_ref = allocator->find(ctr_id);
             if (ctr_ref)
             {
                 auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref);
@@ -354,6 +302,8 @@ public:
         }
 
 
+
+
         class CtrNodesWalkerAdapter: public ContainerWalkerBase<ProfileT> {
 
         	BlockCallbackFn consumer_;
@@ -394,21 +344,15 @@ public:
         	});
         }
         
-        virtual CtrSharedPtr<CtrReferenceable<ProfileT>> new_ctr_instance(const BlockID& root_id, const CtrID& ctr_id, AllocatorPtr allocator) const
+        virtual CtrSharedPtr<CtrReferenceable<typename Types::Profile>> new_ctr_instance(
+            const ProfileBlockG<typename Types::Profile>& root_block,
+            AllocatorPtr allocator
+        ) const
         {    
-            BlockG block = allocator->getBlock(root_id);
-
-            if (block)
-            {
-            	return ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
+            return ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
                     allocator,
-                    root_id, 
-                    CtrInitData(ctr_id, block->ctr_type_hash())
-                );
-            }
-            else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"No container root block is found for id {} and name {}", root_id, ctr_id));
-            }
+                    root_block
+            );
         }
 
         virtual CtrID clone_ctr(const BlockID& ctr_id, const CtrID& new_ctr_id, AllocatorPtr allocator) const
@@ -441,24 +385,11 @@ public:
         return container_factories_ptr;
     }
 
-
-    const CtrInitData& init_data() const {
-        return init_data_;
-    }
-
-    CtrInitData& init_data() {
-        return init_data_;
-    }
-
-
     CtrID getModelName(const BlockID root_id)
     {
-        return CtrID{};
+        MMA1_THROW(UnsupportedOperationException()) << WhatCInfo("getModelName");
     }
 
-
-    void initCtr(int32_t command) {}
-    void initCtr(const BlockID& root_id) {}
 
     Vertex as_vertex() const {
         return Vertex(StaticPointerCast<IVertex>(ConstPointerCast<MyType>(this->shared_from_this())));
@@ -594,13 +525,10 @@ class CtrHelper: public CtrPart<
     using ThisType = CtrHelper<Idx, Types>;
     using MyType   = Ctr<Types>;
     using Base     = CtrPart<Select<Idx, typename Types::List>, CtrHelper<Idx - 1, Types>, Types>;
-
-    using Allocator0 = typename Types::Allocator;
-
 public:
-    CtrHelper(const CtrInitData& data, const CtrSharedPtr<Allocator0>& allocator): Base(data, allocator) {}
+    CtrHelper() {}
 
-    virtual ~CtrHelper() throw () {}
+    virtual ~CtrHelper() noexcept {}
 };
 
 template <typename Types>
@@ -610,12 +538,9 @@ class CtrHelper<-1, Types>: public Types::template BaseFactory<Types> {
     using Base     = typename Types::template BaseFactory<Types>;
 
 public:
+    CtrHelper() {}
 
-    using Allocator0 = typename Types::Allocator;
-
-    CtrHelper(const CtrInitData& data, const CtrSharedPtr<Allocator0>& allocator): Base(data, allocator) {}
-
-    virtual ~CtrHelper() throw () {}
+    virtual ~CtrHelper() noexcept {}
 
     void operator=(ThisType&& other) {
         Base::operator=(std::move(other));
@@ -634,10 +559,8 @@ class CtrStart: public CtrHelper<ListSize<typename Types::List> - 1, Types> {
     using MyType    = Ctr<Types>;
     using Base      = CtrHelper<ListSize<typename Types::List> - 1, Types>;
 
-    using Allocator0 = typename Types::Allocator ;
-
 public:
-    CtrStart(const CtrInitData& data, const CtrSharedPtr<Allocator0>& allocator): Base(data, allocator) {}
+    CtrStart() {}
 };
 
 
@@ -653,7 +576,7 @@ public:
     using MyType = Ctr<Types>;
 
     using Allocator = typename Types::Allocator;
-    using BlockG     = typename Types::Allocator::BlockG;
+    using BlockG    = typename Types::Allocator::BlockG;
     using BlockID   = typename Allocator::BlockID;
     using CtrID     = typename Allocator::CtrID;
 
@@ -666,80 +589,51 @@ private:
 
     Allocator*  allocator_;
     CtrID       name_;
-    const char* model_type_name_;
-
-    Logger          logger_;
-    static Logger   class_logger_;
-
-    bool debug_;
+    Logger      logger_;
+    static Logger class_logger_;
 
 protected:
     CtrSharedPtr<Allocator> alloc_holder_;
 
 public:
 
+    // create new ctr
     Ctr(
         const CtrSharedPtr<Allocator>& allocator,
-        int32_t command = CTR_CREATE,
-        const CtrID& name = CTR_DEFAULT_NAME,
-        const char* mname = NULL
+        const CtrID& ctr_id,
+        const ContainerTypeName& ctr_type_name
     ):
-        Base(CtrInitData(Base::CONTAINER_HASH), allocator),
-        allocator_(allocator.get()),
-        model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
-        debug_(false)
+        Base()
     {
-        MEMORIA_V1_ASSERT_NOT_NULL(allocator);
+        Base::allocator_holder_ = allocator;
 
-        checkCommandArguments(command, name);
+        allocator_ = allocator.get();
+        name_ = ctr_id;
+
+        this->do_create_ctr(ctr_id, ctr_type_name);
+
+        allocator_->registerCtr(typeid(*this));
+    }
+
+    // find existing ctr
+    Ctr(
+        const CtrSharedPtr<Allocator>& allocator,
+        const typename Allocator::BlockG& root_block
+    ):
+        Base()
+    {
+        Base::allocator_holder_ = allocator;
+
+        allocator_ = allocator.get();
 
         initLogger();
 
-        if (name == CTR_DEFAULT_NAME)
-        {
-            initCtr(allocator, allocator->createCtrName(), command, model_type_name_);
-        }
-        else {
-            initCtr(allocator, name, command, model_type_name_);
-        }
-    }
+        name_ = this->do_init_ctr(root_block);
 
-    void checkCommandArguments(int32_t command, const CtrID& name)
-    {
-        if ((command & CTR_CREATE) == 0 && (command & CTR_FIND) == 0)
-        {
-            MMA1_THROW(Exception()) << WhatCInfo("Either CTR_CREATE, CTR_FIND or both must be specified");
-        }
-
-        if ((command & CTR_FIND) && name == CTR_DEFAULT_NAME)
-        {
-            MMA1_THROW(Exception()) << WhatCInfo("Container name must be specified for the CTR_FIND operation");
-        }
+        allocator_->registerCtr(typeid(*this));
     }
 
 
-    Ctr(const CtrSharedPtr<Allocator>& allocator, const BlockID& root_id, const CtrInitData& ctr_init_data, const char* mname = NULL):
-        Base(ctr_init_data, allocator),
-        allocator_(allocator.get()),
-        name_(),
-        model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
-        debug_(false)
-    {
-        MEMORIA_V1_ASSERT_NOT_NULL(allocator);
-
-        initLogger();
-
-        initCtr(allocator, root_id, mname);
-    }
-
-    Ctr(const CtrInitData& data):
-        Base(data, CtrSharedPtr<Allocator>{}),
-        allocator_{},
-        model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
-        logger_(model_type_name_, Logger::DERIVED, NULL),
-        debug_(false)
-    {
-    }
 
     Ctr(const MyType& other) = delete;
     Ctr(MyType&& other) = delete;
@@ -759,63 +653,12 @@ public:
     	}
     }
 
-    void initLogger(Logger* other)
-    {
-        logger_.setCategory(other->category());
-        logger_.setHandler(other->getHandler());
-        logger_.setParent(other->getParent());
-
-        logger_.level() = other->level();
-    }
-
     void initLogger()
     {
-        logger_.configure(model_type_name_, Logger::DERIVED, &allocator_->logger());
-    }
-
-    void initCtr(const CtrSharedPtr<Allocator>& allocator, const CtrID& name, int32_t command, const char* mname = NULL)
-    {
-        Base::allocator_holder_ = allocator;
-        
-        allocator_          = allocator.get();
-        
-        name_               = name;
-        model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
-
-        allocator_->registerCtr(typeid(*this));
-
-        this->init_data().set_master_name(name);
-
-        //FIXME: init logger correctly
-
-        Base::initCtr(command);
-    }
-
-    void initCtr(const CtrSharedPtr<Allocator>& allocator, const BlockID& root_id, const char* mname = NULL)
-    {
-        MEMORIA_V1_ASSERT_EXPR(!root_id.is_null(), "Container root ID must not be empty");
-
-        Base::allocator_holder_ = allocator;
-        
-        allocator_          = allocator.get();
-        model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
-        name_               = this->getModelName(root_id);
-
-        allocator_->registerCtr(typeid(*this));
-
-        //FIXME: init logger correctly
-
-        Base::initCtr(root_id, name_);
+        logger_.configure(TypeNameFactory<ContainerTypeName>::cname(), Logger::DERIVED, &allocator_->logger());
     }
 
 
-    bool& debug() {
-        return debug_;
-    }
-
-    const bool& debug() const {
-        return debug_;
-    }
 
     Allocator& store() {
         return *allocator_;
@@ -823,11 +666,6 @@ public:
 
     Allocator& store() const {
         return *allocator_;
-    }
-
-    const char* typeName() const
-    {
-        return model_type_name_;
     }
 
     static U16String type_name_str()
@@ -864,37 +702,7 @@ public:
 
     const auto& master_name() const
     {
-        return Base::init_data().master_name();
-    }
-
-    MyType& operator=(const MyType& other)
-    {
-        if (this != &other)
-        {
-            name_               = other.name_;
-            model_type_name_    = other.model_type_name_;
-            logger_             = other.logger_;
-            debug_              = other.debug_;
-
-            Base::operator=(other);
-        }
-
-        return *this;
-    }
-
-    MyType& operator=(MyType&& other)
-    {
-        if (this != &other)
-        {
-            name_               = other.name_;
-            model_type_name_    = other.model_type_name_;
-            logger_             = other.logger_;
-            debug_              = other.debug_;
-
-            Base::operator=(std::move(other));
-        }
-
-        return *this;
+        return name_;
     }
 };
 

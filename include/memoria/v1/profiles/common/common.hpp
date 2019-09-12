@@ -41,6 +41,10 @@ using ProfileSnapshotID = typename ProfileTraits<Profile>::SnapshotID;
 template <typename Profile>
 using ProfileCtrSizeT = typename ProfileTraits<Profile>::CtrSizeT;
 
+
+template <typename Profile>
+using ProfileBlockG = typename ProfileTraits<Profile>::BlockG;
+
 template <typename ID> struct IDTools;
 
 }}

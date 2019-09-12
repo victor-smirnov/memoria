@@ -34,11 +34,8 @@ public:
 #define MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)                     \
     MEMORIA_V1_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)                 \
                                                                                         \
-    BTreeCtrBaseClassName(                                                              \
-        const CtrInitData& data,                                                        \
-        const CtrSharedPtr<typename TypesType::Allocator>& allocator                    \
-    ): Base(data, allocator)                                                            \
-    {}
+    BTreeCtrBaseClassName() {}
+
 
 
 
@@ -78,12 +75,10 @@ MEMORIA_V1_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)     
 #define MEMORIA_BT_ITERATOR_BASE_CLASS_END                                              \
     MyType& self() {                                                                    \
         return *static_cast<MyType*>(this);                                             \
-        /*return *(MyType*)(this);*/                                                    \
     }                                                                                   \
                                                                                         \
     const MyType& self() const {                                                        \
         return *static_cast<const MyType*>(this);                                       \
-        /*return *(MyType*)(this);*/                                                    \
     }                                                                                   \
 };
 

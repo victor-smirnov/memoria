@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
-
 namespace memoria {
 namespace v1 {
 namespace wt         {

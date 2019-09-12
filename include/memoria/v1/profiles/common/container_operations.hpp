@@ -30,6 +30,7 @@
 #include <memoria/v1/filesystem/operations.hpp>
 #include <memoria/v1/filesystem/path.hpp>
 #include <memoria/v1/reactor/file_streams.hpp>
+#include <memoria/v1/api/datatypes/type_signature.hpp>
 
 #include <memoria/v1/core/graph/graph.hpp>
 
@@ -208,10 +209,10 @@ struct ContainerOperations {
     ) const = 0;
     
     virtual CtrSharedPtr<CtrReferenceable<Profile>> new_ctr_instance(
-        const BlockID& root_id,
-        const CtrID& name,
+        const ProfileBlockG<Profile>& root_block,
         AllocatorBasePtr allocator
     ) const = 0;
+
 
     virtual CtrID clone_ctr(
         const CtrID& name,
@@ -240,8 +241,8 @@ struct CtrInstanceFactory {
 
     virtual SnpSharedPtr<CtrReferenceable<Profile>> create_instance(
             const AllocatorPtr& allocator,
-            int32_t command,
-            const CtrID& ctr_id
+            const CtrID& ctr_id,
+            const DataTypeDeclaration& type_decl
     ) const = 0;
 };
 

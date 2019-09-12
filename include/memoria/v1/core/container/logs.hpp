@@ -25,7 +25,7 @@
 
 #define MMA1_LOG(logger_, level, ...)                                        \
     if (logger_.is_log(level))                                               \
-        memoria::v1::log(logger_.logger(), level, MMA1_SOURCE, logger_.typeName(),    \
+        memoria::v1::log(logger_.logger(), level, MMA1_SOURCE, logger_.type_name_cstr(), \
                 ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
 
 #define MMA1_DEBUG(logger_, ...)                                             \

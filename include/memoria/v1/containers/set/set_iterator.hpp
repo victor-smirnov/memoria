@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/v1/containers/set/set_names.hpp>
-#include <memoria/v1/prototypes/ctr_wrapper/iterator.hpp>
 
 namespace memoria {
 namespace v1 {

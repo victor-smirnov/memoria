@@ -203,6 +203,13 @@ public:
     >::Type;
 
 
+    template <typename LeafPath>
+    using SubstreamByLeafPath = PackedStruct<LeafPath>;
+
+    template <typename LeafPath>
+    static constexpr int32_t SubstreamIdxByLeafPath = list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>;
+
+
 
     static constexpr int32_t Streams            = ListSize<LeafSubstreamsStructList>;
 
@@ -246,6 +253,12 @@ public:
         return ctr_->leaf_node_ext_data();
     }
 
+    template <typename LeafPath, typename ExtData>
+    void set_ext_data(ExtData&& data) const
+    {
+        constexpr int32_t substream_idx = SubstreamIdxByLeafPath<LeafPath>;
+        std::get<substream_idx>(ctr_->leaf_node_ext_data()) = std::forward<ExtData>(data);
+    }
 
 
     static std::unique_ptr<io::IOVector> create_iovector()

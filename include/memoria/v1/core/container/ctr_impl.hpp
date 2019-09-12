@@ -24,21 +24,19 @@
 
 namespace memoria {
 namespace v1 {
-    
-    
-    
+
 
 template <typename CtrName, typename Allocator, typename Profile>
 class SharedCtr: public CtrTF<Profile, CtrName, CtrName>::Type {
     using Base = typename CtrTF<Profile, CtrName, CtrName>::Type;
 public:
-    SharedCtr(const CtrSharedPtr<Allocator>& allocator, int32_t command, const ProfileCtrID<Profile>& name):
-        Base(allocator, command, name)
+    SharedCtr(const CtrSharedPtr<Allocator>& allocator, const ProfileCtrID<Profile>& name, CtrName type_decl):
+        Base(allocator, name, type_decl)
     {}
-    
-    SharedCtr(const CtrSharedPtr<Allocator>& allocator, const ProfileBlockID<Profile>& root_id, const CtrInitData& ctr_init_data):
-        Base(allocator, root_id, ctr_init_data)
-    {}
+
+    SharedCtr(const CtrSharedPtr<Allocator>& allocator, const typename Allocator::BlockG& root_block):
+        Base(allocator, root_block)
+    {}    
 };
 
 
