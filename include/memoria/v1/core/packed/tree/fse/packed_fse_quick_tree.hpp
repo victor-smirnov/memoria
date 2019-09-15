@@ -62,7 +62,6 @@ public:
     static constexpr uint32_t VERSION = 1;
     static constexpr int32_t Blocks   = Types::Blocks;
 
-    static constexpr bool FQTree = true;
 
     using Base::METADATA;
     using Base::index_size;

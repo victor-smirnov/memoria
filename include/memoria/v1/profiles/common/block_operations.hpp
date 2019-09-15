@@ -246,6 +246,27 @@ public:
 };
 
 
+template <>
+class BlockValueProviderT<U8String>: public BlockDataValueProvider {
+
+    const U8String& value_;
+
+public:
+    BlockValueProviderT(const U8String& value): value_(value) {}
+
+    virtual int32_t size() const {return 1;}
+    virtual bool isArray() const {return false;}
+    virtual U8String value(int32_t idx) const
+    {
+        if (idx == 0)
+        {
+            return value_;
+        }
+        else {
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid index access in BlockValueProviderT: idx = {}, size = 1", idx));
+        }
+    }
+};
 
 
 struct BlockValueProviderFactory {

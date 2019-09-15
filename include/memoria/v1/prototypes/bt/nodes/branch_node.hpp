@@ -36,11 +36,15 @@
 
 #include <memoria/v1/prototypes/bt/nodes/branch_node_so.hpp>
 
+#include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
+
+#include <memoria/v1/core/packed/misc/packed_tuple.hpp>
+
 #include <type_traits>
 
 namespace memoria {
 namespace v1 {
-namespace bt        {
+namespace bt {
 
 template <
         template <typename> class,
@@ -63,7 +67,16 @@ public:
     static_assert(IsPackedStructV<Header>, "TreeNodeBase: Header must satisfy IsPackedStructV<>");
     static_assert(IsPackedStructV<BlockID>, "TreeNodeBase: ID must satisfy IsPackedStructV<>");
 
-    static const int32_t StreamsStart = 1;
+    enum {
+            METADATA = 0,
+            BRANCH_TYPES = 1,
+            LEAF_TYPES = 2,
+            CTR_PROPERTIES = 3,
+            CTR_REFERENCES = 4,
+            MAX_METADATA_NUM
+    };
+
+    static const int32_t StreamsStart = MAX_METADATA_NUM;
 
 private:
     Header header_;
@@ -86,9 +99,9 @@ private:
 
 public:
 
-    enum {METADATA = 0};
 
-    using Me = TreeNodeBase<Metadata, Header>;
+
+    using MyType = TreeNodeBase<Metadata, Header>;
 
     TreeNodeBase() = default;
 
@@ -105,13 +118,16 @@ public:
     const BlockID& uuid() const {return header_.uuid();}
 
 
-
     uint64_t ctr_type_hash() const {
         return header_.ctr_type_hash();
     }
 
     uint64_t block_type_hash() const {
         return header_.block_type_hash();
+    }
+
+    int32_t used_memory_block_size() const {
+        return header_.memory_block_size() - allocator()->free_space();
     }
 
     void init() {
@@ -180,9 +196,22 @@ public:
         return &allocator_;
     }
 
+    psize_t root_metadata_size() const
+    {
+        const PackedAllocator* alloc = allocator();
+
+        psize_t size{};
+
+        for (int32_t c = 0; c < StreamsStart; c++) {
+            size += alloc->element_size(c);
+        }
+
+        return size;
+    }
+
     bool has_root_metadata() const
     {
-        return allocator()->element_size(METADATA) >= (int)sizeof(Metadata);
+        return root_metadata_size() > 0;
     }
 
     const Metadata& root_metadata() const
@@ -206,19 +235,30 @@ public:
         root_metadata() = meta;
     }
 
-    void clearMetadata() {
-        allocator_.free(METADATA);
+    void clear_metadata()
+    {
+        for (int32_t c = 0; c < StreamsStart; c++)
+        {
+            allocator_.free(c);
+        }
     }
 
-    bool canConvertToRoot() const
+    bool can_convert_to_root(psize_t metadata_size) const
     {
         if (!has_root_metadata())
         {
-            const int32_t metadata_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
-            return allocator_.free_space() >= metadata_size;
+            return allocator_.free_space() >= (int32_t)metadata_size;
         }
         else {
             return true;
+        }
+    }
+
+    void copy_metadata_from(const TreeNodeBase* other)
+    {
+        for (int32_t c = 0; c < StreamsStart; c++)
+        {
+            OOM_THROW_IF_FAILED(allocator_.importBlock(c, other->allocator(), c), MMA1_SRC);
         }
     }
 
@@ -229,7 +269,7 @@ public:
         int32_t client_area = allocator_.client_area();
         int32_t used        = allocator_.allocated();
 
-        return used < client_area / 2;
+        return used < (client_area / 2);
     }
 
 public:
@@ -237,30 +277,62 @@ public:
     void initAllocator(int32_t entries)
     {
         int32_t block_size = this->header().memory_block_size();
-        MEMORIA_V1_ASSERT(block_size, >, (int)sizeof(Me) + PackedAllocator::my_size());
+        MEMORIA_V1_ASSERT(block_size, >, (int)sizeof(MyType) + PackedAllocator::my_size());
 
         allocator_.allocatable().setTopLevelAllocator();
-        OOM_THROW_IF_FAILED(allocator_.init(block_size - sizeof(Me) + PackedAllocator::my_size(), entries), MMA1_SRC);
+        OOM_THROW_IF_FAILED(allocator_.init(block_size - sizeof(MyType) + PackedAllocator::my_size(), entries), MMA1_SRC);
     }
 
-    void transferDataTo(Me* other) const
+    void resizeBlock(int32_t new_size)
     {
-        for (int32_t c = 0; c < StreamsStart; c++)
+        int32_t space_delta = new_size - header_.memory_block_size();
+        int32_t free_space  = allocator_.free_space();
+
+        if (space_delta < 0 && free_space < -space_delta)
         {
-            other->allocator_.importBlock(c, &allocator_, c);
+            MMA1_THROW(RuntimeException())
+                    << fmt::format_ex(
+                           u"Resizing block {} has insufficient space for downsizing: available {}, requied {}",
+                           uuid(),
+                           free_space,
+                           -space_delta
+                       );
         }
-    }
 
-    void resizePage(int32_t new_size)
-    {
+
         header_.memory_block_size() = new_size;
-        allocator_.resizeBlock(new_size - sizeof(Me) + PackedAllocator::my_size());
+        allocator_.resizeBlock(new_size - sizeof(MyType) + PackedAllocator::my_size());
     }
 
 public:
 
+    template <typename List>
+    struct GenerateDataEventsFn {
+        template <int32_t Idx>
+        static bool process(IBlockDataEventHandler* handler, const PackedAllocator* allocator)
+        {
+            using T = Select<Idx, List>;
+            if (!allocator->is_empty(Idx))
+            {
+                const T* value = get<T>(allocator, Idx);
+
+                using SparseObject = typename T::SparseObject;
+
+                SparseObject so(const_cast<T*>(value));
+
+                so.generateDataEvents(handler);
+            }
+
+            return true;
+        }
+    };
+
+
+    template <typename MetadataTypesList>
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
+        static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
+
         header_.generateDataEvents(handler);
 
         handler->value("ROOT",  &root_);
@@ -274,17 +346,32 @@ public:
 
         allocator()->generateDataEvents(handler);
 
-        if (has_root_metadata())
-        {
-            const Metadata& meta = this->root_metadata();
-            meta.generateDataEvents(handler);
-        }
+        ForEach<0, StreamsStart>::process(GenerateDataEventsFn<MetadataTypesList>(), handler, allocator());
     }
 
 
-    template <typename SerializationData>
+    template <typename List>
+    struct SerializeFn {
+        template <int32_t Idx, typename SerializationData>
+        static bool process(SerializationData& buf, const PackedAllocator* allocator)
+        {
+            using T = Select<Idx, List>;
+            if (!allocator->is_empty(Idx))
+            {
+                const T* value = get<T>(allocator, Idx);
+                value->serialize(buf);
+            }
+
+            return true;
+        }
+    };
+
+
+    template <typename MetadataTypesList, typename SerializationData>
     void serialize(SerializationData& buf) const
     {
+        static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
+
         header_.template serialize<FieldFactory>(buf);
 
         FieldFactory<int32_t>::serialize(buf, root_);
@@ -298,17 +385,29 @@ public:
 
         allocator()->serialize(buf);
 
-        if (has_root_metadata())
-        {
-            const Metadata& meta = this->root_metadata();
-            FieldFactory<Metadata>::serialize(buf, meta);
-        }
+        ForEach<0, StreamsStart>::process(SerializeFn<MetadataTypesList>(), buf, allocator());
     }
 
+    template <typename List>
+    struct DeserializeFn {
+        template <int32_t Idx, typename DeserializationData>
+        static bool process(DeserializationData& buf, PackedAllocator* allocator)
+        {
+            using T = Select<Idx, List>;
+            if (!allocator->is_empty(Idx))
+            {
+                T* value = get<T>(allocator, Idx);
+                value->deserialize(buf);
+            }
 
-    template <typename DeserializationData>
+            return true;
+        }
+    };
+
+    template <typename MetadataTypesList, typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
+        static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
         header_.template deserialize<FieldFactory>(buf);
 
         FieldFactory<int32_t>::deserialize(buf, root_);
@@ -322,29 +421,32 @@ public:
 
         allocator()->deserialize(buf);
 
-        if (has_root_metadata())
-        {
-            Metadata& meta = this->root_metadata();
-            FieldFactory<Metadata>::deserialize(buf, meta);
-        }
+        ForEach<0, StreamsStart>::process(DeserializeFn<MetadataTypesList>(), buf, allocator());
     }
 
-    void copyFrom(const Me* block)
+
+
+    template <typename List>
+    struct InitMetadataFn {
+        template <int32_t Idx>
+        static bool process(PackedAllocator* allocator)
+        {
+            using T = Select<Idx, List>;
+            if (allocator->is_empty(Idx))
+            {
+                OOM_THROW_IF_FAILED(allocator->allocateEmpty<T>(Idx), MMA1_SRC);
+            }
+
+            return true;
+        }
+    };
+
+    template <typename MetadataTypesList>
+    void init_root_metadata()
     {
-        header_.copyFrom(block);
+        static_assert(ListSize<MetadataTypesList> == StreamsStart, "");
 
-        this->set_root(block->is_root());
-        this->set_leaf(block->is_leaf());
-
-        this->level()       = block->level();
-
-        this->next_leaf_id() = block->next_leaf_id();
-
-        this->parent_id()   = block->parent_id();
-        this->parent_idx()  = block->parent_idx();
-
-        //FIXME: copy allocator?
-        //FIXME: copy root metadata ?
+        ForEach<0, StreamsStart>::process(InitMetadataFn<MetadataTypesList>(), allocator());
     }
 };
 
@@ -361,7 +463,7 @@ class BranchNode: public Types::NodeBase
 {
     static const int32_t  BranchingFactor = PackedTreeBranchingFactor;
 
-    using MyType = BranchNode<Types>;
+    using MyType = BranchNode;
 
 public:
     static const uint32_t VERSION = 1;
@@ -386,6 +488,7 @@ public:
     friend class NodePageAdaptor;
 
     using BranchSubstreamsStructList    = typename Types::BranchStreamsStructList;
+    using LeafSubstreamsStructList      = typename Types::LeafStreamsStructList;
 
     using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
             FlattenBranchTree<BranchSubstreamsStructList>, Base::StreamsStart
@@ -393,6 +496,25 @@ public:
 
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList>;
 
+    template <typename PkdT>
+    using PkdExtDataT = typename PkdT::ExtData;
+
+    using BranchSubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<BranchSubstreamsStructList>>;
+    using BranchExtData = MakeTuple<BranchSubstreamExtensionsList>;
+
+    using LeafSubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<LeafSubstreamsStructList>>;
+    using LeafExtData = MakeTuple<LeafSubstreamExtensionsList>;
+
+    using CtrPropertiesMap = PackedMap<Varchar, Varchar>;
+    using CtrReferencesMap = PackedMap<Varchar, ProfileCtrID<typename Types::Profile>>;
+
+    using RootMetadataList = MergeLists<
+        typename Types::Metadata,
+        PackedTuple<BranchExtData>,
+        PackedTuple<LeafExtData>,
+        CtrPropertiesMap,
+        CtrReferencesMap
+    >;
 
     static const int32_t Streams            = ListSize<BranchSubstreamsStructList>;
 
@@ -625,7 +747,7 @@ public:
     template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
-        Base::serialize(buf);
+        Base::template serialize<RootMetadataList>(buf);
 
         Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
 
@@ -645,7 +767,7 @@ public:
     template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
-        Base::deserialize(buf);
+        Base::template deserialize<RootMetadataList>(buf);
 
         Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
 
@@ -743,7 +865,7 @@ public:
         virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const
         {
             MyType* tgt = T2T<MyType*>(buffer);
-            tgt->resizePage(new_size);
+            tgt->resizeBlock(new_size);
         }
 
         virtual uint64_t block_type_hash() const {
@@ -765,6 +887,7 @@ struct TypeHash<bt::TreeNodeBase<Metadata, Base>> {
     static constexpr uint64_t Value = HashHelper<
            // TypeHashV<Base>,
             TargetType::VERSION,
+            TargetType::StreamsStart,
             TypeHashV<int32_t>,
             TypeHashV<int32_t>,
             TypeHashV<int32_t>,

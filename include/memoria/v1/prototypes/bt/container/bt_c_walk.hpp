@@ -115,7 +115,6 @@ public:
             auto new_meta = self.getCtrRootMetadata(new_root);
 
             new_meta.model_name() = new_name;
-            new_meta.txn_id()     = self.store().currentTxnId();
 
             self.setCtrRootMetadata(new_root, new_meta);
 

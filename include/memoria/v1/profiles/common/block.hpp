@@ -100,7 +100,7 @@ private:
 
     //Txn rollback intrusive list fields. Not used by containers.
 public:
-    typedef TypeList<
+    using FieldsList = TypeList<
                 ConstValue<uint32_t, VERSION>,
                 decltype(flags_),
                 decltype(id_),
@@ -112,7 +112,7 @@ public:
                 decltype(memory_block_size_),
                 decltype(next_block_pos_),
                 decltype(target_block_pos_)
-    >                                                                           FieldsList;
+    >;
 
     using BlockID  = PageIdType;
 

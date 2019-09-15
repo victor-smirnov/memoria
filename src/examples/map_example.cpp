@@ -93,7 +93,7 @@ int main()
         std::cout << "Inserted entries in " << (t1_i - t0_i) << " ms" << std::endl;
         std::cout << "Size = " << ctr0->size() << std::endl;
 
-        //ctr0->raw_iterator()->dumpPath();
+        ctr0->raw_iterator()->dumpPath();
 
         snp->commit();
         snp->set_as_master();

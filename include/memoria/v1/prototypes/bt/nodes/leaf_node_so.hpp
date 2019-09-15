@@ -113,8 +113,22 @@ public:
     template <typename PkdT>
     using PkdExtDataT = typename PkdT::ExtData;
 
-    using SubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<LeafSubstreamsStructList>>;
-    using LeafExtData = MakeTuple<SubstreamExtensionsList>;
+    using LeafSubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<LeafSubstreamsStructList>>;
+    using LeafExtData = MakeTuple<LeafSubstreamExtensionsList>;
+
+    using BranchSubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<BranchSubstreamsStructList>>;
+    using BranchExtData = MakeTuple<BranchSubstreamExtensionsList>;
+
+    using CtrPropertiesMap = PackedMap<Varchar, Varchar>;
+    using CtrReferencesMap = PackedMap<Varchar, ProfileCtrID<typename NodeType_::TypesT::Profile>>;
+
+    using RootMetadataList = MergeLists<
+        typename NodeType_::TypesT::Metadata,
+        PackedTuple<BranchExtData>,
+        PackedTuple<LeafExtData>,
+        CtrPropertiesMap,
+        CtrReferencesMap
+    >;
 
     using StreamDispatcherStructList = typename PackedStatefulDispatchersListBuilder<
             Linearize<LeafSubstreamsStructList>,
@@ -857,11 +871,14 @@ public:
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
-        node_->generateDataEvents(handler);
+        node_->template generateDataEvents<RootMetadataList>(handler);
 
         Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
     }
 
+    void init_root_metadata() {
+        node_->template init_root_metadata<RootMetadataList>();
+    }
 
 
 
@@ -890,7 +907,6 @@ public:
     void dumpBlockSizes() const {
         Dispatcher(state()).dispatchNotEmpty(allocator(), DumpBlockSizesFn());
     }
-
 
 
     /*********************************************************/

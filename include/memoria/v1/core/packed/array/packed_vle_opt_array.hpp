@@ -105,10 +105,11 @@ public:
         return this->template get<Array>(ARRAY);
     }
 
-    // FIXME: Why it doesn't take PackedAllocator's space into account?
+
     static int32_t empty_size()
     {
-        return Bitmap::empty_size() + Array::empty_size();
+        int32_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
+        return parent_size + Bitmap::empty_size() + Array::empty_size();
     }
 
 

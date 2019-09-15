@@ -73,6 +73,7 @@ public:
     PackedAllocatable& allocatable() {return allocatable_;}
     const PackedAllocatable& allocatable() const {return allocatable_;}
 
+
     bool is_allocatable(int32_t idx) const
     {
         const Bitmap* bmp = bitmap();
@@ -591,6 +592,22 @@ public:
         return resize(block_size_ - free_space);
     }
 
+    MMA1_NODISCARD int32_t compute_free_space_up() const
+    {
+        int32_t space{};
+
+        const PackedAllocator* alloc = this;
+
+        while (alloc)
+        {
+            space += alloc->free_space();
+
+            alloc = alloc->allocatable_.allocator_or_null();
+        }
+
+        return space;
+    }
+
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
@@ -735,6 +752,42 @@ private:
     }
 
 };
+
+template <typename T>
+T* get(PackedAllocator* alloc, psize_t idx) {
+    return alloc->template get<T>(idx);
+}
+
+template <typename T>
+const T* get(const PackedAllocator* alloc, psize_t idx) {
+    return alloc->template get<T>(idx);
+}
+
+template <typename T>
+T* get(PackedAllocator& alloc, psize_t idx) {
+    return alloc.template get<T>(idx);
+}
+
+template <typename T>
+const T* get(const PackedAllocator& alloc, psize_t idx) {
+    return alloc.template get<T>(idx);
+}
+
+
+template <typename T>
+T* allocate(PackedAllocator* alloc, psize_t idx) {
+    return alloc->template allocate<T>(idx);
+}
+
+
+template <typename T>
+T* allocate(PackedAllocator& alloc, psize_t idx) {
+    return alloc.template allocate<T>(idx);
+}
+
+
+
+
 
 
 template <typename... Types> struct SerializeTool;

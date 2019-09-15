@@ -65,7 +65,6 @@ public:
     static constexpr psize_t OffsetsBlk         = 0;
     static constexpr psize_t DataBlk            = 1;
 
-    static constexpr bool FQTree = false;
 
     using Types     = Types_;
     using MyType    = PackedVLenElementArray;
@@ -126,10 +125,10 @@ public:
     static psize_t empty_size()
     {
         psize_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
-        psize_t offsets_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(psize_t) * 1);
+        psize_t offsets_length  = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(psize_t) * 1);
 
         return PackedAllocator::block_size(
-            metadata_length + offsets_length, Blocks * SegmentsPerBlock + 1
+            metadata_length + offsets_length * Blocks, Blocks * SegmentsPerBlock + 1
         );
     }
 

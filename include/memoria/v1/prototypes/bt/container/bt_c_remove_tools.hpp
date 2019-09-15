@@ -55,23 +55,25 @@ public:
 
         if (self.store().isActive())
         {
-            auto meta = self.getRootMetadata();
+            // FIXME: drop linked containers here
 
-            for (int32_t c = 0; c < meta.ROOTS; c++)
-            {
-                auto root = meta.roots(CtrID(0, c));
-                if (!root.is_null())
-                {
-                    auto root_block     = self.store().getBlock(root);
-                    auto meta_rep       = ProfileMetadata<typename Types::Profile>::local();
+//            auto meta = self.getRootMetadata();
 
-                    int32_t ctr_hash    = root_block->ctr_type_hash();
+//            for (int32_t c = 0; c < meta.ROOTS; c++)
+//            {
+//                auto root = meta.roots(CtrID(0, c));
+//                if (!root.is_null())
+//                {
+//                    auto root_block     = self.store().getBlock(root);
+//                    auto meta_rep       = ProfileMetadata<typename Types::Profile>::local();
 
-                    auto ctr_interface  = meta_rep->get_container_operations(ctr_hash);
+//                    int32_t ctr_hash    = root_block->ctr_type_hash();
 
-                    ctr_interface->drop(root, self.store().self_ptr());
-                }
-            }
+//                    auto ctr_interface  = meta_rep->get_container_operations(ctr_hash);
+
+//                    ctr_interface->drop(root, self.store().self_ptr());
+//                }
+//            }
 
             NodeBaseG root = self.getRoot();
             self.removeRootNode(root);
@@ -295,7 +297,7 @@ void M_TYPE::removeRedundantRootP(NodeBaseG& node)
                 Metadata root_metadata = self.getRootMetadata();
 
                 // FIXME redesigne it to use tryConvertToRoot(node) instead
-                if (self.canConvertToRoot(node))
+                if (self.canConvertToRoot(node, parent->root_metadata_size()))
                 {
                     self.node2Root(node, root_metadata);
 

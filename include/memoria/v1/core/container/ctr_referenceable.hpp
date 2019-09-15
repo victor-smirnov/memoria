@@ -25,6 +25,8 @@
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
+#include <memoria/v1/core/tools/optional.hpp>
+
 #include <string>
 
 namespace memoria {
@@ -41,6 +43,12 @@ struct CtrReferenceable {
 
     virtual void set_new_block_size(int32_t block_size)     = 0;
     virtual int32_t get_new_block_size()                    = 0;
+
+    virtual Optional<U8String> get_ctr_property(U8StringView key) const  = 0;
+    virtual void set_ctr_property(U8StringView key, U8StringView value)  = 0;
+    virtual void remove_ctr_property(U8StringView key) = 0;
+    virtual size_t ctr_properties() const = 0;
+    virtual void for_each_ctr_property(std::function<void (U8StringView, U8StringView)> consumer) const = 0;
     
     virtual const ProfileCtrID<Profile>& name() const = 0;
 

@@ -45,7 +45,6 @@ public:
 
     static constexpr uint32_t VERSION = 1;
     static constexpr int32_t Blocks = Types::Blocks;
-    static constexpr bool FQTree = false;
 
     using Tree      = PkdVBMTree<Types>;
     using Bitmap    = PkdFSSeq<typename PkdFSSeqTF<1>::Type>;
@@ -95,13 +94,15 @@ public:
     // FIXME: Why it doesn't take PackedAllocator's space into account?
     static int32_t empty_size()
     {
-        return Bitmap::empty_size() + Tree::empty_size();
+        int32_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
+        return parent_size + Bitmap::empty_size() + Tree::empty_size();
     }
 
 
     static int32_t block_size(int32_t capacity)
     {
-        return Bitmap::packed_block_size(capacity) + Tree::empty_size();
+        int32_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
+        return parent_size + Bitmap::packed_block_size(capacity) + Tree::empty_size();
     }
 
     int32_t block_size(const MyType* other) const

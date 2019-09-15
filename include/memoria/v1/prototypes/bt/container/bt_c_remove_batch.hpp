@@ -235,11 +235,10 @@ void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Position& sizes)
         node = self.getNodeParent(node);
     }
 
+    NodeBaseG new_root = self.createRootNode(0, true, -1);
+
     self.removeNodeRecursively(node, sizes);
 
-    Metadata meta = self.getRootMetadata();
-
-    NodeBaseG new_root = self.createRootNode(0, true, meta);
     self.set_root(new_root->id());
 
     start = stop = new_root;

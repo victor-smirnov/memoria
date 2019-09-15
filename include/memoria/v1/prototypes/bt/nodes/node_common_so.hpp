@@ -17,9 +17,10 @@
 
 #include <memoria/v1/core/types.hpp>
 
-
-
 #include <memoria/v1/core/packed/tools/packed_stateful_dispatcher.hpp>
+#include <memoria/v1/core/packed/misc/packed_tuple.hpp>
+#include <memoria/v1/core/packed/misc/packed_map.hpp>
+
 
 namespace memoria {
 namespace v1 {

@@ -30,8 +30,6 @@
 namespace memoria {
 namespace v1 {
 
-
-
 class AnyDatum {
     AnyDatumStorage* storage_;
 

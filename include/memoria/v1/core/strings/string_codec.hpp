@@ -147,7 +147,7 @@ public:
         return ValuePtr(buffer + idx, length(buffer, idx, -1ull));
     }
 
-    size_t length(const T* buffer, size_t idx, size_t limit) const
+    size_t length(const T* buffer, size_t idx, size_t limit = -1ull) const
     {
         uint64_t len;
         size_t pos = idx;

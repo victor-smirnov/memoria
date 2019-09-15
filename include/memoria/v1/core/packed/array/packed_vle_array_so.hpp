@@ -277,6 +277,8 @@ public:
 
             MemMoveBuffer(offsets + room_end, offsets + room_start, offsets_size - room_length);
             MemMoveBuffer(data + data_end, data + data_start, meta.data_size(c) - data_end);
+
+            meta.data_size(c) -= data_lengths[c];
         }
 
         psize_t new_offsets_length = (meta.offsets_size() - room_length) * sizeof(DataSizeType);
@@ -286,7 +288,7 @@ public:
                 return OpStatus::FAIL;
             }
 
-            psize_t column_data_length = meta.data_size(c) - data_lengths[c];
+            psize_t column_data_length = meta.data_size(c);
 
             if(isFail(data_->resizeBlock(PkdStruct::DATA + c * PkdStruct::SegmentsPerBlock + 1, column_data_length))) {
                 return OpStatus::FAIL;
@@ -504,6 +506,90 @@ public:
         }
     }
 
+    psize_t estimate_insert_upsize(const ViewType& view) const
+    {
+        static_assert(Columns == 1, "");
+
+        const auto& meta = data_->metadata();
+
+        psize_t column_data_size = meta.data_size(0);
+        psize_t view_length = Accessor::length(view);
+
+        psize_t offsets_size = meta.offsets_size();
+
+        psize_t offsets_block_size_aligned0 = data_->element_size(PkdStruct::DATA + 1);
+
+        psize_t offsets_block_size_aligned1 = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+            (offsets_size + 1) * sizeof(psize_t)
+        );
+
+        psize_t column_data_size_aligned0 = data_->element_size(PkdStruct::DATA);
+
+        psize_t column_data_size_aligned1 = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+            view_length + column_data_size
+        );
+
+        return column_data_size_aligned1 - column_data_size_aligned0
+                + offsets_block_size_aligned1 - offsets_block_size_aligned0;
+    }
+
+    psize_t estimate_replace_upsize(psize_t idx, const ViewType& view) const
+    {
+        static_assert(Columns == 1, "");
+
+        psize_t existing_value_length = data_->length(0, idx);
+        psize_t new_value_length      = Accessor::length(view);
+
+        if (existing_value_length < new_value_length)
+        {
+            const auto& meta = data_->metadata();
+
+            psize_t column_data_size = meta.data_size(0);
+            psize_t column_data_size_aligned0 = data_->element_size(PkdStruct::DATA);
+
+            psize_t size_delta = new_value_length - existing_value_length;
+
+            psize_t column_data_size_aligned1 = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+                size_delta + column_data_size
+            );
+
+            return column_data_size_aligned1 - column_data_size_aligned0;
+        }
+
+        return 0;
+    }
+
+    OpStatus replace(psize_t column, psize_t idx, const ViewType& view)
+    {
+        psize_t length = Accessor::length(view);
+
+        if (isFail(resize(column, idx, length))) {
+            return OpStatus::FAIL;
+        }
+
+        psize_t offset = data_->offsets(column)[idx];
+        auto* data = data_->data(column) + offset;
+
+        MemCpyBuffer(Accessor::data(view), data, length);
+
+        return OpStatus::OK;
+    }
+
+    OpStatus insert(psize_t idx, const ViewType& view)
+    {
+        static_assert(Columns == 1, "");
+
+        core::StaticVector<ViewType, 1> vv;
+        vv[0] = view;
+
+        return insert(idx, vv);
+    }
+
+    OpStatus remove(psize_t idx)
+    {
+        return removeSpace(idx, idx + 1);
+    }
+
 private:
 
     void compute_data_lengths(psize_t start, psize_t end, psize_t* lengths) const
@@ -537,7 +623,6 @@ private:
         auto& meta = data_->metadata();
 
         psize_t size = meta.size();
-
 
         MEMORIA_V1_ASSERT(idx, <=, size);
         MEMORIA_V1_ASSERT(idx, >=, 0);
@@ -599,6 +684,101 @@ private:
         return OpStatus::OK;
     }
 
+
+    OpStatus resize(psize_t column, psize_t idx, psize_t new_value_size)
+    {
+        auto& meta = data_->metadata();
+
+        psize_t size = meta.size();
+
+        MEMORIA_V1_ASSERT(idx, <=, size);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+
+        psize_t offsets_length_aligned = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+            meta.offsets_size() * sizeof(DataSizeType)
+        );
+
+        psize_t data_length_aligned{};
+
+        psize_t current_value_size = data_->length(column, idx);
+
+        if (current_value_size < new_value_size)
+        {
+            psize_t size_delta = new_value_size - current_value_size;
+
+            psize_t data_lengths[Columns] = {};
+            data_lengths[column] = size_delta;
+
+            for (psize_t c = 0; c < Columns; c++)
+            {
+                data_length_aligned += PackedAllocatable::roundUpBytesToAlignmentBlocks(
+                    data_lengths[c] + meta.data_size(c)
+                );
+            }
+
+            if(isFail(data_->resize(PkdStruct::empty_size() + data_length_aligned + offsets_length_aligned * Columns))) {
+                return OpStatus::FAIL;
+            }
+
+            psize_t column_data_length = size_delta + meta.data_size(column);
+
+            if(isFail(data_->resizeBlock(PkdStruct::DATA + column * PkdStruct::SegmentsPerBlock + 1, column_data_length))) {
+                return OpStatus::FAIL;
+            }
+
+            auto offsets = data_->offsets(column);
+            auto data    = data_->data(column);
+
+            psize_t data_start  = offsets[idx + 1];
+            psize_t data_end    = data_start + size_delta;
+
+            MemMoveBuffer(data + data_start, data + data_end, meta.data_size(column) - data_start);
+
+            psize_t offsets_size = meta.offsets_size();
+            shift_offsets_right(column, idx + 1, offsets_size, size_delta);
+
+            meta.data_size(column) += size_delta;
+        }
+        else if (current_value_size > new_value_size)
+        {
+            psize_t size_delta = current_value_size - new_value_size;
+
+            auto offsets = data_->offsets(column);
+            auto data    = data_->data(column);
+
+            psize_t data_start  = offsets[idx + 1];
+            psize_t data_end    = data_start - size_delta;
+
+            MemMoveBuffer(data + data_start, data + data_end, meta.data_size(column) - data_start);
+
+            psize_t offsets_size = meta.offsets_size();
+            shift_offsets_left(column, idx + 1, offsets_size, size_delta);
+
+            psize_t data_lengths[Columns] = {};
+            data_lengths[column] = size_delta;
+
+            for (psize_t c = 0; c < Columns; c++)
+            {
+                data_length_aligned += PackedAllocatable::roundUpBytesToAlignmentBlocks(
+                    meta.data_size(c) - data_lengths[c]
+                );
+            }
+
+            if(isFail(data_->resize(PkdStruct::empty_size() + data_length_aligned + offsets_length_aligned * Columns))) {
+                return OpStatus::FAIL;
+            }
+
+            psize_t column_data_length = meta.data_size(column) - size_delta;
+
+            if(isFail(data_->resizeBlock(PkdStruct::DATA + column * PkdStruct::SegmentsPerBlock + 1, column_data_length))) {
+                return OpStatus::FAIL;
+            }
+
+            meta.data_size(column) -= size_delta;
+        }
+
+        return OpStatus::OK;
+    }
 };
 
 

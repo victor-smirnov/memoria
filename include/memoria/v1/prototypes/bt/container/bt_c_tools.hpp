@@ -62,6 +62,7 @@ public:
         return self.store().getBlockForUpdate(self.root());
     }
 
+
     MEMORIA_V1_DECLARE_NODE_FN(DumpBlockSizesFn, dumpBlockSizes);
     void dumpBlockSizes(const NodeBaseG& node) const
     {
@@ -106,10 +107,6 @@ public:
 
             self.node_dispatcher().dispatch(block, GenerateDataEventsFn(), &dumper);
 
-//            ProfileMetadata<Profile>::local()
-//                    ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
-//                    ->generateDataEvents(block.block()->as_header(), DataEventsParams(), &dumper);
-
             out<<std::endl;
             out<<std::endl;
         }
@@ -141,37 +138,6 @@ protected:
         return node1->id() == node2->id();
     }
 
-    void root2Node(NodeBaseG& node) const
-    {
-        self().updateBlockG(node);
-
-        node->set_root(false);
-
-        node->clearMetadata();
-    }
-
-    void node2Root(NodeBaseG& node, const Metadata& meta) const
-    {
-        self().updateBlockG(node);
-
-        node->set_root(true);
-
-        node->parent_id().clear();
-        node->parent_idx() = 0;
-
-        node->setMetadata(meta);
-    }
-
-    void copyRootMetadata(NodeBaseG& src, NodeBaseG& tgt) const
-    {
-        self().updateBlockG(tgt);
-        tgt->setMetadata(src->root_metadata());
-    }
-
-    bool canConvertToRoot(const NodeBaseG& node) const
-    {
-        return node->canConvertToRoot();
-    }
 
 
 

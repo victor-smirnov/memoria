@@ -95,13 +95,15 @@ public:
 
     static int32_t empty_size()
     {
-        return Bitmap::empty_size() + Tree::empty_size();
+        int32_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
+        return parent_size + Bitmap::empty_size() + Tree::empty_size();
     }
 
 
     static int32_t block_size(int32_t capacity)
     {
-        return Bitmap::packed_block_size(capacity) + Tree::block_size(capacity);
+        int32_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
+        return parent_size + Bitmap::packed_block_size(capacity) + Tree::block_size(capacity);
     }
 
     int32_t block_size(const MyType* other) const

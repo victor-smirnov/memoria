@@ -27,6 +27,10 @@
 #include <memoria/v1/core/types/mp11.hpp>
 #include <memoria/v1/core/types/list/tuple.hpp>
 
+#include <memoria/v1/core/packed/misc/packed_tuple.hpp>
+#include <memoria/v1/core/packed/misc/packed_map.hpp>
+#include <memoria/v1/core/packed/misc/packed_map_so.hpp>
+
 #include <iostream>
 
 namespace memoria {
@@ -71,12 +75,23 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using LeafNodeSO    = typename LeafNode::template SparseObject<MyType>;
     using BranchNodeSO  = typename BranchNode::template SparseObject<MyType>;
 
-    using LeafNodeExtData   = MakeTuple<typename LeafNodeSO::SubstreamExtensionsList>;
-    using BranchNodeExtData = MakeTuple<typename BranchNodeSO::SubstreamExtensionsList>;
+    using LeafNodeExtData   = MakeTuple<typename LeafNodeSO::LeafSubstreamExtensionsList>;
+    using BranchNodeExtData = MakeTuple<typename BranchNodeSO::BranchSubstreamExtensionsList>;
+
+    using LeafNodeExtDataPkdTuple   = PackedTuple<LeafNodeExtData>;
+    using BranchNodeExtDataPkdTuple = PackedTuple<BranchNodeExtData>;
+    using CtrPropertiesMap          = PackedMap<Varchar, Varchar>;
+    using CtrReferencesMap          = PackedMap<Varchar, ProfileCtrID<typename Types::Profile>>;
 
     using Base::CONTAINER_HASH;
 
     static const int32_t Streams = Types::Streams;
+
+    static const int32_t METADATA_IDX        = 0;
+    static const int32_t BRANCH_EXT_DATA_IDX = 1;
+    static const int32_t LEAF_EXT_DATA_IDX   = 2;
+    static const int32_t CTR_PROPERTIES_IDX  = 3;
+    static const int32_t CTR_REFERENCES_IDX  = 4;
 
     ObjectPools pools_;
 
@@ -92,8 +107,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     ObjectPools& pools() {return pools_;}
 
-    BlockG createRoot() const {
-        return self().createNode(0, true, true);
+    BlockG createRootLeaf() const {
+        return self().createRootNode(0, true, -1);
     }
 
     const NodeDispatcher& node_dispatcher() const {
@@ -116,8 +131,152 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return tree_dispatcher_;
     }
 
+
+
     const LeafNodeExtData& leaf_node_ext_data() const {return leaf_node_ext_data_;}
     const BranchNodeExtData& branch_node_ext_data() const {return branch_node_ext_data_;}
+
+    void upsize_node(NodeBaseG node, size_t upsize)
+    {
+        size_t free_space = node->allocator()->free_space();
+
+        if (free_space < upsize)
+        {
+            size_t memory_block_size = node->header().memory_block_size();
+
+            size_t total_free_space = free_space;
+
+            while (total_free_space < upsize)
+            {
+                size_t next_memory_block_size = memory_block_size * 2;
+                size_t additional_free_space  = next_memory_block_size - memory_block_size;
+
+                memory_block_size = next_memory_block_size;
+                total_free_space += additional_free_space;
+            }
+
+            node.resize(memory_block_size);
+        }
+    }
+
+    void downsize_node(NodeBaseG node)
+    {
+        size_t memory_block_size = node->header().memory_block_size();
+
+        size_t used_memory_block_size = node->used_memory_block_size();
+
+        size_t min_block_size = 8192;
+
+        if (memory_block_size > min_block_size)
+        {
+            size_t target_memory_block_size = min_block_size;
+            while (target_memory_block_size < used_memory_block_size)
+            {
+                target_memory_block_size *= 2;
+            }
+
+            node.resize(target_memory_block_size);
+        }
+    }
+
+    virtual Optional<U8String> get_ctr_property(U8StringView key) const
+    {
+        auto& self     = this->self();
+        NodeBaseG root = self.getRoot();
+
+        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+
+        PackedMapSO<CtrPropertiesMap> map_so(const_cast<CtrPropertiesMap*>(map));
+
+        return map_so.find(key);
+    }
+
+    virtual void set_ctr_property(U8StringView key, U8StringView value)
+    {
+        auto& self     = this->self();
+        NodeBaseG root = self.getRoot();
+        CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+
+        PackedMapSO<CtrPropertiesMap> map_so(map);
+
+        psize_t upsize = map_so.estimate_required_upsize(key, value);
+        if (upsize > map->compute_free_space_up())
+        {
+            self.upsize_node(root, upsize);
+
+            map_so.setup(get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX));
+        }
+
+        OOM_THROW_IF_FAILED(map_so.set(key, value), MMA1_SRC);
+    }
+
+    virtual size_t ctr_properties() const
+    {
+        auto& self     = this->self();
+        NodeBaseG root = self.getRoot();
+        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+
+        return map->size();
+    }
+
+    virtual void remove_ctr_property(U8StringView key)
+    {
+        auto& self     = this->self();
+        NodeBaseG root = self.getRoot();
+
+        CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+
+        PackedMapSO<CtrPropertiesMap> map_so(map);
+
+        OOM_THROW_IF_FAILED(map_so.remove(key), MMA1_SRC);
+
+        self.downsize_node(root);
+    }
+
+    virtual void for_each_ctr_property(std::function<void (U8StringView, U8StringView)> consumer) const
+    {
+        auto& self     = this->self();
+        NodeBaseG root = self.getRoot();
+
+        CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+
+        PackedMapSO<CtrPropertiesMap> map_so(map);
+
+        map_so.for_each(consumer);
+    }
+
+    void root2Node(NodeBaseG& node) const
+    {
+        self().updateBlockG(node);
+
+        node->set_root(false);
+
+        node->clear_metadata();
+    }
+
+    void node2Root(NodeBaseG& node, const Metadata& meta) const
+    {
+        self().updateBlockG(node);
+
+        node->set_root(true);
+
+        node->parent_id().clear();
+        node->parent_idx() = 0;
+
+        node->setMetadata(meta);
+    }
+
+    void copyRootMetadata(NodeBaseG& src, NodeBaseG& tgt) const
+    {
+        self().updateBlockG(tgt);
+        tgt->copy_metadata_from(src);
+    }
+
+    bool canConvertToRoot(const NodeBaseG& node, psize_t metadata_size) const
+    {
+        return node->can_convert_to_root(metadata_size);
+    }
+
 
 
     template <typename Node>
@@ -167,8 +326,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return node->root_metadata();
     }
 
-
-
     void setModelName(const CtrID& name)
     {
         NodeBaseG root = self().getRoot();
@@ -177,27 +334,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    virtual BlockID getRootID(const CtrID& name)
-    {
-        auto& self = this->self();
-
-        NodeBaseG root = self.store().getBlock(self.root());
-
-        return root->root_metadata().roots(name);
-    }
-
 
     MEMORIA_V1_FN_WRAPPER_RTN(SetRootIdFn, setRootIdFn, Metadata);
-
-    virtual void setRoot(const CtrID& name, const BlockID& root_id)
-    {
-        auto& self = this->self();
-
-        NodeBaseG root  = self.store().getBlockForUpdate(self.root());
-
-        Metadata& metadata = root->root_metadata();
-        metadata.roots(name) = root_id;
-    }
 
 
     static Metadata getCtrRootMetadata(NodeBaseG node)
@@ -262,25 +400,22 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         metadata.model_name()        = self().name();
         metadata.memory_block_size() = DEFAULT_BLOCK_SIZE;
-        metadata.branching_factor()  = 0;
-
-        auto txn_id = self().store().currentTxnId();
-        metadata.txn_id() = txn_id;
 
         return metadata;
     }
 
     int32_t getNewBlockSize() const
     {
-        return self().getRootMetadata().memory_block_size();
+        NodeBaseG root_block = self().store().getBlockForUpdate(self().root());
+        const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
+        return meta->memory_block_size();
     }
 
-    void setNewBlockSize(int32_t block_size) const
+    void setNewBlockSize(int32_t block_size)
     {
-        Metadata metadata       = self().getRootMetadata();
-        metadata.memory_block_size()    = block_size;
-
-        self().setRootMetadata(metadata);
+        NodeBaseG root_block = self().store().getBlockForUpdate(self().root());
+        Metadata* meta = get<Metadata>(root_block->allocator(), METADATA_IDX);
+        meta->memory_block_size() = block_size;
     }
 
     virtual void set_new_block_size(int32_t block_size) {
@@ -304,27 +439,19 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return node;
     }
 
-    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, createNodeFn, NodeBaseG);
 
-    NodeBaseG createNode(int16_t level, bool root, bool leaf, int32_t size = -1) const
+    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, createNodeFn, NodeBaseG);
+    NodeBaseG createNonRootNode(int16_t level, bool leaf, int32_t size = -1) const
     {
         MEMORIA_V1_ASSERT(level, >=, 0);
 
         auto& self = this->self();
 
-        Metadata meta;
-
-        if (!self.isNew())
-        {
-            meta = self.getRootMetadata();
-        }
-        else {
-            meta = self.createNewRootMetadata();
-        }
-
         if (size == -1)
         {
-            size = meta.memory_block_size();
+            NodeBaseG root_block = self.store().getBlock(self.root());
+            const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
+            size = meta->memory_block_size();
         }
 
         NodeBaseG node = self.default_dispatcher().dispatch2(
@@ -335,19 +462,71 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         node->header().ctr_type_hash() = self.hash();
         
-        node->parent_id()       = BlockID{};
-        node->parent_idx()      = 0;
+        node->parent_id()  = BlockID{};
+        node->parent_idx() = 0;
 
-        node->set_root(root);
+        node->set_root(false);
         node->set_leaf(leaf);
 
         node->level() = level;
 
         prepareNode(node);
 
-        if (root)
+        if (leaf) {
+        	self.layoutLeafNode(node, Position());
+        }
+        else {
+        	self.layoutBranchNode(node, -1ull);
+        }
+
+        return node;
+    }
+
+    MEMORIA_V1_DECLARE_NODE_FN(InitRootMetadataFn, init_root_metadata);
+    NodeBaseG createRootNode(int16_t level, bool leaf, int32_t size = -1) const
+    {
+        MEMORIA_V1_ASSERT(level, >=, 0);
+
+        auto& self = this->self();
+
+        NodeBaseG root_block = self.store().getBlock(self.root());
+
+        if (size == -1)
         {
-            self.setCtrRootMetadata(node, meta);
+            if (root_block) {
+                const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
+                size = meta->memory_block_size();
+            }
+            else {
+                size = DEFAULT_BLOCK_SIZE;
+            }
+        }
+
+        NodeBaseG node = self.node_dispatcher().dispatch2(
+            leaf,
+            CreateNodeFn(self), size
+        );
+
+        node->header().ctr_type_hash() = self.hash();
+        
+        node->parent_id()  = BlockID{};
+        node->parent_idx() = 0;
+
+        node->set_root(true);
+        node->set_leaf(leaf);
+
+        node->level() = level;
+
+        prepareNode(node);
+
+        if (root_block) {
+            node->copy_metadata_from(root_block);
+        }
+        else {
+            self.node_dispatcher().dispatch(node, InitRootMetadataFn());
+
+            Metadata& meta = *get<Metadata>(node->allocator(), METADATA_IDX);
+            meta = self.createNewRootMetadata();
         }
 
         if (leaf) {
@@ -360,39 +539,15 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return node;
     }
 
-    NodeBaseG createRootNode(int16_t level, bool leaf, const Metadata& metadata) const
+    NodeBaseG createNode(int16_t level, bool root, bool leaf, int32_t size = -1) const
     {
-        MEMORIA_V1_ASSERT(level, >=, 0);
-
         auto& self = this->self();
-
-        NodeBaseG node = self.node_dispatcher().dispatch2(
-            leaf,
-            CreateNodeFn(self), metadata.memory_block_size()
-        );
-
-        node->header().ctr_type_hash()   = self.hash();
-        
-        node->parent_id()       = BlockID{};
-        node->parent_idx()      = 0;
-
-        node->set_root(true);
-        node->set_leaf(leaf);
-
-        node->level() = level;
-
-        prepareNode(node);
-
-        self.setCtrRootMetadata(node, metadata);
-
-        if (leaf) {
-        	self.layoutLeafNode(node, Position());
+        if (root) {
+            return self.createRootNode(level, leaf, size);
         }
         else {
-        	self.layoutBranchNode(node, -1ull);
+            return self.createNonRootNode(level, leaf, size);
         }
-
-        return node;
     }
 
     template <typename Node>
@@ -414,17 +569,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         node.update();
     }
-
-
-    virtual bool hasRoot(const CtrID& name)
-    {
-        auto& self = this->self();
-
-        NodeBaseG root = self.store().getBlock(self.root());
-
-        return !root->root_metadata().roots(name).is_null();
-    }
-
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(ValuesAsVectorFn, template values_as_vector<BlockID>, std::vector<BlockID>);
     Collection<Edge> describe_block_links(const BlockID& block_id, Direction direction)
@@ -494,38 +638,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return STLCollection<VertexProperty>::make(std::move(props));
     }
 
-    int32_t metadata_links_num() const {
-        return self().getRootMetadata().links_num();
-    }
-
-    CtrID get_metadata_link(int num) const
-    {
-        return self().getRootMetadata().links(num);
-    }
-
-    void set_metadata_link(int num, const CtrID& link_id)
-    {
-        auto& self = this->self();
-
-        Metadata metadata   = self.getRootMetadata();
-        metadata.links(num) = link_id;
-
-        self.setRootMetadata(metadata);
-    }
-
-    std::string get_descriptor_str() const {
-        return self().getRootMetadata().descriptor_str();
-    }
-
-    void set_descriptor_str(const std::string& str)
-    {
-        auto& self = this->self();
-
-        Metadata metadata = self.getRootMetadata();
-        metadata.set_descriptor(str);
-
-        self.setRootMetadata(metadata);
-    }
 
 
 
@@ -548,6 +660,12 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return CtrBlockDescription<ProfileT>(size, getModelNameS(node), root, leaf, offset);
     }
 
+    void configure_types(
+            const ContainerTypeName& type_name,
+            BranchNodeExtData& branch_node_ext_data,
+            LeafNodeExtData& leaf_node_ext_data
+    ) {}
+
  protected:
 
     CtrID do_init_ctr(const BlockG& node)
@@ -556,8 +674,18 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (node->ctr_type_hash() == CONTAINER_HASH)
         {
-            self.set_root_id(node->id());
-            return self.getRootMetadata().model_name();
+            NodeBaseG root_node = node;
+
+            self.set_root_id(root_node->id());
+
+            const auto* branch_tuple = get<BranchNodeExtDataPkdTuple>(root_node->allocator(), BRANCH_EXT_DATA_IDX);
+            const auto* leaf_tuple   = get<LeafNodeExtDataPkdTuple>(root_node->allocator(), LEAF_EXT_DATA_IDX);
+            const auto* meta         = get<Metadata>(root_node->allocator(), METADATA_IDX);
+
+            branch_tuple->get_value(this->branch_node_ext_data_);
+            leaf_tuple->get_value(this->leaf_node_ext_data_);
+
+            return meta->model_name();
         }
         else {
             MMA1_THROW(CtrTypeException()) << WhatInfo(fmt::format8(u"Invalid container type: {}", node->ctr_type_hash()));
@@ -573,7 +701,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             MMA1_THROW(NoCtrException()) << WhatInfo(fmt::format8(u"Container with name {} already exists", ctr_id));
         }
 
-        NodeBaseG node = self.createRoot();
+        self.configure_types(ctr_type_name, branch_node_ext_data_, leaf_node_ext_data_);
+
+        NodeBaseG node = self.createRootLeaf();
 
         self.set_root(node->id());
     }

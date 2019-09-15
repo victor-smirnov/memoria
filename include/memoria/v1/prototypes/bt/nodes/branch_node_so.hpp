@@ -41,8 +41,22 @@ public:
 
     template <typename PkdT>
     using PkdExtDataT = typename PkdT::ExtData;
-    using SubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<BranchSubstreamsStructList>>;
-    using BranchExtData = MakeTuple<SubstreamExtensionsList>;
+    using BranchSubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<BranchSubstreamsStructList>>;
+    using BranchExtData = MakeTuple<BranchSubstreamExtensionsList>;
+
+    using LeafSubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<LeafSubstreamsStructList>>;
+    using LeafExtData = MakeTuple<LeafSubstreamExtensionsList>;
+
+    using CtrPropertiesMap = PackedMap<Varchar, Varchar>;
+    using CtrReferencesMap = PackedMap<Varchar, ProfileCtrID<typename NodeType_::TypesT::Profile>>;
+
+    using RootMetadataList = MergeLists<
+        typename NodeType_::TypesT::Metadata,
+        PackedTuple<BranchExtData>,
+        PackedTuple<LeafExtData>,
+        CtrPropertiesMap,
+        CtrReferencesMap
+    >;
 
     using StreamDispatcherStructList = typename PackedStatefulDispatchersListBuilder<
             bt::FlattenBranchTree<BranchSubstreamsStructList>, NodeType_::Base::StreamsStart
@@ -696,8 +710,6 @@ public:
         template <int32_t Idx, typename Tree>
         void stream(const Tree& tree, int32_t idx, BranchNodeEntry* acc)
         {
-//            FailIf<true, BranchNodeEntry>* ttt;
-
             assign(std::get<Idx>(*acc), tree.get_values(idx));
         }
     };
@@ -819,7 +831,7 @@ public:
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
-        node_->generateDataEvents(handler);
+        node_->template generateDataEvents<RootMetadataList>(handler);
 
         Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
 
@@ -833,6 +845,9 @@ public:
         handler->endGroup();
     }
 
+    void init_root_metadata() {
+        node_->template init_root_metadata<RootMetadataList>();
+    }
 
 
 

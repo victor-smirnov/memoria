@@ -148,7 +148,7 @@ struct BTTypes {
     using Allocator = ProfileAllocatorType<Profile_>;
     using ID        = ProfileBlockID<Profile_>;
 
-    using Metadata  = BalancedTreeMetadata<ID>;
+    using Metadata  = BalancedTreeMetadata<Profile_>;
 
     using NodeTypesList = TypeList<
             bt::BranchNodeTypes<bt::BranchNode>,

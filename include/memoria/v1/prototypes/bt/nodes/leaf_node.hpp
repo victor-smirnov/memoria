@@ -62,7 +62,29 @@ public:
 
     using TypesT = Types;
 
-    using LeafSubstreamsStructList      = typename Types::LeafStreamsStructList;
+    using LeafSubstreamsStructList = typename Types::LeafStreamsStructList;
+    using BranchSubstreamsStructList = typename Types::BranchStreamsStructList;
+
+    template <typename PkdT>
+    using PkdExtDataT = typename PkdT::ExtData;
+
+    using BranchSubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<BranchSubstreamsStructList>>;
+    using BranchExtData = MakeTuple<BranchSubstreamExtensionsList>;
+
+    using LeafSubstreamExtensionsList = boost::mp11::mp_transform<PkdExtDataT, Linearize<LeafSubstreamsStructList>>;
+    using LeafExtData = MakeTuple<LeafSubstreamExtensionsList>;
+
+    using CtrPropertiesMap = PackedMap<Varchar, Varchar>;
+    using CtrReferencesMap = PackedMap<Varchar, ProfileCtrID<typename Types::Profile>>;
+
+    using RootMetadataList = MergeLists<
+        typename Types::Metadata,
+        PackedTuple<BranchExtData>,
+        PackedTuple<LeafExtData>,
+        CtrPropertiesMap,
+        CtrReferencesMap
+    >;
+
 
     using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
             Linearize<LeafSubstreamsStructList>,
@@ -90,7 +112,7 @@ public:
     template <typename SerializationData>
     void serialize(SerializationData& buf) const
     {
-        Base::serialize(buf);
+        Base::template serialize<RootMetadataList>(buf);
 
         Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
     }
@@ -106,7 +128,7 @@ public:
     template <typename DeserializationData>
     void deserialize(DeserializationData& buf)
     {
-        Base::deserialize(buf);
+        Base::template deserialize<RootMetadataList>(buf);
 
         Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
     }

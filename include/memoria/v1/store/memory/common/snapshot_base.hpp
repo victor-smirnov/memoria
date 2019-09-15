@@ -833,31 +833,49 @@ public:
     {
         checkUpdateAllowed();
 
+        BlockType* block = shared->get();
+
         if (shared->state() == Shared::READ)
         {
-            BlockType* block = shared->get();
-            BlockType* new_block = allocate_system<BlockType>(new_size).release();
+            auto buf = allocate_system<uint8_t>(new_size);
+
+            BlockType* new_block = tools::ptr_cast<BlockType>(buf.get());
+
+            int32_t transfer_size = std::min(new_size, block->memory_block_size());
+
+            std::memcpy(new_block, block, transfer_size);
 
             ProfileMetadata<Profile>::local()
-                    ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
+                    ->get_block_operations(new_block->ctr_type_hash(), new_block->block_type_hash())
                     ->resize(block, new_block, new_size);
 
             shared->set_block(new_block);
+            shared->state() = Shared::UPDATE;
+            shared->refresh();
 
             ptree_set_new_block(new_block);
+
+            buf.release();
         }
         else if (shared->state() == Shared::UPDATE)
         {
-            BlockType* block = shared->get();
-            BlockType* new_block = reallocate_system<BlockType>(block, new_size).release();
+            auto buf = allocate_system<uint8_t>(new_size);
+
+            BlockType* new_block = tools::ptr_cast<BlockType>(buf.get());
+
+            int32_t transfer_size = std::min(new_size, block->memory_block_size());
+
+            std::memcpy(new_block, block, transfer_size);
 
             ProfileMetadata<Profile>::local()
-                    ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
+                    ->get_block_operations(new_block->ctr_type_hash(), new_block->block_type_hash())
                     ->resize(block, new_block, new_size);
 
             shared->set_block(new_block);
 
             ptree_set_new_block(new_block);
+
+            buf.release();
         }
     }
 

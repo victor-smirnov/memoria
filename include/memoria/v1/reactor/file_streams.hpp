@@ -154,7 +154,7 @@ public:
         istream_(file.istream())
     {}
 
-    FileInputStream(FileInputStream&&) = default;
+    FileInputStream(FileInputStream&&) = delete;
     FileInputStream(const FileInputStream&) = delete;
 };
 
@@ -173,7 +173,7 @@ public:
         ostream_(file.ostream())
     {}
 
-    FileOutputStream(FileOutputStream&&) = default;
+    FileOutputStream(FileOutputStream&&) = delete;
     FileOutputStream(const FileOutputStream&) = delete;
 };
 

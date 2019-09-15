@@ -228,6 +228,18 @@ public:
         }
     }
 
+    PackedAllocator* allocator_or_null()
+    {
+        if (allocator_offset() > 0)
+        {
+            uint8_t* my_ptr = T2T<uint8_t*>(this);
+            return T2T<PackedAllocator*>(my_ptr - allocator_offset());
+        }
+        else {
+            return nullptr;
+        }
+    }
+
     const PackedAllocator* allocator() const
     {
         if (allocator_offset() > 0)
@@ -237,6 +249,18 @@ public:
         }
         else {
             MMA1_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
+        }
+    }
+
+    const PackedAllocator* allocator_or_null() const
+    {
+        if (allocator_offset() > 0)
+        {
+            const uint8_t* my_ptr = T2T<const uint8_t*>(this);
+            return T2T<const PackedAllocator*>(my_ptr - allocator_offset());
+        }
+        else {
+            return nullptr;
         }
     }
 
