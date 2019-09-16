@@ -91,7 +91,7 @@ public:
 
     using ConstPtrsT = core::StaticVector<const Value*, Blocks>;
 
-    using ExtData = EmptyType;
+    using ExtData = typename DataTypeTraits<Value>::ExtData;
     using SparseObject = PackedFSEQuickTreeSO<ExtData, MyType>;
 
     class ReadState {

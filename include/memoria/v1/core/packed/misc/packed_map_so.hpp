@@ -242,7 +242,7 @@ public:
         return upsize;
     }
 
-    OpStatus set_all(const std::vector<std::pair<Key, Value>>& entries) const
+    OpStatus set_all(const std::vector<std::pair<Key, Value>>& entries)
     {
         for (const auto& entry: entries)
         {

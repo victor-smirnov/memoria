@@ -245,6 +245,112 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         map_so.for_each(consumer);
     }
 
+    virtual void set_ctr_properties(const std::vector<std::pair<U8String, U8String>>& entries)
+    {
+        auto& self     = this->self();
+        NodeBaseG root = self.getRoot();
+
+        CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+
+        PackedMapSO<CtrPropertiesMap> map_so(map);
+
+        psize_t upsize = map_so.estimate_required_upsize(entries);
+        if (upsize > map->compute_free_space_up())
+        {
+            self.upsize_node(root, upsize);
+
+            map_so.setup(get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX));
+        }
+
+        OOM_THROW_IF_FAILED(map_so.set_all(entries), MMA1_SRC);
+    }
+
+
+    virtual Optional<CtrID> get_ctr_reference(U8StringView key) const {
+        auto& self     = this->self();
+        NodeBaseG root = self.getRoot();
+
+        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+
+        PackedMapSO<CtrReferencesMap> map_so(map);
+
+        return map_so.find(key);
+    }
+
+    virtual void set_ctr_reference(U8StringView key, const CtrID& value)
+    {
+        auto& self     = this->self();
+        NodeBaseG root = self.getRoot();
+        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+
+        PackedMapSO<CtrReferencesMap> map_so(map);
+
+        psize_t upsize = map_so.estimate_required_upsize(key, value);
+        if (upsize > map->compute_free_space_up())
+        {
+            self.upsize_node(root, upsize);
+
+            map_so.setup(get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX));
+        }
+
+        OOM_THROW_IF_FAILED(map_so.set(key, value), MMA1_SRC);
+    }
+
+    virtual void remove_ctr_reference(U8StringView key) {
+        auto& self     = this->self();
+        NodeBaseG root = self.getRoot();
+
+        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+
+        PackedMapSO<CtrReferencesMap> map_so(map);
+
+        OOM_THROW_IF_FAILED(map_so.remove(key), MMA1_SRC);
+
+        self.downsize_node(root);
+    }
+
+    virtual size_t ctr_references() const
+    {
+        auto& self = this->self();
+        NodeBaseG root = self.getRoot();
+        const CtrReferencesMap* map = get<const CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+
+        return map->size();
+    }
+
+    virtual void for_each_ctr_reference(std::function<void (U8StringView, const CtrID&)> consumer) const {
+        auto& self = this->self();
+        NodeBaseG root = self.getRoot();
+        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+
+        PackedMapSO<CtrReferencesMap> map_so(map);
+
+        map_so.for_each(consumer);
+    }
+
+    virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries)
+    {
+        auto& self     = this->self();
+        NodeBaseG root = self.getRoot();
+
+        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+
+        PackedMapSO<CtrReferencesMap> map_so(map);
+
+        psize_t upsize = map_so.estimate_required_upsize(entries);
+        if (upsize > map->compute_free_space_up())
+        {
+            self.upsize_node(root, upsize);
+
+            map_so.setup(get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX));
+        }
+
+        OOM_THROW_IF_FAILED(map_so.set_all(entries), MMA1_SRC);
+    }
+
+
+
+
     void root2Node(NodeBaseG& node) const
     {
         self().updateBlockG(node);
@@ -527,6 +633,18 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
             Metadata& meta = *get<Metadata>(node->allocator(), METADATA_IDX);
             meta = self.createNewRootMetadata();
+
+            BranchNodeExtDataPkdTuple* branch_tuple = get<BranchNodeExtDataPkdTuple>(
+                        node->allocator(), BRANCH_EXT_DATA_IDX
+            );
+
+            branch_tuple->set_value(branch_node_ext_data_);
+
+            LeafNodeExtDataPkdTuple* leaf_tuple = get<LeafNodeExtDataPkdTuple>(
+                        node->allocator(), LEAF_EXT_DATA_IDX
+            );
+
+            leaf_tuple->set_value(leaf_node_ext_data_);
         }
 
         if (leaf) {
@@ -660,11 +778,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return CtrBlockDescription<ProfileT>(size, getModelNameS(node), root, leaf, offset);
     }
 
-    void configure_types(
-            const ContainerTypeName& type_name,
-            BranchNodeExtData& branch_node_ext_data,
-            LeafNodeExtData& leaf_node_ext_data
-    ) {}
+//    void configure_types(
+//            const ContainerTypeName& type_name,
+//            BranchNodeExtData& branch_node_ext_data,
+//            LeafNodeExtData& leaf_node_ext_data
+//    ) {
+//        MMA1_THROW(UnimplementedOperationException());
+//    }
 
  protected:
 

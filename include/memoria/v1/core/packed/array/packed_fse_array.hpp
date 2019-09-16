@@ -106,7 +106,7 @@ public:
     using GrowableIOSubstream = io::IORowwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
     using IOSubstreamView     = io::IORowwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
-    using ExtData = EmptyType;
+    using ExtData = typename DataTypeTraits<Value>::ExtData;
     using SparseObject = PackedFSEArraySO<ExtData, MyType>;
 
 private:

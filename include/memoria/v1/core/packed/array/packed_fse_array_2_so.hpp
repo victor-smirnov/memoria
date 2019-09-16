@@ -105,7 +105,13 @@ public:
         return Span<const Value>(data_->values(block), meta.size());
     }
 
+    const Value& access(psize_t column, psize_t idx) const {
+        return data_->values(column)[idx];
+    }
 
+    Value& access(psize_t column, psize_t idx) {
+        return data_->values(column)[idx];
+    }
 
     void generateDataEvents(IBlockDataEventHandler* handler) const
     {
@@ -437,6 +443,48 @@ public:
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
     OpStatus _remove(psize_t idx, BranchNodeEntryItem<T, Size>& accum)
     {
+        return removeSpace(idx, idx + 1);
+    }
+
+    psize_t estimate_insert_upsize(const ViewType& view) const
+    {
+        static_assert(Columns == 1, "");
+
+
+        psize_t current_block_size = data_->element_size(VALUES);
+        psize_t requested_data_size = (data_->size() + 1) * sizeof(Value);
+
+        psize_t requested_data_size_aligned = PackedAllocatable::roundUpBytesToAlignmentBlocks(requested_data_size);
+
+        return requested_data_size_aligned - current_block_size;
+    }
+
+    psize_t estimate_replace_upsize(psize_t idx, const ViewType& view) const
+    {
+        return 0;
+    }
+
+    OpStatus replace(psize_t column, psize_t idx, const ViewType& view)
+    {
+        access(column, idx) = view;
+
+        return OpStatus::OK;
+    }
+
+    OpStatus insert(psize_t idx, const ViewType& view)
+    {
+        static_assert(Columns == 1, "");
+
+        if (isFail(insertSpace(idx, 1))) {
+            return OpStatus::FAIL;
+        }
+
+        access(0, idx) = view;
+
+        return OpStatus::OK;
+    }
+
+    OpStatus remove(psize_t idx) {
         return removeSpace(idx, idx + 1);
     }
 };

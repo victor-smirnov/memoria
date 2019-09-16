@@ -134,7 +134,7 @@ public:
     using GrowableIOSubstream = io::IOColumnwiseVLenArraySubstreamImpl<Value, Blocks>;
     using IOSubstreamView     = io::IOColumnwiseVLenArraySubstreamViewImpl<MyType>;
 
-    using ExtData = EmptyType;
+    using ExtData = typename DataTypeTraits<DataType>::ExtData;
     using SparseObject = PackedVLEBigMaxTreeSO<ExtData, MyType>;
 
     class ReadState {

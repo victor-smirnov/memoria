@@ -21,7 +21,6 @@
 #include <memoria/v1/api/datatypes/varchars.hpp>
 #include <memoria/v1/api/datatypes/encoding_traits.hpp>
 #include <memoria/v1/api/datatypes/sdn.hpp>
-#include <memoria/v1/api/datatypes/type.hpp>
 #include <memoria/v1/api/datatypes/traits.hpp>
 #include <memoria/v1/api/datatypes/type_registry.hpp>
 #include <memoria/v1/api/datatypes/type_signature.hpp>

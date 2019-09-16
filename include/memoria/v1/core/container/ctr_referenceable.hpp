@@ -35,6 +35,8 @@ namespace v1 {
 template <typename Profile>
 struct CtrReferenceable {
 
+    using CtrID = ProfileCtrID<Profile>;
+
     virtual ~CtrReferenceable() noexcept {}
 
     virtual bool is_castable_to(uint64_t type_hash) const   = 0;
@@ -49,6 +51,14 @@ struct CtrReferenceable {
     virtual void remove_ctr_property(U8StringView key) = 0;
     virtual size_t ctr_properties() const = 0;
     virtual void for_each_ctr_property(std::function<void (U8StringView, U8StringView)> consumer) const = 0;
+    virtual void set_ctr_properties(const std::vector<std::pair<U8String, U8String>>& entries) = 0;
+
+    virtual Optional<CtrID> get_ctr_reference(U8StringView key) const  = 0;
+    virtual void set_ctr_reference(U8StringView key, const CtrID& value)  = 0;
+    virtual void remove_ctr_reference(U8StringView key) = 0;
+    virtual size_t ctr_references() const = 0;
+    virtual void for_each_ctr_reference(std::function<void (U8StringView, const CtrID&)> consumer) const = 0;
+    virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries) = 0;
     
     virtual const ProfileCtrID<Profile>& name() const = 0;
 

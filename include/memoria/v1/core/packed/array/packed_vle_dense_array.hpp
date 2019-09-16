@@ -112,7 +112,7 @@ public:
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
 
-    using ExtData = EmptyType;
+    using ExtData = typename DataTypeTraits<Value>::ExtData;
     using SparseObject = PackedVLDArraySO<ExtData, MyType>;
 
     using ReadState = SizesT;

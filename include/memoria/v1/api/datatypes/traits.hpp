@@ -78,6 +78,7 @@ template <typename T> struct DataTypeTraitsBase {
 
     using DatumSelector         = EmptyType;
     using DatumStorageSelector  = EmptyType;
+    using ExtData               = EmptyType;
 };
 
 

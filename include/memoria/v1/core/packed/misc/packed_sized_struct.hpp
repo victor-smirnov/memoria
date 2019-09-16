@@ -55,7 +55,7 @@ public:
     using SizesT = core::StaticVector<int32_t, Blocks>;
     using ReadState = SizesT;
 
-    using ExtData = EmptyType;
+    using ExtData = typename DataTypeTraits<DataType>::ExtData;
     using SparseObject = PackedSizedStructSO<ExtData, MyType>;
 
     class AppendState {

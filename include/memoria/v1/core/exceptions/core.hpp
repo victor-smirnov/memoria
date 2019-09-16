@@ -51,5 +51,6 @@ struct NullPointerException: virtual Exception {};
 struct BoundsException: virtual Exception {};
 struct RuntimeException: virtual Exception {};
 struct UnsupportedOperationException: virtual Exception {};
+struct UnimplementedOperationException: virtual Exception {};
 
 }}

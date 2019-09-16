@@ -57,7 +57,19 @@ protected:
 
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
+    using typename Base::BranchNodeExtData;
+    using typename Base::LeafNodeExtData;
+    using typename Base::ContainerTypeName;
+
 public:
+    void configure_types(
+        const ContainerTypeName& type_name,
+        BranchNodeExtData& branch_node_ext_data,
+        LeafNodeExtData& leaf_node_ext_data
+    ) {
+
+    }
+
     IteratorPtr begin() {
         return self().template seek_stream<0>(0);
     }

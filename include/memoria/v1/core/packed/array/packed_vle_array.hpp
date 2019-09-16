@@ -84,7 +84,7 @@ public:
 
     using Allocator = PackedAllocator;
 
-    using ExtData = EmptyType;
+    using ExtData = typename DataTypeTraits<DataType>::ExtData;
     using SparseObject = PackedVLenElementArraySO<ExtData, MyType>;
 
     using Accessor = PkdDataTypeAccessor<DataType, Tag, SparseObject>;

@@ -25,7 +25,7 @@ namespace v1 {
 using Profile = DefaultProfile<>;    
 using CtrName = memoria::v1::Multimap<UUID, UTinyInt>;
 
-//MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
 
 }}
 

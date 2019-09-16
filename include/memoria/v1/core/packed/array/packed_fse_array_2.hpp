@@ -73,8 +73,8 @@ public:
 
     using Allocator = PackedAllocator;
 
-    using ExtData = EmptyType;
-    using SparseObject = PackedFixedSizeElementArraySO<ExtData, MyType>;
+    using ExtData       = typename DataTypeTraits<Value>::ExtData;
+    using SparseObject  = PackedFixedSizeElementArraySO<ExtData, MyType>;
 
 
     using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;

@@ -80,7 +80,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
         io::FixedSizeArrayColumnMetadata<const ValueType> descr = subs.describe(column);
-        buffer.append(Span<const ValueType>(descr.data_buffer + start, size));
+        buffer.append_values(Span<const ValueType>(descr.data_buffer + start, size));
     }
 
     template <typename ItemView>

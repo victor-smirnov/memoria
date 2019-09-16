@@ -70,7 +70,7 @@ public:
     using Values     = core::StaticVector<Value, Blocks>;
     using SizesT     = typename Tree::SizesT;
 
-    using ExtData = EmptyType;
+    using ExtData = typename DataTypeTraits<typename Tree::DataType>::ExtData;
     using SparseObject = PackedVLEOptMaxTreeSO<ExtData, MyType>;
 
     using Base::block_size;

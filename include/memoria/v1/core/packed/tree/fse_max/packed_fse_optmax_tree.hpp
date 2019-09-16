@@ -72,7 +72,7 @@ public:
 
     using AccumValue = Value;
 
-    using ExtData = EmptyType;
+    using ExtData = typename DataTypeTraits<DataType>::ExtData;
     using SparseObject = PackedFSEOptMaxTreeSO<ExtData, MyType>;
 
     using Base::block_size;

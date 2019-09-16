@@ -42,6 +42,19 @@ protected:
     using Value = typename Types::Value;
 
 public:
+
+    using typename Base::BranchNodeExtData;
+    using typename Base::LeafNodeExtData;
+    using typename Base::ContainerTypeName;
+
+    void configure_types(
+        const ContainerTypeName& type_name,
+        BranchNodeExtData& branch_node_ext_data,
+        LeafNodeExtData& leaf_node_ext_data
+    ) {
+
+    }
+
     CtrSizeT size() const {
         return self().sizes()[0];
     }

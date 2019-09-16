@@ -54,6 +54,19 @@ public:
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
 
+
+    using typename Base::BranchNodeExtData;
+    using typename Base::LeafNodeExtData;
+    using typename Base::ContainerTypeName;
+
+    void configure_types(
+        const ContainerTypeName& type_name,
+        BranchNodeExtData& branch_node_ext_data,
+        LeafNodeExtData& leaf_node_ext_data
+    ) {
+
+    }
+
     CtrSharedPtr<BTSSIterator<Profile>> find_element_raw(KeyView key)
     {
         return self().find(key);
