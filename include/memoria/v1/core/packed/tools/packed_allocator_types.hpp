@@ -34,20 +34,10 @@ template <typename PkdStruct> struct PackedStructTraits;
 template <typename PkdStruct>
 using AccumType = typename PackedStructTraits<PkdStruct>::AccumType;
 
-//template <typename PkdStruct>
-//struct AccumType: HasType<typename PkdStruct::AccumValue> {};
-
 enum class PkdSearchType {SUM, MAX};
 
 template <typename PkdStruct>
 constexpr PkdSearchType PkdKeySearchType = PackedStructTraits<PkdStruct>::KeySearchType;
-
-
-
-//template <typename PkdStruct>
-//struct PkdSearchTypeProvider {
-//    static constexpr PkdSearchType Value = PkdStruct::KeySearchType;
-//};
 
 template <typename PkdStruct>
 using PkdSearchKeyType = typename PackedStructTraits<PkdStruct>::SearchKeyType;
@@ -55,32 +45,11 @@ using PkdSearchKeyType = typename PackedStructTraits<PkdStruct>::SearchKeyType;
 template <typename PkdStruct>
 using PkdSearchKeyDataType = typename PackedStructTraits<PkdStruct>::SearchKeyDataType;
 
-
-//template <typename PkdStruct>
-//struct PkdSearchKeyDataTypeProvider {
-//    using Type = typename PkdStruct::IndexDataType;
-//};
-
 template <typename PkdStruct>
 constexpr PackedDataTypeSize PkdStructSizeType = PackedStructTraits<PkdStruct>::DataTypeSize;
 
-
-
 template <typename PkdStruct>
 constexpr int32_t PkdStructIndexes = PackedStructTraits<PkdStruct>::Indexes;
-
-
-//template <typename PkdStruct>
-//struct PkdStructSizeType {
-//    static const PackedDataTypeSize Value = PkdStruct::SizeType;
-//};
-
-//template <typename PkdStruct>
-//struct PkdStructInputBufferType {
-//    using Type = typename PkdStruct::InputBuffer;
-//};
-
-
 
 
 template <typename List> struct PackedListStructSizeType;
@@ -361,12 +330,6 @@ struct AllocationBlockConst {
         return T2T<const T*>(ptr_);
     }
 };
-
-
-// ====================== PackedStruct Traits ====================
-
-
-
 
 
 }}

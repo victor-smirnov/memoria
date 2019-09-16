@@ -22,11 +22,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
-#include <memoria/v1/core/packed/array/packed_fse_array.hpp>
-#include <memoria/v1/core/packed/array/packed_fse_array_2.hpp>
-#include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
-#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
-
+#include <memoria/v1/core/packed/packed.hpp>
 
 namespace memoria {
 namespace v1 {

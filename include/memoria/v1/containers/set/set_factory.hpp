@@ -26,14 +26,7 @@
 
 #include <memoria/v1/prototypes/bt_ss/btss_factory.hpp>
 
-#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
-#include <memoria/v1/core/packed/array/packed_fse_array.hpp>
-#include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
-#include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
+#include <memoria/v1/core/packed/packed.hpp>
 
 #ifdef HAVE_BOOST
 #include <memoria/v1/core/bignum/bigint.hpp>

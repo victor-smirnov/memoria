@@ -20,7 +20,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace mmap {
+namespace multimap {
 
 template <typename Types, typename Profile, typename IteratorPtr>
 class ValuesIteratorImpl: public IValuesIterator<Types, Profile> {

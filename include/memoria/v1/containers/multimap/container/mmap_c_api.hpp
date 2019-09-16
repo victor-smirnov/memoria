@@ -35,7 +35,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(mmap::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(multimap::CtrApiName)
 public:
     using Types = typename Base::Types;
     using typename Base::IteratorPtr;
@@ -105,7 +105,7 @@ public:
 
         ii->toStructureStream();
 
-        auto ptr = ctr_make_shared<mmap::EntriesIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii);
+        auto ptr = ctr_make_shared<multimap::EntriesIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii);
 
         return memoria_static_pointer_cast<IEntriesIterator<CtrApiTypes, Profile>>(ptr);
     }
@@ -118,7 +118,7 @@ public:
         ii->stream() = 0;
         ii->toStructureStream();
 
-        auto ptr = ctr_make_shared<mmap::KeysIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii);
+        auto ptr = ctr_make_shared<multimap::KeysIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii);
 
         return memoria_static_pointer_cast<IKeysIterator<CtrApiTypes, Profile>>(ptr);
     }
@@ -131,7 +131,7 @@ public:
         if (ii->is_found(key))
         {
             ii->to_values();
-            auto ptr = ctr_make_shared<mmap::ValuesIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii);
+            auto ptr = ctr_make_shared<multimap::ValuesIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii);
             return memoria_static_pointer_cast<IValuesIterator<CtrApiTypes, Profile>>(ptr);
         }
         else {
@@ -291,7 +291,7 @@ protected:
 
 MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(mmap::CtrApiName)
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(multimap::CtrApiName)
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 

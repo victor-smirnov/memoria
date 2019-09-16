@@ -20,7 +20,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace mmap       {
+namespace multimap       {
 
 class CtrApiName        {};
 class CtrCApiName       {};

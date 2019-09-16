@@ -30,12 +30,7 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools_packed_struct_list_builder.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_streamdescr_factory.hpp>
 
-
-#include <memoria/v1/core/packed/tree/fse_max/packed_fse_optmax_tree.hpp>
-#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle_big/packed_vle_optmax_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
-#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
+#include <memoria/v1/core/packed/packed.hpp>
 
 #include <ostream>
 #include <tuple>

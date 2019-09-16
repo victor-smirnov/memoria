@@ -26,15 +26,7 @@
 
 
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
-#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
-#include <memoria/v1/core/packed/tree/fse_max/packed_fse_optmax_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle_big/packed_vle_optmax_tree.hpp>
-#include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
-#include <memoria/v1/core/packed/misc/packed_empty_struct.hpp>
+#include <memoria/v1/core/packed/packed.hpp>
 
 #ifdef HAVE_BOOST
 #include <memoria/v1/core/bignum/bigint.hpp>
@@ -58,8 +50,8 @@ namespace bt {
 
 template <PkdSearchType SearchType, typename KeyType_, int32_t Indexes_>
 struct IdxSearchType {
-    static constexpr PkdSearchType  Value       = SearchType;
-    static constexpr int32_t Indexes            = Indexes_;
+    static constexpr PkdSearchType  Value = SearchType;
+    static constexpr int32_t Indexes      = Indexes_;
 
     using KeyType = KeyType_;
 };

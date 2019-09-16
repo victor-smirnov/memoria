@@ -20,7 +20,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace mmap {
+namespace multimap {
 
 template <typename Types, typename Profile, typename IteratorPtr>
 class KeysIteratorImpl: public IKeysIterator<Types, Profile> {
@@ -72,7 +72,7 @@ public:
 
         //ii->dump();
 
-        auto ptr = ctr_make_shared<mmap::ValuesIteratorImpl<Types, Profile, IteratorPtr>>(ii);
+        auto ptr = ctr_make_shared<multimap::ValuesIteratorImpl<Types, Profile, IteratorPtr>>(ii);
         return memoria_static_pointer_cast<IValuesIterator<Types, Profile>>(ptr);
     }
 

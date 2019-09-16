@@ -20,7 +20,7 @@
 #include <memoria/v1/core/tools/accessors.hpp>
 
 #include <memoria/v1/core/packed/array/packed_vle_array.hpp>
-#include <memoria/v1/core/packed/array/packed_fse_array_2.hpp>
+#include <memoria/v1/core/packed/array/packed_fse_array.hpp>
 
 #include <memoria/v1/api/common/packed_api.hpp>
 

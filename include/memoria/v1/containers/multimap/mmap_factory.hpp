@@ -53,12 +53,12 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                mmap::CtrApiName
+                multimap::CtrApiName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                mmap::ItrMiscName
+                multimap::ItrMiscName
     >;
 };
 
@@ -82,17 +82,17 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key_, Value_
     using FirstStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
-            TL<typename mmap::MMapKeyStructTF<Key_>::Type>
+            TL<typename multimap::MMapKeyStructTF<Key_>::Type>
         >,
-        mmap::MMapBranchStructTF
+        multimap::MMapBranchStructTF
     >;
 
     using DataStreamTF = bt::StreamTF<
         TL<
             TL<StreamSize>,
-            TL<typename mmap::MMapValueStructTF<Value_>::Type>
+            TL<typename multimap::MMapValueStructTF<Value_>::Type>
         >,
-        mmap::MMapBranchStructTF
+        multimap::MMapBranchStructTF
     >;
 
     using StructureStreamTF = bt::StreamTF<
@@ -100,7 +100,7 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key_, Value_
             TL<StreamSize>,
             TL<typename btfl::StructureStreamTF<2>::Type>
         >,
-        mmap::MMapBranchStructTF
+        multimap::MMapBranchStructTF
     >;
 
 

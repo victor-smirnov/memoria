@@ -21,12 +21,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt      {
-
-
-
-
-
+namespace bt {
 
 template <typename MyType, typename BranchPath, typename LeafPath>
 class LeveledNodeWalkerBase {

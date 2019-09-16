@@ -39,6 +39,7 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 
 #include <memoria/v1/core/packed/misc/packed_tuple.hpp>
+#include <memoria/v1/core/packed/misc/packed_map.hpp>
 
 #include <type_traits>
 

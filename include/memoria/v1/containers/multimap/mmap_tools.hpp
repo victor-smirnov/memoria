@@ -22,22 +22,14 @@
 
 #include <memoria/v1/core/strings/string_codec.hpp>
 
-#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle_big/packed_vle_optmax_tree.hpp>
-
-#include <memoria/v1/core/packed/array/packed_fse_array.hpp>
-#include <memoria/v1/core/packed/array/packed_fse_array_2.hpp>
-#include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
-#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
-#include <memoria/v1/core/packed/array/packed_vle_opt_array.hpp>
+#include <memoria/v1/core/packed/packed.hpp>
 
 #include <tuple>
 #include <vector>
 
 namespace memoria {
 namespace v1 {
-namespace mmap {
+namespace multimap {
 
 using bt::IdxSearchType;
 using bt::StreamTag;

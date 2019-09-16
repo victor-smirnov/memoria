@@ -21,7 +21,7 @@
 #include <memoria/v1/core/tools/vector_tuple.hpp>
 
 
-#include <memoria/v1/core/packed/array/packed_fse_array_2.hpp>
+#include <memoria/v1/core/packed/array/packed_fse_array.hpp>
 
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>

@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/prototypes/bt_tl/bttl_factory.hpp>
-#
 #include <memoria/v1/containers/table/table_names.hpp>
 
 #include <memoria/v1/containers/table/container/table_c_api.hpp>
@@ -26,12 +24,10 @@
 #include <memoria/v1/containers/table/table_tools.hpp>
 #include <memoria/v1/containers/table/table_iterator.hpp>
 
-#include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
+
 
 #include <memoria/v1/core/tools/i7_codec.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/v1/core/packed/packed.hpp>
 
 
 #include <tuple>

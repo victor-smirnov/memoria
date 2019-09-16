@@ -20,16 +20,7 @@
 
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 
-#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
-#include <memoria/v1/core/packed/array/packed_fse_array.hpp>
-#include <memoria/v1/core/packed/array/packed_fse_array_2.hpp>
-#include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
-#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
-#include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
+#include <memoria/v1/core/packed/packed.hpp>
 
 namespace memoria {
 namespace v1 {
