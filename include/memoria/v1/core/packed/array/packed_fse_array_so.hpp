@@ -40,17 +40,19 @@ class PackedFixedSizeElementArraySO {
     using MyType = PackedFixedSizeElementArraySO;
 
     using Value = typename PkdStruct::Value;
-    using ViewType = Value;
+    using Values = typename PkdStruct::Values;
+    using ViewType = typename PkdStruct::ViewType;
 
     using DataType = typename PkdStruct::DataType;
 
     static constexpr psize_t VALUES = PkdStruct::VALUES;
 
+public:
+
     using Accessor = PkdDataTypeAccessor<
         DataType, EmptyType, MyType, FixedSizeDataTypeTag
     >;
 
-public:
     using PkdStructT = PkdStruct;
 
     using ConstIterator = PkdRandomAccessIterator<Accessor>;
@@ -160,6 +162,16 @@ public:
     }
 
     /*********************** API *********************/
+
+    template <typename T>
+    OpStatus setValues(psize_t pos, const core::StaticVector<T, Columns>& values)
+    {
+        for (psize_t c = 0; c < Columns; c++) {
+            access(c, pos) = values[c];
+        }
+
+        return OpStatus::OK;
+    }
 
     class FindResult {
         int32_t idx_;
@@ -484,8 +496,54 @@ public:
         return OpStatus::OK;
     }
 
+    template <typename T>
+    OpStatus insert(psize_t pos, const core::StaticVector<T, Columns>& values)
+    {
+        if (isFail(insertSpace(pos, 1))) {
+            return OpStatus::FAIL;
+        }
+
+        for (psize_t c = 0; c < Columns; c++)
+        {
+            access(c, pos) = values[c];
+        }
+
+        return OpStatus::OK;
+    }
+
+    OpStatus insert(int32_t idx, int32_t size, std::function<const Values& (int32_t)> provider)
+    {
+        if (isFail(insertSpace(idx, size))) {
+            return OpStatus::FAIL;
+        }
+
+        Value* values[Columns];
+        for (int32_t block  = 0; block < Columns; block++)
+        {
+            values[block] = data_->values(block);
+        }
+
+        for (int32_t c = idx; c < idx + size; c++)
+        {
+            const Values& vals = provider(c - idx);
+
+            for (int32_t block = 0; block < Columns; block++)
+            {
+                values[block][c] = vals[block];
+            }
+        }
+
+        return OpStatus::OK;
+    }
+
+
+
     OpStatus remove(psize_t idx) {
         return removeSpace(idx, idx + 1);
+    }
+
+    OpStatus reindex() {
+        return OpStatus::OK;
     }
 };
 

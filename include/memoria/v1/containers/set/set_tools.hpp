@@ -32,7 +32,7 @@ using bt::StreamTag;
 template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct SetKeyStructTF;
 
 template <typename KeyType>
-struct SetKeyStructTF<KeyType, true>: HasType<PkdFSEArray2T<KeyType, 1, 1>> {};
+struct SetKeyStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType, 1, 1>> {};
 
 template <typename KeyType>
 struct SetKeyStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};

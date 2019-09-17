@@ -34,7 +34,7 @@ using bt::StreamTag;
 template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct MapKeyStructTF;
 
 template <typename KeyType>
-struct MapKeyStructTF<KeyType, true>: HasType<PkdFSEArray2T<KeyType, 1, 1>> {};
+struct MapKeyStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType, 1, 1>> {};
 
 template <typename KeyType>
 struct MapKeyStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
@@ -45,7 +45,7 @@ template <typename ValueType, bool Selector = DataTypeTraits<ValueType>::isFixed
 
 template <typename ValueType>
 struct MapValueStructTF<ValueType, true>: HasType<
-        PkdFSEArray2T<ValueType>
+        PkdFSEArrayT<ValueType>
 > {};
 
 template <typename ValueType>

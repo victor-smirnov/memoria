@@ -24,6 +24,7 @@
 
 #include <memoria/v1/core/packed/array/packed_fse_array.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_array.hpp>
+#include <memoria/v1/core/packed/array/packed_fse_opt_array.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_opt_array.hpp>
 
 #include <memoria/v1/core/packed/misc/packed_empty_struct.hpp>

@@ -40,7 +40,7 @@ template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize
 template <typename T> struct MMapBranchStructTF;
 
 template <typename KeyType>
-struct MMapKeyStructTF<KeyType, true>: HasType<PkdFSEArray2T<KeyType, 1, 1>> {};
+struct MMapKeyStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType, 1, 1>> {};
 
 template <typename KeyType>
 struct MMapKeyStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
@@ -56,7 +56,7 @@ struct MMapSumKeyStructTF<KeyType, false>: HasType<PkdVQTreeT<KeyType>> {};
 template <typename ValueType, bool Selector = DataTypeTraits<ValueType>::isFixedSize> struct MMapValueStructTF;
 
 template <typename ValueType>
-struct MMapValueStructTF<ValueType, true>: HasType<PkdFSEArray2T<ValueType>> {};
+struct MMapValueStructTF<ValueType, true>: HasType<PkdFSEArrayT<ValueType>> {};
 
 template <typename ValueType>
 struct MMapValueStructTF<ValueType, false>: HasType<PkdVLEArrayT<ValueType>> {};
@@ -99,10 +99,10 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     using Type = bt::PkdStructSelector<
             DataTypeTraits<KeyType>::isFixedSize,
-            PkdFMOTree,
+            PackedFixedElementOptArray,
             PackedVLenElementOptArray,
 
-            PkdFMTreeTypes<KeyType, Indexes>,
+            PackedFixedElementOptArrayTypes<KeyType, Indexes, Indexes>,
             PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
     >;
 

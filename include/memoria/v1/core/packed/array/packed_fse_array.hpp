@@ -47,7 +47,7 @@ struct PackedFixedSizeElementArrayTypes {
 template <typename Types> class PackedFixedSizeElementArray;
 
 template <typename V, int32_t Blocks = 1, int32_t Indexes = 0>
-using PkdFSEArray2T = PackedFixedSizeElementArray<PackedFixedSizeElementArrayTypes<V, Blocks, Indexes>>;
+using PkdFSEArrayT = PackedFixedSizeElementArray<PackedFixedSizeElementArrayTypes<V, Blocks, Indexes>>;
 
 
 
@@ -70,6 +70,9 @@ public:
     using IndexDataType = DataType;
 
     using Value = typename DataTypeTraits<DataType>::ViewType;
+    using ViewType = Value;
+
+    using Values = core::StaticVector<Value, Blocks>;
 
     using Allocator = PackedAllocator;
 

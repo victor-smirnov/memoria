@@ -31,7 +31,7 @@ namespace mvector       {
 template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct VectorValueStructTF;
 
 template <typename KeyType>
-struct VectorValueStructTF<KeyType, true>: HasType<PkdFSEArray2T<KeyType>> {};
+struct VectorValueStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType>> {};
 
 template <typename KeyType>
 struct VectorValueStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType>> {};
