@@ -49,33 +49,33 @@ public:
         return self().sizes()[0];
     }
 
-    auto seek_(CtrSizeT position)
+    auto ctr_seek(CtrSizeT position)
     {
         return self().template ctr_seek_stream<0>(position);
     }
 
-    auto Begin() {
-        return self().seek_(0);
+    auto ctr_begin() {
+        return self().ctr_seek(0);
     }
 
-    auto End()
+    auto ctr_end()
     {
         auto size = self().size();
         if (size > 0)
         {
-            return self().seek_(size);
+            return self().ctr_seek(size);
         }
         else {
-            return self().seek_(0);
+            return self().ctr_seek(0);
         }
     }
 
     auto begin() {
-        return self().Begin();
+        return self().ctr_begin();
     }
 
     auto end() {
-        return self().End();
+        return self().ctr_end();
     }
 
     auto endm()

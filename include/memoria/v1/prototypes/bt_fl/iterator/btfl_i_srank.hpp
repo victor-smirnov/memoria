@@ -105,7 +105,7 @@ private:
 
 public:
 
-    CtrSizeT rank(int32_t stream) const
+    CtrSizeT iter_rank(int32_t stream) const
     {
     	auto& self = this->self();
     	RankWalker fn(stream);
@@ -120,7 +120,7 @@ public:
     }
 
 
-    CtrSizeT ranks() const
+    CtrSizeT iter_ranks() const
     {
     	auto& self = this->self();
     	RankWalker fn;

@@ -43,7 +43,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     using TargetType = typename Container::Types::template TargetType<LeafPath>;
 
     template <typename Walker>
-    auto find_fw(Walker&& walker)
+    auto iter_find_fw(Walker&& walker)
     {
         auto& self = this->self();
 
@@ -62,7 +62,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     }
 
     template <typename Walker>
-    auto find_bw(Walker&& walker)
+    auto iter_find_bw(Walker&& walker)
     {
         auto& self = this->self();
 
@@ -83,48 +83,48 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
 
     template <typename LeafPath>
-    auto find_fw_gt(int32_t index, TargetType<LeafPath> key)
+    auto iter_find_fw_gt(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_V1_ASSERT(index, >=, 0);
         MEMORIA_V1_ASSERT(key, >=, 0);
 
         typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
 
-        return self().find_fw(walker);
+        return self().iter_find_fw(walker);
     }
 
     template <typename LeafPath>
-    auto find_fw_ge(int32_t index, TargetType<LeafPath> key)
+    auto iter_find_fw_ge(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_V1_ASSERT(index, >=, 0);
         MEMORIA_V1_ASSERT(key, >=, 0);
 
         typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
 
-        return self().find_fw(walker);
+        return self().iter_find_fw(walker);
     }
 
 
     template <typename LeafPath>
-    auto find_bw_gt(int32_t index, TargetType<LeafPath> key)
+    auto iter_find_bw_gt(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_V1_ASSERT(index, >=, 0);
         MEMORIA_V1_ASSERT(key, >=, 0);
 
         typename Types::template FindGTBackwardWalker<Types, LeafPath> walker(index, key);
 
-        return self().find_bw(walker);
+        return self().iter_find_bw(walker);
     }
 
     template <typename LeafPath>
-    auto find_bw_ge(int32_t index, TargetType<LeafPath> key)
+    auto iter_find_bw_ge(int32_t index, TargetType<LeafPath> key)
     {
         MEMORIA_V1_ASSERT(index, >=, 0);
         MEMORIA_V1_ASSERT(key, >=, 0);
 
         typename Types::template FindGEBackwardWalker<Types, LeafPath> walker(index, key);
 
-        return self().find_bw(walker);
+        return self().iter_find_bw(walker);
     }
 
 MEMORIA_V1_ITERATOR_PART_END

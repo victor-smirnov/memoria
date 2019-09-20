@@ -149,17 +149,17 @@ public:
         const Sequence*     seq     = sequence();
         const LabelArray*   labels  = this->labels();
 
-        int32_t seq_size    = labels->value(0, subseq_num);
+        int32_t ctr_seq_size    = labels->value(0, subseq_num);
         int32_t seq_prefix  = labels->sum(0, subseq_num);
         int32_t rank_prefix = seq->rank(seq_prefix, symbol);
 
         SelectResult result = seq->selectFw(symbol, rank_prefix + rank);
-        if (result.local_pos() - seq_prefix < seq_size)
+        if (result.local_pos() - seq_prefix < ctr_seq_size)
         {
             return SelectResult(result.local_pos() - seq_prefix, rank, true);
         }
         else {
-            return SelectResult(seq_prefix + seq_size, seq->rank(seq_prefix, seq_prefix + seq_size), false);
+            return SelectResult(seq_prefix + ctr_seq_size, seq->rank(seq_prefix, seq_prefix + ctr_seq_size), false);
         }
     }
 

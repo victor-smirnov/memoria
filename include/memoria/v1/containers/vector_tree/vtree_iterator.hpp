@@ -172,15 +172,15 @@ public:
         }
         else if (other.type() == Base::END)
         {
-            return Base::isEnd();
+            return Base::iter_is_end();
         }
         else if (other.type() == Base::START)
         {
-            return Base::isBegin();
+            return Base::iter_is_begin();
         }
         else
         {
-            return Base::isEmpty();
+            return Base::iter_is_empty();
         }
     }
 
@@ -197,24 +197,24 @@ public:
         }
         else if (other.type() == Base::END)
         {
-            return Base::isNotEnd();
+            return Base::iter_is_not_end();
         }
         else if (other.type() == Base::START)
         {
-            return !Base::isBegin();
+            return !Base::iter_is_begin();
         }
         else
         {
-            return !Base::isEmpty();
+            return !Base::iter_is_empty();
         }
     }
 
-    bool isEnd() const {
-        return vec_iter_.isEnd();
+    bool iter_is_end() const {
+        return vec_iter_.iter_is_end();
     }
 
-    bool isNotEnd() const {
-        return vec_iter_.isNotEnd();
+    bool iter_is_not_end() const {
+        return vec_iter_.iter_is_not_end();
     }
 
 //    template <typename T>
@@ -236,13 +236,13 @@ public:
 template <typename Types>
 bool operator==(const Iter<VTreeIterTypes<Types> >& iter, const IterEndMark& mark)
 {
-    return iter.isEnd();
+    return iter.iter_is_end();
 }
 
 template <typename Types>
 bool operator!=(const Iter<VTreeIterTypes<Types> >& iter, const IterEndMark& mark)
 {
-    return iter.isNotEnd();
+    return iter.iter_is_not_end();
 }
 
 }}

@@ -183,9 +183,9 @@ void IterApi<EdgeMap, Profile>::to_prev_key()
 }
 
 template <typename Profile>
-int64_t IterApi<EdgeMap, Profile>::skipFw(int64_t offset) const
+int64_t IterApi<EdgeMap, Profile>::iter_skip_fw(int64_t offset) const
 {
-    return this->pimpl_->skipFw(offset);
+    return this->pimpl_->iter_skip_fw(offset);
 }
 
 template <typename Profile>

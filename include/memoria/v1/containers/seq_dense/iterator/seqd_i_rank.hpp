@@ -92,12 +92,12 @@ public:
 
     auto rankFw(int64_t delta, int32_t symbol)
     {
-        return self().template rank_fw_<SymbolsSubstreamPath>(symbol, delta);
+        return self().template iter_rank_fw<SymbolsSubstreamPath>(symbol, delta);
     }
 
     auto rankBw(int64_t delta, int32_t symbol)
     {
-        return self().template rank_bw_<SymbolsSubstreamPath>(symbol, delta);
+        return self().template iter_rank_bw<SymbolsSubstreamPath>(symbol, delta);
     }
 
 MEMORIA_V1_ITERATOR_PART_END
@@ -174,7 +174,7 @@ int64_t M_TYPE::ranki(int32_t symbol) const
 //    typename Types::template RankFWWalker<Types, IntList<0>> walker(symbol, delta);
 //
 //
-//    return self.find_fw(walker);
+//    return self.iter_find_fw(walker);
 //}
 //
 //M_PARAMS
@@ -186,7 +186,7 @@ int64_t M_TYPE::ranki(int32_t symbol) const
 //
 //    typename Types::template RankBWWalker<Types, IntList<0>> walker(symbol, delta);
 //
-//    return self.template find_bw(walker);
+//    return self.template iter_find_bw(walker);
 //}
 
 

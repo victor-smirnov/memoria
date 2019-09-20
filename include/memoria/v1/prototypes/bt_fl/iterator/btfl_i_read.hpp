@@ -83,17 +83,17 @@ public:
         while (processed < length)
         {
             int32_t start = self.iter_local_pos();
-            int32_t size  = self.structure_size();
+            int32_t size  = self.iter_structure_size();
 
             int32_t leaf_remainder = size - start;
             CtrSizesT to_copy;
 
             if (processed + leaf_remainder <= length)
             {
-                to_copy = self.leafrank(leaf_remainder);
+                to_copy = self.iter_leafrank(leaf_remainder);
             }
             else {
-                to_copy = self.leafrank(length - processed);
+                to_copy = self.iter_leafrank(length - processed);
             }
 
             auto to_copy_symbols = to_copy.sum();
@@ -150,19 +150,6 @@ public:
         tmp.iter_refresh();
 
         MEMORIA_V1_ASSERT(self().iter_cache(), ==, tmp.iter_cache());
-    }
-
-//    void prepare() {
-//        Base::prepare();
-//
-//        auto& self = this->self();
-//        auto& iter_cache = self.iter_cache();
-//    }
-
-
-    void init()
-    {
-        Base::init();
     }
 
 

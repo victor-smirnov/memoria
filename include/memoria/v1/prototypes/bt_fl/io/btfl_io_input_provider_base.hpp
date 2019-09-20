@@ -257,14 +257,14 @@ public:
 
             if (MMA1_UNLIKELY(start_pos_ > 0))
             {
-                int32_t seq_size = seq.size();
-                if (start_pos_ < seq_size)
+                int32_t ctr_seq_size = seq.size();
+                if (start_pos_ < ctr_seq_size)
                 {
                     seq.rank_to(start_pos_, &start_[0]);
                     start_pos_ -= start_.sum();
                 }
                 else {
-                    start_pos_ -= seq_size;
+                    start_pos_ -= ctr_seq_size;
                 }
             }
         }

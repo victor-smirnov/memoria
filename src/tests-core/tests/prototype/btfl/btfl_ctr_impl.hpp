@@ -28,7 +28,7 @@ namespace v1 {
 template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 typename CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::Iterator CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::begin()
 {
-    return this->pimpl_->seq_begin();
+    return this->pimpl_->ctr_seq_begin();
 }
 
 template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
@@ -41,7 +41,7 @@ core::StaticVector<int64_t, DataStreams> IterApi<BTFLTestCtr<DataStreams, LeafSi
 template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 typename CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::Iterator CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::seekL0(int64_t pos)
 {
-    return this->pimpl_->seq_seekL0(pos);
+    return this->pimpl_->ctr_seq_seekL0(pos);
 }
 
 
@@ -96,7 +96,7 @@ void IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::to_parent(int64_t
 template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 int64_t IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::select_ge_fw(int64_t rank, int32_t level)
 {
-    return this->pimpl_->selectGEFw(rank, level);
+    return this->pimpl_->iter_select_ge_fw(rank, level);
 }
 
 template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
@@ -109,7 +109,7 @@ bool IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::next()
 template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 core::StaticVector<int64_t, DataStreams + 1> IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::remove_ge(int64_t size)
 {
-    return this->pimpl_->removeGE(size);
+    return this->pimpl_->iter_remove_ge(size);
 }
 
 }}

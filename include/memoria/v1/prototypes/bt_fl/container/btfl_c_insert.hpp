@@ -47,7 +47,7 @@ public:
 
     static const int32_t Streams = Types::Streams;
 
-    auto insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
+    auto ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
         auto& self = this->self();
 
@@ -57,7 +57,7 @@ public:
 
         btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov.get(), start, length);
 
-        auto pos = iter.leafrank(iter.iter_local_pos());
+        auto pos = iter.iter_leafrank(iter.iter_local_pos());
 
         auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
 
@@ -78,7 +78,7 @@ public:
         }
     };
 
-    auto insert_iovector(Iterator& iter, io::IOVector& iovector, int64_t start, int64_t length)
+    auto ctr_insert_iovector(Iterator& iter, io::IOVector& iovector, int64_t start, int64_t length)
     {
         auto& self = this->self();
 
@@ -90,7 +90,7 @@ public:
 
         btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &producer, &iovector, start, length);
 
-        auto pos = iter.leafrank(iter.iter_local_pos());
+        auto pos = iter.iter_leafrank(iter.iter_local_pos());
 
         auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
 

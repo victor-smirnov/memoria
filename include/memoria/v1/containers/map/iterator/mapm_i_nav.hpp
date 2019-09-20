@@ -57,13 +57,13 @@ public:
     {
         auto& self = this->self();
 
-        self.ctr().insert_entry(
+        self.ctr().iter_insert_entry(
                 self,
                 map::KeyValueEntry<KeyV, ValueV, CtrSizeT>(key, value)
         );
 
 
-        self.skipFw(1);
+        self.iter_btss_skip_fw(1);
     }
 
 
@@ -71,11 +71,11 @@ public:
     {
         auto& self = this->self();
 
-        self.ctr().removeEntry(self);
+        self.ctr().ctr_remove_entry(self);
 
-        if (self.isEnd())
+        if (self.iter_is_end())
         {
-            self.skipFw(0);
+            self.iter_btss_skip_fw(0);
         }
     }
 
@@ -87,22 +87,22 @@ public:
 
     auto findFwGT(int32_t index, KeyView key)
     {
-        return self().template find_fw_gt<IntList<1>>(index, key);
+        return self().template iter_find_fw_gt<IntList<1>>(index, key);
     }
 
     auto findFwGE(int32_t index, KeyView key)
     {
-        return self().template find_fw_ge<IntList<1>>(index, key);
+        return self().template iter_find_fw_ge<IntList<1>>(index, key);
     }
 
     auto findBwGT(int32_t index, KeyView key)
     {
-        return self().template find_bw_gt<IntList<1>>(index, key);
+        return self().template iter_find_bw_gt<IntList<1>>(index, key);
     }
 
     auto findBwGE(int32_t index, KeyView key)
     {
-        return self().template find_bw_ge<IntList<1>>(index, key);
+        return self().template iter_find_bw_ge<IntList<1>>(index, key);
     }
 
     auto key() const
@@ -117,7 +117,7 @@ public:
 
     void assign(const ValueView& v)
     {
-        self().ctr().template update_entry<IntList<2>>(self(), map::ValueBuffer<ValueV>(v));
+        self().ctr().template ctr_update_entry<IntList<2>>(self(), map::ValueBuffer<ValueV>(v));
     }
 
     bool is_found(const KeyView& k) const

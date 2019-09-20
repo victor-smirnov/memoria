@@ -56,65 +56,65 @@ public:
     }
 
     bool next_entry() {
-        return self().skipFw(1) > 0;
+        return self().iter_btss_skip_fw(1) > 0;
     }
 
 
     bool operator++() {
-        return self().skipFw(1);
+        return self().iter_btss_skip_fw(1);
     }
 
     bool next() {
-        return self().skipFw(1);
+        return self().iter_btss_skip_fw(1);
     }
 
     bool prev() {
-        return self().skipBw(1);
+        return self().iter_btss_skip_bw(1);
     }
 
     bool operator--() {
-        return self().skipBw(1);
+        return self().iter_btss_skip_bw(1);
     }
 
     bool operator++(int) {
-        return self().skipFw(1);
+        return self().iter_btss_skip_fw(1);
     }
 
     bool operator--(int) {
-        return self().skipFw(1);
+        return self().iter_btss_skip_fw(1);
     }
 
     CtrSizeT operator+=(CtrSizeT size) {
-        return self().skipFw(size);
+        return self().iter_btss_skip_fw(size);
     }
 
     CtrSizeT operator-=(CtrSizeT size) {
-        return self().skipBw(size);
+        return self().iter_btss_skip_bw(size);
     }
 
-    int32_t size() const
+    int32_t iter_btss_leaf_size() const
     {
         return self().iter_leaf_size(0);
     }
 
-    bool isEof() const {
-        return self().iter_local_pos() >= self().size();
+//    bool isEof() const {
+//        return self().iter_local_pos() >= self().size();
+//    }
+
+//    bool isBof() const {
+//        return self().iter_local_pos() < 0;
+//    }
+
+    CtrSizeT iter_btss_skip_fw(CtrSizeT amount) {
+        return self().template iter_skip_fw<0>(amount);
     }
 
-    bool isBof() const {
-        return self().iter_local_pos() < 0;
-    }
-
-    CtrSizeT skipFw(CtrSizeT amount) {
-        return self().template skip_fw_<0>(amount);
-    }
-
-    CtrSizeT skipBw(CtrSizeT amount) {
-        return self().template skip_bw_<0>(amount);
+    CtrSizeT iter_btss_skip_bw(CtrSizeT amount) {
+        return self().template iter_skip_bw<0>(amount);
     }
 
     CtrSizeT skip(CtrSizeT amount) {
-        return self().template skip_<0>(amount);
+        return self().template iter_skip<0>(amount);
     }
 
     CtrSizeT pos() const
@@ -125,26 +125,26 @@ public:
     }
 
 
-    void remove()
+    void iter_remove_current()
     {
         auto& self  = this->self();
         auto& ctr   = self.ctr();
 
-        ctr.removeEntry(self);
+        ctr.ctr_remove_entry(self);
 
-        if (self.isEnd())
+        if (self.iter_is_end())
         {
-            self.skipFw(0);
+            self.iter_skip_fw(0);
         }
     }
 
-    CtrSizeT remove(CtrSizeT size)
+    CtrSizeT remove_from(CtrSizeT size)
     {
         auto& self = this->self();
 
         auto to = self;
 
-        to.skipFw(size);
+        to.iter_btss_skip_fw(size);
 
         auto from_path      = self.iter_leaf();
         Position from_pos   = Position(self.iter_local_pos());
@@ -163,7 +163,7 @@ public:
         return sizes[0];
     }
 
-    CtrSizeT remove(IteratorPtr to)
+    CtrSizeT iter_remove_to(IteratorPtr to)
     {
         auto& self = this->self();
 
@@ -185,7 +185,7 @@ public:
     }
 
 
-    auto bulk_insert(btss::io::IOVectorBTSSInputProvider<Container>& provider)
+    auto iter_bulk_insert(btss::io::IOVectorBTSSInputProvider<Container>& provider)
     {
         auto& self = this->self();
         return self.ctr().insert(self, provider);
@@ -212,7 +212,7 @@ public:
     };
 
     template <typename OutputIterator>
-    CtrSizeT read(OutputIterator begin, CtrSizeT length)
+    CtrSizeT iter_read_entries(OutputIterator begin, CtrSizeT length)
     {
         auto& self = this->self();
 
@@ -225,13 +225,13 @@ public:
     auto insert_iovector(io::IOVectorProducer& producer, int64_t start, int64_t length)
     {
         auto& self = this->self();
-        return self.ctr().insert_iovector(self, producer, start, length);
+        return self.ctr().ctr_insert_iovector(self, producer, start, length);
     }
 
     auto insert_iovector(io::IOVector& io_vector, int64_t start, int64_t length)
     {
         auto& self = this->self();
-        return self.ctr().insert_iovector(self, io_vector, start, length);
+        return self.ctr().ctr_insert_iovector(self, io_vector, start, length);
     }
 
     auto read_to(io::IOVectorConsumer& consumer, int64_t length)
@@ -292,7 +292,7 @@ public:
 
 public:
 
-    SplitResult split(int32_t stream, int32_t target_idx)
+    SplitResult iter_split_leaf(int32_t stream, int32_t target_idx)
     {
         auto& self = this->self();
 

@@ -106,7 +106,7 @@ public:
     {
         auto& self = this->self();
 
-        int32_t stream = self.data_stream_s();
+        int32_t stream = self.iter_data_stream_s();
 
         if (stream == Level || stream == -1)
         {
@@ -133,7 +133,7 @@ public:
     {
         auto& self = this->self();
 
-        int32_t stream = self.data_stream_s();
+        int32_t stream = self.iter_data_stream_s();
 
         if (stream == Level || stream == -1)
         {
@@ -160,7 +160,7 @@ public:
     {
         auto& self = this->self();
 
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         MEMORIA_V1_ASSERT(stream, ==, Stream);
 
@@ -172,12 +172,12 @@ public:
     CtrSizeT countChildren() const
     {
         auto& self = this->self();
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream < DataStreams - 1)
         {
             auto ii = self.iter_clone();
-            ii->selectGEFw(1, stream);
+            ii->iter_select_ge_fw(1, stream);
 
             auto r0 = self.rank(stream + 1);
             auto r1 = ii->rank(stream + 1);
@@ -192,7 +192,7 @@ public:
     void toChild(CtrSizeT n)
     {
     	auto& self = this->self();
-    	int32_t stream = self.data_stream();
+    	int32_t stream = self.iter_data_stream();
 
     	if (stream < DataStreams - 1)
     	{

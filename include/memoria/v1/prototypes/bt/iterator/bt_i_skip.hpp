@@ -42,36 +42,36 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorSkipName)
 
 
     template <int32_t Stream>
-    auto skip_fw_(CtrSizeT amount)
+    auto iter_skip_fw(CtrSizeT amount)
     {
         MEMORIA_V1_ASSERT(amount, >=, 0);
 
         typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(amount);
 
-        return self().find_fw(walker);
+        return self().iter_find_fw(walker);
     }
 
     template <int32_t Stream>
-    auto skip_bw_(CtrSizeT amount)
+    auto iter_skip_bw(CtrSizeT amount)
     {
         MEMORIA_V1_ASSERT(amount, >=, 0);
 
         typename Types::template SkipBackwardWalker<Types, IntList<Stream>> walker(amount);
 
-        return self().find_bw(walker);
+        return self().iter_find_bw(walker);
     }
 
     template <int32_t Stream>
-    auto skip_(CtrSizeT amount)
+    auto iter_skip(CtrSizeT amount)
     {
         auto& self = this->self();
 
         if (amount >= 0)
         {
-            return self.template skip_fw_<Stream>(amount);
+            return self.template iter_skip_fw<Stream>(amount);
         }
         else {
-            return self.template skip_bw_<Stream>(-amount);
+            return self.template iter_skip_bw<Stream>(-amount);
         }
     }
 

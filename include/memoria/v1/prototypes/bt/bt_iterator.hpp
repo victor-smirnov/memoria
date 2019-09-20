@@ -95,15 +95,15 @@ public:
         }
         else if (other.type() == Base::END)
         {
-            return Base::isEnd();
+            return Base::iter_is_end();
         }
         else if (other.type() == Base::START)
         {
-            return Base::isBegin();
+            return Base::iter_is_begin();
         }
         else
         {
-            return Base::isEmpty();
+            return Base::iter_is_empty();
         }
     }
 
@@ -120,15 +120,15 @@ public:
         }
         else if (other.type() == Base::END)
         {
-            return Base::isNotEnd();
+            return Base::iter_is_not_end();
         }
         else if (other.type() == Base::START)
         {
-            return !Base::isBegin();
+            return !Base::iter_is_begin();
         }
         else
         {
-            return !Base::isEmpty();
+            return !Base::iter_is_empty();
         }
     }
 
@@ -143,13 +143,13 @@ public:
 template <typename Types>
 bool operator==(const Iter<BTIterTypes<Types> >& iter, const IterEndMark& mark)
 {
-    return iter.isEnd();
+    return iter.iter_is_end();
 }
 
 template <typename Types>
 bool operator!=(const Iter<BTIterTypes<Types> >& iter, const IterEndMark& mark)
 {
-    return iter.isNotEnd();
+    return iter.iter_is_not_end();
 }
 
 

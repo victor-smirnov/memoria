@@ -54,7 +54,7 @@ public:
     {
         auto& self = this->self();
 
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 0)
         {
@@ -71,7 +71,7 @@ public:
     {
         auto& self = this->self();
 
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 1)
         {
@@ -89,7 +89,7 @@ public:
 
     	self.selectFw(1, 0);
 
-    	return !self.isEnd();
+    	return !self.iter_is_end();
     }
 
 
@@ -99,11 +99,11 @@ public:
         auto& self = this->self();
         if (!self.is_end())
         {
-            int32_t stream = self.data_stream();
+            int32_t stream = self.iter_data_stream();
             if (stream == 1)
             {
                 auto ii = self.iter_clone();
-                return ii->countBw() - 1;
+                return ii->iter_count_bw() - 1;
             }
             else {
                 return 0;
@@ -119,15 +119,15 @@ public:
     {
         auto& self = this->self();
 
-        if (!self.isEnd())
+        if (!self.iter_is_end())
         {
-            if (self.data_stream() != 0)
+            if (self.iter_data_stream() != 0)
             {
                 MMA1_THROW(Exception()) << WhatCInfo("Key insertion into the middle of data block is not allowed");
             }
         }
 
-        self.template insert_entry<0>(bt::SingleValueEntryFn<0, Key, CtrSizeT>(key));
+        self.template iter_insert_entry<0>(bt::SingleValueEntryFn<0, Key, CtrSizeT>(key));
     }
 
     void insert_value(const Value& value)
@@ -137,7 +137,7 @@ public:
         // FIXME: Allows inserting into start of the sequence that is incorrect, 
         // but doesn't break the structure
 
-        self.template insert_entry<1>(bt::SingleValueEntryFn<1, Value, CtrSizeT>(value));
+        self.template iter_insert_entry<1>(bt::SingleValueEntryFn<1, Value, CtrSizeT>(value));
     }
 
     void subtract_value(const Value& value)
@@ -145,7 +145,7 @@ public:
         auto& self = this->self();
 
         Value existing = self.value();
-        self.template update_entry<1, IntList<1>>(edge_map::SingleValueUpdateEntryFn<1, Value, CtrSizeT>(existing - value));
+        self.template iter_update_entry<1, IntList<1>>(edge_map::SingleValueUpdateEntryFn<1, Value, CtrSizeT>(existing - value));
     }
 
     void add_value(const Value& value)
@@ -153,13 +153,13 @@ public:
         auto& self = this->self();
 
         Value existing = self.value();
-        self.template update_entry<1, IntList<1>>(edge_map::SingleValueUpdateEntryFn<1, Value, CtrSizeT>(existing + value));
+        self.template iter_update_entry<1, IntList<1>>(edge_map::SingleValueUpdateEntryFn<1, Value, CtrSizeT>(existing + value));
     }
 
 
     CtrSizesT remove(CtrSizeT length = 1)
     {
-        return self().removeGE(length);
+        return self().iter_remove_ge(length);
     }
 
     CtrSizeT values_size() const {
@@ -171,7 +171,7 @@ public:
     bool is_found(const Key& key)
     {
         auto& self = this->self();
-        if (!self.isEnd())
+        if (!self.iter_is_end())
         {
             return self.key() == key;
         }
@@ -183,7 +183,7 @@ public:
     bool to_values()
     {
     	auto& self = this->self();
-    	int32_t stream = self.data_stream();
+    	int32_t stream = self.iter_data_stream();
 
         if (stream == 1) 
         {
@@ -195,7 +195,7 @@ public:
                 return false;
             }
             else {
-                return self.data_stream() == 1;
+                return self.iter_data_stream() == 1;
             }
         }
     }
@@ -211,17 +211,17 @@ public:
     CtrSizeT count_values() const
     {
         auto& self = this->self();
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 0)
         {
             auto ii = self.iter_clone();
             if (ii->next())
             {
-                int32_t next_stream = ii->data_stream_s();
+                int32_t next_stream = ii->iter_data_stream_s();
                 if (next_stream == 1)
                 {
-                    return ii->countFw();
+                    return ii->iter_count_fw();
                 }
                 else {
                     return 0;
@@ -240,16 +240,16 @@ public:
     CtrSizeT count_values_skip()
     {
         auto& self = this->self();
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 0)
         {
             if (self.next())
             {
-                int32_t next_stream = self.data_stream_s();
+                int32_t next_stream = self.iter_data_stream_s();
                 if (next_stream == 1)
                 {
-                    return self.countFw();
+                    return self.iter_count_fw();
                 }
                 else {
                     return 0;
@@ -280,7 +280,7 @@ public:
             auto ii = self.iter_clone();
             auto values_start_pos = self.pos();
 
-            self.toDataStream(1);
+            self.iter_to_data_stream(1);
 
             typename Types::template FindGEForwardWalker<Types, IntList<1, 1>> walker(0, value);
             auto prefix = self.ctr_find_fw(walker);
@@ -297,7 +297,7 @@ public:
                 return EdgeMapFindResult{prefix.template cast_to<Value::AccBitLength>(), pos, size};
             }
             else {
-                self.skipBw(actual_size - size);
+                self.iter_skip_bw(actual_size - size);
 
                 auto values_start_prefix = ii->template sum_up<UAcc192T, IntList<1, 1>>(0);
                 auto values_end_prefix = self.template sum_up<UAcc192T, IntList<1, 1>>(0);
@@ -324,7 +324,7 @@ public:
             {
                 auto vv = value - result.prefix;
                 self.insert_value(vv);
-                self.skipFw(1);
+                self.iter_skip_fw(1);
 
                 self.subtract_value(vv);
                 return true;

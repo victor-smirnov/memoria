@@ -56,7 +56,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
         if (!std::get<0>(result))
         {
-            SplitResult split_r = iter.split(stream, idx);
+            SplitResult split_r = iter.iter_split_leaf(stream, idx);
 
             idx = split_r.stream_idx();
 

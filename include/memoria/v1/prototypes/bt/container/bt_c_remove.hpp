@@ -48,7 +48,7 @@ protected:
 
         if (!std::get<0>(result))
         {
-            iter.split(stream, idx);
+            iter.iter_split_leaf(stream, idx);
 
             result = self.template ctr_try_remove_stream_entry<Stream>(iter, idx);
 

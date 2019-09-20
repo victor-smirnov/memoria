@@ -59,7 +59,7 @@ public:
     }
 
     virtual bool is_end() const {
-        return iter_->isEnd();
+        return iter_->iter_is_end();
     }
 
     virtual bool next()

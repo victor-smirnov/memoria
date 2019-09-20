@@ -125,7 +125,7 @@ public:
             {
                 int32_t leaf_rest = iter->iter_leaf_size(0) - iter->iter_local_pos();
 
-                iter->skipFw(leaf_rest);
+                iter->iter_skip_fw(leaf_rest);
 
                 if (iter->isEof())
                 {

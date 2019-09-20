@@ -65,7 +65,7 @@ public:
     {
         auto& self = this->self();
 
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 0)
         {
@@ -81,7 +81,7 @@ public:
     {
         auto& self = this->self();
 
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 1)
         {
@@ -99,24 +99,24 @@ public:
 
     	self.selectFw(1, 0);
 
-    	return !self.isEnd();
+    	return !self.iter_is_end();
     }
 
 
     CtrSizeT count_values() const
     {
         auto& self = this->self();
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 0)
         {
             auto ii = self.iter_clone();
             if (ii->next())
             {
-                int32_t next_stream = ii->data_stream_s();
+                int32_t next_stream = ii->iter_data_stream_s();
                 if (next_stream == 1)
                 {
-                    return ii->countFw();
+                    return ii->iter_count_fw();
                 }
                 else {
                     return 0;
@@ -136,11 +136,11 @@ public:
         auto& self = this->self();
         if (!self.is_end())
         {
-            int32_t stream = self.data_stream();
+            int32_t stream = self.iter_data_stream();
             if (stream == 1)
             {
                 auto ii = self.iter_clone();
-                return ii->countBw() - 1;
+                return ii->iter_count_bw() - 1;
             }
             else {
                 return 0;
@@ -161,15 +161,15 @@ public:
     {
         auto& self = this->self();
 
-        if (!self.isEnd())
+        if (!self.iter_is_end())
         {
-            if (self.data_stream() != 0)
+            if (self.iter_data_stream() != 0)
             {
                 MMA1_THROW(Exception()) << WhatCInfo("Key insertion into the middle of data block is not allowed");
             }
         }
 
-        self.template insert_entry<0>(bt::SingleValueEntryFn<0, Key, CtrSizeT>(key));
+        self.template iter_insert_entry<0>(bt::SingleValueEntryFn<0, Key, CtrSizeT>(key));
     }
 
     void insert_value(const ValueView& value)
@@ -179,13 +179,13 @@ public:
         // FIXME: Allows inserting into start of the sequence that is incorrect, 
         // but doesn't break the structure
 
-        self.template insert_entry<1>(bt::SingleValueEntryFn<1, Value, CtrSizeT>(value));
+        self.template iter_insert_entry<1>(bt::SingleValueEntryFn<1, Value, CtrSizeT>(value));
     }
 
 
     CtrSizesT remove(CtrSizeT length = 1)
     {
-        return self().removeGE(length);
+        return self().iter_remove_ge(length);
     }
 
     CtrSizeT values_size() const {
@@ -195,7 +195,7 @@ public:
     bool is_found(const KeyView& key)
     {
         auto& self = this->self();
-        if (!self.isEnd())
+        if (!self.iter_is_end())
         {
             return self.key() == key;
         }
@@ -207,7 +207,7 @@ public:
     bool to_values()
     {
     	auto& self = this->self();
-    	int32_t stream = self.data_stream();
+    	int32_t stream = self.iter_data_stream();
 
         if (stream == 1) 
         {
@@ -219,7 +219,7 @@ public:
                 return false;
             }
             else {
-                return self.data_stream() == 1;
+                return self.iter_data_stream() == 1;
             }
         }
     }

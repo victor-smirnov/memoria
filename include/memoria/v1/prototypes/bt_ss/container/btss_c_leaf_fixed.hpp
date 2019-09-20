@@ -50,7 +50,7 @@ protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, single_stream_capacity, int32_t);
 
 public:
-    int32_t getLeafNodeCapacity(const NodeBaseG& node, int max_hops = 100) const
+    int32_t ctr_get_leaf_node_capacity(const NodeBaseG& node, int max_hops = 100) const
     {
         return self().leaf_dispatcher().dispatch(node, GetStreamCapacityFn(), max_hops);
     }

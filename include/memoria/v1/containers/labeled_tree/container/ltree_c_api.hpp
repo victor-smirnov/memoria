@@ -69,7 +69,7 @@ public:
     {
         auto iter = firstChild(node);
 
-        iter->skipFw(child_num);
+        iter->iter_skip_fw(child_num);
 
         return iter;
     }

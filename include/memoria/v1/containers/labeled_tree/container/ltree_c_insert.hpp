@@ -309,7 +309,7 @@ public:
 
         self.insertZero(iter);
 
-        iter.skipBw(iter.pos() - pos);
+        iter.iter_skip_bw(iter.pos() - pos);
     }
 
 

@@ -47,18 +47,18 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorRemoveName)
     static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 public:
-    Position removeGE(CtrSizeT n)
+    Position iter_remove_ge(CtrSizeT n)
     {
         auto& self = this->self();
         CtrSizesT sizes;
 
-        if (!self.isEnd())
+        if (!self.iter_is_end())
         {
             auto ii = self.iter_clone();
-        	ii->selectGEFw(n, self.data_stream());
+        	ii->iter_select_ge_fw(n, self.iter_data_stream());
 
-        	auto start = self.leafrank();
-        	auto end   = ii->leafrank();
+        	auto start = self.iter_leafrank();
+        	auto end   = ii->iter_leafrank();
 
         	self.ctr().ctr_remove_entries(self.iter_leaf(), start, ii->iter_leaf(), end, sizes, true);
 
@@ -72,20 +72,20 @@ public:
         return sizes;
     }
     
-    CtrSizeT remove_next(CtrSizeT n)
+    CtrSizeT iter_remove_next(CtrSizeT n)
     {
         auto& self = this->self();
         CtrSizesT sizes;
         CtrSizeT size{};
 
-        if (!self.isEnd())
+        if (!self.iter_is_end())
         {
             auto ii = self.iter_clone();
 
-        	size = ii->skipFw(n);
+        	size = ii->iter_skip_fw(n);
 
-        	auto start = self.leafrank();
-        	auto end   = ii->leafrank();
+        	auto start = self.iter_leafrank();
+        	auto end   = ii->iter_leafrank();
 
         	self.ctr().ctr_remove_entries(self.iter_leaf(), start, ii->iter_leaf(), end, sizes, true);
 
@@ -100,15 +100,15 @@ public:
     }
 
 
-    bool remove_all(MyType& to)
+    bool iter_remove_all(MyType& to)
     {
         auto& self = this->self();
         CtrSizesT sizes;
 
-        if (!self.isEnd())
+        if (!self.iter_is_end())
         {
-            auto start = self.leafrank();
-            auto end   = to.leafrank();
+            auto start = self.iter_leafrank();
+            auto end   = to.iter_leafrank();
 
             self.ctr().ctr_remove_entries(self.iter_leaf(), start, to.iter_leaf(), end, sizes, true);
 

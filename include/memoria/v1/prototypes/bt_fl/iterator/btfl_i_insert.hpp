@@ -47,13 +47,13 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorInsertName)
     auto insert_iovector(io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
         auto& self = this->self();
-        return self.ctr().insert_iovector(self, provider, start, length);
+        return self.ctr().ctr_insert_iovector(self, provider, start, length);
     }
 
     auto insert_iovector(io::IOVector& iovector, int64_t start, int64_t length)
     {
         auto& self = this->self();
-        return self.ctr().insert_iovector(self, iovector, start, length);
+        return self.ctr().ctr_insert_iovector(self, iovector, start, length);
     }
 
 
@@ -81,7 +81,7 @@ public:
 
 
     template <int32_t Stream, typename EntryFn>
-    void insert_entry(EntryFn&& entry)
+    void iter_insert_entry(EntryFn&& entry)
     {
         auto& self = this->self();
 
@@ -103,7 +103,7 @@ public:
 
 
     template <int32_t Stream, typename SubstreamsList, typename EntryFn>
-    void update_entry(EntryFn&& entry)
+    void iter_update_entry(EntryFn&& entry)
     {
         auto& self = this->self();
         int32_t key_idx = self.data_stream_idx(Stream);
@@ -117,13 +117,13 @@ public:
         auto& self  = this->self();
         auto leaf   = self.iter_leaf();
         
-        int32_t structure_size = self.structure_size();
+        int32_t structure_size = self.iter_structure_size();
 
         if (structure_size > 1)
         {
             int32_t structure_split_idx = structure_size / 2;
 
-            auto half_ranks = self.leafrank(structure_split_idx);
+            auto half_ranks = self.iter_leafrank(structure_split_idx);
             auto right      = self.ctr().ctr_split_leaf(leaf, half_ranks);
 
             auto& structure_idx = self.iter_local_pos();

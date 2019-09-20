@@ -109,7 +109,7 @@ public:
 
         if (local_pos < self.iter_leaf_size(0))
         {
-            self.ctr().template update_entry<IntList<1>>(self, EntryAdapter{v});
+            self.ctr().template ctr_update_entry<IntList<1>>(self, EntryAdapter{v});
         }
         else {
             MMA1_THROW(BoundsException()

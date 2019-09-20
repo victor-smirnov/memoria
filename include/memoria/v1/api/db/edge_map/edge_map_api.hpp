@@ -79,8 +79,8 @@ public:
 
     EdgeMapValueIterator iterate(const Key& key);
 
-    Iterator begin() {return Base::seq_begin();}
-    Iterator end() {return Base::seq_begin();}
+    Iterator begin() {return Base::ctr_seq_begin();}
+    Iterator end() {return Base::ctr_seq_begin();}
     Iterator seek(int64_t pos);
 
     int64_t size(const Key& key);
@@ -173,7 +173,7 @@ public:
     bool next_key();
     void to_prev_key();
 
-    int64_t skipFw(int64_t offset) const;
+    int64_t iter_skip_fw(int64_t offset) const;
     
     int64_t count_values() const;
     int64_t run_pos() const;
@@ -212,7 +212,7 @@ public:
         {
             if (cnt_ < size_)
             {
-                if (iterator_.skipFw(1) < 1)
+                if (iterator_.iter_skip_fw(1) < 1)
                 {
                     MMA1_THROW(RuntimeException()) << WhatCInfo("Can't move forward to expected value element");
                 }

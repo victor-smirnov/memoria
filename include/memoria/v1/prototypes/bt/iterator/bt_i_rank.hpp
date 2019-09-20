@@ -40,36 +40,36 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorRankName)
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
     template <typename LeafPath>
-    auto rank_fw_(int32_t index, CtrSizeT pos)
+    auto iter_rank_fw(int32_t index, CtrSizeT pos)
     {
         MEMORIA_V1_ASSERT(pos, >=, 0);
         MEMORIA_V1_ASSERT(index, >=, 0);
 
         typename Types::template RankForwardWalker<Types, LeafPath> walker(index, pos);
 
-        return self().find_fw(walker);
+        return self().iter_find_fw(walker);
     }
 
     template <typename LeafPath>
-    auto rank_bw_(int32_t index, CtrSizeT pos)
+    auto iter_rank_bw(int32_t index, CtrSizeT pos)
     {
         MEMORIA_V1_ASSERT(pos, >=, 0);
         MEMORIA_V1_ASSERT(index, >=, 0);
 
         typename Types::template RankBackwardWalker<Types, LeafPath> walker(index, pos);
 
-        return self().find_bw(walker);
+        return self().iter_find_bw(walker);
     }
 
     template <typename LeafPath>
-    auto rank_(int32_t index, CtrSizeT pos)
+    auto iter_rank(int32_t index, CtrSizeT pos)
     {
         if (pos >= 0)
         {
-            return self().template rank_fw_<LeafPath>(index, pos);
+            return self().template iter_rank_fw<LeafPath>(index, pos);
         }
         else {
-            return self().template rank_bw_<LeafPath>(index, -pos);
+            return self().template iter_rank_bw<LeafPath>(index, -pos);
         }
     }
 

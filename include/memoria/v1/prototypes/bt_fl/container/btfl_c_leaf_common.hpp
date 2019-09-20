@@ -46,7 +46,7 @@ public:
     using BlockUpdateMgr     = typename Types::BlockUpdateMgr;
 
 
-    bool isAtTheEnd2(const NodeBaseG& leaf, const Position& pos) const
+    bool ctr_is_at_the_end(const NodeBaseG& leaf, const Position& pos) const
     {
         auto sizes = self().ctr_get_node_sizes(leaf);
 

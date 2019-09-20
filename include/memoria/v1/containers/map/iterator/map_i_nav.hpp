@@ -54,20 +54,20 @@ public:
 
         MEMORIA_V1_ASSERT_TRUE(delta > 0);
 
-        self.ctr().insert_entry(
+        self.ctr().iter_insert_entry(
                 self,
                 InputTupleAdapter<0>::convert(0, core::StaticVector<Key, 1>({delta}), core::StaticVector<Value, 1>{value})
         );
 
-        self.skipFw(1);
+        self.iter_skip_fw(1);
 
-        if (!self.isEnd())
+        if (!self.iter_is_end())
         {
             auto k = self.raw_key();
 
             MEMORIA_V1_ASSERT_TRUE((k - StaticVector<int64_t, 1>(delta))[0] >= 0);
 
-            self.ctr().template update_entry<IntList<1>>(self, std::make_tuple(k - StaticVector<int64_t, 1>(delta)));
+            self.ctr().template ctr_update_entry<IntList<1>>(self, std::make_tuple(k - StaticVector<int64_t, 1>(delta)));
         }
     }
 
@@ -82,18 +82,18 @@ public:
 
         auto k = self.raw_key();
 
-        self.ctr().removeEntry(self);
+        self.ctr().ctr_remove_entry(self);
 
-        if (self.isEnd())
+        if (self.iter_is_end())
         {
-            self.skipFw(0);
+            self.iter_skip_fw(0);
         }
 
-        if (!self.isEnd()) {
+        if (!self.iter_is_end()) {
 
             auto kk = self.raw_key();
 
-            self.ctr().template update_entry<IntList<0>>(self, std::make_tuple(k + kk));
+            self.ctr().template ctr_update_entry<IntList<0>>(self, std::make_tuple(k + kk));
         }
     }
 
@@ -101,22 +101,22 @@ public:
 
     auto findFwGT(int32_t index, Key key)
     {
-        return self().template find_fw_gt<IntList<0>>(index, key);
+        return self().template iter_find_fw_gt<IntList<0>>(index, key);
     }
 
     auto findFwGE(int32_t index, Key key)
     {
-        return self().template find_fw_ge<IntList<0>>(index, key);
+        return self().template iter_find_fw_ge<IntList<0>>(index, key);
     }
 
     auto findBwGT(int32_t index, Key key)
     {
-        return self().template find_bw_gt<IntList<0>>(index, key);
+        return self().template iter_find_bw_gt<IntList<0>>(index, key);
     }
 
     auto findBwGE(int32_t index, Key key)
     {
-        return self().template find_bw_ge<IntList<0>>(index, key);
+        return self().template iter_find_bw_ge<IntList<0>>(index, key);
     }
 
     Key prefix() const
@@ -152,14 +152,14 @@ public:
 
     void setValue(const Value& v)
     {
-        self().ctr().template update_entry<IntList<1>>(self(), std::make_tuple(v));
+        self().ctr().template ctr_update_entry<IntList<1>>(self(), std::make_tuple(v));
     }
 
     bool isFound(const Key& k) const
     {
         auto& self = this->self();
 
-        return (!self.isEnd()) && self.key() == k;
+        return (!self.iter_is_end()) && self.key() == k;
     }
 
 MEMORIA_V1_ITERATOR_PART_END

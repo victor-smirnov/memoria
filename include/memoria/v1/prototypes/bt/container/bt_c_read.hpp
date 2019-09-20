@@ -86,7 +86,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
             int32_t processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadEntriesFn<StreamIdx>(), std::forward<Fn>(fn), idx, idx + (length - total));
 
             if (processed > 0) {
-                total += iter.skipFw(processed);
+                total += iter.iter_skip_fw(processed);
             }
             else {
                 break;
@@ -136,7 +136,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
             int32_t processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSubstreamFn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
-                total += iter.skipFw(processed);
+                total += iter.iter_skip_fw(processed);
             }
             else {
                 break;
@@ -189,7 +189,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
             int32_t processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
-                total += iter.skipFw(processed);
+                total += iter.iter_skip_fw(processed);
             }
             else {
                 break;
@@ -240,7 +240,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
             int32_t processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), DescribeSingleSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
-                total += iter.skipFw(processed);
+                total += iter.iter_skip_fw(processed);
             }
             else {
                 break;
@@ -291,7 +291,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
             int32_t processed = self().leaf_dispatcher().dispatch(iter.iter_leaf(), ReadSingleSubstream2Fn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
 
             if (processed > 0) {
-                total += iter.skipFw(processed);
+                total += iter.iter_skip_fw(processed);
             }
             else {
                 break;

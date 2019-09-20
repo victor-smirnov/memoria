@@ -52,7 +52,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
         if (!std::get<0>(result))
         {
-            auto split_result = iter.split(stream, idx);
+            auto split_result = iter.iter_split_leaf(stream, idx);
 
             split_status = split_result.type();
 

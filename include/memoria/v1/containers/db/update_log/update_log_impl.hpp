@@ -91,7 +91,7 @@ UUID update_log::SnapshotIDIterator<Iterator, CtrSizeT>::next()
     {
         auto vv = iterator_.ptr()->snapshot_id();
 
-        iterator_.ptr()->selectGEFw(1, 0);
+        iterator_.ptr()->iter_select_ge_fw(1, 0);
         pos_ ++;
 
         return vv;
@@ -133,7 +133,7 @@ UUID update_log::ContainerNameIterator<Iterator, CtrSizeT>::next()
     {
         prefix_ += iterator_.ptr()->ctr_name_i();
 
-        iterator_.ptr()->selectGEFw(1, 1);
+        iterator_.ptr()->iter_select_ge_fw(1, 1);
         pos_++;
 
         return prefix_.to_uuid();

@@ -42,32 +42,32 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorFindName)
 
 
 public:
-    auto countFw()
+    auto iter_count_fw()
     {
         typename Types::template CountForwardWalker<Types, IntList<StructureStreamIdx, 1>> walker;
-        return self().find_fw(walker);
+        return self().iter_find_fw(walker);
     }
 
-    auto countBw()
+    auto iter_count_bw()
     {
         typename Types::template CountBackwardWalker<Types, IntList<StructureStreamIdx, 1>> walker;
-        return self().find_bw(walker);
+        return self().iter_find_bw(walker);
     }
 
 
 
-    CtrSizeT selectFw(CtrSizeT rank, int32_t stream)
+    CtrSizeT iter_btfl_select_fw(CtrSizeT rank, int32_t stream)
     {
-        return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
+        return self().template iter_select_fw<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
-    CtrSizeT selectGEFw(CtrSizeT rank, int32_t stream)
+    CtrSizeT iter_select_ge_fw(CtrSizeT rank, int32_t stream)
     {
     	typename Types::template SelectGEForwardWalker<Types, IntList<StructureStreamIdx, 1>> walker(stream, rank);
-    	return self().find_fw(walker);
+    	return self().iter_find_fw(walker);
     }
 
-    CtrSizeT selectPosFw(CtrSizeT rank, int32_t stream) const
+    CtrSizeT iter_select_pos_fw(CtrSizeT rank, int32_t stream) const
     {
         const auto& self = this->self();
 
@@ -76,14 +76,14 @@ public:
         return ii->pos();
     }
 
-    CtrSizeT selectBw(CtrSizeT rank, int32_t stream)
+    CtrSizeT iter_btfl_select_bw(CtrSizeT rank, int32_t stream)
     {
-        return self().template select_bw_<IntList<StructureStreamIdx, 1>>(stream, rank);
+        return self().template iter_select_bw<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
 
 
-    using Base::finish_walking;
+    using Base::iter_finish_walking;
 
     template <typename Walker>
     void do_finish_walking(int32_t idx, const Walker& walker, WalkCmd cmd) {
@@ -98,32 +98,32 @@ public:
 
 
     template <typename WWTypes>
-    void finish_walking(int32_t idx, const bt::FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void iter_finish_walking(int32_t idx, const bt::FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
     template <typename WWTypes>
-    void finish_walking(int32_t idx, const bt::FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void iter_finish_walking(int32_t idx, const bt::FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
 
     template <typename WWTypes>
-    void finish_walking(int32_t idx, const bt::FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void iter_finish_walking(int32_t idx, const bt::FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
     template <typename WWTypes>
-    void finish_walking(int32_t idx, const bt::FindGEBackwardWalker<WWTypes>& walker, WalkCmd cmd)
+    void iter_finish_walking(int32_t idx, const bt::FindGEBackwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }
 
     template <typename WWTypes>
-    void finish_walking(int32_t idx, const bt::FindMaxGEWalker<WWTypes>& walker, WalkCmd cmd)
+    void iter_finish_walking(int32_t idx, const bt::FindMaxGEWalker<WWTypes>& walker, WalkCmd cmd)
     {
         do_finish_walking(idx, walker, cmd);
     }

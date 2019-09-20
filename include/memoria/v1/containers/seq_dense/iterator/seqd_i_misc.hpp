@@ -95,12 +95,12 @@ public:
         auto& self  = this->self();
         auto& ctr   = self.ctr();
 
-        ctr.insert_entry(
+        ctr.iter_insert_entry(
                 self,
                 InsertSymbolFn(symbol)
         );
 
-        self.skipFw(1);
+        self.iter_skip_fw(1);
     }
 
 

@@ -247,7 +247,7 @@ public:
         std::vector<CtrID> names;
 
         auto ii = root_map_->begin();
-        while (!ii->isEnd()) {
+        while (!ii->iter_is_end()) {
             names.push_back(ii->key());
             ii->next();
         }
@@ -260,7 +260,7 @@ public:
         std::vector<U16String> names;
 
         auto ii = root_map_->begin();
-        while (!ii->isEnd()) {
+        while (!ii->iter_is_end()) {
             names.push_back(ii->key().to_u16());
             ii->next();
         }
@@ -638,7 +638,7 @@ public:
     void dump_dictionary_blocks()
     {
         auto ii = root_map_->begin();
-        if (!ii->isEnd())
+        if (!ii->iter_is_end())
         {
             do {
                 ii->dump();
@@ -1017,9 +1017,9 @@ public:
             walker->beginSnapshot(fmt::format(u"Snapshot-{}", history_node_->snapshot_id()).data());
 		}
 
-        auto iter = root_map_->Begin();
+        auto iter = root_map_->begin();
 
-        while (!iter->isEnd())
+        while (!iter->iter_is_end())
         {
             auto ctr_name   = iter->key();
             auto root_id    = iter->value();

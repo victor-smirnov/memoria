@@ -221,12 +221,12 @@ public:
     }
 
 
-    bool isBegin() const
+    bool iter_is_begin() const
     {
-        return iter_local_pos() < 0 || isEmpty();
+        return iter_local_pos() < 0 || iter_is_empty();
     }
 
-    bool isEnd() const
+    bool iter_is_end() const
     {
         auto& self = this->self();
 
@@ -235,23 +235,22 @@ public:
 
     bool is_end() const
     {
-        auto& self = this->self();
-        return iter_leaf().node().isSet() ? iter_local_pos() >= self.iter_leaf_size() : true;
+        return self().iter_is_end();
     }
 
-    bool isEnd(int32_t idx) const
+    bool iter_is_end(int32_t idx) const
     {
         auto& self = this->self();
         return iter_leaf().node().isSet() ? idx >= self.iter_leaf_size() : true;
     }
 
-    bool isContent() const
+    bool iter_is_content() const
     {
         auto& self = this->self();
-        return !(self.isBegin() || self.isEnd());
+        return !(self.iter_is_begin() || self.iter_is_end());
     }
 
-    bool isContent(int32_t idx) const
+    bool iter_is_content(int32_t idx) const
     {
         auto& self = this->self();
 
@@ -262,20 +261,20 @@ public:
         return is_set && idx >= 0 && idx < iter_leaf_size;
     }
 
-    bool isNotEnd() const
+    bool iter_is_not_end() const
     {
-        return !isEnd();
+        return !iter_is_end();
     }
 
-    bool isEmpty() const
+    bool iter_is_empty() const
     {
         auto& self = this->self();
         return (iter_leaf().node().isEmpty()) || (self.iter_leaf_size() == 0);
     }
 
-    bool isNotEmpty() const
+    bool iter_is_not_empty() const
     {
-        return !isEmpty();
+        return !iter_is_empty();
     }
 
     int64_t keyNum() const
@@ -299,16 +298,15 @@ public:
     {
         auto& self = this->self();
 
-        out << (header != NULL ? header : self.getDumpHeader()) << std::endl;
+        out << (header != NULL ? header : self.iter_get_dump_header()) << std::endl;
 
         self.iter_dump_keys(out);
-        self.dumpCache(out);
+        self.iter_dump_cache(out);
 
-        self.dumpBeforePages(out);
-        self.dumpPages(out);
+        self.iter_dump_blocks(out);
     }
 
-    U8String getDumpHeader() const
+    U8String iter_get_dump_header() const
     {
         return U8String(self().ctr().type_name_str()) + " Iterator State";
     }
@@ -316,22 +314,22 @@ public:
     void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const
     {
         auto& self  = this->self();
-        out << (header != NULL ? header : self.getDumpHeader()) << std::endl;
-        dumpCache(out);
+        out << (header != NULL ? header : self.iter_get_dump_header()) << std::endl;
+        iter_dump_cache(out);
         iter_dump_keys(out);
         self.ctr().ctr_dump_path(self.iter_leaf(), out);
         out << "======================================================================" << std::endl;
     }
 
-    void dumpCache(std::ostream& out = std::cout) const
+    void iter_dump_cache(std::ostream& out = std::cout) const
     {
         auto& self  = this->self();
         out << self.iter_cache() << std::endl;
     }
 
-    void dumpHeader(std::ostream& out = std::cout) const
+    void iter_dump_header(std::ostream& out = std::cout) const
     {
-        self().dumpCache(out);
+        self().iter_dump_cache(out);
         self().iter_dump_keys(out);
         if (self().iter_leaf().node().isSet()) {
             std::cout << "Node ID: " << self().iter_leaf()->id() << std::endl;
@@ -346,10 +344,9 @@ public:
         out << "Idx:  " << self.iter_local_pos() << std::endl;
     }
 
-    void dumpBeforePath(std::ostream& out) const {}
-    void dumpBeforePages(std::ostream& out) const {}
 
-    void dumpPages(std::ostream& out) const
+
+    void iter_dump_blocks(std::ostream& out) const
     {
         auto& self = this->self();
 
@@ -364,7 +361,7 @@ public:
 
 public:
     template <typename Walker>
-    void finish_walking(int32_t idx, const Walker& w, WalkCmd cmd) {}
+    void iter_finish_walking(int32_t idx, const Walker& w, WalkCmd cmd) {}
 
 
 

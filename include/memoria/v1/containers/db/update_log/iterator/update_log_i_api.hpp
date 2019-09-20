@@ -54,7 +54,7 @@ public:
     {
         auto& self = this->self();
 
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 0)
         {
@@ -71,7 +71,7 @@ public:
     {
         auto& self = this->self();
 
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 1)
         {
@@ -88,7 +88,7 @@ public:
         auto& self = this->self();
         if (!self.is_end())
         {
-            int32_t stream = self.data_stream();
+            int32_t stream = self.iter_data_stream();
             if (stream == 0)
             {
                 auto ii = self.iter_clone();
@@ -120,7 +120,7 @@ public:
         auto& self = this->self();
         if (!self.is_end())
         {
-            int32_t stream = self.data_stream();
+            int32_t stream = self.iter_data_stream();
             if (stream == 1)
             {
                 auto ii = self.iter_clone();
@@ -151,11 +151,11 @@ public:
         auto& self = this->self();
         if (!self.is_end())
         {
-            int32_t stream = self.data_stream();
+            int32_t stream = self.iter_data_stream();
             if (stream == 2)
             {
                 auto ii = self.iter_clone();
-                return ii->countBw() - 1;
+                return ii->iter_count_bw() - 1;
             }
             else {
                 return 0;
@@ -171,11 +171,11 @@ public:
         auto& self = this->self();
         if (!self.is_end())
         {
-            int32_t stream = self.data_stream();
+            int32_t stream = self.iter_data_stream();
             if (stream == 2)
             {
                 auto ii = self.iter_clone();
-                return ii->countFw() + self.data_run_pos();
+                return ii->iter_count_fw() + self.data_run_pos();
             }
             else {
                 return 0;
@@ -194,22 +194,22 @@ public:
 
             self.selectFw(1, 0);
 
-            return !self.isEnd();
+            return !self.iter_is_end();
         }
 
     void insert_key(const Key& key)
     {
         auto& self = this->self();
 
-        if (!self.isEnd())
+        if (!self.iter_is_end())
         {
-            if (self.data_stream() != 0)
+            if (self.iter_data_stream() != 0)
             {
                 MMA1_THROW(Exception()) << WhatCInfo("Key insertion into the middle of data block is not allowed");
             }
         }
 
-        self.template insert_entry<0>(SingleValueEntryFn<0, Key, CtrSizeT>(key));
+        self.template iter_insert_entry<0>(SingleValueEntryFn<0, Key, CtrSizeT>(key));
     }
 */
 
@@ -218,7 +218,7 @@ public:
 
     CtrSizesT remove(CtrSizeT length = 1)
     {
-        return self().removeGE(length);
+        return self().iter_remove_ge(length);
     }
 
     void to_prev_key()
@@ -281,10 +281,10 @@ public:
 
                 if (pos > current_pos)
                 {
-                    self.skipFw(pos - current_pos);
+                    self.iter_skip_fw(pos - current_pos);
                 }
                 else {
-                    self.skipBw(current_pos - pos);
+                    self.iter_skip_bw(current_pos - pos);
                 }
 
                 return pos;
@@ -308,7 +308,7 @@ public:
 
         if (data_size > 0)
         {
-            self.skipFw(data_size);
+            self.iter_skip_fw(data_size);
         }
 
         return data_size;
@@ -331,7 +331,7 @@ public:
             {
                 auto vv = ctr_name_i - result.prefix;
                 self.insert_ctr_name(vv);
-                self.skipFw(1);
+                self.iter_skip_fw(1);
                 self.subtract_ctr_name(vv);
 
                 return true;
@@ -341,7 +341,7 @@ public:
         }
         else {
             self.insert_ctr_name(ctr_name_i - result.prefix);
-            self.skipFw(1);
+            self.iter_skip_fw(1);
             return true;
         }
     }
@@ -350,14 +350,14 @@ public:
     CtrSizeT count_ctr_names() const
     {
         auto& self = this->self();
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 0)
         {
             auto ii = self.iter_clone();
             if (ii->next())
             {
-                int32_t next_stream = ii->data_stream_s();
+                int32_t next_stream = ii->iter_data_stream_s();
                 if (next_stream == 1)
                 {
                     ii->selectFw(1, 0);
@@ -383,17 +383,17 @@ public:
     CtrSizeT count_data_values() const
     {
         auto& self = this->self();
-        int32_t stream = self.data_stream();
+        int32_t stream = self.iter_data_stream();
 
         if (stream == 1)
         {
             auto ii = self.iter_clone();
             if (ii->next())
             {
-                int32_t next_stream = ii->data_stream_s();
+                int32_t next_stream = ii->iter_data_stream_s();
                 if (next_stream == 2)
                 {
-                    return ii->countFw();
+                    return ii->iter_count_fw();
                 }
                 else {
                     return 0;
@@ -425,7 +425,7 @@ public:
             auto ii = self.iter_clone();
             auto values_start_pos = self.rank(1);
 
-            self.toDataStream(1);
+            self.iter_to_data_stream(1);
 
             typename Types::template FindGEForwardWalker<Types, IntList<1, 1>> walker(0, ctr_name_i);
             auto prefix = self.ctr_find_fw(walker);
@@ -442,7 +442,7 @@ public:
                 return UpdateLogFindResult{prefix.template cast_to<UAcc128T::AccBitLength>(), pos, size};
             }
             else {
-                self.skipBw(actual_size - size);
+                self.iter_skip_bw(actual_size - size);
 
                 auto values_start_prefix = ii->template sum_up<UAcc192T, IntList<1, 1>>(0);
                 auto values_end_prefix = self.template sum_up<UAcc192T, IntList<1, 1>>(0);
@@ -460,7 +460,7 @@ public:
     void insert_snapshot(const UUID& snapshot_id)
     {
         auto& self = this->self();
-        self.template insert_entry<0>(bt::SingleValueEntryFn<0, UUID, CtrSizeT>(snapshot_id));
+        self.template iter_insert_entry<0>(bt::SingleValueEntryFn<0, UUID, CtrSizeT>(snapshot_id));
     }
 
 
@@ -471,7 +471,7 @@ public:
         // FIXME: Allows inserting into start of the sequence that is incorrect,
         // but doesn't break the structure
 
-        self.template insert_entry<1>(bt::SingleValueEntryFn<1, UAcc128T, CtrSizeT>(value));
+        self.template iter_insert_entry<1>(bt::SingleValueEntryFn<1, UAcc128T, CtrSizeT>(value));
     }
 
     void subtract_ctr_name(const UAcc128T& value)
@@ -479,7 +479,7 @@ public:
         auto& self = this->self();
 
         UAcc128T existing = self.ctr_name_i();
-        self.template update_entry<1, IntList<1>>(update_log::SingleValueUpdateEntryFn<1, UAcc128T, CtrSizeT>(existing - value));
+        self.template iter_update_entry<1, IntList<1>>(update_log::SingleValueUpdateEntryFn<1, UAcc128T, CtrSizeT>(existing - value));
     }
 
     void add_ctr_name(const UAcc128T& value)
@@ -487,7 +487,7 @@ public:
         auto& self = this->self();
 
         UAcc128T existing = self.ctr_name_i();
-        self.template update_entry<1, IntList<1>>(update_log::SingleValueUpdateEntryFn<1, UAcc128T, CtrSizeT>(existing + value));
+        self.template iter_update_entry<1, IntList<1>>(update_log::SingleValueUpdateEntryFn<1, UAcc128T, CtrSizeT>(existing + value));
     }
 
 #ifdef MMA1_USE_IOBUFFER

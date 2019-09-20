@@ -41,18 +41,18 @@ public:
     KeysIteratorImpl(IteratorPtr iter):
         iter_(iter)
     {
-        idx_ = iter_->leafrank(iter_->iter_local_pos(), 0);
+        idx_ = iter_->iter_leafrank(iter_->iter_local_pos(), 0);
         build();
     }
 
     virtual bool is_end() const {
-        return iter_->isEnd();
+        return iter_->iter_is_end();
     }
 
     virtual void next()
     {
         size_t keys_size = keys_.array().size();
-        iter_->selectFw(keys_size, 0); // next leaf with keys;
+        iter_->iter_btfl_select_fw(keys_size, 0); // next leaf with keys;
         idx_ = 0;
 
         build();
@@ -67,7 +67,7 @@ public:
     {
         auto ii = iter_->iter_clone();
 
-        ii->selectFw(key_idx, 0);
+        ii->iter_btfl_select_fw(key_idx, 0);
         ii->to_values();
 
         //ii->dump();

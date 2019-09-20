@@ -48,7 +48,7 @@ public:
     bool remove(const KeyView& key)
     {
         auto iter = self().find(key);
-        if ((!iter->isEnd()) && iter->key() == key) 
+        if ((!iter->iter_is_end()) && iter->key() == key) 
         {
             iter->remove();
             return true;

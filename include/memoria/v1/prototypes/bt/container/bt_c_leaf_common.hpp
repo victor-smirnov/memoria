@@ -227,7 +227,7 @@ public:
         if (provider.hasData())
         {
             // has to be defined in subclasses
-            if (!self.isAtTheEnd2(leaf, last_pos))
+            if (!self.ctr_is_at_the_end(leaf, last_pos))
             {
                 auto next_leaf = self.ctr_split_leaf(leaf, last_pos);
 

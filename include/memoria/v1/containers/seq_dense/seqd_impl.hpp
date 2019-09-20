@@ -36,7 +36,7 @@ bool CtrApi<Map<Key, Value>, Profile>::contains(const Key& key)
 {
     auto iter = this->pimpl_->find(key);
     
-    if (!iter->isEnd()) {
+    if (!iter->iter_is_end()) {
         return iter->key() == key;
     }
     

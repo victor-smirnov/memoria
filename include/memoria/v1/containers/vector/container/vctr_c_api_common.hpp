@@ -79,7 +79,7 @@ public:
 
     void set(CtrSizeT pos, ViewType view)
     {
-        auto ii = self().seek_(pos);
+        auto ii = self().seek(pos);
         ii->set(view);
     }
 
@@ -95,7 +95,7 @@ public:
 
     void insert(CtrSizeT at, io::IOVectorProducer& producer)
     {
-        auto ii = self().seek_(at);
+        auto ii = self().ctr_seek(at);
         ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
     }
 
@@ -103,8 +103,8 @@ public:
     {
         auto& self = this->self();
 
-        auto ii_from = self.seek_(from);
-        return ii_from->remove(to - from);
+        auto ii_from = self.ctr_seek(from);
+        return ii_from->remove_from(to - from);
     }
 
     CtrSizeT remove_from(CtrSizeT from)
@@ -117,7 +117,7 @@ public:
         auto& self = this->self();
 
         auto ii_from = self.begin();
-        return ii_from->remove(pos);
+        return ii_from->remove_from(pos);
     }
 
 

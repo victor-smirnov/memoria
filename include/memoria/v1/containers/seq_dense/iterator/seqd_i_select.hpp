@@ -52,12 +52,12 @@ public:
 
     auto selectFw(CtrSizeT rank_delta, int32_t symbol)
     {
-        return self().template select_fw_<SymbolsSubstreamPath>(symbol, rank_delta);
+        return self().template iter_select_fw<SymbolsSubstreamPath>(symbol, rank_delta);
     }
 
     auto selectBw(CtrSizeT rank_delta, int32_t symbol)
     {
-        return self().template select_bw_<SymbolsSubstreamPath>(symbol, rank_delta);
+        return self().template iter_select_bw<SymbolsSubstreamPath>(symbol, rank_delta);
     }
     
 MEMORIA_V1_ITERATOR_PART_END

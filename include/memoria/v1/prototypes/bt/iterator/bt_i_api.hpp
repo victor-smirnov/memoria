@@ -94,7 +94,7 @@ public:
 
     bool iter_is_found() {
         auto& self = this->self();
-        return (!self.isEnd()) && self.isNotEmpty();
+        return (!self.iter_is_end()) && self.iter_is_not_empty();
     }
 
     void iter_dump_keys(std::ostream& out) const

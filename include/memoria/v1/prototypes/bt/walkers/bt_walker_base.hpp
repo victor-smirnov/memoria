@@ -277,7 +277,7 @@ public:
     {
         iter.iter_local_pos() = idx;
 
-        iter.finish_walking(idx, self(), cmd);
+        iter.iter_finish_walking(idx, self(), cmd);
 
         iter.iter_cache().prefixes()      = branch_prefix_;
         iter.iter_cache().leaf_prefixes() = leaf_prefix_;

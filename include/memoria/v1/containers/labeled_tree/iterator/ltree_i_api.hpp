@@ -48,36 +48,36 @@ public:
     typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
     bool operator++() {
-        return self().skipFw(1);
+        return self().iter_skip_fw(1);
     }
 
     bool operator--() {
-        return self().skipBw(1);
+        return self().iter_skip_bw(1);
     }
 
     bool next() {
-        return self().skipFw(1);
+        return self().iter_skip_fw(1);
     }
 
     bool prev() {
-        return self().skipBw(1);
+        return self().iter_skip_bw(1);
     }
 
 
     bool operator++(int) {
-        return self().skipFw(1);
+        return self().iter_skip_fw(1);
     }
 
     bool operator--(int) {
-        return self().skipFw(1);
+        return self().iter_skip_fw(1);
     }
 
     CtrSizeT operator+=(CtrSizeT size) {
-        return self().skipFw(size);
+        return self().iter_skip_fw(size);
     }
 
     CtrSizeT operator-=(CtrSizeT size) {
-        return self().skipBw(size);
+        return self().iter_skip_bw(size);
     }
 
     int32_t size() const
@@ -93,16 +93,16 @@ public:
         return self().iter_local_pos() < 0;
     }
 
-    CtrSizeT skipFw(CtrSizeT amount) {
-        return self().template skip_fw_<0>(amount);
+    CtrSizeT iter_skip_fw(CtrSizeT amount) {
+        return self().template iter_skip_fw<0>(amount);
     }
 
-    CtrSizeT skipBw(CtrSizeT amount) {
-        return self().template skip_bw_<0>(amount);
+    CtrSizeT iter_skip_bw(CtrSizeT amount) {
+        return self().template iter_skip_bw<0>(amount);
     }
 
     CtrSizeT skip(CtrSizeT amount) {
-        return self().template skip_<0>(amount);
+        return self().template iter_skip<0>(amount);
     }
 
     CtrSizeT pos() const
@@ -445,14 +445,14 @@ public:
             r0++;
         }
 
-        return self.skipFw(1);
+        return self.iter_skip_fw(1);
     }
 
     auto raw_rank(CtrSizeT& r0, CtrSizeT& r1, CtrSizeT idx)
     {
         auto& self = this->self();
 
-        while (idx > 0 && !self.isEnd())
+        while (idx > 0 && !self.iter_is_end())
         {
             auto sym = self.value();
 
@@ -466,7 +466,7 @@ public:
 
             idx--;
 
-            self.skipFw(1);
+            self.iter_skip_fw(1);
         }
     }
 
@@ -475,7 +475,7 @@ public:
         auto& self = this->self();
         CtrSizeT cnt = 0;
 
-        while (!self.isEnd())
+        while (!self.iter_is_end())
         {
             auto sym = self.value();
 
@@ -489,7 +489,7 @@ public:
             }
 
             cnt++;
-            self.skipFw(1);
+            self.iter_skip_fw(1);
         }
 
         return cnt;

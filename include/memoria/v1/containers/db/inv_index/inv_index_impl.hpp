@@ -180,9 +180,9 @@ void IterApi<Multimap<Key, Value>, Profile>::to_prev_key()
 }
 
 template <typename Key, typename Value, typename Profile>
-int64_t IterApi<Multimap<Key, Value>, Profile>::skipFw(int64_t offset) const
+int64_t IterApi<Multimap<Key, Value>, Profile>::iter_skip_fw(int64_t offset) const
 {
-    return this->pimpl_->skipFw(offset);
+    return this->pimpl_->iter_skip_fw(offset);
 }
 
 template <typename Key, typename Value, typename Profile>

@@ -384,7 +384,7 @@ public:
             }
 
             auto iter = this->root_map_->Begin();
-            while (!iter->isEnd())
+            while (!iter->iter_is_end())
             {
                 auto ctr_name   = iter->key();
                 auto root_id    = iter->value();

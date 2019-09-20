@@ -62,14 +62,14 @@ public:
     }
 
 
-    bool isAtTheEnd2(const NodeBaseG& leaf, const Position& pos)
+    bool ctr_is_at_the_end(const NodeBaseG& leaf, const Position& pos)
     {
         int32_t size = self().template ctr_get_leaf_stream_size<0>(leaf);
         return pos[0] >= size;
     }
 
     template <typename EntryBuffer>
-    void insert_entry(Iterator& iter, const EntryBuffer& entry)
+    void iter_insert_entry(Iterator& iter, const EntryBuffer& entry)
     {
         self().template ctr_insert_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
     }
@@ -78,13 +78,13 @@ public:
 
 
     template <typename SubstreamsList, typename EntryBuffer>
-    void update_entry(Iterator& iter, const EntryBuffer& entry)
+    void ctr_update_entry(Iterator& iter, const EntryBuffer& entry)
     {
         self().template ctr_update_stream_entry<0, SubstreamsList>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
     }
 
 
-    void removeEntry(Iterator& iter) {
+    void ctr_remove_entry(Iterator& iter) {
         self().template ctr_remove_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos());
     }
 
@@ -92,7 +92,7 @@ public:
 
 
 
-    CtrSizeT insert_iovector(Iterator& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length)
+    CtrSizeT ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length)
     {
         auto& self = this->self();
 
@@ -124,7 +124,7 @@ public:
     };
 
 
-    CtrSizeT insert_iovector(Iterator& iter, io::IOVector& io_vector, CtrSizeT start, CtrSizeT length)
+    CtrSizeT ctr_insert_iovector(Iterator& iter, io::IOVector& io_vector, CtrSizeT start, CtrSizeT length)
     {
         auto& self = this->self();
 

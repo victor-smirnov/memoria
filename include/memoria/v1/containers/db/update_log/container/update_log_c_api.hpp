@@ -149,7 +149,7 @@ public:
     IteratorPtr latest_snapshot()
     {
         auto& self = this->self();
-        auto ii = self.seq_end();
+        auto ii = self.ctr_seq_end();
 
         if (ii->selectBw(1, 0) == 1)
         {
@@ -163,7 +163,7 @@ public:
     void create_snapshot(const UUID& snapshot_id)
     {
         auto& self = this->self();
-        auto ii = self.seq_end();
+        auto ii = self.ctr_seq_end();
         ii->insert_snapshot(snapshot_id);
     }
 
@@ -208,7 +208,7 @@ public:
     IteratorPtr find_snapshot(const UUID& snapshot_id)
     {
         auto& self = this->self();
-        auto ii = self.seq_end();
+        auto ii = self.ctr_seq_end();
 
         while (ii->selectBw(1, 0) == 1)
         {

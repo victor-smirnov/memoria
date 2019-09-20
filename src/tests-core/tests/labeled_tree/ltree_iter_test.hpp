@@ -106,7 +106,7 @@ public:
             iter_select1->selectFw(skip, 1);
             assertIterator(MA_SRC, iter_select1);
 
-            iter_skip->skipFw(skip * 2);
+            iter_skip->iter_skip_fw(skip * 2);
             assertIterator(MA_SRC, iter_skip);
         }
         out()<<std::endl;
@@ -135,7 +135,7 @@ public:
             iter_select1->selectBw(skip, 1);
             assertIterator(MA_SRC, iter_select1);
 
-            iter_skip->skipBw(skip * 2);
+            iter_skip->iter_skip_bw(skip * 2);
             assertIterator(MA_SRC, iter_skip);
         }
         out()<<std::endl;

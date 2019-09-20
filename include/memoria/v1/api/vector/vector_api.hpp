@@ -45,7 +45,7 @@ struct VectorIterator: BTSSIterator<Profile> {
     virtual void set(ViewType view) = 0;
     virtual bool next() = 0;
 
-    virtual CtrSizeT remove(CtrSizeT size) = 0;
+    virtual CtrSizeT remove_from(CtrSizeT size) = 0;
 };
 
 template <typename DataType, typename Profile, bool FixedSizeElement = DTTisFixedSize<DataType>>

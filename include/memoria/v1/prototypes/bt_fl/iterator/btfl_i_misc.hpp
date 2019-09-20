@@ -48,17 +48,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorMiscName)
 public:
 
 
-
-//    void iter_refresh()
-//    {
-//        Base::iter_refresh();
-//    }
-//
-//    void refresh_prefixes()
-//    {
-//        Base::iter_refresh();
-//    }
-
     void iter_refresh()
     {
         self().iter_refresh_branch_prefixes();
@@ -72,13 +61,6 @@ public:
 
         MEMORIA_V1_ASSERT(self().iter_cache(), ==, tmp.iter_cache());
     }
-
-//    void prepare() {
-//        Base::prepare();
-//
-//        auto& self = this->self();
-//        auto& iter_cache = self.iter_cache();
-//    }
 
 
     void iter_init()

@@ -47,31 +47,31 @@ protected:
     static const int32_t StructureStreamIdx     = Types::StructureStreamIdx;
 
 public:
-    auto seq_begin() {
+    auto ctr_seq_begin() {
         return self().template ctr_seek_stream<StructureStreamIdx>(0);
     }
 
-    auto seq_end() {
+    auto ctr_seq_end() {
         auto& self = this->self();
-        return self.template ctr_seek_stream<StructureStreamIdx>(self.seq_size());
+        return self.template ctr_seek_stream<StructureStreamIdx>(self.ctr_seq_size());
     }
 
-    CtrSizeT seq_size() const {
+    CtrSizeT ctr_seq_size() const {
         return self().sizes()[StructureStreamIdx];
     }
 
-    auto seq_seek(CtrSizeT pos)
+    auto ctr_seq_seek(CtrSizeT pos)
     {
         return self().template ctr_seek_stream<StructureStreamIdx>(pos);
     }
 
-    auto seq_seekL0(CtrSizeT pos)
+    auto ctr_seq_seekL0(CtrSizeT pos)
     {
     	return self().select(pos + 1, 0);
     }
 
 
-    auto seq_seek(const CtrSizesT& pos, int32_t level)
+    auto ctr_seq_seek(const CtrSizesT& pos, int32_t level)
     {
         auto& self = this->self();
         auto iter  = self.template ctr_seek_stream<StructureStreamIdx>(pos[0]);
@@ -84,7 +84,7 @@ public:
             }
             else if (iter->isSEnd() && iter->size() > 0)
             {
-                iter->skipBw(1);
+                iter->iter_skip_bw(1);
                 iter->toData(pos[l]);
             }
             else {
@@ -96,7 +96,7 @@ public:
     }
 
 
-    auto select(CtrSizeT rank, int32_t stream)
+    auto ctr_btfl_select(CtrSizeT rank, int32_t stream)
     {
         return self().template ctr_select<IntList<StructureStreamIdx, 1>>(stream, rank);
     }

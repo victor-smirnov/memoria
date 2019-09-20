@@ -124,7 +124,7 @@ public:
 
     int64_t finish(Iterator& iter, int32_t idx, WalkCmd cmd)
     {
-        iter.finish_walking(idx, self(), cmd);
+        iter.iter_finish_walking(idx, self(), cmd);
 
         iter.iter_local_pos() = idx;
 

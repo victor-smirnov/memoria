@@ -79,7 +79,7 @@ public:
         auto ii = self.template ctr_seek_stream<1>(self.sizes()[1]);
 
         ii->iter_stream() = 1;
-        ii->toStructureStream();
+        ii->iter_to_structure_stream();
 
         return ii;
     }
@@ -91,7 +91,7 @@ public:
 
         ii->iter_stream() = 0;
 
-        ii->toStructureStream();
+        ii->iter_to_structure_stream();
 
         return ii;
     }
@@ -103,7 +103,7 @@ public:
 
         ii->iter_stream() = 0;
 
-        ii->toStructureStream();
+        ii->iter_to_structure_stream();
 
         auto ptr = ctr_make_shared<multimap::EntriesIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii);
 
@@ -116,7 +116,7 @@ public:
         auto ii = self.template ctr_seek_stream<0>(0);
 
         ii->iter_stream() = 0;
-        ii->toStructureStream();
+        ii->iter_to_structure_stream();
 
         auto ptr = ctr_make_shared<multimap::KeysIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii);
 
@@ -266,7 +266,7 @@ public:
         auto ii = self().find(from);
         auto jj = self().find(to);
 
-        return ii->remove_all(*jj.get());
+        return ii->iter_remove_all(*jj.get());
     }
 
     bool remove_from(const KeyView& from)
@@ -274,7 +274,7 @@ public:
         auto ii = self().find(from);
         auto jj = self().end();
 
-        return ii->remove_all(*jj.get());
+        return ii->iter_remove_all(*jj.get());
     }
 
 
@@ -283,7 +283,7 @@ public:
         auto ii = self().begin();
         auto jj = self().find(to);
 
-        return ii->remove_all(*jj.get());
+        return ii->iter_remove_all(*jj.get());
     }
 
 

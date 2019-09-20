@@ -286,14 +286,14 @@ public:
 
             if (MMA1_UNLIKELY(start_pos_ > 0))
             {
-                int32_t seq_size = seq.size();
-                if (start_pos_ < seq_size)
+                int32_t ctr_seq_size = seq.size();
+                if (start_pos_ < ctr_seq_size)
                 {
                     seq.rank_to(start_pos_, &start_);
                     start_pos_ -= start_;
                 }
                 else {
-                    start_pos_ -= seq_size;
+                    start_pos_ -= ctr_seq_size;
                 }
             }
         }
@@ -345,7 +345,7 @@ public:
 
     virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size)
     {
-        int32_t capacity = this->ctr_.getLeafNodeCapacity(leaf);
+        int32_t capacity = this->ctr_.ctr_get_leaf_node_capacity(leaf);
 
         if (capacity > size)
         {

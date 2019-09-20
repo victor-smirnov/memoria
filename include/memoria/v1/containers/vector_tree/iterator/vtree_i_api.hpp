@@ -148,7 +148,7 @@ public:
         }
     }
 
-    CtrSizeT skipFw(CtrSizeT delta)
+    CtrSizeT iter_skip_fw(CtrSizeT delta)
     {
         auto& self = this->self();
 
@@ -158,10 +158,10 @@ public:
 
         if (data_pos + delta < data_base + data_size)
         {
-            return self.vector_iter().skipFw(delta);
+            return self.vector_iter().iter_skip_fw(delta);
         }
         else {
-            return self.vector_iter().skipFw(data_base + data_size - data_pos);
+            return self.vector_iter().iter_skip_fw(data_base + data_size - data_pos);
         }
     }
 
