@@ -53,9 +53,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertName)
 //    }
 
     template <typename T>
-    IteratorPtr find(T&& k)
+    IteratorPtr find(T&& k) const
     {
-        return self().template find_ge<IntList<0, 0, 1>>(0, k);
+        return self().template ctr_find_ge<IntList<0, 0, 1>>(0, k);
     }
 
     template <typename K, typename V>

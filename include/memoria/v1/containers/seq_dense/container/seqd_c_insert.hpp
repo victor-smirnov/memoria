@@ -109,10 +109,10 @@ public:
 //    void insert(Iterator& iter, int32_t symbol)
 //    {
 //        auto& self  = this->self();
-//        auto& leaf  = iter.leaf();
-//        int32_t& idx    = iter.local_pos();
+//        auto& leaf  = iter.iter_leaf();
+//        int32_t& idx    = iter.iter_local_pos();
 //
-//        self.updateBlockG(leaf);
+//        self.ctr_update_block_guard(leaf);
 //
 //        BranchNodeEntry sums;
 //
@@ -122,10 +122,10 @@ public:
 //        }
 //        else
 //        {
-//            int32_t size        = iter.leaf_size(0);
+//            int32_t size        = iter.iter_leaf_size(0);
 //            int32_t split_idx   = size/2;
 //
-//            auto right = self.split_leaf_p(leaf, Position::create(0, split_idx));
+//            auto right = self.ctr_split_leaf(leaf, Position::create(0, split_idx));
 //
 //            if (idx > split_idx)
 //            {

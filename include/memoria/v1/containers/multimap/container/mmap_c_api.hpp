@@ -71,14 +71,14 @@ public:
     }
 
     IteratorPtr begin() {
-        return self().template seek_stream<0>(0);
+        return self().template ctr_seek_stream<0>(0);
     }
 
     IteratorPtr end() {
         auto& self = this->self();
-        auto ii = self.template seek_stream<1>(self.sizes()[1]);
+        auto ii = self.template ctr_seek_stream<1>(self.sizes()[1]);
 
-        ii->stream() = 1;
+        ii->iter_stream() = 1;
         ii->toStructureStream();
 
         return ii;
@@ -87,9 +87,9 @@ public:
     IteratorPtr seek(CtrSizeT idx)
     {
         auto& self = this->self();
-        auto ii = self.template seek_stream<0>(idx);
+        auto ii = self.template ctr_seek_stream<0>(idx);
 
-        ii->stream() = 0;
+        ii->iter_stream() = 0;
 
         ii->toStructureStream();
 
@@ -99,9 +99,9 @@ public:
     CtrSharedPtr<IEntriesIterator<CtrApiTypes, Profile>> seek_entry(CtrSizeT idx)
     {
         auto& self = this->self();
-        auto ii = self.template seek_stream<0>(idx);
+        auto ii = self.template ctr_seek_stream<0>(idx);
 
-        ii->stream() = 0;
+        ii->iter_stream() = 0;
 
         ii->toStructureStream();
 
@@ -113,9 +113,9 @@ public:
     CtrSharedPtr<IKeysIterator<CtrApiTypes, Profile>> keys()
     {
         auto& self = this->self();
-        auto ii = self.template seek_stream<0>(0);
+        auto ii = self.template ctr_seek_stream<0>(0);
 
-        ii->stream() = 0;
+        ii->iter_stream() = 0;
         ii->toStructureStream();
 
         auto ptr = ctr_make_shared<multimap::KeysIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii);
@@ -145,7 +145,7 @@ public:
 
     IteratorPtr find(KeyView key)
     {
-        return self().template find_max_ge<IntList<0, 1>>(0, key);
+        return self().template ctr_find_max_ge<IntList<0, 1>>(0, key);
     }
 
     IteratorPtr find_or_create(KeyView key)

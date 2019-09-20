@@ -56,9 +56,9 @@ public:
 
 
     template <typename SubstreamsIdxList, typename... Args>
-    auto read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
+    auto iter_read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
     {
-        return self().template apply_substreams_fn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
+        return self().template ctr_apply_substreams_fn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
     struct InsertLabelsFn
@@ -214,15 +214,15 @@ public:
     void split(Iterator& iter)
     {
         auto& self  = this->self();
-        auto& leaf  = iter.leaf();
-        int32_t& idx    = iter.local_pos();
-        int32_t stream  = iter.stream();
-        int32_t size    = iter.leaf_size(stream);
+        auto& leaf  = iter.iter_leaf();
+        int32_t& idx    = iter.iter_local_pos();
+        int32_t stream  = iter.iter_stream();
+        int32_t size    = iter.iter_leaf_size(stream);
 
         int32_t split_idx = size / 2;
         int32_t label_idx = iter.label_idx(split_idx);
 
-        auto right = self.split_leaf_p(leaf, {split_idx, label_idx});
+        auto right = self.ctr_split_leaf(leaf, {split_idx, label_idx});
 
         if (idx > split_idx)
         {
@@ -235,8 +235,8 @@ public:
     void insertNode(Iterator& iter, const LabelsTuple& labels)
     {
         auto& self  = this->self();
-        auto& leaf  = iter.leaf();
-        int32_t& idx    = iter.local_pos();
+        auto& leaf  = iter.iter_leaf();
+        int32_t& idx    = iter.iter_local_pos();
 
         int32_t label_idx = iter.label_idx();
 
@@ -244,7 +244,7 @@ public:
 
         if (self.insertLoudsNode(leaf, idx, label_idx, sums, labels))
         {
-            self.update_path(leaf);
+            self.ctr_update_path(leaf);
         }
         else {
             self.split(iter);
@@ -254,21 +254,21 @@ public:
             bool result = self.insertLoudsNode(leaf, idx, label_idx, sums, labels);
             MEMORIA_V1_ASSERT_TRUE(result);
 
-            self.update_path(leaf);
+            self.ctr_update_path(leaf);
         }
     }
 
     void insertZero(Iterator& iter)
     {
         auto& self  = this->self();
-        auto& leaf  = iter.leaf();
-        int32_t& idx    = iter.local_pos();
+        auto& leaf  = iter.iter_leaf();
+        int32_t& idx    = iter.iter_local_pos();
 
         BranchNodeEntry sums;
 
         if (self.insertLoudsZero(leaf, idx, sums))
         {
-            self.update_path(leaf);
+            self.ctr_update_path(leaf);
         }
         else
         {
@@ -278,7 +278,7 @@ public:
 
             MEMORIA_V1_ASSERT_TRUE(result);
 
-            self.update_path(leaf);
+            self.ctr_update_path(leaf);
         }
     }
 

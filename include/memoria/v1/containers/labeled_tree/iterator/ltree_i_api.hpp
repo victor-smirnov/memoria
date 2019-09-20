@@ -82,15 +82,15 @@ public:
 
     int32_t size() const
     {
-        return self().leafSize(0);
+        return self().iter_leaf_size(0);
     }
 
     bool isEof() const {
-        return self().local_pos() >= self().size();
+        return self().iter_local_pos() >= self().size();
     }
 
     bool isBof() const {
-        return self().local_pos() < 0;
+        return self().iter_local_pos() < 0;
     }
 
     CtrSizeT skipFw(CtrSizeT amount) {
@@ -109,13 +109,13 @@ public:
     {
         auto& self = this->self();
 
-        return self.local_pos() + self.cache().size_prefix()[0];
+        return self.iter_local_pos() + self.iter_cache().size_prefix()[0];
     }
 
     CtrSizeT noderank_() const
     {
         auto& self = this->self();
-//      return self.cache().rank1() + (self.symbol() == 1);
+//      return self.iter_cache().rank1() + (self.symbol() == 1);
 
         return self.ranki(1);
     }
@@ -315,7 +315,7 @@ public:
 //      MEMORIA_V1_ASSERT(gpos, ==, pos);
 //
 //      int64_t rank1_a  = self.rank(1);
-//      int64_t rank1_b  = self.cache().rank1();
+//      int64_t rank1_b  = self.iter_cache().rank1();
 //
 //      if (rank1_a != rank1_b)
 //      {
@@ -328,7 +328,7 @@ public:
     int32_t label_idx() const
     {
         auto& self = this->self();
-        return self.label_idx(self.local_pos());
+        return self.label_idx(self.iter_local_pos());
     }
 
     int32_t label_idx(int32_t node_idx) const
@@ -342,7 +342,7 @@ public:
     LabelsTuple labels() const
     {
         auto& self = this->self();
-        return self.ctr().getLabels(self.leaf(), self.label_idx());
+        return self.ctr().getLabels(self.iter_leaf(), self.label_idx());
     }
 
 
@@ -404,9 +404,9 @@ public:
 
         SumLabelFn<LabelIdx> fn;
 
-        if (self.local_pos() >= 0)
+        if (self.iter_local_pos() >= 0)
         {
-            self.ctr().walkUp(self.leaf(), self.label_idx(), fn);
+            self.ctr().ctr_walk_tree_up(self.iter_leaf(), self.label_idx(), fn);
         }
 
         return fn.sum_;
@@ -525,9 +525,9 @@ public:
 
         GPosFn fn;
 
-        self.ctr().walkUp(self.leaf(), self.local_pos(), fn);
+        self.ctr().ctr_walk_tree_up(self.iter_leaf(), self.iter_local_pos(), fn);
 
-        return fn.pos_ + self.local_pos();
+        return fn.pos_ + self.iter_local_pos();
     }
 
 

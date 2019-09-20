@@ -121,7 +121,15 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
         substream_->append_from(buffer);
     }
 
+    void append(Span<const ValueView> buffer) {
+        substream_->append_from(buffer);
+    }
+
     void append_buffer(Span<const ValueType> buffer) {
+        substream_->append_from(buffer);
+    }
+
+    void append(Span<const ValueType> buffer) {
         substream_->append_from(buffer);
     }
 

@@ -68,14 +68,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
 
 
-    void updateChildIndexes(NodeBaseG& node, int32_t start)
+    void ctr_update_child_indexes(NodeBaseG& node, int32_t start)
     {
         auto& self = this->self();
-        int32_t size = self.getBranchNodeSize(node);
+        int32_t size = self.ctr_get_branch_node_size(node);
 
         if (start < size)
         {
-            self.forAllIDs(node, start, size, [&, this](const BlockID& id, int32_t parent_idx)
+            self.ctr_for_all_ids(node, start, size, [&, this](const BlockID& id, int32_t parent_idx)
             {
                 auto& self = this->self();
                 NodeBaseG child = self.store().getBlockForUpdate(id);
@@ -85,7 +85,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         }
     }
 
-    void remove_branch_nodes(const BlockID& node_id)
+    void ctr_remove_branch_nodes(const BlockID& node_id)
     {
         auto& self = this->self();
 
@@ -93,10 +93,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
         if (node->level() > 0)
         {
-            self.forAllIDs(node, [&, this](const BlockID& id, int32_t idx)
+            self.ctr_for_all_ids(node, [&, this](const BlockID& id, int32_t idx)
             {
                 auto& self = this->self();
-                self.remove_branch_nodes(id);
+                self.ctr_remove_branch_nodes(id);
             });
 
             self.store().removeBlock(node->id());
@@ -114,7 +114,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     };
 
 
-    NodeBaseG BuildSubtree(ILeafProvider& provider, int32_t level)
+    NodeBaseG ctr_build_subtree(ILeafProvider& provider, int32_t level)
     {
         auto& self = this->self();
 
@@ -122,13 +122,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         {
             if (level >= 1)
             {
-                NodeBaseG node = self.createNode1(level, false, false);
+                NodeBaseG node = self.ctr_create_node1(level, false, false);
 
                 self.layoutNonLeafNode(node, 0xFF);
 
-                self.insertSubtree(node, 0, provider, [this, level, &provider]() -> NodeBaseG {
+                self.ctr_insert_subtree(node, 0, provider, [this, level, &provider]() -> NodeBaseG {
                     auto& self = this->self();
-                    return self.BuildSubtree(provider, level - 1);
+                    return self.ctr_build_subtree(provider, level - 1);
                 }, false);
 
                 return node;
@@ -187,17 +187,17 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     };
 
 
-    void updateChildren(const NodeBaseG& node);
-    void updateChildren(const NodeBaseG& node, int32_t start);
-    void updateChildren(const NodeBaseG& node, int32_t start, int32_t end);
+    void ctr_update_children(const NodeBaseG& node);
+    void ctr_update_children(const NodeBaseG& node, int32_t start);
+    void ctr_update_children(const NodeBaseG& node, int32_t start, int32_t end);
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(IsEmptyFn, isEmpty, bool);
-    bool isEmpty(const NodeBaseG& node) {
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(IsEmptyFn, ctr_is_empty, bool);
+    bool ctr_is_empty(const NodeBaseG& node) {
         return self().node_dispatcher().dispatch(node, IsEmptyFn());
     }
 
 private:
-    void updateChildrenInternal(const NodeBaseG& node, int32_t start, int32_t end);
+    void ctr_update_children_internal(const NodeBaseG& node, int32_t start, int32_t end);
 public:
 
 
@@ -216,21 +216,21 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 
     if (left_node->is_root())
     {
-        self.newRootP(left_node);
+        self.ctr_create_new_root_block(left_node);
     }
     else {
-        self.updateBlockG(left_node);
+        self.ctr_update_block_guard(left_node);
     }
 
-    NodeBaseG left_parent = self.getNodeParentForUpdate(left_node);
+    NodeBaseG left_parent = self.ctr_get_node_parent_for_update(left_node);
 
-    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->memory_block_size());
+    NodeBaseG other  = self.ctr_create_node1(left_node->level(), false, left_node->is_leaf(), left_node->memory_block_size());
 
     other->next_leaf_id().clear();
 
     ListLeafProvider provider(self, other, 1);
 
-    self.insert_subtree(left_parent, left_node->parent_idx() + 1, provider);
+    self.ctr_insert_subtree(left_parent, left_node->parent_idx() + 1, provider);
 
     return other;
 }
@@ -242,44 +242,44 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 
 
 M_PARAMS
-void M_TYPE::updateChildren(const NodeBaseG& node)
+void M_TYPE::ctr_update_children(const NodeBaseG& node)
 {
     if (!node->is_leaf())
     {
         auto& self = this->self();
-        self.updateChildrenInternal(node, 0, self.getBranchNodeSize(node));
+        self.ctr_update_children_internal(node, 0, self.ctr_get_branch_node_size(node));
     }
 }
 
 M_PARAMS
-void M_TYPE::updateChildren(const NodeBaseG& node, int32_t start)
+void M_TYPE::ctr_update_children(const NodeBaseG& node, int32_t start)
 {
     if (!node->is_leaf())
     {
         auto& self = this->self();
-        self.updateChildrenInternal(node, start, self.getBranchNodeSize(node));
+        self.ctr_update_children_internal(node, start, self.ctr_get_branch_node_size(node));
     }
 }
 
 M_PARAMS
-void M_TYPE::updateChildren(const NodeBaseG& node, int32_t start, int32_t end)
+void M_TYPE::ctr_update_children(const NodeBaseG& node, int32_t start, int32_t end)
 {
     if (!node->is_leaf())
     {
         auto& self = this->self();
-        self.updateChildrenInternal(node, start, end);
+        self.ctr_update_children_internal(node, start, end);
     }
 }
 
 
 M_PARAMS
-void M_TYPE::updateChildrenInternal(const NodeBaseG& node, int32_t start, int32_t end)
+void M_TYPE::ctr_update_children_internal(const NodeBaseG& node, int32_t start, int32_t end)
 {
     auto& self = this->self();
 
     BlockID node_id = node->id();
 
-    self.forAllIDs(node, start, end, [&self, &node_id](const BlockID& id, int32_t idx)
+    self.ctr_for_all_ids(node, start, end, [&self, &node_id](const BlockID& id, int32_t idx)
     {
         NodeBaseG child = self.store().getBlockForUpdate(id);
 

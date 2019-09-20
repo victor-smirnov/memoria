@@ -164,14 +164,14 @@ public:
 
     bool operator==(const MyType& other) const
     {
-        return isEqual(other);
+        return iter_equals(other);
     }
 
-    bool isEqual(const MyType& other) const
+    bool iter_equals(const MyType& other) const
     {
         if (other.type() == Base::NORMAL)
         {
-            return seq_iter_ == other.seq_iter_ && tree_iter_ == other.tree_iter_ && Base::isEqual(other);
+            return seq_iter_ == other.seq_iter_ && tree_iter_ == other.tree_iter_ && Base::iter_equals(other);
         }
         else if (other.type() == Base::END)
         {
@@ -189,14 +189,14 @@ public:
 
     bool operator!=(const MyType& other) const
     {
-        return isNotEqual(other);
+        return iter_not_equals(other);
     }
 
-    bool isNotEqual(const MyType& other) const
+    bool iter_not_equals(const MyType& other) const
     {
         if (other.type() == Base::NORMAL)
         {
-            return seq_iter_ != other.seq_iter_ || tree_iter_ != other.tree_iter_ || Base::isNotEqual(other);
+            return seq_iter_ != other.seq_iter_ || tree_iter_ != other.tree_iter_ || Base::iter_not_equals(other);
         }
         else if (other.type() == Base::END)
         {

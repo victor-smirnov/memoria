@@ -66,7 +66,7 @@ public:
 
     void finish(Iterator& iter, int32_t idx)
     {
-        iter.local_pos() = 0;
+        iter.iter_local_pos() = 0;
     }
 };
 

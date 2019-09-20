@@ -106,13 +106,13 @@ public:
 
         if (idx >= 0)
         {
-            iter.cache().add(this->sum_, rank1);
+            iter.iter_cache().add(this->sum_, rank1);
         }
         else {
-            iter.cache().setup(-1, 0);
+            iter.iter_cache().setup(-1, 0);
         }
 
-        iter.cache().setRank1(iter.rank(1));
+        iter.iter_cache().setRank1(iter.rank(1));
 
         return rank_;
     }
@@ -194,13 +194,13 @@ public:
 
         if (idx >= 0)
         {
-            iter.cache().sub(this->sum_, rank1);
+            iter.iter_cache().sub(this->sum_, rank1);
         }
         else {
-            iter.cache().sub(iter.cache().pos() + 1, rank1);
+            iter.iter_cache().sub(iter.iter_cache().pos() + 1, rank1);
         }
 
-        iter.cache().setRank1(iter.rank(1));
+        iter.iter_cache().setRank1(iter.rank(1));
 
         return rank_;
     }

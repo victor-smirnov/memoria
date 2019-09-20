@@ -44,7 +44,7 @@ public:
 
         typename Types::template RankForwardWalker<Types, SymbolsSubstreamPath> walker(symbol, idx);
 
-        self.find_(walker);
+        self.ctr_find(walker);
 
         return walker.rank();
     }
@@ -73,7 +73,7 @@ public:
 
         typename Types::template SelectForwardWalker<Types, SymbolsSubstreamPath> walker(symbol, rank);
 
-        return self.find_(walker);
+        return self.ctr_find(walker);
     }
 
     auto select(CtrSizeT start, int32_t symbol, CtrSizeT rank)

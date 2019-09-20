@@ -166,7 +166,7 @@ public:
 
         int32_t key_idx = self.data_stream_idx(stream);
 
-        return std::get<0>(self.template read_leaf_entry<Stream, IntList<1>>(key_idx, 0));
+        return std::get<0>(self.template iter_read_leaf_entry<Stream, IntList<1>>(key_idx, 0));
     }
 
     CtrSizeT countChildren() const
@@ -176,7 +176,7 @@ public:
 
         if (stream < DataStreams - 1)
         {
-            auto ii = self.clone();
+            auto ii = self.iter_clone();
             ii->selectGEFw(1, stream);
 
             auto r0 = self.rank(stream + 1);

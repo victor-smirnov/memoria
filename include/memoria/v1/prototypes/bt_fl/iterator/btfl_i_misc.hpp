@@ -49,43 +49,43 @@ public:
 
 
 
-//    void refresh()
+//    void iter_refresh()
 //    {
-//        Base::refresh();
+//        Base::iter_refresh();
 //    }
 //
 //    void refresh_prefixes()
 //    {
-//        Base::refresh();
+//        Base::iter_refresh();
 //    }
 
-    void refresh()
+    void iter_refresh()
     {
-        self().refreshBranchPrefixes();
+        self().iter_refresh_branch_prefixes();
     }
 
 
-    void checkPrefix() {
+    void iter_check_prefix() {
         auto tmp = self();
 
-        tmp.refresh();
+        tmp.iter_refresh();
 
-        MEMORIA_V1_ASSERT(self().cache(), ==, tmp.cache());
+        MEMORIA_V1_ASSERT(self().iter_cache(), ==, tmp.iter_cache());
     }
 
 //    void prepare() {
 //        Base::prepare();
 //
 //        auto& self = this->self();
-//        auto& cache = self.cache();
+//        auto& iter_cache = self.iter_cache();
 //    }
 
 
-    void init()
+    void iter_init()
     {
-        Base::init();
+        Base::iter_init();
 
-        self().stream() = StructureStreamIdx;
+        self().iter_stream() = StructureStreamIdx;
     }
 
 MEMORIA_V1_ITERATOR_PART_END

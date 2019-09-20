@@ -63,7 +63,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(table::CtrApiName)
 
     Iterator find(Key key)
     {
-        return self().template find_ge<IntList<0>>(0, key);
+        return self().template ctr_find_ge<IntList<0>>(0, key);
     }
 
 

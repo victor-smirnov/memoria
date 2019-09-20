@@ -155,7 +155,7 @@ public:
         return tree_errors || seq_errors;
     }
 
-    void walkTree(ContainerWalker* walker)
+    void ctr_walk_tree(ContainerWalker* walker)
     {
         auto& self = this->self();
 
@@ -164,8 +164,8 @@ public:
                 self.master_name()
         );
 
-        tree_->walkTree(walker);
-        vector_->walkTree(walker);
+        tree_->ctr_walk_tree(walker);
+        vector_->ctr_walk_tree(walker);
 
         walker->endCompositeCtr();
     }
@@ -176,10 +176,10 @@ public:
 
     static auto getModelNameS(NodeBaseG root)
     {
-        return getRootMetadataS(root).model_name();
+        return ctr_get_root_metadataS(root).model_name();
     }
 
-    static const auto& getRootMetadataS(NodeBaseG node)
+    static const auto& ctr_get_root_metadataS(NodeBaseG node)
     {
         MEMORIA_V1_ASSERT_TRUE(node.isSet());
         MEMORIA_V1_ASSERT_TRUE(node->is_root());
@@ -195,7 +195,7 @@ private:
         typedef typename Tree::Metadata    Metadata;
 
         NodeBaseG root  = allocator.getBlock(root_id, ctr_name);
-        Metadata  meta  = Tree::getCtrRootMetadata(root);
+        Metadata  meta  = Tree::ctr_get_ctr_root_metadata(root);
 
         return meta.roots(UUID(0, name));
     }

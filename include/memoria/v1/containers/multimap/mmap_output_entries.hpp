@@ -52,7 +52,7 @@ class EntriesIteratorImpl: public IEntriesIterator<Types, Profile> {
     IteratorPtr iter_;
 public:
     EntriesIteratorImpl(IteratorPtr iter):
-        Base(iter->local_pos()),
+        Base(iter->iter_local_pos()),
         iter_(iter)
     {
         parse_first();
@@ -64,14 +64,14 @@ public:
 
     virtual bool next()
     {
-        if (iter_->nextLeaf())
+        if (iter_->iter_next_leaf())
         {
             offsets_.clear();
             build_index();
             return true;
         }
         else {
-            iter_->local_pos() = iter_->leaf_sizes().sum();
+            iter_->iter_local_pos() = iter_->iter_leaf_sizes().sum();
             return false;
         }
     }

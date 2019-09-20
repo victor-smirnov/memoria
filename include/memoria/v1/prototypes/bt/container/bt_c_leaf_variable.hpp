@@ -79,7 +79,7 @@ public:
 
 
     template <int32_t Stream, typename Entry>
-    OpStatus try_insert_stream_entry_no_mgr(NodeBaseG& leaf, int32_t idx, const Entry& entry)
+    OpStatus ctr_try_insert_stream_entry_no_mgr(NodeBaseG& leaf, int32_t idx, const Entry& entry)
     {
         BranchNodeEntry accum;
         InsertStreamEntryFn<Stream> fn;
@@ -90,17 +90,17 @@ public:
 
 
     template <int32_t Stream, typename Entry>
-    MMA1_NODISCARD std::tuple<bool> try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
+    MMA1_NODISCARD std::tuple<bool> ctr_try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
     {
         auto& self = this->self();
 
         BlockUpdateMgr mgr(self);
 
-        self.updateBlockG(iter.leaf());
+        self.ctr_update_block_guard(iter.iter_leaf());
 
-        mgr.add(iter.leaf());
+        mgr.add(iter.iter_leaf());
 
-        auto status = self.template try_insert_stream_entry_no_mgr<Stream>(iter.leaf(), idx, entry);
+        auto status = self.template ctr_try_insert_stream_entry_no_mgr<Stream>(iter.iter_leaf(), idx, entry);
 
         if (isFail(status))
         {
@@ -111,13 +111,13 @@ public:
         return std::make_tuple(true);
     }
 
-    MMA1_NODISCARD bool with_block_manager(NodeBaseG& leaf, int structure_idx, int stream_idx, std::function<OpStatus(int, int)> insert_fn)
+    MMA1_NODISCARD bool ctr_with_block_manager(NodeBaseG& leaf, int structure_idx, int stream_idx, std::function<OpStatus(int, int)> insert_fn)
     {
         auto& self = this->self();
 
         BlockUpdateMgr mgr(self);
 
-        self.updateBlockG(leaf);
+        self.ctr_update_block_guard(leaf);
 
         mgr.add(leaf);
 
@@ -164,19 +164,19 @@ public:
 
 
     template <int32_t Stream>
-    MMA1_NODISCARD std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, int32_t idx)
+    MMA1_NODISCARD std::tuple<bool, BranchNodeEntry> ctr_try_remove_stream_entry(Iterator& iter, int32_t idx)
     {
         auto& self = this->self();
 
         BlockUpdateMgr mgr(self);
 
-        self.updateBlockG(iter.leaf());
+        self.ctr_update_block_guard(iter.iter_leaf());
 
-        mgr.add(iter.leaf());
+        mgr.add(iter.iter_leaf());
 
         BranchNodeEntry accum;
         RemoveFromLeafFn<Stream> fn;
-        self.leaf_dispatcher().dispatch(iter.leaf(), fn, idx, accum);
+        self.leaf_dispatcher().dispatch(iter.iter_leaf(), fn, idx, accum);
 
         if (isFail(fn.status_)) {
             mgr.rollback();
@@ -229,20 +229,20 @@ public:
 
 
     template <int32_t Stream, typename SubstreamsList, typename Entry>
-    MMA1_NODISCARD std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
+    MMA1_NODISCARD std::tuple<bool, BranchNodeEntry> ctr_try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
     {
         auto& self = this->self();
 
         BlockUpdateMgr mgr(self);
 
-        self.updateBlockG(iter.leaf());
+        self.ctr_update_block_guard(iter.iter_leaf());
 
-        mgr.add(iter.leaf());
+        mgr.add(iter.iter_leaf());
 
         BranchNodeEntry accum;
         UpdateStreamEntryBufferFn<Stream, SubstreamsList> fn;
         self.leaf_dispatcher().dispatch(
-                    iter.leaf(),
+                    iter.iter_leaf(),
                     fn,
                     idx,
                     accum,
@@ -261,16 +261,16 @@ public:
     bool update(Iterator& iter, Fn&& fn, Args&&... args)
     {
         auto& self = this->self();
-        return self.updateAtomic(iter, std::forward<Fn>(fn), VLSelector(), std::forward<Fn>(args)...);
+        return self.ctr_update_atomic(iter, std::forward<Fn>(fn), VLSelector(), std::forward<Fn>(args)...);
     }
 
     // FIXME: not used
     // NodeBaseG createNextLeaf(NodeBaseG& leaf);
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(TryMergeNodesFn, mergeWith, OpStatus);
-    MMA1_NODISCARD bool tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
-    bool mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
-    bool mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
+    MMA1_NODISCARD bool ctr_try_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
+    bool ctr_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
+    bool ctr_merge_current_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -280,22 +280,22 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+bool M_TYPE::ctr_try_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 {
     auto& self = this->self();
 
     BlockUpdateMgr mgr(self);
 
-    self.updateBlockG(src);
-    self.updateBlockG(tgt);
+    self.ctr_update_block_guard(src);
+    self.ctr_update_block_guard(tgt);
 
     mgr.add(src);
     mgr.add(tgt);
 
-    Position tgt_sizes  = self.getNodeSizes(tgt);
+    Position tgt_sizes  = self.ctr_get_node_sizes(tgt);
 
-    int32_t tgt_size            = self.getNodeSize(tgt, 0);
-    NodeBaseG src_parent        = self.getNodeParent(src);
+    int32_t tgt_size            = self.ctr_get_node_size(tgt, 0);
+    NodeBaseG src_parent        = self.ctr_get_node_parent(src);
     int32_t parent_idx          = src->parent_idx();
 
     MEMORIA_V1_ASSERT(parent_idx, >, 0);
@@ -305,16 +305,16 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
         return false;
     }
 
-    self.updateChildren(tgt, tgt_size);
+    self.ctr_update_children(tgt, tgt_size);
 
-    BranchNodeEntry max = self.max(tgt);
+    BranchNodeEntry max = self.ctr_get_node_max_keys(tgt);
 
     // FIXME. This is apecial OOM condition that, if occurs, must be handled separately.
-    OOM_THROW_IF_FAILED(self.removeNonLeafNodeEntry(src_parent, parent_idx), MMA1_SRC);
+    OOM_THROW_IF_FAILED(self.ctr_remove_non_leaf_node_entry(src_parent, parent_idx), MMA1_SRC);
 
     int32_t idx = parent_idx - 1;
 
-    self.updateBranchNodes(src_parent, idx, max);
+    self.ctr_update_branch_nodes(src_parent, idx, max);
 
     self.store().removeBlock(src->id());
 
@@ -325,22 +325,22 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
 
 M_PARAMS
-bool M_TYPE::mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+bool M_TYPE::ctr_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 {
     auto& self = this->self();
 
-    if (self.isTheSameParent(tgt, src))
+    if (self.ctr_is_the_same_parent(tgt, src))
     {
-        return self.mergeCurrentLeafNodes(tgt, src, fn);
+        return self.ctr_merge_current_leaf_nodes(tgt, src, fn);
     }
     else
     {
-        NodeBaseG tgt_parent = self.getNodeParent(tgt);
-        NodeBaseG src_parent = self.getNodeParent(src);
+        NodeBaseG tgt_parent = self.ctr_get_node_parent(tgt);
+        NodeBaseG src_parent = self.ctr_get_node_parent(src);
 
-        if (self.mergeBranchNodes(tgt_parent, src_parent))
+        if (self.ctr_merge_branch_nodes(tgt_parent, src_parent))
         {
-            return self.mergeCurrentLeafNodes(tgt, src, fn);
+            return self.ctr_merge_current_leaf_nodes(tgt, src, fn);
         }
         else
         {
@@ -353,13 +353,13 @@ bool M_TYPE::mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
 
 M_PARAMS
-bool M_TYPE::mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+bool M_TYPE::ctr_merge_current_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 {
     auto& self = this->self();
 
-    if (self.tryMergeLeafNodes(tgt, src, fn))
+    if (self.ctr_try_merge_leaf_nodes(tgt, src, fn))
     {
-        self.removeRedundantRootP(tgt);
+        self.ctr_remove_redundant_root(tgt);
         return true;
     }
     else {

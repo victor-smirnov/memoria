@@ -58,7 +58,7 @@ public:
     }
 
     auto seek(CtrSizeT idx) {
-        return self().template seek_stream<0>(idx);
+        return self().template ctr_seek_stream<0>(idx);
     }
 
 

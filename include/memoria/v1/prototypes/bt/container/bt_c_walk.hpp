@@ -43,11 +43,11 @@ public:
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
 
-    void walkTree(ContainerWalker<ProfileT>* walker)
+    void ctr_walk_tree(ContainerWalker<ProfileT>* walker)
     {
         auto& self = this->self();
 
-        NodeBaseG root = self.getRoot();
+        NodeBaseG root = self.ctr_get_root_node();
 
         walker->beginCtr(
                         TypeNameFactory<typename Types::ContainerTypeName>::name().data(),
@@ -55,12 +55,12 @@ public:
                         root->id()
                 );
 
-        this->traverseTree(root, walker);
+        this->ctr_traverse_tree(root, walker);
 
         walker->endCtr();
     }
 
-    void beginNode(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
+    void ctr_begin_node(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
     {
         if (node->is_root())
         {
@@ -77,11 +77,11 @@ public:
             walker->leaf(node->parent_idx(), node.block()->as_header());
         }
         else {
-            walker->beginNode(node->parent_idx(), node.block()->as_header());
+            walker->ctr_begin_node(node->parent_idx(), node.block()->as_header());
         }
     }
 
-    void endNode(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
+    void ctr_end_node(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
     {
         if (node->is_root())
         {
@@ -92,11 +92,11 @@ public:
         }
         else if (!node->is_leaf())
         {
-            walker->endNode();
+            walker->ctr_end_node();
         }
     }
 
-    CtrID clone(CtrID new_name) const
+    CtrID ctr_clone(CtrID new_name) const
     {
         if (new_name.is_null())
         {
@@ -108,15 +108,15 @@ public:
         BlockID root_id = self.store().getRootID(new_name);
         if (root_id.is_null())
         {
-            NodeBaseG root = self.getRoot();
+            NodeBaseG root = self.ctr_get_root_node();
 
-            NodeBaseG new_root = self.clone_tree(root, root->parent_id());
+            NodeBaseG new_root = self.ctr_clone_tree(root, root->parent_id());
 
-            auto new_meta = self.getCtrRootMetadata(new_root);
+            auto new_meta = self.ctr_get_ctr_root_metadata(new_root);
 
             new_meta.model_name() = new_name;
 
-            self.setCtrRootMetadata(new_root, new_meta);
+            self.ctr_set_ctr_root_metadata(new_root, new_meta);
 
             self.store().setRoot(new_name, new_root->id());
 
@@ -130,7 +130,7 @@ public:
 
 private:
 
-    NodeBaseG clone_tree(const NodeBaseG& node, const BlockID& parent_id) const
+    NodeBaseG ctr_clone_tree(const NodeBaseG& node, const BlockID& parent_id) const
     {
         auto& self = this->self();
 
@@ -139,33 +139,33 @@ private:
 
         if (!node->is_leaf())
         {
-            self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&](const BlockID& id, int32_t idx)
+            self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&](const BlockID& id, int32_t idx)
             {
                 NodeBaseG child = self.store().getBlock(id);
-                NodeBaseG new_child = self.clone_tree(child, new_node->id());
-                self.setChildId(new_node, idx, new_child->id());
+                NodeBaseG new_child = self.ctr_clone_tree(child, new_node->id());
+                self.ctr_set_child_id(new_node, idx, new_child->id());
             });
         }
 
         return new_node;
     }
 
-    void traverseTree(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
+    void ctr_traverse_tree(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
     {
         auto& self = this->self();
 
-        self.beginNode(node, walker);
+        self.ctr_begin_node(node, walker);
 
         if (!node->is_leaf())
         {
-            self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const BlockID& id, int32_t idx)
+            self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&self, walker](const BlockID& id, int32_t idx)
             {
                 NodeBaseG child = self.store().getBlock(id);
-                self.traverseTree(child, walker);
+                self.ctr_traverse_tree(child, walker);
             });
         }
 
-        self.endNode(node, walker);
+        self.ctr_end_node(node, walker);
     }
 
 MEMORIA_V1_CONTAINER_PART_END

@@ -87,7 +87,7 @@ public:
 
     auto rank(int64_t delta, int32_t symbol)
     {
-        return self().template rank_<SymbolsSubstreamPath>(symbol, delta);
+        return self().template ctr_rank<SymbolsSubstreamPath>(symbol, delta);
     }
 
     auto rankFw(int64_t delta, int32_t symbol)
@@ -113,9 +113,9 @@ int64_t M_TYPE::rank(int32_t symbol) const
 
     RankFn<IntList<0, 1>> fn(symbol);
 
-    if (self.local_pos() >= 0)
+    if (self.iter_local_pos() >= 0)
     {
-        self.ctr().walkUp(self.leaf(), self.local_pos(), fn);
+        self.ctr().ctr_walk_tree_up(self.iter_leaf(), self.iter_local_pos(), fn);
     }
 
     return fn.rank_;
@@ -128,7 +128,7 @@ int64_t M_TYPE::localrank_(int32_t idx, int32_t symbol) const
 
     RankFn<IntList<0, 1>> fn(symbol);
 
-    self().leaf_dispatcher().dispatch(self.leaf(), fn, idx);
+    self().leaf_dispatcher().dispatch(self.iter_leaf(), fn, idx);
 
     return fn.rank_;
 }
@@ -141,7 +141,7 @@ int64_t M_TYPE::ranki(int32_t symbol) const
 
     RankFn<IntList<0, 1>> fn(symbol);
 
-    self.ctr().walkUp(self.leaf(), self.local_pos() + 1, fn);
+    self.ctr().ctr_walk_tree_up(self.iter_leaf(), self.iter_local_pos() + 1, fn);
 
     return fn.rank_;
 }

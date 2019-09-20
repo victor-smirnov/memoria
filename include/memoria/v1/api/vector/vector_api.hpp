@@ -34,20 +34,91 @@
 namespace memoria {
 namespace v1 {
 
-template <typename Value>
-struct VectorIterator {
-    using ValueV = typename DataTypeTraits<Value>::ValueType;
+template <typename DataType, typename Profile>
+struct VectorIterator: BTSSIterator<Profile> {
 
-    virtual ~VectorIterator() noexcept {}
+    using ValueType = DTTValueType<DataType>;
+    using ViewType  = DTTViewType<DataType>;
+    using CtrSizeT  = ProfileCtrSizeT<Profile>;
 
-    virtual ValueV value() const = 0;
-    virtual bool is_end() const = 0;
-    virtual void next() = 0;
+    virtual ValueType value() const = 0;
+    virtual void set(ViewType view) = 0;
+    virtual bool next() = 0;
+
+    virtual CtrSizeT remove(CtrSizeT size) = 0;
 };
 
+template <typename DataType, typename Profile, bool FixedSizeElement = DTTisFixedSize<DataType>>
+struct VectorApiBase;
+
+template <typename DataType, typename Profile>
+struct VectorApiBase<DataType, Profile, true>: public CtrReferenceable<Profile> {
+
+};
+
+template <typename DataType, typename Profile>
+struct VectorApiBase<DataType, Profile, false>: public CtrReferenceable<Profile> {
+
+};
     
-template <typename Value, typename Profile> 
-struct ICtrApi<Vector<Value>, Profile>: public CtrReferenceable<Profile> {
+template <typename DataType, typename Profile>
+struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profile> {
+
+    using ApiTypes  = ICtrApiTypes<Vector<DataType>, Profile>;
+
+    using ValueType = DTTValueType<DataType>;
+    using ViewType  = DTTViewType<DataType>;
+
+    using CtrSizeT  = ProfileCtrSizeT<Profile>;
+
+    using Producer      = VectorProducer<ApiTypes>;
+    using ProducerFn    = typename Producer::ProducerFn;
+
+
+    virtual ValueType get(CtrSizeT pos) const = 0;
+    virtual void set(CtrSizeT pos, ViewType view) = 0;
+
+    virtual CtrSizeT size() const = 0;
+
+    virtual CtrSharedPtr<VectorIterator<DataType, Profile>> seek(CtrSizeT pos) const = 0;
+
+    virtual void prepend(io::IOVectorProducer& producer) = 0;
+    virtual void append(io::IOVectorProducer& producer)  = 0;
+    virtual void insert(CtrSizeT at, io::IOVectorProducer& producer) = 0;
+
+    template <typename Fn>
+    VectorScanner<ApiTypes, Profile> as_scanner(Fn&& fn) const {
+        return VectorScanner<ApiTypes, Profile>(fn(this));
+    }
+
+    void append(ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        append(producer);
+    }
+
+    void prepend(ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        prepend(producer);
+    }
+
+    void insert(CtrSizeT at, ProducerFn producer_fn) {
+        Producer producer(producer_fn);
+        insert(at, producer);
+    }
+
+    void insert(CtrSizeT at, Span<const ViewType> span)
+    {
+        insert(at, [&](auto& values, size_t){
+            values.append(span);
+            return false;
+        });
+    }
+
+
+    virtual CtrSizeT remove(CtrSizeT from, CtrSizeT to) = 0;
+    virtual CtrSizeT remove_from(CtrSizeT from) = 0;
+    virtual CtrSizeT remove_up_to(CtrSizeT pos) = 0;
+
     MMA1_DECLARE_ICTRAPI();
 };
 

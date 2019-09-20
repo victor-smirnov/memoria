@@ -48,7 +48,7 @@ public:
 
     bool isAtTheEnd2(const NodeBaseG& leaf, const Position& pos) const
     {
-        auto sizes = self().getNodeSizes(leaf);
+        auto sizes = self().ctr_get_node_sizes(leaf);
 
         return pos.sum() >= sizes.sum();
     }

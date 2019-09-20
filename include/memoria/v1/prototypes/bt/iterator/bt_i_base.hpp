@@ -113,38 +113,38 @@ public:
         Base::assign(other);
     }
 
-    auto clone() const
+    auto iter_clone() const
     {
         return self().ctr().clone_iterator(self());
     }
 
-    bool isEqual(const ThisType& other) const
+    bool iter_equals(const ThisType& other) const
     {
-        return leaf().node() == other.leaf().node() && idx_ == other.idx_ && Base::isEqual(other);
+        return iter_leaf().node() == other.iter_leaf().node() && idx_ == other.idx_ && Base::iter_equals(other);
     }
 
-    bool isNotEqual(const ThisType& other) const
+    bool iter_not_equals(const ThisType& other) const
     {
-        return leaf().node() != other.leaf().node() || idx_ != other.idx_ || Base::isNotEqual(other);
+        return iter_leaf().node() != other.iter_leaf().node() || idx_ != other.idx_ || Base::iter_not_equals(other);
     }
 
 
-    int32_t& stream() {
+    int32_t& iter_stream() {
         return stream_;
     }
 
 
-    int32_t stream() const {
+    int32_t iter_stream() const {
         return stream_;
     }
 
 
-    int32_t &local_pos()
+    int32_t &iter_local_pos()
     {
         return idx_;
     }
 
-    int32_t local_pos() const
+    int32_t iter_local_pos() const
     {
         return idx_;
     }
@@ -190,12 +190,12 @@ public:
         }
     };
 
-    NodeAccessor leaf()
+    NodeAccessor iter_leaf()
     {
         return NodeAccessor(leaf_, self());
     }
 
-    ConstNodeAccessor leaf() const
+    ConstNodeAccessor iter_leaf() const
     {
         return ConstNodeAccessor(leaf_);
     }
@@ -212,37 +212,37 @@ public:
     }
 
 
-    IteratorCache& cache() {
+    IteratorCache& iter_cache() {
         return cache_;
     }
 
-    const IteratorCache& cache() const {
+    const IteratorCache& iter_cache() const {
         return cache_;
     }
 
 
     bool isBegin() const
     {
-        return local_pos() < 0 || isEmpty();
+        return iter_local_pos() < 0 || isEmpty();
     }
 
     bool isEnd() const
     {
         auto& self = this->self();
 
-        return leaf().node().isSet() ? local_pos() >= self.leaf_size() : true;
+        return iter_leaf().node().isSet() ? iter_local_pos() >= self.iter_leaf_size() : true;
     }
 
     bool is_end() const
     {
         auto& self = this->self();
-        return leaf().node().isSet() ? local_pos() >= self.leaf_size() : true;
+        return iter_leaf().node().isSet() ? iter_local_pos() >= self.iter_leaf_size() : true;
     }
 
     bool isEnd(int32_t idx) const
     {
         auto& self = this->self();
-        return leaf().node().isSet() ? idx >= self.leaf_size() : true;
+        return iter_leaf().node().isSet() ? idx >= self.iter_leaf_size() : true;
     }
 
     bool isContent() const
@@ -255,11 +255,11 @@ public:
     {
         auto& self = this->self();
 
-        bool is_set = self.leaf().node().isSet();
+        bool is_set = self.iter_leaf().node().isSet();
 
-        auto leaf_size = self.leaf_size();
+        auto iter_leaf_size = self.iter_leaf_size();
 
-        return is_set && idx >= 0 && idx < leaf_size;
+        return is_set && idx >= 0 && idx < iter_leaf_size;
     }
 
     bool isNotEnd() const
@@ -270,7 +270,7 @@ public:
     bool isEmpty() const
     {
         auto& self = this->self();
-        return (leaf().node().isEmpty()) || (self.leaf_size() == 0);
+        return (iter_leaf().node().isEmpty()) || (self.iter_leaf_size() == 0);
     }
 
     bool isNotEmpty() const
@@ -291,7 +291,7 @@ public:
 
     bool has_same_leaf(const Iterator& other) const
     {
-        return self().leaf()->id() == other.leaf()->id();
+        return self().iter_leaf()->id() == other.iter_leaf()->id();
     }
 
 
@@ -301,7 +301,7 @@ public:
 
         out << (header != NULL ? header : self.getDumpHeader()) << std::endl;
 
-        self.dumpKeys(out);
+        self.iter_dump_keys(out);
         self.dumpCache(out);
 
         self.dumpBeforePages(out);
@@ -318,32 +318,32 @@ public:
         auto& self  = this->self();
         out << (header != NULL ? header : self.getDumpHeader()) << std::endl;
         dumpCache(out);
-        dumpKeys(out);
-        self.ctr().dumpPath(self.leaf(), out);
+        iter_dump_keys(out);
+        self.ctr().ctr_dump_path(self.iter_leaf(), out);
         out << "======================================================================" << std::endl;
     }
 
     void dumpCache(std::ostream& out = std::cout) const
     {
         auto& self  = this->self();
-        out << self.cache() << std::endl;
+        out << self.iter_cache() << std::endl;
     }
 
     void dumpHeader(std::ostream& out = std::cout) const
     {
         self().dumpCache(out);
-        self().dumpKeys(out);
-        if (self().leaf().node().isSet()) {
-            std::cout << "Node ID: " << self().leaf()->id() << std::endl;
+        self().iter_dump_keys(out);
+        if (self().iter_leaf().node().isSet()) {
+            std::cout << "Node ID: " << self().iter_leaf()->id() << std::endl;
         }
     }
 
-    void dumpKeys(std::ostream& out) const
+    void iter_dump_keys(std::ostream& out) const
     {
         auto& self = this->self();
 
-        out << "Stream:  " << self.stream() << std::endl;
-        out << "Idx:  " << self.local_pos() << std::endl;
+        out << "Stream:  " << self.iter_stream() << std::endl;
+        out << "Idx:  " << self.iter_local_pos() << std::endl;
     }
 
     void dumpBeforePath(std::ostream& out) const {}
@@ -353,14 +353,14 @@ public:
     {
         auto& self = this->self();
 
-        self.ctr().dump(self.leaf(), out);
+        self.ctr().ctr_dump_node(self.iter_leaf(), out);
     }
 
-    void prepare() {}
+    void iter_prepare() {}
 
-    void init() {}
+    void iter_init() {}
 
-    void refresh() {}
+    void iter_refresh() {}
 
 public:
     template <typename Walker>

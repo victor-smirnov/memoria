@@ -48,11 +48,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
 
     template <int32_t Stream, typename SubstreamsList, typename Buffer>
-    void update_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Buffer& entry)
+    void ctr_update_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Buffer& entry)
     {
         auto& self = this->self();
 
-        auto result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
+        auto result = self.template ctr_try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
 
         if (!std::get<0>(result))
         {
@@ -60,7 +60,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
             idx = split_r.stream_idx();
 
-            result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
+            result = self.template ctr_try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
 
             if (!std::get<0>(result))
             {
@@ -68,7 +68,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
             }
         }
 
-        self.update_path(iter.leaf());
+        self.ctr_update_path(iter.iter_leaf());
     }
 
 

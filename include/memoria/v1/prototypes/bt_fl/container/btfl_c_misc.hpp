@@ -48,12 +48,12 @@ protected:
 
 public:
     auto seq_begin() {
-        return self().template seek_stream<StructureStreamIdx>(0);
+        return self().template ctr_seek_stream<StructureStreamIdx>(0);
     }
 
     auto seq_end() {
         auto& self = this->self();
-        return self.template seek_stream<StructureStreamIdx>(self.seq_size());
+        return self.template ctr_seek_stream<StructureStreamIdx>(self.seq_size());
     }
 
     CtrSizeT seq_size() const {
@@ -62,7 +62,7 @@ public:
 
     auto seq_seek(CtrSizeT pos)
     {
-        return self().template seek_stream<StructureStreamIdx>(pos);
+        return self().template ctr_seek_stream<StructureStreamIdx>(pos);
     }
 
     auto seq_seekL0(CtrSizeT pos)
@@ -74,7 +74,7 @@ public:
     auto seq_seek(const CtrSizesT& pos, int32_t level)
     {
         auto& self = this->self();
-        auto iter  = self.template seek_stream<StructureStreamIdx>(pos[0]);
+        auto iter  = self.template ctr_seek_stream<StructureStreamIdx>(pos[0]);
 
         for (int32_t l = 1; l <= level; l++)
         {
@@ -98,7 +98,7 @@ public:
 
     auto select(CtrSizeT rank, int32_t stream)
     {
-        return self().template select_<IntList<StructureStreamIdx, 1>>(stream, rank);
+        return self().template ctr_select<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
 

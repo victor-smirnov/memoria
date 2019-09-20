@@ -49,17 +49,17 @@ protected:
     static const int32_t Streams = Types::Streams;
 
 public:
-    NodeBaseG split_leaf_p(NodeBaseG& left_node, const Position& split_at)
+    NodeBaseG ctr_split_leaf(NodeBaseG& left_node, const Position& split_at)
     {
         auto& self = this->self();
 
-        return self.splitP(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right){
-            return self.split_leaf_node(left, right, split_at);
+        return self.ctr_split_node(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right){
+            return self.ctr_split_leaf_node(left, right, split_at);
         });
     }
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, OpStatus);
-    OpStatus split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+    OpStatus ctr_split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
     {
         return self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
     }
@@ -76,35 +76,35 @@ public:
 
 
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
-    auto apply_substreams_fn(NodeBaseG& leaf, Fn&& fn, Args&&... args)
+    auto ctr_apply_substreams_fn(NodeBaseG& leaf, Fn&& fn, Args&&... args)
     {
         return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
-    auto apply_substreams_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
+    auto ctr_apply_substreams_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
     {
         return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename Fn, typename... Args>
-    auto apply_stream_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
+    auto ctr_apply_stream_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
     {
         return self().leaf_dispatcher().dispatch(leaf, bt::StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
-    auto read_substreams(const NodeBaseG& leaf, Args&&... args) const
+    auto ctr_read_substreams(const NodeBaseG& leaf, Args&&... args) const
     {
-         return self().template apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
+         return self().template ctr_apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
 
     template <int32_t Stream, typename... Args>
-    auto read_stream(const NodeBaseG& leaf, Args&&... args) const
+    auto ctr_read_stream(const NodeBaseG& leaf, Args&&... args) const
     {
-         return self().template apply_stream_fn<Stream>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
+         return self().template ctr_apply_stream_fn<Stream>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
@@ -127,11 +127,7 @@ public:
         }
     };
 
-    template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
-    auto _sum(const NodeBaseG& leaf, Args&&... args) const
-    {
-        return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), SumFn(), std::forward<Args>(args)...);
-    }
+
 
     struct FindFn {
         template <typename Stream, typename... Args>
@@ -142,7 +138,7 @@ public:
     };
 
     template <int32_t Stream, typename SubstreamsIdxList, typename... Args>
-    auto find_forward(const NodeBaseG& leaf, Args&&... args) const
+    auto ctr_find_forward(const NodeBaseG& leaf, Args&&... args) const
     {
         return self().leaf_dispatcher().dispatch(leaf, bt::SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
     }
@@ -181,13 +177,13 @@ public:
 
 
     template <typename Provider>
-    Position insert_data_into_leaf(NodeBaseG& leaf, const Position& pos, Provider& provider)
+    Position ctr_insert_data_into_leaf(NodeBaseG& leaf, const Position& pos, Provider& provider)
     {
         auto& self = this->self();
 
-        self.updateBlockG(leaf);
+        self.ctr_update_block_guard(leaf);
 
-        self.layoutLeafNode(leaf, Position(0));
+        self.ctr_layout_leaf_node(leaf, Position(0));
 
         if (provider.hasData())
         {
@@ -214,50 +210,50 @@ public:
     public:
         InsertDataResult(NodeBaseG leaf, const Position& position = Position()): leaf_(leaf), position_(position){}
 
-        NodeBaseG& leaf() {return leaf_;}
-        const NodeBaseG& leaf() const {return leaf_;}
+        NodeBaseG& iter_leaf() {return leaf_;}
+        const NodeBaseG& iter_leaf() const {return leaf_;}
 
         const Position& position() const {return position_;}
         Position& position() {return position_;}
     };
 
     template <typename Provider>
-    InsertDataResult insert_provided_data(NodeBaseG& leaf, const Position& pos, Provider& provider)
+    InsertDataResult ctr_insert_provided_data(NodeBaseG& leaf, const Position& pos, Provider& provider)
     {
         auto& self = this->self();
 
-        auto last_pos = self.insert_data_into_leaf(leaf, pos, provider);
+        auto last_pos = self.ctr_insert_data_into_leaf(leaf, pos, provider);
 
         if (provider.hasData())
         {
             // has to be defined in subclasses
             if (!self.isAtTheEnd2(leaf, last_pos))
             {
-                auto next_leaf = self.split_leaf_p(leaf, last_pos);
+                auto next_leaf = self.ctr_split_leaf(leaf, last_pos);
 
-                self.insert_data_into_leaf(leaf, last_pos, provider);
+                self.ctr_insert_data_into_leaf(leaf, last_pos, provider);
 
-                provider.nextLeaf(leaf);
+                provider.iter_next_leaf(leaf);
 
                 if (provider.hasData())
                 {
-                    return insertDataRest(leaf, next_leaf, provider);
+                    return ctr_insert_data_rest(leaf, next_leaf, provider);
                 }
                 else {
                     return InsertDataResult(next_leaf, Position());
                 }
             }
             else {
-                provider.nextLeaf(leaf);
+                provider.iter_next_leaf(leaf);
 
-                auto next_leaf = self.getNextNodeP(leaf);
+                auto next_leaf = self.ctr_get_next_node(leaf);
 
                 if (next_leaf.isSet())
                 {
-                    return insertDataRest(leaf, next_leaf, provider);
+                    return ctr_insert_data_rest(leaf, next_leaf, provider);
                 }
                 else {
-                    return insertDataRest(leaf, provider);
+                    return ctr_insert_data_rest(leaf, provider);
                 }
             }
         }
@@ -269,7 +265,7 @@ public:
 
 
     template <typename Provider>
-    LeafList createLeafDataList(Provider& provider)
+    LeafList ctr_create_leaf_data_list(Provider& provider)
     {
         auto& self = this->self();
 
@@ -277,11 +273,11 @@ public:
         NodeBaseG   head;
         NodeBaseG   current;
 
-        int32_t block_size = self.getRootMetadata().memory_block_size();
+        int32_t block_size = self.ctr_get_root_metadata().memory_block_size();
 
         while (provider.hasData())
         {
-            NodeBaseG node = self.createNode(0, false, true, block_size);
+            NodeBaseG node = self.ctr_create_node(0, false, true, block_size);
 
             if (head.isSet())
             {
@@ -291,9 +287,9 @@ public:
                 head = node;
             }
 
-            self.insert_data_into_leaf(node, Position(), provider);
+            self.ctr_insert_data_into_leaf(node, Position(), provider);
 
-            provider.nextLeaf(node);
+            provider.iter_next_leaf(node);
 
             current = node;
 
@@ -309,13 +305,13 @@ public:
 
 
     template <typename Provider>
-    InsertDataResult insertDataRest(NodeBaseG& leaf, NodeBaseG& next_leaf, Provider& provider)
+    InsertDataResult ctr_insert_data_rest(NodeBaseG& leaf, NodeBaseG& next_leaf, Provider& provider)
     {
         auto& self = this->self();
 
         provider.split_watcher().first = leaf;
 
-        auto leaf_list = self.createLeafDataList(provider);
+        auto leaf_list = self.ctr_create_leaf_data_list(provider);
 
         if (provider.split_watcher().second.isSet())
         {
@@ -330,15 +326,15 @@ public:
 
             LeafListProvider list_provider(self, leaf_list.head(), leaf_list.size());
 
-            NodeBaseG parent = self.getNodeParentForUpdate(leaf);
+            NodeBaseG parent = self.ctr_get_node_parent_for_update(leaf);
 
-            self.insert_subtree(parent, path_parent_idx, list_provider);
+            self.ctr_insert_subtree(parent, path_parent_idx, list_provider);
 
             auto& last_leaf = leaf_list.tail();
 
-            auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
+            auto last_leaf_size = self.ctr_get_leaf_stream_sizes(last_leaf);
 
-            if (self.mergeLeafNodes(last_leaf, next_leaf, [](const Position&){}))
+            if (self.ctr_merge_leaf_nodes(last_leaf, next_leaf, [](const Position&){}))
             {
                 return InsertDataResult(last_leaf, last_leaf_size);
             }
@@ -353,18 +349,18 @@ public:
 
 
     template <typename Provider>
-    InsertDataResult insertDataRest(NodeBaseG& leaf, Provider& provider)
+    InsertDataResult ctr_insert_data_rest(NodeBaseG& leaf, Provider& provider)
     {
         auto& self = this->self();
 
         if (leaf->is_root())
         {
-            self.newRootP(leaf);
+            self.ctr_create_new_root_block(leaf);
         }
 
         provider.split_watcher().first = leaf;
 
-        auto leaf_list = self.createLeafDataList(provider);
+        auto leaf_list = self.ctr_create_leaf_data_list(provider);
 
         if (provider.split_watcher().second.isSet())
         {
@@ -379,36 +375,36 @@ public:
 
             LeafListProvider list_provider(self, leaf_list.head(), leaf_list.size());
 
-            NodeBaseG parent = self.getNodeParentForUpdate(leaf);
+            NodeBaseG parent = self.ctr_get_node_parent_for_update(leaf);
 
-            self.insert_subtree(parent, path_parent_idx, list_provider);
+            self.ctr_insert_subtree(parent, path_parent_idx, list_provider);
 
             auto& last_leaf = leaf_list.tail();
 
-            auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
+            auto last_leaf_size = self.ctr_get_leaf_stream_sizes(last_leaf);
 
             return InsertDataResult(last_leaf, last_leaf_size);
         }
         else {
-            auto leaf_size = self.getLeafStreamSizes(leaf);
-            return InsertDataResult(leaf, leaf_size);
+            auto iter_leaf_size = self.ctr_get_leaf_stream_sizes(leaf);
+            return InsertDataResult(leaf, iter_leaf_size);
         }
     }
 
     template <typename Fn, typename... Args>
-    SplitStatus updateAtomic(Iterator& iter, Fn&& fn, Args&&... args)
+    SplitStatus ctr_update_atomic(Iterator& iter, Fn&& fn, Args&&... args)
     {
         auto& self = this->self();
 
         BlockUpdateMgr mgr(self);
 
-        self.updateBlockG(iter.leaf());
+        self.ctr_update_block_guard(iter.iter_leaf());
 
-        mgr.add(iter.leaf());
+        mgr.add(iter.iter_leaf());
 
 
         self().leaf_dispatcher().dispatch(
-            iter.leaf(),
+            iter.iter_leaf(),
             fn,
             std::forward<Args>(args)...
         );
@@ -424,7 +420,7 @@ public:
         fn.status_ = OpStatus::OK;
 
         self().leaf_dispatcher().dispatch(
-                    iter.leaf(),
+                    iter.iter_leaf(),
                     fn,
                     std::forward<Args>(args)...
                     );

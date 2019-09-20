@@ -70,7 +70,7 @@ public:
         if (stream == 0)
         {
             int32_t key_idx = self.data_stream_idx(stream);
-            return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(key_idx, 0));
+            return std::get<0>(self.template iter_read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
         else {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
@@ -86,7 +86,7 @@ public:
         if (stream == 1)
         {
             int32_t value_idx = self.data_stream_idx(stream);
-            return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(value_idx, 0));
+            return std::get<0>(self.template iter_read_leaf_entry<1, IntList<1>>(value_idx, 0));
         }
         else {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: ", stream));
@@ -110,7 +110,7 @@ public:
 
         if (stream == 0)
         {
-            auto ii = self.clone();
+            auto ii = self.iter_clone();
             if (ii->next())
             {
                 int32_t next_stream = ii->data_stream_s();
@@ -139,7 +139,7 @@ public:
             int32_t stream = self.data_stream();
             if (stream == 1)
             {
-                auto ii = self.clone();
+                auto ii = self.iter_clone();
                 return ii->countBw() - 1;
             }
             else {
@@ -230,43 +230,7 @@ public:
     }
 
 
-#ifdef MMA1_USE_IOBUFFER
-    template <typename IOBuffer>
-    auto read_keys(bt::BufferConsumer<IOBuffer>* consumer, CtrSizeT length = std::numeric_limits<CtrSizeT>::max())
-    {
-        auto& self = this->self();
 
-        self.toDataStream(0);
-
-        auto buffer = self.ctr().pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
-
-        auto total = self.ctr().template buffered_read<0>(self, length, *buffer.get(), *consumer);
-
-        self.toStructureStream();
-
-        return total;
-    }
-
-
-    template <typename IOBuffer>
-    CtrSizeT insert_values(bt::BufferProducer<IOBuffer>& producer)
-    {
-        auto& self = this->self();
-        
-        SingleStreamProducerAdapter<IOBuffer, 2> adapter(producer, 1);
-        
-        return self.insert_iovector(adapter).sum();
-    }
-    
-    template <typename IOBuffer>
-    CtrSizeT insert_mmap_entry(const Key& key, bt::BufferProducer<IOBuffer>& producer)
-    {
-        auto& self = this->self();
-        SingleEntryProducerAdapter<Key, IOBuffer, 2> adapter(key, producer, 0);
-        
-        return self.insert_iovector(adapter)[1];
-    }
-#endif
 
 MEMORIA_V1_ITERATOR_PART_END
 

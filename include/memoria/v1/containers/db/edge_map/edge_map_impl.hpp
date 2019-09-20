@@ -115,7 +115,7 @@ template <typename Profile>
 typename CtrApi<EdgeMap, Profile>::EdgeMapValueIterator
 CtrApi<EdgeMap, Profile>::EdgeMapKeyIterator::values()
 {
-    auto ii = iterator_.clone();
+    auto ii = iterator_.iter_clone();
     auto size = ii.count_values();
     if (size > 0)
     {

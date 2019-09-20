@@ -38,7 +38,7 @@ struct BTSSIterator {
     virtual ~BTSSIterator() noexcept {}
 
     virtual const io::IOVector& iovector_view() const = 0;
-    virtual int32_t iovector_pos() const    = 0;
+    virtual int32_t iovector_pos() const  = 0;
 
     virtual bool is_end() const         = 0;
     virtual bool next_leaf()            = 0;

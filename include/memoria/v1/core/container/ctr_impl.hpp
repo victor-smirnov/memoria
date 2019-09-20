@@ -49,6 +49,7 @@ class SharedIter: public Iter<typename CtrTF<Profile, CtrName, CtrName>::Types::
     using IterT = Iter<typename CtrTF<Profile, CtrName, CtrName>::Types::IterTypes>;
 
     using CtrPtr = CtrSharedPtr<CtrT>;
+    using ConstCtrPtr = CtrSharedPtr<const CtrT>;
     
     using Base = Iter<typename CtrTF<Profile, CtrName, CtrName>::Types::IterTypes>;
 public:
@@ -56,7 +57,12 @@ public:
 
     SharedIter(CtrPtr ptr): Base(std::move(ptr))
     {
-        Base::local_pos() = 0;
+        Base::iter_local_pos() = 0;
+    }
+
+    SharedIter(ConstCtrPtr ptr): Base(std::move(ConstPointerCast<CtrT>(ptr)))
+    {
+        Base::iter_local_pos() = 0;
     }
     
     SharedIter(const MyType1& other): Base(other) {}

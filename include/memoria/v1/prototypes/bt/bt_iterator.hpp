@@ -55,7 +55,7 @@ public:
 
     Iter(CtrPtr ptr): Base(std::move(ptr))
     {
-        Base::local_pos() = 0;
+        Base::iter_local_pos() = 0;
     }
     
     Iter(const MyType& other): Base(other) {}
@@ -84,14 +84,14 @@ public:
 
     bool operator==(const MyType& other) const
     {
-        return isEqual(other);
+        return iter_equals(other);
     }
 
-    bool isEqual(const MyType& other) const
+    bool iter_equals(const MyType& other) const
     {
         if (other.type() == Base::NORMAL)
         {
-            return Base::isEqual(other);
+            return Base::iter_equals(other);
         }
         else if (other.type() == Base::END)
         {
@@ -109,14 +109,14 @@ public:
 
     bool operator!=(const MyType& other) const
     {
-        return isNotEqual(other);
+        return iter_not_equals(other);
     }
 
-    bool isNotEqual(const MyType& other) const
+    bool iter_not_equals(const MyType& other) const
     {
         if (other.type() == Base::NORMAL)
         {
-            return Base::isNotEqual(other);
+            return Base::iter_not_equals(other);
         }
         else if (other.type() == Base::END)
         {

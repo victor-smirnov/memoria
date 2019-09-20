@@ -49,28 +49,28 @@ protected:
     static const int32_t Streams = Types::Streams;
 
 public:
-    void update_path(const NodeBaseG& node);
+    void ctr_update_path(const NodeBaseG& node);
 
 public:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(InsertFn, insert, OpStatus);
-    OpStatus insertToBranchNodeP(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const BlockID& id);
+    OpStatus ctr_insert_to_branch_node(NodeBaseG& node, int32_t idx, const BranchNodeEntry& keys, const BlockID& id);
 
-    NodeBaseG splitPathP(NodeBaseG& node, int32_t split_at);
-    NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
+    NodeBaseG ctr_split_path(NodeBaseG& node, int32_t split_at);
+    NodeBaseG ctr_split_node(NodeBaseG& node, SplitFn split_fn);
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(UpdateNodeFn, updateUp, OpStatus);
 
 
-    MMA1_NODISCARD bool updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry);
+    MMA1_NODISCARD bool ctr_update_branch_node(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry);
 
-    void updateBranchNodes(NodeBaseG& node, int32_t& idx, const BranchNodeEntry& entry);
+    void ctr_update_branch_nodes(NodeBaseG& node, int32_t& idx, const BranchNodeEntry& entry);
 
-    void updateBranchNodesNoBackup(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry);
+    void ctr_update_branch_nodes_no_backup(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry);
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(TryMergeNodesFn, mergeWith, OpStatus);
-    bool tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
-    bool mergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
-    bool mergeCurrentBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
+    bool ctr_try_merge_branch_nodes(NodeBaseG& tgt, NodeBaseG& src);
+    bool ctr_merge_branch_nodes(NodeBaseG& tgt, NodeBaseG& src);
+    bool ctr_merge_current_branch_nodes(NodeBaseG& tgt, NodeBaseG& src);
 
 
 MEMORIA_V1_CONTAINER_PART_END
@@ -80,7 +80,7 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-OpStatus M_TYPE::insertToBranchNodeP(
+OpStatus M_TYPE::ctr_insert_to_branch_node(
         NodeBaseG& node,
         int32_t idx,
         const BranchNodeEntry& sums,
@@ -89,21 +89,21 @@ OpStatus M_TYPE::insertToBranchNodeP(
 {
     auto& self = this->self();
 
-    self.updateBlockG(node);
+    self.ctr_update_block_guard(node);
 
     if(isFail(self.branch_dispatcher().dispatch(node, InsertFn(), idx, sums, id))) {
         return OpStatus::FAIL;
     }
 
-    self.updateChildren(node, idx);
+    self.ctr_update_children(node, idx);
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.getNodeParentForUpdate(node);
+        NodeBaseG parent = self.ctr_get_node_parent_for_update(node);
         int32_t parent_idx = node->parent_idx();
 
-        auto max = self.max(node);
-        self.updateBranchNodes(parent, parent_idx, max);
+        auto max = self.ctr_get_node_max_keys(node);
+        self.ctr_update_branch_nodes(parent, parent_idx, max);
     }
 
     return OpStatus::OK;
@@ -113,51 +113,51 @@ OpStatus M_TYPE::insertToBranchNodeP(
 
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn)
+typename M_TYPE::NodeBaseG M_TYPE::ctr_split_node(NodeBaseG& left_node, SplitFn split_fn)
 {
     auto& self = this->self();
 
     if (left_node->is_root())
     {
-        self.newRootP(left_node);
+        self.ctr_create_new_root_block(left_node);
     }
     else {
-        self.updateBlockG(left_node);
+        self.ctr_update_block_guard(left_node);
     }
 
-    NodeBaseG left_parent = self.getNodeParentForUpdate(left_node);
+    NodeBaseG left_parent = self.ctr_get_node_parent_for_update(left_node);
 
-    NodeBaseG right_node = self.createNode(left_node->level(), false, left_node->is_leaf(), left_node->header().memory_block_size());
+    NodeBaseG right_node = self.ctr_create_node(left_node->level(), false, left_node->is_leaf(), left_node->header().memory_block_size());
 
     split_fn(left_node, right_node);
 
-    auto left_max  = self.max(left_node);
-    auto right_max = self.max(right_node);
+    auto left_max  = self.ctr_get_node_max_keys(left_node);
+    auto right_max = self.ctr_get_node_max_keys(right_node);
 
     int32_t parent_idx = left_node->parent_idx();
 
-    self.updateBranchNodes(left_parent, parent_idx, left_max);
+    self.ctr_update_branch_nodes(left_parent, parent_idx, left_max);
 
     BlockUpdateMgr mgr(self);
     mgr.add(left_parent);
 
-    if(isFail(self.insertToBranchNodeP(left_parent, parent_idx + 1, right_max, right_node->id())))
+    if(isFail(self.ctr_insert_to_branch_node(left_parent, parent_idx + 1, right_max, right_node->id())))
     {
         mgr.rollback();
 
-        NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
+        NodeBaseG right_parent = ctr_split_path(left_parent, parent_idx + 1);
 
         mgr.add(right_parent);
 
-        if(isFail(self.insertToBranchNodeP(right_parent, 0, right_max, right_node->id())))
+        if(isFail(self.ctr_insert_to_branch_node(right_parent, 0, right_max, right_node->id())))
         {
             mgr.rollback();
 
-            int32_t right_parent_size = self.getNodeSize(right_parent, 0);
+            int32_t right_parent_size = self.ctr_get_node_size(right_parent, 0);
 
-            splitPathP(right_parent, right_parent_size / 2);
+            ctr_split_path(right_parent, right_parent_size / 2);
 
-            OOM_THROW_IF_FAILED(self.insertToBranchNodeP(right_parent, 0, right_max, right_node->id()), MMA1_SRC);
+            OOM_THROW_IF_FAILED(self.ctr_insert_to_branch_node(right_parent, 0, right_max, right_node->id()), MMA1_SRC);
         }
     }
 
@@ -165,19 +165,19 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 }
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, int32_t split_at)
+typename M_TYPE::NodeBaseG M_TYPE::ctr_split_path(NodeBaseG& left_node, int32_t split_at)
 {
     auto& self = this->self();
 
-    return splitP(left_node, [&self, split_at](NodeBaseG& left, NodeBaseG& right){
-        return self.splitBranchNode(left, right, split_at);
+    return ctr_split_node(left_node, [&self, split_at](NodeBaseG& left, NodeBaseG& right){
+        return self.ctr_split_branch_node(left, right, split_at);
     });
 }
 
 
 
 M_PARAMS
-bool M_TYPE::updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry)
+bool M_TYPE::ctr_update_branch_node(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
@@ -197,18 +197,18 @@ bool M_TYPE::updateBranchNode(NodeBaseG& node, int32_t idx, const BranchNodeEntr
 
 
 M_PARAMS
-void M_TYPE::updateBranchNodes(NodeBaseG& node, int32_t& idx, const BranchNodeEntry& entry)
+void M_TYPE::ctr_update_branch_nodes(NodeBaseG& node, int32_t& idx, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
-    self.updateBlockG(node);
+    self.ctr_update_block_guard(node);
 
-    if (!self.updateBranchNode(node, idx, entry))
+    if (!self.ctr_update_branch_node(node, idx, entry))
     {
-        int32_t size        = self.getNodeSize(node, 0);
+        int32_t size        = self.ctr_get_node_size(node, 0);
         int32_t split_idx   = size / 2;
 
-        NodeBaseG right = self.splitPathP(node, split_idx);
+        NodeBaseG right = self.ctr_split_path(node, split_idx);
 
         if (idx >= split_idx)
         {
@@ -216,17 +216,17 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, int32_t& idx, const BranchNodeEn
             node = right;
         }
 
-        bool result = self.updateBranchNode(node, idx, entry);
+        bool result = self.ctr_update_branch_node(node, idx, entry);
         MEMORIA_V1_ASSERT_TRUE(result);
     }
 
     if(!node->is_root())
     {
         int32_t parent_idx = node->parent_idx();
-        NodeBaseG parent = self.getNodeParentForUpdate(node);
+        NodeBaseG parent = self.ctr_get_node_parent_for_update(node);
 
-        auto max = self.max(node);
-        self.updateBranchNodes(parent, parent_idx, max);
+        auto max = self.ctr_get_node_max_keys(node);
+        self.ctr_update_branch_nodes(parent, parent_idx, max);
     }
 }
 
@@ -236,55 +236,55 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, int32_t& idx, const BranchNodeEn
 
 
 M_PARAMS
-void M_TYPE::update_path(const NodeBaseG& node)
+void M_TYPE::ctr_update_path(const NodeBaseG& node)
 {
     auto& self = this->self();
 
     if (!node->is_root())
     {
-        auto entry = self.max(node);
+        auto entry = self.ctr_get_node_max_keys(node);
 
-        NodeBaseG parent = self.getNodeParentForUpdate(node);
+        NodeBaseG parent = self.ctr_get_node_parent_for_update(node);
         int32_t parent_idx = node->parent_idx();
-        self.updateBranchNodes(parent, parent_idx, entry);
+        self.ctr_update_branch_nodes(parent, parent_idx, entry);
     }
 }
 
 
 
 M_PARAMS
-void M_TYPE::updateBranchNodesNoBackup(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry)
+void M_TYPE::ctr_update_branch_nodes_no_backup(NodeBaseG& node, int32_t idx, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
-    self.updateBranchNode(node, idx, entry);
+    self.ctr_update_branch_node(node, idx, entry);
 
     if(!node->is_root())
     {
         int32_t parent_idx = node->parent_idx();
-        NodeBaseG parent = self.getNodeParentForUpdate(node);
+        NodeBaseG parent = self.ctr_get_node_parent_for_update(node);
 
-        self.updateBranchNodesNoBackup(parent, parent_idx, entry);
+        self.ctr_update_branch_nodes_no_backup(parent, parent_idx, entry);
     }
 }
 
 
 M_PARAMS
-bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
+bool M_TYPE::ctr_try_merge_branch_nodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
     BlockUpdateMgr mgr(self);
 
-    self.updateBlockG(src);
-    self.updateBlockG(tgt);
+    self.ctr_update_block_guard(src);
+    self.ctr_update_block_guard(tgt);
 
     mgr.add(src);
     mgr.add(tgt);
 
 
-    int32_t tgt_size            = self.getNodeSize(tgt, 0);
-    NodeBaseG src_parent    = self.getNodeParent(src);
+    int32_t tgt_size            = self.ctr_get_node_size(tgt, 0);
+    NodeBaseG src_parent    = self.ctr_get_node_parent(src);
     int32_t parent_idx          = src->parent_idx();
 
     MEMORIA_V1_ASSERT(parent_idx, >, 0);
@@ -295,18 +295,18 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
         return false;
     }
 
-    self.updateChildren(tgt, tgt_size);
+    self.ctr_update_children(tgt, tgt_size);
 
-    auto max = self.max(tgt);
+    auto max = self.ctr_get_node_max_keys(tgt);
 
-    if (isFail(self.removeNonLeafNodeEntry(src_parent, parent_idx))) {
+    if (isFail(self.ctr_remove_non_leaf_node_entry(src_parent, parent_idx))) {
         mgr.rollback();
         return false;
     }
 
     int32_t idx = parent_idx - 1;
 
-    self.updateBranchNodes(src_parent, idx, max);
+    self.ctr_update_branch_nodes(src_parent, idx, max);
 
     self.store().removeBlock(src->id());
 
@@ -315,22 +315,22 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
 
 M_PARAMS
-bool M_TYPE::mergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
+bool M_TYPE::ctr_merge_branch_nodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
-    if (self.isTheSameParent(tgt, src))
+    if (self.ctr_is_the_same_parent(tgt, src))
     {
-        return self.mergeCurrentBranchNodes(tgt, src);
+        return self.ctr_merge_current_branch_nodes(tgt, src);
     }
     else
     {
-        NodeBaseG tgt_parent = self.getNodeParent(tgt);
-        NodeBaseG src_parent = self.getNodeParent(src);
+        NodeBaseG tgt_parent = self.ctr_get_node_parent(tgt);
+        NodeBaseG src_parent = self.ctr_get_node_parent(src);
 
-        if (mergeBranchNodes(tgt_parent, src_parent))
+        if (ctr_merge_branch_nodes(tgt_parent, src_parent))
         {
-            return self.mergeCurrentBranchNodes(tgt, src);
+            return self.ctr_merge_current_branch_nodes(tgt, src);
         }
         else
         {
@@ -343,13 +343,13 @@ bool M_TYPE::mergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
 
 M_PARAMS
-bool M_TYPE::mergeCurrentBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
+bool M_TYPE::ctr_merge_current_branch_nodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
-    if (self.tryMergeBranchNodes(tgt, src))
+    if (self.ctr_try_merge_branch_nodes(tgt, src))
     {
-        self.removeRedundantRootP(tgt);
+        self.ctr_remove_redundant_root(tgt);
         return true;
     }
     else {

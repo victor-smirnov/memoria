@@ -48,17 +48,17 @@ protected:
 
 public:
     IteratorPtr begin() {
-        return self().template seek_stream<0>(0);
+        return self().template ctr_seek_stream<0>(0);
     }
 
     IteratorPtr end() {
         auto& self = this->self();
-        return self.template seek_stream<0>(self.sizes()[0]);
+        return self.template ctr_seek_stream<0>(self.sizes()[0]);
     }
 
     IteratorPtr seek(CtrSizeT idx) {
         auto& self = this->self();
-        return self.template seek_stream<0>(idx);
+        return self.template ctr_seek_stream<0>(idx);
     }
 
     CtrSizeT size() const {
@@ -68,7 +68,7 @@ public:
     /*
     IteratorPtr find(const UUID& snapshot_id)
     {
-        return self().template find_max_ge<IntList<0, 1>>(0, snapshot_id);
+        return self().template ctr_find_max_ge<IntList<0, 1>>(0, snapshot_id);
     }
 
     IteratorPtr find_or_create(Key key)

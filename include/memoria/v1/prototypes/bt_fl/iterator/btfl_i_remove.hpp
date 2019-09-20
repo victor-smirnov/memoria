@@ -54,19 +54,19 @@ public:
 
         if (!self.isEnd())
         {
-        	auto ii = self.clone();
+            auto ii = self.iter_clone();
         	ii->selectGEFw(n, self.data_stream());
 
         	auto start = self.leafrank();
         	auto end   = ii->leafrank();
 
-        	self.ctr().removeEntries(self.leaf(), start, ii->leaf(), end, sizes, true);
+        	self.ctr().ctr_remove_entries(self.iter_leaf(), start, ii->iter_leaf(), end, sizes, true);
 
-        	self.local_pos() = end[StructureStreamIdx];
+            self.iter_local_pos() = end[StructureStreamIdx];
 
-            self.leaf().assign(ii->leaf());
+            self.iter_leaf().assign(ii->iter_leaf());
 
-        	self.refresh();
+        	self.iter_refresh();
         }
 
         return sizes;
@@ -80,20 +80,20 @@ public:
 
         if (!self.isEnd())
         {
-        	auto ii = self.clone();
+            auto ii = self.iter_clone();
 
         	size = ii->skipFw(n);
 
         	auto start = self.leafrank();
         	auto end   = ii->leafrank();
 
-        	self.ctr().removeEntries(self.leaf(), start, ii->leaf(), end, sizes, true);
+        	self.ctr().ctr_remove_entries(self.iter_leaf(), start, ii->iter_leaf(), end, sizes, true);
 
-        	self.local_pos() = end[StructureStreamIdx];
+            self.iter_local_pos() = end[StructureStreamIdx];
 
-            self.leaf().assign(ii->leaf());
+            self.iter_leaf().assign(ii->iter_leaf());
 
-        	self.refresh();
+        	self.iter_refresh();
         }
 
         return size;
@@ -110,13 +110,13 @@ public:
             auto start = self.leafrank();
             auto end   = to.leafrank();
 
-            self.ctr().removeEntries(self.leaf(), start, to.leaf(), end, sizes, true);
+            self.ctr().ctr_remove_entries(self.iter_leaf(), start, to.iter_leaf(), end, sizes, true);
 
-            self.local_pos() = end[StructureStreamIdx];
+            self.iter_local_pos() = end[StructureStreamIdx];
 
-            self.leaf().assign(to.leaf());
+            self.iter_leaf().assign(to.iter_leaf());
 
-            self.refresh();
+            self.iter_refresh();
         }
 
         return sizes.sum() != 0;

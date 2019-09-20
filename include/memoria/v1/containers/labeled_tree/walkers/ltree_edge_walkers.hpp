@@ -44,7 +44,7 @@ public:
 
     void empty(Iterator& iter)
     {
-//      iter.cache().setup(BranchNodeEntry());
+//      iter.iter_cache().setup(BranchNodeEntry());
     }
 };
 
@@ -83,7 +83,7 @@ public:
     void finish(Iterator& iter, int32_t idx)
     {
         iter.local_pos() = idx + 1;
-        iter.cache().setup(prefix_);
+        iter.iter_cache().setup(prefix_);
     }
 };
 
@@ -111,7 +111,7 @@ public:
     {
         iter.local_pos() = idx - 1;
 
-        iter.cache().setup(BranchNodeEntry());
+        iter.iter_cache().setup(BranchNodeEntry());
     }
 };
 
@@ -174,7 +174,7 @@ public:
     {
         iter.local_pos() = idx;
 
-        iter.cache().setup(prefix_);
+        iter.iter_cache().setup(prefix_);
     }
 };
 

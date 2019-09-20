@@ -115,7 +115,7 @@ public:
     void setLabel(Iterator& iter, T&& value)
     {
         auto& self  = this->self();
-        auto& leaf  = iter.leaf();
+        auto& leaf  = iter.iter_leaf();
 
         int32_t label_idx = iter.label_idx();
 
@@ -123,7 +123,7 @@ public:
 
         if (self.updateNodeLabel(leaf, SetLabelValueFn<LabelIdx>(sums), label_idx, value))
         {
-            self.update_path(leaf);
+            self.ctr_update_path(leaf);
         }
         else
         {
@@ -134,7 +134,7 @@ public:
             auto result = self.updateNodeLabel(leaf, SetLabelValueFn<LabelIdx>(sums), label_idx, value);
 
             MEMORIA_V1_ASSERT_TRUE(result);
-            self.update_path(leaf);
+            self.ctr_update_path(leaf);
         }
     }
 
@@ -183,7 +183,7 @@ public:
     void addLabel(Iterator& iter, T&& value)
     {
         auto& self  = this->self();
-        auto& leaf  = iter.leaf();
+        auto& leaf  = iter.iter_leaf();
 
         int32_t label_idx = iter.label_idx();
 
@@ -191,7 +191,7 @@ public:
 
         if (self.updateNodeLabel(leaf, AddLabelValueFn<LabelIdx>(sums), label_idx, value))
         {
-            self.update_path(leaf);
+            self.ctr_update_path(leaf);
         }
         else
         {
@@ -203,7 +203,7 @@ public:
 
             MEMORIA_V1_ASSERT_TRUE(result);
 
-            self.update_path(leaf);
+            self.ctr_update_path(leaf);
         }
     }
 

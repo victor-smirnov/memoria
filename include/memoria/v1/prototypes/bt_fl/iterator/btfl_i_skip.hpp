@@ -51,27 +51,27 @@ public:
     bool isBegin() const
     {
         auto& self = this->self();
-        return self.local_pos() < 0 || self.isEmpty();
+        return self.iter_local_pos() < 0 || self.isEmpty();
     }
 
     bool isEnd() const
     {
         auto& self = this->self();
 
-        return self.leaf().node().isSet() ? self.local_pos() >= self.leaf_size(StructureStreamIdx) : true;
+        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx) : true;
     }
 
     bool is_end() const
     {
         auto& self = this->self();
-        return self.leaf().node().isSet() ? self.local_pos() >= self.leaf_size(StructureStreamIdx) : true;
+        return self.iter_leaf().node().isSet() ? self.iter_local_pos() >= self.iter_leaf_size(StructureStreamIdx) : true;
     }
 
     bool isEnd(int32_t idx) const
     {
         auto& self = this->self();
 
-        return self.leaf().node().isSet() ? idx >= self.leaf_size(StructureStreamIdx) : true;
+        return self.iter_leaf().node().isSet() ? idx >= self.iter_leaf_size(StructureStreamIdx) : true;
     }
 
     bool isContent() const
@@ -84,11 +84,11 @@ public:
     {
         auto& self = this->self();
 
-        bool is_set = self.leaf().node().isSet();
+        bool is_set = self.iter_leaf().node().isSet();
 
-        auto leaf_size = self.leaf_size(StructureStreamIdx);
+        auto iter_leaf_size = self.iter_leaf_size(StructureStreamIdx);
 
-        return is_set && idx >= 0 && idx < leaf_size;
+        return is_set && idx >= 0 && idx < iter_leaf_size;
     }
 
     bool isNotEnd() const
@@ -99,7 +99,7 @@ public:
     bool isEmpty() const
     {
         auto& self = this->self();
-        return self.leaf().node().isEmpty() || self.leaf_size(StructureStreamIdx) == 0;
+        return self.iter_leaf().node().isEmpty() || self.iter_leaf_size(StructureStreamIdx) == 0;
     }
 
     bool isNotEmpty() const
@@ -107,12 +107,12 @@ public:
         return !self().isEmpty();
     }
 
-    void dumpKeys(std::ostream& out) const
+    void iter_dump_keys(std::ostream& out) const
     {
         auto& self = this->self();
 
         out<<"Stream:  "<<self.data_stream_s()<<std::endl;
-        out<<"Idx:  "<<self.local_pos()<<std::endl;
+        out<<"Idx:  "<<self.iter_local_pos()<<std::endl;
     }
 
 
@@ -140,7 +140,7 @@ public:
     CtrSizeT skipFw(CtrSizeT n)
     {
     	auto& self = this->self();
-    	int32_t stream = self.stream();
+    	int32_t stream = self.iter_stream();
         return bt::ForEachStream<Streams - 1>::process(stream, SkipFWFn(), self, n);
     }
 
@@ -155,7 +155,7 @@ public:
     CtrSizeT skipBw(CtrSizeT n)
     {
     	auto& self = this->self();
-    	int32_t stream = self.stream();
+    	int32_t stream = self.iter_stream();
         return bt::ForEachStream<Streams - 1>::process(stream, SkipBWFn(), self, n);
     }
 
@@ -176,7 +176,7 @@ public:
 
         if (s != nullptr)
         {
-        	auto idx    = self.local_pos();
+        	auto idx    = self.iter_local_pos();
 
         	if (idx < s->size())
         	{
@@ -194,7 +194,7 @@ public:
 
         if (s != nullptr)
         {
-        	auto idx    = self.local_pos();
+            auto idx = self.iter_local_pos();
 
         	if (idx < s->size())
         	{
@@ -216,13 +216,13 @@ public:
     CtrSizeT pos() const
     {
         auto& self = this->self();
-        return self.template stream_size_prefix<StructureStreamIdx>() + self.local_pos();
+        return self.template stream_size_prefix<StructureStreamIdx>() + self.iter_local_pos();
     }
 
 //    CtrSizeT stream_pos() const
 //    {
 //
-//        return fn.pos_ + self.local_pos();
+//        return fn.pos_ + self.iter_local_pos();
 //    }
 
 
@@ -255,7 +255,7 @@ public:
         auto& self = this->self();
         SizePrefix<Stream> fn;
 
-        self.ctr().walkUp(self.leaf(), self.local_pos(), fn);
+        self.ctr().ctr_walk_tree_up(self.iter_leaf(), self.iter_local_pos(), fn);
 
         return fn.pos_;
     }
@@ -273,10 +273,10 @@ public:
 
             if (result.is_found())
             {
-                return result.local_pos();
+                return result.iter_local_pos();
             }
             else {
-                return self.leaf_size(StructureStreamIdx);
+                return self.iter_leaf_size(StructureStreamIdx);
             }
         }
         else {
@@ -288,11 +288,11 @@ public:
     {
     	auto& self = this->self();
 
-    	if (self.stream() != StructureStreamIdx)
+    	if (self.iter_stream() != StructureStreamIdx)
     	{
-    		int32_t stream = self.stream();
+    		int32_t stream = self.iter_stream();
 
-    		int32_t data_idx = self.local_pos();
+    		int32_t data_idx = self.iter_local_pos();
 
     		auto s = self.leaf_structure();
 
@@ -301,14 +301,14 @@ public:
                 //auto result = s->selectFW(stream, data_idx);
                 auto result = s->selectFW(data_idx + 1, stream);
 
-    			self.stream() = StructureStreamIdx;
+    			self.iter_stream() = StructureStreamIdx;
 
     			if (result.is_found())
     			{
-    				self.local_pos() = result.local_pos();
+                    self.iter_local_pos() = result.local_pos();
     			}
     			else {
-    				self.local_pos() = self.leaf_size(StructureStreamIdx);
+    				self.iter_local_pos() = self.iter_leaf_size(StructureStreamIdx);
     			}
     		}
     		else {
@@ -316,7 +316,7 @@ public:
     		}
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", self.stream()));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", self.iter_stream()));
     	}
     }
 
@@ -324,21 +324,21 @@ public:
     {
     	auto& self = this->self();
 
-    	if (self.stream() == StructureStreamIdx)
+    	if (self.iter_stream() == StructureStreamIdx)
     	{
             int32_t data_idx = self.data_stream_idx(stream);
-            self.local_pos() 		 = data_idx;
-            self.stream() 	 = stream;
+            self.iter_local_pos() = data_idx;
+            self.iter_stream() 	  = stream;
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", self.stream()));
+            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", self.iter_stream()));
     	}
     }
 
     int32_t data_stream_idx(int32_t stream) const
     {
         auto& self = this->self();
-        return self.data_stream_idx(stream, self.local_pos());
+        return self.data_stream_idx(stream, self.iter_local_pos());
     }
 
     int32_t data_stream_idx(int32_t stream, int32_t structure_idx) const
@@ -355,7 +355,7 @@ public:
     }
 
     CtrSizesT leafrank() const {
-    	return self().leafrank(self().local_pos());
+    	return self().leafrank(self().iter_local_pos());
     }
 
 
@@ -403,14 +403,14 @@ public:
 
     int32_t structure_size() const
     {
-        return self().leaf_size(StructureStreamIdx);
+        return self().iter_leaf_size(StructureStreamIdx);
     }
 
 
     const auto* leaf_structure() const
     {
         auto& self = this->self();
-        return self.ctr().template getPackedStruct<IntList<StructureStreamIdx, 1>>(self.leaf());
+        return self.ctr().template ctr_get_packed_struct<IntList<StructureStreamIdx, 1>>(self.iter_leaf());
     }
 
     int32_t symbol_idx(int32_t stream, int32_t position) const
@@ -421,7 +421,7 @@ public:
 
         if (s != nullptr)
         {
-        	return self.leaf_structure()->selectFW(position + 1, stream).local_pos();
+            return self.leaf_structure()->selectFW(position + 1, stream).local_pos();
         }
         else {
         	return 0;

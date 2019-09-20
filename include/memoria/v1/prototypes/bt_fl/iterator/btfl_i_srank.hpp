@@ -110,9 +110,9 @@ public:
     	auto& self = this->self();
     	RankWalker fn(stream);
 
-    	auto idx = self.local_pos();
+    	auto idx = self.iter_local_pos();
 
-    	self.ctr().walkUp(self.leaf(), idx, fn);
+    	self.ctr().ctr_walk_tree_up(self.iter_leaf(), idx, fn);
 
     	auto leaf_rank = self.leaf_structure()->rank(idx, stream);
 
@@ -125,9 +125,9 @@ public:
     	auto& self = this->self();
     	RankWalker fn;
 
-    	auto idx = self.local_pos();
+    	auto idx = self.iter_local_pos();
 
-    	self.ctr().walkUp(self.leaf(), idx, fn);
+    	self.ctr().ctr_walk_tree_up(self.iter_leaf(), idx, fn);
 
     	auto leaf_structure = self.leaf_structure();
 

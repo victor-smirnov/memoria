@@ -176,7 +176,7 @@ public:
         data_check_counter_++;
     }
 
-    virtual void checkIterator(Iterator& iter, const char* source) {
+    virtual void ctr_check_iterator(Iterator& iter, const char* source) {
         iter.check(out(), source);
     }
 

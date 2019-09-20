@@ -43,28 +43,28 @@ public:
 
     bool check(void *data) const
     {
-        return self().checkTree();
+        return self().ctr_check_tree();
     }
 
 
 
-    void checkIt()
+    void ctr_check_it()
     {
         auto& self = this->self();
 
         self.logger().level() = Logger::_ERROR;
 
-        if (self.checkTree())
+        if (self.ctr_check_tree())
         {
             throw Exception(MA_SRC, SBuf()<<"Container "<<self.name()<<" ("<<self.type_name_str()<<") check failed");
         }
     }
 
 public:
-    bool checkTree() const;
+    bool ctr_check_tree() const;
 
     MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);
-    bool checkContent(const NodeBaseG& node) const
+    bool ctr_check_content(const NodeBaseG& node) const
     {
         try {
             self().node_dispatcher().dispatch(node, CheckContentFn());
@@ -72,7 +72,7 @@ public:
         }
         catch (Exception& ex)
         {
-            self().dump(node);
+            self().ctr_dump_node(node);
 
             MMA1_ERROR(self(), "Node content check failed", ex.message());
             return true;
@@ -82,13 +82,13 @@ public:
 
 
 private:
-    void checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, const NodeBaseG& node, bool &errors) const;
+    void ctr_check_tree_structure(const NodeBaseG& parent, int32_t parent_idx, const NodeBaseG& node, bool &errors) const;
 
 
     template <typename Node1, typename Node2>
-    bool checkTypedNodeContent(Node1&& node, Node2&& parent, int32_t parent_idx) const;
+    bool ctr_check_typed_node_content(Node1&& node, Node2&& parent, int32_t parent_idx) const;
 
-    MEMORIA_V1_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, checkTypedNodeContent, bool);
+    MEMORIA_V1_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, ctr_check_typed_node_content, bool);
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -97,15 +97,15 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::checkTree() const
+bool M_TYPE::ctr_check_tree() const
 {
     auto& self = this->self();
 
-    NodeBaseG root = self.getRoot();
+    NodeBaseG root = self.ctr_get_root_node();
     if (root)
     {
         bool errors = false;
-        self.checkTreeStructure(NodeBaseG(), 0, root, errors);
+        self.ctr_check_tree_structure(NodeBaseG(), 0, root, errors);
         return errors;
     }
     else {
@@ -123,11 +123,11 @@ bool M_TYPE::checkTree() const
 
 
 M_PARAMS
-void M_TYPE::checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, const NodeBaseG& node, bool &errors) const
+void M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t parent_idx, const NodeBaseG& node, bool &errors) const
 {
     auto& self = this->self();
 
-    errors = self.checkContent(node) || errors;
+    errors = self.ctr_check_content(node) || errors;
 
     if (!node->is_root())
     {
@@ -135,26 +135,26 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, con
 
         if (!node->is_leaf())
         {
-            int32_t children = self.getNodeSize(node, 0);
+            int32_t children = self.ctr_get_node_size(node, 0);
 
             if (children == 0 && !node->is_root())
             {
                 errors = true;
                 MMA1_ERROR(self, "children == 0 for non-root node", node->id());
-                self.dump(node);
+                self.ctr_dump_node(node);
             }
         }
     }
 
     if (!node->is_leaf())
     {
-        int32_t children = self.getNodeSize(node, 0);
+        int32_t children = self.ctr_get_node_size(node, 0);
 
         for (int32_t c = 0; c < children; c++)
         {
-            BlockID child_id = self.getChildID(node, c);
+            BlockID child_id = self.ctr_get_child_id(node, c);
 
-            NodeBaseG child = self.getChild(node, c);
+            NodeBaseG child = self.ctr_get_node_child(node, c);
 
             if (child->id() != child_id)
             {
@@ -176,14 +176,14 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, int32_t parent_idx, con
                 std::cout << "parent_idx: " << child->parent_id() << " " << node->id() << std::endl;
             }
 
-            self.checkTreeStructure(node, c, child, errors);
+            self.ctr_check_tree_structure(node, c, child, errors);
         }
     }
 }
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::checkTypedNodeContent(Node1&& parent, Node2&& node, int32_t parent_idx) const
+bool M_TYPE::ctr_check_typed_node_content(Node1&& parent, Node2&& node, int32_t parent_idx) const
 {
     bool errors = false;
 

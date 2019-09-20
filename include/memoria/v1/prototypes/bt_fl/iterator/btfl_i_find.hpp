@@ -71,7 +71,7 @@ public:
     {
         const auto& self = this->self();
 
-        auto ii = self.clone();
+        auto ii = self.iter_clone();
         ii->selectFw(rank, stream);
         return ii->pos();
     }
@@ -92,7 +92,7 @@ public:
             constexpr int32_t stream = ListHead<typename Walker::LeafPath>::Value;
             auto& self = this->self();
             int iidx = self.symbol_idx(stream, idx);
-            self.local_pos() = iidx;
+            self.iter_local_pos() = iidx;
         }
     }
 

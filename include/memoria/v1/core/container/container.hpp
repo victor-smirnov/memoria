@@ -285,7 +285,7 @@ public:
         ) const
         {
             with_ctr(ctr_id, allocator, [&](MyType& ctr){
-                ctr.walkTree(walker);
+                ctr.ctr_walk_tree(walker);
             });
         }
 
@@ -312,20 +312,20 @@ public:
         	{}
 
             virtual void beginRoot(int32_t idx, const BlockType* block) {
-                beginNode(idx, block);
+                ctr_begin_node(idx, block);
             }
 
 
-            virtual void beginNode(int32_t idx, const BlockType* block) {
+            virtual void ctr_begin_node(int32_t idx, const BlockType* block) {
                 consumer_(block->uuid(), block->id(), block);
             }
 
             virtual void rootLeaf(int32_t idx, const BlockType* block) {
-                beginNode(idx, block);
+                ctr_begin_node(idx, block);
             }
 
             virtual void leaf(int32_t idx, const BlockType* block) {
-                beginNode(idx, block);
+                ctr_begin_node(idx, block);
             }
         };
 
@@ -340,7 +340,7 @@ public:
             CtrNodesWalkerAdapter walker(consumer);
 
             with_ctr(ctr_id, allocator, [&](MyType& ctr){
-        		ctr.walkTree(&walker);
+        		ctr.ctr_walk_tree(&walker);
         	});
         }
         

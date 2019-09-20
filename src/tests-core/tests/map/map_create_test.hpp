@@ -57,7 +57,7 @@ class MapCreateTest: public MapTestBase<MapName> {
     using Base::check;
     using Base::checkContainerData;
     using Base::out;
-    using Base::checkIterator;
+    using Base::ctr_check_iterator;
 
 
     Key     key_;
@@ -106,7 +106,7 @@ public:
             {
                 auto iter = map.assign(key, value);
 
-                checkIterator(iter, MA_SRC);
+                ctr_check_iterator(iter, MA_SRC);
             }
 
             check(snp, MA_SRC);
@@ -142,7 +142,7 @@ public:
         {
             auto iter = map.assign(key, value);
 
-            checkIterator(iter, MA_SRC);
+            ctr_check_iterator(iter, MA_SRC);
         }
 
         check(snp, MA_SRC);

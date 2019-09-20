@@ -115,7 +115,7 @@ update_log::SnapshotIDIterator<Iterator, CtrSizeT>::containers()
 
     if (ctr_names > 0)
     {
-        auto ii = iterator_.clone();
+        auto ii = iterator_.iter_clone();
         ii.ptr()->next();
         return ContainerNameIteratorT(ii, UAcc192T{}, 0, ctr_names);
     }
@@ -146,7 +146,7 @@ template <typename Iterator, typename CtrSizeT>
 typename update_log::ContainerNameIterator<Iterator, CtrSizeT>::CommandsDataIteratorT
 update_log::ContainerNameIterator<Iterator, CtrSizeT>::commands()
 {
-    auto ii = iterator_.clone();
+    auto ii = iterator_.iter_clone();
     ii.ptr()->next();
     return CommandsDataIteratorT{ii};
 }

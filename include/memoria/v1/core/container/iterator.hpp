@@ -173,12 +173,12 @@ public:
         return type_;
     }
 
-    bool isEqual(const ThisType& other) const
+    bool iter_equals(const ThisType& other) const
     {
         return true;
     }
 
-    bool isNotEqual(const ThisType& other) const
+    bool iter_not_equals(const ThisType& other) const
     {
         return false;
     }

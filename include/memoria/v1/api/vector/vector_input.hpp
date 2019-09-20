@@ -24,7 +24,7 @@ namespace io {
 template <typename Value>
 class VectorIOVector: public io::IOVector {
 
-    static constexpr int32_t SubstreamsNum = 2;
+    static constexpr int32_t SubstreamsNum = 1;
 
     PackedRLESymbolSequence<1> symbol_sequence_;
 

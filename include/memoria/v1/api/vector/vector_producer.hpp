@@ -35,7 +35,7 @@ class VectorProducer: public io::IOVectorProducer {
 public:
     using IOVSchema         = Linearize<typename Types::IOVSchema>;
     using ValuesSubstream   = IOSubstreamAdapter<Select<0, IOVSchema>>;
-    using ProducerFn       = std::function<bool (ValuesSubstream&, size_t)>;
+    using ProducerFn        = std::function<bool (ValuesSubstream&, size_t)>;
 
 private:
 
@@ -59,9 +59,9 @@ public:
 
         bool has_more = producer_fn_(values_, total_size_);
 
-        total_size_ += values_.size_;
+        total_size_ += values_.size();
 
-        io_vector.symbol_sequence().append(0, values_.size_);
+        io_vector.symbol_sequence().append(0, values_.size());
 
         return has_more;
     }

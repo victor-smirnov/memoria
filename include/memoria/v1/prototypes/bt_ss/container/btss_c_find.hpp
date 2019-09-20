@@ -49,13 +49,13 @@ public:
         return self().sizes()[0];
     }
 
-    auto seek(CtrSizeT position)
+    auto seek_(CtrSizeT position)
     {
-        return self().template seek_stream<0>(position);
+        return self().template ctr_seek_stream<0>(position);
     }
 
     auto Begin() {
-        return self().seek(0);
+        return self().seek_(0);
     }
 
     auto End()
@@ -63,10 +63,10 @@ public:
         auto size = self().size();
         if (size > 0)
         {
-            return self().seek(size);
+            return self().seek_(size);
         }
         else {
-            return self().seek(0);
+            return self().seek_(0);
         }
     }
 

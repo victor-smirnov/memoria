@@ -40,24 +40,24 @@ public:
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
 
     typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>             SplitFn;
 
 public:
     static const int32_t Streams = Types::Streams;
 
-    void newRootP(NodeBaseG& root);
+    void ctr_create_new_root_block(NodeBaseG& root);
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, int32_t);
-    int32_t getBranchNodeCapacity(const NodeBaseG& node, uint64_t active_streams) const
+    int32_t ctr_get_branch_node_capacity(const NodeBaseG& node, uint64_t active_streams) const
     {
         return self().branch_dispatcher().dispatch(node, GetNonLeafCapacityFn(), active_streams);
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, OpStatus);
-    OpStatus splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at);
+    OpStatus ctr_split_branch_node(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at);
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -66,7 +66,7 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-OpStatus M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at)
+OpStatus M_TYPE::ctr_split_branch_node(NodeBaseG& src, NodeBaseG& tgt, int32_t split_at)
 {
     auto& self = this->self();
 
@@ -74,31 +74,31 @@ OpStatus M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, int32_t split_a
         return OpStatus::FAIL;
     }
 
-    self.updateChildren(tgt);
+    self.ctr_update_children(tgt);
 
     return OpStatus::OK;
 }
 
 
 M_PARAMS
-void M_TYPE::newRootP(NodeBaseG& root)
+void M_TYPE::ctr_create_new_root_block(NodeBaseG& root)
 {
     auto& self = this->self();
 
-    self.updateBlockG(root);
+    self.ctr_update_block_guard(root);
 
-    NodeBaseG new_root = self.createNode(root->level() + 1, true, false, root->header().memory_block_size());
+    NodeBaseG new_root = self.ctr_create_node(root->level() + 1, true, false, root->header().memory_block_size());
 
-    uint64_t root_active_streams = self.getActiveStreams(root);
-    self.layoutBranchNode(new_root, root_active_streams);
+    uint64_t root_active_streams = self.ctr_get_active_streams(root);
+    self.ctr_layout_branch_node(new_root, root_active_streams);
 
-    self.copyRootMetadata(root, new_root);
+    self.ctr_copy_root_metadata(root, new_root);
 
-    self.root2Node(root);
+    self.ctr_root_to_node(root);
 
-    BranchNodeEntry max = self.max(root);
+    BranchNodeEntry max = self.ctr_get_node_max_keys(root);
 
-    OOM_THROW_IF_FAILED(self.insertToBranchNodeP(new_root, 0, max, root->id()), MMA1_SRC);
+    OOM_THROW_IF_FAILED(self.ctr_insert_to_branch_node(new_root, 0, max, root->id()), MMA1_SRC);
 
     root->parent_id()  = new_root->id();
     root->parent_idx() = 0;

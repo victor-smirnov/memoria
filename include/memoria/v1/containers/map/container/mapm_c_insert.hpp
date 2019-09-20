@@ -66,7 +66,7 @@ public:
 
     IteratorPtr find(const KeyView& k)
     {
-        return self().template find_max_ge<IntList<0, 1>>(0, k);
+        return self().template ctr_find_max_ge<IntList<0, 1>>(0, k);
     }
 
 

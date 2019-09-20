@@ -63,24 +63,24 @@ public:
 
     void finish(Iterator& iter, int32_t idx)
     {
-        iter.local_pos()  = idx;
+        iter.iter_local_pos()  = idx;
 
         int32_t size = iter.size();
 
         if (idx < size)
         {
-            iter.cache().setup(prefix_);
+            iter.iter_cache().setup(prefix_);
         }
         else {
-            iter.cache().setup(prefix_ - size);
+            iter.iter_cache().setup(prefix_ - size);
         }
     }
 
     void empty(Iterator& iter)
     {
-        iter.local_pos()  = 0;
+        iter.iter_local_pos()  = 0;
 
-        iter.cache().setup(0);
+        iter.iter_cache().setup(0);
     }
 
     int64_t prefix() const {
@@ -140,7 +140,7 @@ public:
 
     void empty(Iterator& iter)
     {
-        iter.cache().setup(BranchNodeEntry());
+        iter.iter_cache().setup(BranchNodeEntry());
     }
 };
 
@@ -169,9 +169,9 @@ public:
 
     void finish(Iterator& iter, int32_t idx)
     {
-        iter.local_pos() = 0;
+        iter.iter_local_pos() = 0;
 
-        iter.cache().setup(BranchNodeEntry());
+        iter.iter_cache().setup(BranchNodeEntry());
     }
 };
 

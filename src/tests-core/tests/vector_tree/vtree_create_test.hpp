@@ -63,7 +63,7 @@ public:
 
         check(MA_SRC);
 
-        checkTree(*tree.get(), root);
+        ctr_check_tree(*tree.get(), root);
 
         commit();
     }

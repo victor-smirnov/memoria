@@ -82,7 +82,7 @@ public:
 
         while (processed < length)
         {
-            int32_t start = self.local_pos();
+            int32_t start = self.iter_local_pos();
             int32_t size  = self.structure_size();
 
             int32_t leaf_remainder = size - start;
@@ -120,7 +120,7 @@ public:
 
             processed += to_copy_symbols;
 
-            if (!self.nextLeaf()) {
+            if (!self.iter_next_leaf()) {
                 break;
             }
         }
@@ -133,30 +133,30 @@ public:
 
 
 
-    void refresh()
+    void iter_refresh()
     {
-        Base::refresh();
+        Base::iter_refresh();
     }
 
     void refresh_prefixes()
     {
-        Base::refresh();
+        Base::iter_refresh();
     }
 
 
-    void checkPrefix() {
+    void iter_check_prefix() {
         auto tmp = self();
 
-        tmp.refresh();
+        tmp.iter_refresh();
 
-        MEMORIA_V1_ASSERT(self().cache(), ==, tmp.cache());
+        MEMORIA_V1_ASSERT(self().iter_cache(), ==, tmp.iter_cache());
     }
 
 //    void prepare() {
 //        Base::prepare();
 //
 //        auto& self = this->self();
-//        auto& cache = self.cache();
+//        auto& iter_cache = self.iter_cache();
 //    }
 
 

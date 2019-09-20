@@ -192,7 +192,7 @@ public:
 
     void empty(Iterator& iter)
     {
-        iter.local_pos() = 0;
+        iter.iter_local_pos() = 0;
     }
 
     static constexpr int32_t current_stream() {
@@ -265,23 +265,23 @@ public:
 
     void prepare(Iterator& iter)
     {
-        branch_prefix_      = iter.cache().prefixes();
-        leaf_prefix_        = iter.cache().leaf_prefixes();
-        branch_size_prefix_ = iter.cache().size_prefix();
+        branch_prefix_      = iter.iter_cache().prefixes();
+        leaf_prefix_        = iter.iter_cache().leaf_prefixes();
+        branch_size_prefix_ = iter.iter_cache().size_prefix();
 
-        branch_size_prefix_backup_  = iter.cache().size_prefix();
-        idx_backup_         = iter.local_pos();
+        branch_size_prefix_backup_  = iter.iter_cache().size_prefix();
+        idx_backup_         = iter.iter_local_pos();
     }
 
     void finish(Iterator& iter, int32_t idx, WalkCmd cmd) const
     {
-        iter.local_pos() = idx;
+        iter.iter_local_pos() = idx;
 
         iter.finish_walking(idx, self(), cmd);
 
-        iter.cache().prefixes()      = branch_prefix_;
-        iter.cache().leaf_prefixes() = leaf_prefix_;
-        iter.cache().size_prefix()   = branch_size_prefix_;
+        iter.iter_cache().prefixes()      = branch_prefix_;
+        iter.iter_cache().leaf_prefixes() = leaf_prefix_;
+        iter.iter_cache().size_prefix()   = branch_size_prefix_;
     }
 
     const IteratorBranchNodeEntry& branch_BranchNodeEntry() const {

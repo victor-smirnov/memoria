@@ -40,7 +40,7 @@ template <typename ValueT>
 struct VectorValues<ValueT, false>
 {
 
-    io::DefaultIOBuffer<ValueT> values_;
+    ArenaBuffer<ValueT> values_;
 
     Span<const ValueT> values() const {return values_.span();}
 
@@ -67,11 +67,11 @@ struct VectorValues<ValueT, true>
 template <typename Types, typename Profile>
 class VectorScanner {
 public:
-    using ValueView = typename DataTypeTraits<typename Types::Value>::ViewType;
+    using ValueView = DTTViewType<typename Types::Value>;
 
 private:
 
-    static constexpr bool DirectValues = DataTypeTraits<typename Types::Value>::isFixedSize;
+    static constexpr bool DirectValues = DTTisFixedSize<typename Types::Value>;
 
     using IOVSchema = Linearize<typename Types::IOVSchema>;
 

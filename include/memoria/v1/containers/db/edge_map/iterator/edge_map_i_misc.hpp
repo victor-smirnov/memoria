@@ -60,7 +60,7 @@ public:
         {
             int32_t key_idx = self.data_stream_idx(stream);
 
-            return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(key_idx, 0));
+            return std::get<0>(self.template iter_read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
         else {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
@@ -76,7 +76,7 @@ public:
         if (stream == 1)
         {
             int32_t value_idx = self.data_stream_idx(stream);
-            return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(value_idx, 0));
+            return std::get<0>(self.template iter_read_leaf_entry<1, IntList<1>>(value_idx, 0));
         }
         else {
             MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: ", stream));
@@ -102,7 +102,7 @@ public:
             int32_t stream = self.data_stream();
             if (stream == 1)
             {
-                auto ii = self.clone();
+                auto ii = self.iter_clone();
                 return ii->countBw() - 1;
             }
             else {
@@ -215,7 +215,7 @@ public:
 
         if (stream == 0)
         {
-            auto ii = self.clone();
+            auto ii = self.iter_clone();
             if (ii->next())
             {
                 int32_t next_stream = ii->data_stream_s();
@@ -270,22 +270,22 @@ public:
     {
         auto& self = this->self();
 
-        auto ii = self.clone();
+        auto ii = self.iter_clone();
 
         auto size = self.count_values();
 
         if (size > 0)
         {
             self.to_values();
-            auto ii = self.clone();
+            auto ii = self.iter_clone();
             auto values_start_pos = self.pos();
 
             self.toDataStream(1);
 
             typename Types::template FindGEForwardWalker<Types, IntList<1, 1>> walker(0, value);
-            auto prefix = self.find_fw(walker);
+            auto prefix = self.ctr_find_fw(walker);
 
-            self.stream() = StructureStreamIdx;
+            self.iter_stream() = StructureStreamIdx;
 
             auto values_end_pos = self.pos();
 

@@ -55,15 +55,15 @@ public:
     virtual ~VectorTreeRemoveTest() throw () {}
 
 
-    void removeNodes(Ctr& tree, TreeNode& tree_node, int32_t max_size)
+    void ctr_remove_nodes(Ctr& tree, TreeNode& tree_node, int32_t max_size)
     {
         int32_t size = 0;
         LoudsNode root = tree.seek(0)->node();
 
-        removeNode(tree, root, tree_node, size, max_size);
+        ctr_remove_rode(tree, root, tree_node, size, max_size);
     }
 
-    bool removeNode(Ctr& tree, const LoudsNode& node, TreeNode& tree_node, int32_t& size, int32_t max_size)
+    bool ctr_remove_rode(Ctr& tree, const LoudsNode& node, TreeNode& tree_node, int32_t& size, int32_t max_size)
     {
         if (size < max_size)
         {
@@ -71,7 +71,7 @@ public:
             {
                 LoudsNode child = tree.child(node, c)->node();
 
-                if (removeNode(tree, child, tree_node.child(c), size, max_size))
+                if (ctr_remove_rode(tree, child, tree_node.child(c), size, max_size))
                 {
                     tree_node.removeChild(c);
                 }
@@ -120,11 +120,11 @@ public:
 
             tree = find<CtrName>(snp, ctr_name);
 
-            removeNodes(*tree.get(), root, remove_batch_);
+            ctr_remove_nodes(*tree.get(), root, remove_batch_);
 
             check(MA_SRC);
 
-            checkTree(*tree.get(), root);
+            ctr_check_tree(*tree.get(), root);
 
             snp->commit();
         }

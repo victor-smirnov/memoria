@@ -122,17 +122,17 @@ public:
     Key prefix() const
     {
         auto& self = this->self();
-        auto& cache = self.cache();
+        auto& iter_cache = self.iter_cache();
 
-        auto leaf_sum = self.ctr().template leaf_sums<IntList<0, 0, 1>>(self.leaf(), 0, 0, self.local_pos());
+        auto leaf_sum = self.ctr().template ctr_leaf_sums<IntList<0, 0, 1>>(self.iter_leaf(), 0, 0, self.iter_local_pos());
 
-        return bt::Path<0, 0>::get(cache.prefixes())[0] + leaf_sum;
+        return bt::Path<0, 0>::get(iter_cache.prefixes())[0] + leaf_sum;
     }
 
 
     auto raw_key() const
     {
-        return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().local_pos()));
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
     auto key() const -> Key
@@ -142,12 +142,12 @@ public:
 
     auto raw_key(int32_t index) const
     {
-        return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().local_pos(), index));
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), index));
     }
 
     auto value() const
     {
-        return std::get<0>(self().ctr().template read_leaf_entry<IntList<2>>(self().leaf(), self().local_pos()));
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
     void setValue(const Value& v)

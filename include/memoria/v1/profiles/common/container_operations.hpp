@@ -72,8 +72,8 @@ struct ContainerWalker {
     virtual void beginRoot(int32_t idx, const BlockType* block)                  = 0;
     virtual void endRoot()                                                       = 0;
 
-    virtual void beginNode(int32_t idx, const BlockType* block)                  = 0;
-    virtual void endNode()                                                       = 0;
+    virtual void ctr_begin_node(int32_t idx, const BlockType* block)                  = 0;
+    virtual void ctr_end_node()                                                       = 0;
 
     virtual void rootLeaf(int32_t idx, const BlockType* block)                   = 0;
     virtual void leaf(int32_t idx, const BlockType* block)                       = 0;
@@ -116,8 +116,8 @@ struct ContainerWalkerBase: ContainerWalker<Profile> {
     virtual void beginRoot(int32_t idx, const BlockType* block) {}
     virtual void endRoot() {}
 
-    virtual void beginNode(int32_t idx, const BlockType* block) {}
-    virtual void endNode() {}
+    virtual void ctr_begin_node(int32_t idx, const BlockType* block) {}
+    virtual void ctr_end_node() {}
 
     virtual void rootLeaf(int32_t idx, const BlockType* block) {}
     virtual void leaf(int32_t idx, const BlockType* block) {}

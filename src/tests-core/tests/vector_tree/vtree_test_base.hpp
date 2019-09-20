@@ -118,12 +118,12 @@ public:
     }
 
 
-    void checkTree(Ctr& tree, TreeNode& root_node)
+    void ctr_check_tree(Ctr& tree, TreeNode& root_node)
     {
         int32_t size = 1;
         auto root = tree.seek(0)->node();
 
-        checkTree(tree, root, root_node, size);
+        ctr_check_tree(tree, root, root_node, size);
 
         AssertEQ(MA_SRC, size, tree.nodes());
     }
@@ -132,18 +132,18 @@ public:
 
 
 
-    void checkTreeStructure(Ctr& tree, const LoudsNode& node, LoudsNode parent)
+    void ctr_check_tree_structure(Ctr& tree, const LoudsNode& node, LoudsNode parent)
     {
         int64_t count = 0;
-        checkTreeStructure(tree, node, parent, count);
+        ctr_check_tree_structure(tree, node, parent, count);
     }
 
-    void checkTreeStructure(Ctr& tree)
+    void ctr_check_tree_structure(Ctr& tree)
     {
         if (tree.bitmap_size() > 2)
         {
             int64_t count = 0;
-            checkTreeStructure(tree, LoudsNode(0, 1, 1), LoudsNode(0, 1, 1), count);
+            ctr_check_tree_structure(tree, LoudsNode(0, 1, 1), LoudsNode(0, 1, 1), count);
 
             AssertEQ(MA_SRC, count, tree.nodes());
         }
@@ -153,20 +153,20 @@ public:
         }
     }
 
-    void traverseTree(Ctr& tree, std::function<void (LoudsNode node)> fn)
+    void ctr_traverse_tree(Ctr& tree, std::function<void (LoudsNode node)> fn)
     {
         auto root = tree.seek(0)->node();
 
-        traverseTree(tree, root, fn);
+        ctr_traverse_tree(tree, root, fn);
     }
 
-    void traverseTree(const TreeNode& node, std::function<void (const TreeNode& node)> fn)
+    void ctr_traverse_tree(const TreeNode& node, std::function<void (const TreeNode& node)> fn)
     {
         fn(node);
 
         for (int32_t c = 0; c < node.children(); c++)
         {
-            traverseTree(node.child(c), fn);
+            ctr_traverse_tree(node.child(c), fn);
         }
     }
 
@@ -207,7 +207,7 @@ private:
     }
 
 
-    void checkTreeStructure(Ctr& tree, const LoudsNode& node, const LoudsNode& parent, int64_t& count)
+    void ctr_check_tree_structure(Ctr& tree, const LoudsNode& node, const LoudsNode& parent, int64_t& count)
     {
         count++;
 
@@ -221,7 +221,7 @@ private:
 
         while (children->next_sibling())
         {
-            checkTreeStructure(tree, children->node(), node, count);
+            ctr_check_tree_structure(tree, children->node(), node, count);
         }
     }
 
@@ -258,7 +258,7 @@ private:
         }
     }
 
-    void checkTree(Ctr& tree, const LoudsNode& node, const TreeNode& tree_node, int32_t& size)
+    void ctr_check_tree(Ctr& tree, const LoudsNode& node, const TreeNode& tree_node, int32_t& size)
     {
         assertTreeNode(tree, node, tree_node);
 
@@ -268,7 +268,7 @@ private:
         while (children->next_sibling())
         {
             AssertLE(MA_SRC, child_idx, tree_node.children());
-            checkTree(tree, children->node(), node, tree_node.child(child_idx), tree_node, size);
+            ctr_check_tree(tree, children->node(), node, tree_node.child(child_idx), tree_node, size);
 
             child_idx++;
         }
@@ -276,7 +276,7 @@ private:
         AssertEQ(MA_SRC, child_idx, tree_node.children());
     }
 
-    void checkTree(
+    void ctr_check_tree(
             Ctr& tree,
             const LoudsNode& node,
             const LoudsNode& parent,
@@ -298,7 +298,7 @@ private:
         while (children->next_sibling())
         {
             AssertLE(MA_SRC, child_idx, tree_node.children());
-            checkTree(tree, children->node(), node, tree_node.child(child_idx), tree_node, size);
+            ctr_check_tree(tree, children->node(), node, tree_node.child(child_idx), tree_node, size);
 
             child_idx++;
         }
@@ -307,7 +307,7 @@ private:
     }
 
 
-    void traverseTree(Ctr& tree, const LoudsNode& node, std::function<void (LoudsNode)> fn)
+    void ctr_traverse_tree(Ctr& tree, const LoudsNode& node, std::function<void (LoudsNode)> fn)
     {
         fn(node);
 
@@ -315,7 +315,7 @@ private:
 
         while(children->next_sibling())
         {
-            traverseTree(tree, children->node(), fn);
+            ctr_traverse_tree(tree, children->node(), fn);
         }
     }
 

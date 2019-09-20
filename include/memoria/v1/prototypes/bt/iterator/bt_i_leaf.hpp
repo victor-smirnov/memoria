@@ -40,12 +40,12 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorLeafName)
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 public:
-    bool nextLeaf()
+    bool iter_next_leaf()
     {
         auto& self = this->self();
 
-        auto current_leaf = self.leaf();
-        auto next_leaf    = self.ctr().getNextNodeP(self.leaf());
+        auto current_leaf = self.iter_leaf();
+        auto next_leaf    = self.ctr().ctr_get_next_node(self.iter_leaf());
 
         if (next_leaf.isSet())
         {
@@ -53,7 +53,7 @@ public:
 
             walker.prepare(self);
 
-            self.leaf().assign(next_leaf);
+            self.iter_leaf().assign(next_leaf);
 
             self.ctr().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0);
 
@@ -62,18 +62,18 @@ public:
             return true;
         }
         else {
-            self.leaf().assign(current_leaf);
+            self.iter_leaf().assign(current_leaf);
             return false;
         }
     }
 
 
-    bool prevLeaf()
+    bool iter_prev_leaf()
     {
         auto& self = this->self();
 
-        auto current_leaf = self.leaf();
-        auto prev_leaf    = self.ctr().getPrevNodeP(self.leaf());
+        auto current_leaf = self.iter_leaf();
+        auto prev_leaf    = self.ctr().ctr_get_prev_node(self.iter_leaf());
 
         if (prev_leaf.isSet())
         {
@@ -81,7 +81,7 @@ public:
 
             walker.prepare(self);
 
-            self.leaf().assign(prev_leaf);
+            self.iter_leaf().assign(prev_leaf);
 
             self().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
 
@@ -90,7 +90,7 @@ public:
             return true;
         }
         else {
-            self.leaf().assign(current_leaf);
+            self.iter_leaf().assign(current_leaf);
             return false;
         }
     }

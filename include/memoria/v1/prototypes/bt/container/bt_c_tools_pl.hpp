@@ -48,31 +48,31 @@ protected:
 public:
 
 
-    void dumpPath(NodeBaseG node, std::ostream& out = std::cout, int32_t depth = 100) const
+    void ctr_dump_path(NodeBaseG node, std::ostream& out = std::cout, int32_t depth = 100) const
     {
         auto& self = this->self();
 
         out<<"Path:"<<std::endl;
 
-        self.dump(node, out);
+        self.ctr_dump_node(node, out);
 
         while (!node->is_root() && node->level() < depth)
         {
-            node = self.getNodeParent(node);
-            self.dump(node, out);
+            node = self.ctr_get_node_parent(node);
+            self.ctr_dump_node(node, out);
         }
     }
 
 
 protected:
 
-    NodeBaseG getNodeParent(const NodeBaseG& node) const
+    NodeBaseG ctr_get_node_parent(const NodeBaseG& node) const
     {
         auto& self = this->self();
         return self.store().getBlock(node->parent_id());
     }
 
-    NodeBaseG getNodeParentForUpdate(const NodeBaseG& node) const
+    NodeBaseG ctr_get_node_parent_for_update(const NodeBaseG& node) const
     {
         auto& self = this->self();
         return self.store().getBlockForUpdate(node->parent_id());
@@ -85,8 +85,8 @@ protected:
 
 public:
 
-    NodeBaseG getNextNodeP(NodeBaseG& node) const;
-    NodeBaseG getPrevNodeP(NodeBaseG& node) const;
+    NodeBaseG ctr_get_next_node(NodeBaseG& node) const;
+    NodeBaseG ctr_get_prev_node(NodeBaseG& node) const;
 
 protected:
 
@@ -98,28 +98,28 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::getNextNodeP(NodeBaseG& node) const
+typename M_TYPE::NodeBaseG M_TYPE::ctr_get_next_node(NodeBaseG& node) const
 {
     auto& self = this->self();
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.getNodeParent(node);
+        NodeBaseG parent = self.ctr_get_node_parent(node);
 
-        int32_t size = self.getNodeSize(parent, 0);
+        int32_t size = self.ctr_get_node_size(parent, 0);
 
         int32_t parent_idx = node->parent_idx();
 
         if (parent_idx < size - 1)
         {
-            return self.getChild(parent, parent_idx + 1);
+            return self.ctr_get_node_child(parent, parent_idx + 1);
         }
         else {
-            NodeBaseG target_parent = getNextNodeP(parent);
+            NodeBaseG target_parent = ctr_get_next_node(parent);
 
             if (target_parent.isSet())
             {
-                return self.getChild(target_parent, 0);
+                return self.ctr_get_node_child(target_parent, 0);
             }
             else {
                 return target_parent;
@@ -133,27 +133,27 @@ typename M_TYPE::NodeBaseG M_TYPE::getNextNodeP(NodeBaseG& node) const
 
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
+typename M_TYPE::NodeBaseG M_TYPE::ctr_get_prev_node(NodeBaseG& node) const
 {
     auto& self = this->self();
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.getNodeParent(node);
+        NodeBaseG parent = self.ctr_get_node_parent(node);
 
         int32_t parent_idx = node->parent_idx();
 
         if (parent_idx > 0)
         {
-            return self.getChild(parent, parent_idx - 1);
+            return self.ctr_get_node_child(parent, parent_idx - 1);
         }
         else {
-            NodeBaseG target_parent = getPrevNodeP(parent);
+            NodeBaseG target_parent = ctr_get_prev_node(parent);
 
             if (target_parent.isSet())
             {
-                int32_t node_size = self.getNodeSize(target_parent, 0);
-                return self.getChild(target_parent, node_size - 1);
+                int32_t node_size = self.ctr_get_node_size(target_parent, 0);
+                return self.ctr_get_node_child(target_parent, node_size - 1);
             }
             else {
                 return target_parent;

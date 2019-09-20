@@ -23,11 +23,10 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 
-
 namespace memoria {
 namespace v1 {
 
-MEMORIA_V1_CONTAINER_PART_BEGIN(mvector::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(mvector::CtrApiVLenName)
 
 public:
     using Types = typename Base::Types;
@@ -38,8 +37,13 @@ protected:
     using typename Base::BranchNodeEntry;
     using typename Base::BlockUpdateMgr;
     using typename Base::CtrSizeT;
+    using typename Base::IteratorPtr;
+    using typename Base::Profile;
 
     using Value = typename Types::Value;
+    using ValueDataType = typename Types::ValueDataType;
+    using ValueType = DTTValueType<ValueDataType>;
+    using ViewType  = DTTViewType<ValueDataType>;
 
 public:
 
@@ -47,33 +51,7 @@ public:
     using typename Base::LeafNodeExtData;
     using typename Base::ContainerTypeName;
 
-    void configure_types(
-        const ContainerTypeName& type_name,
-        BranchNodeExtData& branch_node_ext_data,
-        LeafNodeExtData& leaf_node_ext_data
-    ) {
 
-    }
-
-    CtrSizeT size() const {
-        return self().sizes()[0];
-    }
-
-    auto seek(CtrSizeT pos)
-    {
-        typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
-
-        return self().find_(walker);
-    }
-
-
-    MyType& operator<<(const std::vector<Value>& v)
-    {
-        auto& self = this->self();
-        auto i = self.seek(self.size());
-        i.insert_v(v);
-        return self;
-    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

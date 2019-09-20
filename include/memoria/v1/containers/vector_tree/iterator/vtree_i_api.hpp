@@ -137,7 +137,7 @@ public:
 
         CtrSizeT data_base    = self.lobBase();
         CtrSizeT data_size    = self.lobSize();
-        CtrSizeT data_pos     = self.vector_iter().local_pos();
+        CtrSizeT data_pos     = self.vector_iter().iter_local_pos();
 
         if (data_pos + size < data_base + data_size)
         {
@@ -154,7 +154,7 @@ public:
 
         CtrSizeT data_base    = self.lobBase();
         CtrSizeT data_size    = self.lobSize();
-        CtrSizeT data_pos     = self.vector_iter().local_pos();
+        CtrSizeT data_pos     = self.vector_iter().iter_local_pos();
 
         if (data_pos + delta < data_base + data_size)
         {

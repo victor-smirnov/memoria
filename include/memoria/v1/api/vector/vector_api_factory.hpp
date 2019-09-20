@@ -69,7 +69,7 @@ struct DataTypeTraits<Vector<T>>: DataTypeTraitsBase<Vector<T>> {
     static void create_signature(SBuf& buf, const Vector<T>& obj)
     {
         buf << "Vector<";
-        DataTypeTraits<T>::create_signature(buf, obj.key());
+        DataTypeTraits<T>::create_signature(buf, obj.element());
         buf << ">";
     }
 

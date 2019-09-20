@@ -123,9 +123,9 @@ public:
     };
 
 
-    bool checkContent(const NodeBaseG& node) const
+    bool ctr_check_content(const NodeBaseG& node) const
     {
-        if (!Base::checkContent(node))
+        if (!Base::ctr_check_content(node))
         {
             if (node->is_leaf())
             {

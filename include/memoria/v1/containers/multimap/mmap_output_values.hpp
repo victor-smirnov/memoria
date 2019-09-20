@@ -46,7 +46,7 @@ class ValuesIteratorImpl: public IValuesIterator<Types, Profile> {
     uint64_t iteration_num_{};
 public:
     ValuesIteratorImpl(IteratorPtr iter):
-        parser_(iter->local_pos()),
+        parser_(iter->iter_local_pos()),
         iter_(iter)
     {
         parse_first();
@@ -58,13 +58,13 @@ public:
 
     virtual bool next_block()
     {
-        if (iter_->nextLeaf())
+        if (iter_->iter_next_leaf())
         {
             offsets_.clear();
             build_index();
         }
         else {
-            iter_->local_pos() = iter_->leaf_sizes().sum();
+            iter_->iter_local_pos() = iter_->iter_leaf_sizes().sum();
             run_is_finished_ = true;
         }
 

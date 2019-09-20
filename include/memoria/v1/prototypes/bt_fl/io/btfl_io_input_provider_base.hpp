@@ -194,7 +194,7 @@ public:
 
     virtual Position fill(NodeBaseG& leaf, const Position& start) = 0;
 
-    void nextLeaf(const NodeBaseG& leaf) {}
+    void iter_next_leaf(const NodeBaseG& leaf) {}
 
     DataPositions buffer_size() const
     {
@@ -395,7 +395,7 @@ public:
                 //TODO update leaf's parents here
                 if (leaf->parent_id().isSet())
                 {
-                    ctr().update_path(leaf);
+                    ctr().ctr_update_path(leaf);
                 }
 
                 pos += inserted;

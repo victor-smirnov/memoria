@@ -114,14 +114,14 @@ public:
     void remove(Iterator& iter)
     {
         auto& self  = this->self();
-        auto& leaf  = iter.leaf();
-        int32_t& idx    = iter.local_pos();
+        auto& leaf  = iter.iter_leaf();
+        int32_t& idx    = iter.iter_local_pos();
 
         removeFromLeaf(leaf, idx);
 
-        self.update_path(leaf);
+        self.ctr_update_path(leaf);
 
-        self.mergeLeafWithRightSibling(leaf);
+        self.ctr_merge_leaf_with_right_sibling(leaf);
     }
 
 
@@ -157,7 +157,7 @@ public:
 
         if (iter.symbol() != 0)
         {
-            iter.dumpPath();
+            iter.ctr_dump_path();
         }
 
         MEMORIA_V1_ASSERT_TRUE(iter.symbol() == 0);

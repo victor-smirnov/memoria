@@ -41,7 +41,7 @@ public:
     KeysIteratorImpl(IteratorPtr iter):
         iter_(iter)
     {
-        idx_ = iter_->leafrank(iter_->local_pos(), 0);
+        idx_ = iter_->leafrank(iter_->iter_local_pos(), 0);
         build();
     }
 
@@ -65,7 +65,7 @@ public:
 
     virtual CtrSharedPtr<IValuesIterator<Types, Profile>> values(size_t key_idx)
     {
-        auto ii = iter_->clone();
+        auto ii = iter_->iter_clone();
 
         ii->selectFw(key_idx, 0);
         ii->to_values();
@@ -81,10 +81,10 @@ private:
     void build()
     {
         const io::IOVector& buffer = iter_->iovector_view();
-        int32_t leaf_size = iter_->leaf_size(0);
+        int32_t iter_leaf_size = iter_->iter_leaf_size(0);
 
         keys_.clear();
-        KeysIOVSubstreamAdapter::read_to(buffer.substream(0), 0, idx_, leaf_size - idx_, keys_.array());
+        KeysIOVSubstreamAdapter::read_to(buffer.substream(0), 0, idx_, iter_leaf_size - idx_, keys_.array());
     }
 };
 

@@ -643,7 +643,7 @@ public:
             do {
                 ii->dump();
             }
-            while (ii->nextLeaf());
+            while (ii->iter_next_leaf());
         }
     }
 
@@ -1078,7 +1078,6 @@ public:
             return CtrSharedPtr<CtrReferenceable<Profile>>();
         }
     }
-
 
     void pack_store()
     {

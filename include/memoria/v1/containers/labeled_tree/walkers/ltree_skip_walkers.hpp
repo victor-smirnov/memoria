@@ -89,7 +89,7 @@ public:
     {
         iter.local_pos() = idx;
 
-        iter.cache().add(this->sum_, rank1_);
+        iter.iter_cache().add(this->sum_, rank1_);
 
         return this->sum_;
     }
@@ -159,10 +159,10 @@ public:
 
         if (idx >= 0)
         {
-            iter.cache().sub(this->sum_, rank1_);
+            iter.iter_cache().sub(this->sum_, rank1_);
         }
         else {
-            iter.cache().setup(-1, 0);
+            iter.iter_cache().setup(-1, 0);
         }
 
         return this->sum_;

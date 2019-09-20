@@ -26,7 +26,9 @@
 #include <memoria/v1/containers/vector/container/vctr_c_tools.hpp>
 #include <memoria/v1/containers/vector/container/vctr_c_insert.hpp>
 #include <memoria/v1/containers/vector/container/vctr_c_remove.hpp>
-#include <memoria/v1/containers/vector/container/vctr_c_api.hpp>
+#include <memoria/v1/containers/vector/container/vctr_c_api_common.hpp>
+#include <memoria/v1/containers/vector/container/vctr_c_api_fixed.hpp>
+#include <memoria/v1/containers/vector/container/vctr_c_api_vlen.hpp>
 #include <memoria/v1/containers/vector/container/vctr_c_find.hpp>
 
 #include <memoria/v1/containers/vector/vctr_iterator.hpp>
@@ -41,17 +43,30 @@
 namespace memoria {
 namespace v1 {
 
-template <typename Profile, typename Value_>
+template <typename Profile, typename DataType>
 struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
 
     using Base = BTTypes<Profile, BTSingleStream>;
 
+    using IteratorInterface = VectorIterator<DataType, Profile>;
 
-    using Value = Value_;
-    using ValueV = typename DataTypeTraits<Value_>::ValueType;
-    using ValueView = typename DataTypeTraits<Value_>::ViewType;
 
-    using Entry = Value_;
+    using Value = DataType;
+    using ValueDataType = DataType;
+    using ValueV = typename DataTypeTraits<DataType>::ValueType;
+    using ValueView = typename DataTypeTraits<DataType>::ViewType;
+
+    using Entry = DataType;
+
+    using FixedLeafContainerPartsList = MergeLists<
+            typename Base::FixedLeafContainerPartsList,
+            mvector::CtrApiFixedName
+    >;
+
+    using VariableLeafContainerPartsList = MergeLists<
+            typename Base::VariableLeafContainerPartsList,
+            mvector::CtrApiVLenName
+    >;
 
 
     using CommonContainerPartsList = MergeLists<
@@ -61,7 +76,7 @@ struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
             mvector::CtrInsertName,
             mvector::CtrRemoveName,
             mvector::CtrFindName,
-            mvector::CtrApiName
+            mvector::CtrApiCommonName
     >;
 
     using IteratorPartsList = MergeLists<

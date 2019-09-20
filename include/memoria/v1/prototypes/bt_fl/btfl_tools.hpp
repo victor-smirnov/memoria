@@ -64,11 +64,11 @@ public:
 template <
     typename I, typename C
 >
-std::ostream& operator<<(std::ostream& out, const BTFLIteratorPrefixCache<I, C>& cache)
+std::ostream& operator<<(std::ostream& out, const BTFLIteratorPrefixCache<I, C>& iter_cache)
 {
     out<<"BTFLIteratorPrefixCache[";
-    out<<"Branch prefixes: "<<cache.prefixes()<<", Leaf Prefixes: "<<cache.leaf_prefixes();
-    out<<", Size Prefixes: "<<cache.size_prefix();
+    out<<"Branch prefixes: "<<iter_cache.prefixes()<<", Leaf Prefixes: "<<iter_cache.leaf_prefixes();
+    out<<", Size Prefixes: "<<iter_cache.size_prefix();
     out<<"]";
 
     return out;

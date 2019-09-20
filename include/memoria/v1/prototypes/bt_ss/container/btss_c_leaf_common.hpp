@@ -56,22 +56,22 @@ public:
     }
 
     template <typename SubstreamsIdxList, typename... Args>
-    auto read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
+    auto iter_read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
     {
-         return self().template apply_substreams_fn<0, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
+         return self().template ctr_apply_substreams_fn<0, SubstreamsIdxList>(leaf, bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
     bool isAtTheEnd2(const NodeBaseG& leaf, const Position& pos)
     {
-        int32_t size = self().template getLeafStreamSize<0>(leaf);
+        int32_t size = self().template ctr_get_leaf_stream_size<0>(leaf);
         return pos[0] >= size;
     }
 
     template <typename EntryBuffer>
     void insert_entry(Iterator& iter, const EntryBuffer& entry)
     {
-        self().template insert_stream_entry<0>(iter, iter.stream(), iter.local_pos(), entry);
+        self().template ctr_insert_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
     }
 
 
@@ -80,12 +80,12 @@ public:
     template <typename SubstreamsList, typename EntryBuffer>
     void update_entry(Iterator& iter, const EntryBuffer& entry)
     {
-        self().template update_stream_entry<0, SubstreamsList>(iter, iter.stream(), iter.local_pos(), entry);
+        self().template ctr_update_stream_entry<0, SubstreamsList>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
     }
 
 
     void removeEntry(Iterator& iter) {
-        self().template remove_stream_entry<0>(iter, iter.stream(), iter.local_pos());
+        self().template ctr_remove_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos());
     }
 
 
@@ -98,19 +98,19 @@ public:
 
         std::unique_ptr<io::IOVector> iov = LeafNodeT::template SparseObject<MyType>::create_iovector();
 
-        auto id = iter.leaf()->id();
+        auto id = iter.iter_leaf()->id();
 
         btss::io::IOVectorBTSSInputProvider<MyType> streaming(self, &producer, iov.get(), start, length);
 
-        auto pos = Position(iter.local_pos());
+        auto pos = Position(iter.iter_local_pos());
 
-        auto result = self.insert_provided_data(iter.leaf(), pos, streaming);
+        auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
 
-        iter.local_pos()  = result.position().sum();
-        iter.leaf().assign(result.leaf());
+        iter.iter_local_pos()  = result.position().sum();
+        iter.iter_leaf().assign(result.iter_leaf());
 
-        if (iter.leaf()->id() != id) {
-            iter.refresh();
+        if (iter.iter_leaf()->id() != id) {
+            iter.iter_refresh();
         }
 
         return streaming.totals();
@@ -130,21 +130,21 @@ public:
 
         std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
 
-        auto id = iter.leaf()->id();
+        auto id = iter.iter_leaf()->id();
 
         BTSSIOVectorProducer producer{};
 
         btss::io::IOVectorBTSSInputProvider<MyType> streaming(self, &producer, &io_vector, start, length, false);
 
-        auto pos = Position(iter.local_pos());
+        auto pos = Position(iter.iter_local_pos());
 
-        auto result = self.insert_provided_data(iter.leaf(), pos, streaming);
+        auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
 
-        iter.local_pos() = result.position().sum();
-        iter.leaf().assign(result.leaf());
+        iter.iter_local_pos() = result.position().sum();
+        iter.iter_leaf().assign(result.iter_leaf());
 
-        if (iter.leaf()->id() != id) {
-            iter.refresh();
+        if (iter.iter_leaf()->id() != id) {
+            iter.iter_refresh();
         }
 
         return streaming.totals();

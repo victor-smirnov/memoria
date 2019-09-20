@@ -54,7 +54,8 @@ namespace _ {
 
         static void generateDataEvents(const char* name, psize_t idx, IBlockDataEventHandler* handler, const PkdTuple& pkd_tuple)
         {
-            BlockValueProviderT<const char*> pp("EMPTY_TYPE");
+            U8String str("EMPTY_TYPE");
+            BlockValueProviderT<U8String> pp(str);
             handler->value(name, pp);
         }
     };

@@ -47,7 +47,7 @@ public:
 
     auto select(CtrSizeT rank_delta, int32_t symbol)
     {
-        return self().template select_<SymbolsSubstreamPath>(symbol, rank_delta);
+        return self().template ctr_select<SymbolsSubstreamPath>(symbol, rank_delta);
     }
 
     auto selectFw(CtrSizeT rank_delta, int32_t symbol)

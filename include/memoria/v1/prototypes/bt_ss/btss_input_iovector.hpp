@@ -106,7 +106,7 @@ public:
         return 0;
     }
 
-    void nextLeaf(const NodeBaseG& leaf) {}
+    void iter_next_leaf(const NodeBaseG& leaf) {}
 
     virtual bool hasData()
     {
@@ -229,7 +229,7 @@ public:
 
         if (leaf->parent_id().isSet())
         {
-            ctr().update_path(leaf);
+            ctr().ctr_update_path(leaf);
         }
 
         return OpStatus::OK;
@@ -425,7 +425,7 @@ public:
 
         if (leaf->parent_id().isSet())
         {
-            ctr().update_path(leaf);
+            ctr().ctr_update_path(leaf);
         }
 
         return inserted;

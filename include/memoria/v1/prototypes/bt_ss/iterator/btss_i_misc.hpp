@@ -39,6 +39,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btss::IteratorMiscName)
     typedef typename Container::Allocator                                           Allocator;
     typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Container::Iterator                                            Iterator;
+    typedef typename Container::IteratorPtr                                         IteratorPtr;
 
     using Position = typename Container::Types::Position;
     using CtrSizeT = typename Container::Types::CtrSizeT;
@@ -47,11 +48,11 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btss::IteratorMiscName)
 
 public:
     int32_t iovector_pos() const {
-        return self().local_pos();
+        return self().iter_local_pos();
     }
 
     bool next_leaf() {
-        return self().nextLeaf();
+        return self().iter_next_leaf();
     }
 
     bool next_entry() {
@@ -93,15 +94,15 @@ public:
 
     int32_t size() const
     {
-        return self().leafSize(0);
+        return self().iter_leaf_size(0);
     }
 
     bool isEof() const {
-        return self().local_pos() >= self().size();
+        return self().iter_local_pos() >= self().size();
     }
 
     bool isBof() const {
-        return self().local_pos() < 0;
+        return self().iter_local_pos() < 0;
     }
 
     CtrSizeT skipFw(CtrSizeT amount) {
@@ -120,7 +121,7 @@ public:
     {
         auto& self = this->self();
 
-        return self.local_pos() + self.cache().size_prefix()[0];
+        return self.iter_local_pos() + self.iter_cache().size_prefix()[0];
     }
 
 
@@ -145,19 +146,40 @@ public:
 
         to.skipFw(size);
 
-        auto from_path      = self.leaf();
-        Position from_pos   = Position(self.local_pos());
+        auto from_path      = self.iter_leaf();
+        Position from_pos   = Position(self.iter_local_pos());
 
-        auto to_path        = to.leaf();
-        Position to_pos     = Position(to.local_pos());
+        auto to_path        = to.iter_leaf();
+        Position to_pos     = Position(to.iter_local_pos());
 
         Position sizes;
 
-        self.ctr().removeEntries(from_path, from_pos, to_path, to_pos, sizes, true);
+        self.ctr().ctr_remove_entries(from_path, from_pos, to_path, to_pos, sizes, true);
 
-        self.local_pos() = to_pos.get();
+        self.iter_local_pos() = to_pos.get();
 
-        self.refresh();
+        self.iter_refresh();
+
+        return sizes[0];
+    }
+
+    CtrSizeT remove(IteratorPtr to)
+    {
+        auto& self = this->self();
+
+        auto from_path      = self.iter_leaf();
+        Position from_pos   = Position(self.iter_local_pos());
+
+        auto to_path        = to.iter_leaf();
+        Position to_pos     = Position(to.iter_local_pos());
+
+        Position sizes;
+
+        self.ctr().ctr_remove_entries(from_path, from_pos, to_path, to_pos, sizes, true);
+
+        self.iter_local_pos() = to_pos.get();
+
+        self.iter_refresh();
 
         return sizes[0];
     }
@@ -196,7 +218,7 @@ public:
 
         EntryAdaptor<OutputIterator> adaptor(begin);
 
-        return self.ctr().template read_entries<0>(self, length, adaptor);
+        return self.ctr().template ctr_read_entries<0>(self, length, adaptor);
     }
 
 
@@ -235,8 +257,8 @@ public:
 
         while (processed < length)
         {
-            int32_t start = self.local_pos();
-            int32_t size  = self.leaf_size();
+            int32_t start = self.iter_local_pos();
+            int32_t size  = self.iter_leaf_size();
 
             int32_t leaf_remainder = size - start;
             int32_t to_copy;
@@ -258,7 +280,7 @@ public:
 
             processed += to_copy;
 
-            if (!self.nextLeaf()) {
+            if (!self.iter_next_leaf()) {
                 break;
             }
         }
@@ -274,20 +296,20 @@ public:
     {
         auto& self = this->self();
 
-        NodeBaseG& leaf     = self.leaf();
-        int32_t& idx        = self.local_pos();
+        NodeBaseG& leaf     = self.iter_leaf();
+        int32_t& idx        = self.iter_local_pos();
 
-        int32_t size        = self.leaf_size(0);
+        int32_t size        = self.iter_leaf_size(0);
         int32_t split_idx   = size/2;
 
-        auto right = self.ctr().split_leaf_p(leaf, Position::create(0, split_idx));
+        auto right = self.ctr().ctr_split_leaf(leaf, Position::create(0, split_idx));
 
         if (idx > split_idx)
         {
             leaf = right;
             idx -= split_idx;
 
-            self.refresh();
+            self.iter_refresh();
         }
 
         if (target_idx > split_idx)

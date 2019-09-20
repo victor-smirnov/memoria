@@ -53,19 +53,19 @@ public:
 
         std::unique_ptr<io::IOVector> iov = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
 
-        auto id = iter.leaf()->id();
+        auto id = iter.iter_leaf()->id();
 
         btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &provider, iov.get(), start, length);
 
-        auto pos = iter.leafrank(iter.local_pos());
+        auto pos = iter.leafrank(iter.iter_local_pos());
 
-        auto result = self.insert_provided_data(iter.leaf(), pos, streaming);
+        auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
 
-        iter.local_pos()  = result.position().sum();
-        iter.leaf().assign(result.leaf());
+        iter.iter_local_pos()  = result.position().sum();
+        iter.iter_leaf().assign(result.iter_leaf());
 
-        if (iter.leaf()->id() != id) {
-            iter.refresh();
+        if (iter.iter_leaf()->id() != id) {
+            iter.iter_refresh();
         }
 
         return streaming.totals();
@@ -84,21 +84,21 @@ public:
 
         std::unique_ptr<io::IOVector> iov = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
 
-        auto id = iter.leaf()->id();
+        auto id = iter.iter_leaf()->id();
 
         BTFLIOVectorProducer producer{};
 
         btfl::io::IOVectorCtrInputProvider<MyType> streaming(self, &producer, &iovector, start, length);
 
-        auto pos = iter.leafrank(iter.local_pos());
+        auto pos = iter.leafrank(iter.iter_local_pos());
 
-        auto result = self.insert_provided_data(iter.leaf(), pos, streaming);
+        auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
 
-        iter.local_pos()  = result.position().sum();
-        iter.leaf().assign(result.leaf());
+        iter.iter_local_pos()  = result.position().sum();
+        iter.iter_leaf().assign(result.iter_leaf());
 
-        if (iter.leaf()->id() != id) {
-            iter.refresh();
+        if (iter.iter_leaf()->id() != id) {
+            iter.iter_refresh();
         }
 
         return streaming.totals();

@@ -56,9 +56,9 @@ public:
     {
         int32_t size    = stream->size();
 
-        if (result.local_pos() < size)
+        if (result.iter_local_pos() < size)
         {
-            pos_ += stream->sum(0, start, result.local_pos());
+            pos_ += stream->sum(0, start, result.iter_local_pos());
         }
         else {
             pos_ += stream->sum(0, start, size);
@@ -78,11 +78,11 @@ public:
 
         if (result.is_found())
         {
-            pos_ += result.local_pos() - start;
+            pos_ += result.iter_local_pos() - start;
 
 
 
-            return result.local_pos();
+            return result.iter_local_pos();
         }
         else {
             int32_t size = seq->size();
@@ -96,9 +96,9 @@ public:
 
     int64_t finish(Iterator& iter, int32_t idx)
     {
-        iter.local_pos() = idx;
+        iter.iter_local_pos() = idx;
 
-        iter.cache().add(pos_);
+        iter.iter_cache().add(pos_);
 
         return pos_;
     }
@@ -134,9 +134,9 @@ public:
 
     int64_t finish(Iterator& iter, int32_t idx)
     {
-        iter.local_pos() = idx;
+        iter.iter_local_pos() = idx;
 
-        iter.cache().add(this->pos_);
+        iter.iter_cache().add(this->pos_);
 
         return this->pos_;
     }
@@ -172,9 +172,9 @@ public:
     template <int32_t StreamIdx, typename StreamType, typename Result>
     void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
     {
-        if (result.local_pos() >= 0)
+        if (result.iter_local_pos() >= 0)
         {
-            pos_ += stream->sum(0, result.local_pos() + 1, start + 1);
+            pos_ += stream->sum(0, result.iter_local_pos() + 1, start + 1);
         }
         else {
             pos_ += stream->sum(0, 0, start + 1);
@@ -196,8 +196,8 @@ public:
 
         if (result.is_found())
         {
-            pos_ += start - result.local_pos();
-            return result.local_pos();
+            pos_ += start - result.iter_local_pos();
+            return result.iter_local_pos();
         }
         else {
             pos_ += start;
@@ -208,9 +208,9 @@ public:
 
     int64_t finish(Iterator& iter, int32_t idx)
     {
-        iter.local_pos() = idx;
+        iter.iter_local_pos() = idx;
 
-        iter.cache().sub(pos_);
+        iter.iter_cache().sub(pos_);
 
         return pos_;
     }

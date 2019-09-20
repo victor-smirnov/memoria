@@ -40,42 +40,42 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveName)
 
 protected:
     template <int32_t Stream>
-    void remove_stream_entry(Iterator& iter, int32_t stream, int32_t idx)
+    void ctr_remove_stream_entry(Iterator& iter, int32_t stream, int32_t idx)
     {
         auto& self = this->self();
 
-        auto result = self.template try_remove_stream_entry<Stream>(iter, idx);
+        auto result = self.template ctr_try_remove_stream_entry<Stream>(iter, idx);
 
         if (!std::get<0>(result))
         {
             iter.split(stream, idx);
 
-            result = self.template try_remove_stream_entry<Stream>(iter, idx);
+            result = self.template ctr_try_remove_stream_entry<Stream>(iter, idx);
 
             if (!std::get<0>(result))
             {
                 MMA1_THROW(Exception()) << WhatCInfo("Second removal attempt failed");
             }
 
-            self.update_path(iter.leaf());
+            self.ctr_update_path(iter.iter_leaf());
         }
         else {
-            self.update_path(iter.leaf());
+            self.ctr_update_path(iter.iter_leaf());
 
-            auto next = self.getNextNodeP(iter.leaf());
+            auto next = self.ctr_get_next_node(iter.iter_leaf());
 
             if (next.isSet())
             {
-                self.mergeLeafNodes(iter.leaf(), next, [](const Position&){});
+                self.ctr_merge_leaf_nodes(iter.iter_leaf(), next, [](const Position&){});
             }
 
-            auto prev = self.getPrevNodeP(iter.leaf());
+            auto prev = self.ctr_get_prev_node(iter.iter_leaf());
 
             if (prev.isSet())
             {
-                self.mergeLeafNodes(prev, iter.leaf(), [&](const Position& sizes){
-                    iter.local_pos() += sizes[0];
-                    iter.leaf().assign(prev);
+                self.ctr_merge_leaf_nodes(prev, iter.iter_leaf(), [&](const Position& sizes){
+                    iter.iter_local_pos() += sizes[0];
+                    iter.iter_leaf().assign(prev);
                 });
             }
         }

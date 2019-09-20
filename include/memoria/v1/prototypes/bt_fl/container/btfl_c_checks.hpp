@@ -45,14 +45,14 @@ public:
 
     static const int32_t Streams = Types::Streams;
 
-    bool checkContent(const NodeBaseG& node) const
+    bool ctr_check_content(const NodeBaseG& node) const
     {
     	auto& self = this->self();
-    	if (!Base::checkContent(node))
+    	if (!Base::ctr_check_content(node))
     	{
     		if (node->is_leaf())
     		{
-    			auto sizes = self.getLeafStreamSizes(node);
+    			auto sizes = self.ctr_get_leaf_stream_sizes(node);
 
     			CtrSizeT data_streams_size = 0;
     			for (int32_t c = 0; c < CtrSizesT::Indexes - 1; c++)

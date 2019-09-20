@@ -22,7 +22,9 @@ namespace memoria {
 namespace v1 {
 namespace mvector    {
 
-class CtrApiName    {};
+class CtrApiCommonName  {};
+class CtrApiFixedName   {};
+class CtrApiVLenName    {};
 class CtrInsertName {};
 class CtrToolsName  {};
 class CtrRemoveName {};

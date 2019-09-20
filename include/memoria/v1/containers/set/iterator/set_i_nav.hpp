@@ -101,7 +101,7 @@ public:
 
     auto key() const -> KeyV
     {
-        return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().local_pos(), 0));
+        return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), 0));
     }
 
     bool is_found(const KeyView& k) const
@@ -146,7 +146,7 @@ public:
 
         EntryAdaptor<OutputIterator> adaptor(iter);
 
-        return self.ctr().template read_entries<0>(self, length, adaptor);
+        return self.ctr().template ctr_read_entries<0>(self, length, adaptor);
     }
 
     template <typename OutputIterator>

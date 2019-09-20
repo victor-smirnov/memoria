@@ -20,14 +20,8 @@
 #include <memoria/v1/core/strings/string_buffer.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
-//#include <memoria/v1/api/datatypes/varbinaries.hpp>
-//#include <memoria/v1/api/datatypes/varchars.hpp>
-
 namespace memoria {
 namespace v1 {
-
-
-
 
 template <typename T> struct PrimitiveDataTypeName;
 
@@ -64,11 +58,23 @@ template <typename T> struct DataTypeTraits {
     static constexpr bool isSdnDeserializable = false;
 };
 
-template <typename T>
-using DTViewType = typename DataTypeTraits<T>::ViewType;
 
 template <typename T>
-using DTValueType = typename DataTypeTraits<T>::ValueType;
+using DTTViewType = typename DataTypeTraits<T>::ViewType;
+
+template <typename T>
+using DTTValueType = typename DataTypeTraits<T>::ValueType;
+
+template <typename T>
+using DTTExtData = typename DataTypeTraits<T>::ExtData;
+
+template <typename T>
+constexpr bool DTTisFixedSize = DataTypeTraits<T>::isFixedSize;
+
+template <typename T>
+constexpr bool DTTisDataType = DataTypeTraits<T>::isDataType;
+
+
 
 template <typename T> struct DataTypeTraitsBase {
     static constexpr bool isDataType = true;

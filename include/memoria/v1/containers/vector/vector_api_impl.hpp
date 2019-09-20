@@ -22,7 +22,7 @@
 
 namespace memoria {
 namespace v1 {
-
+/*
 template <typename Value, typename IteratorPtr>
 class VectorIteratorImpl: public VectorIterator<Value> {
     using ValueV   = typename DataTypeTraits<Value>::ValueType;
@@ -47,7 +47,7 @@ public:
         iter_->next();
     }
 };
-
+*/
 
 template <typename Value, typename Profile>
 void ICtrApi<Vector<Value>, Profile>::init_profile_metadata()

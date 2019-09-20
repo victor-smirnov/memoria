@@ -121,7 +121,7 @@ inline std::ostream& operator<<(std::ostream& out, const AnyDatum& datum) {
 template <typename DataType, typename SelectorTag>
 class DatumStorageBase: public AnyDatumStorage, public DataType {
 protected:
-    using ViewType = DTViewType<DataType>;
+    using ViewType = DTTViewType<DataType>;
 
     ViewType view_;
 public:

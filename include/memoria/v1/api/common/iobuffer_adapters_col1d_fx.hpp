@@ -103,6 +103,10 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
         append_buffer(buffer, 0, buffer.size());
     }
 
+    void append(Span<const ValueType> buffer) {
+        append_buffer(buffer, 0, buffer.size());
+    }
+
     void append_buffer(Span<const ValueType> buffer, size_t start, size_t size)
     {
         size_ += size;

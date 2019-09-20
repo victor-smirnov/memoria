@@ -63,7 +63,7 @@ public:
 
     void empty(Iterator& iter)
     {
-        iter.local_pos() = 0;
+        iter.iter_local_pos() = 0;
     }
 
     const bool& compute_branch() const {
@@ -117,20 +117,20 @@ public:
 
     void prepare(Iterator& iter)
     {
-        branch_prefix_      = iter.cache().prefixes();
-        leaf_prefix_        = iter.cache().leaf_prefixes();
-        branch_size_prefix_ = iter.cache().size_prefix();
+        branch_prefix_      = iter.iter_cache().prefixes();
+        leaf_prefix_        = iter.iter_cache().leaf_prefixes();
+        branch_size_prefix_ = iter.iter_cache().size_prefix();
     }
 
     int64_t finish(Iterator& iter, int32_t idx, WalkCmd cmd)
     {
         iter.finish_walking(idx, self(), cmd);
 
-        iter.local_pos() = idx;
+        iter.iter_local_pos() = idx;
 
-        iter.cache().prefixes()      = branch_prefix_;
-        iter.cache().leaf_prefixes() = leaf_prefix_;
-        iter.cache().size_prefix()   = branch_size_prefix_;
+        iter.iter_cache().prefixes()      = branch_prefix_;
+        iter.iter_cache().leaf_prefixes() = leaf_prefix_;
+        iter.iter_cache().size_prefix()   = branch_size_prefix_;
 
         return 0;
     }

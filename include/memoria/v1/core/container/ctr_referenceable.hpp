@@ -44,7 +44,7 @@ struct CtrReferenceable {
     virtual uint64_t type_hash()                            = 0;
 
     virtual void set_new_block_size(int32_t block_size)     = 0;
-    virtual int32_t get_new_block_size()                    = 0;
+    virtual int32_t get_new_block_size() const              = 0;
 
     virtual Optional<U8String> get_ctr_property(U8StringView key) const  = 0;
     virtual void set_ctr_property(U8StringView key, U8StringView value)  = 0;

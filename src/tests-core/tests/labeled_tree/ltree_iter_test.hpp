@@ -95,10 +95,10 @@ public:
 
             int32_t skip = getRandom(nodes / 2 - 1);
 
-            auto iter_select0   = iter->clone();
-            auto iter_select1   = iter->clone();
+            auto iter_select0   = iter->iter_clone();
+            auto iter_select1   = iter->iter_clone();
 
-            auto iter_skip      = iter->clone();
+            auto iter_skip      = iter->iter_clone();
 
             iter_select0->selectFw(skip, 0);
             assertIterator(MA_SRC, iter_select0);
@@ -123,10 +123,10 @@ public:
 
             int32_t skip = getRandom(nodes / 2);
 
-            auto iter_select0   = iter->clone();
-            auto iter_select1   = iter->clone();
+            auto iter_select0   = iter->iter_clone();
+            auto iter_select1   = iter->iter_clone();
 
-            auto iter_skip      = iter->clone();
+            auto iter_skip      = iter->iter_clone();
 
             iter_select0->selectBw(skip, 0);
 
@@ -152,8 +152,8 @@ public:
 
             int32_t skip = getRandom(nodes / 2 - 1);
 
-            auto iter_rankfw0   = iter->clone();
-            auto iter_rankfw1   = iter->clone();
+            auto iter_rankfw0   = iter->iter_clone();
+            auto iter_rankfw1   = iter->iter_clone();
 
             iter_rankfw0->rank(skip, 0);
             assertIterator(MA_SRC, iter_rankfw0);

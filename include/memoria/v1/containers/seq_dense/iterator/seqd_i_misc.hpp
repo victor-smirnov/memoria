@@ -59,7 +59,7 @@ public:
     int32_t symbol() const
     {
         auto& self  = this->self();
-        return std::get<0>(self.ctr().template read_leaf_entry<IntList<1>>(self.leaf(), self.local_pos()));
+        return std::get<0>(self.ctr().template iter_read_leaf_entry<IntList<1>>(self.iter_leaf(), self.iter_local_pos()));
     }
 
 
@@ -67,7 +67,7 @@ public:
     {
         auto& self  = this->self();
 
-        self.ctr().template update_stream_entry<0, IntList<1>>(self, std::make_tuple(symbol));
+        self.ctr().template ctr_update_stream_entry<0, IntList<1>>(self, std::make_tuple(symbol));
     }
 
     struct InsertSymbolFn {
@@ -168,16 +168,16 @@ public:
 //        auto& self = this->self();
 //        auto& model = self.ctr();
 //
-//        auto& leaf = self.leaf();
+//        auto& leaf = self.iter_leaf();
 //
 //        seq_dense::SymbolsInputBufferProvider<BitsPerSymbol> provider(data);
 //
-//        auto result = model.insertBuffers(leaf, self.local_pos(), provider);
+//        auto result = model.insertBuffers(leaf, self.iter_local_pos(), provider);
 //
-//        self.leaf() = result.leaf();
-//        self.local_pos() = result.position();
+//        self.iter_leaf() = result.iter_leaf();
+//        self.iter_local_pos() = result.position();
 //
-//        self.refresh();
+//        self.iter_refresh();
 //
 //        model.markCtrUpdated();
 //    }
@@ -217,7 +217,7 @@ public:
 //
 //        ReadAdaptor<Seq> adaptor(&seq);
 //
-//        return self.ctr().template read_single_substream2<IntList<0, 1>>(self, length, adaptor);
+//        return self.ctr().template ctr_read_single_substream2<IntList<0, 1>>(self, length, adaptor);
 //    }
 
     template <typename Seq>
@@ -227,7 +227,7 @@ public:
 
         ReadAdaptor<Seq> adaptor(seq);
 
-        return self.ctr().template read_single_substream2<IntList<0, 1>>(self, seq.size(), adaptor);
+        return self.ctr().template ctr_read_single_substream2<IntList<0, 1>>(self, seq.size(), adaptor);
     }
 
 
@@ -237,11 +237,11 @@ public:
 
         auto tmp = self;
 
-        tmp.refresh();
+        tmp.iter_refresh();
 
-        if (self.cache() != tmp.cache())
+        if (self.iter_cache() != tmp.iter_cache())
         {
-            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Iterator cache mismatch: having: {}, should be {}", self.cache(), tmp.cache());
+            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Iterator iter_cache mismatch: having: {}, should be {}", self.iter_cache(), tmp.iter_cache());
         }
     }
 

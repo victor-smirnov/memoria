@@ -42,11 +42,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
     typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
     template <int32_t Stream, typename Entry>
-    SplitStatus insert_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Entry& entry)
+    SplitStatus ctr_insert_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Entry& entry)
     {
         auto& self = this->self();
 
-        auto result = self.template try_insert_stream_entry<Stream>(iter, idx, entry);
+        auto result = self.template ctr_try_insert_stream_entry<Stream>(iter, idx, entry);
 
         SplitStatus split_status;
 
@@ -56,7 +56,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
             split_status = split_result.type();
 
-            result = self.template try_insert_stream_entry<Stream>(iter, split_result.stream_idx(), entry);
+            result = self.template ctr_try_insert_stream_entry<Stream>(iter, split_result.stream_idx(), entry);
 
             if (!std::get<0>(result))
             {
@@ -67,7 +67,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
             split_status = SplitStatus::NONE;
         }
 
-        self.update_path(iter.leaf());
+        self.ctr_update_path(iter.iter_leaf());
 
         return split_status;
     }
@@ -76,11 +76,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
 
     template <int32_t Stream>
-    SplitStatus insert_stream_entry0(Iterator& iter, int32_t structure_idx, int32_t stream_idx, std::function<OpStatus(int, int)> insert_fn)
+    SplitStatus ctr_insert_stream_entry0(Iterator& iter, int32_t structure_idx, int32_t stream_idx, std::function<OpStatus(int, int)> insert_fn)
     {
         auto& self = this->self();
 
-        bool result = self.with_block_manager(iter.leaf(), structure_idx, stream_idx, insert_fn);
+        bool result = self.ctr_with_block_manager(iter.iter_leaf(), structure_idx, stream_idx, insert_fn);
 
         SplitStatus split_status;
 
@@ -90,7 +90,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
             split_status = split_result.type();
 
-            result = self.with_block_manager(iter.leaf(), iter.local_pos(), split_result.stream_idx(), insert_fn);
+            result = self.ctr_with_block_manager(iter.iter_leaf(), iter.iter_local_pos(), split_result.stream_idx(), insert_fn);
 
             if (!result)
             {
@@ -101,7 +101,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
             split_status = SplitStatus::NONE;
         }
 
-        self.update_path(iter.leaf());
+        self.ctr_update_path(iter.iter_leaf());
 
         return split_status;
     }

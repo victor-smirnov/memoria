@@ -112,7 +112,7 @@ public:
 
         int64_t rank1 =  symbol ? sum : pos_ - sum;
 
-        iter.cache().add(pos_, rank1);
+        iter.iter_cache().add(pos_, rank1);
 
         return pos_;
     }
@@ -198,10 +198,10 @@ public:
         {
             int64_t rank1 =  symbol ? sum : pos_ - sum;
 
-            iter.cache().sub(pos_, rank1);
+            iter.iter_cache().sub(pos_, rank1);
         }
         else {
-            iter.cache().setup(-1, 0);
+            iter.iter_cache().setup(-1, 0);
         }
 
         return pos_;

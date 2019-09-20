@@ -158,11 +158,11 @@ public:
 
         MemBuffer buf = iter.read(length);
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         iter.skip(-length);
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         return buf;
     }
@@ -181,11 +181,11 @@ public:
 
         iter.skip(-length);
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         MemBuffer buf = iter.read(length);
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         return buf;
     }
@@ -209,12 +209,12 @@ public:
         }
     }
 
-    virtual void checkIterator(Iterator& iter, const char* source)
+    virtual void ctr_check_iterator(Iterator& iter, const char* source)
     {
-        checkIteratorPrefix(iter, source);
+        ctr_check_iteratorPrefix(iter, source);
     }
 
-    virtual void checkIteratorPrefix(Iterator& iter, const char* source)
+    virtual void ctr_check_iteratorPrefix(Iterator& iter, const char* source)
     {
         iter.check(out(), source);
     }
@@ -239,15 +239,15 @@ public:
 
         assert_equals(iter.pos(), data.size());
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         iter.skip(-data.size());
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         checkBufferWritten(iter, data, MA_SRC);
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         checkBufferWritten(iter, suffix, MA_SRC);
     }
@@ -264,7 +264,7 @@ public:
     {
         auto iter = ctr.seek(ctr.size());
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
         MemBuffer data   = createDataBuffer();
@@ -276,13 +276,13 @@ public:
         
         iter.insert(data);
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         assert_equals(iter.pos(), position + data.size());
 
         iter.skip(-data.size() - prefix.size());
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         checkBufferWritten(iter, prefix, MA_SRC);
         checkBufferWritten(iter, data, MA_SRC);
@@ -310,7 +310,7 @@ public:
 
         iter.insert(data);
         
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         iter.skip(-data.size());
         iter.skip(-prefix.size());
@@ -369,7 +369,7 @@ public:
 
         assert_equals(0, iter.pos());
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         checkBufferWritten(iter, suffix, MA_SRC);
     }
@@ -399,7 +399,7 @@ public:
 
         auto iter = ctr.seek(ctr_size - size);
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
 
@@ -407,11 +407,11 @@ public:
 
         iter.remove(size);
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         assert_equals(last_size - size, ctr.size());
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         assert_equals(iter.pos(), ctr.size());
 
@@ -469,7 +469,7 @@ public:
 
         iter.remove(size);
 
-        checkIterator(iter, MA_SRC);
+        ctr_check_iterator(iter, MA_SRC);
 
         assert_equals(iter.pos(), position);
 

@@ -59,9 +59,9 @@ public:
     {
         int32_t size = stream->size();
 
-        if (result.local_pos() < size)
+        if (result.iter_local_pos() < size)
         {
-            rank_ += stream->sum(symbol_ + 1, start, result.local_pos());
+            rank_ += stream->sum(symbol_ + 1, start, result.iter_local_pos());
         }
         else {
             rank_ += stream->sum(symbol_ + 1, start, size);
@@ -99,9 +99,9 @@ public:
 
     int64_t finish(Iterator& iter, int32_t idx)
     {
-        iter.local_pos() = idx;
+        iter.iter_local_pos() = idx;
 
-        iter.cache().add(this->sum_);
+        iter.iter_cache().add(this->sum_);
 
         return rank_;
     }
@@ -143,9 +143,9 @@ public:
     template <int32_t StreamIdx, typename StreamType, typename Result>
     void postProcessStream(const StreamType* stream, int32_t start, const Result& result)
     {
-        if (result.local_pos() >= 0)
+        if (result.iter_local_pos() >= 0)
         {
-            rank_ += stream->sum(symbol_ + 1, result.local_pos() + 1, start + 1);
+            rank_ += stream->sum(symbol_ + 1, result.iter_local_pos() + 1, start + 1);
         }
         else {
             rank_ += stream->sum(symbol_ + 1, 0, start + 1);
@@ -177,9 +177,9 @@ public:
 
     int64_t finish(Iterator& iter, int32_t idx)
     {
-        iter.local_pos() = idx;
+        iter.iter_local_pos() = idx;
 
-        iter.cache().sub(this->sum_);
+        iter.iter_cache().sub(this->sum_);
 
         return rank_;
     }
