@@ -36,7 +36,7 @@ public:
 
     typedef typename Base::Container::Value                                     Value;
     typedef typename Base::Container::Key                                       Key;
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
+    typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
@@ -46,7 +46,7 @@ public:
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
 
-    void insert_(Key key, Value value)
+    void iter_insert_entry(Key key, Value value)
     {
         auto& self = this->self();
 
@@ -63,7 +63,7 @@ public:
 
         if (!self.iter_is_end())
         {
-            auto k = self.raw_key();
+            auto k = self.iter_raw_key();
 
             MEMORIA_V1_ASSERT_TRUE((k - StaticVector<int64_t, 1>(delta))[0] >= 0);
 
@@ -71,16 +71,11 @@ public:
         }
     }
 
-    template <typename InputIterator>
-    void insert(InputIterator&&, InputIterator&&) {}
-
-    template <typename Provider>
-    void insert(Provider&&) {}
-
-    void remove() {
+    void iter_remove_entry()
+    {
         auto& self = this->self();
 
-        auto k = self.raw_key();
+        auto k = self.iter_raw_key();
 
         self.ctr().ctr_remove_entry(self);
 
@@ -91,7 +86,7 @@ public:
 
         if (!self.iter_is_end()) {
 
-            auto kk = self.raw_key();
+            auto kk = self.iter_raw_key();
 
             self.ctr().template ctr_update_entry<IntList<0>>(self, std::make_tuple(k + kk));
         }
@@ -99,27 +94,27 @@ public:
 
 
 
-    auto findFwGT(int32_t index, Key key)
+    auto iter_map_find_fw_gt(int32_t index, Key key)
     {
         return self().template iter_find_fw_gt<IntList<0>>(index, key);
     }
 
-    auto findFwGE(int32_t index, Key key)
+    auto iter_map_find_fw_ge(int32_t index, Key key)
     {
         return self().template iter_find_fw_ge<IntList<0>>(index, key);
     }
 
-    auto findBwGT(int32_t index, Key key)
+    auto iter_map_find_bw_gt(int32_t index, Key key)
     {
         return self().template iter_find_bw_gt<IntList<0>>(index, key);
     }
 
-    auto findBwGE(int32_t index, Key key)
+    auto iter_map_find_bw_ge(int32_t index, Key key)
     {
         return self().template iter_find_bw_ge<IntList<0>>(index, key);
     }
 
-    Key prefix() const
+    Key iter_map_prefix() const
     {
         auto& self = this->self();
         auto& iter_cache = self.iter_cache();
@@ -130,17 +125,17 @@ public:
     }
 
 
-    auto raw_key() const
+    auto iter_raw_key() const
     {
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
     auto key() const -> Key
     {
-        return self().raw_key(0) + self().prefix();
+        return self().iter_raw_key(0) + self().prefix();
     }
 
-    auto raw_key(int32_t index) const
+    auto iter_raw_key(int32_t index) const
     {
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), index));
     }
@@ -150,12 +145,12 @@ public:
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
-    void setValue(const Value& v)
+    void assign(const Value& v)
     {
         self().ctr().template ctr_update_entry<IntList<1>>(self(), std::make_tuple(v));
     }
 
-    bool isFound(const Key& k) const
+    bool is_found(const Key& k) const
     {
         auto& self = this->self();
 

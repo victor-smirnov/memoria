@@ -66,14 +66,6 @@ public:
 
     //We have no move constructors for iterator
 
-    MyType* me() {
-        return this;
-    }
-
-    const MyType* me() const {
-        return this;
-    }
-
     MyType& self() {
         return *this;
     }
@@ -218,20 +210,6 @@ public:
 
     bool iter_is_not_end() const {
         return seq_iter_.iter_is_not_end();
-    }
-
-    template <typename T>
-    T operator=(const T & value)
-    {
-        AssignToItem(*this, value);
-        return value;
-    }
-
-    template <typename T>
-    T operator=(T&& value)
-    {
-        AssignToItem(*this, std::forward<T>(value));
-        return value;
     }
 };
 

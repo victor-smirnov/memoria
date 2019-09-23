@@ -68,7 +68,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertName)
             iter->assign(value);
         }
         else {
-            iter->insert_(key, value);
+            iter->iter_insert_entry(key, value);
         }
 
         return iter;

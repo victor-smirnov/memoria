@@ -18,11 +18,11 @@
 #pragma once
 
 
-#include <memoria/v1/containers/multimap/mmap_names.hpp>
-#include <memoria/v1/containers/multimap/mmap_tools.hpp>
-#include <memoria/v1/containers/multimap/mmap_output_entries.hpp>
-#include <memoria/v1/containers/multimap/mmap_output_values.hpp>
-#include <memoria/v1/containers/multimap/mmap_output_keys.hpp>
+#include <memoria/v1/containers/multimap/multimap_names.hpp>
+#include <memoria/v1/containers/multimap/multimap_tools.hpp>
+#include <memoria/v1/containers/multimap/multimap_output_entries.hpp>
+#include <memoria/v1/containers/multimap/multimap_output_values.hpp>
+#include <memoria/v1/containers/multimap/multimap_output_keys.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 

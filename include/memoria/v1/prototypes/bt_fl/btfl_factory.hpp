@@ -20,7 +20,6 @@
 #include <memoria/v1/prototypes/bt/bt_factory.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
-#include <memoria/v1/prototypes/bt_fl/btfl_iterator.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 

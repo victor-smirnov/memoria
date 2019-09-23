@@ -20,7 +20,6 @@
 #include <memoria/v1/containers/set/container/set_c_insert.hpp>
 #include <memoria/v1/containers/set/container/set_c_remove.hpp>
 #include <memoria/v1/containers/set/iterator/set_i_nav.hpp>
-#include <memoria/v1/containers/set/set_iterator.hpp>
 #include <memoria/v1/containers/set/set_names.hpp>
 #include <memoria/v1/containers/set/set_tools.hpp>
 

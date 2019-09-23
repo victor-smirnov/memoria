@@ -131,13 +131,6 @@ public:
             return !Base::iter_is_empty();
         }
     }
-
-    template <typename T>
-    MyType& operator=(const T& value)
-    {
-        AssignToItem(*this, value);
-        return *this;
-    }
 };
 
 template <typename Types>

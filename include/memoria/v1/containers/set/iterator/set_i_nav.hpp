@@ -94,7 +94,7 @@ public:
         return self().template iter_find_bw_gt<IntList<1>>(index, key);
     }
 
-    auto findBwGE(int32_t index, KeyView key)
+    auto iter_map_find_bw_ge(int32_t index, KeyView key)
     {
         return self().template iter_find_bw_ge<IntList<1>>(index, key);
     }

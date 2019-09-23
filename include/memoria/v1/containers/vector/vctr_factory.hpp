@@ -31,7 +31,6 @@
 #include <memoria/v1/containers/vector/container/vctr_c_api_vlen.hpp>
 #include <memoria/v1/containers/vector/container/vctr_c_find.hpp>
 
-#include <memoria/v1/containers/vector/vctr_iterator.hpp>
 #include <memoria/v1/containers/vector/iterator/vctr_i_api.hpp>
 
 #include <memoria/v1/containers/vector/vctr_names.hpp>

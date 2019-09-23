@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "mmap_factory.hpp"
+#include "multimap_factory.hpp"
 
 #include <memoria/v1/api/multimap/multimap_api.hpp>
 #include <memoria/v1/api/multimap/multimap_input.hpp>

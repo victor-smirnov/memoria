@@ -22,8 +22,6 @@
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
-#include <memoria/v1/containers/map/map_iterator.hpp>
-#include <memoria/v1/prototypes/bt_ss/btss_iterator.hpp>
 #include <memoria/v1/prototypes/bt/bt_iterator.hpp>
 
 #include <iostream>
@@ -90,17 +88,17 @@ public:
         return self().template iter_find_fw_gt<IntList<1>>(index, key);
     }
 
-    auto findFwGE(int32_t index, KeyView key)
+    auto iter_map_find_fw_ge(int32_t index, KeyView key)
     {
         return self().template iter_find_fw_ge<IntList<1>>(index, key);
     }
 
-    auto findBwGT(int32_t index, KeyView key)
+    auto iter_map_find_bw_gt(int32_t index, KeyView key)
     {
         return self().template iter_find_bw_gt<IntList<1>>(index, key);
     }
 
-    auto findBwGE(int32_t index, KeyView key)
+    auto iter_map_find_bw_ge(int32_t index, KeyView key)
     {
         return self().template iter_find_bw_ge<IntList<1>>(index, key);
     }
@@ -125,59 +123,6 @@ public:
         auto& self = this->self();
         return (!self.is_end()) && self.key() == k;
     }
-
-    template <typename Iterator>
-    class EntryAdaptor {
-        Iterator& current_;
-
-        KeyV key_;
-        ValueV value_;
-
-    public:
-        EntryAdaptor(Iterator& current): current_(current) {}
-
-        template <typename V>
-        void put(StreamTag<0>, StreamTag<0>, int32_t block, V&& entry) {}
-
-        template <typename V>
-        void put(StreamTag<0>, StreamTag<1>, int32_t block, V&& key) {
-            key_ = key;
-        }
-
-        template <typename V>
-        void put(StreamTag<0>, StreamTag<2>, int32_t block, V&& value) {
-            value_ = value;
-        }
-
-        void next()
-        {
-            current_ = std::make_pair(key_, value_);
-            current_++;
-        }
-    };
-
-
-
-
-    template <typename OutputIterator>
-    auto read(OutputIterator& iter, CtrSizeT length)
-    {
-        auto& self = this->self();
-
-        EntryAdaptor<OutputIterator> adaptor(iter);
-
-        return self.ctr().template ctr_read_entries<0>(self, length, adaptor);
-    }
-
-    template <typename OutputIterator>
-    auto read(OutputIterator& iter)
-    {
-        auto& self = this->self();
-
-        return read(iter, self.ctr().size());
-    }
-
-
 
 MEMORIA_V1_ITERATOR_PART_END
 

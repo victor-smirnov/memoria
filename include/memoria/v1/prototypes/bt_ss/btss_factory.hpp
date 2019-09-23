@@ -19,7 +19,6 @@
 #include <memoria/v1/prototypes/bt/bt_factory.hpp>
 
 #include <memoria/v1/prototypes/bt_ss/btss_names.hpp>
-#include <memoria/v1/prototypes/bt_ss/btss_iterator.hpp>
 
 #include <memoria/v1/prototypes/bt_ss/container/btss_c_leaf_common.hpp>
 #include <memoria/v1/prototypes/bt_ss/container/btss_c_leaf_fixed.hpp>

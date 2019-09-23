@@ -22,7 +22,6 @@
 #include <memoria/v1/containers/map/container/map_c_api.hpp>
 #include <memoria/v1/containers/map/iterator/map_i_nav.hpp>
 #include <memoria/v1/containers/map/iterator/mapm_i_nav.hpp>
-#include <memoria/v1/containers/map/map_iterator.hpp>
 #include <memoria/v1/containers/map/map_names.hpp>
 #include <memoria/v1/containers/map/map_tools.hpp>
 #include <memoria/v1/containers/map/map_api_impl.hpp>

@@ -17,14 +17,13 @@
 #pragma once
 
 #include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
-#include <memoria/v1/containers/multimap/mmap_names.hpp>
-#include <memoria/v1/containers/multimap/container/mmap_c_api.hpp>
-#include <memoria/v1/containers/multimap/iterator/mmap_i_misc.hpp>
+#include <memoria/v1/containers/multimap/multimap_names.hpp>
+#include <memoria/v1/containers/multimap/container/multimap_c_api.hpp>
+#include <memoria/v1/containers/multimap/iterator/multimap_i_misc.hpp>
 
-#include <memoria/v1/containers/multimap/mmap_tools.hpp>
-#include <memoria/v1/containers/multimap/mmap_output_entries.hpp>
-#include <memoria/v1/containers/multimap/mmap_output_values.hpp>
-#include <memoria/v1/containers/multimap/mmap_iterator.hpp>
+#include <memoria/v1/containers/multimap/multimap_tools.hpp>
+#include <memoria/v1/containers/multimap/multimap_output_entries.hpp>
+#include <memoria/v1/containers/multimap/multimap_output_values.hpp>
 
 #include <memoria/v1/api/multimap/multimap_api.hpp>
 
