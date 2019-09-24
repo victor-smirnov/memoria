@@ -31,7 +31,7 @@ protected:
     CtrT* ctr_;
     NodeType_* node_;
 public:
-    static constexpr int32_t Streams = NodeType_::Streams;
+//    static constexpr int32_t Streams = NodeType_::Streams;
 
     using NodeType = NodeType_;
 

@@ -29,29 +29,27 @@ namespace tests {
 
 template <
     typename CtrName,
-    typename AllocatorT     = InMemAllocator<>,
-    typename ProfileT       = DefaultProfile<>
+    typename ProfileT = DefaultProfile<>,
+    typename StoreT   = IMemoryStorePtr<ProfileT>
 >
-class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
+class VectorTest: public BTSSTestBase<CtrName, StoreT, ProfileT>
 {
-    using MyType = VectorTest<CtrName, AllocatorT, ProfileT>;
+    using MyType = VectorTest;
 
-    using Base = BTSSTestBase<CtrName, AllocatorT, ProfileT>;
+    using Base   = BTSSTestBase<CtrName, StoreT, ProfileT>;
 
-    using typename Base::Ctr;
-    using typename Base::Iterator;
-    using typename Base::Allocator;
-    using typename Base::AllocatorPtr;
-    using typename Base::MemBuffer;
-    using typename Base::Entry;
+    using typename Base::CtrApi;
 
-    //using BranchNodeEntry = typename Ctr::Types::BranchNodeEntry;
+    using typename Base::Store;
+    using typename Base::StorePtr;
+//    using typename Base::MemBuffer;
+//    using typename Base::Entry;
 
-    using Value = typename Ctr::DataValue;
+//    using Value = typename Ctr::DataValue;
 
     int64_t size = 1024*1024;
 
-    using Base::allocator;
+    using Base::store;
     using Base::snapshot;
     using Base::branch;
     using Base::commit;
@@ -71,44 +69,44 @@ public:
     }
 
 
-    virtual MemBuffer createRandomBuffer(int32_t size)
-    {
-        auto buffer = MemBuffer(size);
+//    virtual MemBuffer createRandomBuffer(int32_t size)
+//    {
+//        auto buffer = MemBuffer(size);
 
-        for (auto& v: buffer)
-        {
-            v = getRandom(100);
-        }
+//        for (auto& v: buffer)
+//        {
+//            v = getRandom(100);
+//        }
 
-        return buffer;
-    }
+//        return buffer;
+//    }
 
 
     void testCreate()
     {
         auto snp = branch();
 
-        auto ctr = create<CtrName>(snp);
+        auto ctr = create<CtrName>(snp, CtrName{});
 
-        std::vector<Value> data(size);
+//        std::vector<Value> data(size);
 
-        for (auto& d: data)
-        {
-            d = this->getRandom(100);
-        }
+//        for (auto& d: data)
+//        {
+//            d = this->getRandom(100);
+//        }
 
-        ctr.begin().insert(data);
+//        ctr.begin().insert(data);
 
-        assert_equals(ctr.size(), data.size());
+//        assert_equals(ctr.size(), data.size());
 
-        std::vector<Value> data2 = ctr.begin().read(size);
+//        std::vector<Value> data2 = ctr.begin().read(size);
 
-        assert_equals(size, data2.size());
+//        assert_equals(size, data2.size());
 
-        for (size_t c = 0; c< data.size(); c++)
-        {
-            assert_equals(data[c], data2[c]);
-        }
+//        for (size_t c = 0; c< data.size(); c++)
+//        {
+//            assert_equals(data[c], data2[c]);
+//        }
 
         commit();
     }

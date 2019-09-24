@@ -19,7 +19,7 @@
 #include <memoria/v1/yaml-cpp/yaml.h>
 #include <memoria/v1/filesystem/path.hpp>
 
-#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+#include <memoria/v1/api/store/memory_store_api.hpp>
 
 #include <memoria/v1/tests/tests.hpp>
 
@@ -31,19 +31,19 @@ template <typename T> struct IndirectStateFiledSerializer;
 
 
 template <typename T>
-struct IndirectStateFiledSerializer<InMemAllocator<T>> {
-    static void externalize(InMemAllocator<T>& alloc, filesystem::path path, ConfigurationContext* context)
+struct IndirectStateFiledSerializer<AllocSharedPtr<IMemoryStore<T>>> {
+    static void externalize(IMemoryStorePtr<T>& alloc, filesystem::path path, ConfigurationContext* context)
     {
         auto path_str = path.to_u8();
         path_str += ".mma1";
-        alloc.store(filesystem::path(path_str.to_std_string()));
+        alloc->store(path_str);
     }
 
-    static void internalize(InMemAllocator<T>& alloc, filesystem::path path, ConfigurationContext* context)
+    static void internalize(IMemoryStorePtr<T>& alloc, filesystem::path path, ConfigurationContext* context)
     {
         auto path_str = path.to_u8();
         path_str += ".mma1";
-        alloc = InMemAllocator<T>::load(filesystem::path(path_str.to_std_string()));
+        alloc = IMemoryStore<T>::load(path_str);
     }
 };
 

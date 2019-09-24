@@ -1741,6 +1741,23 @@ public:
     }
 };
 
+template <typename Types>
+struct PackedStructTraits<PkdVDTree<Types>>
+{
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
+
+    using SearchKeyType = typename Types::IndexValue;
+
+    using SearchKeyDataType = SearchKeyType;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
+
+    using AccumType = typename PkdVDTree<Types>::Value;
+
+    static constexpr int32_t Blocks = PkdVDTree<Types>::Blocks;
+    static constexpr int32_t Indexes = PkdVDTree<Types>::Blocks;
+
+};
+
 
 
 

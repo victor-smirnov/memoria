@@ -1615,23 +1615,26 @@ public:
 };
 
 
+template <typename Types>
+struct PackedStructTraits<PkdVQTree<Types>>
+{
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
+
+    using SearchKeyType = typename Types::IndexValue;
+
+    using SearchKeyDataType = SearchKeyType;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
+
+    using AccumType = typename PkdVQTree<Types>::Value;
+
+    static constexpr int32_t Blocks = PkdVQTree<Types>::Blocks;
+    static constexpr int32_t Indexes = PkdVQTree<Types>::Blocks;
+
+};
 
 
-//template <typename Types>
-//struct PkdStructSizeType<PkdVQTree<Types>> {
-//    static const PackedDataTypeSize Value = PackedDataTypeSize::VARIABLE;
-//};
 
 
-//template <typename Types>
-//struct StructSizeProvider<PkdVQTree<Types>> {
-//    static const int32_t Value = Types::Blocks;
-//};
-
-//template <typename Types>
-//struct IndexesSize<PkdVQTree<Types>> {
-//    static const int32_t Value = Types::Blocks;
-//};
 
 
 }}

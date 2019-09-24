@@ -111,6 +111,9 @@ public:
 };
 
 template <>
+struct TypeHash<Integer>: UInt64Value<985032913483489> {};
+
+template <>
 struct TypeHash<Varchar>: UInt64Value<9748271> {};
 
 template <>

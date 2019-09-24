@@ -117,7 +117,9 @@ endif()
 
 
 if (BUILD_TESTS) 
-    add_subdirectory(tests-core)
+    if (BUILD_REACTOR_MEMORIA_LIB)
+        add_subdirectory(tests-core)
+    endif()
 #    add_subdirectory(tests-other/disruptor)
 #    add_subdirectory(tests-other/fiber)
 #    add_subdirectory(tests-other/reactor)

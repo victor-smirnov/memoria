@@ -22,7 +22,7 @@
 #include <memoria/v1/tests/tools.hpp>
 
 #include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+#include <memoria/v1/api/store/memory_store_api.hpp>
 
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
@@ -48,31 +48,26 @@ struct AlwaysCommitHandler {
 
 template <
     typename ContainerTypeName,
-    typename AllocatorType,
+    typename StoreType,
     typename Profile
 >
 class BTTestBase: public TestState {
 
-    using MyType = BTTestBase<
-                Profile,
-                AllocatorType,
-                ContainerTypeName
-    >;
+    using MyType = BTTestBase;
 
     using Base = TestState;
 
 protected:
-    using CtrName           = ContainerTypeName;
-    using Ctr               = CtrApi<ContainerTypeName, Profile>;
+    using CtrName = ContainerTypeName;
+    using CtrApi  = ICtrApi<ContainerTypeName, Profile>;
 
-    using Iterator          = IterApi<CtrName, Profile>;
 
-    using Allocator     = AllocatorType;
-    using AllocatorPtr  = Allocator;
-    using SnapshotPtr   = typename Allocator::SnapshotPtr;
+    using Store = typename StoreType::element_type;
+    using StorePtr = StoreType;
+    using SnapshotPtr = typename Store::SnapshotPtr;
 
-    AllocatorPtr allocator_;
-    SnapshotPtr  snapshot_;
+    StorePtr store_;
+    SnapshotPtr snapshot_;
 
     int64_t size_{};
     UUID snapshot_id_{};
@@ -82,20 +77,20 @@ protected:
 
 public:
     MMA1_STATE_FILEDS(size_, snapshot_id_);
-    MMA1_INDIRECT_STATE_FILEDS(allocator_);
+    MMA1_INDIRECT_STATE_FILEDS(store_);
 
     BTTestBase()
     {
-        allocator_ = Allocator::create();
-        snapshot_  = allocator_.master();
+        store_ = Store::create();
+        snapshot_  = store_->master();
     }
 
     auto& store() {
-        return allocator_;
+        return store_;
     }
 
     const auto& store() const {
-        return allocator_;
+        return store_;
     }
 
     auto& snapshot() {
@@ -109,46 +104,46 @@ public:
     auto& branch()
     {
         if (snapshot_) {
-            snapshot_ = snapshot_.branch();
+            snapshot_ = snapshot_->branch();
         }
         else {
-            snapshot_ = allocator_.master().branch();
+            snapshot_ = store_->master()->branch();
         }
 
-        snapshot_id_ = snapshot_.uuid();
+        snapshot_id_ = snapshot_->uuid();
 
         return snapshot_;
     }
 
     void commit()
     {
-        snapshot_.commit();
-        snapshot_.set_as_master();
+        snapshot_->commit();
+        snapshot_->set_as_master();
 
-        if (snapshot_.has_parent())
+        if (snapshot_->has_parent())
         {
-            auto parent = snapshot_.parent();
+            auto parent = snapshot_->parent();
 
-            if (parent.has_parent())
+            if (parent->has_parent())
             {
-                parent.drop();
-                allocator_.pack();
+                parent->drop();
+                store_->pack();
             }
         }
     }
 
     void drop()
     {
-        auto parent = snapshot_.parent();
+        auto parent = snapshot_->parent();
 
-        snapshot_.drop();
-        snapshot_.reset();
+        snapshot_->drop();
+        snapshot_->reset();
 
-        parent.set_as_master();
+        parent->set_as_master();
 
         snapshot_ = parent;
 
-        allocator_.pack();
+        store_->pack();
     }
 
 
@@ -176,7 +171,7 @@ public:
     {
         if (is_replay())
         {
-            snapshot_ = allocator_.find(snapshot_id_);
+            snapshot_ = store_->find(snapshot_id_);
         }
     }
 
@@ -186,12 +181,12 @@ public:
     virtual void on_test_failure() noexcept
     {
         try {
-            if (snapshot_.is_active())
+            if (snapshot_->is_active())
             {
-                snapshot_id_ = snapshot_.parent().uuid();
-                snapshot_.commit();
+                snapshot_id_ = snapshot_->parent()->uuid();
+                snapshot_->commit();
 
-                allocator_.pack();
+                store_->pack();
             }
         }
         catch (...) {
@@ -201,19 +196,19 @@ public:
 
     virtual void storeAllocator(U16String file_name)
     {   
-        allocator_.store(file_name.to_u8().data());
+        store_->store(file_name.to_u8());
     }
 
 
     virtual void loadAllocator(U16String file_name)
     {
-        allocator_ = Allocator::load(file_name.to_u8().data());
+        store_ = Store::load(file_name.to_u8());
     }
 
 
     virtual void checkAllocator(const char* msg, const char* source)
     {
-        tests::check<Allocator>(allocator_, msg, source);
+        tests::check(store_, msg, source);
     }
 
     bool checkSoftMemLimit()

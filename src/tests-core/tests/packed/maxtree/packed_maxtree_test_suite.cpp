@@ -27,10 +27,10 @@ using FixedWidthArgFindSuite = PackedMaxTreeFindTest<PkdFMTreeT<int64_t, 1>>;
 MMA1_CLASS_SUITE(FixedWidthArgFindSuite, u"FixedWidthArgFindSuite");
 
 
-using VariableWidthArgMiscSuite = PackedMaxTreeMiscTest<PkdVBMTreeT<BigInteger>>;
-MMA1_CLASS_SUITE(VariableWidthArgMiscSuite, u"VariableWidthArgMiscSuite");
+//using VariableWidthArgMiscSuite = PackedMaxTreeMiscTest<PkdVBMTreeT<BigInteger>>;
+//MMA1_CLASS_SUITE(VariableWidthArgMiscSuite, u"VariableWidthArgMiscSuite");
 
-using VariableWidthArgFindSuite = PackedMaxTreeFindTest<PkdVBMTreeT<BigInteger>>;
-MMA1_CLASS_SUITE(VariableWidthArgFindSuite, u"VariableWidthArgFindSuite");
+//using VariableWidthArgFindSuite = PackedMaxTreeFindTest<PkdVBMTreeT<BigInteger>>;
+//MMA1_CLASS_SUITE(VariableWidthArgFindSuite, u"VariableWidthArgFindSuite");
 
 }}}

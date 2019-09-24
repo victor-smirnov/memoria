@@ -47,7 +47,7 @@ class IMemoryStore {
     using SnapshotID = ProfileSnapshotID<Profile>;
 
 public:
-    using StorePtr   = AllocSharedPtr<IMemoryStore>;
+    using StorePtr      = AllocSharedPtr<IMemoryStore>;
     using SnapshotPtr   = SnpSharedPtr<IMemorySnapshot<Profile>>;
     using BlockType     = ProfileBlockType<Profile>;
 

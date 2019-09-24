@@ -383,7 +383,7 @@ public:
                 edges.emplace_back(DefaultEdge::make(my_graph, u"child", my_vx, ch_snp->as_vertex()));
             }
 
-            auto iter = this->root_map_->Begin();
+            auto iter = this->root_map_->ctr_begin();
             while (!iter->iter_is_end())
             {
                 auto ctr_name   = iter->key();

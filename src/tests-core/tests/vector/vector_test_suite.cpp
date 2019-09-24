@@ -23,8 +23,8 @@ namespace tests {
 
 namespace {
 
-auto Suite1 = register_class_suite<VectorTest<Vector<int32_t>>>("Vector.int32_t.FX");
-//auto Suite2 = register_class_suite<VectorTest<Vector<VLen<Granularity::int8_t>>>>("Vector.int32_t.VL.int8_t");
+auto Suite1 = register_class_suite<VectorTest<Vector<Integer>>>("Vector.int32_t.FX");
+auto Suite2 = register_class_suite<VectorTest<Vector<Varchar>>>("Vector.varchar.vlen");
 
 }
 

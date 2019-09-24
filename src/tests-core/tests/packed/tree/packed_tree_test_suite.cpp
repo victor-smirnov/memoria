@@ -73,14 +73,14 @@ MMA1_CLASS_SUITE(Suite12, "Tree.Find.4.VLD.Elias");
 
 
 
-using Suite18 = PackedTreeMiscTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
-MMA1_CLASS_SUITE(Suite18, "Tree.Misc.UAcc128.FSQ");
+//using Suite18 = PackedTreeMiscTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
+//MMA1_CLASS_SUITE(Suite18, "Tree.Misc.UAcc128.FSQ");
 
-using Suite19 = PackedTreeFindTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
-MMA1_CLASS_SUITE(Suite19, "Tree.Find.UAcc128.FSQ");
+//using Suite19 = PackedTreeFindTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
+//MMA1_CLASS_SUITE(Suite19, "Tree.Find.UAcc128.FSQ");
 
-using Suite20 = PackedTreeSumTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
-MMA1_CLASS_SUITE(Suite20, "Tree.Sum.UAcc128.FSQ");
+//using Suite20 = PackedTreeSumTest<PkdFQTreeT<UnsignedAccumulator<256>, 4, UnsignedAccumulator<128>>>;
+//MMA1_CLASS_SUITE(Suite20, "Tree.Sum.UAcc128.FSQ");
 
 
 

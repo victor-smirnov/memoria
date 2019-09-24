@@ -15,7 +15,7 @@
 
 
 #include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/containers/vector/vector_impl.hpp>
+#include <memoria/v1/containers/vector/vctr_factory.hpp>
 
 
 namespace memoria {

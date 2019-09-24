@@ -26,30 +26,26 @@ namespace tests {
 
 template <
     typename ContainerTypeName,
-    typename AllocatorType,
+    typename StoreType,
     typename Profile
 >
-class BTSSTestBase: public BTTestBase<ContainerTypeName, AllocatorType, Profile> {
+class BTSSTestBase: public BTTestBase<ContainerTypeName, StoreType, Profile> {
 
-    using MyType = BTSSTestBase<
-                ContainerTypeName,
-                Profile,
-                AllocatorType
-    >;
+    using MyType = BTSSTestBase;
 
-    using Base = BTTestBase<ContainerTypeName, AllocatorType, Profile>;
+    using Base = BTTestBase<ContainerTypeName, StoreType, Profile>;
 
 protected:
-    using Ctr           = CtrApi<ContainerTypeName, Profile>;
-    using Iterator      = IterApi<ContainerTypeName, Profile>;
-    
+    using CtrApi        = ICtrApi<ContainerTypeName, Profile>;
 
-    using Allocator     = AllocatorType;
 
-    using DataValue     = typename Ctr::DataValue;
-    using Entry         = typename Ctr::DataValue;
 
-    using MemBuffer     = std::vector<DataValue>;
+//    using Allocator     = AllocatorType;
+
+//    using DataValue     = typename Ctr::DataValue;
+//    using Entry         = typename Ctr::DataValue;
+
+//    using MemBuffer     = std::vector<DataValue>;
 
     using Base::getRandom;
 
@@ -58,6 +54,7 @@ public:
     BTSSTestBase()
     {}
 
+    /*
     MemBuffer createBuffer(int32_t size) {
         return MemBuffer(size);
     }
@@ -108,7 +105,7 @@ public:
         }
     }
 
-
+*/
 };
 
 }}}

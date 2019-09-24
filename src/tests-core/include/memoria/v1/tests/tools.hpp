@@ -50,9 +50,9 @@ public:
     PARemover(PackedAllocatable* obj): obj_(obj) {}
     ~PARemover()
     {
-        if (obj_->has_store())
+        if (obj_->has_allocator())
         {
-            free_system(obj_->store());
+            free_system(obj_->allocator());
         }
         else {
             free_system(obj_);
@@ -257,21 +257,21 @@ std::vector<T> createRandomBuffer(T fill_value, int32_t max_size)
 
 
 
-template <typename Allocator>
-void check(Allocator& allocator, const char* message,  const char* source)
+template <typename StorePtr>
+void check(StorePtr store, const char* message,  const char* source)
 {
-    int32_t level = allocator.logger().level();
+    int32_t level = store->logger().level();
 
-    allocator.logger().level() = Logger::_ERROR;
+    store->logger().level() = Logger::_ERROR;
 
-    if (allocator.check())
+    if (store->check())
     {
-        allocator.logger().level() = level;
+        store->logger().level() = level;
 
         MMA1_THROW(TestException()) << WhatCInfo(message);
     }
 
-    allocator.logger().level() = level;
+    store->logger().level() = level;
 }
 
 template <typename Ctr>
