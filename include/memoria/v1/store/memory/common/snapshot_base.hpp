@@ -246,7 +246,7 @@ public:
     {
         std::vector<CtrID> names;
 
-        auto ii = root_map_->begin();
+        auto ii = root_map_->ctr_begin();
         while (!ii->iter_is_end()) {
             names.push_back(ii->key());
             ii->next();
@@ -259,7 +259,7 @@ public:
     {
         std::vector<U16String> names;
 
-        auto ii = root_map_->begin();
+        auto ii = root_map_->ctr_begin();
         while (!ii->iter_is_end()) {
             names.push_back(ii->key().to_u16());
             ii->next();
@@ -637,7 +637,7 @@ public:
 
     void dump_dictionary_blocks()
     {
-        auto ii = root_map_->begin();
+        auto ii = root_map_->ctr_begin();
         if (!ii->iter_is_end())
         {
             do {
@@ -917,7 +917,7 @@ public:
     {
         if (!name.is_null())
         {
-            auto iter = root_map_->find(name);
+            auto iter = root_map_->ctr_map_find(name);
 
             if (iter->is_found(name))
             {
@@ -963,7 +963,7 @@ public:
 
         if (!name.is_null())
         {
-            auto iter = root_map_->find(name);
+            auto iter = root_map_->ctr_map_find(name);
             return iter->is_found(name);
         }
         else {
@@ -981,7 +981,7 @@ public:
     {
         bool result = false;
 
-        for (auto iter = root_map_->begin(); !iter->is_end(); )
+        for (auto iter = root_map_->ctr_begin(); !iter->is_end(); )
         {
             auto ctr_name = iter->key();
 
@@ -1017,7 +1017,7 @@ public:
             walker->beginSnapshot(fmt::format(u"Snapshot-{}", history_node_->snapshot_id()).data());
 		}
 
-        auto iter = root_map_->begin();
+        auto iter = root_map_->ctr_begin();
 
         while (!iter->iter_is_end())
         {

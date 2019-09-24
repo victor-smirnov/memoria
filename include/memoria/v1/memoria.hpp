@@ -37,6 +37,7 @@ struct StaticLibraryCtrs {
     static void init()
     {
         ICtrApi<Set<FixedArray<16>>, ProfileT>::init_profile_metadata();
+        ICtrApi<Set<Varchar>, ProfileT>::init_profile_metadata();
         ICtrApi<Map<Varchar, Varchar>, ProfileT>::init_profile_metadata();
         ICtrApi<Vector<Varchar>, ProfileT>::init_profile_metadata();
         ICtrApi<Map<BigInt, Varchar>, ProfileT>::init_profile_metadata();

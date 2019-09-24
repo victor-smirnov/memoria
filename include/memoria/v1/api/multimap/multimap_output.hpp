@@ -33,7 +33,7 @@ namespace memoria {
 namespace v1 {
 
 template <typename Types, typename Profile>
-class IEntriesIterator {
+class IEntriesScanner {
 
 public:
     using Key_   = typename Types::Key;
@@ -56,8 +56,6 @@ protected:
 
     core::StaticVector<uint64_t, 2> offsets_;
     DefaultBTFLSequenceParser<2> parser_;
-
-
 
 protected:
 
@@ -82,11 +80,11 @@ public:
     using BufferedEntryProcessorFn = std::function<void (KeyView, Span<const ValueView>)>;
 
 public:
-    IEntriesIterator(uint32_t start):
+    IEntriesScanner(uint32_t start):
         parser_(start)
     {}
 
-    virtual ~IEntriesIterator() noexcept {}
+    virtual ~IEntriesScanner() noexcept {}
 
     void for_each(EntryProcessorFn proc)
     {
@@ -205,7 +203,7 @@ public:
 
 
 template <typename Types, typename Profile>
-class IValuesIterator {
+class IValuesScanner {
 public:
     using Value_ = typename Types::Value;
     using ValueView = typename DataTypeTraits<Value_>::ViewType;
@@ -226,10 +224,10 @@ protected:
     bool run_is_finished_{};
 
 public:
-    IValuesIterator()
+    IValuesScanner()
     {}
 
-    virtual ~IValuesIterator() noexcept {}
+    virtual ~IValuesScanner() noexcept {}
 
     Span<const ValueView> values() const {
         return values_.span();
@@ -251,7 +249,7 @@ public:
 
 
 template <typename Types, typename Profile>
-class IKeysIterator {
+class IKeysScanner {
 public:
     using Key_ = typename Types::Key;
     using Value_ = typename Types::Value;
@@ -271,15 +269,15 @@ protected:
     _::MMapSubstreamAdapter<Key_> keys_;
 
 public:
-    IKeysIterator() {}
+    IKeysScanner() {}
 
-    virtual ~IKeysIterator() noexcept {}
+    virtual ~IKeysScanner() noexcept {}
 
     Span<const KeyView> keys() const {
         return keys_.span();
     }
 
-    virtual CtrSharedPtr<IValuesIterator<Types, Profile>> values(size_t key_idx) = 0;
+    virtual CtrSharedPtr<IValuesScanner<Types, Profile>> values(size_t key_idx) = 0;
 
     virtual bool is_end() const         = 0;
     virtual void next()                 = 0;

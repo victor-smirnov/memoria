@@ -23,8 +23,8 @@ namespace v1 {
 namespace multimap {
 
 template <typename Types, typename Profile, typename IteratorPtr>
-class ValuesIteratorImpl: public IValuesIterator<Types, Profile> {
-    using Base = IValuesIterator<Types, Profile>;
+class ValuesIteratorImpl: public IValuesScanner<Types, Profile> {
+    using Base = IValuesScanner<Types, Profile>;
 
     using typename Base::ValueView;
     using typename Base::Value;

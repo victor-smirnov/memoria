@@ -46,6 +46,7 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
     using Key   = Key_;
     using Value = Value_;
 
+    using IteratorInterface = MultimapIterator<Key_, Value_, Profile>;
 
     using KeyV   = typename DataTypeTraits<Key_>::ValueType;
     using ValueV = typename DataTypeTraits<Value_>::ValueType;

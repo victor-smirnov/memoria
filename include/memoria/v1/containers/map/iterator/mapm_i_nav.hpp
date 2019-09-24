@@ -103,14 +103,25 @@ public:
         return self().template iter_find_bw_ge<IntList<1>>(index, key);
     }
 
-    auto key() const
+    auto iter_key() const
     {
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), 0));
     }
 
-    auto value() const
+    auto iter_value() const
     {
 		return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()));
+    }
+
+    virtual KeyV key() const
+    {
+        return self().iter_key();
+    }
+
+    virtual ValueV value() const
+    {
+        using ValueTT = decltype(self().iter_value());
+        return map::MapValueHelper<ValueTT>::convert(self().iter_value());
     }
 
     void assign(const ValueView& v)

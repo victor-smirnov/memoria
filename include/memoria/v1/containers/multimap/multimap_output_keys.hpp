@@ -23,8 +23,8 @@ namespace v1 {
 namespace multimap {
 
 template <typename Types, typename Profile, typename IteratorPtr>
-class KeysIteratorImpl: public IKeysIterator<Types, Profile> {
-    using Base = IKeysIterator<Types, Profile>;
+class KeysIteratorImpl: public IKeysScanner<Types, Profile> {
+    using Base = IKeysScanner<Types, Profile>;
 
     using typename Base::KeyView;
     using typename Base::Key;
@@ -63,17 +63,15 @@ public:
         iter_->dump();
     }
 
-    virtual CtrSharedPtr<IValuesIterator<Types, Profile>> values(size_t key_idx)
+    virtual CtrSharedPtr<IValuesScanner<Types, Profile>> values(size_t key_idx)
     {
         auto ii = iter_->iter_clone();
 
         ii->iter_btfl_select_fw(key_idx, 0);
         ii->to_values();
 
-        //ii->dump();
-
         auto ptr = ctr_make_shared<multimap::ValuesIteratorImpl<Types, Profile, IteratorPtr>>(ii);
-        return memoria_static_pointer_cast<IValuesIterator<Types, Profile>>(ptr);
+        return memoria_static_pointer_cast<IValuesScanner<Types, Profile>>(ptr);
     }
 
 private:

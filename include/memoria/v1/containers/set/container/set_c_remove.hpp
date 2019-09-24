@@ -45,17 +45,7 @@ protected:
     typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
     
 public:    
-    bool remove(const KeyView& key)
-    {
-        auto iter = self().find(key);
-        if ((!iter->iter_is_end()) && iter->key() == key) 
-        {
-            iter->remove();
-            return true;
-        }
-        
-        return false;
-    }
+
 
 MEMORIA_V1_CONTAINER_PART_END
 

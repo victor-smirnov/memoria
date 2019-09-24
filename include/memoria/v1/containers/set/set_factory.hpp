@@ -60,6 +60,7 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
     using Key   = Key_;
     using KeyV  = typename DataTypeTraits<Key_>::ValueType;
 
+    using IteratorInterface = SetIterator<Key_, Profile>;
 
     using Entry = std::tuple<KeyV>;
 

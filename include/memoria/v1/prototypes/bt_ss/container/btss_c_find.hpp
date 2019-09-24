@@ -49,16 +49,16 @@ public:
         return self().sizes()[0];
     }
 
-    auto ctr_seek(CtrSizeT position)
+    auto ctr_seek(CtrSizeT position) const
     {
         return self().template ctr_seek_stream<0>(position);
     }
 
-    auto ctr_begin() {
+    auto ctr_begin() const {
         return self().ctr_seek(0);
     }
 
-    auto ctr_end()
+    auto ctr_end() const
     {
         auto size = self().size();
         if (size > 0)
@@ -70,18 +70,7 @@ public:
         }
     }
 
-    auto begin() {
-        return self().ctr_begin();
-    }
 
-    auto end() {
-        return self().ctr_end();
-    }
-
-    auto endm()
-    {
-        return IterEndMark();
-    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

@@ -35,8 +35,8 @@
 namespace memoria {
 namespace v1 {
 
-template <typename Key, typename Value>
-struct MapIterator {
+template <typename Key, typename Value, typename Profile>
+struct MapIterator: BTSSIterator<Profile> {
     using KeyV   = typename DataTypeTraits<Key>::ValueType;
     using ValueV = typename DataTypeTraits<Value>::ValueType;
 
@@ -45,9 +45,7 @@ struct MapIterator {
     virtual KeyV key() const = 0;
     virtual ValueV value() const = 0;
     virtual bool is_end() const = 0;
-    virtual void next() = 0;
-
-    virtual void dump() const = 0;
+    virtual bool next() = 0;
 };
 
 
@@ -68,35 +66,39 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     virtual void assign_key(KeyView key, ValueView value) = 0;
     virtual void remove_key(KeyView key) = 0;
 
-    virtual CtrSharedPtr<MapIterator<Key, Value>> find_entry(KeyView key) = 0;
+    virtual CtrSharedPtr<MapIterator<Key, Value, Profile>> find(KeyView key) const = 0;
 
-    void append_entries(ProducerFn producer_fn) {
+    void append(ProducerFn producer_fn) {
         Producer producer(producer_fn);
-        append_entries(producer);
+        append(producer);
     }
 
-    virtual void append_entries(io::IOVectorProducer& producer) = 0;
+    virtual void append(io::IOVectorProducer& producer) = 0;
 
-    void prepend_entries(ProducerFn producer_fn) {
+    void prepend(ProducerFn producer_fn) {
         Producer producer(producer_fn);
-        prepend_entries(producer);
+        prepend(producer);
     }
 
-    virtual void prepend_entries(io::IOVectorProducer& producer) = 0;
+    virtual void prepend(io::IOVectorProducer& producer) = 0;
 
 
-    void insert_entries(KeyView before, ProducerFn producer_fn) {
+    void insert(KeyView before, ProducerFn producer_fn) {
         Producer producer(producer_fn);
-        insert_entries(before, producer);
+        insert(before, producer);
     }
 
-    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer) = 0;
+    virtual void insert(KeyView before, io::IOVectorProducer& producer) = 0;
 
-    virtual CtrSharedPtr<MapIterator<Key, Value>> iterator()    = 0;
-    virtual CtrSharedPtr<BTSSIterator<Profile>> raw_iterator()  = 0;
+    virtual CtrSharedPtr<MapIterator<Key, Value, Profile>> iterator() const   = 0;
 
-    MapScanner<ApiTypes, Profile> scanner() {
-        return MapScanner<ApiTypes, Profile>(raw_iterator());
+    MapScanner<ApiTypes, Profile> scanner() const {
+        return MapScanner<ApiTypes, Profile>(iterator());
+    }
+
+    template <typename Fn>
+    MapScanner<ApiTypes, Profile> scanner(Fn&& iterator_producer) const {
+        return MapScanner<ApiTypes, Profile>(iterator_producer(this));
     }
 
     MMA1_DECLARE_ICTRAPI();

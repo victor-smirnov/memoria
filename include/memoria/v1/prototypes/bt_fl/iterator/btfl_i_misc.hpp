@@ -47,6 +47,14 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorMiscName)
 
 public:
 
+    virtual const std::type_info& cxx_type() const {
+        return typeid(MyType);
+    }
+
+    virtual int32_t iovector_pos() const {
+        return self().iter_local_pos();
+    }
+
 
     void iter_refresh()
     {
@@ -54,11 +62,10 @@ public:
     }
 
 
-    void iter_check_prefix() {
+    void iter_check_prefix()
+    {
         auto tmp = self();
-
         tmp.iter_refresh();
-
         MEMORIA_V1_ASSERT(self().iter_cache(), ==, tmp.iter_cache());
     }
 

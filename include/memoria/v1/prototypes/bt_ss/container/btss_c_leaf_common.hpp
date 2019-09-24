@@ -52,7 +52,7 @@ public:
     static const int32_t Streams = Types::Streams;
 
     CtrSharedPtr<BTSSIterator<typename Types::Profile>> raw_iterator() {
-        return self().begin();
+        return self().ctr_begin();
     }
 
     template <typename SubstreamsIdxList, typename... Args>

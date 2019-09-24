@@ -22,6 +22,8 @@
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
+#include <memoria/v1/containers/set/set_tools.hpp>
+
 #include <iostream>
 
 namespace memoria {
@@ -40,7 +42,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(set::ItrNavName)
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
-    using CtrSizeT = typename Container::Types::CtrSizeT;
+    using CtrSizeT  = typename Container::Types::CtrSizeT;
 
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using KeyV      = typename DataTypeTraits<Key>::ValueType;
@@ -54,10 +56,10 @@ public:
 
         self.ctr().iter_insert_entry(
                 self,
-                set::KeyEntry<Key, CtrSizeT>(key)
+                set::KeyEntry<KeyView, CtrSizeT>(key)
         );
 
-        self.iter_skip_fw(1);
+        self.iter_btss_skip_fw(1);
     }
 
 
@@ -109,53 +111,6 @@ public:
         auto& self = this->self();
         return (!self.is_end()) && self.key() == k;
     }
-
-    /*
-    template <typename Iterator>
-    class EntryAdaptor {
-        Iterator& current_;
-
-        KeyV key_;
-
-
-    public:
-        EntryAdaptor(Iterator& current): current_(current) {}
-
-        template <typename V>
-        void put(StreamTag<0>, StreamTag<0>, int32_t block, V&& entry) {}
-
-        template <typename V>
-        void put(StreamTag<0>, StreamTag<1>, int32_t block, V&& key) {
-            key_ = key;
-        }
-
-        void next()
-        {
-            current_ = key_;
-            current_++;
-        }
-    };
-
-
-
-
-    template <typename OutputIterator>
-    auto read(OutputIterator& iter, CtrSizeT length)
-    {
-        auto& self = this->self();
-
-        EntryAdaptor<OutputIterator> adaptor(iter);
-
-        return self.ctr().template ctr_read_entries<0>(self, length, adaptor);
-    }
-
-    template <typename OutputIterator>
-    auto read(OutputIterator& iter)
-    {
-        auto& self = this->self();
-
-        return read(iter, self.ctr().size());
-    }*/
 
 MEMORIA_V1_ITERATOR_PART_END
 

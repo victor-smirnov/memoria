@@ -144,5 +144,24 @@ public:
 };
 
 
+template <typename T>
+struct MapValueHelper {
+    template <typename TT>
+    static T convert(TT&& value) {
+        return value;
+    }
+};
+
+template <typename T>
+struct MapValueHelper<StaticVector<T, 1>> {
+    template <typename TT>
+    static T convert(TT&& value) {
+        return value[0];
+    }
+};
+
+
+
+
 }
 }}

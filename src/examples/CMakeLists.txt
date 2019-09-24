@@ -37,8 +37,10 @@ MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
 ENDMACRO()
 
 ClassicExample(map_example map_example.cpp "" "")
+ClassicExample(set_example set_example.cpp "" "")
 ClassicExample(ctrprops_example ctrprops_example.cpp "" "")
 ClassicExample(multimap_example multimap_example.cpp "" "")
 ClassicExample(store store.cpp "" "")
 ClassicExample(datatypes datatypes.cpp "" "")
 ClassicExample(vector_example vector_example.cpp "" "")
+

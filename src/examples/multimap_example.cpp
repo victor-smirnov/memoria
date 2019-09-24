@@ -110,7 +110,7 @@ int main()
 
         int64_t t2 = getTimeInMillis();
 
-        auto ii = ctr0->seek_entry(0);
+        auto ii = ctr0->entries_scanner(ctr0->seek(0));
 
         size_t sum0 = 0;
 

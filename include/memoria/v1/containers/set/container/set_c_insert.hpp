@@ -39,12 +39,11 @@ protected:
     using typename Base::BranchNodeEntry;
     using typename Base::BlockUpdateMgr;
 
-    using Key = typename Types::Key;
-    using KeyView   = typename DataTypeTraits<Key>::ViewType;
-    using KeyV      = typename DataTypeTraits<Key>::ValueType;
+    using Key       = typename Types::Key;
+    using KeyView   = DTTViewType<Key>;
+    using KeyV      = DTTValueType<Key>;
 
     using Profile   = typename Types::Profile;
-
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
@@ -54,53 +53,12 @@ protected:
 public:
 
 
-    IteratorPtr find(const KeyView& k)
+    IteratorPtr ctr_set_find(const KeyView& k) const
     {
         return self().template ctr_find_max_ge<IntList<0, 1>>(0, k);
     }
 
 
-    bool remove(const KeyView& k)
-    {
-        auto iter = find(k);
-
-        if (iter->is_found(k))
-        {
-            iter->remove();
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    /**
-     * Returns true if the set contains the element
-     */
-
-    bool contains(const KeyView& k)
-    {
-        auto iter = find(k);
-        return iter->is_found(k);
-    }
-
-
-    /**
-     * Returns true if set is already containing the element
-     */
-    bool insert_key(const KeyView& k)
-    {
-    	auto iter = find(k);
-
-        if (iter->is_found(k))
-        {
-        	return true;
-        }
-        else {
-            iter->insert(k);
-            return false;
-        }
-    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

@@ -67,52 +67,52 @@ public:
 
     }
 
-    CtrSharedPtr<BTSSIterator<Profile>> find_element_raw(KeyView key)
+    CtrSharedPtr<SetIterator<Key, Profile>> find(KeyView key) const
     {
-        return self().find(key);
+        return self().ctr_set_find(key);
     }
 
-    bool contains_element(KeyView key) {
-        return false;
-    }
+//    bool contains_element(KeyView key) {
+//        return false;
+//    }
 
-    bool insert_element(KeyView key) {
-        return false;
-    }
+//    bool insert_element(KeyView key) {
+//        return false;
+//    }
 
-    bool remove_element(KeyView key) {
-        return self().remove(key);
-    }
+//    bool remove_element(KeyView key) {
+//        return self().remove(key);
+//    }
 
 
 
-    CtrSharedPtr<SetIterator<Key>> iterator()
+    CtrSharedPtr<SetIterator<Key, Profile>> iterator() const
     {
-        auto iter = self().begin();
-        return ctr_make_shared<SetIteratorImpl<Key, IteratorPtr>>(iter);
+        auto iter = self().ctr_begin();
+        return iter;
     }
 
-    void append_entries(io::IOVectorProducer& producer)
+    void append(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
-        auto iter = self.end();
+        auto iter = self.ctr_end();
 
         iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
     }
 
-    virtual void prepend_entries(io::IOVectorProducer& producer)
+    virtual void prepend(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
-        auto iter = self.begin();
+        auto iter = self.ctr_begin();
 
         iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
     }
 
-    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer)
+    virtual void insert(KeyView before, io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
-        auto iter = self.find(before);
+        auto iter = self.ctr_set_find(before);
 
         if (iter->is_found(before))
         {
@@ -121,6 +121,47 @@ public:
         else {
             iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
         }
+    }
+
+    /**
+     * Returns true if set is already containing the element
+     */
+    bool insert(KeyView k)
+    {
+        auto iter = self().ctr_set_find(k);
+
+        if (iter->is_found(k))
+        {
+            return true;
+        }
+        else {
+            iter->insert(k);
+            return false;
+        }
+    }
+
+    /**
+     * Returns true if the set contained the element
+     */
+    bool remove(KeyView key)
+    {
+        auto iter = self().ctr_set_find(key);
+        if ((!iter->iter_is_end()) && iter->key() == key)
+        {
+            iter->remove();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns true if the set contains the element
+     */
+    bool contains(KeyView k)
+    {
+        auto iter = self().ctr_set_find(k);
+        return iter->is_found(k);
     }
 
 

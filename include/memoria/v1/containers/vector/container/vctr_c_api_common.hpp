@@ -85,12 +85,12 @@ public:
 
     void prepend(io::IOVectorProducer& producer)
     {
-        self().begin()->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
+        self().ctr_begin()->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
     }
 
     void append(io::IOVectorProducer& producer)
     {
-        self().end()->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
+        self().ctr_end()->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
     }
 
     void insert(CtrSizeT at, io::IOVectorProducer& producer)
@@ -116,7 +116,7 @@ public:
     {
         auto& self = this->self();
 
-        auto ii_from = self.begin();
+        auto ii_from = self.ctr_begin();
         return ii_from->remove_from(pos);
     }
 

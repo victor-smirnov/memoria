@@ -40,6 +40,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     using typename Base::Position;
     using typename Base::BranchNodeEntry;
     using typename Base::BlockUpdateMgr;
+    using typename Base::Profile;
 
     using Key   = typename Types::Key;
     using Value = typename Types::Value;
@@ -63,9 +64,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
     }
 
-    int64_t map_size() const {
-        return self().size();
-    }
+
 
     void assign_key(KeyView key, ValueView value) {
         self().assign(key, value);
@@ -75,39 +74,39 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
         self().remove(key);
     }
 
-    CtrSharedPtr<MapIterator<Key,Value>> iterator()
+    CtrSharedPtr<MapIterator<Key,Value, Profile>> iterator() const
     {
-        auto iter = self().begin();
-        return ctr_make_shared<MapIteratorImpl<Key,Value, IteratorPtr>>(iter);
+        auto iter = self().ctr_begin();
+        return iter;
     }
 
-    virtual CtrSharedPtr<MapIterator<Key, Value>> find_entry(KeyView key)
+    virtual CtrSharedPtr<MapIterator<Key, Value, Profile>> find(KeyView key) const
     {
-        auto iter = self().find(key);
-        return ctr_make_shared<MapIteratorImpl<Key,Value, IteratorPtr>>(iter);
+        auto iter = self().ctr_map_find(key);
+        return iter;
     }
 
-    void append_entries(io::IOVectorProducer& producer)
+    void append(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
-        auto iter = self.end();
+        auto iter = self.ctr_end();
 
         iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
     }
 
-    virtual void prepend_entries(io::IOVectorProducer& producer)
+    virtual void prepend(io::IOVectorProducer& producer)
     {
         auto& self = this->self();
-        auto iter = self.begin();
+        auto iter = self.ctr_begin();
 
         iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
     }
 
-    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer)
+    virtual void insert(KeyView before, io::IOVectorProducer& producer)
     {
         auto& self = this->self();
 
-        auto iter = self.find(before);
+        auto iter = self.ctr_map_find(before);
 
         if (iter->is_found(before))
         {

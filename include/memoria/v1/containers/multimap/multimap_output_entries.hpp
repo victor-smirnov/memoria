@@ -22,8 +22,8 @@ namespace v1 {
 namespace multimap {
 
 template <typename Types, typename Profile, typename IteratorPtr>
-class EntriesIteratorImpl: public IEntriesIterator<Types, Profile> {
-    using Base = IEntriesIterator<Types, Profile>;
+class EntriesIteratorImpl: public IEntriesScanner<Types, Profile> {
+    using Base = IEntriesScanner<Types, Profile>;
 
     using Base::parser_;
     using Base::offsets_;

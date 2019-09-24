@@ -19,7 +19,7 @@
 #include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/api/store/memory_store_api.hpp>
 
-#include <memoria/v1/api/map/map_api.hpp>
+#include <memoria/v1/api/set/set_api.hpp>
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/memoria.hpp>
 
@@ -32,15 +32,7 @@ int main()
     StaticLibraryCtrs<>::init();
 
     try {
-
-        //    using MapType = Map<BigInt, BigInt>;
-        //    using Entry   = std::pair<int64_t, int64_t>;
-
-        using MapType = Map<Varchar, Varchar>;
-        using Entry   = std::pair<U8String, U8String>;
-
-        //    using MapType = Map<BigInt, Varchar>;
-        //    using Entry   = std::pair<int64_t, U8String>;
+        using MapType = Set<Varchar>;
 
         auto alloc = IMemoryStore<>::create();
 
@@ -52,20 +44,16 @@ int main()
 
         int64_t t0 = getTimeInMillis();
 
-        std::vector<Entry> entries_;
+        std::vector<U8String> entries_;
 
         for (int c = 0; c < 10000; c++) {
-            //entries_.emplace_back(Entry(c, -c));
-            entries_.emplace_back(Entry(
-                                      //c,
-                                      "AAAAAAAAAAAAAAAAAAAAAAAAAAA_"   + std::to_string(c),
-                                      "BBBBBBBBBBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c)
-                                      // c, -c
-                                      ));
+            entries_.emplace_back(
+                "AAAAAAAAAAAAAAAAAAAAAAAAAAA_"   + std::to_string(c)
+            );
         }
 
         std::sort(entries_.begin(), entries_.end(), [](const auto& one, const auto& two){
-            return std::get<0>(one) < std::get<0>(two);
+            return one < two;
         });
 
         int64_t t1 = getTimeInMillis();
@@ -74,14 +62,13 @@ int main()
 
         int64_t t0_i = getTimeInMillis();
 
-        ctr0->append([&](auto& keys, auto& values, size_t batch_start) {
+        ctr0->append([&](auto& keys, size_t batch_start) {
 
             size_t batch_size = 8192;
             size_t limit = (batch_start + batch_size <= entries_.size()) ? batch_size : entries_.size() - batch_start;
 
             for (size_t c = 0; c < limit; c++) {
-                keys.append(std::get<0>(entries_[batch_start + c]));
-                values.append(std::get<1>(entries_[batch_start + c]));
+                keys.append(entries_[batch_start + c]);
             }
 
             return limit != batch_size;
@@ -106,19 +93,19 @@ int main()
 
         size_t sum0 = 0;
 
-        //    while (!ii.is_end())
-        //    {
-        //        sum0 += ii.keys().size() + ii.values().size();
+        while (!ii.is_end())
+        {
+            sum0 += ii.keys().size();
 
-        //        auto keys = ii.keys();
+            auto keys = ii.keys();
 
-        //        for (size_t c = 0; c < keys.size(); c++)
-        //        {
-        //            std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
-        //        }
+            for (size_t c = 0; c < keys.size(); c++)
+            {
+                std::cout << keys[c] << std::endl;
+            }
 
-        //        ii.next_leaf();
-        //    }
+            ii.next_leaf();
+        }
 
         int64_t t3 = getTimeInMillis();
 
@@ -130,14 +117,11 @@ int main()
 
             auto ii = ctr0->find(key);
 
-            //        ii->dump();
-
             if (!ii->is_end())
             {
-                std::cout << key << " :: " << ii->value() << std::endl;
+                std::cout << key << " :: " << ii->key() << std::endl;
             }
         }
-
     }
     catch (MemoriaThrowable& th) {
         th.dump(std::cerr);

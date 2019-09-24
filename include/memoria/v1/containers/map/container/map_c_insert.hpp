@@ -61,7 +61,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertName)
     template <typename K, typename V>
     IteratorPtr assign(K&& key, V&& value)
     {
-        auto iter = self().find(key);
+        auto iter = self().ctr_map_find(key);
 
         if (iter->is_found(key))
         {
@@ -74,20 +74,20 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrInsertName)
         return iter;
     }
 
-    template <typename T>
-    bool remove(T&& k)
-    {
-        auto iter = find(k);
+//    template <typename T>
+//    bool remove(T&& k)
+//    {
+//        auto iter = self().ctr_map_find(k);
 
-        if (iter->key() == k)
-        {
-            iter->remove();
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
+//        if (iter->key() == k)
+//        {
+//            iter->remove();
+//            return true;
+//        }
+//        else {
+//            return false;
+//        }
+//    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

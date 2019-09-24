@@ -26,15 +26,15 @@
 namespace memoria {
 namespace v1 {
 
-template <typename Key>
-struct SetIterator {
+template <typename Key, typename Profile>
+struct SetIterator: BTSSIterator<Profile> {
     using KeyV   = typename DataTypeTraits<Key>::ValueType;
 
     virtual ~SetIterator() noexcept {}
 
     virtual KeyV key() const = 0;
     virtual bool is_end() const = 0;
-    virtual void next() = 0;
+    virtual bool next() = 0;
 };
     
 template <typename Key, typename Profile> 
@@ -49,45 +49,44 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
 
     virtual ProfileCtrSizeT<Profile> size() const = 0;
 
-    virtual CtrSharedPtr<BTSSIterator<Profile>> find_element_raw(KeyView key) = 0;
+    virtual CtrSharedPtr<SetIterator<Key, Profile>> find(KeyView key) const = 0;
 
-    SetScanner<ApiTypes, Profile> find_element(KeyView key)
-    {
-        return SetScanner<ApiTypes, Profile>(find_element_raw(key));
-    }
-
-    virtual bool contains_element(KeyView key)   = 0;
-    virtual bool remove_element(KeyView key)     = 0;
-    virtual bool insert_element(KeyView key)     = 0;
+    virtual bool contains(KeyView key)   = 0;
+    virtual bool remove(KeyView key)     = 0;
+    virtual bool insert(KeyView key)     = 0;
 
 
-    void append_entries(ProducerFn producer_fn) {
+    void append(ProducerFn producer_fn) {
         Producer producer(producer_fn);
-        append_entries(producer);
+        append(producer);
     }
 
-    virtual void append_entries(io::IOVectorProducer& producer) = 0;
+    virtual void append(io::IOVectorProducer& producer) = 0;
 
-    void prepend_entries(ProducerFn producer_fn) {
+    void prepend(ProducerFn producer_fn) {
         Producer producer(producer_fn);
-        prepend_entries(producer);
+        prepend(producer);
     }
 
-    virtual void prepend_entries(io::IOVectorProducer& producer) = 0;
+    virtual void prepend(io::IOVectorProducer& producer) = 0;
 
 
-    void insert_entries(KeyView before, ProducerFn producer_fn) {
+    void insert(KeyView before, ProducerFn producer_fn) {
         Producer producer(producer_fn);
-        insert_entries(before, producer);
+        insert(before, producer);
     }
 
-    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer) = 0;
+    virtual void insert(KeyView before, io::IOVectorProducer& producer) = 0;
 
-    virtual CtrSharedPtr<SetIterator<Key>> iterator()           = 0;
-    virtual CtrSharedPtr<BTSSIterator<Profile>> raw_iterator()  = 0;
+    virtual CtrSharedPtr<SetIterator<Key, Profile>> iterator() const = 0;
 
-    SetScanner<ApiTypes, Profile> scanner() {
-        return SetScanner<ApiTypes, Profile>(raw_iterator());
+    template <typename Fn>
+    SetScanner<ApiTypes, Profile> scanner(Fn&& iterator_producer) const {
+        return SetScanner<ApiTypes, Profile>(iterator_producer(this));
+    }
+
+    SetScanner<ApiTypes, Profile> scanner() const {
+        return SetScanner<ApiTypes, Profile>(iterator());
     }
 
     MMA1_DECLARE_ICTRAPI();

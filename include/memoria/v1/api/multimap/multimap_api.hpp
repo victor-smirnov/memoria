@@ -37,6 +37,17 @@
 namespace memoria {
 namespace v1 {
 
+template <typename Key, typename Value, typename Profile>
+struct MultimapIterator: BTFLIterator<Profile> {
+    using KeyV   = typename DataTypeTraits<Key>::ValueType;
+    using ValueV = typename DataTypeTraits<Value>::ValueType;
+
+
+    virtual KeyV key() const = 0;
+    virtual ValueV value() const = 0;
+    virtual bool is_end() const = 0;
+    virtual bool next() = 0;
+};
 
 
 template <typename Key_, typename Value_, typename Profile>
@@ -54,6 +65,8 @@ public:
     using Producer      = MultimapProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
+    using IteratorAPIPtr = CtrSharedPtr<MultimapIterator<Key_, Value_, Profile>>;
+
 public:
 
     
@@ -61,7 +74,7 @@ public:
     using CtrSizeT  = ProfileCtrSizeT<Profile>;
     using CtrSizesT = ProfileCtrSizesT<Profile, DataStreams + 1>;
     
-    virtual bool contains(const KeyView& key) = 0;
+    virtual bool contains(const KeyView& key) const = 0;
     virtual bool remove(const KeyView& key) = 0;
 
     virtual bool remove_all(const KeyView& from, const KeyView& to) = 0; //[from, to)
@@ -70,10 +83,14 @@ public:
 
     virtual CtrSizeT size() const = 0;
 
-    virtual CtrSharedPtr<IEntriesIterator<ApiTypes, Profile>> seek_entry(CtrSizeT pos) = 0;
+    virtual CtrSharedPtr<IEntriesScanner<ApiTypes, Profile>> entries_scanner(IteratorAPIPtr iterator) const = 0;
+    virtual CtrSharedPtr<IValuesScanner<ApiTypes, Profile>>  values_scanner(IteratorAPIPtr iterator) const = 0;
 
-    virtual CtrSharedPtr<IValuesIterator<ApiTypes, Profile>> find_entry(KeyView key) = 0;
-    virtual CtrSharedPtr<IKeysIterator<ApiTypes, Profile>> keys() = 0;
+    virtual IteratorAPIPtr seek(CtrSizeT pos) const = 0;
+    virtual IteratorAPIPtr find(KeyView key) const = 0;
+    virtual IteratorAPIPtr iterator() const = 0;
+
+    virtual CtrSharedPtr<IKeysScanner<ApiTypes, Profile>> keys() const = 0;
 
     bool upsert(KeyView key, ProducerFn producer_fn) {
         Producer producer(producer_fn);

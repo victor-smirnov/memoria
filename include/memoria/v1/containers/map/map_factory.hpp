@@ -64,6 +64,8 @@ struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using Entry = std::tuple<KeyV, ValueV>;
 
+    using IteratorInterface = MapIterator<Key_, Value_, Profile>;
+
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 map::CtrInsertMaxName,

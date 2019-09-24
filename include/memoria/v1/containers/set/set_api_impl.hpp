@@ -26,30 +26,30 @@ namespace memoria {
 namespace v1 {
 
 
-template <typename Key, typename IteratorPtr>
-class SetIteratorImpl: public SetIterator<Key> {
-    using KeyV   = typename DataTypeTraits<Key>::ValueType;
-    IteratorPtr iter_;
+//template <typename Key, typename IteratorPtr>
+//class SetIteratorImpl: public SetIterator<Key> {
+//    using KeyV   = typename DataTypeTraits<Key>::ValueType;
+//    IteratorPtr iter_;
 
-public:
-    SetIteratorImpl(IteratorPtr iter):
-        iter_(iter)
-    {}
+//public:
+//    SetIteratorImpl(IteratorPtr iter):
+//        iter_(iter)
+//    {}
 
-    virtual KeyV key() const
-    {
-        return iter_->key();
-    }
+//    virtual KeyV key() const
+//    {
+//        return iter_->key();
+//    }
 
-    virtual bool is_end() const
-    {
-        return iter_->iter_is_end();
-    }
+//    virtual bool is_end() const
+//    {
+//        return iter_->iter_is_end();
+//    }
 
-    virtual void next() {
-        iter_->next();
-    }
-};
+//    virtual void next() {
+//        iter_->next();
+//    }
+//};
  
 
 template <typename Key, typename Profile>

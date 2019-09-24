@@ -59,12 +59,12 @@ protected:
     using CtrSizeT = typename Types::CtrSizeT;
 
 public:
-    CtrSizeT size() const {
-        return self().sizes()[0];
-    }
+//    CtrSizeT size() const {
+//        return self().sizes()[0];
+//    }
 
 
-    IteratorPtr find(const KeyView& k)
+    IteratorPtr ctr_map_find(const KeyView& k) const
     {
         return self().template ctr_find_max_ge<IntList<0, 1>>(0, k);
     }
@@ -72,7 +72,7 @@ public:
 
     bool remove(const KeyView& k)
     {
-        auto iter = find(k);
+        auto iter = self().ctr_map_find(k);
 
         if (iter->is_found(k))
         {
@@ -86,7 +86,7 @@ public:
 
     IteratorPtr assign(const KeyView& key, const ValueView& value)
     {
-        auto iter = self().find(key);
+        auto iter = self().ctr_map_find(key);
 
         if (iter->is_found(key))
         {
