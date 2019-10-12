@@ -74,23 +74,21 @@ public:
     using IndexDataType = typename Types::Value;
 
     using ViewType      = typename DataTypeTraits<DataType>::ViewType;
-    using ValueType     = typename DataTypeTraits<DataType>::ValueType;
     using DataSizeType  = psize_t;
     using DataAtomType  = typename DataTypeTraits<DataType>::AtomType;
 
     using AccumValue = ViewType;
-
-    using IndexValue = ValueType;
+    using IndexValue = ViewType;
 
     using Allocator = PackedAllocator;
 
-    using ExtData = typename DataTypeTraits<DataType>::ExtData;
-    using SparseObject = PackedVLenElementArraySO<ExtData, MyType>;
+    using ExtData       = DTTTypeDimensionsTuple<DataType>;
+    using SparseObject  = PackedVLenElementArraySO<ExtData, MyType>;
 
     using Accessor = PkdDataTypeAccessor<DataType, Tag, SparseObject>;
 
-    using GrowableIOSubstream = io::IOVLen1DArraySubstreamImpl<DataType>;
-    using IOSubstreamView     = io::IOVLen1DArraySubstreamViewImpl<DataType, SparseObject>;
+    using GrowableIOSubstream = DataTypeBuffer<DataType>;
+    using IOSubstreamView     = IO1DArraySubstreamViewImpl<DataType, SparseObject>;
 
     enum {METADATA = 0, DATA = 1};
 

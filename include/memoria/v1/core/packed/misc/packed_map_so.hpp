@@ -47,9 +47,6 @@ public:
     using KeyView   = typename PkdStruct::KeyView;
     using ValueView = typename PkdStruct::ValueView;
 
-    using Key       = typename PkdStruct::Key;
-    using Value     = typename PkdStruct::Value;
-
 private:
     KeysExtData keys_ext_data_;
     ValuesExtData values_ext_data_;
@@ -116,7 +113,7 @@ public:
         return data_->size();
     }
 
-    Optional<Value> find(const KeyView& key) const
+    Optional<ValueView> find(const KeyView& key) const
     {
         int32_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
@@ -125,11 +122,11 @@ public:
             KeyView key0 = keys_.access(0, result.local_pos());
 
             if (MMA1_LIKELY(key0 == key)) {
-                return Optional<Value>(values_.access(0, result.local_pos()));
+                return Optional<ValueView>(values_.access(0, result.local_pos()));
             }
         }
 
-        return Optional<Value>();
+        return Optional<ValueView>();
     }
 
     OpStatus set(const KeyView& key, const ValueView value)
@@ -231,7 +228,7 @@ public:
         return upsize;
     }
 
-    psize_t estimate_required_upsize(const std::vector<std::pair<Key, Value>>& entries) const
+    psize_t estimate_required_upsize(const std::vector<std::pair<KeyView, ValueView>>& entries) const
     {
         psize_t upsize{};
 
@@ -242,7 +239,7 @@ public:
         return upsize;
     }
 
-    OpStatus set_all(const std::vector<std::pair<Key, Value>>& entries)
+    OpStatus set_all(const std::vector<std::pair<KeyView, ValueView>>& entries)
     {
         for (const auto& entry: entries)
         {

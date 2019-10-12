@@ -40,9 +40,7 @@ class EntriesIteratorImpl: public IEntriesScanner<Types, Profile> {
     using Base::has_suffix;
 
     using typename Base::KeyView;
-    using typename Base::Key;
     using typename Base::ValueView;
-    using typename Base::Value;
 
     using typename Base::KeysIOVSubstreamAdapter;
     using typename Base::ValuesIOVSubstreamAdapter;

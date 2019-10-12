@@ -25,6 +25,8 @@
 
 #include <memoria/v1/core/tools/bitmap.hpp>
 
+#include <memoria/v1/api/datatypes/buffer/buffer_generic.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -32,11 +34,10 @@ namespace v1 {
 template <typename DataType, template <typename CxxType> class ValueCodec>
 struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCodec>, false>
 {
-    using ValueView = typename DataTypeTraits<DataType>::ViewType;
-    using ValueType = typename DataTypeTraits<DataType>::ValueType;
+    using ViewType = typename DataTypeTraits<DataType>::ViewType;
     using AtomType  = typename DataTypeTraits<DataType>::AtomType;
 
-    using SubstreamT = io::IOVLen1DArraySubstream<DataType>;
+    using SubstreamT = io::IO1DArraySubstreamView<DataType>;
 
 
     SubstreamT* substream_{};
@@ -58,7 +59,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
             int32_t column,
             int32_t start,
             int32_t size,
-            ArenaBuffer<ValueView>& buffer
+            ArenaBuffer<ViewType>& buffer
     )
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
@@ -75,11 +76,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
     )
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        const auto* data = subs.data_for(start);
-
-        psize_t data_size = subs.length(start, size);
-
-        buffer.append_values(Span<const AtomType>(data, data_size));
+        subs.read_to(start, size, buffer);
     }
 
     static void read_to(
@@ -87,18 +84,11 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
             int32_t column,
             int32_t start,
             int32_t size,
-            ArenaBuffer<AtomType>& buffer,
-            ArenaBuffer<ValueView>& views
+            DataTypeBuffer<DataType>& buffer
     )
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        const auto* data = subs.data_for(start);
-
-        psize_t data_size = subs.length(start, size);
-
-        buffer.append_values(Span<const AtomType>((typename Span<const AtomType>::pointer)data, data_size));
-
-        subs.read_to(start, size, views);
+        subs.read_to(start, size, buffer);
     }
 
     template <typename ItemView>
@@ -113,26 +103,38 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
         this->substream_ = &io::substream_cast<SubstreamT>(substream);
     }
 
-    void append(ValueView view) {
-        substream_->append_from(Span<const ValueView>(&view, 1));
+    void append(ViewType view) {
+        substream_->append_from(Span<const ViewType>(&view, 1));
     }
 
-    void append_buffer(Span<const ValueView> buffer) {
+    void append_buffer(Span<const ViewType> buffer) {
         substream_->append_from(buffer);
     }
 
-    void append(Span<const ValueView> buffer) {
-        substream_->append_from(buffer);
-    }
-
+    template <typename ValueType>
     void append_buffer(Span<const ValueType> buffer) {
-        substream_->append_from(buffer);
+        for (auto& value: buffer) {
+            append(value);
+        }
     }
 
+    template <typename ValueType>
+    void append_buffer(const std::vector<ValueType> buffer) {
+        for (auto& value: buffer) {
+            append(value);
+        }
+    }
+
+    template <typename ValueType>
     void append(Span<const ValueType> buffer) {
-        substream_->append_from(buffer);
+        for (auto& value: buffer) {
+            append(value);
+        }
     }
 
+    void append(Span<const ViewType> buffer) {
+        substream_->append_from(buffer);
+    }
 
     size_t size() const {
         return substream_->size();

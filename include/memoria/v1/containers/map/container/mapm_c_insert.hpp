@@ -42,16 +42,10 @@ protected:
     using Key = typename Types::Key;
     using Value = typename Types::Value;
 
-    using KeyV   = typename DataTypeTraits<Key>::ValueType;
-    using ValueV = typename DataTypeTraits<Value>::ValueType;
-
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ValueView = typename DataTypeTraits<Value>::ViewType;
 
     static const int32_t Streams = Types::Streams;
-
-    using Element   = ValuePair<BranchNodeEntry, ValueV>;
-    using MapEntry  = typename Types::Entry;
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;

@@ -97,7 +97,12 @@ namespace _ {
         template <typename SubstreamAdapter, typename Parser>
         auto populate(const io::IOSubstream& substream, const Parser& parser, int32_t values_offset, size_t start, size_t end)
         {
-            const ViewType* values = SubstreamAdapter::select(substream, 0, values_offset);
+            const io::IO1DArraySubstreamView<DataType>& subs =
+                    io::substream_cast<io::IO1DArraySubstreamView<DataType>>(substream);
+
+            auto span = subs.span(values_offset, subs.size() - values_offset);
+
+            const ViewType* values = span.data();
 
             size_t keys_num{};
             size_t values_end = values_offset;
@@ -287,22 +292,20 @@ namespace _ {
 
         using ViewType = typename DataTypeTraits<DataType>::ViewType;
 
-        ArenaBuffer<ViewType> views_;
-        ArenaBuffer<AtomType> data_;
+        DataTypeBuffer<DataType> buffer_;
 
     public:
 
-        Span<const ViewType> span() const {return views_.span();}
+        Span<const ViewType> span() const {return buffer_.span();}
 
         void clear() {
-            views_.clear();
-            data_.clear();
+            buffer_.clear();
         }
 
         template <typename SubstreamAdapter>
         void append(const io::IOSubstream& substream, int32_t column, size_t start, size_t end)
         {
-            SubstreamAdapter::read_to(substream, column, start, end, data_, views_);
+            SubstreamAdapter::read_to(substream, column, start, end, buffer_);
         }
     };
 }

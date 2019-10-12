@@ -43,7 +43,6 @@ protected:
 
     using Value = typename Types::Value;
     using ValueDataType = typename Types::ValueDataType;
-    using ValueType = DTTValueType<ValueDataType>;
     using ViewType  = DTTViewType<ValueDataType>;
 
 public:

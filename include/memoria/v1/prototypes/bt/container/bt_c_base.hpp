@@ -188,7 +188,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         PackedMapSO<CtrPropertiesMap> map_so(const_cast<CtrPropertiesMap*>(map));
 
-        return map_so.find(key);
+        auto res = map_so.find(key);
+
+        return res ? Optional<U8String>(res.get()) : Optional<U8String>();
     }
 
     virtual void set_ctr_property(U8StringView key, U8StringView value)
@@ -254,7 +256,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         PackedMapSO<CtrPropertiesMap> map_so(map);
 
-        psize_t upsize = map_so.estimate_required_upsize(entries);
+        std::vector<std::pair<U8StringView, U8StringView>> entries_view;
+
+        for (auto& entry: entries) {
+            entries_view.emplace_back(entry.first, entry.second);
+        }
+
+        psize_t upsize = map_so.estimate_required_upsize(entries_view);
         if (upsize > map->compute_free_space_up())
         {
             self.ctr_upsize_node(root, upsize);
@@ -262,7 +270,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             map_so.setup(get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX));
         }
 
-        OOM_THROW_IF_FAILED(map_so.set_all(entries), MMA1_SRC);
+        OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA1_SRC);
     }
 
 
@@ -337,7 +345,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         PackedMapSO<CtrReferencesMap> map_so(map);
 
-        psize_t upsize = map_so.estimate_required_upsize(entries);
+        std::vector<std::pair<U8StringView, CtrID>> entries_view;
+
+        for (auto& entry: entries) {
+            entries_view.emplace_back(entry.first, entry.second);
+        }
+
+        psize_t upsize = map_so.estimate_required_upsize(entries_view);
         if (upsize > map->compute_free_space_up())
         {
             self.ctr_upsize_node(root, upsize);
@@ -345,7 +359,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             map_so.setup(get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX));
         }
 
-        OOM_THROW_IF_FAILED(map_so.set_all(entries), MMA1_SRC);
+        OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA1_SRC);
     }
 
 

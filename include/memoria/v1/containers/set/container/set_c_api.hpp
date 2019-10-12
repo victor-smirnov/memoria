@@ -45,7 +45,6 @@ protected:
     using CtrSizeT = typename Types::CtrSizeT;
 
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
-    using KeyV      = typename DataTypeTraits<Key>::ValueType;
 
     using Profile   = typename Types::Profile;
 

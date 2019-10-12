@@ -32,16 +32,10 @@ namespace v1 {
 template <typename DataType, template <typename CxxType> class ValueCodec>
 struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCodec>, true>
 {
-    using ValueView = typename DataTypeTraits<DataType>::ViewType;
-    using ValueType = typename DataTypeTraits<DataType>::ValueType;
+    using ViewType = typename DataTypeTraits<DataType>::ViewType;
+    using AtomType  = ViewType;
 
-    using AtomType  = ValueType;
-
-    using SubstreamT = typename io::IOSubstreamInterfaceTF<
-        ValueType,
-        true, // ColumnWise
-        true // FixedSize
-    >::Type;
+    using SubstreamT = io::IO1DArraySubstreamView<DataType>;
 
     size_t size_{};
     SubstreamT* substream_{};
@@ -51,43 +45,24 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
         column_(column)
     {}
 
-    static const auto* select(const io::IOSubstream& substream, int32_t column, int32_t row)
+
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, Span<const ViewType>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        return subs.select(column, row);
+        buffer = subs.span(start, size);
     }
 
-
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int size, Span<const ValueType>& buffer)
+    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, ArenaBuffer<ViewType>& buffer)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        io::FixedSizeArrayColumnMetadata<const ValueType> descr = subs.describe(column);
-
-        if (start + size <= descr.size)
-        {
-            buffer = Span<const ValueType>(descr.data_buffer + start, size);
-        }
-        else {
-            MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(
-                           u"Substream range check: start = {}, size = {}, size = {}",
-                           start, size, descr.size
-                       );
-        }
-    }
-
-    static void read_to(const io::IOSubstream& substream, int32_t column, int32_t start, int32_t size, ArenaBuffer<ValueType>& buffer)
-    {
-        const auto& subs = io::substream_cast<SubstreamT>(substream);
-        io::FixedSizeArrayColumnMetadata<const ValueType> descr = subs.describe(column);
-        buffer.append_values(Span<const ValueType>(descr.data_buffer + start, size));
+        subs.read_to(start, size, buffer);
     }
 
     template <typename ItemView>
     static void read_one(const io::IOSubstream& substream, int32_t column, int32_t idx, ItemView& item)
     {
         const auto& subs = io::substream_cast<SubstreamT>(substream);
-        item = *subs.select(column, idx);
+        item = subs.get(idx);
     }
 
     void reset(io::IOSubstream& substream) {
@@ -95,24 +70,7 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
         this->substream_ = &io::substream_cast<SubstreamT>(substream);
     }
 
-    void append(ValueView view) {
-        append_buffer(Span<const ValueView>(&view, 1), 0, 1);
-    }
 
-    void append_buffer(Span<const ValueType> buffer) {
-        append_buffer(buffer, 0, buffer.size());
-    }
-
-    void append(Span<const ValueType> buffer) {
-        append_buffer(buffer, 0, buffer.size());
-    }
-
-    void append_buffer(Span<const ValueType> buffer, size_t start, size_t size)
-    {
-        size_ += size;
-        auto* ptr = substream_->reserve(column_, size);
-        MemCpyBuffer(buffer.data() + start, ptr, size);
-    }
 
     size_t size() const {
         return size_;

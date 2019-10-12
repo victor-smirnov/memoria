@@ -59,11 +59,6 @@ struct MapBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
     using Key = Key_;
     using Value = Value_;
 
-    using KeyV   = typename DataTypeTraits<Key_>::ValueType;
-    using ValueV = typename DataTypeTraits<Value_>::ValueType;
-
-    using Entry = std::tuple<KeyV, ValueV>;
-
     using IteratorInterface = MapIterator<Key_, Value_, Profile>;
 
     using CommonContainerPartsList = MergeLists<
@@ -89,20 +84,6 @@ template <
     int32_t Special = 0
 >
 struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key_, Value_> {
-
-
-    using KeyV   = typename DataTypeTraits<Key_>::ValueType;
-    using ValueV = typename DataTypeTraits<Value_>::ValueType;
-
-    static_assert(
-            IsExternalizable<KeyV>::Value ,
-            "Key type must have either ValueCodec or FieldFactory defined"
-    );
-
-    static_assert(
-            IsExternalizable<ValueV>::Value ,
-            "Value type must have either ValueCodec or FieldFactory defined"
-    );
 
     using LeafKeyStruct = typename map::MapKeyStructTF<Key_>::Type;
 

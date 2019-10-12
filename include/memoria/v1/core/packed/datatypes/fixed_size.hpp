@@ -27,13 +27,12 @@ namespace v1 {
 template <typename DataType, typename PkdStructTag, typename ArraySO>
 struct PkdDataTypeAccessor<DataType, PkdStructTag, ArraySO, FixedSizeDataTypeTag> {
 
-    using ValueType = typename DataTypeTraits<DataType>::ValueType;
-    using ViewType  = typename DataTypeTraits<DataType>::ValueType;
+    using ViewType  = typename DataTypeTraits<DataType>::ViewType;
 
     static constexpr psize_t Columns = ArraySO::Columns;
 
 private:
-    const ValueType* data_;
+    const ViewType* data_;
 
 public:
     PkdDataTypeAccessor(const ArraySO& array, psize_t column):
@@ -44,14 +43,14 @@ public:
         return data_ == other.data_;
     }
 
-    const ValueType& get(psize_t row) const
+    const ViewType& get(psize_t row) const
     {
         return *(data_ + row);
     }
 
-    static const ValueType& get(const ArraySO& array, psize_t column, psize_t row)
+    static const ViewType& get(const ArraySO& array, psize_t column, psize_t row)
     {
-        const ValueType* data = array.values(column).data();
+        const ViewType* data = array.values(column).data();
         return *(data + row);
     }
 };

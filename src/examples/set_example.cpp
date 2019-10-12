@@ -85,7 +85,7 @@ int main()
         snp->commit();
         snp->set_as_master();
 
-        alloc->store("store.mma1");
+        alloc->store("store-set.mma1");
 
         int64_t t2 = getTimeInMillis();
 
@@ -119,7 +119,7 @@ int main()
 
             if (!ii->is_end())
             {
-                std::cout << key << " :: " << ii->key() << std::endl;
+                std::cout << key << " :: " << ii->key().view() << std::endl;
             }
         }
     }

@@ -31,7 +31,6 @@ struct DataTypeTraits<Varbinary>: DataTypeTraitsBase<Varbinary>
     using AtomType      = uint8_t;
     using ViewType      = VarbinaryView<AtomType>;
     using ConstViewType = VarbinaryView<const AtomType>;
-    using ValueType     = std::vector<AtomType>;
 
     using Parameters = TL<>;
 

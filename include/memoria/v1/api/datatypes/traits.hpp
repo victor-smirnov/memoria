@@ -63,10 +63,12 @@ template <typename T>
 using DTTViewType = typename DataTypeTraits<T>::ViewType;
 
 template <typename T>
-using DTTValueType = typename DataTypeTraits<T>::ValueType;
+using DTTAtomType = typename DataTypeTraits<T>::AtomType;
+
 
 template <typename T>
-using DTTExtData = typename DataTypeTraits<T>::ExtData;
+using DTTTypeDimensionsTuple = typename DataTypeTraits<T>::TypeDimensionsTuple;
+
 
 template <typename T>
 constexpr bool DTTisFixedSize = DataTypeTraits<T>::isFixedSize;
@@ -81,11 +83,10 @@ template <typename T> struct DataTypeTraitsBase {
     static constexpr bool isFixedSize = false;
     static constexpr bool isSdnDeserializable = false;
 
-
     using DatumSelector         = EmptyType;
     using DatumStorageSelector  = EmptyType;
-    using ExtData               = EmptyType;
 };
+
 
 
 struct FixedSizeDataTypeTag {};
@@ -95,19 +96,30 @@ template <typename T, typename DataType>
 struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 {
     using ViewType  = T;
-    using ConstViewType = T;
-    using ValueType = T;
 
     using Parameters = TL<>;
 
-    static constexpr size_t MemorySize        = sizeof(T);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isFixedSize         = true;
 
     static constexpr bool isSdnDeserializable = std::is_arithmetic<T>::value;
 
+    using TypeDimensionsList  = TL<>;
+    using TypeDimensionsTuple = AsTuple<TypeDimensionsList>;
+
+    using DataDimensionsList  = TL<const T*>;
+    using DataDimensionsTuple = AsTuple<DataDimensionsList>;
+
     using DatumSelector = FixedSizeDataTypeTag;
+
+    static TypeDimensionsTuple describe_type(const DataType& data_type) {
+        return TypeDimensionsTuple{};
+    }
+
+    static DataDimensionsTuple describe_data(const ViewType* view) {
+        return DataDimensionsTuple{view};
+    }
 
     static void create_signature(SBuf& buf, DataType obj) {
         PrimitiveDataTypeName<DataType>::create_signature(buf, obj);
@@ -129,6 +141,48 @@ template <typename T, typename DataType>
 struct SdnFixedSizeDataTypeTraits: FixedSizeDataTypeTraits<T, DataType>
 {
     static constexpr bool isSdnDeserializable = true;
+};
+
+
+template <typename DataType, typename Buffer>
+class FixedSizeSparseObjectBuilder {
+    Buffer* buffer_;
+
+    using ViewType = DTTViewType<DataType>;
+
+    ViewType value_;
+
+public:
+    FixedSizeSparseObjectBuilder(Buffer* buffer):
+        buffer_(buffer),
+        value_()
+    {}
+
+    FixedSizeSparseObjectBuilder(FixedSizeSparseObjectBuilder&&) = delete;
+    FixedSizeSparseObjectBuilder(const FixedSizeSparseObjectBuilder&) = delete;
+
+    const ViewType& view() const {
+        return value_;
+    }
+
+    const ViewType& value() const {
+        return value_;
+    }
+
+    ViewType& value() {
+        return value_;
+    }
+
+
+    void build()
+    {
+        buffer_->append(value_);
+        value_ = ViewType{};
+    }
+
+    bool is_empty() const {
+        return true;
+    }
 };
 
 
@@ -198,13 +252,8 @@ struct DataTypeTraits<Date>: NonSdnFixedSizeDataTypeTraits<int64_t, Date> {};
 template <>
 struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
 {
-    using CxxType   = EmptyType;
-    using InputView = EmptyType;
-    using Ptr       = EmptyType*;
-
     using Parameters = TL<>;
 
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = true;
 
@@ -230,10 +279,6 @@ struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
 template <>
 struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
 {
-    using CxxType   = EmptyType;
-    using InputView = EmptyType;
-    using Ptr       = EmptyType*;
-
     using Parameters = TL<>;
 
     static constexpr bool isDataType          = true;

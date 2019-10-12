@@ -18,7 +18,8 @@
 #include <memoria/v1/api/datatypes/core.hpp>
 #include <memoria/v1/api/datatypes/datum.hpp>
 #include <memoria/v1/api/datatypes/varbinaries.hpp>
-#include <memoria/v1/api/datatypes/varchars.hpp>
+#include <memoria/v1/api/datatypes/varchars/varchars.hpp>
+#include <memoria/v1/api/datatypes/varchars/varchar_builder.hpp>
 #include <memoria/v1/api/datatypes/encoding_traits.hpp>
 #include <memoria/v1/api/datatypes/sdn.hpp>
 #include <memoria/v1/api/datatypes/traits.hpp>

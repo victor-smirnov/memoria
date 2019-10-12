@@ -30,6 +30,12 @@
 #include <memoria/v1/core/tools/span.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 
+
+#include <memoria/v1/core/iovector/io_substream_base.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_vlen_base.hpp>
+
+#include <memoria/v1/api/datatypes/buffer/buffer_generic.hpp>
+
 #include <algorithm>
 
 namespace memoria {
@@ -44,7 +50,6 @@ class PackedVLenElementArraySO {
 
 public:
 
-    using ValueType     = typename PkdStruct::ValueType;
     using ViewType      = typename PkdStruct::ViewType;
     using DataType      = typename PkdStruct::DataType;
     using DataSizeType  = typename PkdStruct::DataSizeType;
@@ -384,22 +389,26 @@ public:
 
     OpStatusT<int32_t> insert_io_substream(psize_t at, const io::IOSubstream& substream, psize_t start, psize_t size)
     {
-        const io::IOVLen1DArraySubstream<DataType>& buffer
-                = io::substream_cast<io::IOVLen1DArraySubstream<DataType>>(substream);
+        static_assert(Columns == 1, "");
 
-        psize_t length = buffer.length(start, size);
+        using IOBuffer = typename PkdStruct::GrowableIOSubstream;
+
+        const IOBuffer& buffer
+                = io::substream_cast<IOBuffer>(substream);
+
+        psize_t length = buffer.template data_length<0>(start, size);
 
         if(isFail(insertSpace(at, size, Span<const psize_t>(&length, 1)))) {
             return OpStatus::FAIL;
         }
 
-        const auto* offsets = buffer.offsets(start);
-        const auto* data_src = buffer.data(offsets[0]);
+        const auto* offsets = buffer.template offsets<0>(start);
+        const auto* data_src = buffer.template data<0>(start);
 
         auto* local_offsets = data_->offsets(0);
 
         psize_t local_offset_prefix  = local_offsets[at];
-        psize_t buffer_offset_prefix = buffer.offsets(start)[0];
+        psize_t buffer_offset_prefix = offsets[0];
 
         MemCpyBuffer(data_src, data_->data(0) + local_offset_prefix, length);
 
@@ -781,6 +790,74 @@ private:
     }
 };
 
+
+template <typename DataType, typename ExtData, typename PkdStruct>
+class IO1DArraySubstreamViewImpl<
+        DataType,
+        PackedVLenElementArraySO<ExtData, PkdStruct>
+>: public io::IO1DArraySubstreamView<DataType> {
+
+    using Base = io::IO1DArraySubstreamView<DataType>;
+    using ArraySO = PackedVLenElementArraySO<ExtData, PkdStruct>;
+
+    using typename Base::ViewType;
+
+    static_assert(ArraySO::Columns == 1, "");
+
+    ArraySO array_{};
+
+public:
+    void configure(ArraySO array)
+    {
+        array_ = array;
+    }
+
+    size_t size() const {
+        return array_.size();
+    }
+
+    void read_to(size_t row, size_t size, ArenaBuffer<ViewType>& buffer) const
+    {
+        auto ii = array_.begin(0);
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer.append_value(*ii);
+        }
+    }
+
+    void read_to(size_t row, size_t size, DataTypeBuffer<DataType>& buffer) const
+    {
+        auto ii = array_.begin(0);
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer.append(*ii);
+        }
+    }
+
+    void read_to(size_t row, size_t size, Span<ViewType> buffer) const
+    {
+        auto ii = array_.begin(0);
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer[c] = (*ii);
+        }
+    }
+
+    virtual Span<const ViewType> span(size_t row, size_t size) const {
+        MMA1_THROW(UnsupportedOperationException());
+    }
+
+    ViewType get(size_t row) const {
+        return array_.access(0, row);
+    }
+
+    U8String describe() const {
+        return TypeNameFactory<Base>::name().to_u8();
+    }
+};
 
 }
 }

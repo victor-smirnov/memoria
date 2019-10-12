@@ -27,9 +27,7 @@ class KeysIteratorImpl: public IKeysScanner<Types, Profile> {
     using Base = IKeysScanner<Types, Profile>;
 
     using typename Base::KeyView;
-    using typename Base::Key;
     using typename Base::ValueView;
-    using typename Base::Value;
     using typename Base::KeysIOVSubstreamAdapter;
 
     using Base::keys_;

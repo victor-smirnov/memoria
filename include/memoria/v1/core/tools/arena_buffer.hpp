@@ -37,7 +37,10 @@ enum class ArenaBufferCmd: int32_t {
 // memaddr(buffer_id, command, size, existing_memaddr)
 using ArenaBufferMemoryMgr = std::function<uint8_t* (int32_t, ArenaBufferCmd, size_t, uint8_t*)>;
 
-template <typename TT>
+template <typename TT, typename SizeT = size_t>
+class ArenaBuffer;
+
+template <typename TT, typename SizeT>
 class ArenaBuffer {
 
 protected:    
@@ -45,20 +48,20 @@ protected:
     static_assert(std::is_trivially_copyable<ValueT>::value, "ArenaBufferBase supports only trivially copyable types");
 
     ValueT* buffer_;
-    size_t capacity_;
-    size_t size_;
+    SizeT capacity_;
+    SizeT size_;
 
     ArenaBufferMemoryMgr memory_mgr_;
     int32_t buffer_id_{-1};
 
 public:
-    ArenaBuffer(size_t capacity):
+    ArenaBuffer(SizeT capacity):
         buffer_(capacity > 0 ? allocate_system<ValueT>(capacity).release() : nullptr),
         capacity_(capacity),
         size_(0)
     {}
 
-    ArenaBuffer(size_t capacity, ArenaBufferMemoryMgr memory_mgr):
+    ArenaBuffer(SizeT capacity, ArenaBufferMemoryMgr memory_mgr):
         capacity_(capacity),
         size_(0),
         memory_mgr_(std::move(memory_mgr))
@@ -66,7 +69,7 @@ public:
         buffer_ = allocate_buffer(capacity);
     }
 
-    ArenaBuffer(uint8_t* provided_buffer, size_t capacity, ArenaBufferMemoryMgr memory_mgr):
+    ArenaBuffer(uint8_t* provided_buffer, SizeT capacity, ArenaBufferMemoryMgr memory_mgr):
         buffer_(tools::ptr_cast<ValueT>(provided_buffer)),
         capacity_(capacity),
         size_(0),
@@ -161,15 +164,15 @@ public:
         buffer_id_ = buffer_id;
     }
 
-    size_t size() const {
+    SizeT size() const {
         return size_;
     }
 
-    size_t capacity() const {
+    SizeT capacity() const {
         return capacity_;
     }
 
-    size_t remaining() const {
+    SizeT remaining() const {
         return capacity_ - size_;
     }
 
@@ -205,41 +208,54 @@ public:
         return *(buffer_ + size_ - 1);
     }
 
+    const ValueT* top() const {
+        return buffer_ + size_;
+    }
 
-    void append_value(const ValueT& value)
+    ValueT* top() {
+        return buffer_ + size_;
+    }
+
+    bool append_value(const ValueT& value)
     {
-        ensure(1);
+        bool resized = ensure(1);
         *(buffer_ + size_) = value;
         size_++;
+        return resized;
     }
 
-    void append_values(const ValueT* values, size_t size)
+    bool append_values(const ValueT* values, SizeT size)
     {
-        ensure(size);
+        bool resized = ensure(size);
         MemCpyBuffer(values, buffer_ + size_, size);
         size_ += size;
+        return resized;
     }
 
-    void append_values(Span<const ValueT> values)
+    bool append_values(Span<const ValueT> values)
     {
-        size_t size = values.size();
-        ensure(size);
+        SizeT size = values.size();
+        bool resized = ensure(size);
         MemCpyBuffer(values.data(), buffer_ + size_, size);
         size_ += size;
+        return resized;
     }
 
-    void ensure(size_t size)
+    bool ensure(SizeT size)
     {
         if (size_ + size > capacity_)
         {
             enlarge(size);
+            return true;
         }
+
+        return false;
     }
 
 
-    void enlarge(size_t requested)
+    void enlarge(SizeT requested)
     {
-        size_t next_capaicty = capacity_ * 2;
+        SizeT next_capaicty = capacity_ * 2;
         if (next_capaicty == 0) next_capaicty = 1;
 
         while (capacity_ + requested > next_capaicty)
@@ -262,11 +278,11 @@ public:
         capacity_ = next_capaicty;
     }
 
-    ValueT& access(size_t idx) {
+    ValueT& access(SizeT idx) {
         return *(buffer_ + idx);
     }
 
-    const ValueT& access(size_t idx) const {
+    const ValueT& access(SizeT idx) const {
         return *(buffer_ + idx);
     }
 
@@ -289,39 +305,43 @@ public:
         return Span<ValueT>(buffer_, size_);
     }
 
-    Span<ValueT> span(size_t from) {
+    Span<ValueT> span(SizeT from) {
         return Span<ValueT>(buffer_ + from, size_ - from);
     }
 
-    Span<const ValueT> span(size_t from) const
+    Span<const ValueT> span(SizeT from) const
     {
         return Span<ValueT>(buffer_ + from, size_ - from);
     }
 
-    Span<ValueT> span(size_t from, size_t length)
+    Span<ValueT> span(SizeT from, SizeT length)
     {
         return Span<ValueT>(buffer_ + from, length);
     }
 
-    Span<const ValueT> span(size_t from, size_t length) const
+    Span<const ValueT> span(SizeT from, SizeT length) const
     {
         return Span<ValueT>(buffer_ + from, length);
     }
 
-    TT& operator[](size_t idx) {return access(idx);}
-    const TT& operator[](size_t idx) const {return access(idx);}
+    TT& operator[](SizeT idx) {return access(idx);}
+    const TT& operator[](SizeT idx) const {return access(idx);}
 
-    void emplace_back(const TT& tt) {
-        append_value(tt);
+    bool emplace_back(const TT& tt) {
+        return append_value(tt);
     }
 
-    void emplace_back(TT&& tt) {
-        append_value(tt);
+    bool emplace_back(TT&& tt) {
+        return append_value(tt);
+    }
+
+    void add_size(SizeT size) {
+        size_ += size;
     }
 
 private:
 
-    ValueT* allocate_buffer(size_t size) const
+    ValueT* allocate_buffer(SizeT size) const
     {
         if (MMA1_LIKELY(!memory_mgr_))
         {

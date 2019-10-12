@@ -52,7 +52,6 @@ struct VectorBTTypesBase: public BTTypes<Profile, BTSingleStream> {
 
     using Value = DataType;
     using ValueDataType = DataType;
-    using ValueV = typename DataTypeTraits<DataType>::ValueType;
     using ValueView = typename DataTypeTraits<DataType>::ViewType;
 
     using Entry = DataType;
@@ -92,15 +91,6 @@ template <typename Profile, typename Value_>
 struct BTTypes<Profile, Vector<Value_> >: public VectorBTTypesBase<Profile, Value_> {
 
     using Value = Value_;
-    using ValueV = typename DataTypeTraits<Value_>::ValueType;
-    using ValueView = typename DataTypeTraits<Value_>::ViewType;
-
-
-    static_assert(
-            IsExternalizable<ValueV>::Value ,
-            "Value type must have either ValueCodec or FieldFactory defined"
-    );
-
 
     using LeafValueStruct = typename mvector::VectorValueStructTF<Value_>::Type;
 

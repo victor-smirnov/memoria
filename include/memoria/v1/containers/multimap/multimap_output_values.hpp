@@ -27,8 +27,6 @@ class ValuesIteratorImpl: public IValuesScanner<Types, Profile> {
     using Base = IValuesScanner<Types, Profile>;
 
     using typename Base::ValueView;
-    using typename Base::Value;
-
     using typename Base::ValuesIOVSubstreamAdapter;
 
     using Base::values_;

@@ -44,7 +44,7 @@ public:
 
     using DataType = std::remove_reference_t<DataType_>;
 
-    using Value = typename DataTypeTraits<DataType>::ValueType;
+    using Value = typename DataTypeTraits<DataType>::ViewType;
     using IndexDataType = DataType;
 
     static constexpr int32_t Blocks = Indexes;
@@ -55,7 +55,7 @@ public:
     using SizesT = core::StaticVector<int32_t, Blocks>;
     using ReadState = SizesT;
 
-    using ExtData = typename DataTypeTraits<DataType>::ExtData;
+    using ExtData = DTTTypeDimensionsTuple<DataType>;
     using SparseObject = PackedSizedStructSO<ExtData, MyType>;
 
     class AppendState {

@@ -16,40 +16,40 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/strings/u8_string.hpp>
+
 
 #include <memoria/v1/api/datatypes/datum.hpp>
 
 #include <memoria/v1/api/common/packed_api.hpp>
 
 #include <memoria/v1/core/tools/span.hpp>
-
 #include <memoria/v1/core/tools/arena_buffer.hpp>
+#include <memoria/v1/core/strings/u8_string.hpp>
 
+
+#include <tuple>
 
 namespace memoria {
 namespace v1 {
 
 class VarcharStorage;
-
-
-
 using VarcharView = U8StringView;
+
+
+
 
 template <>
 struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
 {
     using ViewType      = VarcharView;
     using ConstViewType = VarcharView;
-    using ValueType     = U8String;
-    using AtomType      = typename VarcharView::value_type;
+    using AtomType      = std::remove_const_t<typename VarcharView::value_type>;
 
     using DatumStorage  = VarcharStorage;
 
     using Parameters = TL<>;
 
     static constexpr bool isDataType          = true;
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
 
@@ -65,17 +65,57 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
         buf << "Varchar";
     }
 
-    static ViewType make_view(const AtomType* data, size_t length)
+
+    using DataSpan = Span<const AtomType>;
+    using SpanList = TL<DataSpan>;
+    using SpanTuple = AsTuple<SpanList>;
+
+    using DataDimensionsList  = TL<DataSpan>;
+    using DataDimensionsTuple = AsTuple<DataDimensionsList>;
+
+    using TypeDimensionsList  = TL<>;
+    using TypeDimensionsTuple = AsTuple<TypeDimensionsList>;
+
+    static constexpr size_t Rank = ListSize<SpanList>;
+
+    static DataDimensionsTuple describe_data(ViewType view) {
+        return std::make_tuple(DataSpan(view.data(), view.size()));
+    }
+
+    static TypeDimensionsTuple describe_type(ViewType view) {
+        return std::make_tuple();
+    }
+
+    static TypeDimensionsTuple describe_type(const Varchar& data_type) {
+        return TypeDimensionsTuple{};
+    }
+
+
+    static ViewType make_view(const DataDimensionsTuple& data)
     {
-        return ViewType(data, length);
+        return ViewType(std::get<0>(data).data(), std::get<0>(data).size());
     }
 
-    static const AtomType* data(const ViewType& view) {
-        return view.data();
+    static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data)
+    {
+        return ViewType(std::get<0>(data).data(), std::get<0>(data).size());
     }
 
-    static size_t length(const ViewType& view) {
-        return view.length();
+
+    static Datum<Varchar> make_datum(const DataDimensionsTuple& data) {
+        return Datum<Varchar>(make_view(data));
+    }
+
+    static Datum<Varchar> make_datum(const TypeDimensionsTuple& type, const DataDimensionsTuple& data) {
+        return Datum<Varchar>(make_view(data));
+    }
+
+    static AnyDatum make_any_datum(const DataDimensionsTuple& data) {
+        return Datum<Varchar>(make_view(data));
+    }
+
+    static AnyDatum make_any_datum(const TypeDimensionsTuple& type, const DataDimensionsTuple& data) {
+        return Datum<Varchar>(make_view(data));
     }
 };
 
@@ -93,5 +133,7 @@ public:
     static VarcharStorage* create(ViewType view);
     virtual U8String to_sdn_string() const;
 };
+
+
 
 }}

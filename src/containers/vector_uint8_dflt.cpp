@@ -13,18 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-
 #include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/containers/vector/vctr_factory.hpp>
+
 
 namespace memoria {
 namespace v1 {
 
-using Profile = DefaultProfile<>;    
-using CtrName = Vector<Integer>;
+using Profile = DefaultProfile<>;
+using CtrName = Vector<UTinyInt>;
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
-    
+
 }}
 

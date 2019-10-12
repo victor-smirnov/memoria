@@ -56,7 +56,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mvector::ItrApiName)
 
 public:
 
-    typename DataTypeTraits<ValueDataType>::ValueType value() const
+    Datum<ValueDataType> value() const
     {
         auto& self = this->self();
 

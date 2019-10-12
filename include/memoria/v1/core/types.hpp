@@ -392,15 +392,17 @@ extern int64_t DebugCounter2;
 template <typename T>
 using IL = std::initializer_list<T>;
 
-template <typename List>  struct AsTupleH;
+namespace _ {
+    template <typename List>  struct AsTupleH;
+
+    template <typename... Types>
+    struct AsTupleH<TL<Types...>> {
+        using Type = std::tuple<Types...>;
+    };
+}
 
 template <typename List>
-using AsTuple = typename AsTupleH<List>::Type;
-
-template <typename... Types>
-struct AsTupleH<TL<Types...>> {
-    using Type = std::tuple<Types...>;
-};
+using AsTuple = typename _::AsTupleH<List>::Type;
 
 
 template <typename T>

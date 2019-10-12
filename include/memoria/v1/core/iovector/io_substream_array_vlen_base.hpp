@@ -22,6 +22,7 @@
 #include <memoria/v1/core/tools/arena_buffer.hpp>
 
 #include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/api/datatypes/buffer/buffer_common.hpp>
 
 #include <typeinfo>
 
@@ -105,7 +106,6 @@ template <typename DataType>
 struct IOVLen1DArraySubstream: IOSubstream {
 
     using ViewType  = typename DataTypeTraits<DataType>::ViewType;
-    using ValueType = typename DataTypeTraits<DataType>::ValueType;
     using AtomType  = typename DataTypeTraits<DataType>::AtomType;
     using DataSizeType = psize_t;
 
@@ -117,7 +117,6 @@ struct IOVLen1DArraySubstream: IOSubstream {
     virtual psize_t length(psize_t row, psize_t size) const = 0;
 
     virtual void read_to(psize_t row, psize_t size, Buffer& buffer) const = 0;
-    virtual void append_from(Span<const ValueType> buffer) = 0;
     virtual void append_from(Span<const ViewType> buffer) = 0;
 
     virtual DataSizeType* offsets(psize_t row) = 0;
@@ -143,7 +142,6 @@ class IOVLen1DArraySubstreamImpl: public IOVLen1DArraySubstream<DataType> {
     using Base = IOVLen1DArraySubstream<DataType>;
 public:
     using typename Base::ViewType;
-    using typename Base::ValueType;
     using typename Base::AtomType;
     using typename Base::DataSizeType;
     using typename Base::Buffer;
@@ -176,7 +174,7 @@ public:
             const AtomType* data = data_.data() + offsets_[c];
             psize_t length = offsets_[c + 1] - offsets_[c];
 
-            ViewType view = Adapter::make_view(data, length);
+            ViewType view = Adapter::make_view(std::make_tuple(Span<const AtomType>(data, length)));
             buffer.append_value(view);
         }
     }
@@ -185,27 +183,16 @@ public:
     {
         for (auto& value: buffer)
         {
-            psize_t length = Adapter::length(value);
-            const AtomType* data = Adapter::data(value);
+            auto data = std::get<0>(Adapter::describe_data(value));
+
             psize_t top = offsets_.head();
 
+            psize_t length = data.size();
             offsets_.append_value(top + length);
-            data_.append_values(data, length);
+            data_.append_values(data.data(), length);
         }
     }
 
-    virtual void append_from(Span<const ValueType> buffer)
-    {
-        for (auto& value: buffer)
-        {
-            psize_t length = Adapter::length(value);
-            const AtomType* data = Adapter::data(value);
-            psize_t top = offsets_.head();
-
-            offsets_.append_value(top + length);
-            data_.append_values(data, length);
-        }
-    }
 
     virtual DataSizeType* offsets(psize_t row) {
         return offsets_.data() + row;
@@ -232,7 +219,7 @@ public:
         const AtomType* data = data_.data() + offsets_[row];
         psize_t length = offsets_[row + 1] - offsets_[row];
 
-        return Adapter::make_view(data, length);
+        return Adapter::make_view(std::make_tuple(Span<const AtomType>(data, length)));
     }
 
     virtual void reset() {
@@ -254,7 +241,6 @@ class IOVLen1DArraySubstreamViewImpl: public IOVLen1DArraySubstream<DataType> {
     using Base = IOVLen1DArraySubstream<DataType>;
 public:
     using typename Base::ViewType;
-    using typename Base::ValueType;
     using typename Base::AtomType;
     using typename Base::DataSizeType;
     using typename Base::Buffer;
@@ -299,10 +285,6 @@ public:
         MMA1_THROW(UnsupportedOperationException());
     }
 
-    virtual void append_from(Span<const ValueType> buffer)
-    {
-        MMA1_THROW(UnsupportedOperationException());
-    }
 
     virtual DataSizeType* offsets(psize_t row) {
         MMA1_THROW(UnsupportedOperationException());
@@ -341,4 +323,35 @@ public:
 };
 
 
-}}}
+
+
+template <typename DataType>
+struct IO1DArraySubstreamView: IOSubstream {
+
+    using ViewType = DTTViewType<DataType>;
+
+    virtual void reset() {}
+    virtual void reindex() {}
+
+    virtual size_t size() const = 0;
+
+    virtual void read_to(size_t row, size_t size, ArenaBuffer<ViewType>& buffer) const = 0;
+    virtual void read_to(size_t row, size_t size, DataTypeBuffer<DataType>& buffer) const = 0;
+    virtual void read_to(size_t row, size_t size, Span<ViewType> buffer) const = 0;
+
+    virtual Span<const ViewType> span(size_t row, size_t size) const = 0;
+
+    virtual ViewType get(size_t row) const = 0;
+
+    virtual const std::type_info& substream_type() const {
+        return typeid(IO1DArraySubstreamView<DataType>);
+    }
+};
+
+}
+
+template <typename DataType, typename ArraySO>
+class IO1DArraySubstreamViewImpl;
+
+
+}}

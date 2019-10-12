@@ -41,7 +41,6 @@ protected:
 
     using Key       = typename Types::Key;
     using KeyView   = DTTViewType<Key>;
-    using KeyV      = DTTValueType<Key>;
 
     using Profile   = typename Types::Profile;
 

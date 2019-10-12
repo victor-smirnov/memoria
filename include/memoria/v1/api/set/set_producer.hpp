@@ -34,12 +34,10 @@ template <typename Types>
 class SetProducer: public io::IOVectorProducer {
 public:
     using IOVSchema         = Linearize<typename Types::IOVSchema>;
-    using KeysSubstream     = IOSubstreamAdapter<Select<0, IOVSchema>>;
+    using KeysSubstream     = DataTypeBuffer<typename Select<0, IOVSchema>::DataType>;
     using ProducerFn        = std::function<bool (KeysSubstream&, size_t)>;
 
 private:
-    KeysSubstream keys_{0};
-
     ProducerFn producer_fn_;
 
     size_t total_size_{};
@@ -54,13 +52,14 @@ public:
 
     virtual bool populate(io::IOVector& io_vector)
     {
-        keys_.reset(io_vector.substream(0));
+        KeysSubstream& keys = io::substream_cast<KeysSubstream>(io_vector.substream(0));
+//        keys.clear();
 
-        bool has_more = producer_fn_(keys_, total_size_);
+        bool has_more = producer_fn_(keys, total_size_);
 
-        total_size_ += keys_.size();
+        total_size_ += keys.size();
 
-        io_vector.symbol_sequence().append(0, keys_.size());
+        io_vector.symbol_sequence().append(0, keys.size());
 
         return has_more;
     }

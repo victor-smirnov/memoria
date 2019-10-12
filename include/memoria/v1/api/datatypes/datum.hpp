@@ -242,6 +242,10 @@ public:
         return storage_ == other.storage_ || storage_->view() == other.storage_->view();
     }
 
+    bool operator==(const ViewType& other) const noexcept {
+        return storage_ && storage_->view() == other;
+    }
+
     const DataType& data_type() const noexcept {
         return storage_->data_type();
     }
@@ -305,10 +309,9 @@ Datum<DataType> datum_from_sdn_value(const DataType*, const TypedStringValue& va
 
 template <typename DataType>
 class Datum<DataType, FixedSizeDataTypeTag> {
-    using ValueType = typename DataTypeTraits<DataType>::ValueType;
     using ViewType = typename DataTypeTraits<DataType>::ViewType;
 
-    ValueType value_;
+    ViewType value_;
 
 public:
     constexpr Datum() noexcept: value_() {}
@@ -318,6 +321,10 @@ public:
 
     bool operator==(const Datum& other) const noexcept {
         return value_ == other.value_;
+    }
+
+    bool operator==(const ViewType& other) const noexcept {
+        return value_ == other;
     }
 
     const DataType& data_type() const noexcept {

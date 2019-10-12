@@ -43,7 +43,6 @@ protected:
 
     using Value = typename Types::Value;
     using ValueDataType = typename Types::ValueDataType;
-    using ValueType = DTTValueType<ValueDataType>;
     using ViewType  = DTTViewType<ValueDataType>;
 
 public:
@@ -71,7 +70,7 @@ public:
     }
 
 
-    ValueType get(CtrSizeT pos) const
+    Datum<Value> get(CtrSizeT pos) const
     {
         auto ii = self().seek(pos);
         return ii->value();

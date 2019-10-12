@@ -37,13 +37,11 @@ namespace v1 {
 
 template <typename Key, typename Value, typename Profile>
 struct MapIterator: BTSSIterator<Profile> {
-    using KeyV   = typename DataTypeTraits<Key>::ValueType;
-    using ValueV = typename DataTypeTraits<Value>::ValueType;
 
     virtual ~MapIterator() noexcept {}
 
-    virtual KeyV key() const = 0;
-    virtual ValueV value() const = 0;
+    virtual Datum<Key> key() const = 0;
+    virtual Datum<Value> value() const = 0;
     virtual bool is_end() const = 0;
     virtual bool next() = 0;
 };

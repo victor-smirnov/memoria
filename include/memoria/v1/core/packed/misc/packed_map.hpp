@@ -78,9 +78,6 @@ public:
     using KeyView   = typename DataTypeTraits<KeyDataType>::ViewType;
     using ValueView = typename DataTypeTraits<ValueDataType>::ViewType;
 
-    using Key       = typename DataTypeTraits<KeyDataType>::ValueType;
-    using Value     = typename DataTypeTraits<ValueDataType>::ValueType;
-
     using SparseObject = PackedMapSO<PackedMap>;
 
     using FieldsList = MergeLists<

@@ -37,7 +37,7 @@ Datum<DataType> datum_from_sdn_value(const DataType*, const TypedStringValue& va
 
     std::istringstream iss (tstr.to_string());
 
-    using Value = typename DataTypeTraits<DataType>::ValueType;
+    using Value = typename DataTypeTraits<DataType>::ViewType;
 
     Value ivalue{};
     iss >> ivalue;

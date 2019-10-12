@@ -27,6 +27,11 @@
 #include <memoria/v1/core/packed/datatypes/fixed_size.hpp>
 #include <memoria/v1/core/packed/array/packed_array_iterator.hpp>
 
+#include <memoria/v1/core/iovector/io_substream_base.hpp>
+#include <memoria/v1/core/iovector/io_substream_array_vlen_base.hpp>
+
+#include <memoria/v1/api/datatypes/buffer/buffer_0_fse.hpp>
+
 #include <algorithm>
 
 namespace memoria {
@@ -50,7 +55,7 @@ class PackedFixedSizeElementArraySO {
 public:
 
     using Accessor = PkdDataTypeAccessor<
-        DataType, EmptyType, MyType, FixedSizeDataTypeTag
+        DataType, std::tuple<>, MyType, FixedSizeDataTypeTag
     >;
 
     using PkdStructT = PkdStruct;
@@ -394,25 +399,16 @@ public:
     void configure_io_substream(io::IOSubstream& substream) const
     {
         auto& view = io::substream_cast<typename PkdStruct::IOSubstreamView>(substream);
-
-        io::FixedSizeArrayColumnMetadata<Value> columns[Columns];
-
-        auto& meta = data_->metadata();
-
-        for (psize_t c = 0; c < Columns; c++)
-        {
-            columns[c].capacity = data_->element_size(c) / sizeof(Value);
-            columns[c].data_buffer = data_->values(c);
-            columns[c].size = meta.size();
-        }
-
-        view.configure(columns);
+        view.configure(*this);
     }
 
     OpStatusT<int32_t> insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
     {
-        const io::IOColumnwiseFixedSizeArraySubstream<Value>& buffer
-                = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(substream);
+        static_assert(Columns == 1, "");
+
+        using IOBuffer = typename PkdStruct::GrowableIOSubstream;
+
+        const IOBuffer& buffer = io::substream_cast<IOBuffer>(substream);
 
         if(isFail(insertSpace(at, size))) {
             return OpStatus::FAIL;
@@ -420,9 +416,8 @@ public:
 
         for (psize_t c = 0; c < Columns; c++)
         {
-            auto buffer_values = T2T<const Value*>(buffer.select(c, start));
-            int32_t end = start + size;
-            MemCpyBuffer(buffer_values, data_->values(c) + at, end - start);
+            auto buffer_values = T2T<const Value*>(buffer.span(start, size).data());
+            MemCpyBuffer(buffer_values, data_->values(c) + at, size);
         }
 
         return OpStatusT<int32_t>(at + size);
@@ -547,6 +542,76 @@ public:
     }
 };
 
+
+template <typename DataType, typename ExtData, typename PkdStruct>
+class IO1DArraySubstreamViewImpl<
+        DataType,
+        PackedFixedSizeElementArraySO<ExtData, PkdStruct>
+>: public io::IO1DArraySubstreamView<DataType> {
+
+    using Base = io::IO1DArraySubstreamView<DataType>;
+    using ArraySO = PackedFixedSizeElementArraySO<ExtData, PkdStruct>;
+
+    using typename Base::ViewType;
+
+    static_assert(ArraySO::Columns == 1, "");
+
+    ArraySO array_{};
+
+public:
+    void configure(ArraySO array)
+    {
+        array_ = array;
+    }
+
+    size_t size() const {
+        return array_.size();
+    }
+
+    void read_to(size_t row, size_t size, ArenaBuffer<ViewType>& buffer) const
+    {
+        auto ii = array_.begin(0);
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer.append_value(*ii);
+        }
+    }
+
+    void read_to(size_t row, size_t size, DataTypeBuffer<DataType>& buffer) const
+    {
+        auto ii = array_.begin(0);
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer.append(*ii);
+        }
+    }
+
+    void read_to(size_t row, size_t size, Span<ViewType> buffer) const
+    {
+        auto ii = array_.begin(0);
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer[c] = (*ii);
+        }
+    }
+
+    virtual Span<const ViewType> span(size_t row, size_t size) const {
+        return Span<const ViewType>(
+            array_.data()->values(0) + row, size
+        );
+    }
+
+    ViewType get(size_t row) const {
+        return array_.access(0, row);
+    }
+
+    U8String describe() const {
+        return TypeNameFactory<Base>::name().to_u8();
+    }
+};
 
 }
 }

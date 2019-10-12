@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,18 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
 
-#include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/containers/vector/vctr_factory.hpp>
-
-
-namespace memoria {
-namespace v1 {
-
-//using CtrName = Vector<VLen<Granularity::int8_t>>;
-//using Profile = DefaultProfile<>;
-
-//MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
-    
-}}
+#include <memoria/v1/api/datatypes/buffer/buffer_0_fse.hpp>
+//#include <memoria/v1/api/datatypes/buffer/buffer_0_vle.hpp>
+//#include <memoria/v1/api/datatypes/buffer/buffer_1fse_1vle.hpp>
+#include <memoria/v1/api/datatypes/buffer/buffer_generic.hpp>
 

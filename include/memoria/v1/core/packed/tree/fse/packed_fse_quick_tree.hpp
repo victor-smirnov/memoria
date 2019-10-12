@@ -34,8 +34,8 @@ struct PkdFQTreeTypes {
     using IndexDataType    = IndexDataTypeT;
     using ValueDataType    = IndexDataTypeT;
 
-    using IndexType = typename DataTypeTraits<IndexDataType>::ValueType;
-    using ValueType = typename DataTypeTraits<ValueDataType>::ValueType;
+    using IndexType = typename DataTypeTraits<IndexDataType>::ViewType;
+    using ValueType = typename DataTypeTraits<ValueDataType>::ViewType;
 
     static constexpr int32_t Blocks = kBlocks;
     static constexpr int32_t BranchingFactor = kBranchingFactor;
@@ -91,7 +91,7 @@ public:
 
     using ConstPtrsT = core::StaticVector<const Value*, Blocks>;
 
-    using ExtData = typename DataTypeTraits<Value>::ExtData;
+    using ExtData = DTTTypeDimensionsTuple<Value>;
     using SparseObject = PackedFSEQuickTreeSO<ExtData, MyType>;
 
     class ReadState {

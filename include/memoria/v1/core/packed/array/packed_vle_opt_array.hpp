@@ -84,7 +84,7 @@ public:
     using Value      = OptionalT<typename Array::ViewType>;
     using Values     = core::StaticVector<Value, Blocks>;
 
-    using ExtData = typename DataTypeTraits<typename Array::DataType>::ExtData;
+    using ExtData = DTTTypeDimensionsTuple<typename Array::DataType>;
     using SparseObject = PackedVLenElementOptArraySO<ExtData, MyType>;
 
     using Base::block_size;

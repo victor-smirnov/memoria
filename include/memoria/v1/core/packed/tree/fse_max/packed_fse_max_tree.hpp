@@ -84,7 +84,7 @@ public:
     using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
     using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
-    using ExtData = typename DataTypeTraits<Value>::ExtData;
+    using ExtData = DTTTypeDimensionsTuple<Value>;
     using SparseObject = PackedFSEMaxTreeSO<ExtData, MyType>;
 
     class ReadState {

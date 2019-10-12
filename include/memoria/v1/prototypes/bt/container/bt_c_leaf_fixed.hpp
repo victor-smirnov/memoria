@@ -156,7 +156,7 @@ public:
         >
         void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx, const Entry& entry)
         {
-            OOM_THROW_IF_FAILED(obj.template _update_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
+            OOM_THROW_IF_FAILED(obj.template _update_b<Offset>(idx, accum, [&](int32_t block) {
                 return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
             }), MMA1_SRC);
         }

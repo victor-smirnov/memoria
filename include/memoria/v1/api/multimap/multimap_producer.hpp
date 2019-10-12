@@ -33,8 +33,9 @@ template <typename Types>
 class MultimapProducer: public io::IOVectorProducer {
 public:
     using IOVSchema         = Linearize<typename Types::IOVSchema>;
-    using KeysSubstream     = IOSubstreamAdapter<Select<0, IOVSchema>>;
-    using ValuesSubstream   = IOSubstreamAdapter<Select<1, IOVSchema>>;
+
+    using KeysSubstream     = DataTypeBuffer<typename Select<0, IOVSchema>::DataType>;
+    using ValuesSubstream   = DataTypeBuffer<typename Select<1, IOVSchema>::DataType>;
 
     struct Sizes {
         size_t entries_{};
@@ -53,10 +54,6 @@ public:
 
 private:
     Sizes sizes_;
-
-    KeysSubstream keys_{0};
-    ValuesSubstream values_{0};
-
     ProducerFn producer_fn_;
 
 public:
@@ -69,10 +66,10 @@ public:
 
     virtual bool populate(io::IOVector& io_vector)
     {
-        keys_.reset(io_vector.substream(0));
-        values_.reset(io_vector.substream(1));
+        KeysSubstream& keys = io::substream_cast<KeysSubstream>(io_vector.substream(0));
+        ValuesSubstream& values = io::substream_cast<ValuesSubstream>(io_vector.substream(1));
 
-        return producer_fn_(io_vector.symbol_sequence(), keys_, values_, sizes_);
+        return producer_fn_(io_vector.symbol_sequence(), keys, values, sizes_);
     }
 };
 

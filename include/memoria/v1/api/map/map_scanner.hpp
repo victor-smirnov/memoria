@@ -31,17 +31,25 @@ namespace v1 {
 
 namespace _ {
 
-template <typename KeyT, typename ValueT, bool FixedSizeKey, bool FixedSizeValue>
+template <
+        typename KeyDataType,
+        typename ValueDataType,
+        bool FixedSizeKey = DTTisFixedSize<KeyDataType>,
+        bool FixedSizeValue = DTTisFixedSize<ValueDataType>
+>
 struct MapKeysValues;
 
-template <typename KeyT, typename ValueT>
-struct MapKeysValues<KeyT, ValueT, false, false>
+template <typename KeyDataType, typename ValueDataType>
+struct MapKeysValues<KeyDataType, ValueDataType, false, false>
 {
-    ArenaBuffer<KeyT> keys_;
-    ArenaBuffer<ValueT> values_;
+    using KeyViewType   = DTTViewType<KeyDataType>;
+    using ValueViewType = DTTViewType<ValueDataType>;
 
-    Span<const KeyT> keys() const {return keys_.span();}
-    Span<const ValueT> values() const {return values_.span();}
+    ArenaBuffer<KeyViewType> keys_;
+    ArenaBuffer<ValueViewType> values_;
+
+    Span<const KeyViewType> keys() const {return keys_.span();}
+    Span<const ValueViewType> values() const {return values_.span();}
 
     void prepare(size_t size) {
         keys_.clear();
@@ -52,14 +60,17 @@ struct MapKeysValues<KeyT, ValueT, false, false>
 };
 
 
-template <typename KeyT, typename ValueT>
-struct MapKeysValues<KeyT, ValueT, true, false>
+template <typename KeyDataType, typename ValueDataType>
+struct MapKeysValues<KeyDataType, ValueDataType, true, false>
 {
-    Span<const KeyT> keys_;
-    ArenaBuffer<ValueT> values_;
+    using KeyViewType   = DTTViewType<KeyDataType>;
+    using ValueViewType = DTTViewType<ValueDataType>;
 
-    const Span<const KeyT>& keys() const {return keys_;}
-    Span<const ValueT> values() const {return values_.span();}
+    Span<const KeyViewType> keys_;
+    ArenaBuffer<ValueViewType> values_;
+
+    const Span<const KeyViewType>& keys() const {return keys_;}
+    Span<const ValueViewType> values() const {return values_.span();}
 
     void prepare(size_t size) {
         values_.clear();
@@ -68,14 +79,17 @@ struct MapKeysValues<KeyT, ValueT, true, false>
 };
 
 
-template <typename KeyT, typename ValueT>
-struct MapKeysValues<KeyT, ValueT, false, true>
+template <typename KeyDataType, typename ValueDataType>
+struct MapKeysValues<KeyDataType, ValueDataType, false, true>
 {
-    ArenaBuffer<KeyT> keys_;
-    Span<const ValueT> values_;
+    using KeyViewType   = DTTViewType<KeyDataType>;
+    using ValueViewType = DTTViewType<ValueDataType>;
 
-    Span<const KeyT> keys() const {return keys_.span();}
-    const Span<const ValueT>& values() const {return values_;}
+    ArenaBuffer<KeyViewType> keys_;
+    Span<const ValueViewType> values_;
+
+    Span<const KeyViewType> keys() const {return keys_.span();}
+    const Span<const ValueViewType>& values() const {return values_;}
 
     void prepare(size_t size) {
         keys_.clear();
@@ -83,14 +97,17 @@ struct MapKeysValues<KeyT, ValueT, false, true>
     }
 };
 
-template <typename KeyT, typename ValueT>
-struct MapKeysValues<KeyT, ValueT, true, true>
+template <typename KeyDataType, typename ValueDataType>
+struct MapKeysValues<KeyDataType, ValueDataType, true, true>
 {
-    Span<const KeyT> keys_;
-    Span<const ValueT> values_;
+    using KeyViewType   = DTTViewType<KeyDataType>;
+    using ValueViewType = DTTViewType<ValueDataType>;
 
-    const Span<const KeyT>& keys() const {return keys_;}
-    const Span<const ValueT>& values() const {return values_;}
+    Span<const KeyViewType> keys_;
+    Span<const ValueViewType> values_;
+
+    const Span<const KeyViewType>& keys() const {return keys_;}
+    const Span<const ValueViewType>& values() const {return values_;}
 
     void prepare(size_t size) {}
 };
@@ -107,15 +124,11 @@ public:
     using ValueView = typename DataTypeTraits<typename Types::Value>::ViewType;
 
 private:
-
-    static constexpr bool DirectKeys   = DataTypeTraits<typename Types::Key>::isFixedSize;
-    static constexpr bool DirectValues = DataTypeTraits<typename Types::Value>::isFixedSize;
-
     using IOVSchema = Linearize<typename Types::IOVSchema>;
 
     bool finished_{false};
 
-    _::MapKeysValues<KeyView, ValueView, DirectKeys, DirectValues> entries_;
+    _::MapKeysValues<typename Types::Key, typename Types::Value> entries_;
 
     CtrSharedPtr<BTSSIterator<Profile>> btss_iterator_;
 

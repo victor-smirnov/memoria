@@ -199,18 +199,17 @@ struct TypeHash<FixedArray<Size>> {
 
 
 template <int32_t Size>
-struct DataTypeTraits<FixedArray<Size>>:  DataTypeTraitsBase<FixedArray<Size>>
+struct DataTypeTraits<FixedArray<Size>>:  FixedSizeDataTypeTraits<FixedArray<Size>, FixedArray<Size>>
 {
-    using ViewType      = FixedArray<Size>;
-    using ValueType     = FixedArray<Size>;
-
+    using ViewType   = FixedArray<Size>;
 
     using Parameters = TL<>;
 
-    static constexpr size_t MemorySize        = sizeof(FixedArray<Size>);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isFixedSize         = true;
+
+    using DatumSelector = FixedSizeDataTypeTag;
 
     static void create_signature(SBuf& buf, const Decimal& obj) {
         buf << "UByte" << Size;

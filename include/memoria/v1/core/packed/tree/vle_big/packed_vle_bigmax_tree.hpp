@@ -119,7 +119,7 @@ public:
     using DataType      = typename Types::DataValue;
     using IndexDataType = DataType;
 
-    using Value         = typename DataTypeTraits<DataType>::ValueType;
+    using Value         = typename DataTypeTraits<DataType>::ViewType;
     using IndexValue    = Value;
 
     using Values        = core::StaticVector<Value, Blocks>;

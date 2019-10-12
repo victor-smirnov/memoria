@@ -48,9 +48,6 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, BTFreeLayout> {
 
     using IteratorInterface = MultimapIterator<Key_, Value_, Profile>;
 
-    using KeyV   = typename DataTypeTraits<Key_>::ValueType;
-    using ValueV = typename DataTypeTraits<Value_>::ValueType;
-
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 multimap::CtrApiName
@@ -74,10 +71,6 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key_, Value_
     using Base = MultimapBTTypesBaseBase<Profile, Key_, Value_>;
 
     using CtrSizeT = typename Base::CtrSizeT;
-
-
-    using KeyV   = typename DataTypeTraits<Key_>::ValueType;
-    using ValueV = typename DataTypeTraits<Value_>::ValueType;
 
     using FirstStreamTF = bt::StreamTF<
         TL<

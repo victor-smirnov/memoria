@@ -260,8 +260,12 @@ public:
         std::vector<U16String> names;
 
         auto ii = root_map_->ctr_begin();
-        while (!ii->iter_is_end()) {
-            names.push_back(ii->key().to_u16());
+        while (!ii->iter_is_end())
+        {
+            std::stringstream ss;
+            ss << ii->key().view();
+
+            names.push_back(U8String(ss.str()).to_u16());
             ii->next();
         }
 

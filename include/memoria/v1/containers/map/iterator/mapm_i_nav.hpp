@@ -42,9 +42,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(map::ItrNavMaxName)
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
-    using KeyV   = typename DataTypeTraits<Key>::ValueType;
-    using ValueV = typename DataTypeTraits<Value>::ValueType;
-
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ValueView = typename DataTypeTraits<Value>::ViewType;
 
@@ -57,7 +54,7 @@ public:
 
         self.ctr().iter_insert_entry(
                 self,
-                map::KeyValueEntry<KeyV, ValueV, CtrSizeT>(key, value)
+                map::KeyValueEntry<KeyView, ValueView, CtrSizeT>(key, value)
         );
 
 
@@ -113,12 +110,12 @@ public:
 		return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
-    virtual KeyV key() const
+    virtual Datum<Key> key() const
     {
         return self().iter_key();
     }
 
-    virtual ValueV value() const
+    virtual Datum<Value> value() const
     {
         using ValueTT = decltype(self().iter_value());
         return map::MapValueHelper<ValueTT>::convert(self().iter_value());
@@ -126,7 +123,7 @@ public:
 
     void assign(const ValueView& v)
     {
-        self().ctr().template ctr_update_entry<IntList<2>>(self(), map::ValueBuffer<ValueV>(v));
+        self().ctr().template ctr_update_entry<IntList<2>>(self(), map::ValueBuffer<ValueView>(v));
     }
 
     bool is_found(const KeyView& k) const

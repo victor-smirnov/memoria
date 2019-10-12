@@ -28,24 +28,22 @@ namespace tests {
 
 
 template <
-    typename CtrName,
+    typename DataType,
     typename ProfileT = DefaultProfile<>,
     typename StoreT   = IMemoryStorePtr<ProfileT>
 >
-class VectorTest: public BTSSTestBase<CtrName, StoreT, ProfileT>
+class VectorTest: public BTSSTestBase<Vector<DataType>, StoreT, ProfileT>
 {
     using MyType = VectorTest;
 
-    using Base   = BTSSTestBase<CtrName, StoreT, ProfileT>;
+    using Base   = BTSSTestBase<Vector<DataType>, StoreT, ProfileT>;
 
     using typename Base::CtrApi;
 
     using typename Base::Store;
     using typename Base::StorePtr;
-//    using typename Base::MemBuffer;
-//    using typename Base::Entry;
 
-//    using Value = typename Ctr::DataValue;
+    using CxxElementViewType = DTTViewType<DataType>;
 
     int64_t size = 1024*1024;
 
@@ -69,6 +67,8 @@ public:
     }
 
 
+
+
 //    virtual MemBuffer createRandomBuffer(int32_t size)
 //    {
 //        auto buffer = MemBuffer(size);
@@ -86,7 +86,7 @@ public:
     {
         auto snp = branch();
 
-        auto ctr = create<CtrName>(snp, CtrName{});
+        auto ctr = create<Vector<DataType>>(snp, Vector<DataType>{});
 
 //        std::vector<Value> data(size);
 

@@ -53,15 +53,13 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(multimap::ItrMiscName)
 
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ValueView = typename DataTypeTraits<Value>::ViewType;
-    using KeyV      = typename DataTypeTraits<Key>::ValueType;
-    using ValueV    = typename DataTypeTraits<Value>::ValueType;
 
     static constexpr int32_t DataStreams            = Container::Types::DataStreams;
     static constexpr int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 public:
 
-    KeyV key() const
+    Datum<Key> key() const
     {
         auto& self = this->self();
 
@@ -77,7 +75,7 @@ public:
         }
     }
 
-    ValueV value() const
+    Datum<Value> value() const
     {
         auto& self = this->self();
 
@@ -228,9 +226,6 @@ public:
     {
     	self().selectBw(1, 0);
     }
-
-
-
 
 MEMORIA_V1_ITERATOR_PART_END
 

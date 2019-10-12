@@ -31,15 +31,17 @@ namespace v1 {
 
 namespace _ {
 
-template <typename KeyT, bool FixedSizeKey>
+template <typename DataType, bool FixedSizeKey = DTTisFixedSize<DataType>>
 struct SetKeys;
 
-template <typename KeyT>
-struct SetKeys<KeyT, false>
+template <typename DataType>
+struct SetKeys<DataType, false>
 {
-    ArenaBuffer<KeyT> keys_;
+    using ViewType = DTTViewType<DataType>;
 
-    Span<const KeyT> keys() const {return keys_.span();}
+    ArenaBuffer<ViewType> keys_;
+
+    Span<const ViewType> keys() const {return keys_.span();}
 
     void prepare(size_t size) {
         keys_.clear();
@@ -48,12 +50,14 @@ struct SetKeys<KeyT, false>
 };
 
 
-template <typename KeyT>
-struct SetKeys<KeyT, true>
+template <typename DataType>
+struct SetKeys<DataType, true>
 {
-    Span<const KeyT> keys_;
+    using ViewType = DTTViewType<DataType>;
 
-    const Span<const KeyT>& keys() const {return keys_;}
+    Span<const ViewType> keys_;
+
+    const Span<const ViewType>& keys() const {return keys_;}
 
     void prepare(size_t size) {}
 };
@@ -66,17 +70,15 @@ struct SetKeys<KeyT, true>
 template <typename Types, typename Profile>
 class SetScanner {
 public:
-    using KeyView   = typename DataTypeTraits<typename Types::Key>::ViewType;
+    using KeyView = typename DataTypeTraits<typename Types::Key>::ViewType;
 
 private:
-
-    static constexpr bool DirectKeys   = DataTypeTraits<typename Types::Key>::isFixedSize;
 
     using IOVSchema = Linearize<typename Types::IOVSchema>;
 
     bool finished_{false};
 
-    _::SetKeys<KeyView, DirectKeys> entries_;
+    _::SetKeys<typename Types::Key> entries_;
 
     CtrSharedPtr<BTSSIterator<Profile>> btss_iterator_;
 
@@ -87,7 +89,7 @@ public:
         populate();
     }
 
-    Span<const KeyView>   keys() const {return entries_.keys();}
+    Span<const KeyView> keys() const {return entries_.keys();}
 
     bool is_end() const {
         return finished_ || btss_iterator_->is_end();

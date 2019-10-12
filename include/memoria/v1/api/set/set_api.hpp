@@ -28,18 +28,16 @@ namespace v1 {
 
 template <typename Key, typename Profile>
 struct SetIterator: BTSSIterator<Profile> {
-    using KeyV   = typename DataTypeTraits<Key>::ValueType;
 
     virtual ~SetIterator() noexcept {}
 
-    virtual KeyV key() const = 0;
+    virtual Datum<Key> key() const = 0;
     virtual bool is_end() const = 0;
     virtual bool next() = 0;
 };
     
 template <typename Key, typename Profile> 
 struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
-
 
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
     using ApiTypes  = ICtrApiTypes<Set<Key>, Profile>;

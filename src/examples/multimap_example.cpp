@@ -89,7 +89,7 @@ int main()
                 auto& data = std::get<1>(entries_[batch_start + c]);
 
                 seq.append(1, data.size());
-                values.append_buffer(data);
+                values.append(data);
             }
 
             sizes.entries_ += limit;

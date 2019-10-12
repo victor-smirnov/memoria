@@ -45,7 +45,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(set::ItrNavName)
     using CtrSizeT  = typename Container::Types::CtrSizeT;
 
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
-    using KeyV      = typename DataTypeTraits<Key>::ValueType;
 
     using Profile   = typename Types::Profile;
 
@@ -101,7 +100,7 @@ public:
         return self().template iter_find_bw_ge<IntList<1>>(index, key);
     }
 
-    auto key() const -> KeyV
+    auto key() const -> Datum<Key>
     {
         return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<1>>(self().iter_leaf(), self().iter_local_pos(), 0));
     }

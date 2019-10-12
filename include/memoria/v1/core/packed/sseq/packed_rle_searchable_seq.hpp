@@ -139,7 +139,7 @@ public:
     using GrowableIOSubstream = io::PackedRLESymbolSequence<Symbols>;
     using IOSubstreamView     = io::PackedRLESymbolSequenceView<Symbols>;
 
-    using ExtData = EmptyType;
+    using ExtData = std::tuple<>;
     using SparseObject = PackedRLESeqSO<ExtData, MyType>;
 
     int32_t number_of_offsets() const

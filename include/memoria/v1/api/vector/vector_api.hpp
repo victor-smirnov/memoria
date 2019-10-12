@@ -37,11 +37,10 @@ namespace v1 {
 template <typename DataType, typename Profile>
 struct VectorIterator: BTSSIterator<Profile> {
 
-    using ValueType = DTTValueType<DataType>;
     using ViewType  = DTTViewType<DataType>;
     using CtrSizeT  = ProfileCtrSizeT<Profile>;
 
-    virtual ValueType value() const = 0;
+    virtual Datum<DataType> value() const = 0;
     virtual void set(ViewType view) = 0;
     virtual bool next() = 0;
 
@@ -66,7 +65,6 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
 
     using ApiTypes  = ICtrApiTypes<Vector<DataType>, Profile>;
 
-    using ValueType = DTTValueType<DataType>;
     using ViewType  = DTTViewType<DataType>;
 
     using CtrSizeT  = ProfileCtrSizeT<Profile>;
@@ -75,7 +73,7 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
     using ProducerFn    = typename Producer::ProducerFn;
 
 
-    virtual ValueType get(CtrSizeT pos) const = 0;
+    virtual Datum<DataType> get(CtrSizeT pos) const = 0;
     virtual void set(CtrSizeT pos, ViewType view) = 0;
 
     virtual CtrSizeT size() const = 0;

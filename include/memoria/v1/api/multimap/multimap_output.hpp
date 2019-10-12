@@ -42,9 +42,6 @@ public:
     using KeyView   = typename DataTypeTraits<Key_>::ViewType;
     using ValueView = typename DataTypeTraits<Value_>::ViewType;
 
-    using Key   = typename DataTypeTraits<Key_>::ValueType;
-    using Value = typename DataTypeTraits<Value_>::ValueType;
-
     using IOVSchema = Linearize<typename Types::IOVSchema>;
 
 protected:
@@ -133,7 +130,7 @@ public:
     {
         if (!is_end())
         {
-            Key last_suffix_key{};
+            Datum<Key_> last_suffix_key{};
 
             bool has_prefix = false;
 
@@ -168,7 +165,7 @@ public:
     Span<const ValueView> prefix() const {return prefix_.span();}
 
     const KeyView& suffix_key_view() const {return suffix_key_;}
-    Key suffix_key() const {return suffix_key_;}
+    Datum<Key_> suffix_key() const {return suffix_key_;}
 
     Span<const ValueView> suffix() const {return suffix_.span();}
 
@@ -207,7 +204,6 @@ class IValuesScanner {
 public:
     using Value_ = typename Types::Value;
     using ValueView = typename DataTypeTraits<Value_>::ViewType;
-    using Value = typename DataTypeTraits<Value_>::ValueType;
 
     using IOVSchema = Linearize<typename Types::IOVSchema>;
 
@@ -256,9 +252,6 @@ public:
 
     using KeyView   = typename DataTypeTraits<Key_>::ViewType;
     using ValueView = typename DataTypeTraits<Value_>::ViewType;
-
-    using Key   = typename DataTypeTraits<Key_>::ValueType;
-    using Value = typename DataTypeTraits<Value_>::ValueType;
 
     using IOVSchema = Linearize<typename Types::IOVSchema>;
 

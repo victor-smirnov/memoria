@@ -273,7 +273,7 @@ public:
             size_ = 0;
 
             if (MMA1_LIKELY(reset_iovector_)) {
-                io_vector_->reset();
+                io_vector_->clear();
             }
 
             finished_ = producer_->populate(*io_vector_);

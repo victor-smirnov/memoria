@@ -60,6 +60,13 @@ struct ForEachItem<Config, TypeList<Head, Tail...>, Handler, Accumulator> {
 };
 
 
+template <int32_t Idx>
+struct ForEachIdx {
+    constexpr int32_t value() {
+        return Idx;
+    }
+};
+
 
 template <int32_t Idx, int32_t Size>
 struct ForEach {
@@ -71,6 +78,13 @@ struct ForEach {
             ForEach<Idx + 1, Size>::process(std::forward<Fn>(fn), std::forward<Args>(args)...);
         }
     }
+
+    template <typename Fn, typename... Args>
+    static void process_fn(Fn&& fn, Args&&... args)
+    {
+        fn(ForEachIdx<Idx>{}, std::forward<Args>(args)...);
+        ForEach<Idx + 1, Size>::process_fn(std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
 };
 
 
@@ -78,6 +92,9 @@ template <int32_t Idx>
 struct ForEach<Idx, Idx> {
     template <typename... Args>
     static void process(Args&&... args){}
+
+    template <typename... Args>
+    static void process_fn(Args&&... args){}
 };
 
 

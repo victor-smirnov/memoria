@@ -57,12 +57,9 @@ struct SetBTTypesBaseBase: public BTTypes<Profile, BTSingleStream> {
 
     using Base = BTTypes<Profile, BTSingleStream>;
 
-    using Key   = Key_;
-    using KeyV  = typename DataTypeTraits<Key_>::ValueType;
+    using Key = Key_;
 
     using IteratorInterface = SetIterator<Key_, Profile>;
-
-    using Entry = std::tuple<KeyV>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
@@ -86,14 +83,6 @@ template <
     int32_t Special = 0
 >
 struct SetBTTypesBase: public SetBTTypesBaseBase<Profile, Key_> {
-
-    using KeyV   = typename DataTypeTraits<Key_>::ValueType;
-
-
-    static_assert(
-            IsExternalizable<KeyV>::Value ,
-            "Key type must have either ValueCodec or FieldFactory defined"
-    );
 
     using LeafKeyStruct = typename set::SetKeyStructTF<Key_>::Type;
 

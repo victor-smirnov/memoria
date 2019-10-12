@@ -23,7 +23,7 @@
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
-
+#include <memoria/v1/api/datatypes/buffer/buffer.hpp>
 
 #include <functional>
 
@@ -34,12 +34,10 @@ template <typename Types>
 class VectorProducer: public io::IOVectorProducer {
 public:
     using IOVSchema         = Linearize<typename Types::IOVSchema>;
-    using ValuesSubstream   = IOSubstreamAdapter<Select<0, IOVSchema>>;
-    using ProducerFn        = std::function<bool (ValuesSubstream&, size_t)>;
+    using IOBuffer          = DataTypeBuffer<typename Select<0, IOVSchema>::DataType>;
+    using ProducerFn        = std::function<bool (IOBuffer&, size_t)>;
 
 private:
-
-    ValuesSubstream values_{0};
 
     ProducerFn producer_fn_;
 
@@ -55,13 +53,13 @@ public:
 
     virtual bool populate(io::IOVector& io_vector)
     {
-        values_.reset(io_vector.substream(0));
+        IOBuffer& buffer = io::substream_cast<IOBuffer>(io_vector.substream(0));
 
-        bool has_more = producer_fn_(values_, total_size_);
+        bool has_more = producer_fn_(buffer, total_size_);
 
-        total_size_ += values_.size();
+        total_size_ += buffer.size();
 
-        io_vector.symbol_sequence().append(0, values_.size());
+        io_vector.symbol_sequence().append(0, buffer.size());
 
         return has_more;
     }

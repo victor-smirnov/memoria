@@ -39,12 +39,8 @@ namespace v1 {
 
 template <typename Key, typename Value, typename Profile>
 struct MultimapIterator: BTFLIterator<Profile> {
-    using KeyV   = typename DataTypeTraits<Key>::ValueType;
-    using ValueV = typename DataTypeTraits<Value>::ValueType;
-
-
-    virtual KeyV key() const = 0;
-    virtual ValueV value() const = 0;
+    virtual Datum<Key> key() const = 0;
+    virtual Datum<Value> value() const = 0;
     virtual bool is_end() const = 0;
     virtual bool next() = 0;
 };
@@ -102,7 +98,7 @@ public:
     {
         return upsert(key, [&](auto& seq, auto& keys, auto& values, auto& sizes){
             seq.append(1, data.size());
-            values.append_buffer(data);
+            values.append(data);
             return true;
         });
     }
@@ -122,7 +118,7 @@ public:
             keys.append(key);
 
             seq.append(1, data.size());
-            values.append_buffer(data);
+            values.append(data);
 
             return true;
         });
@@ -143,7 +139,7 @@ public:
             keys.append(key);
 
             seq.append(1, data.size());
-            values.append_buffer(data);
+            values.append(data);
 
             return true;
         });
@@ -165,7 +161,7 @@ public:
             keys.append(key);
 
             seq.append(1, data.size());
-            values.append_buffer(data);
+            values.append(data);
 
             return true;
         });

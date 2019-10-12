@@ -79,7 +79,7 @@ int main()
         snp->commit();
         snp->set_as_master();
 
-        alloc->store("store.mma1");
+        alloc->store("store-vector.mma1");
 
         int64_t t2 = getTimeInMillis();
         size_t sum0 = 0;

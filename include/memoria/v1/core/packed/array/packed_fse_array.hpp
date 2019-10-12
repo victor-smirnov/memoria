@@ -76,12 +76,12 @@ public:
 
     using Allocator = PackedAllocator;
 
-    using ExtData       = typename DataTypeTraits<Value>::ExtData;
+    using ExtData       = DTTTypeDimensionsTuple<Value>;
     using SparseObject  = PackedFixedSizeElementArraySO<ExtData, MyType>;
 
 
-    using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
+    using GrowableIOSubstream = DataTypeBuffer<DataType>;
+    using IOSubstreamView     = IO1DArraySubstreamViewImpl<DataType, SparseObject>;
 
     enum {METADATA = 0, VALUES = 1};
 

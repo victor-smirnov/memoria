@@ -17,6 +17,11 @@
 #include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/api/datatypes/datatypes.hpp>
 
+#include <memoria/v1/api/datatypes/varchars/varchar_builder.hpp>
+
+#include <memoria/v1/api/datatypes/buffer/buffer.hpp>
+
+
 #include <iostream>
 
 using namespace memoria::v1;
@@ -51,6 +56,52 @@ int main()
     //Datum<Decimal> dt;
 
     //DataTypeTraits<Deciaml>::ViewType -> DecimalView
+
+    DataTypeBuffer<Varchar> str_buffer;
+
+    DataTypeBuffer<Integer> byte_buffer;
+
+    for (int c = 0; c < 5; c++) {
+        byte_buffer.builder().value() = 12345 + c;
+        byte_buffer.builder().build();
+    }
+
+    for (auto ii: byte_buffer.span()) {
+        std::cout << ii << std::endl;
+    }
+
+    auto& bb = str_buffer.builder();
+
+    bb.append("AAAAAAAAAA111");
+    bb.build();
+
+    for (int c = 0; c < 10; c++)
+    {
+        bb.append("AAAAAAAAAA2222");
+        bb.build();
+    }
+
+
+    str_buffer.append("12345");
+    str_buffer.append("12323524525246");
+    str_buffer.append("124347");
+    str_buffer.append("12fgsfdgsfdgsfgsggfsg348");
+
+    for (const auto& str: str_buffer.span()) {
+        std::cout << "Str: " << str << std::endl;
+    }
+
+//    VLEArenaBuffer<int32_t> vle_buf;
+
+//    std::vector<int32_t> vvv{1,2,3};
+
+//    vvv.push_back(1);
+
+//    vle_buf.append(vvv);
+
+//    for(auto span: vle_buf) {
+//        std::cout << span.size() << std::endl;
+//    }
 
     return 0;
 }

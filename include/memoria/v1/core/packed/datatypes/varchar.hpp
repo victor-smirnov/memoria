@@ -120,12 +120,11 @@ public:
             {
                 auto element = elements(column, row);
 
-                size_t len = DataTypeTraits<DataType>::length(element);
-                const auto* dat = DataTypeTraits<DataType>::data(element);
+                auto data = std::get<0>(DataTypeTraits<DataType>::describe_data(element));
 
-                MemCpyBuffer(dat, array_data + pos, len);
+                MemCpyBuffer(data.data(), array_data + pos, data.size());
                 array_offsets[row_at + row] = pos;
-                pos += len;
+                pos += data.size();
             }
         }
 

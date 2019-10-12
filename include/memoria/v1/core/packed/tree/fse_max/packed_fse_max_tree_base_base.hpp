@@ -40,7 +40,7 @@ class PkdFMTreeBaseBase: public PackedAllocator {
 public:
     static constexpr uint32_t VERSION = 1;
 
-    using IndexValue    = typename DataTypeTraits<ValueDataT>::ValueType;
+    using IndexValue    = typename DataTypeTraits<ValueDataT>::ViewType;
     using Value         = IndexValue;
 
     using DataType      = ValueDataT;

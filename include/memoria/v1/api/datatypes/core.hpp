@@ -110,6 +110,9 @@ public:
     }
 };
 
+
+template <typename DataType, typename Buffer> class SparseObjectBuilder;
+
 template <>
 struct TypeHash<Integer>: UInt64Value<985032913483489> {};
 

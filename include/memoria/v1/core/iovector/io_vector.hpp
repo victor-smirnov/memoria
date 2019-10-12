@@ -33,6 +33,7 @@ struct IOVector {
     virtual ~IOVector() noexcept {}
 
     virtual void reset() = 0;
+    virtual void clear() = 0;
     virtual void reindex() = 0;
 
     virtual void add_substream(std::unique_ptr<IOSubstream>&& ptr) = 0;
@@ -204,6 +205,15 @@ public:
 
         for (int32_t c = 0; c < SubstreamsNum; c++) {
             substreams_[c]->reset();
+        }
+    }
+
+    void clear()
+    {
+        symbol_sequence_.clear();
+
+        for (int32_t c = 0; c < SubstreamsNum; c++) {
+            substreams_[c]->clear();
         }
     }
 

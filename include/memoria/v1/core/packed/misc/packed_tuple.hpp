@@ -40,11 +40,11 @@ namespace _ {
 
 
     template <typename PkdTuple>
-    struct PkdTupleValueHandler<PkdTuple, EmptyType, false>
+    struct PkdTupleValueHandler<PkdTuple, std::tuple<>, true>
     {
-        static void set_value(const EmptyType& value, psize_t idx, PkdTuple& pkd_tuple) {}
+        static void set_value(const std::tuple<>& value, psize_t idx, PkdTuple& pkd_tuple) {}
 
-        static void get_value(EmptyType& value, psize_t idx, const PkdTuple& pkd_tuple) {}
+        static void get_value(std::tuple<>& value, psize_t idx, const PkdTuple& pkd_tuple) {}
 
         template <typename SerializationData>
         static void serialize(SerializationData& buf, psize_t idx, const PkdTuple& tuple) {}

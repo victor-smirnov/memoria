@@ -36,11 +36,11 @@ int main()
         //    using MapType = Map<BigInt, BigInt>;
         //    using Entry   = std::pair<int64_t, int64_t>;
 
-        using MapType = Map<Varchar, Varchar>;
-        using Entry   = std::pair<U8String, U8String>;
+        //using MapType = Map<Varchar, Varchar>;
+        //using Entry   = std::pair<U8String, U8String>;
 
-        //    using MapType = Map<BigInt, Varchar>;
-        //    using Entry   = std::pair<int64_t, U8String>;
+            using MapType = Map<BigInt, Varchar>;
+            using Entry   = std::pair<int64_t, U8String>;
 
         auto alloc = IMemoryStore<>::create();
 
@@ -57,8 +57,8 @@ int main()
         for (int c = 0; c < 10000; c++) {
             //entries_.emplace_back(Entry(c, -c));
             entries_.emplace_back(Entry(
-                                      //c,
-                                      "AAAAAAAAAAAAAAAAAAAAAAAAAAA_"   + std::to_string(c),
+                                      c,
+                                      //"AAAAAAAAAAAAAAAAAAAAAAAAAAA_"   + std::to_string(c),
                                       "BBBBBBBBBBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c)
                                       // c, -c
                                       ));
@@ -93,12 +93,12 @@ int main()
         std::cout << "Inserted entries in " << (t1_i - t0_i) << " ms" << std::endl;
         std::cout << "Size = " << ctr0->size() << std::endl;
 
-        ctr0->iterator()->dumpPath();
+        //ctr0->iterator()->dumpPath();
 
         snp->commit();
         snp->set_as_master();
 
-        alloc->store("store.mma1");
+        alloc->store("store-map.mma1");
 
         int64_t t2 = getTimeInMillis();
 
@@ -106,37 +106,37 @@ int main()
 
         size_t sum0 = 0;
 
-        //    while (!ii.is_end())
-        //    {
-        //        sum0 += ii.keys().size() + ii.values().size();
+        while (!ii.is_end())
+        {
+            sum0 += ii.keys().size() + ii.values().size();
 
-        //        auto keys = ii.keys();
+            auto keys = ii.keys();
 
-        //        for (size_t c = 0; c < keys.size(); c++)
-        //        {
-        //            std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
-        //        }
+            for (size_t c = 0; c < keys.size(); c++)
+            {
+                std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
+            }
 
-        //        ii.next_leaf();
-        //    }
+            ii.next_leaf();
+        }
 
         int64_t t3 = getTimeInMillis();
 
         std::cout << "Iterated over 10M entries in " << (t3 - t2) << " ms " << sum0 << std::endl;
 
-        for (int64_t c = 0; c < ctr0->size(); c++)
-        {
-            U8String key = "AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c);
+//        for (int64_t c = 0; c < ctr0->size(); c++)
+//        {
+//            U8String key = "AAAAAAAAAAAAAAAAAAAAAAAAAAA_" + std::to_string(c);
 
-            auto ii = ctr0->find(key);
+//            auto ii = ctr0->find(key);
 
-            //        ii->dump();
+//            //        ii->dump();
 
-            if (!ii->is_end())
-            {
-                std::cout << key << " :: " << ii->value() << std::endl;
-            }
-        }
+//            if (!ii->is_end())
+//            {
+//                std::cout << key << " :: " << ii->value().view() << std::endl;
+//            }
+//        }
 
     }
     catch (MemoriaThrowable& th) {
