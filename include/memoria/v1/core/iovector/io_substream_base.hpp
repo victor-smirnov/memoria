@@ -22,7 +22,10 @@
 #include <memoria/v1/core/strings/format.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
-
+#include <memoria/v1/core/tools/span.hpp>
+#include <memoria/v1/core/tools/arena_buffer.hpp>
+#include <memoria/v1/core/tools/vle_arena_buffer.hpp>
+#include <memoria/v1/api/datatypes/buffer/buffer_common.hpp>
 
 #include <typeinfo>
 #include <type_traits>
@@ -45,6 +48,30 @@ struct IOSubstream {
     virtual U8String describe() const = 0;
 
     virtual const std::type_info& substream_type() const = 0;
+};
+
+
+template <typename DataType>
+struct IO1DArraySubstreamView: IOSubstream {
+
+    using ViewType = DTTViewType<DataType>;
+
+    virtual void reset() {}
+    virtual void reindex() {}
+
+    virtual size_t size() const = 0;
+
+    virtual void read_to(size_t row, size_t size, ArenaBuffer<ViewType>& buffer) const = 0;
+    virtual void read_to(size_t row, size_t size, DataTypeBuffer<DataType>& buffer) const = 0;
+    virtual void read_to(size_t row, size_t size, Span<ViewType> buffer) const = 0;
+
+    virtual Span<const ViewType> span(size_t row, size_t size) const = 0;
+
+    virtual ViewType get(size_t row) const = 0;
+
+    virtual const std::type_info& substream_type() const {
+        return typeid(IO1DArraySubstreamView<DataType>);
+    }
 };
 
 template <typename T>
@@ -77,4 +104,19 @@ const T& checked_substream_cast(const IOSubstream& ss)
     return *static_cast<const T*>(&ss);
 }
 
-}}}
+//template <typename>
+//class IOColumnwiseFixedSizeArraySubstream;
+
+//template <typename, int32_t>
+//class IOColumnwiseFixedSizeArraySubstreamImpl;
+
+
+//template <typename, int32_t>
+//class IOColumnwiseFixedSizeArraySubstreamViewImpl;
+
+}
+
+template <typename DataType, typename ArraySO>
+class IO1DArraySubstreamViewImpl;
+
+}}

@@ -21,6 +21,7 @@ namespace memoria {
 namespace v1 {
 namespace io {
 
+/*
 template <typename Value>
 class VectorIOVector: public io::IOVector {
 
@@ -95,5 +96,6 @@ public:
 
     void reindex(){}
 };
+*/
 
 }}}

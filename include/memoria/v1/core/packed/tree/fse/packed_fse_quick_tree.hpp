@@ -21,9 +21,6 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/profiles/common/block_operations.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
-
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree_so.hpp>
 
 namespace memoria {
@@ -84,8 +81,8 @@ public:
 
     using Metadata = typename Base::Metadata;
 
-    using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
+//    using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
+//    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
 
@@ -912,36 +909,36 @@ public:
 
     OpStatus insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t inserted)
     {
-        const io::IOColumnwiseFixedSizeArraySubstream<Value>& buffer
-                = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(substream);
+//        const io::IOColumnwiseFixedSizeArraySubstream<Value>& buffer
+//                = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(substream);
 
-        if (isFail(insertSpace(at, inserted))) {
-            return OpStatus::FAIL;
-        }
+//        if (isFail(insertSpace(at, inserted))) {
+//            return OpStatus::FAIL;
+//        }
 
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            auto buffer_values = buffer.select(block, start);
-            CopyBuffer(buffer_values, this->values(block) + at, inserted);
-        }
+//        for (int32_t block = 0; block < Blocks; block++)
+//        {
+//            auto buffer_values = buffer.select(block, start);
+//            CopyBuffer(buffer_values, this->values(block) + at, inserted);
+//        }
 
         return OpStatus::OK;
     }
 
     void configure_io_substream(io::IOSubstream& substream) const
     {
-        auto& view = io::substream_cast<IOSubstreamView>(substream);
+//        auto& view = io::substream_cast<IOSubstreamView>(substream);
 
-        io::FixedSizeArrayColumnMetadata<Value> columns[Blocks]{};
+//        io::FixedSizeArrayColumnMetadata<Value> columns[Blocks]{};
 
-        for (int32_t blk = 0; blk < Blocks; blk++)
-        {
-            columns[blk].data_buffer = this->values(blk);
-            columns[blk].size = this->size();
-            columns[blk].capacity = columns[blk].size;
-        }
+//        for (int32_t blk = 0; blk < Blocks; blk++)
+//        {
+//            columns[blk].data_buffer = this->values(blk);
+//            columns[blk].size = this->size();
+//            columns[blk].capacity = columns[blk].size;
+//        }
 
-        view.configure(columns);
+//        view.configure(columns);
     }
 
     template <typename T>

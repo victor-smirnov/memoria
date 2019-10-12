@@ -25,9 +25,6 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
-
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree_so.hpp>
 
 namespace memoria {
@@ -81,8 +78,8 @@ public:
     using PtrsT         = core::StaticVector<Value*, Blocks>;
     using ConstPtrsT    = core::StaticVector<const Value*, Blocks>;
 
-    using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
+//    using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
+//    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
     using ExtData = DTTTypeDimensionsTuple<Value>;
     using SparseObject = PackedFSEMaxTreeSO<ExtData, MyType>;
@@ -718,41 +715,41 @@ public:
 
 
 
-    OpStatus insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t inserted)
-    {
-        const io::IOColumnwiseFixedSizeArraySubstream<Value>& buffer
-                = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(substream);
+//    OpStatus insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t inserted)
+//    {
+//        const io::IOColumnwiseFixedSizeArraySubstream<Value>& buffer
+//                = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Value>>(substream);
 
-        if (isFail(insertSpace(at, inserted))) {
-            return OpStatus::FAIL;
-        }
+//        if (isFail(insertSpace(at, inserted))) {
+//            return OpStatus::FAIL;
+//        }
 
-        for (int32_t block = 0; block < Blocks; block++)
-        {
-            auto buffer_values = buffer.select(block, start);
-            CopyBuffer(buffer_values, this->values(block) + at, inserted);
-        }
+//        for (int32_t block = 0; block < Blocks; block++)
+//        {
+//            auto buffer_values = buffer.select(block, start);
+//            CopyBuffer(buffer_values, this->values(block) + at, inserted);
+//        }
 
-        (void)this->reindex();
+//        (void)this->reindex();
 
-        return OpStatus::OK;
-    }
+//        return OpStatus::OK;
+//    }
 
-    void configure_io_substream(io::IOSubstream& substream) const
-    {
-        auto& view = io::substream_cast<IOSubstreamView>(substream);
+//    void configure_io_substream(io::IOSubstream& substream) const
+//    {
+//        auto& view = io::substream_cast<IOSubstreamView>(substream);
 
-        io::FixedSizeArrayColumnMetadata<Value> columns[Blocks]{};
+//        io::FixedSizeArrayColumnMetadata<Value> columns[Blocks]{};
 
-        for (int32_t blk = 0; blk < Blocks; blk++)
-        {
-            columns[blk].data_buffer = const_cast<Value*>(this->values(blk));
-            columns[blk].size = this->size();
-            columns[blk].capacity = columns[blk].size;
-        }
+//        for (int32_t blk = 0; blk < Blocks; blk++)
+//        {
+//            columns[blk].data_buffer = const_cast<Value*>(this->values(blk));
+//            columns[blk].size = this->size();
+//            columns[blk].capacity = columns[blk].size;
+//        }
 
-        view.configure(columns);
-    }
+//        view.configure(columns);
+//    }
 
     template <typename T>
     OpStatus update(int32_t idx, const core::StaticVector<T, Blocks>& values)

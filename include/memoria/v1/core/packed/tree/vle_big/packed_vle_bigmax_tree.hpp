@@ -22,13 +22,8 @@
 #include <memoria/v1/core/strings/string_codec.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_col_array_vlen.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_vlen_view.hpp>
-
 #include <memoria/v1/core/bignum/cppint_codec.hpp>
-
 #include <memoria/v1/core/bignum/int64_codec.hpp>
-
 
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree_so.hpp>
 
@@ -131,8 +126,8 @@ public:
     using PtrsT         = core::StaticVector<ValueData*, Blocks>;
     using ConstPtrsT    = core::StaticVector<const ValueData*, Blocks>;
 
-    using GrowableIOSubstream = io::IOColumnwiseVLenArraySubstreamImpl<Value, Blocks>;
-    using IOSubstreamView     = io::IOColumnwiseVLenArraySubstreamViewImpl<MyType>;
+//    using GrowableIOSubstream = io::IOColumnwiseVLenArraySubstreamImpl<Value, Blocks>;
+//    using IOSubstreamView     = io::IOColumnwiseVLenArraySubstreamViewImpl<MyType>;
 
     using ExtData = typename DataTypeTraits<DataType>::ExtData;
     using SparseObject = PackedVLEBigMaxTreeSO<ExtData, MyType>;
@@ -800,45 +795,45 @@ public:
     }
 
 
-    OpStatus insert_io_substream(int32_t pos, const io::IOSubstream& substream, int32_t start, int32_t size)
-    {
-        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
+//    OpStatus insert_io_substream(int32_t pos, const io::IOSubstream& substream, int32_t start, int32_t size)
+//    {
+//        static_assert(Blocks == 1, "This Packed Array currently does not support multiple columns here");
 
-        const io::IOColumnwiseVLenArraySubstream<Value>& buffer = io::substream_cast<io::IOColumnwiseVLenArraySubstream<Value>>(substream);
+//        const io::IOColumnwiseVLenArraySubstream<Value>& buffer = io::substream_cast<io::IOColumnwiseVLenArraySubstream<Value>>(substream);
 
-        auto buffer_values_start = T2T<const uint8_t*>(buffer.select(0, start));
-        auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(0, start + size));
+//        auto buffer_values_start = T2T<const uint8_t*>(buffer.select(0, start));
+//        auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(0, start + size));
 
-        ptrdiff_t total_length   = buffer_values_end - buffer_values_start;
+//        ptrdiff_t total_length   = buffer_values_end - buffer_values_start;
 
-        Codec codec;
+//        Codec codec;
 
-        auto at = this->positions(pos);
+//        auto at = this->positions(pos);
 
-        auto values = this->values();
+//        auto values = this->values();
 
-        size_t insertion_pos = at.data_pos(0);
+//        size_t insertion_pos = at.data_pos(0);
 
-        if(isFail(insert_space(insertion_pos, total_length))) {
-            return OpStatus::FAIL;
-        }
+//        if(isFail(insert_space(insertion_pos, total_length))) {
+//            return OpStatus::FAIL;
+//        }
 
-        values = this->values();
+//        values = this->values();
 
-        codec.copy(buffer_values_start, 0, values, insertion_pos, total_length);
+//        codec.copy(buffer_values_start, 0, values, insertion_pos, total_length);
 
-        this->size() += size;
+//        this->size() += size;
 
-        return reindex();
-    }
+//        return reindex();
+//    }
 
-    void configure_io_substream(io::IOSubstream& substream) const
-    {
-        IOSubstreamView& view
-                = io::substream_cast<IOSubstreamView>(substream);
+//    void configure_io_substream(io::IOSubstream& substream) const
+//    {
+//        IOSubstreamView& view
+//                = io::substream_cast<IOSubstreamView>(substream);
 
-        view.configure(this);
-    }
+//        view.configure(this);
+//    }
 
 
 

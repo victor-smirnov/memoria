@@ -33,7 +33,7 @@ namespace v1 {
 
 
 
-
+/*
 template <typename Key, typename Value>
 class MultimapRandomBufferPopulator: public io::IOVectorProducer {
     const size_t mean_value_size_;
@@ -78,7 +78,7 @@ public:
         return total_ >= total_max_;
     }
 };
-
+*/
 
     
 }}

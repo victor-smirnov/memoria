@@ -16,17 +16,10 @@
 
 #pragma once
 
-
-
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
-
 #include <memoria/v1/core/packed/array/packed_fse_array_so.hpp>
-
-
 
 #include <type_traits>
 
@@ -40,7 +33,7 @@ template <
 >
 struct PackedFixedSizeElementArrayTypes {
     using DataType = V;
-    static constexpr int32_t Blocks = Blocks_;
+    static constexpr int32_t Blocks  = Blocks_;
     static constexpr int32_t Indexes = Indexes_;
 };
 

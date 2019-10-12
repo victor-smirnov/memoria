@@ -21,6 +21,7 @@ namespace memoria {
 namespace v1 {
 namespace io {
 
+/*
 template <typename Types>
 class MultimapEntryIOVector: public io::IOVector {
 
@@ -39,8 +40,8 @@ private:
 
     PackedRLESymbolSequence<2> symbol_sequence_;
 
-    using KeysSubstream = IOColumnwiseFixedSizeArraySubstreamViewImpl<KeyV, 1>;
-    using DataSubstream = IORowwiseFixedSizeArraySubstreamViewImpl<ValueV, 1>;
+    using KeysSubstream = io::IO1DArraySubstreamView<Key>;
+    using DataSubstream = io::IO1DArraySubstreamView<Value>;
 
     KeysSubstream keys_substream_;
     DataSubstream data_substream_;
@@ -112,5 +113,6 @@ public:
 
     void reindex(){}
 };
+*/
 
 }}}

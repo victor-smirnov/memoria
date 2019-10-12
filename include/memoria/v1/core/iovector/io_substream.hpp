@@ -16,17 +16,7 @@
 #pragma once
 
 #include <memoria/v1/core/iovector/io_symbol_sequence.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_vlen.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_vlen_view.hpp>
-
-#include <memoria/v1/core/iovector/io_substream_row_array_fixed_size.hpp>
-#include <memoria/v1/core/iovector/io_substream_row_array_fixed_size_view.hpp>
-
-
-#include <memoria/v1/core/iovector/io_substream_row_array_vlen.hpp>
-#include <memoria/v1/core/iovector/io_substream_row_array_vlen_view.hpp>
+#include <memoria/v1/core/iovector/io_substream_base.hpp>
 
 #include <vector>
 

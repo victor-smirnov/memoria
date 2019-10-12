@@ -19,8 +19,7 @@
 
 #include <memoria/v1/api/datatypes/traits.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_array_fixed_size_base.hpp>
-#include <memoria/v1/core/iovector/io_substream_array_vlen_base.hpp>
+#include <memoria/v1/core/iovector/io_substream_base.hpp>
 
 
 
@@ -32,27 +31,8 @@ struct ColumnWise {};
 struct ColumnWise1D {};
 struct RowWise {};
 
-//template <typename DataType, typename IOSubstreamTag> struct IOSubstreamApiTF;
-
 template <typename Value, bool IsColumnWise, bool IsFixedSize>
 struct IOSubstreamInterfaceTF;
-
-template <typename Value>
-struct IOSubstreamInterfaceTF<Value, true, true>: TypeDef<IOColumnwiseFixedSizeArraySubstream<Value>>
-{};
-
-template <typename Value>
-struct IOSubstreamInterfaceTF<Value, false, true>: TypeDef<IORowwiseFixedSizeArraySubstream<Value>>
-{};
-
-template <typename Value>
-struct IOSubstreamInterfaceTF<Value, true, false>: TypeDef<IOColumnwiseVLenArraySubstream<Value>>
-{};
-
-template <typename Value>
-struct IOSubstreamInterfaceTF<Value, false, false>: TypeDef<IORowwiseVLenArraySubstream<Value>>
-{};
-
 
 }
 }}

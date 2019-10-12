@@ -21,14 +21,10 @@
 
 #include <memoria/v1/profiles/common/block_operations.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size.hpp>
-#include <memoria/v1/core/iovector/io_substream_col_array_fixed_size_view.hpp>
-
 #include <memoria/v1/core/packed/datatypes/fixed_size.hpp>
 #include <memoria/v1/core/packed/array/packed_array_iterator.hpp>
 
 #include <memoria/v1/core/iovector/io_substream_base.hpp>
-#include <memoria/v1/core/iovector/io_substream_array_vlen_base.hpp>
 
 #include <memoria/v1/api/datatypes/buffer/buffer_0_fse.hpp>
 

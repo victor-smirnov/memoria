@@ -24,8 +24,6 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/packed/tools/packed_tools.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_array_vlen_base.hpp>
-
 #include <memoria/v1/core/packed/array/packed_vle_array_so.hpp>
 
 #include <memoria/v1/core/tools/span.hpp>
