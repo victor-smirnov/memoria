@@ -34,8 +34,8 @@ template <typename Types>
 class VectorProducer: public io::IOVectorProducer {
 public:
     using IOVSchema         = Linearize<typename Types::IOVSchema>;
-    using IOBuffer          = DataTypeBuffer<typename Select<0, IOVSchema>::DataType>;
-    using ProducerFn        = std::function<bool (IOBuffer&, size_t)>;
+    using ValuesSubstream   = DataTypeBuffer<typename Select<0, IOVSchema>::DataType>;
+    using ProducerFn        = std::function<bool (ValuesSubstream&, size_t)>;
 
 private:
 
@@ -53,7 +53,7 @@ public:
 
     virtual bool populate(io::IOVector& io_vector)
     {
-        IOBuffer& buffer = io::substream_cast<IOBuffer>(io_vector.substream(0));
+        ValuesSubstream& buffer = io::substream_cast<ValuesSubstream>(io_vector.substream(0));
 
         bool has_more = producer_fn_(buffer, total_size_);
 

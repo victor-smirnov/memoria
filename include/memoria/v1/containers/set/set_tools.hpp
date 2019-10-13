@@ -29,13 +29,15 @@ namespace set {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct SetKeyStructTF;
+template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct SetKeyStructTF;
 
 template <typename KeyType>
 struct SetKeyStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType, 1, 1>> {};
 
 template <typename KeyType>
-struct SetKeyStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
+struct SetKeyStructTF<KeyType, false>: HasType<
+        PackedDataTypeBuffer<PackedDataTypeBufferTypes<KeyType, true>>
+> {};
 
 
 
@@ -75,18 +77,15 @@ struct SetBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 template <typename KeyType, int32_t Indexes>
 struct SetBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
-//    static_assert(
-//            IsExternalizable<KeyType>::Value,
-//            "Type must either has ValueCodec or FieldFactory defined"
-//    );
+    static_assert(Indexes <= 1, "");
 
     using Type = bt::PkdStructSelector<
-            DataTypeTraits<KeyType>::isFixedSize,
+            DTTIs1DFixedSize<KeyType>,
             PkdFMTree,
-            PackedVLenElementArray,
+            PackedDataTypeBuffer,
 
             PkdFMTreeTypes<KeyType, Indexes>,
-            PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
+            PackedDataTypeBufferTypes<KeyType, Indexes == 1>
     >;
 
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");

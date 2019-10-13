@@ -40,7 +40,7 @@ class SparseObjectAdapterDescriptor {};
 template <
         typename DataType,
         typename SelectorTag = SparseObjectAdapterDescriptor<
-            DTTisFixedSize<DataType>,
+            DTTIs1DFixedSize<DataType>,
             typename DataTypeTraits<DataType>::TypeDimensionsList,
             typename DataTypeTraits<DataType>::DataDimensionsList
         >
@@ -54,7 +54,7 @@ namespace _ {
     class DataTypeBufferDimension;
 
     template <typename T, typename SizeT>
-    class DataTypeBufferDimension<T*, SizeT> {
+    class DataTypeBufferDimension<const T*, SizeT> {
         using AtomType = std::remove_const_t<T>;
         ArenaBuffer<AtomType> buffer_;
         SizeT offset_{};

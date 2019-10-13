@@ -31,7 +31,7 @@ namespace map {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct MapKeyStructTF;
+template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct MapKeyStructTF;
 
 template <typename KeyType>
 struct MapKeyStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType, 1, 1>> {};
@@ -41,7 +41,7 @@ struct MapKeyStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
 
 
 
-template <typename ValueType, bool Selector = DataTypeTraits<ValueType>::isFixedSize> struct MapValueStructTF;
+template <typename ValueType, bool Selector = DTTIs1DFixedSize<ValueType>> struct MapValueStructTF;
 
 template <typename ValueType>
 struct MapValueStructTF<ValueType, true>: HasType<
@@ -77,7 +77,7 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
     //Should be done systematically on the level of BT
 
     using Type = IfThenElse <
-            DataTypeTraits<KeyType>::isFixedSize,
+            DTTIs1DFixedSize<KeyType>,
             PkdFQTreeT<KeyType, Indexes>,
             PkdVQTreeT<KeyType, Indexes>
     >;
@@ -94,7 +94,7 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 //    );
 
     using Type = bt::PkdStructSelector<
-            DataTypeTraits<KeyType>::isFixedSize,
+            DTTIs1DFixedSize<KeyType>,
             PkdFMTree,
             PackedVLenElementArray,
 

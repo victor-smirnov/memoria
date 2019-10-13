@@ -513,7 +513,7 @@ struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>
 //    >;
 
     using Type = PkdStructSelector<
-            DataTypeTraits<KeyType>::isFixedSize,
+            DTTIs1DFixedSize<KeyType>,
             PkdFMTree,
             PackedVLenElementArray,
 

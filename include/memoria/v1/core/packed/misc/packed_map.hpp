@@ -19,6 +19,7 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 
+#include <memoria/v1/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
 #include <memoria/v1/core/packed/array/packed_vle_array.hpp>
 #include <memoria/v1/core/packed/array/packed_fse_array.hpp>
 
@@ -33,12 +34,14 @@ namespace v1 {
 
 namespace _ {
 
-    template <typename DataType, bool FixedSize = DataTypeTraits<DataType>::isFixedSize>
+    template <typename DataType, bool FixedSize = DTTIs1DFixedSize<DataType>>
     struct KeysAdapter;
 
     template <typename DataType>
     struct KeysAdapter<DataType, false> {
-        using PkdStruct = PackedVLenElementArray<PackedVLenElementArrayTypes<DataType, 1, 1>>;
+        //using PkdStruct = PackedVLenElementArray<PackedVLenElementArrayTypes<DataType, 1, 1>>;
+
+        using PkdStruct = PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, true>>;
     };
 
     template <typename DataType>
@@ -47,12 +50,13 @@ namespace _ {
     };
 
 
-    template <typename DataType, bool FixedSize = DataTypeTraits<DataType>::isFixedSize>
+    template <typename DataType, bool FixedSize = DTTIs1DFixedSize<DataType>>
     struct ValuesAdapter;
 
     template <typename DataType>
     struct ValuesAdapter<DataType, false> {
-        using PkdStruct = PackedVLenElementArray<PackedVLenElementArrayTypes<DataType, 1, 1>>;
+        //using PkdStruct = PackedVLenElementArray<PackedVLenElementArrayTypes<DataType, 1, 1>>;
+        using PkdStruct = PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, true>>;
     };
 
     template <typename DataType>

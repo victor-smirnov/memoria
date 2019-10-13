@@ -28,7 +28,7 @@ namespace memoria {
 namespace v1 {
 namespace mvector       {
 
-template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct VectorValueStructTF;
+template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct VectorValueStructTF;
 
 template <typename KeyType>
 struct VectorValueStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType>> {};

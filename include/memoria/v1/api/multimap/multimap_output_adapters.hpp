@@ -34,8 +34,8 @@ namespace _ {
 
     template <
         typename DataType,
-        typename ViewType = typename DataTypeTraits<DataType>::ViewType,
-        bool IsFixedSize = DataTypeTraits<DataType>::isFixedSize
+        typename ViewType = DTTViewType<DataType>,
+        bool IsFixedSize = DTTIs1DFixedSize<DataType>
     >
     class MMapSubstreamAdapter;
 
@@ -75,8 +75,8 @@ namespace _ {
 
     template <
         typename DataType,
-        typename ViewType = typename DataTypeTraits<DataType>::ViewType,
-        bool IsFixedSize = DataTypeTraits<DataType>::isFixedSize
+        typename ViewType = DTTViewType<DataType>,
+        bool IsFixedSize = DTTIs1DFixedSize<DataType>
     >
     class MMapValueGroupsAdapter;
 
@@ -167,6 +167,7 @@ namespace _ {
         const auto& values() const {return values_;}
 
         Span<const Span<const ViewType>> span() const {return array_.span();}
+
         void clear() {
             values_.clear();
             array_.clear();
@@ -264,7 +265,7 @@ namespace _ {
     template <
         typename DataType,
         typename AtomType,
-        bool IsFixedSize = DataTypeTraits<DataType>::isFixedSize
+        bool IsFixedSize = DTTIs1DFixedSize<DataType>
     >
     class MMapValuesBufferAdapter;
 

@@ -22,6 +22,8 @@
 
 #include <memoria/v1/core/tools/random.hpp>
 
+#include <memoria/v1/api/datatypes/buffer/buffer.hpp>
+
 #include <memory>
 #include <tuple>
 #include <exception>
@@ -29,13 +31,12 @@
 namespace memoria {
 namespace v1 {
 
-
-
-
-
-/*
-template <typename Key, typename Value>
+template <typename KeyDataType, typename ValueDataType>
 class MultimapRandomBufferPopulator: public io::IOVectorProducer {
+
+    using Key = DTTViewType<KeyDataType>;
+    using Value = DTTViewType<ValueDataType>;
+
     const size_t mean_value_size_;
     Key key_cnt_{1};
     Value vv_{};
@@ -52,22 +53,23 @@ public:
     virtual bool populate(io::IOVector& buffer)
     {
         auto& seq = buffer.symbol_sequence();
-        auto& s0 = io::substream_cast<io::IOColumnwiseFixedSizeArraySubstream<Key>>(buffer.substream(0));
-        auto& s1 = io::substream_cast<io::IORowwiseFixedSizeArraySubstream<Value>>(buffer.substream(1));
+
+        auto& s0 = io::substream_cast<DataTypeBuffer<KeyDataType>>(buffer.substream(0));
+        auto& s1 = io::substream_cast<DataTypeBuffer<ValueDataType>>(buffer.substream(1));
 
         for (int r = 0; r < entries_per_batch_; r++)
         {
             int32_t len = getRandomG(mean_value_size_ * 2) + 1;
             seq.append(0, 1);
-            s0.append(0, key_cnt_);
+            s0.append(key_cnt_);
+
             total_ += sizeof(Key);
 
             seq.append(1, len);
-            Value* val = s1.reserve(len);
 
             for (int c = 0; c < len; c++)
             {
-                *(val + c) = c;
+                s1.append(c);
             }
 
             total_ += len * sizeof(Value);
@@ -78,7 +80,7 @@ public:
         return total_ >= total_max_;
     }
 };
-*/
+
 
     
 }}

@@ -27,7 +27,6 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 #include <memoria/v1/api/multimap/multimap_input.hpp>
-#include <memoria/v1/api/multimap/multimap_entry.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 
 #include <memoria/v1/api/multimap/multimap_api.hpp>

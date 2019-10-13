@@ -65,6 +65,10 @@ struct ForEachIdx {
     constexpr int32_t value() {
         return Idx;
     }
+
+    constexpr operator int32_t() const {
+        return Idx;
+    }
 };
 
 

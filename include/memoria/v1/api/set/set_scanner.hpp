@@ -31,7 +31,7 @@ namespace v1 {
 
 namespace _ {
 
-template <typename DataType, bool FixedSizeKey = DTTisFixedSize<DataType>>
+template <typename DataType, bool FixedSizeKey = DTTIs1DFixedSize<DataType>>
 struct SetKeys;
 
 template <typename DataType>

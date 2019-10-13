@@ -34,8 +34,8 @@ namespace _ {
 template <
         typename KeyDataType,
         typename ValueDataType,
-        bool FixedSizeKey = DTTisFixedSize<KeyDataType>,
-        bool FixedSizeValue = DTTisFixedSize<ValueDataType>
+        bool FixedSizeKey = DTTIs1DFixedSize<KeyDataType>,
+        bool FixedSizeValue = DTTIs1DFixedSize<ValueDataType>
 >
 struct MapKeysValues;
 

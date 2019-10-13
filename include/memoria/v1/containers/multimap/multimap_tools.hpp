@@ -34,8 +34,8 @@ namespace multimap {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct MMapKeyStructTF;
-template <typename KeyType, bool Selector = DataTypeTraits<KeyType>::isFixedSize> struct MMapSumKeyStructTF;
+template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct MMapKeyStructTF;
+template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct MMapSumKeyStructTF;
 
 template <typename T> struct MMapBranchStructTF;
 
@@ -53,7 +53,7 @@ template <typename KeyType>
 struct MMapSumKeyStructTF<KeyType, false>: HasType<PkdVQTreeT<KeyType>> {};
 
 
-template <typename ValueType, bool Selector = DataTypeTraits<ValueType>::isFixedSize> struct MMapValueStructTF;
+template <typename ValueType, bool Selector = DTTIs1DFixedSize<ValueType>> struct MMapValueStructTF;
 
 template <typename ValueType>
 struct MMapValueStructTF<ValueType, true>: HasType<PkdFSEArrayT<ValueType>> {};
@@ -98,7 +98,7 @@ template <typename KeyType, int32_t Indexes>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     using Type = bt::PkdStructSelector<
-            DataTypeTraits<KeyType>::isFixedSize,
+            DTTIs1DFixedSize<KeyType>,
             PackedFixedElementOptArray,
             PackedVLenElementOptArray,
 

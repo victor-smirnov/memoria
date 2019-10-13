@@ -47,7 +47,7 @@ struct VectorIterator: BTSSIterator<Profile> {
     virtual CtrSizeT remove_from(CtrSizeT size) = 0;
 };
 
-template <typename DataType, typename Profile, bool FixedSizeElement = DTTisFixedSize<DataType>>
+template <typename DataType, typename Profile, bool FixedSizeElement = DTTIs1DFixedSize<DataType>>
 struct VectorApiBase;
 
 template <typename DataType, typename Profile>

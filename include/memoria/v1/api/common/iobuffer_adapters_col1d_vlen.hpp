@@ -47,13 +47,6 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
         column_(column)
     {}
 
-    static const auto* select(const io::IOSubstream& substream, int32_t column, int32_t row)
-    {
-        const auto& subs = io::substream_cast<SubstreamT>(substream);
-        return subs.select(column, row);
-    }
-
-
     static void read_to(
             const io::IOSubstream& substream,
             int32_t column,
@@ -103,38 +96,6 @@ struct IOSubstreamAdapter<ICtrApiSubstream<DataType, io::ColumnWise1D, ValueCode
         this->substream_ = &io::substream_cast<SubstreamT>(substream);
     }
 
-    void append(ViewType view) {
-        substream_->append_from(Span<const ViewType>(&view, 1));
-    }
-
-    void append_buffer(Span<const ViewType> buffer) {
-        substream_->append_from(buffer);
-    }
-
-    template <typename ValueType>
-    void append_buffer(Span<const ValueType> buffer) {
-        for (auto& value: buffer) {
-            append(value);
-        }
-    }
-
-    template <typename ValueType>
-    void append_buffer(const std::vector<ValueType> buffer) {
-        for (auto& value: buffer) {
-            append(value);
-        }
-    }
-
-    template <typename ValueType>
-    void append(Span<const ValueType> buffer) {
-        for (auto& value: buffer) {
-            append(value);
-        }
-    }
-
-    void append(Span<const ViewType> buffer) {
-        substream_->append_from(buffer);
-    }
 
     size_t size() const {
         return substream_->size();

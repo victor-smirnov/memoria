@@ -69,18 +69,31 @@ using DTTAtomType = typename DataTypeTraits<T>::AtomType;
 template <typename T>
 using DTTTypeDimensionsTuple = typename DataTypeTraits<T>::TypeDimensionsTuple;
 
-
 template <typename T>
-constexpr bool DTTisFixedSize = DataTypeTraits<T>::isFixedSize;
+using DTTDataDimensionsTuple = typename DataTypeTraits<T>::DataDimensionsTuple;
 
 template <typename T>
 constexpr bool DTTisDataType = DataTypeTraits<T>::isDataType;
 
 
 
+namespace dtt_ {
+    template <typename TypedimensionsList, typename DataDimenstionsList>
+    struct DTTIs1DFixedSize: HasValue<bool, false> {};
+
+    template <typename T>
+    struct DTTIs1DFixedSize<std::tuple<>, std::tuple<const T*>>: HasValue<bool, true> {};
+}
+
+template <typename DataType>
+constexpr bool DTTIs1DFixedSize = dtt_::DTTIs1DFixedSize<
+    DTTTypeDimensionsTuple<DataType>,
+    DTTDataDimensionsTuple<DataType>
+>::Value;
+
+
 template <typename T> struct DataTypeTraitsBase {
     static constexpr bool isDataType = true;
-    static constexpr bool isFixedSize = false;
     static constexpr bool isSdnDeserializable = false;
 
     using DatumSelector         = EmptyType;
@@ -101,7 +114,6 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
-    static constexpr bool isFixedSize         = true;
 
     static constexpr bool isSdnDeserializable = std::is_arithmetic<T>::value;
 

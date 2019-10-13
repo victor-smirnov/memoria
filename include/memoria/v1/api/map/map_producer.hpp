@@ -36,7 +36,7 @@ public:
     using IOVSchema         = Linearize<typename Types::IOVSchema>;
     using KeysSubstream     = DataTypeBuffer<typename Select<0, IOVSchema>::DataType>;
     using ValuesSubstream   = DataTypeBuffer<typename Select<1, IOVSchema>::DataType>;
-    using ProducerFn       = std::function<bool (KeysSubstream&, ValuesSubstream&, size_t)>;
+    using ProducerFn        = std::function<bool (KeysSubstream&, ValuesSubstream&, size_t)>;
 
 private:
     ProducerFn producer_fn_;

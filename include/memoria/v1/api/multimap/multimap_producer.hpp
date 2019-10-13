@@ -43,7 +43,7 @@ public:
     };
 
 
-    using ProducerFn        = std::function<
+    using ProducerFn = std::function<
         bool (
             io::IOSymbolSequence&,
             KeysSubstream&,

@@ -47,6 +47,11 @@ class DataTypeBuffer<
 
     using DataBuffersTuple = boost::mp11::mp_transform<DimensionTypeToBuffer, DataDimensionsTuple>;
 
+    template <typename T>
+    using DimensionTypeToSizeT = SizeT;
+
+    using DataSizesTuple = boost::mp11::mp_transform<DimensionTypeToSizeT, DataDimensionsTuple>;
+
     ArenaBuffer<ViewType, SizeT> views_;
     DataBuffersTuple data_buffers_;
 
@@ -93,14 +98,14 @@ public:
     {
         views_.clear();
         for_eatch_data_buffer([&](auto idx) {
-            std::get<idx.value()>(data_buffers_).clear();
+            std::get<idx>(data_buffers_).clear();
         });
     }
 
     void reset() {
         views_.reset();
         for_eatch_data_buffer([&](auto idx) {
-            std::get<idx.value()>(data_buffers_).reset();
+            std::get<idx>(data_buffers_).reset();
         });
     }
 
@@ -166,6 +171,18 @@ public:
         return std::get<Dimension>(data_buffers_).data_length(start, size);
     }
 
+    DataSizesTuple data_lengths(size_t start, psize_t size) const
+    {
+        DataSizesTuple tuple{};
+
+        for_eatch_data_buffer([&](auto idx){
+            std::get<idx>(tuple) = std::get<idx>(data_buffers_).data_length(start, size);
+        });
+
+        return tuple;
+    }
+
+
     template <int32_t Dimension>
     const auto* data(size_t start) const {
         return std::get<Dimension>(data_buffers_).data(start);
@@ -175,6 +192,8 @@ public:
     const auto* offsets(size_t start) const {
         return std::get<Dimension>(data_buffers_).offsets(start);
     }
+
+
 
     void read_to(size_t start, size_t size, ArenaBuffer<ViewType>& buffer) const {
         buffer.append_values(views_.span(start, size));
@@ -199,8 +218,8 @@ protected:
         views_.append_value(SOAdapter::make_view(type_data_, dimensions));
 
         for_eatch_data_buffer([&](auto idx){
-            std::get<idx.value()>(data_buffers_).append_top(
-                std::get<idx.value()>(dimensions)
+            std::get<idx>(data_buffers_).append_top(
+                std::get<idx>(dimensions)
             );
         });
     }
@@ -223,8 +242,8 @@ private:
         bool refresh_views{};
 
         for_eatch_data_buffer([&](auto idx){
-            refresh_views = std::get<idx.value()>(data_buffers_).emplace_back_nockeck_tool(
-                std::get<idx.value()>(data)
+            refresh_views = std::get<idx>(data_buffers_).emplace_back_nockeck_tool(
+                std::get<idx>(data)
             ) || refresh_views;
         });
 
@@ -243,7 +262,7 @@ private:
     void refresh_views()
     {
         for_eatch_data_buffer([&](auto idx){
-            std::get<idx.value()>(data_buffers_).reset_iterator();
+            std::get<idx>(data_buffers_).reset_iterator();
         });
 
         SizeT views_size = views_.size();
@@ -253,7 +272,7 @@ private:
         {
             DataDimensionsTuple tuple;
             for_eatch_data_buffer([&](auto idx){
-                std::get<idx.value()>(data_buffers_).next(std::get<idx.value()>(tuple));
+                std::get<idx>(data_buffers_).next(std::get<idx>(tuple));
             });
 
             views_.append_value(SOAdapter::make_view(type_data_, tuple));
@@ -267,7 +286,7 @@ private:
     }
 
     template <typename Fn, typename... Args>
-    void for_eatch_data_buffer(Fn&& fn, Args&&... args) {
+    static void for_eatch_data_buffer(Fn&& fn, Args&&... args) {
         ForEach<0, std::tuple_size<DataBuffersTuple>::value>::process_fn(
             std::forward<Fn>(fn),
             std::forward<Args>(args)...
