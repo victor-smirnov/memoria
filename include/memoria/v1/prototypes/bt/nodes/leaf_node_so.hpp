@@ -724,9 +724,9 @@ public:
         int32_t mem_used_ = 0;
 
         template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
-        void stream(Tree&& tree, OtherNodeT&& other)
+        void stream(Tree& tree, OtherNodeT&& other)
         {
-            using PkdTree = typename std::decay_t<Tree>::PkdStructT;
+            using PkdTree = typename Tree::PkdStructT;
 
             if (tree)
             {

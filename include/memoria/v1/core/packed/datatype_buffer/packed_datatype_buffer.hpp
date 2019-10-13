@@ -37,6 +37,9 @@ class PackedDataTypeBuffer;
 template <typename DataType, bool Indexed>
 struct PackedDataTypeBufferTypes {};
 
+template <typename DataType, bool Indexed>
+using PackedDataTypeBufferT = PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, Indexed>>;
+
 template <typename DataType_, bool Indexed>
 class PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType_, Indexed>>:
     public PackedAllocator
@@ -67,7 +70,7 @@ public:
     using SparseObject  = PackedDataTypeBufferSO<ExtData, MyType>;
 
     using GrowableIOSubstream = DataTypeBuffer<DataType>;
-    using IOSubstreamView     = IO1DArraySubstreamViewImpl<DataType, SparseObject>;
+    using IOSubstreamView     = pdtbuf_::PackedDataTypeBufferIO<DataType, SparseObject>;
 
     enum {METADATA = 0};
 
@@ -76,7 +79,6 @@ public:
     class Metadata {
         psize_t size_;
         psize_t data_size_[Dimensions];
-        psize_t offsets_size_;
     public:
         psize_t& size() {return size_;}
         const psize_t& size() const {return size_;}
@@ -120,10 +122,20 @@ public:
     {
         psize_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-
         return PackedAllocator::block_size(
             metadata_length + dimensions_size, Dimensions + 1
         );
+    }
+
+    static psize_t block_size(psize_t capacity)
+    {
+        psize_t aligned_data_size{};
+
+        for_each_dimension([&](auto idx){
+            aligned_data_size += Dimension<idx>::data_block_size(capacity);
+        });
+
+        return base_size(aligned_data_size);
     }
 
     OpStatus init()
@@ -157,30 +169,24 @@ public:
         return status;
     }
 
-//    static psize_t packed_block_size(psize_t capacity)
-//    {
-//        int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
-//        int32_t values_length   = PackedAllocatable::roundUpBytesToAlignmentBlocks(capacity * sizeof(Value));
+    static psize_t packed_block_size(psize_t capacity)
+    {
+        return block_size(capacity);
+    }
 
-//        return PackedAllocator::block_size(
-//            metadata_length + (values_length) * Blocks, Blocks + 1
-//        );
-//    }
+    psize_t block_size(const PackedDataTypeBuffer* other) const
+    {
+        auto& my_meta = metadata();
+        auto& other_meta = other->metadata();
 
-//    psize_t block_size(const PackedDataTypeBuffer* other) const
-//    {
-//        auto& my_meta = metadata();
-//        auto& other_meta = other->metadata();
+        psize_t values_length{};
 
-//        int32_t metadata_length = PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
-//        int32_t values_length   = PackedAllocatable::roundUpBytesToAlignmentBlocks(
-//                (my_meta.size() + other_meta.size()) * sizeof(Value)
-//        );
+        for_each_dimension([&](auto dim_idx){
+            values_length += dimension<dim_idx>().joint_data_length(my_meta, other, other_meta);
+        });
 
-//        return PackedAllocator::block_size(
-//            metadata_length + (values_length) * Blocks, Blocks + 1
-//        );
-//    }
+        return base_size(values_length);
+    }
 
     Metadata& metadata() {
         return *get<Metadata>(METADATA);
@@ -245,7 +251,13 @@ template <typename DataType, bool Indexed>
 struct PackedStructTraits<PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, Indexed>>> {
     using SearchKeyDataType = DataType;
 
-    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
+    using AccumType = DTTViewType<SearchKeyDataType>;
+    using SearchKeyType = DTTViewType<SearchKeyDataType>;
+
+    static constexpr PackedDataTypeSize DataTypeSize = pdtbuf_::BufferSizeTypeSelector<
+        typename DataTypeTraits<DataType>::DataDimensionsList
+    >::DataTypeSize;
+
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
     static constexpr int32_t Blocks = 1;
     static constexpr int32_t Indexes = Indexed ? 1 : 0;

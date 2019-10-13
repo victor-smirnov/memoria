@@ -34,16 +34,12 @@ namespace multimap {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct MMapKeyStructTF;
+template <typename DataType>
+struct MMapKeyStructTF: HasType<PackedDataTypeBufferT<DataType, true>> {};
+
 template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct MMapSumKeyStructTF;
 
 template <typename T> struct MMapBranchStructTF;
-
-template <typename KeyType>
-struct MMapKeyStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType, 1, 1>> {};
-
-template <typename KeyType>
-struct MMapKeyStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
 
 
 template <typename KeyType>
@@ -53,14 +49,8 @@ template <typename KeyType>
 struct MMapSumKeyStructTF<KeyType, false>: HasType<PkdVQTreeT<KeyType>> {};
 
 
-template <typename ValueType, bool Selector = DTTIs1DFixedSize<ValueType>> struct MMapValueStructTF;
-
-template <typename ValueType>
-struct MMapValueStructTF<ValueType, true>: HasType<PkdFSEArrayT<ValueType>> {};
-
-template <typename ValueType>
-struct MMapValueStructTF<ValueType, false>: HasType<PkdVLEArrayT<ValueType>> {};
-
+template <typename DataType>
+struct MMapValueStructTF: HasType<PackedDataTypeBufferT<DataType, false>> {};
 
 
 template <typename KeyType>

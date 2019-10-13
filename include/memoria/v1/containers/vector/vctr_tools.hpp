@@ -26,18 +26,10 @@
 
 namespace memoria {
 namespace v1 {
-namespace mvector       {
+namespace mvector {
 
-template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct VectorValueStructTF;
-
-template <typename KeyType>
-struct VectorValueStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType>> {};
-
-template <typename KeyType>
-struct VectorValueStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType>> {};
+template <typename DataType>
+struct VectorValueStructTF: HasType<PackedDataTypeBufferT<DataType, false>> {};
 
 
-
-
-}
-}}
+}}}

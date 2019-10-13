@@ -787,7 +787,7 @@ public:
         }
 
         typename Base::Value* values[Blocks];
-        for (int32_t block  = 0; block < Blocks; block++)
+        for (int32_t block = 0; block < Blocks; block++)
         {
             values[block] = this->values(block);
         }

@@ -207,7 +207,6 @@ struct DataTypeTraits<FixedArray<Size>>:  FixedSizeDataTypeTraits<FixedArray<Siz
 
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
-    static constexpr bool isFixedSize         = true;
 
     using DatumSelector = FixedSizeDataTypeTag;
 

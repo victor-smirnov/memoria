@@ -29,17 +29,8 @@ namespace set {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct SetKeyStructTF;
-
-template <typename KeyType>
-struct SetKeyStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType, 1, 1>> {};
-
-template <typename KeyType>
-struct SetKeyStructTF<KeyType, false>: HasType<
-        PackedDataTypeBuffer<PackedDataTypeBufferTypes<KeyType, true>>
-> {};
-
-
+template <typename DataType>
+struct SetKeyStructTF: HasType<PackedDataTypeBufferT<DataType, true>> {};
 
 
 template <typename T> struct SetBranchStructTF;
@@ -79,14 +70,7 @@ struct SetBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(Indexes <= 1, "");
 
-    using Type = bt::PkdStructSelector<
-            DTTIs1DFixedSize<KeyType>,
-            PkdFMTree,
-            PackedDataTypeBuffer,
-
-            PkdFMTreeTypes<KeyType, Indexes>,
-            PackedDataTypeBufferTypes<KeyType, Indexes == 1>
-    >;
+    using Type = PackedDataTypeBufferT<KeyType, Indexes == 1>;
 
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };

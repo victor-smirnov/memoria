@@ -32,42 +32,6 @@
 namespace memoria {
 namespace v1 {
 
-namespace _ {
-
-    template <typename DataType, bool FixedSize = DTTIs1DFixedSize<DataType>>
-    struct KeysAdapter;
-
-    template <typename DataType>
-    struct KeysAdapter<DataType, false> {
-        //using PkdStruct = PackedVLenElementArray<PackedVLenElementArrayTypes<DataType, 1, 1>>;
-
-        using PkdStruct = PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, true>>;
-    };
-
-    template <typename DataType>
-    struct KeysAdapter<DataType, true> {
-        using PkdStruct = PackedFixedSizeElementArray<PackedFixedSizeElementArrayTypes<DataType, 1, 1>>;
-    };
-
-
-    template <typename DataType, bool FixedSize = DTTIs1DFixedSize<DataType>>
-    struct ValuesAdapter;
-
-    template <typename DataType>
-    struct ValuesAdapter<DataType, false> {
-        //using PkdStruct = PackedVLenElementArray<PackedVLenElementArrayTypes<DataType, 1, 1>>;
-        using PkdStruct = PackedDataTypeBuffer<PackedDataTypeBufferTypes<DataType, true>>;
-    };
-
-    template <typename DataType>
-    struct ValuesAdapter<DataType, true> {
-        using PkdStruct = PackedFixedSizeElementArray<PackedFixedSizeElementArrayTypes<DataType, 1, 1>>;
-    };
-
-}
-
-
-
 template <typename KeyDataType, typename ValueDataType>
 class PackedMap: public PackedAllocator {
     using Base = PackedAllocator;
@@ -76,11 +40,11 @@ public:
 
     static constexpr uint32_t VERSION = 1;
 
-    using KeysPkdStruct      = typename _::KeysAdapter<KeyDataType>::PkdStruct;
-    using ValuesPkdStruct    = typename _::ValuesAdapter<ValueDataType>::PkdStruct;
+    using KeysPkdStruct = PackedDataTypeBufferT<KeyDataType, true>;
+    using ValuesPkdStruct = PackedDataTypeBufferT<ValueDataType, false>;
 
-    using KeyView   = typename DataTypeTraits<KeyDataType>::ViewType;
-    using ValueView = typename DataTypeTraits<ValueDataType>::ViewType;
+    using KeyView   = DTTViewType<KeyDataType>;
+    using ValueView = DTTViewType<ValueDataType>;
 
     using SparseObject = PackedMapSO<PackedMap>;
 

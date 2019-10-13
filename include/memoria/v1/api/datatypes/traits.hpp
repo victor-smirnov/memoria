@@ -133,6 +133,39 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
         return DataDimensionsTuple{view};
     }
 
+    static TypeDimensionsTuple describe_type(ViewType view) {
+        return TypeDimensionsTuple{};
+    }
+
+
+    static ViewType make_view(const DataDimensionsTuple& data)
+    {
+        return *std::get<0>(data);
+    }
+
+    static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data)
+    {
+        return *std::get<0>(data);
+    }
+
+
+//    static Datum<DataType> make_datum(const DataDimensionsTuple& data) {
+//        return Datum<DataType>(make_view(data));
+//    }
+
+//    static Datum<DataType> make_datum(const TypeDimensionsTuple& type, const DataDimensionsTuple& data) {
+//        return Datum<DataType>(make_view(data));
+//    }
+
+//    static AnyDatum make_any_datum(const DataDimensionsTuple& data) {
+//        return Datum<DataType>(make_view(data));
+//    }
+
+//    static AnyDatum make_any_datum(const TypeDimensionsTuple& type, const DataDimensionsTuple& data) {
+//        return Datum<DataType>(make_view(data));
+//    }
+
+
     static void create_signature(SBuf& buf, DataType obj) {
         PrimitiveDataTypeName<DataType>::create_signature(buf, obj);
     }

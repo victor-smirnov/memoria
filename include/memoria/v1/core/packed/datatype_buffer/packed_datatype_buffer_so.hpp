@@ -65,6 +65,7 @@ public:
 
     using DataLengths = core::StaticVector<psize_t, Dimensions>;
 
+    using Values = core::StaticVector<ViewType, Columns>;
 
 
     PackedDataTypeBufferSO(): ext_data_(), data_() {}
@@ -272,8 +273,8 @@ public:
     template <typename T>
     OpStatus insert(psize_t pos, const core::StaticVector<T, Columns>& values)
     {
-        if (isFail(insert(pos, 1, [&](psize_t column, psize_t row){
-                return values[column];
+        if (isFail(insert_from_fn(pos, 1, [&](psize_t row){
+                return values[0];
         }))) {
             return OpStatus::FAIL;
         }
@@ -362,8 +363,8 @@ public:
     template <int32_t Offset, typename T, int32_t Size, template <typename, int32_t> class BranchNodeEntryItem, typename AccessorFn>
     OpStatus _insert_b(psize_t pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
     {
-        if (isFail(insert(pos, 1, [&](psize_t column, psize_t row){
-                return val(column);
+        if (isFail(insert_from_fn(pos, 1, [&](psize_t row){
+                return val(0);
         }))) {
             return OpStatus::FAIL;
         }
@@ -448,7 +449,7 @@ public:
 
         psize_t total_size{};
 
-        auto data = DataTypeTraits<DataType>::describe_data(view);
+        auto data = DataTypeTraits<DataType>::describe_data(&view);
 
         for_each_dimension([&](auto idx){
             total_size += data_->template dimension<idx>().estimate_insert_upsize(
@@ -465,7 +466,7 @@ public:
 
         psize_t total_size{};
 
-        auto data = DataTypeTraits<DataType>::describe_data(view);
+        auto data = DataTypeTraits<DataType>::describe_data(&view);
 
         for_each_dimension([&](auto dim_idx){
             total_size += data_->template dimension<dim_idx>().estimate_replace_upsize(
@@ -478,7 +479,7 @@ public:
 
     OpStatus replace(psize_t column, psize_t idx, const ViewType& view)
     {
-        DataDimensionsTuple data = DataTypeTraits<DataType>::describe_data(view);
+        DataDimensionsTuple data = DataTypeTraits<DataType>::describe_data(&view);
 
         if (isFail(resize(idx, data))) {
             return OpStatus::FAIL;
@@ -493,16 +494,24 @@ public:
         return OpStatus::OK;
     }
 
+    OpStatus insert(int32_t idx, int32_t size, std::function<Values (int32_t)> provider)
+    {
+        return insert_from_fn(idx, size, [&](psize_t row){
+            return provider(row)[0];
+        });
+    }
+
 
 
     template <typename AccessorFn>
-    OpStatus insert(psize_t row_at, psize_t size, AccessorFn&& elements)
+    OpStatus insert_from_fn(psize_t row_at, psize_t size, AccessorFn&& elements)
     {
         DataLengths data_lengths{};
 
         for (size_t row = 0; row < size; row++)
         {
-            auto data = DataTypeTraits<DataType>::describe_data(elements(0, row));
+            auto elem = elements(row);
+            auto data = DataTypeTraits<DataType>::describe_data(&elem);
 
             for_each_dimension([&](auto dim_idx){
                 data_lengths[dim_idx] += data_length(std::get<dim_idx>(data));
@@ -515,7 +524,8 @@ public:
 
         for (psize_t row = 0; row < size; row++)
         {
-            auto data = DataTypeTraits<DataType>::describe_data(elements(0, row));
+            auto elem = elements(row);
+            auto data = DataTypeTraits<DataType>::describe_data(&elem);
 
             for_each_dimension([&](auto dim_idx){
                 data_->template dimension<dim_idx>().copy_from(
@@ -647,73 +657,7 @@ private:
 };
 
 
-template <typename DataType, typename ExtData, typename PkdStruct>
-class IO1DArraySubstreamViewImpl<
-        DataType,
-        PackedDataTypeBufferSO<ExtData, PkdStruct>
->: public io::IO1DArraySubstreamView<DataType> {
 
-    using Base = io::IO1DArraySubstreamView<DataType>;
-    using ArraySO = PackedDataTypeBufferSO<ExtData, PkdStruct>;
-
-    using typename Base::ViewType;
-
-    static_assert(ArraySO::Columns == 1, "");
-
-    ArraySO array_{};
-
-public:
-    void configure(ArraySO array)
-    {
-        array_ = array;
-    }
-
-    size_t size() const {
-        return array_.size();
-    }
-
-    void read_to(size_t row, size_t size, ArenaBuffer<ViewType>& buffer) const
-    {
-        auto ii = array_.begin();
-        ii += row;
-
-        for (size_t c = 0; c < size; c++, ++ii) {
-            buffer.append_value(*ii);
-        }
-    }
-
-    void read_to(size_t row, size_t size, DataTypeBuffer<DataType>& buffer) const
-    {
-        auto ii = array_.begin();
-        ii += row;
-
-        for (size_t c = 0; c < size; c++, ++ii) {
-            buffer.append(*ii);
-        }
-    }
-
-    void read_to(size_t row, size_t size, Span<ViewType> buffer) const
-    {
-        auto ii = array_.begin();
-        ii += row;
-
-        for (size_t c = 0; c < size; c++, ++ii) {
-            buffer[c] = (*ii);
-        }
-    }
-
-    virtual Span<const ViewType> span(size_t row, size_t size) const {
-        MMA1_THROW(UnsupportedOperationException());
-    }
-
-    ViewType get(size_t row) const {
-        return array_.access(row);
-    }
-
-    U8String describe() const {
-        return TypeNameFactory<Base>::name().to_u8();
-    }
-};
 
 }
 }

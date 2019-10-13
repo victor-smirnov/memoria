@@ -114,6 +114,11 @@ public:
     const ValueType* data(size_t start) const {
         return arena_.data() + start;
     }
+
+    std::tuple<size_t> data_lengths(size_t start, psize_t size) const
+    {
+        return std::tuple<size_t>(size);
+    }
 };
 
 

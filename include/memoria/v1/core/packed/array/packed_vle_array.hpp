@@ -270,8 +270,8 @@ template <typename Types>
 struct PackedStructTraits<PackedVLenElementArray<Types>> {
     using SearchKeyDataType = typename Types::Value;
 
-    using AccumType = typename DataTypeTraits<SearchKeyDataType>::ViewType;
-    using SearchKeyType = typename DataTypeTraits<SearchKeyDataType>::ViewType;
+    using AccumType = DTTViewType<SearchKeyDataType>;
+    using SearchKeyType = DTTViewType<SearchKeyDataType>;
 
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 

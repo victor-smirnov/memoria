@@ -501,25 +501,9 @@ struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>
 template <typename KeyType, int32_t Indexes>
 struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
-//    static_assert(
-//            IsExternalizable<KeyType>::Value,
-//            "Type must either has ValueCodec or FieldFactory defined"
-//    );
+    static_assert(Indexes <= 1, "");
 
-//    using Type = IfThenElse<
-//            HasFieldFactory<KeyType>::Value,
-//            PkdFMOTreeT<KeyType, Indexes>,
-//            PkdVMOTreeT<KeyType>
-//    >;
-
-    using Type = PkdStructSelector<
-            DTTIs1DFixedSize<KeyType>,
-            PkdFMTree,
-            PackedVLenElementArray,
-
-            PkdFMTreeTypes<KeyType, Indexes>,
-            PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
-    >;
+    using Type = PackedDataTypeBufferT<KeyType, Indexes == 1>;
 
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };

@@ -77,6 +77,11 @@ public:
         return OpStatus::OK;
     }
 
+    static psize_t data_block_size(psize_t capacity)
+    {
+        return 0;
+    }
+
     template <typename Metadata>
     static void init_metadata(Metadata& metadata) {
         metadata.data_size(Dimension) = 0;
@@ -84,6 +89,20 @@ public:
 
     static constexpr psize_t empty_size_aligned() {
         return PackedAllocatable::roundUpBytesToAlignmentBlocks(sizeof(psize_t));
+    }
+
+    template <typename Metadata>
+    psize_t joint_data_length(const Metadata& my_meta, const PkdStruct* other, const Metadata& other_meta) const
+    {
+        psize_t data_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+             (my_meta.data_size(Dimension) + other_meta.data_size(Dimension)) * sizeof(T)
+        );
+
+        psize_t offsets_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(
+             (my_meta.offsets_size() + other_meta.offsets_size() - 1) * sizeof (DataSizeType)
+        );
+
+        return data_size + offsets_size;
     }
 
     void set(Span<const T>& span, psize_t row) const
@@ -111,21 +130,7 @@ public:
         return offs[row + 1] - offs[row];
     }
 
-    void shift_offsets_right(psize_t start, psize_t end, psize_t shift_length)
-    {
-        psize_t* offsets = this->offsets();
-        for (psize_t c = start; c < end; c++){
-            offsets[c] += shift_length;
-        }
-    }
 
-    void shift_offsets_left(psize_t start, psize_t end, psize_t shift_length)
-    {
-        psize_t* offsets = this->offsets();
-        for (psize_t c = start; c < end; c++){
-            offsets[c] -= shift_length;
-        }
-    }
 
     psize_t compute_new_size(psize_t extra_size, psize_t extra_data_len)
     {
@@ -136,7 +141,7 @@ public:
         );
 
         psize_t data_length_aligned = PackedAllocatable::roundUpBytesToAlignmentBlocks(
-                    extra_data_len + meta.data_size(Dimension)
+                    (extra_data_len + meta.data_size(Dimension)) * sizeof(T)
         );
 
         return data_length_aligned + offsets_length_aligned;
@@ -156,7 +161,7 @@ public:
 
         psize_t column_data_length = extra_data_length + meta.data_size(Dimension);
 
-        if(isFail(pkd_buf_->resizeBlock(DataBlock, column_data_length))) {
+        if(isFail(pkd_buf_->resizeBlock(DataBlock, column_data_length * sizeof(T)))) {
             return OpStatus::FAIL;
         }
 
@@ -209,7 +214,7 @@ public:
             return OpStatus::FAIL;
         }
 
-        psize_t column_data_length = meta.data_size(Dimension);
+        psize_t column_data_length = meta.data_size(Dimension) * sizeof(T);
 
         if(isFail(pkd_buf_->resizeBlock(DataBlock, column_data_length))) {
             return OpStatus::FAIL;
@@ -342,7 +347,7 @@ public:
     template <typename Metadata>
     psize_t estimate_insert_upsize(const Span<const T>& span, const Metadata& meta) const
     {
-        psize_t column_data_size = meta.data_size(0);
+        psize_t column_data_size = meta.data_size(Dimension);
         psize_t view_length = span.length();
 
         psize_t offsets_size = meta.offsets_size();
@@ -356,7 +361,7 @@ public:
         psize_t column_data_size_aligned0 = pkd_buf_->element_size(DataBlock);
 
         psize_t column_data_size_aligned1 = PackedAllocatable::roundUpBytesToAlignmentBlocks(
-            view_length + column_data_size
+            (view_length + column_data_size) * sizeof(T)
         );
 
         return column_data_size_aligned1 - column_data_size_aligned0
@@ -399,6 +404,24 @@ public:
     {
         FieldFactory<psize_t>::deserialize(buf, offsets(), meta.offsets_size());
         FieldFactory<T>::deserialize(buf, data(), meta.data_size(Dimension));
+    }
+
+
+private:
+    void shift_offsets_right(psize_t start, psize_t end, psize_t shift_length)
+    {
+        psize_t* offsets = this->offsets();
+        for (psize_t c = start; c < end; c++){
+            offsets[c] += shift_length;
+        }
+    }
+
+    void shift_offsets_left(psize_t start, psize_t end, psize_t shift_length)
+    {
+        psize_t* offsets = this->offsets();
+        for (psize_t c = start; c < end; c++){
+            offsets[c] -= shift_length;
+        }
     }
 };
 

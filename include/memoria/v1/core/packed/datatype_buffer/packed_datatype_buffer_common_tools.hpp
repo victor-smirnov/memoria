@@ -19,6 +19,8 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/list/append.hpp>
 
+#include <memoria/v1/core/iovector/io_substream_base.hpp>
+
 #include <type_traits>
 
 namespace memoria {
@@ -64,6 +66,174 @@ public:
     bool operator==(const PkdBufViewAccessor& other) const {
         return buf_.data() == other.buf_.data();
     }
+};
+
+
+template <typename DataType, typename ArraySO, bool Is1DFixedSize = DTTIs1DFixedSize<DataType>>
+class PackedDataTypeBufferIO;
+
+template <typename DataType, typename ArraySO>
+class PackedDataTypeBufferIO<
+        DataType,
+        ArraySO,
+        false
+>: public io::IO1DArraySubstreamView<DataType> {
+
+    using Base = io::IO1DArraySubstreamView<DataType>;
+
+    using typename Base::ViewType;
+
+    ArraySO array_{};
+
+public:
+    void configure(ArraySO array)
+    {
+        array_ = array;
+    }
+
+    size_t size() const {
+        return array_.size();
+    }
+
+    void read_to(size_t row, size_t size, ArenaBuffer<ViewType>& buffer) const
+    {
+        auto ii = array_.begin();
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer.append_value(*ii);
+        }
+    }
+
+    void read_to(size_t row, size_t size, DataTypeBuffer<DataType>& buffer) const
+    {
+        auto ii = array_.begin();
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer.append(*ii);
+        }
+    }
+
+    void read_to(size_t row, size_t size, Span<ViewType> buffer) const
+    {
+        auto ii = array_.begin();
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer[c] = (*ii);
+        }
+    }
+
+    virtual Span<const ViewType> span(size_t row, size_t size) const {
+        MMA1_THROW(UnsupportedOperationException());
+    }
+
+    ViewType get(size_t row) const {
+        return array_.access(row);
+    }
+
+    U8String describe() const {
+        return TypeNameFactory<Base>::name().to_u8();
+    }
+};
+
+
+
+
+template <typename DataType, typename ArraySO>
+class PackedDataTypeBufferIO<
+        DataType,
+        ArraySO,
+        true
+>: public io::IO1DArraySubstreamView<DataType> {
+
+    using Base = io::IO1DArraySubstreamView<DataType>;
+
+    using typename Base::ViewType;
+
+    ArraySO array_{};
+
+public:
+    void configure(ArraySO array)
+    {
+        array_ = array;
+    }
+
+    size_t size() const {
+        return array_.size();
+    }
+
+    void read_to(size_t row, size_t size, ArenaBuffer<ViewType>& buffer) const
+    {
+        auto ii = array_.begin();
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer.append_value(*ii);
+        }
+    }
+
+    void read_to(size_t row, size_t size, DataTypeBuffer<DataType>& buffer) const
+    {
+        auto ii = array_.begin();
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer.append(*ii);
+        }
+    }
+
+    void read_to(size_t row, size_t size, Span<ViewType> buffer) const
+    {
+        auto ii = array_.begin();
+        ii += row;
+
+        for (size_t c = 0; c < size; c++, ++ii) {
+            buffer[c] = (*ii);
+        }
+    }
+
+    virtual Span<const ViewType> span(size_t row, size_t size) const {
+        return Span<const ViewType>(
+            array_.data()->template dimension<0>().data() + row, size
+        );
+    }
+
+    ViewType get(size_t row) const {
+        return array_.access(row);
+    }
+
+    U8String describe() const {
+        return TypeNameFactory<Base>::name().to_u8();
+    }
+};
+
+
+
+template <typename List> class BufferSizeTypeSelector;
+
+template <typename T, typename... Tail>
+class BufferSizeTypeSelector<TL<const T*, Tail...>> {
+    static constexpr PackedDataTypeSize TailDataTypeSize = BufferSizeTypeSelector<TL<Tail...>>::DataTypeSize;
+
+public:
+    static constexpr PackedDataTypeSize DataTypeSize =
+            TailDataTypeSize == PackedDataTypeSize::FIXED ?
+                PackedDataTypeSize::FIXED :
+                PackedDataTypeSize::VARIABLE;
+};
+
+template <typename T, typename... Tail>
+class BufferSizeTypeSelector<TL<Span<const T>, Tail...>> {
+public:
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
+};
+
+template <>
+class BufferSizeTypeSelector<TL<>> {
+public:
+    static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::FIXED;
 };
 
 }}}

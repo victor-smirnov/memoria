@@ -31,26 +31,11 @@ namespace map {
 using bt::IdxSearchType;
 using bt::StreamTag;
 
-template <typename KeyType, bool Selector = DTTIs1DFixedSize<KeyType>> struct MapKeyStructTF;
+template <typename DataType>
+struct MapKeyStructTF: HasType<PackedDataTypeBufferT<DataType, true>> {};
 
-template <typename KeyType>
-struct MapKeyStructTF<KeyType, true>: HasType<PkdFSEArrayT<KeyType, 1, 1>> {};
-
-template <typename KeyType>
-struct MapKeyStructTF<KeyType, false>: HasType<PkdVLEArrayT<KeyType, 1, 1>> {};
-
-
-
-template <typename ValueType, bool Selector = DTTIs1DFixedSize<ValueType>> struct MapValueStructTF;
-
-template <typename ValueType>
-struct MapValueStructTF<ValueType, true>: HasType<
-        PkdFSEArrayT<ValueType>
-> {};
-
-template <typename ValueType>
-struct MapValueStructTF<ValueType, false>: HasType<PkdVLEArrayT<ValueType>> {};
-
+template <typename DataType>
+struct MapValueStructTF: HasType<PackedDataTypeBufferT<DataType, false>> {};
 
 
 template <typename T> struct MapBranchStructTF;
@@ -87,20 +72,9 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 
 template <typename KeyType, int32_t Indexes>
 struct MapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
+    static_assert(Indexes <= 1, "");
 
-//    static_assert(
-//        IsExternalizable<KeyType>::Value,
-//        "Type must either has ValueCodec or FieldFactory defined"
-//    );
-
-    using Type = bt::PkdStructSelector<
-            DTTIs1DFixedSize<KeyType>,
-            PkdFMTree,
-            PackedVLenElementArray,
-
-            PkdFMTreeTypes<KeyType, Indexes>,
-            PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
-    >;
+    using Type = PackedDataTypeBufferT<KeyType, Indexes == 1>;
 
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
