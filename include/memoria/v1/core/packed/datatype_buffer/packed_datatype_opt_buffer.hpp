@@ -19,11 +19,11 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 
-#include <memoria/v1/core/packed/array/packed_vle_array.hpp>
+
 #include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
-#include <memoria/v1/core/packed/array/packed_fse_opt_array_so.hpp>
-#include <memoria/v1/core/packed/array/packed_fse_array.hpp>
+#include <memoria/v1/core/packed/datatype_buffer/packed_datatype_opt_buffer_so.hpp>
+#include <memoria/v1/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
 
 #include <memoria/v1/api/common/packed_api.hpp>
 
@@ -32,37 +32,29 @@
 namespace memoria {
 namespace v1 {
 
-template <
-    typename V,
-    int32_t Blocks_ = 1,
-    int32_t Indexes_ = 0
->
-struct PackedFixedElementOptArrayTypes {
-    using DataType = V;
-    static constexpr int32_t Blocks = Blocks_;
-    static constexpr int32_t Indexes = Indexes_;
-};
+template <typename Types>
+class PackedDataTypeOptBuffer;
 
-template <typename Types> class PackedFixedElementOptArray;
+template <typename DataType, bool Indexed>
+struct PackedDataTypeOptBufferTypes {};
 
-template <typename V, int32_t Blocks = 1, int32_t Indexes = 0>
-using PkdFSEOptArrayT = PackedFixedElementOptArray<PackedFixedElementOptArrayTypes<V, Blocks, Indexes>>;
+template <typename DataType, bool Indexed>
+using PackedDataTypeOptBufferT = PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed>>;
 
 
-
-
-
-template <typename Types_>
-class PackedFixedElementOptArray: public PackedAllocator {
+template <typename DataType, bool Indexed>
+class PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed>>: public PackedAllocator {
     using Base = PackedAllocator;
 public:
-    using MyType = PackedFixedElementOptArray;
+
+    using MyType = PackedDataTypeOptBuffer;
 
     static constexpr uint32_t VERSION = 1;
-    static constexpr int32_t Blocks = Types_::Blocks;
-    static constexpr int32_t Indexes = Types_::Indexes;
 
-    using Array     = PackedFixedSizeElementArray<Types_>;
+    static constexpr int32_t Blocks = 1;
+    static constexpr int32_t Indexes = Indexed ? 1 : 0;
+
+    using Array     = PackedDataTypeBufferT<DataType, Indexed>;
     using Bitmap    = PkdFSSeq<typename PkdFSSeqTF<1>::Type>;
 
     using FieldsList = MergeLists<
@@ -72,19 +64,16 @@ public:
                 ConstValue<uint32_t, VERSION>
     >;
 
-
     enum {BITMAP, ARRAY, STRUCTS_NUM__};
 
-
     using IndexValue = typename Array::ViewType;
-
-    using ArrayValue  = typename Array::ViewType;
+    using ArrayValue = typename Array::ViewType;
 
     using Value      = OptionalT<typename Array::ViewType>;
     using Values     = core::StaticVector<Value, Blocks>;
 
     using ExtData = DTTTypeDimensionsTuple<typename Array::DataType>;
-    using SparseObject = PackedFixedElementOptArraySO<ExtData, MyType>;
+    using SparseObject = PackedDataTypeOptBufferSO<ExtData, MyType>;
 
     using Base::block_size;
 
@@ -104,14 +93,12 @@ public:
         return this->template get<Array>(ARRAY);
     }
 
-
     static int32_t empty_size()
     {
         int32_t parent_size = PackedAllocator::empty_size(STRUCTS_NUM__);
         return parent_size + Bitmap::empty_size() + Array::empty_size();
     }
 
-    // FIXME: This PksStruct should be VARIABLE SIZE
 
     static int32_t block_size(int32_t capacity)
     {
@@ -120,7 +107,6 @@ public:
 
     int32_t block_size(const MyType* other) const
     {
-        // FIXME: Incorrect implementation!
         return MyType::block_size(size() + other->size());
     }
 
@@ -400,7 +386,7 @@ public:
     template <typename T>
     OpStatus insert(int32_t idx, const core::StaticVector<T, Blocks>& values)
     {
-        Bitmap* bitmap = this->bitmap();
+        Bitmap* bitmap  = this->bitmap();
 
         if (values[0].is_set())
         {
@@ -418,6 +404,8 @@ public:
             return bitmap->insert(idx, 0);
         }
     }
+
+
 
 
     template <typename SerializationData>
@@ -479,17 +467,17 @@ protected:
     }
 };
 
-template <typename Types>
-struct PackedStructTraits<PackedFixedElementOptArray<Types>> {
-    using SearchKeyDataType = typename Types::DataType;
+template <typename DataType, bool Indexed>
+struct PackedStructTraits<PackedDataTypeOptBuffer<PackedDataTypeOptBufferTypes<DataType, Indexed>>> {
+    using SearchKeyDataType = DataType;
 
-    using AccumType = typename DataTypeTraits<SearchKeyDataType>::ViewType;
-    using SearchKeyType = OptionalT<typename DataTypeTraits<SearchKeyDataType>::ViewType>;
+    using AccumType = DTTViewType<SearchKeyDataType>;
+    using SearchKeyType = OptionalT<DTTViewType<SearchKeyDataType>>;
 
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
-    static constexpr int32_t Indexes = PackedFixedElementOptArray<Types>::Indexes;
+    static constexpr int32_t Indexes = Indexed ? 1 : 0;
 };
 
 

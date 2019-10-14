@@ -127,7 +127,7 @@ public:
         );
     }
 
-    static psize_t block_size(psize_t capacity)
+    static psize_t packed_block_size(psize_t capacity)
     {
         psize_t aligned_data_size{};
 
@@ -169,10 +169,6 @@ public:
         return status;
     }
 
-    static psize_t packed_block_size(psize_t capacity)
-    {
-        return block_size(capacity);
-    }
 
     psize_t block_size(const PackedDataTypeBuffer* other) const
     {

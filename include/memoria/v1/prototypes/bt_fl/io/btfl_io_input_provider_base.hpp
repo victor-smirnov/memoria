@@ -249,7 +249,7 @@ public:
             start_.clear();
             size_.clear();
 
-            io_vector_->reset();
+            io_vector_->clear();
             finished_ = producer_->populate(*io_vector_);
             io_vector_->reindex();
 

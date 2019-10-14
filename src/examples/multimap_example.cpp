@@ -46,14 +46,14 @@ int main()
 
         auto ctr0 = create(snp, MultimapType());
 
-        //ctr0->set_new_block_size(64*1024);
+        ctr0->set_new_block_size(64*1024);
 
 
         int64_t t0 = getTimeInMillis();
 
         std::vector<Entry> entries_;
 
-        for (int c = 0; c < 100; c++) {
+        for (int c = 0; c < 100000; c++) {
 
             std::vector<U8String> values;
 
@@ -114,7 +114,7 @@ int main()
 
         size_t sum0 = 0;
 
-        ii->dump_iterator();
+        //ii->dump_iterator();
 
         ii->for_each([&](auto key, auto values){
             sum0 += values.size();
@@ -139,7 +139,7 @@ int main()
             auto kk = keys->keys();
             for (size_t c = 0; c < kk.size(); c++)
             {
-                std::cout << kk[c] << std::endl;
+                //std::cout << kk[c] << std::endl;
 
                 auto vals = keys->values(c);
 
@@ -148,7 +148,7 @@ int main()
                 {
                     for (auto& vv: vals->values())
                     {
-                        std::cout << "\t" << dd << ") " << vv << std::endl;
+//                        std::cout << "\t" << dd << ") " << vv << std::endl;
                         dd++;
                     }
 

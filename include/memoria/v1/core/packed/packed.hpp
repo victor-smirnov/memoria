@@ -28,6 +28,7 @@
 #include <memoria/v1/core/packed/array/packed_vle_opt_array.hpp>
 
 #include <memoria/v1/core/packed/datatype_buffer/packed_datatype_buffer.hpp>
+#include <memoria/v1/core/packed/datatype_buffer/packed_datatype_opt_buffer.hpp>
 
 #include <memoria/v1/core/packed/misc/packed_empty_struct.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>

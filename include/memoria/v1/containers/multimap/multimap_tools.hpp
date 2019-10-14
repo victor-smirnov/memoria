@@ -87,14 +87,15 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 template <typename KeyType, int32_t Indexes>
 struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
-    using Type = bt::PkdStructSelector<
-            DTTIs1DFixedSize<KeyType>,
-            PackedFixedElementOptArray,
-            PackedVLenElementOptArray,
+    using Type = PackedDataTypeOptBufferT<KeyType, Indexes == 1>;
+//    bt::PkdStructSelector<
+//            DTTIs1DFixedSize<KeyType>,
+//            PackedFixedElementOptArray,
+//            PackedVLenElementOptArray,
 
-            PackedFixedElementOptArrayTypes<KeyType, Indexes, Indexes>,
-            PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
-    >;
+//            PackedFixedElementOptArrayTypes<KeyType, Indexes, Indexes>,
+//            PackedVLenElementArrayTypes<KeyType, Indexes, Indexes>
+//    >;
 
     static_assert(PkdStructIndexes<Type> == Indexes, "Packed struct has different number of indexes than requested");
 };
