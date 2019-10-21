@@ -36,7 +36,7 @@ class SparseObjectBuilder<Varchar, Buffer> {
 
 public:
     SparseObjectBuilder(Buffer* buffer):
-        buffer_(buffer), offset_(buffer->size()), size_()
+        buffer_(buffer), offset_(buffer->template data_length<0>(0, buffer->size())), size_()
     {}
 
     SparseObjectBuilder(SparseObjectBuilder&&) = delete;

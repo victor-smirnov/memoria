@@ -497,7 +497,7 @@ public:
 
 template <typename T> struct DataTypeTraits;
 
-namespace {
+namespace types_ {
     template <typename T> struct Void {
         using Type = void;
     };
@@ -512,7 +512,7 @@ namespace {
 }
 
 template <typename T>
-struct IsComplete : IsCompleteHelper<T>::Type {};
+struct IsComplete : types_::IsCompleteHelper<T>::Type {};
 
 
 template <typename T>

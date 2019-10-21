@@ -76,8 +76,6 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     using TypeDimensionsList  = TL<>;
     using TypeDimensionsTuple = AsTuple<TypeDimensionsList>;
 
-//    static constexpr size_t Rank = ListSize<SpanList>;
-
     static DataDimensionsTuple describe_data(ViewType view) {
         return std::make_tuple(DataSpan(view.data(), view.size()));
     }
@@ -104,23 +102,6 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
     static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data)
     {
         return ViewType(std::get<0>(data).data(), std::get<0>(data).size());
-    }
-
-
-    static Datum<Varchar> make_datum(const DataDimensionsTuple& data) {
-        return Datum<Varchar>(make_view(data));
-    }
-
-    static Datum<Varchar> make_datum(const TypeDimensionsTuple& type, const DataDimensionsTuple& data) {
-        return Datum<Varchar>(make_view(data));
-    }
-
-    static AnyDatum make_any_datum(const DataDimensionsTuple& data) {
-        return Datum<Varchar>(make_view(data));
-    }
-
-    static AnyDatum make_any_datum(const TypeDimensionsTuple& type, const DataDimensionsTuple& data) {
-        return Datum<Varchar>(make_view(data));
     }
 };
 

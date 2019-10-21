@@ -22,6 +22,7 @@
 #include <memoria/v1/api/datatypes/buffer/buffer.hpp>
 
 
+
 #include <iostream>
 
 using namespace memoria::v1;
@@ -102,6 +103,8 @@ int main()
 //    for(auto span: vle_buf) {
 //        std::cout << span.size() << std::endl;
 //    }
+
+
 
     return 0;
 }

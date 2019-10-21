@@ -36,6 +36,7 @@ MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
     target_link_libraries(${EX_TARGET} Memoria ${MEMORIA_LIBS})
 ENDMACRO()
 
+ClassicExample(mapped mapped.cpp "" "")
 ClassicExample(map_example map_example.cpp "" "")
 ClassicExample(set_example set_example.cpp "" "")
 ClassicExample(ctrprops_example ctrprops_example.cpp "" "")

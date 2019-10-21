@@ -22,10 +22,6 @@
 namespace memoria {
 namespace v1 {
 
-
-
-
-
 template <typename DataTypeT, typename ValueType>
 class DataTypeBuffer<
         DataTypeT,

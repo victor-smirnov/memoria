@@ -17,6 +17,9 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
+#include <memoria/v1/core/mapped/mapped_hash.hpp>
+
+
 #include <boost/utility/string_view.hpp>
 
 #include <unicode/ustring.h>
@@ -200,6 +203,10 @@ public:
         return U8StringView(content_);
     }
 
+    U8StringView view() const {
+        return U8StringView(content_);
+    }
+
     CharT* data() {
         return &content_[0];
     }
@@ -251,6 +258,13 @@ inline bool compare_le(const U8StringView& first, const U8StringView& second) {
 }
 
 U8StringView trim_string(U8StringView str);
+
+
+template <size_t Size, typename Variant>
+void append(FNVHasher<Size, Variant>& hasher, const U8String& str)
+{
+    append(hasher, str.view());
+}
 
 
 }}
