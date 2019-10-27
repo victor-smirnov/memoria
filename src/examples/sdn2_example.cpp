@@ -13,14 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <memoria/v1/core/sdn/sdn2.hpp>
 
-#include <memoria/v1/core/mapped/arena.hpp>
-#include <memoria/v1/core/mapped/mapped_tools.hpp>
-#include <memoria/v1/core/mapped/mapped_sdn.hpp>
-#include <memoria/v1/core/mapped/mapped_string.hpp>
-#include <memoria/v1/core/mapped/mapped_vector.hpp>
-#include <memoria/v1/core/mapped/mapped_dyn_vector.hpp>
-#include <memoria/v1/core/mapped/mapped_hash.hpp>
-#include <memoria/v1/core/mapped/mapped_map.hpp>
-#include <memoria/v1/core/mapped/mapped_set.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
+
+using namespace memoria::v1;
+
+int main()
+{
+    std::cout << std::is_trivial<UUID>::value << std::endl;
+
+    SDN2Document doc = SDN2Document::parse("12345");
+
+    return 0;
+}

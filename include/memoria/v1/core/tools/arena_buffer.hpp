@@ -76,7 +76,7 @@ public:
         memory_mgr_(std::move(memory_mgr))
     {}
 
-    ArenaBuffer(ArenaBufferMemoryMgr memory_mgr):
+    ArenaBuffer(ArenaBufferMemoryMgr memory_mgr) noexcept:
         buffer_(nullptr),
         capacity_(0),
         size_(0),
@@ -98,7 +98,7 @@ public:
         }
     }
 
-    ArenaBuffer(ArenaBuffer&& other):
+    ArenaBuffer(ArenaBuffer&& other) noexcept:
         buffer_(other.buffer_),
         capacity_(other.capacity_),
         size_(other.size_),
@@ -107,7 +107,7 @@ public:
         other.buffer_ = nullptr;
     }
 
-    ArenaBuffer(): ArenaBuffer(0){}
+    ArenaBuffer() noexcept : ArenaBuffer(0) {}
 
     ~ArenaBuffer() noexcept
     {
@@ -245,7 +245,7 @@ public:
     {
         if (size_ + size > capacity_)
         {
-            enlarge(size);
+            enlarge(size_ + size - capacity_);
             return true;
         }
 

@@ -31,6 +31,8 @@ union T2TBuf {
 template <typename DstType, typename SrcType>
 DstType T2T(SrcType value) {
     static_assert(sizeof(DstType) == sizeof(SrcType), "");
+    static_assert(std::is_trivial<SrcType>::value, "");
+    static_assert(std::is_trivial<DstType>::value, "");
     T2TBuf<SrcType, DstType> buf(value);
     return buf.dst;
 }

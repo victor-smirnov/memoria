@@ -23,7 +23,7 @@
 
 using namespace memoria::v1;
 
-using ArenaT = MappedArena<int64_t>;
+using ArenaT = MappedArena<int64_t, uint32_t>;
 
 template <typename T>
 using PtrT = typename ArenaT::template PtrT<T>;
@@ -95,24 +95,47 @@ int main()
         }
     }
 
-    for (auto& entry: std_map)
-    {
-        auto val = map.remove(entry.first);
+//    for (auto& entry: std_map)
+//    {
+//        auto val = map.remove(entry.first);
 
-        if (!val) {
-            std::cout << "Not found! " << entry.first << std::endl;
-        }
+//        if (!val) {
+//            std::cout << "Not found! " << entry.first << std::endl;
+//        }
 
-        size_t cnt = count(map);
-        if (cnt != map.size()) {
-            std::cout << "Size mismatch! " << cnt << " :: " << map.size() << std::endl;
-        }
+//        size_t cnt = count(map);
+//        if (cnt != map.size()) {
+//            std::cout << "Size mismatch! " << cnt << " :: " << map.size() << std::endl;
+//        }
 
-        std::cout << map.size() << " :: " << arena.size() << std::endl;
-    }
+//        std::cout << map.size() << " :: " << arena.size() << std::endl;
+//    }
 
 
-    std::cout << "Size: " << map.size() << std::endl;
+    std::cout << "Size: " << map.size() << " :: " << arena.size() << std::endl;
+
+    ArenaT arena2;
+
+    auto mapping = arena2.make_address_mapping();
+
+    Map map2 = Map::get(&arena2, map.deep_copy_to(&arena2, mapping));
+
+    size_t cnt2 = count(map2);
+
+    std::cout << "Size2: " << map2.size() << " :: " << arena2.size() << " :: " << cnt2 << " :: " << map2.array_size() << std::endl;
+
+    map2.print_bucket_stat();
+
+
+    using Set = MappedSet<KeyPtr, typename ArenaT::ArenaBase, MappedPtrHashFn, MappedStringPtrEqualToFn>;
+    Set set = Set::create(&arena);
+
+    KeyPtr key0 = allocate<Key>(&arena, "Hooooooooooo!");
+    set.put(key0);
+    set.remove(key0);
+    set.for_each([](auto kk){});
+    set.deep_copy_to(&arena2, mapping);
+    set.print_bucket_stat();
 
     return 0;
 }

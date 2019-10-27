@@ -24,46 +24,10 @@
 
 #include <functional>
 #include <deque>
+#include <cstddef>
 
 namespace memoria {
 namespace v1 {
-
-namespace mapped_ {
-
-    template <typename T> struct DeepCopyHelper;
-
-    template <typename T, typename HolderT, typename Arena>
-    struct DeepCopyHelper<MappedPtr<T, HolderT, Arena>>
-    {
-        using PtrT = MappedPtr<T, HolderT, Arena>;
-
-        template <typename AddressMapping>
-        static PtrT deep_copy(Arena* dst, Arena* src, PtrT ptr, AddressMapping& address_mapping)
-        {
-            auto ii = address_mapping.find(ptr.get());
-            if (MMA1_UNLIKELY(ii != address_mapping.end()))
-            {
-                return ii.second;
-            }
-            else {
-                PtrT new_ptr = ptr.get(src)->deep_copy_to(dst, address_mapping);
-                address_mapping[ptr.get()] = new_ptr;
-                return new_ptr;
-            }
-        }
-    };
-
-    template <typename T>
-    struct DeepCopyHelper
-    {
-        template <typename Arena, typename AddressMapping>
-        static const T& deep_copy(Arena* dst, Arena* src, const T& value, AddressMapping& address_mapping)
-        {
-            return value;
-        }
-    };
-}
-
 
 template <
     typename Key,
@@ -80,6 +44,10 @@ class MappedMap {
     struct BucketEntry {
         Key key;
         Value value;
+
+        static size_t value_offset() {
+            return offsetof(BucketEntry, value);
+        }
     };
 
     using Bucket = MappedVector<BucketEntry>;
@@ -103,15 +71,15 @@ public:
         arena_(arena), state_(state_ptr)
     {}
 
-    static MappedMap create(Arena* arena)
+    static MappedMap create(Arena* arena, size_t tag_size = 0)
     {
-        PtrT<State> ptr = arena->template allocate_space<State>(sizeof(State));
+        PtrT<State> ptr = arena->template allocate_space<State>(sizeof(State), tag_size);
         arena->construct(ptr, State{});
         return MappedMap{arena, ptr.get()};
     }
 
     static MappedMap get(Arena* arena, PtrT<State> ptr) {
-        return ptr.get(arena);
+        return MappedMap{arena, ptr.get()};
     }
 
     void put(const Key& key, const Value& value)
@@ -208,6 +176,10 @@ public:
         return state()->size_;
     }
 
+    size_t array_size() const {
+        return array()->size();
+    }
+
     PtrT<State> deep_copy_to(Arena* dst, typename Arena::AddressMapping& visited_addresses) const
     {
         PtrT<State> foreign_state = allocate<State>(dst);
@@ -226,7 +198,7 @@ public:
                 if (my_bucket)
                 {
                     const Bucket* pmy_bucket = deref(my_bucket);
-                    BucketPtr foreign_bucket = allocate<Array>(dst, pmy_bucket->capacity(), pmy_bucket->size());
+                    BucketPtr foreign_bucket = allocate<Bucket>(dst, pmy_bucket->size(), pmy_bucket->size());
 
                     for (size_t d = 0; d < pmy_bucket->size(); d++)
                     {
@@ -253,6 +225,49 @@ public:
         }
 
         return foreign_state;
+    }
+
+    void print_bucket_stat() const
+    {
+        ArrayPtr array = state()->array_;
+        if (array)
+        {
+            size_t empty_{};
+            size_t used_{};
+            size_t total_bucket_length_{};
+            size_t max_bucket_size_{};
+            size_t total_bucket_data_length_{};
+
+            const Array* parray = deref(array);
+            for (BucketPtr bucket: parray->span())
+            {
+                if (bucket) {
+                    used_++;
+                    const Bucket* pbucket = deref(bucket);
+                    if (pbucket->size() > max_bucket_size_) {
+                        max_bucket_size_ = pbucket->size();
+                    }
+
+                    total_bucket_length_ += pbucket->size();
+                    total_bucket_data_length_ += pbucket->object_size(pbucket->capacity());
+                }
+                else {
+                    empty_++;
+                }
+            }
+
+            std::cout << "Stat: "
+                      << empty_ << " :: "
+                      << used_ << " :: "
+                      << total_bucket_length_ << " :: "
+                      << max_bucket_size_ << " :: "
+                      << total_bucket_data_length_
+                      << std::endl;
+        }
+    }
+
+    auto ptr() const {
+        return state_.get();
     }
 
 private:
@@ -339,7 +354,8 @@ private:
         {
             auto idx = locate(bucket, key);
 
-            if (idx) {
+            if (idx)
+            {
                 deref(bucket)->access(idx.get()).value = value;
             }
             else if (MMA1_UNLIKELY(!deref(bucket)->push_back(BucketEntry{key, value})))
@@ -369,7 +385,6 @@ private:
                 else {
                     new_bucket = enlarge_bucket(bucket);
                 }
-
 
                 deref(array_ptr)->access(slot) = new_bucket;
                 deref(new_bucket)->push_back(BucketEntry{key, value});

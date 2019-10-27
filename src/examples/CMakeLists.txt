@@ -44,4 +44,5 @@ ClassicExample(multimap_example multimap_example.cpp "" "")
 ClassicExample(store store.cpp "" "")
 ClassicExample(datatypes datatypes.cpp "" "")
 ClassicExample(vector_example vector_example.cpp "" "")
+ClassicExample(sdn2_example sdn2_example.cpp "" "")
 

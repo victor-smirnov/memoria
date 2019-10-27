@@ -32,6 +32,7 @@ namespace memoria {
 namespace v1 {
 
 template <typename CharT = char> class MappedString;
+using U8MappedString = MappedString<typename U8StringView::value_type>;
 
 template <>
 class alignas(1) MappedString<char> {
@@ -101,6 +102,12 @@ public:
 
     bool operator==(ViewType view) const {
         return this->view() == view;
+    }
+
+    template <typename Arena>
+    typename Arena::template PtrT<MappedString> deep_copy_to(Arena* dst, typename Arena::AddressMapping& visited_addresses) const
+    {
+        return allocate<MappedString>(dst, view());
     }
 
 

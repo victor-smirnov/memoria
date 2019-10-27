@@ -23,11 +23,15 @@
 
 #include <memoria/v1/core/mapped/arena.hpp>
 
+#include <cstddef>
+
 namespace memoria {
 namespace v1 {
 
 template <typename T>
 class MappedVector {
+    static_assert(std::is_trivially_copyable<T>::value, "");
+
     uint32_t capacity_;
     uint32_t size_;
     T data_[1];
@@ -98,6 +102,13 @@ public:
         return false;
     }
 
+    size_t push_back_with_offset(const T& value) noexcept
+    {
+        size_t idx = size_++;
+        data_[idx] = value;
+        return offset_of(idx);
+    }
+
     void remove(size_t idx, size_t size) noexcept
     {
         for (size_t c = idx + size; c < size_; c++)
@@ -166,6 +177,10 @@ public:
         for (size_t c = 0; c < capacity_; c++) {
             data_[c] = T{};
         }
+    }
+
+    size_t offset_of(size_t idx) const {
+        return offsetof(MappedVector, data_) + idx * sizeof(T);
     }
 
 private:
