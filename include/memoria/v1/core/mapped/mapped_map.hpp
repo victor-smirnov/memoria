@@ -67,6 +67,8 @@ private:
     PtrT<State> state_;
 
 public:
+    MappedMap(): arena_(), state_({}) {}
+
     MappedMap(Arena* arena, PtrT<State> state_ptr):
         arena_(arena), state_(state_ptr)
     {}

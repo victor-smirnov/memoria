@@ -73,8 +73,12 @@ public:
         return T2T<const T*>(arena->data() + ptr_value_);
     }
 
-    operator bool() const {
-        return ptr_value_ != 0;
+//    operator bool() const {
+//        return ptr_value_ != 0;
+//    }
+
+    operator HolderT() const {
+        return ptr_value_;
     }
 };
 
@@ -101,7 +105,7 @@ namespace mapped_ {
         static auto allocate_and_construct(size_t tag_size, Arena* arena, CtrArgs&&... args)
         {
             size_t size = sizeof(T);
-            auto addr = arena->template allocate_space<T>(size);
+            auto addr = arena->template allocate_space<T>(size, tag_size);
             arena->construct(addr, std::forward<CtrArgs>(args)...);
             return addr;
         }
@@ -113,7 +117,7 @@ namespace mapped_ {
         static auto allocate_and_construct(size_t tag_size, Arena* arena, CtrArgs&&... args)
         {
             size_t size = T::object_size(std::forward<CtrArgs>(args)...);
-            auto addr = arena->template allocate_space<T>(size);
+            auto addr = arena->template allocate_space<T>(size, tag_size);
             arena->construct(addr, std::forward<CtrArgs>(args)...);
             return addr;
         }
@@ -287,8 +291,14 @@ public:
             size_t addr   = align_up(arena_->size(), alignment);
             size_t upsize = addr - arena_->size();
 
+            while (upsize < tag_size) {
+                addr += alignment;
+                upsize += alignment;
+            }
+
             arena_->ensure(upsize + size);
             arena_->add_size(upsize + size);
+
             return addr;
         }
         else {

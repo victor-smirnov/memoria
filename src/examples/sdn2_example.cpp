@@ -21,9 +21,25 @@ using namespace memoria::v1;
 
 int main()
 {
-    std::cout << std::is_trivial<UUID>::value << std::endl;
+//    SDN2Document doc;
 
-    SDN2Document doc = SDN2Document::parse("12345");
+//    SDN2Map map = doc.set_map();
+//    map.set("key0", "value0");
+//    map.set("key1", "value1");
+//    map.set("key2", 12345.6789);
+
+//    SDN2Array arr = map.add_array("key3");
+//    arr.add("cool value");
+//    arr.add((int64_t)1234);
+//    arr.add(1234.567);
+//    arr.add_array().add(567.99);
+//    arr.add_map();
+
+//    doc.dump(std::cout);
+//    std::cout << std::endl;
+
+    SDN2Document doc = SDN2Document::parse("{a: b, c: [7.891, 1, {}]}");
+    doc.dump(std::cout);
 
     return 0;
 }

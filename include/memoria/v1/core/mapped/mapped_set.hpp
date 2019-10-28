@@ -59,9 +59,15 @@ private:
     PtrT<State> state_;
 
 public:
+    MappedSet(): arena_(), state_() {}
+
     MappedSet(Arena* arena, PtrT<State> state_ptr):
         arena_(arena), state_(state_ptr)
     {}
+
+    auto ptr() const {
+        return state_.get();
+    }
 
     static MappedSet create(Arena* arena)
     {

@@ -15,6 +15,7 @@
 //#define BOOST_SPIRIT_DEBUG
 
 #define BOOST_SPIRIT_UNICODE
+//#define BOOST_SPIRIT_X3_DEBUG 1
 
 #ifndef MMA1_NO_REACTOR
 #   include <memoria/v1/reactor/reactor.hpp>
@@ -22,7 +23,8 @@
 
 #include <memoria/v1/core/sdn/sdn2.hpp>
 
-#include <memoria/v1/core/iovector/io_buffer_base.hpp>
+
+#include <memoria/v1/core/tools/type_name.hpp>
 
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/home/x3.hpp>
@@ -55,82 +57,104 @@ namespace bp    = boost::phoenix;
 
 }}
 
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::DataTypeCtrArg, value_);
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::DataTypeArgMapEntry<memoria::v1::DataTypeCtrArg>, key_, value_);
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::DataTypeArgMap<memoria::v1::DataTypeCtrArg>, entries_);
-
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::DataTypeDeclaration, name_tokens_, parameters_, constructor_args_);
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::TypedStringValue, text_, type_);
-
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNValue, value_);
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNEntry, key_, value_);
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::TypedSDNArray, array_, type_);
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::TypedSDNMap, entries_, type_);
-
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNTypeDictionaryEntry, type_id_, type_);
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNTypeDictionary, entries_);
-//BOOST_FUSION_ADAPT_STRUCT(memoria::v1::SDNDocument, type_dictionary_, value_);
 
 
 namespace memoria {
 namespace v1 {
 
 
-//std::ostream& operator<<(std::ostream& out, const boost::recursive_wrapper<memoria::v1::DataTypeDeclaration>& decl)
-//{
-//    return out;
-//}
-
 class SDN2DocumentBuilder {
-
-    SDN2Document doc_;
-
-    ArenaBuffer<char> chars_;
-
+    SDN2Document& doc_;
 public:
-    static SDN2DocumentBuilder& current () {
-        static thread_local SDN2DocumentBuilder builder;
-        return builder;
+    SDN2DocumentBuilder(SDN2Document& doc):
+        doc_(doc)
+    {}
+
+    void doc_set(U8StringView view)
+    {
+        doc_.set(view);
     }
 
-    void reset() {
-        doc_.arena_.clear();
+    void set_int64(int64_t value)
+    {
+        doc_.set((int64_t)value);
     }
 
-    SDN2Document& doc() {return doc_;}
+    void set_double(double value)
+    {
+        doc_.set(value);
+    }
 };
 
 
 
 namespace {
 
+namespace parser {
+
+    thread_local SDN2DocumentBuilder* builder = nullptr;
+
+
+    using x3::lexeme;
+    using x3::double_;
+    using x3::lit;
+    using ascii::char_;
+
+//    const auto doc_set_string = [](const auto& ctx){
+//        parser::builder->set_string(x3::_attr(ctx));
+//    };
+
+    const auto print_type = [](const auto& ctx){
+        std::cout << TypeNameFactory<decltype(x3::_attr(ctx))>::name() << std::endl;
+    };
+
+    x3::real_parser<double, x3::strict_real_policies<double> > const strict_double_ = {};
+
+    x3::rule<class doc>   const sdn_document = "sdn_document";
+    x3::rule<class value> const sdn_value = "sdn_value";
+    x3::rule<class array, SDN2Array> const array = "array";
+    x3::rule<class map, SDN2Map>   const map = "map";
+    x3::rule<class map_entry> const map_entry = "map_entry";
+
+    const auto quoted_string = lexeme['\'' >> +(char_ - '\'') >> '\''] | lexeme['"' >> +(char_ - '"') >> '"'];
+    const auto identifier    = lexeme[(x3::alpha | char_('_')) >> *(x3::alnum | char_('_'))];
+
+    const auto array_def        = '[' >> (sdn_value % ',') >> ']' | lit('[') >> ']';
+
+    const auto map_entry_def    = (quoted_string | identifier) >> ':' >> sdn_value;
+    const auto map_def          = '{' >> (map_entry % ',') >> '}' | lit('{') >> '}';
+
+    const auto sdn_value_def    = quoted_string | strict_double_ [print_type] | x3::int64 [print_type] | identifier | array[print_type] | (map[print_type]);
+    const auto sdn_document_def = sdn_value;
+
+    BOOST_SPIRIT_DEFINE(sdn_document, sdn_value, array, map, map_entry);
+}
+
 template <typename Iterator>
-bool parse_numbers(Iterator first, Iterator last, std::vector<double>& v)
+bool parse_sdn2(Iterator& first, Iterator& last, SDN2Document& doc)
 {
     using x3::double_;
     using x3::phrase_parse;
     using x3::_attr;
     using ascii::space;
 
-    auto push_back = [&](auto& ctx){ v.push_back(_attr(ctx)); };
+    SDN2DocumentBuilder builder(doc);
 
-    SDN2DocumentBuilder::current().reset();
-
+    parser::builder = &builder;
 
     bool r = phrase_parse(first, last,
 
         //  Begin grammar
-        (
-            double_[push_back]
-                >> *(',' >> double_[push_back])
-        )
-        ,
+        parser::sdn_document,
         //  End grammar
 
         space);
 
-    if (first != last) // fail if we did not get a full match
+    parser::builder = nullptr;
+
+    if (first != last)
         return false;
+
     return r;
 }
 
@@ -140,11 +164,16 @@ bool parse_numbers(Iterator first, Iterator last, std::vector<double>& v)
 SDN2Document SDN2Document::parse(U8StringView::const_iterator start, U8StringView::const_iterator end)
 {
     std::vector<double> nums;
-    bool result = parse_numbers(start, end, nums);
 
-    std::cout << result << std::endl;
+    SDN2Document doc;
 
-    return SDN2Document();
+    bool result = parse_sdn2(start, end, doc);
+
+    if (!result) {
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Parse error");
+    }
+
+    return doc;
 }
 
 

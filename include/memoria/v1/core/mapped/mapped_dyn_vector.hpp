@@ -48,6 +48,8 @@ private:
     PtrT<State> state_;
 
 public:
+    MappedDynVector(): arena_(), state_({}) {}
+
     MappedDynVector(Arena* arena, PtrT<State> state):
         arena_(arena), state_(state)
     {}
@@ -248,6 +250,19 @@ public:
 
     auto ptr() const {
         return state_.get();
+    }
+
+    template <typename Fn>
+    void for_each(Fn&& fn) const
+    {
+        const State* state = this->state();
+        const T* data = state->data_.get(arena_);
+
+        for (uint32_t c = 0; c < state->size_; c++)
+        {
+           fn(data[c]);
+        }
+
     }
 
 private:

@@ -86,8 +86,14 @@ namespace sdn2_ {
     struct DocumentState {
         PtrHolder value;
         SDN2Ptr<MappedVector<TypeDeclPtr>> type_directory;
-        SDN2Ptr<sdn2_::StringSet> strings;
+        SDN2Ptr<sdn2_::StringSet::State> strings;
     };
+
+    static inline void make_indent(std::ostream& out, size_t tabs) {
+        for (size_t c = 0; c < tabs; c++) {
+            out << "  ";
+        }
+    }
 }
 
 
@@ -146,6 +152,7 @@ struct SDN2ValueTraits<SDN2TypeDeclaration> {
 
 class SDN2Document {
     using ValueMap = sdn2_::ValueMap;
+    using StringSet = sdn2_::StringSet;
     using Array = sdn2_::Array;
 
     SDN2Arena arena_;
@@ -164,7 +171,7 @@ class SDN2Document {
 
 public:
     SDN2Document() {
-        doc_ = allocate<sdn2_::DocumentState>(&arena_, sdn2_::DocumentState{});
+        doc_ = allocate<sdn2_::DocumentState>(&arena_, sdn2_::DocumentState{0, 0, 0});
     }
 
     SDN2Value value() const;
@@ -181,6 +188,8 @@ public:
     }
 
     static SDN2Document parse(U8StringView::const_iterator start, U8StringView::const_iterator end);
+
+    void dump(std::ostream& out) const;
 
 private:
 
@@ -241,7 +250,7 @@ public:
 
     SDN2Value(SDN2Document* doc, SDN2PtrHolder value_ptr) noexcept :
         doc_(doc), value_ptr_(value_ptr),
-        type_tag_(get_tag(value_ptr))
+        type_tag_(value_ptr ? get_tag(value_ptr) : 0)
     {}
 
     SDN2Map as_map() const noexcept;
@@ -255,7 +264,7 @@ public:
         return *SDN2Ptr<int64_t>(value_ptr_).get(&doc_->arena_);
     }
 
-    int64_t as_double() const noexcept {
+    double as_double() const noexcept {
         return *SDN2Ptr<double>(value_ptr_).get(&doc_->arena_);
     }
 
@@ -287,6 +296,8 @@ public:
         return type_tag_;
     }
 
+    void dump(std::ostream& out, size_t indent = 0) const;
+
 private:
 
     SDN2ValueTag get_tag(SDN2PtrHolder ptr) const noexcept
@@ -309,6 +320,8 @@ class SDN2Array {
     Array array_;
 
 public:
+    SDN2Array(): doc_(), array_() {}
+
     SDN2Array(SDN2Document* doc, Array array):
         doc_(doc), array_(array)
     {}
@@ -333,21 +346,42 @@ public:
 
     void set(size_t idx, int64_t value)
     {
-        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(SDN2ValueTag), &doc_->arena_, int64_t{});
+        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(SDN2ValueTag), &doc_->arena_, value);
         set_tag(value_ptr.get(), SDN2ValueTraits<int64_t>::ValueTag);
         array_.access(idx) = value_ptr;
     }
 
     void set(size_t idx, double value)
     {
-        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(SDN2ValueTag), &doc_->arena_, double{});
+        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(SDN2ValueTag), &doc_->arena_, value);
         set_tag(value_ptr.get(), SDN2ValueTraits<double>::ValueTag);
         array_.access(idx) = value_ptr;
     }
 
+    void add(U8StringView value)
+    {
+        SDN2Ptr<U8MappedString> value_str = doc_->intern(value);
+        set_tag(value_str.get(), SDN2ValueTraits<SDN2String>::ValueTag);
+        array_.push_back(value_str);
+    }
+
+    void add(int64_t value)
+    {
+        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(SDN2ValueTag), &doc_->arena_, value);
+        set_tag(value_ptr.get(), SDN2ValueTraits<int64_t>::ValueTag);
+        array_.push_back(value_ptr);
+    }
+
+    void add(double value)
+    {
+        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(SDN2ValueTag), &doc_->arena_, value);
+        set_tag(value_ptr.get(), SDN2ValueTraits<double>::ValueTag);
+        array_.push_back(value_ptr);
+    }
+
     SDN2Map add_map();
 
-    SDN2Array add_addray()
+    SDN2Array add_array()
     {
         Array value = Array::create_tagged(sizeof(SDN2ValueTag), &doc_->arena_, 4);
         set_tag(value.ptr(), SDN2ValueTraits<SDN2Array>::ValueTag);
@@ -358,6 +392,46 @@ public:
     void remove(size_t idx)
     {
         array_.remove(idx, 1);
+    }
+
+    void for_each(std::function<void(SDN2Value)> fn) const
+    {
+        array_.for_each([&](const auto& value){
+            fn(SDN2Value{doc_, value});
+        });
+    }
+
+    void dump(std::ostream& out, size_t indent = 0) const
+    {
+        if (size() > 0)
+        {
+            out << "[\n";
+
+            bool first = true;
+
+            for_each([&](auto vv){
+                if (MMA1_LIKELY(!first)) {
+                    out << ",\n";
+                }
+                else {
+                    first = false;
+                }
+
+                sdn2_::make_indent(out, indent + 1);
+                vv.dump(out, indent + 1);
+            });
+            out << "\n";
+
+            sdn2_::make_indent(out, indent);
+            out << "]";
+        }
+        else {
+            out << "[]";
+        }
+    }
+
+    size_t size() const {
+        return array_.size();
     }
 
 private:
@@ -385,6 +459,8 @@ class SDN2Map {
     SDN2Document* doc_;
     ValueMap map_;
 public:
+    SDN2Map(): doc_(), map_() {}
+
     SDN2Map(SDN2Document* doc, SDN2Ptr<ValueMap::State> map):
         doc_(doc), map_(&doc_->arena_, map)
     {}
@@ -418,7 +494,7 @@ public:
     {
         SDN2Ptr<U8MappedString> name_str  = doc_->intern(name);
 
-        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(SDN2ValueTag), &doc_->arena_, int64_t{});
+        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(SDN2ValueTag), &doc_->arena_, value);
 
         set_tag(value_ptr.get(), SDN2ValueTraits<int64_t>::ValueTag);
 
@@ -429,7 +505,7 @@ public:
     {
         SDN2Ptr<U8MappedString> name_str  = doc_->intern(name);
 
-        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(SDN2ValueTag), &doc_->arena_, double{});
+        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(SDN2ValueTag), &doc_->arena_, value);
 
         set_tag(value_ptr.get(), SDN2ValueTraits<double>::ValueTag);
 
@@ -447,7 +523,7 @@ public:
         return SDN2Map(doc_, value);
     }
 
-    SDN2Array add_addray(U8StringView name)
+    SDN2Array add_array(U8StringView name)
     {
         SDN2Ptr<U8MappedString> name_str = doc_->intern(name);
         Array value =  Array::create_tagged(sizeof(SDN2ValueTag), &doc_->arena_, 4);
@@ -461,6 +537,49 @@ public:
     void remove(U8StringView name)
     {
         map_.remove(name);
+    }
+
+    size_t size() const {
+        return map_.size();
+    }
+
+    void for_each(std::function<void(U8StringView, SDN2Value)> fn) const
+    {
+        map_.for_each([&](const auto& key, const auto& value){
+            U8StringView kk = key.get(&doc_->arena_)->view();
+            fn(kk, SDN2Value{doc_, value});
+        });
+    }
+
+    void dump(std::ostream& out, size_t indent = 0) const
+    {
+        if (size() > 0)
+        {
+            out << "{\n";
+
+            bool first = true;
+
+            for_each([&](auto kk, auto vv){
+                if (MMA1_LIKELY(!first)) {
+                    out << ",\n";
+                }
+                else {
+                    first = false;
+                }
+
+                sdn2_::make_indent(out, indent + 1);
+                out << "'" << kk << "': ";
+                vv.dump(out, indent + 1);
+            });
+
+            out << "\n";
+
+            sdn2_::make_indent(out, indent);
+            out << "}";
+        }
+        else {
+            out << "{}";
+        }
     }
 
 private:
@@ -500,17 +619,26 @@ inline SDN2Map SDN2Array::add_map()
 
 inline SDN2Ptr<U8MappedString> SDN2Document::intern(U8StringView string)
 {
-    SDN2Ptr<sdn2_::StringSet> strings = state()->strings;
+    StringSet set;
 
-    Optional<SDN2Ptr<U8MappedString>> str = strings.get(&arena_)->get(string);
+    auto* sst = state();
+
+    if (!sst->strings) {
+        set = StringSet::create(&arena_);
+        state()->strings = set.ptr();
+    }
+    else {
+        set = StringSet{&arena_, sst->strings};
+    }
+
+    Optional<SDN2Ptr<U8MappedString>> str = set.get(string);
     if (str)
     {
         return str.get();
     }
     else {
         SDN2Ptr<U8MappedString> ss = allocate_tagged<U8MappedString>(sizeof(SDN2ValueTag), &arena_, string);
-        strings.get(&arena_)->put(ss);
-
+        set.put(ss);
         return ss;
     }
 }
@@ -523,7 +651,7 @@ inline void SDN2Document::set(U8StringView string)
 {
     SDN2Ptr<U8MappedString> ss = allocate_tagged<U8MappedString>(sizeof(SDN2ValueTag), &arena_, string);
     set_tag(ss.get(), SDN2ValueTraits<SDN2String>::ValueTag);
-    state()->value = ss;
+    state()->value = ss.get();
 }
 
 inline void SDN2Document::set(int64_t value)
@@ -560,6 +688,37 @@ inline SDN2Array SDN2Document::set_array()
     return SDN2Array(this, value);
 
 }
+
+inline void SDN2Document::dump(std::ostream& out) const {
+    value().dump(out);
+}
+
+
+inline void SDN2Value::dump(std::ostream& out, size_t indent) const
+{
+    if (is_null()) {
+        out << "null";
+    }
+    else if (is_string()) {
+        out << "'" << as_string().view() << "'";
+    }
+    else if (is_integer()) {
+        out << as_integer();
+    }
+    else if (is_double()) {
+        out << as_double();
+    }
+    else if (is_map()) {
+        as_map().dump(out, indent);
+    }
+    else if (is_array()) {
+        as_array().dump(out, indent);
+    }
+    else {
+        out << "<unknown type>";
+    }
+}
+
 
 
 }}
