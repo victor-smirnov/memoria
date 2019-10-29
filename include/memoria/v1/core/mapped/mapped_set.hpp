@@ -102,7 +102,12 @@ public:
     template <typename KeyView>
     Optional<Key> get(const KeyView& key) const
     {
-        const Array* array = this->array();
+        const State* state = this->state();
+        if (MMA1_UNLIKELY(state->size_ == 0)) {
+            return Optional<Key>{};
+        }
+
+        const Array* array = state->array_.get(arena_);
         size_t slot  = array_slot(array, key);
 
         BucketPtr bucket = array->access(slot);
