@@ -108,7 +108,7 @@ class SDN2DataTypeParam;
 class SDN2DataTypeCtrArg;
 class SDN2Document;
 class SDN2String;
-class SDN2NameToken;
+class SDN2Identifier;
 
 class SDN2DocumentBuilder;
 
@@ -141,14 +141,16 @@ struct SDN2ValueTraits<SDN2Array> {
 };
 
 template <>
-struct SDN2ValueTraits<SDN2NameToken> {
+struct SDN2ValueTraits<SDN2TypeDeclaration> {
     static constexpr SDN2ValueTag ValueTag = 7;
 };
 
 template <>
-struct SDN2ValueTraits<SDN2TypeDeclaration> {
+struct SDN2ValueTraits<SDN2Identifier> {
     static constexpr SDN2ValueTag ValueTag = 8;
 };
+
+
 
 class SDN2Document {
     using ValueMap = sdn2_::ValueMap;
@@ -168,7 +170,6 @@ class SDN2Document {
     friend class SDN2Value;
     friend class SDN2String;
     friend class SDN2Identifier;
-    friend class SDN2NameToken;
 
 public:
     SDN2Document() {
@@ -192,15 +193,20 @@ public:
 
     std::ostream& dump(std::ostream& out) const;
 
-private:
+    SDN2String new_string(U8StringView view);
+    SDN2Identifier new_identifier(U8StringView view);
 
-    SDN2Value new_string_value(U8StringView view);
-    SDN2Value new_integer_value(int64_t value);
-    SDN2Value new_double_value(double value);
-    SDN2Value new_array(Span<SDN2Value> span);
+    SDN2Value new_integer(int64_t value);
+    SDN2Value new_double(double value);
+    SDN2Array new_array(Span<SDN2Value> span);
+    SDN2Array new_array();
     SDN2Map new_map();
 
     void set_value(SDN2Value value);
+
+private:
+
+
 
 
     SDN2Ptr<U8MappedString> intern(U8StringView view);
@@ -235,15 +241,17 @@ public:
     U8StringView view() const {
         return string_.get(&doc_->arena_)->view();
     }
+
+    operator SDN2Value() const;
 };
 
-class SDN2NameToken {
+class SDN2Identifier {
     SDN2Document* doc_;
     SDN2Ptr<U8MappedString> string_;
 
 public:
 
-    SDN2NameToken(SDN2Document* doc, SDN2Ptr<U8MappedString> string):
+    SDN2Identifier(SDN2Document* doc, SDN2Ptr<U8MappedString> string):
         doc_(doc), string_(string)
     {}
 
@@ -346,6 +354,8 @@ public:
     SDN2Array(SDN2Document* doc, PtrHolder ptr):
         doc_(doc), array_(Array::get(&doc_->arena_, ptr))
     {}
+
+    operator SDN2Value() const;
 
     SDN2Value get(size_t idx) const
     {
@@ -485,6 +495,10 @@ public:
     SDN2Map(SDN2Document* doc, ValueMap map):
         doc_(doc), map_(map)
     {}
+
+    operator SDN2Value() const {
+        return as_value();
+    }
 
     SDN2Value as_value() const {
         return SDN2Value{doc_, map_.ptr()};
@@ -670,28 +684,35 @@ inline SDN2Ptr<U8MappedString> SDN2Document::intern(U8StringView string)
     }
 }
 
-inline SDN2Value SDN2Document::new_string_value(U8StringView view)
+inline SDN2String SDN2Document::new_string(U8StringView view)
 {
     SDN2Ptr<U8MappedString> ptr = intern(view);
     set_tag(ptr.get(), SDN2ValueTraits<SDN2String>::ValueTag);
-    return SDN2Value{this, ptr};
+    return SDN2String{this, ptr};
 }
 
-inline SDN2Value SDN2Document::new_integer_value(int64_t value)
+inline SDN2Identifier SDN2Document::new_identifier(U8StringView view)
+{
+    SDN2Ptr<U8MappedString> ptr = intern(view);
+    set_tag(ptr.get(), SDN2ValueTraits<SDN2Identifier>::ValueTag);
+    return SDN2Identifier{this, ptr};
+}
+
+inline SDN2Value SDN2Document::new_integer(int64_t value)
 {
     SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(SDN2ValueTag), &arena_, value);
     set_tag(value_ptr.get(), SDN2ValueTraits<int64_t>::ValueTag);
     return SDN2Value{this, value_ptr};
 }
 
-inline SDN2Value SDN2Document::new_double_value(double value)
+inline SDN2Value SDN2Document::new_double(double value)
 {
     SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(SDN2ValueTag), &arena_, value);
     set_tag(value_ptr.get(), SDN2ValueTraits<double>::ValueTag);
     return SDN2Value{this, value_ptr};
 }
 
-inline SDN2Value SDN2Document::new_array(Span<SDN2Value> span)
+inline SDN2Array SDN2Document::new_array(Span<SDN2Value> span)
 {
     Array array = Array::create_tagged(sizeof(SDN2ValueTag), &arena_, span.length());
     set_tag(array.ptr(), SDN2ValueTraits<SDN2Array>::ValueTag);
@@ -700,7 +721,15 @@ inline SDN2Value SDN2Document::new_array(Span<SDN2Value> span)
         array.push_back(vv.value_ptr_);
     }
 
-    return SDN2Value(this, array.ptr());
+    return SDN2Array(this, array.ptr());
+}
+
+inline SDN2Array SDN2Document::new_array()
+{
+    Array array = Array::create_tagged(sizeof(SDN2ValueTag), &arena_, 4);
+    set_tag(array.ptr(), SDN2ValueTraits<SDN2Array>::ValueTag);
+
+    return SDN2Array(this, array.ptr());
 }
 
 
@@ -796,6 +825,12 @@ inline void SDN2Value::dump(std::ostream& out, size_t indent) const
     }
 }
 
+inline SDN2String::operator SDN2Value() const {
+    return SDN2Value{doc_, string_.get()};
+}
 
+inline SDN2Array::operator SDN2Value() const {
+    return SDN2Value{doc_, array_.ptr()};
+}
 
 }}

@@ -41,7 +41,8 @@ int main()
     //SDN2Document doc = SDN2Document::parse("{a: 'hello', cdef: [7.891, 1, {}, {}, null, 'world']}");
     //SDN2Document doc = SDN2Document::parse("['a', 'b', 'c', 123, 566.99, [1,3,5]]");
 
-    SDN2Document doc = SDN2Document::parse("{'aaa': [1,2,3, {}], 'bbb': null, 'eee': {}}");
+    //SDN2Document doc = SDN2Document::parse("{'aaa': [1,2,3, {}], 'bbb': null, 'eee': {}}");
+    SDN2Document doc = SDN2Document::parse("{'aaaaa': 'bbbbbb', 'cccc': []}");
     doc.dump(std::cout) << std::endl;
 
     return 0;

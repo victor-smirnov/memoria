@@ -33,6 +33,7 @@
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
 
 
 #include <boost/variant/recursive_variant.hpp>
@@ -95,24 +96,24 @@ public:
         string_buffer_.clear();
     }
 
-    SDN2Value new_string()
+    SDN2String new_string()
     {
         auto span = string_buffer_.span();
-        return doc_.new_string_value(U8StringView{span.data(), span.length()});
+        return doc_.new_string(U8StringView{span.data(), span.length()});
     }
 
-    SDN2Value new_name_token()
+    SDN2Identifier new_identifier()
     {
         auto span = string_buffer_.span();
-        return doc_.new_string_value(U8StringView{span.data(), span.length()});
+        return doc_.new_identifier(U8StringView{span.data(), span.length()});
     }
 
     SDN2Value new_integer(int64_t v) {
-        return doc_.new_integer_value(v);
+        return doc_.new_integer(v);
     }
 
     SDN2Value new_double(double v) {
-        return doc_.new_double_value(v);
+        return doc_.new_double(v);
     }
 
     void set_doc_value(SDN2Value value)
@@ -120,7 +121,7 @@ public:
         doc_.set_value(value);
     }
 
-    SDN2Value new_array(Span<SDN2Value> span) {
+    SDN2Array new_array(Span<SDN2Value> span) {
         return doc_.new_array(span);
     }
 
@@ -153,47 +154,54 @@ namespace parser {
 
     struct SDN2NullValue {};
 
-    struct SDN2CharBufferBase {
+    class SDN2CharBufferBase {
+    protected:
+        SDN2DocumentBuilder* builder_;
+    public:
+
         using value_type = char;
-        SDN2DocumentBuilder* builder;
+
 
         SDN2CharBufferBase()
         {
-            builder = SDN2DocumentBuilder::current();
-            builder->clear_string_buffer();
+            builder_ = SDN2DocumentBuilder::current();
+            builder_->clear_string_buffer();
         }
 
         using iterator = EmptyType;
 
         iterator end() {return iterator{};}
 
-        void insert(iterator, char value) {
-            builder->append_char(value);
+        void insert(iterator, value_type value) {
+            builder_->append_char(value);
+        }
+
+        void operator=(value_type value) {
+            builder_->append_char(value);
         }
     };
 
     struct SDN2StringValue: SDN2CharBufferBase {
-        SDN2Value value;
-
-        void finish() {
-            value = builder->new_string();
+        SDN2String finish() {
+            return builder_->new_string();
         }
+
+        using SDN2CharBufferBase::operator=;
     };
 
-//    struct SDN2IdentifierValue: SDN2CharBufferBase {
-//        SDN2Value value;
+    struct SDN2IdentifierValue: SDN2CharBufferBase {
+        SDN2Identifier finish() {
+            return builder_->new_identifier();
+        }
 
-//        void finish() {
-//            value = builder->new_name_token();
-//        }
-//    };
+        using SDN2CharBufferBase::operator=;
+    };
 
-    struct SDN2ArrayValue {
-        using value_type = SDN2Value;
-
-        SDN2Value value;
+    class SDN2ArrayValue {
         ArenaBuffer<SDN2Value> value_buffer_;
 
+    public:
+        using value_type = SDN2Value;
         using iterator = EmptyType;
 
         iterator end() {return iterator{};}
@@ -202,45 +210,33 @@ namespace parser {
             value_buffer_.append_value(value);
         }
 
-        void finish() {
-            value = SDN2DocumentBuilder::current()->new_array(value_buffer_.span());
+        SDN2Array finish() {
+            return SDN2DocumentBuilder::current()->new_array(value_buffer_.span());
         }
     };
 
-    struct SDN2MapEntryValue {
-        SDN2String key;
-        SDN2Value value;
 
-        void operator=(SDN2StringValue&& key) {
-            key.finish();
-            this->key = std::move(key.value.as_string());
-        }
+    using MapEntryTuple = std::tuple<SDN2String, SDN2Value>;
 
-        void operator=(SDN2Value&& value) {
-            this->value = value;
-        }
-    };
+    class SDN2MapValue {
+        SDN2Map value_;
 
-    struct SDN2MapValue {
-        using value_type = SDN2MapEntryValue;
-
-        SDN2Value value;
-        SDN2Map map;
-
+    public:
+        using value_type = MapEntryTuple;
         using iterator = EmptyType;
 
         SDN2MapValue() {
-            map = SDN2DocumentBuilder::current()->new_map();
+            value_ = SDN2DocumentBuilder::current()->new_map();
         }
 
         iterator end() {return iterator{};}
 
-        void insert(iterator, value_type entry) {
-            map.set(entry.key, entry.value);
+        void insert(iterator, value_type&& entry) {
+            value_.set(std::get<0>(entry), std::get<1>(entry));
         }
 
-        void finish() {
-            value = map.as_value();
+        SDN2Map& finish() {
+            return value_;
         }
     };
 
@@ -262,10 +258,13 @@ namespace parser {
 
         void operator()(SDN2Map& v) {}
 
+        void operator()(SDN2String& v) {
+            value = v;
+        }
+
         template <typename V>
         void operator()(V& v){
-            v.finish();
-            value = v.value;
+            value = v.finish();
         }
     };
 
@@ -275,28 +274,16 @@ namespace parser {
     using x3::lit;
     using ascii::char_;
 
-//    const auto print_type = [](const auto& ctx){
-//        std::cout << "Print: " << TypeNameFactory<decltype(x3::_attr(ctx))>::name() << std::endl;
-//    };
-
-//    const auto print_map_type = [](const auto& ctx){
-//        std::cout << "Print Map: " << TypeNameFactory<decltype(x3::_val(ctx))>::name() << std::endl;
-//    };
-
-//    const auto finish_string = [](auto& ctx){
-//        x3::_val(ctx).finish();
-//    };
-
-//    const auto finish_identifier = [](auto& ctx){
-//        x3::_val(ctx).finish();
-//    };
-
-//    const auto finish_null = [](const auto& ctx){
-//        std::cout << "Finish NULL: " << TypeNameFactory<decltype(x3::_val(ctx))>::name() << std::endl;
-//    };
-
-
     const auto dummy = [](auto){};
+
+    const auto finish_string = [](auto& ctx) {
+        x3::_val(ctx) = x3::_attr(ctx).finish();
+    };
+
+    const auto finish_identifier = [](auto& ctx) {
+        x3::_val(ctx) = x3::_attr(ctx).finish();
+    };
+
 
     const auto set_doc_value = [](auto& ctx){
         SDN2DocumentBuilder::current()->set_doc_value(x3::_attr(ctx));
@@ -313,38 +300,50 @@ namespace parser {
     x3::rule<class doc>   const sdn_document = "sdn_document";
     x3::rule<class value, SDN2Value> const sdn_value = "sdn_value";
     x3::rule<class array, SDN2ArrayValue> const array = "array";
-    x3::rule<class map, SDN2MapValue> const map = "map";
+    x3::rule<class map,   SDN2MapValue> const map = "map";
 
-    x3::rule<class map_entry, SDN2MapEntryValue>
-            const map_entry = "map_entry";
+    x3::rule<class map_entry, MapEntryTuple> const map_entry = "map_entry";
 
     x3::rule<class null_value, SDN2NullValue> const null_value = "null_value";
+
     x3::rule<class string_value, SDN2StringValue> const quoted_string = "quoted_string";
-//    x3::rule<class identifier_value, SDN2IdentifierValue> const identifier = "identifier";
+    x3::rule<class string_value, SDN2String> const sdn_string = "sdn_string";
+
+    x3::rule<class identifier_value, SDN2IdentifierValue> const identifier = "identifier";
+    x3::rule<class identifier_value, SDN2Identifier> const sdn_identifier = "sdn_identifier";
+
 
     const auto quoted_string_def    = (lexeme['\'' >> +(char_ - '\'') >> '\''] | lexeme['"' >> +(char_ - '"') >> '"']);
+    const auto sdn_string_def       = quoted_string [finish_string];
+
+
     const auto identifier_def       = (lexeme[(x3::alpha | char_('_')) >> *(x3::alnum | char_('_'))] - "null");
+    const auto sdn_identifier_def   = identifier [finish_identifier];
 
     const auto null_value_def   = lexeme[lit("null")][dummy];
 
     const auto array_def        = '[' >> (sdn_value % ',') >> ']' |
                                         lit('[') >> ']';
 
-    const auto map_entry_def    = ((quoted_string) >> ':' >> sdn_value);
+    const auto map_entry_def    = (sdn_string  >> ':' >> sdn_value);
 
     const auto map_def          = '{' >> (map_entry % ',') >> '}' |
                                         lit('{') >> '}';
 
-    const auto sdn_value_def    = (quoted_string |
+    const auto sdn_value_def    = (sdn_string |
                                     strict_double_ |
-                                    x3::int64 |
+                                    x3::int64 | map |
                                     null_value |
-                                    array |
-                                    map)[finish_value];
+                                    array
+                                    )[finish_value];
 
     const auto sdn_document_def = sdn_value[set_doc_value];
 
-    BOOST_SPIRIT_DEFINE(sdn_document, sdn_value, array, map, map_entry, quoted_string, null_value);
+    BOOST_SPIRIT_DEFINE(
+            sdn_document, sdn_value, array, map, map_entry,
+            identifier, sdn_identifier, quoted_string,
+            sdn_string, null_value
+    );
 }
 
 template <typename Iterator>

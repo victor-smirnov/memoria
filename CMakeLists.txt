@@ -183,8 +183,8 @@ include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})
 add_global_libs(${ICU_LIBRARIES})
 
-find_package(unofficial-abseil CONFIG REQUIRED)
-link_libraries(unofficial::abseil::base unofficial::abseil::strings unofficial::abseil::hash unofficial::abseil::meta unofficial::abseil::time)
+find_package(absl CONFIG REQUIRED)
+link_libraries(absl::base absl::strings absl::hash absl::meta absl::time)
 
 find_package(Qt5 COMPONENTS Widgets QUIET)
 
