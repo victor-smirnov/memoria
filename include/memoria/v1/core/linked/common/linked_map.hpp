@@ -17,9 +17,9 @@
 
 #include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/core/mapped/arena.hpp>
-#include <memoria/v1/core/mapped/mapped_vector.hpp>
-#include <memoria/v1/core/mapped/mapped_tools.hpp>
+#include <memoria/v1/core/linked/common/arena.hpp>
+#include <memoria/v1/core/linked/common/linked_vector.hpp>
+#include <memoria/v1/core/linked/common/linked_tools.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
 
 #include <functional>
@@ -36,7 +36,7 @@ template <
     template <typename, typename> class Hash      = MappedHashFn,
     template <typename, typename> class KeyEqual  = MappedEqualToFn
 >
-class MappedMap {
+class LinkedMap {
 
     template <typename T>
     using PtrT = typename Arena::template PtrT<T>;
@@ -50,10 +50,10 @@ class MappedMap {
         }
     };
 
-    using Bucket = MappedVector<BucketEntry>;
+    using Bucket = LinkedVector<BucketEntry>;
     using BucketPtr = PtrT<Bucket>;
 
-    using Array = MappedVector<BucketPtr>;
+    using Array = LinkedVector<BucketPtr>;
     using ArrayPtr = PtrT<Array>;
 
 public:
@@ -67,21 +67,21 @@ private:
     PtrT<State> state_;
 
 public:
-    MappedMap(): arena_(), state_({}) {}
+    LinkedMap(): arena_(), state_({}) {}
 
-    MappedMap(Arena* arena, PtrT<State> state_ptr):
+    LinkedMap(Arena* arena, PtrT<State> state_ptr):
         arena_(arena), state_(state_ptr)
     {}
 
-    static MappedMap create(Arena* arena, size_t tag_size = 0)
+    static LinkedMap create(Arena* arena, size_t tag_size = 0)
     {
         PtrT<State> ptr = arena->template allocate_space<State>(sizeof(State), tag_size);
         arena->construct(ptr, State{});
-        return MappedMap{arena, ptr.get()};
+        return LinkedMap{arena, ptr.get()};
     }
 
-    static MappedMap get(Arena* arena, PtrT<State> ptr) {
-        return MappedMap{arena, ptr.get()};
+    static LinkedMap get(Arena* arena, PtrT<State> ptr) {
+        return LinkedMap{arena, ptr.get()};
     }
 
     void put(const Key& key, const Value& value)
@@ -275,9 +275,9 @@ public:
 private:
 
     template <typename TT>
-    MappedPtrResolver<PtrT<TT>, Arena> resolver(PtrT<TT> ptr)
+    LinkedPtrResolver<PtrT<TT>, Arena> resolver(PtrT<TT> ptr)
     {
-        return MappedPtrResolver<PtrT<TT>, Arena>(ptr, arena_);
+        return LinkedPtrResolver<PtrT<TT>, Arena>(ptr, arena_);
     }
 
     template <typename TT>

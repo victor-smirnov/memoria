@@ -21,7 +21,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/span.hpp>
 
-#include <memoria/v1/core/mapped/arena.hpp>
+#include <memoria/v1/core/linked/common/arena.hpp>
 
 #include <cstddef>
 
@@ -29,7 +29,7 @@ namespace memoria {
 namespace v1 {
 
 template <typename T, typename Arena>
-class MappedDynVector {
+class LinkedDynVector {
 
     static_assert(std::is_trivially_copyable <T>::value, "");
 
@@ -48,13 +48,13 @@ private:
     PtrT<State> state_;
 
 public:
-    MappedDynVector(): arena_(), state_({}) {}
+    LinkedDynVector(): arena_(), state_({}) {}
 
-    MappedDynVector(Arena* arena, PtrT<State> state):
+    LinkedDynVector(Arena* arena, PtrT<State> state):
         arena_(arena), state_(state)
     {}
 
-    static MappedDynVector create(Arena* arena,  uint32_t capacity)
+    static LinkedDynVector create(Arena* arena,  uint32_t capacity)
     {
         PtrT<State> ptr = allocate<State>(arena, State{capacity, 0});
         PtrT<T> data = arena->template allocate_space<T>(capacity * sizeof(T));
@@ -63,11 +63,11 @@ public:
 
         state->data_ = data;
 
-        return MappedDynVector<T, Arena>(arena, ptr);
+        return LinkedDynVector<T, Arena>(arena, ptr);
     }
 
 
-    static MappedDynVector create_tagged(size_t tag_size, Arena* arena, uint32_t capacity)
+    static LinkedDynVector create_tagged(size_t tag_size, Arena* arena, uint32_t capacity)
     {
         PtrT<State> ptr = allocate_tagged<State>(tag_size, arena, State{capacity, 0});
         PtrT<T> data = arena->template allocate_space<T>(capacity * sizeof(T));
@@ -75,13 +75,13 @@ public:
         State* state = ptr.get(arena);
         state->data_ = data;
 
-        return MappedDynVector<T, Arena>(arena, ptr);
+        return LinkedDynVector<T, Arena>(arena, ptr);
     }
 
 
 
-    static MappedDynVector get(Arena* arena, PtrT<State> ptr) {
-        return MappedDynVector{arena, ptr.get()};
+    static LinkedDynVector get(Arena* arena, PtrT<State> ptr) {
+        return LinkedDynVector{arena, ptr.get()};
     }
 
 
@@ -182,15 +182,6 @@ public:
         }
     }
 
-
-
-//    void copy_to(MappedDynVector& dst) const
-//    {
-//        dst.size_ = size_;
-//        for (size_t c = 0; c < size_; c++) {
-//            dst.data_[c] = data_[c];
-//        }
-//    }
 
     void clear()
     {

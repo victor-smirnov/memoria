@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/mapped/mapped_hash.hpp>
+#include <memoria/v1/core/linked/common/linked_hash.hpp>
 
 
 #include <boost/utility/string_view.hpp>

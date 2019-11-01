@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/core/mapped/mapped_hash.hpp>
+#include <memoria/v1/core/linked/common/linked_hash.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -94,13 +94,13 @@ MMA1_MAPPED_EQUAL_TO_FN(float);
 MMA1_MAPPED_EQUAL_TO_FN(double);
 
 template <typename T, typename Arena>
-class MappedPtrHashFn;
+class LinkedPtrHashFn;
 
 template < template<typename, typename, typename> class PtrT, typename T, typename HolderT, typename Arena>
-class MappedPtrHashFn<PtrT<T, HolderT, Arena>, Arena> {
+class LinkedPtrHashFn<PtrT<T, HolderT, Arena>, Arena> {
     Arena* arena_;
 public:
-    MappedPtrHashFn(Arena* arena):
+    LinkedPtrHashFn(Arena* arena):
         arena_(arena)
     {}
 
@@ -126,9 +126,9 @@ namespace mapped_ {
     template <typename T> struct DeepCopyHelper;
 
     template <typename T, typename HolderT, typename Arena>
-    struct DeepCopyHelper<MappedPtr<T, HolderT, Arena>>
+    struct DeepCopyHelper<LinkedPtr<T, HolderT, Arena>>
     {
-        using PtrT = MappedPtr<T, HolderT, Arena>;
+        using PtrT = LinkedPtr<T, HolderT, Arena>;
 
         template <typename AddressMapping>
         static PtrT deep_copy(Arena* dst, Arena* src, PtrT ptr, AddressMapping& address_mapping)

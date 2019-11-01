@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/sdn/sdn2.hpp>
+#include <memoria/v1/core/linked/document/linked_document.hpp>
 
 #include <memoria/v1/core/tools/uuid.hpp>
 
@@ -21,14 +21,14 @@ using namespace memoria::v1;
 
 int main()
 {
-//    SDN2Document doc;
+//    LDDocument doc;
 
-//    SDN2Map map = doc.set_map();
+//    LDDMap map = doc.set_map();
 //    map.set("key0", "value0");
 //    map.set("key1", "value1");
 //    map.set("key2", 12345.6789);
 
-//    SDN2Array arr = map.add_array("key3");
+//    LDDArray arr = map.add_array("key3");
 //    arr.add("cool value");
 //    arr.add((int64_t)1234);
 //    arr.add(1234.567);
@@ -38,11 +38,11 @@ int main()
 //    doc.dump(std::cout);
 //    std::cout << std::endl;
 
-    //SDN2Document doc = SDN2Document::parse("{a: 'hello', cdef: [7.891, 1, {}, {}, null, 'world']}");
-    //SDN2Document doc = SDN2Document::parse("['a', 'b', 'c', 123, 566.99, [1,3,5]]");
+    //LDDocument doc = LDDocument::parse("{a: 'hello', cdef: [7.891, 1, {}, {}, null, 'world']}");
+    //LDDocument doc = LDDocument::parse("['a', 'b', 'c', 123, 566.99, [1,3,5]]");
 
-    //SDN2Document doc = SDN2Document::parse("{'aaa': [1,2,3, {}], 'bbb': null, 'eee': {}}");
-    SDN2Document doc = SDN2Document::parse("{'aaaaa': 'bbbbbb', 'cccc': []}");
+    //LDDocument doc = LDDocument::parse("{'aaa': [1,2,3, {}], 'bbb': null, 'eee': {}}");
+    LDDocument doc = LDDocument::parse("{'aaaaa': 'bbbbbb', 'cccc': []}");
     doc.dump(std::cout) << std::endl;
 
     return 0;

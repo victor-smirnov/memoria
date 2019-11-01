@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/mapped/mapped.hpp>
+#include <memoria/v1/core/linked/linked.hpp>
 
 #include <memoria/v1/core/strings/u8_string.hpp>
 
@@ -23,7 +23,7 @@
 
 using namespace memoria::v1;
 
-using ArenaT = MappedArena<int64_t, uint32_t>;
+using ArenaT = LinkedArena<int64_t, uint32_t>;
 
 template <typename T>
 using PtrT = typename ArenaT::template PtrT<T>;
@@ -52,13 +52,13 @@ int main()
 
     ArenaT arena;
 
-    using Key   = MappedString<>;
-    using Value = MappedString<>;
+    using Key   = U8LinkedString;
+    using Value = U8LinkedString;
 
     using KeyPtr = PtrT<Key>;
     using ValuePtr = PtrT<Value>;
 
-    using Map = MappedMap<KeyPtr, ValuePtr, typename ArenaT::ArenaBase, MappedPtrHashFn, MappedStringPtrEqualToFn>;
+    using Map = LinkedMap<KeyPtr, ValuePtr, typename ArenaT::ArenaBase, LinkedPtrHashFn, LinkedStringPtrEqualToFn>;
     Map map = Map::create(&arena);
 
     for (auto& entry: std_map)
@@ -127,7 +127,7 @@ int main()
     map2.print_bucket_stat();
 
 
-    using Set = MappedSet<KeyPtr, typename ArenaT::ArenaBase, MappedPtrHashFn, MappedStringPtrEqualToFn>;
+    using Set = LinkedSet<KeyPtr, typename ArenaT::ArenaBase, LinkedPtrHashFn, LinkedStringPtrEqualToFn>;
     Set set = Set::create(&arena);
 
     KeyPtr key0 = allocate<Key>(&arena, "Hooooooooooo!");

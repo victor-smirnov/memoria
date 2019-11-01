@@ -21,7 +21,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/span.hpp>
 
-#include <memoria/v1/core/mapped/arena.hpp>
+#include <memoria/v1/core/linked/common/arena.hpp>
 
 #include <cstddef>
 
@@ -29,7 +29,7 @@ namespace memoria {
 namespace v1 {
 
 template <typename T>
-class MappedVector {
+class LinkedVector {
     static_assert(std::is_trivially_copyable<T>::value, "");
 
     uint32_t capacity_;
@@ -38,7 +38,7 @@ class MappedVector {
 public:
     static constexpr bool UseObjectSize = true;
 
-    MappedVector(uint32_t capacity, uint32_t size = 0) noexcept :
+    LinkedVector(uint32_t capacity, uint32_t size = 0) noexcept :
         capacity_(capacity), size_(size)
     {
         for (size_t c = 0; c < capacity_; c++) {
@@ -47,10 +47,10 @@ public:
     }
 
     template <typename Ptr, typename Arena>
-    MappedVector(uint32_t capacity, MappedPtrResolver<Ptr, Arena> other_r) noexcept :
+    LinkedVector(uint32_t capacity, LinkedPtrResolver<Ptr, Arena> other_r) noexcept :
         capacity_(capacity)
     {
-        const MappedVector* other = other_r.get();
+        const LinkedVector* other = other_r.get();
 
         this->size_ = other->size_;
 
@@ -155,15 +155,15 @@ public:
     }
 
     static size_t object_size(size_t capacity, size_t size = 0) noexcept {
-        return sizeof(MappedVector) - sizeof(T) + sizeof(T) * capacity;
+        return sizeof(LinkedVector) - sizeof(T) + sizeof(T) * capacity;
     }
 
     template <typename Ptr, typename Arena>
-    static size_t object_size(size_t capacity, MappedPtrResolver<Ptr, Arena>) noexcept {
+    static size_t object_size(size_t capacity, LinkedPtrResolver<Ptr, Arena>) noexcept {
         return object_size(capacity);
     }
 
-    void copy_to(MappedVector& dst) const
+    void copy_to(LinkedVector& dst) const
     {
         dst.size_ = size_;
         for (size_t c = 0; c < size_; c++) {
@@ -180,7 +180,7 @@ public:
     }
 
     size_t offset_of(size_t idx) const {
-        return offsetof(MappedVector, data_) + idx * sizeof(T);
+        return offsetof(LinkedVector, data_) + idx * sizeof(T);
     }
 
 private:

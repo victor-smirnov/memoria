@@ -46,20 +46,20 @@ namespace mapped_ {
 
 
 template <typename T>
-constexpr bool MappedHasObjectSize = mapped_::HasObjectSizeHelper<T>::type::value;
+constexpr bool LinkedHasObjectSize = mapped_::HasObjectSizeHelper<T>::type::value;
 
 
 
 
 template <typename T, typename HolderT, typename Arena>
-class MappedPtr {
+class LinkedPtr {
     HolderT ptr_value_;
 public:
     using Ptr = T*;
     using ValueT = T;
 
-    MappedPtr() = default;
-    MappedPtr(HolderT value): ptr_value_(value) {}
+    LinkedPtr() = default;
+    LinkedPtr(HolderT value): ptr_value_(value) {}
 
     HolderT get() const {
         return ptr_value_;
@@ -83,11 +83,11 @@ public:
 };
 
 template <typename T, typename Arena>
-class MappedPtrResolver {
+class LinkedPtrResolver {
     T ptr_;
     Arena* arena_;
 public:
-    MappedPtrResolver(T ptr, Arena* arena): ptr_(ptr), arena_(arena) {}
+    LinkedPtrResolver(T ptr, Arena* arena): ptr_(ptr), arena_(arena) {}
 
     auto get() const {
         return ptr_.get(arena_);
@@ -96,7 +96,7 @@ public:
 
 namespace mapped_ {
 
-    template <typename T, bool HasObjectSize = MappedHasObjectSize<T>> struct ObjectCreator;
+    template <typename T, bool HasObjectSize = LinkedHasObjectSize<T>> struct ObjectCreator;
 
     template <typename T>
     struct ObjectCreator<T, false> {
@@ -127,7 +127,7 @@ namespace mapped_ {
 
 
 template <typename PtrHolderT_>
-class MappedArenaBase {
+class LinkedArenaBase {
 protected:
     uint8_t* data_;
 public:
@@ -135,7 +135,7 @@ public:
     using AddressMapping = std::unordered_map<PtrHolderT, PtrHolderT>;
 
     template <typename T>
-    using PtrT = MappedPtr<T, PtrHolderT, MappedArenaBase>;
+    using PtrT = LinkedPtr<T, PtrHolderT, LinkedArenaBase>;
 
     MMA1_NODISCARD uint8_t* data() {return data_;}
     MMA1_NODISCARD const uint8_t* data() const {return data_;}
@@ -192,19 +192,19 @@ public:
 
 
 template <typename T, typename PtrHolderT, typename... CtrArgs>
-typename MappedArenaBase<PtrHolderT>::template PtrT<T> allocate(MappedArenaBase<PtrHolderT>* arena, CtrArgs&&... args) {
+typename LinkedArenaBase<PtrHolderT>::template PtrT<T> allocate(LinkedArenaBase<PtrHolderT>* arena, CtrArgs&&... args) {
     return arena->template allocate<T>(std::forward<CtrArgs>(args)...);
 }
 
 template <typename T, typename PtrHolderT, typename... CtrArgs>
-typename MappedArenaBase<PtrHolderT>::template PtrT<T> allocate_tagged(size_t tag_size, MappedArenaBase<PtrHolderT>* arena, CtrArgs&&... args) {
+typename LinkedArenaBase<PtrHolderT>::template PtrT<T> allocate_tagged(size_t tag_size, LinkedArenaBase<PtrHolderT>* arena, CtrArgs&&... args) {
     return arena->template allocate_tagged<T>(tag_size, std::forward<CtrArgs>(args)...);
 }
 
 
 template <typename HeaderT, typename PtrHolderT>
-class MappedArena: public MappedArenaBase<PtrHolderT> {
-    using Base = MappedArenaBase<PtrHolderT>;
+class LinkedArena: public LinkedArenaBase<PtrHolderT> {
+    using Base = LinkedArenaBase<PtrHolderT>;
 
     using ArenaBufferT = ArenaBuffer<uint8_t>;
     using ArenaBufferPtr = std::unique_ptr<ArenaBufferT>;
@@ -221,9 +221,15 @@ public:
 
     using ArenaBase = Base;
 
-    MappedArena()
+    LinkedArena()
     {
         create_buffer();
+    }
+
+    LinkedArena(Span<uint8_t> span) noexcept:
+        size_(span.size()), arena_()
+    {
+        data_ = span.data();
     }
 
     HeaderT& header() {
@@ -234,11 +240,7 @@ public:
         return *T2T<HeaderT*>(data_);
     }
 
-    MappedArena(Span<uint8_t> span) noexcept:
-        size_(span.size()), arena_()
-    {
-        data_ = span.data();
-    }
+
 
     void make_writable()
     {

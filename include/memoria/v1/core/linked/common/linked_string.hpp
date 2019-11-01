@@ -22,8 +22,8 @@
 
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
-#include <memoria/v1/core/mapped/mapped_hash.hpp>
-#include <memoria/v1/core/mapped/arena.hpp>
+#include <memoria/v1/core/linked/common/linked_hash.hpp>
+#include <memoria/v1/core/linked/common/arena.hpp>
 
 
 #include <boost/utility/string_view.hpp>
@@ -31,11 +31,11 @@
 namespace memoria {
 namespace v1 {
 
-template <typename CharT = char> class MappedString;
-using U8MappedString = MappedString<typename U8StringView::value_type>;
+template <typename CharT = char> class LinkedString;
+using U8LinkedString = LinkedString<typename U8StringView::value_type>;
 
 template <>
-class alignas(1) MappedString<char> {
+class alignas(1) LinkedString<char> {
 
     uint8_t buffer_[1];
 
@@ -45,7 +45,7 @@ public:
     using CharT = char;
     using ViewType = boost::basic_string_view<CharT>;
 
-    MappedString(ViewType view) noexcept
+    LinkedString(ViewType view) noexcept
     {
         ValueCodec<uint64_t> codec;
         size_t len = codec.encode(buffer(), view.length(), 0);
@@ -53,15 +53,19 @@ public:
         MemCpyBuffer(view.data(), data, view.length());
     }
 
-    MappedString(const MappedString& other) noexcept
+    LinkedString() noexcept {
+        buffer_[0] = 0;
+    }
+
+    LinkedString(LinkedString&&) = delete;
+
+    void copy_from(const LinkedString& other) noexcept
     {
         ValueCodec<uint64_t> codec;
         size_t len = codec.encode(buffer(), other.size(), 0);
         CharT* data = T2T<CharT*>(buffer() + len);
         MemCpyBuffer(other.data(), data, other.size());
     }
-
-    MappedString(MappedString&&) = delete;
 
 
     size_t size() const noexcept
@@ -105,9 +109,9 @@ public:
     }
 
     template <typename Arena>
-    typename Arena::template PtrT<MappedString> deep_copy_to(Arena* dst, typename Arena::AddressMapping& visited_addresses) const
+    typename Arena::template PtrT<LinkedString> deep_copy_to(Arena* dst, typename Arena::AddressMapping& visited_addresses) const
     {
-        return allocate<MappedString>(dst, view());
+        return allocate<LinkedString>(dst, view());
     }
 
 
@@ -129,17 +133,17 @@ private:
 
 
 template <size_t Size, typename Variant, typename T>
-void append(FNVHasher<Size, Variant>& hasher, const MappedString<T>& str)
+void append(FNVHasher<Size, Variant>& hasher, const LinkedString<T>& str)
 {
     append(hasher, str.view());
 }
 
 
 template <typename T, typename Arena>
-class MappedStringPtrEqualToFn {
+class LinkedStringPtrEqualToFn {
     Arena* arena_;
 public:
-    MappedStringPtrEqualToFn(Arena* arena):
+    LinkedStringPtrEqualToFn(Arena* arena):
         arena_(arena)
     {}
 
@@ -150,13 +154,13 @@ public:
 
 
     bool operator()(const U8String& key, const T& ptr) {
-        return (*ptr.get(arena_)).view() == key.view();
+        return ptr.get(arena_)->view() == key.view();
     }
 
     bool operator()(const T key, const T& ptr)
     {
-        auto key_view = (*ptr.get(arena_)).view();
-        auto ptr_view = (*key.get(arena_)).view();
+        auto key_view = ptr.get(arena_)->view();
+        auto ptr_view = key.get(arena_)->view();
 
         return key_view == ptr_view;
     }

@@ -21,7 +21,7 @@
 #   include <memoria/v1/reactor/reactor.hpp>
 #endif
 
-#include <memoria/v1/core/sdn/sdn2.hpp>
+#include <memoria/v1/core/linked/document/linked_document.hpp>
 
 
 #include <memoria/v1/core/tools/type_name.hpp>
@@ -62,14 +62,14 @@ namespace memoria {
 namespace v1 {
 
 
-class SDN2DocumentBuilder {
+class LDDocumentBuilder {
 
     ArenaBuffer<char> string_buffer_;
-    SDN2Document& doc_;
+    LDDocument& doc_;
 
 public:
 
-    SDN2DocumentBuilder(SDN2Document& doc):
+    LDDocumentBuilder(LDDocument& doc):
         doc_(doc)
     {}
 
@@ -96,41 +96,41 @@ public:
         string_buffer_.clear();
     }
 
-    SDN2String new_string()
+    LDString new_string()
     {
         auto span = string_buffer_.span();
         return doc_.new_string(U8StringView{span.data(), span.length()});
     }
 
-    SDN2Identifier new_identifier()
+    LDIdentifier new_identifier()
     {
         auto span = string_buffer_.span();
         return doc_.new_identifier(U8StringView{span.data(), span.length()});
     }
 
-    SDN2Value new_integer(int64_t v) {
+    LDDValue new_integer(int64_t v) {
         return doc_.new_integer(v);
     }
 
-    SDN2Value new_double(double v) {
+    LDDValue new_double(double v) {
         return doc_.new_double(v);
     }
 
-    void set_doc_value(SDN2Value value)
+    void set_doc_value(LDDValue value)
     {
         doc_.set_value(value);
     }
 
-    SDN2Array new_array(Span<SDN2Value> span) {
+    LDDArray new_array(Span<LDDValue> span) {
         return doc_.new_array(span);
     }
 
-    SDN2Map new_map() {
+    LDDMap new_map() {
         return doc_.new_map();
     }
 
-    static SDN2DocumentBuilder* current(SDN2DocumentBuilder* bb = nullptr, bool force = false) {
-        thread_local SDN2DocumentBuilder* builder = nullptr;
+    static LDDocumentBuilder* current(LDDocumentBuilder* bb = nullptr, bool force = false) {
+        thread_local LDDocumentBuilder* builder = nullptr;
 
         if (MMA1_UNLIKELY(force)) {
             builder = bb;
@@ -152,19 +152,19 @@ namespace {
 
 namespace parser {
 
-    struct SDN2NullValue {};
+    struct LDNullValue {};
 
-    class SDN2CharBufferBase {
+    class LDCharBufferBase {
     protected:
-        SDN2DocumentBuilder* builder_;
+        LDDocumentBuilder* builder_;
     public:
 
         using value_type = char;
 
 
-        SDN2CharBufferBase()
+        LDCharBufferBase()
         {
-            builder_ = SDN2DocumentBuilder::current();
+            builder_ = LDDocumentBuilder::current();
             builder_->clear_string_buffer();
         }
 
@@ -181,27 +181,27 @@ namespace parser {
         }
     };
 
-    struct SDN2StringValue: SDN2CharBufferBase {
-        SDN2String finish() {
+    struct LDStringValue: LDCharBufferBase {
+        LDString finish() {
             return builder_->new_string();
         }
 
-        using SDN2CharBufferBase::operator=;
+        using LDCharBufferBase::operator=;
     };
 
-    struct SDN2IdentifierValue: SDN2CharBufferBase {
-        SDN2Identifier finish() {
+    struct LDIdentifierValue: LDCharBufferBase {
+        LDIdentifier finish() {
             return builder_->new_identifier();
         }
 
-        using SDN2CharBufferBase::operator=;
+        using LDCharBufferBase::operator=;
     };
 
-    class SDN2ArrayValue {
-        ArenaBuffer<SDN2Value> value_buffer_;
+    class LDDArrayValue {
+        ArenaBuffer<LDDValue> value_buffer_;
 
     public:
-        using value_type = SDN2Value;
+        using value_type = LDDValue;
         using iterator = EmptyType;
 
         iterator end() {return iterator{};}
@@ -210,23 +210,23 @@ namespace parser {
             value_buffer_.append_value(value);
         }
 
-        SDN2Array finish() {
-            return SDN2DocumentBuilder::current()->new_array(value_buffer_.span());
+        LDDArray finish() {
+            return LDDocumentBuilder::current()->new_array(value_buffer_.span());
         }
     };
 
 
-    using MapEntryTuple = std::tuple<SDN2String, SDN2Value>;
+    using MapEntryTuple = std::tuple<LDString, LDDValue>;
 
-    class SDN2MapValue {
-        SDN2Map value_;
+    class LDDMapValue {
+        LDDMap value_;
 
     public:
         using value_type = MapEntryTuple;
         using iterator = EmptyType;
 
-        SDN2MapValue() {
-            value_ = SDN2DocumentBuilder::current()->new_map();
+        LDDMapValue() {
+            value_ = LDDocumentBuilder::current()->new_map();
         }
 
         iterator end() {return iterator{};}
@@ -235,30 +235,30 @@ namespace parser {
             value_.set(std::get<0>(entry), std::get<1>(entry));
         }
 
-        SDN2Map& finish() {
+        LDDMap& finish() {
             return value_;
         }
     };
 
 
 
-    struct SDN2ValueVisitor: boost::static_visitor<> {
+    struct LDDValueVisitor: boost::static_visitor<> {
 
-        SDN2Value value;
+        LDDValue value;
 
         void operator()(long v){
-            value = SDN2DocumentBuilder::current()->new_integer(v);
+            value = LDDocumentBuilder::current()->new_integer(v);
         }
 
         void operator()(double v){
-            value = SDN2DocumentBuilder::current()->new_double(v);
+            value = LDDocumentBuilder::current()->new_double(v);
         }
 
-        void operator()(SDN2NullValue& v) {}
+        void operator()(LDNullValue& v) {}
 
-        void operator()(SDN2Map& v) {}
+        void operator()(LDDMap& v) {}
 
-        void operator()(SDN2String& v) {
+        void operator()(LDString& v) {
             value = v;
         }
 
@@ -286,11 +286,11 @@ namespace parser {
 
 
     const auto set_doc_value = [](auto& ctx){
-        SDN2DocumentBuilder::current()->set_doc_value(x3::_attr(ctx));
+        LDDocumentBuilder::current()->set_doc_value(x3::_attr(ctx));
     };
 
     const auto finish_value = [](auto& ctx){
-        SDN2ValueVisitor visitor;
+        LDDValueVisitor visitor;
         boost::apply_visitor(visitor, x3::_attr(ctx));
         x3::_val(ctx) = visitor.value;
     };
@@ -298,19 +298,19 @@ namespace parser {
     x3::real_parser<double, x3::strict_real_policies<double> > const strict_double_ = {};
 
     x3::rule<class doc>   const sdn_document = "sdn_document";
-    x3::rule<class value, SDN2Value> const sdn_value = "sdn_value";
-    x3::rule<class array, SDN2ArrayValue> const array = "array";
-    x3::rule<class map,   SDN2MapValue> const map = "map";
+    x3::rule<class value, LDDValue> const sdn_value = "sdn_value";
+    x3::rule<class array, LDDArrayValue> const array = "array";
+    x3::rule<class map,   LDDMapValue> const map = "map";
 
     x3::rule<class map_entry, MapEntryTuple> const map_entry = "map_entry";
 
-    x3::rule<class null_value, SDN2NullValue> const null_value = "null_value";
+    x3::rule<class null_value, LDNullValue> const null_value = "null_value";
 
-    x3::rule<class string_value, SDN2StringValue> const quoted_string = "quoted_string";
-    x3::rule<class string_value, SDN2String> const sdn_string = "sdn_string";
+    x3::rule<class string_value, LDStringValue> const quoted_string = "quoted_string";
+    x3::rule<class string_value, LDString> const sdn_string = "sdn_string";
 
-    x3::rule<class identifier_value, SDN2IdentifierValue> const identifier = "identifier";
-    x3::rule<class identifier_value, SDN2Identifier> const sdn_identifier = "sdn_identifier";
+    x3::rule<class identifier_value, LDIdentifierValue> const identifier = "identifier";
+    x3::rule<class identifier_value, LDIdentifier> const sdn_identifier = "sdn_identifier";
 
 
     const auto quoted_string_def    = (lexeme['\'' >> +(char_ - '\'') >> '\''] | lexeme['"' >> +(char_ - '"') >> '"']);
@@ -347,16 +347,16 @@ namespace parser {
 }
 
 template <typename Iterator>
-bool parse_sdn2(Iterator& first, Iterator& last, SDN2Document& doc)
+bool parse_sdn2(Iterator& first, Iterator& last, LDDocument& doc)
 {
     using x3::double_;
     using x3::phrase_parse;
     using x3::_attr;
     using ascii::space;
 
-    SDN2DocumentBuilder builder(doc);
+    LDDocumentBuilder builder(doc);
 
-    SDN2DocumentBuilder::current(&builder);
+    LDDocumentBuilder::current(&builder);
 
     bool r = phrase_parse(first, last,
 
@@ -366,7 +366,7 @@ bool parse_sdn2(Iterator& first, Iterator& last, SDN2Document& doc)
 
         space);
 
-    SDN2DocumentBuilder::current(nullptr, true);
+    LDDocumentBuilder::current(nullptr, true);
 
     if (first != last)
         return false;
@@ -377,11 +377,11 @@ bool parse_sdn2(Iterator& first, Iterator& last, SDN2Document& doc)
 }
 
 
-SDN2Document SDN2Document::parse(U8StringView::const_iterator start, U8StringView::const_iterator end)
+LDDocument LDDocument::parse(U8StringView::const_iterator start, U8StringView::const_iterator end)
 {
     std::vector<double> nums;
 
-    SDN2Document doc;
+    LDDocument doc;
 
     bool result = parse_sdn2(start, end, doc);
 

@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include <memoria/v1/core/mapped/arena.hpp>
-#include <memoria/v1/core/mapped/mapped_tools.hpp>
-#include <memoria/v1/core/mapped/mapped_sdn.hpp>
-#include <memoria/v1/core/mapped/mapped_string.hpp>
-#include <memoria/v1/core/mapped/mapped_vector.hpp>
-#include <memoria/v1/core/mapped/mapped_dyn_vector.hpp>
-#include <memoria/v1/core/mapped/mapped_hash.hpp>
-#include <memoria/v1/core/mapped/mapped_map.hpp>
-#include <memoria/v1/core/mapped/mapped_set.hpp>
+#include <memoria/v1/core/linked/common/arena.hpp>
+#include <memoria/v1/core/linked/common/linked_tools.hpp>
+#include <memoria/v1/core/linked/common/linked_sdn.hpp>
+#include <memoria/v1/core/linked/common/linked_string.hpp>
+#include <memoria/v1/core/linked/common/linked_vector.hpp>
+#include <memoria/v1/core/linked/common/linked_dyn_vector.hpp>
+#include <memoria/v1/core/linked/common/linked_hash.hpp>
+#include <memoria/v1/core/linked/common/linked_map.hpp>
+#include <memoria/v1/core/linked/common/linked_set.hpp>
