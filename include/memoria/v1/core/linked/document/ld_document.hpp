@@ -17,6 +17,8 @@
 
 #include <memoria/v1/core/linked/document/ld_common.hpp>
 
+#include <functional>
+
 namespace memoria {
 namespace v1 {
 
@@ -26,8 +28,9 @@ class LDDocument {
     using ValueMap = sdn2_::ValueMap;
     using StringSet = sdn2_::StringSet;
     using Array = sdn2_::Array;
+    using TypeDeclsVector = sdn2_::TypeDeclsVector;
 
-    SDN2Arena arena_;
+    mutable SDN2Arena arena_;
     SDN2Ptr<sdn2_::DocumentState> doc_;
 
     friend class LDDocumentBuilder;
@@ -40,6 +43,7 @@ class LDDocument {
     friend class LDDValue;
     friend class LDString;
     friend class LDIdentifier;
+    friend class LDDTypedValue;
 
 public:
     LDDocument() {
@@ -61,7 +65,43 @@ public:
 
     static LDDocument parse(U8StringView::const_iterator start, U8StringView::const_iterator end);
 
-    std::ostream& dump(std::ostream& out) const;
+
+    std::ostream& dump(std::ostream& out) const
+    {
+        LDDumpState state;
+        dump(out, state);
+        return out;
+    }
+
+    std::ostream& dump(std::ostream& out, LDDumpState& state) const;
+
+
+
+    LDTypeDeclaration new_type_declaration(U8StringView name);
+    LDTypeDeclaration new_type_declaration(LDIdentifier name);
+
+    void for_each_type(std::function<void (LDTypeDeclaration)> fn) const;
+
+private:
+
+    LDDTypedValue new_typed_value(LDTypeDeclaration typedecl, LDDValue ctr_value);
+
+    LDTypeDeclaration new_detached_type_declaration(LDIdentifier name);
+
+    TypeDeclsVector ensure_type_decls_capacity(size_t capacity)
+    {
+        auto* state = this->state();
+        if (!state->type_directory)
+        {
+            TypeDeclsVector vv = TypeDeclsVector::create(&arena_, capacity > 4 ? capacity : 4);
+            this->state()->type_directory = vv.ptr();
+            return vv;
+        }
+
+        TypeDeclsVector vv = TypeDeclsVector::get(&arena_, state->type_directory);
+        vv.ensure(capacity);
+        return vv;
+    }
 
     LDString new_string(U8StringView view);
     LDIdentifier new_identifier(U8StringView view);
@@ -73,11 +113,6 @@ public:
     LDDMap new_map();
 
     void set_value(LDDValue value);
-
-private:
-
-
-
 
     SDN2Ptr<U8LinkedString> intern(U8StringView view);
 

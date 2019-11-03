@@ -42,7 +42,7 @@ int main()
     //LDDocument doc = LDDocument::parse("['a', 'b', 'c', 123, 566.99, [1,3,5]]");
 
     //LDDocument doc = LDDocument::parse("{'aaa': [1,2,3, {}], 'bbb': null, 'eee': {}}");
-    LDDocument doc = LDDocument::parse("{'aaaaa': 'bbbbbb', 'cccc': []}");
+    LDDocument doc = LDDocument::parse("{'key0': @Decimal<A,B,C, D, E, F, SimpleBackend>(1,7) = '132493258.4', 'b':1, 'c':2}");
     doc.dump(std::cout) << std::endl;
 
     return 0;

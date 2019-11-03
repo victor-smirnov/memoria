@@ -26,7 +26,10 @@ class LDIdentifier {
     LDDocument* doc_;
     SDN2Ptr<U8LinkedString> string_;
 
+    friend class LDDocument;
+
 public:
+    LDIdentifier():doc_(), string_({}) {}
 
     LDIdentifier(LDDocument* doc, SDN2Ptr<U8LinkedString> string):
         doc_(doc), string_(string)

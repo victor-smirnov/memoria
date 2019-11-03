@@ -25,6 +25,9 @@ namespace v1 {
 class LDString {
     LDDocument* doc_;
     SDN2Ptr<U8LinkedString> string_;
+
+    friend class LDTypeDeclaration;
+
 public:
     LDString(): doc_(), string_({}) {}
 

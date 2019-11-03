@@ -25,39 +25,374 @@
 namespace memoria {
 namespace v1 {
 
-
-
-
 class LDTypeDeclaration {
     using TypeDeclState = sdn2_::TypeDeclState;
     using TypeDeclPtr   = sdn2_::TypeDeclPtr;
+
+    using ParamsVector = LinkedVector<TypeDeclPtr>;
+    using ArgsVector   = LinkedVector<sdn2_::PtrHolder>;
+
     LDDocument* doc_;
     TypeDeclPtr state_;
+
+    friend class LDDocumentBuilder;
+    friend class LDDocument;
+
 public:
+    LDTypeDeclaration(): doc_(), state_({}) {}
+
     LDTypeDeclaration(LDDocument* doc, TypeDeclPtr state):
         doc_(doc), state_(state)
     {}
 
-    U8StringView name() const;
+    operator LDDValue() const {
+        return LDDValue{static_cast<LDDocument*>(doc_), state_.get()};
+    }
 
-    size_t params() const;
+    U8StringView name() const {
+        return state()->name.get(&doc_->arena_)->view();
+    }
 
-    LDTypeDeclaration get_type_declration(size_t idx) const;
-    LDTypeDeclaration add_type_declaration(U8StringView name);
-    void remove_type_declaration(size_t idx);
+    size_t params() const
+    {
+        const TypeDeclState* state = this->state();
+        if (state->type_params) {
+            return state->type_params.get(&doc_->arena_)->size();
+        }
 
-    size_t constructor_args() const;
+        return 0;
+    }
 
-    LDDValue get_constructor_arg(size_t idx) const;
-    LDString add_string_constructor_arg(U8StringView value);
-    void add_double_constructor_arg(double value);
-    void add_integer_constructor_arg(int64_t value);
-    LDDArray add_array_constructor_arg();
-    LDDMap add_map_constructor_arg();
+    LDTypeDeclaration get_type_declration(size_t idx) const
+    {
+        const TypeDeclState* state = this->state();
+        if (state->type_params)
+        {
+            const auto* params_array = state->type_params.get(&doc_->arena_);
 
-    void remove_constructor_arg(size_t idx);
+            if (idx < params_array->size())
+            {
+                return LDTypeDeclaration(doc_, params_array->access(idx));
+            }
+        }
+
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
+    }
+
+    LDTypeDeclaration add_type_declaration(U8StringView name)
+    {
+        LDTypeDeclaration decl = doc_->new_type_declaration(name);
+        ensure_params_capacity(1)->push_back(decl.state_);
+        return decl;
+    }
+
+
+    void remove_type_declaration(size_t idx)
+    {
+        TypeDeclState* state = this->state();
+        if (state->type_params)
+        {
+            auto* params_array = state->type_params.get(&doc_->arena_);
+
+            size_t size = params_array->size();
+
+            if (idx < size)
+            {
+                params_array->remove(idx, 1);
+
+                if (size == 1) {
+                    this->state()->type_params = {};
+                }
+            }
+        }
+
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
+    }
+
+    size_t constructor_args() const
+    {
+        const TypeDeclState* state = this->state();
+        if (state->ctr_args) {
+            return state->ctr_args.get(&doc_->arena_)->size();
+        }
+
+        return 0;
+    }
+
+    LDDValue get_constructor_arg(size_t idx) const
+    {
+        const TypeDeclState* state = this->state();
+        if (state->ctr_args)
+        {
+            const auto* ctr_args = state->ctr_args.get(&doc_->arena_);
+
+            if (idx < ctr_args->size())
+            {
+                return LDDValue{doc_, ctr_args->access(idx)};
+            }
+        }
+
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
+    }
+
+    LDString add_string_constructor_arg(U8StringView value)
+    {
+        LDString str = doc_->new_string(value);
+        ensure_args_capacity(1)->push_back(str.string_.get());
+        return str;
+    }
+
+    void add_double_constructor_arg(double value)
+    {
+        LDDValue val = doc_->new_double(value);
+        ensure_args_capacity(1)->push_back(val.value_ptr_);
+    }
+
+    void add_integer_constructor_arg(int64_t value)
+    {
+        LDDValue val = doc_->new_integer(value);
+        ensure_args_capacity(1)->push_back(val.value_ptr_);
+    }
+
+    LDDArray add_array_constructor_arg()
+    {
+        LDDArray array = doc_->new_array();
+        ensure_args_capacity(1)->push_back(array.array_.ptr());
+        return array;
+    }
+
+    LDDMap add_map_constructor_arg()
+    {
+        LDDMap map = doc_->new_map();
+        ensure_args_capacity(1)->push_back(map.map_.ptr());
+        return map;
+    }
+
+    void remove_constructor_arg(size_t idx)
+    {
+        TypeDeclState* state = this->state();
+        if (state->ctr_args)
+        {
+            auto* ctr_args = state->ctr_args.get(&doc_->arena_);
+
+            size_t size = ctr_args->size();
+
+            if (idx < size)
+            {
+                ctr_args->remove(idx, 1);
+
+                if (size == 1) {
+                    this->state()->ctr_args = {};
+                }
+            }
+        }
+
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
+    }
+
+    std::ostream& dump(std::ostream& out) const
+    {
+        LDDumpState state;
+        dump(out, state);
+        return out;
+    }
+
+    std::ostream& dump(std::ostream& out, LDDumpState& state) const
+    {
+        if (state.indent_size() == 0 || !is_simple_layout()) {
+            do_dump(out, state);
+        }
+        else {
+            LDDumpState state = LDDumpState::no_indent();
+            do_dump(out, state);
+        }
+
+        return out;
+    }
+
+    bool is_simple_layout() const noexcept
+    {
+        size_t params = this->params();
+        size_t args = this->constructor_args();
+
+        if (params > 3 || args > 5) {
+            return false;
+        }
+
+        bool simple = true;
+
+        for (size_t c = 0; c < params; c++) {
+            simple = simple && get_type_declration(c).is_simple_layout();
+        }
+
+        if (simple) {
+            for (size_t c = 0; c < args; c++) {
+                simple = simple && get_constructor_arg(c).is_simple_layout();
+            }
+        }
+
+        return simple;
+    }
 
 private:
+
+    void do_dump(std::ostream& out, LDDumpState& state) const
+    {
+        out << name();
+
+        size_t params = this->params();
+        if (params > 0)
+        {
+            out << "<" << state.nl_start();
+            bool first = true;
+
+            state.push();
+            for (size_t c = 0; c < params; c++)
+            {
+                if (MMA1_LIKELY(!first)) {
+                    out << "," << state.nl_middle();
+                }
+                else {
+                    first = false;
+                }
+
+                state.make_indent(out);
+
+                LDTypeDeclaration td = get_type_declration(c);
+                td.dump(out, state);
+            }
+            state.pop();
+
+            out << state.nl_end();
+
+            state.make_indent(out);
+            out << ">";
+        }
+
+        size_t args = this->constructor_args();
+        if (args > 0)
+        {
+            out << "(" << state.nl_start();
+            bool first = true;
+
+            state.push();
+            for (size_t c = 0; c < args; c++)
+            {
+                if (MMA1_LIKELY(!first)) {
+                    out << "," << state.nl_middle();
+                }
+                else {
+                    first = false;
+                }
+
+                state.make_indent(out);
+
+
+                LDDValue value = get_constructor_arg(c);
+                value.dump(out, state);
+            }
+            state.pop();
+
+            out << state.nl_end();
+
+            state.make_indent(out);
+            out << ")";
+        }
+    }
+
+
+
+
+    void add_param(LDTypeDeclaration type_decl)
+    {
+        ensure_params_capacity(1)->push_back(type_decl.state_);
+    }
+
+    void add_ctr_arg(LDDValue ctr_arg)
+    {
+        ensure_args_capacity(1)->push_back(ctr_arg.value_ptr_);
+    }
+
+    ParamsVector* ensure_params_capacity(size_t capacity)
+    {
+        TypeDeclState* state = this->state();
+        if (!state->type_params)
+        {
+            state->type_params = allocate<ParamsVector>(&doc_->arena_, capacity, 0);
+            return state->type_params.get(&doc_->arena_);
+        }
+
+        ParamsVector* params = state->type_params.get(&doc_->arena_);
+
+        if (params->free_slots() >= capacity)
+        {
+            return params;
+        }
+        else {
+            auto old_vector = state->type_params;
+            size_t size = old_vector.get(&doc_->arena_)->size();
+
+            size_t new_size = next_size(size, 1);
+
+            auto new_ptr = allocate<ParamsVector>(&doc_->arena_, new_size, 0);
+            state = this->state();
+            state->type_params = new_ptr;
+
+            ParamsVector* new_params = state->type_params.get(&doc_->arena_);
+
+            old_vector.get(&doc_->arena_)->copy_to(*new_params);
+
+            return new_params;
+        }
+    }
+
+    ArgsVector* ensure_args_capacity(size_t capacity)
+    {
+        TypeDeclState* state = this->state();
+        if (!state->ctr_args)
+        {
+            state->ctr_args = allocate<ArgsVector>(&doc_->arena_, capacity, 0);
+            return state->ctr_args.get(&doc_->arena_);
+        }
+
+        ArgsVector* args = state->ctr_args.get(&doc_->arena_);
+
+        if (args->free_slots() >= capacity)
+        {
+            return args;
+        }
+        else {
+            auto old_vector = state->ctr_args;
+            size_t size = old_vector.get(&doc_->arena_)->size();
+
+            size_t new_size = next_size(size, 1);
+
+            auto new_ptr = allocate<ArgsVector>(&doc_->arena_, new_size, 0);
+            state = this->state();
+            state->ctr_args = new_ptr;
+
+            ArgsVector* new_args = state->ctr_args.get(&doc_->arena_);
+
+            old_vector.get(&doc_->arena_)->copy_to(*new_args);
+
+            return new_args;
+        }
+    }
+
+    size_t next_size(size_t capacity, size_t requested) const
+    {
+        size_t next_capaicty = capacity * 2;
+
+        if (next_capaicty == 0) next_capaicty = 1;
+
+        while (capacity + requested > next_capaicty)
+        {
+            next_capaicty *= 2;
+        }
+
+        return next_capaicty;
+    }
+
 
     TypeDeclState* state() {
         return state_.get(&doc_->arena_);

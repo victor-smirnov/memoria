@@ -27,6 +27,8 @@ class LDDMap {
     using ValueMap = sdn2_::ValueMap;
     using Array = sdn2_::Array;
 
+    friend class LDTypeDeclaration;
+
     using PtrHolder = typename SDN2ArenaBase::PtrHolderT;
     LDDocument* doc_;
     ValueMap map_;
@@ -137,30 +139,71 @@ public:
         });
     }
 
-    void dump(std::ostream& out, size_t indent = 0) const
+    std::ostream& dump(std::ostream& out) const
+    {
+        LDDumpState state;
+        dump(out, state);
+        return out;
+    }
+
+    std::ostream& dump(std::ostream& out, LDDumpState state) const
+    {
+        if (state.indent_size() == 0 || !is_simple_layout()) {
+            do_dump(out, state);
+        }
+        else {
+            LDDumpState state = LDDumpState::simple();
+            do_dump(out, state);
+        }
+
+        return out;
+    }
+
+
+    bool is_simple_layout() const noexcept
+    {
+        if (size() > 2) {
+            return false;
+        }
+
+        bool simple = true;
+
+        for_each([&](auto key, auto vv){
+            simple = simple && vv.is_simple_layout();
+        });
+
+        return simple;
+    }
+
+private:
+
+    void do_dump(std::ostream& out, LDDumpState state) const
     {
         if (size() > 0)
         {
-            out << "{\n";
+            out << "{" << state.nl_start();
 
             bool first = true;
 
+            state.push();
             for_each([&](auto kk, auto vv){
                 if (MMA1_LIKELY(!first)) {
-                    out << ",\n";
+                    out << "," << state.nl_middle();
                 }
                 else {
                     first = false;
                 }
 
-                sdn2_::make_indent(out, indent + 1);
+                state.make_indent(out);
+
                 out << "'" << kk << "': ";
-                vv.dump(out, indent + 1);
+                vv.dump(out, state);
             });
+            state.pop();
 
-            out << "\n";
+            out << state.nl_end();
 
-            sdn2_::make_indent(out, indent);
+            state.make_indent(out);
             out << "}";
         }
         else {
@@ -168,7 +211,7 @@ public:
         }
     }
 
-private:
+
     void set_tag(SDN2PtrHolder ptr, LDDValueTag tag)
     {
         SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));

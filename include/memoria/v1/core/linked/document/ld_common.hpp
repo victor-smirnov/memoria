@@ -22,6 +22,7 @@
 #include <memoria/v1/core/linked/common/arena.hpp>
 #include <memoria/v1/core/linked/common/linked_string.hpp>
 #include <memoria/v1/core/linked/common/linked_dyn_vector.hpp>
+#include <memoria/v1/core/linked/common/linked_vector.hpp>
 #include <memoria/v1/core/linked/common/linked_map.hpp>
 #include <memoria/v1/core/linked/common/linked_set.hpp>
 
@@ -39,6 +40,9 @@ using LDDValueTag   = uint16_t;
 
 template <typename T>
 using SDN2Ptr = typename SDN2Arena::template PtrT<T>;
+
+
+
 
 namespace sdn2_ {
 
@@ -64,32 +68,30 @@ namespace sdn2_ {
     using Array = LinkedDynVector<PtrHolder, SDN2ArenaBase>;
     using ArrayState = typename Array::State;
 
-    struct TypedValueState {
-        PtrHolder type_ptr;
-        PtrHolder value_ptr;
-    };
-
     struct TypeDeclState;
 
     using TypeDeclPtr = SDN2Ptr<TypeDeclState>;
 
     struct TypeDeclState {
         SDN2Ptr<U8LinkedString> name;
-        SDN2Ptr<LinkedDynVector<TypeDeclPtr, SDN2ArenaBase>> type_params;
-        SDN2Ptr<LinkedDynVector<PtrHolder, SDN2ArenaBase>> ctr_params;
+        SDN2Ptr<LinkedVector<TypeDeclPtr>> type_params;
+        SDN2Ptr<LinkedVector<PtrHolder>> ctr_args;
     };
+
+    struct TypedValueState {
+        SDN2Ptr<TypeDeclState> type_decl;
+        PtrHolder value_ptr;
+    };
+
+    using TypeDeclsVector = LinkedDynVector<TypeDeclPtr, SDN2ArenaBase>;
 
     struct DocumentState {
         PtrHolder value;
-        SDN2Ptr<LinkedVector<TypeDeclPtr>> type_directory;
+        SDN2Ptr<TypeDeclsVector::State> type_directory;
         SDN2Ptr<sdn2_::StringSet::State> strings;
     };
 
-    static inline void make_indent(std::ostream& out, size_t tabs) {
-        for (size_t c = 0; c < tabs; c++) {
-            out << "  ";
-        }
-    }
+
 }
 
 
@@ -105,6 +107,7 @@ class LDDataTypeCtrArg;
 class LDDocument;
 class LDString;
 class LDIdentifier;
+class LDDTypedValue;
 
 class LDDocumentBuilder;
 
@@ -143,7 +146,74 @@ struct LDDValueTraits<LDTypeDeclaration> {
 
 template <>
 struct LDDValueTraits<LDIdentifier> {
-    static constexpr LDDValueTag ValueTag = 8;
+    static constexpr LDDValueTag ValueTag = LDDValueTraits<LDString>::ValueTag;
+};
+
+template <>
+struct LDDValueTraits<LDDTypedValue> {
+    static constexpr LDDValueTag ValueTag = 9;
+};
+
+
+
+class LDDumpState {
+    const char* space_;
+
+    const char* nl_start_;
+    const char* nl_middle_;
+    const char* nl_end_;
+
+    size_t indent_size_;
+    size_t current_indent_;
+
+public:
+    LDDumpState(
+            const char* space,
+            const char* nl_start,
+            const char* nl_middle,
+            const char* nl_end,
+            size_t indent_size
+    ):
+        space_(space),
+        nl_start_(nl_start),
+        nl_middle_(nl_middle),
+        nl_end_(nl_end),
+        indent_size_(indent_size),
+        current_indent_(0)
+    {}
+
+    LDDumpState(): LDDumpState(" ", "\n", "\n", "\n", 2) {}
+
+    static LDDumpState no_indent() {
+        return LDDumpState("", "", "", "", 0);
+    }
+
+    static LDDumpState simple() {
+        return LDDumpState("", "", " ", "", 0);
+    }
+
+    const char* space() const {return space_;}
+
+    const char* nl_start() const {return nl_start_;}
+    const char* nl_middle() const {return nl_middle_;}
+    const char* nl_end() const {return nl_end_;}
+
+    size_t indent_size() const {return indent_size_;}
+    size_t current_indent() const {return current_indent_;}
+
+    void push() {
+        current_indent_ += indent_size_;
+    }
+
+    void pop() {
+        current_indent_ -= indent_size_;
+    }
+
+    void make_indent(std::ostream& out) const {
+        for (size_t c = 0; c < current_indent_; c++) {
+            out << space_;
+        }
+    }
 };
 
 }}

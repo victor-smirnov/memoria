@@ -18,7 +18,6 @@
 #include <memoria/v1/core/linked/document/ld_document.hpp>
 #include <memoria/v1/core/linked/document/ld_string.hpp>
 
-
 namespace memoria {
 namespace v1 {
 
@@ -32,6 +31,7 @@ class LDDValue {
     friend class LDDocument;
     friend class LDDMap;
     friend class LDDArray;
+    friend class LDTypeDeclaration;
 
 public:
     LDDValue() noexcept : doc_(), value_ptr_(), type_tag_() {}
@@ -43,6 +43,8 @@ public:
 
     LDDMap as_map() const noexcept;
     LDDArray as_array() const noexcept;
+    LDTypeDeclaration as_type_decl() const noexcept;
+    LDDTypedValue as_typed_value() const noexcept;
 
     LDString as_string() const noexcept {
         return LDString(doc_, value_ptr_);
@@ -80,11 +82,27 @@ public:
         return type_tag_ == LDDValueTraits<LDDMap>::ValueTag;
     }
 
+    bool is_type_decl() const noexcept {
+        return type_tag_ == LDDValueTraits<LDTypeDeclaration>::ValueTag;
+    }
+
+    bool is_typed_value() const noexcept {
+        return type_tag_ == LDDValueTraits<LDDTypedValue>::ValueTag;
+    }
+
+    bool is_simple_layout() const noexcept;
+
+
     LDDValueTag tag() const {
         return type_tag_;
     }
 
-    void dump(std::ostream& out, size_t indent = 0) const;
+    std::ostream& dump(std::ostream& out, LDDumpState& state) const;
+
+    std::ostream& dump(std::ostream& out) const {
+        LDDumpState state;
+        return dump(out, state);
+    }
 
 private:
 

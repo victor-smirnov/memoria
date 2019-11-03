@@ -96,6 +96,10 @@ public:
         string_buffer_.clear();
     }
 
+    bool is_string_buffer_empty() const {
+        return string_buffer_.size() == 0;
+    }
+
     LDString new_string()
     {
         auto span = string_buffer_.span();
@@ -129,6 +133,23 @@ public:
         return doc_.new_map();
     }
 
+    LDTypeDeclaration new_type_declaration(LDIdentifier id) {
+        return doc_.new_type_declaration(id);
+    }
+
+    void add_type_decl_param(LDTypeDeclaration& dst, LDTypeDeclaration param) {
+        dst.add_param(param);
+    }
+
+    void add_type_decl_ctr_arg(LDTypeDeclaration& dst, LDDValue ctr_arg) {
+        dst.add_ctr_arg(ctr_arg);
+    }
+
+    LDDTypedValue new_typed_value(LDTypeDeclaration type_decl, LDDValue constructor)
+    {
+        return doc_.new_typed_value(type_decl, constructor);
+    }
+
     static LDDocumentBuilder* current(LDDocumentBuilder* bb = nullptr, bool force = false) {
         thread_local LDDocumentBuilder* builder = nullptr;
 
@@ -148,7 +169,6 @@ public:
 
 
 
-namespace {
 
 namespace parser {
 
@@ -160,21 +180,28 @@ namespace parser {
     public:
 
         using value_type = char;
-
+        using size_type = size_t;
+        using reference = value_type&;
+        using iterator = char*;
 
         LDCharBufferBase()
         {
             builder_ = LDDocumentBuilder::current();
-            builder_->clear_string_buffer();
         }
 
-        using iterator = EmptyType;
-
+        iterator begin() {return iterator{};}
         iterator end() {return iterator{};}
+
+        bool empty() const {
+            return builder_->is_string_buffer_empty();
+        }
 
         void insert(iterator, value_type value) {
             builder_->append_char(value);
         }
+
+        template <typename II>
+        void insert(iterator, II begin, II end){}
 
         void operator=(value_type value) {
             builder_->append_char(value);
@@ -194,8 +221,14 @@ namespace parser {
             return builder_->new_identifier();
         }
 
+        operator LDIdentifier() {
+            return finish();
+        }
+
         using LDCharBufferBase::operator=;
     };
+
+
 
     class LDDArrayValue {
         ArenaBuffer<LDDValue> value_buffer_;
@@ -240,6 +273,48 @@ namespace parser {
         }
     };
 
+    using LDTypeDeclarationValueBase = boost::fusion::vector<
+        LDIdentifier,
+        Optional<std::vector<LDTypeDeclaration>>,
+        Optional<std::vector<LDDValue>>
+    >;
+
+    struct LDTypeDeclarationValue: LDTypeDeclarationValueBase {
+
+        void operator=(LDIdentifier ii)
+        {
+            boost::fusion::at_c<0>(*this) = ii;
+        }
+
+        LDTypeDeclaration finish() const
+        {
+            LDDocumentBuilder* builder = LDDocumentBuilder::current();
+
+            LDTypeDeclaration decl = builder->new_type_declaration(boost::fusion::at_c<0>(*this));
+
+            const auto& params = boost::fusion::at_c<1>(*this);
+
+            if (params) {
+                for (auto& td: params.get()) {
+                    builder->add_type_decl_param(decl, td);
+                }
+            }
+
+            const auto& args = boost::fusion::at_c<2>(*this);
+
+            if (args) {
+                for (auto& ctr_arg: args.get()) {
+                    builder->add_type_decl_ctr_arg(decl, ctr_arg);
+                }
+            }
+
+            return decl;
+        }
+
+        operator LDTypeDeclaration() const {
+            return finish();
+        }
+    };
 
 
     struct LDDValueVisitor: boost::static_visitor<> {
@@ -255,6 +330,7 @@ namespace parser {
         }
 
         void operator()(LDNullValue& v) {}
+        void operator()(LDIdentifier& v) {}
 
         void operator()(LDDMap& v) {}
 
@@ -268,6 +344,20 @@ namespace parser {
         }
     };
 
+    using LDDTypedValueValueBase = boost::fusion::vector<
+        LDTypeDeclaration,
+        LDDValue
+    >;
+
+    struct LDDTypedValueValue: LDDTypedValueValueBase {
+        LDDTypedValue finish()
+        {
+            return LDDocumentBuilder::current()->new_typed_value(
+                boost::fusion::at_c<0>(*this),
+                boost::fusion::at_c<1>(*this)
+            );
+        }
+    };
 
     using x3::lexeme;
     using x3::double_;
@@ -295,6 +385,10 @@ namespace parser {
         x3::_val(ctx) = visitor.value;
     };
 
+    const auto clear_string_buffer = [](auto& ctx){
+        LDDocumentBuilder::current()->clear_string_buffer();
+    };
+
     x3::real_parser<double, x3::strict_real_policies<double> > const strict_double_ = {};
 
     x3::rule<class doc>   const sdn_document = "sdn_document";
@@ -307,18 +401,29 @@ namespace parser {
     x3::rule<class null_value, LDNullValue> const null_value = "null_value";
 
     x3::rule<class string_value, LDStringValue> const quoted_string = "quoted_string";
-    x3::rule<class string_value, LDString> const sdn_string = "sdn_string";
+    x3::rule<class sdn_string, LDString> const sdn_string = "sdn_string";
 
     x3::rule<class identifier_value, LDIdentifierValue> const identifier = "identifier";
-    x3::rule<class identifier_value, LDIdentifier> const sdn_identifier = "sdn_identifier";
+    x3::rule<class sdn_identifier, LDIdentifier> const sdn_identifier = "sdn_identifier";
+
+    x3::rule<class type_declaration_v, LDTypeDeclarationValue> const type_declaration = "type_decalration";
 
 
-    const auto quoted_string_def    = (lexeme['\'' >> +(char_ - '\'') >> '\''] | lexeme['"' >> +(char_ - '"') >> '"']);
-    const auto sdn_string_def       = quoted_string [finish_string];
+    x3::rule<class typed_value_v, LDDTypedValueValue> const typed_value = "typed_value";
 
+    const auto quoted_string_def    = (lexeme['\'' >> *(char_ - '\'') >> '\''] | lexeme['"' >> *(char_ - '"') >> '"']);
+    const auto sdn_string_def       = x3::eps[clear_string_buffer] >> quoted_string [finish_string];
 
     const auto identifier_def       = (lexeme[(x3::alpha | char_('_')) >> *(x3::alnum | char_('_'))] - "null");
-    const auto sdn_identifier_def   = identifier [finish_identifier];
+    const auto sdn_identifier_def   = x3::eps[clear_string_buffer] >> identifier [finish_identifier];
+
+
+    const auto type_declaration_def = sdn_identifier
+                                        >> -('<' >> -(type_declaration % ',') >> '>')
+                                        >> -('(' >> -(sdn_value % ',') >> ')');
+
+    const auto typed_value_def      = '@' >> type_declaration >> "=" >> sdn_value;
+
 
     const auto null_value_def   = lexeme[lit("null")][dummy];
 
@@ -334,15 +439,18 @@ namespace parser {
                                     strict_double_ |
                                     x3::int64 | map |
                                     null_value |
-                                    array
-                                    )[finish_value];
+                                    array |
+                                    type_declaration |
+                                    typed_value
+                                  )[finish_value];
 
     const auto sdn_document_def = sdn_value[set_doc_value];
 
     BOOST_SPIRIT_DEFINE(
             sdn_document, sdn_value, array, map, map_entry,
             identifier, sdn_identifier, quoted_string,
-            sdn_string, null_value
+            sdn_string, null_value, type_declaration,
+            typed_value
     );
 }
 
@@ -374,7 +482,7 @@ bool parse_sdn2(Iterator& first, Iterator& last, LDDocument& doc)
     return r;
 }
 
-}
+//}
 
 
 LDDocument LDDocument::parse(U8StringView::const_iterator start, U8StringView::const_iterator end)

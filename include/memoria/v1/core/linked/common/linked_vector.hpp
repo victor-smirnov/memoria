@@ -102,6 +102,10 @@ public:
         return false;
     }
 
+    size_t free_slots() const {
+        return capacity_ - size_;
+    }
+
     size_t push_back_with_offset(const T& value) noexcept
     {
         size_t idx = size_++;
