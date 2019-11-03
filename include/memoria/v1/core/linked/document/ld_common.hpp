@@ -83,11 +83,17 @@ namespace sdn2_ {
         PtrHolder value_ptr;
     };
 
-    using TypeDeclsVector = LinkedDynVector<TypeDeclPtr, SDN2ArenaBase>;
+    using TypeDeclsMap = LinkedMap<
+        SDN2Ptr<U8LinkedString>,
+        PtrHolder,
+        SDN2ArenaBase,
+        LinkedPtrHashFn,
+        LinkedStringPtrEqualToFn
+    >;
 
     struct DocumentState {
         PtrHolder value;
-        SDN2Ptr<TypeDeclsVector::State> type_directory;
+        SDN2Ptr<TypeDeclsMap::State> type_directory;
         SDN2Ptr<sdn2_::StringSet::State> strings;
     };
 

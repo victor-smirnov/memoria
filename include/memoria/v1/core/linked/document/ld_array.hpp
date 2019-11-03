@@ -157,37 +157,8 @@ public:
 
 private:
 
-    void do_dump(std::ostream& out, LDDumpState& state) const
-    {
-        if (size() > 0)
-        {
-            out << "[" << state.nl_start();
+    void do_dump(std::ostream& out, LDDumpState& state) const;
 
-            bool first = true;
-
-            state.push();
-            for_each([&](auto vv){
-                if (MMA1_LIKELY(!first)) {
-                    out << "," << state.nl_middle();
-                }
-                else {
-                    first = false;
-                }
-
-                state.make_indent(out);
-                vv.dump(out, state);
-            });
-            state.pop();
-
-            out << state.nl_end();
-
-            state.make_indent(out);
-            out << "]";
-        }
-        else {
-            out << "[]";
-        }
-    }
 
     void set_tag(SDN2PtrHolder ptr, LDDValueTag tag) noexcept
     {

@@ -236,72 +236,7 @@ public:
 
 private:
 
-    void do_dump(std::ostream& out, LDDumpState& state) const
-    {
-        out << name();
-
-        size_t params = this->params();
-        if (params > 0)
-        {
-            out << "<" << state.nl_start();
-            bool first = true;
-
-            state.push();
-            for (size_t c = 0; c < params; c++)
-            {
-                if (MMA1_LIKELY(!first)) {
-                    out << "," << state.nl_middle();
-                }
-                else {
-                    first = false;
-                }
-
-                state.make_indent(out);
-
-                LDTypeDeclaration td = get_type_declration(c);
-                td.dump(out, state);
-            }
-            state.pop();
-
-            out << state.nl_end();
-
-            state.make_indent(out);
-            out << ">";
-        }
-
-        size_t args = this->constructor_args();
-        if (args > 0)
-        {
-            out << "(" << state.nl_start();
-            bool first = true;
-
-            state.push();
-            for (size_t c = 0; c < args; c++)
-            {
-                if (MMA1_LIKELY(!first)) {
-                    out << "," << state.nl_middle();
-                }
-                else {
-                    first = false;
-                }
-
-                state.make_indent(out);
-
-
-                LDDValue value = get_constructor_arg(c);
-                value.dump(out, state);
-            }
-            state.pop();
-
-            out << state.nl_end();
-
-            state.make_indent(out);
-            out << ")";
-        }
-    }
-
-
-
+    void do_dump(std::ostream& out, LDDumpState& state) const;
 
     void add_param(LDTypeDeclaration type_decl)
     {
@@ -313,71 +248,10 @@ private:
         ensure_args_capacity(1)->push_back(ctr_arg.value_ptr_);
     }
 
-    ParamsVector* ensure_params_capacity(size_t capacity)
-    {
-        TypeDeclState* state = this->state();
-        if (!state->type_params)
-        {
-            state->type_params = allocate<ParamsVector>(&doc_->arena_, capacity, 0);
-            return state->type_params.get(&doc_->arena_);
-        }
+    ParamsVector* ensure_params_capacity(size_t capacity);
+    ArgsVector* ensure_args_capacity(size_t capacity);
 
-        ParamsVector* params = state->type_params.get(&doc_->arena_);
 
-        if (params->free_slots() >= capacity)
-        {
-            return params;
-        }
-        else {
-            auto old_vector = state->type_params;
-            size_t size = old_vector.get(&doc_->arena_)->size();
-
-            size_t new_size = next_size(size, 1);
-
-            auto new_ptr = allocate<ParamsVector>(&doc_->arena_, new_size, 0);
-            state = this->state();
-            state->type_params = new_ptr;
-
-            ParamsVector* new_params = state->type_params.get(&doc_->arena_);
-
-            old_vector.get(&doc_->arena_)->copy_to(*new_params);
-
-            return new_params;
-        }
-    }
-
-    ArgsVector* ensure_args_capacity(size_t capacity)
-    {
-        TypeDeclState* state = this->state();
-        if (!state->ctr_args)
-        {
-            state->ctr_args = allocate<ArgsVector>(&doc_->arena_, capacity, 0);
-            return state->ctr_args.get(&doc_->arena_);
-        }
-
-        ArgsVector* args = state->ctr_args.get(&doc_->arena_);
-
-        if (args->free_slots() >= capacity)
-        {
-            return args;
-        }
-        else {
-            auto old_vector = state->ctr_args;
-            size_t size = old_vector.get(&doc_->arena_)->size();
-
-            size_t new_size = next_size(size, 1);
-
-            auto new_ptr = allocate<ArgsVector>(&doc_->arena_, new_size, 0);
-            state = this->state();
-            state->ctr_args = new_ptr;
-
-            ArgsVector* new_args = state->ctr_args.get(&doc_->arena_);
-
-            old_vector.get(&doc_->arena_)->copy_to(*new_args);
-
-            return new_args;
-        }
-    }
 
     size_t next_size(size_t capacity, size_t requested) const
     {

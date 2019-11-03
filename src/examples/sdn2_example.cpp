@@ -21,28 +21,14 @@ using namespace memoria::v1;
 
 int main()
 {
-//    LDDocument doc;
 
-//    LDDMap map = doc.set_map();
-//    map.set("key0", "value0");
-//    map.set("key1", "value1");
-//    map.set("key2", 12345.6789);
+//    LDDocument doc = LDDocument::parse(
+//                "#{MyDouble_7_3: Double(7, 3)} {'Ключ0': '132493258.4' @#MyDouble_7_3, 'b':1, 'c':2}"
+//    );
+//    doc.dump(std::cout) << std::endl;
 
-//    LDDArray arr = map.add_array("key3");
-//    arr.add("cool value");
-//    arr.add((int64_t)1234);
-//    arr.add(1234.567);
-//    arr.add_array().add(567.99);
-//    arr.add_map();
 
-//    doc.dump(std::cout);
-//    std::cout << std::endl;
-
-    //LDDocument doc = LDDocument::parse("{a: 'hello', cdef: [7.891, 1, {}, {}, null, 'world']}");
-    //LDDocument doc = LDDocument::parse("['a', 'b', 'c', 123, 566.99, [1,3,5]]");
-
-    //LDDocument doc = LDDocument::parse("{'aaa': [1,2,3, {}], 'bbb': null, 'eee': {}}");
-    LDDocument doc = LDDocument::parse("{'key0': @Decimal<A,B,C, D, E, F, SimpleBackend>(1,7) = '132493258.4', 'b':1, 'c':2}");
+    LDDocument doc = LDDocument::parse_type_decl("'sfdsdf'");
     doc.dump(std::cout) << std::endl;
 
     return 0;

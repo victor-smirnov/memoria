@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//#define BOOST_SPIRIT_DEBUG
 
-#define BOOST_SPIRIT_UNICODE
 //#define BOOST_SPIRIT_X3_DEBUG 1
 
 #ifndef MMA1_NO_REACTOR
@@ -22,9 +20,9 @@
 #endif
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
-
-
 #include <memoria/v1/core/tools/type_name.hpp>
+#include <memoria/v1/core/strings/format.hpp>
+
 
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/home/x3.hpp>
@@ -35,6 +33,7 @@
 #include <boost/spirit/include/phoenix_object.hpp>
 #include <boost/fusion/include/std_tuple.hpp>
 
+#include <boost/spirit/home/x3/char/unicode.hpp>
 
 #include <boost/variant/recursive_variant.hpp>
 #include <boost/foreach.hpp>
@@ -51,15 +50,8 @@ namespace memoria {
 namespace v1 {
 
 namespace x3 = boost::spirit::x3;
-namespace ascii = x3::ascii;
-
-
-}}
-
-
-
-namespace memoria {
-namespace v1 {
+namespace unicode = x3::standard;
+namespace bf = boost::fusion;
 
 
 class LDDocumentBuilder {
@@ -150,6 +142,17 @@ public:
         return doc_.new_typed_value(type_decl, constructor);
     }
 
+    LDDTypedValue new_typed_value(LDIdentifier id, LDDValue constructor)
+    {
+        auto type_decl = doc_.get_named_type_declaration(id.view()).get();
+        return doc_.new_typed_value(type_decl, constructor);
+    }
+
+    void add_type_directory_entry(LDIdentifier id, LDTypeDeclaration type_decl)
+    {
+        doc_.set_named_type_declaration(id, type_decl);
+    }
+
     static LDDocumentBuilder* current(LDDocumentBuilder* bb = nullptr, bool force = false) {
         thread_local LDDocumentBuilder* builder = nullptr;
 
@@ -169,7 +172,7 @@ public:
 
 
 
-
+namespace {
 namespace parser {
 
     struct LDNullValue {};
@@ -183,6 +186,7 @@ namespace parser {
         using size_type = size_t;
         using reference = value_type&;
         using iterator = char*;
+        using const_iterator = const char*;
 
         LDCharBufferBase()
         {
@@ -191,6 +195,9 @@ namespace parser {
 
         iterator begin() {return iterator{};}
         iterator end() {return iterator{};}
+
+        const_iterator begin() const {return const_iterator{};}
+        const_iterator end() const {return const_iterator{};}
 
         bool empty() const {
             return builder_->is_string_buffer_empty();
@@ -273,7 +280,7 @@ namespace parser {
         }
     };
 
-    using LDTypeDeclarationValueBase = boost::fusion::vector<
+    using LDTypeDeclarationValueBase = bf::vector<
         LDIdentifier,
         Optional<std::vector<LDTypeDeclaration>>,
         Optional<std::vector<LDDValue>>
@@ -283,16 +290,16 @@ namespace parser {
 
         void operator=(LDIdentifier ii)
         {
-            boost::fusion::at_c<0>(*this) = ii;
+            bf::at_c<0>(*this) = ii;
         }
 
         LDTypeDeclaration finish() const
         {
             LDDocumentBuilder* builder = LDDocumentBuilder::current();
 
-            LDTypeDeclaration decl = builder->new_type_declaration(boost::fusion::at_c<0>(*this));
+            LDTypeDeclaration decl = builder->new_type_declaration(bf::at_c<0>(*this));
 
-            const auto& params = boost::fusion::at_c<1>(*this);
+            const auto& params = bf::at_c<1>(*this);
 
             if (params) {
                 for (auto& td: params.get()) {
@@ -300,7 +307,7 @@ namespace parser {
                 }
             }
 
-            const auto& args = boost::fusion::at_c<2>(*this);
+            const auto& args = bf::at_c<2>(*this);
 
             if (args) {
                 for (auto& ctr_arg: args.get()) {
@@ -315,6 +322,16 @@ namespace parser {
             return finish();
         }
     };
+
+    struct TypeReference {
+        LDIdentifier id{};
+
+        void operator=(LDIdentifier id) {
+            this->id = id;
+        }
+    };
+
+    using TypeDeclOrReference = boost::variant<TypeReference, LDTypeDeclarationValue>;
 
 
     struct LDDValueVisitor: boost::static_visitor<> {
@@ -344,25 +361,91 @@ namespace parser {
         }
     };
 
-    using LDDTypedValueValueBase = boost::fusion::vector<
-        LDTypeDeclaration,
+    using LDDTypedValueValueBase = bf::vector<
+        TypeDeclOrReference,
         LDDValue
     >;
 
     struct LDDTypedValueValue: LDDTypedValueValueBase {
+
+        struct Visitor: public boost::static_visitor<> {
+
+            LDDValue ctr_value_;
+            LDDTypedValue typed_value;
+
+            Visitor(LDDValue ctr_value): ctr_value_(ctr_value) {}
+
+            void operator()(TypeReference ref){
+                typed_value = LDDocumentBuilder::current()->new_typed_value(
+                    ref.id,
+                    ctr_value_
+                );
+            }
+
+            void operator()(LDTypeDeclaration type_decl){
+                typed_value = LDDocumentBuilder::current()->new_typed_value(
+                    type_decl,
+                    ctr_value_
+                );
+            }
+        };
+
         LDDTypedValue finish()
         {
-            return LDDocumentBuilder::current()->new_typed_value(
-                boost::fusion::at_c<0>(*this),
-                boost::fusion::at_c<1>(*this)
+            Visitor vv(bf::at_c<1>(*this));
+            boost::apply_visitor(vv, bf::at_c<0>(*this));
+            return vv.typed_value;
+        }
+    };
+
+    using StringOrTypedValueBase = bf::vector<LDString, Optional<TypeDeclOrReference>>;
+
+    struct StringOrTypedValue: StringOrTypedValueBase {
+        LDDValue finish()
+        {
+            const auto& type = bf::at_c<1>(*this);
+            if (MMA1_LIKELY(!type)) {
+                return bf::at_c<0>(*this);
+            }
+
+            LDDTypedValueValue typed_value;
+
+            bf::at_c<0>(typed_value) = bf::at_c<1>(*this).get();
+            bf::at_c<1>(typed_value) = bf::at_c<0>(*this);
+
+            return typed_value.finish();
+        }
+    };
+
+    using TypeDirectoryMapEntry = bf::vector<LDIdentifier, LDTypeDeclaration>;
+
+    struct TypeDirectoryValue {
+        using value_type = TypeDirectoryMapEntry;
+        using iterator = EmptyType;
+    private:
+        LDDocumentBuilder* builder_;
+    public:
+        TypeDirectoryValue() {
+            builder_ = LDDocumentBuilder::current();
+        }
+
+        iterator end() {return iterator{};}
+
+        void insert(iterator, const TypeDirectoryMapEntry& entry)
+        {
+            builder_->add_type_directory_entry(
+                bf::at_c<0>(entry),
+                bf::at_c<1>(entry)
             );
         }
     };
 
+
+
     using x3::lexeme;
     using x3::double_;
     using x3::lit;
-    using ascii::char_;
+    using unicode::char_;
 
     const auto dummy = [](auto){};
 
@@ -376,7 +459,7 @@ namespace parser {
 
 
     const auto set_doc_value = [](auto& ctx){
-        LDDocumentBuilder::current()->set_doc_value(x3::_attr(ctx));
+        LDDocumentBuilder::current()->set_doc_value(bf::at_c<1>(x3::_attr(ctx)));
     };
 
     const auto finish_value = [](auto& ctx){
@@ -391,30 +474,45 @@ namespace parser {
 
     x3::real_parser<double, x3::strict_real_policies<double> > const strict_double_ = {};
 
-    x3::rule<class doc>   const sdn_document = "sdn_document";
-    x3::rule<class value, LDDValue> const sdn_value = "sdn_value";
-    x3::rule<class array, LDDArrayValue> const array = "array";
-    x3::rule<class map,   LDDMapValue> const map = "map";
+    x3::rule<class doc> const sdn_document              = "sdn_document";
+    x3::rule<class value, LDDValue> const sdn_value     = "sdn_value";
+    x3::rule<class array, LDDArrayValue> const array    = "array";
+    x3::rule<class map,   LDDMapValue> const map        = "map";
 
     x3::rule<class map_entry, MapEntryTuple> const map_entry = "map_entry";
 
     x3::rule<class null_value, LDNullValue> const null_value = "null_value";
 
     x3::rule<class string_value, LDStringValue> const quoted_string = "quoted_string";
-    x3::rule<class sdn_string, LDString> const sdn_string = "sdn_string";
+    x3::rule<class sdn_string, LDString> const sdn_string           = "sdn_string";
 
-    x3::rule<class identifier_value, LDIdentifierValue> const identifier = "identifier";
-    x3::rule<class sdn_identifier, LDIdentifier> const sdn_identifier = "sdn_identifier";
+    x3::rule<class sdn_string_or_typed_value, StringOrTypedValue>
+            const sdn_string_or_typed_value = "sdn_string_or_typed_value";
 
-    x3::rule<class type_declaration_v, LDTypeDeclarationValue> const type_declaration = "type_decalration";
+    x3::rule<class identifier_value, LDIdentifierValue> const identifier    = "identifier";
+    x3::rule<class sdn_identifier, LDIdentifier> const sdn_identifier       = "sdn_identifier";
+
+    x3::rule<class type_declaration, LDTypeDeclarationValue> const type_declaration     = "type_decalration";
+    x3::rule<class standalone_type_decl, LDTypeDeclaration> const standalone_type_decl  = "standalone_type_decl";
+
+    x3::rule<class typed_value, LDDTypedValueValue> const typed_value = "typed_value";
+
+    x3::rule<class type_directory, TypeDirectoryValue> const type_directory = "type_directory";
+
+    x3::rule<class type_directory_entry, TypeDirectoryMapEntry>
+            const type_directory_entry = "type_directory_entry";
 
 
-    x3::rule<class typed_value_v, LDDTypedValueValue> const typed_value = "typed_value";
+    x3::rule<class type_reference, TypeReference> const type_reference = "type_reference";
+    x3::rule<class type_decl_or_reference, TypeDeclOrReference>
+            const type_decl_or_reference = "type_decl_or_reference";
+
 
     const auto quoted_string_def    = (lexeme['\'' >> *(char_ - '\'') >> '\''] | lexeme['"' >> *(char_ - '"') >> '"']);
     const auto sdn_string_def       = x3::eps[clear_string_buffer] >> quoted_string [finish_string];
 
-    const auto identifier_def       = (lexeme[(x3::alpha | char_('_')) >> *(x3::alnum | char_('_'))] - "null");
+    const auto raw_identifier       = (lexeme[(x3::alpha | char_('_')) >> *(x3::alnum | char_('_'))] - "null");
+    const auto identifier_def       = raw_identifier;
     const auto sdn_identifier_def   = x3::eps[clear_string_buffer] >> identifier [finish_identifier];
 
 
@@ -422,7 +520,13 @@ namespace parser {
                                         >> -('<' >> -(type_declaration % ',') >> '>')
                                         >> -('(' >> -(sdn_value % ',') >> ')');
 
-    const auto typed_value_def      = '@' >> type_declaration >> "=" >> sdn_value;
+    const auto type_reference_def   = '#' >> sdn_identifier;
+
+    const auto type_decl_or_reference_def = type_declaration | type_reference;
+
+    const auto typed_value_def      = '@' >> type_decl_or_reference >> "=" >> sdn_value;
+
+    const auto sdn_string_or_typed_value_def = sdn_string >> '@' >> -type_decl_or_reference;
 
 
     const auto null_value_def   = lexeme[lit("null")][dummy];
@@ -435,44 +539,43 @@ namespace parser {
     const auto map_def          = '{' >> (map_entry % ',') >> '}' |
                                         lit('{') >> '}';
 
-    const auto sdn_value_def    = (sdn_string |
+    const auto type_directory_entry_def = sdn_identifier >> ':' >> type_declaration;
+
+    const auto type_directory_def = "#{" >> (type_directory_entry % ',') >> '}' | lit("#{") >> "}";
+
+
+    const auto sdn_value_def    = (sdn_string_or_typed_value |
                                     strict_double_ |
-                                    x3::int64 | map |
+                                    x3::int64 |
+                                    map |
                                     null_value |
                                     array |
                                     type_declaration |
                                     typed_value
                                   )[finish_value];
 
-    const auto sdn_document_def = sdn_value[set_doc_value];
+    const auto sdn_document_def = (-type_directory >> sdn_value) [set_doc_value];
+
+    const auto standalone_type_decl_def = type_declaration;
+
 
     BOOST_SPIRIT_DEFINE(
             sdn_document, sdn_value, array, map, map_entry,
             identifier, sdn_identifier, quoted_string,
             sdn_string, null_value, type_declaration,
-            typed_value
+            typed_value, type_directory, type_directory_entry,
+            type_reference, type_decl_or_reference,
+            sdn_string_or_typed_value, standalone_type_decl
     );
 }
 
 template <typename Iterator>
 bool parse_sdn2(Iterator& first, Iterator& last, LDDocument& doc)
 {
-    using x3::double_;
-    using x3::phrase_parse;
-    using x3::_attr;
-    using ascii::space;
-
     LDDocumentBuilder builder(doc);
-
     LDDocumentBuilder::current(&builder);
 
-    bool r = phrase_parse(first, last,
-
-        //  Begin grammar
-        parser::sdn_document,
-        //  End grammar
-
-        space);
+    bool r = x3::phrase_parse(first, last, parser::sdn_document, unicode::space);
 
     LDDocumentBuilder::current(nullptr, true);
 
@@ -482,22 +585,131 @@ bool parse_sdn2(Iterator& first, Iterator& last, LDDocument& doc)
     return r;
 }
 
-//}
+
+template <typename Iterator>
+bool parse_sdn_type_decl(Iterator& first, Iterator& last, LDDocument& doc)
+{
+    LDDocumentBuilder builder(doc);
+    LDDocumentBuilder::current(&builder);
+
+    LDTypeDeclaration type_decl{};
+
+    bool r = x3::phrase_parse(first, last, parser::standalone_type_decl, unicode::space, type_decl);
+
+    builder.set_doc_value(type_decl);
+
+    LDDocumentBuilder::current(nullptr, true);
+
+    if (first != last)
+        return false;
+
+    return r;
+}
+
+
+template <typename Iterator>
+bool parse_raw_sdn_type_decl(Iterator& first, Iterator& last, LDDocument& doc, LDTypeDeclaration& type_decl)
+{
+    LDDocumentBuilder builder(doc);
+    LDDocumentBuilder::current(&builder);
+
+    bool r = x3::phrase_parse(first, last, parser::standalone_type_decl, unicode::space, type_decl);
+
+    LDDocumentBuilder::current(nullptr, true);
+
+    if (first != last)
+        return false;
+
+    return r;
+}
+
+
+template <typename Iterator>
+bool parse_identifier(Iterator& first, Iterator& last)
+{
+    bool r = x3::phrase_parse(first, last, parser::raw_identifier, unicode::space);
+
+    if (first != last)
+        return false;
+
+    return r;
+}
+
+
+
+template <typename II>
+void assert_parse_ok(bool res, const char* msg, II start0, II start, II end)
+{
+    if (!res)
+    {
+        std::stringstream buf;
+
+        ptrdiff_t pos = start - start0;
+
+        bool add_ellipsis = true;
+        for (size_t c = 0; c < 125; c++) {
+            buf << *start;
+            if (++start == end) {
+                add_ellipsis = false;
+                break;
+            }
+        }
+
+        if (add_ellipsis) {
+            buf << "...";
+        }
+
+        MMA1_THROW(SDNParseException()) << fmt::format_ex(u"{} at {}: {}", msg, pos, buf.str());
+    }
+}
+
+
+}
 
 
 LDDocument LDDocument::parse(U8StringView::const_iterator start, U8StringView::const_iterator end)
 {
-    std::vector<double> nums;
-
     LDDocument doc;
+
+    auto tmp = start;
 
     bool result = parse_sdn2(start, end, doc);
 
-    if (!result) {
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Parse error");
-    }
+    assert_parse_ok(result, "Can't parse type document", tmp, start, end);
 
     return doc;
+}
+
+LDDocument LDDocument::parse_type_decl(U8StringView::const_iterator start, U8StringView::const_iterator end)
+{
+    LDDocument doc;
+
+    auto tmp = start;
+
+    bool result = parse_sdn_type_decl(start, end, doc);
+
+    assert_parse_ok(result, "Can't parse type declaration", tmp, start, end);
+
+    return doc;
+}
+
+LDTypeDeclaration LDDocument::parse_raw_type_decl(U8StringView::const_iterator start, U8StringView::const_iterator end)
+{
+    LDTypeDeclaration type_decl{};
+
+    auto tmp = start;
+
+    bool result = parse_raw_sdn_type_decl(start, end, *this, type_decl);
+
+    assert_parse_ok(result, "Can't parse type declaration", tmp, start, end);
+
+    return type_decl;
+}
+
+
+bool LDDocument::is_identifier(U8StringView::const_iterator start, U8StringView::const_iterator end)
+{
+    return parse_identifier(start, end);
 }
 
 
