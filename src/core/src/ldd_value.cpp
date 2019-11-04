@@ -26,8 +26,14 @@ std::ostream& LDDValue::dump(std::ostream& out, LDDumpFormatState& state, LDDump
     if (is_null()) {
         out << "null";
     }
-    else if (is_string()) {
-        out << "'" << as_string().view() << "'";
+    else if (is_string())
+    {
+        U8StringView str = as_string().view();
+        U8StringView str_escaped = SDNStringEscaper::current().escape_quotes(str);
+
+        out << "'" << str_escaped << "'";
+
+        SDNStringEscaper::current().reset();
     }
     else if (is_integer()) {
         out << as_integer();

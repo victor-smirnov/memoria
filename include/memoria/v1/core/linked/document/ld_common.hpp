@@ -240,4 +240,54 @@ public:
     }
 };
 
+class SDNStringEscaper {
+    ArenaBuffer<U8StringView::value_type> buffer_;
+public:
+
+    bool has_quotes(U8StringView str) const noexcept
+    {
+        for (auto& ch: str) {
+            if (ch == '\'') return true;
+        }
+
+        return false;
+    }
+
+    U8StringView escape_quotes(const U8StringView& str)
+    {
+        if (!has_quotes(str)) {
+            return str;
+        }
+        else {
+            buffer_.clear();
+
+            for (auto& ch: str)
+            {
+                if (MMA1_UNLIKELY(ch == '\''))
+                {
+                    buffer_.append_value('\\');
+                }
+
+                buffer_.append_value(ch);
+            }
+
+            buffer_.append_value(0);
+
+            return U8StringView(buffer_.data(), buffer_.size() - 1);
+        }
+    }
+
+    void reset()
+    {
+        if (buffer_.size() <= 1024*16) {
+            buffer_.clear();
+        }
+        else {
+            buffer_.reset();
+        }
+    }
+
+    static SDNStringEscaper& current();
+};
+
 }}

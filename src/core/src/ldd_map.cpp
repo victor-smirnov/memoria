@@ -43,7 +43,12 @@ void LDDMap::do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& du
 
             state.make_indent(out);
 
-            out << "'" << kk << "': ";
+            U8StringView kk_escaped = SDNStringEscaper::current().escape_quotes(kk);
+
+            out << "'" << kk_escaped << "': ";
+
+            SDNStringEscaper::current().reset();
+
             vv.dump(out, state, dump_state);
         });
         state.pop();

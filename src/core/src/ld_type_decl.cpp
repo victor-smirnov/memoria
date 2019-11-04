@@ -86,6 +86,39 @@ void LDTypeDeclaration::do_dump(std::ostream& out, LDDumpFormatState& state, LDD
     }
 }
 
+void LDTypeDeclaration::do_dump_cxx_type_decl(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
+{
+    out << name();
+
+    size_t params = this->params();
+    if (params > 0)
+    {
+        out << "<" << state.nl_start();
+        bool first = true;
+
+        state.push();
+        for (size_t c = 0; c < params; c++)
+        {
+            if (MMA1_LIKELY(!first)) {
+                out << "," << state.nl_middle();
+            }
+            else {
+                first = false;
+            }
+
+            state.make_indent(out);
+
+            LDTypeDeclaration td = get_type_declration(c);
+            td.do_dump_cxx_type_decl(out, state, dump_state);
+        }
+        state.pop();
+
+        out << state.nl_end();
+
+        state.make_indent(out);
+        out << ">";
+    }
+}
 
 
 LDTypeDeclaration::ParamsVector* LDTypeDeclaration::ensure_params_capacity(size_t capacity)

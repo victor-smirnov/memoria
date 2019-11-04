@@ -192,6 +192,16 @@ public:
         MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
     }
 
+    U8String to_cxx_typedecl() const
+    {
+        std::stringstream ss;
+        LDDumpFormatState state = LDDumpFormatState::no_indent();
+        LDDumpState dump_state(*doc_);
+
+        do_dump_cxx_type_decl(ss,state, dump_state);
+        return ss.str();
+    }
+
     std::ostream& dump(std::ostream& out) const
     {
         LDDumpFormatState state;
@@ -240,6 +250,8 @@ public:
 private:
 
     void do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
+
+    void do_dump_cxx_type_decl(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
     void add_param(LDTypeDeclaration type_decl)
     {

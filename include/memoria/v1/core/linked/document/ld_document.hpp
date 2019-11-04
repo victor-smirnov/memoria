@@ -25,6 +25,12 @@ namespace v1 {
 
 struct SDNParseException: RuntimeException {};
 
+class SDNParserConfiguration {
+public:
+    SDNParserConfiguration() {}
+};
+
+
 class LDDocument {
     using ValueMap = sdn2_::ValueMap;
     using StringSet = sdn2_::StringSet;
@@ -46,6 +52,8 @@ class LDDocument {
     friend class LDIdentifier;
     friend class LDDTypedValue;
 
+    using CharIterator = typename U8StringView::const_iterator;
+
 public:
     LDDocument() {
         doc_ = allocate<sdn2_::DocumentState>(&arena_, sdn2_::DocumentState{0, 0, 0});
@@ -66,13 +74,24 @@ public:
         return parse(view.begin(), view.end());
     }
 
-    static LDDocument parse(U8StringView::const_iterator start, U8StringView::const_iterator end);
+    static LDDocument parse(
+            CharIterator start,
+            CharIterator end,
+            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+    );
 
-    static LDDocument parse_type_decl(U8StringView view) {
+    static LDDocument parse_type_decl(
+            U8StringView view,
+            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+    ) {
         return parse_type_decl(view.begin(), view.end());
     }
 
-    static LDDocument parse_type_decl(U8StringView::const_iterator start, U8StringView::const_iterator end);
+    static LDDocument parse_type_decl(
+            CharIterator start,
+            CharIterator end,
+            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+    );
 
 
     std::ostream& dump(std::ostream& out) const
@@ -97,14 +116,23 @@ public:
         return is_identifier(string.begin(), string.end());
     }
 
-    static bool is_identifier(U8StringView::const_iterator start, U8StringView::const_iterator end);
+    static bool is_identifier(CharIterator start, CharIterator end);
 
     static void assert_identifier(U8StringView name);
 
 private:
 
-    LDTypeDeclaration parse_raw_type_decl(U8StringView::const_iterator start, U8StringView::const_iterator end);
-    LDDValue parse_raw_value(U8StringView::const_iterator start, U8StringView::const_iterator end);
+    LDTypeDeclaration parse_raw_type_decl(
+            CharIterator start,
+            CharIterator end,
+            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+    );
+
+    LDDValue parse_raw_value(
+            CharIterator start,
+            CharIterator end,
+            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+    );
 
     void do_dump_dictionary(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 

@@ -21,14 +21,11 @@ using namespace memoria::v1;
 
 int main()
 {
-
     LDDocument doc = LDDocument::parse(
-        "#{MyDouble_7_3: Double(7, 3)} {'Ключ0': '132493258.4' @#MyDouble_7_3, 'b':1, 'c':2}"
+        "#{MyDouble_7_3: Double(7, 3)} {'Кл\\'юч0': '132493258.4' @#MyDouble_7_3, 'b':1, 'c':2}"
     );
+
     doc.dump(std::cout) << std::endl;
-
-
-
 
     return 0;
 }

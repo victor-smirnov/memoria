@@ -53,6 +53,11 @@ namespace x3 = boost::spirit::x3;
 namespace unicode = x3::standard;
 namespace bf = boost::fusion;
 
+SDNStringEscaper& SDNStringEscaper::current() {
+    static thread_local SDNStringEscaper escaper;
+    return escaper;
+}
+
 
 class LDDocumentBuilder {
 
@@ -509,11 +514,15 @@ namespace parser {
     x3::rule<class type_decl_or_reference, TypeDeclOrReference>
             const type_decl_or_reference = "type_decl_or_reference";
 
+    const auto quoted_string_def    = lexeme['\'' >> *(char_ - '\'' - "\\\'" | '\\' >> char_('\'')) >> '\'']
+                                        | lexeme['"' >> *(char_ - '"' - "\\\"" | '\\' >> char_('"')) >> '"'] ;
 
-    const auto quoted_string_def    = (lexeme['\'' >> *(char_ - '\'') >> '\''] | lexeme['"' >> *(char_ - '"') >> '"']);
+
     const auto sdn_string_def       = x3::eps[clear_string_buffer] >> quoted_string [finish_string];
 
-    const auto raw_identifier       = (lexeme[(x3::alpha | char_('_')) >> *(x3::alnum | char_('_'))] - "null");
+    const auto raw_identifier       = (lexeme[(x3::alpha | char_('_')) >> *(x3::alnum | char_('_'))]
+                                       - "null" - "true" - "false");
+
     const auto identifier_def       = raw_identifier;
     const auto sdn_identifier_def   = x3::eps[clear_string_buffer] >> identifier [finish_identifier];
 
@@ -688,7 +697,7 @@ void assert_parse_ok(bool res, const char* msg, II start0, II start, II end)
 }
 
 
-LDDocument LDDocument::parse(U8StringView::const_iterator start, U8StringView::const_iterator end)
+LDDocument LDDocument::parse(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
 {
     LDDocument doc;
 
@@ -701,7 +710,7 @@ LDDocument LDDocument::parse(U8StringView::const_iterator start, U8StringView::c
     return doc;
 }
 
-LDDocument LDDocument::parse_type_decl(U8StringView::const_iterator start, U8StringView::const_iterator end)
+LDDocument LDDocument::parse_type_decl(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
 {
     LDDocument doc;
 
@@ -714,7 +723,7 @@ LDDocument LDDocument::parse_type_decl(U8StringView::const_iterator start, U8Str
     return doc;
 }
 
-LDTypeDeclaration LDDocument::parse_raw_type_decl(U8StringView::const_iterator start, U8StringView::const_iterator end)
+LDTypeDeclaration LDDocument::parse_raw_type_decl(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
 {
     LDTypeDeclaration type_decl{};
 
@@ -727,7 +736,7 @@ LDTypeDeclaration LDDocument::parse_raw_type_decl(U8StringView::const_iterator s
     return type_decl;
 }
 
-LDDValue LDDocument::parse_raw_value(U8StringView::const_iterator start, U8StringView::const_iterator end)
+LDDValue LDDocument::parse_raw_value(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
 {
     LDDValue value{};
 
@@ -740,7 +749,7 @@ LDDValue LDDocument::parse_raw_value(U8StringView::const_iterator start, U8Strin
     return value;
 }
 
-bool LDDocument::is_identifier(U8StringView::const_iterator start, U8StringView::const_iterator end)
+bool LDDocument::is_identifier(CharIterator start, CharIterator end)
 {
     return parse_identifier(start, end);
 }
