@@ -36,7 +36,7 @@ public:
     {}
 
     U8StringView view() const {
-        return string_.get(&doc_->arena_)->view();
+        return string_.get(doc_->arena_)->view();
     }
 
     operator LDDValue() const;

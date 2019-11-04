@@ -39,7 +39,7 @@ public:
     {}
 
     LDDArray(LDDocument* doc, PtrHolder ptr):
-        doc_(doc), array_(Array::get(&doc_->arena_, ptr))
+        doc_(doc), array_(Array::get(doc_->arena_, ptr))
     {}
 
     operator LDDValue() const;
@@ -57,14 +57,14 @@ public:
 
     void set(size_t idx, int64_t value)
     {
-        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), &doc_->arena_, value);
+        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), doc_->arena_, value);
         set_tag(value_ptr.get(), LDDValueTraits<int64_t>::ValueTag);
         array_.access(idx) = value_ptr;
     }
 
     void set(size_t idx, double value)
     {
-        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), &doc_->arena_, value);
+        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), doc_->arena_, value);
         set_tag(value_ptr.get(), LDDValueTraits<double>::ValueTag);
         array_.access(idx) = value_ptr;
     }
@@ -78,14 +78,14 @@ public:
 
     void add(int64_t value)
     {
-        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), &doc_->arena_, value);
+        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), doc_->arena_, value);
         set_tag(value_ptr.get(), LDDValueTraits<int64_t>::ValueTag);
         array_.push_back(value_ptr);
     }
 
     void add(double value)
     {
-        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), &doc_->arena_, value);
+        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), doc_->arena_, value);
         set_tag(value_ptr.get(), LDDValueTraits<double>::ValueTag);
         array_.push_back(value_ptr);
     }
@@ -94,7 +94,7 @@ public:
 
     LDDArray add_array()
     {
-        Array value = Array::create_tagged(sizeof(LDDValueTag), &doc_->arena_, 4);
+        Array value = Array::create_tagged(sizeof(LDDValueTag), doc_->arena_, 4);
         set_tag(value.ptr(), LDDValueTraits<LDDArray>::ValueTag);
         array_.push_back(value.ptr());
         return LDDArray(doc_, value);
@@ -150,13 +150,13 @@ private:
     void set_tag(SDN2PtrHolder ptr, LDDValueTag tag) noexcept
     {
         SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        *tag_ptr.get(&doc_->arena_) = tag;
+        *tag_ptr.get(doc_->arena_) = tag;
     }
 
     LDDValueTag get_tag(SDN2PtrHolder ptr) const noexcept
     {
         SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        return *tag_ptr.get(&doc_->arena_);
+        return *tag_ptr.get(doc_->arena_);
     }
 };
 

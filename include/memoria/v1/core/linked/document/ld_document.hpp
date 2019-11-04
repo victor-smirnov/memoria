@@ -30,15 +30,18 @@ public:
     SDNParserConfiguration() {}
 };
 
+class LDDocument;
 
-class LDDocument {
-    using ValueMap = sdn2_::ValueMap;
-    using StringSet = sdn2_::StringSet;
-    using Array = sdn2_::Array;
-    using TypeDeclsMap = sdn2_::TypeDeclsMap;
+class LDDocumentView {
+protected:
 
-    mutable SDN2Arena arena_;
-    SDN2Ptr<sdn2_::DocumentState> doc_;
+    using ValueMap      = sdn2_::ValueMap;
+    using StringSet     = sdn2_::StringSet;
+    using Array         = sdn2_::Array;
+    using TypeDeclsMap  = sdn2_::TypeDeclsMap;
+    using DocumentPtr   = SDN2Ptr<sdn2_::DocumentState>;
+
+    mutable SDN2ArenaBase* arena_;
 
     friend class LDDocumentBuilder;
     friend class LDDMap;
@@ -55,8 +58,45 @@ class LDDocument {
     using CharIterator = typename U8StringView::const_iterator;
 
 public:
-    LDDocument() {
-        doc_ = allocate<sdn2_::DocumentState>(&arena_, sdn2_::DocumentState{0, 0, 0});
+    LDDocumentView(): arena_() {}
+    LDDocumentView(const SDN2ArenaBase* arena): arena_(const_cast<SDN2ArenaBase*>(arena)) {}
+
+protected:
+    DocumentPtr doc_ptr() const {
+        return DocumentPtr{sizeof(SDN2Header)};
+    }
+};
+
+class LDDocument: public LDDocumentView {
+
+    using ValueMap      = sdn2_::ValueMap;
+    using StringSet     = sdn2_::StringSet;
+    using Array         = sdn2_::Array;
+    using TypeDeclsMap  = sdn2_::TypeDeclsMap;
+    using DocumentPtr   = SDN2Ptr<sdn2_::DocumentState>;
+
+    mutable SDN2Arena ld_arena_;
+    //SDN2Ptr<sdn2_::DocumentState> doc_;
+
+    friend class LDDocumentBuilder;
+    friend class LDDMap;
+    friend class LDDArray;
+    friend class LDTypeName;
+    friend class LDDataTypeParam;
+    friend class LDDataTypeCtrArg;
+    friend class LDTypeDeclaration;
+    friend class LDDValue;
+    friend class LDString;
+    friend class LDIdentifier;
+    friend class LDDTypedValue;
+
+    using CharIterator = typename U8StringView::const_iterator;
+
+public:
+    LDDocument(): LDDocumentView()
+    {
+        arena_ = &ld_arena_;
+        allocate<sdn2_::DocumentState>(arena_, sdn2_::DocumentState{0, 0, 0});
     }
 
     LDDValue value() const;
@@ -154,12 +194,12 @@ private:
         auto* state = this->state();
         if (!state->type_directory)
         {
-            TypeDeclsMap vv = TypeDeclsMap::create(&arena_);
+            TypeDeclsMap vv = TypeDeclsMap::create(arena_);
             this->state()->type_directory = vv.ptr();
             return vv;
         }
 
-        return TypeDeclsMap::get(&arena_, state->type_directory);
+        return TypeDeclsMap::get(arena_, state->type_directory);
     }
 
     LDString new_string(U8StringView view);
@@ -176,17 +216,17 @@ private:
     SDN2Ptr<U8LinkedString> intern(U8StringView view);
 
     sdn2_::DocumentState* state() {
-        return doc_.get(&arena_);
+        return doc_ptr().get(arena_);
     }
 
     const sdn2_::DocumentState* state() const {
-        return doc_.get(&arena_);
+        return doc_ptr().get(arena_);
     }
 
     void set_tag(SDN2PtrHolder ptr, LDDValueTag tag)
     {
         SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        *tag_ptr.get(&arena_) = tag;
+        *tag_ptr.get(arena_) = tag;
     }
 };
 

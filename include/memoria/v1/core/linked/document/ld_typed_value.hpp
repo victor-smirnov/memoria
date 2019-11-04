@@ -68,7 +68,7 @@ public:
 
 private:
     const State* state() const {
-        return state_.get(&doc_->arena_);
+        return state_.get(doc_->arena_);
     }
 };
 

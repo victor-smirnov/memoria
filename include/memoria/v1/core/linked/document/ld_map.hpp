@@ -37,7 +37,7 @@ public:
     LDDMap(): doc_(), map_() {}
 
     LDDMap(LDDocument* doc, SDN2Ptr<ValueMap::State> map):
-        doc_(doc), map_(&doc_->arena_, map)
+        doc_(doc), map_(doc_->arena_, map)
     {}
 
     LDDMap(LDDocument* doc, ValueMap map):
@@ -77,7 +77,7 @@ public:
     {
         SDN2Ptr<U8LinkedString> name_str  = doc_->intern(name);
 
-        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), &doc_->arena_, value);
+        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), doc_->arena_, value);
 
         set_tag(value_ptr.get(), LDDValueTraits<int64_t>::ValueTag);
 
@@ -88,7 +88,7 @@ public:
     {
         SDN2Ptr<U8LinkedString> name_str  = doc_->intern(name);
 
-        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), &doc_->arena_, value);
+        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), doc_->arena_, value);
 
         set_tag(value_ptr.get(), LDDValueTraits<double>::ValueTag);
 
@@ -104,7 +104,7 @@ public:
     LDDMap add_map(U8StringView name)
     {
         SDN2Ptr<U8LinkedString> name_str = doc_->intern(name);
-        ValueMap value = ValueMap::create(&doc_->arena_, sizeof(LDDValueTag));
+        ValueMap value = ValueMap::create(doc_->arena_, sizeof(LDDValueTag));
 
         set_tag(value.ptr(), LDDValueTraits<LDDMap>::ValueTag);
 
@@ -115,7 +115,7 @@ public:
     LDDArray add_array(U8StringView name)
     {
         SDN2Ptr<U8LinkedString> name_str = doc_->intern(name);
-        Array value =  Array::create_tagged(sizeof(LDDValueTag), &doc_->arena_, 4);
+        Array value =  Array::create_tagged(sizeof(LDDValueTag), doc_->arena_, 4);
         set_tag(value.ptr(), LDDValueTraits<LDDArray>::ValueTag);
 
         map_.put(name_str, value.ptr());
@@ -144,7 +144,7 @@ public:
     void for_each(std::function<void(U8StringView, LDDValue)> fn) const
     {
         map_.for_each([&](const auto& key, const auto& value){
-            U8StringView kk = key.get(&doc_->arena_)->view();
+            U8StringView kk = key.get(doc_->arena_)->view();
             fn(kk, LDDValue{doc_, value});
         });
     }
@@ -193,13 +193,13 @@ private:
     void set_tag(SDN2PtrHolder ptr, LDDValueTag tag)
     {
         SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        *tag_ptr.get(&doc_->arena_) = tag;
+        *tag_ptr.get(doc_->arena_) = tag;
     }
 
     LDDValueTag get_tag(SDN2PtrHolder ptr) const noexcept
     {
         SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        return *tag_ptr.get(&doc_->arena_);
+        return *tag_ptr.get(doc_->arena_);
     }
 };
 

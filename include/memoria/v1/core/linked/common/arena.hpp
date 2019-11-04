@@ -131,11 +131,14 @@ class LinkedArenaBase {
 protected:
     uint8_t* data_;
 public:
+
     using PtrHolderT = PtrHolderT_;
     using AddressMapping = std::unordered_map<PtrHolderT, PtrHolderT>;
 
     template <typename T>
     using PtrT = LinkedPtr<T, PtrHolderT, LinkedArenaBase>;
+
+    LinkedArenaBase() = default;
 
     MMA1_NODISCARD uint8_t* data() {return data_;}
     MMA1_NODISCARD const uint8_t* data() const {return data_;}

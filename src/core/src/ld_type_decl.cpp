@@ -126,11 +126,11 @@ LDTypeDeclaration::ParamsVector* LDTypeDeclaration::ensure_params_capacity(size_
     TypeDeclState* state = this->state();
     if (!state->type_params)
     {
-        state->type_params = allocate<ParamsVector>(&doc_->arena_, capacity, 0);
-        return state->type_params.get(&doc_->arena_);
+        state->type_params = allocate<ParamsVector>(doc_->arena_, capacity, 0);
+        return state->type_params.get(doc_->arena_);
     }
 
-    ParamsVector* params = state->type_params.get(&doc_->arena_);
+    ParamsVector* params = state->type_params.get(doc_->arena_);
 
     if (params->free_slots() >= capacity)
     {
@@ -138,17 +138,17 @@ LDTypeDeclaration::ParamsVector* LDTypeDeclaration::ensure_params_capacity(size_
     }
     else {
         auto old_vector = state->type_params;
-        size_t size = old_vector.get(&doc_->arena_)->size();
+        size_t size = old_vector.get(doc_->arena_)->size();
 
         size_t new_size = next_size(size, 1);
 
-        auto new_ptr = allocate<ParamsVector>(&doc_->arena_, new_size, 0);
+        auto new_ptr = allocate<ParamsVector>(doc_->arena_, new_size, 0);
         state = this->state();
         state->type_params = new_ptr;
 
-        ParamsVector* new_params = state->type_params.get(&doc_->arena_);
+        ParamsVector* new_params = state->type_params.get(doc_->arena_);
 
-        old_vector.get(&doc_->arena_)->copy_to(*new_params);
+        old_vector.get(doc_->arena_)->copy_to(*new_params);
 
         return new_params;
     }
@@ -159,11 +159,11 @@ LDTypeDeclaration::ArgsVector* LDTypeDeclaration::ensure_args_capacity(size_t ca
     TypeDeclState* state = this->state();
     if (!state->ctr_args)
     {
-        state->ctr_args = allocate<ArgsVector>(&doc_->arena_, capacity, 0);
-        return state->ctr_args.get(&doc_->arena_);
+        state->ctr_args = allocate<ArgsVector>(doc_->arena_, capacity, 0);
+        return state->ctr_args.get(doc_->arena_);
     }
 
-    ArgsVector* args = state->ctr_args.get(&doc_->arena_);
+    ArgsVector* args = state->ctr_args.get(doc_->arena_);
 
     if (args->free_slots() >= capacity)
     {
@@ -171,17 +171,17 @@ LDTypeDeclaration::ArgsVector* LDTypeDeclaration::ensure_args_capacity(size_t ca
     }
     else {
         auto old_vector = state->ctr_args;
-        size_t size = old_vector.get(&doc_->arena_)->size();
+        size_t size = old_vector.get(doc_->arena_)->size();
 
         size_t new_size = next_size(size, 1);
 
-        auto new_ptr = allocate<ArgsVector>(&doc_->arena_, new_size, 0);
+        auto new_ptr = allocate<ArgsVector>(doc_->arena_, new_size, 0);
         state = this->state();
         state->ctr_args = new_ptr;
 
-        ArgsVector* new_args = state->ctr_args.get(&doc_->arena_);
+        ArgsVector* new_args = state->ctr_args.get(doc_->arena_);
 
-        old_vector.get(&doc_->arena_)->copy_to(*new_args);
+        old_vector.get(doc_->arena_)->copy_to(*new_args);
 
         return new_args;
     }
