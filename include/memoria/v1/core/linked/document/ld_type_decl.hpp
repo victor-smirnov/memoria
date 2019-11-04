@@ -37,6 +37,8 @@ class LDTypeDeclaration {
 
     friend class LDDocumentBuilder;
     friend class LDDocument;
+    friend class LDDumpState;
+    friend class LDDTypedValue;
 
 public:
     LDTypeDeclaration(): doc_(), state_({}) {}
@@ -192,19 +194,20 @@ public:
 
     std::ostream& dump(std::ostream& out) const
     {
-        LDDumpState state;
-        dump(out, state);
+        LDDumpFormatState state;
+        LDDumpState dump_state(*doc_);
+        dump(out, state, dump_state);
         return out;
     }
 
-    std::ostream& dump(std::ostream& out, LDDumpState& state) const
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
     {
         if (state.indent_size() == 0 || !is_simple_layout()) {
-            do_dump(out, state);
+            do_dump(out, state, dump_state);
         }
         else {
-            LDDumpState state = LDDumpState::no_indent();
-            do_dump(out, state);
+            LDDumpFormatState state = LDDumpFormatState::no_indent();
+            do_dump(out, state, dump_state);
         }
 
         return out;
@@ -236,7 +239,7 @@ public:
 
 private:
 
-    void do_dump(std::ostream& out, LDDumpState& state) const;
+    void do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
     void add_param(LDTypeDeclaration type_decl)
     {

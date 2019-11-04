@@ -53,20 +53,13 @@ public:
 
     std::ostream& dump(std::ostream& out) const
     {
-        LDDumpState state;
-        dump(out, state);
+        LDDumpFormatState state;
+        LDDumpState dump_state(*doc_);
+        dump(out, state, dump_state);
         return out;
     }
 
-    std::ostream&  dump(std::ostream& out, LDDumpState& state) const
-    {
-        out << "@";
-        type().dump(out, state);
-        out << " = ";
-        constructor().dump(out, state);
-
-        return out;
-    }
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
     bool is_simple_layout() const noexcept
     {

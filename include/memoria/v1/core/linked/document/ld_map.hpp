@@ -17,6 +17,7 @@
 
 #include <memoria/v1/core/linked/document/ld_document.hpp>
 #include <memoria/v1/core/linked/document/ld_array.hpp>
+#include <memoria/v1/core/linked/document/ld_value.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -115,11 +116,20 @@ public:
     {
         SDN2Ptr<U8LinkedString> name_str = doc_->intern(name);
         Array value =  Array::create_tagged(sizeof(LDDValueTag), &doc_->arena_, 4);
-
         set_tag(value.ptr(), LDDValueTraits<LDDArray>::ValueTag);
 
         map_.put(name_str, value.ptr());
         return LDDArray(doc_, value);
+    }
+
+    LDDValue add_sdn(U8StringView name, U8StringView sdn)
+    {
+        SDN2Ptr<U8LinkedString> name_str = doc_->intern(name);
+        LDDValue value = doc_->parse_raw_value(sdn.begin(), sdn.end());
+
+        map_.put(name_str, value.value_ptr_);
+
+        return value;
     }
 
     void remove(U8StringView name)
@@ -141,19 +151,20 @@ public:
 
     std::ostream& dump(std::ostream& out) const
     {
-        LDDumpState state;
-        dump(out, state);
+        LDDumpFormatState state;
+        LDDumpState dump_state(*doc_);
+        dump(out, state, dump_state);
         return out;
     }
 
-    std::ostream& dump(std::ostream& out, LDDumpState state) const
+    std::ostream& dump(std::ostream& out, LDDumpFormatState state, LDDumpState& dump_state) const
     {
         if (state.indent_size() == 0 || !is_simple_layout()) {
-            do_dump(out, state);
+            do_dump(out, state, dump_state);
         }
         else {
-            LDDumpState state = LDDumpState::simple();
-            do_dump(out, state);
+            LDDumpFormatState simple_state = state.simple();
+            do_dump(out, simple_state, dump_state);
         }
 
         return out;
@@ -177,7 +188,7 @@ public:
 
 private:
 
-    void do_dump(std::ostream& out, LDDumpState state) const;
+    void do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& dump_state) const;
 
     void set_tag(SDN2PtrHolder ptr, LDDValueTag tag)
     {

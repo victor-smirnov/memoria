@@ -21,7 +21,7 @@
 namespace memoria {
 namespace v1 {
 
-std::ostream& LDDValue::dump(std::ostream& out, LDDumpState& state) const
+std::ostream& LDDValue::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
     if (is_null()) {
         out << "null";
@@ -36,16 +36,16 @@ std::ostream& LDDValue::dump(std::ostream& out, LDDumpState& state) const
         out << as_double();
     }
     else if (is_map()) {
-        as_map().dump(out, state);
+        as_map().dump(out, state, dump_state);
     }
     else if (is_array()) {
-        as_array().dump(out, state);
+        as_array().dump(out, state, dump_state);
     }
     else if (is_type_decl()) {
-        as_type_decl().dump(out, state);
+        as_type_decl().dump(out, state, dump_state);
     }
     else if (is_typed_value()) {
-        as_typed_value().dump(out, state);
+        as_typed_value().dump(out, state, dump_state);
     }
     else {
         out << "<unknown type>";

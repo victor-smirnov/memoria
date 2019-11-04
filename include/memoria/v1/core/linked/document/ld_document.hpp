@@ -60,6 +60,8 @@ public:
     LDDMap set_map();
     LDDArray set_array();
 
+    LDDValue set_sdn(U8StringView sdn);
+
     static LDDocument parse(U8StringView view) {
         return parse(view.begin(), view.end());
     }
@@ -75,17 +77,17 @@ public:
 
     std::ostream& dump(std::ostream& out) const
     {
-        LDDumpState state;
-        dump(out, state);
+        LDDumpFormatState state;
+        LDDumpState dump_state(*this);
+        dump(out, state, dump_state);
         return out;
     }
 
-    std::ostream& dump(std::ostream& out, LDDumpState& state) const;
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
     LDTypeDeclaration create_named_type(U8StringView name, U8StringView type_decl);
 
     Optional<LDTypeDeclaration> get_named_type_declaration(U8StringView name) const;
-    //LDTypeDeclaration create_named_type_declaration(U8StringView name);
 
     void remove_named_type_declaration(U8StringView name);
 
@@ -97,11 +99,14 @@ public:
 
     static bool is_identifier(U8StringView::const_iterator start, U8StringView::const_iterator end);
 
+    static void assert_identifier(U8StringView name);
+
 private:
 
     LDTypeDeclaration parse_raw_type_decl(U8StringView::const_iterator start, U8StringView::const_iterator end);
+    LDDValue parse_raw_value(U8StringView::const_iterator start, U8StringView::const_iterator end);
 
-    void do_dump_dictionary(std::ostream& out, LDDumpState& state) const;
+    void do_dump_dictionary(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
     bool has_type_dictionary() const
     {

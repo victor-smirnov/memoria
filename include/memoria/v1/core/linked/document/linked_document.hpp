@@ -40,6 +40,37 @@ inline LDDMap LDDValue::as_map() const noexcept {
     return LDDMap(doc_, value_ptr_);
 }
 
+inline LDDValue LDDArray::get(size_t idx) const
+{
+    SDN2PtrHolder ptr = array_.access(idx);
+    return LDDValue{doc_, ptr};
+}
+
+inline void LDDArray::for_each(std::function<void(LDDValue)> fn) const
+{
+    array_.for_each([&](const auto& value){
+        fn(LDDValue{doc_, value});
+    });
+}
+
+
+inline bool LDDArray::is_simple_layout() const noexcept
+{
+    if (size() > 3) {
+        return false;
+    }
+
+    bool simple = true;
+
+    for_each([&](auto vv){
+        simple = simple && vv.is_simple_layout();
+    });
+
+    return simple;
+}
+
+
+
 inline LDTypeDeclaration LDDValue::as_type_decl() const noexcept {
     return LDTypeDeclaration(doc_, value_ptr_);
 }

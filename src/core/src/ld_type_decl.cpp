@@ -22,7 +22,7 @@ namespace memoria {
 namespace v1 {
 
 
-void LDTypeDeclaration::do_dump(std::ostream& out, LDDumpState& state) const
+void LDTypeDeclaration::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
     out << name();
 
@@ -45,7 +45,7 @@ void LDTypeDeclaration::do_dump(std::ostream& out, LDDumpState& state) const
             state.make_indent(out);
 
             LDTypeDeclaration td = get_type_declration(c);
-            td.dump(out, state);
+            td.dump(out, state, dump_state);
         }
         state.pop();
 
@@ -75,7 +75,7 @@ void LDTypeDeclaration::do_dump(std::ostream& out, LDDumpState& state) const
 
 
             LDDValue value = get_constructor_arg(c);
-            value.dump(out, state);
+            value.dump(out, state, dump_state);
         }
         state.pop();
 

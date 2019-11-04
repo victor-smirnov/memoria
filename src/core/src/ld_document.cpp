@@ -17,11 +17,26 @@
 #endif
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/v1/core/strings/format.hpp>
 
 namespace memoria {
 namespace v1 {
 
 
+LDDumpState::LDDumpState(const LDDocument& doc)
+{
+    doc.for_each_named_type([&, this](auto type_id, auto type_decl){
+        this->type_mapping_[type_decl.state_.get()] = type_id;
+    });
+}
+
+void LDDocument::assert_identifier(U8StringView name)
+{
+    if (!is_identifier(name)) {
+        MMA1_THROW(SDNParseException()) << fmt::format_ex(u"Supplied value '{}' is not a valid SDN identifier", name);
+    }
+}
 
 SDN2Ptr<U8LinkedString> LDDocument::intern(U8StringView string)
 {
@@ -164,6 +179,13 @@ LDDArray LDDocument::set_array()
     return LDDArray(this, value);
 }
 
+LDDValue LDDocument::set_sdn(U8StringView sdn)
+{
+    LDDValue value = parse_raw_value(sdn.begin(), sdn.end());
+    state()->value = value.value_ptr_;
+    return value;
+}
+
 LDTypeDeclaration LDDocument::new_type_declaration(U8StringView name)
 {
     auto td_ptr = allocate_tagged<sdn2_::TypeDeclState>(sizeof(LDDValueTag), &arena_, sdn2_::TypeDeclState{0, 0, 0});
@@ -242,6 +264,8 @@ Optional<LDTypeDeclaration> LDDocument::get_named_type_declaration(U8StringView 
 
 LDTypeDeclaration LDDocument::create_named_type(U8StringView name, U8StringView type_decl)
 {
+    assert_identifier(name);
+
     TypeDeclsMap map = ensure_type_decls_exist();
     auto str_ptr = this->intern(name);
     LDTypeDeclaration td = parse_raw_type_decl(type_decl.begin(), type_decl.end());
@@ -263,18 +287,18 @@ void LDDocument::remove_named_type_declaration(U8StringView name)
 }
 
 
-std::ostream& LDDocument::dump(std::ostream& out, LDDumpState& state) const {
+std::ostream& LDDocument::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const {
 
     if (has_type_dictionary()) {
-        do_dump_dictionary(out, state);
+        do_dump_dictionary(out, state, dump_state);
     }
 
-    value().dump(out, state);
+    value().dump(out, state, dump_state);
     return out;
 }
 
 
-void LDDocument::do_dump_dictionary(std::ostream& out, LDDumpState& state) const
+void LDDocument::do_dump_dictionary(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
     out << "#{" << state.nl_start();
 
@@ -291,7 +315,7 @@ void LDDocument::do_dump_dictionary(std::ostream& out, LDDumpState& state) const
 
         state.make_indent(out);
         out << name << ": ";
-        td.dump(out, state);
+        td.dump(out, state, dump_state);
     });
     state.pop();
 

@@ -26,6 +26,8 @@
 #include <memoria/v1/core/linked/common/linked_map.hpp>
 #include <memoria/v1/core/linked/common/linked_set.hpp>
 
+#include <unordered_map>
+
 namespace memoria {
 namespace v1 {
 
@@ -162,7 +164,7 @@ struct LDDValueTraits<LDDTypedValue> {
 
 
 
-class LDDumpState {
+class LDDumpFormatState {
     const char* space_;
 
     const char* nl_start_;
@@ -173,7 +175,7 @@ class LDDumpState {
     size_t current_indent_;
 
 public:
-    LDDumpState(
+    LDDumpFormatState(
             const char* space,
             const char* nl_start,
             const char* nl_middle,
@@ -188,14 +190,14 @@ public:
         current_indent_(0)
     {}
 
-    LDDumpState(): LDDumpState(" ", "\n", "\n", "\n", 2) {}
+    LDDumpFormatState(): LDDumpFormatState(" ", "\n", "\n", "\n", 2) {}
 
-    static LDDumpState no_indent() {
-        return LDDumpState("", "", "", "", 0);
+    static LDDumpFormatState no_indent() {
+        return LDDumpFormatState("", "", "", "", 0);
     }
 
-    static LDDumpState simple() {
-        return LDDumpState("", "", " ", "", 0);
+    LDDumpFormatState simple() {
+        return LDDumpFormatState("", "", " ", "", 0);
     }
 
     const char* space() const {return space_;}
@@ -219,6 +221,22 @@ public:
         for (size_t c = 0; c < current_indent_; c++) {
             out << space_;
         }
+    }
+};
+
+class LDDumpState {
+    std::unordered_map<SDN2PtrHolder, U8StringView> type_mapping_;
+public:
+    LDDumpState(const LDDocument& doc);
+
+    Optional<U8StringView> resolve_type_id(SDN2PtrHolder ptr) const
+    {
+        auto ii = type_mapping_.find(ptr);
+        if (ii != type_mapping_.end()) {
+            return ii->second;
+        }
+
+        return Optional<U8StringView>{};
     }
 };
 

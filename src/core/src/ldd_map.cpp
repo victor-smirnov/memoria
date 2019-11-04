@@ -24,7 +24,7 @@
 namespace memoria {
 namespace v1 {
 
-void LDDMap::do_dump(std::ostream& out, LDDumpState state) const
+void LDDMap::do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& dump_state) const
 {
     if (size() > 0)
     {
@@ -44,7 +44,7 @@ void LDDMap::do_dump(std::ostream& out, LDDumpState state) const
             state.make_indent(out);
 
             out << "'" << kk << "': ";
-            vv.dump(out, state);
+            vv.dump(out, state, dump_state);
         });
         state.pop();
 

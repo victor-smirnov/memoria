@@ -97,11 +97,12 @@ public:
         return type_tag_;
     }
 
-    std::ostream& dump(std::ostream& out, LDDumpState& state) const;
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
     std::ostream& dump(std::ostream& out) const {
-        LDDumpState state;
-        return dump(out, state);
+        LDDumpFormatState state;
+        LDDumpState dump_state(*doc_);
+        return dump(out, state, dump_state);
     }
 
 private:

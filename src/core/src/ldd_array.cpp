@@ -31,7 +31,7 @@ LDDMap LDDArray::add_map()
 }
 
 
-void LDDArray::do_dump(std::ostream& out, LDDumpState& state) const
+void LDDArray::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
     if (size() > 0)
     {
@@ -49,7 +49,7 @@ void LDDArray::do_dump(std::ostream& out, LDDumpState& state) const
             }
 
             state.make_indent(out);
-            vv.dump(out, state);
+            vv.dump(out, state, dump_state);
         });
         state.pop();
 

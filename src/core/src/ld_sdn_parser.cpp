@@ -476,6 +476,8 @@ namespace parser {
 
     x3::rule<class doc> const sdn_document              = "sdn_document";
     x3::rule<class value, LDDValue> const sdn_value     = "sdn_value";
+    x3::rule<class standalone_value, LDDValue> const standalone_sdn_value     = "standalone_sdn_value";
+
     x3::rule<class array, LDDArrayValue> const array    = "array";
     x3::rule<class map,   LDDMapValue> const map        = "map";
 
@@ -557,6 +559,7 @@ namespace parser {
     const auto sdn_document_def = (-type_directory >> sdn_value) [set_doc_value];
 
     const auto standalone_type_decl_def = type_declaration;
+    const auto standalone_sdn_value_def = sdn_value;
 
 
     BOOST_SPIRIT_DEFINE(
@@ -565,7 +568,8 @@ namespace parser {
             sdn_string, null_value, type_declaration,
             typed_value, type_directory, type_directory_entry,
             type_reference, type_decl_or_reference,
-            sdn_string_or_typed_value, standalone_type_decl
+            sdn_string_or_typed_value, standalone_type_decl,
+            standalone_sdn_value
     );
 }
 
@@ -622,6 +626,23 @@ bool parse_raw_sdn_type_decl(Iterator& first, Iterator& last, LDDocument& doc, L
 
     return r;
 }
+
+template <typename Iterator>
+bool parse_raw_value0(Iterator& first, Iterator& last, LDDocument& doc, LDDValue& value)
+{
+    LDDocumentBuilder builder(doc);
+    LDDocumentBuilder::current(&builder);
+
+    bool r = x3::phrase_parse(first, last, parser::standalone_sdn_value, unicode::space, value);
+
+    LDDocumentBuilder::current(nullptr, true);
+
+    if (first != last)
+        return false;
+
+    return r;
+}
+
 
 
 template <typename Iterator>
@@ -706,6 +727,18 @@ LDTypeDeclaration LDDocument::parse_raw_type_decl(U8StringView::const_iterator s
     return type_decl;
 }
 
+LDDValue LDDocument::parse_raw_value(U8StringView::const_iterator start, U8StringView::const_iterator end)
+{
+    LDDValue value{};
+
+    auto tmp = start;
+
+    bool result = parse_raw_value0(start, end, *this, value);
+
+    assert_parse_ok(result, "Can't parse SDN value", tmp, start, end);
+
+    return value;
+}
 
 bool LDDocument::is_identifier(U8StringView::const_iterator start, U8StringView::const_iterator end)
 {

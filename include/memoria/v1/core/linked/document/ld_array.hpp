@@ -16,11 +16,10 @@
 #pragma once
 
 #include <memoria/v1/core/linked/document/ld_document.hpp>
+#include <memoria/v1/core/linked/document/ld_value.hpp>
 
 namespace memoria {
 namespace v1 {
-
-
 
 class LDDArray {
     using Array = sdn2_::Array;
@@ -45,11 +44,8 @@ public:
 
     operator LDDValue() const;
 
-    LDDValue get(size_t idx) const
-    {
-        SDN2PtrHolder ptr = array_.access(idx);
-        return LDDValue{doc_, ptr};
-    }
+    LDDValue get(size_t idx) const;
+
 
 
     void set(size_t idx, U8StringView value)
@@ -104,33 +100,36 @@ public:
         return LDDArray(doc_, value);
     }
 
-    void remove(size_t idx)
+    LDDValue add_sdn(U8StringView sdn)
     {
+        LDDValue value = doc_->parse_raw_value(sdn.begin(), sdn.end());
+        array_.push_back(value.value_ptr_);
+        return value;
+    }
+
+    void remove(size_t idx){
         array_.remove(idx, 1);
     }
 
-    void for_each(std::function<void(LDDValue)> fn) const
-    {
-        array_.for_each([&](const auto& value){
-            fn(LDDValue{doc_, value});
-        });
-    }
+    void for_each(std::function<void(LDDValue)> fn) const;
+
 
     std::ostream& dump(std::ostream& out) const
     {
-        LDDumpState state;
-        dump(out, state);
+        LDDumpFormatState state;
+        LDDumpState dump_state(*doc_);
+        dump(out, state, dump_state);
         return out;
     }
 
-    std::ostream& dump(std::ostream& out, LDDumpState& state) const
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
     {
         if (state.indent_size() == 0 || !is_simple_layout()) {
-            do_dump(out, state);
+            do_dump(out, state, dump_state);
         }
         else {
-            LDDumpState state = LDDumpState::simple();
-            do_dump(out, state);
+            LDDumpFormatState simple_state = state.simple();
+            do_dump(out, simple_state, dump_state);
         }
 
         return out;
@@ -140,24 +139,12 @@ public:
         return array_.size();
     }
 
-    bool is_simple_layout() const noexcept
-    {
-        if (size() > 3) {
-            return false;
-        }
+    bool is_simple_layout() const noexcept;
 
-        bool simple = true;
-
-        for_each([&](auto vv){
-            simple = simple && vv.is_simple_layout();
-        });
-
-        return simple;
-    }
 
 private:
 
-    void do_dump(std::ostream& out, LDDumpState& state) const;
+    void do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
 
     void set_tag(SDN2PtrHolder ptr, LDDValueTag tag) noexcept
