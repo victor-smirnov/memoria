@@ -42,11 +42,11 @@ SDN2Ptr<U8LinkedString> LDDocumentView::intern(U8StringView string)
 {
     StringSet set;
 
-    auto* sst = state();
+    auto* sst = state_mutable();
 
     if (!sst->strings) {
-        set = StringSet::create(arena_);
-        state()->strings = set.ptr();
+        set = StringSet::create(arena_->make_mutable());
+        state_mutable()->strings = set.ptr();
     }
     else {
         set = StringSet{arena_, sst->strings};
@@ -58,7 +58,7 @@ SDN2Ptr<U8LinkedString> LDDocumentView::intern(U8StringView string)
         return str.get();
     }
     else {
-        SDN2Ptr<U8LinkedString> ss = allocate_tagged<U8LinkedString>(sizeof(LDDValueTag), arena_, string);
+        SDN2Ptr<U8LinkedString> ss = allocate_tagged<U8LinkedString>(sizeof(LDDValueTag), arena_->make_mutable(), string);
         set.put(ss);
         return ss;
     }
@@ -83,7 +83,7 @@ LDIdentifier LDDocumentView::new_identifier(U8StringView view)
 
 LDDValue LDDocumentView::new_integer(int64_t value)
 {
-    SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), arena_, value);
+    SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), arena_->make_mutable(), value);
     set_tag(value_ptr.get(), LDDValueTraits<int64_t>::ValueTag);
     return LDDValue{this, value_ptr};
 }
@@ -91,7 +91,7 @@ LDDValue LDDocumentView::new_integer(int64_t value)
 
 LDDValue LDDocumentView::new_double(double value)
 {
-    SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), arena_, value);
+    SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), arena_->make_mutable(), value);
     set_tag(value_ptr.get(), LDDValueTraits<double>::ValueTag);
     return LDDValue{this, value_ptr};
 }
@@ -99,7 +99,7 @@ LDDValue LDDocumentView::new_double(double value)
 
 LDDArray LDDocumentView::new_array(Span<LDDValue> span)
 {
-    Array array = Array::create_tagged(sizeof(LDDValueTag), arena_, span.length());
+    Array array = Array::create_tagged(sizeof(LDDValueTag), arena_->make_mutable(), span.length());
     set_tag(array.ptr(), LDDValueTraits<LDDArray>::ValueTag);
 
     for (const LDDValue& vv: span) {
@@ -112,7 +112,7 @@ LDDArray LDDocumentView::new_array(Span<LDDValue> span)
 
 LDDArray LDDocumentView::new_array()
 {
-    Array array = Array::create_tagged(sizeof(LDDValueTag), arena_, 4);
+    Array array = Array::create_tagged(sizeof(LDDValueTag), arena_->make_mutable(), 4);
     set_tag(array.ptr(), LDDValueTraits<LDDArray>::ValueTag);
 
     return LDDArray(this, array.ptr());
@@ -121,7 +121,7 @@ LDDArray LDDocumentView::new_array()
 
 LDDMap LDDocumentView::new_map()
 {
-    ValueMap value = ValueMap::create(arena_, sizeof(LDDValueTag));
+    ValueMap value = ValueMap::create(arena_->make_mutable(), sizeof(LDDValueTag));
 
     set_tag(value.ptr(), LDDValueTraits<LDDMap>::ValueTag);
 
@@ -131,39 +131,39 @@ LDDMap LDDocumentView::new_map()
 
 void LDDocumentView::set_value(LDDValue value)
 {
-    state()->value = value.value_ptr_;
+    state_mutable()->value = value.value_ptr_;
 }
 
 void LDDocumentView::set(U8StringView string)
 {
-    SDN2Ptr<U8LinkedString> ss = allocate_tagged<U8LinkedString>(sizeof(LDDValueTag), arena_, string);
+    SDN2Ptr<U8LinkedString> ss = allocate_tagged<U8LinkedString>(sizeof(LDDValueTag), arena_->make_mutable(), string);
     set_tag(ss.get(), LDDValueTraits<LDString>::ValueTag);
-    state()->value = ss.get();
+    state_mutable()->value = ss.get();
 }
 
 
 void LDDocumentView::set(int64_t value)
 {
-    SDN2Ptr<int64_t> ss = allocate_tagged<int64_t>(sizeof(LDDValueTag), arena_, value);
+    SDN2Ptr<int64_t> ss = allocate_tagged<int64_t>(sizeof(LDDValueTag), arena_->make_mutable(), value);
     set_tag(ss.get(), LDDValueTraits<int64_t>::ValueTag);
-    state()->value = ss;
+    state_mutable()->value = ss;
 }
 
 
 void LDDocumentView::set(double value)
 {
-    SDN2Ptr<double> ss = allocate_tagged<double>(sizeof(LDDValueTag), arena_, value);
+    SDN2Ptr<double> ss = allocate_tagged<double>(sizeof(LDDValueTag), arena_->make_mutable(), value);
     set_tag(ss.get(), LDDValueTraits<double>::ValueTag);
-    state()->value = ss;
+    state_mutable()->value = ss;
 }
 
 
 LDDMap LDDocumentView::set_map()
 {
-    ValueMap value = ValueMap::create(arena_, sizeof(LDDValueTag));
+    ValueMap value = ValueMap::create(arena_->make_mutable(), sizeof(LDDValueTag));
 
     set_tag(value.ptr(), LDDValueTraits<LDDMap>::ValueTag);
-    state()->value = value.ptr();
+    state_mutable()->value = value.ptr();
 
     return LDDMap(this, value);
 }
@@ -171,10 +171,10 @@ LDDMap LDDocumentView::set_map()
 
 LDDArray LDDocumentView::set_array()
 {
-    Array value = Array::create_tagged(sizeof(LDDValueTag), arena_, 4);
+    Array value = Array::create_tagged(sizeof(LDDValueTag), arena_->make_mutable(), 4);
     set_tag(value.ptr(), LDDValueTraits<LDDArray>::ValueTag);
 
-    state()->value = value.ptr();
+    state_mutable()->value = value.ptr();
 
     return LDDArray(this, value);
 }
@@ -182,17 +182,17 @@ LDDArray LDDocumentView::set_array()
 LDDValue LDDocumentView::set_sdn(U8StringView sdn)
 {
     LDDValue value = parse_raw_value(sdn.begin(), sdn.end());
-    state()->value = value.value_ptr_;
+    state_mutable()->value = value.value_ptr_;
     return value;
 }
 
 LDTypeDeclaration LDDocumentView::new_type_declaration(U8StringView name)
 {
-    auto td_ptr = allocate_tagged<sdn2_::TypeDeclState>(sizeof(LDDValueTag), arena_, sdn2_::TypeDeclState{0, 0, 0});
+    auto td_ptr = allocate_tagged<sdn2_::TypeDeclState>(sizeof(LDDValueTag), arena_->make_mutable(), sdn2_::TypeDeclState{0, 0, 0});
     set_tag(td_ptr.get(), LDDValueTraits<LDTypeDeclaration>::ValueTag);
 
     auto ss_ptr = intern(name);
-    td_ptr.get(arena_)->name = ss_ptr;
+    td_ptr.get_mutable(arena_)->name = ss_ptr;
 
     return LDTypeDeclaration(this, td_ptr);
 }
@@ -205,18 +205,18 @@ LDTypeDeclaration LDDocumentView::new_type_declaration(LDIdentifier name)
 
 LDTypeDeclaration LDDocumentView::new_detached_type_declaration(LDIdentifier name)
 {
-    auto td_ptr = allocate_tagged<sdn2_::TypeDeclState>(sizeof(LDDValueTag), arena_, sdn2_::TypeDeclState{0, 0, 0});
+    auto td_ptr = allocate_tagged<sdn2_::TypeDeclState>(sizeof(LDDValueTag), arena_->make_mutable(), sdn2_::TypeDeclState{0, 0, 0});
     set_tag(td_ptr.get(), LDDValueTraits<LDTypeDeclaration>::ValueTag);
 
     auto ss_ptr = name.string_;
-    td_ptr.get(arena_)->name = ss_ptr;
+    td_ptr.get_mutable(arena_)->name = ss_ptr;
     return LDTypeDeclaration(this, td_ptr);
 }
 
 LDDTypedValue LDDocumentView::new_typed_value(LDTypeDeclaration typedecl, LDDValue ctr_value)
 {
     SDN2Ptr<sdn2_::TypedValueState> ss = allocate_tagged<sdn2_::TypedValueState>(
-        sizeof(LDDValueTag), arena_, sdn2_::TypedValueState{typedecl.state_, ctr_value.value_ptr_}
+        sizeof(LDDValueTag), arena_->make_mutable(), sdn2_::TypedValueState{typedecl.state_, ctr_value.value_ptr_}
     );
 
     set_tag(ss.get(), LDDValueTraits<LDDTypedValue>::ValueTag);

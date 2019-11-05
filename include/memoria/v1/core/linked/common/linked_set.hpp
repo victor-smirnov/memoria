@@ -55,13 +55,13 @@ public:
     };
 
 private:
-    Arena* arena_;
+    const Arena* arena_;
     PtrT<State> state_;
 
 public:
     LinkedSet(): arena_(), state_() {}
 
-    LinkedSet(Arena* arena, PtrT<State> state_ptr):
+    LinkedSet(const Arena* arena, PtrT<State> state_ptr):
         arena_(arena), state_(state_ptr)
     {}
 
@@ -89,14 +89,14 @@ public:
 
         if (size > 0)
         {
-            Array* array = this->array();
+            Array* array = this->array_mutable();
             uint32_t capacity_threshold = (array->size() * 3) / 4;
             if (size > capacity_threshold) {
                 rehash(array->size() * 2);
             }
         }
 
-        state()->size_++;
+        state_mutable()->size_++;
     }
 
     template <typename KeyView>
@@ -138,7 +138,7 @@ public:
         ArrayPtr array = state()->array_;
         if (array)
         {
-            Array* parray = deref(array);
+            Array* parray = deref_mutable(array);
             size_t slot  = array_slot(parray, key_view);
 
             BucketPtr bucket = parray->access(slot);
@@ -146,7 +146,7 @@ public:
             {
                 Optional<size_t> idx = locate(bucket, key_view);
                 if (idx) {
-                    Bucket* pbucket = deref(bucket);
+                    Bucket* pbucket = deref_mutable(bucket);
 
                     pbucket->remove(idx.get(), 1);
 
@@ -154,7 +154,7 @@ public:
                         parray->access(slot) = BucketPtr{};
                     }
 
-                    size_t size = --state()->size_;
+                    size_t size = --state_mutable()->size_;
 
                     if (size > 0)
                     {
@@ -164,7 +164,7 @@ public:
                         }
                     }
                     else {
-                        state()->array_ = ArrayPtr{};
+                        state_mutable()->array_ = ArrayPtr{};
                     }
 
                     return true;
@@ -190,7 +190,7 @@ public:
         ArrayPtr my_array = state()->array_;
         if (my_array)
         {
-            Array* pmy_array = deref(my_array);
+            const Array* pmy_array = deref(my_array);
             auto span = pmy_array->span();
 
             ArrayPtr foreign_array = allocate<Array>(dst, pmy_array->capacity(), pmy_array->size());
@@ -277,17 +277,17 @@ private:
     }
 
     template <typename TT>
-    TT* deref(PtrT<TT> ptr) {
-        return ptr.get(arena_);
+    TT* deref_mutable(PtrT<TT> ptr) {
+        return ptr.get_mutable(arena_);
     }
 
     template <typename TT>
-    TT* deref(PtrT<TT> ptr) const {
+    const TT* deref(PtrT<TT> ptr) const {
         return ptr.get(arena_);
     }
 
-    State* state() {
-        return deref(state_);
+    State* state_mutable() {
+        return deref_mutable(state_);
     }
 
     const State* state() const {
@@ -298,8 +298,8 @@ private:
         return deref(state()->array_);
     }
 
-    Array* array() {
-        return deref(state()->array_);
+    Array* array_mutable() {
+        return deref_mutable(state_mutable()->array_);
     }
 
     template <typename KeyView>
@@ -323,7 +323,7 @@ private:
 
     void put_to(PtrT<Array> array_ptr, const Key& key, std::deque<BucketPtr>* buffer_cache)
     {
-        Array* array = deref(array_ptr);
+        Array* array = deref_mutable(array_ptr);
         size_t slot  = array_slot(array, key);
 
         BucketPtr bucket = array->access(slot);
@@ -345,8 +345,8 @@ private:
                 new_bucket = create_bucket(1);
             }
 
-            deref(array_ptr)->access(slot) = new_bucket;
-            deref(new_bucket)->push_back(key);
+            deref_mutable(array_ptr)->access(slot) = new_bucket;
+            deref_mutable(new_bucket)->push_back(key);
         }
         else
         {
@@ -355,7 +355,7 @@ private:
             if (idx) {
                 // Do nothing
             }
-            else if (MMA1_UNLIKELY(!deref(bucket)->push_back(key)))
+            else if (MMA1_UNLIKELY(!deref_mutable(bucket)->push_back(key)))
             {
                 BucketPtr new_bucket;
 
@@ -368,7 +368,7 @@ private:
                         size_t existing_capacity = deref(bucket)->capacity();
                         if (new_capacity > existing_capacity)
                         {
-                            deref(bucket)->copy_to(*deref(new_bucket));
+                            deref(bucket)->copy_to(*deref_mutable(new_bucket));
                             buffer_cache->pop_front();
                         }
                         else {
@@ -384,8 +384,8 @@ private:
                 }
 
 
-                deref(array_ptr)->access(slot) = new_bucket;
-                deref(new_bucket)->push_back(key);
+                deref_mutable(array_ptr)->access(slot) = new_bucket;
+                deref_mutable(new_bucket)->push_back(key);
             }
         }
     }
@@ -414,7 +414,7 @@ private:
     void rehash(size_t new_size)
     {
         PtrT<Array> new_array = allocate<Array>(
-            arena_, new_size, new_size
+            arena_->make_mutable(), new_size, new_size
         );
 
         std::deque<BucketPtr>   buffer_cache;
@@ -437,22 +437,22 @@ private:
                     put_to(new_array, entry, &buffer_cache);
                 }
 
-                deref(value)->clear();
+                deref_mutable(value)->clear();
                 buffer_cache.push_back(value);
             }
         }
 
-        state()->array_ = new_array;
+        state_mutable()->array_ = new_array;
     }
 
     BucketPtr create_bucket(size_t capacity = 1) const {
-        return allocate<Bucket>(arena_, capacity);
+        return allocate<Bucket>(arena_->make_mutable(), capacity);
     }
 
     BucketPtr enlarge_bucket(BucketPtr bucket) const
     {
         BucketPtr new_bucket = create_bucket(deref(bucket)->capacity() * 2);
-        deref(bucket)->copy_to(*deref(new_bucket));
+        deref(bucket)->copy_to(*new_bucket.get_mutable(arena_));
         return new_bucket;
     }
 
@@ -463,12 +463,14 @@ private:
         {
             size_t capacity = 1;
 
-            PtrT<Array> array = arena_->template allocate_space<Array>(Array::object_size(capacity));
-            arena_->construct(array, capacity);
+            Arena* arena = arena_->make_mutable();
 
-            state()->array_ = array;
+            PtrT<Array> array = arena->template allocate_space<Array>(Array::object_size(capacity));
+            arena->construct(array, capacity);
 
-            Array* array_ptr = deref(array);
+            state_mutable()->array_ = array;
+
+            Array* array_ptr = deref_mutable(array);
 
             for (size_t c = 0; c < capacity; c++) {
                 array_ptr->push_back(BucketPtr{});

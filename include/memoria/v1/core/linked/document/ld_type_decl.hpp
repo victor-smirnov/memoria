@@ -32,7 +32,7 @@ class LDTypeDeclaration {
     using ParamsVector = LinkedVector<TypeDeclPtr>;
     using ArgsVector   = LinkedVector<sdn2_::PtrHolder>;
 
-    LDDocumentView* doc_;
+    const LDDocumentView* doc_;
     TypeDeclPtr state_;
 
     friend class LDDocumentBuilder;
@@ -43,12 +43,12 @@ class LDTypeDeclaration {
 public:
     LDTypeDeclaration(): doc_(), state_({}) {}
 
-    LDTypeDeclaration(LDDocumentView* doc, TypeDeclPtr state):
+    LDTypeDeclaration(const LDDocumentView* doc, TypeDeclPtr state):
         doc_(doc), state_(state)
     {}
 
     operator LDDValue() const {
-        return LDDValue{static_cast<LDDocumentView*>(doc_), state_.get()};
+        return LDDValue{doc_, state_.get()};
     }
 
     U8StringView name() const {
@@ -83,7 +83,7 @@ public:
 
     LDTypeDeclaration add_type_declaration(U8StringView name)
     {
-        LDTypeDeclaration decl = doc_->new_type_declaration(name);
+        LDTypeDeclaration decl = doc_->make_mutable()->new_type_declaration(name);
         ensure_params_capacity(1)->push_back(decl.state_);
         return decl;
     }
@@ -91,10 +91,10 @@ public:
 
     void remove_type_declaration(size_t idx)
     {
-        TypeDeclState* state = this->state();
+        TypeDeclState* state = this->state_mutable();
         if (state->type_params)
         {
-            auto* params_array = state->type_params.get(doc_->arena_);
+            auto* params_array = state->type_params.get_mutable(doc_->arena_);
 
             size_t size = params_array->size();
 
@@ -103,7 +103,7 @@ public:
                 params_array->remove(idx, 1);
 
                 if (size == 1) {
-                    this->state()->type_params = {};
+                    this->state_mutable()->type_params = {};
                 }
             }
         }
@@ -139,43 +139,43 @@ public:
 
     LDString add_string_constructor_arg(U8StringView value)
     {
-        LDString str = doc_->new_string(value);
+        LDString str = doc_->make_mutable()->new_string(value);
         ensure_args_capacity(1)->push_back(str.string_.get());
         return str;
     }
 
     void add_double_constructor_arg(double value)
     {
-        LDDValue val = doc_->new_double(value);
+        LDDValue val = doc_->make_mutable()->new_double(value);
         ensure_args_capacity(1)->push_back(val.value_ptr_);
     }
 
     void add_integer_constructor_arg(int64_t value)
     {
-        LDDValue val = doc_->new_integer(value);
+        LDDValue val = doc_->make_mutable()->new_integer(value);
         ensure_args_capacity(1)->push_back(val.value_ptr_);
     }
 
     LDDArray add_array_constructor_arg()
     {
-        LDDArray array = doc_->new_array();
+        LDDArray array = doc_->make_mutable()->new_array();
         ensure_args_capacity(1)->push_back(array.array_.ptr());
         return array;
     }
 
     LDDMap add_map_constructor_arg()
     {
-        LDDMap map = doc_->new_map();
+        LDDMap map = doc_->make_mutable()->new_map();
         ensure_args_capacity(1)->push_back(map.map_.ptr());
         return map;
     }
 
     void remove_constructor_arg(size_t idx)
     {
-        TypeDeclState* state = this->state();
+        TypeDeclState* state = this->state_mutable();
         if (state->ctr_args)
         {
-            auto* ctr_args = state->ctr_args.get(doc_->arena_);
+            auto* ctr_args = state->ctr_args.get_mutable(doc_->arena_);
 
             size_t size = ctr_args->size();
 
@@ -184,7 +184,7 @@ public:
                 ctr_args->remove(idx, 1);
 
                 if (size == 1) {
-                    this->state()->ctr_args = {};
+                    this->state_mutable()->ctr_args = {};
                 }
             }
         }
@@ -283,8 +283,8 @@ private:
     }
 
 
-    TypeDeclState* state() {
-        return state_.get(doc_->arena_);
+    TypeDeclState* state_mutable() {
+        return state_.get_mutable(doc_->arena_);
     }
 
     const TypeDeclState* state() const {

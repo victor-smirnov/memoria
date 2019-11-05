@@ -65,7 +65,7 @@ class MappedEqualToFn;
 template <typename Arena>                   \
 class MappedEqualToFn<Type, Arena> {        \
 public:                                     \
-    MappedEqualToFn(Arena*) {}              \
+    MappedEqualToFn(const Arena*) {}        \
                                             \
     template <typename Key>                 \
     bool operator()(const Key& key, const Type& value) {\
@@ -98,9 +98,9 @@ class LinkedPtrHashFn;
 
 template < template<typename, typename, typename> class PtrT, typename T, typename HolderT, typename Arena>
 class LinkedPtrHashFn<PtrT<T, HolderT, Arena>, Arena> {
-    Arena* arena_;
+    const Arena* arena_;
 public:
-    LinkedPtrHashFn(Arena* arena):
+    LinkedPtrHashFn(const Arena* arena):
         arena_(arena)
     {}
 
@@ -131,7 +131,7 @@ namespace mapped_ {
         using PtrT = LinkedPtr<T, HolderT, Arena>;
 
         template <typename AddressMapping>
-        static PtrT deep_copy(Arena* dst, Arena* src, PtrT ptr, AddressMapping& address_mapping)
+        static PtrT deep_copy(Arena* dst, const Arena* src, PtrT ptr, AddressMapping& address_mapping)
         {
             auto ii = address_mapping.find(ptr.get());
             if (MMA1_UNLIKELY(ii != address_mapping.end()))
@@ -150,7 +150,7 @@ namespace mapped_ {
     struct DeepCopyHelper
     {
         template <typename Arena, typename AddressMapping>
-        static const T& deep_copy(Arena* dst, Arena* src, const T& value, AddressMapping& address_mapping)
+        static const T& deep_copy(Arena* dst, const Arena* src, const T& value, AddressMapping& address_mapping)
         {
             return value;
         }

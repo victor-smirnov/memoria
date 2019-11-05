@@ -74,7 +74,7 @@ protected:
     using TypeDeclsMap  = sdn2_::TypeDeclsMap;
     using DocumentPtr   = SDN2Ptr<sdn2_::DocumentState>;
 
-    mutable SDN2ArenaBase* arena_;
+    const SDN2ArenaBase* arena_;
 
     friend class LDDocumentBuilder;
     friend class LDDMap;
@@ -92,7 +92,7 @@ protected:
 
 public:
     LDDocumentView(): arena_() {}
-    LDDocumentView(const SDN2ArenaBase* arena): arena_(const_cast<SDN2ArenaBase*>(arena)) {}
+    LDDocumentView(const SDN2ArenaBase* arena): arena_(arena) {}
 
     LDDValue value() const;
 
@@ -104,6 +104,14 @@ public:
     LDDArray set_array();
 
     LDDValue set_sdn(U8StringView sdn);
+
+    LDDocumentView* make_mutable() const
+    {
+        if (arena_->is_mutable()) {
+            return const_cast<LDDocumentView*>(this);
+        }
+        MMA1_THROW(RuntimeException()) << WhatCInfo("Document is not mutable");
+    }
 
 
 
@@ -168,11 +176,11 @@ private:
 
     TypeDeclsMap ensure_type_decls_exist()
     {
-        auto* state = this->state();
+        auto* state = this->state_mutable();
         if (!state->type_directory)
         {
-            TypeDeclsMap vv = TypeDeclsMap::create(arena_);
-            this->state()->type_directory = vv.ptr();
+            TypeDeclsMap vv = TypeDeclsMap::create(arena_->make_mutable());
+            this->state_mutable()->type_directory = vv.ptr();
             return vv;
         }
 
@@ -192,8 +200,8 @@ private:
 
     SDN2Ptr<U8LinkedString> intern(U8StringView view);
 
-    sdn2_::DocumentState* state() {
-        return doc_ptr().get(arena_);
+    sdn2_::DocumentState* state_mutable() {
+        return doc_ptr().get_mutable(arena_);
     }
 
     const sdn2_::DocumentState* state() const {
@@ -203,19 +211,21 @@ private:
     void set_tag(SDN2PtrHolder ptr, LDDValueTag tag)
     {
         SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        *tag_ptr.get(arena_) = tag;
+        *tag_ptr.get_mutable(arena_) = tag;
     }
 };
 
 
 class LDDocument: public LDDocumentView {
-    mutable SDN2Arena ld_arena_;
+    SDN2Arena ld_arena_;
 public:
     LDDocument(): LDDocumentView()
     {
         arena_ = &ld_arena_;
-        allocate<sdn2_::DocumentState>(arena_, sdn2_::DocumentState{0, 0, 0});
+        allocate<sdn2_::DocumentState>(&ld_arena_, sdn2_::DocumentState{0, 0, 0});
     }
+
+
 
     static LDDocument parse(U8StringView view) {
         return parse(view.begin(), view.end());

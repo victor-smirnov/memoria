@@ -19,10 +19,21 @@
 
 using namespace memoria::v1;
 
+struct TT {
+    const int val_;
+};
+
 int main()
 {
+    std::cout << std::is_pod<LinkedArenaView<int, int>>::value << std::endl;
+    std::cout << sizeof(LinkedArenaView<int, int>) << std::endl;
+    std::cout << alignof(LinkedArenaView<int, int>) << std::endl;
+
+    std::cout << std::is_pod<TT>::value << std::endl;
+
+
     LDDocument doc = LDDocument::parse(
-        "#{MyDouble_7_3ааа: Double(7, 3)} {'Кл\\'юч0': '132493258.4' @#MyDouble_7_3ааа, 'b':1, 'c':2}"
+        "#{MyDouble_7_3: Double(7, 3)} {'Ключ0': '132493258.4' @#MyDouble_7_3, 'b':1, 'c':2}"
     );
 
     doc.dump(std::cout) << std::endl;

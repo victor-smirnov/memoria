@@ -45,7 +45,7 @@ class ArenaBuffer {
 
 protected:    
     using ValueT = TT;
-    static_assert(std::is_trivially_copyable<ValueT>::value, "ArenaBufferBase supports only trivially copyable types");
+    static_assert(std::is_trivially_copyable<ValueT>::value, "ArenaBufferBase currently supports only trivially copyable types");
 
     ValueT* buffer_;
     SizeT capacity_;
@@ -87,6 +87,21 @@ public:
         capacity_(other.capacity_),
         size_(other.size_),
         memory_mgr_(other.memory_mgr_)
+    {
+        if (other.buffer_)
+        {
+            buffer_ = allocate_buffer(size_);
+            MemCpyBuffer(other.buffer_, buffer_, size_);
+        }
+        else {
+            buffer_ = nullptr;
+        }
+    }
+
+    ArenaBuffer(const ArenaBuffer& other, ArenaBufferMemoryMgr memory_mgr):
+        capacity_(other.capacity_),
+        size_(other.size_),
+        memory_mgr_(memory_mgr)
     {
         if (other.buffer_)
         {

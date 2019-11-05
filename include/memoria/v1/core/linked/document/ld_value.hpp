@@ -24,7 +24,7 @@ namespace v1 {
 
 
 class LDDValue {
-    LDDocumentView* doc_;
+    const LDDocumentView* doc_;
     SDN2PtrHolder value_ptr_;
     LDDValueTag type_tag_;
 
@@ -37,7 +37,7 @@ class LDDValue {
 public:
     LDDValue() noexcept : doc_(), value_ptr_(), type_tag_() {}
 
-    LDDValue(LDDocumentView* doc, SDN2PtrHolder value_ptr) noexcept :
+    LDDValue(const LDDocumentView* doc, SDN2PtrHolder value_ptr) noexcept :
         doc_(doc), value_ptr_(value_ptr),
         type_tag_(value_ptr ? get_tag(value_ptr) : 0)
     {}

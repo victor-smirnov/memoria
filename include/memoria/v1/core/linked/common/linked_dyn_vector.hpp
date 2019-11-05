@@ -44,13 +44,13 @@ public:
     };
 private:
 
-    Arena* arena_;
+    const Arena* arena_;
     PtrT<State> state_;
 
 public:
     LinkedDynVector(): arena_(), state_({}) {}
 
-    LinkedDynVector(Arena* arena, PtrT<State> state):
+    LinkedDynVector(const Arena* arena, PtrT<State> state):
         arena_(arena), state_(state)
     {}
 
@@ -59,7 +59,7 @@ public:
         PtrT<State> ptr = allocate<State>(arena, State{capacity, 0});
         PtrT<T> data = arena->template allocate_space<T>(capacity * sizeof(T));
 
-        State* state = ptr.get(arena);
+        State* state = ptr.get_mutable(arena);
 
         state->data_ = data;
 
@@ -80,7 +80,7 @@ public:
 
 
 
-    static LinkedDynVector get(Arena* arena, PtrT<State> ptr) {
+    static LinkedDynVector get(const Arena* arena, PtrT<State> ptr) {
         return LinkedDynVector{arena, ptr.get()};
     }
 
@@ -96,7 +96,7 @@ public:
     }
 
     T& access(size_t idx) noexcept {
-        return data()[idx];
+        return data_mutable()[idx];
     }
 
     const T& access(size_t idx) const noexcept {
@@ -120,11 +120,11 @@ public:
 
     void push_back(const T& value) noexcept
     {
-        State* state = this->state();
+        State* state = this->state_mutable();
 
         if (MMA1_LIKELY(state->size_ + 1 <= state->capacity_))
         {
-            T* data = state->data_.get(arena_);
+            T* data = state->data_.get_mutable(arena_);
             data[state->size_++] = value;
         }
     }
@@ -133,8 +133,8 @@ public:
 
     void remove(size_t idx, size_t size) noexcept
     {
-        State* state = this->state();
-        T* data = this->data();
+        State* state = this->state_mutable();
+        T* data = this->data_mutable();
 
         for (size_t c = idx + size; c < state->size_; c++)
         {
@@ -153,13 +153,13 @@ public:
     {
         ensure(1);
 
-        State* state = this->state();
+        State* state = this->state_mutable();
 
         if (state->size_ + 1 <= state->capacity_)
         {
             state->size_ += 1;
             shift_right(idx, 1);
-            T* data = this->data();
+            T* data = this->data_mutable();
             data[idx] = value;
         }
     }
@@ -168,14 +168,14 @@ public:
     {
         ensure(data.length());
 
-        State* state = this->state();
+        State* state = this->state_mutable();
 
         if ((size_t)state->size_ + data.size() <= (size_t)state->capacity_)
         {
             state->size_ += data.size();
             shift_right(idx, data.size());
 
-            T* my_data = this->data();
+            T* my_data = this->data_mutable();
             for (size_t c = idx; c < data.size(); c++) {
                 my_data[c] = data[c - idx];
             }
@@ -185,17 +185,17 @@ public:
 
     void clear()
     {
-        State* state = this->state();
+        State* state = this->state_mutable();
         state->size_ = 0;
-        T* data = state->data_.get(arena_);
+        T* data = state->data_.get_mutable(arena_);
 
         for (size_t c = 0; c < state->capacity_; c++) {
             data[c] = T{};
         }
     }
 
-    T* data() {
-        return state()->data_.get(arena_);
+    T* data_mutable() {
+        return state_mutable()->data_.get_mutable(arena_);
     }
 
     const T* data() const {
@@ -204,7 +204,7 @@ public:
 
     void ensure(size_t size)
     {
-        State* state = this->state();
+        State* state = this->state_mutable();
 
         if (state->size_ + size > state->capacity_)
         {
@@ -215,7 +215,7 @@ public:
 
     void enlarge(size_t requested)
     {
-        State* state = this->state();
+        State* state = this->state_mutable();
 
         size_t next_capaicty = state->capacity_ * 2;
         if (next_capaicty == 0) next_capaicty = 1;
@@ -225,14 +225,14 @@ public:
             next_capaicty *= 2;
         }
 
-        PtrT<T> new_ptr = arena_->template allocate_space<T>(next_capaicty * sizeof(T));
+        PtrT<T> new_ptr = arena_->make_mutable()->template allocate_space<T>(next_capaicty * sizeof(T));
 
         state = this->state();
 
         if (state->size_ > 0)
         {
-            T* buffer = state->data_.get(arena_);
-            MemCpyBuffer(buffer, new_ptr.get(arena_), state->size_);
+            T* buffer = state->data_.get_mutable(arena_);
+            MemCpyBuffer(buffer, new_ptr.get_mutable(arena_), state->size_);
         }
 
         state->data_ = new_ptr;
@@ -257,8 +257,8 @@ public:
     }
 
 private:
-    State* state() noexcept {
-        return state_.get(arena_);
+    State* state_mutable() noexcept {
+        return state_.get_mutable(arena_);
     }
 
     const State* state() const noexcept {
@@ -268,8 +268,8 @@ private:
 
     void shift_right(size_t idx, size_t size) noexcept
     {
-        State* state = this->state();
-        T* data = state->data_.get(arena_);
+        State* state = this->state_mutable();
+        T* data = state->data_.get_mutable(arena_);
 
         for (size_t c = state->size_ - size; c >= idx; c--) {
             data[c + size] = data[c];

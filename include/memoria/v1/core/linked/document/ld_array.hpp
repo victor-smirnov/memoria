@@ -28,17 +28,17 @@ class LDDArray {
     friend class LDTypeDeclaration;
 
     using PtrHolder = typename SDN2ArenaBase::PtrHolderT;
-    LDDocumentView* doc_;
+    const LDDocumentView* doc_;
     Array array_;
 
 public:
     LDDArray(): doc_(), array_() {}
 
-    LDDArray(LDDocumentView* doc, Array array):
+    LDDArray(const LDDocumentView* doc, Array array):
         doc_(doc), array_(array)
     {}
 
-    LDDArray(LDDocumentView* doc, PtrHolder ptr):
+    LDDArray(const LDDocumentView* doc, PtrHolder ptr):
         doc_(doc), array_(Array::get(doc_->arena_, ptr))
     {}
 
@@ -50,42 +50,42 @@ public:
 
     void set(size_t idx, U8StringView value)
     {
-        SDN2Ptr<U8LinkedString> value_str = doc_->intern(value);
+        SDN2Ptr<U8LinkedString> value_str = doc_->make_mutable()->intern(value);
         set_tag(value_str.get(), LDDValueTraits<LDString>::ValueTag);
         array_.access(idx) = value_str;
     }
 
     void set(size_t idx, int64_t value)
     {
-        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), doc_->arena_, value);
+        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), doc_->arena_->make_mutable(), value);
         set_tag(value_ptr.get(), LDDValueTraits<int64_t>::ValueTag);
         array_.access(idx) = value_ptr;
     }
 
     void set(size_t idx, double value)
     {
-        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), doc_->arena_, value);
+        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), doc_->arena_->make_mutable(), value);
         set_tag(value_ptr.get(), LDDValueTraits<double>::ValueTag);
         array_.access(idx) = value_ptr;
     }
 
     void add(U8StringView value)
     {
-        SDN2Ptr<U8LinkedString> value_str = doc_->intern(value);
+        SDN2Ptr<U8LinkedString> value_str = doc_->make_mutable()->intern(value);
         set_tag(value_str.get(), LDDValueTraits<LDString>::ValueTag);
         array_.push_back(value_str);
     }
 
     void add(int64_t value)
     {
-        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), doc_->arena_, value);
+        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), doc_->arena_->make_mutable(), value);
         set_tag(value_ptr.get(), LDDValueTraits<int64_t>::ValueTag);
         array_.push_back(value_ptr);
     }
 
     void add(double value)
     {
-        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), doc_->arena_, value);
+        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), doc_->arena_->make_mutable(), value);
         set_tag(value_ptr.get(), LDDValueTraits<double>::ValueTag);
         array_.push_back(value_ptr);
     }
@@ -94,7 +94,7 @@ public:
 
     LDDArray add_array()
     {
-        Array value = Array::create_tagged(sizeof(LDDValueTag), doc_->arena_, 4);
+        Array value = Array::create_tagged(sizeof(LDDValueTag), doc_->arena_->make_mutable(), 4);
         set_tag(value.ptr(), LDDValueTraits<LDDArray>::ValueTag);
         array_.push_back(value.ptr());
         return LDDArray(doc_, value);
@@ -102,7 +102,7 @@ public:
 
     LDDValue add_sdn(U8StringView sdn)
     {
-        LDDValue value = doc_->parse_raw_value(sdn.begin(), sdn.end());
+        LDDValue value = doc_->make_mutable()->parse_raw_value(sdn.begin(), sdn.end());
         array_.push_back(value.value_ptr_);
         return value;
     }
@@ -150,7 +150,7 @@ private:
     void set_tag(SDN2PtrHolder ptr, LDDValueTag tag) noexcept
     {
         SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        *tag_ptr.get(doc_->arena_) = tag;
+        *tag_ptr.get_mutable(doc_->arena_) = tag;
     }
 
     LDDValueTag get_tag(SDN2PtrHolder ptr) const noexcept

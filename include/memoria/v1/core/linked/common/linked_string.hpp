@@ -141,9 +141,9 @@ void append(FNVHasher<Size, Variant>& hasher, const LinkedString<T>& str)
 
 template <typename T, typename Arena>
 class LinkedStringPtrEqualToFn {
-    Arena* arena_;
+    const Arena* arena_;
 public:
-    LinkedStringPtrEqualToFn(Arena* arena):
+    LinkedStringPtrEqualToFn(const Arena* arena):
         arena_(arena)
     {}
 
