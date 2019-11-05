@@ -32,9 +32,42 @@ public:
 
 class LDDocument;
 
-class LDDocumentView {
-protected:
+//class LDDocumentView {
+//protected:
 
+//    using ValueMap      = sdn2_::ValueMap;
+//    using StringSet     = sdn2_::StringSet;
+//    using Array         = sdn2_::Array;
+//    using TypeDeclsMap  = sdn2_::TypeDeclsMap;
+//    using DocumentPtr   = SDN2Ptr<sdn2_::DocumentState>;
+
+//    mutable SDN2ArenaBase* arena_;
+
+//    friend class LDDocumentBuilder;
+//    friend class LDDMap;
+//    friend class LDDArray;
+//    friend class LDTypeName;
+//    friend class LDDataTypeParam;
+//    friend class LDDataTypeCtrArg;
+//    friend class LDTypeDeclaration;
+//    friend class LDDValue;
+//    friend class LDString;
+//    friend class LDIdentifier;
+//    friend class LDDTypedValue;
+
+//    using CharIterator = typename U8StringView::const_iterator;
+
+//public:
+//    LDDocumentView(): arena_() {}
+//    LDDocumentView(const SDN2ArenaBase* arena): arena_(const_cast<SDN2ArenaBase*>(arena)) {}
+
+//protected:
+
+//};
+
+class LDDocumentView {
+
+protected:
     using ValueMap      = sdn2_::ValueMap;
     using StringSet     = sdn2_::StringSet;
     using Array         = sdn2_::Array;
@@ -61,44 +94,6 @@ public:
     LDDocumentView(): arena_() {}
     LDDocumentView(const SDN2ArenaBase* arena): arena_(const_cast<SDN2ArenaBase*>(arena)) {}
 
-protected:
-    DocumentPtr doc_ptr() const {
-        return DocumentPtr{sizeof(SDN2Header)};
-    }
-};
-
-class LDDocument: public LDDocumentView {
-
-    using ValueMap      = sdn2_::ValueMap;
-    using StringSet     = sdn2_::StringSet;
-    using Array         = sdn2_::Array;
-    using TypeDeclsMap  = sdn2_::TypeDeclsMap;
-    using DocumentPtr   = SDN2Ptr<sdn2_::DocumentState>;
-
-    mutable SDN2Arena ld_arena_;
-    //SDN2Ptr<sdn2_::DocumentState> doc_;
-
-    friend class LDDocumentBuilder;
-    friend class LDDMap;
-    friend class LDDArray;
-    friend class LDTypeName;
-    friend class LDDataTypeParam;
-    friend class LDDataTypeCtrArg;
-    friend class LDTypeDeclaration;
-    friend class LDDValue;
-    friend class LDString;
-    friend class LDIdentifier;
-    friend class LDDTypedValue;
-
-    using CharIterator = typename U8StringView::const_iterator;
-
-public:
-    LDDocument(): LDDocumentView()
-    {
-        arena_ = &ld_arena_;
-        allocate<sdn2_::DocumentState>(arena_, sdn2_::DocumentState{0, 0, 0});
-    }
-
     LDDValue value() const;
 
     void set(U8StringView string);
@@ -110,28 +105,6 @@ public:
 
     LDDValue set_sdn(U8StringView sdn);
 
-    static LDDocument parse(U8StringView view) {
-        return parse(view.begin(), view.end());
-    }
-
-    static LDDocument parse(
-            CharIterator start,
-            CharIterator end,
-            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
-    );
-
-    static LDDocument parse_type_decl(
-            U8StringView view,
-            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
-    ) {
-        return parse_type_decl(view.begin(), view.end());
-    }
-
-    static LDDocument parse_type_decl(
-            CharIterator start,
-            CharIterator end,
-            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
-    );
 
 
     std::ostream& dump(std::ostream& out) const
@@ -160,6 +133,11 @@ public:
 
     static void assert_identifier(U8StringView name);
 
+protected:
+    DocumentPtr doc_ptr() const {
+        return DocumentPtr{sizeof(SDN2Header)};
+    }
+
 private:
 
     LDTypeDeclaration parse_raw_type_decl(
@@ -176,8 +154,7 @@ private:
 
     void do_dump_dictionary(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
-    bool has_type_dictionary() const
-    {
+    bool has_type_dictionary() const {
         return state()->type_directory.get() != 0;
     }
 
@@ -230,6 +207,40 @@ private:
     }
 };
 
+
+class LDDocument: public LDDocumentView {
+    mutable SDN2Arena ld_arena_;
+public:
+    LDDocument(): LDDocumentView()
+    {
+        arena_ = &ld_arena_;
+        allocate<sdn2_::DocumentState>(arena_, sdn2_::DocumentState{0, 0, 0});
+    }
+
+    static LDDocument parse(U8StringView view) {
+        return parse(view.begin(), view.end());
+    }
+
+    static LDDocument parse(
+            CharIterator start,
+            CharIterator end,
+            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+    );
+
+    static LDDocument parse_type_decl(
+            U8StringView view,
+            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+    ) {
+        return parse_type_decl(view.begin(), view.end());
+    }
+
+    static LDDocument parse_type_decl(
+            CharIterator start,
+            CharIterator end,
+            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+    );
+
+};
 
 
 }}

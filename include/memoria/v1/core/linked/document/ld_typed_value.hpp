@@ -25,7 +25,7 @@ namespace v1 {
 class LDDTypedValue {
     using State = sdn2_::TypedValueState;
 
-    LDDocument* doc_;
+    LDDocumentView* doc_;
     SDN2Ptr<State> state_;
 
     friend class LDTypeDeclaration;
@@ -33,18 +33,18 @@ class LDDTypedValue {
 public:
     LDDTypedValue(): doc_(), state_({}) {}
 
-    LDDTypedValue(LDDocument* doc, SDN2Ptr<State> state):
+    LDDTypedValue(LDDocumentView* doc, SDN2Ptr<State> state):
         doc_(doc), state_(state)
     {}
 
     LDTypeDeclaration type() const
     {
-        return LDTypeDeclaration{const_cast<LDDocument*>(doc_), state()->type_decl};
+        return LDTypeDeclaration{const_cast<LDDocumentView*>(doc_), state()->type_decl};
     }
 
     LDDValue constructor() const
     {
-        return LDTypeDeclaration{const_cast<LDDocument*>(doc_), state()->value_ptr};
+        return LDTypeDeclaration{const_cast<LDDocumentView*>(doc_), state()->value_ptr};
     }
 
     operator LDDValue() const {

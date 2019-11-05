@@ -24,11 +24,12 @@ namespace v1 {
 
 
 class LDDValue {
-    LDDocument* doc_;
+    LDDocumentView* doc_;
     SDN2PtrHolder value_ptr_;
     LDDValueTag type_tag_;
 
     friend class LDDocument;
+    friend class LDDocumentView;
     friend class LDDMap;
     friend class LDDArray;
     friend class LDTypeDeclaration;
@@ -36,7 +37,7 @@ class LDDValue {
 public:
     LDDValue() noexcept : doc_(), value_ptr_(), type_tag_() {}
 
-    LDDValue(LDDocument* doc, SDN2PtrHolder value_ptr) noexcept :
+    LDDValue(LDDocumentView* doc, SDN2PtrHolder value_ptr) noexcept :
         doc_(doc), value_ptr_(value_ptr),
         type_tag_(value_ptr ? get_tag(value_ptr) : 0)
     {}

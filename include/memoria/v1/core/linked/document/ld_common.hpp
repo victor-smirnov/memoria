@@ -113,6 +113,7 @@ class LDTypeName;
 class LDDataTypeParam;
 class LDDataTypeCtrArg;
 class LDDocument;
+class LDDocumentView;
 class LDString;
 class LDIdentifier;
 class LDDTypedValue;
@@ -227,7 +228,7 @@ public:
 class LDDumpState {
     std::unordered_map<SDN2PtrHolder, U8StringView> type_mapping_;
 public:
-    LDDumpState(const LDDocument& doc);
+    LDDumpState(const LDDocumentView& doc);
 
     Optional<U8StringView> resolve_type_id(SDN2PtrHolder ptr) const
     {

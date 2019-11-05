@@ -28,17 +28,17 @@ class LDDArray {
     friend class LDTypeDeclaration;
 
     using PtrHolder = typename SDN2ArenaBase::PtrHolderT;
-    LDDocument* doc_;
+    LDDocumentView* doc_;
     Array array_;
 
 public:
     LDDArray(): doc_(), array_() {}
 
-    LDDArray(LDDocument* doc, Array array):
+    LDDArray(LDDocumentView* doc, Array array):
         doc_(doc), array_(array)
     {}
 
-    LDDArray(LDDocument* doc, PtrHolder ptr):
+    LDDArray(LDDocumentView* doc, PtrHolder ptr):
         doc_(doc), array_(Array::get(doc_->arena_, ptr))
     {}
 

@@ -85,8 +85,8 @@ inline LDDTypedValue LDDValue::as_typed_value() const noexcept {
 
 
 
-inline LDDValue LDDocument::value() const {
-    return LDDValue{const_cast<LDDocument*>(this), state()->value};
+inline LDDValue LDDocumentView::value() const {
+    return LDDValue{const_cast<LDDocumentView*>(this), state()->value};
 }
 
 

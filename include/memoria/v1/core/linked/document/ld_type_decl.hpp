@@ -32,23 +32,23 @@ class LDTypeDeclaration {
     using ParamsVector = LinkedVector<TypeDeclPtr>;
     using ArgsVector   = LinkedVector<sdn2_::PtrHolder>;
 
-    LDDocument* doc_;
+    LDDocumentView* doc_;
     TypeDeclPtr state_;
 
     friend class LDDocumentBuilder;
-    friend class LDDocument;
+    friend class LDDocumentView;
     friend class LDDumpState;
     friend class LDDTypedValue;
 
 public:
     LDTypeDeclaration(): doc_(), state_({}) {}
 
-    LDTypeDeclaration(LDDocument* doc, TypeDeclPtr state):
+    LDTypeDeclaration(LDDocumentView* doc, TypeDeclPtr state):
         doc_(doc), state_(state)
     {}
 
     operator LDDValue() const {
-        return LDDValue{static_cast<LDDocument*>(doc_), state_.get()};
+        return LDDValue{static_cast<LDDocumentView*>(doc_), state_.get()};
     }
 
     U8StringView name() const {

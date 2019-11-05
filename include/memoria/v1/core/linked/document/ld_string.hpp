@@ -23,7 +23,7 @@ namespace v1 {
 
 
 class LDString {
-    LDDocument* doc_;
+    LDDocumentView* doc_;
     SDN2Ptr<U8LinkedString> string_;
 
     friend class LDTypeDeclaration;
@@ -31,7 +31,7 @@ class LDString {
 public:
     LDString(): doc_(), string_({}) {}
 
-    LDString(LDDocument* doc, SDN2Ptr<U8LinkedString> string):
+    LDString(LDDocumentView* doc, SDN2Ptr<U8LinkedString> string):
         doc_(doc), string_(string)
     {}
 

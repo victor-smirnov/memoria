@@ -50,7 +50,7 @@ namespace memoria {
 namespace v1 {
 
 namespace x3 = boost::spirit::x3;
-namespace unicode = x3::standard;
+namespace enc = x3::standard;
 namespace bf = boost::fusion;
 
 SDNStringEscaper& SDNStringEscaper::current() {
@@ -62,11 +62,11 @@ SDNStringEscaper& SDNStringEscaper::current() {
 class LDDocumentBuilder {
 
     ArenaBuffer<char> string_buffer_;
-    LDDocument& doc_;
+    LDDocumentView& doc_;
 
 public:
 
-    LDDocumentBuilder(LDDocument& doc):
+    LDDocumentBuilder(LDDocumentView& doc):
         doc_(doc)
     {}
 
@@ -450,7 +450,7 @@ namespace parser {
     using x3::lexeme;
     using x3::double_;
     using x3::lit;
-    using unicode::char_;
+    using enc::char_;
 
     const auto dummy = [](auto){};
 
@@ -520,7 +520,7 @@ namespace parser {
 
     const auto sdn_string_def       = x3::eps[clear_string_buffer] >> quoted_string [finish_string];
 
-    const auto raw_identifier       = (lexeme[(x3::alpha | char_('_')) >> *(x3::alnum | char_('_'))]
+    const auto raw_identifier       = (lexeme[(enc::alpha | char_('_')) >> *(enc::alnum | char_('_'))]
                                        - "null" - "true" - "false");
 
     const auto identifier_def       = raw_identifier;
@@ -588,7 +588,7 @@ bool parse_sdn2(Iterator& first, Iterator& last, LDDocument& doc)
     LDDocumentBuilder builder(doc);
     LDDocumentBuilder::current(&builder);
 
-    bool r = x3::phrase_parse(first, last, parser::sdn_document, unicode::space);
+    bool r = x3::phrase_parse(first, last, parser::sdn_document, enc::space);
 
     LDDocumentBuilder::current(nullptr, true);
 
@@ -607,7 +607,7 @@ bool parse_sdn_type_decl(Iterator& first, Iterator& last, LDDocument& doc)
 
     LDTypeDeclaration type_decl{};
 
-    bool r = x3::phrase_parse(first, last, parser::standalone_type_decl, unicode::space, type_decl);
+    bool r = x3::phrase_parse(first, last, parser::standalone_type_decl, enc::space, type_decl);
 
     builder.set_doc_value(type_decl);
 
@@ -621,12 +621,12 @@ bool parse_sdn_type_decl(Iterator& first, Iterator& last, LDDocument& doc)
 
 
 template <typename Iterator>
-bool parse_raw_sdn_type_decl(Iterator& first, Iterator& last, LDDocument& doc, LDTypeDeclaration& type_decl)
+bool parse_raw_sdn_type_decl(Iterator& first, Iterator& last, LDDocumentView& doc, LDTypeDeclaration& type_decl)
 {
     LDDocumentBuilder builder(doc);
     LDDocumentBuilder::current(&builder);
 
-    bool r = x3::phrase_parse(first, last, parser::standalone_type_decl, unicode::space, type_decl);
+    bool r = x3::phrase_parse(first, last, parser::standalone_type_decl, enc::space, type_decl);
 
     LDDocumentBuilder::current(nullptr, true);
 
@@ -637,12 +637,12 @@ bool parse_raw_sdn_type_decl(Iterator& first, Iterator& last, LDDocument& doc, L
 }
 
 template <typename Iterator>
-bool parse_raw_value0(Iterator& first, Iterator& last, LDDocument& doc, LDDValue& value)
+bool parse_raw_value0(Iterator& first, Iterator& last, LDDocumentView& doc, LDDValue& value)
 {
     LDDocumentBuilder builder(doc);
     LDDocumentBuilder::current(&builder);
 
-    bool r = x3::phrase_parse(first, last, parser::standalone_sdn_value, unicode::space, value);
+    bool r = x3::phrase_parse(first, last, parser::standalone_sdn_value, enc::space, value);
 
     LDDocumentBuilder::current(nullptr, true);
 
@@ -657,7 +657,7 @@ bool parse_raw_value0(Iterator& first, Iterator& last, LDDocument& doc, LDDValue
 template <typename Iterator>
 bool parse_identifier(Iterator& first, Iterator& last)
 {
-    bool r = x3::phrase_parse(first, last, parser::raw_identifier, unicode::space);
+    bool r = x3::phrase_parse(first, last, parser::raw_identifier, enc::space);
 
     if (first != last)
         return false;
@@ -723,7 +723,7 @@ LDDocument LDDocument::parse_type_decl(CharIterator start, CharIterator end, con
     return doc;
 }
 
-LDTypeDeclaration LDDocument::parse_raw_type_decl(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
+LDTypeDeclaration LDDocumentView::parse_raw_type_decl(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
 {
     LDTypeDeclaration type_decl{};
 
@@ -736,7 +736,7 @@ LDTypeDeclaration LDDocument::parse_raw_type_decl(CharIterator start, CharIterat
     return type_decl;
 }
 
-LDDValue LDDocument::parse_raw_value(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
+LDDValue LDDocumentView::parse_raw_value(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
 {
     LDDValue value{};
 
@@ -749,7 +749,7 @@ LDDValue LDDocument::parse_raw_value(CharIterator start, CharIterator end, const
     return value;
 }
 
-bool LDDocument::is_identifier(CharIterator start, CharIterator end)
+bool LDDocumentView::is_identifier(CharIterator start, CharIterator end)
 {
     return parse_identifier(start, end);
 }

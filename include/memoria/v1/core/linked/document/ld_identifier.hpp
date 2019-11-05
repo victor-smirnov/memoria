@@ -23,15 +23,15 @@ namespace v1 {
 
 
 class LDIdentifier {
-    LDDocument* doc_;
+    LDDocumentView* doc_;
     SDN2Ptr<U8LinkedString> string_;
 
-    friend class LDDocument;
+    friend class LDDocumentView;
 
 public:
     LDIdentifier():doc_(), string_({}) {}
 
-    LDIdentifier(LDDocument* doc, SDN2Ptr<U8LinkedString> string):
+    LDIdentifier(LDDocumentView* doc, SDN2Ptr<U8LinkedString> string):
         doc_(doc), string_(string)
     {}
 

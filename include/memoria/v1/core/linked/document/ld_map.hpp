@@ -31,16 +31,16 @@ class LDDMap {
     friend class LDTypeDeclaration;
 
     using PtrHolder = typename SDN2ArenaBase::PtrHolderT;
-    LDDocument* doc_;
+    LDDocumentView* doc_;
     ValueMap map_;
 public:
     LDDMap(): doc_(), map_() {}
 
-    LDDMap(LDDocument* doc, SDN2Ptr<ValueMap::State> map):
+    LDDMap(LDDocumentView* doc, SDN2Ptr<ValueMap::State> map):
         doc_(doc), map_(doc_->arena_, map)
     {}
 
-    LDDMap(LDDocument* doc, ValueMap map):
+    LDDMap(LDDocumentView* doc, ValueMap map):
         doc_(doc), map_(map)
     {}
 
