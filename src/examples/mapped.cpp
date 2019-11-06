@@ -23,10 +23,11 @@
 
 using namespace memoria::v1;
 
+using ArenaView = LinkedArenaView<int64_t, uint32_t>;
 using ArenaT = LinkedArena<int64_t, uint32_t>;
 
 template <typename T>
-using PtrT = typename ArenaT::template PtrT<T>;
+using PtrT = typename ArenaView::template PtrT<T>;
 
 template <typename T>
 size_t count(const T& map) {
@@ -50,7 +51,8 @@ int main()
         std_map[key] = value;
     }
 
-    ArenaT arena;
+    ArenaView arena{};
+    ArenaT arena_alloc(16, &arena);
 
     using Key   = U8LinkedString;
     using Value = U8LinkedString;
@@ -58,7 +60,7 @@ int main()
     using KeyPtr = PtrT<Key>;
     using ValuePtr = PtrT<Value>;
 
-    using Map = LinkedMap<KeyPtr, ValuePtr, typename ArenaT::ArenaBase, LinkedPtrHashFn, LinkedStringPtrEqualToFn>;
+    using Map = LinkedMap<KeyPtr, ValuePtr, ArenaView, LinkedPtrHashFn, LinkedStringPtrEqualToFn>;
     Map map = Map::create(&arena);
 
     for (auto& entry: std_map)
@@ -112,9 +114,10 @@ int main()
 //    }
 
 
-    std::cout << "Size: " << map.size() << " :: " << arena.size() << std::endl;
+    std::cout << "Size: " << map.size() << " :: " << arena_alloc.size() << std::endl;
 
-    ArenaT arena2;
+    ArenaView arena2{};
+    ArenaT arena_alloc2(16, &arena);
 
     auto mapping = arena2.make_address_mapping();
 
@@ -122,12 +125,12 @@ int main()
 
     size_t cnt2 = count(map2);
 
-    std::cout << "Size2: " << map2.size() << " :: " << arena2.size() << " :: " << cnt2 << " :: " << map2.array_size() << std::endl;
+    std::cout << "Size2: " << map2.size() << " :: " << arena_alloc2.size() << " :: " << cnt2 << " :: " << map2.array_size() << std::endl;
 
     map2.print_bucket_stat();
 
 
-    using Set = LinkedSet<KeyPtr, typename ArenaT::ArenaBase, LinkedPtrHashFn, LinkedStringPtrEqualToFn>;
+    using Set = LinkedSet<KeyPtr, ArenaView, LinkedPtrHashFn, LinkedStringPtrEqualToFn>;
     Set set = Set::create(&arena);
 
     KeyPtr key0 = allocate<Key>(&arena, "Hooooooooooo!");

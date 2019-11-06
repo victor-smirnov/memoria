@@ -36,38 +36,39 @@ struct SDN2Header {
 };
 
 using SDN2Arena     = LinkedArena<SDN2Header, uint32_t>;
-using SDN2ArenaBase = typename SDN2Arena::ArenaBase;
-using SDN2PtrHolder = SDN2ArenaBase::PtrHolderT;
+using SDN2ArenaView = LinkedArenaView<SDN2Header, uint32_t>;
+
+using SDN2PtrHolder = SDN2ArenaView::PtrHolderT;
 using LDDValueTag   = uint16_t;
 
 template <typename T>
-using SDN2Ptr = typename SDN2Arena::template PtrT<T>;
+using SDN2Ptr = typename SDN2ArenaView::template PtrT<T>;
 
 
 
 
 namespace sdn2_ {
 
-    using PtrHolder = SDN2ArenaBase::PtrHolderT;
+    using PtrHolder = SDN2ArenaView::PtrHolderT;
 
     using ValueMap = LinkedMap<
         SDN2Ptr<U8LinkedString>,
         PtrHolder,
-        SDN2ArenaBase,
+        SDN2ArenaView,
         LinkedPtrHashFn,
         LinkedStringPtrEqualToFn
     >;
 
     using StringSet = LinkedSet<
         SDN2Ptr<U8LinkedString>,
-        SDN2ArenaBase,
+        SDN2ArenaView,
         LinkedPtrHashFn,
         LinkedStringPtrEqualToFn
     >;
 
     using MapState = typename ValueMap::State;
 
-    using Array = LinkedDynVector<PtrHolder, SDN2ArenaBase>;
+    using Array = LinkedDynVector<PtrHolder, SDN2ArenaView>;
     using ArrayState = typename Array::State;
 
     struct TypeDeclState;
@@ -88,7 +89,7 @@ namespace sdn2_ {
     using TypeDeclsMap = LinkedMap<
         SDN2Ptr<U8LinkedString>,
         PtrHolder,
-        SDN2ArenaBase,
+        SDN2ArenaView,
         LinkedPtrHashFn,
         LinkedStringPtrEqualToFn
     >;

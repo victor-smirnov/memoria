@@ -24,7 +24,7 @@ namespace v1 {
 
 LDDMap LDDArray::add_map()
 {
-    ValueMap value = ValueMap::create(doc_->arena_->make_mutable(), sizeof(LDDValueTag));
+    ValueMap value = ValueMap::create(doc_->arena_.make_mutable(), sizeof(LDDValueTag));
     set_tag(value.ptr(), LDDValueTraits<LDDMap>::ValueTag);
     array_.push_back(value.ptr());
     return LDDMap(doc_, value);

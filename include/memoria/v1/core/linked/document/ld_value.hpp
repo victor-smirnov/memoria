@@ -52,11 +52,11 @@ public:
     }
 
     int64_t as_integer() const noexcept {
-        return *SDN2Ptr<int64_t>(value_ptr_).get(doc_->arena_);
+        return *SDN2Ptr<int64_t>(value_ptr_).get(&doc_->arena_);
     }
 
     double as_double() const noexcept {
-        return *SDN2Ptr<double>(value_ptr_).get(doc_->arena_);
+        return *SDN2Ptr<double>(value_ptr_).get(&doc_->arena_);
     }
 
     bool is_null() const noexcept {
@@ -111,7 +111,7 @@ private:
     LDDValueTag get_tag(SDN2PtrHolder ptr) const noexcept
     {
         SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        return *tag_ptr.get(doc_->arena_);
+        return *tag_ptr.get(&doc_->arena_);
     }
 };
 

@@ -122,6 +122,16 @@ public:
         other.buffer_ = nullptr;
     }
 
+    ArenaBuffer(ArenaBuffer&& other, ArenaBufferMemoryMgr memory_mgr) noexcept:
+        buffer_(other.buffer_),
+        capacity_(other.capacity_),
+        size_(other.size_),
+        memory_mgr_(memory_mgr)
+    {
+        other.buffer_ = nullptr;
+        other.memory_mgr_ = nullptr;
+    }
+
     ArenaBuffer() noexcept : ArenaBuffer(0) {}
 
     ~ArenaBuffer() noexcept

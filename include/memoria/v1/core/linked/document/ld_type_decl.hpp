@@ -52,14 +52,14 @@ public:
     }
 
     U8StringView name() const {
-        return state()->name.get(doc_->arena_)->view();
+        return state()->name.get(&doc_->arena_)->view();
     }
 
     size_t params() const
     {
         const TypeDeclState* state = this->state();
         if (state->type_params) {
-            return state->type_params.get(doc_->arena_)->size();
+            return state->type_params.get(&doc_->arena_)->size();
         }
 
         return 0;
@@ -70,7 +70,7 @@ public:
         const TypeDeclState* state = this->state();
         if (state->type_params)
         {
-            const auto* params_array = state->type_params.get(doc_->arena_);
+            const auto* params_array = state->type_params.get(&doc_->arena_);
 
             if (idx < params_array->size())
             {
@@ -94,7 +94,7 @@ public:
         TypeDeclState* state = this->state_mutable();
         if (state->type_params)
         {
-            auto* params_array = state->type_params.get_mutable(doc_->arena_);
+            auto* params_array = state->type_params.get_mutable(&doc_->arena_);
 
             size_t size = params_array->size();
 
@@ -115,7 +115,7 @@ public:
     {
         const TypeDeclState* state = this->state();
         if (state->ctr_args) {
-            return state->ctr_args.get(doc_->arena_)->size();
+            return state->ctr_args.get(&doc_->arena_)->size();
         }
 
         return 0;
@@ -126,7 +126,7 @@ public:
         const TypeDeclState* state = this->state();
         if (state->ctr_args)
         {
-            const auto* ctr_args = state->ctr_args.get(doc_->arena_);
+            const auto* ctr_args = state->ctr_args.get(&doc_->arena_);
 
             if (idx < ctr_args->size())
             {
@@ -175,7 +175,7 @@ public:
         TypeDeclState* state = this->state_mutable();
         if (state->ctr_args)
         {
-            auto* ctr_args = state->ctr_args.get_mutable(doc_->arena_);
+            auto* ctr_args = state->ctr_args.get_mutable(&doc_->arena_);
 
             size_t size = ctr_args->size();
 
@@ -284,11 +284,11 @@ private:
 
 
     TypeDeclState* state_mutable() {
-        return state_.get_mutable(doc_->arena_);
+        return state_.get_mutable(&doc_->arena_);
     }
 
     const TypeDeclState* state() const {
-        return state_.get(doc_->arena_);
+        return state_.get(&doc_->arena_);
     }
 };
 

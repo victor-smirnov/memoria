@@ -707,7 +707,7 @@ LDDocument LDDocument::parse(CharIterator start, CharIterator end, const SDNPars
 
     assert_parse_ok(result, "Can't parse type document", tmp, start, end);
 
-    return doc;
+    return std::move(doc);
 }
 
 LDDocument LDDocument::parse_type_decl(CharIterator start, CharIterator end, const SDNParserConfiguration& cfg)
