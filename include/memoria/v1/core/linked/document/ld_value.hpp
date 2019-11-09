@@ -106,6 +106,10 @@ public:
         return dump(out, state, dump_state);
     }
 
+    SDN2PtrHolder deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const;
+
+    LDDocument clone(bool compactify = true) const;
+
 private:
 
     LDDValueTag get_tag(SDN2PtrHolder ptr) const noexcept

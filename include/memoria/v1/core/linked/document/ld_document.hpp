@@ -39,7 +39,8 @@ protected:
     using StringSet     = sdn2_::StringSet;
     using Array         = sdn2_::Array;
     using TypeDeclsMap  = sdn2_::TypeDeclsMap;
-    using DocumentPtr   = SDN2Ptr<sdn2_::DocumentState>;
+    using DocumentState = sdn2_::DocumentState;
+    using DocumentPtr   = SDN2Ptr<DocumentState>;
 
     SDN2ArenaView arena_;
 
@@ -113,8 +114,6 @@ protected:
         return DocumentPtr{sizeof(SDN2Header)};
     }
 
-private:
-
     LDTypeDeclaration parse_raw_type_decl(
             CharIterator start,
             CharIterator end,
@@ -167,11 +166,11 @@ private:
 
     SDN2Ptr<U8LinkedString> intern(U8StringView view);
 
-    sdn2_::DocumentState* state_mutable() {
+    DocumentState* state_mutable() {
         return doc_ptr().get_mutable(&arena_);
     }
 
-    const sdn2_::DocumentState* state() const {
+    const DocumentState* state() const {
         return doc_ptr().get(&arena_);
     }
 
@@ -188,15 +187,19 @@ class LDDocument: public LDDocumentView {
 
     using LDDocumentView::arena_;
 
+    friend class LDDArray;
+    friend class LDDMap;
+    friend class LDTypeDeclaration;
+    friend class LDDTypedValue;
+
+    static constexpr size_t INITIAL_ARENA_SIZE = sizeof(SDN2Header) + sizeof(DocumentState) + 16;
+
 public:
     LDDocument():
         LDDocumentView(),
-        ld_arena_(
-            sizeof(SDN2Header) + sizeof(sdn2_::DocumentState) + 16,
-            &arena_
-        )
+        ld_arena_(INITIAL_ARENA_SIZE, &arena_)
     {
-        allocate<sdn2_::DocumentState>(ld_arena_.view(), sdn2_::DocumentState{0, 0, 0});
+        allocate<DocumentState>(ld_arena_.view(), DocumentState{0, 0, 0});
     }
 
     LDDocument(const LDDocument& other):
@@ -209,6 +212,10 @@ public:
         ld_arena_(&arena_, std::move(other.ld_arena_))
     {}
 
+    LDDocument& operator=(const LDDocument&) = delete;
+    LDDocument& operator=(LDDocument&&);
+
+    void compactify();
 
     static LDDocument parse(U8StringView view) {
         return parse(view.begin(), view.end());
@@ -232,7 +239,6 @@ public:
             CharIterator end,
             const SDNParserConfiguration& cfg = SDNParserConfiguration{}
     );
-
 };
 
 

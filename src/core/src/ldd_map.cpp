@@ -64,4 +64,10 @@ void LDDMap::do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& du
 }
 
 
+SDN2Ptr<LDDMap::ValueMap::State> LDDMap::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const
+{
+    sdn2_::DeepCopyHelper<sdn2_::LDDValueDeepCopyHelperBase<LDDMap>> helper(mapping, doc_, tgt);
+    return map_.deep_copy_to(tgt->ld_arena_.view(), helper);
+}
+
 }}

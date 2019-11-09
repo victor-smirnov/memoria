@@ -66,6 +66,8 @@ public:
         return type().is_simple_layout() && constructor().is_simple_layout();
     }
 
+    SDN2Ptr<State> deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const;
+
 private:
     const State* state() const {
         return state_.get(&doc_->arena_);

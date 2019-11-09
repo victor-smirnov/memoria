@@ -61,7 +61,8 @@ std::ostream& LDDValue::dump(std::ostream& out, LDDumpFormatState& state, LDDump
 }
 
 
-bool LDDValue::is_simple_layout() const noexcept {
+bool LDDValue::is_simple_layout() const noexcept
+{
     if (is_string() || is_integer() || is_null()) {
         return true;
     }
@@ -83,6 +84,68 @@ bool LDDValue::is_simple_layout() const noexcept {
     }
 
     return false;
+}
+
+
+SDN2PtrHolder LDDValue::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const
+{
+    if (is_null()) {
+        return LDDValue(tgt, 0).value_ptr_;
+    }
+    else if (is_string()) {
+        return as_string().deep_copy_to(tgt, mapping);
+    }
+    else if (is_integer())
+    {
+        int64_t value = as_integer();
+        return tgt->new_integer(value).value_ptr_;
+    }
+    else if (is_double())
+    {
+        double value = as_double();
+        return tgt->new_double(value).value_ptr_;
+    }
+    else if (is_map()) {
+        return as_map().deep_copy_to(tgt, mapping);
+    }
+    else if (is_array()) {
+        return as_array().deep_copy_to(tgt, mapping);
+    }
+    else if (is_type_decl()) {
+        return as_type_decl().deep_copy_to(tgt, mapping);
+    }
+    else if (is_typed_value()) {
+        return as_typed_value().deep_copy_to(tgt, mapping);
+    }
+
+    MMA1_THROW(RuntimeException()) << WhatCInfo("Unknown linked data document value type");
+}
+
+
+SDN2Ptr<U8LinkedString> LDString::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const
+{
+    return tgt->new_string(string_.get(&doc_->arena_)->view()).string_;
+}
+
+
+LDDocument LDDValue::clone(bool compactify) const
+{
+    LDDocument tgt;
+    SDN2ArenaAddressMapping mapping;
+
+    LDDValue tgt_value(&tgt, deep_copy_to(&tgt, mapping));
+    tgt.set_value(tgt_value);
+
+    if (compactify) {
+        tgt.compactify();
+    }
+
+    return tgt;
+}
+
+LDDocument LDString::clone(bool compactify) const {
+    LDDValue vv = *this;
+    return vv.clone(compactify);
 }
 
 }}

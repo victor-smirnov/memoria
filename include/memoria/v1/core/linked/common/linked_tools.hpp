@@ -121,7 +121,7 @@ public:
 };
 
 
-namespace mapped_ {
+namespace linked_ {
 
     template <typename T> struct DeepCopyHelper;
 

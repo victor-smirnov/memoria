@@ -63,4 +63,14 @@ void LDDArray::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState&
     }
 }
 
+
+
+
+
+SDN2Ptr<LDDArray::Array::State> LDDArray::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const
+{
+    sdn2_::DeepCopyHelper<sdn2_::LDDValueDeepCopyHelperBase<LDDArray>> helper(mapping, doc_, tgt);
+    return array_.deep_copy_to(tgt->ld_arena_.view(), helper);
+}
+
 }}

@@ -82,6 +82,33 @@ public:
     }
 };
 
+
+template <typename T, typename HolderT, typename Arena>
+class GenericLinkedPtr {
+    HolderT ptr_value_;
+public:
+    using Ptr = T*;
+    using ValueT = T;
+
+    GenericLinkedPtr() = default;
+    GenericLinkedPtr(HolderT value): ptr_value_(value) {}
+
+    template <typename TT>
+    GenericLinkedPtr(LinkedPtr<TT, HolderT, Arena> other): ptr_value_(other.get()) {}
+
+    HolderT get() const {
+        return ptr_value_;
+    }
+
+    operator HolderT() const {
+        return ptr_value_;
+    }
+};
+
+
+
+
+
 template <typename T, typename Arena>
 class LinkedPtrResolver {
     T ptr_;
@@ -93,6 +120,7 @@ public:
         return ptr_.get(arena_);
     }
 };
+
 
 namespace mapped_ {
 
@@ -146,6 +174,9 @@ public:
 
     template <typename T>
     using PtrT = LinkedPtr<T, PtrHolderT, LinkedArenaView>;
+
+    template <typename T>
+    using GenericPtrT = GenericLinkedPtr<T, PtrHolderT, LinkedArenaView>;
 
     LinkedArenaView() = default;
 
@@ -276,7 +307,17 @@ public:
         arena_view_->data_ = arena_.data();
     }
 
+    void move_data_from(LinkedArena&& other)
+    {
+        arena_.move_data_from(std::move(other.arena_));
+        arena_view_->data_ = arena_.data();
+    }
+
     ArenaView* view() {
+        return arena_view_;
+    }
+
+    const ArenaView* view() const {
         return arena_view_;
     }
 
@@ -289,7 +330,9 @@ public:
     }
 
 
-
+    void reset_view() noexcept {
+        arena_view_->data_ = nullptr;
+    }
 
     void clear() noexcept
     {

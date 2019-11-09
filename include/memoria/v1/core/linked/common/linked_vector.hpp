@@ -187,6 +187,8 @@ public:
         return offsetof(LinkedVector, data_) + idx * sizeof(T);
     }
 
+
+
 private:
     void shift_right(size_t idx, size_t size) noexcept
     {

@@ -182,9 +182,12 @@ public:
         return array()->size();
     }
 
-    PtrT<State> deep_copy_to(Arena* dst, typename Arena::AddressMapping& visited_addresses) const
+
+
+    template <typename AllocationHelper>
+    PtrT<State> deep_copy_to(Arena* dst, AllocationHelper& helper) const
     {
-        PtrT<State> foreign_state = allocate<State>(dst);
+        PtrT<State> foreign_state = helper.template allocate_root<State>(dst, State{});
 
         ArrayPtr my_array = state()->array_;
         if (my_array)
@@ -206,8 +209,8 @@ public:
                     {
                         const BucketEntry& entry = pmy_bucket->access(d);
 
-                        Key foreign_key     = mapped_::DeepCopyHelper<Key>::deep_copy(dst, arena_, entry.key, visited_addresses);
-                        Value foreign_value = mapped_::DeepCopyHelper<Value>::deep_copy(dst, arena_, entry.value, visited_addresses);
+                        Key foreign_key     = helper.deep_copy(dst, arena_, entry.key);
+                        Value foreign_value = helper.deep_copy(dst, arena_, entry.value);
 
                         foreign_bucket.get(dst)->access(d) = BucketEntry{foreign_key, foreign_value};
                     }

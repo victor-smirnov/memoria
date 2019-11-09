@@ -37,6 +37,7 @@ struct SDN2Header {
 
 using SDN2Arena     = LinkedArena<SDN2Header, uint32_t>;
 using SDN2ArenaView = LinkedArenaView<SDN2Header, uint32_t>;
+using SDN2ArenaAddressMapping = SDN2ArenaView::AddressMapping;
 
 using SDN2PtrHolder = SDN2ArenaView::PtrHolderT;
 using LDDValueTag   = uint16_t;
@@ -44,16 +45,37 @@ using LDDValueTag   = uint16_t;
 template <typename T>
 using SDN2Ptr = typename SDN2ArenaView::template PtrT<T>;
 
+template <typename T>
+using SDN2GenericPtr = typename SDN2ArenaView::template GenericPtrT<T>;
 
+class LDDArray;
+
+class LDDValue;
+class LDDMap;
+class LDTypeDeclaration;
+class LDTypeName;
+class LDDataTypeParam;
+class LDDataTypeCtrArg;
+class LDDocument;
+class LDDocumentView;
+class LDString;
+class LDIdentifier;
+class LDDTypedValue;
+
+class LDDocumentBuilder;
+
+template <typename T> struct LDDValueTraits;
 
 
 namespace sdn2_ {
+
+    struct GenericValue {};
 
     using PtrHolder = SDN2ArenaView::PtrHolderT;
 
     using ValueMap = LinkedMap<
         SDN2Ptr<U8LinkedString>,
-        PtrHolder,
+        SDN2GenericPtr<GenericValue>,
         SDN2ArenaView,
         LinkedPtrHashFn,
         LinkedStringPtrEqualToFn
@@ -68,7 +90,7 @@ namespace sdn2_ {
 
     using MapState = typename ValueMap::State;
 
-    using Array = LinkedDynVector<PtrHolder, SDN2ArenaView>;
+    using Array = LinkedDynVector<SDN2GenericPtr<GenericValue>, SDN2ArenaView>;
     using ArrayState = typename Array::State;
 
     struct TypeDeclState;
@@ -88,7 +110,7 @@ namespace sdn2_ {
 
     using TypeDeclsMap = LinkedMap<
         SDN2Ptr<U8LinkedString>,
-        PtrHolder,
+        SDN2Ptr<TypeDeclState>,
         SDN2ArenaView,
         LinkedPtrHashFn,
         LinkedStringPtrEqualToFn
@@ -101,28 +123,69 @@ namespace sdn2_ {
     };
 
 
+
+    static inline void ld_set_tag(SDN2ArenaView* arena, PtrHolder ptr, LDDValueTag tag)
+    {
+        *T2T<LDDValueTag*>(arena->data() + ptr - sizeof(tag)) = tag;
+    }
+
+    static inline LDDValueTag ld_get_tag(const SDN2ArenaView* arena, PtrHolder ptr) {
+        return *T2T<const LDDValueTag*>(arena->data() + ptr - sizeof(LDDValueTag));
+    }
+
+    static inline Optional<SDN2PtrHolder> resolve(SDN2ArenaAddressMapping& mapping, SDN2PtrHolder src_addr)
+    {
+        auto ii = mapping.find(src_addr);
+        if (ii != mapping.end()) {
+            return ii->second;
+        }
+
+        return Optional<SDN2PtrHolder>{};
+    }
+
+
+    template <typename Base>
+    class DeepCopyHelper: public Base {
+    protected:
+        SDN2ArenaAddressMapping& mapping_;
+    public:
+
+        template <typename... Args>
+        DeepCopyHelper(SDN2ArenaAddressMapping& mapping, Args&&... args):
+            Base(std::forward<Args>(args)...),
+            mapping_(mapping)
+        {}
+
+
+        template <
+                template <typename, typename, typename> class PtrT,
+                typename ElementT,
+                typename HolderT,
+                typename Arena
+        >
+        PtrT<ElementT, HolderT, Arena> deep_copy(
+                SDN2ArenaView* dst,
+                const SDN2ArenaView* src,
+                PtrT<ElementT, HolderT, Arena> element
+        )
+        {
+            auto dst_ptr = sdn2_::resolve(mapping_, element.get());
+
+            if (!dst_ptr)
+            {
+                 auto new_ptr = this->do_deep_copy(dst, src, element, mapping_);
+                 mapping_[element.get()] = new_ptr.get();
+                 return new_ptr;
+            }
+
+            return dst_ptr.get();
+        }
+    };
 }
 
 
 
-class LDDArray;
 
-class LDDValue;
-class LDDMap;
-class LDTypeDeclaration;
-class LDTypeName;
-class LDDataTypeParam;
-class LDDataTypeCtrArg;
-class LDDocument;
-class LDDocumentView;
-class LDString;
-class LDIdentifier;
-class LDDTypedValue;
-
-class LDDocumentBuilder;
-
-
-template <typename T> struct LDDValueTraits;
 
 template <>
 struct LDDValueTraits<LDString> {

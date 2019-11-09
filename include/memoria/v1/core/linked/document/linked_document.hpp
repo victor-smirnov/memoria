@@ -103,4 +103,48 @@ inline LDDArray::operator LDDValue() const {
     return LDDValue{doc_, array_.ptr()};
 }
 
+
+namespace sdn2_ {
+
+template <typename ElementType>
+struct LDDValueDeepCopyHelperBase {
+
+    const LDDocumentView* src_doc_;
+    LDDocument* dst_doc_;
+
+public:
+
+    LDDValueDeepCopyHelperBase(const LDDocumentView* src_doc, LDDocument* dst_doc):
+        src_doc_(src_doc), dst_doc_(dst_doc)
+    {}
+
+    template <typename State>
+    SDN2Ptr<State> allocate_root(SDN2ArenaView* dst, const State& state)
+    {
+        SDN2Ptr<State> root = allocate_tagged<State>(sizeof(LDDValueTag), dst, state);
+        sdn2_::ld_set_tag(dst, root.get(), LDDValueTraits<ElementType>::ValueTag);
+        return root;
+    }
+
+    template <
+            template <typename, typename, typename> class PtrT,
+            typename ElementT,
+            typename HolderT,
+            typename Arena
+    >
+    PtrT<ElementT, HolderT, Arena> do_deep_copy(
+            SDN2ArenaView* dst,
+            const SDN2ArenaView* src,
+            PtrT<ElementT, HolderT, Arena> element,
+            SDN2ArenaAddressMapping& mapping
+    )
+    {
+        LDDValue src_val(src_doc_, element.get());
+        return src_val.deep_copy_to(dst_doc_, mapping);
+    }
+};
+
+}
+
+
 }}

@@ -187,4 +187,60 @@ LDTypeDeclaration::ArgsVector* LDTypeDeclaration::ensure_args_capacity(size_t ca
     }
 }
 
+
+
+
+
+
+
+
+SDN2Ptr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const
+{
+    const TypeDeclState* src_state = state();
+
+    LDIdentifier src_name(doc_, src_state->name);
+
+    SDN2Ptr<U8LinkedString> tgt_name = tgt->intern(src_name.view());
+
+    SDN2ArenaView* tgt_arena_view = tgt->ld_arena_.view();
+
+    SDN2Ptr<ParamsVector> tgt_params{};
+
+    if (src_state->type_params)
+    {
+        const ParamsVector* src_params = src_state->type_params.get(&doc_->arena_);
+        tgt_params = allocate<ParamsVector>(tgt_arena_view, src_params->size(), src_params->size());
+
+        for (size_t c = 0; c < src_params->size(); c++)
+        {
+            LDTypeDeclaration src_td(doc_, src_params->access(c));
+            SDN2Ptr<TypeDeclState> tgt_td = src_td.deep_copy_to(tgt, mapping);
+            tgt_params.get(tgt_arena_view)->access(c) = tgt_td;
+        }
+    }
+
+    SDN2Ptr<ArgsVector> tgt_args{};
+
+    if (src_state->ctr_args)
+    {
+        const ArgsVector* src_args = src_state->ctr_args.get(&doc_->arena_);
+        tgt_args = allocate<ArgsVector>(tgt_arena_view, src_args->size(), src_args->size());
+
+        for (size_t c = 0; c < src_args->size(); c++)
+        {
+            LDDValue src_val(doc_, src_args->access(c));
+            SDN2PtrHolder tgt_val = src_val.deep_copy_to(tgt, mapping);
+            tgt_args.get(tgt_arena_view)->access(c) = tgt_val;
+        }
+    }
+
+    SDN2Ptr<TypeDeclState> tgt_state = allocate_tagged<TypeDeclState>(
+                sizeof(LDDValueTag),
+                tgt->ld_arena_.view(),
+                TypeDeclState{tgt_name, tgt_params, tgt_args}
+    );
+
+    return tgt_state;
+}
+
 }}

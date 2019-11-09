@@ -142,6 +142,13 @@ public:
     bool is_simple_layout() const noexcept;
 
 
+    SDN2Ptr<Array::State> deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const;
+
+    LDDocument clone(bool compactify = true) const {
+        LDDValue vv = *this;
+        return vv.clone(compactify);
+    }
+
 private:
 
     void do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;

@@ -45,7 +45,7 @@ SDN2Ptr<U8LinkedString> LDDocumentView::intern(U8StringView string)
     auto* sst = state_mutable();
 
     if (!sst->strings) {
-        set = StringSet::create(arena_.make_mutable());
+        set = StringSet::create(&arena_);
         state_mutable()->strings = set.ptr();
     }
     else {
@@ -58,7 +58,8 @@ SDN2Ptr<U8LinkedString> LDDocumentView::intern(U8StringView string)
         return str.get();
     }
     else {
-        SDN2Ptr<U8LinkedString> ss = allocate_tagged<U8LinkedString>(sizeof(LDDValueTag), arena_.make_mutable(), string);
+        SDN2Ptr<U8LinkedString> ss = allocate_tagged<U8LinkedString>(sizeof(LDDValueTag), &arena_, string);
+        sdn2_::ld_set_tag(&arena_, ss.get(), LDDValueTraits<LDString>::ValueTag);
         set.put(ss);
         return ss;
     }
@@ -68,7 +69,6 @@ SDN2Ptr<U8LinkedString> LDDocumentView::intern(U8StringView string)
 LDString LDDocumentView::new_string(U8StringView view)
 {
     SDN2Ptr<U8LinkedString> ptr = intern(view);
-    set_tag(ptr.get(), LDDValueTraits<LDString>::ValueTag);
     return LDString{this, ptr};
 }
 
@@ -76,7 +76,6 @@ LDString LDDocumentView::new_string(U8StringView view)
 LDIdentifier LDDocumentView::new_identifier(U8StringView view)
 {
     SDN2Ptr<U8LinkedString> ptr = intern(view);
-    set_tag(ptr.get(), LDDValueTraits<LDIdentifier>::ValueTag);
     return LDIdentifier{this, ptr};
 }
 
@@ -322,6 +321,136 @@ void LDDocumentView::do_dump_dictionary(std::ostream& out, LDDumpFormatState& st
     out << state.nl_end();
     state.make_indent(out);
     out << "}";
+}
+
+
+
+struct StringsDeepCopyHelperBase {
+
+    using ElementT = U8LinkedString;
+
+    template <typename State>
+    SDN2Ptr<State> allocate_root(SDN2ArenaView* dst, const State& state)
+    {
+        return allocate<State>(dst, state);
+    }
+
+    SDN2Ptr<ElementT> do_deep_copy(
+            SDN2ArenaView* dst,
+            const SDN2ArenaView* src,
+            SDN2Ptr<ElementT> element,
+            SDN2ArenaAddressMapping& mapping
+    )
+    {
+        const ElementT* src_str = element.get(src);
+
+        SDN2Ptr<ElementT> dst_str = allocate_tagged<ElementT>(sizeof(LDDValueTag), dst, src_str);
+        sdn2_::ld_set_tag(dst, dst_str.get(), LDDValueTraits<LDString>::ValueTag);
+
+        return dst_str;
+    }
+};
+
+
+
+
+class TypeDeclsDeepCopyHelperBase {
+
+    using Key = U8LinkedString;
+    using Value = sdn2_::TypeDeclState;
+
+    const LDDocument* src_doc_;
+    LDDocument* dst_doc_;
+
+public:
+
+    TypeDeclsDeepCopyHelperBase(const LDDocument* src_doc, LDDocument* dst_doc):
+        src_doc_(src_doc), dst_doc_(dst_doc)
+    {}
+
+
+    template <typename State>
+    SDN2Ptr<State> allocate_root(SDN2ArenaView* dst, const State& state)
+    {
+        return allocate<State>(dst, state);
+    }
+
+    SDN2Ptr<Key> do_deep_copy(
+            SDN2ArenaView* dst,
+            const SDN2ArenaView* src,
+            SDN2Ptr<Key> element,
+            SDN2ArenaAddressMapping& mapping
+    )
+    {
+        const Key* src_str = element.get(src);
+
+        SDN2Ptr<Key> dst_str = allocate_tagged<Key>(sizeof(LDDValueTag), dst, src_str);
+        sdn2_::ld_set_tag(dst, dst_str.get(), LDDValueTraits<LDString>::ValueTag);
+
+        return dst_str;
+    }
+
+    SDN2Ptr<Value> do_deep_copy(
+            SDN2ArenaView* dst,
+            const SDN2ArenaView* src,
+            SDN2Ptr<Value> element,
+            SDN2ArenaAddressMapping& mapping
+    )
+    {
+        LDTypeDeclaration src_td(src_doc_, element);
+        return src_td.deep_copy_to(dst_doc_, mapping);
+    }
+};
+
+
+
+
+void LDDocument::compactify()
+{
+    LDDocument tgt;
+
+    const DocumentState* my_state = this->state();
+
+    SDN2ArenaAddressMapping address_mapping;
+
+    if (my_state->strings)
+    {
+        StringSet strings = StringSet::get(&arena_, my_state->strings);
+
+        sdn2_::DeepCopyHelper<StringsDeepCopyHelperBase> helper(address_mapping);
+
+        auto strings_state = strings.deep_copy_to(tgt.ld_arena_.view(), helper);
+        tgt.state_mutable()->strings = strings_state;
+    }
+
+    if (my_state->type_directory)
+    {
+        TypeDeclsMap type_decls = TypeDeclsMap::get(&arena_, my_state->type_directory);
+
+        sdn2_::DeepCopyHelper<TypeDeclsDeepCopyHelperBase> helper(address_mapping, this, &tgt);
+
+        auto type_decls_state = type_decls.deep_copy_to(tgt.ld_arena_.view(), helper);
+        tgt.state_mutable()->type_directory = type_decls_state;
+    }
+
+    if (my_state->value) {
+        LDDValue value(this, my_state->value);
+        LDDValue new_value(&tgt, value.deep_copy_to(&tgt, address_mapping));
+        tgt.set_value(new_value);
+    };
+
+    (*this) = std::move(tgt);
+}
+
+LDDocument& LDDocument::operator=(LDDocument&& src)
+{
+    if (this != &src)
+    {
+        ld_arena_.move_data_from(std::move(src.ld_arena_));
+        src.ld_arena_.reset_view();
+    }
+
+    return *this;
 }
 
 

@@ -53,6 +53,10 @@ public:
         MemCpyBuffer(view.data(), data, view.length());
     }
 
+    LinkedString(const LinkedString* other) noexcept:
+        LinkedString(other->view())
+    {}
+
     LinkedString() noexcept {
         buffer_[0] = 0;
     }
@@ -88,6 +92,11 @@ public:
         size_t size_len = size_codec.length(str_len);
 
         return size_len + str_len;
+    }
+
+    static size_t object_size(const LinkedString* other)
+    {
+        return object_size(other->view());
     }
 
     CharT* data() noexcept

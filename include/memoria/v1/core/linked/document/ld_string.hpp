@@ -40,6 +40,10 @@ public:
     }
 
     operator LDDValue() const;
+
+    LDDocument clone(bool compactify = true) const;
+
+    SDN2Ptr<U8LinkedString> deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const;
 };
 
 }}

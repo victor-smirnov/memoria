@@ -54,7 +54,7 @@ public:
 
     Optional<LDDValue> get(U8StringView name) const
     {
-        Optional<SDN2PtrHolder> ptr = map_.get(name);
+        Optional<SDN2GenericPtr<sdn2_::GenericValue>> ptr = map_.get(name);
         if (ptr) {
             return LDDValue(doc_, ptr.get());
         }
@@ -186,6 +186,13 @@ public:
         });
 
         return simple;
+    }
+
+    SDN2Ptr<ValueMap::State> deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const;
+
+    LDDocument clone(bool compactify = true) const {
+        LDDValue vv = *this;
+        return vv.clone(compactify);
     }
 
 private:

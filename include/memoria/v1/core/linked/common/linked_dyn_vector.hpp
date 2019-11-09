@@ -43,9 +43,11 @@ public:
         PtrT<T> data_;
     };
 private:
+    using ArrayPtr = PtrT<State>;
+
 
     const Arena* arena_;
-    PtrT<State> state_;
+    ArrayPtr state_;
 
 public:
     LinkedDynVector(): arena_(), state_({}) {}
@@ -253,8 +255,33 @@ public:
         {
            fn(data[c]);
         }
-
     }
+
+    template <typename AllocationHelper>
+    PtrT<State> deep_copy_to(Arena* dst, AllocationHelper& helper) const
+    {
+        const State* state = this->state();
+        PtrT<State> foreign_state = helper.template allocate_root<State>(dst, State{state->capacity_, state->size_, 0});
+
+        PtrT<T> my_data = state->data_;
+
+        if (my_data)
+        {
+            PtrT<T> foreign_data = dst->template allocate_space<T>(state->size_ * sizeof(T));
+            foreign_state.get(dst)->data_ = foreign_data;
+
+            const T* src_data = state->data_.get(arena_);
+            T* dst_data = foreign_data.get(dst);
+            for (size_t c = 0; c < state->size_; c++)
+            {
+                dst_data[c] = helper.deep_copy(dst, arena_, src_data[c]);
+            }
+        }
+
+        return foreign_state;
+    }
+
+
 
 private:
     State* state_mutable() noexcept {

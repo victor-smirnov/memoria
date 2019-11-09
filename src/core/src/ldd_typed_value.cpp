@@ -51,5 +51,36 @@ std::ostream& LDDTypedValue::dump(std::ostream& out, LDDumpFormatState& state, L
     return out;
 }
 
+SDN2Ptr<LDDTypedValue::State> LDDTypedValue::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const
+{
+    const State* src_state = state();
+
+    auto mapped_tgt_type = sdn2_::resolve(mapping, src_state->type_decl.get());
+
+    SDN2Ptr<sdn2_::TypeDeclState> tgt_type{};
+
+    if (MMA1_LIKELY((bool)mapped_tgt_type))
+    {
+        tgt_type = mapped_tgt_type.get();
+    }
+    else {
+        LDTypeDeclaration td(doc_, src_state->type_decl);
+        tgt_type = td.deep_copy_to(tgt, mapping);
+        mapping[src_state->type_decl.get()] = tgt_type.get();
+    }
+
+    LDDValue src_value(doc_, src_state->value_ptr);
+
+    SDN2Ptr<State> tgt_state = allocate_tagged<State>(
+                sizeof(LDDValueTag),
+                tgt->ld_arena_.view(),
+                State{tgt_type.get(), src_value.deep_copy_to(tgt, mapping)}
+    );
+
+    sdn2_::ld_set_tag(tgt->ld_arena_.view(), tgt_state.get(), LDDValueTraits<LDDTypedValue>::ValueTag);
+
+    return tgt_state.get();
+}
+
 
 }}

@@ -183,6 +183,27 @@ public:
         return *this;
     }
 
+    // NOTE: other's memory must be compatible with
+    // own's memory manager!
+
+    void move_data_from(ArenaBuffer&& other)
+    {
+        if (this != &other)
+        {
+            reset();
+
+            if (buffer_) {
+                free_buffer(buffer_);
+            }
+
+            buffer_     = other.buffer_;
+            size_       = other.size_;
+            capacity_   = other.capacity_;
+
+            other.buffer_ = nullptr;
+        }
+    }
+
     int32_t buffer_id() const {return buffer_id_;}
 
     void set_buffer_id(int32_t buffer_id) {
@@ -317,8 +338,13 @@ public:
 
     void reset()
     {
+        if (buffer_) {
+            free_buffer(buffer_);
+        }
+
         size_ = 0;
         capacity_ = 64;
+
         buffer_ = allocate_buffer(capacity_);
     }
 

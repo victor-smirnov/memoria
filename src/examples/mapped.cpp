@@ -115,7 +115,7 @@ int main()
 
 
     std::cout << "Size: " << map.size() << " :: " << arena_alloc.size() << std::endl;
-
+/*
     ArenaView arena2{};
     ArenaT arena_alloc2(16, &arena);
 
@@ -139,6 +139,6 @@ int main()
     set.for_each([](auto kk){});
     set.deep_copy_to(&arena2, mapping);
     set.print_bucket_stat();
-
+*/
     return 0;
 }
