@@ -22,12 +22,14 @@ namespace memoria {
 namespace v1 {
 
 class LDDArray {
-    using Array = sdn2_::Array;
-    using ValueMap = sdn2_::ValueMap;
+    using Array = ld_::Array;
+    using ValueMap = ld_::ValueMap;
 
     friend class LDTypeDeclaration;
+    friend class LDDMap;
+    friend class LDDocument;
 
-    using PtrHolder = typename SDN2ArenaView::PtrHolderT;
+    using PtrHolder = typename ld_::LDArenaView::PtrHolderT;
     const LDDocumentView* doc_;
     Array array_;
 
@@ -50,54 +52,47 @@ public:
 
     void set(size_t idx, U8StringView value)
     {
-        SDN2Ptr<U8LinkedString> value_str = doc_->make_mutable()->intern(value);
-        set_tag(value_str.get(), LDDValueTraits<LDString>::ValueTag);
-        array_.access(idx) = value_str;
+        LDString str = doc_->make_mutable()->new_string(value);
+        array_.access(idx) = str.string_.get();
     }
 
     void set(size_t idx, int64_t value)
     {
-        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), doc_->arena_.make_mutable(), value);
-        set_tag(value_ptr.get(), LDDValueTraits<int64_t>::ValueTag);
-        array_.access(idx) = value_ptr;
+        LDDValue vv = doc_->make_mutable()->new_integer(value);
+        array_.access(idx) = vv.value_ptr_;
     }
 
     void set(size_t idx, double value)
     {
-        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), doc_->arena_.make_mutable(), value);
-        set_tag(value_ptr.get(), LDDValueTraits<double>::ValueTag);
-        array_.access(idx) = value_ptr;
+        LDDValue vv = doc_->make_mutable()->new_double(value);
+        array_.access(idx) = vv.value_ptr_;
     }
 
     void add(U8StringView value)
     {
-        SDN2Ptr<U8LinkedString> value_str = doc_->make_mutable()->intern(value);
-        set_tag(value_str.get(), LDDValueTraits<LDString>::ValueTag);
-        array_.push_back(value_str);
+        LDString str = doc_->make_mutable()->new_string(value);
+        array_.push_back(str.string_.get());
     }
 
     void add(int64_t value)
     {
-        SDN2Ptr<int64_t> value_ptr = allocate_tagged<int64_t>(sizeof(LDDValueTag), doc_->arena_.make_mutable(), value);
-        set_tag(value_ptr.get(), LDDValueTraits<int64_t>::ValueTag);
-        array_.push_back(value_ptr);
+        LDDValue vv = doc_->make_mutable()->new_integer(value);
+        array_.push_back(vv.value_ptr_);
     }
 
     void add(double value)
     {
-        SDN2Ptr<double> value_ptr = allocate_tagged<double>(sizeof(LDDValueTag), doc_->arena_.make_mutable(), value);
-        set_tag(value_ptr.get(), LDDValueTraits<double>::ValueTag);
-        array_.push_back(value_ptr);
+        LDDValue vv = doc_->make_mutable()->new_double(value);
+        array_.push_back(vv.value_ptr_);
     }
 
     LDDMap add_map();
 
     LDDArray add_array()
     {
-        Array value = Array::create_tagged(sizeof(LDDValueTag), doc_->arena_.make_mutable(), 4);
-        set_tag(value.ptr(), LDDValueTraits<LDDArray>::ValueTag);
-        array_.push_back(value.ptr());
-        return LDDArray(doc_, value);
+        LDDArray vv = doc_->make_mutable()->new_array();
+        array_.push_back(vv.array_.ptr());
+        return vv;
     }
 
     LDDValue add_sdn(U8StringView sdn)
@@ -142,7 +137,7 @@ public:
     bool is_simple_layout() const noexcept;
 
 
-    SDN2Ptr<Array::State> deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const;
+    ld_::LDPtr<Array::State> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
     LDDocument clone(bool compactify = true) const {
         LDDValue vv = *this;
@@ -152,19 +147,6 @@ public:
 private:
 
     void do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
-
-
-    void set_tag(SDN2PtrHolder ptr, LDDValueTag tag) noexcept
-    {
-        SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        *tag_ptr.get_mutable(&doc_->arena_) = tag;
-    }
-
-    LDDValueTag get_tag(SDN2PtrHolder ptr) const noexcept
-    {
-        SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        return *tag_ptr.get(&doc_->arena_);
-    }
 };
 
 }}

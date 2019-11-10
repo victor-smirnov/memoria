@@ -41,6 +41,9 @@ std::ostream& LDDValue::dump(std::ostream& out, LDDumpFormatState& state, LDDump
     else if (is_double()) {
         out << as_double();
     }
+    else if (is_boolean()) {
+        out << (as_boolean() ? "true" : "false");
+    }
     else if (is_map()) {
         as_map().dump(out, state, dump_state);
     }
@@ -63,7 +66,7 @@ std::ostream& LDDValue::dump(std::ostream& out, LDDumpFormatState& state, LDDump
 
 bool LDDValue::is_simple_layout() const noexcept
 {
-    if (is_string() || is_integer() || is_null()) {
+    if (is_string() || is_integer() || is_null() || is_boolean()) {
         return true;
     }
 
@@ -87,7 +90,7 @@ bool LDDValue::is_simple_layout() const noexcept
 }
 
 
-SDN2PtrHolder LDDValue::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const
+ld_::LDDPtrHolder LDDValue::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
     if (is_null()) {
         return LDDValue(tgt, 0).value_ptr_;
@@ -97,13 +100,18 @@ SDN2PtrHolder LDDValue::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& m
     }
     else if (is_integer())
     {
-        int64_t value = as_integer();
+        LDInteger value = as_integer();
         return tgt->new_integer(value).value_ptr_;
     }
     else if (is_double())
     {
-        double value = as_double();
+        LDDouble value = as_double();
         return tgt->new_double(value).value_ptr_;
+    }
+    else if (is_boolean())
+    {
+        LDBoolean value = as_boolean();
+        return tgt->new_boolean(value).value_ptr_;
     }
     else if (is_map()) {
         return as_map().deep_copy_to(tgt, mapping);
@@ -122,7 +130,7 @@ SDN2PtrHolder LDDValue::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& m
 }
 
 
-SDN2Ptr<U8LinkedString> LDString::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const
+ld_::LDPtr<U8LinkedString> LDString::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
     return tgt->new_string(string_.get(&doc_->arena_)->view()).string_;
 }
@@ -131,7 +139,7 @@ SDN2Ptr<U8LinkedString> LDString::deep_copy_to(LDDocument* tgt, SDN2ArenaAddress
 LDDocument LDDValue::clone(bool compactify) const
 {
     LDDocument tgt;
-    SDN2ArenaAddressMapping mapping;
+    ld_::LDArenaAddressMapping mapping;
 
     LDDValue tgt_value(&tgt, deep_copy_to(&tgt, mapping));
     tgt.set_value(tgt_value);

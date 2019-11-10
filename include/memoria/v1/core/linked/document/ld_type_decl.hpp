@@ -26,11 +26,11 @@ namespace memoria {
 namespace v1 {
 
 class LDTypeDeclaration {
-    using TypeDeclState = sdn2_::TypeDeclState;
-    using TypeDeclPtr   = sdn2_::TypeDeclPtr;
+    using TypeDeclState = ld_::TypeDeclState;
+    using TypeDeclPtr   = ld_::TypeDeclPtr;
 
     using ParamsVector = LinkedVector<TypeDeclPtr>;
-    using ArgsVector   = LinkedVector<sdn2_::PtrHolder>;
+    using ArgsVector   = LinkedVector<ld_::PtrHolder>;
 
     const LDDocumentView* doc_;
     TypeDeclPtr state_;
@@ -247,7 +247,7 @@ public:
         return simple;
     }
 
-    SDN2Ptr<TypeDeclState> deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const;
+    ld_::LDPtr<TypeDeclState> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
     LDDocument clone(bool compactify = true) const {
         LDDValue vv = *this;

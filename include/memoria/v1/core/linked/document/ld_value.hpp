@@ -25,7 +25,7 @@ namespace v1 {
 
 class LDDValue {
     const LDDocumentView* doc_;
-    SDN2PtrHolder value_ptr_;
+    ld_::LDDPtrHolder value_ptr_;
     LDDValueTag type_tag_;
 
     friend class LDDocument;
@@ -37,26 +37,44 @@ class LDDValue {
 public:
     LDDValue() noexcept : doc_(), value_ptr_(), type_tag_() {}
 
-    LDDValue(const LDDocumentView* doc, SDN2PtrHolder value_ptr) noexcept :
+    LDDValue(const LDDocumentView* doc, ld_::LDDPtrHolder value_ptr) noexcept :
         doc_(doc), value_ptr_(value_ptr),
         type_tag_(value_ptr ? get_tag(value_ptr) : 0)
     {}
+
+    LDDValue(const LDDocumentView* doc, ld_::LDDPtrHolder value_ptr, LDDValueTag tag) noexcept :
+        doc_(doc), value_ptr_(value_ptr),
+        type_tag_(tag)
+    {}
+
 
     LDDMap as_map() const noexcept;
     LDDArray as_array() const noexcept;
     LDTypeDeclaration as_type_decl() const noexcept;
     LDDTypedValue as_typed_value() const noexcept;
 
-    LDString as_string() const noexcept {
+    LDString as_string() const noexcept
+    {
+        ld_::ldd_assert_tag<LDString>(type_tag_);
         return LDString(doc_, value_ptr_);
     }
 
-    int64_t as_integer() const noexcept {
-        return *SDN2Ptr<int64_t>(value_ptr_).get(&doc_->arena_);
+    LDInteger as_integer() const noexcept
+    {
+        ld_::ldd_assert_tag<LDInteger>(type_tag_);
+        return *ld_::LDPtr<ld_::LDIntegerStorage>(value_ptr_).get(&doc_->arena_);
     }
 
-    double as_double() const noexcept {
-        return *SDN2Ptr<double>(value_ptr_).get(&doc_->arena_);
+    LDDouble as_double() const noexcept
+    {
+        ld_::ldd_assert_tag<LDDouble>(type_tag_);
+        return *ld_::LDPtr<ld_::LDDoubleStorage>(value_ptr_).get(&doc_->arena_);
+    }
+
+    LDBoolean as_boolean() const noexcept
+    {
+        ld_::ldd_assert_tag<LDBoolean>(type_tag_);
+        return *ld_::LDPtr<ld_::LDBooleanStorage>(value_ptr_).get(&doc_->arena_);
     }
 
     bool is_null() const noexcept {
@@ -64,11 +82,15 @@ public:
     }
 
     bool is_integer() const noexcept {
-        return type_tag_ == LDDValueTraits<int64_t>::ValueTag;
+        return type_tag_ == LDDValueTraits<LDInteger>::ValueTag;
     }
 
     bool is_double() const noexcept {
-        return type_tag_ == LDDValueTraits<double>::ValueTag;
+        return type_tag_ == LDDValueTraits<LDDouble>::ValueTag;
+    }
+
+    bool is_boolean() const noexcept {
+        return type_tag_ == LDDValueTraits<LDBoolean>::ValueTag;
     }
 
     bool is_string() const noexcept {
@@ -106,16 +128,15 @@ public:
         return dump(out, state, dump_state);
     }
 
-    SDN2PtrHolder deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const;
+    ld_::LDDPtrHolder deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
     LDDocument clone(bool compactify = true) const;
 
 private:
 
-    LDDValueTag get_tag(SDN2PtrHolder ptr) const noexcept
+    LDDValueTag get_tag(ld_::LDDPtrHolder ptr) const noexcept
     {
-        SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        return *tag_ptr.get(&doc_->arena_);
+        return ld_::ldd_get_tag(&doc_->arena_, ptr);
     }
 };
 

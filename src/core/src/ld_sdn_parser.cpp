@@ -117,6 +117,10 @@ public:
         return doc_.new_double(v);
     }
 
+    LDDValue new_boolean(bool v) {
+        return doc_.new_boolean(v);
+    }
+
     void set_doc_value(LDDValue value)
     {
         doc_.set_value(value);
@@ -351,6 +355,10 @@ namespace parser {
             value = LDDocumentBuilder::current()->new_double(v);
         }
 
+        void operator()(bool v){
+            value = LDDocumentBuilder::current()->new_boolean(v);
+        }
+
         void operator()(LDNullValue& v) {}
         void operator()(LDIdentifier& v) {}
 
@@ -477,6 +485,14 @@ namespace parser {
         LDDocumentBuilder::current()->clear_string_buffer();
     };
 
+    const auto set_bool_true = [](auto& ctx) {
+        x3::_val(ctx) = true;
+    };
+
+    const auto set_bool_false = [](auto& ctx) {
+        x3::_val(ctx) = false;
+    };
+
     x3::real_parser<double, x3::strict_real_policies<double> > const strict_double_ = {};
 
     x3::rule<class doc> const sdn_document              = "sdn_document";
@@ -514,6 +530,10 @@ namespace parser {
     x3::rule<class type_decl_or_reference, TypeDeclOrReference>
             const type_decl_or_reference = "type_decl_or_reference";
 
+    x3::rule<class bool_true, bool> bool_value_true     = "bool_value_true";
+    x3::rule<class bool_false, bool> bool_value_false   = "bool_value_false";
+    x3::rule<class bool_value, bool> bool_value         = "bool_value";
+
     const auto quoted_string_def    = lexeme['\'' >> *(char_ - '\'' - "\\\'" | '\\' >> char_('\'')) >> '\'']
                                         | lexeme['"' >> *(char_ - '"' - "\\\"" | '\\' >> char_('"')) >> '"'] ;
 
@@ -537,7 +557,7 @@ namespace parser {
 
     const auto typed_value_def      = '@' >> type_decl_or_reference >> "=" >> sdn_value;
 
-    const auto sdn_string_or_typed_value_def = sdn_string >> '@' >> -type_decl_or_reference;
+    const auto sdn_string_or_typed_value_def = sdn_string >> -('@' >> type_decl_or_reference);
 
 
     const auto null_value_def   = lexeme[lit("null")][dummy];
@@ -554,6 +574,9 @@ namespace parser {
 
     const auto type_directory_def = "#{" >> (type_directory_entry % ',') >> '}' | lit("#{") >> "}";
 
+    const auto bool_value_true_def      = lit("true") [set_bool_true];
+    const auto bool_value_false_def     = lit("false") [set_bool_false];
+    const auto bool_value_def           = bool_value_true | bool_value_false;
 
     const auto sdn_value_def    = (sdn_string_or_typed_value |
                                     strict_double_ |
@@ -562,7 +585,8 @@ namespace parser {
                                     null_value |
                                     array |
                                     type_declaration |
-                                    typed_value
+                                    typed_value |
+                                    bool_value
                                   )[finish_value];
 
     const auto sdn_document_def = (-type_directory >> sdn_value) [set_doc_value];
@@ -578,7 +602,8 @@ namespace parser {
             typed_value, type_directory, type_directory_entry,
             type_reference, type_decl_or_reference,
             sdn_string_or_typed_value, standalone_type_decl,
-            standalone_sdn_value
+            standalone_sdn_value, bool_value_true, bool_value_false,
+            bool_value
     );
 }
 

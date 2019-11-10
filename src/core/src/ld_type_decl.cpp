@@ -194,17 +194,17 @@ LDTypeDeclaration::ArgsVector* LDTypeDeclaration::ensure_args_capacity(size_t ca
 
 
 
-SDN2Ptr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const
+ld_::LDPtr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
     const TypeDeclState* src_state = state();
 
     LDIdentifier src_name(doc_, src_state->name);
 
-    SDN2Ptr<U8LinkedString> tgt_name = tgt->intern(src_name.view());
+    ld_::LDPtr<U8LinkedString> tgt_name = tgt->intern(src_name.view());
 
-    SDN2ArenaView* tgt_arena_view = tgt->ld_arena_.view();
+    ld_::LDArenaView* tgt_arena_view = &tgt->arena_;
 
-    SDN2Ptr<ParamsVector> tgt_params{};
+    ld_::LDPtr<ParamsVector> tgt_params{};
 
     if (src_state->type_params)
     {
@@ -214,12 +214,12 @@ SDN2Ptr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDDocu
         for (size_t c = 0; c < src_params->size(); c++)
         {
             LDTypeDeclaration src_td(doc_, src_params->access(c));
-            SDN2Ptr<TypeDeclState> tgt_td = src_td.deep_copy_to(tgt, mapping);
+            ld_::LDPtr<TypeDeclState> tgt_td = src_td.deep_copy_to(tgt, mapping);
             tgt_params.get(tgt_arena_view)->access(c) = tgt_td;
         }
     }
 
-    SDN2Ptr<ArgsVector> tgt_args{};
+    ld_::LDPtr<ArgsVector> tgt_args{};
 
     if (src_state->ctr_args)
     {
@@ -229,14 +229,14 @@ SDN2Ptr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDDocu
         for (size_t c = 0; c < src_args->size(); c++)
         {
             LDDValue src_val(doc_, src_args->access(c));
-            SDN2PtrHolder tgt_val = src_val.deep_copy_to(tgt, mapping);
+            ld_::LDDPtrHolder tgt_val = src_val.deep_copy_to(tgt, mapping);
             tgt_args.get(tgt_arena_view)->access(c) = tgt_val;
         }
     }
 
-    SDN2Ptr<TypeDeclState> tgt_state = allocate_tagged<TypeDeclState>(
+    ld_::LDPtr<TypeDeclState> tgt_state = allocate_tagged<TypeDeclState>(
                 sizeof(LDDValueTag),
-                tgt->ld_arena_.view(),
+                tgt_arena_view,
                 TypeDeclState{tgt_name, tgt_params, tgt_args}
     );
 

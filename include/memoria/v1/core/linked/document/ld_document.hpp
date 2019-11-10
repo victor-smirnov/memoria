@@ -35,14 +35,14 @@ class LDDocument;
 class LDDocumentView {
 
 protected:
-    using ValueMap      = sdn2_::ValueMap;
-    using StringSet     = sdn2_::StringSet;
-    using Array         = sdn2_::Array;
-    using TypeDeclsMap  = sdn2_::TypeDeclsMap;
-    using DocumentState = sdn2_::DocumentState;
-    using DocumentPtr   = SDN2Ptr<DocumentState>;
+    using ValueMap      = ld_::ValueMap;
+    using StringSet     = ld_::StringSet;
+    using Array         = ld_::Array;
+    using TypeDeclsMap  = ld_::TypeDeclsMap;
+    using DocumentState = ld_::DocumentState;
+    using DocumentPtr   = ld_::LDPtr<DocumentState>;
 
-    SDN2ArenaView arena_;
+    ld_::LDArenaView arena_;
 
     friend class LDDocumentBuilder;
     friend class LDDMap;
@@ -60,7 +60,7 @@ protected:
 
 public:
     LDDocumentView(): arena_() {}
-    LDDocumentView(SDN2ArenaView arena): arena_(arena) {}
+    LDDocumentView(ld_::LDArenaView arena): arena_(arena) {}
 
     LDDValue value() const;
 
@@ -111,7 +111,7 @@ public:
 
 protected:
     DocumentPtr doc_ptr() const {
-        return DocumentPtr{sizeof(SDN2Header)};
+        return DocumentPtr{sizeof(LDDocumentHeader)};
     }
 
     LDTypeDeclaration parse_raw_type_decl(
@@ -156,15 +156,16 @@ protected:
     LDString new_string(U8StringView view);
     LDIdentifier new_identifier(U8StringView view);
 
-    LDDValue new_integer(int64_t value);
-    LDDValue new_double(double value);
+    LDDValue new_integer(LDInteger value);
+    LDDValue new_boolean(LDBoolean value);
+    LDDValue new_double(LDDouble value);
     LDDArray new_array(Span<LDDValue> span);
     LDDArray new_array();
     LDDMap new_map();
 
     void set_value(LDDValue value);
 
-    SDN2Ptr<U8LinkedString> intern(U8StringView view);
+    ld_::LDPtr<U8LinkedString> intern(U8StringView view);
 
     DocumentState* state_mutable() {
         return doc_ptr().get_mutable(&arena_);
@@ -174,16 +175,15 @@ protected:
         return doc_ptr().get(&arena_);
     }
 
-    void set_tag(SDN2PtrHolder ptr, LDDValueTag tag)
+    void set_tag(ld_::LDDPtrHolder ptr, LDDValueTag tag)
     {
-        SDN2Ptr<LDDValueTag> tag_ptr(ptr - sizeof(LDDValueTag));
-        *tag_ptr.get_mutable(&arena_) = tag;
+        ld_::ldd_set_tag(&arena_, ptr, tag);
     }
 };
 
 
 class LDDocument: public LDDocumentView {
-    SDN2Arena ld_arena_;
+    ld_::LDArena ld_arena_;
 
     using LDDocumentView::arena_;
 
@@ -192,7 +192,7 @@ class LDDocument: public LDDocumentView {
     friend class LDTypeDeclaration;
     friend class LDDTypedValue;
 
-    static constexpr size_t INITIAL_ARENA_SIZE = sizeof(SDN2Header) + sizeof(DocumentState) + 16;
+    static constexpr size_t INITIAL_ARENA_SIZE = sizeof(LDDocumentHeader) + sizeof(DocumentState) + 16;
 
 public:
     LDDocument():

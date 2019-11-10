@@ -23,17 +23,17 @@ namespace memoria {
 namespace v1 {
 
 class LDDTypedValue {
-    using State = sdn2_::TypedValueState;
+    using State = ld_::TypedValueState;
 
     const LDDocumentView* doc_;
-    SDN2Ptr<State> state_;
+    ld_::LDPtr<State> state_;
 
     friend class LDTypeDeclaration;
 
 public:
     LDDTypedValue(): doc_(), state_({}) {}
 
-    LDDTypedValue(const LDDocumentView* doc, SDN2Ptr<State> state):
+    LDDTypedValue(const LDDocumentView* doc, ld_::LDPtr<State> state):
         doc_(doc), state_(state)
     {}
 
@@ -66,7 +66,7 @@ public:
         return type().is_simple_layout() && constructor().is_simple_layout();
     }
 
-    SDN2Ptr<State> deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const;
+    ld_::LDPtr<State> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
 private:
     const State* state() const {

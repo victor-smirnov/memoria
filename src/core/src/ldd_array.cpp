@@ -24,10 +24,9 @@ namespace v1 {
 
 LDDMap LDDArray::add_map()
 {
-    ValueMap value = ValueMap::create(doc_->arena_.make_mutable(), sizeof(LDDValueTag));
-    set_tag(value.ptr(), LDDValueTraits<LDDMap>::ValueTag);
-    array_.push_back(value.ptr());
-    return LDDMap(doc_, value);
+    LDDMap map = doc_->make_mutable()->new_map();
+    array_.push_back(map.map_.ptr());
+    return map;
 }
 
 
@@ -67,10 +66,10 @@ void LDDArray::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState&
 
 
 
-SDN2Ptr<LDDArray::Array::State> LDDArray::deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const
+ld_::LDPtr<LDDArray::Array::State> LDDArray::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
-    sdn2_::DeepCopyHelper<sdn2_::LDDValueDeepCopyHelperBase<LDDArray>> helper(mapping, doc_, tgt);
-    return array_.deep_copy_to(tgt->ld_arena_.view(), helper);
+    ld_::DeepCopyHelper<ld_::LDDValueDeepCopyHelperBase<LDDArray>> helper(mapping, doc_, tgt);
+    return array_.deep_copy_to(tgt->arena_.make_mutable(), helper);
 }
 
 }}

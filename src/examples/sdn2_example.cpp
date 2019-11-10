@@ -25,13 +25,19 @@ struct TT {
 
 int main()
 {
-    LDDocument doc = LDDocument::parse(
-        "#{MyDouble_7_3: Double(7, 3)} {'Ключ0': '132493258.4' @#MyDouble_7_3, 'b':1, 'c':2}"
-    );
+    try {
+        LDDocument doc = LDDocument::parse(
+                    "{'aaa': 'bbbb', 'cccc': true, 'ddd': false}"
+        );
 
-    doc.compactify();
+        doc.compactify();
 
-    doc.dump(std::cout) << std::endl;
+        doc.dump(std::cout) << std::endl;
+
+    }
+    catch (MemoriaThrowable& th) {
+        th.dump(std::cout);
+    }
 
     return 0;
 }

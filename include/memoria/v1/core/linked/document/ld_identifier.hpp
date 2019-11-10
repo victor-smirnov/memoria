@@ -24,14 +24,15 @@ namespace v1 {
 
 class LDIdentifier {
     const LDDocumentView* doc_;
-    SDN2Ptr<U8LinkedString> string_;
+
+    ld_::LDPtr<U8LinkedString> string_;
 
     friend class LDDocumentView;
 
 public:
     LDIdentifier():doc_(), string_({}) {}
 
-    LDIdentifier(const LDDocumentView* doc, SDN2Ptr<U8LinkedString> string):
+    LDIdentifier(const LDDocumentView* doc, ld_::LDPtr<U8LinkedString> string):
         doc_(doc), string_(string)
     {}
 

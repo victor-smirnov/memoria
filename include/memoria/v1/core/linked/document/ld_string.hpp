@@ -24,14 +24,16 @@ namespace v1 {
 
 class LDString {
     const LDDocumentView* doc_;
-    SDN2Ptr<U8LinkedString> string_;
+    ld_::LDPtr<U8LinkedString> string_;
 
     friend class LDTypeDeclaration;
+    friend class LDDArray;
+    friend class LDDMap;
 
 public:
     LDString(): doc_(), string_({}) {}
 
-    LDString(const LDDocumentView* doc, SDN2Ptr<U8LinkedString> string):
+    LDString(const LDDocumentView* doc, ld_::LDPtr<U8LinkedString> string):
         doc_(doc), string_(string)
     {}
 
@@ -43,7 +45,7 @@ public:
 
     LDDocument clone(bool compactify = true) const;
 
-    SDN2Ptr<U8LinkedString> deep_copy_to(LDDocument* tgt, SDN2ArenaAddressMapping& mapping) const;
+    ld_::LDPtr<U8LinkedString> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 };
 
 }}

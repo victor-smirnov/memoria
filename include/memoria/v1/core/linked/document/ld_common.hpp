@@ -26,27 +26,58 @@
 #include <memoria/v1/core/linked/common/linked_map.hpp>
 #include <memoria/v1/core/linked/common/linked_set.hpp>
 
+#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/v1/core/strings/format.hpp>
+
 #include <unordered_map>
+#include <iostream>
 
 namespace memoria {
 namespace v1 {
 
-struct SDN2Header {
+using LDDValueTag = uint16_t;
+struct LDDInvalidCastException: RuntimeException {};
+
+struct LDDocumentHeader {
     uint32_t version;
 };
 
-using SDN2Arena     = LinkedArena<SDN2Header, uint32_t>;
-using SDN2ArenaView = LinkedArenaView<SDN2Header, uint32_t>;
-using SDN2ArenaAddressMapping = SDN2ArenaView::AddressMapping;
 
-using SDN2PtrHolder = SDN2ArenaView::PtrHolderT;
-using LDDValueTag   = uint16_t;
+namespace ld_ {
+    using LDArena     = LinkedArena<LDDocumentHeader, uint32_t>;
+    using LDArenaView = LinkedArenaView<LDDocumentHeader, uint32_t>;
+//    using LDArenaAddressMapping = LDArenaView::AddressMapping;
 
-template <typename T>
-using SDN2Ptr = typename SDN2ArenaView::template PtrT<T>;
+    using LDDPtrHolder = LDArenaView::PtrHolderT;
 
-template <typename T>
-using SDN2GenericPtr = typename SDN2ArenaView::template GenericPtrT<T>;
+    template <typename T>
+    using LDPtr = typename LDArenaView::template PtrT<T>;
+
+    template <typename T>
+    using LDGenericPtr = typename LDArenaView::template GenericPtrT<T>;
+
+    class LDArenaAddressMapping {
+        typename LDArenaView::AddressMapping mapping_;
+    public:
+        LDArenaAddressMapping() {}
+
+        Optional<LDDPtrHolder> resolve(LDDPtrHolder ptr) const
+        {
+            auto ii = mapping_.find(ptr);
+            if (ii != mapping_.end()) {
+                return ii->second;
+            }
+
+            return Optional<LDDPtrHolder>{};
+        }
+
+        void map_ptrs(LDDPtrHolder source_arena_ptr, LDDPtrHolder target_arena_ptr)
+        {
+            mapping_[source_arena_ptr] = target_arena_ptr;
+        }
+    };
+}
+
 
 class LDDArray;
 
@@ -61,97 +92,95 @@ class LDDocumentView;
 class LDString;
 class LDIdentifier;
 class LDDTypedValue;
-
 class LDDocumentBuilder;
+
+using LDBoolean = bool;
+using LDInteger = int64_t;
+using LDDouble  = double;
+
+
 
 template <typename T> struct LDDValueTraits;
 
+namespace ld_ {
 
-namespace sdn2_ {
+    using LDIntegerStorage = LDInteger;
+    using LDDoubleStorage  = LDDouble;
+    using LDBooleanStorage = uint8_t;
 
     struct GenericValue {};
 
-    using PtrHolder = SDN2ArenaView::PtrHolderT;
+    using PtrHolder = LDArenaView::PtrHolderT;
 
     using ValueMap = LinkedMap<
-        SDN2Ptr<U8LinkedString>,
-        SDN2GenericPtr<GenericValue>,
-        SDN2ArenaView,
+        LDPtr<U8LinkedString>,
+        LDGenericPtr<GenericValue>,
+        LDArenaView,
         LinkedPtrHashFn,
         LinkedStringPtrEqualToFn
     >;
 
     using StringSet = LinkedSet<
-        SDN2Ptr<U8LinkedString>,
-        SDN2ArenaView,
+        LDPtr<U8LinkedString>,
+        LDArenaView,
         LinkedPtrHashFn,
         LinkedStringPtrEqualToFn
     >;
 
     using MapState = typename ValueMap::State;
 
-    using Array = LinkedDynVector<SDN2GenericPtr<GenericValue>, SDN2ArenaView>;
+    using Array = LinkedDynVector<LDGenericPtr<GenericValue>, LDArenaView>;
     using ArrayState = typename Array::State;
 
     struct TypeDeclState;
 
-    using TypeDeclPtr = SDN2Ptr<TypeDeclState>;
+    using TypeDeclPtr = LDPtr<TypeDeclState>;
 
     struct TypeDeclState {
-        SDN2Ptr<U8LinkedString> name;
-        SDN2Ptr<LinkedVector<TypeDeclPtr>> type_params;
-        SDN2Ptr<LinkedVector<PtrHolder>> ctr_args;
+        LDPtr<U8LinkedString> name;
+        LDPtr<LinkedVector<TypeDeclPtr>> type_params;
+        LDPtr<LinkedVector<PtrHolder>> ctr_args;
     };
 
     struct TypedValueState {
-        SDN2Ptr<TypeDeclState> type_decl;
+        LDPtr<TypeDeclState> type_decl;
         PtrHolder value_ptr;
     };
 
     using TypeDeclsMap = LinkedMap<
-        SDN2Ptr<U8LinkedString>,
-        SDN2Ptr<TypeDeclState>,
-        SDN2ArenaView,
+        LDPtr<U8LinkedString>,
+        LDPtr<TypeDeclState>,
+        LDArenaView,
         LinkedPtrHashFn,
         LinkedStringPtrEqualToFn
     >;
 
     struct DocumentState {
         PtrHolder value;
-        SDN2Ptr<TypeDeclsMap::State> type_directory;
-        SDN2Ptr<sdn2_::StringSet::State> strings;
+        LDPtr<TypeDeclsMap::State> type_directory;
+        LDPtr<ld_::StringSet::State> strings;
     };
 
 
 
-    static inline void ld_set_tag(SDN2ArenaView* arena, PtrHolder ptr, LDDValueTag tag)
+    static inline void ldd_set_tag(LDArenaView* arena, PtrHolder ptr, LDDValueTag tag)
     {
         *T2T<LDDValueTag*>(arena->data() + ptr - sizeof(tag)) = tag;
     }
 
-    static inline LDDValueTag ld_get_tag(const SDN2ArenaView* arena, PtrHolder ptr) {
+    static inline LDDValueTag ldd_get_tag(const LDArenaView* arena, PtrHolder ptr) {
         return *T2T<const LDDValueTag*>(arena->data() + ptr - sizeof(LDDValueTag));
-    }
-
-    static inline Optional<SDN2PtrHolder> resolve(SDN2ArenaAddressMapping& mapping, SDN2PtrHolder src_addr)
-    {
-        auto ii = mapping.find(src_addr);
-        if (ii != mapping.end()) {
-            return ii->second;
-        }
-
-        return Optional<SDN2PtrHolder>{};
     }
 
 
     template <typename Base>
     class DeepCopyHelper: public Base {
     protected:
-        SDN2ArenaAddressMapping& mapping_;
+        LDArenaAddressMapping& mapping_;
     public:
 
         template <typename... Args>
-        DeepCopyHelper(SDN2ArenaAddressMapping& mapping, Args&&... args):
+        DeepCopyHelper(LDArenaAddressMapping& mapping, Args&&... args):
             Base(std::forward<Args>(args)...),
             mapping_(mapping)
         {}
@@ -164,23 +193,41 @@ namespace sdn2_ {
                 typename Arena
         >
         PtrT<ElementT, HolderT, Arena> deep_copy(
-                SDN2ArenaView* dst,
-                const SDN2ArenaView* src,
+                LDArenaView* dst,
+                const LDArenaView* src,
                 PtrT<ElementT, HolderT, Arena> element
         )
         {
-            auto dst_ptr = sdn2_::resolve(mapping_, element.get());
+            auto dst_ptr = mapping_.resolve(element.get());
 
             if (!dst_ptr)
             {
                  auto new_ptr = this->do_deep_copy(dst, src, element, mapping_);
-                 mapping_[element.get()] = new_ptr.get();
+                 mapping_.map_ptrs(element.get(), new_ptr.get());
                  return new_ptr;
             }
 
             return dst_ptr.get();
         }
     };
+
+
+    template <typename Type, typename Arena>
+    void ldd_assert_tag(const Arena* arena, LDDPtrHolder ptr)
+    {
+        LDDValueTag tag = ldd_get_tag(arena, ptr);
+        if (tag != LDDValueTraits<Type>::ValueTag) {
+            MMA1_THROW(LDDInvalidCastException());
+        }
+    }
+
+    template <typename Type>
+    void ldd_assert_tag(LDDValueTag tag)
+    {
+        if (tag != LDDValueTraits<Type>::ValueTag) {
+            MMA1_THROW(LDDInvalidCastException());
+        }
+    }
 }
 
 
@@ -193,12 +240,12 @@ struct LDDValueTraits<LDString> {
 };
 
 template <>
-struct LDDValueTraits<int64_t> {
+struct LDDValueTraits<LDInteger> {
     static constexpr LDDValueTag ValueTag = 2;
 };
 
 template <>
-struct LDDValueTraits<double> {
+struct LDDValueTraits<LDDouble> {
     static constexpr LDDValueTag ValueTag = 3;
 };
 
@@ -226,6 +273,12 @@ template <>
 struct LDDValueTraits<LDDTypedValue> {
     static constexpr LDDValueTag ValueTag = 9;
 };
+
+template <>
+struct LDDValueTraits<LDBoolean> {
+    static constexpr LDDValueTag ValueTag = 10;
+};
+
 
 
 
@@ -290,11 +343,11 @@ public:
 };
 
 class LDDumpState {
-    std::unordered_map<SDN2PtrHolder, U8StringView> type_mapping_;
+    std::unordered_map<ld_::LDDPtrHolder, U8StringView> type_mapping_;
 public:
     LDDumpState(const LDDocumentView& doc);
 
-    Optional<U8StringView> resolve_type_id(SDN2PtrHolder ptr) const
+    Optional<U8StringView> resolve_type_id(ld_::LDDPtrHolder ptr) const
     {
         auto ii = type_mapping_.find(ptr);
         if (ii != type_mapping_.end()) {

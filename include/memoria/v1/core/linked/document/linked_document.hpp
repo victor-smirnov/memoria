@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <memoria/v1/core/linked/document/ld_common.hpp>
 #include <memoria/v1/core/linked/document/ld_value.hpp>
 #include <memoria/v1/core/linked/document/ld_string.hpp>
 #include <memoria/v1/core/linked/document/ld_identifier.hpp>
@@ -32,17 +33,19 @@ namespace memoria {
 namespace v1 {
 
 inline LDDArray LDDValue::as_array() const noexcept {
+    ld_::ldd_assert_tag<LDDArray>(type_tag_);
     return LDDArray(doc_, value_ptr_);
 }
 
 
 inline LDDMap LDDValue::as_map() const noexcept {
+    ld_::ldd_assert_tag<LDDMap>(type_tag_);
     return LDDMap(doc_, value_ptr_);
 }
 
 inline LDDValue LDDArray::get(size_t idx) const
 {
-    SDN2PtrHolder ptr = array_.access(idx);
+    ld_::LDDPtrHolder ptr = array_.access(idx);
     return LDDValue{doc_, ptr};
 }
 
@@ -72,15 +75,14 @@ inline bool LDDArray::is_simple_layout() const noexcept
 
 
 inline LDTypeDeclaration LDDValue::as_type_decl() const noexcept {
+    ld_::ldd_assert_tag<LDTypeDeclaration>(type_tag_);
     return LDTypeDeclaration(doc_, value_ptr_);
 }
 
 inline LDDTypedValue LDDValue::as_typed_value() const noexcept {
+    ld_::ldd_assert_tag<LDDTypedValue>(type_tag_);
     return LDDTypedValue(doc_, value_ptr_);
 }
-
-
-
 
 
 
@@ -90,39 +92,34 @@ inline LDDValue LDDocumentView::value() const {
 }
 
 
-
-
-
-
-
 inline LDString::operator LDDValue() const {
-    return LDDValue{doc_, string_.get()};
+    return LDDValue{doc_, string_.get(), LDDValueTraits<LDString>::ValueTag};
 }
 
 inline LDDArray::operator LDDValue() const {
-    return LDDValue{doc_, array_.ptr()};
+    return LDDValue{doc_, array_.ptr(), LDDValueTraits<LDDArray>::ValueTag};
 }
 
 
-namespace sdn2_ {
+namespace ld_ {
 
 template <typename ElementType>
 struct LDDValueDeepCopyHelperBase {
 
     const LDDocumentView* src_doc_;
-    LDDocument* dst_doc_;
+    LDDocumentView* dst_doc_;
 
 public:
 
-    LDDValueDeepCopyHelperBase(const LDDocumentView* src_doc, LDDocument* dst_doc):
+    LDDValueDeepCopyHelperBase(const LDDocumentView* src_doc, LDDocumentView* dst_doc):
         src_doc_(src_doc), dst_doc_(dst_doc)
     {}
 
     template <typename State>
-    SDN2Ptr<State> allocate_root(SDN2ArenaView* dst, const State& state)
+    LDPtr<State> allocate_root(LDArenaView* dst, const State& state)
     {
-        SDN2Ptr<State> root = allocate_tagged<State>(sizeof(LDDValueTag), dst, state);
-        sdn2_::ld_set_tag(dst, root.get(), LDDValueTraits<ElementType>::ValueTag);
+        LDPtr<State> root = allocate_tagged<State>(sizeof(LDDValueTag), dst, state);
+        ld_::ldd_set_tag(dst, root.get(), LDDValueTraits<ElementType>::ValueTag);
         return root;
     }
 
@@ -133,10 +130,10 @@ public:
             typename Arena
     >
     PtrT<ElementT, HolderT, Arena> do_deep_copy(
-            SDN2ArenaView* dst,
-            const SDN2ArenaView* src,
+            LDArenaView* dst,
+            const LDArenaView* src,
             PtrT<ElementT, HolderT, Arena> element,
-            SDN2ArenaAddressMapping& mapping
+            LDArenaAddressMapping& mapping
     )
     {
         LDDValue src_val(src_doc_, element.get());
