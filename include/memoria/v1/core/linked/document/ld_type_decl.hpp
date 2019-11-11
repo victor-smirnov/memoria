@@ -39,6 +39,8 @@ class LDTypeDeclaration {
     friend class LDDocumentView;
     friend class LDDumpState;
     friend class LDDTypedValue;
+    friend class ld_::LDArenaAddressMapping;
+
 
 public:
     LDTypeDeclaration(): doc_(), state_({}) {}
@@ -199,6 +201,17 @@ public:
         LDDumpState dump_state(*doc_);
 
         do_dump_cxx_type_decl(ss,state, dump_state);
+        return ss.str();
+    }
+
+    U8String to_standard_string() const
+    {
+        std::stringstream ss;
+        LDDumpFormatState state = LDDumpFormatState::no_indent();
+        LDDumpState dump_state(*doc_);
+
+        do_dump(ss,state, dump_state);
+
         return ss.str();
     }
 

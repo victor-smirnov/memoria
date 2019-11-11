@@ -46,7 +46,6 @@ struct LDDocumentHeader {
 namespace ld_ {
     using LDArena     = LinkedArena<LDDocumentHeader, uint32_t>;
     using LDArenaView = LinkedArenaView<LDDocumentHeader, uint32_t>;
-//    using LDArenaAddressMapping = LDArenaView::AddressMapping;
 
     using LDDPtrHolder = LDArenaView::PtrHolderT;
 
@@ -56,26 +55,7 @@ namespace ld_ {
     template <typename T>
     using LDGenericPtr = typename LDArenaView::template GenericPtrT<T>;
 
-    class LDArenaAddressMapping {
-        typename LDArenaView::AddressMapping mapping_;
-    public:
-        LDArenaAddressMapping() {}
-
-        Optional<LDDPtrHolder> resolve(LDDPtrHolder ptr) const
-        {
-            auto ii = mapping_.find(ptr);
-            if (ii != mapping_.end()) {
-                return ii->second;
-            }
-
-            return Optional<LDDPtrHolder>{};
-        }
-
-        void map_ptrs(LDDPtrHolder source_arena_ptr, LDDPtrHolder target_arena_ptr)
-        {
-            mapping_[source_arena_ptr] = target_arena_ptr;
-        }
-    };
+    enum class LDDCopyingType {COMPACTION, EXPORT, IMPORT};
 }
 
 
@@ -173,6 +153,93 @@ namespace ld_ {
     }
 
 
+    class LDArenaAddressMapping {
+
+        struct TypeNameData {
+            U8StringView name;
+            bool imported;
+        };
+
+
+        using AddressMapping  = typename LDArenaView::AddressMapping;
+        using TypeNameMapping = std::unordered_map<LDDPtrHolder, TypeNameData>;
+        using TypeDataMapping = std::unordered_map<U8String, LDDPtrHolder>;
+
+        AddressMapping mapping_;
+        LDDCopyingType copying_type_;
+        TypeNameMapping type_names_;
+        TypeDataMapping types_by_data_;
+
+    public:
+        LDArenaAddressMapping(): copying_type_(LDDCopyingType::COMPACTION) {}
+        LDArenaAddressMapping(const LDDocumentView& src);
+        LDArenaAddressMapping(const LDDocumentView& src, const LDDocumentView& dst);
+
+        TypeNameMapping& type_name_mapping() {
+            return type_names_;
+        }
+
+        LDDCopyingType copying_type() const {
+            return copying_type_;
+        }
+
+        bool is_compaction() const {
+            return copying_type_ == LDDCopyingType::COMPACTION;
+        }
+
+        bool is_export() const {
+            return copying_type_ == LDDCopyingType::EXPORT;
+        }
+
+        bool is_import() const {
+            return copying_type_ == LDDCopyingType::IMPORT;
+        }
+
+        Optional<LDDPtrHolder> resolve(LDDPtrHolder ptr) const
+        {
+            auto ii = mapping_.find(ptr);
+            if (ii != mapping_.end()) {
+                return ii->second;
+            }
+
+            return Optional<LDDPtrHolder>{};
+        }
+
+        void map_ptrs(LDDPtrHolder source_arena_ptr, LDDPtrHolder target_arena_ptr)
+        {
+            mapping_[source_arena_ptr] = target_arena_ptr;
+        }
+
+        Optional<TypeNameData> is_src_named_type(LDDPtrHolder type_ptr) const
+        {
+            auto ii = type_names_.find(type_ptr);
+            if (ii != type_names_.end()) {
+                return ii->second;
+            }
+
+            return Optional<TypeNameData>{};
+        }
+
+        Optional<LDDPtrHolder> is_dst_named_type(U8StringView type_ptr) const
+        {
+            auto ii = types_by_data_.find(type_ptr);
+            if (ii != types_by_data_.end()) {
+                return ii->second;
+            }
+
+            return Optional<LDDPtrHolder>{};
+        }
+
+        void finish_src_named_type(LDDPtrHolder holder) {
+            type_names_[holder].imported = true;
+        }
+
+        void finish_dst_named_type(const U8String& data, LDDPtrHolder holder) {
+            types_by_data_[data] = holder;
+        }
+    };
+
+
     template <typename Base>
     class DeepCopyHelper: public Base {
     protected:
@@ -226,6 +293,13 @@ namespace ld_ {
     {
         if (tag != LDDValueTraits<Type>::ValueTag) {
             MMA1_THROW(LDDInvalidCastException());
+        }
+    }
+
+    static inline void assert_different_docs(const LDDocumentView* one, const LDDocumentView* two)
+    {
+        if (one == two) {
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Performing operation on the same documents");
         }
     }
 }

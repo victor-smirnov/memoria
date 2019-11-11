@@ -141,6 +141,33 @@ public:
     }
 };
 
+
+
+
+
+inline LDArenaAddressMapping::LDArenaAddressMapping(const LDDocumentView& src):
+    copying_type_(LDDCopyingType::EXPORT)
+{
+    src.for_each_named_type([&, this](auto name, LDTypeDeclaration td){
+        this->type_names_[td.state_.get()] = TypeNameData{name, false};
+    });
+}
+
+
+inline LDArenaAddressMapping::LDArenaAddressMapping(const LDDocumentView& src, const LDDocumentView& dst):
+    copying_type_(LDDCopyingType::IMPORT)
+{
+    src.for_each_named_type([&, this](auto name, LDTypeDeclaration td){
+        this->type_names_[td.state_.get()] = TypeNameData{name, false};
+    });
+
+    dst.for_each_named_type([&, this](auto name, LDTypeDeclaration td){
+        U8String type_data = td.to_standard_string();
+        this->types_by_data_[type_data] = td.state_.get();
+    });
+}
+
+
 }
 
 

@@ -55,7 +55,9 @@ ld_::LDPtr<LDDTypedValue::State> LDDTypedValue::deep_copy_to(LDDocumentView* tgt
 {
     const State* src_state = state();
 
-    auto mapped_tgt_type = mapping.resolve(src_state->type_decl.get());
+    ld_::LDDPtrHolder src_ptr = src_state->type_decl.get();
+
+    auto mapped_tgt_type = mapping.resolve(src_ptr);
 
     ld_::LDPtr<ld_::TypeDeclState> tgt_type{};
 
@@ -64,9 +66,46 @@ ld_::LDPtr<LDDTypedValue::State> LDDTypedValue::deep_copy_to(LDDocumentView* tgt
         tgt_type = mapped_tgt_type.get();
     }
     else {
-        LDTypeDeclaration td(doc_, src_state->type_decl);
-        tgt_type = td.deep_copy_to(tgt, mapping);
-        mapping.map_ptrs(src_state->type_decl.get(), tgt_type.get());
+        LDTypeDeclaration src_td(doc_, src_state->type_decl);
+
+        if (MMA1_LIKELY(mapping.is_compaction()))
+        {
+            tgt_type = src_td.deep_copy_to(tgt, mapping);
+        }
+        else if (mapping.is_export())
+        {
+            auto named_type = mapping.is_src_named_type(src_ptr);
+            if (named_type && !named_type.get().imported)
+            {
+                tgt_type = src_td.deep_copy_to(tgt, mapping);
+
+                LDTypeDeclaration tgt_td(tgt, tgt_type);
+                mapping.finish_src_named_type(src_ptr);
+                tgt->set_named_type_declaration(named_type.get().name, tgt_td);
+            }
+        }
+        else {
+            U8String type_data = src_td.to_standard_string();
+            auto dst_named_type = mapping.is_dst_named_type(type_data);
+
+            if (dst_named_type)
+            {
+                tgt_type = dst_named_type.get();
+            }
+            else {
+                tgt_type = src_td.deep_copy_to(tgt, mapping);
+
+                auto named_type = mapping.is_src_named_type(src_ptr);
+                if (named_type)
+                {
+                    LDTypeDeclaration tgt_td(tgt, tgt_type);
+                    tgt->set_named_type_declaration(named_type.get().name, tgt_td);
+                    mapping.finish_dst_named_type(type_data, tgt_type.get());
+                }
+            }
+        }
+
+        mapping.map_ptrs(src_ptr, tgt_type.get());
     }
 
     LDDValue src_value(doc_, src_state->value_ptr);

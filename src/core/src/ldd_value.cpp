@@ -139,7 +139,7 @@ ld_::LDPtr<U8LinkedString> LDString::deep_copy_to(LDDocumentView* tgt, ld_::LDAr
 LDDocument LDDValue::clone(bool compactify) const
 {
     LDDocument tgt;
-    ld_::LDArenaAddressMapping mapping;
+    ld_::LDArenaAddressMapping mapping(*doc_);
 
     LDDValue tgt_value(&tgt, deep_copy_to(&tgt, mapping));
     tgt.set_value(tgt_value);

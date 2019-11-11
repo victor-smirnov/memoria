@@ -86,6 +86,33 @@ public:
         array_.push_back(vv.value_ptr_);
     }
 
+    LDDValue add(const LDDocument& source)
+    {
+        ld_::assert_different_docs(doc_, &source);
+
+        LDDocumentView* dst_doc = doc_->make_mutable();
+
+        ld_::LDArenaAddressMapping mapping(source, *dst_doc);
+        ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
+
+        array_.push_back(ptr);
+
+        return LDDValue{doc_, ptr};
+    }
+
+    LDDValue set(size_t idx, const LDDocument& source)
+    {
+        ld_::assert_different_docs(doc_, &source);
+
+        LDDocumentView* dst_doc = doc_->make_mutable();
+
+        ld_::LDArenaAddressMapping mapping(source, *dst_doc);
+        ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
+        array_.access(idx) = ptr;
+
+        return LDDValue{doc_, ptr};
+    }
+
     LDDMap add_map();
 
     LDDArray add_array()

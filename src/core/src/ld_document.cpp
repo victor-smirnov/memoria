@@ -250,6 +250,13 @@ void LDDocumentView::set_named_type_declaration(LDIdentifier name, LDTypeDeclara
     map.put(name.string_.get(), type_decl.state_);
 }
 
+void LDDocumentView::set_named_type_declaration(U8StringView name, LDTypeDeclaration type_decl)
+{
+    TypeDeclsMap map = ensure_type_decls_exist();
+    auto str_ptr = this->intern(name);
+    map.put(str_ptr.get(), type_decl.state_);
+}
+
 
 Optional<LDTypeDeclaration> LDDocumentView::get_named_type_declaration(U8StringView name) const
 {

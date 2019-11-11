@@ -133,6 +133,7 @@ protected:
     }
 
     void set_named_type_declaration(LDIdentifier name, LDTypeDeclaration type_decl);
+    void set_named_type_declaration(U8StringView name, LDTypeDeclaration type_decl);
 
     LDTypeDeclaration new_type_declaration(U8StringView name);
     LDTypeDeclaration new_type_declaration(LDIdentifier name);

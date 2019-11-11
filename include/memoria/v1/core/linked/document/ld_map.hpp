@@ -135,17 +135,19 @@ public:
         return value;
     }
 
-//    LDDValue add_document(U8StringView name, const LDDocument& source)
-//    {
-//        LDDocumentView* mutable_doc = doc_->make_mutable();
+    LDDValue add_document(U8StringView name, const LDDocument& source)
+    {
+        LDDocumentView* dst_doc = doc_->make_mutable();
 
-//        ld_::LDArenaAddressMapping mapping;
-//        ld_::LDDPtrHolder ptr = source.value().deep_copy_to(doc_->make_mutable(), mapping);
+        auto name_str = dst_doc->intern(name);
 
-//        map_.put(name_str, ptr);
+        ld_::LDArenaAddressMapping mapping(source, *dst_doc);
+        ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
 
-//        return LDDValue{doc_, ptr};
-//    }
+        map_.put(name_str, ptr);
+
+        return LDDValue{doc_, ptr};
+    }
 
     void remove(U8StringView name)
     {
