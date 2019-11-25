@@ -136,6 +136,13 @@ ld_::LDPtr<U8LinkedString> LDString::deep_copy_to(LDDocumentView* tgt, ld_::LDAr
 }
 
 
+std::ostream& operator<<(std::ostream& out, const LDString& value) {
+    LDDumpFormatState format = LDDumpFormatState().simple();
+    ((LDDValue)value).dump(out, format);
+    return out;
+}
+
+
 LDDocument LDDValue::clone(bool compactify) const
 {
     LDDocument tgt;

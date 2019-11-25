@@ -70,20 +70,25 @@ public:
         doc_(doc)
     {}
 
-    void doc_set(U8StringView view)
-    {
-        doc_.set(view);
-    }
+//    void doc_set(U8StringView view)
+//    {
+//        doc_.set_string(view);
+//    }
 
-    void set_int64(int64_t value)
-    {
-        doc_.set((int64_t)value);
-    }
+//    void set_int64(int64_t value)
+//    {
+//        doc_.set_integer((int64_t)value);
+//    }
 
-    void set_double(double value)
-    {
-        doc_.set(value);
-    }
+//    void set_double(double value)
+//    {
+//        doc_.set_double(value);
+//    }
+
+//    void set_boolean(bool value)
+//    {
+//        doc_.set_boolean(value);
+//    }
 
     void append_char(char value) {
         string_buffer_.append_value(value);
@@ -281,7 +286,7 @@ namespace parser {
         iterator end() {return iterator{};}
 
         void insert(iterator, value_type&& entry) {
-            value_.set(std::get<0>(entry), std::get<1>(entry));
+            value_.set_value(std::get<0>(entry), std::get<1>(entry));
         }
 
         LDDMap& finish() {

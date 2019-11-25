@@ -180,7 +180,11 @@ public:
 
     LinkedArenaView() = default;
 
-    AddressMapping make_address_mapping() const {
+    void clear_arena() noexcept {
+        arena_ = nullptr;
+    }
+
+    AddressMapping make_address_mapping() const noexcept {
         return AddressMapping();
     }
 

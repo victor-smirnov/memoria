@@ -117,6 +117,8 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 
     static constexpr bool isSdnDeserializable = std::is_arithmetic<T>::value;
 
+    using ExtData = EmptyType;
+
     using TypeDimensionsList  = TL<>;
     using TypeDimensionsTuple = AsTuple<TypeDimensionsList>;
 

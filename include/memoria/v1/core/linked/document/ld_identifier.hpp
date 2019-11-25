@@ -41,5 +41,10 @@ public:
     }
 };
 
+static inline std::ostream& operator<<(std::ostream& out, const LDIdentifier& value) {
+    out << value.view();
+    return out;
+}
+
 
 }}

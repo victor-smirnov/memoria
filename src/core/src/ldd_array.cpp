@@ -63,7 +63,12 @@ void LDDArray::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState&
 }
 
 
-
+LDDMap LDDArray::set_map(size_t idx)
+{
+    LDDMap vv = doc_->make_mutable()->new_map();
+    array_.access_checked(idx) = vv.map_.ptr();
+    return vv;
+}
 
 
 ld_::LDPtr<LDDArray::Array::State> LDDArray::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const

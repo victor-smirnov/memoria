@@ -47,31 +47,35 @@ public:
         type_tag_(tag)
     {}
 
+    bool operator==(const LDDValue& other) const noexcept {
+        return doc_->equals(other.doc_) && value_ptr_ == other.value_ptr_;
+    }
 
-    LDDMap as_map() const noexcept;
-    LDDArray as_array() const noexcept;
-    LDTypeDeclaration as_type_decl() const noexcept;
-    LDDTypedValue as_typed_value() const noexcept;
 
-    LDString as_string() const noexcept
+    LDDMap as_map() const;
+    LDDArray as_array() const;
+    LDTypeDeclaration as_type_decl() const;
+    LDDTypedValue as_typed_value() const;
+
+    LDString as_string() const
     {
         ld_::ldd_assert_tag<LDString>(type_tag_);
         return LDString(doc_, value_ptr_);
     }
 
-    LDInteger as_integer() const noexcept
+    LDInteger as_integer() const
     {
         ld_::ldd_assert_tag<LDInteger>(type_tag_);
         return *ld_::LDPtr<ld_::LDIntegerStorage>(value_ptr_).get(&doc_->arena_);
     }
 
-    LDDouble as_double() const noexcept
+    LDDouble as_double() const
     {
         ld_::ldd_assert_tag<LDDouble>(type_tag_);
         return *ld_::LDPtr<ld_::LDDoubleStorage>(value_ptr_).get(&doc_->arena_);
     }
 
-    LDBoolean as_boolean() const noexcept
+    LDBoolean as_boolean() const
     {
         ld_::ldd_assert_tag<LDBoolean>(type_tag_);
         return *ld_::LDPtr<ld_::LDBooleanStorage>(value_ptr_).get(&doc_->arena_);
@@ -122,6 +126,13 @@ public:
 
     std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& format) const
+    {
+        LDDumpState dump_state(*doc_);
+        dump(out, format, dump_state);
+        return out;
+    }
+
     std::ostream& dump(std::ostream& out) const {
         LDDumpFormatState state;
         LDDumpState dump_state(*doc_);
@@ -133,12 +144,17 @@ public:
     LDDocument clone(bool compactify = true) const;
 
 private:
-
     LDDValueTag get_tag(ld_::LDDPtrHolder ptr) const noexcept
     {
         return ld_::ldd_get_tag(&doc_->arena_, ptr);
     }
 };
+
+static inline std::ostream& operator<<(std::ostream& out, const LDDValue& value) {
+    LDDumpFormatState format = LDDumpFormatState().simple();
+    value.dump(out, format);
+    return out;
+}
 
 
 }}

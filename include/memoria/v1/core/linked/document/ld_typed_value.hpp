@@ -59,6 +59,13 @@ public:
         return out;
     }
 
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& format) const
+    {
+        LDDumpState dump_state(*doc_);
+        dump(out, format, dump_state);
+        return out;
+    }
+
     std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
     bool is_simple_layout() const noexcept
@@ -73,5 +80,11 @@ private:
         return state_.get(&doc_->arena_);
     }
 };
+
+static inline std::ostream& operator<<(std::ostream& out, const LDDTypedValue& value) {
+    LDDumpFormatState format = LDDumpFormatState().simple();
+    value.dump(out, format);
+    return out;
+}
 
 }}

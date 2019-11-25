@@ -140,8 +140,24 @@ void assert_throws(Fn&& fn, Args&&... args) {
     catch (ExT& ex) {
         return;
     }
+    catch (...) {
+
+    }
 
     MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Expected exception {} hasn't been thrown", TypeNameFactory<ExT>::name());
+}
+
+template <typename ExT, typename Fn, typename... Args>
+void assert_no_throws(Fn&& fn, Args&&... args) {
+    try {
+        fn(std::forward<Args>(args)...);
+    }
+    catch (ExT& ex) {
+        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Function throws an expected exception {} ", TypeNameFactory<ExT>::name());
+    }
+    catch (...) {
+        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Function throws an unexpected exception");
+    }
 }
 
 }}}

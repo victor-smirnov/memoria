@@ -104,15 +104,7 @@ const T& checked_substream_cast(const IOSubstream& ss)
     return *static_cast<const T*>(&ss);
 }
 
-//template <typename>
-//class IOColumnwiseFixedSizeArraySubstream;
 
-//template <typename, int32_t>
-//class IOColumnwiseFixedSizeArraySubstreamImpl;
-
-
-//template <typename, int32_t>
-//class IOColumnwiseFixedSizeArraySubstreamViewImpl;
 
 }
 

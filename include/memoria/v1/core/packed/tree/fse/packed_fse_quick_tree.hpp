@@ -23,6 +23,8 @@
 
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree_so.hpp>
 
+#include <memoria/v1/core/iovector/io_substream_base.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -80,9 +82,6 @@ public:
     using AccumValue = Value;
 
     using Metadata = typename Base::Metadata;
-
-//    using GrowableIOSubstream = io::IOColumnwiseFixedSizeArraySubstreamImpl<Value, Blocks>;
-//    using IOSubstreamView     = io::IOColumnwiseFixedSizeArraySubstreamViewImpl<Value, Blocks>;
 
     using SizesT = core::StaticVector<int32_t, Blocks>;
 

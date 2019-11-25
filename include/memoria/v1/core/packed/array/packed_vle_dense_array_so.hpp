@@ -20,6 +20,8 @@
 
 #include <memoria/v1/profiles/common/block_operations.hpp>
 
+#include <memoria/v1/core/iovector/io_substream_base.hpp>
+
 namespace memoria {
 namespace v1 {
 

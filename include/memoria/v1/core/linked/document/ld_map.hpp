@@ -22,8 +22,6 @@
 namespace memoria {
 namespace v1 {
 
-
-
 class LDDMap {
     using ValueMap = ld_::ValueMap;
     using Array = ld_::Array;
@@ -50,6 +48,10 @@ public:
         return as_value();
     }
 
+    bool operator==(const LDDMap& other) const noexcept {
+        return doc_->equals(other.doc_) && map_.ptr() == other.map_.ptr();
+    }
+
     LDDValue as_value() const {
         return LDDValue{doc_, map_.ptr()};
     }
@@ -65,7 +67,7 @@ public:
         }
     }
 
-    void set(U8StringView name, U8StringView value)
+    void set_string(U8StringView name, U8StringView value)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
@@ -75,7 +77,7 @@ public:
         map_.put(name_str.string_, value_str.string_);
     }
 
-    void set(U8StringView name, int64_t value)
+    void set_integer(U8StringView name, int64_t value)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
@@ -85,7 +87,7 @@ public:
         map_.put(name_str.string_, value_vv.value_ptr_);
     }
 
-    void set(U8StringView name, double value)
+    void set_double(U8StringView name, double value)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
@@ -93,15 +95,24 @@ public:
         LDDValue value_vv  = mutable_doc->new_double(value);
 
         map_.put(name_str.string_, value_vv.value_ptr_);
-
     }
 
-    void set(LDString name, LDDValue value)
+    void set_boolean(U8StringView name, bool value)
+    {
+        LDDocumentView* mutable_doc = doc_->make_mutable();
+
+        LDString name_str  = mutable_doc->new_string(name);
+        LDDValue value_vv  = mutable_doc->new_boolean(value);
+
+        map_.put(name_str.string_, value_vv.value_ptr_);
+    }
+
+    void set_value(LDString name, LDDValue value)
     {
         map_.put(name.string_, value.value_ptr_);
     }
 
-    LDDMap add_map(U8StringView name)
+    LDDMap set_map(U8StringView name)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
@@ -112,7 +123,7 @@ public:
         return map;
     }
 
-    LDDArray add_array(U8StringView name)
+    LDDArray set_array(U8StringView name)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
@@ -123,7 +134,7 @@ public:
         return array;
     }
 
-    LDDValue add_sdn(U8StringView name, U8StringView sdn)
+    LDDValue set_sdn(U8StringView name, U8StringView sdn)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
@@ -135,7 +146,7 @@ public:
         return value;
     }
 
-    LDDValue add_document(U8StringView name, const LDDocument& source)
+    LDDValue set_document(U8StringView name, const LDDocument& source)
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
@@ -147,6 +158,17 @@ public:
         map_.put(name_str, ptr);
 
         return LDDValue{doc_, ptr};
+    }
+
+    LDDValue set_null(U8StringView name)
+    {
+        LDDocumentView* dst_doc = doc_->make_mutable();
+
+        auto name_str = dst_doc->intern(name);
+
+        map_.put(name_str, 0);
+
+        return LDDValue{doc_, 0};
     }
 
     void remove(U8StringView name)
@@ -171,6 +193,13 @@ public:
         LDDumpFormatState state;
         LDDumpState dump_state(*doc_);
         dump(out, state, dump_state);
+        return out;
+    }
+
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& format) const
+    {
+        LDDumpState dump_state(*doc_);
+        dump(out, format, dump_state);
         return out;
     }
 
@@ -214,6 +243,12 @@ private:
 
     void do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& dump_state) const;
 };
+
+static inline std::ostream& operator<<(std::ostream& out, const LDDMap& value) {
+    LDDumpFormatState format = LDDumpFormatState().simple();
+    value.dump(out, format);
+    return out;
+}
 
 
 }}

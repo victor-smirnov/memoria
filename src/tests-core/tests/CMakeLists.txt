@@ -1,10 +1,16 @@
 set (SRCS )
 
-#set (SRCS ${SRCS} reactor/file_stream_test.cpp)
+set (SRCS ${SRCS} reactor/file_stream_test.cpp)
 #set (SRCS ${SRCS} reactor/pipe_test.cpp)
 #set (SRCS ${SRCS} reactor/socket_test.cpp)
 #set (SRCS ${SRCS} reactor/file_block_test.cpp)
 #set (SRCS ${SRCS} reactor/file_unbuffered_block_test.cpp)
+
+set (SRCS ${SRCS} linked/ld_document_tests.cpp)
+set (SRCS ${SRCS} linked/ld_document_compaction_tests.cpp)
+set (SRCS ${SRCS} linked/ldd_array_tests.cpp)
+set (SRCS ${SRCS} linked/ldd_map_tests.cpp)
+
 
 set (SRCS ${SRCS} packed/bitmap/bitmap_test_suite.cpp)
 set (SRCS ${SRCS} packed/allocator/palloc_test_suite.cpp)

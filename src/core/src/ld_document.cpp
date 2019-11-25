@@ -135,12 +135,12 @@ LDDMap LDDocumentView::new_map()
 }
 
 
-void LDDocumentView::set_value(LDDValue value)
+void LDDocumentView::set_value(LDDValue value) noexcept
 {
     state_mutable()->value = value.value_ptr_;
 }
 
-void LDDocumentView::set(U8StringView string)
+void LDDocumentView::set_string(U8StringView string)
 {
     ld_::LDPtr<U8LinkedString> ss = allocate_tagged<U8LinkedString>(sizeof(LDDValueTag), arena_.make_mutable(), string);
     set_tag(ss.get(), LDDValueTraits<LDString>::ValueTag);
@@ -148,7 +148,7 @@ void LDDocumentView::set(U8StringView string)
 }
 
 
-void LDDocumentView::set(int64_t value)
+void LDDocumentView::set_integer(int64_t value)
 {
     ld_::LDPtr<int64_t> ss = allocate_tagged<int64_t>(sizeof(LDDValueTag), arena_.make_mutable(), value);
     set_tag(ss.get(), LDDValueTraits<int64_t>::ValueTag);
@@ -156,13 +156,25 @@ void LDDocumentView::set(int64_t value)
 }
 
 
-void LDDocumentView::set(double value)
+void LDDocumentView::set_double(double value)
 {
     ld_::LDPtr<double> ss = allocate_tagged<double>(sizeof(LDDValueTag), arena_.make_mutable(), value);
     set_tag(ss.get(), LDDValueTraits<double>::ValueTag);
     state_mutable()->value = ss;
 }
 
+
+void LDDocumentView::set_boolean(bool value)
+{
+    ld_::LDPtr<LDBoolean> ss = allocate_tagged<LDBoolean>(sizeof(LDDValueTag), arena_.make_mutable(), value);
+    set_tag(ss.get(), LDDValueTraits<LDBoolean>::ValueTag);
+    state_mutable()->value = ss;
+}
+
+void LDDocumentView::set_null()
+{
+    state_mutable()->value = 0;
+}
 
 LDDMap LDDocumentView::set_map()
 {
@@ -190,6 +202,18 @@ LDDValue LDDocumentView::set_sdn(U8StringView sdn)
     LDDValue value = parse_raw_value(sdn.begin(), sdn.end());
     state_mutable()->value = value.value_ptr_;
     return value;
+}
+
+void LDDocumentView::set_document(const LDDocumentView& source)
+{
+    ld_::assert_different_docs(this, &source);
+
+    LDDocumentView* dst_doc = this->make_mutable();
+
+    ld_::LDArenaAddressMapping mapping(source, *dst_doc);
+    ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
+
+    set_value(LDDValue{this, ptr});
 }
 
 LDTypeDeclaration LDDocumentView::new_type_declaration(U8StringView name)
@@ -242,6 +266,15 @@ void LDDocumentView::for_each_named_type(std::function<void (U8StringView name, 
             fn(name, td);
         });
     }
+}
+
+std::vector<std::pair<U8StringView, LDTypeDeclaration>> LDDocumentView::named_types() const
+{
+    std::vector<std::pair<U8StringView, LDTypeDeclaration>> types;
+    for_each_named_type([&](auto name, auto tdecl){
+        types.push_back(std::make_pair(name, tdecl));
+    });
+    return types;
 }
 
 void LDDocumentView::set_named_type_declaration(LDIdentifier name, LDTypeDeclaration type_decl)
@@ -417,7 +450,13 @@ public:
 };
 
 
+LDDocument::LDDocument(U8StringView sdn): LDDocument() {
+    set_sdn(sdn);
+}
 
+LDDocument::LDDocument(const char* sdn): LDDocument() {
+    set_sdn(sdn);
+}
 
 void LDDocument::compactify()
 {

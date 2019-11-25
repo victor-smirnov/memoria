@@ -36,57 +36,98 @@ class LDDArray {
 public:
     LDDArray(): doc_(), array_() {}
 
-    LDDArray(const LDDocumentView* doc, Array array):
+    LDDArray(const LDDocumentView* doc, Array array) noexcept:
         doc_(doc), array_(array)
     {}
 
-    LDDArray(const LDDocumentView* doc, PtrHolder ptr):
+    LDDArray(const LDDocumentView* doc, PtrHolder ptr) noexcept:
         doc_(doc), array_(Array::get(&doc_->arena_, ptr))
     {}
 
-    operator LDDValue() const;
+    operator LDDValue() const noexcept;
+
+    bool operator==(const LDDArray& other) const noexcept {
+        return doc_->equals(other.doc_) && array_.ptr() == other.array_.ptr();
+    }
 
     LDDValue get(size_t idx) const;
 
-
-
-    void set(size_t idx, U8StringView value)
+    void set_string(size_t idx, U8StringView value)
     {
         LDString str = doc_->make_mutable()->new_string(value);
-        array_.access(idx) = str.string_.get();
+        array_.access_checked(idx) = str.string_.get();
     }
 
-    void set(size_t idx, int64_t value)
+    void set_integer(size_t idx, int64_t value)
     {
         LDDValue vv = doc_->make_mutable()->new_integer(value);
-        array_.access(idx) = vv.value_ptr_;
+        array_.access_checked(idx) = vv.value_ptr_;
     }
 
-    void set(size_t idx, double value)
+    void set_double(size_t idx, double value)
     {
         LDDValue vv = doc_->make_mutable()->new_double(value);
-        array_.access(idx) = vv.value_ptr_;
+        array_.access_checked(idx) = vv.value_ptr_;
     }
 
-    void add(U8StringView value)
+    void set_boolean(size_t idx, bool value)
+    {
+        LDDValue vv = doc_->make_mutable()->new_boolean(value);
+        array_.access_checked(idx) = vv.value_ptr_;
+    }
+
+    LDDMap set_map(size_t idx);
+
+
+    LDDArray set_array(size_t idx)
+    {
+        LDDArray vv = doc_->make_mutable()->new_array();
+        array_.access_checked(idx) = vv.array_.ptr();
+        return vv;
+    }
+
+    void set_null(size_t idx, bool value)
+    {
+        array_.access_checked(idx) = 0;
+    }
+
+    LDDValue set_sdn(size_t idx, U8StringView sdn)
+    {
+        LDDValue value = doc_->make_mutable()->parse_raw_value(sdn.begin(), sdn.end());
+        array_.access_checked(idx) = value.value_ptr_;
+        return value;
+    }
+
+    void add_string(U8StringView value)
     {
         LDString str = doc_->make_mutable()->new_string(value);
         array_.push_back(str.string_.get());
     }
 
-    void add(int64_t value)
+    void add_integer(int64_t value)
     {
         LDDValue vv = doc_->make_mutable()->new_integer(value);
         array_.push_back(vv.value_ptr_);
     }
 
-    void add(double value)
+    void add_double(double value)
     {
         LDDValue vv = doc_->make_mutable()->new_double(value);
         array_.push_back(vv.value_ptr_);
     }
 
-    LDDValue add(const LDDocument& source)
+    void add_boolean(bool value)
+    {
+        LDDValue vv = doc_->make_mutable()->new_boolean(value);
+        array_.push_back(vv.value_ptr_);
+    }
+
+    void add_null()
+    {
+        array_.push_back(0);
+    }
+
+    LDDValue add_document(const LDDocument& source)
     {
         ld_::assert_different_docs(doc_, &source);
 
@@ -100,7 +141,7 @@ public:
         return LDDValue{doc_, ptr};
     }
 
-    LDDValue set(size_t idx, const LDDocument& source)
+    LDDValue set_document(size_t idx, const LDDocument& source)
     {
         ld_::assert_different_docs(doc_, &source);
 
@@ -144,6 +185,13 @@ public:
         return out;
     }
 
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& format) const
+    {
+        LDDumpState dump_state(*doc_);
+        dump(out, format, dump_state);
+        return out;
+    }
+
     std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
     {
         if (state.indent_size() == 0 || !is_simple_layout()) {
@@ -175,5 +223,13 @@ private:
 
     void do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 };
+
+
+static inline std::ostream& operator<<(std::ostream& out, const LDDArray& array)
+{
+    LDDumpFormatState format = LDDumpFormatState().simple();
+    array.dump(out, format);
+    return out;
+}
 
 }}

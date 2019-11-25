@@ -140,14 +140,14 @@ public:
         return data_->setValues(idx, values);
     }
 
-    void configure_io_substream(io::IOSubstream& substream) const {
-        return data_->configure_io_substream(substream);
-    }
+//    void configure_io_substream(io::IOSubstream& substream) const {
+//        return data_->configure_io_substream(substream);
+//    }
 
-    OpStatusT<int32_t> insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
-    {
-        return data_->insert_io_substream(at, substream, start, size);
-    }
+//    OpStatusT<int32_t> insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
+//    {
+//        return data_->insert_io_substream(at, substream, start, size);
+//    }
 
     template <int32_t Offset, typename... Args>
     OpStatus _insert_b(Args&&... args) {

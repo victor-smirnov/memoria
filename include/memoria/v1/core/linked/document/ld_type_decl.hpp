@@ -49,6 +49,10 @@ public:
         doc_(doc), state_(state)
     {}
 
+    bool operator==(const LDTypeDeclaration& other) const noexcept {
+        return doc_->equals(other.doc_) && state_.get() == other.state_.get();
+    }
+
     operator LDDValue() const {
         return LDDValue{doc_, state_.get()};
     }
@@ -223,6 +227,13 @@ public:
         return out;
     }
 
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& format) const
+    {
+        LDDumpState dump_state(*doc_);
+        dump(out, format, dump_state);
+        return out;
+    }
+
     std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
     {
         if (state.indent_size() == 0 || !is_simple_layout()) {
@@ -311,6 +322,12 @@ private:
         return state_.get(&doc_->arena_);
     }
 };
+
+static inline std::ostream& operator<<(std::ostream& out, const LDTypeDeclaration& value) {
+    LDDumpFormatState format = LDDumpFormatState().simple();
+    value.dump(out, format);
+    return out;
+}
 
 
 }}

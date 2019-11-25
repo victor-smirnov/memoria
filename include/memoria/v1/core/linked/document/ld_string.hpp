@@ -37,15 +37,17 @@ public:
         doc_(doc), string_(string)
     {}
 
-    U8StringView view() const {
+    U8StringView view() const noexcept {
         return string_.get(&doc_->arena_)->view();
     }
 
-    operator LDDValue() const;
+    operator LDDValue() const noexcept;
 
     LDDocument clone(bool compactify = true) const;
 
     ld_::LDPtr<U8LinkedString> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 };
+
+std::ostream& operator<<(std::ostream& out, const LDString& value);
 
 }}

@@ -143,12 +143,12 @@ namespace ld_ {
 
 
 
-    static inline void ldd_set_tag(LDArenaView* arena, PtrHolder ptr, LDDValueTag tag)
+    static inline void ldd_set_tag(LDArenaView* arena, PtrHolder ptr, LDDValueTag tag) noexcept
     {
         *T2T<LDDValueTag*>(arena->data() + ptr - sizeof(tag)) = tag;
     }
 
-    static inline LDDValueTag ldd_get_tag(const LDArenaView* arena, PtrHolder ptr) {
+    static inline LDDValueTag ldd_get_tag(const LDArenaView* arena, PtrHolder ptr) noexcept {
         return *T2T<const LDDValueTag*>(arena->data() + ptr - sizeof(LDDValueTag));
     }
 

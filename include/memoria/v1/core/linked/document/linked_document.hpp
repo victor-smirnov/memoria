@@ -32,20 +32,20 @@
 namespace memoria {
 namespace v1 {
 
-inline LDDArray LDDValue::as_array() const noexcept {
+inline LDDArray LDDValue::as_array() const {
     ld_::ldd_assert_tag<LDDArray>(type_tag_);
     return LDDArray(doc_, value_ptr_);
 }
 
 
-inline LDDMap LDDValue::as_map() const noexcept {
+inline LDDMap LDDValue::as_map() const {
     ld_::ldd_assert_tag<LDDMap>(type_tag_);
     return LDDMap(doc_, value_ptr_);
 }
 
 inline LDDValue LDDArray::get(size_t idx) const
 {
-    ld_::LDDPtrHolder ptr = array_.access(idx);
+    ld_::LDDPtrHolder ptr = array_.access_checked(idx);
     return LDDValue{doc_, ptr};
 }
 
@@ -74,12 +74,12 @@ inline bool LDDArray::is_simple_layout() const noexcept
 
 
 
-inline LDTypeDeclaration LDDValue::as_type_decl() const noexcept {
+inline LDTypeDeclaration LDDValue::as_type_decl() const {
     ld_::ldd_assert_tag<LDTypeDeclaration>(type_tag_);
     return LDTypeDeclaration(doc_, value_ptr_);
 }
 
-inline LDDTypedValue LDDValue::as_typed_value() const noexcept {
+inline LDDTypedValue LDDValue::as_typed_value() const {
     ld_::ldd_assert_tag<LDDTypedValue>(type_tag_);
     return LDDTypedValue(doc_, value_ptr_);
 }
@@ -87,16 +87,16 @@ inline LDDTypedValue LDDValue::as_typed_value() const noexcept {
 
 
 
-inline LDDValue LDDocumentView::value() const {
+inline LDDValue LDDocumentView::value() const noexcept {
     return LDDValue{const_cast<LDDocumentView*>(this), state()->value};
 }
 
 
-inline LDString::operator LDDValue() const {
+inline LDString::operator LDDValue() const noexcept {
     return LDDValue{doc_, string_.get(), LDDValueTraits<LDString>::ValueTag};
 }
 
-inline LDDArray::operator LDDValue() const {
+inline LDDArray::operator LDDValue() const noexcept {
     return LDDValue{doc_, array_.ptr(), LDDValueTraits<LDDArray>::ValueTag};
 }
 

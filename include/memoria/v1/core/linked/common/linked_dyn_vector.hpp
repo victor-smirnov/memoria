@@ -23,6 +23,8 @@
 
 #include <memoria/v1/core/linked/common/arena.hpp>
 
+#include <memoria/v1/core/strings/format.hpp>
+
 #include <cstddef>
 
 namespace memoria {
@@ -50,9 +52,9 @@ private:
     ArrayPtr state_;
 
 public:
-    LinkedDynVector(): arena_(), state_({}) {}
+    LinkedDynVector() noexcept: arena_(), state_({}) {}
 
-    LinkedDynVector(const Arena* arena, PtrT<State> state):
+    LinkedDynVector(const Arena* arena, PtrT<State> state) noexcept:
         arena_(arena), state_(state)
     {}
 
@@ -82,18 +84,18 @@ public:
 
 
 
-    static LinkedDynVector get(const Arena* arena, PtrT<State> ptr) {
+    static LinkedDynVector get(const Arena* arena, PtrT<State> ptr) noexcept {
         return LinkedDynVector{arena, ptr.get()};
     }
 
 
 
 
-    size_t size() const {
+    size_t size() const noexcept {
         return state()->size_;
     }
 
-    size_t capacity() const {
+    size_t capacity() const noexcept {
         return state()->capacity_;
     }
 
@@ -103,6 +105,25 @@ public:
 
     const T& access(size_t idx) const noexcept {
         return data()[idx];
+    }
+
+    T& access_checked(size_t idx)
+    {
+        if (idx < state()->size_) {
+            return data_mutable()[idx];
+        }
+        else {
+            MMA1_THROW(BoundsException()) << fmt::format_ex(u"{} :: {}", idx, state()->size_);
+        }
+    }
+
+    const T& access_checked(size_t idx) const {
+        if (idx < state()->size_) {
+            return data()[idx];
+        }
+        else {
+            MMA1_THROW(BoundsException()) << fmt::format_ex(u"{} :: {}", idx, state()->size_);
+        }
     }
 
     bool has_space_for(size_t size) const
@@ -122,6 +143,8 @@ public:
 
     void push_back(const T& value) noexcept
     {
+        ensure(1);
+
         State* state = this->state_mutable();
 
         if (MMA1_LIKELY(state->size_ + 1 <= state->capacity_))
@@ -229,7 +252,7 @@ public:
 
         PtrT<T> new_ptr = arena_->make_mutable()->template allocate_space<T>(next_capaicty * sizeof(T));
 
-        state = this->state();
+        state = this->state_mutable();
 
         if (state->size_ > 0)
         {

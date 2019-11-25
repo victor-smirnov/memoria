@@ -19,8 +19,6 @@
 #include <memoria/v1/core/packed/array/packed_vle_array_base.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_tools.hpp>
 
-#include <memoria/v1/core/iovector/io_substream_row_array_vlen.hpp>
-#include <memoria/v1/core/iovector/io_substream_row_array_vlen_view.hpp>
 
 #include <memoria/v1/core/packed/array/packed_vle_dense_array_so.hpp>
 
@@ -117,8 +115,8 @@ public:
 
     using ReadState = SizesT;
 
-    using GrowableIOSubstream = io::IORowwiseVLenArraySubstreamImpl<Value, Blocks>;
-    using IOSubstreamView     = io::IORowwiseVLenArraySubstreamViewImpl<MyType>;
+    //using GrowableIOSubstream = io::IORowwiseVLenArraySubstreamImpl<Value, Blocks>;
+    //using IOSubstreamView     = io::IORowwiseVLenArraySubstreamViewImpl<MyType>;
 
     static int32_t estimate_block_size(int32_t tree_capacity, int32_t density_hi = 1000, int32_t density_lo = 333)
     {
@@ -796,48 +794,48 @@ public:
 
     OpStatusT<int32_t> insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
     {        
-        const io::IORowwiseVLenArraySubstream<Value>& buffer
-                = io::substream_cast<io::IORowwiseVLenArraySubstream<Value>>(substream);
+//        const io::IORowwiseVLenArraySubstream<Value>& buffer
+//                = io::substream_cast<io::IORowwiseVLenArraySubstream<Value>>(substream);
 
-        auto buffer_values_start = T2T<const uint8_t*>(buffer.select(start));
-        auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(start + size));
+//        auto buffer_values_start = T2T<const uint8_t*>(buffer.select(start));
+//        auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(start + size));
 
-        ptrdiff_t total_length   = buffer_values_end - buffer_values_start;
+//        ptrdiff_t total_length   = buffer_values_end - buffer_values_start;
 
-        auto meta = this->metadata();
-        size_t data_size = meta->data_size(0);
+//        auto meta = this->metadata();
+//        size_t data_size = meta->data_size(0);
 
-        if(isFail(resize_segments(data_size + total_length))) {
-            return OpStatusT<int32_t>();
-        }
+//        if(isFail(resize_segments(data_size + total_length))) {
+//            return OpStatusT<int32_t>();
+//        }
 
-        auto values         = this->values();
-        auto buffer_values  = T2T<const ValueData*>(buffer_values_start);
+//        auto values         = this->values();
+//        auto buffer_values  = T2T<const ValueData*>(buffer_values_start);
 
-        Codec codec;
+//        Codec codec;
 
-        size_t insertion_pos = locate(0, at);
-        codec.move(values, insertion_pos, insertion_pos + total_length, data_size - insertion_pos);
+//        size_t insertion_pos = locate(0, at);
+//        codec.move(values, insertion_pos, insertion_pos + total_length, data_size - insertion_pos);
 
-        codec.copy(buffer_values, 0, values, insertion_pos, total_length);
+//        codec.copy(buffer_values, 0, values, insertion_pos, total_length);
 
-        meta->data_size(0) += total_length;
+//        meta->data_size(0) += total_length;
 
-        meta->size() += (size * Blocks);
+//        meta->size() += (size * Blocks);
 
-        if(isFail(reindex())) {
-            return OpStatusT<int32_t>();
-        }
+//        if(isFail(reindex())) {
+//            return OpStatusT<int32_t>();
+//        }
 
         return OpStatusT<int32_t>(at + size);
     }
 
     void configure_io_substream(io::IOSubstream& substream) const
     {
-        IOSubstreamView& view
-                = io::substream_cast<IOSubstreamView>(substream);
+//        IOSubstreamView& view
+//                = io::substream_cast<IOSubstreamView>(substream);
 
-        view.configure(this);
+//        view.configure(this);
     }
 
 

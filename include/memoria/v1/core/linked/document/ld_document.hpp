@@ -60,13 +60,31 @@ protected:
 
 public:
     LDDocumentView(): arena_() {}
-    LDDocumentView(ld_::LDArenaView arena): arena_(arena) {}
+    LDDocumentView(ld_::LDArenaView arena) noexcept: arena_(arena) {}
 
-    LDDValue value() const;
+    LDDocumentView as_immutable_view() const noexcept {
+        LDDocumentView view = *this;
+        view.arena_.clear_arena();
+        return view;
+    }
 
-    void set(U8StringView string);
-    void set(int64_t value);
-    void set(double value);
+    bool operator==(const LDDocumentView& other) const noexcept {
+        return equals(&other);
+    }
+
+    bool equals(const LDDocumentView* other) const noexcept {
+        return arena_.data() == other->arena_.data();
+    }
+
+    LDDValue value() const noexcept;
+
+    void set_string(U8StringView string);
+    void set_integer(int64_t value);
+    void set_double(double value);
+    void set_boolean(bool value);
+    void set_null();
+
+    void set_document(const LDDocumentView& other);
 
     LDDMap set_map();
     LDDArray set_array();
@@ -91,6 +109,13 @@ public:
         return out;
     }
 
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& format) const
+    {
+        LDDumpState dump_state(*this);
+        dump(out, format, dump_state);
+        return out;
+    }
+
     std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
     LDTypeDeclaration create_named_type(U8StringView name, U8StringView type_decl);
@@ -100,6 +125,8 @@ public:
     void remove_named_type_declaration(U8StringView name);
 
     void for_each_named_type(std::function<void (U8StringView name, LDTypeDeclaration)> fn) const;
+
+    std::vector<std::pair<U8StringView, LDTypeDeclaration>> named_types() const;
 
     static bool is_identifier(U8StringView string) {
         return is_identifier(string.begin(), string.end());
@@ -164,7 +191,7 @@ protected:
     LDDArray new_array();
     LDDMap new_map();
 
-    void set_value(LDDValue value);
+    void set_value(LDDValue value) noexcept;
 
     ld_::LDPtr<U8LinkedString> intern(U8StringView view);
 
@@ -172,11 +199,11 @@ protected:
         return doc_ptr().get_mutable(&arena_);
     }
 
-    const DocumentState* state() const {
+    const DocumentState* state() const noexcept {
         return doc_ptr().get(&arena_);
     }
 
-    void set_tag(ld_::LDDPtrHolder ptr, LDDValueTag tag)
+    void set_tag(ld_::LDDPtrHolder ptr, LDDValueTag tag) noexcept
     {
         ld_::ldd_set_tag(&arena_, ptr, tag);
     }
@@ -212,6 +239,9 @@ public:
         LDDocumentView(),
         ld_arena_(&arena_, std::move(other.ld_arena_))
     {}
+
+    LDDocument(U8StringView sdn);
+    LDDocument(const char* sdn);
 
     LDDocument& operator=(const LDDocument&) = delete;
     LDDocument& operator=(LDDocument&&);
