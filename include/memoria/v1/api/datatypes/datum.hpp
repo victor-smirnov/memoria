@@ -18,7 +18,6 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/api/datatypes/traits.hpp>
 #include <memoria/v1/api/datatypes/datum_base.hpp>
-#include <memoria/v1/api/datatypes/sdn.hpp>
 
 #include <memoria/v1/core/strings/format.hpp>
 
