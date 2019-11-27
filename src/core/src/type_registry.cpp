@@ -35,65 +35,55 @@ MMA1_DEFINE_EXPLICIT_CU_LINKING(Datatypes)
 
 AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
 {
-    SDNDocument sdn_doc = SDNDocument::parse(sdn_string);
+    LDDocument sdn_doc = LDDocument::parse(sdn_string);
 
-    U8String typedecl;
+    LDDValue value = sdn_doc.value();
 
-    switch (sdn_doc.value().type())
-    {
-        case SDNValueType::DOUBLE : typedecl = make_datatype_signature_string<Double>(); break;
-        case SDNValueType::LONG :   typedecl = make_datatype_signature_string<BigInt>(); break;
-        case SDNValueType::TYPED_STRING_VALUE :
-        {
-            const TypedStringValue& str_val = boost::get<TypedStringValue>(sdn_doc.value().value());
-
-            if (str_val.has_type())
-            {
-                typedecl = str_val.type().to_typedecl_string();
-            }
-            else {
-                typedecl = make_datatype_signature_string<Varchar>();
-            }
-
-            break;
-        }
-        case SDNValueType::NAME_TOKEN :
-        {
-            const NameToken& token = boost::get<NameToken>(sdn_doc.value().value());
-
-            if (token.is_null_token()) {
-                return AnyDatum();
-            }
-            else {
-                MMA1_THROW(RuntimeException())
-                        << fmt::format_ex(
-                               u"Unsupported name token requested: {}",
-                               token.text()
-                           );
-            }
-        }
-
-        default: MMA1_THROW(RuntimeException())
-                << fmt::format_ex(
-                       u"Unsupported data type requested: {}",
-                       static_cast<int>(sdn_doc.value().type())
-                   );
+    if (value.is_null()) {
+        return AnyDatum();
     }
-
-    auto ii = creators_.find(typedecl);
-    if (ii != creators_.end())
+    else
     {
-        auto& fn = std::get<1>(ii->second);
-
-        if (fn) {
-            return fn(*this, sdn_doc);
+        U8String typedecl;
+        if (value.is_string())
+        {
+            typedecl = make_datatype_signature_string<Varchar>();
+        }
+        else if (value.is_integer()) {
+            typedecl = make_datatype_signature_string<BigInt>();
+        }
+        else if (value.is_double()) {
+            typedecl = make_datatype_signature_string<Double>();
+        }
+        else if (value.is_boolean()) {
+            typedecl = make_datatype_signature_string<Boolean>();
+        }
+        else if (value.is_typed_value())
+        {
+            LDDTypedValue tv = value.as_typed_value();
+            typedecl = tv.type().to_standard_string();
         }
         else {
-            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Value deserializer for {} is not registered", typedecl);
+            MMA1_THROW(RuntimeException())
+                    << fmt::format_ex(u"Unsupported data type requested");
         }
-    }
-    else {
-        MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Type creator for {} is not registered", typedecl);
+
+
+        auto ii = creators_.find(typedecl);
+        if (ii != creators_.end())
+        {
+            auto& fn = std::get<1>(ii->second);
+
+            if (fn) {
+                return fn(*this, sdn_doc);
+            }
+            else {
+                MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Value deserializer for {} is not registered", typedecl);
+            }
+        }
+        else {
+            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Type creator for {} is not registered", typedecl);
+        }
     }
 }
 

@@ -210,7 +210,7 @@ public:
         virtual SnpSharedPtr<CtrReferenceable<ProfileT>> create_instance(
                 const AllocatorPtr& allocator,
                 const CtrID& ctr_id,
-                const DataTypeDeclaration& type_decl
+                const LDTypeDeclaration& type_decl
         ) const
         {
             boost::any obj = DataTypeRegistry::local().create_object(type_decl);

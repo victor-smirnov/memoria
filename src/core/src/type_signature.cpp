@@ -246,27 +246,14 @@ std::ostream& operator<<(std::ostream& out, const std::vector<TT>& vec)
 TypeSignature::TypeSignature(U8StringView name): name_(parse(name).to_standard_string())
 {}
 
-DataTypeDeclaration TypeSignature::parse() const
+LDTypeDeclaration TypeSignature::parse() const
 {
     return parse(name_.to_std_string());
 }
 
-DataTypeDeclaration TypeSignature::parse(U8StringView str)
+LDTypeDeclaration TypeSignature::parse(U8StringView str)
 {
-    static thread_local TypeSignatureParser<U8StringView::const_iterator> const grammar;
-
-    DataTypeDeclaration decl;
-
-    auto ii = str.begin();
-    bool result = qi::phrase_parse(ii, str.end(), grammar, qi::standard::space_type(), decl);
-
-    if ((!result) || ii != str.end())
-    {
-        MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't parse data type signature: \"{}\", unparsed: \"{}\"", (std::string)str, (std::string)U8StringView(ii));
-    }
-    else {
-        return std::move(decl);
-    }
+    return LDDocument::parse_type_decl(str).value().as_type_decl();
 }
 
 SDNDocument SDNDocument::parse(U8StringView str)

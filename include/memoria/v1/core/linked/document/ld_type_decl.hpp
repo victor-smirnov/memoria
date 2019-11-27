@@ -41,6 +41,8 @@ class LDTypeDeclaration {
     friend class LDDTypedValue;
     friend class ld_::LDArenaAddressMapping;
 
+    template <typename>
+    friend struct DataTypeTraits;
 
 public:
     LDTypeDeclaration(): doc_(), state_({}) {}

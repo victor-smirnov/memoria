@@ -46,7 +46,7 @@ struct TSWithTimeZone {};
 struct Date      {};
 struct Time      {};
 struct TimeWithTimeZone {};
-
+struct Boolean   {};
 
 class Decimal {
     bool default_;
@@ -130,5 +130,9 @@ struct TypeHash<BigInt>: UInt64Value<8> {};
 
 template <typename T>
 struct TypeHash<Nullable<T>>: UInt64Value<HashHelper<495092348502309485ull, TypeHashV<T>>> {};
+
+
+template <>
+struct TypeHash<Boolean>: UInt64Value<324958203945534> {};
 
 }}

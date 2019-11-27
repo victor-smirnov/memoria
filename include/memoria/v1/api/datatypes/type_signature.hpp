@@ -25,6 +25,8 @@
 
 #include <memoria/v1/core/types/typelist.hpp>
 
+#include <memoria/v1/core/linked/document/linked_document.hpp>
+
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -53,9 +55,9 @@ public:
         return name_ == other.name_;
     }
 
-    DataTypeDeclaration parse() const;
+    LDTypeDeclaration parse() const;
 
-    static DataTypeDeclaration parse(U8StringView str);
+    static LDTypeDeclaration parse(U8StringView str);
 };
 
 

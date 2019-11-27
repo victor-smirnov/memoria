@@ -188,12 +188,6 @@ LDTypeDeclaration::ArgsVector* LDTypeDeclaration::ensure_args_capacity(size_t ca
 }
 
 
-
-
-
-
-
-
 ld_::LDPtr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
     const TypeDeclState* src_state = state();
@@ -237,7 +231,7 @@ ld_::LDPtr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDD
     ld_::LDPtr<TypeDeclState> tgt_state = allocate_tagged<TypeDeclState>(
                 sizeof(LDDValueTag),
                 tgt_arena_view,
-                TypeDeclState{tgt_name, tgt_params, tgt_args}
+                TypeDeclState{tgt_name, tgt_params, tgt_args, 0}
     );
 
     return tgt_state;

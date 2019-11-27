@@ -37,6 +37,8 @@
 
 #include <memoria/v1/api/datatypes/type_registry.hpp>
 
+#include <memoria/v1/core/linked/document/linked_document.hpp>
+
 #include "persistent_tree.hpp"
 
 #ifndef MMA1_NO_REACTOR
@@ -1049,17 +1051,17 @@ public:
     }
 
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const DataTypeDeclaration& decl, const CtrID& ctr_id)
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const LDTypeDeclaration& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_typedecl_string());
+        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(this->shared_from_this(), ctr_id, decl);
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const DataTypeDeclaration& decl)
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const LDTypeDeclaration& decl)
     {
         checkIfConainersCreationAllowed();
-        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_typedecl_string());
+        auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(this->shared_from_this(), this->createCtrName(), decl);
     }
 

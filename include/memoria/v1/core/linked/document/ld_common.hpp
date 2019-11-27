@@ -120,6 +120,7 @@ namespace ld_ {
         LDPtr<U8LinkedString> name;
         LDPtr<LinkedVector<TypeDeclPtr>> type_params;
         LDPtr<LinkedVector<PtrHolder>> ctr_args;
+        LDDPtrHolder raw_data;
     };
 
     struct TypedValueState {

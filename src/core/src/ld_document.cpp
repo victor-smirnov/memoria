@@ -218,7 +218,7 @@ void LDDocumentView::set_document(const LDDocumentView& source)
 
 LDTypeDeclaration LDDocumentView::new_type_declaration(U8StringView name)
 {
-    auto td_ptr = allocate_tagged<ld_::TypeDeclState>(sizeof(LDDValueTag), arena_.make_mutable(), ld_::TypeDeclState{0, 0, 0});
+    auto td_ptr = allocate_tagged<ld_::TypeDeclState>(sizeof(LDDValueTag), arena_.make_mutable(), ld_::TypeDeclState{0, 0, 0, 0});
     set_tag(td_ptr.get(), LDDValueTraits<LDTypeDeclaration>::ValueTag);
 
     auto ss_ptr = intern(name);

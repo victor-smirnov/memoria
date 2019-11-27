@@ -176,8 +176,8 @@ public:
     virtual const PairPtr& pair() const = 0;
     virtual PairPtr& pair() = 0;
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const DataTypeDeclaration& decl, const CtrID& ctr_id) = 0;
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const DataTypeDeclaration& decl) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const LDTypeDeclaration& decl, const CtrID& ctr_id) = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const LDTypeDeclaration& decl) = 0;
     virtual CtrSharedPtr<CtrReferenceable<Profile>> find(const CtrID& ctr_id) = 0;
 
     virtual Vertex as_vertex() = 0;
@@ -200,7 +200,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 )
 {
     U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
-    DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
+    LDTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
     CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = alloc->create(decl, ctr_id);
     return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
 }
@@ -212,7 +212,7 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> create(
 )
 {
     U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
-    DataTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
+    LDTypeDeclaration decl = TypeSignature::parse(signature.to_std_string());
     CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = alloc->create(decl);
     return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
 }

@@ -24,6 +24,7 @@
 
 #include <memoria/v1/core/memory/malloc.hpp>
 
+#include <memoria/v1/core/linked/document/linked_document.hpp>
 
 #include <typeinfo>
 
@@ -268,10 +269,10 @@ public:
     }
 
     static Datum<DataType, Selector> from_sdn_string(U8StringView sdn_string) {
-        return from_sdn(SDNDocument::parse(sdn_string));
+        return from_sdn(LDDocument::parse(sdn_string));
     }
 
-    static Datum<DataType, Selector> from_sdn(const SDNDocument& value);
+    static Datum<DataType, Selector> from_sdn(const LDDocument& value);
 
 
     operator bool() const {
@@ -304,7 +305,10 @@ template <typename DataType>
 Datum<DataType> datum_from_sdn_value(const DataType*, double value);
 
 template <typename DataType>
-Datum<DataType> datum_from_sdn_value(const DataType*, const TypedStringValue& value);
+Datum<DataType> datum_from_sdn_value(const DataType*, bool value);
+
+template <typename DataType>
+Datum<DataType> datum_from_sdn_value(const DataType*, const U8StringView& value);
 
 
 template <typename DataType>
@@ -349,35 +353,28 @@ public:
     }
 
     static Datum<DataType, FixedSizeDataTypeTag> from_sdn_string(U8StringView sdn_string) {
-        return from_sdn(SDNDocument::parse(sdn_string));
+        return from_sdn(LDDocument::parse(sdn_string));
     }
 
-    static Datum<DataType> from_sdn(const SDNDocument& doc)
+    static Datum<DataType> from_sdn(const LDDocument& doc)
     {
-        if (doc.value().is_scalar())
-        {
-            SDNValueType type = doc.value().type();
+        LDDValue value = doc.value();
 
-            switch (type){
-            case SDNValueType::TYPED_STRING_VALUE:
-                return datum_from_sdn_value(
-                    static_cast<DataType*>(nullptr), boost::get<TypedStringValue>(doc.value().value())
-                );
-            case SDNValueType::LONG:
-                return datum_from_sdn_value(static_cast<DataType*>(nullptr), boost::get<int64_t>(doc.value().value()));
-            case SDNValueType::DOUBLE:
-                return datum_from_sdn_value(static_cast<DataType*>(nullptr), boost::get<double>(doc.value().value()));
-            default:
-                MMA1_THROW(RuntimeException())
-                        << fmt::format_ex(
-                               u"Unsupported SDN value type for fixed size datum convertion: {}",
-                               static_cast<int32_t>(type)
-                           );
-            }
+        if (value.is_double()) {
+            return datum_from_sdn_value(static_cast<DataType*>(nullptr), value.as_double());
         }
-        else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Provided SDN value is not a scalar");
+        else if (value.is_integer()) {
+            return datum_from_sdn_value(static_cast<DataType*>(nullptr), value.as_integer());
         }
+//        else if (value.is_boolean()) {
+//            return datum_from_sdn_value(static_cast<DataType*>(nullptr), value.as_boolean());
+//        }
+
+        MMA1_THROW(RuntimeException())
+                << fmt::format_ex(
+                       u"Unsupported SDN value type for fixed size datum convertion: {}",
+                       value.to_standard_string()
+                   );
     }
 
 

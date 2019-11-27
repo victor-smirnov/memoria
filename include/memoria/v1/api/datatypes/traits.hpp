@@ -51,6 +51,8 @@ MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(Date, Date);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(uint8_t, UByte);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(int64_t, Int64);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(uint64_t, UInt64);
+MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(Boolean, Boolean);
+MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(bool, Boolean);
 
 
 template <typename T> struct DataTypeTraits {
@@ -294,7 +296,8 @@ struct DataTypeTraits<TimeWithTimeZone>: NonSdnFixedSizeDataTypeTraits<int64_t, 
 template <>
 struct DataTypeTraits<Date>: NonSdnFixedSizeDataTypeTraits<int64_t, Date> {};
 
-
+template <>
+struct DataTypeTraits<Boolean>: FixedSizeDataTypeTraits<bool, bool> {};
 
 template <>
 struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>

@@ -139,6 +139,13 @@ public:
         return dump(out, state, dump_state);
     }
 
+    U8String to_standard_string() const {
+        LDDumpFormatState state = LDDumpFormatState().simple();
+        std::stringstream ss;
+        dump(ss, state);
+        return ss.str();
+    }
+
     ld_::LDDPtrHolder deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
     LDDocument clone(bool compactify = true) const;

@@ -178,11 +178,9 @@ Datum<UUID> datum_from_sdn_value(const UUID*, double value) {
 
 
 template <>
-Datum<UUID> datum_from_sdn_value(const UUID*, const TypedStringValue& value)
+Datum<UUID> datum_from_sdn_value(const UUID*, const U8StringView& str)
 {
-    U8StringView str = value.text().to_std_string();
     U8StringView tstr = trim_string(str);
-
     UUID uuid = UUID::parse(tstr.to_string().c_str());
 
     return Datum<UUID>(uuid);

@@ -24,6 +24,8 @@
 #include <memoria/v1/core/types/list/typelist.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
+#include <memoria/v1/core/linked/document/linked_document.hpp>
+
 #include <boost/any.hpp>
 #include <boost/context/detail/apply.hpp>
 
@@ -34,7 +36,7 @@
 namespace memoria {
 namespace v1 {
 
-class SDNDocument;
+
 
 namespace _ {
     template <typename T, typename ParamsList, typename... CtrArgsLists> struct DataTypeCreator;
@@ -48,7 +50,7 @@ namespace _ {
     struct SDNSerializerFactory {
         static SerializerFn get_deserializer()
         {
-            return [](const Registry& registry, const SDNDocument& decl)
+            return [](const Registry& registry, const LDDocument& decl)
             {
                 return Datum<T>::from_sdn(decl);
             };
@@ -69,8 +71,8 @@ namespace _ {
 
 
 class DataTypeRegistry {
-    using CreatorFn   = std::function<boost::any (const DataTypeRegistry&, const DataTypeDeclaration&)>;
-    using SdnParserFn = std::function<AnyDatum (const DataTypeRegistry&, const SDNDocument&)>;
+    using CreatorFn   = std::function<boost::any (const DataTypeRegistry&, const LDTypeDeclaration&)>;
+    using SdnParserFn = std::function<AnyDatum (const DataTypeRegistry&, const LDDocument&)>;
 
     std::map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
 
@@ -79,9 +81,9 @@ public:
 
     DataTypeRegistry();
 
-    boost::any create_object(const DataTypeDeclaration& decl) const
+    boost::any create_object(const LDTypeDeclaration& decl) const
     {
-        U8String typedecl = decl.to_typedecl_string();
+        U8String typedecl = decl.to_cxx_typedecl();
         auto ii = creators_.find(typedecl);
         if (ii != creators_.end())
         {
@@ -122,7 +124,7 @@ public:
         LockT lock(mutex_);
 
         TypeSignature ts = make_datatype_signature<T>();
-        creators_[ts.parse().to_typedecl_string()] = std::make_tuple(creator, parser);
+        creators_[ts.parse().to_cxx_typedecl()] = std::make_tuple(creator, parser);
     }
 
     template <typename T>
@@ -132,7 +134,7 @@ public:
 
         TypeSignature ts = make_datatype_signature<T>();
 
-        U8String decl = ts.parse().to_typedecl_string();
+        U8String decl = ts.parse().to_cxx_typedecl();
 
         auto ii = creators_.find(decl);
 
@@ -145,12 +147,11 @@ public:
     template <typename T, typename... ArgTypesLists>
     void register_creator_fn()
     {
-        auto creator_fn = [](const DataTypeRegistry& registry, const DataTypeDeclaration& decl)
+        auto creator_fn = [](const DataTypeRegistry& registry, const LDTypeDeclaration& decl)
         {
             constexpr size_t declared_params_size = ListSize<typename DataTypeTraits<T>::Parameters>;
 
-            size_t actual_parameters_size = decl.parameters().has_value() ?
-                        decl.parameters().get().size() : 0;
+            size_t actual_parameters_size = decl.params();
 
             if (declared_params_size == actual_parameters_size)
             {
@@ -158,14 +159,14 @@ public:
                         T,
                         typename DataTypeTraits<T>::Parameters,
                         ArgTypesLists...
-                >::create(registry, decl.parameters(), decl.constructor_args());
+                >::create(registry, decl);
             }
             else {
                 MMA1_THROW(RuntimeException())
                         << fmt::format_ex(
                                u"Actual number of parameters {} does not match expected one {} for type {}",
                                actual_parameters_size, declared_params_size,
-                               decl.full_type_name()
+                               decl.to_standard_string()
                            );
             }
         };
@@ -205,26 +206,122 @@ private:
 
 namespace _ {
 
-    template <typename T> struct DTCtrArgTraits;
+    template <typename CxxType>
+    struct CtrArgsConverter {
+        static bool is_convertible(const LDDValue& value) {
+            return false;
+        }
+    };
+
 
     template <>
-    struct DTCtrArgTraits<U8String> {
-        static constexpr int32_t which = 0;
+    struct CtrArgsConverter<bool> {
+        static bool is_convertible(const LDDValue& value) {
+            return value.is_boolean();
+        }
+
+        static bool convert(const LDDValue& value) {
+            return value.as_boolean();
+        }
     };
 
     template <>
-    struct DTCtrArgTraits<int64_t> {
-        static constexpr int32_t which = 1;
+    struct CtrArgsConverter<int64_t> {
+        static bool is_convertible(const LDDValue& value) {
+            return value.is_integer();
+        }
+
+        static int64_t convert(const LDDValue& value) {
+            return value.as_integer();
+        }
     };
 
     template <>
-    struct DTCtrArgTraits<double> {
-        static constexpr int32_t which = 2;
+    struct CtrArgsConverter<double> {
+        static bool is_convertible(const LDDValue& value) {
+            return value.is_double();
+        }
+
+        static double convert(const LDDValue& value) {
+            return value.as_double();
+        }
     };
 
     template <>
-    struct DTCtrArgTraits<NameToken> {
-        static constexpr int32_t which = 3;
+    struct CtrArgsConverter<U8String> {
+        static bool is_convertible(const LDDValue& value) {
+            return value.is_string();
+        }
+
+        static U8String convert(const LDDValue& value) {
+            return value.as_string().view();
+        }
+    };
+
+    template <>
+    struct CtrArgsConverter<U8StringView> {
+        static bool is_convertible(const LDDValue& value) {
+            return value.is_string();
+        }
+
+        static U8StringView convert(const LDDValue& value) {
+            return value.as_string().view();
+        }
+    };
+
+    template <>
+    struct CtrArgsConverter<LDDValue> {
+        static bool is_convertible(const LDDValue& value) {
+            return true;
+        }
+
+        static LDDValue convert(const LDDValue& value) {
+            return value;
+        }
+    };
+
+    template <>
+    struct CtrArgsConverter<LDDArray> {
+        static bool is_convertible(const LDDValue& value) {
+            return value.is_array();
+        }
+
+        static LDDArray convert(const LDDValue& value) {
+            return value.as_array();
+        }
+    };
+
+    template <>
+    struct CtrArgsConverter<LDDMap> {
+        static bool is_convertible(const LDDValue& value) {
+            return value.is_map();
+        }
+
+        static LDDMap convert(const LDDValue& value) {
+            return value.as_map();
+        }
+    };
+
+    template <>
+    struct CtrArgsConverter<LDTypeDeclaration> {
+        static bool is_convertible(const LDDValue& value) {
+            return value.is_type_decl();
+        }
+
+        static LDTypeDeclaration convert(const LDDValue& value) {
+            return value.as_type_decl();
+        }
+    };
+
+    template <>
+    struct CtrArgsConverter<LDDTypedValue> {
+        static bool is_convertible(const LDDValue& value) {
+            return value.is_typed_value();
+        }
+
+        static LDDTypedValue convert(const LDDValue& value) {
+            return value.as_typed_value();
+        }
     };
 
 
@@ -233,15 +330,13 @@ namespace _ {
     template <size_t Idx, typename ArgType, typename... Types>
     struct DataTypeCtrArgsCheckerProc<Idx, TL<ArgType, Types...>> {
 
-        static bool check(const std::vector<DataTypeCtrArg>& args)
+        static bool check(const LDTypeDeclaration& typedecl)
         {
-            if (Idx < args.size())
+            if (Idx < typedecl.constructor_args())
             {
-                int32_t arg_idx = args[Idx].value().which();
-                int32_t which_idx = DTCtrArgTraits<std::decay_t<ArgType>>::which;
-
-                if (which_idx == arg_idx) {
-                    return DataTypeCtrArgsCheckerProc<Idx + 1, TL<Types...>>::check(args);
+                if (CtrArgsConverter<std::decay_t<ArgType>>::is_convertible(typedecl))
+                {
+                    return DataTypeCtrArgsCheckerProc<Idx + 1, TL<Types...>>::check(typedecl);
                 }
             }
 
@@ -251,8 +346,8 @@ namespace _ {
 
     template <size_t Idx>
     struct DataTypeCtrArgsCheckerProc<Idx, TL<>> {
-        static bool check(const std::vector<DataTypeCtrArg>& args) {
-            return Idx == args.size();
+        static bool check(const LDTypeDeclaration& typedecl) {
+            return Idx == typedecl.constructor_args();
         }
     };
 
@@ -261,58 +356,57 @@ namespace _ {
     template <size_t Idx, size_t Max>
     struct FillDTTypesList {
         template <typename Tuple>
-        static void process(const DataTypeRegistry& registry, const DataTypeParams& params, Tuple& tpl)
+        static void process(const DataTypeRegistry& registry, const LDTypeDeclaration& typedecl, Tuple& tpl)
         {
             using ParamType = std::tuple_element_t<Idx, Tuple>;
 
-            auto& vec = params.get();
-            const DataTypeDeclaration& param_decl = vec[Idx];
+            LDTypeDeclaration param_decl = typedecl.get_type_declration(Idx);
 
             std::get<Idx>(tpl) = boost::any_cast<std::decay_t<ParamType>>(registry.create_object(param_decl));
 
-            FillDTTypesList<Idx + 1, Max>::process(registry, params, tpl);
+            FillDTTypesList<Idx + 1, Max>::process(registry, typedecl, tpl);
         }
     };
 
     template <size_t Max>
     struct FillDTTypesList<Max, Max> {
         template <typename Tuple>
-        static void process(const DataTypeRegistry& registry, const DataTypeParams& params, Tuple& tpl){}
+        static void process(const DataTypeRegistry& registry, const LDTypeDeclaration& typedecl, Tuple& tpl){}
     };
 
 
     template <size_t Idx, size_t Max>
     struct FillDTCtrArgsList {
         template <typename Tuple>
-        static void process(const DataTypeCtrArgs& args, Tuple& tpl)
+        static void process(const LDTypeDeclaration& typedecl, Tuple& tpl)
         {
             using ArgType = std::tuple_element_t<Idx, Tuple>;
 
-            auto& vec = args.get();
-            const DataTypeCtrArg& arg_decl = vec[Idx];
+            LDDValue arg = typedecl.get_constructor_arg(Idx);
 
-            std::get<Idx>(tpl) = boost::get<std::decay_t<ArgType>>(arg_decl.value());
+            std::get<Idx>(tpl) = CtrArgsConverter<std::decay_t<ArgType>>::convert(arg);
 
-            FillDTCtrArgsList<Idx + 1, Max>::process(args, tpl);
+            FillDTCtrArgsList<Idx + 1, Max>::process(typedecl, tpl);
         }
     };
 
     template <size_t Max>
     struct FillDTCtrArgsList<Max, Max> {
         template <typename Tuple>
-        static void process(const DataTypeCtrArgs& args, Tuple& tpl){}
+        static void process(const LDTypeDeclaration& typedecl, Tuple& tpl){}
     };
 
 
 
     template<typename Types>
-    bool try_to_convert(const DataTypeCtrArgs& args)
+    bool try_to_convert_args(const LDTypeDeclaration& typedecl)
     {
         constexpr int32_t list_size = ListSize<Types>;
 
-        if (args.has_value()) {
+        if (typedecl.constructor_args() > 0)
+        {
             using Checker = _::DataTypeCtrArgsCheckerProc<0, Types>;
-            return Checker::check(args.get());
+            return Checker::check(typedecl);
         }
         else if (list_size == 0){
             return true;
@@ -326,17 +420,17 @@ namespace _ {
     template <typename T, typename... ParamsList, typename... ArgsList, typename... ArgsLists>
     struct DataTypeCreator<T, TL<ParamsList...>, TL<ArgsList...>, ArgsLists...>
     {
-        static T create(const DataTypeRegistry& registry, const DataTypeParams& params, const DataTypeCtrArgs& args)
+        static T create(const DataTypeRegistry& registry, const LDTypeDeclaration& typedecl)
         {
-            if (_::try_to_convert<TL<ArgsList...>>(args))
+            if (_::try_to_convert_args<TL<ArgsList...>>(typedecl))
             {
                 std::tuple<ParamsList..., ArgsList...> tpl;
 
                 _::FillDTTypesList<0, sizeof...(ParamsList)>
-                        ::process(registry, params, tpl);
+                        ::process(registry, typedecl, tpl);
 
                 _::FillDTCtrArgsList<sizeof...(ParamsList), sizeof...(ParamsList) + sizeof...(ArgsList)>
-                        ::process(args, tpl);
+                        ::process(typedecl, tpl);
 
                 auto constructorFn = [](auto... args) {
                     return T(args...);
@@ -345,7 +439,7 @@ namespace _ {
                 return boost::context::detail::apply(constructorFn, tpl);
             }
             else {
-                return DataTypeCreator<T, TL<ParamsList...>, ArgsLists...>::create(registry, params, args);
+                return DataTypeCreator<T, TL<ParamsList...>, ArgsLists...>::create(registry, typedecl);
             }
         }
     };
@@ -353,12 +447,12 @@ namespace _ {
     template <typename T, typename ParamsList>
     struct DataTypeCreator<T, ParamsList>
     {
-        static T create(const DataTypeRegistry& registry, const DataTypeParams& params, const DataTypeCtrArgs& args)
+        static T create(const DataTypeRegistry& registry, const LDTypeDeclaration& typedecl)
         {
             MMA1_THROW(RuntimeException())
                     << fmt::format_ex(
                            u"No constructor is defined for ({}) in type {}",
-                           "aaa",
+                           "aaaaaa",
                            TypeNameFactory<T>::name()
                     );
         }

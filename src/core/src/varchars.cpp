@@ -52,34 +52,28 @@ U8String VarcharStorage::to_sdn_string() const
 
 
 template <>
-Datum<Varchar> Datum<Varchar>::from_sdn(const SDNDocument& sdn_doc)
+Datum<Varchar> Datum<Varchar>::from_sdn(const LDDocument& sdn_doc)
 {
-    switch (sdn_doc.value().type()) {
-        case SDNValueType::LONG: return Datum<Varchar>(std::to_string(boost::get<int64_t>(sdn_doc.value().value())));
-        case SDNValueType::DOUBLE: return Datum<Varchar>(std::to_string(boost::get<double>(sdn_doc.value().value())));
-        case SDNValueType::TYPED_STRING_VALUE: return Datum<Varchar>(boost::get<TypedStringValue>(sdn_doc.value().value()).text());
-
-        case SDNValueType::NAME_TOKEN:
-        {
-            const NameToken& token = boost::get<NameToken>(sdn_doc.value().value());
-            if (token.is_null_token())
-            {
-                return Datum<Varchar>();
-            }
-
-            MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(
-                           u"Unsupported name token requested: {}",
-                           token.text()
-                       );
-        }
-
-        default: MMA1_THROW(RuntimeException())
-            << fmt::format_ex(
-                   u"Unsupported data type requested: {}",
-                   static_cast<int>(sdn_doc.value().type())
-               );
+    LDDValue value = sdn_doc.value();
+    if (value.is_string()) {
+        return Datum<Varchar>(value.as_string().view());
     }
+    else if (value.is_double()) {
+        return Datum<Varchar>(std::to_string(value.as_double()));
+    }
+    else if (value.is_integer()) {
+        return Datum<Varchar>(std::to_string(value.as_integer()));
+    }
+
+    else if (value.is_boolean()) {
+        return Datum<Varchar>(value.as_boolean() ? "true" : "false");
+    }
+
+    MMA1_THROW(RuntimeException())
+                << fmt::format_ex(
+                       u"Unsupported data type requested: {}", value.to_standard_string()
+                       );
+
 }
 
 }}

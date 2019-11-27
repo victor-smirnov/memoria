@@ -32,7 +32,11 @@
 #include <memoria/v1/reactor/file_streams.hpp>
 #include <memoria/v1/api/datatypes/type_signature.hpp>
 
+#include <memoria/v1/core/linked/document/linked_document.hpp>
+
 #include <memoria/v1/core/graph/graph.hpp>
+
+
 
 #include <boost/filesystem.hpp>
 
@@ -242,7 +246,7 @@ struct CtrInstanceFactory {
     virtual SnpSharedPtr<CtrReferenceable<Profile>> create_instance(
             const AllocatorPtr& allocator,
             const CtrID& ctr_id,
-            const DataTypeDeclaration& type_decl
+            const LDTypeDeclaration& type_decl
     ) const = 0;
 };
 
