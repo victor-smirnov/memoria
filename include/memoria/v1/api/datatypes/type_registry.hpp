@@ -124,7 +124,8 @@ public:
         LockT lock(mutex_);
 
         TypeSignature ts = make_datatype_signature<T>();
-        creators_[ts.parse().to_cxx_typedecl()] = std::make_tuple(creator, parser);
+        LDDocument doc = ts.parse();
+        creators_[doc.value().as_type_decl().to_cxx_typedecl()] = std::make_tuple(creator, parser);
     }
 
     template <typename T>
@@ -134,7 +135,8 @@ public:
 
         TypeSignature ts = make_datatype_signature<T>();
 
-        U8String decl = ts.parse().to_cxx_typedecl();
+        LDDocument doc = ts.parse();
+        U8String decl = doc.value().as_type_decl().to_cxx_typedecl();
 
         auto ii = creators_.find(decl);
 

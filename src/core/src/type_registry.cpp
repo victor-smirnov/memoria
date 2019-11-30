@@ -119,10 +119,10 @@ DataTypeRegistryStore::Initializer<Real, TL<>> real_;
 DataTypeRegistryStore::Initializer<Double, TL<>> double_;
 DataTypeRegistryStore::Initializer<Varchar, TL<>> varchar;
 DataTypeRegistryStore::Initializer<Timestamp, TL<>> timestamp;
-DataTypeRegistryStore::Initializer<TSWithTimeZone, TL<>> ts_with_tz;
+//DataTypeRegistryStore::Initializer<TSWithTimeZone, TL<>> ts_with_tz;
 DataTypeRegistryStore::Initializer<Date, TL<>> date;
 DataTypeRegistryStore::Initializer<Time, TL<>> time;
-DataTypeRegistryStore::Initializer<TimeWithTimeZone, TL<>> time_with_tz;
+//DataTypeRegistryStore::Initializer<TimeWithTimeZone, TL<>> time_with_tz;
 DataTypeRegistryStore::Initializer<UUID, TL<>> uuid;
 
 

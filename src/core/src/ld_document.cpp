@@ -458,7 +458,7 @@ LDDocument::LDDocument(const char* sdn): LDDocument() {
     set_sdn(sdn);
 }
 
-void LDDocument::compactify()
+LDDocument LDDocument::compactify() const
 {
     LDDocument tgt;
 
@@ -492,7 +492,7 @@ void LDDocument::compactify()
         tgt.set_value(new_value);
     };
 
-    (*this) = std::move(tgt);
+    return tgt;
 }
 
 LDDocument& LDDocument::operator=(LDDocument&& src)
@@ -504,6 +504,16 @@ LDDocument& LDDocument::operator=(LDDocument&& src)
     }
 
     return *this;
+}
+
+void LDDocument::clear()
+{
+    arena_.clear_arena();
+}
+
+void LDDocument::reset()
+{
+    arena_.reset_arena();
 }
 
 

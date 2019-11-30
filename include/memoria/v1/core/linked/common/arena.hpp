@@ -162,12 +162,16 @@ class LinkedArena;
 template <typename HeaderT_, typename PtrHolderT_>
 class LinkedArenaView {
 protected:
+
     uint8_t* data_;
+    size_t size_;
+
     LinkedArena<HeaderT_, PtrHolderT_>* arena_;
 
     template <typename, typename>
     friend class LinkedArena;
 public:
+    using AtomType = uint8_t;
 
     using PtrHolderT = PtrHolderT_;
     using AddressMapping = std::unordered_map<PtrHolderT, PtrHolderT>;
@@ -180,8 +184,26 @@ public:
 
     LinkedArenaView() = default;
 
-    void clear_arena() noexcept {
+    LinkedArenaView(Span<const AtomType> span):
+        data_(const_cast<AtomType*>(span.data())),
+        size_(span.size()),
+        arena_()
+    {}
+
+    void clear_arena_ptr() noexcept {
         arena_ = nullptr;
+    }
+
+    void clear_arena() noexcept {
+        arena_->clear();
+    }
+
+    void reset_arena() noexcept {
+        arena_->reset();
+    }
+
+    void set_size(size_t size) {
+        this->size_ = size;
     }
 
     AddressMapping make_address_mapping() const noexcept {
@@ -253,6 +275,18 @@ public:
 
     bool is_null(const void* ptr) const {
         return data_ == ptr;
+    }
+
+    size_t data_size() const {
+        return MMA1_UNLIKELY(arena_ != nullptr) ? arena_->size() : size_;
+    }
+
+    Span<const AtomType> span() const {
+        return Span<const AtomType>(data_, data_size());
+    }
+
+    Span<AtomType> span() {
+        return Span<AtomType>(data_, data_size());
     }
 };
 

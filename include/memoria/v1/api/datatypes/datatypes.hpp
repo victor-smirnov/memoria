@@ -25,5 +25,6 @@
 #include <memoria/v1/api/datatypes/type_registry.hpp>
 #include <memoria/v1/api/datatypes/type_signature.hpp>
 #include <memoria/v1/api/datatypes/io_vector_traits.hpp>
+#include <memoria/v1/core/linked/document/ld_datatype.hpp>
 
 

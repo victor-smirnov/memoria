@@ -76,7 +76,7 @@ public:
         return LinkedSet{arena, ptr.get()};
     }
 
-    static LinkedSet get(Arena* arena, PtrT<State> ptr) {
+    static LinkedSet get(const Arena* arena, PtrT<State> ptr) {
         return LinkedSet{arena, ptr.get()};
     }
 

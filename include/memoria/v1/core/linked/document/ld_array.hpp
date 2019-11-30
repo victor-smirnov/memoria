@@ -149,7 +149,7 @@ public:
 
         ld_::LDArenaAddressMapping mapping(source, *dst_doc);
         ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
-        array_.access(idx) = ptr;
+        array_.access_checked(idx) = ptr;
 
         return LDDValue{doc_, ptr};
     }

@@ -18,6 +18,8 @@
 #include <memoria/v1/core/linked/document/ld_common.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
+#include <memoria/v1/core/tools/span.hpp>
+
 #include <functional>
 
 namespace memoria {
@@ -34,6 +36,7 @@ class LDDocument;
 
 class LDDocumentView {
 
+    using AtomType      = typename ld_::LDArenaView::AtomType;
 protected:
     using ValueMap      = ld_::ValueMap;
     using StringSet     = ld_::StringSet;
@@ -58,13 +61,21 @@ protected:
 
     using CharIterator = typename U8StringView::const_iterator;
 
+    template <typename>
+    friend struct DataTypeTraits;
+
 public:
     LDDocumentView(): arena_() {}
     LDDocumentView(ld_::LDArenaView arena) noexcept: arena_(arena) {}
+    LDDocumentView(Span<const AtomType> span) noexcept:
+        arena_(span)
+    {}
 
-    LDDocumentView as_immutable_view() const noexcept {
+    LDDocumentView as_immutable_view() const noexcept
+    {
         LDDocumentView view = *this;
-        view.arena_.clear_arena();
+        view.arena_.clear_arena_ptr();
+        view.arena_.set_size(this->arena_.data_size());
         return view;
     }
 
@@ -137,6 +148,14 @@ public:
     static void assert_identifier(U8StringView name);
 
 protected:
+    Span<const AtomType> span() const {
+        return arena_.span();
+    }
+
+    Span<AtomType> span() {
+        return arena_.span();
+    }
+
     DocumentPtr doc_ptr() const {
         return DocumentPtr{sizeof(LDDocumentHeader)};
     }
@@ -246,7 +265,10 @@ public:
     LDDocument& operator=(const LDDocument&) = delete;
     LDDocument& operator=(LDDocument&&);
 
-    void compactify();
+    LDDocument compactify() const ;
+
+    void clear();
+    void reset();
 
     static LDDocument parse(U8StringView view) {
         return parse(view.begin(), view.end());
@@ -270,6 +292,22 @@ public:
             CharIterator end,
             const SDNParserConfiguration& cfg = SDNParserConfiguration{}
     );
+
+
+
+
+    static LDDocument parse_type_decl_qi(
+            CharIterator start,
+            CharIterator end,
+            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+    );
+
+    static LDDocument parse_type_decl_qi(
+            U8StringView view,
+            const SDNParserConfiguration& cfg = SDNParserConfiguration{}
+    ) {
+        return parse_type_decl_qi(view.begin(), view.end());
+    }
 };
 
 

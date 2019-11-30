@@ -55,12 +55,12 @@ public:
         return name_ == other.name_;
     }
 
-    LDTypeDeclaration parse() const {
-        return LDDocument::parse_type_decl(name_).value().as_type_decl();
+    LDDocument parse() const {
+        return LDDocument::parse_type_decl(name_);
     }
 
-    static LDTypeDeclaration parse(U8StringView str) {
-        return LDDocument::parse_type_decl(str).value().as_type_decl();
+    static LDDocument parse(U8StringView str) {
+        return LDDocument::parse_type_decl(str);
     }
 };
 

@@ -37,8 +37,8 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>(u
 
     assert_equals(size, map.size());
 
-    doc.compactify();
-    map = doc.value().as_map();
+    LDDocument doc2 = doc.compactify();
+    map = doc2.value().as_map();
 
     assert_equals(size, map.size());
 

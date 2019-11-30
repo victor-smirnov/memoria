@@ -143,7 +143,7 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocum
     });
 
     array.set_document(5, "[]");
-    assert_equals(true, array.get(5).is_map());
+    assert_equals(true, array.get(5).is_array());
     assert_throws<BoundsException>([&](){
         array.set_document(10, "S0");
     });
