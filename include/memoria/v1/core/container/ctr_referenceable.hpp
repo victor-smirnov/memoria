@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
 
 #include <memoria/v1/core/strings/string.hpp>
 
@@ -40,7 +41,8 @@ struct CtrReferenceable {
     virtual ~CtrReferenceable() noexcept {}
 
     virtual bool is_castable_to(uint64_t type_hash) const   = 0;
-    virtual U16String describe_type() const                 = 0;
+    virtual U8String describe_type() const                  = 0;
+    virtual U8String describe_datatype() const              = 0;
     virtual uint64_t type_hash()                            = 0;
 
     virtual void set_new_block_size(int32_t block_size)     = 0;
@@ -63,7 +65,11 @@ struct CtrReferenceable {
     virtual const ProfileCtrID<Profile>& name() const = 0;
 
     virtual std::shared_ptr<io::IOVector> create_iovector()  = 0;
-};
 
+    virtual void drop() = 0;
+
+    virtual void flush() = 0;
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> shared_self() = 0;
+};
 
 }}

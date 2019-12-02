@@ -95,20 +95,7 @@ protected:
 
     using Status            = typename HistoryNode::Status;
 
-
-
-    class CtrDescr {
-    	int64_t references_;
-    public:
-    	CtrDescr(): references_() {}
-    	CtrDescr(int64_t val): references_(val) {}
-
-    	int64_t references() const {return references_;}
-    	void ref() 	 {++references_;}
-    	int64_t unref() {return --references_;}
-    };
-
-    using CtrInstanceMap 	= std::unordered_map<std::type_index, CtrDescr>;
+    using CtrInstanceMap = std::unordered_map<CtrID, CtrReferenceable<Profile>*>;
 
 public:
 
@@ -604,28 +591,21 @@ public:
     }
 
 
-    virtual void registerCtr(const std::type_info& ti)
+    virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance)
     {
-    	auto ii = instance_map_.find(ti);
+        auto ii = instance_map_.find(ctr_id);
     	if (ii == instance_map_.end())
     	{
-    		instance_map_.insert({ti, CtrDescr(1)});
+            instance_map_.insert({ctr_id, instance});
     	}
     	else {
-    		ii->second.ref();
+            MMA1_THROW(Exception()) << fmt::format_ex(u"Container with name {} has been already registered", ctr_id);
     	}
     }
 
-    virtual void unregisterCtr(const std::type_info& ti)
+    virtual void unregisterCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance)
     {
-    	auto ii = instance_map_.find(ti);
-    	if (ii == instance_map_.end())
-    	{
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container {} is not registered in snapshot {}", ti.name(), uuid()));
-    	}
-    	else if (ii->second.unref() == 0) {
-    		instance_map_.erase(ii);
-    	}
+        instance_map_.erase(ctr_id);
     }
 
 public:
@@ -637,8 +617,16 @@ public:
     {
     	for (const auto& pair: instance_map_)
     	{
-            std::cout << demangle(pair.first.name()) << " -- " << pair.second.references() << std::endl;
+            std::cout << pair.first << " -- " << pair.second->describe_type() << std::endl;
     	}
+    }
+
+    void flush_open_containers()
+    {
+        for (const auto& pair: instance_map_)
+        {
+            pair.second->flush();
+        }
     }
 
     void dump_dictionary_blocks()
@@ -1078,7 +1066,27 @@ public:
             auto ctr_intf = ProfileMetadata<Profile>::local()
                     ->get_container_operations(block->ctr_type_hash());
 
-            return ctr_intf->new_ctr_instance(block, this->shared_from_this());
+            auto ii = instance_map_.find(ctr_id);
+            if (ii != instance_map_.end())
+            {
+                auto ctr_hash = block->ctr_type_hash();
+                auto instance_hash = ii->second->type_hash();
+
+                if (instance_hash == ctr_hash) {
+                    return ii->second->shared_self();
+                }
+                else {
+                    MMA1_THROW(Exception())
+                            << fmt::format_ex(
+                                   u"Exisitng ctr instance type hash mismatch: expected {}, actual {}",
+                                   ctr_hash,
+                                   instance_hash
+                               );
+                }
+            }
+            else {
+                return ctr_intf->new_ctr_instance(block, this->shared_from_this());
+            }
         }
         else {
             return CtrSharedPtr<CtrReferenceable<Profile>>();

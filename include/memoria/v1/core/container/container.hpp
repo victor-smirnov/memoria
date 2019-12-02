@@ -72,6 +72,7 @@ template <typename CtrName, typename Allocator, typename Profile> class SharedCt
 constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
 
 
+
 template <typename TypesType>
 class CtrBase:
         public IVertex,
@@ -120,10 +121,16 @@ protected:
     
     AllocatorPtr allocator_holder_;
 
+    bool do_unregister_on_dtr_{true};
+
 public:
     CtrBase(){}
 
     virtual ~CtrBase() noexcept {}
+
+    virtual CtrSharedPtr<CtrReferenceable<ProfileT>> shared_self() {
+        return this->shared_from_this();
+    }
     
     bool isNew() const {
         return root_.is_null();
@@ -141,8 +148,12 @@ public:
         return CONTAINER_HASH;
     }
     
-    virtual U16String describe_type() const {
-        return TypeNameFactory<ContainerTypeName>::name();
+    virtual U8String describe_type() const {
+        return TypeNameFactory<ContainerTypeName>::name().to_u8();
+    }
+
+    virtual U8String describe_datatype() const {
+        return make_datatype_signature<ContainerTypeName>().name();
     }
 
     PairPtr& pair() {return pair_;}
@@ -479,6 +490,8 @@ public:
         return self().store().isActive();
     }
 
+    virtual void flush() {}
+
 protected:
 
     template <typename... Args>
@@ -612,7 +625,7 @@ public:
 
         this->do_create_ctr(ctr_id, ctr_type_name);
 
-        allocator_->registerCtr(typeid(*this));
+        allocator_->registerCtr(ctr_id, this);
     }
 
     // find existing ctr
@@ -630,7 +643,7 @@ public:
 
         name_ = this->do_init_ctr(root_block);
 
-        allocator_->registerCtr(typeid(*this));
+        allocator_->registerCtr(name_, this);
     }
 
 
@@ -640,17 +653,20 @@ public:
 
     virtual ~Ctr() noexcept
     {
-        try {
-    		allocator_->unregisterCtr(typeid(*this));
-    	}
-    	catch (Exception& ex) {
-            ex.dump(std::cout);
-    		std::abort();
-    	}
-    	catch(...) {
-            std::cout << "Unknown exception in ~Ctr(): " << typeid(*this).name() << std::endl;
-    		std::abort();
-    	}
+        if (this->do_unregister_on_dtr_)
+        {
+            try {
+                allocator_->unregisterCtr(name_, this);
+            }
+            catch (Exception& ex) {
+                ex.dump(std::cout);
+                std::abort();
+            }
+            catch(...) {
+                std::cout << "Unknown exception in ~Ctr(): " << typeid(*this).name() << std::endl;
+                std::abort();
+            }
+        }
     }
 
     void initLogger()

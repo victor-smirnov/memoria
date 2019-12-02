@@ -158,6 +158,8 @@ public:
     virtual void copy_ctr_from(SnapshotPtr txn, const CtrID& name) = 0;
     virtual bool check() = 0;
 
+    virtual void flush_open_containers() = 0;
+
     virtual Optional<U16String> ctr_type_name_for(const CtrID& name) = 0;
 
     virtual std::vector<CtrID> container_names() const = 0;
@@ -226,7 +228,21 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
 )
 {
     CtrSharedPtr<CtrReferenceable<Profile>> ctr_ref = alloc->find(ctr_id);
-    return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
+
+    U8String signature = make_datatype_signature<CtrName>().name();
+
+    if (ctr_ref->describe_datatype() == signature) {
+        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref);
+    }
+    else {
+        MMA1_THROW(Exception())
+                << fmt::format_ex(
+                       u"Container type mismatch. Expected: {}, actual: {}",
+                       signature,
+                       ctr_ref->describe_datatype()
+                   );
+    }
+
 }
 
 

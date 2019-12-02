@@ -41,6 +41,9 @@
 namespace memoria {
 namespace v1 {
 
+
+
+
 template <typename Profile>
 struct IAllocator {
 
@@ -90,8 +93,9 @@ struct IAllocator {
 
     virtual bool isActive() const                                               = 0;
 
-    virtual void registerCtr(const std::type_info&)                             = 0;
-    virtual void unregisterCtr(const std::type_info&)                           = 0;
+    virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance)   = 0;
+    virtual void unregisterCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) = 0;
+    virtual void flush_open_containers() = 0;
 
     virtual SnpSharedPtr<MyType> self_ptr()                                     = 0;
     virtual CtrSharedPtr<CtrReferenceable<Profile>> find(const CtrID& ctr_id)   = 0;

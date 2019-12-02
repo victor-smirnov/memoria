@@ -67,7 +67,6 @@ public:
     bool remove(const KeyView& k)
     {
         auto iter = self().ctr_map_find(k);
-
         if (iter->is_found(k))
         {
             iter->remove();

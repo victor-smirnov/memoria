@@ -188,6 +188,8 @@ public:
             
             if (history_node_->is_active() || history_node_->is_data_locked())
             {
+                this->flush_open_containers();
+
                 history_node_->commit();
                 history_tree_raw_->unref_active();
             }

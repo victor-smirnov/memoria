@@ -95,6 +95,14 @@ int main()
             scanner2.next_leaf();
         }
 
+        UUID ctr2_id = ctr2->name();
+
+        //ctr2->drop();
+
+        auto ctr3 = find<Ctr1T>(snp, ctr2_id);
+
+        std::cout << ctr3->describe_type() << std::endl;
+
         snp->commit();
     }
     catch (MemoriaThrowable& th) {

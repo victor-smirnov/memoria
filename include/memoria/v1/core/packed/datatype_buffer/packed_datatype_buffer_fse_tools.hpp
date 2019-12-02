@@ -122,7 +122,7 @@ public:
 
         auto data = this->data();
 
-        MemMoveBuffer(data + start, data + start + size, meta.size() - start - size);
+        MemMoveBuffer(data + start + size, data + start, meta.size() - start - size);
 
         psize_t column_data_length = (meta.size() - size) * sizeof(T);
 

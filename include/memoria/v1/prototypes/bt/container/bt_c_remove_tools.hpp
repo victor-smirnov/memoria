@@ -62,6 +62,9 @@ public:
             NodeBaseG root = self.ctr_get_root_node();
             self.ctr_remove_root_node(root);
             self.set_root(BlockID{});
+
+            this->do_unregister_on_dtr_ = false;
+            self.store().unregisterCtr(self.name(), this);
         }
         else {
             MMA1_THROW(Exception()) << WhatCInfo("Transaction must be in active state to drop containers");
