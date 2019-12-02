@@ -294,10 +294,11 @@ public:
             foreign_state.get(dst)->data_ = foreign_data;
 
             const T* src_data = state->data_.get(arena_);
-            T* dst_data = foreign_data.get(dst);
             for (size_t c = 0; c < state->size_; c++)
             {
-                dst_data[c] = helper.deep_copy(dst, arena_, src_data[c]);
+                auto tmp = helper.deep_copy(dst, arena_, src_data[c]);
+                T* dst_data = foreign_data.get(dst);
+                dst_data[c] = tmp;
             }
         }
 

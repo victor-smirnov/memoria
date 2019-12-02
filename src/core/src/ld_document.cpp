@@ -17,8 +17,12 @@
 #endif
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
+#include <memoria/v1/core/linked/document/ld_datatype.hpp>
+
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/format.hpp>
+
+#include <memoria/v1/core/tools/bitmap.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -506,14 +510,60 @@ LDDocument& LDDocument::operator=(LDDocument&& src)
     return *this;
 }
 
-void LDDocument::clear()
-{
-    arena_.clear_arena();
+void LDDocument::clear() {
+    arena_.clear_arena(INITIAL_ARENA_SIZE);
+    allocate_state();
 }
 
-void LDDocument::reset()
+void LDDocument::reset() {
+    arena_.reset_arena(INITIAL_ARENA_SIZE);
+    allocate_state();
+}
+
+std::ostream& operator<<(std::ostream& out, const LDDocumentView& doc)
 {
-    arena_.reset_arena();
+    LDDumpFormatState fmt = LDDumpFormatState().simple();
+    doc.dump(out, fmt);
+    return out;
+}
+
+
+
+void LDDocumentStorage::destroy() noexcept
+{
+    this->~LDDocumentStorage();
+    free_system(this);
+}
+
+LDDocumentStorage* LDDocumentStorage::create(ViewType view)
+{
+    size_t storage_class_size = sizeof(LDDocumentStorage) | 0x7; // + up to 7 bytes of alignment
+
+    auto descr = DataTypeTraits<LDDocument>::describe_data(view);
+    auto& span = std::get<0>(descr);
+
+    uint8_t* ptr = allocate_system<uint8_t>(storage_class_size + span.size()).release();
+
+    MemCpyBuffer(span.data(), ptr + storage_class_size, span.size());
+
+    try {
+        return new (ptr) LDDocumentStorage(ViewType{Span<uint8_t>(ptr + storage_class_size, span.size())});
+    }
+    catch (...) {
+        free_system(ptr);
+        throw;
+    }
+}
+
+U8String LDDocumentStorage::to_sdn_string() const
+{
+    return view().to_string();
+}
+
+template <>
+Datum<LDDocument, EmptyType> Datum<LDDocument, EmptyType>::from_sdn(const LDDocument& value)
+{
+    return Datum<LDDocument, EmptyType>(value);
 }
 
 

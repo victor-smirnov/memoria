@@ -27,16 +27,15 @@ namespace v1 {
 template <typename Buffer>
 class SparseObjectBuilder<Varchar, Buffer> {
     Buffer* buffer_;
-    size_t offset_;
-    size_t size_;
-    bool refresh_views_{};
 
     using AtomType = DTTAtomType<Varchar>;
     using ViewType = DTTViewType<Varchar>;
 
+    ArenaBuffer<char> arena_;
+
 public:
     SparseObjectBuilder(Buffer* buffer):
-        buffer_(buffer), offset_(buffer->template data_length<0>(0, buffer->size())), size_()
+        buffer_(buffer)
     {}
 
     SparseObjectBuilder(SparseObjectBuilder&&) = delete;
@@ -44,46 +43,33 @@ public:
 
     void append(ViewType view)
     {
-        refresh_views_ = buffer().ensure(view.size()) || refresh_views_;
-        MemCpyBuffer(view.data(), data() + size_, view.size());
-        size_ += view.size();
+        arena_.append_values(view.data(), view.size());
     }
 
     ViewType view() const {
-        return ViewType(data(), size_);
+        return ViewType(data(), arena_.size());
+    }
+
+    void reset() {
+        arena_.reset();
     }
 
     void build()
     {
-        buffer_->add_view(std::make_tuple(Span<const AtomType>(data(), size_)));
-        if (refresh_views_) {
-            buffer_->refresh_views();
-        }
-
-        offset_ = buffer().size();
-        size_ = 0;
-        refresh_views_ = false;
+        buffer_->append(view());
+        arena_.clear();
     }
 
     AtomType* data() {
-        return buffer().data() + offset_;
+        return arena_.data();
     }
 
     const AtomType* data() const {
-        return buffer().data() + offset_;
+        return arena_.data();
     }
 
     bool is_empty() const {
-        return size_ == 0;
-    }
-
-private:
-    auto& buffer() {
-        return std::get<0>(buffer_->buffers());
-    }
-
-    const auto& buffer() const {
-        return std::get<0>(buffer_->buffers());
+        return arena_.size() == 0;
     }
 };
 

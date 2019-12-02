@@ -19,7 +19,9 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/core/tools/span.hpp>
+#include <memoria/v1/core/types/typehash.hpp>
 
+#include <iostream>
 #include <functional>
 
 namespace memoria {
@@ -79,9 +81,9 @@ public:
         return view;
     }
 
-    bool operator==(const LDDocumentView& other) const noexcept {
-        return equals(&other);
-    }
+//    bool operator==(const LDDocumentView& other) const noexcept {
+//        return equals(&other);
+//    }
 
     bool equals(const LDDocumentView* other) const noexcept {
         return arena_.data() == other->arena_.data();
@@ -129,6 +131,14 @@ public:
 
     std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
+    U8String to_string() const
+    {
+        LDDumpFormatState fmt = LDDumpFormatState().simple();
+        std::stringstream ss;
+        dump(ss, fmt);
+        return ss.str();
+    }
+
     LDTypeDeclaration create_named_type(U8StringView name, U8StringView type_decl);
 
     Optional<LDTypeDeclaration> get_named_type_declaration(U8StringView name) const;
@@ -146,6 +156,14 @@ public:
     static bool is_identifier(CharIterator start, CharIterator end);
 
     static void assert_identifier(U8StringView name);
+
+    bool operator==(const LDDocumentView& other) const noexcept {
+        return arena_.span() == other.arena_.span();
+    }
+
+    bool operator!=(const LDDocumentView& other) const noexcept {
+        return arena_.span() != other.arena_.span();
+    }
 
 protected:
     Span<const AtomType> span() const {
@@ -246,7 +264,7 @@ public:
         LDDocumentView(),
         ld_arena_(INITIAL_ARENA_SIZE, &arena_)
     {
-        allocate<DocumentState>(ld_arena_.view(), DocumentState{0, 0, 0});
+        allocate_state();
     }
 
     LDDocument(const LDDocument& other):
@@ -308,7 +326,16 @@ public:
     ) {
         return parse_type_decl_qi(view.begin(), view.end());
     }
+
+protected:
+    void allocate_state() {
+        allocate<DocumentState>(ld_arena_.view(), DocumentState{0, 0, 0});
+    }
 };
 
+template <>
+struct TypeHash<LDDocument>: UInt64Value<3457983275945243> {};
+
+std::ostream& operator<<(std::ostream& out, const LDDocumentView& doc);
 
 }}

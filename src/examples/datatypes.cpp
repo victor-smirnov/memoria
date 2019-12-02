@@ -20,18 +20,86 @@
 #include <memoria/v1/api/datatypes/varchars/varchar_builder.hpp>
 #include <memoria/v1/api/datatypes/buffer/buffer.hpp>
 
+#include <memoria/v1/api/store/memory_store_api.hpp>
+
+#include <memoria/v1/api/vector/vector_api.hpp>
+
+#include <memoria/v1/memoria.hpp>
+
 #include <iostream>
 
 using namespace memoria::v1;
 
+using Ctr1T = Vector<LDDocument>;
+using Ctr2T = Vector<Varchar>;
 
 
 int main()
 {
-    DataTypeBuffer<LDDocument> buffer;
-    LDDocument::parse("{'aaaa': 'bbbbb'}").dump(std::cout) << std::endl;
+    StaticLibraryCtrs<>::init();
 
-//    std::cout << LDDocument::is_identifier("{}") << std::endl;
+    try {
+        auto store = IMemoryStore<>::create();
+
+        auto snp = store->master()->branch();
+
+        auto ctr1 = create(snp, Ctr1T());
+        auto ctr2 = create(snp, Ctr2T());
+
+        ctr1->append([&](auto& buffer, size_t size){
+            for (size_t c = 0; c < 100; c++)
+            {
+                buffer.builder().doc().set_sdn("{'booo': 'Hello World', 'foo': [1,2,3,4,5,6,7, " + std::to_string(c) + "]}");
+                buffer.builder().build();
+            }
+
+            return true;
+        });
+
+        ctr2->append([&](auto& buffer, size_t size){
+            for (size_t c = 0; c < 100; c++)
+            {
+                buffer.builder().append("{'booo': 'Hello World', 'foo': [1,2,3,4,5,6,7, " + std::to_string(c) + "]}");
+                buffer.builder().build();
+            }
+
+            return true;
+        });
+
+        std::cout << ctr1->size() << std::endl;
+        std::cout << ctr2->size() << std::endl;
+
+        auto scanner1 = ctr1->as_scanner([](auto ctr){
+            return ctr->seek(0);
+        });
+
+        while (!scanner1.is_end())
+        {
+            for (const auto& vv: scanner1.values()) {
+                std::cout << vv << std::endl;
+            }
+
+            scanner1.next_leaf();
+        }
+
+        auto scanner2 = ctr2->as_scanner([](auto ctr){
+            return ctr->seek(0);
+        });
+
+        while (!scanner2.is_end())
+        {
+            for (const auto& vv: scanner2.values()) {
+                std::cout << vv << std::endl;
+            }
+
+            scanner2.next_leaf();
+        }
+
+        snp->commit();
+    }
+    catch (MemoriaThrowable& th) {
+        th.dump(std::cout);
+    }
 
     return 0;
 }

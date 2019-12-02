@@ -280,9 +280,9 @@ private:
     }
 
     void check_builder_is_empty() const {
-        if (!builder_.is_empty()) {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Builder is not empty");
-        }
+//        if (!builder_.is_empty()) {
+//            MMA1_THROW(RuntimeException()) << WhatCInfo("Builder is not empty");
+//        }
     }
 
     template <typename Fn, typename... Args>

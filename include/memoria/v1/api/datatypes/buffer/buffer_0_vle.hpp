@@ -142,7 +142,7 @@ private:
 
         auto ptr  = data_.top();
         bool resized = views_.emplace_back(
-                SOAdapter::make_view(std::make_tuple(DataSpan(ptr, size)))
+            SOAdapter::make_view(std::make_tuple(DataSpan(ptr, size)))
         );
 
         if (data_.append_values(std::get<0>(span)) || data_resized)
@@ -172,11 +172,7 @@ private:
         }
     }
 
-    void check_builder_is_empty() const {
-        if (!builder_.is_empty()) {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Builder is not empty");
-        }
-    }
+    void check_builder_is_empty() const {}
 };
 
 

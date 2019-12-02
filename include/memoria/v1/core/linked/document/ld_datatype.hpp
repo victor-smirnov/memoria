@@ -18,9 +18,12 @@
 #include <memoria/v1/core/linked/document/linked_document.hpp>
 #include <memoria/v1/api/datatypes/traits.hpp>
 
+#include <memoria/v1/api/datatypes/datum.hpp>
+
 namespace memoria {
 namespace v1 {
 
+class LDDocumentStorage;
 
 template <>
 struct DataTypeTraits<LDDocument>: DataTypeTraitsBase<LDDocument>
@@ -29,7 +32,7 @@ struct DataTypeTraits<LDDocument>: DataTypeTraitsBase<LDDocument>
     using ConstViewType = LDDocumentView;
     using AtomType      = std::remove_const_t<typename LDDocumentView::AtomType>;
 
-    using DatumStorage  = EmptyType;
+    using DatumStorage  = LDDocumentStorage;
 
     using Parameters = TL<>;
 
@@ -39,7 +42,7 @@ struct DataTypeTraits<LDDocument>: DataTypeTraitsBase<LDDocument>
 
     static constexpr bool isSdnDeserializable = true;
 
-    static void create_signature(SBuf& buf, const Varchar& obj)
+    static void create_signature(SBuf& buf, const LDDocument& obj)
     {
         buf << "LDDocument";
     }
@@ -96,8 +99,8 @@ class SparseObjectBuilder<LDDocument, Buffer> {
     Buffer* buffer_;
 
 
-    using AtomType = DTTAtomType<Varchar>;
-    using ViewType = DTTViewType<Varchar>;
+    using AtomType = DTTAtomType<LDDocument>;
+    using ViewType = DTTViewType<LDDocument>;
 
     LDDocument doc_;
 
@@ -125,5 +128,17 @@ public:
     }
 };
 
+class LDDocumentStorage: public DatumStorageBase<LDDocument, typename DataTypeTraits<LDDocument>::DatumStorageSelector> {
+    using SelectorTag = typename DataTypeTraits<LDDocument>::DatumStorageSelector;
+
+    using Base = DatumStorageBase<LDDocument, SelectorTag>;
+    using typename Base::ViewType;
+public:
+    LDDocumentStorage(ViewType view) noexcept: Base(view) {}
+
+    virtual void destroy() noexcept;
+    static LDDocumentStorage* create(ViewType view);
+    virtual U8String to_sdn_string() const;
+};
 
 }}

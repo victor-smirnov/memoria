@@ -40,9 +40,9 @@ U8String toString(const T& value, bool hex = false)
 {
     std::stringstream str;
     if (hex) {
-        str<<hex;
+        str << hex;
     }
-    str<<value;
+    str << value;
     return str.str();
 }
 
@@ -51,9 +51,9 @@ static inline U8String toString(const uint8_t value, bool hex = false)
 {
     std::stringstream str;
     if (hex) {
-        str<<hex;
+        str << hex;
     }
-    str<<(int32_t)value;
+    str << (int32_t)value;
     return str.str();
 }
 
@@ -61,9 +61,9 @@ static inline U8String toString(const int8_t value, bool hex = false)
 {
     std::stringstream str;
     if (hex) {
-        str<<hex;
+        str << hex;
     }
-    str<<(int32_t)value;
+    str << (int32_t)value;
     return str.str();
 }
 
@@ -74,9 +74,9 @@ struct AsString {
     {
         std::stringstream str;
         if (hex) {
-            str<<hex;
+            str << hex;
         }
-        str<<value;
+        str << value;
         return str.str();
     }
 };
@@ -89,11 +89,11 @@ struct AsString<bool> {
 
         if (value)
         {
-            str<<"True";
+            str << "True";
         }
         else
         {
-            str<<"False";
+            str << "False";
         }
 
         return str.str();

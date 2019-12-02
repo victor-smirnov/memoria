@@ -28,6 +28,8 @@
 //#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
 #include <memoria/v1/api/set/set_api.hpp>
 
+#include <memoria/v1/core/linked/document/ld_datatype.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -147,5 +149,6 @@ DataTypeRegistryStore::Initializer<FixedArray<256>, TL<>> fixed_array_256;
 DataTypeRegistryStore::Initializer<FixedArray<512>, TL<>> fixed_array_512;
 DataTypeRegistryStore::Initializer<FixedArray<1024>, TL<>> fixed_array_1024;
 
+DataTypeRegistryStore::Initializer<LDDocument, TL<>> ld_document;
 
 }}

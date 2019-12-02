@@ -194,12 +194,12 @@ public:
         arena_ = nullptr;
     }
 
-    void clear_arena() noexcept {
-        arena_->clear();
+    void clear_arena(size_t extra_size = 0) noexcept {
+        arena_->clear(extra_size);
     }
 
-    void reset_arena() noexcept {
-        arena_->reset();
+    void reset_arena(size_t extra_size = 0) noexcept {
+        arena_->reset(extra_size);
     }
 
     void set_size(size_t size) {
@@ -372,23 +372,23 @@ public:
         arena_view_->data_ = nullptr;
     }
 
-    void clear() noexcept
+    void clear(size_t extra_size = 0) noexcept
     {
         HeaderT header = this->header();
         arena_.clear();
 
-        arena_.ensure(sizeof(HeaderT));
+        arena_.ensure(sizeof(HeaderT) + extra_size);
         arena_.add_size(sizeof(HeaderT));
 
         *T2T<HeaderT*>(arena_.data()) = header;
     }
 
-    void reset() noexcept
+    void reset(size_t extra_size = 0) noexcept
     {
         HeaderT header = this->header();
         arena_.reset();
 
-        arena_.ensure(sizeof(HeaderT));
+        arena_.ensure(sizeof(HeaderT) + extra_size);
         arena_.add_size(sizeof(HeaderT));
 
         *T2T<HeaderT*>(arena_.data()) = header;
