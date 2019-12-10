@@ -73,6 +73,26 @@ public:
         return 0;
     }
 
+    bool is_parametric() const {
+        return params() > 0;
+    }
+
+    bool is_stateless() const
+    {
+        if (MMA1_LIKELY(constructor_args() == 0))
+        {
+            for (size_t c = 0; c < params(); c++) {
+                if (!get_type_declration(c).is_stateless()) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     LDTypeDeclaration get_type_declration(size_t idx) const
     {
         const TypeDeclState* state = this->state();
@@ -330,6 +350,17 @@ static inline std::ostream& operator<<(std::ostream& out, const LDTypeDeclaratio
     value.dump(out, format);
     return out;
 }
+
+template <>
+struct DataTypeTraits<LDTypeDeclaration> {
+    static constexpr bool isDataType = true;
+    using LDStorageType = NullType;
+    using LDViewType = LDTypeDeclaration;
+
+    static void create_signature(SBuf& buf) {
+        buf << "LDTypeDeclaration";
+    }
+};
 
 
 }}

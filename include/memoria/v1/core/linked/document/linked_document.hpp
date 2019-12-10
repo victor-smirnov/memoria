@@ -93,11 +93,11 @@ inline LDDValue LDDocumentView::value() const noexcept {
 
 
 inline LDString::operator LDDValue() const noexcept {
-    return LDDValue{doc_, string_.get(), LDDValueTraits<LDString>::ValueTag};
+    return LDDValue{doc_, string_.get(), ld_tag_value<LDString>()};
 }
 
 inline LDDArray::operator LDDValue() const noexcept {
-    return LDDValue{doc_, array_.ptr(), LDDValueTraits<LDDArray>::ValueTag};
+    return LDDValue{doc_, array_.ptr(), ld_tag_value<LDDArray>()};
 }
 
 
@@ -118,8 +118,8 @@ public:
     template <typename State>
     LDPtr<State> allocate_root(LDArenaView* dst, const State& state)
     {
-        LDPtr<State> root = allocate_tagged<State>(sizeof(LDDValueTag), dst, state);
-        ld_::ldd_set_tag(dst, root.get(), LDDValueTraits<ElementType>::ValueTag);
+        LDPtr<State> root = allocate_tagged<State>(ld_tag_size<ElementType>(), dst, state);
+        ld_::ldd_set_tag(dst, root.get(), ld_tag_value<ElementType>());
         return root;
     }
 

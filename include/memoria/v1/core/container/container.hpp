@@ -48,8 +48,8 @@
 
 #include <memoria/v1/profiles/common/metadata.hpp>
 
-#include <memoria/v1/api/datatypes/traits.hpp>
-#include <memoria/v1/api/datatypes/type_registry.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
 
 #include <memoria/v1/api/common/ctr_api.hpp>
 

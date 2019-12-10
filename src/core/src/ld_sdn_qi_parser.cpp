@@ -118,7 +118,7 @@ public:
 
     void set_doc_value(LDDValue value)
     {
-        doc_.set_value(value);
+        doc_.set_doc_value(value);
     }
 
     LDDArray new_array(Span<LDDValue> span) {
@@ -141,12 +141,12 @@ public:
         dst.add_ctr_arg(ctr_arg);
     }
 
-    LDDTypedValue new_typed_value(LDTypeDeclaration type_decl, LDDValue constructor)
+    LDDValue new_typed_value(LDTypeDeclaration type_decl, LDDValue constructor)
     {
         return doc_.new_typed_value(type_decl, constructor);
     }
 
-    LDDTypedValue new_typed_value(LDIdentifier id, LDDValue constructor)
+    LDDValue new_typed_value(LDIdentifier id, LDDValue constructor)
     {
         auto type_decl = doc_.get_named_type_declaration(id.view()).get();
         return doc_.new_typed_value(type_decl, constructor);
@@ -286,9 +286,9 @@ public:
 };
 
 using LDTypeDeclarationValueBase = bf::vector<
-LDIdentifier,
-Optional<std::vector<LDTypeDeclaration>>,
-Optional<std::vector<LDDValue>>
+    LDIdentifier,
+    Optional<std::vector<LDTypeDeclaration>>,
+    Optional<std::vector<LDDValue>>
 >;
 
 struct LDTypeDeclarationValue: LDTypeDeclarationValueBase {
@@ -378,7 +378,7 @@ struct LDDTypedValueValue: LDDTypedValueValueBase {
     struct Visitor: public boost::static_visitor<> {
 
         LDDValue ctr_value_;
-        LDDTypedValue typed_value;
+        LDDValue typed_value;
 
         Visitor(LDDValue ctr_value): ctr_value_(ctr_value) {}
 
@@ -386,18 +386,18 @@ struct LDDTypedValueValue: LDDTypedValueValueBase {
             typed_value = LDDocumentBuilder::current()->new_typed_value(
                         ref,
                         ctr_value_
-                        );
+            );
         }
 
         void operator()(LDTypeDeclaration type_decl){
             typed_value = LDDocumentBuilder::current()->new_typed_value(
                         type_decl,
                         ctr_value_
-                        );
+            );
         }
     };
 
-    LDDTypedValue finish()
+    LDDValue finish()
     {
         Visitor vv(bf::at_c<1>(*this));
         boost::apply_visitor(vv, bf::at_c<0>(*this));

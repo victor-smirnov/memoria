@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/api/datatypes/varchars/varchars.hpp>
+#include <memoria/v1/core/linked/datatypes/varchars/varchars.hpp>
 
 #include <memoria/v1/core/memory/malloc.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>

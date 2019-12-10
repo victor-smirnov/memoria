@@ -35,7 +35,7 @@
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
-#include <memoria/v1/api/datatypes/type_registry.hpp>
+#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
 

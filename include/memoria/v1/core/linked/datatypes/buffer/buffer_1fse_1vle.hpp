@@ -15,17 +15,17 @@
 
 #pragma once
 
-#include <memoria/v1/api/datatypes/buffer/buffer_common.hpp>
+#include <memoria/v1/core/linked/datatypes/buffer/buffer_common.hpp>
 
 namespace memoria {
 namespace v1 {
 
-template <typename DataTypeT, typename AtomTypeT>
+template <typename DataTypeT, typename TypePart, typename AtomTypeT>
 class DataTypeBuffer<
         DataTypeT,
         SparseObjectAdapterDescriptor<
             false,
-            TL<>,
+            TL<TypePart>,
             TL<Span<AtomTypeT>>
         >
 > {
@@ -142,7 +142,7 @@ private:
 
         auto ptr  = data_.top();
         bool resized = views_.emplace_back(
-            SOAdapter::make_view(std::make_tuple(DataSpan(ptr, size)))
+                SOAdapter::make_view(std::make_tuple(DataSpan(ptr, size)))
         );
 
         if (data_.append_values(std::get<0>(span)) || data_resized)
@@ -172,7 +172,11 @@ private:
         }
     }
 
-    void check_builder_is_empty() const {}
+    void check_builder_is_empty() const {
+        if (!builder_.is_empty()) {
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Builder is not empty");
+        }
+    }
 };
 
 

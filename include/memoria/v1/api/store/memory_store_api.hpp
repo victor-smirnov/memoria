@@ -21,8 +21,8 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/memory.hpp>
 #include <memoria/v1/core/container/logs.hpp>
-#include <memoria/v1/api/datatypes/type_signature.hpp>
-#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/type_signature.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
 
 
 #include <memoria/v1/profiles/common/common.hpp>

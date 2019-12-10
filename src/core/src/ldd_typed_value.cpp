@@ -116,7 +116,7 @@ ld_::LDPtr<LDDTypedValue::State> LDDTypedValue::deep_copy_to(LDDocumentView* tgt
                 State{tgt_type.get(), src_value.deep_copy_to(tgt, mapping)}
     );
 
-    ld_::ldd_set_tag(&tgt->arena_, tgt_state.get(), LDDValueTraits<LDDTypedValue>::ValueTag);
+    ld_::ldd_set_tag(&tgt->arena_, tgt_state.get(), ld_tag_value<LDDTypedValue>());
 
     return tgt_state.get();
 }

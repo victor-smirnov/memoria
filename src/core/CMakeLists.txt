@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB SRCS src/*.cpp)
-set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
-set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
+file(GLOB SRCS1 src/*.cpp)
+file(GLOB SRCS2 src/datatypes/*.cpp)
+
+set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS1} ${SRCS2})
+set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS1} ${SRCS2})
 
 add_subdirectory(platforms)

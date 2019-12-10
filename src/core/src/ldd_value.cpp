@@ -17,6 +17,7 @@
 #endif
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
+#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -25,15 +26,6 @@ std::ostream& LDDValue::dump(std::ostream& out, LDDumpFormatState& state, LDDump
 {
     if (is_null()) {
         out << "null";
-    }
-    else if (is_string())
-    {
-        U8StringView str = as_string().view();
-        U8StringView str_escaped = SDNStringEscaper::current().escape_quotes(str);
-
-        out << "'" << str_escaped << "'";
-
-        SDNStringEscaper::current().reset();
     }
     else if (is_integer()) {
         out << as_integer();
@@ -44,20 +36,9 @@ std::ostream& LDDValue::dump(std::ostream& out, LDDumpFormatState& state, LDDump
     else if (is_boolean()) {
         out << (as_boolean() ? "true" : "false");
     }
-    else if (is_map()) {
-        as_map().dump(out, state, dump_state);
-    }
-    else if (is_array()) {
-        as_array().dump(out, state, dump_state);
-    }
-    else if (is_type_decl()) {
-        as_type_decl().dump(out, state, dump_state);
-    }
-    else if (is_typed_value()) {
-        as_typed_value().dump(out, state, dump_state);
-    }
     else {
-        out << "<unknown type>";
+        auto ops = DataTypeRegistry::local().get_operations(type_tag_).get();
+        ops->dump(doc_, value_ptr_, out, state, dump_state);
     }
 
     return out;
@@ -95,9 +76,6 @@ ld_::LDDPtrHolder LDDValue::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddres
     if (is_null()) {
         return LDDValue(tgt, 0).value_ptr_;
     }
-    else if (is_string()) {
-        return as_string().deep_copy_to(tgt, mapping);
-    }
     else if (is_integer())
     {
         LDInteger value = as_integer();
@@ -113,20 +91,10 @@ ld_::LDDPtrHolder LDDValue::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddres
         LDBoolean value = as_boolean();
         return tgt->new_boolean(value).value_ptr_;
     }
-    else if (is_map()) {
-        return as_map().deep_copy_to(tgt, mapping);
+    else {
+        auto ops = DataTypeRegistry::local().get_operations(type_tag_).get();
+        return ops->deep_copy_to(doc_, value_ptr_, tgt, mapping);
     }
-    else if (is_array()) {
-        return as_array().deep_copy_to(tgt, mapping);
-    }
-    else if (is_type_decl()) {
-        return as_type_decl().deep_copy_to(tgt, mapping);
-    }
-    else if (is_typed_value()) {
-        return as_typed_value().deep_copy_to(tgt, mapping);
-    }
-
-    MMA1_THROW(RuntimeException()) << WhatCInfo("Unknown linked data document value type");
 }
 
 
@@ -149,7 +117,7 @@ LDDocument LDDValue::clone(bool compactify) const
     ld_::LDArenaAddressMapping mapping(*doc_);
 
     LDDValue tgt_value(&tgt, deep_copy_to(&tgt, mapping));
-    tgt.set_value(tgt_value);
+    tgt.set_doc_value(tgt_value);
 
     if (compactify) {
         tgt.compactify();
@@ -161,6 +129,18 @@ LDDocument LDDValue::clone(bool compactify) const
 LDDocument LDString::clone(bool compactify) const {
     LDDValue vv = *this;
     return vv.clone(compactify);
+}
+
+std::ostream& LDString::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
+{
+    U8StringView str = view();
+    U8StringView str_escaped = SDNStringEscaper::current().escape_quotes(str);
+
+    out << "'" << str_escaped << "'";
+
+    SDNStringEscaper::current().reset();
+
+    return out;
 }
 
 }}

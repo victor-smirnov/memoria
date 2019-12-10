@@ -56,28 +56,38 @@ class LinkedMap {
     using Array = LinkedVector<BucketPtr>;
     using ArrayPtr = PtrT<Array>;
 
+
+
 public:
     struct State {
         uint32_t size_;
         ArrayPtr array_;
     };
 
+    using StatePtr = PtrT<State>;
+
 private:
     const Arena* arena_;
-    PtrT<State> state_;
+    StatePtr state_;
 
 public:
     LinkedMap(): arena_(), state_({}) {}
 
-    LinkedMap(const Arena* arena, PtrT<State> state_ptr):
+    LinkedMap(const Arena* arena, StatePtr state_ptr):
         arena_(arena), state_(state_ptr)
     {}
 
     static LinkedMap create(Arena* arena, size_t tag_size = 0)
     {
-        PtrT<State> ptr = arena->template allocate_space<State>(sizeof(State), tag_size);
-        arena->construct(ptr, State{});
+        StatePtr ptr = create_ptr(arena, tag_size);
         return LinkedMap{arena, ptr.get()};
+    }
+
+    static StatePtr create_ptr(Arena* arena, size_t tag_size = 0)
+    {
+        StatePtr ptr = arena->template allocate_space<State>(sizeof(State), tag_size);
+        arena->construct(ptr, State{});
+        return ptr;
     }
 
     static LinkedMap get(const Arena* arena, PtrT<State> ptr) {

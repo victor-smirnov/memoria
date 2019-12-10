@@ -22,7 +22,7 @@
 #include <memoria/v1/core/tools/span.hpp>
 
 #include <memoria/v1/core/types/typehash.hpp>
-#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
 
 #include <memoria/v1/api/vector/vector_api_factory.hpp>
 #include <memoria/v1/api/vector/vector_producer.hpp>

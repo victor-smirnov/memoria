@@ -44,9 +44,9 @@ public:
         uint32_t size_;
         PtrT<T> data_;
     };
-private:
-    using ArrayPtr = PtrT<State>;
 
+    using ArrayPtr = PtrT<State>;
+private:
 
     const Arena* arena_;
     ArrayPtr state_;
@@ -73,13 +73,19 @@ public:
 
     static LinkedDynVector create_tagged(size_t tag_size, Arena* arena, uint32_t capacity)
     {
+        PtrT<State> ptr = create_tagged_ptr(tag_size, arena, capacity);
+        return LinkedDynVector<T, Arena>(arena, ptr);
+    }
+
+    static PtrT<State> create_tagged_ptr(size_t tag_size, Arena* arena, uint32_t capacity)
+    {
         PtrT<State> ptr = allocate_tagged<State>(tag_size, arena, State{capacity, 0});
         PtrT<T> data = arena->template allocate_space<T>(capacity * sizeof(T));
 
         State* state = ptr.get(arena);
         state->data_ = data;
 
-        return LinkedDynVector<T, Arena>(arena, ptr);
+        return ptr;
     }
 
 

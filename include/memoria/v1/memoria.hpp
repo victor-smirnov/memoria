@@ -32,26 +32,42 @@
 namespace memoria {
 namespace v1{
 
+void InitCoreLDDatatypes();
+void InitCoreDatatypes();
+void InitSimpleNumericDatatypes();
+
+void InitDefaultInMemStore();
+
+
+template <typename T, typename ProfileT>
+void InitCtrMetadata() {
+    DataTypeRegistryStore::Initializer<T, TL<>> ii0;
+    DataTypeRegistry::local().refresh();
+
+    ICtrApi<T, ProfileT>::init_profile_metadata();
+}
+
 template <typename ProfileT = DefaultProfile<>>
 struct StaticLibraryCtrs {
     static void init()
     {
-        ICtrApi<Set<FixedArray<16>>, ProfileT>::init_profile_metadata();
-        ICtrApi<Set<Varchar>, ProfileT>::init_profile_metadata();
-        ICtrApi<Map<Varchar, Varchar>, ProfileT>::init_profile_metadata();
-        ICtrApi<Vector<Varchar>, ProfileT>::init_profile_metadata();
-        ICtrApi<Vector<UTinyInt>, ProfileT>::init_profile_metadata();
-        ICtrApi<Vector<LDDocument>, ProfileT>::init_profile_metadata();
-        ICtrApi<Map<BigInt, Varchar>, ProfileT>::init_profile_metadata();
-        ICtrApi<Map<BigInt, BigInt>, ProfileT>::init_profile_metadata();
-        //ICtrApi<Multimap<BigInt, UTinyInt>, ProfileT>::init_profile_metadata();
-        //ICtrApi<Multimap<UUID, UTinyInt>, ProfileT>::init_profile_metadata();
-        ICtrApi<Multimap<Varchar, Varchar>, ProfileT>::init_profile_metadata();
+        InitCoreLDDatatypes();
+        InitCoreDatatypes();
+        InitSimpleNumericDatatypes();
+        InitDefaultInMemStore();
 
-//        CtrApi<Multimap<int64_t, uint8_t>, ProfileT>::do_link();
-//        CtrApi<Multimap<UUID, uint8_t>, ProfileT>::do_link();
-//        CtrApi<EdgeMap, ProfileT>::do_link();
-//        CtrApi<UpdateLog, ProfileT>::do_link();
+        InitCtrMetadata<Set<FixedArray<16>>, ProfileT>();
+        InitCtrMetadata<Set<Varchar>, ProfileT>();
+        InitCtrMetadata<Vector<Varchar>, ProfileT>();
+        InitCtrMetadata<Vector<UTinyInt>, ProfileT>();
+        InitCtrMetadata<Map<Varchar, Varchar>, ProfileT>();
+
+        InitCtrMetadata<Vector<LDDocument>, ProfileT>();
+        InitCtrMetadata<Map<BigInt, Varchar>, ProfileT>();
+        InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
+        //InitCtrMetadata<Multimap<BigInt, UTinyInt>, ProfileT>();
+        //InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();
+        InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
     }
 };
 

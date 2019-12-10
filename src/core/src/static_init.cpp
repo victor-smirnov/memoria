@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2019 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,26 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
 
-#include <memoria/v1/core/types.hpp>
-
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/v1/memoria.hpp>
 
 namespace memoria {
 namespace v1 {
 
-struct PkdFSEArrayTag {};
-struct PkdFSETreeTag  {};
-struct PkdRLESeqTag   {};
-struct PkdFSESeqTag   {};
-struct PkdVLEArrayTag {};
-struct PkdVLETreeTag  {};
+MMA1_DEFINE_EXPLICIT_CU_LINKING(MemoriaStaticInit)
 
-template <typename DataType, typename PkdStructTag, typename PkdStruct, typename SelectorTag = EmptyType>
-struct PkdDataTypeAccessor;
+struct StaticInitializer {
+    StaticInitializer() {
+        StaticLibraryCtrs<>::init();
+    }
+};
 
-template <typename PkdStructTag>
-struct PkdStructApiTraits;
+StaticInitializer init0;
 
 }}

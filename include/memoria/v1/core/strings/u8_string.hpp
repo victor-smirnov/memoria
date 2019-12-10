@@ -19,12 +19,10 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/linked/common/linked_hash.hpp>
 
-
 #include <boost/utility/string_view.hpp>
 
 #include <unicode/ustring.h>
 #include "u_string_capi.hpp"
-
 
 #include <string>
 #include <sstream>
@@ -229,9 +227,15 @@ using U8StringRef = const U8String&;
 template <typename T> struct TypeHash;
 
 template <>
-struct TypeHash<U8String> {
-    static const uint64_t Value = 61;
+struct TypeHash<U8StringView> {
+    static const uint64_t Value = 43;
 };
+
+template <>
+struct TypeHash<U8String> {
+    static const uint64_t Value = 44;
+};
+
 
 inline bool compare_gt(const U8StringView& first, const U8StringView& second) {
     return first.compare(second) > 0;

@@ -27,7 +27,7 @@
 #include <memoria/v1/profiles/common/common.hpp>
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
-#include <memoria/v1/api/datatypes/datatypes.hpp>
+#include <memoria/v1/core/linked/datatypes/datatypes.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -75,7 +75,7 @@ using ProfileCtrSizesT = typename _::ProfileCtrSizesTS<Profile, Streams>::Type;
 template <typename CtrName, typename Profile>
 struct CtrMetadataInitializer {
     CtrMetadataInitializer() {
-        ICtrApi<CtrName, Profile>::init_profile_metadata();
+        //ICtrApi<CtrName, Profile>::init_profile_metadata();
     }
 };
 
@@ -92,10 +92,10 @@ struct CtrMetadataInitializer {
 #define MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, ...)\
 template struct ICtrApi<CtrName, Profile>;               \
 namespace {                                             \
-    DataTypeRegistryStore::Initializer<CtrName, TL<>> init_type_##__VA_ARGS__;\
     CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
 }
 
+////DataTypeRegistryStore::Initializer<CtrName, TL<>> init_type_##__VA_ARGS__;\
 
 #define MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile, ...) \
 template struct ICtrApi<CtrName, Profile>;               \

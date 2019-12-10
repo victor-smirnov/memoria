@@ -25,7 +25,7 @@
 
 #include <memoria/v1/core/tools/span.hpp>
 
-#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
 #include <memoria/v1/api/multimap/multimap_api_factory.hpp>

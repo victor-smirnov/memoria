@@ -14,8 +14,8 @@
 // limitations under the License.
 
 
-#include <memoria/v1/api/datatypes/type_registry.hpp>
-#include <memoria/v1/api/datatypes/datum.hpp>
+#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
+#include <memoria/v1/core/linked/datatypes/datum.hpp>
 
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/fixed_array.hpp>
@@ -32,8 +32,6 @@
 
 namespace memoria {
 namespace v1 {
-
-MMA1_DEFINE_EXPLICIT_CU_LINKING(Datatypes)
 
 AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
 {
@@ -101,6 +99,29 @@ void DataTypeRegistry::refresh()
 }
 
 
+Optional<std::shared_ptr<DataTypeOperations>> DataTypeRegistry::get_operations(uint64_t type_code)
+{
+    auto ii = operations_by_code_.find(type_code);
+    if (ii != operations_by_code_.end())
+    {
+        return ii->second;
+    }
+
+    return Optional<std::shared_ptr<DataTypeOperations>>{};
+}
+
+Optional<std::shared_ptr<DataTypeOperations>> DataTypeRegistry::get_operations(U8StringView cxx_typedecl)
+{
+    auto ii = operations_.find(cxx_typedecl);
+    if (ii != operations_.end())
+    {
+        return ii->second;
+    }
+
+    return Optional<std::shared_ptr<DataTypeOperations>>{};
+}
+
+
 DataTypeRegistryStore& DataTypeRegistryStore::global()
 {
     static DataTypeRegistryStore type_registry_store_;
@@ -113,42 +134,45 @@ DataTypeRegistry& DataTypeRegistry::local()
     return type_registry_;
 }
 
-DataTypeRegistryStore::Initializer<TinyInt, TL<>> tiny_int;
-DataTypeRegistryStore::Initializer<SmallInt, TL<>> small_int;
-DataTypeRegistryStore::Initializer<Integer, TL<>> integer_;
-DataTypeRegistryStore::Initializer<BigInt, TL<>> bigint_;
-DataTypeRegistryStore::Initializer<Real, TL<>> real_;
-DataTypeRegistryStore::Initializer<Double, TL<>> double_;
-DataTypeRegistryStore::Initializer<Varchar, TL<>> varchar;
-DataTypeRegistryStore::Initializer<Timestamp, TL<>> timestamp;
-//DataTypeRegistryStore::Initializer<TSWithTimeZone, TL<>> ts_with_tz;
-DataTypeRegistryStore::Initializer<Date, TL<>> date;
-DataTypeRegistryStore::Initializer<Time, TL<>> time;
-//DataTypeRegistryStore::Initializer<TimeWithTimeZone, TL<>> time_with_tz;
-DataTypeRegistryStore::Initializer<UUID, TL<>> uuid;
+void InitCoreDatatypes()
+{
+    DataTypeRegistryStore::Initializer<TinyInt, TL<>> tiny_int;
+    DataTypeRegistryStore::Initializer<SmallInt, TL<>> small_int;
+    DataTypeRegistryStore::Initializer<Integer, TL<>> integer_;
+    DataTypeRegistryStore::Initializer<BigInt, TL<>> bigint_;
+    DataTypeRegistryStore::Initializer<Real, TL<>> real_;
+    DataTypeRegistryStore::Initializer<Double, TL<>> double_;
+    DataTypeRegistryStore::Initializer<Varchar, TL<>> varchar;
+    DataTypeRegistryStore::Initializer<Timestamp, TL<>> timestamp;
+    //DataTypeRegistryStore::Initializer<TSWithTimeZone, TL<>> ts_with_tz;
+    DataTypeRegistryStore::Initializer<Date, TL<>> date;
+    DataTypeRegistryStore::Initializer<Time, TL<>> time;
+    //DataTypeRegistryStore::Initializer<TimeWithTimeZone, TL<>> time_with_tz;
+    DataTypeRegistryStore::Initializer<UUID, TL<>> uuid;
 
 
-DataTypeRegistryStore::Initializer<Map<Varchar, Varchar>, TL<>> map_varchar_varchar;
-DataTypeRegistryStore::Initializer<Map<UUID, UUID>, TL<>> map_uuid_uuid;
+    DataTypeRegistryStore::Initializer<Map<Varchar, Varchar>, TL<>> map_varchar_varchar;
+    DataTypeRegistryStore::Initializer<Map<UUID, UUID>, TL<>> map_uuid_uuid;
 
-DataTypeRegistryStore::Initializer<Multimap<Varchar, Varchar>, TL<>> multimap_varchar_varchar;
+    DataTypeRegistryStore::Initializer<Multimap<Varchar, Varchar>, TL<>> multimap_varchar_varchar;
 
-//DataTypeRegistryStore::Initializer<Decimal, TL<int64_t, int64_t>, TL<int64_t>, TL<>> decimal;
-//DataTypeRegistryStore::Initializer<Dynamic<Decimal>, TL<>> dynamic_decimal;
-//DataTypeRegistryStore::Initializer<BigDecimal, TL<int64_t, int64_t>, TL<int64_t>, TL<>> big_decimal;
-//DataTypeRegistryStore::Initializer<Dynamic<BigDecimal>, TL<>> dynamic_big_decimal;
+    //DataTypeRegistryStore::Initializer<Decimal, TL<int64_t, int64_t>, TL<int64_t>, TL<>> decimal;
+    //DataTypeRegistryStore::Initializer<Dynamic<Decimal>, TL<>> dynamic_decimal;
+    //DataTypeRegistryStore::Initializer<BigDecimal, TL<int64_t, int64_t>, TL<int64_t>, TL<>> big_decimal;
+    //DataTypeRegistryStore::Initializer<Dynamic<BigDecimal>, TL<>> dynamic_big_decimal;
 
 
-DataTypeRegistryStore::Initializer<FixedArray<4>, TL<>> fixed_array_4;
-DataTypeRegistryStore::Initializer<FixedArray<8>, TL<>> fixed_array_8;
-DataTypeRegistryStore::Initializer<FixedArray<16>, TL<>> fixed_array_16;
-DataTypeRegistryStore::Initializer<FixedArray<32>, TL<>> fixed_array_32;
-DataTypeRegistryStore::Initializer<FixedArray<64>, TL<>> fixed_array_64;
-DataTypeRegistryStore::Initializer<FixedArray<128>, TL<>> fixed_array_128;
-DataTypeRegistryStore::Initializer<FixedArray<256>, TL<>> fixed_array_256;
-DataTypeRegistryStore::Initializer<FixedArray<512>, TL<>> fixed_array_512;
-DataTypeRegistryStore::Initializer<FixedArray<1024>, TL<>> fixed_array_1024;
+    DataTypeRegistryStore::Initializer<FixedArray<4>, TL<>> fixed_array_4;
+    DataTypeRegistryStore::Initializer<FixedArray<8>, TL<>> fixed_array_8;
+    DataTypeRegistryStore::Initializer<FixedArray<16>, TL<>> fixed_array_16;
+    DataTypeRegistryStore::Initializer<FixedArray<32>, TL<>> fixed_array_32;
+    DataTypeRegistryStore::Initializer<FixedArray<64>, TL<>> fixed_array_64;
+    DataTypeRegistryStore::Initializer<FixedArray<128>, TL<>> fixed_array_128;
+    DataTypeRegistryStore::Initializer<FixedArray<256>, TL<>> fixed_array_256;
+    DataTypeRegistryStore::Initializer<FixedArray<512>, TL<>> fixed_array_512;
+    DataTypeRegistryStore::Initializer<FixedArray<1024>, TL<>> fixed_array_1024;
 
-DataTypeRegistryStore::Initializer<LDDocument, TL<>> ld_document;
+    DataTypeRegistryStore::Initializer<LDDocument, TL<>> ld_document;
+}
 
 }}

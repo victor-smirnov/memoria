@@ -20,8 +20,8 @@
 #include <memoria/v1/core/tools/accessors.hpp>
 #include <memoria/v1/core/types/algo/for_each.hpp>
 #include <memoria/v1/api/common/packed_api.hpp>
-#include <memoria/v1/api/datatypes/datum.hpp>
-#include <memoria/v1/api/datatypes/type_registry.hpp>
+#include <memoria/v1/core/linked/datatypes/datum.hpp>
+#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
 #include <memoria/v1/core/strings/string_codec.hpp>
 #include <memoria/v1/core/strings/format.hpp>
 

@@ -17,14 +17,16 @@
 
 #pragma once
 
-#include <memoria/v1/api/datatypes/type_signature.hpp>
-#include <memoria/v1/api/datatypes/traits.hpp>
-#include <memoria/v1/api/datatypes/datum_base.hpp>
+#include <memoria/v1/core/linked/datatypes/type_signature.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/datum_base.hpp>
 
 #include <memoria/v1/core/types/list/typelist.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
+
+#include <memoria/v1/core/tools/optional.hpp>
 
 #include <boost/any.hpp>
 #include <boost/context/detail/apply.hpp>
@@ -36,7 +38,38 @@
 namespace memoria {
 namespace v1 {
 
+class DataTypeRegistry;
 
+struct DataTypeOperations {
+    virtual ~DataTypeOperations() noexcept {}
+
+    virtual U8String full_type_name() = 0;
+    virtual boost::any create_cxx_instance(const LDTypeDeclaration& typedecl) = 0;
+    virtual AnyDatum from_ld_document(const LDDValue& value) = 0;
+    virtual LDDValueTag type_hash() = 0;
+
+    virtual void dump(
+            const LDDocumentView* doc,
+            LDPtrHolder ptr,
+            std::ostream& out,
+            LDDumpFormatState& state,
+            LDDumpState& dump_state
+    ) = 0;
+
+    virtual LDPtrHolder deep_copy_to(
+            const LDDocumentView* src,
+            LDPtrHolder ptr,
+            LDDocumentView* tgt,
+            ld_::LDArenaAddressMapping& mapping
+    ) = 0;
+
+    virtual LDPtrHolder construct_from(
+            LDDocumentView* doc,
+            const LDDValue& value
+    ) = 0;
+};
+
+template <typename T> struct DataTypeOperationsImpl;
 
 namespace _ {
     template <typename T, typename ParamsList, typename... CtrArgsLists> struct DataTypeCreator;
@@ -74,7 +107,9 @@ class DataTypeRegistry {
     using CreatorFn   = std::function<boost::any (const DataTypeRegistry&, const LDTypeDeclaration&)>;
     using SdnParserFn = std::function<AnyDatum (const DataTypeRegistry&, const LDDocument&)>;
 
-    std::map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
+    std::unordered_map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
+    std::unordered_map<U8String, std::shared_ptr<DataTypeOperations>> operations_;
+    std::unordered_map<uint64_t, std::shared_ptr<DataTypeOperations>> operations_by_code_;
 
 public:
     friend class DataTypeRegistryStore;
@@ -99,6 +134,9 @@ public:
     static DataTypeRegistry& local();
 
     void refresh();
+
+    Optional<std::shared_ptr<DataTypeOperations>> get_operations(uint64_t type_code);
+    Optional<std::shared_ptr<DataTypeOperations>> get_operations(U8StringView cxx_typedecl);
 };
 
 class DataTypeRegistryStore {
@@ -106,11 +144,13 @@ class DataTypeRegistryStore {
     using CreatorFn   = typename DataTypeRegistry::CreatorFn;
     using SdnParserFn = typename DataTypeRegistry::SdnParserFn;
 
-    std::map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
+    std::unordered_map<U8String, std::tuple<CreatorFn, SdnParserFn>> creators_;
+    std::unordered_map<U8String, std::shared_ptr<DataTypeOperations>> operations_;
+    std::unordered_map<uint64_t, std::shared_ptr<DataTypeOperations>> operations_by_code_;
 
-    mutable std::mutex mutex_;
+    mutable std::recursive_mutex mutex_;
 
-    using LockT = std::lock_guard<std::mutex>;
+    using LockT = std::lock_guard<std::recursive_mutex>;
 
 public:
     friend class DataTypeRegistry;
@@ -127,6 +167,33 @@ public:
         LDDocument doc = ts.parse();
         creators_[doc.value().as_type_decl().to_cxx_typedecl()] = std::make_tuple(creator, parser);
     }
+
+    template <typename T>
+    void register_operations(std::shared_ptr<DataTypeOperations> ops)
+    {
+        LockT lock(mutex_);
+
+        TypeSignature ts = make_datatype_signature<T>();
+        LDDocument doc = ts.parse();
+        operations_[doc.value().as_type_decl().to_cxx_typedecl()] = ops;
+
+        uint64_t code = TypeHash<T>::Value & 0xFFFFFFFFFFFFFF;
+        operations_by_code_[code] = ops;
+    }
+
+    template <typename T>
+    void register_notctr_operations(std::shared_ptr<DataTypeOperations> ops)
+    {
+        LockT lock(mutex_);
+
+        SBuf buf;
+        DataTypeTraits<T>::create_signature(buf);
+        operations_[buf.str()] = ops;
+
+        uint64_t code = TypeHash<T>::Value & 0xFFFFFFFFFFFFFF;
+        operations_by_code_[code] = ops;
+    }
+
 
     template <typename T>
     void unregister_creator()
@@ -151,7 +218,8 @@ public:
     {
         auto creator_fn = [](const DataTypeRegistry& registry, const LDTypeDeclaration& decl)
         {
-            constexpr size_t declared_params_size = ListSize<typename DataTypeTraits<T>::Parameters>;
+            //constexpr size_t declared_params_size = ListSize<typename DataTypeTraits<T>::Parameters>;
+            constexpr size_t declared_params_size = ListSize<DTTParameters<T>>;
 
             size_t actual_parameters_size = decl.params();
 
@@ -159,7 +227,7 @@ public:
             {
                 return _::DataTypeCreator<
                         T,
-                        typename DataTypeTraits<T>::Parameters,
+                        DTTParameters<T>,
                         ArgTypesLists...
                 >::create(registry, decl);
             }
@@ -187,6 +255,23 @@ public:
         }
     };
 
+
+    template <typename T>
+    struct OpsInitializer {
+        OpsInitializer() {
+            std::shared_ptr<DataTypeOperations> ops = std::make_shared<DataTypeOperationsImpl<T>>();
+            DataTypeRegistryStore::global().template register_operations<T>(ops);
+        }
+    };
+
+    template <typename T>
+    struct NoTCtrOpsInitializer {
+        NoTCtrOpsInitializer() {
+            std::shared_ptr<DataTypeOperations> ops = std::make_shared<DataTypeOperationsImpl<T>>();
+            DataTypeRegistryStore::global().template register_notctr_operations<T>(ops);
+        }
+    };
+
     template <typename T>
     struct DeInitializer {
         DeInitializer() {
@@ -200,6 +285,13 @@ private:
         LockT lock(mutex_);
         local.creators_.clear();
         local.creators_ = creators_;
+
+        local.operations_.clear();
+        local.operations_ = operations_;
+
+
+        local.operations_by_code_.clear();
+        local.operations_by_code_ = operations_by_code_;
     }
 };
 

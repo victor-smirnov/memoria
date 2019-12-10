@@ -21,6 +21,8 @@
 #include <memoria/v1/core/tools/span.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
+
 #include <iostream>
 #include <functional>
 
@@ -35,6 +37,38 @@ public:
 };
 
 class LDDocument;
+
+
+namespace ldd_ {
+
+    template <typename T>
+    struct ObjectCreatorHelper {
+        template <typename Doc, typename... Args>
+        static auto process(Doc* doc, Args&&... args) {
+            return doc->template new_raw_value<T>(std::forward<Args>(args)...);
+        }
+
+        template <typename Doc, typename... Args>
+        static auto process_raw(Doc* doc, Args&&... args) {
+            return doc->template new_raw_value_raw<T>(std::forward<Args>(args)...);
+        }
+    };
+
+    template <>
+    struct ObjectCreatorHelper<LDString> {
+        template <typename Doc, typename... Args>
+        static auto process(Doc* doc, Args&&... args) {
+            return doc->new_string(std::forward<Args>(args)...);
+        }
+
+        template <typename Doc, typename... Args>
+        static auto process_raw(Doc* doc, Args&&... args) {
+            return doc->new_string(std::forward<Args>(args)...).ptr();
+        }
+    };
+
+
+}
 
 class LDDocumentView {
 
@@ -60,6 +94,12 @@ protected:
     friend class LDString;
     friend class LDIdentifier;
     friend class LDDTypedValue;
+
+    template <typename>
+    friend struct DataTypeOperationsImpl;
+
+    template <typename>
+    friend struct ldd_::ObjectCreatorHelper;
 
     using CharIterator = typename U8StringView::const_iterator;
 
@@ -101,6 +141,17 @@ public:
 
     LDDMap set_map();
     LDDArray set_array();
+
+    template <typename T, typename... Args>
+    DTTLDViewType<T> set_value(Args&&... args)
+    {
+        auto value_ptr = ld_allocate_and_construct(make_null_v<T>(), arena_.make_mutable(), std::forward<Args>(args)...);
+        set_tag(value_ptr.get(), ld_tag_value<T>());
+        state_mutable()->value = value_ptr;
+
+        using LDViewType = DTTLDViewType<T>;
+        return LDViewType{this, value_ptr, ld_tag_value<T>()};
+    }
 
     LDDValue set_sdn(U8StringView sdn);
 
@@ -165,7 +216,11 @@ public:
         return arena_.span() != other.arena_.span();
     }
 
+    void add_shared_string(U8StringView string);
+
 protected:
+    Optional<ld_::LDPtr<DTTLDStorageType<LDString>>> is_shared(DTTViewType<LDString> string) const;
+
     Span<const AtomType> span() const {
         return arena_.span();
     }
@@ -201,7 +256,7 @@ protected:
 
     LDTypeDeclaration new_type_declaration(U8StringView name);
     LDTypeDeclaration new_type_declaration(LDIdentifier name);
-    LDDTypedValue new_typed_value(LDTypeDeclaration typedecl, LDDValue ctr_value);
+    LDDValue new_typed_value(LDTypeDeclaration typedecl, LDDValue ctr_value);
 
     LDTypeDeclaration new_detached_type_declaration(LDIdentifier name);
 
@@ -228,9 +283,9 @@ protected:
     LDDArray new_array();
     LDDMap new_map();
 
-    void set_value(LDDValue value) noexcept;
+    void set_doc_value(LDDValue value) noexcept;
 
-    ld_::LDPtr<U8LinkedString> intern(U8StringView view);
+    ld_::LDPtr<DTTLDStorageType<LDString>> intern(DTTViewType<LDString> view);
 
     DocumentState* state_mutable() {
         return doc_ptr().get_mutable(&arena_);
@@ -243,6 +298,40 @@ protected:
     void set_tag(ld_::LDDPtrHolder ptr, LDDValueTag tag) noexcept
     {
         ld_::ldd_set_tag(&arena_, ptr, tag);
+    }
+
+
+
+    template <typename T, typename... Args>
+    DTTLDViewType<T> new_value(Args&&... args)
+    {
+        return ldd_::ObjectCreatorHelper<T>::process(this, std::forward<Args>(args)...);
+    }
+
+    template <typename T, typename... Args>
+    DTTLDViewType<T> new_raw_value(Args&&... args)
+    {
+        using LDViewType = DTTLDViewType<T>;
+
+        auto value_ptr = ld_allocate_and_construct(make_null_v<T>(), arena_.make_mutable(), std::forward<Args>(args)...);
+
+        set_tag(value_ptr.get(), ld_tag_value<T>());
+        return LDViewType{this, value_ptr, ld_tag_value<T>()};
+    }
+
+    template <typename T, typename... Args>
+    LDPtrHolder new_value_raw(Args&&... args)
+    {
+        return ldd_::ObjectCreatorHelper<T>::process_raw(this, std::forward<Args>(args)...);
+    }
+
+    template <typename T, typename... Args>
+    LDPtrHolder new_raw_value_raw(Args&&... args)
+    {
+        auto value_ptr = ld_allocate_and_construct(make_null_v<T>(), arena_.make_mutable(), std::forward<Args>(args)...);
+
+        set_tag(value_ptr.get(), ld_tag_value<T>());
+        return value_ptr.get();
     }
 };
 

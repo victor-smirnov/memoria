@@ -15,10 +15,10 @@
 
 
 #include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/api/datatypes/datatypes.hpp>
+#include <memoria/v1/core/linked/datatypes/datatypes.hpp>
 
-#include <memoria/v1/api/datatypes/varchars/varchar_builder.hpp>
-#include <memoria/v1/api/datatypes/buffer/buffer.hpp>
+#include <memoria/v1/core/linked/datatypes/varchars/varchar_builder.hpp>
+#include <memoria/v1/core/linked/datatypes/buffer/buffer.hpp>
 
 #include <memoria/v1/api/store/memory_store_api.hpp>
 
@@ -36,10 +36,13 @@ using Ctr2T = Vector<Varchar>;
 
 int main()
 {
-    StaticLibraryCtrs<>::init();
-
     try {
-        auto store = IMemoryStore<>::create();
+        LDDocument doc = LDDocument::parse("@UTinyInt = '1237687'");
+        doc.dump(std::cout) << std::endl;
+
+
+
+        /*auto store = IMemoryStore<>::create();
 
         auto snp = store->master()->branch();
 
@@ -99,11 +102,10 @@ int main()
 
         //ctr2->drop();
 
-        auto ctr3 = find<Ctr1T>(snp, ctr2_id);
+        //auto ctr3 = find<Ctr1T>(snp, ctr2_id);
+        //std::cout << ctr3->describe_type() << std::endl;
 
-        std::cout << ctr3->describe_type() << std::endl;
-
-        snp->commit();
+        snp->commit();*/
     }
     catch (MemoriaThrowable& th) {
         th.dump(std::cout);

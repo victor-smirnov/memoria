@@ -14,9 +14,9 @@
 // limitations under the License.
 
 
-#include <memoria/v1/api/datatypes/type_signature.hpp>
-#include <memoria/v1/api/datatypes/traits.hpp>
-#include <memoria/v1/api/datatypes/type_registry.hpp>
+#include <memoria/v1/core/linked/datatypes/type_signature.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
 
 #include <memoria/v1/profiles/default/default.hpp>
 #include <memoria/v1/api/store/memory_store_api.hpp>

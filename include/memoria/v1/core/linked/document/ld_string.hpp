@@ -33,9 +33,13 @@ class LDString {
 public:
     LDString(): doc_(), string_({}) {}
 
-    LDString(const LDDocumentView* doc, ld_::LDPtr<U8LinkedString> string):
+    LDString(const LDDocumentView* doc, ld_::LDPtr<U8LinkedString> string, LDDValueTag tag = 0):
         doc_(doc), string_(string)
     {}
+
+    LDPtrHolder ptr() const {
+        return string_.get();
+    }
 
     U8StringView view() const noexcept {
         return string_.get(&doc_->arena_)->view();
@@ -46,8 +50,25 @@ public:
     LDDocument clone(bool compactify = true) const;
 
     ld_::LDPtr<U8LinkedString> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
+
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
+
+    std::ostream& dump(std::ostream& out, LDDumpFormatState& format) const
+    {
+        LDDumpState dump_state(*doc_);
+        dump(out, format, dump_state);
+        return out;
+    }
+
+    std::ostream& dump(std::ostream& out) const {
+        LDDumpFormatState state;
+        LDDumpState dump_state(*doc_);
+        return dump(out, state, dump_state);
+    }
 };
 
 std::ostream& operator<<(std::ostream& out, const LDString& value);
+
+
 
 }}

@@ -34,6 +34,9 @@ class LDDValue {
     friend class LDDArray;
     friend class LDTypeDeclaration;
 
+    template <typename>
+    friend struct DataTypeOperationsImpl;
+
 public:
     LDDValue() noexcept : doc_(), value_ptr_(), type_tag_() {}
 
@@ -86,35 +89,35 @@ public:
     }
 
     bool is_integer() const noexcept {
-        return type_tag_ == LDDValueTraits<LDInteger>::ValueTag;
+        return type_tag_ == ld_tag_value<LDInteger>();
     }
 
     bool is_double() const noexcept {
-        return type_tag_ == LDDValueTraits<LDDouble>::ValueTag;
+        return type_tag_ == ld_tag_value<LDDouble>();
     }
 
     bool is_boolean() const noexcept {
-        return type_tag_ == LDDValueTraits<LDBoolean>::ValueTag;
+        return type_tag_ == ld_tag_value<LDBoolean>();
     }
 
     bool is_string() const noexcept {
-        return type_tag_ == LDDValueTraits<LDString>::ValueTag;
+        return type_tag_ == ld_tag_value<LDString>();
     }
 
     bool is_array() const noexcept {
-        return type_tag_ == LDDValueTraits<LDDArray>::ValueTag;
+        return type_tag_ == ld_tag_value<LDDArray>();
     }
 
     bool is_map() const noexcept {
-        return type_tag_ == LDDValueTraits<LDDMap>::ValueTag;
+        return type_tag_ == ld_tag_value<LDDMap>();
     }
 
     bool is_type_decl() const noexcept {
-        return type_tag_ == LDDValueTraits<LDTypeDeclaration>::ValueTag;
+        return type_tag_ == ld_tag_value<LDTypeDeclaration>();
     }
 
     bool is_typed_value() const noexcept {
-        return type_tag_ == LDDValueTraits<LDDTypedValue>::ValueTag;
+        return type_tag_ == ld_tag_value<LDDTypedValue>();
     }
 
     bool is_simple_layout() const noexcept;

@@ -19,6 +19,7 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/strings/string.hpp>
 
+#include <memoria/v1/core/strings/u8_string.hpp>
 
 #include <memoria/v1/core/exceptions/base.hpp>
 

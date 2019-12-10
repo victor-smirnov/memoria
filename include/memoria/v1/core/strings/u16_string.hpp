@@ -19,6 +19,8 @@
 #include <memoria/v1/core/types.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 
+#include <boost/utility/string_view.hpp>
+
 #include <string>
 #include <memory>
 #include <ostream>
@@ -32,6 +34,8 @@ namespace memoria {
 namespace v1 {
 
 using UnicodeString = MMA1_ICU_CXX_NS::UnicodeString;
+
+using U16StringView = boost::u16string_view;
 
 class U8String;
 class U32String;
@@ -532,8 +536,13 @@ public:
 template <typename T> struct TypeHash;
 
 template <>
+struct TypeHash<U16StringView> {
+    static const uint64_t Value = 45;
+};
+
+template <>
 struct TypeHash<U16String> {
-    static const uint64_t Value = 62;
+    static const uint64_t Value = 46;
 };
 
 inline bool compare_gt(const U16String& first, const U16String& second) {

@@ -87,4 +87,15 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDTypedValue& v
     return out;
 }
 
+template <>
+struct DataTypeTraits<LDDTypedValue> {
+    static constexpr bool isDataType = true;
+    using LDStorageType = NullType;
+    using LDViewType = LDDTypedValue;
+
+    static void create_signature(SBuf& buf) {
+        buf << "LDDTypedValue";
+    }
+};
+
 }}

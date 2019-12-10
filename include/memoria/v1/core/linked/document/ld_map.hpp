@@ -19,12 +19,15 @@
 #include <memoria/v1/core/linked/document/ld_array.hpp>
 #include <memoria/v1/core/linked/document/ld_value.hpp>
 
+#include <memoria/v1/core/linked/datatypes/core.hpp>
+
 namespace memoria {
 namespace v1 {
 
 class LDDMap {
+public:
     using ValueMap = ld_::ValueMap;
-    using Array = ld_::Array;
+private:
 
     friend class LDTypeDeclaration;
     friend class LDDArray;
@@ -36,7 +39,7 @@ class LDDMap {
 public:
     LDDMap(): doc_(), map_() {}
 
-    LDDMap(const LDDocumentView* doc, ld_::LDPtr<ValueMap::State> map):
+    LDDMap(const LDDocumentView* doc, ld_::LDPtr<ValueMap::State> map, LDDValueTag tag = 0):
         doc_(doc), map_(&doc_->arena_, map)
     {}
 
@@ -150,7 +153,7 @@ public:
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
-        auto name_str = dst_doc->intern(name);
+        auto name_str = dst_doc->new_string(name).ptr();
 
         ld_::LDArenaAddressMapping mapping(source, *dst_doc);
         ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
@@ -164,7 +167,7 @@ public:
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
-        auto name_str = dst_doc->intern(name);
+        auto name_str = dst_doc->new_string(name).ptr();
 
         map_.put(name_str, 0);
 
@@ -249,6 +252,25 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDMap& value) {
     value.dump(out, format);
     return out;
 }
+
+template <>
+struct DataTypeTraits<LDDMap> {
+    static constexpr bool isDataType = true;
+    using LDStorageType = NullType;
+    using LDViewType = LDDMap;
+
+    static void create_signature(SBuf& buf) {
+        buf << "LDDMap";
+    }
+};
+
+template <typename Arena>
+auto ld_allocate_and_construct(const LDDMap*, Arena* arena)
+{
+    return LDDMap::ValueMap::create_ptr(arena, ld_tag_size<LDDMap>());
+}
+
+
 
 
 }}

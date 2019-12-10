@@ -18,7 +18,7 @@
 #include <memoria/v1/core/types.hpp>
 
 
-#include <memoria/v1/api/datatypes/datum.hpp>
+#include <memoria/v1/core/linked/datatypes/datum.hpp>
 
 #include <memoria/v1/api/common/packed_api.hpp>
 
@@ -47,10 +47,7 @@ struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
 
     using DatumStorage  = VarcharStorage;
 
-    using Parameters = TL<>;
-
     static constexpr bool isDataType          = true;
-    static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
 
     static constexpr bool isSdnDeserializable = true;

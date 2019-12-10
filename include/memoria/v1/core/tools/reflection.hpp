@@ -88,23 +88,6 @@ struct FieldFactory<BitField<Type> > {
     }
 };
 
-template <>
-struct FieldFactory<EmptyValue> {
-
-    template <typename SerializationData>
-    static void serialize(SerializationData& data, const EmptyValue& field, int32_t count = 1) {}
-
-    template <typename SerializationData>
-    static void serialize(SerializationData& data, const EmptyValue* field, int32_t count = 1) {}
-
-    template <typename DeserializationData>
-    static void deserialize(DeserializationData& data, EmptyValue& field, int32_t count = 1) {}
-
-    template <typename DeserializationData>
-    static void deserialize(DeserializationData& data, EmptyValue* field, int32_t count = 1) {}
-};
-
-
 
 #define MEMORIA_TYPED_FIELD(Type)                                               \
 template <> struct FieldFactory<Type> {                                         \

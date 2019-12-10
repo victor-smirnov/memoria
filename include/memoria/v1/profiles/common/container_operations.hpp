@@ -30,7 +30,7 @@
 #include <memoria/v1/filesystem/operations.hpp>
 #include <memoria/v1/filesystem/path.hpp>
 #include <memoria/v1/reactor/file_streams.hpp>
-#include <memoria/v1/api/datatypes/type_signature.hpp>
+#include <memoria/v1/core/linked/datatypes/type_signature.hpp>
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
 

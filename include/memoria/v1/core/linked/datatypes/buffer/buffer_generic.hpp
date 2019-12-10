@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/api/datatypes/buffer/buffer_common.hpp>
+#include <memoria/v1/core/linked/datatypes/buffer/buffer_common.hpp>
 
 #include <memoria/v1/core/types/mp11.hpp>
 #include <memoria/v1/core/types/algo.hpp>

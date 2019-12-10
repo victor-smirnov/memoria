@@ -24,7 +24,7 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/format.hpp>
 
-#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
 
 #include <memoria/v1/core/tools/span.hpp>
 
@@ -203,9 +203,6 @@ struct DataTypeTraits<FixedArray<Size>>:  FixedSizeDataTypeTraits<FixedArray<Siz
 {
     using ViewType   = FixedArray<Size>;
 
-    using Parameters = TL<>;
-
-    static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
 
     using DatumSelector = FixedSizeDataTypeTag;

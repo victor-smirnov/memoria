@@ -19,9 +19,9 @@
 
 #include <memoria/v1/api/common/iobuffer_adatpters.hpp>
 
-#include <memoria/v1/api/datatypes/traits.hpp>
-#include <memoria/v1/api/datatypes/encoding_traits.hpp>
-#include <memoria/v1/api/datatypes/io_vector_traits.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/encoding_traits.hpp>
+#include <memoria/v1/core/linked/datatypes/io_vector_traits.hpp>
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
 

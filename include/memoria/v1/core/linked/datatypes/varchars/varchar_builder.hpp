@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <memoria/v1/api/datatypes/core.hpp>
-#include <memoria/v1/api/datatypes/traits.hpp>
-#include <memoria/v1/api/datatypes/varchars/varchars.hpp>
+#include <memoria/v1/core/linked/datatypes/core.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/varchars/varchars.hpp>
 
 #include <memoria/v1/core/tools/bitmap.hpp>
 

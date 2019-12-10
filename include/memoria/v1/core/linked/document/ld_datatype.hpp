@@ -16,9 +16,9 @@
 #pragma once
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
-#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
 
-#include <memoria/v1/api/datatypes/datum.hpp>
+#include <memoria/v1/core/linked/datatypes/datum.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -34,10 +34,7 @@ struct DataTypeTraits<LDDocument>: DataTypeTraitsBase<LDDocument>
 
     using DatumStorage  = LDDocumentStorage;
 
-    using Parameters = TL<>;
-
     static constexpr bool isDataType          = true;
-    static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
 
     static constexpr bool isSdnDeserializable = true;

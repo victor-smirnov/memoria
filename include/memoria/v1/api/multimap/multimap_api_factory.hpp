@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memoria/v1/api/datatypes/traits.hpp>
-#include <memoria/v1/api/datatypes/io_vector_traits.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/io_vector_traits.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
 #include <memoria/v1/api/common/ctr_api_btfl.hpp>
@@ -69,8 +69,6 @@ struct DataTypeTraits<Multimap<Key, Value>> {
 
     using Parameters = TL<Key, Value>;
 
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
-    static constexpr bool IsParametrised      = true;
     static constexpr bool HasTypeConstructors = false;
     static constexpr bool isSdnDeserializable = false;
 

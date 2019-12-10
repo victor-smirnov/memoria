@@ -17,22 +17,34 @@
 
 #include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/api/datatypes/traits.hpp>
-
-#include <memoria/v1/core/iovector/io_substream_base.hpp>
-
-
+#include <absl/types/span.h>
 
 namespace memoria {
 namespace v1 {
-namespace io {
 
-struct ColumnWise {};
-struct ColumnWise1D {};
-struct RowWise {};
+template <typename T>
+using VarbinaryView = absl::Span<T>;
 
-template <typename Value, bool IsColumnWise, bool IsFixedSize>
-struct IOSubstreamInterfaceTF;
+template <>
+struct DataTypeTraits<Varbinary>: DataTypeTraitsBase<Varbinary>
+{
+    using AtomType      = uint8_t;
+    using ViewType      = VarbinaryView<AtomType>;
+    using ConstViewType = VarbinaryView<const AtomType>;
 
-}
+    static constexpr bool isDataType          = true;
+    static constexpr bool HasTypeConstructors = false;
+
+    static void create_signature(SBuf& buf, const Varchar& obj)
+    {
+        buf << "Varbinary";
+    }
+
+    static void create_signature(SBuf& buf)
+    {
+        buf << "Varbinary";
+    }
+};
+
+
 }}

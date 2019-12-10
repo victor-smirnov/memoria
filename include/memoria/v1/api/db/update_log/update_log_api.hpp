@@ -22,7 +22,7 @@
 
 #include <memoria/v1/core/tools/object_pool.hpp>
 
-#include <memoria/v1/api/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
 
 #include <memoria/v1/core/types/typehash.hpp>
 
@@ -103,10 +103,6 @@ struct DataTypeTraits<UpdateLog> {
     using InputView = EmptyType;
     using Ptr       = EmptyType*;
 
-    using Parameters = TL<>;
-
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
-    static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
 
     static void create_signature(SBuf& buf, const UpdateLog& obj) {

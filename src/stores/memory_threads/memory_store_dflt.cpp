@@ -30,16 +30,18 @@ namespace memory {
 template class ThreadsMemoryStoreImpl<Profile>;
 template class ThreadsSnapshot<Profile, ThreadsMemoryStoreImpl<Profile>>;
 
-namespace  {
 
-    template <typename PP>
-    struct Initializer {
-        Initializer() {
-            ThreadsSnapshot<PP, ThreadsMemoryStoreImpl<PP>>::init_profile_metadata();
-        }
-    };
+template <typename PP>
+struct Initializer {
+    Initializer() {
+        ThreadsSnapshot<PP, ThreadsMemoryStoreImpl<PP>>::init_profile_metadata();
+    }
+};
 
-    Initializer<Profile> init0;
+}}
+
+void InitDefaultInMemStore() {
+    store::memory::Initializer<Profile> init0;
 }
 
-}}}}
+}}

@@ -35,7 +35,7 @@
 namespace memoria {
 namespace v1 {
 
-MMA1_DECLARE_EXPLICIT_CU_LINKING(Datatypes);
+MMA1_DECLARE_EXPLICIT_CU_LINKING(MemoriaStaticInit);
 
 static constexpr int DEFAULT_BLOCK_SIZE                 = 8192;
 static constexpr int PackedTreeBranchingFactor          = 32;
@@ -130,25 +130,6 @@ using BoolValue = ConstValue<bool, Value>;
 
 template <typename...> using VoidT = void;
 
-class EmptyValue {
-public:
-    EmptyValue() {}
-    EmptyValue(const int32_t) {}
-    EmptyValue(const int64_t) {}
-    EmptyValue(const EmptyValue& other) {}
-    EmptyValue& operator=(const EmptyValue& other) {
-        return *this;
-    }
-
-    template <typename T>
-    operator T () {
-        return 0;
-    }
-
-    operator int64_t () const {
-        return 0;
-    }
-};
 
 template <typename T> struct TypeHash; // must define Value constant
 
@@ -294,35 +275,6 @@ struct TypeDef {
     typedef T Type;
 };
 
-class NotDefined {};
-
-// For metadata initialization
-template <int Order>
-struct CtrNameDeclarator: TypeDef<NotDefined> {};
-
-
-
-
-
-
-
-
-
-template <typename T> struct DeclType {
-    typedef T Type;
-};
-
-template <typename First, typename Second>
-struct ValuePair {
-
-    First   first;
-    Second  second;
-
-    ValuePair(const First& f, const Second& s): first(f), second(s) {}
-    ValuePair(const First& f): first(f) {}
-    ValuePair() {}
-};
-
 
 struct IterEndMark {};
 
@@ -420,7 +372,7 @@ struct StdMetaFn {
     using type = T;
 };
 
-namespace _ {
+namespace tt_ {
     template <typename T, bool Flag, typename... AdditionalTypes>
     struct FailIfT {
         static_assert(!Flag, "Template failed");
@@ -429,10 +381,10 @@ namespace _ {
 }
 
 template <bool Flag, typename T, typename... AdditionalTypes>
-using FailIf = typename _::FailIfT<T, Flag, AdditionalTypes...>::Type;
+using FailIf = typename tt_::FailIfT<T, Flag, AdditionalTypes...>::Type;
 
 template <bool Flag, int32_t V, typename... AdditionalTypes>
-constexpr int32_t FailIfV = _::FailIfT<IntValue<V>, Flag, AdditionalTypes...>::Type::Value;
+constexpr int32_t FailIfV = tt_::FailIfT<IntValue<V>, Flag, AdditionalTypes...>::Type::Value;
 
 template <typename T, typename T1 = int32_t, T1 V = T1{}>
 struct FakeValue: HasValue<T1, V> {};

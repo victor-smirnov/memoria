@@ -30,16 +30,17 @@ namespace memory {
 template class FibersMemoryStoreImpl<Profile>;
 template class FibersSnapshot<Profile, FibersMemoryStoreImpl<Profile>>;
 
-namespace  {
+template <typename PP>
+struct Initializer {
+    Initializer() {
+        FibersSnapshot<PP, FibersMemoryStoreImpl<PP>>::init_profile_metadata();
+    }
+};
 
-    template <typename PP>
-    struct Initializer {
-        Initializer() {
-            FibersSnapshot<PP, FibersMemoryStoreImpl<PP>>::init_profile_metadata();
-        }
-    };
+}}
 
-    Initializer<Profile> init0;
+void InitDefaultInMemStore() {
+    store::memory::Initializer<Profile> init0;
 }
 
-}}}}
+}}

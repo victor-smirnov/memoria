@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memoria/v1/api/datatypes/buffer/buffer_0_fse.hpp>
-//#include <memoria/v1/api/datatypes/buffer/buffer_0_vle.hpp>
-//#include <memoria/v1/api/datatypes/buffer/buffer_1fse_1vle.hpp>
-#include <memoria/v1/api/datatypes/buffer/buffer_generic.hpp>
+#include <memoria/v1/core/linked/datatypes/buffer/buffer_0_fse.hpp>
+//#include <memoria/v1/core/linked/datatypes/buffer/buffer_0_vle.hpp>
+//#include <memoria/v1/core/linked/datatypes/buffer/buffer_1fse_1vle.hpp>
+#include <memoria/v1/core/linked/datatypes/buffer/buffer_generic.hpp>
 

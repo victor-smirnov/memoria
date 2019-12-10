@@ -25,8 +25,6 @@
 
 #include <memoria/v1/core/types/typelist.hpp>
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
-
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -36,12 +34,12 @@
 namespace memoria {
 namespace v1 {
 
+class LDDocument;
+
 class TypeSignature {
     U8String name_;
 public:
-    TypeSignature(U8StringView name) {
-        name_ = LDDocument::parse_type_decl(name).value().to_standard_string();
-    }
+    TypeSignature(U8StringView name);
 
     const U8String& name() const {
         return name_;
@@ -55,13 +53,8 @@ public:
         return name_ == other.name_;
     }
 
-    LDDocument parse() const {
-        return LDDocument::parse_type_decl(name_);
-    }
-
-    static LDDocument parse(U8StringView str) {
-        return LDDocument::parse_type_decl(str);
-    }
+    LDDocument parse() const;
+    static LDDocument parse(U8StringView str);
 };
 
 }}

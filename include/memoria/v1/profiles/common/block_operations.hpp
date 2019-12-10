@@ -145,17 +145,6 @@ struct ValueHelper<BlockID<T> > {
     }
 };
 
-template <>
-struct ValueHelper<EmptyValue> {
-    using Type = EmptyValue;
-
-    static void setup(IBlockDataEventHandler* handler, const char* name, const Type& value)
-    {
-        int64_t val = 0;
-        handler->value(name, &val);
-    }
-};
-
 
 namespace internal {
 

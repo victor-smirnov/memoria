@@ -15,10 +15,11 @@
 
 #pragma once
 
-#include <memoria/v1/api/datatypes/core.hpp>
-#include <memoria/v1/api/datatypes/type_signature.hpp>
+#include <memoria/v1/core/linked/datatypes/core.hpp>
+#include <memoria/v1/core/linked/datatypes/type_signature.hpp>
 #include <memoria/v1/core/strings/string_buffer.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
+
 
 namespace memoria {
 namespace v1 {
@@ -67,6 +68,8 @@ using DTTViewType = typename DataTypeTraits<T>::ViewType;
 template <typename T>
 using DTTAtomType = typename DataTypeTraits<T>::AtomType;
 
+template <typename T>
+using DTTLDViewType = typename DataTypeTraits<T>::LDViewType;
 
 template <typename T>
 using DTTTypeDimensionsTuple = typename DataTypeTraits<T>::TypeDimensionsTuple;
@@ -74,8 +77,52 @@ using DTTTypeDimensionsTuple = typename DataTypeTraits<T>::TypeDimensionsTuple;
 template <typename T>
 using DTTDataDimensionsTuple = typename DataTypeTraits<T>::DataDimensionsTuple;
 
+
+template <typename T>
+using DTTLDStorageType = typename DataTypeTraits<T>::LDStorageType;
+
+
 template <typename T>
 constexpr bool DTTisDataType = DataTypeTraits<T>::isDataType;
+
+namespace dtt_ {
+    template <typename T, typename = void>
+    struct DTTHasLDStorageTypeH: std::false_type {};
+
+    template <typename T>
+    struct DTTHasLDStorageTypeH<T, VoidT<typename DataTypeTraits<T>::LDStorageType>>: std::true_type {};
+}
+
+template <typename T>
+constexpr bool DTTisLinkedDataType = dtt_::DTTHasLDStorageTypeH<T>::value;
+
+
+namespace dtt_ {
+    template <typename T, typename = void>
+    struct DTTHasParametersH1: std::false_type {};
+
+    template <typename T>
+    struct DTTHasParametersH1<T, VoidT<typename DataTypeTraits<T>::Parameters>>: std::true_type {};
+
+    template <typename T, bool HasParamsTypedecl = DTTHasParametersH1<T>::value>
+    struct DTTHasParametersH2: std::integral_constant<bool, ListSize<typename DataTypeTraits<T>::Parameters>> {};
+
+    template <typename T>
+    struct DTTHasParametersH2<T, false>: std::false_type {};
+
+    template <typename T, bool HasParamsTypedecl = DTTHasParametersH1<T>::value>
+    struct DTTParametersH: HasType<typename DataTypeTraits<T>::Parameters>{};
+
+    template <typename T>
+    struct DTTParametersH<T, false>: HasType<TL<>> {};
+}
+
+
+template <typename T>
+constexpr bool DTTisParametrized = dtt_::DTTHasParametersH2<T>::value;
+
+template <typename T>
+using DTTParameters = typename dtt_::DTTParametersH<T>::Type;
 
 
 
@@ -110,11 +157,10 @@ struct FixedSizeDataTypeTag {};
 template <typename T, typename DataType>
 struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 {
-    using ViewType  = T;
+    using ViewType      = T;
+    using LDViewType    = T;
+    using LDStorageType = T;
 
-    using Parameters = TL<>;
-
-    static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = false;
 
     static constexpr bool isSdnDeserializable = std::is_arithmetic<T>::value;
@@ -332,7 +378,6 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
     using Parameters = TL<>;
 
     static constexpr bool isDataType          = true;
-    static constexpr size_t MemorySize        = sizeof(EmptyType);
     static constexpr bool IsParametrised      = false;
     static constexpr bool HasTypeConstructors = true;
 

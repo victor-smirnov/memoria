@@ -194,7 +194,7 @@ ld_::LDPtr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDD
 
     LDIdentifier src_name(doc_, src_state->name);
 
-    ld_::LDPtr<U8LinkedString> tgt_name = tgt->intern(src_name.view());
+    ld_::LDPtr<U8LinkedString> tgt_name = tgt->new_string(src_name.view()).ptr();
 
     ld_::LDArenaView* tgt_arena_view = &tgt->arena_;
 

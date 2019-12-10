@@ -16,30 +16,23 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/api/datatypes/traits.hpp>
 
-#include <typeinfo>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
+
+#include <memoria/v1/core/iovector/io_substream_base.hpp>
+
+
 
 namespace memoria {
 namespace v1 {
+namespace io {
 
-template <typename DataType, typename SelectorTag = typename DataTypeTraits<DataType>::DatumSelector>
-class Datum;
+struct ColumnWise {};
+struct ColumnWise1D {};
+struct RowWise {};
 
-class AnyDatum;
+template <typename Value, bool IsColumnWise, bool IsFixedSize>
+struct IOSubstreamInterfaceTF;
 
-struct AnyDatumStorage
-{
-    virtual ~AnyDatumStorage() noexcept {}
-
-    virtual U8String data_type_str() const = 0;
-    virtual U8String to_sdn_string() const = 0;
-
-    virtual const std::type_info& data_type_info() const noexcept = 0;
-    virtual const char* data() const noexcept = 0;
-    virtual void destroy() noexcept = 0;
-    virtual bool equals(const AnyDatumStorage* other) const noexcept = 0;
-};
-
-
+}
 }}

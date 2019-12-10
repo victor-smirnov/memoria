@@ -22,9 +22,10 @@ namespace memoria {
 namespace v1 {
 
 class LDDArray {
+public:
     using Array = ld_::Array;
-    using ValueMap = ld_::ValueMap;
 
+private:
     friend class LDTypeDeclaration;
     friend class LDDMap;
     friend class LDDocument;
@@ -42,6 +43,10 @@ public:
 
     LDDArray(const LDDocumentView* doc, PtrHolder ptr) noexcept:
         doc_(doc), array_(Array::get(&doc_->arena_, ptr))
+    {}
+
+    LDDArray(const LDDocumentView* doc, typename Array::ArrayPtr ptr, LDDValueTag) noexcept:
+        doc_(doc), array_(Array::get(&doc_->arena_, ptr.get()))
     {}
 
     operator LDDValue() const noexcept;
@@ -220,7 +225,6 @@ public:
     }
 
 private:
-
     void do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 };
 
@@ -230,6 +234,30 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDArray& array)
     LDDumpFormatState format = LDDumpFormatState().simple();
     array.dump(out, format);
     return out;
+}
+
+
+template <>
+struct DataTypeTraits<LDDArray> {
+    static constexpr bool isDataType = true;
+    using LDStorageType = NullType;
+    using LDViewType = LDDArray;
+
+    static void create_signature(SBuf& buf) {
+        buf << "LDDArray";
+    }
+};
+
+template <typename Arena>
+auto ld_allocate_and_construct(const LDDArray*, Arena* arena)
+{
+    return LDDArray::Array::create_tagged_ptr(ld_tag_size<LDDArray>(), arena, 4);
+}
+
+template <typename Arena>
+auto ld_allocate_and_construct(const LDDArray*, Arena* arena, size_t capacity)
+{
+    return LDDArray::Array::create_tagged_ptr(ld_tag_size<LDDArray>(), arena, capacity);
 }
 
 }}

@@ -17,13 +17,13 @@
 
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
 
-#include <memoria/v1/api/datatypes/traits.hpp>
-#include <memoria/v1/api/datatypes/encoding_traits.hpp>
-#include <memoria/v1/api/datatypes/io_vector_traits.hpp>
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/linked/datatypes/encoding_traits.hpp>
+#include <memoria/v1/core/linked/datatypes/io_vector_traits.hpp>
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
 
-#include <memoria/v1/api/datatypes/buffer/buffer.hpp>
+#include <memoria/v1/core/linked/datatypes/buffer/buffer.hpp>
 
 #include <functional>
 

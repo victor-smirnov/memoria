@@ -29,23 +29,53 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/format.hpp>
 
+#include <memoria/v1/core/types/typehash.hpp>
+
+#include <memoria/v1/core/linked/datatypes/traits.hpp>
+
 #include <unordered_map>
 #include <iostream>
 
 namespace memoria {
 namespace v1 {
 
-using LDDValueTag = uint16_t;
+using LDDValueTag = uint64_t;
 struct LDDInvalidCastException: RuntimeException {};
 
+template <typename T>
+constexpr size_t ld_tag_size()
+{
+    uint64_t code = TypeHash<T>::Value;
+    if (code < 250)
+    {
+        return 1;
+    }
+    else {
+        return 8;
+    }
+}
+
+template <typename T>
+constexpr LDDValueTag ld_tag_value()
+{
+    uint64_t code = TypeHash<T>::Value;
+    if (code < 250)
+    {
+        return code;
+    }
+    else {
+        return (code & 0xFFFFFFFFFFFFFF) | (static_cast<uint64_t>(250) << 56);
+    }
+}
+
 struct LDDocumentHeader {
-    uint32_t version;
+    uint64_t version;
 };
 
 
 namespace ld_ {
-    using LDArena     = LinkedArena<LDDocumentHeader, uint32_t>;
-    using LDArenaView = LinkedArenaView<LDDocumentHeader, uint32_t>;
+    using LDArena     = LinkedArena<LDDocumentHeader, uint64_t>;
+    using LDArenaView = LinkedArenaView<LDDocumentHeader, uint64_t>;
 
     using LDDPtrHolder = LDArenaView::PtrHolderT;
 
@@ -57,6 +87,8 @@ namespace ld_ {
 
     enum class LDDCopyingType {COMPACTION, EXPORT, IMPORT};
 }
+
+using LDPtrHolder = ld_::LDDPtrHolder;
 
 
 class LDDArray;
@@ -146,12 +178,30 @@ namespace ld_ {
 
     static inline void ldd_set_tag(LDArenaView* arena, PtrHolder ptr, LDDValueTag tag) noexcept
     {
-        *T2T<LDDValueTag*>(arena->data() + ptr - sizeof(tag)) = tag;
+        if (tag < SHORT_TYPEHASH_LENGTH_BASE)
+        {
+            *T2T<uint8_t*>(arena->data() + ptr - sizeof(uint8_t)) = (uint8_t)tag;
+        }
+        else {
+            tag &= 0xFFFFFFFFFFFFFF;
+            tag |= ((LDDValueTag)250) << 56;
+            *T2T<LDDValueTag*>(arena->data() + ptr - sizeof(LDDValueTag)) = tag;
+        }
     }
 
-    static inline LDDValueTag ldd_get_tag(const LDArenaView* arena, PtrHolder ptr) noexcept {
-        return *T2T<const LDDValueTag*>(arena->data() + ptr - sizeof(LDDValueTag));
+    static inline LDDValueTag ldd_get_tag(const LDArenaView* arena, PtrHolder ptr) noexcept
+    {
+        uint8_t short_value = *T2T<const uint8_t*>(arena->data() + ptr - sizeof(uint8_t));
+        if (short_value < SHORT_TYPEHASH_LENGTH_BASE)
+        {
+            return short_value;
+        }
+        else {
+            LDDValueTag long_value = *T2T<const LDDValueTag*>(arena->data() + ptr - sizeof(LDDValueTag));
+            return long_value & 0xFFFFFFFFFFFFFF;
+        }
     }
+
 
 
     class LDArenaAddressMapping {
@@ -284,7 +334,7 @@ namespace ld_ {
     void ldd_assert_tag(const Arena* arena, LDDPtrHolder ptr)
     {
         LDDValueTag tag = ldd_get_tag(arena, ptr);
-        if (tag != LDDValueTraits<Type>::ValueTag) {
+        if (tag != ld_tag_value<Type>()) {
             MMA1_THROW(LDDInvalidCastException());
         }
     }
@@ -292,7 +342,7 @@ namespace ld_ {
     template <typename Type>
     void ldd_assert_tag(LDDValueTag tag)
     {
-        if (tag != LDDValueTraits<Type>::ValueTag) {
+        if (tag != ld_tag_value<Type>()) {
             MMA1_THROW(LDDInvalidCastException());
         }
     }
@@ -305,57 +355,12 @@ namespace ld_ {
     }
 }
 
-
-
-
-
-template <>
-struct LDDValueTraits<LDString> {
-    static constexpr LDDValueTag ValueTag = 1;
-};
-
-template <>
-struct LDDValueTraits<LDInteger> {
-    static constexpr LDDValueTag ValueTag = 2;
-};
-
-template <>
-struct LDDValueTraits<LDDouble> {
-    static constexpr LDDValueTag ValueTag = 3;
-};
-
-template <>
-struct LDDValueTraits<LDDMap> {
-    static constexpr LDDValueTag ValueTag = 5;
-};
-
-template <>
-struct LDDValueTraits<LDDArray> {
-    static constexpr LDDValueTag ValueTag = 6;
-};
-
-template <>
-struct LDDValueTraits<LDTypeDeclaration> {
-    static constexpr LDDValueTag ValueTag = 7;
-};
-
-template <>
-struct LDDValueTraits<LDIdentifier> {
-    static constexpr LDDValueTag ValueTag = LDDValueTraits<LDString>::ValueTag;
-};
-
-template <>
-struct LDDValueTraits<LDDTypedValue> {
-    static constexpr LDDValueTag ValueTag = 9;
-};
-
-template <>
-struct LDDValueTraits<LDBoolean> {
-    static constexpr LDDValueTag ValueTag = 10;
-};
-
-
-
+template <> struct TypeHash<LDString>:  UInt64Value<1> {};
+template <> struct TypeHash<LDDMap>:    UInt64Value<2> {};
+template <> struct TypeHash<LDDArray>:  UInt64Value<3> {};
+template <> struct TypeHash<LDTypeDeclaration>: UInt64Value<4> {};
+template <> struct TypeHash<LDDTypedValue>:     UInt64Value<5> {};
+template <> struct TypeHash<LDBoolean>:         UInt64Value<6> {};
 
 class LDDumpFormatState {
     const char* space_;
@@ -482,5 +487,112 @@ public:
 
     static SDNStringEscaper& current();
 };
+
+
+template <>
+struct DataTypeTraits<LDString>: DataTypeTraitsBase<LDString> {
+    using ViewType      = U8StringView;
+    using ConstViewType = ViewType;
+    using AtomType      = std::remove_const_t<typename ViewType::value_type>;
+    using LDStorageType = U8LinkedString;
+
+    using LDViewType    = LDString;
+
+    //using DatumStorage  = VarcharStorage;
+
+    static constexpr bool isDataType          = true;
+    static constexpr bool HasTypeConstructors = false;
+
+    static constexpr bool isSdnDeserializable = true;
+
+    static void create_signature(SBuf& buf, const LDString& obj)
+    {
+        buf << "LDString";
+    }
+
+    static void create_signature(SBuf& buf)
+    {
+        buf << "LDString";
+    }
+
+
+    using DataSpan = Span<const AtomType>;
+    using SpanList = TL<DataSpan>;
+    using SpanTuple = AsTuple<SpanList>;
+
+    using DataDimensionsList  = TL<DataSpan>;
+    using DataDimensionsTuple = AsTuple<DataDimensionsList>;
+
+    using TypeDimensionsList  = TL<>;
+    using TypeDimensionsTuple = AsTuple<TypeDimensionsList>;
+
+    static DataDimensionsTuple describe_data(ViewType view) {
+        return std::make_tuple(DataSpan(view.data(), view.size()));
+    }
+
+    static DataDimensionsTuple describe_data(const ViewType* view) {
+        return std::make_tuple(DataSpan(view->data(), view->size()));
+    }
+
+
+    static TypeDimensionsTuple describe_type(ViewType view) {
+        return std::make_tuple();
+    }
+
+    static TypeDimensionsTuple describe_type(const Varchar& data_type) {
+        return TypeDimensionsTuple{};
+    }
+
+
+    static ViewType make_view(const DataDimensionsTuple& data)
+    {
+        return ViewType(std::get<0>(data).data(), std::get<0>(data).size());
+    }
+
+    static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data)
+    {
+        return ViewType(std::get<0>(data).data(), std::get<0>(data).size());
+    }
+};
+
+template <typename T>
+constexpr const T* make_null_v() {
+    return nullptr;
+}
+
+
+template <typename T, typename DocT, typename... Args>
+DTTLDViewType<T> make_ld_view(const T*, const DocT* doc, Args&&... args)
+{
+    return DTTLDViewType<T>(doc, std::forward<Args>(args)...);
+}
+
+
+
+template <typename T, typename Arena, typename... Args>
+auto ld_allocate_and_construct(const T*, Arena* arena, Args&&... args)
+{
+    using LDStorageType = DTTLDStorageType<T>;
+
+    return allocate_tagged<LDStorageType>(
+        ld_tag_size<T>(), arena, std::forward<Args>(args)...
+    );
+}
+
+//template <typename T, typename Arena, typename... Args>
+//auto ld_create_storage(const T* dt_tag, Arena* arena, Args&&... args)
+//{
+//    using LDViewType = DTTLDViewType<T>;
+
+//    auto value_ptr = ld_allocate_and_construct<T>(
+//        dt_tag, arena, std::forward<Args>(args)...
+//    );
+
+//    ld_::ldd_set_tag(value_ptr.get(), ld_tag_value<T>());
+//    return LDViewType{this, value_ptr, ld_tag_value<T>()};
+//}
+
+
+
 
 }}

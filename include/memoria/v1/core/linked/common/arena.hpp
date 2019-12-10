@@ -26,6 +26,8 @@
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
+#include <memoria/v1/core/types/typehash.hpp>
+
 #include <utility>
 #include <type_traits>
 #include <unordered_map>
@@ -265,8 +267,6 @@ public:
         );
     }
 
-
-
     template <typename T, typename... CtrArgs>
     void construct(PtrT<T> ptr, CtrArgs&&... args) noexcept
     {
@@ -287,6 +287,16 @@ public:
 
     Span<AtomType> span() {
         return Span<AtomType>(data_, data_size());
+    }
+
+    template <typename T>
+    const T* get(PtrHolderT_ ptr) const {
+        return T2T<const T*>(data() + ptr);
+    }
+
+    template <typename T>
+    T* get_mutable(PtrHolderT_ ptr) {
+        return T2T<const T*>(mutable_data() + ptr);
     }
 };
 
