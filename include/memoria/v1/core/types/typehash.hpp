@@ -35,40 +35,20 @@ struct TypeHashes {
 
 // Type Code value 0 means 'no code'
 
-// Linked Data Type Codes:
-// LDStringView: 1
-// LDDMapView: 2
-// LDDArrayView: 3
-// LDTypeDeclarationView: 4
-// LDDTypedValueView: 5
-// LDBoolean: 6
+template <> struct TypeHash<int8_t>:    UInt64Value<1> {};
+template <> struct TypeHash<uint8_t>:   UInt64Value<2> {};
+template <> struct TypeHash<int16_t>:   UInt64Value<3> {};
+template <> struct TypeHash<uint16_t>:  UInt64Value<4> {};
+template <> struct TypeHash<int32_t>:   UInt64Value<5> {};
+template <> struct TypeHash<uint32_t>:  UInt64Value<6> {};
+template <> struct TypeHash<int64_t>:   UInt64Value<7> {};
+template <> struct TypeHash<uint64_t>:  UInt64Value<8> {};
+template <> struct TypeHash<float>:     UInt64Value<9> {};
+template <> struct TypeHash<double>:    UInt64Value<10> {};
 
-// Reserved for Linked Data : 7-31, 250-255
-
-template <>
-struct TypeHash<void>: UInt64Value<32> {};
-
-template <> struct TypeHash<int8_t>:      UInt64Value<33> {};
-template <> struct TypeHash<uint8_t>:     UInt64Value<34> {};
-template <> struct TypeHash<int16_t>:     UInt64Value<35> {};
-template <> struct TypeHash<uint16_t>:    UInt64Value<36> {};
-template <> struct TypeHash<int32_t>:     UInt64Value<37> {};
-template <> struct TypeHash<uint32_t>:    UInt64Value<38> {};
-template <> struct TypeHash<int64_t>:     UInt64Value<39> {};
-template <> struct TypeHash<uint64_t>:    UInt64Value<40> {};
-template <> struct TypeHash<float>:       UInt64Value<41> {};
-template <> struct TypeHash<double>:      UInt64Value<42> {};
-
-// U8StringView: 43
-// U8String: 44
-
-// U16StringView: 45
-// U16String: 46
-
-// U32StringView: 47
-// U32String: 48
-
-// Spans for primitive types: 49 - 68
+// Core datatypes: 11 - 29
+// LinkedData: 30 - 34
+// Reserved for Linked Data : 250 - 255
 
 template <
     template <typename> class Profile,
@@ -77,7 +57,6 @@ template <
 struct TypeHash<Profile<T>> {
     // FIXME need template assigning unique code to the each profile level
     using VList = UInt64List<100, TypeHash<T>::Value>;
-
     static constexpr uint64_t Value = md5::Md5Sum<VList>::Result::Value64;
 };
 

@@ -26,81 +26,13 @@
 #include <memoria/v1/core/tools/arena_buffer.hpp>
 #include <memoria/v1/core/strings/u8_string.hpp>
 
+#include <memoria/v1/core/datatypes/varchars/varchar_dt.hpp>
 
 #include <tuple>
 
 namespace memoria {
 namespace v1 {
 
-class VarcharStorage;
-using VarcharView = U8StringView;
-
-
-
-
-template <>
-struct DataTypeTraits<Varchar>: DataTypeTraitsBase<Varchar>
-{
-    using ViewType      = VarcharView;
-    using ConstViewType = VarcharView;
-    using AtomType      = std::remove_const_t<typename VarcharView::value_type>;
-
-    using DatumStorage  = VarcharStorage;
-
-    static constexpr bool isDataType          = true;
-    static constexpr bool HasTypeConstructors = false;
-
-    static constexpr bool isSdnDeserializable = true;
-
-    static void create_signature(SBuf& buf, const Varchar& obj)
-    {
-        buf << "Varchar";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "Varchar";
-    }
-
-
-    using DataSpan = Span<const AtomType>;
-    using SpanList = TL<DataSpan>;
-    using SpanTuple = AsTuple<SpanList>;
-
-    using DataDimensionsList  = TL<DataSpan>;
-    using DataDimensionsTuple = AsTuple<DataDimensionsList>;
-
-    using TypeDimensionsList  = TL<>;
-    using TypeDimensionsTuple = AsTuple<TypeDimensionsList>;
-
-    static DataDimensionsTuple describe_data(ViewType view) {
-        return std::make_tuple(DataSpan(view.data(), view.size()));
-    }
-
-    static DataDimensionsTuple describe_data(const ViewType* view) {
-        return std::make_tuple(DataSpan(view->data(), view->size()));
-    }
-
-
-    static TypeDimensionsTuple describe_type(ViewType view) {
-        return std::make_tuple();
-    }
-
-    static TypeDimensionsTuple describe_type(const Varchar& data_type) {
-        return TypeDimensionsTuple{};
-    }
-
-
-    static ViewType make_view(const DataDimensionsTuple& data)
-    {
-        return ViewType(std::get<0>(data).data(), std::get<0>(data).size());
-    }
-
-    static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data)
-    {
-        return ViewType(std::get<0>(data).data(), std::get<0>(data).size());
-    }
-};
 
 
 

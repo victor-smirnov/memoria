@@ -37,7 +37,7 @@ auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>(u"LD
     {
         U8String key = "Entry" + std::to_string(c);
         values[key] = c;
-        map.set_integer(key, c);
+        map.set_bigint(key, c);
 
         if (c % 500 == 0) {
             assert_arrays_equal(values, map);
@@ -70,9 +70,9 @@ auto ldd_map_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumen
     assert_equals(true, doc.value().as_map() == map);
     assert_equals(0, map.size());
 
-    map.set_string("Entry0", "Hello World");
-    assert_equals(true, map.get("Entry0").get().is_string());
-    assert_equals("Hello World", map.get("Entry0").get().as_string().view());
+    map.set_varchar("Entry0", "Hello World");
+    assert_equals(true, map.get("Entry0").get().is_varchar());
+    assert_equals("Hello World", map.get("Entry0").get().as_varchar().view());
 
     map.set_double("Entry1", 123456);
     assert_equals(true, map.get("Entry1").get().is_double());

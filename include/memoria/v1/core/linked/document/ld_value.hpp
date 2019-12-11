@@ -60,64 +60,75 @@ public:
     LDTypeDeclarationView as_type_decl() const;
     LDDTypedValueView as_typed_value() const;
 
-    LDStringView as_string() const
+    LDStringView as_varchar() const
     {
-        ld_::ldd_assert_tag<LDStringView>(type_tag_);
+        ld_::ldd_assert_tag<Varchar>(type_tag_);
         return LDStringView(doc_, value_ptr_);
     }
 
-    LDInteger as_integer() const
+    DTTViewType<BigInt> as_bigint() const
     {
-        ld_::ldd_assert_tag<LDInteger>(type_tag_);
-        return *ld_::LDPtr<ld_::LDIntegerStorage>(value_ptr_).get(&doc_->arena_);
+        ld_::ldd_assert_tag<BigInt>(type_tag_);
+        return *ld_::LDPtr<DTTLDStorageType<BigInt>>(value_ptr_).get(&doc_->arena_);
     }
 
-    LDDouble as_double() const
+    DTTViewType<Double> as_double() const
     {
-        ld_::ldd_assert_tag<LDDouble>(type_tag_);
-        return *ld_::LDPtr<ld_::LDDoubleStorage>(value_ptr_).get(&doc_->arena_);
+        ld_::ldd_assert_tag<Double>(type_tag_);
+        return *ld_::LDPtr<DTTLDStorageType<Double>>(value_ptr_).get(&doc_->arena_);
     }
 
-    LDBoolean as_boolean() const
+    DTTViewType<Real> as_real() const
     {
-        ld_::ldd_assert_tag<LDBoolean>(type_tag_);
-        return *ld_::LDPtr<ld_::LDBooleanStorage>(value_ptr_).get(&doc_->arena_);
+        ld_::ldd_assert_tag<Real>(type_tag_);
+        return *ld_::LDPtr<DTTLDStorageType<Real>>(value_ptr_).get(&doc_->arena_);
+    }
+
+    DTTViewType<Boolean> as_boolean() const
+    {
+        ld_::ldd_assert_tag<Boolean>(type_tag_);
+        return *ld_::LDPtr<DTTLDStorageType<Boolean>>(value_ptr_).get(&doc_->arena_);
     }
 
     bool is_null() const noexcept {
         return value_ptr_ == 0;
     }
 
-    bool is_integer() const noexcept {
-        return type_tag_ == ld_tag_value<LDInteger>();
+    bool is_bigint() const noexcept {
+        return type_tag_ == ld_tag_value<BigInt>();
+    }
+
+    bool is_real() const noexcept {
+        return type_tag_ == ld_tag_value<Real>();
     }
 
     bool is_double() const noexcept {
-        return type_tag_ == ld_tag_value<LDDouble>();
+        return type_tag_ == ld_tag_value<Double>();
     }
 
     bool is_boolean() const noexcept {
-        return type_tag_ == ld_tag_value<LDBoolean>();
+        return type_tag_ == ld_tag_value<Boolean>();
     }
 
-    bool is_string() const noexcept {
-        return type_tag_ == ld_tag_value<LDStringView>();
+
+    bool is_varchar() const noexcept {
+        return type_tag_ == ld_tag_value<Varchar>();
     }
 
     bool is_array() const noexcept {
-        return type_tag_ == ld_tag_value<LDDArrayView>();
+        return type_tag_ == ld_tag_value<LDArray>();
     }
 
     bool is_map() const noexcept {
-        return type_tag_ == ld_tag_value<LDDMapView>();
+        return type_tag_ == ld_tag_value<LDMap>();
     }
 
     bool is_type_decl() const noexcept {
-        return type_tag_ == ld_tag_value<LDTypeDeclarationView>();
+        return type_tag_ == ld_tag_value<LDTypeDeclaration>();
     }
 
     bool is_typed_value() const noexcept {
-        return type_tag_ == ld_tag_value<LDDTypedValueView>();
+        return type_tag_ == ld_tag_value<LDTypedValue>();
     }
 
     bool is_simple_layout() const noexcept;

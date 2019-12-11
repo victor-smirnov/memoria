@@ -31,7 +31,7 @@
 namespace memoria {
 namespace v1 {
 
-template <typename CharT = char> class LinkedString;
+template <typename CharT> class LinkedString;
 using U8LinkedString = LinkedString<typename U8StringView::value_type>;
 
 template <>

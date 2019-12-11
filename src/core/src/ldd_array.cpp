@@ -73,7 +73,7 @@ LDDMapView LDDArrayView::set_map(size_t idx)
 
 ld_::LDPtr<LDDArrayView::Array::State> LDDArrayView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
-    ld_::DeepCopyHelper<ld_::LDDValueDeepCopyHelperBase<LDDArrayView>> helper(mapping, doc_, tgt);
+    ld_::DeepCopyHelper<ld_::LDDValueDeepCopyHelperBase<LDArray>> helper(mapping, doc_, tgt);
     return array_.deep_copy_to(tgt->arena_.make_mutable(), helper);
 }
 

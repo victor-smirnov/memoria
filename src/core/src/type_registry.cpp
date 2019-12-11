@@ -45,11 +45,11 @@ AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
     else
     {
         U8String typedecl;
-        if (value.is_string())
+        if (value.is_varchar())
         {
             typedecl = make_datatype_signature_string<Varchar>();
         }
-        else if (value.is_integer()) {
+        else if (value.is_bigint()) {
             typedecl = make_datatype_signature_string<BigInt>();
         }
         else if (value.is_double()) {
@@ -172,7 +172,7 @@ void InitCoreDatatypes()
     DataTypeRegistryStore::Initializer<FixedArray<512>, TL<>> fixed_array_512;
     DataTypeRegistryStore::Initializer<FixedArray<1024>, TL<>> fixed_array_1024;
 
-    DataTypeRegistryStore::Initializer<LDDocument, TL<>> ld_document;
+    DataTypeRegistryStore::Initializer<LinkedData, TL<>> ld_document;
 }
 
 }}

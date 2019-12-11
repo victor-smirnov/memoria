@@ -57,15 +57,15 @@ public:
 
     LDDValueView get(size_t idx) const;
 
-    void set_string(size_t idx, U8StringView value)
+    void set_varchar(size_t idx, DTTViewType<Varchar> value)
     {
-        LDStringView str = doc_->make_mutable()->new_string(value);
+        LDStringView str = doc_->make_mutable()->new_varchar(value);
         array_.access_checked(idx) = str.string_.get();
     }
 
-    void set_integer(size_t idx, int64_t value)
+    void set_bigint(size_t idx, int64_t value)
     {
-        LDDValueView vv = doc_->make_mutable()->new_integer(value);
+        LDDValueView vv = doc_->make_mutable()->new_bigint(value);
         array_.access_checked(idx) = vv.value_ptr_;
     }
 
@@ -103,15 +103,15 @@ public:
         return value;
     }
 
-    void add_string(U8StringView value)
+    void add_string(DTTViewType<Varchar> value)
     {
-        LDStringView str = doc_->make_mutable()->new_string(value);
+        LDStringView str = doc_->make_mutable()->new_varchar(value);
         array_.push_back(str.string_.get());
     }
 
     void add_integer(int64_t value)
     {
-        LDDValueView vv = doc_->make_mutable()->new_integer(value);
+        LDDValueView vv = doc_->make_mutable()->new_bigint(value);
         array_.push_back(vv.value_ptr_);
     }
 
@@ -238,7 +238,7 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDArrayView& ar
 
 
 template <>
-struct DataTypeTraits<LDDArrayView> {
+struct DataTypeTraits<LDArray> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
     using LDViewType = LDDArrayView;
@@ -249,15 +249,15 @@ struct DataTypeTraits<LDDArrayView> {
 };
 
 template <typename Arena>
-auto ld_allocate_and_construct(const LDDArrayView*, Arena* arena)
+auto ld_allocate_and_construct(const LDArray*, Arena* arena)
 {
-    return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDDArrayView>(), arena, 4);
+    return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDArray>(), arena, 4);
 }
 
 template <typename Arena>
-auto ld_allocate_and_construct(const LDDArrayView*, Arena* arena, size_t capacity)
+auto ld_allocate_and_construct(const LDArray*, Arena* arena, size_t capacity)
 {
-    return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDDArrayView>(), arena, capacity);
+    return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDArray>(), arena, capacity);
 }
 
 }}

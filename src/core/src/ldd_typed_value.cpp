@@ -25,7 +25,7 @@ std::ostream& LDDTypedValueView::dump(std::ostream& out, LDDumpFormatState& stat
 
     auto ref = dump_state.resolve_type_id(type.state_.get());
 
-    if (MMA1_LIKELY(!ctr.is_string()))
+    if (MMA1_LIKELY(!ctr.is_varchar()))
     {
         out << '@';
         if (!ref) {
@@ -111,12 +111,12 @@ ld_::LDPtr<LDDTypedValueView::State> LDDTypedValueView::deep_copy_to(LDDocumentV
     LDDValueView src_value(doc_, src_state->value_ptr);
 
     ld_::LDPtr<State> tgt_state = allocate_tagged<State>(
-                sizeof(LDDValueTag),
+                ld_tag_size<LDTypedValue>(),
                 &tgt->arena_,
                 State{tgt_type.get(), src_value.deep_copy_to(tgt, mapping)}
     );
 
-    ld_::ldd_set_tag(&tgt->arena_, tgt_state.get(), ld_tag_value<LDDTypedValueView>());
+    ld_::ldd_set_tag(&tgt->arena_, tgt_state.get(), ld_tag_value<LDTypedValue>());
 
     return tgt_state.get();
 }

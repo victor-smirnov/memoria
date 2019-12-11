@@ -322,11 +322,11 @@ namespace _ {
     template <>
     struct CtrArgsConverter<int64_t> {
         static bool is_convertible(const LDDValueView& value) {
-            return value.is_integer();
+            return value.is_bigint();
         }
 
         static int64_t convert(const LDDValueView& value) {
-            return value.as_integer();
+            return value.as_bigint();
         }
     };
 
@@ -344,22 +344,22 @@ namespace _ {
     template <>
     struct CtrArgsConverter<U8String> {
         static bool is_convertible(const LDDValueView& value) {
-            return value.is_string();
+            return value.is_varchar();
         }
 
         static U8String convert(const LDDValueView& value) {
-            return value.as_string().view();
+            return value.as_varchar().view();
         }
     };
 
     template <>
     struct CtrArgsConverter<U8StringView> {
         static bool is_convertible(const LDDValueView& value) {
-            return value.is_string();
+            return value.is_varchar();
         }
 
         static U8StringView convert(const LDDValueView& value) {
-            return value.as_string().view();
+            return value.as_varchar().view();
         }
     };
 

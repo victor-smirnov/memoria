@@ -45,9 +45,9 @@ MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(UBigInt, UBigInt);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(Real, Real);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(Double, Double);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(Timestamp, Timestamp);
-MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(TSWithTimeZone, Timestamp With Timezone);
+MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(TimestampWithTZ, TimestampWithTZ);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(Time, Time);
-MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(TimeWithTimeZone, Time With Timezone);
+MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(TimeWithTZ, TimeWithTZ);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(Date, Date);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(uint8_t, UByte);
 MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(int64_t, Int64);
@@ -155,11 +155,37 @@ struct FixedSizeDataTypeTag {};
 
 
 template <typename T, typename DataType>
+struct MinimalDataTypeTraits: DataTypeTraitsBase<DataType>
+{
+    using ViewType      = T;
+
+    static constexpr bool HasTypeConstructors = false;
+
+    using ExtData = EmptyType;
+
+    using TypeDimensionsList  = TL<>;
+    using TypeDimensionsTuple = AsTuple<TypeDimensionsList>;
+
+    using DataDimensionsList  = TL<const T*>;
+    using DataDimensionsTuple = AsTuple<DataDimensionsList>;
+
+    static void create_signature(SBuf& buf, DataType obj) {
+        PrimitiveDataTypeName<DataType>::create_signature(buf, obj);
+    }
+
+    static void create_signature(SBuf& buf) {
+        PrimitiveDataTypeName<DataType>::create_signature(buf, DataType());
+    }
+};
+
+
+
+template <typename T, typename DataType, typename LDST = T>
 struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
 {
     using ViewType      = T;
     using LDViewType    = T;
-    using LDStorageType = T;
+    using LDStorageType = LDST;
 
     static constexpr bool HasTypeConstructors = false;
 
@@ -197,24 +223,6 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
     {
         return *std::get<0>(data);
     }
-
-
-//    static Datum<DataType> make_datum(const DataDimensionsTuple& data) {
-//        return Datum<DataType>(make_view(data));
-//    }
-
-//    static Datum<DataType> make_datum(const TypeDimensionsTuple& type, const DataDimensionsTuple& data) {
-//        return Datum<DataType>(make_view(data));
-//    }
-
-//    static AnyDatum make_any_datum(const DataDimensionsTuple& data) {
-//        return Datum<DataType>(make_view(data));
-//    }
-
-//    static AnyDatum make_any_datum(const TypeDimensionsTuple& type, const DataDimensionsTuple& data) {
-//        return Datum<DataType>(make_view(data));
-//    }
-
 
     static void create_signature(SBuf& buf, DataType obj) {
         PrimitiveDataTypeName<DataType>::create_signature(buf, obj);
@@ -287,9 +295,6 @@ struct DataTypeTraits<TinyInt>: FixedSizeDataTypeTraits<int8_t, TinyInt> {};
 template <>
 struct DataTypeTraits<UTinyInt>: FixedSizeDataTypeTraits<uint8_t, UTinyInt> {};
 
-template <>
-struct DataTypeTraits<uint8_t>: FixedSizeDataTypeTraits<uint8_t, uint8_t> {};
-
 
 template <>
 struct DataTypeTraits<SmallInt>: FixedSizeDataTypeTraits<int16_t, SmallInt> {};
@@ -301,25 +306,14 @@ struct DataTypeTraits<USmallInt>: FixedSizeDataTypeTraits<uint16_t, USmallInt> {
 template <>
 struct DataTypeTraits<Integer>: FixedSizeDataTypeTraits<int32_t, Integer> {};
 
-
-template <>
-struct DataTypeTraits<int32_t>: FixedSizeDataTypeTraits<int32_t, Integer> {};
-
 template <>
 struct DataTypeTraits<UInteger>: FixedSizeDataTypeTraits<uint32_t, UInteger> {};
-
 
 template <>
 struct DataTypeTraits<BigInt>: FixedSizeDataTypeTraits<int64_t, BigInt> {};
 
 template <>
-struct DataTypeTraits<int64_t>: FixedSizeDataTypeTraits<int64_t, int64_t> {};
-
-template <>
 struct DataTypeTraits<UBigInt>: FixedSizeDataTypeTraits<uint64_t, UBigInt> {};
-
-template <>
-struct DataTypeTraits<uint64_t>: FixedSizeDataTypeTraits<uint64_t, uint64_t> {};
 
 template <>
 struct DataTypeTraits<Real>: FixedSizeDataTypeTraits<float, Real> {};
@@ -331,19 +325,29 @@ template <>
 struct DataTypeTraits<Timestamp>: NonSdnFixedSizeDataTypeTraits<int64_t, Timestamp> {};
 
 template <>
-struct DataTypeTraits<TSWithTimeZone>: NonSdnFixedSizeDataTypeTraits<int64_t, TSWithTimeZone> {};
+struct DataTypeTraits<TimestampWithTZ>: NonSdnFixedSizeDataTypeTraits<int64_t, TimestampWithTZ> {};
 
 template <>
 struct DataTypeTraits<Time>: NonSdnFixedSizeDataTypeTraits<int32_t, Time> {};
 
 template <>
-struct DataTypeTraits<TimeWithTimeZone>: NonSdnFixedSizeDataTypeTraits<int64_t, TimeWithTimeZone> {};
+struct DataTypeTraits<TimeWithTZ>: NonSdnFixedSizeDataTypeTraits<int64_t, TimeWithTZ> {};
 
 template <>
 struct DataTypeTraits<Date>: NonSdnFixedSizeDataTypeTraits<int64_t, Date> {};
 
 template <>
-struct DataTypeTraits<Boolean>: FixedSizeDataTypeTraits<bool, bool> {};
+struct DataTypeTraits<Boolean>: FixedSizeDataTypeTraits<bool, Boolean, uint8_t> {};
+
+
+template <>
+struct DataTypeTraits<int32_t>: MinimalDataTypeTraits<int32_t, Integer> {};
+
+template <>
+struct DataTypeTraits<int64_t>: MinimalDataTypeTraits<int64_t, int64_t> {};
+
+
+
 
 template <>
 struct DataTypeTraits<Decimal>: DataTypeTraitsBase<Decimal>
@@ -401,42 +405,6 @@ struct DataTypeTraits<BigDecimal>: DataTypeTraitsBase<BigDecimal>
 };
 
 
-
-template <typename T>
-struct DataTypeTraits<Dynamic<T>>: DataTypeTraits<T>
-{
-    static constexpr bool isDataType          = true;
-    static constexpr bool IsParametrised      = false;
-    static constexpr bool HasTypeConstructors = false;
-
-    using Parameters = TL<>;
-
-    static void create_signature(SBuf& buf, T obj)
-    {
-        buf << "Dynamic ";
-        DataTypeTraits<T>::create_signature(buf);
-    }
-
-    static void create_signature(SBuf& buf) {
-        buf << "Dynamic ";
-        DataTypeTraits<T>::create_signature(buf);
-    }
-};
-
-template <typename T>
-struct DataTypeTraits<Nullable<T>>: DataTypeTraits<T>
-{
-    static void create_signature(SBuf& buf, T obj)
-    {
-        buf << "Nullable ";
-        DataTypeTraits<T>::create_signature(buf);
-    }
-
-    static void create_signature(SBuf& buf) {
-        buf << "Nullable ";
-        DataTypeTraits<T>::create_signature(buf);
-    }
-};
 
 
 template<typename T>

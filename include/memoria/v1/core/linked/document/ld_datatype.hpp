@@ -26,7 +26,7 @@ namespace v1 {
 class LDDocumentStorage;
 
 template <>
-struct DataTypeTraits<LDDocument>: DataTypeTraitsBase<LDDocument>
+struct DataTypeTraits<LinkedData>: DataTypeTraitsBase<LinkedData>
 {
     using ViewType      = LDDocumentView;
     using ConstViewType = LDDocumentView;
@@ -39,14 +39,14 @@ struct DataTypeTraits<LDDocument>: DataTypeTraitsBase<LDDocument>
 
     static constexpr bool isSdnDeserializable = true;
 
-    static void create_signature(SBuf& buf, const LDDocument& obj)
+    static void create_signature(SBuf& buf, const LinkedData& obj)
     {
-        buf << "LDDocument";
+        buf << "LinkedData";
     }
 
     static void create_signature(SBuf& buf)
     {
-        buf << "LDDocument";
+        buf << "LinkedData";
     }
 
 
@@ -73,7 +73,7 @@ struct DataTypeTraits<LDDocument>: DataTypeTraitsBase<LDDocument>
         return std::make_tuple();
     }
 
-    static TypeDimensionsTuple describe_type(const LDDocument& data_type) {
+    static TypeDimensionsTuple describe_type(const LinkedData& data_type) {
         return TypeDimensionsTuple{};
     }
 
@@ -92,12 +92,12 @@ struct DataTypeTraits<LDDocument>: DataTypeTraitsBase<LDDocument>
 
 
 template <typename Buffer>
-class SparseObjectBuilder<LDDocument, Buffer> {
+class SparseObjectBuilder<LinkedData, Buffer> {
     Buffer* buffer_;
 
 
-    using AtomType = DTTAtomType<LDDocument>;
-    using ViewType = DTTViewType<LDDocument>;
+    using AtomType = DTTAtomType<LinkedData>;
+    using ViewType = DTTViewType<LinkedData>;
 
     LDDocument doc_;
 
@@ -125,10 +125,10 @@ public:
     }
 };
 
-class LDDocumentStorage: public DatumStorageBase<LDDocument, typename DataTypeTraits<LDDocument>::DatumStorageSelector> {
-    using SelectorTag = typename DataTypeTraits<LDDocument>::DatumStorageSelector;
+class LDDocumentStorage: public DatumStorageBase<LinkedData, typename DataTypeTraits<LinkedData>::DatumStorageSelector> {
+    using SelectorTag = typename DataTypeTraits<LinkedData>::DatumStorageSelector;
 
-    using Base = DatumStorageBase<LDDocument, SelectorTag>;
+    using Base = DatumStorageBase<LinkedData, SelectorTag>;
     using typename Base::ViewType;
 public:
     LDDocumentStorage(ViewType view) noexcept: Base(view) {}

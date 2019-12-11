@@ -167,7 +167,7 @@ public:
 
     LDStringView add_string_constructor_arg(U8StringView value)
     {
-        LDStringView str = doc_->make_mutable()->new_string(value);
+        LDStringView str = doc_->make_mutable()->new_varchar(value);
         ensure_args_capacity(1)->push_back(str.string_.get());
         return str;
     }
@@ -180,7 +180,7 @@ public:
 
     void add_integer_constructor_arg(int64_t value)
     {
-        LDDValueView val = doc_->make_mutable()->new_integer(value);
+        LDDValueView val = doc_->make_mutable()->new_bigint(value);
         ensure_args_capacity(1)->push_back(val.value_ptr_);
     }
 
@@ -352,13 +352,13 @@ static inline std::ostream& operator<<(std::ostream& out, const LDTypeDeclaratio
 }
 
 template <>
-struct DataTypeTraits<LDTypeDeclarationView> {
+struct DataTypeTraits<LDTypeDeclaration> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
     using LDViewType = LDTypeDeclarationView;
 
     static void create_signature(SBuf& buf) {
-        buf << "LDTypeDeclarationView";
+        buf << "LDTypeDeclaration";
     }
 };
 

@@ -33,13 +33,13 @@ namespace memoria {
 namespace v1 {
 
 inline LDDArrayView LDDValueView::as_array() const {
-    ld_::ldd_assert_tag<LDDArrayView>(type_tag_);
+    ld_::ldd_assert_tag<LDArray>(type_tag_);
     return LDDArrayView(doc_, value_ptr_);
 }
 
 
 inline LDDMapView LDDValueView::as_map() const {
-    ld_::ldd_assert_tag<LDDMapView>(type_tag_);
+    ld_::ldd_assert_tag<LDMap>(type_tag_);
     return LDDMapView(doc_, value_ptr_);
 }
 
@@ -75,12 +75,12 @@ inline bool LDDArrayView::is_simple_layout() const noexcept
 
 
 inline LDTypeDeclarationView LDDValueView::as_type_decl() const {
-    ld_::ldd_assert_tag<LDTypeDeclarationView>(type_tag_);
+    ld_::ldd_assert_tag<LDTypeDeclaration>(type_tag_);
     return LDTypeDeclarationView(doc_, value_ptr_);
 }
 
 inline LDDTypedValueView LDDValueView::as_typed_value() const {
-    ld_::ldd_assert_tag<LDDTypedValueView>(type_tag_);
+    ld_::ldd_assert_tag<LDTypedValue>(type_tag_);
     return LDDTypedValueView(doc_, value_ptr_);
 }
 
@@ -93,11 +93,11 @@ inline LDDValueView LDDocumentView::value() const noexcept {
 
 
 inline LDStringView::operator LDDValueView() const noexcept {
-    return LDDValueView{doc_, string_.get(), ld_tag_value<LDStringView>()};
+    return LDDValueView{doc_, string_.get(), ld_tag_value<LDString>()};
 }
 
 inline LDDArrayView::operator LDDValueView() const noexcept {
-    return LDDValueView{doc_, array_.ptr(), ld_tag_value<LDDArrayView>()};
+    return LDDValueView{doc_, array_.ptr(), ld_tag_value<LDArray>()};
 }
 
 

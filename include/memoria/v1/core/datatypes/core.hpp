@@ -37,15 +37,16 @@ struct UInteger  {};
 struct BigInt    {};
 struct UBigInt   {};
 
-struct Varchar   {};
-struct Varbinary {};
 struct Real      {};
 struct Double    {};
+
+struct Varchar   {};
+struct Varbinary {};
 struct Timestamp {};
-struct TSWithTimeZone {};
+struct TimestampWithTZ {};
 struct Date      {};
 struct Time      {};
-struct TimeWithTimeZone {};
+struct TimeWithTZ {};
 struct Boolean   {};
 
 class Decimal {
@@ -95,44 +96,65 @@ public:
 };
 
 
-template <typename T>
-struct Dynamic {};
-
-template <typename T>
-class Nullable {
-    T type_;
-public:
-    template <typename... Args>
-    Nullable(Args&&... args): type_(std::forward<Args>(args)...) {}
-
-    const T& type() const {
-        return type_;
-    }
-};
-
-
 template <typename DataType, typename Buffer> class SparseObjectBuilder;
 
-template <>
-struct TypeHash<Integer>: UInt64Value<985032913483489> {};
 
 template <>
-struct TypeHash<Varchar>: UInt64Value<9748271> {};
+struct TypeHash<TinyInt>:  UInt64Value<11>  {};
 
 template <>
-struct TypeHash<Varbinary>: UInt64Value<83248912347> {};
+struct TypeHash<UTinyInt>: UInt64Value<12>  {};
 
 template <>
-struct TypeHash<UTinyInt>: UInt64Value<3> {};
+struct TypeHash<SmallInt>: UInt64Value<13>  {};
 
 template <>
-struct TypeHash<BigInt>: UInt64Value<8> {};
-
-template <typename T>
-struct TypeHash<Nullable<T>>: UInt64Value<HashHelper<495092348502309485ull, TypeHashV<T>>> {};
-
+struct TypeHash<USmallInt>: UInt64Value<14> {};
 
 template <>
-struct TypeHash<Boolean>: UInt64Value<324958203945534> {};
+struct TypeHash<Integer>:  UInt64Value<15>  {};
+
+template <>
+struct TypeHash<UInteger>: UInt64Value<16>  {};
+
+template <>
+struct TypeHash<BigInt>:   UInt64Value<17>  {};
+
+template <>
+struct TypeHash<UBigInt>:  UInt64Value<18>  {};
+
+template <>
+struct TypeHash<Varchar>:  UInt64Value<19>  {};
+
+template <>
+struct TypeHash<Varbinary>: UInt64Value<20> {};
+
+template <>
+struct TypeHash<Real>:     UInt64Value<21>  {};
+
+template <>
+struct TypeHash<Double>: UInt64Value<22>    {};
+
+template <>
+struct TypeHash<Timestamp>: UInt64Value<23> {};
+
+template <>
+struct TypeHash<TimestampWithTZ>: UInt64Value<24> {};
+
+template <>
+struct TypeHash<Date>: UInt64Value<25>      {};
+
+template <>
+struct TypeHash<Time>: UInt64Value<26>      {};
+
+template <>
+struct TypeHash<TimeWithTZ>: UInt64Value<27> {};
+
+template <>
+struct TypeHash<Boolean>: UInt64Value<28>   {};
+
+template <>
+struct TypeHash<BigDecimal>: UInt64Value<29>{};
+
 
 }}

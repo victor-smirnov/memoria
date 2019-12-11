@@ -68,8 +68,8 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocum
     assert_equals(0, array.size());
 
     array.add_string("Hello World");
-    assert_equals(true, array.get(0).is_string());
-    assert_equals("Hello World", array.get(0).as_string().view());
+    assert_equals(true, array.get(0).is_varchar());
+    assert_equals("Hello World", array.get(0).as_varchar().view());
 
     array.add_double(123456);
     assert_equals(true, array.get(1).is_double());
@@ -111,12 +111,12 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocum
         array.set_double(10, 555);
     });
 
-    array.set_integer(1, 555);
-    assert_equals(true, array.get(1).is_integer());
-    assert_equals(555, array.get(1).as_integer());
+    array.set_bigint(1, 555);
+    assert_equals(true, array.get(1).is_bigint());
+    assert_equals(555, array.get(1).as_bigint());
 
     assert_throws<BoundsException>([&](){
-        array.set_integer(10, 555);
+        array.set_bigint(10, 555);
     });
 
     array.set_boolean(2, false);
@@ -127,12 +127,12 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocum
         array.set_boolean(10, false);
     });
 
-    array.set_string(3, "Cool String");
-    assert_equals(true, array.get(3).is_string());
-    assert_equals("Cool String", array.get(3).as_string().view());
+    array.set_varchar(3, "Cool String");
+    assert_equals(true, array.get(3).is_varchar());
+    assert_equals("Cool String", array.get(3).as_varchar().view());
 
     assert_throws<BoundsException>([&](){
-        array.set_string(10, "S0");
+        array.set_varchar(10, "S0");
     });
 
 

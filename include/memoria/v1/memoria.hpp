@@ -62,7 +62,7 @@ struct StaticLibraryCtrs {
         InitCtrMetadata<Vector<UTinyInt>, ProfileT>();
         InitCtrMetadata<Map<Varchar, Varchar>, ProfileT>();
 
-        InitCtrMetadata<Vector<LDDocument>, ProfileT>();
+        InitCtrMetadata<Vector<LinkedData>, ProfileT>();
         InitCtrMetadata<Map<BigInt, Varchar>, ProfileT>();
         InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
         //InitCtrMetadata<Multimap<BigInt, UTinyInt>, ProfileT>();

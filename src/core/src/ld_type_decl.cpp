@@ -194,7 +194,7 @@ ld_::LDPtr<LDTypeDeclarationView::TypeDeclState> LDTypeDeclarationView::deep_cop
 
     LDIdentifierView src_name(doc_, src_state->name);
 
-    ld_::LDPtr<U8LinkedString> tgt_name = tgt->new_string(src_name.view()).ptr();
+    ld_::LDPtr<U8LinkedString> tgt_name = tgt->new_varchar(src_name.view()).ptr();
 
     ld_::LDArenaView* tgt_arena_view = &tgt->arena_;
 

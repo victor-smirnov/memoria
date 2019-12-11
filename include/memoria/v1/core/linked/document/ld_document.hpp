@@ -58,12 +58,12 @@ namespace ldd_ {
     struct ObjectCreatorHelper<LDStringView> {
         template <typename Doc, typename... Args>
         static auto process(Doc* doc, Args&&... args) {
-            return doc->new_string(std::forward<Args>(args)...);
+            return doc->new_varchar(std::forward<Args>(args)...);
         }
 
         template <typename Doc, typename... Args>
         static auto process_raw(Doc* doc, Args&&... args) {
-            return doc->new_string(std::forward<Args>(args)...).ptr();
+            return doc->new_varchar(std::forward<Args>(args)...).ptr();
         }
     };
 
@@ -98,6 +98,9 @@ protected:
     template <typename>
     friend struct DataTypeOperationsImpl;
 
+    template <typename T>
+    friend struct NumericDataTypeOperationsImpl;
+
     template <typename>
     friend struct ldd_::ObjectCreatorHelper;
 
@@ -121,18 +124,14 @@ public:
         return view;
     }
 
-//    bool operator==(const LDDocumentView& other) const noexcept {
-//        return equals(&other);
-//    }
-
     bool equals(const LDDocumentView* other) const noexcept {
         return arena_.data() == other->arena_.data();
     }
 
     LDDValueView value() const noexcept;
 
-    void set_string(U8StringView string);
-    void set_integer(int64_t value);
+    void set_varchar(U8StringView string);
+    void set_bigint(int64_t value);
     void set_double(double value);
     void set_boolean(bool value);
     void set_null();
@@ -219,7 +218,7 @@ public:
     void add_shared_string(U8StringView string);
 
 protected:
-    Optional<ld_::LDPtr<DTTLDStorageType<LDStringView>>> is_shared(DTTViewType<LDStringView> string) const;
+    Optional<ld_::LDPtr<DTTLDStorageType<LDString>>> is_shared(DTTViewType<LDString> string) const;
 
     Span<const AtomType> span() const {
         return arena_.span();
@@ -273,19 +272,19 @@ protected:
         return TypeDeclsMap::get(&arena_, state->type_directory);
     }
 
-    LDStringView new_string(U8StringView view);
-    LDIdentifierView new_identifier(U8StringView view);
+    LDStringView new_varchar(DTTViewType<Varchar> view);
+    LDIdentifierView new_identifier(DTTViewType<Varchar> view);
 
-    LDDValueView new_integer(LDInteger value);
-    LDDValueView new_boolean(LDBoolean value);
-    LDDValueView new_double(LDDouble value);
+    LDDValueView new_bigint(DTTViewType<BigInt> value);
+    LDDValueView new_boolean(DTTViewType<Boolean> value);
+    LDDValueView new_double(DTTViewType<Double> value);
     LDDArrayView new_array(Span<LDDValueView> span);
     LDDArrayView new_array();
     LDDMapView new_map();
 
     void set_doc_value(LDDValueView value) noexcept;
 
-    ld_::LDPtr<DTTLDStorageType<LDStringView>> intern(DTTViewType<LDStringView> view);
+    ld_::LDPtr<DTTLDStorageType<LDString>> intern(DTTViewType<LDString> view);
 
     DocumentState* state_mutable() {
         return doc_ptr().get_mutable(&arena_);
@@ -422,8 +421,7 @@ protected:
     }
 };
 
-template <>
-struct TypeHash<LDDocument>: UInt64Value<3457983275945243> {};
+
 
 std::ostream& operator<<(std::ostream& out, const LDDocumentView& doc);
 

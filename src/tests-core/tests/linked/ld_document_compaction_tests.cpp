@@ -32,7 +32,7 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>(u
     for (size_t c = 0; c < size; c++)
     {
         U8String key = "Entry" + std::to_string(c);
-        map.set_string(key, std::to_string(c));
+        map.set_varchar(key, std::to_string(c));
     }
 
     assert_equals(size, map.size());
@@ -49,7 +49,7 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>(u
         assert_equals(true, (bool)vv);
 
         U8String value = std::to_string(c);
-        assert_equals(value, vv.get().as_string().view());
+        assert_equals(value, vv.get().as_varchar().view());
     }
 
 });

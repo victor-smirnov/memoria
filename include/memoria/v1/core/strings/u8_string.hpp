@@ -224,19 +224,6 @@ inline std::basic_ostream<char, CharTraits>& operator<<(std::basic_ostream<char,
 
 using U8StringRef = const U8String&;
 
-template <typename T> struct TypeHash;
-
-template <>
-struct TypeHash<U8StringView> {
-    static const uint64_t Value = 43;
-};
-
-template <>
-struct TypeHash<U8String> {
-    static const uint64_t Value = 44;
-};
-
-
 inline bool compare_gt(const U8StringView& first, const U8StringView& second) {
     return first.compare(second) > 0;
 }

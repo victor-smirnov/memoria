@@ -66,7 +66,7 @@ void LDDMapView::do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState
 
 ld_::LDPtr<LDDMapView::ValueMap::State> LDDMapView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
-    ld_::DeepCopyHelper<ld_::LDDValueDeepCopyHelperBase<LDDMapView>> helper(mapping, doc_, tgt);
+    ld_::DeepCopyHelper<ld_::LDDValueDeepCopyHelperBase<LDMap>> helper(mapping, doc_, tgt);
     return map_.deep_copy_to(&tgt->arena_, helper);
 }
 

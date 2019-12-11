@@ -30,19 +30,19 @@
 
 using namespace memoria::v1;
 
-using Ctr1T = Vector<LDDocument>;
+using Ctr1T = Vector<LinkedData>;
 using Ctr2T = Vector<Varchar>;
 
 
 int main()
 {
     try {
-        LDDocument doc = LDDocument::parse("@UTinyInt = '1237687'");
+        LDDocument doc = LDDocument::parse("'1234.56456657464654364'@Real");
         doc.dump(std::cout) << std::endl;
 
 
 
-        /*auto store = IMemoryStore<>::create();
+        auto store = IMemoryStore<>::create();
 
         auto snp = store->master()->branch();
 
@@ -105,7 +105,9 @@ int main()
         //auto ctr3 = find<Ctr1T>(snp, ctr2_id);
         //std::cout << ctr3->describe_type() << std::endl;
 
-        snp->commit();*/
+        snp->commit();
+
+        /**/
     }
     catch (MemoriaThrowable& th) {
         th.dump(std::cout);

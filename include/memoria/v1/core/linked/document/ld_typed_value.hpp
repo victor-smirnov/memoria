@@ -88,13 +88,13 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDTypedValueVie
 }
 
 template <>
-struct DataTypeTraits<LDDTypedValueView> {
+struct DataTypeTraits<LDTypedValue> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
     using LDViewType = LDDTypedValueView;
 
     static void create_signature(SBuf& buf) {
-        buf << "LDDTypedValueView";
+        buf << "LDTypedValue";
     }
 };
 

@@ -31,6 +31,7 @@ private:
 
     friend class LDTypeDeclarationView;
     friend class LDDArrayView;
+    friend class LDDocumentView;
 
     using PtrHolder = typename ld_::LDArenaView::PtrHolderT;
     const LDDocumentView* doc_;
@@ -71,22 +72,22 @@ public:
 
 
 
-    void set_string(U8StringView name, U8StringView value)
+    void set_varchar(U8StringView name, DTTViewType<Varchar> value)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDStringView name_str  = mutable_doc->new_string(name);
-        LDStringView value_str = mutable_doc->new_string(value);
+        LDStringView name_str  = mutable_doc->new_varchar(name);
+        LDStringView value_str = mutable_doc->new_varchar(value);
 
         map_.put(name_str.string_, value_str.string_);
     }
 
-    void set_integer(U8StringView name, int64_t value)
+    void set_bigint(U8StringView name, int64_t value)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDStringView name_str  = mutable_doc->new_string(name);
-        LDDValueView value_vv  = mutable_doc->new_integer(value);
+        LDStringView name_str  = mutable_doc->new_varchar(name);
+        LDDValueView value_vv  = mutable_doc->new_bigint(value);
 
         map_.put(name_str.string_, value_vv.value_ptr_);
     }
@@ -95,7 +96,7 @@ public:
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDStringView name_str  = mutable_doc->new_string(name);
+        LDStringView name_str  = mutable_doc->new_varchar(name);
         LDDValueView value_vv  = mutable_doc->new_double(value);
 
         map_.put(name_str.string_, value_vv.value_ptr_);
@@ -105,7 +106,7 @@ public:
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDStringView name_str  = mutable_doc->new_string(name);
+        LDStringView name_str  = mutable_doc->new_varchar(name);
         LDDValueView value_vv  = mutable_doc->new_boolean(value);
 
         map_.put(name_str.string_, value_vv.value_ptr_);
@@ -120,7 +121,7 @@ public:
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDStringView name_str  = mutable_doc->new_string(name);
+        LDStringView name_str  = mutable_doc->new_varchar(name);
         LDDMapView map = mutable_doc->new_map();
 
         map_.put(name_str.string_, map.map_.ptr());
@@ -131,7 +132,7 @@ public:
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDStringView name_str  = mutable_doc->new_string(name);
+        LDStringView name_str  = mutable_doc->new_varchar(name);
         LDDArrayView array = mutable_doc->new_array();
 
         map_.put(name_str.string_, array.array_.ptr());
@@ -142,7 +143,7 @@ public:
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDStringView name_str   = mutable_doc->new_string(name);
+        LDStringView name_str   = mutable_doc->new_varchar(name);
         LDDValueView value      = mutable_doc->parse_raw_value(sdn.begin(), sdn.end());
 
         map_.put(name_str.string_, value.value_ptr_);
@@ -154,7 +155,7 @@ public:
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
-        auto name_str = dst_doc->new_string(name).ptr();
+        auto name_str = dst_doc->new_varchar(name).ptr();
 
         ld_::LDArenaAddressMapping mapping(source, *dst_doc);
         ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
@@ -168,7 +169,7 @@ public:
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
-        auto name_str = dst_doc->new_string(name).ptr();
+        auto name_str = dst_doc->new_varchar(name).ptr();
 
         map_.put(name_str, 0);
 
@@ -255,20 +256,20 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDMapView& valu
 }
 
 template <>
-struct DataTypeTraits<LDDMapView> {
+struct DataTypeTraits<LDMap> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
     using LDViewType = LDDMapView;
 
     static void create_signature(SBuf& buf) {
-        buf << "LDDMapView";
+        buf << "LDMap";
     }
 };
 
 template <typename Arena>
-auto ld_allocate_and_construct(const LDDMapView*, Arena* arena)
+auto ld_allocate_and_construct(const LDMap*, Arena* arena)
 {
-    return LDDMapView::ValueMap::create_ptr(arena, ld_tag_size<LDDMapView>());
+    return LDDMapView::ValueMap::create_ptr(arena, ld_tag_size<LDMap>());
 }
 
 

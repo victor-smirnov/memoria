@@ -533,18 +533,6 @@ public:
     }
 };
 
-template <typename T> struct TypeHash;
-
-template <>
-struct TypeHash<U16StringView> {
-    static const uint64_t Value = 45;
-};
-
-template <>
-struct TypeHash<U16String> {
-    static const uint64_t Value = 46;
-};
-
 inline bool compare_gt(const U16String& first, const U16String& second) {
     return first.compare(second) > 0;
 }

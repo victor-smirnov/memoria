@@ -55,14 +55,14 @@ template <>
 Datum<Varchar> Datum<Varchar>::from_sdn(const LDDocument& sdn_doc)
 {
     LDDValueView value = sdn_doc.value();
-    if (value.is_string()) {
-        return Datum<Varchar>(value.as_string().view());
+    if (value.is_varchar()) {
+        return Datum<Varchar>(value.as_varchar().view());
     }
     else if (value.is_double()) {
         return Datum<Varchar>(std::to_string(value.as_double()));
     }
-    else if (value.is_integer()) {
-        return Datum<Varchar>(std::to_string(value.as_integer()));
+    else if (value.is_bigint()) {
+        return Datum<Varchar>(std::to_string(value.as_bigint()));
     }
 
     else if (value.is_boolean()) {

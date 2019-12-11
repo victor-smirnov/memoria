@@ -92,10 +92,10 @@ public:
         return string_buffer_.size() == 0;
     }
 
-    LDStringView new_string()
+    LDStringView new_varchar()
     {
         auto span = string_buffer_.span();
-        return doc_.new_string(U8StringView{span.data(), span.length()});
+        return doc_.new_value<Varchar>(U8StringView{span.data(), span.length()});
     }
 
     LDIdentifierView new_identifier()
@@ -104,8 +104,8 @@ public:
         return doc_.new_identifier(U8StringView{span.data(), span.length()});
     }
 
-    LDDValueView new_integer(int64_t v) {
-        return doc_.new_integer(v);
+    LDDValueView new_bigint(int64_t v) {
+        return doc_.new_bigint(v);
     }
 
     LDDValueView new_double(double v) {
@@ -222,7 +222,7 @@ public:
 
 struct LDStringValue: LDCharBufferBase {
     LDStringView finish() {
-        return builder_->new_string();
+        return builder_->new_varchar();
     }
 
     using LDCharBufferBase::operator=;
@@ -345,7 +345,7 @@ struct LDDValueVisitor: boost::static_visitor<> {
     LDDValueView value;
 
     void operator()(long long v){
-        value = LDDocumentBuilder::current()->new_integer(v);
+        value = LDDocumentBuilder::current()->new_bigint(v);
     }
 
     void operator()(double v){

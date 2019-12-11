@@ -33,6 +33,8 @@
 
 #include <memoria/v1/core/datatypes/traits.hpp>
 
+#include <memoria/v1/core/datatypes/varchars/varchar_dt.hpp>
+
 #include <unordered_map>
 #include <iostream>
 
@@ -106,19 +108,24 @@ class LDIdentifierView;
 class LDDTypedValueView;
 class LDDocumentBuilder;
 
-using LDBoolean = bool;
-using LDInteger = int64_t;
-using LDDouble  = double;
+struct LinkedData   {};
+struct LDArray      {};
+struct LDMap        {};
+struct LDTypedValue {};
+struct LDTypeDeclaration {};
 
+using LDString = Varchar;
 
+template <> struct TypeHash<LinkedData>:        UInt64Value<30> {};
+template <> struct TypeHash<LDArray>:           UInt64Value<31> {};
+template <> struct TypeHash<LDMap>:             UInt64Value<32> {};
+template <> struct TypeHash<LDTypedValue>:      UInt64Value<33> {};
+template <> struct TypeHash<LDTypeDeclaration>: UInt64Value<34> {};
 
-template <typename T> struct LDDValueTraits;
+template <>
+struct TypeHash<LDDocument>: UInt64Value<3457983275945243> {};
 
 namespace ld_ {
-
-    using LDIntegerStorage = LDInteger;
-    using LDDoubleStorage  = LDDouble;
-    using LDBooleanStorage = uint8_t;
 
     struct GenericValue {};
 
@@ -355,13 +362,6 @@ namespace ld_ {
     }
 }
 
-template <> struct TypeHash<LDStringView>:  UInt64Value<1> {};
-template <> struct TypeHash<LDDMapView>:    UInt64Value<2> {};
-template <> struct TypeHash<LDDArrayView>:  UInt64Value<3> {};
-template <> struct TypeHash<LDTypeDeclarationView>: UInt64Value<4> {};
-template <> struct TypeHash<LDDTypedValueView>:     UInt64Value<5> {};
-template <> struct TypeHash<LDBoolean>:         UInt64Value<6> {};
-
 class LDDumpFormatState {
     const char* space_;
 
@@ -489,71 +489,7 @@ public:
 };
 
 
-template <>
-struct DataTypeTraits<LDStringView>: DataTypeTraitsBase<LDStringView> {
-    using ViewType      = U8StringView;
-    using ConstViewType = ViewType;
-    using AtomType      = std::remove_const_t<typename ViewType::value_type>;
-    using LDStorageType = U8LinkedString;
 
-    using LDViewType    = LDStringView;
-
-    //using DatumStorage  = VarcharStorage;
-
-    static constexpr bool isDataType          = true;
-    static constexpr bool HasTypeConstructors = false;
-
-    static constexpr bool isSdnDeserializable = true;
-
-    static void create_signature(SBuf& buf, const LDStringView& obj)
-    {
-        buf << "LDStringView";
-    }
-
-    static void create_signature(SBuf& buf)
-    {
-        buf << "LDStringView";
-    }
-
-
-    using DataSpan = Span<const AtomType>;
-    using SpanList = TL<DataSpan>;
-    using SpanTuple = AsTuple<SpanList>;
-
-    using DataDimensionsList  = TL<DataSpan>;
-    using DataDimensionsTuple = AsTuple<DataDimensionsList>;
-
-    using TypeDimensionsList  = TL<>;
-    using TypeDimensionsTuple = AsTuple<TypeDimensionsList>;
-
-    static DataDimensionsTuple describe_data(ViewType view) {
-        return std::make_tuple(DataSpan(view.data(), view.size()));
-    }
-
-    static DataDimensionsTuple describe_data(const ViewType* view) {
-        return std::make_tuple(DataSpan(view->data(), view->size()));
-    }
-
-
-    static TypeDimensionsTuple describe_type(ViewType view) {
-        return std::make_tuple();
-    }
-
-    static TypeDimensionsTuple describe_type(const Varchar& data_type) {
-        return TypeDimensionsTuple{};
-    }
-
-
-    static ViewType make_view(const DataDimensionsTuple& data)
-    {
-        return ViewType(std::get<0>(data).data(), std::get<0>(data).size());
-    }
-
-    static ViewType make_view(const TypeDimensionsTuple& type, const DataDimensionsTuple& data)
-    {
-        return ViewType(std::get<0>(data).data(), std::get<0>(data).size());
-    }
-};
 
 template <typename T>
 constexpr const T* make_null_v() {
@@ -579,18 +515,6 @@ auto ld_allocate_and_construct(const T*, Arena* arena, Args&&... args)
     );
 }
 
-//template <typename T, typename Arena, typename... Args>
-//auto ld_create_storage(const T* dt_tag, Arena* arena, Args&&... args)
-//{
-//    using LDViewType = DTTLDViewType<T>;
-
-//    auto value_ptr = ld_allocate_and_construct<T>(
-//        dt_tag, arena, std::forward<Args>(args)...
-//    );
-
-//    ld_::ldd_set_tag(value_ptr.get(), ld_tag_value<T>());
-//    return LDViewType{this, value_ptr, ld_tag_value<T>()};
-//}
 
 
 

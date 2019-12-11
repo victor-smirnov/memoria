@@ -31,21 +31,21 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumen
     assert_equals(true, doc.value().is_double());
     assert_equals(12345.67, doc.value().as_double());
     assert_throws<LDDInvalidCastException>([&](){
-        doc.value().as_integer();
+        doc.value().as_bigint();
     });
 
 
-    doc.set_string("Hello world");
-    assert_equals(true, doc.value().is_string());
-    assert_equals("Hello world", doc.value().as_string().view());
+    doc.set_varchar("Hello world");
+    assert_equals(true, doc.value().is_varchar());
+    assert_equals("Hello world", doc.value().as_varchar().view());
 
     assert_throws<LDDInvalidCastException>([&](){
         doc.value().as_double();
     });
 
-    doc.set_integer(123);
-    assert_equals(true, doc.value().is_integer());
-    assert_equals(123, doc.value().as_integer());
+    doc.set_bigint(123);
+    assert_equals(true, doc.value().is_bigint());
+    assert_equals(123, doc.value().as_bigint());
 
     assert_throws<LDDInvalidCastException>([&](){
         doc.value().as_double();
@@ -60,8 +60,8 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumen
     });
 
     doc.set_sdn("12345");
-    assert_equals(true, doc.value().is_integer());
-    assert_equals(12345, doc.value().as_integer());
+    assert_equals(true, doc.value().is_bigint());
+    assert_equals(12345, doc.value().as_bigint());
 
     doc.set_sdn("{}");
     assert_equals(true, doc.value().is_map());
@@ -116,11 +116,11 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumen
     assert_equals(true, doc_view.value().is_typed_value());
 
     LDDocument doc2;
-    doc2.set_string("Hello World");
+    doc2.set_varchar("Hello World");
 
     doc.set_document(doc2);
-    assert_equals(true, doc.value().is_string());
-    assert_equals("Hello World", doc.value().as_string().view());
+    assert_equals(true, doc.value().is_varchar());
+    assert_equals("Hello World", doc.value().as_varchar().view());
 
 
     LDTypeDeclarationView type = doc.create_named_type("Type1", "CoolType2");

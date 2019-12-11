@@ -21,7 +21,7 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-using CtrName = Vector<LDDocument>;
+using CtrName = Vector<LinkedData>;
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     

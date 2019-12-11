@@ -30,7 +30,7 @@ namespace memoria {
 namespace v1 {
 
 template <>
-struct DataTypeOperationsImpl<LDDArrayView>: SimpleDataTypeOperationsImpl<LDDArrayView> {
+struct DataTypeOperationsImpl<LDArray>: SimpleDataTypeOperationsImpl<LDArray> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -63,7 +63,7 @@ struct DataTypeOperationsImpl<LDDArrayView>: SimpleDataTypeOperationsImpl<LDDArr
 
 
 template <>
-struct DataTypeOperationsImpl<LDDMapView>: SimpleDataTypeOperationsImpl<LDDMapView> {
+struct DataTypeOperationsImpl<LDMap>: SimpleDataTypeOperationsImpl<LDMap> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -95,7 +95,7 @@ struct DataTypeOperationsImpl<LDDMapView>: SimpleDataTypeOperationsImpl<LDDMapVi
 };
 
 template <>
-struct DataTypeOperationsImpl<LDTypeDeclarationView>: SimpleDataTypeOperationsImpl<LDTypeDeclarationView> {
+struct DataTypeOperationsImpl<LDTypeDeclaration>: SimpleDataTypeOperationsImpl<LDTypeDeclaration> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -127,7 +127,7 @@ struct DataTypeOperationsImpl<LDTypeDeclarationView>: SimpleDataTypeOperationsIm
 };
 
 template <>
-struct DataTypeOperationsImpl<LDDTypedValueView>: SimpleDataTypeOperationsImpl<LDDTypedValueView> {
+struct DataTypeOperationsImpl<LDTypedValue>: SimpleDataTypeOperationsImpl<LDTypedValue> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -160,7 +160,7 @@ struct DataTypeOperationsImpl<LDDTypedValueView>: SimpleDataTypeOperationsImpl<L
 
 
 template <>
-struct DataTypeOperationsImpl<LDStringView>: SimpleDataTypeOperationsImpl<LDStringView> {
+struct DataTypeOperationsImpl<LDString>: SimpleDataTypeOperationsImpl<LDString> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -194,11 +194,11 @@ struct DataTypeOperationsImpl<LDStringView>: SimpleDataTypeOperationsImpl<LDStri
 
 void InitCoreLDDatatypes()
 {
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDDTypedValueView> ldd_tv_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDDArrayView> ldd_array_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDDMapView> ldd_map_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDTypeDeclarationView> ldd_td_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDStringView> ldd_string_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<LDTypedValue> ldd_tv_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<LDArray> ldd_array_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<LDMap> ldd_map_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<LDTypeDeclaration> ldd_td_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<LDString> ldd_string_;
 
     DataTypeRegistry::local().refresh();
 }

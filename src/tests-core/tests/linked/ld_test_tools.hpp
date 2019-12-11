@@ -35,7 +35,7 @@ void assert_arrays_equal(const std::vector<T>& expected, const LDDArrayView& act
 {
     assert_equals(expected.size(), actual.size());
     for (size_t c = 0; c < expected.size(); c++) {
-        assert_equals(expected[c], actual.get(c).as_integer());
+        assert_equals(expected[c], actual.get(c).as_bigint());
     }
 }
 
@@ -49,13 +49,13 @@ void assert_arrays_equal(const std::unordered_map<K, V>& expected, const LDDMapV
     for (auto ii: expected)
     {
         Optional<LDDValueView> vv = actual.get(ii.first);
-        assert_equals(ii.second, vv.get().as_integer());
+        assert_equals(ii.second, vv.get().as_bigint());
     }
 
     actual.for_each([&](auto key, auto value){
         auto ii = expected.find(key);
         assert_equals(true, ii != expected.end());
-        assert_equals(ii->second, value.as_integer());
+        assert_equals(ii->second, value.as_bigint());
     });
 }
 

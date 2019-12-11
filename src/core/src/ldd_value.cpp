@@ -27,12 +27,6 @@ std::ostream& LDDValueView::dump(std::ostream& out, LDDumpFormatState& state, LD
     if (is_null()) {
         out << "null";
     }
-    else if (is_integer()) {
-        out << as_integer();
-    }
-    else if (is_double()) {
-        out << as_double();
-    }
     else if (is_boolean()) {
         out << (as_boolean() ? "true" : "false");
     }
@@ -47,7 +41,7 @@ std::ostream& LDDValueView::dump(std::ostream& out, LDDumpFormatState& state, LD
 
 bool LDDValueView::is_simple_layout() const noexcept
 {
-    if (is_string() || is_integer() || is_null() || is_boolean()) {
+    if (is_varchar() || is_bigint() || is_null() || is_boolean()) {
         return true;
     }
 
@@ -76,19 +70,9 @@ ld_::LDDPtrHolder LDDValueView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAd
     if (is_null()) {
         return LDDValueView(tgt, 0).value_ptr_;
     }
-    else if (is_integer())
-    {
-        LDInteger value = as_integer();
-        return tgt->new_integer(value).value_ptr_;
-    }
-    else if (is_double())
-    {
-        LDDouble value = as_double();
-        return tgt->new_double(value).value_ptr_;
-    }
     else if (is_boolean())
     {
-        LDBoolean value = as_boolean();
+        DTTViewType<Boolean> value = as_boolean();
         return tgt->new_boolean(value).value_ptr_;
     }
     else {
@@ -100,7 +84,7 @@ ld_::LDDPtrHolder LDDValueView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAd
 
 ld_::LDPtr<U8LinkedString> LDStringView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
-    return tgt->new_string(string_.get(&doc_->arena_)->view()).string_;
+    return tgt->new_varchar(string_.get(&doc_->arena_)->view()).string_;
 }
 
 

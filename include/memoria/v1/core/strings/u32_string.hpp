@@ -154,17 +154,6 @@ inline std::basic_ostream<char, CharTraits>& operator<<(std::basic_ostream<char,
 
 using U32StringRef = const U32String&;
 
-template <typename T> struct TypeHash;
-
-template <>
-struct TypeHash<U32StringView> {
-    static const uint64_t Value = 47;
-};
-
-template <>
-struct TypeHash<U32String> {
-    static const uint64_t Value = 48;
-};
 
 inline bool compare_gt(const U32String& first, const U32String& second) {
     return first.compare(second) > 0;
