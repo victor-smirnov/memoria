@@ -25,7 +25,7 @@ namespace tests {
 auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"ArrayAddRemove", [](auto& state){
     LDDocument doc;
 
-    LDDArray array = doc.set_array();
+    LDDArrayView array = doc.set_array();
     assert_equals(true, doc.value().as_array() == array);
     assert_equals(0, array.size());
 
@@ -63,7 +63,7 @@ auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>(u"
 auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"ArraySet", [](auto& state){
     LDDocument doc;
 
-    LDDArray array = doc.set_array();
+    LDDArrayView array = doc.set_array();
     assert_equals(true, doc.value().as_array() == array);
     assert_equals(0, array.size());
 
@@ -79,23 +79,23 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocum
     assert_equals(true, array.get(2).is_boolean());
     assert_equals(true, array.get(2).as_boolean());
 
-    LDDMap map = array.add_map();
+    LDDMapView map = array.add_map();
     assert_equals(true, array.get(3).is_map());
     assert_equals(true, array.get(3).as_map() == map);
 
-    LDDArray arr = array.add_array();
+    LDDArrayView arr = array.add_array();
     assert_equals(true, array.get(4).is_array());
     assert_equals(true, array.get(4).as_array() == arr);
 
-    LDDValue sdn1 = array.add_sdn("'123456'@CoolType");
+    LDDValueView sdn1 = array.add_sdn("'123456'@CoolType");
     assert_equals(true, array.get(5).is_typed_value());
     assert_equals(true, array.get(5) == sdn1);
 
-    LDDValue sdn2 = array.add_sdn("CoolType");
+    LDDValueView sdn2 = array.add_sdn("CoolType");
     assert_equals(true, array.get(6).is_type_decl());
     assert_equals(true, array.get(6) == sdn2);
 
-    LDDValue doc2 = array.add_document("{}");
+    LDDValueView doc2 = array.add_document("{}");
     assert_equals(true, array.get(7).is_map());
     assert_equals(true, array.get(7) == doc2);
 

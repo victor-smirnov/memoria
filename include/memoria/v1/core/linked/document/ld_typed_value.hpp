@@ -22,33 +22,33 @@
 namespace memoria {
 namespace v1 {
 
-class LDDTypedValue {
+class LDDTypedValueView {
     using State = ld_::TypedValueState;
 
     const LDDocumentView* doc_;
     ld_::LDPtr<State> state_;
 
-    friend class LDTypeDeclaration;
+    friend class LDTypeDeclarationView;
 
 public:
-    LDDTypedValue(): doc_(), state_({}) {}
+    LDDTypedValueView(): doc_(), state_({}) {}
 
-    LDDTypedValue(const LDDocumentView* doc, ld_::LDPtr<State> state):
+    LDDTypedValueView(const LDDocumentView* doc, ld_::LDPtr<State> state):
         doc_(doc), state_(state)
     {}
 
-    LDTypeDeclaration type() const
+    LDTypeDeclarationView type() const
     {
-        return LDTypeDeclaration{doc_, state()->type_decl};
+        return LDTypeDeclarationView{doc_, state()->type_decl};
     }
 
-    LDDValue constructor() const
+    LDDValueView constructor() const
     {
-        return LDTypeDeclaration{doc_, state()->value_ptr};
+        return LDTypeDeclarationView{doc_, state()->value_ptr};
     }
 
-    operator LDDValue() const {
-        return LDDValue(doc_, state_.get());
+    operator LDDValueView() const {
+        return LDDValueView(doc_, state_.get());
     }
 
     std::ostream& dump(std::ostream& out) const
@@ -81,20 +81,20 @@ private:
     }
 };
 
-static inline std::ostream& operator<<(std::ostream& out, const LDDTypedValue& value) {
+static inline std::ostream& operator<<(std::ostream& out, const LDDTypedValueView& value) {
     LDDumpFormatState format = LDDumpFormatState().simple();
     value.dump(out, format);
     return out;
 }
 
 template <>
-struct DataTypeTraits<LDDTypedValue> {
+struct DataTypeTraits<LDDTypedValueView> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
-    using LDViewType = LDDTypedValue;
+    using LDViewType = LDDTypedValueView;
 
     static void create_signature(SBuf& buf) {
-        buf << "LDDTypedValue";
+        buf << "LDDTypedValueView";
     }
 };
 

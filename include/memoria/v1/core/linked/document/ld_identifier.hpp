@@ -22,7 +22,7 @@ namespace v1 {
 
 
 
-class LDIdentifier {
+class LDIdentifierView {
     const LDDocumentView* doc_;
 
     ld_::LDPtr<U8LinkedString> string_;
@@ -30,9 +30,9 @@ class LDIdentifier {
     friend class LDDocumentView;
 
 public:
-    LDIdentifier():doc_(), string_({}) {}
+    LDIdentifierView():doc_(), string_({}) {}
 
-    LDIdentifier(const LDDocumentView* doc, ld_::LDPtr<U8LinkedString> string):
+    LDIdentifierView(const LDDocumentView* doc, ld_::LDPtr<U8LinkedString> string):
         doc_(doc), string_(string)
     {}
 
@@ -41,7 +41,7 @@ public:
     }
 };
 
-static inline std::ostream& operator<<(std::ostream& out, const LDIdentifier& value) {
+static inline std::ostream& operator<<(std::ostream& out, const LDIdentifierView& value) {
     out << value.view();
     return out;
 }

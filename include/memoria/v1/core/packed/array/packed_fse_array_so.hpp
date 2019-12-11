@@ -26,7 +26,7 @@
 
 #include <memoria/v1/core/iovector/io_substream_base.hpp>
 
-#include <memoria/v1/core/linked/datatypes/buffer/buffer_0_fse.hpp>
+#include <memoria/v1/core/datatypes/buffer/buffer_0_fse.hpp>
 
 #include <algorithm>
 

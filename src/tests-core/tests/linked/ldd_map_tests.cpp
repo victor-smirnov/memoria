@@ -26,7 +26,7 @@ namespace tests {
 auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"MapSetRemove", [](auto& state){
     LDDocument doc;
 
-    LDDMap map = doc.set_map();
+    LDDMapView map = doc.set_map();
     assert_equals(true, doc.value().as_map() == map);
     assert_equals(0, map.size());
 
@@ -66,7 +66,7 @@ auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>(u"LD
 auto ldd_map_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"MapSet", [](auto& state){
     LDDocument doc;
 
-    LDDMap map = doc.set_map();
+    LDDMapView map = doc.set_map();
     assert_equals(true, doc.value().as_map() == map);
     assert_equals(0, map.size());
 
@@ -82,23 +82,23 @@ auto ldd_map_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumen
     assert_equals(true, map.get("Entry2").get().is_boolean());
     assert_equals(true, map.get("Entry2").get().as_boolean());
 
-    LDDMap map1 = map.set_map("Entry3");
+    LDDMapView map1 = map.set_map("Entry3");
     assert_equals(true, map.get("Entry3").get().is_map());
     assert_equals(true, map.get("Entry3").get().as_map() == map1);
 
-    LDDArray arr = map.set_array("Entry4");
+    LDDArrayView arr = map.set_array("Entry4");
     assert_equals(true, map.get("Entry4").get().is_array());
     assert_equals(true, map.get("Entry4").get().as_array() == arr);
 
-    LDDValue sdn1 = map.set_sdn("Entry5", "'123456'@CoolType");
+    LDDValueView sdn1 = map.set_sdn("Entry5", "'123456'@CoolType");
     assert_equals(true, map.get("Entry5").get().is_typed_value());
     assert_equals(true, map.get("Entry5").get() == sdn1);
 
-    LDDValue sdn2 = map.set_sdn("Entry6", "CoolType");
+    LDDValueView sdn2 = map.set_sdn("Entry6", "CoolType");
     assert_equals(true, map.get("Entry6").get().is_type_decl());
     assert_equals(true, map.get("Entry6").get() == sdn2);
 
-    LDDValue doc2 = map.set_document("Entry7", "{}");
+    LDDValueView doc2 = map.set_document("Entry7", "{}");
     assert_equals(true, map.get("Entry7").get().is_map());
     assert_equals(true, map.get("Entry7").get() == doc2);
 

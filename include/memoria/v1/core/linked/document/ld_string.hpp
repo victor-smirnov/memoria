@@ -22,18 +22,18 @@ namespace v1 {
 
 
 
-class LDString {
+class LDStringView {
     const LDDocumentView* doc_;
     ld_::LDPtr<U8LinkedString> string_;
 
-    friend class LDTypeDeclaration;
-    friend class LDDArray;
-    friend class LDDMap;
+    friend class LDTypeDeclarationView;
+    friend class LDDArrayView;
+    friend class LDDMapView;
 
 public:
-    LDString(): doc_(), string_({}) {}
+    LDStringView(): doc_(), string_({}) {}
 
-    LDString(const LDDocumentView* doc, ld_::LDPtr<U8LinkedString> string, LDDValueTag tag = 0):
+    LDStringView(const LDDocumentView* doc, ld_::LDPtr<U8LinkedString> string, LDDValueTag tag = 0):
         doc_(doc), string_(string)
     {}
 
@@ -45,7 +45,7 @@ public:
         return string_.get(&doc_->arena_)->view();
     }
 
-    operator LDDValue() const noexcept;
+    operator LDDValueView() const noexcept;
 
     LDDocument clone(bool compactify = true) const;
 
@@ -67,7 +67,7 @@ public:
     }
 };
 
-std::ostream& operator<<(std::ostream& out, const LDString& value);
+std::ostream& operator<<(std::ostream& out, const LDStringView& value);
 
 
 

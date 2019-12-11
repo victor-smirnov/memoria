@@ -15,13 +15,13 @@
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
-#include <memoria/v1/core/linked/datatypes/default_datatype_ops.hpp>
-#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
-#include <memoria/v1/core/linked/datatypes/datum.hpp>
+#include <memoria/v1/core/datatypes/default_datatype_ops.hpp>
+#include <memoria/v1/core/datatypes/type_registry.hpp>
+#include <memoria/v1/core/datatypes/datum.hpp>
 
 #include <memoria/v1/core/linked/document/ld_common.hpp>
 
-#include <memoria/v1/core/linked/datatypes/default_datatype_ops.hpp>
+#include <memoria/v1/core/datatypes/default_datatype_ops.hpp>
 
 #include <string>
 
@@ -42,11 +42,11 @@ struct NumericDataTypeOperationsImpl: DataTypeOperations {
         return buf.str();
     }
 
-    virtual boost::any create_cxx_instance(const LDTypeDeclaration& typedecl) {
+    virtual boost::any create_cxx_instance(const LDTypeDeclarationView& typedecl) {
         return boost::any(T{});
     }
 
-    virtual AnyDatum from_ld_document(const LDDValue& value) {
+    virtual AnyDatum from_ld_document(const LDDValueView& value) {
         MMA1_THROW(UnsupportedOperationException());
     }
 };
@@ -79,7 +79,7 @@ struct DataTypeOperationsImpl<UTinyInt>: NumericDataTypeOperationsImpl<UTinyInt>
 
     virtual LDPtrHolder construct_from(
             LDDocumentView* doc,
-            const LDDValue& value
+            const LDDValueView& value
     ) {
         if (value.is_string())
         {

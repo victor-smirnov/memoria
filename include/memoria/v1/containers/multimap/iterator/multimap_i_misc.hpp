@@ -31,7 +31,7 @@
 #include <memoria/v1/containers/multimap/multimap_output_entries.hpp>
 #include <memoria/v1/containers/multimap/multimap_output_values.hpp>
 
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
 
 #include <iostream>
 

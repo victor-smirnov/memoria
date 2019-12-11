@@ -17,12 +17,12 @@
 #endif
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
-#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
+#include <memoria/v1/core/datatypes/type_registry.hpp>
 
 namespace memoria {
 namespace v1 {
 
-std::ostream& LDDValue::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
+std::ostream& LDDValueView::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
     if (is_null()) {
         out << "null";
@@ -45,7 +45,7 @@ std::ostream& LDDValue::dump(std::ostream& out, LDDumpFormatState& state, LDDump
 }
 
 
-bool LDDValue::is_simple_layout() const noexcept
+bool LDDValueView::is_simple_layout() const noexcept
 {
     if (is_string() || is_integer() || is_null() || is_boolean()) {
         return true;
@@ -71,10 +71,10 @@ bool LDDValue::is_simple_layout() const noexcept
 }
 
 
-ld_::LDDPtrHolder LDDValue::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
+ld_::LDDPtrHolder LDDValueView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
     if (is_null()) {
-        return LDDValue(tgt, 0).value_ptr_;
+        return LDDValueView(tgt, 0).value_ptr_;
     }
     else if (is_integer())
     {
@@ -98,25 +98,25 @@ ld_::LDDPtrHolder LDDValue::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddres
 }
 
 
-ld_::LDPtr<U8LinkedString> LDString::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
+ld_::LDPtr<U8LinkedString> LDStringView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
     return tgt->new_string(string_.get(&doc_->arena_)->view()).string_;
 }
 
 
-std::ostream& operator<<(std::ostream& out, const LDString& value) {
+std::ostream& operator<<(std::ostream& out, const LDStringView& value) {
     LDDumpFormatState format = LDDumpFormatState().simple();
-    ((LDDValue)value).dump(out, format);
+    ((LDDValueView)value).dump(out, format);
     return out;
 }
 
 
-LDDocument LDDValue::clone(bool compactify) const
+LDDocument LDDValueView::clone(bool compactify) const
 {
     LDDocument tgt;
     ld_::LDArenaAddressMapping mapping(*doc_);
 
-    LDDValue tgt_value(&tgt, deep_copy_to(&tgt, mapping));
+    LDDValueView tgt_value(&tgt, deep_copy_to(&tgt, mapping));
     tgt.set_doc_value(tgt_value);
 
     if (compactify) {
@@ -126,12 +126,12 @@ LDDocument LDDValue::clone(bool compactify) const
     return tgt;
 }
 
-LDDocument LDString::clone(bool compactify) const {
-    LDDValue vv = *this;
+LDDocument LDStringView::clone(bool compactify) const {
+    LDDValueView vv = *this;
     return vv.clone(compactify);
 }
 
-std::ostream& LDString::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
+std::ostream& LDStringView::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
     U8StringView str = view();
     U8StringView str_escaped = SDNStringEscaper::current().escape_quotes(str);

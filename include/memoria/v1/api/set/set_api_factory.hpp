@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
 #include <memoria/v1/api/common/ctr_api_btss.hpp>
 
-#include <memoria/v1/core/linked/datatypes/io_vector_traits.hpp>
+#include <memoria/v1/core/datatypes/io_vector_traits.hpp>
 
 namespace memoria {
 namespace v1 {

@@ -15,10 +15,10 @@
 
 
 #include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/core/linked/datatypes/datatypes.hpp>
+#include <memoria/v1/core/datatypes/datatypes.hpp>
 
-#include <memoria/v1/core/linked/datatypes/varchars/varchar_builder.hpp>
-#include <memoria/v1/core/linked/datatypes/buffer/buffer.hpp>
+#include <memoria/v1/core/datatypes/varchars/varchar_builder.hpp>
+#include <memoria/v1/core/datatypes/buffer/buffer.hpp>
 
 #include <memoria/v1/api/store/memory_store_api.hpp>
 

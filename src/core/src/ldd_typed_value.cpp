@@ -18,10 +18,10 @@
 namespace memoria {
 namespace v1 {
 
-std::ostream& LDDTypedValue::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
+std::ostream& LDDTypedValueView::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
-    LDDValue ctr = constructor();
-    LDTypeDeclaration type = this->type();
+    LDDValueView ctr = constructor();
+    LDTypeDeclarationView type = this->type();
 
     auto ref = dump_state.resolve_type_id(type.state_.get());
 
@@ -51,7 +51,7 @@ std::ostream& LDDTypedValue::dump(std::ostream& out, LDDumpFormatState& state, L
     return out;
 }
 
-ld_::LDPtr<LDDTypedValue::State> LDDTypedValue::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
+ld_::LDPtr<LDDTypedValueView::State> LDDTypedValueView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
     const State* src_state = state();
 
@@ -66,7 +66,7 @@ ld_::LDPtr<LDDTypedValue::State> LDDTypedValue::deep_copy_to(LDDocumentView* tgt
         tgt_type = mapped_tgt_type.get();
     }
     else {
-        LDTypeDeclaration src_td(doc_, src_state->type_decl);
+        LDTypeDeclarationView src_td(doc_, src_state->type_decl);
 
         if (MMA1_LIKELY(mapping.is_compaction()))
         {
@@ -79,7 +79,7 @@ ld_::LDPtr<LDDTypedValue::State> LDDTypedValue::deep_copy_to(LDDocumentView* tgt
             {
                 tgt_type = src_td.deep_copy_to(tgt, mapping);
 
-                LDTypeDeclaration tgt_td(tgt, tgt_type);
+                LDTypeDeclarationView tgt_td(tgt, tgt_type);
                 mapping.finish_src_named_type(src_ptr);
                 tgt->set_named_type_declaration(named_type.get().name, tgt_td);
             }
@@ -98,7 +98,7 @@ ld_::LDPtr<LDDTypedValue::State> LDDTypedValue::deep_copy_to(LDDocumentView* tgt
                 auto named_type = mapping.is_src_named_type(src_ptr);
                 if (named_type)
                 {
-                    LDTypeDeclaration tgt_td(tgt, tgt_type);
+                    LDTypeDeclarationView tgt_td(tgt, tgt_type);
                     tgt->set_named_type_declaration(named_type.get().name, tgt_td);
                     mapping.finish_dst_named_type(type_data, tgt_type.get());
                 }
@@ -108,7 +108,7 @@ ld_::LDPtr<LDDTypedValue::State> LDDTypedValue::deep_copy_to(LDDocumentView* tgt
         mapping.map_ptrs(src_ptr, tgt_type.get());
     }
 
-    LDDValue src_value(doc_, src_state->value_ptr);
+    LDDValueView src_value(doc_, src_state->value_ptr);
 
     ld_::LDPtr<State> tgt_state = allocate_tagged<State>(
                 sizeof(LDDValueTag),
@@ -116,7 +116,7 @@ ld_::LDPtr<LDDTypedValue::State> LDDTypedValue::deep_copy_to(LDDocumentView* tgt
                 State{tgt_type.get(), src_value.deep_copy_to(tgt, mapping)}
     );
 
-    ld_::ldd_set_tag(&tgt->arena_, tgt_state.get(), ld_tag_value<LDDTypedValue>());
+    ld_::ldd_set_tag(&tgt->arena_, tgt_state.get(), ld_tag_value<LDDTypedValueView>());
 
     return tgt_state.get();
 }

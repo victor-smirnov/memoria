@@ -22,7 +22,7 @@
 
 #include <memoria/v1/core/tools/random.hpp>
 
-#include <memoria/v1/core/linked/datatypes/buffer/buffer.hpp>
+#include <memoria/v1/core/datatypes/buffer/buffer.hpp>
 
 #include <memory>
 #include <tuple>

@@ -14,8 +14,8 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
-#include <memoria/v1/core/linked/datatypes/datum.hpp>
+#include <memoria/v1/core/datatypes/type_registry.hpp>
+#include <memoria/v1/core/datatypes/datum.hpp>
 
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/fixed_array.hpp>
@@ -37,7 +37,7 @@ AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
 {
     LDDocument sdn_doc = LDDocument::parse(sdn_string);
 
-    LDDValue value = sdn_doc.value();
+    LDDValueView value = sdn_doc.value();
 
     if (value.is_null()) {
         return AnyDatum();
@@ -60,7 +60,7 @@ AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
         }
         else if (value.is_typed_value())
         {
-            LDDTypedValue tv = value.as_typed_value();
+            LDDTypedValueView tv = value.as_typed_value();
             typedecl = tv.type().to_standard_string();
         }
         else {

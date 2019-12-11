@@ -31,7 +31,7 @@ namespace tests {
 struct LDTestState: TestState {};
 
 template <typename T>
-void assert_arrays_equal(const std::vector<T>& expected, const LDDArray& actual)
+void assert_arrays_equal(const std::vector<T>& expected, const LDDArrayView& actual)
 {
     assert_equals(expected.size(), actual.size());
     for (size_t c = 0; c < expected.size(); c++) {
@@ -43,12 +43,12 @@ void assert_arrays_equal(const std::vector<T>& expected, const LDDArray& actual)
 
 
 template <typename K, typename V>
-void assert_arrays_equal(const std::unordered_map<K, V>& expected, const LDDMap& actual)
+void assert_arrays_equal(const std::unordered_map<K, V>& expected, const LDDMapView& actual)
 {
     assert_equals(expected.size(), actual.size());
     for (auto ii: expected)
     {
-        Optional<LDDValue> vv = actual.get(ii.first);
+        Optional<LDDValueView> vv = actual.get(ii.first);
         assert_equals(ii.second, vv.get().as_integer());
     }
 

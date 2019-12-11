@@ -16,7 +16,7 @@
 #pragma once
 
 
-#include <memoria/v1/core/linked/datatypes/buffer/buffer_common.hpp>
+#include <memoria/v1/core/datatypes/buffer/buffer_common.hpp>
 
 
 namespace memoria {

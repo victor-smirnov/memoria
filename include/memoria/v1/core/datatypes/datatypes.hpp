@@ -15,16 +15,16 @@
 
 #pragma once
 
-#include <memoria/v1/core/linked/datatypes/core.hpp>
-#include <memoria/v1/core/linked/datatypes/datum.hpp>
-#include <memoria/v1/core/linked/datatypes/varbinaries.hpp>
-#include <memoria/v1/core/linked/datatypes/varchars/varchars.hpp>
-#include <memoria/v1/core/linked/datatypes/varchars/varchar_builder.hpp>
-#include <memoria/v1/core/linked/datatypes/encoding_traits.hpp>
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
-#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
-#include <memoria/v1/core/linked/datatypes/type_signature.hpp>
-#include <memoria/v1/core/linked/datatypes/io_vector_traits.hpp>
+#include <memoria/v1/core/datatypes/core.hpp>
+#include <memoria/v1/core/datatypes/datum.hpp>
+#include <memoria/v1/core/datatypes/varbinaries.hpp>
+#include <memoria/v1/core/datatypes/varchars/varchars.hpp>
+#include <memoria/v1/core/datatypes/varchars/varchar_builder.hpp>
+#include <memoria/v1/core/datatypes/encoding_traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/type_registry.hpp>
+#include <memoria/v1/core/datatypes/type_signature.hpp>
+#include <memoria/v1/core/datatypes/io_vector_traits.hpp>
 #include <memoria/v1/core/linked/document/ld_datatype.hpp>
 
 

@@ -18,7 +18,7 @@
 #include <memoria/v1/core/types.hpp>
 
 
-#include <memoria/v1/core/linked/datatypes/datum.hpp>
+#include <memoria/v1/core/datatypes/datum.hpp>
 
 #include <memoria/v1/api/common/packed_api.hpp>
 

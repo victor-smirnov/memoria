@@ -15,7 +15,7 @@
 
 
 #include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/core/linked/datatypes/datatypes.hpp>
+#include <memoria/v1/core/datatypes/datatypes.hpp>
 
 #include <memoria/v1/core/types/hana.hpp>
 #include <memoria/v1/core/types/mp11.hpp>

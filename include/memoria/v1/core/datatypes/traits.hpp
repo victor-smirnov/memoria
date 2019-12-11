@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memoria/v1/core/linked/datatypes/core.hpp>
-#include <memoria/v1/core/linked/datatypes/type_signature.hpp>
+#include <memoria/v1/core/datatypes/core.hpp>
+#include <memoria/v1/core/datatypes/type_signature.hpp>
 #include <memoria/v1/core/strings/string_buffer.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 

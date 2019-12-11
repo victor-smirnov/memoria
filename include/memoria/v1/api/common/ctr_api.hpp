@@ -27,7 +27,7 @@
 #include <memoria/v1/profiles/common/common.hpp>
 
 #include <memoria/v1/core/iovector/io_vector.hpp>
-#include <memoria/v1/core/linked/datatypes/datatypes.hpp>
+#include <memoria/v1/core/datatypes/datatypes.hpp>
 
 namespace memoria {
 namespace v1 {

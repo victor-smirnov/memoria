@@ -24,7 +24,7 @@
 namespace memoria {
 namespace v1 {
 
-void LDDMap::do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& dump_state) const
+void LDDMapView::do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& dump_state) const
 {
     if (size() > 0)
     {
@@ -64,9 +64,9 @@ void LDDMap::do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& du
 }
 
 
-ld_::LDPtr<LDDMap::ValueMap::State> LDDMap::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
+ld_::LDPtr<LDDMapView::ValueMap::State> LDDMapView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
-    ld_::DeepCopyHelper<ld_::LDDValueDeepCopyHelperBase<LDDMap>> helper(mapping, doc_, tgt);
+    ld_::DeepCopyHelper<ld_::LDDValueDeepCopyHelperBase<LDDMapView>> helper(mapping, doc_, tgt);
     return map_.deep_copy_to(&tgt->arena_, helper);
 }
 

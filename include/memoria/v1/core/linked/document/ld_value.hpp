@@ -23,47 +23,47 @@ namespace v1 {
 
 
 
-class LDDValue {
+class LDDValueView {
     const LDDocumentView* doc_;
     ld_::LDDPtrHolder value_ptr_;
     LDDValueTag type_tag_;
 
     friend class LDDocument;
     friend class LDDocumentView;
-    friend class LDDMap;
-    friend class LDDArray;
-    friend class LDTypeDeclaration;
+    friend class LDDMapView;
+    friend class LDDArrayView;
+    friend class LDTypeDeclarationView;
 
     template <typename>
     friend struct DataTypeOperationsImpl;
 
 public:
-    LDDValue() noexcept : doc_(), value_ptr_(), type_tag_() {}
+    LDDValueView() noexcept : doc_(), value_ptr_(), type_tag_() {}
 
-    LDDValue(const LDDocumentView* doc, ld_::LDDPtrHolder value_ptr) noexcept :
+    LDDValueView(const LDDocumentView* doc, ld_::LDDPtrHolder value_ptr) noexcept :
         doc_(doc), value_ptr_(value_ptr),
         type_tag_(value_ptr ? get_tag(value_ptr) : 0)
     {}
 
-    LDDValue(const LDDocumentView* doc, ld_::LDDPtrHolder value_ptr, LDDValueTag tag) noexcept :
+    LDDValueView(const LDDocumentView* doc, ld_::LDDPtrHolder value_ptr, LDDValueTag tag) noexcept :
         doc_(doc), value_ptr_(value_ptr),
         type_tag_(tag)
     {}
 
-    bool operator==(const LDDValue& other) const noexcept {
+    bool operator==(const LDDValueView& other) const noexcept {
         return doc_->equals(other.doc_) && value_ptr_ == other.value_ptr_;
     }
 
 
-    LDDMap as_map() const;
-    LDDArray as_array() const;
-    LDTypeDeclaration as_type_decl() const;
-    LDDTypedValue as_typed_value() const;
+    LDDMapView as_map() const;
+    LDDArrayView as_array() const;
+    LDTypeDeclarationView as_type_decl() const;
+    LDDTypedValueView as_typed_value() const;
 
-    LDString as_string() const
+    LDStringView as_string() const
     {
-        ld_::ldd_assert_tag<LDString>(type_tag_);
-        return LDString(doc_, value_ptr_);
+        ld_::ldd_assert_tag<LDStringView>(type_tag_);
+        return LDStringView(doc_, value_ptr_);
     }
 
     LDInteger as_integer() const
@@ -101,23 +101,23 @@ public:
     }
 
     bool is_string() const noexcept {
-        return type_tag_ == ld_tag_value<LDString>();
+        return type_tag_ == ld_tag_value<LDStringView>();
     }
 
     bool is_array() const noexcept {
-        return type_tag_ == ld_tag_value<LDDArray>();
+        return type_tag_ == ld_tag_value<LDDArrayView>();
     }
 
     bool is_map() const noexcept {
-        return type_tag_ == ld_tag_value<LDDMap>();
+        return type_tag_ == ld_tag_value<LDDMapView>();
     }
 
     bool is_type_decl() const noexcept {
-        return type_tag_ == ld_tag_value<LDTypeDeclaration>();
+        return type_tag_ == ld_tag_value<LDTypeDeclarationView>();
     }
 
     bool is_typed_value() const noexcept {
-        return type_tag_ == ld_tag_value<LDDTypedValue>();
+        return type_tag_ == ld_tag_value<LDDTypedValueView>();
     }
 
     bool is_simple_layout() const noexcept;
@@ -160,7 +160,7 @@ private:
     }
 };
 
-static inline std::ostream& operator<<(std::ostream& out, const LDDValue& value) {
+static inline std::ostream& operator<<(std::ostream& out, const LDDValueView& value) {
     LDDumpFormatState format = LDDumpFormatState().simple();
     value.dump(out, format);
     return out;

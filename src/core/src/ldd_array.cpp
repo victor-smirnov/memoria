@@ -22,15 +22,15 @@
 namespace memoria {
 namespace v1 {
 
-LDDMap LDDArray::add_map()
+LDDMapView LDDArrayView::add_map()
 {
-    LDDMap map = doc_->make_mutable()->new_map();
+    LDDMapView map = doc_->make_mutable()->new_map();
     array_.push_back(map.map_.ptr());
     return map;
 }
 
 
-void LDDArray::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
+void LDDArrayView::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
     if (size() > 0)
     {
@@ -63,17 +63,17 @@ void LDDArray::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState&
 }
 
 
-LDDMap LDDArray::set_map(size_t idx)
+LDDMapView LDDArrayView::set_map(size_t idx)
 {
-    LDDMap vv = doc_->make_mutable()->new_map();
+    LDDMapView vv = doc_->make_mutable()->new_map();
     array_.access_checked(idx) = vv.map_.ptr();
     return vv;
 }
 
 
-ld_::LDPtr<LDDArray::Array::State> LDDArray::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
+ld_::LDPtr<LDDArrayView::Array::State> LDDArrayView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
-    ld_::DeepCopyHelper<ld_::LDDValueDeepCopyHelperBase<LDDArray>> helper(mapping, doc_, tgt);
+    ld_::DeepCopyHelper<ld_::LDDValueDeepCopyHelperBase<LDDArrayView>> helper(mapping, doc_, tgt);
     return array_.deep_copy_to(tgt->arena_.make_mutable(), helper);
 }
 

@@ -17,18 +17,18 @@
 
 #include <memoria/v1/core/types.hpp>
 
-#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
+#include <memoria/v1/core/datatypes/type_registry.hpp>
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/format.hpp>
 
-#include <memoria/v1/core/linked/datatypes/datum.hpp>
+#include <memoria/v1/core/datatypes/datum.hpp>
 
 namespace memoria {
 namespace v1 {
 
-class LDDValue;
-class LDTypeDeclaration;
+class LDDValueView;
+class LDTypeDeclarationView;
 
 template <typename T>
 struct SimpleDataTypeOperationsImpl: DataTypeOperations {
@@ -41,11 +41,11 @@ struct SimpleDataTypeOperationsImpl: DataTypeOperations {
         return make_datatype_signature<T>().name();
     }
 
-    virtual boost::any create_cxx_instance(const LDTypeDeclaration& typedecl) {
+    virtual boost::any create_cxx_instance(const LDTypeDeclarationView& typedecl) {
         MMA1_THROW(UnsupportedOperationException()) << fmt::format_ex(u"DataTypeOperationsImpl<{}>::from_ld_document", full_type_name());
     }
 
-    virtual AnyDatum from_ld_document(const LDDValue& value) {
+    virtual AnyDatum from_ld_document(const LDDValueView& value) {
         MMA1_THROW(UnsupportedOperationException())
                 << fmt::format_ex(u"DataTypeOperationsImpl<{}>::from_ld_document", full_type_name());
     }

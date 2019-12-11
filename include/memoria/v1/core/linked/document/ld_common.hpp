@@ -31,7 +31,7 @@
 
 #include <memoria/v1/core/types/typehash.hpp>
 
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
 
 #include <unordered_map>
 #include <iostream>
@@ -91,19 +91,19 @@ namespace ld_ {
 using LDPtrHolder = ld_::LDDPtrHolder;
 
 
-class LDDArray;
+class LDDArrayView;
 
-class LDDValue;
-class LDDMap;
-class LDTypeDeclaration;
+class LDDValueView;
+class LDDMapView;
+class LDTypeDeclarationView;
 class LDTypeName;
 class LDDataTypeParam;
 class LDDataTypeCtrArg;
 class LDDocument;
 class LDDocumentView;
-class LDString;
-class LDIdentifier;
-class LDDTypedValue;
+class LDStringView;
+class LDIdentifierView;
+class LDDTypedValueView;
 class LDDocumentBuilder;
 
 using LDBoolean = bool;
@@ -355,11 +355,11 @@ namespace ld_ {
     }
 }
 
-template <> struct TypeHash<LDString>:  UInt64Value<1> {};
-template <> struct TypeHash<LDDMap>:    UInt64Value<2> {};
-template <> struct TypeHash<LDDArray>:  UInt64Value<3> {};
-template <> struct TypeHash<LDTypeDeclaration>: UInt64Value<4> {};
-template <> struct TypeHash<LDDTypedValue>:     UInt64Value<5> {};
+template <> struct TypeHash<LDStringView>:  UInt64Value<1> {};
+template <> struct TypeHash<LDDMapView>:    UInt64Value<2> {};
+template <> struct TypeHash<LDDArrayView>:  UInt64Value<3> {};
+template <> struct TypeHash<LDTypeDeclarationView>: UInt64Value<4> {};
+template <> struct TypeHash<LDDTypedValueView>:     UInt64Value<5> {};
 template <> struct TypeHash<LDBoolean>:         UInt64Value<6> {};
 
 class LDDumpFormatState {
@@ -490,13 +490,13 @@ public:
 
 
 template <>
-struct DataTypeTraits<LDString>: DataTypeTraitsBase<LDString> {
+struct DataTypeTraits<LDStringView>: DataTypeTraitsBase<LDStringView> {
     using ViewType      = U8StringView;
     using ConstViewType = ViewType;
     using AtomType      = std::remove_const_t<typename ViewType::value_type>;
     using LDStorageType = U8LinkedString;
 
-    using LDViewType    = LDString;
+    using LDViewType    = LDStringView;
 
     //using DatumStorage  = VarcharStorage;
 
@@ -505,14 +505,14 @@ struct DataTypeTraits<LDString>: DataTypeTraitsBase<LDString> {
 
     static constexpr bool isSdnDeserializable = true;
 
-    static void create_signature(SBuf& buf, const LDString& obj)
+    static void create_signature(SBuf& buf, const LDStringView& obj)
     {
-        buf << "LDString";
+        buf << "LDStringView";
     }
 
     static void create_signature(SBuf& buf)
     {
-        buf << "LDString";
+        buf << "LDStringView";
     }
 
 

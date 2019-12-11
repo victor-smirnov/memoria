@@ -19,63 +19,64 @@
 #include <memoria/v1/core/linked/document/ld_array.hpp>
 #include <memoria/v1/core/linked/document/ld_value.hpp>
 
-#include <memoria/v1/core/linked/datatypes/core.hpp>
+#include <memoria/v1/core/datatypes/core.hpp>
 
 namespace memoria {
 namespace v1 {
 
-class LDDMap {
+class LDDMapView {
 public:
     using ValueMap = ld_::ValueMap;
 private:
 
-    friend class LDTypeDeclaration;
-    friend class LDDArray;
-
+    friend class LDTypeDeclarationView;
+    friend class LDDArrayView;
 
     using PtrHolder = typename ld_::LDArenaView::PtrHolderT;
     const LDDocumentView* doc_;
     ValueMap map_;
 public:
-    LDDMap(): doc_(), map_() {}
+    LDDMapView(): doc_(), map_() {}
 
-    LDDMap(const LDDocumentView* doc, ld_::LDPtr<ValueMap::State> map, LDDValueTag tag = 0):
+    LDDMapView(const LDDocumentView* doc, ld_::LDPtr<ValueMap::State> map, LDDValueTag tag = 0):
         doc_(doc), map_(&doc_->arena_, map)
     {}
 
-    LDDMap(const LDDocumentView* doc, ValueMap map):
+    LDDMapView(const LDDocumentView* doc, ValueMap map):
         doc_(doc), map_(map)
     {}
 
-    operator LDDValue() const {
+    operator LDDValueView() const {
         return as_value();
     }
 
-    bool operator==(const LDDMap& other) const noexcept {
+    bool operator==(const LDDMapView& other) const noexcept {
         return doc_->equals(other.doc_) && map_.ptr() == other.map_.ptr();
     }
 
-    LDDValue as_value() const {
-        return LDDValue{doc_, map_.ptr()};
+    LDDValueView as_value() const {
+        return LDDValueView{doc_, map_.ptr()};
     }
 
-    Optional<LDDValue> get(U8StringView name) const
+    Optional<LDDValueView> get(U8StringView name) const
     {
         Optional<ld_::LDGenericPtr<ld_::GenericValue>> ptr = map_.get(name);
         if (ptr) {
-            return LDDValue(doc_, ptr.get());
+            return LDDValueView(doc_, ptr.get());
         }
         else {
-            return Optional<LDDValue>{};
+            return Optional<LDDValueView>{};
         }
     }
+
+
 
     void set_string(U8StringView name, U8StringView value)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDString name_str  = mutable_doc->new_string(name);
-        LDString value_str = mutable_doc->new_string(value);
+        LDStringView name_str  = mutable_doc->new_string(name);
+        LDStringView value_str = mutable_doc->new_string(value);
 
         map_.put(name_str.string_, value_str.string_);
     }
@@ -84,8 +85,8 @@ public:
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDString name_str  = mutable_doc->new_string(name);
-        LDDValue value_vv  = mutable_doc->new_integer(value);
+        LDStringView name_str  = mutable_doc->new_string(name);
+        LDDValueView value_vv  = mutable_doc->new_integer(value);
 
         map_.put(name_str.string_, value_vv.value_ptr_);
     }
@@ -94,8 +95,8 @@ public:
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDString name_str  = mutable_doc->new_string(name);
-        LDDValue value_vv  = mutable_doc->new_double(value);
+        LDStringView name_str  = mutable_doc->new_string(name);
+        LDDValueView value_vv  = mutable_doc->new_double(value);
 
         map_.put(name_str.string_, value_vv.value_ptr_);
     }
@@ -104,52 +105,52 @@ public:
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDString name_str  = mutable_doc->new_string(name);
-        LDDValue value_vv  = mutable_doc->new_boolean(value);
+        LDStringView name_str  = mutable_doc->new_string(name);
+        LDDValueView value_vv  = mutable_doc->new_boolean(value);
 
         map_.put(name_str.string_, value_vv.value_ptr_);
     }
 
-    void set_value(LDString name, LDDValue value)
+    void set_value(LDStringView name, LDDValueView value)
     {
         map_.put(name.string_, value.value_ptr_);
     }
 
-    LDDMap set_map(U8StringView name)
+    LDDMapView set_map(U8StringView name)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDString name_str  = mutable_doc->new_string(name);
-        LDDMap map = mutable_doc->new_map();
+        LDStringView name_str  = mutable_doc->new_string(name);
+        LDDMapView map = mutable_doc->new_map();
 
         map_.put(name_str.string_, map.map_.ptr());
         return map;
     }
 
-    LDDArray set_array(U8StringView name)
+    LDDArrayView set_array(U8StringView name)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDString name_str  = mutable_doc->new_string(name);
-        LDDArray array = mutable_doc->new_array();
+        LDStringView name_str  = mutable_doc->new_string(name);
+        LDDArrayView array = mutable_doc->new_array();
 
         map_.put(name_str.string_, array.array_.ptr());
         return array;
     }
 
-    LDDValue set_sdn(U8StringView name, U8StringView sdn)
+    LDDValueView set_sdn(U8StringView name, U8StringView sdn)
     {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
-        LDString name_str   = mutable_doc->new_string(name);
-        LDDValue value      = mutable_doc->parse_raw_value(sdn.begin(), sdn.end());
+        LDStringView name_str   = mutable_doc->new_string(name);
+        LDDValueView value      = mutable_doc->parse_raw_value(sdn.begin(), sdn.end());
 
         map_.put(name_str.string_, value.value_ptr_);
 
         return value;
     }
 
-    LDDValue set_document(U8StringView name, const LDDocument& source)
+    LDDValueView set_document(U8StringView name, const LDDocument& source)
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
@@ -160,10 +161,10 @@ public:
 
         map_.put(name_str, ptr);
 
-        return LDDValue{doc_, ptr};
+        return LDDValueView{doc_, ptr};
     }
 
-    LDDValue set_null(U8StringView name)
+    LDDValueView set_null(U8StringView name)
     {
         LDDocumentView* dst_doc = doc_->make_mutable();
 
@@ -171,7 +172,7 @@ public:
 
         map_.put(name_str, 0);
 
-        return LDDValue{doc_, 0};
+        return LDDValueView{doc_, 0};
     }
 
     void remove(U8StringView name)
@@ -183,11 +184,11 @@ public:
         return map_.size();
     }
 
-    void for_each(std::function<void(U8StringView, LDDValue)> fn) const
+    void for_each(std::function<void(U8StringView, LDDValueView)> fn) const
     {
         map_.for_each([&](const auto& key, const auto& value){
             U8StringView kk = key.get(&doc_->arena_)->view();
-            fn(kk, LDDValue{doc_, value});
+            fn(kk, LDDValueView{doc_, value});
         });
     }
 
@@ -238,7 +239,7 @@ public:
     ld_::LDPtr<ValueMap::State> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
     LDDocument clone(bool compactify = true) const {
-        LDDValue vv = *this;
+        LDDValueView vv = *this;
         return vv.clone(compactify);
     }
 
@@ -247,27 +248,27 @@ private:
     void do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& dump_state) const;
 };
 
-static inline std::ostream& operator<<(std::ostream& out, const LDDMap& value) {
+static inline std::ostream& operator<<(std::ostream& out, const LDDMapView& value) {
     LDDumpFormatState format = LDDumpFormatState().simple();
     value.dump(out, format);
     return out;
 }
 
 template <>
-struct DataTypeTraits<LDDMap> {
+struct DataTypeTraits<LDDMapView> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
-    using LDViewType = LDDMap;
+    using LDViewType = LDDMapView;
 
     static void create_signature(SBuf& buf) {
-        buf << "LDDMap";
+        buf << "LDDMapView";
     }
 };
 
 template <typename Arena>
-auto ld_allocate_and_construct(const LDDMap*, Arena* arena)
+auto ld_allocate_and_construct(const LDDMapView*, Arena* arena)
 {
-    return LDDMap::ValueMap::create_ptr(arena, ld_tag_size<LDDMap>());
+    return LDDMapView::ValueMap::create_ptr(arena, ld_tag_size<LDDMapView>());
 }
 
 

@@ -25,7 +25,7 @@ namespace tests {
 auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"DocumentCompaction", [](auto& state){
     LDDocument doc;
 
-    LDDMap map = doc.set_map();
+    LDDMapView map = doc.set_map();
 
     size_t size = 100000;
 

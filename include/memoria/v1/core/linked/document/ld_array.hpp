@@ -21,13 +21,13 @@
 namespace memoria {
 namespace v1 {
 
-class LDDArray {
+class LDDArrayView {
 public:
     using Array = ld_::Array;
 
 private:
-    friend class LDTypeDeclaration;
-    friend class LDDMap;
+    friend class LDTypeDeclarationView;
+    friend class LDDMapView;
     friend class LDDocument;
 
     using PtrHolder = typename ld_::LDArenaView::PtrHolderT;
@@ -35,58 +35,58 @@ private:
     Array array_;
 
 public:
-    LDDArray(): doc_(), array_() {}
+    LDDArrayView(): doc_(), array_() {}
 
-    LDDArray(const LDDocumentView* doc, Array array) noexcept:
+    LDDArrayView(const LDDocumentView* doc, Array array) noexcept:
         doc_(doc), array_(array)
     {}
 
-    LDDArray(const LDDocumentView* doc, PtrHolder ptr) noexcept:
+    LDDArrayView(const LDDocumentView* doc, PtrHolder ptr) noexcept:
         doc_(doc), array_(Array::get(&doc_->arena_, ptr))
     {}
 
-    LDDArray(const LDDocumentView* doc, typename Array::ArrayPtr ptr, LDDValueTag) noexcept:
+    LDDArrayView(const LDDocumentView* doc, typename Array::ArrayPtr ptr, LDDValueTag) noexcept:
         doc_(doc), array_(Array::get(&doc_->arena_, ptr.get()))
     {}
 
-    operator LDDValue() const noexcept;
+    operator LDDValueView() const noexcept;
 
-    bool operator==(const LDDArray& other) const noexcept {
+    bool operator==(const LDDArrayView& other) const noexcept {
         return doc_->equals(other.doc_) && array_.ptr() == other.array_.ptr();
     }
 
-    LDDValue get(size_t idx) const;
+    LDDValueView get(size_t idx) const;
 
     void set_string(size_t idx, U8StringView value)
     {
-        LDString str = doc_->make_mutable()->new_string(value);
+        LDStringView str = doc_->make_mutable()->new_string(value);
         array_.access_checked(idx) = str.string_.get();
     }
 
     void set_integer(size_t idx, int64_t value)
     {
-        LDDValue vv = doc_->make_mutable()->new_integer(value);
+        LDDValueView vv = doc_->make_mutable()->new_integer(value);
         array_.access_checked(idx) = vv.value_ptr_;
     }
 
     void set_double(size_t idx, double value)
     {
-        LDDValue vv = doc_->make_mutable()->new_double(value);
+        LDDValueView vv = doc_->make_mutable()->new_double(value);
         array_.access_checked(idx) = vv.value_ptr_;
     }
 
     void set_boolean(size_t idx, bool value)
     {
-        LDDValue vv = doc_->make_mutable()->new_boolean(value);
+        LDDValueView vv = doc_->make_mutable()->new_boolean(value);
         array_.access_checked(idx) = vv.value_ptr_;
     }
 
-    LDDMap set_map(size_t idx);
+    LDDMapView set_map(size_t idx);
 
 
-    LDDArray set_array(size_t idx)
+    LDDArrayView set_array(size_t idx)
     {
-        LDDArray vv = doc_->make_mutable()->new_array();
+        LDDArrayView vv = doc_->make_mutable()->new_array();
         array_.access_checked(idx) = vv.array_.ptr();
         return vv;
     }
@@ -96,34 +96,34 @@ public:
         array_.access_checked(idx) = 0;
     }
 
-    LDDValue set_sdn(size_t idx, U8StringView sdn)
+    LDDValueView set_sdn(size_t idx, U8StringView sdn)
     {
-        LDDValue value = doc_->make_mutable()->parse_raw_value(sdn.begin(), sdn.end());
+        LDDValueView value = doc_->make_mutable()->parse_raw_value(sdn.begin(), sdn.end());
         array_.access_checked(idx) = value.value_ptr_;
         return value;
     }
 
     void add_string(U8StringView value)
     {
-        LDString str = doc_->make_mutable()->new_string(value);
+        LDStringView str = doc_->make_mutable()->new_string(value);
         array_.push_back(str.string_.get());
     }
 
     void add_integer(int64_t value)
     {
-        LDDValue vv = doc_->make_mutable()->new_integer(value);
+        LDDValueView vv = doc_->make_mutable()->new_integer(value);
         array_.push_back(vv.value_ptr_);
     }
 
     void add_double(double value)
     {
-        LDDValue vv = doc_->make_mutable()->new_double(value);
+        LDDValueView vv = doc_->make_mutable()->new_double(value);
         array_.push_back(vv.value_ptr_);
     }
 
     void add_boolean(bool value)
     {
-        LDDValue vv = doc_->make_mutable()->new_boolean(value);
+        LDDValueView vv = doc_->make_mutable()->new_boolean(value);
         array_.push_back(vv.value_ptr_);
     }
 
@@ -132,7 +132,7 @@ public:
         array_.push_back(0);
     }
 
-    LDDValue add_document(const LDDocument& source)
+    LDDValueView add_document(const LDDocument& source)
     {
         ld_::assert_different_docs(doc_, &source);
 
@@ -143,10 +143,10 @@ public:
 
         array_.push_back(ptr);
 
-        return LDDValue{doc_, ptr};
+        return LDDValueView{doc_, ptr};
     }
 
-    LDDValue set_document(size_t idx, const LDDocument& source)
+    LDDValueView set_document(size_t idx, const LDDocument& source)
     {
         ld_::assert_different_docs(doc_, &source);
 
@@ -156,21 +156,21 @@ public:
         ld_::LDDPtrHolder ptr = source.value().deep_copy_to(dst_doc, mapping);
         array_.access_checked(idx) = ptr;
 
-        return LDDValue{doc_, ptr};
+        return LDDValueView{doc_, ptr};
     }
 
-    LDDMap add_map();
+    LDDMapView add_map();
 
-    LDDArray add_array()
+    LDDArrayView add_array()
     {
-        LDDArray vv = doc_->make_mutable()->new_array();
+        LDDArrayView vv = doc_->make_mutable()->new_array();
         array_.push_back(vv.array_.ptr());
         return vv;
     }
 
-    LDDValue add_sdn(U8StringView sdn)
+    LDDValueView add_sdn(U8StringView sdn)
     {
-        LDDValue value = doc_->make_mutable()->parse_raw_value(sdn.begin(), sdn.end());
+        LDDValueView value = doc_->make_mutable()->parse_raw_value(sdn.begin(), sdn.end());
         array_.push_back(value.value_ptr_);
         return value;
     }
@@ -179,7 +179,7 @@ public:
         array_.remove(idx, 1);
     }
 
-    void for_each(std::function<void(LDDValue)> fn) const;
+    void for_each(std::function<void(LDDValueView)> fn) const;
 
 
     std::ostream& dump(std::ostream& out) const
@@ -220,7 +220,7 @@ public:
     ld_::LDPtr<Array::State> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
     LDDocument clone(bool compactify = true) const {
-        LDDValue vv = *this;
+        LDDValueView vv = *this;
         return vv.clone(compactify);
     }
 
@@ -229,7 +229,7 @@ private:
 };
 
 
-static inline std::ostream& operator<<(std::ostream& out, const LDDArray& array)
+static inline std::ostream& operator<<(std::ostream& out, const LDDArrayView& array)
 {
     LDDumpFormatState format = LDDumpFormatState().simple();
     array.dump(out, format);
@@ -238,26 +238,26 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDArray& array)
 
 
 template <>
-struct DataTypeTraits<LDDArray> {
+struct DataTypeTraits<LDDArrayView> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
-    using LDViewType = LDDArray;
+    using LDViewType = LDDArrayView;
 
     static void create_signature(SBuf& buf) {
-        buf << "LDDArray";
+        buf << "LDDArrayView";
     }
 };
 
 template <typename Arena>
-auto ld_allocate_and_construct(const LDDArray*, Arena* arena)
+auto ld_allocate_and_construct(const LDDArrayView*, Arena* arena)
 {
-    return LDDArray::Array::create_tagged_ptr(ld_tag_size<LDDArray>(), arena, 4);
+    return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDDArrayView>(), arena, 4);
 }
 
 template <typename Arena>
-auto ld_allocate_and_construct(const LDDArray*, Arena* arena, size_t capacity)
+auto ld_allocate_and_construct(const LDDArrayView*, Arena* arena, size_t capacity)
 {
-    return LDDArray::Array::create_tagged_ptr(ld_tag_size<LDDArray>(), arena, capacity);
+    return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDDArrayView>(), arena, capacity);
 }
 
 }}

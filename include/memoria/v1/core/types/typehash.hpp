@@ -36,11 +36,11 @@ struct TypeHashes {
 // Type Code value 0 means 'no code'
 
 // Linked Data Type Codes:
-// LDString: 1
-// LDDMap: 2
-// LDDArray: 3
-// LDTypeDeclaration: 4
-// LDDTypedValue: 5
+// LDStringView: 1
+// LDDMapView: 2
+// LDDArrayView: 3
+// LDTypeDeclarationView: 4
+// LDDTypedValueView: 5
 // LDBoolean: 6
 
 // Reserved for Linked Data : 7-31, 250-255

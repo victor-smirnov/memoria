@@ -24,7 +24,7 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/format.hpp>
 
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
 
 #include <memoria/v1/core/tools/span.hpp>
 

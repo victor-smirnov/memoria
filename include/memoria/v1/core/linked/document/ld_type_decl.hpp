@@ -25,7 +25,7 @@
 namespace memoria {
 namespace v1 {
 
-class LDTypeDeclaration {
+class LDTypeDeclarationView {
     using TypeDeclState = ld_::TypeDeclState;
     using TypeDeclPtr   = ld_::TypeDeclPtr;
 
@@ -38,25 +38,25 @@ class LDTypeDeclaration {
     friend class LDDocumentBuilder;
     friend class LDDocumentView;
     friend class LDDumpState;
-    friend class LDDTypedValue;
+    friend class LDDTypedValueView;
     friend class ld_::LDArenaAddressMapping;
 
     template <typename>
     friend struct DataTypeTraits;
 
 public:
-    LDTypeDeclaration(): doc_(), state_({}) {}
+    LDTypeDeclarationView(): doc_(), state_({}) {}
 
-    LDTypeDeclaration(const LDDocumentView* doc, TypeDeclPtr state):
+    LDTypeDeclarationView(const LDDocumentView* doc, TypeDeclPtr state):
         doc_(doc), state_(state)
     {}
 
-    bool operator==(const LDTypeDeclaration& other) const noexcept {
+    bool operator==(const LDTypeDeclarationView& other) const noexcept {
         return doc_->equals(other.doc_) && state_.get() == other.state_.get();
     }
 
-    operator LDDValue() const {
-        return LDDValue{doc_, state_.get()};
+    operator LDDValueView() const {
+        return LDDValueView{doc_, state_.get()};
     }
 
     U8StringView name() const {
@@ -93,7 +93,7 @@ public:
         return false;
     }
 
-    LDTypeDeclaration get_type_declration(size_t idx) const
+    LDTypeDeclarationView get_type_declration(size_t idx) const
     {
         const TypeDeclState* state = this->state();
         if (state->type_params)
@@ -102,16 +102,16 @@ public:
 
             if (idx < params_array->size())
             {
-                return LDTypeDeclaration(doc_, params_array->access(idx));
+                return LDTypeDeclarationView(doc_, params_array->access(idx));
             }
         }
 
         MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
     }
 
-    LDTypeDeclaration add_type_declaration(U8StringView name)
+    LDTypeDeclarationView add_type_declaration(U8StringView name)
     {
-        LDTypeDeclaration decl = doc_->make_mutable()->new_type_declaration(name);
+        LDTypeDeclarationView decl = doc_->make_mutable()->new_type_declaration(name);
         ensure_params_capacity(1)->push_back(decl.state_);
         return decl;
     }
@@ -149,7 +149,7 @@ public:
         return 0;
     }
 
-    LDDValue get_constructor_arg(size_t idx) const
+    LDDValueView get_constructor_arg(size_t idx) const
     {
         const TypeDeclState* state = this->state();
         if (state->ctr_args)
@@ -158,42 +158,42 @@ public:
 
             if (idx < ctr_args->size())
             {
-                return LDDValue{doc_, ctr_args->access(idx)};
+                return LDDValueView{doc_, ctr_args->access(idx)};
             }
         }
 
         MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
     }
 
-    LDString add_string_constructor_arg(U8StringView value)
+    LDStringView add_string_constructor_arg(U8StringView value)
     {
-        LDString str = doc_->make_mutable()->new_string(value);
+        LDStringView str = doc_->make_mutable()->new_string(value);
         ensure_args_capacity(1)->push_back(str.string_.get());
         return str;
     }
 
     void add_double_constructor_arg(double value)
     {
-        LDDValue val = doc_->make_mutable()->new_double(value);
+        LDDValueView val = doc_->make_mutable()->new_double(value);
         ensure_args_capacity(1)->push_back(val.value_ptr_);
     }
 
     void add_integer_constructor_arg(int64_t value)
     {
-        LDDValue val = doc_->make_mutable()->new_integer(value);
+        LDDValueView val = doc_->make_mutable()->new_integer(value);
         ensure_args_capacity(1)->push_back(val.value_ptr_);
     }
 
-    LDDArray add_array_constructor_arg()
+    LDDArrayView add_array_constructor_arg()
     {
-        LDDArray array = doc_->make_mutable()->new_array();
+        LDDArrayView array = doc_->make_mutable()->new_array();
         ensure_args_capacity(1)->push_back(array.array_.ptr());
         return array;
     }
 
-    LDDMap add_map_constructor_arg()
+    LDDMapView add_map_constructor_arg()
     {
-        LDDMap map = doc_->make_mutable()->new_map();
+        LDDMapView map = doc_->make_mutable()->new_map();
         ensure_args_capacity(1)->push_back(map.map_.ptr());
         return map;
     }
@@ -296,7 +296,7 @@ public:
     ld_::LDPtr<TypeDeclState> deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const;
 
     LDDocument clone(bool compactify = true) const {
-        LDDValue vv = *this;
+        LDDValueView vv = *this;
         return vv.clone(compactify);
     }
 
@@ -306,12 +306,12 @@ private:
 
     void do_dump_cxx_type_decl(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const;
 
-    void add_param(LDTypeDeclaration type_decl)
+    void add_param(LDTypeDeclarationView type_decl)
     {
         ensure_params_capacity(1)->push_back(type_decl.state_);
     }
 
-    void add_ctr_arg(LDDValue ctr_arg)
+    void add_ctr_arg(LDDValueView ctr_arg)
     {
         ensure_args_capacity(1)->push_back(ctr_arg.value_ptr_);
     }
@@ -345,20 +345,20 @@ private:
     }
 };
 
-static inline std::ostream& operator<<(std::ostream& out, const LDTypeDeclaration& value) {
+static inline std::ostream& operator<<(std::ostream& out, const LDTypeDeclarationView& value) {
     LDDumpFormatState format = LDDumpFormatState().simple();
     value.dump(out, format);
     return out;
 }
 
 template <>
-struct DataTypeTraits<LDTypeDeclaration> {
+struct DataTypeTraits<LDTypeDeclarationView> {
     static constexpr bool isDataType = true;
     using LDStorageType = NullType;
-    using LDViewType = LDTypeDeclaration;
+    using LDViewType = LDTypeDeclarationView;
 
     static void create_signature(SBuf& buf) {
-        buf << "LDTypeDeclaration";
+        buf << "LDTypeDeclarationView";
     }
 };
 

@@ -22,7 +22,7 @@
 
 #include <memoria/v1/core/tools/object_pool.hpp>
 
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
 
 #include <memoria/v1/core/types/typehash.hpp>
 

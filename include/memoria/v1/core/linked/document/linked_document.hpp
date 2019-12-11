@@ -32,32 +32,32 @@
 namespace memoria {
 namespace v1 {
 
-inline LDDArray LDDValue::as_array() const {
-    ld_::ldd_assert_tag<LDDArray>(type_tag_);
-    return LDDArray(doc_, value_ptr_);
+inline LDDArrayView LDDValueView::as_array() const {
+    ld_::ldd_assert_tag<LDDArrayView>(type_tag_);
+    return LDDArrayView(doc_, value_ptr_);
 }
 
 
-inline LDDMap LDDValue::as_map() const {
-    ld_::ldd_assert_tag<LDDMap>(type_tag_);
-    return LDDMap(doc_, value_ptr_);
+inline LDDMapView LDDValueView::as_map() const {
+    ld_::ldd_assert_tag<LDDMapView>(type_tag_);
+    return LDDMapView(doc_, value_ptr_);
 }
 
-inline LDDValue LDDArray::get(size_t idx) const
+inline LDDValueView LDDArrayView::get(size_t idx) const
 {
     ld_::LDDPtrHolder ptr = array_.access_checked(idx);
-    return LDDValue{doc_, ptr};
+    return LDDValueView{doc_, ptr};
 }
 
-inline void LDDArray::for_each(std::function<void(LDDValue)> fn) const
+inline void LDDArrayView::for_each(std::function<void(LDDValueView)> fn) const
 {
     array_.for_each([&](const auto& value){
-        fn(LDDValue{doc_, value});
+        fn(LDDValueView{doc_, value});
     });
 }
 
 
-inline bool LDDArray::is_simple_layout() const noexcept
+inline bool LDDArrayView::is_simple_layout() const noexcept
 {
     if (size() > 3) {
         return false;
@@ -74,30 +74,30 @@ inline bool LDDArray::is_simple_layout() const noexcept
 
 
 
-inline LDTypeDeclaration LDDValue::as_type_decl() const {
-    ld_::ldd_assert_tag<LDTypeDeclaration>(type_tag_);
-    return LDTypeDeclaration(doc_, value_ptr_);
+inline LDTypeDeclarationView LDDValueView::as_type_decl() const {
+    ld_::ldd_assert_tag<LDTypeDeclarationView>(type_tag_);
+    return LDTypeDeclarationView(doc_, value_ptr_);
 }
 
-inline LDDTypedValue LDDValue::as_typed_value() const {
-    ld_::ldd_assert_tag<LDDTypedValue>(type_tag_);
-    return LDDTypedValue(doc_, value_ptr_);
-}
-
-
-
-
-inline LDDValue LDDocumentView::value() const noexcept {
-    return LDDValue{const_cast<LDDocumentView*>(this), state()->value};
+inline LDDTypedValueView LDDValueView::as_typed_value() const {
+    ld_::ldd_assert_tag<LDDTypedValueView>(type_tag_);
+    return LDDTypedValueView(doc_, value_ptr_);
 }
 
 
-inline LDString::operator LDDValue() const noexcept {
-    return LDDValue{doc_, string_.get(), ld_tag_value<LDString>()};
+
+
+inline LDDValueView LDDocumentView::value() const noexcept {
+    return LDDValueView{const_cast<LDDocumentView*>(this), state()->value};
 }
 
-inline LDDArray::operator LDDValue() const noexcept {
-    return LDDValue{doc_, array_.ptr(), ld_tag_value<LDDArray>()};
+
+inline LDStringView::operator LDDValueView() const noexcept {
+    return LDDValueView{doc_, string_.get(), ld_tag_value<LDStringView>()};
+}
+
+inline LDDArrayView::operator LDDValueView() const noexcept {
+    return LDDValueView{doc_, array_.ptr(), ld_tag_value<LDDArrayView>()};
 }
 
 
@@ -136,7 +136,7 @@ public:
             LDArenaAddressMapping& mapping
     )
     {
-        LDDValue src_val(src_doc_, element.get());
+        LDDValueView src_val(src_doc_, element.get());
         return src_val.deep_copy_to(dst_doc_, mapping);
     }
 };
@@ -148,7 +148,7 @@ public:
 inline LDArenaAddressMapping::LDArenaAddressMapping(const LDDocumentView& src):
     copying_type_(LDDCopyingType::EXPORT)
 {
-    src.for_each_named_type([&, this](auto name, LDTypeDeclaration td){
+    src.for_each_named_type([&, this](auto name, LDTypeDeclarationView td){
         this->type_names_[td.state_.get()] = TypeNameData{name, false};
     });
 }
@@ -157,11 +157,11 @@ inline LDArenaAddressMapping::LDArenaAddressMapping(const LDDocumentView& src):
 inline LDArenaAddressMapping::LDArenaAddressMapping(const LDDocumentView& src, const LDDocumentView& dst):
     copying_type_(LDDCopyingType::IMPORT)
 {
-    src.for_each_named_type([&, this](auto name, LDTypeDeclaration td){
+    src.for_each_named_type([&, this](auto name, LDTypeDeclarationView td){
         this->type_names_[td.state_.get()] = TypeNameData{name, false};
     });
 
-    dst.for_each_named_type([&, this](auto name, LDTypeDeclaration td){
+    dst.for_each_named_type([&, this](auto name, LDTypeDeclarationView td){
         U8String type_data = td.to_standard_string();
         this->types_by_data_[type_data] = td.state_.get();
     });

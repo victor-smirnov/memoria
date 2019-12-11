@@ -30,7 +30,7 @@
 
 #include <memoria/v1/core/iovector/io_substream_base.hpp>
 
-#include <memoria/v1/core/linked/datatypes/buffer/buffer_generic.hpp>
+#include <memoria/v1/core/datatypes/buffer/buffer_generic.hpp>
 
 #include <memoria/v1/core/packed/datatype_buffer/packed_datatype_buffer_fse_tools.hpp>
 #include <memoria/v1/core/packed/datatype_buffer/packed_datatype_buffer_vle_tools.hpp>

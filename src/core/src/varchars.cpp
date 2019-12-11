@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/linked/datatypes/varchars/varchars.hpp>
+#include <memoria/v1/core/datatypes/varchars/varchars.hpp>
 
 #include <memoria/v1/core/memory/malloc.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
@@ -54,7 +54,7 @@ U8String VarcharStorage::to_sdn_string() const
 template <>
 Datum<Varchar> Datum<Varchar>::from_sdn(const LDDocument& sdn_doc)
 {
-    LDDValue value = sdn_doc.value();
+    LDDValueView value = sdn_doc.value();
     if (value.is_string()) {
         return Datum<Varchar>(value.as_string().view());
     }

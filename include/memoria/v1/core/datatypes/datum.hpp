@@ -16,8 +16,8 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
-#include <memoria/v1/core/linked/datatypes/datum_base.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/datum_base.hpp>
 
 #include <memoria/v1/core/strings/format.hpp>
 
@@ -357,7 +357,7 @@ public:
 
     static Datum<DataType> from_sdn(const LDDocument& doc)
     {
-        LDDValue value = doc.value();
+        LDDValueView value = doc.value();
 
         if (value.is_double()) {
             return datum_from_sdn_value(static_cast<DataType*>(nullptr), value.as_double());

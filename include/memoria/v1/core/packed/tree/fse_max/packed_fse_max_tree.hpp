@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
 
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree_base.hpp>
 #include <memoria/v1/core/packed/tools/packed_tools.hpp>

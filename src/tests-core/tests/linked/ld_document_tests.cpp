@@ -123,12 +123,12 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumen
     assert_equals("Hello World", doc.value().as_string().view());
 
 
-    LDTypeDeclaration type = doc.create_named_type("Type1", "CoolType2");
+    LDTypeDeclarationView type = doc.create_named_type("Type1", "CoolType2");
 
     assert_equals("CoolType2", type.name());
     doc.set_sdn("'12345'@#Type1");
     assert_equals(true, doc.value().is_typed_value());
-    LDDTypedValue tval = doc.value().as_typed_value();
+    LDDTypedValueView tval = doc.value().as_typed_value();
     assert_equals(type, tval.type());
 
 

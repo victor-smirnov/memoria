@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/linked/datatypes/datum.hpp>
+#include <memoria/v1/core/datatypes/datum.hpp>
 
 namespace memoria {
 namespace v1 {

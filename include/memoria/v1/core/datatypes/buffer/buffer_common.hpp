@@ -20,7 +20,7 @@
 #include <memoria/v1/core/strings/format.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
 #include <memoria/v1/core/tools/arena_buffer.hpp>
 
 #include <memoria/v1/core/tools/vle_arena_buffer.hpp>

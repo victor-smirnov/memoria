@@ -16,9 +16,9 @@
 #pragma once
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
 
-#include <memoria/v1/core/linked/datatypes/datum.hpp>
+#include <memoria/v1/core/datatypes/datum.hpp>
 
 namespace memoria {
 namespace v1 {

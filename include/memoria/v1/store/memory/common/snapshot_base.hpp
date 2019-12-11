@@ -35,7 +35,7 @@
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
-#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
+#include <memoria/v1/core/datatypes/type_registry.hpp>
 
 #include <memoria/v1/core/linked/document/linked_document.hpp>
 
@@ -1039,14 +1039,14 @@ public:
     }
 
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const LDTypeDeclaration& decl, const CtrID& ctr_id)
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id)
     {
         checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
         return factory->create_instance(this->shared_from_this(), ctr_id, decl);
     }
 
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const LDTypeDeclaration& decl)
+    virtual CtrSharedPtr<CtrReferenceable<Profile>> create(const LDTypeDeclarationView& decl)
     {
         checkIfConainersCreationAllowed();
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());

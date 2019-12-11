@@ -15,13 +15,13 @@
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
-#include <memoria/v1/core/linked/datatypes/default_datatype_ops.hpp>
-#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
-#include <memoria/v1/core/linked/datatypes/datum.hpp>
+#include <memoria/v1/core/datatypes/default_datatype_ops.hpp>
+#include <memoria/v1/core/datatypes/type_registry.hpp>
+#include <memoria/v1/core/datatypes/datum.hpp>
 
 #include <memoria/v1/core/linked/document/ld_common.hpp>
 
-#include <memoria/v1/core/linked/datatypes/default_datatype_ops.hpp>
+#include <memoria/v1/core/datatypes/default_datatype_ops.hpp>
 
 #include <string>
 
@@ -30,7 +30,7 @@ namespace memoria {
 namespace v1 {
 
 template <>
-struct DataTypeOperationsImpl<LDDArray>: SimpleDataTypeOperationsImpl<LDDArray> {
+struct DataTypeOperationsImpl<LDDArrayView>: SimpleDataTypeOperationsImpl<LDDArrayView> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -39,7 +39,7 @@ struct DataTypeOperationsImpl<LDDArray>: SimpleDataTypeOperationsImpl<LDDArray> 
             LDDumpFormatState& state,
             LDDumpState& dump_state
     ){
-        LDDArray array(doc, ptr);
+        LDDArrayView array(doc, ptr);
         array.dump(out, state, dump_state);
     }
 
@@ -49,13 +49,13 @@ struct DataTypeOperationsImpl<LDDArray>: SimpleDataTypeOperationsImpl<LDDArray> 
             LDDocumentView* tgt,
             ld_::LDArenaAddressMapping& mapping
     ) {
-        LDDArray array(src, ptr);
+        LDDArrayView array(src, ptr);
         return array.deep_copy_to(tgt, mapping);
     }
 
     virtual LDPtrHolder construct_from(
             LDDocumentView* doc,
-            const LDDValue& value
+            const LDDValueView& value
     ) {
         return value.value_ptr_;
     }
@@ -63,7 +63,7 @@ struct DataTypeOperationsImpl<LDDArray>: SimpleDataTypeOperationsImpl<LDDArray> 
 
 
 template <>
-struct DataTypeOperationsImpl<LDDMap>: SimpleDataTypeOperationsImpl<LDDMap> {
+struct DataTypeOperationsImpl<LDDMapView>: SimpleDataTypeOperationsImpl<LDDMapView> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -72,7 +72,7 @@ struct DataTypeOperationsImpl<LDDMap>: SimpleDataTypeOperationsImpl<LDDMap> {
             LDDumpFormatState& state,
             LDDumpState& dump_state
     ){
-        LDDMap map(doc, ptr);
+        LDDMapView map(doc, ptr);
         map.dump(out, state, dump_state);
     }
 
@@ -82,20 +82,20 @@ struct DataTypeOperationsImpl<LDDMap>: SimpleDataTypeOperationsImpl<LDDMap> {
             LDDocumentView* tgt,
             ld_::LDArenaAddressMapping& mapping
     ) {
-        LDDMap map(src, ptr);
+        LDDMapView map(src, ptr);
         return map.deep_copy_to(tgt, mapping);
     }
 
     virtual LDPtrHolder construct_from(
             LDDocumentView* doc,
-            const LDDValue& value
+            const LDDValueView& value
     ) {
         return value.value_ptr_;
     }
 };
 
 template <>
-struct DataTypeOperationsImpl<LDTypeDeclaration>: SimpleDataTypeOperationsImpl<LDTypeDeclaration> {
+struct DataTypeOperationsImpl<LDTypeDeclarationView>: SimpleDataTypeOperationsImpl<LDTypeDeclarationView> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -104,7 +104,7 @@ struct DataTypeOperationsImpl<LDTypeDeclaration>: SimpleDataTypeOperationsImpl<L
             LDDumpFormatState& state,
             LDDumpState& dump_state
     ){
-        LDTypeDeclaration td(doc, ptr);
+        LDTypeDeclarationView td(doc, ptr);
         td.dump(out, state, dump_state);
     }
 
@@ -114,20 +114,20 @@ struct DataTypeOperationsImpl<LDTypeDeclaration>: SimpleDataTypeOperationsImpl<L
             LDDocumentView* tgt,
             ld_::LDArenaAddressMapping& mapping
     ) {
-        LDTypeDeclaration td(src, ptr);
+        LDTypeDeclarationView td(src, ptr);
         return td.deep_copy_to(tgt, mapping);
     }
 
     virtual LDPtrHolder construct_from(
             LDDocumentView* doc,
-            const LDDValue& value
+            const LDDValueView& value
     ) {
         return value.value_ptr_;
     }
 };
 
 template <>
-struct DataTypeOperationsImpl<LDDTypedValue>: SimpleDataTypeOperationsImpl<LDDTypedValue> {
+struct DataTypeOperationsImpl<LDDTypedValueView>: SimpleDataTypeOperationsImpl<LDDTypedValueView> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -136,7 +136,7 @@ struct DataTypeOperationsImpl<LDDTypedValue>: SimpleDataTypeOperationsImpl<LDDTy
             LDDumpFormatState& state,
             LDDumpState& dump_state
     ){
-        LDDTypedValue tv(doc, ptr);
+        LDDTypedValueView tv(doc, ptr);
         tv.dump(out, state, dump_state);
     }
 
@@ -146,13 +146,13 @@ struct DataTypeOperationsImpl<LDDTypedValue>: SimpleDataTypeOperationsImpl<LDDTy
             LDDocumentView* tgt,
             ld_::LDArenaAddressMapping& mapping
     ) {
-        LDDTypedValue tv(src, ptr);
+        LDDTypedValueView tv(src, ptr);
         return tv.deep_copy_to(tgt, mapping);
     }
 
     virtual LDPtrHolder construct_from(
             LDDocumentView* doc,
-            const LDDValue& value
+            const LDDValueView& value
     ) {
         return value.value_ptr_;
     }
@@ -160,7 +160,7 @@ struct DataTypeOperationsImpl<LDDTypedValue>: SimpleDataTypeOperationsImpl<LDDTy
 
 
 template <>
-struct DataTypeOperationsImpl<LDString>: SimpleDataTypeOperationsImpl<LDString> {
+struct DataTypeOperationsImpl<LDStringView>: SimpleDataTypeOperationsImpl<LDStringView> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -169,7 +169,7 @@ struct DataTypeOperationsImpl<LDString>: SimpleDataTypeOperationsImpl<LDString> 
             LDDumpFormatState& state,
             LDDumpState& dump_state
     ){
-        LDString str(doc, ptr);
+        LDStringView str(doc, ptr);
         str.dump(out, state, dump_state);
     }
 
@@ -179,13 +179,13 @@ struct DataTypeOperationsImpl<LDString>: SimpleDataTypeOperationsImpl<LDString> 
             LDDocumentView* tgt,
             ld_::LDArenaAddressMapping& mapping
     ) {
-        LDString str(src, ptr);
+        LDStringView str(src, ptr);
         return str.deep_copy_to(tgt, mapping);
     }
 
     virtual LDPtrHolder construct_from(
             LDDocumentView* doc,
-            const LDDValue& value
+            const LDDValueView& value
     ) {
         return value.value_ptr_;
     }
@@ -194,11 +194,11 @@ struct DataTypeOperationsImpl<LDString>: SimpleDataTypeOperationsImpl<LDString> 
 
 void InitCoreLDDatatypes()
 {
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDDTypedValue> ldd_tv_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDDArray> ldd_array_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDDMap> ldd_map_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDTypeDeclaration> ldd_td_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDString> ldd_string_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<LDDTypedValueView> ldd_tv_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<LDDArrayView> ldd_array_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<LDDMapView> ldd_map_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<LDTypeDeclarationView> ldd_td_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<LDStringView> ldd_string_;
 
     DataTypeRegistry::local().refresh();
 }

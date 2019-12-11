@@ -19,7 +19,7 @@
 
 #include <memoria/v1/core/tools/uuid.hpp>
 
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
 #include <memory>

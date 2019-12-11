@@ -22,7 +22,7 @@ namespace memoria {
 namespace v1 {
 
 
-void LDTypeDeclaration::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
+void LDTypeDeclarationView::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
     out << name();
 
@@ -44,7 +44,7 @@ void LDTypeDeclaration::do_dump(std::ostream& out, LDDumpFormatState& state, LDD
 
             state.make_indent(out);
 
-            LDTypeDeclaration td = get_type_declration(c);
+            LDTypeDeclarationView td = get_type_declration(c);
             td.dump(out, state, dump_state);
         }
         state.pop();
@@ -74,7 +74,7 @@ void LDTypeDeclaration::do_dump(std::ostream& out, LDDumpFormatState& state, LDD
             state.make_indent(out);
 
 
-            LDDValue value = get_constructor_arg(c);
+            LDDValueView value = get_constructor_arg(c);
             value.dump(out, state, dump_state);
         }
         state.pop();
@@ -86,7 +86,7 @@ void LDTypeDeclaration::do_dump(std::ostream& out, LDDumpFormatState& state, LDD
     }
 }
 
-void LDTypeDeclaration::do_dump_cxx_type_decl(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
+void LDTypeDeclarationView::do_dump_cxx_type_decl(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
     out << name();
 
@@ -108,7 +108,7 @@ void LDTypeDeclaration::do_dump_cxx_type_decl(std::ostream& out, LDDumpFormatSta
 
             state.make_indent(out);
 
-            LDTypeDeclaration td = get_type_declration(c);
+            LDTypeDeclarationView td = get_type_declration(c);
             td.do_dump_cxx_type_decl(out, state, dump_state);
         }
         state.pop();
@@ -121,7 +121,7 @@ void LDTypeDeclaration::do_dump_cxx_type_decl(std::ostream& out, LDDumpFormatSta
 }
 
 
-LDTypeDeclaration::ParamsVector* LDTypeDeclaration::ensure_params_capacity(size_t capacity)
+LDTypeDeclarationView::ParamsVector* LDTypeDeclarationView::ensure_params_capacity(size_t capacity)
 {
     TypeDeclState* state = this->state_mutable();
     if (!state->type_params)
@@ -154,7 +154,7 @@ LDTypeDeclaration::ParamsVector* LDTypeDeclaration::ensure_params_capacity(size_
     }
 }
 
-LDTypeDeclaration::ArgsVector* LDTypeDeclaration::ensure_args_capacity(size_t capacity)
+LDTypeDeclarationView::ArgsVector* LDTypeDeclarationView::ensure_args_capacity(size_t capacity)
 {
     TypeDeclState* state = this->state_mutable();
     if (!state->ctr_args)
@@ -188,11 +188,11 @@ LDTypeDeclaration::ArgsVector* LDTypeDeclaration::ensure_args_capacity(size_t ca
 }
 
 
-ld_::LDPtr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
+ld_::LDPtr<LDTypeDeclarationView::TypeDeclState> LDTypeDeclarationView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAddressMapping& mapping) const
 {
     const TypeDeclState* src_state = state();
 
-    LDIdentifier src_name(doc_, src_state->name);
+    LDIdentifierView src_name(doc_, src_state->name);
 
     ld_::LDPtr<U8LinkedString> tgt_name = tgt->new_string(src_name.view()).ptr();
 
@@ -207,7 +207,7 @@ ld_::LDPtr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDD
 
         for (size_t c = 0; c < src_params->size(); c++)
         {
-            LDTypeDeclaration src_td(doc_, src_params->access(c));
+            LDTypeDeclarationView src_td(doc_, src_params->access(c));
             ld_::LDPtr<TypeDeclState> tgt_td = src_td.deep_copy_to(tgt, mapping);
             tgt_params.get(tgt_arena_view)->access(c) = tgt_td;
         }
@@ -222,7 +222,7 @@ ld_::LDPtr<LDTypeDeclaration::TypeDeclState> LDTypeDeclaration::deep_copy_to(LDD
 
         for (size_t c = 0; c < src_args->size(); c++)
         {
-            LDDValue src_val(doc_, src_args->access(c));
+            LDDValueView src_val(doc_, src_args->access(c));
             ld_::LDDPtrHolder tgt_val = src_val.deep_copy_to(tgt, mapping);
             tgt_args.get(tgt_arena_view)->access(c) = tgt_val;
         }

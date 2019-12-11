@@ -18,7 +18,7 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 
-#include <memoria/v1/core/linked/datatypes/datum.hpp>
+#include <memoria/v1/core/datatypes/datum.hpp>
 
 #ifndef MMA1_NO_REACTOR
 #   include <memoria/v1/reactor/reactor.hpp>

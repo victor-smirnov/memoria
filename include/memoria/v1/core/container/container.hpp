@@ -48,8 +48,8 @@
 
 #include <memoria/v1/profiles/common/metadata.hpp>
 
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
-#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/type_registry.hpp>
 
 #include <memoria/v1/api/common/ctr_api.hpp>
 
@@ -221,7 +221,7 @@ public:
         virtual SnpSharedPtr<CtrReferenceable<ProfileT>> create_instance(
                 const AllocatorPtr& allocator,
                 const CtrID& ctr_id,
-                const LDTypeDeclaration& type_decl
+                const LDTypeDeclarationView& type_decl
         ) const
         {
             boost::any obj = DataTypeRegistry::local().create_object(type_decl);

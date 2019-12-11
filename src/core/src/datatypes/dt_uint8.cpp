@@ -15,9 +15,9 @@
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
-#include <memoria/v1/core/linked/datatypes/default_datatype_ops.hpp>
-#include <memoria/v1/core/linked/datatypes/type_registry.hpp>
-#include <memoria/v1/core/linked/datatypes/datum.hpp>
+#include <memoria/v1/core/datatypes/default_datatype_ops.hpp>
+#include <memoria/v1/core/datatypes/type_registry.hpp>
+#include <memoria/v1/core/datatypes/datum.hpp>
 
 #include <string>
 
@@ -29,18 +29,18 @@ template <>
 struct DataTypeOperationsImpl<UTinyInt>: DataTypeOperations {
     virtual boost::any create_cxx_instance(
         DataTypeRegistry& registry,
-        const LDTypeDeclaration& typedecl
+        const LDTypeDeclarationView& typedecl
     ) {
         return boost::any(UTinyInt{});
     }
 
     virtual AnyDatum from_ld_document(
         const DataTypeRegistry& registry,
-        const LDDValue& value
+        const LDDValueView& value
     ){
         if (!value.is_null())
         {
-            LDString str = value.as_string();
+            LDStringView str = value.as_string();
             U8String u8str(str.view());
 
             size_t err_idx = 0;

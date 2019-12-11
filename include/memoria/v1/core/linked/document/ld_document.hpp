@@ -21,7 +21,7 @@
 #include <memoria/v1/core/tools/span.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 
-#include <memoria/v1/core/linked/datatypes/traits.hpp>
+#include <memoria/v1/core/datatypes/traits.hpp>
 
 #include <iostream>
 #include <functional>
@@ -55,7 +55,7 @@ namespace ldd_ {
     };
 
     template <>
-    struct ObjectCreatorHelper<LDString> {
+    struct ObjectCreatorHelper<LDStringView> {
         template <typename Doc, typename... Args>
         static auto process(Doc* doc, Args&&... args) {
             return doc->new_string(std::forward<Args>(args)...);
@@ -84,16 +84,16 @@ protected:
     ld_::LDArenaView arena_;
 
     friend class LDDocumentBuilder;
-    friend class LDDMap;
-    friend class LDDArray;
+    friend class LDDMapView;
+    friend class LDDArrayView;
     friend class LDTypeName;
     friend class LDDataTypeParam;
     friend class LDDataTypeCtrArg;
-    friend class LDTypeDeclaration;
-    friend class LDDValue;
-    friend class LDString;
-    friend class LDIdentifier;
-    friend class LDDTypedValue;
+    friend class LDTypeDeclarationView;
+    friend class LDDValueView;
+    friend class LDStringView;
+    friend class LDIdentifierView;
+    friend class LDDTypedValueView;
 
     template <typename>
     friend struct DataTypeOperationsImpl;
@@ -129,7 +129,7 @@ public:
         return arena_.data() == other->arena_.data();
     }
 
-    LDDValue value() const noexcept;
+    LDDValueView value() const noexcept;
 
     void set_string(U8StringView string);
     void set_integer(int64_t value);
@@ -139,8 +139,8 @@ public:
 
     void set_document(const LDDocumentView& other);
 
-    LDDMap set_map();
-    LDDArray set_array();
+    LDDMapView set_map();
+    LDDArrayView set_array();
 
     template <typename T, typename... Args>
     DTTLDViewType<T> set_value(Args&&... args)
@@ -153,7 +153,7 @@ public:
         return LDViewType{this, value_ptr, ld_tag_value<T>()};
     }
 
-    LDDValue set_sdn(U8StringView sdn);
+    LDDValueView set_sdn(U8StringView sdn);
 
     LDDocumentView* make_mutable() const
     {
@@ -190,15 +190,15 @@ public:
         return ss.str();
     }
 
-    LDTypeDeclaration create_named_type(U8StringView name, U8StringView type_decl);
+    LDTypeDeclarationView create_named_type(U8StringView name, U8StringView type_decl);
 
-    Optional<LDTypeDeclaration> get_named_type_declaration(U8StringView name) const;
+    Optional<LDTypeDeclarationView> get_named_type_declaration(U8StringView name) const;
 
     void remove_named_type_declaration(U8StringView name);
 
-    void for_each_named_type(std::function<void (U8StringView name, LDTypeDeclaration)> fn) const;
+    void for_each_named_type(std::function<void (U8StringView name, LDTypeDeclarationView)> fn) const;
 
-    std::vector<std::pair<U8StringView, LDTypeDeclaration>> named_types() const;
+    std::vector<std::pair<U8StringView, LDTypeDeclarationView>> named_types() const;
 
     static bool is_identifier(U8StringView string) {
         return is_identifier(string.begin(), string.end());
@@ -219,7 +219,7 @@ public:
     void add_shared_string(U8StringView string);
 
 protected:
-    Optional<ld_::LDPtr<DTTLDStorageType<LDString>>> is_shared(DTTViewType<LDString> string) const;
+    Optional<ld_::LDPtr<DTTLDStorageType<LDStringView>>> is_shared(DTTViewType<LDStringView> string) const;
 
     Span<const AtomType> span() const {
         return arena_.span();
@@ -233,13 +233,13 @@ protected:
         return DocumentPtr{sizeof(LDDocumentHeader)};
     }
 
-    LDTypeDeclaration parse_raw_type_decl(
+    LDTypeDeclarationView parse_raw_type_decl(
             CharIterator start,
             CharIterator end,
             const SDNParserConfiguration& cfg = SDNParserConfiguration{}
     );
 
-    LDDValue parse_raw_value(
+    LDDValueView parse_raw_value(
             CharIterator start,
             CharIterator end,
             const SDNParserConfiguration& cfg = SDNParserConfiguration{}
@@ -251,14 +251,14 @@ protected:
         return state()->type_directory.get() != 0;
     }
 
-    void set_named_type_declaration(LDIdentifier name, LDTypeDeclaration type_decl);
-    void set_named_type_declaration(U8StringView name, LDTypeDeclaration type_decl);
+    void set_named_type_declaration(LDIdentifierView name, LDTypeDeclarationView type_decl);
+    void set_named_type_declaration(U8StringView name, LDTypeDeclarationView type_decl);
 
-    LDTypeDeclaration new_type_declaration(U8StringView name);
-    LDTypeDeclaration new_type_declaration(LDIdentifier name);
-    LDDValue new_typed_value(LDTypeDeclaration typedecl, LDDValue ctr_value);
+    LDTypeDeclarationView new_type_declaration(U8StringView name);
+    LDTypeDeclarationView new_type_declaration(LDIdentifierView name);
+    LDDValueView new_typed_value(LDTypeDeclarationView typedecl, LDDValueView ctr_value);
 
-    LDTypeDeclaration new_detached_type_declaration(LDIdentifier name);
+    LDTypeDeclarationView new_detached_type_declaration(LDIdentifierView name);
 
     TypeDeclsMap ensure_type_decls_exist()
     {
@@ -273,19 +273,19 @@ protected:
         return TypeDeclsMap::get(&arena_, state->type_directory);
     }
 
-    LDString new_string(U8StringView view);
-    LDIdentifier new_identifier(U8StringView view);
+    LDStringView new_string(U8StringView view);
+    LDIdentifierView new_identifier(U8StringView view);
 
-    LDDValue new_integer(LDInteger value);
-    LDDValue new_boolean(LDBoolean value);
-    LDDValue new_double(LDDouble value);
-    LDDArray new_array(Span<LDDValue> span);
-    LDDArray new_array();
-    LDDMap new_map();
+    LDDValueView new_integer(LDInteger value);
+    LDDValueView new_boolean(LDBoolean value);
+    LDDValueView new_double(LDDouble value);
+    LDDArrayView new_array(Span<LDDValueView> span);
+    LDDArrayView new_array();
+    LDDMapView new_map();
 
-    void set_doc_value(LDDValue value) noexcept;
+    void set_doc_value(LDDValueView value) noexcept;
 
-    ld_::LDPtr<DTTLDStorageType<LDString>> intern(DTTViewType<LDString> view);
+    ld_::LDPtr<DTTLDStorageType<LDStringView>> intern(DTTViewType<LDStringView> view);
 
     DocumentState* state_mutable() {
         return doc_ptr().get_mutable(&arena_);
@@ -341,10 +341,10 @@ class LDDocument: public LDDocumentView {
 
     using LDDocumentView::arena_;
 
-    friend class LDDArray;
-    friend class LDDMap;
-    friend class LDTypeDeclaration;
-    friend class LDDTypedValue;
+    friend class LDDArrayView;
+    friend class LDDMapView;
+    friend class LDTypeDeclarationView;
+    friend class LDDTypedValueView;
 
     static constexpr size_t INITIAL_ARENA_SIZE = sizeof(LDDocumentHeader) + sizeof(DocumentState) + 16;
 
