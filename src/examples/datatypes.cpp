@@ -37,8 +37,10 @@ using Ctr2T = Vector<Varchar>;
 int main()
 {
     try {
-        LDDocument doc = LDDocument::parse("'false'@Varchar");
+        LDDocument doc = LDDocument::parse("'123'@Varchar");
         doc.dump(std::cout) << std::endl;
+
+        std::cout << cast_as<Varchar>(doc.value()) << std::endl;
 
         auto store = IMemoryStore<>::create();
 

@@ -250,11 +250,14 @@ struct DataTypeTraits<LDMap> {
     }
 };
 
-template <typename Arena>
-auto ld_allocate_and_construct(const LDMap*, Arena* arena)
-{
-    return LDDMapView::ValueMap::create_ptr(arena, ld_tag_size<LDMap>());
-}
+template <typename Selector>
+struct LDStorageAllocator<LDMap, Selector> {
+    template <typename Arena>
+    static auto allocate_and_construct(Arena* arena)
+    {
+        return LDDMapView::ValueMap::create_ptr(arena, ld_tag_size<LDMap>());
+    }
+};
 
 
 

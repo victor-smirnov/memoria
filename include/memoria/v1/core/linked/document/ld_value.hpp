@@ -60,6 +60,19 @@ public:
     LDTypeDeclarationView as_type_decl() const;
     LDDTypedValueView as_typed_value() const;
 
+    template <typename T>
+    DTTLDViewType<T> cast_as() const
+    {
+        ld_::ldd_assert_tag<T>(type_tag_);
+        return MakeLDView<T>::process(doc_, value_ptr_, type_tag_);
+    }
+
+    template <typename T>
+    DTTLDViewType<T> unchecked_cast_as() const
+    {
+        return MakeLDView<T>::process(doc_, value_ptr_, type_tag_);
+    }
+
     LDStringView as_varchar() const
     {
         ld_::ldd_assert_tag<Varchar>(type_tag_);
@@ -177,5 +190,14 @@ static inline std::ostream& operator<<(std::ostream& out, const LDDValueView& va
     return out;
 }
 
+template <typename T>
+DTTLDViewType<T> cast_as(const LDDValueView& view) {
+    return view.template cast_as<T>();
+}
+
+template <typename T>
+DTTLDViewType<T> unchecked_cast_as(const LDDValueView& view) {
+    return view.template unchecked_cast_as<T>();
+}
 
 }}

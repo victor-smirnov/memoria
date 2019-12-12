@@ -117,6 +117,7 @@ namespace dtt_ {
     struct DTTParametersH<T, false>: HasType<TL<>> {};
 }
 
+struct LDFxSizeValueViewSelector {};
 
 template <typename T>
 constexpr bool DTTisParametrized = dtt_::DTTHasParametersH2<T>::value;
@@ -200,6 +201,8 @@ struct FixedSizeDataTypeTraits: DataTypeTraitsBase<DataType>
     using DataDimensionsTuple = AsTuple<DataDimensionsList>;
 
     using DatumSelector = FixedSizeDataTypeTag;
+
+    using MakeLDViewSelector = LDFxSizeValueViewSelector;
 
     static TypeDimensionsTuple describe_type(const DataType& data_type) {
         return TypeDimensionsTuple{};

@@ -491,34 +491,81 @@ public:
 
 
 
+//template <typename T>
+//constexpr const T* make_null_v() {
+//    return nullptr;
+//}
+
+
+namespace dtt_ {
+
+    template <typename T, typename = void>
+    struct DTTHasLDViewSelectorH1: std::false_type {};
+
+    template <typename T>
+    struct DTTHasLDViewSelectorH1<T, VoidT<typename DataTypeTraits<T>::MakeLDViewSelector>>: std::true_type {};
+
+
+    template <typename T, bool HasLDViewSelector = DTTHasLDViewSelectorH1<T>::value>
+    struct DTTLDViewSelectorH: HasType<typename DataTypeTraits<T>::MakeLDViewSelector>{};
+
+    template <typename T>
+    struct DTTLDViewSelectorH<T, false>: HasType<EmptyType> {};
+
+
+
+
+    template <typename T, typename = void>
+    struct DTTHasLDStorageAllocatorSelectorH1: std::false_type {};
+
+    template <typename T>
+    struct DTTHasLDStorageAllocatorSelectorH1<T, VoidT<typename DataTypeTraits<T>::LDStorageAllocatorSelector>>: std::true_type {};
+
+
+    template <typename T, bool HasLDStorageAllocatorSelector = DTTHasLDStorageAllocatorSelectorH1<T>::value>
+    struct DTTHasLDStorageAllocatorSelectorH: HasType<typename DataTypeTraits<T>::LDStorageAllocatorSelector>{};
+
+    template <typename T>
+    struct DTTHasLDStorageAllocatorSelectorH<T, false>: HasType<EmptyType> {};
+
+}
+
+
+
+template <typename T, typename Selector = typename dtt_::DTTLDViewSelectorH<T>::Type>
+struct LDStorageAllocator {
+    template <typename Arena, typename... Args>
+    static auto allocate_and_construct(Arena* arena, Args&&... args)
+    {
+        using LDStorageType = DTTLDStorageType<T>;
+
+        return allocate_tagged<LDStorageType>(
+            ld_tag_size<T>(), arena, std::forward<Args>(args)...
+        );
+    }
+};
+
+
+
+template <typename T, typename Selector = typename dtt_::DTTLDViewSelectorH<T>::Type>
+struct MakeLDView {
+    template <typename DocT, typename... Args>
+    static DTTLDViewType<T> process(const DocT* doc, Args&&... args)
+    {
+        return DTTLDViewType<T>(doc, std::forward<Args>(args)...);
+    }
+};
+
+
 template <typename T>
-constexpr const T* make_null_v() {
-    return nullptr;
-}
-
-
-template <typename T, typename DocT, typename... Args>
-DTTLDViewType<T> make_ld_view(const T*, const DocT* doc, Args&&... args)
-{
-    return DTTLDViewType<T>(doc, std::forward<Args>(args)...);
-}
-
-
-
-template <typename T, typename Arena, typename... Args>
-auto ld_allocate_and_construct(const T*, Arena* arena, Args&&... args)
-{
-    using LDStorageType = DTTLDStorageType<T>;
-
-    return allocate_tagged<LDStorageType>(
-        ld_tag_size<T>(), arena, std::forward<Args>(args)...
-    );
-}
-
-
-
-
-
-
+struct MakeLDView<T, LDFxSizeValueViewSelector> {
+    template <typename DocT, typename... Args>
+    static DTTLDViewType<T> process(const DocT* doc, LDPtrHolder ptr, Args&&... args)
+    {
+        using StorageType = DTTLDStorageType<UTinyInt>;
+        StorageType vv = *doc->arena_.template get<StorageType>(ptr);
+        return vv;
+    }
+};
 
 }}

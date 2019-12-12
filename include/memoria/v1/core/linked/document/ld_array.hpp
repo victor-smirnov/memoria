@@ -64,7 +64,7 @@ public:
         LDDocumentView* mutable_doc = doc_->make_mutable();
         auto vv = mutable_doc->template new_value<T>(std::forward<Args>(args)...);
         array_.access_checked(idx) = vv;
-        return LDDValueView{doc_, vv, ld_tag_value<T>()};
+        return LDDValueView {doc_, vv, ld_tag_value<T>()};
     }
 
     void set_varchar(size_t idx, DTTViewType<Varchar> value)
@@ -256,16 +256,21 @@ struct DataTypeTraits<LDArray> {
     }
 };
 
-template <typename Arena>
-auto ld_allocate_and_construct(const LDArray*, Arena* arena)
-{
-    return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDArray>(), arena, 4);
-}
 
-template <typename Arena>
-auto ld_allocate_and_construct(const LDArray*, Arena* arena, size_t capacity)
-{
-    return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDArray>(), arena, capacity);
-}
+template <typename Selector>
+struct LDStorageAllocator<LDArray, Selector> {
+    template <typename Arena>
+    static auto allocate_and_construct(Arena* arena)
+    {
+        return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDArray>(), arena, 4);
+    }
+
+
+    template <typename Arena>
+    static auto allocate_and_construct(Arena* arena, size_t capacity)
+    {
+        return LDDArrayView::Array::create_tagged_ptr(ld_tag_size<LDArray>(), arena, capacity);
+    }
+};
 
 }}

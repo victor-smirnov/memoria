@@ -94,6 +94,9 @@ protected:
     template <typename>
     friend struct ldd_::ObjectCreatorHelper;
 
+    template <typename, typename>
+    friend struct MakeLDView;
+
     using CharIterator = typename U8StringView::const_iterator;
 
     template <typename>
@@ -134,7 +137,7 @@ public:
     template <typename T, typename... Args>
     DTTLDViewType<T> set_value(Args&&... args)
     {
-        auto value_ptr = ld_allocate_and_construct(make_null_v<T>(), arena_.make_mutable(), std::forward<Args>(args)...);
+        auto value_ptr = LDStorageAllocator<T>::allocate_and_construct(arena_.make_mutable(), std::forward<Args>(args)...);
         set_tag(value_ptr.get(), ld_tag_value<T>());
         state_mutable()->value = value_ptr;
 
@@ -298,7 +301,7 @@ protected:
     template <typename T, typename... Args>
     LDPtrHolder new_raw_value(Args&&... args)
     {
-        auto value_ptr = ld_allocate_and_construct(make_null_v<T>(), arena_.make_mutable(), std::forward<Args>(args)...);
+        auto value_ptr = LDStorageAllocator<T>::allocate_and_construct(arena_.make_mutable(), std::forward<Args>(args)...);
 
         set_tag(value_ptr.get(), ld_tag_value<T>());
         return value_ptr.get();
