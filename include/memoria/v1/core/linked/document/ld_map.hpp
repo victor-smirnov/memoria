@@ -32,6 +32,7 @@ private:
     friend class LDTypeDeclarationView;
     friend class LDDArrayView;
     friend class LDDocumentView;
+    friend class LDDMapValue;
 
     using PtrHolder = typename ld_::LDArenaView::PtrHolderT;
     const LDDocumentView* doc_;
@@ -74,69 +75,47 @@ public:
 
     void set_varchar(U8StringView name, DTTViewType<Varchar> value)
     {
-        LDDocumentView* mutable_doc = doc_->make_mutable();
-
-        LDStringView name_str  = mutable_doc->new_varchar(name);
-        LDStringView value_str = mutable_doc->new_varchar(value);
-
-        map_.put(name_str.string_, value_str.string_);
+        set_value<Varchar>(name, value);
     }
 
     void set_bigint(U8StringView name, int64_t value)
     {
-        LDDocumentView* mutable_doc = doc_->make_mutable();
-
-        LDStringView name_str  = mutable_doc->new_varchar(name);
-        LDDValueView value_vv  = mutable_doc->new_bigint(value);
-
-        map_.put(name_str.string_, value_vv.value_ptr_);
+        set_value<BigInt>(name, value);
     }
 
     void set_double(U8StringView name, double value)
     {
-        LDDocumentView* mutable_doc = doc_->make_mutable();
-
-        LDStringView name_str  = mutable_doc->new_varchar(name);
-        LDDValueView value_vv  = mutable_doc->new_double(value);
-
-        map_.put(name_str.string_, value_vv.value_ptr_);
+        set_value<Double>(name, value);
     }
 
     void set_boolean(U8StringView name, bool value)
     {
+        set_value<Boolean>(name, value);
+    }
+
+
+    template <typename T, typename... Args>
+    LDDValueView set_value(U8StringView name, Args&&... args)
+    {
         LDDocumentView* mutable_doc = doc_->make_mutable();
 
         LDStringView name_str  = mutable_doc->new_varchar(name);
-        LDDValueView value_vv  = mutable_doc->new_boolean(value);
+        auto vv  = mutable_doc->template new_value<T>(std::forward<Args>(args)...);
 
-        map_.put(name_str.string_, value_vv.value_ptr_);
+        map_.put(name_str.string_, vv);
+
+        return LDDValueView{doc_, vv, ld_tag_value<T>()};
     }
 
-    void set_value(LDStringView name, LDDValueView value)
-    {
-        map_.put(name.string_, value.value_ptr_);
-    }
 
     LDDMapView set_map(U8StringView name)
     {
-        LDDocumentView* mutable_doc = doc_->make_mutable();
-
-        LDStringView name_str  = mutable_doc->new_varchar(name);
-        LDDMapView map = mutable_doc->new_map();
-
-        map_.put(name_str.string_, map.map_.ptr());
-        return map;
+        return set_value<LDMap>(name).as_map();
     }
 
     LDDArrayView set_array(U8StringView name)
     {
-        LDDocumentView* mutable_doc = doc_->make_mutable();
-
-        LDStringView name_str  = mutable_doc->new_varchar(name);
-        LDDArrayView array = mutable_doc->new_array();
-
-        map_.put(name_str.string_, array.array_.ptr());
-        return array;
+        return set_value<LDArray>(name).as_array();
     }
 
     LDDValueView set_sdn(U8StringView name, U8StringView sdn)
@@ -245,6 +224,11 @@ public:
     }
 
 private:
+
+    void set_ld_value(LDStringView name, LDDValueView value)
+    {
+        map_.put(name.string_, value.value_ptr_);
+    }
 
     void do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState& dump_state) const;
 };

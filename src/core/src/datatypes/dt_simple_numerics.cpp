@@ -213,19 +213,19 @@ struct NumericDataTypeOperationsImpl: DataTypeOperations {
             ld_::LDArenaAddressMapping& mapping
     ) {
         DTTLDStorageType<T> val = *(src->arena_.template get<DTTLDStorageType<T>>(ptr));
-        LDPtrHolder new_ptr = tgt->template new_value_raw<T>(val);
+        LDPtrHolder new_ptr = tgt->template new_value<T>(val);
         return new_ptr;
     }
 
-    virtual LDPtrHolder construct_from(
+    virtual LDDValueView construct_from(
             LDDocumentView* doc,
             const LDDValueView& value
     ) {
         using NumberT = DTTLDStorageType<T>;
 
         NumberT val = NumberCvt<NumberT>::convert(value);
-        LDPtrHolder new_ptr = doc->template new_value_raw<T>(val);
-        return new_ptr;
+        LDPtrHolder new_ptr = doc->template new_value<T>(val);
+        return LDDValueView(doc, new_ptr, ld_tag_value<T>());
     }
 };
 

@@ -95,7 +95,7 @@ public:
     LDStringView new_varchar()
     {
         auto span = string_buffer_.span();
-        return doc_.new_value<Varchar>(U8StringView{span.data(), span.length()});
+        return LDStringView{&doc_, doc_.new_value<Varchar>(U8StringView{span.data(), span.length()})};
     }
 
     LDIdentifierView new_identifier()
@@ -277,7 +277,7 @@ public:
     iterator end() const {return iterator{};}
 
     void insert(iterator, const value_type& entry) {
-        value_.set_value(bf::at_c<0>(entry), bf::at_c<1>(entry));
+        value_.set_ld_value(bf::at_c<0>(entry), bf::at_c<1>(entry));
     }
 
     LDDMapView& finish() {

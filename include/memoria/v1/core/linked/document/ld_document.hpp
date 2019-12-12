@@ -47,11 +47,6 @@ namespace ldd_ {
         static auto process(Doc* doc, Args&&... args) {
             return doc->template new_raw_value<T>(std::forward<Args>(args)...);
         }
-
-        template <typename Doc, typename... Args>
-        static auto process_raw(Doc* doc, Args&&... args) {
-            return doc->template new_raw_value_raw<T>(std::forward<Args>(args)...);
-        }
     };
 
     template <>
@@ -59,11 +54,6 @@ namespace ldd_ {
         template <typename Doc, typename... Args>
         static auto process(Doc* doc, Args&&... args) {
             return doc->new_varchar(std::forward<Args>(args)...);
-        }
-
-        template <typename Doc, typename... Args>
-        static auto process_raw(Doc* doc, Args&&... args) {
-            return doc->new_varchar(std::forward<Args>(args)...).ptr();
         }
     };
 
@@ -299,33 +289,14 @@ protected:
         ld_::ldd_set_tag(&arena_, ptr, tag);
     }
 
-
-
     template <typename T, typename... Args>
-    DTTLDViewType<T> new_value(Args&&... args)
+    LDPtrHolder new_value(Args&&... args)
     {
         return ldd_::ObjectCreatorHelper<T>::process(this, std::forward<Args>(args)...);
     }
 
     template <typename T, typename... Args>
-    DTTLDViewType<T> new_raw_value(Args&&... args)
-    {
-        using LDViewType = DTTLDViewType<T>;
-
-        auto value_ptr = ld_allocate_and_construct(make_null_v<T>(), arena_.make_mutable(), std::forward<Args>(args)...);
-
-        set_tag(value_ptr.get(), ld_tag_value<T>());
-        return LDViewType{this, value_ptr, ld_tag_value<T>()};
-    }
-
-    template <typename T, typename... Args>
-    LDPtrHolder new_value_raw(Args&&... args)
-    {
-        return ldd_::ObjectCreatorHelper<T>::process_raw(this, std::forward<Args>(args)...);
-    }
-
-    template <typename T, typename... Args>
-    LDPtrHolder new_raw_value_raw(Args&&... args)
+    LDPtrHolder new_raw_value(Args&&... args)
     {
         auto value_ptr = ld_allocate_and_construct(make_null_v<T>(), arena_.make_mutable(), std::forward<Args>(args)...);
 

@@ -34,7 +34,7 @@ auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>(u"
     std::vector<int64_t> values;
     for (size_t c = 0; c < size; c++)
     {
-        array.add_integer(12345 + c);
+        array.add_bigint(12345 + c);
         values.push_back(12345 + c);
         if (c % 100 == 0) {
             assert_arrays_equal(values, array);
@@ -67,7 +67,7 @@ auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocum
     assert_equals(true, doc.value().as_array() == array);
     assert_equals(0, array.size());
 
-    array.add_string("Hello World");
+    array.add_varchar("Hello World");
     assert_equals(true, array.get(0).is_varchar());
     assert_equals("Hello World", array.get(0).as_varchar().view());
 

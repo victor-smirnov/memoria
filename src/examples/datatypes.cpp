@@ -50,7 +50,7 @@ int main()
         ctr1->append([&](auto& buffer, size_t size){
             for (size_t c = 0; c < 1; c++)
             {
-                buffer.builder().doc().set_sdn("{'booo': 'Hello World', 'foo': [1,2,3,4,5,6,7, " + std::to_string(c) + "], 'key0': false}");
+                buffer.builder().doc().set_sdn("{'booo': 'Hello World', 'foo': [ [], {}, 1,2,3,4,5,6,7, " + std::to_string(c) + "], 'key0': false}");
                 buffer.builder().build();
             }
 

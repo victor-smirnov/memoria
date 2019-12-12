@@ -57,28 +57,34 @@ public:
 
     LDDValueView get(size_t idx) const;
 
+
+    template <typename T, typename... Args>
+    LDDValueView set_value(size_t idx, Args&&... args)
+    {
+        LDDocumentView* mutable_doc = doc_->make_mutable();
+        auto vv = mutable_doc->template new_value<T>(std::forward<Args>(args)...);
+        array_.access_checked(idx) = vv;
+        return LDDValueView{doc_, vv, ld_tag_value<T>()};
+    }
+
     void set_varchar(size_t idx, DTTViewType<Varchar> value)
     {
-        LDStringView str = doc_->make_mutable()->new_varchar(value);
-        array_.access_checked(idx) = str.string_.get();
+        set_value<Varchar>(idx, value);
     }
 
     void set_bigint(size_t idx, int64_t value)
     {
-        LDDValueView vv = doc_->make_mutable()->new_bigint(value);
-        array_.access_checked(idx) = vv.value_ptr_;
+        set_value<BigInt>(idx, value);
     }
 
     void set_double(size_t idx, double value)
     {
-        LDDValueView vv = doc_->make_mutable()->new_double(value);
-        array_.access_checked(idx) = vv.value_ptr_;
+        set_value<Double>(idx, value);
     }
 
     void set_boolean(size_t idx, bool value)
     {
-        LDDValueView vv = doc_->make_mutable()->new_boolean(value);
-        array_.access_checked(idx) = vv.value_ptr_;
+        set_value<Boolean>(idx, value);
     }
 
     LDDMapView set_map(size_t idx);
@@ -86,9 +92,7 @@ public:
 
     LDDArrayView set_array(size_t idx)
     {
-        LDDArrayView vv = doc_->make_mutable()->new_array();
-        array_.access_checked(idx) = vv.array_.ptr();
-        return vv;
+        return set_value<LDArray>(idx).as_array();
     }
 
     void set_null(size_t idx, bool value)
@@ -103,28 +107,34 @@ public:
         return value;
     }
 
-    void add_string(DTTViewType<Varchar> value)
+
+    template <typename T, typename... Args>
+    LDDValueView add_value(Args&&... args)
     {
-        LDStringView str = doc_->make_mutable()->new_varchar(value);
-        array_.push_back(str.string_.get());
+        LDDocumentView* mutable_doc = doc_->make_mutable();
+        auto vv = mutable_doc->template new_value<T>(std::forward<Args>(args)...);
+        array_.push_back(vv);
+        return LDDValueView{doc_, vv, ld_tag_value<T>()};
     }
 
-    void add_integer(int64_t value)
+    void add_varchar(DTTViewType<Varchar> value)
     {
-        LDDValueView vv = doc_->make_mutable()->new_bigint(value);
-        array_.push_back(vv.value_ptr_);
+        add_value<Varchar>(value);
+    }
+
+    void add_bigint(int64_t value)
+    {
+        add_value<BigInt>(value);
     }
 
     void add_double(double value)
     {
-        LDDValueView vv = doc_->make_mutable()->new_double(value);
-        array_.push_back(vv.value_ptr_);
+        add_value<Double>(value);
     }
 
     void add_boolean(bool value)
     {
-        LDDValueView vv = doc_->make_mutable()->new_boolean(value);
-        array_.push_back(vv.value_ptr_);
+        add_value<Boolean>(value);
     }
 
     void add_null()
@@ -163,9 +173,7 @@ public:
 
     LDDArrayView add_array()
     {
-        LDDArrayView vv = doc_->make_mutable()->new_array();
-        array_.push_back(vv.array_.ptr());
-        return vv;
+        return add_value<LDArray>().as_array();
     }
 
     LDDValueView add_sdn(U8StringView sdn)
@@ -175,7 +183,7 @@ public:
         return value;
     }
 
-    void remove(size_t idx){
+    void remove(size_t idx) {
         array_.remove(idx, 1);
     }
 

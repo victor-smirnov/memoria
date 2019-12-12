@@ -53,11 +53,16 @@ struct DataTypeOperationsImpl<LDArray>: SimpleDataTypeOperationsImpl<LDArray> {
         return array.deep_copy_to(tgt, mapping);
     }
 
-    virtual LDPtrHolder construct_from(
+    virtual LDDValueView construct_from(
             LDDocumentView* doc,
             const LDDValueView& value
     ) {
-        return value.value_ptr_;
+        if (value.is_array()) {
+            return value;
+        }
+        else {
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
+        }
     }
 };
 
@@ -86,11 +91,16 @@ struct DataTypeOperationsImpl<LDMap>: SimpleDataTypeOperationsImpl<LDMap> {
         return map.deep_copy_to(tgt, mapping);
     }
 
-    virtual LDPtrHolder construct_from(
+    virtual LDDValueView construct_from(
             LDDocumentView* doc,
             const LDDValueView& value
     ) {
-        return value.value_ptr_;
+        if (value.is_map()) {
+            return value;
+        }
+        else {
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
+        }
     }
 };
 
@@ -118,11 +128,16 @@ struct DataTypeOperationsImpl<LDTypeDeclaration>: SimpleDataTypeOperationsImpl<L
         return td.deep_copy_to(tgt, mapping);
     }
 
-    virtual LDPtrHolder construct_from(
+    virtual LDDValueView construct_from(
             LDDocumentView* doc,
             const LDDValueView& value
     ) {
-        return value.value_ptr_;
+        if (value.is_type_decl()) {
+            return value;
+        }
+        else {
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
+        }
     }
 };
 
@@ -150,11 +165,16 @@ struct DataTypeOperationsImpl<LDTypedValue>: SimpleDataTypeOperationsImpl<LDType
         return tv.deep_copy_to(tgt, mapping);
     }
 
-    virtual LDPtrHolder construct_from(
+    virtual LDDValueView construct_from(
             LDDocumentView* doc,
             const LDDValueView& value
     ) {
-        return value.value_ptr_;
+        if (value.is_typed_value()) {
+            return value;
+        }
+        else {
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
+        }
     }
 };
 
@@ -183,11 +203,16 @@ struct DataTypeOperationsImpl<Varchar>: SimpleDataTypeOperationsImpl<Varchar> {
         return str.deep_copy_to(tgt, mapping);
     }
 
-    virtual LDPtrHolder construct_from(
+    virtual LDDValueView construct_from(
             LDDocumentView* doc,
             const LDDValueView& value
     ) {
-        return value.value_ptr_;
+        if (value.is_varchar()) {
+            return value;
+        }
+        else {
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
+        }
     }
 };
 
@@ -215,10 +240,10 @@ struct DataTypeOperationsImpl<Boolean>: SimpleDataTypeOperationsImpl<Boolean> {
     ) {
         using StorageType = DTTLDStorageType<Boolean>;
         StorageType val = *(src->arena_.template get<StorageType>(ptr));
-        return tgt->template new_value_raw<Boolean>(val);
+        return tgt->template new_value<Boolean>(val);
     }
 
-    virtual LDPtrHolder construct_from(
+    virtual LDDValueView construct_from(
             LDDocumentView* doc,
             const LDDValueView& value
     ) {
@@ -227,10 +252,10 @@ struct DataTypeOperationsImpl<Boolean>: SimpleDataTypeOperationsImpl<Boolean> {
             U8StringView view = value.as_varchar().view();
 
             if ("true" == view) {
-                return doc->new_value_raw<Boolean>(true);
+                return LDDValueView{doc, doc->new_value<Boolean>(true), ld_tag_value<Boolean>()};
             }
             else if ("false" == view) {
-                return doc->new_value_raw<Boolean>(false);
+                return LDDValueView{doc, doc->new_value<Boolean>(false), ld_tag_value<Boolean>()};
             }
             else {
                 MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Unsupported boolean string value: {}", view);

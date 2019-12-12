@@ -82,7 +82,7 @@ LDStringView LDDocumentView::new_varchar(DTTViewType<Varchar> view)
         return LDStringView{this, opt_ptr.get()};
     }
     else {
-        return new_raw_value<LDString>(view);
+        return LDStringView{this, new_raw_value<LDString>(view)};
     }
 }
 
@@ -95,7 +95,7 @@ LDIdentifierView LDDocumentView::new_identifier(U8StringView view)
         return LDIdentifierView{this, opt_ptr.get()};
     }
     else {
-        return LDIdentifierView{this, new_raw_value_raw<LDString>(view)};
+        return LDIdentifierView{this, new_raw_value<LDString>(view)};
     }
 }
 
@@ -151,13 +151,13 @@ LDDArrayView LDDocumentView::new_array(Span<LDDValueView> span)
 
 LDDArrayView LDDocumentView::new_array()
 {
-    return new_value<LDArray>();
+    return LDDArrayView{this, new_value<LDArray>()};
 }
 
 
 LDDMapView LDDocumentView::new_map()
 {
-    return new_value<LDMap>();
+    return LDDMapView{this, new_value<LDMap>()};
 }
 
 
@@ -261,8 +261,7 @@ LDDValueView LDDocumentView::new_typed_value(LDTypeDeclarationView typedecl, LDD
 
     auto ops = DataTypeRegistry::local().get_operations(cxx_typedecl);
     if (ops) {
-        LDPtrHolder ptr = ops.get()->construct_from(this, ctr_value);
-        return LDDValueView{this, ptr};
+        return ops.get()->construct_from(this, ctr_value);
     }
     else {
         ld_::LDPtr<ld_::TypedValueState> ss = allocate_tagged<ld_::TypedValueState>(

@@ -24,9 +24,7 @@ namespace v1 {
 
 LDDMapView LDDArrayView::add_map()
 {
-    LDDMapView map = doc_->make_mutable()->new_map();
-    array_.push_back(map.map_.ptr());
-    return map;
+    return add_value<LDMap>().as_map();
 }
 
 
@@ -65,9 +63,7 @@ void LDDArrayView::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpSt
 
 LDDMapView LDDArrayView::set_map(size_t idx)
 {
-    LDDMapView vv = doc_->make_mutable()->new_map();
-    array_.access_checked(idx) = vv.map_.ptr();
-    return vv;
+    return set_value<LDMap>(idx).as_map();
 }
 
 

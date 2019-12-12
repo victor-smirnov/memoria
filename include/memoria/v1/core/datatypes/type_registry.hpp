@@ -63,7 +63,7 @@ struct DataTypeOperations {
             ld_::LDArenaAddressMapping& mapping
     ) = 0;
 
-    virtual LDPtrHolder construct_from(
+    virtual LDDValueView construct_from(
             LDDocumentView* doc,
             const LDDValueView& value
     ) = 0;
