@@ -27,9 +27,6 @@ std::ostream& LDDValueView::dump(std::ostream& out, LDDumpFormatState& state, LD
     if (is_null()) {
         out << "null";
     }
-    else if (is_boolean()) {
-        out << (as_boolean() ? "true" : "false");
-    }
     else {
         auto ops = DataTypeRegistry::local().get_operations(type_tag_).get();
         ops->dump(doc_, value_ptr_, out, state, dump_state);
@@ -69,11 +66,6 @@ ld_::LDDPtrHolder LDDValueView::deep_copy_to(LDDocumentView* tgt, ld_::LDArenaAd
 {
     if (is_null()) {
         return LDDValueView(tgt, 0).value_ptr_;
-    }
-    else if (is_boolean())
-    {
-        DTTViewType<Boolean> value = as_boolean();
-        return tgt->new_boolean(value).value_ptr_;
     }
     else {
         auto ops = DataTypeRegistry::local().get_operations(type_tag_).get();

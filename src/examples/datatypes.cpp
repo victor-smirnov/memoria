@@ -37,10 +37,8 @@ using Ctr2T = Vector<Varchar>;
 int main()
 {
     try {
-        LDDocument doc = LDDocument::parse("'1234.56456657464654364'@Real");
+        LDDocument doc = LDDocument::parse("'false'@Varchar");
         doc.dump(std::cout) << std::endl;
-
-
 
         auto store = IMemoryStore<>::create();
 
@@ -50,9 +48,9 @@ int main()
         auto ctr2 = create(snp, Ctr2T());
 
         ctr1->append([&](auto& buffer, size_t size){
-            for (size_t c = 0; c < 100; c++)
+            for (size_t c = 0; c < 1; c++)
             {
-                buffer.builder().doc().set_sdn("{'booo': 'Hello World', 'foo': [1,2,3,4,5,6,7, " + std::to_string(c) + "]}");
+                buffer.builder().doc().set_sdn("{'booo': 'Hello World', 'foo': [1,2,3,4,5,6,7, " + std::to_string(c) + "], 'key0': false}");
                 buffer.builder().build();
             }
 
@@ -60,7 +58,7 @@ int main()
         });
 
         ctr2->append([&](auto& buffer, size_t size){
-            for (size_t c = 0; c < 100; c++)
+            for (size_t c = 0; c < 1; c++)
             {
                 buffer.builder().append("{'booo': 'Hello World', 'foo': [1,2,3,4,5,6,7, " + std::to_string(c) + "]}");
                 buffer.builder().build();

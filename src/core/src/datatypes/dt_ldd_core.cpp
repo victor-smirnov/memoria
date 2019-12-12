@@ -160,7 +160,7 @@ struct DataTypeOperationsImpl<LDTypedValue>: SimpleDataTypeOperationsImpl<LDType
 
 
 template <>
-struct DataTypeOperationsImpl<LDString>: SimpleDataTypeOperationsImpl<LDString> {
+struct DataTypeOperationsImpl<Varchar>: SimpleDataTypeOperationsImpl<Varchar> {
 
     virtual void dump(
             const LDDocumentView* doc,
@@ -192,13 +192,65 @@ struct DataTypeOperationsImpl<LDString>: SimpleDataTypeOperationsImpl<LDString> 
 };
 
 
+template <>
+struct DataTypeOperationsImpl<Boolean>: SimpleDataTypeOperationsImpl<Boolean> {
+
+    virtual void dump(
+            const LDDocumentView* doc,
+            LDPtrHolder ptr,
+            std::ostream& out,
+            LDDumpFormatState& state,
+            LDDumpState& dump_state
+    ){
+        using StorageType = DTTLDStorageType<Boolean>;
+        StorageType val = *(doc->arena_.template get<StorageType>(ptr));
+        out << (val ? "true" : "false");
+    }
+
+    virtual LDPtrHolder deep_copy_to(
+            const LDDocumentView* src,
+            LDPtrHolder ptr,
+            LDDocumentView* tgt,
+            ld_::LDArenaAddressMapping& mapping
+    ) {
+        using StorageType = DTTLDStorageType<Boolean>;
+        StorageType val = *(src->arena_.template get<StorageType>(ptr));
+        return tgt->template new_value_raw<Boolean>(val);
+    }
+
+    virtual LDPtrHolder construct_from(
+            LDDocumentView* doc,
+            const LDDValueView& value
+    ) {
+        if (value.is_varchar())
+        {
+            U8StringView view = value.as_varchar().view();
+
+            if ("true" == view) {
+                return doc->new_value_raw<Boolean>(true);
+            }
+            else if ("false" == view) {
+                return doc->new_value_raw<Boolean>(false);
+            }
+            else {
+                MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Unsupported boolean string value: {}", view);
+            }
+        }
+        else {
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
+        }
+    }
+};
+
+
 void InitCoreLDDatatypes()
 {
     DataTypeRegistryStore::NoTCtrOpsInitializer<LDTypedValue> ldd_tv_;
     DataTypeRegistryStore::NoTCtrOpsInitializer<LDArray> ldd_array_;
     DataTypeRegistryStore::NoTCtrOpsInitializer<LDMap> ldd_map_;
     DataTypeRegistryStore::NoTCtrOpsInitializer<LDTypeDeclaration> ldd_td_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDString> ldd_string_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<Varchar> ldd_string_;
+    DataTypeRegistryStore::NoTCtrOpsInitializer<Boolean> ldd_boolean_;
 
     DataTypeRegistry::local().refresh();
 }
