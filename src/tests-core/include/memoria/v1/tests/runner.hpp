@@ -18,7 +18,7 @@
 #include <memoria/v1/tests/tests.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
 
-#include <memoria/v1/yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h>
 
 namespace memoria {
 namespace v1 {

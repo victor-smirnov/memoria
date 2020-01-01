@@ -186,6 +186,10 @@ add_global_libs(${ICU_LIBRARIES})
 find_package(absl CONFIG REQUIRED)
 link_libraries(absl::base absl::strings absl::hash absl::meta absl::time)
 
+if (BUILD_TESTS)
+    find_package(yaml-cpp CONFIG REQUIRED)
+endif()
+
 find_package(Qt5 COMPONENTS Widgets QUIET)
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)

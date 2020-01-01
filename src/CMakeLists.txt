@@ -22,7 +22,6 @@ add_subdirectory(containers)
 add_subdirectory(fiber)
 add_subdirectory(reactor)
 add_subdirectory(filesystem)
-add_subdirectory(yaml-cpp)
 
 get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
 

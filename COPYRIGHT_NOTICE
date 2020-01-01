@@ -5,8 +5,4 @@ Memoria itself is under Apache 2.0 license.
 Fibers and Filesystem are originally Boost Fibers/Filesystem 1.63.0 and come under 
 Boost lincense with copyright hedears of their autors.
 
-Disruptor queue is under BSD-style license embedded in corresponding sources.
-
-Yaml-cpp is distributed under MIT-stile licence. See LICENCE.yaml-cpp for details.
-
 Check file headers to get the exact conditions those sources may be used under.

@@ -27,7 +27,7 @@
 
 #include <memoria/v1/tests/state.hpp>
 
-#include <memoria/v1/yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h>
 
 #include <memory>
 #include <vector>

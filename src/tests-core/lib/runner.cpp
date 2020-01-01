@@ -23,7 +23,7 @@
 #include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/time.hpp>
 
-#include <memoria/v1/yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h>
 
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 

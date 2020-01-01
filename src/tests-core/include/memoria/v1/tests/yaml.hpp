@@ -16,7 +16,7 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <memoria/v1/yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h>
 #include <memoria/v1/filesystem/path.hpp>
 
 #include <memoria/v1/api/store/memory_store_api.hpp>
@@ -48,6 +48,7 @@ struct IndirectStateFiledSerializer<AllocSharedPtr<IMemoryStore<T>>> {
 };
 
 }
+}}
 
 namespace YAML {
 
@@ -55,17 +56,34 @@ template <typename T>
 struct convert;
 
 template <>
-struct convert<UUID> {
-    static Node encode(const UUID& rhs) {
+struct convert<memoria::v1::UUID> {
+    static Node encode(const memoria::v1::UUID& rhs) {
         return Node(rhs.to_u8().data());
     }
 
-    static bool decode(const Node& node, UUID& rhs)
+    static bool decode(const Node& node, memoria::v1::UUID& rhs)
     {
         if (!node.IsScalar())
             return false;
 
-        rhs = UUID::parse(node.Scalar().c_str());
+        rhs = memoria::v1::UUID::parse(node.Scalar().c_str());
+
+        return true;
+    }
+};
+
+template <>
+struct convert<memoria::v1::U8String> {
+    static Node encode(const memoria::v1::U8String& rhs) {
+        return Node(rhs.to_std_string());
+    }
+
+    static bool decode(const Node& node, memoria::v1::U8String& rhs)
+    {
+        if (!node.IsScalar())
+            return false;
+
+        rhs = memoria::v1::U8String(node.Scalar());
 
         return true;
     }
@@ -73,4 +91,4 @@ struct convert<UUID> {
 
 }
 
-}}
+
