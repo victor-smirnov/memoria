@@ -29,8 +29,6 @@
 #include "file.hpp"
 #include "timer.hpp"
 
-#include <memoria/v1/reactor/smart_ptr.hpp>
-
 #include <memoria/v1/fiber/protected_stack_pool.hpp>
 #include <memoria/v1/fiber/pooled_fixedsize_stack.hpp>
 
@@ -373,12 +371,6 @@ int32_t engine_current_cpu() {
 template <typename T>
 int32_t engine_cpu_num() {
     return engine().cpu_num();
-}
-
-
-template <typename Fn>
-auto shared_count::run_at(int32_t cpu, Fn&& fn) {
-    return engine().run_at(cpu, std::forward<Fn>(fn));
 }
 
 }

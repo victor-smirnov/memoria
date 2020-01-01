@@ -24,10 +24,21 @@ MMA1_DEFINE_EXPLICIT_CU_LINKING(MemoriaStaticInit)
 
 struct StaticInitializer {
     StaticInitializer() {
-        StaticLibraryCtrs<>::init();
+
+        InitCoreLDDatatypes();
+        InitCoreDatatypes();
+        InitSimpleNumericDatatypes();
+        InitCtrDatatypes();
+        InitDefaultInMemStore();
+
+        StaticLibraryCtrs<DefaultProfile<>>::init();
     }
 };
 
 StaticInitializer init0;
+
+void InitMemoriaExplicit() {
+    StaticInitializer init0;
+}
 
 }}

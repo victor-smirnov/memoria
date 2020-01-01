@@ -270,14 +270,12 @@ struct DataTypeOperationsImpl<Boolean>: SimpleDataTypeOperationsImpl<Boolean> {
 
 void InitCoreLDDatatypes()
 {
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDTypedValue> ldd_tv_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDArray> ldd_array_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDMap> ldd_map_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<LDTypeDeclaration> ldd_td_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<Varchar> ldd_string_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<Boolean> ldd_boolean_;
-
-    DataTypeRegistry::local().refresh();
+    register_notctr_operations<LDTypedValue>();
+    register_notctr_operations<LDArray>();
+    register_notctr_operations<LDMap>();
+    register_notctr_operations<LDTypeDeclaration>();
+    register_notctr_operations<Varchar>();
+    register_notctr_operations<Boolean>();
 }
 
 

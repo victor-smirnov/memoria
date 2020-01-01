@@ -322,20 +322,20 @@ template <> struct DataTypeOperationsImpl<Real>: NumericDataTypeOperationsImpl<R
 
 void InitSimpleNumericDatatypes()
 {
-    DataTypeRegistryStore::NoTCtrOpsInitializer<UTinyInt> ldd_u_tiny_int_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<TinyInt> ldd_tiny_int_;
+    register_notctr_operations<UTinyInt>();
+    register_notctr_operations<TinyInt>();
 
-    DataTypeRegistryStore::NoTCtrOpsInitializer<USmallInt> ldd_u_small_int_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<SmallInt> ldd_small_int_;
+    register_notctr_operations<USmallInt>();
+    register_notctr_operations<SmallInt>();
 
-    DataTypeRegistryStore::NoTCtrOpsInitializer<UInteger> ldd_u_int_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<Integer> ldd_int_;
+    register_notctr_operations<UInteger>();
+    register_notctr_operations<Integer>();
 
-    DataTypeRegistryStore::NoTCtrOpsInitializer<UBigInt> ldd_u_big_int_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<BigInt> ldd_big_int_;
+    register_notctr_operations<UBigInt>();
+    register_notctr_operations<BigInt>();
 
-    DataTypeRegistryStore::NoTCtrOpsInitializer<Real> ldd_real_;
-    DataTypeRegistryStore::NoTCtrOpsInitializer<Double> ldd_double_;
+    register_notctr_operations<Real>();
+    register_notctr_operations<Double>();
 }
 
 }}

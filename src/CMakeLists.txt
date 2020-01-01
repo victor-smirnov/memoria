@@ -15,8 +15,6 @@
 
 include_directories(../include)
 include_directories(core/include)
-#include_directories(jemalloc/include/linux)
-
 
 add_subdirectory(core)
 add_subdirectory(stores)
@@ -26,21 +24,9 @@ add_subdirectory(reactor)
 add_subdirectory(filesystem)
 add_subdirectory(yaml-cpp)
 
-
-if (BUILD_MACOSX)
-#    add_subdirectory(jemalloc/src/linux)
-#    add_subdirectory(jemalloc/src/macosx)
-elseif (BUILD_MSVC)
-#    add_subdirectory(jemalloc/src/linux)
-else()
-#    add_subdirectory(jemalloc/src/linux)
-endif()
-
-
 get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
 
 if (BUILD_REACTOR_MEMORIA_LIB)
-
     add_library(Memoria STATIC ${GLOBAL_SRCS})
 
     SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
@@ -48,58 +34,18 @@ if (BUILD_REACTOR_MEMORIA_LIB)
     target_link_libraries(Memoria ${MEMORIA_LIBS})
     set_property(TARGET Memoria PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 
-
-    if (BUILD_MACOSX)
-        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/macosx)
-    elseif (BUILD_MSVC)
-        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc/msvc_compat)
-        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/msvc)
-    else()
-        target_include_directories(Memoria PRIVATE BEFORE jemalloc/include/linux)
-    endif()
-
     export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
 endif()
 
 if (BUILD_CLASSIC_MEMORIA_LIB)
-
-    add_library(MemoriaLMDB STATIC lmdb/mdb.c lmdb/midl.c)
-
-    target_include_directories(MemoriaLMDB PUBLIC lmdb/include)
-    set_target_properties(MemoriaLMDB PROPERTIES COMPILE_FLAGS "-pthread -fPIC")
-    set_target_properties(MemoriaLMDB PROPERTIES LINK_FLAGS "")
-    target_link_libraries(MemoriaLMDB pthread)
-
-    set(LMDB_TOOLS mdb_copy mdb_load mdb_dump mdb_stat mtest mtest2 mtest3 mtest4 mtest5)
-
-    FOREACH(LMDB_TOOLS_TARGET_BASE ${LMDB_TOOLS})
-        set(LMDB_TOOLS_TARGET mma1_${LMDB_TOOLS_TARGET_BASE})
-        add_executable(${LMDB_TOOLS_TARGET} lmdb/${LMDB_TOOLS_TARGET_BASE}.c)
-        set_target_properties(${LMDB_TOOLS_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-        set_target_properties(${LMDB_TOOLS_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-        target_link_libraries(${LMDB_TOOLS_TARGET} MemoriaLMDB)
-    ENDFOREACH()
-
-
     get_property(GLOBAL_SRCS_CLASSIC GLOBAL PROPERTY GLOBAL_SOURCES_CLASSIC)
     add_library(MemoriaClassic STATIC ${GLOBAL_SRCS_CLASSIC})
     set_property(TARGET MemoriaClassic PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})
 
-
     SET_TARGET_PROPERTIES(MemoriaClassic PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR} -DMMA1_NO_REACTOR")
     SET_TARGET_PROPERTIES(MemoriaClassic PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    target_link_libraries(MemoriaClassic MemoriaLMDB ${MEMORIA_LIBS})
 
-    if (BUILD_MACOSX)
-        target_include_directories(MemoriaClassic PRIVATE BEFORE jemalloc/include/macosx)
-    elseif (BUILD_MSVC)
-        target_include_directories(MemoriaClassic PRIVATE BEFORE jemalloc/include/msvc/msvc_compat)
-        target_include_directories(MemoriaClassic PRIVATE BEFORE jemalloc/include/msvc)
-    else()
-        target_include_directories(MemoriaClassic PRIVATE BEFORE jemalloc/include/linux)
-    endif()
-
-    export(TARGETS MemoriaClassic MemoriaLMDB FILE ${LIBRARY_OUTPUT_PATH}/MemoriaClassic.cmake)
+    export(TARGETS MemoriaClassic FILE ${LIBRARY_OUTPUT_PATH}/MemoriaClassic.cmake)
 endif()
 
 

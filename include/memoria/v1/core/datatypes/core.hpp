@@ -156,5 +156,8 @@ struct TypeHash<Boolean>: UInt64Value<28>   {};
 template <>
 struct TypeHash<BigDecimal>: UInt64Value<29>{};
 
+template <>
+struct TypeHash<Decimal>: UInt64Value<30>{};
+
 
 }}

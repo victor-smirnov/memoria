@@ -37,11 +37,16 @@ using Ctr2T = Vector<Varchar>;
 int main()
 {
     try {
-        LDDocument doc = LDDocument::parse("'123'@Varchar");
+        LDDocument doc = LDDocument::parse("Decimal(10,8)");
         doc.dump(std::cout) << std::endl;
 
-        std::cout << cast_as<Varchar>(doc.value()) << std::endl;
+        //std::cout << cast_as<Varchar>(doc.value()) << std::endl;
 
+        //DataTypeRegistryStore::global().register_creator_fn<Decimal, TL<int32_t, int32_t>, TL<int32_t>, TL<>>();
+
+        DataTypeRegistry::local().create_object(doc.value().as_type_decl());
+
+        /*
         auto store = IMemoryStore<>::create();
 
         auto snp = store->master()->branch();

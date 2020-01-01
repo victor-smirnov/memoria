@@ -35,15 +35,13 @@ namespace v1{
 void InitCoreLDDatatypes();
 void InitCoreDatatypes();
 void InitSimpleNumericDatatypes();
-
+void InitCtrDatatypes();
 void InitDefaultInMemStore();
 
+void InitMemoriaExplicit();
 
 template <typename T, typename ProfileT>
 void InitCtrMetadata() {
-    DataTypeRegistryStore::Initializer<T, TL<>> ii0;
-    DataTypeRegistry::local().refresh();
-
     ICtrApi<T, ProfileT>::init_profile_metadata();
 }
 
@@ -51,11 +49,6 @@ template <typename ProfileT = DefaultProfile<>>
 struct StaticLibraryCtrs {
     static void init()
     {
-        InitCoreLDDatatypes();
-        InitCoreDatatypes();
-        InitSimpleNumericDatatypes();
-        InitDefaultInMemStore();
-
         InitCtrMetadata<Set<FixedArray<16>>, ProfileT>();
         InitCtrMetadata<Set<Varchar>, ProfileT>();
         InitCtrMetadata<Vector<Varchar>, ProfileT>();

@@ -114,18 +114,26 @@ class DataTypeRegistry {
 public:
     friend class DataTypeRegistryStore;
 
+    template <typename>
+    friend void register_notctr_operations();
+
+    template <typename>
+    friend void register_operations();
+
+
     DataTypeRegistry();
 
     boost::any create_object(const LDTypeDeclarationView& decl) const
     {
         U8String typedecl = decl.to_cxx_typedecl();
-        auto ii = creators_.find(typedecl);
-        if (ii != creators_.end())
+        auto ii = operations_.find(typedecl);
+        if (ii != operations_.end())
         {
-            return std::get<0>(ii->second)(*this, decl);
+            auto ops = ii->second;
+            return ops->create_cxx_instance(decl);
         }
         else {
-            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Type creator for {} is not registered", typedecl);
+            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Datatype operations for {} are not registered", typedecl);
         }
     }
 
@@ -137,6 +145,31 @@ public:
 
     Optional<std::shared_ptr<DataTypeOperations>> get_operations(uint64_t type_code);
     Optional<std::shared_ptr<DataTypeOperations>> get_operations(U8StringView cxx_typedecl);
+
+
+private:
+
+    template <typename T>
+    void register_operations(std::shared_ptr<DataTypeOperations> ops)
+    {
+        TypeSignature ts = make_datatype_signature<T>();
+        LDDocument doc = ts.parse();
+        operations_[doc.value().as_type_decl().to_cxx_typedecl()] = ops;
+
+        uint64_t code = TypeHash<T>::Value & 0xFFFFFFFFFFFFFF;
+        operations_by_code_[code] = ops;
+    }
+
+    template <typename T>
+    void register_notctr_operations(std::shared_ptr<DataTypeOperations> ops)
+    {
+        SBuf buf;
+        DataTypeTraits<T>::create_signature(buf);
+        operations_[buf.str()] = ops;
+
+        uint64_t code = TypeHash<T>::Value & 0xFFFFFFFFFFFFFF;
+        operations_by_code_[code] = ops;
+    }
 };
 
 class DataTypeRegistryStore {
@@ -218,7 +251,6 @@ public:
     {
         auto creator_fn = [](const DataTypeRegistry& registry, const LDTypeDeclarationView& decl)
         {
-            //constexpr size_t declared_params_size = ListSize<typename DataTypeTraits<T>::Parameters>;
             constexpr size_t declared_params_size = ListSize<DTTParameters<T>>;
 
             size_t actual_parameters_size = decl.params();
@@ -553,5 +585,49 @@ namespace _ {
     };
 
 }
+
+//template <typename T, typename ArgTypesLists>
+//T configure_datatype_object(const LDTypeDeclarationView& typedecl)
+//{
+//    constexpr size_t declared_params_size = ListSize<DTTParameters<T>>;
+
+//    size_t actual_parameters_size = decl.params();
+
+//    if (declared_params_size == actual_parameters_size)
+//    {
+//        return _::DataTypeCreator<
+//                T,
+//                DTTParameters<T>,
+//                ArgTypesLists...
+//        >::create(registry, decl);
+//    }
+//    else {
+//        MMA1_THROW(RuntimeException())
+//                << fmt::format_ex(
+//                       u"Actual number of parameters {} does not match expected one {} for type {}",
+//                       actual_parameters_size, declared_params_size,
+//                       decl.to_standard_string()
+//                   );
+//    }
+//}
+
+
+template <typename T>
+void register_operations()
+{
+    std::shared_ptr<DataTypeOperations> ops = std::make_shared<DataTypeOperationsImpl<T>>();
+    DataTypeRegistryStore::global().template register_operations<T>(ops);
+    DataTypeRegistry::local().template register_operations<T>(ops);
+}
+
+template <typename T>
+void register_notctr_operations()
+{
+    std::shared_ptr<DataTypeOperations> ops = std::make_shared<DataTypeOperationsImpl<T>>();
+    DataTypeRegistryStore::global().template register_notctr_operations<T>(ops);
+    DataTypeRegistry::local().template register_notctr_operations<T>(ops);
+}
+
+
 
 }}

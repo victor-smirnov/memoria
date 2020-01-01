@@ -72,37 +72,16 @@ template <typename Profile, int32_t Streams>
 using ProfileCtrSizesT = typename _::ProfileCtrSizesTS<Profile, Streams>::Type;
 
 
-template <typename CtrName, typename Profile>
-struct CtrMetadataInitializer {
-    CtrMetadataInitializer() {
-        //ICtrApi<CtrName, Profile>::init_profile_metadata();
-    }
-};
-
 #define MMA1_DECLARE_ICTRAPI() \
     static void init_profile_metadata()
 
 
-
-
-
-
-
-
 #define MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, ...)\
-template struct ICtrApi<CtrName, Profile>;               \
-namespace {                                             \
-    CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
-}
+template struct ICtrApi<CtrName, Profile>;
 
-////DataTypeRegistryStore::Initializer<CtrName, TL<>> init_type_##__VA_ARGS__;\
 
 #define MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile, ...) \
-template struct ICtrApi<CtrName, Profile>;               \
-                                                         \
-namespace {                                              \
-    CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__ ;\
-}
+template struct ICtrApi<CtrName, Profile>;
 
 }
 }
