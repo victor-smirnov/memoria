@@ -21,11 +21,13 @@ add_subdirectory(stores)
 add_subdirectory(containers)
 add_subdirectory(fiber)
 add_subdirectory(reactor)
-add_subdirectory(filesystem)
+add_subdirectory(filesystem_reactor)
+add_subdirectory(filesystem_common)
 
 get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
 
 if (BUILD_REACTOR_MEMORIA_LIB)
+
     add_library(Memoria STATIC ${GLOBAL_SRCS})
 
     SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
@@ -37,6 +39,8 @@ if (BUILD_REACTOR_MEMORIA_LIB)
 endif()
 
 if (BUILD_CLASSIC_MEMORIA_LIB)
+    add_subdirectory(filesystem_classic)
+
     get_property(GLOBAL_SRCS_CLASSIC GLOBAL PROPERTY GLOBAL_SOURCES_CLASSIC)
     add_library(MemoriaClassic STATIC ${GLOBAL_SRCS_CLASSIC})
     set_property(TARGET MemoriaClassic PROPERTY CXX_STANDARD ${MEMORIA_INTERNAL_CXX_STANDARD})

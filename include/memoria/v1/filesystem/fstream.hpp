@@ -7,9 +7,10 @@
 
 //  Library home page: http://www.boost.org/libs/filesystem
 
-//--------------------------------------------------------------------------------------// 
+//--------------------------------------------------------------------------------------//
 
-#pragma once
+#ifndef MEMORIA_BOOST_FILESYSTEM3_FSTREAM_HPP
+#define MEMORIA_BOOST_FILESYSTEM3_FSTREAM_HPP
 
 #include <boost/config.hpp>
 
@@ -17,8 +18,7 @@
 #   error Configuration not supported: Boost.Filesystem V3 and later requires std::wstring support
 # endif
 
-#include "path.hpp"
-
+#include <memoria/v1/filesystem/path.hpp>
 #include <iosfwd>
 #include <fstream>
 
@@ -29,14 +29,20 @@
 #if defined(BOOST_WINDOWS_API) \
   && (!defined(_CPPLIB_VER) || _CPPLIB_VER < 405 || defined(_STLPORT_VERSION))
   // !Dinkumware || early Dinkumware || STLPort masquerading as Dinkumware
-# define MEMORIA_V1_FILESYSTEM_C_STR string().c_str()  // use narrow, since wide not available
+# define MEMORIA_BOOST_FILESYSTEM_C_STR string().c_str()  // use narrow, since wide not available
 #else  // use the native c_str, which will be narrow on POSIX, wide on Windows
-# define MEMORIA_V1_FILESYSTEM_C_STR c_str()
+# define MEMORIA_BOOST_FILESYSTEM_C_STR c_str()
 #endif
 
-namespace memoria {
-namespace v1 {
-namespace filesystem {
+#if defined(BOOST_MSVC)
+#pragma warning(push)
+// 'memoria::filesystem::basic_fstream<charT>' : inherits 'std::basic_istream<_Elem,_Traits>::std::basic_istream<_Elem,_Traits>::_Add_vtordisp1' via dominance
+#pragma warning(disable: 4250)
+#endif
+
+namespace memoria { namespace v1 {
+namespace filesystem
+{
 
 //--------------------------------------------------------------------------------------//
 //                                  basic_filebuf                                       //
@@ -54,9 +60,9 @@ namespace filesystem {
     virtual ~basic_filebuf() {}
 
     basic_filebuf<charT,traits>*
-      open(const path& p, std::ios_base::openmode mode) 
+      open(const path& p, std::ios_base::openmode mode)
     {
-      return std::basic_filebuf<charT,traits>::open(p.MEMORIA_V1_FILESYSTEM_C_STR, mode)
+      return std::basic_filebuf<charT,traits>::open(p.MEMORIA_BOOST_FILESYSTEM_C_STR, mode)
         ? this : 0;
     }
   };
@@ -79,16 +85,16 @@ namespace filesystem {
     // argument, to workaround VC++ 7.1 bug (ID VSWhidbey 38416)
 
     explicit basic_ifstream(const path& p)
-      : std::basic_ifstream<charT,traits>(p.MEMORIA_V1_FILESYSTEM_C_STR, std::ios_base::in) {}
+      : std::basic_ifstream<charT,traits>(p.MEMORIA_BOOST_FILESYSTEM_C_STR, std::ios_base::in) {}
 
     basic_ifstream(const path& p, std::ios_base::openmode mode)
-      : std::basic_ifstream<charT,traits>(p.MEMORIA_V1_FILESYSTEM_C_STR, mode) {}
+      : std::basic_ifstream<charT,traits>(p.MEMORIA_BOOST_FILESYSTEM_C_STR, mode) {}
 
     void open(const path& p)
-      { std::basic_ifstream<charT,traits>::open(p.MEMORIA_V1_FILESYSTEM_C_STR, std::ios_base::in); }
+      { std::basic_ifstream<charT,traits>::open(p.MEMORIA_BOOST_FILESYSTEM_C_STR, std::ios_base::in); }
 
     void open(const path& p, std::ios_base::openmode mode)
-      { std::basic_ifstream<charT,traits>::open(p.MEMORIA_V1_FILESYSTEM_C_STR, mode); }
+      { std::basic_ifstream<charT,traits>::open(p.MEMORIA_BOOST_FILESYSTEM_C_STR, mode); }
 
     virtual ~basic_ifstream() {}
   };
@@ -111,16 +117,16 @@ namespace filesystem {
     // argument, to workaround VC++ 7.1 bug (ID VSWhidbey 38416)
 
     explicit basic_ofstream(const path& p)
-      : std::basic_ofstream<charT,traits>(p.MEMORIA_V1_FILESYSTEM_C_STR, std::ios_base::out) {}
+      : std::basic_ofstream<charT,traits>(p.MEMORIA_BOOST_FILESYSTEM_C_STR, std::ios_base::out) {}
 
     basic_ofstream(const path& p, std::ios_base::openmode mode)
-      : std::basic_ofstream<charT,traits>(p.MEMORIA_V1_FILESYSTEM_C_STR, mode) {}
+      : std::basic_ofstream<charT,traits>(p.MEMORIA_BOOST_FILESYSTEM_C_STR, mode) {}
 
     void open(const path& p)
-      { std::basic_ofstream<charT,traits>::open(p.MEMORIA_V1_FILESYSTEM_C_STR, std::ios_base::out); }
+      { std::basic_ofstream<charT,traits>::open(p.MEMORIA_BOOST_FILESYSTEM_C_STR, std::ios_base::out); }
 
     void open(const path& p, std::ios_base::openmode mode)
-      { std::basic_ofstream<charT,traits>::open(p.MEMORIA_V1_FILESYSTEM_C_STR, mode); }
+      { std::basic_ofstream<charT,traits>::open(p.MEMORIA_BOOST_FILESYSTEM_C_STR, mode); }
 
     virtual ~basic_ofstream() {}
   };
@@ -143,18 +149,18 @@ namespace filesystem {
     // argument, to workaround VC++ 7.1 bug (ID VSWhidbey 38416)
 
     explicit basic_fstream(const path& p)
-      : std::basic_fstream<charT,traits>(p.MEMORIA_V1_FILESYSTEM_C_STR,
+      : std::basic_fstream<charT,traits>(p.MEMORIA_BOOST_FILESYSTEM_C_STR,
           std::ios_base::in | std::ios_base::out) {}
 
     basic_fstream(const path& p, std::ios_base::openmode mode)
-      : std::basic_fstream<charT,traits>(p.MEMORIA_V1_FILESYSTEM_C_STR, mode) {}
+      : std::basic_fstream<charT,traits>(p.MEMORIA_BOOST_FILESYSTEM_C_STR, mode) {}
 
     void open(const path& p)
-      { std::basic_fstream<charT,traits>::open(p.MEMORIA_V1_FILESYSTEM_C_STR,
+      { std::basic_fstream<charT,traits>::open(p.MEMORIA_BOOST_FILESYSTEM_C_STR,
           std::ios_base::in | std::ios_base::out); }
 
     void open(const path& p, std::ios_base::openmode mode)
-      { std::basic_fstream<charT,traits>::open(p.MEMORIA_V1_FILESYSTEM_C_STR, mode); }
+      { std::basic_fstream<charT,traits>::open(p.MEMORIA_BOOST_FILESYSTEM_C_STR, mode); }
 
     virtual ~basic_fstream() {}
 
@@ -173,8 +179,13 @@ namespace filesystem {
   typedef basic_ifstream<wchar_t> wifstream;
   typedef basic_ofstream<wchar_t> wofstream;
   typedef basic_fstream<wchar_t> wfstream;
-  
-}}}
+
+} // namespace filesystem
+}} // namespace memoria::v1
+
+#if defined(BOOST_MSVC)
+#pragma warning(pop)
+#endif
 
 #include <boost/config/abi_suffix.hpp> // pops abi_prefix.hpp pragmas
-
+#endif  // MEMORIA_BOOST_FILESYSTEM3_FSTREAM_HPP

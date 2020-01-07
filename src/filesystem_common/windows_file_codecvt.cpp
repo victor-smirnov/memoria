@@ -7,17 +7,20 @@
 
 //  Library home page: http://www.boost.org/libs/filesystem
 
-//--------------------------------------------------------------------------------------// 
+//--------------------------------------------------------------------------------------//
 
-// define MEMORIA_V1_FILESYSTEM_SOURCE so that <boost/system/config.hpp> knows
-// the library is being built (possibly exporting rather than importing code)
-#define MEMORIA_V1_FILESYSTEM_SOURCE 
+// Include Boost.Predef first so that windows.h is guaranteed to be not included
+#include <boost/predef/os/windows.h>
+#if BOOST_OS_WINDOWS
+#include <boost/winapi/config.hpp>
+#endif
 
-#ifndef BOOST_SYSTEM_NO_DEPRECATED 
+#ifndef BOOST_SYSTEM_NO_DEPRECATED
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
 #include <memoria/v1/filesystem/config.hpp>
+
 #include <cwchar>  // for mbstate_t
 
 #ifdef BOOST_WINDOWS_API
@@ -32,7 +35,7 @@
 #include <windows.h>
 
   std::codecvt_base::result windows_file_codecvt::do_in(
-    std::mbstate_t &, 
+    std::mbstate_t &,
     const char* from, const char* from_end, const char*& from_next,
     wchar_t* to, wchar_t* to_end, wchar_t*& to_next) const
   {
@@ -40,7 +43,7 @@
 
     int count;
     if ((count = ::MultiByteToWideChar(codepage, MB_PRECOMPOSED, from,
-      from_end - from, to, to_end - to)) == 0) 
+      static_cast<int>(from_end - from), to, static_cast<int>(to_end - to))) == 0)
     {
       return error;  // conversion failed
     }
@@ -60,7 +63,7 @@
 
     int count;
     if ((count = ::WideCharToMultiByte(codepage, WC_NO_BEST_FIT_CHARS, from,
-      from_end - from, to, to_end - to, 0, 0)) == 0)
+      static_cast<int>(from_end - from), to, static_cast<int>(to_end - to), 0, 0)) == 0)
     {
       return error;  // conversion failed
     }

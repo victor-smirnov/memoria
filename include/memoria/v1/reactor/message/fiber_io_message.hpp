@@ -30,7 +30,7 @@ namespace reactor {
 
 class FiberIOMessage: public Message {
 protected:
-    fibers::context::iowait_queue_t iowait_queue_;
+    fibers::context* context_{};
     
 public:
     FiberIOMessage(int cpu): 

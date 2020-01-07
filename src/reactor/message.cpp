@@ -26,11 +26,11 @@ namespace reactor {
 
 void FiberIOMessage::finish()
 {
-    if (!iowait_queue_.empty())
+    if (!context_)
     {
-        auto* fiber_context = &iowait_queue_.front();
-        iowait_queue_.pop_front();
-        engine().scheduler()->resume(fiber_context);
+        auto fiber_context_tmp = context_;
+        context_ = nullptr;
+        engine().scheduler()->resume(fiber_context_tmp);
     }
     else {
         std::cout << "Empty iowait_queue for " << describe() << ". Aborting." << std::endl;
@@ -49,8 +49,9 @@ void FiberIOMessage::wait_for()
 {    
     FiberContext* fiber_context = fibers::context::active();
     
-    fiber_context->iowait_link(iowait_queue_);
-    
+    BOOST_ASSERT(context_ == nullptr);
+
+    context_ = fiber_context;
     engine().scheduler()->suspend(fiber_context);
 }
 

@@ -550,7 +550,7 @@ public:
 
     virtual void store(U8String file_name, int64_t wait_duration)
     {
-        auto fileh = FileOutputStreamHandler::create_buffered(file_name.to_u16());
+        auto fileh = FileOutputStreamHandler::create_buffered(file_name.to_std_string());
         this->store(fileh.get(), wait_duration);
     }
 

@@ -48,7 +48,8 @@ public:
 
 class SocketIOMessage: public KEventIOMessage {
 protected:
-    fibers::context::iowait_queue_t iowait_queue_;
+
+    fibers::context* context_{};
 
     bool connection_closed_{false};
     off_t available_{};

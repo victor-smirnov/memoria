@@ -444,11 +444,6 @@ context::wait_unlink() noexcept {
     wait_hook_.unlink();
 }
 
-void
-context::iowait_unlink() noexcept {
-    iowait_hook_.unlink();
-}
-
 
 void
 context::detach() noexcept {

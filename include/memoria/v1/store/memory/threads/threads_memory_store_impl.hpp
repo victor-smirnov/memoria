@@ -567,7 +567,7 @@ public:
     }
 
 
-    void store(boost::filesystem::path file_name, int64_t wait_duration)
+    void store(memoria::filesystem::path file_name, int64_t wait_duration)
     {
         this->store(file_name.string().c_str(), wait_duration);
     }

@@ -11,17 +11,12 @@
 
 #include <boost/config/warning_disable.hpp>
 
-// define MEMORIA_V1_FILESYSTEM_SOURCE so that <boost/filesystem/config.hpp> knows
-// the library is being built (possibly exporting rather than importing code)
-#define MEMORIA_V1_FILESYSTEM_SOURCE
-
-#ifndef BOOST_SYSTEM_NO_DEPRECATED 
+#ifndef BOOST_SYSTEM_NO_DEPRECATED
 #  define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
 #include <memoria/v1/filesystem/config.hpp>
 #include <memoria/v1/filesystem/path_traits.hpp>
-
 #include <boost/system/error_code.hpp>
 #include <locale>
 #include <vector>
@@ -70,16 +65,16 @@ namespace
 
 } // unnamed namespace
 
-namespace memoria {
-namespace v1 {
+namespace memoria { namespace v1
+{
   namespace filesystem
   {
 
-    MEMORIA_V1_FILESYSTEM_DECL const boost::system::error_category& codecvt_error_category()
+    MEMORIA_BOOST_FILESYSTEM_DECL const boost::system::error_category& codecvt_error_category()
     {
       static const codecvt_error_cat  codecvt_error_cat_const;
       return codecvt_error_cat_const;
     }
 
-  } 
-}}
+  } // namespace filesystem
+}} // namespace memoria::v1

@@ -29,10 +29,10 @@ namespace reactor {
 
 void SocketIOMessage::finish()
 {
-    while (!iowait_queue_.empty())
+    if (context_)
     {
-        auto* fiber_context = &iowait_queue_.front();
-        iowait_queue_.pop_front();
+        auto* fiber_context = context_;
+        context_ = nullptr;
         engine().scheduler()->resume(fiber_context);
     }
 }    
@@ -44,11 +44,10 @@ void SocketIOMessage::wait_for()
 {
     reset();
 
-    FiberContext* fiber_context = fibers::context::active();
-    
-    fiber_context->iowait_link(iowait_queue_);
-    
-    engine().scheduler()->suspend(fiber_context);
+    BOOST_ASSERT(context_ == nullptr);
+
+    context_ = fibers::context::active();
+    engine().scheduler()->suspend(context_);
 
     // Currently we use only read() == 0 for closed connection indication
     //connection_closed_ = connection_closed_ || (flags_ & ~(EPOLLRDHUP | EPOLLHUP | EPOLLERR));

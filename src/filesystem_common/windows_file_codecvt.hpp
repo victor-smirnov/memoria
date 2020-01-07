@@ -7,11 +7,11 @@
 
 //  Library home page: http://www.boost.org/libs/filesystem
 
-#ifndef MEMORIA_V1_FILESYSTEM3_WIN_FILE_CODECVT_HPP
-#define MEMORIA_V1_FILESYSTEM3_WIN_FILE_CODECVT_HPP
+#ifndef MEMORIA_BOOST_FILESYSTEM3_WIN_FILE_CODECVT_HPP
+#define MEMORIA_BOOST_FILESYSTEM3_WIN_FILE_CODECVT_HPP
 
 #include <memoria/v1/filesystem/config.hpp>
-#include <locale>  
+#include <locale>
 
   //------------------------------------------------------------------------------------//
   //                                                                                    //
@@ -22,8 +22,8 @@
   //                                                                                    //
   //------------------------------------------------------------------------------------//
 
-  class MEMORIA_V1_FILESYSTEM_DECL windows_file_codecvt
-    : public std::codecvt< wchar_t, char, std::mbstate_t >  
+  class MEMORIA_BOOST_FILESYSTEM_DECL windows_file_codecvt
+    : public std::codecvt< wchar_t, char, std::mbstate_t >
   {
   public:
     explicit windows_file_codecvt(std::size_t refs = 0)
@@ -36,7 +36,7 @@
     //  actually know what codepage is active
     virtual int do_encoding() const throw() { return 0; }
 
-    virtual std::codecvt_base::result do_in(std::mbstate_t& state, 
+    virtual std::codecvt_base::result do_in(std::mbstate_t& state,
       const char* from, const char* from_end, const char*& from_next,
       wchar_t* to, wchar_t* to_end, wchar_t*& to_next) const;
 
@@ -45,7 +45,7 @@
       char* to, char* to_end, char*& to_next) const;
 
     virtual std::codecvt_base::result do_unshift(std::mbstate_t&,
-        char* /*from*/, char* /*to*/, char* & /*next*/) const  { return ok; } 
+        char* /*from*/, char* /*to*/, char* & /*next*/) const  { return ok; }
 
     virtual int do_length(std::mbstate_t&,
       const char* /*from*/, const char* /*from_end*/, std::size_t /*max*/) const  { return 0; }
@@ -53,4 +53,4 @@
     virtual int do_max_length() const throw () { return 0; }
   };
 
-#endif  // MEMORIA_V1_FILESYSTEM3_WIN_FILE_CODECVT_HPP
+#endif  // MEMORIA_BOOST_FILESYSTEM3_WIN_FILE_CODECVT_HPP

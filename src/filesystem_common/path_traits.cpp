@@ -9,17 +9,12 @@
 
 //--------------------------------------------------------------------------------------//
 
-// define MEMORIA_V1_FILESYSTEM_SOURCE so that <boost/system/config.hpp> knows
-// the library is being built (possibly exporting rather than importing code)
-#define MEMORIA_V1_FILESYSTEM_SOURCE 
-
-#ifndef BOOST_SYSTEM_NO_DEPRECATED 
+#ifndef BOOST_SYSTEM_NO_DEPRECATED
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
 #include <memoria/v1/filesystem/config.hpp>
 #include <memoria/v1/filesystem/path_traits.hpp>
-
 #include <boost/system/system_error.hpp>
 #include <boost/scoped_array.hpp>
 #include <locale>   // for codecvt_base::result
@@ -34,13 +29,13 @@ namespace bs = boost::system;
 //                                  configuration                                       //
 //--------------------------------------------------------------------------------------//
 
-#ifndef MEMORIA_V1_FILESYSTEM_CODECVT_BUF_SIZE
-# define MEMORIA_V1_FILESYSTEM_CODECVT_BUF_SIZE 256
+#ifndef MEMORIA_BOOST_FILESYSTEM_CODECVT_BUF_SIZE
+# define MEMORIA_BOOST_FILESYSTEM_CODECVT_BUF_SIZE 256
 #endif
 
 namespace {
 
-  const std::size_t default_codecvt_buf_size = MEMORIA_V1_FILESYSTEM_CODECVT_BUF_SIZE;
+  const std::size_t default_codecvt_buf_size = MEMORIA_BOOST_FILESYSTEM_CODECVT_BUF_SIZE;
 
 
 //--------------------------------------------------------------------------------------//
@@ -78,10 +73,10 @@ namespace {
            to, to_end, to_next)) != std::codecvt_base::ok)
     {
       //std::cout << " result is " << static_cast<int>(res) << std::endl;
-      MEMORIA_V1_FILESYSTEM_THROW(bs::system_error(res, fs::codecvt_error_category(),
-        "memoria::v1::filesystem::path codecvt to wstring"));
+      MEMORIA_BOOST_FILESYSTEM_THROW(bs::system_error(res, fs::codecvt_error_category(),
+        "memoria::filesystem::path codecvt to wstring"));
     }
-    target.append(to, to_next); 
+    target.append(to, to_next);
   }
 
 //--------------------------------------------------------------------------------------//
@@ -112,12 +107,12 @@ namespace {
            to, to_end, to_next)) != std::codecvt_base::ok)
     {
       //std::cout << " result is " << static_cast<int>(res) << std::endl;
-      MEMORIA_V1_FILESYSTEM_THROW(bs::system_error(res, fs::codecvt_error_category(),
-        "memoria::v1::filesystem::path codecvt to string"));
+      MEMORIA_BOOST_FILESYSTEM_THROW(bs::system_error(res, fs::codecvt_error_category(),
+        "memoria::filesystem::path codecvt to string"));
     }
-    target.append(to, to_next); 
+    target.append(to, to_next);
   }
-  
+
 }  // unnamed namespace
 
 //--------------------------------------------------------------------------------------//
@@ -130,7 +125,7 @@ namespace memoria { namespace v1 { namespace filesystem { namespace path_traits 
 //                          convert const char* to wstring                              //
 //--------------------------------------------------------------------------------------//
 
-  MEMORIA_V1_FILESYSTEM_DECL
+  MEMORIA_BOOST_FILESYSTEM_DECL
   void convert(const char* from,
                 const char* from_end,    // 0 for null terminated MBCS
                 std::wstring & to,
@@ -164,7 +159,7 @@ namespace memoria { namespace v1 { namespace filesystem { namespace path_traits 
 //                         convert const wchar_t* to string                            //
 //--------------------------------------------------------------------------------------//
 
-  MEMORIA_V1_FILESYSTEM_DECL
+  MEMORIA_BOOST_FILESYSTEM_DECL
   void convert(const wchar_t* from,
                 const wchar_t* from_end,  // 0 for null terminated MBCS
                 std::string & to,
@@ -198,4 +193,4 @@ namespace memoria { namespace v1 { namespace filesystem { namespace path_traits 
       convert_aux(from, from_end, buf, buf+default_codecvt_buf_size, to, cvt);
     }
   }
-}}}} // namespace memoria::v1::filesystem::path_traits
+}}}} // namespace memoria::filesystem::path_traits

@@ -8,9 +8,10 @@
 
 //  See library home page at http://www.boost.org/libs/filesystem
 
-//----------------------------------------------------------------------------// 
+//----------------------------------------------------------------------------//
 
-#pragma once
+#ifndef MEMORIA_BOOST_FILESYSTEM3_CONVENIENCE_HPP
+#define MEMORIA_BOOST_FILESYSTEM3_CONVENIENCE_HPP
 
 #include <boost/config.hpp>
 
@@ -18,17 +19,17 @@
 #   error Configuration not supported: Boost.Filesystem V3 and later requires std::wstring support
 # endif
 
-#include "operations.hpp"
-
+#include <memoria/v1/filesystem/operations.hpp>
 #include <boost/system/error_code.hpp>
 
 #include <boost/config/abi_prefix.hpp> // must be the last #include
 
-namespace memoria {
-namespace v1 {
-  namespace filesystem {
+namespace memoria { namespace v1
+{
+  namespace filesystem
+  {
 
-# ifndef MEMORIA_V1_FILESYSTEM_NO_DEPRECATED
+# ifndef MEMORIA_BOOST_FILESYSTEM_NO_DEPRECATED
 
     inline std::string extension(const path & p)
     {
@@ -41,7 +42,7 @@ namespace v1 {
     }
 
     inline path change_extension( const path & p, const path & new_extension )
-    { 
+    {
       path new_p( p );
       new_p.replace_extension( new_extension );
       return new_p;
@@ -50,8 +51,10 @@ namespace v1 {
 # endif
 
 
-  } 
-}} 
+  } // namespace filesystem
+} // namespace memoria::v1
+}
+
 
 #include <boost/config/abi_suffix.hpp> // pops abi_prefix.hpp pragmas
-
+#endif // MEMORIA_BOOST_FILESYSTEM3_CONVENIENCE_HPP

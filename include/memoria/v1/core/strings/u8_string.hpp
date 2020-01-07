@@ -57,7 +57,7 @@ private:
     friend inline void std::swap(T&, T&) noexcept;
 
 public:
-
+    static const size_t NPOS = ContentT::npos;
 
     U8String() = default;
     U8String(const U8String&) = default;

@@ -244,7 +244,7 @@ FileInputStreamHandlerImpl::FileInputStreamHandlerImpl(const char* file_name)
         MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Can't open file {}", file_name));
     }
     
-    size_ = boost::filesystem::file_size(file_name);
+    size_ = memoria::v1::filesystem::file_size(file_name);
     
     closed_ = false;
 }

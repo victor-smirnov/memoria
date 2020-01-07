@@ -118,15 +118,6 @@ typedef boost::intrusive::list_member_hook<
 >                                       worker_hook;
 
 
-struct iowait_tag;
-typedef boost::intrusive::list_member_hook<
-    boost::intrusive::tag< iowait_tag >,
-    boost::intrusive::link_mode<
-        boost::intrusive::auto_unlink
-    >
->                                       iowait_hook;
-
-
 }
 
 struct main_context_t {};
@@ -223,7 +214,6 @@ public:
     detail::terminated_hook                 terminated_hook_{};
     detail::wait_hook                       wait_hook_{};
     detail::worker_hook                     worker_hook_{};
-    detail::iowait_hook                     iowait_hook_{};
     std::atomic< context * >                remote_nxt_{ nullptr };
     std::chrono::steady_clock::time_point   tp_{ (std::chrono::steady_clock::time_point::max)() };
 
@@ -231,16 +221,7 @@ public:
         context,
         boost::intrusive::function_hook< detail::wait_functor >,
         boost::intrusive::constant_time_size< false > >   wait_queue_t;
-        
-    
-    typedef boost::intrusive::list<
-        context,
-        boost::intrusive::member_hook<
-                    context, detail::iowait_hook, & context::iowait_hook_ 
-        >,
-        boost::intrusive::constant_time_size< false > 
-    >                                                     iowait_queue_t;
-        
+                
 
 private:
     fss_data_t                              fss_data_{};
@@ -437,12 +418,6 @@ public:
         lst.push_back( * this);
     }
     
-        template< typename List >
-    void iowait_link( List & lst) noexcept {
-        static_assert( std::is_same< typename List::value_traits::hook_type, detail::iowait_hook >::value, "not a iowait-queue");
-        lst.push_back( * this);
-    }
-
 
     template< typename List >
     void worker_link( List & lst) noexcept {
@@ -455,8 +430,6 @@ public:
     void sleep_unlink() noexcept;
 
     void wait_unlink() noexcept;
-
-    void iowait_unlink() noexcept;
 
     void worker_unlink() noexcept;
 

@@ -7,6 +7,12 @@
 
 //  Library home page: http://www.boost.org/libs/filesystem
 
+// Include Boost.Predef first so that windows.h is guaranteed to be not included
+#include <boost/predef/os/windows.h>
+#if BOOST_OS_WINDOWS
+#include <boost/winapi/config.hpp>
+#endif
+
 //  Old standard library configurations, particularly MingGW, don't support wide strings.
 //  Report this with an explicit error message.
 #include <boost/config.hpp>
@@ -14,23 +20,19 @@
 #   error Configuration not supported: Boost.Filesystem V3 and later requires std::wstring support
 # endif
 
-// define MEMORIA_V1_FILESYSTEM_SOURCE so that <boost/system/config.hpp> knows
-// the library is being built (possibly exporting rather than importing code)
-#define MEMORIA_V1_FILESYSTEM_SOURCE 
-
-#ifndef BOOST_SYSTEM_NO_DEPRECATED 
+#ifndef BOOST_SYSTEM_NO_DEPRECATED
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
 #include <memoria/v1/filesystem/config.hpp>
 #include <memoria/v1/filesystem/path.hpp>
 #include <memoria/v1/filesystem/operations.hpp>  // for filesystem_error
-#include <memoria/v1/reactor/reactor.hpp> 
-
 #include <boost/scoped_array.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/assert.hpp>
 #include <algorithm>
+#include <iterator>
+#include <utility>
 #include <cstddef>
 #include <cstring>
 #include <cassert>
@@ -43,13 +45,12 @@
 # include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #endif
 
-#ifdef MEMORIA_V1_FILESYSTEM_DEBUG
+#ifdef MEMORIA_BOOST_FILESYSTEM_DEBUG
 # include <iostream>
 # include <iomanip>
 #endif
 
 namespace fs = memoria::v1::filesystem;
-namespace mr = memoria::v1::reactor;
 
 using memoria::v1::filesystem::path;
 
@@ -124,10 +125,12 @@ namespace
 //                                                                                      //
 //--------------------------------------------------------------------------------------//
 
-namespace memoria {
-namespace v1 {
-namespace filesystem {
-  path& path::operator/=(const path& p)
+namespace memoria { namespace v1
+{
+namespace filesystem
+{
+
+  MEMORIA_BOOST_FILESYSTEM_DECL path& path::operator/=(const path& p)
   {
     if (p.empty())
       return *this;
@@ -147,7 +150,7 @@ namespace filesystem {
     return *this;
   }
 
-  path& path::operator/=(const value_type* ptr)
+  MEMORIA_BOOST_FILESYSTEM_DECL path& path::operator/=(const value_type* ptr)
   {
     if (!*ptr)
       return *this;
@@ -168,43 +171,29 @@ namespace filesystem {
     return *this;
   }
 
-  int path::compare(const path& p) const noexcept
-  {
-    return detail::lex_compare(begin(), end(), p.begin(), p.end());
-  }
-
 # ifdef BOOST_WINDOWS_API
 
-  const std::string path::generic_string() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::generic_path() const
   {
     path tmp(*this);
     std::replace(tmp.m_pathname.begin(), tmp.m_pathname.end(), L'\\', L'/');
-    return tmp.std_string();
-  }
-
-  const std::string path::generic_string(const codecvt_type& cvt) const
-  {
-    path tmp(*this);
-    std::replace(tmp.m_pathname.begin(), tmp.m_pathname.end(), L'\\', L'/');
-    return tmp.std_string(cvt);
-  }
-
-  const std::wstring path::generic_wstring() const
-  { 
-    path tmp(*this);
-    std::replace(tmp.m_pathname.begin(), tmp.m_pathname.end(), L'\\', L'/');
-    return tmp.std_wstring();
+    return tmp;
   }
 
 # endif  // BOOST_WINDOWS_API
 
+  MEMORIA_BOOST_FILESYSTEM_DECL int path::compare(const path& p) const BOOST_NOEXCEPT
+  {
+    return detail::lex_compare(begin(), end(), p.begin(), p.end());
+  }
+
   //  m_append_separator_if_needed  ----------------------------------------------------//
 
-  path::string_type::size_type path::m_append_separator_if_needed()
+  MEMORIA_BOOST_FILESYSTEM_DECL path::string_type::size_type path::m_append_separator_if_needed()
   {
     if (!m_pathname.empty() &&
 #     ifdef BOOST_WINDOWS_API
-      *(m_pathname.end()-1) != colon && 
+      *(m_pathname.end()-1) != colon &&
 #     endif
       !detail::is_directory_separator(*(m_pathname.end()-1)))
     {
@@ -217,7 +206,7 @@ namespace filesystem {
 
   //  m_erase_redundant_separator  -----------------------------------------------------//
 
-  void path::m_erase_redundant_separator(string_type::size_type sep_pos)
+  MEMORIA_BOOST_FILESYSTEM_DECL void path::m_erase_redundant_separator(string_type::size_type sep_pos)
   {
     if (sep_pos                         // a separator was added
       && sep_pos < m_pathname.size()         // and something was appended
@@ -231,20 +220,20 @@ namespace filesystem {
   //  modifiers  -----------------------------------------------------------------------//
 
 # ifdef BOOST_WINDOWS_API
-  path & path::make_preferred()
+  MEMORIA_BOOST_FILESYSTEM_DECL path& path::make_preferred()
   {
     std::replace(m_pathname.begin(), m_pathname.end(), L'/', L'\\');
     return *this;
   }
 # endif
 
-  path& path::remove_filename()
+  MEMORIA_BOOST_FILESYSTEM_DECL path& path::remove_filename()
   {
     m_pathname.erase(m_parent_path_end());
     return *this;
   }
 
-  path&  path::remove_trailing_separator()
+  MEMORIA_BOOST_FILESYSTEM_DECL path& path::remove_trailing_separator()
   {
     if (!m_pathname.empty()
       && detail::is_directory_separator(m_pathname[m_pathname.size() - 1]))
@@ -252,7 +241,7 @@ namespace filesystem {
     return *this;
   }
 
-  path& path::replace_extension(const path& new_extension)
+  MEMORIA_BOOST_FILESYSTEM_DECL path& path::replace_extension(const path& new_extension)
   {
     // erase existing extension, including the dot, if any
     m_pathname.erase(m_pathname.size()-extension().m_pathname.size());
@@ -270,14 +259,14 @@ namespace filesystem {
 
   //  decomposition  -------------------------------------------------------------------//
 
-  path  path::root_path() const
-  { 
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::root_path() const
+  {
     path temp(root_name());
     if (!root_directory().empty()) temp.m_pathname += root_directory().c_str();
     return temp;
-  } 
+  }
 
-  path path::root_name() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::root_name() const
   {
     iterator itr(begin());
 
@@ -285,17 +274,16 @@ namespace filesystem {
       && (
           (itr.m_element.m_pathname.size() > 1
             && detail::is_directory_separator(itr.m_element.m_pathname[0])
-            && detail::is_directory_separator(itr.m_element.m_pathname[1])
-   )
+            && detail::is_directory_separator(itr.m_element.m_pathname[1]))
 #       ifdef BOOST_WINDOWS_API
-        || itr.m_element.m_pathname[itr.m_element.m_pathname.size()-1] == colon
+          || itr.m_element.m_pathname[itr.m_element.m_pathname.size()-1] == colon
 #       endif
-  ))
+      ))
       ? itr.m_element
       : path();
   }
 
-  path path::root_directory() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::root_directory() const
   {
     size_type pos(root_directory_start(m_pathname, m_pathname.size()));
 
@@ -304,7 +292,7 @@ namespace filesystem {
       : path(m_pathname.c_str() + pos, m_pathname.c_str() + pos + 1);
   }
 
-  path path::relative_path() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::relative_path() const
   {
     iterator itr(begin());
 
@@ -318,7 +306,7 @@ namespace filesystem {
     return path(m_pathname.c_str() + itr.m_pos);
   }
 
-  string_type::size_type path::m_parent_path_end() const
+  MEMORIA_BOOST_FILESYSTEM_DECL string_type::size_type path::m_parent_path_end() const
   {
     size_type end_pos(filename_pos(m_pathname, m_pathname.size()));
 
@@ -327,7 +315,7 @@ namespace filesystem {
 
     // skip separators unless root directory
     size_type root_dir_pos(root_directory_start(m_pathname, end_pos));
-    for (; 
+    for (;
       end_pos > 0
       && (end_pos-1) != root_dir_pos
       && detail::is_directory_separator(m_pathname[end_pos-1])
@@ -339,7 +327,7 @@ namespace filesystem {
      : end_pos;
   }
 
-  path path::parent_path() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::parent_path() const
   {
    size_type end_pos(m_parent_path_end());
    return end_pos == string_type::npos
@@ -347,7 +335,7 @@ namespace filesystem {
      : path(m_pathname.c_str(), m_pathname.c_str() + end_pos);
   }
 
-  path path::filename() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::filename() const
   {
     size_type pos(filename_pos(m_pathname, m_pathname.size()));
     return (m_pathname.size()
@@ -358,7 +346,7 @@ namespace filesystem {
       : path(m_pathname.c_str() + pos);
   }
 
-  path path::stem() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::stem() const
   {
     path name(filename());
     if (name == detail::dot_path() || name == detail::dot_dot_path()) return name;
@@ -368,7 +356,7 @@ namespace filesystem {
       : path(name.m_pathname.c_str(), name.m_pathname.c_str() + pos);
   }
 
-  path path::extension() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::extension() const
   {
     path name(filename());
     if (name == detail::dot_path() || name == detail::dot_dot_path()) return path();
@@ -382,7 +370,7 @@ namespace filesystem {
 
   namespace detail
   {
-    // C++14 provide a mismatch algorithm with four iterator arguments(), but earlier
+    // C++14 provides a mismatch algorithm with four iterator arguments(), but earlier
     // standard libraries didn't, so provide this needed functionality.
     inline
     std::pair<path::iterator, path::iterator> mismatch(path::iterator it1,
@@ -397,29 +385,44 @@ namespace filesystem {
     }
   }
 
-  path path::lexically_relative(const path& base) const
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::lexically_relative(const path& base) const
   {
-    std::pair<path::iterator, path::iterator> mm
-      = detail::mismatch(begin(), end(), base.begin(), base.end());
-    if (mm.first == begin() && mm.second == base.begin())
+    path::iterator b = begin(), e = end(), base_b = base.begin(), base_e = base.end();
+    std::pair<path::iterator, path::iterator> mm = detail::mismatch(b, e, base_b, base_e);
+    if (mm.first == b && mm.second == base_b)
       return path();
-    if (mm.first == end() && mm.second == base.end())
+    if (mm.first == e && mm.second == base_e)
       return detail::dot_path();
+
+    std::ptrdiff_t n = 0;
+    for (; mm.second != base_e; ++mm.second)
+    {
+      path const& p = *mm.second;
+      if (p == detail::dot_dot_path())
+        --n;
+      else if (!p.empty() && p != detail::dot_path())
+        ++n;
+    }
+    if (n < 0)
+      return path();
+    if (n == 0 && (mm.first == e || mm.first->empty()))
+      return detail::dot_path();
+
     path tmp;
-    for (; mm.second != base.end(); ++mm.second)
+    for (; n > 0; --n)
       tmp /= detail::dot_dot_path();
-    for (; mm.first != end(); ++mm.first)
+    for (; mm.first != e; ++mm.first)
       tmp /= *mm.first;
     return tmp;
   }
 
   //  normal  --------------------------------------------------------------------------//
 
-  path path::lexically_normal() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path path::lexically_normal() const
   {
     if (m_pathname.empty())
       return *this;
-      
+
     path temp;
     iterator start(begin());
     iterator last(end());
@@ -438,12 +441,12 @@ namespace filesystem {
         && (itr->native())[0] == dot
         && (itr->native())[1] == dot) // dot dot
       {
-        string_type lf(temp.filename().native());  
-        if (lf.size() > 0  
+        string_type lf(temp.filename().native());
+        if (lf.size() > 0
           && (lf.size() != 1
             || (lf[0] != dot
               && lf[0] != separator))
-          && (lf.size() != 2 
+          && (lf.size() != 2
             || (lf[0] != dot
               && lf[1] != dot
 #             ifdef BOOST_WINDOWS_API
@@ -462,7 +465,7 @@ namespace filesystem {
           //  string_type::size_type rds(
           //    root_directory_start(temp.native(), temp.native().size()));
           //  if (rds == string_type::npos
-          //    || rds != temp.native().size()-1) 
+          //    || rds != temp.native().size()-1)
           //  {
           //    temp.m_pathname.erase(temp.native().size()-1);
           //  }
@@ -486,10 +489,9 @@ namespace filesystem {
     return temp;
   }
 
-}  
-}  
-}
-  
+}  // namespace filesystem
+}}  // namespace memoria::v1
+
 //--------------------------------------------------------------------------------------//
 //                                                                                      //
 //                         class path helpers implementation                            //
@@ -512,12 +514,12 @@ namespace
       --pos;
 
     //  "/" [...]
-    if (pos == 0)  
+    if (pos == 0)
       return true;
 
 # ifdef BOOST_WINDOWS_API
     //  "c:/" [...]
-    if (pos == 2 && is_letter(str[0]) && str[1] == colon)  
+    if (pos == 2 && is_letter(str[0]) && str[1] == colon)
       return true;
 # endif
 
@@ -536,14 +538,14 @@ namespace
     // return 0 if str itself is filename (or empty)
   {
     // case: "//"
-    if (end_pos == 2 
+    if (end_pos == 2
       && fs::detail::is_directory_separator(str[0])
       && fs::detail::is_directory_separator(str[1])) return 0;
 
     // case: ends in "/"
     if (end_pos && fs::detail::is_directory_separator(str[end_pos-1]))
       return end_pos-1;
-    
+
     // set pos to start of last element
     size_type pos(str.find_last_of(separators, end_pos-1));
 
@@ -598,7 +600,7 @@ namespace
       string_type::size_type pos(path.find_first_of(separators, 2));
       return pos < size ? pos : string_type::npos;
     }
-    
+
     // case "/"
     if (size > 0 && fs::detail::is_directory_separator(path[0])) return 0;
 
@@ -622,13 +624,13 @@ namespace
     if (src.empty()) return;
 
     string_type::size_type cur(0);
-    
+
     // deal with // [network]
     if (size >= 2 && fs::detail::is_directory_separator(src[0])
       && fs::detail::is_directory_separator(src[1])
       && (size == 2
         || !fs::detail::is_directory_separator(src[2])))
-    { 
+    {
       cur += 2;
       element_size += 2;
     }
@@ -674,13 +676,14 @@ namespace
 }  // unnamed namespace
 
 
-namespace memoria {
-namespace v1 {
-namespace filesystem {
+namespace memoria { namespace v1
+{
+namespace filesystem
+{
   namespace detail
   {
-    MEMORIA_V1_FILESYSTEM_DECL
-      int lex_compare(path::iterator first1, path::iterator last1,
+    MEMORIA_BOOST_FILESYSTEM_DECL
+    int lex_compare(path::iterator first1, path::iterator last1,
         path::iterator first2, path::iterator last2)
     {
       for (; first1 != last1 && first2 != last2;)
@@ -696,7 +699,7 @@ namespace filesystem {
       return first1 == last1 ? -1 : 1;
     }
 
-    MEMORIA_V1_FILESYSTEM_DECL
+    MEMORIA_BOOST_FILESYSTEM_DECL
     const path&  dot_path()
     {
 #   ifdef BOOST_WINDOWS_API
@@ -707,7 +710,7 @@ namespace filesystem {
       return dot_pth;
     }
 
-    MEMORIA_V1_FILESYSTEM_DECL
+    MEMORIA_BOOST_FILESYSTEM_DECL
     const path&  dot_dot_path()
     {
 #   ifdef BOOST_WINDOWS_API
@@ -725,9 +728,9 @@ namespace filesystem {
 //                                                                                      //
 //--------------------------------------------------------------------------------------//
 
-  path::iterator path::begin() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path::iterator path::begin() const
   {
-    path::iterator itr;
+    iterator itr;
     itr.m_path_ptr = this;
     size_type element_size;
     first_element(m_pathname, itr.m_pos, element_size);
@@ -737,7 +740,7 @@ namespace filesystem {
     return itr;
   }
 
-  path::iterator path::end() const
+  MEMORIA_BOOST_FILESYSTEM_DECL path::iterator path::end() const
   {
     iterator itr;
     itr.m_path_ptr = this;
@@ -745,7 +748,7 @@ namespace filesystem {
     return itr;
   }
 
-  void path::m_path_iterator_increment(path::iterator & it)
+  MEMORIA_BOOST_FILESYSTEM_DECL void path::m_path_iterator_increment(path::iterator & it)
   {
     BOOST_ASSERT_MSG(it.m_pos < it.m_path_ptr->m_pathname.size(),
       "path::basic_iterator increment past end()");
@@ -789,7 +792,7 @@ namespace filesystem {
 
       // detect trailing separator, and treat it as ".", per POSIX spec
       if (it.m_pos == it.m_path_ptr->m_pathname.size()
-        && !is_root_separator(it.m_path_ptr->m_pathname, it.m_pos-1)) 
+        && !is_root_separator(it.m_path_ptr->m_pathname, it.m_pos-1))
       {
         --it.m_pos;
         it.m_element = detail::dot_path();
@@ -804,7 +807,7 @@ namespace filesystem {
     it.m_element = it.m_path_ptr->m_pathname.substr(it.m_pos, end_pos - it.m_pos);
   }
 
-  void path::m_path_iterator_decrement(path::iterator & it)
+  MEMORIA_BOOST_FILESYSTEM_DECL void path::m_path_iterator_decrement(path::iterator & it)
   {
     BOOST_ASSERT_MSG(it.m_pos, "path::iterator decrement past begin()");
 
@@ -814,7 +817,7 @@ namespace filesystem {
     if (it.m_pos == it.m_path_ptr->m_pathname.size()
       && it.m_path_ptr->m_pathname.size() > 1
       && detail::is_directory_separator(it.m_path_ptr->m_pathname[it.m_pos-1])
-      && !is_root_separator(it.m_path_ptr->m_pathname, it.m_pos-1) 
+      && !is_root_separator(it.m_path_ptr->m_pathname, it.m_pos-1)
        )
     {
       --it.m_pos;
@@ -826,7 +829,7 @@ namespace filesystem {
 
     // skip separators unless root directory
     for (
-      ; 
+      ;
       end_pos > 0
       && (end_pos-1) != root_dir_pos
       && detail::is_directory_separator(it.m_path_ptr->m_pathname[end_pos-1])
@@ -835,13 +838,12 @@ namespace filesystem {
 
     it.m_pos = filename_pos(it.m_path_ptr->m_pathname, end_pos);
     it.m_element = it.m_path_ptr->m_pathname.substr(it.m_pos, end_pos - it.m_pos);
-    if (it.m_element.m_pathname == preferred_separator_string) // needed for Windows, harmless on POSIX 
-      it.m_element.m_pathname = separator_string;    // generic format; see docs 
+    if (it.m_element.m_pathname == preferred_separator_string) // needed for Windows, harmless on POSIX
+      it.m_element.m_pathname = separator_string;    // generic format; see docs
   }
 
-}  
-}  
-}
+}  // namespace filesystem
+}}  // namespace memoria::v1
 
 namespace
 {
@@ -861,10 +863,10 @@ namespace
   //  path interface requires the implementation itself to call codecvt() to obtain the
   //  default facet, and the initialization of the static within path_locale() could race.
   //
-  //  The code below is portable to all platforms, is much simpler, and hopefully will be 
+  //  The code below is portable to all platforms, is much simpler, and hopefully will be
   //  much more robust. Timing tests (on Windows, using a Visual C++ release build)
   //  indicated the current code is roughly 9% slower than the previous code, and that
-  //  seems a small price to pay for better code that is easier to use. 
+  //  seems a small price to pay for better code that is easier to use.
 
   std::locale default_locale()
   {
@@ -893,7 +895,7 @@ namespace
     // Many thanks to Peter Dimov for digging out the above references!
 
     std::locale global_loc = std::locale();
-    return std::locale(global_loc, new boost::filesystem::detail::utf8_codecvt_facet);
+    return std::locale(global_loc, new memoria::filesystem::detail::utf8_codecvt_facet);
 # else  // Other POSIX
     // ISO C calls std::locale("") "the locale-specific native environment", and this
     // locale is the default for many POSIX-based operating systems such as Linux.
@@ -904,7 +906,7 @@ namespace
   std::locale& path_locale()
   // std::locale("") construction, needed on non-Apple POSIX systems, can throw
   // (if environmental variables LC_MESSAGES or LANG are wrong, for example), so
-  // path_locale() provides lazy initialization via a local static to ensure that any 
+  // path_locale() provides lazy initialization via a local static to ensure that any
   // exceptions occur after main() starts and so can be caught. Furthermore,
   // path_locale() is only called if path::codecvt() or path::imbue() are themselves
   // actually called, ensuring that an exception will only be thrown if std::locale("")
@@ -915,7 +917,7 @@ namespace
     // functions of it may be cached and re-used, as long as some locale object refers
     // to that facet.
     static std::locale loc(default_locale());
-#ifdef MEMORIA_V1_FILESYSTEM_DEBUG
+#ifdef MEMORIA_BOOST_FILESYSTEM_DEBUG
     std::cout << "***** path_locale() called" << std::endl;
 #endif
     return loc;
@@ -926,25 +928,25 @@ namespace
 //              path::codecvt() and path::imbue() implementation                        //
 //--------------------------------------------------------------------------------------//
 
-namespace memoria {
-namespace v1 {
-namespace filesystem {
-
+namespace memoria { namespace v1
+{
+namespace filesystem
+{
   // See comments above
 
-  const path::codecvt_type& path::codecvt()
+  MEMORIA_BOOST_FILESYSTEM_DECL const path::codecvt_type& path::codecvt()
   {
-#ifdef MEMORIA_V1_FILESYSTEM_DEBUG
+#ifdef MEMORIA_BOOST_FILESYSTEM_DEBUG
     std::cout << "***** path::codecvt() called" << std::endl;
 #endif
-    BOOST_ASSERT_MSG(&path_locale(), "memoria::v1::filesystem::path locale initialization error");
+    BOOST_ASSERT_MSG(&path_locale(), "memoria::filesystem::path locale initialization error");
 
     return std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t> >(path_locale());
   }
 
-  std::locale path::imbue(const std::locale& loc)
+  MEMORIA_BOOST_FILESYSTEM_DECL std::locale path::imbue(const std::locale& loc)
   {
-#ifdef MEMORIA_V1_FILESYSTEM_DEBUG
+#ifdef MEMORIA_BOOST_FILESYSTEM_DEBUG
     std::cout << "***** path::imbue() called" << std::endl;
 #endif
     std::locale temp(path_locale());
@@ -952,6 +954,5 @@ namespace filesystem {
     return temp;
   }
 
-}
-}
-}
+}  // namespace filesystem
+}}  // namespace memoria::v1

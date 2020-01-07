@@ -64,7 +64,7 @@ public:
 class SocketIOMessage: public EPollIOMessage {
 protected:
 
-    fibers::context::iowait_queue_t iowait_queue_;
+    fibers::context* context_{};
 
     uint32_t flags_;
 

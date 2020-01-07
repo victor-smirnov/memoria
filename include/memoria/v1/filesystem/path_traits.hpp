@@ -7,7 +7,8 @@
 
 //  Library home page: http://www.boost.org/libs/filesystem
 
-#pragma once
+#ifndef MEMORIA_BOOST_FILESYSTEM_PATH_TRAITS_HPP
+#define MEMORIA_BOOST_FILESYSTEM_PATH_TRAITS_HPP
 
 #include <boost/config.hpp>
 
@@ -15,12 +16,11 @@
 #   error Configuration not supported: Boost.Filesystem V3 and later requires std::wstring support
 # endif
 
-#include "config.hpp"
-
-#include <boost/utility/enable_if.hpp>
+#include <memoria/v1/filesystem/config.hpp>
 #include <boost/type_traits/is_array.hpp>
 #include <boost/type_traits/decay.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/core/enable_if.hpp>
 #include <cwchar>  // for mbstate_t
 #include <string>
 #include <vector>
@@ -32,11 +32,10 @@
 
 #include <boost/config/abi_prefix.hpp> // must be the last #include
 
-namespace memoria {
-namespace v1 { 
+namespace memoria { namespace v1 {
 namespace filesystem {
 
-  MEMORIA_V1_FILESYSTEM_DECL const boost::system::error_category& codecvt_error_category();
+  MEMORIA_BOOST_FILESYSTEM_DECL const boost::system::error_category& codecvt_error_category();
   //  uses std::codecvt_base::result used for error codes:
   //
   //    ok:       Conversion successful.
@@ -48,9 +47,9 @@ namespace filesystem {
   //              conversion was necessary.
 
   class directory_entry;
-  
+
 namespace path_traits {
- 
+
   typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
 
   //  is_pathable type trait; allows disabling over-agressive class path member templates
@@ -74,7 +73,7 @@ namespace path_traits {
 
   template <class Container> inline
     // disable_if aids broken compilers (IBM, old GCC, etc.) and is harmless for
-    // conforming compilers. Replace by plain "bool" at some future date (2012?) 
+    // conforming compilers. Replace by plain "bool" at some future date (2012?)
     typename boost::disable_if<boost::is_array<Container>, bool>::type
       empty(const Container & c)
         { return c.begin() == c.end(); }
@@ -96,13 +95,13 @@ namespace path_traits {
 
   //  with codecvt
 
-  MEMORIA_V1_FILESYSTEM_DECL
+  MEMORIA_BOOST_FILESYSTEM_DECL
     void convert(const char* from,
     const char* from_end,    // 0 for null terminated MBCS
     std::wstring & to,
     const codecvt_type& cvt);
 
-  MEMORIA_V1_FILESYSTEM_DECL
+  MEMORIA_BOOST_FILESYSTEM_DECL
     void convert(const wchar_t* from,
     const wchar_t* from_end,  // 0 for null terminated MBCS
     std::string & to,
@@ -279,7 +278,7 @@ namespace path_traits {
   //  non-contiguous containers with codecvt
   template <class Container, class U> inline
     // disable_if aids broken compilers (IBM, old GCC, etc.) and is harmless for
-    // conforming compilers. Replace by plain "void" at some future date (2012?) 
+    // conforming compilers. Replace by plain "void" at some future date (2012?)
     typename boost::disable_if<boost::is_array<Container>, void>::type
     dispatch(const Container & c, U& to, const codecvt_type& cvt)
   {
@@ -300,13 +299,13 @@ namespace path_traits {
   }
 
   //  Note: there is no dispatch on C-style arrays because the array may
-  //  contain a string smaller than the array size. 
+  //  contain a string smaller than the array size.
 
-  MEMORIA_V1_FILESYSTEM_DECL
+  MEMORIA_BOOST_FILESYSTEM_DECL
     void dispatch(const directory_entry & de,
 #                ifdef BOOST_WINDOWS_API
     std::wstring & to,
-#                else   
+#                else
     std::string & to,
 #                endif
     const codecvt_type&);
@@ -314,7 +313,7 @@ namespace path_traits {
   //  non-contiguous containers without codecvt
   template <class Container, class U> inline
     // disable_if aids broken compilers (IBM, old GCC, etc.) and is harmless for
-    // conforming compilers. Replace by plain "void" at some future date (2012?) 
+    // conforming compilers. Replace by plain "void" at some future date (2012?)
     typename boost::disable_if<boost::is_array<Container>, void>::type
     dispatch(const Container & c, U& to)
   {
@@ -335,22 +334,20 @@ namespace path_traits {
   }
 
   //  Note: there is no dispatch on C-style arrays because the array may
-  //  contain a string smaller than the array size. 
+  //  contain a string smaller than the array size.
 
-  MEMORIA_V1_FILESYSTEM_DECL
+  MEMORIA_BOOST_FILESYSTEM_DECL
     void dispatch(const directory_entry & de,
 #                ifdef BOOST_WINDOWS_API
     std::wstring & to
-#                else   
+#                else
     std::string & to
 #                endif
     );
 
 
-}
-        
-}}} // namespace memoria::v1::filesystem::path_traits
+}}}} // namespace memoria::filesystem::path_traits
 
 #include <boost/config/abi_suffix.hpp> // pops abi_prefix.hpp pragmas
 
-
+#endif  // MEMORIA_BOOST_FILESYSTEM_PATH_TRAITS_HPP

@@ -7,17 +7,14 @@
 
 //  Library home page: http://www.boost.org/libs/filesystem
 
-//--------------------------------------------------------------------------------------// 
+//--------------------------------------------------------------------------------------//
 
-// define MEMORIA_V1_FILESYSTEM_SOURCE so that <boost/filesystem/config.hpp> knows
-// the library is being built (possibly exporting rather than importing code)
-#define MEMORIA_V1_FILESYSTEM_SOURCE 
-
-#ifndef BOOST_SYSTEM_NO_DEPRECATED 
+#ifndef BOOST_SYSTEM_NO_DEPRECATED
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
 #include <memoria/v1/filesystem/operations.hpp>
+
 #include <memoria/v1/reactor/reactor.hpp>
 
 #include <cassert>
@@ -41,12 +38,10 @@ namespace {
 
 void fail(int err, boost::system::error_code* ec)
 {
-  if (ec == 0) 
-  {
-    MEMORIA_V1_FILESYSTEM_THROW( boost::system::system_error(err,
+  if (ec == 0)
+    MEMORIA_BOOST_FILESYSTEM_THROW( boost::system::system_error(err,
       boost::system::system_category(),
-      "memoria::v1::filesystem::unique_path"));
-  }
+      "memoria::filesystem::unique_path"));
 
   ec->assign(err, boost::system::system_category());
   return;
@@ -83,42 +78,44 @@ void system_crypt_random(void* buf, std::size_t len, boost::system::error_code* 
 {
 # ifdef BOOST_POSIX_API
   return mr::engine().run_in_thread_pool([&](){
-    int file = open("/dev/urandom", O_RDONLY);
+
+  int file = open("/dev/urandom", O_RDONLY);
+  if (file == -1)
+  {
+    file = open("/dev/random", O_RDONLY);
     if (file == -1)
     {
-        file = open("/dev/random", O_RDONLY);
-        if (file == -1)
-        {
-            fail(errno, ec);
-            return;
-        }
+      fail(errno, ec);
+      return;
     }
+  }
 
-    size_t bytes_read = 0;
-    while (bytes_read < len)
+  size_t bytes_read = 0;
+  while (bytes_read < len)
+  {
+    ssize_t n = read(file, buf, len - bytes_read);
+    if (n == -1)
     {
-        ssize_t n = read(file, buf, len - bytes_read);
-        if (n == -1)
-        {
-            close(file);
-            fail(errno, ec);
-            return;
-        }
-        bytes_read += n;
-        buf = static_cast<char*>(buf) + n;
+      close(file);
+      fail(errno, ec);
+      return;
     }
+    bytes_read += n;
+    buf = static_cast<char*>(buf) + n;
+  }
 
-    close(file);
+  close(file);
   });
 
 # else // BOOST_WINDOWS_API
+  return mr::engine().run_in_thread_pool([&](){
 
   HCRYPTPROV handle;
   int errval = acquire_crypt_handle(handle);
 
   if (!errval)
   {
-    BOOL gen_ok = ::CryptGenRandom(handle, len, static_cast<unsigned char*>(buf));
+    BOOL gen_ok = ::CryptGenRandom(handle, static_cast<DWORD>(len), static_cast<unsigned char*>(buf));
     if (!gen_ok)
       errval = ::GetLastError();
     ::CryptReleaseContext(handle, 0);
@@ -127,6 +124,7 @@ void system_crypt_random(void* buf, std::size_t len, boost::system::error_code* 
   if (!errval) return;
 
   fail(errval, ec);
+  });
 # endif
 }
 
@@ -134,20 +132,34 @@ void system_crypt_random(void* buf, std::size_t len, boost::system::error_code* 
 
 namespace memoria { namespace v1 { namespace filesystem { namespace detail {
 
-MEMORIA_V1_FILESYSTEM_DECL
+MEMORIA_BOOST_FILESYSTEM_DECL
 path unique_path(const path& model, boost::system::error_code* ec)
 {
-  std::wstring s (model.std_wstring());  // std::string ng for MBCS encoded POSIX
+  // This function used wstring for fear of misidentifying
+  // a part of a multibyte character as a percent sign.
+  // However, double byte encodings only have 80-FF as lead
+  // bytes and 40-7F as trailing bytes, whereas % is 25.
+  // So, use string on POSIX and avoid conversions.
+
+  path::string_type s( model.native() );
+
+#ifdef BOOST_WINDOWS_API
   const wchar_t hex[] = L"0123456789abcdef";
+  const wchar_t percent = L'%';
+#else
+  const char hex[] = "0123456789abcdef";
+  const char percent = '%';
+#endif
+
   char ran[] = "123456789abcdef";  // init to avoid clang static analyzer message
                                    // see ticket #8954
   assert(sizeof(ran) == 16);
   const int max_nibbles = 2 * sizeof(ran);   // 4-bits per nibble
 
   int nibbles_used = max_nibbles;
-  for(std::wstring::size_type i=0; i < s.size(); ++i)
+  for(path::string_type::size_type i=0; i < s.size(); ++i)
   {
-    if (s[i] == L'%')                        // digit request
+    if (s[i] == percent)                     // digit request
     {
       if (nibbles_used == max_nibbles)
       {

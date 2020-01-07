@@ -65,12 +65,12 @@ filesystem::path get_tests_config_path()
 
     if (app.options().count("config") > 0)
     {
-        config_path = U16String(app.options()["config"].as<std::string>());
+        config_path = app.options()["config"].as<std::string>();
     }
     else {
         auto program_path = reactor::get_program_path();
         config_path = program_path.parent_path();
-        config_path.append((get_image_name().to_u8() + ".yaml").data());
+        config_path.append(get_image_name().string() + ".yaml");
     }
 
     return config_path;
@@ -85,11 +85,11 @@ filesystem::path get_tests_output_path()
 
     if (app.options().count("output") > 0)
     {
-        output_path = U16String(app.options()["output"].as<std::string>());
+        output_path = app.options()["output"].as<std::string>();
     }
     else {
         auto image_name = get_image_name();
-        output_path = image_name.to_u16() + u".out";
+        output_path = image_name.string() + ".out";
     }
 
     return output_path;
@@ -348,7 +348,7 @@ void run_tests()
     filesystem::path output_dir_base = get_tests_output_path();
 
     filesystem::path config_path    = get_tests_config_path();
-    U16String config_file           = config_path.to_u16();
+    U16String config_file           = U16String(config_path.string());
 
     YAML::Node tests_config;
 
@@ -412,7 +412,7 @@ void run_tests()
                 }
 
                 args.emplace_back(u"--output");
-                args.emplace_back(output_dir_base.to_u16());
+                args.emplace_back(U16String(output_dir_base.string()));
 
                 args.emplace_back(u"--coverage");
                 args.emplace_back(get_test_coverage_str());

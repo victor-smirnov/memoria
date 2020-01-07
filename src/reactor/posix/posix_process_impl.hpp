@@ -38,7 +38,8 @@ namespace v1 {
 namespace reactor {
 
 namespace _ {
-U16String get_image_name(const U16String& filename)
+
+static U16String get_image_name(const U16String& filename)
 {
     size_t start = filename.find_last_of(u"/");
 
@@ -48,6 +49,18 @@ U16String get_image_name(const U16String& filename)
 
     return filename.substring(start);
 }
+
+static U8String get_image_name(const U8String& filename)
+{
+    return get_image_name(filename.to_u16()).to_u8();
+}
+
+
+static U8String get_image_name(const std::string& filename)
+{
+    return get_image_name(U16String(filename)).to_u8();
+}
+
 }
 
 class CharPtrList {
@@ -129,7 +142,7 @@ public:
 	{
         with_env(app().env().entries_list());
 
-        auto name = _::get_image_name(exe_path_.filename().to_u16()).to_u8();
+        U8String name = _::get_image_name(exe_path_.filename().string());
         args_.add(name.data(), name.size());
         args_.finish();
 	}
@@ -287,7 +300,7 @@ public:
                 exit(-1);
             }
 
-            if (execve(builder->exe_path().std_string().data(), builder->args(), builder->envp()) < 0)
+            if (execve(builder->exe_path().string().data(), builder->args(), builder->envp()) < 0)
             {
                 std::cout << "Can't execute process: " << builder->exe_path() << ", reason: " << strerror(errno) << std::endl;
                 exit(-1);
