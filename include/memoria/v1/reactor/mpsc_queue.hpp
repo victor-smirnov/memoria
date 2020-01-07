@@ -15,15 +15,10 @@
 
 #pragma once
 
-//#include "../disruptor/sequencer.h"
-//#include "../disruptor/ring_buffer.h"
-//#include "../disruptor/sequence.h"
-//#include "../disruptor/event_processor.h"
-
-#include <disruptor-memoria/sequencer.h>
-#include <disruptor-memoria/ring_buffer.h>
-#include <disruptor-memoria/sequence.h>
-#include <disruptor-memoria/event_processor.h>
+#include <memoria/v1/disruptor/sequencer.h>
+#include <memoria/v1/disruptor/ring_buffer.h>
+#include <memoria/v1/disruptor/sequence.h>
+#include <memoria/v1/disruptor/event_processor.h>
 
 #include <functional>
 #include <thread>
@@ -39,11 +34,11 @@ namespace reactor {
 template <typename T, size_t BufferSize = 1024>
 class MPSCQueue {
     
-    using W = disruptor_memoria::DontWaitStrategy;
-    using SequenceBarrierT = disruptor_memoria::SequenceBarrier<W, disruptor_memoria::StdVector>;
+    using W = disruptor::DontWaitStrategy;
+    using SequenceBarrierT = disruptor::SequenceBarrier<W, disruptor::StdVector>;
     
-    disruptor_memoria::Sequencer<T, BufferSize, disruptor_memoria::MultiThreadedStrategy<BufferSize>, W, disruptor_memoria::StdVector> sequencer_;
-    disruptor_memoria::BatchEventProcessor<T, SequenceBarrierT> event_processor_;
+    disruptor::Sequencer<T, BufferSize, disruptor::MultiThreadedStrategy<BufferSize>, W, disruptor::StdVector> sequencer_;
+    disruptor::BatchEventProcessor<T, SequenceBarrierT> event_processor_;
     
 public:
     MPSCQueue():
@@ -51,7 +46,7 @@ public:
         event_processor_(&sequencer_.ring_buffer(), sequencer_.NewBarrier())
     {
         sequencer_.set_gating_sequences(
-            disruptor_memoria::StdVector<disruptor_memoria::Sequence*>({ &event_processor_.consumer_sequence() })
+            disruptor::StdVector<disruptor::Sequence*>({ &event_processor_.consumer_sequence() })
         );
     }
     

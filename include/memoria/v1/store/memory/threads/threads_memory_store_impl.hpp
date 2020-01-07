@@ -28,6 +28,8 @@
 
 #include <memoria/v1/store/memory/threads/threads_snapshot_impl.hpp>
 
+#include <memoria/v1/filesystem/path.hpp>
+
 #include <cstdlib>
 #include <memory>
 #include <limits>
@@ -567,7 +569,7 @@ public:
     }
 
 
-    void store(memoria::filesystem::path file_name, int64_t wait_duration)
+    void store(memoria::v1::filesystem::path file_name, int64_t wait_duration)
     {
         this->store(file_name.string().c_str(), wait_duration);
     }

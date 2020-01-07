@@ -25,7 +25,7 @@
 #endif
 
 
-#include <boost/filesystem.hpp>
+#include <memoria/v1/filesystem/operations.hpp>
 
 #include <fstream>
 

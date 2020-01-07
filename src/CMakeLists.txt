@@ -71,6 +71,7 @@ if (BUILD_TESTS)
     endif()
 #    add_subdirectory(tests-other/fiber)
 #    add_subdirectory(tests-other/reactor)
+    add_subdirectory(tests-other/disruptor)
 endif()
 
 if (BUILD_SANDBOX)    
