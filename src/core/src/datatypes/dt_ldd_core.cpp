@@ -258,7 +258,7 @@ struct DataTypeOperationsImpl<Boolean>: SimpleDataTypeOperationsImpl<Boolean> {
                 return LDDValueView{doc, doc->new_value<Boolean>(false), ld_tag_value<Boolean>()};
             }
             else {
-                MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Unsupported boolean string value: {}", view);
+                MMA1_THROW(RuntimeException()) << format_ex("Unsupported boolean string value: {}", view);
             }
         }
         else {

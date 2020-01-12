@@ -24,7 +24,7 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
-auto document_set_test = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"Document", [](auto& state){
+auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "Document", [](auto& state){
     LDDocument doc;
 
     doc.set_double(12345.67);

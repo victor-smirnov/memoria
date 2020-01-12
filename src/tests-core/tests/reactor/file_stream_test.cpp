@@ -53,7 +53,7 @@ struct FileStreamTestState: TestState {
 };
 
 
-auto file_stream_test = register_test_in_suite<FnTest<FileStreamTestState>>(u"ReactorSuite", u"FileStreamTest", [](auto& state){
+auto file_stream_test = register_test_in_suite<FnTest<FileStreamTestState>>("ReactorSuite", "FileStreamTest", [](auto& state){
 
 	auto wd = state.working_directory_;
     wd.append("file.bin");

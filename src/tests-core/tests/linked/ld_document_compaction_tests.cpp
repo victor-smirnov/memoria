@@ -22,7 +22,7 @@ namespace v1 {
 namespace tests {
 
 
-auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"DocumentCompaction", [](auto& state){
+auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "DocumentCompaction", [](auto& state){
     LDDocument doc;
 
     LDDMapView map = doc.set_map();

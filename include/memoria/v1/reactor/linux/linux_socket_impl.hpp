@@ -21,6 +21,8 @@
 #include <memoria/v1/core/tools/iostreams.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
 
+#include <memoria/v1/core/strings/format.hpp>
+
 #include <boost/mpl/size_t.hpp>
 #include <boost/variant.hpp>
 
@@ -115,3 +117,17 @@ private:
 
 
 }}}
+
+namespace fmt {
+
+template <>
+struct formatter<memoria::v1::reactor::IPAddress> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::v1::reactor::IPAddress& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", d.to_string());
+    }
+};
+
+}

@@ -58,8 +58,8 @@ class Environment : public PimplBase<EnvironmentImpl, std::shared_ptr> {
 public:
     MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Environment)
 
-	Optional<U16String> get(const U16String& name);
-	void set(const U16String& name, const U16String& value);
+    Optional<U8String> get(const U8String& name);
+    void set(const U8String& name, const U8String& value);
 
 	EnvironmentMap entries() const;
 	EnvironmentList entries_list() const;
@@ -70,8 +70,8 @@ public:
 
 namespace _ {
 
-	std::vector<U16String> arg_list_as_vector(const char* const* args);
-    U16String get_image_name();
+    std::vector<U8String> arg_list_as_vector(const char* const* args);
+    U8String get_image_name();
 
 }
 
@@ -98,7 +98,7 @@ class Application final: protected ApplicationInit {
     
     bool debug_{};
 
-	std::vector<U16String> args_;
+    std::vector<U8String> args_;
 	Environment env_;
 
     uint64_t iopoll_timeout_{10}; // 10 ms
@@ -134,7 +134,7 @@ public:
     void start_engines();
 
 
-	const std::vector<U16String>& args() const { return args_; }
+    const std::vector<U8String>& args() const { return args_; }
 	const Environment& env() const { return env_; }
 	Environment& env() { return env_; }
     

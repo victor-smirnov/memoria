@@ -53,7 +53,7 @@ public:
 
         int sres = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, handle_, &event);
         if (sres < 0) {
-            MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't configure poller for {}", handle_);
+            MMA1_THROW(SystemException()) << format_ex("Can't configure poller for {}", handle_);
         }
     }
 
@@ -81,7 +81,7 @@ public:
                 fiber_io_message_.wait_for();
             }
             else {
-                MMA1_THROW(SystemException()) << fmt::format_ex(u"Error reading from pipe for {}", handle_);
+                MMA1_THROW(SystemException()) << format_ex("Error reading from pipe for {}", handle_);
             }
         }
 
@@ -98,14 +98,14 @@ public:
             {
                 int32_t err_code = errno;
                 ::close(handle_);
-                MMA1_THROW(SystemException(err_code)) << fmt::format_ex(u"Can't remove epoller for pipe {}", handle_);
+                MMA1_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
             }
 
             engine().drain_pending_io_events(&fiber_io_message_);
 
             if (::close(handle_) < 0)
             {
-                MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't close pipe {}", handle_);
+                MMA1_THROW(SystemException()) << format_ex("Can't close pipe {}", handle_);
             }
         }
     }
@@ -126,7 +126,7 @@ public:
             {
                 int32_t err_code = errno;
                 ::close(handle_);
-                MMA1_THROW(SystemException(err_code)) << fmt::format_ex(u"Can't remove epoller for pipe {}", handle_);
+                MMA1_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
             }
 
             int state = fcntl(handle_, F_GETFL);
@@ -174,7 +174,7 @@ public:
 
         int sres = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, handle_, &event);
         if (sres < 0) {
-            MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't configure poller for {}", handle_);
+            MMA1_THROW(SystemException()) << format_ex("Can't configure poller for {}", handle_);
         }
     }
 
@@ -212,7 +212,7 @@ public:
                 fiber_io_message_.wait_for();
             }
             else {
-                MMA1_THROW(SystemException()) << fmt::format_ex(u"Error writing pipe for {}", handle_);
+                MMA1_THROW(SystemException()) << format_ex("Error writing pipe for {}", handle_);
             }
         }
 
@@ -229,14 +229,14 @@ public:
             {
                 int32_t err_code = errno;
                 ::close(handle_);
-                MMA1_THROW(SystemException(err_code)) << fmt::format_ex(u"Can't remove epoller for pipe {}", handle_);
+                MMA1_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
             }
 
             engine().drain_pending_io_events(&fiber_io_message_);
 
             if (::close(handle_) < 0)
             {
-                MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't close pipe {}", handle_);
+                MMA1_THROW(SystemException()) << format_ex("Can't close pipe {}", handle_);
             }
         }
     }
@@ -258,7 +258,7 @@ public:
             {
                 int32_t err_code = errno;
                 ::close(handle_);
-                MMA1_THROW(SystemException(err_code)) << fmt::format_ex(u"Can't remove epoller for pipe {}", handle_);
+                MMA1_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
             }
 
             int state = fcntl(handle_, F_GETFL);
@@ -313,11 +313,11 @@ PipeStreams duplicate_pipe(IOHandle input, IOHandle output)
     };
 }
 
-PipeInputStream open_input_pipe(const char16_t* name) {
+PipeInputStream open_input_pipe(const char* name) {
     return PipeInputStream();
 }
 
-PipeOutputStream open_output_pipe(const char16_t* name){
+PipeOutputStream open_output_pipe(const char* name){
     return PipeOutputStream();
 }
 

@@ -20,7 +20,7 @@
 namespace memoria {
 namespace v1 {
 
-//using Profile = DefaultProfile<>;
+using Profile = DefaultProfile<>;
 //using CtrName = UpdateLog;
 
 //template class update_log::SnapshotIDIterator<IterApi<UpdateLog, Profile>, int64_t>;

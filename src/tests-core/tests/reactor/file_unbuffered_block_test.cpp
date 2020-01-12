@@ -53,7 +53,7 @@ struct FileUnbufferedBlockTestState: TestState {
 };
 
 
-auto file_unbuffered_block_test = register_test_in_suite<FnTest<FileUnbufferedBlockTestState>>(u"ReactorSuite", u"FileUnbufferedBlockTest", [](auto& state){
+auto file_unbuffered_block_test = register_test_in_suite<FnTest<FileUnbufferedBlockTestState>>("ReactorSuite", "FileUnbufferedBlockTest", [](auto& state){
 
     auto wd = state.working_directory_;
     wd.append("file.bin");
@@ -65,7 +65,7 @@ auto file_unbuffered_block_test = register_test_in_suite<FnTest<FileUnbufferedBl
     uint8_t stream_state{};
     uint64_t total_written{};
 
-    engine().coutln(u"Prepare file of size: {}", state.file_size);
+    engine().coutln("Prepare file of size: {}", state.file_size);
 
 
     for (uint64_t pos = 0; pos < state.file_size; pos += state.buffer_size)
@@ -82,7 +82,7 @@ auto file_unbuffered_block_test = register_test_in_suite<FnTest<FileUnbufferedBl
     assert_equals(total_written, state.file_size);
     assert_equals(total_written, filesystem::file_size(file.path()));
 
-    engine().coutln(u"Read file in chunks", "");
+    engine().coutln("Read file in chunks", "");
 
     for (auto& chunk: create_fixed_chunks_vector<>(state.buffer_size, total_written))
     {
@@ -103,7 +103,7 @@ auto file_unbuffered_block_test = register_test_in_suite<FnTest<FileUnbufferedBl
     }
 
 
-    engine().coutln(u"Rewrite file in chunks", "");
+    engine().coutln("Rewrite file in chunks", "");
 
     for (auto& chunk: create_fixed_chunks_vector<>(state.buffer_size, total_written))
     {
@@ -122,7 +122,7 @@ auto file_unbuffered_block_test = register_test_in_suite<FnTest<FileUnbufferedBl
     }
 
 
-    engine().coutln(u"Read file in chunks again", "");
+    engine().coutln("Read file in chunks again", "");
 
     for (auto& chunk: create_fixed_chunks_vector<>(state.buffer_size, total_written))
     {

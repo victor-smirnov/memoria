@@ -22,7 +22,7 @@ namespace v1 {
 namespace tests {
 
 
-auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"ArrayAddRemove", [](auto& state){
+auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "ArrayAddRemove", [](auto& state){
     LDDocument doc;
 
     LDDArrayView array = doc.set_array();
@@ -60,7 +60,7 @@ auto ldd_array_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>(u"
 });
 
 
-auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"ArraySet", [](auto& state){
+auto ldd_array_set_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "ArraySet", [](auto& state){
     LDDocument doc;
 
     LDDArrayView array = doc.set_array();

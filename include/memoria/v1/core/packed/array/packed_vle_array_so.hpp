@@ -341,7 +341,7 @@ public:
             return access(column, size - 1);
         }
         else {
-            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Column {} is empty", column);
+            MMA1_THROW(RuntimeException()) << format_ex("Column {} is empty", column);
         }
     }
 

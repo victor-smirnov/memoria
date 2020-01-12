@@ -58,7 +58,7 @@ public:
             }
         }
         else {
-            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Number of threads (--threads) must be greather than zero: {}", cpu_num);
+            MMA1_THROW(RuntimeException()) << format_ex("Number of threads (--threads) must be greather than zero: {}", cpu_num);
         }
     }
     

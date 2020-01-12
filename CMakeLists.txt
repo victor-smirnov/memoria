@@ -180,6 +180,9 @@ add_global_libs(${ICU_LIBRARIES})
 find_package(absl CONFIG REQUIRED)
 link_libraries(absl::base absl::strings absl::hash absl::meta absl::time)
 
+find_package(fmt CONFIG REQUIRED)
+link_libraries(fmt::fmt fmt::fmt-header-only)
+
 if (BUILD_TESTS)
     find_package(yaml-cpp CONFIG REQUIRED)
 endif()

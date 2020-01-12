@@ -72,7 +72,7 @@ public:
 		return env_data_.get();
 	}
 
-	void with_args(U16String&& args) {
+	void with_args(U8String&& args) {
 		args_ = std::move(args.to_uwstring());
 	}
 
@@ -80,12 +80,12 @@ public:
 		return args_;
 	}
 	
-	void with_args(std::vector<U16String>&& args)
+	void with_args(std::vector<U8String>&& args)
 	{
-		U16String joined_args;
+		U8String joined_args;
 
 		for (auto& arg : args) {
-			joined_args += arg + u" ";
+			joined_args += arg + " ";
 		}
 
 		args_ = std::move(joined_args.to_uwstring());
@@ -219,7 +219,7 @@ public:
 
 		if (!proc_err_code)
 		{
-			MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't start process {}", builder->exe_path().to_u8());
+			MMA1_THROW(SystemException()) << format_ex("Can't start process {}", builder->exe_path().to_u8());
 		}
 
         engine().run_in_thread_pool_special([&]() noexcept {

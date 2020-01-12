@@ -71,12 +71,12 @@ public:
 
     virtual SnapshotPtr master() = 0;
     virtual SnapshotPtr find(const SnapshotID& snapshot_id) = 0;
-    virtual SnapshotPtr find_branch(U16StringRef name) = 0;
+    virtual SnapshotPtr find_branch(U8StringRef name) = 0;
 
     virtual void set_master(const SnapshotID& txn_id) = 0;
-    virtual void set_branch(U16StringRef name, const SnapshotID& txn_id) = 0;
+    virtual void set_branch(U8StringRef name, const SnapshotID& txn_id) = 0;
 
-    virtual void walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr) = 0;
+    virtual void walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) = 0;
 
     virtual Logger& logger() = 0;
 
@@ -98,14 +98,14 @@ public:
 
     virtual std::vector<SnapshotID> heads() = 0;
 
-    virtual std::vector<U16String> branch_names() = 0;
-    virtual SnapshotID branch_head(const U16String& branch_name) = 0;
+    virtual std::vector<U8String> branch_names() = 0;
+    virtual SnapshotID branch_head(const U8String& branch_name) = 0;
 
     virtual int32_t snapshot_status(const SnapshotID& snapshot_id) = 0;
 
     virtual SnapshotID snapshot_parent(const SnapshotID& snapshot_id) = 0;
 
-    virtual U16String snapshot_description(const SnapshotID& snapshot_id) = 0;
+    virtual U8String snapshot_description(const SnapshotID& snapshot_id) = 0;
 
     virtual PairPtr& pair() = 0;
     virtual const PairPtr& pair() const = 0;
@@ -145,9 +145,9 @@ public:
     virtual void drop() = 0;
     virtual bool drop_ctr(const CtrID& name) = 0;
     virtual void set_as_master() = 0;
-    virtual void set_as_branch(U16StringRef name) = 0;
-    virtual U16String snapshot_metadata() const = 0;
-    virtual void set_snapshot_metadata(U16StringRef metadata) = 0;
+    virtual void set_as_branch(U8StringRef name) = 0;
+    virtual U8String snapshot_metadata() const = 0;
+    virtual void set_snapshot_metadata(U8StringRef metadata) = 0;
     virtual void lock_data_for_import() = 0;
     virtual SnapshotPtr branch() = 0;
     virtual bool has_parent() const = 0;
@@ -160,17 +160,17 @@ public:
 
     virtual void flush_open_containers() = 0;
 
-    virtual Optional<U16String> ctr_type_name_for(const CtrID& name) = 0;
+    virtual Optional<U8String> ctr_type_name_for(const CtrID& name) = 0;
 
     virtual std::vector<CtrID> container_names() const = 0;
-    virtual std::vector<U16String> container_names_str() const = 0;
+    virtual std::vector<U8String> container_names_str() const = 0;
 
     virtual void dump_dictionary_blocks() = 0;
     virtual void dump_open_containers() = 0;
     virtual bool has_open_containers() = 0;
     virtual void dump_persistent_tree() = 0;
 
-    virtual void walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr) = 0;
+    virtual void walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) = 0;
 
     virtual CtrID clone_ctr(const CtrID& name, const CtrID& new_name) = 0;
     virtual CtrID clone_ctr(const CtrID& name) = 0;
@@ -236,8 +236,8 @@ CtrSharedPtr<ICtrApi<CtrName, Profile>> find(
     }
     else {
         MMA1_THROW(Exception())
-                << fmt::format_ex(
-                       u"Container type mismatch. Expected: {}, actual: {}",
+                << format_ex(
+                       "Container type mismatch. Expected: {}, actual: {}",
                        signature,
                        ctr_ref->describe_datatype()
                    );

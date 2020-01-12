@@ -226,14 +226,14 @@ public:
     void remove_named_branch(const std::string& name)
     {
         return reactor::engine().run_at(cpu_, [&]{
-            named_branches_.erase(U16String(name));
+            named_branches_.erase(U8String(name));
         });
     }
 
-    std::vector<U16String> branch_names()
+    std::vector<U8String> branch_names()
     {
         return reactor::engine().run_at(cpu_, [&]{
-            std::vector<U16String> branches;
+            std::vector<U8String> branches;
 
             for (auto pair: named_branches_)
             {
@@ -244,7 +244,7 @@ public:
         });
     }
 
-    SnapshotID branch_head(const U16String& branch_name)
+    SnapshotID branch_head(const U8String& branch_name)
     {
         return reactor::engine().run_at(cpu_, [&]{
 
@@ -284,7 +284,7 @@ public:
                 return (int32_t)history_node->status();
             }
             else {
-                MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+                MMA1_THROW(Exception()) << format_ex("Snapshot id {} is unknown", snapshot_id);
             }
         });
     }
@@ -300,12 +300,12 @@ public:
                 return parent_id;
             }
             else {
-                MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+                MMA1_THROW(Exception()) << format_ex("Snapshot id {} is unknown", snapshot_id);
             }
         });
     }
 
-    U16String snapshot_description(const SnapshotID& snapshot_id)
+    U8String snapshot_description(const SnapshotID& snapshot_id)
     {
         return reactor::engine().run_at(cpu_, [&]{
             auto iter = snapshot_map_.find(snapshot_id);
@@ -315,7 +315,7 @@ public:
                 return history_node->metadata();
             }
             else {
-                MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+                MMA1_THROW(Exception()) << format_ex("Snapshot id {} is unknown", snapshot_id);
             }
         });
     }
@@ -345,7 +345,7 @@ public:
                 );
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is unknown", snapshot_id));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot id {} is unknown", snapshot_id));
             }
         });
     }
@@ -367,14 +367,14 @@ public:
                 }
                 if (history_node->is_data_locked())
                 {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} data is locked", history_node->snapshot_id()));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} data is locked", history_node->snapshot_id()));
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? u"active" : u"dropped")));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped")));
                 }
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is unknown", snapshot_id));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot id {} is unknown", snapshot_id));
             }
         });
     }
@@ -382,7 +382,7 @@ public:
 
 
 
-    SnapshotApiPtr find_branch(U16StringRef name)
+    SnapshotApiPtr find_branch(U8StringRef name)
     {
         return reactor::engine().run_at(cpu_, [&]{
             auto iter = named_branches_.find(name);
@@ -401,15 +401,15 @@ public:
                         return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND);
                     }
                     else {
-                        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is locked and open", history_node->snapshot_id()));
+                        MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot id {} is locked and open", history_node->snapshot_id()));
                     }
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? u"active" : u"dropped")));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped")));
                 }
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Named branch \"{}\" is not known", name));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Named branch \"{}\" is not known", name));
             }
         });
     }
@@ -458,19 +458,19 @@ public:
                 }
                 else if (history_node->is_dropped())
                 {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has been dropped", txn_id));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has been dropped", txn_id));
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} hasn't been committed yet", txn_id));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} hasn't been committed yet", txn_id));
                 }
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is not known in this allocator", txn_id));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is not known in this allocator", txn_id));
             }
         });
     }
 
-    void set_branch(U16StringRef name, const SnapshotID& txn_id)
+    void set_branch(U8StringRef name, const SnapshotID& txn_id)
     {
         return reactor::engine().run_at(cpu_, [&]
         {
@@ -488,23 +488,23 @@ public:
                     named_branches_[name] = history_node;
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} hasn't been committed yet", txn_id));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} hasn't been committed yet", txn_id));
                 }
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is not known in this allocator", txn_id));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is not known in this allocator", txn_id));
             }
         });
     }
 
 
-    virtual void walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr)
+    virtual void walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr)
     {
         return reactor::engine().run_at(cpu_, [&]
         {
             this->build_snapshot_labels_metadata();
 
-            walker->beginAllocator(u"PersistentInMemAllocator", allocator_descr);
+            walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
 
             walk_containers(history_tree_, walker);
 
@@ -561,15 +561,15 @@ public:
     }
 
 
-    static AllocSharedPtr<MyType> load(const char16_t* file, int32_t cpu)
+    static AllocSharedPtr<MyType> load(const char* file, int32_t cpu)
     {
         return reactor::engine().run_at(cpu, [&]{
-            auto fileh = FileInputStreamHandler::create(U16String(file).to_u8().data());
+            auto fileh = FileInputStreamHandler::create(U8String(file).data());
             return Base::load(fileh.get());
         });
     }
     
-    static AllocSharedPtr<MyType> load(const char16_t* file)
+    static AllocSharedPtr<MyType> load(const char* file)
     {
         return load(file, reactor::engine().cpu());
     }
@@ -607,7 +607,7 @@ public:
 
     virtual Collection<Vertex> roots()
     {
-        return roots({u"snapshot"});
+        return roots({"snapshot"});
     }
 
     virtual Collection<Vertex> roots(const LabelList& vx_labels)
@@ -698,7 +698,7 @@ protected:
 
         if (node->children().size())
         {
-            walker->beginSnapshotSet(u"Branches", node->children().size());
+            walker->beginSnapshotSet("Branches", node->children().size());
             for (auto child: node->children())
             {
                 walk_containers(child, walker);

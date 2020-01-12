@@ -21,16 +21,16 @@
 namespace memoria {
 namespace v1 {
 
-U16String Platform::getFilePathSeparator() {
-    return u"/";
+U8String Platform::getFilePathSeparator() {
+    return "/";
 }
 
-U16String Platform::getPathSeparator() {
-    return u":";
+U8String Platform::getPathSeparator() {
+    return ":";
 }
 
-U16String Platform::getLineSeparator() {
-    return u"\n";
+U8String Platform::getLineSeparator() {
+    return "\n";
 }
 
 }}

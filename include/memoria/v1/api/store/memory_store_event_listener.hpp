@@ -29,9 +29,9 @@ struct StoreEventListener {
     virtual void shapshot_created(UUID snapshot_id) = 0;
     virtual void shapshot_removed(UUID snapshot_id) = 0;
 
-    virtual void branch_created(const U16String& branch_name) = 0;
-    virtual void branch_removed(const U16String& branch_name) = 0;
-    virtual void branch_updated(const U16String& branch_name) = 0;
+    virtual void branch_created(const U8String& branch_name) = 0;
+    virtual void branch_removed(const U8String& branch_name) = 0;
+    virtual void branch_updated(const U8String& branch_name) = 0;
 
 
     virtual void container_created(UUID snapshot_id, UUID container_name) = 0;

@@ -241,7 +241,7 @@ public:
 
         if (self.iter_cache() != tmp.iter_cache())
         {
-            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Iterator iter_cache mismatch: having: {}, should be {}", self.iter_cache(), tmp.iter_cache());
+            MMA1_THROW(RuntimeException()) << format_ex("Iterator iter_cache mismatch: having: {}, should be {}", self.iter_cache(), tmp.iter_cache());
         }
     }
 

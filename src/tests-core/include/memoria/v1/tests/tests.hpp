@@ -84,7 +84,7 @@ struct Test {
 };
 
 struct TestSuite {
-    using TestsMap = std::map<U16String, std::unique_ptr<Test>>;
+    using TestsMap = std::map<U8String, std::unique_ptr<Test>>;
 private:
     TestsMap tests_;
 public:
@@ -96,7 +96,7 @@ public:
     }
 
     template <typename TestT, typename... Args>
-    void emplace(U16String test_name, Args&&... args)
+    void emplace(U8String test_name, Args&&... args)
     {
         auto ii = tests_.find(test_name);
         if (ii == tests_.end())
@@ -104,24 +104,24 @@ public:
             tests_[test_name] = std::make_unique<TestT>(std::forward<Args>(args)...);
         }
         else {
-            MMA1_THROW(TestConfigurationException()) << fmt::format_ex(u"Test {} has been already registered", test_name);
+            MMA1_THROW(TestConfigurationException()) << format_ex("Test {} has been already registered", test_name);
         }
     }
 
-    Optional<Test&> find(const U16String& name);
+    Optional<Test&> find(const U8String& name);
 };
 
 
 
 struct TestsRegistry {
 
-    using SuitesMap = std::map<U16String, std::unique_ptr<TestSuite>>;
+    using SuitesMap = std::map<U8String, std::unique_ptr<TestSuite>>;
 
 private:
     SuitesMap suites_;
 public:
 
-    static constexpr const char16_t* DEFAULT_SUITE_NAME = u"QuickTests";
+    static constexpr const char* DEFAULT_SUITE_NAME = "QuickTests";
 
     TestsRegistry() {}
     TestsRegistry(const TestsRegistry&) = delete;
@@ -135,30 +135,30 @@ public:
 
     void configure(TestContext* context);
 
-    TestSuite& get_suite(const U16String& name);
+    TestSuite& get_suite(const U8String& name);
 
-    Optional<TestSuite&> find_suite(const U16String& suite_name);
-    Optional<Test&> find_test(const U16String& test_path);
+    Optional<TestSuite&> find_suite(const U8String& suite_name);
+    Optional<Test&> find_test(const U8String& test_path);
 
 
-    static std::tuple<U16String, U16String> split_path(U16String test_path);
+    static std::tuple<U8String, U8String> split_path(U8String test_path);
 
     template <typename TestT, typename... Args>
-    void emplace_in_suite(const U16String& suite_name, const U16String& test_name, Args&&... args)
+    void emplace_in_suite(const U8String& suite_name, const U8String& test_name, Args&&... args)
     {
         auto& suite = get_suite(suite_name);
         suite.emplace<TestT>(test_name, std::forward<Args>(args)...);
     }
 
     template <typename SuiteClassT>
-    void init_suite_class(const U16String& suite_name)
+    void init_suite_class(const U8String& suite_name)
     {
         auto& suite = get_suite(suite_name);
         SuiteClassT::init_suite(suite);
     }
 
     template <typename TestT, typename... Args>
-    void emplace(const U16String& test_name, Args&&... args)
+    void emplace(const U8String& test_name, Args&&... args)
     {
         auto& suite = get_suite(DEFAULT_SUITE_NAME);
         suite.emplace<TestT>(test_name, std::forward<Args>(args)...);
@@ -171,21 +171,21 @@ TestsRegistry& tests_registry();
 
 
 template <typename TestT, typename... Args>
-EmptyType register_test(const U16String& test_name, Args&&... args)
+EmptyType register_test(const U8String& test_name, Args&&... args)
 {
     tests_registry().emplace<TestT>(test_name, std::forward<Args>(args)...);
     return EmptyType();
 }
 
 template <typename TestT, typename... Args>
-EmptyType register_test_in_suite(const U16String& suite_name, const U16String& test_name, Args&&... args)
+EmptyType register_test_in_suite(const U8String& suite_name, const U8String& test_name, Args&&... args)
 {
     tests_registry().emplace_in_suite<TestT>(suite_name, test_name, std::forward<Args>(args)...);
     return EmptyType();
 }
 
 template <typename SuiteT>
-EmptyType register_class_suite(const U16String& suite_name)
+EmptyType register_class_suite(const U8String& suite_name)
 {
     tests_registry().init_suite_class<SuiteT>(suite_name);
     return EmptyType();
@@ -197,12 +197,12 @@ auto ClassName##_suite_init = register_class_suite<ClassName>(SuiteName)
 
 
 #define MMA1_CLASS_TEST(Suite, MethodName) \
-Suite.emplace<ClassTest<MyType, &MyType::MethodName>>(u###MethodName)
+Suite.emplace<ClassTest<MyType, &MyType::MethodName>>(#MethodName)
 
 #define MMA1_CLASS_TEST_WITH_REPLAY(Suite, TestMethodName, ReplayMethodName) \
 Suite.emplace<ClassTestWithReplay<\
     MyType, &MyType::TestMethodName, &MyType::ReplayMethodName\
->>(u###TestMethodName)
+>>(#TestMethodName)
 
 #define MMA1_BOOST_PP_CLASS_TESTS(r, data, elem) MMA1_CLASS_TEST(data, elem);\
 

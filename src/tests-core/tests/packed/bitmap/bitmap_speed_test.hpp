@@ -160,6 +160,6 @@ public:
 
 #define MMA1_BITMAP_SPEED_SUITE(Name, Type) \
 using Name = BitmapSpeedTest<Type>;\
-MMA1_CLASS_SUITE(Name, u###Name)
+MMA1_CLASS_SUITE(Name, #Name)
 
 }}}

@@ -149,6 +149,6 @@ private:
 };
 
 #define MMA1_BIG_INTEGER_CODEC_SUITE() \
-MMA1_CLASS_SUITE(PackedBigIntegerCodecTest, u"PackedBigIntegerCodecSuite")
+MMA1_CLASS_SUITE(PackedBigIntegerCodecTest, "PackedBigIntegerCodecSuite")
 
 }}}

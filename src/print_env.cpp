@@ -25,16 +25,16 @@ int main(int argc, char** argv)
     return Application::run(argc, argv, []{
         ShutdownOnScopeExit hh;
 
-        engine().coutln(u"Image name: {}", get_image_name().to_u16());
+        engine().coutln("Image name: {}", get_image_name().to_u16());
 
 		for (auto& str : app().args())
 		{
-			engine().coutln(u"Arg: {}", str);
+			engine().coutln("Arg: {}", str);
 		}
 
 		for (auto& str : app().env().entries_list())
 		{
-			engine().coutln(u"Entry: {}", str);
+			engine().coutln("Entry: {}", str);
 		}
 
         return 0;

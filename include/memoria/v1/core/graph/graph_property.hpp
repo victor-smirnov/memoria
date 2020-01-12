@@ -36,7 +36,7 @@ namespace v1 {
 struct IProperty {
     virtual ~IProperty() noexcept {}
 
-    virtual const U16String& key() const = 0;
+    virtual const U8String& key() const = 0;
     virtual const Any& value() const = 0;
 
     virtual bool is_empty() const = 0;
@@ -59,7 +59,7 @@ class Property: public PimplBase<IProperty> {
 public:
     MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Property)
 
-    const U16String& key() const {
+    const U8String& key() const {
         return this->ptr_->key();
     }
 
@@ -87,7 +87,7 @@ public:
     MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(VertexProperty)
 
 
-    const U16String& key() const {
+    const U8String& key() const {
         return this->ptr_->key();
     }
 
@@ -118,7 +118,7 @@ public:
 
 
 struct EmptyProperty: IProperty {
-    virtual const U16String& key() const {
+    virtual const U8String& key() const {
         MMA1_THROW(GraphException()) << WhatCInfo("No such property");
     }
 
@@ -144,7 +144,7 @@ struct EmptyProperty: IProperty {
 
 struct EmptyVertexProperty: IVertexProperty {
 
-    virtual const U16String& key() const {
+    virtual const U8String& key() const {
         MMA1_THROW(GraphException()) << WhatCInfo("No such property");
     }
 

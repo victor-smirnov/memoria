@@ -102,11 +102,11 @@ struct IAllocator {
     virtual CtrSharedPtr<CtrReferenceable<Profile>> from_root_id(const BlockID& root_block_id, const CtrID& name) = 0;
 
     virtual bool check()                                                        = 0;
-    virtual void walkContainers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr) = 0;
+    virtual void walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) = 0;
 
     virtual bool drop_ctr(const CtrID& ctr_id)                                  = 0;
 
-    virtual U16String ctr_type_name(const CtrID& ctr_id)                        = 0;
+    virtual U8String ctr_type_name(const CtrID& ctr_id)                        = 0;
 
     virtual Vertex allocator_vertex() {
         return Vertex();

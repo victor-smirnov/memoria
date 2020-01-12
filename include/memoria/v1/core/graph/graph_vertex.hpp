@@ -41,8 +41,8 @@ struct IVertex: IElement {
     virtual Collection<Vertex> vertices(Direction direction = Direction::BOTH);
     virtual Collection<Vertex> vertices(Direction direction, const LabelList& edge_labels);
 
-    virtual VertexProperty property(const U16String& name);
-    virtual VertexProperty property(const U16String& name, const Any& value);
+    virtual VertexProperty property(const U8String& name);
+    virtual VertexProperty property(const U8String& name, const Any& value);
 };
 
 
@@ -57,7 +57,7 @@ public:
         return this->ptr_->id();
     }
 
-    U16String label() const {
+    U8String label() const {
         return this->ptr_->label();
     }
 
@@ -95,11 +95,11 @@ public:
         return Element(StaticPointerCast<IElement>(this->ptr_));
     }
 
-    VertexProperty property(const U16String& name) {
+    VertexProperty property(const U8String& name) {
         return this->ptr_->property(name);
     }
 
-    VertexProperty property(const U16String& name, const Any& value) {
+    VertexProperty property(const U8String& name, const Any& value) {
         return this->ptr_->property(name, value);
     }
 };

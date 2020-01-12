@@ -23,16 +23,16 @@ namespace v1 {
 
 using namespace std;
 
-U16String Platform::getPathSeparator() {
-    return u";";
+U8String Platform::getPathSeparator() {
+    return ";";
 }
 
-U16String Platform::getLineSeparator() {
-    return u"\r\n";
+U8String Platform::getLineSeparator() {
+    return "\r\n";
 }
 
-U16String Platform::getFilePathSeparator() {
-    return u"/";
+U8String Platform::getFilePathSeparator() {
+    return "/";
 }
 
 }}

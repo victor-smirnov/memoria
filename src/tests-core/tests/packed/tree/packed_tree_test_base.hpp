@@ -230,7 +230,7 @@ public:
                 v[b] = tree->value(b, c);
             }
 
-            assert_equals(vals[c], v, u"Index: {}", c);
+            assert_equals(vals[c], v, "Index: {}", c);
         }
     }
 

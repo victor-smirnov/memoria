@@ -220,14 +220,14 @@ public:
     void remove_named_branch(const std::string& name)
     {
         LockGuardT lock_guard(mutex_);
-        named_branches_.erase(U16String(name));
+        named_branches_.erase(U8String(name));
     }
 
-    std::vector<U16String> branch_names()
+    std::vector<U8String> branch_names()
     {
         std::lock_guard<MutexT> lock(mutex_);
 
-        std::vector<U16String> branches;
+        std::vector<U8String> branches;
 
         for (auto pair: named_branches_)
         {
@@ -237,7 +237,7 @@ public:
         return branches;
     }
 
-    SnapshotID branch_head(const U16String& branch_name)
+    SnapshotID branch_head(const U8String& branch_name)
     {
         std::lock_guard<MutexT> lock(mutex_);
 
@@ -293,7 +293,7 @@ public:
 			);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is unknown", snapshot_id));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot id {} is unknown", snapshot_id));
         }
     }
 
@@ -310,7 +310,7 @@ public:
             return (int32_t)history_node->status();
         }
         else {
-            MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+            MMA1_THROW(Exception()) << format_ex("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
@@ -328,11 +328,11 @@ public:
             return parent_id;
         }
         else {
-            MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+            MMA1_THROW(Exception()) << format_ex("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
-    U16String snapshot_description(const SnapshotID& snapshot_id)
+    U8String snapshot_description(const SnapshotID& snapshot_id)
     {
         LockGuardT lock_guard2(mutex_);
 
@@ -344,7 +344,7 @@ public:
             return history_node->metadata();
         }
         else {
-            MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot id {} is unknown", snapshot_id);
+            MMA1_THROW(Exception()) << format_ex("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
@@ -368,21 +368,21 @@ public:
             }
             if (history_node->is_data_locked())
             {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} data is locked", history_node->snapshot_id()));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} data is locked", history_node->snapshot_id()));
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? u"active" : u"dropped")));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped")));
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is unknown", snapshot_id));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot id {} is unknown", snapshot_id));
         }
     }
 
 
 
 
-    SnapshotApiPtr find_branch(U16StringRef name)
+    SnapshotApiPtr find_branch(U8StringRef name)
     {
     	LockGuardT lock_guard(mutex_);
 
@@ -404,15 +404,15 @@ public:
                     return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this()));
             	}
             	else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot id {} is locked and open", history_node->snapshot_id()));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot id {} is locked and open", history_node->snapshot_id()));
             	}
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is {} ", history_node->snapshot_id(), (history_node->is_active() ? u"active" : u"dropped")));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is {} ", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped")));
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Named branch \"{}\" is not known", name));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Named branch \"{}\" is not known", name));
         }
     }
 
@@ -467,18 +467,18 @@ public:
             }
             else if (history_node->is_dropped())
             {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has been dropped", txn_id));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has been dropped", txn_id));
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} hasn't been committed yet", txn_id));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} hasn't been committed yet", txn_id));
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is not known in this allocator", txn_id));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is not known in this allocator", txn_id));
         }
     }
 
-    void set_branch(U16StringRef name, const SnapshotID& txn_id)
+    void set_branch(U8StringRef name, const SnapshotID& txn_id)
     {
     	LockGuardT lock_guard(mutex_);
 
@@ -498,21 +498,21 @@ public:
         		named_branches_[name] = history_node;
         	}
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} hasn't been committed yet", txn_id));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} hasn't been committed yet", txn_id));
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is not known in this allocator", txn_id));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is not known in this allocator", txn_id));
         }
     }
 
-    virtual void walk_containers(ContainerWalker<Profile>* walker, const char16_t* allocator_descr = nullptr)
+    virtual void walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr)
     {
     	this->build_snapshot_labels_metadata();
 
     	LockGuardT lock_guard(mutex_);
 
-        walker->beginAllocator(u"PersistentInMemAllocator", allocator_descr);
+        walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
 
         walk_containers(history_tree_, walker);
 
@@ -562,7 +562,7 @@ public:
             active_snapshots_.wait(0);
         }
         else if (!active_snapshots_.waitFor(0, wait_duration)) {
-            MMA1_THROW(Exception()) << fmt::format_ex(u"Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
+            MMA1_THROW(Exception()) << format_ex("Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
         }
 
         do_store(output);
@@ -590,7 +590,7 @@ public:
             active_snapshots_.wait(0);
         }
         else if (!active_snapshots_.waitFor(0, wait_duration)){
-            MMA1_THROW(Exception()) << fmt::format_ex(u"Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
+            MMA1_THROW(Exception()) << format_ex("Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
         }
 
     	auto fileh = FileOutputStreamHandler::create(file);
@@ -598,15 +598,15 @@ public:
     }
 
 
-    static AllocSharedPtr<MyType> load(const char16_t* file)
+    static AllocSharedPtr<MyType> load(const char* file)
     {
-        auto fileh = FileInputStreamHandler::create(U16String(file).to_u8().data());
+        auto fileh = FileInputStreamHandler::create(U8String(file).data());
         return Base::load(fileh.get());
     }
 
-    static AllocSharedPtr<MyType> load(const U16String& file)
+    static AllocSharedPtr<MyType> load(const U8String& file)
     {
-        auto fileh = FileInputStreamHandler::create(file.to_u8().data());
+        auto fileh = FileInputStreamHandler::create(file.data());
         return Base::load(fileh.get());
     }
 
@@ -655,7 +655,7 @@ public:
 
     virtual Collection<Vertex> roots()
     {
-        return roots({u"snapshot"});
+        return roots({"snapshot"});
     }
 
     virtual Collection<Vertex> roots(const LabelList& vx_labels)
@@ -724,7 +724,7 @@ protected:
 
         if (node->children().size())
         {
-            walker->beginSnapshotSet(u"Branches", node->children().size());
+            walker->beginSnapshotSet("Branches", node->children().size());
             for (auto child: node->children())
             {
                 walk_containers(child, walker);

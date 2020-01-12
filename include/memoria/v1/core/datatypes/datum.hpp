@@ -158,7 +158,7 @@ public:
 template <typename DataType, typename SelectorTag, typename ViewType>
 U8String datum_to_sdn_string(DataType, SelectorTag, ViewType&& view)
 {
-    return fmt::format8(u"'{}'@{}", view, make_datatype_signature_string<DataType>());
+    return format8("'{}'@{}", view, make_datatype_signature_string<DataType>());
 }
 
 template <typename DataType, typename SelectorTag = typename DataTypeTraits<DataType>::DatumStorageSelector>
@@ -370,8 +370,8 @@ public:
 //        }
 
         MMA1_THROW(RuntimeException())
-                << fmt::format_ex(
-                       u"Unsupported SDN value type for fixed size datum convertion: {}",
+                << format_ex(
+                       "Unsupported SDN value type for fixed size datum convertion: {}",
                        value.to_standard_string()
                    );
     }

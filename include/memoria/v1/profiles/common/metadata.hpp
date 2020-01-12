@@ -89,8 +89,8 @@ public:
         }
         else {
             MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(
-                           u"Block operations already registered for {} {}", ctr_type_hash, block_type_hash
+                    << format_ex(
+                           "Block operations already registered for {} {}", ctr_type_hash, block_type_hash
                     );
         }
     }
@@ -107,8 +107,8 @@ public:
         }
         else {
             MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(
-                           u"Container interface already registered for {}",
+                    << format_ex(
+                           "Container interface already registered for {}",
                            ctr_type_hash
                     );
         }
@@ -126,8 +126,8 @@ public:
         }
         else {
             MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(
-                           u"Container instance factories already registered for {}",
+                    << format_ex(
+                           "Container instance factories already registered for {}",
                            typedecl_signature
                     );
         }
@@ -181,7 +181,7 @@ public:
         }
         else {
             MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(u"BlockOperations is not found for {} {}", ctr_type_hash, block_type_hash);
+                    << format_ex("BlockOperations is not found for {} {}", ctr_type_hash, block_type_hash);
         }
     }
 
@@ -194,7 +194,7 @@ public:
         }
         else {
             MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(u"ContainerOperations is not found for {}", ctr_type_hash);
+                    << format_ex("ContainerOperations is not found for {}", ctr_type_hash);
         }
     }
 
@@ -207,7 +207,7 @@ public:
         }
         else {
             MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(u"ContainerFactories is not found for {}", signature);
+                    << format_ex("ContainerFactories is not found for {}", signature);
         }
     }
 

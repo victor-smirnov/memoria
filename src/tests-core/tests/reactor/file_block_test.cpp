@@ -56,7 +56,7 @@ using FileChunk = std::pair<uint64_t, uint64_t>;
 
 
 
-auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"ReactorSuite", u"FileBlockTest", [](auto& state){
+auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>("ReactorSuite", "FileBlockTest", [](auto& state){
 
     auto wd = state.working_directory_;
     wd.append("file.bin");
@@ -68,7 +68,7 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
     uint8_t stream_state{};
     uint64_t total_written{};
 
-    engine().coutln(u"Prepare file of size: {}", state.file_size);
+    engine().coutln("Prepare file of size: {}", state.file_size);
 
     while (total_written < state.file_size)
     {
@@ -85,7 +85,7 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
     assert_equals(total_written, file.fpos());
     assert_equals(0, file.seek(0));
 
-    engine().coutln(u"Read file in chunks", "");
+    engine().coutln("Read file in chunks", "");
 
     for (auto& chunk: create_random_chunks_vector<>(state.buffer_size, total_written))
     {
@@ -107,7 +107,7 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
     }
 
 	
-    engine().coutln(u"Rewrite file in chunks", "");
+    engine().coutln("Rewrite file in chunks", "");
 
     for (auto& chunk: create_random_chunks_vector<>(state.buffer_size, total_written))
     {
@@ -126,7 +126,7 @@ auto file_block_test = register_test_in_suite<FnTest<FileBlockTestState>>(u"Reac
         assert_equals(written, chunk_size);
     }
 
-    engine().coutln(u"Read file in chunks again", "");
+    engine().coutln("Read file in chunks again", "");
 
     for (auto& chunk: create_random_chunks_vector<>(state.buffer_size, total_written))
     {

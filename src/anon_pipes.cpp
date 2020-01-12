@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
                 total += pipe.output.write(buf.get(), size);
             }
 
-            engine().coutln(u"Total written: {}", total);
+            engine().coutln("Total written: {}", total);
         });
 
 
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
                 {
                     uint8_t value = *(buf.get() + c);
                     if (value != reader_state) {
-                        engine().coutln(u"Data checksum error at {}:{}:{}:{} {}:{}", total, c, read, size, (int)value, (int)reader_state);
+                        engine().coutln("Data checksum error at {}:{}:{}:{} {}:{}", total, c, read, size, (int)value, (int)reader_state);
                         std::terminate();
                     }
 
@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
                 total += read;
             }
 
-            engine().coutln(u"Total read: {}", total);
+            engine().coutln("Total read: {}", total);
         });
 
         consumer.join();

@@ -30,7 +30,7 @@ class EnvironmentImpl {
 public:
 	EnvironmentImpl(const char* const* envp) {}
 
-	Optional<U16String> get(const U16String& name) 
+	Optional<U8String> get(const U8String& name) 
 	{
 		UWString wname = name.to_uwstring();
 
@@ -39,7 +39,7 @@ public:
 		if (bufsize > 0) 
 		{
 			if (GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
-				return Optional<U16String>();
+				return Optional<U8String>();
 			}
 			else {
 				auto buf = allocate_system_zeroed<wchar_t>(bufsize * sizeof(wchar_t));
@@ -51,21 +51,21 @@ public:
 					return UWString(buf.get(), bufsize2).to_u16();
 				}
 				else {
-					MMA1_THROW(SystemException()) << fmt::format_ex(u"Incorrect estimation of env variable's '{}' value size {}:{}", name, bufsize, bufsize2);
+                    MMA1_THROW(SystemException()) << format_ex("Incorrect estimation of env variable's '{}' value size {}:{}", name, bufsize, bufsize2);
 				}
 			}
 		}
 		else {
-			MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't obtain value of environment variable {}", name);
+            MMA1_THROW(SystemException()) << format_ex("Can't obtain value of environment variable {}", name);
 		}
 	}
 
 
-	void set(const U16String& name, const U16String& value) 
+	void set(const U8String& name, const U8String& value) 
 	{
 		if (!boost::winapi::SetEnvironmentVariableW(name.to_uwstring().data(), value.to_uwstring().data())) 
 		{
-			MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't set value for environment variable: {}={}", name, value);
+            MMA1_THROW(SystemException()) << format_ex("Can't set value for environment variable: {}={}", name, value);
 		}
 	}
 
@@ -75,8 +75,8 @@ public:
 
 		for (auto& entry: entries_list()) 
 		{
-			size_t idx = entry.find_first_of(u"=");
-			if (idx != U16String::NPOS)
+			size_t idx = entry.find_first_of("=");
+			if (idx != U8String::NPOS)
 			{
 				auto key = entry.substring(0, idx);
 				auto value = entry.substring(idx + 1);

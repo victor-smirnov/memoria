@@ -56,7 +56,7 @@ struct PipeTestState: TestState {
 
 
 
-auto pipe_test = register_test_in_suite<FnTest<PipeTestState>>(u"ReactorSuite", u"PipeTest", [](auto& state){
+auto pipe_test = register_test_in_suite<FnTest<PipeTestState>>("ReactorSuite", "PipeTest", [](auto& state){
     auto outbound_pipe = reactor::open_pipe();
     auto inbound_pipe  = reactor::open_pipe();
 
@@ -75,9 +75,9 @@ auto pipe_test = register_test_in_suite<FnTest<PipeTestState>>(u"ReactorSuite", 
     runner.start();
     runner.join();
 
-	reactor::engine().coutln(u"Sent {} bytes", runner.total_sent());
-	reactor::engine().coutln(u"Transferred {} bytes", runner.total_transferred());
-	reactor::engine().coutln(u"Received {} bytes", runner.total_received());
+	reactor::engine().coutln("Sent {} bytes", runner.total_sent());
+	reactor::engine().coutln("Transferred {} bytes", runner.total_transferred());
+	reactor::engine().coutln("Received {} bytes", runner.total_received());
 
     assert_equals(runner.total_sent(), runner.total_received(), "Sent/received");
     assert_equals(runner.total_sent(), runner.total_transferred(), "Sent/transferred");

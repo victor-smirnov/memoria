@@ -35,8 +35,8 @@ namespace reactor {
 filesystem::path get_program_path();
 filesystem::path get_image_name();
 
-using EnvironmentMap  = std::map<U16String, U16String>;
-using EnvironmentList = std::vector<U16String>;
+using EnvironmentMap  = std::map<U8String, U8String>;
+using EnvironmentList = std::vector<U8String>;
 
 
 class ProcessImpl;
@@ -74,8 +74,8 @@ public:
 
 	static ProcessBuilder create(filesystem::path exe_path);
 	
-    ProcessBuilder& with_args(U16String args);
-    ProcessBuilder& with_args(std::vector<U16String> args);
+    ProcessBuilder& with_args(U8String args);
+    ProcessBuilder& with_args(std::vector<U8String> args);
 
     ProcessBuilder& with_env(EnvironmentList entries = EnvironmentList());
 	ProcessBuilder& with_env(EnvironmentMap entries);

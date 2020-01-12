@@ -50,8 +50,8 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
 		}
 	}
 	else {
-		MMA1_THROW(SystemException(WSAGetLastError())) << fmt::format_ex(
-			u"Error starting read operation from socket connection for {}:{}:{}",
+		MMA1_THROW(SystemException(WSAGetLastError())) << format_ex(
+			"Error starting read operation from socket connection for {}:{}:{}",
 			ip_address_, ip_port_, fd_
 		);
 	}
@@ -90,8 +90,8 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 				return overlapped.size_;
 			}
 			else {
-				MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(
-					u"Error reading from socket connection for {}:{}:{}",
+				MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex(
+					"Error reading from socket connection for {}:{}:{}",
 					ip_address_, ip_port_, fd_
 				);
 			}
@@ -104,8 +104,8 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 			return 0;
 		}
 		else {
-			MMA1_THROW(SystemException(error_code)) << fmt::format_ex(
-				u"Error starting read operation from socket connection for {}:{}:{}",
+			MMA1_THROW(SystemException(error_code)) << format_ex(
+				"Error starting read operation from socket connection for {}:{}:{}",
 				ip_address_, ip_port_, fd_
 			);
 		}
@@ -143,8 +143,8 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 				return overlapped.size_;
 			}
 			else {
-				MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(
-					u"Error writing to socket connection for {}:{}:{}",
+				MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex(
+					"Error writing to socket connection for {}:{}:{}",
 					ip_address_, ip_port_, fd_
 				);
 			}
@@ -157,8 +157,8 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 			return 0;
 		}
 		else {
-			MMA1_THROW(SystemException(error_code)) << fmt::format_ex(
-				u"Error starting write operation to socket connection for {}:{}:{}",
+			MMA1_THROW(SystemException(error_code)) << format_ex(
+				"Error starting write operation to socket connection for {}:{}:{}",
 				ip_address_, ip_port_, fd_
 			);
 		}
@@ -236,8 +236,8 @@ void ServerSocketImpl::listen()
     int res = ::listen(fd_, 100);
     if (res != 0) 
     {
-		MMA1_THROW(SystemException(WSAGetLastError())) << fmt::format_ex(
-			u"Can't start listening on socket for {}:{}",
+		MMA1_THROW(SystemException(WSAGetLastError())) << format_ex(
+			"Can't start listening on socket for {}:{}",
 			ip_address_, ip_port_
 		);
     }
@@ -337,8 +337,8 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 		connect();
 	}
 	else {
-		MMA1_THROW(SystemException()) << fmt::format_ex(
-			u"Error starting read operation from socket connection for {}:{}:{}",
+		MMA1_THROW(SystemException()) << format_ex(
+			"Error starting read operation from socket connection for {}:{}:{}",
 			ip_address_, ip_port_, fd_
 		);
 	}
@@ -411,8 +411,8 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 				return overlapped.size_;
 			}
 			else {
-				MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(
-					u"Error reading from socket connection for {}:{}:{}",
+				MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex(
+					"Error reading from socket connection for {}:{}:{}",
 					ip_address_, ip_port_, fd_
 				);
 			}
@@ -425,8 +425,8 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 			return 0;
 		}
 		else {
-			MMA1_THROW(SystemException(error_code)) << fmt::format_ex(
-				u"Error starting read operation from socket connection for {}:{}:{}",
+			MMA1_THROW(SystemException(error_code)) << format_ex(
+				"Error starting read operation from socket connection for {}:{}:{}",
 				ip_address_, ip_port_, fd_
 			);
 		}
@@ -461,8 +461,8 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
 				return overlapped.size_;
 			}
 			else {
-				MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(
-					u"Error writing to socket connection for {}:{}:{}",
+				MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex(
+					"Error writing to socket connection for {}:{}:{}",
 					ip_address_, ip_port_, fd_
 				);
 			}
@@ -475,8 +475,8 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
 			return 0;
 		}
 		else {
-			MMA1_THROW(SystemException(error_code)) << fmt::format_ex(
-				u"Error starting write operation to socket connection for {}:{}:{}",
+			MMA1_THROW(SystemException(error_code)) << format_ex(
+				"Error starting write operation to socket connection for {}:{}:{}",
 				ip_address_, ip_port_, fd_
 			);
 		}

@@ -107,8 +107,8 @@ void KEvent64(int poller_fd, int fd, int filter, int flags, void * fiber_message
 
         if (throw_ex)
         {
-            MMA1_THROW(SystemException()) << fmt::format_ex(
-                u"Can't configure poller for connection {}", fd
+            MMA1_THROW(SystemException()) << format_ex(
+                "Can't configure poller for connection {}", fd
             );
         }
     }

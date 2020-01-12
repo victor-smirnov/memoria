@@ -194,7 +194,7 @@ public:
                 history_tree_raw_->unref_active();
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
             }
         });
     }
@@ -210,19 +210,19 @@ public:
                 history_node_->mark_to_clear();
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Can't drop root snapshot {}", uuid()));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Can't drop root snapshot {}", uuid()));
             }
         });
     }
 
-    U16String snapshot_metadata() const
+    U8String snapshot_metadata() const
     {
     	return reactor::engine().run_at(cpu_, [&]{
             return history_node_->metadata();
         });
     }
 
-    void set_snapshot_metadata(U16StringRef metadata)
+    void set_snapshot_metadata(U8StringRef metadata)
     {
     	return reactor::engine().run_at(cpu_, [&]
         {
@@ -252,13 +252,13 @@ public:
                     history_node_->lock_data();
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has open containers", uuid()));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has open containers", uuid()));
                 }
             }
             else if (history_node_->is_data_locked()) {
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
             }
         });
     }
@@ -280,11 +280,11 @@ public:
             }
             else if (history_node_->is_data_locked())
             {
-                MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot {} is locked, branching is not possible.", uuid());
+                MMA1_THROW(Exception()) << format_ex("Snapshot {} is locked, branching is not possible.", uuid());
             }
             else
             {
-                MMA1_THROW(Exception()) << fmt::format_ex(u"Snapshot {} is still being active. Commit it first.", uuid());
+                MMA1_THROW(Exception()) << format_ex("Snapshot {} is still being active. Commit it first.", uuid());
             }
         });
     }
@@ -307,7 +307,7 @@ public:
             }
             else
             {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has no parent.", uuid()));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has no parent.", uuid()));
             }
         });
     }
@@ -333,9 +333,9 @@ public:
         return Any(uuid());
     }
 
-    virtual U16String label() const
+    virtual U8String label() const
     {
-        return U16String(u"snapshot");
+        return U8String("snapshot");
     }
 
     virtual void remove()
@@ -352,7 +352,7 @@ public:
     {
         return make_fn_vertex_properties(
             as_vertex(),
-            u"metadata", [&]{return snapshot_metadata();}
+            "metadata", [&]{return snapshot_metadata();}
         );
     }
 
@@ -370,7 +370,7 @@ public:
                 auto pn_snp_api = history_tree_->find(history_node_->parent()->snapshot_id());
                 SnapshotPtr pn_snp = memoria_static_pointer_cast<MyType>(pn_snp_api);
 
-                edges.emplace_back(DefaultEdge::make(my_graph, u"child", pn_snp->as_vertex(), my_vx));
+                edges.emplace_back(DefaultEdge::make(my_graph, "child", pn_snp->as_vertex(), my_vx));
             }
         }
 
@@ -382,7 +382,7 @@ public:
                 SnapshotPtr ch_snp = memoria_static_pointer_cast<MyType>(ch_snp_api);
 
 
-                edges.emplace_back(DefaultEdge::make(my_graph, u"child", my_vx, ch_snp->as_vertex()));
+                edges.emplace_back(DefaultEdge::make(my_graph, "child", my_vx, ch_snp->as_vertex()));
             }
 
             auto iter = this->root_map_->ctr_begin();
@@ -395,7 +395,7 @@ public:
                      const_cast<MyType*>(this)->from_root_id(root_id, ctr_name)
                 );
 
-                edges.emplace_back(DefaultEdge::make(my_graph, u"container", my_vx, vertex_ptr));
+                edges.emplace_back(DefaultEdge::make(my_graph, "container", my_vx, vertex_ptr));
 
                 iter->next();
             }

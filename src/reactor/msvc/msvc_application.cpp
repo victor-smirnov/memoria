@@ -23,13 +23,13 @@ namespace reactor {
 
 namespace {
 
-auto find_last_of(const U16String& str, const char16_t* pp) 
+auto find_last_of(const U8String& str, const char* pp)
 {
-	size_t pos0 = U16String::NPOS;
+	size_t pos0 = U8String::NPOS;
 	size_t pos  = 0;
 	while (pos = str.find_first_of(pp, pos)) 
 	{
-		if (pos != U16String::NPOS) 
+		if (pos != U8String::NPOS) 
 		{
 			pos0 = pos;
 			pos++;
@@ -47,11 +47,11 @@ auto find_last_of(const U16String& str, const char16_t* pp)
 
 filesystem::path get_image_name()
 {
-    auto name = get_program_path().filename().to_u16();
+    U8String name = get_program_path().filename();
     
-    size_t pos = find_last_of(name, u".");
+    size_t pos = find_last_of(name, ".");
     
-    if (pos != U16String::NPOS) {
+    if (pos != U8String::NPOS) {
 	return name.substring(0, pos);
     }
     else {

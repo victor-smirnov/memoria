@@ -142,7 +142,7 @@ GenericFile::GenericFile(filesystem::path file_path, FileFlags flags, FileMode m
 
 	if (fd_ == INVALID_HANDLE_VALUE) 
 	{
-		MMA1_THROW(SystemException(last_error)) << fmt::format_ex(u"Can't open/create file {}", file_path);
+		MMA1_THROW(SystemException(last_error)) << format_ex("Can't open/create file {}", file_path);
 	}
 	else {
 		Reactor& r = engine();
@@ -160,7 +160,7 @@ void GenericFile::close()
 {
 	if (fd_ != INVALID_HANDLE_VALUE && !CloseHandle(fd_)) 
 	{
-		MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't close file {}", path_);
+		MMA1_THROW(SystemException()) << format_ex("Can't close file {}", path_);
 	}
 
 	closed_ = true;
@@ -197,14 +197,14 @@ size_t GenericFile::read(uint8_t* buffer, uint64_t offset, size_t size)
 				return 0;
 			}
 			else {
-				MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(u"Error reading from file {}", path_);
+				MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex("Error reading from file {}", path_);
 			}
 		}
 		else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY) {
 			message.wait_for(); // jsut sleep and wait for required resources to appear
 		}
 		else {
-			MMA1_THROW(SystemException(error_code)) << fmt::format_ex(u"Error starting read from file {}", path_);
+			MMA1_THROW(SystemException(error_code)) << format_ex("Error starting read from file {}", path_);
 		}
 	}
 }
@@ -238,14 +238,14 @@ size_t GenericFile::write(const uint8_t* buffer, uint64_t offset, size_t size)
 				return overlapped.size_;
 			}
 			else {
-				MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(u"Error writing to file {}", path_);
+				MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex("Error writing to file {}", path_);
 			}
 		}
 		else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY) {
 			message.wait_for(); // jsut sleep and wait for required resources to appear
 		}
 		else {
-			MMA1_THROW(SystemException(error_code)) << fmt::format_ex(u"Error starting write to file {}", path_);
+			MMA1_THROW(SystemException(error_code)) << format_ex("Error starting write to file {}", path_);
 		}
 	}
 }
@@ -300,9 +300,9 @@ size_t DMAFileImpl::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 
 					if (rise_ex_on_error) 
 					{
-						MMA1_THROW(SystemException(error_code)) << fmt::format_ex(
-							u"Error submiting AIO {} operation number {} to {}", 
-							(ovl->operation_ == OVERLAPPEDMsg::WRITE ? u"write" : u"read"),
+						MMA1_THROW(SystemException(error_code)) << format_ex(
+							"Error submiting AIO {} operation number {} to {}", 
+							(ovl->operation_ == OVERLAPPEDMsg::WRITE ? "write" : "read"),
 							wait_num,
 							path_
 						);
@@ -344,7 +344,7 @@ void BufferedFileImpl::fsync()
 
 		if (!status)
 		{
-			MMA1_THROW(SystemException(last_error)) << fmt::format_ex(u"Can't sync file {}", path_);
+			MMA1_THROW(SystemException(last_error)) << format_ex("Can't sync file {}", path_);
 		}
 }
 
@@ -379,7 +379,7 @@ DMABuffer allocate_dma_buffer(size_t size)
 			return buf;
 		}
 		else {
-			MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't allocate dma buffer of {} bytes", size);
+			MMA1_THROW(RuntimeException()) << format_ex("Can't allocate dma buffer of {} bytes", size);
 		}
 	}
 	else {

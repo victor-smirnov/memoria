@@ -32,7 +32,7 @@ namespace v1 {
 class DefaultEdge: public IEdge {
     Graph graph_;
     Any id_;
-    U16String label_;
+    U8String label_;
 
     Vertex out_vertex_;
     Vertex in_vertex_;
@@ -40,19 +40,19 @@ class DefaultEdge: public IEdge {
     Collection<Property> properties_;
 
 public:
-    DefaultEdge(Graph graph, Any id, U16String label, Vertex out_vertex, Vertex in_vertex, Collection<Property> properties):
+    DefaultEdge(Graph graph, Any id, U8String label, Vertex out_vertex, Vertex in_vertex, Collection<Property> properties):
         graph_(graph), id_(std::move(id)), label_(std::move(label)),
         out_vertex_(std::move(out_vertex)), in_vertex_(std::move(in_vertex)),
         properties_(std::move(properties))
     {}
 
-    DefaultEdge(Graph graph, U16String label, Vertex out_vertex, Vertex in_vertex):
+    DefaultEdge(Graph graph, U8String label, Vertex out_vertex, Vertex in_vertex):
         graph_(graph), id_(), label_(std::move(label)),
         out_vertex_(std::move(out_vertex)), in_vertex_(std::move(in_vertex)),
         properties_(EmptyCollection<Property>::make())
     {}
 
-    static Edge make(Graph graph, Any id, U16String label, Vertex out_vertex, Vertex in_vertex, Collection<Property> properties)
+    static Edge make(Graph graph, Any id, U8String label, Vertex out_vertex, Vertex in_vertex, Collection<Property> properties)
     {
         return Edge(MakeLocalShared<DefaultEdge>(
             std::move(graph), std::move(id), std::move(label),
@@ -62,7 +62,7 @@ public:
     }
 
 
-    static Edge make(Graph graph, U16String label, Vertex out_vertex, Vertex in_vertex)
+    static Edge make(Graph graph, U8String label, Vertex out_vertex, Vertex in_vertex)
     {
         return Edge(MakeLocalShared<DefaultEdge>(
             std::move(graph), std::move(label),
@@ -79,7 +79,7 @@ public:
         return id_;
     }
 
-    virtual U16String label() const {
+    virtual U8String label() const {
         return label_;
     }
 
@@ -105,12 +105,12 @@ public:
         return properties_;
     }
 
-    virtual Property property(const U16String& name)
+    virtual Property property(const U8String& name)
     {
         return empty_property();
     }
 
-    virtual Property property(const U16String& name, const Any& value)
+    virtual Property property(const U8String& name, const Any& value)
     {
         MMA1_THROW(GraphException()) << WhatCInfo("Can't set property value");
     }

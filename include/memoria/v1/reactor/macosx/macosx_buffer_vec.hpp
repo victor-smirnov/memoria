@@ -128,9 +128,9 @@ public:
         
         if (block.processed < 0) 
         {
-            MMA1_THROW(SystemException(-block.processed)) << fmt::format_ex(
-                u"AIO {} operation failed",
-                (block.command == IOCB::READ ? u"read" : u"write")
+            MMA1_THROW(SystemException(-block.processed)) << format_ex(
+                "AIO {} operation failed",
+                (block.command == IOCB::READ ? "read" : "write")
             );
         }
     }

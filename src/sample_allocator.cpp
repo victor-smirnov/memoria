@@ -59,7 +59,7 @@ int main(int argc, char** argv, char** envp)
             smap.assign(toString(c) + "_key", toString(c) + "_value");
         }
 
-        bb.set_snapshot_metadata(u"My cool snapshot");
+        bb.set_snapshot_metadata("My cool snapshot");
 
         bb.commit();
         bb.set_as_master();

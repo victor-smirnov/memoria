@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
 
         ServerSocketConnection conn = ss.accept();
 
-		engine().coutln(u"Client connected", 1);
+		engine().coutln("Client connected", 1);
 
         auto out = conn.output();
 
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 			total += written;
         }
 
-        engine().coutln(u"Total written: {}", total);
+        engine().coutln("Total written: {}", total);
         
 
         return 0;

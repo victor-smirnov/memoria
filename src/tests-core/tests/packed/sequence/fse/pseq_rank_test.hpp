@@ -174,7 +174,7 @@ public:
         int32_t rank = seq->rank(end, symbol);
         int32_t popc = seq->rank(0, end, symbol);
 
-        assert_equals(rank, popc, u"{}", end);
+        assert_equals(rank, popc, "{}", end);
     }
 
     void runTest1()

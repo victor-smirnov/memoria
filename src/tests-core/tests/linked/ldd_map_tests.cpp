@@ -23,7 +23,7 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
-auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"MapSetRemove", [](auto& state){
+auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "MapSetRemove", [](auto& state){
     LDDocument doc;
 
     LDDMapView map = doc.set_map();
@@ -63,7 +63,7 @@ auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>(u"LD
 });
 
 
-auto ldd_map_set_tests = register_test_in_suite<FnTest<LDTestState>>(u"LDDocumentTestSuite", u"MapSet", [](auto& state){
+auto ldd_map_set_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "MapSet", [](auto& state){
     LDDocument doc;
 
     LDDMapView map = doc.set_map();

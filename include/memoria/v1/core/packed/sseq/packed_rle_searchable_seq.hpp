@@ -313,7 +313,7 @@ public:
             return result.run().symbol();
         }
         else {
-            MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Symbol index {} is out of range {}", idx, this->size()));
+            MMA1_THROW(BoundsException()) << WhatInfo(format8("Symbol index {} is out of range {}", idx, this->size()));
         }
     }
 
@@ -354,7 +354,7 @@ public:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Symbol index {} is out of range {}", idx, this->size()));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Symbol index {} is out of range {}", idx, this->size()));
         }
     }
 
@@ -1730,7 +1730,7 @@ private:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Symbol index must be >= 0: {}", symbol_pos));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Symbol index must be >= 0: {}", symbol_pos));
         }
     }
     
@@ -2004,7 +2004,7 @@ private:
             pos += len;
         }
 
-        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"countBW start position is out of range: {} {}", start_pos, meta->size()));
+        MMA1_THROW(Exception()) << WhatInfo(format8("countBW start position is out of range: {} {}", start_pos, meta->size()));
     }
 
 
@@ -2109,7 +2109,7 @@ private:
             }
         }
 
-        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Symbol index is out of bounds: {} {}", idx, meta->size()));
+        MMA1_THROW(Exception()) << WhatInfo(format8("Symbol index is out of bounds: {} {}", idx, meta->size()));
     }
     
     
@@ -2347,7 +2347,7 @@ private:
             ));
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"split_run: invalid split position: {} {}", pos, location.run().length()));
+            MMA1_THROW(Exception()) << WhatInfo(format8("split_run: invalid split position: {} {}", pos, location.run().length()));
         }
     }
 

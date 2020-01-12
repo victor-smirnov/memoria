@@ -21,6 +21,8 @@
 #include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/strings/strings.hpp>
 
+#include <memoria/v1/core/strings/format.hpp>
+
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <algorithm>
@@ -985,3 +987,20 @@ struct FromString<core::StaticVector<T, Size>> {
 
 
 }}
+
+namespace fmt {
+
+template <typename T, int32_t S>
+struct formatter<memoria::v1::core::StaticVector<T, S>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::v1::core::StaticVector<T, S>& vv, FormatContext& ctx)
+    {
+        memoria::v1::SBuf sb;
+        sb << vv;
+        return format_to(ctx.out(), "{}", sb.str());
+    }
+};
+
+}

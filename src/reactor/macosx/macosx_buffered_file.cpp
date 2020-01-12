@@ -66,7 +66,7 @@ BufferedFileImpl::BufferedFileImpl(filesystem::path file_path, FileFlags flags, 
     });
 
     if (fd_ < 0) {
-        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't open file {}", file_path);
+        MMA1_THROW(SystemException(errno0)) << format_ex("Can't open file {}", file_path);
     }
 }
 
@@ -82,7 +82,7 @@ void BufferedFileImpl::close()
 {
     if ((!closed_) && (::close(fd_) < 0))
     {
-        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't close file {}", path_);
+        MMA1_THROW(SystemException()) << format_ex("Can't close file {}", path_);
     }
 
     closed_ = true;
@@ -103,7 +103,7 @@ uint64_t BufferedFileImpl::seek(uint64_t position) {
         return res;
     }
     else {
-        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't read from file {}", path_);
+        MMA1_THROW(SystemException(errno0)) << format_ex("Can't read from file {}", path_);
     }
 }
 
@@ -121,7 +121,7 @@ uint64_t BufferedFileImpl::fpos() {
         return res;
     }
     else {
-        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't read from file {}", path_);
+        MMA1_THROW(SystemException(errno0)) << format_ex("Can't read from file {}", path_);
     }
 }
 
@@ -144,7 +144,7 @@ size_t BufferedFileImpl::read(uint8_t* buffer, size_t size)
         return res;
     }
     else {
-        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't read from file {}", path_);
+        MMA1_THROW(SystemException(errno0)) << format_ex("Can't read from file {}", path_);
     }
 }
     
@@ -162,7 +162,7 @@ size_t BufferedFileImpl::write(const uint8_t* buffer, size_t size)
         return res;
     }
     else {
-        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't write to file {}", path_);
+        MMA1_THROW(SystemException(errno0)) << format_ex("Can't write to file {}", path_);
     }
 }
 
@@ -189,7 +189,7 @@ size_t BufferedFileImpl::read(uint8_t* buffer, uint64_t offset, size_t size)
         return res;
     }
     else {
-        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't read from file {}", path_);
+        MMA1_THROW(SystemException(errno0)) << format_ex("Can't read from file {}", path_);
     }
 }
 
@@ -214,7 +214,7 @@ size_t BufferedFileImpl::write(const uint8_t* buffer, uint64_t offset, size_t si
         return res;
     }
     else {
-        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't write to file {}", path_);
+        MMA1_THROW(SystemException(errno0)) << format_ex("Can't write to file {}", path_);
     }
 }
 
@@ -232,7 +232,7 @@ void BufferedFileImpl::fsync()
     });
 
     if (res < 0) {
-        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't fsync file {}", path_);
+        MMA1_THROW(SystemException(errno0)) << format_ex("Can't fsync file {}", path_);
     }
 }
 
@@ -246,7 +246,7 @@ void BufferedFileImpl::fdsync() {
     });
 
     if (res < 0) {
-        MMA1_THROW(SystemException(errno0)) << fmt::format_ex(u"Can't fsync file {}", path_);
+        MMA1_THROW(SystemException(errno0)) << format_ex("Can't fsync file {}", path_);
     }
 }
 

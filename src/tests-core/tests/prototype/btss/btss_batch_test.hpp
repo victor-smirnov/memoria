@@ -526,7 +526,7 @@ public:
 
         if (!isReplayMode())
         {
-            storeAllocator(getResourcePath(fmt::format(u"Insert_{}.mma1", ++cnt_i_)));
+            storeAllocator(getResourcePath(fmt::format("Insert_{}.mma1", ++cnt_i_)));
         }
     }
 
@@ -565,7 +565,7 @@ public:
 
         if (!isReplayMode())
         {
-            storeAllocator(getResourcePath(U16String((SBuf() << "Remove_" << (++cnt_i_) << ".dump").str())));
+            storeAllocator(getResourcePath(U8String((SBuf() << "Remove_" << (++cnt_i_) << ".dump").str())));
         }
     }
 

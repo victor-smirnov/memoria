@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
                 uint8_t value = *(buf.get() + c);
                 if (value != reader_state)
                 {
-                    engine().coutln(u"Data checksum error at {}:{}:{}:{} {}:{}", total, c, read, size, (int)value, (int)reader_state);
+                    engine().coutln("Data checksum error at {}:{}:{}:{} {}:{}", total, c, read, size, (int)value, (int)reader_state);
                     std::terminate();
                 }
                 ++reader_state;
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 
 
 
-        engine().coutln(u"Total read: {}", total);
+        engine().coutln("Total read: {}", total);
         
 
         

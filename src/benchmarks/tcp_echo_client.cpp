@@ -44,11 +44,11 @@ int main(int argc, char** argv, char** envp) {
         size_t block_size   = app().options()["block"].as<size_t>();
         uint64_t data_size  = app().options()["size"].as<uint64_t>();
 
-        engine().coutln(u"Host: {}, port: {}, mean block size: {}, data size: {}", host, port, block_size, data_size);
+        engine().coutln("Host: {}, port: {}, mean block size: {}, data size: {}", host, port, block_size, data_size);
 
         ClientSocket socket(IPAddress(host.data()), port);
 
-        engine().coutln(u"Connected!{}","");
+        engine().coutln("Connected!{}","");
 
         size_t block_size_max = block_size * 2;
         auto buffer = allocate_system<uint8_t>(block_size_max);
@@ -97,7 +97,7 @@ int main(int argc, char** argv, char** envp) {
                 received_blocks_cnt++;
             }
 
-            //engine().coutln(u"Processed: {} {}", sent_size_cnt, sent_size_cnt);
+            //engine().coutln("Processed: {} {}", sent_size_cnt, sent_size_cnt);
         }
 
         socket.close();
@@ -108,7 +108,7 @@ int main(int argc, char** argv, char** envp) {
         double sent_speed = sent_blocks_cnt / duration;
         double recv_speed = received_blocks_cnt / duration;
 
-        engine().cerrln(u"Time: {}s, blocks sent: {}, block recv: {}, speed: {} {} blocks/sec", FormatTime(duration * 1000), sent_blocks_cnt, received_blocks_cnt, sent_speed, recv_speed);
+        engine().cerrln("Time: {}s, blocks sent: {}, block recv: {}, speed: {} {} blocks/sec", FormatTime(duration * 1000), sent_blocks_cnt, received_blocks_cnt, sent_speed, recv_speed);
 
         return 0;
     });

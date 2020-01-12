@@ -40,8 +40,8 @@ struct IEdge: IElement {
 
     virtual Collection<Property> properties() = 0;
 
-    virtual Property property(const U16String& name) = 0;
-    virtual Property property(const U16String& name, const Any& value) = 0;
+    virtual Property property(const U8String& name) = 0;
+    virtual Property property(const U8String& name, const Any& value) = 0;
 };
 
 
@@ -58,7 +58,7 @@ public:
         return this->ptr_->id();
     }
 
-    U16String label() const {
+    U8String label() const {
         return this->ptr_->label();
     }
 
@@ -74,11 +74,11 @@ public:
         return this->ptr_->properties();
     }
 
-    Property property(const U16String& name) {
+    Property property(const U8String& name) {
         return this->ptr_->property(name);
     }
 
-    Property property(const U16String& name, const Any& value) {
+    Property property(const U8String& name, const Any& value) {
         return this->ptr_->property(name, value);
     }
 

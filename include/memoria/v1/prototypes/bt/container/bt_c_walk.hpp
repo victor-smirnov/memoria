@@ -123,7 +123,7 @@ public:
             return new_name;
         }
         else {
-            MMA1_THROW(Exception()) << fmt::format_ex(u"Requested container name of {} is already in use.", new_name);
+            MMA1_THROW(Exception()) << format_ex("Requested container name of {} is already in use.", new_name);
         }
     }
 

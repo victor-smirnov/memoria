@@ -54,8 +54,8 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
         int flags = ::fcntl(fd_, F_GETFL, 0);
         if (::fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
         {
-            MMA1_THROW(SystemException()) << fmt::format_ex(
-                u"Can't configure StreamSocketConnection for AIO {}:{}:{}",
+            MMA1_THROW(SystemException()) << format_ex(
+                "Can't configure StreamSocketConnection for AIO {}:{}:{}",
                 ip_address_, ip_port_, fd_
             );
         }
@@ -97,8 +97,8 @@ void ServerSocketConnectionImpl::close()
 
         if (::close(fd_) < 0)
         {
-            MMA1_THROW(SystemException()) << fmt::format_ex(
-                u"Can't close socket {}:{}",
+            MMA1_THROW(SystemException()) << format_ex(
+                "Can't close socket {}:{}",
                 ip_address_, ip_port_
             );
         }
@@ -133,8 +133,8 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
             return 0;
         }
         else {
-            MMA1_THROW(SystemException()) << fmt::format_ex(
-                u"Error reading from socket connection for {}:{}:{}",
+            MMA1_THROW(SystemException()) << format_ex(
+                "Error reading from socket connection for {}:{}:{}",
                 ip_address_, ip_port_, fd_
             );
         }
@@ -167,8 +167,8 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
             return 0;
         }
         else {
-            MMA1_THROW(SystemException()) << fmt::format_ex(
-                u"Error writing to socket connection for {}:{}:{}",
+            MMA1_THROW(SystemException()) << format_ex(
+                "Error writing to socket connection for {}:{}:{}",
                 ip_address_, ip_port_, fd_
             );
         }

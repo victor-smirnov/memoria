@@ -29,14 +29,14 @@ namespace v1 {
 
 class DefaultVertexProperty: public IVertexProperty {
     Vertex vertex_;
-    U16String key_;
+    U8String key_;
     Any value_;
 public:
-    DefaultVertexProperty(Vertex vertex, const U16String& key, Any value):
+    DefaultVertexProperty(Vertex vertex, const U8String& key, Any value):
         vertex_(vertex), key_(key), value_(value)
     {}
 
-    virtual const U16String& key() const
+    virtual const U8String& key() const
     {
         return key_;
     }
@@ -66,7 +66,7 @@ public:
         return EmptyCollection<Property>::make();
     }
 
-    static VertexProperty make(Vertex vertex, const U16String& key, const Any& value)
+    static VertexProperty make(Vertex vertex, const U8String& key, const Any& value)
     {
         return VertexProperty(StaticPointerCast<IVertexProperty>(MakeLocalShared<DefaultVertexProperty>(vertex, key, value)));
     }
@@ -79,15 +79,15 @@ public:
 template <typename Fn>
 class FnVertexProperty: public IVertexProperty {
     Vertex vertex_;
-    U16String key_;
+    U8String key_;
     Fn fn_;
     mutable Any value_;
 public:
-    FnVertexProperty(Vertex vertex, const U16String& key, Fn&& fn):
+    FnVertexProperty(Vertex vertex, const U8String& key, Fn&& fn):
         vertex_(vertex), key_(key), fn_(std::move(fn))
     {}
 
-    virtual const U16String& key() const
+    virtual const U8String& key() const
     {
         return key_;
     }
@@ -123,7 +123,7 @@ public:
 
 
 template <typename Fn>
-static VertexProperty make_fn_vertex_property(Vertex vertex, const U16String& key, Fn&& fn)
+static VertexProperty make_fn_vertex_property(Vertex vertex, const U8String& key, Fn&& fn)
 {
     return VertexProperty(StaticPointerCast<IVertexProperty>(MakeLocalShared<FnVertexProperty<Fn>>(vertex, key, std::forward<Fn>(fn))));
 }

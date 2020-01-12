@@ -543,3 +543,66 @@ std::istream& operator>>(std::istream& in, UnsignedAccumulator<BitLength>& other
 
 }}
 
+namespace fmt {
+
+template <size_t BitLength>
+struct formatter<memoria::v1::UnsignedAccumulator<BitLength>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::v1::UnsignedAccumulator<BitLength>& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", d.to_bmp().str());
+    }
+};
+
+template <size_t BitLength>
+struct formatter<memoria::v1::_::UAccBmpInt<BitLength>> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::v1::_::UAccBmpInt<BitLength>& d, FormatContext& ctx)
+    {
+        return format_to(ctx.out(), "{}", d.str());
+    }
+};
+
+template <>
+struct formatter<boost::multiprecision::uint256_t> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const boost::multiprecision::uint256_t& d, FormatContext& ctx)
+    {
+        return format_to(ctx.out(), "{}", d.str());
+    }
+};
+
+template <
+        unsigned MinBits,
+        unsigned MaxBits,
+        boost::multiprecision::cpp_integer_type SignType,
+        boost::multiprecision::cpp_int_check_type Checked,
+        class Allocator
+>
+struct formatter<
+        boost::multiprecision::number<
+            boost::multiprecision::cpp_int_backend<MinBits, MaxBits, SignType, Checked, Allocator>
+        >
+> {
+
+    using IntT = boost::multiprecision::number<
+        boost::multiprecision::cpp_int_backend<
+            MinBits, MaxBits, SignType, Checked, Allocator
+        >
+    >;
+
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const IntT& d, FormatContext& ctx)
+    {
+        return format_to(ctx.out(), "{}", d.str());
+    }
+};
+
+}

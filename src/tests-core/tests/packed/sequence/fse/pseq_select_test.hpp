@@ -139,12 +139,12 @@ public:
         auto result1 = seq->selectFw(start, symbol, rank);
         auto result2 = selectFW(seq, start, rank, symbol);
 
-        assert_equals(result1.is_found(),  result2.is_found(), u"{} {}", start, rank);
+        assert_equals(result1.is_found(),  result2.is_found(), "{} {}", start, rank);
 
         if (!result1.is_found())
         {
             try {
-                assert_equals(result1.rank(), result2.rank(), u"{} {}", start, rank);
+                assert_equals(result1.rank(), result2.rank(), "{} {}", start, rank);
             }
             catch (...) {
                 seq->dump(this->out());
@@ -152,7 +152,7 @@ public:
             }
         }
         else {
-            assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {}", start, rank);
+            assert_equals(result1.local_pos(),  result2.local_pos(), "{} {}", start, rank);
         }
     }
 
@@ -161,14 +161,14 @@ public:
         auto result1 = seq->selectBw(start, symbol, rank);
         auto result2 = selectBW(seq, start, rank, symbol);
 
-        assert_equals(result1.is_found(),  result2.is_found(), u"{} {}", start, rank);
+        assert_equals(result1.is_found(),  result2.is_found(), "{} {}", start, rank);
 
         if (!result1.is_found())
         {
-            assert_equals(result1.rank(), result2.rank(), u"{} {}", start, rank);
+            assert_equals(result1.rank(), result2.rank(), "{} {}", start, rank);
         }
         else {
-            assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {}", start, rank);
+            assert_equals(result1.local_pos(),  result2.local_pos(), "{} {}", start, rank);
         }
     }
 
@@ -372,17 +372,17 @@ public:
 
             auto result3 = selectFW(seq, 0, rank, 1);
 
-            assert_equals(result1.is_found(), result2.is_found(), u"{}", rank);
-            assert_equals(result1.is_found(), result3.is_found(), u"{}", rank);
+            assert_equals(result1.is_found(), result2.is_found(), "{}", rank);
+            assert_equals(result1.is_found(), result3.is_found(), "{}", rank);
 
             if (result1.is_found())
             {
-                assert_equals(result1.local_pos(), result2.local_pos(), u"{}", rank);
-                assert_equals(result1.local_pos(), result3.local_pos(), u"{}", rank);
+                assert_equals(result1.local_pos(), result2.local_pos(), "{}", rank);
+                assert_equals(result1.local_pos(), result3.local_pos(), "{}", rank);
             }
             else {
-                assert_equals(result1.rank(), result2.rank(), u"{}", rank);
-                assert_equals(result1.rank(), result3.rank(), u"{}", rank);
+                assert_equals(result1.rank(), result2.rank(), "{}", rank);
+                assert_equals(result1.rank(), result3.rank(), "{}", rank);
             }
         }
     }
@@ -452,14 +452,14 @@ public:
                 {
                     SelectResult result = seq->selectBw(start, symbol, pair.rank);
 
-                    assert_equals(true, result.is_found(), u"{} {}", start, pair.rank);
+                    assert_equals(true, result.is_found(), "{} {}", start, pair.rank);
 
                     if (!result.is_found())
                     {
-                        assert_equals(result.rank(), pair.rank, u"{} {}", start, pair.rank);
+                        assert_equals(result.rank(), pair.rank, "{} {}", start, pair.rank);
                     }
                     else {
-                        assert_equals(result.local_pos(),  pair.idx, u"{} {}", start, pair.rank);
+                        assert_equals(result.local_pos(),  pair.idx, "{} {}", start, pair.rank);
                     }
                 }
             }

@@ -63,7 +63,7 @@ using STTNHelper = decltype(test_for_standard_type_name<T>(0));
 template<typename T>
 struct TypeNameFactory
 {
-    static U16String name()
+    static U8String name()
     {
         UniquePtr<char> buf {
             abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr),
@@ -72,10 +72,10 @@ struct TypeNameFactory
 
         if (buf)
         {
-            return U8String(std::string(buf.get())).to_u16();
+            return U8String(std::string(buf.get()));
         }
         else {
-            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Demaingling failed for type {}", cname());
+            MMA1_THROW(RuntimeException()) << format_ex("Demaingling failed for type {}", cname());
         }
     }
 
@@ -96,7 +96,7 @@ static inline U8String demangle(const char* name)
         return U8String(std::string(buf.get()));
     }
     else {
-        MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Demaingling failed for type {}", name);
+        MMA1_THROW(RuntimeException()) << format_ex("Demaingling failed for type {}", name);
     }
 }
 
@@ -104,8 +104,8 @@ static inline U8String demangle(const char* name)
 template<typename T>
 struct TypeNameFactory
 {
-    static U16String name() {
-        return U8String(typeid(T).name()).to_u16();
+    static U8String name() {
+        return U8String(typeid(T).name());
     }
 
     static const char* cname() {
@@ -132,7 +132,7 @@ struct StandardTypeName;
 template<typename T>
 struct StandardTypeName<T, true>
 {
-    static U16String name()
+    static U8String name()
     {
         return T::standard_type_name();
     }
@@ -141,21 +141,21 @@ struct StandardTypeName<T, true>
 template<typename T>
 struct StandardTypeName<T, false>
 {
-    static U16String name()
+    static U8String name()
     {
-        return TypeNameFactory<T>::name();
+        return TypeNameFactory<T>::name().to_u16();
     }
 };
 
 
 template <typename T>
-U16String Type2Str() {
+U8String Type2Str() {
     return TypeNameFactory<T>::name();
 }
 
 
 template <typename T>
-U16String StandardType2Str() {
+U8String StandardType2Str() {
     return StandardTypeName<T>::name();
 }
 
@@ -163,45 +163,45 @@ U16String StandardType2Str() {
 
 template<>
 struct StandardTypeName<uint8_t, false> {
-    static U16String name() {
-        return u"UInt8";
+    static U8String name() {
+        return "UInt8";
     }
 };
 
 template<>
 struct StandardTypeName<int8_t, false> {
-    static U16String name() {
-        return u"Int8";
+    static U8String name() {
+        return "Int8";
     }
 };
 
 
 template<>
 struct StandardTypeName<uint16_t, false> {
-    static U16String name() {
-        return u"UInt16";
+    static U8String name() {
+        return "UInt16";
     }
 };
 
 template<>
 struct StandardTypeName<int16_t, false> {
-    static U16String name() {
-        return u"Int16";
+    static U8String name() {
+        return "Int16";
     }
 };
 
 
 template<>
 struct StandardTypeName<uint32_t, false> {
-    static U16String name() {
-        return u"UInt32";
+    static U8String name() {
+        return "UInt32";
     }
 };
 
 template<>
 struct StandardTypeName<int32_t, false> {
-    static U16String name() {
-        return u"Int32";
+    static U8String name() {
+        return "Int32";
     }
 };
 
@@ -209,58 +209,58 @@ struct StandardTypeName<int32_t, false> {
 
 template<>
 struct StandardTypeName<uint64_t, false> {
-    static U16String name() {
-        return u"UInt64";
+    static U8String name() {
+        return "UInt64";
     }
 };
 
 template<>
 struct StandardTypeName<int64_t, false> {
-    static U16String name() {
-        return u"Int64";
+    static U8String name() {
+        return "Int64";
     }
 };
 
 
 template<>
 struct StandardTypeName<double, false> {
-    static U16String name() {
-        return u"Double";
+    static U8String name() {
+        return "Double";
     }
 };
 
 template<>
 struct StandardTypeName<float, false> {
-    static U16String name() {
-        return u"Float";
+    static U8String name() {
+        return "Float";
     }
 };
 
 template<>
 struct StandardTypeName<bool, false> {
-    static U16String name() {
-        return u"Boolean";
+    static U8String name() {
+        return "Boolean";
     }
 };
 
 template<>
 struct StandardTypeName<char, false> {
-    static U16String name() {
-        return u"Char8";
+    static U8String name() {
+        return "Char8";
     }
 };
 
 template<>
 struct StandardTypeName<char16_t, false> {
-    static U16String name() {
-        return u"Char16";
+    static U8String name() {
+        return "Char16";
     }
 };
 
 template<>
 struct StandardTypeName<char32_t, false> {
-    static U16String name() {
-        return u"Char32";
+    static U8String name() {
+        return "Char32";
     }
 };
 

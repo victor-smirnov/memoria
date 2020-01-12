@@ -204,7 +204,7 @@ static inline std::unique_ptr<IOSymbolSequence> make_packed_rle_symbol_sequence(
         return std::make_unique<PackedRLESymbolSequence<7>>();
     }
     else {
-        MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Unsupported alphabe_size value: {}", alphabet_size);
+        MMA1_THROW(RuntimeException()) << format_ex("Unsupported alphabe_size value: {}", alphabet_size);
     }
 }
 

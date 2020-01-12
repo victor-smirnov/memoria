@@ -50,7 +50,7 @@ int main(int argc, char** argv, char** envp)
         std::string coverage = app().options()["coverage"].as<std::string>();
         if (!tests::coverage_from_string(coverage))
         {
-            engine().coutln(u"Invalid test coverage type: {}", coverage);
+            engine().coutln("Invalid test coverage type: {}", coverage);
             return 1;
         }
 
@@ -62,7 +62,7 @@ int main(int argc, char** argv, char** envp)
 
         if (app().options().count("test") > 0)
         {
-            U16String test_name = U16String(app().options()["test"].as<std::string>());
+            U8String test_name = U8String(app().options()["test"].as<std::string>());
 
             bool replay = app().options().count("replay") > 0;
 

@@ -33,10 +33,10 @@ class PipeInputStreamImpl: public IPipeInputStream {
 	bool connected_{false};
 
 public:
-    PipeInputStreamImpl(const char16_t* name, size_t buffer_size = 4096): path_(name)
+    PipeInputStreamImpl(const char* name, size_t buffer_size = 4096): path_(name)
 	{
 		handle_ = CreateNamedPipeW(
-			U16String(name).to_uwstring().to_std_string().data(), // pipe name 
+			U8String(name).to_uwstring().to_std_string().data(), // pipe name 
 			PIPE_ACCESS_DUPLEX |		// read/write access 
 			FILE_FLAG_OVERLAPPED,		// overlapped mode 
 			PIPE_TYPE_BYTE |
@@ -53,11 +53,11 @@ public:
 		{
 			if (CreateIoCompletionPort(handle_, engine().io_poller().completion_port(), (u_long)0, 0) == INVALID_HANDLE_VALUE)
 			{
-				MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't open pipe for reading: {}", path_);
+				MMA1_THROW(SystemException()) << format_ex("Can't open pipe for reading: {}", path_);
 			}
 		}
 		else {
-			MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't open pipe for reading: {}", path_);
+			MMA1_THROW(SystemException()) << format_ex("Can't open pipe for reading: {}", path_);
 		}
     }
 
@@ -90,15 +90,15 @@ public:
 						return;
 					}
 					else {
-						MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(u"Error connecting to pipe {}", path_);
+						MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex("Error connecting to pipe {}", path_);
 					}
 				}
 				else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY || error_code == ERROR_PIPE_LISTENING) {
 					message.wait_for(); // jsut sleep and wait for required resources to appear
 				}
 				else {
-					std::cout << GetErrorMessage(error_code) << " " << fmt::format8(u"Error connecting to pipe {}", path_) << std::endl;
-					MMA1_THROW(SystemException(error_code)) << fmt::format_ex(u"Error connecting to pipe {}", path_);
+					std::cout << GetErrorMessage(error_code) << " " << format8("Error connecting to pipe {}", path_) << std::endl;
+					MMA1_THROW(SystemException(error_code)) << format_ex("Error connecting to pipe {}", path_);
 				}
 			}
 		}
@@ -141,14 +141,14 @@ public:
 					return 0;
 				}
 				else {
-					MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(u"Error reading from file {}", path_);
+					MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex("Error reading from file {}", path_);
 				}
 			}
 			else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY || error_code == ERROR_PIPE_LISTENING) {
 				message.wait_for(); // jsut sleep and wait for required resources to appear
 			}
 			else {
-				MMA1_THROW(SystemException(error_code)) << fmt::format_ex(u"Error starting read from file {}", path_);
+				MMA1_THROW(SystemException(error_code)) << format_ex("Error starting read from file {}", path_);
 			}
 		}
 	}
@@ -180,10 +180,10 @@ class PipeOutputStreamImpl: public IPipeOutputStream {
 	bool connected_{ false };
 
 public:
-    PipeOutputStreamImpl(const char16_t* name, size_t buffer_size = 4096): path_(name)
+    PipeOutputStreamImpl(const char* name, size_t buffer_size = 4096): path_(name)
     {
 		handle_ = CreateNamedPipeW(
-			U16String(name).to_uwstring().to_std_string().data(), // pipe name 
+			U8String(name).to_uwstring().to_std_string().data(), // pipe name 
 			PIPE_ACCESS_DUPLEX |		// read/write access 
 			FILE_FLAG_OVERLAPPED,		// overlapped mode 
 			PIPE_TYPE_BYTE |
@@ -200,11 +200,11 @@ public:
 		{
 			if (CreateIoCompletionPort(handle_, engine().io_poller().completion_port(), (u_long)0, 0) == INVALID_HANDLE_VALUE)
 			{
-				MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't open pipe for writing: {}", path_);
+				MMA1_THROW(SystemException()) << format_ex("Can't open pipe for writing: {}", path_);
 			}
 		}
 		else {
-			MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't open pipe for writing: {}", name);
+			MMA1_THROW(SystemException()) << format_ex("Can't open pipe for writing: {}", name);
 		}
     }
 
@@ -233,15 +233,15 @@ public:
 						return;
 					}
 					else {
-						MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(u"Error connecting to pipe {}", path_);
+						MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex("Error connecting to pipe {}", path_);
 					}
 				}
 				else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY || error_code == ERROR_PIPE_LISTENING) {
 					message.wait_for(); // jsut sleep and wait for required resources to appear
 				}
 				else {
-					std::cout << GetErrorMessage(error_code) << " " << fmt::format8(u"Error connecting to pipe {}", path_) << std::endl;
-					MMA1_THROW(SystemException(error_code)) << fmt::format_ex(u"Error connecting to pipe {}", path_);
+					std::cout << GetErrorMessage(error_code) << " " << format8("Error connecting to pipe {}", path_) << std::endl;
+					MMA1_THROW(SystemException(error_code)) << format_ex("Error connecting to pipe {}", path_);
 				}
 			}
 		}
@@ -294,15 +294,15 @@ public:
 					return overlapped.size_;
 				}
 				else {
-					MMA1_THROW(SystemException(overlapped.error_code_)) << fmt::format_ex(u"Error writing to file {}", path_);
+					MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex("Error writing to file {}", path_);
 				}
 			}
 			else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY || error_code == ERROR_PIPE_LISTENING) {
 				message.wait_for(); // jsut sleep and wait for required resources to appear
 			}
 			else {
-				std::cout << GetErrorMessage(error_code) << " " << fmt::format8(u"Error starting write to file {}", path_) << std::endl;
-				MMA1_THROW(SystemException(error_code)) << fmt::format_ex(u"Error starting write to file {}", path_);
+				std::cout << GetErrorMessage(error_code) << " " << format8("Error starting write to file {}", path_) << std::endl;
+				MMA1_THROW(SystemException(error_code)) << format_ex("Error starting write to file {}", path_);
 			}
 		}
 	}
@@ -328,11 +328,11 @@ public:
 };
 
 
-PipeInputStream open_input_pipe(const char16_t* name) {
+PipeInputStream open_input_pipe(const char* name) {
     return PipeInputStream(MakeLocalShared<PipeInputStreamImpl>(name));
 }
 
-PipeOutputStream open_output_pipe(const char16_t* name){
+PipeOutputStream open_output_pipe(const char* name){
     return PipeOutputStream(MakeLocalShared<PipeOutputStreamImpl>(name));
 }
 

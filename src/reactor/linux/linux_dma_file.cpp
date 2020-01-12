@@ -115,7 +115,7 @@ DMAFileImpl::DMAFileImpl(filesystem::path file_path, FileFlags flags, FileMode m
     });
     
     if (fd_ < 0) {
-        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't open file {}", file_path);
+        MMA1_THROW(SystemException()) << format_ex("Can't open file {}", file_path);
     }
 }
 
@@ -130,7 +130,7 @@ void DMAFileImpl::close()
 {
     if ((!closed_) && (::close(fd_) < 0))
     {
-        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't close file ", path_);
+        MMA1_THROW(SystemException()) << format_ex("Can't close file ", path_);
     }
     closed_ = true;
 }
@@ -155,14 +155,14 @@ size_t DMAFileImpl::process_single_io(uint8_t* buffer, uint64_t offset, size_t s
             message.wait_for();
             
             if (message.size() < 0) {
-                MMA1_THROW(SystemException(errno)) << fmt::format_ex(u"AIO {} operation failed for file {}", opname, path_);
+                MMA1_THROW(SystemException(errno)) << format_ex("AIO {} operation failed for file {}", opname, path_);
             }
             
             return message.size();
         }
         else if (res < 0)
         {
-            MMA1_THROW(SystemException(errno)) << fmt::format_ex(u"Can't submit AIO  {} operation for file {}", opname, path_);
+            MMA1_THROW(SystemException(errno)) << format_ex("Can't submit AIO  {} operation for file {}", opname, path_);
         }
     }
 }
@@ -273,7 +273,7 @@ size_t DMAFileImpl::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
         } 
         else if (res < 0)
         {
-            MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't submit AIO batch operations for file {}", path_);
+            MMA1_THROW(SystemException()) << format_ex("Can't submit AIO batch operations for file {}", path_);
         }
         else {
             return 0;
@@ -297,7 +297,7 @@ DMABuffer allocate_dma_buffer(size_t size)
 			return buf;
 		}
 		else {
-            MMA1_THROW(OOMException()) << fmt::format_ex(u"Cant allocate dma buffer of {} bytes", size);
+            MMA1_THROW(OOMException()) << format_ex("Cant allocate dma buffer of {} bytes", size);
 		}
 	}
 	else {

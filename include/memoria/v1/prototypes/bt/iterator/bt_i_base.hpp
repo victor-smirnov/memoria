@@ -308,7 +308,7 @@ public:
 
     U8String iter_get_dump_header() const
     {
-        return U8String(self().ctr().type_name_str()) + " Iterator State";
+        return self().ctr().type_name_str() + " Iterator State";
     }
 
     void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const

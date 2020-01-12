@@ -104,7 +104,7 @@ struct PipeStreams {
 PipeStreams open_pipe();
 PipeStreams duplicate_pipe(IOHandle input, IOHandle output);
 
-PipeInputStream open_input_pipe(const char16_t* name);
-PipeOutputStream open_output_pipe(const char16_t* name);
+PipeInputStream open_input_pipe(const char* name);
+PipeOutputStream open_output_pipe(const char* name);
 
 }}}

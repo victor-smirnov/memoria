@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
         double sent_speed = sent_blocks_cnt / duration;
         double recv_speed = received_blocks_cnt / duration;
 
-        std::cout << fmt::format(u"Time: {}s, blocks sent: {}, block recv: {}, speed: {} {} blocks/sec", FormatTime(duration * 1000), sent_blocks_cnt, received_blocks_cnt, sent_speed, recv_speed) << std::endl;
+        std::cout << fmt::format("Time: {}s, blocks sent: {}, block recv: {}, speed: {} {} blocks/sec", FormatTime(duration * 1000), sent_blocks_cnt, received_blocks_cnt, sent_speed, recv_speed) << std::endl;
     }
     catch (std::exception& e)
     {

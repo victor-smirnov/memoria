@@ -115,13 +115,13 @@ public:
     {
         auto result1 = seq->countFW(start);
 
-        assert_equals(result1.count(),  rank, u"{} {}", start, rank);
+        assert_equals(result1.count(),  rank, "{} {}", start, rank);
     }
 
     void assertCountBW(const SeqPtr& seq, int32_t start, int32_t rank)
     {
         auto result1 = seq->countBW(start);
-        assert_equals(result1.count(),  rank, u"{} {}", start, rank);
+        assert_equals(result1.count(),  rank, "{} {}", start, rank);
     }
 
 

@@ -292,8 +292,8 @@ public:
         if (space_delta < 0 && free_space < -space_delta)
         {
             MMA1_THROW(RuntimeException())
-                    << fmt::format_ex(
-                           u"Resizing block {} has insufficient space for downsizing: available {}, requied {}",
+                    << format_ex(
+                           "Resizing block {} has insufficient space for downsizing: available {}, requied {}",
                            uuid(),
                            free_space,
                            -space_delta

@@ -168,7 +168,7 @@ public:
                 v[b] = tree->value(b, c);
             }
 
-            assert_equals(vals[c], v, u"Index: {}", c);
+            assert_equals(vals[c], v, "Index: {}", c);
         }
     }
 
@@ -185,7 +185,7 @@ public:
                 v2[b] = tree2->value(b, c);
             }
 
-            assert_equals(v1, v2, u"Index: {}", c);
+            assert_equals(v1, v2, "Index: {}", c);
         }
     }
 

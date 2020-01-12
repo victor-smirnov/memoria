@@ -35,7 +35,7 @@ using Any = boost::any;
 
 enum class Direction {EDGE_IN, EDGE_OUT, BOTH};
 
-using LabelList = std::vector<U16String>;
+using LabelList = std::vector<U8String>;
 using IDList = std::vector<Any>;
 
 struct GraphException: virtual RuntimeException {};
@@ -61,6 +61,6 @@ static inline bool is_in(Direction dir) {
     return dir == Direction::BOTH || dir == Direction::EDGE_IN;
 }
 
-bool contains(const LabelList& list, const U16String& label);
+bool contains(const LabelList& list, const U8String& label);
 
 }}

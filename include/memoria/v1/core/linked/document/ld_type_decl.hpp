@@ -22,6 +22,8 @@
 #include <memoria/v1/core/linked/document/ld_array.hpp>
 #include <memoria/v1/core/linked/document/ld_value.hpp>
 
+#include <memoria/v1/core/strings/format.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -364,3 +366,18 @@ struct DataTypeTraits<LDTypeDeclaration> {
 
 
 }}
+
+namespace fmt {
+
+template <>
+struct formatter<memoria::v1::LDTypeDeclarationView> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::v1::LDTypeDeclarationView& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", d.to_standard_string());
+    }
+};
+
+
+}

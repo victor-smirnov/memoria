@@ -78,8 +78,8 @@ public:
                 available_size = av >= size ? size : av;
             }
             else {
-                MMA1_THROW(SystemException()) << fmt::format_ex(
-                    u"Error reading from pipe {}", fd_
+                MMA1_THROW(SystemException()) << format_ex(
+                    "Error reading from pipe {}", fd_
                 );
             }
         }
@@ -114,7 +114,7 @@ public:
 
             if (::close(fd_) < 0)
             {
-                MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't close pipe {}", fd_);
+                MMA1_THROW(SystemException()) << format_ex("Can't close pipe {}", fd_);
             }
         }
     }
@@ -191,8 +191,8 @@ public:
                 available_size = av >= size ? size : av;
             }
             else {
-                MMA1_THROW(SystemException()) << fmt::format_ex(
-                    u"Error writing to pipe {}", fd_
+                MMA1_THROW(SystemException()) << format_ex(
+                    "Error writing to pipe {}", fd_
                 );
             }
         }
@@ -227,7 +227,7 @@ public:
 
             if (::close(fd_) < 0)
             {
-                MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't close pipe {}", fd_);
+                MMA1_THROW(SystemException()) << format_ex("Can't close pipe {}", fd_);
             }
         }
     }
@@ -253,11 +253,11 @@ PipeStreams open_pipe()
     };
 }
 
-PipeInputStream open_input_pipe(const char16_t* name) {
+PipeInputStream open_input_pipe(const char* name) {
     return PipeInputStream();
 }
 
-PipeOutputStream open_output_pipe(const char16_t* name){
+PipeOutputStream open_output_pipe(const char* name){
     return PipeOutputStream();
 }
 

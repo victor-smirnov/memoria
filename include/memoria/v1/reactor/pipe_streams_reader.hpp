@@ -52,6 +52,10 @@ public:
 		reader_.join();
 	}
 
+    U8String to_u8() const {
+        return U8String(tools::ptr_cast<const char>(buffer_.data()), buffer_.size());
+    }
+
 	U16String to_u16() const {
 		return U16String(tools::ptr_cast<const char>(buffer_.data()), buffer_.size());
 	}

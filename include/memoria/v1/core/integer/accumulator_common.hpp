@@ -103,8 +103,6 @@ static inline bool long_sub_from(uint64_t* dest, const uint64_t* x, const uint64
 
     return carry_out == 0;
 }
-
-
 }
 
 }}

@@ -60,8 +60,8 @@ public:
         return block_id_;
     }
 
-    virtual U16String label() const {
-        return u"block";
+    virtual U8String label() const {
+        return "block";
     }
 
     virtual void remove() {

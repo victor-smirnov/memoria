@@ -127,7 +127,7 @@ public:
                 return T2T<uint8_t*>(block_)[idx];
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
+                MMA1_THROW(BoundsException()) << WhatInfo(format8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
             }
         }
         else {
@@ -144,7 +144,7 @@ public:
                 T2T<uint8_t*>(block_)[idx] = (uint8_t)value;
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
+                MMA1_THROW(BoundsException()) << WhatInfo(format8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
             }
         }
         else {
@@ -229,7 +229,7 @@ public:
                 return T2T<uint8_t*>(block_)[idx];
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(fmt::format8(u"Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
+                MMA1_THROW(BoundsException()) << WhatInfo(format8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
             }
 
         }

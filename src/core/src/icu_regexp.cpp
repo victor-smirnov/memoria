@@ -227,6 +227,20 @@ std::vector<U16String> ICURegexPattern::split(const U16String& str) {
     return pattern_->split(str);
 }
 
+std::vector<U8String> ICURegexPattern::split(const U8String& str)
+{
+    std::vector<U16String> pp = pattern_->split(str.to_u16());
+
+    std::vector<U8String> rr;
+
+    for (U16String token: pp) {
+        rr.emplace_back(token.to_u8());
+    }
+
+    return rr;
+}
+
+
 void ICURegexPattern::split(const CU16ProviderPtr& text, const ICURangeConsumerFn& consumer)
 {
     return pattern_->split(text, consumer);

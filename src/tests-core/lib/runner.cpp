@@ -95,10 +95,10 @@ filesystem::path get_tests_output_path()
     return output_path;
 }
 
-U16String get_test_coverage_str()
+U8String get_test_coverage_str()
 {
     if (app().options().count("coverage") > 0) {
-        return U16String(app().options()["coverage"].as<std::string>());
+        return U8String(app().options()["coverage"].as<std::string>());
     }
     else {
         return "small";
@@ -120,7 +120,7 @@ Optional<TestCoverage> get_test_coverage()
 
 
 
-TestStatus run_single_test(const U16String& test_path)
+TestStatus run_single_test(const U8String& test_path)
 {
     auto test = tests_registry().find_test(test_path);
     if (test)
@@ -128,8 +128,8 @@ TestStatus run_single_test(const U16String& test_path)
         filesystem::path output_dir_base = get_tests_output_path();
         filesystem::path config_path     = get_tests_config_path();
 
-        U16String suite_name;
-        U16String test_name;
+        U8String suite_name;
+        U8String test_name;
 
         std::tie(suite_name, test_name) = TestsRegistry::split_path(test_path);
 
@@ -154,7 +154,7 @@ TestStatus run_single_test(const U16String& test_path)
             }
         }
 
-        reactor::engine().coutln(u"seed = {}", seed);
+        reactor::engine().coutln("seed = {}", seed);
 
         Seed(seed);
         SeedBI(seed);
@@ -182,10 +182,10 @@ TestStatus run_single_test(const U16String& test_path)
 
         if (ctx.status() == TestStatus::PASSED)
         {
-            reactor::engine().coutln(u"PASSED in {}s", FormatTime(end_time - start_time));
+            reactor::engine().coutln("PASSED in {}s", FormatTime(end_time - start_time));
         }
         else {
-            reactor::engine().coutln(u"FAILED in {}s", FormatTime(end_time - start_time));
+            reactor::engine().coutln("FAILED in {}s", FormatTime(end_time - start_time));
             if (ctx.ex())
             {
                 dump_exception(ctx.out(), ctx.ex());
@@ -195,20 +195,20 @@ TestStatus run_single_test(const U16String& test_path)
         return ctx.status();
     }
     else {
-        MMA1_THROW(TestConfigurationException()) << fmt::format_ex(u"No test with path '{}' found", test_path);
+        MMA1_THROW(TestConfigurationException()) << format_ex("No test with path '{}' found", test_path);
     }
 }
 
 
-TestStatus replay_single_test(const U16String& test_path)
+TestStatus replay_single_test(const U8String& test_path)
 {
     auto test = tests_registry().find_test(test_path);
     if (test)
     {
         filesystem::path output_dir_base = get_tests_output_path();
 
-        U16String suite_name;
-        U16String test_name;
+        U8String suite_name;
+        U8String test_name;
 
         std::tie(suite_name, test_name) = TestsRegistry::split_path(test_path);
 
@@ -236,7 +236,7 @@ TestStatus replay_single_test(const U16String& test_path)
 
         }
 
-        reactor::engine().coutln(u"seed = {}", seed);
+        reactor::engine().coutln("seed = {}", seed);
         Seed(seed);
         SeedBI(seed);
 
@@ -257,10 +257,10 @@ TestStatus replay_single_test(const U16String& test_path)
 
         if (ctx.status() == TestStatus::PASSED)
         {
-            reactor::engine().coutln(u"PASSED in {}s", FormatTime(end_time - start_time));
+            reactor::engine().coutln("PASSED in {}s", FormatTime(end_time - start_time));
         }
         else {
-            reactor::engine().coutln(u"FAILED in {}s", FormatTime(end_time - start_time));
+            reactor::engine().coutln("FAILED in {}s", FormatTime(end_time - start_time));
             if (ctx.ex())
             {
                 dump_exception(ctx.out(), ctx.ex());
@@ -270,23 +270,23 @@ TestStatus replay_single_test(const U16String& test_path)
         return ctx.status();
     }
     else {
-        MMA1_THROW(TestConfigurationException()) << fmt::format_ex(u"No test with path '{}' found", test_path);
+        MMA1_THROW(TestConfigurationException()) << format_ex("No test with path '{}' found", test_path);
     }
 }
 
 
 
 template <typename T>
-U16String to_string(const std::vector<T>& array)
+U8String to_string(const std::vector<T>& array)
 {
-    U16String data = u"[";
+    U8String data = "[";
 
     bool first = true;
 
     for (const auto& ee : array)
     {
         if (!first) {
-            data += u", ";
+            data += ", ";
         }
         else {
             first = false;
@@ -295,10 +295,10 @@ U16String to_string(const std::vector<T>& array)
         std::stringstream ss;
         ss << ee;
 
-        data += U16String(ss.str());
+        data += U8String(ss.str());
     }
 
-    data += u"]";
+    data += "]";
     return data;
 }
 
@@ -348,7 +348,7 @@ void run_tests()
     filesystem::path output_dir_base = get_tests_output_path();
 
     filesystem::path config_path    = get_tests_config_path();
-    U16String config_file           = U16String(config_path.string());
+    U8String config_file           = U8String(config_path.string());
 
     YAML::Node tests_config;
 
@@ -366,8 +366,8 @@ void run_tests()
         auto suite_node     = tests_config[suite.first.to_u8().data()];
         auto suite_enabled  = is_enabled(suite_node);
 
-        std::vector<U16String> failed;
-        std::vector<U16String> crashed;
+        std::vector<U8String> failed;
+        std::vector<U8String> crashed;
 		
         int32_t tests_run{};
         int32_t passed{};
@@ -387,34 +387,34 @@ void run_tests()
 
                 filesystem::create_directories(test_output_dir);
 
-                U16String test_path = suite.first + u"/" + test.first;
+                U8String test_path = suite.first + "/" + test.first;
 
-                std::vector<U16String> args;
+                std::vector<U8String> args;
 
-                args.emplace_back(u"tests2");
-                args.emplace_back(u"--test");
+                args.emplace_back("tests2");
+                args.emplace_back("--test");
                 args.emplace_back(test_path);
 
                 if (!config_file.is_empty()) {
-                    args.emplace_back(u"--config");
+                    args.emplace_back("--config");
                     args.emplace_back(config_file);
                 }
 
                 if (test_node["threads"])
                 {
-                    args.emplace_back(u"-t");
+                    args.emplace_back("-t");
                     args.emplace_back(test_node["threads"].as<std::string>());
                 }
                 else {
                     auto state = test.second->create_state();
-                    args.emplace_back(u"-t");
+                    args.emplace_back("-t");
                     args.emplace_back(std::to_string(state->threads()));
                 }
 
-                args.emplace_back(u"--output");
-                args.emplace_back(U16String(output_dir_base.string()));
+                args.emplace_back("--output");
+                args.emplace_back(U8String(output_dir_base.string()));
 
-                args.emplace_back(u"--coverage");
+                args.emplace_back("--coverage");
                 args.emplace_back(get_test_coverage_str());
 
                 reactor::Process process = reactor::ProcessBuilder::create(reactor::get_program_path())
@@ -462,17 +462,17 @@ void run_tests()
         {
             if (failed.size() == 0 && crashed.size() == 0)
             {
-                reactor::engine().coutln(u"{}: PASSED ({})", suite.first, passed);
+                reactor::engine().coutln("{}: PASSED ({})", suite.first, passed);
             }
             else if (failed.size() > 0 && crashed.size() > 0)
             {
-                reactor::engine().coutln(u"{}: PASSED ({}); FAILED {}; CRASHED {}", suite.first, passed, to_string(failed), to_string(crashed));
+                reactor::engine().coutln("{}: PASSED ({}); FAILED {}; CRASHED {}", suite.first, passed, to_string(failed), to_string(crashed));
             }
             else if (failed.size() > 0) {
-                reactor::engine().coutln(u"{}: PASSED ({}); FAILED {}", suite.first, passed, to_string(failed));
+                reactor::engine().coutln("{}: PASSED ({}); FAILED {}", suite.first, passed, to_string(failed));
             }
             else {
-                reactor::engine().coutln(u"{}: PASSED ({}); CRASHED {}", suite.first, passed, to_string(crashed));
+                reactor::engine().coutln("{}: PASSED ({}); CRASHED {}", suite.first, passed, to_string(crashed));
             }
         }
     }

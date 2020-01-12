@@ -71,6 +71,7 @@ public:
         ::mprotect( vp, traits_type::page_size(), PROT_NONE);
 #else
         const int result( ::mprotect( vp, traits_type::page_size(), PROT_NONE) );
+        (void)result;
         BOOST_ASSERT( 0 == result);
 #endif
 

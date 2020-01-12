@@ -86,7 +86,7 @@ class PackedAllocatorTest: public TestState {
         {
             for (int32_t c = 0; c < size_; c++)
             {
-                assert_equals(content_[c], data_, u"idx = {}", c);
+                assert_equals(content_[c], data_, "idx = {}", c);
             }
         }
 

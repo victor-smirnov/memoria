@@ -112,12 +112,12 @@ public:
         auto result1 = seq->selectFW(start, rank, symbol);
         auto result2 = selectFW(seq, start, rank, symbol);
 
-        assert_equals(result1.is_found(),  result2.is_found(), u"{} {}", start, rank);
-        assert_equals(result1.rank(),  result2.rank(), u"{} {}", start, rank);
+        assert_equals(result1.is_found(),  result2.is_found(), "{} {}", start, rank);
+        assert_equals(result1.rank(),  result2.rank(), "{} {}", start, rank);
 
         if (result1.is_found())
         {
-            assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {}", start, rank);
+            assert_equals(result1.local_pos(),  result2.local_pos(), "{} {}", start, rank);
         }
     }
 
@@ -128,12 +128,12 @@ public:
         auto result1 = seq->selectBW(start, rank, symbol);
         auto result2 = selectBW(seq, start, rank, symbol);
 
-        assert_equals(result1.is_found(),  result2.is_found(), u"{} {}", start, rank);
-        assert_equals(result1.rank(),  result2.rank(), u"{} {}", start, rank);
+        assert_equals(result1.is_found(),  result2.is_found(), "{} {}", start, rank);
+        assert_equals(result1.rank(),  result2.rank(), "{} {}", start, rank);
 
         if (result1.is_found())
         {
-            assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {}", start, rank);
+            assert_equals(result1.local_pos(),  result2.local_pos(), "{} {}", start, rank);
         }
     }
 
@@ -278,9 +278,9 @@ public:
             auto result1 = seq->selectFW(rank, 1);
             auto result3 = selectFW(seq, -1, rank, 1);
 
-            assert_equals(result1.is_found(), result3.is_found(), u"{}", rank);
-            assert_equals(result1.local_pos(), result3.local_pos(), u"{}", rank);
-            assert_equals(result1.rank(), result3.rank(), u"{}", rank);
+            assert_equals(result1.is_found(), result3.is_found(), "{}", rank);
+            assert_equals(result1.local_pos(), result3.local_pos(), "{}", rank);
+            assert_equals(result1.rank(), result3.rank(), "{}", rank);
         }
 
         auto result1 = seq->selectFW(maxrank_ * 2, 1);
@@ -308,10 +308,10 @@ public:
             auto result1 = seq->selectBW(rank, 1);
             auto result3 = selectBW(seq, seq->size(), rank, 1);
 
-            assert_equals(result1.is_found(), result3.is_found(), u"{}", rank);
-            assert_equals(result1.local_pos(), result3.local_pos(), u"{}", rank);
+            assert_equals(result1.is_found(), result3.is_found(), "{}", rank);
+            assert_equals(result1.local_pos(), result3.local_pos(), "{}", rank);
 
-            assert_equals(result1.rank(), result3.rank(), u"{}", rank);
+            assert_equals(result1.rank(), result3.rank(), "{}", rank);
         }
 
         auto result1 = seq->selectBW(maxrank_ * 2, 1);

@@ -70,8 +70,8 @@ Datum<Varchar> Datum<Varchar>::from_sdn(const LDDocument& sdn_doc)
     }
 
     MMA1_THROW(RuntimeException())
-                << fmt::format_ex(
-                       u"Unsupported data type requested: {}", value.to_standard_string()
+                << format_ex(
+                       "Unsupported data type requested: {}", value.to_standard_string()
                        );
 
 }

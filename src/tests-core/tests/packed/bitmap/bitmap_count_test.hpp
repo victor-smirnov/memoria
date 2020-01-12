@@ -84,7 +84,7 @@ public:
                     count = CountZeroFw(values, start, limit);
                 }
 
-                assert_equals(count, length, u"{} {}", start, length);
+                assert_equals(count, length, "{} {}", start, length);
             }
         }
     }
@@ -134,7 +134,7 @@ public:
                     count = CountZeroBw(values, begin, limit);
                 }
 
-                assert_equals(count, length, u"{} {}", start, length);
+                assert_equals(count, length, "{} {}", start, length);
             }
         }
     }
@@ -142,6 +142,6 @@ public:
 
 #define MMA1_BITMAP_COUNT_SUITE(Name, Type) \
 using Name = BitmapCountTest<Type>;\
-MMA1_CLASS_SUITE(Name, u###Name)
+MMA1_CLASS_SUITE(Name, #Name)
 
 }}}

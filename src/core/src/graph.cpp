@@ -93,7 +93,7 @@ Collection<Vertex> IVertex::vertices(Direction direction, const LabelList& edge_
     return STLCollection<Vertex>::make(std::move(vxx));
 }
 
-VertexProperty IVertex::property(const U16String& name)
+VertexProperty IVertex::property(const U8String& name)
 {
     for (VertexProperty& prop: this->properties())
     {
@@ -105,14 +105,14 @@ VertexProperty IVertex::property(const U16String& name)
     return empty_vertex_property();
 }
 
-VertexProperty IVertex::property(const U16String& name, const Any& value)
+VertexProperty IVertex::property(const U8String& name, const Any& value)
 {
     MMA1_THROW(GraphException()) << WhatCInfo("Property update is not supported");
 }
 
 
 
-bool contains(const LabelList& list, const U16String& label)
+bool contains(const LabelList& list, const U8String& label)
 {
     for (auto& item: list) {
         if (item == label) {

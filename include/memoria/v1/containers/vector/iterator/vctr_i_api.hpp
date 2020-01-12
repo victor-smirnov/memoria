@@ -76,8 +76,8 @@ public:
         }
         else {
             MMA1_THROW(BoundsException()
-                       << fmt::format_ex(
-                           u"Requested index {} is outside of bounds [0, {})",
+                       << format_ex(
+                           "Requested index {} is outside of bounds [0, {})",
                            local_pos,
                            self.iter_leaf_size(0)
                        )
@@ -113,8 +113,8 @@ public:
         }
         else {
             MMA1_THROW(BoundsException()
-                       << fmt::format_ex(
-                           u"Requested index {} is outside of bounds [0, {})",
+                       << format_ex(
+                           "Requested index {} is outside of bounds [0, {})",
                            local_pos,
                            self.iter_leaf_size(0)
                        )

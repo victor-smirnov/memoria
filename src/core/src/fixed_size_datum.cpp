@@ -47,7 +47,7 @@ Datum<DataType> datum_from_sdn_value(const DataType*, const U8StringView& str)
     iss >> ivalue;
 
     if (!iss.eof()) {
-        MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't convert [{}] to {}", tstr, make_datatype_signature_string<BigInt>());
+        MMA1_THROW(RuntimeException()) << format_ex("Can't convert [{}] to {}", tstr, make_datatype_signature_string<BigInt>());
     }
 
     return Datum<DataType>(ivalue);

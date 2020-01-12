@@ -61,6 +61,7 @@ inline bool is_unicode_space(char16_t codeunit)
     return false;
 }
 
+
 class U16String {
 public:
     using CharT = char16_t; 

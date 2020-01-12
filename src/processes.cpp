@@ -48,16 +48,16 @@ int main(int argc, char** argv, char** envp)
             size_t read = out.read(buf, sizeof(buf) - 1);
 
             if (read > 0) {
-                engine().cout(u"{}", T2T<const char*>(buf)) << std::flush;
+                engine().cout("{}", T2T<const char*>(buf)) << std::flush;
             }
         }
 
         process.terminate();
 
-        engine().coutln(u"Joining process {}", "");
+        engine().coutln("Joining process {}", "");
         process.join();
 
-        engine().coutln(u"Exit. Status: {}, exit code: {}", process.status(), process.exit_code());
+        engine().coutln("Exit. Status: {}, exit code: {}", process.status(), process.exit_code());
 
         return 0;
     });

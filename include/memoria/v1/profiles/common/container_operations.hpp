@@ -58,36 +58,36 @@ struct ContainerWalker {
     using BlockID   = ProfileBlockID<Profile>;
     using CtrID     = ProfileCtrID<Profile>;
 
-    virtual void beginAllocator(const char16_t* type, const char16_t* desc)         = 0;
-    virtual void endAllocator()                                                     = 0;
+    virtual void beginAllocator(const char* type, const char* desc)             = 0;
+    virtual void endAllocator()                                                 = 0;
 
-    virtual void beginSnapshot(const char16_t* descr)                               = 0;
-    virtual void endSnapshot()                                                      = 0;
+    virtual void beginSnapshot(const char* descr)                               = 0;
+    virtual void endSnapshot()                                                  = 0;
 
-    virtual void beginSnapshotSet(const char16_t* descr, size_t number)             = 0;
-    virtual void endSnapshotSet()                                                   = 0;
+    virtual void beginSnapshotSet(const char* descr, size_t number)             = 0;
+    virtual void endSnapshotSet()                                               = 0;
 
-    virtual void beginCompositeCtr(const char16_t* descr, const CtrID& name)        = 0;
-    virtual void endCompositeCtr()                                                  = 0;
+    virtual void beginCompositeCtr(const char* descr, const CtrID& name)        = 0;
+    virtual void endCompositeCtr()                                              = 0;
 
-    virtual void beginCtr(const char16_t* descr, const CtrID& name, const CtrID& root) = 0;
+    virtual void beginCtr(const char* descr, const CtrID& name, const CtrID& root) = 0;
     virtual void endCtr()                                                        = 0;
 
     virtual void beginRoot(int32_t idx, const BlockType* block)                  = 0;
     virtual void endRoot()                                                       = 0;
 
-    virtual void ctr_begin_node(int32_t idx, const BlockType* block)                  = 0;
-    virtual void ctr_end_node()                                                       = 0;
+    virtual void ctr_begin_node(int32_t idx, const BlockType* block)             = 0;
+    virtual void ctr_end_node()                                                  = 0;
 
     virtual void rootLeaf(int32_t idx, const BlockType* block)                   = 0;
     virtual void leaf(int32_t idx, const BlockType* block)                       = 0;
 
-    virtual void singleNode(const char16_t* descr, const BlockType* block)       = 0;
+    virtual void singleNode(const char* descr, const BlockType* block)          = 0;
 
-    virtual void beginSection(const char16_t* name)                              = 0;
-    virtual void endSection()                                                    = 0;
+    virtual void beginSection(const char* name)                                 = 0;
+    virtual void endSection()                                                   = 0;
 
-    virtual void content(const char16_t* name, const char16_t* content)          = 0;
+    virtual void content(const char* name, const char* content)                 = 0;
 
     virtual ~ContainerWalker() noexcept {}
 };
@@ -102,19 +102,19 @@ struct ContainerWalkerBase: ContainerWalker<Profile> {
     using typename Base::BlockType;
     using typename Base::CtrID;
 
-    virtual void beginAllocator(const char16_t* type, const char16_t* desc) {}
+    virtual void beginAllocator(const char* type, const char* desc) {}
     virtual void endAllocator() {}
 
-    virtual void beginSnapshot(const char16_t* descr) {}
+    virtual void beginSnapshot(const char* descr) {}
     virtual void endSnapshot() {}
 
-    virtual void beginSnapshotSet(const char16_t* descr, size_t number) {}
+    virtual void beginSnapshotSet(const char* descr, size_t number) {}
     virtual void endSnapshotSet() {}
 
-    virtual void beginCompositeCtr(const char16_t* descr, const CtrID& name) {}
+    virtual void beginCompositeCtr(const char* descr, const CtrID& name) {}
     virtual void endCompositeCtr() {}
 
-    virtual void beginCtr(const char16_t* descr, const CtrID& name, const BlockID& root) {}
+    virtual void beginCtr(const char* descr, const CtrID& name, const BlockID& root) {}
     virtual void endCtr() {}
 
     virtual void beginRoot(int32_t idx, const BlockType* block) {}
@@ -126,12 +126,12 @@ struct ContainerWalkerBase: ContainerWalker<Profile> {
     virtual void rootLeaf(int32_t idx, const BlockType* block) {}
     virtual void leaf(int32_t idx, const BlockType* block) {}
 
-    virtual void singleNode(const char16_t* descr, const BlockType* block) {}
+    virtual void singleNode(const char* descr, const BlockType* block) {}
 
-    virtual void beginSection(const char16_t* name) {}
+    virtual void beginSection(const char* name) {}
     virtual void endSection() {}
 
-    virtual void content(const char16_t* name, const char16_t* content) {}
+    virtual void content(const char* name, const char* content) {}
 
     virtual ~ContainerWalkerBase() noexcept {}
 };
@@ -185,7 +185,7 @@ struct ContainerOperations {
 
 
     // FIXME: remove name from parameters, it's already in Ctr's block root metadata
-    virtual U16String ctr_name() const = 0;
+    virtual U8String ctr_name() const = 0;
 
     virtual bool check(
         const CtrID& name,
@@ -199,7 +199,7 @@ struct ContainerOperations {
     ) const = 0;
 
 
-    virtual U16String ctr_type_name() const = 0;
+    virtual U8String ctr_type_name() const = 0;
 
     virtual void drop(
             const CtrID& name,

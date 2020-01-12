@@ -179,7 +179,7 @@ public:
         assert_equals(exp.size(), act.size());
         for (size_t c = 0; c < exp.size(); c++)
         {
-            assert_equals(exp[c], act[c], u"c = {}", c);
+            assert_equals(exp[c], act[c], "c = {}", c);
         }
     }
 

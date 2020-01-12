@@ -37,9 +37,9 @@ namespace v1 {
 namespace reactor {
 
 namespace _ {
-	std::vector<U16String> arg_list_as_vector(const char* const * args)
+	std::vector<U8String> arg_list_as_vector(const char* const * args)
 	{
-		std::vector<U16String> v;
+		std::vector<U8String> v;
 
 		while (args && *args){
 			v.emplace_back(*args);
@@ -110,11 +110,11 @@ Application& app() {
 }
 
 
-Optional<U16String> Environment::get(const U16String& name) {
+Optional<U8String> Environment::get(const U8String& name) {
 	return ptr_->get(name);
 }
 
-void Environment::set(const U16String& name, const U16String& value) {
+void Environment::set(const U8String& name, const U8String& value) {
 	return ptr_->set(name, value);
 }
 

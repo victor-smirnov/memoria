@@ -20,6 +20,7 @@
 #include <memoria/v1/core/tools/stream.hpp>
 
 #include <memoria/v1/core/datatypes/traits.hpp>
+#include <memoria/v1/core/strings/format.hpp>
 
 #include <boost/uuid/uuid.hpp>
 
@@ -172,6 +173,20 @@ struct hash<memoria::v1::UUID> {
     result_type operator()(const argument_type& uuid) const {
         std::hash<uint64_t> hf;
         return hf(uuid.hi()) ^ hf(uuid.lo());
+    }
+};
+
+}
+
+namespace fmt {
+
+template <>
+struct formatter<memoria::v1::UUID> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::v1::UUID& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", d.to_u8());
     }
 };
 

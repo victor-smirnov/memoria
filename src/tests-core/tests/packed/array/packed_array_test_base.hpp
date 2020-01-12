@@ -170,7 +170,7 @@ public:
                 v[b] = tree->value(b, c);
             }
 
-            assert_equals(vals[c], v, u"{}", c);
+            assert_equals(vals[c], v, "{}", c);
         }
     }
 

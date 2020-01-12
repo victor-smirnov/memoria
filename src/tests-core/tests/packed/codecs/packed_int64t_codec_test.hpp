@@ -99,6 +99,6 @@ public:
 };
 
 #define MMA1_INT64_CODEC_SUITE() \
-MMA1_CLASS_SUITE(PackedInt64TCodecTest, u"PackedInt64TCodecSuite")
+MMA1_CLASS_SUITE(PackedInt64TCodecTest, "PackedInt64TCodecSuite")
 
 }}}

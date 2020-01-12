@@ -9,7 +9,7 @@
 namespace mm = memoria::v1;
 
 void f2() {
-    MMA1_THROW(mm::SystemException()) << mm::WhatInfo(mm::fmt::format8(u"Hello {} world!", u"cruel"));
+    MMA1_THROW(mm::SystemException()) << mm::WhatInfo(mm::format8("Hello {} world!", "cruel"));
 }
 
 void f1() {

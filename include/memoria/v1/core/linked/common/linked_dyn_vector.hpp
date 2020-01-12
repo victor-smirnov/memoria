@@ -119,7 +119,7 @@ public:
             return data_mutable()[idx];
         }
         else {
-            MMA1_THROW(BoundsException()) << fmt::format_ex(u"{} :: {}", idx, state()->size_);
+            MMA1_THROW(BoundsException()) << format_ex("{} :: {}", idx, state()->size_);
         }
     }
 
@@ -128,7 +128,7 @@ public:
             return data()[idx];
         }
         else {
-            MMA1_THROW(BoundsException()) << fmt::format_ex(u"{} :: {}", idx, state()->size_);
+            MMA1_THROW(BoundsException()) << format_ex("{} :: {}", idx, state()->size_);
         }
     }
 

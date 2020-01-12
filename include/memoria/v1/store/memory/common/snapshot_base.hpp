@@ -244,9 +244,9 @@ public:
         return names;
     }
 
-    std::vector<U16String> container_names_str() const
+    std::vector<U8String> container_names_str() const
     {
-        std::vector<U16String> names;
+        std::vector<U8String> names;
 
         auto ii = root_map_->ctr_begin();
         while (!ii->iter_is_end())
@@ -254,7 +254,7 @@ public:
             std::stringstream ss;
             ss << ii->key().view();
 
-            names.push_back(U8String(ss.str()).to_u16());
+            names.push_back(U8String(ss.str()));
             ii->next();
         }
 
@@ -283,7 +283,7 @@ public:
     }
 
 
-    Optional<U16String> ctr_type_name_for(const CtrID& name)
+    Optional<U8String> ctr_type_name_for(const CtrID& name)
     {
         auto root_id = this->getRootID(name);
         auto block 	 = this->getBlock(root_id);
@@ -298,7 +298,7 @@ public:
             return ctr_intf->ctr_type_name();
         }
         else {
-            return Optional<U16String>();
+            return Optional<U8String>();
         }
     }
 
@@ -307,17 +307,17 @@ public:
     	history_tree_raw_->set_master(uuid());
     }
 
-    void set_as_branch(U16StringRef name)
+    void set_as_branch(U8StringRef name)
     {
     	history_tree_raw_->set_branch(name, uuid());
     }
 
-    U16StringRef metadata() const
+    U8StringRef metadata() const
     {
         return history_node_->metadata();
     }
 
-    void set_metadata(U16StringRef metadata)
+    void set_metadata(U8StringRef metadata)
     {
         if (history_node_->is_active())
         {
@@ -342,7 +342,7 @@ public:
             ctr_intf->for_each_ctr_node(name, this->shared_from_this(), fn);
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container with name {} does not exist in snapshot {}", name, history_node_->snapshot_id()));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Container with name {} does not exist in snapshot {}", name, history_node_->snapshot_id()));
     	}
     }
 
@@ -372,7 +372,7 @@ public:
 
                 if (old_value.block_ptr())
     			{
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block with ID {} is not new in snapshot {}", id, txn_id));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Block with ID {} is not new in snapshot {}", id, txn_id));
     			}
     		});
 
@@ -382,11 +382,11 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
     		}
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container with name {} already exists in snapshot {}", name, txn_id));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Container with name {} already exists in snapshot {}", name, txn_id));
     	}
     }
 
@@ -414,11 +414,11 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
     		}
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Container with name {} already exists in snapshot {}", name, txn_id));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Container with name {} already exists in snapshot {}", name, txn_id));
     	}
     }
 
@@ -456,7 +456,7 @@ public:
                     if (old_value.block_ptr()->unref() == 0)
     				{
                         // FIXME: just delete the block?
-                        MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected refcount == 0 for block {}", old_value.block_ptr()->raw_data()->uuid()));
+                        MMA1_THROW(Exception()) << WhatInfo(format8("Unexpected refcount == 0 for block {}", old_value.block_ptr()->raw_data()->uuid()));
     				}
     			}
     		});
@@ -467,7 +467,7 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
     		}
     	}
     	else {
@@ -505,7 +505,7 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Unexpected empty root ID for container {} in snapshot {}", name, txn_id));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Unexpected empty root ID for container {} in snapshot {}", name, txn_id));
     		}
     	}
     	else {
@@ -531,7 +531,7 @@ public:
             return ctr_intf->clone_ctr(ctr_name, new_ctr_name, this->shared_from_this());
         }
         else {
-            MMA1_THROW(Exception()) << fmt::format_ex(u"Container with name {} does not exist in snapshot {} ", ctr_name, history_node_->snapshot_id());
+            MMA1_THROW(Exception()) << format_ex("Container with name {} does not exist in snapshot {} ", ctr_name, history_node_->snapshot_id());
         }
     }
 
@@ -577,7 +577,7 @@ public:
                 return block;
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block is not found for the specified id: {}", id));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Block is not found for the specified id: {}", id));
             }
         }
         else {
@@ -599,7 +599,7 @@ public:
             instance_map_.insert({ctr_id, instance});
     	}
     	else {
-            MMA1_THROW(Exception()) << fmt::format_ex(u"Container with name {} has been already registered", ctr_id);
+            MMA1_THROW(Exception()) << format_ex("Container with name {} has been already registered", ctr_id);
     	}
     }
 
@@ -680,7 +680,7 @@ public:
                     }
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block is not found for the specified id: {}", id));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Block is not found for the specified id: {}", id));
                 }
             }
             else if (shared->state() == Shared::READ)
@@ -697,7 +697,7 @@ public:
                     shared->refresh();
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block is not found for the specified id: {}", id));
+                    MMA1_THROW(Exception()) << WhatInfo(format8("Block is not found for the specified id: {}", id));
                 }
             }
             else if (shared->state() == Shared::UPDATE)
@@ -705,7 +705,7 @@ public:
                 //MEMORIA_ASEERT();
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid BlockShared state: {}", shared->state()));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Invalid BlockShared state: {}", shared->state()));
             }
 
             shared->state() = Shared::UPDATE;
@@ -992,23 +992,23 @@ public:
         return result;
     }
 
-    U16String get_branch_suffix() const
+    U8String get_branch_suffix() const
     {
-        return u"";
+        return "";
     }
 
-    virtual void walk_containers(ContainerWalker<ProfileT>* walker, const char16_t* allocator_descr = nullptr) {
+    virtual void walk_containers(ContainerWalker<ProfileT>* walker, const char* allocator_descr = nullptr) {
         walkContainers(walker, allocator_descr);
     }
 
-    virtual void walkContainers(ContainerWalker<ProfileT>* walker, const char16_t* allocator_descr = nullptr)
+    virtual void walkContainers(ContainerWalker<ProfileT>* walker, const char* allocator_descr = nullptr)
     {
 		if (allocator_descr != nullptr)
 		{
-            walker->beginSnapshot(fmt::format(u"Snapshot-{} -- {}", history_node_->snapshot_id(), allocator_descr).data());
+            walker->beginSnapshot(fmt::format("Snapshot-{} -- {}", history_node_->snapshot_id(), allocator_descr).data());
 		}
 		else {
-            walker->beginSnapshot(fmt::format(u"Snapshot-{}", history_node_->snapshot_id()).data());
+            walker->beginSnapshot(fmt::format("Snapshot-{}", history_node_->snapshot_id()).data());
 		}
 
         auto iter = root_map_->ctr_begin();
@@ -1077,8 +1077,8 @@ public:
                 }
                 else {
                     MMA1_THROW(Exception())
-                            << fmt::format_ex(
-                                   u"Exisitng ctr instance type hash mismatch: expected {}, actual {}",
+                            << format_ex(
+                                   "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
                                    ctr_hash,
                                    instance_hash
                                );
@@ -1098,7 +1098,7 @@ public:
         this->history_tree_raw_->pack();
     }
 
-    virtual U16String ctr_type_name(const CtrID& name)
+    virtual U8String ctr_type_name(const CtrID& name)
     {
         CtrID root_id = getRootID(name);
 
@@ -1112,7 +1112,7 @@ public:
             return ctr_intf->ctr_type_name();
         }
         else {
-            MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't find container with name {}", name);
+            MMA1_THROW(RuntimeException()) << format_ex("Can't find container with name {}", name);
         }
     }
 
@@ -1189,7 +1189,7 @@ protected:
             return opt.value().block_ptr();
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Block with id {} does not exist in snapshot {}", id, currentTxnId()));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Block with id {} does not exist in snapshot {}", id, currentTxnId()));
     	}
     }
 
@@ -1278,7 +1278,7 @@ protected:
 
     	if (is_data_locked())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot's {} data is locked", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot's {} data is locked", uuid()));
     	}
     }
 
@@ -1286,7 +1286,7 @@ protected:
     {
     	if (!is_active())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status()));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status()));
     	}
     }
 
@@ -1298,11 +1298,11 @@ protected:
     		// Double checking. This shouldn't happen
     		if (!history_node_->root())
     		{
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has been cleared", uuid()));
+                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has been cleared", uuid()));
     		}
     	}
     	else if (history_node_->is_active()) {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} is still active", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is still active", uuid()));
     	}
     }
 
@@ -1320,7 +1320,7 @@ protected:
 
         if (!history_node_->is_active())
         {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has been already committed or data is locked", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has been already committed or data is locked", uuid()));
         }
     }
 
@@ -1330,7 +1330,7 @@ protected:
 
     	if ((!history_node_->is_active()) && ctrName.is_set())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} has been already committed or data is locked", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has been already committed or data is locked", uuid()));
     	}
     }
 
@@ -1340,7 +1340,7 @@ protected:
 
     	if (!history_node_->is_data_locked())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Snapshot {} hasn't been locked", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} hasn't been locked", uuid()));
     	}
     }
 

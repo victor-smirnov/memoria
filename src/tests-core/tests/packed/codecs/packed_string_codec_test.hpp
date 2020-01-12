@@ -132,7 +132,7 @@ private:
 };
 
 #define MMA1_STRING_CODEC_SUITE() \
-MMA1_CLASS_SUITE(PackedStringCodecTest, u"PackedStringCodecSuite")
+MMA1_CLASS_SUITE(PackedStringCodecTest, "PackedStringCodecSuite")
 
 
 }}}

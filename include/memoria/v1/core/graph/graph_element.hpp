@@ -38,7 +38,7 @@ struct IElement {
     virtual Graph graph() = 0;
 
     virtual Any id() const = 0;
-    virtual U16String label() const = 0;
+    virtual U8String label() const = 0;
 
     virtual void remove() = 0;
     virtual bool is_removed() const = 0;
@@ -57,7 +57,7 @@ public:
         return this->ptr_->id();
     }
 
-    U16String label() const {
+    U8String label() const {
         return this->ptr_->label();
     }
 

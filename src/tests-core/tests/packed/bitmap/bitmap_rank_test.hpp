@@ -75,7 +75,7 @@ public:
             {
                 int32_t cnt = PopCount(bitmap, start, start + length);
 
-                assert_equals(cnt, length, u"{} {}", start, length);
+                assert_equals(cnt, length, "{} {}", start, length);
             }
         }
     }
@@ -84,6 +84,6 @@ public:
 
 #define MMA1_BITMAP_RANK_SUITE(Name, Type) \
 using Name = BitmapRankTest<Type>;\
-MMA1_CLASS_SUITE(Name, u###Name)
+MMA1_CLASS_SUITE(Name, #Name)
 
 }}}

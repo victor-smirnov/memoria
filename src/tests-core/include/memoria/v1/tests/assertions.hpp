@@ -29,22 +29,22 @@ namespace tests {
 template <typename T1, typename T2>
 void assert_equals(T1&& expected, T2&& actual) {
     if (!(expected == actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Expected {}, actual {}", expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("Expected {}, actual {}", expected, actual);
     }
 }
 
 template <typename T1, typename T2>
 void assert_equals(T1&& expected, T2&& actual, const char* msg) {
     if (!(expected == actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"{}: Expected {}, actual {}", msg, expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("{}: Expected {}, actual {}", msg, expected, actual);
     }
 }
 
 
 template <typename T1, typename T2, typename... Args>
-void assert_equals(T1&& expected, T2&& actual, const char16_t* msg, Args&&... args) {
+void assert_equals(T1&& expected, T2&& actual, const char* msg, Args&&... args) {
     if (!(expected == actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Equality: Expected {}, actual {}, detail: {}", expected, actual, fmt::format(msg, std::forward<Args>(args)...));
+        MMA1_THROW(TestExecutionException()) << format_ex("Equality: Expected {}, actual {}, detail: {}", expected, actual, fmt::format(msg, std::forward<Args>(args)...));
     }
 }
 
@@ -53,14 +53,14 @@ void assert_equals(T1&& expected, T2&& actual, const char16_t* msg, Args&&... ar
 template <typename T1, typename T2>
 void assert_neq(T1&& expected, T2&& actual) {
     if (expected == actual) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Value {} is equals to actual {}", expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("Value {} is equals to actual {}", expected, actual);
     }
 }
 
 template <typename T1, typename T2>
 void assert_neq(T1&& expected, T2&& actual, const char* msg) {
     if (expected == actual) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"{}: Value {} is equals to actual {}", msg, expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("{}: Value {} is equals to actual {}", msg, expected, actual);
     }
 }
 
@@ -70,14 +70,14 @@ void assert_neq(T1&& expected, T2&& actual, const char* msg) {
 template <typename T1, typename T2>
 void assert_gt(T1&& expected, T2&& actual) {
     if (!(expected > actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Expected {} is not greather than actual {}", expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("Expected {} is not greather than actual {}", expected, actual);
     }
 }
 
 template <typename T1, typename T2>
 void assert_gt(T1&& expected, T2&& actual, const char* msg) {
     if (!(expected > actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"{}: Expected {} is not greather than actual {}", msg, expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("{}: Expected {} is not greather than actual {}", msg, expected, actual);
     }
 }
 
@@ -86,14 +86,14 @@ void assert_gt(T1&& expected, T2&& actual, const char* msg) {
 template <typename T1, typename T2>
 void assert_lt(T1&& expected, T2&& actual) {
     if (!(expected < actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Expected {} is not less than actual {}", expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("Expected {} is not less than actual {}", expected, actual);
     }
 }
 
 template <typename T1, typename T2>
 void assert_lt(T1&& expected, T2&& actual, const char* msg) {
     if (!(expected < actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"{}: Expected {} is not less than actual {}", msg, expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("{}: Expected {} is not less than actual {}", msg, expected, actual);
     }
 }
 
@@ -103,14 +103,14 @@ void assert_lt(T1&& expected, T2&& actual, const char* msg) {
 template <typename T1, typename T2>
 void assert_ge(T1&& expected, T2&& actual) {
     if (!(expected >= actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Expected {} is not greather than or equal to actual {}", expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("Expected {} is not greather than or equal to actual {}", expected, actual);
     }
 }
 
 template <typename T1, typename T2>
 void assert_ge(T1&& expected, T2&& actual, const char* msg) {
     if (!(expected >= actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"{}: Expected {} is not greather than or equal to actual {}", msg, expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("{}: Expected {} is not greather than or equal to actual {}", msg, expected, actual);
     }
 }
 
@@ -119,7 +119,7 @@ void assert_ge(T1&& expected, T2&& actual, const char* msg) {
 template <typename T1, typename T2>
 void assert_le(T1&& expected, T2&& actual) {
     if (!(expected <= actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Expected {} is not less than or equal to actual {}", expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("Expected {} is not less than or equal to actual {}", expected, actual);
     }
 }
 
@@ -127,7 +127,7 @@ void assert_le(T1&& expected, T2&& actual) {
 template <typename T1, typename T2>
 void assert_le(T1&& expected, T2&& actual, const char* msg) {
     if (!(expected <= actual)) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"{}: Expected {} is not less than or equal to actual {}", msg, expected, actual);
+        MMA1_THROW(TestExecutionException()) << format_ex("{}: Expected {} is not less than or equal to actual {}", msg, expected, actual);
     }
 }
 
@@ -144,7 +144,7 @@ void assert_throws(Fn&& fn, Args&&... args) {
 
     }
 
-    MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Expected exception {} hasn't been thrown", TypeNameFactory<ExT>::name());
+    MMA1_THROW(TestExecutionException()) << format_ex("Expected exception {} hasn't been thrown", TypeNameFactory<ExT>::name());
 }
 
 template <typename ExT, typename Fn, typename... Args>
@@ -153,10 +153,10 @@ void assert_no_throws(Fn&& fn, Args&&... args) {
         fn(std::forward<Args>(args)...);
     }
     catch (ExT& ex) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Function throws an expected exception {} ", TypeNameFactory<ExT>::name());
+        MMA1_THROW(TestExecutionException()) << format_ex("Function throws an expected exception {} ", TypeNameFactory<ExT>::name());
     }
     catch (...) {
-        MMA1_THROW(TestExecutionException()) << fmt::format_ex(u"Function throws an unexpected exception");
+        MMA1_THROW(TestExecutionException()) << format_ex("Function throws an unexpected exception");
     }
 }
 

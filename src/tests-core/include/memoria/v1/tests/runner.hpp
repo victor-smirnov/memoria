@@ -108,8 +108,8 @@ public:
 };
 
 void dump_exception(std::ostream& out, std::exception_ptr& ex);
-TestStatus run_single_test(const U16String& test_path);
-TestStatus replay_single_test(const U16String& test_path);
+TestStatus run_single_test(const U8String& test_path);
+TestStatus replay_single_test(const U8String& test_path);
 
 void run_tests();
 

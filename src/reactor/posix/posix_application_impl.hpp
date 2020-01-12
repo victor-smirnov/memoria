@@ -34,24 +34,24 @@ class EnvironmentImpl {
 public:
 	EnvironmentImpl(const char* const* envp) {}
 
-	Optional<U16String> get(const U16String& name) 
+	Optional<U8String> get(const U8String& name) 
 	{
         auto value_ptr = ::getenv(name.to_u8().data());
 
         if (value_ptr) {
-            return U16String(value_ptr);
+            return U8String(value_ptr);
         }
         else {
-            return Optional<U16String>();
+            return Optional<U8String>();
         }
 	}
 
 
-	void set(const U16String& name, const U16String& value) 
+	void set(const U8String& name, const U8String& value) 
 	{
         if (::setenv(name.to_u8().data(), value.to_u8().data(), 1) < 0)
         {
-            MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't set environment variable: {}={}", name, value);
+            MMA1_THROW(SystemException()) << format_ex("Can't set environment variable: {}={}", name, value);
         }
 	}
 
@@ -61,11 +61,11 @@ public:
 
 		for (auto& entry: entries_list()) 
 		{
-			size_t idx = entry.find_first_of(u"=");
-			if (idx != U16String::NPOS)
+            size_t idx = entry.to_std_string().find_first_of("=");
+			if (idx != U8String::NPOS)
 			{
-				auto key = entry.substring(0, idx);
-				auto value = entry.substring(idx + 1);
+                auto key = entry.substring(0, idx);
+                auto value = entry.substring(idx + 1);
 				map[key] = value;
 			}
 		}

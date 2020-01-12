@@ -167,7 +167,7 @@ public:
             auto sum     = tree->sum(block, start, end);
             auto sum_v   = this->sum(values, block, start, end);
 
-            assert_equals(sum, sum_v, u"SUMS {} {}", start, end);
+            assert_equals(sum, sum_v, "SUMS {} {}", start, end);
 
             if (sum == 0) continue;
 
@@ -178,11 +178,11 @@ public:
             auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
 
-            assert_equals(result1_lt.local_pos(), result2_lt.local_pos(), u"IDX {} {} {}", start, sum, block);
-            assert_equals(result1_lt.prefix(), result2_lt.prefix(), u"SUM {} {} {}", start, sum, block);
+            assert_equals(result1_lt.local_pos(), result2_lt.local_pos(), "IDX {} {} {}", start, sum, block);
+            assert_equals(result1_lt.prefix(), result2_lt.prefix(), "SUM {} {} {}", start, sum, block);
 
-            assert_equals(result1_le.local_pos(), result2_le.local_pos(), u"IDX {} {} {}", start, sum, block);
-            assert_equals(result1_le.prefix(), result2_le.prefix(), u"SUM {} {} {}", start, sum, block);
+            assert_equals(result1_le.local_pos(), result2_le.local_pos(), "IDX {} {} {}", start, sum, block);
+            assert_equals(result1_le.prefix(), result2_le.prefix(), "SUM {} {} {}", start, sum, block);
 
 
             auto sum0 = tree->sum(block, start, size);
@@ -190,11 +190,11 @@ public:
             result_lt_t = tree->findGTForward(block, start, sum0 + 100);
             result_le_t = tree->findGEForward(block, start, sum0 + 100);
 
-            assert_equals(result_lt_t.local_pos(), size, u"IDX {} {} {}", start, sum0, block);
-            assert_equals(result_lt_t.prefix(), sum0, u"IDX {} {} {}", start, sum0, block);
+            assert_equals(result_lt_t.local_pos(), size, "IDX {} {} {}", start, sum0, block);
+            assert_equals(result_lt_t.prefix(), sum0, "IDX {} {} {}", start, sum0, block);
 
-            assert_equals(result_le_t.local_pos(), size, u"IDX {} {} {}", start, sum0, block);
-            assert_equals(result_le_t.prefix(), sum0, u"IDX {} {} {}", start, sum0, block);
+            assert_equals(result_le_t.local_pos(), size, "IDX {} {} {}", start, sum0, block);
+            assert_equals(result_le_t.prefix(), sum0, "IDX {} {} {}", start, sum0, block);
         }
     }
 
@@ -232,11 +232,11 @@ public:
             auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, 0, sum);
             auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, 0, sum);
 
-            assert_equals(result1_lt.local_pos(), result2_lt.local_pos(), u"IDX {} {}", sum, block);
-            assert_equals(result1_lt.prefix(), result2_lt.prefix(), u"SUM {} {}", sum, block);
+            assert_equals(result1_lt.local_pos(), result2_lt.local_pos(), "IDX {} {}", sum, block);
+            assert_equals(result1_lt.prefix(), result2_lt.prefix(), "SUM {} {}", sum, block);
 
-            assert_equals(result1_le.local_pos(), result2_le.local_pos(), u"IDX {} {}", sum, block);
-            assert_equals(result1_le.prefix(), result2_le.prefix(), u"SUM {} {}", sum, block);
+            assert_equals(result1_le.local_pos(), result2_le.local_pos(), "IDX {} {}", sum, block);
+            assert_equals(result1_le.prefix(), result2_le.prefix(), "SUM {} {}", sum, block);
         }
     }
 
@@ -305,11 +305,11 @@ public:
             auto result2_lt = find_bw<typename Tree::FindGTWalker>(tree, block, start, sum);
             auto result2_le = find_bw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
-            assert_equals(result1_lt.local_pos(), result2_lt.local_pos(), u"IDX {} {} {}", start, sum, block);
-            assert_equals(result1_lt.prefix(), result2_lt.prefix(), u"SUM {} {} {}", start, sum, block);
+            assert_equals(result1_lt.local_pos(), result2_lt.local_pos(), "IDX {} {} {}", start, sum, block);
+            assert_equals(result1_lt.prefix(), result2_lt.prefix(), "SUM {} {} {}", start, sum, block);
 
-            assert_equals(result1_le.local_pos(), result2_le.local_pos(), u"IDX {} {} {}", start, sum, block);
-            assert_equals(result1_le.prefix(), result2_le.prefix(), u"SUM {} {} {}", start, sum, block);
+            assert_equals(result1_le.local_pos(), result2_le.local_pos(), "IDX {} {} {}", start, sum, block);
+            assert_equals(result1_le.prefix(), result2_le.prefix(), "SUM {} {} {}", start, sum, block);
         }
     }
 
@@ -350,11 +350,11 @@ public:
             auto result2_lt = find_bw<typename Tree::FindGTWalker>(tree, block, start, sum);
             auto result2_le = find_bw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
-            assert_equals(result1_lt.local_pos(), result2_lt.local_pos(), u"IDX {} {} {}", start, sum, block);
-            assert_equals(result1_lt.prefix(), result2_lt.prefix(), u"SUM {} {} {}", start, sum, block);
+            assert_equals(result1_lt.local_pos(), result2_lt.local_pos(), "IDX {} {} {}", start, sum, block);
+            assert_equals(result1_lt.prefix(), result2_lt.prefix(), "SUM {} {} {}", start, sum, block);
 
-            assert_equals(result1_le.local_pos(), result2_le.local_pos(), u"IDX {} {} {}", start, sum, block);
-            assert_equals(result1_le.prefix(), result2_le.prefix(), u"SUM {} {} {}", start, sum, block);
+            assert_equals(result1_le.local_pos(), result2_le.local_pos(), "IDX {} {} {}", start, sum, block);
+            assert_equals(result1_le.prefix(), result2_le.prefix(), "SUM {} {} {}", start, sum, block);
         }
     }
 };

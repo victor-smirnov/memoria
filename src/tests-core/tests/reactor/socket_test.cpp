@@ -58,7 +58,7 @@ struct SocketTestState: TestState {
 };
 
 
-auto sokcet_test = register_test_in_suite<FnTest<SocketTestState>>(u"ReactorSuite", u"SocketTest", [](auto& state){
+auto sokcet_test = register_test_in_suite<FnTest<SocketTestState>>("ReactorSuite", "SocketTest", [](auto& state){
 
     int32_t outbound_port = getRandomG(1000);
     int32_t inbound_port  = getRandomG(1000);
@@ -98,9 +98,9 @@ auto sokcet_test = register_test_in_suite<FnTest<SocketTestState>>(u"ReactorSuit
     runner.start();
     runner.join();
 
-	reactor::engine().coutln(u"Sent {} bytes", runner.total_sent());
-	reactor::engine().coutln(u"Transferred {} bytes", runner.total_transferred());
-	reactor::engine().coutln(u"Received {} bytes", runner.total_received());
+    reactor::engine().coutln("Sent {} bytes", runner.total_sent());
+    reactor::engine().coutln("Transferred {} bytes", runner.total_transferred());
+    reactor::engine().coutln("Received {} bytes", runner.total_received());
 
     assert_equals(runner.total_sent(), runner.total_received(), "Sent/received");
     assert_equals(runner.total_sent(), runner.total_transferred(), "Sent/transferred");

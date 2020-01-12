@@ -772,7 +772,7 @@ void assert_parse_ok(bool res, const char* msg, II start0, II start, II end)
             buf << "...";
         }
 
-        MMA1_THROW(SDNParseException()) << fmt::format_ex(u"{} at {}: {}", msg, pos, buf.str());
+        MMA1_THROW(SDNParseException()) << format_ex("{} at {}: {}", msg, pos, buf.str());
     }
 }
 
@@ -858,7 +858,7 @@ LDDocument LDDocument::parse_type_decl_qi(
 
     if ((!result) || ii != end)
     {
-        //MMA1_THROW(RuntimeException()) << fmt::format_ex(u"Can't parse data type signature: \"{}\", unparsed: \"{}\"", (std::string)str, (std::string)U8StringView(ii));
+        //MMA1_THROW(RuntimeException()) << format_ex("Can't parse data type signature: \"{}\", unparsed: \"{}\"", (std::string)str, (std::string)U8StringView(ii));
     }
     else {
         //decl.resolve_maps();

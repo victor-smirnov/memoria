@@ -53,18 +53,18 @@ TimerImpl::TimerImpl(Timer::TimeUnit start_after, Timer::TimeUnit repeat_after, 
             {
                 int32_t code = errno;
                 ::close(timer_fd_);
-                MMA1_THROW(SystemException(code)) << fmt::format_ex(u"Can't configure epoller for Timer {}", timer_fd_);
+                MMA1_THROW(SystemException(code)) << format_ex("Can't configure epoller for Timer {}", timer_fd_);
             }
         }
         else {
             int32_t code = errno;
             ::close(timer_fd_);
-            MMA1_THROW(SystemException(code)) << fmt::format_ex(u"Can't setup timer {}", timer_fd_);
+            MMA1_THROW(SystemException(code)) << format_ex("Can't setup timer {}", timer_fd_);
 
         }
     }
     else {
-        MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't create timerfd timer {}", timer_fd_);
+        MMA1_THROW(SystemException()) << format_ex("Can't create timerfd timer {}", timer_fd_);
     }
 }
 

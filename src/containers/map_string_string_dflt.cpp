@@ -15,7 +15,7 @@
 
 #include <memoria/v1/profiles/default/default.hpp>
 
-//#include <memoria/v1/containers/map/map_impl.hpp>
+#include <memoria/v1/containers/map/map_impl.hpp>
 
 #include <memoria/v1/core/strings/string.hpp>
 
@@ -23,9 +23,9 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-//using CtrName = Map<Varchar, Varchar>;
+using CtrName = Map<Varchar, Varchar>;
 
-//MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_s_s)
+MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, map_s_s)
 
 }}
 

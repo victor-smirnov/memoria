@@ -443,7 +443,7 @@ public:
                     }
                 }
                 else {
-                    MMA1_THROW(Exception()) << fmt::format_ex(u"Position {} exceeds {}", tidx, size);
+                    MMA1_THROW(Exception()) << format_ex("Position {} exceeds {}", tidx, size);
                 }
             }
         }))) {

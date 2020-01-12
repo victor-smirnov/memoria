@@ -30,7 +30,7 @@ namespace v1 {
 
 using VertexSchemaFn = std::function<QVariant(Vertex&, int)>;
 
-VertexSchemaFn get_vertex_schema(const U16String& label);
+VertexSchemaFn get_vertex_schema(const U8String& label);
 
 QVariant to_variant(const VertexProperty& prop);
 
@@ -118,7 +118,7 @@ public:
     virtual QVariant data(int column);
 
     virtual QString node_type() const {
-        return QString::fromUtf16(vertex_.label().data());
+        return QString::fromUtf8(vertex_.label().data());
     }
 
     Vertex& vertex() {return vertex_;}

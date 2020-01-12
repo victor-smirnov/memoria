@@ -65,14 +65,14 @@ public:
 
     void compareBuffers(const MemBuffer& expected, const MemBuffer& actual, const char* source)
     {
-        assert_equals(expected.size(), actual.size(), u"buffer sizes are not equal", "");
+        assert_equals(expected.size(), actual.size(), "buffer sizes are not equal", "");
 
         for (size_t c = 0; c < expected.size(); c++)
         {
             typename MemBuffer::value_type v1 = expected[c];
             typename MemBuffer::value_type v2 = actual[c];
 
-            assert_equals(v1, v2, u"position = {}", c);
+            assert_equals(v1, v2, "position = {}", c);
         }
     }
 

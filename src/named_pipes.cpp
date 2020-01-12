@@ -29,8 +29,8 @@ int main(int argc, char** argv) {
         size_t producer_block_size = 1024 * 128;
         size_t consumer_block_size = 1024 * 32;
 
-		auto output = open_output_pipe(u"\\\\.\\pipe\\MyPipe");
-		auto input = open_input_pipe(u"\\\\.\\pipe\\MyPipe");
+                auto output = open_output_pipe("\\\\.\\pipe\\MyPipe");
+                auto input = open_input_pipe("\\\\.\\pipe\\MyPipe");
 
         uint8_t generator_state{};
         uint8_t reader_state{};
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
                 total += output.write(buf.get(), size);
             }
 
-            engine().coutln(u"Total written: {}", total);
+            engine().coutln("Total written: {}", total);
         });
 
 
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
                 {
                     uint8_t value = *(buf.get() + c);
                     if (value != reader_state) {
-                        engine().coutln(u"Data checksum error at {}:{}:{}:{} {}:{}", total, c, read, size, (int)value, (int)reader_state);
+                        engine().coutln("Data checksum error at {}:{}:{}:{} {}:{}", total, c, read, size, (int)value, (int)reader_state);
                         std::terminate();
                     }
 
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
                 total += read;
             }
 
-            engine().coutln(u"Total read: {}", total);
+            engine().coutln("Total read: {}", total);
         });
 
         consumer.join();

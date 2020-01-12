@@ -42,10 +42,10 @@ class SnapshotMetadata {
     SnapshotID parent_id_;
     SnapshotID snapshot_id_;
     std::vector<SnapshotID> children_;
-    U16String description_;
+    U8String description_;
 	SnapshotStatus status_;
 public:
-    SnapshotMetadata(const SnapshotID& parent_id, const SnapshotID& snapshot_id, const std::vector<SnapshotID>& children, U16StringRef description, SnapshotStatus status):
+    SnapshotMetadata(const SnapshotID& parent_id, const SnapshotID& snapshot_id, const std::vector<SnapshotID>& children, U8StringRef description, SnapshotStatus status):
 		parent_id_(parent_id),
 		snapshot_id_(snapshot_id),
 		children_(children),
@@ -56,14 +56,14 @@ public:
     const SnapshotID& parent_id() const             {return parent_id_;}
     const SnapshotID& snapshot_id() const           {return snapshot_id_;}
     const std::vector<SnapshotID>& children() const {return children_;}
-    const U16String& description() const            {return description_;}
+    const U8String& description() const            {return description_;}
     SnapshotStatus status() const                   {return status_;}
 };
 
 
 class ContainerMemoryStat {
     UUID ctr_name_;
-    U16String ctr_type_name_;
+    U8String ctr_type_name_;
 
     uint64_t total_leaf_blocks_;
     uint64_t total_branch_blocks_;
@@ -75,7 +75,7 @@ class ContainerMemoryStat {
 
 public:
     ContainerMemoryStat(
-            const UUID& ctr_name, U16String ctr_type_name, uint64_t total_leaf_blocks, uint64_t total_branch_blocks,
+            const UUID& ctr_name, U8String ctr_type_name, uint64_t total_leaf_blocks, uint64_t total_branch_blocks,
             uint64_t total_leaf_size, uint64_t total_branch_size, uint64_t total_size
     ):
         ctr_name_(ctr_name),
@@ -86,7 +86,7 @@ public:
     {}
 
     const UUID& ctr_name() const {return ctr_name_;}
-    const U16String& ctr_type_name() const {return ctr_type_name_;}
+    const U8String& ctr_type_name() const {return ctr_type_name_;}
 
     uint64_t total_leaf_blocks() const {return total_leaf_blocks_;}
     uint64_t total_branch_blocks() const {return total_branch_blocks_;}

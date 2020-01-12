@@ -260,7 +260,7 @@ public:
             return ctr_ptr->block_properties(vx, block_id);
         }
 
-        virtual U16String ctr_name() const
+        virtual U8String ctr_name() const
         {
             return TypeNameFactory<Name>::name();
         }
@@ -274,7 +274,7 @@ public:
                 fn(*ctr_ptr.get());
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"No container is found for id {}", ctr_id));
+                MMA1_THROW(Exception()) << WhatInfo(format8("No container is found for id {}", ctr_id));
             }
         }
 
@@ -307,7 +307,7 @@ public:
             });
         }
 
-        virtual U16String ctr_type_name() const
+        virtual U8String ctr_type_name() const
         {
             return TypeNameFactory<ContainerTypeName>::name();
         }
@@ -416,9 +416,9 @@ public:
         return Any(this->name());
     }
 
-    virtual U16String label() const
+    virtual U8String label() const
     {
-        return U16String(u"container");
+        return U8String("container");
     }
 
     virtual void remove()
@@ -435,7 +435,7 @@ public:
     {
         return make_fn_vertex_properties(
             as_vertex(),
-            u"type", [&]{return U16String(TypeNameFactory<Name>::name());}
+            "type", [&]{return TypeNameFactory<Name>::name();}
         );
     }
 
@@ -470,12 +470,12 @@ public:
         if (is_out(direction))
         {
             Vertex root_vx = block_as_vertex(root());
-            edges.emplace_back(DefaultEdge::make(my_graph, u"root", my_vx, root_vx));
+            edges.emplace_back(DefaultEdge::make(my_graph, "root", my_vx, root_vx));
         }
 
         if (is_in(direction))
         {
-            edges.emplace_back(DefaultEdge::make(my_graph, u"container", alloc_vx, my_vx));
+            edges.emplace_back(DefaultEdge::make(my_graph, "container", alloc_vx, my_vx));
         }
 
         return STLCollection<Edge>::make(std::move(edges));
@@ -684,7 +684,7 @@ public:
         return *allocator_;
     }
 
-    static U16String type_name_str()
+    static U8String type_name_str()
     {
         return TypeNameFactory<ContainerTypeName>::name();
     }

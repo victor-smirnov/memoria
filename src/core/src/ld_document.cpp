@@ -40,7 +40,7 @@ LDDumpState::LDDumpState(const LDDocumentView& doc)
 void LDDocumentView::assert_identifier(U8StringView name)
 {
     if (!is_identifier(name)) {
-        MMA1_THROW(SDNParseException()) << fmt::format_ex(u"Supplied value '{}' is not a valid SDN identifier", name);
+        MMA1_THROW(SDNParseException()) << format_ex("Supplied value '{}' is not a valid SDN identifier", name);
     }
 }
 

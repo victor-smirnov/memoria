@@ -98,7 +98,7 @@ public:
         size_t pos1 = SelectFW(value_, rank_);
         size_t pos2 = selectFW(value_, rank_);
 
-        assert_equals(pos1, pos2, u"{} {}", value_, rank_);
+        assert_equals(pos1, pos2, "{} {}", value_, rank_);
     }
 
     void AssertSelectBW(uint64_t value, size_t rank)
@@ -109,7 +109,7 @@ public:
         size_t pos1 = SelectBW(value_, rank_);
         size_t pos2 = selectBW(value_, rank_);
 
-        assert_equals(pos1, pos2, u"{} {}", value_, rank_);
+        assert_equals(pos1, pos2, "{} {}", value_, rank_);
     }
 
 
@@ -166,7 +166,7 @@ public:
         size_t pos1 = SelectFW(value_, rank_);
         size_t pos2 = selectFW(value_, rank_);
 
-        assert_equals(pos1, pos2, u"{} {}", value_, rank_);
+        assert_equals(pos1, pos2, "{} {}", value_, rank_);
     }
 
     void replaySelectBWPlain()
@@ -176,7 +176,7 @@ public:
         size_t pos1 = SelectBW(value_, rank_);
         size_t pos2 = selectBW(value_, rank_);
 
-        assert_equals(pos1, pos2, u"{} {}", value_, rank_);
+        assert_equals(pos1, pos2, "{} {}", value_, rank_);
     }
 
 
@@ -258,9 +258,9 @@ public:
         auto result1 = Select1FW(bitmap_, start_, stop_, rank_);
         auto result2 = select1FW(bitmap_, start_, stop_, rank_);
 
-        assert_equals(result1.is_found(),  result2.is_found(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.rank(), result2.rank(), u"{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.is_found(),  result2.is_found(), "{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.local_pos(),  result2.local_pos(), "{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.rank(), result2.rank(), "{} {} {}", start_, stop_, rank_);
     }
 
     void assertSelect0FW(size_t start, size_t stop, size_t rank)
@@ -272,9 +272,9 @@ public:
         auto result1 = Select0FW(bitmap_, start_, stop_, rank_);
         auto result2 = select0FW(bitmap_, start_, stop_, rank_);
 
-        assert_equals(result1.is_found(),  result2.is_found(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.rank(), result2.rank(), u"{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.is_found(),  result2.is_found(), "{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.local_pos(),  result2.local_pos(), "{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.rank(), result2.rank(), "{} {} {}", start_, stop_, rank_);
     }
 
 
@@ -345,9 +345,9 @@ public:
         auto result1 = Select1BW(bitmap_, start_, stop_, rank_);
         auto result2 = select1BW(bitmap_, start_, stop_, rank_);
 
-        assert_equals(result1.is_found(),  result2.is_found(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.rank(), result2.rank(), u"{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.is_found(),  result2.is_found(), "{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.local_pos(),  result2.local_pos(), "{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.rank(), result2.rank(), "{} {} {}", start_, stop_, rank_);
     }
 
     void assertSelect0BW(size_t start, size_t stop, size_t rank)
@@ -359,9 +359,9 @@ public:
         auto result1 = Select0BW(bitmap_, start_, stop_, rank_);
         auto result2 = select0BW(bitmap_, start_, stop_, rank_);
 
-        assert_equals(result1.is_found(),  result2.is_found(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.local_pos(),  result2.local_pos(), u"{} {} {}", start_, stop_, rank_);
-        assert_equals(result1.rank(), result2.rank(), u"{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.is_found(),  result2.is_found(), "{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.local_pos(),  result2.local_pos(), "{} {} {}", start_, stop_, rank_);
+        assert_equals(result1.rank(), result2.rank(), "{} {} {}", start_, stop_, rank_);
     }
 
     void testSelect1BW()
@@ -484,7 +484,7 @@ public:
 
 
 #define MMA1_BITMAP_SELECT_SUITE() \
-MMA1_CLASS_SUITE(BitmapSelectTest, u"BitmapSelectSuite")
+MMA1_CLASS_SUITE(BitmapSelectTest, "BitmapSelectSuite")
 
 
 }}}

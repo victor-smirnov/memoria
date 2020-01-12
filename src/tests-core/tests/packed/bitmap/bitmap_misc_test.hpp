@@ -83,7 +83,7 @@ public:
                 T mask1 = MakeMask<T>(pos, size);
                 T mask2 = makeMask<T>(pos, size);
 
-                assert_equals(mask1, mask2, u"{} {}", size, pos);
+                assert_equals(mask1, mask2, "{} {}", size, pos);
             }
         }
     }
@@ -115,7 +115,7 @@ public:
             SetBit(values, c, 0);
             value = GetBit(values, c);
 
-            assert_equals(value, 0, u"{}", c);
+            assert_equals(value, 0, "{}", c);
         }
     }
 
@@ -147,7 +147,7 @@ public:
                     int32_t v1 = GetBit(values, start + c);
                     int32_t v2 = (bits1 >> c) & 0x1;
 
-                    assert_equals(v1, v2, u"{}", (start + c));
+                    assert_equals(v1, v2, "{}", (start + c));
                 }
 
                 T bits2 = GetBits(values, start, length);
@@ -157,7 +157,7 @@ public:
                     int32_t v1 = GetBit(values, start + c);
                     int32_t v2 = (bits2 >> c) & 0x1;
 
-                    assert_equals(v1, v2, u"{}", (start + c));
+                    assert_equals(v1, v2, "{}", (start + c));
                 }
             }
         }
@@ -182,7 +182,7 @@ public:
             SetBit(values, c, 0);
             value = GetBit(values, c);
 
-            assert_equals(value, 0, u"{}", c);
+            assert_equals(value, 0, "{}", c);
         }
     }
 
@@ -289,14 +289,14 @@ public:
 
             int32_t length = CountTrailingZeroes(bitmap, start, sizeof(bitmap) * 8);
 
-            assert_equals(length, bit - start, u"{}", c);
+            assert_equals(length, bit - start, "{}", c);
         }
     }
 };
 
 #define MMA1_BITMAP_MISC_SUITE(Name, Type) \
 using Name = BitmapMiscTest<Type>;\
-MMA1_CLASS_SUITE(Name, u###Name)
+MMA1_CLASS_SUITE(Name, #Name)
 
 
 }}}

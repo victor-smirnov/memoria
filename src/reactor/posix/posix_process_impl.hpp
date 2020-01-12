@@ -39,26 +39,20 @@ namespace reactor {
 
 namespace _ {
 
-static U16String get_image_name(const U16String& filename)
+static U8String get_image_name(const U8String& filename)
 {
-    size_t start = filename.find_last_of(u"/");
+    size_t start = filename.find_last_of("/");
 
-    if (start == U16String::NPOS) {
+    if (start == U8String::NPOS) {
         start = 0;
     }
 
     return filename.substring(start);
 }
 
-static U8String get_image_name(const U8String& filename)
-{
-    return get_image_name(filename.to_u16()).to_u8();
-}
-
-
 static U8String get_image_name(const std::string& filename)
 {
-    return get_image_name(U16String(filename)).to_u8();
+    return get_image_name(U8String(filename));
 }
 
 }
@@ -169,7 +163,7 @@ public:
         return envp_.list();
     }
 
-    void with_args(U16String&& args)
+    void with_args(U8String&& args)
     {
         auto space = ICURegexPattern::compile(u"\\p{WSpace=yes}+");
 
@@ -178,7 +172,7 @@ public:
         return with_args(std::move(arg_tokens));
 	}
 
-	void with_args(std::vector<U16String>&& args)
+	void with_args(std::vector<U8String>&& args)
 	{
         args_.clear();
 
@@ -268,7 +262,7 @@ public:
 
         if (pid_ == -1)
         {
-            MMA1_THROW(SystemException()) << fmt::format_ex(u"Can't create process {}", builder->exe_path());
+            MMA1_THROW(SystemException()) << format_ex("Can't create process {}", builder->exe_path());
         }
         else if (pid_ == 0)
         {

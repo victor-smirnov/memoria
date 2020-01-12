@@ -56,7 +56,7 @@ public:
 
         if (self.ctr_check_tree())
         {
-            throw Exception(MA_SRC, SBuf()<<"Container "<<self.name()<<" ("<<self.type_name_str()<<") check failed");
+            throw Exception(MA_SRC, SBuf() << "Container " << self.name() << " (" << self.type_name_str() << ") check failed");
         }
     }
 

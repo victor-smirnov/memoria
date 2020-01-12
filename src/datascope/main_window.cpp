@@ -107,7 +107,7 @@ void MainWindow::update_actions()
         AbstractTreeItem* item = model->get_item(item_idx);
 
         AbstractTreeItem* top_level_item = model->get_top_level(item);
-        closeAllocatorAction->setEnabled(top_level_item->node_type() == u"inmem_allocator");
+        closeAllocatorAction->setEnabled(top_level_item->node_type() == "inmem_allocator");
     }
     else {
         closeAllocatorAction->setEnabled(false);
@@ -134,10 +134,10 @@ void MainWindow::item_selected()
         AllocatorModel* model = static_cast<AllocatorModel*>(view->model());
         AbstractTreeItem* item = model->get_item(item_idx);
 
-        if (item->node_type() == u"block")
+        if (item->node_type() == "block")
         {
             VertexTreeItem* vx_item = static_cast<VertexTreeItem*>(item);
-            VertexProperty content_prop = vx_item->vertex().property(u"content");
+            VertexProperty content_prop = vx_item->vertex().property("content");
 
             if (!content_prop.is_empty())
             {

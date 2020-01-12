@@ -174,18 +174,18 @@ QVariant to_variant(const VertexProperty& prop)
 
 
 
-VertexSchemaFn get_vertex_schema(const U16String& label)
+VertexSchemaFn get_vertex_schema(const U8String& label)
 {
     return [=](Vertex& vx, int column) -> QVariant {
         switch (column) {
-            case 0: return QString::fromUtf16(vx.label().data());
+            case 0: return QString::fromUtf8(vx.label().data());
             case 1: return QString::fromUtf8(toString(boost::any_cast<UUID>(vx.id())).data());
             case 2: {
-                if (label == u"snapshot") {
-                    return to_variant(vx.property(u"metadata"));
+                if (label == "snapshot") {
+                    return to_variant(vx.property("metadata"));
                 }
-                else if (label == u"container") {
-                    return to_variant(vx.property(u"type"));
+                else if (label == "container") {
+                    return to_variant(vx.property("type"));
                 }
             }
         }

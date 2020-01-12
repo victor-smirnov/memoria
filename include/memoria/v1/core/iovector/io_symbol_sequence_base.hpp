@@ -141,7 +141,7 @@ struct IOSymbolSequence: IOSubstream {
     virtual void append(int32_t symbol, uint64_t length)        = 0;
 
     virtual U8String describe() const {
-        return TypeNameFactory<IOSymbolSequence>::name().to_u8();
+        return TypeNameFactory<IOSymbolSequence>::name();
     }
 
     virtual const std::type_info& sequence_type() const         = 0;

@@ -24,7 +24,7 @@ namespace memoria {
 namespace v1 {
 namespace tests {
 
-Optional<Test&> TestSuite::find(const U16String &name)
+Optional<Test&> TestSuite::find(const U8String &name)
 {
     auto ii = tests_.find(name);
     if (ii != tests_.end())
@@ -37,7 +37,7 @@ Optional<Test&> TestSuite::find(const U16String &name)
 }
 
 
-TestSuite& TestsRegistry::get_suite(const U16String& name)
+TestSuite& TestsRegistry::get_suite(const U8String& name)
 {
     auto ii = suites_.find(name);
     if (ii != suites_.end())
@@ -54,7 +54,7 @@ TestSuite& TestsRegistry::get_suite(const U16String& name)
     }
 }
 
-Optional<TestSuite&> TestsRegistry::find_suite(const U16String& suite_name)
+Optional<TestSuite&> TestsRegistry::find_suite(const U8String& suite_name)
 {
     auto ii = suites_.find(suite_name);
     if (ii != suites_.end())
@@ -67,13 +67,13 @@ Optional<TestSuite&> TestsRegistry::find_suite(const U16String& suite_name)
 }
 
 
-std::tuple<U16String, U16String> TestsRegistry::split_path(U16String test_path)
+std::tuple<U8String, U8String> TestsRegistry::split_path(U8String test_path)
 {
-    U16String suite_name;
-    U16String test_name;
+    U8String suite_name;
+    U8String test_name;
 
-    size_t delimiter_pos = test_path.find_first_of(u"/");
-    if (delimiter_pos != U16String::NPOS)
+    size_t delimiter_pos = test_path.find_first_of("/");
+    if (delimiter_pos != U8String::NPOS)
     {
         suite_name = test_path.substring(0, delimiter_pos).trim();
         test_name  = test_path.substring(delimiter_pos + 1).trim();
@@ -86,10 +86,10 @@ std::tuple<U16String, U16String> TestsRegistry::split_path(U16String test_path)
     return std::make_tuple(suite_name, test_name);
 }
 
-Optional<Test&> TestsRegistry::find_test(const U16String& test_path)
+Optional<Test&> TestsRegistry::find_test(const U8String& test_path)
 {
-    U16String suite_name;
-    U16String test_name;
+    U8String suite_name;
+    U8String test_name;
 
     std::tie(suite_name, test_name) = split_path(test_path);
 
@@ -110,7 +110,7 @@ void TestsRegistry::print() const
     {
         for (auto& test: suite.second->tests())
         {
-            reactor::engine().coutln(u"{}/{}", suite.first, test.first);
+            reactor::engine().coutln("{}/{}", suite.first, test.first);
         }
     }
 }

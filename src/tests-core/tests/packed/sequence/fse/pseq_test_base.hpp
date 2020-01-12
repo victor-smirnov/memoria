@@ -168,7 +168,7 @@ public:
         try {
             for (int32_t c = 0; c < seq->size(); c++)
             {
-                assert_equals((uint64_t)seq->symbol(c), (uint64_t)symbols[c], u"Index: {}", c);
+                assert_equals((uint64_t)seq->symbol(c), (uint64_t)symbols[c], "Index: {}", c);
             }
         }
         catch(...) {

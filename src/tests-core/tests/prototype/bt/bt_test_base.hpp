@@ -194,13 +194,13 @@ public:
         }
     }
 
-    virtual void storeAllocator(U16String file_name)
+    virtual void storeAllocator(U8String file_name)
     {   
         store_->store(file_name.to_u8());
     }
 
 
-    virtual void loadAllocator(U16String file_name)
+    virtual void loadAllocator(U8String file_name)
     {
         store_ = Store::load(file_name.to_u8());
     }
@@ -220,16 +220,16 @@ public:
         return this->is_replay();
     }
 
-    U16String getResourcePath(const U16String& resource)
+    U8String getResourcePath(const U8String& resource)
     {
         filesystem::path path = this->working_directory_;
-        path.append(resource.to_u8().to_std_string());
+        path.append(resource.to_std_string());
 
-        return path.to_u16();
+        return path.string();
     }
 
     template <typename... Args>
-    void coutln(const char16_t* format, Args&&... args) {
+    void coutln(const char* format, Args&&... args) {
         reactor::engine().coutln(format, std::forward<Args>(args)...);
     }
 };

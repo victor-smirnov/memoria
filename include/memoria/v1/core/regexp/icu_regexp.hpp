@@ -170,6 +170,8 @@ public:
     ICURegexMatcher matcher(const CU16ProviderPtr& input, int32_t buffer_size = 512);
 
     std::vector<U16String> split(const U16String& str);
+    std::vector<U8String> split(const U8String& str);
+
     void split(const CU16ProviderPtr& text, const ICURangeConsumerFn& consumer);
     void split(const U16String& text, const ICURangeConsumerFn& consumer);
 

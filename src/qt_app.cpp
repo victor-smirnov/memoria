@@ -37,7 +37,7 @@ public:
 
     void onPress()
     {
-        engine().coutln(u"My First App!!! {}", 12345);
+        engine().coutln("My First App!!! {}", 12345);
     }
 };
 

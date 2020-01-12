@@ -748,12 +748,12 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             block_type = CtrBlockType::INTERNAL;
         }
 
-        props.emplace_back(DefaultVertexProperty::make(vx, u"type", block_type));
+        props.emplace_back(DefaultVertexProperty::make(vx, "type", block_type));
 
         std::stringstream buf;
         self().ctr_dump_node(block, buf);
 
-        props.emplace_back(DefaultVertexProperty::make(vx, u"content", U16String(buf.str())));
+        props.emplace_back(DefaultVertexProperty::make(vx, "content", U8String(buf.str())));
 
         return STLCollection<VertexProperty>::make(std::move(props));
     }
@@ -810,7 +810,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             return meta->model_name();
         }
         else {
-            MMA1_THROW(CtrTypeException()) << WhatInfo(fmt::format8(u"Invalid container type: {}", node->ctr_type_hash()));
+            MMA1_THROW(CtrTypeException()) << WhatInfo(format8("Invalid container type: {}", node->ctr_type_hash()));
         }
     }
 
@@ -820,7 +820,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (self.store().hasRoot(ctr_id))
         {
-            MMA1_THROW(NoCtrException()) << WhatInfo(fmt::format8(u"Container with name {} already exists", ctr_id));
+            MMA1_THROW(NoCtrException()) << WhatInfo(format8("Container with name {} already exists", ctr_id));
         }
 
         self.configure_types(ctr_type_name, branch_node_ext_data_, leaf_node_ext_data_);

@@ -57,13 +57,13 @@ public:
     void doSomething()
     {
         text_ += ": 12345 99";
-        engine().coutln(u"Test doSomething: {}", text_);
+        engine().coutln("Test doSomething: {}", text_);
         //assert_equals(1,2);
     }
 
     void replaySomething()
     {
-        engine().coutln(u"Replay doSomething: {} {}", text_, uuid_);
+        engine().coutln("Replay doSomething: {} {}", text_, uuid_);
     }
 };
 

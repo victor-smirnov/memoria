@@ -19,6 +19,8 @@
 
 #include <memoria/v1/core/integer/accumulator_common.hpp>
 
+
+
 #include <ostream>
 
 namespace memoria {

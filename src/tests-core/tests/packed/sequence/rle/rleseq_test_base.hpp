@@ -174,7 +174,7 @@ public:
                 int32_t sym1 = iter.symbol();
                 int32_t sym2 = symbols[c];
 
-                assert_equals(sym1, sym2, u"Index: {}", c);
+                assert_equals(sym1, sym2, "Index: {}", c);
 
                 iter.next();
             }

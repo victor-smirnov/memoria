@@ -63,7 +63,7 @@ public:
             return std::get<0>(self.template iter_read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid stream: {}", stream));
         }
     }
 
@@ -79,7 +79,7 @@ public:
             return std::get<0>(self.template iter_read_leaf_entry<1, IntList<1>>(value_idx, 0));
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: ", stream));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid stream: ", stream));
         }
     }
 
@@ -232,7 +232,7 @@ public:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid stream: {}", stream));
         }
     }
 
@@ -260,7 +260,7 @@ public:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(fmt::format8(u"Invalid stream: {}", stream));
+            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid stream: {}", stream));
         }
     }
 

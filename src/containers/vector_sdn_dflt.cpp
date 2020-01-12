@@ -14,16 +14,16 @@
 // limitations under the License.
 
 #include <memoria/v1/profiles/default/default.hpp>
-//#include <memoria/v1/containers/vector/vctr_factory.hpp>
+#include <memoria/v1/containers/vector/vctr_factory.hpp>
 
 
 namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-//using CtrName = Vector<LinkedData>;
+using CtrName = Vector<LinkedData>;
 
-//MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
+MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     
 }}
 

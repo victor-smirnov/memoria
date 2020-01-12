@@ -225,7 +225,7 @@ public:
             return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatInfo(fmt::format8(u"Can't dispatch btree node type: {}", node->block_type_hash()));
+            MMA1_THROW(DispatchException()) << WhatInfo(format8("Can't dispatch btree node type: {}", node->block_type_hash()));
         }
     }
 
