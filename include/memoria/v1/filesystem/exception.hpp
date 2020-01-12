@@ -58,7 +58,7 @@ public:
   filesystem_error(filesystem_error const& that);
   filesystem_error& operator= (filesystem_error const& that);
 
-  ~filesystem_error() BOOST_NOEXCEPT_OR_NOTHROW;
+  ~filesystem_error() noexcept;
 
   const path& path1() const BOOST_NOEXCEPT
   {
@@ -69,7 +69,7 @@ public:
     return m_imp_ptr.get() ? m_imp_ptr->m_path2 : get_empty_path();
   }
 
-  const char* what() const BOOST_NOEXCEPT_OR_NOTHROW;
+  const char* what() const noexcept;
 
 private:
   static const path& get_empty_path() BOOST_NOEXCEPT;
@@ -86,7 +86,7 @@ private:
     explicit impl(path const& path1) : m_path1(path1) {}
     impl(path const& path1, path const& path2) : m_path1(path1), m_path2(path2) {}
   };
-  boost::intrusive_ptr< impl > m_imp_ptr;
+  ::boost::intrusive_ptr< impl > m_imp_ptr;
 };
 
 } // namespace filesystem

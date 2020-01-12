@@ -1,0 +1,13 @@
+Different part of this package come under different licenses.
+
+Memoria itself is under Apache 2.0 license.
+
+This product includes software from the disruptor-- project (BSD, 3-clause).
+// Copyright (c) 2011, François Saint-Jacques
+// Copyright (c) 2017, Victor Smirnov
+
+Fibers, Filesystem and Context are originally Boost Fibers/Filesystem/Context 1.72.0 and came under
+Boost lincense with copyright hedears of their autors. See accompanying file LICENSE_1_0.txt or copy at
+http://www.boost.org/LICENSE_1_0.txt
+
+Check file headers to get the exact conditions those sources may be used under.

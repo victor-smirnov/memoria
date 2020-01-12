@@ -9,40 +9,57 @@
 #include "memoria/v1/fiber/context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
 void
 condition_variable_any::notify_one() noexcept {
+    context * active_ctx = context::active();
     // get one context' from wait-queue
-    detail::spinlock_lock lk( wait_queue_splk_);
-    if ( wait_queue_.empty() ) {
-        return;
+    detail::spinlock_lock lk{ wait_queue_splk_ };
+    while ( ! wait_queue_.empty() ) {
+        context * ctx = & wait_queue_.front();
+        wait_queue_.pop_front();
+        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+        if ( ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+            // notify context
+            active_ctx->schedule( ctx);
+            break;
+        } else if ( static_cast< std::intptr_t >( 0) == expected) {
+            // no timed-wait op.
+            // notify context
+            active_ctx->schedule( ctx);
+            break;
+        }
     }
-    context * ctx = & wait_queue_.front();
-    wait_queue_.pop_front();
-    // notify context
-    context::active()->set_ready( ctx);
 }
 
 void
 condition_variable_any::notify_all() noexcept {
+    context * active_ctx = context::active();
     // get all context' from wait-queue
-    detail::spinlock_lock lk( wait_queue_splk_);
+    detail::spinlock_lock lk{ wait_queue_splk_ };
     // notify all context'
     while ( ! wait_queue_.empty() ) {
         context * ctx = & wait_queue_.front();
         wait_queue_.pop_front();
-        context::active()->set_ready( ctx);
+        std::intptr_t expected = reinterpret_cast< std::intptr_t >( this);
+        if ( ctx->twstatus.compare_exchange_strong( expected, static_cast< std::intptr_t >( -1), std::memory_order_acq_rel) ) {
+            // notify context
+            active_ctx->schedule( ctx);
+        } else if ( static_cast< std::intptr_t >( 0) == expected) {
+            // no timed-wait op.
+            // notify context
+            active_ctx->schedule( ctx);
+        }
     }
 }
 
 }}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif

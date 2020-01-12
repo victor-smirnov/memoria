@@ -15,7 +15,7 @@
 
 #include <memoria/v1/profiles/default/default.hpp>
 
-#include <memoria/v1/containers/multimap/multimap_impl.hpp>
+//#include <memoria/v1/containers/multimap/multimap_impl.hpp>
 
 #include <memoria/v1/core/tools/uuid.hpp>
 
@@ -23,9 +23,9 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-using CtrName = memoria::v1::Multimap<UUID, UTinyInt>;
+//using CtrName = memoria::v1::Multimap<UUID, UTinyInt>;
 
-MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+//MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
 
 }}
 

@@ -6,6 +6,9 @@
 
 #pragma once
 
+#ifndef MEMORIA_FIBERS_H
+#define MEMORIA_FIBERS_H
+
 #include <memoria/v1/fiber/algo/algorithm.hpp>
 #include <memoria/v1/fiber/algo/round_robin.hpp>
 #include <memoria/v1/fiber/algo/shared_work.hpp>
@@ -34,4 +37,4 @@
 #include <memoria/v1/fiber/type.hpp>
 #include <memoria/v1/fiber/unbuffered_channel.hpp>
 
-
+#endif // MEMORIA_FIBERS_H

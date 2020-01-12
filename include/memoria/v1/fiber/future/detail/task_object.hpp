@@ -4,70 +4,88 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef MEMORIA_FIBERS_DETAIL_TASK_OBJECT_H
+#define MEMORIA_FIBERS_DETAIL_TASK_OBJECT_H
 
 #include <exception>
 #include <memory>
+#include <tuple>
 #include <utility>
 
 #include <boost/config.hpp>
-#include <boost/context/detail/apply.hpp>
+#include <memoria/v1/context/detail/config.hpp>
+#if defined(BOOST_NO_CXX17_STD_APPLY)
+#include <memoria/v1/context/detail/apply.hpp>
+#endif
+#include <boost/core/pointer_traits.hpp>
 
 #include <memoria/v1/fiber/detail/config.hpp>
 #include <memoria/v1/fiber/future/detail/task_base.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 namespace detail {
 
 template< typename Fn, typename Allocator, typename R, typename ... Args >
 class task_object : public task_base< R, Args ... > {
 private:
-    typedef task_base< R, Args ... >    base_t;
+    typedef task_base< R, Args ... >    base_type;
+    typedef std::allocator_traits< Allocator >  allocator_traits;
 
 public:
-    typedef typename std::allocator_traits< Allocator >::template rebind_alloc< 
+    typedef typename allocator_traits::template rebind_alloc<
         task_object
-    >                                           allocator_t;
+    >                                           allocator_type;
 
-    task_object( allocator_t const& alloc, Fn const& fn) :
-        base_t(),
-        fn_( fn),
-        alloc_( alloc) {
+    task_object( allocator_type const& alloc, Fn const& fn) :
+        base_type{},
+        fn_{ fn },
+        alloc_{ alloc } {
     }
 
-    task_object( allocator_t const& alloc, Fn && fn) :
-        base_t(),
-        fn_( std::move( fn) ),
-        alloc_( alloc) {
+    task_object( allocator_type const& alloc, Fn && fn) :
+        base_type{},
+        fn_{ std::move( fn) },
+        alloc_{ alloc } {
     }
 
     void run( Args && ... args) override final {
         try {
             this->set_value(
-                    boost::context::detail::apply(
-                        fn_, std::make_tuple( std::forward< Args >( args) ... ) ) );
+#if defined(BOOST_NO_CXX17_STD_APPLY)
+                    memoria::v1::context::detail::apply(
+                        fn_, std::make_tuple( std::forward< Args >( args) ... ) )
+#else
+                    std::apply(
+                        fn_, std::make_tuple( std::forward< Args >( args) ... ) )
+#endif
+                    );
+#if defined(MEMORIA_CONTEXT_HAS_CXXABI_H)
+        } catch ( abi::__forced_unwind const&) {
+            throw;
+#endif
         } catch (...) {
             this->set_exception( std::current_exception() );
         }
     }
 
-    typename base_t::ptr_t reset() override final {
-        typedef std::allocator_traits< allocator_t >    traits_t;
+    typename base_type::ptr_type reset() override final {
+        typedef std::allocator_traits< allocator_type >    traity_type;
+        typedef ::boost::pointer_traits< typename traity_type::pointer> ptrait_type;
 
-        typename traits_t::pointer ptr{ traits_t::allocate( alloc_, 1) };
+        typename traity_type::pointer ptr{ traity_type::allocate( alloc_, 1) };
+        typename ptrait_type::element_type* p = boost::to_address(ptr);
         try {
-            traits_t::construct( alloc_, ptr, alloc_, std::move( fn_) );
+            traity_type::construct( alloc_, p, alloc_, std::move( fn_) );
         } catch (...) {
-            traits_t::deallocate( alloc_, ptr, 1);
+            traity_type::deallocate( alloc_, ptr, 1);
             throw;
         }
-        return { convert( ptr) };
+        return { p };
     }
 
 protected:
@@ -77,58 +95,71 @@ protected:
 
 private:
     Fn                  fn_;
-    allocator_t         alloc_;
+    allocator_type      alloc_;
 
-    static void destroy_( allocator_t const& alloc, task_object * p) noexcept {
-        allocator_t a{ alloc };
-        a.destroy( p);
-        a.deallocate( p, 1);
+    static void destroy_( allocator_type const& alloc, task_object * p) noexcept {
+        allocator_type a{ alloc };
+        typedef std::allocator_traits< allocator_type >    traity_type;
+        traity_type::destroy( a, p);
+        traity_type::deallocate( a, p, 1);
     }
 };
 
 template< typename Fn, typename Allocator, typename ... Args >
 class task_object< Fn, Allocator, void, Args ... > : public task_base< void, Args ... > {
 private:
-    typedef task_base< void, Args ... >    base_t;
+    typedef task_base< void, Args ... >    base_type;
+    typedef std::allocator_traits< Allocator >    allocator_traits;
 
 public:
-    typedef typename Allocator::template rebind<
+    typedef typename allocator_traits::template rebind_alloc<
         task_object< Fn, Allocator, void, Args ... >
-    >::other                                      allocator_t;
+    >                                             allocator_type;
 
-    task_object( allocator_t const& alloc, Fn const& fn) :
-        base_t(),
-        fn_( fn),
-        alloc_( alloc) {
+    task_object( allocator_type const& alloc, Fn const& fn) :
+        base_type{},
+        fn_{ fn },
+        alloc_{ alloc } {
     }
 
-    task_object( allocator_t const& alloc, Fn && fn) :
-        base_t(),
-        fn_( std::move( fn) ),
-        alloc_( alloc) {
+    task_object( allocator_type const& alloc, Fn && fn) :
+        base_type{},
+        fn_{ std::move( fn) },
+        alloc_{ alloc } {
     }
 
     void run( Args && ... args) override final {
         try {
-            boost::context::detail::apply(
+#if defined(BOOST_NO_CXX17_STD_APPLY)
+            memoria::v1::context::detail::apply(
                     fn_, std::make_tuple( std::forward< Args >( args) ... ) );
+#else
+            std::apply(
+                    fn_, std::make_tuple( std::forward< Args >( args) ... ) );
+#endif
             this->set_value();
+#if defined(MEMORIA_CONTEXT_HAS_CXXABI_H)
+        } catch ( abi::__forced_unwind const&) {
+            throw;
+#endif
         } catch (...) {
             this->set_exception( std::current_exception() );
         }
     }
 
-    typename base_t::ptr_t reset() override final {
-        typedef std::allocator_traits< allocator_t >    traits_t;
+    typename base_type::ptr_type reset() override final {
+        typedef std::allocator_traits< allocator_type >    traity_type;
+        typedef ::boost::pointer_traits< typename traity_type::pointer> ptrait_type;
 
-        typename traits_t::pointer ptr{ traits_t::allocate( alloc_, 1) };
+        typename traity_type::pointer ptr{ traity_type::allocate( alloc_, 1) };
+        typename ptrait_type::element_type* p = boost::to_address(ptr);
         try {
-            traits_t::construct( alloc_, ptr, alloc_, std::move( fn_) );
+            traity_type::construct( alloc_, p, alloc_, std::move( fn_) );
         } catch (...) {
-            traits_t::deallocate( alloc_, ptr, 1);
+            traity_type::deallocate( alloc_, ptr, 1);
             throw;
         }
-        return { convert( ptr) };
+        return { p };
     }
 
 protected:
@@ -138,19 +169,20 @@ protected:
 
 private:
     Fn                  fn_;
-    allocator_t         alloc_;
+    allocator_type      alloc_;
 
-    static void destroy_( allocator_t const& alloc, task_object * p) noexcept {
-        allocator_t a{ alloc };
-        a.destroy( p);
-        a.deallocate( p, 1);
+    static void destroy_( allocator_type const& alloc, task_object * p) noexcept {
+        allocator_type a{ alloc };
+        typedef std::allocator_traits< allocator_type >    traity_type;
+        traity_type::destroy( a, p);
+        traity_type::deallocate( a, p, 1);
     }
 };
 
 }}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // MEMORIA_FIBERS_DETAIL_TASK_OBJECT_H

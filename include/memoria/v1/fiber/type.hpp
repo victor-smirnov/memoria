@@ -4,7 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef MEMORIA_FIBERS_TYPE_H
+#define MEMORIA_FIBERS_TYPE_H
 
 #include <atomic>
 #include <chrono>
@@ -16,9 +17,8 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/context/detail/apply.hpp>
-#include <boost/context/execution_context.hpp>
-#include <boost/context/stack_context.hpp>
+#include <memoria/v1/context/detail/apply.hpp>
+#include <memoria/v1/context/stack_context.hpp>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/parent_from_member.hpp>
 #include <boost/intrusive_ptr.hpp>
@@ -29,18 +29,16 @@
 #include <memoria/v1/fiber/detail/decay_copy.hpp>
 #include <memoria/v1/fiber/detail/fss.hpp>
 #include <memoria/v1/fiber/detail/spinlock.hpp>
-#include <memoria/v1/fiber/detail/wrap.hpp>
 #include <memoria/v1/fiber/exceptions.hpp>
 #include <memoria/v1/fiber/fixedsize_stack.hpp>
 #include <memoria/v1/fiber/properties.hpp>
 #include <memoria/v1/fiber/segmented_stack.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
 enum class type {
@@ -102,7 +100,7 @@ operator^=( type & l, type r) {
 }}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // MEMORIA_FIBERS_TYPE_H

@@ -29,7 +29,7 @@
 #include <memoria/v1/core/tools/optional.hpp>
 
 #include <boost/any.hpp>
-#include <boost/context/detail/apply.hpp>
+#include <memoria/v1/context/detail/apply.hpp>
 
 #include <unordered_map>
 #include <mutex>
@@ -562,7 +562,7 @@ namespace _ {
                     return T(args...);
                 };
 
-                return boost::context::detail::apply(constructorFn, tpl);
+                return memoria::v1::context::detail::apply(constructorFn, tpl);
             }
             else {
                 return DataTypeCreator<T, TL<ParamsList...>, ArgsLists...>::create(registry, typedecl);

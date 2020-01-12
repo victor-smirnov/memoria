@@ -6,7 +6,8 @@
 //
 //  based on boost::interprocess::sync::interprocess_spinlock
 
-#pragma once
+#ifndef MEMORIA_FIBERS_RECURSIVE_TIMED_MUTEX_H
+#define MEMORIA_FIBERS_RECURSIVE_TIMED_MUTEX_H
 
 #include <chrono>
 #include <cstddef>
@@ -21,7 +22,7 @@
 #include <memoria/v1/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
 #ifdef _MSC_VER
@@ -29,22 +30,21 @@
 # pragma warning(disable:4251)
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
 class condition_variable;
 
-class MEMORIA_V1_FIBERS_DECL recursive_timed_mutex {
+class MEMORIA_FIBERS_DECL recursive_timed_mutex {
 private:
     friend class condition_variable;
 
-    typedef context::wait_queue_t   wait_queue_t;
+    typedef context::wait_queue_t   wait_queue_type;
 
+    detail::spinlock            wait_queue_splk_{};
+    wait_queue_type             wait_queue_{};
     context                 *   owner_{ nullptr };
     std::size_t                 count_{ 0 };
-    wait_queue_t                wait_queue_{};
-    detail::spinlock            wait_queue_splk_{};
 
     bool try_lock_until_( std::chrono::steady_clock::time_point const& timeout_time) noexcept;
 
@@ -66,8 +66,7 @@ public:
 
     template< typename Clock, typename Duration >
     bool try_lock_until( std::chrono::time_point< Clock, Duration > const& timeout_time_) {
-        std::chrono::steady_clock::time_point timeout_time(
-                detail::convert( timeout_time_) );
+        std::chrono::steady_clock::time_point timeout_time = detail::convert( timeout_time_);
         return try_lock_until_( timeout_time);
     }
 
@@ -86,7 +85,7 @@ public:
 #endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // MEMORIA_FIBERS_RECURSIVE_TIMED_MUTEX_H

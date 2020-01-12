@@ -3,12 +3,14 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef BOOST_THIS_FIBER_OPERATIONS_H
+#define BOOST_THIS_FIBER_OPERATIONS_H
 
 #include <chrono>
 
 #include <boost/config.hpp> 
 
+#include <memoria/v1/fiber/algo/algorithm.hpp>
 #include <memoria/v1/fiber/context.hpp>
 #include <memoria/v1/fiber/detail/config.hpp>
 #include <memoria/v1/fiber/detail/convert.hpp>
@@ -16,11 +18,10 @@
 #include <memoria/v1/fiber/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace this_fiber {
 
 inline
@@ -35,24 +36,23 @@ void yield() noexcept {
 
 template< typename Clock, typename Duration >
 void sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time_) {
-    std::chrono::steady_clock::time_point sleep_time(
-            memoria::v1::fibers::detail::convert( sleep_time_) );
-    fibers::context::active()->wait_until( sleep_time);
+    std::chrono::steady_clock::time_point sleep_time = memoria::v1::fibers::detail::convert( sleep_time_);
+    fibers::context * active_ctx = fibers::context::active();
+    active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
+    active_ctx->wait_until( sleep_time);
 }
 
 template< typename Rep, typename Period >
 void sleep_for( std::chrono::duration< Rep, Period > const& timeout_duration) {
-    fibers::context::active()->wait_until(
-            std::chrono::steady_clock::now() + timeout_duration);
+    fibers::context * active_ctx = fibers::context::active();
+    active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
+    active_ctx->wait_until( std::chrono::steady_clock::now() + timeout_duration);
 }
-
-
 
 template< typename PROPS >
 PROPS & properties() {
-    fibers::fiber_properties * props =
-        fibers::context::active()->get_properties();
-    if ( ! props) {
+    fibers::fiber_properties * props = fibers::context::active()->get_properties();
+    if ( BOOST_LIKELY( nullptr == props) ) {
         // props could be nullptr if the thread's main fiber has not yet
         // yielded (not yet passed through algorithm_with_properties::
         // awakened()). Address that by yielding right now.
@@ -63,7 +63,7 @@ PROPS & properties() {
         props = fibers::context::active()->get_properties();
         // Could still be hosed if the running manager isn't a subclass of
         // algorithm_with_properties.
-        BOOST_ASSERT_MSG(props, "this_fiber::properties not set");
+        BOOST_ASSERT_MSG( props, "this_fiber::properties not set");
     }
     return dynamic_cast< PROPS & >( * props );
 }
@@ -80,15 +80,13 @@ bool has_ready_fibers() noexcept {
 template< typename SchedAlgo, typename ... Args >
 void use_scheduling_algorithm( Args && ... args) noexcept {
     memoria::v1::fibers::context::active()->get_scheduler()
-        ->set_algo(
-            std::unique_ptr< SchedAlgo >(
-                new SchedAlgo( std::forward< Args >( args) ... ) ) );
+        ->set_algo( new SchedAlgo( std::forward< Args >( args) ... ) );
 }
 
 }}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // BOOST_THIS_FIBER_OPERATIONS_H

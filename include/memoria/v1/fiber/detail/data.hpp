@@ -4,7 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef MEMORIA_FIBERS_DETAIL_DATA_H
+#define MEMORIA_FIBERS_DETAIL_DATA_H
 
 #include <boost/config.hpp>
 
@@ -12,11 +13,10 @@
 #include <memoria/v1/fiber/detail/spinlock.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
 class context;
@@ -45,11 +45,10 @@ struct data_t {
     }
 };
 
-
 }}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // MEMORIA_FIBERS_DETAIL_DATA_H

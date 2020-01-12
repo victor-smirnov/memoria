@@ -177,8 +177,8 @@ public:
 
         psize_t values_length{};
 
-        for_each_dimension([&](auto dim_idx){
-            values_length += dimension<dim_idx>().joint_data_length(my_meta, other, other_meta);
+        for_each_dimension([&values_length, my_meta, other, other_meta, this](auto dim_idx){
+            values_length += this->dimension<dim_idx>().joint_data_length(my_meta, other, other_meta);
         });
 
         return base_size(values_length);

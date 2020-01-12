@@ -4,27 +4,27 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef MEMORIA_FIBERS_POOLED_FIXEDSIZE_STACK_H
+#define MEMORIA_FIBERS_POOLED_FIXEDSIZE_STACK_H
 
 #include <boost/config.hpp>
-#include <boost/context/pooled_fixedsize_stack.hpp>
+#include <memoria/v1/context/pooled_fixedsize_stack.hpp>
 
 #include <memoria/v1/fiber/detail/config.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
-using pooled_fixedsize_stack = boost::context::pooled_fixedsize_stack;
+using pooled_fixedsize_stack = memoria::v1::context::pooled_fixedsize_stack;
 
 }}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // MEMORIA_FIBERS_POOLED_FIXEDSIZE_STACK_H

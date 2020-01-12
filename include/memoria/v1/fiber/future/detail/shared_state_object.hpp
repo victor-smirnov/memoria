@@ -4,7 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef MEMORIA_FIBERS_DETAIL_SHARED_STATE_OBJECT_H
+#define MEMORIA_FIBERS_DETAIL_SHARED_STATE_OBJECT_H
 
 #include <memory>
 
@@ -14,11 +15,10 @@
 #include <memoria/v1/fiber/future/detail/shared_state.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 namespace detail {
 
@@ -27,10 +27,11 @@ class shared_state_object : public shared_state< R > {
 public:
     typedef typename std::allocator_traits< Allocator >::template rebind_alloc< 
         shared_state_object
-    >                                           allocator_t;
+    >                                           allocator_type;
 
-    shared_state_object( allocator_t const& alloc) :
-        shared_state< R >(), alloc_( alloc) {
+    shared_state_object( allocator_type const& alloc) :
+        shared_state< R >{},
+        alloc_{ alloc } {
     }
 
 protected:
@@ -39,19 +40,20 @@ protected:
     }
 
 private:
-    allocator_t             alloc_;
+    allocator_type             alloc_;
 
-    static void destroy_( allocator_t const& alloc, shared_state_object * p) noexcept {
-        allocator_t a{ alloc };
-        a.destroy( p);
-        a.deallocate( p, 1);
+    static void destroy_( allocator_type const& alloc, shared_state_object * p) noexcept {
+        allocator_type a{ alloc };
+        typedef std::allocator_traits< allocator_type >    traity_type;
+        traity_type::destroy( a, p);
+        traity_type::deallocate( a, p, 1);
     }
 };
 
 }}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // MEMORIA_FIBERS_DETAIL_SHARED_STATE_OBJECT_H

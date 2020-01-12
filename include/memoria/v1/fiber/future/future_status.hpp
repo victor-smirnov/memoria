@@ -4,7 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef MEMORIA_FIBERS_FUTURE_STATUS_HPP
+#define MEMORIA_FIBERS_FUTURE_STATUS_HPP
 
 #include <future>
 
@@ -12,8 +13,7 @@
 
 #include <memoria/v1/fiber/detail/config.hpp>
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
 enum class future_status {
@@ -24,4 +24,4 @@ enum class future_status {
 
 }}}
 
-
+#endif // MEMORIA_FIBERS_FUTURE_STATUS_HPP

@@ -4,7 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef BOOST_FIBER_DETAIL_DECAY_COPY_H
+#define BOOST_FIBER_DETAIL_DECAY_COPY_H
 
 #include <type_traits>
 
@@ -13,11 +14,10 @@
 #include <memoria/v1/fiber/detail/config.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_PREFIX
+# include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 namespace detail {
 
@@ -30,7 +30,7 @@ decay_copy( T && t) {
 }}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#include BOOST_ABI_SUFFIX
+#include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // BOOST_FIBER_DETAIL_DECAY_COPY_H

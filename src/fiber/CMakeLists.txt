@@ -14,6 +14,7 @@
 
 
 file(GLOB SRCS *.cpp)
+
 set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
 
 add_subdirectory(algo)

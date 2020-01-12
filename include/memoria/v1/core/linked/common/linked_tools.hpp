@@ -31,9 +31,10 @@ template <typename Arena>           \
 class MappedHashFn<Type, Arena> {   \
 public:                             \
     MappedHashFn(Arena*) {}         \
-    size_t operator()(const Type& value) {  \
+    uint32_t operator()(const Type& value) {  \
         FNVHasher<4> hasher;                \
         append(hasher, value);              \
+        return hasher.hash();               \
     }                                       \
 }                                           \
 

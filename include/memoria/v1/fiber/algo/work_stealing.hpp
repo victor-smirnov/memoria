@@ -5,78 +5,84 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#pragma once
+#ifndef MEMORIA_FIBERS_ALGO_WORK_STEALING_H
+#define MEMORIA_FIBERS_ALGO_WORK_STEALING_H
 
+#include <atomic>
 #include <condition_variable>
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <mutex>
 #include <vector>
 
 #include <boost/config.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 #include <memoria/v1/fiber/algo/algorithm.hpp>
-#include <memoria/v1/fiber/detail/context_spmc_queue.hpp>
 #include <memoria/v1/fiber/context.hpp>
 #include <memoria/v1/fiber/detail/config.hpp>
+#include <memoria/v1/fiber/detail/context_spinlock_queue.hpp>
+#include <memoria/v1/fiber/detail/context_spmc_queue.hpp>
 #include <memoria/v1/fiber/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 namespace algo {
 
-class work_stealing : public algorithm {
+class MEMORIA_FIBERS_DECL work_stealing : public algorithm {
 private:
-    typedef scheduler::ready_queue_t lqueue_t;
+    static std::atomic< std::uint32_t >                     counter_;
+    static std::vector< ::boost::intrusive_ptr< work_stealing > >    schedulers_;
 
-    static std::vector< work_stealing * >        schedulers_;
+    std::uint32_t                                           id_;
+    std::uint32_t                                           thread_count_;
+#ifdef MEMORIA_FIBERS_USE_SPMC_QUEUE
+    detail::context_spmc_queue                              rqueue_{};
+#else
+    detail::context_spinlock_queue                          rqueue_{};
+#endif
+    std::mutex                                              mtx_{};
+    std::condition_variable                                 cnd_{};
+    bool                                                    flag_{ false };
+    bool                                                    suspend_;
 
-    std::size_t                                     idx_;
-    std::size_t                                     max_idx_;
-    detail::context_spmc_queue                      rqueue_{};
-    lqueue_t                                        lqueue_{};
-    std::mutex                                      mtx_{};
-    std::condition_variable                         cnd_{};
-    bool                                            flag_{ false };
-    bool                                            suspend_;
-
-    static void init_( std::size_t max_idx);
+    static void init_( std::uint32_t, std::vector< ::boost::intrusive_ptr< work_stealing > > &);
 
 public:
-    work_stealing( std::size_t max_idx, std::size_t idx, bool suspend = false);
+    work_stealing( std::uint32_t, bool = false);
 
-	work_stealing( work_stealing const&) = delete;
-	work_stealing( work_stealing &&) = delete;
+    work_stealing( work_stealing const&) = delete;
+    work_stealing( work_stealing &&) = delete;
 
-	work_stealing & operator=( work_stealing const&) = delete;
-	work_stealing & operator=( work_stealing &&) = delete;
+    work_stealing & operator=( work_stealing const&) = delete;
+    work_stealing & operator=( work_stealing &&) = delete;
 
-    void awakened( context * ctx) noexcept;
+    virtual void awakened( context *) noexcept;
 
-    context * pick_next() noexcept;
+    virtual context * pick_next() noexcept;
 
-    context * steal() noexcept {
-        return rqueue_.pop();
+    virtual context * steal() noexcept {
+        return rqueue_.steal();
     }
 
-    bool has_ready_fibers() const noexcept {
-        return ! rqueue_.empty() || ! lqueue_.empty();
+    virtual bool has_ready_fibers() const noexcept {
+        return ! rqueue_.empty();
     }
 
-	void suspend_until( std::chrono::steady_clock::time_point const& time_point) noexcept;
+    virtual void suspend_until( std::chrono::steady_clock::time_point const&) noexcept;
 
-	void notify() noexcept;
+    virtual void notify() noexcept;
 };
 
 }}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // MEMORIA_FIBERS_ALGO_WORK_STEALING_H

@@ -43,11 +43,8 @@ else()
     option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" OFF)
 ENDIF()
 
-option(ASAN_SANITIZE_STACKS "Compile with fiber stacks sanitizing ON (If supported, implies ASAN)" ON)
-
 option(USE_TSAN "Compile with Thread Sanitizer ON" OFF)
 option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
-
 
 option(BUILD_TESTS      "Build Unit/Functional tests" OFF)
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
@@ -117,6 +114,7 @@ if (BUILD_POSIX)
     add_definitions(-Werror=unused-result)
     add_definitions(-faligned-new)
     add_definitions(-Wno-class-memaccess)
+    add_definitions(-Werror=return-type)
 
     add_definitions(-DMMA1_ICU_CXX_NS=icu_61)
     #add_definitions(-DU_HAVE_LIB_SUFFIX=1)
@@ -125,12 +123,8 @@ if (BUILD_POSIX)
     add_definitions(-pthread)
     
     if (USE_ASAN)
-        add_definitions(-fsanitize=address -DASAN_ENABLED)
+        add_definitions(-fsanitize=address -DMEMORIA_USE_ASAN -DMEMORIA_USE_UCONTEXT)
         add_global_linker(-fsanitize=address)
-
-        if (ASAN_SANITIZE_STACKS)
-            add_definitions(-DMMA1_SANITIZE_STACKS)
-        endif() 
     endif()
     
     if (USE_USAN) 

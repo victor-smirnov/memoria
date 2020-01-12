@@ -6,6 +6,9 @@
 
 #pragma once
 
+#ifndef MEMORIA_FIBERS_BARRIER_H
+#define MEMORIA_FIBERS_BARRIER_H
+
 #include <cstddef>
 
 #include <boost/config.hpp>
@@ -15,33 +18,33 @@
 #include <memoria/v1/fiber/mutex.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
-class MEMORIA_V1_FIBERS_DECL barrier {
+class MEMORIA_FIBERS_DECL barrier {
 private:
-	std::size_t         initial_;
-	std::size_t         current_;
-	bool                cycle_{ true };
-	mutex               mtx_{};
-	condition_variable  cond_{};
+    std::size_t         initial_;
+    std::size_t         current_;
+    std::size_t         cycle_{ 0 };
+    mutex               mtx_{};
+    condition_variable  cond_{};
 
 public:
-	explicit barrier( std::size_t);
+    explicit barrier( std::size_t);
 
     barrier( barrier const&) = delete;
     barrier & operator=( barrier const&) = delete;
 
-	bool wait();
+    bool wait();
 };
 
 }}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
+#endif // MEMORIA_FIBERS_BARRIER_H

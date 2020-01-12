@@ -456,7 +456,7 @@ void directory_iterator_construct(directory_iterator& it, const path& p, unsigne
     return;
   }
 
-  boost::intrusive_ptr< detail::dir_itr_imp > imp;
+  ::boost::intrusive_ptr< detail::dir_itr_imp > imp;
   if (!ec)
   {
     imp = new detail::dir_itr_imp();
@@ -541,7 +541,7 @@ void directory_iterator_increment(directory_iterator& it, boost::system::error_c
 
       if (BOOST_UNLIKELY(!!increment_ec))  // happens if filesystem is corrupt, such as on a damaged optical disc
       {
-        boost::intrusive_ptr< detail::dir_itr_imp > imp;
+        ::boost::intrusive_ptr< detail::dir_itr_imp > imp;
         imp.swap(it.m_imp);
         path error_path(imp->dir_entry.path().parent_path());  // fix ticket #5900
         if (ec == NULL)
@@ -598,7 +598,7 @@ void recursive_directory_iterator_construct(recursive_directory_iterator& it, co
   if ((ec && *ec) || dir_it == directory_iterator())
     return;
 
-  boost::intrusive_ptr< detail::recur_dir_itr_imp > imp;
+  ::boost::intrusive_ptr< detail::recur_dir_itr_imp > imp;
   if (!ec)
   {
     imp = new detail::recur_dir_itr_imp(opts);

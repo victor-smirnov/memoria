@@ -6,7 +6,8 @@
 //
 //          based on tss.hpp from boost.thread
 
-#pragma once
+#ifndef MEMORIA_FIBERS_DETAIL_FSS_H
+#define MEMORIA_FIBERS_DETAIL_FSS_H
 
 #include <atomic>
 #include <cstddef>
@@ -15,20 +16,19 @@
 #include <boost/intrusive_ptr.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 namespace detail {
 
 class fss_cleanup_function {
 private:
-    std::size_t  use_count_{ 0 };
+    std::atomic< std::size_t >  use_count_{ 0 };
 
 public:
-    typedef boost::intrusive_ptr< fss_cleanup_function >   ptr_t;
+    typedef ::boost::intrusive_ptr< fss_cleanup_function >   ptr_t;
 
     fss_cleanup_function() noexcept = default;
 
@@ -38,12 +38,13 @@ public:
 
     friend inline
     void intrusive_ptr_add_ref( fss_cleanup_function * p) noexcept {
-        ++p->use_count_;
+        p->use_count_.fetch_add( 1, std::memory_order_relaxed);
     }
 
     friend inline
     void intrusive_ptr_release( fss_cleanup_function * p) noexcept {
-        if ( --p->use_count_ == 0) {
+        if ( 1 == p->use_count_.fetch_sub( 1, std::memory_order_release) ) {
+            std::atomic_thread_fence( std::memory_order_acquire);
             delete p;
         }
     }
@@ -52,7 +53,7 @@ public:
 }}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif //  MEMORIA_FIBERS_DETAIL_FSS_H

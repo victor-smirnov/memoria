@@ -7,12 +7,13 @@
 // derive a subclass with specific properties important to a user-coded
 // scheduler.
 
-#pragma once
+#ifndef MEMORIA_FIBERS_PROPERTIES_HPP
+#define MEMORIA_FIBERS_PROPERTIES_HPP
 
 #include <memoria/v1/fiber/detail/config.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
 # if defined(BOOST_MSVC)
@@ -20,19 +21,18 @@
 # pragma warning(disable:4275)
 # endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
 class context;
 
 namespace algo {
 
-struct algorithm;
+class algorithm;
 
 }
 
-class MEMORIA_V1_FIBERS_DECL fiber_properties {
+class MEMORIA_FIBERS_DECL fiber_properties {
 protected:
     // initialized by constructor
     context         *   ctx_;
@@ -66,14 +66,14 @@ public:
     }
 };
 
-}}}
+}}} // namespace memoria::v1::fibers
 
 # if defined(BOOST_MSVC)
 # pragma warning(pop)
 # endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // MEMORIA_FIBERS_PROPERTIES_HPP

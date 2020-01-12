@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "../../fiber/context.hpp"
+#include <memoria/v1/fiber/context.hpp>
 
 #include <exception>
 #include <string>

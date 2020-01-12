@@ -12,11 +12,10 @@
 #include "memoria/v1/fiber/context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
 void
@@ -34,8 +33,8 @@ fiber_properties::notify() noexcept {
     }
 }
 
-}}}
+}}}                                  // memoria::v1::fibers
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif

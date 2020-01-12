@@ -59,7 +59,7 @@ public:
         hash_ = hash_ ^ value;
     }
 
-    uint32_t hash() const {
+    uint64_t hash() const {
         return hash_;
     }
 };

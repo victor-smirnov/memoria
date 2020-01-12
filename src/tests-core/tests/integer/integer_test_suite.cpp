@@ -78,13 +78,15 @@ public:
         s1 >> acc4;
         assert_equals(acc3, acc4);
 
-        std::string str_num5 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
-        Acc256T acc5{};
-        acc5--;
-        assert_equals(acc5.to_bmp().str(), str_num5);
+        std::string str_num5_1 = "115699999999999999999999999999999999999999999999999999999999999999999999999999";
+        std::string str_num5_2 = "115700000000000000000000000000000000000000000000000000000000000000000000000000";
 
+        Acc256T acc5{str_num5_1};
         acc5++;
-        assert_equals(acc5, Acc256T{});
+        assert_equals(acc5.to_bmp().str(), str_num5_2);
+
+        acc5--;
+        assert_equals(acc5.to_bmp().str(), str_num5_1);
     }
 
     void complex_tests()

@@ -1,11 +1,11 @@
 
 //          Copyright Oliver Kowalke 2013.
-//          Copyright Victor Smirnov 2017.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef MEMORIA_FIBERS_CONDITION_VARIABLE_H
+#define MEMORIA_FIBERS_CONDITION_VARIABLE_H
 
 #include <algorithm>
 #include <atomic>
@@ -15,6 +15,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
+#include <memoria/v1/context/detail/config.hpp>
 
 #include <memoria/v1/fiber/context.hpp>
 #include <memoria/v1/fiber/detail/config.hpp>
@@ -25,7 +26,7 @@
 #include <memoria/v1/fiber/operations.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
 #ifdef _MSC_VER
@@ -33,8 +34,7 @@
 //# pragma warning(disable:4251)
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
 enum class cv_status {
@@ -42,12 +42,12 @@ enum class cv_status {
     timeout
 };
 
-class MEMORIA_V1_FIBERS_DECL condition_variable_any {
+class MEMORIA_FIBERS_DECL condition_variable_any {
 private:
     typedef context::wait_queue_t   wait_queue_t;
 
-    wait_queue_t        wait_queue_{};
     detail::spinlock    wait_queue_splk_{};
+    wait_queue_t        wait_queue_{};
 
 public:
     condition_variable_any() = default;
@@ -65,30 +65,29 @@ public:
 
     template< typename LockType >
     void wait( LockType & lt) {
-        context * ctx = context::active();
+        context * active_ctx = context::active();
         // atomically call lt.unlock() and block on *this
         // store this fiber in waiting-queue
-        detail::spinlock_lock lk( wait_queue_splk_);
-        BOOST_ASSERT( ! ctx->wait_is_linked() );
-        ctx->wait_link( wait_queue_);
+        detail::spinlock_lock lk{ wait_queue_splk_ };
+        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
+        active_ctx->wait_link( wait_queue_);
+        active_ctx->twstatus.store( static_cast< std::intptr_t >( 0), std::memory_order_release);
         // unlock external lt
         lt.unlock();
         // suspend this fiber
-        ctx->suspend( lk);
-        // relock local lk
-        lk.lock();
-        // remove from waiting-queue
-        ctx->wait_unlink();
-        // unlock local lk
-        lk.unlock();
+        active_ctx->suspend( lk);
         // relock external again before returning
         try {
             lt.lock();
+#if defined(MEMORIA_CONTEXT_HAS_CXXABI_H)
+        } catch ( abi::__forced_unwind const&) {
+            throw;
+#endif
         } catch (...) {
             std::terminate();
         }
         // post-conditions
-        BOOST_ASSERT( ! ctx->wait_is_linked() );
+        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
     }
 
     template< typename LockType, typename Pred >
@@ -100,35 +99,39 @@ public:
 
     template< typename LockType, typename Clock, typename Duration >
     cv_status wait_until( LockType & lt, std::chrono::time_point< Clock, Duration > const& timeout_time_) {
+        context * active_ctx = context::active();
         cv_status status = cv_status::no_timeout;
-        std::chrono::steady_clock::time_point timeout_time(
-                detail::convert( timeout_time_) );
-        context * ctx = context::active();
+        std::chrono::steady_clock::time_point timeout_time = detail::convert( timeout_time_);
         // atomically call lt.unlock() and block on *this
         // store this fiber in waiting-queue
-        detail::spinlock_lock lk( wait_queue_splk_);
-        BOOST_ASSERT( ! ctx->wait_is_linked() );
-        ctx->wait_link( wait_queue_);
+        detail::spinlock_lock lk{ wait_queue_splk_ };
+        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
+        active_ctx->wait_link( wait_queue_);
+        active_ctx->twstatus.store( reinterpret_cast< std::intptr_t >( this), std::memory_order_release);
         // unlock external lt
         lt.unlock();
         // suspend this fiber
-        if ( ! ctx->wait_until( timeout_time, lk) ) {
+        if ( ! active_ctx->wait_until( timeout_time, lk) ) {
             status = cv_status::timeout;
+            // relock local lk
+            lk.lock();
+            // remove from waiting-queue
+            wait_queue_.remove( * active_ctx);
+            // unlock local lk
+            lk.unlock();
         }
-        // relock local lk
-        lk.lock();
-        // remove from waiting-queue
-        ctx->wait_unlink();
-        // unlock local lk
-        lk.unlock();
         // relock external again before returning
         try {
             lt.lock();
+#if defined(MEMORIA_CONTEXT_HAS_CXXABI_H)
+        } catch ( abi::__forced_unwind const&) {
+            throw;
+#endif
         } catch (...) {
             std::terminate();
         }
         // post-conditions
-        BOOST_ASSERT( ! ctx->wait_is_linked() );
+        BOOST_ASSERT( ! active_ctx->wait_is_linked() );
         return status;
     }
 
@@ -157,7 +160,7 @@ public:
     }
 };
 
-class MEMORIA_V1_FIBERS_DECL condition_variable {
+class MEMORIA_FIBERS_DECL condition_variable {
 private:
     condition_variable_any      cnd_;
 
@@ -175,8 +178,7 @@ public:
         cnd_.notify_all();
     }
 
-    template <typename Mutex>
-    void wait( std::unique_lock< Mutex > & lt) {
+    void wait( std::unique_lock< mutex > & lt) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
         BOOST_ASSERT( context::active() == lt.mutex()->owner_);
@@ -186,8 +188,8 @@ public:
         BOOST_ASSERT( context::active() == lt.mutex()->owner_);
     }
 
-    template< typename Mutex, typename Pred >
-    void wait( std::unique_lock< Mutex > & lt, Pred pred) {
+    template< typename Pred >
+    void wait( std::unique_lock< mutex > & lt, Pred pred) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
         BOOST_ASSERT( context::active() == lt.mutex()->owner_);
@@ -197,8 +199,8 @@ public:
         BOOST_ASSERT( context::active() == lt.mutex()->owner_);
     }
 
-    template< typename Mutex, typename Clock, typename Duration >
-    cv_status wait_until( std::unique_lock< Mutex > & lt,
+    template< typename Clock, typename Duration >
+    cv_status wait_until( std::unique_lock< mutex > & lt,
                           std::chrono::time_point< Clock, Duration > const& timeout_time) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
@@ -210,8 +212,8 @@ public:
         return result;
     }
 
-    template< typename Mutex, typename Clock, typename Duration, typename Pred >
-    bool wait_until( std::unique_lock< Mutex > & lt,
+    template< typename Clock, typename Duration, typename Pred >
+    bool wait_until( std::unique_lock< mutex > & lt,
                      std::chrono::time_point< Clock, Duration > const& timeout_time, Pred pred) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
@@ -223,8 +225,8 @@ public:
         return result;
     }
 
-    template< typename Mutex, typename Rep, typename Period >
-    cv_status wait_for(std::unique_lock< Mutex > & lt,
+    template< typename Rep, typename Period >
+    cv_status wait_for( std::unique_lock< mutex > & lt,
                         std::chrono::duration< Rep, Period > const& timeout_duration) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
@@ -236,8 +238,8 @@ public:
         return result;
     }
 
-    template< typename Mutex, typename Rep, typename Period, typename Pred >
-    bool wait_for( std::unique_lock< Mutex > & lt,
+    template< typename Rep, typename Period, typename Pred >
+    bool wait_for( std::unique_lock< mutex > & lt,
                    std::chrono::duration< Rep, Period > const& timeout_duration, Pred pred) {
         // pre-condition
         BOOST_ASSERT( lt.owns_lock() );
@@ -257,7 +259,7 @@ public:
 #endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // MEMORIA_FIBERS_CONDITION_VARIABLE_H

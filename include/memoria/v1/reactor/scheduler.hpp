@@ -37,7 +37,7 @@ template <typename Reactor>
 class Scheduler: public fibers::algo::algorithm_with_properties<FiberProperties> {
     std::shared_ptr<Reactor> reactor_;
     
-    using ReadyQueue = fibers::scheduler::ready_queue_t;
+    using ReadyQueue = fibers::scheduler::ready_queue_type;
     using WaitQueue = fibers::context::wait_queue_t;
 
     ReadyQueue ready_queue_ {};

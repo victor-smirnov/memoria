@@ -4,44 +4,42 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef MEMORIA_FIBERS_SPINLOCK_TTAS_H
+#define MEMORIA_FIBERS_SPINLOCK_TTAS_H
 
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <random>
 #include <thread>
 
 #include <memoria/v1/fiber/detail/config.hpp>
 #include <memoria/v1/fiber/detail/cpu_relax.hpp>
+#include <memoria/v1/fiber/detail/spinlock_status.hpp>
 
 // based on informations from:
 // https://software.intel.com/en-us/articles/benefitting-power-and-performance-sleep-loops
 // https://software.intel.com/en-us/articles/long-duration-spin-wait-loops-on-hyper-threading-technology-enabled-intel-processors
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 namespace detail {
 
 class spinlock_ttas {
 private:
-    enum class spinlock_status {
-        locked = 0,
-        unlocked
-    };
+    template< typename FBSplk >
+    friend class spinlock_rtm;
 
-    // align shared variable 'state_' at cache line to prevent false sharing
-    alignas(cache_alignment) std::atomic< spinlock_status >  state_{ spinlock_status::unlocked };
-    // padding to avoid other data one the cacheline of shared variable 'state_'
-    char                                                     pad[cacheline_length];
+    std::atomic< spinlock_status >              state_{ spinlock_status::unlocked };
 
 public:
-    spinlock_ttas() noexcept = default;
+    spinlock_ttas() = default;
 
     spinlock_ttas( spinlock_ttas const&) = delete;
     spinlock_ttas & operator=( spinlock_ttas const&) = delete;
 
     void lock() noexcept {
+        static thread_local std::minstd_rand generator{ std::random_device{}() };
         std::size_t collisions = 0 ;
         for (;;) {
             // avoid using multiple pause instructions for a delay of a specific cycle count
@@ -49,23 +47,23 @@ public:
             // the cycle count can not guaranteed from one system to the next
             // -> check the shared variable 'state_' in between each cpu_relax() to prevent
             //    unnecessarily long delays on some systems
-            std::size_t tests = 0;
+            std::size_t retries = 0;
             // test shared variable 'status_'
             // first access to 'state_' -> chache miss
             // sucessive acccess to 'state_' -> cache hit
             // if 'state_' was released by other fiber
             // cached 'state_' is invalidated -> cache miss
             while ( spinlock_status::locked == state_.load( std::memory_order_relaxed) ) {
-#if !defined(MEMORIA_V1_FIBERS_SPIN_SINGLE_CORE)
-                if ( MEMORIA_V1_FIBERS_SPIN_MAX_TESTS > tests) {
-                    ++tests;
+#if !defined(MEMORIA_FIBERS_SPIN_SINGLE_CORE)
+                if ( MEMORIA_FIBERS_SPIN_BEFORE_SLEEP0 > retries) {
+                    ++retries;
                     // give CPU a hint that this thread is in a "spin-wait" loop
                     // delays the next instruction's execution for a finite period of time (depends on processor family)
                     // the CPU is not under demand, parts of the pipeline are no longer being used
                     // -> reduces the power consumed by the CPU
+                    // -> prevent pipeline stalls
                     cpu_relax();
-                } else if ( MEMORIA_V1_FIBERS_SPIN_MAX_TESTS + 20 > tests) {
-                    ++tests;
+                } else if ( MEMORIA_FIBERS_SPIN_BEFORE_YIELD > retries) {
                     // std::this_thread::sleep_for( 0us) has a fairly long instruction path length,
                     // combined with an expensive ring3 to ring 0 transition costing about 1000 cycles
                     // std::this_thread::sleep_for( 0us) lets give up this_thread the remaining part of its time slice
@@ -88,11 +86,13 @@ public:
                 // spinlock now contended
                 // utilize 'Binary Exponential Backoff' algorithm
                 // linear_congruential_engine is a random number engine based on Linear congruential generator (LCG)
-                static thread_local std::minstd_rand generator;
-                const std::size_t z =
-                    std::uniform_int_distribution< std::size_t >{ 0, static_cast< std::size_t >( 1) << collisions }( generator);
+                std::uniform_int_distribution< std::size_t > distribution{
+                    0, static_cast< std::size_t >( 1) << (std::min)(collisions, static_cast< std::size_t >( MEMORIA_FIBERS_CONTENTION_WINDOW_THRESHOLD)) };
+                const std::size_t z = distribution( generator);
                 ++collisions;
                 for ( std::size_t i = 0; i < z; ++i) {
+                    // -> reduces the power consumed by the CPU
+                    // -> prevent pipeline stalls
                     cpu_relax();
                 }
             } else {
@@ -102,6 +102,10 @@ public:
         }
     }
 
+    bool try_lock() noexcept {
+        return spinlock_status::unlocked == state_.exchange( spinlock_status::locked, std::memory_order_acquire);
+    }
+
     void unlock() noexcept {
         state_.store( spinlock_status::unlocked, std::memory_order_release);
     }
@@ -109,4 +113,4 @@ public:
 
 }}}}
 
-
+#endif // MEMORIA_FIBERS_SPINLOCK_TTAS_H

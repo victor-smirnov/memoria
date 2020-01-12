@@ -15,15 +15,15 @@
 
 #include <memoria/v1/profiles/default/default.hpp>
 
-#include <memoria/v1/containers/multimap/multimap_impl.hpp>
+//#include <memoria/v1/containers/multimap/multimap_impl.hpp>
 
 namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;
-using CtrName = memoria::v1::Multimap<Varchar, Varchar>;
+//using CtrName = memoria::v1::Multimap<Varchar, Varchar>;
 
-MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+//MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
 
 }}
 

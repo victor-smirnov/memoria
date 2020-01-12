@@ -72,11 +72,11 @@ filesystem_error& filesystem_error::operator= (filesystem_error const& that)
   return *this;
 }
 
-filesystem_error::~filesystem_error() BOOST_NOEXCEPT_OR_NOTHROW
+filesystem_error::~filesystem_error() noexcept
 {
 }
 
-const char* filesystem_error::what() const BOOST_NOEXCEPT_OR_NOTHROW
+const char* filesystem_error::what() const noexcept
 {
   if (m_imp_ptr.get()) try
   {

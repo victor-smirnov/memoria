@@ -330,7 +330,7 @@ private:
 private:
   // intrusive_ptr provides the shallow-copy semantics required for single pass iterators
   // (i.e. InputIterators). The end iterator is indicated by is_end().
-  boost::intrusive_ptr< detail::dir_itr_imp > m_imp;
+  ::boost::intrusive_ptr< detail::dir_itr_imp > m_imp;
 };
 
 //  enable directory_iterator C++11 range-based for statement use  --------------------//
@@ -574,7 +574,7 @@ private:
 private:
   // intrusive_ptr provides the shallow-copy semantics required for single pass iterators
   // (i.e. InputIterators). The end iterator is indicated by is_end().
-  boost::intrusive_ptr< detail::recur_dir_itr_imp > m_imp;
+  ::boost::intrusive_ptr< detail::recur_dir_itr_imp > m_imp;
 };
 
 #if !defined(MEMORIA_BOOST_FILESYSTEM_NO_DEPRECATED)

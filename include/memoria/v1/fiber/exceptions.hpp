@@ -6,7 +6,8 @@
 
 // based on boost.thread
 
-#pragma once
+#ifndef BOOST_fiber_errorS_H
+#define BOOST_fiber_errorS_H
 
 #include <future>
 #include <stdexcept>
@@ -18,25 +19,24 @@
 #include <memoria/v1/fiber/detail/config.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 
 class fiber_error : public std::system_error {
 public:
     fiber_error( std::error_code ec) :
-        std::system_error( ec) {
+        std::system_error{ ec } {
     }
 
     fiber_error( std::error_code ec, const char * what_arg) :
-        std::system_error( ec, what_arg) {
+        std::system_error{ ec, what_arg } {
     }
 
     fiber_error( std::error_code ec, std::string const& what_arg) :
-        std::system_error( ec, what_arg) {
+        std::system_error{ ec, what_arg } {
     }
 
     virtual ~fiber_error() = default;
@@ -45,15 +45,15 @@ public:
 class lock_error : public fiber_error {
 public:
     lock_error( std::error_code ec) :
-        fiber_error( ec) {
+        fiber_error{ ec } {
     }
 
     lock_error( std::error_code ec, const char * what_arg) :
-        fiber_error( ec, what_arg) {
+        fiber_error{ ec, what_arg } {
     }
 
     lock_error( std::error_code ec, std::string const& what_arg) :
-        fiber_error( ec, what_arg) {
+        fiber_error{ ec, what_arg } {
     }
 };
 
@@ -64,7 +64,7 @@ enum class future_errc {
     no_state
 };
 
-MEMORIA_V1_FIBERS_DECL
+MEMORIA_FIBERS_DECL
 std::error_category const& future_category() noexcept;
 
 }}}
@@ -77,73 +77,72 @@ struct is_error_code_enum< memoria::v1::fibers::future_errc > : public true_type
 
 inline
 std::error_code make_error_code( memoria::v1::fibers::future_errc e) noexcept {
-    return std::error_code( static_cast< int >( e), memoria::v1::fibers::future_category() );
+    return std::error_code{ static_cast< int >( e), memoria::v1::fibers::future_category() };
 }
 
 inline
 std::error_condition make_error_condition( memoria::v1::fibers::future_errc e) noexcept {
-    return std::error_condition( static_cast< int >( e), memoria::v1::fibers::future_category() );
+    return std::error_condition{ static_cast< int >( e), memoria::v1::fibers::future_category() };
 }
 
 }
 
-namespace memoria {
-namespace v1 {
+namespace memoria { namespace v1 {
 namespace fibers {
 
 class future_error : public fiber_error {
 public:
     future_error( std::error_code ec) :
-        fiber_error( ec) {
+        fiber_error{ ec } {
     }
 };
 
 class future_uninitialized : public future_error {
 public:
     future_uninitialized() :
-        future_error( std::make_error_code( future_errc::no_state) ) {
+        future_error{ std::make_error_code( future_errc::no_state) } {
     }
 };
 
 class future_already_retrieved : public future_error {
 public:
     future_already_retrieved() :
-        future_error( std::make_error_code( future_errc::future_already_retrieved) ) {
+        future_error{ std::make_error_code( future_errc::future_already_retrieved) } {
     }
 };
 
 class broken_promise : public future_error {
 public:
     broken_promise() :
-        future_error( std::make_error_code( future_errc::broken_promise) ) {
+        future_error{ std::make_error_code( future_errc::broken_promise) } {
     }
 };
 
 class promise_already_satisfied : public future_error {
 public:
     promise_already_satisfied() :
-        future_error( std::make_error_code( future_errc::promise_already_satisfied) ) {
+        future_error{ std::make_error_code( future_errc::promise_already_satisfied) } {
     }
 };
 
 class promise_uninitialized : public future_error {
 public:
     promise_uninitialized() :
-        future_error( std::make_error_code( future_errc::no_state) ) {
+        future_error{ std::make_error_code( future_errc::no_state) } {
     }
 };
 
 class packaged_task_uninitialized : public future_error {
 public:
     packaged_task_uninitialized() :
-        future_error( std::make_error_code( future_errc::no_state) ) {
+        future_error{ std::make_error_code( future_errc::no_state) } {
     }
 };
 
 }}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // BOOST_fiber_errorS_H

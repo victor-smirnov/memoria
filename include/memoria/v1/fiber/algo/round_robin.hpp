@@ -3,7 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef MEMORIA_FIBERS_ALGO_ROUND_ROBIN_H
+#define MEMORIA_FIBERS_ALGO_ROUND_ROBIN_H
 
 #include <condition_variable>
 #include <chrono>
@@ -17,7 +18,7 @@
 #include <memoria/v1/fiber/scheduler.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
+#  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
 #ifdef _MSC_VER
@@ -25,16 +26,15 @@
 # pragma warning(disable:4251)
 #endif
 
-namespace memoria {
-namespace v1 {    
+namespace memoria { namespace v1 {
 namespace fibers {
 namespace algo {
 
-class MEMORIA_V1_FIBERS_DECL round_robin : public algorithm {
+class MEMORIA_FIBERS_DECL round_robin : public algorithm {
 private:
-    typedef scheduler::ready_queue_t rqueue_t;
+    typedef scheduler::ready_queue_type rqueue_type;
 
-    rqueue_t                    rqueue_{};
+    rqueue_type                 rqueue_{};
     std::mutex                  mtx_{};
     std::condition_variable     cnd_{};
     bool                        flag_{ false };
@@ -63,7 +63,7 @@ public:
 #endif
 
 #ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
+#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
-
+#endif // MEMORIA_FIBERS_ALGO_ROUND_ROBIN_H

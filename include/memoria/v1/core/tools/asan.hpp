@@ -16,7 +16,7 @@
 
 #pragma once
 
-#ifdef ASAN_ENABLED
+#ifdef MEMORIA_USE_ASAN
 #include <sanitizer/asan_interface.h>
 
 #ifdef MMA1_SANITIZE_STACKS

@@ -4,7 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+#ifndef MEMORIA_FIBERS_DETAIL_CONFIG_H
+#define MEMORIA_FIBERS_DETAIL_CONFIG_H
 
 #include <cstddef>
 
@@ -12,59 +13,54 @@
 #include <boost/predef.h> 
 #include <boost/detail/workaround.hpp>
 
-#ifdef MEMORIA_V1_FIBERS_DECL
-# undef MEMORIA_V1_FIBERS_DECL
+#ifdef MEMORIA_FIBERS_DECL
+# undef MEMORIA_FIBERS_DECL
 #endif
 
-#if (defined(BOOST_ALL_DYN_LINK) || defined(MEMORIA_V1_FIBERS_DYN_LINK) ) && ! defined(MEMORIA_V1_FIBERS_STATIC_LINK)
-# if defined(MEMORIA_V1_FIBERS_SOURCE)
-#  define MEMORIA_V1_FIBERS_DECL BOOST_SYMBOL_EXPORT
-#  define MEMORIA_V1_FIBERS_BUILD_DLL
+#if (defined(BOOST_ALL_DYN_LINK) || defined(MEMORIA_FIBERS_DYN_LINK) ) && ! defined(MEMORIA_FIBERS_STATIC_LINK)
+# if defined(MEMORIA_FIBERS_SOURCE)
+#  define MEMORIA_FIBERS_DECL BOOST_SYMBOL_EXPORT
+#  define MEMORIA_FIBERS_BUILD_DLL
 # else
-#  define MEMORIA_V1_FIBERS_DECL 
-//BOOST_SYMBOL_IMPORT
+#  define MEMORIA_FIBERS_DECL BOOST_SYMBOL_IMPORT
 # endif
 #endif
 
-#if ! defined(MEMORIA_V1_FIBERS_DECL)
-# define MEMORIA_V1_FIBERS_DECL
+#if ! defined(MEMORIA_FIBERS_DECL)
+# define MEMORIA_FIBERS_DECL
 #endif
 
-#if ! defined(MEMORIA_V1_FIBERS_SOURCE) && ! defined(BOOST_ALL_NO_LIB) && ! defined(MEMORIA_V1_FIBERS_NO_LIB)
+#if ! defined(MEMORIA_FIBERS_SOURCE) && ! defined(BOOST_ALL_NO_LIB) && ! defined(MEMORIA_FIBERS_NO_LIB)
 # define BOOST_LIB_NAME boost_fiber
-# if defined(BOOST_ALL_DYN_LINK) || defined(MEMORIA_V1_FIBERS_DYN_LINK)
+# if defined(BOOST_ALL_DYN_LINK) || defined(MEMORIA_FIBERS_DYN_LINK)
 #  define BOOST_DYN_LINK
 # endif
 # include <boost/config/auto_link.hpp>
 #endif
 
 #if BOOST_OS_LINUX || BOOST_OS_WINDOWS
-# define MEMORIA_V1_FIBERS_HAS_FUTEX
+# define MEMORIA_FIBERS_HAS_FUTEX
 #endif
 
-#if (!defined(MEMORIA_V1_FIBERS_HAS_FUTEX) && \
-    (defined(MEMORIA_V1_FIBERS_SPINLOCK_TTAS_FUTEX) || defined(MEMORIA_V1_FIBERS_SPINLOCK_TTAS_ADAPTIVE_FUTEX)))
+#if (!defined(MEMORIA_FIBERS_HAS_FUTEX) && \
+    (defined(MEMORIA_FIBERS_SPINLOCK_TTAS_FUTEX) || defined(MEMORIA_FIBERS_SPINLOCK_TTAS_ADAPTIVE_FUTEX)))
 # error "futex not supported on this platform"
 #endif
 
-#if !defined(MEMORIA_V1_FIBERS_SPIN_MAX_COLLISIONS)
-# define MEMORIA_V1_FIBERS_SPIN_MAX_COLLISIONS 16
+#if !defined(MEMORIA_FIBERS_CONTENTION_WINDOW_THRESHOLD)
+# define MEMORIA_FIBERS_CONTENTION_WINDOW_THRESHOLD 16
 #endif
 
-#if !defined(MEMORIA_V1_FIBERS_SPIN_MAX_TESTS)
-# define MEMORIA_V1_FIBERS_SPIN_MAX_TESTS 100
+#if !defined(MEMORIA_FIBERS_RETRY_THRESHOLD)
+# define MEMORIA_FIBERS_RETRY_THRESHOLD 64
 #endif
 
-namespace memoria {
-namespace v1 {
-namespace fibers {
+#if !defined(MEMORIA_FIBERS_SPIN_BEFORE_SLEEP0)
+# define MEMORIA_FIBERS_SPIN_BEFORE_SLEEP0 32
+#endif
 
-// modern architectures have cachelines with 64byte length
-// ARM Cortex-A15 32/64byte, Cortex-A9 16/32/64bytes
-// MIPS 74K: 32byte, 4KEc: 16byte
-// ist shoudl be safe to use 64byte for all
-static constexpr std::size_t cache_alignment{ 64 };
-static constexpr std::size_t cacheline_length{ 64 };
+#if !defined(MEMORIA_FIBERS_SPIN_BEFORE_YIELD)
+# define MEMORIA_FIBERS_SPIN_BEFORE_YIELD 64
+#endif
 
-
-}}}
+#endif // MEMORIA_FIBERS_DETAIL_CONFIG_H

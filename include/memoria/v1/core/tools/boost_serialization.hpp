@@ -22,7 +22,7 @@
 
 #include <boost/serialization/split_free.hpp>
 
-namespace boost {
+namespace memoria { namespace v1 {
 namespace serialization {
 
 template<typename Archive, size_t BitLength>
@@ -176,5 +176,6 @@ inline void serialize(Archive & ar, memoria::v1::Optional<T>& opt, const unsigne
 }
 
 
+}
 }
 }

@@ -16,7 +16,6 @@
 #pragma once
 
 #include <memoria/v1/core/types.hpp>
-#include <yaml-cpp/yaml.h>
 #include <memoria/v1/filesystem/path.hpp>
 
 #include <memoria/v1/core/tools/optional.hpp>
@@ -28,6 +27,7 @@
 #include <boost/preprocessor/list/for_each.hpp>
 #include <boost/preprocessor/variadic/to_list.hpp>
 
+#include <yaml-cpp/yaml.h>
 
 #include <string>
 #include <iostream>
@@ -80,7 +80,7 @@ public:
     virtual void externalize(YAML::Node& node, ConfigurationContext* context)
     {
         auto path = context->resource_path(name_);
-        node[name_] = path.to_u8();
+        node[name_] = path.string();
         IndirectStateFiledSerializer<T>::externalize(field_, path, context);
     }
 

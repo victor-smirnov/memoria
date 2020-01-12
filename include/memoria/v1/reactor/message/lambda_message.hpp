@@ -47,7 +47,7 @@ public:
     virtual void process() noexcept
     {
         try {
-            result_ = boost::context::detail::apply(fn_, args_);
+            result_ = memoria::v1::context::detail::apply(fn_, args_);
         }
         catch(...) {
             exception_ = std::current_exception();
@@ -94,7 +94,7 @@ public:
     virtual void process() noexcept
     {
         try {
-            boost::context::detail::apply(fn_, args_);
+            memoria::v1::context::detail::apply(fn_, args_);
         }
         catch(...) {
             exception_ = std::current_exception();

@@ -26,7 +26,7 @@ class protected_stack_pool {
     
     class storage {
         struct ListNode: boost::intrusive::list_base_hook<> {
-            boost::context::stack_context stack_ctx_;
+            memoria::v1::context::stack_context stack_ctx_;
         };
         
         size_t min_pool_size_;
@@ -58,14 +58,14 @@ class protected_stack_pool {
             );
         }
         
-        boost::context::stack_context allocate()
+        memoria::v1::context::stack_context allocate()
         {
             if (stack_list_.size() > 0) 
             {
                 ListNode* node = &stack_list_.back();
                 stack_list_.pop_back();
                 
-                boost::context::stack_context ctx(node->stack_ctx_);
+                memoria::v1::context::stack_context ctx(node->stack_ctx_);
                 ctx.sp = tools::ptr_cast<uint8_t>(ctx.sp) - sizeof(ListNode);
                 ctx.size -= sizeof(ListNode);
                 
@@ -78,7 +78,7 @@ class protected_stack_pool {
         
         
         
-        void deallocate( boost::context::stack_context & sctx) noexcept 
+        void deallocate( memoria::v1::context::stack_context & sctx) noexcept 
         {
             ListNode* node = tools::ptr_cast<ListNode>(sctx.sp);
             
@@ -103,7 +103,7 @@ class protected_stack_pool {
         
     private:
         
-        boost::context::stack_context create_new_node()
+        memoria::v1::context::stack_context create_new_node()
         {
             auto ctx = allocator_.allocate();
             
@@ -122,18 +122,18 @@ class protected_stack_pool {
         }  
     };
     
-    boost::intrusive_ptr< storage > storage_;
+    ::boost::intrusive_ptr< storage > storage_;
     
 public:
-    protected_stack_pool(size_t min_pool_size, size_t stack_size = boost::context::stack_traits::default_size()): 
+    protected_stack_pool(size_t min_pool_size, size_t stack_size = memoria::v1::context::stack_traits::default_size()): 
         storage_(new storage(min_pool_size, stack_size))
     {}
     
-    boost::context::stack_context allocate() {
+    memoria::v1::context::stack_context allocate() {
         return storage_->allocate();
     }
     
-    void deallocate( boost::context::stack_context & sctx) noexcept {
+    void deallocate( memoria::v1::context::stack_context & sctx) noexcept {
         return storage_->deallocate(sctx);
     }
 };
