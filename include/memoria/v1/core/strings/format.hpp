@@ -35,26 +35,26 @@ namespace memoria {
 namespace v1 {
 
 template <typename... Args>
-U8String format8(const char16_t* fmt_str, Args&&... args)
+U8String format_u8(const char16_t* fmt_str, Args&&... args)
 {
     U16String fmt16(fmt_str);
     return ::fmt::format(fmt16.to_u8().to_std_string(), std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-U8String format8(const char* fmt_str, Args&&... args)
+U8String format_u8(const char* fmt_str, Args&&... args)
 {
     return ::fmt::format(fmt_str, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 WhatInfo format_ex(const char16_t* fmt, Args&&... args) {
-    return WhatInfo(format8(fmt, std::forward<Args>(args)...));
+    return WhatInfo(format_u8(fmt, std::forward<Args>(args)...));
 }
 
 template <typename... Args>
 WhatInfo format_ex(const char* fmt, Args&&... args) {
-    return WhatInfo(format8(fmt, std::forward<Args>(args)...));
+    return WhatInfo(format_u8(fmt, std::forward<Args>(args)...));
 }
 
 

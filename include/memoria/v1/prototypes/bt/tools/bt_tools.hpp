@@ -67,7 +67,7 @@ struct ForEachStream<Idx, Idx> {
             return fn.template process<Idx>(std::forward<Args>(args)...);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Requested stream {} not found", stream));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Requested stream {} not found", stream));
         }
     }
 };

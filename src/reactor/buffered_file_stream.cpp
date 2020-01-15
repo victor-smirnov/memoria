@@ -211,7 +211,7 @@ void BufferedFileOutputStreamHandlerImpl::write(const void* mem, size_t offset, 
 
     if (total_size != length)
     {
-        MMA1_THROW(Exception()) << WhatInfo(format8("Can't write {} bytes to file", length));
+        MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't write {} bytes to file", length));
     }
 }
 

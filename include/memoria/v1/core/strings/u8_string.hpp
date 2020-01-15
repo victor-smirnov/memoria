@@ -41,8 +41,10 @@ using U8StringView = boost::string_view;
 inline bool is_unicode_space_u8(char codeunit)
 {
     switch (codeunit) {
-        case 0x20:
-        case 0xa0: return true;
+        case '\r':
+        case '\n':
+        case '\t':
+        case 0x20: return true;
     }
 
     return false;

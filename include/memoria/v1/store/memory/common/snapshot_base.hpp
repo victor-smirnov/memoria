@@ -342,7 +342,7 @@ public:
             ctr_intf->for_each_ctr_node(name, this->shared_from_this(), fn);
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Container with name {} does not exist in snapshot {}", name, history_node_->snapshot_id()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Container with name {} does not exist in snapshot {}", name, history_node_->snapshot_id()));
     	}
     }
 
@@ -372,7 +372,7 @@ public:
 
                 if (old_value.block_ptr())
     			{
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Block with ID {} is not new in snapshot {}", id, txn_id));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Block with ID {} is not new in snapshot {}", id, txn_id));
     			}
     		});
 
@@ -382,11 +382,11 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
     		}
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Container with name {} already exists in snapshot {}", name, txn_id));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Container with name {} already exists in snapshot {}", name, txn_id));
     	}
     }
 
@@ -414,11 +414,11 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
     		}
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Container with name {} already exists in snapshot {}", name, txn_id));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Container with name {} already exists in snapshot {}", name, txn_id));
     	}
     }
 
@@ -456,7 +456,7 @@ public:
                     if (old_value.block_ptr()->unref() == 0)
     				{
                         // FIXME: just delete the block?
-                        MMA1_THROW(Exception()) << WhatInfo(format8("Unexpected refcount == 0 for block {}", old_value.block_ptr()->raw_data()->uuid()));
+                        MMA1_THROW(Exception()) << WhatInfo(format_u8("Unexpected refcount == 0 for block {}", old_value.block_ptr()->raw_data()->uuid()));
     				}
     			}
     		});
@@ -467,7 +467,7 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId()));
     		}
     	}
     	else {
@@ -505,7 +505,7 @@ public:
     			root_map_->assign(name, root_id);
     		}
     		else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Unexpected empty root ID for container {} in snapshot {}", name, txn_id));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Unexpected empty root ID for container {} in snapshot {}", name, txn_id));
     		}
     	}
     	else {
@@ -577,7 +577,7 @@ public:
                 return block;
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Block is not found for the specified id: {}", id));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Block is not found for the specified id: {}", id));
             }
         }
         else {
@@ -680,7 +680,7 @@ public:
                     }
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Block is not found for the specified id: {}", id));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Block is not found for the specified id: {}", id));
                 }
             }
             else if (shared->state() == Shared::READ)
@@ -697,7 +697,7 @@ public:
                     shared->refresh();
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Block is not found for the specified id: {}", id));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Block is not found for the specified id: {}", id));
                 }
             }
             else if (shared->state() == Shared::UPDATE)
@@ -705,7 +705,7 @@ public:
                 //MEMORIA_ASEERT();
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Invalid BlockShared state: {}", shared->state()));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid BlockShared state: {}", shared->state()));
             }
 
             shared->state() = Shared::UPDATE;
@@ -1189,7 +1189,7 @@ protected:
             return opt.value().block_ptr();
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Block with id {} does not exist in snapshot {}", id, currentTxnId()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Block with id {} does not exist in snapshot {}", id, currentTxnId()));
     	}
     }
 
@@ -1278,7 +1278,7 @@ protected:
 
     	if (is_data_locked())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot's {} data is locked", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot's {} data is locked", uuid()));
     	}
     }
 
@@ -1286,7 +1286,7 @@ protected:
     {
     	if (!is_active())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status()));
     	}
     }
 
@@ -1298,11 +1298,11 @@ protected:
     		// Double checking. This shouldn't happen
     		if (!history_node_->root())
     		{
-                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has been cleared", uuid()));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been cleared", uuid()));
     		}
     	}
     	else if (history_node_->is_active()) {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is still active", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is still active", uuid()));
     	}
     }
 
@@ -1320,7 +1320,7 @@ protected:
 
         if (!history_node_->is_active())
         {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has been already committed or data is locked", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been already committed or data is locked", uuid()));
         }
     }
 
@@ -1330,7 +1330,7 @@ protected:
 
     	if ((!history_node_->is_active()) && ctrName.is_set())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has been already committed or data is locked", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been already committed or data is locked", uuid()));
     	}
     }
 
@@ -1340,7 +1340,7 @@ protected:
 
     	if (!history_node_->is_data_locked())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} hasn't been locked", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} hasn't been locked", uuid()));
     	}
     }
 

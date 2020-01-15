@@ -26,6 +26,8 @@
 
 #include <memoria/v1/memoria.hpp>
 
+#include <memoria/v1/core/tools/result.hpp>
+
 #include <iostream>
 
 using namespace memoria::v1;
@@ -33,18 +35,43 @@ using namespace memoria::v1;
 using Ctr1T = Vector<LinkedData>;
 using Ctr2T = Vector<Varchar>;
 
+template <typename... Args>
+Result<void> boo(Args...) {
+    return Result<void>::simple_memoria_error("Ooops!");
+}
+
+
 
 int main()
 {
     try {
-        LDDocument doc = LDDocument::parse("Decimal(10,8)");
-        doc.dump(std::cout) << std::endl;
+        Result<int> rr = wrap_throwing([] () -> Result<int> {
+            //auto boo_r = boo();
+            //MEMORIA_RETURN_IF_ERROR(boo(1,2,3,4));
+            //return 12345;
+
+            //return Result<EmptyType>::of();
+            MMA1_THROW(RuntimeException()) << WhatCInfo("Foooo!");
+        });
+
+        rr.get_or_terminate();
+
+        //std::cout << rr << std::endl;
+
+        //rr.throw_if_error();
+
+        //std::cout << rr.throw_if_error() << std::endl;
+
+
+
+//        LDDocument doc = LDDocument::parse("Decimal(10,8)");
+//        doc.dump(std::cout) << std::endl;
 
         //std::cout << cast_as<Varchar>(doc.value()) << std::endl;
 
         //DataTypeRegistryStore::global().register_creator_fn<Decimal, TL<int32_t, int32_t>, TL<int32_t>, TL<>>();
 
-        DataTypeRegistry::local().create_object(doc.value().as_type_decl());
+        //DataTypeRegistry::local().create_object(doc.value().as_type_decl());
 
         /*
         auto store = IMemoryStore<>::create();
@@ -116,6 +143,12 @@ int main()
     }
     catch (MemoriaThrowable& th) {
         th.dump(std::cout);
+    }
+    catch (std::exception& ex) {
+        std::cout << "std::exception has been thrown: " << ex.what() << std::endl;
+    }
+    catch (int& vv) {
+        std::cout << "Int has been thrown: " << vv << std::endl;
     }
 
     return 0;

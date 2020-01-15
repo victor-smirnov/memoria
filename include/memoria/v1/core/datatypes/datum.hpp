@@ -158,7 +158,7 @@ public:
 template <typename DataType, typename SelectorTag, typename ViewType>
 U8String datum_to_sdn_string(DataType, SelectorTag, ViewType&& view)
 {
-    return format8("'{}'@{}", view, make_datatype_signature_string<DataType>());
+    return format_u8("'{}'@{}", view, make_datatype_signature_string<DataType>());
 }
 
 template <typename DataType, typename SelectorTag = typename DataTypeTraits<DataType>::DatumStorageSelector>

@@ -16,8 +16,15 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/strings/string.hpp>
 
+#include <iostream>
+
 namespace memoria {
 namespace v1 {
+
+void terminate(const char* msg) noexcept {
+    std::cout << msg << std::endl;
+    std::terminate();
+}
 
 const char* ExtractMemoriaPath(const char* path) {
 

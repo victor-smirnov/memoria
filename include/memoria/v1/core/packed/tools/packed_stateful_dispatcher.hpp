@@ -926,7 +926,7 @@ public:
             );
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatInfo(format8("Can't dispatch packed allocator structure: {}", idx));
+            MMA1_THROW(DispatchException()) << WhatInfo(format_u8("Can't dispatch packed allocator structure: {}", idx));
         }
     }
 
@@ -949,7 +949,7 @@ public:
             );
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatInfo(format8("Can't dispatch packed allocator structure: {}", idx));
+            MMA1_THROW(DispatchException()) << WhatInfo(format_u8("Can't dispatch packed allocator structure: {}", idx));
         }
     }
 
@@ -1105,7 +1105,7 @@ public:
             );
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatInfo(format8("Can't dispatch packed allocator structure: {}", idx));
+            MMA1_THROW(DispatchException()) << WhatInfo(format_u8("Can't dispatch packed allocator structure: {}", idx));
         }
     }
 

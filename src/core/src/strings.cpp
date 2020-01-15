@@ -170,15 +170,15 @@ LongType strToL(U8StringRef value) {
                 return v;
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Invalid integer value: {}", value));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid integer value: {}", value));
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid integer value: {}", value));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid integer value: {}", value));
         }
     }
     else {
-        MMA1_THROW(Exception()) << WhatInfo(format8("Invalid integer value: {}", value));
+        MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid integer value: {}", value));
     }
 }
 
@@ -222,14 +222,14 @@ int32_t getValueMultiplier(const char* chars, const char* ptr)
         return 1000*1000*1000;
     }
     else {
-        MMA1_THROW(Exception()) << WhatInfo(format8("Invalid number format: {}", chars));
+        MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid number format: {}", chars));
     }
 }
 
 void checkError(const char* chars, const char* ptr)
 {
     if (*ptr != 0) {
-        MMA1_THROW(Exception()) << WhatInfo(format8("Invalid number format: {}", chars));
+        MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid number format: {}", chars));
     }
 }
 
@@ -310,7 +310,7 @@ bool ConvertToBool(U8StringRef str)
         return false;
     }
     else {
-        MMA1_THROW(Exception()) << WhatInfo(format8("Invalid boolean format: {}", str));
+        MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid boolean format: {}", str));
     }
 }
 

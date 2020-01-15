@@ -171,7 +171,7 @@ public:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
         }
     }
 
@@ -201,7 +201,7 @@ public:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Can't drop root snapshot {}", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't drop root snapshot {}", uuid()));
         }
     }
 
@@ -239,13 +239,13 @@ public:
     			history_node_->lock_data();
     		}
     		else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has open containers", uuid()));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has open containers", uuid()));
     		}
     	}
     	else if (history_node_->is_data_locked()) {
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
     	}
     }
 
@@ -273,11 +273,11 @@ public:
         }
         else if (history_node_->is_data_locked())
         {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is locked, branching is not possible.", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is locked, branching is not possible.", uuid()));
         }
         else
         {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is still being active. Commit it first.", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is still being active. Commit it first.", uuid()));
         }
     }
 
@@ -301,7 +301,7 @@ public:
         }
         else
         {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has no parent.", uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has no parent.", uuid()));
         }
     }
 

@@ -345,7 +345,7 @@ public:
                 );
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot id {} is unknown", snapshot_id));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot id {} is unknown", snapshot_id));
             }
         });
     }
@@ -367,14 +367,14 @@ public:
                 }
                 if (history_node->is_data_locked())
                 {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} data is locked", history_node->snapshot_id()));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} data is locked", history_node->snapshot_id()));
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped")));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped")));
                 }
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot id {} is unknown", snapshot_id));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot id {} is unknown", snapshot_id));
             }
         });
     }
@@ -401,15 +401,15 @@ public:
                         return snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND);
                     }
                     else {
-                        MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot id {} is locked and open", history_node->snapshot_id()));
+                        MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot id {} is locked and open", history_node->snapshot_id()));
                     }
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped")));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped")));
                 }
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Named branch \"{}\" is not known", name));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Named branch \"{}\" is not known", name));
             }
         });
     }
@@ -458,14 +458,14 @@ public:
                 }
                 else if (history_node->is_dropped())
                 {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} has been dropped", txn_id));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been dropped", txn_id));
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} hasn't been committed yet", txn_id));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} hasn't been committed yet", txn_id));
                 }
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is not known in this allocator", txn_id));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is not known in this allocator", txn_id));
             }
         });
     }
@@ -488,11 +488,11 @@ public:
                     named_branches_[name] = history_node;
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} hasn't been committed yet", txn_id));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} hasn't been committed yet", txn_id));
                 }
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Snapshot {} is not known in this allocator", txn_id));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is not known in this allocator", txn_id));
             }
         });
     }

@@ -23,15 +23,13 @@
 #include <memoria/v1/core/tools/pimpl_base.hpp>
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 
-#include <boost/any.hpp>
+#include <memoria/v1/core/tools/any.hpp>
 
 
 namespace memoria {
 namespace v1 {
 
-
 using GraphSizeT = uint64_t;
-using Any = boost::any;
 
 enum class Direction {EDGE_IN, EDGE_OUT, BOTH};
 

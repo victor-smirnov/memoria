@@ -316,7 +316,7 @@ public:
     		}
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid stream: {}", self.iter_stream()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: {}", self.iter_stream()));
     	}
     }
 
@@ -331,7 +331,7 @@ public:
             self.iter_stream() 	  = stream;
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid stream: {}", self.iter_stream()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: {}", self.iter_stream()));
     	}
     }
 

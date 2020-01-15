@@ -597,12 +597,12 @@ public:
                 signature[5] == 'I' &&
                 signature[6] == 'A'))
         {
-            MMA1_THROW(Exception()) << WhatInfo(format8("The stream does not start from MEMORIA signature: {}", signature));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("The stream does not start from MEMORIA signature: {}", signature));
         }
 
         if (!(signature[7] == 0 || signature[7] == 1))
         {
-            MMA1_THROW(BoundsException()) << WhatInfo(format8("Endiannes filed value is out of bounds {}", signature[7]));
+            MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Endiannes filed value is out of bounds {}", signature[7]));
         }
 
         if (signature[8] != 0)
@@ -638,7 +638,7 @@ public:
                 case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
                 case TYPE_CHECKSUM:     allocator->read_checksum(*input, checksum); proceed = false; break;
                 default:
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Unknown record type: {}", (int32_t)type));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Unknown record type: {}", (int32_t)type));
             }
 
             allocator->records_++;
@@ -646,7 +646,7 @@ public:
 
         if (allocator->records_ != checksum.records())
         {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid records checksum: actual={}, expected={}", allocator->records_, checksum.records()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid records checksum: actual={}, expected={}", allocator->records_, checksum.records()));
         }
 
         for (auto& entry: ptree_node_map)
@@ -670,7 +670,7 @@ public:
                         leaf_node->data(c) = typename LeafNodeT::Value(block_iter->second, descr.snapshot_id());
                     }
                     else {
-                        MMA1_THROW(Exception()) << WhatInfo(format8("Specified uuid {} is not found in the block map", descr.block_ptr()));
+                        MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified uuid {} is not found in the block map", descr.block_ptr()));
                     }
                 }
             }
@@ -689,7 +689,7 @@ public:
                         branch_node->data(c) = iter->second.second;
                     }
                     else {
-                        MMA1_THROW(Exception()) << WhatInfo(format8("Specified uuid {} is not found in the persistent tree node map", node_id));
+                        MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified uuid {} is not found in the persistent tree node map", node_id));
                     }
                 }
             }
@@ -702,7 +702,7 @@ public:
             allocator->master_ = allocator->snapshot_map_[metadata.master()];
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Specified master uuid {} is not found in the data", metadata.master()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified master uuid {} is not found in the data", metadata.master()));
         }
 
         for (auto& entry: metadata.named_branches())
@@ -714,7 +714,7 @@ public:
                 allocator->named_branches_[entry.first] = iter->second;
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("Specified snapshot uuid {} is not found", entry.first));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified snapshot uuid {} is not found", entry.first));
             }
         }
 
@@ -854,7 +854,7 @@ protected:
                     return node;
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Specified node_id {} is not found in persistent tree data", buffer->root()));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified node_id {} is not found in persistent tree data", buffer->root()));
                 }
             }
             else {
@@ -867,7 +867,7 @@ protected:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Specified snapshot_id {} is not found in history data", snapshot_id));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified snapshot_id {} is not found in history data", snapshot_id));
         }
     }
 
@@ -971,7 +971,7 @@ protected:
             map[block->uuid()] = new RCBlockPtr(block, references);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("Block {} was already registered", block->uuid()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("Block {} was already registered", block->uuid()));
         }
     }
 
@@ -990,7 +990,7 @@ protected:
             map[buffer->node_id()] = std::make_pair(buffer, node);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("PersistentTree LeafNode {} has been already registered", buffer->node_id()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("PersistentTree LeafNode {} has been already registered", buffer->node_id()));
         }
     }
 
@@ -1009,7 +1009,7 @@ protected:
             map[buffer->node_id()] = std::make_pair(buffer, node);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("PersistentTree BranchNode {} has been already registered", buffer->node_id()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("PersistentTree BranchNode {} has been already registered", buffer->node_id()));
         }
     }
 
@@ -1050,7 +1050,7 @@ protected:
             map[node->snapshot_id()] = node;
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format8("HistoryTree Node {} has been already registered", node->snapshot_id()));
+            MMA1_THROW(Exception()) << WhatInfo(format_u8("HistoryTree Node {} has been already registered", node->snapshot_id()));
         }
     }
 

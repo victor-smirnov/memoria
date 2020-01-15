@@ -62,7 +62,9 @@ void TimerMessage::finish()
 void TimerMessage::on_receive(const epoll_event& event)
 {
     uint64_t counts;
-    ::read(fd_, &counts, sizeof (counts));
+    ssize_t rr = ::read(fd_, &counts, sizeof (counts));
+    (void)rr;
+
 
     fired_times_ = counts;
 }

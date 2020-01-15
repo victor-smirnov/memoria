@@ -810,7 +810,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             return meta->model_name();
         }
         else {
-            MMA1_THROW(CtrTypeException()) << WhatInfo(format8("Invalid container type: {}", node->ctr_type_hash()));
+            MMA1_THROW(CtrTypeException()) << WhatInfo(format_u8("Invalid container type: {}", node->ctr_type_hash()));
         }
     }
 
@@ -820,7 +820,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (self.store().hasRoot(ctr_id))
         {
-            MMA1_THROW(NoCtrException()) << WhatInfo(format8("Container with name {} already exists", ctr_id));
+            MMA1_THROW(NoCtrException()) << WhatInfo(format_u8("Container with name {} already exists", ctr_id));
         }
 
         self.configure_types(ctr_type_name, branch_node_ext_data_, leaf_node_ext_data_);

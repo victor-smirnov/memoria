@@ -39,9 +39,11 @@ public:
 
 struct MemoriaThrowable: virtual std::exception, virtual boost::exception {
 
-    MemoriaThrowable() {
+    MemoriaThrowable() noexcept {
         boost::enable_error_info(*this);
     }
+
+    virtual ~MemoriaThrowable() noexcept {}
 
     virtual void dump(std::ostream& out) const noexcept;
 

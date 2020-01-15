@@ -373,7 +373,7 @@ public:
                     }
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Can't access UText at {}", position));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't access UText at {}", position));
                 }
             }
             else {

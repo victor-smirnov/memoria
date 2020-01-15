@@ -16,20 +16,27 @@
 
 #pragma once
 
+#include <memoria/v1/core/tools/any.hpp>
+
+#include <boost/any.hpp>
+
 #include <typeinfo>
+
+
 
 namespace memoria {
 namespace v1 {
 
-template <typename> struct Any2Type;
-
-
+using Any = boost::any;
 
 const char* ExtractMemoriaPath(const char*);
 
+}}
 
 
+/*
 
+template <typename> struct Any2Type;
 
 
 struct Any {
@@ -216,4 +223,8 @@ using namespace memoria;
 
 ostream& operator<<(ostream& out, const Any& any);
 
+
+
 }}
+
+*/

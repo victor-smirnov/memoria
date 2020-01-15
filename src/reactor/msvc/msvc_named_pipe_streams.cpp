@@ -97,7 +97,7 @@ public:
 					message.wait_for(); // jsut sleep and wait for required resources to appear
 				}
 				else {
-					std::cout << GetErrorMessage(error_code) << " " << format8("Error connecting to pipe {}", path_) << std::endl;
+					std::cout << GetErrorMessage(error_code) << " " << format_u8("Error connecting to pipe {}", path_) << std::endl;
 					MMA1_THROW(SystemException(error_code)) << format_ex("Error connecting to pipe {}", path_);
 				}
 			}
@@ -240,7 +240,7 @@ public:
 					message.wait_for(); // jsut sleep and wait for required resources to appear
 				}
 				else {
-					std::cout << GetErrorMessage(error_code) << " " << format8("Error connecting to pipe {}", path_) << std::endl;
+					std::cout << GetErrorMessage(error_code) << " " << format_u8("Error connecting to pipe {}", path_) << std::endl;
 					MMA1_THROW(SystemException(error_code)) << format_ex("Error connecting to pipe {}", path_);
 				}
 			}
@@ -301,7 +301,7 @@ public:
 				message.wait_for(); // jsut sleep and wait for required resources to appear
 			}
 			else {
-				std::cout << GetErrorMessage(error_code) << " " << format8("Error starting write to file {}", path_) << std::endl;
+				std::cout << GetErrorMessage(error_code) << " " << format_u8("Error starting write to file {}", path_) << std::endl;
 				MMA1_THROW(SystemException(error_code)) << format_ex("Error starting write to file {}", path_);
 			}
 		}

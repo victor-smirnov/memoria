@@ -462,7 +462,7 @@ public:
                     }
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format8("Position {} exceeds {}", tidx, size));
+                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Position {} exceeds {}", tidx, size));
                 }
             }
         }))) {

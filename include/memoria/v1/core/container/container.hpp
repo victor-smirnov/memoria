@@ -274,7 +274,7 @@ public:
                 fn(*ctr_ptr.get());
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format8("No container is found for id {}", ctr_id));
+                MMA1_THROW(Exception()) << WhatInfo(format_u8("No container is found for id {}", ctr_id));
             }
         }
 

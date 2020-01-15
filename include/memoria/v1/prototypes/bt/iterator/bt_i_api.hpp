@@ -77,7 +77,7 @@ public:
 //        if (cache1 != cache2)
 //        {
 //            self().dump(out);
-//            MMA1_THROW(Exception()) << WhatInfo(format8("Invalid iterator iter_cache. Iterator: {} Actual: {}", cache1, cache2));
+//            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid iterator iter_cache. Iterator: {} Actual: {}", cache1, cache2));
 //        }
 //#endif
 //    }

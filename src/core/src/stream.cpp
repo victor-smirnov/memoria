@@ -192,7 +192,7 @@ FileOutputStreamHandlerImpl::FileOutputStreamHandlerImpl(const char* file_name)
     file_.open(file_name, std::ios_base::binary | std::ios_base::out | std::ios_base::trunc);
     
     if (!file_.is_open()) {
-        MMA1_THROW(Exception()) << WhatInfo(format8("Can't open file {}", file_name));
+        MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't open file {}", file_name));
     }
     
     closed_ = false;
@@ -228,7 +228,7 @@ void FileOutputStreamHandlerImpl::write(const void* mem, size_t offset, size_t l
 
     if (total_size != length)
     {
-        MMA1_THROW(Exception()) << WhatInfo(format8("Can't write {} bytes to file", length));
+        MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't write {} bytes to file", length));
     }
 }
 
@@ -241,7 +241,7 @@ FileInputStreamHandlerImpl::FileInputStreamHandlerImpl(const char* file_name)
     file_.open(file_name, std::ios_base::binary | std::ios_base::in);
     
     if (!file_.is_open()) {
-        MMA1_THROW(Exception()) << WhatInfo(format8("Can't open file {}", file_name));
+        MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't open file {}", file_name));
     }
     
     size_ = memoria::v1::filesystem::file_size(file_name);

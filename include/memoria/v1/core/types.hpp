@@ -543,4 +543,7 @@ bool isFail(const OpStatusT<T>& op_status) {
 template <typename T>
 constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_trivially_copyable<T>::value;
 
+
+[[noreturn]] void terminate(const char* msg) noexcept;
+
 }}
