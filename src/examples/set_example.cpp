@@ -34,11 +34,11 @@ int main()
     try {
         using MapType = Set<Varchar>;
 
-        auto alloc = IMemoryStore<>::create();
+        auto alloc = IMemoryStore<>::create().get_or_terminate();
 
-        auto snp = alloc->master()->branch();
+        auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
 
-        auto ctr0 = create(snp, MapType());
+        auto ctr0 = create(snp, MapType()).get_or_throw();
 
         //ctr0->set_new_block_size(64*1024);
 
@@ -82,10 +82,10 @@ int main()
 
         ctr0->iterator()->dumpPath();
 
-        snp->commit();
-        snp->set_as_master();
+        snp->commit().throw_if_error();
+        snp->set_as_master().throw_if_error();
 
-        alloc->store("store-set.mma1");
+        alloc->store("store-set.mma1").throw_if_error();
 
         int64_t t2 = getTimeInMillis();
 

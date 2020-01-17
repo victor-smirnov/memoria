@@ -180,7 +180,7 @@ public:
     }
     
     template <typename Fn, typename... Args>
-    auto run_at(int target_cpu, Fn&& task, Args&&... args) 
+    auto run_at(int target_cpu, Fn&& task, Args&&... args)
     {
         if (target_cpu != cpu_) 
         {
@@ -191,12 +191,30 @@ public:
             smp_->submit_to(target_cpu, msg.get());
             scheduler_->suspend(ctx);
         
-            return msg->result();
+            return std::move(msg->result());
         }
         else {
             return task(std::forward<Args>(args)...);
         }
     }
+
+    template <typename Fn, typename... Args>
+    void run_at_v(int target_cpu, Fn&& task, Args&&... args)
+    {
+        if (target_cpu != cpu_)
+        {
+            auto ctx = fibers::context::active();
+            BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
+
+            auto msg = make_fiber_lambda_message(cpu_, this, ctx, std::forward<Fn>(task), std::forward<Args>(args)...);
+            smp_->submit_to(target_cpu, msg.get());
+            scheduler_->suspend(ctx);
+        }
+        else {
+            return task(std::forward<Args>(args)...);
+        }
+    }
+
     
     template <typename Fn, typename... Args>
     void run_at_async(int target_cpu, Fn&& task, Args&&... args) 

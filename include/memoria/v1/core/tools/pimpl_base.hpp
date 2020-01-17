@@ -34,39 +34,39 @@ struct PimplBase {
 protected:
     PtrType ptr_;
 public:
-    PimplBase(){}
-    PimplBase(PtrType ptr): ptr_(ptr) {}
-    PimplBase(const PimplBase&) = default;
-    PimplBase(PimplBase&&) = default;
+    PimplBase() noexcept {}
+    PimplBase(PtrType ptr) noexcept: ptr_(ptr) {}
+    PimplBase(const PimplBase&) noexcept = default;
+    PimplBase(PimplBase&&) noexcept = default;
     ~PimplBase() noexcept = default;
 
     
-    PimplBase& operator=(const PimplBase&) = default;
-    PimplBase& operator=(PimplBase&&) = default;
+    PimplBase& operator=(const PimplBase&) noexcept = default;
+    PimplBase& operator=(PimplBase&&) noexcept = default;
     
-    bool operator==(const PimplBase& other) const {
+    bool operator==(const PimplBase& other) const noexcept {
         return ptr_ == other.ptr_;
     }
 
-    void reset() {
+    void reset() noexcept {
         ptr_.reset();
     }
 
-    operator bool () const {
+    operator bool () const noexcept {
         return ptr_.get() != nullptr;
     }
 
-    PtrType ptr() {
+    PtrType ptr() noexcept {
         return ptr_;
     }
 };
 
 
 #define MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ClassName)     \
-    ClassName():Base(){}                                    \
-    ClassName(const typename Base::PtrType& ptr): Base(ptr) {}\
-    ClassName(const ClassName& other): Base(other) {}       \
-    ClassName(ClassName&& other): Base(std::move(other)) {} \
+    ClassName() noexcept :Base(){}                                    \
+    ClassName(const typename Base::PtrType& ptr) noexcept: Base(ptr) {}\
+    ClassName(const ClassName& other) noexcept: Base(other) {}       \
+    ClassName(ClassName&& other) noexcept: Base(std::move(other)) {} \
     ~ClassName() noexcept {}                                \
                                                             \
     ClassName& operator=(const ClassName& other) {          \

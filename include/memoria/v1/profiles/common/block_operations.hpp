@@ -19,6 +19,8 @@
 #include <memoria/v1/core/tools/id.hpp>
 #include <memoria/v1/core/tools/dump.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/v1/core/tools/result.hpp>
+
 
 #include <memoria/v1/core/integer/integer.hpp>
 
@@ -100,12 +102,12 @@ struct IBlockOperations {
     using BlockType = ProfileBlockType<Profile>;
     using BlockID   = ProfileBlockID<Profile>;
 
-    virtual int32_t serialize(const BlockType* block, void* buf) const                          = 0;
-    virtual void deserialize(const void* buf, int32_t buf_size, BlockType* block) const         = 0;
+    virtual Result<int32_t> serialize(const BlockType* block, void* buf) const noexcept = 0;
+    virtual VoidResult deserialize(const void* buf, int32_t buf_size, BlockType* block) const noexcept = 0;
 
-    virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const           = 0;
+    virtual VoidResult resize(const BlockType* block, void* buffer, int32_t new_size) const noexcept = 0;
 
-    virtual uint64_t block_type_hash() const                                                    = 0;
+    virtual uint64_t block_type_hash() const noexcept = 0;
 };
 
 template <typename Profile>

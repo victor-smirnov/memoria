@@ -109,9 +109,9 @@ private:
     CountDownLatch<int64_t> active_snapshots_;
  
 public:
-    ThreadsMemoryStoreImpl() {
+    ThreadsMemoryStoreImpl() noexcept {
         auto snapshot = snp_make_shared_init<SnapshotT>(history_tree_, this);
-        snapshot->commit();
+        snapshot->commit().terminate_if_error();
     }
     
     
@@ -147,46 +147,47 @@ protected:
 
 public:
     
-    int64_t active_snapshots() {
+    int64_t active_snapshots() noexcept {
         return active_snapshots_.get();
     }
 
     
-    MutexT& mutex() {
+    MutexT& mutex() noexcept{
     	return mutex_;
     }
 
-    const MutexT& mutex() const {
+    const MutexT& mutex() const noexcept {
     	return mutex_;
     }
 
-    void lock() {
+    void lock() noexcept {
     	mutex_.lock();
     }
 
-    void unlock() {
+    void unlock() noexcept {
     	mutex_.unlock();
     }
 
-    bool try_lock() {
+    bool try_lock() noexcept {
     	return mutex_.try_lock();
     }
     
-    void pack()
+    Result<void> pack() noexcept
     {
         std::lock_guard<MutexT> lock(mutex_);
-    	do_pack(history_tree_);
+        return do_pack(history_tree_);
     }
 
 
-    SnapshotID root_shaphot_id() const
+    SnapshotID root_shaphot_id() const noexcept
     {
         LockGuardT lock_guard(mutex_);
         return history_tree_->snapshot_id();
     }
 
-    std::vector<SnapshotID> children_of(const SnapshotID& snapshot_id) const
+    Result<std::vector<SnapshotID>> children_of(const SnapshotID& snapshot_id) const noexcept
     {
+        using ResultT = Result<std::vector<SnapshotID>>;
         std::vector<SnapshotID> ids;
 
         LockGuardT lock_guard(mutex_);
@@ -201,30 +202,35 @@ public:
             }
         }
 
-        return ids;
+        return ResultT::of(std::move(ids));
     }
 
-    std::vector<std::string> children_of_str(const SnapshotID& snapshot_id) const
+    Result<std::vector<std::string>> children_of_str(const SnapshotID& snapshot_id) const noexcept
     {
+        using ResultT = Result<std::vector<std::string>>;
+
         std::vector<std::string> ids;
         auto uids = children_of(snapshot_id);
+        MEMORIA_RETURN_IF_ERROR(uids);
 
-        for (const auto& uid: uids)
+        for (const auto& uid: uids.get())
         {
             ids.push_back(uid.str());
         }
 
-        return ids;
+        return ResultT::of(std::move(ids));
     }
 
-    void remove_named_branch(const std::string& name)
+    VoidResult remove_named_branch(const std::string& name) noexcept
     {
         LockGuardT lock_guard(mutex_);
         named_branches_.erase(U8String(name));
+        return VoidResult::of();
     }
 
-    std::vector<U8String> branch_names()
+    Result<std::vector<U8String>> branch_names() noexcept
     {
+        using ResultT = Result<std::vector<U8String>>;
         std::lock_guard<MutexT> lock(mutex_);
 
         std::vector<U8String> branches;
@@ -234,25 +240,28 @@ public:
             branches.push_back(pair.first);
         }
 
-        return branches;
+        return ResultT::of(branches);
     }
 
-    SnapshotID branch_head(const U8String& branch_name)
+    Result<SnapshotID> branch_head(const U8String& branch_name) noexcept
     {
+        using ResultT = Result<SnapshotID>;
         std::lock_guard<MutexT> lock(mutex_);
 
         auto ii = named_branches_.find(branch_name);
         if (ii != named_branches_.end())
         {
             // TODO: need to take a lock here on the snapshot
-            return ii->second->snapshot_id();
+            return ResultT::of(ii->second->snapshot_id());
         }
 
-        return SnapshotID{};
+        return ResultT::of(SnapshotID{});
     }
 
-    std::vector<SnapshotID> heads()
+    Result<std::vector<SnapshotID>> heads() noexcept
     {
+        using ResultT = Result<std::vector<SnapshotID>>;
+
         std::lock_guard<MutexT> lock(mutex_);
         std::unordered_set<SnapshotID> ids;
 
@@ -264,12 +273,14 @@ public:
 
         ids.insert(master_->snapshot_id());
 
-        return std::vector<SnapshotID>(ids.begin(), ids.end());
+        return ResultT::of(std::vector<SnapshotID>(ids.begin(), ids.end()));
     }
 
     
-    SnapshotMetadata<SnapshotID> describe(const SnapshotID& snapshot_id) const
+    Result<SnapshotMetadata<SnapshotID>> describe(const SnapshotID& snapshot_id) const noexcept
     {
+        using ResultT = Result<SnapshotMetadata<SnapshotID>>;
+
     	LockGuardT lock_guard2(mutex_);
 
         auto iter = snapshot_map_.find(snapshot_id);
@@ -288,18 +299,19 @@ public:
 
             auto parent_id = history_node->parent() ? history_node->parent()->snapshot_id() : SnapshotID{};
 
-            return SnapshotMetadata<SnapshotID>(
+            return ResultT::of(SnapshotMetadata<SnapshotID>(
                 parent_id, history_node->snapshot_id(), children, history_node->metadata(), history_node->status()
-			);
+            ));
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot id {} is unknown", snapshot_id));
+            return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
 
-    virtual int32_t snapshot_status(const SnapshotID& snapshot_id)
+    virtual Result<int32_t> snapshot_status(const SnapshotID& snapshot_id) noexcept
     {
+        using ResultT = Result<int32_t>;
         LockGuardT lock_guard2(mutex_);
 
         auto iter = snapshot_map_.find(snapshot_id);
@@ -307,15 +319,16 @@ public:
         {
             const auto history_node = iter->second;
             SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
-            return (int32_t)history_node->status();
+            return ResultT::of((int32_t)history_node->status());
         }
         else {
-            MMA1_THROW(Exception()) << format_ex("Snapshot id {} is unknown", snapshot_id);
+            return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
-    SnapshotID snapshot_parent(const SnapshotID& snapshot_id)
+    Result<SnapshotID> snapshot_parent(const SnapshotID& snapshot_id) noexcept
     {
+        using ResultT = Result<SnapshotID>;
         LockGuardT lock_guard2(mutex_);
 
         auto iter = snapshot_map_.find(snapshot_id);
@@ -325,15 +338,16 @@ public:
             SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
             auto parent_id = history_node->parent() ? history_node->parent()->snapshot_id() : SnapshotID{};
-            return parent_id;
+            return ResultT::of(parent_id);
         }
         else {
-            MMA1_THROW(Exception()) << format_ex("Snapshot id {} is unknown", snapshot_id);
+            return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
-    U8String snapshot_description(const SnapshotID& snapshot_id)
+    Result<U8String> snapshot_description(const SnapshotID& snapshot_id) noexcept
     {
+        using ResultT = Result<U8String>;
         LockGuardT lock_guard2(mutex_);
 
         auto iter = snapshot_map_.find(snapshot_id);
@@ -341,19 +355,20 @@ public:
         {
             const auto history_node = iter->second;
             SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
-            return history_node->metadata();
+            return ResultT::of(history_node->metadata());
         }
         else {
-            MMA1_THROW(Exception()) << format_ex("Snapshot id {} is unknown", snapshot_id);
+            return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
 
 
 
-    SnapshotApiPtr find(const SnapshotID& snapshot_id)
+    Result<SnapshotApiPtr> find(const SnapshotID& snapshot_id) noexcept
     {
-    	LockGuardT lock_guard(mutex_);
+        using ResultT = Result<SnapshotApiPtr>;
+        LockGuardT lock_guard(mutex_);
 
         auto iter = snapshot_map_.find(snapshot_id);
         if (iter != snapshot_map_.end())
@@ -364,27 +379,28 @@ public:
 
             if (history_node->is_committed())
             {
-                return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this()));
+                return ResultT::of(upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this())));
             }
             if (history_node->is_data_locked())
             {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} data is locked", history_node->snapshot_id()));
+                return ResultT::make_error("Snapshot {} data is locked", history_node->snapshot_id());
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped")));
+                return ResultT::make_error("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot id {} is unknown", snapshot_id));
+            return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
 
 
 
-    SnapshotApiPtr find_branch(U8StringRef name)
+    Result<SnapshotApiPtr> find_branch(U8StringRef name) noexcept
     {
-    	LockGuardT lock_guard(mutex_);
+        using ResultT = Result<SnapshotApiPtr>;
+        LockGuardT lock_guard(mutex_);
 
     	auto iter = named_branches_.find(name);
         if (iter != named_branches_.end())
@@ -395,38 +411,39 @@ public:
 
             if (history_node->is_committed())
             {
-                return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this()));
+                return ResultT::of(upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this())));
             }
             else if (history_node->is_data_locked())
             {
             	if (history_node->references() == 0)
             	{
-                    return upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this()));
+                    return ResultT::of(upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this())));
             	}
             	else {
-                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot id {} is locked and open", history_node->snapshot_id()));
+                    return ResultT::make_error("Snapshot id {} is locked and open", history_node->snapshot_id());
             	}
             }
-            else {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is {} ", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped")));
+            else {                
+                return ResultT::make_error("Snapshot {} is {} ", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Named branch \"{}\" is not known", name));
+            return ResultT::make_error("Named branch \"{}\" is not known", name);
         }
     }
 
-    SnapshotApiPtr master()
+    Result<SnapshotApiPtr> master() noexcept
     {
-    	std::lock(mutex_, master_->snapshot_mutex());
+        using ResultT = Result<SnapshotApiPtr>;
+        std::lock(mutex_, master_->snapshot_mutex());
 
     	LockGuardT lock_guard(mutex_, std::adopt_lock);
     	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
 
-        return upcast(snp_make_shared_init<SnapshotT>(master_, this->shared_from_this()));
+        return ResultT::of(upcast(snp_make_shared_init<SnapshotT>(master_, this->shared_from_this())));
     }
 
-    SnapshotMetadata<SnapshotID> describe_master() const
+    SnapshotMetadata<SnapshotID> describe_master() const noexcept
     {
     	std::lock(mutex_, master_->snapshot_mutex());
     	LockGuardT lock_guard2(mutex_, std::adopt_lock);
@@ -446,9 +463,10 @@ public:
     	);
     }
 
-    void set_master(const SnapshotID& txn_id)
+    Result<void> set_master(const SnapshotID& txn_id) noexcept
     {
-    	LockGuardT lock_guard(mutex_);
+        using ResultT = Result<void>;
+        LockGuardT lock_guard(mutex_);
 
         auto iter = snapshot_map_.find(txn_id);
         if (iter != snapshot_map_.end())
@@ -467,20 +485,23 @@ public:
             }
             else if (history_node->is_dropped())
             {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been dropped", txn_id));
+                return ResultT::make_error("Snapshot {} has been dropped", txn_id);
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} hasn't been committed yet", txn_id));
+                return ResultT::make_error("Snapshot {} hasn't been committed yet", txn_id);
             }
+
+            return ResultT::of();
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is not known in this allocator", txn_id));
+            return ResultT::make_error("Snapshot {} is not known in this allocator", txn_id);
         }
     }
 
-    void set_branch(U8StringRef name, const SnapshotID& txn_id)
+    Result<void> set_branch(U8StringRef name, const SnapshotID& txn_id) noexcept
     {
-    	LockGuardT lock_guard(mutex_);
+        using ResultT = Result<void>;
+        LockGuardT lock_guard(mutex_);
 
         auto iter = snapshot_map_.find(txn_id);
         if (iter != snapshot_map_.end())
@@ -498,34 +519,42 @@ public:
         		named_branches_[name] = history_node;
         	}
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} hasn't been committed yet", txn_id));
+                return ResultT::make_error("Snapshot {} hasn't been committed yet", txn_id);
             }
+
+            return ResultT::of();
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is not known in this allocator", txn_id));
+            return ResultT::make_error("Snapshot {} is not known in this allocator", txn_id);
         }
     }
 
-    virtual void walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr)
+    virtual Result<void> walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept
     {
-    	this->build_snapshot_labels_metadata();
+        auto res0 = this->build_snapshot_labels_metadata();
+        MEMORIA_RETURN_IF_ERROR(res0);
 
     	LockGuardT lock_guard(mutex_);
 
         walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
 
-        walk_containers(history_tree_, walker);
+        auto res1 = walk_containers(history_tree_, walker);
+        MEMORIA_RETURN_IF_ERROR(res1);
 
         walker->endAllocator();
 
         snapshot_labels_metadata().clear();
+        return Result<void>::of();
     }
 
     
 private:
-    virtual void do_store(OutputStreamHandler *output)
+    virtual VoidResult do_store(OutputStreamHandler *output) noexcept
     {
-        do_pack(history_tree_);
+        using ResultT = VoidResult;
+
+        auto res0 = do_pack(history_tree_);
+        MEMORIA_RETURN_IF_ERROR(res0);
 
         records_ = 0;
 
@@ -534,25 +563,32 @@ private:
 
         output->write(&signature, 0, sizeof(signature));
 
-        write_metadata(*output);
+        auto res1 = write_metadata(*output);
+        MEMORIA_RETURN_IF_ERROR(res1);
 
         RCBlockSet stored_blocks;
 
-        walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) {
-            write_history_node(*output, history_tree_node, stored_blocks);
+        auto res2 = walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) noexcept {
+            return write_history_node(*output, history_tree_node, stored_blocks);
         });
+        MEMORIA_RETURN_IF_ERROR(res2);
 
         Checksum checksum;
         checksum.records() = records_;
 
-        write(*output, checksum);
+        auto res3 = write(*output, checksum);
+        MEMORIA_RETURN_IF_ERROR(res3);
+
 
         output->close();
+
+        return ResultT::of();
     }
 public:
 
-    virtual void store(OutputStreamHandler *output, int64_t wait_duration)
+    virtual VoidResult store(OutputStreamHandler *output, int64_t wait_duration) noexcept
     {
+        using ResultT = VoidResult;
         std::lock(mutex_, store_mutex_);
 
         LockGuardT lock_guard2(mutex_, std::adopt_lock);
@@ -562,25 +598,26 @@ public:
             active_snapshots_.wait(0);
         }
         else if (!active_snapshots_.waitFor(0, wait_duration)) {
-            MMA1_THROW(Exception()) << format_ex("Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
+            return ResultT::make_error("Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
         }
 
-        do_store(output);
+        return do_store(output);
     }
 
 
-    void store(memoria::v1::filesystem::path file_name, int64_t wait_duration)
+    Result<void> store(memoria::v1::filesystem::path file_name, int64_t wait_duration) noexcept
     {
-        this->store(file_name.string().c_str(), wait_duration);
+        return this->store(file_name.string().c_str(), wait_duration);
     }
 
-    virtual void store(U8String file_name, int64_t wait_duration)
+    virtual Result<void> store(U8String file_name, int64_t wait_duration) noexcept
     {
-        this->store(file_name.data(), wait_duration);
+        return this->store(file_name.data(), wait_duration);
     }
 
-    virtual void store(const char* file, int64_t wait_duration)
+    virtual Result<void> store(const char* file, int64_t wait_duration) noexcept
     {
+        using ResultT = Result<void>;
         std::lock(mutex_, store_mutex_);
 
         LockGuardT lock_guard2(mutex_, std::adopt_lock);
@@ -590,56 +627,72 @@ public:
             active_snapshots_.wait(0);
         }
         else if (!active_snapshots_.waitFor(0, wait_duration)){
-            MMA1_THROW(Exception()) << format_ex("Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
+            return ResultT::make_error("Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
         }
 
     	auto fileh = FileOutputStreamHandler::create(file);
-        do_store(fileh.get());
+        return do_store(fileh.get());
     }
 
 
-    static AllocSharedPtr<MyType> load(const char* file)
+    static Result<AllocSharedPtr<IMemoryStore<Profile>>> load(const char* file) noexcept
     {
         auto fileh = FileInputStreamHandler::create(U8String(file).data());
-        return Base::load(fileh.get());
+        auto rr = Base::load(fileh.get());
+        if (rr.is_ok()) {
+            return Result<AllocSharedPtr<IMemoryStore<Profile>>>::of(rr.get());
+        }
+
+        return std::move(rr).transfer_error();
     }
 
-    static AllocSharedPtr<MyType> load(const U8String& file)
+    static Result<AllocSharedPtr<IMemoryStore<Profile>>> load(const U8String& file) noexcept
     {
         auto fileh = FileInputStreamHandler::create(file.data());
-        return Base::load(fileh.get());
+        auto rr = Base::load(fileh.get());
+        if (rr.is_ok()) {
+            return Result<AllocSharedPtr<IMemoryStore<Profile>>>::of(rr.get());
+        }
+
+        return std::move(rr).transfer_error();
     }
 
-    SharedPtr<AllocatorMemoryStat> memory_stat(bool include_containers)
+    Result<SharedPtr<AllocatorMemoryStat>> memory_stat(bool include_containers) noexcept
     {
+        using ResultT = Result<SharedPtr<AllocatorMemoryStat>>;
         LockGuardT lock_guard(mutex_);
 
         _::BlockSet visited_blocks;
 
         SharedPtr<AllocatorMemoryStat> alloc_stat = MakeShared<AllocatorMemoryStat>(0);
 
-        auto history_visitor = [&](HistoryNode* node) {
-            SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
+        auto history_visitor = [&](HistoryNode* node) -> VoidResult {
+            return wrap_throwing([&](){
+                SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
 
-            if (node->is_committed() || node->is_dropped())
-            {
-                auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this());
-                auto snp_stat = snp->do_compute_memory_stat(visited_blocks, include_containers);
-                alloc_stat->add_snapshot_stat(snp_stat);
-            }
+                if (node->is_committed() || node->is_dropped())
+                {
+                    auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this());
+                    auto snp_stat = snp->do_compute_memory_stat(visited_blocks, include_containers);
+                    alloc_stat->add_snapshot_stat(snp_stat);
+                }
+
+                return VoidResult::of();
+            });
         };
 
-        this->walk_version_tree(history_tree_, history_visitor);
+        auto res = this->walk_version_tree(history_tree_, history_visitor);
+        MEMORIA_RETURN_IF_ERROR(res);
 
         alloc_stat->compute_total_size();
 
-        return alloc_stat;
+        return ResultT::of(alloc_stat);
     }
 
 
     // Graph API
 
-    Graph as_graph() {
+    Graph as_graph() noexcept {
         return Graph(memoria_static_pointer_cast<IGraph>(this->shared_from_this()));
     }
 
@@ -671,7 +724,7 @@ public:
     void append_snapsots(StlCtr& stl_ctr)
     {
         auto uuid = this->get_root_snapshot_uuid();
-        SnapshotPtr root_snapshot = memoria_static_pointer_cast<SnapshotT>(this->find(uuid));
+        SnapshotPtr root_snapshot = memoria_static_pointer_cast<SnapshotT>(this->find(uuid).get_or_terminate());
 
         stl_ctr.emplace_back(root_snapshot->as_vertex());
     }
@@ -688,38 +741,47 @@ public:
 
 protected:
     
-    void walk_version_tree(HistoryNode* node, std::function<void (HistoryNode*, SnapshotT*)> fn)
+    VoidResult walk_version_tree(HistoryNode* node, std::function<VoidResult (HistoryNode*, SnapshotT*)> fn) noexcept
     {
         if (node->is_committed())
         {
             auto txn = snp_make_shared_init<SnapshotT>(node, this);
-            fn(node, txn.get());
+            auto res = fn(node, txn.get());
+            MEMORIA_RETURN_IF_ERROR(res);
         }
 
         for (auto child: node->children())
         {
-            walk_version_tree(child, fn);
+            auto res = walk_version_tree(child, fn);
+            MEMORIA_RETURN_IF_ERROR(res);
         }
+
+        return VoidResult::of();
     }
 
-    virtual void walk_version_tree(HistoryNode* node, std::function<void (HistoryNode*)> fn)
+    virtual VoidResult walk_version_tree(HistoryNode* node, std::function<VoidResult (HistoryNode*)> fn) noexcept
     {
-        fn(node);
+        auto res0 = fn(node);
+        MEMORIA_RETURN_IF_ERROR(res0);
 
         for (auto child: node->children())
         {
-            walk_version_tree(child, fn);
+            auto res1 = walk_version_tree(child, fn);
+            MEMORIA_RETURN_IF_ERROR(res1);
         }
+
+        return VoidResult::of();
     }
 
-    void walk_containers(HistoryNode* node, ContainerWalker<Profile>* walker)
+    VoidResult walk_containers(HistoryNode* node, ContainerWalker<Profile>* walker) noexcept
     {
     	SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
 
         if (node->is_committed())
         {
             auto txn = snp_make_shared_init<SnapshotT>(node, this);
-            txn->walkContainers(walker, get_labels_for(node));
+            auto res = txn->walkContainers(walker, get_labels_for(node));
+            MEMORIA_RETURN_IF_ERROR(res);
         }
 
         if (node->children().size())
@@ -727,14 +789,17 @@ protected:
             walker->beginSnapshotSet("Branches", node->children().size());
             for (auto child: node->children())
             {
-                walk_containers(child, walker);
+                auto res = walk_containers(child, walker);
+                MEMORIA_RETURN_IF_ERROR(res);
             }
             walker->endSnapshotSet();
         }
+
+        return Result<void>::of();
     }
 
     
-    virtual void free_memory(HistoryNode* node)
+    virtual void free_memory(HistoryNode* node) noexcept
     {
         if (node)
         {
@@ -790,14 +855,15 @@ protected:
     }
     
     
-    virtual void do_pack(HistoryNode* node, int32_t depth, const std::unordered_set<HistoryNode*>& branches)
+    virtual Result<void> do_pack(HistoryNode* node, int32_t depth, const std::unordered_set<HistoryNode*>& branches) noexcept
     {
     	// FIXME: use dedicated stack data structure
 
         auto children = node->children();
         for (auto child: children)
         {
-            do_pack(child, depth + 1, branches);
+            auto res = do_pack(child, depth + 1, branches);
+            MEMORIA_RETURN_IF_ERROR(res);
         }
 
         bool remove_node = false;
@@ -813,6 +879,8 @@ protected:
         if (remove_node) {
         	do_remove_history_node(node);
         }
+
+        return Result<void>::of();
     }
 
 
@@ -822,23 +890,35 @@ protected:
 
 
 template <typename Profile>
-AllocSharedPtr<IMemoryStore<Profile>> IMemoryStore<Profile>::load(InputStreamHandler* input_stream)
+Result<AllocSharedPtr<IMemoryStore<Profile>>> IMemoryStore<Profile>::load(InputStreamHandler* input_stream) noexcept
 {
-    return store::memory::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
+    auto rr = store::memory::ThreadsMemoryStoreImpl<Profile>::load(input_stream);
+    if (rr.is_ok()) {
+        return Result<AllocSharedPtr<IMemoryStore<Profile>>>::of(rr.get());
+    }
+
+    return std::move(rr).transfer_error();
 }
 
 template <typename Profile>
-AllocSharedPtr<IMemoryStore<Profile>> IMemoryStore<Profile>::load(U8String input_file)
+Result<AllocSharedPtr<IMemoryStore<Profile>>> IMemoryStore<Profile>::load(U8String input_file) noexcept
 {
     auto fileh = FileInputStreamHandler::create(input_file.data());
-    return store::memory::ThreadsMemoryStoreImpl<Profile>::load(fileh.get());
+    auto rr = store::memory::ThreadsMemoryStoreImpl<Profile>::load(fileh.get());
+
+    if (rr.is_ok()) {
+        return Result<AllocSharedPtr<IMemoryStore<Profile>>>::of(rr.get());
+    }
+
+    return std::move(rr).transfer_error();
 }
 
 
 template <typename Profile>
-AllocSharedPtr<IMemoryStore<Profile>> IMemoryStore<Profile>::create()
+Result<AllocSharedPtr<IMemoryStore<Profile>>> IMemoryStore<Profile>::create() noexcept
 {
-    return MakeShared<store::memory::ThreadsMemoryStoreImpl<Profile>>();
+    using ResultT = Result<AllocSharedPtr<IMemoryStore<Profile>>>;
+    return ResultT::of(MakeShared<store::memory::ThreadsMemoryStoreImpl<Profile>>());
 }
 
 

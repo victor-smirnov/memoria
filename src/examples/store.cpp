@@ -30,24 +30,24 @@ int main()
     StaticLibraryCtrs<>::init();
 
     // Creating new instance of in-memory store.
-    auto alloc = IMemoryStore<>::create();
+    auto alloc = IMemoryStore<>::create().get_or_terminate();
 
     // Obtaining Master's branch head.
-    auto master = alloc->master();
+    auto master = alloc->master().get_or_terminate();
 
     // Creating new writable snapshot from the Master's head.
-    auto snp = master->branch();
+    auto snp = master->branch().get_or_terminate();
 
     // Do somethig with containers here
 
     // Committing snapshot. From this moment, all data is immutable.
-    snp->commit();
+    snp->commit().throw_if_error();
 
     // Chaning Master's head to point to the new snapshot
-    snp->set_as_master();
+    snp->set_as_master().throw_if_error();
 
     // Saving store's data to the file.
-    alloc->store("store.mma2");
+    alloc->store("store.mma2").throw_if_error();
 
     return 0;
 }

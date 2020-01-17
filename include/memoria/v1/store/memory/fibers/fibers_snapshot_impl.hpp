@@ -122,7 +122,7 @@ public:
         //FIXME This code doesn't decrement properly number of active snapshots
     	// for allocator to store data correctly.
 
-        reactor::engine().run_at(cpu_, [&]
+        reactor::engine().run_at_v(cpu_, [&]
         {
             bool drop1 = false;
             bool drop2 = false;
@@ -180,26 +180,30 @@ public:
         });
     }
 
-    void commit()
+    Result<void> commit() noexcept
     {
-    	return reactor::engine().run_at(cpu_, [&]
+        using ResultT = Result<void>;
+        return reactor::engine().run_at(cpu_, [&] () noexcept -> ResultT
     	{
             AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
             
             if (history_node_->is_active() || history_node_->is_data_locked())
             {
-                this->flush_open_containers();
+                auto res = this->flush_open_containers();
+                MEMORIA_RETURN_IF_ERROR(res);
 
                 history_node_->commit();
                 history_tree_raw_->unref_active();
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
+                return Result<void>::make_error("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid());
             }
+
+            return Result<void>::of();
         });
     }
 
-    void drop()
+    VoidResult drop() noexcept
     {
         return reactor::engine().run_at(cpu_, [&]
         {
@@ -210,19 +214,21 @@ public:
                 history_node_->mark_to_clear();
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't drop root snapshot {}", uuid()));
+                return VoidResult::make_error("Can't drop root snapshot {}", uuid());
             }
+
+            return VoidResult::of();
         });
     }
 
-    U8String snapshot_metadata() const
+    U8String snapshot_metadata() const noexcept
     {
     	return reactor::engine().run_at(cpu_, [&]{
             return history_node_->metadata();
         });
     }
 
-    void set_snapshot_metadata(U8StringRef metadata)
+    Result<void> set_snapshot_metadata(U8StringRef metadata) noexcept
     {
     	return reactor::engine().run_at(cpu_, [&]
         {
@@ -234,39 +240,48 @@ public:
             }
             else
             {
-                MMA1_THROW(Exception()) << WhatCInfo("Snapshot is already committed.");
+                return Result<void>::make_error("Snapshot is already committed.");
             }
+
+            return Result<void>::of();
         });
     }
 
-    void lock_data_for_import()
+    VoidResult lock_data_for_import() noexcept
     {
-        return reactor::engine().run_at(cpu_, [&] 
+        return reactor::engine().run_at(cpu_, [&] () noexcept -> VoidResult
         {
             AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
             
             if (history_node_->is_active())
             {
-                if (!has_open_containers())
+                auto res = has_open_containers();
+                MEMORIA_RETURN_IF_ERROR(res);
+
+                if (!res.get())
                 {
                     history_node_->lock_data();
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has open containers", uuid()));
+                    return VoidResult::make_error("Snapshot {} has open containers", uuid());
                 }
             }
             else if (history_node_->is_data_locked()) {
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid()));
+                return VoidResult::make_error("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid());
             }
+
+            return VoidResult::of();
         });
     }
 
 
-    SnapshotApiPtr branch()
+    Result<SnapshotApiPtr> branch() noexcept
     {
-        return reactor::engine().run_at(cpu_, [&] 
+        using ResultT = Result<SnapshotApiPtr>;
+
+        return reactor::engine().run_at(cpu_, [&]
         {
             AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
             
@@ -276,38 +291,37 @@ public:
 
                 history_tree_raw_->snapshot_map_[history_node->snapshot_id()] = history_node;
 
-                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_CREATE);
+                return ResultT::of(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_CREATE));
             }
-            else if (history_node_->is_data_locked())
-            {
-                MMA1_THROW(Exception()) << format_ex("Snapshot {} is locked, branching is not possible.", uuid());
+            else if (history_node_->is_data_locked()){
+                return ResultT::make_error("Snapshot {} is locked, branching is not possible.", uuid());
             }
-            else
-            {
-                MMA1_THROW(Exception()) << format_ex("Snapshot {} is still being active. Commit it first.", uuid());
+            else {
+                return ResultT::make_error("Snapshot {} is still being active. Commit it first.", uuid());
             }
         });
     }
 
-    bool has_parent() const
+    bool has_parent() const noexcept
     {
     	return reactor::engine().run_at(cpu_, [&] {
             return history_node_->parent() != nullptr;
         });
     }
 
-    SnapshotApiPtr parent()
+    Result<SnapshotApiPtr> parent() noexcept
     {
+        using ResultT = Result<SnapshotApiPtr>;
         return reactor::engine().run_at(cpu_, [&] {
             AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex());
             if (history_node_->parent())
             {
                 HistoryNode* history_node = history_node_->parent();
-                return snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_FIND);
+                return ResultT::of(snp_make_shared_init<MyType>(history_node, history_tree_->shared_from_this(), OperationType::OP_FIND));
             }
             else
             {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has no parent.", uuid()));
+                return ResultT::make_error("Snapshot {} has no parent.", uuid());
             }
         });
     }
@@ -315,11 +329,11 @@ public:
     
     // Vertex API
 
-    virtual Vertex allocator_vertex() {
-        return as_vertex();
+    virtual Result<Vertex> allocator_vertex() noexcept {
+        return Result<Vertex>::of(as_vertex());
     }
 
-    Vertex as_vertex() {
+    Vertex as_vertex() noexcept {
         return Vertex(StaticPointerCast<IVertex>(this->shared_from_this()));
     }
 
@@ -367,7 +381,7 @@ public:
         {
             if (history_node_->parent())
             {
-                auto pn_snp_api = history_tree_->find(history_node_->parent()->snapshot_id());
+                auto pn_snp_api = history_tree_->find(history_node_->parent()->snapshot_id()).get_or_terminate();
                 SnapshotPtr pn_snp = memoria_static_pointer_cast<MyType>(pn_snp_api);
 
                 edges.emplace_back(DefaultEdge::make(my_graph, "child", pn_snp->as_vertex(), my_vx));
@@ -378,7 +392,7 @@ public:
         {
             for (auto& child: history_node_->children())
             {
-                auto ch_snp_api = history_tree_->find(child->snapshot_id());
+                auto ch_snp_api = history_tree_->find(child->snapshot_id()).get_or_terminate();
                 SnapshotPtr ch_snp = memoria_static_pointer_cast<MyType>(ch_snp_api);
 
 
@@ -392,7 +406,7 @@ public:
                 auto root_id    = iter->value();
 
                 auto vertex_ptr = DynamicPointerCast<IVertex>(
-                     const_cast<MyType*>(this)->from_root_id(root_id, ctr_name)
+                     const_cast<MyType*>(this)->from_root_id(root_id, ctr_name).get_or_terminate()
                 );
 
                 edges.emplace_back(DefaultEdge::make(my_graph, "container", my_vx, vertex_ptr));
@@ -404,23 +418,26 @@ public:
         return STLCollection<Edge>::make(std::move(edges));
     }
 
-    SharedPtr<SnapshotMemoryStat> memory_stat(bool include_containers)
+    Result<SharedPtr<SnapshotMemoryStat>> memory_stat(bool include_containers) noexcept
     {
+        using ResultT = Result<SharedPtr<SnapshotMemoryStat>>;
         std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
-        return this->do_compute_memory_stat(include_containers);
+        return ResultT::of(this->do_compute_memory_stat(include_containers));
     }
 
-    SnpSharedPtr<ProfileAllocatorType<Profile>> snapshot_ref_creation_allowed()
+    Result<SnpSharedPtr<ProfileAllocatorType<Profile>>> snapshot_ref_creation_allowed() noexcept
     {
+        using ResultT = Result<SnpSharedPtr<ProfileAllocatorType<Profile>>>;
         this->checkIfConainersCreationAllowed();
-        return memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(this->shared_from_this());
+        return ResultT::of(memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(this->shared_from_this()));
     }
 
 
-    SnpSharedPtr<ProfileAllocatorType<Profile>> snapshot_ref_opening_allowed()
+    Result<SnpSharedPtr<ProfileAllocatorType<Profile>>> snapshot_ref_opening_allowed() noexcept
     {
+        using ResultT = Result<SnpSharedPtr<ProfileAllocatorType<Profile>>>;
         this->checkIfConainersOpeneingAllowed();
-        return memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(this->shared_from_this());
+        return ResultT::of(memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(this->shared_from_this()));
     }
 };
 

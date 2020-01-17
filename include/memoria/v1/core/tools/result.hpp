@@ -93,17 +93,30 @@ public:
 struct UnknownResultStatusException: MemoriaThrowable {};
 
 enum class ResultStatus {
-    NO_ERROR = 0, MEMORIA_ERROR = 1, EXCEPTION = 2
+    NO_ERROR = 0, UNASSIGNED = 1, MEMORIA_ERROR = 2, EXCEPTION = 3
 };
 
 
 namespace detail {
     using ResultErrors = boost::variant2::variant<MemoriaErrorPtr, std::exception_ptr>;
+    struct UnassignedResultValueType {};
 }
 
 template <typename T>
-class Result {
-    using Variant = boost::variant2::variant<T, MemoriaErrorPtr, std::exception_ptr>;
+class Result;
+
+using VoidResult = Result<void>;
+using BoolResult = Result<bool>;
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const Result<T>& res) noexcept;
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const Result<T*>& res) noexcept;
+
+template <typename T>
+class MMA1_NODISCARD Result {
+    using Variant = boost::variant2::variant<T, detail::UnassignedResultValueType, MemoriaErrorPtr, std::exception_ptr>;
     Variant variant_;
 
     struct ResultTag {};
@@ -125,6 +138,8 @@ class Result {
 public:
 
     using ValueType = T;
+
+    Result() noexcept : variant_(detail::UnassignedResultValueType{}) {}
 
     Result(const Result&) = delete;
     Result(Result&&) noexcept = default;
@@ -154,22 +169,27 @@ public:
         return Result<T>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(std::forward<Arg>(args)...));
     }
 
+    template <typename... Arg>
+    static Result<T> make_error(const char* fmt, Arg&&... args) noexcept {
+        return Result<T>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...)));
+    }
+
     bool is_ok() const noexcept {
         return variant_.index() == 0;
     }
 
     const T& get() const & noexcept {
-        return *boost::variant2::get_if<0>(&variant_);
+        return *boost::variant2::get_if<T>(&variant_);
     }
 
     T&& get() && noexcept
     {
-        return std::move(*boost::variant2::get_if<0>(&variant_));
+        return std::move(*boost::variant2::get_if<T>(&variant_));
     }
 
     const T& get_or_terminate() const & noexcept
     {
-        const T* ptr = boost::variant2::get_if<0>(&variant_);
+        const T* ptr = boost::variant2::get_if<T>(&variant_);
 
         if (ptr) {
             return *ptr;
@@ -185,7 +205,7 @@ public:
 
     T&& get_or_terminate() && noexcept
     {
-        T* ptr = boost::variant2::get_if<0>(&variant_);
+        T* ptr = boost::variant2::get_if<T>(&variant_);
 
         if (ptr) {
             return std::move(*ptr);
@@ -202,7 +222,7 @@ public:
     template <typename Fn>
     T&& get_or(Fn&& accessor) && noexcept(accessor())
     {
-        T* ptr = boost::variant2::get_if<0>(&variant_);
+        T* ptr = boost::variant2::get_if<T>(&variant_);
 
         if (ptr) {
             return std::move(*ptr);
@@ -211,9 +231,9 @@ public:
         return accessor();
     }
 
-    const T& get_or_throw() const
+    const T& get_or_throw() const &
     {
-        const T* ptr = boost::variant2::get_if<0>(&variant_);
+        const T* ptr = boost::variant2::get_if<T>(&variant_);
 
         if (ptr) {
             return *ptr;
@@ -229,7 +249,35 @@ public:
             case ResultStatus::MEMORIA_ERROR:
             {
                 throw ResultException(
-                    *boost::variant2::get_if<1>(&variant_)
+                    *boost::variant2::get_if<MemoriaErrorPtr>(&variant_)
+                );
+            }
+            default: break;
+        }
+
+        MMA1_THROW(UnknownResultStatusException())
+                << format_ex("Unknown result status value: {}", static_cast<int32_t>(status()));
+    }
+
+    T&& get_or_throw() &&
+    {
+        T* ptr = boost::variant2::get_if<T>(&variant_);
+
+        if (ptr) {
+            return std::move(*ptr);
+        }
+
+        switch(status())
+        {
+            case ResultStatus::EXCEPTION: {
+                std::rethrow_exception(
+                    *boost::variant2::get_if<std::exception_ptr>(&variant_)
+                );
+            }
+            case ResultStatus::MEMORIA_ERROR:
+            {
+                throw ResultException(
+                    std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))
                 );
             }
             default: break;
@@ -246,6 +294,9 @@ public:
             case ResultStatus::NO_ERROR: {
                 return;
             }
+            case ResultStatus::UNASSIGNED: {
+                return;
+            }
             case ResultStatus::EXCEPTION: {
                 std::rethrow_exception(
                     *boost::variant2::get_if<std::exception_ptr>(&variant_)
@@ -254,13 +305,34 @@ public:
             case ResultStatus::MEMORIA_ERROR:
             {
                 throw ResultException(
-                    std::move(*boost::variant2::get_if<1>(&variant_))
+                    std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))
                 );
             }
         }
 
         MMA1_THROW(UnknownResultStatusException())
                 << format_ex("Unknown result status value: {}", static_cast<int32_t>(status()));
+    }
+
+    void terminate_if_error() const noexcept
+    {
+        switch(status())
+        {
+            case ResultStatus::NO_ERROR: {
+                return;
+            }
+            case ResultStatus::UNASSIGNED: {
+                return;
+            }
+            default: break;
+        }
+
+        std::stringstream ss;
+
+        ss << "Getting value from error. Terminating.\n";
+        ss << *this;
+
+        terminate(ss.str().c_str());
     }
 
     ResultStatus status() const noexcept {
@@ -305,8 +377,8 @@ public:
 
 
 template <>
-class Result<void> {
-    using Variant = boost::variant2::variant<EmptyType, MemoriaErrorPtr, std::exception_ptr>;
+class MMA1_NODISCARD Result<void> {
+    using Variant = boost::variant2::variant<EmptyType, detail::UnassignedResultValueType, MemoriaErrorPtr, std::exception_ptr>;
     Variant variant_;
 
     struct ResultTag {};
@@ -327,6 +399,7 @@ class Result<void> {
 public:
     using ValueType = void;
 
+    Result() noexcept: variant_(detail::UnassignedResultValueType{}) {}
 
     Result(const Result&) = delete;
     Result(Result&&) noexcept = default;
@@ -352,6 +425,11 @@ public:
         return Result<void>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(std::forward<Arg>(args)...));
     }
 
+    template <typename... Arg>
+    static Result<void> make_error(const char* fmt, Arg&&... args) noexcept {
+        return Result<void>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...)));
+    }
+
     bool is_ok() const noexcept {
         return variant_.index() == 0;
     }
@@ -361,6 +439,9 @@ public:
         switch(status())
         {
             case ResultStatus::NO_ERROR: {
+                return;
+            }
+            case ResultStatus::UNASSIGNED: {
                 return;
             }
             case ResultStatus::EXCEPTION: {
@@ -375,9 +456,27 @@ public:
                 );
             }
         }
+    }
 
-        MMA1_THROW(UnknownResultStatusException())
-                << format_ex("Unknown result status value: {}", static_cast<int32_t>(status()));
+    void terminate_if_error() const noexcept
+    {
+        switch(status())
+        {
+            case ResultStatus::NO_ERROR: {
+                return;
+            }
+            case ResultStatus::UNASSIGNED: {
+                return;
+            }
+            default: break;
+        }
+
+        std::stringstream ss;
+
+        ss << "Getting value from error. Terminating.\n";
+        //ss << *this;
+
+        terminate(ss.str().c_str());
     }
 
     const MemoriaErrorPtr& memoria_error() const & noexcept {
@@ -455,7 +554,10 @@ namespace detail {
     void print_error(std::ostream&out, const Result<T>& result) noexcept
     {
         ResultStatus status = result.status();
-        if (status == ResultStatus::MEMORIA_ERROR) {
+        if (status == ResultStatus::UNASSIGNED) {
+            out << "<Unassigned>";
+        }
+        else if (status == ResultStatus::MEMORIA_ERROR) {
             result.memoria_error()->describe(out);
         }
         else if (status == ResultStatus::EXCEPTION) {
@@ -547,6 +649,19 @@ template <typename T>
 std::ostream& operator<<(std::ostream& out, const Result<T>& res) noexcept
 {
     return detail::print_result(out, res, 0);
+}
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const Result<T*>& res) noexcept
+{
+    if (res.is_ok()) {
+        out << res.get();
+    }
+    else {
+        detail::print_error(out, res);
+    }
+
+    return out;
 }
 
 

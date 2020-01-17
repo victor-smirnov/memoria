@@ -49,25 +49,30 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
 
 
 public:
-    void drop()
+    VoidResult drop() noexcept
     {
+        using ResultT = Result<void>;
         auto& self = this->self();
 
         if (self.store().isActive())
         {
-            self.for_each_ctr_reference([&](auto prop_name, auto ctr_id){
-                self.store().drop_ctr(ctr_id);
+            auto res0 = self.for_each_ctr_reference([&](auto prop_name, auto ctr_id) noexcept -> VoidResult {
+                auto r0 = self.store().drop_ctr(ctr_id);
+                MEMORIA_RETURN_IF_ERROR(r0);
+                return VoidResult::of();
             });
+            MEMORIA_RETURN_IF_ERROR(res0);
 
             NodeBaseG root = self.ctr_get_root_node();
             self.ctr_remove_root_node(root);
-            self.set_root(BlockID{});
+            auto res1 = self.set_root(BlockID{});
+            MEMORIA_RETURN_IF_ERROR(res1);
 
             this->do_unregister_on_dtr_ = false;
-            self.store().unregisterCtr(self.name(), this);
+            return self.store().unregisterCtr(self.name(), this);
         }
         else {
-            MMA1_THROW(Exception()) << WhatCInfo("Transaction must be in active state to drop containers");
+            return ResultT::make_error("Transaction must be in active state to drop containers");
         }
     }
 
@@ -79,8 +84,8 @@ public:
 
         NodeBaseG new_root = self.ctr_create_node(0, true, true, metadata.memory_block_size());
 
-        self.drop();
-        self.set_root(new_root->id());
+        self.drop().terminate_if_error();
+        self.set_root(new_root->id()).terminate_if_error();
     }
 
 protected:
@@ -145,7 +150,7 @@ void M_TYPE::ctr_remove_node_recursively(NodeBaseG& node, Position& sizes)
         self.ctr_for_all_ids(node, 0, size, [&, this](const BlockID& id, int32_t idx)
         {
             auto& self = this->self();
-            NodeBaseG child = self.store().getBlock(id);
+            NodeBaseG child = self.store().getBlock(id).get_or_terminate();
             this->ctr_remove_node_recursively(child, sizes);
         });
     }
@@ -153,7 +158,7 @@ void M_TYPE::ctr_remove_node_recursively(NodeBaseG& node, Position& sizes)
         sizes += self.ctr_leaf_sizes(node);
     }
 
-    self.store().removeBlock(node->id());
+    self.store().removeBlock(node->id()).terminate_if_error();
 }
 
 M_PARAMS
@@ -200,7 +205,7 @@ void M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, int32_t start, int32_t end
 
     self.ctr_for_all_ids(node, start, end, [&, this](const BlockID& id, int32_t idx){
         auto& self = this->self();
-        NodeBaseG child = self.store().getBlock(id);
+        NodeBaseG child = self.store().getBlock(id).get_or_terminate();
         self.ctr_remove_node_recursively(child, sizes);
     });
 
@@ -288,9 +293,9 @@ void M_TYPE::ctr_remove_redundant_root(NodeBaseG& node)
                 {
                     self.ctr_node_to_root(node, root_metadata);
 
-                    self.store().removeBlock(parent->id());
+                    self.store().removeBlock(parent->id()).terminate_if_error();
 
-                    self.set_root(node->id());
+                    self.set_root(node->id()).terminate_if_error();
                 }
             }
         }

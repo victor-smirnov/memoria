@@ -53,13 +53,13 @@ public:
     NodeBaseG ctr_get_root_node() const
     {
         auto& self = this->self();
-        return self.store().getBlock(self.root());
+        return self.store().getBlock(self.root()).get_or_terminate();
     }
 
     NodeBaseG ctr_get_root_node_for_update() const
     {
         auto& self = this->self();
-        return self.store().getBlockForUpdate(self.root());
+        return self.store().getBlockForUpdate(self.root()).get_or_terminate();
     }
 
 
@@ -145,14 +145,14 @@ protected:
     NodeBaseG ctr_get_child_fn(Node&& node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.store().getBlock(node.value(idx));
+        return self.store().getBlock(node.value(idx)).get_or_terminate();
     }
 
     template <typename Node>
     NodeBaseG getLastChildFn(Node&& node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.store().getBlock(node.value(node->size() - 1));
+        return self.store().getBlock(node.value(node->size() - 1)).get_or_terminate();
     }
 
 
@@ -160,7 +160,7 @@ protected:
     NodeBaseG getChildForUpdateFn(Node&& node, int32_t idx) const
     {
         auto& self = this->self();
-        return self.store().getBlockForUpdate(node.value(idx));
+        return self.store().getBlockForUpdate(node.value(idx)).get_or_terminate();
     }
 
 

@@ -316,7 +316,7 @@ bool M_TYPE::ctr_try_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn
 
     self.ctr_update_branch_nodes(src_parent, idx, max);
 
-    self.store().removeBlock(src->id());
+    self.store().removeBlock(src->id()).terminate_if_error();
 
     fn(tgt_sizes);
 

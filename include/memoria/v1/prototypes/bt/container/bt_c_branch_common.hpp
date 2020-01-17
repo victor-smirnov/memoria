@@ -103,7 +103,7 @@ void M_TYPE::ctr_create_new_root_block(NodeBaseG& root)
     root->parent_id()  = new_root->id();
     root->parent_idx() = 0;
 
-    self.set_root(new_root->id());
+    self.set_root(new_root->id()).terminate_if_error();
 }
 
 

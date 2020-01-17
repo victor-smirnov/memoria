@@ -841,40 +841,50 @@ public:
 
         virtual ~BlockOperations() noexcept {}
 
-        virtual int32_t serialize(const BlockType* block, void* buf) const
+        virtual Result<int32_t> serialize(const BlockType* block, void* buf) const noexcept
         {
-            const MyType* me = T2T<const MyType*>(block);
+            return wrap_throwing([&]() {
+                const MyType* node = T2T<const MyType*>(block);
 
-            SerializationData data;
-            data.buf = T2T<char*>(buf);
+                SerializationData data;
+                data.buf = T2T<char*>(buf);
 
-            me->serialize(data);
+                node->serialize(data);
 
-            return data.total;
+                return Result<int32_t>::of(data.total);
+            });
         }
 
-        virtual void deserialize(const void* buf, int32_t buf_size, BlockType* block) const
+        virtual VoidResult deserialize(const void* buf, int32_t buf_size, BlockType* block) const noexcept
         {
-            MyType* me = T2T<MyType*>(block);
+            return wrap_throwing([&]() {
+                MyType* node = T2T<MyType*>(block);
 
-            DeserializationData data;
-            data.buf = T2T<const char*>(buf);
+                DeserializationData data;
+                data.buf = T2T<const char*>(buf);
 
-            me->deserialize(data);
+                node->deserialize(data);
+
+                return VoidResult::of();
+            });
         }
 
-        virtual void resize(const BlockType* block, void* buffer, int32_t new_size) const
+        virtual VoidResult resize(const BlockType* block, void* buffer, int32_t new_size) const noexcept
         {
-            MyType* tgt = T2T<MyType*>(buffer);
-            tgt->resizeBlock(new_size);
+            return wrap_throwing([&]() {
+                MyType* tgt = T2T<MyType*>(buffer);
+                tgt->resizeBlock(new_size);
+
+                return VoidResult::of();
+            });
         }
 
-        virtual uint64_t block_type_hash() const {
+        virtual uint64_t block_type_hash() const noexcept {
             return MyType::BLOCK_HASH;
         }
     };
 
-    static BlockOperationsPtr<Profile> block_operations() {
+    static BlockOperationsPtr<Profile> block_operations() noexcept {
         return std::make_shared<BlockOperations>();
     }
 };

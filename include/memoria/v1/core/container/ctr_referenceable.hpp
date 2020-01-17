@@ -28,6 +28,9 @@
 
 #include <memoria/v1/core/tools/optional.hpp>
 
+#include <memoria/v1/core/tools/result.hpp>
+
+
 #include <string>
 
 namespace memoria {
@@ -59,14 +62,14 @@ struct CtrReferenceable {
     virtual void set_ctr_reference(U8StringView key, const CtrID& value)  = 0;
     virtual void remove_ctr_reference(U8StringView key) = 0;
     virtual size_t ctr_references() const = 0;
-    virtual void for_each_ctr_reference(std::function<void (U8StringView, const CtrID&)> consumer) const = 0;
+    virtual VoidResult for_each_ctr_reference(std::function<VoidResult (U8StringView, const CtrID&)> consumer) const noexcept = 0;
     virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries) = 0;
     
     virtual const ProfileCtrID<Profile>& name() const = 0;
 
     virtual std::shared_ptr<io::IOVector> create_iovector()  = 0;
 
-    virtual void drop() = 0;
+    virtual VoidResult drop() noexcept = 0;
 
     virtual void flush() = 0;
     virtual CtrSharedPtr<CtrReferenceable<Profile>> shared_self() = 0;

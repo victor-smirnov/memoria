@@ -249,7 +249,7 @@ void M_TYPE::ctr_do_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src)
 
     self.ctr_update_branch_nodes(src_parent, idx, max);
 
-    self.store().removeBlock(src->id());
+    self.store().removeBlock(src->id()).terminate_if_error();
 }
 
 

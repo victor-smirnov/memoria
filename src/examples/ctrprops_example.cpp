@@ -36,11 +36,11 @@ int main()
         using MapType = Map<Varchar, Varchar>;
         //using Entry   = std::pair<U8String, U8String>;
 
-        auto alloc = IMemoryStore<>::create();
+        auto alloc = IMemoryStore<>::create().get_or_throw();
 
-        auto snp = alloc->master()->branch();
+        auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
 
-        auto ctr0 = create(snp, MapType());
+        auto ctr0 = create(snp, MapType()).get_or_throw();
 
         std::string value1(16, 'X');
         std::string value2(17, 'Y');
@@ -65,7 +65,7 @@ int main()
 
         std::cout << "Props: " << ctr0->ctr_properties() << std::endl;
 
-        snp->commit();
+        snp->commit().throw_if_error();
     }
     catch (MemoriaThrowable& th) {
         th.dump(std::cerr);

@@ -28,6 +28,7 @@
 #include <memoria/v1/core/tools/span.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
+#include <memoria/v1/core/tools/result.hpp>
 
 #include <algorithm>
 
@@ -268,6 +269,26 @@ public:
             ++keys_ii;
             ++values_ii;
         }
+    }
+
+    VoidResult for_each_noexcept(std::function<VoidResult (KeyView, ValueView)> fn) const noexcept
+    {
+        auto keys_ii  = keys_.begin(0);
+        auto keys_end = keys_.end(0);
+
+        auto values_ii  = values_.begin(0);
+        auto values_end = values_.end(0);
+
+        while (keys_ii != keys_end && values_ii != values_end)
+        {
+            auto res = fn(*keys_ii, *values_ii);
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            ++keys_ii;
+            ++values_ii;
+        }
+
+        return VoidResult::of();
     }
 
 private:

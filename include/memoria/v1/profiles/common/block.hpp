@@ -23,6 +23,8 @@
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
+#include <memoria/v1/core/tools/result.hpp>
+
 #include <memoria/v1/core/types/typehash.hpp>
 
 #include <memoria/v1/core/container/logs.hpp>
@@ -323,54 +325,54 @@ public:
     enum {UNDEFINED, READ, UPDATE, _DELETE};
 
     template <typename Page>
-    const Page* block() const {
+    const Page* block() const noexcept {
         return T2T<const Page*>(block_);
     }
 
     template <typename Page>
-    Page* block() {
+    Page* block() noexcept {
         return T2T<Page*>(block_);
     }
 
-    PageT* get() {
+    PageT* get() noexcept {
         return block_;
     }
 
-    const PageT* get() const {
+    const PageT* get() const noexcept {
         return block_;
     }
 
     template <typename Page>
-    operator Page* () {
+    operator Page* () noexcept {
         return block<Page>();
     }
 
     template <typename Page>
-    operator const Page* () {
+    operator const Page* () noexcept {
         return block<Page>();
     }
 
-    int32_t references() const {
+    int32_t references() const noexcept {
         return references_;
     }
 
-    int32_t& references() {
+    int32_t& references() noexcept {
         return references_;
     }
 
-    int32_t state() const {
+    int32_t state() const noexcept {
         return state_;
     }
 
-    int32_t& state() {
+    int32_t& state() noexcept {
         return state_;
     }
 
-    const BlockID& id() const {
+    const BlockID& id() const noexcept {
         return id_;
     }
 
-    BlockID& id() {
+    BlockID& id() noexcept {
         return id_;
     }
 
@@ -380,15 +382,15 @@ public:
         this->block_ = static_cast<PageT*>(block);
     }
 
-    void resetPage() {
+    void resetPage() noexcept {
         this->block_ = nullptr;
     }
 
-    int32_t ref() {
+    int32_t ref() noexcept {
         return ++references_;
     }
 
-    int32_t unref()
+    int32_t unref() noexcept
     {
         int32_t refs = --references_;
 
@@ -400,38 +402,38 @@ public:
         return refs;
     }
 
-    bool deleted() const
+    bool deleted() const noexcept
     {
         return state_ == _DELETE;
     }
 
-    bool updated() const
+    bool updated() const noexcept
     {
         return state_ != READ;
     }
 
-    AllocatorT* store() {
+    AllocatorT* store() noexcept {
         return allocator_;
     }
 
-    void set_allocator(AllocatorT* allocator)
+    void set_allocator(AllocatorT* allocator) noexcept
     {
         allocator_ = allocator;
     }
 
-    MyTypePtr& owner() {
+    MyTypePtr& owner() noexcept {
         return owner_;
     }
 
-    const MyTypePtr& owner() const {
+    const MyTypePtr& owner() const noexcept {
         return owner_;
     }
 
-    const MyTypePtr& delegate() const {
+    const MyTypePtr& delegate() const noexcept {
         return delegate_;
     }
 
-    void setDelegate(MyType* delegate)
+    void setDelegate(MyType* delegate) noexcept
     {
         MEMORIA_V1_ASSERT_TRUE(delegate != this);
 
@@ -452,7 +454,7 @@ public:
     }
 
 
-    void refresh()
+    void refresh() noexcept
     {
         if (owner_)
         {
@@ -460,7 +462,7 @@ public:
         }
     }
 
-    void init()
+    void init() noexcept
     {
         id_         = BlockID{};
         references_ = 0;
@@ -473,7 +475,7 @@ public:
     }
 
 private:
-    void refreshData(MyType* shared)
+    void refreshData(MyType* shared) noexcept
     {
         this->block_     = shared->block_;
         this->state_    = shared->state_;
@@ -481,11 +483,11 @@ private:
         refresh();
     }
 
-    void unrefDelegate()
+    void unrefDelegate() noexcept
     {
         if (delegate_ && delegate_->unref() == 0)
         {
-            delegate_->store()->releaseBlock(delegate_);
+            delegate_->store()->releaseBlock(delegate_).terminate_if_error();
             delegate_ = nullptr;
         }
     }
@@ -511,27 +513,19 @@ private:
 public:
 
 
-    BlockGuard(Shared* shared): shared_(shared)
+    BlockGuard(Shared* shared) noexcept: shared_(shared)
     {
         inc();
         ref();
     }
 
 
-    BlockGuard(): shared_(nullptr)
+    BlockGuard() noexcept: shared_(nullptr)
     {
         inc();
     }
 
-    BlockGuard(const MyType& guard): shared_(guard.shared_)
-    {
-        ref();
-        check();
-        inc();
-    }
-
-    template <typename Page>
-    BlockGuard(const BlockGuard<Page, AllocatorT>& guard): shared_(guard.shared_)
+    BlockGuard(const MyType& guard) noexcept: shared_(guard.shared_)
     {
         ref();
         check();
@@ -539,32 +533,40 @@ public:
     }
 
     template <typename Page>
-    BlockGuard(BlockGuard<Page, AllocatorT>&& guard): shared_(guard.shared_)
+    BlockGuard(const BlockGuard<Page, AllocatorT>& guard) noexcept: shared_(guard.shared_)
+    {
+        ref();
+        check();
+        inc();
+    }
+
+    template <typename Page>
+    BlockGuard(BlockGuard<Page, AllocatorT>&& guard) noexcept: shared_(guard.shared_)
     {
         guard.shared_   = NULL;
         check();
         inc();
     }
 
-    ~BlockGuard()
+    ~BlockGuard() noexcept
     {
         dec();
         unref();
     }
 
     template <typename Page>
-    operator const Page* () const
+    operator const Page* () const noexcept
     {
         return static_cast<const Page*>(*shared_);
     }
 
     template <typename Page>
-    operator Page* ()
+    operator Page* () noexcept
     {
         return static_cast<Page*>(*shared_);
     }
 
-    const MyType& operator=(const MyType& guard)
+    const MyType& operator=(const MyType& guard) noexcept
     {
         if (shared_ != guard.shared_)
         {
@@ -579,7 +581,7 @@ public:
 
 
     template <typename P>
-    MyType& operator=(const BlockGuard<P, AllocatorT>& guard)
+    MyType& operator=(const BlockGuard<P, AllocatorT>& guard) noexcept
     {
         unref();
         shared_ = guard.shared_;
@@ -588,7 +590,7 @@ public:
         return *this;
     }
 
-    MyType& operator=(MyType&& guard)
+    MyType& operator=(MyType&& guard) noexcept
     {
         unref();
         shared_ = guard.shared_;
@@ -600,7 +602,7 @@ public:
 
 
     template <typename P>
-    MyType& operator=(BlockGuard<P, AllocatorT>&& guard)
+    MyType& operator=(BlockGuard<P, AllocatorT>&& guard) noexcept
     {
         unref();
 
@@ -612,96 +614,101 @@ public:
     }
 
 
-    bool operator==(const PageT* block) const
+    bool operator==(const PageT* block) const noexcept
     {
         return shared_ != NULL ? *shared_ == block : (char*)shared_ == (char*)block;
     }
 
-    bool operator!=(const PageT* block) const
+    bool operator!=(const PageT* block) const noexcept
     {
         return shared_ != NULL ? *shared_ != block : (char*)shared_ != (char*)block;
     }
 
-    bool isEmpty() const {
+    bool isEmpty() const noexcept {
         return shared_ == NULL || shared_->get() == NULL;
     }
 
-    bool isSet() const {
+    bool isSet() const noexcept {
         return shared_ != NULL && shared_->get() != NULL;
     }
 
-    bool operator==(const MyType& other) const
+    bool operator==(const MyType& other) const noexcept
     {
         return shared_ != NULL && other.shared_ != NULL && shared_->id() == other.shared_->id();
     }
 
-    bool operator!=(const MyType& other) const
+    bool operator!=(const MyType& other) const noexcept
     {
         return shared_ != NULL && other.shared_ != NULL && shared_->id() != other.shared_->id();
     }
 
-    operator bool() const {
+    operator bool() const noexcept {
         return this->isSet();
     }
 
-    const PageT* block() const {
+    const PageT* block() const noexcept {
         return *shared_;
     }
 
-    PageT* block() {
+    PageT* block() noexcept {
         return *shared_;
     }
 
-    void set_block(PageT* block)
+    void set_block(PageT* block) noexcept
     {
         shared_->set_block(block);
     }
 
-    const PageT* operator->() const {
+    const PageT* operator->() const noexcept {
         return *shared_;
     }
 
-    PageT* operator->() {
+    PageT* operator->() noexcept {
         return *shared_;
     }
 
-    bool is_updated() const
+    bool is_updated() const noexcept
     {
         return shared_->updated();
     }
 
 
 
-    void update()
+    VoidResult update() noexcept
     {
-        if (shared_)// && !shared_->updated())
+        if (shared_)
         {
             auto guard = shared_->store()->updateBlock(shared_);
+            MEMORIA_RETURN_IF_ERROR(guard);
 
-            if (guard.shared() != shared_)
+            if (guard.get().shared() != shared_)
             {
-                *this = guard;
+                *this = guard.get();
             }
         }
+
+        return VoidResult::of();
     }
 
-    void resize(int32_t new_size)
+    VoidResult resize(int32_t new_size) noexcept
     {
         if (shared_ != nullptr)
         {
-            shared_->store()->resizeBlock(shared_, new_size);
+            return shared_->store()->resizeBlock(shared_, new_size);
         }
+
+        return VoidResult::of();
     }
 
-    void clear() {
+    void clear() noexcept {
         *this = nullptr;
     }
 
-    const Shared* shared() const {
+    const Shared* shared() const noexcept {
         return shared_;
     }
 
-    Shared* shared() {
+    Shared* shared() noexcept{
         return shared_;
     }
 
@@ -709,13 +716,13 @@ public:
 
 private:
 
-    void check() {}
+    void check() noexcept {}
 
-    void inc() {}
+    void inc() noexcept {}
 
-    void dec() {}
+    void dec() noexcept {}
 
-    void ref()
+    void ref() noexcept
     {
         if (shared_ != nullptr)
         {
@@ -723,22 +730,21 @@ private:
         }
     }
 
-    void unref()
+    void unref() noexcept
     {
         if (shared_ != nullptr)
         {
             if (shared_->unref() == 0)
             {
-                shared_->store()->releaseBlock(shared_);
+                shared_->store()->releaseBlock(shared_).terminate_if_error();
             }
         }
     }
-
 };
 
 
 template <typename T, typename A>
-std::ostream& operator<<(std::ostream& out, const BlockGuard<T, A>& pg)
+std::ostream& operator<<(std::ostream& out, const BlockGuard<T, A>& pg) noexcept
 {
     if (pg.isSet()) {
         out<<pg->id();
@@ -746,12 +752,13 @@ std::ostream& operator<<(std::ostream& out, const BlockGuard<T, A>& pg)
     else {
         out<<"nullptr";
     }
+
     return out;
 }
 
 
 template <typename T, typename A>
-LogHandler* logIt(LogHandler* log, const BlockGuard<T, A>& value) {
+LogHandler* logIt(LogHandler* log, const BlockGuard<T, A>& value) noexcept {
     log->log(value.block());
     log->log(" ");
     return log;
@@ -760,7 +767,7 @@ LogHandler* logIt(LogHandler* log, const BlockGuard<T, A>& value) {
 
 
 template <typename T>
-std::ostream& operator<<(std::ostream& out, const BlockID<T>& id)
+std::ostream& operator<<(std::ostream& out, const BlockID<T>& id) noexcept
 {
     IDValue idv(id);
     out<<idv;
@@ -769,14 +776,14 @@ std::ostream& operator<<(std::ostream& out, const BlockID<T>& id)
 
 
 template <typename T>
-OutputStreamHandler& operator<<(OutputStreamHandler& out, const BlockID<T>& id)
+OutputStreamHandler& operator<<(OutputStreamHandler& out, const BlockID<T>& id) noexcept
 {
     out << id.value();
     return out;
 }
 
 template <typename T>
-InputStreamHandler& operator>>(InputStreamHandler& in, BlockID<T>& id)
+InputStreamHandler& operator>>(InputStreamHandler& in, BlockID<T>& id) noexcept
 {
     in >> id.value();
     return in;

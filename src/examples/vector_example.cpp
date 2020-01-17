@@ -35,11 +35,11 @@ int main()
 
         using VectorType = Vector<Varchar>;
 
-        auto alloc = IMemoryStore<>::create();
+        auto alloc = IMemoryStore<>::create().get_or_throw();
 
-        auto snp = alloc->master()->branch();
+        auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
 
-        auto ctr0 = create(snp, VectorType());
+        auto ctr0 = create(snp, VectorType()).get_or_throw();
 
         //ctr0->set_new_block_size(64*1024);
 
@@ -76,10 +76,10 @@ int main()
 
 //        ctr0->seek(0)->dumpPath();
 
-        snp->commit();
-        snp->set_as_master();
+        snp->commit().throw_if_error();
+        snp->set_as_master().throw_if_error();
 
-        alloc->store("store-vector.mma1");
+        alloc->store("store-vector.mma1").throw_if_error();
 
         int64_t t2 = getTimeInMillis();
         size_t sum0 = 0;

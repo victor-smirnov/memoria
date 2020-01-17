@@ -155,7 +155,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 total_free_space += additional_free_space;
             }
 
-            node.resize(memory_block_size);
+            node.resize(memory_block_size).terminate_if_error();
         }
     }
 
@@ -175,7 +175,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 target_memory_block_size *= 2;
             }
 
-            node.resize(target_memory_block_size);
+            node.resize(target_memory_block_size).terminate_if_error();
         }
     }
 
@@ -326,19 +326,20 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return map->size();
     }
 
-    virtual void for_each_ctr_reference(std::function<void (U8StringView, const CtrID&)> consumer) const {
+    virtual VoidResult for_each_ctr_reference(std::function<VoidResult (U8StringView, const CtrID&)> consumer) const noexcept
+    {
         auto& self = this->self();
         NodeBaseG root = self.ctr_get_root_node();
         CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
         PackedMapSO<CtrReferencesMap> map_so(map);
 
-        map_so.for_each(consumer);
+        return map_so.for_each_noexcept(consumer);
     }
 
     virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries)
     {
-        auto& self     = this->self();
+        auto& self = this->self();
         NodeBaseG root = self.ctr_get_root_node();
 
         CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
@@ -428,7 +429,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto& self = this->self();
 
-        NodeBaseG root = self.store().getBlock(root_id);
+        NodeBaseG root = self.store().getBlock(root_id).get_or_terminate();
 
         return self.node_dispatcher().dispatch(root, GetModelNameFn(self));
     }
@@ -479,7 +480,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self          = this->self();
         const auto& root_id = self.root();
-        NodeBaseG root      = self.store().getBlock(root_id);
+        NodeBaseG root      = self.store().getBlock(root_id).get_or_terminate();
 
         return root->root_metadata();
     }
@@ -520,14 +521,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     int32_t get_new_block_size() const
     {
-        NodeBaseG root_block = self().store().getBlockForUpdate(self().root());
+        NodeBaseG root_block = self().store().getBlockForUpdate(self().root()).get_or_terminate();
         const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
         return meta->memory_block_size();
     }
 
     void set_new_block_size(int32_t block_size)
     {
-        NodeBaseG root_block = self().store().getBlockForUpdate(self().root());
+        NodeBaseG root_block = self().store().getBlockForUpdate(self().root()).get_or_terminate();
         Metadata* meta = get<Metadata>(root_block->allocator(), METADATA_IDX);
         meta->memory_block_size() = block_size;
     }
@@ -539,7 +540,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG node = self.store().createBlock(size);
+        NodeBaseG node = self.store().createBlock(size).get_or_terminate();
         node->init();
 
         node->header().block_type_hash() = Node::NodeType::hash();
@@ -557,7 +558,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (size == -1)
         {
-            NodeBaseG root_block = self.store().getBlock(self.root());
+            NodeBaseG root_block = self.store().getBlock(self.root()).get_or_terminate();
             const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
             size = meta->memory_block_size();
         }
@@ -597,7 +598,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto& self = this->self();
 
-        NodeBaseG root_block = self.store().getBlock(self.root());
+        NodeBaseG root_block = self.store().getBlock(self.root()).get_or_terminate();
 
         if (size == -1)
         {
@@ -687,7 +688,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void ctr_update_block_guard(NodeBaseG& node) const
     {
-        node.update();
+        node.update().terminate_if_error();
     }
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(ValuesAsVectorFn, template values_as_vector<BlockID>, std::vector<BlockID>);
@@ -695,7 +696,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         std::vector<Edge> links;
 
-        NodeBaseG block = this->allocator_holder_->getBlock(block_id);
+        NodeBaseG block = this->allocator_holder_->getBlock(block_id).get_or_terminate();
 
         Graph graph     = this->graph();
         Vertex ctr_vx   = this->as_vertex();
@@ -729,7 +730,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id)
     {
-        NodeBaseG block = this->allocator_holder_->getBlock(block_id);
+        NodeBaseG block = this->allocator_holder_->getBlock(block_id).get_or_terminate();
 
         std::vector<VertexProperty> props;
 
@@ -763,7 +764,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     static CtrBlockDescription<ProfileT> describe_block(const BlockID& node_id, Allocator* alloc)
     {
-        NodeBaseG node = alloc->getBlock(node_id);
+        NodeBaseG node = alloc->getBlock(node_id).get_or_terminate();
 
         int32_t size = node->header().memory_block_size();
         bool leaf = node->is_leaf();
@@ -774,7 +775,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         while (!node->is_root())
         {
             offset += node->parent_idx();
-            node = alloc->getBlock(node->parent_id());
+            node = alloc->getBlock(node->parent_id()).get_or_terminate();
         }
 
         return CtrBlockDescription<ProfileT>(size, ctr_get_model_name(node), root, leaf, offset);
@@ -818,7 +819,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        if (self.store().hasRoot(ctr_id))
+        if (self.store().hasRoot(ctr_id).get_or_terminate())
         {
             MMA1_THROW(NoCtrException()) << WhatInfo(format_u8("Container with name {} already exists", ctr_id));
         }
@@ -827,7 +828,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG node = self.createRootLeaf();
 
-        self.set_root(node->id());
+        self.set_root(node->id()).terminate_if_error();
     }
 
 

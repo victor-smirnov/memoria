@@ -16,24 +16,22 @@
 
 #pragma once
 
+#include <memoria/v1/core/types.hpp>
 #include <memoria/v1/profiles/common/common.hpp>
 
 #include <memoria/v1/core/container/names.hpp>
 #include <memoria/v1/profiles/common/block.hpp>
 #include <memoria/v1/core/container/ctr_referenceable.hpp>
 
+#include <memoria/v1/core/graph/graph.hpp>
+#include <memoria/v1/core/tools/memory.hpp>
+#include <memoria/v1/profiles/common/container_operations.hpp>
+
+#include <memoria/v1/core/tools/result.hpp>
+
 #ifndef MMA1_NO_REACTOR
 #   include <memoria/v1/reactor/reactor.hpp>
 #endif
-
-
-#include <memoria/v1/core/graph/graph.hpp>
-
-#include <memoria/v1/core/tools/memory.hpp>
-
-#include <memoria/v1/profiles/common/container_operations.hpp>
-
-#include <memoria/v1/core/types.hpp>
 
 #include <memory>
 #include <typeinfo>
@@ -60,59 +58,59 @@ struct IAllocator {
 
     using BlockG        = BlockGuard<BlockType, MyType>;
     using Shared        = typename BlockG::Shared;
+
+    virtual ~IAllocator() noexcept {}
     
-    virtual BlockID getRootID(const CtrID& ctr_id)                              = 0;
-    virtual void setRoot(const CtrID& ctr_id, const BlockID& root)              = 0;
+    virtual Result<BlockID> getRootID(const CtrID& ctr_id) noexcept = 0;
+    virtual Result<void> setRoot(const CtrID& ctr_id, const BlockID& root) noexcept = 0;
 
-    virtual bool hasRoot(const CtrID& ctr_id)                                   = 0;
-    virtual CtrID createCtrName()                                               = 0;
+    virtual Result<bool> hasRoot(const CtrID& ctr_id) noexcept = 0;
+    virtual Result<CtrID> createCtrName() noexcept = 0;
 
 
-    virtual BlockG getBlock(const BlockID& id)                                  = 0;
-    virtual BlockG getBlockForUpdate(const BlockID& id)                         = 0;
+    virtual Result<BlockG> getBlock(const BlockID& id) noexcept = 0;
+    virtual Result<BlockG> getBlockForUpdate(const BlockID& id) noexcept = 0;
 
-    virtual BlockG updateBlock(Shared* shared)                                  = 0;
-    virtual void  removeBlock(const ID& id)                                     = 0;
-    virtual BlockG createBlock(int32_t initial_size)                            = 0;
+    virtual Result<BlockG> updateBlock(Shared* shared) noexcept = 0;
+    virtual Result<void>  removeBlock(const ID& id) noexcept = 0;
+    virtual Result<BlockG> createBlock(int32_t initial_size) noexcept = 0;
 
-    virtual BlockG cloneBlock(const Shared* shared, const BlockID& new_id)      = 0;
+    virtual Result<BlockG> cloneBlock(const Shared* shared, const BlockID& new_id) noexcept = 0;
 
-    virtual void  resizeBlock(Shared* block, int32_t new_size)                   = 0;
-    virtual void  releaseBlock(Shared* shared) noexcept                         = 0;
-    virtual BlockG getBlockG(BlockType* block)                                   = 0;
+    virtual Result<void>  resizeBlock(Shared* block, int32_t new_size) noexcept = 0;
+    virtual Result<void>  releaseBlock(Shared* shared) noexcept = 0;
+    virtual Result<BlockG> getBlockG(BlockType* block) noexcept = 0;
 
-    virtual ID newId()                                                          = 0;
-    virtual SnapshotID currentTxnId() const                                     = 0;
+    virtual Result<ID> newId() noexcept = 0;
+    virtual SnapshotID currentTxnId() const noexcept = 0;
 
     // memory pool allocator
 
-    virtual void* allocateMemory(size_t size)                                   = 0;
-    virtual void  freeMemory(void* ptr)                                         = 0;
+    virtual Result<void*> allocateMemory(size_t size) noexcept = 0;
+    virtual void  freeMemory(void* ptr) noexcept = 0;
 
-    virtual Logger& logger()                                                    = 0;
+    virtual Logger& logger() noexcept = 0;
 
-    virtual bool isActive() const                                               = 0;
+    virtual bool isActive() const noexcept = 0;
 
-    virtual void registerCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance)   = 0;
-    virtual void unregisterCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) = 0;
-    virtual void flush_open_containers() = 0;
+    virtual Result<void> registerCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) noexcept = 0;
+    virtual Result<void> unregisterCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) noexcept = 0;
+    virtual Result<void> flush_open_containers() noexcept = 0;
 
-    virtual SnpSharedPtr<MyType> self_ptr()                                     = 0;
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> find(const CtrID& ctr_id)   = 0;
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> from_root_id(const BlockID& root_block_id, const CtrID& name) = 0;
+    virtual SnpSharedPtr<MyType> self_ptr() noexcept = 0;
+    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> find(const CtrID& ctr_id) noexcept = 0;
+    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> from_root_id(const BlockID& root_block_id, const CtrID& name) noexcept = 0;
 
-    virtual bool check()                                                        = 0;
-    virtual void walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) = 0;
+    virtual Result<bool> check() noexcept = 0;
+    virtual Result<void> walkContainers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept = 0;
 
-    virtual bool drop_ctr(const CtrID& ctr_id)                                  = 0;
+    virtual Result<bool> drop_ctr(const CtrID& ctr_id) noexcept = 0;
 
-    virtual U8String ctr_type_name(const CtrID& ctr_id)                        = 0;
+    virtual Result<U8String> ctr_type_name(const CtrID& ctr_id) noexcept = 0;
 
-    virtual Vertex allocator_vertex() {
-        return Vertex();
+    virtual Result<Vertex> allocator_vertex() noexcept {
+        return Result<Vertex>::of();
     }
-    
-    virtual ~IAllocator() noexcept {}
 };
 
 

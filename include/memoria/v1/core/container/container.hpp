@@ -159,18 +159,18 @@ public:
     PairPtr& pair() {return pair_;}
     const PairPtr& pair() const {return pair_;}
 
-    void set_root(const BlockID &root)
+    Result<void> set_root(const BlockID &root) noexcept
     {
         root_ = root;
-        self().store().setRoot(self().master_name(), root);
+        return self().store().setRoot(self().master_name(), root);
     }
 
-    void set_root_id(const BlockID &root)
+    void set_root_id(const BlockID &root) noexcept
     {
         root_ = root;
     }
 
-    const BlockID &root() const
+    const BlockID &root() const noexcept
     {
         return root_;
     }
@@ -238,81 +238,96 @@ public:
 
         using typename CIBase::BlockCallbackFn;
 
-        virtual U8String data_type_decl_signature() const {
+        virtual U8String data_type_decl_signature() const noexcept {
             return make_datatype_signature<ContainerTypeName>().name();
         }
 
-        virtual Vertex describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const
+        virtual Result<Vertex> describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const noexcept
         {
-            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->find(ctr_id));
-            return ctr_ptr->block_as_vertex(block_id);
+            auto ctr_ref = allocator->find(ctr_id);
+            MEMORIA_RETURN_IF_ERROR(ctr_ref);
+
+            auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref.get());
+            return Result<Vertex>::of(ctr_ptr->block_as_vertex(block_id));
         }
 
-        virtual Collection<Edge> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator, Direction direction) const
+        virtual Result<Collection<Edge>> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator, Direction direction) const noexcept
         {
-            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->find(ctr_id));
-            return ctr_ptr->describe_block_links(block_id, direction);
+            using ResultT = Result<Collection<Edge>>;
+
+            auto ctr_ref = allocator->find(ctr_id);
+            MEMORIA_RETURN_IF_ERROR(ctr_ref);
+
+            auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref.get());
+            return ResultT::of(ctr_ptr->describe_block_links(block_id, direction));
         }
 
-        virtual Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const
+        virtual Result<Collection<VertexProperty>> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const noexcept
         {
-            auto ctr_ptr = memoria_static_pointer_cast<MyType>(allocator->find(ctr_id));
-            return ctr_ptr->block_properties(vx, block_id);
+            using ResultT = Result<Collection<VertexProperty>>;
+
+            auto ctr_ref = allocator->find(ctr_id);
+            MEMORIA_RETURN_IF_ERROR(ctr_ref);
+
+            auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref.get());
+            return ResultT::of(ctr_ptr->block_properties(vx, block_id));
         }
 
-        virtual U8String ctr_name() const
+        virtual U8String ctr_name() const noexcept
         {
             return TypeNameFactory<Name>::name();
         }
 
-        void with_ctr(const CtrID& ctr_id, const AllocatorPtr& allocator, std::function<void(MyType&)> fn) const
+        VoidResult with_ctr(const CtrID& ctr_id, const AllocatorPtr& allocator, std::function<VoidResult (MyType&)> fn) const noexcept
         {
             auto ctr_ref = allocator->find(ctr_id);
-            if (ctr_ref)
+            MEMORIA_RETURN_IF_ERROR(ctr_ref);
+            if (ctr_ref.get())
             {
-                auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref);
-                fn(*ctr_ptr.get());
+                auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref.get());
+                return fn(*ctr_ptr.get());
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("No container is found for id {}", ctr_id));
+                return VoidResult::make_error("No container is found for id {}", ctr_id);
             }
         }
 
-        virtual bool check(const CtrID& ctr_id, AllocatorPtr allocator) const
+        virtual BoolResult check(const CtrID& ctr_id, AllocatorPtr allocator) const noexcept
         {
             bool result = false;
 
-            with_ctr(ctr_id, allocator, [&](MyType& ctr){
+            auto res = with_ctr(ctr_id, allocator, [&](MyType& ctr){
                 result = ctr.check(nullptr);
+                return VoidResult::of();
             });
+            MEMORIA_RETURN_IF_ERROR(res);
 
-            return result;
+            return BoolResult::of(result);
         }
 
-        virtual void walk(
+        virtual VoidResult walk(
                 const UUID& ctr_id,
                 AllocatorPtr allocator,
                 ContainerWalker<ProfileT>* walker
-        ) const
+        ) const noexcept
         {
-            with_ctr(ctr_id, allocator, [&](MyType& ctr){
+            return with_ctr(ctr_id, allocator, [&](MyType& ctr){
                 ctr.ctr_walk_tree(walker);
+                return VoidResult::of();
             });
         }
 
-        virtual void drop(const CtrID& ctr_id, AllocatorPtr allocator) const
+        virtual VoidResult drop(const CtrID& ctr_id, AllocatorPtr allocator) const noexcept
         {
-            with_ctr(ctr_id, allocator, [&](MyType& ctr){
-                ctr.drop();
+            return with_ctr(ctr_id, allocator, [&](MyType& ctr){
+                return ctr.drop();
             });
         }
 
-        virtual U8String ctr_type_name() const
+        virtual U8String ctr_type_name() const noexcept
         {
             return TypeNameFactory<ContainerTypeName>::name();
         }
-
-
 
 
         class CtrNodesWalkerAdapter: public ContainerWalkerBase<ProfileT> {
@@ -328,7 +343,7 @@ public:
 
 
             virtual void ctr_begin_node(int32_t idx, const BlockType* block) {
-                consumer_(block->uuid(), block->id(), block);
+                consumer_(block->uuid(), block->id(), block).terminate_if_error();
             }
 
             virtual void rootLeaf(int32_t idx, const BlockType* block) {
@@ -342,44 +357,53 @@ public:
 
 
 
-        virtual void for_each_ctr_node(
+        virtual VoidResult for_each_ctr_node(
             const CtrID& ctr_id,
             AllocatorPtr allocator,
             BlockCallbackFn consumer
-        ) const
+        ) const noexcept
         {
             CtrNodesWalkerAdapter walker(consumer);
 
-            with_ctr(ctr_id, allocator, [&](MyType& ctr){
+            return with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept {
         		ctr.ctr_walk_tree(&walker);
-        	});
+                return VoidResult::of();
+            });
         }
         
-        virtual CtrSharedPtr<CtrReferenceable<typename Types::Profile>> new_ctr_instance(
+        virtual Result<CtrSharedPtr<CtrReferenceable<typename Types::Profile>>> new_ctr_instance(
             const ProfileBlockG<typename Types::Profile>& root_block,
             AllocatorPtr allocator
-        ) const
+        ) const noexcept
         {    
-            return ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
+            using ResultT = Result<CtrSharedPtr<CtrReferenceable<typename Types::Profile>>>;
+            return wrap_throwing([&]() noexcept -> ResultT {
+                return ResultT::of(ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
                     allocator,
                     root_block
-            );
+                ));
+            });
         }
 
-        virtual CtrID clone_ctr(const BlockID& ctr_id, const CtrID& new_ctr_id, AllocatorPtr allocator) const
+        virtual Result<CtrID> clone_ctr(const BlockID& ctr_id, const CtrID& new_ctr_id, AllocatorPtr allocator) const noexcept
         {
+            using ResultT = Result<CtrID>;
+
             CtrID new_name_rtn{};
 
-            with_ctr(ctr_id, allocator, [&](MyType& ctr){
+            auto res = with_ctr(ctr_id, allocator, [&](MyType& ctr){
                 new_name_rtn = ctr.clone(new_ctr_id);
+                return VoidResult::of();
             });
+            MEMORIA_RETURN_IF_ERROR(res);
 
-            return new_name_rtn;
+            return ResultT::of(new_name_rtn);
         }
 
-        virtual CtrBlockDescription<ProfileT> describe_block1(const BlockID& block_id, AllocatorPtr allocator) const
+        virtual Result<CtrBlockDescription<ProfileT>> describe_block1(const BlockID& block_id, AllocatorPtr allocator) const noexcept
         {
-            return MyType::describe_block(block_id, allocator.get());
+            using ResultT = Result<CtrBlockDescription<ProfileT>>;
+            return ResultT::of(MyType::describe_block(block_id, allocator.get()));
         }
     };
 
@@ -408,7 +432,7 @@ public:
 
     virtual Graph graph()
     {
-        return allocator_holder_->allocator_vertex().graph();
+        return allocator_holder_->allocator_vertex().get_or_terminate().graph();
     }
 
     virtual Any id() const
@@ -463,7 +487,7 @@ public:
         std::vector<Edge> edges;
 
         Graph my_graph  = this->graph();
-        Vertex alloc_vx = allocator_holder_->allocator_vertex();
+        Vertex alloc_vx = allocator_holder_->allocator_vertex().get_or_terminate();
 
         Vertex my_vx = as_vertex();
 
@@ -615,7 +639,7 @@ public:
         const CtrSharedPtr<Allocator>& allocator,
         const CtrID& ctr_id,
         const ContainerTypeName& ctr_type_name
-    ):
+    ) noexcept:
         Base()
     {
         Base::allocator_holder_ = allocator;
@@ -625,14 +649,14 @@ public:
 
         this->do_create_ctr(ctr_id, ctr_type_name);
 
-        allocator_->registerCtr(ctr_id, this);
+        allocator_->registerCtr(ctr_id, this).terminate_if_error();
     }
 
     // find existing ctr
     Ctr(
         const CtrSharedPtr<Allocator>& allocator,
         const typename Allocator::BlockG& root_block
-    ):
+    ) noexcept :
         Base()
     {
         Base::allocator_holder_ = allocator;
@@ -643,7 +667,7 @@ public:
 
         name_ = this->do_init_ctr(root_block);
 
-        allocator_->registerCtr(name_, this);
+        allocator_->registerCtr(name_, this).terminate_if_error();
     }
 
 
@@ -656,7 +680,7 @@ public:
         if (this->do_unregister_on_dtr_)
         {
             try {
-                allocator_->unregisterCtr(name_, this);
+                allocator_->unregisterCtr(name_, this).terminate_if_error();
             }
             catch (Exception& ex) {
                 ex.dump(std::cout);

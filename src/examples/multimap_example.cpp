@@ -39,11 +39,11 @@ int main()
         using MultimapType = Multimap<Varchar, Varchar>;
         using Entry   = std::pair<U8String, std::vector<U8String>>;
 
-        auto alloc = IMemoryStore<>::create();
+        auto alloc = IMemoryStore<>::create().get_or_terminate();
 
-        auto snp = alloc->master()->branch();
+        auto snp = alloc->master().get_or_terminate()->branch().get_or_terminate();
 
-        auto ctr0 = create(snp, MultimapType());
+        auto ctr0 = create(snp, MultimapType()).get_or_terminate();
 
         ctr0->set_new_block_size(64*1024);
 
@@ -102,9 +102,9 @@ int main()
         std::cout << "Size = " << ctr0->size() << std::endl;
 
 
-        snp->commit();
-        snp->set_as_master();
-        alloc->store("store_multimap_ex.mma1");
+        snp->commit().throw_if_error();
+        snp->set_as_master().throw_if_error();
+        alloc->store("store_multimap_ex.mma1").throw_if_error();
 
 
         int64_t t2 = getTimeInMillis();

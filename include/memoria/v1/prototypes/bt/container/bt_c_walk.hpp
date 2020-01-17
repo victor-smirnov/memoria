@@ -141,7 +141,7 @@ private:
         {
             self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&](const BlockID& id, int32_t idx)
             {
-                NodeBaseG child = self.store().getBlock(id);
+                NodeBaseG child = self.store().getBlock(id).get_or_terminate();
                 NodeBaseG new_child = self.ctr_clone_tree(child, new_node->id());
                 self.ctr_set_child_id(new_node, idx, new_child->id());
             });
@@ -160,7 +160,7 @@ private:
         {
             self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&self, walker](const BlockID& id, int32_t idx)
             {
-                NodeBaseG child = self.store().getBlock(id);
+                NodeBaseG child = self.store().getBlock(id).get_or_terminate();
                 self.ctr_traverse_tree(child, walker);
             });
         }

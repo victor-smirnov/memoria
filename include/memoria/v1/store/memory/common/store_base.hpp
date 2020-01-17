@@ -276,40 +276,40 @@ public:
             }
         }
 
-        bool is_committed() const
+        bool is_committed() const noexcept
         {
             return status_ == Status::COMMITTED;
         }
 
-        bool is_active() const
+        bool is_active() const noexcept
         {
             return status_ == Status::ACTIVE;
         }
 
-        bool is_dropped() const
+        bool is_dropped() const noexcept
         {
             return status_ == Status::DROPPED;
         }
 
-        bool is_data_locked() const
+        bool is_data_locked() const noexcept
         {
         	return status_ == Status::DATA_LOCKED;
         }
 
-        Status status() const {
+        Status status() const noexcept {
             return status_;
         }
 
-        const SnapshotID& snapshot_id() const {return snapshot_id_;}
+        const SnapshotID& snapshot_id() const noexcept {return snapshot_id_;}
 
-        const auto& root() const {
+        const auto& root() const noexcept {
         	return root_;
         }
 
-        auto& root_id() {return root_id_;}
-        const auto& root_id() const {return root_id_;}
+        auto& root_id() noexcept {return root_id_;}
+        const auto& root_id() const noexcept {return root_id_;}
 
-        void set_root(NodeBaseT* new_root)
+        void set_root(NodeBaseT* new_root) noexcept
         {
             if (root_) {
                 root_->unref();
@@ -322,63 +322,63 @@ public:
             }
         }
 
-        void assign_root_no_ref(NodeBaseT* new_root) {
+        void assign_root_no_ref(NodeBaseT* new_root) noexcept {
             root_ = new_root;
         }
 
-        BlockID new_node_id() {
+        BlockID new_node_id() noexcept {
             return IDTools<BlockID>::make_random();
         }
 
-        const auto& parent() const {return parent_;}
-        auto& parent() {return parent_;}
+        const auto& parent() const noexcept {return parent_;}
+        auto& parent() noexcept {return parent_;}
 
-        auto& children() {
+        auto& children() noexcept {
             return children_;
         }
 
-        const auto& children() const {
+        const auto& children() const noexcept {
             return children_;
         }
 
 
-        void set_status(const Status& status) {
+        void set_status(const Status& status) noexcept {
         	status_ = status;
         }
 
 
-        void set_metadata(U8StringRef metadata) {
+        void set_metadata(U8StringRef metadata) noexcept {
         	metadata_ = metadata;
         }
 
-        const auto& metadata() const {
+        const auto& metadata() const noexcept {
         	HLockGuardT lock(mutex_);
         	return metadata_;
         }
 
-        void commit() {
+        void commit() noexcept {
             status_ = Status::COMMITTED;
         }
 
-        void mark_to_clear() {
+        void mark_to_clear() noexcept {
             status_ = Status::DROPPED;
         }
 
-        void lock_data() {
+        void lock_data() noexcept {
         	status_ = Status::DATA_LOCKED;
         }
 
 
-        auto references()  const
+        auto references() const noexcept
         {
         	return references_;
         }
 
-        auto ref() {
+        auto ref() noexcept {
             return ++references_;
         }
 
-        auto unref() {
+        auto unref() noexcept {
             return --references_;
         }
     };
@@ -537,54 +537,55 @@ public:
         
     }
 
-    bool is_dump_snapshot_lifecycle() const {return dump_snapshot_lifecycle_.load();}
-    void set_dump_snapshot_lifecycle(bool do_dump) {dump_snapshot_lifecycle_.store(do_dump);}
+    bool is_dump_snapshot_lifecycle() const noexcept {return dump_snapshot_lifecycle_.load();}
+    void set_dump_snapshot_lifecycle(bool do_dump) noexcept {dump_snapshot_lifecycle_.store(do_dump);}
 
-    auto get_root_snapshot_uuid() const {
+    auto get_root_snapshot_uuid() const noexcept {
         return history_tree_->snapshot_id();
     }
 
 
-    PairPtr& pair() {
+    PairPtr& pair() noexcept {
         return pair_;
     }
 
-    const PairPtr& pair() const {
+    const PairPtr& pair() const noexcept {
         return pair_;
     }
 
     // return true in case of errors
-    bool check() {
-        return false;
+    Result<bool> check() noexcept {
+        return Result<bool>::of(false);
     }
 
-    const Logger& logger() const {
+    const Logger& logger() const noexcept {
         return logger_;
     }
 
-    Logger& logger() {
+    Logger& logger() noexcept {
         return logger_;
     }
 
 
-
-    static auto create()
+    static auto create() noexcept
     {
         return alloc_make_shared<MyType>();
     }
 
-    auto newId()
+    auto newId() noexcept
     {
         return IDTools<BlockID>::make_random();
     }
 
-    static AllocSharedPtr<MyType> load(InputStreamHandler *input)
+    static Result<AllocSharedPtr<MyType>> load(InputStreamHandler *input) noexcept
     {
+        using ResultT = Result<AllocSharedPtr<MyType>>;
+
         auto alloc_ptr = MakeLocalShared<MyType>(0);
 
         MyType* allocator = alloc_ptr.get();
 
-        char signature[12];
+        char signature[12] = {};
 
         input->read(signature, sizeof(signature));
 
@@ -597,17 +598,18 @@ public:
                 signature[5] == 'I' &&
                 signature[6] == 'A'))
         {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("The stream does not start from MEMORIA signature: {}", signature));
+            std::string sig_str(signature, 12);
+            return Result<void>::make_error("The stream does not start from MEMORIA signature: {}", sig_str).transfer_error();
         }
 
         if (!(signature[7] == 0 || signature[7] == 1))
         {
-            MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Endiannes filed value is out of bounds {}", signature[7]));
+            return Result<void>::make_error("Endiannes filed value is out of bounds {}", (int32_t)signature[7]).transfer_error();
         }
 
         if (signature[8] != 0)
         {
-            MMA1_THROW(Exception()) << WhatCInfo("This is not an in-memory container");
+            return Result<void>::make_error("This is not an in-memory container").transfer_error();
         }
 
         allocator->master_ = allocator->history_tree_ = nullptr;
@@ -632,13 +634,16 @@ public:
             switch (type)
             {
                 case TYPE_METADATA:     allocator->read_metadata(*input, metadata); break;
-                case TYPE_DATA_BLOCK:    allocator->read_data_block(*input, block_map); break;
+                case TYPE_DATA_BLOCK:   {
+                    auto res = allocator->read_data_block(*input, block_map);
+                    MEMORIA_RETURN_IF_ERROR(res); break;
+                }
                 case TYPE_LEAF_NODE:    allocator->read_leaf_node(*input, ptree_node_map); break;
                 case TYPE_BRANCH_NODE:  allocator->read_branch_node(*input, ptree_node_map); break;
                 case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
                 case TYPE_CHECKSUM:     allocator->read_checksum(*input, checksum); proceed = false; break;
                 default:
-                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Unknown record type: {}", (int32_t)type));
+                    return Result<void>::make_error("Unknown record type: {}", (int32_t)type).transfer_error();
             }
 
             allocator->records_++;
@@ -646,7 +651,7 @@ public:
 
         if (allocator->records_ != checksum.records())
         {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid records checksum: actual={}, expected={}", allocator->records_, checksum.records()));
+            return Result<void>::make_error("Invalid records checksum: actual={}, expected={}", allocator->records_, checksum.records()).transfer_error();
         }
 
         for (auto& entry: ptree_node_map)
@@ -670,7 +675,7 @@ public:
                         leaf_node->data(c) = typename LeafNodeT::Value(block_iter->second, descr.snapshot_id());
                     }
                     else {
-                        MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified uuid {} is not found in the block map", descr.block_ptr()));
+                        return Result<void>::make_error("Specified uuid {} is not found in the block map", descr.block_ptr()).transfer_error();
                     }
                 }
             }
@@ -689,7 +694,7 @@ public:
                         branch_node->data(c) = iter->second.second;
                     }
                     else {
-                        MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified uuid {} is not found in the persistent tree node map", node_id));
+                        return Result<void>::make_error("Specified uuid {} is not found in the persistent tree node map", node_id).transfer_error();
                     }
                 }
             }
@@ -702,7 +707,7 @@ public:
             allocator->master_ = allocator->snapshot_map_[metadata.master()];
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified master uuid {} is not found in the data", metadata.master()));
+            return Result<void>::make_error("Specified master uuid {} is not found in the data", metadata.master()).transfer_error();
         }
 
         for (auto& entry: metadata.named_branches())
@@ -714,12 +719,12 @@ public:
                 allocator->named_branches_[entry.first] = iter->second;
             }
             else {
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified snapshot uuid {} is not found", entry.first));
+                return Result<void>::make_error("Specified snapshot uuid {} is not found", entry.first).transfer_error();
             }
         }
 
-        // Delete temporary buffers
 
+        // Delete temporary buffers
         for (auto& entry: ptree_node_map)
         {
             auto buffer = entry.second.first;
@@ -740,13 +745,14 @@ public:
         }
 
         allocator->do_delete_dropped();
-        allocator->pack();
+        auto res = allocator->pack();
+        MEMORIA_RETURN_IF_ERROR(res);
 
-        return alloc_ptr;
+        return ResultT::of(alloc_ptr);
     }
 
 protected:
-    virtual void walk_version_tree(HistoryNode* node, std::function<void (HistoryNode*)> fn) = 0;
+    virtual VoidResult walk_version_tree(HistoryNode* node, std::function<VoidResult (HistoryNode*)> fn) noexcept = 0;
     
     
     const auto& snapshot_labels_metadata() const {
@@ -769,11 +775,11 @@ protected:
     	}
     }
 
-    void build_snapshot_labels_metadata()
+    VoidResult build_snapshot_labels_metadata() noexcept
     {
     	snapshot_labels_metadata_.clear();
 
-    	walk_version_tree(history_tree_, [&, this](const HistoryNode* node) {
+        return walk_version_tree(history_tree_, [&, this](const HistoryNode* node) -> VoidResult {
             std::vector<U8String> labels;
 
     		if (node == history_tree_) {
@@ -814,6 +820,8 @@ protected:
 
                 snapshot_labels_metadata_[node] = U8String(labels_str.str());
     		}
+
+            return VoidResult::of();
     	});
     }
 
@@ -939,7 +947,7 @@ protected:
         in >> checksum.records();
     }
 
-    void read_data_block(InputStreamHandler& in, BlockMap& map)
+    VoidResult read_data_block(InputStreamHandler& in, BlockMap& map) noexcept
     {
         typename RCBlockPtr::RefCntT references;
 
@@ -962,17 +970,21 @@ protected:
 
         in.read(block_data.get(), 0, block_data_size);
 
-        ProfileMetadata<Profile>::local()
+        auto res = ProfileMetadata<Profile>::local()
                 ->get_block_operations(ctr_hash, block_hash)
                 ->deserialize(block_data.get(), block_data_size, block);
+
+        MEMORIA_RETURN_IF_ERROR(res);
 
         if (map.find(block->uuid()) == map.end())
         {
             map[block->uuid()] = new RCBlockPtr(block, references);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Block {} was already registered", block->uuid()));
+            return VoidResult::make_error("Block {} was already registered", block->uuid());
         }
+
+        return VoidResult::of();
     }
 
 
@@ -1131,7 +1143,7 @@ protected:
 
 
 
-    void write_metadata(OutputStreamHandler& out)
+    VoidResult write_metadata(OutputStreamHandler& out) noexcept
     {
         uint8_t type = TYPE_METADATA;
         out << type;
@@ -1148,16 +1160,20 @@ protected:
         }
 
         records_++;
+
+        return VoidResult::of();
     }
 
-    void write(OutputStreamHandler& out, const Checksum& checksum)
+    VoidResult write(OutputStreamHandler& out, const Checksum& checksum) noexcept
     {
     	uint8_t type = TYPE_CHECKSUM;
         out << type;
         out << checksum.records() + 1;
+
+        return VoidResult::of();
     }
 
-    void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCBlockSet& stored_blocks)
+    VoidResult write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCBlockSet& stored_blocks) noexcept
     {
     	uint8_t type = TYPE_HISTORY_NODE;
         out << type;
@@ -1195,11 +1211,13 @@ protected:
 
         if (history_node->root())
         {
-            write_persistent_tree(out, history_node->root(), stored_blocks);
+            return write_persistent_tree(out, history_node->root(), stored_blocks);
         }
+
+        return VoidResult::of();
     }
 
-    void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node, RCBlockSet& stored_blocks)
+    VoidResult write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node, RCBlockSet& stored_blocks) noexcept
     {
         if (stored_blocks.count(node) == 0)
         {
@@ -1210,7 +1228,8 @@ protected:
                 auto leaf = PersistentTreeT::to_leaf_node(node);
                 auto buf  = to_leaf_buffer(leaf);
 
-                write(out, buf.get());
+                auto res0 = write(out, buf.get());
+                MEMORIA_RETURN_IF_ERROR(res0);
 
                 for (int32_t c = 0; c < leaf->size(); c++)
                 {
@@ -1218,7 +1237,9 @@ protected:
 
                     if (stored_blocks.count(data.block_ptr()) == 0)
                     {
-                        write(out, data.block_ptr());
+                        auto res1 = write(out, data.block_ptr());
+                        MEMORIA_RETURN_IF_ERROR(res1);
+
                         stored_blocks.insert(data.block_ptr());
                     }
                 }
@@ -1227,28 +1248,34 @@ protected:
                 auto branch = PersistentTreeT::to_branch_node(node);
                 auto buf    = to_branch_buffer(branch);
 
-                write(out, buf.get());
+                auto res0 = write(out, buf.get());
+                MEMORIA_RETURN_IF_ERROR(res0);
 
                 for (int32_t c = 0; c < branch->size(); c++)
                 {
                     auto child = branch->data(c);
-                    write_persistent_tree(out, child, stored_blocks);
+                    auto res1 = write_persistent_tree(out, child, stored_blocks);
+                    MEMORIA_RETURN_IF_ERROR(res1);
                 }
             }
         }
+
+        return VoidResult::of();
     }
 
 
-    void write(OutputStreamHandler& out, const BranchNodeBufferT* node)
+    VoidResult write(OutputStreamHandler& out, const BranchNodeBufferT* node) noexcept
     {
         uint8_t type = TYPE_BRANCH_NODE;
         out << type;
         node->write(out);
 
         records_++;
+
+        return VoidResult::of();
     }
 
-    void write(OutputStreamHandler& out, const LeafNodeBufferT* node)
+    VoidResult write(OutputStreamHandler& out, const LeafNodeBufferT* node) noexcept
     {
         uint8_t type = TYPE_LEAF_NODE;
         out << type;
@@ -1256,9 +1283,11 @@ protected:
         node->write(out);
 
         records_++;
+
+        return VoidResult::of();
     }
 
-    void write(OutputStreamHandler& out, const RCBlockPtr* block_ptr)
+    VoidResult write(OutputStreamHandler& out, const RCBlockPtr* block_ptr) noexcept
     {
     	auto block = block_ptr->raw_data();
 
@@ -1271,18 +1300,22 @@ protected:
 
         auto buffer = allocate_system<uint8_t>(block_size);
 
-        int32_t total_data_size = ProfileMetadata<Profile>::local()
+        Result<int32_t> total_data_size = ProfileMetadata<Profile>::local()
                 ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
                 ->serialize(block, buffer.get());
 
-        out << total_data_size;
+        MEMORIA_RETURN_IF_ERROR(total_data_size);
+
+        out << total_data_size.get();
         out << block->memory_block_size();
         out << block->ctr_type_hash();
         out << block->block_type_hash();
 
-        out.write(buffer.get(), 0, total_data_size);
+        out.write(buffer.get(), 0, total_data_size.get());
 
         records_++;
+
+        return VoidResult::of();
     }
 
 
@@ -1310,10 +1343,11 @@ protected:
     	return set;
     }
 
-    void do_pack(HistoryNode* node)
+    Result<void> do_pack(HistoryNode* node) noexcept
     {
         std::unordered_set<HistoryNode*> branches = get_named_branch_nodeset();
-    	do_pack(history_tree_, 0, branches);
+        auto res = do_pack(history_tree_, 0, branches);
+        MEMORIA_RETURN_IF_ERROR(res);
 
     	for (const auto& branch: named_branches_)
     	{
@@ -1323,9 +1357,11 @@ protected:
     			do_remove_history_node(node);
     		}
     	}
+
+        return Result<void>::of();
     }
     
-    virtual void do_pack(HistoryNode* node, int32_t depth, const std::unordered_set<HistoryNode*>& branches) = 0;
+    virtual Result<void> do_pack(HistoryNode* node, int32_t depth, const std::unordered_set<HistoryNode*>& branches) noexcept = 0;
 
     bool do_remove_history_node(HistoryNode* node)
     {

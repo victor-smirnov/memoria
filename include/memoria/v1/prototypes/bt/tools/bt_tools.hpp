@@ -146,7 +146,7 @@ public:
         {
             int32_t block_size = node->header().memory_block_size();
 
-            void* backup_buffer = ctr_.store().allocateMemory(block_size);
+            void* backup_buffer = ctr_.store().allocateMemory(block_size).get_or_terminate();
 
             CopyByteBuffer(node.block(), backup_buffer, block_size);
 

@@ -241,7 +241,7 @@ void M_TYPE::ctr_remove_all_nodes(NodeBaseG& start, NodeBaseG& stop, Position& s
 
     self.ctr_remove_node_recursively(node, sizes);
 
-    self.set_root(new_root->id());
+    self.set_root(new_root->id()).terminate_if_error();
 
     start = stop = new_root;
 }

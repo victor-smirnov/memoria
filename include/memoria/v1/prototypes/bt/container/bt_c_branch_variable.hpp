@@ -308,7 +308,7 @@ bool M_TYPE::ctr_try_merge_branch_nodes(NodeBaseG& tgt, NodeBaseG& src)
 
     self.ctr_update_branch_nodes(src_parent, idx, max);
 
-    self.store().removeBlock(src->id());
+    self.store().removeBlock(src->id()).terminate_if_error();
 
     return true;
 }

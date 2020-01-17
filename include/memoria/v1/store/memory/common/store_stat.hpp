@@ -134,7 +134,7 @@ public:
         {
             if (include_containers_)
             {
-                CtrBlockDescription<Profile> descr = current_snapshot_->describe_block(block->id());
+                CtrBlockDescription<Profile> descr = current_snapshot_->describe_block(block->id()).get_or_terminate();
 
                 CtrStat& stat = ctr_stat_[descr.ctr_name()];
 
@@ -175,7 +175,7 @@ public:
 
             SharedPtr<ContainerMemoryStat> ctr_mem_stat = MakeShared<ContainerMemoryStat>(
                     ctr_name,
-                    current_snapshot_->ctr_type_name(ctr_name),
+                    current_snapshot_->ctr_type_name(ctr_name).get_or_terminate(),
                     stat.total_leaf_blocks_,
                     stat.total_branch_blocks_,
                     stat.total_leaf_size_,

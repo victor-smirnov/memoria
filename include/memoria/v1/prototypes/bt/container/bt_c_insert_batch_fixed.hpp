@@ -197,7 +197,7 @@ public:
             if (head_.isSet())
             {
                 auto node = head_;
-                head_ = ctr_.store().getBlock(head_->next_leaf_id(), ctr_.master_name());
+                head_ = ctr_.store().getBlock(head_->next_leaf_id(), ctr_.master_name()).get_or_terminate();
                 size_--;
                 return node;
             }

@@ -55,13 +55,13 @@ public:
         return_ = true;
     }
     
-    RtnType result() const 
+    RtnType&& result()
     {
         if (exception_) {
             std::rethrow_exception(exception_);
         }
         
-        return result_;
+        return std::move(result_);
     }
     
     virtual std::string describe() {return std::string("FiberLambdaMessage: ") + typeid(Fn).name() + ", return: " + (return_ ? "true" : "false");}

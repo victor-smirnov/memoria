@@ -173,61 +173,61 @@ struct ContainerOperations {
     virtual ~ContainerOperations() noexcept {}
 
     // uuid, id, block data
-    using BlockCallbackFn = std::function<void(const BlockID&, const BlockID&, const BlockType*)>;
+    using BlockCallbackFn = std::function<VoidResult (const BlockID&, const BlockID&, const BlockType*)>;
     using AllocatorBasePtr = SnpSharedPtr<IAllocator<Profile>>;
 
 
-    virtual U8String data_type_decl_signature() const = 0;
+    virtual U8String data_type_decl_signature() const noexcept = 0;
 
-    virtual Vertex describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const = 0;
-    virtual Collection<Edge> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator, Direction direction) const = 0;
-    virtual Collection<VertexProperty> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const = 0;
+    virtual Result<Vertex> describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const noexcept = 0;
+    virtual Result<Collection<Edge>> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator, Direction direction) const noexcept = 0;
+    virtual Result<Collection<VertexProperty>> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const noexcept = 0;
 
 
     // FIXME: remove name from parameters, it's already in Ctr's block root metadata
-    virtual U8String ctr_name() const = 0;
+    virtual U8String ctr_name() const noexcept = 0;
 
-    virtual bool check(
+    virtual BoolResult check(
         const CtrID& name,
         AllocatorBasePtr allocator
-    ) const = 0;
+    ) const noexcept = 0;
 
-    virtual void walk(
+    virtual VoidResult walk(
             const CtrID& name,
             AllocatorBasePtr allocator,
             ContainerWalker<Profile>* walker
-    ) const = 0;
+    ) const noexcept = 0;
 
 
-    virtual U8String ctr_type_name() const = 0;
+    virtual U8String ctr_type_name() const noexcept = 0;
 
-    virtual void drop(
+    virtual VoidResult drop(
             const CtrID& name,
             AllocatorBasePtr allocator
-    ) const = 0;
+    ) const noexcept = 0;
 
-    virtual void for_each_ctr_node(
+    virtual VoidResult for_each_ctr_node(
         const CtrID& name,
         AllocatorBasePtr allocator,
         BlockCallbackFn consumer
-    ) const = 0;
+    ) const noexcept = 0;
     
-    virtual CtrSharedPtr<CtrReferenceable<Profile>> new_ctr_instance(
+    virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> new_ctr_instance(
         const ProfileBlockG<Profile>& root_block,
         AllocatorBasePtr allocator
-    ) const = 0;
+    ) const noexcept = 0;
 
 
-    virtual CtrID clone_ctr(
+    virtual Result<CtrID> clone_ctr(
         const CtrID& name,
         const CtrID& new_name,
         AllocatorBasePtr allocator
-    ) const = 0;
+    ) const noexcept = 0;
 
-    virtual CtrBlockDescription<Profile> describe_block1(
+    virtual Result<CtrBlockDescription<Profile>> describe_block1(
         const BlockID& block_id,
         AllocatorBasePtr allocator
-    ) const = 0;
+    ) const noexcept = 0;
 };
 
 template <typename Profile>

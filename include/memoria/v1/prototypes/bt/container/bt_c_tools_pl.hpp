@@ -69,13 +69,13 @@ protected:
     NodeBaseG ctr_get_node_parent(const NodeBaseG& node) const
     {
         auto& self = this->self();
-        return self.store().getBlock(node->parent_id());
+        return self.store().getBlock(node->parent_id()).get_or_terminate();
     }
 
     NodeBaseG ctr_get_node_parent_for_update(const NodeBaseG& node) const
     {
         auto& self = this->self();
-        return self.store().getBlockForUpdate(node->parent_id());
+        return self.store().getBlockForUpdate(node->parent_id()).get_or_terminate();
     }
 
 
