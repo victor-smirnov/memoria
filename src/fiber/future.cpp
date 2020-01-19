@@ -4,9 +4,9 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/exceptions.hpp"
+#include "memoria/fiber/exceptions.hpp"
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 
 class future_error_category : public std::error_category {
@@ -68,4 +68,4 @@ std::error_category const& future_category() noexcept {
     return cat;
 }
 
-}}}
+}}

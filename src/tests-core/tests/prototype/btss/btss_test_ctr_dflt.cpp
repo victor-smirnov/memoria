@@ -15,17 +15,16 @@
 
 
 
-#include <memoria/v1/core/container/ctr_impl_btss.hpp>
+#include <memoria/core/container/ctr_impl_btss.hpp>
 
-#include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
-#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
+#include <memoria/allocators/inmem/common/container_collection_cfg.hpp>
 
 #include "btss_ctr_impl.hpp"
 
 namespace memoria {
-namespace v1 {
 
 using Profile = DefaultProfile<>;    
 
@@ -40,5 +39,5 @@ MMA1_INSTANTIATE_CTR_BTSS(Ctr2Name, Profile, 2)
 //MMA1_INSTANTIATE_CTR_BTSS(Ctr3Name, Profile, 3)
 //MMA1_INSTANTIATE_CTR_BTSS(Ctr4Name, Profile, 4)
     
-}}
+}
 

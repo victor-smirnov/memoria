@@ -16,18 +16,15 @@
 
 
 
-#include <memoria/v1/core/tools/md5.hpp>
+#include <memoria/core/tools/md5.hpp>
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
 #include <iostream>
 
 namespace memoria {
-namespace v1 {
-
-
 
 void MD5Hash::add(uint32_t value)
 {
@@ -188,4 +185,4 @@ const uint32_t MD5Hash::X[64] = {
 };
 
 
-}}
+}

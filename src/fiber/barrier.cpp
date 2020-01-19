@@ -4,18 +4,18 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/barrier.hpp"
+#include "memoria/fiber/barrier.hpp"
 
 #include <mutex>
 #include <system_error>
 
-#include "memoria/v1/fiber/exceptions.hpp"
+#include "memoria/fiber/exceptions.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 
 barrier::barrier( std::size_t initial) :
@@ -43,7 +43,7 @@ barrier::wait() {
     return false;
 }
 
-}}}
+}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_SUFFIX

@@ -15,8 +15,8 @@
 
 #include <cerrno>
 #include <boost/system/error_code.hpp>
-#include <memoria/v1/filesystem/config.hpp>
-#include <memoria/v1/filesystem/exception.hpp>
+#include <memoria/filesystem/config.hpp>
+#include <memoria/filesystem/exception.hpp>
 
 #if defined(BOOST_WINDOWS_API)
 #include <boost/winapi/basic_types.hpp>
@@ -24,7 +24,7 @@
 #include <boost/winapi/error_codes.hpp>
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace filesystem {
 
 #if defined(BOOST_POSIX_API)
@@ -102,6 +102,6 @@ inline bool error(err_t error_num, const path& p1, const path& p2, boost::system
 }
 
 } // namespace filesystem
-}} // namespace memoria::v1
+} // namespace memoria
 
 #endif // MEMORIA_BOOST_FILESYSTEM3_SRC_ERROR_HANDLING_HPP_

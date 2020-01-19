@@ -13,10 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
+#include <memoria/core/linked/document/linked_document.hpp>
 
 namespace memoria {
-namespace v1 {
 
 std::ostream& LDDTypedValueView::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
@@ -122,4 +121,4 @@ ld_::LDPtr<LDDTypedValueView::State> LDDTypedValueView::deep_copy_to(LDDocumentV
 }
 
 
-}}
+}

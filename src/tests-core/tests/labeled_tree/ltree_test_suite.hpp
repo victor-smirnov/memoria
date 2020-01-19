@@ -17,7 +17,7 @@
 #pragma once
 
 
-#include <memoria/v1/tools/tests_inc.hpp>
+#include <memoria/tools/tests_inc.hpp>
 
 #include "ltree_iter_test.hpp"
 #include "ltree_create_test.hpp"
@@ -26,7 +26,6 @@
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 
 class LabeledTreeTestSuite: public TestSuite {
 
@@ -41,4 +40,4 @@ public:
 
 };
 
-}}
+}

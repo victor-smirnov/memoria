@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/reactor/application.hpp>
+#include <memoria/reactor/application.hpp>
 
 
 #ifdef MMA1_LINUX
@@ -33,7 +33,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 namespace _ {
@@ -133,4 +132,4 @@ Environment Environment::create(const char* const* envp) {
 
 
     
-}}}
+}}

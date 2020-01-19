@@ -15,12 +15,12 @@
 
 
 
-#include <memoria/v1/reactor/application.hpp>
+#include <memoria/reactor/application.hpp>
 
-#include <memoria/v1/yaml-cpp/yaml.h>
+#include <memoria/yaml-cpp/yaml.h>
 
 using namespace memoria::v1;
-using namespace memoria::v1::reactor;
+using namespace memoria::reactor;
 
 int main(int argc, char** argv)
 {

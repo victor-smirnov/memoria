@@ -15,7 +15,7 @@
 
 #include "../../prototype/bt/bt_test_base.hpp"
 
-#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
+#include <memoria/api/db/edge_map/edge_map_api.hpp>
 
 #include <set>
 #include <map>
@@ -24,7 +24,6 @@
 #include <functional>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 class EdgeMapKeysTestSuite: public BTTestBase<EdgeMap, InMemAllocator<>, DefaultProfile<>> {
@@ -265,4 +264,4 @@ auto Suite1 = register_class_suite<EdgeMapKeysTestSuite>("EdgeMap");
 
 }
 
-}}}
+}}

@@ -13,13 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
-#include <memoria/v1/core/tools/time.hpp>
-#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include "bitmap_misc_test.hpp"
 #include "bitmap_rank_test.hpp"
@@ -29,7 +29,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 namespace {
@@ -50,4 +49,4 @@ MMA1_BITMAP_SPEED_SUITE(BitmapSpeedSuite64, uint64_t);
 }
 
 
-}}}
+}}

@@ -13,19 +13,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
-#include <memoria/v1/tests/yaml.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
+#include <memoria/tests/yaml.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
-#include <memoria/v1/core/tools/time.hpp>
-#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
 
-#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+#include <memoria/api/allocator/allocator_inmem_api.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 using namespace reactor;
@@ -74,4 +73,4 @@ auto Suite1 = register_class_suite<SampleSuite>("SampleSuite");
 }
 
 
-}}}
+}}

@@ -15,16 +15,15 @@
 
 #pragma once
 
-#include <memoria/v1/reactor/file.hpp>
+#include <memoria/reactor/file.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 class FileImplBase {
@@ -118,4 +117,4 @@ private:
 
 
 
-}}}
+}}

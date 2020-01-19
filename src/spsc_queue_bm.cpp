@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/reactor/mpsc_queue.hpp>
-#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/reactor/mpsc_queue.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include <boost/lockfree/spsc_queue.hpp>
 
@@ -22,7 +22,7 @@
 #include <iostream>
 #include <atomic>
 
-using namespace memoria::v1::reactor;
+using namespace memoria::reactor;
 using namespace memoria::v1;
 
 namespace lf = boost::lockfree;

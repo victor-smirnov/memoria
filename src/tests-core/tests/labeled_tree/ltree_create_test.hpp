@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include <memoria/v1/memoria.hpp>
+#include <memoria/memoria.hpp>
 
-#include <memoria/v1/tools/tests.hpp>
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/tools/tests.hpp>
+#include <memoria/tools/tools.hpp>
 
 #include "ltree_test_base.hpp"
 
@@ -29,7 +29,6 @@
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 
 class LabeledTreeCreateTest: public LabeledTreeTestBase {
 
@@ -71,4 +70,4 @@ public:
     }
 };
 
-}}
+}

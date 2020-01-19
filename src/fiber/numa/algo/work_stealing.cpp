@@ -5,29 +5,29 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "memoria/v1/fiber/numa/algo/work_stealing.hpp"
+#include "memoria/fiber/numa/algo/work_stealing.hpp"
 
 #include <cmath>
 #include <random>
 
 #include <boost/assert.hpp>
-#include <memoria/v1/context/detail/prefetch.hpp>
+#include <memoria/context/detail/prefetch.hpp>
 
-#include "memoria/v1/fiber/detail/thread_barrier.hpp"
-#include "memoria/v1/fiber/type.hpp"
+#include "memoria/fiber/detail/thread_barrier.hpp"
+#include "memoria/fiber/type.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace numa {
 namespace algo {
 
 std::vector< intrusive_ptr< work_stealing > > work_stealing::schedulers_{};
 
-std::vector< std::uint32_t > get_local_cpus( std::uint32_t node_id, std::vector< memoria::v1::fibers::numa::node > const& topo) {
+std::vector< std::uint32_t > get_local_cpus( std::uint32_t node_id, std::vector< memoria::fibers::numa::node > const& topo) {
     for ( auto & node : topo) {
         if ( node_id == node.id) {
             // store IDs of logical cpus that belong to this local NUMA node
@@ -37,7 +37,7 @@ std::vector< std::uint32_t > get_local_cpus( std::uint32_t node_id, std::vector<
     return std::vector< std::uint32_t >{};
 }
 
-std::vector< std::uint32_t > get_remote_cpus( std::uint32_t node_id, std::vector< memoria::v1::fibers::numa::node > const& topo) {
+std::vector< std::uint32_t > get_remote_cpus( std::uint32_t node_id, std::vector< memoria::fibers::numa::node > const& topo) {
     std::vector< std::uint32_t > remote_cpus;
     for ( auto & node : topo) {
         if ( node_id != node.id) {
@@ -50,7 +50,7 @@ std::vector< std::uint32_t > get_remote_cpus( std::uint32_t node_id, std::vector
 }
 
 void
-work_stealing::init_( std::vector< memoria::v1::fibers::numa::node > const& topo,
+work_stealing::init_( std::vector< memoria::fibers::numa::node > const& topo,
                       std::vector< intrusive_ptr< work_stealing > > & schedulers) {
     std::uint32_t max_cpu_id = 0;
     for ( auto & node : topo) {
@@ -66,20 +66,20 @@ work_stealing::init_( std::vector< memoria::v1::fibers::numa::node > const& topo
 work_stealing::work_stealing(
     std::uint32_t cpu_id,
     std::uint32_t node_id,
-    std::vector< memoria::v1::fibers::numa::node > const& topo,
+    std::vector< memoria::fibers::numa::node > const& topo,
     bool suspend) :
         cpu_id_{ cpu_id },
         local_cpus_{ get_local_cpus( node_id, topo) },
         remote_cpus_{ get_remote_cpus( node_id, topo) },
         suspend_{ suspend } {
     // pin current thread to logical cpu
-    memoria::v1::fibers::numa::pin_thread( cpu_id_);
+    memoria::fibers::numa::pin_thread( cpu_id_);
     // calculate thread count
     std::size_t thread_count = 0;
     for ( auto & node : topo) {
         thread_count += node.logical_cpus.size();
     }
-    static memoria::v1::fibers::detail::thread_barrier b{ thread_count };
+    static memoria::fibers::detail::thread_barrier b{ thread_count };
     // initialize the array of schedulers
     static std::once_flag flag;
     std::call_once( flag, & work_stealing::init_, topo, std::ref( schedulers_) );
@@ -100,7 +100,7 @@ context *
 work_stealing::pick_next() noexcept {
     context * victim = rqueue_.pop();
     if ( nullptr != victim) {
-        memoria::v1::context::detail::prefetch_range( victim, sizeof( context) );
+        memoria::context::detail::prefetch_range( victim, sizeof( context) );
         if ( ! victim->is_context( type::pinned_context) ) {
             context::active()->attach( victim);
         }
@@ -126,7 +126,7 @@ work_stealing::pick_next() noexcept {
             victim = schedulers_[cpu_id]->steal();
         } while ( nullptr == victim && count < size);
         if ( nullptr != victim) {
-            memoria::v1::context::detail::prefetch_range( victim, sizeof( context) );
+            memoria::context::detail::prefetch_range( victim, sizeof( context) );
             BOOST_ASSERT( ! victim->is_context( type::pinned_context) );
             context::active()->attach( victim);
         } else if ( ! remote_cpus_.empty() ) {
@@ -146,7 +146,7 @@ work_stealing::pick_next() noexcept {
                 victim = schedulers_[cpu_id]->steal();
             } while ( nullptr == victim && count < size);
             if ( nullptr != victim) {
-                memoria::v1::context::detail::prefetch_range( victim, sizeof( context) );
+                memoria::context::detail::prefetch_range( victim, sizeof( context) );
                 BOOST_ASSERT( ! victim->is_context( type::pinned_context) );
                 // move memory from remote NUMA-node to
                 // memory of local NUMA-node

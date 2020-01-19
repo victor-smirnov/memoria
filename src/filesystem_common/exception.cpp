@@ -9,15 +9,15 @@
 //  Library home page: http://www.boost.org/libs/filesystem
 
 #include <string>
-#include <memoria/v1/filesystem/config.hpp>
-#include <memoria/v1/filesystem/path.hpp>
-#include <memoria/v1/filesystem/exception.hpp>
+#include <memoria/filesystem/config.hpp>
+#include <memoria/filesystem/path.hpp>
+#include <memoria/filesystem/exception.hpp>
 
 #include "../filesystem_common/error_handling.hpp"
 
 #include <boost/config/abi_prefix.hpp> // must be the last #include
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace filesystem {
 
 filesystem_error::filesystem_error(const std::string& what_arg, boost::system::error_code ec) :
@@ -140,6 +140,6 @@ void emit_error(err_t error_num, const path& p1, const path& p2, boost::system::
 }
 
 } // namespace filesystem
-}} // namespace memoria::v1
+} // namespace memoria
 
 #include <boost/config/abi_suffix.hpp> // pops abi_prefix.hpp pragmas

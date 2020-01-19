@@ -13,16 +13,16 @@
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <memoria/v1/filesystem/config.hpp>
-#include <memoria/v1/filesystem/path_traits.hpp>
+#include <memoria/filesystem/config.hpp>
+#include <memoria/filesystem/path_traits.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/scoped_array.hpp>
 #include <locale>   // for codecvt_base::result
 #include <cstring>  // for strlen
 #include <cwchar>   // for wcslen
 
-namespace pt = memoria::v1::filesystem::path_traits;
-namespace fs = memoria::v1::filesystem;
+namespace pt = memoria::filesystem::path_traits;
+namespace fs = memoria::filesystem;
 namespace bs = boost::system;
 
 //--------------------------------------------------------------------------------------//
@@ -119,7 +119,7 @@ namespace {
 //                                   path_traits                                        //
 //--------------------------------------------------------------------------------------//
 
-namespace memoria { namespace v1 { namespace filesystem { namespace path_traits {
+namespace memoria { namespace filesystem { namespace path_traits {
 
 //--------------------------------------------------------------------------------------//
 //                          convert const char* to wstring                              //
@@ -193,4 +193,4 @@ namespace memoria { namespace v1 { namespace filesystem { namespace path_traits 
       convert_aux(from, from_end, buf, buf+default_codecvt_buf_size, to, cvt);
     }
   }
-}}}} // namespace memoria::filesystem::path_traits
+}}} // namespace memoria::filesystem::path_traits

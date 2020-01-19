@@ -13,25 +13,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
-#include <memoria/v1/core/datatypes/default_datatype_ops.hpp>
-#include <memoria/v1/core/datatypes/type_registry.hpp>
-#include <memoria/v1/core/datatypes/datum.hpp>
+#include <memoria/core/datatypes/default_datatype_ops.hpp>
+#include <memoria/core/datatypes/type_registry.hpp>
+#include <memoria/core/datatypes/datum.hpp>
 
-#include <memoria/v1/core/datatypes/default_datatype_ops.hpp>
+#include <memoria/core/datatypes/default_datatype_ops.hpp>
 
-#include <memoria/v1/core/tools/fixed_array.hpp>
+#include <memoria/core/tools/fixed_array.hpp>
 
-#include <memoria/v1/api/set/set_api.hpp>
-#include <memoria/v1/api/vector/vector_api.hpp>
-#include <memoria/v1/api/map/map_api.hpp>
-#include <memoria/v1/api/multimap/multimap_api.hpp>
+#include <memoria/api/set/set_api.hpp>
+#include <memoria/api/vector/vector_api.hpp>
+#include <memoria/api/map/map_api.hpp>
+#include <memoria/api/multimap/multimap_api.hpp>
 
 #include <string>
 
 namespace memoria {
-namespace v1 {
 
 #define MMA1_DEFINE_DEFAULT_DATATYPE_OPS(...) \
 template <> struct DataTypeOperationsImpl<__VA_ARGS__>: CtrDataTypeOperationsImpl<__VA_ARGS__>{}
@@ -66,4 +65,4 @@ void InitCtrDatatypes()
     register_notctr_operations<Multimap<Varchar, Varchar>>();
 }
 
-}}
+}

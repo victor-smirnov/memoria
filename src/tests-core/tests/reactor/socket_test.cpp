@@ -13,19 +13,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/socket.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/socket.hpp>
 
-#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include "stream_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
-using namespace memoria::v1::reactor;
+using namespace memoria::reactor;
 
 using TestRunner = StreamTester<BinaryInputStream, BinaryOutputStream>;
 
@@ -108,4 +107,4 @@ auto sokcet_test = register_test_in_suite<FnTest<SocketTestState>>("ReactorSuite
 
 
 
-}}}
+}}

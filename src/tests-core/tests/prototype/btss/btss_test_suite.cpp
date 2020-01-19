@@ -16,7 +16,6 @@
 #include "btss_batch_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 auto Suite1 = register_class_suite<BTSSBatchTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::FIXED>>>("BTSS.Batch.FX.FX");
@@ -26,4 +25,4 @@ auto Suite2 = register_class_suite<BTSSBatchTest<BTSSTestCtr<PackedSizeType::FIX
 //auto Suite4 = register_class_suite<BTSSBatchTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE>>>("BTSS.Batch.FX.VL");
 
 
-}}}
+}}

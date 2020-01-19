@@ -24,7 +24,6 @@
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <
@@ -193,4 +192,4 @@ public:
 
 };
 
-}}}
+}}

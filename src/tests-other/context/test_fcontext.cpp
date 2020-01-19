@@ -20,8 +20,8 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/utility.hpp>
 
-#include <memoria/v1/context/detail/config.hpp>
-#include <memoria/v1/context/detail/fcontext.hpp>
+#include <memoria/context/detail/config.hpp>
+#include <memoria/context/detail/fcontext.hpp>
 
 template< std::size_t Max, std::size_t Default, std::size_t Min >
 class simple_stack_allocator
@@ -62,7 +62,7 @@ typedef simple_stack_allocator<
             8 * 1024 * 1024, 64 * 1024, 8 * 1024
         >                                       stack_allocator;
 
-namespace ctx = memoria::v1::context::detail;
+namespace ctx = memoria::context::detail;
 
 typedef simple_stack_allocator<
     8 * 1024 * 1024, // 8MB

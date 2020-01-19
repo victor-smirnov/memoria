@@ -16,12 +16,12 @@
 //#define BOOST_SPIRIT_X3_DEBUG 1
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
-#include <memoria/v1/core/tools/type_name.hpp>
-#include <memoria/v1/core/strings/format.hpp>
+#include <memoria/core/linked/document/linked_document.hpp>
+#include <memoria/core/tools/type_name.hpp>
+#include <memoria/core/strings/format.hpp>
 
 
 //#include <boost/config/warning_disable.hpp>
@@ -56,7 +56,6 @@
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 
 namespace qi = boost::spirit::qi;
 namespace enc = qi::standard;
@@ -870,4 +869,4 @@ LDDocument LDDocument::parse_type_decl_qi(
 
 */
 
-}}
+}

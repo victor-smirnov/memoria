@@ -25,11 +25,10 @@
 #endif
 
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 Timer Timer::schedule(TimeUnit start_after, TimeUnit repeat_after, uint64_t count, TimerFn fn) {
@@ -46,4 +45,4 @@ void Timer::cancel() {
 }
 
 
-}}}
+}}

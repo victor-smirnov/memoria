@@ -13,12 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/reactor/thread_pool.hpp>
+#include <memoria/reactor/thread_pool.hpp>
 
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
     
 ThreadPool::ThreadPool(size_t min_size, size_t max_size, std::shared_ptr<Smp>& smp): 
@@ -105,4 +104,4 @@ ThreadPool::WorkerT* ThreadPool::acquire_worker()
     return worker;
 }
     
-}}}
+}}

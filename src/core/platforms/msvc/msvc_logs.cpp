@@ -13,10 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/container/logs.hpp>
+#include <memoria/core/container/logs.hpp>
 
 namespace memoria {
-namespace v1 {
 
 const char* ExtractFunctionName(const char* full_name)
 {
@@ -40,4 +39,4 @@ const char* ExtractFunctionName(const char* full_name)
     return start;
 }
 
-}}
+}

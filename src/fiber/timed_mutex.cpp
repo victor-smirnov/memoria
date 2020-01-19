@@ -4,19 +4,19 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/timed_mutex.hpp"
+#include "memoria/fiber/timed_mutex.hpp"
 
 #include <algorithm>
 #include <functional>
 
-#include "memoria/v1/fiber/exceptions.hpp"
-#include "memoria/v1/fiber/scheduler.hpp"
+#include "memoria/fiber/exceptions.hpp"
+#include "memoria/fiber/scheduler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 
 bool
@@ -111,7 +111,7 @@ timed_mutex::unlock() {
     }
 }
 
-}}}
+}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_SUFFIX

@@ -10,7 +10,7 @@
 #ifndef MEMORIA_BOOST_FILESYSTEM3_WIN_FILE_CODECVT_HPP
 #define MEMORIA_BOOST_FILESYSTEM3_WIN_FILE_CODECVT_HPP
 
-#include <memoria/v1/filesystem/config.hpp>
+#include <memoria/filesystem/config.hpp>
 #include <locale>
 
   //------------------------------------------------------------------------------------//

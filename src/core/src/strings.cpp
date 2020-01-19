@@ -16,14 +16,13 @@
 
 
 
-#include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/core/strings/format.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/core/strings/format.hpp>
 
 #include <errno.h>
 
 namespace memoria {
-namespace v1 {
 
 U8StringView trim_string(U8StringView str)
 {
@@ -314,4 +313,4 @@ bool ConvertToBool(U8StringRef str)
     }
 }
 
-}}
+}

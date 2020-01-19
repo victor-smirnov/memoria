@@ -14,9 +14,9 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/macosx/macosx_socket_impl.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/reactor/macosx/macosx_socket_impl.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/core/tools/perror.hpp>
 
 #include "macosx_socket.hpp"
 
@@ -37,10 +37,7 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
-
-
 
 ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& data):
         SocketConnectionImpl(data.take_fd()),
@@ -177,7 +174,4 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
     return 0;
 }
 
-
-
-    
-}}}
+}}

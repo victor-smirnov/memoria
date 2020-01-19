@@ -14,13 +14,12 @@
 
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
+#include <memoria/core/linked/document/linked_document.hpp>
 
 namespace memoria {
-namespace v1 {
 
 LDDMapView LDDArrayView::add_map()
 {
@@ -73,4 +72,4 @@ ld_::LDPtr<LDDArrayView::Array::State> LDDArrayView::deep_copy_to(LDDocumentView
     return array_.deep_copy_to(tgt->arena_.make_mutable(), helper);
 }
 
-}}
+}

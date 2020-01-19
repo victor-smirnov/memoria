@@ -16,8 +16,8 @@
 #pragma once
 
 
-#include <memoria/v1/reactor/message/message.hpp>
-#include <memoria/v1/reactor/timer.hpp>
+#include <memoria/reactor/message/message.hpp>
+#include <memoria/reactor/timer.hpp>
 
 #include <tuple>
 #include <exception>
@@ -29,7 +29,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
  
 
@@ -132,4 +131,4 @@ public:
 
 };
     
-}}}
+}}

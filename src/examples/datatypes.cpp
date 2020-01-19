@@ -14,23 +14,23 @@
 // limitations under the License.
 
 
-#include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/core/datatypes/datatypes.hpp>
+#include <memoria/profiles/default/default.hpp>
+#include <memoria/core/datatypes/datatypes.hpp>
 
-#include <memoria/v1/core/datatypes/varchars/varchar_builder.hpp>
-#include <memoria/v1/core/datatypes/buffer/buffer.hpp>
+#include <memoria/core/datatypes/varchars/varchar_builder.hpp>
+#include <memoria/core/datatypes/buffer/buffer.hpp>
 
-#include <memoria/v1/api/store/memory_store_api.hpp>
+#include <memoria/api/store/memory_store_api.hpp>
 
-#include <memoria/v1/api/vector/vector_api.hpp>
+#include <memoria/api/vector/vector_api.hpp>
 
-#include <memoria/v1/memoria.hpp>
+#include <memoria/memoria.hpp>
 
-#include <memoria/v1/core/tools/result.hpp>
+#include <memoria/core/tools/result.hpp>
 
 #include <iostream>
 
-using namespace memoria::v1;
+using namespace memoria;
 
 using Ctr1T = Vector<LinkedData>;
 using Ctr2T = Vector<Varchar>;

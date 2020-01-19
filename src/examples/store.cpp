@@ -14,14 +14,14 @@
 // limitations under the License.
 
 
-#include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/api/store/memory_store_api.hpp>
+#include <memoria/profiles/default/default.hpp>
+#include <memoria/api/store/memory_store_api.hpp>
 
-#include <memoria/v1/memoria.hpp>
+#include <memoria/memoria.hpp>
 
 #include <iostream>
 
-using namespace memoria::v1;
+using namespace memoria;
 
 int main()
 {

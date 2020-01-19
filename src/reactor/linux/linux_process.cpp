@@ -14,13 +14,13 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/memory/malloc.hpp>
+#include <memoria/core/memory/malloc.hpp>
 
-#include <memoria/v1/reactor/process.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/process.hpp>
+#include <memoria/reactor/reactor.hpp>
 
-#include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/core/tools/ptr_cast.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/core/tools/ptr_cast.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -30,7 +30,6 @@
 #include <string.h>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 namespace {
@@ -79,4 +78,4 @@ filesystem::path get_program_path()
     return str;
 }
 
-}}}
+}}

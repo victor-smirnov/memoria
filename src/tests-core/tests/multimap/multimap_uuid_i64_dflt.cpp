@@ -15,17 +15,16 @@
 
 
 
-#include <memoria/v1/containers/multimap/multimap_impl.hpp>
-#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
+#include <memoria/containers/multimap/multimap_impl.hpp>
+#include <memoria/allocators/inmem/common/container_collection_cfg.hpp>
 
 
 namespace memoria {
-namespace v1 {
 
 using CtrName = Multimap<UUID, int64_t>;
 using Profile = DefaultProfile<>;
 
 MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
 
-}}
+}
 

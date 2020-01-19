@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memoria/v1/api/multimap/multimap_api.hpp>
-#include <memoria/v1/tests/tools.hpp>
+#include <memoria/api/multimap/multimap_api.hpp>
+#include <memoria/tests/tools.hpp>
 
 #include "../prototype/bt/bt_test_base.hpp"
 
@@ -31,7 +31,6 @@
 #include <map>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template<typename MapName>
@@ -120,4 +119,4 @@ public:
 
 };
 
-}}}
+}}

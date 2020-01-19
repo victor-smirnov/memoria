@@ -18,8 +18,8 @@
 
 #include "../btfl_ctr_api.hpp"
 
-#include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
-#include <memoria/v1/core/types/typehash.hpp>
+#include <memoria/prototypes/bt_fl/btfl_factory.hpp>
+#include <memoria/core/types/typehash.hpp>
 
 #include "btfl_test_tools.hpp"
 #include "btfl_test_names.hpp"
@@ -31,7 +31,6 @@
 #include <functional>
 
 namespace memoria {
-namespace v1 {
 
 
 
@@ -142,4 +141,4 @@ struct TypeHash<BTFLTestCtr<DataStreams, SizeType>>: UInt64Value<
 > {};
 
 
-}}
+}

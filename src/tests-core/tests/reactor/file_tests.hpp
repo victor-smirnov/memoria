@@ -13,20 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tests/tests.hpp>
+#include <memoria/tests/tests.hpp>
 
 
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/file.hpp>
-#include <memoria/v1/reactor/file_streams.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/file.hpp>
+#include <memoria/reactor/file_streams.hpp>
 
-#include <memoria/v1/core/tools/time.hpp>
-#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include <algorithm>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -79,4 +78,4 @@ std::vector<ChunkT> create_fixed_chunks_vector(size_t chunk_size, uint64_t file_
 }
 
 
-}}}
+}}

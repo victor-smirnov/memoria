@@ -15,21 +15,21 @@
 
 
 
-#include <memoria/v1/reactor/msvc/msvc_file.hpp>
-#include <memoria/v1/reactor/msvc/msvc_io_poller.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/message/fiber_io_message.hpp>
+#include <memoria/reactor/msvc/msvc_file.hpp>
+#include <memoria/reactor/msvc/msvc_io_poller.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/message/fiber_io_message.hpp>
 
-#include <memoria/v1/core/tools/ptr_cast.hpp>
-#include <memoria/v1/core/tools/bzero_struct.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
-#include <memoria/v1/core/tools/iostreams.hpp>
-#include <memoria/v1/core/strings/string_buffer.hpp>
+#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/tools/bzero_struct.hpp>
+#include <memoria/core/tools/perror.hpp>
+#include <memoria/core/tools/iostreams.hpp>
+#include <memoria/core/strings/string_buffer.hpp>
 
-#include <memoria/v1/reactor/file_streams.hpp>
+#include <memoria/reactor/file_streams.hpp>
 
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include "msvc_file_impl.hpp"
 
@@ -46,7 +46,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -388,4 +387,4 @@ DMABuffer allocate_dma_buffer(size_t size)
 }
 
 
-}}}
+}}

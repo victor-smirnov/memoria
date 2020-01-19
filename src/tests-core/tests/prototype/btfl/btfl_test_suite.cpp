@@ -19,7 +19,6 @@
 #include "btfl_removal_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 namespace {
@@ -38,4 +37,4 @@ auto Suite8 = register_class_suite<BTFLRemoveTest<BTFLTestCtr<4>>>("BTFL.Remove.
 
 }
 
-}}}
+}}

@@ -14,8 +14,8 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/msvc/msvc_socket_impl.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/reactor/msvc/msvc_socket_impl.hpp>
+#include <memoria/core/tools/perror.hpp>
 
 
 
@@ -26,7 +26,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 IPAddress::IPAddress()
@@ -131,4 +130,4 @@ std::ostream& operator<<(std::ostream& out, const IPAddress& addr)
 
 
     
-}}}
+}}

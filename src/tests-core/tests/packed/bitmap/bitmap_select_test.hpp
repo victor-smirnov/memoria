@@ -25,7 +25,6 @@
 #include <functional>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -487,4 +486,4 @@ public:
 MMA1_CLASS_SUITE(BitmapSelectTest, "BitmapSelectSuite")
 
 
-}}}
+}}

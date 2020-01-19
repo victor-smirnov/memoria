@@ -15,11 +15,10 @@
 
 
 
-#include <memoria/v1/core/tools/platform.hpp>
+#include <memoria/core/tools/platform.hpp>
 
 
 namespace memoria {
-namespace v1 {
 
 U8String Platform::getFilePathSeparator() {
     return "/";
@@ -33,4 +32,4 @@ U8String Platform::getLineSeparator() {
     return "\n";
 }
 
-}}
+}

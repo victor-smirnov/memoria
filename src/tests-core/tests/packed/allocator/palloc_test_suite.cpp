@@ -16,9 +16,8 @@
 #include "palloc_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 MMA1_CLASS_SUITE(PackedAllocatorTest, "PackedAllocatorSuite");
 
-}}}
+}}

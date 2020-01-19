@@ -16,14 +16,13 @@
 
 #pragma once
 
-#include <memoria/v1/tools/tests_inc.hpp>
+#include <memoria/tools/tests_inc.hpp>
 
 #include "wt_test.hpp"
 
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 
 class WTTestSuite: public TestSuite {
 
@@ -35,4 +34,4 @@ public:
     }
 };
 
-}}
+}

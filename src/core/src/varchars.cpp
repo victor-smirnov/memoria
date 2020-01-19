@@ -14,13 +14,12 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/datatypes/varchars/varchars.hpp>
+#include <memoria/core/datatypes/varchars/varchars.hpp>
 
-#include <memoria/v1/core/memory/malloc.hpp>
-#include <memoria/v1/core/tools/bitmap.hpp>
+#include <memoria/core/memory/malloc.hpp>
+#include <memoria/core/tools/bitmap.hpp>
 
 namespace memoria {
-namespace v1 {
 
 void VarcharStorage::destroy() noexcept
 {
@@ -76,4 +75,4 @@ Datum<Varchar> Datum<Varchar>::from_sdn(const LDDocument& sdn_doc)
 
 }
 
-}}
+}

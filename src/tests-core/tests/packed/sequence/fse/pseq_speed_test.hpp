@@ -16,14 +16,13 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include "pseq_test_base.hpp"
 
 
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <
@@ -126,4 +125,4 @@ public:
 };
 
 
-}}}
+}}

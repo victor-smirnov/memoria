@@ -13,12 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
+#include <memoria/core/linked/document/linked_document.hpp>
 
 #include "ld_test_tools.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -54,4 +53,4 @@ auto ld_document_compaction_test = register_test_in_suite<FnTest<LDTestState>>("
 
 });
 
-}}}
+}}

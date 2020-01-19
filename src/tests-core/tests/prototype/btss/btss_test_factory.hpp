@@ -16,20 +16,19 @@
 
 #pragma once
 
-#include <memoria/v1/containers/map/map_factory.hpp>
+#include <memoria/containers/map/map_factory.hpp>
 
-#include <memoria/v1/core/types/typehash.hpp>
-#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
+#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/misc/packed_sized_struct.hpp>
 
 #include "btss_ctr_api.hpp"
 
 #include <functional>
 
 namespace memoria {
-namespace v1 {
 
 
 template <
@@ -139,4 +138,4 @@ struct TypeHash<BTSSTestCtr<LeafSizeType, BranchSizeType>>: UInt64Value<
 > {};
 
 
-}}
+}

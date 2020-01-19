@@ -17,13 +17,12 @@
 
 #include "btss_test_factory.hpp"
 
-#include <memoria/v1/api/vector/vector_api.hpp>
-#include <memoria/v1/core/container/ctr_impl_btss.hpp>
+#include <memoria/api/vector/vector_api.hpp>
+#include <memoria/core/container/ctr_impl_btss.hpp>
 
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 
 
 template <PackedDataTypeSize LeafSizeType, PackedDataTypeSize BranchSizeType, typename Profile> 
@@ -42,5 +41,5 @@ std::vector<typename IterApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>
     return data;
 }
 
-}}
+}
 

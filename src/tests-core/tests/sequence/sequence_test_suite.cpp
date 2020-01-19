@@ -19,7 +19,6 @@
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 //class SequenceTestSuite: public TestSuite {
@@ -39,4 +38,4 @@ namespace tests {
 
 //};
 
-}}}
+}}

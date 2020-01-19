@@ -4,15 +4,15 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/condition_variable.hpp"
+#include "memoria/fiber/condition_variable.hpp"
 
-#include "memoria/v1/fiber/context.hpp"
+#include "memoria/fiber/context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 
 void
@@ -58,7 +58,7 @@ condition_variable_any::notify_all() noexcept {
     }
 }
 
-}}}
+}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_SUFFIX

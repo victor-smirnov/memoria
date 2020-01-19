@@ -16,13 +16,12 @@
 
 #pragma once
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/core/strings/strings.hpp>
+#include <memoria/core/strings/strings.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -35,4 +34,4 @@ protected:
     using Value = ValueT;
 };
 
-}}}
+}}

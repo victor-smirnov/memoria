@@ -17,7 +17,7 @@
 
 #include "../prototype/btss/btss_test_base.hpp"
 
-#include <memoria/v1/api/map/map_api.hpp>
+#include <memoria/api/map/map_api.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -26,7 +26,6 @@
 #include <tuple>
 
 namespace memoria {
-namespace v1 {
 
 namespace _ {
 
@@ -201,4 +200,4 @@ public:
     }
 };
 
-}}}
+}}

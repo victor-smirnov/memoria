@@ -30,12 +30,11 @@
 #include <iostream>
 
 #include <boost/test/unit_test.hpp>
-#include <memoria/v1/disruptor/sequencer.h>
+#include <memoria/disruptor/sequencer.h>
 
 #define RING_BUFFER_SIZE 4
 
 namespace memoria {
-namespace v1 {
 namespace disruptor {
 namespace test {
 
@@ -64,4 +63,4 @@ BOOST_AUTO_TEST_CASE(ShouldStartWithValueInitialized) {
 BOOST_AUTO_TEST_SUITE_END()  // BlockingStrategy suite
 
 }  // namepspace test
-}}}  // namepspace disruptor
+}}  // namepspace memoria::disruptor

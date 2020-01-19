@@ -13,12 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/profiles/default/default.hpp>
 
-#include <memoria/v1/store/memory/threads/threads_memory_store_impl.hpp>
+#include <memoria/store/memory/threads/threads_memory_store_impl.hpp>
 
 namespace memoria {
-namespace v1 {
 
 using Profile = DefaultProfile<>;
 
@@ -44,4 +43,4 @@ void InitDefaultInMemStore() {
     store::memory::Initializer<Profile> init0;
 }
 
-}}
+}

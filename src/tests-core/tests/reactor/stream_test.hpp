@@ -15,14 +15,14 @@
 
 #pragma once
 
-#include <memoria/v1/core/memory/malloc.hpp>
-#include <memoria/v1/core/tools/random.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/core/memory/malloc.hpp>
+#include <memoria/core/tools/random.hpp>
+#include <memoria/reactor/reactor.hpp>
 
-#include <memoria/v1/fiber/fiber.hpp>
+#include <memoria/fiber/fiber.hpp>
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
 #include <string>
 #include <vector>
@@ -30,7 +30,6 @@
 #include <functional>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 using TestDuration = std::chrono::duration<double>;
@@ -215,4 +214,4 @@ private:
 };
 
 
-}}}
+}}

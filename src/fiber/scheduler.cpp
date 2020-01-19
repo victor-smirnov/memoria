@@ -4,22 +4,22 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/scheduler.hpp"
+#include "memoria/fiber/scheduler.hpp"
 
 #include <chrono>
 #include <mutex>
 
 #include <boost/assert.hpp>
 
-#include "memoria/v1/fiber/algo/round_robin.hpp"
-#include "memoria/v1/fiber/context.hpp"
-#include "memoria/v1/fiber/exceptions.hpp"
+#include "memoria/fiber/algo/round_robin.hpp"
+#include "memoria/fiber/context.hpp"
+#include "memoria/fiber/exceptions.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 
 void
@@ -134,7 +134,7 @@ scheduler::~scheduler() {
     main_ctx_ = nullptr;
 }
 
-memoria::v1::context::fiber
+memoria::context::fiber
 scheduler::dispatch() noexcept {
     BOOST_ASSERT( context::active() == dispatcher_ctx_);
     for (;;) {
@@ -233,7 +233,7 @@ scheduler::schedule_from_remote( context * ctx) noexcept {
 }
 #endif
 
-memoria::v1::context::fiber
+memoria::context::fiber
 scheduler::terminate( detail::spinlock_lock & lk, context * ctx) noexcept {
     BOOST_ASSERT( nullptr != ctx);
     BOOST_ASSERT( context::active() == ctx);
@@ -442,7 +442,7 @@ scheduler::detach_worker_context( context * ctx) noexcept {
     // a detached context must not belong to any queue
 }
 
-}}}
+}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_SUFFIX

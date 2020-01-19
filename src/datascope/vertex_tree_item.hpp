@@ -16,17 +16,16 @@
 
 #pragma once
 
-#include <memoria/v1/core/graph/graph.hpp>
+#include <memoria/core/graph/graph.hpp>
 
-#include <memoria/v1/api/store/memory_store_api.hpp>
-#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/api/store/memory_store_api.hpp>
+#include <memoria/profiles/default/default.hpp>
 
 #include <QList>
 #include <QVariant>
 #include <QVector>
 
 namespace memoria {
-namespace v1 {
 
 using VertexSchemaFn = std::function<QVariant(Vertex&, int)>;
 
@@ -127,9 +126,4 @@ public:
     virtual void expand();
 };
 
-
-
-
-
-
-}}
+}

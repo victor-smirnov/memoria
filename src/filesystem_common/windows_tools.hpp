@@ -13,12 +13,12 @@
 #ifndef MEMORIA_BOOST_FILESYSTEM_SRC_WINDOWS_TOOLS_HPP_
 #define MEMORIA_BOOST_FILESYSTEM_SRC_WINDOWS_TOOLS_HPP_
 
-#include <memoria/v1/filesystem/path.hpp>
-#include <memoria/v1/filesystem/file_status.hpp>
+#include <memoria/filesystem/path.hpp>
+#include <memoria/filesystem/file_status.hpp>
 
 #include <windows.h>
 
-namespace memoria {namespace v1 {
+namespace memoria {
 namespace filesystem {
 namespace detail {
 
@@ -32,23 +32,23 @@ inline bool equal_extension(wchar_t const* p, wchar_t const (&x1)[5], wchar_t co
     p[4] == 0;
 }
 
-inline memoria::v1::filesystem::perms make_permissions(const memoria::v1::filesystem::path& p, DWORD attr)
+inline memoria::filesystem::perms make_permissions(const memoria::filesystem::path& p, DWORD attr)
 {
-  memoria::v1::filesystem::perms prms = memoria::v1::filesystem::owner_read | memoria::v1::filesystem::group_read | memoria::v1::filesystem::others_read;
+  memoria::filesystem::perms prms = memoria::filesystem::owner_read | memoria::filesystem::group_read | memoria::filesystem::others_read;
   if  ((attr & FILE_ATTRIBUTE_READONLY) == 0u)
-    prms |= memoria::v1::filesystem::owner_write | memoria::v1::filesystem::group_write | memoria::v1::filesystem::others_write;
-  memoria::v1::filesystem::path ext = p.extension();
+    prms |= memoria::filesystem::owner_write | memoria::filesystem::group_write | memoria::filesystem::others_write;
+  memoria::filesystem::path ext = p.extension();
   wchar_t const* q = ext.c_str();
   if (equal_extension(q, L".exe", L".EXE")
     || equal_extension(q, L".com", L".COM")
     || equal_extension(q, L".bat", L".BAT")
     || equal_extension(q, L".cmd", L".CMD"))
-    prms |= memoria::v1::filesystem::owner_exe | memoria::v1::filesystem::group_exe | memoria::v1::filesystem::others_exe;
+    prms |= memoria::filesystem::owner_exe | memoria::filesystem::group_exe | memoria::filesystem::others_exe;
   return prms;
 }
 
 } // namespace detail
 } // namespace filesystem
-}} // namespace memoria::v1
+} // namespace memoria
 
 #endif // MEMORIA_BOOST_FILESYSTEM_SRC_WINDOWS_TOOLS_HPP_

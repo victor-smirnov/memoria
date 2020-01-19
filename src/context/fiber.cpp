@@ -5,9 +5,9 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #if defined(MEMORIA_USE_UCONTEXT)
-#include <memoria/v1/context/fiber_ucontext.hpp>
+#include <memoria/context/fiber_ucontext.hpp>
 #elif defined(MEMORIA_USE_WINFIB)
-#include <memoria/v1/context/fiber_winfib.hpp>
+#include <memoria/context/fiber_winfib.hpp>
 #endif
 
 #include <boost/config.hpp>
@@ -18,7 +18,7 @@
 
 #if defined(MEMORIA_USE_UCONTEXT) || defined(MEMORIA_USE_WINFIB)
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace context {
 namespace detail {
 
@@ -53,7 +53,7 @@ fiber_activation_record::current() noexcept {
 
 }
 
-}}}
+}}
 
 #endif
 

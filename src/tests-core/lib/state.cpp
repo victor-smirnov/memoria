@@ -14,15 +14,14 @@
 // limitations under the License.
 
 
-#include <memoria/v1/tests/state.hpp>
+#include <memoria/tests/state.hpp>
 
-#include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/strings/format.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
+#include <memoria/core/strings/format.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 TestState::~TestState() noexcept {}
@@ -56,4 +55,4 @@ Optional<TestCoverage> coverage_from_string(const U8String& str)
     }
 }
 
-}}}
+}}

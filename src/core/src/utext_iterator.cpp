@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/regexp/icu_regexp.hpp>
-#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/core/regexp/icu_regexp.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
 
@@ -31,7 +31,6 @@
 
 
 namespace memoria {
-namespace v1 {
 
 static int64_t pin_index(int64_t &index, int64_t limit)
 {
@@ -385,4 +384,4 @@ utext_open_codepoint_accessor(UText *ut, const CU16ProviderPtr& ci, int32_t buff
 }
 
 
-}}
+}

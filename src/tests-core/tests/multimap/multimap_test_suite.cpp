@@ -21,7 +21,6 @@
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 namespace {
 
@@ -36,4 +35,4 @@ auto Suite3 = register_class_suite<MultiMapBasicTest<Multimap<int64_t, uint8_t>>
 
 
 }
-}}}
+}}

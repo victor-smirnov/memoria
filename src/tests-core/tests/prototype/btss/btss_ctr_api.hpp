@@ -15,14 +15,13 @@
 
 #pragma once
 
-#include <memoria/v1/api/common/ctr_api_btss.hpp>
+#include <memoria/api/common/ctr_api_btss.hpp>
 
 
 #include <memory>
 
 
 namespace memoria {
-namespace v1 {
 
 template <PackedDataTypeSize LeafSizeType, PackedDataTypeSize BranchSizeType>
 class BTSSTestCtr {};
@@ -73,4 +72,4 @@ public:
     std::vector<DataValue> read(size_t size);
 };
     
-}}
+}

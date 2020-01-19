@@ -16,12 +16,11 @@
 
 
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
+#include <memoria/core/linked/document/linked_document.hpp>
 
 #include "ld_test_tools.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "Document", [](auto& state){
@@ -136,4 +135,4 @@ auto document_set_test = register_test_in_suite<FnTest<LDTestState>>("LDDocument
     assert_equals(1, types.size());
 });
 
-}}}
+}}

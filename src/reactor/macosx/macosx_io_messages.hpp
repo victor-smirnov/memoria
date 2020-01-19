@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <memoria/v1/fiber/context.hpp>
-#include <memoria/v1/reactor/message/message.hpp>
+#include <memoria/fiber/context.hpp>
+#include <memoria/reactor/message/message.hpp>
 
-#include <memoria/v1/reactor/timer.hpp>
+#include <memoria/reactor/timer.hpp>
 
 #include <tuple>
 #include <exception>
@@ -27,11 +27,8 @@
 #include <sys/event.h>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
  
-
-
 class KEventIOMessage: public Message {
 public:
     KEventIOMessage(int cpu): Message(cpu, false)
@@ -115,4 +112,4 @@ public:
 
 };
 
-}}}
+}}

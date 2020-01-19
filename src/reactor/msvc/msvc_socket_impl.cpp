@@ -14,9 +14,9 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/msvc/msvc_socket_impl.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/reactor/msvc/msvc_socket_impl.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/core/tools/perror.hpp>
 
 #include "msvc_socket.hpp"
 
@@ -34,7 +34,6 @@
 #include <mswsock.h>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& data):
@@ -562,4 +561,4 @@ void DestroySockets() {
     WSACleanup();
 }
     
-}}}
+}}

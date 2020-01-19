@@ -13,10 +13,10 @@
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <memoria/v1/filesystem/config.hpp>
-#include <memoria/v1/filesystem/path.hpp>
+#include <memoria/filesystem/config.hpp>
+#include <memoria/filesystem/path.hpp>
 
-namespace fs = memoria::v1::filesystem;
+namespace fs = memoria::filesystem;
 
 #include <cstring> // SGI MIPSpro compilers need this
 
@@ -41,8 +41,7 @@ namespace
 
 } // unnamed namespace
 
-namespace memoria { namespace v1
-{
+namespace memoria {
   namespace filesystem
   {
 
@@ -112,4 +111,4 @@ namespace memoria { namespace v1
     }
 
   } // namespace filesystem
-}} // namespace memoria::v1
+} // namespace memoria

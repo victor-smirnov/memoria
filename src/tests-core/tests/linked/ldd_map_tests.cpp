@@ -14,13 +14,12 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
+#include <memoria/core/linked/document/linked_document.hpp>
 
 #include "ld_test_tools.hpp"
 
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 auto ldd_map_add_remove_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocumentTestSuite", "MapSetRemove", [](auto& state){
@@ -106,4 +105,4 @@ auto ldd_map_set_tests = register_test_in_suite<FnTest<LDTestState>>("LDDocument
     assert_equals(true, map.get("Entry8").get().is_null());
 });
 
-}}}
+}}

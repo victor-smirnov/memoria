@@ -14,7 +14,7 @@
 #include <boost/assert.hpp>
 #include <boost/test/included/unit_test.hpp>
 
-#include <memoria/v1/fiber/all.hpp>
+#include <memoria/fiber/all.hpp>
 
 int value1 = 0;
 std::string value2 = "";
@@ -129,46 +129,46 @@ void fn2( int i, std::string const& s) {
 
 void fn3( int & i) {
     i = 1;
-    memoria::v1::this_fiber::yield();
+    memoria::this_fiber::yield();
     i = 1;
-    memoria::v1::this_fiber::yield();
+    memoria::this_fiber::yield();
     i = 2;
-    memoria::v1::this_fiber::yield();
+    memoria::this_fiber::yield();
     i = 3;
-    memoria::v1::this_fiber::yield();
+    memoria::this_fiber::yield();
     i = 5;
-    memoria::v1::this_fiber::yield();
+    memoria::this_fiber::yield();
     i = 8;
 }
 
 void fn4() {
-    memoria::v1::this_fiber::yield();
+    memoria::this_fiber::yield();
 }
 
 void fn5() {
-    memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::dispatch, fn4);
+    memoria::fibers::fiber f( memoria::fibers::launch::dispatch, fn4);
     BOOST_CHECK( f.joinable() );
     f.join();
     BOOST_CHECK( ! f.joinable() );
 }
 
 void test_scheduler_dtor() {
-    memoria::v1::fibers::context * ctx(
-        memoria::v1::fibers::context::active() );
+    memoria::fibers::context * ctx(
+        memoria::fibers::context::active() );
     (void)ctx;
 }
 
 void test_join_fn() {
     {
         value1 = 0;
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::dispatch, fn1);
+        memoria::fibers::fiber f( memoria::fibers::launch::dispatch, fn1);
         f.join();
         BOOST_CHECK_EQUAL( value1, 1);
     }
     {
         value1 = 0;
         value2 = "";
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::dispatch, fn2, 3, "abc");
+        memoria::fibers::fiber f( memoria::fibers::launch::dispatch, fn2, 3, "abc");
         f.join();
         BOOST_CHECK_EQUAL( value1, 3);
         BOOST_CHECK_EQUAL( value2, "abc");
@@ -178,7 +178,7 @@ void test_join_fn() {
 void test_join_memfn() {
     X x = {0};
     BOOST_CHECK_EQUAL( x.value, 0);
-    memoria::v1::fibers::fiber( memoria::v1::fibers::launch::dispatch, & X::foo, std::ref( x), 3).join();
+    memoria::fibers::fiber( memoria::fibers::launch::dispatch, & X::foo, std::ref( x), 3).join();
     BOOST_CHECK_EQUAL( x.value, 3);
 }
 
@@ -187,7 +187,7 @@ void test_join_copyable() {
     copyable cp( 3);
     BOOST_CHECK( cp.state);
     BOOST_CHECK_EQUAL( value1, 0);
-    memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::dispatch, cp);
+    memoria::fibers::fiber f( memoria::fibers::launch::dispatch, cp);
     f.join();
     BOOST_CHECK( cp.state);
     BOOST_CHECK_EQUAL( value1, 3);
@@ -198,7 +198,7 @@ void test_join_moveable() {
     moveable mv( 7);
     BOOST_CHECK( mv.state);
     BOOST_CHECK_EQUAL( value1, 0);
-    memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::dispatch, std::move( mv) );
+    memoria::fibers::fiber f( memoria::fibers::launch::dispatch, std::move( mv) );
     f.join();
     BOOST_CHECK( ! mv.state);
     BOOST_CHECK_EQUAL( value1, 7);
@@ -210,8 +210,8 @@ void test_join_lambda() {
         value2 = "";
         int i = 3;
         std::string abc("abc");
-        memoria::v1::fibers::fiber f(
-                memoria::v1::fibers::launch::dispatch, [i,abc]() {
+        memoria::fibers::fiber f(
+                memoria::fibers::launch::dispatch, [i,abc]() {
                     value1 = i;
                     value2 = abc;
                 });
@@ -224,8 +224,8 @@ void test_join_lambda() {
         value2 = "";
         int i = 3;
         std::string abc("abc");
-        memoria::v1::fibers::fiber f(
-                memoria::v1::fibers::launch::dispatch, [](int i, std::string const& abc) {
+        memoria::fibers::fiber f(
+                memoria::fibers::launch::dispatch, [](int i, std::string const& abc) {
                     value1 = i;
                     value2 = abc;
                 },
@@ -242,8 +242,8 @@ void test_join_bind() {
         value2 = "";
         int i = 3;
         std::string abc("abc");
-        memoria::v1::fibers::fiber f(
-            memoria::v1::fibers::launch::dispatch, std::bind(
+        memoria::fibers::fiber f(
+            memoria::fibers::launch::dispatch, std::bind(
                 [i,abc]() {
                     value1 = i;
                     value2 = abc;
@@ -258,8 +258,8 @@ void test_join_bind() {
         value2 = "";
         int i = 3;
         std::string abc("abc");
-        memoria::v1::fibers::fiber f(
-            memoria::v1::fibers::launch::dispatch, std::bind(
+        memoria::fibers::fiber f(
+            memoria::fibers::launch::dispatch, std::bind(
                 []( int i, std::string & str) {
                     value1 = 3;
                     value2 = str;
@@ -276,8 +276,8 @@ void test_join_bind() {
         value2 = "";
         int i = 3;
         std::string abc("abc");
-        memoria::v1::fibers::fiber f(
-            memoria::v1::fibers::launch::dispatch, std::bind(
+        memoria::fibers::fiber f(
+            memoria::fibers::launch::dispatch, std::bind(
                 []( int i, std::string & str) {
                     value1 = 3;
                     value2 = str;
@@ -298,7 +298,7 @@ void test_join_in_fiber() {
     // f spawns an new fiber f' in its fiber-fn
     // f' yields in its fiber-fn
     // f joins s' and gets suspended (waiting on s')
-    memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::dispatch, fn5);
+    memoria::fibers::fiber f( memoria::fibers::launch::dispatch, fn5);
     BOOST_CHECK( f.joinable() );
     // join() resumes f + f' which completes
     f.join();
@@ -306,9 +306,9 @@ void test_join_in_fiber() {
 }
 
 void test_move_fiber() {
-    memoria::v1::fibers::fiber f1;
+    memoria::fibers::fiber f1;
     BOOST_CHECK( ! f1.joinable() );
-    memoria::v1::fibers::fiber f2( memoria::v1::fibers::launch::dispatch, fn1);
+    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, fn1);
     BOOST_CHECK( f2.joinable() );
     f1 = std::move( f2);
     BOOST_CHECK( f1.joinable() );
@@ -319,23 +319,23 @@ void test_move_fiber() {
 }
 
 void test_id() {
-    memoria::v1::fibers::fiber f1;
-    memoria::v1::fibers::fiber f2( memoria::v1::fibers::launch::dispatch, fn1);
+    memoria::fibers::fiber f1;
+    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, fn1);
     BOOST_CHECK( ! f1.joinable() );
     BOOST_CHECK( f2.joinable() );
 
-    BOOST_CHECK_EQUAL( memoria::v1::fibers::fiber::id(), f1.get_id() );
-    BOOST_CHECK( memoria::v1::fibers::fiber::id() != f2.get_id() );
+    BOOST_CHECK_EQUAL( memoria::fibers::fiber::id(), f1.get_id() );
+    BOOST_CHECK( memoria::fibers::fiber::id() != f2.get_id() );
 
-    memoria::v1::fibers::fiber f3( memoria::v1::fibers::launch::dispatch, fn1);
+    memoria::fibers::fiber f3( memoria::fibers::launch::dispatch, fn1);
     BOOST_CHECK( f2.get_id() != f3.get_id() );
 
     f1 = std::move( f2);
     BOOST_CHECK( f1.joinable() );
     BOOST_CHECK( ! f2.joinable() );
 
-    BOOST_CHECK( memoria::v1::fibers::fiber::id() != f1.get_id() );
-    BOOST_CHECK_EQUAL( memoria::v1::fibers::fiber::id(), f2.get_id() );
+    BOOST_CHECK( memoria::fibers::fiber::id() != f1.get_id() );
+    BOOST_CHECK_EQUAL( memoria::fibers::fiber::id(), f2.get_id() );
 
     BOOST_CHECK( ! f2.joinable() );
 
@@ -347,8 +347,8 @@ void test_yield() {
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    memoria::v1::fibers::fiber f1( memoria::v1::fibers::launch::dispatch, fn3, std::ref( v1) );
-    memoria::v1::fibers::fiber f2( memoria::v1::fibers::launch::dispatch, fn3, std::ref( v2) );
+    memoria::fibers::fiber f1( memoria::fibers::launch::dispatch, fn3, std::ref( v1) );
+    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, fn3, std::ref( v2) );
     f1.join();
     f2.join();
     BOOST_CHECK( ! f1.joinable() );
@@ -362,7 +362,7 @@ void test_sleep_for() {
     typedef Clock::time_point time_point;
     std::chrono::milliseconds ms(500);
     time_point t0 = Clock::now();
-    memoria::v1::this_fiber::sleep_for(ms);
+    memoria::this_fiber::sleep_for(ms);
     time_point t1 = Clock::now();
     std::chrono::nanoseconds ns = (t1 - t0) - ms;
     std::chrono::nanoseconds err = ms / 100;
@@ -378,7 +378,7 @@ void test_sleep_until() {
         typedef Clock::time_point time_point;
         std::chrono::milliseconds ms(500);
         time_point t0 = Clock::now();
-        memoria::v1::this_fiber::sleep_until(t0 + ms);
+        memoria::this_fiber::sleep_until(t0 + ms);
         time_point t1 = Clock::now();
         std::chrono::nanoseconds ns = (t1 - t0) - ms;
         std::chrono::nanoseconds err = ms / 100;
@@ -392,7 +392,7 @@ void test_sleep_until() {
         typedef Clock::time_point time_point;
         std::chrono::milliseconds ms(500);
         time_point t0 = Clock::now();
-        memoria::v1::this_fiber::sleep_until(t0 + ms);
+        memoria::this_fiber::sleep_until(t0 + ms);
         time_point t1 = Clock::now();
         std::chrono::nanoseconds ns = (t1 - t0) - ms;
         std::chrono::nanoseconds err = ms / 100;
@@ -403,27 +403,27 @@ void test_sleep_until() {
     }
 }
 
-void do_wait( memoria::v1::fibers::barrier* b) {
+void do_wait( memoria::fibers::barrier* b) {
     b->wait();
 }
 
 void test_detach() {
     {
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::dispatch, (detachable()) );
+        memoria::fibers::fiber f( memoria::fibers::launch::dispatch, (detachable()) );
         BOOST_CHECK( f.joinable() );
         f.detach();
         BOOST_CHECK( ! f.joinable() );
-        memoria::v1::this_fiber::sleep_for( std::chrono::milliseconds(250) );
+        memoria::this_fiber::sleep_for( std::chrono::milliseconds(250) );
         BOOST_CHECK( detachable::was_running);
         BOOST_CHECK_EQUAL( 0, detachable::alive_count);
     }
     {
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::dispatch, (detachable()) );
+        memoria::fibers::fiber f( memoria::fibers::launch::dispatch, (detachable()) );
         BOOST_CHECK( f.joinable() );
-        memoria::v1::this_fiber::yield();
+        memoria::this_fiber::yield();
         f.detach();
         BOOST_CHECK( ! f.joinable() );
-        memoria::v1::this_fiber::sleep_for( std::chrono::milliseconds(250) );
+        memoria::this_fiber::sleep_for( std::chrono::milliseconds(250) );
         BOOST_CHECK( detachable::was_running);
         BOOST_CHECK_EQUAL( 0, detachable::alive_count);
     }

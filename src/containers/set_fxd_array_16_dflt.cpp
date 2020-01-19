@@ -13,20 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/profiles/default/default.hpp>
 
-#include <memoria/v1/containers/set/set_factory.hpp>
-#include <memoria/v1/containers/set/set_api_impl.hpp>
+#include <memoria/containers/set/set_factory.hpp>
+#include <memoria/containers/set/set_api_impl.hpp>
 
-#include <memoria/v1/core/tools/fixed_array.hpp>
+#include <memoria/core/tools/fixed_array.hpp>
 
 namespace memoria {
-namespace v1 {
 
 using Profile = DefaultProfile<>;    
 using CtrName = Set<FixedArray<16>>;
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     
-}}
+}
 

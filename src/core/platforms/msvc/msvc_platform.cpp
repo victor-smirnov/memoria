@@ -15,11 +15,10 @@
 
 
 
-#include <memoria/v1/core/tools/platform.hpp>
+#include <memoria/core/tools/platform.hpp>
 
 
 namespace memoria {
-namespace v1 {
 
 using namespace std;
 
@@ -35,4 +34,4 @@ U8String Platform::getFilePathSeparator() {
     return "/";
 }
 
-}}
+}

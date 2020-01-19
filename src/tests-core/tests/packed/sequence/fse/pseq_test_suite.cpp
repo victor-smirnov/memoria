@@ -14,13 +14,13 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/tools/i64_codec.hpp>
-#include <memoria/v1/core/tools/i7_codec.hpp>
-#include <memoria/v1/core/tools/elias_codec.hpp>
+#include <memoria/core/tools/i64_codec.hpp>
+#include <memoria/core/tools/i7_codec.hpp>
+#include <memoria/core/tools/elias_codec.hpp>
 
-#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 
 #include "pseq_misc_test.hpp"
 #include "pseq_rank_test.hpp"
@@ -28,7 +28,6 @@
 #include "pseq_speed_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -193,4 +192,4 @@ auto Suite16 = register_class_suite<PackedSearchableSequenceSpeedTest<
 }
 
 
-}}}
+}}

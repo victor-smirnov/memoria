@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include <memoria/v1/api/common/ctr_api_btfl.hpp>
-#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/api/common/ctr_api_btfl.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
-#include <memoria/v1/core/iovector/io_vector.hpp>
+#include <memoria/core/iovector/io_vector.hpp>
 
-#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include <memory>
 #include <tuple>
@@ -28,7 +28,6 @@
 #include <exception>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <typename Key, typename Value>
@@ -112,4 +111,4 @@ public:
 
 
     
-}}}
+}}

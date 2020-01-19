@@ -16,15 +16,14 @@
 
 #include <QtWidgets>
 
-#include <memoria/v1/core/tools/random.hpp>
-#include <memoria/v1/core/tools/fixed_array.hpp>
-#include <memoria/v1/api/set/set_api.hpp>
+#include <memoria/core/tools/random.hpp>
+#include <memoria/core/tools/fixed_array.hpp>
+#include <memoria/api/set/set_api.hpp>
 
 #include "vertex_tree_item.hpp"
 #include "allocator_model.hpp"
 
 namespace memoria {
-namespace v1 {
 
 AllocatorModel::AllocatorModel(const QStringList &headers, QObject *parent)
     : QAbstractItemModel(parent)
@@ -186,4 +185,4 @@ void AllocatorModel::remove(AbstractTreeItem* item)
 }
 
 
-}}
+}

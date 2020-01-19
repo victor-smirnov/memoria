@@ -13,21 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
-#include <memoria/v1/core/datatypes/default_datatype_ops.hpp>
-#include <memoria/v1/core/datatypes/type_registry.hpp>
-#include <memoria/v1/core/datatypes/datum.hpp>
+#include <memoria/core/datatypes/default_datatype_ops.hpp>
+#include <memoria/core/datatypes/type_registry.hpp>
+#include <memoria/core/datatypes/datum.hpp>
 
-#include <memoria/v1/core/linked/document/ld_common.hpp>
+#include <memoria/core/linked/document/ld_common.hpp>
 
-#include <memoria/v1/core/datatypes/default_datatype_ops.hpp>
+#include <memoria/core/datatypes/default_datatype_ops.hpp>
 
 #include <string>
 
 
 namespace memoria {
-namespace v1 {
 
 template <>
 struct DataTypeOperationsImpl<LDArray>: SimpleDataTypeOperationsImpl<LDArray> {
@@ -279,4 +278,4 @@ void InitCoreLDDatatypes()
 }
 
 
-}}
+}

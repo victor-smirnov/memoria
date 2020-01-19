@@ -15,13 +15,12 @@
 
 
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/arg_helper.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/arg_helper.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 Optional<Test&> TestSuite::find(const U8String &name)
@@ -177,4 +176,4 @@ void ThreadsArgHelper::fix_thread_arg()
 }
 
 
-}}}
+}}

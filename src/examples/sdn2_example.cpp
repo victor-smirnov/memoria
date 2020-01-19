@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
+#include <memoria/core/linked/document/linked_document.hpp>
 
-#include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
-using namespace memoria::v1;
+using namespace memoria;
 
 struct TT {
     const int val_;

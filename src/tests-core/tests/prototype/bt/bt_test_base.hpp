@@ -16,16 +16,16 @@
 
 #pragma once
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
-#include <memoria/v1/tests/yaml.hpp>
-#include <memoria/v1/tests/tools.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
+#include <memoria/tests/yaml.hpp>
+#include <memoria/tests/tools.hpp>
 
-#include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/api/store/memory_store_api.hpp>
+#include <memoria/profiles/default/default.hpp>
+#include <memoria/api/store/memory_store_api.hpp>
 
-#include <memoria/v1/core/tools/time.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/core/tools/time.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include <functional>
 #include <memory>
@@ -33,7 +33,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <typename T>
@@ -234,4 +233,4 @@ public:
     }
 };
 
-}}}
+}}

@@ -1,13 +1,12 @@
-#include <memoria/v1/core/graph/graph.hpp>
+#include <memoria/core/graph/graph.hpp>
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
 
 
 namespace memoria {
-namespace v1 {
 
 Property empty_property()
 {
@@ -123,4 +122,4 @@ bool contains(const LabelList& list, const U8String& label)
     return false;
 }
 
-}}
+}

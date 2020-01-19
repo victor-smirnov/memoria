@@ -14,21 +14,16 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/message/fiber_io_message.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/message/fiber_io_message.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include "macosx_io_messages.hpp"
 #include "macosx_timer.hpp"
 
 #include <boost/assert.hpp>
 
-
-
-
 namespace memoria {
-namespace v1 {
 namespace reactor {
-
 
 void SocketIOMessage::finish()
 {
@@ -65,4 +60,4 @@ void TimerMessage::on_receive(const kevent64_s& event)
     fired_times_ = event.data;
 }
     
-}}}
+}}

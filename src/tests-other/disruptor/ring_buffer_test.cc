@@ -29,10 +29,9 @@
 #define RING_BUFFER_SIZE 8
 
 #include <boost/test/unit_test.hpp>
-#include <memoria/v1/disruptor/ring_buffer.h>
+#include <memoria/disruptor/ring_buffer.h>
 
 namespace memoria {
-namespace v1 {
 namespace disruptor {
 namespace test {
 
@@ -63,4 +62,4 @@ BOOST_FIXTURE_TEST_CASE(VerifyWrapArround, RingBufferFixture) {
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace test
-}}}  // namespace disruptor
+}}  // namespace memoria::disruptor

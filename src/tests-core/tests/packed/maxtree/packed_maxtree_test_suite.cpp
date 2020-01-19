@@ -17,7 +17,6 @@
 #include "packed_maxtree_misc_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 using FixedWidthArgMiscSuite = PackedMaxTreeMiscTest<PkdFMTreeT<int64_t, 1>>;
@@ -33,4 +32,4 @@ MMA1_CLASS_SUITE(FixedWidthArgFindSuite, "FixedWidthArgFindSuite");
 //using VariableWidthArgFindSuite = PackedMaxTreeFindTest<PkdVBMTreeT<BigInteger>>;
 //MMA1_CLASS_SUITE(VariableWidthArgFindSuite, "VariableWidthArgFindSuite");
 
-}}}
+}}

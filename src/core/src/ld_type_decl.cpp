@@ -13,14 +13,12 @@
 // limitations under the License.
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
+#include <memoria/core/linked/document/linked_document.hpp>
 
 namespace memoria {
-namespace v1 {
-
 
 void LDTypeDeclarationView::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
@@ -237,4 +235,4 @@ ld_::LDPtr<LDTypeDeclarationView::TypeDeclState> LDTypeDeclarationView::deep_cop
     return tgt_state;
 }
 
-}}
+}

@@ -14,24 +14,23 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/datatypes/type_registry.hpp>
-#include <memoria/v1/core/datatypes/datum.hpp>
+#include <memoria/core/datatypes/type_registry.hpp>
+#include <memoria/core/datatypes/datum.hpp>
 
-#include <memoria/v1/core/tools/uuid.hpp>
-#include <memoria/v1/core/tools/fixed_array.hpp>
-#include <memoria/v1/core/strings/u8_string.hpp>
+#include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/fixed_array.hpp>
+#include <memoria/core/strings/u8_string.hpp>
 
-#include <memoria/v1/api/map/map_api.hpp>
-#include <memoria/v1/api/multimap/multimap_api.hpp>
-#include <memoria/v1/api/vector/vector_api.hpp>
-//#include <memoria/v1/api/db/update_log/update_log_api.hpp>
-//#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
-#include <memoria/v1/api/set/set_api.hpp>
+#include <memoria/api/map/map_api.hpp>
+#include <memoria/api/multimap/multimap_api.hpp>
+#include <memoria/api/vector/vector_api.hpp>
+//#include <memoria/api/db/update_log/update_log_api.hpp>
+//#include <memoria/api/db/edge_map/edge_map_api.hpp>
+#include <memoria/api/set/set_api.hpp>
 
-#include <memoria/v1/core/linked/document/ld_datatype.hpp>
+#include <memoria/core/linked/document/ld_datatype.hpp>
 
 namespace memoria {
-namespace v1 {
 
 AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
 {
@@ -134,6 +133,4 @@ DataTypeRegistry& DataTypeRegistry::local()
     return type_registry_;
 }
 
-
-
-}}
+}

@@ -16,13 +16,12 @@
 
 #pragma once
 
-#include <memoria/v1/tools/tests_inc.hpp>
+#include <memoria/tools/tests_inc.hpp>
 
 #include "staticlouds_misc_test.hpp"
 #include "staticlouds_subtree_test.hpp"
 
 namespace memoria {
-namespace v1 {
 
 class StaticLoudsTestSuite: public TestSuite {
 
@@ -36,4 +35,4 @@ public:
 
 };
 
-}}
+}

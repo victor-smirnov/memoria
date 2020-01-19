@@ -14,9 +14,9 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/linux/linux_socket_impl.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/reactor/linux/linux_socket_impl.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/core/tools/perror.hpp>
 
 #include "linux_socket.hpp"
 
@@ -34,7 +34,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
     
 
@@ -178,8 +177,4 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
     }
 }
 
-
-
-
-
-}}}
+}}

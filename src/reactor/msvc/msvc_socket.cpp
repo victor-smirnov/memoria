@@ -17,7 +17,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -105,4 +104,4 @@ bool ClientSocket::is_closed() {
     return ptr_->is_closed();
 }
 
-}}}
+}}

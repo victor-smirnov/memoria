@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
+#include <memoria/prototypes/bt_fl/btfl_factory.hpp>
 
 
 
@@ -27,10 +27,9 @@
 #include <algorithm>
 
 namespace memoria {
-namespace v1 {
 namespace btfl_test {
 
-namespace {
+namespace detail {
 
     struct PairCompare {
         template <typename K, typename V>
@@ -226,4 +225,4 @@ public:
 
 
 }
-}}
+}

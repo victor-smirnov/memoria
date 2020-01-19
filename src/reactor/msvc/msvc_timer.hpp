@@ -14,13 +14,13 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/bzero_struct.hpp>
-#include <memoria/v1/reactor/message/message.hpp>
-#include <memoria/v1/reactor/timer.hpp>
+#include <memoria/core/tools/bzero_struct.hpp>
+#include <memoria/reactor/message/message.hpp>
+#include <memoria/reactor/timer.hpp>
 
-#include <memoria/v1/fiber/fiber.hpp>
+#include <memoria/fiber/fiber.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include <memory>
 #include <atomic>
@@ -28,7 +28,6 @@
 #include <Windows.h>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 class TimerImpl;
@@ -84,4 +83,4 @@ public:
     }
 };
 
-}}}
+}}

@@ -16,21 +16,20 @@
 
 #pragma once
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/core/memory/malloc.hpp>
+#include <memoria/core/memory/malloc.hpp>
 
-#include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
-#include <memoria/v1/core/packed/array/packed_fse_array.hpp>
-#include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
+#include <memoria/core/packed/array/packed_vle_dense_array.hpp>
+#include <memoria/core/packed/array/packed_fse_array.hpp>
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
-#include <memoria/v1/core/integer/integer.hpp>
+#include <memoria/core/integer/integer.hpp>
 
 #include "../tree/packed_tree_test_base.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <typename TreeType>
@@ -210,4 +209,4 @@ public:
     }
 };
 
-}}}
+}}

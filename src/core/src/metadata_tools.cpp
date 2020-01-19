@@ -17,11 +17,11 @@
 
 
 
-#include <memoria/v1/profiles/common/block_operations.hpp>
-#include <memoria/v1/core/tools/dump.hpp>
+#include <memoria/profiles/common/block_operations.hpp>
+#include <memoria/core/tools/dump.hpp>
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
 
@@ -30,8 +30,6 @@
 #include <ostream>
 
 namespace memoria {
-namespace v1 {
-
 
 
 void Expand(std::ostream& os, int32_t level)
@@ -120,4 +118,4 @@ void dumpPageDataValueProviderAsArray(std::ostream& out, const BlockDataValuePro
 }
 
 
-}}
+}

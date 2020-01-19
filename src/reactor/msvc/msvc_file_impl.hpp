@@ -15,13 +15,12 @@
 
 #pragma once
 
-#include <memoria/v1/reactor/file.hpp>
-#include <memoria/v1/core/memory/smart_ptrs.hpp>
+#include <memoria/reactor/file.hpp>
+#include <memoria/core/memory/smart_ptrs.hpp>
 
-#include <memoria/v1/core/tools/iostreams.hpp>
+#include <memoria/core/tools/iostreams.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 class FileImplBase {
@@ -128,4 +127,4 @@ public:
 
 
 
-}}}
+}}

@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <memoria/v1/context/stack_traits.hpp>
+#include <memoria/context/stack_traits.hpp>
 
 extern "C" {
 #include <signal.h>
@@ -78,7 +78,7 @@ rlimit stacksize_limit() BOOST_NOEXCEPT_OR_NOTHROW {
 
 }
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace context {
 
 bool
@@ -107,7 +107,7 @@ stack_traits::maximum_size() BOOST_NOEXCEPT_OR_NOTHROW {
     return static_cast< std::size_t >( stacksize_limit().rlim_max);
 }
 
-}}}
+}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_SUFFIX

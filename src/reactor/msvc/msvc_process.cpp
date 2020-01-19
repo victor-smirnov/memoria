@@ -16,12 +16,11 @@
 
 #include "msvc_process_impl.hpp"
 
-#include <memoria/v1/core/memory/malloc.hpp>
+#include <memoria/core/memory/malloc.hpp>
 
 #include <boost/winapi/dll.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -42,4 +41,4 @@ filesystem::path get_program_path()
 }
 
 
-}}}
+}}

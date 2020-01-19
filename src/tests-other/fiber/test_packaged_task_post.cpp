@@ -11,7 +11,7 @@
 
 #include <boost/test/included/unit_test.hpp>
 
-#include <memoria/v1/fiber/all.hpp>
+#include <memoria/fiber/all.hpp>
 
 int gi = 7;
 
@@ -65,17 +65,17 @@ struct B {
     B & operator=( B const&) = delete;
 };
 
-void fn1( memoria::v1::fibers::promise< int > * p, int i) {
-    memoria::v1::this_fiber::yield();
+void fn1( memoria::fibers::promise< int > * p, int i) {
+    memoria::this_fiber::yield();
     p->set_value( i);
 }
 
 void fn2() {
-    memoria::v1::fibers::promise< int > p;
-    memoria::v1::fibers::future< int > f( p.get_future() );
-    memoria::v1::this_fiber::yield();
-    memoria::v1::fibers::fiber( memoria::v1::fibers::launch::post, fn1, & p, 7).detach();
-    memoria::v1::this_fiber::yield();
+    memoria::fibers::promise< int > p;
+    memoria::fibers::future< int > f( p.get_future() );
+    memoria::this_fiber::yield();
+    memoria::fibers::fiber( memoria::fibers::launch::post, fn1, & p, 7).detach();
+    memoria::this_fiber::yield();
     BOOST_CHECK( 7 == f.get() );
 }
 
@@ -122,41 +122,41 @@ B fn11( bool set) {
 // packaged_task
 void test_packaged_task_create() {
     // default constructed packaged_task is not valid
-    memoria::v1::fibers::packaged_task< int() > t1;
+    memoria::fibers::packaged_task< int() > t1;
     BOOST_CHECK( ! t1.valid() );
 
     // packaged_task from function
-    memoria::v1::fibers::packaged_task< int() > t2( fn3);
+    memoria::fibers::packaged_task< int() > t2( fn3);
     BOOST_CHECK( t2.valid() );
 }
 
 // packaged_task
 void test_packaged_task_create_move() {
     // default constructed packaged_task is not valid
-    memoria::v1::fibers::packaged_task< A() > t1;
+    memoria::fibers::packaged_task< A() > t1;
     BOOST_CHECK( ! t1.valid() );
 
     // packaged_task from function
-    memoria::v1::fibers::packaged_task< A() > t2( fn9);
+    memoria::fibers::packaged_task< A() > t2( fn9);
     BOOST_CHECK( t2.valid() );
 }
 
 void test_packaged_task_create_void() {
     // default constructed packaged_task is not valid
-    memoria::v1::fibers::packaged_task< void() > t1;
+    memoria::fibers::packaged_task< void() > t1;
     BOOST_CHECK( ! t1.valid() );
 
     // packaged_task from function
-    memoria::v1::fibers::packaged_task< void() > t2( fn4);
+    memoria::fibers::packaged_task< void() > t2( fn4);
     BOOST_CHECK( t2.valid() );
 }
 
 void test_packaged_task_move() {
-    memoria::v1::fibers::packaged_task< int() > t1( fn3);
+    memoria::fibers::packaged_task< int() > t1( fn3);
     BOOST_CHECK( t1.valid() );
 
     // move construction
-    memoria::v1::fibers::packaged_task< int() > t2( std::move( t1) );
+    memoria::fibers::packaged_task< int() > t2( std::move( t1) );
     BOOST_CHECK( ! t1.valid() );
     BOOST_CHECK( t2.valid() );
 
@@ -167,11 +167,11 @@ void test_packaged_task_move() {
 }
 
 void test_packaged_task_move_move() {
-    memoria::v1::fibers::packaged_task< A() > t1( fn9);
+    memoria::fibers::packaged_task< A() > t1( fn9);
     BOOST_CHECK( t1.valid() );
 
     // move construction
-    memoria::v1::fibers::packaged_task< A() > t2( std::move( t1) );
+    memoria::fibers::packaged_task< A() > t2( std::move( t1) );
     BOOST_CHECK( ! t1.valid() );
     BOOST_CHECK( t2.valid() );
 
@@ -182,11 +182,11 @@ void test_packaged_task_move_move() {
 }
 
 void test_packaged_task_move_void() {
-    memoria::v1::fibers::packaged_task< void() > t1( fn4);
+    memoria::fibers::packaged_task< void() > t1( fn4);
     BOOST_CHECK( t1.valid() );
 
     // move construction
-    memoria::v1::fibers::packaged_task< void() > t2( std::move( t1) );
+    memoria::fibers::packaged_task< void() > t2( std::move( t1) );
     BOOST_CHECK( ! t1.valid() );
     BOOST_CHECK( t2.valid() );
 
@@ -197,10 +197,10 @@ void test_packaged_task_move_void() {
 }
 
 void test_packaged_task_swap() {
-    memoria::v1::fibers::packaged_task< int() > t1( fn3);
+    memoria::fibers::packaged_task< int() > t1( fn3);
     BOOST_CHECK( t1.valid() );
 
-    memoria::v1::fibers::packaged_task< int() > t2;
+    memoria::fibers::packaged_task< int() > t2;
     BOOST_CHECK( ! t2.valid() );
 
     // swap
@@ -210,10 +210,10 @@ void test_packaged_task_swap() {
 }
 
 void test_packaged_task_swap_move() {
-    memoria::v1::fibers::packaged_task< A() > t1( fn9);
+    memoria::fibers::packaged_task< A() > t1( fn9);
     BOOST_CHECK( t1.valid() );
 
-    memoria::v1::fibers::packaged_task< A() > t2;
+    memoria::fibers::packaged_task< A() > t2;
     BOOST_CHECK( ! t2.valid() );
 
     // swap
@@ -223,10 +223,10 @@ void test_packaged_task_swap_move() {
 }
 
 void test_packaged_task_swap_void() {
-    memoria::v1::fibers::packaged_task< void() > t1( fn4);
+    memoria::fibers::packaged_task< void() > t1( fn4);
     BOOST_CHECK( t1.valid() );
 
-    memoria::v1::fibers::packaged_task< void() > t2;
+    memoria::fibers::packaged_task< void() > t2;
     BOOST_CHECK( ! t2.valid() );
 
     // swap
@@ -237,8 +237,8 @@ void test_packaged_task_swap_void() {
 
 void test_packaged_task_reset() {
     {
-        memoria::v1::fibers::packaged_task< int() > p( fn3);
-        memoria::v1::fibers::future< int > f( p.get_future() );
+        memoria::fibers::packaged_task< int() > p( fn3);
+        memoria::fibers::future< int > f( p.get_future() );
         BOOST_CHECK( p.valid() );
 
         p();
@@ -251,12 +251,12 @@ void test_packaged_task_reset() {
         BOOST_CHECK( 3 == f.get() );
     }
     {
-        memoria::v1::fibers::packaged_task< int() > p;
+        memoria::fibers::packaged_task< int() > p;
 
         bool thrown = false;
         try {
             p.reset();
-        } catch ( memoria::v1::fibers::packaged_task_uninitialized const&) {
+        } catch ( memoria::fibers::packaged_task_uninitialized const&) {
             thrown = true;
         }
         BOOST_CHECK( thrown);
@@ -265,7 +265,7 @@ void test_packaged_task_reset() {
 
 void test_packaged_task_reset_destruction() {
         gi = 0;
-        memoria::v1::fibers::packaged_task< B( bool) > p( fn11);
+        memoria::fibers::packaged_task< B( bool) > p( fn11);
         BOOST_CHECK( p.valid() );
 
         BOOST_CHECK( 0 == gi);
@@ -285,8 +285,8 @@ void test_packaged_task_reset_destruction() {
 
 void test_packaged_task_reset_move() {
     {
-        memoria::v1::fibers::packaged_task< A() > p( fn9);
-        memoria::v1::fibers::future< A > f( p.get_future() );
+        memoria::fibers::packaged_task< A() > p( fn9);
+        memoria::fibers::future< A > f( p.get_future() );
         BOOST_CHECK( p.valid() );
 
         p();
@@ -299,12 +299,12 @@ void test_packaged_task_reset_move() {
         BOOST_CHECK( 3 == f.get().value);
     }
     {
-        memoria::v1::fibers::packaged_task< A() > p;
+        memoria::fibers::packaged_task< A() > p;
 
         bool thrown = false;
         try {
             p.reset();
-        } catch ( memoria::v1::fibers::packaged_task_uninitialized const&) {
+        } catch ( memoria::fibers::packaged_task_uninitialized const&) {
             thrown = true;
         }
         BOOST_CHECK( thrown);
@@ -313,8 +313,8 @@ void test_packaged_task_reset_move() {
 
 void test_packaged_task_reset_void() {
     {
-        memoria::v1::fibers::packaged_task< void() > p( fn4);
-        memoria::v1::fibers::future< void > f( p.get_future() );
+        memoria::fibers::packaged_task< void() > p( fn4);
+        memoria::fibers::future< void > f( p.get_future() );
         BOOST_CHECK( p.valid() );
 
         p();
@@ -327,12 +327,12 @@ void test_packaged_task_reset_void() {
         f.get();
     }
     {
-        memoria::v1::fibers::packaged_task< void() > p;
+        memoria::fibers::packaged_task< void() > p;
 
         bool thrown = false;
         try {
             p.reset();
-        } catch ( memoria::v1::fibers::packaged_task_uninitialized const&) {
+        } catch ( memoria::fibers::packaged_task_uninitialized const&) {
             thrown = true;
         }
         BOOST_CHECK( thrown);
@@ -340,24 +340,24 @@ void test_packaged_task_reset_void() {
 }
 
 void test_packaged_task_get_future() {
-    memoria::v1::fibers::packaged_task< int() > t1( fn3);
+    memoria::fibers::packaged_task< int() > t1( fn3);
     BOOST_CHECK( t1.valid() );
 
     // retrieve future
-    memoria::v1::fibers::future< int > f1 = t1.get_future();
+    memoria::fibers::future< int > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // retrieve future a second time
     bool thrown = false;
     try {
         f1 = t1.get_future();
-    } catch ( memoria::v1::fibers::future_already_retrieved const&) {
+    } catch ( memoria::fibers::future_already_retrieved const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 
     // move construction
-    memoria::v1::fibers::packaged_task< int() > t2( std::move( t1) );
+    memoria::fibers::packaged_task< int() > t2( std::move( t1) );
     BOOST_CHECK( ! t1.valid() );
     BOOST_CHECK( t2.valid() );
 
@@ -365,31 +365,31 @@ void test_packaged_task_get_future() {
     thrown = false;
     try {
         f1 = t1.get_future();
-    } catch ( memoria::v1::fibers::packaged_task_uninitialized const&) {
+    } catch ( memoria::fibers::packaged_task_uninitialized const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 }
 
 void test_packaged_task_get_future_move() {
-    memoria::v1::fibers::packaged_task< A() > t1( fn9);
+    memoria::fibers::packaged_task< A() > t1( fn9);
     BOOST_CHECK( t1.valid() );
 
     // retrieve future
-    memoria::v1::fibers::future< A > f1 = t1.get_future();
+    memoria::fibers::future< A > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // retrieve future a second time
     bool thrown = false;
     try {
         f1 = t1.get_future();
-    } catch ( memoria::v1::fibers::future_already_retrieved const&) {
+    } catch ( memoria::fibers::future_already_retrieved const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 
     // move construction
-    memoria::v1::fibers::packaged_task< A() > t2( std::move( t1) );
+    memoria::fibers::packaged_task< A() > t2( std::move( t1) );
     BOOST_CHECK( ! t1.valid() );
     BOOST_CHECK( t2.valid() );
 
@@ -397,31 +397,31 @@ void test_packaged_task_get_future_move() {
     thrown = false;
     try {
         f1 = t1.get_future();
-    } catch ( memoria::v1::fibers::packaged_task_uninitialized const&) {
+    } catch ( memoria::fibers::packaged_task_uninitialized const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 }
 
 void test_packaged_task_get_future_void() {
-    memoria::v1::fibers::packaged_task< void() > t1( fn4);
+    memoria::fibers::packaged_task< void() > t1( fn4);
     BOOST_CHECK( t1.valid() );
 
     // retrieve future
-    memoria::v1::fibers::future< void > f1 = t1.get_future();
+    memoria::fibers::future< void > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // retrieve future a second time
     bool thrown = false;
     try {
         f1 = t1.get_future();
-    } catch ( memoria::v1::fibers::future_already_retrieved const&) {
+    } catch ( memoria::fibers::future_already_retrieved const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 
     // move construction
-    memoria::v1::fibers::packaged_task< void() > t2( std::move( t1) );
+    memoria::fibers::packaged_task< void() > t2( std::move( t1) );
     BOOST_CHECK( ! t1.valid() );
     BOOST_CHECK( t2.valid() );
 
@@ -429,7 +429,7 @@ void test_packaged_task_get_future_void() {
     thrown = false;
     try {
         f1 = t1.get_future();
-    } catch ( memoria::v1::fibers::packaged_task_uninitialized const&) {
+    } catch ( memoria::fibers::packaged_task_uninitialized const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -437,9 +437,9 @@ void test_packaged_task_get_future_void() {
 
 void test_packaged_task_exec() {
     // promise takes a copyable as return type
-    memoria::v1::fibers::packaged_task< int() > t1( fn3);
+    memoria::fibers::packaged_task< int() > t1( fn3);
     BOOST_CHECK( t1.valid() );
-    memoria::v1::fibers::future< int > f1 = t1.get_future();
+    memoria::fibers::future< int > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // exec
@@ -450,7 +450,7 @@ void test_packaged_task_exec() {
     bool thrown = false;
     try {
         t1();
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -458,9 +458,9 @@ void test_packaged_task_exec() {
 
 void test_packaged_task_exec_move() {
     // promise takes a copyable as return type
-    memoria::v1::fibers::packaged_task< A() > t1( fn9);
+    memoria::fibers::packaged_task< A() > t1( fn9);
     BOOST_CHECK( t1.valid() );
-    memoria::v1::fibers::future< A > f1 = t1.get_future();
+    memoria::fibers::future< A > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // exec
@@ -471,7 +471,7 @@ void test_packaged_task_exec_move() {
     bool thrown = false;
     try {
         t1();
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -479,9 +479,9 @@ void test_packaged_task_exec_move() {
 
 void test_packaged_task_exec_param() {
     // promise takes a copyable as return type
-    memoria::v1::fibers::packaged_task< int( int) > t1( fn8);
+    memoria::fibers::packaged_task< int( int) > t1( fn8);
     BOOST_CHECK( t1.valid() );
-    memoria::v1::fibers::future< int > f1 = t1.get_future();
+    memoria::fibers::future< int > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // exec
@@ -492,7 +492,7 @@ void test_packaged_task_exec_param() {
     bool thrown = false;
     try {
         t1( 7);
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -502,9 +502,9 @@ void test_packaged_task_exec_param() {
 
 void test_packaged_task_exec_ref() {
     // promise takes a copyable as return type
-    memoria::v1::fibers::packaged_task< int&() > t1( fn7);
+    memoria::fibers::packaged_task< int&() > t1( fn7);
     BOOST_CHECK( t1.valid() );
-    memoria::v1::fibers::future< int& > f1 = t1.get_future();
+    memoria::fibers::future< int& > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // exec
@@ -516,7 +516,7 @@ void test_packaged_task_exec_ref() {
     bool thrown = false;
     try {
         t1();
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -526,9 +526,9 @@ void test_packaged_task_exec_ref() {
 
 void test_packaged_task_exec_void() {
     // promise takes a copyable as return type
-    memoria::v1::fibers::packaged_task< void() > t1( fn4);
+    memoria::fibers::packaged_task< void() > t1( fn4);
     BOOST_CHECK( t1.valid() );
-    memoria::v1::fibers::future< void > f1 = t1.get_future();
+    memoria::fibers::future< void > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // set void
@@ -539,7 +539,7 @@ void test_packaged_task_exec_void() {
     bool thrown = false;
     try {
         t1();
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -547,9 +547,9 @@ void test_packaged_task_exec_void() {
 
 void test_packaged_task_exception() {
     // promise takes a copyable as return type
-    memoria::v1::fibers::packaged_task< int() > t1( fn5);
+    memoria::fibers::packaged_task< int() > t1( fn5);
     BOOST_CHECK( t1.valid() );
-    memoria::v1::fibers::future< int > f1 = t1.get_future();
+    memoria::fibers::future< int > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // exec
@@ -562,9 +562,9 @@ void test_packaged_task_exception() {
     }
     BOOST_CHECK( thrown);
 
-    memoria::v1::fibers::packaged_task< int() > t2( fn5);
+    memoria::fibers::packaged_task< int() > t2( fn5);
     BOOST_CHECK( t2.valid() );
-    memoria::v1::fibers::future< int > f2 = t2.get_future();
+    memoria::fibers::future< int > f2 = t2.get_future();
     BOOST_CHECK( f2.valid() );
 
     // exec
@@ -580,9 +580,9 @@ void test_packaged_task_exception() {
 
 void test_packaged_task_exception_move() {
     // promise takes a moveable as return type
-    memoria::v1::fibers::packaged_task< A() > t1( fn10);
+    memoria::fibers::packaged_task< A() > t1( fn10);
     BOOST_CHECK( t1.valid() );
-    memoria::v1::fibers::future< A > f1 = t1.get_future();
+    memoria::fibers::future< A > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // exec
@@ -595,9 +595,9 @@ void test_packaged_task_exception_move() {
     }
     BOOST_CHECK( thrown);
 
-    memoria::v1::fibers::packaged_task< A() > t2( fn10);
+    memoria::fibers::packaged_task< A() > t2( fn10);
     BOOST_CHECK( t2.valid() );
-    memoria::v1::fibers::future< A > f2 = t2.get_future();
+    memoria::fibers::future< A > f2 = t2.get_future();
     BOOST_CHECK( f2.valid() );
 
     // exec
@@ -613,9 +613,9 @@ void test_packaged_task_exception_move() {
 
 void test_packaged_task_exception_void() {
     // promise takes a copyable as return type
-    memoria::v1::fibers::packaged_task< void() > t1( fn6);
+    memoria::fibers::packaged_task< void() > t1( fn6);
     BOOST_CHECK( t1.valid() );
-    memoria::v1::fibers::future< void > f1 = t1.get_future();
+    memoria::fibers::future< void > f1 = t1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // set void
@@ -628,9 +628,9 @@ void test_packaged_task_exception_void() {
     }
     BOOST_CHECK( thrown);
     
-    memoria::v1::fibers::packaged_task< void() > t2( fn6);
+    memoria::fibers::packaged_task< void() > t2( fn6);
     BOOST_CHECK( t2.valid() );
-    memoria::v1::fibers::future< void > f2 = t2.get_future();
+    memoria::fibers::future< void > f2 = t2.get_future();
     BOOST_CHECK( f2.valid() );
 
     // exec

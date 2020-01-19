@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include "macosx_timer.hpp"
 
@@ -22,7 +22,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -203,6 +202,4 @@ void IOPoller::sleep_for(const std::chrono::milliseconds& time)
 }
 
 
-
-
-}}}
+}}

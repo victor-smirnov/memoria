@@ -18,12 +18,11 @@
 #include "btfl_ctr_api.hpp"
 
 #include "container/btfl_test_factory.hpp"
-#include <memoria/v1/core/container/ctr_impl_btfl.hpp>
+#include <memoria/core/container/ctr_impl_btfl.hpp>
 
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 
 template <int32_t DataStreams, PackedDataTypeSize LeafSizeType, typename Profile>
 typename CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::Iterator CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>::begin()
@@ -112,5 +111,5 @@ core::StaticVector<int64_t, DataStreams + 1> IterApi<BTFLTestCtr<DataStreams, Le
     return this->pimpl_->iter_remove_ge(size);
 }
 
-}}
+}
 

@@ -13,22 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
-#include <memoria/v1/core/tools/time.hpp>
-#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
 
-#include <memoria/v1/core/integer/integer.hpp>
+#include <memoria/core/integer/integer.hpp>
 
 #include "packed_tree_find_test.hpp"
 #include "packed_tree_sum_test.hpp"
 #include "packed_tree_misc_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 namespace {
@@ -87,4 +86,4 @@ MMA1_CLASS_SUITE(Suite12, "Tree.Find.4.VLD.Elias");
 }
 
 
-}}}
+}}

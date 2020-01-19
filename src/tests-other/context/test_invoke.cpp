@@ -15,10 +15,10 @@
 #include <boost/assert.hpp>
 #include <boost/test/unit_test.hpp>
 
-#include <memoria/v1/context/detail/invoke.hpp>
-#include <memoria/v1/context/detail/config.hpp>
+#include <memoria/context/detail/invoke.hpp>
+#include <memoria/context/detail/config.hpp>
 
-namespace ctx = memoria::v1::context;
+namespace ctx = memoria::context;
 
 struct callable {
     int k{ 0 };

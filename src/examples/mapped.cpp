@@ -13,15 +13,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/linked/linked.hpp>
+#include <memoria/core/linked/linked.hpp>
 
-#include <memoria/v1/core/strings/u8_string.hpp>
+#include <memoria/core/strings/u8_string.hpp>
 
 #include <iostream>
 #include <string>
 #include <unordered_map>
 
-using namespace memoria::v1;
+using namespace memoria;
 
 using ArenaView = LinkedArenaView<int64_t, uint32_t>;
 using ArenaT = LinkedArena<int64_t, uint32_t>;

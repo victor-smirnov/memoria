@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/types.hpp>
+#include <memoria/core/types.hpp>
 
 #ifdef MMA1_POSIX
 #include "posix/posix_process_impl.hpp"
@@ -22,7 +22,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -115,4 +114,4 @@ Process ProcessBuilder::run() {
 
 
 
-}}}
+}}

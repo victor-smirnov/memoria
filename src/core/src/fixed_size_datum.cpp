@@ -13,10 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/datatypes/datum.hpp>
+#include <memoria/core/datatypes/datum.hpp>
 
 namespace memoria {
-namespace v1 {
 
 template <typename DataType>
 Datum<DataType> datum_from_sdn_value(const DataType*, int64_t value) {
@@ -106,4 +105,4 @@ template Datum<Double>      datum_from_sdn_value(const Double*, int64_t);
 template Datum<Double>      datum_from_sdn_value(const Double*, double);
 template Datum<Double>      datum_from_sdn_value(const Double*, bool);
 
-}}
+}

@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <memoria/v1/core/graph/graph.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/core/graph/graph.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 #include "vertex_tree_item.hpp"
 
@@ -29,7 +29,6 @@
 #include <unordered_map>
 
 namespace memoria {
-namespace v1 {
 
 class AbstractTreeItem;
 class RootTreeItem;
@@ -67,4 +66,4 @@ private:
     std::unordered_map<UUID, AbstractTreeItem*> tree_content_;
 };
 
-}}
+}

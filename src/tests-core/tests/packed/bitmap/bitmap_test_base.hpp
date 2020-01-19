@@ -16,19 +16,18 @@
 
 #pragma once
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/core/tools/bitmap_select.hpp>
-#include <memoria/v1/core/tools/random.hpp>
-#include <memoria/v1/core/tools/type_name.hpp>
+#include <memoria/core/tools/bitmap_select.hpp>
+#include <memoria/core/tools/random.hpp>
+#include <memoria/core/tools/type_name.hpp>
 
 #include <vector>
 #include <limits>
 #include <functional>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <typename T>
@@ -94,4 +93,4 @@ public:
 };
 
 
-}}}
+}}

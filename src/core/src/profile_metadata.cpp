@@ -14,16 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/profiles/common/metadata.hpp>
+#include <memoria/profiles/common/metadata.hpp>
 
-#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/profiles/default/default.hpp>
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
 namespace memoria {
-namespace v1 {
 
 template <typename Profile>
 ProfileMetadataStore<Profile>& ProfileMetadataStore<Profile>::global()
@@ -50,4 +49,4 @@ namespace {
 }
 
 }
-}
+

@@ -14,14 +14,14 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/regexp/icu_regexp.hpp>
+#include <memoria/core/regexp/icu_regexp.hpp>
 
-#include <memoria/v1/reactor/application.hpp>
+#include <memoria/reactor/application.hpp>
 
 #include <iostream>
 
 using namespace memoria::v1;
-using namespace memoria::v1::reactor;
+using namespace memoria::reactor;
 
 
 int main(int argc, char** argv)

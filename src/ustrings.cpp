@@ -1,14 +1,14 @@
 
-#include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/core/regexp/icu_regexp.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/core/regexp/icu_regexp.hpp>
 
-#include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 #include <iostream>
 
 using namespace memoria::v1;
 
-using MUUID = memoria::v1::UUID;
+using MUUID = memoria::UUID;
 
 int main(int argc, char** argv)
 {

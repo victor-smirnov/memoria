@@ -13,7 +13,7 @@
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <memoria/v1/filesystem/operations.hpp>
+#include <memoria/filesystem/operations.hpp>
 #include <cassert>
 
 # ifdef BOOST_POSIX_API
@@ -121,7 +121,7 @@ void system_crypt_random(void* buf, std::size_t len, boost::system::error_code* 
 
 }  // unnamed namespace
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace filesystem { namespace detail {
 
 MEMORIA_BOOST_FILESYSTEM_DECL
@@ -171,4 +171,4 @@ path unique_path(const path& model, boost::system::error_code* ec)
   return s;
 }
 
-}}}}
+}}}

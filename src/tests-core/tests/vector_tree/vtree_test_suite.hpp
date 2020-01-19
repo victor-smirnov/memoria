@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/tools/tests_inc.hpp>
+#include <memoria/tools/tests_inc.hpp>
 
 #include "vtree_create_test.hpp"
 #include "vtree_remove_test.hpp"
@@ -24,7 +24,6 @@
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 
 class VTreeTestSuite: public TestSuite {
 
@@ -37,4 +36,4 @@ public:
     }
 };
 
-}}
+}

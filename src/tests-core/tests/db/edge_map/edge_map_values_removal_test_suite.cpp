@@ -17,7 +17,7 @@
 #include "edge_map_values_test_base.hpp"
 
 
-#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
+#include <memoria/api/db/edge_map/edge_map_api.hpp>
 
 
 
@@ -26,7 +26,6 @@
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 class EdgeMapValuesRemovalTestSuite: public EdgeMapValuesRemovalTestBase {
@@ -255,4 +254,4 @@ namespace {
 auto Suite1 = register_class_suite<EdgeMapValuesRemovalTestSuite>("EdgeMap");
 }
 
-}}}
+}}

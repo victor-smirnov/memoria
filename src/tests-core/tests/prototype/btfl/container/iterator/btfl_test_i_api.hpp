@@ -16,20 +16,19 @@
 
 #pragma once
 
-#include <memoria/v1/core/types.hpp>
-#include <memoria/v1/core/types/algo/for_each.hpp>
-#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/core/types.hpp>
+#include <memoria/core/types/algo/for_each.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
-#include <memoria/v1/core/container/iterator.hpp>
-#include <memoria/v1/core/container/macros.hpp>
+#include <memoria/prototypes/bt_fl/btfl_names.hpp>
+#include <memoria/core/container/iterator.hpp>
+#include <memoria/core/container/macros.hpp>
 
 #include "../btfl_test_names.hpp"
 
 #include <iostream>
 
 namespace memoria {
-namespace v1 {
 
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(btfl_test::IterApiName)
@@ -217,4 +216,4 @@ MEMORIA_V1_ITERATOR_PART_END
 #undef M_TYPE
 #undef M_PARAMS
 
-}}
+}

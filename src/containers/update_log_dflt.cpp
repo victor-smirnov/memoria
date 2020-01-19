@@ -13,12 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/profiles/default/default.hpp>
 
-//#include <memoria/v1/containers/db/update_log/update_log_impl.hpp>
+//#include <memoria/containers/db/update_log/update_log_impl.hpp>
 
 namespace memoria {
-namespace v1 {
 
 using Profile = DefaultProfile<>;
 //using CtrName = UpdateLog;
@@ -29,5 +28,5 @@ using Profile = DefaultProfile<>;
 
 //MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
     
-}}
+}
 

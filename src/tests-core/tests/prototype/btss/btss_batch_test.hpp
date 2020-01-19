@@ -18,7 +18,7 @@
 #include "btss_test_base.hpp"
 #include "btss_test_factory.hpp"
 
-#include <memoria/v1/core/strings/format.hpp>
+#include <memoria/core/strings/format.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -26,7 +26,6 @@
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 using namespace reactor;
@@ -582,4 +581,4 @@ public:
     }
 };
 
-}}}
+}}

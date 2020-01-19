@@ -13,15 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/application.hpp>
-#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/application.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include <memory>
 #include <chrono>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 thread_local Reactor* Reactor::local_engine_ = nullptr;    
@@ -61,7 +60,7 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
     scheduler_ = new Scheduler<Reactor>(shared_from_this());
     running_ = true;
     
-    memoria::v1::fibers::context::active()
+    memoria::fibers::context::active()
         ->get_scheduler()
         ->set_algo(std::unique_ptr< Scheduler<Reactor> >(scheduler_));
 
@@ -148,7 +147,7 @@ void Reactor::event_loop (uint64_t iopoll_timeout)
         auto acct0 = scheduler_->activations();
 
         withTime(yield_stat, []{
-            memoria::v1::this_fiber::yield();
+            memoria::this_fiber::yield();
         });
 
         auto acct1 = scheduler_->activations();
@@ -189,4 +188,4 @@ void resume_ctx(fibers::context* ctx) {
 }
 
 
-}}}
+}}

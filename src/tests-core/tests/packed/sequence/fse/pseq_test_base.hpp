@@ -16,18 +16,17 @@
 
 #pragma once
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
-#include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
+#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <
@@ -179,4 +178,4 @@ public:
 };
 
 
-}}}
+}}

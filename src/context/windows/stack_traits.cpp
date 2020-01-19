@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/context/stack_traits.hpp"
+#include "memoria/context/stack_traits.hpp"
 
 extern "C" {
 #include <windows.h>
@@ -19,14 +19,14 @@ extern "C" {
 #include <stdexcept>
 
 #include <boost/assert.hpp>
-#include <memoria/v1/context/detail/config.hpp>
+#include <memoria/context/detail/config.hpp>
 #if defined(BOOST_NO_CXX11_HDR_MUTEX)
 # include <boost/thread.hpp>
 #else
 # include <mutex>
 #endif
 
-#include <memoria/v1/context/stack_context.hpp>
+#include <memoria/context/stack_context.hpp>
 
 // x86_64
 // test x86_64 before i386 because icc might
@@ -70,7 +70,7 @@ std::size_t pagesize() BOOST_NOEXCEPT_OR_NOTHROW {
 
 }
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace context {
 
 // Windows seams not to provide a limit for the stacksize

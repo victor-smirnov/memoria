@@ -19,7 +19,6 @@
 #include "rleseq_misc_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 namespace {
@@ -36,4 +35,4 @@ auto Suite9 = register_class_suite<PackedRLESearchableSequenceCountTest<4>>("Rle
 
 }
 
-}}}
+}}

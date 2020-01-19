@@ -19,7 +19,7 @@
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <memoria/v1/filesystem/config.hpp>
+#include <memoria/filesystem/config.hpp>
 
 #include <cwchar>  // for mbstate_t
 

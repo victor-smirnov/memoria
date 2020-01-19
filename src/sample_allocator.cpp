@@ -16,18 +16,18 @@
 
 
 
-#include <memoria/v1/core/tools/random.hpp>
-#include <memoria/v1/core/tools/fixed_array.hpp>
-#include <memoria/v1/api/set/set_api.hpp>
-#include <memoria/v1/api/map/map_api.hpp>
+#include <memoria/core/tools/random.hpp>
+#include <memoria/core/tools/fixed_array.hpp>
+#include <memoria/api/set/set_api.hpp>
+#include <memoria/api/map/map_api.hpp>
 
-#include <memoria/v1/api/allocator/allocator_inmem_api.hpp>
+#include <memoria/api/allocator/allocator_inmem_api.hpp>
 
-#include <memoria/v1/reactor/application.hpp>
+#include <memoria/reactor/application.hpp>
 
 
 using namespace memoria::v1;
-using namespace memoria::v1::reactor;
+using namespace memoria::reactor;
 
 
 int main(int argc, char** argv, char** envp)

@@ -23,7 +23,6 @@
 #include <functional>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -144,4 +143,4 @@ public:
 using Name = BitmapCountTest<Type>;\
 MMA1_CLASS_SUITE(Name, #Name)
 
-}}}
+}}

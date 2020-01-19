@@ -4,10 +4,10 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //        http://www.boost.org/LICENSE_1_0.txt)
 
-#include <memoria/v1/context/detail/fcontext.hpp>
+#include <memoria/context/detail/fcontext.hpp>
 
-using memoria::v1::context::detail::fcontext_t;
-using memoria::v1::context::detail::transfer_t;
+using memoria::context::detail::fcontext_t;
+using memoria::context::detail::transfer_t;
 
 // This C++ tail of ontop_fcontext() allocates transfer_t{ from, vp }
 // on the stack.  If fn() throws a C++ exception, then the C++ runtime

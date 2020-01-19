@@ -16,16 +16,16 @@
 
 #pragma once
 
-#include <memoria/v1/core/memory/smart_ptrs.hpp>
-#include <memoria/v1/core/regexp/icu_regexp.hpp>
-#include <memoria/v1/core/memory/malloc.hpp>
+#include <memoria/core/memory/smart_ptrs.hpp>
+#include <memoria/core/regexp/icu_regexp.hpp>
+#include <memoria/core/memory/malloc.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/process.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/process.hpp>
 
 
-#include <memoria/v1/fiber/count_down_latch.hpp>
-#include <memoria/v1/filesystem/path.hpp>
+#include <memoria/fiber/count_down_latch.hpp>
+#include <memoria/filesystem/path.hpp>
 
 #include <boost/winapi/process.hpp>
 #include <boost/winapi/synchronization.hpp>
@@ -41,7 +41,6 @@
 #endif
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -325,4 +324,4 @@ private:
 };
 
 
-}}}
+}}

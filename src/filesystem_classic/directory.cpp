@@ -25,10 +25,10 @@
 #include <boost/winapi/config.hpp>
 #endif
 
-#include <memoria/v1/filesystem/directory.hpp>
-#include <memoria/v1/filesystem/exception.hpp>
-#include <memoria/v1/filesystem/operations.hpp>
-#include <memoria/v1/filesystem/file_status.hpp>
+#include <memoria/filesystem/directory.hpp>
+#include <memoria/filesystem/exception.hpp>
+#include <memoria/filesystem/operations.hpp>
+#include <memoria/filesystem/file_status.hpp>
 
 #include <cstddef>
 #include <cerrno>
@@ -79,11 +79,11 @@
 #define MEMORIA_BOOST_FILESYSTEM_STATUS_CACHE
 #endif
 
-namespace fs = memoria::v1::filesystem;
+namespace fs = memoria::filesystem;
 using boost::system::error_code;
 using boost::system::system_category;
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace filesystem {
 
 //--------------------------------------------------------------------------------------//
@@ -884,4 +884,4 @@ void recursive_directory_iterator_increment(recursive_directory_iterator& it, bo
 } // namespace detail
 
 } // namespace filesystem
-}} // namespace memoria::v1
+} // namespace memoria

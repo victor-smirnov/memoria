@@ -4,17 +4,17 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/numa/pin_thread.hpp"
+#include "memoria/fiber/numa/pin_thread.hpp"
 
 #include <system_error>
 
-#include "memoria/v1/fiber/exceptions.hpp"
+#include "memoria/fiber/exceptions.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 # include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace numa {
 

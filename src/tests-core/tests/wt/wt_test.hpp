@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include <memoria/v1/tools/profile_tests.hpp>
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/tools/profile_tests.hpp>
+#include <memoria/tools/tools.hpp>
 
-#include <memoria/v1/containers/wt/wt_factory.hpp>
+#include <memoria/containers/wt/wt_factory.hpp>
 
 #include "../prototype/bt/bt_test_base.hpp"
 
@@ -27,7 +27,6 @@
 #include <map>
 
 namespace memoria {
-namespace v1 {
 
 
 class WTTest: public BTTestBase<WT, PersistentInMemAllocator<>, DefaultProfile<>> {
@@ -317,4 +316,4 @@ public:
 };
 
 
-}}
+}

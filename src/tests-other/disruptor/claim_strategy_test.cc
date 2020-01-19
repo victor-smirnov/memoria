@@ -27,12 +27,11 @@
 #define BOOST_TEST_MODULE WaitStrategyTest
 
 #include <boost/test/unit_test.hpp>
-#include <memoria/v1/disruptor/claim_strategy.h>
+#include <memoria/disruptor/claim_strategy.h>
 
 #define RING_BUFFER_SIZE 8
 
 namespace memoria {
-namespace v1 {
 namespace disruptor {
 namespace test {
 
@@ -251,4 +250,4 @@ BOOST_AUTO_TEST_CASE(SynchronizePublishingShouldBlockEagerThreads) {
 BOOST_AUTO_TEST_SUITE_END()
 
 }  // namespace test
-}}}  // namespace disruptor
+}}  // namespace memoria::disruptor

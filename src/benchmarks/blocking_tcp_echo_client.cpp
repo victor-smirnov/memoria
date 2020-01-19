@@ -14,11 +14,11 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/tools/time.hpp>
-#include <memoria/v1/core/tools/random.hpp>
-#include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/core/strings/format.hpp>
-#include <memoria/v1/core/memory/malloc.hpp>
+#include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/core/strings/format.hpp>
+#include <memoria/core/memory/malloc.hpp>
 
 #include <cstdlib>
 #include <cstring>

@@ -1,10 +1,10 @@
 
-#include "memoria/v1/fiber/all.hpp"
-#include "memoria/v1/reactor/application.hpp"
-#include "memoria/v1/filesystem/path.hpp"
-#include "memoria/v1/filesystem/operations.hpp"
-#include <memoria/v1/core/tools/random.hpp>
-#include <memoria/v1/core/tools/time.hpp>
+#include "memoria/fiber/all.hpp"
+#include "memoria/reactor/application.hpp"
+#include "memoria/filesystem/path.hpp"
+#include "memoria/filesystem/operations.hpp"
+#include <memoria/core/tools/random.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include <iostream>
 #include <thread>
@@ -12,10 +12,10 @@
 
 namespace m  = memoria::v1;
 
-namespace df  = memoria::v1::fibers;
-namespace dr  = memoria::v1::reactor;
-namespace mt  = memoria::v1::tools;
-namespace fs  = memoria::v1::filesystem;
+namespace df  = memoria::fibers;
+namespace dr  = memoria::reactor;
+namespace mt  = memoria::tools;
+namespace fs  = memoria::filesystem;
 
 using namespace dr;
 

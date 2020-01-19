@@ -13,24 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tests/runner.hpp>
-#include <memoria/v1/reactor/process.hpp>
-#include <memoria/v1/reactor/pipe_streams_reader.hpp>
-#include <memoria/v1/reactor/application.hpp>
-#include <memoria/v1/reactor/file_streams.hpp>
-#include <memoria/v1/filesystem/operations.hpp>
+#include <memoria/tests/runner.hpp>
+#include <memoria/reactor/process.hpp>
+#include <memoria/reactor/pipe_streams_reader.hpp>
+#include <memoria/reactor/application.hpp>
+#include <memoria/reactor/file_streams.hpp>
+#include <memoria/filesystem/operations.hpp>
 
-#include <memoria/v1/core/tools/random.hpp>
-#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include <yaml-cpp/yaml.h>
 
-#include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
+#include <memoria/core/packed/tools/packed_allocator_types.hpp>
 
 #include <sstream>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 using filesystem::path;
@@ -551,4 +550,4 @@ void DefaultTestContext::failed(TestStatus detail, std::exception_ptr ex, TestSt
     }
 }
 
-}}}
+}}

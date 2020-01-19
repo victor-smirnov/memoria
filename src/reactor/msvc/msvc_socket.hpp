@@ -14,15 +14,15 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/bzero_struct.hpp>
-#include <memoria/v1/reactor/message/fiber_io_message.hpp>
-#include <memoria/v1/reactor/msvc/msvc_socket_impl.hpp>
-#include <memoria/v1/reactor/msvc/msvc_io_messages.hpp>
-#include <memoria/v1/core/memory/smart_ptrs.hpp>
+#include <memoria/core/tools/bzero_struct.hpp>
+#include <memoria/reactor/message/fiber_io_message.hpp>
+#include <memoria/reactor/msvc/msvc_socket_impl.hpp>
+#include <memoria/reactor/msvc/msvc_io_messages.hpp>
+#include <memoria/core/memory/smart_ptrs.hpp>
 
-#include <memoria/v1/reactor/socket.hpp>
+#include <memoria/reactor/socket.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include <memory>
 
@@ -30,7 +30,6 @@
 #include <mswsock.h>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {    
     
 class SocketImpl {
@@ -219,4 +218,4 @@ extern AsyncSockets* sockets;
 void InitSockets();
 void DestroySockets();
 
-}}}
+}}

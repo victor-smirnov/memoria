@@ -19,7 +19,6 @@
 #include "linux_socket.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -110,4 +109,4 @@ void InitSockets() {}
 void DestroySockets() {}
 
 
-}}}
+}}

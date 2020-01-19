@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/numa/topology.hpp"
+#include "memoria/fiber/numa/topology.hpp"
 
 extern "C" {
 #include <errno.h>
@@ -20,7 +20,7 @@ extern "C" {
 
 namespace {
 
-void explore( int sdl, std::vector< memoria::v1::fibers::numa::node > & topo) {
+void explore( int sdl, std::vector< memoria::fibers::numa::node > & topo) {
     rsethandle_t rset = ::rs_alloc( RS_PARTITION);
     rsethandle_t rad = ::rs_alloc( RS_EMPTY);
     int maxnodes = ::rs_numrads( rset, sdl, 0);
@@ -36,7 +36,7 @@ void explore( int sdl, std::vector< memoria::v1::fibers::numa::node > & topo) {
         if ( ! ::rs_getinfo( rad, R_NUMPROCS, 0) ) {
             continue;
         }
-        memoria::v1::fibers::numa::node n;
+        memoria::fibers::numa::node n;
         n.id = static_cast< std::uint32_t >( node_id);
         int maxcpus = ::rs_getinfo( rad, R_MAXPROCS, 0);
         for ( int cpu_id = 0; cpu_id < maxcpus; ++cpu_id) {
@@ -52,7 +52,7 @@ void explore( int sdl, std::vector< memoria::v1::fibers::numa::node > & topo) {
 
 }
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace numa {
 

@@ -16,16 +16,16 @@
 
 
 
-#include <memoria/v1/core/tools/stream.hpp>
-#include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/core/strings/format.hpp>
+#include <memoria/core/tools/stream.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/core/strings/format.hpp>
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
 
-#include <memoria/v1/filesystem/operations.hpp>
+#include <memoria/filesystem/operations.hpp>
 
 #include <fstream>
 
@@ -33,7 +33,6 @@
 #include <stdint.h>
 
 namespace memoria {
-namespace v1 {
 
 class FileOutputStreamHandlerImpl: public FileOutputStreamHandler {
     std::filebuf file_;
@@ -244,7 +243,7 @@ FileInputStreamHandlerImpl::FileInputStreamHandlerImpl(const char* file_name)
         MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't open file {}", file_name));
     }
     
-    size_ = memoria::v1::filesystem::file_size(file_name);
+    size_ = memoria::filesystem::file_size(file_name);
     
     closed_ = false;
 }
@@ -286,8 +285,4 @@ std::unique_ptr<FileInputStreamHandler> FileInputStreamHandler::create(const cha
     return std::make_unique<FileInputStreamHandlerImpl>(file);
 }
 
-
-
-
-
-}}
+}

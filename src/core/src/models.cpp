@@ -13,18 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/types/type2type.hpp>
-#include <memoria/v1/core/tools/hash.hpp>
-#include <memoria/v1/core/container/logs.hpp>
+#include <memoria/core/types/type2type.hpp>
+#include <memoria/core/tools/hash.hpp>
+#include <memoria/core/container/logs.hpp>
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
 
 namespace memoria {
-namespace v1 {
-
 
 int64_t DebugCounter = 0;
 int64_t DebugCounter1 = 0;
@@ -33,4 +31,4 @@ int64_t DebugCounter2 = -1;
 LogHandler* Logger::default_handler_ = new DefaultLogHandlerImpl();
 Logger logger("Memoria", Logger::INFO, NULL);
 
-}}
+}

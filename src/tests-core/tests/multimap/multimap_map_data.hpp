@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include "multimap_populator.hpp"
 
@@ -25,7 +25,6 @@
 #include <exception>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <
@@ -100,4 +99,4 @@ private:
 
 
     
-}}}
+}}

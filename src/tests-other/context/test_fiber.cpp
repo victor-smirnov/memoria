@@ -26,8 +26,8 @@
 #include <boost/utility.hpp>
 #include <boost/variant.hpp>
 
-#include <memoria/v1/context/fiber.hpp>
-#include <memoria/v1/context/detail/config.hpp>
+#include <memoria/context/fiber.hpp>
+#include <memoria/context/detail/config.hpp>
 
 #ifdef BOOST_WINDOWS
 #include <windows.h>
@@ -40,7 +40,7 @@
 
 typedef boost::variant<int,std::string> variant_t;
 
-namespace ctx = memoria::v1::context;
+namespace ctx = memoria::context;
 
 int value1 = 0;
 std::string value2;
@@ -453,7 +453,7 @@ void test_goodcatch() {
                 try {
                     value3 = 3.;
                     f = std::move( f).resume();
-                } catch ( memoria::v1::context::detail::forced_unwind const&) {
+                } catch ( memoria::context::detail::forced_unwind const&) {
                     value3 = 4.;
                     throw;
                 } catch (...) {

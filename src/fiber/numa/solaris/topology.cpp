@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/numa/topology.hpp"
+#include "memoria/fiber/numa/topology.hpp"
 
 extern "C" {
 #include <errno.h>
@@ -19,7 +19,7 @@ extern "C" {
 
 namespace {
 
-void explore( std::vector< memoria::v1::fibers::numa::node > & topo, lgrp_cookie_t cookie, lgrp_id_t node) {
+void explore( std::vector< memoria::fibers::numa::node > & topo, lgrp_cookie_t cookie, lgrp_id_t node) {
     int size = ::lgrp_cpus( cookie, node, nullptr, 0, LGRP_CONTENT_HIERARCHY);
     if ( -1 == size) {
         return;
@@ -29,7 +29,7 @@ void explore( std::vector< memoria::v1::fibers::numa::node > & topo, lgrp_cookie
         std::vector< processorid_t > cpus;
         cpus.resize( size);
         ::lgrp_cpus( cookie, node, cpus.data(), size, LGRP_CONTENT_HIERARCHY);
-        memoria::v1::fibers::numa::node n;
+        memoria::fibers::numa::node n;
         n.id = static_cast< std::uint32_t >( node);
         for ( auto cpu_id : cpus) {
             n.logical_cpus.insert( static_cast< std::uint32_t >( cpu_id) );
@@ -47,7 +47,7 @@ void explore( std::vector< memoria::v1::fibers::numa::node > & topo, lgrp_cookie
 
 }
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace numa {
 

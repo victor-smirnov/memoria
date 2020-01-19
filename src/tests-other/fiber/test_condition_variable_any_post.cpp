@@ -16,7 +16,7 @@
 
 #include <boost/test/included/unit_test.hpp>
 
-#include <memoria/v1/fiber/all.hpp>
+#include <memoria/fiber/all.hpp>
 
 typedef std::chrono::nanoseconds  ns;
 typedef std::chrono::milliseconds ms;
@@ -36,8 +36,8 @@ std::chrono::system_clock::time_point delay(int secs, int msecs=0, int nsecs=0) 
 struct condition_test_data {
     condition_test_data() : notified(0), awoken(0) { }
 
-    memoria::v1::fibers::mutex mutex;
-    memoria::v1::fibers::condition_variable_any cond;
+    memoria::fibers::mutex mutex;
+    memoria::fibers::condition_variable_any cond;
     int notified;
     int awoken;
 };
@@ -65,17 +65,17 @@ private:
     
 };
 
-void notify_one_fn( memoria::v1::fibers::condition_variable_any & cond) {
+void notify_one_fn( memoria::fibers::condition_variable_any & cond) {
 	cond.notify_one();
 }
 
-void notify_all_fn( memoria::v1::fibers::condition_variable_any & cond) {
+void notify_all_fn( memoria::fibers::condition_variable_any & cond) {
 	cond.notify_all();
 }
 
 void wait_fn(
-	memoria::v1::fibers::mutex & mtx,
-	memoria::v1::fibers::condition_variable_any & cond) {
+	memoria::fibers::mutex & mtx,
+	memoria::fibers::condition_variable_any & cond) {
 	mtx.lock();
 	cond.wait( mtx);
 	++value;
@@ -84,18 +84,18 @@ void wait_fn(
 
 void test_one_waiter_notify_one() {
 	value = 0;
-	memoria::v1::fibers::mutex mtx;
-	memoria::v1::fibers::condition_variable_any cond;
+	memoria::fibers::mutex mtx;
+	memoria::fibers::condition_variable_any cond;
 
-    memoria::v1::fibers::fiber f1(
-                memoria::v1::fibers::launch::post,
+    memoria::fibers::fiber f1(
+                memoria::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-	memoria::v1::fibers::fiber f2(
-                memoria::v1::fibers::launch::post,
+	memoria::fibers::fiber f2(
+                memoria::fibers::launch::post,
                 notify_one_fn,
                 std::ref( cond) );
 
@@ -109,31 +109,31 @@ void test_one_waiter_notify_one() {
 
 void test_two_waiter_notify_one() {
 	value = 0;
-	memoria::v1::fibers::mutex mtx;
-	memoria::v1::fibers::condition_variable_any cond;
+	memoria::fibers::mutex mtx;
+	memoria::fibers::condition_variable_any cond;
 
-    memoria::v1::fibers::fiber f1(
-                memoria::v1::fibers::launch::post,
+    memoria::fibers::fiber f1(
+                memoria::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    memoria::v1::fibers::fiber f2(
-                memoria::v1::fibers::launch::post,
+    memoria::fibers::fiber f2(
+                memoria::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    memoria::v1::fibers::fiber f3(
-                memoria::v1::fibers::launch::post,
+    memoria::fibers::fiber f3(
+                memoria::fibers::launch::post,
                 notify_one_fn,
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    memoria::v1::fibers::fiber f4(
-                memoria::v1::fibers::launch::post,
+    memoria::fibers::fiber f4(
+                memoria::fibers::launch::post,
                 notify_one_fn,
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
@@ -148,38 +148,38 @@ void test_two_waiter_notify_one() {
 
 void test_two_waiter_notify_all() {
 	value = 0;
-	memoria::v1::fibers::mutex mtx;
-	memoria::v1::fibers::condition_variable_any cond;
+	memoria::fibers::mutex mtx;
+	memoria::fibers::condition_variable_any cond;
 
-    memoria::v1::fibers::fiber f1(
-                memoria::v1::fibers::launch::post,
+    memoria::fibers::fiber f1(
+                memoria::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    memoria::v1::fibers::fiber f2(
-                memoria::v1::fibers::launch::post,
+    memoria::fibers::fiber f2(
+                memoria::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    memoria::v1::fibers::fiber f3(
-                memoria::v1::fibers::launch::post,
+    memoria::fibers::fiber f3(
+                memoria::fibers::launch::post,
                 notify_all_fn,
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    memoria::v1::fibers::fiber f4(
-                memoria::v1::fibers::launch::post,
+    memoria::fibers::fiber f4(
+                memoria::fibers::launch::post,
                 wait_fn,
                 std::ref( mtx),
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
 
-    memoria::v1::fibers::fiber f5(
-                memoria::v1::fibers::launch::post,
+    memoria::fibers::fiber f5(
+                memoria::fibers::launch::post,
                 notify_all_fn,
                 std::ref( cond) );
 	BOOST_CHECK_EQUAL( 0, value);
@@ -198,7 +198,7 @@ int test2 = 0;
 
 int runs = 0;
 
-void fn1( memoria::v1::fibers::mutex & m, memoria::v1::fibers::condition_variable_any & cv) {
+void fn1( memoria::fibers::mutex & m, memoria::fibers::condition_variable_any & cv) {
     m.lock();
     BOOST_CHECK(test2 == 0);
     test1 = 1;
@@ -210,7 +210,7 @@ void fn1( memoria::v1::fibers::mutex & m, memoria::v1::fibers::condition_variabl
     m.unlock();
 }
 
-void fn2( memoria::v1::fibers::mutex & m, memoria::v1::fibers::condition_variable_any & cv) {
+void fn2( memoria::fibers::mutex & m, memoria::fibers::condition_variable_any & cv) {
     m.lock();
     BOOST_CHECK(test2 == 0);
     test1 = 1;
@@ -218,7 +218,7 @@ void fn2( memoria::v1::fibers::mutex & m, memoria::v1::fibers::condition_variabl
     std::chrono::system_clock::time_point t0 = std::chrono::system_clock::now();
     std::chrono::system_clock::time_point t = t0 + ms(250);
     int count=0;
-    while (test2 == 0 && cv.wait_until(m, t) == memoria::v1::fibers::cv_status::no_timeout)
+    while (test2 == 0 && cv.wait_until(m, t) == memoria::fibers::cv_status::no_timeout)
         count++;
     std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
     if (runs == 0) {
@@ -244,7 +244,7 @@ public:
     { return i_ != 0; }
 };
 
-void fn3( memoria::v1::fibers::mutex & m, memoria::v1::fibers::condition_variable_any & cv) {
+void fn3( memoria::fibers::mutex & m, memoria::fibers::condition_variable_any & cv) {
     m.lock();
     BOOST_CHECK(test2 == 0);
     test1 = 1;
@@ -266,14 +266,14 @@ void fn3( memoria::v1::fibers::mutex & m, memoria::v1::fibers::condition_variabl
     m.unlock();
 }
 
-void fn4( memoria::v1::fibers::mutex & m, memoria::v1::fibers::condition_variable_any & cv) {
+void fn4( memoria::fibers::mutex & m, memoria::fibers::condition_variable_any & cv) {
     m.lock();
     BOOST_CHECK(test2 == 0);
     test1 = 1;
     cv.notify_one();
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     int count=0;
-    while (test2 == 0 && cv.wait_for(m, ms(250)) == memoria::v1::fibers::cv_status::no_timeout)
+    while (test2 == 0 && cv.wait_for(m, ms(250)) == memoria::fibers::cv_status::no_timeout)
         count++;
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     if (runs == 0) {
@@ -287,7 +287,7 @@ void fn4( memoria::v1::fibers::mutex & m, memoria::v1::fibers::condition_variabl
     m.unlock();
 }
 
-void fn5( memoria::v1::fibers::mutex & m, memoria::v1::fibers::condition_variable_any & cv) {
+void fn5( memoria::fibers::mutex & m, memoria::fibers::condition_variable_any & cv) {
     m.lock();
     BOOST_CHECK(test2 == 0);
     test1 = 1;
@@ -313,10 +313,10 @@ void do_test_condition_wait() {
     test2 = 0;
     runs = 0;
 
-    memoria::v1::fibers::mutex m;
-    memoria::v1::fibers::condition_variable_any cv;
+    memoria::fibers::mutex m;
+    memoria::fibers::condition_variable_any cv;
     m.lock();
-    memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::post, & fn1, std::ref( m), std::ref( cv) );
+    memoria::fibers::fiber f( memoria::fibers::launch::post, & fn1, std::ref( m), std::ref( cv) );
     BOOST_CHECK(test1 == 0);
     while (test1 == 0)
         cv.wait(m);
@@ -328,7 +328,7 @@ void do_test_condition_wait() {
 }
 
 void test_condition_wait() {
-    memoria::v1::fibers::fiber( memoria::v1::fibers::launch::post, & do_test_condition_wait).join();
+    memoria::fibers::fiber( memoria::fibers::launch::post, & do_test_condition_wait).join();
     do_test_condition_wait();
 }
 
@@ -337,11 +337,11 @@ void do_test_condition_wait_until() {
     test2 = 0;
     runs = 0;
 
-    memoria::v1::fibers::mutex m;
-    memoria::v1::fibers::condition_variable_any cv;
+    memoria::fibers::mutex m;
+    memoria::fibers::condition_variable_any cv;
     {
         m.lock();
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::post, & fn2, std::ref( m), std::ref( cv) );
+        memoria::fibers::fiber f( memoria::fibers::launch::post, & fn2, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(m);
@@ -355,7 +355,7 @@ void do_test_condition_wait_until() {
     test2 = 0;
     {
         m.lock();
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::post, & fn2, std::ref( m), std::ref( cv) );
+        memoria::fibers::fiber f( memoria::fibers::launch::post, & fn2, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(m);
@@ -366,7 +366,7 @@ void do_test_condition_wait_until() {
 }
 
 void test_condition_wait_until() {
-    memoria::v1::fibers::fiber( memoria::v1::fibers::launch::post, & do_test_condition_wait_until).join();
+    memoria::fibers::fiber( memoria::fibers::launch::post, & do_test_condition_wait_until).join();
     do_test_condition_wait_until();
 }
 
@@ -375,11 +375,11 @@ void do_test_condition_wait_until_pred() {
     test2 = 0;
     runs = 0;
 
-    memoria::v1::fibers::mutex m;
-    memoria::v1::fibers::condition_variable_any cv;
+    memoria::fibers::mutex m;
+    memoria::fibers::condition_variable_any cv;
     {
         m.lock();
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::post, & fn3, std::ref( m), std::ref( cv) );
+        memoria::fibers::fiber f( memoria::fibers::launch::post, & fn3, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(m);
@@ -393,7 +393,7 @@ void do_test_condition_wait_until_pred() {
     test2 = 0;
     {
         m.lock();
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::post, & fn3, std::ref( m), std::ref( cv) );
+        memoria::fibers::fiber f( memoria::fibers::launch::post, & fn3, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(m);
@@ -404,7 +404,7 @@ void do_test_condition_wait_until_pred() {
 }
 
 void test_condition_wait_until_pred() {
-    memoria::v1::fibers::fiber( memoria::v1::fibers::launch::post, & do_test_condition_wait_until_pred).join();
+    memoria::fibers::fiber( memoria::fibers::launch::post, & do_test_condition_wait_until_pred).join();
     do_test_condition_wait_until_pred();
 }
 
@@ -413,11 +413,11 @@ void do_test_condition_wait_for() {
     test2 = 0;
     runs = 0;
 
-    memoria::v1::fibers::mutex m;
-    memoria::v1::fibers::condition_variable_any cv;
+    memoria::fibers::mutex m;
+    memoria::fibers::condition_variable_any cv;
     {
         m.lock();
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::post, & fn4, std::ref( m), std::ref( cv) );
+        memoria::fibers::fiber f( memoria::fibers::launch::post, & fn4, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(m);
@@ -431,7 +431,7 @@ void do_test_condition_wait_for() {
     test2 = 0;
     {
         m.lock();
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::post, & fn4, std::ref( m), std::ref( cv) );
+        memoria::fibers::fiber f( memoria::fibers::launch::post, & fn4, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(m);
@@ -442,7 +442,7 @@ void do_test_condition_wait_for() {
 }
 
 void test_condition_wait_for() {
-    memoria::v1::fibers::fiber( memoria::v1::fibers::launch::post, & do_test_condition_wait_for).join();
+    memoria::fibers::fiber( memoria::fibers::launch::post, & do_test_condition_wait_for).join();
     do_test_condition_wait_for();
 }
 
@@ -451,11 +451,11 @@ void do_test_condition_wait_for_pred() {
     test2 = 0;
     runs = 0;
 
-    memoria::v1::fibers::mutex m;
-    memoria::v1::fibers::condition_variable_any cv;
+    memoria::fibers::mutex m;
+    memoria::fibers::condition_variable_any cv;
     {
         m.lock();
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::post, & fn5, std::ref( m), std::ref( cv) );
+        memoria::fibers::fiber f( memoria::fibers::launch::post, & fn5, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(m);
@@ -469,7 +469,7 @@ void do_test_condition_wait_for_pred() {
     test2 = 0;
     {
         m.lock();
-        memoria::v1::fibers::fiber f( memoria::v1::fibers::launch::post, & fn5, std::ref( m), std::ref( cv) );
+        memoria::fibers::fiber f( memoria::fibers::launch::post, & fn5, std::ref( m), std::ref( cv) );
         BOOST_CHECK(test1 == 0);
         while (test1 == 0)
             cv.wait(m);
@@ -480,7 +480,7 @@ void do_test_condition_wait_for_pred() {
 }
 
 void test_condition_wait_for_pred() {
-    memoria::v1::fibers::fiber( memoria::v1::fibers::launch::post, & do_test_condition_wait_for_pred).join();
+    memoria::fibers::fiber( memoria::fibers::launch::post, & do_test_condition_wait_for_pred).join();
     do_test_condition_wait_for_pred();
 }
 

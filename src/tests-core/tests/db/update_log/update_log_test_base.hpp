@@ -15,7 +15,7 @@
 
 #include "../../prototype/bt/bt_test_base.hpp"
 
-#include <memoria/v1/api/db/update_log/update_log_api.hpp>
+#include <memoria/api/db/update_log/update_log_api.hpp>
 
 #include <set>
 #include <map>
@@ -24,7 +24,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -212,4 +211,4 @@ public:
 };
 
 
-}}}
+}}

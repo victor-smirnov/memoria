@@ -24,9 +24,9 @@
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <memoria/v1/filesystem/config.hpp>
-#include <memoria/v1/filesystem/path.hpp>
-#include <memoria/v1/filesystem/operations.hpp>  // for filesystem_error
+#include <memoria/filesystem/config.hpp>
+#include <memoria/filesystem/path.hpp>
+#include <memoria/filesystem/operations.hpp>  // for filesystem_error
 #include <boost/scoped_array.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/assert.hpp>
@@ -50,9 +50,9 @@
 # include <iomanip>
 #endif
 
-namespace fs = memoria::v1::filesystem;
+namespace fs = memoria::filesystem;
 
-using memoria::v1::filesystem::path;
+using memoria::filesystem::path;
 
 using std::string;
 using std::wstring;
@@ -125,8 +125,7 @@ namespace
 //                                                                                      //
 //--------------------------------------------------------------------------------------//
 
-namespace memoria { namespace v1
-{
+namespace memoria {
 namespace filesystem
 {
 
@@ -490,7 +489,7 @@ namespace filesystem
   }
 
 }  // namespace filesystem
-}}  // namespace memoria::v1
+}  // namespace memoria
 
 //--------------------------------------------------------------------------------------//
 //                                                                                      //
@@ -676,8 +675,7 @@ namespace
 }  // unnamed namespace
 
 
-namespace memoria { namespace v1
-{
+namespace memoria {
 namespace filesystem
 {
   namespace detail
@@ -843,7 +841,7 @@ namespace filesystem
   }
 
 }  // namespace filesystem
-}}  // namespace memoria::v1
+}  // namespace memoria
 
 namespace
 {
@@ -928,8 +926,7 @@ namespace
 //              path::codecvt() and path::imbue() implementation                        //
 //--------------------------------------------------------------------------------------//
 
-namespace memoria { namespace v1
-{
+namespace memoria {
 namespace filesystem
 {
   // See comments above
@@ -955,4 +952,4 @@ namespace filesystem
   }
 
 }  // namespace filesystem
-}}  // namespace memoria::v1
+}  // namespace memoria

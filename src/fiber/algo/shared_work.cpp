@@ -4,17 +4,17 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/algo/shared_work.hpp"
+#include "memoria/fiber/algo/shared_work.hpp"
 
 #include <boost/assert.hpp>
 
-#include "memoria/v1/fiber/type.hpp"
+#include "memoria/fiber/type.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace algo {
 
@@ -94,7 +94,7 @@ shared_work::notify() noexcept {
 shared_work::rqueue_type shared_work::rqueue_{};
 std::mutex shared_work::rqueue_mtx_{};
 
-}}}}
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_SUFFIX

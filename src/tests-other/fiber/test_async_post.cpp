@@ -12,7 +12,7 @@
 
 #include <boost/test/included/unit_test.hpp>
 
-#include <memoria/v1/fiber/all.hpp>
+#include <memoria/fiber/all.hpp>
 
 struct A {
     A() = default;
@@ -59,7 +59,7 @@ A fn4( A && a) {
 }
 
 void test_async_1() {
-    memoria::v1::fibers::future< void > f1 = memoria::v1::fibers::async( memoria::v1::fibers::launch::post, fn1);
+    memoria::fibers::future< void > f1 = memoria::fibers::async( memoria::fibers::launch::post, fn1);
     BOOST_CHECK( f1.valid() );
 
     f1.get();
@@ -67,7 +67,7 @@ void test_async_1() {
 
 void test_async_2() {
     int i = 3;
-    memoria::v1::fibers::future< int > f1 = memoria::v1::fibers::async( memoria::v1::fibers::launch::post, fn2, i);
+    memoria::fibers::future< int > f1 = memoria::fibers::async( memoria::fibers::launch::post, fn2, i);
     BOOST_CHECK( f1.valid() );
 
     BOOST_CHECK( i == f1.get());
@@ -75,7 +75,7 @@ void test_async_2() {
 
 void test_async_3() {
     int i = 7;
-    memoria::v1::fibers::future< int& > f1 = memoria::v1::fibers::async( memoria::v1::fibers::launch::post, fn3, std::ref( i) );
+    memoria::fibers::future< int& > f1 = memoria::fibers::async( memoria::fibers::launch::post, fn3, std::ref( i) );
     BOOST_CHECK( f1.valid() );
 
     BOOST_CHECK( & i == & f1.get());
@@ -84,7 +84,7 @@ void test_async_3() {
 void test_async_4() {
     A a1;
     a1.value = 7;
-    memoria::v1::fibers::future< A > f1 = memoria::v1::fibers::async( memoria::v1::fibers::launch::post, fn4, std::move( a1) );
+    memoria::fibers::future< A > f1 = memoria::fibers::async( memoria::fibers::launch::post, fn4, std::move( a1) );
     BOOST_CHECK( f1.valid() );
 
     A a2 = f1.get();
@@ -94,8 +94,8 @@ void test_async_4() {
 void test_async_5() {
     X x = {0};
     BOOST_CHECK( 0 == x.value);
-    memoria::v1::fibers::future< void > f1 = memoria::v1::fibers::async(
-            memoria::v1::fibers::launch::post,
+    memoria::fibers::future< void > f1 = memoria::fibers::async(
+            memoria::fibers::launch::post,
             std::bind( & X::foo, std::ref( x), 3) );
     BOOST_CHECK( f1.valid() );
 
@@ -106,8 +106,8 @@ void test_async_5() {
 void test_async_6() {
     X x = {0};
     BOOST_CHECK( 0 == x.value);
-    memoria::v1::fibers::future< void > f1 = memoria::v1::fibers::async(
-            memoria::v1::fibers::launch::post,
+    memoria::fibers::future< void > f1 = memoria::fibers::async(
+            memoria::fibers::launch::post,
             std::bind( & X::foo, std::ref( x), std::placeholders::_1), 3);
     BOOST_CHECK( f1.valid() );
 

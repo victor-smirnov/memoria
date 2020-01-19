@@ -19,11 +19,10 @@
 #include "packed_biginteger_codec_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 MMA1_STRING_CODEC_SUITE();
 MMA1_INT64_CODEC_SUITE();
 MMA1_BIG_INTEGER_CODEC_SUITE();
 
-}}}
+}}

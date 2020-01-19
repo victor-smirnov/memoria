@@ -4,16 +4,16 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/algo/round_robin.hpp"
+#include "memoria/fiber/algo/round_robin.hpp"
 
 #include <boost/assert.hpp>
-#include <memoria/v1/context/detail/prefetch.hpp>
+#include <memoria/context/detail/prefetch.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace algo {
 
@@ -31,7 +31,7 @@ round_robin::pick_next() noexcept {
     if ( ! rqueue_.empty() ) {
         victim = & rqueue_.front();
         rqueue_.pop_front();
-        memoria::v1::context::detail::prefetch_range( victim, sizeof( context) );
+        memoria::context::detail::prefetch_range( victim, sizeof( context) );
         BOOST_ASSERT( nullptr != victim);
         BOOST_ASSERT( ! victim->ready_is_linked() );
         BOOST_ASSERT( victim->is_resumable() );
@@ -65,7 +65,7 @@ round_robin::notify() noexcept {
     cnd_.notify_all();
 }
 
-}}}}
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_SUFFIX

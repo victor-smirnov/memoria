@@ -14,10 +14,10 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/macosx/macosx_io_poller.hpp>
-#include <memoria/v1/core/tools/ptr_cast.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
-#include <memoria/v1/core/tools/bzero_struct.hpp>
+#include <memoria/reactor/macosx/macosx_io_poller.hpp>
+#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/tools/perror.hpp>
+#include <memoria/core/tools/bzero_struct.hpp>
 
 #include "macosx_io_messages.hpp"
 
@@ -28,12 +28,8 @@
 #include <string.h>
 #include <stdint.h>
 
-
-
 namespace memoria {
-namespace v1 {
 namespace reactor {
-
 
 void assert_ok(int result, const char* msg)
 {
@@ -115,4 +111,4 @@ void KEvent64(int poller_fd, int fd, int filter, int flags, void * fiber_message
 
 }
     
-}}}
+}}

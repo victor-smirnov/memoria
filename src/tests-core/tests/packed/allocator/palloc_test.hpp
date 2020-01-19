@@ -16,17 +16,16 @@
 
 #pragma once
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/core/memory/malloc.hpp>
-#include <memoria/v1/core/packed/tools/packed_allocator.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/core/memory/malloc.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 class PackedAllocatorTest: public TestState {
@@ -288,4 +287,4 @@ public:
 };
 
 
-}}}
+}}

@@ -4,20 +4,20 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/context.hpp"
+#include "memoria/fiber/context.hpp"
 
 #include <cstdlib>
 #include <mutex>
 #include <new>
 
-#include "memoria/v1/fiber/exceptions.hpp"
-#include "memoria/v1/fiber/scheduler.hpp"
+#include "memoria/fiber/exceptions.hpp"
+#include "memoria/fiber/scheduler.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 
 class main_context final : public context {
@@ -29,8 +29,8 @@ public:
 
 class dispatcher_context final : public context {
 private:
-    memoria::v1::context::fiber
-    run_( memoria::v1::context::fiber && c){
+    memoria::context::fiber
+    run_( memoria::context::fiber && c){
 #if (defined(MEMORIA_USE_UCONTEXT)||defined(MEMORIA_USE_WINFIB))
         std::move( c).resume();
 #endif
@@ -39,10 +39,10 @@ private:
     }
 
 public:
-    dispatcher_context( memoria::v1::context::preallocated const& palloc, default_stack && salloc) :
+    dispatcher_context( memoria::context::preallocated const& palloc, default_stack && salloc) :
         context{ 0, type::dispatcher_context, launch::post }
     {
-        c_ = memoria::v1::context::fiber{
+        c_ = memoria::context::fiber{
                 std::allocator_arg,
                 palloc,
                 salloc,
@@ -68,7 +68,7 @@ static ::boost::intrusive_ptr< context > make_dispatcher_context() {
     // placement new of context on top of fiber's stack
     return ::boost::intrusive_ptr< context >{
         new ( storage) dispatcher_context{
-                memoria::v1::context::preallocated{ storage, size, sctx }, std::move( salloc) } };
+                memoria::context::preallocated{ storage, size, sctx }, std::move( salloc) } };
 }
 
 // schwarz counter
@@ -159,9 +159,9 @@ void context::resume() noexcept
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
     // pass pointer to the context that resumes `this`
-    std::move( c_).resume_with([&](memoria::v1::context::fiber && c){
+    std::move( c_).resume_with([&](memoria::context::fiber && c){
                 prev->c_ = std::move( c);
-                return memoria::v1::context::fiber{};
+                return memoria::context::fiber{};
     });
 }
 
@@ -173,10 +173,10 @@ context::resume( detail::spinlock_lock & lk) noexcept
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
     // pass pointer to the context that resumes `this`
-    std::move( c_).resume_with([&](memoria::v1::context::fiber && c){
+    std::move( c_).resume_with([&](memoria::context::fiber && c){
                 prev->c_ = std::move( c);
                 lk.unlock();
-                return memoria::v1::context::fiber{};
+                return memoria::context::fiber{};
     });
 }
 
@@ -187,10 +187,10 @@ context::resume( context * ready_ctx) noexcept {
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
     // pass pointer to the context that resumes `this`
-    std::move( c_).resume_with([&](memoria::v1::context::fiber && c){
+    std::move( c_).resume_with([&](memoria::context::fiber && c){
                 prev->c_ = std::move( c);
                 context::active()->schedule( ready_ctx);
-                return memoria::v1::context::fiber{};
+                return memoria::context::fiber{};
     });
 }
 
@@ -229,20 +229,20 @@ context::yield() noexcept {
     get_scheduler()->yield( context::active() );
 }
 
-memoria::v1::context::fiber
+memoria::context::fiber
 context::suspend_with_cc() noexcept {
     context * prev = this;
     // context_initializer::active_ will point to `this`
     // prev will point to previous active context
     std::swap( context_initializer::active_, prev);
     // pass pointer to the context that resumes `this`
-    return std::move( c_).resume_with([&](memoria::v1::context::fiber && c){
+    return std::move( c_).resume_with([&](memoria::context::fiber && c){
         prev->c_ = std::move( c);
-        return memoria::v1::context::fiber{};
+        return memoria::context::fiber{};
     });
 }
 
-memoria::v1::context::fiber
+memoria::context::fiber
 context::terminate() noexcept {
     // protect for concurrent access
     std::unique_lock< detail::spinlock > lk{ splk_ };
@@ -408,7 +408,7 @@ context::attach( context * ctx) noexcept {
     get_scheduler()->attach_worker_context( ctx);
 }
 
-}}}
+}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_SUFFIX

@@ -16,11 +16,11 @@
 
 
 
-#include <memoria/v1/core/tools/stream.hpp>
-#include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/core/tools/stream.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/reactor/reactor.hpp>
 
-#include <memoria/v1/reactor/file.hpp>
+#include <memoria/reactor/file.hpp>
 
 
 #include <fstream>
@@ -29,7 +29,6 @@
 #include <stdint.h>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 class BufferedFileOutputStreamHandlerImpl: public FileOutputStreamHandler {
@@ -222,7 +221,7 @@ void BufferedFileOutputStreamHandlerImpl::write(const void* mem, size_t offset, 
 BufferedFileInputStreamHandlerImpl::BufferedFileInputStreamHandlerImpl(const filesystem::path& file_name):
     file_(open_buffered_file(file_name, FileFlags::RDONLY))
 {
-    size_ = memoria::v1::filesystem::file_size(file_name);
+    size_ = memoria::filesystem::file_size(file_name);
 }
 
 BufferedFileInputStreamHandlerImpl::~BufferedFileInputStreamHandlerImpl() noexcept
@@ -258,4 +257,4 @@ std::unique_ptr<FileInputStreamHandler> FileInputStreamHandler::create_buffered(
 }
     
     
-}}
+}

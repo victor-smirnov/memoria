@@ -14,8 +14,8 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/macosx/macosx_socket_impl.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/reactor/macosx/macosx_socket_impl.hpp>
+#include <memoria/core/tools/perror.hpp>
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -30,7 +30,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 IPAddress::IPAddress()
@@ -132,7 +131,4 @@ std::ostream& operator<<(std::ostream& out, const IPAddress& addr)
     return out;
 }
 
-
-
-    
-}}}
+}}

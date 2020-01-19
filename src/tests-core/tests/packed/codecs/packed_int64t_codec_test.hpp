@@ -18,12 +18,11 @@
 
 #include "packed_codecs_test_base.hpp"
 
-#include <memoria/v1/core/bignum/int64_codec.hpp>
+#include <memoria/core/bignum/int64_codec.hpp>
 
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 class PackedInt64TCodecTest: public PackedCodecsTestBase<int64_t> {
@@ -101,4 +100,4 @@ public:
 #define MMA1_INT64_CODEC_SUITE() \
 MMA1_CLASS_SUITE(PackedInt64TCodecTest, "PackedInt64TCodecSuite")
 
-}}}
+}}

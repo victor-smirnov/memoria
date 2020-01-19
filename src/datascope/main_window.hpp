@@ -21,7 +21,6 @@
 #include <QModelIndex>
 
 namespace memoria {
-namespace v1 {
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
 {
@@ -47,4 +46,4 @@ private slots:
     void quit();
 };
 
-}}
+}

@@ -13,25 +13,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/file.hpp>
-#include <memoria/v1/reactor/file_streams.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/file.hpp>
+#include <memoria/reactor/file_streams.hpp>
 
-#include <memoria/v1/core/tools/time.hpp>
-#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include "file_tests.hpp"
 
 #include <algorithm>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
-using namespace memoria::v1::reactor;
+using namespace memoria::reactor;
 
 struct FileUnbufferedBlockTestState: TestState {
     using Base = TestState;
@@ -147,4 +146,4 @@ auto file_unbuffered_block_test = register_test_in_suite<FnTest<FileUnbufferedBl
 
 
 
-}}}
+}}

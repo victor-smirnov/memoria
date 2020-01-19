@@ -16,13 +16,12 @@
 
 #pragma once
 
-#include <memoria/v1/tools/tests_inc.hpp>
+#include <memoria/tools/tests_inc.hpp>
 
 
 #include "packed_louds_create_test.hpp"
 
 namespace memoria {
-namespace v1 {
 
 class PackedLoudsTestSuite: public TestSuite {
 public:
@@ -33,4 +32,4 @@ public:
     }
 };
 
-}}
+}

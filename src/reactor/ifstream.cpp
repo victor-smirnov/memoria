@@ -13,16 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//#include <memoria/v1/reactor/iostreams.hpp>
-#include <memoria/v1/reactor/file.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
-#include <memoria/v1/core/tools/ptr_cast.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+//#include <memoria/reactor/iostreams.hpp>
+#include <memoria/reactor/file.hpp>
+#include <memoria/core/tools/perror.hpp>
+#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
-
-
-    
-}}}
+}}

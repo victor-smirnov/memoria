@@ -1,12 +1,11 @@
 
-#include <memoria/v1/reactor/console_streams.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/reactor/console_streams.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
 #include <unistd.h>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 size_t ConsoleInputStream::read(uint8_t* data, size_t size)
@@ -66,9 +65,4 @@ void ConsoleOutputStream::flush() {
 
 }
 
-
-
-
-
-
-}}}
+}}

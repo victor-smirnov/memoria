@@ -14,8 +14,8 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/message/fiber_io_message.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/message/fiber_io_message.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include "linux_io_messages.hpp"
 #include "linux_timer.hpp"
@@ -23,7 +23,6 @@
 #include <boost/assert.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -69,4 +68,4 @@ void TimerMessage::on_receive(const epoll_event& event)
     fired_times_ = counts;
 }
     
-}}}
+}}

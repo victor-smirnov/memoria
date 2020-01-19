@@ -31,10 +31,9 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <memoria/v1/disruptor/sequence.h>
+#include <memoria/disruptor/sequence.h>
 
 namespace memoria {
-namespace v1 {
 namespace disruptor {
 namespace test {
 
@@ -65,4 +64,4 @@ BOOST_AUTO_TEST_CASE(IsCacheLineAligned) {
 BOOST_AUTO_TEST_SUITE_END()  // BlockingStrategy suite
 
 }  // namepspace test
-}}}  // namepspace disruptor
+}}  // namepspace memoria::disruptor

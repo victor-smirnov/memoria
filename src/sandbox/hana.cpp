@@ -14,17 +14,17 @@
 // limitations under the License.
 
 
-#include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/core/datatypes/datatypes.hpp>
+#include <memoria/profiles/default/default.hpp>
+#include <memoria/core/datatypes/datatypes.hpp>
 
-#include <memoria/v1/core/types/hana.hpp>
-#include <memoria/v1/core/types/mp11.hpp>
+#include <memoria/core/types/hana.hpp>
+#include <memoria/core/types/mp11.hpp>
 
-#include <memoria/v1/core/types/algo/select.hpp>
+#include <memoria/core/types/algo/select.hpp>
 
-#include <memoria/v1/core/tools/arena_buffer.hpp>
+#include <memoria/core/tools/arena_buffer.hpp>
 
-#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/core/tools/time.hpp>
 
 
 #include <iostream>

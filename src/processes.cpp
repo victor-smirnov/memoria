@@ -14,16 +14,16 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/process.hpp>
-#include <memoria/v1/reactor/application.hpp>
+#include <memoria/reactor/process.hpp>
+#include <memoria/reactor/application.hpp>
 
-#include <memoria/v1/core/tools/type_name.hpp>
+#include <memoria/core/tools/type_name.hpp>
 #include <boost/optional/optional_io.hpp>
 
 #include <iostream>
 
 using namespace memoria::v1;
-using namespace memoria::v1::reactor;
+using namespace memoria::reactor;
 
 
 int main(int argc, char** argv, char** envp)

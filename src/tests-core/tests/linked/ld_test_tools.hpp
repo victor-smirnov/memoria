@@ -14,17 +14,16 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/types.hpp>
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/core/types.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include <unordered_map>
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -59,5 +58,4 @@ void assert_arrays_equal(const std::unordered_map<K, V>& expected, const LDDMapV
     });
 }
 
-}
 }}

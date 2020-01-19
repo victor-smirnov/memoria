@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/numa/topology.hpp"
+#include "memoria/fiber/numa/topology.hpp"
 
 #include <exception>
 #include <map>
@@ -20,7 +20,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
 
-#include "memoria/v1/fiber/exceptions.hpp"
+#include "memoria/fiber/exceptions.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 # include MEMORIA_BOOST_ABI_PREFIX
@@ -136,7 +136,7 @@ std::vector< std::uint32_t > distance_from_line( std::string const& content) {
 
 }
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace numa {
 
@@ -202,7 +202,7 @@ std::vector< node > topology() {
 
 #else
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace numa {
 

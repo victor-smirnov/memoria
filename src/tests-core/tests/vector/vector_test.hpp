@@ -18,12 +18,11 @@
 
 #include "../prototype/btss/btss_test_base.hpp"
 
-#include <memoria/v1/api/vector/vector_api.hpp>
+#include <memoria/api/vector/vector_api.hpp>
 
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -118,4 +117,4 @@ public:
 
 
 
-}}}
+}}

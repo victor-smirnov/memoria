@@ -21,7 +21,6 @@
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <int32_t BitsPerSymbol, bool Dense = true>
@@ -130,4 +129,4 @@ public:
     }
 };
 
-}}}
+}}

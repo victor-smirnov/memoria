@@ -23,7 +23,6 @@
 #include <functional>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <typename T>
@@ -86,4 +85,4 @@ public:
 using Name = BitmapRankTest<Type>;\
 MMA1_CLASS_SUITE(Name, #Name)
 
-}}}
+}}

@@ -17,16 +17,16 @@
 
 #pragma once
 
-#include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
-#include <memoria/v1/core/container/container.hpp>
-#include <memoria/v1/core/container/macros.hpp>
+#include <memoria/prototypes/bt_fl/btfl_names.hpp>
+#include <memoria/core/container/container.hpp>
+#include <memoria/core/container/macros.hpp>
 
 #include "../btfl_test_names.hpp"
 
 #include <vector>
 
 namespace memoria {
-namespace v1 {
+
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(btfl_test::CtrApiName)
 
@@ -60,4 +60,4 @@ MEMORIA_V1_CONTAINER_PART_END
 #undef M_PARAMS
 #undef M_TYPE
 
-}}
+}

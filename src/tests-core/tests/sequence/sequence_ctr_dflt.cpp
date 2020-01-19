@@ -15,16 +15,15 @@
 
 
 
-#include <memoria/v1/containers/seq_dense/seqd_impl.hpp>
-#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
+#include <memoria/containers/seq_dense/seqd_impl.hpp>
+#include <memoria/allocators/inmem/common/container_collection_cfg.hpp>
 
 namespace memoria {
-namespace v1 {
 
 using Profile = DefaultProfile<>;
 using Ctr1Name = Sequence<1>;
 
 MMA1_INSTANTIATE_CTR_BTSS(Ctr1Name, Profile)
     
-}}
+}
 

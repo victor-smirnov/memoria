@@ -5,21 +5,21 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "memoria/v1/fiber/algo/work_stealing.hpp"
+#include "memoria/fiber/algo/work_stealing.hpp"
 
 #include <random>
 
 #include <boost/assert.hpp>
-#include <memoria/v1/context/detail/prefetch.hpp>
+#include <memoria/context/detail/prefetch.hpp>
 
-#include "memoria/v1/fiber/detail/thread_barrier.hpp"
-#include "memoria/v1/fiber/type.hpp"
+#include "memoria/fiber/detail/thread_barrier.hpp"
+#include "memoria/fiber/type.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace algo {
 
@@ -37,7 +37,7 @@ work_stealing::work_stealing( std::uint32_t thread_count, bool suspend) :
         id_{ counter_++ },
         thread_count_{ thread_count },
         suspend_{ suspend } {
-    static memoria::v1::fibers::detail::thread_barrier b{ thread_count };
+    static memoria::fibers::detail::thread_barrier b{ thread_count };
     // initialize the array of schedulers
     static std::once_flag flag;
     std::call_once( flag, & work_stealing::init_, thread_count_, std::ref( schedulers_) );
@@ -58,7 +58,7 @@ context *
 work_stealing::pick_next() noexcept {
     context * victim = rqueue_.pop();
     if ( nullptr != victim) {
-        memoria::v1::context::detail::prefetch_range( victim, sizeof( context) );
+        memoria::context::detail::prefetch_range( victim, sizeof( context) );
         if ( ! victim->is_context( type::pinned_context) ) {
             context::active()->attach( victim);
         }
@@ -80,7 +80,7 @@ work_stealing::pick_next() noexcept {
             victim = schedulers_[id]->steal();
         } while ( nullptr == victim && count < size);
         if ( nullptr != victim) {
-            memoria::v1::context::detail::prefetch_range( victim, sizeof( context) );
+            memoria::context::detail::prefetch_range( victim, sizeof( context) );
             BOOST_ASSERT( ! victim->is_context( type::pinned_context) );
             context::active()->attach( victim);
         }
@@ -113,7 +113,7 @@ work_stealing::notify() noexcept {
     }
 }
 
-}}}}
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_SUFFIX

@@ -13,10 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/core/strings/format.hpp>
-#include <memoria/v1/core/tools/ptr_cast.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/core/strings/format.hpp>
+#include <memoria/core/tools/ptr_cast.hpp>
 
 #include <unicode/utext.h>
 #include <cstring>
@@ -25,7 +25,6 @@
 #define I32_FLAG(bitIndex) ((int32_t)1<<(bitIndex))
 
 namespace memoria {
-namespace v1 {
 
 struct UTextUCharFuncsHolder {
     const UTextFuncs* funcs_;
@@ -496,7 +495,4 @@ int64_t get_u16_index_for(UText* ut, int64_t native_index)
     return get_chunk_index_for(ut, native_index) + ut->chunkNativeStart;
 }
 
-
-
-
-}}
+}

@@ -16,14 +16,13 @@
 #include "../../prototype/bt/bt_test_base.hpp"
 #include "update_log_test_base.hpp"
 
-#include <memoria/v1/api/db/update_log/update_log_api.hpp>
+#include <memoria/api/db/update_log/update_log_api.hpp>
 
 #include <set>
 #include <map>
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 class UpdateLogAppendTestSuite: public UpdateLogTestBase {
@@ -166,4 +165,4 @@ namespace {
 auto Suite1 = register_class_suite<UpdateLogAppendTestSuite>("UpdateLog");
 }
 
-}}}
+}}

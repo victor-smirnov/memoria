@@ -11,7 +11,7 @@
 
 #include <boost/test/included/unit_test.hpp>
 
-#include <memoria/v1/fiber/all.hpp>
+#include <memoria/fiber/all.hpp>
 
 int gi = 7;
 
@@ -33,17 +33,17 @@ struct A {
     int value;
 };
 
-void fn1( memoria::v1::fibers::promise< int > * p, int i) {
-    memoria::v1::this_fiber::yield();
+void fn1( memoria::fibers::promise< int > * p, int i) {
+    memoria::this_fiber::yield();
     p->set_value( i);
 }
 
 void fn2() {
-    memoria::v1::fibers::promise< int > p;
-    memoria::v1::fibers::future< int > f( p.get_future() );
-    memoria::v1::this_fiber::yield();
-    memoria::v1::fibers::fiber( memoria::v1::fibers::launch::dispatch, fn1, & p, 7).detach();
-    memoria::v1::this_fiber::yield();
+    memoria::fibers::promise< int > p;
+    memoria::fibers::future< int > f( p.get_future() );
+    memoria::this_fiber::yield();
+    memoria::fibers::fiber( memoria::fibers::launch::dispatch, fn1, & p, 7).detach();
+    memoria::this_fiber::yield();
     BOOST_CHECK( 7 == f.get() );
 }
 
@@ -85,173 +85,173 @@ A fn10() {
 // promise
 void test_promise_create() {
     // use std::allocator<> as default
-    memoria::v1::fibers::promise< int > p1;
+    memoria::fibers::promise< int > p1;
 
     // use std::allocator<> as user defined
-    std::allocator< memoria::v1::fibers::promise< int > > alloc;
-    memoria::v1::fibers::promise< int > p2( std::allocator_arg,  alloc);
+    std::allocator< memoria::fibers::promise< int > > alloc;
+    memoria::fibers::promise< int > p2( std::allocator_arg,  alloc);
 }
 
 void test_promise_create_ref() {
     // use std::allocator<> as default
-    memoria::v1::fibers::promise< int& > p1;
+    memoria::fibers::promise< int& > p1;
 
     // use std::allocator<> as user defined
-    std::allocator< memoria::v1::fibers::promise< int& > > alloc;
-    memoria::v1::fibers::promise< int& > p2( std::allocator_arg, alloc);
+    std::allocator< memoria::fibers::promise< int& > > alloc;
+    memoria::fibers::promise< int& > p2( std::allocator_arg, alloc);
 }
 
 void test_promise_create_void() {
     // use std::allocator<> as default
-    memoria::v1::fibers::promise< void > p1;
+    memoria::fibers::promise< void > p1;
 
     // use std::allocator<> as user defined
-    std::allocator< memoria::v1::fibers::promise< void > > alloc;
-    memoria::v1::fibers::promise< void > p2( std::allocator_arg, alloc);
+    std::allocator< memoria::fibers::promise< void > > alloc;
+    memoria::fibers::promise< void > p2( std::allocator_arg, alloc);
 }
 
 void test_promise_move() {
-    memoria::v1::fibers::promise< int > p1;
+    memoria::fibers::promise< int > p1;
 
     // move construction
-    memoria::v1::fibers::promise< int > p2( std::move( p1) );
+    memoria::fibers::promise< int > p2( std::move( p1) );
 
     // move assigment
     p1 = std::move( p2);
 }
 
 void test_promise_move_ref() {
-    memoria::v1::fibers::promise< int& > p1;
+    memoria::fibers::promise< int& > p1;
 
     // move construction
-    memoria::v1::fibers::promise< int& > p2( std::move( p1) );
+    memoria::fibers::promise< int& > p2( std::move( p1) );
 
     // move assigment
     p1 = std::move( p2);
 }
 
 void test_promise_move_void() {
-    memoria::v1::fibers::promise< void > p1;
+    memoria::fibers::promise< void > p1;
 
     // move construction
-    memoria::v1::fibers::promise< void > p2( std::move( p1) );
+    memoria::fibers::promise< void > p2( std::move( p1) );
 
     // move assigment
     p1 = std::move( p2);
 }
 
 void test_promise_swap() {
-    memoria::v1::fibers::promise< int > p1;
+    memoria::fibers::promise< int > p1;
 
     // move construction
-    memoria::v1::fibers::promise< int > p2( std::move( p1) );
+    memoria::fibers::promise< int > p2( std::move( p1) );
 
     // swap
     p1.swap( p2);
 }
 
 void test_promise_swap_ref() {
-    memoria::v1::fibers::promise< int& > p1;
+    memoria::fibers::promise< int& > p1;
 
     // move construction
-    memoria::v1::fibers::promise< int& > p2( std::move( p1) );
+    memoria::fibers::promise< int& > p2( std::move( p1) );
 
     // swap
     p1.swap( p2);
 }
 
 void test_promise_swap_void() {
-    memoria::v1::fibers::promise< void > p1;
+    memoria::fibers::promise< void > p1;
 
     // move construction
-    memoria::v1::fibers::promise< void > p2( std::move( p1) );
+    memoria::fibers::promise< void > p2( std::move( p1) );
 
     // swap
     p1.swap( p2);
 }
 
 void test_promise_get_future() {
-    memoria::v1::fibers::promise< int > p1;
+    memoria::fibers::promise< int > p1;
 
     // retrieve future
-    memoria::v1::fibers::future< int > f1 = p1.get_future();
+    memoria::fibers::future< int > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // retrieve future a second time
     bool thrown = false;
     try {
         f1 = p1.get_future();
-    } catch ( memoria::v1::fibers::future_already_retrieved const&) {
+    } catch ( memoria::fibers::future_already_retrieved const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 
     // move construction
-    memoria::v1::fibers::promise< int > p2( std::move( p1) );
+    memoria::fibers::promise< int > p2( std::move( p1) );
 
     // retrieve future from uninitialized
     thrown = false;
     try {
         f1 = p1.get_future();
-    } catch ( memoria::v1::fibers::promise_uninitialized const&) {
+    } catch ( memoria::fibers::promise_uninitialized const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 }
 
 void test_promise_get_future_ref() {
-    memoria::v1::fibers::promise< int& > p1;
+    memoria::fibers::promise< int& > p1;
 
     // retrieve future
-    memoria::v1::fibers::future< int& > f1 = p1.get_future();
+    memoria::fibers::future< int& > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // retrieve future a second time
     bool thrown = false;
     try {
         f1 = p1.get_future();
-    } catch ( memoria::v1::fibers::future_already_retrieved const&) {
+    } catch ( memoria::fibers::future_already_retrieved const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 
     // move construction
-    memoria::v1::fibers::promise< int& > p2( std::move( p1) );
+    memoria::fibers::promise< int& > p2( std::move( p1) );
 
     // retrieve future from uninitialized
     thrown = false;
     try {
         f1 = p1.get_future();
-    } catch ( memoria::v1::fibers::promise_uninitialized const&) {
+    } catch ( memoria::fibers::promise_uninitialized const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 }
 
 void test_promise_get_future_void() {
-    memoria::v1::fibers::promise< void > p1;
+    memoria::fibers::promise< void > p1;
 
     // retrieve future
-    memoria::v1::fibers::future< void > f1 = p1.get_future();
+    memoria::fibers::future< void > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // retrieve future a second time
     bool thrown = false;
     try {
         f1 = p1.get_future();
-    } catch ( memoria::v1::fibers::future_already_retrieved const&) {
+    } catch ( memoria::fibers::future_already_retrieved const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 
     // move construction
-    memoria::v1::fibers::promise< void > p2( std::move( p1) );
+    memoria::fibers::promise< void > p2( std::move( p1) );
 
     // retrieve future from uninitialized
     thrown = false;
     try {
         f1 = p1.get_future();
-    } catch ( memoria::v1::fibers::promise_uninitialized const&) {
+    } catch ( memoria::fibers::promise_uninitialized const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -259,8 +259,8 @@ void test_promise_get_future_void() {
 
 void test_promise_set_value() {
     // promise takes a copyable as return type
-    memoria::v1::fibers::promise< int > p1;
-    memoria::v1::fibers::future< int > f1 = p1.get_future();
+    memoria::fibers::promise< int > p1;
+    memoria::fibers::future< int > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // copy value
@@ -271,7 +271,7 @@ void test_promise_set_value() {
     bool thrown = false;
     try {
         p1.set_value( 11);
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -279,8 +279,8 @@ void test_promise_set_value() {
 
 void test_promise_set_value_move() {
     // promise takes a copyable as return type
-    memoria::v1::fibers::promise< A > p1;
-    memoria::v1::fibers::future< A > f1 = p1.get_future();
+    memoria::fibers::promise< A > p1;
+    memoria::fibers::future< A > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // move value
@@ -294,7 +294,7 @@ void test_promise_set_value_move() {
     try {
         A a;
         p1.set_value( std::move( a) );
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -302,8 +302,8 @@ void test_promise_set_value_move() {
 
 void test_promise_set_value_ref() {
     // promise takes a reference as return type
-    memoria::v1::fibers::promise< int& > p1;
-    memoria::v1::fibers::future< int& > f1 = p1.get_future();
+    memoria::fibers::promise< int& > p1;
+    memoria::fibers::future< int& > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // copy value
@@ -316,7 +316,7 @@ void test_promise_set_value_ref() {
     bool thrown = false;
     try {
         p1.set_value( i);
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -324,8 +324,8 @@ void test_promise_set_value_ref() {
 
 void test_promise_set_value_void() {
     // promise takes a copyable as return type
-    memoria::v1::fibers::promise< void > p1;
-    memoria::v1::fibers::future< void > f1 = p1.get_future();
+    memoria::fibers::promise< void > p1;
+    memoria::fibers::future< void > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
 
     // set void
@@ -336,15 +336,15 @@ void test_promise_set_value_void() {
     bool thrown = false;
     try {
         p1.set_value();
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 }
 
 void test_promise_set_exception() {
-    memoria::v1::fibers::promise< int > p1;
-    memoria::v1::fibers::future< int > f1 = p1.get_future();
+    memoria::fibers::promise< int > p1;
+    memoria::fibers::future< int > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
     p1.set_exception( std::make_exception_ptr( my_exception() ) );
 
@@ -352,7 +352,7 @@ void test_promise_set_exception() {
     bool thrown = false;
     try {
         p1.set_exception( std::make_exception_ptr( my_exception() ) );
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -361,14 +361,14 @@ void test_promise_set_exception() {
     thrown = false;
     try
     { p1.set_value( 11); }
-    catch ( memoria::v1::fibers::promise_already_satisfied const&)
+    catch ( memoria::fibers::promise_already_satisfied const&)
     { thrown = true; }
     BOOST_CHECK( thrown);
 }
 
 void test_promise_set_exception_ref() {
-    memoria::v1::fibers::promise< int& > p1;
-    memoria::v1::fibers::future< int& > f1 = p1.get_future();
+    memoria::fibers::promise< int& > p1;
+    memoria::fibers::future< int& > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
     p1.set_exception( std::make_exception_ptr( my_exception() ) );
 
@@ -376,7 +376,7 @@ void test_promise_set_exception_ref() {
     bool thrown = false;
     try {
         p1.set_exception( std::make_exception_ptr( my_exception() ) );
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -386,15 +386,15 @@ void test_promise_set_exception_ref() {
     int i = 11;
     try {
         p1.set_value( i);
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 }
 
 void test_promise_set_exception_void() {
-    memoria::v1::fibers::promise< void > p1;
-    memoria::v1::fibers::future< void > f1 = p1.get_future();
+    memoria::fibers::promise< void > p1;
+    memoria::fibers::future< void > f1 = p1.get_future();
     BOOST_CHECK( f1.valid() );
     p1.set_exception( std::make_exception_ptr( my_exception() ) );
 
@@ -402,7 +402,7 @@ void test_promise_set_exception_void() {
     bool thrown = false;
     try {
         p1.set_exception( std::make_exception_ptr( my_exception() ) );
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
@@ -411,7 +411,7 @@ void test_promise_set_exception_void() {
     thrown = false;
     try {
         p1.set_value();
-    } catch ( memoria::v1::fibers::promise_already_satisfied const&) {
+    } catch ( memoria::fibers::promise_already_satisfied const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);

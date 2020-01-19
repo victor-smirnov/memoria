@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/i64_codec.hpp>
-#include <memoria/v1/core/tools/elias_codec.hpp>
-#include <memoria/v1/core/tools/time.hpp>
-#include <memoria/v1/core/memory/malloc.hpp>
+#include <memoria/core/tools/i64_codec.hpp>
+#include <memoria/core/tools/elias_codec.hpp>
+#include <memoria/core/tools/time.hpp>
+#include <memoria/core/memory/malloc.hpp>
 
 #include "bitmap_test_base.hpp"
 
@@ -28,7 +28,6 @@
 #include <functional>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -162,4 +161,4 @@ public:
 using Name = BitmapSpeedTest<Type>;\
 MMA1_CLASS_SUITE(Name, #Name)
 
-}}}
+}}

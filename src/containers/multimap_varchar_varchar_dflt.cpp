@@ -13,17 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/profiles/default/default.hpp>
 
-#include <memoria/v1/containers/multimap/multimap_impl.hpp>
+#include <memoria/containers/multimap/multimap_impl.hpp>
 
 namespace memoria {
-namespace v1 {
 
 using Profile = DefaultProfile<>;
-using CtrName = memoria::v1::Multimap<Varchar, Varchar>;
+using CtrName = memoria::Multimap<Varchar, Varchar>;
 
 MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
 
-}}
+}
 

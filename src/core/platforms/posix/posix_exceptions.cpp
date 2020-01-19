@@ -13,14 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
 
 #include <errno.h>
 #include <string.h>
 
 namespace memoria {
-namespace v1 {
 
 SystemException::SystemException() {
     (*this) << SystemErrorCodeInfo(errno) << SystemErrorStrInfo(strerror(errno));
@@ -31,5 +30,4 @@ SystemException::SystemException(int32_t errno_v)
     (*this) << SystemErrorCodeInfo(errno_v) << SystemErrorStrInfo(strerror(errno_v));
 }
 
-}
 }

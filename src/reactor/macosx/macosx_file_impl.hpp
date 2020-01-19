@@ -15,12 +15,11 @@
 
 #pragma once
 
-#include <memoria/v1/reactor/file.hpp>
+#include <memoria/reactor/file.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 class FileImplBase {
@@ -103,7 +102,4 @@ public:
     virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error);
 };
 
-
-
-
-}}}
+}}

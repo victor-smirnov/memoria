@@ -14,10 +14,10 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/linux/linux_socket_impl.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
-#include <memoria/v1/core/strings/format.hpp>
+#include <memoria/reactor/linux/linux_socket_impl.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/core/tools/perror.hpp>
+#include <memoria/core/strings/format.hpp>
 
 #include "linux_socket.hpp"
 
@@ -40,15 +40,7 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
-    
-
-
-
-
-
-
 
 ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port):
     SocketImpl(socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK , 0)),
@@ -154,4 +146,4 @@ SocketConnectionData ServerSocketImpl::accept()
 
 
 
-}}}
+}}

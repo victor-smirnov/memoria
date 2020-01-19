@@ -1,17 +1,17 @@
 
-#include "memoria/v1/fiber/all.hpp"
-#include "memoria/v1/reactor/application.hpp"
-#include "memoria/v1/filesystem/path.hpp"
-#include "memoria/v1/filesystem/operations.hpp"
-#include <memoria/v1/core/tools/random.hpp>
-#include <memoria/v1/core/tools/time.hpp>
+#include "memoria/fiber/all.hpp"
+#include "memoria/reactor/application.hpp"
+#include "memoria/filesystem/path.hpp"
+#include "memoria/filesystem/operations.hpp"
+#include <memoria/core/tools/random.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include <iostream>
 #include <thread>
 #include <vector>
 
 using namespace memoria::v1;
-using namespace memoria::v1::reactor;
+using namespace memoria::reactor;
 
 
 

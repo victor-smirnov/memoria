@@ -13,10 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/reactor/application.hpp>
+#include <memoria/reactor/application.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -61,4 +60,4 @@ filesystem::path get_image_name()
 
 
 
-}}}
+}}

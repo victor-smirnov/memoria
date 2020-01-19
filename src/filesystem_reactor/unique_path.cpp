@@ -13,9 +13,9 @@
 # define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <memoria/v1/filesystem/operations.hpp>
+#include <memoria/filesystem/operations.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include <cassert>
 
@@ -32,7 +32,7 @@
 #   endif
 # endif
 
-namespace mr = memoria::v1::reactor;
+namespace mr = memoria::reactor;
 
 namespace {
 
@@ -130,7 +130,7 @@ void system_crypt_random(void* buf, std::size_t len, boost::system::error_code* 
 
 }  // unnamed namespace
 
-namespace memoria { namespace v1 { namespace filesystem { namespace detail {
+namespace memoria { namespace filesystem { namespace detail {
 
 MEMORIA_BOOST_FILESYSTEM_DECL
 path unique_path(const path& model, boost::system::error_code* ec)
@@ -179,4 +179,4 @@ path unique_path(const path& model, boost::system::error_code* ec)
   return s;
 }
 
-}}}}
+}}}

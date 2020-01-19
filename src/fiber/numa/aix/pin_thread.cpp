@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/numa/pin_thread.hpp"
+#include "memoria/fiber/numa/pin_thread.hpp"
 
 extern "C" {
 #include <sys/errno.h>
@@ -18,7 +18,7 @@ extern "C" {
 # include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace numa {
 

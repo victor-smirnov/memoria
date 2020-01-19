@@ -13,12 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/reactor/linux/linux_smp.hpp>
+#include <memoria/reactor/linux/linux_smp.hpp>
 
 namespace memoria {
-namespace v1 {
-namespace reactor {
-
-
-    
-}}}
+namespace reactor {  
+}}

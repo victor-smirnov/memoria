@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/application.hpp>
+#include <memoria/reactor/application.hpp>
 
 #include "main_window.hpp"
 #include "allocator_model.hpp"
@@ -23,8 +23,6 @@
 #include <QFileDialog>
 
 namespace memoria {
-namespace v1 {
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -154,15 +152,15 @@ void MainWindow::item_selected()
 }
 
 void MainWindow::closeEvent(QCloseEvent*) {
-    memoria::v1::reactor::app().shutdown();
+    memoria::reactor::app().shutdown();
 }
 
 void MainWindow::quit()
 {
     QApplication::quit();
-    memoria::v1::reactor::app().shutdown();
+    memoria::reactor::app().shutdown();
 }
 
 
 
-}}
+}

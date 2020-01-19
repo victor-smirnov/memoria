@@ -29,10 +29,9 @@
 #define RING_BUFFER_SIZE 8
 
 #include <boost/test/unit_test.hpp>
-#include <memoria/v1/disruptor/sequence_barrier.h>
+#include <memoria/disruptor/sequence_barrier.h>
 
 namespace memoria {
-namespace v1 {
 namespace disruptor {
 namespace test {
 
@@ -85,4 +84,4 @@ BOOST_AUTO_TEST_CASE(WaitForCursor) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
-}}}}
+}}}

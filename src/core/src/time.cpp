@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -26,9 +26,6 @@
 
 
 namespace memoria {
-namespace v1 {
-
-
 
 int64_t getTimeInMillis()
 {
@@ -111,4 +108,4 @@ U8String FormatTime(int64_t millis)
     }
 }
 
-}}
+}

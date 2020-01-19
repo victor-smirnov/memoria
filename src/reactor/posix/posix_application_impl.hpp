@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <memoria/v1/reactor/application.hpp>
-#include <memoria/v1/core/strings/string.hpp>
+#include <memoria/reactor/application.hpp>
+#include <memoria/core/strings/string.hpp>
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,7 +26,6 @@ extern char **environ;
 #endif
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 class EnvironmentImpl {
@@ -89,4 +88,4 @@ public:
 };
 
 
-}}}
+}}

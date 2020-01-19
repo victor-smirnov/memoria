@@ -18,7 +18,6 @@
 #include "map_remove_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 namespace {
@@ -28,4 +27,4 @@ auto Suite2 = register_class_suite<MapCreateTest<Map<UUID, int64_t>>>("MapM.Crea
 
 }
 
-}}}
+}}

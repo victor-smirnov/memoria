@@ -16,15 +16,14 @@
 
 #pragma once
 
-#include <memoria/v1/tools/tests.hpp>
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/tools/tests.hpp>
+#include <memoria/tools/tools.hpp>
 
-#include <memoria/v1/core/tools/louds_tree.hpp>
+#include <memoria/core/tools/louds_tree.hpp>
 
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 
 class StaticLoudsTestBase: public TestTask {
 
@@ -143,4 +142,4 @@ public:
 };
 
 
-}}
+}

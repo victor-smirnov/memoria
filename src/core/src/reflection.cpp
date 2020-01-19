@@ -15,19 +15,18 @@
 
 
 
-#include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/profiles/common/container_operations.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/profiles/common/container_operations.hpp>
 
-#include <memoria/v1/profiles/common/metadata.hpp>
-#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/profiles/common/metadata.hpp>
+#include <memoria/profiles/default/default.hpp>
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
 
 namespace memoria {
-namespace v1 {
 
 std::ostream& operator<<(std::ostream& os, const IDValue& id) {
     os << id.str();
@@ -43,4 +42,4 @@ namespace {
 
 }
 
-}}
+}

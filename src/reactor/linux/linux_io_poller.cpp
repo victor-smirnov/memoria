@@ -14,10 +14,10 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/linux/linux_io_poller.hpp>
-#include <memoria/v1/core/tools/ptr_cast.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/linux/linux_io_poller.hpp>
+#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/tools/perror.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include "linux_io_messages.hpp"
 
@@ -33,7 +33,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 int io_setup(unsigned nr, aio_context_t *ctxp)
@@ -191,4 +190,4 @@ ssize_t IOPoller::read_eventfd()
 }
 
     
-}}}
+}}

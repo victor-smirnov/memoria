@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/pipe_streams.hpp>
-#include <memoria/v1/core/memory/smart_ptrs.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/pipe_streams.hpp>
+#include <memoria/core/memory/smart_ptrs.hpp>
 
 #include "linux_io_messages.hpp"
 
@@ -23,7 +23,6 @@
 #include <unistd.h>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 class PipeInputStreamImpl: public IPipeInputStream {
@@ -322,4 +321,4 @@ PipeOutputStream open_output_pipe(const char* name){
 }
 
 
-}}}
+}}

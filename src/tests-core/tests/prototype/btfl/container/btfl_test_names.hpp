@@ -16,14 +16,13 @@
 
 #pragma once
 
-#include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
+#include <memoria/prototypes/bt_fl/btfl_names.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace btfl_test {
 
 class CtrApiName {};
 class IterApiName {};
 
 }
-}}
+}

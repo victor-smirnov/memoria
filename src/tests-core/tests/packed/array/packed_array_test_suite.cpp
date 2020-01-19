@@ -13,24 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
-#include <memoria/v1/core/tools/time.hpp>
-#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include "packed_array_misc_test.hpp"
 
 
-#include <memoria/v1/core/tools/exint_codec.hpp>
-#include <memoria/v1/core/tools/elias_codec.hpp>
-#include <memoria/v1/core/tools/i7_codec.hpp>
+#include <memoria/core/tools/exint_codec.hpp>
+#include <memoria/core/tools/elias_codec.hpp>
+#include <memoria/core/tools/i7_codec.hpp>
 
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 namespace {
@@ -45,4 +44,4 @@ MMA1_CLASS_SUITE(Suite2, "Array.Misc.VLD.Elias");
 }
 
 
-}}}
+}}

@@ -13,14 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/regexp/icu_regexp.hpp>
+#include <memoria/core/regexp/icu_regexp.hpp>
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
 namespace memoria {
-namespace v1 {
 
 using RegexMatcher = MMA1_ICU_CXX_NS::RegexMatcher;
 using RegexPattern = MMA1_ICU_CXX_NS::RegexPattern;
@@ -479,5 +478,4 @@ private:
 
 
 
-}
 }

@@ -13,15 +13,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/reactor/application.hpp>
+#include <memoria/reactor/application.hpp>
 
-#include <memoria/v1/tests/runner.hpp>
-#include <memoria/v1/tests/arg_helper.hpp>
+#include <memoria/tests/runner.hpp>
+#include <memoria/tests/arg_helper.hpp>
 
 
 
-using namespace memoria::v1;
-using namespace memoria::v1::reactor;
+using namespace memoria;
+using namespace memoria::reactor;
 
 namespace po = boost::program_options;
 

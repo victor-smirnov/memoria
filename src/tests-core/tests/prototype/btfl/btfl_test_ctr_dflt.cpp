@@ -17,17 +17,16 @@
 
 
 
-#include <memoria/v1/core/strings/string.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
+#include <memoria/core/strings/string.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
-#include <memoria/v1/allocators/inmem/common/container_collection_cfg.hpp>
+#include <memoria/allocators/inmem/common/container_collection_cfg.hpp>
 
 #include "container/btfl_test_factory.hpp"
 
 #include "btfl_ctr_impl.hpp"
 
 namespace memoria {
-namespace v1 {
 
 using Profile = DefaultProfile<>;    
 
@@ -37,5 +36,5 @@ using Ctr2Name = BTFLTestCtr<4>;
 MMA1_INSTANTIATE_CTR_BTFL(Ctr1Name, Profile, 1)
 MMA1_INSTANTIATE_CTR_BTFL(Ctr2Name, Profile, 2)
     
-}}
+}
 

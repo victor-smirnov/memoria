@@ -1,12 +1,12 @@
 
-#include "memoria/v1/fiber/all.hpp"
-#include "memoria/v1/reactor/mpsc_queue.hpp"
+#include "memoria/fiber/all.hpp"
+#include "memoria/reactor/mpsc_queue.hpp"
 
 #include <iostream>
 #include <thread>
 
-namespace df  = memoria::v1::fibers;
-namespace dr  = memoria::v1::reactor;
+namespace df  = memoria::fibers;
+namespace dr  = memoria::reactor;
 
 int main(int argc, char **argv) 
 {

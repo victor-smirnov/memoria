@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <memoria/v1/memoria.hpp>
+#include <memoria/memoria.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
+#include <memoria/prototypes/bt_fl/btfl_factory.hpp>
 
 #include "btfl_test_tools.hpp"
 
@@ -26,8 +26,7 @@
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 namespace btfl_test {
 
 }
-}}
+}

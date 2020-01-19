@@ -19,12 +19,11 @@
 
 #include "packed_codecs_test_base.hpp"
 
-#include <memoria/v1/core/strings/string_codec.hpp>
+#include <memoria/core/strings/string_codec.hpp>
 
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 class PackedStringCodecTest: public PackedCodecsTestBase<U8String> {
@@ -135,4 +134,4 @@ private:
 MMA1_CLASS_SUITE(PackedStringCodecTest, "PackedStringCodecSuite")
 
 
-}}}
+}}

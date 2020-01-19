@@ -1,6 +1,6 @@
 
-#include <memoria/v1/reactor/application.hpp>
-#include <memoria/v1/reactor/qt_support.hpp>
+#include <memoria/reactor/application.hpp>
+#include <memoria/reactor/qt_support.hpp>
 
 #include <QApplication>
 #include <QMainWindow>
@@ -11,7 +11,7 @@
 #include <iostream>
 
 using namespace memoria::v1;
-using namespace memoria::v1::reactor;
+using namespace memoria::reactor;
 
 class MainWindow: public QMainWindow {
     Q_OBJECT

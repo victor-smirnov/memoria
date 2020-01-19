@@ -18,9 +18,6 @@
 #include <QStringList>
 
 namespace memoria {
-namespace v1 {
-
-
 
 AbstractTreeItem::~AbstractTreeItem() noexcept
 {
@@ -195,5 +192,5 @@ VertexSchemaFn get_vertex_schema(const U8String& label)
 }
 
 
-}}
+}
 

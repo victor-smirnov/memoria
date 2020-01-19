@@ -19,7 +19,6 @@
 #include "macosx_socket.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -108,4 +107,4 @@ bool ClientSocket::is_closed() {
 void InitSockets() {}
 void DestroySockets() {}
 
-}}}
+}}

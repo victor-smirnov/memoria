@@ -13,13 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/strings/string.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
+#include <memoria/core/strings/string.hpp>
 
 #include <iostream>
 
 namespace memoria {
-namespace v1 {
 
 void terminate(const char* msg) noexcept {
     std::cout << msg << std::endl;
@@ -81,7 +80,4 @@ const char* MemoriaThrowable::what() const noexcept
     return std::exception::what();
 }
 
-
-
-
-}}
+}

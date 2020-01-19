@@ -18,12 +18,11 @@
 
 #include "packed_codecs_test_base.hpp"
 
-#include <memoria/v1/core/bignum/bigint.hpp>
+#include <memoria/core/bignum/bigint.hpp>
 
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 class PackedBigIntegerCodecTest: public PackedCodecsTestBase<BigInteger> {
@@ -151,4 +150,4 @@ private:
 #define MMA1_BIG_INTEGER_CODEC_SUITE() \
 MMA1_CLASS_SUITE(PackedBigIntegerCodecTest, "PackedBigIntegerCodecSuite")
 
-}}}
+}}

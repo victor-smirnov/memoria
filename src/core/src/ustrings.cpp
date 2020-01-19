@@ -13,10 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/strings/string.hpp>
+#include <memoria/core/strings/string.hpp>
 
 namespace memoria {
-namespace v1 {
 
 U8String U16String::to_u8() const
 {
@@ -175,4 +174,4 @@ UWString::UWString(const U16String& other):
     StringException::assertOk(error_code);
 }
 
-}}
+}

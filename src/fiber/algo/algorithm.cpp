@@ -4,15 +4,15 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "memoria/v1/fiber/algo/algorithm.hpp"
+#include "memoria/fiber/algo/algorithm.hpp"
 
-#include "memoria/v1/fiber/context.hpp"
+#include "memoria/fiber/context.hpp"
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_PREFIX
 #endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace fibers {
 namespace algo {
 
@@ -28,7 +28,7 @@ algorithm_with_properties_base::set_properties( context * ctx, fiber_properties 
     ctx->set_properties( props);
 }
 
-}}}}
+}}}
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include MEMORIA_BOOST_ABI_SUFFIX

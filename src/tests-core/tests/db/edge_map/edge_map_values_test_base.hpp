@@ -15,14 +15,13 @@
 
 #include "../../prototype/bt/bt_test_base.hpp"
 
-#include <memoria/v1/api/db/edge_map/edge_map_api.hpp>
+#include <memoria/api/db/edge_map/edge_map_api.hpp>
 
 #include <set>
 #include <map>
 #include <vector>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 class EdgeMapValuesRemovalTestBase: public BTTestBase<EdgeMap, InMemAllocator<>, DefaultProfile<>> {
@@ -197,4 +196,4 @@ public:
 };
 
 
-}}}
+}}

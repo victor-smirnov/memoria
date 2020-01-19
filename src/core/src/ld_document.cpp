@@ -13,22 +13,20 @@
 // limitations under the License.
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
-#include <memoria/v1/core/linked/document/ld_datatype.hpp>
+#include <memoria/core/linked/document/linked_document.hpp>
+#include <memoria/core/linked/document/ld_datatype.hpp>
 
-#include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/strings/format.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
+#include <memoria/core/strings/format.hpp>
 
-#include <memoria/v1/core/tools/bitmap.hpp>
+#include <memoria/core/tools/bitmap.hpp>
 
-#include <memoria/v1/core/datatypes/type_registry.hpp>
+#include <memoria/core/datatypes/type_registry.hpp>
 
 namespace memoria {
-namespace v1 {
-
 
 LDDumpState::LDDumpState(const LDDocumentView& doc)
 {
@@ -626,4 +624,4 @@ LDDocument TypeSignature::parse(U8StringView str) {
 }
 
 
-}}
+}

@@ -20,7 +20,6 @@
 #include <WinBase.h>
 
 namespace memoria {
-namespace v1 {
 
 SystemException::SystemException() 
 {
@@ -53,5 +52,4 @@ std::string GetErrorMessage(DWORD error_code)
 	return str;
 }
 
-}
 }

@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include <memoria/v1/memoria.hpp>
+#include <memoria/memoria.hpp>
 
-#include <memoria/v1/tools/profile_tests.hpp>
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/tools/profile_tests.hpp>
+#include <memoria/tools/tools.hpp>
 
-#include <memoria/v1/core/tools/labeled_tree.hpp>
+#include <memoria/core/tools/labeled_tree.hpp>
 
-#include <memoria/v1/containers/vector_tree/vtree_factory.hpp>
+#include <memoria/containers/vector_tree/vtree_factory.hpp>
 
 #include "../prototype/bt/bt_test_base.hpp"
 
@@ -33,7 +33,6 @@
 #include <tuple>
 
 namespace memoria {
-namespace v1 {
 
 class VectorTreeTestBase: public BTTestBase<VTree, PersistentInMemAllocator<>, DefaultProfile<>> {
 
@@ -321,4 +320,4 @@ private:
 
 };
 
-}}
+}

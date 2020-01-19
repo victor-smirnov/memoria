@@ -13,14 +13,13 @@
 // limitations under the License.
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
-#include <memoria/v1/core/linked/document/linked_document.hpp>
-#include <memoria/v1/core/datatypes/type_registry.hpp>
+#include <memoria/core/linked/document/linked_document.hpp>
+#include <memoria/core/datatypes/type_registry.hpp>
 
 namespace memoria {
-namespace v1 {
 
 std::ostream& LDDValueView::dump(std::ostream& out, LDDumpFormatState& state, LDDumpState& dump_state) const
 {
@@ -119,4 +118,4 @@ std::ostream& LDStringView::dump(std::ostream& out, LDDumpFormatState& state, LD
     return out;
 }
 
-}}
+}

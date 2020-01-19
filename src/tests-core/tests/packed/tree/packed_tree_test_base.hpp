@@ -16,26 +16,25 @@
 
 #pragma once
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/core/integer/integer.hpp>
+#include <memoria/core/integer/integer.hpp>
 
-#include <memoria/v1/core/packed/tools/packed_allocator.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 
-#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 
-#include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
-#include <memoria/v1/core/tools/i7_codec.hpp>
-#include <memoria/v1/core/tools/elias_codec.hpp>
-#include <memoria/v1/core/tools/exint_codec.hpp>
+#include <memoria/core/tools/i7_codec.hpp>
+#include <memoria/core/tools/elias_codec.hpp>
+#include <memoria/core/tools/exint_codec.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 
@@ -278,4 +277,4 @@ public:
     }
 };
 
-}}}
+}}

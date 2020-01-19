@@ -67,13 +67,13 @@
 #include <boost/winapi/config.hpp>
 #endif
 
-#include <memoria/v1/filesystem/config.hpp>
-#include <memoria/v1/filesystem/operations.hpp>
-#include <memoria/v1/filesystem/file_status.hpp>
-#include <memoria/v1/filesystem/exception.hpp>
-#include <memoria/v1/filesystem/directory.hpp>
+#include <memoria/filesystem/config.hpp>
+#include <memoria/filesystem/operations.hpp>
+#include <memoria/filesystem/file_status.hpp>
+#include <memoria/filesystem/exception.hpp>
+#include <memoria/filesystem/directory.hpp>
 
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include <boost/system/error_code.hpp>
 #include <boost/smart_ptr/scoped_array.hpp>
@@ -146,12 +146,12 @@
 
 #include "../filesystem_common/error_handling.hpp"
 
-namespace fs = memoria::v1::filesystem;
-namespace mr = memoria::v1::reactor;
+namespace fs = memoria::filesystem;
+namespace mr = memoria::reactor;
 
-using memoria::v1::filesystem::path;
-using memoria::v1::filesystem::filesystem_error;
-using memoria::v1::filesystem::perms;
+using memoria::filesystem::path;
+using memoria::filesystem::filesystem_error;
+using memoria::filesystem::perms;
 using boost::system::error_code;
 using boost::system::system_category;
 
@@ -254,7 +254,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 # endif
 
-namespace memoria { namespace v1 {
+namespace memoria {
 namespace filesystem {
 namespace detail {
 
@@ -2086,4 +2086,4 @@ path weakly_canonical(const path& p, boost::system::error_code* ec)
 
 } // namespace detail
 } // namespace filesystem
-}} // namespace memoria::v1
+} // namespace memoria

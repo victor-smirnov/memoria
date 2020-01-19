@@ -13,14 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/pipe_streams.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/pipe_streams.hpp>
 
 #include "stream_test.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 using TestRunner = StreamTester<reactor::PipeInputStream, reactor::PipeOutputStream>;
@@ -83,4 +82,4 @@ auto pipe_test = register_test_in_suite<FnTest<PipeTestState>>("ReactorSuite", "
     assert_equals(runner.total_sent(), runner.total_transferred(), "Sent/transferred");
 });
 
-}}}
+}}

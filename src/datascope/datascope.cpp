@@ -13,15 +13,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/profiles/default/default.hpp>
+#include <memoria/profiles/default/default.hpp>
 
-#include <memoria/v1/memoria.hpp>
+#include <memoria/memoria.hpp>
 
-#include <memoria/v1/reactor/application.hpp>
-#include <memoria/v1/reactor/qt_support.hpp>
+#include <memoria/reactor/application.hpp>
+#include <memoria/reactor/qt_support.hpp>
 
-#include <memoria/v1/core/graph/graph.hpp>
-#include <memoria/v1/core/tools/fixed_array.hpp>
+#include <memoria/core/graph/graph.hpp>
+#include <memoria/core/tools/fixed_array.hpp>
 
 #include <QApplication>
 #include <QMainWindow>
@@ -35,8 +35,8 @@
 #include "main_window.hpp"
 
 
-using namespace memoria::v1;
-using namespace memoria::v1::reactor;
+using namespace memoria;
+using namespace memoria::reactor;
 
 int main(int argc, char** argv, char** envp)
 {

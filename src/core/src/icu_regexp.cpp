@@ -13,13 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/core/regexp/icu_regexp.hpp>
+#include <memoria/core/regexp/icu_regexp.hpp>
 
 #include "icu_regexp_impl.hpp"
 
 namespace memoria {
-namespace v1 {
-
 
 
 ICURegexMatcher::~ICURegexMatcher() noexcept {}
@@ -253,4 +251,4 @@ void ICURegexPattern::split(const U16String& text, const ICURangeConsumerFn& con
 
 
 
-}}
+}

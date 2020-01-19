@@ -14,13 +14,13 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/msvc/msvc_io_poller.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/core/tools/ptr_cast.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
-#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/reactor/msvc/msvc_io_poller.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/tools/perror.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
-#include <memoria/v1/reactor/msvc/msvc_io_messages.hpp>
+#include <memoria/reactor/msvc/msvc_io_messages.hpp>
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -31,7 +31,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -140,4 +139,4 @@ void DumpErrorAndTerminate(const std::string& prefix, DWORD error_code) {
 
 
 
-}}}
+}}

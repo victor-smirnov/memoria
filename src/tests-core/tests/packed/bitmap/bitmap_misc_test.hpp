@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/i64_codec.hpp>
+#include <memoria/core/tools/i64_codec.hpp>
 
 #include "bitmap_test_base.hpp"
 
@@ -25,7 +25,6 @@
 #include <functional>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <typename T>
@@ -299,4 +298,4 @@ using Name = BitmapMiscTest<Type>;\
 MMA1_CLASS_SUITE(Name, #Name)
 
 
-}}}
+}}

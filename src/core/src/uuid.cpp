@@ -15,13 +15,13 @@
 
 
 
-#include <memoria/v1/core/tools/uuid.hpp>
-#include <memoria/v1/core/types/type2type.hpp>
+#include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/types/type2type.hpp>
 
-#include <memoria/v1/core/datatypes/datum.hpp>
+#include <memoria/core/datatypes/datum.hpp>
 
 #ifndef MMA1_NO_REACTOR
-#   include <memoria/v1/reactor/reactor.hpp>
+#   include <memoria/reactor/reactor.hpp>
 #endif
 
 #include <boost/uuid/uuid.hpp>
@@ -34,7 +34,6 @@
 #include <sstream>
 
 namespace memoria {
-namespace v1 {
 
 namespace {
 
@@ -146,7 +145,7 @@ std::istream& operator>>(std::istream& in, UUID& uuid)
     if (s)
     {
         in.read(in_buffer, sizeof(in_buffer)-1);
-        uuid = memoria::v1::UUID::parse(in_buffer);
+        uuid = memoria::UUID::parse(in_buffer);
     }
 
     return in;
@@ -186,4 +185,4 @@ Datum<UUID> datum_from_sdn_value(const UUID*, const U8StringView& str)
     return Datum<UUID>(uuid);
 }
 
-}}
+}

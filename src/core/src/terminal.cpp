@@ -13,8 +13,8 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/strings/strings.hpp>
-#include <memoria/v1/core/tools/terminal.hpp>
+#include <memoria/core/strings/strings.hpp>
+#include <memoria/core/tools/terminal.hpp>
 
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -26,7 +26,6 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace tools {
 
 const TermImpl* Term::term_;
@@ -155,5 +154,4 @@ U8String FormatTimeT(int64_t millis)
 
 
 
-}
 }}

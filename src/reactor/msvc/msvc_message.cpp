@@ -14,13 +14,12 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/message/fiber_io_message.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/reactor/message/fiber_io_message.hpp>
+#include <memoria/reactor/reactor.hpp>
 
 #include <boost/assert.hpp>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -45,4 +44,4 @@ void FiberIOCBMessage::wait_for()
 }
 
     
-}}}
+}}

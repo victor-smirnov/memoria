@@ -14,13 +14,13 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/bzero_struct.hpp>
-#include <memoria/v1/reactor/message/fiber_io_message.hpp>
-#include <memoria/v1/reactor/timer.hpp>
-#include <memoria/v1/reactor/linux/linux_io_poller.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/core/tools/bzero_struct.hpp>
+#include <memoria/reactor/message/fiber_io_message.hpp>
+#include <memoria/reactor/timer.hpp>
+#include <memoria/reactor/linux/linux_io_poller.hpp>
+#include <memoria/reactor/reactor.hpp>
 
-#include <memoria/v1/fiber/fiber.hpp>
+#include <memoria/fiber/fiber.hpp>
 
 
 #include "linux_io_messages.hpp"
@@ -29,7 +29,6 @@
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
 
 
@@ -56,4 +55,4 @@ public:
     void on_firing(uint64_t firing_times);
 };
 
-}}}
+}}

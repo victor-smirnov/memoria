@@ -13,12 +13,11 @@
 // limitations under the License.
 
 
-#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/core/tools/random.hpp>
 
-#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
 namespace memoria {
-namespace v1 {
 
 RngInt& getGlobalIntGenerator() {
 
@@ -79,6 +78,4 @@ int32_t getNonZeroRandomG(int32_t size)
     }
 }
 
-
-
-}}
+}

@@ -15,8 +15,8 @@
 #  define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
-#include <memoria/v1/filesystem/config.hpp>
-#include <memoria/v1/filesystem/path_traits.hpp>
+#include <memoria/filesystem/config.hpp>
+#include <memoria/filesystem/path_traits.hpp>
 #include <boost/system/error_code.hpp>
 #include <locale>
 #include <vector>
@@ -65,8 +65,7 @@ namespace
 
 } // unnamed namespace
 
-namespace memoria { namespace v1
-{
+namespace memoria {
   namespace filesystem
   {
 
@@ -77,4 +76,4 @@ namespace memoria { namespace v1
     }
 
   } // namespace filesystem
-}} // namespace memoria::v1
+} // namespace memoria

@@ -14,15 +14,14 @@
 // limitations under the License.
 
 
-#include <memoria/v1/tests/tests.hpp>
-#include <memoria/v1/tests/assertions.hpp>
+#include <memoria/tests/tests.hpp>
+#include <memoria/tests/assertions.hpp>
 
-#include <memoria/v1/core/integer/big_accumulator.hpp>
+#include <memoria/core/integer/big_accumulator.hpp>
 
 #include <sstream>
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 namespace {
@@ -171,4 +170,4 @@ auto Suite1 = register_class_suite<IntegerTestsSuite>("Integer");
 
 }
 
-}}}
+}}

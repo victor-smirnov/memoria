@@ -15,14 +15,13 @@
 
 #pragma once
 
-#include <memoria/v1/api/common/ctr_api_btfl.hpp>
+#include <memoria/api/common/ctr_api_btfl.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/iodata/btfl_iodata_decl.hpp>
+#include <memoria/prototypes/bt_fl/iodata/btfl_iodata_decl.hpp>
 
 #include <memory>
 
 namespace memoria {
-namespace v1 {
 
 using BTFLTestKeyT       = int64_t;
 using BTFLTestValueT     = int8_t;
@@ -90,4 +89,4 @@ public:
     bool next();
 };
     
-}}
+}

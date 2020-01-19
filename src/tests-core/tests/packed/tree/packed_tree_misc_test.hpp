@@ -19,7 +19,6 @@
 #include "packed_tree_test_base.hpp"
 
 namespace memoria {
-namespace v1 {
 namespace tests {
 
 template <
@@ -330,4 +329,4 @@ public:
 };
 
 
-}}}
+}}

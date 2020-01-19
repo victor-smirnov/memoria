@@ -14,15 +14,15 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/macosx/macosx_file.hpp>
-#include <memoria/v1/reactor/macosx/macosx_io_poller.hpp>
-#include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/reactor/message/fiber_io_message.hpp>
-#include <memoria/v1/reactor/file_streams.hpp>
+#include <memoria/reactor/macosx/macosx_file.hpp>
+#include <memoria/reactor/macosx/macosx_io_poller.hpp>
+#include <memoria/reactor/reactor.hpp>
+#include <memoria/reactor/message/fiber_io_message.hpp>
+#include <memoria/reactor/file_streams.hpp>
 
-#include <memoria/v1/core/tools/ptr_cast.hpp>
-#include <memoria/v1/core/tools/bzero_struct.hpp>
-#include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/tools/bzero_struct.hpp>
+#include <memoria/core/tools/perror.hpp>
 
 #include "macosx_file_impl.hpp"
 
@@ -41,10 +41,7 @@
 
 
 namespace memoria {
-namespace v1 {
 namespace reactor {
-
-
 
 DMAFileImpl::DMAFileImpl(filesystem::path file_path, FileFlags flags, FileMode mode):
     FileImplBase(file_path)
@@ -210,4 +207,4 @@ DMAFile open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode
     return MakeLocalShared<DMAFileImpl>(file_path, flags, mode);
 }
     
-}}}
+}}

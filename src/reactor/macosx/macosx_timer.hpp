@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include <memoria/v1/core/tools/bzero_struct.hpp>
-#include <memoria/v1/reactor/message/fiber_io_message.hpp>
-#include <memoria/v1/reactor/timer.hpp>
-#include <memoria/v1/reactor/macosx/macosx_io_poller.hpp>
+#include <memoria/core/tools/bzero_struct.hpp>
+#include <memoria/reactor/message/fiber_io_message.hpp>
+#include <memoria/reactor/timer.hpp>
+#include <memoria/reactor/macosx/macosx_io_poller.hpp>
 
-#include <memoria/v1/fiber/fiber.hpp>
+#include <memoria/fiber/fiber.hpp>
 
 #include "macosx_io_messages.hpp"
 
@@ -30,12 +30,7 @@
 #include <sys/time.h>
 
 namespace memoria {
-namespace v1 {
 namespace reactor {    
-
-
-
-
 
 class TimerImpl {
     uint64_t timer_fd_{};
@@ -68,4 +63,4 @@ public:
 
 };
 
-}}}
+}}

@@ -14,11 +14,10 @@
 // limitations under the License.
 
 
-#include <memoria/v1/profiles/default/default.hpp>
-#include <memoria/v1/memoria.hpp>
+#include <memoria/profiles/default/default.hpp>
+#include <memoria/memoria.hpp>
 
 namespace memoria {
-namespace v1 {
 
 MMA1_DEFINE_EXPLICIT_CU_LINKING(MemoriaStaticInit)
 
@@ -41,4 +40,4 @@ void InitMemoriaExplicit() {
     StaticInitializer init0;
 }
 
-}}
+}
