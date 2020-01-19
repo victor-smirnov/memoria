@@ -56,19 +56,10 @@ public:
     }
 
 
-    void iter_refresh()
+    VoidResult iter_refresh() noexcept
     {
-        self().iter_refresh_branch_prefixes();
+        return self().iter_refresh_branch_prefixes();
     }
-
-
-    void iter_check_prefix()
-    {
-        auto tmp = self();
-        tmp.iter_refresh();
-        MEMORIA_V1_ASSERT(self().iter_cache(), ==, tmp.iter_cache());
-    }
-
 
     void iter_init()
     {

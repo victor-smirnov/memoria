@@ -41,10 +41,10 @@ struct VectorIterator: BTSSIterator<Profile> {
     using CtrSizeT  = ProfileCtrSizeT<Profile>;
 
     virtual Datum<DataType> value() const = 0;
-    virtual void set(ViewType view) = 0;
-    virtual bool next() = 0;
+    virtual VoidResult set(ViewType view) noexcept = 0;
+    virtual BoolResult next() noexcept = 0;
 
-    virtual CtrSizeT remove_from(CtrSizeT size) = 0;
+    virtual Result<CtrSizeT> remove_from(CtrSizeT size) noexcept = 0;
 };
 
 template <typename DataType, typename Profile, bool FixedSizeElement = DTTIs1DFixedSize<DataType>>
@@ -73,49 +73,48 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
     using ProducerFn    = typename Producer::ProducerFn;
 
 
-    virtual Datum<DataType> get(CtrSizeT pos) const = 0;
-    virtual void set(CtrSizeT pos, ViewType view) = 0;
+    virtual Result<Datum<DataType>> get(CtrSizeT pos) const = 0;
+    virtual VoidResult set(CtrSizeT pos, ViewType view) noexcept = 0;
 
-    virtual CtrSizeT size() const = 0;
+    virtual Result<CtrSizeT> size() const noexcept = 0;
 
-    virtual CtrSharedPtr<VectorIterator<DataType, Profile>> seek(CtrSizeT pos) const = 0;
+    virtual Result<CtrSharedPtr<VectorIterator<DataType, Profile>>> seek(CtrSizeT pos) const = 0;
 
-    virtual void prepend(io::IOVectorProducer& producer) = 0;
-    virtual void append(io::IOVectorProducer& producer)  = 0;
-    virtual void insert(CtrSizeT at, io::IOVectorProducer& producer) = 0;
+    virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept = 0;
+    virtual VoidResult append(io::IOVectorProducer& producer) noexcept = 0;
+    virtual VoidResult insert(CtrSizeT at, io::IOVectorProducer& producer) noexcept = 0;
 
     template <typename Fn>
     VectorScanner<ApiTypes, Profile> as_scanner(Fn&& fn) const {
         return VectorScanner<ApiTypes, Profile>(fn(this));
     }
 
-    void append(ProducerFn producer_fn) {
+    VoidResult append(ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        append(producer);
+        return append(producer);
     }
 
-    void prepend(ProducerFn producer_fn) {
+    VoidResult prepend(ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        prepend(producer);
+        return prepend(producer);
     }
 
-    void insert(CtrSizeT at, ProducerFn producer_fn) {
+    VoidResult insert(CtrSizeT at, ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        insert(at, producer);
+        return insert(at, producer);
     }
 
-    void insert(CtrSizeT at, Span<const ViewType> span)
+    VoidResult insert(CtrSizeT at, Span<const ViewType> span) noexcept
     {
-        insert(at, [&](auto& values, size_t){
+        return insert(at, [&](auto& values, size_t){
             values.append(span);
             return false;
         });
     }
 
-
-    virtual CtrSizeT remove(CtrSizeT from, CtrSizeT to) = 0;
-    virtual CtrSizeT remove_from(CtrSizeT from) = 0;
-    virtual CtrSizeT remove_up_to(CtrSizeT pos) = 0;
+    virtual Result<CtrSizeT> remove(CtrSizeT from, CtrSizeT to) noexcept = 0;
+    virtual Result<CtrSizeT> remove_from(CtrSizeT from) noexcept = 0;
+    virtual Result<CtrSizeT> remove_up_to(CtrSizeT pos) noexcept = 0;
 
     MMA1_DECLARE_ICTRAPI();
 };

@@ -60,9 +60,9 @@ class StaticArray{
 public:
     typedef Value Element;
 
-    StaticArray(): size_(0) {}
+    StaticArray() noexcept: size_(0) {}
 
-    StaticArray(int32_t size): size_(size)
+    StaticArray(int32_t size) noexcept: size_(size)
     {
         ClearingFunctor functor;
         for (int32_t c = 0; c < Size; c++)
@@ -71,7 +71,7 @@ public:
         }
     }
 
-    StaticArray(const MyType& other)
+    StaticArray(const MyType& other) noexcept
     {
         size_ = other.size_;
 
@@ -81,7 +81,7 @@ public:
         }
     }
 
-    StaticArray(MyType&& other)
+    StaticArray(MyType&& other) noexcept
     {
         size_ = other.size_;
 
@@ -91,7 +91,7 @@ public:
         }
     }
 
-    MyType& operator=(const MyType& other)
+    MyType& operator=(const MyType& other) noexcept
     {
         size_ = other.size_;
 
@@ -110,7 +110,7 @@ public:
         return *this;
     }
 
-    MyType& operator=(MyType&& other)
+    MyType& operator=(MyType&& other) noexcept
     {
         size_ = other.size_;
 
@@ -129,36 +129,36 @@ public:
         return *this;
     }
 
-    const Value& operator[](int32_t idx) const {
+    const Value& operator[](int32_t idx) const noexcept {
         return values_[idx];
     }
 
-    Value& operator[](int32_t idx) {
+    Value& operator[](int32_t idx) noexcept {
         return values_[idx];
     }
 
-    int32_t getSize() const {
+    int32_t getSize() const noexcept {
         return size_;
     }
 
-    int32_t size() const {
+    int32_t size() const noexcept {
         return size_;
     }
 
-    int32_t capacity() const {
+    int32_t capacity() const noexcept {
         return Size - size_;
     }
 
-    void resize(int32_t size)
+    void resize(int32_t size) noexcept
     {
         size_ = size;
     }
 
-    static int32_t getMaxSize() {
+    static int32_t getMaxSize() noexcept {
         return Size;
     }
 
-    void insert(int32_t idx, const Value& value)
+    void insert(int32_t idx, const Value& value) noexcept
     {
         for (int32_t c = size_; c > idx; c--)
         {
@@ -169,7 +169,7 @@ public:
         size_++;
     }
 
-    void insert(int32_t idx, Value&& value)
+    void insert(int32_t idx, Value&& value) noexcept
     {
         for (int32_t c = size_; c > idx; c--)
         {
@@ -180,17 +180,17 @@ public:
         size_++;
     }
 
-    void append(const Value& value)
+    void append(const Value& value) noexcept
     {
         values_[size_++] = value;
     }
 
-    void append(Value&& value)
+    void append(Value&& value) noexcept
     {
         values_[size_++] = std::move(value);
     }
 
-    void remove(int32_t idx)
+    void remove(int32_t idx) noexcept
     {
         for (int32_t c = idx; c < size_; c++)
         {
@@ -204,12 +204,12 @@ public:
         functor(values_[size_]);
     }
 
-    void removeLast()
+    void removeLast() noexcept
     {
         remove(getSize() - 1);
     }
 
-    void clear()
+    void clear() noexcept
     {
         ClearingFunctor functor;
 
@@ -244,7 +244,7 @@ public:
 
     static const int32_t Indexes = Indexes_;
 
-    StaticVector()
+    StaticVector() noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -252,7 +252,7 @@ public:
         }
     }
 
-    explicit StaticVector(const ElementType& value)
+    explicit StaticVector(const ElementType& value) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -262,30 +262,15 @@ public:
 
 
 
-    template <typename T>
-    StaticVector(std::initializer_list<T> list)
-    {
-        T last = T();
 
-        int32_t idx = 0;
-        for (const T& e: list)
-        {
-            last = values_[idx++] = e;
-        }
 
-        for (int32_t c = idx; c < Indexes; c++)
-        {
-            values_[c] = last;
-        }
-    }
-
-    ElementType get() const
+    ElementType get() const noexcept
     {
         check(0);
         return values_[0];
     }
 
-    StaticVector(const MyType& other)
+    StaticVector(const MyType& other) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -293,7 +278,7 @@ public:
         }
     }
 
-    StaticVector(MyType&& other)
+    StaticVector(MyType&& other) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -301,7 +286,7 @@ public:
         }
     }
 
-    static MyType create(int32_t idx, const ElementType& value)
+    static MyType create(int32_t idx, const ElementType& value) noexcept
     {
         check(idx);
 
@@ -312,42 +297,63 @@ public:
         return me;
     }
 
+    template <typename T>
+    static StaticVector<ElementType, Indexes> create(std::initializer_list<T> list) noexcept
+    {
+        StaticVector<ElementType, Indexes> vv{};
 
-    const ElementType* values() const
+        T last = T{};
+
+        int32_t idx = 0;
+        for (const T& e: list)
+        {
+            last = vv.values_[idx++] = e;
+        }
+
+        for (int32_t c = idx; c < Indexes; c++)
+        {
+            vv.values_[c] = last;
+        }
+
+        return vv;
+    }
+
+
+    const ElementType* values() const noexcept
     {
         return values_;
     }
 
-    ElementType* values()
+    ElementType* values() noexcept
     {
         return values_;
     }
 
-    const ElementType& value(int32_t idx) const
+    const ElementType& value(int32_t idx) const noexcept
     {
         check(idx);
         return values_[idx];
     }
 
-    ElementType& value(int32_t idx)
+    ElementType& value(int32_t idx) noexcept
     {
         check(idx);
         return values_[idx];
     }
 
-    const ElementType& operator[](int32_t idx) const
+    const ElementType& operator[](int32_t idx) const noexcept
     {
         check(idx);
         return values_[idx];
     }
 
-    ElementType& operator[](int32_t idx)
+    ElementType& operator[](int32_t idx) noexcept
     {
         check(idx);
         return values_[idx];
     }
 
-    void clear()
+    void clear() noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -356,7 +362,7 @@ public:
     }
 
     template <typename T, int32_t TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
-    MyType& assignUp(const StaticVector<T, TIndexes>& other)
+    MyType& assignUp(const StaticVector<T, TIndexes>& other) noexcept
     {
         int32_t shift = Indexes - TIndexes;
 
@@ -369,7 +375,7 @@ public:
     }
 
     template <typename T, int32_t TIndexes, typename = std::enable_if<TIndexes >= Indexes>>
-    MyType& assignDown(const StaticVector<T, TIndexes>& other)
+    MyType& assignDown(const StaticVector<T, TIndexes>& other) noexcept
     {
         int32_t shift = TIndexes - Indexes;
 
@@ -382,7 +388,7 @@ public:
     }
 
     template <typename T, int32_t TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
-    MyType& sumUp(const StaticVector<T, TIndexes>& other)
+    MyType& sumUp(const StaticVector<T, TIndexes>& other) noexcept
     {
         int32_t shift = Indexes - TIndexes;
 
@@ -395,7 +401,7 @@ public:
     }
 
     template <typename T, int32_t TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
-    MyType& sumAt(int32_t idx, const StaticVector<T, TIndexes>& other)
+    MyType& sumAt(int32_t idx, const StaticVector<T, TIndexes>& other) noexcept
     {
         for (int32_t c = 0; c < TIndexes; c++)
         {
@@ -405,7 +411,7 @@ public:
         return *this;
     }
 
-    bool operator==(const MyType& other) const
+    bool operator==(const MyType& other) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -418,7 +424,7 @@ public:
         return true;
     }
 
-    bool operator!=(const MyType& other) const
+    bool operator!=(const MyType& other) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -431,7 +437,7 @@ public:
         return false;
     }
 
-    bool operator<=(const MyType& other) const
+    bool operator<=(const MyType& other) const noexcept
     {
         for (int32_t c = 0, mask = 1; c < Indexes; c++, mask <<= 1)
         {
@@ -446,7 +452,7 @@ public:
         return true;
     }
 
-    bool gteAll( const MyType& other ) const
+    bool gteAll( const MyType& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -459,7 +465,7 @@ public:
         return true;
     }
 
-    bool lteAll( const MyType& other ) const
+    bool lteAll( const MyType& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -473,7 +479,7 @@ public:
     }
 
 
-    bool ltAll( const MyType& other ) const
+    bool ltAll( const MyType& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -487,7 +493,7 @@ public:
     }
 
 
-    bool gteAll(const ElementType& other) const
+    bool gteAll(const ElementType& other) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -500,7 +506,7 @@ public:
         return true;
     }
 
-    bool lteAll(const ElementType& other) const
+    bool lteAll(const ElementType& other) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -513,7 +519,7 @@ public:
         return true;
     }
 
-    bool ltAny( const MyType& other ) const
+    bool ltAny( const MyType& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -526,7 +532,7 @@ public:
         return false;
     }
 
-    bool ltAny( const ElementType& other ) const
+    bool ltAny( const ElementType& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -539,7 +545,7 @@ public:
         return false;
     }
 
-    bool gtAny( const MyType& other ) const
+    bool gtAny( const MyType& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -552,7 +558,7 @@ public:
         return false;
     }
 
-    bool gtAny( const ElementType& other ) const
+    bool gtAny( const ElementType& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -565,7 +571,7 @@ public:
         return false;
     }
 
-    bool gtAll( const MyType& other ) const
+    bool gtAll( const MyType& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -578,7 +584,7 @@ public:
         return true;
     }
 
-    bool gtAll( const ElementType& other ) const
+    bool gtAll( const ElementType& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -592,7 +598,7 @@ public:
     }
 
 
-    bool eqAll( const MyType& other ) const
+    bool eqAll( const MyType& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -605,7 +611,7 @@ public:
         return true;
     }
 
-    bool eqAll( const ElementType_& other ) const
+    bool eqAll( const ElementType_& other ) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -618,7 +624,7 @@ public:
         return true;
     }
 
-    bool operator>(const MyType& other) const
+    bool operator>(const MyType& other) const noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -632,7 +638,7 @@ public:
     }
 
 
-    MyType& operator=(const MyType& other)
+    MyType& operator=(const MyType& other) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -642,7 +648,7 @@ public:
         return *this;
     }
 
-    MyType& operator=(MyType&& other)
+    MyType& operator=(MyType&& other) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -653,14 +659,14 @@ public:
     }
 
     template <typename Value>
-    MyType& operator=(const Value& value)
+    MyType& operator=(const Value& value) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++) values_[c] = value;
         return *this;
     }
 
     template <typename Value>
-    MyType& operator=(const OptionalT<Value>& value)
+    MyType& operator=(const OptionalT<Value>& value) noexcept
     {
         if (value.is_set()) {
             for (int32_t c = 0; c < Indexes; c++) values_[c] = value.value();
@@ -673,7 +679,7 @@ public:
     }
 
     template <typename Value>
-    MyType& operator=(const StaticVector<OptionalT<Value>, Indexes>& value)
+    MyType& operator=(const StaticVector<OptionalT<Value>, Indexes>& value) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++) {
             if (value[c].is_set()) {
@@ -691,7 +697,7 @@ public:
 
 
     template <typename Value>
-    MyType& operator=(const std::initializer_list<Value>& list)
+    MyType& operator=(const std::initializer_list<Value>& list) noexcept
     {
         int32_t idx = 0;
         for (Value e: list)
@@ -722,7 +728,7 @@ public:
 //        return *this;
 //    }
 
-    MyType& setAll(const ElementType& keys)
+    MyType& setAll(const ElementType& keys) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -732,7 +738,7 @@ public:
     }
 
     template <typename T>
-    MyType& operator+=(const StaticVector<T, Indexes>& other)
+    MyType& operator+=(const StaticVector<T, Indexes>& other) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -742,7 +748,7 @@ public:
         return *this;
     }
 
-    MyType& operator+=(const ElementType& other)
+    MyType& operator+=(const ElementType& other) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -752,7 +758,7 @@ public:
         return *this;
     }
 
-    MyType operator+(const MyType& other) const
+    MyType operator+(const MyType& other) const noexcept
     {
         MyType result = *this;
 
@@ -765,7 +771,7 @@ public:
     }
 
 
-    MyType operator-(const MyType& other) const
+    MyType operator-(const MyType& other) const noexcept
     {
         MyType result = *this;
 
@@ -777,7 +783,7 @@ public:
         return result;
     }
 
-    MyType operator-() const
+    MyType operator-() const noexcept
     {
         MyType result = *this;
 
@@ -791,7 +797,7 @@ public:
 
 
     template <typename T>
-    MyType& operator-=(const StaticVector<T, Indexes>& other)
+    MyType& operator-=(const StaticVector<T, Indexes>& other) noexcept
     {
         for (int32_t c = 0; c < Indexes; c++)
         {
@@ -801,7 +807,7 @@ public:
         return *this;
     }
 
-    MyType operator/(const ElementType& divisor) const
+    MyType operator/(const ElementType& divisor) const noexcept
     {
         MyType result = *this;
 
@@ -813,7 +819,7 @@ public:
         return result;
     }
 
-    uint64_t gtZero() const
+    uint64_t gtZero() const noexcept
     {
         uint64_t result = 0;
 
@@ -825,7 +831,7 @@ public:
         return result;
     }
 
-    ElementType sum() const
+    ElementType sum() const noexcept
     {
         ElementType value = 0;
 
@@ -836,7 +842,7 @@ public:
         return value;
     }
 
-    auto max() const
+    auto max() const noexcept
     {
         ElementType value = values_[0];
 
@@ -851,7 +857,7 @@ public:
         return value;
     }
 
-    auto min() const
+    auto min() const noexcept
     {
         ElementType value = values_[0];
 
@@ -876,7 +882,7 @@ private:
 };
 
 template <typename T1, typename T2, int32_t Indexes>
-void OptionalAssignmentHelper(StaticVector<OptionalT<T1>, Indexes>& v1, const StaticVector<T2, Indexes>& v2)
+void OptionalAssignmentHelper(StaticVector<OptionalT<T1>, Indexes>& v1, const StaticVector<T2, Indexes>& v2) noexcept
 {
     for (int32_t c = 0; c < Indexes; c++)
     {
@@ -885,7 +891,7 @@ void OptionalAssignmentHelper(StaticVector<OptionalT<T1>, Indexes>& v1, const St
 }
 
 template <typename T1, typename T2, int32_t Indexes>
-void OptionalAssignmentHelper(StaticVector<T1, Indexes>& v1, const StaticVector<T2, Indexes>& v2)
+void OptionalAssignmentHelper(StaticVector<T1, Indexes>& v1, const StaticVector<T2, Indexes>& v2) noexcept
 {
     for (int32_t c = 0; c < Indexes; c++)
     {
@@ -895,20 +901,20 @@ void OptionalAssignmentHelper(StaticVector<T1, Indexes>& v1, const StaticVector<
 
 
 template <typename K, typename... Args>
-auto make_sv(Args&&... values) -> StaticVector<K, sizeof...(Args)>{
+auto make_sv(Args&&... values) noexcept -> StaticVector<K, sizeof...(Args)> {
     return StaticVector<K, sizeof...(Args)>({values...});
 }
 
 
 template <typename T, typename... Args>
-auto MakeStaticVector(Args&&... args) -> StaticVector<T, sizeof...(Args)>
+auto MakeStaticVector(Args&&... args) noexcept -> StaticVector<T, sizeof...(Args)>
 {
     return StaticVector<T, sizeof...(Args)>(std::forward<Args>(args)...);
 }
 
 
 template <typename Key, int32_t Indexes>
-std::ostream& operator<<(std::ostream& out, const core::StaticVector<Key, Indexes>& accum)
+std::ostream& operator<<(std::ostream& out, const core::StaticVector<Key, Indexes>& accum) noexcept
 {
     out << "[";
 

@@ -42,12 +42,13 @@ public:
 
     typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
 
-    typedef std::function<void (const Position&)>                               MergeFn;
+    typedef std::function<VoidResult (const Position&)>                         MergeFn;
 
     using CtrSizeT = typename Types::CtrSizeT;
 
     static const int32_t Streams = Types::Streams;
 
+    // TODO: noexcept
     template <
         int32_t Stream
     >
@@ -78,20 +79,21 @@ public:
 
 
     template <int32_t Stream, typename Entry>
-    std::tuple<bool> ctr_try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
+    Result<std::tuple<bool>> ctr_try_insert_stream_entry(Iterator& iter, int32_t idx, const Entry& entry) noexcept
     {
+        using ResultT = Result<std::tuple<bool>>;
         auto& self = this->self();
 
-        self.ctr_update_block_guard(iter.iter_leaf());
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(iter.iter_leaf()));
 
         if (self.ctr_check_node_capacities(iter.iter_leaf(), Position::create(Stream, 1)))
         {
             BranchNodeEntry accum;
-            self.leaf_dispatcher().dispatch(iter.iter_leaf(), InsertStreamEntryFn<Stream>(), idx, accum, entry);
-            return std::make_tuple(true);
+            self.leaf_dispatcher().dispatch(iter.iter_leaf(), InsertStreamEntryFn<Stream>(), idx, accum, entry);            
+            return ResultT::of(std::make_tuple(true));
         }
         else {
-            return std::tuple<bool>(false);
+            return ResultT::of(std::make_tuple(false));
         }
     }
 
@@ -126,16 +128,15 @@ public:
     };
 
     template <int32_t Stream>
-    std::tuple<bool, BranchNodeEntry> ctr_try_remove_stream_entry(Iterator& iter, int32_t idx)
+    Result<std::tuple<bool, BranchNodeEntry>> ctr_try_remove_stream_entry(Iterator& iter, int32_t idx) noexcept
     {
-        self().ctr_update_block_guard(iter.iter_leaf());
+        using ResultT = Result<std::tuple<bool, BranchNodeEntry>>;
+        MEMORIA_RETURN_IF_ERROR_FN(self().ctr_update_block_guard(iter.iter_leaf()));
 
         BranchNodeEntry accum;
         self().leaf_dispatcher().dispatch(iter.iter_leaf(), RemoveFromLeafFn<Stream>(), idx, accum);
-        return std::make_tuple(true, accum);
+        return ResultT::of(std::make_tuple(true, accum));
     }
-
-
 
 
 
@@ -179,11 +180,12 @@ public:
 
 
     template <int32_t Stream, typename SubstreamsList, typename Entry>
-    std::tuple<bool, BranchNodeEntry> ctr_try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry)
+    Result<std::tuple<bool, BranchNodeEntry>> ctr_try_update_stream_entry(Iterator& iter, int32_t idx, const Entry& entry) noexcept
     {
+        using ResultT = Result<std::tuple<bool, BranchNodeEntry>>;
         auto& self = this->self();
 
-        self.ctr_update_block_guard(iter.iter_leaf());
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(iter.iter_leaf()));
 
         BranchNodeEntry accum;
         self.leaf_dispatcher().dispatch(
@@ -194,7 +196,7 @@ public:
                 entry
         );
 
-        return std::make_tuple(true, accum);
+        return ResultT::of(std::make_tuple(true, accum));
     }
 
 
@@ -204,16 +206,22 @@ public:
     //==========================================================================================
 
     MEMORIA_V1_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
-    bool ctr_can_merge_nodes(const NodeBaseG& tgt, const NodeBaseG& src)
+    bool ctr_can_merge_nodes(const NodeBaseG& tgt, const NodeBaseG& src) noexcept
     {
         return self().node_dispatcher().dispatch(src, tgt, CanMergeFn());
     }
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(MergeNodesFn, mergeWith, OpStatus);
-    void ctr_do_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src);
-    bool ctr_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
-    bool ctr_merge_current_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
+    VoidResult ctr_do_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src) noexcept;
+
+    BoolResult ctr_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){
+        return VoidResult::of();
+    }) noexcept;
+
+    BoolResult ctr_merge_current_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){
+        return VoidResult::of();
+    }) noexcept;
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -223,38 +231,48 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-void M_TYPE::ctr_do_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src)
+VoidResult M_TYPE::ctr_do_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src) noexcept
 {
     auto& self = this->self();
 
-    self.ctr_update_block_guard(tgt);
-    self.ctr_update_block_guard(src);
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(tgt));
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(src));
 
     int32_t tgt_size = self.ctr_get_node_size(tgt, 0);
 
-    OOM_THROW_IF_FAILED(self.leaf_dispatcher().dispatch(src, tgt, MergeNodesFn()), MMA1_SRC);
+    OpStatus status1 = self.leaf_dispatcher().dispatch(src, tgt, MergeNodesFn());
+    if (isFail(status1)) {
+        return VoidResult::make_error("PackedOOMException");
+    }
 
-    self.ctr_update_children(tgt, tgt_size);
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_children(tgt, tgt_size));
 
-    NodeBaseG src_parent    = self.ctr_get_node_parent(src);
-    int32_t parent_idx          = src->parent_idx();
+    Result<NodeBaseG> src_parent = self.ctr_get_node_parent(src);
+    MEMORIA_RETURN_IF_ERROR(src_parent);
 
-    MEMORIA_V1_ASSERT(parent_idx, >, 0);
+    int32_t parent_idx = src->parent_idx();
 
-    OOM_THROW_IF_FAILED(self.ctr_remove_non_leaf_node_entry(src_parent, parent_idx), MMA1_SRC);
+    //MEMORIA_V1_ASSERT(parent_idx, >, 0);
+
+    Result<OpStatus> status2 = self.ctr_remove_non_leaf_node_entry(src_parent.get(), parent_idx);
+    MEMORIA_RETURN_IF_ERROR(status2);
+
+    if (isFail(status2.get())) {
+        return VoidResult::make_error("PackedOOMException");
+    }
 
     int32_t idx = parent_idx - 1;
 
     auto max = self.ctr_get_node_max_keys(tgt);
 
-    self.ctr_update_branch_nodes(src_parent, idx, max);
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_branch_nodes(src_parent.get(), idx, max));
 
-    self.store().removeBlock(src->id()).terminate_if_error();
+    return self.store().removeBlock(src->id());
 }
 
 
 M_PARAMS
-bool M_TYPE::ctr_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+BoolResult M_TYPE::ctr_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn) noexcept
 {
     auto& self = this->self();
 
@@ -264,63 +282,73 @@ bool M_TYPE::ctr_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
         {
             auto sizes = self.ctr_get_node_sizes(tgt);
 
-            self.ctr_do_merge_leaf_nodes(tgt, src);
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_do_merge_leaf_nodes(tgt, src));
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_redundant_root(tgt));
 
-            self.ctr_remove_redundant_root(tgt);
+            auto res = fn(sizes);
+            MEMORIA_RETURN_IF_ERROR(res);
 
-            fn(sizes);
-
-            return true;
+            return BoolResult::of(true);
         }
         else
         {
-            NodeBaseG tgt_parent = self.ctr_get_node_parent(tgt);
-            NodeBaseG src_parent = self.ctr_get_node_parent(src);
+            Result<NodeBaseG> tgt_parent = self.ctr_get_node_parent(tgt);
+            MEMORIA_RETURN_IF_ERROR(tgt_parent);
 
-            if (self.ctr_merge_branch_nodes(tgt_parent, src_parent))
+            Result<NodeBaseG> src_parent = self.ctr_get_node_parent(src);
+            MEMORIA_RETURN_IF_ERROR(src_parent);
+
+            auto res0 = self.ctr_merge_branch_nodes(tgt_parent.get(), src_parent.get());
+            MEMORIA_RETURN_IF_ERROR(res0);
+
+            if (res0.get())
             {
                 auto sizes = self.ctr_get_node_sizes(tgt);
 
-                self.ctr_do_merge_leaf_nodes(tgt, src);
+                MEMORIA_RETURN_IF_ERROR_FN(self.ctr_do_merge_leaf_nodes(tgt, src));
 
-                self.ctr_remove_redundant_root(tgt);
+                MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_redundant_root(tgt));
 
-                fn(sizes);
+                auto res1 = fn(sizes);
+                MEMORIA_RETURN_IF_ERROR(res1);
 
-                return true;
+                return BoolResult::of(true);
             }
             else
             {
-                return false;
+                return BoolResult::of(false);
             }
         }
     }
     else
     {
-        return false;
+        return BoolResult::of(false);
     }
 }
 
 
 
 M_PARAMS
-bool M_TYPE::ctr_merge_current_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+BoolResult M_TYPE::ctr_merge_current_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn) noexcept
 {
     auto& self = this->self();
 
     if (self.ctr_can_merge_nodes(tgt, src))
     {
-        fn(self.ctr_get_node_sizes(tgt));
+        auto res0 = fn(self.ctr_get_node_sizes(tgt));
+        MEMORIA_RETURN_IF_ERROR(res0);
 
-        self.ctr_do_merge_leaf_nodes(tgt, src);
+        auto res1 = self.ctr_do_merge_leaf_nodes(tgt, src);
+        MEMORIA_RETURN_IF_ERROR(res1);
 
-        self.ctr_remove_redundant_root(tgt);
+        auto res2 = self.ctr_remove_redundant_root(tgt);
+        MEMORIA_RETURN_IF_ERROR(res2);
 
-        return true;
+        return BoolResult::of(true);
     }
     else
     {
-        return false;
+        return BoolResult::of(false);
     }
 }
 

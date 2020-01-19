@@ -38,6 +38,11 @@ public:
 
     using LeafNodeT         = typename Types::LeafNode;
 
+    using CtrSizeT          = int64_t;
+    static const int32_t DataStreams = Types::DataStreams;
+
+    using IOVResult = core::StaticVector<CtrSizeT, DataStreams>;
+
 public:
 
 #ifdef MMA1_USE_IOBUFFER
@@ -47,8 +52,10 @@ public:
 
     static const int32_t Streams = Types::Streams;
 
-    auto ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
+    Result<IOVResult> ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
+        using ResultT = Result<IOVResult>;
+
         auto& self = this->self();
 
         std::unique_ptr<io::IOVector> iov = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
@@ -60,15 +67,17 @@ public:
         auto pos = iter.iter_leafrank(iter.iter_local_pos());
 
         auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
+        MEMORIA_RETURN_IF_ERROR(result);
 
-        iter.iter_local_pos()  = result.position().sum();
-        iter.iter_leaf().assign(result.iter_leaf());
+        iter.iter_local_pos() = result.get().position().sum();
+        iter.iter_leaf().assign(result.get().iter_leaf());
 
         if (iter.iter_leaf()->id() != id) {
-            iter.iter_refresh();
+            auto res = iter.iter_refresh();
+            MEMORIA_RETURN_IF_ERROR(res);
         }
 
-        return streaming.totals();
+        return ResultT::of(streaming.totals());
     }
 
     struct BTFLIOVectorProducer: io::IOVectorProducer {
@@ -78,8 +87,10 @@ public:
         }
     };
 
-    auto ctr_insert_iovector(Iterator& iter, io::IOVector& iovector, int64_t start, int64_t length)
+    Result<IOVResult> ctr_insert_iovector(Iterator& iter, io::IOVector& iovector, int64_t start, int64_t length)
     {
+        using ResultT = Result<IOVResult>;
+
         auto& self = this->self();
 
         std::unique_ptr<io::IOVector> iov = LeafNodeT::template NodeSparseObject<MyType, LeafNodeT>::create_iovector();
@@ -101,7 +112,7 @@ public:
             iter.iter_refresh();
         }
 
-        return streaming.totals();
+        return ResultT::of(streaming.totals());
     }
 
 MEMORIA_V1_CONTAINER_PART_END

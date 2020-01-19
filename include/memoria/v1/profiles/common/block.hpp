@@ -742,15 +742,25 @@ private:
     }
 };
 
+template <typename T, typename U, typename AllocatorT>
+Result<T> static_cast_block(Result<BlockGuard<U, AllocatorT>>&& src) noexcept {
+    if (MMA1_LIKELY(src.is_ok()))
+    {
+        T tgt = std::move(src).get();
+        return Result<T>::of(std::move(tgt));
+    }
+    return std::move(src).transfer_error();
+}
+
 
 template <typename T, typename A>
 std::ostream& operator<<(std::ostream& out, const BlockGuard<T, A>& pg) noexcept
 {
     if (pg.isSet()) {
-        out<<pg->id();
+        out << pg->id();
     }
     else {
-        out<<"nullptr";
+        out << "nullptr";
     }
 
     return out;

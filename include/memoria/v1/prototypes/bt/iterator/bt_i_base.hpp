@@ -63,12 +63,12 @@ private:
     IteratorCache       cache_;
 
 public:
-    BTIteratorBase():
+    BTIteratorBase() noexcept:
         Base(), idx_(0), stream_(0)
     {
     }
 
-    BTIteratorBase(ThisType&& other):
+    BTIteratorBase(ThisType&& other) noexcept:
         Base(std::move(other)),
         leaf_(other.leaf_),
         idx_(other.idx_),
@@ -78,7 +78,7 @@ public:
         cache_.init(&self());
     }
 
-    BTIteratorBase(const ThisType& other):
+    BTIteratorBase(const ThisType& other) noexcept:
         Base(other),
         leaf_(other.leaf_),
         idx_(other.idx_),
@@ -88,7 +88,7 @@ public:
     }
 
 
-    void assign(ThisType&& other)
+    void assign(ThisType&& other) noexcept
     {
         leaf_       = other.leaf_;
         idx_        = other.idx_;
@@ -100,7 +100,7 @@ public:
         Base::assign(std::move(other));
     }
 
-    void assign(const ThisType& other)
+    void assign(const ThisType& other) noexcept
     {
         leaf_       = other.leaf_;
         idx_        = other.idx_;
@@ -113,38 +113,38 @@ public:
         Base::assign(other);
     }
 
-    auto iter_clone() const
+    auto iter_clone() const noexcept
     {
         return self().ctr().clone_iterator(self());
     }
 
-    bool iter_equals(const ThisType& other) const
+    bool iter_equals(const ThisType& other) const noexcept
     {
         return iter_leaf().node() == other.iter_leaf().node() && idx_ == other.idx_ && Base::iter_equals(other);
     }
 
-    bool iter_not_equals(const ThisType& other) const
+    bool iter_not_equals(const ThisType& other) const noexcept
     {
         return iter_leaf().node() != other.iter_leaf().node() || idx_ != other.idx_ || Base::iter_not_equals(other);
     }
 
 
-    int32_t& iter_stream() {
+    int32_t& iter_stream() noexcept {
         return stream_;
     }
 
 
-    int32_t iter_stream() const {
+    int32_t iter_stream() const noexcept{
         return stream_;
     }
 
 
-    int32_t &iter_local_pos()
+    int32_t &iter_local_pos() noexcept
     {
         return idx_;
     }
 
-    int32_t iter_local_pos() const
+    int32_t iter_local_pos() const noexcept
     {
         return idx_;
     }
@@ -155,7 +155,9 @@ public:
         MyType& iter_;
 
     public:
-        NodeAccessor(NodeBaseG& node, MyType& iter): node_(node), iter_(iter) {}
+        NodeAccessor(NodeBaseG& node, MyType& iter) noexcept:
+            node_(node), iter_(iter)
+        {}
 
         operator NodeBaseG&() {return node_;}
 
@@ -178,7 +180,10 @@ public:
     class ConstNodeAccessor {
         const NodeBaseG& node_;
     public:
-        ConstNodeAccessor(const NodeBaseG& node): node_(node) {}
+        ConstNodeAccessor(const NodeBaseG& node) noexcept:
+            node_(node)
+        {}
+
         operator const NodeBaseG&() const {return node_;}
 
         const auto operator->() const {
@@ -190,7 +195,7 @@ public:
         }
     };
 
-    NodeAccessor iter_leaf()
+    NodeAccessor iter_leaf() noexcept
     {
         return NodeAccessor(leaf_, self());
     }
@@ -201,56 +206,57 @@ public:
     }
 
 
-    const io::IOVector& iovector_view() const {
+    const io::IOVector& iovector_view() const noexcept {
         return iovector_view_;
     }
 
+    // TODO: error handling
     MEMORIA_V1_DECLARE_NODE_FN(RefreshIOVectorViewFn, configure_iovector_view);
-    void refresh_iovector_view()
+    void refresh_iovector_view() noexcept
     {
         self().ctr().leaf_dispatcher().dispatch(leaf_, RefreshIOVectorViewFn(), *&iovector_view_);
     }
 
 
-    IteratorCache& iter_cache() {
+    IteratorCache& iter_cache() noexcept {
         return cache_;
     }
 
-    const IteratorCache& iter_cache() const {
+    const IteratorCache& iter_cache() const noexcept {
         return cache_;
     }
 
 
-    bool iter_is_begin() const
+    bool iter_is_begin() const noexcept
     {
         return iter_local_pos() < 0 || iter_is_empty();
     }
 
-    bool iter_is_end() const
+    bool iter_is_end() const noexcept
     {
         auto& self = this->self();
 
         return iter_leaf().node().isSet() ? iter_local_pos() >= self.iter_leaf_size() : true;
     }
 
-    bool is_end() const
+    bool is_end() const noexcept
     {
         return self().iter_is_end();
     }
 
-    bool iter_is_end(int32_t idx) const
+    bool iter_is_end(int32_t idx) const noexcept
     {
         auto& self = this->self();
         return iter_leaf().node().isSet() ? idx >= self.iter_leaf_size() : true;
     }
 
-    bool iter_is_content() const
+    bool iter_is_content() const noexcept
     {
         auto& self = this->self();
         return !(self.iter_is_begin() || self.iter_is_end());
     }
 
-    bool iter_is_content(int32_t idx) const
+    bool iter_is_content(int32_t idx) const noexcept
     {
         auto& self = this->self();
 
@@ -261,40 +267,40 @@ public:
         return is_set && idx >= 0 && idx < iter_leaf_size;
     }
 
-    bool iter_is_not_end() const
+    bool iter_is_not_end() const noexcept
     {
         return !iter_is_end();
     }
 
-    bool iter_is_empty() const
+    bool iter_is_empty() const noexcept
     {
         auto& self = this->self();
         return (iter_leaf().node().isEmpty()) || (self.iter_leaf_size() == 0);
     }
 
-    bool iter_is_not_empty() const
+    bool iter_is_not_empty() const noexcept
     {
         return !iter_is_empty();
     }
 
-    int64_t keyNum() const
+    int64_t keyNum() const noexcept
     {
         return cache_.key_num();
     }
 
-    int64_t& keyNum()
+    int64_t& keyNum() noexcept
     {
         return cache_.key_num();
     }
 
 
-    bool has_same_leaf(const Iterator& other) const
+    bool has_same_leaf(const Iterator& other) const noexcept
     {
         return self().iter_leaf()->id() == other.iter_leaf()->id();
     }
 
 
-    void dump(std::ostream& out = std::cout, const char* header = nullptr) const
+    void dump(std::ostream& out = std::cout, const char* header = nullptr) const noexcept
     {
         auto& self = this->self();
 
@@ -306,12 +312,12 @@ public:
         self.iter_dump_blocks(out);
     }
 
-    U8String iter_get_dump_header() const
+    U8String iter_get_dump_header() const noexcept
     {
         return self().ctr().type_name_str() + " Iterator State";
     }
 
-    void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const
+    void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const noexcept
     {
         auto& self  = this->self();
         out << (header != NULL ? header : self.iter_get_dump_header()) << std::endl;
@@ -321,13 +327,13 @@ public:
         out << "======================================================================" << std::endl;
     }
 
-    void iter_dump_cache(std::ostream& out = std::cout) const
+    void iter_dump_cache(std::ostream& out = std::cout) const noexcept
     {
         auto& self  = this->self();
         out << self.iter_cache() << std::endl;
     }
 
-    void iter_dump_header(std::ostream& out = std::cout) const
+    void iter_dump_header(std::ostream& out = std::cout) const noexcept
     {
         self().iter_dump_cache(out);
         self().iter_dump_keys(out);
@@ -336,7 +342,7 @@ public:
         }
     }
 
-    void iter_dump_keys(std::ostream& out) const
+    void iter_dump_keys(std::ostream& out) const noexcept
     {
         auto& self = this->self();
 
@@ -346,22 +352,24 @@ public:
 
 
 
-    void iter_dump_blocks(std::ostream& out) const
+    void iter_dump_blocks(std::ostream& out) const noexcept
     {
         auto& self = this->self();
 
         self.ctr().ctr_dump_node(self.iter_leaf(), out);
     }
 
-    void iter_prepare() {}
+    void iter_prepare() noexcept {}
 
-    void iter_init() {}
+    void iter_init() noexcept {}
 
-    void iter_refresh() {}
+    VoidResult iter_refresh() noexcept {
+        return VoidResult::of();
+    }
 
 public:
     template <typename Walker>
-    void iter_finish_walking(int32_t idx, const Walker& w, WalkCmd cmd) {}
+    void iter_finish_walking(int32_t idx, const Walker& w, WalkCmd cmd) noexcept {}
 
 
 

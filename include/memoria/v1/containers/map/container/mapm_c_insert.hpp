@@ -58,35 +58,40 @@ public:
 //    }
 
 
-    IteratorPtr ctr_map_find(const KeyView& k) const
+    Result<IteratorPtr> ctr_map_find(const KeyView& k) const noexcept
     {
         return self().template ctr_find_max_ge<IntList<0, 1>>(0, k);
     }
 
 
-    bool remove(const KeyView& k)
+    Result<bool> remove(const KeyView& k) noexcept
     {
         auto iter = self().ctr_map_find(k);
-        if (iter->is_found(k))
+        MEMORIA_RETURN_IF_ERROR(iter);
+
+        if (iter.get()->is_found(k))
         {
-            iter->remove();
-            return true;
+            MEMORIA_RETURN_IF_ERROR_FN(iter.get()->remove());
+            return BoolResult::of(true);
         }
         else {
-            return false;
+            return BoolResult::of(false);
         }
     }
 
-    IteratorPtr assign(const KeyView& key, const ValueView& value)
+    Result<IteratorPtr> assign(const KeyView& key, const ValueView& value)
     {
         auto iter = self().ctr_map_find(key);
+        MEMORIA_RETURN_IF_ERROR(iter);
 
-        if (iter->is_found(key))
+        if (iter.get()->is_found(key))
         {
-            iter->assign(value);
+            auto res = iter.get()->assign(value);
+            MEMORIA_RETURN_IF_ERROR(res);
         }
         else {
-            iter->insert(key, value);
+            auto res = iter.get()->insert(key, value);
+            MEMORIA_RETURN_IF_ERROR(res);
         }
 
         return iter;

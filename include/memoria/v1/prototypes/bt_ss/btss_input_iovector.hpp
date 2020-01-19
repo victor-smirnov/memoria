@@ -106,17 +106,24 @@ public:
         return 0;
     }
 
-    void iter_next_leaf(const NodeBaseG& leaf) {}
+    VoidResult iter_next_leaf(const NodeBaseG& leaf) noexcept{
+        return VoidResult::of();
+    }
 
-    virtual bool hasData()
+    virtual BoolResult hasData() noexcept
     {
         bool buffer_has_data = start_ < size_;
 
-        return buffer_has_data || populate_buffer();
+        BoolResult res = populate_buffer();
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return buffer_has_data || res.get();
     }
 
-    virtual Position fill(NodeBaseG& leaf, const Position& from)
+    virtual Result<Position> fill(NodeBaseG& leaf, const Position& from) noexcept
     {
+        using ResultT = Result<Position>;
+
         Position pos = from;
 
         while(true)
@@ -125,9 +132,12 @@ public:
 
             if (buffer_sizes == 0)
             {
-                if (!populate_buffer())
+                BoolResult res = populate_buffer();
+                MEMORIA_RETURN_IF_ERROR(res);
+
+                if (!res.get())
                 {
-                    return pos;
+                    return ResultT::of(pos);
                 }
                 else {
                     buffer_sizes = buffer_size();
@@ -138,25 +148,30 @@ public:
 
             if (capacity > 0)
             {
-                OOM_THROW_IF_FAILED(insertBuffer(leaf, pos[0], capacity), MMA1_SRC);
+                Result<OpStatus> status = insertBuffer(leaf, pos[0], capacity);
+                MEMORIA_RETURN_IF_ERROR(status);
+
+                if (isFail(status.get())) {
+                    return ResultT::make_error("PackedOOMException");
+                }
 
                 auto rest = buffer_size();
 
                 if (rest > 0)
                 {
-                    return Position(pos[0] + capacity);
+                    return ResultT::of(pos[0] + capacity);
                 }
                 else {
                     pos[0] += capacity;
                 }
             }
             else {
-                return pos;
+                return ResultT::of(pos);
             }
         }
     }
 
-    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size) = 0;
+    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size) noexcept = 0;
 
     struct InsertBufferFn
     {
@@ -216,8 +231,10 @@ public:
     };
 
 
-    virtual OpStatus insertBuffer(NodeBaseG& leaf, int32_t at, int32_t size)
+    virtual Result<OpStatus> insertBuffer(NodeBaseG& leaf, int32_t at, int32_t size) noexcept
     {
+        using ResultT = Result<OpStatus>;
+
         InsertBufferFn fn;
         ctr().leaf_dispatcher().dispatch(leaf, fn, at, start_, size, *io_vector_);
 
@@ -229,18 +246,19 @@ public:
 
         if (leaf->parent_id().isSet())
         {
-            ctr().ctr_update_path(leaf);
+            auto res = ctr().ctr_update_path(leaf);
+            MEMORIA_RETURN_IF_ERROR(res);
         }
 
-        return OpStatus::OK;
+        return ResultT::of(OpStatus::OK);
     }
 
-    int32_t buffer_size() const
+    int32_t buffer_size() const noexcept
     {
         return size_ - start_;
     }
 
-    virtual bool populate_buffer()
+    virtual BoolResult populate_buffer() noexcept
     {
         if (start_ < size_)
         {
@@ -248,7 +266,8 @@ public:
         }
         else if (!finished_)
         {
-            do_populate_iobuffer();
+            auto res = do_populate_iobuffer();
+            MEMORIA_RETURN_IF_ERROR(res);
 
             if (finished_)
             {
@@ -263,8 +282,10 @@ public:
         }
     }
 
-    void do_populate_iobuffer()
+    VoidResult do_populate_iobuffer() noexcept
     {
+        return wrap_throwing([&]() -> VoidResult {
+
         auto& seq = io_vector_->symbol_sequence();
 
         do
@@ -305,6 +326,9 @@ public:
             seq.rank_to(start_ + remainder, &size_);
             finished_ = true;
         }
+
+        return VoidResult::of();
+        });
     }
 };
 
@@ -343,7 +367,7 @@ public:
     ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
-    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size)
+    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size) noexcept
     {
         int32_t capacity = this->ctr_.ctr_get_leaf_node_capacity(leaf);
 
@@ -388,23 +412,28 @@ public:
     ): Base(ctr, producer, io_vector, start_pos, length, reset_iovector)
     {}
 
-    virtual Position fill(NodeBaseG& leaf, const Position& from)
+    virtual Result<Position> fill(NodeBaseG& leaf, const Position& from) noexcept
     {
+        using ResultT = Result<Position>;
         int32_t pos = from[0];
 
         BlockUpdateMgr mgr(this->ctr());
 
-        mgr.add(leaf);
+        MEMORIA_RETURN_IF_ERROR_FN(mgr.add(leaf));
 
-        while(this->hasData())
+        BoolResult has_data_res = this->hasData();
+        MEMORIA_RETURN_IF_ERROR(has_data_res);
+
+        while(has_data_res.get())
         {
             auto buffer_sizes = this->buffer_size();
 
             auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
+            MEMORIA_RETURN_IF_ERROR(inserted);
 
-            if (inserted > 0)
+            if (inserted.get() > 0)
             {
-                pos += inserted;
+                pos += inserted.get();
 
                 if (getFreeSpacePart(leaf) < 0.05)
                 {
@@ -416,19 +445,19 @@ public:
             }
         }
 
-        return Position(pos);
+        return ResultT::of(pos);
     }
 
-    virtual int32_t insertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
+    virtual Int32Result insertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size) noexcept
     {
         int32_t inserted = this->insertBuffer_(mgr, leaf, at, size);
 
         if (leaf->parent_id().isSet())
         {
-            ctr().ctr_update_path(leaf);
+            MEMORIA_RETURN_IF_ERROR_FN(ctr().ctr_update_path(leaf));
         }
 
-        return inserted;
+        return Int32Result::of(inserted);
     }
 
     int32_t insertBuffer_(BlockUpdateMgr& mgr, NodeBaseG& leaf, int32_t at, int32_t size)
@@ -482,7 +511,7 @@ public:
     }
 
 protected:
-    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size) {
+    virtual int32_t findCapacity(const NodeBaseG& leaf, int32_t size) noexcept {
         return 0;
     }
 

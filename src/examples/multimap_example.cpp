@@ -45,7 +45,7 @@ int main()
 
         auto ctr0 = create(snp, MultimapType()).get_or_terminate();
 
-        ctr0->set_new_block_size(64*1024);
+        ctr0->set_new_block_size(64*1024).throw_if_error();
 
 
         int64_t t0 = getTimeInMillis();
@@ -94,7 +94,7 @@ int main()
             sizes.entries_ += limit;
 
             return limit != batch_size;
-        });
+        }).throw_if_error();
 
         int64_t t1_i = getTimeInMillis();
 
@@ -109,7 +109,7 @@ int main()
 
         int64_t t2 = getTimeInMillis();
 
-        auto ii = ctr0->entries_scanner(ctr0->seek(0));
+        auto ii = ctr0->entries_scanner(ctr0->seek(0).get_or_throw());
 
         size_t sum0 = 0;
 
@@ -131,7 +131,7 @@ int main()
         std::cout << "Iterated over entries in " << (t3 - t2) << " ms " << sum0 << std::endl;
 
 
-        auto keys = ctr0->keys();
+        auto keys = ctr0->keys().get_or_throw();
 
         while (!keys->is_end())
         {
@@ -153,7 +153,7 @@ int main()
 
                     if (!vals->is_run_finished())
                     {
-                        vals->next_block();
+                        vals->next_block().throw_if_error();
                     }
                     else {
                         break;
@@ -161,7 +161,7 @@ int main()
                 }
             }
 
-            keys->next();
+            keys->next().throw_if_error();
         }
 
     }

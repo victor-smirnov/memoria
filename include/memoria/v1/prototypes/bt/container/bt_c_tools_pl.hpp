@@ -48,17 +48,17 @@ protected:
 public:
 
 
-    void ctr_dump_path(NodeBaseG node, std::ostream& out = std::cout, int32_t depth = 100) const
+    void ctr_dump_path(NodeBaseG node, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
     {
         auto& self = this->self();
 
-        out<<"Path:"<<std::endl;
+        out << "Path:" << std::endl;
 
         self.ctr_dump_node(node, out);
 
         while (!node->is_root() && node->level() < depth)
         {
-            node = self.ctr_get_node_parent(node);
+            node = self.ctr_get_node_parent(node).get_or_terminate();
             self.ctr_dump_node(node, out);
         }
     }
@@ -66,27 +66,23 @@ public:
 
 protected:
 
-    NodeBaseG ctr_get_node_parent(const NodeBaseG& node) const
+    Result<NodeBaseG> ctr_get_node_parent(const NodeBaseG& node) const noexcept
     {
         auto& self = this->self();
-        return self.store().getBlock(node->parent_id()).get_or_terminate();
+        return static_cast_block<NodeBaseG>(self.store().getBlock(node->parent_id()));
     }
 
-    NodeBaseG ctr_get_node_parent_for_update(const NodeBaseG& node) const
+    Result<NodeBaseG> ctr_get_node_parent_for_update(const NodeBaseG& node) const noexcept
     {
         auto& self = this->self();
-        return self.store().getBlockForUpdate(node->parent_id()).get_or_terminate();
+        return static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(node->parent_id()));
     }
-
-
-
-
 
 
 public:
 
-    NodeBaseG ctr_get_next_node(NodeBaseG& node) const;
-    NodeBaseG ctr_get_prev_node(NodeBaseG& node) const;
+    Result<NodeBaseG> ctr_get_next_node(NodeBaseG& node) const noexcept;
+    Result<NodeBaseG> ctr_get_prev_node(NodeBaseG& node) const noexcept;
 
 protected:
 
@@ -98,28 +94,32 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::ctr_get_next_node(NodeBaseG& node) const
+Result<typename M_TYPE::NodeBaseG> M_TYPE::ctr_get_next_node(NodeBaseG& node) const noexcept
 {
+    using ResultT = Result<NodeBaseG>;
+
     auto& self = this->self();
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.ctr_get_node_parent(node);
+        Result<NodeBaseG> parent = self.ctr_get_node_parent(node);
+        MEMORIA_RETURN_IF_ERROR(parent);
 
-        int32_t size = self.ctr_get_node_size(parent, 0);
+        int32_t size = self.ctr_get_node_size(parent.get(), 0);
 
         int32_t parent_idx = node->parent_idx();
 
         if (parent_idx < size - 1)
         {
-            return self.ctr_get_node_child(parent, parent_idx + 1);
+            return self.ctr_get_node_child(parent.get(), parent_idx + 1);
         }
         else {
-            NodeBaseG target_parent = ctr_get_next_node(parent);
+            Result<NodeBaseG> target_parent = ctr_get_next_node(parent.get());
+            MEMORIA_RETURN_IF_ERROR(target_parent);
 
-            if (target_parent.isSet())
+            if (target_parent.get().isSet())
             {
-                return self.ctr_get_node_child(target_parent, 0);
+                return self.ctr_get_node_child(target_parent.get(), 0);
             }
             else {
                 return target_parent;
@@ -127,33 +127,35 @@ typename M_TYPE::NodeBaseG M_TYPE::ctr_get_next_node(NodeBaseG& node) const
         }
     }
     else {
-        return NodeBaseG();
+        return ResultT::of();
     }
 }
 
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::ctr_get_prev_node(NodeBaseG& node) const
+Result<typename M_TYPE::NodeBaseG> M_TYPE::ctr_get_prev_node(NodeBaseG& node) const noexcept
 {
+    using ResultT = Result<NodeBaseG>;
     auto& self = this->self();
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.ctr_get_node_parent(node);
+        Result<NodeBaseG> parent = self.ctr_get_node_parent(node);
+        MEMORIA_RETURN_IF_ERROR(parent);
 
         int32_t parent_idx = node->parent_idx();
 
         if (parent_idx > 0)
         {
-            return self.ctr_get_node_child(parent, parent_idx - 1);
+            return self.ctr_get_node_child(parent.get(), parent_idx - 1);
         }
         else {
-            NodeBaseG target_parent = ctr_get_prev_node(parent);
+            Result<NodeBaseG> target_parent = ctr_get_prev_node(parent.get());
 
-            if (target_parent.isSet())
+            if (target_parent.get().isSet())
             {
-                int32_t node_size = self.ctr_get_node_size(target_parent, 0);
-                return self.ctr_get_node_child(target_parent, node_size - 1);
+                int32_t node_size = self.ctr_get_node_size(target_parent.get(), 0);
+                return self.ctr_get_node_child(target_parent.get(), node_size - 1);
             }
             else {
                 return target_parent;
@@ -161,7 +163,7 @@ typename M_TYPE::NodeBaseG M_TYPE::ctr_get_prev_node(NodeBaseG& node) const
         }
     }
     else {
-        return NodeBaseG();
+        return ResultT::of();
     }
 }
 

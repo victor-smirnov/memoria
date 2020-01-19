@@ -133,25 +133,15 @@ public:
 
 
 
-    void iter_refresh()
+    VoidResult iter_refresh() noexcept
     {
-        Base::iter_refresh();
+        return Base::iter_refresh();
     }
 
-    void refresh_prefixes()
+    VoidResult refresh_prefixes() noexcept
     {
-        Base::iter_refresh();
+        return Base::iter_refresh();
     }
-
-
-    void iter_check_prefix() {
-        auto tmp = self();
-
-        tmp.iter_refresh();
-
-        MEMORIA_V1_ASSERT(self().iter_cache(), ==, tmp.iter_cache());
-    }
-
 
 MEMORIA_V1_ITERATOR_PART_END
 

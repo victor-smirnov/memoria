@@ -107,36 +107,36 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     ObjectPools& pools() {return pools_;}
 
-    BlockG createRootLeaf() const {
+    Result<NodeBaseG> createRootLeaf() const noexcept {
         return self().ctr_create_root_node(0, true, -1);
     }
 
-    const NodeDispatcher& node_dispatcher() const {
+    const NodeDispatcher& node_dispatcher() const noexcept {
         return node_dispatcher_;
     }
 
-    const LeafDispatcher& leaf_dispatcher() const {
+    const LeafDispatcher& leaf_dispatcher() const noexcept {
         return leaf_dispatcher_;
     }
 
-    const BranchDispatcher& branch_dispatcher() const {
+    const BranchDispatcher& branch_dispatcher() const noexcept {
         return branch_dispatcher_;
     }
 
-    const DefaultDispatcher& default_dispatcher() const {
+    const DefaultDispatcher& default_dispatcher() const noexcept {
         return default_dispatcher_;
     }
 
-    const TreeDispatcher& tree_dispatcher() const {
+    const TreeDispatcher& tree_dispatcher() const noexcept {
         return tree_dispatcher_;
     }
 
 
 
-    const LeafNodeExtData& leaf_node_ext_data() const {return leaf_node_ext_data_;}
-    const BranchNodeExtData& branch_node_ext_data() const {return branch_node_ext_data_;}
+    const LeafNodeExtData& leaf_node_ext_data() const noexcept {return leaf_node_ext_data_;}
+    const BranchNodeExtData& branch_node_ext_data() const noexcept {return branch_node_ext_data_;}
 
-    void ctr_upsize_node(NodeBaseG node, size_t upsize)
+    VoidResult ctr_upsize_node(NodeBaseG node, size_t upsize) noexcept
     {
         size_t free_space = node->allocator()->free_space();
 
@@ -155,11 +155,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 total_free_space += additional_free_space;
             }
 
-            node.resize(memory_block_size).terminate_if_error();
+            return node.resize(memory_block_size);
         }
+
+        return VoidResult::of();
     }
 
-    void ctr_downsize_node(NodeBaseG node)
+    VoidResult ctr_downsize_node(NodeBaseG node) noexcept
     {
         size_t memory_block_size = node->header().memory_block_size();
 
@@ -175,209 +177,257 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 target_memory_block_size *= 2;
             }
 
-            node.resize(target_memory_block_size).terminate_if_error();
+            return node.resize(target_memory_block_size);
         }
+
+        return VoidResult::of();
     }
 
-    virtual Optional<U8String> get_ctr_property(U8StringView key) const
+    virtual Result<Optional<U8String>> get_ctr_property(U8StringView key) const noexcept
     {
-        auto& self     = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
+        using ResultT = Result<Optional<U8String>>;
 
-        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+        auto& self     = this->self();
+        Result<NodeBaseG> root = self.ctr_get_root_node();
+        MEMORIA_RETURN_IF_ERROR(root);
+
+        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
 
         PackedMapSO<CtrPropertiesMap> map_so(const_cast<CtrPropertiesMap*>(map));
 
         auto res = map_so.find(key);
 
-        return res ? Optional<U8String>(res.get()) : Optional<U8String>();
-    }
-
-    virtual void set_ctr_property(U8StringView key, U8StringView value)
-    {
-        auto& self     = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
-        CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
-
-        PackedMapSO<CtrPropertiesMap> map_so(map);
-
-        psize_t upsize = map_so.estimate_required_upsize(key, value);
-        if (upsize > map->compute_free_space_up())
-        {
-            self.ctr_upsize_node(root, upsize);
-
-            map_so.setup(get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX));
+        if (res) {
+            return ResultT::of(Optional<U8String>(res.get()));
         }
-
-        OOM_THROW_IF_FAILED(map_so.set(key, value), MMA1_SRC);
+        else {
+            return ResultT::of(Optional<U8String>());
+        }
     }
 
-    virtual size_t ctr_properties() const
+    virtual VoidResult set_ctr_property(U8StringView key, U8StringView value) noexcept
     {
-        auto& self     = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
-        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+        return wrap_throwing([&]() -> VoidResult {
+            auto& self = this->self();
 
-        return map->size();
+            Result<NodeBaseG> root = self.ctr_get_root_node();
+            MEMORIA_RETURN_IF_ERROR(root);
+
+            CtrPropertiesMap* map = get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
+
+            PackedMapSO<CtrPropertiesMap> map_so(map);
+
+            psize_t upsize = map_so.estimate_required_upsize(key, value);
+            if (upsize > map->compute_free_space_up())
+            {
+                MEMORIA_RETURN_IF_ERROR_FN(self.ctr_upsize_node(root.get(), upsize));
+                map_so.setup(get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX));
+            }
+
+            OOM_THROW_IF_FAILED(map_so.set(key, value), MMA1_SRC);
+
+            return VoidResult::of();
+        });
     }
 
-    virtual void remove_ctr_property(U8StringView key)
+    virtual Result<size_t> ctr_properties() const noexcept
     {
-        auto& self     = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
+        auto& self = this->self();
+        Result<NodeBaseG> root = self.ctr_get_root_node();
+        MEMORIA_RETURN_IF_ERROR(root);
 
-        CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
 
-        PackedMapSO<CtrPropertiesMap> map_so(map);
-
-        OOM_THROW_IF_FAILED(map_so.remove(key), MMA1_SRC);
-
-        self.ctr_downsize_node(root);
+        return Result<size_t>::of((size_t)map->size());
     }
 
-    virtual void for_each_ctr_property(std::function<void (U8StringView, U8StringView)> consumer) const
+    virtual VoidResult remove_ctr_property(U8StringView key) noexcept
+    {
+        return wrap_throwing([&]() -> VoidResult {
+            auto& self     = this->self();
+            Result<NodeBaseG> root = self.ctr_get_root_node();
+            MEMORIA_RETURN_IF_ERROR(root);
+
+            CtrPropertiesMap* map = get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
+
+            PackedMapSO<CtrPropertiesMap> map_so(map);
+
+            OOM_THROW_IF_FAILED(map_so.remove(key), MMA1_SRC);
+
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_downsize_node(root.get()));
+            return VoidResult::of();
+        });
+    }
+
+    virtual VoidResult for_each_ctr_property(std::function<void (U8StringView, U8StringView)> consumer) const noexcept
     {
         auto& self     = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
+        Result<NodeBaseG> root = self.ctr_get_root_node();
+        MEMORIA_RETURN_IF_ERROR(root);
 
-        CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+        CtrPropertiesMap* map = get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
 
         PackedMapSO<CtrPropertiesMap> map_so(map);
 
         map_so.for_each(consumer);
+
+        return VoidResult::of();
     }
 
-    virtual void set_ctr_properties(const std::vector<std::pair<U8String, U8String>>& entries)
+    virtual VoidResult set_ctr_properties(const std::vector<std::pair<U8String, U8String>>& entries) noexcept
     {
-        auto& self     = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
+        return wrap_throwing([&]() -> VoidResult {
+            auto& self = this->self();
+            Result<NodeBaseG> root = self.ctr_get_root_node();
+            MEMORIA_RETURN_IF_ERROR(root);
 
-        CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
+            CtrPropertiesMap* map = get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
 
-        PackedMapSO<CtrPropertiesMap> map_so(map);
+            PackedMapSO<CtrPropertiesMap> map_so(map);
 
-        std::vector<std::pair<U8StringView, U8StringView>> entries_view;
+            std::vector<std::pair<U8StringView, U8StringView>> entries_view;
 
-        for (auto& entry: entries) {
-            entries_view.emplace_back(entry.first, entry.second);
-        }
+            for (auto& entry: entries) {
+                entries_view.emplace_back(entry.first, entry.second);
+            }
 
-        psize_t upsize = map_so.estimate_required_upsize(entries_view);
-        if (upsize > map->compute_free_space_up())
-        {
-            self.ctr_upsize_node(root, upsize);
+            psize_t upsize = map_so.estimate_required_upsize(entries_view);
+            if (upsize > map->compute_free_space_up())
+            {
+                MEMORIA_RETURN_IF_ERROR_FN(self.ctr_upsize_node(root.get(), upsize));
+                map_so.setup(get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX));
+            }
 
-            map_so.setup(get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX));
-        }
-
-        OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA1_SRC);
+            OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA1_SRC);
+            return VoidResult::of();
+        });
     }
 
 
-    virtual Optional<CtrID> get_ctr_reference(U8StringView key) const {
-        auto& self     = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
-
-        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
-
-        PackedMapSO<CtrReferencesMap> map_so(map);
-
-        return map_so.find(key);
-    }
-
-    virtual void set_ctr_reference(U8StringView key, const CtrID& value)
+    virtual Result<Optional<CtrID>> get_ctr_reference(U8StringView key) const noexcept
     {
-        auto& self     = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
-        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+        using ResultT = Result<Optional<CtrID>>;
+        auto& self = this->self();
+        Result<NodeBaseG> root = self.ctr_get_root_node();
+        MEMORIA_RETURN_IF_ERROR(root);
+
+        CtrReferencesMap* map = get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
 
         PackedMapSO<CtrReferencesMap> map_so(map);
 
-        psize_t upsize = map_so.estimate_required_upsize(key, value);
-        if (upsize > map->compute_free_space_up())
-        {
-            self.ctr_upsize_node(root, upsize);
-
-            map_so.setup(get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX));
-        }
-
-        OOM_THROW_IF_FAILED(map_so.set(key, value), MMA1_SRC);
+        return ResultT::of(map_so.find(key));
     }
 
-    virtual void remove_ctr_reference(U8StringView key) {
-        auto& self     = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
+    virtual VoidResult set_ctr_reference(U8StringView key, const CtrID& value) noexcept
+    {
+        return wrap_throwing([&]() -> VoidResult {
+            auto& self = this->self();
+            Result<NodeBaseG> root = self.ctr_get_root_node();
+            MEMORIA_RETURN_IF_ERROR(root);
 
-        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+            CtrReferencesMap* map = get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
 
-        PackedMapSO<CtrReferencesMap> map_so(map);
+            PackedMapSO<CtrReferencesMap> map_so(map);
 
-        OOM_THROW_IF_FAILED(map_so.remove(key), MMA1_SRC);
+            psize_t upsize = map_so.estimate_required_upsize(key, value);
+            if (upsize > map->compute_free_space_up())
+            {
+                MEMORIA_RETURN_IF_ERROR_FN(self.ctr_upsize_node(root.get(), upsize));
+                map_so.setup(get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX));
+            }
 
-        self.ctr_downsize_node(root);
+            OOM_THROW_IF_FAILED(map_so.set(key, value), MMA1_SRC);
+            return VoidResult::of();
+        });
     }
 
-    virtual size_t ctr_references() const
+    virtual VoidResult remove_ctr_reference(U8StringView key) noexcept
+    {
+        return wrap_throwing([&]() -> VoidResult {
+            auto& self     = this->self();
+            Result<NodeBaseG> root = self.ctr_get_root_node();
+            MEMORIA_RETURN_IF_ERROR(root);
+
+            CtrReferencesMap* map = get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
+
+            PackedMapSO<CtrReferencesMap> map_so(map);
+
+            OOM_THROW_IF_FAILED(map_so.remove(key), MMA1_SRC);
+
+            return self.ctr_downsize_node(root.get());
+        });
+    }
+
+    virtual Result<size_t> ctr_references() const noexcept
     {
         auto& self = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
-        const CtrReferencesMap* map = get<const CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+        Result<NodeBaseG> root = self.ctr_get_root_node();
+        MEMORIA_RETURN_IF_ERROR(root);
 
-        return map->size();
+        const CtrReferencesMap* map = get<const CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
+
+        return Result<size_t>::of((size_t)map->size());
     }
 
     virtual VoidResult for_each_ctr_reference(std::function<VoidResult (U8StringView, const CtrID&)> consumer) const noexcept
     {
         auto& self = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
-        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+        Result<NodeBaseG> root = self.ctr_get_root_node();
+        MEMORIA_RETURN_IF_ERROR(root);
+
+        CtrReferencesMap* map = get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
 
         PackedMapSO<CtrReferencesMap> map_so(map);
 
         return map_so.for_each_noexcept(consumer);
     }
 
-    virtual void set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries)
+    virtual VoidResult set_ctr_references(const std::vector<std::pair<U8String, CtrID>>& entries) noexcept
     {
-        auto& self = this->self();
-        NodeBaseG root = self.ctr_get_root_node();
+        return wrap_throwing([&]() -> VoidResult {
+            auto& self = this->self();
+            Result<NodeBaseG> root = self.ctr_get_root_node();
+            MEMORIA_RETURN_IF_ERROR(root);
 
-        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
+            CtrReferencesMap* map = get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
 
-        PackedMapSO<CtrReferencesMap> map_so(map);
+            PackedMapSO<CtrReferencesMap> map_so(map);
 
-        std::vector<std::pair<U8StringView, CtrID>> entries_view;
+            std::vector<std::pair<U8StringView, CtrID>> entries_view;
 
-        for (auto& entry: entries) {
-            entries_view.emplace_back(entry.first, entry.second);
-        }
+            for (auto& entry: entries) {
+                entries_view.emplace_back(entry.first, entry.second);
+            }
 
-        psize_t upsize = map_so.estimate_required_upsize(entries_view);
-        if (upsize > map->compute_free_space_up())
-        {
-            self.ctr_upsize_node(root, upsize);
+            psize_t upsize = map_so.estimate_required_upsize(entries_view);
+            if (upsize > map->compute_free_space_up())
+            {
+                MEMORIA_RETURN_IF_ERROR_FN(self.ctr_upsize_node(root.get(), upsize));
+                map_so.setup(get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX));
+            }
 
-            map_so.setup(get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX));
-        }
-
-        OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA1_SRC);
+            OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA1_SRC);
+            return VoidResult::of();
+        });
     }
 
 
 
 
-    void ctr_root_to_node(NodeBaseG& node) const
+    VoidResult ctr_root_to_node(NodeBaseG& node) noexcept
     {
-        self().ctr_update_block_guard(node);
+        MEMORIA_RETURN_IF_ERROR_FN(self().ctr_update_block_guard(node));
 
         node->set_root(false);
 
         node->clear_metadata();
+
+        return VoidResult::of();
     }
 
-    void ctr_node_to_root(NodeBaseG& node, const Metadata& meta) const
+    VoidResult ctr_node_to_root(NodeBaseG& node, const Metadata& meta) noexcept
     {
-        self().ctr_update_block_guard(node);
+        MEMORIA_RETURN_IF_ERROR_FN(self().ctr_update_block_guard(node));
 
         node->set_root(true);
 
@@ -385,15 +435,19 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->parent_idx() = 0;
 
         node->setMetadata(meta);
+
+        return VoidResult::of();
     }
 
-    void ctr_copy_root_metadata(NodeBaseG& src, NodeBaseG& tgt) const
+    VoidResult ctr_copy_root_metadata(NodeBaseG& src, NodeBaseG& tgt) noexcept
     {
-        self().ctr_update_block_guard(tgt);
+        MEMORIA_RETURN_IF_ERROR_FN(self().ctr_update_block_guard(tgt));
         tgt->copy_metadata_from(src);
+
+        return VoidResult::of();
     }
 
-    bool ctr_can_convert_to_root(const NodeBaseG& node, psize_t metadata_size) const
+    bool ctr_can_convert_to_root(const NodeBaseG& node, psize_t metadata_size) const noexcept
     {
         return node->can_convert_to_root(metadata_size);
     }
@@ -401,7 +455,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    CtrID ctr_get_model_name_fn(Node& node) const
+    CtrID ctr_get_model_name_fn(Node& node) const noexcept
     {
         return node.node()->root_metadata().model_name();
     }
@@ -410,7 +464,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    void ctr_set_model_name_fn(Node& node, const CtrID& name)
+    void ctr_set_model_name_fn(Node& node, const CtrID& name) noexcept
     {
         node->root_metadata().model_name() = name;
     }
@@ -423,35 +477,38 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
      * \brief Get model name from the root node
      * \param root_id must be a root node ID
      */
-    CtrID ctr_get_model_name(const BlockID& root_id) const
+    Result<CtrID> ctr_get_model_name(const BlockID& root_id) const noexcept
     {
         MEMORIA_V1_ASSERT_NOT_EMPTY(root_id);
 
         auto& self = this->self();
 
-        NodeBaseG root = self.store().getBlock(root_id).get_or_terminate();
+        NodeBaseG root = static_cast_block<NodeBaseG>(self.store().getBlock(root_id));
+        MEMORIA_RETURN_IF_ERROR(root);
 
-        return self.node_dispatcher().dispatch(root, GetModelNameFn(self));
+        return self.node_dispatcher().dispatch(root.get(), GetModelNameFn(self));
     }
 
-    static CtrID ctr_get_model_name(NodeBaseG root)
+    static CtrID ctr_get_model_name(NodeBaseG root) noexcept
     {
         return ctr_get_root_metadata(root).model_name();
     }
 
-    static const Metadata& ctr_get_root_metadata(NodeBaseG node)
+    static const Metadata& ctr_get_root_metadata(NodeBaseG node) noexcept
     {
-        MEMORIA_V1_ASSERT_TRUE(node.isSet());
-        MEMORIA_V1_ASSERT_TRUE(node->is_root());
+        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
+       // MEMORIA_V1_ASSERT_TRUE(node->is_root());
 
         return node->root_metadata();
     }
 
-    void ctr_set_model_name(const CtrID& name)
+    VoidResult ctr_set_model_name(const CtrID& name) noexcept
     {
         NodeBaseG root = self().ctr_get_root_node();
 
         self().node_dispatcher().dispatch(root, SetModelNameFn(self()), name);
+
+        return VoidResult::of();
     }
 
 
@@ -459,33 +516,40 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     MEMORIA_V1_FN_WRAPPER_RTN(SetRootIdFn, setRootIdFn, Metadata);
 
 
-    static Metadata ctr_get_ctr_root_metadata(NodeBaseG node)
+    static Metadata ctr_get_ctr_root_metadata(NodeBaseG node) noexcept
     {
-        MEMORIA_V1_ASSERT_TRUE(node.isSet());
-        MEMORIA_V1_ASSERT_TRUE(node->has_root_metadata());
+        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        //MEMORIA_V1_ASSERT_TRUE(node->has_root_metadata());
 
         return node->root_metadata();
     }
 
 
-    void ctr_set_ctr_root_metadata(NodeBaseG& node, const Metadata& metadata) const
+    VoidResult ctr_set_ctr_root_metadata(NodeBaseG& node, const Metadata& metadata) const noexcept
     {
-        MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
         self().ctr_update_block_guard(node);
         node->setMetadata(metadata);
+
+        return VoidResult::of();
     }
 
-    Metadata ctr_get_root_metadata() const
+    Result<Metadata> ctr_get_root_metadata() const noexcept
     {
+        using ResultT = Result<Metadata>;
+
         auto& self          = this->self();
         const auto& root_id = self.root();
-        NodeBaseG root      = self.store().getBlock(root_id).get_or_terminate();
 
-        return root->root_metadata();
+        auto root_res = self.store().getBlock(root_id);
+        MEMORIA_RETURN_IF_ERROR(root_res);
+
+        NodeBaseG root = root_res.get();
+        return ResultT::of(root->root_metadata());
     }
 
-    void ctr_set_root_metadata(const Metadata& metadata) const
+    VoidResult ctr_set_root_metadata(const Metadata& metadata) const noexcept
     {
         NodeBaseG root = self().ctr_get_root_node_for_update();
         self().setRootMetadata(root, metadata);
@@ -497,17 +561,17 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
      * \param node Must be a root node
      * \param metadata to set
      */
-    void ctr_set_root_metadata(NodeBaseG& node, const Metadata& metadata) const
+    VoidResult ctr_set_root_metadata(NodeBaseG& node, const Metadata& metadata) const noexcept
     {
-        ctr_set_ctr_root_metadata(node, metadata);
+        return ctr_set_ctr_root_metadata(node, metadata);
     }
 
-    CtrID ctr_get_container_name() const
+    Result<CtrID> ctr_get_container_name() const
     {
-        return ctr_get_root_metadata().model_name();
+        return Result<CtrID>::of(ctr_get_root_metadata().model_name());
     }
 
-    Metadata ctr_create_new_root_metadata() const
+    Metadata ctr_create_new_root_metadata() const noexcept
     {
         Metadata metadata;
 
@@ -519,55 +583,67 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return metadata;
     }
 
-    int32_t get_new_block_size() const
+    Result<int32_t> get_new_block_size() const noexcept
     {
-        NodeBaseG root_block = self().store().getBlockForUpdate(self().root()).get_or_terminate();
-        const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
-        return meta->memory_block_size();
+        Result<NodeBaseG> root_block = static_cast_block<NodeBaseG>(self().store().getBlockForUpdate(self().root()));
+        MEMORIA_RETURN_IF_ERROR(root_block);
+        const Metadata* meta = get<const Metadata>(root_block.get()->allocator(), METADATA_IDX);
+        return Result<int32_t>::of(meta->memory_block_size());
     }
 
-    void set_new_block_size(int32_t block_size)
+    VoidResult set_new_block_size(int32_t block_size) noexcept
     {
-        NodeBaseG root_block = self().store().getBlockForUpdate(self().root()).get_or_terminate();
-        Metadata* meta = get<Metadata>(root_block->allocator(), METADATA_IDX);
+        Result<NodeBaseG> root_block = static_cast_block<NodeBaseG>(self().store().getBlockForUpdate(self().root()));
+        MEMORIA_RETURN_IF_ERROR(root_block);
+
+        Metadata* meta = get<Metadata>(root_block.get()->allocator(), METADATA_IDX);
         meta->memory_block_size() = block_size;
+
+        return VoidResult::of();
     }
 
 
 
     template <typename Node>
-    NodeBaseG ctr_create_node_fn(int32_t size) const
+    Result<NodeBaseG> ctr_create_node_fn(int32_t size) const noexcept
     {
         auto& self = this->self();
 
-        NodeBaseG node = self.store().createBlock(size).get_or_terminate();
-        node->init();
+        Result<NodeBaseG> node = static_cast_block<NodeBaseG>(self.store().createBlock(size));
+        MEMORIA_RETURN_IF_ERROR(node)
 
-        node->header().block_type_hash() = Node::NodeType::hash();
+        node.get()->init();
+        node.get()->header().block_type_hash() = Node::NodeType::hash();
 
         return node;
     }
 
 
-    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, ctr_create_node_fn, NodeBaseG);
-    NodeBaseG createNonRootNode(int16_t level, bool leaf, int32_t size = -1) const
+    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, ctr_create_node_fn, Result<NodeBaseG>);
+    Result<NodeBaseG> createNonRootNode(int16_t level, bool leaf, int32_t size = -1) const noexcept
     {
-        MEMORIA_V1_ASSERT(level, >=, 0);
+        //MEMORIA_V1_ASSERT(level, >=, 0);
 
         auto& self = this->self();
 
         if (size == -1)
         {
-            NodeBaseG root_block = self.store().getBlock(self.root()).get_or_terminate();
-            const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
+            Result<NodeBaseG> root_block = static_cast_block<NodeBaseG>(self.store().getBlock(self.root()));
+            MEMORIA_RETURN_IF_ERROR(root_block);
+
+            const Metadata* meta = get<const Metadata>(root_block.get()->allocator(), METADATA_IDX);
             size = meta->memory_block_size();
         }
 
-        NodeBaseG node = self.default_dispatcher().dispatch2(
+        Result<NodeBaseG> node_ret = self.default_dispatcher().dispatch2(
                         leaf,
                         CreateNodeFn(self),
 						size
         );
+
+        MEMORIA_RETURN_IF_ERROR(node_ret);
+
+        NodeBaseG node = node_ret.get();
 
         node->header().ctr_type_hash() = self.hash();
         
@@ -582,28 +658,29 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         ctr_prepare_node(node);
 
         if (leaf) {
-            self.ctr_layout_leaf_node(node, Position());
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_leaf_node(node, Position()));
         }
         else {
-            self.ctr_layout_branch_node(node, -1ull);
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_branch_node(node, -1ull));
         }
 
-        return node;
+        return node_ret;
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(InitRootMetadataFn, init_root_metadata);
-    NodeBaseG ctr_create_root_node(int16_t level, bool leaf, int32_t size = -1) const
+    Result<NodeBaseG> ctr_create_root_node(int16_t level, bool leaf, int32_t size = -1) const noexcept
     {
-        MEMORIA_V1_ASSERT(level, >=, 0);
+        //MEMORIA_V1_ASSERT(level, >=, 0);
 
         auto& self = this->self();
 
-        NodeBaseG root_block = self.store().getBlock(self.root()).get_or_terminate();
+        Result<NodeBaseG> root_block = static_cast_block<NodeBaseG>(self.store().getBlock(self.root()));
 
         if (size == -1)
         {
-            if (root_block) {
-                const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
+            if (root_block.get())
+            {
+                const Metadata* meta = get<const Metadata>(root_block.get()->allocator(), METADATA_IDX);
                 size = meta->memory_block_size();
             }
             else {
@@ -611,10 +688,14 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             }
         }
 
-        NodeBaseG node = self.node_dispatcher().dispatch2(
+        Result<NodeBaseG> node_ret = self.node_dispatcher().dispatch2(
             leaf,
             CreateNodeFn(self), size
         );
+
+        MEMORIA_RETURN_IF_ERROR(node_ret);
+
+        NodeBaseG node = node_ret.get();
 
         node->header().ctr_type_hash() = self.hash();
         
@@ -628,8 +709,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         ctr_prepare_node(node);
 
-        if (root_block) {
-            node->copy_metadata_from(root_block);
+        if (root_block.get()) {
+            node->copy_metadata_from(root_block.get());
         }
         else {
             self.node_dispatcher().dispatch(node, InitRootMetadataFn());
@@ -651,16 +732,16 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         }
 
         if (leaf) {
-            self.ctr_layout_leaf_node(node, Position());
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_leaf_node(node, Position()));
         }
         else {
-            self.ctr_layout_branch_node(node, -1ull);
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_branch_node(node, -1ull));
         }
 
-        return node;
+        return node_ret;
     }
 
-    NodeBaseG ctr_create_node(int16_t level, bool root, bool leaf, int32_t size = -1) const
+    Result<NodeBaseG> ctr_create_node(int16_t level, bool root, bool leaf, int32_t size = -1) const noexcept
     {
         auto& self = this->self();
         if (root) {
@@ -672,23 +753,23 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
     template <typename Node>
-    void ctr_prepare_node(Node&& node) const
+    void ctr_prepare_node(Node&& node) const noexcept
     {
         node.prepare();
     }
 
     MEMORIA_V1_CONST_FN_WRAPPER(PrepareNodeFn, ctr_prepare_node);
 
-    void ctr_prepare_node(NodeBaseG& node) const
+    void ctr_prepare_node(NodeBaseG& node) const noexcept
     {
-        MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
         self().node_dispatcher().dispatch(node, PrepareNodeFn(self()));
     }
 
 
-    void ctr_update_block_guard(NodeBaseG& node) const
+    VoidResult ctr_update_block_guard(NodeBaseG& node) noexcept
     {
-        node.update().terminate_if_error();
+        return node.update();
     }
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(ValuesAsVectorFn, template values_as_vector<BlockID>, std::vector<BlockID>);
@@ -791,8 +872,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
  protected:
 
-    CtrID do_init_ctr(const BlockG& node)
+    Result<CtrID> do_init_ctr(const BlockG& node) noexcept
     {
+        using ResultT = Result<CtrID>;
         auto& self = this->self();
 
         if (node->ctr_type_hash() == CONTAINER_HASH)
@@ -808,27 +890,29 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             branch_tuple->get_value(this->branch_node_ext_data_);
             leaf_tuple->get_value(this->leaf_node_ext_data_);
 
-            return meta->model_name();
+            // TODO: Is CtrID correct here?
+            return ResultT::of(meta->model_name());
         }
         else {
-            MMA1_THROW(CtrTypeException()) << WhatInfo(format_u8("Invalid container type: {}", node->ctr_type_hash()));
+            return ResultT::make_error("Invalid container type: {}", node->ctr_type_hash());
         }
     }
 
-    void do_create_ctr(const CtrID& ctr_id, const ContainerTypeName& ctr_type_name)
+    VoidResult do_create_ctr(const CtrID& ctr_id, const ContainerTypeName& ctr_type_name) noexcept
     {
         auto& self = this->self();
 
         if (self.store().hasRoot(ctr_id).get_or_terminate())
         {
-            MMA1_THROW(NoCtrException()) << WhatInfo(format_u8("Container with name {} already exists", ctr_id));
+            return VoidResult::make_error("Container with name {} already exists", ctr_id);
         }
 
         self.configure_types(ctr_type_name, branch_node_ext_data_, leaf_node_ext_data_);
 
-        NodeBaseG node = self.createRootLeaf();
+        Result<NodeBaseG> node = self.createRootLeaf();
+        MEMORIA_RETURN_IF_ERROR(node);
 
-        self.set_root(node->id()).terminate_if_error();
+        return self.set_root(node.get()->id());
     }
 
 

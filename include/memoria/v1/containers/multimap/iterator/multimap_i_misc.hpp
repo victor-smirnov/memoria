@@ -181,16 +181,16 @@ public:
     }
 
 
-    CtrSizesT remove(CtrSizeT length = 1)
+    Result<CtrSizesT> remove(CtrSizeT length = 1) noexcept
     {
         return self().iter_remove_ge(length);
     }
 
-    CtrSizeT values_size() const {
+    Result<CtrSizeT> values_size() const noexcept {
         return self().substream_size();
     }
 
-    bool is_found(const KeyView& key)
+    bool is_found(const KeyView& key) noexcept
     {
         auto& self = this->self();
         if (!self.iter_is_end())
@@ -202,7 +202,7 @@ public:
         }
     }
 
-    bool to_values()
+    BoolResult to_values() noexcept
     {
     	auto& self = this->self();
     	int32_t stream = self.iter_data_stream();
@@ -212,19 +212,22 @@ public:
             return true;
         }
         else {
-            self.next();
-            if (self.is_end()) {
-                return false;
+            auto res = self.next();
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            if (self.is_end())
+            {
+                return BoolResult::of(false);
             }
             else {
-                return self.iter_data_stream() == 1;
+                return BoolResult::of(self.iter_data_stream() == 1);
             }
         }
     }
 
-    void to_prev_key()
+    VoidResult to_prev_key() noexcept
     {
-    	self().selectBw(1, 0);
+        return self().selectBw(1, 0);
     }
 
 MEMORIA_V1_ITERATOR_PART_END

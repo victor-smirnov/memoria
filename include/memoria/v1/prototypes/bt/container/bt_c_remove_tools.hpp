@@ -43,7 +43,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef std::function<void (const Position&)>                               MergeFn;
+    typedef std::function<VoidResult (const Position&)>                         MergeFn;
 
     using Base::CONTAINER_HASH;
 
@@ -63,8 +63,11 @@ public:
             });
             MEMORIA_RETURN_IF_ERROR(res0);
 
-            NodeBaseG root = self.ctr_get_root_node();
-            self.ctr_remove_root_node(root);
+            Result<NodeBaseG> root = self.ctr_get_root_node();
+            MEMORIA_RETURN_IF_ERROR(root);
+
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_root_node(root.get()));
+
             auto res1 = self.set_root(BlockID{});
             MEMORIA_RETURN_IF_ERROR(res1);
 
@@ -77,38 +80,38 @@ public:
     }
 
 
-    void cleanup()
+    VoidResult cleanup() noexcept
     {
         auto& self = this->self();
         auto metadata = self.ctr_get_root_metadata();
 
         NodeBaseG new_root = self.ctr_create_node(0, true, true, metadata.memory_block_size());
 
-        self.drop().terminate_if_error();
-        self.set_root(new_root->id()).terminate_if_error();
+        self.drop();
+        return self.set_root(new_root->id());
     }
 
 protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, OpStatus);
 
-    void ctr_remove_node_recursively(NodeBaseG& node, Position& accum);
-    void ctr_remove_rode(NodeBaseG& node);
-    void ctr_remove_root_node(NodeBaseG& node);
+    VoidResult ctr_remove_node_recursively(NodeBaseG& node, Position& accum) noexcept;
+    VoidResult ctr_remove_rode(NodeBaseG& node) noexcept;
+    VoidResult ctr_remove_root_node(NodeBaseG& node) noexcept;
 
-    void ctr_remove_leaf_content(NodeBaseG& node, int32_t start, int32_t end, Position& sums);
-    Position ctr_remove_leaf_content(NodeBaseG& node, const Position& start, const Position& end);
-    Position ctr_remove_leaf_content(NodeBaseG& node, int32_t stream, int32_t start, int32_t end);
+    VoidResult ctr_remove_leaf_content(NodeBaseG& node, int32_t start, int32_t end, Position& sums) noexcept;
+    Result<Position> ctr_remove_leaf_content(NodeBaseG& node, const Position& start, const Position& end) noexcept;
+    Result<Position> ctr_remove_leaf_content(NodeBaseG& node, int32_t stream, int32_t start, int32_t end) noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(RemoveNonLeafNodeEntryFn, removeSpaceAcc, OpStatus);
-    OpStatus ctr_remove_non_leaf_node_entry(NodeBaseG& node, int32_t idx);
+    Result<OpStatus> ctr_remove_non_leaf_node_entry(NodeBaseG& node, int32_t idx) noexcept;
 
-    bool ctr_merge_leaf_with_left_sibling(NodeBaseG& node, MergeFn fn = [](const Position&, int32_t){});
-    bool ctr_merge_leaf_with_right_sibling(NodeBaseG& node);
-    MergeType ctr_merge_leaf_with_siblings(NodeBaseG& node, MergeFn fn = [](const Position&, int32_t){});
+    BoolResult ctr_merge_leaf_with_left_sibling(NodeBaseG& node, MergeFn fn = [](const Position&, int32_t){}) noexcept;
+    BoolResult ctr_merge_leaf_with_right_sibling(NodeBaseG& node) noexcept;
+    Result<MergeType> ctr_merge_leaf_with_siblings(NodeBaseG& node, MergeFn fn = [](const Position&, int32_t){}) noexcept;
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
-    bool ctr_should_merge_node(const NodeBaseG& node) const
+    bool ctr_should_merge_node(const NodeBaseG& node) const noexcept
     {
         return self().node_dispatcher().dispatch(node, ShouldBeMergedNodeFn());
     }
@@ -120,10 +123,10 @@ protected:
 
 
 
-    void ctr_remove_redundant_root(NodeBaseG& node);
+    VoidResult ctr_remove_redundant_root(NodeBaseG& node) noexcept;
 
 
-    bool ctr_is_the_same_parent(const NodeBaseG& left, const NodeBaseG& right)
+    bool ctr_is_the_same_parent(const NodeBaseG& left, const NodeBaseG& right) noexcept
     {
         return left->parent_id() == right->parent_id();
     }
@@ -140,29 +143,34 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-void M_TYPE::ctr_remove_node_recursively(NodeBaseG& node, Position& sizes)
+VoidResult M_TYPE::ctr_remove_node_recursively(NodeBaseG& node, Position& sizes) noexcept
 {
     auto& self = this->self();
 
     if (!node->is_leaf())
     {
         int32_t size = self.ctr_get_node_size(node, 0);
-        self.ctr_for_all_ids(node, 0, size, [&, this](const BlockID& id, int32_t idx)
+        auto res = self.ctr_for_all_ids(node, 0, size, [&, this](const BlockID& id, int32_t idx) noexcept -> VoidResult
         {
             auto& self = this->self();
-            NodeBaseG child = self.store().getBlock(id).get_or_terminate();
-            this->ctr_remove_node_recursively(child, sizes);
+
+            Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlock(id));
+            MEMORIA_RETURN_IF_ERROR(child);
+
+            return self.ctr_remove_node_recursively(child.get(), sizes);
         });
+
+        MEMORIA_RETURN_IF_ERROR(res);
     }
     else {
         sizes += self.ctr_leaf_sizes(node);
     }
 
-    self.store().removeBlock(node->id()).terminate_if_error();
+    return self.store().removeBlock(node->id());
 }
 
 M_PARAMS
-void M_TYPE::ctr_remove_rode(NodeBaseG& node)
+VoidResult M_TYPE::ctr_remove_rode(NodeBaseG& node) noexcept
 {
     auto& self = this->self();
 
@@ -183,55 +191,64 @@ void M_TYPE::ctr_remove_rode(NodeBaseG& node)
 }
 
 M_PARAMS
-void M_TYPE::ctr_remove_root_node(NodeBaseG& node)
+VoidResult M_TYPE::ctr_remove_root_node(NodeBaseG& node) noexcept
 {
     auto& self = this->self();
 
-    MEMORIA_V1_ASSERT_TRUE(node->is_root());
+    //MEMORIA_V1_ASSERT_TRUE(node->is_root());
 
-    Position sizes;
+    Position sizes{};
 
-    self.ctr_remove_node_recursively(node, sizes);
+    return self.ctr_remove_node_recursively(node, sizes);
 }
 
 
 
 M_PARAMS
-void M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, int32_t start, int32_t end, Position& sizes)
+VoidResult M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, int32_t start, int32_t end, Position& sizes) noexcept
 {
+    //using ResultT = Result<OpStatus>;
     auto& self = this->self();
 
-    MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
+    //MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
 
-    self.ctr_for_all_ids(node, start, end, [&, this](const BlockID& id, int32_t idx){
+    auto res = self.ctr_for_all_ids(node, start, end, [&, this](const BlockID& id, int32_t idx) noexcept -> VoidResult {
         auto& self = this->self();
-        NodeBaseG child = self.store().getBlock(id).get_or_terminate();
-        self.ctr_remove_node_recursively(child, sizes);
+        Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlock(id));
+        MEMORIA_RETURN_IF_ERROR(child);
+
+        return self.ctr_remove_node_recursively(child.get(), sizes);
     });
+    MEMORIA_RETURN_IF_ERROR(res);
 
-    OOM_THROW_IF_FAILED(self.branch_dispatcher().dispatch(node, RemoveSpaceFn(), start, end), MMA1_SRC);
 
-    self.ctr_update_path(node);
+    OpStatus status = self.branch_dispatcher().dispatch(node, RemoveSpaceFn(), start, end);
+    if (isFail(status)) {
+        return VoidResult::make_error("PackedOOMException");
+    }
 
-    self.ctr_update_children(node, start);
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(node));
+
+    return self.ctr_update_children(node, start);
 }
 
 
 M_PARAMS
-OpStatus M_TYPE::ctr_remove_non_leaf_node_entry(NodeBaseG& node, int32_t start)
+Result<OpStatus> M_TYPE::ctr_remove_non_leaf_node_entry(NodeBaseG& node, int32_t start) noexcept
 {
     auto& self = this->self();
 
-    MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
+    //MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
 
-    self.ctr_update_block_guard(node);
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(node));
+
     if (isFail(self.branch_dispatcher().dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1))) {
         return OpStatus::FAIL;
     }
 
-    self.ctr_update_children(node, start);
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_children(node, start));
 
-    self.ctr_update_path(node);
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(node));
 
     return OpStatus::OK;
 }
@@ -239,22 +256,28 @@ OpStatus M_TYPE::ctr_remove_non_leaf_node_entry(NodeBaseG& node, int32_t start)
 
 
 M_PARAMS
-typename M_TYPE::Position M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, const Position& start, const Position& end)
+Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, const Position& start, const Position& end) noexcept
 {
+    using ResultT = Result<Position>;
     auto& self = this->self();
 
-    self.ctr_update_block_guard(node);
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(node));
 
-    OOM_THROW_IF_FAILED(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), start, end), MMA1_SRC);
+    OpStatus status = self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), start, end);
 
-    self.ctr_update_path(node);
+    if (isFail(status)) {
+        return ResultT::make_error("PackedOOMException");
+    }
 
-    return end - start;
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(node));
+
+    return ResultT::of(end - start);
 }
 
 M_PARAMS
-typename M_TYPE::Position M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, int32_t stream, int32_t start, int32_t end)
+Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, int32_t stream, int32_t start, int32_t end) noexcept
 {
+    using ResultT = Result<Position>;
     auto& self = this->self();
 
     self.ctr_update_block_guard(node);
@@ -263,22 +286,26 @@ typename M_TYPE::Position M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, int32
 
     self.ctr_update_path(node);
 
-    return Position(end - start);
+    return ResultT::of(end - start);
 }
 
 
 
 M_PARAMS
-void M_TYPE::ctr_remove_redundant_root(NodeBaseG& node)
+VoidResult M_TYPE::ctr_remove_redundant_root(NodeBaseG& node) noexcept
 {
     auto& self = this->self();
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.ctr_get_node_parent(node);
+        Result<NodeBaseG> parent_res = self.ctr_get_node_parent(node);
+        MEMORIA_RETURN_IF_ERROR(parent_res);
+
+        NodeBaseG parent = parent_res.get();
+
         if (!parent->is_root())
         {
-            ctr_remove_redundant_root(parent);
+            MEMORIA_RETURN_IF_ERROR_FN(ctr_remove_redundant_root(parent));
         }
 
         if (parent->is_root())
@@ -286,20 +313,23 @@ void M_TYPE::ctr_remove_redundant_root(NodeBaseG& node)
             int32_t size = self.ctr_get_node_size(parent, 0);
             if (size == 1)
             {
-                Metadata root_metadata = self.ctr_get_root_metadata();
+                Result<Metadata> root_metadata = self.ctr_get_root_metadata();
+                MEMORIA_RETURN_IF_ERROR(root_metadata);
 
                 // FIXME redesigne it to use tryConvertToRoot(node) instead
                 if (self.ctr_can_convert_to_root(node, parent->root_metadata_size()))
                 {
-                    self.ctr_node_to_root(node, root_metadata);
+                    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_node_to_root(node, root_metadata.get()));
 
-                    self.store().removeBlock(parent->id()).terminate_if_error();
+                    MEMORIA_RETURN_IF_ERROR_FN(self.store().removeBlock(parent->id()));
 
-                    self.set_root(node->id()).terminate_if_error();
+                    MEMORIA_RETURN_IF_ERROR_FN(self.set_root(node->id()));
                 }
             }
         }
     }
+
+    return VoidResult::of();
 }
 
 
@@ -320,20 +350,29 @@ void M_TYPE::ctr_remove_redundant_root(NodeBaseG& node)
  */
 
 M_PARAMS
-MergeType M_TYPE::ctr_merge_leaf_with_siblings(NodeBaseG& node, MergeFn fn)
+Result<MergeType> M_TYPE::ctr_merge_leaf_with_siblings(NodeBaseG& node, MergeFn fn) noexcept
 {
+    using ResultT = Result<MergeType>;
     auto& self = this->self();
 
-    if (self.ctr_merge_leaf_with_right_sibling(node))
+    auto res0 = self.ctr_merge_leaf_with_right_sibling(node);
+    MEMORIA_RETURN_IF_ERROR(res0);
+
+    if (res0.get())
     {
-        return MergeType::RIGHT;
-    }
-    else if (self.ctr_merge_leaf_with_left_sibling(node, fn))
-    {
-        return MergeType::LEFT;
+        return ResultT::of(MergeType::RIGHT);
     }
     else {
-        return MergeType::NONE;
+        auto res1 = self.ctr_merge_leaf_with_left_sibling(node, fn);
+        MEMORIA_RETURN_IF_ERROR(res1);
+
+        if (res1.get())
+        {
+            return ResultT::of(MergeType::LEFT);
+        }
+        else {
+            return ResultT::of(MergeType::NONE);
+        }
     }
 }
 
@@ -355,7 +394,7 @@ MergeType M_TYPE::ctr_merge_leaf_with_siblings(NodeBaseG& node, MergeFn fn)
 
 
 M_PARAMS
-bool M_TYPE::ctr_merge_leaf_with_left_sibling(NodeBaseG& node, MergeFn fn)
+BoolResult M_TYPE::ctr_merge_leaf_with_left_sibling(NodeBaseG& node, MergeFn fn) noexcept
 {
     auto& self = this->self();
 
@@ -363,15 +402,19 @@ bool M_TYPE::ctr_merge_leaf_with_left_sibling(NodeBaseG& node, MergeFn fn)
 
     if (self.ctr_should_merge_node(node))
     {
-        auto prev = self.ctr_get_prev_node(node);
+        Result<NodeBaseG> prev = self.ctr_get_prev_node(node);
+        MEMORIA_RETURN_IF_ERROR(prev);
 
-        if (prev)
+        if (prev.get())
         {
-            merged = self.ctr_merge_leaf_nodes(prev, node, fn);
+            auto merge_res = self.ctr_merge_leaf_nodes(prev.get(), node, fn);
+            MEMORIA_RETURN_IF_ERROR(merge_res);
+
+            merged = merge_res.get();
 
             if (merged)
             {
-                node = prev;
+                node = prev.get();
             }
         }
         else {
@@ -379,7 +422,7 @@ bool M_TYPE::ctr_merge_leaf_with_left_sibling(NodeBaseG& node, MergeFn fn)
         }
     }
 
-    return merged;
+    return BoolResult::of(merged);
 }
 
 /**
@@ -396,7 +439,7 @@ bool M_TYPE::ctr_merge_leaf_with_left_sibling(NodeBaseG& node, MergeFn fn)
  */
 
 M_PARAMS
-bool M_TYPE::ctr_merge_leaf_with_right_sibling(NodeBaseG& node)
+BoolResult M_TYPE::ctr_merge_leaf_with_right_sibling(NodeBaseG& node) noexcept
 {
     bool merged = false;
 
@@ -404,15 +447,19 @@ bool M_TYPE::ctr_merge_leaf_with_right_sibling(NodeBaseG& node)
 
     if (self.ctr_should_merge_node(node))
     {
-        auto next = self.ctr_get_next_node(node);
+        Result<NodeBaseG> next = self.ctr_get_next_node(node);
+        MEMORIA_RETURN_IF_ERROR(next);
 
-        if (next)
+        if (next.get())
         {
-            merged = self.ctr_merge_leaf_nodes(node, next);
+            auto merge_res = self.ctr_merge_leaf_nodes(node, next.get());
+            MEMORIA_RETURN_IF_ERROR(merge_res);
+
+            merged = merge_res.get();
         }
     }
 
-    return merged;
+    return BoolResult::of(merged);
 }
 
 

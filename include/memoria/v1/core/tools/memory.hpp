@@ -17,6 +17,8 @@
 
 #include <memoria/v1/core/memory/smart_ptrs.hpp>
 
+#include <memoria/v1/core/tools/result.hpp>
+
 #include <memory>
 
 namespace memoria {
@@ -87,6 +89,45 @@ template <typename T, typename TT>
 auto memoria_static_pointer_cast(const SharedPtr<TT>& ptr)
 {
     return StaticPointerCast<T>(ptr);
+}
+
+
+template <typename T, typename TT>
+Result<SharedPtr<T>> memoria_static_pointer_cast(Result<SharedPtr<TT>>&& ptr) noexcept
+{
+    if (MMA1_LIKELY(ptr.is_ok()))
+    {
+        return Result<SharedPtr<T>>::of(StaticPointerCast<T>(std::move(ptr).get()));
+    }
+    else {
+        return std::move(ptr).transfer_error();
+    }
+}
+
+
+template <typename T, typename TT>
+Result<LocalSharedPtr<T>> memoria_static_pointer_cast(Result<LocalSharedPtr<TT>>&& ptr) noexcept
+{
+    if (MMA1_LIKELY(ptr.is_ok()))
+    {
+        return Result<LocalSharedPtr<T>>::of(StaticPointerCast<T>(std::move(ptr).get()));
+    }
+    else {
+        return std::move(ptr).transfer_error();
+    }
+}
+
+
+template <typename T, typename TT>
+Result<std::shared_ptr<T>> memoria_static_pointer_cast(Result<std::shared_ptr<TT>>&& ptr) noexcept
+{
+    if (MMA1_LIKELY(ptr.is_ok()))
+    {
+        return Result<std::shared_ptr<T>>::of(std::static_pointer_cast<T>(std::move(ptr).get()));
+    }
+    else {
+        return std::move(ptr).transfer_error();
+    }
 }
 
 }}

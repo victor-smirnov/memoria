@@ -81,11 +81,11 @@ public:
 
 
     template <int32_t Stream, typename EntryFn>
-    void iter_insert_entry(EntryFn&& entry)
+    VoidResult iter_insert_entry(EntryFn&& entry) noexcept
     {
         auto& self = this->self();
 
-        std::function<OpStatus(int, int)> insert_fn = [&](int structure_idx, int stream_idx) -> OpStatus {
+        std::function<OpStatus (int, int)> insert_fn = [&](int structure_idx, int stream_idx) -> OpStatus {
             auto status1 = self.ctr().template ctr_try_insert_stream_entry_no_mgr<StructureStreamIdx>(self.iter_leaf(), structure_idx, InsertSymbolFn<StructureStreamIdx>(Stream));
             if (isOk(status1))
             {
@@ -98,12 +98,12 @@ public:
         int structure_idx = self.iter_local_pos();
 
         int32_t stream_idx = self.data_stream_idx(Stream, structure_idx);
-        self.ctr().template ctr_insert_stream_entry0<Stream>(self, structure_idx, stream_idx, insert_fn);
+        return self.ctr().template ctr_insert_stream_entry0<Stream>(self, structure_idx, stream_idx, insert_fn);
     }
 
 
     template <int32_t Stream, typename SubstreamsList, typename EntryFn>
-    void iter_update_entry(EntryFn&& entry)
+    VoidResult iter_update_entry(EntryFn&& entry) noexcept
     {
         auto& self = this->self();
         int32_t key_idx = self.data_stream_idx(Stream);
@@ -112,8 +112,10 @@ public:
 
 
 
-    SplitResult split(int32_t stream, int32_t target_stream_idx)
+    Result<SplitResult> split(int32_t stream, int32_t target_stream_idx) noexcept
     {
+        using ResultT = Result<SplitResult>;
+
         auto& self  = this->self();
         auto leaf   = self.iter_leaf();
         
@@ -135,10 +137,10 @@ public:
 
                 self.iter_refresh();
                 
-                return SplitResult(SplitStatus::RIGHT, target_stream_idx - half_ranks[stream]);
+                return ResultT::of(SplitStatus::RIGHT, target_stream_idx - half_ranks[stream]);
             }
             else {
-                return SplitResult(SplitStatus::LEFT, target_stream_idx);
+                return ResultT::of(SplitStatus::LEFT, target_stream_idx);
             }
         }
         else {
@@ -146,7 +148,7 @@ public:
 
             self.ctr().ctr_split_leaf(leaf, iter_leaf_sizes);
             
-            return SplitResult(SplitStatus::LEFT, iter_leaf_sizes[stream]);
+            return ResultT::of(SplitStatus::LEFT, iter_leaf_sizes[stream]);
         }
     }
 

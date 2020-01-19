@@ -209,26 +209,29 @@ public:
 
 
     template <typename V>
-    void forAllValues(int32_t start, int32_t end, std::function<void (const V&, int32_t)> fn) const
+    VoidResult forAllValues(int32_t start, int32_t end, std::function<VoidResult (const V&, int32_t)> fn) const noexcept
     {
         const Value* v = node_->values();
         for (int32_t c = start; c < end; c++)
         {
-            fn(v[c], c);
+            auto res = fn(v[c], c);
+            MEMORIA_RETURN_IF_ERROR(res);
         }
+
+        return VoidResult::of();
     }
 
     template <typename V>
-    void forAllValues(int32_t start, std::function<void (const V&, int32_t)> fn) const
+    VoidResult forAllValues(int32_t start, std::function<VoidResult (const V&, int32_t)> fn) const noexcept
     {
         auto end = size();
-        forAllValues(start, end, fn);
+        return forAllValues(start, end, fn);
     }
 
     template <typename V>
-    void forAllValues(std::function<void (const V&, int32_t)> fn) const
+    VoidResult forAllValues(std::function<VoidResult (const V&, int32_t)> fn) const noexcept
     {
-        forAllValues(0, fn);
+        return forAllValues(0, fn);
     }
 
     struct LayoutFn {

@@ -95,10 +95,12 @@ public:
         return finished_ || btss_iterator_->is_end();
     }
 
-    bool next_leaf()
+    BoolResult next_leaf() noexcept
     {
-        bool available = btss_iterator_->next_leaf();
-        if (available) {
+        BoolResult available = btss_iterator_->next_leaf();
+        MEMORIA_RETURN_IF_ERROR(available);
+
+        if (available.get()) {
             populate();
         }
         else {

@@ -47,13 +47,17 @@ public:
         return iter_->iter_is_end();
     }
 
-    virtual void next()
+    virtual VoidResult next() noexcept
     {
         size_t keys_size = keys_.array().size();
-        iter_->iter_btfl_select_fw(keys_size, 0); // next leaf with keys;
+        auto res = iter_->iter_btfl_select_fw(keys_size, 0); // next leaf with keys;
+        MEMORIA_RETURN_IF_ERROR(res);
+
         idx_ = 0;
 
         build();
+
+        return VoidResult::of();
     }
 
     virtual void dump_iterator() const
@@ -65,8 +69,8 @@ public:
     {
         auto ii = iter_->iter_clone();
 
-        ii->iter_btfl_select_fw(key_idx, 0);
-        ii->to_values();
+        ii.get()->iter_btfl_select_fw(key_idx, 0).terminate_if_error();
+        ii.get()->to_values().terminate_if_error();
 
         auto ptr = ctr_make_shared<multimap::ValuesIteratorImpl<Types, Profile, IteratorPtr>>(ii);
         return memoria_static_pointer_cast<IValuesScanner<Types, Profile>>(ptr);

@@ -46,32 +46,33 @@ public:
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
 
-    void iter_insert_entry(Key key, Value value)
+    VoidResult iter_insert_entry(Key key, Value value) noexcept
     {
         auto& self = this->self();
 
         auto delta = key - self.prefix();
 
-        MEMORIA_V1_ASSERT_TRUE(delta > 0);
+        //MEMORIA_V1_ASSERT_TRUE(delta > 0);
 
         self.ctr().iter_insert_entry(
                 self,
                 InputTupleAdapter<0>::convert(0, core::StaticVector<Key, 1>({delta}), core::StaticVector<Value, 1>{value})
         );
 
-        self.iter_skip_fw(1);
+        auto res = self.iter_skip_fw(1);
+        MEMORIA_RETURN_IF_ERROR(res);
 
         if (!self.iter_is_end())
         {
             auto k = self.iter_raw_key();
 
-            MEMORIA_V1_ASSERT_TRUE((k - StaticVector<int64_t, 1>(delta))[0] >= 0);
+            //MEMORIA_V1_ASSERT_TRUE((k - StaticVector<int64_t, 1>(delta))[0] >= 0);
 
-            self.ctr().template ctr_update_entry<IntList<1>>(self, std::make_tuple(k - StaticVector<int64_t, 1>(delta)));
+            return self.ctr().template ctr_update_entry<IntList<1>>(self, std::make_tuple(k - StaticVector<int64_t, 1>(delta)));
         }
     }
 
-    void iter_remove_entry()
+    VoidResult iter_remove_entry() noexcept
     {
         auto& self = this->self();
 
@@ -81,14 +82,14 @@ public:
 
         if (self.iter_is_end())
         {
-            self.iter_skip_fw(0);
+            auto res = self.iter_skip_fw(0);
+            MEMORIA_RETURN_IF_ERROR(res);
         }
 
-        if (!self.iter_is_end()) {
-
+        if (!self.iter_is_end())
+        {
             auto kk = self.iter_raw_key();
-
-            self.ctr().template ctr_update_entry<IntList<0>>(self, std::make_tuple(k + kk));
+            return self.ctr().template ctr_update_entry<IntList<0>>(self, std::make_tuple(k + kk));
         }
     }
 

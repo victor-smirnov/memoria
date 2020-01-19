@@ -54,9 +54,12 @@ public:
         return iter_->iter_is_end();
     }
 
-    virtual bool next_block()
+    virtual BoolResult next_block() noexcept
     {
-        if (iter_->iter_next_leaf())
+        auto res = iter_->iter_next_leaf();
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        if (res.get())
         {
             offsets_.clear();
             build_index();
@@ -66,18 +69,24 @@ public:
             run_is_finished_ = true;
         }
 
-        return run_is_finished_;
+        return BoolResult::of(run_is_finished_);
     }
 
-    virtual void fill_suffix_buffer()
+    virtual VoidResult fill_suffix_buffer() noexcept
     {
         while (!is_end())
         {
             fill_buffer(values_start_, values_.size());
-            if (next_block()) {
+
+            auto res = next_block();
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            if (res.get()) {
                 break;
             }
         }
+
+        return VoidResult::of();
     }
 
 

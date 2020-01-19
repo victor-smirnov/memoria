@@ -48,27 +48,32 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
 
     template <int32_t Stream, typename SubstreamsList, typename Buffer>
-    void ctr_update_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Buffer& entry)
+    VoidResult ctr_update_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Buffer& entry) noexcept
     {
         auto& self = this->self();
 
-        auto result = self.template ctr_try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
+        auto result0 = self.template ctr_try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
+        MEMORIA_RETURN_IF_ERROR(result0);
 
-        if (!std::get<0>(result))
+        if (!std::get<0>(result0.get()))
         {
-            SplitResult split_r = iter.iter_split_leaf(stream, idx);
+            Result<SplitResult> split_r = iter.iter_split_leaf(stream, idx);
+            MEMORIA_RETURN_IF_ERROR(split_r);
 
-            idx = split_r.stream_idx();
+            idx = split_r.get().stream_idx();
 
-            result = self.template ctr_try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
+            auto result1 = self.template ctr_try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
+            MEMORIA_RETURN_IF_ERROR(result1);
 
-            if (!std::get<0>(result))
+            if (!std::get<0>(result1.get()))
             {
-                MMA1_THROW(Exception()) << WhatCInfo("Second insertion attempt failed");
+                return VoidResult::make_error("Second insertion attempt failed");
             }
         }
 
-        self.ctr_update_path(iter.iter_leaf());
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(iter.iter_leaf()));
+
+        return VoidResult::of();
     }
 
 

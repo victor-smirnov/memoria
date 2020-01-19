@@ -66,7 +66,7 @@ int main()
             values.append(Span<const U8String>(entries.data() + batch_start, limit));
 
             return limit != batch_size;
-        });
+        }).throw_if_error();
 
 
         int64_t t1_i = getTimeInMillis();
@@ -85,7 +85,7 @@ int main()
         size_t sum0 = 0;
 
         auto scanner = ctr0->as_scanner([](auto ctr){
-            return ctr->seek(0);
+            return ctr->seek(0).get_or_throw();
         });
 
         while (!scanner.is_end())
@@ -94,7 +94,7 @@ int main()
                 std::cout << vv << std::endl;
             }
 
-            scanner.next_leaf();
+            scanner.next_leaf().throw_if_error();
         }
 
         int64_t t3 = getTimeInMillis();

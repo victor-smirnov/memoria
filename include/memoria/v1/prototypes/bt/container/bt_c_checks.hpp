@@ -41,14 +41,14 @@ public:
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
 
-    bool check(void *data) const
+    BoolResult check(void *data) const noexcept
     {
         return self().ctr_check_tree();
     }
 
 
 
-    void ctr_check_it()
+    VoidResult ctr_check_it() noexcept
     {
         auto& self = this->self();
 
@@ -56,15 +56,17 @@ public:
 
         if (self.ctr_check_tree())
         {
-            throw Exception(MA_SRC, SBuf() << "Container " << self.name() << " (" << self.type_name_str() << ") check failed");
+            return VoidResult::of((SBuf() << "Container " << self.name() << " (" << self.type_name_str() << ") check failed").str().c_str());
         }
+
+        return VoidResult::of();
     }
 
 public:
-    bool ctr_check_tree() const;
+    BoolResult ctr_check_tree() const noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);
-    bool ctr_check_content(const NodeBaseG& node) const
+    bool ctr_check_content(const NodeBaseG& node) const noexcept
     {
         try {
             self().node_dispatcher().dispatch(node, CheckContentFn());
@@ -82,13 +84,13 @@ public:
 
 
 private:
-    void ctr_check_tree_structure(const NodeBaseG& parent, int32_t parent_idx, const NodeBaseG& node, bool &errors) const;
+    VoidResult ctr_check_tree_structure(const NodeBaseG& parent, int32_t parent_idx, const NodeBaseG& node, bool &errors) const noexcept;
 
 
     template <typename Node1, typename Node2>
-    bool ctr_check_typed_node_content(Node1&& node, Node2&& parent, int32_t parent_idx) const;
+    BoolResult ctr_check_typed_node_content(Node1&& node, Node2&& parent, int32_t parent_idx) const noexcept;
 
-    MEMORIA_V1_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, ctr_check_typed_node_content, bool);
+    MEMORIA_V1_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, ctr_check_typed_node_content, BoolResult);
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -97,20 +99,22 @@ MEMORIA_V1_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::ctr_check_tree() const
+BoolResult M_TYPE::ctr_check_tree() const noexcept
 {
     auto& self = this->self();
 
-    NodeBaseG root = self.ctr_get_root_node();
-    if (root)
+    Result<NodeBaseG> root = self.ctr_get_root_node();
+    MEMORIA_RETURN_IF_ERROR(root);
+
+    if (root.get())
     {
         bool errors = false;
-        self.ctr_check_tree_structure(NodeBaseG(), 0, root, errors);
-        return errors;
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_check_tree_structure(NodeBaseG(), 0, root.get(), errors));
+        return BoolResult::of(errors);
     }
     else {
         MMA1_ERROR(self, "No root node for container");
-        return true;
+        return BoolResult::of(true);
     }
 }
 
@@ -123,7 +127,7 @@ bool M_TYPE::ctr_check_tree() const
 
 
 M_PARAMS
-void M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t parent_idx, const NodeBaseG& node, bool &errors) const
+VoidResult M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t parent_idx, const NodeBaseG& node, bool &errors) const noexcept
 {
     auto& self = this->self();
 
@@ -131,7 +135,10 @@ void M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t parent_id
 
     if (!node->is_root())
     {
-        errors = self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx) || errors;
+        BoolResult res_vv = self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx);
+        MEMORIA_RETURN_IF_ERROR(res_vv);
+
+        errors = res_vv.get() || errors;
 
         if (!node->is_leaf())
         {
@@ -154,7 +161,10 @@ void M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t parent_id
         {
             BlockID child_id = self.ctr_get_child_id(node, c);
 
-            NodeBaseG child = self.ctr_get_node_child(node, c);
+            Result<NodeBaseG> child_res = self.ctr_get_node_child(node, c);
+            MEMORIA_RETURN_IF_ERROR(child_res);
+            NodeBaseG child = child_res.get();
+
 
             if (child->id() != child_id)
             {
@@ -176,14 +186,16 @@ void M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t parent_id
                 std::cout << "parent_idx: " << child->parent_id() << " " << node->id() << std::endl;
             }
 
-            self.ctr_check_tree_structure(node, c, child, errors);
+            return self.ctr_check_tree_structure(node, c, child, errors);
         }
     }
+
+    return VoidResult::of();
 }
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::ctr_check_typed_node_content(Node1&& parent, Node2&& node, int32_t parent_idx) const
+BoolResult M_TYPE::ctr_check_typed_node_content(Node1&& parent, Node2&& node, int32_t parent_idx) const noexcept
 {
     bool errors = false;
 
@@ -211,8 +223,7 @@ bool M_TYPE::ctr_check_typed_node_content(Node1&& parent, Node2&& node, int32_t 
         errors = true;
     }
 
-
-    return errors;
+    return BoolResult::of(errors);
 }
 
 #undef M_TYPE

@@ -31,9 +31,10 @@ struct SetIterator: BTSSIterator<Profile> {
 
     virtual ~SetIterator() noexcept {}
 
-    virtual Datum<Key> key() const = 0;
-    virtual bool is_end() const = 0;
-    virtual bool next() = 0;
+    virtual Datum<Key> key() const noexcept = 0;
+    virtual bool is_end() const noexcept = 0;
+    virtual BoolResult next() noexcept = 0;
+
 };
     
 template <typename Key, typename Profile> 
@@ -45,38 +46,38 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
     using Producer      = SetProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
-    virtual ProfileCtrSizeT<Profile> size() const = 0;
+    virtual Result<ProfileCtrSizeT<Profile>> size() const noexcept = 0;
 
-    virtual CtrSharedPtr<SetIterator<Key, Profile>> find(KeyView key) const = 0;
+    virtual Result<CtrSharedPtr<SetIterator<Key, Profile>>> find(KeyView key) const noexcept = 0;
 
-    virtual bool contains(KeyView key)   = 0;
-    virtual bool remove(KeyView key)     = 0;
-    virtual bool insert(KeyView key)     = 0;
+    virtual BoolResult contains(KeyView key) noexcept  = 0;
+    virtual BoolResult remove(KeyView key) noexcept    = 0;
+    virtual BoolResult insert(KeyView key) noexcept    = 0;
 
 
-    void append(ProducerFn producer_fn) {
+    VoidResult append(ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        append(producer);
+        return append(producer);
     }
 
-    virtual void append(io::IOVectorProducer& producer) = 0;
+    virtual VoidResult append(io::IOVectorProducer& producer) noexcept = 0;
 
-    void prepend(ProducerFn producer_fn) {
+    VoidResult prepend(ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        prepend(producer);
+        return prepend(producer);
     }
 
-    virtual void prepend(io::IOVectorProducer& producer) = 0;
+    virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept = 0;
 
 
-    void insert(KeyView before, ProducerFn producer_fn) {
+    VoidResult insert(KeyView before, ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        insert(before, producer);
+        return insert(before, producer);
     }
 
-    virtual void insert(KeyView before, io::IOVectorProducer& producer) = 0;
+    virtual VoidResult insert(KeyView before, io::IOVectorProducer& producer) noexcept = 0;
 
-    virtual CtrSharedPtr<SetIterator<Key, Profile>> iterator() const = 0;
+    virtual Result<CtrSharedPtr<SetIterator<Key, Profile>>> iterator() const noexcept = 0;
 
     template <typename Fn>
     SetScanner<ApiTypes, Profile> scanner(Fn&& iterator_producer) const {
@@ -84,7 +85,7 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
     }
 
     SetScanner<ApiTypes, Profile> scanner() const {
-        return SetScanner<ApiTypes, Profile>(iterator());
+        return SetScanner<ApiTypes, Profile>(iterator().get_or_terminate());
     }
 
     MMA1_DECLARE_ICTRAPI();

@@ -40,10 +40,11 @@ struct MapIterator: BTSSIterator<Profile> {
 
     virtual ~MapIterator() noexcept {}
 
-    virtual Datum<Key> key() const = 0;
-    virtual Datum<Value> value() const = 0;
-    virtual bool is_end() const = 0;
-    virtual bool next() = 0;
+    virtual Datum<Key> key() const noexcept = 0;
+    virtual Datum<Value> value() const noexcept = 0;
+
+    virtual bool is_end() const noexcept = 0;
+    virtual BoolResult next() noexcept = 0;
 };
 
 
@@ -60,38 +61,37 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
     using Producer      = MapProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
-    virtual int64_t size() const = 0;
-    virtual void assign_key(KeyView key, ValueView value) = 0;
-    virtual void remove_key(KeyView key) = 0;
+    virtual Result<ProfileCtrSizeT<Profile>> size() const noexcept = 0;
+    virtual VoidResult assign_key(KeyView key, ValueView value) noexcept = 0;
+    virtual VoidResult remove_key(KeyView key) noexcept = 0;
 
-    virtual CtrSharedPtr<MapIterator<Key, Value, Profile>> find(KeyView key) const = 0;
+    virtual Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>> find(KeyView key) const noexcept = 0;
 
-    void append(ProducerFn producer_fn) {
+    VoidResult append(ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        append(producer);
+        return append(producer);
     }
 
-    virtual void append(io::IOVectorProducer& producer) = 0;
+    virtual VoidResult append(io::IOVectorProducer& producer) noexcept = 0;
 
-    void prepend(ProducerFn producer_fn) {
+    VoidResult prepend(ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        prepend(producer);
+        return prepend(producer);
     }
 
-    virtual void prepend(io::IOVectorProducer& producer) = 0;
+    virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept = 0;
 
-
-    void insert(KeyView before, ProducerFn producer_fn) {
+    VoidResult insert(KeyView before, ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        insert(before, producer);
+        return insert(before, producer);
     }
 
-    virtual void insert(KeyView before, io::IOVectorProducer& producer) = 0;
+    virtual VoidResult insert(KeyView before, io::IOVectorProducer& producer) noexcept = 0;
 
-    virtual CtrSharedPtr<MapIterator<Key, Value, Profile>> iterator() const   = 0;
+    virtual Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>> iterator() const noexcept = 0;
 
     MapScanner<ApiTypes, Profile> scanner() const {
-        return MapScanner<ApiTypes, Profile>(iterator());
+        return MapScanner<ApiTypes, Profile>(iterator().get_or_terminate());
     }
 
     template <typename Fn>

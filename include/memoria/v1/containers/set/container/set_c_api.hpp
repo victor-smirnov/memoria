@@ -66,9 +66,9 @@ public:
 
     }
 
-    CtrSharedPtr<SetIterator<Key, Profile>> find(KeyView key) const
+    Result<CtrSharedPtr<SetIterator<Key, Profile>>> find(KeyView key) const noexcept
     {
-        return self().ctr_set_find(key);
+        return memoria_static_pointer_cast<SetIterator<Key, Profile>>(self().ctr_set_find(key));
     }
 
 //    bool contains_element(KeyView key) {
@@ -85,82 +85,101 @@ public:
 
 
 
-    CtrSharedPtr<SetIterator<Key, Profile>> iterator() const
+    Result<CtrSharedPtr<SetIterator<Key, Profile>>> iterator() const noexcept
     {
         auto iter = self().ctr_begin();
-        return iter;
+        return memoria_static_pointer_cast<SetIterator<Key, Profile>>(std::move(iter));
     }
 
-    void append(io::IOVectorProducer& producer)
+    VoidResult append(io::IOVectorProducer& producer) noexcept
     {
         auto& self = this->self();
         auto iter = self.ctr_end();
+        MEMORIA_RETURN_IF_ERROR(iter);
 
-        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return VoidResult::of();
     }
 
-    virtual void prepend(io::IOVectorProducer& producer)
+    virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept
     {
         auto& self = this->self();
         auto iter = self.ctr_begin();
+        MEMORIA_RETURN_IF_ERROR(iter);
 
-        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return VoidResult::of();
     }
 
-    virtual void insert(KeyView before, io::IOVectorProducer& producer)
+    virtual VoidResult insert(KeyView before, io::IOVectorProducer& producer) noexcept
     {
         auto& self = this->self();
 
         auto iter = self.ctr_set_find(before);
+        MEMORIA_RETURN_IF_ERROR(iter);
 
-        if (iter->is_found(before))
+        if (iter.get()->is_found(before))
         {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Requested key is found. Can't insert enties this way.");
+            return VoidResult::make_error("Requested key is found. Can't insert enties this way.");
         }
         else {
-            iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+            auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            return VoidResult::of();
         }
     }
 
     /**
      * Returns true if set is already containing the element
      */
-    bool insert(KeyView k)
+    BoolResult insert(KeyView k) noexcept
     {
         auto iter = self().ctr_set_find(k);
+        MEMORIA_RETURN_IF_ERROR(iter);
 
-        if (iter->is_found(k))
+        if (iter.get()->is_found(k))
         {
-            return true;
+            return BoolResult::of(true);
         }
         else {
-            iter->insert(k);
-            return false;
+            auto res = iter.get()->insert(k);
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            return BoolResult::of(false);
         }
     }
 
     /**
      * Returns true if the set contained the element
      */
-    bool remove(KeyView key)
+    BoolResult remove(KeyView key) noexcept
     {
         auto iter = self().ctr_set_find(key);
-        if ((!iter->iter_is_end()) && iter->key() == key)
+        MEMORIA_RETURN_IF_ERROR(iter);
+
+        if ((!iter.get()->iter_is_end()) && iter.get()->key() == key)
         {
-            iter->remove();
-            return true;
+            MEMORIA_RETURN_IF_ERROR_FN(iter.get()->remove());
+            return BoolResult::of(true);
         }
 
-        return false;
+        return BoolResult::of(false);
     }
 
     /**
      * Returns true if the set contains the element
      */
-    bool contains(KeyView k)
+    BoolResult contains(KeyView k) noexcept
     {
         auto iter = self().ctr_set_find(k);
-        return iter->is_found(k);
+        MEMORIA_RETURN_IF_ERROR(iter);
+
+        return BoolResult::of(iter.get()->is_found(k));
     }
 
 

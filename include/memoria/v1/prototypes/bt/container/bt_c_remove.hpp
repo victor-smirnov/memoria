@@ -40,45 +40,57 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveName)
 
 protected:
     template <int32_t Stream>
-    void ctr_remove_stream_entry(Iterator& iter, int32_t stream, int32_t idx)
+    VoidResult ctr_remove_stream_entry(Iterator& iter, int32_t stream, int32_t idx) noexcept
     {
         auto& self = this->self();
 
-        auto result = self.template ctr_try_remove_stream_entry<Stream>(iter, idx);
+        auto result0 = self.template ctr_try_remove_stream_entry<Stream>(iter, idx);
+        MEMORIA_RETURN_IF_ERROR(result0);
 
-        if (!std::get<0>(result))
+        if (!std::get<0>(result0.get()))
         {
-            iter.iter_split_leaf(stream, idx);
+            auto split_res = iter.iter_split_leaf(stream, idx);
+            MEMORIA_RETURN_IF_ERROR(split_res);
 
-            result = self.template ctr_try_remove_stream_entry<Stream>(iter, idx);
+            auto result1 = self.template ctr_try_remove_stream_entry<Stream>(iter, idx);
+            MEMORIA_RETURN_IF_ERROR(result1);
 
-            if (!std::get<0>(result))
+            if (!std::get<0>(result1.get()))
             {
-                MMA1_THROW(Exception()) << WhatCInfo("Second removal attempt failed");
+                return VoidResult::make_error("Second removal attempt failed");
             }
 
-            self.ctr_update_path(iter.iter_leaf());
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(iter.iter_leaf()));
         }
         else {
-            self.ctr_update_path(iter.iter_leaf());
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(iter.iter_leaf()));
 
             auto next = self.ctr_get_next_node(iter.iter_leaf());
+            MEMORIA_RETURN_IF_ERROR(next);
 
-            if (next.isSet())
+            if (next.get().isSet())
             {
-                self.ctr_merge_leaf_nodes(iter.iter_leaf(), next, [](const Position&){});
+                auto res = self.ctr_merge_leaf_nodes(iter.iter_leaf(), next.get(), [](const Position&){
+                    return VoidResult::of();
+                });
+                MEMORIA_RETURN_IF_ERROR(res);
             }
 
             auto prev = self.ctr_get_prev_node(iter.iter_leaf());
+            MEMORIA_RETURN_IF_ERROR(prev);
 
-            if (prev.isSet())
+            if (prev.get().isSet())
             {
-                self.ctr_merge_leaf_nodes(prev, iter.iter_leaf(), [&](const Position& sizes){
+                auto res = self.ctr_merge_leaf_nodes(prev.get(), iter.iter_leaf(), [&](const Position& sizes){
                     iter.iter_local_pos() += sizes[0];
-                    iter.iter_leaf().assign(prev);
+                    iter.iter_leaf().assign(prev.get());
+                    return VoidResult::of();
                 });
+                MEMORIA_RETURN_IF_ERROR(res);
             }
         }
+
+        return VoidResult::of();
     }
 
 

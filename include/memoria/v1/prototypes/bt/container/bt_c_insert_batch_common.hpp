@@ -51,56 +51,64 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     public:
         Checkpoint(NodeBaseG head, int32_t size): head_(head), size_(size) {}
 
-        NodeBaseG head() const {return head_;};
-        int32_t size() const {return size_;};
+        NodeBaseG head() const {return head_;}
+        int32_t size() const {return size_;}
     };
 
 
     struct ILeafProvider {
-        virtual NodeBaseG get_leaf()    = 0;
+        virtual Result<NodeBaseG> get_leaf() noexcept = 0;
 
         virtual Checkpoint checkpoint() = 0;
 
         virtual void rollback(const Checkpoint& chekpoint) = 0;
 
-        virtual CtrSizeT size() const       = 0;
+        virtual CtrSizeT size() const = 0;
     };
 
 
 
-    void ctr_update_child_indexes(NodeBaseG& node, int32_t start)
+    VoidResult ctr_update_child_indexes(NodeBaseG& node, int32_t start) noexcept
     {
         auto& self = this->self();
         int32_t size = self.ctr_get_branch_node_size(node);
 
         if (start < size)
         {
-            self.ctr_for_all_ids(node, start, size, [&, this](const BlockID& id, int32_t parent_idx)
+            return self.ctr_for_all_ids(node, start, size, [&, this](const BlockID& id, int32_t parent_idx) noexcept -> VoidResult
             {
                 auto& self = this->self();
-                NodeBaseG child = self.store().getBlockForUpdate(id).get_or_terminate();
+                Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(id));
+                MEMORIA_RETURN_IF_ERROR(child);
 
-                child->parent_idx() = parent_idx;
+                child.get()->parent_idx() = parent_idx;
+                return VoidResult::of();
             });
         }
+
+        return VoidResult::of();
     }
 
-    void ctr_remove_branch_nodes(const BlockID& node_id)
+    VoidResult ctr_remove_branch_nodes(const BlockID& node_id) noexcept
     {
         auto& self = this->self();
 
-        NodeBaseG node = self.store().getBlock(node_id).get_or_terminate();
+        Result<NodeBaseG> node = static_cast_block<NodeBaseG>(self.store().getBlock(node_id));
+        MEMORIA_RETURN_IF_ERROR(node);
 
-        if (node->level() > 0)
+        if (node.get()->level() > 0)
         {
-            self.ctr_for_all_ids(node, [&, this](const BlockID& id, int32_t idx)
+            auto res = self.ctr_for_all_ids(node.get(), [&, this](const BlockID& id, int32_t idx)
             {
                 auto& self = this->self();
-                self.ctr_remove_branch_nodes(id);
+                return self.ctr_remove_branch_nodes(id);
             });
+            MEMORIA_RETURN_IF_ERROR(res);
 
-            self.store().removeBlock(node->id()).terminate_if_error();
+            return self.store().removeBlock(node.get()->id());
         }
+
+        return VoidResult::of();
     }
 
     class InsertBatchResult {
@@ -114,19 +122,22 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     };
 
 
-    NodeBaseG ctr_build_subtree(ILeafProvider& provider, int32_t level)
+    Result<NodeBaseG> ctr_build_subtree(ILeafProvider& provider, int32_t level) noexcept
     {
+        using ResultT = Result<NodeBaseG>;
+
         auto& self = this->self();
 
         if (provider.size() > 0)
         {
             if (level >= 1)
             {
-                NodeBaseG node = self.ctr_create_node1(level, false, false);
+                Result<NodeBaseG> node = self.ctr_create_node1(level, false, false);
+                MEMORIA_RETURN_IF_ERROR(node);
 
-                self.layoutNonLeafNode(node, 0xFF);
+                self.layoutNonLeafNode(node.get(), 0xFF);
 
-                self.ctr_insert_subtree(node, 0, provider, [this, level, &provider]() -> NodeBaseG {
+                self.ctr_insert_subtree(node.get(), 0, provider, [this, level, &provider]() -> ResultT {
                     auto& self = this->self();
                     return self.ctr_build_subtree(provider, level - 1);
                 }, false);
@@ -138,7 +149,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             }
         }
         else {
-            return NodeBaseG();
+            return ResultT::of();
         }
     }
 
@@ -160,17 +171,23 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             return size_;
         }
 
-        virtual NodeBaseG get_leaf()
+        virtual Result<NodeBaseG> get_leaf() noexcept
         {
+            using ResultT = Result<NodeBaseG>;
+
             if (head_.isSet())
             {
                 auto node = head_;
-                head_ = ctr_.store().getBlock(head_->next_leaf_id()).get_or_terminate();
+
+                auto res = ctr_.store().getBlock(head_->next_leaf_id());
+                MEMORIA_RETURN_IF_ERROR(res);
+
+                head_ = res.get();
                 size_--;
                 return node;
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo("Leaf List is empty");
+                return ResultT::make_error("Leaf List is empty");
             }
         }
 
@@ -187,21 +204,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
     };
 
 
-    void ctr_update_children(const NodeBaseG& node);
-    void ctr_update_children(const NodeBaseG& node, int32_t start);
-    void ctr_update_children(const NodeBaseG& node, int32_t start, int32_t end);
+    VoidResult ctr_update_children(const NodeBaseG& node) noexcept;
+    VoidResult ctr_update_children(const NodeBaseG& node, int32_t start) noexcept;
+    VoidResult ctr_update_children(const NodeBaseG& node, int32_t start, int32_t end) noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(IsEmptyFn, ctr_is_empty, bool);
-    bool ctr_is_empty(const NodeBaseG& node) {
+    bool ctr_is_empty(const NodeBaseG& node) noexcept {
         return self().node_dispatcher().dispatch(node, IsEmptyFn());
     }
 
 private:
-    void ctr_update_children_internal(const NodeBaseG& node, int32_t start, int32_t end);
+    VoidResult ctr_update_children_internal(const NodeBaseG& node, int32_t start, int32_t end) noexcept;
 public:
 
 
-    NodeBaseG createNextLeaf(NodeBaseG& left_node);
+    Result<NodeBaseG> createNextLeaf(NodeBaseG& left_node) noexcept;
 
 MEMORIA_V1_CONTAINER_PART_END
 
@@ -210,8 +227,10 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
+Result<typename M_TYPE::NodeBaseG> M_TYPE::createNextLeaf(NodeBaseG& left_node) noexcept
 {
+    using ResultT = Result<NodeBaseG>;
+
     auto& self = this->self();
 
     if (left_node->is_root())
@@ -232,7 +251,7 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 
     self.ctr_insert_subtree(left_parent, left_node->parent_idx() + 1, provider);
 
-    return other;
+    return ResultT::of(other);
 }
 
 
@@ -242,49 +261,59 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 
 
 M_PARAMS
-void M_TYPE::ctr_update_children(const NodeBaseG& node)
+VoidResult M_TYPE::ctr_update_children(const NodeBaseG& node) noexcept
 {
     if (!node->is_leaf())
     {
         auto& self = this->self();
-        self.ctr_update_children_internal(node, 0, self.ctr_get_branch_node_size(node));
+        return self.ctr_update_children_internal(node, 0, self.ctr_get_branch_node_size(node));
     }
+
+    return VoidResult::of();
 }
 
 M_PARAMS
-void M_TYPE::ctr_update_children(const NodeBaseG& node, int32_t start)
+VoidResult M_TYPE::ctr_update_children(const NodeBaseG& node, int32_t start) noexcept
 {
     if (!node->is_leaf())
     {
         auto& self = this->self();
-        self.ctr_update_children_internal(node, start, self.ctr_get_branch_node_size(node));
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_children_internal(node, start, self.ctr_get_branch_node_size(node)));
     }
+
+    return VoidResult::of();
 }
 
 M_PARAMS
-void M_TYPE::ctr_update_children(const NodeBaseG& node, int32_t start, int32_t end)
+VoidResult M_TYPE::ctr_update_children(const NodeBaseG& node, int32_t start, int32_t end) noexcept
 {
     if (!node->is_leaf())
     {
         auto& self = this->self();
         self.ctr_update_children_internal(node, start, end);
     }
+
+    return VoidResult::of();
 }
 
 
 M_PARAMS
-void M_TYPE::ctr_update_children_internal(const NodeBaseG& node, int32_t start, int32_t end)
+VoidResult M_TYPE::ctr_update_children_internal(const NodeBaseG& node, int32_t start, int32_t end) noexcept
 {
     auto& self = this->self();
 
     BlockID node_id = node->id();
 
-    self.ctr_for_all_ids(node, start, end, [&self, &node_id](const BlockID& id, int32_t idx)
+    return self.ctr_for_all_ids(node, start, end, [&self, &node_id](const BlockID& id, int32_t idx) noexcept -> VoidResult
     {
-        NodeBaseG child = self.store().getBlockForUpdate(id).get_or_terminate();
+        Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(id));
+        MEMORIA_RETURN_IF_ERROR(child);
 
-        child->parent_id()  = node_id;
-        child->parent_idx() = idx;
+
+        child.get()->parent_id()  = node_id;
+        child.get()->parent_idx() = idx;
+
+        return VoidResult::of();
     });
 }
 

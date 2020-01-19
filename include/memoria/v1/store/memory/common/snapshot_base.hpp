@@ -236,10 +236,13 @@ public:
         std::vector<CtrID> names;
 
         auto ii = root_map_->ctr_begin();
-        while (!ii->iter_is_end())
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+        while (!ii.get()->iter_is_end())
         {
-            names.push_back(ii->key());
-            ii->next();
+            names.push_back(ii.get()->key());
+            auto res = ii.get()->next();
+            MEMORIA_RETURN_IF_ERROR(res);
         }
 
         return Result<std::vector<CtrID>>::of(std::move(names));
@@ -250,13 +253,16 @@ public:
         std::vector<U8String> names;
 
         auto ii = root_map_->ctr_begin();
-        while (!ii->iter_is_end())
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+        while (!ii.get()->iter_is_end())
         {
             std::stringstream ss;
-            ss << ii->key().view();
+            ss << ii.get()->key().view();
 
             names.push_back(U8String(ss.str()));
-            ii->next();
+            auto res = ii.get()->next();
+            MEMORIA_RETURN_IF_ERROR(res);
         }
 
         return Result<std::vector<U8String>>::of(std::move(names));
@@ -400,7 +406,8 @@ public:
 
             if (root_id.get().is_set())
     		{
-                root_map_->assign(name, root_id.get());
+                auto res = root_map_->assign(name, root_id.get());
+                MEMORIA_RETURN_IF_ERROR(res);
     		}
     		else {
                 return VoidResult::make_error("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
@@ -439,7 +446,8 @@ public:
             MEMORIA_RETURN_IF_ERROR(root_id1);
 
             if (root_id1.get().is_set()) {
-                root_map_->assign(name, root_id1.get());
+                auto assign_res = root_map_->assign(name, root_id1.get());
+                MEMORIA_RETURN_IF_ERROR(assign_res);
     		}
     		else {
                 return VoidResult::make_error("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
@@ -502,7 +510,8 @@ public:
 
             if (root_id.get().is_set())
     		{
-                root_map_->assign(name, root_id.get());
+                auto assign_res = root_map_->assign(name, root_id.get());
+                MEMORIA_RETURN_IF_ERROR(assign_res);
     		}
     		else {
                 return VoidResult::make_error("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
@@ -549,7 +558,8 @@ public:
 
             if (root_id1.get().is_set())
     		{
-                root_map_->assign(name, root_id1.get());
+                auto assign_res = root_map_->assign(name, root_id1.get());
+                MEMORIA_RETURN_IF_ERROR(assign_res);
     		}
     		else {
                 return VoidResult::make_error("Unexpected empty root ID for container {} in snapshot {}", name, txn_id);
@@ -678,28 +688,35 @@ public:
         return Result<void>::of();
     }
 
-    Result<void> flush_open_containers() noexcept
+    VoidResult flush_open_containers() noexcept
     {
         for (const auto& pair: instance_map_)
         {
-            pair.second->flush();
+            MEMORIA_RETURN_IF_ERROR_FN(pair.second->flush());
         }
 
-        return Result<void>::of();
+        return VoidResult::of();
     }
 
-    Result<void> dump_dictionary_blocks() noexcept
+    VoidResult dump_dictionary_blocks() noexcept
     {
         auto ii = root_map_->ctr_begin();
-        if (!ii->iter_is_end())
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+        if (!ii.get()->iter_is_end())
         {
             do {
-                ii->dump();
+                ii.get()->dump();
+
+                auto res = ii.get()->iter_next_leaf();
+                MEMORIA_RETURN_IF_ERROR(res);
+
+                if (!res.get()) break;
             }
-            while (ii->iter_next_leaf());
+            while (true);
         }
 
-        return Result<void>::of();
+        return VoidResult::of();
     }
 
 
@@ -1000,10 +1017,11 @@ public:
         if (!name.is_null())
         {
             auto iter = root_map_->ctr_map_find(name);
+            MEMORIA_RETURN_IF_ERROR(iter)
 
-            if (iter->is_found(name))
+            if (iter.get()->is_found(name))
             {
-                return Result<BlockID>::of(iter->value());
+                return Result<BlockID>::of(iter.get()->value());
             }
             else {
                 return Result<BlockID>::of();
@@ -1014,32 +1032,34 @@ public:
         }
     }
 
-    virtual Result<void> setRoot(const CtrID& name, const BlockID& root) noexcept
+    virtual VoidResult setRoot(const CtrID& name, const BlockID& root) noexcept
     {
         if (root.is_null())
         {
             if (!name.is_null())
             {
-                root_map_->remove(name);
+                auto res = root_map_->remove(name);
+                MEMORIA_RETURN_IF_ERROR(res);
             }
             else {
-                return Result<void>::make_error("Allocator directory removal attempted");
+                return VoidResult::make_error("Allocator directory removal attempted");
             }
         }
         else {
             if (!name.is_null())
             {
-                root_map_->assign(name, root);
+                auto res = root_map_->assign(name, root);
+                MEMORIA_RETURN_IF_ERROR(res);
             }
             else {
                 history_node_->root_id() = root;
             }
         }
 
-        return Result<void>::of();
+        return VoidResult::of();
     }
 
-    virtual Result<bool> hasRoot(const CtrID& name) noexcept
+    virtual BoolResult hasRoot(const CtrID& name) noexcept
     {
         if (MMA1_UNLIKELY(!root_map_)) {
             return false;
@@ -1048,10 +1068,12 @@ public:
         if (!name.is_null())
         {
             auto iter = root_map_->ctr_map_find(name);
-            return Result<bool>::of(iter->is_found(name));
+            MEMORIA_RETURN_IF_ERROR(iter);
+
+            return BoolResult::of(iter.get()->is_found(name));
         }
         else {
-            return Result<bool>::of(!history_node_->root_id().is_null());
+            return BoolResult::of(!history_node_->root_id().is_null());
         }
     }
 
@@ -1065,7 +1087,10 @@ public:
     {
         bool result = false;
 
-        for (auto iter = root_map_->ctr_begin(); !iter->is_end(); )
+        auto iter_res = root_map_->ctr_begin();
+        MEMORIA_RETURN_IF_ERROR(iter_res);
+
+        for (auto iter = iter_res.get(); !iter->is_end(); )
         {
             auto ctr_name = iter->key();
 
@@ -1080,7 +1105,8 @@ public:
 
             result = res.get() || result;
 
-            iter->next();
+            auto next_res = iter->next();
+            MEMORIA_RETURN_IF_ERROR(next_res);
         }
 
         return BoolResult::of(result);
@@ -1106,11 +1132,12 @@ public:
 		}
 
         auto iter = root_map_->ctr_begin();
+        MEMORIA_RETURN_IF_ERROR(iter);
 
-        while (!iter->iter_is_end())
+        while (!iter.get()->iter_is_end())
         {
-            auto ctr_name   = iter->key();
-            auto root_id    = iter->value();
+            auto ctr_name   = iter.get()->key();
+            auto root_id    = iter.get()->value();
 
             auto block = this->getBlock(root_id);
             MEMORIA_RETURN_IF_ERROR(block);
@@ -1119,10 +1146,11 @@ public:
             auto ctr_intf   = ProfileMetadata<Profile>::local()
                     ->get_container_operations(ctr_hash);
 
-            auto res = ctr_intf->walk(ctr_name, this->shared_from_this(), walker);
-            MEMORIA_RETURN_IF_ERROR(res);
+            auto res0 = ctr_intf->walk(ctr_name, this->shared_from_this(), walker);
+            MEMORIA_RETURN_IF_ERROR(res0);
 
-            iter->next();
+            auto res1 = iter.get()->next();
+            MEMORIA_RETURN_IF_ERROR(res1);
         }
 
         walker->endSnapshot();

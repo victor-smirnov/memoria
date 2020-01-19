@@ -186,15 +186,21 @@ public:
         return totals_;
     }
 
-    virtual bool hasData()
+    virtual BoolResult hasData() noexcept
     {
         bool buffer_has_data = start_.sum() < size_.sum();
-        return buffer_has_data || populate_buffer();
+
+        auto res = populate_buffer();
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return BoolResult::of(buffer_has_data || res.get());
     }
 
-    virtual Position fill(NodeBaseG& leaf, const Position& start) = 0;
+    virtual Result<Position> fill(NodeBaseG& leaf, const Position& start) noexcept = 0;
 
-    void iter_next_leaf(const NodeBaseG& leaf) {}
+    VoidResult iter_next_leaf(const NodeBaseG& leaf) noexcept {
+        return VoidResult::of();
+    }
 
     DataPositions buffer_size() const
     {
@@ -217,7 +223,7 @@ public:
         return buffer_size();
     }
 
-    virtual bool populate_buffer()
+    virtual BoolResult populate_buffer() noexcept
     {
         if (start_.sum() < size_.sum())
         {
@@ -225,23 +231,24 @@ public:
         }
         else if (!finished_)
         {
-            do_populate_iobuffer();
+            MEMORIA_RETURN_IF_ERROR_FN(do_populate_iobuffer());
 
             if (finished_)
             {
                 return start_.sum() < size_.sum();
             }
             else {
-                return true;
+                return BoolResult::of(true);
             }
         }
         else {
-            return false;
+            return BoolResult::of(false);
         }
     }
 
-    void do_populate_iobuffer()
+    VoidResult do_populate_iobuffer() noexcept
     {
+        return wrap_throwing([&]() -> VoidResult {
         const auto& seq = io_vector_->symbol_sequence();
 
         do
@@ -276,6 +283,9 @@ public:
             seq.rank_to(start_.sum() + remainder, &size_[0]);
             finished_ = true;
         }
+
+        return VoidResult::of();
+        });
     }
 
     DataPositions to_data_positions(const Position& pos)
@@ -375,16 +385,21 @@ public:
         return ctr_end;
     }
 
-    virtual Position fill(NodeBaseG& leaf, const Position& start)
+    virtual Result<Position> fill(NodeBaseG& leaf, const Position& start) noexcept
     {
+        using ResultT = Result<Position>;
+
         DataPositions data_start = to_data_positions(start);
         DataPositions pos        = data_start;
 
         BlockUpdateMgr mgr(ctr());
 
-        mgr.add(leaf);
+        MEMORIA_RETURN_IF_ERROR_FN(mgr.add(leaf));
 
-        while(this->hasData())
+        auto has_data_res = this->hasData();
+        MEMORIA_RETURN_IF_ERROR(has_data_res);
+
+        while(has_data_res.get())
         {
             auto buffer_sizes = this->buffer_size();
 
@@ -395,7 +410,7 @@ public:
                 //TODO update leaf's parents here
                 if (leaf->parent_id().isSet())
                 {
-                    ctr().ctr_update_path(leaf);
+                    MEMORIA_RETURN_IF_ERROR_FN(ctr().ctr_update_path(leaf));
                 }
 
                 pos += inserted;
@@ -410,7 +425,7 @@ public:
             }
         }
 
-        return to_ctr_positions(start, data_start, pos);
+        return ResultT::of(to_ctr_positions(start, data_start, pos));
     }
 
 

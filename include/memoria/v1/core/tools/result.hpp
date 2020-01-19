@@ -107,6 +107,7 @@ class Result;
 
 using VoidResult = Result<void>;
 using BoolResult = Result<bool>;
+using Int32Result = Result<int32_t>;
 
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const Result<T>& res) noexcept;
@@ -136,7 +137,6 @@ class MMA1_NODISCARD Result {
     friend class Result;
 
 public:
-
     using ValueType = T;
 
     Result() noexcept : variant_(detail::UnassignedResultValueType{}) {}
@@ -179,6 +179,10 @@ public:
     }
 
     const T& get() const & noexcept {
+        return *boost::variant2::get_if<T>(&variant_);
+    }
+
+    T& get() & noexcept {
         return *boost::variant2::get_if<T>(&variant_);
     }
 
@@ -686,6 +690,14 @@ wrap_throwing(Fn&& fn) noexcept
 #define MEMORIA_RETURN_IF_ERROR(ResultVal)   \
     if (MMA1_UNLIKELY(!ResultVal.is_ok())) { \
         return std::move(ResultVal).transfer_error(); \
-    } \
+    }
+
+#define MEMORIA_RETURN_IF_ERROR_FN(FnCall)   \
+{                                            \
+    VoidResult res0 = FnCall;                 \
+    if (MMA1_UNLIKELY(!res0.is_ok())) {       \
+        return std::move(res0).transfer_error(); \
+    }                                        \
+}
 
 }}

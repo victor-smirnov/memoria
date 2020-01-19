@@ -41,6 +41,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
 
+    // TODO: noexcept
     template <int32_t StreamIdx>
     struct ReadEntriesFn {
 
@@ -75,7 +76,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
 
 
     template <int32_t StreamIdx, typename Fn>
-    CtrSizeT ctr_read_entries(Iterator& iter, CtrSizeT length, Fn&& fn)
+    Result<CtrSizeT> ctr_read_entries(Iterator& iter, CtrSizeT length, Fn&& fn) noexcept
     {
         CtrSizeT total = 0;
 
@@ -125,7 +126,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     };
 
     template <typename SubstreamPath, typename Fn>
-    CtrSizeT ctr_read_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
+    Result<CtrSizeT> ctr_read_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn) noexcept
     {
         CtrSizeT total = 0;
 
@@ -178,7 +179,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     };
 
     template <typename SubstreamPath, typename Fn>
-    CtrSizeT ctr_read_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
+    Result<CtrSizeT> ctr_read_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn) noexcept
     {
         CtrSizeT total = 0;
 
@@ -229,7 +230,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     };
 
     template <typename SubstreamPath, typename Fn>
-    CtrSizeT ctr_describe_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn)
+    Result<CtrSizeT> ctr_describe_single_substream(Iterator& iter, int32_t block, CtrSizeT length, Fn&& fn) noexcept
     {
         CtrSizeT total = 0;
 
@@ -280,7 +281,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::ReadName)
     };
 
     template <typename SubstreamPath, typename Fn>
-    CtrSizeT ctr_read_single_substream2(Iterator& iter, CtrSizeT length, Fn&& fn)
+    Result<CtrSizeT> ctr_read_single_substream2(Iterator& iter, CtrSizeT length, Fn&& fn) noexcept
     {
         CtrSizeT total = 0;
 

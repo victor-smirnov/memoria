@@ -38,32 +38,35 @@ protected:
     using typename Base::CtrSizeT;
 
     using Profile = typename Types::Profile;
-
-    using SplitFn = std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>;
-    using MergeFn = std::function<void (const Position&)>;
-
     using Base::Streams;
 
 public:
-    ProfileCtrSizeT<Profile> size() const {
-        return self().sizes()[0];
+    Result<ProfileCtrSizeT<Profile>> size() const noexcept
+    {
+        using ResultT = Result<ProfileCtrSizeT<Profile>>;
+        auto res = self().sizes();
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return ResultT::of(res.get()[0]);
     }
 
-    auto ctr_seek(CtrSizeT position) const
+    auto ctr_seek(CtrSizeT position) const noexcept
     {
         return self().template ctr_seek_stream<0>(position);
     }
 
-    auto ctr_begin() const {
+    auto ctr_begin() const noexcept {
         return self().ctr_seek(0);
     }
 
-    auto ctr_end() const
+    Result<IteratorPtr> ctr_end() const noexcept
     {
         auto size = self().size();
-        if (size > 0)
+        MEMORIA_RETURN_IF_ERROR(size);
+
+        if (size.get() > 0)
         {
-            return self().ctr_seek(size);
+            return self().ctr_seek(size.get());
         }
         else {
             return self().ctr_seek(0);

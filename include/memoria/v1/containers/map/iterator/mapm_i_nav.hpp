@@ -48,30 +48,37 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(map::ItrNavMaxName)
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 public:
-    void insert(const KeyView& key, const ValueView& value)
+    VoidResult insert(const KeyView& key, const ValueView& value) noexcept
     {
         auto& self = this->self();
 
-        self.ctr().iter_insert_entry(
+        auto res0 = self.ctr().iter_insert_entry(
                 self,
                 map::KeyValueEntry<KeyView, ValueView, CtrSizeT>(key, value)
         );
+        MEMORIA_RETURN_IF_ERROR(res0);
 
 
-        self.iter_btss_skip_fw(1);
+        auto res1 = self.iter_btss_skip_fw(1);
+        MEMORIA_RETURN_IF_ERROR(res1);
+
+        return VoidResult::of();
     }
 
 
-    void remove()
+    VoidResult remove() noexcept
     {
         auto& self = this->self();
 
-        self.ctr().ctr_remove_entry(self);
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr().ctr_remove_entry(self));
 
         if (self.iter_is_end())
         {
-            self.iter_btss_skip_fw(0);
+            auto res = self.iter_btss_skip_fw(0);
+            MEMORIA_RETURN_IF_ERROR(res);
         }
+
+        return VoidResult::of();
     }
 
     auto remove(CtrSizeT size)
@@ -80,12 +87,12 @@ public:
     }
 
 
-    auto findFwGT(int32_t index, KeyView key)
+    auto findFwGT(int32_t index, KeyView key) noexcept
     {
         return self().template iter_find_fw_gt<IntList<1>>(index, key);
     }
 
-    auto iter_map_find_fw_ge(int32_t index, KeyView key)
+    auto iter_map_find_fw_ge(int32_t index, KeyView key) noexcept
     {
         return self().template iter_find_fw_ge<IntList<1>>(index, key);
     }
@@ -110,23 +117,23 @@ public:
 		return std::get<0>(self().ctr().template iter_read_leaf_entry<IntList<2>>(self().iter_leaf(), self().iter_local_pos()));
     }
 
-    virtual Datum<Key> key() const
+    virtual Datum<Key> key() const noexcept
     {
         return self().iter_key();
     }
 
-    virtual Datum<Value> value() const
+    virtual Datum<Value> value() const noexcept
     {
         using ValueTT = decltype(self().iter_value());
         return map::MapValueHelper<ValueTT>::convert(self().iter_value());
     }
 
-    void assign(const ValueView& v)
+    VoidResult assign(const ValueView& v) noexcept
     {
-        self().ctr().template ctr_update_entry<IntList<2>>(self(), map::ValueBuffer<ValueView>(v));
+        return self().ctr().template ctr_update_entry<IntList<2>>(self(), map::ValueBuffer<ValueView>(v));
     }
 
-    bool is_found(const KeyView& k) const
+    bool is_found(const KeyView& k) const noexcept
     {
         auto& self = this->self();
         return (!self.is_end()) && self.key() == k;

@@ -40,58 +40,61 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorLeafName)
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 public:
-    bool iter_next_leaf()
+    BoolResult iter_next_leaf() noexcept
     {
         auto& self = this->self();
 
         auto current_leaf = self.iter_leaf();
-        auto next_leaf    = self.ctr().ctr_get_next_node(self.iter_leaf());
+        Result<NodeBaseG> next_leaf = self.ctr().ctr_get_next_node(self.iter_leaf());
+        MEMORIA_RETURN_IF_ERROR(next_leaf);
 
-        if (next_leaf.isSet())
+        if (next_leaf.get().isSet())
         {
             typename Types::template NextLeafWalker<Types> walker;
 
             walker.prepare(self);
 
-            self.iter_leaf().assign(next_leaf);
+            self.iter_leaf().assign(next_leaf.get());
 
             self.ctr().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0);
 
             walker.finish(self, 0, WalkCmd::NONE);
 
-            return true;
+            return BoolResult::of(true);
         }
         else {
             self.iter_leaf().assign(current_leaf);
-            return false;
+            return BoolResult::of(false);
         }
     }
 
 
-    bool iter_prev_leaf()
+    BoolResult iter_prev_leaf() noexcept
     {
         auto& self = this->self();
 
         auto current_leaf = self.iter_leaf();
-        auto prev_leaf    = self.ctr().ctr_get_prev_node(self.iter_leaf());
+        Result<NodeBaseG> prev_leaf = self.ctr().ctr_get_prev_node(self.iter_leaf());
+        MEMORIA_RETURN_IF_ERROR(prev_leaf);
 
-        if (prev_leaf.isSet())
+        if (prev_leaf.get().isSet())
         {
             typename Types::template PrevLeafWalker<Types> walker;
 
             walker.prepare(self);
 
-            self.iter_leaf().assign(prev_leaf);
+            self.iter_leaf().assign(prev_leaf.get());
 
             self().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
 
             walker.finish(self, 0, WalkCmd::NONE);
 
-            return true;
+            return BoolResult::of(true);
         }
         else {
             self.iter_leaf().assign(current_leaf);
-            return false;
+
+            return BoolResult::of(false);
         }
     }
 

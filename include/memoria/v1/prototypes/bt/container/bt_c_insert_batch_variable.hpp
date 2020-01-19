@@ -61,8 +61,10 @@ public:
     };
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(InsertChildFn, insert, OpStatus);
-    InsertBatchResult ctr_insert_subtree(NodeBaseG& node, int32_t idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
+    Result<InsertBatchResult> ctr_insert_subtree(NodeBaseG& node, int32_t idx, ILeafProvider& provider, std::function<Result<NodeBaseG> ()> child_fn, bool update_hierarchy) noexcept
     {
+        using ResultT = Result<InsertBatchResult>;
+
         auto& self = this->self();
 
         int32_t batch_size = 32;
@@ -74,7 +76,7 @@ public:
             auto checkpoint = provider.checkpoint();
 
             BlockUpdateMgr mgr(self);
-            mgr.add(node);
+            MEMORIA_RETURN_IF_ERROR_FN(mgr.add(node));
 
             int32_t c;
 
@@ -82,11 +84,14 @@ public:
 
             for (c = 0; c < batch_size && provider.size() > 0; c++)
             {
-                auto child = child_fn();
+                Result<NodeBaseG> child_res = child_fn();
+                MEMORIA_RETURN_IF_ERROR(child_res);
+
+                NodeBaseG child = child_res.get();
 
                 if (!child.isSet())
                 {
-                    MMA1_THROW(NullPointerException()) << WhatInfo("Subtree is null");
+                    return ResultT::make_error("Subtree is null");
                 }
 
                 child->parent_id()  = node->id();
@@ -103,11 +108,13 @@ public:
             {
                 if (node->level() > 1)
                 {
-                    self.ctr_for_all_ids(node, idx, c, [&, this](const BlockID& id, int32_t parent_idx)
+                    auto res = self.ctr_for_all_ids(node, idx, c, [&, this](const BlockID& id, int32_t parent_idx) noexcept -> VoidResult
                     {
                         auto& self = this->self();
-                        self.ctr_remove_branch_nodes(id);
+                        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_branch_nodes(id));
+                        return VoidResult::of();
                     });
+                    MEMORIA_RETURN_IF_ERROR(res);
                 }
 
                 provider.rollback(checkpoint);
@@ -121,30 +128,34 @@ public:
 
         if (update_hierarchy)
         {
-            self.ctr_update_path(node);
-            self.ctr_update_child_indexes(node, idx);
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(node));
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_child_indexes(node, idx));
         }
 
-        return InsertBatchResult(idx, provider_size0 - provider.size());
+        return ResultT::of(idx, provider_size0 - provider.size());
     }
 
 
-    NodeBaseG ctr_build_subtree(ILeafProvider& provider, int32_t level)
+    Result<NodeBaseG> ctr_build_subtree(ILeafProvider& provider, int32_t level) noexcept
     {
+        using ResultT = Result<NodeBaseG>;
         auto& self = this->self();
 
         if (provider.size() > 0)
         {
             if (level >= 1)
             {
-                NodeBaseG node = self.ctr_create_node(level, false, false);
+                Result<NodeBaseG> node = self.ctr_create_node(level, false, false);
+                MEMORIA_RETURN_IF_ERROR(node);
 
-                self.ctr_layout_branch_node(node, 0xFF);
+                auto res0 = self.ctr_layout_branch_node(node.get(), 0xFF);
+                MEMORIA_RETURN_IF_ERROR(res0);
 
-                self.ctr_insert_subtree(node, 0, provider, [this, level, &provider]() -> NodeBaseG {
+                auto res1 = self.ctr_insert_subtree(node.get(), 0, provider, [this, level, &provider]() noexcept -> Result<NodeBaseG> {
                     auto& self = this->self();
                     return self.ctr_build_subtree(provider, level - 1);
                 }, false);
+                MEMORIA_RETURN_IF_ERROR(res1);
 
                 return node;
             }
@@ -153,7 +164,7 @@ public:
             }
         }
         else {
-            return NodeBaseG();
+            return ResultT::of();
         }
     }
 
@@ -175,17 +186,23 @@ public:
             return size_;
         }
 
-        virtual NodeBaseG get_leaf()
+        virtual Result<NodeBaseG> get_leaf() noexcept
         {
+            using ResultT = Result<NodeBaseG>;
+
             if (head_.isSet())
             {
                 auto node = head_;
-                head_ = ctr_.store().getBlock(head_->next_leaf_id(), ctr_.master_name()).get_or_terminate();
+
+                auto res = ctr_.store().getBlock(head_->next_leaf_id(), ctr_.master_name());
+                MEMORIA_RETURN_IF_ERROR(res);
+
+                head_ = res.get();
                 size_--;
                 return node;
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatCInfo("Leaf List is empty");
+                return ResultT::make_error("Leaf List is empty");
             }
         }
 
@@ -225,123 +242,151 @@ public:
     };
 
 
-    InsertBatchResult ctr_insert_batch_to_node(NodeBaseG& node, int32_t idx, ILeafProvider& provider, int32_t level = 1, bool update_hierarchy = true)
+    Result<InsertBatchResult> ctr_insert_batch_to_node(NodeBaseG& node, int32_t idx, ILeafProvider& provider, int32_t level = 1, bool update_hierarchy = true) noexcept
     {
         auto& self = this->self();
-        return self.ctr_insert_subtree(node, idx, provider, [&provider, &node, this]() -> NodeBaseG {
+        return self.ctr_insert_subtree(node, idx, provider, [&provider, &node, this]() noexcept -> Result<NodeBaseG> {
             auto& self = this->self();
             return self.ctr_build_subtree(provider, node->level() - 1);
         },
         update_hierarchy);
     }
 
-    void ctr_insert_subtree(NodeBaseG& left, NodeBaseG& right, ILeafProvider& provider, InsertionState& state, int32_t level = 1)
+    VoidResult ctr_insert_subtree(NodeBaseG& left, NodeBaseG& right, ILeafProvider& provider, InsertionState& state, int32_t level = 1) noexcept
     {
         auto& self = this->self();
 
         int32_t left_size0 = self.ctr_get_branch_node_size(left);
 
         auto left_result = ctr_insert_batch_to_node(left, left_size0, provider, level);
+        MEMORIA_RETURN_IF_ERROR(left_result);
 
-        state.inserted() += left_result.subtree_size();
+        state.inserted() += left_result.get().subtree_size();
 
         if (state.shouldMoveUp())
         {
-            auto left_parent    = self.ctr_get_node_parent_for_update(left);
-            auto right_parent   = self.ctr_get_node_parent_for_update(right);
+            auto left_parent = self.ctr_get_node_parent_for_update(left);
+            MEMORIA_RETURN_IF_ERROR(left_parent);
 
-            if (left_parent == right_parent)
+            auto right_parent_res = self.ctr_get_node_parent_for_update(right);
+            MEMORIA_RETURN_IF_ERROR(right_parent_res);
+
+            NodeBaseG right_parent = right_parent_res.get();
+
+            if (left_parent.get() == right_parent)
             {
-                right_parent = self.ctr_split_path(left_parent, right->parent_idx());
+                auto res = self.ctr_split_path(left_parent.get(), right->parent_idx());
+                MEMORIA_RETURN_IF_ERROR(res);
+
+                right_parent = res.get();
             }
 
-            ctr_insert_subtree(left_parent, right_parent, provider, state, level + 1);
+            auto res = ctr_insert_subtree(left_parent.get(), right_parent, provider, state, level + 1);
+            MEMORIA_RETURN_IF_ERROR(res);
         }
         else {
             auto right_result = ctr_insert_batch_to_node(right, 0, provider, level);
-            state.inserted() += right_result.subtree_size();
+            MEMORIA_RETURN_IF_ERROR(right_result);
+
+            state.inserted() += right_result.get().subtree_size();
         }
+
+        return VoidResult::of();
     }
 
-    NodeBaseG ctr_insert_subtree_at_end(NodeBaseG& left, ILeafProvider& provider, InsertionState& state, int32_t level = 1)
+    Result<NodeBaseG> ctr_insert_subtree_at_end(NodeBaseG& left, ILeafProvider& provider, InsertionState& state, int32_t level = 1) noexcept
     {
+        using ResultT = Result<NodeBaseG>;
+
         auto& self = this->self();
 
         int32_t left_size0 = self.ctr_get_branch_node_size(left);
 
         auto left_result = ctr_insert_batch_to_node(left, left_size0, provider, level);
+        MEMORIA_RETURN_IF_ERROR(left_result);
 
-        state.inserted() += left_result.subtree_size();
+        state.inserted() += left_result.get().subtree_size();
 
         if (provider.size() > 0)
         {
             if (left->is_root())
             {
-                self.ctr_create_new_root_block(left);
+                MEMORIA_RETURN_IF_ERROR_FN(self.ctr_create_new_root_block(left));
             }
 
             auto left_parent = self.ctr_get_node_parent_for_update(left);
+            MEMORIA_RETURN_IF_ERROR(left_parent);
 
-            auto right = ctr_insert_subtree_at_end(left_parent, provider, state, level + 1);
+            auto right = ctr_insert_subtree_at_end(left_parent.get(), provider, state, level + 1);
+            MEMORIA_RETURN_IF_ERROR(right);
 
-            int32_t right_size = self.ctr_get_branch_node_size(right);
+            int32_t right_size = self.ctr_get_branch_node_size(right.get());
 
-            return self.ctr_get_node_child(right, right_size - 1);
+            return self.ctr_get_node_child(right.get(), right_size - 1);
         }
         else {
-            return left;
+            return ResultT::of(left);
         }
     }
 
 
-    int32_t ctr_insert_subtree(NodeBaseG& node, int32_t pos, ILeafProvider& provider)
+    Result<int32_t> ctr_insert_subtree(NodeBaseG& node, int32_t pos, ILeafProvider& provider) noexcept
     {
         auto& self = this->self();
 
         auto result = ctr_insert_batch_to_node(node, pos, provider);
+        MEMORIA_RETURN_IF_ERROR(result);
 
         if (provider.size() == 0)
         {
-            return result.local_pos();
+            return result.get().local_pos();
         }
         else {
             auto node_size = self.ctr_get_branch_node_size(node);
 
             NodeBaseG next;
 
-            if (result.local_pos() < node_size)
+            if (result.get().local_pos() < node_size)
             {
-                next = self.ctr_split_path(node, result.local_pos());
+                auto next_res = self.ctr_split_path(node, result.get().local_pos());
+                MEMORIA_RETURN_IF_ERROR(next_res);
+
+                next = next_res.get();
             }
             else {
-                next = self.ctr_get_next_node(node);
+                auto next_res = self.ctr_get_next_node(node);
+                MEMORIA_RETURN_IF_ERROR(next_res);
+
+                next = next_res.get();
             }
 
             if (next.isSet())
             {
-                auto left_result = ctr_insert_batch_to_node(node, result.local_pos(), provider);
+                auto left_result = ctr_insert_batch_to_node(node, result.get().local_pos(), provider);
+                MEMORIA_RETURN_IF_ERROR(left_result);
 
                 if (provider.size() == 0)
                 {
-                    return left_result.local_pos();
+                    return left_result.get().local_pos();
                 }
                 else {
                     BlockUpdateMgr mgr(self);
-                    mgr.add(next);
+                    MEMORIA_RETURN_IF_ERROR_FN(mgr.add(next));
 
                     auto checkpoint = provider.checkpoint();
 
                     auto next_result = ctr_insert_batch_to_node(next, 0, provider, 1, false);
+                    MEMORIA_RETURN_IF_ERROR(next_result);
 
                     if (provider.size() == 0)
                     {
-                        self.ctr_update_path(next);
+                        MEMORIA_RETURN_IF_ERROR(self.ctr_update_path(next));
 
-                        self.ctr_update_child_indexes(next, next_result.local_pos());
+                        MEMORIA_RETURN_IF_ERROR(self.ctr_update_child_indexes(next, next_result.get().local_pos()));
 
                         node = next;
 
-                        return next_result.local_pos();
+                        return next_result.get().local_pos();
                     }
                     else {
                         mgr.rollback();
@@ -352,7 +397,8 @@ public:
 
                         auto next_size0 = self.ctr_get_branch_node_size(next);
 
-                        ctr_insert_subtree(node, next, provider, state);
+                        auto res0 = ctr_insert_subtree(node, next, provider, state);
+                        MEMORIA_RETURN_IF_ERROR(res0);
 
                         auto idx = self.ctr_get_branch_node_size(next) - next_size0;
 
@@ -369,7 +415,10 @@ public:
             }
             else {
                 InsertionState state(provider.size());
-                node = ctr_insert_subtree_at_end(node, provider, state, 1);
+                auto end_res = ctr_insert_subtree_at_end(node, provider, state, 1);
+                MEMORIA_RETURN_IF_ERROR(end_res);
+
+                node = end_res.get();
 
                 return self.ctr_get_branch_node_size(node);
             }

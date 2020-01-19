@@ -56,21 +56,24 @@ public:
         parse_first();
     }
 
-    virtual bool is_end() const {
+    virtual bool is_end() const noexcept {
         return iter_->iter_is_end();
     }
 
-    virtual bool next()
+    virtual BoolResult next() noexcept
     {
-        if (iter_->iter_next_leaf())
+        auto res0 = iter_->iter_next_leaf();
+        MEMORIA_RETURN_IF_ERROR(res0);
+
+        if (res0.get())
         {
             offsets_.clear();
             build_index();
-            return true;
+            return BoolResult::of(true);
         }
         else {
             iter_->iter_local_pos() = iter_->iter_leaf_sizes().sum();
-            return false;
+            return BoolResult::of(false);
         }
     }
 
@@ -87,7 +90,7 @@ public:
         }
     }
 
-    virtual void fill_suffix_buffer()
+    virtual VoidResult fill_suffix_buffer() noexcept
     {
         suffix_buffer_.clear();
 
@@ -95,7 +98,10 @@ public:
 
         while (!is_end())
         {
-            if (next())
+            auto res = next();
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            if (res.get())
             {
                 fill_buffer(0, prefix_.size());
 
@@ -104,6 +110,8 @@ public:
                 }
             }
         }
+
+        return VoidResult::of();
     }
 
 private:

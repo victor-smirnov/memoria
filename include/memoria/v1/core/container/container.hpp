@@ -128,36 +128,37 @@ public:
 
     virtual ~CtrBase() noexcept {}
 
-    virtual CtrSharedPtr<CtrReferenceable<ProfileT>> shared_self() {
+    // TODO: error handling
+    virtual CtrSharedPtr<CtrReferenceable<ProfileT>> shared_self() noexcept {
         return this->shared_from_this();
     }
     
-    bool isNew() const {
+    bool isNew() const noexcept {
         return root_.is_null();
     }
     
-    void reset_allocator_holder() {
+    void reset_allocator_holder() noexcept {
         allocator_holder_.reset();
     }
     
-    virtual bool is_castable_to(uint64_t type_code) const {
+    virtual bool is_castable_to(uint64_t type_code) const noexcept {
         return CONTAINER_HASH == type_code;
     }
     
-    virtual uint64_t type_hash() {
+    virtual uint64_t type_hash() noexcept {
         return CONTAINER_HASH;
     }
     
-    virtual U8String describe_type() const {
+    virtual U8String describe_type() const noexcept {
         return TypeNameFactory<ContainerTypeName>::name().to_u8();
     }
 
-    virtual U8String describe_datatype() const {
+    virtual U8String describe_datatype() const noexcept {
         return make_datatype_signature<ContainerTypeName>().name();
     }
 
-    PairPtr& pair() {return pair_;}
-    const PairPtr& pair() const {return pair_;}
+    PairPtr& pair() noexcept {return pair_;}
+    const PairPtr& pair() const noexcept {return pair_;}
 
     Result<void> set_root(const BlockID &root) noexcept
     {
@@ -296,8 +297,10 @@ public:
         {
             bool result = false;
 
-            auto res = with_ctr(ctr_id, allocator, [&](MyType& ctr){
-                result = ctr.check(nullptr);
+            auto res = with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept -> VoidResult {
+                BoolResult res = ctr.check(nullptr);
+                MEMORIA_RETURN_IF_ERROR(res);
+                result = res.get();
                 return VoidResult::of();
             });
             MEMORIA_RETURN_IF_ERROR(res);
@@ -311,9 +314,8 @@ public:
                 ContainerWalker<ProfileT>* walker
         ) const noexcept
         {
-            return with_ctr(ctr_id, allocator, [&](MyType& ctr){
-                ctr.ctr_walk_tree(walker);
-                return VoidResult::of();
+            return with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept{
+                return ctr.ctr_walk_tree(walker);
             });
         }
 
@@ -366,8 +368,7 @@ public:
             CtrNodesWalkerAdapter walker(consumer);
 
             return with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept {
-        		ctr.ctr_walk_tree(&walker);
-                return VoidResult::of();
+                return ctr.ctr_walk_tree(&walker);
             });
         }
         
@@ -377,7 +378,7 @@ public:
         ) const noexcept
         {    
             using ResultT = Result<CtrSharedPtr<CtrReferenceable<typename Types::Profile>>>;
-            return wrap_throwing([&]() noexcept -> ResultT {
+            return wrap_throwing([&]() -> ResultT {
                 return ResultT::of(ctr_make_shared<SharedCtr<ContainerTypeName, Allocator, typename Types::Profile>> (
                     allocator,
                     root_block
@@ -391,8 +392,11 @@ public:
 
             CtrID new_name_rtn{};
 
-            auto res = with_ctr(ctr_id, allocator, [&](MyType& ctr){
-                new_name_rtn = ctr.clone(new_ctr_id);
+            auto res = with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept -> VoidResult {
+                auto clone_res = ctr.clone(new_ctr_id);
+                MEMORIA_RETURN_IF_ERROR(clone_res);
+
+                new_name_rtn = clone_res.get();
                 return VoidResult::of();
             });
             MEMORIA_RETURN_IF_ERROR(res);
@@ -505,16 +509,18 @@ public:
         return STLCollection<Edge>::make(std::move(edges));
     }
 
-    CtrID clone(const CtrID& new_name)
+    Result<CtrID> clone(const CtrID& new_name) noexcept
     {
-        MMA1_THROW(Exception()) << WhatCInfo("Clone operation is not supported for this container");
+        return Result<CtrID>::make_error("Clone operation is not supported for this container");
     }
 
-    bool is_updatable() const {
+    bool is_updatable() const noexcept {
         return self().store().isActive();
     }
 
-    virtual void flush() {}
+    virtual VoidResult flush() noexcept {
+        return VoidResult::of();
+    }
 
 protected:
 
@@ -539,12 +545,12 @@ protected:
     }
 
 private:
-    MyType& self()
+    MyType& self() noexcept
     {
         return *static_cast<MyType*>(this);
     }
 
-    const MyType& self() const
+    const MyType& self() const noexcept
     {
         return *static_cast<const MyType*>(this);
     }
@@ -563,7 +569,7 @@ class CtrHelper: public CtrPart<
     using MyType   = Ctr<Types>;
     using Base     = CtrPart<Select<Idx, typename Types::List>, CtrHelper<Idx - 1, Types>, Types>;
 public:
-    CtrHelper() {}
+    CtrHelper() noexcept {}
 
     virtual ~CtrHelper() noexcept {}
 };
@@ -575,7 +581,7 @@ class CtrHelper<-1, Types>: public Types::template BaseFactory<Types> {
     using Base     = typename Types::template BaseFactory<Types>;
 
 public:
-    CtrHelper() {}
+    CtrHelper() noexcept {}
 
     virtual ~CtrHelper() noexcept {}
 
@@ -597,7 +603,7 @@ class CtrStart: public CtrHelper<ListSize<typename Types::List> - 1, Types> {
     using Base      = CtrHelper<ListSize<typename Types::List> - 1, Types>;
 
 public:
-    CtrStart() {}
+    CtrStart() noexcept {}
 };
 
 
@@ -647,7 +653,7 @@ public:
         allocator_ = allocator.get();
         name_ = ctr_id;
 
-        this->do_create_ctr(ctr_id, ctr_type_name);
+        this->do_create_ctr(ctr_id, ctr_type_name).terminate_if_error();
 
         allocator_->registerCtr(ctr_id, this).terminate_if_error();
     }
@@ -665,7 +671,7 @@ public:
 
         initLogger();
 
-        name_ = this->do_init_ctr(root_block);
+        name_ = this->do_init_ctr(root_block).get_or_terminate();
 
         allocator_->registerCtr(name_, this).terminate_if_error();
     }
@@ -693,54 +699,54 @@ public:
         }
     }
 
-    void initLogger()
+    void initLogger() noexcept
     {
         logger_.configure(TypeNameFactory<ContainerTypeName>::cname(), Logger::DERIVED, &allocator_->logger());
     }
 
 
 
-    Allocator& store() {
+    Allocator& store() noexcept {
         return *allocator_;
     }
 
-    Allocator& store() const {
+    Allocator& store() const noexcept {
         return *allocator_;
     }
 
-    static U8String type_name_str()
+    static U8String type_name_str() noexcept
     {
         return TypeNameFactory<ContainerTypeName>::name();
     }
 
-    static const char* type_name_cstr()
+    static const char* type_name_cstr() noexcept
     {
         return TypeNameFactory<ContainerTypeName>::cname();
     }
 
 
-    bool is_log(int32_t level) const
+    bool is_log(int32_t level) const noexcept
     {
         return logger_.isLogEnabled(level);
     }
 
-    const Logger& logger() const {
+    const Logger& logger() const noexcept {
         return logger_;
     }
 
-    Logger& logger() {
+    Logger& logger() noexcept {
         return logger_;
     }
 
-    static Logger& class_logger() {
+    static Logger& class_logger() noexcept {
         return class_logger_;
     }
 
-    virtual const CtrID& name() const {
+    virtual const CtrID& name() const noexcept {
         return name_;
     }
 
-    const auto& master_name() const
+    const auto& master_name() const noexcept
     {
         return name_;
     }

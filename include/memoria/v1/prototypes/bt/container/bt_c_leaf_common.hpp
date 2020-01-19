@@ -49,19 +49,22 @@ protected:
     static const int32_t Streams = Types::Streams;
 
 public:
-    NodeBaseG ctr_split_leaf(NodeBaseG& left_node, const Position& split_at)
+    Result<NodeBaseG> ctr_split_leaf(NodeBaseG& left_node, const Position& split_at) noexcept
     {
         auto& self = this->self();
 
-        return self.ctr_split_node(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right){
-            return self.ctr_split_leaf_node(left, right, split_at);
+        return self.ctr_split_node(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right) noexcept -> VoidResult {
+            auto res = self.ctr_split_leaf_node(left, right, split_at);
+            MEMORIA_RETURN_IF_ERROR(res);
+            return VoidResult::of();
         });
     }
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, OpStatus);
-    OpStatus ctr_split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+    Result<OpStatus> ctr_split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at) noexcept
     {
-        return self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
+        OpStatus status = self().leaf_dispatcher().dispatch(src, tgt, SplitNodeFn(), split_at);
+        return Result<OpStatus>::of(status);
     }
 
 public:
@@ -73,7 +76,7 @@ public:
 
 
 
-
+    // TODO: apply noexcept expression
 
     template <int32_t Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
     auto ctr_apply_substreams_fn(NodeBaseG& leaf, Fn&& fn, Args&&... args)
@@ -177,26 +180,29 @@ public:
 
 
     template <typename Provider>
-    Position ctr_insert_data_into_leaf(NodeBaseG& leaf, const Position& pos, Provider& provider)
+    Result<Position> ctr_insert_data_into_leaf(NodeBaseG& leaf, const Position& pos, Provider& provider)
     {
+        using ResultT = Result<Position>;
         auto& self = this->self();
 
-        self.ctr_update_block_guard(leaf);
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(leaf));
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_leaf_node(leaf, Position(0)));
 
-        self.ctr_layout_leaf_node(leaf, Position(0));
-
-        if (provider.hasData())
+        BoolResult has_data_res = provider.hasData();
+        if (has_data_res.get())
         {
             auto end = provider.fill(leaf, pos);
+            MEMORIA_RETURN_IF_ERROR(end);
 
-            return end;
+            return ResultT::of(end.get());
         }
 
-        return pos;
+        return ResultT::of(pos);
     }
 
 
-    std::shared_ptr<io::IOVector> create_iovector()
+    // TODO: error handling
+    std::shared_ptr<io::IOVector> create_iovector() noexcept
     {
         return std::static_pointer_cast<io::IOVector>(
             std::make_shared<typename Types::LeafNode::template SparseObject<MyType>::IOVectorT>()
@@ -218,39 +224,53 @@ public:
     };
 
     template <typename Provider>
-    InsertDataResult ctr_insert_provided_data(NodeBaseG& leaf, const Position& pos, Provider& provider)
+    Result<InsertDataResult> ctr_insert_provided_data(NodeBaseG& leaf, const Position& pos, Provider& provider) noexcept
     {
+        using ResultT = Result<InsertDataResult>;
+
         auto& self = this->self();
 
         auto last_pos = self.ctr_insert_data_into_leaf(leaf, pos, provider);
+        MEMORIA_RETURN_IF_ERROR(last_pos);
 
-        if (provider.hasData())
+        BoolResult has_data_res = provider.hasData();
+        MEMORIA_RETURN_IF_ERROR(has_data_res);
+
+        if (has_data_res.get())
         {
             // has to be defined in subclasses
-            if (!self.ctr_is_at_the_end(leaf, last_pos))
+            if (!self.ctr_is_at_the_end(leaf, last_pos.get()))
             {
-                auto next_leaf = self.ctr_split_leaf(leaf, last_pos);
+                Result<NodeBaseG> next_leaf = self.ctr_split_leaf(leaf, last_pos.get());
+                MEMORIA_RETURN_IF_ERROR(next_leaf);
 
-                self.ctr_insert_data_into_leaf(leaf, last_pos, provider);
+                auto res0 = self.ctr_insert_data_into_leaf(leaf, last_pos.get(), provider);
+                MEMORIA_RETURN_IF_ERROR(res0);
 
-                provider.iter_next_leaf(leaf);
+                auto next_leaf_res = provider.iter_next_leaf(leaf);
+                MEMORIA_RETURN_IF_ERROR(next_leaf_res);
 
-                if (provider.hasData())
+                BoolResult has_data_res2 = provider.hasData();
+                MEMORIA_RETURN_IF_ERROR(has_data_res2);
+
+                if (has_data_res2.get())
                 {
-                    return ctr_insert_data_rest(leaf, next_leaf, provider);
+                    return ctr_insert_data_rest(leaf, next_leaf.get(), provider);
                 }
                 else {
-                    return InsertDataResult(next_leaf, Position());
+                    return ResultT::of(next_leaf.get(), Position());
                 }
             }
             else {
-                provider.iter_next_leaf(leaf);
+                auto next_leaf_res = provider.iter_next_leaf(leaf);
+                 MEMORIA_RETURN_IF_ERROR(next_leaf_res);
 
-                auto next_leaf = self.ctr_get_next_node(leaf);
+                Result<NodeBaseG> next_leaf = self.ctr_get_next_node(leaf);
+                MEMORIA_RETURN_IF_ERROR(next_leaf);
 
-                if (next_leaf.isSet())
+                if (next_leaf.get().isSet())
                 {
-                    return ctr_insert_data_rest(leaf, next_leaf, provider);
+                    return ctr_insert_data_rest(leaf, next_leaf.get(), provider);
                 }
                 else {
                     return ctr_insert_data_rest(leaf, provider);
@@ -258,26 +278,36 @@ public:
             }
         }
         else {
-            return InsertDataResult(leaf, last_pos);
+            return ResultT::of(leaf, last_pos.get());
         }
     }
 
 
 
     template <typename Provider>
-    LeafList ctr_create_leaf_data_list(Provider& provider)
+    Result<LeafList> ctr_create_leaf_data_list(Provider& provider) noexcept
     {
+        using ResultT = Result<LeafList>;
         auto& self = this->self();
 
         CtrSizeT    total = 0;
         NodeBaseG   head;
         NodeBaseG   current;
 
-        int32_t block_size = self.ctr_get_root_metadata().memory_block_size();
+        auto meta_res = self.ctr_get_root_metadata();
+        MEMORIA_RETURN_IF_ERROR(meta_res);
 
-        while (provider.hasData())
+        int32_t block_size = meta_res.get().memory_block_size();
+
+        auto has_data_res = provider.hasData();
+        MEMORIA_RETURN_IF_ERROR(has_data_res);
+
+        while (has_data_res.get())
         {
-            NodeBaseG node = self.ctr_create_node(0, false, true, block_size);
+            Result<NodeBaseG> node_res = self.ctr_create_node(0, false, true, block_size);
+            MEMORIA_RETURN_IF_ERROR(node_res);
+
+            NodeBaseG node = node_res.get();
 
             if (head.isSet())
             {
@@ -287,9 +317,11 @@ public:
                 head = node;
             }
 
-            self.ctr_insert_data_into_leaf(node, Position(), provider);
+            auto ins_res = self.ctr_insert_data_into_leaf(node, Position(), provider);
+            MEMORIA_RETURN_IF_ERROR(ins_res);
 
-            provider.iter_next_leaf(node);
+            auto next_res = provider.iter_next_leaf(node);
+            MEMORIA_RETURN_IF_ERROR(next_res);
 
             current = node;
 
@@ -298,20 +330,22 @@ public:
 
         total += provider.orphan_splits();
 
-        return LeafList(total, head, current);
+        return ResultT::of(total, head, current);
     }
 
 
 
 
     template <typename Provider>
-    InsertDataResult ctr_insert_data_rest(NodeBaseG& leaf, NodeBaseG& next_leaf, Provider& provider)
+    Result<InsertDataResult> ctr_insert_data_rest(NodeBaseG& leaf, NodeBaseG& next_leaf, Provider& provider) noexcept
     {
+        using ResultT = Result<InsertDataResult>;
         auto& self = this->self();
 
         provider.split_watcher().first = leaf;
 
         auto leaf_list = self.ctr_create_leaf_data_list(provider);
+        MEMORIA_RETURN_IF_ERROR(leaf_list);
 
         if (provider.split_watcher().second.isSet())
         {
@@ -320,47 +354,54 @@ public:
 
         int32_t path_parent_idx = leaf->parent_idx() + 1;
 
-        if (leaf_list.size() > 0)
+        if (leaf_list.get().size() > 0)
         {
             using LeafListProvider = typename Base::ListLeafProvider;
 
-            LeafListProvider list_provider(self, leaf_list.head(), leaf_list.size());
+            LeafListProvider list_provider(self, leaf_list.get().head(), leaf_list.get().size());
 
-            NodeBaseG parent = self.ctr_get_node_parent_for_update(leaf);
+            Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(leaf);
+            MEMORIA_RETURN_IF_ERROR(parent);
 
-            self.ctr_insert_subtree(parent, path_parent_idx, list_provider);
+            auto res0 = self.ctr_insert_subtree(parent.get(), path_parent_idx, list_provider);
+            MEMORIA_RETURN_IF_ERROR(res0);
 
-            auto& last_leaf = leaf_list.tail();
+            auto& last_leaf = leaf_list.get().tail();
 
             auto last_leaf_size = self.ctr_get_leaf_stream_sizes(last_leaf);
 
-            if (self.ctr_merge_leaf_nodes(last_leaf, next_leaf, [](const Position&){}))
+            auto res1 = self.ctr_merge_leaf_nodes(last_leaf, next_leaf, [](const Position&){return VoidResult::of();});
+            MEMORIA_RETURN_IF_ERROR(res1);
+
+            if (res1.get())
             {
-                return InsertDataResult(last_leaf, last_leaf_size);
+                return ResultT::of(last_leaf, last_leaf_size);
             }
             else {
-                return InsertDataResult(next_leaf);
+                return ResultT::of(next_leaf);
             }
         }
         else {
-            return InsertDataResult(next_leaf);
+            return ResultT::of(next_leaf);
         }
     }
 
 
     template <typename Provider>
-    InsertDataResult ctr_insert_data_rest(NodeBaseG& leaf, Provider& provider)
+    Result<InsertDataResult> ctr_insert_data_rest(NodeBaseG& leaf, Provider& provider) noexcept
     {
+        using ResultT = Result<InsertDataResult>;
         auto& self = this->self();
 
         if (leaf->is_root())
         {
-            self.ctr_create_new_root_block(leaf);
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_create_new_root_block(leaf));
         }
 
         provider.split_watcher().first = leaf;
 
         auto leaf_list = self.ctr_create_leaf_data_list(provider);
+        MEMORIA_RETURN_IF_ERROR(leaf_list);
 
         if (provider.split_watcher().second.isSet())
         {
@@ -369,30 +410,32 @@ public:
 
         int32_t path_parent_idx = leaf->parent_idx() + 1;
 
-        if (leaf_list.size() > 0)
+        if (leaf_list.get().size() > 0)
         {
             using LeafListProvider = typename Base::ListLeafProvider;
 
-            LeafListProvider list_provider(self, leaf_list.head(), leaf_list.size());
+            LeafListProvider list_provider(self, leaf_list.get().head(), leaf_list.get().size());
 
-            NodeBaseG parent = self.ctr_get_node_parent_for_update(leaf);
+            Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(leaf);
+            MEMORIA_RETURN_IF_ERROR(parent);
 
-            self.ctr_insert_subtree(parent, path_parent_idx, list_provider);
+            auto res = self.ctr_insert_subtree(parent.get(), path_parent_idx, list_provider);
+            MEMORIA_RETURN_IF_ERROR(res);
 
-            auto& last_leaf = leaf_list.tail();
+            auto& last_leaf = leaf_list.get().tail();
 
             auto last_leaf_size = self.ctr_get_leaf_stream_sizes(last_leaf);
 
-            return InsertDataResult(last_leaf, last_leaf_size);
+            return ResultT::of(last_leaf, last_leaf_size);
         }
         else {
             auto iter_leaf_size = self.ctr_get_leaf_stream_sizes(leaf);
-            return InsertDataResult(leaf, iter_leaf_size);
+            return ResultT::of(leaf, iter_leaf_size);
         }
     }
 
     template <typename Fn, typename... Args>
-    SplitStatus ctr_update_atomic(Iterator& iter, Fn&& fn, Args&&... args)
+    Result<SplitStatus> ctr_update_atomic(Iterator& iter, Fn&& fn, Args&&... args) noexcept
     {
         auto& self = this->self();
 
@@ -428,7 +471,6 @@ public:
         OOM_THROW_IF_FAILED(fn.status_, MMA1_SRC);
 
         return status;
-
     }
 
 MEMORIA_V1_CONTAINER_PART_END

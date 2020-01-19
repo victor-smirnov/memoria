@@ -89,9 +89,9 @@ struct WrapperName {                                    \
     MyType& me_;                                        \
     WrapperName(MyType& v): me_(v) {}                   \
     template <typename T, typename... Args>             \
-    void treeNode(T&& arg, Args&&... args)                \
+    auto treeNode(T&& arg, Args&&... args)                \
     {                                                   \
-        me_.TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
+        return me_.TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                   \
 }
 
@@ -112,9 +112,9 @@ struct WrapperName {                                        \
     const MyType& me_;                                      \
     WrapperName(const MyType& v): me_(v) {}                 \
     template <typename T, typename... Args>                 \
-    void treeNode(T&& arg, Args&&... args) const              \
+    auto treeNode(T&& arg, Args&&... args) const              \
     {                                                       \
-        me_.TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
+        return me_.TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                       \
 }
 
@@ -149,18 +149,18 @@ struct WrapperName {                                    \
 #define MEMORIA_V1_DECLARE_NODE_FN(WrapperName, NodeMethodName)\
 struct WrapperName {                                        \
     template <typename T, typename... Args>                 \
-    void treeNode(T&& node, Args&&... args) const           \
+    auto treeNode(T&& node, Args&&... args) const           \
     {                                                       \
-        node.NodeMethodName(std::forward<Args>(args)...);   \
+        return node.NodeMethodName(std::forward<Args>(args)...);   \
     }                                                       \
 }
 
 #define MEMORIA_V1_DECLARE_NODE2_FN(WrapperName, NodeMethodName)\
 struct WrapperName {                                            \
     template <typename T, typename... Args>                     \
-    void treeNode(T&& node1, T&& node2, Args&&... args) const   \
+    auto treeNode(T&& node1, T&& node2, Args&&... args) const   \
     {                                                           \
-        node1.NodeMethodName(node2, std::forward<Args>(args)...);\
+        return node1.NodeMethodName(node2, std::forward<Args>(args)...);\
     }                                                           \
 }
 

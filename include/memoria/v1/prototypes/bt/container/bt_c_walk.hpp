@@ -20,6 +20,7 @@
 
 #include <memoria/v1/core/container/logs.hpp>
 #include <memoria/v1/core/container/macros.hpp>
+#include <memoria/v1/core/tools/result.hpp>
 
 
 namespace memoria {
@@ -43,24 +44,27 @@ public:
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
 
-    void ctr_walk_tree(ContainerWalker<ProfileT>* walker)
+    VoidResult ctr_walk_tree(ContainerWalker<ProfileT>* walker) noexcept
     {
         auto& self = this->self();
 
-        NodeBaseG root = self.ctr_get_root_node();
+        Result<NodeBaseG> root = self.ctr_get_root_node();
+        MEMORIA_RETURN_IF_ERROR(root);
 
         walker->beginCtr(
-                        TypeNameFactory<typename Types::ContainerTypeName>::name().data(),
-                        self.name(),
-                        root->id()
-                );
+            TypeNameFactory<typename Types::ContainerTypeName>::name().data(),
+            self.name(),
+            root.get()->id()
+        );
 
-        this->ctr_traverse_tree(root, walker);
+        MEMORIA_RETURN_IF_ERROR_FN(this->ctr_traverse_tree(root.get(), walker));
 
         walker->endCtr();
+        return VoidResult::of();
     }
 
-    void ctr_begin_node(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
+    // TODO: error handling
+    void ctr_begin_node(const NodeBaseG& node, ContainerWalker<ProfileT>* walker) noexcept
     {
         if (node->is_root())
         {
@@ -81,7 +85,8 @@ public:
         }
     }
 
-    void ctr_end_node(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
+    // TODO: error handling
+    void ctr_end_node(const NodeBaseG& node, ContainerWalker<ProfileT>* walker) noexcept
     {
         if (node->is_root())
         {
@@ -96,7 +101,7 @@ public:
         }
     }
 
-    CtrID ctr_clone(CtrID new_name) const
+    Result<CtrID> ctr_clone(CtrID new_name) const noexcept
     {
         if (new_name.is_null())
         {
@@ -105,8 +110,10 @@ public:
 
         auto& self = this->self();
 
-        BlockID root_id = self.store().getRootID(new_name);
-        if (root_id.is_null())
+        Result<BlockID> root_id = self.store().getRootID(new_name);
+        MEMORIA_RETURN_IF_ERROR(root_id);
+
+        if (root_id.get().is_null())
         {
             NodeBaseG root = self.ctr_get_root_node();
 
@@ -123,14 +130,14 @@ public:
             return new_name;
         }
         else {
-            MMA1_THROW(Exception()) << format_ex("Requested container name of {} is already in use.", new_name);
+            return Result<CtrID>::make_error("Requested container name of {} is already in use.", new_name);
         }
     }
 
 
 private:
 
-    NodeBaseG ctr_clone_tree(const NodeBaseG& node, const BlockID& parent_id) const
+    Result<NodeBaseG> ctr_clone_tree(const NodeBaseG& node, const BlockID& parent_id) const noexcept
     {
         auto& self = this->self();
 
@@ -150,7 +157,7 @@ private:
         return new_node;
     }
 
-    void ctr_traverse_tree(const NodeBaseG& node, ContainerWalker<ProfileT>* walker)
+    VoidResult ctr_traverse_tree(const NodeBaseG& node, ContainerWalker<ProfileT>* walker) noexcept
     {
         auto& self = this->self();
 
@@ -158,14 +165,18 @@ private:
 
         if (!node->is_leaf())
         {
-            self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&self, walker](const BlockID& id, int32_t idx)
+            auto res1 = self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&self, walker](const BlockID& id, int32_t idx) noexcept
             {
                 NodeBaseG child = self.store().getBlock(id).get_or_terminate();
-                self.ctr_traverse_tree(child, walker);
+                return self.ctr_traverse_tree(child, walker);
             });
+
+            MEMORIA_RETURN_IF_ERROR(res1);
         }
 
         self.ctr_end_node(node, walker);
+
+        return VoidResult::of();
     }
 
 MEMORIA_V1_CONTAINER_PART_END

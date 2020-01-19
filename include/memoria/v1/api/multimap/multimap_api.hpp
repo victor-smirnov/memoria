@@ -40,8 +40,8 @@ template <typename Key, typename Value, typename Profile>
 struct MultimapIterator: BTFLIterator<Profile> {
     virtual Datum<Key> key() const = 0;
     virtual Datum<Value> value() const = 0;
-    virtual bool is_end() const = 0;
-    virtual bool next() = 0;
+    virtual bool is_end() const noexcept = 0;
+    virtual BoolResult next() noexcept = 0;
 };
 
 
@@ -69,33 +69,33 @@ public:
     using CtrSizeT  = ProfileCtrSizeT<Profile>;
     using CtrSizesT = ProfileCtrSizesT<Profile, DataStreams + 1>;
     
-    virtual bool contains(const KeyView& key) const = 0;
-    virtual bool remove(const KeyView& key) = 0;
+    virtual BoolResult contains(const KeyView& key) const noexcept = 0;
+    virtual BoolResult remove(const KeyView& key) noexcept = 0;
 
-    virtual bool remove_all(const KeyView& from, const KeyView& to) = 0; //[from, to)
-    virtual bool remove_from(const KeyView& from) = 0; //[from, end)
-    virtual bool remove_before(const KeyView& to) = 0; //[begin, to)
+    virtual BoolResult remove_all(const KeyView& from, const KeyView& to) = 0; //[from, to)
+    virtual BoolResult remove_from(const KeyView& from) = 0; //[from, end)
+    virtual BoolResult remove_before(const KeyView& to) = 0; //[begin, to)
 
-    virtual CtrSizeT size() const = 0;
+    virtual Result<CtrSizeT> size() const noexcept = 0;
 
     virtual CtrSharedPtr<IEntriesScanner<ApiTypes, Profile>> entries_scanner(IteratorAPIPtr iterator) const = 0;
     virtual CtrSharedPtr<IValuesScanner<ApiTypes, Profile>>  values_scanner(IteratorAPIPtr iterator) const = 0;
 
-    virtual IteratorAPIPtr seek(CtrSizeT pos) const = 0;
-    virtual IteratorAPIPtr find(KeyView key) const = 0;
-    virtual IteratorAPIPtr iterator() const = 0;
+    virtual Result<IteratorAPIPtr> seek(CtrSizeT pos) const noexcept = 0;
+    virtual Result<IteratorAPIPtr> find(KeyView key) const noexcept = 0;
+    virtual Result<IteratorAPIPtr> iterator() const noexcept = 0;
 
-    virtual CtrSharedPtr<IKeysScanner<ApiTypes, Profile>> keys() const = 0;
+    virtual Result<CtrSharedPtr<IKeysScanner<ApiTypes, Profile>>> keys() const noexcept = 0;
 
-    bool upsert(KeyView key, ProducerFn producer_fn) {
+    BoolResult upsert(KeyView key, ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
         return upsert(key, producer);
     }
 
 
-    bool upsert(KeyView key, Span<const ValueView> data)
+    BoolResult upsert(KeyView key, Span<const ValueView> data) noexcept
     {
-        return upsert(key, [&](auto& seq, auto& keys, auto& values, auto& sizes){
+        return upsert(key, [&](auto& seq, auto& keys, auto& values, auto& sizes) {
             seq.append(1, data.size());
             values.append(data);
             return true;
@@ -103,16 +103,16 @@ public:
     }
 
     // returns true if the entry was updated, and false if new entry was inserted
-    virtual bool upsert(KeyView key, io::IOVectorProducer& producer) = 0;
+    virtual BoolResult upsert(KeyView key, io::IOVectorProducer& producer) noexcept = 0;
 
-    void append_entries(ProducerFn producer_fn) {
+    VoidResult append_entries(ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        append_entries(producer);
+        return append_entries(producer);
     }
 
-    void append_entry(KeyView key, Span<const ValueView> data)
+    VoidResult append_entry(KeyView key, Span<const ValueView> data) noexcept
     {
-        append_entries([&](auto& seq, auto& keys, auto& values, auto& sizes){
+        return append_entries([&](auto& seq, auto& keys, auto& values, auto& sizes){
             seq.append(0, 1);
             keys.append(key);
 
@@ -123,17 +123,17 @@ public:
         });
     }
 
-    virtual void append_entries(io::IOVectorProducer& producer) = 0;
+    virtual VoidResult append_entries(io::IOVectorProducer& producer) noexcept = 0;
 
 
-    void prepend_entries(ProducerFn producer_fn) {
+    VoidResult prepend_entries(ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        prepend_entries(producer);
+        return prepend_entries(producer);
     }
 
-    void prepend_entry(KeyView key, Span<const ValueView> data)
+    VoidResult prepend_entry(KeyView key, Span<const ValueView> data) noexcept
     {
-        prepend_entries([&](auto& seq, auto& keys, auto& values, auto& sizes){
+        return prepend_entries([&](auto& seq, auto& keys, auto& values, auto& sizes){
             seq.append(0, 1);
             keys.append(key);
 
@@ -145,17 +145,17 @@ public:
     }
 
 
-    virtual void prepend_entries(io::IOVectorProducer& producer) = 0;
+    virtual VoidResult prepend_entries(io::IOVectorProducer& producer) noexcept = 0;
 
 
-    void insert_entries(KeyView before, ProducerFn producer_fn) {
+    VoidResult insert_entries(KeyView before, ProducerFn producer_fn) noexcept {
         Producer producer(producer_fn);
-        insert_entries(before, producer);
+        return insert_entries(before, producer);
     }
 
-    void insert_entry(KeyView before, KeyView key, Span<const ValueView> data)
+    VoidResult insert_entry(KeyView before, KeyView key, Span<const ValueView> data) noexcept
     {
-        insert_entries(before, [&](auto& seq, auto& keys, auto& values, auto& sizes){
+        return insert_entries(before, [&](auto& seq, auto& keys, auto& values, auto& sizes){
             seq.append(0, 1);
             keys.append(key);
 
@@ -166,7 +166,7 @@ public:
         });
     }
 
-    virtual void insert_entries(KeyView before, io::IOVectorProducer& producer) = 0;
+    virtual VoidResult insert_entries(KeyView before, io::IOVectorProducer& producer) noexcept = 0;
 
     MMA1_DECLARE_ICTRAPI();
 };

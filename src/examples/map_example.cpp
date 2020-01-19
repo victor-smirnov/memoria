@@ -85,7 +85,7 @@ int main()
             }
 
             return limit != batch_size;
-        });
+        }).throw_if_error();
 
 
         int64_t t1_i = getTimeInMillis();
@@ -117,7 +117,7 @@ int main()
                 std::cout << keys[c] << " = " << ii.values()[c] << std::endl;
             }
 
-            ii.next_leaf();
+            ii.next_leaf().throw_if_error();
         }
 
         int64_t t3 = getTimeInMillis();

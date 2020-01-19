@@ -52,7 +52,7 @@ protected:
 public:
 
 
-    IteratorPtr ctr_set_find(const KeyView& k) const
+    Result<IteratorPtr> ctr_set_find(const KeyView& k) const noexcept
     {
         return self().template ctr_find_max_ge<IntList<0, 1>>(0, k);
     }

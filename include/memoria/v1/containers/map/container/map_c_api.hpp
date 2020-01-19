@@ -66,54 +66,76 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
 
 
-    void assign_key(KeyView key, ValueView value) {
-        self().assign(key, value);
+    VoidResult assign_key(KeyView key, ValueView value) noexcept
+    {
+        auto ii = self().assign(key, value);
+        MEMORIA_RETURN_IF_ERROR(ii);
+        return VoidResult::of();
     }
 
-    void remove_key(KeyView key) {
-        self().remove(key);
+    VoidResult remove_key(KeyView key) noexcept
+    {
+        auto res = self().remove(key);
+        MEMORIA_RETURN_IF_ERROR(res);
+        return VoidResult::of();
     }
 
-    CtrSharedPtr<MapIterator<Key,Value, Profile>> iterator() const
+    Result<CtrSharedPtr<MapIterator<Key,Value, Profile>>> iterator() const noexcept
     {
         auto iter = self().ctr_begin();
-        return iter;
+        return memoria_static_pointer_cast<MapIterator<Key,Value, Profile>>(std::move(iter));
     }
 
-    virtual CtrSharedPtr<MapIterator<Key, Value, Profile>> find(KeyView key) const
+    virtual Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>> find(KeyView key) const noexcept
     {
+        //using ResultT = Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>>;
+
         auto iter = self().ctr_map_find(key);
-        return iter;
+        MEMORIA_RETURN_IF_ERROR(iter);
+
+        return memoria_static_pointer_cast<MapIterator<Key, Value, Profile>>(std::move(iter));
     }
 
-    void append(io::IOVectorProducer& producer)
+    VoidResult append(io::IOVectorProducer& producer) noexcept
     {
         auto& self = this->self();
         auto iter = self.ctr_end();
+        MEMORIA_RETURN_IF_ERROR(iter);
 
-        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return VoidResult::of();
     }
 
-    virtual void prepend(io::IOVectorProducer& producer)
+    virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept
     {
         auto& self = this->self();
         auto iter = self.ctr_begin();
+        MEMORIA_RETURN_IF_ERROR(iter);
 
-        iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return VoidResult::of();
     }
 
-    virtual void insert(KeyView before, io::IOVectorProducer& producer)
+    virtual VoidResult insert(KeyView before, io::IOVectorProducer& producer) noexcept
     {
         auto& self = this->self();
 
         auto iter = self.ctr_map_find(before);
+        MEMORIA_RETURN_IF_ERROR(iter);
 
-        if (iter->is_found(before))
+        if (iter.get()->is_found(before))
         {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Requested key is found. Can't insert enties this way.");
+            return VoidResult::make_error("Requested key is found. Can't insert enties this way.");
         }
         else {
-            iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+            auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            return VoidResult::of();
         }
     }
 

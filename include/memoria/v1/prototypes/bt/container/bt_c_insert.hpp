@@ -42,68 +42,77 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
     typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
     template <int32_t Stream, typename Entry>
-    SplitStatus ctr_insert_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Entry& entry)
+    Result<SplitStatus> ctr_insert_stream_entry(Iterator& iter, int32_t stream, int32_t idx, const Entry& entry) noexcept
     {
+        using ResultT = Result<SplitStatus>;
+
         auto& self = this->self();
 
-        auto result = self.template ctr_try_insert_stream_entry<Stream>(iter, idx, entry);
+        auto result0 = self.template ctr_try_insert_stream_entry<Stream>(iter, idx, entry);
+        MEMORIA_RETURN_IF_ERROR(result0);
 
         SplitStatus split_status;
 
-        if (!std::get<0>(result))
+        if (!std::get<0>(result0.get()))
         {
             auto split_result = iter.iter_split_leaf(stream, idx);
+            MEMORIA_RETURN_IF_ERROR(split_result);
 
-            split_status = split_result.type();
+            split_status = split_result.get().type();
 
-            result = self.template ctr_try_insert_stream_entry<Stream>(iter, split_result.stream_idx(), entry);
+            auto result1 = self.template ctr_try_insert_stream_entry<Stream>(iter, split_result.get().stream_idx(), entry);
+            MEMORIA_RETURN_IF_ERROR(result1);
 
-            if (!std::get<0>(result))
+            if (!std::get<0>(result1.get()))
             {
-                MMA1_THROW(Exception()) << WhatCInfo("Second insertion attempt failed");
+                return ResultT::make_error("Second insertion attempt failed");
             }
         }
         else {
             split_status = SplitStatus::NONE;
         }
 
-        self.ctr_update_path(iter.iter_leaf());
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(iter.iter_leaf()));
 
-        return split_status;
+        return ResultT::of(split_status);
     }
 
 
 
 
     template <int32_t Stream>
-    SplitStatus ctr_insert_stream_entry0(Iterator& iter, int32_t structure_idx, int32_t stream_idx, std::function<OpStatus(int, int)> insert_fn)
+    Result<SplitStatus> ctr_insert_stream_entry0(Iterator& iter, int32_t structure_idx, int32_t stream_idx, std::function<Result<OpStatus> (int, int)> insert_fn) noexcept
     {
+        using ResultT = Result<SplitStatus>;
         auto& self = this->self();
 
-        bool result = self.ctr_with_block_manager(iter.iter_leaf(), structure_idx, stream_idx, insert_fn);
+        auto result0 = self.ctr_with_block_manager(iter.iter_leaf(), structure_idx, stream_idx, insert_fn);
+        MEMORIA_RETURN_IF_ERROR(result0);
 
         SplitStatus split_status;
 
-        if (!result)
+        if (!result0.get())
         {
             auto split_result = iter.split(Stream, stream_idx);
+            MEMORIA_RETURN_IF_ERROR(split_result);
 
             split_status = split_result.type();
 
-            result = self.ctr_with_block_manager(iter.iter_leaf(), iter.iter_local_pos(), split_result.stream_idx(), insert_fn);
+            auto result1 = self.ctr_with_block_manager(iter.iter_leaf(), iter.iter_local_pos(), split_result.stream_idx(), insert_fn);
+            MEMORIA_RETURN_IF_ERROR(result1);
 
-            if (!result)
+            if (!result1.get())
             {
-                MMA1_THROW(Exception()) << WhatCInfo("Second insertion attempt failed");
+                return ResultT::make_error("Second insertion attempt failed");
             }
         }
         else {
             split_status = SplitStatus::NONE;
         }
 
-        self.ctr_update_path(iter.iter_leaf());
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(iter.iter_leaf()));
 
-        return split_status;
+        return ResultT::of(split_status);
     }
 
 

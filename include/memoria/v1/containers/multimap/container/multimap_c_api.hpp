@@ -60,7 +60,8 @@ protected:
 
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
-    using IteratorAPIPtr = CtrSharedPtr<MultimapIterator<Key, Value, Profile>>;
+    using IteratorAPI = MultimapIterator<Key, Value, Profile>;
+    using IteratorAPIPtr = CtrSharedPtr<IteratorAPI>;
 
     using typename Base::BranchNodeExtData;
     using typename Base::LeafNodeExtData;
@@ -77,42 +78,51 @@ public:
 
     }
 
-    IteratorPtr begin() const {
+    Result<IteratorPtr> begin() const noexcept {
         return self().template ctr_seek_stream<0>(0);
     }
 
-    IteratorPtr end() const {
+    Result<IteratorPtr> end() const noexcept
+    {
         auto& self = this->self();
-        auto ii = self.template ctr_seek_stream<1>(self.sizes()[1]);
 
-        ii->iter_stream() = 1;
-        ii->iter_to_structure_stream();
+        auto res = self.sizes();
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        auto ii = self.template ctr_seek_stream<1>(res.get()[1]);
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+        ii.get()->iter_stream() = 1;
+
+        MEMORIA_RETURN_IF_ERROR_FN(ii.get()->iter_to_structure_stream());
 
         return ii;
     }
 
-    IteratorPtr ctr_seek(CtrSizeT idx) const
+    Result<IteratorPtr> ctr_seek(CtrSizeT idx) const noexcept
     {
         auto& self = this->self();
         auto ii = self.template ctr_seek_stream<0>(idx);
+        MEMORIA_RETURN_IF_ERROR(ii);
 
-        ii->iter_stream() = 0;
+        ii.get()->iter_stream() = 0;
 
-        ii->iter_to_structure_stream();
+        ii.get()->iter_to_structure_stream();
 
         return ii;
     }
 
-    IteratorAPIPtr seek(CtrSizeT idx) const
+    Result<IteratorAPIPtr> seek(CtrSizeT idx) const noexcept
     {
         auto& self = this->self();
         auto ii = self.template ctr_seek_stream<0>(idx);
+        MEMORIA_RETURN_IF_ERROR(ii);
 
-        ii->iter_stream() = 0;
+        ii.get()->iter_stream() = 0;
 
-        ii->iter_to_structure_stream();
+        MEMORIA_RETURN_IF_ERROR_FN(ii.get()->iter_to_structure_stream());
 
-        return ii;
+        return memoria_static_pointer_cast<MultimapIterator<Key, Value, Profile>>(std::move(ii));
     }
 
     template <typename ScannerApi, typename ScannerImpl>
@@ -155,147 +165,198 @@ public:
         }
     }
 
-    CtrSharedPtr<IKeysScanner<CtrApiTypes, Profile>> keys() const
+    Result<CtrSharedPtr<IKeysScanner<CtrApiTypes, Profile>>> keys() const noexcept
     {
+        using ResultT = Result<CtrSharedPtr<IKeysScanner<CtrApiTypes, Profile>>>;
+
         auto& self = this->self();
         auto ii = self.template ctr_seek_stream<0>(0);
+        MEMORIA_RETURN_IF_ERROR(ii);
 
-        ii->iter_stream() = 0;
-        ii->iter_to_structure_stream();
+        ii.get()->iter_stream() = 0;
+        MEMORIA_RETURN_IF_ERROR_FN(ii.get()->iter_to_structure_stream());
 
-        auto ptr = ctr_make_shared<multimap::KeysIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii);
+        auto ptr = ctr_make_shared<multimap::KeysIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(ii.get());
 
-        return memoria_static_pointer_cast<IKeysScanner<CtrApiTypes, Profile>>(ptr);
+        return ResultT::of(memoria_static_pointer_cast<IKeysScanner<CtrApiTypes, Profile>>(ptr));
     }
 
-    IteratorAPIPtr find(KeyView key) const
+    Result<IteratorAPIPtr> find(KeyView key) const noexcept
     {
+        using ResultT = Result<IteratorAPIPtr>;
+
         auto& self = this->self();
         auto ii = self.ctr_multimap_find(key);
+        MEMORIA_RETURN_IF_ERROR(ii);
 
-        if (ii->is_found(key))
+        if (ii.get()->is_found(key))
         {
-            ii->to_values();
-            return ii;
+            auto res = ii.get()->to_values();
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            return memoria_static_pointer_cast<MultimapIterator<Key, Value, Profile>>(std::move(ii));
         }
         else {
-            return IteratorAPIPtr{};
+            return ResultT::of();
         }
     }
 
-    virtual IteratorAPIPtr iterator() const {
-        return self().begin();
+    virtual Result<IteratorAPIPtr> iterator() const noexcept {
+        return memoria_static_pointer_cast<IteratorAPI>(self().begin());
     }
 
-    CtrSizeT size() const {
-        return self().sizes()[0];
+    Result<CtrSizeT> size() const noexcept
+    {
+        auto res = self().sizes();
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return Result<CtrSizeT>::of(res.get()[0]);
     }
 
-    IteratorPtr ctr_multimap_find(KeyView key) const
+    Result<IteratorPtr> ctr_multimap_find(KeyView key) const noexcept
     {
         return self().template ctr_find_max_ge<IntList<0, 1>>(0, key);
     }
 
-    IteratorPtr find_or_create(KeyView key)
+    Result<IteratorPtr> find_or_create(KeyView key) noexcept
     {
         auto& self = this->self();
 
         auto iter = self.ctr_multimap_find(key);
+        MEMORIA_RETURN_IF_ERROR(iter);
 
-        if (!iter->is_found(key))
+        if (!iter.get()->is_found(key))
         {
-            iter->insert_key(key);
+            iter.get()->insert_key(key);
         }
 
         return iter;
     }
 
 
-    void append_entries(io::IOVectorProducer& producer)
+    VoidResult append_entries(io::IOVectorProducer& producer) noexcept
     {
-        self().end()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        auto ii = self().end();
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+        auto res = ii.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return VoidResult::of();
     }
 
 
 
 
 
-    void prepend_entries(io::IOVectorProducer& producer)
-    {
-        self().begin()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-    }
-
-
-
-
-    void insert_entries(KeyView before, io::IOVectorProducer& producer)
-    {
-        auto ii = self().ctr_multimap_find(before);
-        ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-    }
-
-    bool upsert(KeyView key, io::IOVectorProducer& producer)
-    {
-        auto ii = self().ctr_multimap_find(key);
-
-        if (ii->is_found(key))
-        {
-            ii->remove(1);
-            ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-
-            return true;
-        }
-
-        ii->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-
-        return false;
-    }
-
-
-
-
-    bool contains(const KeyView& key) const
-    {
-        auto iter = self().ctr_multimap_find(key);
-        return iter->is_found(key);
-    }
-
-    bool remove(const KeyView& key)
-    {
-        auto ii = self().ctr_multimap_find(key);
-
-        if (ii->is_found(key)) {
-            ii->remove(1);
-            return true;
-        }
-
-        return false;
-    }
-
-
-    bool remove_all(const KeyView& from, const KeyView& to)
-    {
-        auto ii = self().ctr_multimap_find(from);
-        auto jj = self().ctr_multimap_find(to);
-
-        return ii->iter_remove_all(*jj.get());
-    }
-
-    bool remove_from(const KeyView& from)
-    {
-        auto ii = self().ctr_multimap_find(from);
-        auto jj = self().end();
-
-        return ii->iter_remove_all(*jj.get());
-    }
-
-
-    bool remove_before(const KeyView& to)
+    VoidResult prepend_entries(io::IOVectorProducer& producer) noexcept
     {
         auto ii = self().begin();
-        auto jj = self().ctr_multimap_find(to);
+        MEMORIA_RETURN_IF_ERROR(ii);
 
-        return ii->iter_remove_all(*jj.get());
+
+        auto res = ii.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return VoidResult::of();
+    }
+
+
+
+
+    VoidResult insert_entries(KeyView before, io::IOVectorProducer& producer) noexcept
+    {
+        auto ii = self().ctr_multimap_find(before);
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+
+        auto res = ii.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        MEMORIA_RETURN_IF_ERROR(res);
+
+        return VoidResult::of();
+    }
+
+    BoolResult upsert(KeyView key, io::IOVectorProducer& producer) noexcept
+    {
+        auto ii = self().ctr_multimap_find(key);
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+        if (ii.get()->is_found(key))
+        {
+            auto res0 = ii.get()->remove(1);
+            MEMORIA_RETURN_IF_ERROR(res0);
+
+            auto res1 = ii.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+            MEMORIA_RETURN_IF_ERROR(res1);
+
+            return true;
+        }
+
+        auto res2 = ii.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
+        MEMORIA_RETURN_IF_ERROR(res2);
+
+        return false;
+    }
+
+
+
+
+    BoolResult contains(const KeyView& key) const noexcept
+    {
+        auto iter = self().ctr_multimap_find(key);
+        MEMORIA_RETURN_IF_ERROR(iter);
+        return BoolResult::of(iter.get()->is_found(key));
+    }
+
+    BoolResult remove(const KeyView& key) noexcept
+    {
+        auto ii = self().ctr_multimap_find(key);
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+        if (ii.get()->is_found(key))
+        {
+            auto res = ii.get()->remove(1);
+            MEMORIA_RETURN_IF_ERROR(res);
+
+            return BoolResult::of(true);
+        }
+
+        return BoolResult::of(false);
+    }
+
+
+    BoolResult remove_all(const KeyView& from, const KeyView& to) noexcept
+    {
+        auto ii = self().ctr_multimap_find(from);
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+        auto jj = self().ctr_multimap_find(to);
+        MEMORIA_RETURN_IF_ERROR(jj);
+
+        return ii.get()->iter_remove_all(*jj.get());
+    }
+
+    BoolResult remove_from(const KeyView& from) noexcept
+    {
+        auto ii = self().ctr_multimap_find(from);
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+        auto jj = self().end();
+        MEMORIA_RETURN_IF_ERROR(jj);
+
+        return ii.get()->iter_remove_all(*jj.get());
+    }
+
+
+    BoolResult remove_before(const KeyView& to) noexcept
+    {
+        auto ii = self().begin();
+        MEMORIA_RETURN_IF_ERROR(ii);
+
+        auto jj = self().ctr_multimap_find(to);
+        MEMORIA_RETURN_IF_ERROR(jj);
+
+        return ii.get()->iter_remove_all(*jj.get());
     }
 
 

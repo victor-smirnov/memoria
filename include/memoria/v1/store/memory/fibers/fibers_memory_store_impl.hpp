@@ -690,7 +690,7 @@ public:
             SharedPtr<AllocatorMemoryStat> alloc_stat = MakeShared<AllocatorMemoryStat>(0);
 
             auto history_visitor = [&](HistoryNode* node) noexcept -> VoidResult {
-                return wrap_throwing([&]() noexcept {
+                return wrap_throwing([&]() {
                     if (node->is_committed() || node->is_dropped())
                     {
                         auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this(), OperationType::OP_FIND);
@@ -714,7 +714,7 @@ protected:
     
     VoidResult walk_version_tree(HistoryNode* node, std::function<VoidResult (HistoryNode*, SnapshotT*)> fn) noexcept
     {
-        return wrap_throwing([&]() noexcept -> VoidResult {
+        return wrap_throwing([&]() -> VoidResult {
             if (node->is_committed())
             {
                 auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::OP_FIND);
@@ -734,7 +734,7 @@ protected:
 
     virtual VoidResult walk_version_tree(HistoryNode* node, std::function<VoidResult (HistoryNode*)> fn) noexcept
     {
-        return wrap_throwing([&]() noexcept -> VoidResult {
+        return wrap_throwing([&]() -> VoidResult {
             auto res0 = fn(node);
             MEMORIA_RETURN_IF_ERROR(res0);
 
@@ -750,7 +750,7 @@ protected:
 
     VoidResult walk_containers(HistoryNode* node, ContainerWalker<Profile>* walker) noexcept
     {
-        return wrap_throwing([&]() noexcept -> VoidResult {
+        return wrap_throwing([&]() -> VoidResult {
             if (node->is_committed())
             {
                 auto txn = snp_make_shared_init<SnapshotT>(node, this, OperationType::OP_FIND);

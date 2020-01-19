@@ -138,26 +138,31 @@ public:
         return false;
     }
 
-    void add(NodeBaseG& node)
+    VoidResult add(NodeBaseG& node) noexcept
     {
-        MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
         if (blocks_.capacity() > 0)
         {
             int32_t block_size = node->header().memory_block_size();
 
-            void* backup_buffer = ctr_.store().allocateMemory(block_size).get_or_terminate();
+            auto allocate_res = ctr_.store().allocateMemory(block_size);
+            MEMORIA_RETURN_IF_ERROR(allocate_res);
+
+            void* backup_buffer = allocate_res.get();
 
             CopyByteBuffer(node.block(), backup_buffer, block_size);
 
             blocks_.append(TxnRecord(node, backup_buffer, block_size));
+
+            return VoidResult::of();
         }
         else {
-            MMA1_THROW(Exception()) << WhatCInfo("No space left for new blocks in the BlockUpdateMgr");
+            return VoidResult::make_error("No space left for new blocks in the BlockUpdateMgr");
         }
     }
 
-    void remove(const NodeBaseG& node)
+    void remove(const NodeBaseG& node) noexcept
     {
         MEMORIA_V1_ASSERT_TRUE(node.isSet());
 

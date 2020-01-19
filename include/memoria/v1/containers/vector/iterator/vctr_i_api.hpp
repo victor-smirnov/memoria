@@ -102,22 +102,20 @@ public:
         }
     };
 
-    void set(ValueView v)
+    VoidResult set(ValueView v) noexcept
     {
         auto& self = this->self();
         psize_t local_pos = self.iter_local_pos();
 
         if (local_pos < self.iter_leaf_size(0))
         {
-            self.ctr().template ctr_update_entry<IntList<1>>(self, EntryAdapter{v});
+            return self.ctr().template ctr_update_entry<IntList<1>>(self, EntryAdapter{v});
         }
         else {
-            MMA1_THROW(BoundsException()
-                       << format_ex(
-                           "Requested index {} is outside of bounds [0, {})",
-                           local_pos,
-                           self.iter_leaf_size(0)
-                       )
+            return VoidResult::make_error(
+                "Requested index {} is outside of bounds [0, {})",
+                local_pos,
+                self.iter_leaf_size(0)
             );
         }
     }

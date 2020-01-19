@@ -62,38 +62,41 @@ public:
     }
 
 
-    bool ctr_is_at_the_end(const NodeBaseG& leaf, const Position& pos)
+    bool ctr_is_at_the_end(const NodeBaseG& leaf, const Position& pos) noexcept
     {
         int32_t size = self().template ctr_get_leaf_stream_size<0>(leaf);
         return pos[0] >= size;
     }
 
     template <typename EntryBuffer>
-    void iter_insert_entry(Iterator& iter, const EntryBuffer& entry)
+    VoidResult iter_insert_entry(Iterator& iter, const EntryBuffer& entry) noexcept
     {
-        self().template ctr_insert_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
+        auto split_status_res = self().template ctr_insert_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
+        MEMORIA_RETURN_IF_ERROR(split_status_res);
+        return VoidResult::of();
     }
 
 
 
 
     template <typename SubstreamsList, typename EntryBuffer>
-    void ctr_update_entry(Iterator& iter, const EntryBuffer& entry)
+    VoidResult ctr_update_entry(Iterator& iter, const EntryBuffer& entry) noexcept
     {
-        self().template ctr_update_stream_entry<0, SubstreamsList>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
+        return self().template ctr_update_stream_entry<0, SubstreamsList>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
     }
 
 
-    void ctr_remove_entry(Iterator& iter) {
-        self().template ctr_remove_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos());
+    VoidResult ctr_remove_entry(Iterator& iter) noexcept {
+        return self().template ctr_remove_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos());
     }
 
 
 
 
 
-    CtrSizeT ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length)
+    Result<CtrSizeT> ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& producer, CtrSizeT start, CtrSizeT length) noexcept
     {
+        using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
 
         std::unique_ptr<io::IOVector> iov = LeafNodeT::template SparseObject<MyType>::create_iovector();
@@ -105,15 +108,17 @@ public:
         auto pos = Position(iter.iter_local_pos());
 
         auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
+        MEMORIA_RETURN_IF_ERROR(result);
 
-        iter.iter_local_pos()  = result.position().sum();
-        iter.iter_leaf().assign(result.iter_leaf());
+        iter.iter_local_pos() = result.get().position().sum();
+        iter.iter_leaf().assign(result.get().iter_leaf());
 
-        if (iter.iter_leaf()->id() != id) {
-            iter.iter_refresh();
+        if (iter.iter_leaf()->id() != id)
+        {
+            MEMORIA_RETURN_IF_ERROR(iter.iter_refresh());
         }
 
-        return streaming.totals();
+        return ResultT::of(streaming.totals());
     }
 
     struct BTSSIOVectorProducer: io::IOVectorProducer {
@@ -124,8 +129,10 @@ public:
     };
 
 
-    CtrSizeT ctr_insert_iovector(Iterator& iter, io::IOVector& io_vector, CtrSizeT start, CtrSizeT length)
+    Result<CtrSizeT> ctr_insert_iovector(Iterator& iter, io::IOVector& io_vector, CtrSizeT start, CtrSizeT length) noexcept
     {
+        using ResultT = Result<CtrSizeT>;
+
         auto& self = this->self();
 
         std::unique_ptr<io::IOVector> iov = Types::LeafNode::create_iovector();
@@ -139,15 +146,17 @@ public:
         auto pos = Position(iter.iter_local_pos());
 
         auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
+        MEMORIA_RETURN_IF_ERROR(result);
 
-        iter.iter_local_pos() = result.position().sum();
-        iter.iter_leaf().assign(result.iter_leaf());
+        iter.iter_local_pos() = result.get().position().sum();
+        iter.iter_leaf().assign(result.get().iter_leaf());
 
-        if (iter.iter_leaf()->id() != id) {
-            iter.iter_refresh();
+        if (iter.iter_leaf()->id() != id)
+        {
+            MEMORIA_RETURN_IF_ERROR(iter.iter_refresh());
         }
 
-        return streaming.totals();
+        return ResultT::of(streaming.totals());
     }
 
 MEMORIA_V1_CONTAINER_PART_END
