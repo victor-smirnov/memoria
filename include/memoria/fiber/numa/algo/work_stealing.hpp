@@ -38,7 +38,7 @@ namespace algo {
 
 class work_stealing : public memoria::fibers::algo::algorithm {
 private:
-    static std::vector< intrusive_ptr< work_stealing > >    schedulers_;
+    static std::vector< boost::intrusive_ptr< work_stealing > >    schedulers_;
 
     std::uint32_t                                           cpu_id_;
     std::vector< std::uint32_t >                            local_cpus_;
@@ -54,7 +54,7 @@ private:
     bool                                                    suspend_;
 
     static void init_( std::vector< memoria::fibers::numa::node > const&,
-                       std::vector< intrusive_ptr< work_stealing > > &);
+                       std::vector< boost::intrusive_ptr< work_stealing > > &);
 
 public:
     work_stealing( std::uint32_t, std::uint32_t,

@@ -13,7 +13,5 @@
 # limitations under the License.
 
 
-file(GLOB SRCS *.cpp)
+file(GLOB SRCS *.cpp algo/work_stealing.cpp linux/*.cpp)
 set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
-
-add_subdirectory(algo)

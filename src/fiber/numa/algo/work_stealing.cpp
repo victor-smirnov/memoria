@@ -25,7 +25,7 @@ namespace fibers {
 namespace numa {
 namespace algo {
 
-std::vector< intrusive_ptr< work_stealing > > work_stealing::schedulers_{};
+std::vector< boost::intrusive_ptr< work_stealing > > work_stealing::schedulers_{};
 
 std::vector< std::uint32_t > get_local_cpus( std::uint32_t node_id, std::vector< memoria::fibers::numa::node > const& topo) {
     for ( auto & node : topo) {
@@ -51,7 +51,7 @@ std::vector< std::uint32_t > get_remote_cpus( std::uint32_t node_id, std::vector
 
 void
 work_stealing::init_( std::vector< memoria::fibers::numa::node > const& topo,
-                      std::vector< intrusive_ptr< work_stealing > > & schedulers) {
+                      std::vector< boost::intrusive_ptr< work_stealing > > & schedulers) {
     std::uint32_t max_cpu_id = 0;
     for ( auto & node : topo) {
         max_cpu_id = (std::max)( max_cpu_id, * node.logical_cpus.rbegin() );
@@ -60,7 +60,7 @@ work_stealing::init_( std::vector< memoria::fibers::numa::node > const& topo,
     // CPU ID acts as the index in the scheduler array
     // if a logical cpus is offline, schedulers_ will contain a nullptr
     // logical cpus index starts at `0` -> add 1
-    std::vector< intrusive_ptr< work_stealing > >{ max_cpu_id + 1, nullptr }.swap( schedulers);
+    std::vector< boost::intrusive_ptr< work_stealing > >{ max_cpu_id + 1, nullptr }.swap( schedulers);
 }
 
 work_stealing::work_stealing(
