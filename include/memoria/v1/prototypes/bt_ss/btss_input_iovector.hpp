@@ -421,11 +421,15 @@ public:
 
         MEMORIA_RETURN_IF_ERROR_FN(mgr.add(leaf));
 
-        BoolResult has_data_res = this->hasData();
-        MEMORIA_RETURN_IF_ERROR(has_data_res);
-
-        while(has_data_res.get())
+        while(true)
         {
+            BoolResult has_data_res = this->hasData();
+            MEMORIA_RETURN_IF_ERROR(has_data_res);
+
+            if (!has_data_res.get()) {
+                break;
+            }
+
             auto buffer_sizes = this->buffer_size();
 
             auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);

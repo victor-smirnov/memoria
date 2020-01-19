@@ -49,20 +49,20 @@ template <typename ProfileT = DefaultProfile<>>
 struct StaticLibraryCtrs {
     static void init()
     {
-        //InitCtrMetadata<Set<FixedArray<16>>, ProfileT>();
-        //InitCtrMetadata<Set<Varchar>, ProfileT>();
-        //InitCtrMetadata<Vector<Varchar>, ProfileT>();
-        //InitCtrMetadata<Vector<UTinyInt>, ProfileT>();
-        //InitCtrMetadata<Map<Varchar, Varchar>, ProfileT>();
+        InitCtrMetadata<Set<FixedArray<16>>, ProfileT>();
+        InitCtrMetadata<Set<Varchar>, ProfileT>();
+        InitCtrMetadata<Vector<Varchar>, ProfileT>();
+        InitCtrMetadata<Vector<UTinyInt>, ProfileT>();
+        InitCtrMetadata<Map<Varchar, Varchar>, ProfileT>();
 
-        //InitCtrMetadata<Vector<LinkedData>, ProfileT>();
-        //InitCtrMetadata<Map<BigInt, Varchar>, ProfileT>();
-        //InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
+        InitCtrMetadata<Vector<LinkedData>, ProfileT>();
+        InitCtrMetadata<Map<BigInt, Varchar>, ProfileT>();
+        InitCtrMetadata<Map<BigInt, BigInt>, ProfileT>();
 
-        //InitCtrMetadata<Multimap<BigInt, UTinyInt>, ProfileT>();
-        //InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();
+        InitCtrMetadata<Multimap<BigInt, UTinyInt>, ProfileT>();
+        InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();
 
-        //InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
+        InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
     }
 };
 

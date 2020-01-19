@@ -225,7 +225,7 @@ public:
     U8String to_cxx_typedecl() const
     {
         std::stringstream ss;
-        LDDumpFormatState state = LDDumpFormatState::no_indent();
+        LDDumpFormatState state = LDDumpFormatState::simple();
         LDDumpState dump_state(*doc_);
 
         do_dump_cxx_type_decl(ss,state, dump_state);

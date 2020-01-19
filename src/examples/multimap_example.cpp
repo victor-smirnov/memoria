@@ -93,7 +93,9 @@ int main()
 
             sizes.entries_ += limit;
 
-            return limit != batch_size;
+            std::cout << (batch_start + limit) << " " << entries_.size() << std::endl;
+
+            return batch_start + limit >= entries_.size();
         }).throw_if_error();
 
         int64_t t1_i = getTimeInMillis();

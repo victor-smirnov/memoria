@@ -299,11 +299,16 @@ public:
 
         int32_t block_size = meta_res.get().memory_block_size();
 
-        auto has_data_res = provider.hasData();
-        MEMORIA_RETURN_IF_ERROR(has_data_res);
 
-        while (has_data_res.get())
+        while (true)
         {
+            auto has_data_res = provider.hasData();
+            MEMORIA_RETURN_IF_ERROR(has_data_res);
+
+            if (!has_data_res.get()) {
+                break;
+            }
+
             Result<NodeBaseG> node_res = self.ctr_create_node(0, false, true, block_size);
             MEMORIA_RETURN_IF_ERROR(node_res);
 

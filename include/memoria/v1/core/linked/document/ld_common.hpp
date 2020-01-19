@@ -394,7 +394,7 @@ public:
         return LDDumpFormatState("", "", "", "", 0);
     }
 
-    LDDumpFormatState simple() {
+    static LDDumpFormatState simple() {
         return LDDumpFormatState("", "", " ", "", 0);
     }
 

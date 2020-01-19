@@ -190,10 +190,12 @@ public:
     {
         bool buffer_has_data = start_.sum() < size_.sum();
 
-        auto res = populate_buffer();
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        return BoolResult::of(buffer_has_data || res.get());
+        if (buffer_has_data) {
+            return true;
+        }
+        else {
+            return populate_buffer();
+        }
     }
 
     virtual Result<Position> fill(NodeBaseG& leaf, const Position& start) noexcept = 0;
@@ -396,11 +398,15 @@ public:
 
         MEMORIA_RETURN_IF_ERROR_FN(mgr.add(leaf));
 
-        auto has_data_res = this->hasData();
-        MEMORIA_RETURN_IF_ERROR(has_data_res);
-
-        while(has_data_res.get())
+        while(true)
         {
+            auto has_data_res = this->hasData();
+            MEMORIA_RETURN_IF_ERROR(has_data_res);
+
+            if (!has_data_res.get()) {
+                break;
+            }
+
             auto buffer_sizes = this->buffer_size();
 
             auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
