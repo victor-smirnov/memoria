@@ -23,6 +23,7 @@
 
 #include <memoria/core/strings/u8_string.hpp>
 #include <memoria/core/strings/u16_string.hpp>
+#include <memoria/core/strings/uw_string.hpp>
 
 #include <boost/assert.hpp>
 #include <memoria/filesystem/config.hpp>
@@ -175,8 +176,15 @@ namespace path_detail // intentionally don't use filesystem::detail to not bring
     path(const string_type& s) : m_pathname(s) {}
     path(string_type& s) : m_pathname(s) {}
 
+#ifdef _MSC_VER
+    path(U8String& s) : m_pathname(s.to_uwstring().to_std_string()) {}
+    path(U16String& s) : m_pathname(s.to_uwstring().to_std_string()) {}
+    path(UWString& s) : m_pathname(s.to_uwstring().to_std_string()) {}
+#else
     path(U8String& s) : m_pathname(s.to_std_string()) {}
     path(U16String& s) : m_pathname(s.to_u8().to_std_string()) {}
+    path(UWString& s) : m_pathname(s.to_u8().to_std_string()) {}
+#endif
 
   //  As of October 2015 the interaction between noexcept and =default is so troublesome
   //  for VC++, GCC, and probably other compilers, that =default is not used with noexcept
@@ -435,6 +443,26 @@ namespace path_detail // intentionally don't use filesystem::detail to not bring
 
     template <class String>
     String string(const codecvt_type& cvt) const;
+
+    U8String to_u8() const {
+        return string();
+    }
+
+    U16String to_u16() const {
+        return U16String(string());
+    }
+
+    UWString to_uw_string() const {
+        return UWString(wstring());
+    }
+
+    std::wstring std_wstring() const {
+        return wstring();
+    }
+
+    std::string std_string() const {
+        return string();
+    }
 
 #   ifdef BOOST_WINDOWS_API
     const std::string string() const
