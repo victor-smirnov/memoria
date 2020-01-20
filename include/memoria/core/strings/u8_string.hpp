@@ -63,8 +63,8 @@ private:
     template <typename T2>
     friend std::basic_ostream<char, T2>& operator<<(std::basic_ostream<char, T2>&, const U8String&);
 
-    template <typename T>
-    friend inline void std::swap(T&, T&) noexcept;
+
+    friend void swap(U8String&, U8String&) noexcept;
 
 public:
     static const size_t NPOS = ContentT::npos;
@@ -530,16 +530,16 @@ void append(FNVHasher<Size, Variant>& hasher, const U8String& str)
     append(hasher, str.view());
 }
 
-}
 
-//TODO: move to memoria namespace
-
-namespace std {
-
-template <>
 inline void swap(memoria::U8String& one, memoria::U8String& two) noexcept {
     std::swap(one.to_std_string(), two.to_std_string());
 }
+
+}
+
+
+
+namespace std {
 
 template <>
 struct hash<memoria::U8String> {

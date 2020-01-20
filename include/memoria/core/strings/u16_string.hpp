@@ -76,8 +76,8 @@ private:
     template <typename T1, typename T2>
     friend std::basic_ostream<T1, T2>& operator<<(std::basic_ostream<T1, T2>&, const U16String&);
 
-    template <typename T>
-    friend void std::swap(T&, T&) noexcept;
+
+    friend void swap(U16String&, U16String&) noexcept;
 
 public:
     static const size_t NPOS = ContentT::npos;
@@ -584,16 +584,29 @@ int64_t get_u16_index_for(UText* ut, int64_t native_index);
 int64_t get_chunk_index_for(UText* ut, int64_t native_index);
 int64_t get_native_index_for(UText* ut);
 
-}
 
-// TODO: move to memoria namespace
-
-namespace std {
-
-template <>
 inline void swap(memoria::U16String& one, memoria::U16String& two) noexcept {
     std::swap(one.to_std_string(), two.to_std_string());
 }
+
+template <typename CharTraits>
+inline std::basic_ostream<char, CharTraits>& operator<<(std::basic_ostream<char, CharTraits>& out, const char16_t* str)
+{
+    out << memoria::U16String(str).to_u8();
+    return out;
+}
+
+template <typename CharTraits>
+inline std::basic_ostream<char, CharTraits>& operator<<(std::basic_ostream<char, CharTraits>& out, const memoria::U16String& str)
+{
+    out << str.to_u8();
+    return out;
+}
+
+}
+
+
+namespace std {
 
 template<>
 struct hash<memoria::U16String> {
@@ -601,21 +614,6 @@ struct hash<memoria::U16String> {
         return hash<std::u16string>()(str.to_std_string());
     }
 };
-
-template <typename CharTraits>
-inline basic_ostream<char, CharTraits>& operator<<(basic_ostream<char, CharTraits>& out, const char16_t* str)
-{
-    out << memoria::U16String(str).to_u8();
-    return out;
-}
-
-template <typename CharTraits>
-inline basic_ostream<char, CharTraits>& operator<<(basic_ostream<char, CharTraits>& out, const memoria::U16String& str)
-{
-    out << str.to_u8();
-    return out;
-}
-
 
 
 }

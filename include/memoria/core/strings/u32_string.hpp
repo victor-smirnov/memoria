@@ -48,8 +48,8 @@ private:
     template <typename T1, typename T2>
     friend std::basic_ostream<T1, T2>& operator<<(std::basic_ostream<T1, T2>&, const U32String&);
 
-    template <typename T>
-    friend void std::swap(T&, T&) noexcept;
+
+    friend void swap(U32String&, U32String&) noexcept;
 
 public:
     U32String() = default;
@@ -179,16 +179,16 @@ inline bool compare_le(const U32String& first, const U32String& second) {
 }
 
 
-}
-
-//TODO: Move to memoria namespace
-
-namespace std {
-
-template <>
 inline void swap(memoria::U32String& one, memoria::U32String& two) noexcept {
     std::swap(one.to_std_string(), two.to_std_string());
 }
+
+
+
+}
+
+namespace std {
+
 
 template <>
 struct hash<memoria::U32String> {

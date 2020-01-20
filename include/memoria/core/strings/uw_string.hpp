@@ -45,6 +45,7 @@ private:
     template <typename T2>
     friend std::basic_ostream<wchar_t, T2>& operator<<(std::basic_ostream<wchar_t, T2>&, const UWString&);
 
+    friend void swap(UWString&, UWString&) noexcept;
 
 public:
     UWString() = default;
@@ -120,6 +121,10 @@ public:
 	const ContentT& to_std_string() const { return content_; }
 };
 
+
+using UWStringRef = const UWString&;
+
+
 template <typename CharTraits>
 inline std::basic_ostream<char, CharTraits>& operator<<(std::basic_ostream<char, CharTraits>& out, const UWString& str)
 {
@@ -134,8 +139,9 @@ inline std::basic_ostream<wchar_t, CharTraits>& operator<<(std::basic_ostream<wc
     return out;
 }
 
-
-using UWStringRef = const UWString&;
+inline void swap(memoria::UWString& one, memoria::UWString& two) noexcept {
+    std::swap(one.to_std_string(), two.to_std_string());
+}
 
 
 
