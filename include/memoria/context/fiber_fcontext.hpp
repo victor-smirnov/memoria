@@ -40,9 +40,6 @@
 #include <memoria/context/segmented_stack.hpp>
 #include <memoria/context/stack_context.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_PREFIX
-#endif
 
 #if defined(BOOST_MSVC)
 # pragma warning(push)
@@ -338,8 +335,5 @@ typedef fiber fiber_context;
 # pragma warning(pop)
 #endif
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_CONTEXT_FIBER_H

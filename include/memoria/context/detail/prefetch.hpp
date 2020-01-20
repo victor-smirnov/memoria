@@ -22,9 +22,6 @@
 #include <mmintrin.h>
 #endif
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace context {
@@ -71,8 +68,5 @@ void prefetch_range( void * addr, std::size_t len) {
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_CONTEXT_DETAIL_PREFETCH_H

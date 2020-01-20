@@ -48,9 +48,6 @@
 #include <memoria/fiber/segmented_stack.hpp>
 #include <memoria/fiber/type.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 #ifdef _MSC_VER
 # pragma warning(push)
@@ -544,8 +541,5 @@ wait_functor::const_pointer wait_functor::to_value_ptr( wait_functor::const_hook
 # pragma warning(pop)
 #endif
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_CONTEXT_H

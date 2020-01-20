@@ -12,19 +12,11 @@
 
 #include <memoria/fiber/detail/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
-
 namespace memoria {
 namespace fibers {
 
 using protected_fixedsize_stack = memoria::context::protected_fixedsize_stack;
 
 }}
-
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_PROTECTED_FIXEDSIZE_STACK_H

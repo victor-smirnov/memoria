@@ -13,10 +13,6 @@
 
 #include <memoria/fiber/detail/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
-
 namespace memoria {
 namespace fibers {
 
@@ -38,9 +34,5 @@ struct is_launch_policy< memoria::fibers::launch > : public std::true_type {
 }
 
 }}
-
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_POLICY_H

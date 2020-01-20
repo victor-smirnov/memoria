@@ -14,9 +14,6 @@ extern "C" {
 
 #include <system_error>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -52,6 +49,3 @@ std::vector< node > topology() {
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include MEMORIA_BOOST_ABI_SUFFIX
-#endif

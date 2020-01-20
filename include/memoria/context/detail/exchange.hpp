@@ -12,9 +12,6 @@
 
 #include <boost/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace context {
@@ -29,8 +26,5 @@ T exchange( T & t, U && nv) {
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#include BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_CONTEXT_DETAIL_EXCHANGE_H

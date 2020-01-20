@@ -13,9 +13,6 @@
 #include "memoria/fiber/exceptions.hpp"
 #include "memoria/fiber/scheduler.hpp"
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -78,6 +75,3 @@ mutex::unlock() {
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif

@@ -12,8 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if(BUILD_MSVC)
+    set(PLATFORM_DEPENDENT asm/jump_x86_64_ms_pe_gas.S asm/make_x86_64_ms_pe_gas.S asm/ontop_x86_64_ms_pe_gas.S windows/stack_traits.cpp)
+elseif(APPLE)
+    set(PLATFORM_DEPENDENT asm/jump_combined_sysv_macho_gas.S asm/make_combined_sysv_macho_gas.S asm/ontop_combined_sysv_macho_gas.S posix/stack_traits.cpp)
+else()
+    set(PLATFORM_DEPENDENT asm/jump_x86_64_sysv_elf_gas.S asm/make_x86_64_sysv_elf_gas.S asm/ontop_x86_64_sysv_elf_gas.S posix/stack_traits.cpp)
+endif()
 
-file(GLOB SRCS posix/*.cpp fiber.cpp asm/jump_x86_64_sysv_elf_gas.S asm/make_x86_64_sysv_elf_gas.S asm/ontop_x86_64_sysv_elf_gas.S ${EXTRA_SRC})
+
+file(GLOB SRCS fiber.cpp ${PLATFORM_DEPENDENT})
 
 set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
 

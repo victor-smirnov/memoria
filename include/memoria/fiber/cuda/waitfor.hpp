@@ -24,9 +24,6 @@
 #include <memoria/fiber/condition_variable.hpp>
 #include <memoria/fiber/mutex.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -132,8 +129,5 @@ std::vector< std::tuple< cudaStream_t, cudaError_t > > waitfor_all( cudaStream_t
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_CUDA_WAITFOR_H

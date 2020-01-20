@@ -12,10 +12,6 @@
 
 #include <memoria/fiber/detail/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
-
 # if defined(BOOST_MSVC)
 # pragma warning(push)
 # pragma warning(disable:4275)
@@ -71,9 +67,5 @@ public:
 # if defined(BOOST_MSVC)
 # pragma warning(pop)
 # endif
-
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_PROPERTIES_HPP

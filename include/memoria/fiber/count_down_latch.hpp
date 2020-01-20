@@ -23,9 +23,6 @@
 #include <cstdint>
 #include <mutex>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 #ifdef _MSC_VER
 # pragma warning(push)

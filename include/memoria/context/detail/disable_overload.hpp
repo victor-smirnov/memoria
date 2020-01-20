@@ -13,9 +13,6 @@
 
 #include <memoria/context/detail/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace context {
@@ -33,8 +30,5 @@ using disable_overload =
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#include BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_CONTEXT_DETAIL_DISABLE_OVERLOAD_H

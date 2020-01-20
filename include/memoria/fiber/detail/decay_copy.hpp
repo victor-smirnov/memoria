@@ -13,9 +13,6 @@
 
 #include <memoria/fiber/detail/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -29,8 +26,5 @@ decay_copy( T && t) {
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // BOOST_FIBER_DETAIL_DECAY_COPY_H

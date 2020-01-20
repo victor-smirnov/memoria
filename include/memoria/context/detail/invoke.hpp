@@ -15,9 +15,6 @@
 
 #include <memoria/context/detail/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace context {
@@ -43,8 +40,5 @@ invoke( Fn && fn, Args && ... args) {
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#include BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_CONTEXT_DETAIL_INVOKE_H

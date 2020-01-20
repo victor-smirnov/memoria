@@ -12,10 +12,6 @@
 
 #include <boost/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_PREFIX
-#endif
-
 #if defined(MEMORIA_USE_UCONTEXT) || defined(MEMORIA_USE_WINFIB)
 
 namespace memoria {
@@ -55,8 +51,4 @@ fiber_activation_record::current() noexcept {
 
 }}
 
-#endif
-
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_SUFFIX
 #endif

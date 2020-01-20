@@ -8,9 +8,6 @@
 
 #include "memoria/fiber/context.hpp"
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -60,6 +57,3 @@ condition_variable_any::notify_all() noexcept {
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif

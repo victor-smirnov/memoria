@@ -17,9 +17,6 @@
 #include <memoria/fiber/detail/convert.hpp>
 #include <memoria/fiber/detail/spinlock.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 #ifdef _MSC_VER
 # pragma warning(push)
@@ -76,10 +73,6 @@ public:
 
 #ifdef _MSC_VER
 # pragma warning(pop)
-#endif
-
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
 #endif
 
 #endif // MEMORIA_FIBERS_TIMED_MUTEX_H

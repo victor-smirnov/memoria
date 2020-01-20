@@ -11,9 +11,6 @@
 
 #include "memoria/fiber/exceptions.hpp"
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -45,6 +42,3 @@ barrier::wait() {
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif

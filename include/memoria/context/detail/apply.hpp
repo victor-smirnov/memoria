@@ -20,9 +20,6 @@
 #endif
 #include <memoria/context/detail/index_sequence.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_PREFIX
-#endif
 
 #if defined(BOOST_MSVC)
 # pragma warning(push)
@@ -67,8 +64,5 @@ apply( Fn && fn, Tpl && tpl)
 # pragma warning(pop)
 #endif
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#include BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_CONTEXT_DETAIL_APPLY_H

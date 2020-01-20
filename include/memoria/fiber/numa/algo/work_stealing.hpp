@@ -27,10 +27,6 @@
 #include <memoria/fiber/numa/topology.hpp>
 #include <memoria/fiber/scheduler.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
-
 namespace memoria {
 namespace fibers {
 namespace numa {
@@ -85,9 +81,5 @@ public:
 };
 
 }}}}
-
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_NUMA_ALGO_WORK_STEALING_H

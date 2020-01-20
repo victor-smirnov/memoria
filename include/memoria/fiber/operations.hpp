@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_THIS_FIBER_OPERATIONS_H
-#define BOOST_THIS_FIBER_OPERATIONS_H
+#ifndef MEMORIA_THIS_FIBER_OPERATIONS_H
+#define MEMORIA_THIS_FIBER_OPERATIONS_H
 
 #include <chrono>
 
@@ -16,10 +16,6 @@
 #include <memoria/fiber/detail/convert.hpp>
 #include <memoria/fiber/fiber.hpp>
 #include <memoria/fiber/scheduler.hpp>
-
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace this_fiber {
@@ -85,8 +81,4 @@ void use_scheduling_algorithm( Args && ... args) noexcept {
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
-
-#endif // BOOST_THIS_FIBER_OPERATIONS_H
+#endif // MEMORIA_THIS_FIBER_OPERATIONS_H

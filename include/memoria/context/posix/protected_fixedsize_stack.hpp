@@ -29,9 +29,6 @@ extern "C" {
 #include <valgrind/valgrind.h>
 #endif
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace context {
@@ -101,8 +98,5 @@ typedef basic_protected_fixedsize_stack< stack_traits > protected_fixedsize_stac
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_CONTEXT_PROTECTED_FIXEDSIZE_H

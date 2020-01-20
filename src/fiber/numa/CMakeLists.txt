@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if(BUILD_MSVC)
+    set(PLATFORM_DEPENDENT windows/*.cpp)
+elseif(APPLE)
+    set(PLATFORM_DEPENDENT freebsd/*.cpp)
+else()
+    set(PLATFORM_DEPENDENT linux/*.cpp)
+endif()
 
-file(GLOB SRCS *.cpp algo/work_stealing.cpp linux/*.cpp)
+
+file(GLOB SRCS *.cpp algo/work_stealing.cpp ${PLATFORM_DEPENDENT})
 set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})

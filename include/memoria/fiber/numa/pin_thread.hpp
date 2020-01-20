@@ -14,10 +14,6 @@
 
 #include <memoria/fiber/detail/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include MEMORIA_BOOST_ABI_PREFIX
-#endif
-
 namespace memoria {
 namespace fibers {
 namespace numa {
@@ -29,9 +25,5 @@ MEMORIA_FIBERS_DECL
 void pin_thread( std::uint32_t cpuid);
 
 }}}
-
-#ifdef BOOST_HAS_ABI_HEADERS
-# include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_NUMA_PIN_THREAD_H

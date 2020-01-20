@@ -19,9 +19,6 @@
 # include <windows.h>
 #endif
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -75,8 +72,5 @@ namespace detail {
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_DETAIL_CPU_RELAX_H

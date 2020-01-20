@@ -82,6 +82,7 @@ endif()
 # Global definitions
 
 add_definitions(-DBOOST_NO_AUTO_PTR -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE -DJEMALLOC_NO_PRIVATE_NAMESPACE)
+add_definitions(-DMMA1_ICU_CXX_NS=icu_61)
 
 if (BUILD_POSIX)
 
@@ -116,7 +117,7 @@ if (BUILD_POSIX)
     add_definitions(-Wno-class-memaccess)
     add_definitions(-Werror=return-type)
 
-    add_definitions(-DMMA1_ICU_CXX_NS=icu_61)
+
     #add_definitions(-DU_HAVE_LIB_SUFFIX=1)
     #add_definitions(-DU_LIB_SUFFIX_C_NAME=__mariana)
     
@@ -145,7 +146,7 @@ if (BUILD_POSIX)
         add_global_linker(-static) #-static-libgcc -static-libstdc++
     endif()
 else()
-    add_definitions(/W3 /std:c++14 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(/W3 /Zc:__cplusplus /std:c++14 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-DJEMALLOC_NO_PRIVATE_NAMESPACE -D_REENTRANT)
     add_definitions(-DDLLEXPORT -DNOMINMAX  /bigobj)
 endif()

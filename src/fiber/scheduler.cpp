@@ -15,9 +15,6 @@
 #include "memoria/fiber/context.hpp"
 #include "memoria/fiber/exceptions.hpp"
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -444,6 +441,3 @@ scheduler::detach_worker_context( context * ctx) noexcept {
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif

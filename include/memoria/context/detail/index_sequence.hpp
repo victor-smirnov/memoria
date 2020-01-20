@@ -13,9 +13,6 @@
 
 #include <memoria/context/detail/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace context {
@@ -65,8 +62,5 @@ using index_sequence_for = make_index_sequence< sizeof ... (T) >;
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#include BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_CONTEXT_DETAIL_INDEX_SEQUENCE_H

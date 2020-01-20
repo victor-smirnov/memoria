@@ -10,9 +10,6 @@
 
 #include "memoria/fiber/type.hpp"
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -96,6 +93,3 @@ std::mutex shared_work::rqueue_mtx_{};
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif

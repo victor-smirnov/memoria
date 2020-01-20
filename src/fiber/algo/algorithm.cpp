@@ -8,9 +8,6 @@
 
 #include "memoria/fiber/context.hpp"
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -30,6 +27,3 @@ algorithm_with_properties_base::set_properties( context * ctx, fiber_properties 
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif

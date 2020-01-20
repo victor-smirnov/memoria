@@ -15,9 +15,6 @@ extern "C" {
 
 #include <system_error>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -42,6 +39,3 @@ void pin_thread( std::uint32_t cpuid, std::thread::native_handle_type h) {
 
 }}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include MEMORIA_BOOST_ABI_SUFFIX
-#endif

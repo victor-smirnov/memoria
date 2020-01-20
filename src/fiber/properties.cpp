@@ -11,9 +11,6 @@
 #include "memoria/fiber/scheduler.hpp"
 #include "memoria/fiber/context.hpp"
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -35,6 +32,3 @@ fiber_properties::notify() noexcept {
 
 }}                                  // memoria::fibers
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif

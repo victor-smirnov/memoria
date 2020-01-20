@@ -22,9 +22,6 @@
 
 #include "memoria/fiber/exceptions.hpp"
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 #if !defined(BOOST_NO_CXX11_HDR_REGEX)
 
@@ -225,6 +222,3 @@ std::vector< node > topology() {
 
 #endif
 
-#ifdef BOOST_HAS_ABI_HEADERS
-# include MEMORIA_BOOST_ABI_SUFFIX
-#endif

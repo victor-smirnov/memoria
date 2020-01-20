@@ -26,10 +26,6 @@
 #include <memoria/fiber/exceptions.hpp>
 #include <memoria/fiber/mutex.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
-
 namespace memoria {
 namespace fibers {
 namespace detail {
@@ -305,9 +301,5 @@ public:
 };
 
 }}}
-
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_DETAIL_SHARED_STATE_H

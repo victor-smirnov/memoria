@@ -36,9 +36,6 @@ extern "C" {
 # define UDEF_MINSIGSTKSZ
 #endif
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
 
 namespace {
 
@@ -109,9 +106,6 @@ stack_traits::maximum_size() BOOST_NOEXCEPT_OR_NOTHROW {
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
-#endif
 
 #ifdef UDEF_SIGSTKSZ
 # undef SIGSTKSZ;

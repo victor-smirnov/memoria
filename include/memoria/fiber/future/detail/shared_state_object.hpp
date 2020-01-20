@@ -14,10 +14,6 @@
 #include <memoria/fiber/detail/config.hpp>
 #include <memoria/fiber/future/detail/shared_state.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
-
 namespace memoria {
 namespace fibers {
 namespace detail {
@@ -51,9 +47,5 @@ private:
 };
 
 }}}
-
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_DETAIL_SHARED_STATE_OBJECT_H

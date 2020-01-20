@@ -16,9 +16,6 @@
 #include "memoria/fiber/detail/thread_barrier.hpp"
 #include "memoria/fiber/type.hpp"
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -184,6 +181,3 @@ work_stealing::notify() noexcept {
 
 }}}}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif

@@ -16,9 +16,6 @@
 #include <memoria/context/stack_context.hpp>
 #include <memoria/context/stack_traits.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
 
 // forward declaration for splitstack-functions defined in libgcc
 extern "C" {
@@ -75,8 +72,5 @@ typedef segmented_stack default_stack;
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_CONTEXT_SEGMENTED_H

@@ -26,9 +26,6 @@
 #include <memoria/fiber/detail/spinlock.hpp>
 #include <memoria/fiber/exceptions.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace fibers {
@@ -618,8 +615,5 @@ end( buffered_channel< T > &) {
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include MEMORIA_BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_FIBERS_BUFFERED_CHANNEL_H

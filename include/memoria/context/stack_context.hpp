@@ -13,9 +13,6 @@
 
 #include <memoria/context/detail/config.hpp>
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_PREFIX
-#endif
 
 namespace memoria {
 namespace context {
@@ -43,8 +40,5 @@ struct MEMORIA_CONTEXT_DECL stack_context {
 
 }}
 
-#ifdef BOOST_HAS_ABI_HEADERS
-#  include BOOST_ABI_SUFFIX
-#endif
 
 #endif // MEMORIA_CONTEXT_STACK_CONTEXT_H
