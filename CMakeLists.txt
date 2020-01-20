@@ -146,9 +146,9 @@ if (BUILD_POSIX)
         add_global_linker(-static) #-static-libgcc -static-libstdc++
     endif()
 else()
-    add_definitions(/W3 /Zc:__cplusplus /std:c++14 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS)
-    add_definitions(-DJEMALLOC_NO_PRIVATE_NAMESPACE -D_REENTRANT)
-    add_definitions(-DDLLEXPORT -DNOMINMAX  /bigobj)
+    add_definitions(/W3 /Zc:__cplusplus -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_REENTRANT)
+    add_definitions(-DDLLEXPORT -DNOMINMAX /bigobj)
 endif()
 
 
