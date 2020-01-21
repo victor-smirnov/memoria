@@ -46,15 +46,15 @@ auto find_last_of(const U8String& str, const char* pp)
 
 filesystem::path get_image_name()
 {
-    U8String name = get_program_path().filename();
+    U8String name = get_program_path().filename().to_u8();
     
     size_t pos = find_last_of(name, ".");
     
     if (pos != U8String::NPOS) {
-	return name.substring(0, pos);
+		return name.substring(0, pos).to_std_string();
     }
     else {
-	return name;
+		return name;
     }
 }
 

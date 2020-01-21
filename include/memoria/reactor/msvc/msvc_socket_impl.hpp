@@ -23,7 +23,7 @@
 #include <boost/mpl/size_t.hpp>
 #include <boost/variant.hpp>
 
-#include <fmt/format.hpp>
+#include <fmt/format.h>
 
 #include <winsock2.h>
 #include <ws2tcpip.h>

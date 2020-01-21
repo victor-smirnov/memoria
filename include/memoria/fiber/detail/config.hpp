@@ -9,6 +9,9 @@
 
 #include <cstddef>
 
+
+#include <memoria/core/config.hpp>
+
 #include <boost/config.hpp>
 #include <boost/predef.h> 
 #include <boost/detail/workaround.hpp>
@@ -19,10 +22,10 @@
 
 #if (defined(BOOST_ALL_DYN_LINK) || defined(MEMORIA_FIBERS_DYN_LINK) ) && ! defined(MEMORIA_FIBERS_STATIC_LINK)
 # if defined(MEMORIA_FIBERS_SOURCE)
-#  define MEMORIA_FIBERS_DECL BOOST_SYMBOL_EXPORT
+#  define MEMORIA_FIBERS_DECL MEMORIA_API
 #  define MEMORIA_FIBERS_BUILD_DLL
 # else
-#  define MEMORIA_FIBERS_DECL BOOST_SYMBOL_IMPORT
+#  define MEMORIA_FIBERS_DECL MEMORIA_API
 # endif
 #endif
 

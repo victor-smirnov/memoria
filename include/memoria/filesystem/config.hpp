@@ -9,6 +9,8 @@
 
 //--------------------------------------------------------------------------------------//
 
+#include <memoria/core/config.hpp>
+
 #ifndef MEMORIA_BOOST_FILESYSTEM3_CONFIG_HPP
 #define MEMORIA_BOOST_FILESYSTEM3_CONFIG_HPP
 
@@ -78,9 +80,9 @@
 
 #if defined(BOOST_ALL_DYN_LINK) || defined(MEMORIA_BOOST_FILESYSTEM_DYN_LINK)
 # if defined(MEMORIA_BOOST_FILESYSTEM_SOURCE)
-#   define MEMORIA_BOOST_FILESYSTEM_DECL BOOST_SYMBOL_EXPORT
+#   define MEMORIA_BOOST_FILESYSTEM_DECL MEMORIA_API
 # else
-#   define MEMORIA_BOOST_FILESYSTEM_DECL BOOST_SYMBOL_IMPORT
+#   define MEMORIA_BOOST_FILESYSTEM_DECL MEMORIA_API
 # endif
 #else
 # define MEMORIA_BOOST_FILESYSTEM_DECL

@@ -10,6 +10,8 @@
 // required for SD-6 compile-time integer sequences
 #include <utility>
 
+#include <memoria/core/config.hpp>
+
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
 
@@ -19,10 +21,10 @@
 
 #if (defined(BOOST_ALL_DYN_LINK) || defined(MEMORIA_CONTEXT_DYN_LINK) ) && ! defined(MEMORIA_CONTEXT_STATIC_LINK)
 # if defined(MEMORIA_CONTEXT_SOURCE)
-#  define MEMORIA_CONTEXT_DECL BOOST_SYMBOL_EXPORT
+#  define MEMORIA_CONTEXT_DECL MEMORIA_API
 #  define MEMORIA_CONTEXT_BUILD_DLL
 # else
-#  define MEMORIA_CONTEXT_DECL BOOST_SYMBOL_IMPORT
+#  define MEMORIA_CONTEXT_DECL MEMORIA_API
 # endif
 #endif
 

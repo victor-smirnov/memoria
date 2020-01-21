@@ -130,3 +130,5 @@
 
 #define MMA1_DEFINE_EXPLICIT_CU_LINKING(Name) \
     int Name##_compilation_referencing_tag() {return 0;}
+
+#define MEMORIA_API
