@@ -21,5 +21,5 @@ else()
 endif()
 
 
-file(GLOB SRCS *.cpp algo/work_stealing.cpp ${PLATFORM_DEPENDENT})
+file(GLOB SRCS algo/work_stealing.cpp ${PLATFORM_DEPENDENT})
 set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})

@@ -179,7 +179,7 @@ namespace path_detail // intentionally don't use filesystem::detail to not bring
 #ifdef _MSC_VER
     path(U8String& s) : m_pathname(s.to_uwstring().to_std_string()) {}
     path(U16String& s) : m_pathname(s.to_uwstring().to_std_string()) {}
-    path(UWString& s) : m_pathname(s.to_uwstring().to_std_string()) {}
+    path(UWString& s) : m_pathname(s.to_std_string()) {}
 #else
     path(U8String& s) : m_pathname(s.to_std_string()) {}
     path(U16String& s) : m_pathname(s.to_u8().to_std_string()) {}
@@ -452,7 +452,7 @@ namespace path_detail // intentionally don't use filesystem::detail to not bring
         return U16String(string());
     }
 
-    UWString to_uw_string() const {
+    UWString to_uwstring() const {
         return UWString(wstring());
     }
 
@@ -825,7 +825,7 @@ namespace path_detail // intentionally don't use filesystem::detail to not bring
 # ifdef BOOST_WINDOWS_API
     std::size_t seed = 0;
     for(const path::value_type* it = x.c_str(); *it; ++it)
-      hash_combine(seed, *it == L'/' ? L'\\' : *it);
+      boost::hash_combine(seed, *it == L'/' ? L'\\' : *it);
     return seed;
 # else   // BOOST_POSIX_API
     return boost::hash_range(x.native().begin(), x.native().end());

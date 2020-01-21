@@ -23,6 +23,8 @@
 #include <boost/mpl/size_t.hpp>
 #include <boost/variant.hpp>
 
+#include <fmt/format.hpp>
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
@@ -123,4 +125,17 @@ private:
     
 }}
 
+namespace fmt {
+
+template <>
+struct formatter<memoria::reactor::IPAddress> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const memoria::reactor::IPAddress& d, FormatContext& ctx) {
+        return format_to(ctx.out(), "{}", d.to_string());
+    }
+};
+
+}
 

@@ -64,7 +64,7 @@ private:
     friend std::basic_ostream<char, T2>& operator<<(std::basic_ostream<char, T2>&, const U8String&);
 
 
-    friend void swap(U8String&, U8String&) noexcept;
+
 
 public:
     static const size_t NPOS = ContentT::npos;

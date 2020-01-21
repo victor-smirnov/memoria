@@ -13,20 +13,18 @@
 #include <string>
 #include <utility>
 
+#include <memoria/filesystem/operations.hpp>
+#include <memoria/filesystem/fstream.hpp>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
 
-#include "memoria/fiber/exceptions.hpp"
-
-
-#if !defined(BOOST_NO_CXX11_HDR_REGEX)
+#include <memoria/fiber/exceptions.hpp>
 
 namespace al = boost::algorithm;
-namespace fs = boost::filesystem;
+namespace fs = memoria::filesystem;
 
 namespace {
 
@@ -197,28 +195,4 @@ std::vector< node > topology() {
 
 }}}
 
-#else
-
-namespace memoria {
-namespace fibers {
-namespace numa {
-
-#if BOOST_COMP_CLANG || \
-    BOOST_COMP_GNUC || \
-    BOOST_COMP_INTEL ||  \
-    BOOST_COMP_MSVC
-# pragma message "topology() not supported without <regex>"
-#endif
-
-MEMORIA_FIBERS_DECL
-std::vector< node > topology() {
-    throw fiber_error{
-        std::make_error_code( std::errc::function_not_supported),
-            "boost fiber: topology() not supported without <regex>" };
-    return std::vector< node >{};
-}
-
-}}}
-
-#endif
 

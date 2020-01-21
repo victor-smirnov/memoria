@@ -46,7 +46,7 @@ ENDIF()
 option(USE_TSAN "Compile with Thread Sanitizer ON" OFF)
 option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
-option(BUILD_TESTS      "Build Unit/Functional tests" OFF)
+
 option(BUILD_SANDBOX    "Build selected programs in the project's sandbox" OFF)
 option(BUILD_STATIC     "Build statically linked binaries" OFF)
 option(BUILD_EXAMPLES   "Build project examples" OFF)
@@ -54,6 +54,17 @@ option(BUILD_BENCHMARKS "Build project benchmarks" OFF)
 option(BUILD_WITH_BACKTRACE "Include backtrace suport on Linux" OFF)
 option(BUILD_WITH_STATIC_BOOST "Use static boost libraries" OFF)
 option(BUILD_EMIT_LLVM  "Emit LLVM bytecode for compiled binaries. Implies Clang is the compiler." OFF)
+option(BUILD_CONTAINERS "Build stores and containers." ON)
+option(BUILD_MEMORY_STORE "Build default in-memory store." ON)
+
+option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)
+option(BUILD_TESTS_PACKED       "Build packed structires tests" ON)
+option(BUILD_TESTS_CONTAINERS   "Build containers tests" ON)
+option(BUILD_TESTS_REACTOR      "Build Reactor tests" ON)
+option(BUILD_TESTS_SDN          "Build SDN/LDDocument tests" ON)
+option(BUILD_TESTS_DATATYPES    "Build Datatype tests" ON)
+option(BUILD_TESTS_FIBERS       "Build Fibers tests" OFF)
+option(BUILD_TESTS_DISRUPTOR    "Build Disriptor MPSC queue tests" OFF)
 
 option(ICU_DEBUG        "Debug FindICU" OFF)
 option(Boost_DEBUG      "Debug FindBoost" OFF)
@@ -81,8 +92,16 @@ endif()
 
 # Global definitions
 
-add_definitions(-DBOOST_NO_AUTO_PTR -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE -DJEMALLOC_NO_PRIVATE_NAMESPACE)
+add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 add_definitions(-DMMA1_ICU_CXX_NS=icu_61)
+
+if (BUILD_CONTAINERS)
+    add_definitions(-DMEMORIA_BUILD_CONTAINERS)
+endif()
+
+if (BUILD_MEMORY_STORE)
+    add_definitions(-DMEMORIA_BUILD_MEMORY_STORE)
+endif()
 
 if (BUILD_POSIX)
 
@@ -116,10 +135,6 @@ if (BUILD_POSIX)
     add_definitions(-faligned-new)
     add_definitions(-Wno-class-memaccess)
     add_definitions(-Werror=return-type)
-
-
-    #add_definitions(-DU_HAVE_LIB_SUFFIX=1)
-    #add_definitions(-DU_LIB_SUFFIX_C_NAME=__mariana)
     
     add_definitions(-pthread)
     
@@ -158,7 +173,7 @@ set (Boost_USE_DEBUG_RUNTIME	 ON)
 set (Boost_USE_MULTITHREADED     ON)
 
 if (MSVC)
-    set (Boost_USE_STATIC_RUNTIME    OFF)
+    set (Boost_USE_STATIC_RUNTIME    ON)
     set (Boost_USE_STATIC_LIBS       ON)
     find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
 else()
@@ -167,7 +182,11 @@ else()
     find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
 endif()
 
-find_package(Boost 1.66.0 COMPONENTS filesystem context program_options serialization unit_test_framework REQUIRED)
+find_package(Boost 1.66.0 COMPONENTS program_options serialization unit_test_framework REQUIRED)
+
+if (MSVC)
+    link_libraries(Boost::program_options Boost::serialization Boost::unit_test_framework)
+endif()
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})

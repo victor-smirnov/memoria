@@ -77,7 +77,6 @@ private:
     friend std::basic_ostream<T1, T2>& operator<<(std::basic_ostream<T1, T2>&, const U16String&);
 
 
-    friend void swap(U16String&, U16String&) noexcept;
 
 public:
     static const size_t NPOS = ContentT::npos;

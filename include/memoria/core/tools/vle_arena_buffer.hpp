@@ -68,7 +68,7 @@ private:
         pos_ -= 1;
     }
 
-    void advance(ssize_t n) {
+    void advance(int64_t n) {
         pos_ += n;
     }
 

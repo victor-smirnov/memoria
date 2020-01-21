@@ -20,6 +20,8 @@
 
 #include <memoria/core/tools/iostreams.hpp>
 
+#include <memoria/core/exceptions/exceptions.hpp>
+
 namespace memoria {
 namespace reactor {
 

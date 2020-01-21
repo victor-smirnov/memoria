@@ -28,8 +28,10 @@ struct StaticInitializer {
         InitCoreDatatypes();
         InitSimpleNumericDatatypes();
         InitCtrDatatypes();
-        InitDefaultInMemStore();
 
+#ifdef MEMORIA_BUILD_MEMORY_STORE
+        InitDefaultInMemStore();
+#endif
         StaticLibraryCtrs<DefaultProfile<>>::init();
     }
 };

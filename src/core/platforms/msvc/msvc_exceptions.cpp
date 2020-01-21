@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria\v1\core\exceptions\exceptions.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
 #include <Windows.h>
 #include <WinBase.h>

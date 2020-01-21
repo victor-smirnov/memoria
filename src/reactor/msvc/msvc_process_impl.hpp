@@ -32,6 +32,7 @@
 #include <boost/winapi/handles.hpp>
 #include <boost/winapi/handle_info.hpp>
 
+#include <memoria/core/exceptions/exceptions.hpp>
 
 #include <WinNT.h>
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 if(BUILD_MSVC)
-    set(PLATFORM_DEPENDENT asm/jump_x86_64_ms_pe_gas.S asm/make_x86_64_ms_pe_gas.S asm/ontop_x86_64_ms_pe_gas.S windows/stack_traits.cpp)
+    set(PLATFORM_DEPENDENT asm/jump_x86_64_ms_pe_masm.asm asm/make_x86_64_ms_pe_masm.asm asm/ontop_x86_64_ms_pe_masm.asm windows/stack_traits.cpp)
 elseif(APPLE)
     set(PLATFORM_DEPENDENT asm/jump_combined_sysv_macho_gas.S asm/make_combined_sysv_macho_gas.S asm/ontop_combined_sysv_macho_gas.S posix/stack_traits.cpp)
 else()

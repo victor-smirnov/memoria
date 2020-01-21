@@ -18,6 +18,8 @@
 
 #include <memoria/core/memory/malloc.hpp>
 
+#include <memoria/core/exceptions/exceptions.hpp>
+
 #include <boost/winapi/dll.hpp>
 
 namespace memoria {
@@ -30,10 +32,10 @@ filesystem::path get_program_path()
 	DWORD bSize = 65535;
 	auto buf = allocate_system_zeroed<wchar_t>(bSize + 1);
 
-	DWORD actual_size = boost::detail::winapi::GetModuleFileNameW(nullptr, buf.get(), bSize + 1);
+	DWORD actual_size = boost::winapi::GetModuleFileNameW(nullptr, buf.get(), bSize + 1);
 	if (GetLastError() == 0) 
 	{
-		return filesystem::path(UWString(buf.get(), actual_size));
+		return filesystem::path(UWString(buf.get(), actual_size).to_std_string());
 	}
 	else {
 		MMA1_THROW(SystemException()) << WhatCInfo("Can't obtain this module's file name");

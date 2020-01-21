@@ -18,6 +18,8 @@
 #include <memoria/reactor/application.hpp>
 #include <memoria/core/strings/string.hpp>
 
+#include <memoria/core/exceptions/exceptions.hpp>
+
 #include <boost/winapi/environment.hpp>
 
 
@@ -47,7 +49,7 @@ public:
 
 				if (bufsize2 <= bufsize) 
 				{
-					return UWString(buf.get(), bufsize2).to_u16();
+					return UWString(buf.get(), bufsize2).to_u8();
 				}
 				else {
                     MMA1_THROW(SystemException()) << format_ex("Incorrect estimation of env variable's '{}' value size {}:{}", name, bufsize, bufsize2);

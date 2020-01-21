@@ -24,6 +24,9 @@
 
 #include <memoria/reactor/reactor.hpp>
 
+#include <memoria/core/exceptions/exceptions.hpp>
+
+
 #include <memory>
 
 #include <WinBase.h>

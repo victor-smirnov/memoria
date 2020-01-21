@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-add_subdirectory(memory_fibers)
-add_subdirectory(memory_threads)
-
+if (BUILD_MEMORY_STORE)
+    add_subdirectory(memory_fibers)
+    add_subdirectory(memory_threads)
+endif()

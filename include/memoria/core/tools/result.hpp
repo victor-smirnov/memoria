@@ -92,7 +92,7 @@ public:
 struct UnknownResultStatusException: MemoriaThrowable {};
 
 enum class ResultStatus {
-    NO_ERROR = 0, UNASSIGNED = 1, MEMORIA_ERROR = 2, EXCEPTION = 3
+    RESULT_SUCCESS = 0, UNASSIGNED = 1, MEMORIA_ERROR = 2, EXCEPTION = 3
 };
 
 
@@ -294,7 +294,7 @@ public:
     {
         switch(status())
         {
-            case ResultStatus::NO_ERROR: {
+            case ResultStatus::RESULT_SUCCESS: {
                 return;
             }
             case ResultStatus::UNASSIGNED: {
@@ -321,7 +321,7 @@ public:
     {
         switch(status())
         {
-            case ResultStatus::NO_ERROR: {
+            case ResultStatus::RESULT_SUCCESS: {
                 return;
             }
             case ResultStatus::UNASSIGNED: {
@@ -441,7 +441,7 @@ public:
     {
         switch(status())
         {
-            case ResultStatus::NO_ERROR: {
+            case ResultStatus::RESULT_SUCCESS: {
                 return;
             }
             case ResultStatus::UNASSIGNED: {
@@ -465,7 +465,7 @@ public:
     {
         switch(status())
         {
-            case ResultStatus::NO_ERROR: {
+            case ResultStatus::RESULT_SUCCESS: {
                 return;
             }
             case ResultStatus::UNASSIGNED: {

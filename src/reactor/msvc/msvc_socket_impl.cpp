@@ -20,6 +20,9 @@
 
 #include "msvc_socket.hpp"
 
+#include <memoria/core/exceptions/exceptions.hpp>
+
+
 #include <boost/assert.hpp>
 
 #include <stdio.h>

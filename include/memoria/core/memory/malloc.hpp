@@ -24,13 +24,21 @@
 
 namespace memoria {
 
+namespace detail {
+    template <typename T>
+    struct AllocationSizeH: HasValue<size_t, sizeof(T)> {};
+
+    template <>
+    struct AllocationSizeH<void>: HasValue<size_t, 1> {};
+}
+
 template <typename T>
 using UniquePtr = std::unique_ptr<T, void (*)(void*)>;
 
 template <typename T>
 UniquePtr<T> allocate_system(size_t size)
 {
-    void* ptr = ::malloc(size * sizeof(T));
+    void* ptr = ::malloc(size * detail::AllocationSizeH<T>::Value);
 
     T* tptr = T2T<T*>(ptr);
 
@@ -40,14 +48,15 @@ UniquePtr<T> allocate_system(size_t size)
 template <typename T>
 UniquePtr<T> reallocate_system(void* ptr, size_t size)
 {
-    return UniquePtr<T>(T2T<T*>(::realloc(ptr, size * sizeof(T))), ::free);
+    return UniquePtr<T>(T2T<T*>(::realloc(ptr, size * detail::AllocationSizeH<T>::Value)), ::free);
 }
 
 template <typename T>
 UniquePtr<T> allocate_system_zeroed(size_t size)
 {
-    void* ptr = ::malloc(size * sizeof(T));
-    std::memset(ptr, 0, size * sizeof(T));
+    void* ptr = ::malloc(size * detail::AllocationSizeH<T>::Value);
+    std::memset(ptr, 0, size * detail::AllocationSizeH<T>::Value);
+
     return UniquePtr<T>(T2T<T*>(ptr), ::free);
 }
 

@@ -16,6 +16,7 @@
 
 #include <memoria/reactor/reactor.hpp>
 
+#include <memoria/core/exceptions/exceptions.hpp>
 
 #include "msvc_timer.hpp"
 

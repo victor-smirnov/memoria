@@ -16,10 +16,14 @@
 
 #pragma once
 
-#include <memoria/api/set/set_api.hpp>
-#include <memoria/api/map/map_api.hpp>
-#include <memoria/api/vector/vector_api.hpp>
-#include <memoria/api/multimap/multimap_api.hpp>
+#include <memoria/api/common/ctr_api.hpp>
+
+#ifdef MEMORIA_BUILD_CONTAINERS
+#   include <memoria/api/set/set_api.hpp>
+#   include <memoria/api/map/map_api.hpp>
+#   include <memoria/api/vector/vector_api.hpp>
+#   include <memoria/api/multimap/multimap_api.hpp>
+#endif
 
 //#include <memoria/api/db/edge_map/edge_map_api.hpp>
 //#include <memoria/api/db/update_log/update_log_api.hpp>
@@ -35,7 +39,10 @@ void InitCoreLDDatatypes();
 void InitCoreDatatypes();
 void InitSimpleNumericDatatypes();
 void InitCtrDatatypes();
+
+#ifdef MEMORIA_BUILD_MEMORY_STORE
 void InitDefaultInMemStore();
+#endif
 
 void InitMemoriaExplicit();
 
@@ -48,6 +55,7 @@ template <typename ProfileT = DefaultProfile<>>
 struct StaticLibraryCtrs {
     static void init()
     {
+#ifdef MEMORIA_BUILD_CONTAINERS
         InitCtrMetadata<Set<FixedArray<16>>, ProfileT>();
         InitCtrMetadata<Set<Varchar>, ProfileT>();
         InitCtrMetadata<Vector<Varchar>, ProfileT>();
@@ -62,6 +70,7 @@ struct StaticLibraryCtrs {
         InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();
 
         InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
+#endif
     }
 };
 

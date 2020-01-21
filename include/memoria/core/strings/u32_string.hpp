@@ -49,7 +49,7 @@ private:
     friend std::basic_ostream<T1, T2>& operator<<(std::basic_ostream<T1, T2>&, const U32String&);
 
 
-    friend void swap(U32String&, U32String&) noexcept;
+
 
 public:
     U32String() = default;

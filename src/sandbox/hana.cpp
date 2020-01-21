@@ -30,7 +30,7 @@
 #include <iostream>
 
 
-using namespace memoria::v1;
+using namespace memoria;
 
 constexpr psize_t make_mask_for_stride(psize_t stride_log2)
 {

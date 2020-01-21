@@ -45,7 +45,7 @@ private:
     template <typename T2>
     friend std::basic_ostream<wchar_t, T2>& operator<<(std::basic_ostream<wchar_t, T2>&, const UWString&);
 
-    friend void swap(UWString&, UWString&) noexcept;
+
 
 public:
     UWString() = default;

@@ -17,6 +17,8 @@
 #include <memoria/reactor/pipe_streams.hpp>
 #include <memoria/core/memory/smart_ptrs.hpp>
 
+#include <memoria/core/exceptions/exceptions.hpp>
+
 #include <Winbase.h>
 
 namespace memoria {

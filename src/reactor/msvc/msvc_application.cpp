@@ -26,7 +26,7 @@ auto find_last_of(const U8String& str, const char* pp)
 {
 	size_t pos0 = U8String::NPOS;
 	size_t pos  = 0;
-	while (pos = str.find_first_of(pp, pos)) 
+	while ((pos = str.find_first_of(pp, pos))) 
 	{
 		if (pos != U8String::NPOS) 
 		{
