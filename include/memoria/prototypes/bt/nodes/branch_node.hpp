@@ -88,13 +88,8 @@ private:
     int32_t level_;
 
     BlockID next_leaf_id_;
-
     BlockID parent_id_;
-    int32_t parent_idx_;
 
-    int32_t alignment_gap_;
-
-    // TODO use alignof
     PackedAllocator allocator_;
 
     static_assert(std::is_pod<PackedAllocator>::value, "PackedAllocator must be a POD tpye");
@@ -175,19 +170,9 @@ public:
         return parent_id_;
     }
 
-    const int32_t& parent_idx() const
-    {
-        return parent_idx_;
-    }
-
     BlockID& parent_id()
     {
         return parent_id_;
-    }
-
-    int32_t& parent_idx()
-    {
-        return parent_idx_;
     }
 
     PackedAllocator* allocator() {
@@ -344,7 +329,6 @@ public:
         handler->value("NEXT_LEAF_ID_", &next_leaf_id_);
 
         handler->value("PARENT_ID", &parent_id_);
-        handler->value("PARENT_IDX", &parent_idx_);
 
         allocator()->generateDataEvents(handler);
 
@@ -383,7 +367,6 @@ public:
         FieldFactory<BlockID>::serialize(buf, next_leaf_id_);
 
         FieldFactory<BlockID>::serialize(buf, parent_id_);
-        FieldFactory<int32_t>::serialize(buf, parent_idx_);
 
         allocator()->serialize(buf);
 
@@ -419,7 +402,6 @@ public:
         FieldFactory<BlockID>::deserialize(buf, next_leaf_id_);
 
         FieldFactory<BlockID>::deserialize(buf, parent_id_);
-        FieldFactory<int32_t>::deserialize(buf, parent_idx_);
 
         allocator()->deserialize(buf);
 

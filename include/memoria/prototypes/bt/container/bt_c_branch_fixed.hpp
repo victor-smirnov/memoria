@@ -112,7 +112,9 @@ Result<OpStatus> M_TYPE::ctr_insert_to_branch_node(NodeBaseG& node, int32_t idx,
         MEMORIA_RETURN_IF_ERROR(parent);
 
         auto max = self.ctr_get_node_max_keys(node);
-        auto res = self.ctr_update_branch_nodes(parent.get(), node->parent_idx(), max);
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
+
+        auto res = self.ctr_update_branch_nodes(parent.get(), parent_idx, max);
         MEMORIA_RETURN_IF_ERROR(res);
     }
 
@@ -149,7 +151,7 @@ Result<typename M_TYPE::NodeBaseG> M_TYPE::ctr_split_node(NodeBaseG& left_node, 
     auto left_max  = self.ctr_get_node_max_keys(left_node);
     auto right_max = self.ctr_get_node_max_keys(right_node);
 
-    int32_t parent_idx = left_node->parent_idx();
+    MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(left_node));
 
     MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_branch_nodes(left_parent, parent_idx, left_max));
 
@@ -221,10 +223,11 @@ VoidResult M_TYPE::ctr_update_branch_nodes(NodeBaseG& node, int32_t& idx, const 
     while(!tmp->is_root())
     {
         auto max = self.ctr_get_node_max_keys(tmp);
-        int32_t parent_idx = tmp->parent_idx();
 
         auto parent_res = self.ctr_get_node_parent_for_update(tmp);
         MEMORIA_RETURN_IF_ERROR(parent_res);
+
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent_res.get(), tmp->id()));
 
         tmp = parent_res.get();
 
@@ -250,7 +253,7 @@ VoidResult M_TYPE::ctr_update_path(const NodeBaseG& node) noexcept
         Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(node);
         MEMORIA_RETURN_IF_ERROR(parent);
 
-        int32_t parent_idx = node->parent_idx();
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
 
         auto upd_res = self.ctr_update_branch_nodes(parent.get(), parent_idx, entry);
         MEMORIA_RETURN_IF_ERROR(upd_res);
@@ -299,9 +302,7 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(NodeBaseG& tgt, NodeBaseG& src) noe
     Result<NodeBaseG> src_parent = self.ctr_get_node_parent(src);
     MEMORIA_RETURN_IF_ERROR(src_parent);
 
-    int32_t parent_idx = src->parent_idx();
-
-    //MEMORIA_V1_ASSERT(parent_idx, >, 0);
+    MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent.get(), src->id()));
 
     auto max = self.ctr_get_node_max_keys(tgt);
 

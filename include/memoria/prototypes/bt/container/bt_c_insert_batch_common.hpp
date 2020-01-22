@@ -69,21 +69,21 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
     VoidResult ctr_update_child_indexes(NodeBaseG& node, int32_t start) noexcept
     {
-        auto& self = this->self();
-        int32_t size = self.ctr_get_branch_node_size(node);
+//        auto& self = this->self();
+//        int32_t size = self.ctr_get_branch_node_size(node);
 
-        if (start < size)
-        {
-            return self.ctr_for_all_ids(node, start, size, [&, this](const BlockID& id, int32_t parent_idx) noexcept -> VoidResult
-            {
-                auto& self = this->self();
-                Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(id));
-                MEMORIA_RETURN_IF_ERROR(child);
+//        if (start < size)
+//        {
+//            return self.ctr_for_all_ids(node, start, size, [&, this](const BlockID& id, int32_t parent_idx) noexcept -> VoidResult
+//            {
+//                auto& self = this->self();
+//                Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(id));
+//                MEMORIA_RETURN_IF_ERROR(child);
 
-                child.get()->parent_idx() = parent_idx;
-                return VoidResult::of();
-            });
-        }
+//                //child.get()->parent_idx() = parent_idx;
+//                return VoidResult::of();
+//            });
+//        }
 
         return VoidResult::of();
     }
@@ -305,12 +305,14 @@ VoidResult M_TYPE::ctr_update_children_internal(const NodeBaseG& node, int32_t s
 
     return self.ctr_for_all_ids(node, start, end, [&self, &node_id](const BlockID& id, int32_t idx) noexcept -> VoidResult
     {
-        Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(id));
+        Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlock(id));
         MEMORIA_RETURN_IF_ERROR(child);
 
-
-        child.get()->parent_id()  = node_id;
-        child.get()->parent_idx() = idx;
+        if (child.get()->parent_id()  != node_id)
+        {
+            MEMORIA_RETURN_IF_ERROR_FN(child.get().update());
+            child.get()->parent_id() = node_id;
+        }
 
         return VoidResult::of();
     });

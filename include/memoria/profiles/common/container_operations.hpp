@@ -70,16 +70,16 @@ struct ContainerWalker {
     virtual void endCompositeCtr()                                              = 0;
 
     virtual void beginCtr(const char* descr, const CtrID& name, const CtrID& root) = 0;
-    virtual void endCtr()                                                        = 0;
+    virtual void endCtr()                                                       = 0;
 
-    virtual void beginRoot(int32_t idx, const BlockType* block)                  = 0;
-    virtual void endRoot()                                                       = 0;
+    virtual void beginRoot(const BlockType* block)                              = 0;
+    virtual void endRoot()                                                      = 0;
 
-    virtual void ctr_begin_node(int32_t idx, const BlockType* block)             = 0;
-    virtual void ctr_end_node()                                                  = 0;
+    virtual void ctr_begin_node(const BlockType* block)                         = 0;
+    virtual void ctr_end_node()                                                 = 0;
 
-    virtual void rootLeaf(int32_t idx, const BlockType* block)                   = 0;
-    virtual void leaf(int32_t idx, const BlockType* block)                       = 0;
+    virtual void rootLeaf(const BlockType* block)                               = 0;
+    virtual void leaf(const BlockType* block)                                   = 0;
 
     virtual void singleNode(const char* descr, const BlockType* block)          = 0;
 
@@ -116,14 +116,20 @@ struct ContainerWalkerBase: ContainerWalker<Profile> {
     virtual void beginCtr(const char* descr, const CtrID& name, const BlockID& root) {}
     virtual void endCtr() {}
 
-    virtual void beginRoot(int32_t idx, const BlockType* block) {}
+//    virtual void beginRoot(int32_t idx, const BlockType* block) {}
+    virtual void beginRoot(const BlockType* block) {}
     virtual void endRoot() {}
 
-    virtual void ctr_begin_node(int32_t idx, const BlockType* block) {}
+    //virtual void ctr_begin_node(int32_t idx, const BlockType* block) {}
+    virtual void ctr_begin_node(const BlockType* block) {}
     virtual void ctr_end_node() {}
 
-    virtual void rootLeaf(int32_t idx, const BlockType* block) {}
-    virtual void leaf(int32_t idx, const BlockType* block) {}
+//    virtual void rootLeaf(int32_t idx, const BlockType* block) {}
+//    virtual void leaf(int32_t idx, const BlockType* block) {}
+
+    virtual void rootLeaf(const BlockType* block) {}
+    virtual void leaf(const BlockType* block) {}
+
 
     virtual void singleNode(const char* descr, const BlockType* block) {}
 

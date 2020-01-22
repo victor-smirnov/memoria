@@ -249,7 +249,7 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src) noexc
     Result<NodeBaseG> src_parent = self.ctr_get_node_parent(src);
     MEMORIA_RETURN_IF_ERROR(src_parent);
 
-    int32_t parent_idx = src->parent_idx();
+    MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent.get(), src->id()));
 
     //MEMORIA_V1_ASSERT(parent_idx, >, 0);
 

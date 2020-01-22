@@ -699,4 +699,10 @@ wrap_throwing(Fn&& fn) noexcept
     }                                        \
 }
 
+
+#define MEMORIA_TRY(VarName, Code)                  \
+    auto VarName##_result = Code;                  \
+    if (MMA_UNLIKELY(!VarName##_result.is_ok())) return std::move(VarName##_result).transfer_error(); \
+    auto& VarName = VarName##_result.get()
+
 }

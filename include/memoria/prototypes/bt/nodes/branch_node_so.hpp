@@ -851,6 +851,22 @@ public:
         node_->template init_root_metadata<RootMetadataList>();
     }
 
+    int32_t find_child_idx(const Value& child_id) const noexcept
+    {
+        int32_t idx = -1;
+
+        const Value* values = node_->values();
+        int32_t size = node_->size();
+
+        for (int32_t c = 0; c < size; c++) {
+            if (child_id == values[c]) {
+                return c;
+            }
+        }
+
+        return idx;
+    }
+
 
 
     /******************************************************************/

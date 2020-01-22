@@ -63,7 +63,7 @@ public:
     }
 
 
-protected:
+public:
 
     Result<NodeBaseG> ctr_get_node_parent(const NodeBaseG& node) const noexcept
     {
@@ -106,7 +106,7 @@ Result<typename M_TYPE::NodeBaseG> M_TYPE::ctr_get_next_node(NodeBaseG& node) co
 
         int32_t size = self.ctr_get_node_size(parent.get(), 0);
 
-        int32_t parent_idx = node->parent_idx();
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
 
         if (parent_idx < size - 1)
         {
@@ -142,7 +142,7 @@ Result<typename M_TYPE::NodeBaseG> M_TYPE::ctr_get_prev_node(NodeBaseG& node) co
         Result<NodeBaseG> parent = self.ctr_get_node_parent(node);
         MEMORIA_RETURN_IF_ERROR(parent);
 
-        int32_t parent_idx = node->parent_idx();
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
 
         if (parent_idx > 0)
         {

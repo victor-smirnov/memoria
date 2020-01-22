@@ -431,7 +431,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->set_root(true);
 
         node->parent_id().clear();
-        node->parent_idx() = 0;
 
         node->setMetadata(meta);
 
@@ -647,7 +646,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->header().ctr_type_hash() = self.hash();
         
         node->parent_id()  = BlockID{};
-        node->parent_idx() = 0;
 
         node->set_root(false);
         node->set_leaf(leaf);
@@ -699,7 +697,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->header().ctr_type_hash() = self.hash();
         
         node->parent_id()  = BlockID{};
-        node->parent_idx() = 0;
 
         node->set_root(true);
         node->set_leaf(leaf);
@@ -854,7 +851,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         while (!node->is_root())
         {
-            offset += node->parent_idx();
+            // FIXME: this code tries to compute block's offset in the tree,
+            // but apparently it doesn't make sense.
+            //offset += node->parent_idx();
             node = alloc->getBlock(node->parent_id()).get_or_terminate();
         }
 

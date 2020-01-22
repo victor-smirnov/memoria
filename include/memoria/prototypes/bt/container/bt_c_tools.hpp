@@ -82,10 +82,38 @@ public:
         return self().node_dispatcher().dispatch(node, GetSizesFn());
     }
 
-    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetSizeFn, size, int32_t);
-    int32_t ctr_get_node_size(const NodeBaseG& node, int32_t stream) const noexcept
+    MEMORIA_V1_DECLARE_NODE_FN(GetSizeFn, size);
+    auto ctr_get_node_size(const NodeBaseG& node, int32_t stream) const noexcept
     {
         return self().node_dispatcher().dispatch(node, GetSizeFn(), stream);
+    }
+
+    MEMORIA_V1_DECLARE_NODE_FN(FindChildIdx, find_child_idx);
+    auto ctr_find_child_idx(const NodeBaseG& node, const BlockID& child_id) const noexcept
+    {
+        return self().branch_dispatcher().dispatch(node, FindChildIdx(), child_id);
+    }
+
+    Int32Result ctr_get_child_idx(const NodeBaseG& node, const BlockID& child_id) const noexcept
+    {
+        auto idx = ctr_find_child_idx(node, child_id);
+        if (MMA_LIKELY(idx >= 0)) {
+            return Int32Result::of(idx);
+        }
+        else {
+            return Int32Result::make_error("Requested child is not found in the b-tree: {}", child_id);
+        }
+    }
+
+    Int32Result ctr_get_parent_idx(const NodeBaseG& node) const noexcept
+    {
+        if (MMA_UNLIKELY(node->is_root())) {
+            return Int32Result::of(0); // -1?
+        }
+
+        MEMORIA_TRY(parent, self().ctr_get_node_parent(node));
+
+        return self().ctr_get_child_idx(parent, node->id());
     }
 
     // TODO: check noexcept

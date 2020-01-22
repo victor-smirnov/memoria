@@ -61,7 +61,7 @@ int main()
                                       //"AAAAAAAAAAAAAAAAAAAAAAAAAAA_"   + std::to_string(c),
                                       "BBBBBBBBBBBBBBBBBBBBBBBBBBBBB_" + std::to_string(c)
                                       // c, -c
-                                      ));
+            ));
         }
 
         std::sort(entries_.begin(), entries_.end(), [](const auto& one, const auto& two){

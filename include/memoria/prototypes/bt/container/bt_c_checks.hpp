@@ -156,6 +156,8 @@ VoidResult M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t par
     {
         int32_t children = self.ctr_get_node_size(node, 0);
 
+        // TODO: check children IDs findability;
+
         for (int32_t c = 0; c < children; c++)
         {
             BlockID child_id = self.ctr_get_child_id(node, c);
@@ -171,12 +173,12 @@ VoidResult M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t par
                 MMA_ERROR(self, "child.id != child_id", child->id(), child->id(), child_id);
             }
 
-            if (child->parent_idx() != c)
-            {
-                errors = true;
-                MMA_ERROR(self, "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
-                std::cout << "parent_idx: " << child->parent_idx() << " " << c << std::endl;
-            }
+//            if (child->parent_idx() != c)
+//            {
+//                errors = true;
+//                MMA_ERROR(self, "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
+//                std::cout << "parent_idx: " << child->parent_idx() << " " << c << std::endl;
+//            }
 
             if (child->parent_id() != node->id())
             {

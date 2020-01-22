@@ -356,7 +356,9 @@ public:
             leaf = provider.split_watcher().second;
         }
 
-        int32_t path_parent_idx = leaf->parent_idx() + 1;
+        MEMORIA_TRY(leaf_parent_idx, self.ctr_get_parent_idx(leaf));
+
+        int32_t path_parent_idx = leaf_parent_idx + 1;
 
         if (leaf_list.get().size() > 0)
         {
@@ -412,7 +414,8 @@ public:
             leaf = provider.split_watcher().second;
         }
 
-        int32_t path_parent_idx = leaf->parent_idx() + 1;
+        MEMORIA_TRY(leaf_parent_idx, self.ctr_get_parent_idx(leaf));
+        int32_t path_parent_idx = leaf_parent_idx + 1;
 
         if (leaf_list.get().size() > 0)
         {

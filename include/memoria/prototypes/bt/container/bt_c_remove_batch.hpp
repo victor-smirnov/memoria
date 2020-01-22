@@ -273,10 +273,10 @@ VoidResult M_TYPE::ctr_remove_branch_nodes_from_start(NodeBaseG& stop, int32_t s
 
     while (!node->is_root())
     {
-        int32_t parent_idx = node->parent_idx();
-
         Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(node);
         MEMORIA_RETURN_IF_ERROR(parent);
+
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
 
         node = parent.get();
 
@@ -307,7 +307,7 @@ VoidResult M_TYPE::ctr_remove_nodes_from_start(NodeBaseG& stop, const Position& 
         Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(node);
         MEMORIA_RETURN_IF_ERROR(parent);
 
-        int32_t parent_idx = node->parent_idx();
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
 
         MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_branch_nodes_from_start(parent.get(), parent_idx, sizes));
 
@@ -332,10 +332,10 @@ VoidResult M_TYPE::ctr_remove_branch_nodes_at_end(NodeBaseG& start, int32_t star
 
     while (!node->is_root())
     {
-        int32_t parent_idx  = node->parent_idx();
-
         Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(node);
         MEMORIA_RETURN_IF_ERROR(parent);
+
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
 
         node            = parent.get();
         node_size       = self.ctr_get_node_size(node, 0);
@@ -367,7 +367,9 @@ VoidResult M_TYPE::ctr_remove_nodes_at_end(NodeBaseG& start, const Position& sta
         Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(start);
         MEMORIA_RETURN_IF_ERROR(parent);
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_branch_nodes_at_end(parent.get(), start->parent_idx() + 1, sizes));
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), start->id()));
+
+        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_branch_nodes_at_end(parent.get(), parent_idx + 1, sizes));
 
         return self.ctr_remove_redundant_root(start);
     }
@@ -423,15 +425,14 @@ VoidResult M_TYPE::ctr_remove_nodes(
 
         sizes += res1.get();
 
-        int32_t start_parent_idx    = start->parent_idx();
-        int32_t stop_parent_idx     = stop->parent_idx();
-
         Result<NodeBaseG> start_parent  = self.ctr_get_node_parent_for_update(start);
         MEMORIA_RETURN_IF_ERROR(start_parent);
 
-
         Result<NodeBaseG> stop_parent   = self.ctr_get_node_parent_for_update(stop);
         MEMORIA_RETURN_IF_ERROR(stop_parent);
+
+        MEMORIA_TRY(start_parent_idx, self.ctr_get_child_idx(start_parent.get(), start->id()));
+        MEMORIA_TRY(stop_parent_idx, self.ctr_get_child_idx(stop_parent.get(), stop->id()));
 
         MEMORIA_RETURN_IF_ERROR_FN(
             ctr_remove_branch_nodes(start_parent.get(), start_parent_idx + 1, stop_parent.get(), stop_parent_idx, sizes)
@@ -499,14 +500,14 @@ VoidResult M_TYPE::ctr_remove_branch_nodes(
         MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_leaf_content(start, start_idx, start_end, sizes));
         MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_leaf_content(stop, 0, stop_idx, sizes));
 
-        int32_t start_parent_idx    = start->parent_idx();
-        int32_t stop_parent_idx     = stop->parent_idx();
-
         Result<NodeBaseG> start_parent = self.ctr_get_node_parent_for_update(start);
         MEMORIA_RETURN_IF_ERROR(start_parent);
 
         Result<NodeBaseG> stop_parent = self.ctr_get_node_parent_for_update(stop);
         MEMORIA_RETURN_IF_ERROR(stop_parent);
+
+        MEMORIA_TRY(start_parent_idx, self.ctr_get_child_idx(start_parent.get(), start->id()));
+        MEMORIA_TRY(stop_parent_idx, self.ctr_get_child_idx(stop_parent.get(), stop->id()));
 
         auto res0 = ctr_remove_branch_nodes(start_parent.get(), start_parent_idx + 1, stop_parent.get(), stop_parent_idx, sizes);
         MEMORIA_RETURN_IF_ERROR(res0);

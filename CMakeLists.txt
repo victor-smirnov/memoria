@@ -54,7 +54,9 @@ option(BUILD_BENCHMARKS "Build project benchmarks" OFF)
 option(BUILD_WITH_BACKTRACE "Include backtrace suport on Linux" OFF)
 option(BUILD_WITH_STATIC_BOOST "Use static boost libraries" OFF)
 option(BUILD_EMIT_LLVM  "Emit LLVM bytecode for compiled binaries. Implies Clang is the compiler." OFF)
+
 option(BUILD_CONTAINERS "Build stores and containers." ON)
+option(BUILD_CONTAINERS_MULTIMAP "Build Multimap<Varchar, Varchar> container." ON)
 option(BUILD_MEMORY_STORE "Build default in-memory store." ON)
 
 option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)

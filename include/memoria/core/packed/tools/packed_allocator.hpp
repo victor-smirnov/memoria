@@ -36,7 +36,7 @@ enum class PackedBlockType {
 };
 
 
-class PackedAllocator {
+class alignas(8) PackedAllocator {
 
     typedef PackedAllocatable                                                   Base;
     typedef PackedAllocator                                                     MyType;

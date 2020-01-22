@@ -125,7 +125,6 @@ public:
                 subtrees[i].child_id()  = child.get()->id();
 
                 child.get()->parent_id() = node->id();
-                child.get()->parent_idx() = idx + c + i;
             }
 
             self.branch_dispatcher().dispatch(node, InsertChildrenFn(), idx + c, idx + c + i, subtrees);
@@ -287,7 +286,8 @@ public:
 
             if (left_parent == right_parent)
             {
-                auto res = self.ctr_split_path(left_parent, right->parent_idx());
+                MEMORIA_TRY(right_parent_idx, self.ctr_get_child_idx(right_parent, right->id()));
+                auto res = self.ctr_split_path(left_parent, right_parent_idx);
                 MEMORIA_RETURN_IF_ERROR(res);
 
                 right_parent = res.get();

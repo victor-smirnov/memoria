@@ -99,7 +99,9 @@ Result<OpStatus> M_TYPE::ctr_insert_to_branch_node(
     if (!node->is_root())
     {
         Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(node);
-        int32_t parent_idx = node->parent_idx();
+        MEMORIA_RETURN_IF_ERROR(parent);
+
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
 
         auto max = self.ctr_get_node_max_keys(node);
         MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_branch_nodes(parent.get(), parent_idx, max));
@@ -139,7 +141,7 @@ Result<typename M_TYPE::NodeBaseG> M_TYPE::ctr_split_node(NodeBaseG& left_node, 
     auto left_max  = self.ctr_get_node_max_keys(left_node);
     auto right_max = self.ctr_get_node_max_keys(right_node);
 
-    int32_t parent_idx = left_node->parent_idx();
+    MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(left_parent, left_node->id()));
 
     MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_branch_nodes(left_parent, parent_idx, left_max));
 
@@ -256,9 +258,10 @@ VoidResult M_TYPE::ctr_update_branch_nodes(NodeBaseG& node, int32_t& idx, const 
 
     if(!node->is_root())
     {
-        int32_t parent_idx = node->parent_idx();
         Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(node);
         MEMORIA_RETURN_IF_ERROR(parent);
+
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
 
         auto max = self.ctr_get_node_max_keys(node);
         return self.ctr_update_branch_nodes(parent.get(), parent_idx, max);
@@ -284,7 +287,7 @@ VoidResult M_TYPE::ctr_update_path(const NodeBaseG& node) noexcept
         Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(node);
         MEMORIA_RETURN_IF_ERROR(parent);
 
-        int32_t parent_idx = node->parent_idx();
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
         return self.ctr_update_branch_nodes(parent.get(), parent_idx, entry);
     }
 
@@ -302,8 +305,10 @@ VoidResult M_TYPE::ctr_update_branch_nodes_no_backup(NodeBaseG& node, int32_t id
 
     if(!node->is_root())
     {
-        int32_t parent_idx = node->parent_idx();
-        NodeBaseG parent = self.ctr_get_node_parent_for_update(node);
+        Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(node);
+        MEMORIA_RETURN_IF_ERROR_FN(parent);
+
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
 
         self.ctr_update_branch_nodes_no_backup(parent, parent_idx, entry);
     }
@@ -331,9 +336,8 @@ BoolResult M_TYPE::ctr_try_merge_branch_nodes(NodeBaseG& tgt, NodeBaseG& src) no
     Result<NodeBaseG> src_parent = self.ctr_get_node_parent(src);
     MEMORIA_RETURN_IF_ERROR(src_parent);
 
-    int32_t parent_idx = src->parent_idx();
+    MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent.get(), src->id()));
 
-//    MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
     if (isFail(self.branch_dispatcher().dispatch(src, tgt, TryMergeNodesFn())))
     {

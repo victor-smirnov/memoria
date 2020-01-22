@@ -93,8 +93,7 @@ public:
                     return ResultT::make_error("Subtree is null");
                 }
 
-                child->parent_id()  = node->id();
-                child->parent_idx() = idx + c;
+                child->parent_id() = node->id();
 
                 BranchNodeEntry sums = self.ctr_get_node_max_keys(child);
                 if(isFail(self.branch_dispatcher().dispatch(node, InsertChildFn(), idx + c, sums, child->id()))) {
@@ -274,7 +273,9 @@ public:
 
             if (left_parent.get() == right_parent)
             {
-                auto res = self.ctr_split_path(left_parent.get(), right->parent_idx());
+                MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(right_parent, right->id()));
+
+                auto res = self.ctr_split_path(left_parent.get(), parent_idx);
                 MEMORIA_RETURN_IF_ERROR(res);
 
                 right_parent = res.get();

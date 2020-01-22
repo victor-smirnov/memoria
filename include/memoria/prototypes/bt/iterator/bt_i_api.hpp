@@ -167,10 +167,13 @@ public:
 
         while (!node->is_root())
         {
-            idx = node->parent_idx();
-
             auto parent = self().ctr().ctr_get_node_parent(node);
             MEMORIA_RETURN_IF_ERROR(parent);
+
+            auto idx_res = self().ctr().ctr_get_child_idx(parent.get(), node->id());
+            MEMORIA_RETURN_IF_ERROR(idx_res);
+
+            idx = idx_res.get();
 
             node = parent.get();
 

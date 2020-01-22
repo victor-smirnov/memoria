@@ -255,8 +255,9 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_fw(NodeChain node_chain, Wa
                 auto parent = self.ctr_get_node_parent(node);
                 MEMORIA_RETURN_IF_ERROR(parent);
 
-                auto parent_idx     = node->parent_idx() + 1;
-                auto parent_result  = ctr_find_fw(NodeChain(self, parent.get(), parent_idx, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
+                MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
+
+                auto parent_result  = ctr_find_fw(NodeChain(self, parent.get(), parent_idx + 1, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
                 MEMORIA_RETURN_IF_ERROR(parent_result);
 
                 if (parent_result.get().pass)
@@ -347,8 +348,9 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(NodeChain node_chain, Wa
                 auto parent = self.ctr_get_node_parent(node_chain.node);
                 MEMORIA_RETURN_IF_ERROR(parent);
 
-                auto parent_idx     = node_chain.node->parent_idx() - 1;
-                auto parent_result  = ctr_find_bw(NodeChain(parent.get(), parent_idx, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
+                MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node_chain.node->id()));
+
+                auto parent_result  = ctr_find_bw(NodeChain(parent.get(), parent_idx - 1, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
                 MEMORIA_RETURN_IF_ERROR(parent_result);
 
                 if (parent_result.get().pass)

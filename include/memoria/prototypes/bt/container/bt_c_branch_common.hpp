@@ -108,10 +108,8 @@ VoidResult M_TYPE::ctr_create_new_root_block(NodeBaseG& root) noexcept
     }
 
     root->parent_id()  = new_root.get()->id();
-    root->parent_idx() = 0;
 
     return self.set_root(new_root.get()->id());
-
 }
 
 
