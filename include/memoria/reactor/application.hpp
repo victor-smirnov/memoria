@@ -108,10 +108,12 @@ public:
 
     //Application(int argc, char** argv): Application(argc, argv, nullptr) {}
     Application(int argc, char** argv, char** envp = nullptr): 
-        Application(default_options(options_description()), argc, argv, envp) 
-    {}
+        Application(options_description(), argc, argv, envp)
+    {
+        default_options(descr_);
+    }
     
-    Application(options_description descr, int argc, char** argv, char** envp = nullptr);
+    Application(const options_description& descr, int argc, char** argv, char** envp = nullptr);
     
     
     Application(const Application&) = delete;
@@ -191,15 +193,13 @@ public:
     
     int start_main_event_loop();
     
-    static options_description default_options(options_description descr)
+    static void default_options(options_description& descr)
     {
         descr.add_options()
             ("help,h", "Prints command line switches")
             ("threads,t", boost::program_options::value<uint32_t>()->default_value(1), "Specifies number of threads to use")
             ("debug,d", boost::program_options::value<bool>()->default_value(false), "Enable debug output")
             ("io-timeout", boost::program_options::value<uint64_t>()->default_value(20), "Event poller timeout value, in milliseconds.");
-        
-        return descr;
     }
     
     template <typename Fn, typename... Args>
@@ -230,7 +230,8 @@ public:
     ) noexcept 
     {
         try {
-            Application app(default_options(options), argc, argv);
+            default_options(options);
+            Application app(options, argc, argv);
 
             app.start_engines();
 
@@ -262,7 +263,8 @@ public:
 	) noexcept
 	{
 		try {
-            Application app(default_options(options), argc, argv, envp);
+            default_options(options);
+            Application app(options, argc, argv, envp);
 
             app.start_engines();
 

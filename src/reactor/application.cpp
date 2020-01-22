@@ -59,7 +59,7 @@ ApplicationInit::~ApplicationInit() {
 
 Application* Application::application_;
     
-Application::Application(options_description descr, int argc, char** argv, char** envp): 
+Application::Application(const options_description& descr, int argc, char** argv, char** envp):
     descr_(descr),
     smp_{},
     reactors_(),
