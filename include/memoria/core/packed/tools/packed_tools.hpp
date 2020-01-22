@@ -28,12 +28,12 @@
 namespace memoria {
 
 template <typename T, int32_t Indexes>
-void assign(core::StaticVector<OptionalT<T>, Indexes>& tgt, const core::StaticVector<OptionalT<T>, Indexes>& src) {
+void assign(core::StaticVector<Optional<T>, Indexes>& tgt, const core::StaticVector<Optional<T>, Indexes>& src) {
     tgt = src;
 }
 
 template <typename T, int32_t Indexes>
-void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<OptionalT<T>, Indexes>& src) {
+void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<Optional<T>, Indexes>& src) {
     for (int32_t c = 0; c < Indexes; c++) {
         tgt[c] = src[c].get();
     }
@@ -54,7 +54,7 @@ void assign(core::StaticVector<T, Indexes>& tgt, const core::StaticVector<TT, In
 }
 
 template <typename T, int32_t Indexes>
-void assign(core::StaticVector<OptionalT<T>, Indexes>& tgt, const core::StaticVector<T, Indexes>& src)
+void assign(core::StaticVector<Optional<T>, Indexes>& tgt, const core::StaticVector<T, Indexes>& src)
 {
     for (int32_t c = 0; c < Indexes; c++) {
         tgt[c] = src[c];
@@ -62,7 +62,7 @@ void assign(core::StaticVector<OptionalT<T>, Indexes>& tgt, const core::StaticVe
 }
 
 template <typename T, int32_t Indexes>
-void assign(core::StaticVector<OptionalT<T>, Indexes>& tgt, const T& src)
+void assign(core::StaticVector<Optional<T>, Indexes>& tgt, const T& src)
 {
     static_assert(Indexes == 1, "");
     tgt[0] = src;

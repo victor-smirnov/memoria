@@ -21,6 +21,7 @@
 #include <memoria/api/store/memory_store_api.hpp>
 
 #include <memoria/store/memory/common/store_stat.hpp>
+#include <memoria/store/memory/common/static_pool.hpp>
 
 
 #include <memoria/core/container/allocator.hpp>
@@ -28,7 +29,7 @@
 
 #include <memoria/core/exceptions/exceptions.hpp>
 
-#include <memoria/core/tools/pool.hpp>
+
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/containers/map/map_factory.hpp>

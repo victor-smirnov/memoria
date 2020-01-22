@@ -65,7 +65,7 @@ public:
     using TreeValue     = CxxValue;
     using TreeValues    = typename Tree::Values;
 
-    using Value      = OptionalT<CxxValue>;
+    using Value      = Optional<CxxValue>;
     using Values     = core::StaticVector<Value, Blocks>;
     using SizesT     = typename Tree::SizesT;
 
@@ -271,9 +271,9 @@ public:
     }
 
     template <typename T>
-    auto findGTForward(int32_t block, const OptionalT<T>& val) const
+    auto findGTForward(int32_t block, const Optional<T>& val) const
     {
-        auto result = tree()->find_gt(block, val.value());
+        auto result = tree()->find_gt(block, val.get());
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -301,9 +301,9 @@ public:
     }
 
     template <typename T>
-    auto findForward(SearchType search_type, int32_t block, const OptionalT<T>& val) const
+    auto findForward(SearchType search_type, int32_t block, const Optional<T>& val) const
     {
-        auto result = tree()->findForward(search_type, block, val.value());
+        auto result = tree()->findForward(search_type, block, val.get());
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -322,9 +322,9 @@ public:
     }
 
     template <typename T>
-    auto findBackward(SearchType search_type, int32_t block, const OptionalT<T>& val) const
+    auto findBackward(SearchType search_type, int32_t block, const Optional<T>& val) const
     {
-        auto result = tree()->findBackward(search_type, block, val.value());
+        auto result = tree()->findBackward(search_type, block, val.get());
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -513,13 +513,13 @@ public:
 protected:
 
     template <typename T>
-    core::StaticVector<TreeValue, Blocks> tree_values(const core::StaticVector<OptionalT<T>, Blocks>& values)
+    core::StaticVector<TreeValue, Blocks> tree_values(const core::StaticVector<Optional<T>, Blocks>& values)
     {
         core::StaticVector<TreeValue, Blocks> tv;
 
         for (int32_t b = 0;  b < Blocks; b++)
         {
-            tv[b] = values[b].value();
+            tv[b] = values[b].get();
         }
 
         return tv;

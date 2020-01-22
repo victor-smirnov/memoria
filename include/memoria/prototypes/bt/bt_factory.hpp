@@ -18,7 +18,7 @@
 #pragma once
 
 
-#include <memoria/core/tools/vector_tuple.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_vector_tuple.hpp>
 
 
 #include <memoria/core/packed/array/packed_fse_array.hpp>

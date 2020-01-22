@@ -22,68 +22,12 @@
 #include <ostream>
 
 #include <boost/optional.hpp>
+#include <boost/optional/optional_io.hpp>
 
 namespace memoria {
 
 template <typename T>
-class OptionalT {
-    T value_;
-    bool is_set_;
-public:
-    using ValueType = T;
-
-    //template <typename TT>
-    OptionalT(const T& value): value_(value), is_set_(true) {}
-
-    template <typename TT>
-    explicit OptionalT(OptionalT<TT> value): value_(value.value()), is_set_(value.is_set()) {}
-
-    template <typename TT>
-    OptionalT(TT&& value, bool is_set): value_(value), is_set_(is_set) {}
-
-    OptionalT(): is_set_(false) {}
-
-    const T& value() const {
-        return value_;
-    }
-
-    bool is_set() const {
-        return is_set_;
-    }
-
-    operator bool() const {
-        return is_set_;
-    }
-
-    const T* operator->() const {
-        return &value_;
-    }
-
-    const T& operator*() const {
-        return value_;
-    }
-};
-
-
-template <typename T>
 using Optional = boost::optional<T>;
-
-template <typename T>
-std::ostream& operator<<(std::ostream& out, const OptionalT<T>& op) {
-    if (op) {
-        out<<op.value();
-    }
-    else {
-        out<<"[none]";
-    }
-    return out;
-}
-
-template <typename T>
-struct HasFieldFactory<OptionalT<T>>: HasFieldFactory<T> {};
-
-template <typename T>
-struct HasValueCodec<OptionalT<T>>: HasValueCodec<T> {};
 
 
 template <typename T>

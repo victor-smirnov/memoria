@@ -21,7 +21,6 @@
 #include <memoria/core/tools/perror.hpp>
 #include <memoria/core/types.hpp>
 #include <memoria/core/memory/ptr_cast.hpp>
-#include <memoria/core/tools/referenceable.hpp>
 #include <memoria/core/tools/pimpl_base.hpp>
 
 #include <limits>

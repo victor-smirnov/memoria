@@ -26,7 +26,6 @@
 
 #include <memoria/core/exceptions/exceptions.hpp>
 
-#include <memoria/core/tools/pool.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/containers/map/map_factory.hpp>

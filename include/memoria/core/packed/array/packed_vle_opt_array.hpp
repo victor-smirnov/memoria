@@ -80,7 +80,7 @@ public:
 
     using ArrayValue  = typename Array::ViewType;
 
-    using Value      = OptionalT<typename Array::ViewType>;
+    using Value      = Optional<typename Array::ViewType>;
     using Values     = core::StaticVector<Value, Blocks>;
 
     using ExtData = DTTTypeDimensionsTuple<typename Array::DataType>;
@@ -273,9 +273,9 @@ public:
     }
 
     template <typename T>
-    auto findGTForward(int32_t block, const OptionalT<T>& val) const
+    auto findGTForward(int32_t block, const Optional<T>& val) const
     {
-        auto result = array()->find_gt(block, val.value());
+        auto result = array()->find_gt(block, val.get());
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -303,9 +303,9 @@ public:
     }
 
     template <typename T>
-    auto findForward(SearchType search_type, int32_t block, const OptionalT<T>& val) const
+    auto findForward(SearchType search_type, int32_t block, const Optional<T>& val) const
     {
-        auto result = array()->findForward(search_type, block, val.value());
+        auto result = array()->findForward(search_type, block, val.get());
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -324,9 +324,9 @@ public:
     }
 
     template <typename T>
-    auto findBackward(SearchType search_type, int32_t block, const OptionalT<T>& val) const
+    auto findBackward(SearchType search_type, int32_t block, const Optional<T>& val) const
     {
-        auto result = array()->findBackward(search_type, block, val.value());
+        auto result = array()->findBackward(search_type, block, val.get());
 
         result.set_idx(global_idx(result.local_pos()));
 
@@ -443,13 +443,13 @@ public:
 protected:
 
     template <typename T>
-    core::StaticVector<ArrayValue, Blocks> array_values(const core::StaticVector<OptionalT<T>, Blocks>& values)
+    core::StaticVector<ArrayValue, Blocks> array_values(const core::StaticVector<Optional<T>, Blocks>& values)
     {
         core::StaticVector<ArrayValue, Blocks> tv;
 
         for (int32_t b = 0;  b < Blocks; b++)
         {
-            tv[b] = values[b].value();
+            tv[b] = values[b].get();
         }
 
         return tv;
@@ -484,7 +484,7 @@ struct PackedStructTraits<PackedVLenElementOptArray<Types>> {
     using SearchKeyDataType = typename Types::Value;
 
     using AccumType = typename DataTypeTraits<SearchKeyDataType>::ViewType;
-    using SearchKeyType = OptionalT<typename DataTypeTraits<SearchKeyDataType>::ViewType>;
+    using SearchKeyType = Optional<typename DataTypeTraits<SearchKeyDataType>::ViewType>;
 
     static constexpr PackedDataTypeSize DataTypeSize = PackedDataTypeSize::VARIABLE;
 

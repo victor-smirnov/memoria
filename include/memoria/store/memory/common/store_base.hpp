@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/core/tools/pool.hpp>
+
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/pair.hpp>
 #include <memoria/core/tools/latch.hpp>

@@ -173,11 +173,11 @@ public:
         return array_.removeSpace(array_start, array_end);
     }
 
-    OptionalT<ViewType> get_values(psize_t idx) const {
+    Optional<ViewType> get_values(psize_t idx) const {
         return get_values(idx, 0);
     }
 
-    OptionalT<ViewType>
+    Optional<ViewType>
     get_values(psize_t idx, psize_t column) const
     {
         auto bitmap = data_->bitmap();
@@ -188,11 +188,11 @@ public:
             return array_.get_values(array_idx);
         }
 
-        return OptionalT<ViewType>{};
+        return Optional<ViewType>{};
     }
 
 
-    OptionalT<ViewType> max(psize_t column) const
+    Optional<ViewType> max(psize_t column) const
     {
         auto size = array_.size();
 
@@ -201,7 +201,7 @@ public:
             return access(column, size - 1);
         }
         else {
-            return OptionalT<ViewType>();
+            return Optional<ViewType>();
         }
     }
 
@@ -293,21 +293,21 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, psize_t column, const OptionalT<ViewType>& val) const
+    auto findForward(SearchType search_type, psize_t column, const Optional<ViewType>& val) const
     {
         if (search_type == SearchType::GT)
         {
-            return findGTForward(column, val.value());
+            return findGTForward(column, val.get());
         }
         else {
-            return findGEForward(column, val.value());
+            return findGEForward(column, val.get());
         }
     }
 
     template <typename T>
     OpStatus setValues(int32_t idx, const core::StaticVector<T, Columns>& values)
     {
-        if (values[0].is_set())
+        if (values[0])
         {
             Bitmap* bitmap = data_->bitmap();
 
@@ -371,7 +371,7 @@ public:
     {
         Bitmap* bitmap = data_->bitmap();
 
-        if (values[0].is_set())
+        if (values[0])
         {
             if(isFail(bitmap->insert(idx, 1))) {
                 return OpStatus::FAIL;
@@ -409,13 +409,13 @@ private:
     }
 
     template <typename T>
-    core::StaticVector<ViewType, Columns> array_values(const core::StaticVector<OptionalT<T>, Columns>& values)
+    core::StaticVector<ViewType, Columns> array_values(const core::StaticVector<Optional<T>, Columns>& values)
     {
         core::StaticVector<ViewType, Columns> tv;
 
         for (int32_t b = 0;  b < Columns; b++)
         {
-            tv[b] = values[b].value();
+            tv[b] = values[b].get();
         }
 
         return tv;

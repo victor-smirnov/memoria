@@ -19,6 +19,8 @@
 
 namespace memoria {
 
+// N-Ary search routine
+
 template <typename ProviderFn, typename Value>
 psize_t locate(psize_t stride_log2_ex, psize_t size, ProviderFn&& values, Value element)
 {

@@ -18,7 +18,6 @@
 
 #include <memoria/containers/map/map_factory.hpp>
 
-#include <memoria/core/tools/pool.hpp>
 #include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/pair.hpp>

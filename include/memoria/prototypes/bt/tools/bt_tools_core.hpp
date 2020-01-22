@@ -17,11 +17,10 @@
 #pragma once
 
 #include <memoria/core/tools/static_array.hpp>
-#include <memoria/core/tools/vector_tuple.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
 #include <memoria/prototypes/bt/bt_names.hpp>
-#include <memoria/core/tools/tuple_dispatcher.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_vector_tuple.hpp>
 #include <memoria/core/tools/uuid.hpp>
 
 #include <ostream>

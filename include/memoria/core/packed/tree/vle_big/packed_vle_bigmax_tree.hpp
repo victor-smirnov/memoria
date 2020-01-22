@@ -1264,14 +1264,14 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, int32_t block, int32_t start, const OptionalT<Value>& val) const
+    auto findForward(SearchType search_type, int32_t block, int32_t start, const Optional<Value>& val) const
     {
         if (search_type == SearchType::GT)
         {
-            return FindResult(findGTForward(block, start, val.value()));
+            return FindResult(findGTForward(block, start, val.get()));
         }
         else {
-            return FindResult(findGEForward(block, start, val.value()));
+            return FindResult(findGEForward(block, start, val.get()));
         }
     }
 
@@ -1286,14 +1286,14 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, int32_t block, const OptionalT<Value>& val) const
+    auto findForward(SearchType search_type, int32_t block, const Optional<Value>& val) const
     {
     	if (search_type == SearchType::GT)
     	{
-    		return FindResult(findGTForward(block, val.value()));
+            return FindResult(findGTForward(block, val.get()));
     	}
     	else {
-    		return FindResult(findGEForward(block, val.value()));
+            return FindResult(findGEForward(block, val.get()));
     	}
     }
 

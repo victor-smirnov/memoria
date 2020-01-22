@@ -19,16 +19,16 @@
 
 
 #include <memoria/core/tools/static_array.hpp>
-#include <memoria/core/tools/vector_tuple.hpp>
+
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
 #include <memoria/prototypes/bt/bt_names.hpp>
-#include <memoria/core/tools/tuple_dispatcher.hpp>
 
 #include <memoria/prototypes/bt/tools/bt_tools_core.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_packed_struct_list_builder.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_streamdescr_factory.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_vector_tuple.hpp>
 
 #include <memoria/core/packed/packed.hpp>
 

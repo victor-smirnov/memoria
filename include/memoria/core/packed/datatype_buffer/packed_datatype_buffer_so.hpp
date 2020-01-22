@@ -431,14 +431,14 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, psize_t column, const OptionalT<ViewType>& val) const
+    auto findForward(SearchType search_type, psize_t column, const Optional<ViewType>& val) const
     {
         if (search_type == SearchType::GT)
         {
-            return findGTForward(column, val.value());
+            return findGTForward(column, val.get());
         }
         else {
-            return findGEForward(column, val.value());
+            return findGEForward(column, val.get());
         }
     }
 

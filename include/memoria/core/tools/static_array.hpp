@@ -665,10 +665,10 @@ public:
     }
 
     template <typename Value>
-    MyType& operator=(const OptionalT<Value>& value) noexcept
+    MyType& operator=(const Optional<Value>& value) noexcept
     {
-        if (value.is_set()) {
-            for (int32_t c = 0; c < Indexes; c++) values_[c] = value.value();
+        if (value) {
+            for (int32_t c = 0; c < Indexes; c++) values_[c] = value.get();
         }
         else {
             for (int32_t c = 0; c < Indexes; c++) values_[c] = Value();
@@ -678,14 +678,15 @@ public:
     }
 
     template <typename Value>
-    MyType& operator=(const StaticVector<OptionalT<Value>, Indexes>& value) noexcept
+    MyType& operator=(const StaticVector<Optional<Value>, Indexes>& value) noexcept
     {
-        for (int32_t c = 0; c < Indexes; c++) {
-            if (value[c].is_set()) {
-                values_[c] = value[c].value();
+        for (int32_t c = 0; c < Indexes; c++)
+        {
+            if (value[c]) {
+                values_[c] = value[c].get();
             }
             else {
-                values_[c] = Value();
+                values_[c] = Value{};
             }
         }
 
@@ -881,11 +882,11 @@ private:
 };
 
 template <typename T1, typename T2, int32_t Indexes>
-void OptionalAssignmentHelper(StaticVector<OptionalT<T1>, Indexes>& v1, const StaticVector<T2, Indexes>& v2) noexcept
+void OptionalAssignmentHelper(StaticVector<Optional<T1>, Indexes>& v1, const StaticVector<T2, Indexes>& v2) noexcept
 {
     for (int32_t c = 0; c < Indexes; c++)
     {
-        v1[c] = OptionalT<T1>(v2[c]);
+        v1[c] = Optional<T1>{v2[c]};
     }
 }
 
