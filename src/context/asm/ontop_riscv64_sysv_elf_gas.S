@@ -60,9 +60,9 @@
 .file "ontop_riscv64_sysv_elf_gas.S"
 .text
 .align  1
-.global ontop_fcontext
-.type   ontop_fcontext, %function
-ontop_fcontext:
+.global memoria_ontop_fcontext
+.type   memoria_ontop_fcontext, %function
+memoria_ontop_fcontext:
     # prepare stack for GP + FPU
     addi  sp, sp, -0xd0
 
@@ -144,6 +144,6 @@ ontop_fcontext:
 
     # jump to ontop-function
     jr a2
-.size   ontop_fcontext,.-ontop_fcontext
+.size   memoria_ontop_fcontext,.-memoria_ontop_fcontext
 # Mark that we don't need executable stack.
 .section .note.GNU-stack,"",%progbits

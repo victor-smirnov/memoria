@@ -47,11 +47,11 @@
 
 .file "jump_mips64_n64_elf_gas.S"
 .text
-.globl jump_fcontext
+.globl memoria_jump_fcontext
 .align 2
-.type jump_fcontext,@function
-.ent jump_fcontext
-jump_fcontext:
+.type memoria_jump_fcontext,@function
+.ent memoria_jump_fcontext
+memoria_jump_fcontext:
     # reserve space on stack
     daddiu $sp, $sp, -160
 
@@ -114,8 +114,8 @@ jump_fcontext:
 
     # jump to context
     jr  $t9
-.end jump_fcontext
-.size jump_fcontext, .-jump_fcontext
+.end memoria_jump_fcontext
+.size memoria_jump_fcontext, .-memoria_jump_fcontext
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits

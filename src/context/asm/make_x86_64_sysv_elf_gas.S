@@ -26,10 +26,10 @@
 
 .file "make_x86_64_sysv_elf_gas.S"
 .text
-.globl make_fcontext
-.type make_fcontext,@function
+.globl memoria_make_fcontext
+.type memoria_make_fcontext,@function
 .align 16
-make_fcontext:
+memoria_make_fcontext:
     /* first arg of make_fcontext() == top of context-stack */
     movq  %rdi, %rax
 
@@ -52,7 +52,7 @@ make_fcontext:
     /* compute abs address of label trampoline */
     leaq  trampoline(%rip), %rcx
     /* save address of trampoline as return-address for context-function */
-    /* will be entered after calling jump_fcontext() first time */
+    /* will be entered after calling memoria_jump_fcontext() first time */
     movq  %rcx, 0x38(%rax)
 
     /* compute abs address of label finish */
@@ -76,7 +76,7 @@ finish:
     /* exit application */
     call  _exit@PLT
     hlt
-.size make_fcontext,.-make_fcontext
+.size memoria_make_fcontext,.-memoria_make_fcontext
 
 /* Mark that we don't need executable stack. */
 .section .note.GNU-stack,"",%progbits

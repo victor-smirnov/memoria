@@ -74,9 +74,9 @@
  *******************************************************/
 
 .text
-.globl _ontop_fcontext
+.globl _memoria_ontop_fcontext
 .align 2
-_ontop_fcontext:
+_memoria_ontop_fcontext:
     # reserve space on stack
     subi  r1, r1, 244
 

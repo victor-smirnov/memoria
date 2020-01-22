@@ -96,7 +96,7 @@ private:
             return sctx;
         }
 
-        void deallocate( stack_context & sctx) BOOST_NOEXCEPT_OR_NOTHROW {
+        void deallocate( stack_context & sctx) noexcept {
             BOOST_ASSERT( sctx.sp);
             BOOST_ASSERT( traits_type::is_unbounded() || ( traits_type::maximum_size() >= sctx.size) );
 
@@ -125,7 +125,7 @@ public:
 
     basic_pooled_fixedsize_stack( std::size_t stack_size = traits_type::default_size(),
                            std::size_t next_size = 32,
-                           std::size_t max_size = 0) BOOST_NOEXCEPT_OR_NOTHROW :
+                           std::size_t max_size = 0) noexcept :
         storage_( new storage( stack_size, next_size, max_size) ) {
     }
 
@@ -133,7 +133,7 @@ public:
         return storage_->allocate();
     }
 
-    void deallocate( stack_context & sctx) BOOST_NOEXCEPT_OR_NOTHROW {
+    void deallocate( stack_context & sctx) noexcept {
         storage_->deallocate( sctx);
     }
 };

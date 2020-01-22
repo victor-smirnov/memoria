@@ -33,7 +33,7 @@ private:
 public:
     typedef traitsT traits_type;
 
-    basic_protected_fixedsize_stack( std::size_t size = traits_type::default_size() ) BOOST_NOEXCEPT_OR_NOTHROW :
+    basic_protected_fixedsize_stack( std::size_t size = traits_type::default_size() ) noexcept :
         size_( size) {
     }
 
@@ -65,7 +65,7 @@ public:
         return sctx;
     }
 
-    void deallocate( stack_context & sctx) BOOST_NOEXCEPT_OR_NOTHROW {
+    void deallocate( stack_context & sctx) noexcept {
         BOOST_ASSERT( sctx.sp);
 
         void * vp = static_cast< char * >( sctx.sp) - sctx.size;

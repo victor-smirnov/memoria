@@ -72,7 +72,7 @@ void fiber_entry( transfer_t t) noexcept {
     BOOST_ASSERT( nullptr != rec);
     try {
         // jump back to `create_context()`
-        t = jump_fcontext( t.fctx, nullptr);
+        t = memoria_jump_fcontext( t.fctx, nullptr);
         // start executing
         t.fctx = rec->run( t.fctx);
     } catch ( forced_unwind const& ex) {
@@ -83,7 +83,7 @@ void fiber_entry( transfer_t t) noexcept {
     }
     BOOST_ASSERT( nullptr != t.fctx);
     // destroy context-stack of `this`context on next context
-    ontop_fcontext( t.fctx, rec, fiber_exit< Rec >);
+    memoria_ontop_fcontext( t.fctx, rec, fiber_exit< Rec >);
     BOOST_ASSERT_MSG( false, "context already terminated");
 }
 
@@ -94,11 +94,7 @@ transfer_t fiber_ontop( transfer_t t) {
     t.data = nullptr;
     // execute function, pass fiber via reference
     Ctx c = p( Ctx{ t.fctx } );
-#if defined(BOOST_NO_CXX14_STD_EXCHANGE)
-    return { exchange( c.fctx_, nullptr), nullptr };
-#else
     return { std::exchange( c.fctx_, nullptr), nullptr };
-#endif
 }
 
 template< typename Ctx, typename StackAlloc, typename Fn >
@@ -139,11 +135,7 @@ public:
 #else
         Ctx c = std::invoke( fn_, Ctx{ fctx } );
 #endif
-#if defined(BOOST_NO_CXX14_STD_EXCHANGE)
-        return exchange( c.fctx_, nullptr);
-#else
         return std::exchange( c.fctx_, nullptr);
-#endif
     }
 };
 
@@ -165,10 +157,10 @@ fcontext_t create_fiber1( StackAlloc && salloc, Fn && fn) {
             reinterpret_cast< uintptr_t >( sctx.sp) - static_cast< uintptr_t >( sctx.size) );
     // create fast-context
     const std::size_t size = reinterpret_cast< uintptr_t >( stack_top) - reinterpret_cast< uintptr_t >( stack_bottom);
-    const fcontext_t fctx = make_fcontext( stack_top, size, & fiber_entry< Record >);
+    const fcontext_t fctx = memoria_make_fcontext( stack_top, size, & fiber_entry< Record >);
     BOOST_ASSERT( nullptr != fctx);
     // transfer control structure to context-stack
-    return jump_fcontext( fctx, record).fctx;
+    return memoria_jump_fcontext( fctx, record).fctx;
 }
 
 template< typename Record, typename StackAlloc, typename Fn >
@@ -187,10 +179,10 @@ fcontext_t create_fiber2( preallocated palloc, StackAlloc && salloc, Fn && fn) {
             reinterpret_cast< uintptr_t >( palloc.sctx.sp) - static_cast< uintptr_t >( palloc.sctx.size) );
     // create fast-context
     const std::size_t size = reinterpret_cast< uintptr_t >( stack_top) - reinterpret_cast< uintptr_t >( stack_bottom);
-    const fcontext_t fctx = make_fcontext( stack_top, size, & fiber_entry< Record >);
+    const fcontext_t fctx = memoria_make_fcontext( stack_top, size, & fiber_entry< Record >);
     BOOST_ASSERT( nullptr != fctx);
     // transfer control structure to context-stack
-    return jump_fcontext( fctx, record).fctx;
+    return memoria_jump_fcontext( fctx, record).fctx;
 }
 
 }
@@ -248,12 +240,8 @@ public:
 
     ~fiber() {
         if ( BOOST_UNLIKELY( nullptr != fctx_) ) {
-            detail::ontop_fcontext(
-#if defined(BOOST_NO_CXX14_STD_EXCHANGE)
-                    detail::exchange( fctx_, nullptr),
-#else
+            detail::memoria_ontop_fcontext(
                     std::exchange( fctx_, nullptr),
-#endif
                    nullptr,
                    detail::fiber_unwind);
         }
@@ -276,12 +264,8 @@ public:
 
     fiber resume() && {
         BOOST_ASSERT( nullptr != fctx_);
-        return { detail::jump_fcontext(
-#if defined(BOOST_NO_CXX14_STD_EXCHANGE)
-                    detail::exchange( fctx_, nullptr),
-#else
+        return { detail::memoria_jump_fcontext(
                     std::exchange( fctx_, nullptr),
-#endif
                     nullptr).fctx };
     }
 
@@ -289,7 +273,7 @@ public:
     fiber resume_with( Fn && fn) && {
         BOOST_ASSERT( nullptr != fctx_);
         auto p = std::forward< Fn >( fn);
-        return { detail::ontop_fcontext(
+        return { detail::memoria_ontop_fcontext(
                     std::exchange( fctx_, nullptr),
                     & p,
                     detail::fiber_ontop<fiber, decltype(p)>).fctx };

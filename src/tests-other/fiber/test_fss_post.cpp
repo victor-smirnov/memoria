@@ -8,37 +8,37 @@
 #include <iostream>
 #include <mutex>
 
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
-#include <memoria/fiber/all.hpp>
+#include <boost/fiber/all.hpp>
 
-memoria::fibers::mutex check_mutex;
-memoria::fibers::mutex fss_mutex;
+boost::fibers::mutex check_mutex;
+boost::fibers::mutex fss_mutex;
 int fss_instances = 0;
 int fss_total = 0;
 
 struct fss_value_t {
     fss_value_t() {
-        std::unique_lock<memoria::fibers::mutex> lock(fss_mutex);
+        std::unique_lock<boost::fibers::mutex> lock(fss_mutex);
         ++fss_instances;
         ++fss_total;
         value = 0;
     }
     ~fss_value_t() {
-        std::unique_lock<memoria::fibers::mutex> lock(fss_mutex);
+        std::unique_lock<boost::fibers::mutex> lock(fss_mutex);
         --fss_instances;
     }
     int value;
 };
 
-memoria::fibers::fiber_specific_ptr<fss_value_t> fss_value;
+boost::fibers::fiber_specific_ptr<fss_value_t> fss_value;
 
 void fss_fiber() {
     fss_value.reset(new fss_value_t());
     for (int i=0; i<1000; ++i) {
         int& n = fss_value->value;
         if (n != i) {
-            std::unique_lock<memoria::fibers::mutex> lock(check_mutex);
+            std::unique_lock<boost::fibers::mutex> lock(check_mutex);
             BOOST_CHECK_EQUAL(n, i);
         }
         ++n;
@@ -49,11 +49,11 @@ void fss() {
     fss_instances = 0;
     fss_total = 0;
 
-    memoria::fibers::fiber f1( memoria::fibers::launch::post, fss_fiber);
-    memoria::fibers::fiber f2( memoria::fibers::launch::post, fss_fiber);
-    memoria::fibers::fiber f3( memoria::fibers::launch::post, fss_fiber);
-    memoria::fibers::fiber f4( memoria::fibers::launch::post, fss_fiber);
-    memoria::fibers::fiber f5( memoria::fibers::launch::post, fss_fiber);
+    boost::fibers::fiber f1( boost::fibers::launch::post, fss_fiber);
+    boost::fibers::fiber f2( boost::fibers::launch::post, fss_fiber);
+    boost::fibers::fiber f3( boost::fibers::launch::post, fss_fiber);
+    boost::fibers::fiber f4( boost::fibers::launch::post, fss_fiber);
+    boost::fibers::fiber f5( boost::fibers::launch::post, fss_fiber);
     f1.join();
     f2.join();
     f3.join();
@@ -71,7 +71,7 @@ void fss() {
 }
 
 void test_fss() {
-    memoria::fibers::fiber( memoria::fibers::launch::post, fss).join();
+    boost::fibers::fiber( boost::fibers::launch::post, fss).join();
 }
 
 bool fss_cleanup_called=false;
@@ -84,14 +84,14 @@ void fss_custom_cleanup(Dummy* d) {
     fss_cleanup_called=true;
 }
 
-memoria::fibers::fiber_specific_ptr<Dummy> fss_with_cleanup(fss_custom_cleanup);
+boost::fibers::fiber_specific_ptr<Dummy> fss_with_cleanup(fss_custom_cleanup);
 
 void fss_fiber_with_custom_cleanup() {
     fss_with_cleanup.reset(new Dummy);
 }
 
 void fss_with_custom_cleanup() {
-    memoria::fibers::fiber f( memoria::fibers::launch::post, fss_fiber_with_custom_cleanup);
+    boost::fibers::fiber f( boost::fibers::launch::post, fss_fiber_with_custom_cleanup);
     try {
         f.join();
     } catch(...) {
@@ -103,7 +103,7 @@ void fss_with_custom_cleanup() {
 }
 
 void test_fss_with_custom_cleanup() {
-    memoria::fibers::fiber( memoria::fibers::launch::post, fss_with_custom_cleanup).join();
+    boost::fibers::fiber( boost::fibers::launch::post, fss_with_custom_cleanup).join();
 }
 
 Dummy* fss_object=new Dummy;
@@ -115,7 +115,7 @@ void fss_fiber_with_custom_cleanup_and_release() {
 
 void do_test_fss_does_no_cleanup_after_release() {
     fss_cleanup_called=false;
-    memoria::fibers::fiber f( memoria::fibers::launch::post, fss_fiber_with_custom_cleanup_and_release);
+    boost::fibers::fiber f( boost::fibers::launch::post, fss_fiber_with_custom_cleanup_and_release);
     try {
         f.join();
     } catch(...) {
@@ -139,7 +139,7 @@ struct dummy_class_tracks_deletions {
 
 unsigned dummy_class_tracks_deletions::deletions=0;
 
-memoria::fibers::fiber_specific_ptr<dummy_class_tracks_deletions> fss_with_null_cleanup(NULL);
+boost::fibers::fiber_specific_ptr<dummy_class_tracks_deletions> fss_with_null_cleanup(NULL);
 
 void fss_fiber_with_null_cleanup(dummy_class_tracks_deletions* delete_tracker) {
     fss_with_null_cleanup.reset(delete_tracker);
@@ -147,7 +147,7 @@ void fss_fiber_with_null_cleanup(dummy_class_tracks_deletions* delete_tracker) {
 
 void do_test_fss_does_no_cleanup_with_null_cleanup_function() {
     dummy_class_tracks_deletions* delete_tracker=new dummy_class_tracks_deletions;
-    memoria::fibers::fiber f( memoria::fibers::launch::post, [&delete_tracker](){
+    boost::fibers::fiber f( boost::fibers::launch::post, [&delete_tracker](){
         fss_fiber_with_null_cleanup( delete_tracker); });
     try {
         f.join();
@@ -163,17 +163,17 @@ void do_test_fss_does_no_cleanup_with_null_cleanup_function() {
 }
 
 void test_fss_does_no_cleanup_after_release() {
-    memoria::fibers::fiber( memoria::fibers::launch::post, do_test_fss_does_no_cleanup_after_release).join();
+    boost::fibers::fiber( boost::fibers::launch::post, do_test_fss_does_no_cleanup_after_release).join();
 }
 
 void test_fss_does_no_cleanup_with_null_cleanup_function() {
-    memoria::fibers::fiber( memoria::fibers::launch::post, do_test_fss_does_no_cleanup_with_null_cleanup_function).join();
+    boost::fibers::fiber( boost::fibers::launch::post, do_test_fss_does_no_cleanup_with_null_cleanup_function).join();
 }
 
 
 void fiber_with_local_fss_ptr() {
     {
-        memoria::fibers::fiber_specific_ptr<Dummy> local_fss(fss_custom_cleanup);
+        boost::fibers::fiber_specific_ptr<Dummy> local_fss(fss_custom_cleanup);
 
         local_fss.reset(new Dummy);
     }
@@ -182,17 +182,17 @@ void fiber_with_local_fss_ptr() {
 }
 
 void fss_does_not_call_cleanup_after_ptr_destroyed() {
-    memoria::fibers::fiber( memoria::fibers::launch::post, fiber_with_local_fss_ptr).join();
+    boost::fibers::fiber( boost::fibers::launch::post, fiber_with_local_fss_ptr).join();
     BOOST_CHECK(!fss_cleanup_called);
 }
 
 void test_fss_does_not_call_cleanup_after_ptr_destroyed() {
-    memoria::fibers::fiber( memoria::fibers::launch::post, fss_does_not_call_cleanup_after_ptr_destroyed).join();
+    boost::fibers::fiber( boost::fibers::launch::post, fss_does_not_call_cleanup_after_ptr_destroyed).join();
 }
 
 
 void fss_cleanup_not_called_for_null_pointer() {
-    memoria::fibers::fiber_specific_ptr<Dummy> local_fss(fss_custom_cleanup);
+    boost::fibers::fiber_specific_ptr<Dummy> local_fss(fss_custom_cleanup);
     local_fss.reset(new Dummy);
     fss_cleanup_called=false;
     local_fss.reset(0);
@@ -203,13 +203,13 @@ void fss_cleanup_not_called_for_null_pointer() {
 }
 
 void test_fss_cleanup_not_called_for_null_pointer() {
-    memoria::fibers::fiber( memoria::fibers::launch::post, fss_cleanup_not_called_for_null_pointer).join();
+    boost::fibers::fiber( boost::fibers::launch::post, fss_cleanup_not_called_for_null_pointer).join();
 }
 
 
 void fss_at_the_same_adress() {
   for(int i=0; i<2; i++) {
-    memoria::fibers::fiber_specific_ptr<Dummy> local_fss(fss_custom_cleanup);
+    boost::fibers::fiber_specific_ptr<Dummy> local_fss(fss_custom_cleanup);
     local_fss.reset(new Dummy);
     fss_cleanup_called=false;
     BOOST_CHECK(fss_cleanup_called);
@@ -219,7 +219,7 @@ void fss_at_the_same_adress() {
 }
 
 void test_fss_at_the_same_adress() {
-    memoria::fibers::fiber( memoria::fibers::launch::post, fss_at_the_same_adress).join();
+    boost::fibers::fiber( boost::fibers::launch::post, fss_at_the_same_adress).join();
 }
 
 boost::unit_test::test_suite* init_unit_test_suite(int, char*[]) {

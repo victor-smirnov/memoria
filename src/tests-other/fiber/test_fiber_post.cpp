@@ -12,9 +12,9 @@
 #include <string>
 
 #include <boost/assert.hpp>
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
-#include <memoria/fiber/all.hpp>
+#include <boost/fiber/all.hpp>
 
 int value1 = 0;
 std::string value2 = "";
@@ -129,46 +129,46 @@ void fn2( int i, std::string const& s) {
 
 void fn3( int & i) {
     i = 1;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     i = 1;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     i = 2;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     i = 3;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     i = 5;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     i = 8;
 }
 
 void fn4() {
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
 }
 
 void fn5() {
-    memoria::fibers::fiber f( memoria::fibers::launch::post, fn4);
+    boost::fibers::fiber f( boost::fibers::launch::post, fn4);
     BOOST_CHECK( f.joinable() );
     f.join();
     BOOST_CHECK( ! f.joinable() );
 }
 
 void test_scheduler_dtor() {
-    memoria::fibers::context * ctx(
-        memoria::fibers::context::active() );
+    boost::fibers::context * ctx(
+        boost::fibers::context::active() );
     (void)ctx;
 }
 
 void test_join_fn() {
     {
         value1 = 0;
-        memoria::fibers::fiber f( memoria::fibers::launch::post, fn1);
+        boost::fibers::fiber f( boost::fibers::launch::post, fn1);
         f.join();
         BOOST_CHECK_EQUAL( value1, 1);
     }
     {
         value1 = 0;
         value2 = "";
-        memoria::fibers::fiber f( memoria::fibers::launch::post, fn2, 3, "abc");
+        boost::fibers::fiber f( boost::fibers::launch::post, fn2, 3, "abc");
         f.join();
         BOOST_CHECK_EQUAL( value1, 3);
         BOOST_CHECK_EQUAL( value2, "abc");
@@ -178,7 +178,7 @@ void test_join_fn() {
 void test_join_memfn() {
     X x = {0};
     BOOST_CHECK_EQUAL( x.value, 0);
-    memoria::fibers::fiber( memoria::fibers::launch::post, & X::foo, std::ref( x), 3).join();
+    boost::fibers::fiber( boost::fibers::launch::post, & X::foo, & x, 3).join();
     BOOST_CHECK_EQUAL( x.value, 3);
 }
 
@@ -187,7 +187,7 @@ void test_join_copyable() {
     copyable cp( 3);
     BOOST_CHECK( cp.state);
     BOOST_CHECK_EQUAL( value1, 0);
-    memoria::fibers::fiber f( memoria::fibers::launch::post, cp);
+    boost::fibers::fiber f( boost::fibers::launch::post, cp);
     f.join();
     BOOST_CHECK( cp.state);
     BOOST_CHECK_EQUAL( value1, 3);
@@ -198,7 +198,7 @@ void test_join_moveable() {
     moveable mv( 7);
     BOOST_CHECK( mv.state);
     BOOST_CHECK_EQUAL( value1, 0);
-    memoria::fibers::fiber f( memoria::fibers::launch::post, std::move( mv) );
+    boost::fibers::fiber f( boost::fibers::launch::post, std::move( mv) );
     f.join();
     BOOST_CHECK( ! mv.state);
     BOOST_CHECK_EQUAL( value1, 7);
@@ -210,8 +210,8 @@ void test_join_lambda() {
         value2 = "";
         int i = 3;
         std::string abc("abc");
-        memoria::fibers::fiber f(
-                memoria::fibers::launch::post, [i,abc]() {
+        boost::fibers::fiber f(
+                boost::fibers::launch::post, [i,abc]() {
                     value1 = i;
                     value2 = abc;
                 });
@@ -224,8 +224,8 @@ void test_join_lambda() {
         value2 = "";
         int i = 3;
         std::string abc("abc");
-        memoria::fibers::fiber f(
-                memoria::fibers::launch::post, [](int i, std::string const& abc) {
+        boost::fibers::fiber f(
+                boost::fibers::launch::post, [](int i, std::string const& abc) {
                     value1 = i;
                     value2 = abc;
                 },
@@ -242,8 +242,8 @@ void test_join_bind() {
         value2 = "";
         int i = 3;
         std::string abc("abc");
-        memoria::fibers::fiber f(
-            memoria::fibers::launch::post, std::bind(
+        boost::fibers::fiber f(
+            boost::fibers::launch::post, std::bind(
                 [i,abc]() {
                     value1 = i;
                     value2 = abc;
@@ -256,41 +256,36 @@ void test_join_bind() {
     {
         value1 = 0;
         value2 = "";
-        int i = 3;
         std::string abc("abc");
-        memoria::fibers::fiber f(
-            memoria::fibers::launch::post, std::bind(
-                []( int i, std::string & str) {
+        boost::fibers::fiber f(
+            boost::fibers::launch::post, std::bind(
+                [](std::string & str) {
                     value1 = 3;
                     value2 = str;
                 },
-                i, abc
+				abc
             ));
         f.join();
         BOOST_CHECK_EQUAL( value1, 3);
         BOOST_CHECK_EQUAL( value2, "abc");
     }
-#if 0
     {
         value1 = 0;
         value2 = "";
-        int i = 3;
         std::string abc("abc");
-        memoria::fibers::fiber f(
-            memoria::fibers::launch::post, std::bind(
-                []( int i, std::string & str) {
+        boost::fibers::fiber f(
+            boost::fibers::launch::post, std::bind(
+                []( std::string & str) {
                     value1 = 3;
                     value2 = str;
                 },
-                std::placeholders::_1,
-                std::placeholders::_2
+                std::placeholders::_1
             ),
-            i, abc);
+            std::ref( abc) );
         f.join();
         BOOST_CHECK_EQUAL( value1, 3);
         BOOST_CHECK_EQUAL( value2, "abc");
     }
-#endif
 }
 
 void test_join_in_fiber() {
@@ -298,7 +293,7 @@ void test_join_in_fiber() {
     // f spawns an new fiber f' in its fiber-fn
     // f' yields in its fiber-fn
     // f joins s' and gets suspended (waiting on s')
-    memoria::fibers::fiber f( memoria::fibers::launch::post, fn5);
+    boost::fibers::fiber f( boost::fibers::launch::post, fn5);
     BOOST_CHECK( f.joinable() );
     // join() resumes f + f' which completes
     f.join();
@@ -306,9 +301,9 @@ void test_join_in_fiber() {
 }
 
 void test_move_fiber() {
-    memoria::fibers::fiber f1;
+    boost::fibers::fiber f1;
     BOOST_CHECK( ! f1.joinable() );
-    memoria::fibers::fiber f2( memoria::fibers::launch::post, fn1);
+    boost::fibers::fiber f2( boost::fibers::launch::post, fn1);
     BOOST_CHECK( f2.joinable() );
     f1 = std::move( f2);
     BOOST_CHECK( f1.joinable() );
@@ -319,23 +314,23 @@ void test_move_fiber() {
 }
 
 void test_id() {
-    memoria::fibers::fiber f1;
-    memoria::fibers::fiber f2( memoria::fibers::launch::post, fn1);
+    boost::fibers::fiber f1;
+    boost::fibers::fiber f2( boost::fibers::launch::post, fn1);
     BOOST_CHECK( ! f1.joinable() );
     BOOST_CHECK( f2.joinable() );
 
-    BOOST_CHECK_EQUAL( memoria::fibers::fiber::id(), f1.get_id() );
-    BOOST_CHECK( memoria::fibers::fiber::id() != f2.get_id() );
+    BOOST_CHECK_EQUAL( boost::fibers::fiber::id(), f1.get_id() );
+    BOOST_CHECK( boost::fibers::fiber::id() != f2.get_id() );
 
-    memoria::fibers::fiber f3( memoria::fibers::launch::post, fn1);
+    boost::fibers::fiber f3( boost::fibers::launch::post, fn1);
     BOOST_CHECK( f2.get_id() != f3.get_id() );
 
     f1 = std::move( f2);
     BOOST_CHECK( f1.joinable() );
     BOOST_CHECK( ! f2.joinable() );
 
-    BOOST_CHECK( memoria::fibers::fiber::id() != f1.get_id() );
-    BOOST_CHECK_EQUAL( memoria::fibers::fiber::id(), f2.get_id() );
+    BOOST_CHECK( boost::fibers::fiber::id() != f1.get_id() );
+    BOOST_CHECK_EQUAL( boost::fibers::fiber::id(), f2.get_id() );
 
     BOOST_CHECK( ! f2.joinable() );
 
@@ -347,8 +342,8 @@ void test_yield() {
     int v1 = 0, v2 = 0;
     BOOST_CHECK_EQUAL( 0, v1);
     BOOST_CHECK_EQUAL( 0, v2);
-    memoria::fibers::fiber f1( memoria::fibers::launch::post, fn3, std::ref( v1) );
-    memoria::fibers::fiber f2( memoria::fibers::launch::post, fn3, std::ref( v2) );
+    boost::fibers::fiber f1( boost::fibers::launch::post, fn3, std::ref( v1) );
+    boost::fibers::fiber f2( boost::fibers::launch::post, fn3, std::ref( v2) );
     f1.join();
     f2.join();
     BOOST_CHECK( ! f1.joinable() );
@@ -362,14 +357,12 @@ void test_sleep_for() {
     typedef Clock::time_point time_point;
     std::chrono::milliseconds ms(500);
     time_point t0 = Clock::now();
-    memoria::this_fiber::sleep_for(ms);
+    boost::this_fiber::sleep_for(ms);
     time_point t1 = Clock::now();
     std::chrono::nanoseconds ns = (t1 - t0) - ms;
-    std::chrono::nanoseconds err = ms / 100;
-    // The time slept is within 1% of 500ms
+    std::chrono::nanoseconds err = ms / 10;
     // This test is spurious as it depends on the time the fiber system switches the fiber
     BOOST_CHECK((std::max)(ns.count(), -ns.count()) < (err+std::chrono::milliseconds(1000)).count());
-    //BOOST_TEST(std::abs(static_cast<long>(ns.count())) < (err+std::chrono::milliseconds(1000)).count());
 }
 
 void test_sleep_until() {
@@ -378,52 +371,48 @@ void test_sleep_until() {
         typedef Clock::time_point time_point;
         std::chrono::milliseconds ms(500);
         time_point t0 = Clock::now();
-        memoria::this_fiber::sleep_until(t0 + ms);
+        boost::this_fiber::sleep_until(t0 + ms);
         time_point t1 = Clock::now();
         std::chrono::nanoseconds ns = (t1 - t0) - ms;
-        std::chrono::nanoseconds err = ms / 100;
-        // The time slept is within 1% of 500ms
+        std::chrono::nanoseconds err = ms / 10;
         // This test is spurious as it depends on the time the thread system switches the threads
         BOOST_CHECK((std::max)(ns.count(), -ns.count()) < (err+std::chrono::milliseconds(1000)).count());
-        //BOOST_TEST(std::abs(static_cast<long>(ns.count())) < (err+std::chrono::milliseconds(1000)).count());
     }
     {
         typedef std::chrono::system_clock Clock;
         typedef Clock::time_point time_point;
         std::chrono::milliseconds ms(500);
         time_point t0 = Clock::now();
-        memoria::this_fiber::sleep_until(t0 + ms);
+        boost::this_fiber::sleep_until(t0 + ms);
         time_point t1 = Clock::now();
         std::chrono::nanoseconds ns = (t1 - t0) - ms;
-        std::chrono::nanoseconds err = ms / 100;
-        // The time slept is within 1% of 500ms
+        std::chrono::nanoseconds err = ms / 10;
         // This test is spurious as it depends on the time the thread system switches the threads
         BOOST_CHECK((std::max)(ns.count(), -ns.count()) < (err+std::chrono::milliseconds(1000)).count());
-        //BOOST_TEST(std::abs(static_cast<long>(ns.count())) < (err+std::chrono::milliseconds(1000)).count());
     }
 }
 
-void do_wait( memoria::fibers::barrier* b) {
+void do_wait( boost::fibers::barrier* b) {
     b->wait();
 }
 
 void test_detach() {
     {
-        memoria::fibers::fiber f( memoria::fibers::launch::post, (detachable()) );
+        boost::fibers::fiber f( boost::fibers::launch::post, (detachable()) );
         BOOST_CHECK( f.joinable() );
         f.detach();
         BOOST_CHECK( ! f.joinable() );
-        memoria::this_fiber::sleep_for( std::chrono::milliseconds(250) );
+        boost::this_fiber::sleep_for( std::chrono::milliseconds(250) );
         BOOST_CHECK( detachable::was_running);
         BOOST_CHECK_EQUAL( 0, detachable::alive_count);
     }
     {
-        memoria::fibers::fiber f( memoria::fibers::launch::post, (detachable()) );
+        boost::fibers::fiber f( boost::fibers::launch::post, (detachable()) );
         BOOST_CHECK( f.joinable() );
-        memoria::this_fiber::yield();
+        boost::this_fiber::yield();
         f.detach();
         BOOST_CHECK( ! f.joinable() );
-        memoria::this_fiber::sleep_for( std::chrono::milliseconds(250) );
+        boost::this_fiber::sleep_for( std::chrono::milliseconds(250) );
         BOOST_CHECK( detachable::was_running);
         BOOST_CHECK_EQUAL( 0, detachable::alive_count);
     }
@@ -441,7 +430,6 @@ boost::unit_test::test_suite * init_unit_test_suite( int, char* []) {
     test->add( BOOST_TEST_CASE( & test_join_lambda) );
     test->add( BOOST_TEST_CASE( & test_join_bind) );
     test->add( BOOST_TEST_CASE( & test_join_in_fiber) );
-    test->add( BOOST_TEST_CASE( & test_move_fiber) );
     test->add( BOOST_TEST_CASE( & test_move_fiber) );
     test->add( BOOST_TEST_CASE( & test_yield) );
     test->add( BOOST_TEST_CASE( & test_sleep_for) );

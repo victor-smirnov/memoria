@@ -33,8 +33,8 @@
 .file  "make_s390x_sysv_elf_gas.S"
 .text
 .align  4 # According to the sample code in the ELF ABI docs
-.global make_fcontext
-.type 	 make_fcontext, @function
+.global memoria_make_fcontext
+.type 	 memoria_make_fcontext, @function
 
 #define GR_OFFSET	0
 #define LR_OFFSET	64
@@ -44,9 +44,9 @@
 #define L_CTX		120
 #define L_STACKFRAME	120
 
-make_fcontext:
+memoria_make_fcontext:
 
-		# make_fcontext takes in 3 arguments
+		# memoria_make_fcontext takes in 3 arguments
 		# arg1 --> The address where the context needs to be made
 		# arg2 --> The size of the context
 		# arg3 --> The address of the context function
@@ -71,9 +71,9 @@ make_fcontext:
 		# This is done by shifting the SP/address by 112 bytes.
 		aghi	%r2,-L_CTX
 
-		# third arg of make_fcontext() == address of the context-function
+		# third arg of memoria_make_fcontext() == address of the context-function
 		# Store the address as a PC to jump in, whenever we call the 
-		# make_fcontext.
+		# memoria_make_fcontext.
 		stg 	%r4,PC_OFFSET(%r2)
 
 		# Save the address of finish as return-address for context-function
@@ -87,18 +87,18 @@ make_fcontext:
 		# Return pointer to context data
 		# R14 acts as the link register
 		# R2 holds the address of the context stack. When we return from the
-		# make_fcontext, R2 is passed back.
+		# memoria_make_fcontext, R2 is passed back.
 		br 	%r14 
 
 	finish:
 
-		# In finish tasks, you load the exit code and exit the make_fcontext
+		# In finish tasks, you load the exit code and exit the memoria_make_fcontext
 		# This is called when the context-function is entirely executed
 
 		lghi 	%r2,0
 		brasl 	%r14,_exit@PLT
 
-.size   make_fcontext,.-make_fcontext
+.size   memoria_make_fcontext,.-memoria_make_fcontext
 # Mark that we don't need executable stack.
 .section .note.GNU-stack,"",%progbits
 

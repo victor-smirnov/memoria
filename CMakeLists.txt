@@ -63,11 +63,12 @@ option(BUILD_TESTS_CONTAINERS   "Build containers tests" ON)
 option(BUILD_TESTS_REACTOR      "Build Reactor tests" ON)
 option(BUILD_TESTS_SDN          "Build SDN/LDDocument tests" ON)
 option(BUILD_TESTS_DATATYPES    "Build Datatype tests" ON)
-option(BUILD_TESTS_FIBERS       "Build Fibers tests" OFF)
-option(BUILD_TESTS_DISRUPTOR    "Build Disriptor MPSC queue tests" OFF)
+option(BUILD_TESTS_FIBERS       "Build Fibers tests" ON)
+option(BUILD_TESTS_DISRUPTOR    "Build Disriptor MPSC queue tests" ON)
+option(BUILD_TESTS_CONTEXT      "Build Disriptor MPSC queue tests" ON)
 
-option(ICU_DEBUG        "Debug FindICU" OFF)
-option(Boost_DEBUG      "Debug FindBoost" OFF)
+option(ICU_DEBUG   "Debug FindICU" OFF)
+option(Boost_DEBUG "Debug FindBoost" OFF)
 
 option(BUILD_CLASSIC_MEMORIA_LIB "Build core library without Reactor support, using threads for concurrency" OFF)
 option(BUILD_REACTOR_MEMORIA_LIB "Build core library WITH Reactor support, using fibers for concurrency" ON)
@@ -155,7 +156,6 @@ if (BUILD_POSIX)
     
     add_global_libs(dl pthread)
 
-
     if (BUILD_STATIC)
         add_definitions(-static)
         add_global_linker(-static) #-static-libgcc -static-libstdc++
@@ -176,13 +176,16 @@ if (MSVC)
     set (Boost_USE_STATIC_RUNTIME    ON)
     set (Boost_USE_STATIC_LIBS       ON)
     find_package(ICU 60.2 COMPONENTS dt i18n uc REQUIRED)
+    link_libraries(ICU::dt ICU::uc ICU::i18n)
+
 else()
     set (Boost_USE_STATIC_RUNTIME    ${BUILD_WITH_STATIC_BOOST})
     set (Boost_USE_STATIC_LIBS       ${BUILD_WITH_STATIC_BOOST})
     find_package(ICU 60.2 COMPONENTS i18n uc data REQUIRED)
+    link_libraries(ICU::i18n ICU::uc ICU::data)
 endif()
 
-find_package(Boost 1.71.0 COMPONENTS program_options serialization unit_test_framework REQUIRED)
+find_package(Boost 1.71.0 COMPONENTS context program_options serialization unit_test_framework REQUIRED)
 
 if (MSVC)
     link_libraries(Boost::program_options Boost::serialization Boost::unit_test_framework)
@@ -190,12 +193,11 @@ endif()
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
-add_global_libs(${Boost_LIBRARIES})
-
+link_libraries(Boost::program_options Boost::serialization)
 
 include_directories(${ICU_INCLUDE_DIRS})
 link_directories(${ICU_LIBRARY_DIRS})
-add_global_libs(${ICU_LIBRARIES})
+
 
 find_package(absl CONFIG REQUIRED)
 link_libraries(absl::base absl::strings absl::hash absl::meta absl::time)

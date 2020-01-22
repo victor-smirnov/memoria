@@ -33,8 +33,8 @@
 .file  "ontop_s390x_sysv_elf_gas.S"
 .text
 .align  4 # According to the sample code in the ELF ABI docs
-.global ontop_fcontext
-.type   ontop_fcontext, @function
+.global memoria_ontop_fcontext
+.type   memoria_ontop_fcontext, @function
 
 #define GR_OFFSET	0
 #define LR_OFFSET	64
@@ -43,7 +43,7 @@
 #define PC_OFFSET	112
 #define L_CTX		120
 
-ontop_fcontext:
+memoria_ontop_fcontext:
     
     # Reserved the space for stack to store the data of current context
     # before we jump to the new context.
@@ -64,11 +64,11 @@ ontop_fcontext:
     lgr  %r0,%r15
 
     # Get the SP pointing to the new context-data
-    # Note: Since the return type of the jump_fcontext is struct whose
+    # Note: Since the return type of the memoria_jump_fcontext is struct whose
     # size is more than 8. The compiler automatically passes the 
     # address of the transfer_t where the data needs to store into R2.
 
-    # Hence the first param passed to the jump_fcontext which represent
+    # Hence the first param passed to the memoria_jump_fcontext which represent
     # the fctx we want to switch to is present in R3
     # R2 --> Address of the return transfer_t struct
     # R3 --> Context we want to switch to
@@ -107,6 +107,6 @@ ontop_fcontext:
     #jump to context function
     br 	%r5
 
-.size   ontop_fcontext,.-ontop_fcontext
+.size   memoria_ontop_fcontext,.-memoria_ontop_fcontext
 # Mark that we don't need executable stack.
 .section .note.GNU-stack,"",%progbits

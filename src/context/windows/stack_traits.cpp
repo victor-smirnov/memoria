@@ -45,11 +45,11 @@ extern "C" {
 
 namespace {
 
-void system_info_( SYSTEM_INFO * si) BOOST_NOEXCEPT_OR_NOTHROW {
+void system_info_( SYSTEM_INFO * si) noexcept {
     ::GetSystemInfo( si);
 }
 
-SYSTEM_INFO system_info() BOOST_NOEXCEPT_OR_NOTHROW {
+SYSTEM_INFO system_info() noexcept {
     static SYSTEM_INFO si;
 #if defined(BOOST_NO_CXX11_HDR_MUTEX)
     static boost::once_flag flag = BOOST_ONCE_INIT;
@@ -61,7 +61,7 @@ SYSTEM_INFO system_info() BOOST_NOEXCEPT_OR_NOTHROW {
     return si;
 }
 
-std::size_t pagesize() BOOST_NOEXCEPT_OR_NOTHROW {
+std::size_t pagesize() noexcept {
     return static_cast< std::size_t >( system_info().dwPageSize);
 }
 
@@ -74,26 +74,26 @@ namespace context {
 // libcoco uses 32k+4k bytes as minimum
 MEMORIA_CONTEXT_DECL
 bool
-stack_traits::is_unbounded() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::is_unbounded() noexcept {
     return true;
 }
 
 MEMORIA_CONTEXT_DECL
 std::size_t
-stack_traits::page_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::page_size() noexcept {
     return pagesize();
 }
 
 MEMORIA_CONTEXT_DECL
 std::size_t
-stack_traits::default_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::default_size() noexcept {
     return 128 * 1024;
 }
 
 // because Windows seams not to provide a limit for minimum stacksize
 MEMORIA_CONTEXT_DECL
 std::size_t
-stack_traits::minimum_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::minimum_size() noexcept {
     return MIN_STACKSIZE;
 }
 
@@ -101,7 +101,7 @@ stack_traits::minimum_size() BOOST_NOEXCEPT_OR_NOTHROW {
 // maximum_size() can never be called (pre-condition ! is_unbounded() )
 MEMORIA_CONTEXT_DECL
 std::size_t
-stack_traits::maximum_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::maximum_size() noexcept {
     BOOST_ASSERT( ! is_unbounded() );
     return  1 * 1024 * 1024 * 1024; // 1GB
 }

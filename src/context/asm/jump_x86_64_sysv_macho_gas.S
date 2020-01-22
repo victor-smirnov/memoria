@@ -25,9 +25,9 @@
  ****************************************************************************************/
 
 .text
-.globl _jump_fcontext
+.globl _memoria_jump_fcontext
 .align 8
-_jump_fcontext:
+_memoria_jump_fcontext:
     leaq  -0x38(%rsp), %rsp /* prepare stack */
 
 #if !defined(BOOST_USE_TSX)

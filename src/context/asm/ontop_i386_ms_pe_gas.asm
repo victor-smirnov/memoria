@@ -26,9 +26,9 @@
 .file	"ontop_i386_ms_pe_gas.asm"
 .text
 .p2align 4,,15
-.globl	_ontop_fcontext
-.def	_ontop_fcontext;	.scl	2;	.type	32;	.endef
-_ontop_fcontext:
+.globl	_memoria_ontop_fcontext
+.def	_memoria_ontop_fcontext;	.scl	2;	.type	32;	.endef
+_memoria_ontop_fcontext:
     /* prepare stack */
     leal  -0x2c(%esp), %esp
 
@@ -65,19 +65,19 @@ _ontop_fcontext:
     /* store ESP (pointing to context-data) in ECX */
     movl  %esp, %ecx
 
-    /* first arg of ontop_fcontext() == fcontext to jump to */
+    /* first arg of memoria_ontop_fcontext() == fcontext to jump to */
     movl  0x30(%esp), %eax
 
 	/* pass parent fcontext_t */
 	movl  %ecx, 0x30(%eax)
 
-    /* second arg of ontop_fcontext() == data to be transferred */
+    /* second arg of memoria_ontop_fcontext() == data to be transferred */
     movl  0x34(%esp), %ecx
 
 	/* pass data */
 	movl  %ecx, 0x34(%eax)
 
-    /* third arg of ontop_fcontext() == ontop-function */
+    /* third arg of memoria_ontop_fcontext() == ontop-function */
     movl  0x38(%esp), %ecx
 
     /* restore ESP (pointing to context-data) from EDX */
@@ -122,4 +122,4 @@ _ontop_fcontext:
     jmp  *%ecx
 
 .section .drectve
-.ascii " -export:\"ontop_fcontext\""
+.ascii " -export:\"memoria_ontop_fcontext\""

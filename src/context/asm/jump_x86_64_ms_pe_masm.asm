@@ -84,7 +84,7 @@
 
 .code
 
-jump_fcontext PROC  FRAME
+memoria_jump_fcontext PROC  FRAME
     .endprolog
 
     ; prepare stack
@@ -201,5 +201,5 @@ ENDIF
 
     ; indirect jump to context
     jmp  r10
-jump_fcontext ENDP
+memoria_jump_fcontext ENDP
 END

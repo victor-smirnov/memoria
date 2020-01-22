@@ -10,10 +10,9 @@
 #include <vector>
 
 #include <boost/assert.hpp>
+#include <boost/test/unit_test.hpp>
 
-#include <boost/test/included/unit_test.hpp>
-
-#include <memoria/fiber/all.hpp>
+#include <boost/fiber/all.hpp>
 
 struct moveable {
     bool    state;
@@ -49,110 +48,106 @@ struct moveable {
 void test_zero_wm() {
     bool thrown = false;
     try {
-        memoria::fibers::buffered_channel< int > c( 0);
-    } catch ( memoria::fibers::fiber_error const&) {
+        boost::fibers::buffered_channel< int > c( 0);
+    } catch ( boost::fibers::fiber_error const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 }
 
 void test_push() {
-    memoria::fibers::buffered_channel< int > c( 16);
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 1) );
+    boost::fibers::buffered_channel< int > c( 16);
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
 }
 
 void test_push_closed() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     c.close();
-    BOOST_CHECK( memoria::fibers::channel_op_status::closed == c.push( 1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::closed == c.push( 1) );
 }
 
 void test_try_push() {
-    memoria::fibers::buffered_channel< int > c( 2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 1) );
+    boost::fibers::buffered_channel< int > c( 2);
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
 }
 
 void test_try_push_closed() {
-    memoria::fibers::buffered_channel< int > c( 2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.try_push( 1) );
+    boost::fibers::buffered_channel< int > c( 2);
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_push( 1) );
     c.close();
-    BOOST_CHECK( memoria::fibers::channel_op_status::closed == c.try_push( 2) );
+    BOOST_CHECK( boost::fibers::channel_op_status::closed == c.try_push( 2) );
 }
 
 void test_try_push_full() {
-    memoria::fibers::buffered_channel< int > c( 2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.try_push( 1) );
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.try_push( 1) );
-    BOOST_CHECK( memoria::fibers::channel_op_status::full == c.try_push( 2) );
+    boost::fibers::buffered_channel< int > c( 2);
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_push( 1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::full == c.try_push( 1) );
 }
 
 void test_push_wait_for() {
-    memoria::fibers::buffered_channel< int > c( 2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
+    boost::fibers::buffered_channel< int > c( 2);
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
 }
 
 void test_push_wait_for_closed() {
-    memoria::fibers::buffered_channel< int > c( 2);
+    boost::fibers::buffered_channel< int > c( 2);
     c.close();
-    BOOST_CHECK( memoria::fibers::channel_op_status::closed == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
+    BOOST_CHECK( boost::fibers::channel_op_status::closed == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
 }
 
 void test_push_wait_for_timeout() {
-    memoria::fibers::buffered_channel< int > c( 2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
-    BOOST_CHECK( memoria::fibers::channel_op_status::timeout == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
+    boost::fibers::buffered_channel< int > c( 2);
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
+    BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.push_wait_for( 1, std::chrono::seconds( 1) ) );
 }
 
 void test_push_wait_until() {
-    memoria::fibers::buffered_channel< int > c( 2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push_wait_until( 1,
+    boost::fibers::buffered_channel< int > c( 2);
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_until( 1,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
 }
 
 void test_push_wait_until_closed() {
-    memoria::fibers::buffered_channel< int > c( 2);
+    boost::fibers::buffered_channel< int > c( 2);
     c.close();
-    BOOST_CHECK( memoria::fibers::channel_op_status::closed == c.push_wait_until( 1,
+    BOOST_CHECK( boost::fibers::channel_op_status::closed == c.push_wait_until( 1,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
 }
 
 void test_push_wait_until_timeout() {
-    memoria::fibers::buffered_channel< int > c( 2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push_wait_until( 1,
+    boost::fibers::buffered_channel< int > c( 2);
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push_wait_until( 1,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push_wait_until( 1,
-                    std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
-    BOOST_CHECK( memoria::fibers::channel_op_status::timeout == c.push_wait_until( 1,
+    BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.push_wait_until( 1,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
 }
 
 void test_pop() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.pop( v2) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( v2) );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_pop_closed() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     c.close();
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.pop( v2) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( v2) );
     BOOST_CHECK_EQUAL( v1, v2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::closed == c.pop( v2) );
+    BOOST_CHECK( boost::fibers::channel_op_status::closed == c.pop( v2) );
 }
 
 void test_pop_success() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    memoria::fibers::fiber f1( memoria::fibers::launch::dispatch, [&c,&v2](){
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.pop( v2) );
+    boost::fibers::fiber f1( boost::fibers::launch::dispatch, [&c,&v2](){
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( v2) );
     });
-    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, [&c,v1](){
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    boost::fibers::fiber f2( boost::fibers::launch::dispatch, [&c,v1](){
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     });
     f1.join();
     f2.join();
@@ -160,37 +155,37 @@ void test_pop_success() {
 }
 
 void test_value_pop() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     v2 = c.value_pop();
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_value_pop_closed() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     c.close();
     v2 = c.value_pop();
     BOOST_CHECK_EQUAL( v1, v2);
     bool thrown = false;
     try {
         c.value_pop();
-    } catch ( memoria::fibers::fiber_error const&) {
+    } catch ( boost::fibers::fiber_error const&) {
         thrown = true;
     }
     BOOST_CHECK( thrown);
 }
 
 void test_value_pop_success() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    memoria::fibers::fiber f1( memoria::fibers::launch::dispatch, [&c,&v2](){
+    boost::fibers::fiber f1( boost::fibers::launch::dispatch, [&c,&v2](){
         v2 = c.value_pop();
     });
-    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, [&c,v1](){
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    boost::fibers::fiber f2( boost::fibers::launch::dispatch, [&c,v1](){
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     });
     f1.join();
     f2.join();
@@ -198,33 +193,33 @@ void test_value_pop_success() {
 }
 
 void test_try_pop() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.try_pop( v2) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_pop( v2) );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_try_pop_closed() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     c.close();
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.try_pop( v2) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.try_pop( v2) );
     BOOST_CHECK_EQUAL( v1, v2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::closed == c.try_pop( v2) );
+    BOOST_CHECK( boost::fibers::channel_op_status::closed == c.try_pop( v2) );
 }
 
 void test_try_pop_success() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    memoria::fibers::fiber f1( memoria::fibers::launch::dispatch, [&c,&v2](){
-        while ( memoria::fibers::channel_op_status::success != c.try_pop( v2) ) {
-            memoria::this_fiber::yield();
+    boost::fibers::fiber f1( boost::fibers::launch::dispatch, [&c,&v2](){
+        while ( boost::fibers::channel_op_status::success != c.try_pop( v2) ) {
+            boost::this_fiber::yield();
         }
     });
-    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, [&c,v1](){
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    boost::fibers::fiber f2( boost::fibers::launch::dispatch, [&c,v1](){
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     });
     f1.join();
     f2.join();
@@ -232,31 +227,31 @@ void test_try_pop_success() {
 }
 
 void test_pop_wait_for() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_pop_wait_for_closed() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     c.close();
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
     BOOST_CHECK_EQUAL( v1, v2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::closed == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
+    BOOST_CHECK( boost::fibers::channel_op_status::closed == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
 }
 
 void test_pop_wait_for_success() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    memoria::fibers::fiber f1( memoria::fibers::launch::dispatch, [&c,&v2](){
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
+    boost::fibers::fiber f1( boost::fibers::launch::dispatch, [&c,&v2](){
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_for( v2, std::chrono::seconds( 1) ) );
     });
-    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, [&c,v1](){
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    boost::fibers::fiber f2( boost::fibers::launch::dispatch, [&c,v1](){
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     });
     f1.join();
     f2.join();
@@ -264,44 +259,44 @@ void test_pop_wait_for_success() {
 }
 
 void test_pop_wait_for_timeout() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v = 0;
-    memoria::fibers::fiber f( memoria::fibers::launch::dispatch, [&c,&v](){
-        BOOST_CHECK( memoria::fibers::channel_op_status::timeout == c.pop_wait_for( v, std::chrono::seconds( 1) ) );
+    boost::fibers::fiber f( boost::fibers::launch::dispatch, [&c,&v](){
+        BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.pop_wait_for( v, std::chrono::seconds( 1) ) );
     });
     f.join();
 }
 
 void test_pop_wait_until() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.pop_wait_until( v2,
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_until( v2,
             std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
     BOOST_CHECK_EQUAL( v1, v2);
 }
 
 void test_pop_wait_until_closed() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     c.close();
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.pop_wait_until( v2,
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_until( v2,
             std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
     BOOST_CHECK_EQUAL( v1, v2);
-    BOOST_CHECK( memoria::fibers::channel_op_status::closed == c.pop_wait_until( v2,
+    BOOST_CHECK( boost::fibers::channel_op_status::closed == c.pop_wait_until( v2,
             std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
 }
 
 void test_pop_wait_until_success() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v1 = 2, v2 = 0;
-    memoria::fibers::fiber f1( memoria::fibers::launch::dispatch, [&c,&v2](){
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.pop_wait_until( v2,
+    boost::fibers::fiber f1( boost::fibers::launch::dispatch, [&c,&v2](){
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop_wait_until( v2,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
     });
-    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, [&c,v1](){
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( v1) );
+    boost::fibers::fiber f2( boost::fibers::launch::dispatch, [&c,v1](){
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( v1) );
     });
     f1.join();
     f2.join();
@@ -309,62 +304,62 @@ void test_pop_wait_until_success() {
 }
 
 void test_pop_wait_until_timeout() {
-    memoria::fibers::buffered_channel< int > c( 16);
+    boost::fibers::buffered_channel< int > c( 16);
     int v = 0;
-    memoria::fibers::fiber f( memoria::fibers::launch::dispatch, [&c,&v](){
-        BOOST_CHECK( memoria::fibers::channel_op_status::timeout == c.pop_wait_until( v,
+    boost::fibers::fiber f( boost::fibers::launch::dispatch, [&c,&v](){
+        BOOST_CHECK( boost::fibers::channel_op_status::timeout == c.pop_wait_until( v,
                     std::chrono::system_clock::now() + std::chrono::seconds( 1) ) );
     });
     f.join();
 }
 
 void test_wm_1() {
-    memoria::fibers::buffered_channel< int > c( 4);
-    std::vector< memoria::fibers::fiber::id > ids;
-    memoria::fibers::fiber f1( memoria::fibers::launch::dispatch, [&c,&ids](){
-        ids.push_back( memoria::this_fiber::get_id() );
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 1) );
+    boost::fibers::buffered_channel< int > c( 4);
+    std::vector< boost::fibers::fiber::id > ids;
+    boost::fibers::fiber f1( boost::fibers::launch::dispatch, [&c,&ids](){
+        ids.push_back( boost::this_fiber::get_id() );
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
 
-        ids.push_back( memoria::this_fiber::get_id() );
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 2) );
+        ids.push_back( boost::this_fiber::get_id() );
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 2) );
 
-        ids.push_back( memoria::this_fiber::get_id() );
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 3) );
+        ids.push_back( boost::this_fiber::get_id() );
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 3) );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         // would be blocked because channel is full
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 4) );
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 4) );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         // would be blocked because channel is full
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 5) );
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 5) );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
     });
-    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, [&c,&ids](){
-        ids.push_back( memoria::this_fiber::get_id() );
+    boost::fibers::fiber f2( boost::fibers::launch::dispatch, [&c,&ids](){
+        ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 1, c.value_pop() );
 
         // let other fiber run
-        memoria::this_fiber::yield();
+        boost::this_fiber::yield();
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 2, c.value_pop() );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 3, c.value_pop() );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 4, c.value_pop() );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         // would block because channel is empty
         BOOST_CHECK_EQUAL( 5, c.value_pop() );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
     });
-    memoria::fibers::fiber::id id1 = f1.get_id();
-    memoria::fibers::fiber::id id2 = f2.get_id();
+    boost::fibers::fiber::id id1 = f1.get_id();
+    boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
     BOOST_CHECK_EQUAL( 12u, ids.size() );
@@ -372,76 +367,76 @@ void test_wm_1() {
     BOOST_CHECK_EQUAL( id1, ids[1]);
     BOOST_CHECK_EQUAL( id1, ids[2]);
     BOOST_CHECK_EQUAL( id1, ids[3]);
-    BOOST_CHECK_EQUAL( id1, ids[4]);
-    BOOST_CHECK_EQUAL( id2, ids[5]);
-    BOOST_CHECK_EQUAL( id1, ids[6]);
+    BOOST_CHECK_EQUAL( id2, ids[4]);
+    BOOST_CHECK_EQUAL( id1, ids[5]);
+    BOOST_CHECK_EQUAL( id2, ids[6]);
     BOOST_CHECK_EQUAL( id2, ids[7]);
     BOOST_CHECK_EQUAL( id2, ids[8]);
     BOOST_CHECK_EQUAL( id2, ids[9]);
-    BOOST_CHECK_EQUAL( id2, ids[10]);
+    BOOST_CHECK_EQUAL( id1, ids[10]);
     BOOST_CHECK_EQUAL( id2, ids[11]);
 }
 
 void test_wm_2() {
-    memoria::fibers::buffered_channel< int > c( 4);
-    std::vector< memoria::fibers::fiber::id > ids;
-    memoria::fibers::fiber f1( memoria::fibers::launch::dispatch, [&c,&ids](){
-        ids.push_back( memoria::this_fiber::get_id() );
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 1) );
+    boost::fibers::buffered_channel< int > c( 4);
+    std::vector< boost::fibers::fiber::id > ids;
+    boost::fibers::fiber f1( boost::fibers::launch::dispatch, [&c,&ids](){
+        ids.push_back( boost::this_fiber::get_id() );
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 1) );
 
-        ids.push_back( memoria::this_fiber::get_id() );
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 2) );
+        ids.push_back( boost::this_fiber::get_id() );
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 2) );
 
-        ids.push_back( memoria::this_fiber::get_id() );
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 3) );
+        ids.push_back( boost::this_fiber::get_id() );
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 3) );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         // would be blocked because channel is full
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 4) );
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 4) );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         // would be blocked because channel is full
-        BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( 5) );
+        BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( 5) );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
     });
-    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, [&c,&ids](){
-        ids.push_back( memoria::this_fiber::get_id() );
+    boost::fibers::fiber f2( boost::fibers::launch::dispatch, [&c,&ids](){
+        ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 1, c.value_pop() );
 
         // let other fiber run
-        memoria::this_fiber::yield();
+        boost::this_fiber::yield();
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 2, c.value_pop() );
 
         // let other fiber run
-        memoria::this_fiber::yield();
+        boost::this_fiber::yield();
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 3, c.value_pop() );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 4, c.value_pop() );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
         BOOST_CHECK_EQUAL( 5, c.value_pop() );
 
-        ids.push_back( memoria::this_fiber::get_id() );
+        ids.push_back( boost::this_fiber::get_id() );
     });
-    memoria::fibers::fiber::id id1 = f1.get_id();
-    memoria::fibers::fiber::id id2 = f2.get_id();
+    boost::fibers::fiber::id id1 = f1.get_id();
+    boost::fibers::fiber::id id2 = f2.get_id();
     f1.join();
     f2.join();
-    BOOST_CHECK_EQUAL( 12u, ids.size() );
+    BOOST_CHECK_EQUAL( (std::size_t)12, ids.size() );
     BOOST_CHECK_EQUAL( id1, ids[0]);
     BOOST_CHECK_EQUAL( id1, ids[1]);
     BOOST_CHECK_EQUAL( id1, ids[2]);
     BOOST_CHECK_EQUAL( id1, ids[3]);
-    BOOST_CHECK_EQUAL( id1, ids[4]);
-    BOOST_CHECK_EQUAL( id2, ids[5]);
-    BOOST_CHECK_EQUAL( id1, ids[6]);
-    BOOST_CHECK_EQUAL( id2, ids[7]);
+    BOOST_CHECK_EQUAL( id2, ids[4]);
+    BOOST_CHECK_EQUAL( id1, ids[5]);
+    BOOST_CHECK_EQUAL( id2, ids[6]);
+    BOOST_CHECK_EQUAL( id1, ids[7]);
     BOOST_CHECK_EQUAL( id2, ids[8]);
     BOOST_CHECK_EQUAL( id2, ids[9]);
     BOOST_CHECK_EQUAL( id2, ids[10]);
@@ -449,16 +444,16 @@ void test_wm_2() {
 }
 
 void test_moveable() {
-    memoria::fibers::buffered_channel< moveable > c( 16);
+    boost::fibers::buffered_channel< moveable > c( 16);
     moveable m1( 3), m2;
     BOOST_CHECK( m1.state);
     BOOST_CHECK_EQUAL( 3, m1.value);
     BOOST_CHECK( ! m2.state);
     BOOST_CHECK_EQUAL( -1, m2.value);
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.push( std::move( m1) ) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.push( std::move( m1) ) );
     BOOST_CHECK( ! m1.state);
     BOOST_CHECK( ! m2.state);
-    BOOST_CHECK( memoria::fibers::channel_op_status::success == c.pop( m2) );
+    BOOST_CHECK( boost::fibers::channel_op_status::success == c.pop( m2) );
     BOOST_CHECK( ! m1.state);
     BOOST_CHECK_EQUAL( -1, m1.value);
     BOOST_CHECK( m2.state);
@@ -466,9 +461,9 @@ void test_moveable() {
 }
 
 void test_rangefor() {
-    memoria::fibers::buffered_channel< int > chan{ 4 };
+    boost::fibers::buffered_channel< int > chan{ 4 };
     std::vector< int > vec;
-    memoria::fibers::fiber f1( memoria::fibers::launch::dispatch, [&chan]{
+    boost::fibers::fiber f1( boost::fibers::launch::dispatch, [&chan]{
         chan.push( 1);
         chan.push( 1);
         chan.push( 2);
@@ -478,7 +473,7 @@ void test_rangefor() {
         chan.push( 12);
         chan.close();
     });
-    memoria::fibers::fiber f2( memoria::fibers::launch::dispatch, [&vec,&chan]{
+    boost::fibers::fiber f2( boost::fibers::launch::dispatch, [&vec,&chan]{
         for ( int value : chan) {
             vec.push_back( value);
         }

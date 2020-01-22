@@ -1,5 +1,5 @@
 
-# Copyright 2017 Victor Smirnov
+# Copyright 2020 Victor Smirnov
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (BUILD_CLASSIC_MEMORIA_LIB)
-
-file(GLOB SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cc)
+file(GLOB SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 
 FOREACH(TEST_SOURCE ${SRCS})
     get_filename_component(TEST_TARGET ${TEST_SOURCE} NAME_WE)
@@ -23,7 +21,5 @@ FOREACH(TEST_SOURCE ${SRCS})
     SET_TARGET_PROPERTIES(${TEST_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     SET_TARGET_PROPERTIES(${TEST_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     
-    target_link_libraries(${TEST_TARGET} MemoriaClassic ${MEMORIA_LIBS} Boost::unit_test_framework)
+    target_link_libraries(${TEST_TARGET} Memoria Boost::unit_test_framework ${MEMORIA_LIBS})
 ENDFOREACH()
-
-endif()

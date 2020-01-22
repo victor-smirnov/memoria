@@ -1,6 +1,6 @@
 .align 2
-.globl .ontop_fcontext
-.ontop_fcontext:
+.globl .memoria_ontop_fcontext
+.memoria_ontop_fcontext:
     # reserve space on stack
     subi  1, 1, 184
 

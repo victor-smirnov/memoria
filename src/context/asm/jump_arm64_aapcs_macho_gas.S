@@ -52,9 +52,9 @@
  *******************************************************/
 
 .text
-.globl _jump_fcontext
+.globl _memoria_jump_fcontext
 .balign 16
-_jump_fcontext:
+_memoria_jump_fcontext:
     ; prepare stack for GP + FPU
     sub  sp, sp, #0xb0
 

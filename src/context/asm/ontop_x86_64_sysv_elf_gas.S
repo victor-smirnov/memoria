@@ -26,10 +26,10 @@
 
 .file "ontop_x86_64_sysv_elf_gas.S"
 .text
-.globl ontop_fcontext
-.type ontop_fcontext,@function
+.globl memoria_ontop_fcontext
+.type memoria_ontop_fcontext,@function
 .align 16
-ontop_fcontext:
+memoria_ontop_fcontext:
     /* preserve ontop-function in R8 */
     movq  %rdx, %r8
 
@@ -78,7 +78,7 @@ ontop_fcontext:
 
     /* indirect jump to context */
     jmp  *%r8
-.size ontop_fcontext,.-ontop_fcontext
+.size memoria_ontop_fcontext,.-memoria_ontop_fcontext
 
 /* Mark that we don't need executable stack.  */
 .section .note.GNU-stack,"",%progbits

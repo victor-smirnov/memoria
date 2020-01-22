@@ -9,40 +9,40 @@
 #include <sstream>
 #include <string>
 
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
-#include <memoria/fiber/all.hpp>
+#include <boost/fiber/all.hpp>
 
 int value1 = 0;
 int value2 = 0;
 
-void fn1( memoria::fibers::barrier & b) {
+void fn1( boost::fibers::barrier & b) {
     ++value1;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
 
     b.wait();
 
     ++value1;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     ++value1;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     ++value1;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     ++value1;
 }
 
-void fn2( memoria::fibers::barrier & b) {
+void fn2( boost::fibers::barrier & b) {
     ++value2;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     ++value2;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     ++value2;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
 
     b.wait();
 
     ++value2;
-    memoria::this_fiber::yield();
+    boost::this_fiber::yield();
     ++value2;
 }
 
@@ -50,9 +50,9 @@ void test_barrier() {
     value1 = 0;
     value2 = 0;
 
-    memoria::fibers::barrier b( 2);
-    memoria::fibers::fiber f1( memoria::fibers::launch::post, fn1, std::ref( b) );
-    memoria::fibers::fiber f2( memoria::fibers::launch::post, fn2, std::ref( b) );
+    boost::fibers::barrier b( 2);
+    boost::fibers::fiber f1( boost::fibers::launch::post, fn1, std::ref( b) );
+    boost::fibers::fiber f2( boost::fibers::launch::post, fn2, std::ref( b) );
 
     f1.join();
     f2.join();

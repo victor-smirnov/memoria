@@ -39,17 +39,17 @@ extern "C" {
 
 namespace {
 
-void pagesize_( std::size_t * size) BOOST_NOEXCEPT_OR_NOTHROW {
+void pagesize_( std::size_t * size) noexcept {
     // conform to POSIX.1-2001
     * size = ::sysconf( _SC_PAGESIZE);
 }
 
-void stacksize_limit_( rlimit * limit) BOOST_NOEXCEPT_OR_NOTHROW {
+void stacksize_limit_( rlimit * limit) noexcept {
     // conforming to POSIX.1-2001
     ::getrlimit( RLIMIT_STACK, limit);
 }
 
-std::size_t pagesize() BOOST_NOEXCEPT_OR_NOTHROW {
+std::size_t pagesize() noexcept {
     static std::size_t size = 0;
 #if defined(BOOST_NO_CXX11_HDR_MUTEX)
     static boost::once_flag flag = BOOST_ONCE_INIT;
@@ -61,7 +61,7 @@ std::size_t pagesize() BOOST_NOEXCEPT_OR_NOTHROW {
     return size;
 }
 
-rlimit stacksize_limit() BOOST_NOEXCEPT_OR_NOTHROW {
+rlimit stacksize_limit() noexcept {
     static rlimit limit;
 #if defined(BOOST_NO_CXX11_HDR_MUTEX)
     static boost::once_flag flag = BOOST_ONCE_INIT;
@@ -79,27 +79,27 @@ namespace memoria {
 namespace context {
 
 bool
-stack_traits::is_unbounded() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::is_unbounded() noexcept {
     return RLIM_INFINITY == stacksize_limit().rlim_max;
 }
 
 std::size_t
-stack_traits::page_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::page_size() noexcept {
     return pagesize();
 }
 
 std::size_t
-stack_traits::default_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::default_size() noexcept {
     return 128 * 1024;
 }
 
 std::size_t
-stack_traits::minimum_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::minimum_size() noexcept {
     return MINSIGSTKSZ;
 }
 
 std::size_t
-stack_traits::maximum_size() BOOST_NOEXCEPT_OR_NOTHROW {
+stack_traits::maximum_size() noexcept {
     BOOST_ASSERT( ! is_unbounded() );
     return static_cast< std::size_t >( stacksize_limit().rlim_max);
 }
