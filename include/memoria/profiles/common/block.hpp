@@ -18,7 +18,6 @@
 
 #include <memoria/profiles/common/block_operations.hpp>
 
-#include <memoria/core/tools/buffer.hpp>
 #include <memoria/core/tools/id.hpp>
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/uuid.hpp>
@@ -35,56 +34,15 @@
 
 namespace memoria {
 
-template <int32_t Size>
-class BitBuffer: public StaticBuffer<Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1)> {
-    typedef StaticBuffer<
-                (Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1))
-    >                                                                           Base;
-public:
 
-    typedef int32_t                                                             Index;
-    typedef typename Base::ElementType                                          Bits;
 
-    static const int32_t kBitSize           = Size;
-
-    static const int RESERVED_SIZE      = 0;
-    static const int RESERVED_BITSIZE   = RESERVED_SIZE * 8;
-
-    BitBuffer() = default;
-
-    bool isBit(Index index) const {
-        return GetBit(*this, index + RESERVED_BITSIZE);
-    }
-
-    Bits getBits(Index idx, Index count) const {
-        return GetBits(*this, idx, count);
-    }
-
-    void setBits(Index idx, Bits bits, Index count) {
-        SetBits(*this, idx, bits, count);
-    }
-
-    void setBit(int index, int bit) {
-        SetBit(*this, index + RESERVED_BITSIZE, bit);
-    }
-};
-
-template <int32_t Size>
-struct TypeHash<BitBuffer<Size> > {
-public:
-    static const uint64_t Value = 123456 * Size;
-};
-
-template <typename PageIdType, int32_t FlagsCount = 32>
+template <typename PageIdType>
 class AbstractPage {
-//    static_assert(std::is_trivial<PageIdType>::value, "PageIdType must be a trivial type");
 
 public:
     static constexpr uint32_t VERSION = 1;
-    typedef BitBuffer<FlagsCount> FlagsType;
 
 private:
-    typedef AbstractPage<PageIdType, FlagsCount> Me;
 
     uint32_t    crc_;
     uint64_t    ctr_type_hash_;
@@ -97,15 +55,12 @@ private:
     PageIdType  id_;
     PageIdType  uuid_;
 
-    FlagsType   flags_;
-
     int32_t     deleted_;
 
     //Txn rollback intrusive list fields. Not used by containers.
 public:
     using FieldsList = TypeList<
                 ConstValue<uint32_t, VERSION>,
-                decltype(flags_),
                 decltype(id_),
                 decltype(uuid_),
                 decltype(crc_),
@@ -121,7 +76,7 @@ public:
 
     AbstractPage() = default;
 
-    AbstractPage(const PageIdType &id): id_(id), uuid_(id), flags_() {}
+    AbstractPage(const PageIdType &id): id_(id), uuid_(id) {}
 
     const PageIdType &id() const {
         return id_;
@@ -140,10 +95,6 @@ public:
     }
 
     void init() {}
-
-    FlagsType &flags() {
-        return flags_;
-    }
 
     uint32_t &crc() {
         return crc_;
@@ -188,15 +139,7 @@ public:
     }
 
     int32_t data_size() const {
-        return sizeof(Me);
-    }
-
-    bool is_updated() {
-        return flags_.isBit(0);
-    }
-
-    void set_updated(bool updated) {
-        return flags_.setBit(0, updated);
+        return sizeof(AbstractPage);
     }
 
     uint64_t& next_block_pos() {
@@ -234,7 +177,7 @@ public:
     }
 
 
-    void copyFrom(const Me* block)
+    void copyFrom(const AbstractPage* block)
     {
         this->id()              = block->id();
         this->gid()             = block->gid();
@@ -284,13 +227,13 @@ public:
 
 
 
-template <typename PageIdType, int32_t FlagsCount>
-struct TypeHash<AbstractPage<PageIdType, FlagsCount>>: HasValue<
+template <typename PageIdType>
+struct TypeHash<AbstractPage<PageIdType>>: HasValue<
         uint64_t,
         HashHelper<
-            AbstractPage<PageIdType, FlagsCount>::VERSION,
-            TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>,
-            TypeHashV<typename AbstractPage<PageIdType, FlagsCount>::BlockID>,
+            AbstractPage<PageIdType>::VERSION,
+            TypeHashV<typename AbstractPage<PageIdType>::FlagsType>,
+            TypeHashV<typename AbstractPage<PageIdType>::BlockID>,
             TypeHashV<int32_t>,
             8
         >

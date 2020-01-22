@@ -22,7 +22,7 @@
 #include <memoria/core/tools/assert.hpp>
 #include <memoria/core/tools/platform.hpp>
 #include <memoria/core/tools/uuid.hpp>
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 #include <memoria/core/container/ctr_referenceable.hpp>
 
 #include <memoria/profiles/common/common.hpp>

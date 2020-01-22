@@ -23,7 +23,7 @@
 
 #include <memoria/core/container/logs.hpp>
 
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 #include <memoria/core/tools/pair.hpp>
 
 #include <memory>

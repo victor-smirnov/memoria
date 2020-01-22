@@ -23,7 +23,7 @@
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/pair.hpp>
 #include <memoria/core/tools/latch.hpp>
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 
 #include <memoria/store/memory/common/store_base.hpp>
 #include <memoria/store/memory/fibers/fibers_snapshot_impl.hpp>

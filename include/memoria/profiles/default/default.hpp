@@ -31,7 +31,7 @@ struct ProfileTraits {
     using CtrID         = UUID;
     using CtrSizeT      = int64_t;
 
-    using Block = AbstractPage <BlockID, 32>;
+    using Block = AbstractPage <BlockID>;
     using BlockType = Block;
 
     using AllocatorType = IAllocator<Profile>;

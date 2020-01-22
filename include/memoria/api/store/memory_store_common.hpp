@@ -18,7 +18,7 @@
 #include <memoria/core/types.hpp>
 #include <memoria/core/strings/strings.hpp>
 #include <memoria/core/tools/stream.hpp>
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 
 #include <memoria/api/common/ctr_api.hpp>
 #include <memoria/core/container/container.hpp>

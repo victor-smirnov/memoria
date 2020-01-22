@@ -24,7 +24,7 @@
 #include <memoria/core/container/ctr_referenceable.hpp>
 
 #include <memoria/core/graph/graph.hpp>
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 #include <memoria/profiles/common/container_operations.hpp>
 
 #include <memoria/core/tools/result.hpp>

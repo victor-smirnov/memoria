@@ -19,7 +19,7 @@
 #include <memoria/core/strings/strings.hpp>
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/uuid.hpp>
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 #include <memoria/core/container/logs.hpp>
 #include <memoria/core/datatypes/type_signature.hpp>
 #include <memoria/core/datatypes/traits.hpp>

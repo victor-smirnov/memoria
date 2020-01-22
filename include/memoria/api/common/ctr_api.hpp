@@ -17,7 +17,7 @@
 
 #include <memoria/core/types.hpp>
 
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/allocator.hpp>
 #include <memoria/core/container/ctr_referenceable.hpp>

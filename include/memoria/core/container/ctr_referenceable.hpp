@@ -18,7 +18,7 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/core/tools/uuid.hpp>
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 
 #include <memoria/core/strings/string.hpp>
 

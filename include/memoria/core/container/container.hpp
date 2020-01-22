@@ -22,7 +22,7 @@
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/tools/assert.hpp>
 #include <memoria/core/tools/uuid.hpp>
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 
 #include <memoria/profiles/common/container_operations.hpp>
 
@@ -40,7 +40,7 @@
 #include <memoria/core/strings/string.hpp>
 
 #include <memoria/core/tools/pair.hpp>
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 
 #include <memoria/core/graph/graph.hpp>
 #include <memoria/core/graph/graph_default_edge.hpp>

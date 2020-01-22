@@ -28,7 +28,7 @@
 
 #include <memoria/core/tools/pool.hpp>
 #include <memoria/core/tools/bitmap.hpp>
-#include <memoria/core/tools/memory.hpp>
+#include <memoria/core/memory/memory.hpp>
 #include <memoria/containers/map/map_factory.hpp>
 #include <memoria/core/tools/pair.hpp>
 #include <memoria/core/tools/type_name.hpp>

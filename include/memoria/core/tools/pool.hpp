@@ -23,9 +23,6 @@
  */
 
 
-#include <memoria/core/tools/buffer.hpp>
-
-
 namespace memoria {
 
 template <typename ID, typename Object, int32_t Size = 64>
