@@ -13,8 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/core/types/type2type.hpp>
-#include <memoria/core/tools/hash.hpp>
+
 #include <memoria/core/container/logs.hpp>
 
 #ifndef MMA_NO_REACTOR

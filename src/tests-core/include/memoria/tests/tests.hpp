@@ -21,7 +21,7 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/filesystem/path.hpp>
 #include <memoria/core/memory/malloc.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/core/tools/optional.hpp>
 
@@ -223,7 +223,7 @@ public:
     FnTest(FnT&& fn): fn_(std::move(fn)) {}
 
     void test(TestState* state) {
-        fn_(*tools::ptr_cast<StateT>(state));
+        fn_(*ptr_cast<StateT>(state));
     }
 
     std::unique_ptr<TestState> create_state() {
@@ -241,7 +241,7 @@ class ClassTest: public Test {
 public:
     void test(TestState* state)
     {
-        (tools::ptr_cast<StateT>(state)->*MethodT)();
+        (ptr_cast<StateT>(state)->*MethodT)();
     }
 
     std::unique_ptr<TestState> create_state() {
@@ -254,11 +254,11 @@ class ClassTestWithReplay: public Test {
 public:
     void test(TestState* state)
     {
-        (tools::ptr_cast<StateT>(state)->*TestMethodT)();
+        (ptr_cast<StateT>(state)->*TestMethodT)();
     }
 
     void replay_test(TestState* state) {
-        (tools::ptr_cast<StateT>(state)->*ReplayMethodT)();
+        (ptr_cast<StateT>(state)->*ReplayMethodT)();
     }
 
     std::unique_ptr<TestState> create_state() {

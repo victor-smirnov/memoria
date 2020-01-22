@@ -18,7 +18,7 @@
 
 #include <memoria/core/container/block_traits.hpp>
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
+
 #include <memoria/core/types/traits.hpp>
 #include <memoria/core/tools/buffer.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -33,6 +33,8 @@
 #include <memoria/core/packed/tree_walkers.hpp>
 
 #include <memoria/containers/seq_dense/seqd_walkers.hpp>
+
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <functional>
 #include <algorithm>
@@ -329,30 +331,30 @@ public:
 
     Value* valuesBlock()
     {
-        return T2T<Value*>(memory_block_ + getValueBlockOffset());
+        return ptr_cast<Value>(memory_block_ + getValueBlockOffset());
     }
 
     const Value* valuesBlock() const
     {
-        return T2T<const Value*>(memory_block_ + getValueBlockOffset());
+        return ptr_cast<const Value>(memory_block_ + getValueBlockOffset());
     }
 
     IndexKey* indexBlock()
     {
-        return T2T<IndexKey*>(memory_block_);
+        return ptr_cast<IndexKey>(memory_block_);
     }
 
     const IndexKey* indexBlock() const
     {
-        return T2T<const IndexKey*>(memory_block_);
+        return ptr_cast<const IndexKey>(memory_block_);
     }
 
     IndexKey* indexes(int32_t block) {
-        return T2T<IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
+        return ptr_casr<IndexKey>(memory_block_ + getIndexKeyBlockOffset(block));
     }
 
     const IndexKey* indexes(int32_t block) const {
-        return T2T<const IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
+        return ptr_cast<const IndexKey>(memory_block_ + getIndexKeyBlockOffset(block));
     }
 
 
@@ -371,7 +373,7 @@ public:
         MEMORIA_V1_ASSERT(key_num, >=, 0);
         MEMORIA_V1_ASSERT(key_num, <, index_size_);
 
-        return *T2T<IndexKey*>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
+        return *ptr_cast<IndexKey>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
     }
 
     const IndexKey& indexb(int32_t block_offset, int32_t key_num) const
@@ -379,7 +381,7 @@ public:
         MEMORIA_V1_ASSERT(key_num, >=, 0);
         MEMORIA_V1_ASSERT(key_num, <, index_size_);
 
-        return *T2T<const IndexKey*>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
+        return *ptr_cast<const IndexKey>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
     }
 
     IndexKey& index(int32_t block_num, int32_t key_num)
@@ -389,7 +391,7 @@ public:
 
         int32_t block_offset = getIndexKeyBlockOffset(block_num);
 
-        return *T2T<IndexKey*>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
+        return *ptr_cast<IndexKey>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
     }
 
     const IndexKey& index(int32_t block_num, int32_t key_num) const
@@ -399,7 +401,7 @@ public:
 
         int32_t block_offset = getIndexKeyBlockOffset(block_num);
 
-        return *T2T<IndexKey*>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
+        return *ptr_cast<IndexKey>(memory_block_ + block_offset + key_num * sizeof(IndexKey));
     }
 
     IndexKey& maxIndex(int32_t block_num)
@@ -693,17 +695,17 @@ public:
     {
         if (Bits == 1 || Bits == 2 || Bits == 4)
         {
-            const Value* buffer = T2T<const Value*>(memory_block_ + block_offset);
+            const Value* buffer = ptr_cast<const Value>(memory_block_ + block_offset);
             return GetBits0(buffer, item_idx * Bits, Bits);
         }
         else if (Bits == 8)
         {
-            const uint8_t* buffer = T2T<const uint8_t*>(memory_block_ + block_offset);
+            const uint8_t* buffer = ptr_cast<const uint8_t>(memory_block_ + block_offset);
             return buffer[item_idx];
         }
         else
         {
-            const Value* buffer = T2T<const Value*>(memory_block_ + block_offset);
+            const Value* buffer = ptr_cast<const Value>(memory_block_ + block_offset);
             return GetBits(buffer, item_idx * Bits, Bits);
         }
     }
@@ -712,17 +714,17 @@ public:
     {
         if (Bits == 1 || Bits == 2 || Bits == 4)
         {
-            Value* buffer = T2T<Value*>(memory_block_ + block_offset);
+            Value* buffer = ptr_cast<Value>(memory_block_ + block_offset);
             SetBits0(buffer, item_idx * Bits, v, Bits);
         }
         else if (Bits == 8)
         {
-            uint8_t* buffer = T2T<uint8_t*>(memory_block_ + block_offset);
+            uint8_t* buffer = ptr_cast<uint8_t>(memory_block_ + block_offset);
             buffer[item_idx] = v;
         }
         else
         {
-            Value* buffer = T2T<Value*>(memory_block_ + block_offset);
+            Value* buffer = ptr_cast<Value>(memory_block_ + block_offset);
             SetBits(buffer, item_idx * Bits, v, Bits);
         }
     }
@@ -754,12 +756,12 @@ public:
 
     const Value* cellAddr(int32_t idx) const
     {
-        return T2T<const Value*>(valuesBlock() + idx);
+        return ptr_cast<const Value>(valuesBlock() + idx);
     }
 
     Value* cellAddr(int32_t idx)
     {
-        return T2T<Value*>(valuesBlock() + idx);
+        return ptr_cast<Value>(valuesBlock() + idx);
     }
 
     void copyTo(MyType* other, int32_t copy_from, int32_t count, int32_t copy_to) const
@@ -1531,7 +1533,7 @@ private:
 
     void copyValuesBlock(MyType* other, int8_t* target_memory_block) const
     {
-        Value* tgt = T2T<Value*>(target_memory_block + other->getValueBlockOffset());
+        Value* tgt = ptr_cast<Value>(target_memory_block + other->getValueBlockOffset());
 
         CopyBuffer(valuesBlock(), tgt, getValueCellsCount(size()));
     }

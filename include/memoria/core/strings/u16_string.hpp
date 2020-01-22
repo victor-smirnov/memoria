@@ -17,9 +17,9 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
 
 #include <boost/utility/string_view.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <string>
 #include <memory>
@@ -108,7 +108,7 @@ public:
     U16String(ContentT&& other): content_(std::move(other)) {}
 
     U16String(const UnicodeString& icu_string):
-        content_(T2T<const char16_t*>(icu_string.getBuffer()), icu_string.length())
+        content_(ptr_cast<const char16_t>(icu_string.getBuffer()), icu_string.length())
     {}
 
     explicit U16String(const U8String& other);

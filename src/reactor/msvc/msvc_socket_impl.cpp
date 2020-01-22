@@ -207,7 +207,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     sock_address_.sin_addr.s_addr   = ip_address_.to_in_addr().s_addr;
     sock_address_.sin_port          = ::htons(ip_port_);
     
-    int bres = ::bind(fd_, tools::ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
+    int bres = ::bind(fd_, ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
     
     if (bres == SOCKET_ERROR)
 	{
@@ -328,7 +328,7 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 		bind_addr.sin_addr.s_addr = INADDR_ANY;
 		bind_addr.sin_port = 0;
 		
-		int bres = ::bind(fd_, tools::ptr_cast<sockaddr>(&bind_addr), sizeof(bind_addr));
+		int bres = ::bind(fd_, ptr_cast<sockaddr>(&bind_addr), sizeof(bind_addr));
 
 		if (bres == SOCKET_ERROR)
 		{

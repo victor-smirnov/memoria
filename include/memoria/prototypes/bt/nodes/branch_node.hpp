@@ -41,6 +41,8 @@
 #include <memoria/core/packed/misc/packed_tuple.hpp>
 #include <memoria/core/packed/misc/packed_map.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #include <type_traits>
 
 namespace memoria {
@@ -843,10 +845,10 @@ public:
         virtual Result<int32_t> serialize(const BlockType* block, void* buf) const noexcept
         {
             return wrap_throwing([&]() {
-                const MyType* node = T2T<const MyType*>(block);
+                const MyType* node = ptr_cast<const MyType>(block);
 
                 SerializationData data;
-                data.buf = T2T<char*>(buf);
+                data.buf = ptr_cast<char>(buf);
 
                 node->serialize(data);
 
@@ -857,10 +859,10 @@ public:
         virtual VoidResult deserialize(const void* buf, int32_t buf_size, BlockType* block) const noexcept
         {
             return wrap_throwing([&]() {
-                MyType* node = T2T<MyType*>(block);
+                MyType* node = ptr_cast<MyType>(block);
 
                 DeserializationData data;
-                data.buf = T2T<const char*>(buf);
+                data.buf = ptr_cast<const char>(buf);
 
                 node->deserialize(data);
 
@@ -871,7 +873,7 @@ public:
         virtual VoidResult resize(const BlockType* block, void* buffer, int32_t new_size) const noexcept
         {
             return wrap_throwing([&]() {
-                MyType* tgt = T2T<MyType*>(buffer);
+                MyType* tgt = ptr_cast<MyType>(buffer);
                 tgt->resizeBlock(new_size);
 
                 return VoidResult::of();

@@ -85,7 +85,7 @@ void ClientSocketImpl::connect()
 
     while(true)
     {
-        int status = ::connect(fd_, tools::ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
+        int status = ::connect(fd_, ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
 
         if (status >= 0)
         {

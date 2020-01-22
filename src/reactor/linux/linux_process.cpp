@@ -20,7 +20,7 @@
 #include <memoria/reactor/reactor.hpp>
 
 #include <memoria/core/strings/string.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -65,7 +65,7 @@ filesystem::path get_program_path()
 
         size_t zero_pos = find_zero(buf.get(), read);
 
-        str += U8String(tools::ptr_cast<char>(buf.get()), zero_pos);
+        str += U8String(ptr_cast<char>(buf.get()), zero_pos);
 
         if (zero_pos < read)
         {

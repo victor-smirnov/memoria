@@ -15,8 +15,7 @@
 
 #pragma once
 
-#include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memory>
 #include <cstdlib>
@@ -40,7 +39,7 @@ UniquePtr<T> allocate_system(size_t size)
 {
     void* ptr = ::malloc(size * detail::AllocationSizeH<T>::Value);
 
-    T* tptr = T2T<T*>(ptr);
+    T* tptr = ptr_cast<T>(ptr);
 
     return UniquePtr<T>(tptr, ::free);
 }
@@ -48,7 +47,7 @@ UniquePtr<T> allocate_system(size_t size)
 template <typename T>
 UniquePtr<T> reallocate_system(void* ptr, size_t size)
 {
-    return UniquePtr<T>(T2T<T*>(::realloc(ptr, size * detail::AllocationSizeH<T>::Value)), ::free);
+    return UniquePtr<T>(ptr_cast<T>(::realloc(ptr, size * detail::AllocationSizeH<T>::Value)), ::free);
 }
 
 template <typename T>
@@ -57,7 +56,7 @@ UniquePtr<T> allocate_system_zeroed(size_t size)
     void* ptr = ::malloc(size * detail::AllocationSizeH<T>::Value);
     std::memset(ptr, 0, size * detail::AllocationSizeH<T>::Value);
 
-    return UniquePtr<T>(T2T<T*>(ptr), ::free);
+    return UniquePtr<T>(ptr_cast<T>(ptr), ::free);
 }
 
 static inline void free_system(void* ptr) noexcept
@@ -68,7 +67,7 @@ static inline void free_system(void* ptr) noexcept
 template <typename T>
 UniquePtr<T> empty_unique_ptr() 
 {
-	return UniquePtr<T>(T2T<T*>(nullptr), ::free);
+    return UniquePtr<T>(ptr_cast<T>(nullptr), ::free);
 }
 
 }

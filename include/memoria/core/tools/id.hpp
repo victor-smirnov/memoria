@@ -17,7 +17,7 @@
 
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/core/strings/string.hpp>
 
@@ -46,7 +46,7 @@ public:
 
     IDValue(int64_t id)
     {
-        int64_t* data_ptr = T2T<int64_t*>(data_);
+        int64_t* data_ptr = ptr_cast<int64_t>(data_);
         *data_ptr = id;
     }
 

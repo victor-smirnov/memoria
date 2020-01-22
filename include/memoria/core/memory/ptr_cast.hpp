@@ -16,15 +16,21 @@
 
 #pragma once
 
+#include <memoria/core/types.hpp>
+
 #include <cstring>
 #include <type_traits>
 
 namespace memoria {
-namespace tools {
 
 template <typename TypeTo, typename TypeFrom>
 TypeTo* ptr_cast(TypeFrom* ptr)
 {
+    static_assert(
+        (std::is_const<TypeFrom*>::value && std::is_const<TypeTo*>::value) ||
+        ((!std::is_const<TypeFrom*>::value) && (!std::is_const<TypeTo*>::value))
+    , "");
+
     static_assert(std::is_pointer<TypeFrom*>::value, "");
     static_assert(std::is_pointer<TypeTo*>::value, "");
     
@@ -35,5 +41,19 @@ TypeTo* ptr_cast(TypeFrom* ptr)
     return result;
 }
 
+template <typename TypeTo, typename TypeFrom>
+TypeTo value_cast(const TypeFrom& ptr)
+{
+    static_assert(sizeof(TypeFrom) == sizeof(TypeTo), "");
 
-}}
+    static_assert(std::is_trivially_copy_constructible<TypeTo>::value, "");
+    static_assert(std::is_trivially_copy_constructible<TypeFrom>::value, "");
+
+    TypeTo result;
+
+    std::memcpy(&result, &ptr, sizeof(TypeFrom));
+
+    return result;
+}
+
+}

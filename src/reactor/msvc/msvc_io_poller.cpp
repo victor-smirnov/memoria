@@ -16,7 +16,7 @@
 
 #include <memoria/reactor/msvc/msvc_io_poller.hpp>
 #include <memoria/reactor/reactor.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 #include <memoria/core/tools/perror.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 
@@ -100,7 +100,7 @@ void IOPoller::poll(DWORD dwMilliseconds)
 			}
 			else if (overlapped) 
 			{
-				auto ovlMsg = tools::ptr_cast<OVERLAPPEDMsg>(overlapped);
+				auto ovlMsg = ptr_cast<OVERLAPPEDMsg>(overlapped);
 
 				ovlMsg->size_			= num_bytes;
 				ovlMsg->completion_key_ = completion_key;

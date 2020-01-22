@@ -18,16 +18,13 @@
 
 #include <memoria/core/tools/md5.hpp>
 #include <memoria/core/tools/optional.hpp>
-#include <memoria/core/types/type2type.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <string.h>
 #include <tuple>
 
 namespace memoria {
 
-inline int64_t PtrToLong(const void *ptr) {
-    return T2T<int64_t>(ptr);
-}
 
 template <typename T> struct FieldFactory;
 

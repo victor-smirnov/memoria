@@ -21,7 +21,7 @@
 
 #include <memoria/core/tools/span.hpp>
 
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <type_traits>
 #include <functional>
@@ -69,7 +69,7 @@ public:
     }
 
     ArenaBuffer(uint8_t* provided_buffer, SizeT capacity, ArenaBufferMemoryMgr memory_mgr):
-        buffer_(tools::ptr_cast<ValueT>(provided_buffer)),
+        buffer_(ptr_cast<ValueT>(provided_buffer)),
         capacity_(capacity),
         size_(0),
         memory_mgr_(std::move(memory_mgr))
@@ -398,7 +398,7 @@ private:
             return allocate_system<ValueT>(size).release();
         }
         else {
-            return tools::ptr_cast<ValueT>(memory_mgr_(buffer_id_, ArenaBufferCmd::ALLOCATE, size * sizeof(ValueT), nullptr));
+            return ptr_cast<ValueT>(memory_mgr_(buffer_id_, ArenaBufferCmd::ALLOCATE, size * sizeof(ValueT), nullptr));
         }
     }
 
@@ -410,7 +410,7 @@ private:
             free_system(existing);
         }
         else {
-            memory_mgr_(buffer_id_, ArenaBufferCmd::FREE, capacity_ * sizeof(ValueT), tools::ptr_cast<uint8_t>(existing));
+            memory_mgr_(buffer_id_, ArenaBufferCmd::FREE, capacity_ * sizeof(ValueT), ptr_cast<uint8_t>(existing));
         }
     }
 };

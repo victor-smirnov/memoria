@@ -21,6 +21,7 @@
 #include <memoria/core/tools/object_pool.hpp>
 #include <memoria/core/tools/pair.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memory>
 #include <tuple>
@@ -195,7 +196,7 @@ public:
 
     size_t fetch_to_bytes(Bytes buffer)
     {
-        return fetch(T2T<UUID*>(buffer.data()), buffer.length() / sizeof (UUID));
+        return fetch(ptr_cast<UUID>(buffer.data()), buffer.length() / sizeof (UUID));
     }
 
 
@@ -280,7 +281,7 @@ public:
 
     size_t fetch_to_bytes(Bytes buffer)
     {
-        return fetch(T2T<UUID*>(buffer.data()), buffer.length() / sizeof (UUID));
+        return fetch(ptr_cast<UUID>(buffer.data()), buffer.length() / sizeof (UUID));
     }
 
     size_t fetch(UUID* mem, size_t size)

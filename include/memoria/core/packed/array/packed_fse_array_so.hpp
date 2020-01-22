@@ -28,6 +28,8 @@
 
 #include <memoria/core/datatypes/buffer/buffer_0_fse.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #include <algorithm>
 
 namespace memoria {
@@ -411,7 +413,7 @@ public:
 
         for (psize_t c = 0; c < Columns; c++)
         {
-            auto buffer_values = T2T<const Value*>(buffer.span(start, size).data());
+            auto buffer_values = ptr_cast<const Value>(buffer.span(start, size).data());
             MemCpyBuffer(buffer_values, data_->values(c) + at, size);
         }
 

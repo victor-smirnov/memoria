@@ -797,8 +797,8 @@ public:
 
 //        const io::IOColumnwiseVLenArraySubstream<Value>& buffer = io::substream_cast<io::IOColumnwiseVLenArraySubstream<Value>>(substream);
 
-//        auto buffer_values_start = T2T<const uint8_t*>(buffer.select(0, start));
-//        auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(0, start + size));
+//        auto buffer_values_start = ptr_cast<const uint8_t>(buffer.select(0, start));
+//        auto buffer_values_end   = ptr_cast<const uint8_t>(buffer.select(0, start + size));
 
 //        ptrdiff_t total_length   = buffer_values_end - buffer_values_start;
 

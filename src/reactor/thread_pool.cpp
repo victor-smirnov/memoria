@@ -69,7 +69,7 @@ void ThreadPool::release(Message* task)
 {
     BOOST_ASSERT_MSG(task->data(), "ThreadPooolST: Provided message has no worker associated with");
     
-    WorkerT* worker = tools::ptr_cast<WorkerT>(task->data());
+    WorkerT* worker = ptr_cast<WorkerT>(task->data());
     
     auto ii = busy_workers_.iterator_to(*worker);
     

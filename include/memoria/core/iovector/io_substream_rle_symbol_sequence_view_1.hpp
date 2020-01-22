@@ -152,7 +152,7 @@ public:
 
     virtual void configure(const void* ptr)
     {
-        size_ = T2T<uint64_t>(ptr);
+        size_ = reinterpret_cast<uint64_t>(ptr); // FIXME: UB!!
     }
 };
 

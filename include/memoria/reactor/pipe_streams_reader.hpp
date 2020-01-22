@@ -19,7 +19,7 @@
 
 #include <memoria/fiber/all.hpp>
 
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <vector>
 
@@ -52,11 +52,11 @@ public:
 	}
 
     U8String to_u8() const {
-        return U8String(tools::ptr_cast<const char>(buffer_.data()), buffer_.size());
+        return U8String(ptr_cast<const char>(buffer_.data()), buffer_.size());
     }
 
 	U16String to_u16() const {
-		return U16String(tools::ptr_cast<const char>(buffer_.data()), buffer_.size());
+		return U16String(ptr_cast<const char>(buffer_.data()), buffer_.size());
 	}
 
 private:

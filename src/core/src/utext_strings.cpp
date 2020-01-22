@@ -16,7 +16,7 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/strings/format.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <unicode/utext.h>
 #include <cstring>
@@ -53,12 +53,12 @@ const UTextFuncs* get_uchars_utext_funcs()
 
 void adjust_ptr(UText *dest, const void **dest_ptr, const UText *src)
 {
-    const char *dptr = T2T<char*>(*dest_ptr);
-    char *d_utext = T2T<char*>(dest);
-    char *s_utext = T2T<char*>(src);
+    const char *dptr = ptr_cast<char>(*dest_ptr);
+    char *d_utext = ptr_cast<char>(dest);
+    char *s_utext = ptr_cast<char>(src);
 
-    const char* src_pExtra = T2T<const char*>(src->pExtra);
-    char* dest_pExtra = T2T<char*>(dest->pExtra);
+    const char* src_pExtra = ptr_cast<const char>(src->pExtra);
+    char* dest_pExtra = ptr_cast<char>(dest->pExtra);
 
     if (dptr >= src_pExtra && dptr < (src_pExtra + src->extraSize))
     {
@@ -107,7 +107,7 @@ shallow_text_clone(UText * dest, const UText * src, UErrorCode * status)
     adjust_ptr(dest, &dest->p, src);
     adjust_ptr(dest, &dest->q, src);
     adjust_ptr(dest, &dest->r, src);
-    adjust_ptr(dest, tools::ptr_cast<const void*>(&dest->chunkContents), src); //(const void **)
+    adjust_ptr(dest, ptr_cast<const void*>(&dest->chunkContents), src); //(const void **)
 
     // Not actually needed here, but let's do it anyway.
     dest->providerProperties &= ~I32_FLAG(UTEXT_PROVIDER_OWNS_TEXT);
@@ -121,7 +121,7 @@ shallow_text_clone(UText * dest, const UText * src, UErrorCode * status)
 template <typename PtrT>
 void u16string_close(UText *ut)
 {
-    PtrT* shared_ptr = T2T<PtrT*>(ut->q);
+    PtrT* shared_ptr = ptr_cast<PtrT>(ut->q);
     shared_ptr->~PtrT();
     ut->context = nullptr;
     ut->q = nullptr;
@@ -141,7 +141,7 @@ static UText * u16string_clone(UText *dest, const UText * src, UBool deep, UErro
 
         if (U_SUCCESS(*status))
         {
-            PtrT* existing_string_ptr = T2T<PtrT*>(src->q);
+            PtrT* existing_string_ptr = ptr_cast<PtrT>(src->q);
             dest->q = new PtrT(*existing_string_ptr);
         }
     }
@@ -302,7 +302,7 @@ U16String to_u16string(UText* utext, int64_t start, int64_t length)
             }
 
             int64_t cu16_length = limit_chunk_offset - start_chunk_offset;
-            return U16String(T2T<const char16_t*>(utext->chunkContents + start_chunk_offset), cu16_length);
+            return U16String(ptr_cast<const char16_t>(utext->chunkContents + start_chunk_offset), cu16_length);
         }
         else {
             if (!utext->pFuncs->mapNativeIndexToUTF16)
@@ -343,7 +343,7 @@ public:
     virtual int64_t read_to(int64_t position, char16_t* data, size_t size)
     {
         UErrorCode status = U_ZERO_ERROR;
-        int64_t processed = utext_extract(utext_.get(), position, size, T2T<UChar*>(data), size, &status);
+        int64_t processed = utext_extract(utext_.get(), position, size, ptr_cast<UChar>(data), size, &status);
         StringException::assertOk(status);
         return processed;
     }

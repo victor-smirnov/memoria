@@ -24,7 +24,7 @@
 #include <memoria/core/tools/accessors.hpp>
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
+
 
 #include <vector>
 #include <iostream>

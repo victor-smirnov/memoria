@@ -18,7 +18,7 @@
 
 #include <memoria/core/tools/iostreams.hpp>
 #include <memoria/reactor/file.hpp>
-#include <memoria/core/types/type2type.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/core/memory/malloc.hpp>
 
@@ -73,7 +73,7 @@ protected:
         auto size = std::distance(Base::pbase(), Base::pptr());
         if (size > 0)
         {
-            size_t written = output_stream_->write(T2T<uint8_t*>(buffer_.get()), size);
+            size_t written = output_stream_->write(ptr_cast<uint8_t>(buffer_.get()), size);
             Base::pbump(-(int32_t)written);
         }
 
@@ -111,7 +111,7 @@ public:
 protected:
     int_type underflow()
     {
-        size_t read = input_stream_->read(T2T<uint8_t*>(buffer_.get()), size_);
+        size_t read = input_stream_->read(ptr_cast<uint8_t>(buffer_.get()), size_);
 
         if (read != 0)
         {

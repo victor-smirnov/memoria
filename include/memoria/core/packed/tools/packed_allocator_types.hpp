@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/profiles/common/block_operations.hpp>
@@ -25,6 +24,8 @@
 #include <memoria/core/tools/bitmap.hpp>
 
 #include <memoria/core/packed/tools/packed_tools.hpp>
+
+#include <memoria/core/memory/ptr_cast.hpp>
 
 namespace memoria {
 
@@ -178,9 +179,10 @@ public:
 
     void setAllocatorOffset(const void* allocator)
     {
-        const char* my_ptr = T2T<const char*>(this);
-        const char* alc_ptr = T2T<const char*>(allocator);
-        size_t diff = T2T<size_t>(my_ptr - alc_ptr);
+        // TODO: check for UB.
+        const char* my_ptr = ptr_cast<const char>(this);
+        const char* alc_ptr = ptr_cast<const char>(allocator);
+        ptrdiff_t diff = reinterpret_cast<ptrdiff_t>(my_ptr - alc_ptr);
         allocator_offset() = diff;
     }
 
@@ -188,8 +190,8 @@ public:
     {
         if (allocator_offset() > 0)
         {
-            uint8_t* my_ptr = T2T<uint8_t*>(this);
-            return T2T<PackedAllocator*>(my_ptr - allocator_offset());
+            uint8_t* my_ptr = ptr_cast<uint8_t>(this);
+            return ptr_cast<PackedAllocator>(my_ptr - allocator_offset());
         }
         else {
             MMA_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
@@ -200,8 +202,8 @@ public:
     {
         if (allocator_offset() > 0)
         {
-            uint8_t* my_ptr = T2T<uint8_t*>(this);
-            return T2T<PackedAllocator*>(my_ptr - allocator_offset());
+            uint8_t* my_ptr = ptr_cast<uint8_t>(this);
+            return ptr_cast<PackedAllocator>(my_ptr - allocator_offset());
         }
         else {
             return nullptr;
@@ -212,8 +214,8 @@ public:
     {
         if (allocator_offset() > 0)
         {
-            const uint8_t* my_ptr = T2T<const uint8_t*>(this);
-            return T2T<const PackedAllocator*>(my_ptr - allocator_offset());
+            const uint8_t* my_ptr = ptr_cast<const uint8_t>(this);
+            return ptr_cast<const PackedAllocator>(my_ptr - allocator_offset());
         }
         else {
             MMA_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
@@ -224,8 +226,8 @@ public:
     {
         if (allocator_offset() > 0)
         {
-            const uint8_t* my_ptr = T2T<const uint8_t*>(this);
-            return T2T<const PackedAllocator*>(my_ptr - allocator_offset());
+            const uint8_t* my_ptr = ptr_cast<const uint8_t>(this);
+            return ptr_cast<const PackedAllocator>(my_ptr - allocator_offset());
         }
         else {
             return nullptr;
@@ -297,12 +299,12 @@ struct AllocationBlock {
 
     template <typename T>
     const T* cast() const {
-        return T2T<const T*>(ptr_);
+        return ptr_cast<const T>(ptr_);
     }
 
     template <typename T>
     T* cast() {
-        return T2T<T*>(ptr_);
+        return ptr_cast<T>(ptr_);
     }
 
     operator bool() const {
@@ -326,7 +328,7 @@ struct AllocationBlockConst {
 
     template <typename T>
     const T* cast() const {
-        return T2T<const T*>(ptr_);
+        return ptr_cast<const T>(ptr_);
     }
 };
 

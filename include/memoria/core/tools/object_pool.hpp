@@ -18,11 +18,11 @@
 
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/types/typehash.hpp>
 
 #include <memoria/core/exceptions/exceptions.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <iostream>
 #include <type_traits>
@@ -132,8 +132,8 @@ public:
             descr = new Descriptor(std::forward<Args>(args)...);
         }
 
-        return UniquePtr(T2T<ObjectType*>(&descr->object_), [&, this](void* object_ptr) {
-            Descriptor* descr = T2T<Descriptor*>(object_ptr);
+        return UniquePtr(ptr_cast<ObjectType>(&descr->object_), [&, this](void* object_ptr) {
+            Descriptor* descr = ptr_cast<Descriptor>(object_ptr);
             this->release(descr);
         });
     }
@@ -179,12 +179,12 @@ public:
         auto i = pools_.find(typeid(PoolType));
         if (i != pools_.end())
         {
-            return *T2T<PoolType*>(i->second);
+            return *ptr_cast<PoolType>(i->second);
         }
         else {
             PoolType* pool = new PoolType();
             pools_[typeid(PoolType)] = pool;
-            return *T2T<PoolType*>(pool);
+            return *ptr_cast<PoolType>(pool);
         }
     }
 };

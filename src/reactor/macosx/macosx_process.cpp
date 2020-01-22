@@ -21,7 +21,7 @@
 #include <memoria/reactor/reactor.hpp>
 
 #include <memoria/core/strings/string.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>

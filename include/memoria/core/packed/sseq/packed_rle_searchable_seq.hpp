@@ -32,6 +32,8 @@
 
 #include <memoria/core/packed/sseq/packed_rle_searchable_seq_so.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #include <ostream>
 
 namespace memoria {
@@ -1688,7 +1690,7 @@ public:
 
     OpStatus insert_io_substream(int32_t at, const io::IOSubstream& substream, int32_t start, int32_t size)
     {
-        const MyType* buffer = T2T<const MyType*>(io::substream_cast<io::IOSymbolSequence>(substream).buffer());
+        const MyType* buffer = ptr_cast<const MyType>(io::substream_cast<io::IOSymbolSequence>(substream).buffer());
         return this->insert_from(at, buffer, start, size);
     }
 

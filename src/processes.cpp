@@ -18,6 +18,8 @@
 #include <memoria/reactor/application.hpp>
 
 #include <memoria/core/tools/type_name.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #include <boost/optional/optional_io.hpp>
 
 #include <iostream>
@@ -48,7 +50,7 @@ int main(int argc, char** argv, char** envp)
             size_t read = out.read(buf, sizeof(buf) - 1);
 
             if (read > 0) {
-                engine().cout("{}", T2T<const char*>(buf)) << std::flush;
+                engine().cout("{}", ptr_cast<const char>(buf)) << std::flush;
             }
         }
 

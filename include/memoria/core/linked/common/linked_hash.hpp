@@ -18,9 +18,11 @@
 
 #include <memoria/core/types.hpp>
 #include <memoria/core/tools/span.hpp>
-#include <memoria/core/types/type2type.hpp>
+
 
 #include <boost/utility/string_view.hpp>
+
+#include <memoria/core/memory/ptr_cast.hpp>
 
 namespace memoria {
 
@@ -126,7 +128,7 @@ void append(FNVHasher<Size, Variant>& hasher, int64_t value) {
 template <size_t Size, typename Variant>
 void append(FNVHasher<Size, Variant>& hasher, const void* ptr)
 {
-    uint64_t value = T2T<uint64_t>(ptr);
+    uint64_t value = value_cast<uint64_t>(ptr);
     append(hasher, value);
 }
 
@@ -148,14 +150,14 @@ void append(FNVHasher<Size, Variant>& hasher, char32_t value) {
 template <size_t Size, typename Variant>
 void append(FNVHasher<Size, Variant>& hasher, float value)
 {
-    uint32_t uint_value = T2T<uint32_t>(value);
+    uint32_t uint_value = value_cast<uint32_t>(value);
     append(hasher, uint_value);
 }
 
 template <size_t Size, typename Variant>
 void append(FNVHasher<Size, Variant>& hasher, double value)
 {
-    uint64_t uint_value = T2T<uint64_t>(value);
+    uint64_t uint_value = value_cast<uint64_t>(value);
     append(hasher, uint_value);
 }
 

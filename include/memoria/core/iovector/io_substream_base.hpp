@@ -16,7 +16,6 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
 
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/format.hpp>

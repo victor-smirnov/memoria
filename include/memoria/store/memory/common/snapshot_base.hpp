@@ -41,6 +41,8 @@
 
 #include "persistent_tree.hpp"
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
@@ -437,7 +439,7 @@ public:
     	if (root_id.is_null())
     	{
             auto res = txn->for_each_ctr_node(name, [&](const BlockID& uuid, const BlockID& id, const void* block_data) noexcept -> VoidResult {
-                return clone_foreign_block(T2T<const BlockType*>(block_data));
+                return clone_foreign_block(ptr_cast<const BlockType>(block_data));
     		});
             MEMORIA_RETURN_IF_ERROR(res);
 
@@ -547,7 +549,7 @@ public:
                     return VoidResult::of();
     			}
 
-                return clone_foreign_block(T2T<const BlockType*>(block_data));
+                return clone_foreign_block(ptr_cast<const BlockType>(block_data));
     		});
 
             MEMORIA_RETURN_IF_ERROR(res);
@@ -927,7 +929,7 @@ public:
         {
             auto buf = allocate_system<uint8_t>(new_size);
 
-            BlockType* new_block = tools::ptr_cast<BlockType>(buf.get());
+            BlockType* new_block = ptr_cast<BlockType>(buf.get());
 
             int32_t transfer_size = std::min(new_size, block->memory_block_size());
 
@@ -951,7 +953,7 @@ public:
         {
             auto buf = allocate_system<uint8_t>(new_size);
 
-            BlockType* new_block = tools::ptr_cast<BlockType>(buf.get());
+            BlockType* new_block = ptr_cast<BlockType>(buf.get());
 
             int32_t transfer_size = std::min(new_size, block->memory_block_size());
 
@@ -1357,7 +1359,7 @@ protected:
         char* buffer = (char*) this->malloc(block->memory_block_size());
 
         CopyByteBuffer(block, buffer, block->memory_block_size());
-        BlockType* new_block = T2T<BlockType*>(buffer);
+        BlockType* new_block = ptr_cast<BlockType>(buffer);
 
         auto new_block_id = newId();
         MEMORIA_RETURN_IF_ERROR(new_block_id);

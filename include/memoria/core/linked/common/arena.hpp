@@ -17,7 +17,7 @@
 
 
 #include <memoria/core/tools/arena_buffer.hpp>
-#include <memoria/core/types/type2type.hpp>
+
 
 #include <memoria/core/tools/bitmap.hpp>
 
@@ -27,6 +27,8 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 
 #include <memoria/core/types/typehash.hpp>
+
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <utility>
 #include <type_traits>
@@ -67,15 +69,15 @@ public:
     }
 
     T* get(Arena* arena) {
-        return T2T<T*>(arena->data() + ptr_value_);
+        return ptr_cast<T>(arena->data() + ptr_value_);
     }
 
     T* get_mutable(const Arena* arena) {
-        return T2T<T*>(arena->mutable_data() + ptr_value_);
+        return ptr_cast<T>(arena->mutable_data() + ptr_value_);
     }
 
     const T* get(const Arena* arena) const {
-        return T2T<const T*>(arena->data() + ptr_value_);
+        return ptr_cast<const T>(arena->data() + ptr_value_);
     }
 
     operator HolderT() const {
@@ -290,12 +292,12 @@ public:
 
     template <typename T>
     const T* get(PtrHolderT_ ptr) const {
-        return T2T<const T*>(data() + ptr);
+        return ptr_cast<const T>(data() + ptr);
     }
 
     template <typename T>
     T* get_mutable(PtrHolderT_ ptr) {
-        return T2T<const T*>(mutable_data() + ptr);
+        return ptr_cast<const T>(mutable_data() + ptr);
     }
 };
 
@@ -369,11 +371,11 @@ public:
     }
 
     HeaderT& header() {
-        return *T2T<HeaderT*>(arena_.data());
+        return *ptr_cast<HeaderT>(arena_.data());
     }
 
     const HeaderT& header() const {
-        return *T2T<HeaderT*>(arena_.data());
+        return *ptr_cast<HeaderT>(arena_.data());
     }
 
 
@@ -389,7 +391,7 @@ public:
         arena_.ensure(sizeof(HeaderT) + extra_size);
         arena_.add_size(sizeof(HeaderT));
 
-        *T2T<HeaderT*>(arena_.data()) = header;
+        *ptr_cast<HeaderT>(arena_.data()) = header;
     }
 
     void reset(size_t extra_size = 0) noexcept
@@ -400,7 +402,7 @@ public:
         arena_.ensure(sizeof(HeaderT) + extra_size);
         arena_.add_size(sizeof(HeaderT));
 
-        *T2T<HeaderT*>(arena_.data()) = header;
+        *ptr_cast<HeaderT>(arena_.data()) = header;
     }
 
 

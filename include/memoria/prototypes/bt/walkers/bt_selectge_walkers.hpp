@@ -19,6 +19,8 @@
 #include <memoria/prototypes/bt/walkers/bt_walker_base.hpp>
 #include <memoria/core/tools/assert.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 namespace memoria {
 namespace bt {
 
@@ -93,8 +95,8 @@ public:
         }
     }
 
-    MyType& self() {return *T2T<MyType*>(this);}
-    const MyType& self() const {return *T2T<const MyType*>(this);}
+    MyType& self() {return *ptr_cast<MyType>(this);}
+    const MyType& self() const {return *ptr_cast<const MyType>(this);}
 };
 
 
@@ -176,8 +178,8 @@ public:
         }
     }
 
-    MyType& self() {return *T2T<MyType*>(this);}
-    const MyType& self() const {return *T2T<const MyType*>(this);}
+    MyType& self() {return *ptr_casr<MyType>(this);}
+    const MyType& self() const {return *ptr_cast<const MyType>(this);}
 };
 
 

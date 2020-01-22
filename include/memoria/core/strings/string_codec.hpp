@@ -20,6 +20,7 @@
 #include <memoria/core/tools/optional.hpp>
 
 #include <memoria/core/strings/u8_string.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 namespace memoria {
 
@@ -175,7 +176,7 @@ public:
 
         size_t len = len0;
 
-        value = V(T2T<typename V::const_pointer>(buffer + pos), len);
+        value = V(ptr_cast<std::remove_pointer_t<typename V::const_pointer>>(buffer + pos), len);
 
         return pos + len - idx;
     }

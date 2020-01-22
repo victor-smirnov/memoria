@@ -27,6 +27,8 @@
 #include <memoria/core/tools/id.hpp>
 #include <memoria/core/tools/uuid.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #include <memoria/core/exceptions/exceptions.hpp>
 
 namespace memoria {
@@ -123,7 +125,7 @@ public:
         if (block_ != NULL)
         {
             if (idx >= 0 && idx < block_->memory_block_size()) {
-                return T2T<uint8_t*>(block_)[idx];
+                return ptr_cast<uint8_t>(block_)[idx];
             }
             else {
                 MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
@@ -140,7 +142,7 @@ public:
         {
             if (idx >= 0 && idx < block_->memory_block_size())
             {
-                T2T<uint8_t*>(block_)[idx] = (uint8_t)value;
+                ptr_cast<uint8_t>(block_)[idx] = (uint8_t)value;
             }
             else {
                 MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
@@ -225,7 +227,7 @@ public:
         if (block_ != NULL)
         {
             if (idx >= 0 && idx < block_->memory_block_size()) {
-                return T2T<uint8_t*>(block_)[idx];
+                return ptr_cast<uint8_t>(block_)[idx];
             }
             else {
                 MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));

@@ -22,7 +22,7 @@
 
 #include <memoria/core/packed/tools/packed_stateful_dispatcher.hpp>
 
-
+#include <memoria/core/memory/ptr_cast.hpp>
 
 namespace memoria {
 
@@ -1180,7 +1180,7 @@ public:
             return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
         }
         else {
-            return T2T<T*>(nullptr);
+            return static_cast<T*>(nullptr);
         }
     }
 
@@ -1195,7 +1195,7 @@ public:
             return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
         }
         else {
-            return T2T<const T*>(nullptr);
+            return static_cast<const T*>(nullptr);
         }
     }
 

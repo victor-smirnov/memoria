@@ -35,6 +35,8 @@
 
 #include <memoria/core/datatypes/varchars/varchar_dt.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #include <unordered_map>
 #include <iostream>
 
@@ -186,24 +188,24 @@ namespace ld_ {
     {
         if (tag < SHORT_TYPEHASH_LENGTH_BASE)
         {
-            *T2T<uint8_t*>(arena->data() + ptr - sizeof(uint8_t)) = (uint8_t)tag;
+            *ptr_cast<uint8_t>(arena->data() + ptr - sizeof(uint8_t)) = (uint8_t)tag;
         }
         else {
             tag &= 0xFFFFFFFFFFFFFF;
             tag |= ((LDDValueTag)250) << 56;
-            *T2T<LDDValueTag*>(arena->data() + ptr - sizeof(LDDValueTag)) = tag;
+            *ptr_cast<LDDValueTag>(arena->data() + ptr - sizeof(LDDValueTag)) = tag;
         }
     }
 
     static inline LDDValueTag ldd_get_tag(const LDArenaView* arena, PtrHolder ptr) noexcept
     {
-        uint8_t short_value = *T2T<const uint8_t*>(arena->data() + ptr - sizeof(uint8_t));
+        uint8_t short_value = *ptr_cast<const uint8_t>(arena->data() + ptr - sizeof(uint8_t));
         if (short_value < SHORT_TYPEHASH_LENGTH_BASE)
         {
             return short_value;
         }
         else {
-            LDDValueTag long_value = *T2T<const LDDValueTag*>(arena->data() + ptr - sizeof(LDDValueTag));
+            LDDValueTag long_value = *ptr_cast<const LDDValueTag>(arena->data() + ptr - sizeof(LDDValueTag));
             return long_value & 0xFFFFFFFFFFFFFF;
         }
     }

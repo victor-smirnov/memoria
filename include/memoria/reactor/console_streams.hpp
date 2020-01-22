@@ -95,7 +95,7 @@ protected:
     int sync()
     {
         auto size = std::distance(Base::pbase(), Base::pptr());
-        output_stream_->write(T2T<uint8_t*>(buffer_.get()), size);
+        output_stream_->write(ptr_cast<uint8_t>(buffer_.get()), size);
 
         Base::pbump(-(int)size);
 

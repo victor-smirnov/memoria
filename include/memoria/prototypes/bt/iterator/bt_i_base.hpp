@@ -22,8 +22,6 @@
 
 #include <memoria/core/iovector/io_vector.hpp>
 
-#include <memoria/core/tools/hash.hpp>
-
 #include <iostream>
 
 namespace memoria {

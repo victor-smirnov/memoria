@@ -16,7 +16,7 @@
 //#include <memoria/reactor/iostreams.hpp>
 #include <memoria/reactor/file.hpp>
 #include <memoria/core/tools/perror.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 #include <memoria/reactor/reactor.hpp>
 
 namespace memoria {

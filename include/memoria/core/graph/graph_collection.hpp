@@ -21,7 +21,7 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 
 #include <memoria/core/tools/pimpl_base.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/core/graph/graph_commons.hpp>
 
@@ -171,7 +171,7 @@ public:
             return iter_ == end_;
         }
         else {
-            const MyType* iother = tools::ptr_cast<const MyType>(other);
+            const MyType* iother = ptr_cast<const MyType>(other);
             return iter_ == iother->iter_;
         }
     }

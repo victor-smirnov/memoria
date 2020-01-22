@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
 #include <memoria/core/memory/malloc.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
@@ -25,6 +24,8 @@
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/dump.hpp>
 #include <memoria/core/tools/assert.hpp>
+
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <type_traits>
 
@@ -80,11 +81,11 @@ public:
     }
 
     Bitmap* bitmap() {
-        return T2T<Bitmap*>(buffer_ + layout_size_);
+        return ptr_cast<Bitmap>(buffer_ + layout_size_);
     }
 
     const Bitmap* bitmap() const {
-        return T2T<const Bitmap*>(buffer_ + layout_size_);
+        return ptr_cast<const Bitmap>(buffer_ + layout_size_);
     }
 
     int32_t allocated() const {
@@ -174,9 +175,9 @@ public:
     int32_t computeElementOffset(const void* element) const
     {
         const uint8_t* base_ptr = base();
-        const uint8_t* elt_ptr = T2T<const uint8_t*>(element);
+        const uint8_t* elt_ptr = ptr_cast<const uint8_t>(element);
 
-        size_t diff = T2T<size_t>(elt_ptr - base_ptr);
+        ptrdiff_t diff = reinterpret_cast<ptrdiff_t>(elt_ptr - base_ptr);
 
         return diff;
     }
@@ -228,16 +229,16 @@ public:
 
 
     int32_t* layout() {
-        return T2T<int32_t*>(buffer_);
+        return ptr_cast<int32_t>(buffer_);
     }
 
     const int32_t* layout() const {
-        return T2T<const int32_t*>(buffer_);
+        return ptr_cast<const int32_t>(buffer_);
     }
 
     const int32_t& element_offset(int32_t idx) const
     {
-        return *(T2T<const int32_t*>(buffer_) + idx);
+        return *(ptr_cast<const int32_t>(buffer_) + idx);
     }
 
     //TODO: rename to segment_size ?
@@ -280,14 +281,14 @@ public:
     template <typename T>
     const T* get(int32_t idx) const
     {
-        const T* addr = T2T<const T*>(base() + element_offset(idx));
+        const T* addr = ptr_cast<const T>(base() + element_offset(idx));
         return addr;
     }
 
     template <typename T>
     T* get(int32_t idx)
     {
-        T* addr = T2T<T*>(base() + element_offset(idx));
+        T* addr = ptr_cast<T>(base() + element_offset(idx));
         return addr;
     }
 
@@ -438,7 +439,7 @@ public:
 
         if (type == PackedBlockType::ALLOCATABLE)
         {
-            PackedAllocatable* alc = T2T<PackedAllocatable*>(base() + offset);
+            PackedAllocatable* alc = ptr_cast<PackedAllocatable>(base() + offset);
             alc->setAllocatorOffset(this);
         }
 
@@ -469,7 +470,7 @@ public:
 
         if (src_block.size() > 0 && type == PackedBlockType::ALLOCATABLE)
         {
-            PackedAllocatable* element = T2T<PackedAllocatable*>(tgt_block.ptr());
+            PackedAllocatable* element = ptr_cast<PackedAllocatable>(tgt_block.ptr());
             element->setAllocatorOffset(this);
         }
 
@@ -664,14 +665,14 @@ public:
     void serializeSegment(SerializationData& buf, int32_t segment) const
     {
         auto data = this->describe(segment);
-        FieldFactory<T>::serialize(buf, T2T<const T*>(data.ptr()), data.size() / (int32_t)sizeof(T));
+        FieldFactory<T>::serialize(buf, ptr_cast<const T>(data.ptr()), data.size() / (int32_t)sizeof(T));
     }
 
     template <typename T, typename DeserializationData>
     void deserializeSegment(DeserializationData& buf, int32_t segment)
     {
         auto data = this->describe(segment);
-        FieldFactory<T>::deserialize(buf, T2T<T*>(data.ptr()), data.size() / (int32_t)sizeof(T));
+        FieldFactory<T>::deserialize(buf, ptr_cast<T>(data.ptr()), data.size() / (int32_t)sizeof(T));
     }
 
 
@@ -684,7 +685,7 @@ public:
 private:
     int32_t& set_element_offset(int32_t idx)
     {
-        return *(T2T<int32_t*>(buffer_) + idx);
+        return *(ptr_cast<int32_t>(buffer_) + idx);
     }
 
 
@@ -733,7 +734,7 @@ private:
 
             if (is_allocatable(idx))
             {
-                PackedAllocatable* element = T2T<PackedAllocatable*>(ptr + delta);
+                PackedAllocatable* element = ptr_cast<PackedAllocatable>(ptr + delta);
                 element->setAllocatorOffset(this);
             }
         }

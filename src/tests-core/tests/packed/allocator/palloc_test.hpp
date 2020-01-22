@@ -20,6 +20,7 @@
 #include <memoria/tests/assertions.hpp>
 
 #include <memoria/core/memory/malloc.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/reactor/reactor.hpp>
 
@@ -186,7 +187,7 @@ public:
 
         AllocationBlock block = alloc->allocate(2, 512, PackedBlockType::ALLOCATABLE);
 
-        ComplexStruct* cx_struct = T2T<ComplexStruct*>(block.ptr());
+        ComplexStruct* cx_struct = ptr_cast<ComplexStruct>(block.ptr());
 
         OOM_THROW_IF_FAILED(cx_struct->init(512), MMA_SRC);
 

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include "protected_fixedsize_stack.hpp"
 
@@ -65,7 +65,7 @@ class protected_stack_pool {
                 stack_list_.pop_back();
                 
                 memoria::context::stack_context ctx(node->stack_ctx_);
-                ctx.sp = tools::ptr_cast<uint8_t>(ctx.sp) - sizeof(ListNode);
+                ctx.sp = ptr_cast<uint8_t>(ctx.sp) - sizeof(ListNode);
                 ctx.size -= sizeof(ListNode);
                 
                 return ctx;
@@ -79,7 +79,7 @@ class protected_stack_pool {
         
         void deallocate( memoria::context::stack_context & sctx) noexcept 
         {
-            ListNode* node = tools::ptr_cast<ListNode>(sctx.sp);
+            ListNode* node = ptr_cast<ListNode>(sctx.sp);
             
             if (stack_list_.size() < min_pool_size_)
             {
@@ -108,7 +108,7 @@ class protected_stack_pool {
             
             size_t node_size = sizeof(ListNode);
             
-            ListNode* node = tools::ptr_cast<ListNode>(tools::ptr_cast<uint8_t>(ctx.sp) - node_size);
+            ListNode* node = ptr_cast<ListNode>(ptr_cast<uint8_t>(ctx.sp) - node_size);
             
             std::memset(node, 0, node_size);
             

@@ -15,7 +15,7 @@
 
 
 #include <memoria/reactor/macosx/macosx_io_poller.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 #include <memoria/core/tools/perror.hpp>
 #include <memoria/core/tools/bzero_struct.hpp>
 
@@ -74,7 +74,7 @@ void IOPoller::poll(uint64_t timeout_ms)
             {    
                 if (eevents[c].udata)
                 {
-                    KEventIOMessage* msg = tools::ptr_cast<KEventIOMessage>((char*)eevents[c].udata);
+                    KEventIOMessage* msg = ptr_cast<KEventIOMessage>((char*)eevents[c].udata);
                     msg->on_receive(eevents[c]);
                     
                     buffer_.push_front(msg);
@@ -94,7 +94,7 @@ void KEvent64(int poller_fd, int fd, int filter, int flags, void * fiber_message
 
     struct kevent64_s event;
 
-    EV_SET64(&event, fd, filter, flags, 0, 0, T2T<uint64_t>(fiber_message_ptr), 0, 0);
+    EV_SET64(&event, fd, filter, flags, 0, 0, value_cast<uint64_t>(fiber_message_ptr), 0, 0);
 
     int res = ::kevent64(poller_fd, &event, 1, nullptr, 0, 0, &timeout);
     if (res < 0)

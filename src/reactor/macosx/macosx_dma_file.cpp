@@ -20,7 +20,7 @@
 #include <memoria/reactor/message/fiber_io_message.hpp>
 #include <memoria/reactor/file_streams.hpp>
 
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 #include <memoria/core/tools/bzero_struct.hpp>
 #include <memoria/core/tools/perror.hpp>
 
@@ -190,7 +190,7 @@ DMABuffer allocate_dma_buffer(size_t size)
 		void* ptr = boost::alignment::aligned_alloc(512, size);
 
 		if (ptr) {
-			DMABuffer buf(tools::ptr_cast<uint8_t>(ptr));
+			DMABuffer buf(ptr_cast<uint8_t>(ptr));
 			return buf;
 		}
 		else {

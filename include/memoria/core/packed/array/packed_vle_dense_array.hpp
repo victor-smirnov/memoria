@@ -794,8 +794,8 @@ public:
 //        const io::IORowwiseVLenArraySubstream<Value>& buffer
 //                = io::substream_cast<io::IORowwiseVLenArraySubstream<Value>>(substream);
 
-//        auto buffer_values_start = T2T<const uint8_t*>(buffer.select(start));
-//        auto buffer_values_end   = T2T<const uint8_t*>(buffer.select(start + size));
+//        auto buffer_values_start = ptr_cast<const uint8_t>(buffer.select(start));
+//        auto buffer_values_end   = ptr_cast<const uint8_t>(buffer.select(start + size));
 
 //        ptrdiff_t total_length   = buffer_values_end - buffer_values_start;
 
@@ -807,7 +807,7 @@ public:
 //        }
 
 //        auto values         = this->values();
-//        auto buffer_values  = T2T<const ValueData*>(buffer_values_start);
+//        auto buffer_values  = ptr_cast<const ValueData>(buffer_values_start);
 
 //        Codec codec;
 

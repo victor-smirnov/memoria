@@ -27,7 +27,7 @@
 
 #include "message/message.hpp"
 
-#include "../core/tools/ptr_cast.hpp"
+#include "../core/memory/ptr_cast.hpp"
 
 #include <thread>
 #include <memory>

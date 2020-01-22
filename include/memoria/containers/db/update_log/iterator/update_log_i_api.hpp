@@ -25,7 +25,7 @@
 
 #include <memoria/api/db/update_log/update_log_api.hpp>
 
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <iostream>
 

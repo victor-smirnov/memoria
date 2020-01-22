@@ -27,6 +27,8 @@
 
 #include <memoria/core/iovector/io_substream_rle_symbol_sequence_1.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #include <functional>
 
 namespace memoria {
@@ -42,7 +44,7 @@ class PackedRLESymbolSequence: public IOSymbolSequence {
 public:
     PackedRLESymbolSequence()
     {
-        sequence_ = T2T<SeqT*>(allocate_system<uint8_t>(SeqT::empty_size()).release());
+        sequence_ = ptr_cast<SeqT>(allocate_system<uint8_t>(SeqT::empty_size()).release());
         sequence_->allocatable().setTopLevelAllocator();
         (void)sequence_->init();
     }
@@ -126,7 +128,7 @@ public:
 
     void append_from(const IOSymbolSequence& source, int32_t start, int32_t length)
     {
-        SeqT* source_seq = T2T<SeqT*>(source.buffer());
+        SeqT* source_seq = ptr_cast<SeqT>(source.buffer());
 
         while (sequence_->insert_from(sequence_->size(), source_seq, start, length) != OpStatus::OK) {
             enlarge();
@@ -163,7 +165,7 @@ private:
     void enlarge()
     {
         int32_t bs = sequence_->block_size();
-        SeqT* new_seq = T2T<SeqT*>(allocate_system<uint8_t>(bs * 2).release());
+        SeqT* new_seq = ptr_cast<SeqT>(allocate_system<uint8_t>(bs * 2).release());
         memcpy(new_seq, sequence_, bs);
         new_seq->set_block_size(bs * 2);
 

@@ -21,7 +21,7 @@
 
 #include <memoria/reactor/message/fiber_io_message.hpp>
 
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 #include <memoria/core/tools/bzero_struct.hpp>
 #include <memoria/core/tools/perror.hpp>
 

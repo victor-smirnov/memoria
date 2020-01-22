@@ -21,6 +21,8 @@
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #include <memory>
 #include <type_traits>
 #include <stdlib.h>
@@ -40,7 +42,7 @@ namespace {
 
     void free_packed_allocatable(void* ptr)
     {
-        PackedAllocatable* object = T2T<PackedAllocatable*>(ptr);
+        PackedAllocatable* object = ptr_cast<PackedAllocatable>(ptr);
         PackedAllocator*   alloc  = object->allocator();
 
         free_system(alloc);

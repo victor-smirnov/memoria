@@ -60,7 +60,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     sock_address_.sin_addr.s_addr   = ip_address_.to_in_addr().s_addr;
     sock_address_.sin_port          = htons(ip_port_);
 
-    int bres = ::bind(fd_, tools::ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
+    int bres = ::bind(fd_, ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
 
     if (bres < 0)
     {
@@ -128,7 +128,7 @@ SocketConnectionData ServerSocketImpl::accept()
 
     while(true)
     {
-        int fd = ::accept(fd_, tools::ptr_cast<sockaddr>(&client_addr), &cli_len);
+        int fd = ::accept(fd_, ptr_cast<sockaddr>(&client_addr), &cli_len);
 
         if (fd >= 0)
         {

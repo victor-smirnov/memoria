@@ -15,7 +15,7 @@
 
 
 #include <memoria/reactor/linux/linux_io_poller.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 #include <memoria/core/tools/perror.hpp>
 #include <memoria/reactor/reactor.hpp>
 
@@ -132,7 +132,7 @@ void IOPoller::poll(int timeout)
                 }
                 else if (eevents[c].data.ptr)
                 {
-                    EPollIOMessage* msg = tools::ptr_cast<EPollIOMessage>(eevents[c].data.ptr);
+                    EPollIOMessage* msg = ptr_cast<EPollIOMessage>(eevents[c].data.ptr);
                     msg->on_receive(eevents[c]);
                     buffer_.push_front(msg);
                 }
@@ -158,7 +158,7 @@ void IOPoller::poll_file_events(int buffer_capacity, int other_events)
     {
         for (int c = 0; c < e_num; c++)
         {
-            FileIOMessage* msg = tools::ptr_cast<FileIOMessage>((void*)events[c].data);
+            FileIOMessage* msg = ptr_cast<FileIOMessage>((void*)events[c].data);
             msg->process();
             msg->report(&events[c]);
             buffer_.push_front(msg);

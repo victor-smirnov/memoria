@@ -19,7 +19,7 @@
 #include <memoria/reactor/dma_buffer.hpp>
 #include <memoria/reactor/streambuf.hpp>
 
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <exception>
 
@@ -102,7 +102,7 @@ private:
         
         if (size > 0) 
         {
-            processed_ += file_.write(tools::ptr_cast<uint8_t>(this->pbase()), processed_, size * sizeof(Char));
+            processed_ += file_.write(ptr_cast<uint8_t>(this->pbase()), processed_, size * sizeof(Char));
             reset();
         }
     }

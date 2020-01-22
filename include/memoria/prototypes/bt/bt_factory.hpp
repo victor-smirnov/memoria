@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include <memoria/core/types/type2type.hpp>
+
 #include <memoria/core/tools/vector_tuple.hpp>
 
 

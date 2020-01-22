@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
+
 #include <memoria/core/types/list/sublist.hpp>
 
 #include <memoria/core/types/fn_traits.hpp>

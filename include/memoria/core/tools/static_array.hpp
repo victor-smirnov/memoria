@@ -17,7 +17,7 @@
 
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
+
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/strings/strings.hpp>
 

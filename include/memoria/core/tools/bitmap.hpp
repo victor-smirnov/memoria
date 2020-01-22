@@ -24,11 +24,12 @@
 
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
+
 
 #include <memoria/core/exceptions/exceptions.hpp>
 
 #include <memoria/core/tools/msvc_intrinsics.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <iostream>
 #include <limits>
@@ -504,7 +505,6 @@ T GetBitsNeg0(const T* buf, size_t idx, int32_t nbits)
  */
 
 template <typename Buffer>
-//__attribute__((always_inline))
 void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, int32_t nbits)
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
@@ -1047,88 +1047,6 @@ template <typename T>
 void MoveBuffer(T *src, long from, long to, long size)
 {
     CopyBuffer(src + from, src + to, size);
-}
-
-static inline bool CompareBuffers(const void *src, const void *dst, long size)
-{
-    const long *isrc = CP2CP<long>(src);
-    long *idst = T2T<long*>(dst);
-
-    unsigned long l;
-    for (l = 0; l < size / sizeof(long); l++)
-    {
-        if (idst[l] != isrc[l])
-        {
-            return false;
-        }
-    }
-
-    if (size % sizeof(long) != 0)
-    {
-        const char* csrc = ((const char*) src) + l * sizeof(long);
-        char* cdst = ((char*) dst) + l * sizeof(long);
-
-        for (l = 0; l < size % sizeof(long); l++)
-        {
-            if (cdst[l] != csrc[l])
-            {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-
-static inline void Clean(void *dst, long size)
-{
-    long *idst = T2T<long*>(dst);
-
-    unsigned long l;
-    for (l = 0; l < size / sizeof(long); l++)
-    {
-        idst[l] = 0l;
-    }
-
-    if (size % sizeof(long) != 0)
-    {
-        char* cdst = ((char*) dst) + l * sizeof(long);
-
-        for (l = 0; l < size % sizeof(long); l++)
-        {
-            cdst[l] = 0l;
-        }
-    }
-}
-
-static inline bool IsClean(const void *dst, long size)
-{
-    const long *idst = CP2CP<long>(dst);
-
-    unsigned long l;
-    for (l = 0; l < size / sizeof(long); l++)
-    {
-        if (idst[l] != 0)
-        {
-            return false;
-        }
-    }
-
-    if (size % sizeof(long) != 0)
-    {
-        const char* cdst = ((const char*) dst) + l * sizeof(long);
-
-        for (l = 0; l < size % sizeof(long); l++)
-        {
-            if (cdst[l] != 0)
-            {
-                return false;
-            }
-        }
-    }
-
-    return true;
 }
 
 }

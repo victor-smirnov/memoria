@@ -21,7 +21,7 @@
 
 #include <memoria/core/config.hpp>
 #include <memoria/core/strings/format.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/reactor/message/thread_pool_message.hpp>
 

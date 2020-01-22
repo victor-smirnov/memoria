@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
-#include <memoria/core/types/type2type.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include "string_wrapper.hpp"
 
@@ -76,7 +76,7 @@ public:
 
         size_t len = len0;
 
-        V tmp(T2T<const CharT*>(buffer + pos), len);
+        V tmp(ptr_cast<const CharT>(buffer + pos), len);
 
         pos += len;
 

@@ -29,6 +29,8 @@
 
 #include <memoria/core/container/logs.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #include <type_traits>
 
 namespace memoria {
@@ -325,12 +327,12 @@ public:
 
     template <typename Page>
     const Page* block() const noexcept {
-        return T2T<const Page*>(block_);
+        return ptr_cast<const Page>(block_);
     }
 
     template <typename Page>
     Page* block() noexcept {
-        return T2T<Page*>(block_);
+        return ptr_cast<Page>(block_);
     }
 
     PageT* get() noexcept {

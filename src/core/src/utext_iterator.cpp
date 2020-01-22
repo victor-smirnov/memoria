@@ -16,6 +16,8 @@
 #include <memoria/core/regexp/icu_regexp.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
+
 #ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
@@ -85,7 +87,7 @@ codeunit_iterator_text_close(UText *ut)
 {
     if (ut->context)
     {
-        CU16ProviderPtr* iter_ptr = T2T<CU16ProviderPtr*>(ut->context);
+        CU16ProviderPtr* iter_ptr = ptr_cast<CU16ProviderPtr>(ut->context);
         delete iter_ptr;
         ut->context = nullptr;
     }
@@ -100,7 +102,7 @@ codeunit_iterator_text_length(UText *ut) {
 
 static int64_t codeuint_iterator_access_inbound(UText* ut, int64_t index, int64_t length, char16_t* buf)
 {
-    CU16ProviderPtr& iter = *T2T<CU16ProviderPtr*>(ut->context);
+    CU16ProviderPtr& iter = *ptr_cast<CU16ProviderPtr>(ut->context);
 
     int64_t buffer_size = ut->c - 1;
 
@@ -146,7 +148,7 @@ codeunit_iterator_text_access_forward(UText *ut, int64_t index)
 {
     int64_t length = ut->a;
 
-    char16_t* buf = T2T<char16_t*>(ut->pExtra);
+    char16_t* buf = ptr_cast<char16_t>(ut->pExtra);
 
     int64_t chunk_native_start{};
 
@@ -172,7 +174,7 @@ static UBool U_CALLCONV
 codeunit_iterator_text_access_backward(UText *ut, int64_t index)
 {
     int64_t length = ut->a;
-    char16_t* buf = T2T<char16_t*>(ut->pExtra);
+    char16_t* buf = ptr_cast<char16_t>(ut->pExtra);
 
     int64_t chunk_native_start{};
 
@@ -251,7 +253,7 @@ codeunit_iterator_text_clone(UText *dest, const UText *src, UBool deep, UErrorCo
 
     if (!deep)
     {
-        CU16ProviderPtr& iter = *T2T<CU16ProviderPtr*>(src->context);
+        CU16ProviderPtr& iter = *ptr_cast<CU16ProviderPtr>(src->context);
 
         try {
             auto src_iter = iter->clone();
@@ -298,7 +300,7 @@ codeunit_iterator_text_extract(
     int64_t  start32 = pin_index(start, length);
     int64_t  limit32 = pin_index(limit, length);
 
-    CU16ProviderPtr& iter_ptr = *T2T<CU16ProviderPtr*>(ut->context);
+    CU16ProviderPtr& iter_ptr = *ptr_cast<CU16ProviderPtr>(ut->context);
 
     try {
 
@@ -311,10 +313,10 @@ codeunit_iterator_text_extract(
 
         if (requested <= dest_capacity)
         {
-            processed = iter_ptr->read_to(srci, T2T<char16_t*>(dest), requested);
+            processed = iter_ptr->read_to(srci, ptr_cast<char16_t>(dest), requested);
         }
         else {
-            processed = iter_ptr->read_to(srci, T2T<char16_t*>(dest), dest_capacity);
+            processed = iter_ptr->read_to(srci, ptr_cast<char16_t>(dest), dest_capacity);
 
             if (dest_capacity == processed) {
                 extra = requested - processed;
@@ -372,7 +374,7 @@ utext_open_codepoint_accessor(UText *ut, const CU16ProviderPtr& ci, int32_t buff
         ut->b                    = -1;
         ut->c                    = buffer_size;
 
-        ut->chunkContents        = T2T<UChar *>(ut->pExtra);
+        ut->chunkContents        = ptr_cast<UChar>(ut->pExtra);
         ut->chunkNativeStart     = -1;
         ut->chunkOffset          = 1;
         ut->chunkNativeLimit     = 0;

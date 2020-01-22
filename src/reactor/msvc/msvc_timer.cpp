@@ -28,7 +28,7 @@ VOID CALLBACK TimerCallback(
 	_In_ BOOLEAN
 ) 
 {
-	tools::ptr_cast<TimerImpl>(timerImplPtr)->onFiring();
+	ptr_cast<TimerImpl>(timerImplPtr)->onFiring();
 }
 
 
@@ -158,7 +158,7 @@ VOID CALLBACK WakeupCallback(
 	_In_ BOOLEAN
 )
 {
-	auto msg = tools::ptr_cast<WakeupMessage>(wakeupMsgPtr);
+	auto msg = ptr_cast<WakeupMessage>(wakeupMsgPtr);
 	msg->submit();
 }
 

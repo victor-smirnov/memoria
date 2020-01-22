@@ -16,7 +16,7 @@
 
 
 #include <memoria/core/tools/uuid.hpp>
-#include <memoria/core/types/type2type.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/core/datatypes/datum.hpp>
 
@@ -51,11 +51,7 @@ class RNG {
 public:
     RNG(): rng_(&mt64_)
     {
-        // Adding a little bit more randomness
-        auto value = std::make_unique<uint64_t>();
-        uint64_t ivalue = T2T<uint64_t>(value.get());
-
-        mt64_.seed(current_time() ^ ivalue);
+        mt64_.seed(current_time());
     }
 
     auto gen() {

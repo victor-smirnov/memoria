@@ -18,6 +18,7 @@
 
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/memory/smart_ptrs.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <unicode/regex.h>
 
@@ -44,8 +45,8 @@ public:
             U16String(u"ParseError: ")
             + U16String(U8String(u_errorName(code)))
             + U16String(" : ")
-            + U16String(T2T<const char16_t*>(error_.preContext))
-            + U16String(T2T<const char16_t*>(error_.postContext))
+            + U16String(ptr_cast<const char16_t>(error_.preContext))
+            + U16String(ptr_cast<const char16_t>(error_.postContext))
         )
     {}
 

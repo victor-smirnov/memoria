@@ -20,11 +20,11 @@
 
 #include <memoria/core/strings/string_codec.hpp>
 
-#include <memoria/core/types/type2type.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/linked/common/linked_hash.hpp>
 #include <memoria/core/linked/common/arena.hpp>
 
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <boost/utility/string_view.hpp>
 
@@ -48,7 +48,7 @@ public:
     {
         ValueCodec<uint64_t> codec;
         size_t len = codec.encode(buffer(), view.length(), 0);
-        CharT* data = T2T<CharT*>(buffer() + len);
+        CharT* data = ptr_cast<CharT>(buffer() + len);
         MemCpyBuffer(view.data(), data, view.length());
     }
 
@@ -66,7 +66,7 @@ public:
     {
         ValueCodec<uint64_t> codec;
         size_t len = codec.encode(buffer(), other.size(), 0);
-        CharT* data = T2T<CharT*>(buffer() + len);
+        CharT* data = ptr_cast<CharT>(buffer() + len);
         MemCpyBuffer(other.data(), data, other.size());
     }
 
@@ -100,7 +100,7 @@ public:
 
     CharT* data() noexcept
     {
-        return T2T<CharT*>(buffer() + size_length());
+        return ptr_cast<CharT>(buffer() + size_length());
     }
 
     ViewType view() const noexcept
@@ -109,7 +109,7 @@ public:
     }
 
     const CharT* data() const noexcept {
-        return T2T<const CharT*>(buffer() + size_length());
+        return ptr_cast<const CharT>(buffer() + size_length());
     }
 
     bool operator==(ViewType view) const {

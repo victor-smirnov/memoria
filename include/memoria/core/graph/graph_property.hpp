@@ -21,7 +21,7 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 
 #include <memoria/core/tools/pimpl_base.hpp>
-#include <memoria/core/tools/ptr_cast.hpp>
+#include <memoria/core/memory/ptr_cast.hpp>
 
 #include <memoria/core/graph/graph_commons.hpp>
 #include <memoria/core/graph/graph_collection.hpp>

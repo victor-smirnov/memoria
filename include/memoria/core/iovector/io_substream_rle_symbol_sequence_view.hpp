@@ -138,7 +138,7 @@ public:
 
     void configure(const void* ptr)
     {
-        sequence_ = T2T<const SeqT*>(ptr);
+        sequence_ = ptr_cast<const SeqT>(ptr);
     }
 };
 
