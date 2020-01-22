@@ -19,7 +19,7 @@
 
 namespace memoria {
 
-MMA1_DEFINE_EXPLICIT_CU_LINKING(MemoriaStaticInit)
+MMA_DEFINE_EXPLICIT_CU_LINKING(MemoriaStaticInit)
 
 struct StaticInitializer {
     StaticInitializer() {

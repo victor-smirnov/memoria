@@ -22,7 +22,7 @@ namespace memoria {
 //using Profile = DefaultProfile<>;
 //using CtrName = EdgeMap;
 
-//MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+//MMA_INSTANTIATE_CTR_BTFL(CtrName, Profile)
     
 }
 

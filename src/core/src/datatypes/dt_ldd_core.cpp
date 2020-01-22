@@ -60,7 +60,7 @@ struct DataTypeOperationsImpl<LDArray>: SimpleDataTypeOperationsImpl<LDArray> {
             return value;
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
         }
     }
 };
@@ -98,7 +98,7 @@ struct DataTypeOperationsImpl<LDMap>: SimpleDataTypeOperationsImpl<LDMap> {
             return value;
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
         }
     }
 };
@@ -135,7 +135,7 @@ struct DataTypeOperationsImpl<LDTypeDeclaration>: SimpleDataTypeOperationsImpl<L
             return value;
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
         }
     }
 };
@@ -172,7 +172,7 @@ struct DataTypeOperationsImpl<LDTypedValue>: SimpleDataTypeOperationsImpl<LDType
             return value;
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
         }
     }
 };
@@ -210,7 +210,7 @@ struct DataTypeOperationsImpl<Varchar>: SimpleDataTypeOperationsImpl<Varchar> {
             return value;
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Unsupported constructor arg type");
         }
     }
 };
@@ -257,11 +257,11 @@ struct DataTypeOperationsImpl<Boolean>: SimpleDataTypeOperationsImpl<Boolean> {
                 return LDDValueView{doc, doc->new_value<Boolean>(false), ld_tag_value<Boolean>()};
             }
             else {
-                MMA1_THROW(RuntimeException()) << format_ex("Unsupported boolean string value: {}", view);
+                MMA_THROW(RuntimeException()) << format_ex("Unsupported boolean string value: {}", view);
             }
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
         }
     }
 };

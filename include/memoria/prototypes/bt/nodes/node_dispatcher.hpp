@@ -224,7 +224,7 @@ public:
             return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatInfo(format_u8("Can't dispatch btree node type: {}", node->block_type_hash()));
+            MMA_THROW(DispatchException()) << WhatInfo(format_u8("Can't dispatch btree node type: {}", node->block_type_hash()));
         }
     }
 
@@ -238,7 +238,7 @@ public:
             return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -252,7 +252,7 @@ public:
             return functor.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -272,7 +272,7 @@ public:
             return functor.treeNode(node1_so, node2_so, std::forward<Args>(args)...);
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -291,7 +291,7 @@ public:
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 
@@ -307,7 +307,7 @@ public:
             return fn.treeNode(node_so, std::forward<Args>(args)...);
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
+            MMA_THROW(DispatchException()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 

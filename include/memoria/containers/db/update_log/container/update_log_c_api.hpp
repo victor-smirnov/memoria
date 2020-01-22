@@ -166,7 +166,7 @@ public:
         ii->insert_snapshot(snapshot_id);
     }
 
-#ifdef MMA1_USE_IOBUFFER
+#ifdef MMA_USE_IOBUFFER
     template <typename IOBuffer>
     void append_commands(const UUID& ctr_name, bt::BufferProducer<IOBuffer>& data_producer)
     {
@@ -182,7 +182,7 @@ public:
             ii->insert_data_values(data_producer);
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Can't find any snapshot to append to.");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Can't find any snapshot to append to.");
         }
     }
 #endif

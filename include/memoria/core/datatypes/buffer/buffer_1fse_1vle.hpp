@@ -173,7 +173,7 @@ private:
 
     void check_builder_is_empty() const {
         if (!builder_.is_empty()) {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Builder is not empty");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Builder is not empty");
         }
     }
 };

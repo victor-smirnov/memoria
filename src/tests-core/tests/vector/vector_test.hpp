@@ -59,10 +59,10 @@ public:
     {
     }
 
-    MMA1_STATE_FILEDS(size)
+    MMA_STATE_FILEDS(size)
 
     static void init_suite(TestSuite& suite) {
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testCreate, replayCreate);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testCreate, replayCreate);
     }
 
 

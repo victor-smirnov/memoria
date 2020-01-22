@@ -48,7 +48,7 @@ struct IElement {
 class Element: public PimplBase<IElement> {
     using Base = PimplBase<IElement>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Element)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Element)
 
     Graph graph() const;
 

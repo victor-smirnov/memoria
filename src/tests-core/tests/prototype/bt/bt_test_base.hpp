@@ -75,8 +75,8 @@ protected:
     RngInt64 bigint_generator_{};
 
 public:
-    MMA1_STATE_FILEDS(size_, snapshot_id_);
-    MMA1_INDIRECT_STATE_FILEDS(store_);
+    MMA_STATE_FILEDS(size_, snapshot_id_);
+    MMA_INDIRECT_STATE_FILEDS(store_);
 
     BTTestBase()
     {

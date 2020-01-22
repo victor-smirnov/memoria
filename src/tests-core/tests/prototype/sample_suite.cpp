@@ -41,8 +41,8 @@ class SampleSuite: public TestState {
 
 public:
 
-    MMA1_STATE_FILEDS(text_, uuid_);
-    MMA1_INDIRECT_STATE_FILEDS(allocator_);
+    MMA_STATE_FILEDS(text_, uuid_);
+    MMA_INDIRECT_STATE_FILEDS(allocator_);
 
     SampleSuite() {
         allocator_ = InMemAllocator<>::create();
@@ -50,7 +50,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, doSomething, replaySomething);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, doSomething, replaySomething);
     }
 
     void doSomething()

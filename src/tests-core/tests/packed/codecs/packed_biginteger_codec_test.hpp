@@ -34,7 +34,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testRawValues, testShortValues, testLongValues);
+        MMA_CLASS_TESTS(suite, testRawValues, testShortValues, testLongValues);
     }
 
     void testRawValues()
@@ -147,7 +147,7 @@ private:
     }
 };
 
-#define MMA1_BIG_INTEGER_CODEC_SUITE() \
-MMA1_CLASS_SUITE(PackedBigIntegerCodecTest, "PackedBigIntegerCodecSuite")
+#define MMA_BIG_INTEGER_CODEC_SUITE() \
+MMA_CLASS_SUITE(PackedBigIntegerCodecTest, "PackedBigIntegerCodecSuite")
 
 }}

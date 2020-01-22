@@ -61,7 +61,7 @@ struct BinaryInputStream final: PimplBase<IBinaryInputStream> {
 
     using Base = PimplBase<IBinaryInputStream>;
 
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(BinaryInputStream)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(BinaryInputStream)
 
 
     size_t read(uint8_t* data, size_t size) {
@@ -83,7 +83,7 @@ struct BinaryOutputStream final: PimplBase<IBinaryOutputStream>{
 
     using Base = PimplBase<IBinaryOutputStream>;
 
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(BinaryOutputStream)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(BinaryOutputStream)
     
     size_t write(const uint8_t* data, size_t size) {
         return ptr_->write(data, size);

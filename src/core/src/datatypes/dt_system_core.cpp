@@ -34,10 +34,10 @@
 
 namespace memoria {
 
-#define MMA1_DEFINE_DEFAULT_DATATYPE_OPS(...) \
+#define MMA_DEFINE_DEFAULT_DATATYPE_OPS(...) \
 template <> struct DataTypeOperationsImpl<__VA_ARGS__>: CtrDataTypeOperationsImpl<__VA_ARGS__>{}
 
-MMA1_DEFINE_DEFAULT_DATATYPE_OPS(Decimal);
+MMA_DEFINE_DEFAULT_DATATYPE_OPS(Decimal);
 
 void InitCoreDatatypes()
 {

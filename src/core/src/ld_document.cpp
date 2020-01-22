@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
@@ -38,7 +38,7 @@ LDDumpState::LDDumpState(const LDDocumentView& doc)
 void LDDocumentView::assert_identifier(U8StringView name)
 {
     if (!is_identifier(name)) {
-        MMA1_THROW(SDNParseException()) << format_ex("Supplied value '{}' is not a valid SDN identifier", name);
+        MMA_THROW(SDNParseException()) << format_ex("Supplied value '{}' is not a valid SDN identifier", name);
     }
 }
 
@@ -75,7 +75,7 @@ ld_::LDPtr<DTTLDStorageType<LDString>> LDDocumentView::intern(DTTViewType<LDStri
 LDStringView LDDocumentView::new_varchar(DTTViewType<Varchar> view)
 {
     auto opt_ptr = is_shared(view);
-    if (MMA1_UNLIKELY((bool)opt_ptr))
+    if (MMA_UNLIKELY((bool)opt_ptr))
     {
         return LDStringView{this, opt_ptr.get()};
     }
@@ -88,7 +88,7 @@ LDStringView LDDocumentView::new_varchar(DTTViewType<Varchar> view)
 LDIdentifierView LDDocumentView::new_identifier(U8StringView view)
 {
     auto opt_ptr = is_shared(view);
-    if (MMA1_UNLIKELY((bool)opt_ptr))
+    if (MMA_UNLIKELY((bool)opt_ptr))
     {
         return LDIdentifierView{this, opt_ptr.get()};
     }
@@ -370,7 +370,7 @@ void LDDocumentView::do_dump_dictionary(std::ostream& out, LDDumpFormatState& st
 
     state.push();
     for_each_named_type([&](auto name, auto td){
-        if (MMA1_LIKELY(!first)) {
+        if (MMA_LIKELY(!first)) {
             out << "," << state.nl_middle();
         }
         else {

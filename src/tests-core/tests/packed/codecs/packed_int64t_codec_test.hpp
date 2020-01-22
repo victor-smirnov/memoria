@@ -36,7 +36,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testRawValues);
+        MMA_CLASS_TESTS(suite, testRawValues);
     }
 
     void testRawValues()
@@ -97,7 +97,7 @@ public:
     }
 };
 
-#define MMA1_INT64_CODEC_SUITE() \
-MMA1_CLASS_SUITE(PackedInt64TCodecTest, "PackedInt64TCodecSuite")
+#define MMA_INT64_CODEC_SUITE() \
+MMA_CLASS_SUITE(PackedInt64TCodecTest, "PackedInt64TCodecSuite")
 
 }}

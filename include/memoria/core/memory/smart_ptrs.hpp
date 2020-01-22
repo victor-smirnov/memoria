@@ -25,7 +25,7 @@
 
 namespace memoria {
 
-#ifdef MMA1_NO_REACTOR
+#ifdef MMA_NO_REACTOR
 
 static inline int32_t current_cpu() {return 0;}
 static inline int32_t number_of_cpus() {return 1;}

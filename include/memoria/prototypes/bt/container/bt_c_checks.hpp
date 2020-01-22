@@ -75,7 +75,7 @@ public:
         {
             self().ctr_dump_node(node);
 
-            MMA1_ERROR(self(), "Node content check failed", ex.message());
+            MMA_ERROR(self(), "Node content check failed", ex.message());
             return true;
         }
     }
@@ -112,7 +112,7 @@ BoolResult M_TYPE::ctr_check_tree() const noexcept
         return BoolResult::of(errors);
     }
     else {
-        MMA1_ERROR(self, "No root node for container");
+        MMA_ERROR(self, "No root node for container");
         return BoolResult::of(true);
     }
 }
@@ -146,7 +146,7 @@ VoidResult M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t par
             if (children == 0 && !node->is_root())
             {
                 errors = true;
-                MMA1_ERROR(self, "children == 0 for non-root node", node->id());
+                MMA_ERROR(self, "children == 0 for non-root node", node->id());
                 self.ctr_dump_node(node);
             }
         }
@@ -168,20 +168,20 @@ VoidResult M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t par
             if (child->id() != child_id)
             {
                 errors = true;
-                MMA1_ERROR(self, "child.id != child_id", child->id(), child->id(), child_id);
+                MMA_ERROR(self, "child.id != child_id", child->id(), child->id(), child_id);
             }
 
             if (child->parent_idx() != c)
             {
                 errors = true;
-                MMA1_ERROR(self, "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
+                MMA_ERROR(self, "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
                 std::cout << "parent_idx: " << child->parent_idx() << " " << c << std::endl;
             }
 
             if (child->parent_id() != node->id())
             {
                 errors = true;
-                MMA1_ERROR(self, "child.parent_id != node.id", child->parent_id(), node->id());
+                MMA_ERROR(self, "child.parent_id != node.id", child->parent_id(), node->id());
                 std::cout << "parent_idx: " << child->parent_id() << " " << node->id() << std::endl;
             }
 
@@ -206,7 +206,7 @@ BoolResult M_TYPE::ctr_check_typed_node_content(Node1&& parent, Node2&& node, in
 
     if (sums != keys)
     {
-        MMA1_ERROR(
+        MMA_ERROR(
                 self(),
                 "Invalid parent-child nodes chain",
                 (SBuf() << sums).str(),

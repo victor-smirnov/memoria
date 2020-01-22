@@ -83,8 +83,8 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testSeek1, testSeek2, testSeek3);
-        MMA1_CLASS_TESTS(suite, testSeek4, testSeek5);
+        MMA_CLASS_TESTS(suite, testSeek1, testSeek2, testSeek3);
+        MMA_CLASS_TESTS(suite, testSeek4, testSeek5);
     }
 
     void testSeek1()

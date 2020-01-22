@@ -261,7 +261,7 @@ public:
 
         if (pid_ == -1)
         {
-            MMA1_THROW(SystemException()) << format_ex("Can't create process {}", builder->exe_path());
+            MMA_THROW(SystemException()) << format_ex("Can't create process {}", builder->exe_path());
         }
         else if (pid_ == 0)
         {

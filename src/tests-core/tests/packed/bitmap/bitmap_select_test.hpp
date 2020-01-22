@@ -51,11 +51,11 @@ class BitmapSelectTest: public BitmapTestBase<uint64_t> {
     using AssertSelectBWFn = std::function<void (MyType*, size_t, size_t, size_t)>;
 
 public:
-    MMA1_STATE_FILEDS(start_, stop_, target_idx_, target_rank_, target_found_, value_, rank_); //bitmap_
+    MMA_STATE_FILEDS(start_, stop_, target_idx_, target_rank_, target_found_, value_, rank_); //bitmap_
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testSelectFWPlain, testSelectBWPlain, testSelect1FW, testSelect0FW, testSelect1BW, testSelect0BW)\
+        MMA_CLASS_TESTS(suite, testSelectFWPlain, testSelectBWPlain, testSelect1FW, testSelect0FW, testSelect1BW, testSelect0BW)\
     }
 
 
@@ -482,8 +482,8 @@ public:
 };
 
 
-#define MMA1_BITMAP_SELECT_SUITE() \
-MMA1_CLASS_SUITE(BitmapSelectTest, "BitmapSelectSuite")
+#define MMA_BITMAP_SELECT_SUITE() \
+MMA_CLASS_SUITE(BitmapSelectTest, "BitmapSelectSuite")
 
 
 }}

@@ -142,7 +142,7 @@ private:
 
         prefix_.clear();
 
-        if (MMA1_LIKELY(parser_.prefix_size() > 0))
+        if (MMA_LIKELY(parser_.prefix_size() > 0))
         {
             size_t prefix_size = parser_.buffer()[0].length;
             ValuesIOVSubstreamAdapter::read_to(buffer.substream(1), 0, 0, prefix_size, prefix_.array());

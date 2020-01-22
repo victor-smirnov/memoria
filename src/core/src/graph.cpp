@@ -1,6 +1,6 @@
 #include <memoria/core/graph/graph.hpp>
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
@@ -106,7 +106,7 @@ VertexProperty IVertex::property(const U8String& name)
 
 VertexProperty IVertex::property(const U8String& name, const Any& value)
 {
-    MMA1_THROW(GraphException()) << WhatCInfo("Property update is not supported");
+    MMA_THROW(GraphException()) << WhatCInfo("Property update is not supported");
 }
 
 

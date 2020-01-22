@@ -63,7 +63,7 @@ public:
     using Base::getRandom;
     using Base::out;
 
-    MMA1_STATE_FILEDS(size_);
+    MMA_STATE_FILEDS(size_);
 
     TreePtr createEmptyTree(int32_t block_size = MEMBUF_SIZE)
     {
@@ -100,7 +100,7 @@ public:
 
         OOM_THROW_IF_FAILED(tree->_insert(0, size, [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        }), MMA1_SRC);
+        }), MMA_SRC);
 
         truncate(vals, size);
 
@@ -126,7 +126,7 @@ public:
     {
         OOM_THROW_IF_FAILED(tree->_insert(0, vals.size(), [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        }), MMA1_SRC);
+        }), MMA_SRC);
     }
 
     Values createRandom(int32_t max = 100)

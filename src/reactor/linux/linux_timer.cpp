@@ -52,18 +52,18 @@ TimerImpl::TimerImpl(Timer::TimeUnit start_after, Timer::TimeUnit repeat_after, 
             {
                 int32_t code = errno;
                 ::close(timer_fd_);
-                MMA1_THROW(SystemException(code)) << format_ex("Can't configure epoller for Timer {}", timer_fd_);
+                MMA_THROW(SystemException(code)) << format_ex("Can't configure epoller for Timer {}", timer_fd_);
             }
         }
         else {
             int32_t code = errno;
             ::close(timer_fd_);
-            MMA1_THROW(SystemException(code)) << format_ex("Can't setup timer {}", timer_fd_);
+            MMA_THROW(SystemException(code)) << format_ex("Can't setup timer {}", timer_fd_);
 
         }
     }
     else {
-        MMA1_THROW(SystemException()) << format_ex("Can't create timerfd timer {}", timer_fd_);
+        MMA_THROW(SystemException()) << format_ex("Can't create timerfd timer {}", timer_fd_);
     }
 }
 
@@ -142,19 +142,19 @@ void IOPoller::sleep_for(const std::chrono::milliseconds& time)
                 else {
                     int32_t err_code = errno;
                     close(tfd);
-                    MMA1_THROW(SystemException(err_code)) << WhatCInfo("Can't configure epoller for engine.sleep_for()");
+                    MMA_THROW(SystemException(err_code)) << WhatCInfo("Can't configure epoller for engine.sleep_for()");
                 }
             }
             else {
                 int32_t err_code = errno;
                 close(tfd);
-                MMA1_THROW(SystemException(err_code)) << WhatCInfo("Can't configure timer for engine.sleep_for()");
+                MMA_THROW(SystemException(err_code)) << WhatCInfo("Can't configure timer for engine.sleep_for()");
             }
         }
         else {
             int32_t err_code = errno;
             close(tfd);
-            MMA1_THROW(SystemException(err_code)) << WhatCInfo("Can't create timer for engine.sleep_for()");
+            MMA_THROW(SystemException(err_code)) << WhatCInfo("Can't create timer for engine.sleep_for()");
         }
     }
 }

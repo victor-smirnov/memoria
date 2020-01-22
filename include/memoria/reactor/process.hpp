@@ -43,7 +43,7 @@ class ProcessImpl;
 class Process: public PimplBase<ProcessImpl> {
     using Base = PimplBase<ProcessImpl>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Process)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Process)
 
     enum class Status {RUNNING, EXITED, TERMINATED, CRASHED, OTHER};
 
@@ -68,7 +68,7 @@ class ProcessBuilderImpl;
 class ProcessBuilder : public PimplBase<ProcessBuilderImpl> {
 	using Base = PimplBase<ProcessBuilderImpl>;
 public:
-	MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ProcessBuilder)
+	MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ProcessBuilder)
 
 
 	static ProcessBuilder create(filesystem::path exe_path);

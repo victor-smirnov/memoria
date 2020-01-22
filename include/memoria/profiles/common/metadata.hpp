@@ -87,7 +87,7 @@ public:
             block_map_[key] = std::move(block_meta);
         }
         else {
-            MMA1_THROW(RuntimeException())
+            MMA_THROW(RuntimeException())
                     << format_ex(
                            "Block operations already registered for {} {}", ctr_type_hash, block_type_hash
                     );
@@ -105,7 +105,7 @@ public:
             container_map_[ctr_type_hash] = std::move(ctr_interface);
         }
         else {
-            MMA1_THROW(RuntimeException())
+            MMA_THROW(RuntimeException())
                     << format_ex(
                            "Container interface already registered for {}",
                            ctr_type_hash
@@ -124,7 +124,7 @@ public:
             factory_map_[typedecl_signature] = std::move(ctr_factories);
         }
         else {
-            MMA1_THROW(RuntimeException())
+            MMA_THROW(RuntimeException())
                     << format_ex(
                            "Container instance factories already registered for {}",
                            typedecl_signature
@@ -179,7 +179,7 @@ public:
             return ii->second;
         }
         else {
-            MMA1_THROW(RuntimeException())
+            MMA_THROW(RuntimeException())
                     << format_ex("BlockOperations is not found for {} {}", ctr_type_hash, block_type_hash);
         }
     }
@@ -192,7 +192,7 @@ public:
             return ii->second;
         }
         else {
-            MMA1_THROW(RuntimeException())
+            MMA_THROW(RuntimeException())
                     << format_ex("ContainerOperations is not found for {}", ctr_type_hash);
         }
     }
@@ -205,7 +205,7 @@ public:
             return ii->second;
         }
         else {
-            MMA1_THROW(RuntimeException())
+            MMA_THROW(RuntimeException())
                     << format_ex("ContainerFactories is not found for {}", signature);
         }
     }

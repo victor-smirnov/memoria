@@ -15,8 +15,8 @@
 
 #pragma once
 
-#ifdef MMA1_NO_REACTOR
-#error ractor.hpp is inluded while MMA1_NO_REACTOR is defined
+#ifdef MMA_NO_REACTOR
+#error ractor.hpp is inluded while MMA_NO_REACTOR is defined
 #endif
 
 #include <memoria/core/config.hpp>
@@ -32,13 +32,13 @@
 #include <memoria/fiber/protected_stack_pool.hpp>
 #include <memoria/fiber/pooled_fixedsize_stack.hpp>
 
-#ifdef MMA1_WINDOWS
+#ifdef MMA_WINDOWS
 #include <memoria/reactor/msvc/msvc_io_poller.hpp>
 #include <memoria/reactor/msvc/msvc_smp.hpp>
-#elif defined(MMA1_MACOSX)
+#elif defined(MMA_MACOSX)
 #include <memoria/reactor/macosx/macosx_smp.hpp>
 #include <memoria/reactor/macosx/macosx_io_poller.hpp>
-#elif defined(MMA1_LINUX)
+#elif defined(MMA_LINUX)
 #include <memoria/reactor/linux/linux_smp.hpp>
 #include <memoria/reactor/linux/linux_io_poller.hpp>
 #endif

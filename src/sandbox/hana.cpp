@@ -51,7 +51,7 @@ psize_t locate(psize_t stride_log2_ex, const std::vector<Value>& values, Value e
     psize_t basic_stride = compute_stride(basic_stride_log2);
 
     psize_t stride_base = 0;
-    if (MMA1_LIKELY(basic_stride <= size))
+    if (MMA_LIKELY(basic_stride <= size))
     {
         psize_t stride = basic_stride;
         psize_t stride_log2 = basic_stride_log2;
@@ -75,7 +75,7 @@ psize_t locate(psize_t stride_log2_ex, const std::vector<Value>& values, Value e
             {
                 psize_t row = stride_base + stride - 1;
 
-                if (MMA1_LIKELY(element < values[row]))
+                if (MMA_LIKELY(element < values[row]))
                 {
                     break;
                 }
@@ -90,7 +90,7 @@ psize_t locate(psize_t stride_log2_ex, const std::vector<Value>& values, Value e
             stride >>= basic_stride_log2;
             stride_log2 -= basic_stride_log2;
 
-            if (MMA1_LIKELY(c < strides)) {
+            if (MMA_LIKELY(c < strides)) {
                 strides = basic_stride;
             }
             else {

@@ -58,14 +58,14 @@ option(BUILD_CONTAINERS "Build stores and containers." ON)
 option(BUILD_MEMORY_STORE "Build default in-memory store." ON)
 
 option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)
-option(BUILD_TESTS_PACKED       "Build packed structires tests" ON)
-option(BUILD_TESTS_CONTAINERS   "Build containers tests" ON)
+option(BUILD_TESTS_PACKED       "Build Packed Structires tests" ON)
+option(BUILD_TESTS_CONTAINERS   "Build Containers tests" ON)
 option(BUILD_TESTS_REACTOR      "Build Reactor tests" ON)
 option(BUILD_TESTS_SDN          "Build SDN/LDDocument tests" ON)
 option(BUILD_TESTS_DATATYPES    "Build Datatype tests" ON)
-option(BUILD_TESTS_FIBERS       "Build Fibers tests" ON)
-option(BUILD_TESTS_DISRUPTOR    "Build Disriptor MPSC queue tests" ON)
-option(BUILD_TESTS_CONTEXT      "Build Disriptor MPSC queue tests" ON)
+option(BUILD_TESTS_FIBERS       "Build Fibers tests" OFF)
+option(BUILD_TESTS_DISRUPTOR    "Build Disriptor MPSC queue tests" OFF)
+option(BUILD_TESTS_CONTEXT      "Build Disriptor MPSC queue tests" OFF)
 
 option(ICU_DEBUG   "Debug FindICU" OFF)
 option(Boost_DEBUG "Debug FindBoost" OFF)
@@ -94,7 +94,7 @@ endif()
 # Global definitions
 
 add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
-add_definitions(-DMMA1_ICU_CXX_NS=icu_61)
+add_definitions(-DMMA_ICU_CXX_NS=icu_61)
 
 if (BUILD_CONTAINERS)
     add_definitions(-DMEMORIA_BUILD_CONTAINERS)

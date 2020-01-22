@@ -81,8 +81,8 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testIterator1, testIterator2, testIterator3);
-        MMA1_CLASS_TESTS(suite, testIterator4, testIterator5, testIterator6);
+        MMA_CLASS_TESTS(suite, testIterator1, testIterator2, testIterator3);
+        MMA_CLASS_TESTS(suite, testIterator4, testIterator5, testIterator6);
     }
 
     void testIterator1()

@@ -20,7 +20,7 @@ size_t ConsoleInputStream::read(uint8_t* data, size_t size)
 
     if (result < 0)
     {
-        MMA1_THROW(SystemException()) << WhatInfo(strerror(errno_v));
+        MMA_THROW(SystemException()) << WhatInfo(strerror(errno_v));
     }
 
     return result;
@@ -52,7 +52,7 @@ size_t ConsoleOutputStream::write(const uint8_t* data, size_t size)
 
     if (error_v)
     {
-        MMA1_THROW(SystemException()) << WhatInfo(strerror(errno_v));
+        MMA_THROW(SystemException()) << WhatInfo(strerror(errno_v));
     }
 
     return result;

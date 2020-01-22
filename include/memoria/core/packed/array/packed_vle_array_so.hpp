@@ -340,7 +340,7 @@ public:
             return access(column, size - 1);
         }
         else {
-            MMA1_THROW(RuntimeException()) << format_ex("Column {} is empty", column);
+            MMA_THROW(RuntimeException()) << format_ex("Column {} is empty", column);
         }
     }
 
@@ -842,7 +842,7 @@ public:
     }
 
     virtual Span<const ViewType> span(size_t row, size_t size) const {
-        MMA1_THROW(UnsupportedOperationException());
+        MMA_THROW(UnsupportedOperationException());
     }
 
     ViewType get(size_t row) const {

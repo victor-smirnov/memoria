@@ -74,7 +74,7 @@ int32_t getNonZeroRandomG(int32_t size)
         return value;
     }
     else {
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Invalid argument");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Invalid argument");
     }
 }
 

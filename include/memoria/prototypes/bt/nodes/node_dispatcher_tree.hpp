@@ -123,7 +123,7 @@ public:
             );
         }
         else {
-            MMA1_THROW(Exception()) << WhatCInfo("Can't dispatch btree node type");
+            MMA_THROW(Exception()) << WhatCInfo("Can't dispatch btree node type");
         }
     }
 };
@@ -209,7 +209,7 @@ public:
             );
         }
         else {
-            MMA1_THROW(DispatchException()) << WhatInfo("Can't dispatch btree node type");
+            MMA_THROW(DispatchException()) << WhatInfo("Can't dispatch btree node type");
         }
     }
 };

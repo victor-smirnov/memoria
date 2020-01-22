@@ -181,14 +181,14 @@ public:
         return diff;
     }
 
-    MMA1_NODISCARD int32_t resizeBlock(const void* element, int32_t new_size)
+    MMA_NODISCARD int32_t resizeBlock(const void* element, int32_t new_size)
     {
         int32_t idx = findElement(element);
 
         return resizeBlock(idx, new_size);
     }
 
-    MMA1_NODISCARD int32_t resizeBlock(int32_t idx, int32_t new_size)
+    MMA_NODISCARD int32_t resizeBlock(int32_t idx, int32_t new_size)
     {
         MEMORIA_V1_ASSERT(new_size, >=, 0);
 
@@ -273,7 +273,7 @@ public:
             }
         }
 
-        MMA1_THROW(Exception()) << WhatCInfo("Requested element is not found in this allocator");
+        MMA_THROW(Exception()) << WhatCInfo("Requested element is not found in this allocator");
     }
 
 
@@ -313,7 +313,7 @@ public:
     }
 
     template <typename T>
-    MMA1_NODISCARD T* allocate(int32_t idx, int32_t block_size)
+    MMA_NODISCARD T* allocate(int32_t idx, int32_t block_size)
     {
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
@@ -329,7 +329,7 @@ public:
     }
 
     template <typename T>
-    MMA1_NODISCARD T* allocateSpace(int32_t idx, int32_t block_size)
+    MMA_NODISCARD T* allocateSpace(int32_t idx, int32_t block_size)
     {
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
@@ -339,7 +339,7 @@ public:
     }
 
     template <typename T>
-    MMA1_NODISCARD T* allocateEmpty(int32_t idx)
+    MMA_NODISCARD T* allocateEmpty(int32_t idx)
     {
         static_assert(IsPackedStructV<T>, "May allocate only Standard Layout types having PackedAllocatable as header");
 
@@ -361,7 +361,7 @@ public:
     }
 
 
-    MMA1_NODISCARD PackedAllocator* allocateAllocator(int32_t idx, int32_t streams)
+    MMA_NODISCARD PackedAllocator* allocateAllocator(int32_t idx, int32_t streams)
     {
         int32_t block_size = PackedAllocator::empty_size(streams);
 
@@ -382,7 +382,7 @@ public:
 
 
     template <typename T>
-    MMA1_NODISCARD T* allocate(int32_t idx)
+    MMA_NODISCARD T* allocate(int32_t idx)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -393,7 +393,7 @@ public:
     }
 
     template <typename T>
-    MMA1_NODISCARD T* allocateArrayByLength(int32_t idx, int32_t length)
+    MMA_NODISCARD T* allocateArrayByLength(int32_t idx, int32_t length)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -404,7 +404,7 @@ public:
     }
 
     template <typename T>
-    MMA1_NODISCARD T* allocateArrayBySize(int32_t idx, int32_t size)
+    MMA_NODISCARD T* allocateArrayBySize(int32_t idx, int32_t size)
     {
         static_assert(!std::is_base_of<PackedAllocatable, T>::value,
                 "Only classes that are not derived from PackedAllocatable "
@@ -415,7 +415,7 @@ public:
     }
 
 
-    MMA1_NODISCARD AllocationBlock allocate(int32_t idx, int32_t size, PackedBlockType type)
+    MMA_NODISCARD AllocationBlock allocate(int32_t idx, int32_t size, PackedBlockType type)
     {
         int32_t allocation_size = PackedAllocatable::roundUpBytesToAlignmentBlocks(size);
 
@@ -485,7 +485,7 @@ public:
         {
             if(isFail(pack()))
             {
-                MMA1_THROW(RuntimeException()) << WhatCInfo("PackedAllocator::pack() failed");
+                MMA_THROW(RuntimeException()) << WhatCInfo("PackedAllocator::pack() failed");
             }
         }
     }
@@ -541,12 +541,12 @@ public:
     }
 
 
-    MMA1_NODISCARD int32_t enlarge(int32_t delta)
+    MMA_NODISCARD int32_t enlarge(int32_t delta)
     {
         return resize(PackedAllocatable::roundUpBytesToAlignmentBlocks(block_size_ + delta));
     }
 
-    MMA1_NODISCARD int32_t shrink(int32_t delta)
+    MMA_NODISCARD int32_t shrink(int32_t delta)
     {
         return resize(PackedAllocatable::roundUpBytesToAlignmentBlocks(block_size_ - delta));
     }
@@ -556,7 +556,7 @@ public:
         block_size_ = new_size;
     }
 
-    MMA1_NODISCARD int32_t resize(int32_t new_size)
+    MMA_NODISCARD int32_t resize(int32_t new_size)
     {
         if (allocatable_.allocator_offset() > 0)
         {
@@ -585,13 +585,13 @@ public:
         block_size_ += PackedAllocatable::roundDownBytesToAlignmentBlocks(amount);
     }
 
-    MMA1_NODISCARD int32_t pack()
+    MMA_NODISCARD int32_t pack()
     {
         int32_t free_space = this->free_space();
         return resize(block_size_ - free_space);
     }
 
-    MMA1_NODISCARD int32_t compute_free_space_up() const
+    MMA_NODISCARD int32_t compute_free_space_up() const
     {
         int32_t space{};
 

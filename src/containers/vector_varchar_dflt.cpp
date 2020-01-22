@@ -25,7 +25,7 @@ namespace memoria {
 using Profile = DefaultProfile<>;    
 using CtrName = Vector<Varchar>;
 
-MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
+MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     
 }
 

@@ -25,7 +25,7 @@ namespace memoria {
 template <typename T, typename Arena>
 class MappedHashFn;
 
-#define MMA1_MAPPED_HASH_FN(Type)   \
+#define MMA_MAPPED_HASH_FN(Type)   \
 template <typename Arena>           \
 class MappedHashFn<Type, Arena> {   \
 public:                             \
@@ -38,30 +38,30 @@ public:                             \
 }                                           \
 
 
-MMA1_MAPPED_HASH_FN(uint8_t);
-MMA1_MAPPED_HASH_FN(int8_t);
+MMA_MAPPED_HASH_FN(uint8_t);
+MMA_MAPPED_HASH_FN(int8_t);
 
-MMA1_MAPPED_HASH_FN(uint16_t);
-MMA1_MAPPED_HASH_FN(int16_t);
+MMA_MAPPED_HASH_FN(uint16_t);
+MMA_MAPPED_HASH_FN(int16_t);
 
-MMA1_MAPPED_HASH_FN(uint32_t);
-MMA1_MAPPED_HASH_FN(int32_t);
+MMA_MAPPED_HASH_FN(uint32_t);
+MMA_MAPPED_HASH_FN(int32_t);
 
-MMA1_MAPPED_HASH_FN(uint64_t);
-MMA1_MAPPED_HASH_FN(int64_t);
+MMA_MAPPED_HASH_FN(uint64_t);
+MMA_MAPPED_HASH_FN(int64_t);
 
-MMA1_MAPPED_HASH_FN(bool);
-MMA1_MAPPED_HASH_FN(char);
-MMA1_MAPPED_HASH_FN(char16_t);
-MMA1_MAPPED_HASH_FN(char32_t);
+MMA_MAPPED_HASH_FN(bool);
+MMA_MAPPED_HASH_FN(char);
+MMA_MAPPED_HASH_FN(char16_t);
+MMA_MAPPED_HASH_FN(char32_t);
 
-MMA1_MAPPED_HASH_FN(float);
-MMA1_MAPPED_HASH_FN(double);
+MMA_MAPPED_HASH_FN(float);
+MMA_MAPPED_HASH_FN(double);
 
 template <typename T, typename Arena>
 class MappedEqualToFn;
 
-#define MMA1_MAPPED_EQUAL_TO_FN(Type)       \
+#define MMA_MAPPED_EQUAL_TO_FN(Type)       \
 template <typename Arena>                   \
 class MappedEqualToFn<Type, Arena> {        \
 public:                                     \
@@ -73,25 +73,25 @@ public:                                     \
     }                                       \
 }                                           \
 
-MMA1_MAPPED_EQUAL_TO_FN(uint8_t);
-MMA1_MAPPED_EQUAL_TO_FN(int8_t);
+MMA_MAPPED_EQUAL_TO_FN(uint8_t);
+MMA_MAPPED_EQUAL_TO_FN(int8_t);
 
-MMA1_MAPPED_EQUAL_TO_FN(uint16_t);
-MMA1_MAPPED_EQUAL_TO_FN(int16_t);
+MMA_MAPPED_EQUAL_TO_FN(uint16_t);
+MMA_MAPPED_EQUAL_TO_FN(int16_t);
 
-MMA1_MAPPED_EQUAL_TO_FN(uint32_t);
-MMA1_MAPPED_EQUAL_TO_FN(int32_t);
+MMA_MAPPED_EQUAL_TO_FN(uint32_t);
+MMA_MAPPED_EQUAL_TO_FN(int32_t);
 
-MMA1_MAPPED_EQUAL_TO_FN(uint64_t);
-MMA1_MAPPED_EQUAL_TO_FN(int64_t);
+MMA_MAPPED_EQUAL_TO_FN(uint64_t);
+MMA_MAPPED_EQUAL_TO_FN(int64_t);
 
-MMA1_MAPPED_EQUAL_TO_FN(bool);
-MMA1_MAPPED_EQUAL_TO_FN(char);
-MMA1_MAPPED_EQUAL_TO_FN(char16_t);
-MMA1_MAPPED_EQUAL_TO_FN(char32_t);
+MMA_MAPPED_EQUAL_TO_FN(bool);
+MMA_MAPPED_EQUAL_TO_FN(char);
+MMA_MAPPED_EQUAL_TO_FN(char16_t);
+MMA_MAPPED_EQUAL_TO_FN(char32_t);
 
-MMA1_MAPPED_EQUAL_TO_FN(float);
-MMA1_MAPPED_EQUAL_TO_FN(double);
+MMA_MAPPED_EQUAL_TO_FN(float);
+MMA_MAPPED_EQUAL_TO_FN(double);
 
 template <typename T, typename Arena>
 class LinkedPtrHashFn;
@@ -134,7 +134,7 @@ namespace linked_ {
         static PtrT deep_copy(Arena* dst, const Arena* src, PtrT ptr, AddressMapping& address_mapping)
         {
             auto ii = address_mapping.find(ptr.get());
-            if (MMA1_UNLIKELY(ii != address_mapping.end()))
+            if (MMA_UNLIKELY(ii != address_mapping.end()))
             {
                 return ii->second;
             }

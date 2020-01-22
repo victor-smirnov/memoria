@@ -67,10 +67,10 @@ public:
         //Base::check_step = 1;
     }
 
-    MMA1_STATE_FILEDS(map_creation_)
+    MMA_STATE_FILEDS(map_creation_)
 
     static void init_suite(TestSuite& suite) {
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, runRemoveTest, replayRemoveTest);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, runRemoveTest, replayRemoveTest);
     }
 
     virtual Key makeRandomKey() {
@@ -101,7 +101,7 @@ public:
             map.assign(key, value);
         }
 
-        check(snapshot(), MMA1_SOURCE);
+        check(snapshot(), MMA_SOURCE);
 
         commit();
         

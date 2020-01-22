@@ -36,14 +36,14 @@ public:
     using SampleDataShuffledByKey = std::vector<UUID>;
     SampleDataShuffledByKey snapshot_by_key_;
 
-    MMA1_INDIRECT_STATE_FILEDS(snapshot_by_key_)
+    MMA_INDIRECT_STATE_FILEDS(snapshot_by_key_)
 
     EdgeMapValuesRemovalTestSuite(){}
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testRemoveSingleKeyValue, replayRemoveSingleKeyValue);
-        MMA1_CLASS_TESTS(suite, testRemoveMultipleKeyValues);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testRemoveSingleKeyValue, replayRemoveSingleKeyValue);
+        MMA_CLASS_TESTS(suite, testRemoveMultipleKeyValues);
     }
 
     virtual void post_configure(TestCoverage coverage)

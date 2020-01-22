@@ -121,7 +121,7 @@ public:
 
     uint8_t next()
     {
-        if (MMA1_LIKELY(has_next()))
+        if (MMA_LIKELY(has_next()))
         {
             entry_++;
             auto& iov = iterator_.iovector_view();
@@ -130,7 +130,7 @@ public:
             return *data_ss.select(iterator_.leaf_pos(2));
         }
 
-        MMA1_THROW(RuntimeException()) << WhatCInfo("No such element");
+        MMA_THROW(RuntimeException()) << WhatCInfo("No such element");
     }
 
 
@@ -151,7 +151,7 @@ protected:
     {
         size_t available = n_entries_ - entry_;
         size_t to_read   = size <= available ? size : available;
-#ifdef MMA1_USE_IOBUFFER
+#ifdef MMA_USE_IOBUFFER
         buffer_->get(mem, to_read);
 #endif
         n_entries_ += to_read;

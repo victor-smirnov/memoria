@@ -20,7 +20,7 @@
 
 #include <memoria/core/datatypes/datum.hpp>
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
@@ -167,12 +167,12 @@ U16String UUID::to_u16() const
 template <>
 Datum<UUID> datum_from_sdn_value(const UUID*, int64_t value)
 {
-    MMA1_THROW(RuntimeException()) << WhatCInfo("SDN convertion from int64_t to UUID is not supported");
+    MMA_THROW(RuntimeException()) << WhatCInfo("SDN convertion from int64_t to UUID is not supported");
 }
 
 template <>
 Datum<UUID> datum_from_sdn_value(const UUID*, double value) {
-    MMA1_THROW(RuntimeException()) << WhatCInfo("SDN convertion from double to UUID is not supported");
+    MMA_THROW(RuntimeException()) << WhatCInfo("SDN convertion from double to UUID is not supported");
 }
 
 

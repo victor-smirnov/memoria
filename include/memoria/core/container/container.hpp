@@ -425,7 +425,7 @@ public:
 
     CtrID getModelName(const BlockID root_id)
     {
-        MMA1_THROW(UnsupportedOperationException()) << WhatCInfo("getModelName");
+        MMA_THROW(UnsupportedOperationException()) << WhatCInfo("getModelName");
     }
 
 
@@ -450,7 +450,7 @@ public:
 
     virtual void remove()
     {
-        MMA1_THROW(GraphException()) << WhatCInfo("Can't remove container with Vertex::remove()");
+        MMA_THROW(GraphException()) << WhatCInfo("Can't remove container with Vertex::remove()");
     }
 
     virtual bool is_removed() const

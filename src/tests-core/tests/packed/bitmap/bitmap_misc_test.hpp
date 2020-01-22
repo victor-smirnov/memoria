@@ -40,8 +40,8 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testMakeMaskInternal, testMakeMask, testSetBit, testSetBits);
-        MMA1_CLASS_TESTS(suite, testFillOne, testFillZero, testCTZ);
+        MMA_CLASS_TESTS(suite, testMakeMaskInternal, testMakeMask, testSetBit, testSetBits);
+        MMA_CLASS_TESTS(suite, testFillOne, testFillZero, testCTZ);
     }
 
 
@@ -293,9 +293,9 @@ public:
     }
 };
 
-#define MMA1_BITMAP_MISC_SUITE(Name, Type) \
+#define MMA_BITMAP_MISC_SUITE(Name, Type) \
 using Name = BitmapMiscTest<Type>;\
-MMA1_CLASS_SUITE(Name, #Name)
+MMA_CLASS_SUITE(Name, #Name)
 
 
 }}

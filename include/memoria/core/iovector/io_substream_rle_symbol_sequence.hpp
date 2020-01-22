@@ -155,7 +155,7 @@ public:
 
 
     void configure(const void* ptr) {
-        MMA1_THROW(UnsupportedOperationException());
+        MMA_THROW(UnsupportedOperationException());
     }
 
 private:
@@ -203,7 +203,7 @@ static inline std::unique_ptr<IOSymbolSequence> make_packed_rle_symbol_sequence(
         return std::make_unique<PackedRLESymbolSequence<7>>();
     }
     else {
-        MMA1_THROW(RuntimeException()) << format_ex("Unsupported alphabe_size value: {}", alphabet_size);
+        MMA_THROW(RuntimeException()) << format_ex("Unsupported alphabe_size value: {}", alphabet_size);
     }
 }
 

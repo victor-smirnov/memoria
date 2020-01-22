@@ -35,7 +35,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testAppendCommands, replayAppendCommands);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testAppendCommands, replayAppendCommands);
     }
 
 //    virtual void post_configure(TestCoverage coverage)

@@ -20,7 +20,7 @@
 #include <memoria/profiles/common/block_operations.hpp>
 #include <memoria/core/tools/dump.hpp>
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 

@@ -61,11 +61,11 @@ public:
         Base::size_ = 300000;
     }
 
-    MMA1_STATE_FILEDS(iterations_)
+    MMA_STATE_FILEDS(iterations_)
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testIterRank, testCtrRank);
+        MMA_CLASS_TESTS(suite, testIterRank, testCtrRank);
     }
 
     void testCtrRank()

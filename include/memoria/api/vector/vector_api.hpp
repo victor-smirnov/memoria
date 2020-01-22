@@ -115,7 +115,7 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
     virtual Result<CtrSizeT> remove_from(CtrSizeT from) noexcept = 0;
     virtual Result<CtrSizeT> remove_up_to(CtrSizeT pos) noexcept = 0;
 
-    MMA1_DECLARE_ICTRAPI();
+    MMA_DECLARE_ICTRAPI();
 };
 
 }

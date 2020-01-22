@@ -74,7 +74,7 @@ public:
             return value_view;
         }
         else {
-            MMA1_THROW(BoundsException()
+            MMA_THROW(BoundsException()
                        << format_ex(
                            "Requested index {} is outside of bounds [0, {})",
                            local_pos,

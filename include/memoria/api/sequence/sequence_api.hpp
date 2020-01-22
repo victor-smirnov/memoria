@@ -37,7 +37,7 @@ public:
 
     using typename Base::Iterator;
     
-    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
+    MMA_DECLARE_CTRAPI_BASIC_METHODS()
 };
 
 
@@ -56,7 +56,7 @@ public:
     using Base::read;
     using Base::insert;
     
-    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
+    MMA_DECLARE_ITERAPI_BASIC_METHODS()
     
 };
     

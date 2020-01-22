@@ -41,7 +41,7 @@ public:
         int flags = fcntl(fd_, F_GETFL, 0);
         if (fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
         {
-            MMA1_THROW(SystemException()) << WhatCInfo("Can't set pipe property O_NONBLOCK");
+            MMA_THROW(SystemException()) << WhatCInfo("Can't set pipe property O_NONBLOCK");
         }
 
         int queue_fd = engine().io_poller().queue_fd();
@@ -77,7 +77,7 @@ public:
                 available_size = av >= size ? size : av;
             }
             else {
-                MMA1_THROW(SystemException()) << format_ex(
+                MMA_THROW(SystemException()) << format_ex(
                     "Error reading from pipe {}", fd_
                 );
             }
@@ -113,7 +113,7 @@ public:
 
             if (::close(fd_) < 0)
             {
-                MMA1_THROW(SystemException()) << format_ex("Can't close pipe {}", fd_);
+                MMA_THROW(SystemException()) << format_ex("Can't close pipe {}", fd_);
             }
         }
     }
@@ -139,7 +139,7 @@ public:
         int flags = fcntl(fd_, F_GETFL, 0);
         if (fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
         {
-            MMA1_THROW(SystemException()) << WhatInfo("Can't set pipe property O_NONBLOCK");
+            MMA_THROW(SystemException()) << WhatInfo("Can't set pipe property O_NONBLOCK");
         }
 
         int queue_fd = engine().io_poller().queue_fd();
@@ -190,7 +190,7 @@ public:
                 available_size = av >= size ? size : av;
             }
             else {
-                MMA1_THROW(SystemException()) << format_ex(
+                MMA_THROW(SystemException()) << format_ex(
                     "Error writing to pipe {}", fd_
                 );
             }
@@ -226,7 +226,7 @@ public:
 
             if (::close(fd_) < 0)
             {
-                MMA1_THROW(SystemException()) << format_ex("Can't close pipe {}", fd_);
+                MMA_THROW(SystemException()) << format_ex("Can't close pipe {}", fd_);
             }
         }
     }
@@ -243,7 +243,7 @@ PipeStreams open_pipe()
 {
     int32_t fds[2];
     if (::pipe(fds) < 0) {
-        MMA1_THROW(SystemException()) << WhatCInfo("Can't create a pair of pipes");
+        MMA_THROW(SystemException()) << WhatCInfo("Can't create a pair of pipes");
     }
 
     return PipeStreams{

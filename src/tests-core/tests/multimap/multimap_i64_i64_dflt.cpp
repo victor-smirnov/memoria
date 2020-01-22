@@ -23,7 +23,7 @@ namespace memoria {
 using CtrName = Multimap<int64_t, int64_t>;
 using Profile = DefaultProfile<>;
 
-MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+MMA_INSTANTIATE_CTR_BTFL(CtrName, Profile)
 
 
 }

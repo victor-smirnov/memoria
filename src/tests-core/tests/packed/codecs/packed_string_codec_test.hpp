@@ -37,7 +37,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testShortStrings, testLongStrings);
+        MMA_CLASS_TESTS(suite, testShortStrings, testLongStrings);
     }
 
     void testShortStrings()
@@ -130,8 +130,8 @@ private:
     }
 };
 
-#define MMA1_STRING_CODEC_SUITE() \
-MMA1_CLASS_SUITE(PackedStringCodecTest, "PackedStringCodecSuite")
+#define MMA_STRING_CODEC_SUITE() \
+MMA_CLASS_SUITE(PackedStringCodecTest, "PackedStringCodecSuite")
 
 
 }}

@@ -16,7 +16,7 @@
 #include <memoria/core/regexp/icu_regexp.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 

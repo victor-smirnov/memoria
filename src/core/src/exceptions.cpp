@@ -27,7 +27,7 @@ void terminate(const char* msg) noexcept {
 
 const char* ExtractMemoriaPath(const char* path) {
 
-    const char* prefix = MMA1_TOSTRING(MMA1_SRC);
+    const char* prefix = MMA_TOSTRING(MMA_SRC);
 
     int32_t c;
     for (c = 0; prefix[c] != '\0'; c++)

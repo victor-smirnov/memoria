@@ -51,7 +51,7 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     BOOST_ASSERT_MSG(ip_address_.is_v4(), "Only IPv4 sockets are supported at the moment");
 
     if (fd_ < 0){
-        MMA1_THROW(SystemException()) << format_ex(
+        MMA_THROW(SystemException()) << format_ex(
             "Can't create socket for {}:{}",
             ip_address_, ip_port_
         );
@@ -61,7 +61,7 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     if (::fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
     {
-        MMA1_THROW(SystemException()) << format_ex(
+        MMA_THROW(SystemException()) << format_ex(
             "Can't configure ClientSocket for AIO {}:{}:{}",
             ip_address_, ip_port_, fd_
         );
@@ -97,7 +97,7 @@ void ClientSocketImpl::connect()
 
             if (fiber_io_read_message_.connection_closed())
             {
-                MMA1_THROW(SystemException()) << format_ex(
+                MMA_THROW(SystemException()) << format_ex(
                     "Can't start connection to {}:{}",
                     ip_address_, ip_port_
                 );
@@ -106,7 +106,7 @@ void ClientSocketImpl::connect()
             break;
         }
         else {
-            MMA1_THROW(SystemException()) << format_ex(
+            MMA_THROW(SystemException()) << format_ex(
                 "Can't start connection to {}:{}",
                 ip_address_, ip_port_
             );
@@ -172,7 +172,7 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
             return 0;
         }
         else {
-            MMA1_THROW(SystemException()) << format_ex(
+            MMA_THROW(SystemException()) << format_ex(
                 "Error reading from socket connection for {}:{}:{}",
                 ip_address_, ip_port_, fd_
             );
@@ -205,7 +205,7 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
             return 0;
         }
         else {
-            MMA1_THROW(SystemException()) << format_ex(
+            MMA_THROW(SystemException()) << format_ex(
                 "Error writing to socket connection for {}:{}:{}",
                 ip_address_, ip_port_, fd_
             );

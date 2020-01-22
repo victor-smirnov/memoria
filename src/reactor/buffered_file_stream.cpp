@@ -175,7 +175,7 @@ private:
             return value;
         }
         else {
-            MMA1_THROW(Exception()) << WhatCInfo("Can't read value from InputStreamHandler");
+            MMA_THROW(Exception()) << WhatCInfo("Can't read value from InputStreamHandler");
         }
     }
 };
@@ -210,7 +210,7 @@ void BufferedFileOutputStreamHandlerImpl::write(const void* mem, size_t offset, 
 
     if (total_size != length)
     {
-        MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't write {} bytes to file", length));
+        MMA_THROW(Exception()) << WhatInfo(format_u8("Can't write {} bytes to file", length));
     }
 }
 

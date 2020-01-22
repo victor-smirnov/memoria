@@ -244,7 +244,7 @@ public:
                     OOM_THROW_IF_FAILED(
                         allocator->template allocateEmpty<
                             typename StreamType::PkdStructT
-                        >(AllocatorIdx), MMA1_SRC
+                        >(AllocatorIdx), MMA_SRC
                     );
                 }
             }
@@ -442,7 +442,7 @@ public:
 
         int32_t requested_block_size = (old_size + room_length) * sizeof(Value);
 
-        OOM_THROW_IF_FAILED(toOpStatus(allocator()->resizeBlock(ValuesBlockIdx, requested_block_size)), MMA1_SRC);
+        OOM_THROW_IF_FAILED(toOpStatus(allocator()->resizeBlock(ValuesBlockIdx, requested_block_size)), MMA_SRC);
 
         Value* values = node_->values();
 

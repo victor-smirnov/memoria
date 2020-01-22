@@ -118,7 +118,7 @@ public:
             return data_mutable()[idx];
         }
         else {
-            MMA1_THROW(BoundsException()) << format_ex("{} :: {}", idx, state()->size_);
+            MMA_THROW(BoundsException()) << format_ex("{} :: {}", idx, state()->size_);
         }
     }
 
@@ -127,7 +127,7 @@ public:
             return data()[idx];
         }
         else {
-            MMA1_THROW(BoundsException()) << format_ex("{} :: {}", idx, state()->size_);
+            MMA_THROW(BoundsException()) << format_ex("{} :: {}", idx, state()->size_);
         }
     }
 
@@ -152,7 +152,7 @@ public:
 
         State* state = this->state_mutable();
 
-        if (MMA1_LIKELY(state->size_ + 1 <= state->capacity_))
+        if (MMA_LIKELY(state->size_ + 1 <= state->capacity_))
         {
             T* data = state->data_.get_mutable(arena_);
             data[state->size_++] = value;

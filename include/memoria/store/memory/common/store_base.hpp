@@ -861,7 +861,7 @@ protected:
                     return node;
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified node_id {} is not found in persistent tree data", buffer->root()));
+                    MMA_THROW(Exception()) << WhatInfo(format_u8("Specified node_id {} is not found in persistent tree data", buffer->root()));
                 }
             }
             else {
@@ -874,7 +874,7 @@ protected:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Specified snapshot_id {} is not found in history data", snapshot_id));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Specified snapshot_id {} is not found in history data", snapshot_id));
         }
     }
 
@@ -1001,7 +1001,7 @@ protected:
             map[buffer->node_id()] = std::make_pair(buffer, node);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("PersistentTree LeafNode {} has been already registered", buffer->node_id()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("PersistentTree LeafNode {} has been already registered", buffer->node_id()));
         }
     }
 
@@ -1020,7 +1020,7 @@ protected:
             map[buffer->node_id()] = std::make_pair(buffer, node);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("PersistentTree BranchNode {} has been already registered", buffer->node_id()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("PersistentTree BranchNode {} has been already registered", buffer->node_id()));
         }
     }
 
@@ -1061,7 +1061,7 @@ protected:
             map[node->snapshot_id()] = node;
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("HistoryTree Node {} has been already registered", node->snapshot_id()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("HistoryTree Node {} has been already registered", node->snapshot_id()));
         }
     }
 

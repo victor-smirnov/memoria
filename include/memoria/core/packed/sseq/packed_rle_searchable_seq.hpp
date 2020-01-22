@@ -312,7 +312,7 @@ public:
             return result.run().symbol();
         }
         else {
-            MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Symbol index {} is out of range {}", idx, this->size()));
+            MMA_THROW(BoundsException()) << WhatInfo(format_u8("Symbol index {} is out of range {}", idx, this->size()));
         }
     }
 
@@ -353,7 +353,7 @@ public:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Symbol index {} is out of range {}", idx, this->size()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Symbol index {} is out of range {}", idx, this->size()));
         }
     }
 
@@ -384,7 +384,7 @@ public:
     }
 
 
-    MMA1_PKD_OOM_SAFE
+    MMA_PKD_OOM_SAFE
     OpStatus append(int32_t symbol, uint64_t length)
     {
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
@@ -588,11 +588,11 @@ public:
     uint64_t populate_entry(io::SymbolsBuffer& buffer, uint64_t idx, int32_t symbol, bool entry_start) const
     {
         auto iter = this->iterator(idx);
-        if (MMA1_LIKELY(iter.has_data()))
+        if (MMA_LIKELY(iter.has_data()))
         {
-            if (MMA1_UNLIKELY(entry_start && iter.symbol() == symbol))
+            if (MMA_UNLIKELY(entry_start && iter.symbol() == symbol))
             {
-                if (MMA1_UNLIKELY(iter.remaining_run_length() > 1))
+                if (MMA_UNLIKELY(iter.remaining_run_length() > 1))
                 {
                     buffer.append_run(iter.symbol(), iter.remaining_run_length());
                     return idx + 1;
@@ -662,7 +662,7 @@ public:
         {
             auto len = iter.remaining_run_length();
 
-            if (MMA1_LIKELY(len + total <= size))
+            if (MMA_LIKELY(len + total <= size))
             {
                 total += len;
                 buffer.append_run(iter.symbol(), len);
@@ -724,7 +724,7 @@ public:
 
     // ========================================= Update ================================= //
 
-    MMA1_PKD_OOM_SAFE
+    MMA_PKD_OOM_SAFE
     OpStatus reindex()
     {
         rleseq::ReindexFn<MyType> reindex_fn;
@@ -770,7 +770,7 @@ public:
 
 protected:
 
-    MMA1_PKD_OOM_SAFE
+    MMA_PKD_OOM_SAFE
     OpStatus shrinkData(int32_t length)
     {
         int32_t current_size = this->element_size(SYMBOLS);
@@ -786,7 +786,7 @@ protected:
     }
 
 
-    MMA1_PKD_OOM_SAFE
+    MMA_PKD_OOM_SAFE
     OpStatus shrink_to_data()
     {
         return shrinkData(this->symbols_block_capacity());
@@ -942,7 +942,7 @@ public:
     }
 
 
-    MMA1_PKD_OOM_SAFE
+    MMA_PKD_OOM_SAFE
     template <typename InputSource>
     OpStatus insert_from(int32_t at, const InputSource* buffer, int32_t start, int32_t size)
     {
@@ -1729,7 +1729,7 @@ private:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Symbol index must be >= 0: {}", symbol_pos));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Symbol index must be >= 0: {}", symbol_pos));
         }
     }
     
@@ -2003,7 +2003,7 @@ private:
             pos += len;
         }
 
-        MMA1_THROW(Exception()) << WhatInfo(format_u8("countBW start position is out of range: {} {}", start_pos, meta->size()));
+        MMA_THROW(Exception()) << WhatInfo(format_u8("countBW start position is out of range: {} {}", start_pos, meta->size()));
     }
 
 
@@ -2108,7 +2108,7 @@ private:
             }
         }
 
-        MMA1_THROW(Exception()) << WhatInfo(format_u8("Symbol index is out of bounds: {} {}", idx, meta->size()));
+        MMA_THROW(Exception()) << WhatInfo(format_u8("Symbol index is out of bounds: {} {}", idx, meta->size()));
     }
     
     
@@ -2280,7 +2280,7 @@ private:
         }
     }
 
-    MMA1_PKD_OOM_SAFE
+    MMA_PKD_OOM_SAFE
     OpStatusT<Location> split_run(const Location& location, uint64_t subtraction = 0)
     {
         uint64_t pos = location.local_idx();
@@ -2346,7 +2346,7 @@ private:
             ));
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("split_run: invalid split position: {} {}", pos, location.run().length()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("split_run: invalid split position: {} {}", pos, location.run().length()));
         }
     }
 

@@ -92,7 +92,7 @@ public:
 
     bool push_back(const T& value) noexcept
     {
-        if (MMA1_LIKELY(size_ + 1 <= capacity_))
+        if (MMA_LIKELY(size_ + 1 <= capacity_))
         {
             data_[size_++] = value;
             return true;

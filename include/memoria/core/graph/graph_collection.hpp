@@ -131,7 +131,7 @@ class Collection: public PimplBase<ICollection<T>> {
     Iterator<T> end_;
 
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Collection)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Collection)
 
     Iterator<T>& begin()
     {
@@ -199,7 +199,7 @@ public:
     EmptyIterator(){}
 
     virtual void increment() {
-        MMA1_THROW(GraphException() << WhatCInfo("Incrementing EmptyIterator"));
+        MMA_THROW(GraphException() << WhatCInfo("Incrementing EmptyIterator"));
     }
 
     virtual bool equals(const IIterator<T>* other) const
@@ -208,7 +208,7 @@ public:
     }
 
     virtual T& access() {
-        MMA1_THROW(GraphException() << WhatCInfo("Accessing EmptyIterator"));
+        MMA_THROW(GraphException() << WhatCInfo("Accessing EmptyIterator"));
     }
 
     bool is_end() const {

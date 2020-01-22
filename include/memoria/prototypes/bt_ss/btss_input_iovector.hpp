@@ -292,19 +292,19 @@ public:
             start_ = 0;
             size_ = 0;
 
-            if (MMA1_LIKELY(reset_iovector_)) {
+            if (MMA_LIKELY(reset_iovector_)) {
                 io_vector_->clear();
             }
 
             finished_ = producer_->populate(*io_vector_);
 
-            if (MMA1_LIKELY(reset_iovector_)) {
+            if (MMA_LIKELY(reset_iovector_)) {
                 io_vector_->reindex();
             }
 
             seq.rank_to(io_vector_->symbol_sequence().size(), &size_);
 
-            if (MMA1_UNLIKELY(start_pos_ > 0))
+            if (MMA_UNLIKELY(start_pos_ > 0))
             {
                 int32_t ctr_seq_size = seq.size();
                 if (start_pos_ < ctr_seq_size)
@@ -320,7 +320,7 @@ public:
         while (start_pos_ > 0);
 
         CtrSizeT remainder = length_ - total_symbols_;
-        if (MMA1_UNLIKELY(length_ < std::numeric_limits<CtrSizeT>::max() && (size_ - start_) > remainder))
+        if (MMA_UNLIKELY(length_ < std::numeric_limits<CtrSizeT>::max() && (size_ - start_) > remainder))
         {
             seq.rank_to(start_ + remainder, &size_);
             finished_ = true;

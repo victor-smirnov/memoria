@@ -68,7 +68,7 @@ Datum<Varchar> Datum<Varchar>::from_sdn(const LDDocument& sdn_doc)
         return Datum<Varchar>(value.as_boolean() ? "true" : "false");
     }
 
-    MMA1_THROW(RuntimeException())
+    MMA_THROW(RuntimeException())
                 << format_ex(
                        "Unsupported data type requested: {}", value.to_standard_string()
                        );

@@ -115,7 +115,7 @@ template <typename T>
 std::ostream& operator<<(std::ostream& out, const Result<T*>& res) noexcept;
 
 template <typename T>
-class MMA1_NODISCARD Result {
+class MMA_NODISCARD Result {
     using Variant = boost::variant2::variant<T, detail::UnassignedResultValueType, MemoriaErrorPtr, std::exception_ptr>;
     Variant variant_;
 
@@ -258,7 +258,7 @@ public:
             default: break;
         }
 
-        MMA1_THROW(UnknownResultStatusException())
+        MMA_THROW(UnknownResultStatusException())
                 << format_ex("Unknown result status value: {}", static_cast<int32_t>(status()));
     }
 
@@ -286,7 +286,7 @@ public:
             default: break;
         }
 
-        MMA1_THROW(UnknownResultStatusException())
+        MMA_THROW(UnknownResultStatusException())
                 << format_ex("Unknown result status value: {}", static_cast<int32_t>(status()));
     }
 
@@ -313,7 +313,7 @@ public:
             }
         }
 
-        MMA1_THROW(UnknownResultStatusException())
+        MMA_THROW(UnknownResultStatusException())
                 << format_ex("Unknown result status value: {}", static_cast<int32_t>(status()));
     }
 
@@ -380,7 +380,7 @@ public:
 
 
 template <>
-class MMA1_NODISCARD Result<void> {
+class MMA_NODISCARD Result<void> {
     using Variant = boost::variant2::variant<EmptyType, detail::UnassignedResultValueType, MemoriaErrorPtr, std::exception_ptr>;
     Variant variant_;
 
@@ -687,14 +687,14 @@ wrap_throwing(Fn&& fn) noexcept
 }
 
 #define MEMORIA_RETURN_IF_ERROR(ResultVal)   \
-    if (MMA1_UNLIKELY(!ResultVal.is_ok())) { \
+    if (MMA_UNLIKELY(!ResultVal.is_ok())) { \
         return std::move(ResultVal).transfer_error(); \
     }
 
 #define MEMORIA_RETURN_IF_ERROR_FN(FnCall)   \
 {                                            \
     VoidResult res0 = FnCall;                 \
-    if (MMA1_UNLIKELY(!res0.is_ok())) {       \
+    if (MMA_UNLIKELY(!res0.is_ok())) {       \
         return std::move(res0).transfer_error(); \
     }                                        \
 }

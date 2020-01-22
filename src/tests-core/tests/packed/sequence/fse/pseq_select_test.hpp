@@ -89,7 +89,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, runSelectFromFWTest, runSelectFWTest, runSelectBWTest);
+        MMA_CLASS_TESTS(suite, runSelectFromFWTest, runSelectFWTest, runSelectBWTest);
     }
 
 

@@ -368,7 +368,7 @@ public:
 //            return datum_from_sdn_value(static_cast<DataType*>(nullptr), value.as_boolean());
 //        }
 
-        MMA1_THROW(RuntimeException())
+        MMA_THROW(RuntimeException())
                 << format_ex(
                        "Unsupported SDN value type for fixed size datum convertion: {}",
                        value.to_standard_string()

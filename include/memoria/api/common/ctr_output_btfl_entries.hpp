@@ -106,12 +106,12 @@ public:
 
         size_t buffer_size = buffer_.size();
 
-        if (MMA1_LIKELY(buffer_size > 2))
+        if (MMA_LIKELY(buffer_size > 2))
         {
             int32_t first_symbol = buffer_[0].symbol;
-            if (MMA1_LIKELY(process_prefix_))
+            if (MMA_LIKELY(process_prefix_))
             {
-                if (MMA1_LIKELY(first_symbol == data_sym_ && process_prefix_))
+                if (MMA_LIKELY(first_symbol == data_sym_ && process_prefix_))
                 {
                     prefix_size_ = 1;
                     self().process_prefix(buffer_);
@@ -121,10 +121,10 @@ public:
                 }
             }
             else if (first_symbol == data_sym_) {
-                MMA1_THROW(RuntimeException()) << WhatCInfo("Invalid symbols run start");
+                MMA_THROW(RuntimeException()) << WhatCInfo("Invalid symbols run start");
             }
 
-            if (MMA1_LIKELY(buffer_[buffer_size - 1].symbol == data_sym_))
+            if (MMA_LIKELY(buffer_[buffer_size - 1].symbol == data_sym_))
             {
                 suffix_size_ = 2;
             }
@@ -137,7 +137,7 @@ public:
             self().process_body(buffer_, prefix_size_, suffix_start);
             self().process_suffix(buffer_, suffix_start);
         }
-        else if (MMA1_LIKELY(buffer_size == 2))
+        else if (MMA_LIKELY(buffer_size == 2))
         {
             int32_t s0 = buffer_[0].symbol;
             int32_t s1 = buffer_[1].symbol;
@@ -158,7 +158,7 @@ public:
                 suffix_size_ = 1;
             }
             else {
-                MMA1_THROW(RuntimeException()) << WhatCInfo("Incorrect stream format: double data runs");
+                MMA_THROW(RuntimeException()) << WhatCInfo("Incorrect stream format: double data runs");
             }
         }
         else if (buffer_size == 1)

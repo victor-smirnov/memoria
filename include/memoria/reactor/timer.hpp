@@ -41,7 +41,7 @@ class Timer: public PimplBase<TimerImpl> {
 public:
     using TimeUnit = std::chrono::milliseconds;
 
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Timer)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Timer)
 
     static Timer schedule(TimeUnit start_after, TimeUnit repeat_after, uint64_t count, TimerFn fn);
 

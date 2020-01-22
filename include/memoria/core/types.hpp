@@ -34,7 +34,7 @@
 
 namespace memoria {
 
-MMA1_DECLARE_EXPLICIT_CU_LINKING(MemoriaStaticInit);
+MMA_DECLARE_EXPLICIT_CU_LINKING(MemoriaStaticInit);
 
 static constexpr int DEFAULT_BLOCK_SIZE                 = 8192;
 static constexpr int PackedTreeBranchingFactor          = 32;
@@ -497,7 +497,7 @@ enum class MemoryAccess {
 template <typename T> struct TypeTag {};
 
 
-enum class MMA1_NODISCARD OpStatus: int32_t {
+enum class MMA_NODISCARD OpStatus: int32_t {
     OK = 0, FAIL = 1
 };
 
@@ -507,7 +507,7 @@ static inline OpStatus& operator<<=(OpStatus& s1, OpStatus s2) {
 }
 
 template <typename T>
-class MMA1_NODISCARD OpStatusT {
+class MMA_NODISCARD OpStatusT {
     T value_;
     OpStatus status_;
 public:

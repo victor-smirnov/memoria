@@ -61,7 +61,7 @@ public:
             return std::get<0>(self.template iter_read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: {}", stream));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: {}", stream));
         }
     }
 
@@ -77,7 +77,7 @@ public:
             return std::get<0>(self.template iter_read_leaf_entry<1, IntList<1>>(value_idx, 0));
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: ", stream));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: ", stream));
         }
     }
 
@@ -121,7 +121,7 @@ public:
         {
             if (self.iter_data_stream() != 0)
             {
-                MMA1_THROW(Exception()) << WhatCInfo("Key insertion into the middle of data block is not allowed");
+                MMA_THROW(Exception()) << WhatCInfo("Key insertion into the middle of data block is not allowed");
             }
         }
 
@@ -230,7 +230,7 @@ public:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: {}", stream));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: {}", stream));
         }
     }
 
@@ -258,7 +258,7 @@ public:
             }
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: {}", stream));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid stream: {}", stream));
         }
     }
 

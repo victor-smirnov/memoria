@@ -90,7 +90,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testInsertRemove);
+        MMA_CLASS_TESTS(suite, testInsertRemove);
     }
 
 
@@ -111,8 +111,8 @@ public:
 
             int32_t symbol = getRandom(Symbols);
 
-            OOM_THROW_IF_FAILED(seq->remove(idx2, idx2 + 1), MMA1_SRC);
-            OOM_THROW_IF_FAILED(seq->insert(idx1, symbol), MMA1_SRC);
+            OOM_THROW_IF_FAILED(seq->remove(idx2, idx2 + 1), MMA_SRC);
+            OOM_THROW_IF_FAILED(seq->insert(idx1, symbol), MMA_SRC);
         }
 
         int64_t t2 = getTimeInMillis();

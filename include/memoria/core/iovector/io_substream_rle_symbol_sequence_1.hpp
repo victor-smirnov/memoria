@@ -153,12 +153,12 @@ public:
 
     virtual uint64_t populate_buffer_entry(SymbolsBuffer& buffer, uint64_t idx, int32_t symbol, bool entry_start) const
     {
-        MMA1_THROW(UnsupportedOperationException());
+        MMA_THROW(UnsupportedOperationException());
     }
 
 
     virtual void configure(const void* ptr) {
-        MMA1_THROW(UnsupportedOperationException());
+        MMA_THROW(UnsupportedOperationException());
     }
 };
 

@@ -33,8 +33,8 @@ using Profile = DefaultProfile<>;
 using Ctr1Name = BTFLTestCtr<2>;
 using Ctr2Name = BTFLTestCtr<4>;
 
-MMA1_INSTANTIATE_CTR_BTFL(Ctr1Name, Profile, 1)
-MMA1_INSTANTIATE_CTR_BTFL(Ctr2Name, Profile, 2)
+MMA_INSTANTIATE_CTR_BTFL(Ctr1Name, Profile, 1)
+MMA_INSTANTIATE_CTR_BTFL(Ctr2Name, Profile, 2)
     
 }
 

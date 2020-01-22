@@ -167,7 +167,7 @@ public:
 
     virtual VoidResult insert_entries(KeyView before, io::IOVectorProducer& producer) noexcept = 0;
 
-    MMA1_DECLARE_ICTRAPI();
+    MMA_DECLARE_ICTRAPI();
 };
 
 }

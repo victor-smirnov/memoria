@@ -77,7 +77,7 @@ public:
 
     virtual void fillRandom(Ctr& ctr, int64_t size)
     {
-#ifdef MMA1_USE_IOBUFFER
+#ifdef MMA_USE_IOBUFFER
         MemBuffer data = createRandomBuffer(size);
         ctr.end().insert(data);
 #endif
@@ -97,7 +97,7 @@ public:
             int64_t tmp_size = size - total > block_size ? block_size : size - total;
 
             MemBuffer data = createRandomBuffer(tmp_size);
-#ifdef MMA1_USE_IOBUFFER
+#ifdef MMA_USE_IOBUFFER
             ctr.end().insert(data);
 #endif
             total += tmp_size;

@@ -45,7 +45,7 @@ TimerImpl::TimerImpl(Timer::TimeUnit start_after, Timer::TimeUnit repeat_after, 
 		WT_EXECUTEDEFAULT)
 	)
     {
-		MMA1_THROW(SystemException()) << WhatCInfo("Can't create a new timer");
+		MMA_THROW(SystemException()) << WhatCInfo("Can't create a new timer");
     }
 }
 
@@ -69,7 +69,7 @@ void TimerImpl::cancel()
 
 		if (!DeleteTimerQueueTimer(engine_.io_poller().timer_queue(), timer_fd_, nullptr))
 		{
-			MMA1_THROW(SystemException()) << WhatCInfo("Can't cancel timer");
+			MMA_THROW(SystemException()) << WhatCInfo("Can't cancel timer");
 		}
 	}
 }
@@ -178,7 +178,7 @@ void IOPoller::sleep_for(const std::chrono::milliseconds& time)
 	)
 	{
 		delete msg;
-		MMA1_THROW(SystemException()) << WhatCInfo("Can't create a new timer");
+		MMA_THROW(SystemException()) << WhatCInfo("Can't create a new timer");
 	}
 
 	msg->set_timer_fd(timer_fd);

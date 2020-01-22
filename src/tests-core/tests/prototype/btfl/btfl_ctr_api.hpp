@@ -46,7 +46,7 @@ class CtrApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>: public CtrApiBTFL
     using typename Base::Iterator;
     
 public:
-    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
+    MMA_DECLARE_CTRAPI_BASIC_METHODS()
 
     Iterator begin();
     Iterator seekL0(int64_t pos);
@@ -63,7 +63,7 @@ class IterApi<BTFLTestCtr<DataStreams, LeafSizeType>, Profile>: public IterApiBT
      
 public:
     
-    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
+    MMA_DECLARE_ITERAPI_BASIC_METHODS()
 
 
     core::StaticVector<int64_t, DataStreams> insert_iodata(const BTFLTestIOData<DataStreams, DataStreams - 1>& iodata);

@@ -95,7 +95,7 @@ public:
 
         if (!iter->is_found(key))
         {
-#ifdef MMA1_USE_IOBUFFER
+#ifdef MMA_USE_IOBUFFER
             edge_map::EdgeMapEntryBufferProducer<IOBuffer, Key, Iterator> producer(key, start, end);
             iter->insert_iovector(producer);
 #endif

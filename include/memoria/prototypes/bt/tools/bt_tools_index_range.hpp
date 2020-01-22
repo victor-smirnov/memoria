@@ -510,7 +510,7 @@ namespace _ {
                 return std::get<Idx>(accum)[index - From];
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index value: {}", index));
+                MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index value: {}", index));
             }
         }
 
@@ -522,7 +522,7 @@ namespace _ {
                 return std::get<Idx>(accum)[Index - From];
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index value: {}", Index));
+                MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index value: {}", Index));
             }
         }
     };
@@ -537,13 +537,13 @@ namespace _ {
         template <typename RangeList>
         static RtnType& value(int32_t index, RangeList&& accum)
         {
-            MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index value: {}", index));
+            MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index value: {}", index));
         }
 
         template <int32_t Index, typename RangeList>
         static RtnType& value(RangeList&& accum)
         {
-            MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index value: {}", Index));
+            MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index value: {}", Index));
         }
     };
 

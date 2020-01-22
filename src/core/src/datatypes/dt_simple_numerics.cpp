@@ -66,24 +66,24 @@ struct NumberCvt<T, false> {
             int64_t value = std::strtoll(cstr, nullptr, 0);
             if (errno)
             {
-                MMA1_THROW(RuntimeException())
+                MMA_THROW(RuntimeException())
                         << format_ex("Error converting string {} to number: {}", cstr, std::strerror(errno));
             }
 
             if (value < (int64_t)std::numeric_limits<T>::min()) {
-                MMA1_THROW(BoundsException())
+                MMA_THROW(BoundsException())
                         << format_ex("Provided value {} is less than {}", value, (int64_t)std::numeric_limits<T>::min());
             }
 
             if (value > (int64_t)std::numeric_limits<T>::max()) {
-                MMA1_THROW(BoundsException())
+                MMA_THROW(BoundsException())
                         << format_ex("Provided value {} is greather than {}", value, (int64_t)std::numeric_limits<T>::max());
             }
 
             return value;
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
         }
     }
 };
@@ -101,19 +101,19 @@ struct NumberCvt<T, true> {
             uint64_t value = std::strtoull(cstr, nullptr, 0);
             if (errno)
             {
-                MMA1_THROW(RuntimeException())
+                MMA_THROW(RuntimeException())
                         << format_ex("Error converting string {} to number: {}", view, std::strerror(errno));
             }
 
             if (value > (uint64_t)std::numeric_limits<T>::max()) {
-                MMA1_THROW(BoundsException())
+                MMA_THROW(BoundsException())
                         << format_ex("Provided value {} is greather than {}", value, (uint64_t)std::numeric_limits<T>::max());
             }
 
             return value;
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
         }
     }
 };
@@ -129,14 +129,14 @@ struct NumberCvt<float, false> {
             float value = std::strtof(cstr, nullptr);
             if (errno)
             {
-                MMA1_THROW(RuntimeException())
+                MMA_THROW(RuntimeException())
                         << format_ex("Error converting string {} to number: {}", cstr, std::strerror(errno));
             }
 
             return value;
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
         }
     }
 };
@@ -152,14 +152,14 @@ struct NumberCvt<double, false> {
             double value = std::strtod(cstr, nullptr);
             if (errno)
             {
-                MMA1_THROW(RuntimeException())
+                MMA_THROW(RuntimeException())
                         << format_ex("Error converting string {} to number: {}", cstr, std::strerror(errno));
             }
 
             return value;
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Unsupported linked data value type");
         }
     }
 };
@@ -184,7 +184,7 @@ struct NumericDataTypeOperationsImpl: DataTypeOperations {
     }
 
     virtual AnyDatum from_ld_document(const LDDValueView& value) {
-        MMA1_THROW(UnsupportedOperationException());
+        MMA_THROW(UnsupportedOperationException());
     }
 
     virtual void dump(

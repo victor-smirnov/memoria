@@ -17,11 +17,11 @@
 
 #include <memoria/core/config.hpp>
 
-#ifdef MMA1_WINDOWS
+#ifdef MMA_WINDOWS
 #include "msvc/msvc_file.hpp"
-#elif defined(MMA1_MACOSX)
+#elif defined(MMA_MACOSX)
 #include "macosx/macosx_file.hpp"
-#elif defined(MMA1_LINUX)
+#elif defined(MMA_LINUX)
 #include "linux/linux_file.hpp"
 #endif
 
@@ -38,7 +38,7 @@ class DMAFileImpl;
 class File: public PimplBase<BufferedFileImpl> {
     using Base = PimplBase<BufferedFileImpl>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(File)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(File)
 
     void close();
     bool is_closed() const;
@@ -70,7 +70,7 @@ File open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mo
 class DMAFile: public PimplBase<DMAFileImpl> {
     using Base = PimplBase<DMAFileImpl>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(DMAFile)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(DMAFile)
 
     void close();
     bool is_closed() const;

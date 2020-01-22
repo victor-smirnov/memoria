@@ -129,7 +129,7 @@ public:
         
         if (block.processed < 0) 
         {
-            MMA1_THROW(SystemException(-block.processed))
+            MMA_THROW(SystemException(-block.processed))
                     << format_ex(
                            "AIO {} operation failed", (block.aio_lio_opcode == IOCB_CMD_PREAD ? "read" : "write")
                        );

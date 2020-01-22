@@ -40,7 +40,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testPopCnt, testPopCount);
+        MMA_CLASS_TESTS(suite, testPopCnt, testPopCount);
     }
 
     void testPopCnt()
@@ -81,8 +81,8 @@ public:
 };
 
 
-#define MMA1_BITMAP_RANK_SUITE(Name, Type) \
+#define MMA_BITMAP_RANK_SUITE(Name, Type) \
 using Name = BitmapRankTest<Type>;\
-MMA1_CLASS_SUITE(Name, #Name)
+MMA_CLASS_SUITE(Name, #Name)
 
 }}

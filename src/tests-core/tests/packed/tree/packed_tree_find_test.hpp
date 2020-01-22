@@ -57,7 +57,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testFindForward, testFindForwardFromStart, testFindBackward, testFindBackwardFromEnd);
+        MMA_CLASS_TESTS(suite, testFindForward, testFindForwardFromStart, testFindBackward, testFindBackwardFromEnd);
     }
 
 

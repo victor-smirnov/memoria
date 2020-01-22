@@ -875,7 +875,7 @@ private:
     static void check(int32_t idx)
     {
 //      if (idx < 0 || idx >= Indexes_) {
-//          throw BoundsException(MMA1_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
+//          throw BoundsException(MMA_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
 //      }
     }
 };

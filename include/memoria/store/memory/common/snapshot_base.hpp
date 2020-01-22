@@ -41,7 +41,7 @@
 
 #include "persistent_tree.hpp"
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
@@ -1060,7 +1060,7 @@ public:
 
     virtual BoolResult hasRoot(const CtrID& name) noexcept
     {
-        if (MMA1_UNLIKELY(!root_map_)) {
+        if (MMA_UNLIKELY(!root_map_)) {
             return false;
         }
 
@@ -1332,7 +1332,7 @@ protected:
             return opt.value().block_ptr();
     	}
     	else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Block with id {} does not exist in snapshot {}", id, currentTxnId()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Block with id {} does not exist in snapshot {}", id, currentTxnId()));
     	}
     }
 
@@ -1430,7 +1430,7 @@ protected:
 
     	if (is_data_locked())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot's {} data is locked", uuid()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot's {} data is locked", uuid()));
     	}
     }
 
@@ -1438,7 +1438,7 @@ protected:
     {
     	if (!is_active())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status()));
     	}
     }
 
@@ -1450,11 +1450,11 @@ protected:
     		// Double checking. This shouldn't happen
     		if (!history_node_->root())
     		{
-                MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been cleared", uuid()));
+                MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been cleared", uuid()));
     		}
     	}
     	else if (history_node_->is_active()) {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is still active", uuid()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is still active", uuid()));
     	}
     }
 
@@ -1472,7 +1472,7 @@ protected:
 
         if (!history_node_->is_active())
         {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been already committed or data is locked", uuid()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been already committed or data is locked", uuid()));
         }
     }
 
@@ -1482,7 +1482,7 @@ protected:
 
     	if ((!history_node_->is_active()) && ctrName.is_set())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been already committed or data is locked", uuid()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been already committed or data is locked", uuid()));
     	}
     }
 
@@ -1492,7 +1492,7 @@ protected:
 
     	if (!history_node_->is_data_locked())
     	{
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} hasn't been locked", uuid()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} hasn't been locked", uuid()));
     	}
     }
 

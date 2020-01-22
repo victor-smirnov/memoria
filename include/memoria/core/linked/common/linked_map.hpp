@@ -119,7 +119,7 @@ public:
         size_t slot  = array_slot(array, key);
 
         BucketPtr bucket = array->access(slot);
-        if (MMA1_LIKELY(bucket))
+        if (MMA_LIKELY(bucket))
         {
             Optional<size_t> idx = locate(bucket, key);
             if (idx) {
@@ -150,7 +150,7 @@ public:
             size_t slot  = array_slot(parray, key_view);
 
             BucketPtr bucket = parray->access(slot);
-            if (MMA1_LIKELY(bucket))
+            if (MMA_LIKELY(bucket))
             {
                 Optional<size_t> idx = locate(bucket, key_view);
                 if (idx) {
@@ -343,7 +343,7 @@ private:
         size_t slot  = array_slot(array, key);
 
         BucketPtr bucket = array->access(slot);
-        if (MMA1_UNLIKELY(!bucket))
+        if (MMA_UNLIKELY(!bucket))
         {
             BucketPtr new_bucket{};
             if (buffer_cache)
@@ -372,7 +372,7 @@ private:
             {
                 deref_mutable(bucket)->access(idx.get()).value = value;
             }
-            else if (MMA1_UNLIKELY(!deref_mutable(bucket)->push_back(BucketEntry{key, value})))
+            else if (MMA_UNLIKELY(!deref_mutable(bucket)->push_back(BucketEntry{key, value})))
             {
                 BucketPtr new_bucket;
 

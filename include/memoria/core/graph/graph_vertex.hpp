@@ -48,7 +48,7 @@ struct IVertex: IElement {
 class Vertex: public PimplBase<IVertex> {
     using Base = PimplBase<IVertex>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Vertex)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Vertex)
 
     Graph graph();
 

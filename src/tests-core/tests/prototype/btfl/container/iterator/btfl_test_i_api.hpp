@@ -122,7 +122,7 @@ public:
             return data;
         }
         else {
-            MMA1_THROW(Exception()) << format_ex("Invalid stream: {}", stream);
+            MMA_THROW(Exception()) << format_ex("Invalid stream: {}", stream);
         }
     }
 
@@ -149,7 +149,7 @@ public:
             return data;
         }
         else {
-            MMA1_THROW(Exception()) << format_ex("Invalid stream: {}", stream);
+            MMA_THROW(Exception()) << format_ex("Invalid stream: {}", stream);
         }
     }
 
@@ -184,7 +184,7 @@ public:
             return r1 - r0;
         }
         else {
-            MMA1_THROW(Exception()) << format_ex("Invalid stream: {}", stream);
+            MMA_THROW(Exception()) << format_ex("Invalid stream: {}", stream);
         }
     }
 
@@ -198,7 +198,7 @@ public:
     		self.selectFw(1, stream + 1);
     	}
     	else {
-            MMA1_THROW(Exception()) << format_ex("Invalid stream: {}", stream);
+            MMA_THROW(Exception()) << format_ex("Invalid stream: {}", stream);
     	}
     }
 

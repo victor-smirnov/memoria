@@ -48,11 +48,11 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
 		if (!CreateIoCompletionPort((HANDLE)fd_, engine().io_poller().completion_port(), (u_long)0, 0))
 		{
 			closesocket(fd_);
-			MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("CreateIoCompletionPort associate failed with error");
+			MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("CreateIoCompletionPort associate failed with error");
 		}
 	}
 	else {
-		MMA1_THROW(SystemException(WSAGetLastError())) << format_ex(
+		MMA_THROW(SystemException(WSAGetLastError())) << format_ex(
 			"Error starting read operation from socket connection for {}:{}:{}",
 			ip_address_, ip_port_, fd_
 		);
@@ -92,7 +92,7 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 				return overlapped.size_;
 			}
 			else {
-				MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex(
+				MMA_THROW(SystemException(overlapped.error_code_)) << format_ex(
 					"Error reading from socket connection for {}:{}:{}",
 					ip_address_, ip_port_, fd_
 				);
@@ -106,7 +106,7 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
 			return 0;
 		}
 		else {
-			MMA1_THROW(SystemException(error_code)) << format_ex(
+			MMA_THROW(SystemException(error_code)) << format_ex(
 				"Error starting read operation from socket connection for {}:{}:{}",
 				ip_address_, ip_port_, fd_
 			);
@@ -145,7 +145,7 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 				return overlapped.size_;
 			}
 			else {
-				MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex(
+				MMA_THROW(SystemException(overlapped.error_code_)) << format_ex(
 					"Error writing to socket connection for {}:{}:{}",
 					ip_address_, ip_port_, fd_
 				);
@@ -159,7 +159,7 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
 			return 0;
 		}
 		else {
-			MMA1_THROW(SystemException(error_code)) << format_ex(
+			MMA_THROW(SystemException(error_code)) << format_ex(
 				"Error starting write operation to socket connection for {}:{}:{}",
 				ip_address_, ip_port_, fd_
 			);
@@ -189,7 +189,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 {
 	if (fd_ == INVALID_SOCKET)
 	{
-		MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("Create of ListenSocket socket failed with error");
+		MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("Create of ListenSocket socket failed with error");
 	}
 	
 	Reactor& r = engine();
@@ -200,7 +200,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
 	if (!CreateIoCompletionPort((HANDLE)fd_, cport, (u_long)0, 0)) 
 	{
-		MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("CreateIoCompletionPort associate failed with errorr");
+		MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("CreateIoCompletionPort associate failed with errorr");
 	}
     
     sock_address_.sin_family        = AF_INET;
@@ -212,7 +212,7 @@ ServerSocketImpl::ServerSocketImpl(const IPAddress& ip_address, uint16_t ip_port
     if (bres == SOCKET_ERROR)
 	{
 		::closesocket(fd_);
-		MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("Bind failed with error");
+		MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("Bind failed with error");
     }
 }
 
@@ -238,7 +238,7 @@ void ServerSocketImpl::listen()
     int res = ::listen(fd_, 100);
     if (res != 0) 
     {
-		MMA1_THROW(SystemException(WSAGetLastError())) << format_ex(
+		MMA_THROW(SystemException(WSAGetLastError())) << format_ex(
 			"Can't start listening on socket for {}:{}",
 			ip_address_, ip_port_
 		);
@@ -259,7 +259,7 @@ SocketConnectionData ServerSocketImpl::accept()
 	SOCKET accept_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (accept_socket == INVALID_SOCKET)
 	{
-		MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("Create accept socket failed with error");
+		MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("Create accept socket failed with error");
 	}
 
 	AIOMessage message(r.cpu());
@@ -290,12 +290,12 @@ SocketConnectionData ServerSocketImpl::accept()
 			return SocketConnectionData(accept_socket, ip_address_, ip_port_);
 		}
 		else {
-			MMA1_THROW(SystemException(overlap.error_code_)) << WhatCInfo("AcceptEx failed with error");
+			MMA_THROW(SystemException(overlap.error_code_)) << WhatCInfo("AcceptEx failed with error");
 		}
 	}
 	else {
 		closesocket(accept_socket);
-		MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("AcceptEx failed with error");
+		MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("AcceptEx failed with error");
 	}
 }
 
@@ -319,7 +319,7 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
 		if (!CreateIoCompletionPort((HANDLE)fd_, cport, (u_long)0, 0))
 		{
-			MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("CreateIoCompletionPort associate failed with error");
+			MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("CreateIoCompletionPort associate failed with error");
 		}
 
 		struct sockaddr_in bind_addr {};
@@ -333,13 +333,13 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 		if (bres == SOCKET_ERROR)
 		{
 			::closesocket(fd_);
-			MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("Bind failed with error");
+			MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("Bind failed with error");
 		}
 
 		connect();
 	}
 	else {
-		MMA1_THROW(SystemException()) << format_ex(
+		MMA_THROW(SystemException()) << format_ex(
 			"Error starting read operation from socket connection for {}:{}:{}",
 			ip_address_, ip_port_, fd_
 		);
@@ -371,12 +371,12 @@ void ClientSocketImpl::connect()
 		message.wait_for();
 
 		if (!overlap.status_) {
-			MMA1_THROW(SystemException(overlap.error_code_)) << WhatCInfo("ConnectEx failed with error");
+			MMA_THROW(SystemException(overlap.error_code_)) << WhatCInfo("ConnectEx failed with error");
 		}
 	}
 	else {
 		closesocket(fd_);
-		MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("ConnectEx failed with error");
+		MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("ConnectEx failed with error");
 	}
 }
 
@@ -413,7 +413,7 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 				return overlapped.size_;
 			}
 			else {
-				MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex(
+				MMA_THROW(SystemException(overlapped.error_code_)) << format_ex(
 					"Error reading from socket connection for {}:{}:{}",
 					ip_address_, ip_port_, fd_
 				);
@@ -427,7 +427,7 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
 			return 0;
 		}
 		else {
-			MMA1_THROW(SystemException(error_code)) << format_ex(
+			MMA_THROW(SystemException(error_code)) << format_ex(
 				"Error starting read operation from socket connection for {}:{}:{}",
 				ip_address_, ip_port_, fd_
 			);
@@ -463,7 +463,7 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
 				return overlapped.size_;
 			}
 			else {
-				MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex(
+				MMA_THROW(SystemException(overlapped.error_code_)) << format_ex(
 					"Error writing to socket connection for {}:{}:{}",
 					ip_address_, ip_port_, fd_
 				);
@@ -477,7 +477,7 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
 			return 0;
 		}
 		else {
-			MMA1_THROW(SystemException(error_code)) << format_ex(
+			MMA_THROW(SystemException(error_code)) << format_ex(
 				"Error starting write operation to socket connection for {}:{}:{}",
 				ip_address_, ip_port_, fd_
 			);
@@ -508,7 +508,7 @@ AsyncSockets::AsyncSockets()
 
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd == INVALID_SOCKET) {
-		MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("Socket creation failed with error");
+		MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("Socket creation failed with error");
 	}
 		
 	DWORD bytes1{};
@@ -524,7 +524,7 @@ AsyncSockets::AsyncSockets()
 	) == SOCKET_ERROR) 
 	{
 		closesocket(fd);
-		MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("WSAIoctl failed with error");
+		MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("WSAIoctl failed with error");
 	}
 
 	GUID guid_connect_ex = WSAID_CONNECTEX;
@@ -538,7 +538,7 @@ AsyncSockets::AsyncSockets()
 	) == SOCKET_ERROR)
 	{
 		closesocket(fd);
-		MMA1_THROW(SystemException(WSAGetLastError())) << WhatCInfo("WSAIoctl failed with error");
+		MMA_THROW(SystemException(WSAGetLastError())) << WhatCInfo("WSAIoctl failed with error");
 	}
 
 	closesocket(fd);

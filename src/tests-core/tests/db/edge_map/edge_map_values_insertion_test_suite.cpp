@@ -33,14 +33,14 @@ public:
     using SampleDataShuffledByKey   = std::vector<std::pair<UUID, std::set<UAcc128T>>>;
     SampleDataShuffledByKey snapshot_by_key_;
 
-    MMA1_INDIRECT_STATE_FILEDS(snapshot_by_key_)
+    MMA_INDIRECT_STATE_FILEDS(snapshot_by_key_)
 
     EdgeMapValuesInsertionTestSuite(){}
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testInsertSingleKeyValue, replayInsertSingleKeyValue);
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testInsertMultipleKeyValues, replayInsertMultipleKeyValues);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testInsertSingleKeyValue, replayInsertSingleKeyValue);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testInsertMultipleKeyValues, replayInsertMultipleKeyValues);
     }
 
     virtual void post_configure(TestCoverage coverage)

@@ -341,7 +341,7 @@ namespace ld_ {
     {
         LDDValueTag tag = ldd_get_tag(arena, ptr);
         if (tag != ld_tag_value<Type>()) {
-            MMA1_THROW(LDDInvalidCastException());
+            MMA_THROW(LDDInvalidCastException());
         }
     }
 
@@ -349,14 +349,14 @@ namespace ld_ {
     void ldd_assert_tag(LDDValueTag tag)
     {
         if (tag != ld_tag_value<Type>()) {
-            MMA1_THROW(LDDInvalidCastException());
+            MMA_THROW(LDDInvalidCastException());
         }
     }
 
     static inline void assert_different_docs(const LDDocumentView* one, const LDDocumentView* two)
     {
         if (one == two) {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Performing operation on the same documents");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Performing operation on the same documents");
         }
     }
 }
@@ -460,7 +460,7 @@ public:
 
             for (auto& ch: str)
             {
-                if (MMA1_UNLIKELY(ch == '\''))
+                if (MMA_UNLIKELY(ch == '\''))
                 {
                     buffer_.append_value('\\');
                 }

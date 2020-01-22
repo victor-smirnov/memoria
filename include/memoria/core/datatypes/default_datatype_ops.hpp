@@ -43,11 +43,11 @@ struct SimpleDataTypeOperationsImpl: DataTypeOperations {
     }
 
     virtual boost::any create_cxx_instance(const LDTypeDeclarationView& typedecl) {
-        MMA1_THROW(UnsupportedOperationException()) << format_ex("DataTypeOperationsImpl<{}>::from_ld_document", full_type_name());
+        MMA_THROW(UnsupportedOperationException()) << format_ex("DataTypeOperationsImpl<{}>::from_ld_document", full_type_name());
     }
 
     virtual AnyDatum from_ld_document(const LDDValueView& value) {
-        MMA1_THROW(UnsupportedOperationException())
+        MMA_THROW(UnsupportedOperationException())
                 << format_ex("DataTypeOperationsImpl<{}>::from_ld_document", full_type_name());
     }
 };
@@ -69,14 +69,14 @@ struct CtrDataTypeOperationsImpl: DataTypeOperations {
     virtual boost::any create_cxx_instance(const LDTypeDeclarationView& typedecl)
     {
         if (!typedecl.is_stateless()) {
-            MMA1_THROW(RuntimeException()) << format_ex("Datatype {} is stateless", full_type_name());
+            MMA_THROW(RuntimeException()) << format_ex("Datatype {} is stateless", full_type_name());
         }
 
         return boost::any(T{});
     }
 
     virtual AnyDatum from_ld_document(const LDDValueView& value) {
-        MMA1_THROW(UnsupportedOperationException())
+        MMA_THROW(UnsupportedOperationException())
                 << format_ex("DataTypeOperationsImpl<{}>::from_ld_document", full_type_name());
     }
 
@@ -87,7 +87,7 @@ struct CtrDataTypeOperationsImpl: DataTypeOperations {
             LDDumpFormatState& state,
             LDDumpState& dump_state
     ) {
-        MMA1_THROW(UnsupportedOperationException())
+        MMA_THROW(UnsupportedOperationException())
                 << format_ex("DataTypeOperationsImpl<{}>::dump", full_type_name());
     }
 
@@ -97,7 +97,7 @@ struct CtrDataTypeOperationsImpl: DataTypeOperations {
             LDDocumentView* tgt,
             ld_::LDArenaAddressMapping& mapping
     ) {
-        MMA1_THROW(UnsupportedOperationException())
+        MMA_THROW(UnsupportedOperationException())
                 << format_ex("DataTypeOperationsImpl<{}>::deep_copy_to", full_type_name());
     }
 
@@ -105,7 +105,7 @@ struct CtrDataTypeOperationsImpl: DataTypeOperations {
             LDDocumentView* doc,
             const LDDValueView& value
     ) {
-        MMA1_THROW(UnsupportedOperationException())
+        MMA_THROW(UnsupportedOperationException())
                 << format_ex("DataTypeOperationsImpl<{}>::construct_from", full_type_name());
     }
 };

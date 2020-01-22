@@ -27,13 +27,13 @@
 #include <memoria/reactor/timer.hpp>
 #include <memoria/reactor/socket.hpp>
 
-#ifdef MMA1_LINUX
+#ifdef MMA_LINUX
 #include <memoria/reactor/linux/linux_smp.hpp>
 #include <memoria/reactor/linux/linux_file.hpp>
-#elif defined (MMA1_MACOSX)
+#elif defined (MMA_MACOSX)
 #include <memoria/reactor/macosx/macosx_smp.hpp>
 #include <memoria/reactor/macosx/macosx_file.hpp>
-#elif defined (MMA1_WINDOWS)
+#elif defined (MMA_WINDOWS)
 #include <memoria/reactor/msvc/msvc_smp.hpp>
 #include <memoria/reactor/msvc/msvc_file.hpp>
 #endif
@@ -55,7 +55,7 @@ class EnvironmentImpl;
 class Environment : public PimplBase<EnvironmentImpl, std::shared_ptr> {
 	using Base = PimplBase<EnvironmentImpl, std::shared_ptr>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Environment)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Environment)
 
     Optional<U8String> get(const U8String& name);
     void set(const U8String& name, const U8String& value);

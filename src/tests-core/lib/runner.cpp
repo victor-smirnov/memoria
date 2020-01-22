@@ -194,7 +194,7 @@ TestStatus run_single_test(const U8String& test_path)
         return ctx.status();
     }
     else {
-        MMA1_THROW(TestConfigurationException()) << format_ex("No test with path '{}' found", test_path);
+        MMA_THROW(TestConfigurationException()) << format_ex("No test with path '{}' found", test_path);
     }
 }
 
@@ -269,7 +269,7 @@ TestStatus replay_single_test(const U8String& test_path)
         return ctx.status();
     }
     else {
-        MMA1_THROW(TestConfigurationException()) << format_ex("No test with path '{}' found", test_path);
+        MMA_THROW(TestConfigurationException()) << format_ex("No test with path '{}' found", test_path);
     }
 }
 
@@ -521,7 +521,7 @@ void Test::run(TestContext *context) noexcept
 }
 
 void Test::replay_test(TestState* state) {
-    MMA1_THROW(TestException()) << WhatCInfo("No Replay method exists for the test requested");
+    MMA_THROW(TestException()) << WhatCInfo("No Replay method exists for the test requested");
 }
 
 void DefaultTestContext::failed(TestStatus detail, std::exception_ptr ex, TestState* state) noexcept

@@ -20,16 +20,16 @@ namespace memoria {
 namespace tests {
 
 using FixedWidthArgMiscSuite = PackedMaxTreeMiscTest<PkdFMTreeT<int64_t, 1>>;
-MMA1_CLASS_SUITE(FixedWidthArgMiscSuite, "FixedWidthArgMiscSuite");
+MMA_CLASS_SUITE(FixedWidthArgMiscSuite, "FixedWidthArgMiscSuite");
 
 using FixedWidthArgFindSuite = PackedMaxTreeFindTest<PkdFMTreeT<int64_t, 1>>;
-MMA1_CLASS_SUITE(FixedWidthArgFindSuite, "FixedWidthArgFindSuite");
+MMA_CLASS_SUITE(FixedWidthArgFindSuite, "FixedWidthArgFindSuite");
 
 
 //using VariableWidthArgMiscSuite = PackedMaxTreeMiscTest<PkdVBMTreeT<BigInteger>>;
-//MMA1_CLASS_SUITE(VariableWidthArgMiscSuite, "VariableWidthArgMiscSuite");
+//MMA_CLASS_SUITE(VariableWidthArgMiscSuite, "VariableWidthArgMiscSuite");
 
 //using VariableWidthArgFindSuite = PackedMaxTreeFindTest<PkdVBMTreeT<BigInteger>>;
-//MMA1_CLASS_SUITE(VariableWidthArgFindSuite, "VariableWidthArgFindSuite");
+//MMA_CLASS_SUITE(VariableWidthArgFindSuite, "VariableWidthArgFindSuite");
 
 }}

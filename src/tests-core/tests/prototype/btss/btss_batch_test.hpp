@@ -87,7 +87,7 @@ public:
 
 public:
 
-    MMA1_STATE_FILEDS(max_block_size_, check_size_, ctr_name_, prefix_size_, suffix_size_, block_size_, random_position_, iteration_);
+    MMA_STATE_FILEDS(max_block_size_, check_size_, ctr_name_, prefix_size_, suffix_size_, block_size_, random_position_, iteration_);
 
     BTSSBatchTest()
     {
@@ -96,13 +96,13 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testInsertFromStart,   replayInsertFromStart);
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testInsertAtEnd,       replayInsertAtEnd);
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testInsertInTheMiddle, replayInsertInTheMiddle);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testInsertFromStart,   replayInsertFromStart);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testInsertAtEnd,       replayInsertAtEnd);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testInsertInTheMiddle, replayInsertInTheMiddle);
 
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testRemoveFromStart,   replayRemoveFromStart);
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testRemoveAtEnd,       replayRemoveAtEnd);
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testRemoveInTheMiddle, replayRemoveInTheMiddle);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testRemoveFromStart,   replayRemoveFromStart);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testRemoveAtEnd,       replayRemoveAtEnd);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testRemoveInTheMiddle, replayRemoveInTheMiddle);
     }
 
     int64_t iteration() const {

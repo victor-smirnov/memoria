@@ -18,7 +18,7 @@
 
 #include <memoria/core/graph/graph.hpp>
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
@@ -81,7 +81,7 @@ public:
     }
 
     virtual void remove() {
-        MMA1_THROW(GraphException()) << WhatCInfo("The edge is not removable");
+        MMA_THROW(GraphException()) << WhatCInfo("The edge is not removable");
     }
 
     virtual bool is_removed() const {
@@ -109,7 +109,7 @@ public:
 
     virtual Property property(const U8String& name, const Any& value)
     {
-        MMA1_THROW(GraphException()) << WhatCInfo("Can't set property value");
+        MMA_THROW(GraphException()) << WhatCInfo("Can't set property value");
     }
 };
 

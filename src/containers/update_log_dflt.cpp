@@ -26,7 +26,7 @@ using Profile = DefaultProfile<>;
 //template class update_log::ContainerNameIterator<IterApi<UpdateLog, Profile>, int64_t>;
 //template class update_log::CommandsDataIterator<IterApi<UpdateLog, Profile>, int64_t>;
 
-//MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+//MMA_INSTANTIATE_CTR_BTFL(CtrName, Profile)
     
 }
 

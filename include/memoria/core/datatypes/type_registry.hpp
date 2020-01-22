@@ -132,7 +132,7 @@ public:
             return ops->create_cxx_instance(decl);
         }
         else {
-            MMA1_THROW(RuntimeException()) << format_ex("Datatype operations for {} are not registered", typedecl);
+            MMA_THROW(RuntimeException()) << format_ex("Datatype operations for {} are not registered", typedecl);
         }
     }
 
@@ -263,7 +263,7 @@ public:
                 >::create(registry, decl);
             }
             else {
-                MMA1_THROW(RuntimeException())
+                MMA_THROW(RuntimeException())
                         << format_ex(
                                "Actual number of parameters {} does not match expected one {} for type {}",
                                actual_parameters_size, declared_params_size,
@@ -574,7 +574,7 @@ namespace _ {
     {
         static T create(const DataTypeRegistry& registry, const LDTypeDeclarationView& typedecl)
         {
-            MMA1_THROW(RuntimeException())
+            MMA_THROW(RuntimeException())
                     << format_ex(
                            "No constructor is defined for ({}) in type {}",
                            "aaaaaa",
@@ -601,7 +601,7 @@ namespace _ {
 //        >::create(registry, decl);
 //    }
 //    else {
-//        MMA1_THROW(RuntimeException())
+//        MMA_THROW(RuntimeException())
 //                << format_ex(
 //                       "Actual number of parameters {} does not match expected one {} for type {}",
 //                       actual_parameters_size, declared_params_size,

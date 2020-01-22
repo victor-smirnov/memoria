@@ -107,10 +107,10 @@ class PackedAllocatorTest: public TestState {
             int32_t new_size     = alloc->resizeBlock(this, block_size + delta);
 
             if (isFail(new_size)) {
-                throw PackedOOMException(MMA1_SRC);
+                throw PackedOOMException(MMA_SRC);
             }
 
-            OOM_THROW_IF_FAILED(init(new_size), MMA1_SRC);
+            OOM_THROW_IF_FAILED(init(new_size), MMA_SRC);
             fill(data_);
         }
 
@@ -120,7 +120,7 @@ class PackedAllocatorTest: public TestState {
             int32_t block_size   = alloc->element_size(this);
             int32_t new_size     = alloc->resizeBlock(this, block_size - delta);
 
-            OOM_THROW_IF_FAILED(init(new_size), MMA1_SRC);
+            OOM_THROW_IF_FAILED(init(new_size), MMA_SRC);
             fill(data_);
         }
     };
@@ -143,7 +143,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testCreate, testEnlarge);
+        MMA_CLASS_TESTS(suite, testCreate, testEnlarge);
     }
 
     AllocatorPtr createAllocator(int32_t client_area_size, int32_t elements)
@@ -152,7 +152,7 @@ public:
 
         Allocator* alloc = allocate_system_zeroed<Allocator>(block_size).release();
 
-        OOM_THROW_IF_FAILED(alloc->init(block_size, elements), MMA1_SRC);
+        OOM_THROW_IF_FAILED(alloc->init(block_size, elements), MMA_SRC);
         alloc->allocatable().setTopLevelAllocator();
 
         assert_equals(alloc->elements(), elements);
@@ -188,7 +188,7 @@ public:
 
         ComplexStruct* cx_struct = T2T<ComplexStruct*>(block.ptr());
 
-        OOM_THROW_IF_FAILED(cx_struct->init(512), MMA1_SRC);
+        OOM_THROW_IF_FAILED(cx_struct->init(512), MMA_SRC);
 
         for (int32_t c = 0; c < cx_struct->elements(); c++)
         {
@@ -273,7 +273,7 @@ public:
         assert_equals(alloc->element_offset(2) - size0_delta, offset2);
 
         assert_throws<PackedOOMException>([alloc](){
-            OOM_THROW_IF_FAILED(toOpStatus(alloc->enlarge(10000)), MMA1_SRC);
+            OOM_THROW_IF_FAILED(toOpStatus(alloc->enlarge(10000)), MMA_SRC);
         });
 
         assert_throws<PackedOOMException>([sl_struct](){

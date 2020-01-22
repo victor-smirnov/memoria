@@ -35,10 +35,10 @@ namespace tests {
 namespace {
 
 using Suite1 = PackedArrayMiscTest<PkdVDArrayT<int64_t, 1, UByteExintCodec>>;
-MMA1_CLASS_SUITE(Suite1, "Array.Misc.VLD.Exint");
+MMA_CLASS_SUITE(Suite1, "Array.Misc.VLD.Exint");
 
 using Suite2 = PackedArrayMiscTest<PkdVDArrayT<int64_t, 1, UInt64EliasCodec>>;
-MMA1_CLASS_SUITE(Suite2, "Array.Misc.VLD.Elias");
+MMA_CLASS_SUITE(Suite2, "Array.Misc.VLD.Elias");
 
 
 }

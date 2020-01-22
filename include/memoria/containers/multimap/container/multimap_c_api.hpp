@@ -127,7 +127,7 @@ public:
     template <typename ScannerApi, typename ScannerImpl>
     CtrSharedPtr<ScannerApi> as_scanner(IteratorAPIPtr iterator) const
     {
-        if (MMA1_UNLIKELY(!iterator)) {
+        if (MMA_UNLIKELY(!iterator)) {
             return CtrSharedPtr<ScannerApi>{};
         }
         else if (iterator->cxx_type() == typeid(typename Base::Iterator))
@@ -136,7 +136,7 @@ public:
             return ctr_make_shared<ScannerImpl>(iter);
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Invalid iterator type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Invalid iterator type");
         }
     }
 
@@ -151,7 +151,7 @@ public:
 
     virtual CtrSharedPtr<IValuesScanner<CtrApiTypes, Profile>> values_scanner(IteratorAPIPtr iterator) const
     {
-        if (MMA1_UNLIKELY(!iterator)) {
+        if (MMA_UNLIKELY(!iterator)) {
             return CtrSharedPtr<IValuesScanner<CtrApiTypes, Profile>>{};
         }
         else if (iterator->cxx_type() == typeid(typename Base::Iterator))
@@ -160,7 +160,7 @@ public:
             return ctr_make_shared<multimap::ValuesIteratorImpl<CtrApiTypes, Profile, IteratorPtr>>(iter);
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Invalid iterator type");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Invalid iterator type");
         }
     }
 

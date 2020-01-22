@@ -71,7 +71,7 @@ public:
             return block_->id();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
+            MMA_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
@@ -82,7 +82,7 @@ public:
             return block_->ctr_type_hash();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
+            MMA_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
@@ -93,7 +93,7 @@ public:
             return block_->block_type_hash();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
+            MMA_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
     
@@ -126,11 +126,11 @@ public:
                 return T2T<uint8_t*>(block_)[idx];
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
+                MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
             }
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
+            MMA_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
@@ -143,11 +143,11 @@ public:
                 T2T<uint8_t*>(block_)[idx] = (uint8_t)value;
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
+                MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
             }
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
+            MMA_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 };
@@ -173,7 +173,7 @@ public:
             return block_->id();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
+            MMA_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
@@ -184,7 +184,7 @@ public:
             return block_->ctr_type_hash();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
+            MMA_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
@@ -195,7 +195,7 @@ public:
             return block_->block_type_hash();
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
+            MMA_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
@@ -204,7 +204,7 @@ public:
     }
 
     virtual void* Ptr() {
-        MMA1_THROW(Exception()) << WhatCInfo("Block is not mutable");
+        MMA_THROW(Exception()) << WhatCInfo("Block is not mutable");
     }
 
     virtual const void* Ptr() const {
@@ -213,7 +213,7 @@ public:
 
     virtual void setPtr(void* ptr)
     {
-        MMA1_THROW(Exception()) << WhatCInfo("Block is not mutable");
+        MMA_THROW(Exception()) << WhatCInfo("Block is not mutable");
     }
 
     virtual int32_t size() const {
@@ -228,18 +228,18 @@ public:
                 return T2T<uint8_t*>(block_)[idx];
             }
             else {
-                MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
+                MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid byte offset: {} max={}", idx, block_->memory_block_size()));
             }
 
         }
         else {
-            MMA1_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
+            MMA_THROW(NullPointerException()) << WhatCInfo("Block data is not set");
         }
     }
 
     virtual void setByte(int32_t idx, int32_t value)
     {
-        MMA1_THROW(Exception()) << WhatCInfo("Block is not mutable");
+        MMA_THROW(Exception()) << WhatCInfo("Block is not mutable");
     }
 };
 

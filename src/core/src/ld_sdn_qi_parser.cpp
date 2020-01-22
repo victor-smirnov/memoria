@@ -15,7 +15,7 @@
 
 //#define BOOST_SPIRIT_X3_DEBUG 1
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
@@ -159,12 +159,12 @@ public:
     static LDDocumentBuilder* current(LDDocumentBuilder* bb = nullptr, bool force = false) {
         thread_local LDDocumentBuilder* builder = nullptr;
 
-        if (MMA1_UNLIKELY(force)) {
+        if (MMA_UNLIKELY(force)) {
             builder = bb;
             return nullptr;
         }
 
-        if (MMA1_LIKELY(!bb)) {
+        if (MMA_LIKELY(!bb)) {
             return builder;
         }
 
@@ -410,7 +410,7 @@ struct StringOrTypedValue: StringOrTypedValueBase {
     LDDValueView finish()
     {
         const auto& type = bf::at_c<1>(*this);
-        if (MMA1_LIKELY(!type)) {
+        if (MMA_LIKELY(!type)) {
             return bf::at_c<0>(*this);
         }
 
@@ -771,7 +771,7 @@ void assert_parse_ok(bool res, const char* msg, II start0, II start, II end)
             buf << "...";
         }
 
-        MMA1_THROW(SDNParseException()) << format_ex("{} at {}: {}", msg, pos, buf.str());
+        MMA_THROW(SDNParseException()) << format_ex("{} at {}: {}", msg, pos, buf.str());
     }
 }
 
@@ -857,7 +857,7 @@ LDDocument LDDocument::parse_type_decl_qi(
 
     if ((!result) || ii != end)
     {
-        //MMA1_THROW(RuntimeException()) << format_ex("Can't parse data type signature: \"{}\", unparsed: \"{}\"", (std::string)str, (std::string)U8StringView(ii));
+        //MMA_THROW(RuntimeException()) << format_ex("Can't parse data type signature: \"{}\", unparsed: \"{}\"", (std::string)str, (std::string)U8StringView(ii));
     }
     else {
         //decl.resolve_maps();

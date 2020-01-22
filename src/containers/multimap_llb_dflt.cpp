@@ -22,7 +22,7 @@ namespace memoria {
 using Profile = DefaultProfile<>;
 using CtrName = memoria::Multimap<BigInt, UTinyInt>;
 
-MMA1_INSTANTIATE_CTR_BTFL(CtrName, Profile)
+MMA_INSTANTIATE_CTR_BTFL(CtrName, Profile)
 
 }
 

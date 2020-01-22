@@ -49,7 +49,7 @@ public:
     {
         if (U_FAILURE(code))
         {
-            MMA1_THROW(StringException(code)) << ICUErrorInfo(u_errorName(code));
+            MMA_THROW(StringException(code)) << ICUErrorInfo(u_errorName(code));
         }
     }
 };

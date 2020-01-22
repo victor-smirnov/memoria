@@ -49,14 +49,14 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     if (fd_ < 0)
     {
-        MMA1_THROW(SystemException()) << format_ex("Can't create socket for {}", ip_address_);
+        MMA_THROW(SystemException()) << format_ex("Can't create socket for {}", ip_address_);
     }
 
     int flags = ::fcntl(fd_, F_GETFL, 0);
 
     if (::fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
     {
-        MMA1_THROW(SystemException()) << format_ex(
+        MMA_THROW(SystemException()) << format_ex(
                                              "Can't configure ClientSocket for AIO {}:{}:{}",
                                              ip_address_, ip_port_, fd_
                                          );
@@ -70,7 +70,7 @@ ClientSocketImpl::ClientSocketImpl(const IPAddress& ip_address, uint16_t ip_port
 
     int sres = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, fd_, &event);
     if (sres < 0) {
-        MMA1_THROW(SystemException()) << format_ex("Can't configure poller for {}:{}", ip_address_, ip_port_);
+        MMA_THROW(SystemException()) << format_ex("Can't configure poller for {}:{}", ip_address_, ip_port_);
     }
 
     connect();
@@ -97,7 +97,7 @@ void ClientSocketImpl::connect()
             fiber_io_message_.wait_for();
         }
         else {
-            MMA1_THROW(SystemException()) << format_ex("Can't start connection with {}:{}", ip_address_, ip_port_);
+            MMA_THROW(SystemException()) << format_ex("Can't start connection with {}:{}", ip_address_, ip_port_);
         }
     }
 }
@@ -117,14 +117,14 @@ void ClientSocketImpl::close()
         {
             int32_t err_code = errno;
             ::close(fd_);
-            MMA1_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for socket {}:{}", ip_address_, ip_port_);
+            MMA_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for socket {}:{}", ip_address_, ip_port_);
         }
 
         engine().drain_pending_io_events(&fiber_io_message_);
 
         if (::close(fd_) < 0)
         {
-            MMA1_THROW(SystemException()) << format_ex("Can't close socket {}:{}", ip_address_, ip_port_);
+            MMA_THROW(SystemException()) << format_ex("Can't close socket {}:{}", ip_address_, ip_port_);
         }
     }
 }
@@ -148,7 +148,7 @@ size_t ClientSocketImpl::read(uint8_t* data, size_t size)
             return 0;
         }
         else {            
-            MMA1_THROW(SystemException()) << format_ex("Error reading from socket connection for {}:{}:{}", ip_address_, ip_port_, fd_);
+            MMA_THROW(SystemException()) << format_ex("Error reading from socket connection for {}:{}:{}", ip_address_, ip_port_, fd_);
         }
     }
 }
@@ -172,7 +172,7 @@ size_t ClientSocketImpl::write_(const uint8_t* data, size_t size)
             return 0;
         }
         else {
-            MMA1_THROW(SystemException()) << format_ex("Error writing to socket connection for {}:{}:{}", ip_address_, ip_port_, fd_);
+            MMA_THROW(SystemException()) << format_ex("Error writing to socket connection for {}:{}:{}", ip_address_, ip_port_, fd_);
         }
     }
 }

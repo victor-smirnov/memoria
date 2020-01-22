@@ -68,7 +68,7 @@ public:
 
                     if (value == 0 && (c > 0 || !root_))
                     {
-                        MMA1_ERROR(ctr_,
+                        MMA_ERROR(ctr_,
                                 "Node",
                                 id_,
                                 "has stream ",

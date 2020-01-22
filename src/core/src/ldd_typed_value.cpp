@@ -24,7 +24,7 @@ std::ostream& LDDTypedValueView::dump(std::ostream& out, LDDumpFormatState& stat
 
     auto ref = dump_state.resolve_type_id(type.state_.get());
 
-    if (MMA1_LIKELY(!ctr.is_varchar()))
+    if (MMA_LIKELY(!ctr.is_varchar()))
     {
         out << '@';
         if (!ref) {
@@ -60,14 +60,14 @@ ld_::LDPtr<LDDTypedValueView::State> LDDTypedValueView::deep_copy_to(LDDocumentV
 
     ld_::LDPtr<ld_::TypeDeclState> tgt_type{};
 
-    if (MMA1_LIKELY((bool)mapped_tgt_type))
+    if (MMA_LIKELY((bool)mapped_tgt_type))
     {
         tgt_type = mapped_tgt_type.get();
     }
     else {
         LDTypeDeclarationView src_td(doc_, src_state->type_decl);
 
-        if (MMA1_LIKELY(mapping.is_compaction()))
+        if (MMA_LIKELY(mapping.is_compaction()))
         {
             tgt_type = src_td.deep_copy_to(tgt, mapping);
         }

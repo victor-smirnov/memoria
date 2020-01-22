@@ -108,14 +108,14 @@ public:
     {
     }
 
-    MMA1_STATE_FILEDS(size_, throw_ex_, vector_idx_,
+    MMA_STATE_FILEDS(size_, throw_ex_, vector_idx_,
                       step_, ctr_name_,
                       iterator_check_counter_,
                       iterator_check_count_,
                       data_check_counter_,
                       data_check_count_)
 
-    MMA1_INDIRECT_STATE_FILEDS(pairs, pairs_sorted)
+    MMA_INDIRECT_STATE_FILEDS(pairs, pairs_sorted)
 
     Key getRandomKey()
     {

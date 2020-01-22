@@ -64,7 +64,7 @@ public:
     }
 
     virtual void remove() {
-        MMA1_THROW(GraphException()) << WhatCInfo("Can't remove block via Vertex::remove()");
+        MMA_THROW(GraphException()) << WhatCInfo("Can't remove block via Vertex::remove()");
     }
 
     virtual bool is_removed() const {

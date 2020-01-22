@@ -50,7 +50,7 @@ public:
 
     virtual void remove()
     {
-        MMA1_THROW(GraphException()) << WhatCInfo("Can't remove property");
+        MMA_THROW(GraphException()) << WhatCInfo("Can't remove property");
     }
 
     virtual bool is_removed() const
@@ -102,7 +102,7 @@ public:
 
     virtual void remove()
     {
-        MMA1_THROW(GraphException()) << WhatCInfo("Can't remove property");
+        MMA_THROW(GraphException()) << WhatCInfo("Can't remove property");
     }
 
     virtual bool is_removed() const

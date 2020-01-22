@@ -70,7 +70,7 @@ public:
 
 
     template <typename LeafPosition, typename Buffer>
-    MMA1_NODISCARD bool doInsertBufferIntoLeaf(NodeBaseG& leaf, BlockUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+    MMA_NODISCARD bool doInsertBufferIntoLeaf(NodeBaseG& leaf, BlockUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
     {
         InsertBufferIntoLeafFn fn;
         self().leaf_dispatcher().dispatch(leaf, fn, pos, start, size - start, buffer);

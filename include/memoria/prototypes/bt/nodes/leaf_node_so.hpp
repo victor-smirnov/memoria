@@ -317,7 +317,7 @@ public:
                     OOM_THROW_IF_FAILED(
                         alloc->template allocateEmpty<
                                 typename Stream::PkdStructT
-                        >(AllocatorIdx), MMA1_SRC
+                        >(AllocatorIdx), MMA_SRC
                     );
                 }
             }

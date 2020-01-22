@@ -206,7 +206,7 @@ public:
 
     bool append(Span<const T> data)
     {
-        if (MMA1_UNLIKELY(offsets_.size() == 0)) {
+        if (MMA_UNLIKELY(offsets_.size() == 0)) {
             offsets_.append_value(0);
         }
 
@@ -217,7 +217,7 @@ public:
 
     void append_size(SizeT size)
     {
-        if (MMA1_UNLIKELY(offsets_.size() == 0)) {
+        if (MMA_UNLIKELY(offsets_.size() == 0)) {
             offsets_.append_value(0);
         }
 
@@ -228,7 +228,7 @@ public:
     SizeT size() const
     {
         SizeT offsets_size = offsets_.size();
-        return MMA1_LIKELY(offsets_size > 0) ? offsets_size - 1 : 0;
+        return MMA_LIKELY(offsets_size > 0) ? offsets_size - 1 : 0;
     }
 
     bool ensure(SizeT size) {

@@ -51,7 +51,7 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
         int flags = ::fcntl(fd_, F_GETFL, 0);
         if (::fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
         {
-            MMA1_THROW(SystemException()) << format_ex(
+            MMA_THROW(SystemException()) << format_ex(
                 "Can't configure StreamSocketConnection for AIO {}:{}:{}",
                 ip_address_, ip_port_, fd_
             );
@@ -63,7 +63,7 @@ ServerSocketConnectionImpl::ServerSocketConnectionImpl(SocketConnectionData&& da
         KEvent64(queue_fd, fd_, EVFILT_WRITE, EV_ADD | EV_ERROR, &fiber_io_write_message_);
     }
     else {
-        MMA1_THROW(RuntimeException()) << WhatCInfo(
+        MMA_THROW(RuntimeException()) << WhatCInfo(
             "Connection has been already created for this SocketConnectionData"
         );
     }
@@ -94,7 +94,7 @@ void ServerSocketConnectionImpl::close()
 
         if (::close(fd_) < 0)
         {
-            MMA1_THROW(SystemException()) << format_ex(
+            MMA_THROW(SystemException()) << format_ex(
                 "Can't close socket {}:{}",
                 ip_address_, ip_port_
             );
@@ -130,7 +130,7 @@ size_t ServerSocketConnectionImpl::read(uint8_t* data, size_t size)
             return 0;
         }
         else {
-            MMA1_THROW(SystemException()) << format_ex(
+            MMA_THROW(SystemException()) << format_ex(
                 "Error reading from socket connection for {}:{}:{}",
                 ip_address_, ip_port_, fd_
             );
@@ -164,7 +164,7 @@ size_t ServerSocketConnectionImpl::write_(const uint8_t* data, size_t size)
             return 0;
         }
         else {
-            MMA1_THROW(SystemException()) << format_ex(
+            MMA_THROW(SystemException()) << format_ex(
                 "Error writing to socket connection for {}:{}:{}",
                 ip_address_, ip_port_, fd_
             );

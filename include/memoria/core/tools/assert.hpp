@@ -30,14 +30,14 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 
 #define MEMORIA_V1_STATIC_ASSERT(B) \
-    enum { MMA1_JOIN(MEMORIA_V1_STATIC_ASSERT_, __LINE__) = sizeof(STATIC_ASSERT_FAILURE<(bool)(B)>)}
+    enum { MMA_JOIN(MEMORIA_V1_STATIC_ASSERT_, __LINE__) = sizeof(STATIC_ASSERT_FAILURE<(bool)(B)>)}
 
 
 #ifndef MEMORIA_V1_NO_ASSERTS
 
 #define MEMORIA_V1_ASSERT(Left, Operation, Right)                                                       \
         if (!(Left Operation Right)) {                                                                  \
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("ASSERT FAILURE: {} {} {} Values: {} {}", \
+            MMA_THROW(Exception()) << WhatInfo(format_u8("ASSERT FAILURE: {} {} {} Values: {} {}", \
                     #Left, #Operation, #Right, Left, Right));                                              \
         }
 
@@ -53,38 +53,38 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #define MEMORIA_V1_ASSERT_TRUE(Arg0)                                                                    \
         if (!(Arg0)) {                                                                                  \
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("ASSERT TRUE FAILURE: {}", #Arg0));        \
+            MMA_THROW(Exception()) << WhatInfo(format_u8("ASSERT TRUE FAILURE: {}", #Arg0));        \
         }
 
 #define MEMORIA_V1_ASSERT_FALSE(Arg0)                                                                   \
         if ((Arg0)) {                                                                                   \
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("ASSERT FALSE FAILURE: {}", #Arg0));       \
+            MMA_THROW(Exception()) << WhatInfo(format_u8("ASSERT FALSE FAILURE: {}", #Arg0));       \
         }
 
 
 #define MEMORIA_V1_ASSERT_EXPR(Expr, Msg)                                                               \
         if (!(Expr)) {                                                                                  \
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("ASSERT FAILURE: {} {}", #Expr, #Msg));   \
+            MMA_THROW(Exception()) << WhatInfo(format_u8("ASSERT FAILURE: {} {}", #Expr, #Msg));   \
         }
 
 
 #define MEMORIA_V1_ASSERT_NOT_NULL(Operand)                                                             \
         if (!Operand) {                                                                                 \
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("ASSERT FAILURE: {} must not be NULL", #Operand));\
+            MMA_THROW(Exception()) << WhatInfo(format_u8("ASSERT FAILURE: {} must not be NULL", #Operand));\
         }
 
 #define MEMORIA_V1_ASSERT_NOT_EMPTY(Operand)                                                            \
         if (Operand.is_null()) {                                                                        \
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("ASSERT FAILURE: {} must not be 0", #Operand));\
+            MMA_THROW(Exception()) << WhatInfo(format_u8("ASSERT FAILURE: {} must not be 0", #Operand));\
         }
 
 
 #define MEMORIA_V1_INVALID_STREAM(Idx) \
-    MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid Stream: {}", Idx))
+    MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid Stream: {}", Idx))
 
 #define MEMORIA_V1_ASSERT_ALIGN(MemExpr, Align)                                                         \
         if (T2T<std::ptrdiff_t>(MemExpr) % Align != 0) {                                                \
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("ASSERT FAILURE: \"{}\" is not properly aligned ({})", #MemExpr, Align)); \
+            MMA_THROW(Exception()) << WhatInfo(format_u8("ASSERT FAILURE: \"{}\" is not properly aligned ({})", #MemExpr, Align)); \
         }
 
 

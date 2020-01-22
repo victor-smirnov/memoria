@@ -109,15 +109,15 @@ namespace _ {
             for (size_t c = start; c < end;)
             {
                 auto& run = parser.buffer()[c];
-                if (MMA1_LIKELY(run.symbol == 0))
+                if (MMA_LIKELY(run.symbol == 0))
                 {
                     keys_num++;
                     uint64_t keys_run_length = run.length;
-                    if (MMA1_LIKELY(keys_run_length == 1)) // typical case
+                    if (MMA_LIKELY(keys_run_length == 1)) // typical case
                     {
                         auto& next_run = parser.buffer()[c + 1];
 
-                        if (MMA1_LIKELY(next_run.symbol == 1))
+                        if (MMA_LIKELY(next_run.symbol == 1))
                         {
                             uint64_t values_run_length = next_run.length;
                             array_.append_value(absl::Span<const ViewType>(values, values_run_length));
@@ -144,7 +144,7 @@ namespace _ {
                     }
                 }
                 else {
-                    MMA1_THROW(RuntimeException()) << WhatCInfo("Unexpected NON-KEY symbol in streams structure");
+                    MMA_THROW(RuntimeException()) << WhatCInfo("Unexpected NON-KEY symbol in streams structure");
                 }
             }
 
@@ -179,14 +179,14 @@ namespace _ {
             for (size_t c = start; c < end;)
             {
                 auto& run = parser.buffer()[c];
-                if (MMA1_LIKELY(run.symbol == 0))
+                if (MMA_LIKELY(run.symbol == 0))
                 {
                     uint64_t keys_run_length = run.length;
-                    if (MMA1_LIKELY(keys_run_length == 1)) // typical case
+                    if (MMA_LIKELY(keys_run_length == 1)) // typical case
                     {
                         auto& next_run = parser.buffer()[c + 1];
 
-                        if (MMA1_LIKELY(next_run.symbol == 1))
+                        if (MMA_LIKELY(next_run.symbol == 1))
                         {
                             uint64_t values_run_length = next_run.length;
                             values_size += values_run_length;
@@ -204,7 +204,7 @@ namespace _ {
                     }
                 }
                 else {
-                    MMA1_THROW(RuntimeException()) << WhatCInfo("Unexpected NON-KEY symbol in streams structure");
+                    MMA_THROW(RuntimeException()) << WhatCInfo("Unexpected NON-KEY symbol in streams structure");
                 }
             }
 
@@ -215,15 +215,15 @@ namespace _ {
             for (size_t c = start; c < end;)
             {
                 auto& run = parser.buffer()[c];
-                if (MMA1_LIKELY(run.symbol == 0))
+                if (MMA_LIKELY(run.symbol == 0))
                 {
                     keys_num++;
                     uint64_t keys_run_length = run.length;
-                    if (MMA1_LIKELY(keys_run_length == 1)) // typical case
+                    if (MMA_LIKELY(keys_run_length == 1)) // typical case
                     {
                         auto& next_run = parser.buffer()[c + 1];
 
-                        if (MMA1_LIKELY(next_run.symbol == 1))
+                        if (MMA_LIKELY(next_run.symbol == 1))
                         {
                             uint64_t values_run_length = next_run.length;
                             array_.append_value(Span<const ViewType>(
@@ -251,7 +251,7 @@ namespace _ {
                     }
                 }
                 else {
-                    MMA1_THROW(RuntimeException()) << WhatCInfo("Unexpected NON-KEY symbol in streams structure");
+                    MMA_THROW(RuntimeException()) << WhatCInfo("Unexpected NON-KEY symbol in streams structure");
                 }
             }
 

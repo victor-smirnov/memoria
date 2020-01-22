@@ -34,10 +34,10 @@ using Ctr2Name = BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::VARIABLE>;
 using Ctr3Name = BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::FIXED>;
 using Ctr4Name = BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE>;
 
-MMA1_INSTANTIATE_CTR_BTSS(Ctr1Name, Profile, 1)
-MMA1_INSTANTIATE_CTR_BTSS(Ctr2Name, Profile, 2)
-//MMA1_INSTANTIATE_CTR_BTSS(Ctr3Name, Profile, 3)
-//MMA1_INSTANTIATE_CTR_BTSS(Ctr4Name, Profile, 4)
+MMA_INSTANTIATE_CTR_BTSS(Ctr1Name, Profile, 1)
+MMA_INSTANTIATE_CTR_BTSS(Ctr2Name, Profile, 2)
+//MMA_INSTANTIATE_CTR_BTSS(Ctr3Name, Profile, 3)
+//MMA_INSTANTIATE_CTR_BTSS(Ctr4Name, Profile, 4)
     
 }
 

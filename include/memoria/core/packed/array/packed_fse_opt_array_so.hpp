@@ -442,7 +442,7 @@ public:
                     }
                 }
                 else {
-                    MMA1_THROW(Exception()) << format_ex("Position {} exceeds {}", tidx, size);
+                    MMA_THROW(Exception()) << format_ex("Position {} exceeds {}", tidx, size);
                 }
             }
         }))) {

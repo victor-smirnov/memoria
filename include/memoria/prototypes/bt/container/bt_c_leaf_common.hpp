@@ -472,7 +472,7 @@ public:
                     std::forward<Args>(args)...
                     );
 
-        OOM_THROW_IF_FAILED(fn.status_, MMA1_SRC);
+        OOM_THROW_IF_FAILED(fn.status_, MMA_SRC);
 
         return status;
     }

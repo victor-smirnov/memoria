@@ -19,49 +19,49 @@
 #ifdef MEMORIA_USE_ASAN
 #include <sanitizer/asan_interface.h>
 
-#ifdef MMA1_SANITIZE_STACKS
+#ifdef MMA_SANITIZE_STACKS
 
 #ifdef __clang__
 #   if (__clang_major__ == 3 && __clang_minor__ >= 9) 
-#       define MMA1_SANITIZE_STACKS 1
-#       define MMA1_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
+#       define MMA_SANITIZE_STACKS 1
+#       define MMA_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
             __sanitizer_start_switch_fiber(&fake_stack_save, stack_bottom, stack_size)
-#       define MMA1_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
+#       define MMA_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
             __sanitizer_finish_switch_fiber(fake_stack_save); 
 #   elif __clang_major__ >= 4
-#       define MMA1_SANITIZE_STACKS 1
-#       define MMA1_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
+#       define MMA_SANITIZE_STACKS 1
+#       define MMA_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
             __sanitizer_start_switch_fiber(&fake_stack_save, stack_bottom, stack_size)
-#       define MMA1_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
+#       define MMA_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
             __sanitizer_finish_switch_fiber(fake_stack_save, &stack_bottom, &stack_size)
 #   else
-#       define MMA1_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
-#       define MMA1_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
+#       define MMA_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
+#       define MMA_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
 #   endif
 #elif defined(__GNUC__)
 #   if __GNUC__ >= 7       
-#       define MMA1_SANITIZE_STACKS 1
-#       define MMA1_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
+#       define MMA_SANITIZE_STACKS 1
+#       define MMA_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
             __sanitizer_start_switch_fiber(&fake_stack_save, stack_bottom, stack_size)
-#       define MMA1_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
+#       define MMA_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size) \
             __sanitizer_finish_switch_fiber(fake_stack_save, &stack_bottom, &stack_size)
 #   else
-#       define MMA1_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
-#       define MMA1_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
+#       define MMA_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
+#       define MMA_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
 #   endif
 #else
-#define MMA1_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
-#define MMA1_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
+#define MMA_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
+#define MMA_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
 #endif
 
 #else
-#define MMA1_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
-#define MMA1_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
+#define MMA_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
+#define MMA_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
 #endif            
 
 #else
 
-#define MMA1_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
-#define MMA1_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
+#define MMA_START_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
+#define MMA_FINISH_SWITCH_FIBER(fake_stack_save, stack_bottom, stack_size)
 
 #endif

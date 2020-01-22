@@ -185,7 +185,7 @@ VoidResult M_TYPE::ctr_remove_rode(NodeBaseG& node) noexcept
         self.ctr_remove_rode(node, sums, sizes);
     }
     else {
-        MMA1_THROW(Exception()) << WhatCInfo("Empty root node should not be deleted with this method.");
+        MMA_THROW(Exception()) << WhatCInfo("Empty root node should not be deleted with this method.");
     }
 }
 
@@ -281,7 +281,7 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(NodeBaseG& nod
 
     self.ctr_update_block_guard(node);
 
-    OOM_THROW_IF_FAIL(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), stream, start, end), MMA1_SRC);
+    OOM_THROW_IF_FAIL(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), stream, start, end), MMA_SRC);
 
     self.ctr_update_path(node);
 

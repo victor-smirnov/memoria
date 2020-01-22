@@ -38,7 +38,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testCountOneFW, testCountZeroFW, testCountOneBW, testCountZeroBW);
+        MMA_CLASS_TESTS(suite, testCountOneFW, testCountZeroFW, testCountOneBW, testCountZeroBW);
     }
 
 
@@ -139,8 +139,8 @@ public:
     }
 };
 
-#define MMA1_BITMAP_COUNT_SUITE(Name, Type) \
+#define MMA_BITMAP_COUNT_SUITE(Name, Type) \
 using Name = BitmapCountTest<Type>;\
-MMA1_CLASS_SUITE(Name, #Name)
+MMA_CLASS_SUITE(Name, #Name)
 
 }}

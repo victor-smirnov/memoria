@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#ifdef MMA1_MACOSX
+#ifdef MMA_MACOSX
 extern char **environ;
 #endif
 
@@ -50,7 +50,7 @@ public:
 	{
         if (::setenv(name.to_u8().data(), value.to_u8().data(), 1) < 0)
         {
-            MMA1_THROW(SystemException()) << format_ex("Can't set environment variable: {}={}", name, value);
+            MMA_THROW(SystemException()) << format_ex("Can't set environment variable: {}={}", name, value);
         }
 	}
 

@@ -103,7 +103,7 @@ public:
             tests_[test_name] = std::make_unique<TestT>(std::forward<Args>(args)...);
         }
         else {
-            MMA1_THROW(TestConfigurationException()) << format_ex("Test {} has been already registered", test_name);
+            MMA_THROW(TestConfigurationException()) << format_ex("Test {} has been already registered", test_name);
         }
     }
 
@@ -191,23 +191,23 @@ EmptyType register_class_suite(const U8String& suite_name)
 }
 
 
-#define MMA1_CLASS_SUITE(ClassName, SuiteName) \
+#define MMA_CLASS_SUITE(ClassName, SuiteName) \
 auto ClassName##_suite_init = register_class_suite<ClassName>(SuiteName)
 
 
-#define MMA1_CLASS_TEST(Suite, MethodName) \
+#define MMA_CLASS_TEST(Suite, MethodName) \
 Suite.emplace<ClassTest<MyType, &MyType::MethodName>>(#MethodName)
 
-#define MMA1_CLASS_TEST_WITH_REPLAY(Suite, TestMethodName, ReplayMethodName) \
+#define MMA_CLASS_TEST_WITH_REPLAY(Suite, TestMethodName, ReplayMethodName) \
 Suite.emplace<ClassTestWithReplay<\
     MyType, &MyType::TestMethodName, &MyType::ReplayMethodName\
 >>(#TestMethodName)
 
-#define MMA1_BOOST_PP_CLASS_TESTS(r, data, elem) MMA1_CLASS_TEST(data, elem);\
+#define MMA_BOOST_PP_CLASS_TESTS(r, data, elem) MMA_CLASS_TEST(data, elem);\
 
 
-#define MMA1_CLASS_TESTS(Suite, ...) \
-BOOST_PP_LIST_FOR_EACH(MMA1_BOOST_PP_CLASS_TESTS, Suite, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__))
+#define MMA_CLASS_TESTS(Suite, ...) \
+BOOST_PP_LIST_FOR_EACH(MMA_BOOST_PP_CLASS_TESTS, Suite, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__))
 
 
 

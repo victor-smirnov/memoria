@@ -229,7 +229,7 @@ public:
     {
         if (!has_root_metadata())
         {
-            OOM_THROW_IF_FAILED(allocator_.template allocate<Metadata>(METADATA), MMA1_SRC);
+            OOM_THROW_IF_FAILED(allocator_.template allocate<Metadata>(METADATA), MMA_SRC);
         }
 
         root_metadata() = meta;
@@ -258,7 +258,7 @@ public:
     {
         for (int32_t c = 0; c < StreamsStart; c++)
         {
-            OOM_THROW_IF_FAILED(allocator_.importBlock(c, other->allocator(), c), MMA1_SRC);
+            OOM_THROW_IF_FAILED(allocator_.importBlock(c, other->allocator(), c), MMA_SRC);
         }
     }
 
@@ -280,7 +280,7 @@ public:
         MEMORIA_V1_ASSERT(block_size, >, (int)sizeof(MyType) + PackedAllocator::my_size());
 
         allocator_.allocatable().setTopLevelAllocator();
-        OOM_THROW_IF_FAILED(allocator_.init(block_size - sizeof(MyType) + PackedAllocator::my_size(), entries), MMA1_SRC);
+        OOM_THROW_IF_FAILED(allocator_.init(block_size - sizeof(MyType) + PackedAllocator::my_size(), entries), MMA_SRC);
     }
 
     void resizeBlock(int32_t new_size)
@@ -290,7 +290,7 @@ public:
 
         if (space_delta < 0 && free_space < -space_delta)
         {
-            MMA1_THROW(RuntimeException())
+            MMA_THROW(RuntimeException())
                     << format_ex(
                            "Resizing block {} has insufficient space for downsizing: available {}, requied {}",
                            uuid(),
@@ -434,7 +434,7 @@ public:
             using T = Select<Idx, List>;
             if (allocator->is_empty(Idx))
             {
-                OOM_THROW_IF_FAILED(allocator->allocateEmpty<T>(Idx), MMA1_SRC);
+                OOM_THROW_IF_FAILED(allocator->allocateEmpty<T>(Idx), MMA_SRC);
             }
 
             return true;

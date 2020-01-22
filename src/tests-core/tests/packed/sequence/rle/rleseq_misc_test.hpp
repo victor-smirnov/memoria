@@ -57,7 +57,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testMerge, testCreate, testInsertSingle, testRemoveMulti, testRemoveAll, testClear, testSplit); //
+        MMA_CLASS_TESTS(suite, testMerge, testCreate, testInsertSingle, testRemoveMulti, testRemoveAll, testClear, testSplit); //
     }
 
     void testCreate()
@@ -92,7 +92,7 @@ public:
 
                 out() << "Insert " << symbol << " at " << idx << std::endl;
 
-                OOM_THROW_IF_FAILED(seq->insert(idx, symbol), MMA1_SRC);
+                OOM_THROW_IF_FAILED(seq->insert(idx, symbol), MMA_SRC);
 
                 symbols.insert(symbols.begin() + idx, symbol);
 
@@ -119,7 +119,7 @@ public:
 
                 out() << "Split at " << idx << std::endl;
 
-                OOM_THROW_IF_FAILED(seq->splitTo(seq2.get(), idx), MMA1_SRC);
+                OOM_THROW_IF_FAILED(seq->splitTo(seq2.get(), idx), MMA_SRC);
 
                 seq2->check();
                 seq->check();
@@ -157,7 +157,7 @@ public:
                 seq2->dump(out());
                 this->dumpAsSymbols(symbols2);
 
-                OOM_THROW_IF_FAILED(seq1->mergeWith(seq2.get()), MMA1_SRC);
+                OOM_THROW_IF_FAILED(seq1->mergeWith(seq2.get()), MMA_SRC);
 
                 //out() << "Seq1" << std::endl;
                 seq1->dump(out());
@@ -195,7 +195,7 @@ public:
 
                 int32_t block_size = seq->block_size();
 
-                OOM_THROW_IF_FAILED(seq->remove(start, end), MMA1_SRC);
+                OOM_THROW_IF_FAILED(seq->remove(start, end), MMA_SRC);
 
                 symbols.erase(symbols.begin() + start, symbols.begin() + end);
 
@@ -218,7 +218,7 @@ public:
             auto symbols = this->fillRandom(seq, size);
             assertEqual(seq, symbols);
 
-            OOM_THROW_IF_FAILED(seq->remove(0, seq->size()), MMA1_SRC);
+            OOM_THROW_IF_FAILED(seq->remove(0, seq->size()), MMA_SRC);
 
             assertEmpty(seq);
         }
@@ -239,7 +239,7 @@ public:
             assert_gt(seq->size(), 0);
             assert_gt(seq->block_size(), Seq::empty_size());
 
-            OOM_THROW_IF_FAILED(seq->clear(), MMA1_SRC);
+            OOM_THROW_IF_FAILED(seq->clear(), MMA_SRC);
 
             assertEmpty(seq);
         }

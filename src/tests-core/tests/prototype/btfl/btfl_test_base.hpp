@@ -98,7 +98,7 @@ protected:
 
 public:
 
-    MMA1_STATE_FILEDS(size, iterations, dump, level_limit, last_level_limit);
+    MMA_STATE_FILEDS(size, iterations, dump, level_limit, last_level_limit);
 
     BTFLTestBase(){}
 

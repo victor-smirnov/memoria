@@ -151,7 +151,7 @@ public:
         if (arena_.is_mutable()) {
             return const_cast<LDDocumentView*>(this);
         }
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Document is not mutable");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Document is not mutable");
     }
 
 

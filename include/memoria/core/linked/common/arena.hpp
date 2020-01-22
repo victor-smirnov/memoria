@@ -216,27 +216,27 @@ public:
             return const_cast<LinkedArenaView*>(this);
         }
 
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Data is not mutable");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Data is not mutable");
     }
 
     bool is_mutable() const {
         return arena_ != nullptr;
     }
 
-    MMA1_NODISCARD uint8_t* mutable_data() const {
+    MMA_NODISCARD uint8_t* mutable_data() const {
         if (arena_) {
             return data_;
         }
 
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Data is not mutable");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Data is not mutable");
     }
 
-    MMA1_NODISCARD const uint8_t* data() const {return data_;}
+    MMA_NODISCARD const uint8_t* data() const {return data_;}
 
-    MMA1_NODISCARD size_t allocate_space(size_t size, size_t alignment, size_t tag_size);
+    MMA_NODISCARD size_t allocate_space(size_t size, size_t alignment, size_t tag_size);
 
     template <typename T>
-    MMA1_NODISCARD PtrT<T> allocate_space(size_t size, size_t tag_size = 0) noexcept
+    MMA_NODISCARD PtrT<T> allocate_space(size_t size, size_t tag_size = 0) noexcept
     {
         size_t alignment = alignof(T);
         return allocate_space(size, alignment, tag_size);
@@ -244,7 +244,7 @@ public:
 
 
     template <typename T, typename... CtrArgs>
-    MMA1_NODISCARD PtrT<T> allocate_explicit(size_t size, CtrArgs&&... args) noexcept {
+    MMA_NODISCARD PtrT<T> allocate_explicit(size_t size, CtrArgs&&... args) noexcept {
         size_t ptr = allocate_space<T>(size);
         construct<T>(ptr, std::forward<CtrArgs>(args)...);
         return ptr;
@@ -253,14 +253,14 @@ public:
 
 
     template <typename T, typename... CtrArgs>
-    MMA1_NODISCARD PtrT<T> allocate(CtrArgs&&... args) noexcept {
+    MMA_NODISCARD PtrT<T> allocate(CtrArgs&&... args) noexcept {
         return mapped_::ObjectCreator<T>::allocate_and_construct(
             0, this, std::forward<CtrArgs>(args)...
         );
     }
 
     template <typename T, typename... CtrArgs>
-    MMA1_NODISCARD PtrT<T> allocate_tagged(size_t tag_size, CtrArgs&&... args) noexcept {
+    MMA_NODISCARD PtrT<T> allocate_tagged(size_t tag_size, CtrArgs&&... args) noexcept {
         return mapped_::ObjectCreator<T>::allocate_and_construct(
             tag_size, this, std::forward<CtrArgs>(args)...
         );
@@ -277,7 +277,7 @@ public:
     }
 
     size_t data_size() const {
-        return MMA1_UNLIKELY(arena_ != nullptr) ? arena_->size() : size_;
+        return MMA_UNLIKELY(arena_ != nullptr) ? arena_->size() : size_;
     }
 
     Span<const AtomType> span() const {
@@ -431,7 +431,7 @@ private:
         size_t mask = alignment - 1;
         size_t res = value & mask;
 
-        if (MMA1_UNLIKELY(res)) {
+        if (MMA_UNLIKELY(res)) {
             return (value | mask) + 1;
         }
 
@@ -457,13 +457,13 @@ private:
 
 
 template <typename HeaderT, typename PtrHolderT>
-MMA1_NODISCARD inline size_t LinkedArenaView<HeaderT, PtrHolderT>::allocate_space(size_t size, size_t alignment, size_t tag_size)
+MMA_NODISCARD inline size_t LinkedArenaView<HeaderT, PtrHolderT>::allocate_space(size_t size, size_t alignment, size_t tag_size)
 {
     if (arena_) {
         return arena_->allocate_space(size, alignment, tag_size);
     }
     else {
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Data is immutable");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Data is immutable");
     }
 }
 

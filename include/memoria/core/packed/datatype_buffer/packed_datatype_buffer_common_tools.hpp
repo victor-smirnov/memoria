@@ -125,7 +125,7 @@ public:
     }
 
     virtual Span<const ViewType> span(size_t row, size_t size) const {
-        MMA1_THROW(UnsupportedOperationException());
+        MMA_THROW(UnsupportedOperationException());
     }
 
     ViewType get(size_t row) const {

@@ -131,12 +131,12 @@ std::istream& operator>>(std::istream& in, std::vector<T, A>& vec)
         if (in.eof()) break;
         if (in.bad())
         {
-            MMA1_THROW(Exception()) << WhatCInfo("Invalid data record format");
+            MMA_THROW(Exception()) << WhatCInfo("Invalid data record format");
         }
 
         if (in.fail())
         {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't read file at pos {}", in.tellg()));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Can't read file at pos {}", in.tellg()));
         }
 
         vec.push_back(value);
@@ -156,7 +156,7 @@ std::istream& operator>>(std::istream& in, std::vector<uint8_t, A>& vec)
         if (in.eof()) break;
         if (in.bad())
         {
-            MMA1_THROW(Exception()) << WhatCInfo("Invalid data record format");
+            MMA_THROW(Exception()) << WhatCInfo("Invalid data record format");
         }
         vec.push_back(value);
     }
@@ -175,7 +175,7 @@ void LoadVector(std::vector<T, A>& vec, U8StringRef file_name)
     file.open(file_name.to_u8().data(), std::fstream::in);
 
     if (file.fail() || file.bad()) {
-        MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't open file: {}", file_name));
+        MMA_THROW(Exception()) << WhatInfo(format_u8("Can't open file: {}", file_name));
     }
 
     file>>vec;
@@ -267,7 +267,7 @@ void check(StorePtr store, const char* message,  const char* source)
     {
         store->logger().level() = level;
 
-        MMA1_THROW(TestException()) << WhatCInfo(message);
+        MMA_THROW(TestException()) << WhatCInfo(message);
     }
 
     store->logger().level() = level;
@@ -283,7 +283,7 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
     if (ctr.check(NULL))
     {
         ctr.logger().level() = level;
-        MMA1_THROW(TestException()) << WhatCInfo(message);
+        MMA_THROW(TestException()) << WhatCInfo(message);
     }
 
     ctr.logger().level() = level;
@@ -318,7 +318,7 @@ void checkBufferWritten(BAIterator& iter, const MemBuffer& data, const char* err
     int32_t pos = 0;
     if (!CompareBuffer(iter, data, pos))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("{}: pos={}", err_msg, pos));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("{}: pos={}", err_msg, pos));
     }
 }
 
@@ -398,12 +398,12 @@ void AssertThrows(const char* src, Functor&& fn)
     }
     catch (...)
     {
-        MMA1_THROW(TestException()) << WhatCInfo("Code throws unexpected exception");
+        MMA_THROW(TestException()) << WhatCInfo("Code throws unexpected exception");
     }
 
     if (!throwsException)
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("Code doesn't throw exception {}", TypeNameFactory<Exception>::name()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("Code doesn't throw exception {}", TypeNameFactory<Exception>::name()));
     }
 }
 
@@ -416,11 +416,11 @@ void AssertDoesntThrowEx(const char* src, Functor&& fn)
     catch (Exception& ex)
     {
         ex.dump(std::cout);
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("Code throws exception {}", TypeNameFactory<Exception>::name()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("Code throws exception {}", TypeNameFactory<Exception>::name()));
     }
     catch (...)
     {
-        MMA1_THROW(TestException()) << WhatCInfo("Code throws unexpected exception");
+        MMA_THROW(TestException()) << WhatCInfo("Code throws unexpected exception");
     }
 }
 
@@ -432,11 +432,11 @@ void AssertDoesntThrow(const char* src, Functor&& fn)
     }
     catch (Exception& ex)
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("Code throws unexpected exception: {} {}", ex));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("Code throws unexpected exception: {} {}", ex));
     }
     catch (...)
     {
-        MMA1_THROW(TestException()) << WhatCInfo("Code throws unknown exception");
+        MMA_THROW(TestException()) << WhatCInfo("Code throws unknown exception");
     }
 }
 
@@ -445,7 +445,7 @@ void AssertTrue(const char* src, const Op& op, const SBuf& msg)
 {
     if (!(op))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("True assertion failed: {} {}", op, msg.str()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("True assertion failed: {} {}", op, msg.str()));
     }
 }
 
@@ -454,7 +454,7 @@ void AssertTrue(const char* src, const Op& op)
 {
     if (!(op))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("True assertion failed: {}", op));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("True assertion failed: {}", op));
     }
 }
 
@@ -464,7 +464,7 @@ void AssertFalse(const char* src, const Op& op)
 {
     if (op)
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("False assertion failed: {}", op));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("False assertion failed: {}", op));
     }
 }
 
@@ -473,7 +473,7 @@ void AssertFalse(const char* src, const Op& op, const SBuf& msg)
 {
     if (op)
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("False assertion failed: {} {}", op, msg.str()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("False assertion failed: {} {}", op, msg.str()));
     }
 }
 
@@ -483,7 +483,7 @@ void AssertEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
     if (!(op1 == op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("EQ assertion failed: {} {} {}", op1, op2, msg.str()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("EQ assertion failed: {} {} {}", op1, op2, msg.str()));
     }
 }
 
@@ -492,7 +492,7 @@ void AssertEQ(const char* src, const Op1& op1, const Op2& op2, const std::functi
 {
     if (!(op1 == op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("EQ assertion failed: {} {} {}", op1, op2, msg_fn().str()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("EQ assertion failed: {} {} {}", op1, op2, msg_fn().str()));
     }
 }
 
@@ -501,7 +501,7 @@ void AssertEQ(const char* src, const Op1& op1, const Op2& op2)
 {
     if (!(op1 == op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("EQ assertion failed: {} {}", op1, op2));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("EQ assertion failed: {} {}", op1, op2));
     }
 }
 
@@ -510,14 +510,14 @@ void AssertEQ(const char* src, const std::vector<Op1>& op1, const std::vector<Op
 {
     if (op1.size() != op2.size())
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("EQ size assertion failed: {} {}", op1.size(), op2.size()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("EQ size assertion failed: {} {}", op1.size(), op2.size()));
     }
     else {
         for (size_t c = 0; c < op1.size(); c++)
         {
             if (op1[c] != op2[c])
             {
-                MMA1_THROW(TestException()) << WhatInfo(format_u8("EQ data assertion failed: {} {} {}", c, op1[c], op2[c]));
+                MMA_THROW(TestException()) << WhatInfo(format_u8("EQ data assertion failed: {} {} {}", c, op1[c], op2[c]));
             }
         }
     }
@@ -528,14 +528,14 @@ void AssertSpansEQ(const char* src, Span<const Op1> op1, Span<const Op2> op2)
 {
     if (op1.size() != op2.size())
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("EQ size assertion failed: {} {}", op1.size(), op2.size()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("EQ size assertion failed: {} {}", op1.size(), op2.size()));
     }
     else {
         for (size_t c = 0; c < op1.size(); c++)
         {
             if (op1[c] != op2[c])
             {
-                MMA1_THROW(TestException()) << WhatInfo(format_u8("EQ data assertion failed: {} {} {}", c, op1[c], op2[c]));
+                MMA_THROW(TestException()) << WhatInfo(format_u8("EQ data assertion failed: {} {} {}", c, op1[c], op2[c]));
             }
         }
     }
@@ -546,7 +546,7 @@ void AssertLT(const char* src, const Op1& op1, const Op2& op2)
 {
     if (!(op1 < op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("LT assertion failed: {} {}", op1, op2));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("LT assertion failed: {} {}", op1, op2));
     }
 }
 
@@ -555,7 +555,7 @@ void AssertLT(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
     if (!(op1 < op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("LT assertion failed: {} {} {}", op1, op2, msg.str()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("LT assertion failed: {} {} {}", op1, op2, msg.str()));
     }
 }
 
@@ -564,7 +564,7 @@ void AssertLE(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
     if (!(op1 <= op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("LE assertion failed: {} {} {}", op1, op2, msg.str()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("LE assertion failed: {} {} {}", op1, op2, msg.str()));
     }
 }
 
@@ -573,7 +573,7 @@ void AssertLE(const char* src, const Op1& op1, const Op2& op2)
 {
     if (!(op1 <= op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("LE assertion failed: {} {}", op1, op2));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("LE assertion failed: {} {}", op1, op2));
     }
 }
 
@@ -582,7 +582,7 @@ void AssertGT(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg =
 {
     if (!(op1 > op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("GT assertion failed: {} {} {}", op1, op2, msg.str()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("GT assertion failed: {} {} {}", op1, op2, msg.str()));
     }
 }
 
@@ -591,7 +591,7 @@ void AssertGE(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg =
 {
     if (!(op1 >= op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("GE assertion failed: {} {} {}", op1, op2, msg.str()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("GE assertion failed: {} {} {}", op1, op2, msg.str()));
     }
 }
 
@@ -600,7 +600,7 @@ void AssertNEQ(const char* src, const Op1& op1, const Op2& op2)
 {
     if (!(op1 != op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("NEQ assertion failed: {} {}", op1, op2));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("NEQ assertion failed: {} {}", op1, op2));
     }
 }
 
@@ -610,7 +610,7 @@ void AssertNEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
     if (!(op1 != op2))
     {
-        MMA1_THROW(TestException()) << WhatInfo(format_u8("NEQ assertion failed: {} {} {}", op1, op2, msg.str()));
+        MMA_THROW(TestException()) << WhatInfo(format_u8("NEQ assertion failed: {} {} {}", op1, op2, msg.str()));
     }
 }
 

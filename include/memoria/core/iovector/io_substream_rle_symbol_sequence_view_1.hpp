@@ -70,7 +70,7 @@ public:
     }
 
     virtual void* buffer() {
-        MMA1_THROW(UnsupportedOperationException());
+        MMA_THROW(UnsupportedOperationException());
     }
 
     virtual void rank_to(uint64_t idx, uint64_t* values) const
@@ -80,16 +80,16 @@ public:
 
     virtual void append(int32_t symbol, uint64_t length)
     {
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Appending is not supported for PackedSymbolSequenceNonOwningImpl");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Appending is not supported for PackedSymbolSequenceNonOwningImpl");
     }
 
     virtual void reindex()
     {
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Reindexing is not supported for PackedSymbolSequenceNonOwningImpl");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Reindexing is not supported for PackedSymbolSequenceNonOwningImpl");
     }
 
     virtual void reset() {
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Resetting is not supported for PackedSymbolSequenceNonOwningImpl");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Resetting is not supported for PackedSymbolSequenceNonOwningImpl");
     }
 
     virtual void dump(std::ostream& out) const
@@ -108,7 +108,7 @@ public:
     }
 
     void append_from(const IOSymbolSequence& source, int32_t start, int32_t length) {
-        MMA1_THROW(RuntimeException())
+        MMA_THROW(RuntimeException())
                 << WhatCInfo("Appending to not supported for PackedSymbolSequenceNonOwningImpl");
     }
 
@@ -147,7 +147,7 @@ public:
 
     virtual uint64_t populate_buffer_entry(SymbolsBuffer& buffer, uint64_t idx, int32_t symbol, bool entry_start) const
     {
-        MMA1_THROW(UnsupportedOperationException());
+        MMA_THROW(UnsupportedOperationException());
     }
 
     virtual void configure(const void* ptr)

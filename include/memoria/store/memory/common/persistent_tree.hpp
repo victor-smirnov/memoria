@@ -92,11 +92,11 @@ public:
                     root_provider_->root_id() = target->root_id();
                 }
                 else {
-                    MMA1_THROW(Exception()) << WhatCInfo("Internal error. HistoryNode.root is null for transaction.");
+                    MMA_THROW(Exception()) << WhatCInfo("Internal error. HistoryNode.root is null for transaction.");
                 }
             }
             else if (!root_provider_->root()) {
-                MMA1_THROW(Exception()) << WhatCInfo("Internal error. HistoryNode.root is null for transaction.");
+                MMA_THROW(Exception()) << WhatCInfo("Internal error. HistoryNode.root is null for transaction.");
             }
         }
     }

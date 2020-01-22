@@ -42,7 +42,7 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testBlockSum);
+        MMA_CLASS_TESTS(suite, testBlockSum);
     }
 
     PackedTreeSumTest()

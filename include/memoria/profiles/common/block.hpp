@@ -743,7 +743,7 @@ private:
 
 template <typename T, typename U, typename AllocatorT>
 Result<T> static_cast_block(Result<BlockGuard<U, AllocatorT>>&& src) noexcept {
-    if (MMA1_LIKELY(src.is_ok()))
+    if (MMA_LIKELY(src.is_ok()))
     {
         T tgt = std::move(src).get();
         return Result<T>::of(std::move(tgt));

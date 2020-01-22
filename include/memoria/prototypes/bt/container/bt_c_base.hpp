@@ -223,7 +223,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 map_so.setup(get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX));
             }
 
-            OOM_THROW_IF_FAILED(map_so.set(key, value), MMA1_SRC);
+            OOM_THROW_IF_FAILED(map_so.set(key, value), MMA_SRC);
 
             return VoidResult::of();
         });
@@ -251,7 +251,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
             PackedMapSO<CtrPropertiesMap> map_so(map);
 
-            OOM_THROW_IF_FAILED(map_so.remove(key), MMA1_SRC);
+            OOM_THROW_IF_FAILED(map_so.remove(key), MMA_SRC);
 
             MEMORIA_RETURN_IF_ERROR_FN(self.ctr_downsize_node(root.get()));
             return VoidResult::of();
@@ -297,7 +297,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 map_so.setup(get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX));
             }
 
-            OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA1_SRC);
+            OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA_SRC);
             return VoidResult::of();
         });
     }
@@ -335,7 +335,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 map_so.setup(get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX));
             }
 
-            OOM_THROW_IF_FAILED(map_so.set(key, value), MMA1_SRC);
+            OOM_THROW_IF_FAILED(map_so.set(key, value), MMA_SRC);
             return VoidResult::of();
         });
     }
@@ -351,7 +351,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
             PackedMapSO<CtrReferencesMap> map_so(map);
 
-            OOM_THROW_IF_FAILED(map_so.remove(key), MMA1_SRC);
+            OOM_THROW_IF_FAILED(map_so.remove(key), MMA_SRC);
 
             return self.ctr_downsize_node(root.get());
         });
@@ -405,7 +405,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 map_so.setup(get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX));
             }
 
-            OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA1_SRC);
+            OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA_SRC);
             return VoidResult::of();
         });
     }
@@ -866,7 +866,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 //            BranchNodeExtData& branch_node_ext_data,
 //            LeafNodeExtData& leaf_node_ext_data
 //    ) {
-//        MMA1_THROW(UnimplementedOperationException());
+//        MMA_THROW(UnimplementedOperationException());
 //    }
 
  protected:

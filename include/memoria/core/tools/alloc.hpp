@@ -42,7 +42,7 @@ FreeUniquePtr<T> AllocateUnique(size_t block_size)
         return ptr;
     }
     else {
-        MMA1_THROW(OOMException());
+        MMA_THROW(OOMException());
     }
 }
 
@@ -52,7 +52,7 @@ inline auto AllocateAllocator(size_t block_size, int32_t blocks = 1)
     auto ptr = AllocateUnique<PackedAllocator>(block_size);
 
     ptr->allocatable().setTopLevelAllocator();
-    OOM_THROW_IF_FAILED(ptr->init(block_size, blocks), MMA1_SRC);
+    OOM_THROW_IF_FAILED(ptr->init(block_size, blocks), MMA_SRC);
 
     return ptr;
 }

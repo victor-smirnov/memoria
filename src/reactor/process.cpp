@@ -14,9 +14,9 @@
 
 #include <memoria/core/types.hpp>
 
-#ifdef MMA1_POSIX
+#ifdef MMA_POSIX
 #include "posix/posix_process_impl.hpp"
-#elif defined (MMA1_WINDOWS)
+#elif defined (MMA_WINDOWS)
 #include "msvc/msvc_process_impl.hpp"
 #endif
 

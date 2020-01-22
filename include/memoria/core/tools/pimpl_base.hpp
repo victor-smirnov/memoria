@@ -60,7 +60,7 @@ public:
 };
 
 
-#define MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ClassName)     \
+#define MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ClassName)     \
     ClassName() noexcept :Base(){}                                    \
     ClassName(const typename Base::PtrType& ptr) noexcept: Base(ptr) {}\
     ClassName(const ClassName& other) noexcept: Base(other) {}       \
@@ -82,7 +82,7 @@ public:
     }
 
 
-#define MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS_NO_DTR(ClassName)  \
+#define MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS_NO_DTR(ClassName)  \
     ClassName():Base(){}										\
     ClassName(const typename Base::PtrType& ptr): Base(ptr) {}  \
     ClassName(const ClassName& other): Base(other) {}       \
@@ -103,7 +103,7 @@ public:
     }
 
 
-#define MMA1_UNIQUE_PTR_DECLARE_DEFAULT_FUNCTIONS(ClassName)\
+#define MMA_UNIQUE_PTR_DECLARE_DEFAULT_FUNCTIONS(ClassName)\
     ClassName(const ClassName& ptr) = delete;               \
     ClassName(ClassName&& other): ptr_(std::move(other.ptr_)) {} \
     ~ClassName() noexcept {}                                \
@@ -120,7 +120,7 @@ public:
         return ptr_ == other.ptr_;                          \
     }
 
-#define MMA1_UNIQUE_PTR_DECLARE_DEFAULT_FUNCTIONS_NO_DTR(ClassName)\
+#define MMA_UNIQUE_PTR_DECLARE_DEFAULT_FUNCTIONS_NO_DTR(ClassName)\
     ClassName(const ClassName& ptr) = delete;               \
     ClassName(ClassName&& other): ptr_(std::move(other.ptr_)) {} \
                                                             \

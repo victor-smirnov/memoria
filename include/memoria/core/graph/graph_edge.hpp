@@ -48,7 +48,7 @@ struct IEdge: IElement {
 class Edge: public PimplBase<IEdge> {
     using Base = PimplBase<IEdge>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Edge)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Edge)
 
     Graph graph();
 

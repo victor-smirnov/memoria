@@ -192,7 +192,7 @@ public:
             return T2T<PackedAllocator*>(my_ptr - allocator_offset());
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
+            MMA_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
         }
     }
 
@@ -216,7 +216,7 @@ public:
             return T2T<const PackedAllocator*>(my_ptr - allocator_offset());
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
+            MMA_THROW(RuntimeException()) << WhatCInfo("No allocation is defined for this object");
         }
     }
 

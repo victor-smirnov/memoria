@@ -69,7 +69,7 @@ public:
                 rank1_ = seq->rank(1);
             }
             else {
-                MMA1_ERROR(ctr_, "Node", id_, "has no bitmap");
+                MMA_ERROR(ctr_, "Node", id_, "has no bitmap");
                 errors_ = true;
             }
 
@@ -85,7 +85,7 @@ public:
                 {
                     if (labels->size() != rank1_)
                     {
-                        MMA1_ERROR(ctr_, "Node", id_, "has stream", Idx, "with invalid size. Rank=", rank1_,
+                        MMA_ERROR(ctr_, "Node", id_, "has stream", Idx, "with invalid size. Rank=", rank1_,
                                             "size=",labels->size());
 
                         errors_ = true;
@@ -93,7 +93,7 @@ public:
                 }
                 else if (rank1_ > 0)
                 {
-                    MMA1_ERROR(ctr_, "Node", id_, "has positive rank, but stream", Idx, "is empty. Rank=", rank1_);
+                    MMA_ERROR(ctr_, "Node", id_, "has positive rank, but stream", Idx, "is empty. Rank=", rank1_);
                 }
             }
         }

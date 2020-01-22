@@ -50,15 +50,15 @@ public:
     size_t max_keys_{10000000};
     size_t commit_rate_{100000};
 
-    MMA1_STATE_FILEDS(commit_rate_, ctr_name_)
-    MMA1_INDIRECT_STATE_FILEDS(keys_, keys_snapshot_, keys_shuffled_)
+    MMA_STATE_FILEDS(commit_rate_, ctr_name_)
+    MMA_INDIRECT_STATE_FILEDS(keys_, keys_snapshot_, keys_shuffled_)
 
     EdgeMapKeysTestSuite(){}
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testInsertKey, replayInsertKey);
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, testRemoveKey, replayRemoveKey);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testInsertKey, replayInsertKey);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, testRemoveKey, replayRemoveKey);
     }
 
     virtual void post_configure(TestCoverage coverage)
@@ -150,7 +150,7 @@ public:
 
         out() << "Data populated in " << FormatTime(getTimeInMillis() - tt) << std::endl;
 
-#ifdef MMA1_USE_IOBUFFER
+#ifdef MMA_USE_IOBUFFER
         using SetIterator = std::set<UUID>::iterator;
         InputIteratorProvider<UUID, SetIterator, SetIterator, CtrIOBuffer> keys_provider(keys_.begin(), keys_.end());
         edge_map::SingleStreamProducerAdapter<CtrIOBuffer, 2> adaptor(keys_provider, 0);

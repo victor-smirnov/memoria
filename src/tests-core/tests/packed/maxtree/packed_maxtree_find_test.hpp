@@ -54,11 +54,11 @@ public:
         this->size_ = 16384;
     }
 
-    MMA1_STATE_FILEDS(iterations_);
+    MMA_STATE_FILEDS(iterations_);
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testFindForward);
+        MMA_CLASS_TESTS(suite, testFindForward);
     }
 
     template <typename Walker>

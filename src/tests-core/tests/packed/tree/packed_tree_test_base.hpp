@@ -84,7 +84,7 @@ public:
     using Base::getRandom;
     using Base::out;
 
-    MMA1_STATE_FILEDS(size_, iterations_);
+    MMA_STATE_FILEDS(size_, iterations_);
 
     template <typename T>
     IndexValue sum(const std::vector<T>& tree, int32_t block, int32_t start, int32_t end)
@@ -132,7 +132,7 @@ public:
 
         OOM_THROW_IF_FAILED(tree->_insert(0, size, [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        }), MMA1_SRC);
+        }), MMA_SRC);
 
         truncate(vals, size);
 
@@ -188,7 +188,7 @@ public:
     {
         OOM_THROW_IF_FAILED(tree->_insert(0, vals.size(), [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        }), MMA1_SRC);
+        }), MMA_SRC);
     }
 
     Values createRandom(int32_t max = 100)

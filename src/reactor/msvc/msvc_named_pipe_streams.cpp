@@ -54,11 +54,11 @@ public:
 		{
 			if (CreateIoCompletionPort(handle_, engine().io_poller().completion_port(), (u_long)0, 0) == INVALID_HANDLE_VALUE)
 			{
-				MMA1_THROW(SystemException()) << format_ex("Can't open pipe for reading: {}", path_);
+				MMA_THROW(SystemException()) << format_ex("Can't open pipe for reading: {}", path_);
 			}
 		}
 		else {
-			MMA1_THROW(SystemException()) << format_ex("Can't open pipe for reading: {}", path_);
+			MMA_THROW(SystemException()) << format_ex("Can't open pipe for reading: {}", path_);
 		}
     }
 
@@ -91,7 +91,7 @@ public:
 						return;
 					}
 					else {
-						MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex("Error connecting to pipe {}", path_);
+						MMA_THROW(SystemException(overlapped.error_code_)) << format_ex("Error connecting to pipe {}", path_);
 					}
 				}
 				else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY || error_code == ERROR_PIPE_LISTENING) {
@@ -99,7 +99,7 @@ public:
 				}
 				else {
 					std::cout << GetErrorMessage(error_code) << " " << format_u8("Error connecting to pipe {}", path_) << std::endl;
-					MMA1_THROW(SystemException(error_code)) << format_ex("Error connecting to pipe {}", path_);
+					MMA_THROW(SystemException(error_code)) << format_ex("Error connecting to pipe {}", path_);
 				}
 			}
 		}
@@ -142,14 +142,14 @@ public:
 					return 0;
 				}
 				else {
-					MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex("Error reading from file {}", path_);
+					MMA_THROW(SystemException(overlapped.error_code_)) << format_ex("Error reading from file {}", path_);
 				}
 			}
 			else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY || error_code == ERROR_PIPE_LISTENING) {
 				message.wait_for(); // jsut sleep and wait for required resources to appear
 			}
 			else {
-				MMA1_THROW(SystemException(error_code)) << format_ex("Error starting read from file {}", path_);
+				MMA_THROW(SystemException(error_code)) << format_ex("Error starting read from file {}", path_);
 			}
 		}
 	}
@@ -161,7 +161,7 @@ public:
 			op_closed_ = true;
 
 			if (!::CloseHandle(handle_)) {
-				MMA1_THROW(SystemException());
+				MMA_THROW(SystemException());
 			}
 		}
     }
@@ -201,11 +201,11 @@ public:
 		{
 			if (CreateIoCompletionPort(handle_, engine().io_poller().completion_port(), (u_long)0, 0) == INVALID_HANDLE_VALUE)
 			{
-				MMA1_THROW(SystemException()) << format_ex("Can't open pipe for writing: {}", path_);
+				MMA_THROW(SystemException()) << format_ex("Can't open pipe for writing: {}", path_);
 			}
 		}
 		else {
-			MMA1_THROW(SystemException()) << format_ex("Can't open pipe for writing: {}", name);
+			MMA_THROW(SystemException()) << format_ex("Can't open pipe for writing: {}", name);
 		}
     }
 
@@ -234,7 +234,7 @@ public:
 						return;
 					}
 					else {
-						MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex("Error connecting to pipe {}", path_);
+						MMA_THROW(SystemException(overlapped.error_code_)) << format_ex("Error connecting to pipe {}", path_);
 					}
 				}
 				else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY || error_code == ERROR_PIPE_LISTENING) {
@@ -242,7 +242,7 @@ public:
 				}
 				else {
 					std::cout << GetErrorMessage(error_code) << " " << format_u8("Error connecting to pipe {}", path_) << std::endl;
-					MMA1_THROW(SystemException(error_code)) << format_ex("Error connecting to pipe {}", path_);
+					MMA_THROW(SystemException(error_code)) << format_ex("Error connecting to pipe {}", path_);
 				}
 			}
 		}
@@ -295,7 +295,7 @@ public:
 					return overlapped.size_;
 				}
 				else {
-					MMA1_THROW(SystemException(overlapped.error_code_)) << format_ex("Error writing to file {}", path_);
+					MMA_THROW(SystemException(overlapped.error_code_)) << format_ex("Error writing to file {}", path_);
 				}
 			}
 			else if (error_code == ERROR_INVALID_USER_BUFFER || error_code == ERROR_NOT_ENOUGH_MEMORY || error_code == ERROR_PIPE_LISTENING) {
@@ -303,7 +303,7 @@ public:
 			}
 			else {
 				std::cout << GetErrorMessage(error_code) << " " << format_u8("Error starting write to file {}", path_) << std::endl;
-				MMA1_THROW(SystemException(error_code)) << format_ex("Error starting write to file {}", path_);
+				MMA_THROW(SystemException(error_code)) << format_ex("Error starting write to file {}", path_);
 			}
 		}
 	}
@@ -316,7 +316,7 @@ public:
             op_closed_ = true;
 
 			if (!::CloseHandle(handle_)) {
-				MMA1_THROW(SystemException());
+				MMA_THROW(SystemException());
 			}
         }
     }

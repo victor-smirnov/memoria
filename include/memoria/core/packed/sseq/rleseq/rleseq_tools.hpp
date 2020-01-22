@@ -69,11 +69,11 @@ static constexpr uint64_t EncodeRun(int32_t symbol, uint64_t length)
             return (symbol & SymbolMask) | (length << BitsPerSymbol);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Symbols run length must be >= 0 : {}", length));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Symbols run length must be >= 0 : {}", length));
         }
     }
     else {
-        MMA1_THROW(Exception()) << WhatInfo(format_u8("Symbols run length of {} exceeds limit ({})", length, (size_t)MaxRunLength));
+        MMA_THROW(Exception()) << WhatInfo(format_u8("Symbols run length of {} exceeds limit ({})", length, (size_t)MaxRunLength));
     }
 }
 

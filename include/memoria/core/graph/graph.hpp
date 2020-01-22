@@ -50,7 +50,7 @@ struct IGraph {
 class Graph: public PimplBase<IGraph> {
     using Base = PimplBase<IGraph>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Graph)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Graph)
 
     Collection<Vertex> vertices() {
         return this->ptr_->vertices();

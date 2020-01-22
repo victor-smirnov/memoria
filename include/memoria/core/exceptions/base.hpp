@@ -54,7 +54,7 @@ struct MemoriaThrowable: virtual std::exception, virtual boost::exception {
 using Traced = boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace>;
 
 
-#define MMA1_THROW(Ex) throw Ex << ::memoria::Traced(boost::stacktrace::stacktrace()) \
+#define MMA_THROW(Ex) throw Ex << ::memoria::Traced(boost::stacktrace::stacktrace()) \
     << ::boost::throw_function(BOOST_THROW_EXCEPTION_CURRENT_FUNCTION) \
     << ::boost::throw_file(__FILE__) \
     << ::boost::throw_line(static_cast<int>(__LINE__))

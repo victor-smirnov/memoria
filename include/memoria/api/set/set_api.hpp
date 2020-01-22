@@ -87,7 +87,7 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
         return SetScanner<ApiTypes, Profile>(iterator().get_or_terminate());
     }
 
-    MMA1_DECLARE_ICTRAPI();
+    MMA_DECLARE_ICTRAPI();
 };
 
 }

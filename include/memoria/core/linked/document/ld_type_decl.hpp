@@ -80,7 +80,7 @@ public:
 
     bool is_stateless() const
     {
-        if (MMA1_LIKELY(constructor_args() == 0))
+        if (MMA_LIKELY(constructor_args() == 0))
         {
             for (size_t c = 0; c < params(); c++) {
                 if (!get_type_declration(c).is_stateless()) {
@@ -107,7 +107,7 @@ public:
             }
         }
 
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
     }
 
     LDTypeDeclarationView add_type_declaration(U8StringView name)
@@ -137,7 +137,7 @@ public:
             }
         }
 
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
     }
 
     size_t constructor_args() const
@@ -163,7 +163,7 @@ public:
             }
         }
 
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
     }
 
     LDStringView add_string_constructor_arg(U8StringView value)
@@ -218,7 +218,7 @@ public:
             }
         }
 
-        MMA1_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
+        MMA_THROW(RuntimeException()) << WhatCInfo("Supplied index is out of range");
     }
 
     U8String to_cxx_typedecl() const

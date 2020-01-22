@@ -59,11 +59,11 @@ public:
         Base::size_ = 30000;
     }
 
-    MMA1_STATE_FILEDS(iterations_)
+    MMA_STATE_FILEDS(iterations_)
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testCtrSelect, testIterSelectFw, testIterSelectBw);
+        MMA_CLASS_TESTS(suite, testCtrSelect, testIterSelectFw, testIterSelectBw);
     }
 
 

@@ -50,7 +50,7 @@ TimerImpl::TimerImpl(Timer::TimeUnit start_after, Timer::TimeUnit repeat_after, 
 
     if (kevent64(engine().io_poller().queue_fd(), &event, 1, nullptr, 0, 0, &zero_timeout) < 0)
     {
-        MMA1_THROW(SystemException()) << format_ex("Can't add kevent for Timer {}", timer_fd_);
+        MMA_THROW(SystemException()) << format_ex("Can't add kevent for Timer {}", timer_fd_);
     }
 }
 
@@ -81,7 +81,7 @@ void TimerImpl::cancel()
 
         if (kevent64(engine().io_poller().queue_fd(), &event, 1, nullptr, 0, 0, &zero_timeout) < 0)
         {
-            MMA1_THROW(SystemException()) << format_ex("Can't remove kevent for Timer {}", timer_fd_);
+            MMA_THROW(SystemException()) << format_ex("Can't remove kevent for Timer {}", timer_fd_);
         }
     }
 }
@@ -109,7 +109,7 @@ void TimerImpl::on_firing(uint64_t fired_times)
 
             if (kevent64(engine().io_poller().queue_fd(), &event, 1, nullptr, 0, 0, &zero_timeout) < 0)
             {
-                MMA1_THROW(SystemException()) << format_ex("Can't remove kevent for Timer {}", timer_fd_);
+                MMA_THROW(SystemException()) << format_ex("Can't remove kevent for Timer {}", timer_fd_);
             }
         }
 
@@ -190,13 +190,13 @@ void IOPoller::sleep_for(const std::chrono::milliseconds& time)
 
             if (kevent64(engine().io_poller().queue_fd(), &event, 1, nullptr, 0, 0, &zero_timeout) < 0)
             {
-                MMA1_THROW(SystemException()) << format_ex("Can't configure kevent for Timer {}", tfd);
+                MMA_THROW(SystemException()) << format_ex("Can't configure kevent for Timer {}", tfd);
             }
 
             message.wait_for();
         }
         else {
-            MMA1_THROW(SystemException()) << format_ex("Can't create timer for engine.sleep_for()");
+            MMA_THROW(SystemException()) << format_ex("Can't create timer for engine.sleep_for()");
         }
     }
 }

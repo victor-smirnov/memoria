@@ -16,18 +16,18 @@
 #include <memoria/reactor/application.hpp>
 
 
-#ifdef MMA1_LINUX
+#ifdef MMA_LINUX
 #include "linux/linux_socket.hpp"
-#elif defined(MMA1_MACOSX)
+#elif defined(MMA_MACOSX)
 #include "macosx/macosx_socket.hpp"
-#elif defined(MMA1_WINDOWS)
+#elif defined(MMA_WINDOWS)
 #include "msvc/msvc_socket.hpp"
 #endif 
 
 
-#ifdef MMA1_POSIX
+#ifdef MMA_POSIX
 #include "posix/posix_application_impl.hpp"
-#elif defined (MMA1_WINDOWS)
+#elif defined (MMA_WINDOWS)
 #include "msvc/msvc_application_impl.hpp"
 #endif
 

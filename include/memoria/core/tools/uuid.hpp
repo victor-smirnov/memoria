@@ -153,7 +153,7 @@ struct FromString<UUID> {
 };
 
 
-MMA1_DECLARE_PRIMITIVE_DATATYPE_NAME(UUID, UUID);
+MMA_DECLARE_PRIMITIVE_DATATYPE_NAME(UUID, UUID);
 
 template <>
 struct DataTypeTraits<UUID>: SdnFixedSizeDataTypeTraits<UUID, UUID> {};

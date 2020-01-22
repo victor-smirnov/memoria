@@ -263,7 +263,7 @@ public:
 
             seq.rank_to(io_vector_->symbol_sequence().size(), &size_[0]);
 
-            if (MMA1_UNLIKELY(start_pos_ > 0))
+            if (MMA_UNLIKELY(start_pos_ > 0))
             {
                 int32_t ctr_seq_size = seq.size();
                 if (start_pos_ < ctr_seq_size)
@@ -279,7 +279,7 @@ public:
         while (start_pos_ > 0);
 
         CtrSizeT remainder = length_ - total_symbols_;
-        if (MMA1_UNLIKELY(length_ < std::numeric_limits<CtrSizeT>::max() && (size_ - start_).sum() > remainder))
+        if (MMA_UNLIKELY(length_ < std::numeric_limits<CtrSizeT>::max() && (size_ - start_).sum() > remainder))
         {
             seq.rank_to(start_.sum() + remainder, &size_[0]);
             finished_ = true;
@@ -572,7 +572,7 @@ protected:
     }
 
 
-    MMA1_NODISCARD bool tryInsertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size)
+    MMA_NODISCARD bool tryInsertBuffer(BlockUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size)
     {
         InsertBuffersFn insert_fn;
 

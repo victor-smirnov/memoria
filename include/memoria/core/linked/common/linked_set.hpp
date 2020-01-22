@@ -100,7 +100,7 @@ public:
     Optional<Key> get(const KeyView& key) const
     {
         const State* state = this->state();
-        if (MMA1_UNLIKELY(state->size_ == 0)) {
+        if (MMA_UNLIKELY(state->size_ == 0)) {
             return Optional<Key>{};
         }
 
@@ -108,7 +108,7 @@ public:
         size_t slot  = array_slot(array, key);
 
         BucketPtr bucket = array->access(slot);
-        if (MMA1_LIKELY(bucket))
+        if (MMA_LIKELY(bucket))
         {
             Optional<size_t> idx = locate(bucket, key);
             if (idx) {
@@ -139,7 +139,7 @@ public:
             size_t slot  = array_slot(parray, key_view);
 
             BucketPtr bucket = parray->access(slot);
-            if (MMA1_LIKELY(bucket))
+            if (MMA_LIKELY(bucket))
             {
                 Optional<size_t> idx = locate(bucket, key_view);
                 if (idx) {
@@ -326,7 +326,7 @@ private:
         size_t slot  = array_slot(array, key);
 
         BucketPtr bucket = array->access(slot);
-        if (MMA1_UNLIKELY(!bucket))
+        if (MMA_UNLIKELY(!bucket))
         {
             BucketPtr new_bucket{};
             if (buffer_cache)
@@ -354,7 +354,7 @@ private:
             if (idx) {
                 // Do nothing
             }
-            else if (MMA1_UNLIKELY(!deref_mutable(bucket)->push_back(key)))
+            else if (MMA_UNLIKELY(!deref_mutable(bucket)->push_back(key)))
             {
                 BucketPtr new_bucket;
 

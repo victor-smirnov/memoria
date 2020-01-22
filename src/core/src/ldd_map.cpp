@@ -15,7 +15,7 @@
 
 //#define BOOST_SPIRIT_X3_DEBUG 1
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
@@ -33,7 +33,7 @@ void LDDMapView::do_dump(std::ostream& out, LDDumpFormatState state, LDDumpState
 
         state.push();
         for_each([&](auto kk, auto vv){
-            if (MMA1_LIKELY(!first)) {
+            if (MMA_LIKELY(!first)) {
                 out << "," << state.nl_middle();
             }
             else {

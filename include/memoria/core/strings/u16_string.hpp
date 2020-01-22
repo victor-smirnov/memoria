@@ -32,7 +32,7 @@
 
 namespace memoria {
 
-using UnicodeString = MMA1_ICU_CXX_NS::UnicodeString;
+using UnicodeString = MMA_ICU_CXX_NS::UnicodeString;
 
 using U16StringView = boost::u16string_view;
 

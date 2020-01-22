@@ -193,7 +193,7 @@ private:
         T* data = allocate_system<T>(size).release();
         if (!data)
         {
-            MMA1_THROW(Exception()) << WhatCInfo("Can't allocate raw data buffer");
+            MMA_THROW(Exception()) << WhatCInfo("Can't allocate raw data buffer");
         }
         return data;
     }

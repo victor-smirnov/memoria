@@ -52,7 +52,7 @@ struct IVertexProperty: IProperty {
 class Property: public PimplBase<IProperty> {
     using Base = PimplBase<IProperty>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Property)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(Property)
 
     const U8String& key() const {
         return this->ptr_->key();
@@ -79,7 +79,7 @@ public:
 class VertexProperty: public PimplBase<IVertexProperty> {
     using Base = PimplBase<IVertexProperty>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(VertexProperty)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(VertexProperty)
 
 
     const U8String& key() const {
@@ -114,19 +114,19 @@ public:
 
 struct EmptyProperty: IProperty {
     virtual const U8String& key() const {
-        MMA1_THROW(GraphException()) << WhatCInfo("No such property");
+        MMA_THROW(GraphException()) << WhatCInfo("No such property");
     }
 
     virtual const Any& value() const {
-        MMA1_THROW(GraphException()) << WhatCInfo("No such property");
+        MMA_THROW(GraphException()) << WhatCInfo("No such property");
     }
 
     virtual void remove() {
-        MMA1_THROW(GraphException()) << WhatCInfo("No such property");
+        MMA_THROW(GraphException()) << WhatCInfo("No such property");
     }
 
     virtual bool is_removed() const {
-        MMA1_THROW(GraphException()) << WhatCInfo("No such property");
+        MMA_THROW(GraphException()) << WhatCInfo("No such property");
     }
 
     virtual bool is_empty() const {
@@ -140,19 +140,19 @@ struct EmptyProperty: IProperty {
 struct EmptyVertexProperty: IVertexProperty {
 
     virtual const U8String& key() const {
-        MMA1_THROW(GraphException()) << WhatCInfo("No such property");
+        MMA_THROW(GraphException()) << WhatCInfo("No such property");
     }
 
     virtual Any& value() const {
-        MMA1_THROW(GraphException()) << WhatCInfo("No such property");
+        MMA_THROW(GraphException()) << WhatCInfo("No such property");
     }
 
     virtual void remove() {
-        MMA1_THROW(GraphException()) << WhatCInfo("No such property");
+        MMA_THROW(GraphException()) << WhatCInfo("No such property");
     }
 
     virtual bool is_removed() const {
-        MMA1_THROW(GraphException()) << WhatCInfo("No such property");
+        MMA_THROW(GraphException()) << WhatCInfo("No such property");
     }
 
     virtual bool is_empty() const {
@@ -160,7 +160,7 @@ struct EmptyVertexProperty: IVertexProperty {
     }
 
     virtual Collection<Property> properties() const {
-        MMA1_THROW(GraphException()) << WhatCInfo("No such property");
+        MMA_THROW(GraphException()) << WhatCInfo("No such property");
     }
 };
 

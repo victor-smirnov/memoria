@@ -207,7 +207,7 @@ public:
             return toString(fn_(idx));
         }
         else {
-            MMA1_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index access in BlockValueProviderT: idx = {}, size = {}", idx, size_));
+            MMA_THROW(BoundsException()) << WhatInfo(format_u8("Invalid index access in BlockValueProviderT: idx = {}, size = {}", idx, size_));
         }
     }
 };
@@ -230,7 +230,7 @@ public:
             return toString(value_);
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid index access in BlockValueProviderT: idx = {}, size = 1", idx));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid index access in BlockValueProviderT: idx = {}, size = 1", idx));
         }
     }
 };
@@ -253,7 +253,7 @@ public:
             return value_;
         }
         else {
-            MMA1_THROW(Exception()) << WhatInfo(format_u8("Invalid index access in BlockValueProviderT: idx = {}, size = 1", idx));
+            MMA_THROW(Exception()) << WhatInfo(format_u8("Invalid index access in BlockValueProviderT: idx = {}, size = 1", idx));
         }
     }
 };

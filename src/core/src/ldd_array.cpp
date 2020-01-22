@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
@@ -37,7 +37,7 @@ void LDDArrayView::do_dump(std::ostream& out, LDDumpFormatState& state, LDDumpSt
 
         state.push();
         for_each([&](auto vv){
-            if (MMA1_LIKELY(!first)) {
+            if (MMA_LIKELY(!first)) {
                 out << "," << state.nl_middle();
             }
             else {

@@ -54,7 +54,7 @@ class ServerSocket final : public PimplBase<ServerSocketImpl>  {
     using Base = PimplBase<ServerSocketImpl>;
 public:
     ServerSocket(const IPAddress& ip_address, uint16_t ip_port);
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ServerSocket)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ServerSocket)
     
     void listen();
     int fd() const;
@@ -69,7 +69,7 @@ public:
 class SocketConnection final: public PimplBase<SocketConnectionImpl> {
     using Base = PimplBase<SocketConnectionImpl>;
 public:
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(SocketConnection)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(SocketConnection)
     
     Socket socket();
     
@@ -92,7 +92,7 @@ public:
     
     ServerSocketConnection(SocketConnectionData&& data);
 
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ServerSocketConnection)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ServerSocketConnection)
     
     int fd() const;
 
@@ -112,7 +112,7 @@ class ClientSocket final : public PimplBase<ClientSocketImpl> {
     using Base = PimplBase<ClientSocketImpl>;
 public:
     ClientSocket(const IPAddress& ip_address, uint16_t ip_port);
-    MMA1_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ClientSocket)
+    MMA_PIMPL_DECLARE_DEFAULT_FUNCTIONS(ClientSocket)
 
     BinaryInputStream  input();
     BinaryOutputStream output();

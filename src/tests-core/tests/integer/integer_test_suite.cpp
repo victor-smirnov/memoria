@@ -35,7 +35,7 @@ class IntegerTestsSuite: public TestState {
 
 public:
     static void init_suite(TestSuite& suite) {
-        MMA1_CLASS_TESTS(suite, basic_tests, complex_tests);
+        MMA_CLASS_TESTS(suite, basic_tests, complex_tests);
     }
 
     std::string make_random_num_str(size_t max_size)

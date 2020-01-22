@@ -20,7 +20,7 @@
            
 #if defined(_MSC_VER)
 
-#ifndef MMA1_CLANG
+#ifndef MMA_CLANG
 
 namespace memoria {
 

@@ -51,7 +51,7 @@ int main()
             //return 12345;
 
             //return Result<EmptyType>::of();
-            MMA1_THROW(RuntimeException()) << WhatCInfo("Foooo!");
+            MMA_THROW(RuntimeException()) << WhatCInfo("Foooo!");
         });
 
         rr.get_or_terminate();

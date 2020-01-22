@@ -50,7 +50,7 @@ protected:
 
 public:
 
-    MMA1_STATE_FILEDS(size_, iterations_);
+    MMA_STATE_FILEDS(size_, iterations_);
 
     ArrayPtr createEmptyArray(int32_t block_size = 1024*1024*64)
     {
@@ -86,7 +86,7 @@ public:
 
         OOM_THROW_IF_FAILED(tree->insert(0, size, [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        }), MMA1_SRC);
+        }), MMA_SRC);
 
         return vals;
     }
@@ -128,7 +128,7 @@ public:
     {
         OOM_THROW_IF_FAILED(tree->insert(0, vals.size(), [&](int32_t block, int32_t idx) {
             return vals[idx][block];
-        }), MMA1_SRC);
+        }), MMA_SRC);
     }
 
     Values createRandom(int32_t max = 100)

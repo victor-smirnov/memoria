@@ -256,7 +256,7 @@ public:
             return this->value(block, size - 1);
         }
         else {
-            MMA1_THROW(RuntimeException()) << WhatCInfo("PkdFMTree is empty");
+            MMA_THROW(RuntimeException()) << WhatCInfo("PkdFMTree is empty");
         }
     }
 
@@ -265,7 +265,7 @@ public:
     {
         auto size = this->size();
 
-        if (MMA1_LIKELY(size > 0))
+        if (MMA_LIKELY(size > 0))
         {
             for (int32_t block = 0; block < Blocks; block++)
             {
@@ -320,7 +320,7 @@ public:
 
         auto size = this->size();
 
-        if (MMA1_LIKELY(size > 0))
+        if (MMA_LIKELY(size > 0))
         {
             for (int32_t block = 0; block < Blocks; block++)
             {

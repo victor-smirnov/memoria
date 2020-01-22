@@ -23,7 +23,7 @@ namespace memoria {
 using Profile = DefaultProfile<>;
 using Ctr1Name = Sequence<1>;
 
-MMA1_INSTANTIATE_CTR_BTSS(Ctr1Name, Profile)
+MMA_INSTANTIATE_CTR_BTSS(Ctr1Name, Profile)
     
 }
 

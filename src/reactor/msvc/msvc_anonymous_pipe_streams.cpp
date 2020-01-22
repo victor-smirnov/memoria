@@ -75,7 +75,7 @@ public:
 				data_closed_ = true;
 			}
 			else {
-				MMA1_THROW(SystemException()) << WhatInfo(GetErrorMessage(error_code));
+				MMA_THROW(SystemException()) << WhatInfo(GetErrorMessage(error_code));
 			}
 		}
 
@@ -89,7 +89,7 @@ public:
 			op_closed_ = true;
 
 			if (!::CloseHandle(handle_)) {
-				MMA1_THROW(SystemException());
+				MMA_THROW(SystemException());
 			}
 		}
     }
@@ -159,7 +159,7 @@ public:
 				data_closed_ = true;
 			}
 			else {
-				MMA1_THROW(SystemException()) << WhatInfo(GetErrorMessage(error_code));
+				MMA_THROW(SystemException()) << WhatInfo(GetErrorMessage(error_code));
 			}
 		}
 
@@ -174,7 +174,7 @@ public:
             op_closed_ = true;
 
 			if (!::CloseHandle(handle_)) {
-				MMA1_THROW(SystemException());
+				MMA_THROW(SystemException());
 			}
         }
     }
@@ -196,7 +196,7 @@ PipeStreams open_pipe()
 
 	if (!CreatePipe(&h_read, &h_write, nullptr, 0)) 
 	{
-		MMA1_THROW(SystemException()) << WhatCInfo("Can't create a pair of pipes");
+		MMA_THROW(SystemException()) << WhatCInfo("Can't create a pair of pipes");
 	}
 
 	return PipeStreams{

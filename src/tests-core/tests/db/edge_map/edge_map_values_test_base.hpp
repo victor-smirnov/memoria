@@ -50,8 +50,8 @@ public:
 
     SampleDataShuffled snapshot_;
 
-    MMA1_STATE_FILEDS(ctr_name_, max_values_, max_keys_fraction_, check_steps_)
-    MMA1_INDIRECT_STATE_FILEDS(samples_, snapshot_)
+    MMA_STATE_FILEDS(ctr_name_, max_values_, max_keys_fraction_, check_steps_)
+    MMA_INDIRECT_STATE_FILEDS(samples_, snapshot_)
 
     EdgeMapValuesRemovalTestBase(){}
 
@@ -188,7 +188,7 @@ public:
             last = tmp;
         }
 
-#ifdef MMA1_USE_IOBUFFER
+#ifdef MMA_USE_IOBUFFER
         ctr.assign(key, values_data.begin(), values_data.end());
 #endif
     }

@@ -17,7 +17,7 @@
 
 #include <memoria/core/types.hpp>
 
-#if defined(MMA1_WINDOWS)
+#if defined(MMA_WINDOWS)
 #include <boost/winapi/handles.hpp>
 #endif
 
@@ -25,12 +25,12 @@
 namespace memoria {
 namespace reactor {
 
-#ifdef MMA1_POSIX
+#ifdef MMA_POSIX
 
 using IOHandle = int32_t;
 constexpr IOHandle INVALID_IO_HANDLE = -1;
 
-#elif defined(MMA1_WINDOWS)
+#elif defined(MMA_WINDOWS)
 
 using IOHandle = boost::winapi::HANDLE_;
 const IOHandle INVALID_IO_HANDLE = boost::winapi::INVALID_HANDLE_VALUE_;

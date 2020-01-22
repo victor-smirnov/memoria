@@ -51,7 +51,7 @@ class BlockDispatcher<Profile, BlockType, TypeList<> > {
 
 public:
     void dispatch(BlockType *block) {
-        throw DispatchException(MMA1_SRC, SBuf()<<"Invalid model hash code"<<block->model_hash());
+        throw DispatchException(MMA_SRC, SBuf()<<"Invalid model hash code"<<block->model_hash());
     }
 };
 

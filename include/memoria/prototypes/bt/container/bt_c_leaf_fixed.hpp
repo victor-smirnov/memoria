@@ -65,7 +65,7 @@ public:
         {
             OOM_THROW_IF_FAILED(obj.template _insert_b<Offset>(idx, accum, [&](int32_t block) -> const auto& {
                 return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
-            }), MMA1_SRC);
+            }), MMA_SRC);
         }
 
         template <typename CtrT, typename NTypes, typename... Args>
@@ -122,7 +122,7 @@ public:
         >
         void stream(SubstreamType&& obj, BranchNodeEntryItem& accum, int32_t idx)
         {
-            OOM_THROW_IF_FAILED(obj.template _remove<Offset>(idx, accum), MMA1_SRC);
+            OOM_THROW_IF_FAILED(obj.template _remove<Offset>(idx, accum), MMA_SRC);
         }
     };
 
@@ -158,7 +158,7 @@ public:
         {
             OOM_THROW_IF_FAILED(obj.template _update_b<Offset>(idx, accum, [&](int32_t block) {
                 return entry.get(bt::StreamTag<Stream>(), bt::StreamTag<Idx>(), block);
-            }), MMA1_SRC);
+            }), MMA_SRC);
         }
 
 

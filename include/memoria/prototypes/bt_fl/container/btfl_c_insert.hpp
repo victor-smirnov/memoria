@@ -44,7 +44,7 @@ public:
 
 public:
 
-#ifdef MMA1_USE_IOBUFFER
+#ifdef MMA_USE_IOBUFFER
     template <typename IOBuffer>
     using CtrInputProviderPool = ObjectPool<btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer>>;
 #endif

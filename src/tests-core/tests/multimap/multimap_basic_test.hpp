@@ -71,10 +71,10 @@ public:
     {
     }
 
-    MMA1_STATE_FILEDS(create_size, create_mean_value_size, upsert_size, upsert_mean_value_size, remove_size, remove_mean_value_size)
+    MMA_STATE_FILEDS(create_size, create_mean_value_size, upsert_size, upsert_mean_value_size, remove_size, remove_mean_value_size)
 
     static void init_suite(TestSuite& suite) {
-        MMA1_CLASS_TESTS(suite, runCreateTest, runUpsertTest, runRemoveTest);
+        MMA_CLASS_TESTS(suite, runCreateTest, runUpsertTest, runRemoveTest);
     }
 
     virtual void pre_configure(TestCoverage coverage)

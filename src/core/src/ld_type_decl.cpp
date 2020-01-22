@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
@@ -33,7 +33,7 @@ void LDTypeDeclarationView::do_dump(std::ostream& out, LDDumpFormatState& state,
         state.push();
         for (size_t c = 0; c < params; c++)
         {
-            if (MMA1_LIKELY(!first)) {
+            if (MMA_LIKELY(!first)) {
                 out << "," << state.nl_middle();
             }
             else {
@@ -62,7 +62,7 @@ void LDTypeDeclarationView::do_dump(std::ostream& out, LDDumpFormatState& state,
         state.push();
         for (size_t c = 0; c < args; c++)
         {
-            if (MMA1_LIKELY(!first)) {
+            if (MMA_LIKELY(!first)) {
                 out << "," << state.nl_middle();
             }
             else {
@@ -97,7 +97,7 @@ void LDTypeDeclarationView::do_dump_cxx_type_decl(std::ostream& out, LDDumpForma
         state.push();
         for (size_t c = 0; c < params; c++)
         {
-            if (MMA1_LIKELY(!first)) {
+            if (MMA_LIKELY(!first)) {
                 out << "," << state.nl_middle();
             }
             else {

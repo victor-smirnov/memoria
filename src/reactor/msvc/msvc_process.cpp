@@ -38,7 +38,7 @@ filesystem::path get_program_path()
 		return filesystem::path(UWString(buf.get(), actual_size).to_std_string());
 	}
 	else {
-		MMA1_THROW(SystemException()) << WhatCInfo("Can't obtain this module's file name");
+		MMA_THROW(SystemException()) << WhatCInfo("Can't obtain this module's file name");
 	}
 }
 

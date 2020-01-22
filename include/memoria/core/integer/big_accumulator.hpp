@@ -201,7 +201,7 @@ struct UnsignedAccumulator {
         return false;
     }
 
-    MMA1_NODISCARD bool operator==(const UnsignedAccumulator& other) const
+    MMA_NODISCARD bool operator==(const UnsignedAccumulator& other) const
     {
         for (size_t c = 0; c < Size; c++) {
             if (value_[c] != other.value_[c]) {
@@ -213,7 +213,7 @@ struct UnsignedAccumulator {
     }
 
     template <unsigned BmpBitLength>
-    MMA1_NODISCARD bool operator==(const _::UAccBmpInt<BmpBitLength>& other) const
+    MMA_NODISCARD bool operator==(const _::UAccBmpInt<BmpBitLength>& other) const
     {
         UnsignedAccumulator tmp{other};
         return tmp == *this;

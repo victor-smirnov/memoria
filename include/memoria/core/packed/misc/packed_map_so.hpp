@@ -117,11 +117,11 @@ public:
     {
         int32_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
-        if (MMA1_LIKELY(result.local_pos() < size))
+        if (MMA_LIKELY(result.local_pos() < size))
         {
             KeyView key0 = keys_.access(0, result.local_pos());
 
-            if (MMA1_LIKELY(key0 == key)) {
+            if (MMA_LIKELY(key0 == key)) {
                 return Optional<ValueView>(values_.access(0, result.local_pos()));
             }
         }
@@ -133,11 +133,11 @@ public:
     {
         int32_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
-        if (MMA1_LIKELY(result.local_pos() < size))
+        if (MMA_LIKELY(result.local_pos() < size))
         {
             KeyView key0 = keys_.access(0, result.local_pos());
 
-            if (MMA1_UNLIKELY(key0 == key))
+            if (MMA_UNLIKELY(key0 == key))
             {
                 if (isFail(values_.replace(0, result.local_pos(), value))) {
                     return OpStatus::FAIL;
@@ -179,11 +179,11 @@ public:
     {
         int32_t size = data_->size();
         auto result = keys_.findGEForward(0, key);
-        if (MMA1_LIKELY(result.local_pos() < size))
+        if (MMA_LIKELY(result.local_pos() < size))
         {
             KeyView key0 = keys_.access(0, result.local_pos());
 
-            if (MMA1_UNLIKELY(key0 == key))
+            if (MMA_UNLIKELY(key0 == key))
             {
                 if (isFail(keys_.remove(result.local_pos()))) {
                     return OpStatus::FAIL;
@@ -207,11 +207,11 @@ public:
         int32_t size = data_->size();
 
         auto result = keys_.findGEForward(0, key);
-        if (MMA1_LIKELY(result.local_pos() < size))
+        if (MMA_LIKELY(result.local_pos() < size))
         {
             KeyView key0 = keys_.access(0, result.local_pos());
 
-            if (MMA1_LIKELY(key0 != key))
+            if (MMA_LIKELY(key0 != key))
             {
                 upsize += keys_.estimate_insert_upsize(key);
                 upsize += values_.estimate_insert_upsize(value);

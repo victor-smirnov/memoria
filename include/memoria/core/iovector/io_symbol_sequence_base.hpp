@@ -60,11 +60,11 @@ public:
 
     void append_run(int32_t symbol, uint64_t length)
     {
-        if (MMA1_UNLIKELY(size_ == 0))
+        if (MMA_UNLIKELY(size_ == 0))
         {
             append_value(_::SymbolsRun{symbol, length});
         }
-        else if (MMA1_LIKELY(head().symbol != symbol))
+        else if (MMA_LIKELY(head().symbol != symbol))
         {
             auto& hh = head();
             if (hh.symbol < last_symbol_)

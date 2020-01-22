@@ -18,6 +18,6 @@
 namespace memoria {
 namespace tests {
 
-MMA1_CLASS_SUITE(PackedAllocatorTest, "PackedAllocatorSuite");
+MMA_CLASS_SUITE(PackedAllocatorTest, "PackedAllocatorSuite");
 
 }}

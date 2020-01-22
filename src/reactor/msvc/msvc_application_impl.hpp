@@ -52,12 +52,12 @@ public:
 					return UWString(buf.get(), bufsize2).to_u8();
 				}
 				else {
-                    MMA1_THROW(SystemException()) << format_ex("Incorrect estimation of env variable's '{}' value size {}:{}", name, bufsize, bufsize2);
+                    MMA_THROW(SystemException()) << format_ex("Incorrect estimation of env variable's '{}' value size {}:{}", name, bufsize, bufsize2);
 				}
 			}
 		}
 		else {
-            MMA1_THROW(SystemException()) << format_ex("Can't obtain value of environment variable {}", name);
+            MMA_THROW(SystemException()) << format_ex("Can't obtain value of environment variable {}", name);
 		}
 	}
 
@@ -66,7 +66,7 @@ public:
 	{
 		if (!boost::winapi::SetEnvironmentVariableW(name.to_uwstring().data(), value.to_uwstring().data())) 
 		{
-            MMA1_THROW(SystemException()) << format_ex("Can't set value for environment variable: {}={}", name, value);
+            MMA_THROW(SystemException()) << format_ex("Can't set value for environment variable: {}={}", name, value);
 		}
 	}
 
@@ -128,7 +128,7 @@ public:
 			return list;
 		}
 		else {
-			MMA1_THROW(SystemException()) << WhatCInfo("Can't obtain environment variables");
+			MMA_THROW(SystemException()) << WhatCInfo("Can't obtain environment variables");
 		}
 	}
 };

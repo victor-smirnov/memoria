@@ -201,7 +201,7 @@ private:
     launch                                              policy_;
     unsigned int                                        flags_;
 
-#ifdef MMA1_SANITIZE_STACKS
+#ifdef MMA_SANITIZE_STACKS
     // ASAN support
     const void* stack_pointer_{};
     size_t stack_size_{};

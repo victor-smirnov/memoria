@@ -66,7 +66,7 @@ namespace _ {
         static void set_value(const T& value, psize_t idx, PkdTuple& pkd_tuple)
         {
             T* obj;
-            if (MMA1_UNLIKELY(pkd_tuple.is_empty(idx))) {
+            if (MMA_UNLIKELY(pkd_tuple.is_empty(idx))) {
                 obj = allocate<T>(pkd_tuple, idx);
             }
             else {

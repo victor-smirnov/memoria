@@ -74,7 +74,7 @@ struct TypeNameFactory
             return U8String(std::string(buf.get()));
         }
         else {
-            MMA1_THROW(RuntimeException()) << format_ex("Demaingling failed for type {}", cname());
+            MMA_THROW(RuntimeException()) << format_ex("Demaingling failed for type {}", cname());
         }
     }
 
@@ -95,7 +95,7 @@ static inline U8String demangle(const char* name)
         return U8String(std::string(buf.get()));
     }
     else {
-        MMA1_THROW(RuntimeException()) << format_ex("Demaingling failed for type {}", name);
+        MMA_THROW(RuntimeException()) << format_ex("Demaingling failed for type {}", name);
     }
 }
 

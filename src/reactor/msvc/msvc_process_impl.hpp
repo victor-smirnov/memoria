@@ -219,7 +219,7 @@ public:
 
 		if (!proc_err_code)
 		{
-			MMA1_THROW(SystemException()) << format_ex("Can't start process {}", builder->exe_path().to_u8());
+			MMA_THROW(SystemException()) << format_ex("Can't start process {}", builder->exe_path().to_u8());
 		}
 
         engine().run_in_thread_pool_special([&]() noexcept {

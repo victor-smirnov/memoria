@@ -44,7 +44,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorReadName)
     static const int32_t Streams                = Container::Types::Streams;
     static const int32_t DataStreams            = Container::Types::DataStreams;
     static const int32_t StructureStreamIdx     = Container::Types::StructureStreamIdx;
-#ifdef MMA1_USE_IOBUFFER
+#ifdef MMA_USE_IOBUFFER
     template <typename IOBuffer>
     using ReadWalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanThroughStrategy>>;
 

@@ -347,7 +347,7 @@ public:
 
     virtual void remove()
     {
-        MMA1_THROW(GraphException()) << WhatCInfo("Can't remove snapshot with Vertex::remove()");
+        MMA_THROW(GraphException()) << WhatCInfo("Can't remove snapshot with Vertex::remove()");
     }
 
     virtual bool is_removed() const

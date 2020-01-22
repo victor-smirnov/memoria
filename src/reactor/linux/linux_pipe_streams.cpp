@@ -41,7 +41,7 @@ public:
         int flags = fcntl(handle_, F_GETFL, 0);
         if (fcntl(handle_, F_SETFL, flags | O_NONBLOCK) < 0)
         {
-            MMA1_THROW(SystemException()) << WhatCInfo("Can't set pipe property O_NONBLOCK");
+            MMA_THROW(SystemException()) << WhatCInfo("Can't set pipe property O_NONBLOCK");
         }
 
         epoll_event event = tools::make_zeroed<epoll_event>();
@@ -52,7 +52,7 @@ public:
 
         int sres = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, handle_, &event);
         if (sres < 0) {
-            MMA1_THROW(SystemException()) << format_ex("Can't configure poller for {}", handle_);
+            MMA_THROW(SystemException()) << format_ex("Can't configure poller for {}", handle_);
         }
     }
 
@@ -80,7 +80,7 @@ public:
                 fiber_io_message_.wait_for();
             }
             else {
-                MMA1_THROW(SystemException()) << format_ex("Error reading from pipe for {}", handle_);
+                MMA_THROW(SystemException()) << format_ex("Error reading from pipe for {}", handle_);
             }
         }
 
@@ -97,14 +97,14 @@ public:
             {
                 int32_t err_code = errno;
                 ::close(handle_);
-                MMA1_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
+                MMA_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
             }
 
             engine().drain_pending_io_events(&fiber_io_message_);
 
             if (::close(handle_) < 0)
             {
-                MMA1_THROW(SystemException()) << format_ex("Can't close pipe {}", handle_);
+                MMA_THROW(SystemException()) << format_ex("Can't close pipe {}", handle_);
             }
         }
     }
@@ -125,7 +125,7 @@ public:
             {
                 int32_t err_code = errno;
                 ::close(handle_);
-                MMA1_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
+                MMA_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
             }
 
             int state = fcntl(handle_, F_GETFL);
@@ -162,7 +162,7 @@ public:
         int flags = fcntl(handle_, F_GETFL, 0);
         if (fcntl(handle_, F_SETFL, flags | O_NONBLOCK) < 0)
         {
-            MMA1_THROW(SystemException()) << WhatInfo("Can't set pipe property O_NONBLOCK");
+            MMA_THROW(SystemException()) << WhatInfo("Can't set pipe property O_NONBLOCK");
         }
 
         epoll_event event = tools::make_zeroed<epoll_event>();
@@ -173,7 +173,7 @@ public:
 
         int sres = ::epoll_ctl(engine().io_poller().epoll_fd(), EPOLL_CTL_ADD, handle_, &event);
         if (sres < 0) {
-            MMA1_THROW(SystemException()) << format_ex("Can't configure poller for {}", handle_);
+            MMA_THROW(SystemException()) << format_ex("Can't configure poller for {}", handle_);
         }
     }
 
@@ -211,7 +211,7 @@ public:
                 fiber_io_message_.wait_for();
             }
             else {
-                MMA1_THROW(SystemException()) << format_ex("Error writing pipe for {}", handle_);
+                MMA_THROW(SystemException()) << format_ex("Error writing pipe for {}", handle_);
             }
         }
 
@@ -228,14 +228,14 @@ public:
             {
                 int32_t err_code = errno;
                 ::close(handle_);
-                MMA1_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
+                MMA_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
             }
 
             engine().drain_pending_io_events(&fiber_io_message_);
 
             if (::close(handle_) < 0)
             {
-                MMA1_THROW(SystemException()) << format_ex("Can't close pipe {}", handle_);
+                MMA_THROW(SystemException()) << format_ex("Can't close pipe {}", handle_);
             }
         }
     }
@@ -257,7 +257,7 @@ public:
             {
                 int32_t err_code = errno;
                 ::close(handle_);
-                MMA1_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
+                MMA_THROW(SystemException(err_code)) << format_ex("Can't remove epoller for pipe {}", handle_);
             }
 
             int state = fcntl(handle_, F_GETFL);
@@ -283,7 +283,7 @@ PipeStreams open_pipe()
 {
     int32_t fds[2];
     if (::pipe(fds) < 0) {
-        MMA1_THROW(SystemException()) << WhatCInfo("Can't create a pair of pipes");
+        MMA_THROW(SystemException()) << WhatCInfo("Can't create a pair of pipes");
     }
 
     return PipeStreams{
@@ -297,13 +297,13 @@ PipeStreams duplicate_pipe(IOHandle input, IOHandle output)
     int32_t new_input   = dup(input);
 
     if (new_input < 0) {
-        MMA1_THROW(SystemException()) << WhatCInfo("Can't duplicate input stream of a pipe");
+        MMA_THROW(SystemException()) << WhatCInfo("Can't duplicate input stream of a pipe");
     }
 
     int32_t new_output  = dup(output);
 
     if (new_output < 0) {
-        MMA1_THROW(SystemException()) << WhatCInfo("Can't duplicate output stream of a pipe");
+        MMA_THROW(SystemException()) << WhatCInfo("Can't duplicate output stream of a pipe");
     }
 
     return PipeStreams{

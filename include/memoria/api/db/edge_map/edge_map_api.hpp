@@ -63,7 +63,7 @@ public:
     
     using EdgeMapValueIterator = typename Iterator::EdgeMapValueIterator;
 
-    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
+    MMA_DECLARE_CTRAPI_BASIC_METHODS()
     
     Iterator find(const Key& key);
     Iterator find_or_create(const Key& key);
@@ -85,7 +85,7 @@ public:
     int64_t size(const Key& key);
     int64_t size() const;
 
-#ifdef MMA1_USE_IOBUFFER
+#ifdef MMA_USE_IOBUFFER
     Iterator assign(const Key& key, bt::BufferProducer<CtrIOBuffer>& values_producer);
 
     template <typename InputIterator, typename EndIterator>
@@ -122,7 +122,7 @@ public:
                 iterator_.next_key();
             }
             else {
-                MMA1_THROW(RuntimeException()) << WhatCInfo("No such element in iterator");
+                MMA_THROW(RuntimeException()) << WhatCInfo("No such element in iterator");
             }
         }
 
@@ -163,7 +163,7 @@ public:
     
     using DataValue = std::tuple<Key, Value>;
     
-    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
+    MMA_DECLARE_ITERAPI_BASIC_METHODS()
     
     Key key() const;
     Value value() const;
@@ -213,14 +213,14 @@ public:
             {
                 if (iterator_.iter_skip_fw(1) < 1)
                 {
-                    MMA1_THROW(RuntimeException()) << WhatCInfo("Can't move forward to expected value element");
+                    MMA_THROW(RuntimeException()) << WhatCInfo("Can't move forward to expected value element");
                 }
 
                 acc_ += value_;
                 cnt_++;
             }
             else {
-                MMA1_THROW(RuntimeException()) << WhatCInfo("No suche element in iterator");
+                MMA_THROW(RuntimeException()) << WhatCInfo("No suche element in iterator");
             }
         }
 

@@ -27,7 +27,7 @@ namespace memoria {
 using Profile = DefaultProfile<>;
 using CtrName = Map<UUID, int64_t>;
 
-MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
+MMA_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     
 }
 

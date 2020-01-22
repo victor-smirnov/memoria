@@ -176,7 +176,7 @@ public:
             return (T)value_;
         }
         else {
-            throw Exception(MMA1_SOURCE, SBuf()<<typeid(T).name()<<" type="<<type_);
+            throw Exception(MMA_SOURCE, SBuf()<<typeid(T).name()<<" type="<<type_);
         }
     }
 

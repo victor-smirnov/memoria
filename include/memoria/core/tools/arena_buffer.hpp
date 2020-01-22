@@ -393,7 +393,7 @@ private:
 
     ValueT* allocate_buffer(SizeT size) const
     {
-        if (MMA1_LIKELY(!memory_mgr_))
+        if (MMA_LIKELY(!memory_mgr_))
         {
             return allocate_system<ValueT>(size).release();
         }
@@ -405,7 +405,7 @@ private:
 
     void free_buffer(ValueT* existing) noexcept
     {
-        if (MMA1_LIKELY(!memory_mgr_))
+        if (MMA_LIKELY(!memory_mgr_))
         {
             free_system(existing);
         }

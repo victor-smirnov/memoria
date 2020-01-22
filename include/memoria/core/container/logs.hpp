@@ -23,25 +23,25 @@
 #include <iostream>
 #include <iomanip>
 
-#define MMA1_LOG(logger_, level, ...)                                        \
+#define MMA_LOG(logger_, level, ...)                                        \
     if (logger_.is_log(level))                                               \
-        memoria::log(logger_.logger(), level, MMA1_SOURCE, logger_.type_name_cstr(), \
+        memoria::log(logger_.logger(), level, MMA_SOURCE, logger_.type_name_cstr(), \
                 ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
 
-#define MMA1_DEBUG(logger_, ...)                                             \
-    MMA1_LOG(logger_, memoria::Logger::LDEBUG, ##__VA_ARGS__)
+#define MMA_DEBUG(logger_, ...)                                             \
+    MMA_LOG(logger_, memoria::Logger::LDEBUG, ##__VA_ARGS__)
 
-#define MMA1_WARN(logger_, ...)                                              \
-    MMA1_LOG(logger_, memoria::Logger::WARN, ##__VA_ARGS__)
+#define MMA_WARN(logger_, ...)                                              \
+    MMA_LOG(logger_, memoria::Logger::WARN, ##__VA_ARGS__)
 
-#define MMA1_ERROR(logger_, ...)                                             \
-    MMA1_LOG(logger_, memoria::Logger::_ERROR, ##__VA_ARGS__)
+#define MMA_ERROR(logger_, ...)                                             \
+    MMA_LOG(logger_, memoria::Logger::_ERROR, ##__VA_ARGS__)
 
-#define MMA1_INFO(logger_, ...)                                              \
-    MMA1_LOG(logger_, memoria::Logger::INFO, ##__VA_ARGS__)
+#define MMA_INFO(logger_, ...)                                              \
+    MMA_LOG(logger_, memoria::Logger::INFO, ##__VA_ARGS__)
 
-#define MMA1_TRACE(logger_, ...)                                             \
-    MMA1_LOG(logger_, memoria::Logger::TRACE, ##__VA_ARGS__)
+#define MMA_TRACE(logger_, ...)                                             \
+    MMA_LOG(logger_, memoria::Logger::TRACE, ##__VA_ARGS__)
 
 
 namespace memoria {

@@ -56,12 +56,12 @@ public:
 
     void add_substream(std::unique_ptr<IOSubstream>&& ptr)
     {
-        MMA1_THROW(UnsupportedOperationException());
+        MMA_THROW(UnsupportedOperationException());
     }
 
     void add_stream_schema(int32_t substreams)
     {
-        MMA1_THROW(UnsupportedOperationException());
+        MMA_THROW(UnsupportedOperationException());
     }
 
     IOSymbolSequence& symbol_sequence() {

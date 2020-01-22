@@ -120,7 +120,7 @@ private:
 
         parser_.parse(ss);
 
-        if (MMA1_LIKELY((!parser_.is_empty()) || ss.size() > 0))
+        if (MMA_LIKELY((!parser_.is_empty()) || ss.size() > 0))
         {
             size_t run_size = (!parser_.is_empty()) ? parser_.run_size() : 0;
 

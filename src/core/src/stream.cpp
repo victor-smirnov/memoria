@@ -20,7 +20,7 @@
 #include <memoria/core/strings/string.hpp>
 #include <memoria/core/strings/format.hpp>
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
@@ -180,7 +180,7 @@ private:
             return value;
         }
         else {
-            MMA1_THROW(Exception()) << WhatCInfo("Can't read value from InputStreamHandler");
+            MMA_THROW(Exception()) << WhatCInfo("Can't read value from InputStreamHandler");
         }
     }
 };
@@ -191,7 +191,7 @@ FileOutputStreamHandlerImpl::FileOutputStreamHandlerImpl(const char* file_name)
     file_.open(file_name, std::ios_base::binary | std::ios_base::out | std::ios_base::trunc);
     
     if (!file_.is_open()) {
-        MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't open file {}", file_name));
+        MMA_THROW(Exception()) << WhatInfo(format_u8("Can't open file {}", file_name));
     }
     
     closed_ = false;
@@ -227,7 +227,7 @@ void FileOutputStreamHandlerImpl::write(const void* mem, size_t offset, size_t l
 
     if (total_size != length)
     {
-        MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't write {} bytes to file", length));
+        MMA_THROW(Exception()) << WhatInfo(format_u8("Can't write {} bytes to file", length));
     }
 }
 
@@ -240,7 +240,7 @@ FileInputStreamHandlerImpl::FileInputStreamHandlerImpl(const char* file_name)
     file_.open(file_name, std::ios_base::binary | std::ios_base::in);
     
     if (!file_.is_open()) {
-        MMA1_THROW(Exception()) << WhatInfo(format_u8("Can't open file {}", file_name));
+        MMA_THROW(Exception()) << WhatInfo(format_u8("Can't open file {}", file_name));
     }
     
     size_ = memoria::filesystem::file_size(file_name);

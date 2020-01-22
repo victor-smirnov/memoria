@@ -63,7 +63,7 @@ AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
             typedecl = tv.type().to_standard_string();
         }
         else {
-            MMA1_THROW(RuntimeException())
+            MMA_THROW(RuntimeException())
                     << format_ex("Unsupported data type requested");
         }
 
@@ -77,11 +77,11 @@ AnyDatum DataTypeRegistry::from_sdn_string(U8StringView sdn_string) const
                 return fn(*this, sdn_doc);
             }
             else {
-                MMA1_THROW(RuntimeException()) << format_ex("Value deserializer for {} is not registered", typedecl);
+                MMA_THROW(RuntimeException()) << format_ex("Value deserializer for {} is not registered", typedecl);
             }
         }
         else {
-            MMA1_THROW(RuntimeException()) << format_ex("Type creator for {} is not registered", typedecl);
+            MMA_THROW(RuntimeException()) << format_ex("Type creator for {} is not registered", typedecl);
         }
     }
 }

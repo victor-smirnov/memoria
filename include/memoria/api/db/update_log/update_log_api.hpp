@@ -54,7 +54,7 @@ public:
     using CommandsDataIteratorT = update_log::CommandsDataIterator<Iterator, CtrSizeT>;
     using SnapshotIDIteratorT   = update_log::SnapshotIDIterator<Iterator, CtrSizeT>;
 
-    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
+    MMA_DECLARE_CTRAPI_BASIC_METHODS()
 
     int64_t size() const;
 
@@ -85,7 +85,7 @@ public:
     static constexpr int32_t DataStreams = CtrApi<UpdateLog, Profile>::DataStreams;
     using CtrSizesT = typename CtrApi<UpdateLog, Profile>::CtrSizesT;
     
-    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
+    MMA_DECLARE_ITERAPI_BASIC_METHODS()
 
     int32_t leaf_pos(int32_t data_stream);
 };

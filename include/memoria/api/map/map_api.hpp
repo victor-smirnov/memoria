@@ -98,7 +98,7 @@ struct ICtrApi<Map<Key, Value>, Profile>: public CtrReferenceable<Profile> {
         return MapScanner<ApiTypes, Profile>(iterator_producer(this));
     }
 
-    MMA1_DECLARE_ICTRAPI();
+    MMA_DECLARE_ICTRAPI();
 };
 
 }

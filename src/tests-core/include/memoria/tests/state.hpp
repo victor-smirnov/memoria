@@ -216,25 +216,25 @@ public:
 };
 
 
-#define MMA1_TESTS_STATE_FILED(name) this->add_field_handler(MMA1_TOSTRING(name), name)
-#define MMA1_TESTS_INDIRECT_STATE_FILED(name) this->add_indirect_field_handler(MMA1_TOSTRING(name), name)
+#define MMA_TESTS_STATE_FILED(name) this->add_field_handler(MMA_TOSTRING(name), name)
+#define MMA_TESTS_INDIRECT_STATE_FILED(name) this->add_indirect_field_handler(MMA_TOSTRING(name), name)
 
-#define MMA1_BOOST_PP_STATE_FILED(r, data, elem) MMA1_TESTS_STATE_FILED(elem);\
+#define MMA_BOOST_PP_STATE_FILED(r, data, elem) MMA_TESTS_STATE_FILED(elem);\
 
-#define MMA1_BOOST_PP_INDIRECT_STATE_FILED(r, data, elem) MMA1_TESTS_INDIRECT_STATE_FILED(elem);\
+#define MMA_BOOST_PP_INDIRECT_STATE_FILED(r, data, elem) MMA_TESTS_INDIRECT_STATE_FILED(elem);\
 
 
-#define MMA1_STATE_FILEDS(...)          \
+#define MMA_STATE_FILEDS(...)          \
     virtual void add_field_handlers() { \
         Base::add_field_handlers();     \
-        BOOST_PP_LIST_FOR_EACH(MMA1_BOOST_PP_STATE_FILED, _, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__)) \
+        BOOST_PP_LIST_FOR_EACH(MMA_BOOST_PP_STATE_FILED, _, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__)) \
     }
 
 
-#define MMA1_INDIRECT_STATE_FILEDS(...)             \
+#define MMA_INDIRECT_STATE_FILEDS(...)             \
     virtual void add_indirect_field_handlers() {    \
         Base::add_indirect_field_handlers();        \
-        BOOST_PP_LIST_FOR_EACH(MMA1_BOOST_PP_INDIRECT_STATE_FILED, _, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__)) \
+        BOOST_PP_LIST_FOR_EACH(MMA_BOOST_PP_INDIRECT_STATE_FILED, _, BOOST_PP_VARIADIC_TO_LIST(__VA_ARGS__)) \
     }
 
 

@@ -89,8 +89,8 @@ public:
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testCreate, testInsertSingle, testInsertMultiple, testRemoveMulti);
-        MMA1_CLASS_TESTS(suite, testRemoveAll, testClear);
+        MMA_CLASS_TESTS(suite, testCreate, testInsertSingle, testInsertMultiple, testRemoveMulti);
+        MMA_CLASS_TESTS(suite, testRemoveAll, testClear);
     }
 
 
@@ -125,7 +125,7 @@ public:
                 int32_t idx     = getRandom(seq->size());
                 int32_t symbol  = getRandom(Blocks);
 
-                OOM_THROW_IF_FAILED(seq->insert(idx, symbol), MMA1_SRC);
+                OOM_THROW_IF_FAILED(seq->insert(idx, symbol), MMA_SRC);
 
                 symbols.insert(symbols.begin() + idx, symbol);
 
@@ -158,7 +158,7 @@ public:
                 int32_t cnt = 0;
                 OOM_THROW_IF_FAILED(seq->insert(idx, block.size(), [&](){
                     return block[cnt++];
-                }), MMA1_SRC);
+                }), MMA_SRC);
 
                 symbols.insert(symbols.begin() + idx, block.begin(), block.end());
 
@@ -185,7 +185,7 @@ public:
 
                 int32_t block_size = seq->block_size();
 
-                OOM_THROW_IF_FAILED(seq->remove(start, end), MMA1_SRC);
+                OOM_THROW_IF_FAILED(seq->remove(start, end), MMA_SRC);
 
                 symbols.erase(symbols.begin() + start, symbols.begin() + end);
 
@@ -208,7 +208,7 @@ public:
             auto symbols = this->fillRandom(seq, size);
             assertEqual(seq, symbols);
 
-            OOM_THROW_IF_FAILED(seq->remove(0, seq->size()), MMA1_SRC);
+            OOM_THROW_IF_FAILED(seq->remove(0, seq->size()), MMA_SRC);
 
             assertEmpty(seq);
         }
@@ -229,7 +229,7 @@ public:
             assert_gt(seq->size(), 0);
             assert_gt(seq->block_size(), Seq::empty_size());
 
-            OOM_THROW_IF_FAILED(seq->clear(), MMA1_SRC);
+            OOM_THROW_IF_FAILED(seq->clear(), MMA_SRC);
 
             assertEmpty(seq);
         }

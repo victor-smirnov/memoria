@@ -15,14 +15,14 @@
 
 #include <memoria/core/regexp/icu_regexp.hpp>
 
-#ifndef MMA1_NO_REACTOR
+#ifndef MMA_NO_REACTOR
 #   include <memoria/reactor/reactor.hpp>
 #endif
 
 namespace memoria {
 
-using RegexMatcher = MMA1_ICU_CXX_NS::RegexMatcher;
-using RegexPattern = MMA1_ICU_CXX_NS::RegexPattern;
+using RegexMatcher = MMA_ICU_CXX_NS::RegexMatcher;
+using RegexPattern = MMA_ICU_CXX_NS::RegexPattern;
 
 namespace _ {
 

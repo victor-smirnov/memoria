@@ -43,7 +43,7 @@ class BitmapSpeedTest: public BitmapTestBase<T> {
 public:
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TESTS(suite, testSpeed1, testSpeed2, testI64Codec, testEliasCodec);
+        MMA_CLASS_TESTS(suite, testSpeed1, testSpeed2, testI64Codec, testEliasCodec);
     }
 
     void testSpeed1()
@@ -157,8 +157,8 @@ public:
 
 
 
-#define MMA1_BITMAP_SPEED_SUITE(Name, Type) \
+#define MMA_BITMAP_SPEED_SUITE(Name, Type) \
 using Name = BitmapSpeedTest<Type>;\
-MMA1_CLASS_SUITE(Name, #Name)
+MMA_CLASS_SUITE(Name, #Name)
 
 }}

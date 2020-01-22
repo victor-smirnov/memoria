@@ -26,7 +26,7 @@ psize_t locate(psize_t stride_log2_ex, psize_t size, ProviderFn&& values, Value 
     psize_t basic_stride = static_cast<psize_t>(1) << basic_stride_log2;
 
     psize_t stride_base = 0;
-    if (MMA1_LIKELY(basic_stride <= size))
+    if (MMA_LIKELY(basic_stride <= size))
     {
         psize_t stride = basic_stride;
         psize_t stride_log2 = basic_stride_log2;
@@ -51,7 +51,7 @@ psize_t locate(psize_t stride_log2_ex, psize_t size, ProviderFn&& values, Value 
 
                 Value vv = values(row);
 
-                if (MMA1_LIKELY(element < vv))
+                if (MMA_LIKELY(element < vv))
                 {
                     break;
                 }
@@ -66,7 +66,7 @@ psize_t locate(psize_t stride_log2_ex, psize_t size, ProviderFn&& values, Value 
             stride >>= basic_stride_log2;
             stride_log2 -= basic_stride_log2;
 
-            if (MMA1_LIKELY(c < strides)) {
+            if (MMA_LIKELY(c < strides)) {
                 strides = basic_stride;
             }
             else {

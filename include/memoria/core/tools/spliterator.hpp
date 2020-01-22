@@ -32,7 +32,7 @@ public:
         size_(size),
         start_()
     {
-        end_ = MMA1_LIKELY(size_ > SplitSize) ? SplitSize : size_;
+        end_ = MMA_LIKELY(size_ > SplitSize) ? SplitSize : size_;
     }
 
     constexpr bool has_more() const {
@@ -56,7 +56,7 @@ public:
         start_ += SplitSize;
         end_   += SplitSize;
 
-        if (MMA1_UNLIKELY(end_ > size_))
+        if (MMA_UNLIKELY(end_ > size_))
         {
             end_ = size_ - start_;
         }

@@ -69,11 +69,11 @@ public:
         Base::size_ = 10000;
     }
 
-    MMA1_STATE_FILEDS(key_, value_)
+    MMA_STATE_FILEDS(key_, value_)
 
     static void init_suite(TestSuite& suite)
     {
-        MMA1_CLASS_TEST_WITH_REPLAY(suite, runCreateTest, replayCreateTest);
+        MMA_CLASS_TEST_WITH_REPLAY(suite, runCreateTest, replayCreateTest);
     }
 
 

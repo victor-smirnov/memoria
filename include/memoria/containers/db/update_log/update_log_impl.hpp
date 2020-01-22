@@ -86,7 +86,7 @@ int32_t IterApi<UpdateLog, Profile>::leaf_pos(int32_t data_stream)
 template <typename Iterator, typename CtrSizeT>
 UUID update_log::SnapshotIDIterator<Iterator, CtrSizeT>::next()
 {
-    if (MMA1_LIKELY(has_next()))
+    if (MMA_LIKELY(has_next()))
     {
         auto vv = iterator_.ptr()->snapshot_id();
 
@@ -96,7 +96,7 @@ UUID update_log::SnapshotIDIterator<Iterator, CtrSizeT>::next()
         return vv;
     }
 
-    MMA1_THROW(RuntimeException()) << WhatCInfo("No such element");
+    MMA_THROW(RuntimeException()) << WhatCInfo("No such element");
 }
 
 template <typename Iterator, typename CtrSizeT>
@@ -128,7 +128,7 @@ update_log::SnapshotIDIterator<Iterator, CtrSizeT>::containers()
 template <typename Iterator, typename CtrSizeT>
 UUID update_log::ContainerNameIterator<Iterator, CtrSizeT>::next()
 {
-    if (MMA1_LIKELY(has_next()))
+    if (MMA_LIKELY(has_next()))
     {
         prefix_ += iterator_.ptr()->ctr_name_i();
 
@@ -138,7 +138,7 @@ UUID update_log::ContainerNameIterator<Iterator, CtrSizeT>::next()
         return prefix_.to_uuid();
     }
 
-    MMA1_THROW(RuntimeException()) << WhatCInfo("No such element");
+    MMA_THROW(RuntimeException()) << WhatCInfo("No such element");
 }
 
 template <typename Iterator, typename CtrSizeT>
