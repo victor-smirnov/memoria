@@ -1,4 +1,0 @@
-<Project ToolsVersion="14.1" 
-xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(VCTargetsPath)\Microsoft.CppCommon.targets" />
-</Project>
