@@ -45,6 +45,8 @@ public:
 
     using CtrSizeT = typename Types::CtrSizeT;
 
+    using typename Base::TreePathT;
+
     static const int32_t Streams = Types::Streams;
 
     // TODO: noexcept
@@ -212,13 +214,13 @@ public:
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(MergeNodesFn, mergeWith, OpStatus);
-    VoidResult ctr_do_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src) noexcept;
+    VoidResult ctr_do_merge_leaf_nodes(TreePathT& tgt, TreePathT& src) noexcept;
 
-    BoolResult ctr_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){
+    BoolResult ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, MergeFn fn = [](const Position&){
         return VoidResult::of();
     }) noexcept;
 
-    BoolResult ctr_merge_current_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){
+    BoolResult ctr_merge_current_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path, MergeFn fn = [](const Position&){
         return VoidResult::of();
     }) noexcept;
 
@@ -230,9 +232,12 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-VoidResult M_TYPE::ctr_do_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src) noexcept
+VoidResult M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path) noexcept
 {
     auto& self = this->self();
+
+    NodeBaseG src = src_path.leaf();
+    NodeBaseG tgt = tgt_path.leaf();
 
     MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(tgt));
     MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(src));
@@ -253,7 +258,7 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src) noexc
 
     //MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
-    Result<OpStatus> status2 = self.ctr_remove_non_leaf_node_entry(src_parent.get(), parent_idx);
+    Result<OpStatus> status2 = self.ctr_remove_non_leaf_node_entry(src_path, 1, parent_idx);
     MEMORIA_RETURN_IF_ERROR(status2);
 
     if (isFail(status2.get())) {
@@ -264,52 +269,42 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src) noexc
 
     auto max = self.ctr_get_node_max_keys(tgt);
 
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_branch_nodes(src_parent.get(), idx, max));
+    MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(src_path, 1, idx, max));
 
     return self.store().removeBlock(src->id());
 }
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn) noexcept
+BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, MergeFn fn) noexcept
 {
     auto& self = this->self();
 
-    if (self.ctr_can_merge_nodes(tgt, src))
+    if (self.ctr_can_merge_nodes(tgt.leaf(), src.leaf()))
     {
-        if (self.ctr_is_the_same_parent(tgt, src))
+        MEMORIA_TRY(is_same_parent, self.ctr_is_the_same_parent(tgt, src, 0));
+
+        if (is_same_parent)
         {
-            auto sizes = self.ctr_get_node_sizes(tgt);
+            auto sizes = self.ctr_get_node_sizes(tgt.leaf());
 
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_do_merge_leaf_nodes(tgt, src));
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_redundant_root(tgt));
-
-            auto res = fn(sizes);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(self.ctr_do_merge_leaf_nodes(tgt, src));
+            MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(tgt));
+            MEMORIA_TRY_VOID(fn(sizes));
 
             return BoolResult::of(true);
         }
         else
         {
-            Result<NodeBaseG> tgt_parent = self.ctr_get_node_parent(tgt);
-            MEMORIA_RETURN_IF_ERROR(tgt_parent);
+            MEMORIA_TRY(branch_merge_result, self.ctr_merge_branch_nodes(tgt, src, 1));
 
-            Result<NodeBaseG> src_parent = self.ctr_get_node_parent(src);
-            MEMORIA_RETURN_IF_ERROR(src_parent);
-
-            auto res0 = self.ctr_merge_branch_nodes(tgt_parent.get(), src_parent.get());
-            MEMORIA_RETURN_IF_ERROR(res0);
-
-            if (res0.get())
+            if (branch_merge_result)
             {
-                auto sizes = self.ctr_get_node_sizes(tgt);
+                auto sizes = self.ctr_get_node_sizes(tgt.leaf());
 
-                MEMORIA_RETURN_IF_ERROR_FN(self.ctr_do_merge_leaf_nodes(tgt, src));
-
-                MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_redundant_root(tgt));
-
-                auto res1 = fn(sizes);
-                MEMORIA_RETURN_IF_ERROR(res1);
+                MEMORIA_TRY_VOID(self.ctr_do_merge_leaf_nodes(tgt, src));
+                MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(tgt));
+                MEMORIA_TRY_VOID(fn(sizes));
 
                 return BoolResult::of(true);
             }
@@ -328,19 +323,26 @@ BoolResult M_TYPE::ctr_merge_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn 
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_merge_current_leaf_nodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn) noexcept
+BoolResult M_TYPE::ctr_merge_current_leaf_nodes(
+        TreePathT& tgt_path,
+        TreePathT& src_path,
+        MergeFn fn
+) noexcept
 {
     auto& self = this->self();
+
+    NodeBaseG src = src_path.leaf();
+    NodeBaseG tgt = tgt_path.leaf();
 
     if (self.ctr_can_merge_nodes(tgt, src))
     {
         auto res0 = fn(self.ctr_get_node_sizes(tgt));
         MEMORIA_RETURN_IF_ERROR(res0);
 
-        auto res1 = self.ctr_do_merge_leaf_nodes(tgt, src);
+        auto res1 = self.ctr_do_merge_leaf_nodes(tgt_path, src_path);
         MEMORIA_RETURN_IF_ERROR(res1);
 
-        auto res2 = self.ctr_remove_redundant_root(tgt);
+        auto res2 = self.ctr_remove_redundant_root(tgt_path);
         MEMORIA_RETURN_IF_ERROR(res2);
 
         return BoolResult::of(true);

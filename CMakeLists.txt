@@ -102,6 +102,10 @@ if (BUILD_CONTAINERS)
     add_definitions(-DMEMORIA_BUILD_CONTAINERS)
 endif()
 
+if (BUILD_CONTAINERS_MULTIMAP)
+    add_definitions(-DMEMORIA_BUILD_CONTAINERS_MULTIMAP)
+endif()
+
 if (BUILD_MEMORY_STORE)
     add_definitions(-DMEMORIA_BUILD_MEMORY_STORE)
 endif()

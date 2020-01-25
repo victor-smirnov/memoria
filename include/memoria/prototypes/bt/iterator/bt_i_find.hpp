@@ -33,8 +33,10 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
     typedef typename Base::Container                                                Container;
 
     typedef typename Container::Allocator                                           Allocator;
-    typedef typename Container::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Container::Iterator                                            Iterator;
+
+    using typename Base::TreePathT;
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
@@ -52,10 +54,17 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         typename Container::NodeChain node_chain(self.ctr(), self.iter_leaf(), self.iter_local_pos());
 
-        auto result = self.ctr().ctr_find_fw(node_chain, walker);
+        TreePathT end_path = self.path();
+
+        auto result = self.ctr().ctr_find_fw(self.path(), end_path, 0, node_chain, walker);
         MEMORIA_RETURN_IF_ERROR(result);
 
-        self.iter_leaf().assign(result.get().node);
+        if (end_path.leaf() != self.path().leaf())
+        {
+            self.path() = end_path;
+            self.iter_leaf().assign(end_path.leaf());
+        }
+
         self.iter_local_pos()  = result.get().idx;
 
         walker.finish(self, result.get().idx, result.get().cmd);
@@ -74,11 +83,13 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         typename Container::NodeChain node_chain(self.iter_leaf(), self.iter_local_pos());
 
-        auto result = self.ctr().ctr_find_bw(node_chain, walker);
+        TreePathT end_path = self.path();
+
+        auto result = self.ctr().ctr_find_bw(self.path(), end_path, 0, node_chain, walker);
         MEMORIA_RETURN_IF_ERROR(result);
 
         self.iter_leaf().assign(result.get().node);
-        self.iter_local_pos()  = result.get().idx;
+        self.iter_local_pos() = result.get().idx;
 
         walker.finish(self, result.get().idx, result.get().cmd);
 

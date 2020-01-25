@@ -19,6 +19,7 @@
 #include <memoria/core/types.hpp>
 #include <memoria/prototypes/bt/bt_names.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_tree_path.hpp>
 
 #include <memoria/core/iovector/io_vector.hpp>
 
@@ -48,9 +49,11 @@ public:
 
     using IOVectorViewT = typename Types::LeafNode::template SparseObject<CtrT>::IOVectorViewT;
 
+    using TreePathT = TreePath<NodeBaseG>;
+
 private:
 
-    NodeBaseG           leaf_;
+    TreePathT           path_;
 
     IOVectorViewT       iovector_view_;
 
@@ -67,7 +70,7 @@ public:
 
     BTIteratorBase(ThisType&& other) noexcept:
         Base(std::move(other)),
-        leaf_(other.leaf_),
+        path_(std::move(other.path_)),
         idx_(other.idx_),
         stream_(other.stream_),
         cache_(std::move(other.cache_))
@@ -77,7 +80,7 @@ public:
 
     BTIteratorBase(const ThisType& other) noexcept:
         Base(other),
-        leaf_(other.leaf_),
+        path_(other.path_),
         idx_(other.idx_),
         stream_(other.stream_),
         cache_(other.cache_)
@@ -87,10 +90,10 @@ public:
 
     void assign(ThisType&& other) noexcept
     {
-        leaf_       = other.leaf_;
+        path_       = std::move(other.path_);
         idx_        = other.idx_;
         stream_     = other.stream_;
-        cache_      = other.cache_;
+        cache_      = std::move(other.cache_);
 
         refresh_iovector_view();
 
@@ -99,7 +102,7 @@ public:
 
     void assign(const ThisType& other) noexcept
     {
-        leaf_       = other.leaf_;
+        path_       = other.path_;
         idx_        = other.idx_;
         stream_     = other.stream_;
 
@@ -108,6 +111,14 @@ public:
         refresh_iovector_view();
 
         Base::assign(other);
+    }
+
+    TreePathT& path() noexcept {
+        return path_;
+    }
+
+    const TreePathT& path() const noexcept {
+        return path_;
     }
 
     auto iter_clone() const noexcept
@@ -147,59 +158,59 @@ public:
     }
 
     class NodeAccessor {
-        NodeBaseG& node_;
+        TreePathT& path_;
 
         MyType& iter_;
 
     public:
-        NodeAccessor(NodeBaseG& node, MyType& iter) noexcept:
-            node_(node), iter_(iter)
+        NodeAccessor(TreePathT& path, MyType& iter) noexcept:
+            path_(path), iter_(iter)
         {}
 
-        operator NodeBaseG&() {return node_;}
+        operator NodeBaseG&() noexcept {return path_.leaf();}
 
-        void assign(NodeBaseG node)
+        void assign(NodeBaseG node) noexcept
         {
-            node_ = node;
+            path_.leaf() = node;
             iter_.refresh_iovector_view();
         }
 
-        NodeBaseG& node() {
-            return node_;
+        NodeBaseG& node() noexcept {
+            return path_.leaf();
         }
 
-        auto operator->() {
-            return node_.operator->();
+        auto operator->() noexcept {
+            return path_.leaf().operator->();
         }
     };
 
 
     class ConstNodeAccessor {
-        const NodeBaseG& node_;
+        const TreePathT& path_;
     public:
-        ConstNodeAccessor(const NodeBaseG& node) noexcept:
-            node_(node)
+        ConstNodeAccessor(const TreePathT& path) noexcept:
+            path_(path)
         {}
 
-        operator const NodeBaseG&() const {return node_;}
+        operator const NodeBaseG&() const noexcept {return path_.leaf();}
 
-        const auto operator->() const {
-            return node_.operator->();
+        const auto operator->() const noexcept {
+            return path_.leaf().operator->();
         }
 
-        const NodeBaseG& node() const {
-            return node_;
+        const NodeBaseG& node() const noexcept {
+            return path_.leaf();
         }
     };
 
     NodeAccessor iter_leaf() noexcept
     {
-        return NodeAccessor(leaf_, self());
+        return NodeAccessor(path_, self());
     }
 
     ConstNodeAccessor iter_leaf() const
     {
-        return ConstNodeAccessor(leaf_);
+        return ConstNodeAccessor(path_);
     }
 
 
@@ -211,7 +222,7 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN(RefreshIOVectorViewFn, configure_iovector_view);
     void refresh_iovector_view() noexcept
     {
-        self().ctr().leaf_dispatcher().dispatch(leaf_, RefreshIOVectorViewFn(), *&iovector_view_);
+        self().ctr().leaf_dispatcher().dispatch(path_.leaf(), RefreshIOVectorViewFn(), *&iovector_view_);
     }
 
 
@@ -367,8 +378,6 @@ public:
 public:
     template <typename Walker>
     void iter_finish_walking(int32_t idx, const Walker& w, WalkCmd cmd) noexcept {}
-
-
 
 MEMORIA_BT_ITERATOR_BASE_CLASS_END
 

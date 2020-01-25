@@ -23,6 +23,8 @@
 #   include <memoria/api/map/map_api.hpp>
 #   include <memoria/api/vector/vector_api.hpp>
 #   include <memoria/api/multimap/multimap_api.hpp>
+#elif defined (MEMORIA_BUILD_CONTAINERS_MULTIMAP)
+#   include <memoria/api/multimap/multimap_api.hpp>
 #endif
 
 //#include <memoria/api/db/edge_map/edge_map_api.hpp>
@@ -69,6 +71,8 @@ struct StaticLibraryCtrs {
         InitCtrMetadata<Multimap<BigInt, UTinyInt>, ProfileT>();
         InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();
 
+        InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
+#elif defined(MEMORIA_BUILD_CONTAINERS_MULTIMAP)
         InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
 #endif
     }

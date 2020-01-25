@@ -42,6 +42,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
 
     typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
+    using typename Base::TreePathT;
+
 
     static const int32_t Streams = Container::Types::Streams;
 
@@ -134,9 +136,13 @@ public:
         auto& self = this->self();
         auto& ctr  = self.model();
 
-        auto next = ctr.ctr_split_leaf(self.iter_leaf(), self.iter_leaf_sizes());
+        TreePathT left_path  = self.path();
+        TreePathT right_path = self.path();
 
-        self.iter_leaf() = next;
+        auto next = ctr.ctr_split_leaf(left_path, right_path, self.iter_leaf(), self.iter_leaf_sizes());
+
+        self.path() = right_path;
+        self.iter_leaf().assign(next);
 
         self.iter_local_pos() = 0;
     }

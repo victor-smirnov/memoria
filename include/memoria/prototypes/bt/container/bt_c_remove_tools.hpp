@@ -44,6 +44,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
 
     typedef std::function<VoidResult (const Position&)>                         MergeFn;
 
+    using typename Base::TreePathT;
     using Base::CONTAINER_HASH;
 
 
@@ -97,16 +98,16 @@ protected:
     VoidResult ctr_remove_rode(NodeBaseG& node) noexcept;
     VoidResult ctr_remove_root_node(NodeBaseG& node) noexcept;
 
-    VoidResult ctr_remove_leaf_content(NodeBaseG& node, int32_t start, int32_t end, Position& sums) noexcept;
-    Result<Position> ctr_remove_leaf_content(NodeBaseG& node, const Position& start, const Position& end) noexcept;
-    Result<Position> ctr_remove_leaf_content(NodeBaseG& node, int32_t stream, int32_t start, int32_t end) noexcept;
+    VoidResult ctr_remove_node_content(TreePathT& path, size_t level, int32_t start, int32_t end, Position& sums) noexcept;
+    Result<Position> ctr_remove_leaf_content(TreePathT& path, const Position& start, const Position& end) noexcept;
+    Result<Position> ctr_remove_leaf_content(TreePathT& path, int32_t stream, int32_t start, int32_t end) noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(RemoveNonLeafNodeEntryFn, removeSpaceAcc, OpStatus);
-    Result<OpStatus> ctr_remove_non_leaf_node_entry(NodeBaseG& node, int32_t idx) noexcept;
+    Result<OpStatus> ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t idx) noexcept;
 
-    BoolResult ctr_merge_leaf_with_left_sibling(NodeBaseG& node, MergeFn fn = [](const Position&, int32_t){}) noexcept;
-    BoolResult ctr_merge_leaf_with_right_sibling(NodeBaseG& node) noexcept;
-    Result<MergeType> ctr_merge_leaf_with_siblings(NodeBaseG& node, MergeFn fn = [](const Position&, int32_t){}) noexcept;
+    BoolResult ctr_merge_leaf_with_left_sibling(TreePathT& path, MergeFn fn = [](const Position&, int32_t){}) noexcept;
+    BoolResult ctr_merge_leaf_with_right_sibling(TreePathT& path) noexcept;
+    Result<MergeType> ctr_merge_leaf_with_siblings(TreePathT& path, MergeFn fn = [](const Position&, int32_t){}) noexcept;
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
@@ -122,12 +123,18 @@ protected:
 
 
 
-    VoidResult ctr_remove_redundant_root(NodeBaseG& node) noexcept;
+    VoidResult ctr_remove_redundant_root(TreePathT& path, size_t level = 0) noexcept;
 
 
-    bool ctr_is_the_same_parent(const NodeBaseG& left, const NodeBaseG& right) noexcept
+    BoolResult ctr_is_the_same_parent(const TreePathT& left, const TreePathT& right, size_t level) noexcept
     {
-        return left->parent_id() == right->parent_id();
+        if (level + 1 < left.size())
+        {
+            return BoolResult::of(left[level + 1]->parent_id() == right[level + 1]->parent_id());
+        }
+        else {
+            return BoolResult::make_error("Invalid tree path. Level = {}, height = {}", level, left.size());
+        }
     }
 
 
@@ -204,14 +211,12 @@ VoidResult M_TYPE::ctr_remove_root_node(NodeBaseG& node) noexcept
 
 
 M_PARAMS
-VoidResult M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, int32_t start, int32_t end, Position& sizes) noexcept
+VoidResult M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_t start, int32_t end, Position& sizes) noexcept
 {
-    //using ResultT = Result<OpStatus>;
+    using ResultT = VoidResult;
     auto& self = this->self();
 
-    //MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
-
-    auto res = self.ctr_for_all_ids(node, start, end, [&, this](const BlockID& id, int32_t idx) noexcept -> VoidResult {
+    auto res = self.ctr_for_all_ids(path[level], start, end, [&, this](const BlockID& id, int32_t idx) noexcept -> VoidResult {
         auto& self = this->self();
         Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlock(id));
         MEMORIA_RETURN_IF_ERROR(child);
@@ -220,34 +225,31 @@ VoidResult M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, int32_t start, int32
     });
     MEMORIA_RETURN_IF_ERROR(res);
 
-
-    OpStatus status = self.branch_dispatcher().dispatch(node, RemoveSpaceFn(), start, end);
+    OpStatus status = self.branch_dispatcher().dispatch(path[level], RemoveSpaceFn(), start, end);
     if (isFail(status)) {
         return VoidResult::make_error("PackedOOMException");
     }
 
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(node));
+    MEMORIA_TRY_VOID(self.ctr_update_path(path, level));
 
-    return self.ctr_update_children(node, start);
+    return ResultT::of();
 }
 
 
 M_PARAMS
-Result<OpStatus> M_TYPE::ctr_remove_non_leaf_node_entry(NodeBaseG& node, int32_t start) noexcept
+Result<OpStatus> M_TYPE::ctr_remove_non_leaf_node_entry(TreePathT& path, size_t level, int32_t start) noexcept
 {
     auto& self = this->self();
 
-    //MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
+    NodeBaseG node = path[level];
 
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(node));
+    MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
     if (isFail(self.branch_dispatcher().dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1))) {
         return OpStatus::FAIL;
     }
 
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_children(node, start));
-
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(node));
+    MEMORIA_TRY_VOID(self.ctr_update_path(path, level));
 
     return OpStatus::OK;
 }
@@ -255,11 +257,12 @@ Result<OpStatus> M_TYPE::ctr_remove_non_leaf_node_entry(NodeBaseG& node, int32_t
 
 
 M_PARAMS
-Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, const Position& start, const Position& end) noexcept
+Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(TreePathT& path, const Position& start, const Position& end) noexcept
 {
     using ResultT = Result<Position>;
     auto& self = this->self();
 
+    NodeBaseG node = path.leaf();
     MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(node));
 
     OpStatus status = self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), start, end);
@@ -268,22 +271,28 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(NodeBaseG& nod
         return ResultT::make_error("PackedOOMException");
     }
 
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(node));
+    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(path, 0));
 
     return ResultT::of(end - start);
 }
 
 M_PARAMS
-Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(NodeBaseG& node, int32_t stream, int32_t start, int32_t end) noexcept
+Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(
+        TreePathT& path,
+        int32_t stream,
+        int32_t start,
+        int32_t end
+) noexcept
 {
     using ResultT = Result<Position>;
     auto& self = this->self();
 
+    NodeBaseG node = path.leaf();
     self.ctr_update_block_guard(node);
 
     OOM_THROW_IF_FAIL(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), stream, start, end), MMA_SRC);
 
-    self.ctr_update_path(node);
+    self.ctr_update_path(path, 0);
 
     return ResultT::of(end - start);
 }
@@ -291,20 +300,17 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(NodeBaseG& nod
 
 
 M_PARAMS
-VoidResult M_TYPE::ctr_remove_redundant_root(NodeBaseG& node) noexcept
+VoidResult M_TYPE::ctr_remove_redundant_root(TreePathT& path, size_t level) noexcept
 {
     auto& self = this->self();
 
-    if (!node->is_root())
+    if (level + 1 < path.size())
     {
-        Result<NodeBaseG> parent_res = self.ctr_get_node_parent(node);
-        MEMORIA_RETURN_IF_ERROR(parent_res);
-
-        NodeBaseG parent = parent_res.get();
+        MEMORIA_TRY(parent, self.ctr_get_node_parent(path, level));
 
         if (!parent->is_root())
         {
-            MEMORIA_RETURN_IF_ERROR_FN(ctr_remove_redundant_root(parent));
+            MEMORIA_TRY_VOID(ctr_remove_redundant_root(path, level + 1));
         }
 
         if (parent->is_root())
@@ -312,17 +318,18 @@ VoidResult M_TYPE::ctr_remove_redundant_root(NodeBaseG& node) noexcept
             int32_t size = self.ctr_get_node_size(parent, 0);
             if (size == 1)
             {
-                Result<Metadata> root_metadata = self.ctr_get_root_metadata();
-                MEMORIA_RETURN_IF_ERROR(root_metadata);
+                MEMORIA_TRY(root_metadata, self.ctr_get_root_metadata());
 
-                // FIXME redesigne it to use tryConvertToRoot(node) instead
+                NodeBaseG node = path[level];
+
+                // FIXME redesign it to use tryConvertToRoot(node) instead
                 if (self.ctr_can_convert_to_root(node, parent->root_metadata_size()))
                 {
-                    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_node_to_root(node, root_metadata.get()));
+                    MEMORIA_TRY_VOID(self.ctr_node_to_root(node, root_metadata));
+                    MEMORIA_TRY_VOID(self.store().removeBlock(parent->id()));
+                    MEMORIA_TRY_VOID(self.set_root(node->id()));
 
-                    MEMORIA_RETURN_IF_ERROR_FN(self.store().removeBlock(parent->id()));
-
-                    MEMORIA_RETURN_IF_ERROR_FN(self.set_root(node->id()));
+                    path.remove_root();
                 }
             }
         }
@@ -349,12 +356,12 @@ VoidResult M_TYPE::ctr_remove_redundant_root(NodeBaseG& node) noexcept
  */
 
 M_PARAMS
-Result<MergeType> M_TYPE::ctr_merge_leaf_with_siblings(NodeBaseG& node, MergeFn fn) noexcept
+Result<MergeType> M_TYPE::ctr_merge_leaf_with_siblings(TreePathT& path, MergeFn fn) noexcept
 {
     using ResultT = Result<MergeType>;
     auto& self = this->self();
 
-    auto res0 = self.ctr_merge_leaf_with_right_sibling(node);
+    auto res0 = self.ctr_merge_leaf_with_right_sibling(path);
     MEMORIA_RETURN_IF_ERROR(res0);
 
     if (res0.get())
@@ -362,7 +369,7 @@ Result<MergeType> M_TYPE::ctr_merge_leaf_with_siblings(NodeBaseG& node, MergeFn 
         return ResultT::of(MergeType::RIGHT);
     }
     else {
-        auto res1 = self.ctr_merge_leaf_with_left_sibling(node, fn);
+        auto res1 = self.ctr_merge_leaf_with_left_sibling(path, fn);
         MEMORIA_RETURN_IF_ERROR(res1);
 
         if (res1.get())
@@ -393,27 +400,27 @@ Result<MergeType> M_TYPE::ctr_merge_leaf_with_siblings(NodeBaseG& node, MergeFn 
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_merge_leaf_with_left_sibling(NodeBaseG& node, MergeFn fn) noexcept
+BoolResult M_TYPE::ctr_merge_leaf_with_left_sibling(TreePathT& path, MergeFn fn) noexcept
 {
     auto& self = this->self();
 
     bool merged = false;
 
-    if (self.ctr_should_merge_node(node))
+    if (self.ctr_should_merge_node(path.leaf()))
     {
-        Result<NodeBaseG> prev = self.ctr_get_prev_node(node);
-        MEMORIA_RETURN_IF_ERROR(prev);
+        TreePathT prev = path;
+        MEMORIA_TRY(has_prev, self.ctr_get_prev_node(prev, 0));
 
-        if (prev.get())
+        if (has_prev)
         {
-            auto merge_res = self.ctr_merge_leaf_nodes(prev.get(), node, fn);
+            auto merge_res = self.ctr_merge_leaf_nodes(prev, path, fn);
             MEMORIA_RETURN_IF_ERROR(merge_res);
 
             merged = merge_res.get();
 
             if (merged)
             {
-                node = prev.get();
+                path = prev;
             }
         }
         else {
@@ -438,23 +445,21 @@ BoolResult M_TYPE::ctr_merge_leaf_with_left_sibling(NodeBaseG& node, MergeFn fn)
  */
 
 M_PARAMS
-BoolResult M_TYPE::ctr_merge_leaf_with_right_sibling(NodeBaseG& node) noexcept
+BoolResult M_TYPE::ctr_merge_leaf_with_right_sibling(TreePathT& path) noexcept
 {
     bool merged = false;
 
     auto& self = this->self();
 
-    if (self.ctr_should_merge_node(node))
+    if (self.ctr_should_merge_node(path.leaf()))
     {
-        Result<NodeBaseG> next = self.ctr_get_next_node(node);
-        MEMORIA_RETURN_IF_ERROR(next);
+        TreePath next_path = path;
+        MEMORIA_TRY(has_next, self.ctr_get_next_node(next_path, 0));
 
-        if (next.get())
+        if (has_next)
         {
-            auto merge_res = self.ctr_merge_leaf_nodes(node, next.get());
-            MEMORIA_RETURN_IF_ERROR(merge_res);
-
-            merged = merge_res.get();
+            MEMORIA_TRY(has_merge, self.ctr_merge_leaf_nodes(path, next_path));
+            merged = has_merge;
         }
     }
 

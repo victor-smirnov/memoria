@@ -37,52 +37,52 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveName)
 
     typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
 
+    using typename Base::TreePathT;
+
 protected:
     template <int32_t Stream>
     VoidResult ctr_remove_stream_entry(Iterator& iter, int32_t stream, int32_t idx) noexcept
     {
         auto& self = this->self();
 
-        auto result0 = self.template ctr_try_remove_stream_entry<Stream>(iter, idx);
-        MEMORIA_RETURN_IF_ERROR(result0);
-
-        if (!std::get<0>(result0.get()))
+        MEMORIA_TRY(remove_entry_result0, self.template ctr_try_remove_stream_entry<Stream>(iter, idx));
+        if (!std::get<0>(remove_entry_result0))
         {
             auto split_res = iter.iter_split_leaf(stream, idx);
             MEMORIA_RETURN_IF_ERROR(split_res);
 
-            auto result1 = self.template ctr_try_remove_stream_entry<Stream>(iter, idx);
-            MEMORIA_RETURN_IF_ERROR(result1);
+            MEMORIA_TRY(remove_entry_result1, self.template ctr_try_remove_stream_entry<Stream>(iter, idx));
 
-            if (!std::get<0>(result1.get()))
+            if (!std::get<0>(remove_entry_result1))
             {
                 return VoidResult::make_error("Second removal attempt failed");
             }
 
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(iter.iter_leaf()));
+            MEMORIA_TRY_VOID(self.ctr_update_path(iter.path(), 0));
         }
         else {
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(iter.iter_leaf()));
+            MEMORIA_TRY_VOID(self.ctr_update_path(iter.path(), 0));
 
-            auto next = self.ctr_get_next_node(iter.iter_leaf());
-            MEMORIA_RETURN_IF_ERROR(next);
+            TreePathT next_path = iter.path();
+            MEMORIA_TRY(has_next, self.ctr_get_next_node(next_path, 0));
 
-            if (next.get().isSet())
+            if (has_next)
             {
-                auto res = self.ctr_merge_leaf_nodes(iter.iter_leaf(), next.get(), [](const Position&){
+                auto res = self.ctr_merge_leaf_nodes(iter.path(), next_path, [](const Position&){
                     return VoidResult::of();
                 });
                 MEMORIA_RETURN_IF_ERROR(res);
             }
 
-            auto prev = self.ctr_get_prev_node(iter.iter_leaf());
-            MEMORIA_RETURN_IF_ERROR(prev);
+            TreePathT prev_path = iter.path();
 
-            if (prev.get().isSet())
+            MEMORIA_TRY(has_prev, self.ctr_get_prev_node(prev_path, 0));
+
+            if (has_prev)
             {
-                auto res = self.ctr_merge_leaf_nodes(prev.get(), iter.iter_leaf(), [&](const Position& sizes){
+                auto res = self.ctr_merge_leaf_nodes(prev_path, iter.path(), [&](const Position& sizes){
                     iter.iter_local_pos() += sizes[0];
-                    iter.iter_leaf().assign(prev.get());
+                    iter.path() = prev_path;
                     return VoidResult::of();
                 });
                 MEMORIA_RETURN_IF_ERROR(res);

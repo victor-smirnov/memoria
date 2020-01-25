@@ -46,6 +46,8 @@ protected:
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
+    using typename Base::TreePathT;
+
     using Checkpoint    = typename Base::Checkpoint;
     using ILeafProvider = typename Base::ILeafProvider;
 
@@ -99,11 +101,12 @@ public:
         }
     };
 
-    Result<InsertBatchResult> ctr_insert_subtree(NodeBaseG& node, int32_t idx, ILeafProvider& provider, std::function<Result<NodeBaseG> ()> child_fn, bool update_hierarchy) noexcept
+    Result<InsertBatchResult> ctr_insert_subtree(TreePathT& path, size_t level, int32_t idx, ILeafProvider& provider, std::function<Result<NodeBaseG> ()> child_fn, bool update_hierarchy) noexcept
     {
         using ResultT = Result<InsertBatchResult>;
-
         auto& self = this->self();
+
+        NodeBaseG node = path[level];
 
         int32_t capacity         = self.ctr_get_branch_node_capacity(node, -1ull);
         CtrSizeT provider_size0  = provider.size();
@@ -139,15 +142,14 @@ public:
 
         if (update_hierarchy)
         {
-            MEMORIA_RETURN_IF_ERROR(self.ctr_update_path(node));
-            MEMORIA_RETURN_IF_ERROR(self.ctr_update_child_indexes(node, max));
+            MEMORIA_RETURN_IF_ERROR(self.ctr_update_path(path, level));
         }
 
         return ResultT::of(max, provider_size0 - provider.size());
     }
 
 
-    Result<NodeBaseG> ctr_build_subtree(ILeafProvider& provider, int32_t level) noexcept
+    Result<NodeBaseG> ctr_build_subtree(ILeafProvider& provider, size_t level) noexcept
     {
         using ResultT = Result<NodeBaseG>;
         auto& self = this->self();
@@ -161,7 +163,10 @@ public:
 
                 MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_branch_node(node.get(), 0xFF));
 
-                auto res = self.ctr_insert_subtree(node.get(), 0, provider, [this, level, &provider]() -> ResultT {
+                TreePathT path;
+                path.add_root(node.get());
+
+                auto res = self.ctr_insert_subtree(path, 0, 0, provider, [this, level, &provider]() -> ResultT {
                     auto& self = this->self();
                     return self.ctr_build_subtree(provider, level - 1);
                 }, false);
@@ -252,23 +257,38 @@ public:
     };
 
 
-    Result<InsertBatchResult> ctr_insert_batch_to_node(NodeBaseG& node, int32_t idx, ILeafProvider& provider, int32_t level = 1, bool update_hierarchy = true) noexcept
+    Result<InsertBatchResult> ctr_insert_batch_to_node(
+            TreePathT& path,
+            size_t level,
+            int32_t idx,
+            ILeafProvider& provider,
+            bool update_hierarchy = true
+    ) noexcept
     {
         auto& self = this->self();
-        return self.ctr_insert_subtree(node, idx, provider, [&provider, &node, this]() -> Result<NodeBaseG> {
+        return self.ctr_insert_subtree(path, level, idx, provider, [&provider, level, this]() -> Result<NodeBaseG> {
             auto& self = this->self();
-            return self.ctr_build_subtree(provider, node->level() - 1);
+            return self.ctr_build_subtree(provider, level - 1);
         },
         update_hierarchy);
     }
 
-    VoidResult ctr_insert_subtree(NodeBaseG& left, NodeBaseG& right, ILeafProvider& provider, InsertionState& state, int32_t level = 1) noexcept
+    VoidResult ctr_insert_subtree(
+            TreePathT& left_path,
+            TreePathT& right_path,
+            size_t level,
+            ILeafProvider& provider,
+            InsertionState& state
+    ) noexcept
     {
+        NodeBaseG left  = left_path.leaf();
+        NodeBaseG right = right_path.leaf();
+
         auto& self = this->self();
 
         int32_t left_size0 = self.ctr_get_branch_node_size(left);
 
-        auto left_result = ctr_insert_batch_to_node(left, left_size0, provider, level);
+        auto left_result = ctr_insert_batch_to_node(left_path, level, left_size0, provider);
         MEMORIA_RETURN_IF_ERROR(left_result);
 
         state.inserted() += left_result.get().subtree_size();
@@ -287,17 +307,21 @@ public:
             if (left_parent == right_parent)
             {
                 MEMORIA_TRY(right_parent_idx, self.ctr_get_child_idx(right_parent, right->id()));
-                auto res = self.ctr_split_path(left_parent, right_parent_idx);
+
+                TreePathT left_path;
+                TreePathT right_path;
+
+                auto res = self.ctr_split_path(left_path, right_path, 1, right_parent_idx);
                 MEMORIA_RETURN_IF_ERROR(res);
 
-                right_parent = res.get();
+                //right_parent = res.get();
             }
 
-            auto res = ctr_insert_subtree(left_parent, right_parent, provider, state, level + 1);
+            auto res = ctr_insert_subtree(left_path, right_path, level + 1, provider, state);
             MEMORIA_RETURN_IF_ERROR(res);
         }
         else {
-            auto right_result = ctr_insert_batch_to_node(right, 0, provider, level);
+            auto right_result = ctr_insert_batch_to_node(right_path, level, 0, provider);
             MEMORIA_RETURN_IF_ERROR(right_result);
 
             state.inserted() += right_result.get().subtree_size();
@@ -306,30 +330,35 @@ public:
         return VoidResult::of();
     }
 
-    Result<NodeBaseG> ctr_insert_subtree_at_end(NodeBaseG& left, ILeafProvider& provider, InsertionState& state, int32_t level = 1) noexcept
+    Result<NodeBaseG> ctr_insert_subtree_at_end(
+            TreePathT& left_path,
+            ILeafProvider& provider,
+            InsertionState& state,
+            size_t level
+    ) noexcept
     {
         using ResultT = Result<NodeBaseG>;
-
         auto& self = this->self();
+
+        NodeBaseG left = left_path.leaf();
 
         int32_t left_size0 = self.ctr_get_branch_node_size(left);
 
-        auto left_result = ctr_insert_batch_to_node(left, left_size0, provider, level);
-        MEMORIA_RETURN_IF_ERROR(left_result);
+        MEMORIA_TRY(left_result, ctr_insert_batch_to_node(left_path, level, left_size0, provider));
 
-        state.inserted() += left_result.get().subtree_size();
+        state.inserted() += left_result.subtree_size();
 
         if (provider.size() > 0)
         {
             if (left->is_root())
             {
-                MEMORIA_RETURN_IF_ERROR_FN(self.ctr_create_new_root_block(left));
+                MEMORIA_TRY_VOID(self.ctr_create_new_root_block(left_path));
             }
 
-            auto left_parent = self.ctr_get_node_parent_for_update(left);
+            auto left_parent = self.ctr_get_node_parent_for_update(left_path, level);
             MEMORIA_RETURN_IF_ERROR(left_parent);
 
-            auto right = ctr_insert_subtree_at_end(left_parent.get(), provider, state, level + 1);
+            auto right = ctr_insert_subtree_at_end(left_path, provider, state, level + 1);
             MEMORIA_RETURN_IF_ERROR(right);
 
             int32_t right_size = self.ctr_get_branch_node_size(right.get());
@@ -342,11 +371,18 @@ public:
     }
 
 
-    Result<int32_t> ctr_insert_subtree(NodeBaseG& node, int32_t pos, ILeafProvider& provider) noexcept
+    Result<int32_t> ctr_insert_subtree(
+            TreePathT& path,
+            size_t level,
+            int32_t pos,
+            ILeafProvider& provider
+    ) noexcept
     {
         auto& self = this->self();
 
-        auto result = ctr_insert_batch_to_node(node, pos, provider);
+        NodeBaseG node = path.leaf();
+
+        auto result = ctr_insert_batch_to_node(path, level, pos, provider);
         MEMORIA_RETURN_IF_ERROR(result);
 
         if (provider.size() == 0)
@@ -356,21 +392,23 @@ public:
         else {
             auto node_size = self.ctr_get_branch_node_size(node);
 
-            NodeBaseG next;
+            TreePathT next;
+            bool has_next_node{};
 
             if (result.get().local_pos() < node_size)
             {
-                auto next_res = self.ctr_split_path(node, result.get().local_pos());
-                next = next_res.get();
+                MEMORIA_TRY_VOID(self.ctr_split_path(path, next, 0, result.get().local_pos()));
+                has_next_node = true;
             }
             else {
-                auto next_res = self.ctr_get_next_node(node);
-                next = next_res.get();
+                next = path;
+                MEMORIA_TRY(next_res, self.ctr_get_next_node(next, 0));
+                has_next_node = next_res;
             }
 
-            if (next.isSet())
+            if (has_next_node)
             {
-                auto left_result = ctr_insert_batch_to_node(node, result.get().local_pos(), provider);
+                auto left_result = ctr_insert_batch_to_node(path, level, result.get().local_pos(), provider);
                 MEMORIA_RETURN_IF_ERROR(left_result);
 
                 if (provider.size() == 0)
@@ -380,27 +418,27 @@ public:
                 else {
                     InsertionState state(provider.size());
 
-                    auto next_size0 = self.ctr_get_branch_node_size(next);
+                    auto next_size0 = self.ctr_get_branch_node_size(next.leaf());
 
-                    auto subtree_res = ctr_insert_subtree(node, next, provider, state);
+                    auto subtree_res = ctr_insert_subtree(path, next, level, provider, state);
                     MEMORIA_RETURN_IF_ERROR(subtree_res);
 
-                    auto idx = self.ctr_get_branch_node_size(next) - next_size0;
+                    auto idx = self.ctr_get_branch_node_size(next.leaf()) - next_size0;
 
                     if (provider.size() == 0)
                     {
-                        node = next;
+                        path = next;
                         return idx;
                     }
                     else {
-                        return ctr_insert_subtree(next, idx, provider);
+                        return ctr_insert_subtree(next, level, idx, provider);
                     }
                 }
             }
             else {
                 InsertionState state(provider.size());
 
-                auto end_res = ctr_insert_subtree_at_end(node, provider, state, 1);
+                auto end_res = ctr_insert_subtree_at_end(path, provider, state, 1);
                 MEMORIA_RETURN_IF_ERROR(end_res);
 
                 node = end_res.get();

@@ -39,6 +39,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btfl::IteratorInsertName)
     static const int32_t DataStreams        = Container::Types::DataStreams;
     static const int32_t StructureStreamIdx = Container::Types::StructureStreamIdx;
 
+    using typename Base::TreePathT;
+
 
     using CtrSizeT  = typename Container::Types::CtrSizeT;
 
@@ -124,12 +126,18 @@ public:
             int32_t structure_split_idx = structure_size / 2;
 
             auto half_ranks = self.iter_leafrank(structure_split_idx);
-            auto right      = self.ctr().ctr_split_leaf(leaf, half_ranks);
+
+            TreePathT left_path  = self.path();
+            TreePathT right_path = self.path();
+
+            auto right = self.ctr().ctr_split_leaf(left_path, right_path, leaf, half_ranks);
 
             auto& structure_idx = self.iter_local_pos();
 
             if (structure_idx > structure_split_idx)
             {
+                self.path() = right_path;
+
                 leaf.assign(right);
                 structure_idx -= structure_split_idx;
 
@@ -144,7 +152,12 @@ public:
         else {
             auto iter_leaf_sizes = self.iter_leaf_sizes();
 
-            self.ctr().ctr_split_leaf(leaf, iter_leaf_sizes);
+            TreePathT left_path  = self.path();
+            TreePathT right_path = self.path();
+
+            self.ctr().ctr_split_leaf(left_path, right_path, leaf, iter_leaf_sizes);
+
+            self.iter_refresh_iov();
             
             return ResultT::of(SplitStatus::LEFT, iter_leaf_sizes[stream]);
         }

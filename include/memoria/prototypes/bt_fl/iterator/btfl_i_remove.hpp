@@ -61,13 +61,15 @@ public:
         	auto start = self.iter_leafrank();
         	auto end   = ii->iter_leafrank();
 
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr().ctr_remove_entries(self.iter_leaf(), start, ii->iter_leaf(), end, sizes, true));
+            MEMORIA_TRY_VOID(self.ctr().ctr_remove_entries(self.path(), start, ii->path(), end, sizes, true));
 
             self.iter_local_pos() = end[StructureStreamIdx];
 
-            self.iter_leaf().assign(ii->iter_leaf());
+            // FIXME: refresh iovector view
+            //self.path() = ii->path();
+            //self.iter_leaf().assign(ii->iter_leaf());
 
-            MEMORIA_RETURN_IF_ERROR_FN(self.iter_refresh());
+            MEMORIA_TRY_VOID(self.iter_refresh());
         }
 
         return ResultT::of(sizes);
@@ -93,12 +95,13 @@ public:
         	auto start = self.iter_leafrank();
         	auto end   = ii->iter_leafrank();
 
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr().ctr_remove_entries(self.iter_leaf(), start, ii->iter_leaf(), end, sizes, true));
+            MEMORIA_TRY_VOID(self.ctr().ctr_remove_entries(self.path(), start, ii->path(), end, sizes, true));
 
             self.iter_local_pos() = end[StructureStreamIdx];
-            self.iter_leaf().assign(ii->iter_leaf());
+            //self.path() = ii->path();
+            //self.iter_leaf().assign(ii->iter_leaf());
 
-            MEMORIA_RETURN_IF_ERROR_FN(self.iter_refresh());
+            MEMORIA_TRY_VOID(self.iter_refresh());
         }
 
         return ResultT::of(size);
@@ -115,12 +118,12 @@ public:
             auto start = self.iter_leafrank();
             auto end   = to.iter_leafrank();
 
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr().ctr_remove_entries(self.iter_leaf(), start, to.iter_leaf(), end, sizes, true));
+            MEMORIA_TRY_VOID(self.ctr().ctr_remove_entries(self.path(), start, to.path(), end, sizes, true));
 
             self.iter_local_pos() = end[StructureStreamIdx];
             self.iter_leaf().assign(to.iter_leaf());
 
-            MEMORIA_RETURN_IF_ERROR_FN(self.iter_refresh());
+            MEMORIA_TRY_VOID(self.iter_refresh());
         }
 
         return BoolResult::of(sizes.sum() != 0);

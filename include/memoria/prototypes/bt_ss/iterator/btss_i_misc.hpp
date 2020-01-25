@@ -164,15 +164,17 @@ public:
         auto res0 = to.iter_btss_skip_fw(size);
         MEMORIA_RETURN_IF_ERROR(res0);
 
-        auto from_path      = self.iter_leaf();
+        auto from_path      = self.path();
         Position from_pos   = Position(self.iter_local_pos());
 
-        auto to_path        = to.iter_leaf();
+        auto to_path        = to.path();
         Position to_pos     = Position(to.iter_local_pos());
 
         Position sizes;
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr().ctr_remove_entries(from_path, from_pos, to_path, to_pos, sizes, true));
+        MEMORIA_TRY_VOID(
+            self.ctr().ctr_remove_entries(from_path, from_pos, to_path, to_pos, sizes, true)
+        );
 
         self.iter_local_pos() = to_pos.get();
 
@@ -185,10 +187,10 @@ public:
     {
         auto& self = this->self();
 
-        auto from_path      = self.iter_leaf();
+        auto from_path      = self.path();
         Position from_pos   = Position(self.iter_local_pos());
 
-        auto to_path        = to.iter_leaf();
+        auto to_path        = to.path();
         Position to_pos     = Position(to.iter_local_pos());
 
         Position sizes;
@@ -314,21 +316,23 @@ public:
         using ResultT = Result<SplitResult>;
         auto& self = this->self();
 
-        NodeBaseG& leaf     = self.iter_leaf();
         int32_t& idx        = self.iter_local_pos();
 
         int32_t size        = self.iter_leaf_size(0);
         int32_t split_idx   = size/2;
 
-        auto right = self.ctr().ctr_split_leaf(leaf, Position::create(0, split_idx));
-        MEMORIA_RETURN_IF_ERROR(right);
+        TreePath left_path  = self.path();
+        TreePath right_path = self.path();
+
+        MEMORIA_TRY_VOID(self.ctr().ctr_split_leaf(left_path, right_path, Position::create(0, split_idx)));
 
         if (idx > split_idx)
         {
-            leaf = right.get();
+            self.path() = right_path;
+
             idx -= split_idx;
 
-            MEMORIA_RETURN_IF_ERROR_FN(self.iter_refresh());
+            MEMORIA_TRY_VOID(self.iter_refresh());
         }
 
         if (target_idx > split_idx)

@@ -65,7 +65,7 @@ public:
 
         auto pos = iter.iter_leafrank(iter.iter_local_pos());
 
-        auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
+        auto result = self.ctr_insert_provided_data(iter.path(), pos, streaming);
         MEMORIA_RETURN_IF_ERROR(result);
 
         iter.iter_local_pos() = result.get().position().sum();

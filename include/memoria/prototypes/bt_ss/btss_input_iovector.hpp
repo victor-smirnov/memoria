@@ -26,6 +26,7 @@
 
 #include <memoria/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_tree_path.hpp>
 
 
 namespace memoria {
@@ -42,6 +43,7 @@ class IOVectorBTSSInputProviderBase {
 public:
     using MyType = IOVectorBTSSInputProviderBase<CtrT>;
     using NodeBaseG = typename CtrT::Types::NodeBaseG;
+    using TreePathT = TreePath<NodeBaseG>;
     using CtrSizeT  = typename CtrT::Types::CtrSizeT;
 
     using Position  = typename CtrT::Types::Position;
@@ -54,6 +56,7 @@ protected:
 
     CtrT& ctr_;
 
+    // FIXME: remove it
     NodePair split_watcher_;
 
     CtrSizeT total_symbols_{};
@@ -243,11 +246,11 @@ public:
 
         start_ += size;
 
-        if (leaf->parent_id().isSet())
-        {
-            auto res = ctr().ctr_update_path(leaf);
-            MEMORIA_RETURN_IF_ERROR(res);
-        }
+//        if (leaf->parent_id().isSet())
+//        {
+//            auto res = ctr().ctr_update_path(leaf);
+//            MEMORIA_RETURN_IF_ERROR(res);
+//        }
 
         return ResultT::of(OpStatus::OK);
     }
@@ -455,10 +458,11 @@ public:
     {
         int32_t inserted = this->insertBuffer_(mgr, leaf, at, size);
 
-        if (leaf->parent_id().isSet())
-        {
-            MEMORIA_RETURN_IF_ERROR_FN(ctr().ctr_update_path(leaf));
-        }
+        // FIXME: need to move this code out
+//        if (leaf->parent_id().isSet())
+//        {
+//            MEMORIA_TRY_VOID(ctr().ctr_update_path(leaf));
+//        }
 
         return Int32Result::of(inserted);
     }

@@ -687,18 +687,25 @@ wrap_throwing(Fn&& fn) noexcept
 }
 
 #define MEMORIA_RETURN_IF_ERROR(ResultVal)   \
-    if (MMA_UNLIKELY(!ResultVal.is_ok())) { \
+    if (MMA_UNLIKELY(!ResultVal.is_ok())) {  \
         return std::move(ResultVal).transfer_error(); \
     }
 
 #define MEMORIA_RETURN_IF_ERROR_FN(FnCall)   \
 {                                            \
-    VoidResult res0 = FnCall;                 \
+    VoidResult res0 = FnCall;                \
     if (MMA_UNLIKELY(!res0.is_ok())) {       \
         return std::move(res0).transfer_error(); \
     }                                        \
 }
 
+#define MEMORIA_TRY_VOID(FnCall)             \
+{                                            \
+    VoidResult res0 = FnCall;                \
+    if (MMA_UNLIKELY(!res0.is_ok())) {       \
+        return std::move(res0).transfer_error(); \
+    }                                        \
+}
 
 #define MEMORIA_TRY(VarName, Code)                  \
     auto VarName##_result = Code;                  \

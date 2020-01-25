@@ -140,6 +140,7 @@ protected:
 
     CtrSizeT orphan_splits_{};
 
+    //FIXME: remove it
     NodePair split_watcher_;
 
     CtrSizeT total_symbols_{};
@@ -412,11 +413,12 @@ public:
 
             if (inserted.sum() > 0)
             {
-                //TODO update leaf's parents here
-                if (leaf->parent_id().isSet())
-                {
-                    MEMORIA_RETURN_IF_ERROR_FN(ctr().ctr_update_path(leaf));
-                }
+                // FIXME: we need to move this code out of
+                // the fill() method
+//                if (leaf->parent_id().isSet())
+//                {
+//                    MEMORIA_TRY_VOID(ctr().ctr_update_path(leaf));
+//                }
 
                 pos += inserted;
 

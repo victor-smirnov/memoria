@@ -34,10 +34,11 @@ public:
 
 protected:
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::Allocator::BlockG                                     BlockG;
+    typedef typename Base::Allocator::BlockG                                    BlockG;
 
     using typename Base::BlockID;
     using typename Base::BlockType;
+    using typename Base::TreePathT;
 
     using Profile = typename Types::Profile;
 

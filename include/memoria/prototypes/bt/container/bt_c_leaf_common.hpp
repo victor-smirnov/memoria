@@ -43,18 +43,25 @@ protected:
 
     typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
 
+    using typename Base::TreePathT;
+
     using CtrSizeT = typename Types::CtrSizeT;
 
     static const int32_t Streams = Types::Streams;
 
 public:
-    Result<NodeBaseG> ctr_split_leaf(NodeBaseG& left_node, const Position& split_at) noexcept
+    VoidResult ctr_split_leaf(
+            TreePathT& left_path,
+            TreePathT& right_path,
+            const Position& split_at
+    ) noexcept
     {
         auto& self = this->self();
 
-        return self.ctr_split_node(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right) noexcept -> VoidResult {
+        return self.ctr_split_node(left_path, right_path, 0, [&self, &split_at](NodeBaseG& left, NodeBaseG& right) noexcept -> VoidResult {
             auto res = self.ctr_split_leaf_node(left, right, split_at);
             MEMORIA_RETURN_IF_ERROR(res);
+            // FIXME: handle OpStatus from res here? Or just remove it from the func defn?
             return VoidResult::of();
         });
     }
@@ -223,61 +230,55 @@ public:
     };
 
     template <typename Provider>
-    Result<InsertDataResult> ctr_insert_provided_data(NodeBaseG& leaf, const Position& pos, Provider& provider) noexcept
+    Result<InsertDataResult> ctr_insert_provided_data(TreePathT& path, const Position& pos, Provider& provider) noexcept
     {
         using ResultT = Result<InsertDataResult>;
 
         auto& self = this->self();
 
-        auto last_pos = self.ctr_insert_data_into_leaf(leaf, pos, provider);
-        MEMORIA_RETURN_IF_ERROR(last_pos);
+        NodeBaseG leaf = path.leaf();
 
-        BoolResult has_data_res = provider.hasData();
-        MEMORIA_RETURN_IF_ERROR(has_data_res);
+        MEMORIA_TRY(last_pos, self.ctr_insert_data_into_leaf(leaf, pos, provider));
+        MEMORIA_TRY(has_data, provider.hasData());
 
-        if (has_data_res.get())
+        if (has_data)
         {
             // has to be defined in subclasses
-            if (!self.ctr_is_at_the_end(leaf, last_pos.get()))
+            if (!self.ctr_is_at_the_end(leaf, last_pos))
             {
-                Result<NodeBaseG> next_leaf = self.ctr_split_leaf(leaf, last_pos.get());
-                MEMORIA_RETURN_IF_ERROR(next_leaf);
+                TreePathT right_path = path;
 
-                auto res0 = self.ctr_insert_data_into_leaf(leaf, last_pos.get(), provider);
+                auto split_leaf_res = self.ctr_split_leaf(path, right_path, last_pos);
+                MEMORIA_RETURN_IF_ERROR(split_leaf_res);
+
+                auto res0 = self.ctr_insert_data_into_leaf(leaf, last_pos, provider);
                 MEMORIA_RETURN_IF_ERROR(res0);
 
-                auto next_leaf_res = provider.iter_next_leaf(leaf);
-                MEMORIA_RETURN_IF_ERROR(next_leaf_res);
+                MEMORIA_TRY(has_data2, provider.hasData());
 
-                BoolResult has_data_res2 = provider.hasData();
-                MEMORIA_RETURN_IF_ERROR(has_data_res2);
-
-                if (has_data_res2.get())
+                if (has_data2)
                 {
-                    return ctr_insert_data_rest(leaf, next_leaf.get(), provider);
+                    return ctr_insert_data_rest(path, right_path, provider);
                 }
                 else {
-                    return ResultT::of(next_leaf.get(), Position());
+                    return ResultT::of(right_path.leaf(), Position());
                 }
             }
             else {
-                auto next_leaf_res = provider.iter_next_leaf(leaf);
-                 MEMORIA_RETURN_IF_ERROR(next_leaf_res);
+                TreePathT next_path = path;
+                MEMORIA_TRY(has_next_leaf, self.ctr_get_next_node(next_path, 0));
 
-                Result<NodeBaseG> next_leaf = self.ctr_get_next_node(leaf);
-                MEMORIA_RETURN_IF_ERROR(next_leaf);
-
-                if (next_leaf.get().isSet())
+                if (has_next_leaf)
                 {
-                    return ctr_insert_data_rest(leaf, next_leaf.get(), provider);
+                    return ctr_insert_data_rest(path, next_path, provider);
                 }
                 else {
-                    return ctr_insert_data_rest(leaf, provider);
+                    return ctr_insert_data_rest(path, provider);
                 }
             }
         }
         else {
-            return ResultT::of(leaf, last_pos.get());
+            return ResultT::of(leaf, last_pos);
         }
     }
 
@@ -341,10 +342,13 @@ public:
 
 
     template <typename Provider>
-    Result<InsertDataResult> ctr_insert_data_rest(NodeBaseG& leaf, NodeBaseG& next_leaf, Provider& provider) noexcept
+    Result<InsertDataResult> ctr_insert_data_rest(TreePathT& path, TreePathT& next_path, Provider& provider) noexcept
     {
         using ResultT = Result<InsertDataResult>;
         auto& self = this->self();
+
+        NodeBaseG leaf = path.leaf();
+        NodeBaseG next_leaf = next_path.leaf();
 
         provider.split_watcher().first = leaf;
 
@@ -366,18 +370,21 @@ public:
 
             LeafListProvider list_provider(self, leaf_list.get().head(), leaf_list.get().size());
 
-            Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(leaf);
+            Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(path, 0);
             MEMORIA_RETURN_IF_ERROR(parent);
 
-            auto res0 = self.ctr_insert_subtree(parent.get(), path_parent_idx, list_provider);
+            auto res0 = self.ctr_insert_subtree(path, 1, path_parent_idx, list_provider);
             MEMORIA_RETURN_IF_ERROR(res0);
 
             auto& last_leaf = leaf_list.get().tail();
 
             auto last_leaf_size = self.ctr_get_leaf_stream_sizes(last_leaf);
 
-            auto res1 = self.ctr_merge_leaf_nodes(last_leaf, next_leaf, [](const Position&){return VoidResult::of();});
-            MEMORIA_RETURN_IF_ERROR(res1);
+            // FIXME: ctr_insert_subtree should return path to the last leaf, somehow...
+            //auto res1 = self.ctr_merge_leaf_nodes(last_leaf, next_leaf, [](const Position&){return VoidResult::of();});
+            //MEMORIA_RETURN_IF_ERROR(res1);
+
+            BoolResult res1 = BoolResult::of(false);
 
             if (res1.get())
             {
@@ -394,14 +401,16 @@ public:
 
 
     template <typename Provider>
-    Result<InsertDataResult> ctr_insert_data_rest(NodeBaseG& leaf, Provider& provider) noexcept
+    Result<InsertDataResult> ctr_insert_data_rest(TreePathT& path, Provider& provider) noexcept
     {
         using ResultT = Result<InsertDataResult>;
         auto& self = this->self();
 
+        NodeBaseG leaf = path.leaf();
+
         if (leaf->is_root())
         {
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_create_new_root_block(leaf));
+            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_create_new_root_block(path));
         }
 
         provider.split_watcher().first = leaf;
@@ -423,10 +432,7 @@ public:
 
             LeafListProvider list_provider(self, leaf_list.get().head(), leaf_list.get().size());
 
-            Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(leaf);
-            MEMORIA_RETURN_IF_ERROR(parent);
-
-            auto res = self.ctr_insert_subtree(parent.get(), path_parent_idx, list_provider);
+            auto res = self.ctr_insert_subtree(path, 1, path_parent_idx, list_provider);
             MEMORIA_RETURN_IF_ERROR(res);
 
             auto& last_leaf = leaf_list.get().tail();

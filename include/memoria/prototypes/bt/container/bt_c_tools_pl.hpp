@@ -44,6 +44,8 @@ protected:
 
     static const int32_t Streams                                                = Types::Streams;
 
+    using typename Base::TreePathT;
+
 public:
 
 
@@ -71,6 +73,23 @@ public:
         return static_cast_block<NodeBaseG>(self.store().getBlock(node->parent_id()));
     }
 
+    Result<NodeBaseG> ctr_get_node_parent(const TreePathT& path, size_t level) const noexcept
+    {
+        using ResultT = Result<NodeBaseG>;
+        if (MMA_LIKELY(level + 1 < path.size()))
+        {
+            return ResultT::of(path[level + 1]);
+        }
+        else {
+            return ResultT::make_error(
+                        "Invalid tree path parent access. Requesting level = {}, path size = {}",
+                        level,
+                        path.size()
+            );
+        }
+    }
+
+
     Result<NodeBaseG> ctr_get_node_parent_for_update(const NodeBaseG& node) const noexcept
     {
         auto& self = this->self();
@@ -78,10 +97,29 @@ public:
     }
 
 
+    Result<NodeBaseG> ctr_get_node_parent_for_update(TreePathT& path, size_t level) const noexcept
+    {
+        using ResultT = Result<NodeBaseG>;
+        if (MMA_LIKELY(level + 1 < path.size()))
+        {
+            MEMORIA_TRY_VOID(path[level + 1].update());
+            return ResultT::of(path[level + 1]);
+        }
+        else {
+            return ResultT::make_error(
+                        "Invalid tree path parent access. Requesting level = {}, path size = {}",
+                        level,
+                        path.size()
+            );
+        }
+    }
+
+
+
 public:
 
-    Result<NodeBaseG> ctr_get_next_node(NodeBaseG& node) const noexcept;
-    Result<NodeBaseG> ctr_get_prev_node(NodeBaseG& node) const noexcept;
+    BoolResult ctr_get_next_node(TreePathT& path, size_t level) const noexcept;
+    BoolResult ctr_get_prev_node(TreePathT& path, size_t level) const noexcept;
 
 protected:
 
@@ -93,77 +131,78 @@ MEMORIA_V1_CONTAINER_PART_END
 
 
 M_PARAMS
-Result<typename M_TYPE::NodeBaseG> M_TYPE::ctr_get_next_node(NodeBaseG& node) const noexcept
+BoolResult M_TYPE::ctr_get_next_node(TreePathT& path, size_t level) const noexcept
 {
-    using ResultT = Result<NodeBaseG>;
+    using ResultT = BoolResult;
 
     auto& self = this->self();
 
+    NodeBaseG node = path[level];
+
     if (!node->is_root())
     {
-        Result<NodeBaseG> parent = self.ctr_get_node_parent(node);
-        MEMORIA_RETURN_IF_ERROR(parent);
+        MEMORIA_TRY(parent, self.ctr_get_node_parent(path, level));
 
-        int32_t size = self.ctr_get_node_size(parent.get(), 0);
+        int32_t size = self.ctr_get_node_size(parent, 0);
 
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
 
         if (parent_idx < size - 1)
         {
-            return self.ctr_get_node_child(parent.get(), parent_idx + 1);
+            MEMORIA_TRY(child, self.ctr_get_node_child(parent, parent_idx + 1));
+            path[level] = child;
+            return BoolResult::of(true);
         }
         else {
-            Result<NodeBaseG> target_parent = ctr_get_next_node(parent.get());
-            MEMORIA_RETURN_IF_ERROR(target_parent);
+            MEMORIA_TRY(has_next_parent, ctr_get_next_node(path, level + 1));
 
-            if (target_parent.get().isSet())
+            if (has_next_parent)
             {
-                return self.ctr_get_node_child(target_parent.get(), 0);
-            }
-            else {
-                return target_parent;
+                MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], 0));
+                path[level] = child;
+                return ResultT::of(true);
             }
         }
     }
-    else {
-        return ResultT::of();
-    }
+
+    return ResultT::of(false);
 }
 
 
 M_PARAMS
-Result<typename M_TYPE::NodeBaseG> M_TYPE::ctr_get_prev_node(NodeBaseG& node) const noexcept
+BoolResult M_TYPE::ctr_get_prev_node(TreePathT& path, size_t level) const noexcept
 {
-    using ResultT = Result<NodeBaseG>;
+    using ResultT = BoolResult;
     auto& self = this->self();
+
+    NodeBaseG node = path[level];
 
     if (!node->is_root())
     {
-        Result<NodeBaseG> parent = self.ctr_get_node_parent(node);
-        MEMORIA_RETURN_IF_ERROR(parent);
+        MEMORIA_TRY(parent, self.ctr_get_node_parent(node));
 
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
+        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
 
         if (parent_idx > 0)
         {
-            return self.ctr_get_node_child(parent.get(), parent_idx - 1);
+            MEMORIA_TRY(child, self.ctr_get_node_child(parent, parent_idx - 1));
+            path[level] = child;
+            return ResultT::of(true);
         }
         else {
-            Result<NodeBaseG> target_parent = ctr_get_prev_node(parent.get());
+            MEMORIA_TRY(has_prev_parent, ctr_get_prev_node(path, level + 1));
 
-            if (target_parent.get().isSet())
+            if (has_prev_parent)
             {
-                int32_t node_size = self.ctr_get_node_size(target_parent.get(), 0);
-                return self.ctr_get_node_child(target_parent.get(), node_size - 1);
-            }
-            else {
-                return target_parent;
+                int32_t node_size = self.ctr_get_node_size(path[level + 1], 0);
+                MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], node_size - 1));
+                path[level] = child;
+                return ResultT::of(true);
             }
         }
     }
-    else {
-        return ResultT::of();
-    }
+
+    return ResultT::of(false);
 }
 
 

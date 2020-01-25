@@ -23,6 +23,7 @@
 #include <memoria/core/container/macros.hpp>
 #include <memoria/core/tools/object_pool.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_tree_path.hpp>
 
 #include <memoria/core/types/mp11.hpp>
 #include <memoria/core/types/list/tuple.hpp>
@@ -53,6 +54,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
     using NodeBaseG = typename Types::NodeBaseG;
+    using TreePathT = TreePath<NodeBaseG>;
 
     using Position  = typename Types::Position;
     using CtrSizeT  = typename Types::CtrSizeT;

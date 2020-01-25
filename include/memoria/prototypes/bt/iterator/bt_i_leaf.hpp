@@ -43,17 +43,15 @@ public:
         auto& self = this->self();
 
         auto current_leaf = self.iter_leaf();
-        Result<NodeBaseG> next_leaf = self.ctr().ctr_get_next_node(self.iter_leaf());
-        MEMORIA_RETURN_IF_ERROR(next_leaf);
+        MEMORIA_TRY(has_next_leaf, self.ctr().ctr_get_next_node(self.path(), 0));
 
-        if (next_leaf.get().isSet())
+        if (has_next_leaf)
         {
             typename Types::template NextLeafWalker<Types> walker;
 
             walker.prepare(self);
 
-            self.iter_leaf().assign(next_leaf.get());
-
+            // FIXME need to refresh iterator's iovector view
             self.ctr().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0);
 
             walker.finish(self, 0, WalkCmd::NONE);
@@ -61,7 +59,6 @@ public:
             return BoolResult::of(true);
         }
         else {
-            self.iter_leaf().assign(current_leaf);
             return BoolResult::of(false);
         }
     }
@@ -72,17 +69,15 @@ public:
         auto& self = this->self();
 
         auto current_leaf = self.iter_leaf();
-        Result<NodeBaseG> prev_leaf = self.ctr().ctr_get_prev_node(self.iter_leaf());
-        MEMORIA_RETURN_IF_ERROR(prev_leaf);
+        MEMORIA_TRY(has_prev_leaf, self.ctr().ctr_get_prev_node(self.path(), 0));
 
-        if (prev_leaf.get().isSet())
+        if (has_prev_leaf)
         {
             typename Types::template PrevLeafWalker<Types> walker;
 
             walker.prepare(self);
 
-            self.iter_leaf().assign(prev_leaf.get());
-
+            // FIXME need to refresh iterator's iovector view
             self().leaf_dispatcher().dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
 
             walker.finish(self, 0, WalkCmd::NONE);
@@ -90,8 +85,6 @@ public:
             return BoolResult::of(true);
         }
         else {
-            self.iter_leaf().assign(current_leaf);
-
             return BoolResult::of(false);
         }
     }
