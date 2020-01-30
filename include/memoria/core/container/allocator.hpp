@@ -102,10 +102,6 @@ struct IAllocator {
     virtual Result<bool> drop_ctr(const CtrID& ctr_id) noexcept = 0;
 
     virtual Result<U8String> ctr_type_name(const CtrID& ctr_id) noexcept = 0;
-
-    virtual Result<Vertex> allocator_vertex() noexcept {
-        return Result<Vertex>::of();
-    }
 };
 
 }

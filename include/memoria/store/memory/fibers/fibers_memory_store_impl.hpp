@@ -35,8 +35,6 @@
 #include <memoria/fiber/recursive_shared_mutex.hpp>
 #include <memoria/fiber/shared_lock.hpp>
 
-#include <memoria/core/graph/graph.hpp>
-
 #include <memoria/api/store/memory_store_event_listener.hpp>
 
 #include <stdlib.h>
@@ -55,7 +53,7 @@ namespace memory {
 
 
 template <typename Profile>
-class FibersMemoryStoreImpl: public IGraph, public MemoryStoreBase<Profile, FibersMemoryStoreImpl<Profile>> {
+class FibersMemoryStoreImpl: public MemoryStoreBase<Profile, FibersMemoryStoreImpl<Profile>> {
 public:
     using Base      = MemoryStoreBase<Profile, FibersMemoryStoreImpl<Profile>>;
     using MyType    = FibersMemoryStoreImpl<Profile>;
@@ -649,51 +647,7 @@ public:
     }
 
 
-    // Graph API
 
-    Graph as_graph() noexcept {
-        return Graph(memoria_static_pointer_cast<IGraph>(this->shared_from_this()));
-    }
-
-    virtual Collection<Vertex> vertices()
-    {
-        return EmptyCollection<Vertex>::make();
-    }
-
-    virtual Collection<Vertex> vertices(const IDList&)
-    {
-        return EmptyCollection<Vertex>::make();
-    }
-
-    virtual Collection<Vertex> roots()
-    {
-        return roots({"snapshot"});
-    }
-
-    virtual Collection<Vertex> roots(const LabelList&)
-    {
-        std::vector<Vertex> vxx;
-        append_snapsots(vxx);
-        return STLCollection<Vertex>::make(std::move(vxx));
-    }
-
-    template <typename StlCtr>
-    void append_snapsots(StlCtr& stl_ctr)
-    {
-        auto uuid = this->get_root_snapshot_uuid();
-        SnapshotPtr root_snapshot = memoria_static_pointer_cast<SnapshotT>(this->find(uuid).get_or_terminate());
-        stl_ctr.emplace_back(root_snapshot->as_vertex());
-    }
-
-    virtual Collection<Edge> edges()
-    {
-        return EmptyCollection<Edge>::make();
-    }
-
-    virtual Collection<Edge> edges(const IDList&)
-    {
-        return EmptyCollection<Edge>::make();
-    }
 
     Result<SharedPtr<AllocatorMemoryStat<Profile>>> memory_stat() noexcept
     {

@@ -36,9 +36,6 @@
 #include <memoria/fiber/shared_mutex.hpp>
 #include <memoria/fiber/recursive_shared_mutex.hpp>
 
-#include <memoria/core/graph/graph.hpp>
-#include <memoria/core/graph/graph_default_vertex_property.hpp>
-
 #include <vector>
 #include <memory>
 #include <mutex>
@@ -53,7 +50,7 @@ enum class OperationType {OP_FIND, OP_CREATE, OP_UPDATE, OP_DELETE};
 
 
 template <typename Profile, typename PersistentAllocator>
-class FibersSnapshot: public IVertex, public SnapshotBase<Profile, PersistentAllocator, FibersSnapshot<Profile, PersistentAllocator>>
+class FibersSnapshot: public SnapshotBase<Profile, PersistentAllocator, FibersSnapshot<Profile, PersistentAllocator>>
 {    
 protected:
     using Base = SnapshotBase<Profile, PersistentAllocator, FibersSnapshot<Profile, PersistentAllocator>>;
@@ -325,96 +322,6 @@ public:
     }
 
     
-    // Vertex API
-
-    virtual Result<Vertex> allocator_vertex() noexcept {
-        return Result<Vertex>::of(as_vertex());
-    }
-
-    Vertex as_vertex() noexcept {
-        return Vertex(StaticPointerCast<IVertex>(this->shared_from_this()));
-    }
-
-    virtual Graph graph()
-    {
-        return history_tree_->as_graph();
-    }
-
-    virtual Any id() const
-    {
-        return Any(uuid());
-    }
-
-    virtual U8String label() const
-    {
-        return U8String("snapshot");
-    }
-
-    virtual void remove()
-    {
-        MMA_THROW(GraphException()) << WhatCInfo("Can't remove snapshot with Vertex::remove()");
-    }
-
-    virtual bool is_removed() const
-    {
-        return false;
-    }
-
-    virtual Collection<VertexProperty> properties()
-    {
-        return make_fn_vertex_properties(
-            as_vertex(),
-            "metadata", [&]{return snapshot_metadata();}
-        );
-    }
-
-    virtual Collection<Edge> edges(Direction direction)
-    {
-        std::vector<Edge> edges;
-
-        Vertex my_vx = as_vertex();
-        Graph my_graph = this->graph();
-
-        if (is_in(direction))
-        {
-            if (history_node_->parent())
-            {
-                auto pn_snp_api = history_tree_->find(history_node_->parent()->snapshot_id()).get_or_terminate();
-                SnapshotPtr pn_snp = memoria_static_pointer_cast<MyType>(pn_snp_api);
-
-                edges.emplace_back(DefaultEdge::make(my_graph, "child", pn_snp->as_vertex(), my_vx));
-            }
-        }
-
-        if (is_out(direction))
-        {
-            for (auto& child: history_node_->children())
-            {
-                auto ch_snp_api = history_tree_->find(child->snapshot_id()).get_or_terminate();
-                SnapshotPtr ch_snp = memoria_static_pointer_cast<MyType>(ch_snp_api);
-
-
-                edges.emplace_back(DefaultEdge::make(my_graph, "child", my_vx, ch_snp->as_vertex()));
-            }
-
-            auto iter = this->root_map_->ctr_begin().get_or_terminate();
-            while (!iter->iter_is_end())
-            {
-                auto ctr_name   = iter->key();
-                auto root_id    = iter->value();
-
-                auto vertex_ptr = DynamicPointerCast<IVertex>(
-                     const_cast<MyType*>(this)->from_root_id(root_id, ctr_name).get_or_terminate()
-                );
-
-                edges.emplace_back(DefaultEdge::make(my_graph, "container", my_vx, vertex_ptr));
-
-                iter->next().get_or_terminate();
-            }
-        }
-
-        return STLCollection<Edge>::make(std::move(edges));
-    }
 
     Result<SharedPtr<SnapshotMemoryStat<Profile>>> memory_stat() noexcept
     {

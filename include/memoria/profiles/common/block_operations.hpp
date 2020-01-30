@@ -30,8 +30,6 @@
 
 #include <memoria/profiles/common/common.hpp>
 
-#include <memoria/core/graph/graph.hpp>
-
 #include <tuple>
 #include <functional>
 #include <sstream>

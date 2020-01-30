@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memoria/core/graph/graph.hpp>
 #include <memoria/core/tools/uuid.hpp>
 
 #include "vertex_tree_item.hpp"

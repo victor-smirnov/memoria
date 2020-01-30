@@ -34,12 +34,6 @@
 
 #include <memoria/core/linked/document/linked_document.hpp>
 
-#include <memoria/core/graph/graph.hpp>
-
-
-
-#include <boost/filesystem.hpp>
-
 #include <stack>
 #include <sstream>
 #include <fstream>
@@ -181,13 +175,7 @@ struct ContainerOperations {
     using BlockCallbackFn = std::function<VoidResult (const BlockID&, const BlockID&, const BlockType*)>;
     using AllocatorBasePtr = SnpSharedPtr<IAllocator<Profile>>;
 
-
     virtual U8String data_type_decl_signature() const noexcept = 0;
-
-    virtual Result<Vertex> describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const noexcept = 0;
-    virtual Result<Collection<Edge>> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator, Direction direction) const noexcept = 0;
-    virtual Result<Collection<VertexProperty>> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorBasePtr allocator) const noexcept = 0;
-
 
     // FIXME: remove name from parameters, it's already in Ctr's block root metadata
     virtual U8String ctr_name() const noexcept = 0;

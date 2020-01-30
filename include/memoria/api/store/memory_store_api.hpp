@@ -58,8 +58,6 @@ public:
     static Result<StorePtr> load(InputStreamHandler* input_stream) noexcept;
     static Result<StorePtr> load(U8String file_name) noexcept;
 
-    virtual Graph as_graph() = 0;
-
     static Result<StorePtr> create() noexcept;
 
     virtual int64_t active_snapshots() noexcept = 0;
@@ -188,7 +186,6 @@ public:
     virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create(const LDTypeDeclarationView& decl) noexcept = 0;
     virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> find(const CtrID& ctr_id) noexcept = 0;
 
-    virtual Vertex as_vertex() noexcept = 0;
     virtual Logger& logger() noexcept = 0;
     virtual Result<SharedPtr<SnapshotMemoryStat<Profile>>> memory_stat() noexcept = 0;
 

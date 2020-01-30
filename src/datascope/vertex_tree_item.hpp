@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <memoria/core/graph/graph.hpp>
-
 #include <memoria/api/store/memory_store_api.hpp>
 #include <memoria/api/common/ctr_api.hpp>
 
@@ -28,12 +26,6 @@
 #include <QVector>
 
 namespace memoria {
-
-using VertexSchemaFn = std::function<QVariant(Vertex&, int)>;
-
-VertexSchemaFn get_vertex_schema(const U8String& label);
-
-QVariant to_variant(const VertexProperty& prop);
 
 class AbstractTreeItem {
 protected:

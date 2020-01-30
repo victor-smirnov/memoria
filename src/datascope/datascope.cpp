@@ -20,7 +20,6 @@
 #include <memoria/reactor/application.hpp>
 #include <memoria/reactor/qt_support.hpp>
 
-#include <memoria/core/graph/graph.hpp>
 #include <memoria/core/tools/fixed_array.hpp>
 
 #include <QApplication>

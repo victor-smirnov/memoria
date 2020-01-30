@@ -33,7 +33,6 @@
 #include <memoria/core/container/dispatcher.hpp>
 #include <memoria/core/container/macros.hpp>
 #include <memoria/core/container/ctr_referenceable.hpp>
-#include <memoria/core/container/block_vertex.hpp>
 
 #include <memoria/profiles/common/common.hpp>
 
@@ -41,10 +40,6 @@
 
 #include <memoria/core/tools/pair.hpp>
 #include <memoria/core/memory/memory.hpp>
-
-#include <memoria/core/graph/graph.hpp>
-#include <memoria/core/graph/graph_default_edge.hpp>
-#include <memoria/core/graph/graph_default_vertex_property.hpp>
 
 #include <memoria/profiles/common/metadata.hpp>
 
@@ -74,7 +69,6 @@ constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
 
 template <typename TypesType>
 class CtrBase:
-        public IVertex,
         public ::memoria::ICtrApi<typename TypesType::ContainerTypeName, typename TypesType::Profile>,
         public CtrSharedFromThis<Ctr<TypesType>>
 {
@@ -246,37 +240,6 @@ public:
             return make_datatype_signature<ContainerTypeName>().name();
         }
 
-        virtual Result<Vertex> describe_block(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const noexcept
-        {
-            auto ctr_ref = allocator->find(ctr_id);
-            MEMORIA_RETURN_IF_ERROR(ctr_ref);
-
-            auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref.get());
-            return Result<Vertex>::of(ctr_ptr->block_as_vertex(block_id));
-        }
-
-        virtual Result<Collection<Edge>> describe_block_links(const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator, Direction direction) const noexcept
-        {
-            using ResultT = Result<Collection<Edge>>;
-
-            auto ctr_ref = allocator->find(ctr_id);
-            MEMORIA_RETURN_IF_ERROR(ctr_ref);
-
-            auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref.get());
-            return ResultT::of(ctr_ptr->describe_block_links(block_id, direction));
-        }
-
-        virtual Result<Collection<VertexProperty>> block_properties(const Vertex& vx, const BlockID& block_id, const CtrID& ctr_id, AllocatorPtr allocator) const noexcept
-        {
-            using ResultT = Result<Collection<VertexProperty>>;
-
-            auto ctr_ref = allocator->find(ctr_id);
-            MEMORIA_RETURN_IF_ERROR(ctr_ref);
-
-            auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref.get());
-            return ResultT::of(ctr_ptr->block_properties(vx, block_id));
-        }
-
         virtual U8String ctr_name() const noexcept
         {
             return TypeNameFactory<Name>::name();
@@ -430,86 +393,6 @@ public:
     CtrID getModelName(const BlockID root_id)
     {
         MMA_THROW(UnsupportedOperationException()) << WhatCInfo("getModelName");
-    }
-
-
-    Vertex as_vertex() const {
-        return Vertex(StaticPointerCast<IVertex>(ConstPointerCast<MyType>(this->shared_from_this())));
-    }
-
-    virtual Graph graph()
-    {
-        return allocator_holder_->allocator_vertex().get_or_terminate().graph();
-    }
-
-    virtual Any id() const
-    {
-        return Any(this->name());
-    }
-
-    virtual U8String label() const
-    {
-        return U8String("container");
-    }
-
-    virtual void remove()
-    {
-        MMA_THROW(GraphException()) << WhatCInfo("Can't remove container with Vertex::remove()");
-    }
-
-    virtual bool is_removed() const
-    {
-        return false;
-    }
-
-    virtual Collection<VertexProperty> properties()
-    {
-        return make_fn_vertex_properties(
-            as_vertex(),
-            "type", [&]{return TypeNameFactory<Name>::name();}
-        );
-    }
-
-    Vertex block_as_vertex(const BlockID& block_id)
-    {
-        Graph my_graph = this->graph();
-        Vertex block_vx = BlockVertex<AllocatorPtr, ContainerOperationsPtr<ProfileT>>::make(
-                    my_graph,
-                    allocator_holder_,
-                    getContainerOperations(),
-                    block_id,
-                    this->name()
-        );
-
-        return block_vx;
-    }
-
-    Collection<Edge> describe_block_links(const BlockID& block_id, const CtrID& name, Direction direction) const
-    {
-        return EmptyCollection<Edge>::make();
-    }
-
-    virtual Collection<Edge> edges(Direction direction)
-    {
-        std::vector<Edge> edges;
-
-        Graph my_graph  = this->graph();
-        Vertex alloc_vx = allocator_holder_->allocator_vertex().get_or_terminate();
-
-        Vertex my_vx = as_vertex();
-
-        if (is_out(direction))
-        {
-            Vertex root_vx = block_as_vertex(root());
-            edges.emplace_back(DefaultEdge::make(my_graph, "root", my_vx, root_vx));
-        }
-
-        if (is_in(direction))
-        {
-            edges.emplace_back(DefaultEdge::make(my_graph, "container", alloc_vx, my_vx));
-        }
-
-        return STLCollection<Edge>::make(std::move(edges));
     }
 
     Result<CtrID> clone(const CtrID& new_name) noexcept
