@@ -97,7 +97,7 @@ public:
     using Iterator          = Iter<typename Types::IterTypes>;
     using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
     using IteratorPtr       = CtrSharedPtr<SharedIterator>;
-    using AllocatorPtr      = CtrSharedPtr<Allocator>;
+    using AllocatorPtr      = SnpSharedPtr<Allocator>;
 
     using NodeDispatcher = typename Types::Blocks::template NodeDispatcher<MyType>;
 
@@ -138,6 +138,10 @@ public:
     
     void reset_allocator_holder() noexcept {
         allocator_holder_.reset();
+    }
+
+    AllocatorPtr allocator_holder() noexcept {
+        return allocator_holder_;
     }
     
     virtual bool is_castable_to(uint64_t type_code) const noexcept {

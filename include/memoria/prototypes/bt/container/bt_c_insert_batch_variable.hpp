@@ -80,12 +80,14 @@ public:
 
         CtrSizeT provider_size0 = provider.size();
 
+        NodeBaseG last_child{};
+
         while(batch_size > 0 && provider.size() > 0)
         {
             auto checkpoint = provider.checkpoint();
 
             BlockUpdateMgr mgr(self);
-            MEMORIA_RETURN_IF_ERROR_FN(mgr.add(node));
+            MEMORIA_TRY_VOID(mgr.add(node));
 
             int32_t c;
 
@@ -93,30 +95,27 @@ public:
 
             for (c = 0; c < batch_size && provider.size() > 0; c++)
             {
-                Result<NodeBaseG> child_res = child_fn();
-                MEMORIA_RETURN_IF_ERROR(child_res);
-
-                NodeBaseG child = child_res.get();
+                MEMORIA_TRY(child, child_fn());
 
                 if (!child.isSet())
                 {
                     return ResultT::make_error("Subtree is null");
                 }
 
-                child->parent_id() = node->id();
-
                 BranchNodeEntry sums = self.ctr_get_node_max_keys(child);
                 if(isFail(self.branch_dispatcher().dispatch(node, InsertChildFn(), idx + c, sums, child->id()))) {
                     status = OpStatus::FAIL;
                     break;
                 }
+
+                last_child = child;
             }
 
             if (isFail(status))
             {
                 if (node->level() > 1)
                 {
-                    auto res = self.ctr_for_all_ids(node, idx, c, [&, this](const BlockID& id, int32_t parent_idx) noexcept -> VoidResult
+                    auto res = self.ctr_for_all_ids(node, idx, c, [&, this](const BlockID& id) noexcept -> VoidResult
                     {
                         auto& self = this->self();
                         MEMORIA_TRY_VOID(self.ctr_remove_branch_nodes(id));
@@ -132,6 +131,10 @@ public:
             else {
                 idx += c;
             }
+        }
+
+        if (last_child) {
+            MEMORIA_TRY_VOID(self.complete_tree_path(path, last_child));
         }
 
         if (update_hierarchy)
@@ -157,7 +160,8 @@ public:
                 auto res0 = self.ctr_layout_branch_node(node, 0xFF);
                 MEMORIA_RETURN_IF_ERROR(res0);
 
-                TreePathT path = TreePathT::build(node, level);
+                size_t height = level + 1;
+                TreePathT path = TreePathT::build(node, height);
 
                 auto res1 = self.ctr_insert_subtree(path, level, 0, provider, [this, level, &provider]() noexcept -> Result<NodeBaseG> {
                     auto& self = this->self();
@@ -381,8 +385,6 @@ public:
 
             if (result.get().local_pos() < node_size)
             {
-                TreePathT left_path;
-
                 auto split_res = self.ctr_split_path(path, next, level, result.get().local_pos());
                 MEMORIA_RETURN_IF_ERROR(split_res);
                 has_next_leaf = true;

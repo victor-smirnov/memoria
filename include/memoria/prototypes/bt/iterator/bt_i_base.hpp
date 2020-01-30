@@ -331,7 +331,7 @@ public:
         out << (header != NULL ? header : self.iter_get_dump_header()) << std::endl;
         iter_dump_cache(out);
         iter_dump_keys(out);
-        self.ctr().ctr_dump_path(self.iter_leaf(), out);
+        self.ctr().ctr_dump_path(self.path(), 0, out);
         out << "======================================================================" << std::endl;
     }
 
@@ -354,7 +354,7 @@ public:
     {
         auto& self = this->self();
 
-        out << "Stream:  " << self.iter_stream() << std::endl;
+        out << "Stream:  " << self.iter_data_stream_s() << std::endl;
         out << "Idx:  " << self.iter_local_pos() << std::endl;
     }
 

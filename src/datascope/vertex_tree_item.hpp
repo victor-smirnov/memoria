@@ -19,6 +19,8 @@
 #include <memoria/core/graph/graph.hpp>
 
 #include <memoria/api/store/memory_store_api.hpp>
+#include <memoria/api/common/ctr_api.hpp>
+
 #include <memoria/profiles/default/default.hpp>
 
 #include <QList>
@@ -107,23 +109,78 @@ protected:
     virtual void expand();
 };
 
-class VertexTreeItem: public AbstractTreeItem {
+
+class SnapshotTreeItem: public AbstractTreeItem {
 protected:
-    Vertex vertex_;
-    VertexSchemaFn schema_fn_;
+    IMemoryStorePtr<> store_;
+    UUID snapshot_id_;
 public:
-    VertexTreeItem(Vertex vertex, VertexSchemaFn schema_fn, AbstractTreeItem *parent);
+    SnapshotTreeItem(IMemoryStorePtr<> store, const UUID& snapshot_id, AbstractTreeItem* parent):
+        AbstractTreeItem(parent),
+        store_(store),
+        snapshot_id_(snapshot_id)
+    {}
 
     virtual QVariant data(int column);
 
     virtual QString node_type() const {
-        return QString::fromUtf8(vertex_.label().data());
+        return QString::fromUtf8("snapshot");
     }
 
-    Vertex& vertex() {return vertex_;}
-    const Vertex& vertex() const {return vertex_;}
-
+protected:
     virtual void expand();
 };
+
+
+class ContainerTreeItem: public AbstractTreeItem {
+protected:
+    IMemoryStorePtr<> store_;
+    UUID snapshot_id_;
+    UUID ctr_id_;
+public:
+    ContainerTreeItem(IMemoryStorePtr<> store, const UUID& snapshot_id, const UUID& ctr_id, AbstractTreeItem* parent):
+        AbstractTreeItem(parent),
+        store_(store),
+        snapshot_id_(snapshot_id),
+        ctr_id_(ctr_id)
+    {}
+
+    virtual QVariant data(int column);
+
+    virtual QString node_type() const {
+        return QString::fromUtf8("container");
+    }
+
+protected:
+    virtual void expand();
+};
+
+
+class CtrBlockTreeItem: public AbstractTreeItem {
+protected:
+    size_t idx_;
+    CtrBlockPtr<DefaultProfile<>> block_;
+public:
+    CtrBlockTreeItem(size_t idx, CtrBlockPtr<DefaultProfile<>> block, AbstractTreeItem* parent):
+        AbstractTreeItem(parent),
+        idx_(idx),
+        block_(block)
+    {}
+
+    CtrBlockPtr<DefaultProfile<>> block() const {
+        return block_;
+    }
+
+    virtual QVariant data(int column);
+
+    virtual QString node_type() const {
+        return QString::fromUtf8("block");
+    }
+
+protected:
+    virtual void expand();
+};
+
+
 
 }

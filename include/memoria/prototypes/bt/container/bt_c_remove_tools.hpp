@@ -130,7 +130,7 @@ protected:
     {
         if (level + 1 < left.size())
         {
-            return BoolResult::of(left[level + 1]->parent_id() == right[level + 1]->parent_id());
+            return BoolResult::of(left[level + 1]->id() == right[level + 1]->id());
         }
         else {
             return BoolResult::make_error("Invalid tree path. Level = {}, height = {}", level, left.size());
@@ -156,14 +156,11 @@ VoidResult M_TYPE::ctr_remove_node_recursively(NodeBaseG& node, Position& sizes)
     if (!node->is_leaf())
     {
         int32_t size = self.ctr_get_node_size(node, 0);
-        auto res = self.ctr_for_all_ids(node, 0, size, [&, this](const BlockID& id, int32_t idx) noexcept -> VoidResult
+        auto res = self.ctr_for_all_ids(node, 0, size, [&, this](const BlockID& id) noexcept -> VoidResult
         {
             auto& self = this->self();
-
-            Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlock(id));
-            MEMORIA_RETURN_IF_ERROR(child);
-
-            return self.ctr_remove_node_recursively(child.get(), sizes);
+            MEMORIA_TRY(child, self.ctr_get_block(id));
+            return self.ctr_remove_node_recursively(child, sizes);
         });
 
         MEMORIA_RETURN_IF_ERROR(res);
@@ -216,12 +213,10 @@ VoidResult M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_
     using ResultT = VoidResult;
     auto& self = this->self();
 
-    auto res = self.ctr_for_all_ids(path[level], start, end, [&, this](const BlockID& id, int32_t idx) noexcept -> VoidResult {
+    auto res = self.ctr_for_all_ids(path[level], start, end, [&, this](const BlockID& id) noexcept -> VoidResult {
         auto& self = this->self();
-        Result<NodeBaseG> child = static_cast_block<NodeBaseG>(self.store().getBlock(id));
-        MEMORIA_RETURN_IF_ERROR(child);
-
-        return self.ctr_remove_node_recursively(child.get(), sizes);
+        MEMORIA_TRY(child, self.ctr_get_block(id));
+        return self.ctr_remove_node_recursively(child, sizes);
     });
     MEMORIA_RETURN_IF_ERROR(res);
 
@@ -288,11 +283,15 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(
     auto& self = this->self();
 
     NodeBaseG node = path.leaf();
-    self.ctr_update_block_guard(node);
+    MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
-    OOM_THROW_IF_FAIL(self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), stream, start, end), MMA_SRC);
+    OpStatus status = self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), stream, start, end);
 
-    self.ctr_update_path(path, 0);
+    if (isFail(status)) {
+        return ResultT::make_error("PackedOOMException");
+    }
+
+    MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
 
     return ResultT::of(end - start);
 }

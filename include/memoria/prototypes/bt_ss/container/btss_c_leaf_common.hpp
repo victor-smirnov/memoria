@@ -106,11 +106,11 @@ public:
 
         auto pos = Position(iter.iter_local_pos());
 
-        auto result = self.ctr_insert_provided_data(iter.path(), pos, streaming);
-        MEMORIA_RETURN_IF_ERROR(result);
+        MEMORIA_TRY_VOID(self.ctr_insert_provided_data(iter.path(), pos, streaming));
 
-        iter.iter_local_pos() = result.get().position().sum();
-        iter.iter_leaf().assign(result.get().iter_leaf());
+        iter.iter_local_pos() = pos.sum();
+
+        iter.refresh_iovector_view();
 
         if (iter.iter_leaf()->id() != id)
         {

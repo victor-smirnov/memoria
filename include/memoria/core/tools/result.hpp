@@ -173,6 +173,11 @@ public:
         return Result<T>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...)));
     }
 
+    template <typename... Arg>
+    static detail::ResultErrors make_error_tr(const char* fmt, Arg&&... args) noexcept {
+        return Result<T>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...))).transfer_error();
+    }
+
     bool is_ok() const noexcept {
         return variant_.index() == 0;
     }
@@ -433,8 +438,20 @@ public:
         return Result<void>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...)));
     }
 
+    template <typename... Arg>
+    static detail::ResultErrors make_error_tr(const char* fmt, Arg&&... args) noexcept {
+        return Result<void>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...))).transfer_error();
+    }
+
     bool is_ok() const noexcept {
         return variant_.index() == 0;
+    }
+
+    void get_or_throw() {
+        return throw_if_error();
+    }
+
+    void get() noexcept {
     }
 
     void throw_if_error()
@@ -454,9 +471,12 @@ public:
             }
             case ResultStatus::MEMORIA_ERROR:
             {
-                ResultException(
-                    std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))
-                );
+                (*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))->describe(std::cout);
+                MMA_THROW(MemoriaThrowable()) << WhatCInfo("Forwarding memoria exception");
+
+//                throw ResultException(
+//                    std::move(*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))
+//                );
             }
         }
     }
@@ -687,25 +707,27 @@ wrap_throwing(Fn&& fn) noexcept
 }
 
 #define MEMORIA_RETURN_IF_ERROR(ResultVal)   \
+do {                                         \
     if (MMA_UNLIKELY(!ResultVal.is_ok())) {  \
         return std::move(ResultVal).transfer_error(); \
-    }
+    }                                        \
+} while (0)
 
 #define MEMORIA_RETURN_IF_ERROR_FN(FnCall)   \
-{                                            \
+do {                                            \
     VoidResult res0 = FnCall;                \
     if (MMA_UNLIKELY(!res0.is_ok())) {       \
         return std::move(res0).transfer_error(); \
     }                                        \
-}
+} while (0)
 
 #define MEMORIA_TRY_VOID(FnCall)             \
-{                                            \
-    VoidResult res0 = FnCall;                \
+do {                                         \
+    auto res0 = FnCall;                      \
     if (MMA_UNLIKELY(!res0.is_ok())) {       \
         return std::move(res0).transfer_error(); \
     }                                        \
-}
+} while(0)
 
 #define MEMORIA_TRY(VarName, Code)                  \
     auto VarName##_result = Code;                  \

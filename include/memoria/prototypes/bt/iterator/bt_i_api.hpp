@@ -44,7 +44,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorAPIName)
 
     using typename Base::TreePathT;
 
-
     static const int32_t Streams = Container::Types::Streams;
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(SizesFn, sizes, Position);
@@ -59,9 +58,9 @@ public:
 
     VoidResult iter_refresh() noexcept
     {
-        MEMORIA_RETURN_IF_ERROR_FN(Base::iter_refresh());
+        MEMORIA_TRY_VOID(Base::iter_refresh());
 
-        MEMORIA_RETURN_IF_ERROR_FN(self().iter_refresh_branch_prefixes());
+        MEMORIA_TRY_VOID(self().iter_refresh_branch_prefixes());
         self().iter_refresh_leaf_prefixes();
 
         return VoidResult::of();
@@ -164,26 +163,14 @@ public:
     }
 
     template <typename Walker>
-    VoidResult iter_walk_up_for_refresh(NodeBaseG node, int32_t idx, Walker&& walker) const noexcept
+    VoidResult iter_walk_up_for_refresh(TreePathT& path, size_t level, int32_t idx, Walker&& walker) const noexcept
     {
-        if (!node->is_leaf())
+        self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx);
+
+        for (size_t ll = level + 1; ll < path.size(); ll++)
         {
-            self().ctr().branch_dispatcher().dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
-        }
-
-        while (!node->is_root())
-        {
-            auto parent = self().ctr().ctr_get_node_parent(node);
-            MEMORIA_RETURN_IF_ERROR(parent);
-
-            auto idx_res = self().ctr().ctr_get_child_idx(parent.get(), node->id());
-            MEMORIA_RETURN_IF_ERROR(idx_res);
-
-            idx = idx_res.get();
-
-            node = parent.get();
-
-            self().ctr().node_dispatcher().dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
+            MEMORIA_TRY(child_idx, self().ctr().ctr_get_child_idx(path[ll], path[ll - 1]->id()));
+            self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx);
         }
 
         return VoidResult::of();
@@ -198,7 +185,7 @@ public:
 
         iter_cache.reset();
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.iter_walk_up_for_refresh(self.iter_leaf(), self.iter_local_pos(), walker));
+        MEMORIA_TRY_VOID(self.iter_walk_up_for_refresh(self.path(), 0, self.iter_local_pos(), walker));
 
         walker.finish(self, self.iter_local_pos(), WalkCmd::REFRESH);
 

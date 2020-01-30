@@ -67,6 +67,7 @@
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
 #include <memoria/prototypes/bt/container/bt_c_walk.hpp>
 #include <memoria/prototypes/bt/container/bt_c_remove.hpp>
+#include <memoria/prototypes/bt/container/bt_c_block.hpp>
 
 #include <memoria/prototypes/bt/bt_iterator.hpp>
 
@@ -108,7 +109,8 @@ struct BTTypes {
             bt::ReadName,
             bt::IOReadName,
             bt::UpdateName,
-            bt::WalkName
+            bt::WalkName,
+            bt::BlockName
     >;
 
 

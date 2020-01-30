@@ -263,20 +263,39 @@ public:
         });
     }
 
-    Result<std::vector<SnapshotID>> heads() noexcept
+    Result<std::vector<SnapshotID>> branch_heads() noexcept
     {
         using ResultT = Result<std::vector<SnapshotID>>;
 
+        // FIXME: rewrite to use Reactor instead of locks
         std::lock_guard<MutexT> lock(mutex_);
         std::unordered_set<SnapshotID> ids;
 
         for (const auto& entry: named_branches_)
         {
-            // TODO: need to take a lock here on the snapshot
             ids.insert(entry.second->snapshot_id());
         }
 
         ids.insert(master_->snapshot_id());
+
+        return ResultT::of(std::vector<SnapshotID>(ids.begin(), ids.end()));
+    }
+
+    Result<std::vector<SnapshotID>> heads() noexcept
+    {
+        using ResultT = Result<std::vector<SnapshotID>>;
+
+        // FIXME: rewrite to use Reactor instead of locks
+        std::lock_guard<MutexT> lock(mutex_);
+        std::unordered_set<SnapshotID> ids;
+
+//        for (const auto& entry: named_branches_)
+//        {
+//            // TODO: need to take a lock here on the snapshot
+//            ids.insert(entry.second->snapshot_id());
+//        }
+
+//        ids.insert(master_->snapshot_id());
 
         return ResultT::of(std::vector<SnapshotID>(ids.begin(), ids.end()));
     }
@@ -336,7 +355,7 @@ public:
     Result<SnpSharedPtr<SnapshotMetadata<SnapshotID>>> describe(const SnapshotID& snapshot_id) const noexcept
     {
         using ResultT = Result<SnpSharedPtr<SnapshotMetadata<SnapshotID>>>;
-    	return reactor::engine().run_at(cpu_, [&]{
+        return reactor::engine().run_at(cpu_, [&] () -> ResultT {
             auto iter = snapshot_map_.find(snapshot_id);
             if (iter != snapshot_map_.end())
             {
@@ -356,7 +375,7 @@ public:
                 ));
             }
             else {
-                return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
+                return VoidResult::make_error("Snapshot id {} is unknown", snapshot_id).transfer_error();
             }
         });
     }
@@ -366,7 +385,7 @@ public:
     Result<SnapshotApiPtr> find(const SnapshotID& snapshot_id) noexcept
     {
         using ResultT = Result<SnapshotApiPtr>;
-        return reactor::engine().run_at(cpu_, [&]
+        return reactor::engine().run_at(cpu_, [&]() -> ResultT
         {
             auto iter = snapshot_map_.find(snapshot_id);
             if (iter != snapshot_map_.end())
@@ -379,14 +398,14 @@ public:
                 }
                 if (history_node->is_data_locked())
                 {
-                    return ResultT::make_error("Snapshot {} data is locked", history_node->snapshot_id());
+                    return VoidResult::make_error_tr("Snapshot {} data is locked", history_node->snapshot_id());
                 }
                 else {
-                    return ResultT::make_error("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
+                    return VoidResult::make_error_tr("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
                 }
             }
             else {
-                return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
+                return VoidResult::make_error_tr("Snapshot id {} is unknown", snapshot_id);
             }
         });
     }
@@ -398,7 +417,7 @@ public:
     {
         using ResultT = Result<SnapshotApiPtr>;
 
-        return reactor::engine().run_at(cpu_, [&]{
+        return reactor::engine().run_at(cpu_, [&] () -> ResultT {
             auto iter = named_branches_.find(name);
             if (iter != named_branches_.end())
             {
@@ -415,15 +434,15 @@ public:
                         return ResultT::of(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND));
                     }
                     else {
-                        return ResultT::make_error("Snapshot id {} is locked and open", history_node->snapshot_id());
+                        return VoidResult::make_error_tr("Snapshot id {} is locked and open", history_node->snapshot_id());
                     }
                 }
                 else {
-                    return ResultT::make_error("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
+                    return VoidResult::make_error_tr("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
                 }
             }
             else {
-                return ResultT::make_error("Named branch \"{}\" is not known", name);
+                return VoidResult::make_error_tr("Named branch \"{}\" is not known", name);
             }
         });
     }
@@ -641,7 +660,7 @@ public:
         return EmptyCollection<Vertex>::make();
     }
 
-    virtual Collection<Vertex> vertices(const IDList& ids)
+    virtual Collection<Vertex> vertices(const IDList&)
     {
         return EmptyCollection<Vertex>::make();
     }
@@ -651,12 +670,10 @@ public:
         return roots({"snapshot"});
     }
 
-    virtual Collection<Vertex> roots(const LabelList& vx_labels)
+    virtual Collection<Vertex> roots(const LabelList&)
     {
         std::vector<Vertex> vxx;
-
         append_snapsots(vxx);
-
         return STLCollection<Vertex>::make(std::move(vxx));
     }
 
@@ -665,7 +682,6 @@ public:
     {
         auto uuid = this->get_root_snapshot_uuid();
         SnapshotPtr root_snapshot = memoria_static_pointer_cast<SnapshotT>(this->find(uuid).get_or_terminate());
-
         stl_ctr.emplace_back(root_snapshot->as_vertex());
     }
 
@@ -674,25 +690,25 @@ public:
         return EmptyCollection<Edge>::make();
     }
 
-    virtual Collection<Edge> edges(const IDList& ids)
+    virtual Collection<Edge> edges(const IDList&)
     {
         return EmptyCollection<Edge>::make();
     }
 
-    Result<SharedPtr<AllocatorMemoryStat>> memory_stat(bool include_containers) noexcept
+    Result<SharedPtr<AllocatorMemoryStat<Profile>>> memory_stat() noexcept
     {
-        using ResultT = Result<SharedPtr<AllocatorMemoryStat>>;
+        using ResultT = Result<SharedPtr<AllocatorMemoryStat<Profile>>>;
         return reactor::engine().run_at(cpu_, [&]() noexcept -> ResultT {
             _::BlockSet visited_blocks;
 
-            SharedPtr<AllocatorMemoryStat> alloc_stat = MakeShared<AllocatorMemoryStat>(0);
+            SharedPtr<AllocatorMemoryStat<Profile>> alloc_stat = MakeShared<AllocatorMemoryStat<Profile>>(0);
 
             auto history_visitor = [&](HistoryNode* node) noexcept -> VoidResult {
                 return wrap_throwing([&]() {
                     if (node->is_committed() || node->is_dropped())
                     {
                         auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this(), OperationType::OP_FIND);
-                        auto snp_stat = snp->do_compute_memory_stat(visited_blocks, include_containers);
+                        auto snp_stat = snp->do_compute_memory_stat(visited_blocks);
                         alloc_stat->add_snapshot_stat(snp_stat);
                     }
                     return VoidResult::of();
@@ -706,6 +722,19 @@ public:
 
             return ResultT::of(std::move(alloc_stat));
         });
+    }
+
+    virtual Result<std::vector<SnapshotID>> linear_history(
+            const SnapshotID& start_id,
+            const SnapshotID& stop_id
+    ) noexcept
+    {
+        using ResultT = Result<std::vector<SnapshotID>>;
+        return ResultT::of();
+    }
+
+    virtual Result<std::vector<SnapshotID>> heads(const SnapshotID& start_from) noexcept {
+        return heads();
     }
 
 protected:

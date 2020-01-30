@@ -36,7 +36,7 @@ auto ctr_make_shared(Args&&... args) {
 
 
 template <typename T>
-using SnpSharedPtr = LocalSharedPtr<T>;
+using SnpSharedPtr = SharedPtr<T>;
 
 template <typename T>
 using SnpSharedFromThis = EnableSharedFromThis<T>;

@@ -239,24 +239,18 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_p
     NodeBaseG src = src_path.leaf();
     NodeBaseG tgt = tgt_path.leaf();
 
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(tgt));
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(src));
+    MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
+    MEMORIA_TRY_VOID(self.ctr_update_block_guard(src));
 
-    int32_t tgt_size = self.ctr_get_node_size(tgt, 0);
+    //int32_t tgt_size = self.ctr_get_node_size(tgt, 0);
 
     OpStatus status1 = self.leaf_dispatcher().dispatch(src, tgt, MergeNodesFn());
     if (isFail(status1)) {
         return VoidResult::make_error("PackedOOMException");
     }
 
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_children(tgt, tgt_size));
+    MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, 0));
 
-    Result<NodeBaseG> src_parent = self.ctr_get_node_parent(src);
-    MEMORIA_RETURN_IF_ERROR(src_parent);
-
-    MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent.get(), src->id()));
-
-    //MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
     Result<OpStatus> status2 = self.ctr_remove_non_leaf_node_entry(src_path, 1, parent_idx);
     MEMORIA_RETURN_IF_ERROR(status2);

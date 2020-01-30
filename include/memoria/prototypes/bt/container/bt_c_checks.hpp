@@ -40,7 +40,7 @@ public:
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
 
-    BoolResult check(void *data) const noexcept
+    BoolResult check(void *) const noexcept
     {
         return self().ctr_check_tree();
     }
@@ -162,29 +162,12 @@ VoidResult M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t par
         {
             BlockID child_id = self.ctr_get_child_id(node, c);
 
-            Result<NodeBaseG> child_res = self.ctr_get_node_child(node, c);
-            MEMORIA_RETURN_IF_ERROR(child_res);
-            NodeBaseG child = child_res.get();
-
+            MEMORIA_TRY(child, self.ctr_get_node_child(node, c));
 
             if (child->id() != child_id)
             {
                 errors = true;
                 MMA_ERROR(self, "child.id != child_id", child->id(), child->id(), child_id);
-            }
-
-//            if (child->parent_idx() != c)
-//            {
-//                errors = true;
-//                MMA_ERROR(self, "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
-//                std::cout << "parent_idx: " << child->parent_idx() << " " << c << std::endl;
-//            }
-
-            if (child->parent_id() != node->id())
-            {
-                errors = true;
-                MMA_ERROR(self, "child.parent_id != node.id", child->parent_id(), node->id());
-                std::cout << "parent_idx: " << child->parent_id() << " " << node->id() << std::endl;
             }
 
             return self.ctr_check_tree_structure(node, c, child, errors);

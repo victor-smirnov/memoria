@@ -56,6 +56,8 @@ public:
 
             walker.finish(self, 0, WalkCmd::NONE);
 
+            self.refresh_iovector_view();
+
             return BoolResult::of(true);
         }
         else {

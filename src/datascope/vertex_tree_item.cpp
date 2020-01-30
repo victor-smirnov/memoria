@@ -89,31 +89,7 @@ void RootTreeItem::remove_inmem_allocator(AbstractTreeItem* item)
 
 
 
-VertexTreeItem::VertexTreeItem(Vertex vertex, VertexSchemaFn schema_fn, AbstractTreeItem *parent):
-    AbstractTreeItem (parent),
-    vertex_(vertex),
-    schema_fn_(std::move(schema_fn))
-{}
 
-
-QVariant VertexTreeItem::data(int column)
-{
-    return schema_fn_(vertex_, column);
-}
-
-void VertexTreeItem::expand()
-{
-    if (!expanded_)
-    {
-        for (Edge& ee: vertex_.edges(Direction::EDGE_OUT))
-        {
-            Vertex vx = ee.in_vertex();
-            children_.append(new VertexTreeItem(vx, get_vertex_schema(vx.label()), this));
-        }
-
-        expanded_ = true;
-    }
-}
 
 
 
@@ -125,10 +101,31 @@ void InMemAllocatorTreeItem::expand()
 {
     if (!expanded_)
     {
-        Graph graph = allocator_->as_graph();
-        for (Vertex& root: graph.roots())
-        {
-            children_.append(new VertexTreeItem(root, get_vertex_schema(root.label()), this));
+        children_.append(new SnapshotTreeItem(allocator_, allocator_->root_shaphot_id(), this));
+        expanded_ = true;
+    }
+}
+
+
+QVariant SnapshotTreeItem::data(int column) {
+    return column == 0 ? node_type() : column == 1 ? QVariant(QString::fromUtf8(toString(snapshot_id_).data())) : QVariant();
+}
+
+void SnapshotTreeItem::expand()
+{
+    if (!expanded_)
+    {
+        auto child_snps = store_->children_of(snapshot_id_).get_or_throw();
+
+        for (auto snp_id: child_snps) {
+            children_.append(new SnapshotTreeItem(store_, snp_id, this));
+        }
+
+        auto snp   = store_->find(snapshot_id_).get_or_throw();
+        auto names = snp->container_names().get_or_throw();
+
+        for (auto name: names) {
+            children_.append(new ContainerTreeItem(store_, snapshot_id_, name, this));
         }
 
         expanded_ = true;
@@ -136,60 +133,66 @@ void InMemAllocatorTreeItem::expand()
 }
 
 
-QVariant to_variant(const VertexProperty& prop)
+QVariant ContainerTreeItem::data(int column)
 {
-    if (!prop.is_empty())
-    {
-        Any value = prop.value();
-        if (value.type() == typeid (const char*))
-        {
-            return QString::fromUtf8(boost::any_cast<const char*>(value));
-        }
-        else if (value.type() == typeid (const char16_t*))
-        {
-            return QString::fromUtf16(boost::any_cast<const char16_t*>(value));
-        }
-        else if (value.type() == typeid (U16String))
-        {
-            return QString::fromUtf16(boost::any_cast<U16String>(value).data());
-        }
-        else if (value.type() == typeid (U8String))
-        {
-            return QString::fromUtf8(boost::any_cast<U8String>(value).data());
-        }
-        else if (value.type() == typeid (UUID))
-        {
-            return QString::fromUtf8(toString(boost::any_cast<UUID>(value)).data());
-        }
-        else {
-            return QString::fromUtf8("Unknown vertex property value type");
+    auto snp = store_->find(snapshot_id_).get_or_throw();
+    auto ctr = snp->find(ctr_id_).get_or_throw();
+
+    switch (column) {
+        case 0: return node_type();
+        case 1: return QString::fromUtf8(toString(ctr_id_).data());
+        case 2: {
+            return QString::fromUtf8(ctr->describe_datatype().data());
         }
     }
 
-    return QVariant();
+    return QVariant{};
+}
+
+void ContainerTreeItem::expand()
+{
+    if (!expanded_)
+    {
+        auto snp = store_->find(snapshot_id_).get_or_throw();
+        auto ctr = snp->find(ctr_id_).get_or_throw();
+
+        children_.append(new CtrBlockTreeItem(0, ctr->root_block().get_or_throw(), this));
+
+        expanded_ = true;
+    }
 }
 
 
-
-VertexSchemaFn get_vertex_schema(const U8String& label)
+QVariant CtrBlockTreeItem::data(int column)
 {
-    return [=](Vertex& vx, int column) -> QVariant {
-        switch (column) {
-            case 0: return QString::fromUtf8(vx.label().data());
-            case 1: return QString::fromUtf8(toString(boost::any_cast<UUID>(vx.id())).data());
-            case 2: {
-                if (label == "snapshot") {
-                    return to_variant(vx.property("metadata"));
-                }
-                else if (label == "container") {
-                    return to_variant(vx.property("type"));
-                }
-            }
+    switch (column) {
+        case 0: return node_type() + QString::fromUtf8((U8String(" :: ") + toString(idx_)).data());
+        case 1: return QString::fromUtf8(toString(block_->block_id()).data());
+    }
+
+    return QVariant{};
+}
+
+void CtrBlockTreeItem::expand()
+{
+    if (!expanded_)
+    {
+        auto children = block_->children().get_or_throw();
+
+        size_t idx = 0;
+        for (auto child: children) {
+            children_.append(new CtrBlockTreeItem(idx, child, this));
+            idx++;
         }
 
-        return QVariant();
-    };
+        expanded_ = true;
+    }
 }
+
+
+
+
+
 
 
 }

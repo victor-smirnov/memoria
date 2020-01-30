@@ -431,9 +431,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         MEMORIA_RETURN_IF_ERROR_FN(self().ctr_update_block_guard(node));
 
         node->set_root(true);
-
-        node->parent_id().clear();
-
         node->setMetadata(meta);
 
         return VoidResult::of();
@@ -479,12 +476,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
      */
     Result<CtrID> ctr_get_model_name(const BlockID& root_id) const noexcept
     {
-        MEMORIA_V1_ASSERT_NOT_EMPTY(root_id);
-
         auto& self = this->self();
 
-        NodeBaseG root = static_cast_block<NodeBaseG>(self.store().getBlock(root_id));
-        MEMORIA_RETURN_IF_ERROR(root);
+        MEMORIA_TRY(root, self.ctr_get_block(root_id));
 
         return self.node_dispatcher().dispatch(root.get(), GetModelNameFn(self));
     }
@@ -496,9 +490,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     static const Metadata& ctr_get_root_metadata(NodeBaseG node) noexcept
     {
-        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
-       // MEMORIA_V1_ASSERT_TRUE(node->is_root());
-
         return node->root_metadata();
     }
 
@@ -518,9 +509,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     static Metadata ctr_get_ctr_root_metadata(NodeBaseG node) noexcept
     {
-        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
-        //MEMORIA_V1_ASSERT_TRUE(node->has_root_metadata());
-
         return node->root_metadata();
     }
 
@@ -573,11 +561,12 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     Metadata ctr_create_new_root_metadata() const noexcept
     {
+        auto& self = this->self();
         Metadata metadata;
 
         memset(&metadata, 0, sizeof(Metadata));
 
-        metadata.model_name()        = self().name();
+        metadata.model_name()        = self.name();
         metadata.memory_block_size() = DEFAULT_BLOCK_SIZE;
 
         return metadata;
@@ -585,18 +574,18 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     Result<int32_t> get_new_block_size() const noexcept
     {
-        Result<NodeBaseG> root_block = static_cast_block<NodeBaseG>(self().store().getBlockForUpdate(self().root()));
-        MEMORIA_RETURN_IF_ERROR(root_block);
-        const Metadata* meta = get<const Metadata>(root_block.get()->allocator(), METADATA_IDX);
+        auto& self = this->self();
+        MEMORIA_TRY(root_block, self.ctr_get_block_for_update(self.root()));
+        const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
         return Result<int32_t>::of(meta->memory_block_size());
     }
 
     VoidResult set_new_block_size(int32_t block_size) noexcept
     {
-        Result<NodeBaseG> root_block = static_cast_block<NodeBaseG>(self().store().getBlockForUpdate(self().root()));
-        MEMORIA_RETURN_IF_ERROR(root_block);
+        auto& self = this->self();
 
-        Metadata* meta = get<Metadata>(root_block.get()->allocator(), METADATA_IDX);
+        MEMORIA_TRY(root_block, self.ctr_get_block_for_update(self.root()));
+        Metadata* meta = get<Metadata>(root_block->allocator(), METADATA_IDX);
         meta->memory_block_size() = block_size;
 
         return VoidResult::of();
@@ -607,48 +596,39 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     template <typename Node>
     Result<NodeBaseG> ctr_create_node_fn(int32_t size) const noexcept
     {
+        using ResultT = Result<NodeBaseG>;
         auto& self = this->self();
 
-        Result<NodeBaseG> node = static_cast_block<NodeBaseG>(self.store().createBlock(size));
-        MEMORIA_RETURN_IF_ERROR(node)
+        MEMORIA_TRY(node, static_cast_block<NodeBaseG>(self.store().createBlock(size)));
 
-        node.get()->init();
-        node.get()->header().block_type_hash() = Node::NodeType::hash();
+        node->init();
+        node->header().block_type_hash() = Node::NodeType::hash();
 
-        return node;
+        return ResultT::of(node);
     }
 
 
-    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, ctr_create_node_fn, Result<NodeBaseG>);
+    MEMORIA_V1_CONST_STATIC_FN_WRAPPER(CreateNodeFn, ctr_create_node_fn);
     Result<NodeBaseG> createNonRootNode(int16_t level, bool leaf, int32_t size = -1) const noexcept
     {
-        //MEMORIA_V1_ASSERT(level, >=, 0);
-
+        using ResultT = Result<NodeBaseG>;
         auto& self = this->self();
 
         if (size == -1)
         {
-            Result<NodeBaseG> root_block = static_cast_block<NodeBaseG>(self.store().getBlock(self.root()));
-            MEMORIA_RETURN_IF_ERROR(root_block);
-
-            const Metadata* meta = get<const Metadata>(root_block.get()->allocator(), METADATA_IDX);
+            MEMORIA_TRY(root_block, self.ctr_get_block(self.root()));
+            const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
             size = meta->memory_block_size();
         }
 
-        Result<NodeBaseG> node_ret = self.default_dispatcher().dispatch2(
+        MEMORIA_TRY(node, self.default_dispatcher().dispatch2(
                         leaf,
                         CreateNodeFn(self),
 						size
-        );
-
-        MEMORIA_RETURN_IF_ERROR(node_ret);
-
-        NodeBaseG node = node_ret.get();
+        ));
 
         node->header().ctr_type_hash() = self.hash();
         
-        node->parent_id()  = BlockID{};
-
         node->set_root(false);
         node->set_leaf(leaf);
 
@@ -657,29 +637,28 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         ctr_prepare_node(node);
 
         if (leaf) {
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_leaf_node(node, Position()));
+            MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(node, Position()));
         }
         else {
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_branch_node(node, -1ull));
+            MEMORIA_TRY_VOID(self.ctr_layout_branch_node(node, -1ull));
         }
 
-        return node_ret;
+        return ResultT::of(node);
     }
 
     MEMORIA_V1_DECLARE_NODE_FN(InitRootMetadataFn, init_root_metadata);
     Result<NodeBaseG> ctr_create_root_node(int16_t level, bool leaf, int32_t size = -1) const noexcept
     {
-        //MEMORIA_V1_ASSERT(level, >=, 0);
-
+        using ResultT = Result<NodeBaseG>;
         auto& self = this->self();
 
-        Result<NodeBaseG> root_block = static_cast_block<NodeBaseG>(self.store().getBlock(self.root()));
+        MEMORIA_TRY(root_block, self.ctr_get_block(self.root()));
 
         if (size == -1)
         {
-            if (root_block.get())
+            if (root_block)
             {
-                const Metadata* meta = get<const Metadata>(root_block.get()->allocator(), METADATA_IDX);
+                const Metadata* meta = get<const Metadata>(root_block->allocator(), METADATA_IDX);
                 size = meta->memory_block_size();
             }
             else {
@@ -687,19 +666,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             }
         }
 
-        Result<NodeBaseG> node_ret = self.node_dispatcher().dispatch2(
+        MEMORIA_TRY(node, self.node_dispatcher().dispatch2(
             leaf,
             CreateNodeFn(self), size
-        );
-
-        MEMORIA_RETURN_IF_ERROR(node_ret);
-
-        NodeBaseG node = node_ret.get();
+        ));
 
         node->header().ctr_type_hash() = self.hash();
         
-        node->parent_id()  = BlockID{};
-
         node->set_root(true);
         node->set_leaf(leaf);
 
@@ -707,8 +680,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         ctr_prepare_node(node);
 
-        if (root_block.get()) {
-            node->copy_metadata_from(root_block.get());
+        if (root_block) {
+            node->copy_metadata_from(root_block);
         }
         else {
             self.node_dispatcher().dispatch(node, InitRootMetadataFn());
@@ -730,13 +703,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         }
 
         if (leaf) {
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_leaf_node(node, Position()));
+            MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(node, Position()));
         }
         else {
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_branch_node(node, -1ull));
+            MEMORIA_TRY_VOID(self.ctr_layout_branch_node(node, -1ull));
         }
 
-        return node_ret;
+        return ResultT::of(node);
     }
 
     Result<NodeBaseG> ctr_create_node(int16_t level, bool root, bool leaf, int32_t size = -1) const noexcept
@@ -760,7 +733,6 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void ctr_prepare_node(NodeBaseG& node) const noexcept
     {
-        //MEMORIA_V1_ASSERT_TRUE(node.isSet());
         self().node_dispatcher().dispatch(node, PrepareNodeFn(self()));
     }
 
@@ -785,7 +757,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         {
             if (!block->is_root())
             {
-                links.push_back(DefaultEdge::make(graph, "child", this->block_as_vertex(block->parent_id()), block_vx));
+                links.push_back(DefaultEdge::make(graph, "child", this->block_as_vertex(block->parent_id1()), block_vx));
             }
             else {
                 links.push_back(DefaultEdge::make(graph, "root", ctr_vx, block_vx));
@@ -856,7 +828,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             // FIXME: this code tries to compute block's offset in the tree,
             // but apparently it doesn't make sense.
             //offset += node->parent_idx();
-            node = alloc->getBlock(node->parent_id()).get_or_terminate();
+            node = alloc->getBlock(node->parent_id1()).get_or_terminate();
         }
 
         return CtrBlockDescription<ProfileT>(size, ctr_get_model_name(node), root, leaf, offset);

@@ -16,8 +16,18 @@
 
 #pragma once
 
+#include <memoria/core/types.hpp>
+
 #ifdef MEMORIA_USE_ASAN
-#include <sanitizer/asan_interface.h>
+//#include "sanitizer/asan_interface.h"
+
+extern "C" {
+void __sanitizer_start_switch_fiber(void **fake_stack_save,
+                                    const void *bottom, size_t size);
+void __sanitizer_finish_switch_fiber(void *fake_stack_save,
+                                     const void **bottom_old,
+                                     size_t *size_old);
+}
 
 #ifdef MMA_SANITIZE_STACKS
 

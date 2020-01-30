@@ -311,6 +311,10 @@ public:
 
 public:
 
+    int32_t iter_data_stream_s() const noexcept {
+        return 0;
+    }
+
     Result<SplitResult> iter_split_leaf(int32_t stream, int32_t target_idx) noexcept
     {
         using ResultT = Result<SplitResult>;

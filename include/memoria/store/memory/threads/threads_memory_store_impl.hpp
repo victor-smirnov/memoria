@@ -86,6 +86,7 @@ protected:
     using Base::do_pack;
     using Base::get_labels_for;
     using Base::do_remove_history_node;
+    using Base::walk_linear_history;
 
 public:    
     template <typename, typename>
@@ -257,7 +258,7 @@ public:
         return ResultT::of(SnapshotID{});
     }
 
-    Result<std::vector<SnapshotID>> heads() noexcept
+    Result<std::vector<SnapshotID>> branch_heads() noexcept
     {
         using ResultT = Result<std::vector<SnapshotID>>;
 
@@ -275,10 +276,78 @@ public:
         return ResultT::of(std::vector<SnapshotID>(ids.begin(), ids.end()));
     }
 
-    
-    Result<SnapshotMetadata<SnapshotID>> describe(const SnapshotID& snapshot_id) const noexcept
+
+    Result<std::vector<SnapshotID>> heads() noexcept
     {
-        using ResultT = Result<SnapshotMetadata<SnapshotID>>;
+        using ResultT = Result<std::vector<SnapshotID>>;
+        std::lock_guard<MutexT> lock(mutex_);
+
+        std::vector<SnapshotID> heads;
+
+        MEMORIA_TRY_VOID(walk_version_tree(history_tree_, [&](const auto* history_node) -> VoidResult {
+            if (history_node->children().size() == 0)
+            {
+                heads.emplace_back(history_node->snapshot_id());
+            }
+
+            return VoidResult::of();
+        }));
+
+        return ResultT::of(heads);
+    }
+
+    virtual Result<std::vector<SnapshotID>> heads(const SnapshotID& start_from) noexcept
+    {
+        using ResultT = Result<std::vector<SnapshotID>>;
+        std::lock_guard<MutexT> lock(mutex_);
+
+        auto ii = snapshot_map_.find(start_from);
+        if (ii != snapshot_map_.end())
+        {
+            std::vector<SnapshotID> heads;
+
+            auto current = ii->second;
+            MEMORIA_TRY_VOID(walk_version_tree(current, [&](const auto* history_node) -> VoidResult {
+                if (history_node->snapshot_id() != start_from && history_node->children().size() == 0)
+                {
+                    heads.emplace_back(history_node->snapshot_id());
+                }
+
+                return VoidResult::of();
+            }));
+
+            return ResultT::of(heads);
+        }
+        else {
+            return ResultT::make_error("Snapshot {} is not found.", start_from);
+        }
+    }
+
+    virtual Result<std::vector<SnapshotID>> linear_history(
+            const SnapshotID& start_id,
+            const SnapshotID& stop_id
+    ) noexcept
+    {
+        using ResultT = Result<std::vector<SnapshotID>>;
+        std::lock(mutex_, store_mutex_);
+
+        std::vector<SnapshotID> snps;
+
+        MEMORIA_TRY_VOID(walk_linear_history(start_id, stop_id, [&](const auto* history_node) {
+            snps.emplace_back(history_node->snapshot_id());
+            return VoidResult::of();
+        }));
+
+        std::reverse(snps.begin(), snps.end());
+        return ResultT::of(snps);
+    }
+
+
+
+    
+    Result<SnapshotMetadata<Profile>> describe(const SnapshotID& snapshot_id) const noexcept
+    {
+        using ResultT = Result<SnapshotMetadata<Profile>>;
 
     	LockGuardT lock_guard2(mutex_);
 
@@ -298,7 +367,7 @@ public:
 
             auto parent_id = history_node->parent() ? history_node->parent()->snapshot_id() : SnapshotID{};
 
-            return ResultT::of(SnapshotMetadata<SnapshotID>(
+            return ResultT::of(SnapshotMetadata<Profile>(
                 parent_id, history_node->snapshot_id(), children, history_node->metadata(), history_node->status()
             ));
         }
@@ -382,14 +451,21 @@ public:
             }
             if (history_node->is_data_locked())
             {
-                return ResultT::make_error("Snapshot {} data is locked", history_node->snapshot_id());
+                return VoidResult::make_error(
+                            "Snapshot {} data is locked",
+                            history_node->snapshot_id()
+                            ).transfer_error();
             }
             else {
-                return ResultT::make_error("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
+                return VoidResult::make_error(
+                            "Snapshot {} is {}",
+                            history_node->snapshot_id(),
+                            (history_node->is_active() ? "active" : "dropped")
+                            ).transfer_error();
             }
         }
         else {
-            return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
+            return VoidResult::make_error("Snapshot id {} is unknown", snapshot_id).transfer_error();
         }
     }
 
@@ -419,15 +495,22 @@ public:
                     return ResultT::of(upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this())));
             	}
             	else {
-                    return ResultT::make_error("Snapshot id {} is locked and open", history_node->snapshot_id());
+                    return VoidResult::make_error(
+                                "Snapshot id {} is locked and open",
+                                history_node->snapshot_id()
+                                ).transfer_error();
             	}
             }
             else {                
-                return ResultT::make_error("Snapshot {} is {} ", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
+                return VoidResult::make_error(
+                            "Snapshot {} is {} ",
+                            history_node->snapshot_id(),
+                            (history_node->is_active() ? "active" : "dropped")
+                            ).transfer_error();
             }
         }
         else {
-            return ResultT::make_error("Named branch \"{}\" is not known", name);
+            return VoidResult::make_error("Named branch \"{}\" is not known", name).transfer_error();
         }
     }
 
@@ -656,14 +739,14 @@ public:
         return std::move(rr).transfer_error();
     }
 
-    Result<SharedPtr<AllocatorMemoryStat>> memory_stat(bool include_containers) noexcept
+    Result<SharedPtr<AllocatorMemoryStat<Profile>>> memory_stat() noexcept
     {
-        using ResultT = Result<SharedPtr<AllocatorMemoryStat>>;
+        using ResultT = Result<SharedPtr<AllocatorMemoryStat<Profile>>>;
         LockGuardT lock_guard(mutex_);
 
         _::BlockSet visited_blocks;
 
-        SharedPtr<AllocatorMemoryStat> alloc_stat = MakeShared<AllocatorMemoryStat>(0);
+        SharedPtr<AllocatorMemoryStat<Profile>> alloc_stat = MakeShared<AllocatorMemoryStat<Profile>>(0);
 
         auto history_visitor = [&](HistoryNode* node) -> VoidResult {
             return wrap_throwing([&](){
@@ -672,7 +755,7 @@ public:
                 if (node->is_committed() || node->is_dropped())
                 {
                     auto snp = snp_make_shared_init<SnapshotT>(node, this->shared_from_this());
-                    auto snp_stat = snp->do_compute_memory_stat(visited_blocks, include_containers);
+                    auto snp_stat = snp->do_compute_memory_stat(visited_blocks);
                     alloc_stat->add_snapshot_stat(snp_stat);
                 }
 
@@ -733,10 +816,14 @@ public:
         return EmptyCollection<Edge>::make();
     }
 
-    virtual Collection<Edge> edges(const IDList& ids)
+    virtual Collection<Edge> edges(const IDList&)
     {
         return EmptyCollection<Edge>::make();
     }
+
+
+
+
 
 protected:
     
@@ -745,14 +832,12 @@ protected:
         if (node->is_committed())
         {
             auto txn = snp_make_shared_init<SnapshotT>(node, this);
-            auto res = fn(node, txn.get());
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(fn(node, txn.get()));
         }
 
         for (auto child: node->children())
         {
-            auto res = walk_version_tree(child, fn);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(walk_version_tree(child, fn));
         }
 
         return VoidResult::of();
@@ -760,13 +845,11 @@ protected:
 
     virtual VoidResult walk_version_tree(HistoryNode* node, std::function<VoidResult (HistoryNode*)> fn) noexcept
     {
-        auto res0 = fn(node);
-        MEMORIA_RETURN_IF_ERROR(res0);
+        MEMORIA_TRY_VOID(fn(node));
 
         for (auto child: node->children())
         {
-            auto res1 = walk_version_tree(child, fn);
-            MEMORIA_RETURN_IF_ERROR(res1);
+            MEMORIA_TRY_VOID(walk_version_tree(child, fn));
         }
 
         return VoidResult::of();
@@ -779,8 +862,7 @@ protected:
         if (node->is_committed())
         {
             auto txn = snp_make_shared_init<SnapshotT>(node, this);
-            auto res = txn->walkContainers(walker, get_labels_for(node));
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(txn->walkContainers(walker, get_labels_for(node)));
         }
 
         if (node->children().size())
@@ -788,8 +870,7 @@ protected:
             walker->beginSnapshotSet("Branches", node->children().size());
             for (auto child: node->children())
             {
-                auto res = walk_containers(child, walker);
-                MEMORIA_RETURN_IF_ERROR(res);
+                MEMORIA_TRY_VOID(walk_containers(child, walker));
             }
             walker->endSnapshotSet();
         }

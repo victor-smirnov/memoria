@@ -110,7 +110,7 @@ public:
     Application(int argc, char** argv, char** envp = nullptr): 
         Application(options_description(), argc, argv, envp)
     {
-        default_options(descr_);
+
     }
     
     Application(const options_description& descr, int argc, char** argv, char** envp = nullptr);

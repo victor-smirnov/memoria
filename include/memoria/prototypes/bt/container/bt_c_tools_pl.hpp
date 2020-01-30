@@ -49,30 +49,20 @@ protected:
 public:
 
 
-    void ctr_dump_path(NodeBaseG node, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
+    void ctr_dump_path(const TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
     {
         auto& self = this->self();
 
         out << "Path:" << std::endl;
 
-        self.ctr_dump_node(node, out);
-
-        while (!node->is_root() && node->level() < depth)
+        for (size_t ll = path.size(); ll > level; ll--)
         {
-            node = self.ctr_get_node_parent(node).get_or_terminate();
-            self.ctr_dump_node(node, out);
+            self.ctr_dump_node(path[ll - 1], out);
         }
     }
 
 
 public:
-
-    Result<NodeBaseG> ctr_get_node_parent(const NodeBaseG& node) const noexcept
-    {
-        auto& self = this->self();
-        return static_cast_block<NodeBaseG>(self.store().getBlock(node->parent_id()));
-    }
-
     Result<NodeBaseG> ctr_get_node_parent(const TreePathT& path, size_t level) const noexcept
     {
         using ResultT = Result<NodeBaseG>;
@@ -90,11 +80,7 @@ public:
     }
 
 
-    Result<NodeBaseG> ctr_get_node_parent_for_update(const NodeBaseG& node) const noexcept
-    {
-        auto& self = this->self();
-        return static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(node->parent_id()));
-    }
+
 
 
     Result<NodeBaseG> ctr_get_node_parent_for_update(TreePathT& path, size_t level) const noexcept
@@ -179,8 +165,7 @@ BoolResult M_TYPE::ctr_get_prev_node(TreePathT& path, size_t level) const noexce
 
     if (!node->is_root())
     {
-        MEMORIA_TRY(parent, self.ctr_get_node_parent(node));
-
+        MEMORIA_TRY(parent, self.ctr_get_node_parent(path, level));
         MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
 
         if (parent_idx > 0)

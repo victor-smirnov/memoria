@@ -126,8 +126,6 @@ public:
 
                 subtrees[i].accum()     = self.ctr_get_node_max_keys(child.get());
                 subtrees[i].child_id()  = child.get()->id();
-
-                child.get()->parent_id() = node->id();
             }
 
             self.branch_dispatcher().dispatch(node, InsertChildrenFn(), idx + c, idx + c + i, subtrees);
@@ -295,10 +293,10 @@ public:
 
         if (state.shouldMoveUp())
         {
-            auto left_parent_res = self.ctr_get_node_parent_for_update(left);
+            auto left_parent_res = self.ctr_get_node_parent_for_update(left_path, level);
             MEMORIA_RETURN_IF_ERROR(left_parent_res);
 
-            auto right_parent_res = self.ctr_get_node_parent_for_update(right);
+            auto right_parent_res = self.ctr_get_node_parent_for_update(right_path, level);
             MEMORIA_RETURN_IF_ERROR(right_parent_res);
 
             NodeBaseG left_parent  = left_parent_res.get();
@@ -307,9 +305,6 @@ public:
             if (left_parent == right_parent)
             {
                 MEMORIA_TRY(right_parent_idx, self.ctr_get_child_idx(right_parent, right->id()));
-
-                TreePathT left_path;
-                TreePathT right_path;
 
                 auto res = self.ctr_split_path(left_path, right_path, 1, right_parent_idx);
                 MEMORIA_RETURN_IF_ERROR(res);

@@ -36,6 +36,27 @@
 namespace memoria {
 
 template <typename Profile>
+struct CtrBlock;
+
+template <typename Profile>
+using CtrBlockPtr = std::shared_ptr<CtrBlock<Profile>>;
+
+
+template <typename Profile>
+struct CtrBlock {
+    using BlockID = ProfileBlockID<Profile>;
+
+    virtual ~CtrBlock() noexcept {}
+
+    virtual Result<std::vector<CtrBlockPtr<Profile>>> children() const noexcept = 0;
+    virtual VoidResult describe(std::ostream& out) const noexcept = 0;
+
+    virtual BoolResult is_leaf() const noexcept = 0;
+    virtual BlockID block_id() const noexcept = 0;
+};
+
+
+template <typename Profile>
 struct CtrReferenceable {
 
     using CtrID = ProfileCtrID<Profile>;
@@ -73,6 +94,8 @@ struct CtrReferenceable {
     virtual VoidResult flush() noexcept = 0;
 
     virtual CtrSharedPtr<CtrReferenceable<Profile>> shared_self() noexcept = 0;
+
+    virtual Result<CtrBlockPtr<Profile>> root_block() noexcept = 0;
 };
 
 }

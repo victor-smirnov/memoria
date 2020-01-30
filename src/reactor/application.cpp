@@ -67,8 +67,10 @@ Application::Application(const options_description& descr, int argc, char** argv
 	args_(_::arg_list_as_vector(argv)),
     env_(Environment::create(envp))
 {
+    default_options(descr_);
+
     boost::program_options::store(
-        boost::program_options::parse_command_line(argc, argv, descr), 
+        boost::program_options::parse_command_line(argc, argv, descr_),
         options_
     );
     boost::program_options::notify(options_);

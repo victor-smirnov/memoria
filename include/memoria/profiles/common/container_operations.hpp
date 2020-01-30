@@ -29,7 +29,7 @@
 
 #include <memoria/filesystem/operations.hpp>
 #include <memoria/filesystem/path.hpp>
-#include <memoria/reactor/file_streams.hpp>
+
 #include <memoria/core/datatypes/type_signature.hpp>
 
 #include <memoria/core/linked/document/linked_document.hpp>
@@ -159,7 +159,7 @@ public:
     {}
 
     int32_t size() const {return size_;}
-    const CtrID& ctr_name() const {return ctr_name_;}
+    const CtrID& ctr_name1() const {return ctr_name_;}
     bool is_root() const {return root_;}
     bool is_leaf() const {return leaf_;}
     bool is_branch() const {return !is_leaf();}

@@ -385,7 +385,7 @@ public:
 
         if (root_id.get().is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&](const BlockID& uuid, const BlockID& id, const void* block_data) noexcept {
+            auto res = txn->for_each_ctr_node(name, [&](const BlockID&, const BlockID& id, const void*) noexcept {
                 auto rc_handle = txn->export_block_rchandle(id);
     			using Value = typename PersistentTreeT::Value;
 
@@ -439,7 +439,7 @@ public:
 
     	if (root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&](const BlockID& uuid, const BlockID& id, const void* block_data) noexcept -> VoidResult {
+            auto res = txn->for_each_ctr_node(name, [&](const BlockID&, const BlockID&, const void* block_data) noexcept -> VoidResult {
                 return clone_foreign_block(ptr_cast<const BlockType>(block_data));
     		});
             MEMORIA_RETURN_IF_ERROR(res);
@@ -477,7 +477,7 @@ public:
 
         if (!root_id.get().is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void* block_data) noexcept -> VoidResult {
+            auto res = txn->for_each_ctr_node(name, [&, this](const BlockID& uuid, const BlockID& id, const void*) noexcept -> VoidResult {
                 auto block = this->getBlock(id);
                 MEMORIA_RETURN_IF_ERROR(block);
 
@@ -669,7 +669,7 @@ public:
         return Result<void>::of();
     }
 
-    virtual Result<void> unregisterCtr(const CtrID& ctr_id, CtrReferenceable<Profile>* instance) noexcept
+    virtual Result<void> unregisterCtr(const CtrID& ctr_id, CtrReferenceable<Profile>*) noexcept
     {
         instance_map_.erase(ctr_id);
         return Result<void>::of();
@@ -861,12 +861,12 @@ public:
             initial_size = DEFAULT_BLOCK_SIZE;
         }
 
-        void* buf = allocate_system<uint8_t>(initial_size).release();
+        void* buf = allocate_system<uint8_t>(static_cast<size_t>(initial_size)).release();
 
-        memset(buf, 0, initial_size);
+        memset(buf, 0, static_cast<size_t>(initial_size));
 
         auto id = newId();
-        MEMORIA_RETURN_IF_ERROR(id)
+        MEMORIA_RETURN_IF_ERROR(id);
 
         BlockType* p = new (buf) BlockType(id.get());
 
@@ -987,7 +987,7 @@ public:
         return VoidResult::of();
     }
 
-    virtual Result<BlockG> getBlockG(BlockType* block) noexcept
+    virtual Result<BlockG> getBlockG(BlockType*) noexcept
     {
         return Result<BlockG>::make_error("Method getBlockG is not implemented for this allocator");
     }
@@ -1019,7 +1019,7 @@ public:
         if (!name.is_null())
         {
             auto iter = root_map_->ctr_map_find(name);
-            MEMORIA_RETURN_IF_ERROR(iter)
+            MEMORIA_RETURN_IF_ERROR(iter);
 
             if (iter.get()->is_found(name))
             {
@@ -1294,7 +1294,7 @@ public:
 
 protected:
 
-    SharedPtr<SnapshotMemoryStat> do_compute_memory_stat(bool include_containers)
+    SharedPtr<SnapshotMemoryStat<Profile>> do_compute_memory_stat()
     {
         _::BlockSet visited_blocks;
 
@@ -1310,22 +1310,23 @@ protected:
             node = node->parent();
         }
 
-        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_blocks, this, include_containers);
+        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_blocks, this);
 
         persistent_tree_.conditional_tree_traverse(consumer);
 
         return consumer.finish();
     }
 
-    SharedPtr<SnapshotMemoryStat> do_compute_memory_stat(_::BlockSet& visited_blocks, bool include_containers)
+    SharedPtr<SnapshotMemoryStat<Profile>> do_compute_memory_stat(_::BlockSet& visited_blocks)
     {
-        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_blocks, this, include_containers);
+        SnapshotStatsCountingConsumer<SnapshotBase> consumer(visited_blocks, this);
 
         persistent_tree_.conditional_tree_traverse(consumer);
 
         return consumer.finish();
     }
 
+    // FIXME: use noexcept
     auto export_block_rchandle(const CtrID& id)
     {
     	auto opt = persistent_tree_.find(id);

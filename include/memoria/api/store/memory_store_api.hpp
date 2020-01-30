@@ -94,7 +94,15 @@ public:
     virtual Result<void> remove_named_branch(const std::string& name) noexcept = 0;
 
 
+    virtual Result<std::vector<SnapshotID>> branch_heads() noexcept = 0;
+
     virtual Result<std::vector<SnapshotID>> heads() noexcept = 0;
+    virtual Result<std::vector<SnapshotID>> heads(const SnapshotID& start_from) noexcept = 0;
+
+    virtual Result<std::vector<SnapshotID>> linear_history(
+            const SnapshotID& start_id,
+            const SnapshotID& stop_id
+    ) noexcept = 0;
 
     virtual Result<std::vector<U8String>> branch_names() noexcept = 0;
     virtual Result<SnapshotID> branch_head(const U8String& branch_name) noexcept = 0;
@@ -108,7 +116,7 @@ public:
     virtual PairPtr& pair() noexcept = 0;
     virtual const PairPtr& pair() const noexcept = 0;
 
-    virtual Result<SharedPtr<AllocatorMemoryStat>> memory_stat(bool include_containers = true) noexcept = 0;
+    virtual Result<SharedPtr<AllocatorMemoryStat<Profile>>> memory_stat() noexcept = 0;
 };
 
 template <typename Profile = DefaultProfile<>>
@@ -182,7 +190,7 @@ public:
 
     virtual Vertex as_vertex() noexcept = 0;
     virtual Logger& logger() noexcept = 0;
-    virtual Result<SharedPtr<SnapshotMemoryStat>> memory_stat(bool include_containers = true) noexcept = 0;
+    virtual Result<SharedPtr<SnapshotMemoryStat<Profile>>> memory_stat() noexcept = 0;
 
 protected:
     virtual Result<SnpSharedPtr<AllocatorT>> snapshot_ref_creation_allowed() noexcept = 0;

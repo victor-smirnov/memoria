@@ -22,6 +22,8 @@
 #include <memoria/core/container/macros.hpp>
 #include <memoria/core/tools/result.hpp>
 
+#include <memoria/profiles/common/container_operations.hpp>
+#include <memoria/prototypes/bt/bt_names.hpp>
 
 namespace memoria {
 
@@ -164,13 +166,11 @@ private:
 
         if (!node->is_leaf())
         {
-            auto res1 = self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&self, walker](const BlockID& id, int32_t idx) noexcept
+            MEMORIA_TRY_VOID(self.ctr_for_all_ids(node, 0, self.ctr_get_node_size(node, 0), [&self, walker](const BlockID& id) noexcept -> VoidResult
             {
-                NodeBaseG child = self.store().getBlock(id).get_or_terminate();
+                MEMORIA_TRY(child, self.ctr_get_block(id));
                 return self.ctr_traverse_tree(child, walker);
-            });
-
-            MEMORIA_RETURN_IF_ERROR(res1);
+            }));
         }
 
         self.ctr_end_node(node, walker);

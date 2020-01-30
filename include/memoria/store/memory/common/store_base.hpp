@@ -1429,8 +1429,31 @@ protected:
         }
     }
 
+    VoidResult walk_linear_history(
+            const SnapshotID& start_id,
+            const SnapshotID& stop_id,
+            std::function<VoidResult (const HistoryNode* history_node)> fn
+    ) noexcept
+    {
+        using ResultT = VoidResult;
 
+        auto ii = snapshot_map_.find(start_id);
+        if (ii != snapshot_map_.end())
+        {
+            auto current = ii->second;
 
+            while (current && current->snapshot_id() != stop_id)
+            {
+                MEMORIA_TRY_VOID(fn(current));
+                current = current->parent();
+            }
+
+            return ResultT::of();
+        }
+        else {
+            return ResultT::make_error("Snapshot {} is not found.", start_id);
+        }
+    }
 
 
     MyType& self() {return *static_cast<MyType*>(this);}

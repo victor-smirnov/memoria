@@ -104,6 +104,7 @@ private:
 
     void parse_first()
     {
+        iter_->refresh_iovector_view();
         auto& ss = iter_->iovector_view().symbol_sequence();
 
         int32_t idx = parser_.start_idx();

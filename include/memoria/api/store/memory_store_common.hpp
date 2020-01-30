@@ -29,6 +29,7 @@
 
 #include <memoria/filesystem/path.hpp>
 
+#include <memoria/profiles/common/common.hpp>
 
 
 namespace memoria {
@@ -36,13 +37,14 @@ namespace memoria {
 
 enum class SnapshotStatus {ACTIVE, COMMITTED, DROPPED, DATA_LOCKED};
 
-template <typename SnapshotID>
+template <typename Profile>
 class SnapshotMetadata {
+    using SnapshotID = ProfileSnapshotID<Profile>;
     SnapshotID parent_id_;
     SnapshotID snapshot_id_;
     std::vector<SnapshotID> children_;
     U8String description_;
-	SnapshotStatus status_;
+    SnapshotStatus status_;
 public:
     SnapshotMetadata(const SnapshotID& parent_id, const SnapshotID& snapshot_id, const std::vector<SnapshotID>& children, U8StringRef description, SnapshotStatus status):
 		parent_id_(parent_id),
@@ -60,57 +62,22 @@ public:
 };
 
 
-class ContainerMemoryStat {
-    UUID ctr_name_;
-    U8String ctr_type_name_;
-
-    uint64_t total_leaf_blocks_;
-    uint64_t total_branch_blocks_;
-
-    uint64_t total_leaf_size_;
-    uint64_t total_branch_size_;
-
-    uint64_t total_size_;
-
-public:
-    ContainerMemoryStat(
-            const UUID& ctr_name, U8String ctr_type_name, uint64_t total_leaf_blocks, uint64_t total_branch_blocks,
-            uint64_t total_leaf_size, uint64_t total_branch_size, uint64_t total_size
-    ):
-        ctr_name_(ctr_name),
-        ctr_type_name_(ctr_type_name),
-        total_leaf_blocks_(total_leaf_blocks), total_branch_blocks_(total_branch_blocks),
-        total_leaf_size_(total_leaf_size), total_branch_size_(total_branch_size),
-        total_size_(total_size)
-    {}
-
-    const UUID& ctr_name() const {return ctr_name_;}
-    const U8String& ctr_type_name() const {return ctr_type_name_;}
-
-    uint64_t total_leaf_blocks() const {return total_leaf_blocks_;}
-    uint64_t total_branch_blocks() const {return total_branch_blocks_;}
-
-    uint64_t total_leaf_size() const {return total_leaf_size_;}
-    uint64_t total_branch_size() const {return total_branch_size_;}
-
-    uint64_t total_size() const {return total_size_;}
-};
 
 
 
+template <typename Profile>
 class SnapshotMemoryStat {
-    UUID snapshot_id_;
+    using SnpID = ProfileSnapshotID<Profile>;
+
+    SnpID snapshot_id_;
 
     uint64_t total_ptree_size_;
     uint64_t total_data_size_;
     uint64_t total_size_;
 
-    using CtrMap = std::unordered_map<UUID, SharedPtr<ContainerMemoryStat>>;
-
-    std::unordered_map<UUID, SharedPtr<ContainerMemoryStat>> containers_;
 public:
     SnapshotMemoryStat(
-            const UUID& snapshot_id, uint64_t total_ptree_size, uint64_t total_data_size, uint64_t total_size
+            const SnpID& snapshot_id, uint64_t total_ptree_size, uint64_t total_data_size, uint64_t total_size
     ):
         snapshot_id_(snapshot_id),
         total_ptree_size_(total_ptree_size),
@@ -118,27 +85,20 @@ public:
         total_size_(total_size)
     {}
 
-    const UUID& snapshot_id() const {return snapshot_id_;}
+    const SnpID& snapshot_id() const {return snapshot_id_;}
     uint64_t total_size() const {return total_size_;}
 
     uint64_t total_ptree_size() const {return total_ptree_size_;}
     uint64_t total_data_size() const {return total_data_size_;}
-
-    const CtrMap& containers() const {return containers_;}
-
-    template <typename... Args>
-    void add_container_stat(SharedPtr<ContainerMemoryStat> container_stat)
-    {
-        containers_[container_stat->ctr_name()] = container_stat;
-    }
 };
 
 
-
+template <typename Profile>
 class AllocatorMemoryStat {
+    using SnpID = ProfileSnapshotID<Profile>;
     uint64_t total_size_;
 
-    using SnapshotMap = std::unordered_map<UUID, SharedPtr<SnapshotMemoryStat>>;
+    using SnapshotMap = std::unordered_map<SnpID, SharedPtr<SnapshotMemoryStat<Profile>>>;
     SnapshotMap snapshots_;
 
 public:
@@ -150,7 +110,7 @@ public:
     uint64_t total_size() const {return total_size_;}
 
     template <typename... Args>
-    void add_snapshot_stat(SharedPtr<SnapshotMemoryStat> snapshot_stat)
+    void add_snapshot_stat(SharedPtr<SnapshotMemoryStat<Profile>> snapshot_stat)
     {
         snapshots_[snapshot_stat->snapshot_id()] = snapshot_stat;
     }
@@ -165,14 +125,16 @@ public:
     }
 };
 
-void print(std::ostream& out, const ContainerMemoryStat& stat);
-void print(std::ostream& out, const SnapshotMemoryStat& stat, int ntabs = 0);
-void print(std::ostream& out, const AllocatorMemoryStat& stat);
+template <typename Profile>
+void print(std::ostream& out, const SnapshotMemoryStat<Profile>& stat, int ntabs = 0);
 
+template <typename Profile>
+void print(std::ostream& out, const AllocatorMemoryStat<Profile>& stat);
 
-void print_json(std::ostream& out, const ContainerMemoryStat& stat);
-void print_json(std::ostream& out, const SnapshotMemoryStat& stat);
-void print_json(std::ostream& out, const AllocatorMemoryStat& stat);
+template <typename Profile>
+void print_json(std::ostream& out, const SnapshotMemoryStat<Profile>& stat);
 
+template <typename Profile>
+void print_json(std::ostream& out, const AllocatorMemoryStat<Profile>& stat);
 
 }

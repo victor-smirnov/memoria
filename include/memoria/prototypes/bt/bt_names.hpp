@@ -22,7 +22,7 @@ namespace memoria {
 
 template <typename Profile> class ContainerCollectionCfg;
 
-namespace bt     {
+namespace bt {
 
 template <typename ContainerName>
 class ContainerPartsListFactory     {};
@@ -59,6 +59,7 @@ class LeafVariableName      {};
 class ApiName               {};
 class ChecksName            {};
 class WalkName              {};
+class BlockName             {};
 
 
 

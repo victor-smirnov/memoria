@@ -88,7 +88,6 @@ private:
     int32_t level_;
 
     BlockID next_leaf_id_;
-    BlockID parent_id_;
 
     PackedAllocator allocator_;
 
@@ -127,6 +126,11 @@ public:
         return header_.memory_block_size() - allocator()->free_space();
     }
 
+    // FIXME: remove this
+    BlockID parent_id1() const noexcept {
+        return BlockID{};
+    }
+
     void init() {
         header_.init();
     }
@@ -163,16 +167,6 @@ public:
 
     BlockID& next_leaf_id() {
         return next_leaf_id_;
-    }
-
-    const BlockID& parent_id() const
-    {
-        return parent_id_;
-    }
-
-    BlockID& parent_id()
-    {
-        return parent_id_;
     }
 
     PackedAllocator* allocator() {
@@ -264,10 +258,10 @@ public:
     void initAllocator(int32_t entries)
     {
         int32_t block_size = this->header().memory_block_size();
-        MEMORIA_V1_ASSERT(block_size, >, (int)sizeof(MyType) + PackedAllocator::my_size());
+        MEMORIA_V1_ASSERT(block_size, >, static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size());
 
         allocator_.allocatable().setTopLevelAllocator();
-        OOM_THROW_IF_FAILED(allocator_.init(block_size - sizeof(MyType) + PackedAllocator::my_size(), entries), MMA_SRC);
+        OOM_THROW_IF_FAILED(allocator_.init(block_size - static_cast<int>(sizeof(MyType)) + PackedAllocator::my_size(), entries), MMA_SRC);
     }
 
     void resizeBlock(int32_t new_size)
@@ -328,8 +322,6 @@ public:
 
         handler->value("NEXT_LEAF_ID_", &next_leaf_id_);
 
-        handler->value("PARENT_ID", &parent_id_);
-
         allocator()->generateDataEvents(handler);
 
         ForEach<0, StreamsStart>::process(GenerateDataEventsFn<MetadataTypesList>(), handler, allocator());
@@ -366,8 +358,6 @@ public:
 
         FieldFactory<BlockID>::serialize(buf, next_leaf_id_);
 
-        FieldFactory<BlockID>::serialize(buf, parent_id_);
-
         allocator()->serialize(buf);
 
         ForEach<0, StreamsStart>::process(SerializeFn<MetadataTypesList>(), buf, allocator());
@@ -400,8 +390,6 @@ public:
         FieldFactory<int32_t>::deserialize(buf, level_);
 
         FieldFactory<BlockID>::deserialize(buf, next_leaf_id_);
-
-        FieldFactory<BlockID>::deserialize(buf, parent_id_);
 
         allocator()->deserialize(buf);
 
@@ -515,7 +503,7 @@ private:
     struct InitFn {
         uint64_t active_streams_;
 
-        InitFn(int64_t active_streams): active_streams_(active_streams) {}
+        InitFn(uint64_t active_streams): active_streams_(active_streams) {}
 
         int32_t block_size(int32_t items_number) const
         {
@@ -882,8 +870,6 @@ struct TypeHash<bt::TreeNodeBase<Metadata, Base>> {
            // TypeHashV<Base>,
             TargetType::VERSION,
             TargetType::StreamsStart,
-            TypeHashV<int32_t>,
-            TypeHashV<int32_t>,
             TypeHashV<int32_t>,
             TypeHashV<int32_t>,
             TypeHashV<int32_t>,

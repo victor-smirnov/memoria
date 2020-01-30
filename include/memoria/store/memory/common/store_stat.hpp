@@ -80,12 +80,9 @@ class SnapshotStatsCountingConsumer {
 
     Snapshot* current_snapshot_{};
     _::BlockSet& visited_blocks_;
-    bool include_containers_;
 
     using CtrID = typename Snapshot::CtrID;
     using Profile = typename Snapshot::ProfileT;
-
-    std::unordered_map<CtrID, CtrStat> ctr_stat_{};
 
     uint64_t total_ptree_size_{};
     uint64_t total_data_size_{};
@@ -93,10 +90,9 @@ class SnapshotStatsCountingConsumer {
 
 
 public:
-    SnapshotStatsCountingConsumer(_::BlockSet& visits, Snapshot* snp, bool include_containers):
+    SnapshotStatsCountingConsumer(_::BlockSet& visits, Snapshot* snp):
         current_snapshot_(snp),
-        visited_blocks_(visits),
-        include_containers_(include_containers)
+        visited_blocks_(visits)
     {}
 
     template <typename BlockT>
@@ -130,60 +126,21 @@ public:
     {
         bool proceed_next = visited_blocks_.find(block) == visited_blocks_.end();
         if (proceed_next)
-        {
-            if (include_containers_)
-            {
-                CtrBlockDescription<Profile> descr = current_snapshot_->describe_block(block->id()).get_or_terminate();
-
-                CtrStat& stat = ctr_stat_[descr.ctr_name()];
-
-                if (descr.is_branch())
-                {
-                    stat.total_branch_blocks_ ++;
-                    stat.total_branch_size_ += descr.size() / 1024;
-                }
-                else {
-                    stat.total_leaf_blocks_ ++;
-                    stat.total_leaf_size_ += descr.size() / 1024;
-                }
-
-                total_data_size_ += descr.size() / 1024;
-            }
-            else {
-                total_data_size_ += block->memory_block_size() / 1024;
-            }
-
+        {            
+            total_data_size_ += block->memory_block_size() / 1024;
             visited_blocks_.insert(block);
         }
     }
 
 
-    SharedPtr<SnapshotMemoryStat> finish()
+    SharedPtr<SnapshotMemoryStat<Profile>> finish()
     {
-        SharedPtr<SnapshotMemoryStat> snp_stat = MakeShared<SnapshotMemoryStat>(
+        SharedPtr<SnapshotMemoryStat<Profile>> snp_stat = MakeShared<SnapshotMemoryStat<Profile>>(
                 current_snapshot_->uuid(),
                 total_ptree_size_,
                 total_data_size_,
                 total_ptree_size_ + total_data_size_
         );
-
-        for (const auto& ctr_stat_item: ctr_stat_)
-        {
-            CtrID ctr_name = ctr_stat_item.first;
-            const CtrStat& stat = ctr_stat_item.second;
-
-            SharedPtr<ContainerMemoryStat> ctr_mem_stat = MakeShared<ContainerMemoryStat>(
-                    ctr_name,
-                    current_snapshot_->ctr_type_name(ctr_name).get_or_terminate(),
-                    stat.total_leaf_blocks_,
-                    stat.total_branch_blocks_,
-                    stat.total_leaf_size_,
-                    stat.total_branch_size_,
-                    stat.total_leaf_size_ + stat.total_branch_size_
-            );
-
-            snp_stat->add_container_stat(ctr_mem_stat);
-        }
 
         return snp_stat;
     }

@@ -49,16 +49,29 @@ protected:
     typedef typename Types::Position                                            Position;
 
 public:
+    Result<NodeBaseG> ctr_get_block(const BlockID& block_id) const noexcept
+    {
+        auto& self = this->self();
+        return static_cast_block<NodeBaseG>(self.store().getBlock(block_id));
+    }
+
+    Result<NodeBaseG> ctr_get_block_for_update(const BlockID& block_id) const noexcept
+    {
+        auto& self = this->self();
+        return static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(block_id));
+    }
+
+
     Result<NodeBaseG> ctr_get_root_node() const noexcept
     {
         auto& self = this->self();
-        return static_cast_block<NodeBaseG>(self.store().getBlock(self.root()));
+        return self.ctr_get_block(self.root());
     }
 
     Result<NodeBaseG> ctr_get_root_node_for_update() const noexcept
     {
         auto& self = this->self();
-        return static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(self.root()));
+        return self.ctr_get_block_for_update(self.root());
     }
 
 
@@ -106,15 +119,13 @@ public:
         }
     }
 
-    Int32Result ctr_get_parent_idx(const NodeBaseG& node) const noexcept
+    Int32Result ctr_get_parent_idx(const TreePathT& path, size_t level) const noexcept
     {
-        if (MMA_UNLIKELY(node->is_root())) {
+        if (MMA_UNLIKELY(level + 1 >= path.size())) {
             return Int32Result::of(0); // -1?
         }
 
-        MEMORIA_TRY(parent, self().ctr_get_node_parent(node));
-
-        return self().ctr_get_child_idx(parent, node->id());
+        return self().ctr_get_child_idx(path[level + 1], path[level]->id());
     }
 
     // TODO: check noexcept
@@ -174,14 +185,14 @@ protected:
     Result<NodeBaseG> ctr_get_child_fn(Node&& node, int32_t idx) const noexcept
     {
         auto& self = this->self();
-        return static_cast_block<NodeBaseG>(self.store().getBlock(node.value(idx)));
+        return self.ctr_get_block(node.value(idx));
     }
 
     template <typename Node>
-    Result<NodeBaseG> getLastChildFn(Node&& node, int32_t idx) const noexcept
+    Result<NodeBaseG> getLastChildFn(Node&& node) const noexcept
     {
         auto& self = this->self();
-        return static_cast_block<NodeBaseG>(self.store().getBlock(node.value(node->size() - 1)));
+        return self.ctr_get_block(node.value(node.size() - 1));
     }
 
 
@@ -189,11 +200,11 @@ protected:
     Result<NodeBaseG> getChildForUpdateFn(Node&& node, int32_t idx) const noexcept
     {
         auto& self = this->self();
-        return static_cast_block<NodeBaseG>(self.store().getBlockForUpdate(node.value(idx)));
+        return self.ctr_get_block_for_update(node.value(idx));
     }
 
 
-    MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetChildFn, ctr_get_child_fn, Result<NodeBaseG>);
+    MEMORIA_V1_CONST_FN_WRAPPER(GetChildFn, ctr_get_child_fn);
     Result<NodeBaseG> ctr_get_node_child(const NodeBaseG& node, int32_t idx) const noexcept
     {
         using ResultT = Result<NodeBaseG>;
@@ -209,10 +220,10 @@ protected:
     }
 
     MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetLastChildFn, getLastChildFn, Result<NodeBaseG>);
-    Result<NodeBaseG> ctr_get_node_last_child(const NodeBaseG& node, int32_t idx) const noexcept
+    Result<NodeBaseG> ctr_get_node_last_child(const NodeBaseG& node) const noexcept
     {
         using ResultT = Result<NodeBaseG>;
-        ResultT result = self().branch_dispatcher().dispatch(node, GetLastChildFn(self()), idx);
+        ResultT result = self().branch_dispatcher().dispatch(node, GetLastChildFn(self()));
 
         if (result.get().isSet())
         {
@@ -297,7 +308,7 @@ protected:
 
     struct LeafSizesFn {
         template <typename Node, typename... Args>
-        auto treeNode(Node&& node, Args&&... args) {
+        auto treeNode(Node&& node, Args&&...) {
             return node.sizes();
         }
     };
@@ -359,18 +370,18 @@ protected:
 
     // TODO: errors handling
     MEMORIA_V1_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
-    VoidResult ctr_for_all_ids(const NodeBaseG& node, int32_t start, int32_t end, std::function<VoidResult (const BlockID&, int32_t)> fn) const noexcept
+    VoidResult ctr_for_all_ids(const NodeBaseG& node, int32_t start, int32_t end, std::function<VoidResult (const BlockID&)> fn) const noexcept
     {
         return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), start, end, fn);
     }
 
     // TODO: errors handling
-    VoidResult ctr_for_all_ids(const NodeBaseG& node, int32_t start, std::function<VoidResult (const BlockID&, int32_t)> fn) const noexcept
+    VoidResult ctr_for_all_ids(const NodeBaseG& node, int32_t start, std::function<VoidResult (const BlockID&)> fn) const noexcept
     {
         return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), start, fn);
     }
 
-    VoidResult ctr_for_all_ids(const NodeBaseG& node, std::function<VoidResult (const BlockID&, int32_t)> fn) const noexcept
+    VoidResult ctr_for_all_ids(const NodeBaseG& node, std::function<VoidResult (const BlockID&)> fn) const noexcept
     {
         return self().branch_dispatcher().dispatch(node, ForAllIDsFn(), fn);
     }

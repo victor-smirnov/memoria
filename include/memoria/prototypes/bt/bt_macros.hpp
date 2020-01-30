@@ -145,6 +145,17 @@ struct WrapperName {                                    \
     }                                                   \
 }
 
+#define MEMORIA_V1_CONST_STATIC_FN_WRAPPER(WrapperName, TargetMethod)\
+struct WrapperName {                                    \
+    const MyType& me_;                                  \
+    WrapperName(const MyType& v): me_(v) {}             \
+    template <typename T, typename... Args>             \
+    auto treeNode(T&&, Args&&... args) const \
+    {                                                   \
+        return me_.template TargetMethod<std::decay_t<T>>(std::forward<Args>(args)...);\
+    }                                                   \
+}
+
 
 #define MEMORIA_V1_DECLARE_NODE_FN(WrapperName, NodeMethodName)\
 struct WrapperName {                                        \

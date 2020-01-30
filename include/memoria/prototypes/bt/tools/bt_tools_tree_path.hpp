@@ -48,8 +48,8 @@ public:
         return *this;
     }
 
-    void reserve(size_t size) noexcept {
-        path_.reserve(size);
+    void resize(size_t size) noexcept {
+        path_.resize(size);
     }
 
     NodeT& leaf() noexcept {
@@ -68,11 +68,21 @@ public:
         return path_[path_.size() - 1];
     }
 
-    NodeT& operator[](size_t idx) noexcept {
+    NodeT& operator[](size_t idx) noexcept
+    {
+        if (idx >= path_.size()) {
+            terminate("Invalid tree path access");
+        }
+
         return path_[idx];
     }
 
-    const NodeT& operator[](size_t idx) const noexcept {
+    const NodeT& operator[](size_t idx) const noexcept
+    {
+        if (idx >= path_.size()) {
+            terminate("Invalid tree path access");
+        }
+
         return path_[idx];
     }
 

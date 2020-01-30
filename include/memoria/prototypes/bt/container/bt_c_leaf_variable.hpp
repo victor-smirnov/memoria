@@ -317,9 +317,9 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
     MEMORIA_TRY_VOID(mgr.add(tgt));
 
     Position tgt_sizes = self.ctr_get_node_sizes(tgt);
-    int32_t tgt_size   = self.ctr_get_node_size(tgt, 0);
+    //int32_t tgt_size   = self.ctr_get_node_size(tgt, 0);
 
-    Result<NodeBaseG> src_parent = self.ctr_get_node_parent(src);
+    Result<NodeBaseG> src_parent = self.ctr_get_node_parent(src_path, 0);
     MEMORIA_RETURN_IF_ERROR(src_parent);
 
     MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(src_parent.get(), src->id()));
@@ -328,8 +328,6 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
         mgr.rollback();
         return BoolResult::of(false);
     }
-
-    MEMORIA_TRY_VOID(self.ctr_update_children(tgt, tgt_size));
 
     BranchNodeEntry max = self.ctr_get_node_max_keys(tgt);
 

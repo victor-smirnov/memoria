@@ -23,7 +23,6 @@
 #include <memoria/profiles/common/block.hpp>
 #include <memoria/core/container/ctr_referenceable.hpp>
 
-#include <memoria/core/graph/graph.hpp>
 #include <memoria/core/memory/memory.hpp>
 #include <memoria/profiles/common/container_operations.hpp>
 

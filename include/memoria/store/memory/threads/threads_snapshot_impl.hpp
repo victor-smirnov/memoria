@@ -285,11 +285,11 @@ public:
         }
         else if (history_node_->is_data_locked())
         {
-            return ResultT::make_error("Snapshot {} is locked, branching is not possible.", uuid());
+            return VoidResult::make_error_tr("Snapshot {} is locked, branching is not possible.", uuid());
         }
         else
         {
-            return ResultT::make_error("Snapshot {} is still being active. Commit it first.", uuid());
+            return VoidResult::make_error_tr("Snapshot {} is still being active. Commit it first.", uuid());
         }
     }
 
@@ -314,7 +314,7 @@ public:
         }
         else
         {
-            return ResultT::make_error("Snapshot {} has no parent.", uuid());
+            return VoidResult::make_error_tr("Snapshot {} has no parent.", uuid());
         }
     }
 
@@ -410,11 +410,11 @@ public:
         return STLCollection<Edge>::make(std::move(edges));
     }
 
-    Result<SharedPtr<SnapshotMemoryStat>> memory_stat(bool include_containers) noexcept
+    Result<SharedPtr<SnapshotMemoryStat<Profile>>> memory_stat() noexcept
     {
-        using ResultT = Result<SharedPtr<SnapshotMemoryStat>>;
+        using ResultT = Result<SharedPtr<SnapshotMemoryStat<Profile>>>;
         std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
-        return ResultT::of(this->do_compute_memory_stat(include_containers));
+        return ResultT::of(this->do_compute_memory_stat());
     }
 
 

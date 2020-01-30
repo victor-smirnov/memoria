@@ -55,9 +55,10 @@ option(BUILD_WITH_BACKTRACE "Include backtrace suport on Linux" OFF)
 option(BUILD_WITH_STATIC_BOOST "Use static boost libraries" OFF)
 option(BUILD_EMIT_LLVM  "Emit LLVM bytecode for compiled binaries. Implies Clang is the compiler." OFF)
 
-option(BUILD_CONTAINERS "Build stores and containers." ON)
+option(BUILD_CONTAINERS          "Build stores and containers." ON)
 option(BUILD_CONTAINERS_MULTIMAP "Build Multimap<Varchar, Varchar> container." ON)
-option(BUILD_MEMORY_STORE "Build default in-memory store." ON)
+option(BUILD_CONTAINERS_SET      "Build Set<Varchar> container." ON)
+option(BUILD_MEMORY_STORE        "Build default in-memory store." ON)
 
 option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)
 option(BUILD_TESTS_PACKED       "Build Packed Structires tests" ON)
@@ -105,6 +106,11 @@ endif()
 if (BUILD_CONTAINERS_MULTIMAP)
     add_definitions(-DMEMORIA_BUILD_CONTAINERS_MULTIMAP)
 endif()
+
+if (BUILD_CONTAINERS_SET)
+    add_definitions(-DMEMORIA_BUILD_CONTAINERS_SET)
+endif()
+
 
 if (BUILD_MEMORY_STORE)
     add_definitions(-DMEMORIA_BUILD_MEMORY_STORE)

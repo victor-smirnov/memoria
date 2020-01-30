@@ -18,6 +18,7 @@
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
+#include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/core/iovector/io_vector.hpp>
@@ -191,8 +192,8 @@ public:
         using ResultT = Result<Position>;
         auto& self = this->self();
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(leaf));
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_layout_leaf_node(leaf, Position(0)));
+        MEMORIA_TRY_VOID(self.ctr_update_block_guard(leaf));
+        MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(leaf, Position(0)));
 
         BoolResult has_data_res = provider.hasData();
         if (has_data_res.get())
@@ -217,22 +218,18 @@ public:
 
 
     class InsertDataResult {
-        NodeBaseG leaf_;
         Position position_;
     public:
-        InsertDataResult(NodeBaseG leaf, const Position& position = Position()): leaf_(leaf), position_(position){}
-
-        NodeBaseG& iter_leaf() {return leaf_;}
-        const NodeBaseG& iter_leaf() const {return leaf_;}
+        InsertDataResult(const Position& position = Position()): position_(position){}
 
         const Position& position() const {return position_;}
         Position& position() {return position_;}
     };
 
     template <typename Provider>
-    Result<InsertDataResult> ctr_insert_provided_data(TreePathT& path, const Position& pos, Provider& provider) noexcept
+    VoidResult ctr_insert_provided_data(TreePathT& path, Position& pos, Provider& provider) noexcept
     {
-        using ResultT = Result<InsertDataResult>;
+        using ResultT = VoidResult;
 
         auto& self = this->self();
 
@@ -251,35 +248,26 @@ public:
                 auto split_leaf_res = self.ctr_split_leaf(path, right_path, last_pos);
                 MEMORIA_RETURN_IF_ERROR(split_leaf_res);
 
-                auto res0 = self.ctr_insert_data_into_leaf(leaf, last_pos, provider);
-                MEMORIA_RETURN_IF_ERROR(res0);
-
+                MEMORIA_TRY(last_leaf_pos, self.ctr_insert_data_into_leaf(leaf, last_pos, provider));
                 MEMORIA_TRY(has_data2, provider.hasData());
 
                 if (has_data2)
                 {
-                    return ctr_insert_data_rest(path, right_path, provider);
+                    return ctr_insert_data_rest(path, pos, provider);
                 }
                 else {
-                    return ResultT::of(right_path.leaf(), Position());
+                    pos = last_leaf_pos;
                 }
             }
             else {
-                TreePathT next_path = path;
-                MEMORIA_TRY(has_next_leaf, self.ctr_get_next_node(next_path, 0));
-
-                if (has_next_leaf)
-                {
-                    return ctr_insert_data_rest(path, next_path, provider);
-                }
-                else {
-                    return ctr_insert_data_rest(path, provider);
-                }
+                return ctr_insert_data_rest(path, pos, provider);
             }
         }
         else {
-            return ResultT::of(leaf, last_pos);
+            pos = last_pos;
         }
+
+        return ResultT::of();
     }
 
 
@@ -298,7 +286,6 @@ public:
         MEMORIA_RETURN_IF_ERROR(meta_res);
 
         int32_t block_size = meta_res.get().memory_block_size();
-
 
         while (true)
         {
@@ -342,114 +329,85 @@ public:
 
 
     template <typename Provider>
-    Result<InsertDataResult> ctr_insert_data_rest(TreePathT& path, TreePathT& next_path, Provider& provider) noexcept
+    VoidResult ctr_insert_data_rest(TreePathT& path, Position& end_pos, Provider& provider) noexcept
     {
-        using ResultT = Result<InsertDataResult>;
+        using ResultT = VoidResult;
         auto& self = this->self();
 
         NodeBaseG leaf = path.leaf();
-        NodeBaseG next_leaf = next_path.leaf();
-
-        provider.split_watcher().first = leaf;
 
         auto leaf_list = self.ctr_create_leaf_data_list(provider);
         MEMORIA_RETURN_IF_ERROR(leaf_list);
 
-        if (provider.split_watcher().second.isSet())
-        {
-            leaf = provider.split_watcher().second;
-        }
-
-        MEMORIA_TRY(leaf_parent_idx, self.ctr_get_parent_idx(leaf));
-
-        int32_t path_parent_idx = leaf_parent_idx + 1;
-
         if (leaf_list.get().size() > 0)
         {
+            if (leaf->is_root())
+            {
+                MEMORIA_TRY_VOID(self.ctr_create_new_root_block(path));
+            }
+
+            MEMORIA_TRY(leaf_parent_idx, self.ctr_get_parent_idx(path, 0));
+            int32_t path_parent_idx = leaf_parent_idx + 1;
+
             using LeafListProvider = typename Base::ListLeafProvider;
 
             LeafListProvider list_provider(self, leaf_list.get().head(), leaf_list.get().size());
 
-            Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(path, 0);
-            MEMORIA_RETURN_IF_ERROR(parent);
-
-            auto res0 = self.ctr_insert_subtree(path, 1, path_parent_idx, list_provider);
-            MEMORIA_RETURN_IF_ERROR(res0);
+            MEMORIA_TRY_VOID(self.ctr_insert_subtree(path, 1, path_parent_idx, list_provider));
 
             auto& last_leaf = leaf_list.get().tail();
 
             auto last_leaf_size = self.ctr_get_leaf_stream_sizes(last_leaf);
 
-            // FIXME: ctr_insert_subtree should return path to the last leaf, somehow...
-            //auto res1 = self.ctr_merge_leaf_nodes(last_leaf, next_leaf, [](const Position&){return VoidResult::of();});
-            //MEMORIA_RETURN_IF_ERROR(res1);
+            TreePathT next_path = path;
+            MEMORIA_TRY(has_next_leaf, self.ctr_get_next_node(next_path, 0));
 
-            BoolResult res1 = BoolResult::of(false);
-
-            if (res1.get())
+            if (has_next_leaf)
             {
-                return ResultT::of(last_leaf, last_leaf_size);
+                MEMORIA_TRY(
+                    has_merge,
+                    self.ctr_merge_leaf_nodes(path, next_path, [](const Position&){return VoidResult::of();})
+                );
+
+                if (has_merge)
+                {
+                    end_pos = last_leaf_size;
+                }
+                else {
+                    end_pos = Position{};
+                    path = next_path;
+                }
             }
             else {
-                return ResultT::of(next_leaf);
+                end_pos = last_leaf_size;
             }
         }
-        else {
-            return ResultT::of(next_leaf);
-        }
+
+        return ResultT::of();
     }
 
 
-    template <typename Provider>
-    Result<InsertDataResult> ctr_insert_data_rest(TreePathT& path, Provider& provider) noexcept
+    VoidResult complete_tree_path(TreePathT& path, const NodeBaseG& node) const noexcept
     {
-        using ResultT = Result<InsertDataResult>;
         auto& self = this->self();
 
-        NodeBaseG leaf = path.leaf();
+        size_t level = node->level();
+        path[level] = node;
 
-        if (leaf->is_root())
+        if (!node->is_leaf())
         {
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_create_new_root_block(path));
+            MEMORIA_TRY(last_child, self.ctr_get_node_last_child(node));
+            return complete_tree_path(path, last_child);
         }
 
-        provider.split_watcher().first = leaf;
-
-        auto leaf_list = self.ctr_create_leaf_data_list(provider);
-        MEMORIA_RETURN_IF_ERROR(leaf_list);
-
-        if (provider.split_watcher().second.isSet())
-        {
-            leaf = provider.split_watcher().second;
-        }
-
-        MEMORIA_TRY(leaf_parent_idx, self.ctr_get_parent_idx(leaf));
-        int32_t path_parent_idx = leaf_parent_idx + 1;
-
-        if (leaf_list.get().size() > 0)
-        {
-            using LeafListProvider = typename Base::ListLeafProvider;
-
-            LeafListProvider list_provider(self, leaf_list.get().head(), leaf_list.get().size());
-
-            auto res = self.ctr_insert_subtree(path, 1, path_parent_idx, list_provider);
-            MEMORIA_RETURN_IF_ERROR(res);
-
-            auto& last_leaf = leaf_list.get().tail();
-
-            auto last_leaf_size = self.ctr_get_leaf_stream_sizes(last_leaf);
-
-            return ResultT::of(last_leaf, last_leaf_size);
-        }
-        else {
-            auto iter_leaf_size = self.ctr_get_leaf_stream_sizes(leaf);
-            return ResultT::of(leaf, iter_leaf_size);
-        }
+        return VoidResult::of();
     }
 
     template <typename Fn, typename... Args>
     Result<SplitStatus> ctr_update_atomic(Iterator& iter, Fn&& fn, Args&&... args) noexcept
     {
+        using ResultT = Result<SplitStatus>;
+
         auto& self = this->self();
 
         BlockUpdateMgr mgr(self);
@@ -479,11 +437,13 @@ public:
                     iter.iter_leaf(),
                     fn,
                     std::forward<Args>(args)...
-                    );
+        );
 
-        OOM_THROW_IF_FAILED(fn.status_, MMA_SRC);
+        if (isFail(fn.status_)) {
+            return ResultT::make_error("PackedOOMException");
+        }
 
-        return status;
+        return ResultT::of(status);
     }
 
 MEMORIA_V1_CONTAINER_PART_END

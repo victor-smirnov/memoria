@@ -40,8 +40,6 @@ public:
     using CtrSizeT          = int64_t;
     static const int32_t DataStreams = Types::DataStreams;
 
-    using IOVResult = core::StaticVector<CtrSizeT, DataStreams>;
-
 public:
 
 #ifdef MMA_USE_IOBUFFER
@@ -51,9 +49,9 @@ public:
 
     static const int32_t Streams = Types::Streams;
 
-    Result<IOVResult> ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
+    VoidResult ctr_insert_iovector(Iterator& iter, io::IOVectorProducer& provider, int64_t start, int64_t length)
     {
-        using ResultT = Result<IOVResult>;
+        using ResultT = VoidResult;
 
         auto& self = this->self();
 
@@ -65,30 +63,29 @@ public:
 
         auto pos = iter.iter_leafrank(iter.iter_local_pos());
 
-        auto result = self.ctr_insert_provided_data(iter.path(), pos, streaming);
-        MEMORIA_RETURN_IF_ERROR(result);
+        MEMORIA_TRY_VOID(self.ctr_insert_provided_data(iter.path(), pos, streaming));
 
-        iter.iter_local_pos() = result.get().position().sum();
-        iter.iter_leaf().assign(result.get().iter_leaf());
+        iter.iter_local_pos() = pos.sum();
+        iter.refresh_iovector_view();
 
         if (iter.iter_leaf()->id() != id) {
             auto res = iter.iter_refresh();
             MEMORIA_RETURN_IF_ERROR(res);
         }
 
-        return ResultT::of(streaming.totals());
+        return ResultT::of();
     }
 
     struct BTFLIOVectorProducer: io::IOVectorProducer {
-        virtual bool populate(io::IOVector& io_vector)
+        virtual bool populate(io::IOVector&)
         {
             return true; // provided io_vector has been already populated
         }
     };
 
-    Result<IOVResult> ctr_insert_iovector(Iterator& iter, io::IOVector& iovector, int64_t start, int64_t length)
+    VoidResult ctr_insert_iovector(Iterator& iter, io::IOVector& iovector, int64_t start, int64_t length)
     {
-        using ResultT = Result<IOVResult>;
+        using ResultT = VoidResult;
 
         auto& self = this->self();
 
@@ -102,16 +99,16 @@ public:
 
         auto pos = iter.iter_leafrank(iter.iter_local_pos());
 
-        auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
+        MEMORIA_TRY_VOID(self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming));
 
-        iter.iter_local_pos()  = result.position().sum();
-        iter.iter_leaf().assign(result.iter_leaf());
+        iter.iter_local_pos()  = pos.sum();
+        iter.refresh_iovector_view();
 
         if (iter.iter_leaf()->id() != id) {
             iter.iter_refresh();
         }
 
-        return ResultT::of(streaming.totals());
+        return ResultT::of();
     }
 
 MEMORIA_V1_CONTAINER_PART_END

@@ -77,9 +77,6 @@ Result<OpStatus> M_TYPE::ctr_split_branch_node(NodeBaseG& src, NodeBaseG& tgt, i
         return ResultT::of(OpStatus::FAIL);
     }
 
-    auto res = self.ctr_update_children(tgt);
-    MEMORIA_RETURN_IF_ERROR(res);
-
     return ResultT::of(OpStatus::OK);
 }
 
@@ -102,10 +99,9 @@ VoidResult M_TYPE::ctr_create_new_root_block(TreePathT& path) noexcept
 
     path.add_root(new_root);
 
-    Result<OpStatus> status = self.ctr_insert_to_branch_node(path, 0, 0, max, root->id());
-    MEMORIA_RETURN_IF_ERROR(status);
+    MEMORIA_TRY(status, self.ctr_insert_to_branch_node(path, new_root->level(), 0, max, root->id()));
 
-    if (isFail(status.get())) {
+    if (isFail(status)) {
         return VoidResult::make_error("PackedOOMException");
     }
 

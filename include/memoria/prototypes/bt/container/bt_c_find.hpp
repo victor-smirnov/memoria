@@ -47,10 +47,8 @@ public:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(SizesFn, size_sums, Position);
     Result<Position> sizes() const noexcept
     {
-        Result<NodeBaseG> node = self().ctr_get_root_node();
-        MEMORIA_RETURN_IF_ERROR(node);
-
-        return self().node_dispatcher().dispatch(node.get(), SizesFn());
+        MEMORIA_TRY(node, self().ctr_get_root_node());
+        return self().node_dispatcher().dispatch(node, SizesFn());
     }
 
 protected:
@@ -266,16 +264,15 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_fw(
                 return ResultT::of(result.local_pos(), cmd);
             }
             else {
-                auto child = self.ctr_get_node_child(node, result.local_pos());
-                MEMORIA_RETURN_IF_ERROR(child);
+                MEMORIA_TRY(child, self.ctr_get_node_child(node, result.local_pos()));
 
-                end_path.set(level - 1, child.get());
+                end_path.set(level - 1, child);
 
                 return ctr_find_fw(
                             start_path,
                             end_path,
                             level - 1,
-                            NodeChain(self, child.get(), 0, &node_chain),
+                            NodeChain(self, child, 0, &node_chain),
                             std::forward<Walker>(walker),
                             WalkDirection::DOWN
                 );
@@ -284,24 +281,21 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_fw(
         else {
             if (!node_chain.node->is_root())
             {
-                auto parent = self.ctr_get_node_parent(start_path, level);
-                MEMORIA_RETURN_IF_ERROR(parent);
+                MEMORIA_TRY(parent, self.ctr_get_node_parent(start_path, level));
+                MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
 
-                MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), node->id()));
-
-                auto parent_result = ctr_find_fw(
+                MEMORIA_TRY(find_up, ctr_find_fw(
                             start_path,
                             end_path,
                             level + 1,
-                            NodeChain(self, parent.get(), parent_idx + 1, &node_chain),
+                            NodeChain(self, parent, parent_idx + 1, &node_chain),
                             std::forward<Walker>(walker),
                             WalkDirection::UP
-                );
-                MEMORIA_RETURN_IF_ERROR(parent_result);
+                ));
 
-                if (parent_result.get().pass)
+                if (find_up.pass)
                 {
-                    return parent_result;
+                    return find_up_result;
                 }
             }
 
@@ -315,16 +309,14 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_fw(
                 self.branch_dispatcher().dispatch(node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, start, result.local_pos() - 1);
                 node_chain.end = result.local_pos() - 1;
 
-                auto child = self.ctr_get_node_child(node, result.local_pos() - 1);
-                MEMORIA_RETURN_IF_ERROR(child);
-
-                end_path.set(level - 1, child.get());
+                MEMORIA_TRY(child, self.ctr_get_node_child(node, result.local_pos() - 1));
+                end_path.set(level - 1, child);
 
                 return ctr_find_fw(
                             start_path,
                             end_path,
                             level - 1,
-                            NodeChain(self, child.get(), 0, &node_chain),
+                            NodeChain(self, child, 0, &node_chain),
                             std::forward<Walker>(walker),
                             WalkDirection::DOWN
                 );
@@ -341,16 +333,15 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_fw(
     }
     else if (!result.out_of_range())
     {
-        auto child = self.ctr_get_node_child(node_chain.node, result.local_pos());
-        MEMORIA_RETURN_IF_ERROR(child);
+        MEMORIA_TRY(child, self.ctr_get_node_child(node_chain.node, result.local_pos()));
 
-        end_path.set(level - 1, child.get());
+        end_path.set(level - 1, child);
 
         return ctr_find_fw(
                     start_path,
                     end_path,
                     level - 1,
-                    NodeChain(self, child.get(), 0, &node_chain),
+                    NodeChain(self, child, 0, &node_chain),
                     std::forward<Walker>(walker),
                     WalkDirection::DOWN
         );
@@ -360,16 +351,15 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_fw(
         self.branch_dispatcher().dispatch(node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, start, result.local_pos() - 1);
         node_chain.end = result.local_pos() - 1;
 
-        auto child = self.ctr_get_node_child(node_chain.node, result.local_pos() - 1);
-        MEMORIA_RETURN_IF_ERROR(child);
+        MEMORIA_TRY(child, self.ctr_get_node_child(node_chain.node, result.local_pos() - 1));
 
-        end_path.set(level - 1, child.get());
+        end_path.set(level - 1, child);
 
         return ctr_find_fw(
                     start_path,
                     end_path,
                     level - 1,
-                    NodeChain(self, child.get(), 0, &node_chain),
+                    NodeChain(self, child, 0, &node_chain),
                     std::forward<Walker>(walker),
                     WalkDirection::DOWN
         );
@@ -408,14 +398,13 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(
                 return ResultT::of(result.local_pos(), cmd);
             }
             else {
-                auto child = self.ctr_get_node_child(node_chain.node, result.local_pos());
-                MEMORIA_RETURN_IF_ERROR(child);
+                MEMORIA_TRY(child, self.ctr_get_node_child(node_chain.node, result.local_pos()));
 
                 return ctr_find_bw(
                             start_path,
                             end_path,
                             level - 1,
-                            NodeChain(child.get(), max, &node_chain),
+                            NodeChain(child, max, &node_chain),
                             std::forward<Walker>(walker),
                             WalkDirection::DOWN
                 );
@@ -424,24 +413,21 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(
         else {
             if (!node_chain.node->is_root())
             {
-                auto parent = self.ctr_get_node_parent(node_chain.node);
-                MEMORIA_RETURN_IF_ERROR(parent);
-
+                MEMORIA_TRY(parent, self.ctr_get_node_parent(node_chain.node));
                 MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node_chain.node->id()));
 
-                auto parent_result  = ctr_find_bw(
+                MEMORIA_TRY(find_up, ctr_find_bw(
                             start_path,
                             end_path,
                             level + 1,
-                            NodeChain(parent.get(), parent_idx - 1, &node_chain),
+                            NodeChain(parent, parent_idx - 1, &node_chain),
                             std::forward<Walker>(walker),
                             WalkDirection::UP
-                );
-                MEMORIA_RETURN_IF_ERROR(parent_result);
+                ));
 
-                if (parent_result.get().pass)
+                if (find_up.get().pass)
                 {
-                    return parent_result;
+                    return find_up_result;
                 }
             }
 
@@ -455,14 +441,13 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(
                 self.branch_dispatcher().dispatch(node_chain.node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, node_chain.start, result.local_pos());
                 node_chain.end = result.local_pos();
 
-                auto child = self.ctr_get_node_child(node_chain.node, result.local_pos() + 1);
-                MEMORIA_RETURN_IF_ERROR(child);
+                MEMORIA_TRY(child, self.ctr_get_node_child(node_chain.node, result.local_pos() + 1));
 
                 return ctr_find_bw(
                             start_path,
                             end_path,
                             level - 1,
-                            NodeChain(child.get(), max, &node_chain),
+                            NodeChain(child, max, &node_chain),
                             std::forward<Walker>(walker),
                             WalkDirection::DOWN
                 );
@@ -479,8 +464,7 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(
     }
     else if (!result.out_of_range())
     {
-        auto child = self.ctr_get_node_child(node_chain.node, result.local_pos());
-        MEMORIA_RETURN_IF_ERROR(child);
+        MEMORIA_TRY(child, self.ctr_get_node_child(node_chain.node, result.local_pos()));
 
         return ctr_find_bw(
                     start_path,
@@ -496,8 +480,7 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(
         self.branch_dispatcher().dispatch(node_chain.node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, node_chain.start, result.local_pos());
         node_chain.end = result.local_pos();
 
-        auto child = self.ctr_get_node_child(node_chain.node, result.local_pos() + 1);
-        MEMORIA_RETURN_IF_ERROR(child);
+        MEMORIA_TRY(child, self.ctr_get_node_child(node_chain.node, result.local_pos() + 1));
 
         return ctr_find_bw(
                     start_path,
@@ -526,10 +509,9 @@ Result<typename M_TYPE::IteratorPtr> M_TYPE::ctr_find(Walker&& walker) const noe
 
     i->iter_prepare();
 
-    Result<NodeBaseG> node_res = self.ctr_get_root_node();
-    MEMORIA_RETURN_IF_ERROR(node_res);
+    MEMORIA_TRY(node, self.ctr_get_root_node());
 
-    NodeBaseG node = node_res.get();
+    i->path().resize(node->level() + 1);
 
     if (node.isSet())
     {
@@ -548,11 +530,11 @@ Result<typename M_TYPE::IteratorPtr> M_TYPE::ctr_find(Walker&& walker) const noe
 
             self.branch_dispatcher().dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
 
-            auto res1 = self.ctr_get_node_child(node, idx);
-            MEMORIA_RETURN_IF_ERROR(res1);
-
-            node = res1.get();
+            MEMORIA_TRY(child, self.ctr_get_node_child(node, idx));
+            node = child;
         }
+
+        i->path().set(node->level(), node);
 
         auto result = self.leaf_dispatcher().dispatch(node, walker, WalkDirection::DOWN, 0);
 
@@ -564,6 +546,7 @@ Result<typename M_TYPE::IteratorPtr> M_TYPE::ctr_find(Walker&& walker) const noe
     }
 
     i->iter_init();
+    i->refresh_iovector_view();
 
     return ResultT::of(std::move(i));
 }

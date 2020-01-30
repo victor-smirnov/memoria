@@ -134,16 +134,13 @@ void MainWindow::item_selected()
 
         if (item->node_type() == "block")
         {
-            VertexTreeItem* vx_item = static_cast<VertexTreeItem*>(item);
-            VertexProperty content_prop = vx_item->vertex().property("content");
+            CtrBlockTreeItem* block_item = static_cast<CtrBlockTreeItem*>(item);
 
-            if (!content_prop.is_empty())
-            {
-                U16String text = boost::any_cast<U16String>(content_prop.value());
+            std::stringstream ss;
+            block_item->block()->describe(ss).get_or_throw();
 
-                plainTextEdit->clear();
-                plainTextEdit->insertPlainText(QString::fromUtf16(text.data()));
-            }
+            plainTextEdit->clear();
+            plainTextEdit->insertPlainText(QString::fromUtf8(ss.str().data()));
         }
         else {
             plainTextEdit->clear();
