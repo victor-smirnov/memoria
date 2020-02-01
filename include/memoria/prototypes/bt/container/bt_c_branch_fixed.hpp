@@ -65,15 +65,13 @@ public:
     ) noexcept;
 
     VoidResult ctr_split_path(
-            TreePathT& left_path,
-            TreePathT& right_path,
+            TreePathT& path,
             size_t level,
             int32_t split_at
     ) noexcept;
 
     VoidResult ctr_split_node(
-            TreePathT& left_path,
-            TreePathT& right_path,
+            TreePathT& path,
             size_t level,
             SplitFn split_fn
     ) noexcept;
@@ -152,12 +150,13 @@ Result<OpStatus> M_TYPE::ctr_insert_to_branch_node(
 M_PARAMS
 VoidResult M_TYPE::ctr_split_node(
         TreePathT& left_path,
-        TreePathT& right_path,
         size_t level,
         SplitFn split_fn
 ) noexcept
 {
     using ResultT = VoidResult;
+
+    TreePathT right_path;
 
     auto& self = this->self();
 
@@ -200,7 +199,7 @@ VoidResult M_TYPE::ctr_split_node(
         }
     }
     else {
-        MEMORIA_TRY_VOID(ctr_split_path(left_path, right_path, level + 1, parent_idx + 1));
+        MEMORIA_TRY_VOID(ctr_split_path(left_path, level + 1, parent_idx + 1));
 
         auto res = self.ctr_insert_to_branch_node(right_path, level + 1, 0, right_max, right_node->id());
         MEMORIA_RETURN_IF_ERROR(res);
@@ -216,8 +215,7 @@ VoidResult M_TYPE::ctr_split_node(
 
 M_PARAMS
 VoidResult M_TYPE::ctr_split_path(
-        TreePathT& left_path,
-        TreePathT& right_path,
+        TreePathT& path,
         size_t level,
         int32_t split_at
 ) noexcept
@@ -225,8 +223,7 @@ VoidResult M_TYPE::ctr_split_path(
     auto& self = this->self();
 
     return ctr_split_node(
-                left_path,
-                right_path,
+                path,
                 level,
                 [&self, split_at](NodeBaseG& left, NodeBaseG& right) noexcept -> VoidResult
     {

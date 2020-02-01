@@ -306,7 +306,7 @@ public:
             {
                 MEMORIA_TRY(right_parent_idx, self.ctr_get_child_idx(right_parent, right->id()));
 
-                auto res = self.ctr_split_path(left_path, right_path, 1, right_parent_idx);
+                auto res = self.ctr_split_path(left_path, 1, right_parent_idx);
                 MEMORIA_RETURN_IF_ERROR(res);
 
                 //right_parent = res.get();
@@ -392,7 +392,8 @@ public:
 
             if (result.get().local_pos() < node_size)
             {
-                MEMORIA_TRY_VOID(self.ctr_split_path(path, next, 0, result.get().local_pos()));
+                // FIXME: next path
+                MEMORIA_TRY_VOID(self.ctr_split_path(path, 0, result.get().local_pos()));
                 has_next_node = true;
             }
             else {

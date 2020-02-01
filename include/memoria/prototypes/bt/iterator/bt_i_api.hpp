@@ -351,7 +351,7 @@ BoolResult M_TYPE::iter_find_next_leaf(Walker&& walker) noexcept
 
         int32_t size = self.ctr().ctr_get_node_size(parent, stream);
 
-        MEMORIA_V1_ASSERT_TRUE(size > 0);
+        MEMORIA_V1_ASSERT_RTN(size, >, 0);
 
         int32_t child_idx;
 
@@ -398,7 +398,7 @@ BoolResult M_TYPE::iter_find_prev_leaf(Walker&& walker) noexcept
 
         int32_t size = self.model().ctr_get_node_size(parent, stream);
 
-        MEMORIA_V1_ASSERT_TRUE(size > 0);
+        MEMORIA_V1_ASSERT_RTN(size, >, 0);
 
         int32_t child_idx;
 

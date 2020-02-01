@@ -43,7 +43,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(btss::IteratorMiscName)
     using Position = typename Container::Types::Position;
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
-
+    using TreePathT = typename Container::TreePathT;
 
 public:
     int32_t iovector_pos() const noexcept {
@@ -325,18 +325,14 @@ public:
         int32_t size        = self.iter_leaf_size(0);
         int32_t split_idx   = size/2;
 
-        TreePath left_path  = self.path();
-        TreePath right_path = self.path();
-
-        MEMORIA_TRY_VOID(self.ctr().ctr_split_leaf(left_path, right_path, Position::create(0, split_idx)));
+        MEMORIA_TRY_VOID(self.ctr().ctr_split_leaf(self.path(), Position::create(0, split_idx)));
 
         if (idx > split_idx)
         {
-            self.path() = right_path;
-
+            MEMORIA_TRY_VOID(self.ctr().ctr_get_next_node(self.path(), 0));
             idx -= split_idx;
-
             MEMORIA_TRY_VOID(self.iter_refresh());
+            self.refresh_iovector_view();
         }
 
         if (target_idx > split_idx)

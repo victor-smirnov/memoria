@@ -52,19 +52,21 @@ protected:
 
 public:
     VoidResult ctr_split_leaf(
-            TreePathT& left_path,
-            TreePathT& right_path,
+            TreePathT& path,
             const Position& split_at
     ) noexcept
     {
         auto& self = this->self();
 
-        return self.ctr_split_node(left_path, right_path, 0, [&self, &split_at](NodeBaseG& left, NodeBaseG& right) noexcept -> VoidResult {
-            auto res = self.ctr_split_leaf_node(left, right, split_at);
-            MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY_VOID(self.ctr_split_node(path, 0, [&self, &split_at](NodeBaseG& left, NodeBaseG& right) noexcept -> VoidResult {
+            MEMORIA_TRY_VOID(self.ctr_split_leaf_node(left, right, split_at));
             // FIXME: handle OpStatus from res here? Or just remove it from the func defn?
             return VoidResult::of();
-        });
+        }));
+
+        MEMORIA_TRY_VOID(self.ctr_check_path(path));
+
+        return VoidResult::of();
     }
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, OpStatus);
@@ -243,9 +245,7 @@ public:
             // has to be defined in subclasses
             if (!self.ctr_is_at_the_end(leaf, last_pos))
             {
-                TreePathT right_path = path;
-
-                auto split_leaf_res = self.ctr_split_leaf(path, right_path, last_pos);
+                auto split_leaf_res = self.ctr_split_leaf(path, last_pos);
                 MEMORIA_RETURN_IF_ERROR(split_leaf_res);
 
                 MEMORIA_TRY(last_leaf_pos, self.ctr_insert_data_into_leaf(leaf, last_pos, provider));

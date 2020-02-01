@@ -327,7 +327,7 @@ public:
         }
 
         out_ << std::endl;
-    };
+    }
 
     virtual void endGroup()
     {
@@ -335,7 +335,7 @@ public:
     }
 
 
-    virtual void startLine(const char* name, int32_t size = -1)
+    virtual void startLine(const char* name, int32_t = -1)
     {
         dumpLineHeader(out_, level_, cnt_++, name);
         line_ = true;

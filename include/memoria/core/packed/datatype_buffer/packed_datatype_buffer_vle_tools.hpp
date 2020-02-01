@@ -201,7 +201,7 @@ public:
 
         shift_offsets_left(room_end, offsets_size, data_length);
 
-        MemMoveBuffer(offsets + room_end, offsets + room_start, offsets_size - size);
+        MemMoveBuffer(offsets + room_end, offsets + room_start, offsets_size - room_end);
         MemMoveBuffer(data + data_end, data + data_start, meta.data_size(Dimension) - data_end);
 
         meta.data_size(Dimension) -= data_length;
@@ -336,7 +336,7 @@ public:
     {
         auto* offsets = this->offsets();
 
-        psize_t local_offset_prefix = offsets[0];
+        psize_t local_offset_prefix = offsets[idx];
 
         MemCpyBuffer(span.data(), this->data() + local_offset_prefix, span.length());
 

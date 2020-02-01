@@ -266,7 +266,7 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(TreePathT& pat
         return ResultT::make_error("PackedOOMException");
     }
 
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(path, 0));
+    MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
 
     return ResultT::of(end - start);
 }

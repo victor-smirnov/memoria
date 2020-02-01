@@ -304,7 +304,7 @@ public:
             {
                 MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(right_parent, right->id()));
 
-                auto res = self.ctr_split_path(left_path, right_path, level + 1, parent_idx);
+                auto res = self.ctr_split_path(left_path, level + 1, parent_idx);
                 MEMORIA_RETURN_IF_ERROR(res);
             }
 
@@ -366,44 +366,49 @@ public:
 
     Result<int32_t> ctr_insert_subtree(TreePathT& path, size_t level, int32_t pos, ILeafProvider& provider) noexcept
     {
+        using ResultT = Result<int32_t>;
         auto& self = this->self();
 
         NodeBaseG node = path[level];
 
-        auto result = ctr_insert_batch_to_node(path, level, pos, provider);
-        MEMORIA_RETURN_IF_ERROR(result);
+        MEMORIA_TRY(result, ctr_insert_batch_to_node(path, level, pos, provider));
 
         if (provider.size() == 0)
         {
-            return result.get().local_pos();
+            return result.local_pos();
         }
         else {
             auto node_size = self.ctr_get_branch_node_size(node);
 
             TreePathT next = path;
-            bool has_next_leaf{};
+            bool use_next_leaf{};
 
-            if (result.get().local_pos() < node_size)
+            if (result.local_pos() < node_size)
             {
-                auto split_res = self.ctr_split_path(path, next, level, result.get().local_pos());
-                MEMORIA_RETURN_IF_ERROR(split_res);
-                has_next_leaf = true;
+                MEMORIA_TRY_VOID(self.ctr_split_path(path, level, result.local_pos()));
+                use_next_leaf = true;
+
+                MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(path, next, level));
+                MEMORIA_TRY(has_next, self.ctr_get_next_node(next, level));
+
+                if (!has_next)
+                {
+                    return ResultT::make_error("No next leaf found in ctr_insert_subtree()");
+                }
             }
             else {
-                auto next_res = self.ctr_get_next_node(next, level);
-                MEMORIA_RETURN_IF_ERROR(next_res);
-
-                has_next_leaf = next_res.get();
+                MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(path, next, level));
+                MEMORIA_TRY(has_next, self.ctr_get_next_node(next, level));
+                use_next_leaf = has_next;
             }
 
-            if (has_next_leaf)
+            if (use_next_leaf)
             {
-                auto left_result = ctr_insert_batch_to_node(path, level, result.get().local_pos(), provider);
-                MEMORIA_RETURN_IF_ERROR(left_result);
+                MEMORIA_TRY(left_result, ctr_insert_batch_to_node(path, level, result.local_pos(), provider));
 
                 if (provider.size() == 0)
                 {
-                    return left_result.get().local_pos();
+                    return left_result.local_pos();
                 }
                 else {
                     BlockUpdateMgr mgr(self);
@@ -411,16 +416,15 @@ public:
 
                     auto checkpoint = provider.checkpoint();
 
-                    auto next_result = ctr_insert_batch_to_node(next, level, 0, provider, false);
-                    MEMORIA_RETURN_IF_ERROR(next_result);
+                    MEMORIA_TRY(next_result, ctr_insert_batch_to_node(next, level, 0, provider, false));
 
                     if (provider.size() == 0)
                     {
-                        MEMORIA_RETURN_IF_ERROR(self.ctr_update_path(next, level));
+                        MEMORIA_TRY_VOID(self.ctr_update_path(next, level));
 
-                        path = next;
+                        MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(next, path, level));
 
-                        return next_result.get().local_pos();
+                        return next_result.local_pos();
                     }
                     else {
                         mgr.rollback();
@@ -431,15 +435,14 @@ public:
 
                         auto next_size0 = self.ctr_get_branch_node_size(next[level]);
 
-                        auto res0 = ctr_insert_subtree(path, next, level, provider, state);
-                        MEMORIA_RETURN_IF_ERROR(res0);
+                        MEMORIA_TRY_VOID(ctr_insert_subtree(path, next, level, provider, state));
 
                         auto idx = self.ctr_get_branch_node_size(next[level]) - next_size0;
 
                         if (provider.size() == 0)
                         {
-                            path = next;
-                            return idx;
+                            MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(next, path, level));
+                            return ResultT::of(idx);
                         }
                         else {
                             return ctr_insert_subtree(next, level, idx, provider);
@@ -449,10 +452,8 @@ public:
             }
             else {
                 InsertionState state(provider.size());
-                auto end_res = ctr_insert_subtree_at_end(path, level, provider, state);
-                MEMORIA_RETURN_IF_ERROR(end_res);
-
-                node = end_res.get();
+                MEMORIA_TRY(end_res, ctr_insert_subtree_at_end(path, level, provider, state));
+                node = end_res;
 
                 return self.ctr_get_branch_node_size(node);
             }

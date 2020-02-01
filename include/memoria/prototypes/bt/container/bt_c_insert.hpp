@@ -47,22 +47,19 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
         auto& self = this->self();
 
-        auto result0 = self.template ctr_try_insert_stream_entry<Stream>(iter, idx, entry);
-        MEMORIA_RETURN_IF_ERROR(result0);
+        MEMORIA_TRY(result0, self.template ctr_try_insert_stream_entry<Stream>(iter, idx, entry));
 
         SplitStatus split_status;
 
-        if (!std::get<0>(result0.get()))
+        if (!std::get<0>(result0))
         {
-            auto split_result = iter.iter_split_leaf(stream, idx);
-            MEMORIA_RETURN_IF_ERROR(split_result);
+            MEMORIA_TRY(split_result, iter.iter_split_leaf(stream, idx));
 
-            split_status = split_result.get().type();
+            split_status = split_result.type();
 
-            auto result1 = self.template ctr_try_insert_stream_entry<Stream>(iter, split_result.get().stream_idx(), entry);
-            MEMORIA_RETURN_IF_ERROR(result1);
+            MEMORIA_TRY(result1, self.template ctr_try_insert_stream_entry<Stream>(iter, split_result.stream_idx(), entry));
 
-            if (!std::get<0>(result1.get()))
+            if (!std::get<0>(result1))
             {
                 return ResultT::make_error("Second insertion attempt failed");
             }

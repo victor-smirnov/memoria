@@ -52,14 +52,21 @@ public:
     {
         auto& self = this->self();
 
-        auto res0 = self.ctr().iter_insert_entry(
+        MEMORIA_TRY_VOID(self.ctr().iter_insert_entry(
                 self,
                 set::KeyEntry<KeyView, CtrSizeT>(key)
-        );
-        MEMORIA_RETURN_IF_ERROR(res0);
+        ));
 
-        auto res1 = self.iter_btss_skip_fw(1);
-        MEMORIA_RETURN_IF_ERROR(res1);
+        try {
+
+        MEMORIA_TRY_VOID(self.iter_btss_skip_fw(1));
+
+        }
+        catch (MemoriaThrowable& th) {
+            th.dump(std::cout);
+            throw th;
+        }
+
 
         return VoidResult::of();
     }

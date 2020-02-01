@@ -21,7 +21,7 @@
 
 #include <memoria/profiles/common/block_operations.hpp>
 
-#include <memoria/core/packed/tools/packed_allocator_types.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 
 #include <memoria/core/packed/array/packed_array_iterator.hpp>
 
@@ -283,8 +283,6 @@ public:
 
     ViewType max(psize_t column) const
     {
-        return ViewType{};
-
         auto size = this->size();
 
         if (size > 0)

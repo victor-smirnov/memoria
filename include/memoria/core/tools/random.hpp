@@ -17,6 +17,9 @@
 #pragma once
 
 #include <memoria/core/types.hpp>
+
+#include <memoria/core/strings/u8_string.hpp>
+
 #include <random>
 #include <functional>
 #include <limits>
@@ -96,5 +99,6 @@ int64_t  getSeedBI();
 
 int32_t getNonZeroRandomG(int32_t size);
 
+U8String create_random_string(size_t length);
 
 }

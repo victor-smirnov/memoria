@@ -20,6 +20,7 @@
 #include <memoria/core/memory/malloc.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
+#include <memoria/profiles/common/block_operations.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/dump.hpp>
@@ -923,6 +924,13 @@ template <>
 struct GenerateDataEventsTool<TypeList<>> {
     static void generateDataEvents(PackedAllocator* allocator, IBlockDataEventHandler* handler, int32_t idx = 0) {}
 };
+
+template <typename PkdStructSO>
+void dump(const PkdStructSO* ps, std::ostream& out = std::cout)
+{
+    TextBlockDumper dumper(out);
+    ps->generateDataEvents(&dumper);
+}
 
 
 }

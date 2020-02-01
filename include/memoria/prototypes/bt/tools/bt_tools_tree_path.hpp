@@ -34,6 +34,14 @@ public:
         path_(other.path_)
     {}
 
+    TreePath(const TreePath& other, size_t level) noexcept:
+        path_(other.path_.size())
+    {
+        for (size_t ll = level; ll < path_.size(); ll++) {
+            path_[ll] = other.path_[ll];
+        }
+    }
+
     TreePath(TreePath&& other) noexcept:
         path_(std::move(other.path_))
     {}

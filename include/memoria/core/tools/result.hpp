@@ -20,6 +20,7 @@
 #include <memoria/core/tools/any.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/strings/format.hpp>
+#include <memoria/core/strings/u8_string.hpp>
 #include <memoria/core/tools/type_name.hpp>
 
 #include <boost/variant2/variant.hpp>
@@ -37,6 +38,7 @@ public:
     virtual ~MemoriaError() noexcept {}
 
     virtual void describe(std::ostream& out) const noexcept = 0;
+    virtual const char* what() const noexcept = 0;
 };
 
 using MemoriaErrorPtr = std::unique_ptr<MemoriaError>;
@@ -58,6 +60,10 @@ public:
 
     U8String&& reason() && {
         return std::move(reason_);
+    }
+
+    virtual const char* what() const noexcept {
+        return reason_.data();
     }
 };
 
@@ -83,9 +89,7 @@ public:
 
     virtual const char* what() const noexcept
     {
-        std::stringstream ss;
-        error_->describe(ss);
-        return ss.str().c_str();
+        return error_->what();
     }
 };
 
@@ -449,6 +453,10 @@ public:
 
     void get_or_throw() {
         return throw_if_error();
+    }
+
+    void get_or_terminate() {
+        return terminate_if_error();
     }
 
     void get() noexcept {

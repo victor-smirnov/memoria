@@ -17,6 +17,8 @@
 
 #include <memoria/core/exceptions/exceptions.hpp>
 
+#include <sstream>
+
 namespace memoria {
 
 RngInt& getGlobalIntGenerator() {
@@ -76,6 +78,18 @@ int32_t getNonZeroRandomG(int32_t size)
     else {
         MMA_THROW(RuntimeException()) << WhatCInfo("Invalid argument");
     }
+}
+
+U8String create_random_string(size_t length)
+{
+    std::stringstream ss;
+
+    for (size_t c = 0; c < length; c++) {
+        char ch = static_cast<char>(33 + getRandomG(26 * 2));
+        ss << ch;
+    }
+
+    return ss.str();
 }
 
 }

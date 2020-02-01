@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/core/packed/tools/packed_allocator_types.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/tools/accessors.hpp>
 
 #include <memoria/core/packed/datatype_buffer/packed_datatype_buffer_so.hpp>

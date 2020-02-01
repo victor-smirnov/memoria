@@ -35,6 +35,7 @@ public:
     typedef typename Base::Allocator                                            Allocator;
 
     using typename Base::BlockID;
+    using typename Base::TreePathT;
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
@@ -61,6 +62,47 @@ public:
         return VoidResult::of();
     }
 
+    VoidResult ctr_check_path(const TreePathT& path, size_t level = 0) const noexcept
+    {
+        auto& self = this->self();
+        for (size_t ll = level + 1; ll < path.size(); ll++)
+        {
+            BlockID child_id = path[ll - 1]->id();
+            MEMORIA_TRY_VOID(self.ctr_get_child_idx(path[ll], child_id));
+        }
+        return VoidResult::of();
+    }
+
+    VoidResult ctr_check_same_paths(
+            const TreePathT& left_path,
+            const TreePathT& right_path,
+            size_t level = 0
+    ) const noexcept
+    {
+        if (left_path.size() == right_path.size())
+        {
+            for (size_t ll = level; ll < left_path.size(); ll++)
+            {
+                if (left_path[ll] != right_path[ll]) {
+                    return VoidResult::make_error(
+                                "Path nodes are noe equals at the level {} :: {} {}",
+                                ll,
+                                left_path[ll]->id(),
+                                right_path[ll]->id()
+                    );
+                }
+            }
+            return VoidResult::of();
+        }
+        else {
+            return VoidResult::make_error(
+                        "Path sizes are different: {} {}",
+                        left_path.size(),
+                        right_path.size()
+            );
+        }
+    }
+
 public:
     BoolResult ctr_check_tree() const noexcept;
 
@@ -79,6 +121,7 @@ public:
             return true;
         }
     }
+
 
 
 

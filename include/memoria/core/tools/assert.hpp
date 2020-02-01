@@ -36,11 +36,16 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 #ifndef MEMORIA_V1_NO_ASSERTS
 
 #define MEMORIA_V1_ASSERT(Left, Operation, Right)                                                       \
-        if (!(Left Operation Right)) {                                                                  \
-            MMA_THROW(::memoria::Exception()) << ::memoria::WhatInfo(format_u8("ASSERT FAILURE: {} {} {} Values: {} {}", \
-                    #Left, #Operation, #Right, Left, Right));                                              \
-        }
+        do {if (!(Left Operation Right)) {                                                                  \
+            try{MMA_THROW(::memoria::Exception()) << ::memoria::WhatInfo(format_u8("ASSERT FAILURE: {} {} {} Values: {} {}", \
+                    #Left, #Operation, #Right, Left, Right));} catch (::memoria::MemoriaThrowable& th) {th.dump(std::cout); std::terminate();}                                              \
+        }} while(0)
 
+#define MEMORIA_V1_ASSERT_RTN(Left, Operation, Right)                                                       \
+        do {if (!(Left Operation Right)) {                                                                  \
+            return memoria::VoidResult::make_error_tr("ASSERT FAILURE: {} {} {} Values: {} {} at {}", \
+                    #Left, #Operation, #Right, Left, Right, MMA_SRC);                                       \
+        }} while(0)
 
 #define MEMORIA_V1_WARNING(Left, Operation, Right)                                                      \
         if ((Left Operation Right)) {                                                                   \

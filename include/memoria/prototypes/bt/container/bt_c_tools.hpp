@@ -115,6 +115,7 @@ public:
             return Int32Result::of(idx);
         }
         else {
+            self().ctr_dump_node(node);
             return Int32Result::make_error("Requested child is not found in the b-tree: {}", child_id);
         }
     }
@@ -126,6 +127,25 @@ public:
         }
 
         return self().ctr_get_child_idx(path[level + 1], path[level]->id());
+    }
+
+    VoidResult ctr_assign_path_nodes(const TreePathT& src, TreePathT& dst, size_t start_level = 0) const noexcept
+    {
+        if (src.size() == dst.size())
+        {
+            for (size_t ll = start_level; ll < src.size(); ll++) {
+                dst[ll] = src[ll];
+            }
+
+            return VoidResult::of();
+        }
+        else {
+            return VoidResult::make_error(
+                "Supplied tree paths have different sizes: {} {}",
+                src.size(),
+                dst.size()
+            );
+        }
     }
 
     // TODO: check noexcept
@@ -155,18 +175,15 @@ public:
         }
     }
 
-    void ctr_dump_path(NodeBaseG node, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
+    void ctr_dump_path(TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
     {
         auto& self = this->self();
 
         out << "Path:" << std::endl;
 
-        self.ctr_dump_node(node, out);
-
-        while (!node->is_root() && node->level() < depth)
+        for (size_t ll = level; ll < path.size(); ll++)
         {
-            node = self.ctr_get_node_parent(node);
-            self.ctr_dump_node(node, out);
+            self.ctr_dump_node(path[ll], out);
         }
     }
 
