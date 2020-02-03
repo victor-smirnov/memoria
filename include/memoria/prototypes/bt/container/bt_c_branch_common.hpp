@@ -49,7 +49,6 @@ public:
     static const int32_t Streams = Types::Streams;
 
     VoidResult ctr_create_new_root_block(TreePathT& path) noexcept;
-    VoidResult ctr_create_new_root_block(TreePathT& left_path, TreePathT& right_path) noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, int32_t);
     int32_t ctr_get_branch_node_capacity(const NodeBaseG& node, uint64_t active_streams) const noexcept
@@ -107,37 +106,6 @@ VoidResult M_TYPE::ctr_create_new_root_block(TreePathT& path) noexcept
 
     return self.set_root(new_root->id());
 }
-
-M_PARAMS
-VoidResult M_TYPE::ctr_create_new_root_block(TreePathT& left_path, TreePathT& right_path) noexcept
-{
-    auto& self = this->self();
-
-    NodeBaseG root = left_path.root();
-
-    MEMORIA_TRY(new_root, self.ctr_create_node(root->level() + 1, true, false, root->header().memory_block_size()));
-
-    uint64_t root_active_streams = self.ctr_get_active_streams(root);
-    MEMORIA_TRY_VOID(self.ctr_layout_branch_node(new_root, root_active_streams));
-
-    MEMORIA_TRY_VOID(self.ctr_copy_root_metadata(root, new_root));
-
-    MEMORIA_TRY_VOID(self.ctr_root_to_node(root));
-
-    BranchNodeEntry max = self.ctr_get_node_max_keys(root);
-
-    left_path.add_root(new_root);
-    right_path.add_root(new_root);
-
-    MEMORIA_TRY(status, self.ctr_insert_to_branch_node(left_path, left_path.size() - 1, 0, max, root->id()));
-
-    if (isFail(status)) {
-        return VoidResult::make_error("PackedOOMException");
-    }
-
-    return self.set_root(new_root->id());
-}
-
 
 #undef M_TYPE
 #undef M_PARAMS

@@ -203,19 +203,14 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
 ) noexcept
 {
     using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
-    return wrap_throwing([&] {
+    return wrap_throwing([&] () -> ResultT {
         U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
         LDDocument doc = TypeSignature::parse(signature.to_std_string());
         LDTypeDeclarationView decl = doc.value().as_type_decl();
-        Result<CtrSharedPtr<CtrReferenceable<Profile>>> ctr_ref = alloc->create(decl, ctr_id);
 
-        if (ctr_ref.is_ok())
-        {
-            return ResultT::of(memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref.get()));
-        }
-        else {
-            return std::move(ctr_ref).transfer_error();
-        }
+        MEMORIA_TRY(ctr_ref, alloc->create(decl, ctr_id));
+        (void)ctr_ref;
+        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref_result));
     });
 }
 
@@ -230,15 +225,9 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> create(
         U8String signature = make_datatype_signature<CtrName>(ctr_type_name).name();
         LDDocument doc = TypeSignature::parse(signature.to_std_string());
         LDTypeDeclarationView decl = doc.value().as_type_decl();
-        Result<CtrSharedPtr<CtrReferenceable<Profile>>> ctr_ref = alloc->create(decl);
-
-        if (ctr_ref.is_ok())
-        {
-            return ResultT::of(memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref.get()));
-        }
-        else {
-            return std::move(ctr_ref).transfer_error();
-        }
+        MEMORIA_TRY(ctr_ref, alloc->create(decl));
+        (void)ctr_ref;
+        return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref_result));
     });
 }
 
@@ -249,21 +238,20 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
 ) noexcept
 {
     using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
-    return wrap_throwing([&] {
+    return wrap_throwing([&] () -> ResultT {
 
-        Result<CtrSharedPtr<CtrReferenceable<Profile>>> ctr_ref = alloc->find(ctr_id);
-        MEMORIA_RETURN_IF_ERROR(ctr_ref);
+        MEMORIA_TRY(ctr_ref, alloc->find(ctr_id));
 
         U8String signature = make_datatype_signature<CtrName>().name();
 
-        if (ctr_ref.get()->describe_datatype() == signature) {
-            return ResultT::of(memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(ctr_ref.get()));
+        if (ctr_ref->describe_datatype() == signature) {
+            return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref_result));
         }
         else {
             return ResultT::make_error(
                 "Container type mismatch. Expected: {}, actual: {}",
                 signature,
-                ctr_ref->get().describe_datatype()
+                ctr_ref->describe_datatype()
             );
         }
     });

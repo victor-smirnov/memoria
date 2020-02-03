@@ -336,7 +336,7 @@ public:
     struct SizeFn {
         int32_t size_ = 0;
 
-        template <typename Tree>
+        template <int32_t AllocatorIdx, int32_t Idx, typename Tree>
         void stream(Tree&& tree)
         {
             size_ = tree ? tree.size() : 0;
@@ -594,7 +594,7 @@ public:
     struct MergeWithFn {
         OpStatus status_{OpStatus::OK};
 
-        template <int32_t AllocatorIdx, int32_t ListIdx, int32_t Idx, typename Tree, typename OtherNodeT>
+        template <int32_t AllocatorIdx, int32_t Idx, typename Tree, typename OtherNodeT>
         void stream(Tree& tree, OtherNodeT&& other)
         {
             int32_t size = tree.size();

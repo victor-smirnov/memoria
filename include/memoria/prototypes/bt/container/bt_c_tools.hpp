@@ -131,21 +131,15 @@ public:
 
     VoidResult ctr_assign_path_nodes(const TreePathT& src, TreePathT& dst, size_t start_level = 0) const noexcept
     {
-        if (src.size() == dst.size())
-        {
-            for (size_t ll = start_level; ll < src.size(); ll++) {
-                dst[ll] = src[ll];
-            }
+        if (src.size() != dst.size()) {
+            dst.resize(src.size());
+        }
 
-            return VoidResult::of();
+        for (size_t ll = start_level; ll < src.size(); ll++) {
+            dst[ll] = src[ll];
         }
-        else {
-            return VoidResult::make_error(
-                "Supplied tree paths have different sizes: {} {}",
-                src.size(),
-                dst.size()
-            );
-        }
+
+        return VoidResult::of();
     }
 
     // TODO: check noexcept

@@ -209,7 +209,7 @@ public:
         psize_t my_size     = this->size();
         psize_t other_size  = other.size();
 
-        DataLengths data_lengths = this->data_lengts(0, other_size);
+        DataLengths data_lengths = this->data_lengts(0, my_size);
 
         if(isFail(other.insertSpace(other_size, my_size, data_lengths))) {
             return OpStatus::FAIL;
@@ -290,7 +290,8 @@ public:
             return access(size - 1);
         }
         else {
-            MMA_THROW(RuntimeException()) << format_ex("Column {} is empty", column);
+            return ViewType{};
+            //MMA_THROW(RuntimeException()) << format_ex("Column {} is empty", column);
         }
     }
 

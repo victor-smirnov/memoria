@@ -107,6 +107,24 @@ public:
     BoolResult ctr_get_next_node(TreePathT& path, size_t level) const noexcept;
     BoolResult ctr_get_prev_node(TreePathT& path, size_t level) const noexcept;
 
+    VoidResult ctr_expect_next_node(TreePathT& path, size_t level) const noexcept
+    {
+        MEMORIA_TRY(has_next, self().ctr_get_next_node(path, level));
+        if (!has_next) {
+            return VoidResult::make_error("Next node not found");
+        }
+        return VoidResult::of();
+    }
+
+    VoidResult ctr_expect_prev_node(TreePathT& path, size_t level) const noexcept
+    {
+        MEMORIA_TRY(has_prev, self().ctr_get_prev_node(path, level));
+        if (!has_prev) {
+            return VoidResult::make_error("Previous node not found");
+        }
+        return VoidResult::of();
+    }
+
 protected:
 
 MEMORIA_V1_CONTAINER_PART_END

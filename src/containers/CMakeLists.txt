@@ -13,7 +13,7 @@ else()
     endif()
 
     if(BUILD_CONTAINERS_SET)
-        file(GLOB SRCS set_varchar_dflt.cpp)
+        file(GLOB SRCS set_varchar_dflt.cpp set_uuid_dflt.cpp)
 
         set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
         set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})

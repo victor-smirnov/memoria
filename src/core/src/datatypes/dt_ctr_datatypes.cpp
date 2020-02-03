@@ -37,6 +37,7 @@ template <> struct DataTypeOperationsImpl<__VA_ARGS__>: CtrDataTypeOperationsImp
 
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Set<FixedArray<16>>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Set<Varchar>);
+MMA_DEFINE_DEFAULT_DATATYPE_OPS(Set<UUID>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Vector<Varchar>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Vector<UTinyInt>);
 MMA_DEFINE_DEFAULT_DATATYPE_OPS(Map<Varchar, Varchar>);
@@ -53,6 +54,8 @@ void InitCtrDatatypes()
     register_notctr_operations<Set<FixedArray<16>>>();
 
     register_notctr_operations<Set<Varchar>>();
+    register_notctr_operations<Set<UUID>>();
+
     register_notctr_operations<Vector<Varchar>>();
     register_notctr_operations<Vector<UTinyInt>>();
     register_notctr_operations<Map<Varchar, Varchar>>();

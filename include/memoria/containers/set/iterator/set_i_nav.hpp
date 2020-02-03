@@ -76,13 +76,12 @@ public:
     {
         auto& self = this->self();
 
-        auto res = self.ctr().ctr_remove_entry(self);
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY_VOID(self.ctr().ctr_remove_entry(self));
+        MEMORIA_TRY_VOID(self.ctr().ctr_check_path(self.path(), 0));
 
         if (self.iter_is_end())
         {
-            auto res = self.iter_btss_skip_fw(0);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(self.iter_btss_skip_fw(0));
         }
 
         return VoidResult::of();

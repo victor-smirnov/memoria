@@ -84,6 +84,7 @@ struct StaticLibraryCtrs {
 
 #   if defined(MEMORIA_BUILD_CONTAINERS_SET)
         InitCtrMetadata<Set<Varchar>, ProfileT>();
+        InitCtrMetadata<Set<UUID>, ProfileT>();
 #   endif
 #endif
     }

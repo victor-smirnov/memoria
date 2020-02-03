@@ -464,7 +464,8 @@ public:
         int32_t free_space      = this->free_space(node_->header().memory_block_size(), node_->is_root());
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
-        return client_area >= mem_size + 300;
+        // FIXME: fix block size estimation and remove '350'
+        return client_area >= mem_size + 350;
     }
 
 

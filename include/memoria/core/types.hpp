@@ -545,4 +545,8 @@ constexpr bool IsPackedStructV = std::is_standard_layout<T>::value && std::is_tr
 
 [[noreturn]] void terminate(const char* msg) noexcept;
 
+enum class BTPathsMergeStatus {
+    UNTOUCHED, MERGED, REBUILD_SRC_PATH
+};
+
 }

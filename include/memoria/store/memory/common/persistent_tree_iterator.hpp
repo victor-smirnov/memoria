@@ -24,6 +24,7 @@
 #include "persistent_tree_node.hpp"
 
 #include <type_traits>
+#include <iostream>
 
 /**
  * Serializable Copy-on-write B+Tree (Without leaf links).

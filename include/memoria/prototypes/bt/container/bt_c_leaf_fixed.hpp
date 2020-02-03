@@ -85,7 +85,7 @@ public:
         using ResultT = Result<std::tuple<bool>>;
         auto& self = this->self();
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
 
         if (self.ctr_check_node_capacities(iter.iter_leaf(), Position::create(Stream, 1)))
         {

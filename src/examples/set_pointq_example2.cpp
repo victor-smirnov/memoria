@@ -28,100 +28,86 @@
 
 using namespace memoria;
 
-
+UUID make_random_uuid() {
+    auto hi = getBIRandomG();
+    auto lo = getBIRandomG();
+    return UUID(
+        static_cast<uint64_t>(hi),
+        static_cast<uint64_t>(lo)
+    );
+}
 
 int main()
 {
     StaticLibraryCtrs<>::init();
 
     try {
-        using MapType = Set<Varchar>;
+        using CtrType = Set<UUID>;
 
         auto alloc = IMemoryStore<>::create().get_or_throw();
 
         auto snp = alloc->master().get_or_throw()->branch().get_or_throw();
 
         UUID ctr_id = UUID::parse("30b33f35-96a4-4502-82f4-4bbe50e59c51");
-        std::cout << ctr_id << std::endl;
 
-        auto ctr0 = create(snp, MapType(), ctr_id).get_or_throw();
-
-        ctr0->set_new_block_size(1024).get_or_throw();
-
-
-        std::set<U8String> entries_set;
-        std::vector<U8String> entries_list;
-
-        int32_t time = (int32_t)getTimeInMillis();
-        std::cout << "Seed: " << time << std::endl;
-        Seed(time);
+        auto ctr0 = create(snp, CtrType(), ctr_id).get_or_throw();
 
         int64_t t0 = getTimeInMillis();
+
+        std::set<UUID> entries;
+
         for (int c = 0; c < 100000000; c++) {
-            if (c % 100000 == 0) {
+            if (c % 10000 == 0) {
                 std::cout << "C=" << c << std::endl;
             }
 
-            U8String key = create_random_string(10);
+            if (c == 471) {
+                DebugCounter = 1;
+            }
 
-            entries_set.insert(key);
-            entries_list.push_back(key);
+            UUID key = make_random_uuid();
+
+            entries.insert(key);
 
             ctr0->insert(key).get_or_throw();
         }
+
+        std::cout << "Size: " << ctr0->size().get_or_throw() << std::endl;
+
+
         int64_t t1 = getTimeInMillis();
 
         std::cout << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
 
-        std::cout << "Size: " << ctr0->size().get_or_throw() << std::endl;
-
-        int64_t t2 = getTimeInMillis();
-        for (auto key: entries_list) {
+        for (auto key: entries) {
             bool kk = ctr0->contains(key).get_or_throw();
             if (!kk) {
                 std::cout << "Not found: " << key << std::endl;
             }
         }
-        int64_t t3 = getTimeInMillis();
-        std::cout << "Queried entries in " << (t3 - t2) << " ms" << std::endl;
-
 
         auto scc = ctr0->scanner();
-        auto en_ii = entries_set.begin();
+//        auto en_ii = entries.begin();
 
-        while (!scc.is_end())
-        {
-            for (auto key: scc.keys())
-            {
-                auto en_key = *en_ii;
+//        while (!scc.is_end())
+//        {
+//            for (auto key: scc.keys())
+//            {
+//                auto en_key = *en_ii;
 
-                if (key != en_key.view()) {
-                    std::cout << "SCC: not equals: " << en_key << " :: " << key << std::endl;
-                }
+//                if (key != en_key.view()) {
+//                    std::cout << "SCC: not equals: " << en_key << " :: " << key << std::endl;
+//                }
 
-                en_ii++;
-            }
+//                en_ii++;
+//            }
 
-            scc.next_leaf().get_or_throw();
-        }
-
-
-        size_t cnt = 0;
-        for (auto& key: entries_list)
-        {
-            if (cnt % 100000 == 0) {
-                std::cout << "K=" << cnt << std::endl;
-            }
-
-            ctr0->remove(key).get_or_throw();
-            cnt++;
-        }
-
-        std::cout << "Size: " << ctr0->size().get_or_throw() << std::endl;
+//            scc.next_leaf().get_or_throw();
+//        }
 
         snp->commit().get_or_throw();
         snp->set_as_master().get_or_throw();
-        alloc->store("set_insq.mma1").get_or_throw();
+        alloc->store("set_insq2.mma1").get_or_throw();
     }
     catch (MemoriaThrowable& th) {
         th.dump(std::cerr);
