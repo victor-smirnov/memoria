@@ -330,7 +330,6 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
         return BoolResult::of(false);
     }
 
-    BranchNodeEntry max = self.ctr_get_node_max_keys(tgt);
 
     // FIXME. This is special OOM condition that, if occurs, must be handled separately.
     MEMORIA_TRY(status1, self.ctr_remove_non_leaf_node_entry(tgt_path, 1, parent_idx));
@@ -338,9 +337,7 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
         return BoolResult::make_error("PackedOOMException");
     }
 
-    int32_t idx = parent_idx - 1;
-
-    MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(tgt_path, 1, idx, max));
+    MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, 0));
 
     MEMORIA_TRY_VOID(self.store().removeBlock(src->id()));
 
@@ -373,18 +370,16 @@ BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path
     else
     {
         MEMORIA_TRY(merged, self.ctr_merge_branch_nodes(tgt_path, src_path, 1));
+
+        MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path, 0));
+        MEMORIA_TRY_VOID(self.ctr_expect_next_node(src_path, 0));
+
         if (merged)
         {
-            MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path, 0));
-            MEMORIA_TRY_VOID(self.ctr_expect_next_node(src_path, 0));
-
             return self.ctr_merge_current_leaf_nodes(tgt_path, src_path, fn);
         }
         else
         {
-            MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path, 0));
-            MEMORIA_TRY_VOID(self.ctr_expect_next_node(src_path, 0));
-
             return BoolResult::of(false);
         }
     }

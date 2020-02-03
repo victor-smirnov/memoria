@@ -236,13 +236,13 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_p
 {
     auto& self = this->self();
 
+    MEMORIA_TRY_VOID(self.ctr_check_same_paths(tgt_path, src_path, 1));
+
     NodeBaseG src = src_path.leaf();
     NodeBaseG tgt = tgt_path.leaf();
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(src));
-
-    //int32_t tgt_size = self.ctr_get_node_size(tgt, 0);
 
     OpStatus status1 = self.leaf_dispatcher().dispatch(src, tgt, MergeNodesFn());
     if (isFail(status1)) {
@@ -251,19 +251,15 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_p
 
     MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, 0));
 
+    MEMORIA_TRY(status2, self.ctr_remove_non_leaf_node_entry(tgt_path, 1, parent_idx));
 
-    Result<OpStatus> status2 = self.ctr_remove_non_leaf_node_entry(src_path, 1, parent_idx);
-    MEMORIA_RETURN_IF_ERROR(status2);
-
-    if (isFail(status2.get())) {
+    if (isFail(status2)) {
         return VoidResult::make_error("PackedOOMException");
     }
 
-    int32_t idx = parent_idx - 1;
+    MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, 0));
 
-    auto max = self.ctr_get_node_max_keys(tgt);
-
-    MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(src_path, 1, idx, max));
+    MEMORIA_TRY_VOID(self.ctr_check_path(tgt_path, 0));
 
     return self.store().removeBlock(src->id());
 }
@@ -284,20 +280,25 @@ BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, MergeFn 
 
             MEMORIA_TRY_VOID(self.ctr_do_merge_leaf_nodes(tgt, src));
             MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(tgt));
+
             MEMORIA_TRY_VOID(fn(sizes));
 
             return BoolResult::of(true);
         }
         else
         {
-            MEMORIA_TRY(branch_merge_result, self.ctr_merge_branch_nodes(tgt, src, 1));
+            MEMORIA_TRY(branch_nodes_merged, self.ctr_merge_branch_nodes(tgt, src, 1));
 
-            if (branch_merge_result)
+            MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt, src, 0));
+            MEMORIA_TRY_VOID(self.ctr_expect_next_node(src, 0));
+
+            if (branch_nodes_merged)
             {
                 auto sizes = self.ctr_get_node_sizes(tgt.leaf());
 
                 MEMORIA_TRY_VOID(self.ctr_do_merge_leaf_nodes(tgt, src));
                 MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(tgt));
+
                 MEMORIA_TRY_VOID(fn(sizes));
 
                 return BoolResult::of(true);
@@ -330,14 +331,12 @@ BoolResult M_TYPE::ctr_merge_current_leaf_nodes(
 
     if (self.ctr_can_merge_nodes(tgt, src))
     {
-        auto res0 = fn(self.ctr_get_node_sizes(tgt));
-        MEMORIA_RETURN_IF_ERROR(res0);
+        MEMORIA_TRE_VOID(
+            fn(self.ctr_get_node_sizes(tgt))
+        );
 
-        auto res1 = self.ctr_do_merge_leaf_nodes(tgt_path, src_path);
-        MEMORIA_RETURN_IF_ERROR(res1);
-
-        auto res2 = self.ctr_remove_redundant_root(tgt_path);
-        MEMORIA_RETURN_IF_ERROR(res2);
+        MEMORIA_TRY_VOID(self.ctr_do_merge_leaf_nodes(tgt_path, src_path));
+        MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(tgt_path));
 
         return BoolResult::of(true);
     }

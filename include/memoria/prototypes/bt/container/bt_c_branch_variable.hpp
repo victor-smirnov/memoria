@@ -432,7 +432,7 @@ BoolResult M_TYPE::ctr_merge_branch_nodes(
         MEMORIA_TRY(merged, self.ctr_merge_current_branch_nodes(tgt_path, src_path, level));
         if (!merged)
         {
-            MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path));
+            MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path, level));
             MEMORIA_TRY_VOID(self.ctr_expect_next_node(src_path, level));
         }
 

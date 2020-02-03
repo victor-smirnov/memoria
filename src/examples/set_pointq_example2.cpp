@@ -25,6 +25,8 @@
 #include <memoria/memoria.hpp>
 
 #include <iostream>
+#include <set>
+#include <vector>
 
 using namespace memoria;
 
@@ -51,21 +53,27 @@ int main()
         UUID ctr_id = UUID::parse("30b33f35-96a4-4502-82f4-4bbe50e59c51");
 
         auto ctr0 = create(snp, CtrType(), ctr_id).get_or_throw();
+        ctr0->set_new_block_size(1024).get_or_throw();
+
+        int64_t time = (int64_t)getTimeInMillis();
+        std::cout << "Seed: " << time << std::endl;
+        SeedBI(time);
+
+        //Seed: 1580702615321
+        //SeedBI(1580703467476);
 
         int64_t t0 = getTimeInMillis();
 
         std::set<UUID> entries;
+        std::vector<UUID> entries_list;
 
         for (int c = 0; c < 100000000; c++) {
-            if (c % 10000 == 0) {
+            if (c % 100000 == 0) {
                 std::cout << "C=" << c << std::endl;
             }
 
-            if (c == 471) {
-                DebugCounter = 1;
-            }
-
             UUID key = make_random_uuid();
+            entries_list.push_back(key);
 
             entries.insert(key);
 
@@ -79,14 +87,17 @@ int main()
 
         std::cout << "Populated entries in " << (t1 - t0) << " ms" << std::endl;
 
-        for (auto key: entries) {
+        int64_t t2 = getTimeInMillis();
+        for (auto key: entries_list) {
             bool kk = ctr0->contains(key).get_or_throw();
             if (!kk) {
                 std::cout << "Not found: " << key << std::endl;
             }
         }
+        int64_t t3 = getTimeInMillis();
+        std::cout << "Queried entries in " << (t3 - t2) << " ms" << std::endl;
 
-        auto scc = ctr0->scanner();
+//        auto scc = ctr0->scanner();
 //        auto en_ii = entries.begin();
 
 //        while (!scc.is_end())
@@ -104,6 +115,19 @@ int main()
 
 //            scc.next_leaf().get_or_throw();
 //        }
+
+        size_t cnt = 0;
+        for (auto& key: entries_list)
+        {
+            if (cnt % 100000 == 0) {
+                std::cout << "K=" << cnt << std::endl;
+            }
+
+            ctr0->remove(key).get_or_throw();
+            cnt++;
+        }
+
+        std::cout << "Size: " << ctr0->size().get_or_throw() << std::endl;
 
         snp->commit().get_or_throw();
         snp->set_as_master().get_or_throw();

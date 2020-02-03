@@ -1018,6 +1018,10 @@ size_t CreateUDS(Buffer* buf, size_t start, const size_t* ds, size_t ds_size, si
 template <typename T>
 void CopyBuffer(const T *src, T *dst, size_t size)
 {
+    if (size == static_cast<size_t>(-2ll)) {
+        int a = 0;
+        a++;
+    }
     static_assert(std::is_trivially_copyable<T>::value, "CopyBuffer supports only trivially copyable types");
     std::memmove(dst, src, size * sizeof(T));
 }

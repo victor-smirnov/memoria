@@ -51,7 +51,21 @@ public:
 
 public:
 
-    VoidResult ctr_update_path(TreePathT& path, size_t level) noexcept;
+    VoidResult ctr_update_path(TreePathT& path, size_t level) noexcept
+    {
+        auto& self = this->self();
+
+        if (!path[level]->is_root())
+        {
+            auto max_entry = self.ctr_get_node_max_keys(path[level]);
+            return ctr_update_path(path, level, max_entry);
+        }
+        else {
+            return VoidResult::of();
+        }
+    }
+
+    VoidResult ctr_update_path(TreePathT& path, size_t level, const BranchNodeEntry& entry) noexcept;
 
 
 public:
@@ -336,29 +350,39 @@ BoolResult M_TYPE::ctr_update_branch_nodes(
 }
 
 
-
-
 M_PARAMS
-VoidResult M_TYPE::ctr_update_path(TreePathT& path, size_t level) noexcept
+VoidResult M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNodeEntry& entry) noexcept
 {
     auto& self = this->self();
 
-    NodeBaseG node = path[level];
+    MEMORIA_TRY_VOID(self.ctr_check_path(path, level));
+    MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(path, level));
+    MEMORIA_TRY(using_next_node, self.ctr_update_branch_nodes(path, level + 1, parent_idx, entry));
 
-    if (!node->is_root())
+    // Locating current child ID in the parent path[level+1].
+    int32_t child_idx = self.ctr_find_child_idx(path[level + 1], path[level]->id());
+    if (child_idx < 0)
     {
-        auto entry = self.ctr_get_node_max_keys(node);
+        // If no child is found in the parent, then we are looking eigher in the right,
+        // or in the left parent's siblings.
+        if (using_next_node)
+        {
+            MEMORIA_TRY_VOID(self.ctr_expect_prev_node(path, level + 1));
+        }
+        else {
+            MEMORIA_TRY_VOID(self.ctr_expect_next_node(path, level + 1));
+        }
 
-        MEMORIA_TRY(parent, self.ctr_get_node_parent_for_update(path, level));
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
-
-        MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(path, level + 1, parent_idx, entry));
+        // This is just a check
+        int32_t child_idx = self.ctr_find_child_idx(path[level + 1], path[level]->id());
+        if (child_idx < 0)
+        {
+            return VoidResult::make_error("ctr_update_path() internal error");
+        }
     }
 
     return VoidResult::of();
 }
-
-
 
 
 
@@ -383,13 +407,13 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src
 {
     auto& self = this->self();
 
+    MEMORIA_TRY_VOID(self.ctr_check_same_paths(tgt_path, src_path, level + 1));
+
     NodeBaseG src = src_path[level];
     NodeBaseG tgt = tgt_path[level];
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(tgt));
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(src));
-
-    //int32_t tgt_size = self.ctr_get_node_size(tgt, 0);
 
     OpStatus status0 = self.branch_dispatcher().dispatch(src, tgt, MergeNodesFn());
     if (isFail(status0)) {
@@ -400,14 +424,12 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src
 
     auto max = self.ctr_get_node_max_keys(tgt);
 
-    MEMORIA_TRY(status1, self.ctr_remove_non_leaf_node_entry(src_path, 1, parent_idx));
+    MEMORIA_TRY(status1, self.ctr_remove_non_leaf_node_entry(tgt_path, level + 1, parent_idx));
     if (isFail(status1)) {
         return VoidResult::make_error("PackedOOMException");
     }
 
-    int32_t idx = parent_idx - 1;
-
-    MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(src_path, level + 1, idx, max));
+    MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, level, max));
 
     return self.store().removeBlock(src->id());
 }
@@ -452,6 +474,9 @@ BoolResult M_TYPE::ctr_merge_branch_nodes(TreePathT& tgt, TreePathT& src, size_t
         {
             MEMORIA_TRY(parents_merged, ctr_merge_branch_nodes(tgt, src, level + 1));
 
+            MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt, src, level));
+            MEMORIA_TRY_VOID(self.ctr_expect_next_node(src, level));
+
             if (parents_merged)
             {
                 MEMORIA_TRY_VOID(self.ctr_do_merge_branch_nodes(tgt, src, level));
@@ -467,6 +492,9 @@ BoolResult M_TYPE::ctr_merge_branch_nodes(TreePathT& tgt, TreePathT& src, size_t
     }
     else
     {
+        MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt, src, level));
+        MEMORIA_TRY_VOID(self.ctr_expect_next_node(src, level));
+
         return BoolResult::of(false);
     }
 }
