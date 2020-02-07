@@ -83,7 +83,7 @@ protected:
 
             if (has_prev)
             {
-                auto res = self.ctr_merge_leaf_nodes(prev_path, iter.path(), [&](const Position& sizes){
+                auto res = self.ctr_merge_leaf_nodes(prev_path, iter.path(), false, [&](const Position& sizes){
                     iter.iter_local_pos() += sizes[0];
                     iter.path() = prev_path;
                     return VoidResult::of();

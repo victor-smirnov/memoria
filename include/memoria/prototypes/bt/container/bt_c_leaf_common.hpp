@@ -189,21 +189,45 @@ public:
 
 
     template <typename Provider>
+    Result<Position> ctr_insert_data_into_leaf(TreePathT& path, const Position& pos, Provider& provider)
+    {
+        using ResultT = Result<Position>;
+        auto& self = this->self();
+
+        MEMORIA_TRY(has_data, provider.hasData());
+        if (has_data)
+        {
+            NodeBaseG leaf = path.leaf();
+
+            MEMORIA_TRY_VOID(self.ctr_update_block_guard(leaf));
+            MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(leaf, Position(0)));
+
+            MEMORIA_TRY(end, provider.fill(leaf, pos));
+
+            MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
+
+            return ResultT::of(end);
+        }
+
+        return ResultT::of(pos);
+    }
+
+    template <typename Provider>
     Result<Position> ctr_insert_data_into_leaf(NodeBaseG& leaf, const Position& pos, Provider& provider)
     {
         using ResultT = Result<Position>;
         auto& self = this->self();
 
-        MEMORIA_TRY_VOID(self.ctr_update_block_guard(leaf));
-        MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(leaf, Position(0)));
-
-        BoolResult has_data_res = provider.hasData();
-        if (has_data_res.get())
+        MEMORIA_TRY(has_data, provider.hasData());
+        if (has_data)
         {
-            auto end = provider.fill(leaf, pos);
-            MEMORIA_RETURN_IF_ERROR(end);
 
-            return ResultT::of(end.get());
+            MEMORIA_TRY_VOID(self.ctr_update_block_guard(leaf));
+            MEMORIA_TRY_VOID(self.ctr_layout_leaf_node(leaf, Position(0)));
+
+            MEMORIA_TRY(end, provider.fill(leaf, pos));
+
+            return ResultT::of(end);
         }
 
         return ResultT::of(pos);
@@ -235,20 +259,17 @@ public:
 
         auto& self = this->self();
 
-        NodeBaseG leaf = path.leaf();
-
-        MEMORIA_TRY(last_pos, self.ctr_insert_data_into_leaf(leaf, pos, provider));
+        MEMORIA_TRY(last_pos, self.ctr_insert_data_into_leaf(path, pos, provider));
         MEMORIA_TRY(has_data, provider.hasData());
 
         if (has_data)
         {
             // has to be defined in subclasses
-            if (!self.ctr_is_at_the_end(leaf, last_pos))
+            if (!self.ctr_is_at_the_end(path.leaf(), last_pos))
             {
-                auto split_leaf_res = self.ctr_split_leaf(path, last_pos);
-                MEMORIA_RETURN_IF_ERROR(split_leaf_res);
+                MEMORIA_TRY_VOID(self.ctr_split_leaf(path, last_pos));
 
-                MEMORIA_TRY(last_leaf_pos, self.ctr_insert_data_into_leaf(leaf, last_pos, provider));
+                MEMORIA_TRY(last_leaf_pos, self.ctr_insert_data_into_leaf(path, last_pos, provider));
                 MEMORIA_TRY(has_data2, provider.hasData());
 
                 if (has_data2)
@@ -334,52 +355,62 @@ public:
         using ResultT = VoidResult;
         auto& self = this->self();
 
-        NodeBaseG leaf = path.leaf();
+        MEMORIA_TRY(leaf_list, self.ctr_create_leaf_data_list(provider));
 
-        auto leaf_list = self.ctr_create_leaf_data_list(provider);
-        MEMORIA_RETURN_IF_ERROR(leaf_list);
-
-        if (leaf_list.get().size() > 0)
+        if (leaf_list.size() > 0)
         {
-            if (leaf->is_root())
+            using LeafListProvider = typename Base::ListLeafProvider;
+            using InsertionState = typename Base::BatchInsertionState;
+
+            LeafListProvider list_provider(self, leaf_list.head(), leaf_list.size());
+            InsertionState insertion_state(leaf_list.size());
+
+            if (path.leaf()->is_root())
             {
                 MEMORIA_TRY_VOID(self.ctr_create_new_root_block(path));
             }
 
-            MEMORIA_TRY(leaf_parent_idx, self.ctr_get_parent_idx(path, 0));
-            int32_t path_parent_idx = leaf_parent_idx + 1;
+            MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(path, 0));
+            int32_t last_insertion_idx{};
 
-            using LeafListProvider = typename Base::ListLeafProvider;
-
-            LeafListProvider list_provider(self, leaf_list.get().head(), leaf_list.get().size());
-
-            MEMORIA_TRY_VOID(self.ctr_insert_subtree(path, 1, path_parent_idx, list_provider));
-
-            auto& last_leaf = leaf_list.get().tail();
-
-            auto last_leaf_size = self.ctr_get_leaf_stream_sizes(last_leaf);
-
-            TreePathT next_path = path;
-            MEMORIA_TRY(has_next_leaf, self.ctr_get_next_node(next_path, 0));
-
-            if (has_next_leaf)
+            while (insertion_state.has_more())
             {
+
+                MEMORIA_TRY(insertion_idx, self.ctr_insert_subtree_one_pass(
+                                path,
+                                1,
+                                parent_idx + 1,
+                                list_provider,
+                                insertion_state
+                ));
+
+                last_insertion_idx = insertion_idx;
+                parent_idx = insertion_idx - 1;
+
+                insertion_state.next_pass();
+            }
+
+            int32_t parent_size = self.ctr_get_branch_node_size(path[1]);
+            if (last_insertion_idx < parent_size)
+            {
+                MEMORIA_TRY(child, self.ctr_get_node_child(path[1], last_insertion_idx));
+                path[0] = child;
+
+                TreePathT prev_path = path;
+                MEMORIA_TRY_VOID(self.ctr_expect_prev_node(prev_path, 0));
+
                 MEMORIA_TRY(
-                    has_merge,
-                    self.ctr_merge_leaf_nodes(path, next_path, [](const Position&){return VoidResult::of();})
+                            has_merge,
+                            self.ctr_merge_leaf_nodes(prev_path, path);
                 );
 
-                if (has_merge)
-                {
-                    end_pos = last_leaf_size;
-                }
-                else {
-                    end_pos = Position{};
-                    path = next_path;
+                if (has_merge) {
+                    path = prev_path;
                 }
             }
             else {
-                end_pos = last_leaf_size;
+                MEMORIA_TRY(child, self.ctr_get_node_child(path[1], last_insertion_idx - 1));
+                path[0] = child;
             }
         }
 

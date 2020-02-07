@@ -58,6 +58,7 @@ option(BUILD_EMIT_LLVM  "Emit LLVM bytecode for compiled binaries. Implies Clang
 option(BUILD_CONTAINERS          "Build stores and containers." ON)
 option(BUILD_CONTAINERS_MULTIMAP "Build Multimap<Varchar, Varchar> container." ON)
 option(BUILD_CONTAINERS_SET      "Build Set<Varchar> container." ON)
+option(BUILD_CONTAINERS_VECTOR   "Build Vector<...> container(s)." ON)
 option(BUILD_MEMORY_STORE        "Build default in-memory store." ON)
 
 option(BUILD_TESTS              "Build Unit/Functional/Integration/Randomized tests" OFF)
@@ -109,6 +110,10 @@ endif()
 
 if (BUILD_CONTAINERS_SET)
     add_definitions(-DMEMORIA_BUILD_CONTAINERS_SET)
+endif()
+
+if (BUILD_CONTAINERS_VECTOR)
+    add_definitions(-DMEMORIA_BUILD_CONTAINERS_VECTOR)
 endif()
 
 

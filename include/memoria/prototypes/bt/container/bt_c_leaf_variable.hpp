@@ -285,7 +285,7 @@ public:
         return VoidResult::of();
     }) noexcept;
 
-    BoolResult ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, MergeFn fn = [](const Position&){
+    BoolResult ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, bool only_if_same_parent = false, MergeFn fn = [](const Position&){
         return VoidResult::of();
     }) noexcept;
 
@@ -350,7 +350,7 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
 
 
 M_PARAMS
-BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path, MergeFn fn) noexcept
+BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path, bool only_if_same_parent, MergeFn fn) noexcept
 {
     auto& self = this->self();
 
@@ -367,9 +367,9 @@ BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path
 
         return merged_result;
     }
-    else
+    else if (!only_if_same_parent)
     {
-        MEMORIA_TRY(merged, self.ctr_merge_branch_nodes(tgt_path, src_path, 1));
+        MEMORIA_TRY(merged, self.ctr_merge_branch_nodes(tgt_path, src_path, 1, only_if_same_parent));
 
         MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path, 0));
         MEMORIA_TRY_VOID(self.ctr_expect_next_node(src_path, 0));
@@ -378,11 +378,9 @@ BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path
         {
             return self.ctr_merge_current_leaf_nodes(tgt_path, src_path, fn);
         }
-        else
-        {
-            return BoolResult::of(false);
-        }
     }
+
+    return BoolResult::of(false);
 }
 
 

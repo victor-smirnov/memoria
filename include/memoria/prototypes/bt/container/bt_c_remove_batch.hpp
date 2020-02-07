@@ -89,17 +89,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveBatchName)
             Position& sums
     ) noexcept;
 
-//    VoidResult ctr_try_merge_nodes_after_remove(
-//            NodeBaseG& start,
-//            const Position& start_idx,
-
-//            NodeBaseG& stop,
-//            Position& stop_idx) noexcept
-//    {
-
-//    }
-
-
 
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------
 
@@ -206,8 +195,7 @@ VoidResult M_TYPE::ctr_remove_entries(
 
         if (merge)
         {
-            auto res = self.ctr_merge_leaf_with_right_sibling(stop_path);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(self.ctr_merge_leaf_with_right_sibling(stop_path));
         }
 
         start_path  = stop_path;
@@ -233,15 +221,15 @@ VoidResult M_TYPE::ctr_remove_entries(
     else {
         MEMORIA_TRY_VOID(ctr_remove_nodes(start_path, start_idx, stop_path, stop_idx, sizes));
 
-        if (merge)
-        {
-            auto res = self.ctr_merge_leaf_with_siblings(stop_path, [&](const Position& left_sizes)
-            {
-                stop_idx += left_sizes;
-                return VoidResult::of();
-            });
-            MEMORIA_RETURN_IF_ERROR(res);
-        }
+//        if (merge)
+//        {
+//            auto res = self.ctr_merge_leaf_with_siblings(stop_path, [&](const Position& left_sizes)
+//            {
+//                stop_idx += left_sizes;
+//                return VoidResult::of();
+//            });
+//            MEMORIA_RETURN_IF_ERROR(res);
+//        }
 
         start_path  = stop_path;
         start_idx   = stop_idx;
@@ -265,9 +253,9 @@ VoidResult M_TYPE::ctr_remove_all_nodes(TreePathT& start_path, TreePathT& stop_p
 
     MEMORIA_TRY(new_root, self.ctr_create_root_node(0, true, -1));
 
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_node_recursively(root, sizes));
+    MEMORIA_TRY_VOID(self.ctr_remove_node_recursively(root, sizes));
 
-    MEMORIA_RETURN_IF_ERROR_FN(self.set_root(new_root->id()));
+    MEMORIA_TRY_VOID(self.set_root(new_root->id()));
 
     start_path.add_root(new_root);
 
@@ -285,22 +273,12 @@ VoidResult M_TYPE::ctr_remove_branch_nodes_from_start(TreePathT& stop_path, size
 {
     auto& self = this->self();
 
-    NodeBaseG node = stop_path.leaf();
-
     MEMORIA_TRY_VOID(self.ctr_remove_node_content(stop_path, level, 0, stop_idx, sizes));
 
-    while (!node->is_root())
+    while (!stop_path[level]->is_root())
     {
-        MEMORIA_TRY(parent, self.ctr_get_node_parent_for_update(stop_path, level));
-
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
-
-        node = parent;
-
-        if (parent_idx > 0)
-        {
-            MEMORIA_TRY_VOID(self.ctr_remove_node_content(stop_path, level, 0, parent_idx, sizes));
-        }
+        MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(stop_path, level));
+        MEMORIA_TRY_VOID(self.ctr_remove_node_content(stop_path, level + 1, 0, parent_idx, sizes));
 
         level++;
     }
@@ -314,21 +292,14 @@ VoidResult M_TYPE::ctr_remove_nodes_from_start(TreePathT& stop_path, const Posit
 {
     auto& self = this->self();
 
-
-    auto res = self.ctr_remove_leaf_content(stop_path, Position(0), stop_idx);
-    MEMORIA_RETURN_IF_ERROR(res);
-
-    sizes += res.get();
+    MEMORIA_TRY(res, self.ctr_remove_leaf_content(stop_path, Position(0), stop_idx));
+    sizes += res;
 
     if (!stop_path.leaf()->is_root())
     {
-        Result<NodeBaseG> parent = self.ctr_get_node_parent_for_update(stop_path, 0);
-        MEMORIA_RETURN_IF_ERROR(parent);
-
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent.get(), stop_path[0]->id()));
+        MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(stop_path, 0));
 
         MEMORIA_TRY_VOID(self.ctr_remove_branch_nodes_from_start(stop_path, 1, parent_idx, sizes));
-
         MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(stop_path));
     }
 
@@ -346,23 +317,15 @@ VoidResult M_TYPE::ctr_remove_branch_nodes_at_end(
 {
     auto& self = this->self();
 
-    NodeBaseG node = start_path[level];
-
-    int32_t node_size = self.ctr_get_node_size(node, 0);
+    int32_t node_size = self.ctr_get_node_size(start_path[level], 0);
     MEMORIA_TRY_VOID(self.ctr_remove_node_content(start_path, level, start_idx, node_size, sizes));
 
-    while (!node->is_root())
+    while (!start_path[level]->is_root())
     {
-        MEMORIA_TRY(parent, self.ctr_get_node_parent_for_update(start_path, level));
-        MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
+        MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(start_path, level));
 
-        node        = parent;
-        node_size   = self.ctr_get_node_size(node, 0);
-
-        if (parent_idx < node_size - 1)
-        {
-            MEMORIA_TRY_VOID(self.ctr_remove_node_content(start_path, level + 1, parent_idx + 1, node_size, sizes));
-        }
+        node_size = self.ctr_get_node_size(start_path[level + 1], 0);
+        MEMORIA_TRY_VOID(self.ctr_remove_node_content(start_path, level + 1, parent_idx + 1, node_size, sizes));
 
         level++;
     }
@@ -432,41 +395,30 @@ VoidResult M_TYPE::ctr_remove_nodes(
         // We need to up the tree until we found the node
         // enclosing the region. See the code branch above.
 
+        MEMORIA_TRY(start_parent_idx, self.ctr_get_parent_idx(start_path, 0));
+        MEMORIA_TRY(stop_parent_idx, self.ctr_get_parent_idx(stop_path, 0));
+
+        MEMORIA_TRY_VOID(ctr_remove_branch_nodes(start_path, start_parent_idx + 1, stop_path, stop_parent_idx, 1, sizes));
+
         Position start_end = self.ctr_get_node_sizes(start_path.leaf());
 
         MEMORIA_TRY(start_leaf_sizes, self.ctr_remove_leaf_content(start_path, start_idx, start_end));
+
+        stop_path = start_path;
+        MEMORIA_TRY_VOID(self.ctr_expect_next_node(stop_path, 0));
+
         sizes += start_leaf_sizes;
 
         MEMORIA_TRY(stop_leaf_sizes, self.ctr_remove_leaf_content(stop_path, Position(0), stop_idx));
+
+        start_path = stop_path;
+        MEMORIA_TRY_VOID(self.ctr_expect_prev_node(start_path, 0));
+
         sizes += stop_leaf_sizes;
 
-        MEMORIA_TRY(start_parent, self.ctr_get_node_parent_for_update(start_path, 0));
-        MEMORIA_TRY(stop_parent, self.ctr_get_node_parent_for_update(stop_path, 0));
-
-        MEMORIA_TRY(start_parent_idx, self.ctr_get_child_idx(start_parent, start_path.leaf()->id()));
-        MEMORIA_TRY(stop_parent_idx, self.ctr_get_child_idx(stop_parent, stop_path.leaf()->id()));
-
-        MEMORIA_RETURN_IF_ERROR_FN(
-            ctr_remove_branch_nodes(start_path, start_parent_idx + 1, stop_path, stop_parent_idx, 1, sizes)
-        );
-
-        MEMORIA_TRY(same_parent, self.ctr_is_the_same_parent(start_path, stop_path, 0));
-        if (same_parent)
-        {
-            auto res2 = self.ctr_merge_current_leaf_nodes(start_path, stop_path);
-            MEMORIA_RETURN_IF_ERROR(res2);
-
-            if (res2.get())
-            {
-                stop_idx    = start_idx;
-                stop_path   = start_path;
-            }
-            else {
-                stop_idx = Position(0);
-            }
-        }
-        else {
-            stop_idx = Position(0);
+        MEMORIA_TRY(merged, self.ctr_merge_leaf_nodes(start_path, stop_path));
+        if (merged) {
+            stop_path = start_path;
         }
     }
 
@@ -490,19 +442,17 @@ VoidResult M_TYPE::ctr_remove_branch_nodes(
 {
     auto& self = this->self();
 
-    NodeBaseG start = start_path[level];
-    NodeBaseG stop  = stop_path[level];
-
-    if (self.ctr_is_the_same_sode(start, stop))
+    if (self.ctr_is_the_same_sode(start_path[level], stop_path[level]))
     {
-        // The root node of removed subtree
+        // The root node of the removed subtree
 
         if (stop_idx - start_idx > 0)
         {
             //remove some space within the node
             MEMORIA_TRY_VOID(self.ctr_remove_node_content(start_path, level, start_idx, stop_idx, sizes));
-
             MEMORIA_TRY_VOID(self.ctr_remove_redundant_root(start_path, level));
+
+            MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(start_path, stop_path, level));
         }
     }
     else
@@ -511,32 +461,27 @@ VoidResult M_TYPE::ctr_remove_branch_nodes(
         // We need to up the tree until we found the node
         // enclosing the region. See the code branch above.
 
-        int32_t start_end = self.ctr_get_node_size(start, 0);
+        MEMORIA_TRY(start_parent_idx, self.ctr_get_parent_idx(start_path, level));
+        MEMORIA_TRY(stop_parent_idx, self.ctr_get_parent_idx(stop_path, level));
+
+        MEMORIA_TRY_VOID(ctr_remove_branch_nodes(start_path, start_parent_idx + 1, stop_path, stop_parent_idx, level + 1, sizes));
+
+        int32_t start_end = self.ctr_get_node_size(start_path[level], 0);
 
         MEMORIA_TRY_VOID(self.ctr_remove_node_content(start_path, level, start_idx, start_end, sizes));
+        MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(start_path, stop_path, level));
+        MEMORIA_TRY_VOID(self.ctr_expect_next_node(stop_path, level));
+
         MEMORIA_TRY_VOID(self.ctr_remove_node_content(stop_path, level, 0, stop_idx, sizes));
+        MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(stop_path, start_path, level));
+        MEMORIA_TRY_VOID(self.ctr_expect_prev_node(start_path, level));
 
-        MEMORIA_TRY(start_parent, self.ctr_get_node_parent_for_update(start_path, level));
-        MEMORIA_TRY(stop_parent, self.ctr_get_node_parent_for_update(stop_path, level));
+        //MEMORIA_TRY_VOID(ctr_remove_branch_nodes(start_path, start_parent_idx + 1, stop_path, stop_parent_idx, level + 1, sizes));
 
-        MEMORIA_TRY(start_parent_idx, self.ctr_get_child_idx(start_parent, start->id()));
-        MEMORIA_TRY(stop_parent_idx, self.ctr_get_child_idx(stop_parent, stop->id()));
-
-        auto res0 = ctr_remove_branch_nodes(start_path, start_parent_idx + 1, stop_path, stop_parent_idx, level + 1, sizes);
-        MEMORIA_RETURN_IF_ERROR(res0);
-
-        MEMORIA_TRY(same_parent, self.ctr_is_the_same_parent(start_path, stop_path, level));
-
-        if (same_parent)
+        MEMORIA_TRY(merged, self.ctr_merge_branch_nodes(start_path, stop_path, level));
+        if (merged)
         {
-            auto res1 = self.ctr_merge_current_branch_nodes(start_path, stop_path, level);
-            MEMORIA_RETURN_IF_ERROR(res1);
-
-            if (res1.get())
-            {
-                stop_path = start_path;
-                stop_parent_idx = start_parent_idx;
-            }
+            MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(start_path, stop_path, level));
         }
     }
 

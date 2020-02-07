@@ -1216,7 +1216,7 @@ public:
                     return ResultT::of(ii->second->shared_self());
                 }
                 else {
-                    return ResultT::make_error(
+                    return VoidResult::make_error_tr(
                                 "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
                                 ctr_hash,
                                 instance_hash

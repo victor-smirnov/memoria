@@ -58,6 +58,8 @@ public:
         InsertBatchResult(int32_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
         int32_t local_pos() const {return idx_;}
+        int32_t idx() const {return idx_;}
+
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
@@ -157,17 +159,15 @@ public:
             {
                 MEMORIA_TRY(node, self.ctr_create_node(level, false, false));
 
-                auto res0 = self.ctr_layout_branch_node(node, 0xFF);
-                MEMORIA_RETURN_IF_ERROR(res0);
+                MEMORIA_TRY_VOID(self.ctr_layout_branch_node(node, 0xFF));
 
                 size_t height = level + 1;
                 TreePathT path = TreePathT::build(node, height);
 
-                auto res1 = self.ctr_insert_subtree(path, level, 0, provider, [this, level, &provider]() noexcept -> Result<NodeBaseG> {
+                MEMORIA_TRY_VOID(self.ctr_insert_subtree(path, level, 0, provider, [this, level, &provider]() noexcept -> Result<NodeBaseG> {
                     auto& self = this->self();
                     return self.ctr_build_subtree(provider, level - 1);
-                }, false);
-                MEMORIA_RETURN_IF_ERROR(res1);
+                }, false));
 
                 return ResultT::of(node);
             }
@@ -285,43 +285,32 @@ public:
 
         int32_t left_size0 = self.ctr_get_branch_node_size(left);
 
-        auto left_result = ctr_insert_batch_to_node(left_path, level, left_size0, provider);
-        MEMORIA_RETURN_IF_ERROR(left_result);
+        MEMORIA_TRY(left_result, ctr_insert_batch_to_node(left_path, level, left_size0, provider));
 
-        state.inserted() += left_result.get().subtree_size();
+        state.inserted() += left_result.subtree_size();
 
         if (state.shouldMoveUp())
         {
-            auto left_parent = self.ctr_get_node_parent_for_update(left_path, level);
-            MEMORIA_RETURN_IF_ERROR(left_parent);
+            MEMORIA_TRY(left_parent, self.ctr_get_node_parent_for_update(left_path, level));
+            MEMORIA_TRY(right_parent, self.ctr_get_node_parent_for_update(right_path, level));
 
-            auto right_parent_res = self.ctr_get_node_parent_for_update(right_path, level);
-            MEMORIA_RETURN_IF_ERROR(right_parent_res);
-
-            NodeBaseG right_parent = right_parent_res.get();
-
-            if (left_parent.get() == right_parent)
+            if (left_parent == right_parent)
             {
                 MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(right_parent, right->id()));
-
-                auto res = self.ctr_split_path(left_path, level + 1, parent_idx);
-                MEMORIA_RETURN_IF_ERROR(res);
+                MEMORIA_TRY_VOID(self.ctr_split_path(left_path, level + 1, parent_idx));
             }
 
-            auto res = ctr_insert_subtree(left_path, right_path, level + 1, provider, state);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(ctr_insert_subtree(left_path, right_path, level + 1, provider, state));
         }
         else {
-            auto right_result = ctr_insert_batch_to_node(right_path, level, 0, provider);
-            MEMORIA_RETURN_IF_ERROR(right_result);
-
-            state.inserted() += right_result.get().subtree_size();
+            MEMORIA_TRY(right_result, ctr_insert_batch_to_node(right_path, level, 0, provider));
+            state.inserted() += right_result.subtree_size();
         }
 
         return VoidResult::of();
     }
 
-    Result<NodeBaseG> ctr_insert_subtree_at_end(
+    VoidResult ctr_insert_subtree_at_end(
             TreePathT& left_path,
             size_t level,
             ILeafProvider&
@@ -329,17 +318,16 @@ public:
             InsertionState& state
     ) noexcept
     {
-        using ResultT = Result<NodeBaseG>;
+        using ResultT = VoidResult;
         auto& self = this->self();
 
         NodeBaseG left = left_path[level];
 
         int32_t left_size0 = self.ctr_get_branch_node_size(left);
 
-        auto left_result = ctr_insert_batch_to_node(left_path, level, left_size0, provider);
-        MEMORIA_RETURN_IF_ERROR(left_result);
+        MEMORIA_TRY(left_result, ctr_insert_batch_to_node(left_path, level, left_size0, provider));
 
-        state.inserted() += left_result.get().subtree_size();
+        state.inserted() += left_result.subtree_size();
 
         if (provider.size() > 0)
         {
@@ -348,37 +336,26 @@ public:
                 MEMORIA_TRY_VOID(self.ctr_create_new_root_block(left_path));
             }
 
-            auto left_parent = self.ctr_get_node_parent_for_update(left_path, level);
-            MEMORIA_RETURN_IF_ERROR(left_parent);
-
-            auto right = ctr_insert_subtree_at_end(left_path, level + 1, provider, state);
-            MEMORIA_RETURN_IF_ERROR(right);
-
-            int32_t right_size = self.ctr_get_branch_node_size(right.get());
-
-            return self.ctr_get_node_child(right.get(), right_size - 1);
+            MEMORIA_TRY_VOID(ctr_insert_subtree_at_end(left_path, level + 1, provider, state));
         }
-        else {
-            return ResultT::of(left);
-        }
+
+        return ResultT::of();
     }
 
 
-    Result<int32_t> ctr_insert_subtree(TreePathT& path, size_t level, int32_t pos, ILeafProvider& provider) noexcept
+    VoidResult ctr_insert_subtree(TreePathT& path, size_t level, int32_t pos, ILeafProvider& provider) noexcept
     {
-        using ResultT = Result<int32_t>;
+        using ResultT = VoidResult;
         auto& self = this->self();
-
-        NodeBaseG node = path[level];
 
         MEMORIA_TRY(result, ctr_insert_batch_to_node(path, level, pos, provider));
 
         if (provider.size() == 0)
         {
-            return result.local_pos();
+            return ResultT::of();
         }
         else {
-            auto node_size = self.ctr_get_branch_node_size(node);
+            auto node_size = self.ctr_get_branch_node_size(path[level]);
 
             TreePathT next = path;
             bool use_next_leaf{};
@@ -404,11 +381,11 @@ public:
 
             if (use_next_leaf)
             {
-                MEMORIA_TRY(left_result, ctr_insert_batch_to_node(path, level, result.local_pos(), provider));
+                MEMORIA_TRY_VOID(ctr_insert_batch_to_node(path, level, result.local_pos(), provider));
 
                 if (provider.size() == 0)
                 {
-                    return left_result.local_pos();
+                    return ResultT::of();
                 }
                 else {
                     BlockUpdateMgr mgr(self);
@@ -416,7 +393,7 @@ public:
 
                     auto checkpoint = provider.checkpoint();
 
-                    MEMORIA_TRY(next_result, ctr_insert_batch_to_node(next, level, 0, provider, false));
+                    MEMORIA_TRY_VOID(ctr_insert_batch_to_node(next, level, 0, provider, false));
 
                     if (provider.size() == 0)
                     {
@@ -424,7 +401,7 @@ public:
 
                         MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(next, path, level));
 
-                        return next_result.local_pos();
+                        return ResultT::of();
                     }
                     else {
                         mgr.rollback();
@@ -442,7 +419,7 @@ public:
                         if (provider.size() == 0)
                         {
                             MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(next, path, level));
-                            return ResultT::of(idx);
+                            return ResultT::of();
                         }
                         else {
                             return ctr_insert_subtree(next, level, idx, provider);
@@ -452,10 +429,7 @@ public:
             }
             else {
                 InsertionState state(provider.size());
-                MEMORIA_TRY(end_res, ctr_insert_subtree_at_end(path, level, provider, state));
-                node = end_res;
-
-                return self.ctr_get_branch_node_size(node);
+                return ctr_insert_subtree_at_end(path, level, provider, state);
             }
         }
     }

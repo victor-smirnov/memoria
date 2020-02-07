@@ -120,7 +120,7 @@ public:
 template <
     typename TypesType
 >
-class IteratorBase: public TypesType::IteratorInterface {
+class IteratorBase: public TypesType::IteratorInterface, public CtrSharedFromThis<Iter<TypesType>> {
     typedef IteratorBase<TypesType>                                                 ThisType;
 
 public:

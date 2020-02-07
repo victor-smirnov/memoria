@@ -26,6 +26,10 @@
 
 #include <memoria/prototypes/bt/bt_macros.hpp>
 
+#include <memoria/api/vector/vector_producer.hpp>
+#include <memoria/api/vector/vector_scanner.hpp>
+
+
 #include <iostream>
 
 
@@ -47,13 +51,97 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(mvector::ItrApiName)
 
     using CtrSizeT = ProfileCtrSizeT<Profile>;
 
+    using CtrApi = ICtrApi<typename Types::ContainerTypeName, Profile>;
+
     using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
     using IOVSchema = Linearize<typename CtrApiTypes::IOVSchema>;
 
     using ValueView = typename DataTypeTraits<ValueDataType>::ViewType;
 
+    using BufferT = DataTypeBuffer<ValueDataType>;
+
 public:
+
+
+
+    virtual Result<CtrSharedPtr<BufferT>> read_buffer(CtrSizeT size) noexcept
+    {
+        using ResultT = Result<CtrSharedPtr<BufferT>>;
+
+        auto& self = this->self();
+
+        auto buffer = ctr_make_shared<BufferT>();
+
+        CtrSizeT cnt{};
+        VectorScanner<CtrApiTypes, Profile> scanner(self.shared_from_this());
+
+        size_t local_cnt;
+        while (cnt < size && !scanner.is_end())
+        {
+            local_cnt = 0;
+            CtrSizeT remainder = size - cnt;
+            CtrSizeT values_size = static_cast<CtrSizeT>(scanner.values().size());
+
+            if (values_size <= remainder)
+            {
+                buffer->append(scanner.values());
+                cnt += values_size;
+            }
+            else {
+                buffer->append(scanner.values().first(remainder));
+                cnt += remainder;
+            }
+
+
+
+            if (cnt < size)
+            {
+                MEMORIA_TRY_VOID(scanner.next_leaf());
+            }
+        }
+
+
+        return ResultT::of(buffer);
+    }
+
+    virtual VoidResult insert_buffer(const BufferT& buffer, size_t start, size_t size) noexcept
+    {
+        auto& self = this->self();
+
+        if (start + size > buffer.size())
+        {
+            return VoidResult::make_error("Vector insert_buffer rancge check error: {}, {}, {}", start, size, buffer.size());
+        }
+
+        MEMORIA_TRY(current_pos, self.pos());
+
+        VectorProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){
+            size_t batch_size = 8192;
+            size_t limit = (appended_size + batch_size <= size) ? batch_size : size - appended_size;
+
+            for (size_t c = 0; c < limit; c++) {
+                values.append(buffer[start + appended_size + c]);
+            }
+
+            return limit != batch_size;
+        });
+
+        MEMORIA_TRY(totals, self.insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max()));
+
+        CtrSizeT new_pos = current_pos + totals;
+
+        MEMORIA_TRY(ii, self.ctr().ctr_seek(new_pos));
+
+        self.assign(std::move(*ii.get()));
+
+        return VoidResult::of();
+    }
+
+
+    CtrSharedPtr<CtrApi> vector() noexcept {
+        return memoria_static_pointer_cast<CtrApi> (self().ctr().make_shared_ptr());
+    }
 
     Datum<ValueDataType> value() const
     {

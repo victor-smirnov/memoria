@@ -123,7 +123,7 @@ public:
 
             auto& sum = Base::sum_;
 
-            if (tree != nullptr)
+            if (tree)
             {
                 if (start - offset >= 0)
                 {

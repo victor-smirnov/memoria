@@ -429,7 +429,7 @@ public:
     using Base::treeNode;
 
     template <typename CtrT, typename NodeT>
-    void treeNode(const BranchNodeSO<CtrT, NodeT>* node, WalkCmd cmd, int32_t start, int32_t end)
+    void treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
     {
         auto& self = this->self();
 
@@ -491,13 +491,13 @@ public:
     {
         int32_t s = start > (obj.size() - 1) ? obj.size() - 1 : start;
 
-        obj._sub(0, end + 1, s + 1, Base::branch_size_prefix()[StreamIdx]);
+        obj.data()->_sub(0, end + 1, s + 1, Base::branch_size_prefix()[StreamIdx]);
     }
 
     template <int32_t StreamIdx, typename StreamType>
     void branch_size_prefix(StreamType&& obj, int32_t start, int32_t end, FixTargetTag)
     {
-        obj._add(0, end + 1, end + 2, Base::branch_size_prefix()[StreamIdx]);
+        obj.data()->_add(0, end + 1, end + 2, Base::branch_size_prefix()[StreamIdx]);
     }
 
 
@@ -505,7 +505,7 @@ public:
     template <int32_t StreamIdx, typename StreamType>
     void leaf_size_prefix(StreamType&& obj)
     {
-        Base::branch_size_prefix()[StreamIdx] -= obj->size();
+        Base::branch_size_prefix()[StreamIdx] -= obj.size();
     }
 
 
@@ -524,7 +524,7 @@ public:
 
         for (int32_t c = 0; c < To - From; c++)
         {
-            obj._sub(c + From, end + 1, s + 1, item[c]);
+            obj.data()->_sub(c + From, end + 1, s + 1, item[c]);
         }
     }
 
@@ -545,7 +545,7 @@ public:
         for (int32_t c = 0; c < Size; c++)
         {
             item[Idx + c] = 0;
-            obj._add(c + From, end, item[Idx + c]);
+            obj.data()->_add(c + From, end, item[Idx + c]);
         }
     }
 
@@ -564,7 +564,7 @@ public:
         else {
             for (int32_t c = 0; c < Size; c++)
             {
-                obj._sub(c + From, item[Idx + c]);
+                obj.data()->_sub(c + From, item[Idx + c]);
             }
         }
     }

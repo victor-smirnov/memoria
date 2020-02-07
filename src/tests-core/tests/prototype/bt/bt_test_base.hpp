@@ -47,8 +47,8 @@ struct AlwaysCommitHandler {
 
 template <
     typename ContainerTypeName,
-    typename StoreType,
-    typename Profile
+    typename Profile,
+    typename StoreType
 >
 class BTTestBase: public TestState {
 
@@ -75,13 +75,13 @@ protected:
     RngInt64 bigint_generator_{};
 
 public:
-    MMA_STATE_FILEDS(size_, snapshot_id_);
-    MMA_INDIRECT_STATE_FILEDS(store_);
+    MMA_STATE_FILEDS(size_, snapshot_id_)
+    MMA_INDIRECT_STATE_FILEDS(store_)
 
     BTTestBase()
     {
-        store_ = Store::create();
-        snapshot_  = store_->master();
+        store_ = Store::create().get_or_throw();
+        snapshot_  = store_->master().get_or_throw();
     }
 
     auto& store() {
@@ -103,10 +103,10 @@ public:
     auto& branch()
     {
         if (snapshot_) {
-            snapshot_ = snapshot_->branch();
+            snapshot_ = snapshot_->branch().get_or_throw();
         }
         else {
-            snapshot_ = store_->master()->branch();
+            snapshot_ = store_->master().get_or_throw()->branch().get_or_throw();
         }
 
         snapshot_id_ = snapshot_->uuid();
@@ -116,17 +116,17 @@ public:
 
     void commit()
     {
-        snapshot_->commit();
-        snapshot_->set_as_master();
+        snapshot_->commit().get_or_throw();
+        snapshot_->set_as_master().get_or_throw();
 
         if (snapshot_->has_parent())
         {
-            auto parent = snapshot_->parent();
+            auto parent = snapshot_->parent().get_or_throw();
 
             if (parent->has_parent())
             {
-                parent->drop();
-                store_->pack();
+                parent->drop().get_or_throw();
+                store_->pack().get_or_throw();
             }
         }
     }
@@ -170,7 +170,7 @@ public:
     {
         if (is_replay())
         {
-            snapshot_ = store_->find(snapshot_id_);
+            snapshot_ = store_->find(snapshot_id_).get_or_throw();
         }
     }
 
@@ -182,10 +182,10 @@ public:
         try {
             if (snapshot_->is_active())
             {
-                snapshot_id_ = snapshot_->parent()->uuid();
-                snapshot_->commit();
+                snapshot_id_ = snapshot_->parent().get_or_throw()->uuid();
+                snapshot_->commit().get_or_throw();
 
-                store_->pack();
+                store_->pack().get_or_throw();
             }
         }
         catch (...) {
@@ -195,13 +195,13 @@ public:
 
     virtual void storeAllocator(U8String file_name)
     {   
-        store_->store(file_name.to_u8());
+        store_->store(file_name.to_u8()).get_or_throw();
     }
 
 
     virtual void loadAllocator(U8String file_name)
     {
-        store_ = Store::load(file_name.to_u8());
+        store_ = Store::load(file_name.to_u8()).get_or_throw();
     }
 
 

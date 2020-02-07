@@ -28,6 +28,7 @@
 #include <memory>
 #include <exception>
 #include <sstream>
+#include <iostream>
 #include <type_traits>
 
 namespace memoria {
@@ -480,6 +481,8 @@ public:
             case ResultStatus::MEMORIA_ERROR:
             {
                 (*boost::variant2::get_if<MemoriaErrorPtr>(&variant_))->describe(std::cout);
+                std::cout << std::endl;
+
                 MMA_THROW(MemoriaThrowable()) << WhatCInfo("Forwarding memoria exception");
 
 //                throw ResultException(
@@ -722,8 +725,8 @@ do {                                         \
 } while (0)
 
 #define MEMORIA_RETURN_IF_ERROR_FN(FnCall)   \
-do {                                            \
-    VoidResult res0 = FnCall;                \
+do {                                         \
+    auto res0 = FnCall;                      \
     if (MMA_UNLIKELY(!res0.is_ok())) {       \
         return std::move(res0).transfer_error(); \
     }                                        \

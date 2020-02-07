@@ -46,7 +46,7 @@ int main()
 
         std::vector<U8String> entries_;
 
-        for (int c = 0; c < 10000; c++) {
+        for (int c = 0; c < 1000000; c++) {
             entries_.emplace_back(
                 "AAAAAAAAAAAAAAAAAAAAAAAAAAA_"   + std::to_string(c)
             );

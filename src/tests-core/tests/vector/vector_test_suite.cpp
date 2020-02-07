@@ -22,8 +22,8 @@ namespace tests {
 
 namespace {
 
-auto Suite1 = register_class_suite<VectorTest<UTinyInt>>("Vector.utinyint.FX");
-auto Suite2 = register_class_suite<VectorTest<Varchar>>("Vector.varchar.VLen");
+auto Suite1 = register_class_suite<BTSSBatchTest<Vector<UTinyInt>>>("Vector.UTinyInt");
+auto Suite2 = register_class_suite<BTSSBatchTest<Vector<Varchar>>>("Vector.Varchar");
 
 }
 

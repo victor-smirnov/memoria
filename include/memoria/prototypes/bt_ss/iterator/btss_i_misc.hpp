@@ -131,10 +131,33 @@ public:
         return self().template iter_skip<0>(amount);
     }
 
-    CtrSizeT pos() const noexcept
+    struct PosWalker {
+        CtrSizeT prefix_{};
+
+        template <typename CtrT, typename NodeT>
+        void treeNode(const BranchNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end)
+        {
+            const auto* stream = node.template substream<IntList<0>>();
+            prefix_ += stream->sum(0, start, end);
+        }
+
+
+        template <typename CtrT, typename NodeT>
+        void treeNode(const LeafNodeSO<CtrT, NodeT>& node, WalkCmd cmd, int32_t start, int32_t end){}
+    };
+
+
+
+    Result<CtrSizeT> pos() const noexcept
     {
+        using ResultT = Result<CtrSizeT>;
         auto& self = this->self();
-        return self.iter_local_pos() + self.iter_cache().size_prefix()[0];
+
+        PosWalker walker{};
+        MEMORIA_TRY_VOID(self.iter_walk_up_for_refresh(self.path(), 0, self.iter_local_pos(), walker));
+
+        //return ResultT::of(self.iter_local_pos() + self.iter_cache().size_prefix()[0]);
+        return ResultT::of(self.iter_local_pos() + walker.prefix_);
     }
 
 
@@ -159,16 +182,16 @@ public:
 
         auto& self = this->self();
 
-        auto to = self;
+        auto to = self.ctr().clone_iterator(self);
 
-        auto res0 = to.iter_btss_skip_fw(size);
+        auto res0 = to->iter_btss_skip_fw(size);
         MEMORIA_RETURN_IF_ERROR(res0);
 
         auto from_path      = self.path();
         Position from_pos   = Position(self.iter_local_pos());
 
-        auto to_path        = to.path();
-        Position to_pos     = Position(to.iter_local_pos());
+        auto to_path        = to->path();
+        Position to_pos     = Position(to->iter_local_pos());
 
         Position sizes;
 
@@ -178,7 +201,7 @@ public:
 
         self.iter_local_pos() = to_pos.get();
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.iter_refresh());
+        //MEMORIA_RETURN_IF_ERROR_FN(self.iter_refresh());
 
         return ResultT::of(sizes[0]);
     }

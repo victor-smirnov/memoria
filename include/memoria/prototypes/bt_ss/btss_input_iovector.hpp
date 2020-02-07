@@ -246,11 +246,7 @@ public:
 
         start_ += size;
 
-//        if (leaf->parent_id().isSet())
-//        {
-//            auto res = ctr().ctr_update_path(leaf);
-//            MEMORIA_RETURN_IF_ERROR(res);
-//        }
+        total_symbols_ += size;
 
         return ResultT::of(OpStatus::OK);
     }
@@ -458,11 +454,7 @@ public:
     {
         int32_t inserted = this->insertBuffer_(mgr, leaf, at, size);
 
-        // FIXME: need to move this code out
-//        if (leaf->parent_id().isSet())
-//        {
-//            MEMORIA_TRY_VOID(ctr().ctr_update_path(leaf));
-//        }
+        this->total_symbols_ += inserted;
 
         return Int32Result::of(inserted);
     }

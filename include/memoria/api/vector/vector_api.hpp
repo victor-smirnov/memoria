@@ -38,12 +38,25 @@ struct VectorIterator: BTSSIterator<Profile> {
 
     using ViewType  = DTTViewType<DataType>;
     using CtrSizeT  = ProfileCtrSizeT<Profile>;
+    using BufferT   = DataTypeBuffer<DataType>;
 
     virtual Datum<DataType> value() const = 0;
     virtual VoidResult set(ViewType view) noexcept = 0;
     virtual BoolResult next() noexcept = 0;
 
     virtual Result<CtrSizeT> remove_from(CtrSizeT size) noexcept = 0;
+
+    virtual Result<CtrSharedPtr<BufferT>> read_buffer(CtrSizeT size) noexcept  = 0;
+    virtual VoidResult insert_buffer(const BufferT& buffer, size_t start, size_t size) noexcept = 0;
+    virtual VoidResult insert_buffer(const BufferT& buffer) noexcept {
+        return insert_buffer(buffer, 0, buffer.size());
+    }
+
+    virtual Result<CtrSizeT> pos() const noexcept = 0;
+
+    virtual Result<CtrSizeT> skip(CtrSizeT delta) noexcept = 0;
+
+    virtual CtrSharedPtr<ICtrApi<Vector<DataType>, Profile>> vector() noexcept = 0;
 };
 
 template <typename DataType, typename Profile, bool FixedSizeElement = DTTIs1DFixedSize<DataType>>
@@ -71,13 +84,24 @@ struct ICtrApi<Vector<DataType>, Profile>: public VectorApiBase<DataType, Profil
     using Producer      = VectorProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
+    using IteratorT     = CtrSharedPtr<VectorIterator<DataType, Profile>>;
+    using BufferT       = DataTypeBuffer<DataType>;
+    using DataTypeT     = DataType;
+
+    virtual VoidResult read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const noexcept = 0;
+    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) noexcept = 0;
+
+    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer) noexcept {
+        return insert(at, buffer, 0, buffer.size());
+    }
+
 
     virtual Result<Datum<DataType>> get(CtrSizeT pos) const = 0;
     virtual VoidResult set(CtrSizeT pos, ViewType view) noexcept = 0;
 
     virtual Result<CtrSizeT> size() const noexcept = 0;
 
-    virtual Result<CtrSharedPtr<VectorIterator<DataType, Profile>>> seek(CtrSizeT pos) const = 0;
+    virtual Result<IteratorT> seek(CtrSizeT pos) const = 0;
 
     virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept = 0;
     virtual VoidResult append(io::IOVectorProducer& producer) noexcept = 0;

@@ -59,7 +59,7 @@ public:
     using Base::read;
     using Base::insert;
     
-    MMA_DECLARE_ITERAPI_BASIC_METHODS()
+    MMA_DECLARE_ITERAPI_BASIC_METHODS();
     
     template <typename T>
     auto insert(const std::vector<T>& data) 

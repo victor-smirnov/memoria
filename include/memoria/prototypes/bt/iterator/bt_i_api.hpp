@@ -163,7 +163,21 @@ public:
     }
 
     template <typename Walker>
-    VoidResult iter_walk_up_for_refresh(TreePathT& path, size_t level, int32_t idx, Walker&& walker) const noexcept
+    VoidResult iter_walk_up_for_refresh(const TreePathT& path, size_t level, int32_t idx, Walker&& walker) const noexcept
+    {
+        self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx);
+
+        for (size_t ll = level + 1; ll < path.size(); ll++)
+        {
+            MEMORIA_TRY(child_idx, self().ctr().ctr_get_child_idx(path[ll], path[ll - 1]->id()));
+            self().ctr().branch_dispatcher().dispatch(path[ll], walker, WalkCmd::PREFIXES, 0, child_idx);
+        }
+
+        return VoidResult::of();
+    }
+
+    template <typename Walker>
+    VoidResult iter_walk_up_for_refresh(TreePathT& path, size_t level, int32_t idx, Walker&& walker) noexcept
     {
         self().ctr().node_dispatcher().dispatch(path[level], walker, WalkCmd::PREFIXES, 0, idx);
 

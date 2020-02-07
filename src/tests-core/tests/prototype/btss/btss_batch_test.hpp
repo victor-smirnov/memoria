@@ -16,7 +16,13 @@
 #pragma once
 
 #include "btss_test_base.hpp"
-#include "btss_test_factory.hpp"
+
+#include <memoria/core/datatypes/buffer/buffer.hpp>
+
+#include <memoria/api/store/memory_store_api.hpp>
+
+#include <memoria/api/vector/vector_api.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include <memoria/core/strings/format.hpp>
 
@@ -30,28 +36,63 @@ namespace tests {
 
 using namespace reactor;
 
+
+namespace internal_ {
+
+    template <typename DataType> struct RandomValueGen;
+
+    template <>
+    struct RandomValueGen<Varchar> {
+        static void append_random(DataTypeBuffer<Varchar>& buffer, int32_t)
+        {
+            U8String rnd_string = create_random_string(10);
+            buffer.append(rnd_string);
+        }
+    };
+
+    template <>
+    struct RandomValueGen<UTinyInt> {
+        static void append_random(DataTypeBuffer<UTinyInt>& buffer, int32_t)
+        {
+            uint8_t rnd_val = static_cast<uint8_t>(getRandomG(256));
+            buffer.append(rnd_val);
+        }
+    };
+
+    template <>
+    struct RandomValueGen<UUID> {
+        static void append_random(DataTypeBuffer<UUID>& buffer, int32_t)
+        {
+            uint64_t hi_val = static_cast<uint64_t>(getBIRandomG());
+            uint64_t lo_val = static_cast<uint64_t>(getBIRandomG());
+            buffer.append(UUID(hi_val, lo_val));
+        }
+    };
+}
+
+
 template <
     typename CtrName,
-    typename AllocatorT     = InMemAllocator<>,
-    typename ProfileT       = DefaultProfile<>
+    typename ProfileT       = DefaultProfile<>,
+    typename AllocatorT     = IMemoryStorePtr<ProfileT>
 >
-class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
+class BTSSBatchTest: public BTSSTestBase<CtrName, ProfileT, AllocatorT> {
 
-    using Base   = BTSSTestBase<CtrName, AllocatorT, ProfileT>;
-    using MyType = BTSSBatchTest<CtrName, AllocatorT, ProfileT>;
+    using Base    = BTSSTestBase<CtrName, ProfileT, AllocatorT>;
+    using MyType  = BTSSBatchTest<CtrName, ProfileT, AllocatorT>;
 
-    using typename Base::Allocator;
-    using typename Base::AllocatorPtr;
-    using typename Base::Ctr;
+protected:
+
+    using typename Base::StorePtr;
+    using typename Base::CtrApi;
     using typename Base::MemBuffer;
-    using typename Base::Entry;
-    using typename Base::Iterator;
 
+    using DataType = typename CtrApi::DataTypeT;
 
     using Base::commit;
     using Base::drop;
     using Base::branch;
-    using Base::allocator;
+    using Base::store;
     using Base::snapshot;
     using Base::check;
     using Base::out;
@@ -61,13 +102,13 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
     using Base::storeAllocator;
     using Base::isReplayMode;
     using Base::getResourcePath;
-    using Base::createBuffer;
+
     using Base::compareBuffers;
     using Base::getRandom;
 
 public:
 
-    int32_t max_block_size_ = 1024;
+    int32_t max_block_size_ = 1024 * 256;
     int32_t check_size_     = 1000;
 
     UUID ctr_name_;
@@ -83,15 +124,15 @@ public:
     int32_t cnt_i_ = 0;
     int32_t cnt_r_ = 0;
 
-    typedef std::function<void (MyType*, Ctr&)> TestFn;
+    typedef std::function<void (MyType*, CtrApi&)> TestFn;
 
 public:
 
-    MMA_STATE_FILEDS(max_block_size_, check_size_, ctr_name_, prefix_size_, suffix_size_, block_size_, random_position_, iteration_);
+    MMA_STATE_FILEDS(max_block_size_, check_size_, ctr_name_, prefix_size_, suffix_size_, block_size_, random_position_, iteration_)
 
     BTSSBatchTest()
     {
-        size_ = 1024 * 1024;
+        size_ = 1024 * 1024 * 32;
     }
 
     static void init_suite(TestSuite& suite)
@@ -109,27 +150,28 @@ public:
         return iteration_;
     }
 
-    virtual MemBuffer createRandomBuffer(int32_t size)
+    virtual CtrSharedPtr<MemBuffer> createRandomBuffer(int32_t size)
     {
-        auto buffer = MemBuffer(size);
+        auto buffer = ctr_make_shared<MemBuffer>();
 
-        for (auto& v: buffer)
+        for (int32_t c = 0; c < size; c++)
         {
-            v = Entry(getRandom(100));
+            internal_::RandomValueGen<DataType>::append_random(*buffer.get(), c);
         }
 
         return buffer;
     }
 
 
-    virtual int64_t getRandomPosition(Ctr& array)
+
+    virtual int64_t getRandomPosition(CtrApi& array)
     {
         if (this->isReplayMode())
         {
             return random_position_;
         }
         else {
-            int64_t size = array.size();
+            int64_t size = array.size().get_or_throw();
             return random_position_ = this->getBIRandom(size);
         }
     }
@@ -140,7 +182,7 @@ public:
         return this->getRandom(max - 1) + 1;
     }
 
-    MemBuffer createSuffixCheckBuffer(Iterator& iter)
+    CtrSharedPtr<MemBuffer> createSuffixCheckBuffer(CtrApi& ctr, int64_t pos)
     {
         int64_t length;
 
@@ -148,56 +190,45 @@ public:
             length              = suffix_size_;
         }
         else {
-            int64_t current_pos  = iter.pos();
-            int64_t size         = iter.ctr().size();
+            int64_t current_pos  = pos;
+            int64_t size         = ctr.size().get_or_throw();
             int64_t remainder    = size - current_pos;
 
             suffix_size_ = length = check_size_ >= remainder ? remainder : check_size_;
         }
 
-        MemBuffer buf = iter.read(length);
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        iter.skip(-length);
-
-        ctr_check_iterator(iter, MA_SRC);
-
+        auto buf = ctr_make_shared<MemBuffer>();
+        ctr.read_to(*buf, pos, length).get_or_throw();
         return buf;
     }
 
-    MemBuffer createPrefixCheckBuffer(Iterator& iter)
+    CtrSharedPtr<MemBuffer> createPrefixCheckBuffer(CtrApi& ctr, int64_t pos)
     {
         int64_t length;
 
         if (this->isReplayMode()) {
-            length              = prefix_size_;
+            length = prefix_size_;
         }
         else {
-            int64_t current_pos  = iter.pos();
+            int64_t current_pos = pos;
             prefix_size_ = length = check_size_ >= current_pos ? current_pos : check_size_;
         }
 
-        iter.skip(-length);
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        MemBuffer buf = iter.read(length);
-
-        ctr_check_iterator(iter, MA_SRC);
-
+        auto buf = ctr_make_shared<MemBuffer>();
+        ctr.read_to(*buf, pos - length, length).get_or_throw();
         return buf;
     }
 
 
-    virtual void checkBufferWritten(Iterator& iter, const MemBuffer& buffer, const char* source)
+    virtual void checkBufferWritten(CtrApi& ctr, int64_t pos, const MemBuffer& buffer, const char* source)
     {
-        MemBuffer data = iter.read(buffer.size());
+        MemBuffer buf;
+        ctr.read_to(buf, pos, buffer.size()).get_or_throw();
 
-        compareBuffers(buffer, data, source);
+        compareBuffers(buffer, buf, source);
     }
 
-    MemBuffer createDataBuffer()
+    CtrSharedPtr<MemBuffer> createDataBuffer()
     {
         if (this->isReplayMode()) {
             return this->createRandomBuffer(block_size_);
@@ -208,47 +239,23 @@ public:
         }
     }
 
-    virtual void ctr_check_iterator(Iterator& iter, const char* source)
+
+    void insertFromStart(CtrApi& ctr)
     {
-        ctr_check_iteratorPrefix(iter, source);
-    }
+        auto suffix = createSuffixCheckBuffer(ctr, 0);
+        auto data   = createDataBuffer();
 
-    virtual void ctr_check_iteratorPrefix(Iterator& iter, const char* source)
-    {
-        iter.check(out(), source);
-    }
+        int64_t size = ctr.size().get_or_throw();
 
+        ctr.insert(0, *data).get_or_throw();
 
+        int64_t size2 = ctr.size().get_or_throw();
 
+        assert_equals(size2, size + data->size());
 
-    void insertFromStart(Ctr& ctr)
-    {
-        auto iter = ctr.seek(0);
+        checkBufferWritten(ctr, 0, *data.get(), MA_SRC);
 
-        MemBuffer suffix = createSuffixCheckBuffer(iter);
-        MemBuffer data   = createDataBuffer();
-
-        int64_t size = ctr.size();
-
-        iter.insert(data);
-
-        int64_t size2 = ctr.size();
-
-        assert_equals(size2, size + data.size());
-
-        assert_equals(iter.pos(), data.size());
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        iter.skip(-data.size());
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        checkBufferWritten(iter, data, MA_SRC);
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        checkBufferWritten(iter, suffix, MA_SRC);
+        checkBufferWritten(ctr, data->size(), *suffix.get(), MA_SRC);
     }
 
     void testInsertFromStart() {
@@ -259,32 +266,16 @@ public:
         replay(&MyType::insertFromStart);
     }
 
-    void insertAtEnd(Ctr& ctr)
+    void insertAtEnd(CtrApi& ctr)
     {
-        auto iter = ctr.seek(ctr.size());
+        int64_t pos = ctr.size().get_or_throw();
+        auto prefix = createPrefixCheckBuffer(ctr, pos);
+        auto data   = createDataBuffer();
 
-        ctr_check_iterator(iter, MA_SRC);
+        ctr.insert(pos, *data).get_or_throw();
 
-        MemBuffer prefix = createPrefixCheckBuffer(iter);
-        MemBuffer data   = createDataBuffer();
-
-        int64_t position = iter.pos();
-
-//         BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
-//         iter->insert_iobuffer(&provider);
-        
-        iter.insert(data);
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        assert_equals(iter.pos(), position + data.size());
-
-        iter.skip(-data.size() - prefix.size());
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        checkBufferWritten(iter, prefix, MA_SRC);
-        checkBufferWritten(iter, data, MA_SRC);
+        checkBufferWritten(ctr, pos - prefix->size(), *prefix.get(), MA_SRC);
+        checkBufferWritten(ctr, pos, *data.get(), MA_SRC);
     }
 
 
@@ -298,39 +289,22 @@ public:
         replay(&MyType::insertAtEnd);
     }
 
-    void insertInTheMiddle(Ctr& ctr)
+    void insertInTheMiddle(CtrApi& ctr)
     {
-        auto iter = ctr.seek(getRandomPosition(ctr));
+        int64_t pos = getRandomPosition(ctr);
 
-        MemBuffer prefix = createPrefixCheckBuffer(iter);
-        MemBuffer suffix = createSuffixCheckBuffer(iter);
+        auto prefix = createPrefixCheckBuffer(ctr, pos);
+        auto suffix = createSuffixCheckBuffer(ctr, pos);
 
-        MemBuffer data   = createDataBuffer();
+        auto data   = createDataBuffer();
 
-        iter.insert(data);
-        
-        ctr_check_iterator(iter, MA_SRC);
 
-        iter.skip(-data.size());
-        iter.skip(-prefix.size());
 
-        try {
-            checkBufferWritten(iter, prefix, MA_SRC);
-        }
-        catch (...) {
-            iter.dump_path();
-            throw;
-        }
+        ctr.insert(pos, *data).get_or_throw();
 
-        try{
-            checkBufferWritten(iter, data,   MA_SRC);
-        }
-        catch (...) {
-            iter.dump_path();
-            throw;
-        }
-
-        checkBufferWritten(iter, suffix, MA_SRC);
+        checkBufferWritten(ctr, pos - prefix->size(), *prefix.get(), MA_SRC);
+        checkBufferWritten(ctr, pos, *data.get(), MA_SRC);
+        checkBufferWritten(ctr, pos + data->size(), *suffix.get(), MA_SRC);
     }
 
 
@@ -346,31 +320,23 @@ public:
 
     int cnt = 0;
 
-    void removeFromStart(Ctr& ctr)
+    void removeFromStart(CtrApi& ctr)
     {
-        int32_t size;
+        int64_t size;
 
         if (this->isReplayMode()) {
             size = block_size_;
         }
         else {
-            int64_t ctr_size = ctr.size();
+            int64_t ctr_size = ctr.size().get_or_throw();
             block_size_ = size = getRandomBufferSize(ctr_size < max_block_size_ ? ctr_size : max_block_size_);
         }
 
-        auto iter = ctr.seek(size);
+        auto suffix = createSuffixCheckBuffer(ctr, size);
 
-        MemBuffer suffix = createSuffixCheckBuffer(iter);
+        ctr.remove_up_to(size).get_or_throw();
 
-        iter.skip(-size);
-
-        iter.remove(size);
-
-        assert_equals(0, iter.pos());
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        checkBufferWritten(iter, suffix, MA_SRC);
+        checkBufferWritten(ctr, 0, *suffix, MA_SRC);
     }
 
     void testRemoveFromStart() {
@@ -383,11 +349,11 @@ public:
 
 
 
-    void removeAtEnd(Ctr& ctr)
+    void removeAtEnd(CtrApi& ctr)
     {
         int32_t size;
 
-        int64_t ctr_size = ctr.size();
+        int64_t ctr_size = ctr.size().get_or_throw();
 
         if (this->isReplayMode()) {
             size = block_size_;
@@ -396,29 +362,15 @@ public:
             block_size_ = size = getRandomBufferSize(ctr_size < max_block_size_ ? ctr_size : max_block_size_);
         }
 
-        auto iter = ctr.seek(ctr_size - size);
+        auto prefix = createPrefixCheckBuffer(ctr, ctr_size - size);
 
-        ctr_check_iterator(iter, MA_SRC);
+        int64_t last_size = ctr.size().get_or_throw();
 
-        MemBuffer prefix = createPrefixCheckBuffer(iter);
+        ctr.remove_from(ctr_size - size).get_or_throw();
 
-        int64_t last_size = ctr.size();
+        assert_equals(last_size - size, ctr.size().get_or_throw());
 
-        iter.remove(size);
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        assert_equals(last_size - size, ctr.size());
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        assert_equals(iter.pos(), ctr.size());
-
-        iter.skip(-prefix.size());
-
-        assert_equals(iter.pos(), ctr.size() - prefix.size());
-
-        checkBufferWritten(iter, prefix, MA_SRC);
+        checkBufferWritten(ctr, ctr_size - size - prefix->size(), *prefix.get(), MA_SRC);
     }
 
     void testRemoveAtEnd() {
@@ -431,9 +383,9 @@ public:
 
 
 
-    void removeInTheMiddle(Ctr& ctr)
+    void removeInTheMiddle(CtrApi& ctr)
     {
-        auto iter = ctr.seek(getRandomPosition(ctr));
+        int64_t tgt_pos = getRandomPosition(ctr);
 
         int64_t size;
 
@@ -441,9 +393,8 @@ public:
             size = block_size_;
         }
         else {
-            auto pos = iter.pos();
-            auto ctr_size  = ctr.size();
-            auto remainder = ctr_size - pos;
+            auto ctr_size  = ctr.size().get_or_throw();
+            auto remainder = ctr_size - tgt_pos;
 
             if (max_block_size_ < remainder) {
                 size = getRandomBufferSize(max_block_size_);
@@ -455,29 +406,14 @@ public:
             block_size_ = size;
         }
 
+        auto prefix = createPrefixCheckBuffer(ctr, tgt_pos);
+        auto suffix = createSuffixCheckBuffer(ctr, tgt_pos + size);
 
-        MemBuffer prefix = createPrefixCheckBuffer(iter);
 
-        int64_t position = iter.pos();
+        ctr.remove(tgt_pos, tgt_pos + size).get_or_throw();
 
-        iter.skip(size);
-
-        MemBuffer suffix = createSuffixCheckBuffer(iter);
-
-        iter.skip(-size);
-
-        iter.remove(size);
-
-        ctr_check_iterator(iter, MA_SRC);
-
-        assert_equals(iter.pos(), position);
-
-        iter.skip(-prefix.size());
-
-        checkBufferWritten(iter, prefix, MA_SRC);
-
-        assert_equals(iter.pos(), position);
-        checkBufferWritten(iter, suffix, MA_SRC);
+        checkBufferWritten(ctr, tgt_pos - prefix->size(), *prefix, MA_SRC);
+        checkBufferWritten(ctr, tgt_pos, *suffix, MA_SRC);
     }
 
 
@@ -508,11 +444,15 @@ public:
         {
             auto snp = branch();
 
-            auto ctr = find_or_create<CtrName>(snp, ctr_name_);
+            auto ctr = find_or_create(snp, CtrName{}, ctr_name_).get_or_throw();
+            ctr->set_new_block_size(1024).get_or_throw();
 
-            test_fn(this, ctr);
+            test_fn(this, *ctr.get());
 
-            out() << "Size: " << ctr.size() << std::endl;
+            if (iteration_ % 100 == 0)
+            {
+                out() << "Size: " << ctr->size().get_or_throw() << std::endl;
+            }
 
             check(snp, "Insert: Container Check Failed", MA_SRC);
 
@@ -520,7 +460,7 @@ public:
 
             commit();
 
-            size = ctr.size();
+            size = ctr->size().get_or_throw();
         }
 
         if (!isReplayMode())
@@ -535,28 +475,32 @@ public:
         ctr_name_ = UUID::make_random();
 
         auto snp = branch();
-        auto ctr = find_or_create<CtrName>(snp, ctr_name_);
+        auto ctr = find_or_create(snp, CtrName{}, ctr_name_).get_or_throw();
+        ctr->set_new_block_size(1024).get_or_throw();
 
-        fillRandom(ctr, size_);
+        fillRandom(*ctr.get(), size_);
 
         commit();
 
         iteration_ = 0;
 
-        int64_t size = ctr.size();
+        int64_t size = ctr->size().get_or_throw();
 
         while (size > 0)
         {
             snp = branch();
-            ctr = find<CtrName>(snp, ctr_name_);
+            ctr = find<CtrName>(snp, ctr_name_).get_or_throw();
 
-            test_fn(this, ctr);
+            test_fn(this, *ctr.get());
 
-            out() << "Size: " << ctr.size() << std::endl;
+            if (iteration_ % 100 == 0)
+            {
+                out() << "Size: " << ctr->size().get_or_throw() << std::endl;
+            }
 
             check("Remove: Container Check Failed", MA_SRC);
 
-            size = ctr.size();
+            size = ctr->size().get_or_throw();
 
             iteration_++;
             commit();
@@ -571,9 +515,9 @@ public:
     virtual void replay(TestFn test_fn)
     {
         auto snp = branch();
-        auto ctr = find_or_create<CtrName>(snp, ctr_name_);
+        auto ctr = find_or_create(snp, CtrName{}, ctr_name_).get_or_throw();
 
-        test_fn(this, ctr);
+        test_fn(this, *ctr.get());
 
         check(snp, "Replay: Container Check Failed", MA_SRC);
 

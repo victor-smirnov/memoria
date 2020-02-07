@@ -579,7 +579,7 @@ public:
         CanMergeWithFn fn;
         Dispatcher(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other));
 
-        int32_t client_area = allocator()->client_area();
+        int32_t client_area = other.allocator()->client_area();
 
         int32_t my_data_size    = allocator()->element_size(ValuesBlockIdx);
         int32_t other_data_size = other.allocator()->element_size(ValuesBlockIdx);

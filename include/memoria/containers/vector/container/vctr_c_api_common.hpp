@@ -23,6 +23,8 @@
 #include <memoria/core/container/macros.hpp>
 
 
+#include <memoria/api/vector/vector_producer.hpp>
+#include <memoria/api/vector/vector_scanner.hpp>
 
 namespace memoria {
 
@@ -43,6 +45,9 @@ protected:
     using Value = typename Types::Value;
     using ValueDataType = typename Types::ValueDataType;
     using ViewType  = DTTViewType<ValueDataType>;
+    using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
+
+    using BufferT = DataTypeBuffer<ValueDataType>;
 
 public:
 
@@ -57,6 +62,70 @@ public:
     ) {
 
     }
+
+    virtual VoidResult read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const noexcept
+    {
+        using ResultT = VoidResult;
+        auto& self = this->self();
+
+        MEMORIA_TRY(ii, self.ctr_seek(start));
+
+        CtrSizeT cnt{};
+        VectorScanner<CtrApiTypes, Profile> scanner(ii);
+
+        size_t local_cnt;
+        while (cnt < length && !scanner.is_end())
+        {
+            local_cnt = 0;
+            CtrSizeT remainder   = length - cnt;
+            CtrSizeT values_size = static_cast<CtrSizeT>(scanner.values().size());
+
+            if (values_size <= remainder)
+            {
+                buffer.append(scanner.values());
+                cnt += values_size;
+            }
+            else {
+                buffer.append(scanner.values().first(remainder));
+                cnt += remainder;
+            }
+
+            if (cnt < length)
+            {
+                MEMORIA_TRY_VOID(scanner.next_leaf());
+            }
+        }
+
+        return ResultT::of();
+    }
+
+    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size) noexcept
+    {
+        auto& self = this->self();
+
+        if (start + size > buffer.size())
+        {
+            return VoidResult::make_error("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size());
+        }
+
+        VectorProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){
+            size_t batch_size = 8192;
+            size_t limit = (appended_size + batch_size <= size) ? batch_size : size - appended_size;
+
+            for (size_t c = 0; c < limit; c++) {
+                values.append(buffer[start + appended_size + c]);
+            }
+
+            return limit != batch_size;
+        });
+
+        MEMORIA_TRY(ii, self.ctr_seek(at));
+        MEMORIA_TRY_VOID(ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max()));
+
+        return VoidResult::of();
+    }
+
+
 
     Result<ProfileCtrSizeT<Profile>> size() const noexcept
     {

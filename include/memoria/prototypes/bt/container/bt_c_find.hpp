@@ -404,7 +404,7 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(
                             start_path,
                             end_path,
                             level - 1,
-                            NodeChain(child, max, &node_chain),
+                            NodeChain(self, child, max, &node_chain),
                             std::forward<Walker>(walker),
                             WalkDirection::DOWN
                 );
@@ -413,19 +413,19 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(
         else {
             if (!node_chain.node->is_root())
             {
-                MEMORIA_TRY(parent, self.ctr_get_node_parent(node_chain.node));
+                MEMORIA_TRY(parent, self.ctr_get_node_parent(start_path, level));
                 MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node_chain.node->id()));
 
                 MEMORIA_TRY(find_up, ctr_find_bw(
                             start_path,
                             end_path,
                             level + 1,
-                            NodeChain(parent, parent_idx - 1, &node_chain),
+                            NodeChain(self, parent, parent_idx - 1, &node_chain),
                             std::forward<Walker>(walker),
                             WalkDirection::UP
                 ));
 
-                if (find_up.get().pass)
+                if (find_up.pass)
                 {
                     return find_up_result;
                 }
@@ -447,7 +447,7 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(
                             start_path,
                             end_path,
                             level - 1,
-                            NodeChain(child, max, &node_chain),
+                            NodeChain(self, child, max, &node_chain),
                             std::forward<Walker>(walker),
                             WalkDirection::DOWN
                 );
@@ -470,7 +470,7 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(
                     start_path,
                     end_path,
                     level - 1,
-                    NodeChain(child.get(), max, &node_chain),
+                    NodeChain(self, child, max, &node_chain),
                     std::forward<Walker>(walker),
                     WalkDirection::DOWN
         );
@@ -486,7 +486,7 @@ Result<typename M_TYPE::FindResult> M_TYPE::ctr_find_bw(
                     start_path,
                     end_path,
                     level - 1,
-                    NodeChain(child.get(), max, &node_chain),
+                    NodeChain(self, child, max, &node_chain),
                     std::forward<Walker>(walker),
                     WalkDirection::DOWN
         );

@@ -509,7 +509,7 @@ public:
         int32_t min = sizes()[0];
         int32_t max = node_->header().memory_block_size() * 8;
 
-        int32_t free_space      = this->free_space(node_->header().memory_block_size(), node_->is_root());
+        int32_t free_space      = this->free_space(node_->header().memory_block_size(), node_->is_root()) - 350;
         int32_t client_area     = PackedAllocator::client_area(free_space, Streams);
 
         int32_t total = FindTotalElementsNumber(min, max, client_area, max_hops, [&](int32_t stream_size){
@@ -755,7 +755,7 @@ public:
         CanMergeWithFn fn;
         Dispatcher(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other));
 
-        int32_t client_area = allocator()->client_area();
+        int32_t client_area = other.allocator()->client_area();
 
         return client_area >= fn.mem_used_;
     }

@@ -258,5 +258,24 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
 }
 
 
+template <typename CtrName, typename Profile>
+Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find_or_create(
+        SnpSharedPtr<IMemorySnapshot<Profile>>& alloc,
+        const CtrName& ctr_type_name,
+        const ProfileCtrID<Profile>& ctr_id
+) noexcept
+{
+    using ResultT = Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>>;
+    return wrap_throwing([&] () -> ResultT {
+        MEMORIA_TRY(type_name, alloc->ctr_type_name_for(ctr_id));
+        if (type_name) {
+            return find<CtrName>(alloc, ctr_id);
+        }
+        else {
+            return create<CtrName>(alloc, ctr_type_name, ctr_id);
+        }
+    });
+}
+
 }
 

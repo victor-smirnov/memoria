@@ -95,7 +95,7 @@ protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, OpStatus);
 
     VoidResult ctr_remove_node_recursively(NodeBaseG& node, Position& accum) noexcept;
-    VoidResult ctr_remove_rode(NodeBaseG& node) noexcept;
+    VoidResult ctr_remove_node(NodeBaseG& node) noexcept;
     VoidResult ctr_remove_root_node(NodeBaseG& node) noexcept;
 
     VoidResult ctr_remove_node_content(TreePathT& path, size_t level, int32_t start, int32_t end, Position& sums) noexcept;
@@ -173,7 +173,7 @@ VoidResult M_TYPE::ctr_remove_node_recursively(NodeBaseG& node, Position& sizes)
 }
 
 M_PARAMS
-VoidResult M_TYPE::ctr_remove_rode(NodeBaseG& node) noexcept
+VoidResult M_TYPE::ctr_remove_node(NodeBaseG& node) noexcept
 {
     auto& self = this->self();
 
@@ -186,7 +186,7 @@ VoidResult M_TYPE::ctr_remove_rode(NodeBaseG& node) noexcept
 
         self.ctr_remove_non_leaf_node_entry(parent, node->parent_idx());
 
-        self.ctr_remove_rode(node, sums, sizes);
+        self.ctr_remove_node(node, sums, sizes);
     }
     else {
         MMA_THROW(Exception()) << WhatCInfo("Empty root node should not be deleted with this method.");
@@ -213,12 +213,14 @@ VoidResult M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_
     using ResultT = VoidResult;
     auto& self = this->self();
 
-    auto res = self.ctr_for_all_ids(path[level], start, end, [&, this](const BlockID& id) noexcept -> VoidResult {
-        auto& self = this->self();
+    MEMORIA_TRY_VOID(self.ctr_update_block_guard(path[level]));
+
+    auto res = self.ctr_for_all_ids(path[level], start, end, [&](const BlockID& id) noexcept -> VoidResult {
         MEMORIA_TRY(child, self.ctr_get_block(id));
         return self.ctr_remove_node_recursively(child, sizes);
     });
     MEMORIA_RETURN_IF_ERROR(res);
+
 
     OpStatus status = self.branch_dispatcher().dispatch(path[level], RemoveSpaceFn(), start, end);
     if (isFail(status)) {
@@ -258,7 +260,7 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(TreePathT& pat
     auto& self = this->self();
 
     NodeBaseG node = path.leaf();
-    MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(node));
+    MEMORIA_TRY_VOID(self.ctr_update_block_guard(node));
 
     OpStatus status = self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), start, end);
 
@@ -412,7 +414,7 @@ BoolResult M_TYPE::ctr_merge_leaf_with_left_sibling(TreePathT& path, MergeFn fn)
 
         if (has_prev)
         {
-            auto merge_res = self.ctr_merge_leaf_nodes(prev, path, fn);
+            auto merge_res = self.ctr_merge_leaf_nodes(prev, path, false, fn);
             MEMORIA_RETURN_IF_ERROR(merge_res);
 
             merged = merge_res.get();
@@ -452,7 +454,7 @@ BoolResult M_TYPE::ctr_merge_leaf_with_right_sibling(TreePathT& path) noexcept
 
     if (self.ctr_should_merge_node(path.leaf()))
     {
-        TreePath next_path = path;
+        TreePathT next_path = path;
         MEMORIA_TRY(has_next, self.ctr_get_next_node(next_path, 0));
 
         if (has_next)

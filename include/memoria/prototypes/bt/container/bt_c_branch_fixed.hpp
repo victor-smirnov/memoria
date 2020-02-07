@@ -133,7 +133,7 @@ public:
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(MergeNodesFn, mergeWith, OpStatus);
     VoidResult ctr_do_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level) noexcept;
-    BoolResult ctr_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level) noexcept;
+    BoolResult ctr_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level, bool only_if_same_parent = false) noexcept;
     BoolResult ctr_merge_current_branch_nodes(TreePathT& tgt_path, TreePathT& src_path, size_t level) noexcept;
 
 
@@ -456,7 +456,7 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src
  */
 
 M_PARAMS
-BoolResult M_TYPE::ctr_merge_branch_nodes(TreePathT& tgt, TreePathT& src, size_t level) noexcept
+BoolResult M_TYPE::ctr_merge_branch_nodes(TreePathT& tgt, TreePathT& src, size_t level, bool only_if_same_parent) noexcept
 {
     auto& self = this->self();
 
@@ -470,9 +470,9 @@ BoolResult M_TYPE::ctr_merge_branch_nodes(TreePathT& tgt, TreePathT& src, size_t
 
             return BoolResult::of(true);
         }
-        else
+        else if (!only_if_same_parent)
         {
-            MEMORIA_TRY(parents_merged, ctr_merge_branch_nodes(tgt, src, level + 1));
+            MEMORIA_TRY(parents_merged, ctr_merge_branch_nodes(tgt, src, level + 1, only_if_same_parent));
 
             MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt, src, level));
             MEMORIA_TRY_VOID(self.ctr_expect_next_node(src, level));
@@ -484,19 +484,15 @@ BoolResult M_TYPE::ctr_merge_branch_nodes(TreePathT& tgt, TreePathT& src, size_t
 
                 return BoolResult::of(true);
             }
-            else
-            {
-                return BoolResult::of(false);
-            }
         }
     }
     else
     {
         MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt, src, level));
         MEMORIA_TRY_VOID(self.ctr_expect_next_node(src, level));
-
-        return BoolResult::of(false);
     }
+
+    return BoolResult::of(false);
 }
 
 

@@ -30,6 +30,9 @@
 #   if defined (MEMORIA_BUILD_CONTAINERS_SET)
 #       include <memoria/api/set/set_api.hpp>
 #   endif
+#   if defined (MEMORIA_BUILD_CONTAINERS_VECTOR)
+#       include <memoria/api/vector/vector_api.hpp>
+#   endif
 #endif
 
 //#include <memoria/api/db/edge_map/edge_map_api.hpp>
@@ -86,6 +89,12 @@ struct StaticLibraryCtrs {
         InitCtrMetadata<Set<Varchar>, ProfileT>();
         InitCtrMetadata<Set<UUID>, ProfileT>();
 #   endif
+
+#   if defined(MEMORIA_BUILD_CONTAINERS_VECTOR)
+        InitCtrMetadata<Vector<Varchar>, ProfileT>();
+        InitCtrMetadata<Vector<UTinyInt>, ProfileT>();
+#   endif
+
 #endif
     }
 };

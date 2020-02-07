@@ -59,10 +59,10 @@ public:
         int32_t size = 0;
         LoudsNode root = tree.seek(0)->node();
 
-        ctr_remove_rode(tree, root, tree_node, size, max_size);
+        ctr_remove_node(tree, root, tree_node, size, max_size);
     }
 
-    bool ctr_remove_rode(Ctr& tree, const LoudsNode& node, TreeNode& tree_node, int32_t& size, int32_t max_size)
+    bool ctr_remove_node(Ctr& tree, const LoudsNode& node, TreeNode& tree_node, int32_t& size, int32_t max_size)
     {
         if (size < max_size)
         {
@@ -70,7 +70,7 @@ public:
             {
                 LoudsNode child = tree.child(node, c)->node();
 
-                if (ctr_remove_rode(tree, child, tree_node.child(c), size, max_size))
+                if (ctr_remove_node(tree, child, tree_node.child(c), size, max_size))
                 {
                     tree_node.removeChild(c);
                 }

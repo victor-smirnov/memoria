@@ -18,5 +18,12 @@ else()
         set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
         set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
     endif()
+
+    if(BUILD_CONTAINERS_VECTOR)
+        file(GLOB SRCS vector_varchar_dflt.cpp vector_uint8_dflt.cpp)
+
+        set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
+        set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
+    endif()
 endif()
 

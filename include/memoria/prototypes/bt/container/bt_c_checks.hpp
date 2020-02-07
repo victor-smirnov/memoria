@@ -85,7 +85,7 @@ public:
             {
                 if (left_path[ll] != right_path[ll]) {
                     return VoidResult::make_error(
-                                "Path nodes are not equals at the level {} :: {} {}",
+                                "Path nodes are not equal at the level {} :: {} {}",
                                 ll,
                                 left_path[ll]->id(),
                                 right_path[ll]->id()

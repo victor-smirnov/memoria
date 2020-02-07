@@ -56,8 +56,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         TreePathT end_path = self.path();
 
-        auto result = self.ctr().ctr_find_fw(self.path(), end_path, 0, node_chain, walker);
-        MEMORIA_RETURN_IF_ERROR(result);
+        MEMORIA_TRY(result, self.ctr().ctr_find_fw(self.path(), end_path, 0, node_chain, walker));
 
         if (end_path.leaf() != self.path().leaf())
         {
@@ -65,9 +64,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
             self.iter_leaf().assign(end_path.leaf());
         }
 
-        self.iter_local_pos()  = result.get().idx;
+        self.iter_local_pos()  = result.idx;
 
-        walker.finish(self, result.get().idx, result.get().cmd);
+        walker.finish(self, result.idx, result.cmd);
 
         return ResultT::of(walker.result());
     }
@@ -81,17 +80,21 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(bt::IteratorFindName)
 
         walker.prepare(self);
 
-        typename Container::NodeChain node_chain(self.iter_leaf(), self.iter_local_pos());
+        typename Container::NodeChain node_chain(self.ctr(), self.iter_leaf(), self.iter_local_pos());
 
         TreePathT end_path = self.path();
 
-        auto result = self.ctr().ctr_find_bw(self.path(), end_path, 0, node_chain, walker);
-        MEMORIA_RETURN_IF_ERROR(result);
+        MEMORIA_TRY(result, self.ctr().ctr_find_bw(self.path(), end_path, 0, node_chain, walker));
 
-        self.iter_leaf().assign(result.get().node);
-        self.iter_local_pos() = result.get().idx;
+        if (end_path.leaf() != self.path().leaf())
+        {
+            self.path() = end_path;
+            self.iter_leaf().assign(end_path.leaf());
+        }
 
-        walker.finish(self, result.get().idx, result.get().cmd);
+        self.iter_local_pos() = result.idx;
+
+        walker.finish(self, result.idx, result.cmd);
 
         return ResultT::of(walker.result());
     }

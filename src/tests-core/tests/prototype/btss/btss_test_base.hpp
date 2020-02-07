@@ -18,6 +18,8 @@
 
 #include "../bt/bt_test_base.hpp"
 
+
+
 #include <functional>
 
 namespace memoria {
@@ -25,26 +27,22 @@ namespace tests {
 
 template <
     typename ContainerTypeName,
-    typename StoreType,
-    typename Profile
+    typename Profile,
+    typename StoreType
 >
-class BTSSTestBase: public BTTestBase<ContainerTypeName, StoreType, Profile> {
+class BTSSTestBase: public BTTestBase<ContainerTypeName, Profile, StoreType> {
 
     using MyType = BTSSTestBase;
 
-    using Base = BTTestBase<ContainerTypeName, StoreType, Profile>;
+    using Base = BTTestBase<ContainerTypeName, Profile, StoreType>;
 
 protected:
-    using CtrApi        = ICtrApi<ContainerTypeName, Profile>;
+    using CtrApi    = ICtrApi<ContainerTypeName, Profile>;
+    using StorePtr  = StoreType;
 
+    using Iterator  = typename CtrApi::IteratorT;
 
-
-//    using Allocator     = AllocatorType;
-
-//    using DataValue     = typename Ctr::DataValue;
-//    using Entry         = typename Ctr::DataValue;
-
-//    using MemBuffer     = std::vector<DataValue>;
+    using MemBuffer = typename CtrApi::BufferT;
 
     using Base::getRandom;
 
@@ -53,14 +51,8 @@ public:
     BTSSTestBase()
     {}
 
-    /*
-    MemBuffer createBuffer(int32_t size) {
-        return MemBuffer(size);
-    }
 
-    virtual MemBuffer createRandomBuffer(int32_t size) = 0;
-
-
+    virtual CtrSharedPtr<MemBuffer> createRandomBuffer(int32_t size) = 0;
 
     void compareBuffers(const MemBuffer& expected, const MemBuffer& actual, const char* source)
     {
@@ -68,43 +60,39 @@ public:
 
         for (size_t c = 0; c < expected.size(); c++)
         {
-            typename MemBuffer::value_type v1 = expected[c];
-            typename MemBuffer::value_type v2 = actual[c];
+            auto v1 = expected[c];
+            auto v2 = actual[c];
 
             assert_equals(v1, v2, "position = {}", c);
         }
     }
 
-    virtual void fillRandom(Ctr& ctr, int64_t size)
+    virtual void fillRandom(CtrApi& ctr, int64_t size)
     {
-#ifdef MMA_USE_IOBUFFER
-        MemBuffer data = createRandomBuffer(size);
-        ctr.end().insert(data);
-#endif
+        auto data = createRandomBuffer(size);
+        auto ctr_size = ctr.size().get_or_throw();
+        ctr.insert(ctr_size, *data).get_or_throw();
     }
 
 
-    virtual void fillRandom(Allocator& alloc, Ctr& ctr, int64_t size)
+    virtual void fillRandom(CtrApi& ctr, int64_t size, int64_t block_size)
     {
-        int64_t block_size = size > 65536*4 ? 65536*4 : size;
+
+        if (block_size > size) {
+            block_size = size;
+        }
 
         int64_t total = 0;
-
-        auto iter = ctr.seek(0);
 
         while (total < size)
         {
             int64_t tmp_size = size - total > block_size ? block_size : size - total;
-
-            MemBuffer data = createRandomBuffer(tmp_size);
-#ifdef MMA_USE_IOBUFFER
-            ctr.end().insert(data);
-#endif
+            fillRandom(ctr, tmp_size);
             total += tmp_size;
         }
     }
 
-*/
+
 };
 
 }}

@@ -37,12 +37,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::BlockUpdateMgr                                       BlockUpdateMgr;
+    typedef typename Types::BlockUpdateMgr                                      BlockUpdateMgr;
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
+
+    using typename Base::TreePathT;
 
     class Checkpoint {
         NodeBaseG head_;
@@ -92,6 +94,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         InsertBatchResult(int32_t idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
         int32_t local_pos() const {return idx_;}
+        int32_t idx() const {return idx_;}
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
@@ -106,17 +109,16 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         {
             if (level >= 1)
             {
-                Result<NodeBaseG> node = self.ctr_create_node1(level, false, false);
-                MEMORIA_RETURN_IF_ERROR(node);
+                MEMORIA_TRY(node, self.ctr_create_node1(level, false, false));
 
-                self.layoutNonLeafNode(node.get(), 0xFF);
+                self.layoutNonLeafNode(node, 0xFF);
 
-                self.ctr_insert_subtree(node.get(), 0, provider, [this, level, &provider]() -> ResultT {
+                MEMORIA_TRY_VOID(self.ctr_insert_subtree(node, 0, provider, [this, level, &provider]() -> ResultT {
                     auto& self = this->self();
                     return self.ctr_build_subtree(provider, level - 1);
-                }, false);
+                }, false));
 
-                return node;
+                return node_result;
             }
             else {
                 return provider.get_leaf();
@@ -177,20 +179,50 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
         }
     };
 
-
-    VoidResult ctr_update_children(const NodeBaseG& node) noexcept;
-    VoidResult ctr_update_children(const NodeBaseG& node, int32_t start) noexcept;
-    VoidResult ctr_update_children(const NodeBaseG& node, int32_t start, int32_t end) noexcept;
-
     MEMORIA_V1_DECLARE_NODE_FN_RTN(IsEmptyFn, ctr_is_empty, bool);
     bool ctr_is_empty(const NodeBaseG& node) noexcept {
         return self().node_dispatcher().dispatch(node, IsEmptyFn());
     }
 
-private:
-    VoidResult ctr_update_children_internal(const NodeBaseG& node, int32_t start, int32_t end) noexcept;
-public:
 
+    class BatchInsertionState {
+        int64_t inserted_ = 0;
+        int64_t total_;
+    public:
+        BatchInsertionState(int64_t total): total_(total) {}
+
+        int64_t total() const {
+            return total_;
+        }
+
+        int64_t& inserted() {
+            return inserted_;
+        }
+
+        bool shouldMoveUp() const {
+            return inserted_ <= total_ / 3;
+        }
+
+        bool has_more() const {
+            return inserted_ < total_;
+        }
+
+        void next_pass()
+        {
+            total_ -= inserted_;
+            inserted_ = 0;
+        }
+    };
+
+
+
+    Int32Result ctr_insert_subtree_one_pass(
+            TreePathT& path,
+            size_t level,
+            int32_t idx,
+            ILeafProvider& leaf_provider,
+            BatchInsertionState& state
+    ) noexcept;
 
     Result<NodeBaseG> createNextLeaf(NodeBaseG& left_node) noexcept;
 
@@ -228,7 +260,113 @@ Result<typename M_TYPE::NodeBaseG> M_TYPE::createNextLeaf(NodeBaseG& left_node) 
     return ResultT::of(other);
 }
 
+M_PARAMS
+Int32Result M_TYPE::ctr_insert_subtree_one_pass(
+        TreePathT& path,
+        size_t level,
+        int32_t idx,
+        ILeafProvider& leaf_provider,
+        BatchInsertionState& state
+) noexcept
+{
+    auto& self = this->self();
 
+    MEMORIA_TRY(insertion_result, self.ctr_insert_batch_to_node(path, level, idx, leaf_provider));
+    state.inserted() += insertion_result.subtree_size();
+
+    if (state.has_more())
+    {
+        if (state.shouldMoveUp())
+        {
+            int32_t node_size = self.ctr_get_branch_node_size(path[level]);
+            if (insertion_result.idx() < node_size)
+            {
+                MEMORIA_TRY_VOID(self.ctr_split_path(path, level, insertion_result.idx()));
+                MEMORIA_TRY(insertion_result5, self.ctr_insert_batch_to_node(path, level, insertion_result.idx(), leaf_provider));
+                state.inserted() += insertion_result5.subtree_size();
+
+                if (!state.has_more()) {
+                    return Int32Result::of(insertion_result5.idx());
+                }
+            }
+            else if (path[level]->is_root())
+            {
+                 MEMORIA_TRY_VOID(self.ctr_create_new_root_block(path));
+            }
+
+            MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(path, level));
+            MEMORIA_TRY(
+                        parent_insertion_result,
+                        self.ctr_insert_subtree_one_pass(
+                            path,
+                            level + 1,
+                            parent_idx + 1,
+                            leaf_provider,
+                            state
+                        )
+            );
+
+            int32_t parent_size = self.ctr_get_branch_node_size(path[level + 1]);
+            if (parent_insertion_result < parent_size)
+            {
+                MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], parent_insertion_result));
+                path[level] = child;
+
+                if (state.has_more())
+                {
+                    MEMORIA_TRY(insertion_result4, self.ctr_insert_batch_to_node(path, level, 0, leaf_provider));
+                    state.inserted() += insertion_result4.subtree_size();
+
+                    return Int32Result::of(insertion_result4.idx());
+                }
+                else {
+                    return Int32Result::of(0);
+                }
+            }
+            else {
+                MEMORIA_TRY(child, self.ctr_get_node_child(path[level + 1], parent_insertion_result - 1));
+                path[level] = child;
+                return Int32Result::of(self.ctr_get_branch_node_size(child));
+            }
+        }
+        else {
+            int32_t last_idx = insertion_result.idx();
+            int32_t node_size = self.ctr_get_branch_node_size(path[level]);
+
+            if (last_idx < node_size)
+            {
+                MEMORIA_TRY_VOID(self.ctr_split_path(path, level, last_idx));
+
+                MEMORIA_TRY(insertion_result2, self.ctr_insert_batch_to_node(path, level, last_idx, leaf_provider));
+                state.inserted() += insertion_result2.subtree_size();
+
+                if (state.has_more())
+                {
+                    MEMORIA_TRY_VOID(self.ctr_expect_next_node(path, level));
+                    MEMORIA_TRY(insertion_result3, self.ctr_insert_batch_to_node(path, level, 0, leaf_provider));
+                    state.inserted() += insertion_result3.subtree_size();
+
+                    return Int32Result::of(insertion_result3.idx());
+                }
+                else {
+                    return Int32Result::of(insertion_result2.idx());
+                }
+            }
+            else {
+                MEMORIA_TRY_VOID(self.ctr_split_path(path, level, last_idx));
+                MEMORIA_TRY_VOID(self.ctr_expect_next_node(path, level));
+
+                MEMORIA_TRY(insertion_result6, self.ctr_insert_batch_to_node(path, level, 0, leaf_provider));
+                state.inserted() += insertion_result6.subtree_size();
+
+                return Int32Result::of(insertion_result6.idx());
+            }
+        }
+    }
+    else {
+        return Int32Result::of(insertion_result.idx());
+    }
+}
 
 #undef M_TYPE
 #undef M_PARAMS

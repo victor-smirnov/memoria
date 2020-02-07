@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include "../prototype/btss/btss_test_base.hpp"
+#include "../prototype/btss/btss_batch_test.hpp"
 
 #include <memoria/api/vector/vector_api.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include <vector>
 
@@ -26,16 +27,18 @@ namespace memoria {
 namespace tests {
 
 
+/*
+
 template <
     typename DataType,
     typename ProfileT = DefaultProfile<>,
     typename StoreT   = IMemoryStorePtr<ProfileT>
 >
-class VectorTest: public BTSSTestBase<Vector<DataType>, StoreT, ProfileT>
+class VectorTest: public BTSSBatchTest<Vector<DataType>, ProfileT, StoreT>
 {
     using MyType = VectorTest;
 
-    using Base   = BTSSTestBase<Vector<DataType>, StoreT, ProfileT>;
+    using Base   = BTSSBatchTest<Vector<DataType>, ProfileT, StoreT>;
 
     using typename Base::CtrApi;
 
@@ -53,6 +56,7 @@ class VectorTest: public BTSSTestBase<Vector<DataType>, StoreT, ProfileT>
     using Base::drop;
     using Base::out;
     using Base::getRandom;
+    using typename Base::MemBuffer;
 
 public:
     VectorTest()
@@ -62,23 +66,12 @@ public:
     MMA_STATE_FILEDS(size)
 
     static void init_suite(TestSuite& suite) {
+        Base::init_suite(suite);
+
         MMA_CLASS_TEST_WITH_REPLAY(suite, testCreate, replayCreate);
     }
 
 
-
-
-//    virtual MemBuffer createRandomBuffer(int32_t size)
-//    {
-//        auto buffer = MemBuffer(size);
-
-//        for (auto& v: buffer)
-//        {
-//            v = getRandom(100);
-//        }
-
-//        return buffer;
-//    }
 
 
     void testCreate()
@@ -114,7 +107,7 @@ public:
 
     }
 };
-
+*/
 
 
 }}

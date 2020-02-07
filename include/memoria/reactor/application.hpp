@@ -263,7 +263,7 @@ public:
 	) noexcept
 	{
 		try {
-            default_options(options);
+            //default_options(options);
             Application app(options, argc, argv, envp);
 
             app.start_engines();

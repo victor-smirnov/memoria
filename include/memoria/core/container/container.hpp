@@ -121,8 +121,20 @@ public:
 
     virtual ~CtrBase() noexcept {}
 
+    auto make_shared_ptr() const noexcept {
+        return this->shared_from_this();
+    }
+
+    auto make_shared_ptr() noexcept {
+        return this->shared_from_this();
+    }
+
     // TODO: error handling
     virtual CtrSharedPtr<CtrReferenceable<ProfileT>> shared_self() noexcept {
+        return this->shared_from_this();
+    }
+
+    virtual CtrSharedPtr<const CtrReferenceable<ProfileT>> shared_self() const noexcept {
         return this->shared_from_this();
     }
     
