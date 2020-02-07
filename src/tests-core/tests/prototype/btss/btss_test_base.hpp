@@ -40,8 +40,6 @@ protected:
     using CtrApi    = ICtrApi<ContainerTypeName, Profile>;
     using StorePtr  = StoreType;
 
-    using Iterator  = typename CtrApi::IteratorT;
-
     using MemBuffer = typename CtrApi::BufferT;
 
     using Base::getRandom;

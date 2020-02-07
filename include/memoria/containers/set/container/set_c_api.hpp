@@ -23,6 +23,11 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
+
+#include <memoria/api/set/set_producer.hpp>
+#include <memoria/api/set/set_scanner.hpp>
+#include <memoria/api/set/set_api.hpp>
+
 #include <vector>
 
 namespace memoria {
@@ -46,6 +51,9 @@ protected:
     using KeyView   = typename DataTypeTraits<Key>::ViewType;
 
     using Profile   = typename Types::Profile;
+
+    using BufferT   = DataTypeBuffer<Key>;
+    using CtrApiTypes = ICtrApiTypes<typename Types::ContainerTypeName, Profile>;
 
 public:
 
@@ -180,6 +188,93 @@ public:
 
         return BoolResult::of(iter.get()->is_found(k));
     }
+
+    Result<CtrSizeT> remove(CtrSizeT from, CtrSizeT to) noexcept
+    {
+        auto& self = this->self();
+
+        MEMORIA_TRY(ii_from, self.ctr_seek(from));
+
+        return ii_from->remove_from(to - from);
+    }
+
+    Result<CtrSizeT> remove_from(CtrSizeT from) noexcept
+    {
+        MEMORIA_TRY(size, self().size());
+        return remove(from, size);
+    }
+
+    Result<CtrSizeT> remove_up_to(CtrSizeT pos) noexcept
+    {
+        auto& self = this->self();
+
+        MEMORIA_TRY(ii_from, self.ctr_begin());
+
+        return ii_from->remove_from(pos);
+    }
+
+    virtual VoidResult read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const noexcept
+    {
+        using ResultT = VoidResult;
+        auto& self = this->self();
+
+        MEMORIA_TRY(ii, self.ctr_seek(start));
+
+        CtrSizeT cnt{};
+        SetScanner<CtrApiTypes, Profile> scanner(ii);
+
+        size_t local_cnt;
+        while (cnt < length && !scanner.is_end())
+        {
+            local_cnt = 0;
+            CtrSizeT remainder   = length - cnt;
+            CtrSizeT values_size = static_cast<CtrSizeT>(scanner.keys().size());
+
+            if (values_size <= remainder)
+            {
+                buffer.append(scanner.keys());
+                cnt += values_size;
+            }
+            else {
+                buffer.append(scanner.keys().first(remainder));
+                cnt += remainder;
+            }
+
+            if (cnt < length)
+            {
+                MEMORIA_TRY_VOID(scanner.next_leaf());
+            }
+        }
+
+        return ResultT::of();
+    }
+
+    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t size) noexcept
+    {
+        auto& self = this->self();
+
+        if (start + size > buffer.size())
+        {
+            return VoidResult::make_error("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size());
+        }
+
+        SetProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){
+            size_t batch_size = 8192;
+            size_t limit = (appended_size + batch_size <= size) ? batch_size : size - appended_size;
+
+            for (size_t c = 0; c < limit; c++) {
+                values.append(buffer[start + appended_size + c]);
+            }
+
+            return limit != batch_size;
+        });
+
+        MEMORIA_TRY(ii, self.ctr_seek(at));
+        MEMORIA_TRY_VOID(ii->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max()));
+
+        return VoidResult::of();
+    }
+
 
 
 MEMORIA_V1_CONTAINER_PART_END

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../prototype/btss/btss_batch_test.hpp"
+#include "../prototype/bt/bt_test_base.hpp"
 
 #include <memoria/api/vector/vector_api.hpp>
 #include <memoria/core/tools/random.hpp>
@@ -27,18 +27,18 @@ namespace memoria {
 namespace tests {
 
 
-/*
+
 
 template <
     typename DataType,
     typename ProfileT = DefaultProfile<>,
     typename StoreT   = IMemoryStorePtr<ProfileT>
 >
-class VectorTest: public BTSSBatchTest<Vector<DataType>, ProfileT, StoreT>
+class VectorTest: public BTTestBase<Vector<DataType>, ProfileT, StoreT>
 {
     using MyType = VectorTest;
 
-    using Base   = BTSSBatchTest<Vector<DataType>, ProfileT, StoreT>;
+    using Base   = BTTestBase<Vector<DataType>, ProfileT, StoreT>;
 
     using typename Base::CtrApi;
 
@@ -56,7 +56,6 @@ class VectorTest: public BTSSBatchTest<Vector<DataType>, ProfileT, StoreT>
     using Base::drop;
     using Base::out;
     using Base::getRandom;
-    using typename Base::MemBuffer;
 
 public:
     VectorTest()
@@ -66,8 +65,6 @@ public:
     MMA_STATE_FILEDS(size)
 
     static void init_suite(TestSuite& suite) {
-        Base::init_suite(suite);
-
         MMA_CLASS_TEST_WITH_REPLAY(suite, testCreate, replayCreate);
     }
 
@@ -80,26 +77,6 @@ public:
 
         auto ctr = create<Vector<DataType>>(snp, Vector<DataType>{});
 
-//        std::vector<Value> data(size);
-
-//        for (auto& d: data)
-//        {
-//            d = this->getRandom(100);
-//        }
-
-//        ctr.begin().insert(data);
-
-//        assert_equals(ctr.size(), data.size());
-
-//        std::vector<Value> data2 = ctr.begin().read(size);
-
-//        assert_equals(size, data2.size());
-
-//        for (size_t c = 0; c< data.size(); c++)
-//        {
-//            assert_equals(data[c], data2[c]);
-//        }
-
         commit();
     }
 
@@ -107,7 +84,6 @@ public:
 
     }
 };
-*/
 
 
 }}

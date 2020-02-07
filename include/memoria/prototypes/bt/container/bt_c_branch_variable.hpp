@@ -453,10 +453,10 @@ BoolResult M_TYPE::ctr_merge_branch_nodes(
         {
             MEMORIA_TRY_VOID(self.ctr_assign_path_nodes(tgt_path, src_path, level));
             MEMORIA_TRY_VOID(self.ctr_expect_next_node(src_path, level));
-
-            return BoolResult::of(false);
         }
     }
+
+    return BoolResult::of(false);
 }
 
 

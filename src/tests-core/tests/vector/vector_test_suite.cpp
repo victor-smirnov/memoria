@@ -17,13 +17,14 @@
 
 #include "vector_test.hpp"
 
+
+
 namespace memoria {
 namespace tests {
 
 namespace {
 
-auto Suite1 = register_class_suite<BTSSBatchTest<Vector<UTinyInt>>>("Vector.UTinyInt");
-auto Suite2 = register_class_suite<BTSSBatchTest<Vector<Varchar>>>("Vector.Varchar");
+auto Suite1 = register_class_suite<VectorTest<Varchar>>("Vector.Varchar");
 
 }
 

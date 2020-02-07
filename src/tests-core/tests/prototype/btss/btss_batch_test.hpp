@@ -1,4 +1,4 @@
-// Copyright 2015 Victor Smirnov
+// Copyright 2015-2020 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@
 #include <memoria/core/datatypes/buffer/buffer.hpp>
 
 #include <memoria/api/store/memory_store_api.hpp>
-
-#include <memoria/api/vector/vector_api.hpp>
 #include <memoria/core/tools/random.hpp>
 
 #include <memoria/core/strings/format.hpp>

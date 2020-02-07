@@ -28,11 +28,12 @@ endif()
 
 if(BUILD_TESTS_CONTAINERS AND BUILD_MEMORY_STORE)
 # TODO: Needs refactoring/rewriting with IOVector in mind
-#set (SRCS ${SRCS} prototype/btss/btss_test_suite.cpp prototype/btss/btss_test_ctr_dflt.cpp)
+#set (SRCS ${SRCS} prototype/btss/btss_test_suite.cpp)
 #set (SRCS ${SRCS} prototype/btfl/btfl_test_suite.cpp prototype/btfl/btfl_test_ctr_dflt.cpp)
 
 #set (SRCS ${SRCS} map/map_test_suite.cpp map/map_test_ctr_uuid_long_dflt.cpp)
-set (SRCS ${SRCS} vector/vector_test_suite.cpp)
+#set (SRCS ${SRCS} vector/vector_test_suite.cpp)
+set (SRCS ${SRCS} set/set_test_suite.cpp)
 #set (SRCS ${SRCS} multimap/multimap_test_suite.cpp)
 #set (SRCS ${SRCS} sequence/sequence_test_suite.cpp sequence/sequence_ctr_dflt.cpp)
 # TODO: Complete IOVector API for these tests

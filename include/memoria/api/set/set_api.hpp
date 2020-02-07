@@ -45,6 +45,24 @@ struct ICtrApi<Set<Key>, Profile>: public CtrReferenceable<Profile> {
     using Producer      = SetProducer<ApiTypes>;
     using ProducerFn    = typename Producer::ProducerFn;
 
+    using IteratorT     = CtrSharedPtr<SetIterator<Key, Profile>>;
+    using BufferT       = DataTypeBuffer<Key>;
+    using DataTypeT     = Key;
+    using CtrSizeT      = ProfileCtrSizeT<Profile>;
+
+
+    virtual VoidResult read_to(BufferT& buffer, CtrSizeT start, CtrSizeT length) const noexcept = 0;
+    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer, size_t start, size_t length) noexcept = 0;
+
+    virtual VoidResult insert(CtrSizeT at, const BufferT& buffer) noexcept {
+        return insert(at, buffer, 0, buffer.size());
+    }
+
+    virtual Result<CtrSizeT> remove(CtrSizeT from, CtrSizeT to) noexcept = 0;
+    virtual Result<CtrSizeT> remove_from(CtrSizeT from) noexcept = 0;
+    virtual Result<CtrSizeT> remove_up_to(CtrSizeT pos) noexcept = 0;
+
+
     virtual Result<ProfileCtrSizeT<Profile>> size() const noexcept = 0;
 
     virtual Result<CtrSharedPtr<SetIterator<Key, Profile>>> find(KeyView key) const noexcept = 0;

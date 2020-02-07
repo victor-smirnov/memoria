@@ -25,6 +25,8 @@
 
 #include <memoria/api/vector/vector_producer.hpp>
 #include <memoria/api/vector/vector_scanner.hpp>
+#include <memoria/api/vector/vector_api.hpp>
+
 
 namespace memoria {
 

@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2012 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,16 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "btss_batch_test.hpp"
 
-#include <memoria/api/vector/vector_api.hpp>
-#include <memoria/api/set/set_api.hpp>
+#include "set_test.hpp"
+
+
 
 namespace memoria {
 namespace tests {
 
-auto Suite1 = register_class_suite<BTSSBatchTest<Vector<UTinyInt>>>("BTSS.Vector.UTinyInt");
-auto Suite2 = register_class_suite<BTSSBatchTest<Vector<Varchar>>>("BTSS.Vector.Varchar");
-auto Suite3 = register_class_suite<BTSSBatchTest<Set<Varchar>>>("BTSS.Set.Varchar");
+namespace {
+
+auto Suite1 = register_class_suite<SetTest<UUID, UUID>>("Set.UUID");
+auto Suite2 = register_class_suite<SetTest<Varchar, U8String>>("Set.Varchar");
+
+}
 
 }}
