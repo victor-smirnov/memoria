@@ -664,7 +664,10 @@ public:
                 {
                     Dispatcher other_disp = other.dispatcher();
 
-                    Tree other_tree = other_disp.template allocateEmpty<Idx>(other.allocator());
+                    Tree other_tree = other_disp.template get<Idx>(other.allocator());
+                    if (!other_tree.data()) {
+                        other_tree = other_disp.template allocateEmpty<Idx>(other.allocator());
+                    }
 
                     if (isFail(other_tree.data())) {
                         status_ <<= OpStatus::FAIL;

@@ -71,14 +71,20 @@ public:
     virtual BoolResult contains(const KeyView& key) const noexcept = 0;
     virtual BoolResult remove(const KeyView& key) noexcept = 0;
 
-    virtual BoolResult remove_all(const KeyView& from, const KeyView& to) = 0; //[from, to)
-    virtual BoolResult remove_from(const KeyView& from) = 0; //[from, end)
-    virtual BoolResult remove_before(const KeyView& to) = 0; //[begin, to)
+    virtual BoolResult remove_all(const KeyView& from, const KeyView& to) noexcept = 0; //[from, to)
+    virtual BoolResult remove_from(const KeyView& from) noexcept = 0; //[from, end)
+    virtual BoolResult remove_before(const KeyView& to) noexcept = 0; //[begin, to)
 
     virtual Result<CtrSizeT> size() const noexcept = 0;
 
     virtual CtrSharedPtr<IEntriesScanner<ApiTypes, Profile>> entries_scanner(IteratorAPIPtr iterator) const = 0;
     virtual CtrSharedPtr<IValuesScanner<ApiTypes, Profile>>  values_scanner(IteratorAPIPtr iterator) const = 0;
+
+    virtual Result<CtrSharedPtr<IEntriesScanner<ApiTypes, Profile>>> entries_scanner() const noexcept
+    {
+        MEMORIA_TRY(iter, this->iterator());
+        return entries_scanner(iter);
+    }
 
     virtual Result<IteratorAPIPtr> seek(CtrSizeT pos) const noexcept = 0;
     virtual Result<IteratorAPIPtr> find(KeyView key) const noexcept = 0;
@@ -95,8 +101,14 @@ public:
     BoolResult upsert(KeyView key, Span<const ValueView> data) noexcept
     {
         return upsert(key, [&](auto& seq, auto& keys, auto& values, auto& sizes) {
-            seq.append(1, data.size());
-            values.append(data);
+            seq.append(0, 1);
+            keys.append(key);
+
+            if (data.size() > 0) {
+                seq.append(1, data.size());
+                values.append(data);
+            }
+
             return true;
         });
     }

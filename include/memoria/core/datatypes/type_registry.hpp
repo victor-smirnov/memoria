@@ -623,6 +623,7 @@ template <typename T>
 void register_notctr_operations()
 {
     std::shared_ptr<DataTypeOperations> ops = std::make_shared<DataTypeOperationsImpl<T>>();
+
     DataTypeRegistryStore::global().template register_notctr_operations<T>(ops);
     DataTypeRegistry::local().template register_notctr_operations<T>(ops);
 }

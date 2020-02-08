@@ -673,23 +673,29 @@ public:
     OpStatus splitTo(MyType* other, int32_t idx)
     {
         int32_t total = this->size() - idx;
-        if(isFail(other->insertSpace(0, total))) {
-            return OpStatus::FAIL;
-        }
+        if (total > 0)
+        {
+            if(isFail(other->insertSpace(0, total))) {
+                return OpStatus::FAIL;
+            }
 
-        if(isFail(copyTo(other, idx, total, 0))) {
-            return OpStatus::FAIL;
-        }
+            if(isFail(copyTo(other, idx, total, 0))) {
+                return OpStatus::FAIL;
+            }
 
-        if(isFail(other->reindex())) {
-            return OpStatus::FAIL;
-        }
+            if(isFail(other->reindex())) {
+                return OpStatus::FAIL;
+            }
 
-        if(isFail(removeSpace(idx, this->size()))) {
-            return OpStatus::FAIL;
-        }
+            if(isFail(removeSpace(idx, this->size()))) {
+                return OpStatus::FAIL;
+            }
 
-        return reindex();
+            return reindex();
+        }
+        else {
+            return OpStatus::OK;
+        }
     }
 
     OpStatus mergeWith(MyType* other)

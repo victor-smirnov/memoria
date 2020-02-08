@@ -108,7 +108,7 @@ public:
         handler->startGroup("DATA_TYPE_OPT_BUFFER");
 
         data_->bitmap()->generateDataEvents(handler);
-        data_->array()->generateDataEvents(handler);
+        array_.generateDataEvents(handler);
 
         handler->endGroup();
         handler->endStruct();
@@ -136,12 +136,14 @@ public:
         }
 
         refresh_array();
+        other.refresh_array();
 
         if(isFail(array_.splitTo(other.array_, array_idx))) {
             return OpStatus::FAIL;
         }
 
         refresh_array();
+        other.refresh_array();
 
         return reindex();
     }
@@ -153,6 +155,7 @@ public:
         }
 
         refresh_array();
+        other.refresh_array();
 
         return array_.mergeWith(other.array_);
     }

@@ -177,6 +177,13 @@ public:
 
     std::ostream& out();
 
+    template <typename... Args>
+    std::ostream& println(const char* fmt, Args&&... args)
+    {
+        out() << format_u8(fmt, std::forward<Args>(args)...) << std::endl;
+        return out();
+    }
+
     virtual void set_up() noexcept {}
     virtual void tear_down() noexcept {}
 

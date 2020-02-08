@@ -83,6 +83,7 @@ struct StaticLibraryCtrs {
 #else
 #   if defined(MEMORIA_BUILD_CONTAINERS_MULTIMAP)
         InitCtrMetadata<Multimap<Varchar, Varchar>, ProfileT>();
+        InitCtrMetadata<Multimap<UUID, UTinyInt>, ProfileT>();
 #   endif
 
 #   if defined(MEMORIA_BUILD_CONTAINERS_SET)

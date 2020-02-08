@@ -6,7 +6,7 @@ if (BUILD_CONTAINERS)
     set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})
 else()
     if(BUILD_CONTAINERS_MULTIMAP)
-        file(GLOB SRCS multimap_varchar_varchar_dflt.cpp)
+        file(GLOB SRCS multimap_varchar_varchar_dflt.cpp multimap_uub_dflt.cpp)
 
         set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
         set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES_CLASSIC ${SRCS})

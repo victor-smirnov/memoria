@@ -115,7 +115,6 @@ public:
             return Int32Result::of(idx);
         }
         else {
-            self().ctr_dump_node(node);
             return Int32Result::make_error("Requested child is not found in the b-tree: {}", child_id);
         }
     }

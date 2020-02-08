@@ -32,6 +32,9 @@
 #include <memoria/tests/tests.hpp>
 
 #include <memoria/core/tools/span.hpp>
+#include <memoria/core/datatypes/datatypes.hpp>
+#include <memoria/core/tools/random.hpp>
+
 
 #include <vector>
 #include <fstream>
@@ -40,6 +43,42 @@
 
 namespace memoria {
 namespace tests {
+
+template <typename DataType> struct DTTCxxValueType;
+
+template <>
+struct DTTCxxValueType<Varchar>: HasType<U8String>{};
+
+template <>
+struct DTTCxxValueType<UUID>: HasType<UUID>{};
+
+template <>
+struct DTTCxxValueType<UTinyInt>: HasType<uint8_t>{};
+
+template <typename DataType> struct DTTestTools;
+
+template <>
+struct DTTestTools<UUID> {
+    static UUID generate_random() noexcept {
+        uint64_t hi_val = static_cast<uint64_t>(getBIRandomG());
+        uint64_t lo_val = static_cast<uint64_t>(getBIRandomG());
+        return UUID(hi_val, lo_val);
+    }
+};
+
+template <>
+struct DTTestTools<Varchar> {
+    static U8String generate_random() noexcept {
+        return create_random_string(16);
+    }
+};
+
+template <>
+struct DTTestTools<UTinyInt> {
+    static uint8_t generate_random() noexcept {
+        return static_cast<uint8_t>(getRandomG(256));
+    }
+};
 
 using tools::Term;
 

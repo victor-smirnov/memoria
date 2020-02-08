@@ -47,9 +47,6 @@ int main()
 
         //ctr0->set_new_block_size(64*1024).throw_if_error();
 
-
-        ctr0->root_block().get_or_throw()->describe(std::cout).throw_if_error();
-
         int64_t t0 = getTimeInMillis();
 
         std::vector<Entry> entries_;

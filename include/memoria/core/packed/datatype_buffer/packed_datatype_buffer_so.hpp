@@ -186,6 +186,7 @@ public:
     OpStatus splitTo(MyType& other, psize_t idx)
     {
         auto& meta = data_->metadata();
+
         MEMORIA_V1_ASSERT(other.size(), ==, 0);
 
         psize_t split_size = meta.size() - idx;

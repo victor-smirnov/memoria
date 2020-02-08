@@ -146,7 +146,7 @@ public:
         const int32_t AllocatorIdx  = StreamDescrT::Value;
 
         StreamType* head = nullptr;
-        if (!alloc->is_empty(AllocatorIdx))
+        if (alloc->is_empty(AllocatorIdx))
         {
             head = alloc->template allocateEmpty<StreamType>(AllocatorIdx);
         }

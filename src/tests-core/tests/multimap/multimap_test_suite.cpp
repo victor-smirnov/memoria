@@ -16,7 +16,7 @@
 
 
 
-#include "multimap_basic_test.hpp"
+#include "multimap_test.hpp"
 
 #include <vector>
 
@@ -24,12 +24,8 @@ namespace memoria {
 namespace tests {
 namespace {
 
-//auto Suite1 = register_class_suite<MultiMapBasicTest<Multimap<U8String, int64_t>>>("Miltimap.Basic.S.I");
-//auto Suite2 = register_class_suite<MultiMapBasicTest<Multimap<double, int64_t>>>("Miltimap.Basic.D.I");
-auto Suite3 = register_class_suite<MultiMapBasicTest<Multimap<int64_t, uint8_t>>>("Miltimap.Basic.I.B");
+auto Suite3 = register_class_suite<MultimapTest<UUID, UTinyInt>>("Multimap.UUID.UTinyInt");
 
-//auto Suite4 = register_class_suite<MultiMapBasicTest<Multimap<UUID, int64_t>>>("Miltimap.Basic.U.I");
-//auto Suite5 = register_class_suite<MultiMapBasicTest<Multimap<UUID, U8String>>>("Miltimap.Basic.U.S");
 
 
 
