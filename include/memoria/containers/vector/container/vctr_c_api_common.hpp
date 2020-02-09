@@ -132,10 +132,10 @@ public:
     Result<ProfileCtrSizeT<Profile>> size() const noexcept
     {
         using ResultT = Result<ProfileCtrSizeT<Profile>>;
-        auto res = self().sizes();
-        MEMORIA_RETURN_IF_ERROR(res);
 
-        return ResultT::of(res.get()[0]);
+        MEMORIA_TRY(sizes, self().sizes());
+
+        return ResultT::of(sizes[0]);
     }
 
     Result<CtrSharedPtr<VectorIterator<ValueDataType, Profile>>> seek(CtrSizeT pos) const noexcept
@@ -147,49 +147,38 @@ public:
 
     Result<Datum<Value>> get(CtrSizeT pos) const noexcept
     {
-        auto ii = self().seek(pos);
-        MEMORIA_RETURN_IF_ERROR(ii);
+        MEMORIA_TRY(ii, self().seek(pos));
 
-        return ii.get()->value();
+        return ii->value();
     }
 
     VoidResult set(CtrSizeT pos, ViewType view) noexcept
     {
-        auto ii = self().seek(pos);
-        MEMORIA_RETURN_IF_ERROR(ii);
-
-        return ii.get()->set(view);
+        MEMORIA_TRY(ii, self().seek(pos));
+        return ii->set(view);
     }
 
     VoidResult prepend(io::IOVectorProducer& producer) noexcept
     {
-        auto ii = self().ctr_begin();
-        MEMORIA_RETURN_IF_ERROR(ii);
-
-        auto res = ii.get()->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY(ii, self().ctr_begin());
+        MEMORIA_TRY_VOID(ii.get()->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max()));
 
         return VoidResult::of();
     }
 
     VoidResult append(io::IOVectorProducer& producer) noexcept
     {
-        auto ii = self().ctr_end();
-        MEMORIA_RETURN_IF_ERROR(ii);
-
-        auto res = ii.get()->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY(ii, self().ctr_end());
+        MEMORIA_TRY_VOID(ii.get()->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max()));
 
         return VoidResult::of();
     }
 
     VoidResult insert(CtrSizeT at, io::IOVectorProducer& producer) noexcept
     {
-        auto ii = self().ctr_seek(at);
-        MEMORIA_RETURN_IF_ERROR(ii);
+        MEMORIA_TRY(ii, self().ctr_seek(at));
+        MEMORIA_TRY_VOID(ii.get()->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max()));
 
-        auto res = ii.get()->insert_iovector(producer, 0, std::numeric_limits<CtrSizeT>::max());
-        MEMORIA_RETURN_IF_ERROR(res);
         return VoidResult::of();
     }
 
@@ -197,28 +186,24 @@ public:
     {
         auto& self = this->self();
 
-        auto ii_from = self.ctr_seek(from);
-        MEMORIA_RETURN_IF_ERROR(ii_from);
+        MEMORIA_TRY(ii_from, self.ctr_seek(from));
 
-        return ii_from.get()->remove_from(to - from);
+        return ii_from->remove_from(to - from);
     }
 
     Result<CtrSizeT> remove_from(CtrSizeT from) noexcept
     {
-        auto res = size();
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        return remove(from, res.get());
+        MEMORIA_TRY(ctr_size, size());
+        return remove(from, ctr_size);
     }
 
     Result<CtrSizeT> remove_up_to(CtrSizeT pos) noexcept
     {
         auto& self = this->self();
 
-        auto ii_from = self.ctr_begin();
-        MEMORIA_RETURN_IF_ERROR(ii_from);
+        MEMORIA_TRY(ii_from, self.ctr_begin());
 
-        return ii_from.get()->remove_from(pos);
+        return ii_from->remove_from(pos);
     }
 
 

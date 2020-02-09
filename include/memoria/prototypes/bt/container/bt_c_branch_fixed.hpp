@@ -172,8 +172,7 @@ Result<OpStatus> M_TYPE::ctr_insert_to_branch_node(
         auto max = self.ctr_get_node_max_keys(node);
         MEMORIA_TRY(parent_idx, self.ctr_get_child_idx(parent, node->id()));
 
-        auto res = self.ctr_update_branch_nodes(path, level + 1, parent_idx, max);
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY_VOID(self.ctr_update_branch_nodes(path, level + 1, parent_idx, max));
     }
 
     return ResultT::of(OpStatus::OK);

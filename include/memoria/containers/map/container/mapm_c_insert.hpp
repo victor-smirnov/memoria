@@ -52,10 +52,6 @@ protected:
     using CtrSizeT = typename Types::CtrSizeT;
 
 public:
-//    CtrSizeT size() const {
-//        return self().sizes()[0];
-//    }
-
 
     Result<IteratorPtr> ctr_map_find(const KeyView& k) const noexcept
     {
@@ -65,12 +61,11 @@ public:
 
     Result<bool> remove(const KeyView& k) noexcept
     {
-        auto iter = self().ctr_map_find(k);
-        MEMORIA_RETURN_IF_ERROR(iter);
+        MEMORIA_TRY(iter, self().ctr_map_find(k));
 
-        if (iter.get()->is_found(k))
+        if (iter->is_found(k))
         {
-            MEMORIA_TRY_VOID(iter.get()->remove());
+            MEMORIA_TRY_VOID(iter->remove());
             return BoolResult::of(true);
         }
         else {
@@ -80,20 +75,17 @@ public:
 
     Result<IteratorPtr> assign(const KeyView& key, const ValueView& value)
     {
-        auto iter = self().ctr_map_find(key);
-        MEMORIA_RETURN_IF_ERROR(iter);
+        MEMORIA_TRY(iter, self().ctr_map_find(key));
 
-        if (iter.get()->is_found(key))
+        if (iter->is_found(key))
         {
-            auto res = iter.get()->assign(value);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(iter.get()->assign(value));
         }
         else {
-            auto res = iter.get()->insert(key, value);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(iter.get()->insert(key, value));
         }
 
-        return iter;
+        return iter_result;
     }
 
 MEMORIA_V1_CONTAINER_PART_END

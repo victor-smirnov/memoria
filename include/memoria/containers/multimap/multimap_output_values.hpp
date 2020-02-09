@@ -55,10 +55,8 @@ public:
 
     virtual BoolResult next_block() noexcept
     {
-        auto res = iter_->iter_next_leaf();
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        if (res.get())
+        MEMORIA_TRY(has_next, iter_->iter_next_leaf());
+        if (has_next)
         {
             offsets_.clear();
             build_index();
@@ -77,10 +75,8 @@ public:
         {
             fill_buffer(values_start_, values_.size());
 
-            auto res = next_block();
-            MEMORIA_RETURN_IF_ERROR(res);
-
-            if (res.get()) {
+            MEMORIA_TRY(has_next, next_block());
+            if (has_next) {
                 break;
             }
         }

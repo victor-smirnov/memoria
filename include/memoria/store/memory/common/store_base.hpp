@@ -634,8 +634,7 @@ public:
             {
                 case TYPE_METADATA:     allocator->read_metadata(*input, metadata); break;
                 case TYPE_DATA_BLOCK:   {
-                    auto res = allocator->read_data_block(*input, block_map);
-                    MEMORIA_RETURN_IF_ERROR(res); break;
+                    MEMORIA_TRY_VOID(allocator->read_data_block(*input, block_map)); break;
                 }
                 case TYPE_LEAF_NODE:    allocator->read_leaf_node(*input, ptree_node_map); break;
                 case TYPE_BRANCH_NODE:  allocator->read_branch_node(*input, ptree_node_map); break;
@@ -744,8 +743,7 @@ public:
         }
 
         allocator->do_delete_dropped();
-        auto res = allocator->pack();
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY_VOID(allocator->pack());
 
         return ResultT::of(alloc_ptr);
     }
@@ -969,11 +967,9 @@ protected:
 
         in.read(block_data.get(), 0, block_data_size);
 
-        auto res = ProfileMetadata<Profile>::local()
+        MEMORIA_TRY_VOID(ProfileMetadata<Profile>::local()
                 ->get_block_operations(ctr_hash, block_hash)
-                ->deserialize(block_data.get(), block_data_size, block);
-
-        MEMORIA_RETURN_IF_ERROR(res);
+                ->deserialize(block_data.get(), block_data_size, block));
 
         if (map.find(block->uuid()) == map.end())
         {
@@ -1227,18 +1223,14 @@ protected:
                 auto leaf = PersistentTreeT::to_leaf_node(node);
                 auto buf  = to_leaf_buffer(leaf);
 
-                auto res0 = write(out, buf.get());
-                MEMORIA_RETURN_IF_ERROR(res0);
-
+                MEMORIA_TRY_VOID(write(out, buf.get()));
                 for (int32_t c = 0; c < leaf->size(); c++)
                 {
                     const auto& data = leaf->data(c);
 
                     if (stored_blocks.count(data.block_ptr()) == 0)
                     {
-                        auto res1 = write(out, data.block_ptr());
-                        MEMORIA_RETURN_IF_ERROR(res1);
-
+                        MEMORIA_TRY_VOID(write(out, data.block_ptr()));
                         stored_blocks.insert(data.block_ptr());
                     }
                 }
@@ -1247,14 +1239,11 @@ protected:
                 auto branch = PersistentTreeT::to_branch_node(node);
                 auto buf    = to_branch_buffer(branch);
 
-                auto res0 = write(out, buf.get());
-                MEMORIA_RETURN_IF_ERROR(res0);
-
+                MEMORIA_TRY_VOID(write(out, buf.get()));
                 for (int32_t c = 0; c < branch->size(); c++)
                 {
                     auto child = branch->data(c);
-                    auto res1 = write_persistent_tree(out, child, stored_blocks);
-                    MEMORIA_RETURN_IF_ERROR(res1);
+                    MEMORIA_TRY_VOID(write_persistent_tree(out, child, stored_blocks));
                 }
             }
         }
@@ -1299,18 +1288,16 @@ protected:
 
         auto buffer = allocate_system<uint8_t>(block_size);
 
-        Result<int32_t> total_data_size = ProfileMetadata<Profile>::local()
+        MEMORIA_TRY(total_data_size, ProfileMetadata<Profile>::local()
                 ->get_block_operations(block->ctr_type_hash(), block->block_type_hash())
-                ->serialize(block, buffer.get());
+                ->serialize(block, buffer.get()));
 
-        MEMORIA_RETURN_IF_ERROR(total_data_size);
-
-        out << total_data_size.get();
+        out << total_data_size;
         out << block->memory_block_size();
         out << block->ctr_type_hash();
         out << block->block_type_hash();
 
-        out.write(buffer.get(), 0, total_data_size.get());
+        out.write(buffer.get(), 0, total_data_size);
 
         records_++;
 
@@ -1345,9 +1332,7 @@ protected:
     Result<void> do_pack(HistoryNode* node) noexcept
     {
         std::unordered_set<HistoryNode*> branches = get_named_branch_nodeset();
-        auto res = do_pack(history_tree_, 0, branches);
-        MEMORIA_RETURN_IF_ERROR(res);
-
+        MEMORIA_TRY_VOID(do_pack(history_tree_, 0, branches));
     	for (const auto& branch: named_branches_)
     	{
     		auto node = branch.second;

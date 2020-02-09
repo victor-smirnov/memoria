@@ -57,19 +57,15 @@ public:
         if (self.store().isActive())
         {
             auto res0 = self.for_each_ctr_reference([&](auto prop_name, auto ctr_id) noexcept -> VoidResult {
-                auto r0 = self.store().drop_ctr(ctr_id);
-                MEMORIA_RETURN_IF_ERROR(r0);
+                MEMORIA_TRY_VOID(self.store().drop_ctr(ctr_id));
                 return VoidResult::of();
             });
             MEMORIA_RETURN_IF_ERROR(res0);
 
-            Result<NodeBaseG> root = self.ctr_get_root_node();
-            MEMORIA_RETURN_IF_ERROR(root);
+            MEMORIA_TRY(root, self.ctr_get_root_node());
+            MEMORIA_TRY_VOID(self.ctr_remove_root_node(root));
 
-            MEMORIA_TRY_VOID(self.ctr_remove_root_node(root.get()));
-
-            auto res1 = self.set_root(BlockID{});
-            MEMORIA_RETURN_IF_ERROR(res1);
+            MEMORIA_TRY_VOID(self.set_root(BlockID{}));
 
             this->do_unregister_on_dtr_ = false;
             return self.store().unregisterCtr(self.name(), this);
@@ -362,18 +358,15 @@ Result<MergeType> M_TYPE::ctr_merge_leaf_with_siblings(TreePathT& path, MergeFn 
     using ResultT = Result<MergeType>;
     auto& self = this->self();
 
-    auto res0 = self.ctr_merge_leaf_with_right_sibling(path);
-    MEMORIA_RETURN_IF_ERROR(res0);
+    MEMORIA_TRY(merged, self.ctr_merge_leaf_with_right_sibling(path));
 
-    if (res0.get())
+    if (merged)
     {
         return ResultT::of(MergeType::RIGHT);
     }
     else {
-        auto res1 = self.ctr_merge_leaf_with_left_sibling(path, fn);
-        MEMORIA_RETURN_IF_ERROR(res1);
-
-        if (res1.get())
+        MEMORIA_TRY(merged2, self.ctr_merge_leaf_with_left_sibling(path, fn));
+        if (merged2)
         {
             return ResultT::of(MergeType::LEFT);
         }
@@ -414,10 +407,8 @@ BoolResult M_TYPE::ctr_merge_leaf_with_left_sibling(TreePathT& path, MergeFn fn)
 
         if (has_prev)
         {
-            auto merge_res = self.ctr_merge_leaf_nodes(prev, path, false, fn);
-            MEMORIA_RETURN_IF_ERROR(merge_res);
-
-            merged = merge_res.get();
+            MEMORIA_TRY(merge_res, self.ctr_merge_leaf_nodes(prev, path, false, fn));
+            merged = merge_res;
 
             if (merged)
             {

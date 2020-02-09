@@ -622,12 +622,10 @@ public:
     {
         if (shared_)
         {
-            auto guard = shared_->store()->updateBlock(shared_);
-            MEMORIA_RETURN_IF_ERROR(guard);
-
-            if (guard.get().shared() != shared_)
+            MEMORIA_TRY(guard, shared_->store()->updateBlock(shared_));
+            if (guard.shared() != shared_)
             {
-                *this = guard.get();
+                *this = guard;
             }
         }
 

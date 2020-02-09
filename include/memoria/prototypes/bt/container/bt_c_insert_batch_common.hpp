@@ -157,10 +157,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertBatchCommonName)
             {
                 auto node = head_;
 
-                auto res = ctr_.store().getBlock(head_->next_leaf_id());
-                MEMORIA_RETURN_IF_ERROR(res);
+                MEMORIA_TRY(block, ctr_.store().getBlock(head_->next_leaf_id()));
 
-                head_ = res.get();
+                head_ = block;
                 size_--;
                 return node;
             }

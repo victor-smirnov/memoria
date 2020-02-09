@@ -128,10 +128,9 @@ public:
 
         MEMORIA_TRY_VOID(mgr.add(leaf));
 
-        auto status = insert_fn(structure_idx, stream_idx);
-        MEMORIA_RETURN_IF_ERROR(status);
+        MEMORIA_TRY(status, insert_fn(structure_idx, stream_idx));
 
-        if (isFail(status.get()))
+        if (isFail(status))
         {
             mgr.rollback();
             return BoolResult::of(false);
@@ -246,9 +245,7 @@ public:
 
         BlockUpdateMgr mgr(self);
 
-        auto res = self.ctr_update_block_guard(iter.iter_leaf());
-        MEMORIA_RETURN_IF_ERROR(res);
-
+        MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
         MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf()));
 
         BranchNodeEntry accum;

@@ -57,8 +57,7 @@ public:
                 InputTupleAdapter<0>::convert(0, core::StaticVector<Key, 1>({delta}), core::StaticVector<Value, 1>{value})
         );
 
-        auto res = self.iter_skip_fw(1);
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY_VOID(self.iter_skip_fw(1));
 
         if (!self.iter_is_end())
         {
@@ -80,8 +79,7 @@ public:
 
         if (self.iter_is_end())
         {
-            auto res = self.iter_skip_fw(0);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(self.iter_skip_fw(0));
         }
 
         if (!self.iter_is_end())

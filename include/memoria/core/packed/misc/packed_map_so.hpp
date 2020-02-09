@@ -280,8 +280,7 @@ public:
 
         while (keys_ii != keys_end && values_ii != values_end)
         {
-            auto res = fn(*keys_ii, *values_ii);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(fn(*keys_ii, *values_ii));
 
             ++keys_ii;
             ++values_ii;

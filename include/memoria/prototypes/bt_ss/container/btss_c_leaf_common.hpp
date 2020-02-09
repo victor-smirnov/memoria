@@ -70,8 +70,7 @@ public:
     template <typename EntryBuffer>
     VoidResult iter_insert_entry(Iterator& iter, const EntryBuffer& entry) noexcept
     {
-        auto split_status_res = self().template ctr_insert_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos(), entry);
-        MEMORIA_RETURN_IF_ERROR(split_status_res);
+        MEMORIA_TRY_VOID(self().template ctr_insert_stream_entry<0>(iter, iter.iter_stream(), iter.iter_local_pos(), entry));
         return VoidResult::of();
     }
 
@@ -114,7 +113,7 @@ public:
 
         if (iter.iter_leaf()->id() != id)
         {
-            MEMORIA_RETURN_IF_ERROR(iter.iter_refresh());
+            MEMORIA_TRY_VOID(iter.iter_refresh());
         }
 
         return ResultT::of(streaming.totals());
@@ -144,15 +143,14 @@ public:
 
         auto pos = Position(iter.iter_local_pos());
 
-        auto result = self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming);
-        MEMORIA_RETURN_IF_ERROR(result);
+        MEMORIA_TRY(result, self.ctr_insert_provided_data(iter.iter_leaf(), pos, streaming));
 
-        iter.iter_local_pos() = result.get().position().sum();
-        iter.iter_leaf().assign(result.get().iter_leaf());
+        iter.iter_local_pos() = result.position().sum();
+        iter.iter_leaf().assign(result.iter_leaf());
 
         if (iter.iter_leaf()->id() != id)
         {
-            MEMORIA_RETURN_IF_ERROR(iter.iter_refresh());
+            MEMORIA_TRY_VOID(iter.iter_refresh());
         }
 
         return ResultT::of(streaming.totals());

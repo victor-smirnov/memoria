@@ -207,10 +207,9 @@ public:
             {
                 auto node = head_;
 
-                auto res = ctr_.store().getBlock(head_->next_leaf_id(), ctr_.master_name());
-                MEMORIA_RETURN_IF_ERROR(res);
+                MEMORIA_TRY(block, ctr_.store().getBlock(head_->next_leaf_id(), ctr_.master_name()));
 
-                head_ = res.get();
+                head_ = block;
                 size_--;
                 return node;
             }

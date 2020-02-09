@@ -56,10 +56,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
         if (!std::get<0>(result0.get()))
         {
-            Result<SplitResult> split_r = iter.iter_split_leaf(stream, idx);
-            MEMORIA_RETURN_IF_ERROR(split_r);
-
-            idx = split_r.get().stream_idx();
+            MEMORIA_TRY(split_r, iter.iter_split_leaf(stream, idx));
+            idx = split_r.stream_idx();
 
             auto result1 = self.template ctr_try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
             MEMORIA_RETURN_IF_ERROR(result1);

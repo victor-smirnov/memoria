@@ -189,10 +189,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         using ResultT = Result<Optional<U8String>>;
 
         auto& self     = this->self();
-        Result<NodeBaseG> root = self.ctr_get_root_node();
-        MEMORIA_RETURN_IF_ERROR(root);
+        MEMORIA_TRY(root, self.ctr_get_root_node());
 
-        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
+        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
 
         PackedMapSO<CtrPropertiesMap> map_so(const_cast<CtrPropertiesMap*>(map));
 
@@ -211,18 +210,17 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return wrap_throwing([&]() -> VoidResult {
             auto& self = this->self();
 
-            Result<NodeBaseG> root = self.ctr_get_root_node();
-            MEMORIA_RETURN_IF_ERROR(root);
+            MEMORIA_TRY(root, self.ctr_get_root_node());
 
-            CtrPropertiesMap* map = get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
+            CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
 
             PackedMapSO<CtrPropertiesMap> map_so(map);
 
             psize_t upsize = map_so.estimate_required_upsize(key, value);
             if (upsize > map->compute_free_space_up())
             {
-                MEMORIA_TRY_VOID(self.ctr_upsize_node(root.get(), upsize));
-                map_so.setup(get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX));
+                MEMORIA_TRY_VOID(self.ctr_upsize_node(root, upsize));
+                map_so.setup(get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX));
             }
 
             OOM_THROW_IF_FAILED(map_so.set(key, value), MMA_SRC);
@@ -234,10 +232,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     virtual Result<size_t> ctr_properties() const noexcept
     {
         auto& self = this->self();
-        Result<NodeBaseG> root = self.ctr_get_root_node();
-        MEMORIA_RETURN_IF_ERROR(root);
+        MEMORIA_TRY(root, self.ctr_get_root_node());
 
-        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
+        const CtrPropertiesMap* map = get<const CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
 
         return Result<size_t>::of((size_t)map->size());
     }
@@ -246,27 +243,25 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         return wrap_throwing([&]() -> VoidResult {
             auto& self     = this->self();
-            Result<NodeBaseG> root = self.ctr_get_root_node();
-            MEMORIA_RETURN_IF_ERROR(root);
+            MEMORIA_TRY(root, self.ctr_get_root_node());
 
-            CtrPropertiesMap* map = get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
+            CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
 
             PackedMapSO<CtrPropertiesMap> map_so(map);
 
             OOM_THROW_IF_FAILED(map_so.remove(key), MMA_SRC);
 
-            MEMORIA_TRY_VOID(self.ctr_downsize_node(root.get()));
+            MEMORIA_TRY_VOID(self.ctr_downsize_node(root));
             return VoidResult::of();
         });
     }
 
     virtual VoidResult for_each_ctr_property(std::function<void (U8StringView, U8StringView)> consumer) const noexcept
     {
-        auto& self     = this->self();
-        Result<NodeBaseG> root = self.ctr_get_root_node();
-        MEMORIA_RETURN_IF_ERROR(root);
+        auto& self = this->self();
+        MEMORIA_TRY(root, self.ctr_get_root_node());
 
-        CtrPropertiesMap* map = get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
+        CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
 
         PackedMapSO<CtrPropertiesMap> map_so(map);
 
@@ -279,10 +274,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         return wrap_throwing([&]() -> VoidResult {
             auto& self = this->self();
-            Result<NodeBaseG> root = self.ctr_get_root_node();
-            MEMORIA_RETURN_IF_ERROR(root);
+            MEMORIA_TRY(root, self.ctr_get_root_node());
 
-            CtrPropertiesMap* map = get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX);
+            CtrPropertiesMap* map = get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX);
 
             PackedMapSO<CtrPropertiesMap> map_so(map);
 
@@ -295,8 +289,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             psize_t upsize = map_so.estimate_required_upsize(entries_view);
             if (upsize > map->compute_free_space_up())
             {
-                MEMORIA_TRY_VOID(self.ctr_upsize_node(root.get(), upsize));
-                map_so.setup(get<CtrPropertiesMap>(root.get()->allocator(), CTR_PROPERTIES_IDX));
+                MEMORIA_TRY_VOID(self.ctr_upsize_node(root, upsize));
+                map_so.setup(get<CtrPropertiesMap>(root->allocator(), CTR_PROPERTIES_IDX));
             }
 
             OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA_SRC);
@@ -309,10 +303,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         using ResultT = Result<Optional<CtrID>>;
         auto& self = this->self();
-        Result<NodeBaseG> root = self.ctr_get_root_node();
-        MEMORIA_RETURN_IF_ERROR(root);
+        MEMORIA_TRY(root, self.ctr_get_root_node());
 
-        CtrReferencesMap* map = get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
+        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
         PackedMapSO<CtrReferencesMap> map_so(map);
 
@@ -323,18 +316,17 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         return wrap_throwing([&]() -> VoidResult {
             auto& self = this->self();
-            Result<NodeBaseG> root = self.ctr_get_root_node();
-            MEMORIA_RETURN_IF_ERROR(root);
+            MEMORIA_TRY(root, self.ctr_get_root_node());
 
-            CtrReferencesMap* map = get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
+            CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
             PackedMapSO<CtrReferencesMap> map_so(map);
 
             psize_t upsize = map_so.estimate_required_upsize(key, value);
             if (upsize > map->compute_free_space_up())
             {
-                MEMORIA_TRY_VOID(self.ctr_upsize_node(root.get(), upsize));
-                map_so.setup(get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX));
+                MEMORIA_TRY_VOID(self.ctr_upsize_node(root, upsize));
+                map_so.setup(get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX));
             }
 
             OOM_THROW_IF_FAILED(map_so.set(key, value), MMA_SRC);
@@ -346,26 +338,24 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         return wrap_throwing([&]() -> VoidResult {
             auto& self     = this->self();
-            Result<NodeBaseG> root = self.ctr_get_root_node();
-            MEMORIA_RETURN_IF_ERROR(root);
+            MEMORIA_TRY(root, self.ctr_get_root_node());
 
-            CtrReferencesMap* map = get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
+            CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
             PackedMapSO<CtrReferencesMap> map_so(map);
 
             OOM_THROW_IF_FAILED(map_so.remove(key), MMA_SRC);
 
-            return self.ctr_downsize_node(root.get());
+            return self.ctr_downsize_node(root);
         });
     }
 
     virtual Result<size_t> ctr_references() const noexcept
     {
         auto& self = this->self();
-        Result<NodeBaseG> root = self.ctr_get_root_node();
-        MEMORIA_RETURN_IF_ERROR(root);
+        MEMORIA_TRY(root, self.ctr_get_root_node());
 
-        const CtrReferencesMap* map = get<const CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
+        const CtrReferencesMap* map = get<const CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
         return Result<size_t>::of((size_t)map->size());
     }
@@ -373,10 +363,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     virtual VoidResult for_each_ctr_reference(std::function<VoidResult (U8StringView, const CtrID&)> consumer) const noexcept
     {
         auto& self = this->self();
-        Result<NodeBaseG> root = self.ctr_get_root_node();
-        MEMORIA_RETURN_IF_ERROR(root);
+        MEMORIA_TRY(root, self.ctr_get_root_node());
 
-        CtrReferencesMap* map = get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
+        CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
         PackedMapSO<CtrReferencesMap> map_so(map);
 
@@ -387,10 +376,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         return wrap_throwing([&]() -> VoidResult {
             auto& self = this->self();
-            Result<NodeBaseG> root = self.ctr_get_root_node();
-            MEMORIA_RETURN_IF_ERROR(root);
+            MEMORIA_TRY(root, self.ctr_get_root_node());
 
-            CtrReferencesMap* map = get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX);
+            CtrReferencesMap* map = get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX);
 
             PackedMapSO<CtrReferencesMap> map_so(map);
 
@@ -403,8 +391,8 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             psize_t upsize = map_so.estimate_required_upsize(entries_view);
             if (upsize > map->compute_free_space_up())
             {
-                MEMORIA_TRY_VOID(self.ctr_upsize_node(root.get(), upsize));
-                map_so.setup(get<CtrReferencesMap>(root.get()->allocator(), CTR_REFERENCES_IDX));
+                MEMORIA_TRY_VOID(self.ctr_upsize_node(root, upsize));
+                map_so.setup(get<CtrReferencesMap>(root->allocator(), CTR_REFERENCES_IDX));
             }
 
             OOM_THROW_IF_FAILED(map_so.set_all(entries_view), MMA_SRC);
@@ -517,7 +505,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         //MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
-        self().ctr_update_block_guard(node);
+        MEMORIA_TRY_VOID(self().ctr_update_block_guard(node));
         node->setMetadata(metadata);
 
         return VoidResult::of();
@@ -530,10 +518,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         auto& self          = this->self();
         const auto& root_id = self.root();
 
-        auto root_res = self.store().getBlock(root_id);
-        MEMORIA_RETURN_IF_ERROR(root_res);
-
-        NodeBaseG root = root_res.get();
+        MEMORIA_TRY(root, self.ctr_get_block(root_id));
         return ResultT::of(root->root_metadata());
     }
 
@@ -815,10 +800,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         self.configure_types(ctr_type_name, branch_node_ext_data_, leaf_node_ext_data_);
 
-        Result<NodeBaseG> node = self.createRootLeaf();
-        MEMORIA_RETURN_IF_ERROR(node);
+        MEMORIA_TRY(node, self.createRootLeaf());
 
-        return self.set_root(node.get()->id());
+        return self.set_root(node->id());
     }
 
 

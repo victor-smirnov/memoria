@@ -145,13 +145,11 @@ BoolResult M_TYPE::ctr_check_tree() const noexcept
 {
     auto& self = this->self();
 
-    Result<NodeBaseG> root = self.ctr_get_root_node();
-    MEMORIA_RETURN_IF_ERROR(root);
-
-    if (root.get())
+    MEMORIA_TRY(root, self.ctr_get_root_node());
+    if (root)
     {
         bool errors = false;
-        MEMORIA_TRY_VOID(self.ctr_check_tree_structure(NodeBaseG(), 0, root.get(), errors));
+        MEMORIA_TRY_VOID(self.ctr_check_tree_structure(NodeBaseG(), 0, root, errors));
         return BoolResult::of(errors);
     }
     else {
@@ -177,10 +175,9 @@ VoidResult M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t par
 
     if (!node->is_root())
     {
-        BoolResult res_vv = self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx);
-        MEMORIA_RETURN_IF_ERROR(res_vv);
+        MEMORIA_TRY(res_vv, self.tree_dispatcher().dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx));
 
-        errors = res_vv.get() || errors;
+        errors = res_vv || errors;
 
         if (!node->is_leaf())
         {

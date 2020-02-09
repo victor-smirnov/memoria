@@ -82,22 +82,18 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
         using ResultT = Result<SplitStatus>;
         auto& self = this->self();
 
-        auto result0 = self.ctr_with_block_manager(iter.iter_leaf(), structure_idx, stream_idx, insert_fn);
-        MEMORIA_RETURN_IF_ERROR(result0);
+        MEMORIA_TRY(result0, self.ctr_with_block_manager(iter.iter_leaf(), structure_idx, stream_idx, insert_fn));
+
 
         SplitStatus split_status;
 
-        if (!result0.get())
+        if (!result0)
         {
-            auto split_result = iter.split(Stream, stream_idx);
-            MEMORIA_RETURN_IF_ERROR(split_result);
-
+            MEMORIA_TRY(split_result, iter.split(Stream, stream_idx));
             split_status = split_result.type();
 
-            auto result1 = self.ctr_with_block_manager(iter.iter_leaf(), iter.iter_local_pos(), split_result.stream_idx(), insert_fn);
-            MEMORIA_RETURN_IF_ERROR(result1);
-
-            if (!result1.get())
+            MEMORIA_TRY(result1, self.ctr_with_block_manager(iter.iter_leaf(), iter.iter_local_pos(), split_result.stream_idx(), insert_fn));
+            if (!result1)
             {
                 return ResultT::make_error("Second insertion attempt failed");
             }

@@ -49,16 +49,15 @@ public:
     {
         auto& self = this->self();
 
-        Result<NodeBaseG> root = self.ctr_get_root_node();
-        MEMORIA_RETURN_IF_ERROR(root);
+        MEMORIA_TRY(root, self.ctr_get_root_node());
 
         walker->beginCtr(
             TypeNameFactory<typename Types::ContainerTypeName>::name().data(),
             self.name(),
-            root.get()->id()
+            root->id()
         );
 
-        MEMORIA_TRY_VOID(this->ctr_traverse_tree(root.get(), walker));
+        MEMORIA_TRY_VOID(this->ctr_traverse_tree(root, walker));
 
         walker->endCtr();
         return VoidResult::of();
@@ -111,10 +110,8 @@ public:
 
         auto& self = this->self();
 
-        Result<BlockID> root_id = self.store().getRootID(new_name);
-        MEMORIA_RETURN_IF_ERROR(root_id);
-
-        if (root_id.get().is_null())
+        MEMORIA_TRY(root_id, self.store().getRootID(new_name));
+        if (root_id.is_null())
         {
             NodeBaseG root = self.ctr_get_root_node();
 

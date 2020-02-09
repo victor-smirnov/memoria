@@ -159,8 +159,7 @@ public:
 
         if (history_node_->is_active() || history_node_->is_data_locked())
         {
-            auto res = this->flush_open_containers();
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(this->flush_open_containers());
 
             history_node_->commit();
             history_tree_raw_->unref_active();
@@ -239,10 +238,8 @@ public:
 
     	if (history_node_->is_active())
     	{
-            auto res = has_open_containers();
-            MEMORIA_RETURN_IF_ERROR(res);
-
-            if (!res.get())
+            MEMORIA_TRY(res, has_open_containers());
+            if (!res)
     		{
     			history_node_->lock_data();
     		}

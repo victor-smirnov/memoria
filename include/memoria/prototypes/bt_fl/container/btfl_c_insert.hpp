@@ -69,8 +69,7 @@ public:
         iter.refresh_iovector_view();
 
         if (iter.iter_leaf()->id() != id) {
-            auto res = iter.iter_refresh();
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(iter.iter_refresh());
         }
 
         return ResultT::of();

@@ -49,8 +49,7 @@ public:
     virtual VoidResult next() noexcept
     {
         size_t keys_size = keys_.array().size();
-        auto res = iter_->iter_btfl_select_fw(keys_size, 0); // next leaf with keys;
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY_VOID(iter_->iter_btfl_select_fw(keys_size, 0)); // next leaf with keys;
 
         idx_ = 0;
 

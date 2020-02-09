@@ -259,11 +259,10 @@ public:
 
         VoidResult with_ctr(const CtrID& ctr_id, const AllocatorPtr& allocator, std::function<VoidResult (MyType&)> fn) const noexcept
         {
-            auto ctr_ref = allocator->find(ctr_id);
-            MEMORIA_RETURN_IF_ERROR(ctr_ref);
-            if (ctr_ref.get())
+            MEMORIA_TRY(ctr_ref, allocator->find(ctr_id));
+            if (ctr_ref)
             {
-                auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref.get());
+                auto ctr_ptr = memoria_static_pointer_cast<MyType>(ctr_ref);
                 return fn(*ctr_ptr.get());
             }
             else {
@@ -276,9 +275,8 @@ public:
             bool result = false;
 
             auto res = with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept -> VoidResult {
-                BoolResult res = ctr.check(nullptr);
-                MEMORIA_RETURN_IF_ERROR(res);
-                result = res.get();
+                MEMORIA_TRY(res, ctr.check(nullptr));
+                result = res;
                 return VoidResult::of();
             });
             MEMORIA_RETURN_IF_ERROR(res);
@@ -371,10 +369,8 @@ public:
             CtrID new_name_rtn{};
 
             auto res = with_ctr(ctr_id, allocator, [&](MyType& ctr) noexcept -> VoidResult {
-                auto clone_res = ctr.clone(new_ctr_id);
-                MEMORIA_RETURN_IF_ERROR(clone_res);
-
-                new_name_rtn = clone_res.get();
+                MEMORIA_TRY(clone_res, ctr.clone(new_ctr_id));
+                new_name_rtn = clone_res;
                 return VoidResult::of();
             });
             MEMORIA_RETURN_IF_ERROR(res);

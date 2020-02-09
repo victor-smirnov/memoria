@@ -51,15 +51,11 @@ public:
     {
         auto& self = this->self();
 
-        auto res0 = self.ctr().iter_insert_entry(
+        MEMORIA_TRY_VOID(self.ctr().iter_insert_entry(
                 self,
                 map::KeyValueEntry<KeyView, ValueView, CtrSizeT>(key, value)
-        );
-        MEMORIA_RETURN_IF_ERROR(res0);
-
-
-        auto res1 = self.iter_btss_skip_fw(1);
-        MEMORIA_RETURN_IF_ERROR(res1);
+        ));
+        MEMORIA_TRY_VOID(self.iter_btss_skip_fw(1));
 
         return VoidResult::of();
     }
@@ -73,8 +69,7 @@ public:
 
         if (self.iter_is_end())
         {
-            auto res = self.iter_btss_skip_fw(0);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(self.iter_btss_skip_fw(0));
         }
 
         return VoidResult::of();

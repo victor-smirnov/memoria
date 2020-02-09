@@ -220,17 +220,6 @@ VoidResult M_TYPE::ctr_remove_entries(
     }
     else {
         MEMORIA_TRY_VOID(ctr_remove_nodes(start_path, start_idx, stop_path, stop_idx, sizes));
-
-//        if (merge)
-//        {
-//            auto res = self.ctr_merge_leaf_with_siblings(stop_path, [&](const Position& left_sizes)
-//            {
-//                stop_idx += left_sizes;
-//                return VoidResult::of();
-//            });
-//            MEMORIA_RETURN_IF_ERROR(res);
-//        }
-
         start_path  = stop_path;
         start_idx   = stop_idx;
     }

@@ -43,10 +43,9 @@ public:
     Result<ProfileCtrSizeT<Profile>> size() const noexcept
     {
         using ResultT = Result<ProfileCtrSizeT<Profile>>;
-        auto res = self().sizes();
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY(sizes, self().sizes());
 
-        return ResultT::of(res.get()[0]);
+        return ResultT::of(sizes[0]);
     }
 
     auto ctr_seek(CtrSizeT position) const noexcept
@@ -60,12 +59,11 @@ public:
 
     Result<IteratorPtr> ctr_end() const noexcept
     {
-        auto size = self().size();
-        MEMORIA_RETURN_IF_ERROR(size);
+        MEMORIA_TRY(size, self().size());
 
-        if (size.get() > 0)
+        if (size > 0)
         {
-            return self().ctr_seek(size.get());
+            return self().ctr_seek(size);
         }
         else {
             return self().ctr_seek(0);

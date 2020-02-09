@@ -145,10 +145,9 @@ public:
         {
             int32_t block_size = node->header().memory_block_size();
 
-            auto allocate_res = ctr_.store().allocateMemory(block_size);
-            MEMORIA_RETURN_IF_ERROR(allocate_res);
+            MEMORIA_TRY(allocate_res, ctr_.store().allocateMemory(block_size));
 
-            void* backup_buffer = allocate_res.get();
+            void* backup_buffer = allocate_res;
 
             CopyByteBuffer(node.block(), backup_buffer, block_size);
 

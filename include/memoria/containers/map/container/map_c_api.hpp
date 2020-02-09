@@ -67,15 +67,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
     VoidResult assign_key(KeyView key, ValueView value) noexcept
     {
-        auto ii = self().assign(key, value);
-        MEMORIA_RETURN_IF_ERROR(ii);
+        MEMORIA_TRY_VOID(self().assign(key, value));
         return VoidResult::of();
     }
 
     VoidResult remove_key(KeyView key) noexcept
     {
-        auto res = self().remove(key);
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY_VOID(self().remove(key));
         return VoidResult::of();
     }
 
@@ -87,8 +85,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
     virtual Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>> find(KeyView key) const noexcept
     {
-        //using ResultT = Result<CtrSharedPtr<MapIterator<Key, Value, Profile>>>;
-
         auto iter = self().ctr_map_find(key);
         MEMORIA_RETURN_IF_ERROR(iter);
 
@@ -98,11 +94,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     VoidResult append(io::IOVectorProducer& producer) noexcept
     {
         auto& self = this->self();
-        auto iter = self.ctr_end();
-        MEMORIA_RETURN_IF_ERROR(iter);
+        MEMORIA_TRY(iter, self.ctr_end());
 
-        auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY_VOID(iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
 
         return VoidResult::of();
     }
@@ -110,11 +104,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept
     {
         auto& self = this->self();
-        auto iter = self.ctr_begin();
-        MEMORIA_RETURN_IF_ERROR(iter);
 
-        auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY(iter, self.ctr_begin());
+        MEMORIA_TRY_VOID(iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
 
         return VoidResult::of();
     }
@@ -123,17 +115,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
     {
         auto& self = this->self();
 
-        auto iter = self.ctr_map_find(before);
-        MEMORIA_RETURN_IF_ERROR(iter);
+        MEMORIA_TRY(iter, self.ctr_map_find(before));
 
-        if (iter.get()->is_found(before))
+        if (iter->is_found(before))
         {
             return VoidResult::make_error("Requested key is found. Can't insert enties this way.");
         }
         else {
-            auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-            MEMORIA_RETURN_IF_ERROR(res);
-
+            MEMORIA_TRY_VOID(iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
             return VoidResult::of();
         }
     }

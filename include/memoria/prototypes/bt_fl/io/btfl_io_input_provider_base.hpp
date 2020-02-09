@@ -400,10 +400,9 @@ public:
 
         while(true)
         {
-            auto has_data_res = this->hasData();
-            MEMORIA_RETURN_IF_ERROR(has_data_res);
+            MEMORIA_TRY(has_data, this->hasData());
 
-            if (!has_data_res.get()) {
+            if (!has_data) {
                 break;
             }
 
@@ -413,13 +412,6 @@ public:
 
             if (inserted.sum() > 0)
             {
-                // FIXME: we need to move this code out of
-                // the fill() method
-//                if (leaf->parent_id().isSet())
-//                {
-//                    MEMORIA_TRY_VOID(ctr().ctr_update_path(leaf));
-//                }
-
                 pos += inserted;
 
                 if (!hasFreeSpace(leaf))

@@ -56,34 +56,27 @@ public:
 
     BoolResult next_entry() noexcept
     {
-        auto res = self().iter_btss_skip_fw(1);
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        return BoolResult::of(res.get() > 0);
+        MEMORIA_TRY(res, self().iter_btss_skip_fw(1));
+        return BoolResult::of(res > 0);
     }
 
 
     BoolResult operator++() noexcept
     {
-        auto res = self().iter_btss_skip_fw(1);
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        return BoolResult::of(res.get() > 0);
+        MEMORIA_TRY(res, self().iter_btss_skip_fw(1));
+        return BoolResult::of(res > 0);
     }
 
     BoolResult next() noexcept
     {
-        auto res = self().iter_btss_skip_fw(1);
-        MEMORIA_RETURN_IF_ERROR(res);
-        return BoolResult::of(res.get() > 0);
+        MEMORIA_TRY(res, self().iter_btss_skip_fw(1));
+        return BoolResult::of(res > 0);
     }
 
     BoolResult prev() noexcept
     {
-        auto res = self().iter_btss_skip_bw(1);
-
-        MEMORIA_RETURN_IF_ERROR(res);
-        return BoolResult::of(res.get() > 0);
+        MEMORIA_TRY(res, self().iter_btss_skip_bw(1));
+        return BoolResult::of(res > 0);
     }
 
     BoolResult operator--() noexcept {
@@ -184,8 +177,7 @@ public:
 
         auto to = self.ctr().clone_iterator(self);
 
-        auto res0 = to->iter_btss_skip_fw(size);
-        MEMORIA_RETURN_IF_ERROR(res0);
+        MEMORIA_TRY_VOID(to->iter_btss_skip_fw(size));
 
         auto from_path      = self.path();
         Position from_pos   = Position(self.iter_local_pos());

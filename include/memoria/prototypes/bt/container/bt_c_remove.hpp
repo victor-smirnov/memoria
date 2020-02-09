@@ -49,9 +49,7 @@ protected:
         if (!std::get<0>(remove_entry_result0))
         {
             // FIXME: split at the middle of the leaf!
-            auto split_res = iter.iter_split_leaf(stream, idx);
-            MEMORIA_RETURN_IF_ERROR(split_res);
-
+            MEMORIA_TRY_VOID(iter.iter_split_leaf(stream, idx));
             MEMORIA_TRY(remove_entry_result1, self.template ctr_try_remove_stream_entry<Stream>(iter, idx));
 
             if (!std::get<0>(remove_entry_result1))

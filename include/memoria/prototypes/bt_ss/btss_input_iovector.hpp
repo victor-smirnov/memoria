@@ -115,11 +115,8 @@ public:
     virtual BoolResult hasData() noexcept
     {
         bool buffer_has_data = start_ < size_;
-
-        BoolResult res = populate_buffer();
-        MEMORIA_RETURN_IF_ERROR(res);
-
-        return buffer_has_data || res.get();
+        MEMORIA_TRY(res, populate_buffer());
+        return buffer_has_data || res;
     }
 
     virtual Result<Position> fill(NodeBaseG& leaf, const Position& from) noexcept
@@ -134,10 +131,8 @@ public:
 
             if (buffer_sizes == 0)
             {
-                BoolResult res = populate_buffer();
-                MEMORIA_RETURN_IF_ERROR(res);
-
-                if (!res.get())
+                MEMORIA_TRY(res, populate_buffer());
+                if (!res)
                 {
                     return ResultT::of(pos);
                 }
@@ -150,10 +145,9 @@ public:
 
             if (capacity > 0)
             {
-                Result<OpStatus> status = insertBuffer(leaf, pos[0], capacity);
-                MEMORIA_RETURN_IF_ERROR(status);
+                MEMORIA_TRY(status, insertBuffer(leaf, pos[0], capacity));
 
-                if (isFail(status.get())) {
+                if (isFail(status)) {
                     return ResultT::make_error("PackedOOMException");
                 }
 
@@ -264,9 +258,7 @@ public:
         }
         else if (!finished_)
         {
-            auto res = do_populate_iobuffer();
-            MEMORIA_RETURN_IF_ERROR(res);
-
+            MEMORIA_TRY_VOID(do_populate_iobuffer());
             if (finished_)
             {
                 return start_ < size_;
@@ -421,21 +413,18 @@ public:
 
         while(true)
         {
-            BoolResult has_data_res = this->hasData();
-            MEMORIA_RETURN_IF_ERROR(has_data_res);
+            MEMORIA_TRY(has_data, this->hasData());
 
-            if (!has_data_res.get()) {
+            if (!has_data) {
                 break;
             }
 
             auto buffer_sizes = this->buffer_size();
 
-            auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
-            MEMORIA_RETURN_IF_ERROR(inserted);
-
-            if (inserted.get() > 0)
+            MEMORIA_TRY(inserted, insertBuffer(mgr, leaf, pos, buffer_sizes));
+            if (inserted > 0)
             {
-                pos += inserted.get();
+                pos += inserted;
 
                 if (getFreeSpacePart(leaf) < 0.05)
                 {

@@ -95,17 +95,16 @@ public:
 
     BoolResult next_leaf() noexcept
     {
-        BoolResult available = btss_iterator_->next_leaf();
-        MEMORIA_RETURN_IF_ERROR(available);
+        MEMORIA_TRY(available, btss_iterator_->next_leaf());
 
-        if (available.get()) {
+        if (available) {
             populate();
         }
         else {
             finished_ = true;
         }
 
-        return available;
+        return available_result;
     }
 
 private:

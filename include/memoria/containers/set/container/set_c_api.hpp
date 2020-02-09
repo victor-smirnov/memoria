@@ -101,11 +101,9 @@ public:
     VoidResult append(io::IOVectorProducer& producer) noexcept
     {
         auto& self = this->self();
-        auto iter = self.ctr_end();
-        MEMORIA_RETURN_IF_ERROR(iter);
 
-        auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY(iter, self.ctr_end());
+        MEMORIA_TRY_VOID(iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
 
         return VoidResult::of();
     }
@@ -113,11 +111,9 @@ public:
     virtual VoidResult prepend(io::IOVectorProducer& producer) noexcept
     {
         auto& self = this->self();
-        auto iter = self.ctr_begin();
-        MEMORIA_RETURN_IF_ERROR(iter);
 
-        auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY(iter, self.ctr_begin());
+        MEMORIA_TRY_VOID(iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
 
         return VoidResult::of();
     }
@@ -126,17 +122,14 @@ public:
     {
         auto& self = this->self();
 
-        auto iter = self.ctr_set_find(before);
-        MEMORIA_RETURN_IF_ERROR(iter);
+        MEMORIA_TRY(iter, self.ctr_set_find(before));
 
-        if (iter.get()->is_found(before))
+        if (iter->is_found(before))
         {
             return VoidResult::make_error("Requested key is found. Can't insert enties this way.");
         }
         else {
-            auto res = iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max());
-            MEMORIA_RETURN_IF_ERROR(res);
-
+            MEMORIA_TRY_VOID(iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
             return VoidResult::of();
         }
     }
@@ -146,17 +139,14 @@ public:
      */
     BoolResult insert(KeyView k) noexcept
     {
-        auto iter = self().ctr_set_find(k);
-        MEMORIA_RETURN_IF_ERROR(iter);
+        MEMORIA_TRY(iter, self().ctr_set_find(k));
 
-        if (iter.get()->is_found(k))
+        if (iter->is_found(k))
         {
             return BoolResult::of(true);
         }
         else {
-            auto res = iter.get()->insert(k);
-            MEMORIA_RETURN_IF_ERROR(res);
-
+            MEMORIA_TRY_VOID(iter.get()->insert(k));
             return BoolResult::of(false);
         }
     }
@@ -166,12 +156,11 @@ public:
      */
     BoolResult remove(KeyView key) noexcept
     {
-        auto iter = self().ctr_set_find(key);
-        MEMORIA_RETURN_IF_ERROR(iter);
+        MEMORIA_TRY(iter, self().ctr_set_find(key));
 
-        if ((!iter.get()->iter_is_end()) && iter.get()->key() == key)
+        if ((!iter->iter_is_end()) && iter->key() == key)
         {
-            MEMORIA_TRY_VOID(iter.get()->remove());
+            MEMORIA_TRY_VOID(iter->remove());
             return BoolResult::of(true);
         }
 
@@ -183,10 +172,8 @@ public:
      */
     BoolResult contains(KeyView k) noexcept
     {
-        auto iter = self().ctr_set_find(k);
-        MEMORIA_RETURN_IF_ERROR(iter);
-
-        return BoolResult::of(iter.get()->is_found(k));
+        MEMORIA_TRY(iter, self().ctr_set_find(k));
+        return BoolResult::of(iter->is_found(k));
     }
 
     Result<CtrSizeT> remove(CtrSizeT from, CtrSizeT to) noexcept

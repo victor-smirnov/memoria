@@ -119,16 +119,14 @@ public:
 
     BoolResult next() noexcept
     {
-        auto res = self().iter_btfl_skip_fw(1);
-        MEMORIA_RETURN_IF_ERROR(res);
-        return BoolResult::of(res.get() > 0);
+        MEMORIA_TRY(res, self().iter_btfl_skip_fw(1));
+        return BoolResult::of(res > 0);
     }
 
     BoolResult prev() noexcept
     {
-        auto res = self().iter_btfl_skip_bw(1);
-        MEMORIA_RETURN_IF_ERROR(res);
-        return BoolResult::of(res.get() > 0);
+        MEMORIA_TRY(res, self().iter_btfl_skip_bw(1));
+        return BoolResult::of(res > 0);
     }
 
 
@@ -217,10 +215,9 @@ public:
 
         auto& self = this->self();
 
-        auto res = self.template iter_stream_size_prefix<StructureStreamIdx>();
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY(res, self.template iter_stream_size_prefix<StructureStreamIdx>());
 
-        return ResultT::get(res.get() + self.iter_local_pos());
+        return ResultT::get(res + self.iter_local_pos());
     }
 
 
@@ -255,8 +252,7 @@ public:
         auto& self = this->self();
         SizePrefix<Stream> fn;
 
-        auto res = self.ctr().ctr_walk_tree_up(self.iter_leaf(), self.iter_local_pos(), fn);
-        MEMORIA_RETURN_IF_ERROR(res);
+        MEMORIA_TRY_VOID(self.ctr().ctr_walk_tree_up(self.iter_leaf(), self.iter_local_pos(), fn));
 
         return ResultT::of(fn.pos_);
     }

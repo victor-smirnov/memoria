@@ -55,8 +55,8 @@ public:
         if (!self.iter_is_end())
         {
             auto ii = self.iter_clone();
-            auto res0 = ii->iter_select_ge_fw(n, self.iter_data_stream());
-            MEMORIA_RETURN_IF_ERROR(res0);
+            MEMORIA_TRY_VOID(ii->iter_select_ge_fw(n, self.iter_data_stream()));
+
 
         	auto start = self.iter_leafrank();
         	auto end   = ii->iter_leafrank();
@@ -87,10 +87,8 @@ public:
         {
             auto ii = self.iter_clone();
 
-            auto res = ii->iter_skip_fw(n);
-            MEMORIA_RETURN_IF_ERROR(res);
-
-            size = res.get();
+            MEMORIA_TRY(distance, ii->iter_skip_fw(n));
+            size = distance;
 
         	auto start = self.iter_leafrank();
         	auto end   = ii->iter_leafrank();

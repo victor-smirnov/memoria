@@ -210,10 +210,9 @@ public:
         using ResultT = Result<std::vector<std::string>>;
 
         std::vector<std::string> ids;
-        auto uids = children_of(snapshot_id);
-        MEMORIA_RETURN_IF_ERROR(uids);
 
-        for (const auto& uid: uids.get())
+        MEMORIA_TRY(uids, children_of(snapshot_id));
+        for (const auto& uid: uids)
         {
             ids.push_back(uid.str());
         }
@@ -613,15 +612,13 @@ public:
 
     virtual Result<void> walk_containers(ContainerWalker<Profile>* walker, const char* allocator_descr = nullptr) noexcept
     {
-        auto res0 = this->build_snapshot_labels_metadata();
-        MEMORIA_RETURN_IF_ERROR(res0);
+        MEMORIA_TRY_VOID(this->build_snapshot_labels_metadata());
 
     	LockGuardT lock_guard(mutex_);
 
         walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
 
-        auto res1 = walk_containers(history_tree_, walker);
-        MEMORIA_RETURN_IF_ERROR(res1);
+        MEMORIA_TRY_VOID(walk_containers(history_tree_, walker));
 
         walker->endAllocator();
 
@@ -635,8 +632,7 @@ private:
     {
         using ResultT = VoidResult;
 
-        auto res0 = do_pack(history_tree_);
-        MEMORIA_RETURN_IF_ERROR(res0);
+        MEMORIA_TRY_VOID(do_pack(history_tree_));
 
         records_ = 0;
 
@@ -645,9 +641,7 @@ private:
 
         output->write(&signature, 0, sizeof(signature));
 
-        auto res1 = write_metadata(*output);
-        MEMORIA_RETURN_IF_ERROR(res1);
-
+        MEMORIA_TRY_VOID(write_metadata(*output));
         RCBlockSet stored_blocks;
 
         auto res2 = walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) noexcept {
@@ -658,9 +652,7 @@ private:
         Checksum checksum;
         checksum.records() = records_;
 
-        auto res3 = write(*output, checksum);
-        MEMORIA_RETURN_IF_ERROR(res3);
-
+        MEMORIA_TRY_VOID(write(*output, checksum));
 
         output->close();
 
@@ -763,9 +755,7 @@ public:
             });
         };
 
-        auto res = this->walk_version_tree(history_tree_, history_visitor);
-        MEMORIA_RETURN_IF_ERROR(res);
-
+        MEMORIA_TRY_VOID(this->walk_version_tree(history_tree_, history_visitor));
         alloc_stat->compute_total_size();
 
         return ResultT::of(alloc_stat);
@@ -894,8 +884,7 @@ protected:
         auto children = node->children();
         for (auto child: children)
         {
-            auto res = do_pack(child, depth + 1, branches);
-            MEMORIA_RETURN_IF_ERROR(res);
+            MEMORIA_TRY_VOID(do_pack(child, depth + 1, branches));
         }
 
         bool remove_node = false;
