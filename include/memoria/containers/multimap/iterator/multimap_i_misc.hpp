@@ -192,11 +192,6 @@ public:
     {
         auto& self = this->self();
 
-//        if (DebugCounter) {
-//            self.dumpPath();
-//            std::cout << "Key = " << self.key().view() << std::endl;
-//        }
-
         if (!self.iter_is_end())
         {
             return self.key() == key;
@@ -216,9 +211,7 @@ public:
             return true;
         }
         else {
-            auto res = self.next();
-            MEMORIA_RETURN_IF_ERROR(res);
-
+            MEMORIA_TRY_VOID(self.next());
             if (self.is_end())
             {
                 return BoolResult::of(false);
