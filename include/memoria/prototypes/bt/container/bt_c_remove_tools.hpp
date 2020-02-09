@@ -66,7 +66,7 @@ public:
             Result<NodeBaseG> root = self.ctr_get_root_node();
             MEMORIA_RETURN_IF_ERROR(root);
 
-            MEMORIA_RETURN_IF_ERROR_FN(self.ctr_remove_root_node(root.get()));
+            MEMORIA_TRY_VOID(self.ctr_remove_root_node(root.get()));
 
             auto res1 = self.set_root(BlockID{});
             MEMORIA_RETURN_IF_ERROR(res1);

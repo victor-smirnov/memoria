@@ -417,7 +417,7 @@ public:
 
         BlockUpdateMgr mgr(this->ctr());
 
-        MEMORIA_RETURN_IF_ERROR_FN(mgr.add(leaf));
+        MEMORIA_TRY_VOID(mgr.add(leaf));
 
         while(true)
         {

@@ -58,7 +58,7 @@ public:
             root.get()->id()
         );
 
-        MEMORIA_RETURN_IF_ERROR_FN(this->ctr_traverse_tree(root.get(), walker));
+        MEMORIA_TRY_VOID(this->ctr_traverse_tree(root.get(), walker));
 
         walker->endCtr();
         return VoidResult::of();

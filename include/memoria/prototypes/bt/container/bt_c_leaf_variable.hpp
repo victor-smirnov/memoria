@@ -103,9 +103,9 @@ public:
 
         BlockUpdateMgr mgr(self);
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
 
-        MEMORIA_RETURN_IF_ERROR_FN(mgr.add(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf()));
 
         auto status = self.template ctr_try_insert_stream_entry_no_mgr<Stream>(iter.iter_leaf(), idx, entry);
 
@@ -126,7 +126,7 @@ public:
 
         self.ctr_update_block_guard(leaf);
 
-        MEMORIA_RETURN_IF_ERROR_FN(mgr.add(leaf));
+        MEMORIA_TRY_VOID(mgr.add(leaf));
 
         auto status = insert_fn(structure_idx, stream_idx);
         MEMORIA_RETURN_IF_ERROR(status);
@@ -180,9 +180,9 @@ public:
 
         BlockUpdateMgr mgr(self);
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
 
-        MEMORIA_RETURN_IF_ERROR_FN(mgr.add(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf()));
 
         BranchNodeEntry accum;
         RemoveFromLeafFn<Stream> fn;
@@ -249,7 +249,7 @@ public:
         auto res = self.ctr_update_block_guard(iter.iter_leaf());
         MEMORIA_RETURN_IF_ERROR(res);
 
-        MEMORIA_RETURN_IF_ERROR_FN(mgr.add(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(mgr.add(iter.iter_leaf()));
 
         BranchNodeEntry accum;
         UpdateStreamEntryBufferFn<Stream, SubstreamsList> fn;
@@ -277,8 +277,6 @@ public:
         return self.ctr_update_atomic(iter, std::forward<Fn>(fn), VLSelector(), std::forward<Fn>(args)...);
     }
 
-    // FIXME: not used
-    // NodeBaseG createNextLeaf(NodeBaseG& leaf);
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(TryMergeNodesFn, mergeWith, OpStatus);
     BoolResult ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_path, MergeFn = [](const Position&){

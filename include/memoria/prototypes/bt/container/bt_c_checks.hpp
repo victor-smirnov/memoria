@@ -151,7 +151,7 @@ BoolResult M_TYPE::ctr_check_tree() const noexcept
     if (root.get())
     {
         bool errors = false;
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_check_tree_structure(NodeBaseG(), 0, root.get(), errors));
+        MEMORIA_TRY_VOID(self.ctr_check_tree_structure(NodeBaseG(), 0, root.get(), errors));
         return BoolResult::of(errors);
     }
     else {

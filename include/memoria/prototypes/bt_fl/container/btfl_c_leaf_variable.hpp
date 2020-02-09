@@ -43,8 +43,6 @@ protected:
 
     using BlockUpdateMgr     = typename Types::BlockUpdateMgr;
 
-    using InsertDataResult = typename Base::InsertDataResult;
-
 MEMORIA_V1_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(btfl::LeafVariableName)

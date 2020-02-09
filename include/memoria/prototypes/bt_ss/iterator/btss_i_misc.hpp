@@ -201,7 +201,7 @@ public:
 
         self.iter_local_pos() = to_pos.get();
 
-        //MEMORIA_RETURN_IF_ERROR_FN(self.iter_refresh());
+        //MEMORIA_TRY_VOID(self.iter_refresh());
 
         return ResultT::of(sizes[0]);
     }

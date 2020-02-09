@@ -132,7 +132,7 @@ public:
     Result<std::tuple<bool, BranchNodeEntry>> ctr_try_remove_stream_entry(Iterator& iter, int32_t idx) noexcept
     {
         using ResultT = Result<std::tuple<bool, BranchNodeEntry>>;
-        MEMORIA_RETURN_IF_ERROR_FN(self().ctr_update_block_guard(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(self().ctr_update_block_guard(iter.iter_leaf()));
 
         BranchNodeEntry accum;
         self().leaf_dispatcher().dispatch(iter.iter_leaf(), RemoveFromLeafFn<Stream>(), idx, accum);
@@ -186,7 +186,7 @@ public:
         using ResultT = Result<std::tuple<bool, BranchNodeEntry>>;
         auto& self = this->self();
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_block_guard(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(self.ctr_update_block_guard(iter.iter_leaf()));
 
         BranchNodeEntry accum;
         self.leaf_dispatcher().dispatch(

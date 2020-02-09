@@ -106,7 +106,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
             split_status = SplitStatus::NONE;
         }
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr_update_path(iter.iter_leaf()));
+        MEMORIA_TRY_VOID(self.ctr_update_path(iter.iter_leaf()));
 
         return ResultT::of(split_status);
     }

@@ -724,14 +724,6 @@ do {                                         \
     }                                        \
 } while (0)
 
-#define MEMORIA_RETURN_IF_ERROR_FN(FnCall)   \
-do {                                         \
-    auto res0 = FnCall;                      \
-    if (MMA_UNLIKELY(!res0.is_ok())) {       \
-        return std::move(res0).transfer_error(); \
-    }                                        \
-} while (0)
-
 #define MEMORIA_TRY_VOID(FnCall)             \
 do {                                         \
     auto res0 = FnCall;                      \

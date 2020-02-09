@@ -697,7 +697,7 @@ public:
     {
         for (const auto& pair: instance_map_)
         {
-            MEMORIA_RETURN_IF_ERROR_FN(pair.second->flush());
+            MEMORIA_TRY_VOID(pair.second->flush());
         }
 
         return VoidResult::of();

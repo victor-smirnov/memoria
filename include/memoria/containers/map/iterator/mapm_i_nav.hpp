@@ -69,7 +69,7 @@ public:
     {
         auto& self = this->self();
 
-        MEMORIA_RETURN_IF_ERROR_FN(self.ctr().ctr_remove_entry(self));
+        MEMORIA_TRY_VOID(self.ctr().ctr_remove_entry(self));
 
         if (self.iter_is_end())
         {

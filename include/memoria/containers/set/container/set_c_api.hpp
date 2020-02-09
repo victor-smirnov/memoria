@@ -171,7 +171,7 @@ public:
 
         if ((!iter.get()->iter_is_end()) && iter.get()->key() == key)
         {
-            MEMORIA_RETURN_IF_ERROR_FN(iter.get()->remove());
+            MEMORIA_TRY_VOID(iter.get()->remove());
             return BoolResult::of(true);
         }
 

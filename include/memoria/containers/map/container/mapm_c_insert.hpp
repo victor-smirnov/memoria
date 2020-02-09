@@ -70,7 +70,7 @@ public:
 
         if (iter.get()->is_found(k))
         {
-            MEMORIA_RETURN_IF_ERROR_FN(iter.get()->remove());
+            MEMORIA_TRY_VOID(iter.get()->remove());
             return BoolResult::of(true);
         }
         else {

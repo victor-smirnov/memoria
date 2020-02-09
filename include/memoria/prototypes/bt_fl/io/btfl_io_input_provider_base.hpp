@@ -233,7 +233,7 @@ public:
         }
         else if (!finished_)
         {
-            MEMORIA_RETURN_IF_ERROR_FN(do_populate_iobuffer());
+            MEMORIA_TRY_VOID(do_populate_iobuffer());
 
             if (finished_)
             {
@@ -396,7 +396,7 @@ public:
 
         BlockUpdateMgr mgr(ctr());
 
-        MEMORIA_RETURN_IF_ERROR_FN(mgr.add(leaf));
+        MEMORIA_TRY_VOID(mgr.add(leaf));
 
         while(true)
         {
