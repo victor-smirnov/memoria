@@ -170,7 +170,7 @@ public:
         }
     }
     
-    void post_init() 
+    VoidResult post_init() noexcept
     {
         auto ptr = this->shared_from_this();
 
@@ -178,7 +178,7 @@ public:
 
         if (root_id.isSet())
         {
-            BlockG root_block = findBlock(root_id);
+            MEMORIA_TRY(root_block, findBlock(root_id));
             root_map_ = ctr_make_shared<RootMapType>(ptr, root_block);
         }
         else {
@@ -186,6 +186,8 @@ public:
         }
 
         root_map_->reset_allocator_holder();
+
+        return VoidResult::of();
     }
     
     static void init_profile_metadata() {
@@ -273,7 +275,7 @@ public:
 
     BoolResult drop_ctr(const CtrID& name) noexcept
     {
-        checkUpdateAllowed();
+        MEMORIA_TRY_VOID(checkUpdateAllowed());
 
         auto root_id = getRootID(name);
         MEMORIA_RETURN_IF_ERROR(root_id);
@@ -372,11 +374,11 @@ public:
 
     VoidResult import_new_ctr_from(SnapshotApiPtr ptr, const CtrID& name) noexcept
     {
-        checkUpdateAllowed();
+        MEMORIA_TRY_VOID(checkUpdateAllowed());
 
         SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
 
-    	txn->checkIfExportAllowed();
+        MEMORIA_TRY_VOID(txn->checkIfExportAllowed());
 
         auto root_id = this->getRootID(name);
         MEMORIA_RETURN_IF_ERROR(root_id);
@@ -427,8 +429,8 @@ public:
     {
         SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
 
-    	txn->checkReadAllowed();
-    	checkUpdateAllowed();
+        MEMORIA_TRY_VOID(txn->checkReadAllowed());
+        MEMORIA_TRY_VOID(checkUpdateAllowed());
 
         auto root_id_res = this->getRootID(name);
         MEMORIA_RETURN_IF_ERROR(root_id_res);
@@ -465,11 +467,11 @@ public:
 
     Result<void> import_ctr_from(SnapshotApiPtr ptr, const CtrID& name) noexcept
     {
-        checkUpdateAllowed();
+        MEMORIA_TRY_VOID(checkUpdateAllowed());
 
         SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
 
-        txn->checkIfExportAllowed();
+        MEMORIA_TRY_VOID(txn->checkIfExportAllowed());
 
         auto root_id = this->getRootID(name);
 
@@ -531,8 +533,8 @@ public:
     {
         SnapshotPtr txn = memoria_static_pointer_cast<MyType>(ptr);
 
-    	txn->checkReadAllowed();
-    	checkUpdateAllowed();
+        MEMORIA_TRY_VOID(txn->checkReadAllowed());
+        MEMORIA_TRY_VOID(checkUpdateAllowed());
 
         auto root_id = this->getRootID(name);
         MEMORIA_RETURN_IF_ERROR(root_id);
@@ -599,13 +601,14 @@ public:
         }
     }
 
-    BlockG findBlock(const BlockID& id)
+    Result<BlockG> findBlock(const BlockID& id) noexcept
     {
+        using ResultT = Result<BlockG>;
         Shared* shared = get_shared(id, Shared::READ);
 
         if (!shared->get())
         {
-            checkReadAllowed();
+            MEMORIA_TRY_VOID(checkReadAllowed());
 
             auto block_opt = persistent_tree_.find(id);
 
@@ -624,21 +627,21 @@ public:
                 shared->set_block(block_opt.value().block_ptr()->raw_data());
             }
             else {
-                return BlockG();
+                return ResultT::of();
             }
         }
 
-        return BlockG(shared);
+        return ResultT::of(shared);
     }
 
     virtual Result<BlockG> getBlock(const BlockID& id) noexcept
     {
         if (id.isSet())
         {
-            BlockG block = findBlock(id);
+            MEMORIA_TRY(block, findBlock(id));
 
             if (block) {
-                return Result<BlockG>::of(std::move(block));
+                return block_result;
             }
             else {
                 return Result<BlockG>::make_error("Block is not found for the specified id: {}", id);
@@ -727,7 +730,7 @@ public:
         // FIXME: Though this check prohibits new block acquiring for update,
         // already acquired updatable blocks can be updated further.
         // To guarantee non-updatability, MMU-protection should be used
-        checkUpdateAllowed(CtrID{});
+        MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
 
         if (id.isSet())
         {
@@ -803,10 +806,12 @@ public:
 
     virtual Result<BlockG> updateBlock(Shared* shared) noexcept
     {
+        using ResultT = Result<BlockG>;
+
         // FIXME: Though this check prohibits new block acquiring for update,
         // already acquired updatable blocks can be updated further.
         // To guarantee non-updatability, MMU-protection should be used
-        checkUpdateAllowed(CtrID{});
+        MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
 
         if (shared->state() == Shared::READ)
         {
@@ -822,12 +827,12 @@ public:
             shared->refresh();
         }
 
-        return Result<BlockG>::of(shared);
+        return ResultT::of(shared);
     }
 
     virtual VoidResult removeBlock(const BlockID& id) noexcept
     {
-        checkUpdateAllowed(CtrID{});
+        MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
 
         auto iter = persistent_tree_.locate(id);
 
@@ -854,7 +859,7 @@ public:
 
     virtual Result<BlockG> createBlock(int32_t initial_size) noexcept
     {
-        checkUpdateAllowed(CtrID{});
+        MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
 
         if (initial_size == -1)
         {
@@ -888,7 +893,7 @@ public:
 
     virtual Result<BlockG> cloneBlock(const Shared* shared, const BlockID& new_id) noexcept
     {
-        checkUpdateAllowed(CtrID{});
+        MEMORIA_TRY_VOID(checkUpdateAllowed(CtrID{}));
 
         BlockID new_id_v;
 
@@ -922,7 +927,7 @@ public:
 
     virtual VoidResult resizeBlock(Shared* shared, int32_t new_size) noexcept
     {
-        checkUpdateAllowed();
+        MEMORIA_TRY_VOID(checkUpdateAllowed());
 
         BlockType* block = shared->get();
 
@@ -1170,7 +1175,7 @@ public:
 
     virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create(const LDTypeDeclarationView& decl, const CtrID& ctr_id) noexcept
     {
-        checkIfConainersCreationAllowed();
+        MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
         return Result<CtrSharedPtr<CtrReferenceable<Profile>>>::of(
                 factory->create_instance(this->shared_from_this(), ctr_id, decl)
@@ -1179,7 +1184,7 @@ public:
 
     virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> create(const LDTypeDeclarationView& decl) noexcept
     {
-        checkIfConainersCreationAllowed();
+        MEMORIA_TRY_VOID(checkIfConainersCreationAllowed());
         auto factory = ProfileMetadata<ProfileT>::local()->get_container_factories(decl.to_cxx_typedecl());
 
         auto ctr_name = this->createCtrName();
@@ -1193,7 +1198,7 @@ public:
     virtual Result<CtrSharedPtr<CtrReferenceable<Profile>>> find(const CtrID& ctr_id) noexcept
     {
         using ResultT = Result<CtrSharedPtr<CtrReferenceable<Profile>>>;
-        checkIfConainersOpeneingAllowed();
+        MEMORIA_TRY_VOID(checkIfConainersOpeneingAllowed());
 
         auto root_id = getRootID(ctr_id);
         MEMORIA_RETURN_IF_ERROR(root_id);
@@ -1428,80 +1433,93 @@ protected:
     }
 
 
-    void checkIfConainersOpeneingAllowed()
+    VoidResult checkIfConainersOpeneingAllowed()
     {
-    	checkReadAllowed();
+        MEMORIA_TRY_VOID(checkReadAllowed());
 
     	if (is_data_locked())
     	{
             MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot's {} data is locked", uuid()));
     	}
+
+        return VoidResult::of();
     }
 
-    void checkIfConainersCreationAllowed()
+    VoidResult checkIfConainersCreationAllowed()
     {
     	if (!is_active())
     	{
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status()));
+            return VoidResult::make_error("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status());
     	}
+
+        return VoidResult::of();
     }
 
 
-    void checkIfExportAllowed()
+    VoidResult checkIfExportAllowed()
     {
     	if (history_node_->is_dropped())
     	{
     		// Double checking. This shouldn't happen
     		if (!history_node_->root())
     		{
-                MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been cleared", uuid()));
+                return VoidResult::make_error("Snapshot {} has been cleared", uuid());
     		}
     	}
     	else if (history_node_->is_active()) {
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} is still active", uuid()));
+            return VoidResult::make_error("Snapshot {} is still active", uuid());
     	}
+
+        return VoidResult::of();
     }
 
 
 
 
-    void checkReadAllowed()
+    VoidResult checkReadAllowed() noexcept
     {
     	// read is always allowed
+        return VoidResult::of();
     }
 
-    void checkUpdateAllowed()
+    VoidResult checkUpdateAllowed() noexcept
     {
-        checkReadAllowed();
+        MEMORIA_TRY_VOID(checkReadAllowed());
 
         if (!history_node_->is_active())
         {
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been already committed or data is locked", uuid()));
+            return VoidResult::make_error("Snapshot {} has been already committed or data is locked", uuid());
         }
+
+        return VoidResult::of();
     }
 
-    void checkUpdateAllowed(const CtrID& ctrName)
+    VoidResult checkUpdateAllowed(const CtrID& ctrName) noexcept
     {
-    	checkReadAllowed();
+        MEMORIA_TRY_VOID(checkReadAllowed());
 
-    	if ((!history_node_->is_active()) && ctrName.is_set())
+        if ((!history_node_->is_active())) // && ctrName.is_set()
     	{
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} has been already committed or data is locked", uuid()));
+            return VoidResult::make_error("Snapshot {} has been already committed or data is locked", uuid());
     	}
+
+        return VoidResult::of();
     }
 
-    void checkIfDataLocked()
+    VoidResult checkIfDataLocked() noexcept
     {
-    	checkReadAllowed();
+        MEMORIA_TRY_VOID(checkReadAllowed());
 
     	if (!history_node_->is_data_locked())
     	{
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot {} hasn't been locked", uuid()));
+            return VoidResult::make_error("Snapshot {} hasn't been locked", uuid());
     	}
+
+        return VoidResult::of();
     }
 
 
-    void do_drop() throw ()
+    void do_drop() noexcept
     {
         if (history_tree_raw_->is_dump_snapshot_lifecycle()) {
             std::cout << "MEMORIA: DROP snapshot's DATA: " << history_node_->snapshot_id() << std::endl;
@@ -1527,7 +1545,7 @@ protected:
         });
     }
 
-    static void delete_snapshot(HistoryNode* node) throw ()
+    static void delete_snapshot(HistoryNode* node) noexcept
     {
         PersistentTreeT persistent_tree(node);
 

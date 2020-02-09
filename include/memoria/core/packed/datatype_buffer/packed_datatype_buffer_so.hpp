@@ -148,7 +148,9 @@ public:
         handler->endStruct();
     }
 
-    void check() const {}
+    void check() const
+    {
+    }
 
     psize_t size() const {
         return data_->metadata().size();
@@ -311,10 +313,25 @@ public:
     }
 
     template <int32_t Offset, int32_t Size, typename T, template <typename, int32_t> class BranchNodeEntryItem>
-    void max(BranchNodeEntryItem<T, Size>& accum) const
+    void max(BranchNodeEntryItem<T, Size>& accum) const noexcept
     {
         static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-        accum[0] = this->max(0);
+        if (size() > 0) {
+            accum[0] = this->max(0);
+        }
+        else {
+            set_empty(accum[0]);
+        }
+    }
+
+    template <typename TT>
+    void set_empty(TT& dest) const noexcept {
+        dest = TT{};
+    }
+
+    template <typename TT>
+    void set_empty(Optional<TT>& dest) const noexcept {
+        dest = Optional<TT>{};
     }
 
 
@@ -392,6 +409,10 @@ public:
 
         ViewType prefix() {return ViewType{};}
         int32_t local_pos() const {return idx_;}
+
+        void set_local_pos(int32_t pos) noexcept {
+            idx_ = pos;
+        }
     };
 
     FindResult findGTForward(psize_t column, const ViewType& val) const

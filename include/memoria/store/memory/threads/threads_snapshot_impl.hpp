@@ -329,7 +329,7 @@ public:
     Result<SnpSharedPtr<ProfileAllocatorType<Profile>>> snapshot_ref_creation_allowed() noexcept
     {
         using ResultT = Result<SnpSharedPtr<ProfileAllocatorType<Profile>>>;
-        this->checkIfConainersCreationAllowed();
+        MEMORIA_TRY_VOID(this->checkIfConainersCreationAllowed());
         return ResultT::of(memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(this->shared_from_this()));
     }
 
@@ -337,7 +337,7 @@ public:
     Result<SnpSharedPtr<ProfileAllocatorType<Profile>>> snapshot_ref_opening_allowed() noexcept
     {
         using ResultT = Result<SnpSharedPtr<ProfileAllocatorType<Profile>>>;
-        this->checkIfConainersOpeneingAllowed();
+        MEMORIA_TRY_VOID(this->checkIfConainersOpeneingAllowed());
         return ResultT::of(memoria_static_pointer_cast<ProfileAllocatorType<Profile>>(this->shared_from_this()));
     }
 };

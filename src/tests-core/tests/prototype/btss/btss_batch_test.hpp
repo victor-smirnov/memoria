@@ -130,7 +130,7 @@ public:
 
     BTSSBatchTest()
     {
-        size_ = 1024 * 1024 * 32;
+        size_ = 1024 * 1024 * 4;
     }
 
     static void init_suite(TestSuite& suite)

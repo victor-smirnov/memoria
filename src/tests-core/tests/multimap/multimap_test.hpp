@@ -57,6 +57,7 @@ class MultimapTest: public BTTestBase<Multimap<KeyDataType, ValueDataType>, Prof
     using Base::out;
     using Base::println;
     using Base::getRandom;
+    using Base::check;
 
     using CxxKeyType    = typename DTTCxxValueType<KeyDataType>::Type;
     using CxxValueType  = typename DTTCxxValueType<ValueDataType>::Type;
@@ -173,7 +174,7 @@ public:
     {
         auto snp = branch();
         auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{}).get_or_throw();
-        ctr->set_new_block_size(8192).get_or_throw();
+        ctr->set_new_block_size(2048).get_or_throw();
 
         std::vector<Entry> data = build_entries(entries, mean_entry_size);
 
@@ -226,12 +227,13 @@ public:
     {
         auto snp = branch();
         auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{}).get_or_throw();
-        ctr->set_new_block_size(8192).get_or_throw();
+        ctr->set_new_block_size(2048).get_or_throw();
 
         std::vector<Entry> data_unsorted;
 
-        for (size_t c = 0; c < 1024; c++)
+        for (size_t c = 0; c < entries; c++)
         {
+            if (c % 1024 == 0) println("C={}", c);
             CxxKeyType key = DTTestTools<KeyDataType>::generate_random();
 
             size_t entry_size = static_cast<size_t>(getRandomG(this->mean_entry_size * 2));
@@ -242,11 +244,15 @@ public:
                 values.push_back(DTTestTools<ValueDataType>::generate_random());
             }
 
-            ctr->upsert(key, values).get_or_throw();
+            bool inserted = ctr->upsert(key, values).get_or_throw();
+            assert_equals(false, inserted);
+
+            bool contains = ctr->contains(key).get_or_throw();
+            assert_equals(true, contains);
 
             data_unsorted.emplace_back(Entry{std::move(key), std::move(values)});
 
-            if (c % 128 == 0)
+            if (c % 1024 == 0)
             {
                 auto data_sorted = data_unsorted;
                 sort(data_sorted);
@@ -265,25 +271,32 @@ public:
     {
         auto snp = branch();
         auto ctr = create(snp, Multimap<KeyDataType, ValueDataType>{}).get_or_throw();
-        ctr->set_new_block_size(8192).get_or_throw();
+        ctr->set_new_block_size(2048).get_or_throw();
 
-        size_t max_ctr_size = 1024;
+        size_t max_ctr_size = 16384;
 
         std::vector<Entry> data = build_entries(max_ctr_size, mean_entry_size);
+        auto data_unsorted = data;
         sort(data);
 
         populate_container(ctr, data);
         check_container(ctr, data);
 
-        for (size_t c = 0; c < max_ctr_size; c++, max_ctr_size--)
+        for (const auto& entry: data_unsorted)
         {
-            size_t pos = getRandom(max_ctr_size);
-            CxxKeyType key = data[pos].key;
+            bool contains = ctr->contains(entry.key).get_or_throw();
+            assert_equals(true, contains);
+        }
+
+        for (size_t c = 0; c < max_ctr_size; c++)
+        {
+            println("R={}", c);
+            CxxKeyType key = data_unsorted[c].key;
 
             bool removed = ctr->remove(key).get_or_throw();
             assert_equals(true, removed);
 
-            assert_equals(max_ctr_size - 1, ctr->size().get_or_throw());
+            assert_equals(max_ctr_size - c - 1, ctr->size().get_or_throw());
         }
 
         commit();

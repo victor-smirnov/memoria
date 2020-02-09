@@ -191,6 +191,12 @@ public:
     bool is_found(const KeyView& key) noexcept
     {
         auto& self = this->self();
+
+//        if (DebugCounter) {
+//            self.dumpPath();
+//            std::cout << "Key = " << self.key().view() << std::endl;
+//        }
+
         if (!self.iter_is_end())
         {
             return self.key() == key;

@@ -200,11 +200,9 @@ VoidResult M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t par
         int32_t children = self.ctr_get_node_size(node, 0);
 
         // TODO: check children IDs findability;
-
         for (int32_t c = 0; c < children; c++)
         {
             BlockID child_id = self.ctr_get_child_id(node, c);
-
             MEMORIA_TRY(child, self.ctr_get_node_child(node, c));
 
             if (child->id() != child_id)

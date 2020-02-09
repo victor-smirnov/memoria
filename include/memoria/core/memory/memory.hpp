@@ -52,7 +52,7 @@ auto snp_make_shared(Args&&... args) {
 template <typename T, typename... Args>
 auto snp_make_shared_init(Args&&... args) {
     auto snp = MakeLocalShared<T>(std::forward<Args>(args)...);
-    snp->post_init();
+    snp->post_init().get_or_throw();
     return snp;
 }
 

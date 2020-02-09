@@ -201,10 +201,10 @@ public:
 
         if (size > 0)
         {
-            return access(column, size - 1);
+            return this->access(column, size - 1);
         }
         else {
-            return Optional<ViewType>();
+            return Optional<ViewType>{};
         }
     }
 
@@ -275,14 +275,26 @@ public:
 
     FindResult findGTForward(psize_t column, const ViewType& val) const
     {
-        return array_.findGTForward(column, val);
+        FindResult res = array_.findGTForward(column, val);
+
+        psize_t bmp_idx = this->bitmap_idx(res.local_pos());
+
+        res.set_local_pos(bmp_idx);
+
+        return res;
     }
 
 
 
     FindResult findGEForward(psize_t column, const ViewType& val) const
     {
-        return array_.findGEForward(column, val);
+        FindResult res = array_.findGEForward(column, val);
+
+        psize_t bmp_idx = this->bitmap_idx(res.local_pos());
+
+        res.set_local_pos(bmp_idx);
+
+        return res;
     }
 
     auto findForward(SearchType search_type, psize_t column, const ViewType& val) const
@@ -429,10 +441,27 @@ private:
         return array_idx(data_->bitmap(), global_idx);
     }
 
+    psize_t bitmap_idx(psize_t array_idx) const
+    {
+        return bitmap_idx(data_->bitmap(), array_idx);
+    }
+
     psize_t array_idx(const Bitmap* bitmap, psize_t global_idx) const
     {
         psize_t rank = bitmap->rank(global_idx, 1);
         return rank;
+    }
+
+    psize_t bitmap_idx(const Bitmap* bitmap, psize_t array_idx) const
+    {
+        auto select_res = bitmap->selectFw(1, array_idx + 1);
+
+        if (select_res.is_found()) {
+            return select_res.local_pos();
+        }
+        else {
+            return bitmap->size();
+        }
     }
 };
 

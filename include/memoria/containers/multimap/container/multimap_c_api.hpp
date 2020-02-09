@@ -302,21 +302,16 @@ public:
 
     BoolResult contains(const KeyView& key) const noexcept
     {
-        auto iter = self().ctr_multimap_find(key);
-        MEMORIA_RETURN_IF_ERROR(iter);
-        return BoolResult::of(iter.get()->is_found(key));
+        MEMORIA_TRY(iter, self().ctr_multimap_find(key));
+        return BoolResult::of(iter->is_found(key));
     }
 
     BoolResult remove(const KeyView& key) noexcept
     {
-        auto ii = self().ctr_multimap_find(key);
-        MEMORIA_RETURN_IF_ERROR(ii);
-
-        if (ii.get()->is_found(key))
+        MEMORIA_TRY(ii, self().ctr_multimap_find(key));
+        if (ii->is_found(key))
         {
-            auto res = ii.get()->remove(1);
-            MEMORIA_RETURN_IF_ERROR(res);
-
+            MEMORIA_TRY_VOID(ii.get()->remove(1));
             return BoolResult::of(true);
         }
 

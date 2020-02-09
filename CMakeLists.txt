@@ -97,6 +97,12 @@ endif()
 
 # Global definitions
 
+if (BUILD_TESTS AND BUILD_TESTS_CONTAINERS)
+    set(BUILD_CONTAINERS_MULTIMAP ON)
+    set(BUILD_CONTAINERS_SET ON)
+    set(BUILD_CONTAINERS_VECTOR ON)
+endif()
+
 add_definitions(-DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE)
 add_definitions(-DMMA_ICU_CXX_NS=icu_61)
 

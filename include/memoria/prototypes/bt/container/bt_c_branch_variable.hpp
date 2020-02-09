@@ -304,6 +304,7 @@ BoolResult M_TYPE::ctr_update_branch_nodes(TreePathT& path, size_t level, int32_
     bool updated_next_node = false;
 
     MEMORIA_TRY_VOID(self.ctr_update_block_guard(path[level]));
+
     MEMORIA_TRY(success, self.ctr_update_branch_node(path[level], idx, entry));
     if (!success)
     {

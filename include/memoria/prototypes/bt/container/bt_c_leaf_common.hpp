@@ -204,7 +204,9 @@ public:
 
             MEMORIA_TRY(end, provider.fill(leaf, pos));
 
-            MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
+            if ((end - pos).sum() > 0) {
+                MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
+            }
 
             return ResultT::of(end);
         }
@@ -256,12 +258,11 @@ public:
     VoidResult ctr_insert_provided_data(TreePathT& path, Position& pos, Provider& provider) noexcept
     {
         using ResultT = VoidResult;
-
         auto& self = this->self();
 
         MEMORIA_TRY(last_pos, self.ctr_insert_data_into_leaf(path, pos, provider));
-        MEMORIA_TRY(has_data, provider.hasData());
 
+        MEMORIA_TRY(has_data, provider.hasData());
         if (has_data)
         {
             // has to be defined in subclasses
