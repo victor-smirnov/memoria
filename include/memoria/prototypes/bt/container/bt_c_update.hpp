@@ -64,7 +64,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::UpdateName)
 
             if (!std::get<0>(result1.get()))
             {
-                return VoidResult::make_error("Second insertion attempt failed");
+                return MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed");
             }
         }
 

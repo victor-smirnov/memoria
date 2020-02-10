@@ -44,10 +44,12 @@ public:
 
     static const int32_t Streams = Types::Streams;
 
-    bool ctr_check_content(const NodeBaseG& node) const
+    BoolResult ctr_check_content(const NodeBaseG& node) const noexcept
     {
     	auto& self = this->self();
-    	if (!Base::ctr_check_content(node))
+
+        MEMORIA_TRY(base_check_res, Base::ctr_check_content(node));
+        if (!base_check_res)
     	{
     		if (node->is_leaf())
     		{

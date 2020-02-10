@@ -21,6 +21,8 @@
 #include <memoria/core/packed/misc/packed_tuple.hpp>
 #include <memoria/core/packed/misc/packed_map.hpp>
 
+#include <memoria/prototypes/bt/tools/bt_tools.hpp>
+
 
 namespace memoria {
 

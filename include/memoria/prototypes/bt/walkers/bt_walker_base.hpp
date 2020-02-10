@@ -419,7 +419,7 @@ public:
                 StreamIdx
             >;
 
-            SD(node.state()).dispatchAll(node.allocator(), w, walker, accum, std::forward<Args>(args)...);
+            SD(node.state()).dispatchAll(node.allocator(), w, walker, accum, std::forward<Args>(args)...).get_or_throw();
 
             return true;
         }

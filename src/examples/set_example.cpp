@@ -80,7 +80,7 @@ int main()
         std::cout << "Inserted entries in " << (t1_i - t0_i) << " ms" << std::endl;
         std::cout << "Size = " << ctr0->size() << std::endl;
 
-        ctr0->iterator().get_or_throw()->dumpPath();
+        ctr0->iterator().get_or_throw()->dumpPath().get_or_throw();
 
         snp->commit().throw_if_error();
         snp->set_as_master().throw_if_error();

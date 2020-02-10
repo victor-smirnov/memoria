@@ -296,18 +296,17 @@ public:
         return ResultT::of(std::vector<SnapshotID>(ids.begin(), ids.end()));
     }
 
-    Result<int32_t> snapshot_status(const SnapshotID& snapshot_id) noexcept
+    Int32Result snapshot_status(const SnapshotID& snapshot_id) noexcept
     {
-        using ResultT = Result<int32_t>;
-        return reactor::engine().run_at(cpu_, [&]{
+        return reactor::engine().run_at(cpu_, [&] () -> Int32Result {
             auto iter = snapshot_map_.find(snapshot_id);
             if (iter != snapshot_map_.end())
             {
                 const auto history_node = iter->second;
-                return ResultT::of((int32_t)history_node->status());
+                return Int32Result::of((int32_t)history_node->status());
             }
             else {
-                return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is unknown", snapshot_id);
             }
         });
     }
@@ -315,7 +314,7 @@ public:
     Result<SnapshotID> snapshot_parent(const SnapshotID& snapshot_id) noexcept
     {
         using ResultT = Result<SnapshotID>;
-        return reactor::engine().run_at(cpu_, [&]{
+        return reactor::engine().run_at(cpu_, [&]() -> ResultT {
             auto iter = snapshot_map_.find(snapshot_id);
             if (iter != snapshot_map_.end())
             {
@@ -324,7 +323,7 @@ public:
                 return ResultT::of(parent_id);
             }
             else {
-                return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is unknown", snapshot_id);
             }
         });
     }
@@ -332,7 +331,7 @@ public:
     Result<U8String> snapshot_description(const SnapshotID& snapshot_id) noexcept
     {
         using ResultT = Result<U8String>;
-        return reactor::engine().run_at(cpu_, [&]{
+        return reactor::engine().run_at(cpu_, [&]() -> ResultT{
             auto iter = snapshot_map_.find(snapshot_id);
             if (iter != snapshot_map_.end())
             {
@@ -340,7 +339,7 @@ public:
                 return ResultT::of(history_node->metadata());
             }
             else {
-                return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is unknown", snapshot_id);
             }
         });
     }
@@ -371,7 +370,7 @@ public:
                 ));
             }
             else {
-                return VoidResult::make_error("Snapshot id {} is unknown", snapshot_id).transfer_error();
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is unknown", snapshot_id);
             }
         });
     }
@@ -394,14 +393,14 @@ public:
                 }
                 if (history_node->is_data_locked())
                 {
-                    return VoidResult::make_error_tr("Snapshot {} data is locked", history_node->snapshot_id());
+                    return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} data is locked", history_node->snapshot_id());
                 }
                 else {
-                    return VoidResult::make_error_tr("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
+                    return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
                 }
             }
             else {
-                return VoidResult::make_error_tr("Snapshot id {} is unknown", snapshot_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is unknown", snapshot_id);
             }
         });
     }
@@ -430,15 +429,15 @@ public:
                         return ResultT::of(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this(), OperationType::OP_FIND));
                     }
                     else {
-                        return VoidResult::make_error_tr("Snapshot id {} is locked and open", history_node->snapshot_id());
+                        return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is locked and open", history_node->snapshot_id());
                     }
                 }
                 else {
-                    return VoidResult::make_error_tr("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
+                    return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is {}", history_node->snapshot_id(), (history_node->is_active() ? "active" : "dropped"));
                 }
             }
             else {
-                return VoidResult::make_error_tr("Named branch \"{}\" is not known", name);
+                return MEMORIA_MAKE_GENERIC_ERROR("Named branch \"{}\" is not known", name);
             }
         });
     }
@@ -472,7 +471,7 @@ public:
     Result<void> set_master(const SnapshotID& txn_id) noexcept
     {
         using ResultT = Result<void>;
-        return reactor::engine().run_at(cpu_, [&]
+        return reactor::engine().run_at(cpu_, [&] () -> ResultT
         {
             auto iter = snapshot_map_.find(txn_id);
             if (iter != snapshot_map_.end())
@@ -489,16 +488,16 @@ public:
                 }
                 else if (history_node->is_dropped())
                 {
-                    return ResultT::make_error("Snapshot {} has been dropped", txn_id);
+                    return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been dropped", txn_id);
                 }
                 else {
-                    return ResultT::make_error("Snapshot {} hasn't been committed yet", txn_id);
+                    return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} hasn't been committed yet", txn_id);
                 }
 
                 return ResultT::of();
             }
             else {
-                return ResultT::make_error("Snapshot {} is not known in this allocator", txn_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is not known in this allocator", txn_id);
             }
         });
     }
@@ -506,7 +505,7 @@ public:
     Result<void> set_branch(U8StringRef name, const SnapshotID& txn_id) noexcept
     {
         using ResultT = Result<void>;
-        return reactor::engine().run_at(cpu_, [&]
+        return reactor::engine().run_at(cpu_, [&]() -> ResultT
         {
             auto iter = snapshot_map_.find(txn_id);
             if (iter != snapshot_map_.end())
@@ -522,13 +521,13 @@ public:
                     named_branches_[name] = history_node;
                 }
                 else {
-                    return ResultT::make_error("Snapshot {} hasn't been committed yet", txn_id);
+                    return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} hasn't been committed yet", txn_id);
                 }
 
                 return ResultT::of();
             }
             else {
-                return ResultT::make_error("Snapshot {} is not known in this allocator", txn_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is not known in this allocator", txn_id);
             }
         });
     }

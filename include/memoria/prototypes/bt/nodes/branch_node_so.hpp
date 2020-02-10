@@ -253,7 +253,7 @@ public:
 
     void layout(uint64_t active_streams)
     {
-        Dispatcher(state()).dispatchAllStatic(LayoutFn(), allocator(), active_streams);
+        Dispatcher(state()).dispatchAllStatic(LayoutFn(), allocator(), active_streams).get_or_throw();
     }
 
     struct MaxFn {
@@ -266,7 +266,7 @@ public:
 
     void max(BranchNodeEntry& entry) const
     {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), MaxFn(), entry);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), MaxFn(), entry).get_or_throw();
     }
 
     template <typename BranchNodeEntry>
@@ -308,7 +308,7 @@ public:
 
     void check() const
     {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn());
+        Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn()).get_or_throw();
     }
 
 
@@ -347,14 +347,14 @@ public:
     {
         SizeFn fn;
         //FIXME: use correct procedure to get number of children
-        Dispatcher(state()).dispatch(0, allocator(), fn);
+        Dispatcher(state()).dispatch(0, allocator(), fn).get_or_throw();
         return fn.size_;
     }
 
     int32_t size(int32_t stream) const
     {
         SizeFn fn;
-        Dispatcher(state()).dispatch(stream, allocator(), fn);
+        Dispatcher(state()).dispatch(stream, allocator(), fn).get_or_throw();
         return fn.size_;
     }
 
@@ -410,7 +410,7 @@ public:
         MEMORIA_V1_ASSERT(idx, <=, size);
 
         InsertFn insert_fn;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), insert_fn, idx, keys);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), insert_fn, idx, keys).get_or_throw();
 
         if (isFail(insert_fn.status_)) {
             return OpStatus::FAIL;
@@ -505,7 +505,7 @@ public:
     OpStatus reindex()
     {
         ReindexFn fn;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), fn);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn).get_or_throw();
         return fn.status_;
     }
 
@@ -514,7 +514,7 @@ public:
         int32_t old_size = this->size();
 
         RemoveSpaceFn remove_fn;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), remove_fn, room_start, room_end);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), remove_fn, room_start, room_end).get_or_throw();
 
         if (isFail(remove_fn.status_)) {
             return OpStatus::FAIL;
@@ -574,10 +574,10 @@ public:
     };
 
     template <typename OtherNodeT>
-    bool canBeMergedWith(OtherNodeT&& other) const
+    BoolResult canBeMergedWith(OtherNodeT&& other) const noexcept
     {
         CanMergeWithFn fn;
-        Dispatcher(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other));
+        MEMORIA_TRY_VOID(Dispatcher(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other)));
 
         int32_t client_area = other.allocator()->client_area();
 
@@ -588,7 +588,7 @@ public:
         fn.mem_used_ += other_data_size;
 
         // FIXME +10 is an extra safety gap
-        return client_area >= fn.mem_used_ + 10;
+        return BoolResult::of(client_area >= fn.mem_used_ + 10);
     }
 
     struct MergeWithFn {
@@ -628,7 +628,7 @@ public:
         int32_t my_size     = size();
 
         MergeWithFn fn;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other));
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other)).get_or_throw();
 
         if (isFail(fn.status_)) {
             return OpStatus::FAIL;
@@ -690,7 +690,7 @@ public:
         MEMORIA_V1_ASSERT(split_idx, <=, size);
 
         SplitToFn fn;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), split_idx);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other), split_idx).get_or_throw();
 
         if (isFail(fn.status_)) {
             return OpStatus::FAIL;
@@ -722,7 +722,7 @@ public:
     {
         BranchNodeEntry acc;
 
-        Dispatcher(state()).dispatchNotEmpty(allocator(), KeysAtFn(), idx, &acc);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), KeysAtFn(), idx, &acc).get_or_throw();
 
         return acc;
     }
@@ -756,7 +756,7 @@ public:
 
     void sums(int32_t start, int32_t end, BranchNodeEntry& sums) const
     {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), start, end, sums).get_or_throw();
     }
 
     void sums(const Position& start, const Position& end, BranchNodeEntry& sums) const
@@ -766,19 +766,19 @@ public:
 
     void sums(BranchNodeEntry& sums) const
     {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), sums);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), sums).get_or_throw();
     }
 
     BranchNodeEntry sums() const
     {
         BranchNodeEntry sums;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), sums);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), SumsFn(), sums).get_or_throw();
         return sums;
     }
 
     void sum(int32_t stream, int32_t block_num, int32_t start, int32_t end, int64_t& accum) const
     {
-        Dispatcher(state()).dispatch(stream, allocator(), SumsFn(), block_num, start, end, accum);
+        Dispatcher(state()).dispatch(stream, allocator(), SumsFn(), block_num, start, end, accum).get_or_throw();
     }
 
 
@@ -813,7 +813,7 @@ public:
     OpStatus updateUp(int32_t idx, const BranchNodeEntry& keys)
     {
         UpdateUpFn fn;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, idx, keys);
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, idx, keys).get_or_throw();
         return fn.status_;
     }
 
@@ -827,17 +827,17 @@ public:
 
     struct GenerateDataEventsFn {
         template <int32_t Idx, typename Tree>
-        void stream(Tree&& tree, IBlockDataEventHandler* handler)
+        auto stream(Tree&& tree, IBlockDataEventHandler* handler)
         {
-            tree.generateDataEvents(handler);
+            return tree.generateDataEvents(handler);
         }
     };
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         node_->template generateDataEvents<RootMetadataList>(handler);
 
-        Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
+        MEMORIA_TRY_VOID(Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler));
 
         handler->startGroup("TREE_VALUES", size());
 
@@ -847,6 +847,8 @@ public:
         }
 
         handler->endGroup();
+
+        return VoidResult::of();
     }
 
     void init_root_metadata() {
@@ -880,7 +882,7 @@ public:
     template <typename Fn, typename... Args>
     void dispatchAll(Fn&& fn, Args&&... args) const
     {
-        Dispatcher(state()).dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        Dispatcher(state()).dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -904,13 +906,13 @@ public:
     template <typename Fn, typename... Args>
     auto processNotEmpty(Fn&& fn, Args&&... args) const
     {
-        return Dispatcher(state()).dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...).get_or_throw();
     }
 
     template <typename Fn, typename... Args>
     auto processNotEmpty(Fn&& fn, Args&&... args)
     {
-        return Dispatcher(state()).dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...).get_or_throw();
     }
 
 
@@ -922,34 +924,34 @@ public:
                 allocator(),
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
     template <typename Fn, typename... Args>
     auto process(int32_t stream, Fn&& fn, Args&&... args)
     {
-        return Dispatcher(state()).dispatch(stream, allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return Dispatcher(state()).dispatch(stream, allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
     template <typename Fn, typename... Args>
     auto processAll(Fn&& fn, Args&&... args) const
     {
-        return Dispatcher(state()).dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return Dispatcher(state()).dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
     template <typename Fn, typename... Args>
     auto processAll(Fn&& fn, Args&&... args)
     {
-        return Dispatcher(state()).dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return Dispatcher(state()).dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <typename SubstreamsPath, typename Fn, typename... Args>
     auto processSubstreams(Fn&& fn, Args&&... args) const
     {
         return SubstreamsDispatcher<SubstreamsPath>(state())
-                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -957,7 +959,7 @@ public:
     auto processSubstreams(Fn&& fn, Args&&... args)
     {
         return SubstreamsDispatcher<SubstreamsPath>(state())
-                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -967,7 +969,7 @@ public:
     {
         const int32_t StreamIdx = list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>;
         return Dispatcher(state())
-                .template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
@@ -975,7 +977,7 @@ public:
     {
         const int32_t StreamIdx = list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>;
         return Dispatcher(state())
-                .template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -985,7 +987,7 @@ public:
     auto processStreamByIdx(Fn&& fn, Args&&... args) const
     {
         return Dispatcher(state())
-                .template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <int32_t StreamIdx, typename Fn, typename... Args>
@@ -993,7 +995,7 @@ public:
     auto processStreamByIdx(Fn&& fn, Args&&... args)
     {
         return Dispatcher(state())
-                .template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -1048,7 +1050,7 @@ public:
                 allocator(),
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1063,7 +1065,7 @@ public:
                 allocator(),
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 };
 

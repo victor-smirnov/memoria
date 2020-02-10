@@ -31,6 +31,8 @@
 
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
+#include <memoria/core/tools/result.hpp>
+
 #include <utility>
 #include <type_traits>
 
@@ -91,19 +93,6 @@ public:
     template <typename Fn, typename... Args>
     using HasVoidConst = pd_stateful::ContainsVoidRtnTypeConst<List, GroupIdx, ListIdx, Fn, Args...>;
 
-    template <typename Fn, typename... Args>
-    using ProcessAllRtnType = IfThenElse<
-        HasVoid<Fn, Args...>::Value,
-        void,
-        RtnTuple<Fn, Args...>
-    >;
-
-    template <typename Fn, typename... Args>
-    using ProcessAllRtnConstType = IfThenElse<
-        HasVoid<Fn, Args...>::Value,
-        void,
-        ConstRtnTuple<Fn, Args...>
-    >;
 
 
 
@@ -198,7 +187,14 @@ public:
 
 
     template <typename Fn, typename... Args>
-    auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept ->
+        Result<decltype(
+            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                std::forward<Fn>(fn),
+                HeadSO(&std::get<ExtDataTupleIdx>(state_), std::declval<Head*>()),
+                std::forward<Args>(args)...
+            )
+        )>
     {
         if (idx == ListIdx)
         {
@@ -210,9 +206,11 @@ public:
 
             HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            return wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            });
         }
         else {
             return NextDispatcher(state_).dispatch(idx, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -221,7 +219,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    auto dispatch(int32_t idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    auto dispatch(int32_t idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         if (idx == ListIdx)
         {
@@ -233,9 +231,11 @@ public:
 
             const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            return wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            });
         }
         else {
             return NextDispatcher(state_).dispatch(idx, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -244,7 +244,7 @@ public:
 
 
     template <int32_t StreamIdx, typename Fn, typename... Args>
-    auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
@@ -262,14 +262,16 @@ public:
                     const_cast<StreamType*>(head)
         );
 
-        return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
+        return wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
                 std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        });
     }
 
 
     template <int32_t StreamIdx, typename Fn, typename... Args>
-    auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
@@ -286,9 +288,11 @@ public:
                     &std::get<AllocatorIdx - AllocatorStartIdx>(state_), head
         );
 
-        return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
+        return wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
                 std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        });
     }
 
 
@@ -296,15 +300,15 @@ public:
     template <typename Fn, typename... Args>
     static typename std::enable_if<
             !HasVoid<Fn, Args...>::Value,
-            ConstRtnTuple<Fn, Args...>
+            Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchAllStatic(Fn&& fn, Args&&... args)
+    dispatchAllStatic(Fn&& fn, Args&&... args) noexcept
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTupleStatic(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTupleStatic(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<ConstRtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
@@ -312,23 +316,25 @@ public:
     template <typename Fn, typename... Args>
     static typename std::enable_if<
             HasVoid<Fn, Args...>::Value,
-            void
+            VoidResult
     >::type
-    dispatchAllStatic(Fn&& fn, Args&&... args)
+    dispatchAllStatic(Fn&& fn, Args&&... args) noexcept
     {
         HeadSO so;
 
-        memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY_VOID(wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
 
-        NextDispatcher::dispatchAllStatic(std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher::dispatchAllStatic(std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         if (!alloc->is_empty(AllocatorIdx))
         {
@@ -336,71 +342,80 @@ public:
 
             HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            MEMORIA_TRY_VOID(wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            }));
         }
 
-        NextDispatcher(state_).dispatchNotEmpty(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher(state_).dispatchNotEmpty(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         if (!alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
             const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            MEMORIA_TRY_VOID(wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            }));
         }
 
-        NextDispatcher(state_).dispatchNotEmpty(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher(state_).dispatchNotEmpty(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchNotEmpty(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
             HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
-            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+
+            MEMORIA_TRY_VOID(wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            }));
         }
 
-        NextDispatcher(state_).dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher(state_).dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchNotEmpty(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
             const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            MEMORIA_TRY_VOID(wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            }));
         }
 
-        NextDispatcher(state_).dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher(state_).dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         HasVoid<Fn, Args...>::Value,
-        void
+        VoidResult
     >::type
-    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -410,35 +425,37 @@ public:
 
         HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-        memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
-            std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+        MEMORIA_TRY_VOID(wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                std::forward<Fn>(fn), so, std::forward<Args>(args)...
+            );
+        }));
 
-        NextDispatcher(state_).dispatchAll(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher(state_).dispatchAll(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         !HasVoid<Fn, Args...>::Value,
-        RtnTuple<Fn, Args...>
+        Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         RtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<RtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         HasVoid<Fn, Args...>::Value,
-        void
+        VoidResult
     >::type
-    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -447,26 +464,28 @@ public:
         }
         const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-        memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY_VOID(wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
 
-        NextDispatcher(state_).dispatchAll(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher(state_).dispatchAll(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         !HasVoid<Fn, Args...>::Value,
-        ConstRtnTuple<Fn, Args...>
+        Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<ConstRtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
@@ -474,9 +493,9 @@ public:
     template <typename Fn, typename... Args>
     typename std::enable_if<
         HasVoid<Fn, Args...>::Value,
-        void
+        VoidResult
     >::type
-    dispatchAll2(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -486,35 +505,37 @@ public:
 
         HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-        memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY_VOID(wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
 
-        NextDispatcher(state_).dispatchAll2(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher(state_).dispatchAll2(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         !HasVoid<Fn, Args...>::Value,
-        RtnTuple<Fn, Args...>
+        Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchAll2(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         RtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<RtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         !HasVoid<Fn, Args...>::Value,
-        void
+        VoidResult
     >::type
-    dispatchAll2(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -524,26 +545,28 @@ public:
 
         const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-        memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY_VOID(wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
 
-        NextDispatcher(state_).dispatchAll(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher(state_).dispatchAll(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         HasVoid<Fn, Args...>::Value,
-        ConstRtnTuple<Fn, Args...>
+        Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchAll2(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<ConstRtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
@@ -552,34 +575,37 @@ public:
     template <typename Fn, typename... Args>
     static typename std::enable_if<
         HasVoid<Fn, Args...>::Value,
-        void
+        VoidResult
     >::type
-    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args) noexcept
     {
         if (idx == ListIdx)
         {
             HeadSO so;
-            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
-                std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+
+            return wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+                );
+            });
         }
         else {
-            NextDispatcher::dispatchStatic(idx, std::forward<Fn>(fn), std::forward<Args>(args)...);
+            return NextDispatcher::dispatchStatic(idx, std::forward<Fn>(fn), std::forward<Args>(args)...);
         }
     }
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
         !HasVoid<Fn, Args...>::Value,
-        ConstRtnTuple<Fn, Args...>
+        Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args) noexcept
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<ConstRtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
@@ -587,24 +613,24 @@ public:
     template <typename Fn, typename... Args>
     typename std::enable_if<
         !HasVoid<Fn, Args...>::Value,
-        ConstRtnTuple<Fn, Args...>
+        Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<ConstRtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         HasVoid<Fn, Args...>::Value,
-        void
+        VoidResult
     >::type
-    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -613,35 +639,37 @@ public:
         }
         const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-        memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY_VOID(wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
 
-        NextDispatcher(state_).dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher(state_).dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         !HasVoid<Fn, Args...>::Value,
-        RtnTuple<Fn, Args...>
+        Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         RtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<RtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         HasVoid<Fn, Args...>::Value,
-        void
+        VoidResult
     >::type
-    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -650,18 +678,20 @@ public:
         }
         HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-        memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY_VOID(wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
 
-        NextDispatcher(state_).dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return NextDispatcher(state_).dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    void dispatchAllTuple(Tuple& tuple, uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -670,16 +700,20 @@ public:
         }
         HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
 
-        NextDispatcher(state_).dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = std::move(element);
+
+        return NextDispatcher(state_).dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    void dispatchAllTuple(Tuple& tuple, uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -688,30 +722,39 @@ public:
         }
         const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
 
-        NextDispatcher(state_).dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = std::move(element);
+
+        return NextDispatcher(state_).dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args)
+    static VoidResult dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args) noexcept
     {
         HeadSO so;
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
-                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
 
-        NextDispatcher::dispatchAllTupleStatic(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+            );
+        }));
+
+        std::get<ListIdx>(tuple) = std::move(element);
+
+        return NextDispatcher::dispatchAllTupleStatic(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    void dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -720,16 +763,20 @@ public:
         }
         const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
 
-        NextDispatcher(state_).dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = std::move(element);
+
+        return NextDispatcher(state_).dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    void dispatchAllTuple(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    void dispatchAllTuple(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -738,23 +785,33 @@ public:
         }
         HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
 
-        NextDispatcher(state_).dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = std::move(element);
+
+
+        return NextDispatcher(state_).dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllStaticTuple(Tuple& tuple, Fn&& fn, Args&&... args)
+    static VoidResult dispatchAllStaticTuple(Tuple& tuple, Fn&& fn, Args&&... args) noexcept
     {
         HeadSO so;
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
-                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
 
-        NextDispatcher::dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(wrap_throwing([&](){
+            std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+            );
+
+            return VoidResult::of();
+        }));
+
+        return NextDispatcher::dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 };
 
@@ -803,19 +860,6 @@ public:
     template <typename Fn, typename... Args>
     using HasVoidConst = pd_stateful::ContainsVoidRtnTypeConst<List, GroupIdx, ListIdx, Fn, Args...>;
 
-    template <typename Fn, typename... Args>
-    using ProcessAllRtnType = IfThenElse<
-        HasVoid<Fn, Args...>::Value,
-        void,
-        RtnTuple<Fn, Args...>
-    >;
-
-    template <typename Fn, typename... Args>
-    using ProcessAllRtnConstType = IfThenElse<
-        HasVoid<Fn, Args...>::Value,
-        void,
-        ConstRtnTuple<Fn, Args...>
-    >;
 
 
     template <int32_t From = 0, int32_t To = 1, int32_t GroupIdx_ = GroupIdx>
@@ -907,7 +951,15 @@ public:
 
 
     template <typename Fn, typename... Args>
-    auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    auto dispatch(int32_t idx, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept -> Result <
+        decltype(
+            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                std::forward<Fn>(fn),
+                HeadSO(&std::get<ExtDataTupleIdx>(state_), std::declval<Head*>()),
+                std::forward<Args>(args)...
+            )
+        )
+    >
     {
         if (idx == ListIdx)
         {
@@ -919,18 +971,28 @@ public:
 
             HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            return wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            });
         }
         else {
-            MMA_THROW(DispatchException()) << WhatInfo(format_u8("Can't dispatch packed allocator structure: {}", idx));
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch packed allocator structure: {}", idx);
         }
     }
 
 
     template <typename Fn, typename... Args>
-    auto dispatch(int32_t idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    auto dispatch(int32_t idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept -> Result<
+        decltype(
+            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                std::forward<Fn>(fn),
+                HeadSO(&std::get<ExtDataTupleIdx>(state_), std::declval<Head*>()),
+                std::forward<Args>(args)...
+            )
+        )
+    >
     {
         if (idx == ListIdx)
         {
@@ -942,18 +1004,20 @@ public:
 
             const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            return wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            });
         }
         else {
-            MMA_THROW(DispatchException()) << WhatInfo(format_u8("Can't dispatch packed allocator structure: {}", idx));
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch packed allocator structure: {}", idx);
         }
     }
 
 
     template <int32_t StreamIdx, typename Fn, typename... Args>
-    auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
@@ -968,14 +1032,16 @@ public:
 
         HeadSO so(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), head);
 
-        return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
+        return wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        });
     }
 
 
     template <int32_t StreamIdx, typename Fn, typename... Args>
-    auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         using StreamDescrT  = StreamTypeT<StreamIdx>;
         using StreamType    = typename StreamDescrT::Type;
@@ -990,24 +1056,26 @@ public:
 
         const HeadSO so(&std::get<AllocatorIdx - AllocatorStartIdx>(state_), const_cast<Head*>(head));
 
-        return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
-                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+        return wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(
+                std::forward<Fn>(fn), so, std::forward<Args>(args)...
+            );
+        });
     }
 
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
             !HasVoid<Fn, Args...>::Value,
-            ConstRtnTuple<Fn, Args...>
+            Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchAllStatic(Fn&& fn, Args&&... args)
+    dispatchAllStatic(Fn&& fn, Args&&... args) noexcept
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTupleStatic(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTupleStatic(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<ConstRtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
@@ -1015,95 +1083,117 @@ public:
     template <typename Fn, typename... Args>
     static typename std::enable_if<
             HasVoid<Fn, Args...>::Value,
-            void
+            VoidResult
     >::type
-    dispatchAllStatic(Fn&& fn, Args&&... args)
+    dispatchAllStatic(Fn&& fn, Args&&... args) noexcept
     {
         const HeadSO so;
-        memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
-            std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+
+        return wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                std::forward<Fn>(fn), so, std::forward<Args>(args)...
+            );
+        });
     }
 
 
 
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         if (!alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
             HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            return wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            });
         }
+
+        return VoidResult::of();
     }
 
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         if (!alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
             const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
-                        std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+            return wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+                    std::forward<Fn>(fn), so, std::forward<Args>(args)...
+                );
+            });
         }
+
+        return VoidResult::of();
     }
 
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchNotEmpty(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
             HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            return wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            });
         }
+
+        return VoidResult::of();
     }
 
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchNotEmpty(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
             const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-            memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+            return wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                         std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            });
         }
+
+        return VoidResult::of();
     }
 
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
         HasVoid<Fn, Args...>::Value,
-        void
+        VoidResult
     >::type
-    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args) noexcept
     {
         if (idx == ListIdx)
         {
             HeadSO so;
-            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+
+            return wrap_throwing([&](){
+                return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-            );
+                );
+            });
         }
         else {
-            MMA_THROW(DispatchException()) << WhatInfo(format_u8("Can't dispatch packed allocator structure: {}", idx));
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't dispatch packed allocator structure: {}", idx);
         }
     }
 
@@ -1111,15 +1201,15 @@ public:
     template <typename Fn, typename... Args>
     static typename std::enable_if<
         !HasVoid<Fn, Args...>::Value,
-        ConstRtnTuple<Fn, Args...>
+        Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args)
+    dispatchStatic(int32_t idx, Fn&& fn, Args&&... args) noexcept
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<ConstRtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
@@ -1128,39 +1218,39 @@ public:
     template <typename Fn, typename... Args>
     typename std::enable_if<
             !HasVoid<Fn, Args...>::Value,
-            RtnTuple<Fn, Args...>
+            Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         RtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<RtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
             !HasVoid<Fn, Args...>::Value,
-            RtnTuple<Fn, Args...>
+            Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         RtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<RtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
             HasVoid<Fn, Args...>::Value,
-            void
+            VoidResult
     >::type
-    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -1169,18 +1259,20 @@ public:
         }
         HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-        return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        return wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        });
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
             HasVoidConst<Fn, Args...>::Value,
-            void
+            VoidResult
     >::type
-    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -1189,9 +1281,11 @@ public:
         }
         const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-        return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        return wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        });
     }
 
 
@@ -1203,24 +1297,24 @@ public:
     template <typename Fn, typename... Args>
     typename std::enable_if<
         !HasVoid<Fn, Args...>::Value,
-        ConstRtnTuple<Fn, Args...>
+        Result<ConstRtnTuple<Fn, Args...>>
     >::type
-    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<ConstRtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         HasVoid<Fn, Args...>::Value,
-        void
+        VoidResult
     >::type
-    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1229,33 +1323,35 @@ public:
         }
         const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-        return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        return wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        });
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         !HasVoid<Fn, Args...>::Value,
-        RtnTuple<Fn, Args...>
+        Result<RtnTuple<Fn, Args...>>
     >::type
-    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         RtnTuple<Fn, Args...> tuple;
 
-        dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        MEMORIA_TRY_VOID(dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...));
 
-        return tuple;
+        return Result<RtnTuple<Fn, Args...>>::of(tuple);
     }
 
 
     template <typename Fn, typename... Args>
     typename std::enable_if<
         HasVoid<Fn, Args...>::Value,
-        void
+        VoidResult
     >::type
-    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchSelected(uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1265,16 +1361,18 @@ public:
 
         HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-        return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        return wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                 std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        });
     }
 
 
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    void dispatchAllTuple(Tuple& tuple, uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1283,14 +1381,20 @@ public:
         }
         HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
+
+        std::get<ListIdx>(tuple) = std::move(element);
+
+        return VoidResult::of();
     }
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    void dispatchAllTuple(Tuple& tuple, uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchAllTuple(Tuple& tuple, uint64_t streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -1299,25 +1403,38 @@ public:
         }
         const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
+
+        std::get<ListIdx>(tuple) = std::move(element);
+
+        return VoidResult::of();
     }
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args)
+    static VoidResult dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args) noexcept
     {
         HeadSO so;
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
+
+        std::get<ListIdx>(tuple) = std::move(element);
+
+        return VoidResult::of();
     }
 
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    void dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -1326,14 +1443,20 @@ public:
         }
         const HeadSO so(&std::get<ExtDataTupleIdx>(state_), const_cast<Head*>(head));
 
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
+
+        std::get<ListIdx>(tuple) = std::move(element);
+
+        return VoidResult::of();
     }
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    void dispatchAllTuple(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    VoidResult dispatchAllTuple(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args) noexcept
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -1342,20 +1465,32 @@ public:
         }
         HeadSO so(&std::get<ExtDataTupleIdx>(state_), head);
 
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
+
+        std::get<ListIdx>(tuple) = std::move(element);
+
+        return VoidResult::of();
     }
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllStaticTuple(Tuple& tuple, Fn&& fn, Args&&... args)
+    static VoidResult dispatchAllStaticTuple(Tuple& tuple, Fn&& fn, Args&&... args) noexcept
     {
         HeadSO so;
 
-        std::get<ListIdx>(tuple) = memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
+        MEMORIA_TRY(element, wrap_throwing([&](){
+            return memoria::details::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(
                     std::forward<Fn>(fn), so, std::forward<Args>(args)...
-        );
+            );
+        }));
+
+        std::get<ListIdx>(tuple) = std::move(element);
+
+        return VoidResult::of();
     }
 };
 
@@ -1368,44 +1503,62 @@ class PackedStatefulDispatcher<State, TypeList<>, GroupIdx, ListOffsetIdx> {
 public:
     template<typename, typename, int32_t, int32_t> friend class PackedStatefulDispatcher;
 
-    PackedStatefulDispatcher(const State& state) {}
+    PackedStatefulDispatcher(const State&) {}
 
     template <typename Fn, typename... Args>
-    static void dispatchAllStatic(Fn&& fn, Args&&...)
-    {}
+    static VoidResult dispatchAllStatic(Fn&&, Args&&...) noexcept
+    {
+        return VoidResult::of();
+    }
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&...)
-    {}
+    VoidResult dispatchNotEmpty(PackedAllocator*, Fn&&, Args&&...) noexcept
+    {
+        return VoidResult::of();
+    }
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&...)
-    {}
+    VoidResult dispatchNotEmpty(const PackedAllocator*, Fn&&, Args&&...) noexcept
+    {
+        return VoidResult::of();
+    }
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(uint64_t, PackedAllocator* alloc, Fn&& fn, Args&&...)
-    {}
+    VoidResult dispatchNotEmpty(uint64_t, PackedAllocator*, Fn&&, Args&&...) noexcept
+    {
+        return VoidResult::of();
+    }
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmpty(uint64_t, const PackedAllocator* alloc, Fn&& fn, Args&&...)
-    {}
+    VoidResult dispatchNotEmpty(uint64_t, const PackedAllocator*, Fn&&, Args&&...) noexcept
+    {
+        return VoidResult::of();
+    }
 
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmptySelected(const PackedAllocator* alloc, Fn&& fn, Args&&...)
-    {}
+    VoidResult dispatchNotEmptySelected(const PackedAllocator*, Fn&&, Args&&...) noexcept
+    {
+        return VoidResult::of();
+    }
 
     template <typename Fn, typename... Args>
-    void dispatchNotEmptySelected(PackedAllocator* alloc, Fn&& fn, Args&&...)
-    {}
+    VoidResult dispatchNotEmptySelected(PackedAllocator*, Fn&&, Args&&...) noexcept
+    {
+        return VoidResult::of();
+    }
 
     template <typename Fn, typename... Args>
-    void dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&...)
-    {}
+    VoidResult dispatchAll(PackedAllocator*, Fn&&, Args&&...) noexcept
+    {
+        return VoidResult::of();
+    }
 
     template <typename Fn, typename... Args>
-    void dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&...)
-    {}
+    VoidResult dispatchAll(const PackedAllocator*, Fn&&, Args&&...) noexcept
+    {
+        return VoidResult::of();
+    }
 };
 
 

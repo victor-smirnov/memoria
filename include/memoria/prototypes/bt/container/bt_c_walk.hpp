@@ -128,7 +128,7 @@ public:
             return new_name;
         }
         else {
-            return Result<CtrID>::make_error("Requested container name of {} is already in use.", new_name);
+            return MEMORIA_MAKE_GENERIC_ERROR("Requested container name of {} is already in use.", new_name);
         }
     }
 

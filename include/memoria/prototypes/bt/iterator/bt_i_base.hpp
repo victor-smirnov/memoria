@@ -308,7 +308,7 @@ public:
     }
 
 
-    void dump(std::ostream& out = std::cout, const char* header = nullptr) const noexcept
+    VoidResult dump(std::ostream& out = std::cout, const char* header = nullptr) const noexcept
     {
         auto& self = this->self();
 
@@ -317,7 +317,7 @@ public:
         self.iter_dump_keys(out);
         self.iter_dump_cache(out);
 
-        self.iter_dump_blocks(out);
+        return self.iter_dump_blocks(out);
     }
 
     U8String iter_get_dump_header() const noexcept
@@ -325,14 +325,16 @@ public:
         return self().ctr().type_name_str() + " Iterator State";
     }
 
-    void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const noexcept
+    VoidResult dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const noexcept
     {
         auto& self  = this->self();
         out << (header != NULL ? header : self.iter_get_dump_header()) << std::endl;
         iter_dump_cache(out);
         iter_dump_keys(out);
-        self.ctr().ctr_dump_path(self.path(), 0, out);
+        MEMORIA_TRY_VOID(self.ctr().ctr_dump_path(self.path(), 0, out));
         out << "======================================================================" << std::endl;
+
+        return VoidResult::of();
     }
 
     void iter_dump_cache(std::ostream& out = std::cout) const noexcept
@@ -360,11 +362,10 @@ public:
 
 
 
-    void iter_dump_blocks(std::ostream& out) const noexcept
+    VoidResult iter_dump_blocks(std::ostream& out) const noexcept
     {
         auto& self = this->self();
-
-        self.ctr().ctr_dump_node(self.iter_leaf(), out);
+        return self.ctr().ctr_dump_node(self.iter_leaf(), out);
     }
 
     void iter_prepare() noexcept {}

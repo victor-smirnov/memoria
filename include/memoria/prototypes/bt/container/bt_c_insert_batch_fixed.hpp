@@ -201,8 +201,6 @@ public:
 
         virtual Result<NodeBaseG> get_leaf() noexcept
         {
-            using ResultT = Result<NodeBaseG>;
-
             if (head_.isSet())
             {
                 auto node = head_;
@@ -214,7 +212,7 @@ public:
                 return node;
             }
             else {
-                return ResultT::make_error("Leaf List is empty");
+                return MEMORIA_MAKE_GENERIC_ERROR("Leaf List is empty");
             }
         }
 

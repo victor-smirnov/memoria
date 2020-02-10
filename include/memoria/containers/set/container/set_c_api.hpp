@@ -126,7 +126,7 @@ public:
 
         if (iter->is_found(before))
         {
-            return VoidResult::make_error("Requested key is found. Can't insert enties this way.");
+            return MEMORIA_MAKE_GENERIC_ERROR("Requested key is found. Can't insert enties this way.");
         }
         else {
             MEMORIA_TRY_VOID(iter.get()->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
@@ -242,7 +242,7 @@ public:
 
         if (start + size > buffer.size())
         {
-            return VoidResult::make_error("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size());
+            return MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size());
         }
 
         SetProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){

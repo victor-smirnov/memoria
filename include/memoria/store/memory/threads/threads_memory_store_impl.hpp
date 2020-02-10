@@ -318,7 +318,7 @@ public:
             return ResultT::of(heads);
         }
         else {
-            return ResultT::make_error("Snapshot {} is not found.", start_from);
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is not found.", start_from);
         }
     }
 
@@ -371,7 +371,7 @@ public:
             ));
         }
         else {
-            return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
@@ -389,7 +389,7 @@ public:
             return ResultT::of((int32_t)history_node->status());
         }
         else {
-            return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
@@ -408,7 +408,7 @@ public:
             return ResultT::of(parent_id);
         }
         else {
-            return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
@@ -425,7 +425,7 @@ public:
             return ResultT::of(history_node->metadata());
         }
         else {
-            return ResultT::make_error("Snapshot id {} is unknown", snapshot_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
@@ -450,21 +450,21 @@ public:
             }
             if (history_node->is_data_locked())
             {
-                return VoidResult::make_error(
+                return MEMORIA_MAKE_GENERIC_ERROR(
                             "Snapshot {} data is locked",
                             history_node->snapshot_id()
-                            ).transfer_error();
+                            );
             }
             else {
-                return VoidResult::make_error(
+                return MEMORIA_MAKE_GENERIC_ERROR(
                             "Snapshot {} is {}",
                             history_node->snapshot_id(),
                             (history_node->is_active() ? "active" : "dropped")
-                            ).transfer_error();
+                            );
             }
         }
         else {
-            return VoidResult::make_error("Snapshot id {} is unknown", snapshot_id).transfer_error();
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot id {} is unknown", snapshot_id);
         }
     }
 
@@ -494,22 +494,22 @@ public:
                     return ResultT::of(upcast(snp_make_shared_init<SnapshotT>(history_node, this->shared_from_this())));
             	}
             	else {
-                    return VoidResult::make_error(
+                    return MEMORIA_MAKE_GENERIC_ERROR(
                                 "Snapshot id {} is locked and open",
                                 history_node->snapshot_id()
-                                ).transfer_error();
+                                );
             	}
             }
             else {                
-                return VoidResult::make_error(
+                return MEMORIA_MAKE_GENERIC_ERROR(
                             "Snapshot {} is {} ",
                             history_node->snapshot_id(),
                             (history_node->is_active() ? "active" : "dropped")
-                            ).transfer_error();
+                            );
             }
         }
         else {
-            return VoidResult::make_error("Named branch \"{}\" is not known", name).transfer_error();
+            return MEMORIA_MAKE_GENERIC_ERROR("Named branch \"{}\" is not known", name);
         }
     }
 
@@ -566,16 +566,16 @@ public:
             }
             else if (history_node->is_dropped())
             {
-                return ResultT::make_error("Snapshot {} has been dropped", txn_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been dropped", txn_id);
             }
             else {
-                return ResultT::make_error("Snapshot {} hasn't been committed yet", txn_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} hasn't been committed yet", txn_id);
             }
 
             return ResultT::of();
         }
         else {
-            return ResultT::make_error("Snapshot {} is not known in this allocator", txn_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is not known in this allocator", txn_id);
         }
     }
 
@@ -600,13 +600,13 @@ public:
         		named_branches_[name] = history_node;
         	}
             else {
-                return ResultT::make_error("Snapshot {} hasn't been committed yet", txn_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} hasn't been committed yet", txn_id);
             }
 
             return ResultT::of();
         }
         else {
-            return ResultT::make_error("Snapshot {} is not known in this allocator", txn_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is not known in this allocator", txn_id);
         }
     }
 
@@ -662,7 +662,6 @@ public:
 
     virtual VoidResult store(OutputStreamHandler *output, int64_t wait_duration) noexcept
     {
-        using ResultT = VoidResult;
         std::lock(mutex_, store_mutex_);
 
         LockGuardT lock_guard2(mutex_, std::adopt_lock);
@@ -672,7 +671,7 @@ public:
             active_snapshots_.wait(0);
         }
         else if (!active_snapshots_.waitFor(0, wait_duration)) {
-            return ResultT::make_error("Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
+            return MEMORIA_MAKE_GENERIC_ERROR("Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
         }
 
         return do_store(output);
@@ -691,7 +690,6 @@ public:
 
     virtual Result<void> store(const char* file, int64_t wait_duration) noexcept
     {
-        using ResultT = Result<void>;
         std::lock(mutex_, store_mutex_);
 
         LockGuardT lock_guard2(mutex_, std::adopt_lock);
@@ -701,7 +699,7 @@ public:
             active_snapshots_.wait(0);
         }
         else if (!active_snapshots_.waitFor(0, wait_duration)){
-            return ResultT::make_error("Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
+            return MEMORIA_MAKE_GENERIC_ERROR("Active snapshots commit/drop waiting timeout: {} ms", wait_duration);
         }
 
     	auto fileh = FileOutputStreamHandler::create(file);

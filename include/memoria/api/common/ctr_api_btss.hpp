@@ -43,8 +43,8 @@ struct BTSSIterator {
     virtual BoolResult next_leaf() noexcept     = 0;
     virtual BoolResult next_entry() noexcept    = 0;
 
-    virtual void dump(std::ostream& out = std::cout, const char* header = nullptr) const noexcept = 0;
-    virtual void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const noexcept = 0;
+    virtual VoidResult dump(std::ostream& out = std::cout, const char* header = nullptr) const noexcept = 0;
+    virtual VoidResult dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const noexcept = 0;
 };
 
 }

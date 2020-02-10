@@ -115,7 +115,7 @@ public:
             return Int32Result::of(idx);
         }
         else {
-            return Int32Result::make_error("Requested child is not found in the b-tree: {}", child_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Requested child is not found in the b-tree: {}", child_id);
         }
     }
 
@@ -150,25 +150,28 @@ public:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(GenerateDataEventsFn, generateDataEvents);
-    void ctr_dump_node(const NodeBaseG& block, std::ostream& out = std::cout) const noexcept
+    VoidResult ctr_dump_node(const NodeBaseG& block, std::ostream& out = std::cout) const noexcept
     {
-        const auto& self = this->self();
+        return wrap_throwing([&]() -> VoidResult{
+            const auto& self = this->self();
+            if (block)
+            {
+                TextBlockDumper dumper(out);
 
-        if (block)
-        {
-            TextBlockDumper dumper(out);
+                self.node_dispatcher().dispatch(block, GenerateDataEventsFn(), &dumper).get_or_throw();
 
-            self.node_dispatcher().dispatch(block, GenerateDataEventsFn(), &dumper);
+                out<<std::endl;
+                out<<std::endl;
+            }
+            else {
+                out << "NULL" << std::endl;
+            }
 
-            out<<std::endl;
-            out<<std::endl;
-        }
-        else {
-            out << "NULL" << std::endl;
-        }
+            return VoidResult::of();
+        });
     }
 
-    void ctr_dump_path(TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
+    VoidResult ctr_dump_path(TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
     {
         auto& self = this->self();
 
@@ -176,8 +179,10 @@ public:
 
         for (size_t ll = level; ll < path.size(); ll++)
         {
-            self.ctr_dump_node(path[ll], out);
+            MEMORIA_TRY_VOID(self.ctr_dump_node(path[ll], out));
         }
+
+        return VoidResult::of();
     }
 
 
@@ -225,7 +230,7 @@ protected:
             return result;
         }
         else {
-            return ResultT::make_error("Child must not be NULL");
+            return MEMORIA_MAKE_GENERIC_ERROR("Child must not be NULL");
         }
     }
 
@@ -240,7 +245,7 @@ protected:
             return result;
         }
         else {
-            return ResultT::make_error("Child must not be NULL");
+            return MEMORIA_MAKE_GENERIC_ERROR("Child must not be NULL");
         }
     }
 
@@ -257,7 +262,7 @@ protected:
             return result;
         }
         else {
-            return ResultT::make_error("Child must not be NULL");
+            return MEMORIA_MAKE_GENERIC_ERROR("Child must not be NULL");
         }
     }
 

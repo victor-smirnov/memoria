@@ -703,7 +703,7 @@ public:
     {
         SizeFn fn;
         //FIXME: use correct procedure to get number of children
-        Dispatcher::dispatch(0, allocator(), fn);
+        Dispatcher::dispatch(0, allocator(), fn).get_or_throw();
         return fn.size_;
     }
 
@@ -721,7 +721,7 @@ public:
     {
         Base::template serialize<RootMetadataList>(buf);
 
-        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
+        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf).get_or_throw();
 
         int32_t size = this->size();
 
@@ -741,7 +741,7 @@ public:
     {
         Base::template deserialize<RootMetadataList>(buf);
 
-        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
+        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf).get_or_throw();
 
         int32_t size = this->size();
 

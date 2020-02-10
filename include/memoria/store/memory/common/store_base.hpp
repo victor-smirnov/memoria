@@ -598,17 +598,17 @@ public:
                 signature[6] == 'A'))
         {
             std::string sig_str(signature, 12);
-            return Result<void>::make_error("The stream does not start from MEMORIA signature: {}", sig_str).transfer_error();
+            return MEMORIA_MAKE_GENERIC_ERROR("The stream does not start from MEMORIA signature: {}", sig_str);
         }
 
         if (!(signature[7] == 0 || signature[7] == 1))
         {
-            return Result<void>::make_error("Endiannes filed value is out of bounds {}", (int32_t)signature[7]).transfer_error();
+            return MEMORIA_MAKE_GENERIC_ERROR("Endiannes filed value is out of bounds {}", (int32_t)signature[7]);
         }
 
         if (signature[8] != 0)
         {
-            return Result<void>::make_error("This is not an in-memory container").transfer_error();
+            return MEMORIA_MAKE_GENERIC_ERROR("This is not an in-memory container");
         }
 
         allocator->master_ = allocator->history_tree_ = nullptr;
@@ -641,7 +641,7 @@ public:
                 case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
                 case TYPE_CHECKSUM:     allocator->read_checksum(*input, checksum); proceed = false; break;
                 default:
-                    return Result<void>::make_error("Unknown record type: {}", (int32_t)type).transfer_error();
+                    return MEMORIA_MAKE_GENERIC_ERROR("Unknown record type: {}", (int32_t)type);
             }
 
             allocator->records_++;
@@ -649,7 +649,7 @@ public:
 
         if (allocator->records_ != checksum.records())
         {
-            return Result<void>::make_error("Invalid records checksum: actual={}, expected={}", allocator->records_, checksum.records()).transfer_error();
+            return MEMORIA_MAKE_GENERIC_ERROR("Invalid records checksum: actual={}, expected={}", allocator->records_, checksum.records());
         }
 
         for (auto& entry: ptree_node_map)
@@ -673,7 +673,7 @@ public:
                         leaf_node->data(c) = typename LeafNodeT::Value(block_iter->second, descr.snapshot_id());
                     }
                     else {
-                        return Result<void>::make_error("Specified uuid {} is not found in the block map", descr.block_ptr()).transfer_error();
+                        return MEMORIA_MAKE_GENERIC_ERROR("Specified uuid {} is not found in the block map", descr.block_ptr());
                     }
                 }
             }
@@ -692,7 +692,7 @@ public:
                         branch_node->data(c) = iter->second.second;
                     }
                     else {
-                        return Result<void>::make_error("Specified uuid {} is not found in the persistent tree node map", node_id).transfer_error();
+                        return MEMORIA_MAKE_GENERIC_ERROR("Specified uuid {} is not found in the persistent tree node map", node_id);
                     }
                 }
             }
@@ -705,7 +705,7 @@ public:
             allocator->master_ = allocator->snapshot_map_[metadata.master()];
         }
         else {
-            return Result<void>::make_error("Specified master uuid {} is not found in the data", metadata.master()).transfer_error();
+            return MEMORIA_MAKE_GENERIC_ERROR("Specified master uuid {} is not found in the data", metadata.master());
         }
 
         for (auto& entry: metadata.named_branches())
@@ -717,7 +717,7 @@ public:
                 allocator->named_branches_[entry.first] = iter->second;
             }
             else {
-                return Result<void>::make_error("Specified snapshot uuid {} is not found", entry.first).transfer_error();
+                return MEMORIA_MAKE_GENERIC_ERROR("Specified snapshot uuid {} is not found", entry.first);
             }
         }
 
@@ -976,7 +976,7 @@ protected:
             map[block->uuid()] = new RCBlockPtr(block, references);
         }
         else {
-            return VoidResult::make_error("Block {} was already registered", block->uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Block {} was already registered", block->uuid());
         }
 
         return VoidResult::of();
@@ -1436,7 +1436,7 @@ protected:
             return ResultT::of();
         }
         else {
-            return ResultT::make_error("Snapshot {} is not found.", start_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is not found.", start_id);
         }
     }
 

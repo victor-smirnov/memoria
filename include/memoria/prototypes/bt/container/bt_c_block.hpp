@@ -102,8 +102,7 @@ public:
             MEMORIA_TRY(block, store_->getBlock(block_id_));
 
             return with_ctr([&](auto& ctr) -> VoidResult {
-                ctr.ctr_dump_node(block, out);
-                return VoidResult::of();
+                return ctr.ctr_dump_node(block, out);
             });
         }
 
@@ -119,7 +118,7 @@ public:
                 return fn(*ctr_ptr);
             }
             else {
-                return VoidResult::make_error("No container is found for id {}", ctr_id_);
+                return MEMORIA_MAKE_GENERIC_ERROR("No container is found for id {}", ctr_id_);
             }
         }
     };

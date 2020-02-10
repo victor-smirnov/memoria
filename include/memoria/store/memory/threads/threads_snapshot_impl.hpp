@@ -169,7 +169,7 @@ public:
             }
         }
         else {
-            return Result<void>::make_error("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid());
         }
 
         return Result<void>::of();
@@ -201,7 +201,7 @@ public:
             }
         }
         else {
-            return Result<void>::make_error("Can't drop root snapshot {}", uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't drop root snapshot {}", uuid());
         }
 
         return Result<void>::of();
@@ -223,7 +223,7 @@ public:
         }
         else
         {
-            return Result<void>::make_error("Snapshot has been already committed.");
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot has been already committed.");
         }
 
         return Result<void>::of();
@@ -244,13 +244,13 @@ public:
     			history_node_->lock_data();
     		}
     		else {
-                return VoidResult::make_error("Snapshot {} has open containers", uuid());
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has open containers", uuid());
     		}
     	}
     	else if (history_node_->is_data_locked()) {
     	}
     	else {
-            return VoidResult::make_error("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Invalid state: {} for snapshot {}", (int32_t)history_node_->status(), uuid());
     	}
 
         return VoidResult::of();
@@ -282,11 +282,11 @@ public:
         }
         else if (history_node_->is_data_locked())
         {
-            return VoidResult::make_error_tr("Snapshot {} is locked, branching is not possible.", uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is locked, branching is not possible.", uuid());
         }
         else
         {
-            return VoidResult::make_error_tr("Snapshot {} is still being active. Commit it first.", uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is still being active. Commit it first.", uuid());
         }
     }
 
@@ -311,7 +311,7 @@ public:
         }
         else
         {
-            return VoidResult::make_error_tr("Snapshot {} has no parent.", uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has no parent.", uuid());
         }
     }
 

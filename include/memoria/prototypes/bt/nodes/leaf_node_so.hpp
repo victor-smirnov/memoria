@@ -288,7 +288,7 @@ public:
 
     void configure_iovector_view(io::IOVector& io_vector) const
     {
-        Dispatcher(state()).dispatchAll(allocator(), _::ConfigureIOVectorViewFn<Streams>(io_vector));
+        Dispatcher(state()).dispatchAll(allocator(), _::ConfigureIOVectorViewFn<Streams>(io_vector)).get_or_throw();
     }
 
 
@@ -327,7 +327,7 @@ public:
 
     void layout(uint64_t streams)
     {
-        Dispatcher::dispatchAllStatic(LayoutFn(), this->allocator(), streams);
+        Dispatcher::dispatchAllStatic(LayoutFn(), this->allocator(), streams).get_or_throw();
     }
 
 
@@ -353,7 +353,7 @@ public:
 
     void check() const
     {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn());
+        Dispatcher(state()).dispatchNotEmpty(allocator(), CheckFn()).get_or_throw();
     }
 
     struct Size2Fn {
@@ -534,7 +534,7 @@ public:
     {
         int32_t mem_size = 0;
 
-        StreamDispatcher<0>::dispatchAllStatic(SingleStreamCapacityFn(), size, mem_size);
+        StreamDispatcher<0>::dispatchAllStatic(SingleStreamCapacityFn(), size, mem_size).get_or_throw();
 
         return mem_size;
     }
@@ -637,7 +637,7 @@ public:
     OpStatus removeSpace(int32_t stream, int32_t room_start, int32_t room_end)
     {
         RemoveSpaceFn fn;
-        Dispatcher(state()).dispatch(stream, allocator(), fn, room_start, room_end);
+        Dispatcher(state()).dispatch(stream, allocator(), fn, room_start, room_end).get_or_throw();
         return fn.status_;
     }
 
@@ -715,7 +715,7 @@ public:
     OpStatus mergeWith(OtherNodeT&& other)
     {
         MergeWithFn fn;
-        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other));
+        Dispatcher(state()).dispatchNotEmpty(allocator(), fn, std::forward<OtherNodeT>(other)).get_or_throw();
         return fn.status_;
     }
 
@@ -750,14 +750,14 @@ public:
     };
 
     template <typename OtherNodeT>
-    bool canBeMergedWith(OtherNodeT&& other) const
+    BoolResult canBeMergedWith(OtherNodeT&& other) const noexcept
     {
         CanMergeWithFn fn;
-        Dispatcher(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other));
+        MEMORIA_TRY_VOID(Dispatcher(state()).dispatchAll(allocator(), fn, std::forward<OtherNodeT>(other)));
 
         int32_t client_area = other.allocator()->client_area();
 
-        return client_area >= fn.mem_used_;
+        return BoolResult::of(client_area >= fn.mem_used_);
     }
 
     bool shouldBeMergedWithSiblings() const
@@ -863,17 +863,16 @@ public:
 
     struct GenerateDataEventsFn {
         template <int32_t Idx, typename Tree>
-        void stream(Tree&& tree, IBlockDataEventHandler* handler)
+        auto stream(Tree&& tree, IBlockDataEventHandler* handler)
         {
-            tree.generateDataEvents(handler);
+            return tree.generateDataEvents(handler);
         }
     };
 
-    void generateDataEvents(IBlockDataEventHandler* handler) const
+    VoidResult generateDataEvents(IBlockDataEventHandler* handler) const noexcept
     {
         node_->template generateDataEvents<RootMetadataList>(handler);
-
-        Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
+        return Dispatcher(state()).dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
     }
 
     void init_root_metadata() {
@@ -892,7 +891,7 @@ public:
 
 
     void dump() const {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), DumpFn());
+        Dispatcher(state()).dispatchNotEmpty(allocator(), DumpFn()).get_or_throw();
     }
 
 
@@ -905,7 +904,7 @@ public:
     };
 
     void dumpBlockSizes() const {
-        Dispatcher(state()).dispatchNotEmpty(allocator(), DumpBlockSizesFn());
+        Dispatcher(state()).dispatchNotEmpty(allocator(), DumpBlockSizesFn()).get_or_throw();
     }
 
 
@@ -918,7 +917,7 @@ public:
     template <typename Fn, typename... Args>
     void dispatchAll(Fn&& fn, Args&&... args) const
     {
-        Dispatcher(state()).dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        Dispatcher(state()).dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <typename Fn, typename... Args>
@@ -929,14 +928,14 @@ public:
                 allocator(),
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
     template <typename Fn, typename... Args>
     auto process(int32_t stream, Fn&& fn, Args&&... args)
     {
         return Dispatcher(state())
-                .dispatch(stream, allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .dispatch(stream, allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -944,7 +943,7 @@ public:
     auto processAll(Fn&& fn, Args&&... args) const
     {
         return Dispatcher(state())
-                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -952,14 +951,14 @@ public:
     auto processAll(Fn&& fn, Args&&... args)
     {
         return Dispatcher(state())
-                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <typename SubstreamsPath, typename Fn, typename... Args>
     auto processSubstreams(Fn&& fn, Args&&... args) const
     {
         return SubstreamsDispatcher<SubstreamsPath>(state())
-                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -967,7 +966,7 @@ public:
     auto processSubstreams(Fn&& fn, Args&&... args)
     {
         return SubstreamsDispatcher<SubstreamsPath>()
-                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+                .dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -1013,7 +1012,7 @@ public:
                 std::forward<Fn>(fn),
                 accum,
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
     template <
@@ -1029,7 +1028,7 @@ public:
                 std::forward<Fn>(fn),
                 accum,
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1047,7 +1046,7 @@ public:
                 std::forward<Fn>(fn),
                 accum,
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1065,7 +1064,7 @@ public:
                 std::forward<Fn>(fn),
                 accum,
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1083,7 +1082,7 @@ public:
                 std::forward<Fn>(fn),
                 accum,
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1101,7 +1100,7 @@ public:
                 std::forward<Fn>(fn),
                 accum,
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1117,7 +1116,7 @@ public:
                 std::forward<Fn>(fn),
                 accum,
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
     template <
@@ -1132,7 +1131,7 @@ public:
                 std::forward<Fn>(fn),
                 accum,
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1150,7 +1149,7 @@ public:
                 allocator(),
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
     template <
@@ -1165,7 +1164,7 @@ public:
                 allocator(),
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1222,14 +1221,14 @@ public:
     auto processStream(Fn&& fn, Args&&... args) const
     {
         const int32_t StreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
-        return Dispatcher(state()).template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return Dispatcher(state()).template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args)
     {
         const int32_t StreamIdx = list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>;
-        return Dispatcher(state()).template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        return Dispatcher(state()).template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
     }
 
 
@@ -1280,7 +1279,7 @@ public:
                 allocator(),
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1292,7 +1291,7 @@ public:
                 allocator(),
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1303,7 +1302,7 @@ public:
         return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllStatic(
                 std::forward<Fn>(fn),
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 
 
@@ -1318,7 +1317,7 @@ public:
                 std::forward<Fn>(fn),
                 std::forward<Accum>(accum),
                 std::forward<Args>(args)...
-        );
+        ).get_or_throw();
     }
 };
 

@@ -43,7 +43,7 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #define MEMORIA_V1_ASSERT_RTN(Left, Operation, Right)                                                       \
         do {if (!(Left Operation Right)) {                                                                  \
-            return memoria::VoidResult::make_error_tr("ASSERT FAILURE: {} {} {} Values: {} {} at {}", \
+            return MEMORIA_MAKE_GENERIC_ERROR("ASSERT FAILURE: {} {} {} Values: {} {} at {}", \
                     #Left, #Operation, #Right, Left, Right, MMA_SRC);                                       \
         }} while(0)
 

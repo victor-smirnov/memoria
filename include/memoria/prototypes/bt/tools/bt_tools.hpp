@@ -156,7 +156,7 @@ public:
             return VoidResult::of();
         }
         else {
-            return VoidResult::make_error("No space left for new blocks in the BlockUpdateMgr");
+            return MEMORIA_MAKE_GENERIC_ERROR("No space left for new blocks in the BlockUpdateMgr");
         }
     }
 

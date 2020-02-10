@@ -329,7 +329,7 @@ BoolResult M_TYPE::ctr_try_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_
     // FIXME. This is special OOM condition that, if occurs, must be handled separately.
     MEMORIA_TRY(status1, self.ctr_remove_non_leaf_node_entry(tgt_path, 1, parent_idx));
     if (isFail(status1)) {
-        return BoolResult::make_error("PackedOOMException");
+        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
     }
 
     MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, 0));

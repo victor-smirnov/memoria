@@ -113,7 +113,7 @@ public:
     {
         Base::template serialize<RootMetadataList>(buf);
 
-        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
+        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf).get_or_throw();
     }
 
     struct DeserializeFn {
@@ -129,7 +129,7 @@ public:
     {
         Base::template deserialize<RootMetadataList>(buf);
 
-        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
+        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf).get_or_throw();
     }
 
 };

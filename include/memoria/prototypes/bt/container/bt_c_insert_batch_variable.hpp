@@ -101,7 +101,7 @@ public:
 
                 if (!child.isSet())
                 {
-                    return ResultT::make_error("Subtree is null");
+                    return MEMORIA_MAKE_GENERIC_ERROR("Subtree is null");
                 }
 
                 BranchNodeEntry sums = self.ctr_get_node_max_keys(child);
@@ -200,8 +200,6 @@ public:
 
         virtual Result<NodeBaseG> get_leaf() noexcept
         {
-            using ResultT = Result<NodeBaseG>;
-
             if (head_.isSet())
             {
                 auto node = head_;
@@ -214,7 +212,7 @@ public:
                 return node;
             }
             else {
-                return ResultT::make_error("Leaf List is empty");
+                return MEMORIA_MAKE_GENERIC_ERROR("Leaf List is empty");
             }
         }
 

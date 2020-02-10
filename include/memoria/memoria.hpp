@@ -68,6 +68,7 @@ struct StaticLibraryCtrs {
 #ifdef MEMORIA_BUILD_CONTAINERS
         InitCtrMetadata<Set<FixedArray<16>>, ProfileT>();
         InitCtrMetadata<Set<Varchar>, ProfileT>();
+        InitCtrMetadata<Set<UUID>, ProfileT>();
         InitCtrMetadata<Vector<Varchar>, ProfileT>();
         InitCtrMetadata<Vector<UTinyInt>, ProfileT>();
         InitCtrMetadata<Map<Varchar, Varchar>, ProfileT>();

@@ -117,7 +117,8 @@ public:
         int64_t t0 = getTimeInMillis();
         for (int c = 0; c < size; c++)
         {
-            if (c % 100000 == 0) {
+            if (c % 100000 == 0)
+            {
                 out() << "C=" << c << std::endl;
             }
 

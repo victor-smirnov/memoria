@@ -248,7 +248,7 @@ Result<CtrSharedPtr<ICtrApi<CtrName, Profile>>> find(
             return memoria_static_pointer_cast<ICtrApi<CtrName, Profile>>(std::move(ctr_ref_result));
         }
         else {
-            return ResultT::make_error(
+            return MEMORIA_MAKE_GENERIC_ERROR(
                 "Container type mismatch. Expected: {}, actual: {}",
                 signature,
                 ctr_ref->describe_datatype()

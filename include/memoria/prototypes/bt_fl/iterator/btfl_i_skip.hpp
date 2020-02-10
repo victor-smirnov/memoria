@@ -278,7 +278,7 @@ public:
             }
         }
         else {
-            return ResultT::make_error("Structure stream is empty");
+            return MEMORIA_MAKE_GENERIC_ERROR("Structure stream is empty");
         }
     }
 
@@ -312,11 +312,11 @@ public:
                 return VoidResult::of();
     		}
     		else {
-                return VoidResult::make_error("Structure stream is empty");
+                return MEMORIA_MAKE_GENERIC_ERROR("Structure stream is empty");
     		}
     	}
     	else {
-            return VoidResult::make_error("Invalid stream: {}", self.iter_stream());
+            return MEMORIA_MAKE_GENERIC_ERROR("Invalid stream: {}", self.iter_stream());
     	}
     }
 
@@ -331,7 +331,7 @@ public:
             self.iter_stream() 	  = stream;
     	}
     	else {
-            return VoidResult::make_error("Invalid stream: {}", self.iter_stream());
+            return MEMORIA_MAKE_GENERIC_ERROR("Invalid stream: {}", self.iter_stream());
     	}
     }
 

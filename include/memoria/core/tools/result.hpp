@@ -40,14 +40,31 @@ public:
 
     virtual void describe(std::ostream& out) const noexcept = 0;
     virtual const char* what() const noexcept = 0;
+
+    virtual void release() noexcept = 0;
 };
 
-using MemoriaErrorPtr = std::unique_ptr<MemoriaError>;
+void release(MemoriaError* error) noexcept;
 
-class SimpleMemoriaError: public MemoriaError {
+using MemoriaErrorPtr = std::unique_ptr<MemoriaError, std::function<void(MemoriaError*)>>;
+
+template <typename ErrorType, typename... Args>
+MemoriaErrorPtr make_memoria_error(Args&&... args) {
+    return MemoriaErrorPtr(new ErrorType{std::forward<Args>(args)...}, release);
+}
+
+
+class GenericMemoriaError: public MemoriaError {
+    const char* source_;
     U8String reason_;
 public:
-    SimpleMemoriaError(U8String reason) noexcept:
+    GenericMemoriaError(U8String reason) noexcept:
+        source_("NONE"),
+        reason_(std::move(reason))
+    {}
+
+    GenericMemoriaError(const char* source, U8String reason) noexcept:
+        source_(source),
         reason_(std::move(reason))
     {}
 
@@ -66,25 +83,33 @@ public:
     virtual const char* what() const noexcept {
         return reason_.data();
     }
+
+    virtual void release() noexcept {
+        delete this;
+    }
+
+    const char* source() noexcept {
+        return source_;
+    }
 };
 
 class ResultException: public std::exception {
-    std::unique_ptr<MemoriaError> error_;
+    MemoriaErrorPtr error_;
 
 public:
-    ResultException(std::unique_ptr<MemoriaError>&& error) noexcept :
+    ResultException(MemoriaErrorPtr&& error) noexcept :
         error_(std::move(error))
     {}
 
-    const std::unique_ptr<MemoriaError>& error() const & {
+    const MemoriaErrorPtr& error() const & {
         return error_;
     }
 
-    std::unique_ptr<MemoriaError>& error() & {
+    MemoriaErrorPtr& error() & {
         return error_;
     }
 
-    std::unique_ptr<MemoriaError>&& error() && {
+    MemoriaErrorPtr&& error() && {
         return std::move(error_);
     }
 
@@ -105,6 +130,18 @@ namespace detail {
     using ResultErrors = boost::variant2::variant<MemoriaErrorPtr, std::exception_ptr>;
     struct UnassignedResultValueType {};
 }
+
+template <typename... Args>
+detail::ResultErrors make_generic_error(const char* fmt, Args&&... args) noexcept {
+    return make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Args>(args)...));
+}
+
+template <typename... Args>
+detail::ResultErrors make_generic_error_with_source(const char* source, const char* fmt, Args&&... args) noexcept {
+    return make_memoria_error<GenericMemoriaError>(source, format_u8(fmt, std::forward<Args>(args)...));
+}
+
+#define MEMORIA_MAKE_GENERIC_ERROR(FMT, ...) ::memoria::make_generic_error_with_source(MMA_SRC, FMT, ##__VA_ARGS__)
 
 template <typename T>
 class Result;
@@ -163,25 +200,25 @@ public:
         return Result<T>(ResultTag{}, std::forward<Args>(args)...);
     }
 
-    template <typename Arg>
-    static Result<T> error(Arg&& arg) noexcept {
-        return Result<T>(ErrorTag{}, std::forward<Arg>(arg));
-    }
+//    template <typename Arg>
+//    static Result<T> error(Arg&& arg) noexcept {
+//        return Result<T>(ErrorTag{}, std::forward<Arg>(arg));
+//    }
 
-    template <typename... Arg>
-    static Result<T> simple_memoria_error(Arg&&... args) noexcept {
-        return Result<T>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(std::forward<Arg>(args)...));
-    }
+//    template <typename... Arg>
+//    static Result<T> simple_memoria_error(Arg&&... args) noexcept {
+//        return Result<T>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(std::forward<Arg>(args)...));
+//    }
 
-    template <typename... Arg>
-    static Result<T> make_error(const char* fmt, Arg&&... args) noexcept {
-        return Result<T>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...)));
-    }
+//    template <typename... Arg>
+//    static Result<T> make_error(const char* fmt, Arg&&... args) noexcept {
+//        return Result<T>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...)));
+//    }
 
-    template <typename... Arg>
-    static detail::ResultErrors make_error_tr(const char* fmt, Arg&&... args) noexcept {
-        return Result<T>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...))).transfer_error();
-    }
+//    template <typename... Arg>
+//    static detail::ResultErrors make_error_tr(const char* fmt, Arg&&... args) noexcept {
+//        return Result<T>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...))).transfer_error();
+//    }
 
     bool is_ok() const noexcept {
         return variant_.index() == 0;
@@ -428,25 +465,25 @@ public:
         return Result<void>(ResultTag{});
     }
 
-    template <typename Arg>
-    static Result<void> error(Arg&& arg) noexcept {
-        return Result<void>(ErrorTag{}, std::forward<Arg>(arg));
-    }
+//    template <typename Arg>
+//    static Result<void> error(Arg&& arg) noexcept {
+//        return Result<void>(ErrorTag{}, std::forward<Arg>(arg));
+//    }
 
-    template <typename... Arg>
-    static Result<void> simple_memoria_error(Arg&&... args) noexcept {
-        return Result<void>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(std::forward<Arg>(args)...));
-    }
+//    template <typename... Arg>
+//    static Result<void> simple_memoria_error(Arg&&... args) noexcept {
+//        return Result<void>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(std::forward<Arg>(args)...));
+//    }
 
-    template <typename... Arg>
-    static Result<void> make_error(const char* fmt, Arg&&... args) noexcept {
-        return Result<void>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...)));
-    }
+//    template <typename... Arg>
+//    static Result<void> make_error(const char* fmt, Arg&&... args) noexcept {
+//        return Result<void>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...)));
+//    }
 
-    template <typename... Arg>
-    static detail::ResultErrors make_error_tr(const char* fmt, Arg&&... args) noexcept {
-        return Result<void>(ErrorTag{}, std::make_unique<SimpleMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...))).transfer_error();
-    }
+//    template <typename... Arg>
+//    static detail::ResultErrors make_error_tr(const char* fmt, Arg&&... args) noexcept {
+//        return Result<void>(ErrorTag{}, make_memoria_error<GenericMemoriaError>(format_u8(fmt, std::forward<Arg>(args)...))).transfer_error();
+//    }
 
     bool is_ok() const noexcept {
         return variant_.index() == 0;
@@ -674,8 +711,7 @@ wrap_throwing(Fn&& fn) noexcept
         return detail::wrap_fn_result(fn());
     }
     catch (...) {
-        using RtnT = typename detail::ResultOfFn<Fn()>::Type::ValueType;
-        return Result<RtnT>::error(std::current_exception());
+        return detail::ResultErrors{std::current_exception()};
     }
 }
 
@@ -713,7 +749,7 @@ wrap_throwing(Fn&& fn) noexcept
         return Result<RtnT>::of();
     }
     catch (...) {
-        return Result<RtnT>::error(std::current_exception());
+        return detail::ResultErrors{std::current_exception()};
     }
 }
 

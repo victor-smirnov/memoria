@@ -224,7 +224,7 @@ public:
         );
 
         if (isFail(fn.status_)) {
-            return ResultT::make_error("PackedOOMException");
+            return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
         }
 
         return ResultT::of(status);

@@ -334,7 +334,7 @@ public:
         }
         else
         {
-            return VoidResult::make_error("Snapshot is already committed.");
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot is already committed.");
         }
     }
 
@@ -351,7 +351,7 @@ public:
             return ctr_intf->for_each_ctr_node(name, this->shared_from_this(), fn);
     	}
     	else {
-            return VoidResult::make_error("Container with name {} does not exist in snapshot {}", name, history_node_->snapshot_id());
+            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {}", name, history_node_->snapshot_id());
     	}
     }
 
@@ -370,7 +370,7 @@ public:
 
         if (root_id.is_null())
     	{
-            auto res = txn->for_each_ctr_node(name, [&](const BlockID&, const BlockID& id, const void*) noexcept {
+            auto res = txn->for_each_ctr_node(name, [&](const BlockID&, const BlockID& id, const void*) noexcept -> VoidResult {
                 auto rc_handle = txn->export_block_rchandle(id);
     			using Value = typename PersistentTreeT::Value;
 
@@ -380,7 +380,7 @@ public:
 
                 if (old_value.block_ptr())
     			{
-                    return VoidResult::make_error("Block with ID {} is not new in snapshot {}", id, txn_id);
+                    return MEMORIA_MAKE_GENERIC_ERROR("Block with ID {} is not new in snapshot {}", id, txn_id);
     			}
 
                 return VoidResult::of();
@@ -395,11 +395,11 @@ public:
                 MEMORIA_TRY_VOID(root_map_->assign(name, root_id));
     		}
     		else {
-                return VoidResult::make_error("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
+                return MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
     		}
     	}
     	else {
-            return VoidResult::make_error("Container with name {} already exists in snapshot {}", name, txn_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists in snapshot {}", name, txn_id);
     	}
 
         return VoidResult::of();
@@ -430,11 +430,11 @@ public:
                 MEMORIA_TRY_VOID(root_map_->assign(name, root_id1));
     		}
     		else {
-                return VoidResult::make_error("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
+                return MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
     		}
     	}
     	else {
-            return VoidResult::make_error("Container with name {} already exists in snapshot {}", name, txn_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists in snapshot {}", name, txn_id);
     	}
 
         return VoidResult::of();
@@ -475,7 +475,7 @@ public:
                     if (old_value.block_ptr()->unref() == 0)
     				{
                         // FIXME: just delete the block?
-                        return VoidResult::make_error("Unexpected refcount == 0 for block {}", old_value.block_ptr()->raw_data()->uuid());
+                        return MEMORIA_MAKE_GENERIC_ERROR("Unexpected refcount == 0 for block {}", old_value.block_ptr()->raw_data()->uuid());
     				}
     			}
 
@@ -489,7 +489,7 @@ public:
                 MEMORIA_TRY_VOID(root_map_->assign(name, root_id));
     		}
     		else {
-                return VoidResult::make_error("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
+                return MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn->currentTxnId());
     		}
 
             return VoidResult::of();
@@ -531,7 +531,7 @@ public:
                 MEMORIA_TRY_VOID(root_map_->assign(name, root_id1));
     		}
     		else {
-                return VoidResult::make_error("Unexpected empty root ID for container {} in snapshot {}", name, txn_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Unexpected empty root ID for container {} in snapshot {}", name, txn_id);
     		}
 
             return VoidResult::of();
@@ -559,7 +559,7 @@ public:
             return ctr_intf->clone_ctr(ctr_name, new_ctr_name, this->shared_from_this());
         }
         else {
-            return Result<CtrID>::make_error("Container with name {} does not exist in snapshot {} ", ctr_name, history_node_->snapshot_id());
+            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} does not exist in snapshot {} ", ctr_name, history_node_->snapshot_id());
         }
     }
 
@@ -606,7 +606,7 @@ public:
                 return block_result;
             }
             else {
-                return Result<BlockG>::make_error("Block is not found for the specified id: {}", id);
+                return MEMORIA_MAKE_GENERIC_ERROR("Block is not found for the specified id: {}", id);
             }
         }
         else {
@@ -628,7 +628,7 @@ public:
             instance_map_.insert({ctr_id, instance});
     	}
     	else {
-            return Result<void>::make_error("Container with name {} has been already registered", ctr_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} has been already registered", ctr_id);
     	}
 
         return Result<void>::of();
@@ -671,7 +671,7 @@ public:
         if (!ii->iter_is_end())
         {
             do {
-                ii->dump();
+                MEMORIA_TRY_VOID(ii->dump());
 
                 MEMORIA_TRY(has_next, ii->iter_next_leaf());
                 if (!has_next) break;
@@ -718,7 +718,7 @@ public:
                     }
                 }
                 else {
-                    return Result<BlockG>::make_error("Block is not found for the specified id: {}", id);
+                    return MEMORIA_MAKE_GENERIC_ERROR("Block is not found for the specified id: {}", id);
                 }
             }
             else if (shared->state() == Shared::READ)
@@ -734,7 +734,7 @@ public:
                     shared->refresh();
                 }
                 else {
-                    return Result<BlockG>::make_error("Block is not found for the specified id: {}", id);
+                    return MEMORIA_MAKE_GENERIC_ERROR("Block is not found for the specified id: {}", id);
                 }
             }
             else if (shared->state() == Shared::UPDATE)
@@ -742,7 +742,7 @@ public:
                 //MEMORIA_ASEERT();
             }
             else {
-                return Result<BlockG>::make_error("Invalid BlockShared state: {}", shared->state());
+                return MEMORIA_MAKE_GENERIC_ERROR("Invalid BlockShared state: {}", shared->state());
             }
 
             shared->state() = Shared::UPDATE;
@@ -939,7 +939,7 @@ public:
 
     virtual Result<BlockG> getBlockG(BlockType*) noexcept
     {
-        return Result<BlockG>::make_error("Method getBlockG is not implemented for this allocator");
+        return MEMORIA_MAKE_GENERIC_ERROR("Method getBlockG is not implemented for this allocator");
     }
 
 
@@ -992,7 +992,7 @@ public:
                 MEMORIA_TRY_VOID(root_map_->remove(name));
             }
             else {
-                return VoidResult::make_error("Allocator directory removal attempted");
+                return MEMORIA_MAKE_GENERIC_ERROR("Allocator directory removal attempted");
             }
         }
         else {
@@ -1148,7 +1148,7 @@ public:
                     return ResultT::of(ii->second->shared_self());
                 }
                 else {
-                    return VoidResult::make_error_tr(
+                    return MEMORIA_MAKE_GENERIC_ERROR(
                                 "Exisitng ctr instance type hash mismatch: expected {}, actual {}",
                                 ctr_hash,
                                 instance_hash
@@ -1183,7 +1183,7 @@ public:
             return ResultT::of(ctr_intf->ctr_type_name());
         }
         else {
-            return ResultT::make_error("Can't find container with name {}", name);
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't find container with name {}", name);
         }
     }
 
@@ -1357,7 +1357,7 @@ protected:
 
     	if (is_data_locked())
     	{
-            MMA_THROW(Exception()) << WhatInfo(format_u8("Snapshot's {} data is locked", uuid()));
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot's {} data is locked", uuid());
     	}
 
         return VoidResult::of();
@@ -1367,7 +1367,7 @@ protected:
     {
     	if (!is_active())
     	{
-            return VoidResult::make_error("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status());
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot's {} data is not active, snapshot status = {}", uuid(), (int32_t)history_node_->status());
     	}
 
         return VoidResult::of();
@@ -1381,11 +1381,11 @@ protected:
     		// Double checking. This shouldn't happen
     		if (!history_node_->root())
     		{
-                return VoidResult::make_error("Snapshot {} has been cleared", uuid());
+                return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been cleared", uuid());
     		}
     	}
     	else if (history_node_->is_active()) {
-            return VoidResult::make_error("Snapshot {} is still active", uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} is still active", uuid());
     	}
 
         return VoidResult::of();
@@ -1406,7 +1406,7 @@ protected:
 
         if (!history_node_->is_active())
         {
-            return VoidResult::make_error("Snapshot {} has been already committed or data is locked", uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been already committed or data is locked", uuid());
         }
 
         return VoidResult::of();
@@ -1418,7 +1418,7 @@ protected:
 
         if ((!history_node_->is_active())) // && ctrName.is_set()
     	{
-            return VoidResult::make_error("Snapshot {} has been already committed or data is locked", uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} has been already committed or data is locked", uuid());
     	}
 
         return VoidResult::of();
@@ -1430,7 +1430,7 @@ protected:
 
     	if (!history_node_->is_data_locked())
     	{
-            return VoidResult::make_error("Snapshot {} hasn't been locked", uuid());
+            return MEMORIA_MAKE_GENERIC_ERROR("Snapshot {} hasn't been locked", uuid());
     	}
 
         return VoidResult::of();

@@ -124,8 +124,8 @@ public:
 
 
 
-    MEMORIA_V1_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
-    bool ctr_can_merge_nodes(const NodeBaseG& tgt, const NodeBaseG& src) noexcept
+    MEMORIA_V1_DECLARE_NODE2_FN(CanMergeFn, canBeMergedWith);
+    BoolResult ctr_can_merge_nodes(const NodeBaseG& tgt, const NodeBaseG& src) noexcept
     {
         return self().node_dispatcher().dispatch(src, tgt, CanMergeFn());
     }
@@ -211,7 +211,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
         MEMORIA_TRY(insertion_status, self.ctr_insert_to_branch_node(path, level + 1, parent_idx + 1, right_max, right_node->id()));
         if (isFail(insertion_status))
         {
-            return ResultT::make_error("PackedOOMException");
+            return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
         }
     }
     else {
@@ -250,7 +250,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
 
         if(isFail(right_path_insertion_status))
         {
-            return ResultT::make_error("Can't insert node into the right path");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't insert node into the right path");
         }
     }
 
@@ -307,7 +307,7 @@ BoolResult M_TYPE::ctr_update_branch_node(NodeBaseG& node, int32_t idx, const Br
     auto res = self().branch_dispatcher().dispatch(node, UpdateNodeFn(), idx, keys);
     if (!isOk(res))
     {
-        return BoolResult::make_error("PackedOOMException");
+        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
     }
 
     return BoolResult::of(true);
@@ -376,7 +376,7 @@ VoidResult M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNo
         int32_t child_idx = self.ctr_find_child_idx(path[level + 1], path[level]->id());
         if (child_idx < 0)
         {
-            return VoidResult::make_error("ctr_update_path() internal error");
+            return MEMORIA_MAKE_GENERIC_ERROR("ctr_update_path() internal error");
         }
     }
 
@@ -416,7 +416,7 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src
 
     OpStatus status0 = self.branch_dispatcher().dispatch(src, tgt, MergeNodesFn());
     if (isFail(status0)) {
-        return VoidResult::make_error("PackedOOMException");
+        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
     }
 
     MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, level));
@@ -425,7 +425,7 @@ VoidResult M_TYPE::ctr_do_merge_branch_nodes(TreePathT& tgt_path, TreePathT& src
 
     MEMORIA_TRY(status1, self.ctr_remove_non_leaf_node_entry(tgt_path, level + 1, parent_idx));
     if (isFail(status1)) {
-        return VoidResult::make_error("PackedOOMException");
+        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
     }
 
     MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, level, max));
@@ -459,7 +459,8 @@ BoolResult M_TYPE::ctr_merge_branch_nodes(TreePathT& tgt, TreePathT& src, size_t
 {
     auto& self = this->self();
 
-    if (self.ctr_can_merge_nodes(tgt[level], src[level]))
+    MEMORIA_TRY(can_be_merged, self.ctr_can_merge_nodes(tgt[level], src[level]));
+    if (can_be_merged)
     {
         MEMORIA_TRY(same_parent, self.ctr_is_the_same_parent(tgt, src, level));
         if (same_parent)

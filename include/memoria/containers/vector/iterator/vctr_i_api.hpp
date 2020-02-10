@@ -111,7 +111,7 @@ public:
 
         if (start + size > buffer.size())
         {
-            return VoidResult::make_error("Vector insert_buffer rancge check error: {}, {}, {}", start, size, buffer.size());
+            return MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer rancge check error: {}, {}, {}", start, size, buffer.size());
         }
 
         MEMORIA_TRY(current_pos, self.pos());
@@ -199,7 +199,7 @@ public:
             return self.ctr().template ctr_update_entry<IntList<1>>(self, EntryAdapter{v});
         }
         else {
-            return VoidResult::make_error(
+            return MEMORIA_MAKE_GENERIC_ERROR(
                 "Requested index {} is outside of bounds [0, {})",
                 local_pos,
                 self.iter_leaf_size(0)

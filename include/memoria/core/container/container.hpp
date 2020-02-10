@@ -266,7 +266,7 @@ public:
                 return fn(*ctr_ptr.get());
             }
             else {
-                return VoidResult::make_error("No container is found for id {}", ctr_id);
+                return MEMORIA_MAKE_GENERIC_ERROR("No container is found for id {}", ctr_id);
             }
         }
 
@@ -405,7 +405,7 @@ public:
 
     Result<CtrID> clone(const CtrID& new_name) noexcept
     {
-        return Result<CtrID>::make_error("Clone operation is not supported for this container");
+        return MEMORIA_MAKE_GENERIC_ERROR("Clone operation is not supported for this container");
     }
 
     bool is_updatable() const noexcept {

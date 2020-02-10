@@ -79,7 +79,7 @@ struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
     {
         using SubgroupDispatcher = typename Dispatcher::template SubsetDispatcher<Group, GroupIdx>;
 
-        SubgroupDispatcher::dispatchAll(allocator, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        SubgroupDispatcher::dispatchAll(allocator, std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
 
         GroupDispatcher<Dispatcher, TypeList<Tail...>, GroupIdx + 1>::dispatchGroups(
                 allocator,
@@ -94,7 +94,7 @@ struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
     {
         using SubgroupDispatcher = typename Dispatcher::template SubsetDispatcher<Group, GroupIdx>;
 
-        SubgroupDispatcher(state).dispatchAll(allocator, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        SubgroupDispatcher(state).dispatchAll(allocator, std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
 
         GroupDispatcher<Dispatcher, TypeList<Tail...>, GroupIdx + 1>::dispatchGroups(
                 std::forward<State>(state),
@@ -110,7 +110,7 @@ struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
     {
         using SubgroupDispatcher = typename Dispatcher::template SubsetDispatcher<Group, GroupIdx>;
 
-        SubgroupDispatcher::dispatchAllStatic(std::forward<Fn>(fn), std::forward<Args>(args)...);
+        SubgroupDispatcher::dispatchAllStatic(std::forward<Fn>(fn), std::forward<Args>(args)...).get_or_throw();
 
         GroupDispatcher<Dispatcher, TypeList<Tail...>, GroupIdx + 1>::dispatchGroupsStatic(
                 std::forward<Fn>(fn),

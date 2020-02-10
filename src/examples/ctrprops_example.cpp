@@ -54,14 +54,14 @@ int main()
             std::cout << "Prop: " << key_view << " :: " << value_view << std::endl;
         }).throw_if_error();
 
-        ctr0->iterator().get_or_throw()->dump();
+        ctr0->iterator().get_or_throw()->dump().get_or_throw();
 
         std::cout << "Props: " << ctr0->ctr_properties() << std::endl;
 
         ctr0->remove_ctr_property("prop1").throw_if_error();
         ctr0->remove_ctr_property("prop2").throw_if_error();
 
-        ctr0->iterator().get_or_throw()->dump();
+        ctr0->iterator().get_or_throw()->dump().get_or_throw();
 
         std::cout << "Props: " << ctr0->ctr_properties() << std::endl;
 

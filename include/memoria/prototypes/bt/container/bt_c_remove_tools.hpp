@@ -51,7 +51,6 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::RemoveToolsName)
 public:
     VoidResult drop() noexcept
     {
-        using ResultT = Result<void>;
         auto& self = this->self();
 
         if (self.store().isActive())
@@ -71,7 +70,7 @@ public:
             return self.store().unregisterCtr(self.name(), this);
         }
         else {
-            return ResultT::make_error("Transaction must be in active state to drop containers");
+            return MEMORIA_MAKE_GENERIC_ERROR("Transaction must be in active state to drop containers");
         }
     }
 
@@ -129,7 +128,7 @@ protected:
             return BoolResult::of(left[level + 1]->id() == right[level + 1]->id());
         }
         else {
-            return BoolResult::make_error("Invalid tree path. Level = {}, height = {}", level, left.size());
+            return MEMORIA_MAKE_GENERIC_ERROR("Invalid tree path. Level = {}, height = {}", level, left.size());
         }
     }
 
@@ -220,7 +219,7 @@ VoidResult M_TYPE::ctr_remove_node_content(TreePathT& path, size_t level, int32_
 
     OpStatus status = self.branch_dispatcher().dispatch(path[level], RemoveSpaceFn(), start, end);
     if (isFail(status)) {
-        return VoidResult::make_error("PackedOOMException");
+        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
     }
 
     MEMORIA_TRY_VOID(self.ctr_update_path(path, level));
@@ -261,7 +260,7 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(TreePathT& pat
     OpStatus status = self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), start, end);
 
     if (isFail(status)) {
-        return ResultT::make_error("PackedOOMException");
+        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
     }
 
     MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));
@@ -286,7 +285,7 @@ Result<typename M_TYPE::Position> M_TYPE::ctr_remove_leaf_content(
     OpStatus status = self.leaf_dispatcher().dispatch(node, RemoveSpaceFn(), stream, start, end);
 
     if (isFail(status)) {
-        return ResultT::make_error("PackedOOMException");
+        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
     }
 
     MEMORIA_TRY_VOID(self.ctr_update_path(path, 0));

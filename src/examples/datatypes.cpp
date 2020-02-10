@@ -37,7 +37,7 @@ using Ctr2T = Vector<Varchar>;
 
 template <typename... Args>
 Result<void> boo(Args...) {
-    return Result<void>::simple_memoria_error("Ooops!");
+    return MEMORIA_MAKE_GENERIC_ERROR("Ooops!");
 }
 
 
@@ -139,7 +139,7 @@ int main()
 
         snp->commit();
 
-        /**/
+        */
     }
     catch (MemoriaThrowable& th) {
         th.dump(std::cout);

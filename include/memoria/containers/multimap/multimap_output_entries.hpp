@@ -77,7 +77,7 @@ public:
 
     virtual void dump_iterator() const
     {
-        iter_->dump();
+        iter_->dump().get_or_throw();
 
         std::cout << "Buffer: " << std::endl;
 

@@ -54,7 +54,7 @@ protected:
 
             if (!std::get<0>(remove_entry_result1))
             {
-                return VoidResult::make_error("Second removal attempt failed");
+                return MEMORIA_MAKE_GENERIC_ERROR("Second removal attempt failed");
             }
 
             MEMORIA_TRY_VOID(self.ctr_update_path(iter.path(), 0));

@@ -61,7 +61,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
 
             if (!std::get<0>(result1))
             {
-                return ResultT::make_error("Second insertion attempt failed");
+                return MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed");
             }
         }
         else {
@@ -95,7 +95,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(bt::InsertName)
             MEMORIA_TRY(result1, self.ctr_with_block_manager(iter.iter_leaf(), iter.iter_local_pos(), split_result.stream_idx(), insert_fn));
             if (!result1)
             {
-                return ResultT::make_error("Second insertion attempt failed");
+                return MEMORIA_MAKE_GENERIC_ERROR("Second insertion attempt failed");
             }
         }
         else {

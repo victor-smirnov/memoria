@@ -227,7 +227,7 @@ VoidResult M_TYPE::ctr_split_node_raw(
         if(isFail(right_path_insertion_status))
         {
             mgr.rollback();
-            return ResultT::make_error("Can't insert node into the right path");
+            return MEMORIA_MAKE_GENERIC_ERROR("Can't insert node into the right path");
         }
     }
 
@@ -329,7 +329,7 @@ BoolResult M_TYPE::ctr_update_branch_nodes(TreePathT& path, size_t level, int32_
         MEMORIA_TRY(success2, self.ctr_update_branch_node(node, idx, entry));
         if (!success2)
         {
-            return BoolResult::make_error("Updating entry is too large");
+            return MEMORIA_MAKE_GENERIC_ERROR("Updating entry is too large");
         }
     }
 
@@ -369,7 +369,7 @@ VoidResult M_TYPE::ctr_update_path(TreePathT& path, size_t level, const BranchNo
         int32_t child_idx = self.ctr_find_child_idx(path[level + 1], path[level]->id());
         if (child_idx < 0)
         {
-            return VoidResult::make_error("ctr_update_path() internal error");
+            return MEMORIA_MAKE_GENERIC_ERROR("ctr_update_path() internal error");
         }
     }
 

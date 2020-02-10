@@ -107,7 +107,7 @@ public:
 
         if (start + size > buffer.size())
         {
-            return VoidResult::make_error("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size());
+            return MEMORIA_MAKE_GENERIC_ERROR("Vector insert_buffer range check error: {}, {}, {}", start, size, buffer.size());
         }
 
         VectorProducer<CtrApiTypes> producer([&](auto& values, auto appended_size){

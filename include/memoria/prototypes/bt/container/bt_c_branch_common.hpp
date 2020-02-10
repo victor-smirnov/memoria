@@ -101,7 +101,7 @@ VoidResult M_TYPE::ctr_create_new_root_block(TreePathT& path) noexcept
     MEMORIA_TRY(status, self.ctr_insert_to_branch_node(path, new_root->level(), 0, max, root->id()));
 
     if (isFail(status)) {
-        return VoidResult::make_error("PackedOOMException");
+        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
     }
 
     return self.set_root(new_root->id());

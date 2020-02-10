@@ -84,7 +84,7 @@ public:
             for (size_t ll = level; ll < left_path.size(); ll++)
             {
                 if (left_path[ll] != right_path[ll]) {
-                    return VoidResult::make_error(
+                    return MEMORIA_MAKE_GENERIC_ERROR(
                                 "Path nodes are not equal at the level {} :: {} {}",
                                 ll,
                                 left_path[ll]->id(),
@@ -95,7 +95,7 @@ public:
             return VoidResult::of();
         }
         else {
-            return VoidResult::make_error(
+            return MEMORIA_MAKE_GENERIC_ERROR(
                         "Path sizes are different: {} {}",
                         left_path.size(),
                         right_path.size()
@@ -107,18 +107,18 @@ public:
     BoolResult ctr_check_tree() const noexcept;
 
     MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);
-    bool ctr_check_content(const NodeBaseG& node) const noexcept
+    BoolResult ctr_check_content(const NodeBaseG& node) const noexcept
     {
         try {
             self().node_dispatcher().dispatch(node, CheckContentFn());
-            return false;
+            return BoolResult::of(false);
         }
         catch (Exception& ex)
         {
-            self().ctr_dump_node(node);
+            MEMORIA_TRY_VOID(self().ctr_dump_node(node));
 
             MMA_ERROR(self(), "Node content check failed", ex.message());
-            return true;
+            return BoolResult::of(true);
         }
     }
 
@@ -171,7 +171,9 @@ VoidResult M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t par
 {
     auto& self = this->self();
 
-    errors = self.ctr_check_content(node) || errors;
+    MEMORIA_TRY(node_check, self.ctr_check_content(node));
+
+    errors = node_check || errors;
 
     if (!node->is_root())
     {
@@ -187,7 +189,7 @@ VoidResult M_TYPE::ctr_check_tree_structure(const NodeBaseG& parent, int32_t par
             {
                 errors = true;
                 MMA_ERROR(self, "children == 0 for non-root node", node->id());
-                self.ctr_dump_node(node);
+                MEMORIA_TRY_VOID(self.ctr_dump_node(node));
             }
         }
     }

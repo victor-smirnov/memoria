@@ -148,7 +148,7 @@ public:
                 MEMORIA_TRY(status, insertBuffer(leaf, pos[0], capacity));
 
                 if (isFail(status)) {
-                    return ResultT::make_error("PackedOOMException");
+                    return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
                 }
 
                 auto rest = buffer_size();

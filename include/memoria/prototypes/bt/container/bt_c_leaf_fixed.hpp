@@ -246,7 +246,7 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_p
 
     OpStatus status1 = self.leaf_dispatcher().dispatch(src, tgt, MergeNodesFn());
     if (isFail(status1)) {
-        return VoidResult::make_error("PackedOOMException");
+        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
     }
 
     MEMORIA_TRY(parent_idx, self.ctr_get_parent_idx(src_path, 0));
@@ -254,7 +254,7 @@ VoidResult M_TYPE::ctr_do_merge_leaf_nodes(TreePathT& tgt_path, TreePathT& src_p
     MEMORIA_TRY(status2, self.ctr_remove_non_leaf_node_entry(tgt_path, 1, parent_idx));
 
     if (isFail(status2)) {
-        return VoidResult::make_error("PackedOOMException");
+        return MEMORIA_MAKE_GENERIC_ERROR("PackedOOMException");
     }
 
     MEMORIA_TRY_VOID(self.ctr_update_path(tgt_path, 0));
@@ -270,7 +270,8 @@ BoolResult M_TYPE::ctr_merge_leaf_nodes(TreePathT& tgt, TreePathT& src, bool onl
 {
     auto& self = this->self();
 
-    if (self.ctr_can_merge_nodes(tgt.leaf(), src.leaf()))
+    MEMORIA_TRY(can_be_merged, self.ctr_can_merge_nodes(tgt.leaf(), src.leaf()));
+    if (can_be_merged)
     {
         MEMORIA_TRY(is_same_parent, self.ctr_is_the_same_parent(tgt, src, 0));
 

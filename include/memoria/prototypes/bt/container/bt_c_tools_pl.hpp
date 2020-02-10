@@ -49,7 +49,7 @@ protected:
 public:
 
 
-    void ctr_dump_path(const TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
+    VoidResult ctr_dump_path(const TreePathT& path, size_t level, std::ostream& out = std::cout, int32_t depth = 100) const noexcept
     {
         auto& self = this->self();
 
@@ -57,8 +57,10 @@ public:
 
         for (size_t ll = path.size(); ll > level; ll--)
         {
-            self.ctr_dump_node(path[ll - 1], out);
+            MEMORIA_TRY_VOID(self.ctr_dump_node(path[ll - 1], out));
         }
+
+        return VoidResult::of();
     }
 
 
@@ -71,7 +73,7 @@ public:
             return ResultT::of(path[level + 1]);
         }
         else {
-            return ResultT::make_error(
+            return MEMORIA_MAKE_GENERIC_ERROR(
                         "Invalid tree path parent access. Requesting level = {}, path size = {}",
                         level,
                         path.size()
@@ -92,7 +94,7 @@ public:
             return ResultT::of(path[level + 1]);
         }
         else {
-            return ResultT::make_error(
+            return MEMORIA_MAKE_GENERIC_ERROR(
                         "Invalid tree path parent access. Requesting level = {}, path size = {}",
                         level,
                         path.size()
@@ -111,7 +113,7 @@ public:
     {
         MEMORIA_TRY(has_next, self().ctr_get_next_node(path, level));
         if (!has_next) {
-            return VoidResult::make_error("Next node not found");
+            return MEMORIA_MAKE_GENERIC_ERROR("Next node not found");
         }
         return VoidResult::of();
     }
@@ -120,7 +122,7 @@ public:
     {
         MEMORIA_TRY(has_prev, self().ctr_get_prev_node(path, level));
         if (!has_prev) {
-            return VoidResult::make_error("Previous node not found");
+            return MEMORIA_MAKE_GENERIC_ERROR("Previous node not found");
         }
         return VoidResult::of();
     }

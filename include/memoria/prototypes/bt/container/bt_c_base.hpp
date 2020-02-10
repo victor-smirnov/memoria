@@ -785,7 +785,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             return ResultT::of(meta->model_name());
         }
         else {
-            return ResultT::make_error("Invalid container type: {}", node->ctr_type_hash());
+            return MEMORIA_MAKE_GENERIC_ERROR("Invalid container type: {}", node->ctr_type_hash());
         }
     }
 
@@ -795,7 +795,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (self.store().hasRoot(ctr_id).get_or_terminate())
         {
-            return VoidResult::make_error("Container with name {} already exists", ctr_id);
+            return MEMORIA_MAKE_GENERIC_ERROR("Container with name {} already exists", ctr_id);
         }
 
         self.configure_types(ctr_type_name, branch_node_ext_data_, leaf_node_ext_data_);

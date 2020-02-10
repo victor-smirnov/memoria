@@ -119,7 +119,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(map::CtrApiName)
 
         if (iter->is_found(before))
         {
-            return VoidResult::make_error("Requested key is found. Can't insert enties this way.");
+            return MEMORIA_MAKE_GENERIC_ERROR("Requested key is found. Can't insert enties this way.");
         }
         else {
             MEMORIA_TRY_VOID(iter->insert_iovector(producer, 0, std::numeric_limits<int64_t>::max()));
